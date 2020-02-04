@@ -4,36 +4,43 @@
 
 if (MPI_C_COMPILER)
     set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
-endif() 
+endif()
+
+if (MPI_CXX_COMPILER)
+    set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
+endif()
 
 if (MPI_Fortran_COMPILER)
     set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
-endif() 
+endif()
 
 unset(LINK_LIBRARIES)
 
 if (NOT MPI_C_COMPILER)
   if (MPI_C_LIBRARIES)
-    list(APPEND LINK_LIBRARIES ${MPI_C_LIBRARIES})   
+    list(APPEND LINK_LIBRARIES ${MPI_C_LIBRARIES})
   endif()
 endif ()
 
 if (MPI_CXX_LIBRARIES)
-  list(APPEND LINK_LIBRARIES ${MPI_CXX_LIBRARIES})  
+  list(APPEND LINK_LIBRARIES ${MPI_CXX_LIBRARIES})
 endif()
-  
+
 if (CWP_ENABLE_STATIC)
    if (CWP_ENABLE_Fortran)
+     if (MPI_CXX_LIBRARIES)
+       list(APPEND LINK_LIBRARIES ${MPI_CXX_LIBRARIES})
+     endif()
      if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
        list(APPEND LINK_LIBRARIES pdmf_static)
-     endif()  
+     endif()
      list(APPEND LINK_LIBRARIES cwpf_static)
    endif()
    if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
      list(APPEND LINK_LIBRARIES
           pdm_mpi_static
           pdm_static)
-   endif()          
+   endif()
    list(APPEND LINK_LIBRARIES cwp_static)
    if (CWP_ENABLE_Fortran)
     list(APPEND LINK_LIBRARIES cwpf_static)
@@ -49,14 +56,14 @@ else ()
    if (CWP_ENABLE_Fortran)
      if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
        list(APPEND LINK_LIBRARIES pdmf_shared)
-     endif()  
+     endif()
      list(APPEND LINK_LIBRARIES cwpf_shared)
    endif()
    if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
      list(APPEND LINK_LIBRARIES
           pdm_mpi_shared
           pdm_shared)
-   endif()          
+   endif()
    list(APPEND LINK_LIBRARIES cwp_shared)
    if (CWP_ENABLE_Fortran)
     list(APPEND LINK_LIBRARIES cwpf_shared)
@@ -78,14 +85,17 @@ if (CWP_ENABLE_Fortran)
    target_include_directories(cwp_checkf PRIVATE ${CMAKE_SOURCE_DIR}
                                          PRIVATE ${CMAKE_BINARY_DIR}
                                          PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+   if (MPI_Fortran_ADDITIONAL_INCLUDE_DIRS)
+      target_include_directories(cwp_checkf PRIVATE ${MPI_Fortran_ADDITIONAL_INCLUDE_DIRS})
+   endif()
    target_include_directories(cwp_checkf PRIVATE ${TEST_INC})
    target_link_libraries(cwp_checkf ${LINK_LIBRARIES})
    set_target_properties(cwp_checkf PROPERTIES LINKER_LANGUAGE "Fortran")
 endif()
 
-get_target_property(TEST_INC cwp INCLUDE_DIRECTORIES)                          
+get_target_property(TEST_INC cwp INCLUDE_DIRECTORIES)
 
-file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/meshes DESTINATION ${CMAKE_CURRENT_BINARY_DIR}) 
+file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/meshes DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 # Test list
 # ---------
@@ -114,7 +124,31 @@ endif ()
 #set (_MPIEXEC_MAX_NUMPROCS ${MPIEXEC_MAX_NUMPROCS})
 set (_MPIEXEC_MAX_NUMPROCS 2)
 
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_field.c")
+  test_c_create (c_new_api_field 4)
+endif ()
+
+#set (_MPIEXEC_MAX_NUMPROCS ${MPIEXEC_MAX_NUMPROCS})
+set (_MPIEXEC_MAX_NUMPROCS 2)
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_f_poly_block.c")
+  test_c_create (c_new_api_f_poly_block 2)
+endif ()
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_c_poly_block.c")
+  test_c_create (c_new_api_c_poly_block 2)
+endif ()
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_cellface_set_block.c")
+  test_c_create (c_new_api_cellface_set_block 2)
+endif ()
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_std_block.c")
+  test_c_create (c_new_api_std_block 2)
+endif ()
+
 test_c_create (c_linear_coupling 2)
+test_c_create (c_linear_location_edgeP2 2)
 test_c_create (c_surf_location_triaP2 2)
 test_c_create (c_surf_location_curvetriaP2 2)
 test_c_create (c_surf_coupling_P1P1_micron_polygon ${_MPIEXEC_MAX_NUMPROCS})
@@ -136,6 +170,15 @@ test_c_create (c_surf_without_partitioning_coupling ${_MPIEXEC_MAX_NUMPROCS})
 test_c_create (c_surf_without_partitioning_coupling2 ${_MPIEXEC_MAX_NUMPROCS})
 test_c_create (c_surf_sequential_coupling ${_MPIEXEC_MAX_NUMPROCS})
 test_c_create (c_vol_coupling_P1P1 2)
+test_c_create (c_vol_location_tetraP2 2)
+test_c_create (c_vol_sphereP2Tetra 2)
+test_c_create (c_vol_location_hexaP2 2)
+test_c_create (c_vol_location_anisohexaP2 2)
+test_c_create (c_vol_sphereP2Hexa 2)
+#test_c_create (c_vol_location_anisopyraP2 2) Erreur importante : A traiter
+test_c_create (c_vol_location_prismP2 2)
+test_c_create (c_vol_location_anisoprism 2)
+test_c_create (c_vol_location_pyraP2 2)
 test_c_create (c_vol_coupling_P1P1_with_external_points 2)
 test_c_create (c_vol_coupling_micro_polyhedra_P1P1 2)
 test_c_create (c_vol_coupling_polyhedra_P1P1 2)

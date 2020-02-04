@@ -1,3 +1,4 @@
+# cython: c_string_type=str, c_string_encoding=ascii
 #-----------------------------------------------------------------------------
 # This file is part of the CWIPI library. 
 #
@@ -17,6 +18,21 @@
 # License along with this library. If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
 
+"""
+cwipi - Coupling With Interpolation Parallel Interface library.
+"""
+
+
+# 2018-06-15: python3 modifications:
+#   - FILE* no longer available
+#   - str vs. bytes (1st line of this file)
+#   - tiny API modifications (irecv, isend return request directly)
+#   - const in callback (otherwise needs -fpermissive)
+#   -  __dealloc__ -> __del__
+#   - some safety checks (contiguity, orphan nodes)
+#   - add __version__
+#   - docstring
+
 cimport cython
 
 import numpy as np
@@ -26,19 +42,15 @@ cimport mpi4py.MPI as MPI
 from mpi4py.@mpi4pylibmpi@ cimport *
 
 from libc.stdlib cimport malloc, free
+from libc.stdio cimport FILE, fdopen
+from cpython.object cimport PyObject_AsFileDescriptor
 
+# fixme: internal global variables: shoud _prefix them, or even remove them?
 interp_f={}
 interp_ho_loc_f={}
 interp_ho_bas_f={}
 current_cpl = "" 
 
-cdef extern from "Python.h":
-    ctypedef struct FILE
-    FILE* PyFile_AsFile(object)
-
-cdef extern from "fileobject.h":
-    ctypedef class __builtin__.file [object PyFileObject]:
-        pass
 
 cdef extern from "cwipi.h":
 
@@ -267,17 +279,18 @@ EXCHANGE_BAD_RECEIVING = CWIPI_EXCHANGE_BAD_RECEIVING
 # Basic fonctions
 # ---------------
 
-def  init(MPI.Comm common_comm, char* application_name):
-    """
-     Initialize the cwipi library and create 
-     the current communicator application from 'common_comm'.
+def init(MPI.Comm common_comm, char* application_name):
+    """init(common_comm, application_name)
+    Initialize the cwipi library and create the current communicator application from ``common_comm``.
 
-     parameters:
-       common_comm       <-- Common MPI communicator
-       application_name  <-- Current application name
-       application_comm  --> Internal MPI communicator for the current
-                             application
-     It is a synchronization point between all applications
+    Parameters:
+        common_comm(MPI.Comm):   Common MPI communicator between all applications
+        application_name(str):   Current local application name
+
+    Returns:
+        application_comm (MPI.Comm): Internal MPI communicator for the current application group.
+
+    It is a synchronization point between all applications.
     """
     cdef MPI_Comm c_common_comm = common_comm.ob_mpi
 
@@ -288,27 +301,45 @@ def  init(MPI.Comm common_comm, char* application_name):
     return  application_comm
 
 
-def set_output_listing(file output_listing):
+def set_output_listing(output_listing):
+    """set_output_listing(output_listing)
+    Set up the file used for the output listing.
+
+    Parameters:
+        output_listing(file or str):  Output listing file
+
+    Note:
+        If this file is written by both cwipi and python, I/O buffering may mix up the output. 
+        In this case, calling output_listing.flush() before any cwipi call may help.
     """
-    Set up the file used for the output listing
+    cdef int fd
+    cdef FILE* c_file
+    cdef str mode
+    if (isinstance(output_listing, str)):
+        output_listing = open(output_listing, 'w')
+    # next line will most likely fail if output_listing is not
+    # an io.TextIOWrapper(in py3) or a file(in py2)
+    mode = output_listing.mode
+    # should test if writable?
 
-    parameters:
-      output_listing      <-- Output listing file (C function)
-    """
-    cdef FILE* c_file = PyFile_AsFile(output_listing)
-    cwipi_set_output_listing(c_file)     
+    fd = PyObject_AsFileDescriptor(output_listing)
+    c_file = fdopen(fd, mode)
+    cwipi_set_output_listing(c_file)
 
-
+    
 def dump_application_properties():
     """
-    Dump application properties
+    Dump application properties.
     """
     cwipi_dump_application_properties()
 
 
 def finalize():
     """
-    Finalize
+    Finalize this module.
+
+    After this call, no other function from this module can be called.
+    It is a synchronization point between all applications.
     """
     cwipi_finalize()
 
@@ -316,213 +347,189 @@ def finalize():
 # Control parameters
 # ------------------
 
-def add_local_int_control_parameter(char* name, int initial_value):
-    """
-    Add a integer control parameter
+## Pythonic function:
+def add_local_parameter(name, value):
+    """add_local_parameter(name, value)
+    Add an integer, double or string parameter to the coupling.
 
-    parameters
-      name           <-- parameter name
-      initial_value  <-- initial value
+    Parameters:
+      name (str) : parameter's name
+      value (int, float, str): its initial value
+
+    Note: 
+      The parameter's type is guessed from ``type(value)``. So the following are different:
+
+        >>> add_local_parameter('time', 10)
+        >>> add_local_parameter('time', 10.0)
+    """
+    if isinstance(value, int):
+        add_local_int_control_parameter(name, value)
+    elif isinstance(value, float):
+        add_local_double_control_parameter(name, value)
+    elif isinstance(value, str) or isinstance(value, bytes):  # fixme: bytes ou str ? ou les deux ?
+        add_local_string_control_parameter(name, value)
+    else:
+        raise TypeError("Argument 'value' should be a string, an integer or a float, not '%s'"%type(value))
+
+def set_local_parameter(name, value):
+    """set_local_parameter(name, value)
+    Set a parameter's value.
+
+    Parameters:
+      name (str) : an (existing) parameter's name
+      value (int, float, str): its new value
+
+    See also: :func:`add_local_parameter`.
+    """
+    if isinstance(value, int):
+        set_local_int_control_parameter(name, value)
+    elif isinstance(value, float):
+        set_local_double_control_parameter(name, value)
+    elif isinstance(value, str) or isinstance(value, bytes):  # fixme: bytes ou str ? ou les deux ?
+        set_local_string_control_parameter(name, value)
+    else:
+        raise TypeError("Argument 'value' should be a string, an integer or a float, not '%s'"%type(value))
+
+# Even more pythonic access would be with a dictionary(?). So we could retrieve the current value of a parameter?
+# For example:
+# print (cwipi.local_control_parameters)  # --> {}
+# cpl.local_control_parameters['time'] = 2.0
+# cpl.local_control_parameters['iteration'] = 200
+# cpl.local_control_parameters['quantity'] = 'pressure'
+# cpl.synchronize_control_parameters()    # now cpl.distant_control_parameters is up-to-date
+# print (cpl.global_control_parameters['time'])  # --> whatever distant put in it
+# print (cpl.global_control_parameters['foobar'])  # raise KeyError('No such dist param')
+## even better, derive a dict, that has in addition 1 function and 1 attr:
+# cpl.local_control_parameters['iteration'] = 300
+# print (cwipi.local_control_parameters)  # {'time':20, 'iteration': 300, 'quantity': 'pressure'}
+# cpl.control_parameters.synchronized     # is False, because I just changed it
+## and same for distant_control_parameters
+
+## Low-level accesses
+
+def add_local_int_control_parameter(char* name, int initial_value):
+    """add_local_int_control_parameter(name, initial_value)
     """
     cwipi_add_local_int_control_parameter(name, initial_value)
 
 
 def add_local_double_control_parameter(char* name, double initial_value):
-    """
-    Add a double control parameter
-
-    parameters
-      name           <-- parameter name
-      initial_value  <-- initial value
+    """add_local_double_control_parameter(name, initial_value)
     """
     cwipi_add_local_double_control_parameter(name, initial_value)
  
 
 def add_local_string_control_parameter(char* name, char* initial_value):
-    """
-    Add a string control parameter
-
-    parameters
-      name           <-- parameter name
-      initial_value  <-- initial value
+    """add_local_string_control_parameter(name, initial_value)
     """
     cwipi_add_local_string_control_parameter(name, initial_value)
 
 
 def set_local_int_control_parameter(char* name, int value):
-    """
-    Set a integer control parameter
-
-    parameters
-      name   <-- parameter name
-      value  <-- value
+    """set_local_int_control_parameter(name, value)
     """
     cwipi_set_local_int_control_parameter(name, value)
 
 
 def set_local_double_control_parameter(char* name, double value):
-    """
-    Set a double control parameter
-
-    parameters
-      name   <-- parameter name
-      value  <-- value
+    """set_local_double_control_parameter(name, value)
     """
     cwipi_set_local_double_control_parameter(name, value)
 
 
 def set_local_string_control_parameter(char* name, char* value):
-    """
-    Set a string control parameter
-
-    parameters
-      name     <-- parameter name
-      value    <-- value
+    """set_local_string_control_parameter(name, value)
     """
     cwipi_set_local_string_control_parameter(name, value)
 
 
 def get_local_int_control_parameter(char* name):
-    """
-    Get a local integer control parameter
-
-    parameters
-      name           <-- parameter name
+    """get_local_int_control_parameter(name)
+    Return the local integer control parameter called `name`.
     """
     return cwipi_get_local_int_control_parameter(name)
 
 
 def get_local_double_control_parameter(char* name):
-    """
-    Get a local double control parameter
-
-    parameters
-      name           <-- parameter name
+    """get_local_double_control_parameter(name)
+    Return the local double control parameter called `name`.
     """
     return cwipi_get_local_double_control_parameter(name)
 
 
 def get_local_string_control_parameter(char* name):
-    """
-    Get a local string control parameter
-
-    parameters
-      name           <-- parameter name
+    """get_local_string_control_parameter(name)
+    Return the local string control parameter called `name`.
     """
     return cwipi_get_local_string_control_parameter(name)
 
 
 def delete_local_int_control_parameter(char* name):
-    """
-    Delete a local integer control parameter
-
-    parameters
-      name           <-- parameter name
+    """delete_local_int_control_parameter(name)
+    Delete a local integer control parameter.
     """
     cwipi_delete_local_int_control_parameter(name)
 
 
 def delete_local_double_control_parameter(char* name):
-    """
-    Delete a local double control parameter
-
-    parameters
-      name           <-- parameter name
+    """delete_local_double_control_parameter(name)
+    Delete a local double control parameter.
     """
     cwipi_delete_local_double_control_parameter(name)
 
 
 def delete_local_string_control_parameter(char* name):
-    """
-    Delete a local string control parameter
-
-    parameters
-      name           <-- parameter name
+    """delete_local_string_control_parameter(name)
+    Delete a local string control parameter.
     """
     cwipi_delete_local_string_control_parameter(name)
 
 
 def get_distant_int_control_parameter(char* application_name, char* name):
-    """
-    Get a distant integer control parameter
-
-    parameters
-      application_name <-- distant application name
-      name             <-- parameter name
+    """get_distant_int_control_parameter(application_name, name)
+    Return a distant integer control parameter.
     """
     return cwipi_get_distant_int_control_parameter(application_name, name)
 
 
 def get_distant_double_control_parameter(char* application_name, char* name):
-    """
-    Get a distant double control parameter
-
-    parameters
-      application_name <-- distant application name
-      name             <-- parameter name
+    """get_distant_double_control_parameter(application_name, name)
+    Return a distant double control parameter.
     """
     return cwipi_get_distant_double_control_parameter(application_name, name)
 
 
 def get_distant_string_control_parameter(char* application_name, char* name):
-    """
-    Get a distant string control parameter
-
-    parameters
-      application_name <-- distant application name
-      name             <-- parameter name
+    """get_distant_string_control_parameter(application_name, name)
+    Return a distant string control parameter.
     """
     return cwipi_get_distant_string_control_parameter(application_name, name)
 
 
 def has_int_parameter(char* application_name, char* name):
-    """
-    Has this int parameter ?
-
-    parameters
-      application_name <-- distant application name
-      name             <-- parameter name
-    return
-      boolean
+    """has_int_parameter(application_name, name)
+    Return whether the distant application has this integer parameter.
     """
     return (cwipi_has_int_parameter(application_name, name) == 1)
 
 
 def has_double_parameter(char* application_name, char* name):
-    """
-    Has this double parameter ?
-
-    parameters
-      application_name <-- distant application name
-      name             <-- parameter name
-    return
-      boolean
+    """has_double_parameter(application_name, name)
+    Return whether the distant application has this double parameter.
     """
     return (cwipi_has_double_parameter(application_name, name) == 1)
 
 
 def has_string_parameter(char* application_name, char* name):
-    """
-    Has this double parameter ?
-
-    parameters
-      application_name <-- distant application name
-      name             <-- parameter name
-    return
-      boolean
+    """has_string_parameter(application_name, name)
+    Return whether the distant application has this string parameter.
     """
     return (cwipi_has_string_parameter(application_name, name) == 1)
 
 
 def get_list_int_parameter(char* application_name):
-    """
-    return int parameters names
-
-    parameters
-      application_name <-- distant application name
-      name             <-- parameter name
-    return
-      list
+    """get_list_int_parameter(application_name)
+    Return the list of integer parameters in the given distant application.
     """
     i_parameters = []
     cdef int n_parameters = cwipi_get_n_int_parameters(application_name)
@@ -538,14 +545,8 @@ def get_list_int_parameter(char* application_name):
 
 
 def get_list_double_parameter(char* application_name):
-    """
-    return double parameters names
-
-    parameters
-      application_name <-- distant application name
-      name             <-- parameter name
-    return
-      list
+    """get_list_double_parameter(application_name)
+    Return the list of double parameters in the given distant application.
     """
     d_parameters = []
     cdef int n_parameters = cwipi_get_n_double_parameters(application_name)
@@ -560,14 +561,8 @@ def get_list_double_parameter(char* application_name):
 
 
 def get_list_string_parameter(char* application_name):
-    """
-    return string parameters names
-
-    parameters
-      application_name <-- distant application name
-      name             <-- parameter name
-    return
-      list
+    """get_list_string_parameter(application_name)
+    Return the list of string parameters in the given distant application.
     """
     s_parameters = []
     cdef int n_parameters = cwipi_get_n_string_parameters(application_name)
@@ -581,14 +576,12 @@ def get_list_string_parameter(char* application_name):
 
     return s_parameters
 
-
+# fixme: sould be plural : synchronize_control_parameters
 def synchronize_control_parameter(char* application_name):
-    """
+    """synchronize_control_parameter(application_name)
     Synchronize local control parameters with an other application.
-    It is a synchronization point with this second application
 
-    parameters
-      application_name    <-- application name
+    It is a synchronization point with this second application.
     """
     cwipi_synchronize_control_parameter(application_name)
 
@@ -599,7 +592,7 @@ def synchronize_control_parameter(char* application_name):
 cdef class Coupling (object):
 
     """
-    Coupling
+    Create a CWIPI coupling object.
     """
     cdef char* name
 
@@ -615,8 +608,20 @@ cdef class Coupling (object):
                  char *output_format,
                  char *output_format_option,
                  nb_locations = None):
-        """
-        Init
+        """__init__(coupling_name, coupling_type, coupled_application, entitiesDim, tolerance, mesh_type, solver_type, output_frequency, output_format, output_format_option, nb_locations=None)
+
+        Args:
+            coupling_name(str): a name for this object
+            coupling_type(cwipi_coupling_type_t): either one of: COUPLING_PARALLEL_WITH_PARTITIONING, COUPLING_PARALLEL_WITHOUT_PARTITIONING, COUPLING_SEQUENTIAL
+            coupled_application(str): the identifier of the distant code
+            entitiesDim(int): dimension of the declared geometry
+            tolerance(double): geometric matching tolerance
+            mesh_type(cwipi_mesh_type_t): either one of: STATIC_MESH, MOBILE_MESH, CYCLIC_MESH
+            solver_type(cwipi_solver_type_t): either one of: SOLVER_CELL_CENTER, SOLVER_CELL_VERTEX
+            output_frequency(int): output frequency (0 disables output)
+            output_format(str): either one of "EnSight Gold", "MED_fichier", "CGNS"
+            output_format_option(str): extra output options
+            nb_locations(int, optional):
         """
         global current_cpl
         self.name = coupling_name
@@ -639,8 +644,14 @@ cdef class Coupling (object):
                               _nb_locations)
         current_cpl = ""
 
-    def __dealloc__(self):
+    # Need a __del__, not __dealloc__ , because it requires self.name, that is defined in __init__
+    #      (and in fact __dealloc__ is the counterpart of __cinit__)
+    # def __dealloc__(self):
+    #     cwipi_delete_coupling(self.name) 
+    def __del__(self):
         cwipi_delete_coupling(self.name) 
+    # Anyways, wouldn't it be better for this .pyx file to handle the C++ pointer, without going through the C-API?
+
 
 #
 # Class coupling : basic functions
@@ -653,12 +664,33 @@ cdef class Coupling (object):
                     np.ndarray[np.int32_t] connectivity_index not None, 
                     np.ndarray[np.int32_t] connectivity not None):
         """
-        Define mesh
+        define_mesh(n_vertex, n_element, coordinates, connectivity_index, connectivity)
+        Define the mesh: nodes, elements and connectivity.
+
+        Args:
+            n_vertex(int): number of vertices/nodes
+            n_element(int): number of elements
+            coordinates(double ndarray): the nodes coordinates, an array whose shape is either (n_vertex*3) or (n_vertex, 3)
+            connectivity_index (int32 ndarray): the index of the first node of each element in ``connectivity``; shape is ``(n_element+1)``, indices start at zero.
+            connectivity (int32 ndarray): the array defining elements' connectivity; indices start at 1 (i.e. 1 is the first node). 
+               For example the nodes of element ``iel`` are given by the slice ``connectivity[connectivity_index[iel]:connectivity_index[iel+1]]``.
+               The array's size is the sum over elements of el.nb_nodes.
         """
         global current_cpl
         current_cpl = self.name
         assert (3 * n_vertex) <= coordinates.size
-        assert (n_element + 1) <= connectivity_index.size
+        assert (n_element + 1) <= connectivity_index.size, "(%d) <= (%d)"%((n_element + 1), connectivity_index.size)
+
+        ## safety verifications:
+        # Contiguity
+        assert coordinates.flags['C_CONTIGUOUS'], "coordinates must be C-contiguous" 
+        assert connectivity_index.flags['C_CONTIGUOUS'], "connectivity_index must be C-contiguous" 
+        assert connectivity.flags['C_CONTIGUOUS'], "connectivity must be C-contiguous" 
+        # Check for orphan nodes, which currently (0.9.5) segfaults in cpl.locate
+        assert (np.min(connectivity) == 1), "connectivity values must start at 1"
+        assert (np.max(connectivity) == n_vertex), "connectivity values must be <= n_vertex"
+        assert (len(np.unique(connectivity)) == n_vertex), "Cannot have orphan vertex (current limitation)"
+
         cwipi_define_mesh(self.name,
                           n_vertex, 
                           n_element, 
@@ -675,8 +707,12 @@ cdef class Coupling (object):
                        np.ndarray[np.double_t] coordinates not None, 
                        np.ndarray[np.int32_t] connectivity_index not None, 
                        np.ndarray[np.int32_t] connectivity not None):
-        """
-        Define high order mesh
+        """ho_define_mesh(n_vertex, n_element, order, coordinates, connectivity_index, connectivity)
+        Define high order mesh.
+
+        Args:
+            order(int): the mesh's interpolation order.
+        All other arguments are the same as in :func:`define_mesh`.
         """
         global current_cpl
         current_cpl = self.name
@@ -711,7 +747,7 @@ cdef class Coupling (object):
                                  int n_nodes,
                                  np.ndarray[np.int32_t] ijk_grid not None):
         """
-        Define ho element ordering from the location in the (I, J, K) grid
+        Define ho element ordering from the location in the (I, J, K) grid.
         """
         global current_cpl
         current_cpl = self.name
@@ -725,11 +761,17 @@ cdef class Coupling (object):
     def set_points_to_locate(self,
                              int n_points, 
                              np.ndarray[np.double_t] coordinates not None):
-        """
-        Set points to locate
+        """set_points_to_locate(n_points, coordinates)
+
+        Set points to locate, e.g. the receiving points.
+
+        Args:
+           n_points (int): number of points
+           coords (double ndarray): the coordinates, an array whose shape is (n_points, dim), with C-ordering.
         """ 
         global current_cpl
         current_cpl = self.name
+        assert (3 * n_points) <= coordinates.size
         cwipi_set_points_to_locate(self.name,
                                    n_points,
                                    <double *> coordinates.data)
@@ -761,8 +803,8 @@ cdef class Coupling (object):
 
 
     def locate(self):
-        """
-        Locate
+        """locate()
+        Start the localization process (this is a synchronization point).
         """
         global current_cpl
         current_cpl = self.name
@@ -772,7 +814,7 @@ cdef class Coupling (object):
 
     def set_location_index(self, int index):
         """
-        Set location index
+        Set location index.
         """
         global current_cpl
         current_cpl = self.name
@@ -782,7 +824,6 @@ cdef class Coupling (object):
 
     def load_location(self):
         """
-        Set location index
         """
         global current_cpl
         current_cpl = self.name
@@ -792,7 +833,6 @@ cdef class Coupling (object):
 
     def save_location(self):
         """
-        Set location index
         """
         global current_cpl
         current_cpl = self.name
@@ -801,8 +841,7 @@ cdef class Coupling (object):
 
 
     def open_location_file(self, char *filename, char *mode):
-        """
-        Set location index
+        """open_location_file(char *filename, char *mode)
         """
         global current_cpl
         current_cpl = self.name
@@ -812,7 +851,6 @@ cdef class Coupling (object):
 
     def close_location_file(self):
         """
-        Set location index
         """
         global current_cpl
         current_cpl = self.name
@@ -822,7 +860,6 @@ cdef class Coupling (object):
 
     def update_location(self):
         """
-        Locate
         """
         global current_cpl
         current_cpl = self.name
@@ -839,8 +876,8 @@ cdef class Coupling (object):
                  np.ndarray[np.double_t] sending_field, 
                  char* receiving_field_name, 
                  np.ndarray[np.double_t] receiving_field): 
-        """
-        Exchange
+        """exchange(exchange_name, stride, time_step, time_value, sending_field_name, np.ndarray[np.double_t] sending_field, receiving_field_name, np.ndarray[np.double_t] receiving_field)
+        Exchange quantities.
         """
         global current_cpl
         current_cpl = self.name
@@ -906,7 +943,19 @@ cdef class Coupling (object):
                char* sending_field_name, 
                np.ndarray[np.double_t] sending_field): 
         """
-        Issend
+        Non blocking send. 
+
+        Returns:
+            the request (that you should later pass to :func:`wait_issend`).
+
+        Args:
+            exchange_name(str):
+            tag(int): an arbitraty MPI tag, that should match the corresponding recv.
+            stride(int): the stride, i.e. number of quantities received.
+            time_step(int): the time step (only used in output files).
+            time_value(double): the time (only used in output files).
+            sending_field_name(str): a name for this quantity (only used in output files).
+            sending_field(double ndarray): the data to send.
         """
         cdef int request
 
@@ -936,7 +985,7 @@ cdef class Coupling (object):
 
 
         current_cpl = ""
-        return {'request':request}
+        return request
 
 
     def irecv(self, 
@@ -947,8 +996,20 @@ cdef class Coupling (object):
               double time_value,
               char* receiving_field_name, 
               np.ndarray[np.double_t] receiving_field): 
-        """
-        Irecv
+        """irecv(exchange_name, tag, stride, time_step, time_value, receiving_field_name, receiving_field)
+        Non blocking receive.
+
+        Returns:
+            the request (that you should later pass to :func:`wait_irecv`).
+
+        Args:
+            exchange_name(str):
+            tag(int): an arbitraty MPI tag, that should match the corresponding send.
+            stride(int): the stride, i.e. number of quantities received.
+            time_step(int): the time step (only used in output files).
+            time_value(double): the time (only used in output files).
+            receiving_field_name(str): a name for this quantity (only used in output files).
+            receiving_field(double ndarray): an array large enough (size should be at least n*stride, where n is the number of receiving points).
         """
         cdef int request
 
@@ -978,13 +1039,13 @@ cdef class Coupling (object):
 
 
         current_cpl = ""
-        return {'request':request}
+        return request
 
 
     def wait_issend(self,
                     int request):
         """
-        Wait issend
+        wait_issend(request)
         """
         global current_cpl
         current_cpl = self.name
@@ -996,7 +1057,7 @@ cdef class Coupling (object):
     def wait_irecv(self,
                     int request):
         """
-        Wait irecv
+        wait_irecv(request)
         """
         global current_cpl
         current_cpl = self.name
@@ -1007,21 +1068,21 @@ cdef class Coupling (object):
 
     def get_n_located_points(self):
         """
-        Get number of located points
+        Get number of located points.
         """
         return cwipi_get_n_located_points(self.name)
 
 
     def get_n_not_located_points(self):
         """
-        Get number of not located points
+        Get number of not located points.
         """
         return cwipi_get_n_not_located_points(self.name)
 
 
     def get_not_located_points(self):
         """
-        Get not located points
+        Get not located points ranks.
         """
         np.import_array()
         cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_not_located_points(self.name)
@@ -1036,7 +1097,7 @@ cdef class Coupling (object):
 
     def get_located_points(self):
         """
-        Get not located points
+        Get located points ranks.
         """
         np.import_array()
         cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_located_points(self.name)
@@ -1050,7 +1111,7 @@ cdef class Coupling (object):
 
     def get_distant_location(self):
         """
-        Get distant point location 
+        Get distant point location.
         """
         np.import_array()
         cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_distant_points(self.name)
@@ -1065,7 +1126,7 @@ cdef class Coupling (object):
  
     def get_distant_distance(self):
         """
-        Get distant points distance to location element
+        Get distant points distance to location element.
         """
         np.import_array()
         cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_distant_points(self.name)
@@ -1080,7 +1141,7 @@ cdef class Coupling (object):
 
     def get_distant_coordinates(self):
         """
-        Get distant points coordinates
+        Get distant points coordinates.
         """
         np.import_array()
         cdef np.npy_intp dims = 3 * <np.npy_intp> cwipi_get_n_distant_points(self.name)
@@ -1095,7 +1156,7 @@ cdef class Coupling (object):
 
     def get_distant_barycentric_coordinates_index(self):
         """
-        Get distant points barycentric coordinates index
+        Get distant points barycentric coordinates index.
         """
         np.import_array()
         cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_distant_points(self.name) + 1
@@ -1110,7 +1171,7 @@ cdef class Coupling (object):
 
     def get_distant_barycentric_coordinates(self):
         """
-        Get distant points barycentric coordinates
+        Get distant points barycentric coordinates.
         """
         np.import_array()
         cdef np.npy_intp dims1 = <np.npy_intp> cwipi_get_n_distant_points(self.name) + 1
@@ -1126,21 +1187,21 @@ cdef class Coupling (object):
 
     def get_n_distant_points(self):
         """
-        Get number of distant points
+        Get number of distant points.
         """
         return  cwipi_get_n_distant_points(self.name)
 
 
     def get_n_distant_ranks(self):
         """
-        Get number of distant ranks
+        Get number of distant ranks.
         """
         return  cwipi_get_n_distant_ranks(self.name)
 
 
     def get_distant_distribution(self):
         """
-        Get distant points distribution on distant ranks
+        Get distant points distribution on distant ranks.
         """
         np.import_array()
         cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_distant_ranks(self.name) + 1
@@ -1155,7 +1216,7 @@ cdef class Coupling (object):
 
     def get_located_points_distribution(self):
         """
-        Get located points distribution on distant ranks
+        Get located points distribution on distant ranks.
         """
         np.import_array()
         cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_distant_ranks(self.name) + 1
@@ -1229,21 +1290,21 @@ cdef void callback(int entities_dim,
                    int n_local_element,
                    int n_local_polhyedra,
                    int n_distant_point,
-                   double local_coordinates[],
-                   int local_connectivity_index[],
-                   int local_connectivity[],
-                   int local_polyhedra_face_index[],
-                   int local_polyhedra_cell_to_face_connectivity[],
-                   int local_polyhedra_face_connectivity_index[],
-                   int local_polyhedra_face_connectivity[],
-                   double distant_points_coordinates[],
-                   int distant_points_location[],
-                   float distant_points_distance[],
-                   int distant_points_barycentric_coordinates_index[],
-                   double distant_points_barycentric_coordinates[],
+                   const double local_coordinates[],
+                   const int local_connectivity_index[],
+                   const int local_connectivity[],
+                   const int local_polyhedra_face_index[],
+                   const int local_polyhedra_cell_to_face_connectivity[],
+                   const int local_polyhedra_face_connectivity_index[],
+                   const int local_polyhedra_face_connectivity[],
+                   const double distant_points_coordinates[],
+                   const int distant_points_location[],
+                   const float distant_points_distance[],
+                   const int distant_points_barycentric_coordinates_index[],
+                   const double distant_points_barycentric_coordinates[],
                    int stride,
                    cwipi_solver_type_t  solver_type,
-                   void *local_field,
+                   const void *local_field,
                    void *distant_field):
     """
     """
@@ -1698,3 +1759,17 @@ cdef double ho_loc_callback(int entities_dim,
                                         projected_coords_a,
                                         projected_uvw_a)
 
+
+
+cdef extern from "cwipi_config.h":
+    # trick from: https://stackoverflow.com/questions/5697479/how-can-a-defined-c-value-be-exposed-to-python-in-a-cython-module
+    cdef int _CWIPI_MAJOR_VERSION "CWIPI_MAJOR_VERSION"
+    cdef int _CWIPI_MINOR_VERSION "CWIPI_MINOR_VERSION"
+    cdef int _CWIPI_RELEASE_VERSION "CWIPI_RELEASE_VERSION"
+    cdef char* _CWIPI_VERSION "CWIPI_VERSION"
+
+# CWIPI_VERSION = _CWIPI_VERSION
+# CWIPI_MAJOR_VERSION = _CWIPI_MAJOR_VERSION
+# CWIPI_MINOR_VERSION = _CWIPI_MINOR_VERSION
+# CWIPI_RELEASE_VERSION = _CWIPI_RELEASE_VERSION
+__version__ = _CWIPI_VERSION

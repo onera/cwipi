@@ -1,4 +1,5 @@
 
+
 #==============================================================================
 #
 #                Top level CMakeLists.txt file for CWIPI
@@ -18,7 +19,7 @@ enable_testing()
 set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules")
 
-project(CWP VERSION 0.10.4 LANGUAGES C CXX Fortran)
+project(CWP VERSION 0.11.0 LANGUAGES C CXX Fortran)
 
 #------------------------------------------------------------------------------
 # Enable languages
@@ -89,11 +90,13 @@ if (CWP_ENABLE_BLAS)
   if (NOT BLAS_FOUND)
     find_package(BLAS)
   endif()
+
 endif()
 
 if (BLAS_FOUND)
   set(CWP_HAVE_BLAS 1)
 endif()
+
 
 # High order (Nodal bases from SPACE)
 # -----------------
@@ -412,6 +415,7 @@ set(CWP_ETC_DIR "etc")
 
 if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/paradigm")
   add_subdirectory(paradigm)
+  add_subdirectory(paradigm/doc)
 endif()
 
 add_subdirectory(src)
@@ -425,6 +429,7 @@ if (CWP_ENABLE_SPACE_NODAL_BASIS)
 endif ()
 add_subdirectory(tests)
 add_subdirectory(doc)
+
 
 #------------------------------------------------------------------------------
 # Print summary of found and not found optional packages

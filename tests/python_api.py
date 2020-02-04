@@ -52,7 +52,7 @@ def userInterp(entities_dim,
 
     f.write('user interpolation')
 
-    if (distant_field != None):
+    if (distant_field is not None):
         distant_field = 1.234
             
 
@@ -68,11 +68,11 @@ def runTest():
     size = commworld.size
 
     if (rank == 0):
-        print "\nSTART: python_api.py"
+        print("\nSTART: python_api.py")
 
     if (size != 2):
         if rank == 0:
-            print "      Not executed : only available for 2 processus"
+            print("      Not executed : only available for 2 processus")
         return
 
     applis = ["proc0","proc1"]
@@ -82,14 +82,14 @@ def runTest():
         from cwipi import cwipi
     except:
         if rank == 0:
-            print "      Error : CWIPI module not found (update PYTHONPATH variable)"
+            print("      Error : CWIPI module not found (update PYTHONPATH variable)")
         sys.exit(1)
 
     #
     # Define a python file to write CWIPI outputs 
 
     if (rank == 0):
-        print "        Output redirection"
+        print("        Output redirection")
 
     srank = '{0}'.format(rank)
     f=open("python_api_"+srank.zfill(4)+".txt",'w')
@@ -100,7 +100,7 @@ def runTest():
     # Control parameters
 
     if (rank == 0):
-        print "        Control parameters"
+        print("        Control parameters")
 
     if (rank == 0):
         cwipi.add_local_int_control_parameter("i_0_param_1", 1)
@@ -146,6 +146,7 @@ def runTest():
     f.write("  - list string param proc0 : {param}\n".format(param=cwipi.get_list_string_parameter("proc0")))
     f.write("  - list string param proc1 : {param}\n".format(param=cwipi.get_list_string_parameter("proc1")))
 
+    f.flush()  # make sure f is flushed before cwipi writes its properties
     cwipi.dump_application_properties()
 
 #    param_1 = cwipi.get_local_int_control_parameter("param_1")
@@ -156,7 +157,7 @@ def runTest():
     # Class coupling
 
     if (rank == 0):
-        print "        Create coupling"
+        print("        Create coupling")
 
     # Constructor
 
@@ -175,7 +176,7 @@ def runTest():
     # Mesh
 
     if (rank == 0):
-        print "        Create mesh"
+        print("        Create mesh")
 
     coord = np.array([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0], dtype=np.double)
     connec_idx = np.array([0, 4], dtype=np.int32)
@@ -186,7 +187,7 @@ def runTest():
     # Only send 
 
     if (rank == 0):
-        print "        Exchange Proc 0 -> Proc 1"
+        print("        Exchange Proc 0 -> Proc 1")
 
     f.write("send :\n")
 
@@ -218,12 +219,12 @@ def runTest():
     f.write("send receive :")
 
     if (rank == 0):
-        print "        Define user interpolation"
+        print("        Define user interpolation")
 
     cpl.set_interpolation_function(userInterp) # User interpolation activation
 
     if (rank == 0):
-        print "        Exchange Proc 0 <-> Proc 1 with user interpolation"
+        print("        Exchange Proc 0 <-> Proc 1 with user interpolation")
 
     result = cpl.exchange("ech2", 
                           1, 
@@ -232,15 +233,17 @@ def runTest():
                           "field_s2", sendField, 
                           "field_r2", recvField)
 
-    f.write("  - status : {param_1}".format(param_1=result["status"]))
-    f.write("  - number of not located points : {param}".format(param=result["n_not_located_points"]))
+    f.write("  - status : {param_1}\n".format(param_1=result["status"]))
+    f.write("  - number of not located points : {param}\n".format(param=result["n_not_located_points"]))
 
     # Delete coupling object
 
     if (rank == 0):
-        print "        Delete coupling"
+        print("        Delete coupling")
 
     #del cpl
+
+    f.write("\nThe end!\n")
 
 if __name__ == '__main__':
     runTest()

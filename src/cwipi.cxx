@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011  ONERA
 
@@ -106,6 +106,11 @@ static int _cwipi_print_with_c
   return vfprintf(_cwipi_output_listing, format, arg_ptr);
 }
 
+static int _cwipi_flush_output_listing(void)
+{
+  return fflush(_cwipi_output_listing);
+}
+
 
 /*============================================================================
  * Public function definitions
@@ -139,6 +144,7 @@ void cwipi_init
 
   bftc_printf("\ncwipi " CWIPI_VERSION " initializing\n");
   bftc_printf("------------------------\n\n");
+  bftc_printf_flush();
 
   *application_comm = properties.init(application_name,
                                       common_comm);
@@ -157,6 +163,7 @@ void cwipi_set_output_listing
 {
   _cwipi_output_listing = output_listing;
   bftc_printf_proxy_set(_cwipi_print_with_c);
+  bftc_printf_flush_proxy_set(_cwipi_flush_output_listing);
 }
 
 /*----------------------------------------------------------------------------
@@ -454,7 +461,7 @@ int cwipi_has_int_parameter
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+  if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.hasLocalIntControlParameter(name);
   else
     return properties.hasDistantIntControlParameter(application_name,name);
@@ -479,7 +486,7 @@ int cwipi_has_double_parameter
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+  if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.hasLocalDoubleControlParameter(name);
   else
     return properties.hasDistantDoubleControlParameter(application_name,name);
@@ -504,7 +511,7 @@ int cwipi_has_string_parameter
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+  if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.hasLocalStringControlParameter(name);
   else
     return properties.hasDistantStringControlParameter(application_name,name);
@@ -527,7 +534,7 @@ int cwipi_get_n_int_parameters
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+  if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.getLocalNIntControlParameter();
   else
     return properties.getDistantNIntControlParameter(application_name);
@@ -550,7 +557,7 @@ int cwipi_get_n_double_parameters
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+  if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.getLocalNDoubleControlParameter();
   else
     return properties.getDistantNDoubleControlParameter(application_name);
@@ -573,7 +580,7 @@ int cwipi_get_n_string_parameters
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+  if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.getLocalNStringControlParameter();
   else
     return properties.getDistantNStringControlParameter(application_name);
@@ -596,7 +603,7 @@ char** cwipi_get_list_int_parameters
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+  if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.getLocalListIntControlParameter();
   else
     return properties.getDistantListIntControlParameter(application_name);
@@ -619,7 +626,7 @@ char** cwipi_get_list_double_parameters
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+  if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.getLocalListDoubleControlParameter();
   else
     return properties.getDistantListDoubleControlParameter(application_name);
@@ -642,7 +649,7 @@ char** cwipi_get_list_string_parameters
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+  if (!strcmp(application_name,  properties.getLocalName().c_str()))
     return properties.getLocalListStringControlParameter();
   else
     return properties.getDistantListStringControlParameter(application_name);
@@ -721,18 +728,18 @@ void cwipi_create_coupling
   const char  *output_format_option
   ...)
 {
-  // traitement du parametre optionnel 
-  
+  // traitement du parametre optionnel
+
   va_list args;
   int nb_locations = 1;
   va_start(args, output_format_option);
-  if(mesh_type == CWIPI_CYCLIC_MESH) 
+  if(mesh_type == CWIPI_CYCLIC_MESH)
     nb_locations = va_arg(args, int);
   va_end(args);
 
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
-  
+
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
@@ -757,7 +764,7 @@ void cwipi_create_coupling
  *
  * parameters:
  *   coupling_name           <-- Coupling identifier
- *   data                    <-- data user        
+ *   data                    <-- data user
  *----------------------------------------------------------------------------*/
 
 void
@@ -775,7 +782,7 @@ cwipi_set_data_user
   cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
  coupling.set_data_user(data);
- 
+
 }
 
 
@@ -787,7 +794,7 @@ cwipi_set_data_user
  *   coupling_name           <-- Coupling identifier
  *
  * return :
- *   data 
+ *   data
  *----------------------------------------------------------------------------*/
 
 void *
@@ -875,7 +882,7 @@ void cwipi_load_location(const char *coupling_name)
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
- *   filename             <-- file name 
+ *   filename             <-- file name
  *   mode                 <-- "r" : read
  *                            "w" : write
  *----------------------------------------------------------------------------*/
@@ -1124,17 +1131,17 @@ void cwipi_add_polyhedra(const char *coupling_name,
 
 /*----------------------------------------------------------------------------
  *
- * Define specific options for ho elements 
+ * Define specific options for ho elements
  *
  * parameters:
  *   coupling_id     <-- coupling name
  *   option          <-- option name, Choice between :
- *                          - "opt_bbox_step" 
- *                              * Description : step of discretization used 
- *                                              to compute the optimized element 
+ *                          - "opt_bbox_step"
+ *                              * Description : step of discretization used
+ *                                              to compute the optimized element
  *                                              bounding boxes
  *                                              -1 to deactivate this computation
- *                              * Default     : 10 
+ *                              * Default     : 10
  *   value           <-- option value
  *
  *----------------------------------------------------------------------------*/
@@ -1170,6 +1177,8 @@ void cwipi_ho_ordering_from_IJK_set (const char *coupling_id,
                                      const int n_nodes,
                                      const int *ijk_grid)
 {
+
+
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
 
@@ -1210,9 +1219,9 @@ void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
 }
 
 /*----------------------------------------------------------------------------
- * 
+ *
  * Set elementary functions
- * 
+ *
  * parameters:
  *   location_tetra    <-- Location in a tetrahedron
  *   location_prism    <-- Location in a prism
@@ -1239,7 +1248,7 @@ cwipi_ho_user_elt_set (cwipi_element_t elt_type,
   fvmc_element_t _elt_type = (fvmc_element_t) 0;
 
   switch (elt_type) {
-    
+
   case CWIPI_EDGEHO:
     _elt_type = FVMC_EDGE;
     break;
@@ -1264,13 +1273,13 @@ cwipi_ho_user_elt_set (cwipi_element_t elt_type,
   default:
     bftc_error(__FILE__, __LINE__, 0,
                "_cwipi_ho_user_elt_set : unvailable element type\n");
-               
-               
+
+
   }
-  
+
   FVMC_ho_basis_user_elt_set (_elt_type,
                               (fvmc_ho_basis_fct_t) element_basis);
-  
+
   fvmc_ho_location_user_elt_set (_elt_type,
                                  (fvmc_ho_location_fct_t) location_in_element);
 }
@@ -1493,7 +1502,7 @@ cwipi_exchange_status_t cwipi_exchange
 
 /*----------------------------------------------------------------------------
  *
- * Send interpolated data to the coupled application. 
+ * Send interpolated data to the coupled application.
  * Non blocking comunication.
  *
  * parameters
@@ -1503,7 +1512,7 @@ cwipi_exchange_status_t cwipi_exchange
  *   time_step            <-- Time step  (only for visualization)
  *   time_value           <-- Time value (only for visualization)
  *   sending_field_name   <-- Sending field name
- *   sending_field        <-- Sending field 
+ *   sending_field        <-- Sending field
  *   request              --> Request
  *
  *----------------------------------------------------------------------------*/
@@ -1540,8 +1549,8 @@ void cwipi_issend
 
 /*----------------------------------------------------------------------------
  *
- * Receive interpolated data from the coupled application. 
- * Non blocking comunication. receiving_field is fully updated after 
+ * Receive interpolated data from the coupled application.
+ * Non blocking comunication. receiving_field is fully updated after
  * cwipi_wait_irecv calling
  *
  * parameters
@@ -1551,7 +1560,7 @@ void cwipi_issend
  *   time_step            <-- Time step  (only for visualization)
  *   time_value           <-- Time value (only for visualization)
  *   receiving_field_name <-- Receiving field name
- *   receiving_field      <-- Receiving field 
+ *   receiving_field      <-- Receiving field
  *   request              --> Request
  *
  *----------------------------------------------------------------------------*/
@@ -1586,7 +1595,7 @@ void cwipi_irecv
 
 /*----------------------------------------------------------------------------
  *
- * Get located point distance to exchange area 
+ * Get located point distance to exchange area
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
@@ -1608,7 +1617,7 @@ const float *cwipi_distance_located_pts_get(const char  *coupling_name)
 
 /*----------------------------------------------------------------------------
  *
- * Wait for cwipi_issend. 
+ * Wait for cwipi_issend.
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
@@ -1631,7 +1640,7 @@ void cwipi_wait_issend(const char  *coupling_name,
 
 /*----------------------------------------------------------------------------
  *
- * Wait for cwipi_irecv. 
+ * Wait for cwipi_irecv.
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
@@ -1763,7 +1772,7 @@ void cwipi_finalize(void)
 
   fvmc_ho_location_user_elts_unset ();
   FVMC_ho_basis_user_elts_unset ();
-    
+
   bftc_printf("Finalize cwipi\n");
   couplingDataBase.kill();
   properties.kill();
@@ -1777,7 +1786,7 @@ void cwipi_finalize(void)
   }
 
   FVMC_ho_basis_free ();
-  
+
 }
 
 /*----------------------------------------------------------------------------
@@ -1868,7 +1877,7 @@ int cwipi_get_n_distant_points(const char *coupling_id)
 
 /*----------------------------------------------------------------------------
  *
- * Get number of distant ranks 
+ * Get number of distant ranks
  *
  * parameters
  *   coupling_id          <-- Coupling identifier

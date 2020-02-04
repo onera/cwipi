@@ -4,12 +4,15 @@ Installation Instructions
 Basic Installation
 ==================
 
-mkdir build 
+mkdir build
 cd build
 cmake ..
 make
 make install
 ctest (if you want to run the test cases)
+
+
+If the installation fails, use the following CMake options.
 
 
 If the installation fails, use the following CMake options.
@@ -24,7 +27,7 @@ Prefix :
     CMAKE_INSTALL_PREFIX=<prefix>
 
 Enable fortran interface :
-    CWP_ENABLE_Fortran=<ON | OFF> (default : OFF)                                       
+    CWP_ENABLE_Fortran=<ON | OFF> (default : OFF)
 
 Enable python interface :
     CWP_ENABLE_PYTHON_BINDINGS=<ON | OFF> (default : OFF)
