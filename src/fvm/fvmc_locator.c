@@ -79,7 +79,6 @@
  *----------------------------------------------------------------------------*/
 
 #include "fvmc_locator.h"
-
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
@@ -110,10 +109,10 @@ extern "C" {
 typedef struct  {
   void       **buffer;       /* tmp buffers for nonblocking */
   MPI_Request *MPI_request;  /* MPI requests for nonblocking */
-  void        *var;          /* buffers updated in wait */ 
+  void        *var;          /* buffers updated in wait */
   const int   *local_list;   /* optional indirection list for
                                 tmp_buffer -> buffer */
-  int          stride;       /* dimension (1 for scalar, 
+  int          stride;       /* dimension (1 for scalar,
                                 3 for interlaced vector) */
   int          size;         /* size of type*/
   _Bool        reverse;      /* reverse mod for exchange */
@@ -149,8 +148,8 @@ struct _fvmc_locator_t {
 #if defined(FVMC_HAVE_MPI)
   _fvmc_locator_nblocking_t *nblockings_send; /*    */
   _fvmc_locator_nblocking_t *nblockings_recv; /*    */
-  int                    max_nblockings_send;  
-  int                    max_nblockings_recv;  
+  int                    max_nblockings_send;
+  int                    max_nblockings_recv;
 #endif
   double   *intersect_extents; /* List of intersecting distant extents */
 
@@ -159,7 +158,7 @@ struct _fvmc_locator_t {
   fvmc_lnum_t   *local_distribution; /* Start index of distant points per rank
                                        (size: n_rank + 1)*/
 
-  fvmc_lnum_t   *distant_points_idx; /* Start index of distant points per 
+  fvmc_lnum_t   *distant_points_idx; /* Start index of distant points per
                                        intersect rank
                                       (size: n_intersects + 1)*/
   fvmc_lnum_t   *distant_distribution; /* Start index of distant points per rank
@@ -185,7 +184,7 @@ struct _fvmc_locator_t {
   double  *distant_point_uvw;   /* uvw of the distant points projected on location
                                        element (with blocs starting at
                                        distant_points_idx[]*max_n_node_elt indexes) */
-  
+
   fvmc_lnum_t    n_interior;         /* Number of local points located */
   fvmc_lnum_t   *interior_list;      /* List (1 to n numbering) of points
                                        located */
@@ -469,7 +468,6 @@ _update_extents(int               dim,
  *   extents           <-> extents associated with section:
  *                         x_min, y_min, ..., x_max, y_max, ... (size: 2*dim)
  *----------------------------------------------------------------------------*/
-
 static void
 _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
                        int                         order,
@@ -562,7 +560,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
     for (i = 0; i < this_section->n_elements; i++) {
 
       _Bool elt_initialized = false;
-      
+
       for (j = 0; j < this_section->stride; j++) {
 
         vertex_id = this_section->vertex_num[i*this_section->stride + j] - 1;
@@ -580,32 +578,110 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
 
       if (order > 1 && FVMC_ABS (opt_bbox_step) != 1) {
 
-        if ((this_section->type != FVMC_FACE_TRIA) &&
-            (this_section->type != FVMC_FACE_QUAD)) {
-          printf ("fvmc_locator_set_nodal warning : optimized bounding box is not implemented "
-                  "for this element type %d\n", this_section->type);
-        }
-        else {
-          assert (dim == 3);
-        
+        if ((this_section->type == FVMC_EDGE)){
+
           const int n_step = opt_bbox_step;
           const double step = 1./(n_step - 1);
           const int n_nodes = this_section->stride;
-          
           int n_vtx = 0;
-          
+
+          n_vtx = n_step + 1;
+
+          double *u      = malloc(sizeof(double) * 1 * n_vtx);
+          double *ai     = malloc(sizeof(double) * n_nodes * n_vtx);
+          double *xyz    = malloc(sizeof(double) * 3 * n_vtx);
+          double *coords = malloc(sizeof(double) * 3 * n_nodes);
+
+          for (int jj = 0; jj < n_step ; jj++) {
+            u[jj] = jj * step;
+          }
+          FVMC_ho_basis (FVMC_EDGE, order, n_nodes, n_vtx, u, ai);
+
+          for (int ielt = 0; ielt < this_section->n_elements; ielt++) {
+
+            for (int jj = 0; jj < n_nodes; jj++) {
+              vertex_id = this_section->vertex_num[ielt*n_nodes + jj] - 1;
+              int coord_idx;
+              if (parent_vertex_num == NULL) {
+                coord_idx = vertex_id;
+              }
+              else {
+                coord_idx = parent_vertex_num[vertex_id] - 1;
+              }
+              for (int kk = 0; kk < 3; kk++) {
+                coords[3*jj+kk] = vertex_coords[(coord_idx * 3) + kk];
+              }
+            }
+
+#ifdef CWP_HAVE_BLAS
+            double alpha = 1.;
+            double beta = 0.;
+
+            cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                        n_vtx, 3, n_nodes,
+                        alpha,
+                        ai, n_nodes,
+                        coords, 3,
+                        beta,
+                        xyz, 3);
+#else
+            for (int ii = 0; ii < n_vtx; ii++) {
+
+              for (int kk = 0; kk < 3; kk++) {
+                xyz[3*ii + kk] = 0.;
+              }
+
+              for (int jj = 0; jj < n_nodes; jj++) {
+
+                for (int kk = 0; kk < 3; kk++) {
+                  xyz[3*ii +kk] += ai[ii*n_nodes+jj] * coords[3 * jj + kk];
+                }
+              }
+            }
+
+#endif
+
+            for (int ii = 0; ii < n_vtx; ii++) {
+
+              _update_elt_extents(dim,
+                                  0,
+                                  NULL,
+                                  xyz + 3 *ii,
+                                  elt_extents,
+                                  &elt_initialized);
+            }
+
+          }
+
+          free(u);
+          free(ai);
+          free(xyz);
+          free(coords);
+
+        }
+        else if ((this_section->type == FVMC_FACE_TRIA) ||
+                 (this_section->type == FVMC_FACE_QUAD)){
+
+          assert (dim == 3);
+
+          const int n_step = opt_bbox_step;
+          const double step = 1./(n_step - 1);
+          const int n_nodes = this_section->stride;
+
+          int n_vtx = 0;
+
           if (this_section->type == FVMC_FACE_TRIA) {
             n_vtx = (n_step + 2) * (n_step + 1) /2;
           }
           else if (this_section->type == FVMC_FACE_QUAD) {
             n_vtx = (n_step + 1) * (n_step + 1);
           }
-          
+
           double *uv = malloc (sizeof(double) * 2 * n_vtx);
           double *ai = malloc (sizeof(double) * n_nodes * n_vtx);
           double *xyz = malloc (sizeof(double) * 3 * n_vtx);
           double *coords =  malloc (sizeof(double) * 3 * n_nodes);
-          
+
           if (this_section->type == FVMC_FACE_TRIA) {
             int i1 = 0;
             for (int jj = 0; jj < n_step + 1; jj++) {
@@ -630,9 +706,9 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
             }
             FVMC_ho_basis (FVMC_FACE_QUAD, order, n_nodes, n_vtx, uv, ai);
           }
-          
+
           for (int ielt = 0; ielt < this_section->n_elements; ielt++) {
-            
+
             for (int jj = 0; jj < n_nodes; jj++) {
               vertex_id = this_section->vertex_num[ielt*n_nodes + jj] - 1;
               int coord_idx;
@@ -650,7 +726,170 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
 #ifdef CWP_HAVE_BLAS
             double alpha = 1.;
             double beta = 0.;
-            
+
+            cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                        n_vtx, 3, n_nodes,
+                        alpha,
+                        ai, n_nodes,
+                        coords, 3,
+                        beta,
+                        xyz, 3);
+
+#else
+            for (int ii = 0; ii < n_vtx; ii++) {
+
+              for (int kk = 0; kk < 3; kk++) {
+                xyz[3*ii + kk] = 0.;
+              }
+
+              for (int jj = 0; jj < n_nodes; jj++) {
+
+                for (int kk = 0; kk < 3; kk++) {
+                  xyz[3*ii +kk] += ai[ii*n_nodes+jj] * coords[3 * jj + kk];
+                }
+              }
+            }
+
+#endif
+
+            for (int ii = 0; ii < n_vtx; ii++) {
+
+              _update_elt_extents(dim,
+                                  0,
+                                  NULL,
+                                  xyz + 3 *ii,
+                                  elt_extents,
+                                  &elt_initialized);
+            }
+
+          }
+
+
+          free (uv);
+          free (ai);
+          free (xyz);
+          free (coords);
+
+        }
+        else {
+          assert (dim == 3);
+
+          const int n_step = opt_bbox_step;
+          const double step = 1./(n_step - 1);
+          const int n_nodes = this_section->stride;
+
+          int n_vtx = 0;
+
+          if (this_section->type == FVMC_CELL_TETRA) {
+            n_vtx =  (n_step+1)*(n_step+2)*(n_step+3)/6;
+          }
+          else if (this_section->type == FVMC_CELL_HEXA) {
+            n_vtx = (n_step + 1) * (n_step + 1) * (n_step + 1);
+          }
+          else if (this_section->type == FVMC_CELL_PRISM) {
+            n_vtx = (n_step + 1) * (n_step + 2) * (n_step + 1) /2;
+          }
+          else if (this_section->type == FVMC_CELL_PYRAM) {
+            n_vtx = (n_step+1)*(n_step+2)*(2*n_step+3)/6;
+          }
+
+          double *uvw = malloc (sizeof(double) * 3 * n_vtx);
+          double *ai  = malloc (sizeof(double) * n_nodes * n_vtx);
+          double *xyz = malloc (sizeof(double) * 3 * n_vtx);
+          double *coords =  malloc (sizeof(double) * 3 * n_nodes);
+
+          if (this_section->type == FVMC_CELL_TETRA) {
+            int i1 = 0;
+            for (int kk = 0; kk < n_step + 1; kk++){
+              double w = kk*step;
+              for (int jj = 0; jj < n_step + 1 - kk; jj++) {
+                double v = jj*step;
+                for (int ii = 0; ii < n_step + 1 - jj - kk; ii++) {
+                  double u = ii*step;
+                  uvw[i1++] = u;
+                  uvw[i1++] = v;
+                  uvw[i1++] = w;
+                }
+              }
+            }
+            FVMC_ho_basis (FVMC_CELL_TETRA, order, n_nodes, n_vtx, uvw, ai);
+          }
+
+
+          if (this_section->type == FVMC_CELL_HEXA) {
+            int i1 = 0;
+            for (int kk = 0; kk < n_step + 1; kk++){
+              double w = kk*step;
+              for (int jj = 0; jj < n_step + 1; jj++) {
+                double v = jj*step;
+                for (int ii = 0; ii < n_step + 1; ii++) {
+                  double u = ii*step;
+                  uvw[i1++] = u;
+                  uvw[i1++] = v;
+                  uvw[i1++] = w;
+                }
+              }
+            }
+            FVMC_ho_basis (FVMC_CELL_HEXA, order, n_nodes, n_vtx, uvw, ai);
+          }
+
+
+          if (this_section->type == FVMC_CELL_PRISM) {
+            int i1 = 0;
+            for (int kk = 0; kk < n_step + 1; kk++){
+              double w = kk*step;
+              for (int jj = 0; jj < n_step + 1; jj++) {
+                double v = jj*step;
+                for (int ii = 0; ii < n_step + 1 - jj; ii++) {
+                  double u = ii*step;
+                  uvw[i1++] = u;
+                  uvw[i1++] = v;
+                  uvw[i1++] = w;
+                }
+              }
+            }
+            FVMC_ho_basis (FVMC_CELL_PRISM, order, n_nodes, n_vtx, uvw, ai);
+          }
+
+
+          if (this_section->type == FVMC_CELL_PYRAM) {
+            int i1 = 0;
+            for (int kk = 0; kk < n_step + 1; kk++){
+              double w = kk*step;
+              for (int jj = 0; jj < n_step + 1 - kk; jj++) {
+                double v = jj*step;
+                for (int ii = 0; ii < n_step + 1 - kk; ii++) {
+                  double u = ii*step;
+                  uvw[i1++] = u;
+                  uvw[i1++] = v;
+                  uvw[i1++] = w;
+                }
+              }
+            }
+            FVMC_ho_basis (FVMC_CELL_PYRAM, order, n_nodes, n_vtx, uvw, ai);
+          }
+
+
+          for (int ielt = 0; ielt < this_section->n_elements; ielt++) {
+
+            for (int jj = 0; jj < n_nodes; jj++) {
+              vertex_id = this_section->vertex_num[ielt*n_nodes + jj] - 1;
+              int coord_idx;
+              if (parent_vertex_num == NULL) {
+                coord_idx = vertex_id;
+              }
+              else {
+                coord_idx = parent_vertex_num[vertex_id] - 1;
+              }
+              for (int kk = 0; kk < 3; kk++) {
+                coords[3*jj+kk] = vertex_coords[(coord_idx * 3) + kk];
+              }
+            }
+
+#ifdef CWP_HAVE_BLAS
+            double alpha = 1.;
+            double beta = 0.;
+
             cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                         n_vtx, 3, n_nodes,
                         alpha,
@@ -660,23 +899,23 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
                         xyz, 3);
 #else
             for (int ii = 0; ii < n_vtx; ii++) {
-              
+
               for (int kk = 0; kk < 3; kk++) {
                 xyz[3*ii + kk] = 0.;
               }
-              
+
               for (int jj = 0; jj < n_nodes; jj++) {
-                
+
                 for (int kk = 0; kk < 3; kk++) {
                   xyz[3*ii +kk] += ai[ii*n_nodes+jj] * coords[3 * jj + kk];
                 }
               }
             }
-            
+
 #endif
-            
+
             for (int ii = 0; ii < n_vtx; ii++) {
-            
+
               _update_elt_extents(dim,
                                   0,
                                   NULL,
@@ -684,24 +923,29 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
                                   elt_extents,
                                   &elt_initialized);
             }
-            
-          }
-          
 
-          free (uv);
+          }
+
+
+          free (uvw);
           free (ai);
           free (xyz);
           free (coords);
-          
+
+
         }
       }
-      
+
       _elt_extents_finalize(dim,
                             this_section->entity_dim,
                             tolerance,
                             elt_extents);
       _update_extents(dim, elt_extents, extents);
-      
+
+
+
+
+
     }
   }
 
@@ -782,7 +1026,7 @@ _point_extents(int                  dim,
                fvmc_lnum_t           n_points,
                const fvmc_lnum_t     point_list[],
                const fvmc_coord_t    point_coords[],
-               double               extents[])
+               double                extents[])
 {
   int i;
   fvmc_lnum_t j, coord_idx;
@@ -866,7 +1110,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   double comm_timing[4] = {0., 0., 0., 0.};
 
   int max_entity_dim = fvmc_nodal_get_max_entity_dim (this_nodal);
-  
+
   /* Initialization */
 
   stride = dim * 2;
@@ -878,19 +1122,31 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   BFTC_MALLOC(location_rank_id, n_points, fvmc_lnum_t);
   BFTC_MALLOC(distance, n_points, float);
 
-  fvmc_coord_t *projected_coords = NULL;
-  if (fvmc_nodal_order_get (this_nodal) != -1) {
-    BFTC_MALLOC(projected_coords, n_points*dim, fvmc_coord_t); 
+  int local_nodal_order = fvmc_nodal_order_get (this_nodal);
+  int distant_nodal_order = -1;
+
+  /* Pas terrible de faire une boucle  */
+
+  for (i = 0; i < this_locator->n_intersects; i++) {
+
+    dist_index = i; /* Ordering (communication schema) not yet optimized */
+    dist_rank  = this_locator->intersect_rank[dist_index];
+
+    MPI_Sendrecv(&local_nodal_order, 1, FVMC_MPI_LNUM, dist_rank, FVMC_MPI_TAG,
+                 &distant_nodal_order, 1, FVMC_MPI_LNUM, dist_rank,
+                 FVMC_MPI_TAG, this_locator->comm, &status);
   }
 
+  fvmc_coord_t *projected_coords = NULL;
   double *uvw = NULL;
+
+  if (distant_nodal_order != -1) {
+    BFTC_MALLOC(projected_coords, n_points*dim, fvmc_coord_t);
+    BFTC_MALLOC(uvw, n_points*max_entity_dim, double);
+  }
 
   //  int max_entity_dim = fvmc_nodal_3 (this_nodal);
 
-  if (fvmc_nodal_order_get (this_nodal) != -1) {
-    BFTC_MALLOC(uvw, n_points*max_entity_dim, double); 
-  }
-  
   for (j = 0; j < n_points; j++) {
     location[j] = -1;
     location_rank_id[j] = -1;
@@ -902,7 +1158,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
   //  int curr_rank;
   //MPI_Comm_rank (this_locator->comm, &curr_rank);
-  
+
   /* for (i = 0; i < this_locator->n_intersects; i++) { */
 
   /*   dist_index = i; /\* Ordering (communication schema) not yet optimized *\/ */
@@ -911,7 +1167,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
   /*   fvmc_lnum_t ll1 = 0; */
   /*   fvmc_lnum_t ll2 = 0; */
-    
+
   /*   MPI_Sendrecv(&ll1, 1, FVMC_MPI_LNUM, dist_rank, 10, */
   /*                &ll2, 1, FVMC_MPI_LNUM, dist_rank, */
   /*                10, this_locator->comm, &status); */
@@ -921,9 +1177,9 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   /* fflush(stdout); */
 
   /* MPI_Barrier(this_locator->comm); */
-  
+
   for (i = 0; i < this_locator->n_intersects; i++) {
-    
+
     dist_index = i; /* Ordering (communication schema) not yet optimized */
     dist_rank  = this_locator->intersect_rank[dist_index];
 
@@ -961,6 +1217,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
     }
 
+
     /* Send then receive partial buffer */
 
     dist_rank = this_locator->intersect_rank[dist_index];
@@ -983,6 +1240,9 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                  FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
                  this_locator->comm, &status);
 
+
+
+
     _locator_trace_end_comm(_fvmc_locator_log_end_p_comm, comm_timing);
 
     /* Now locate received coords on local rank */
@@ -990,7 +1250,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
     BFTC_MALLOC(location_dist, n_coords_dist, fvmc_lnum_t);
     BFTC_MALLOC(distance_dist, n_coords_dist, float);
 
-    
+
     for (j = 0; j < n_coords_dist; j++) {
       location_dist[j] = -1;
       distance_dist[j] = -1.0;
@@ -1005,17 +1265,14 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
         distance_dist[j] = -1;
       }
     }
-    
-    fvmc_coord_t *projected_coords_dist = NULL;
-    if (fvmc_nodal_order_get (this_nodal) != -1) {
-      BFTC_MALLOC(projected_coords_dist, n_coords_dist*dim, fvmc_coord_t);
-    }
 
+    fvmc_coord_t *projected_coords_dist = NULL;
     double *uvw_dist = NULL;
-    
-    if (fvmc_nodal_order_get (this_nodal) != -1) {
+    if (local_nodal_order != -1) {
+      BFTC_MALLOC(projected_coords_dist, n_coords_dist*dim, fvmc_coord_t);
       BFTC_MALLOC(uvw_dist, n_coords_dist * max_entity_dim, double);
     }
+
 
     fvmc_point_location_nodal(this_nodal,
                               this_locator->tolerance,
@@ -1050,8 +1307,8 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
     fvmc_coord_t *projected_coords_loc = NULL;
     double *uvw_loc = NULL;
-    
-    if (fvmc_nodal_order_get (this_nodal) != -1) {
+
+    if ((local_nodal_order != -1) && (distant_nodal_order != -1)) {
       BFTC_MALLOC(projected_coords_loc, n_coords_loc * dim, fvmc_coord_t);
       MPI_Sendrecv(projected_coords_dist, (int)n_coords_dist * dim,
                    FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
@@ -1065,8 +1322,28 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                    uvw_loc, (int)n_coords_loc * max_entity_dim,
                    MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
                    this_locator->comm, &status);
+    }
 
-      
+    else if (local_nodal_order != -1) {
+      MPI_Send(projected_coords_dist, (int)n_coords_dist * dim,
+               FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm);
+
+      MPI_Send(uvw_dist, (int)n_coords_dist * max_entity_dim,
+               MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm);
+    }
+
+    else if (distant_nodal_order != -1) {
+      BFTC_MALLOC(projected_coords_loc, n_coords_loc * dim, fvmc_coord_t);
+      MPI_Recv(projected_coords_loc, (int)n_coords_loc * dim,
+               FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm, &status);
+
+      BFTC_MALLOC(uvw_loc, n_coords_loc * max_entity_dim, double);
+      MPI_Recv(uvw_loc, (int)n_coords_loc * max_entity_dim,
+               MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm, &status);
     }
 
     _locator_trace_end_comm(_fvmc_locator_log_end_p_comm, comm_timing);
@@ -1161,12 +1438,12 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   BFTC_MALLOC(send_distance, n_points, float);
 
   fvmc_coord_t *send_projected_coords = NULL;
-  if (fvmc_nodal_order_get (this_nodal) != -1) {
+  if (distant_nodal_order != -1) {
     BFTC_MALLOC(send_projected_coords, n_points * dim, fvmc_coord_t);
   }
-  
+
   fvmc_coord_t *send_uvw = NULL;
-  if (fvmc_nodal_order_get (this_nodal) != -1) {
+  if (distant_nodal_order != -1) {
     BFTC_MALLOC(send_uvw, n_points * max_entity_dim , double);
   }
 
@@ -1271,7 +1548,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
   this_locator->distant_point_projected_coords = NULL;
 
-  if (fvmc_nodal_order_get (this_nodal) != -1) {
+  if (local_nodal_order != -1) {
 
     BFTC_MALLOC(this_locator->distant_point_projected_coords,
                 this_locator->distant_points_idx[this_locator->n_intersects] * dim,
@@ -1280,14 +1557,14 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
   this_locator->distant_point_uvw = NULL;
 
-  if (fvmc_nodal_order_get (this_nodal) != -1) {
+  if (local_nodal_order != -1) {
 
     BFTC_MALLOC(this_locator->distant_point_uvw,
                 this_locator->distant_points_idx[this_locator->n_intersects] * max_entity_dim,
                 double);
-    
+
   }
-  
+
   for (i = 0; i < this_locator->n_intersects; i++) {
 
     dist_index = i; /* Ordering (communication schema) not yet optimized */
@@ -1353,7 +1630,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                  FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
                  this_locator->comm, &status);
 
-    if (send_projected_coords != NULL) {
+    if ((local_nodal_order != -1) && (distant_nodal_order != -1)) {
       MPI_Sendrecv(send_projected_coords, (int)(n_coords_loc*dim),
                    FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
                    (this_locator->distant_point_projected_coords
@@ -1361,9 +1638,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                    (int)(n_coords_dist*dim),
                    FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
                    this_locator->comm, &status);
-    }
 
-    if (send_uvw != NULL) {
       MPI_Sendrecv(send_uvw, (int)(n_coords_loc*max_entity_dim),
                    MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
                    (this_locator->distant_point_uvw
@@ -1372,7 +1647,31 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                    MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
                    this_locator->comm, &status);
     }
-    
+
+    else if (distant_nodal_order != -1) {
+      MPI_Send(send_projected_coords, (int)(n_coords_loc*dim),
+               FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm);
+
+      MPI_Send(send_uvw, (int)(n_coords_loc*max_entity_dim),
+               MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm);
+    }
+
+    else if (local_nodal_order != -1) {
+      MPI_Recv((this_locator->distant_point_projected_coords
+                + (this_locator->distant_points_idx[i]*dim)),
+               (int)(n_coords_dist*dim),
+               FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm, &status);
+
+      MPI_Recv((this_locator->distant_point_uvw
+                + (this_locator->distant_points_idx[i]*max_entity_dim)),
+               (int)(n_coords_dist*max_entity_dim),
+               MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm, &status);
+    }
+
     _locator_trace_end_comm(_fvmc_locator_log_end_p_comm, comm_timing);
 
   }
@@ -1390,7 +1689,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   if (send_uvw != NULL) {
     BFTC_FREE(send_uvw);
   }
-  
+
   BFTC_FREE(location_rank_id);
 
   BFTC_FREE(location);
@@ -1498,6 +1797,7 @@ _locate_all_local(fvmc_locator_t       *this_locator,
                             location,
                             distance);
 
+
   /* Reorganize localization information */
   /*-------------------------------------*/
 
@@ -1597,17 +1897,17 @@ _locate_all_local(fvmc_locator_t       *this_locator,
  *   request       --> free request
  *----------------------------------------------------------------------------*/
 
-static int 
+static int
 _get_free_request(_fvmc_locator_nblocking_t **nblockings,
                   int *max_nblockings)
 {
-  
+
   int request = 0;
   if (*nblockings == NULL) {
-    
+
     *max_nblockings = 4;
-    BFTC_MALLOC(*nblockings, 
-               *max_nblockings, 
+    BFTC_MALLOC(*nblockings,
+               *max_nblockings,
                _fvmc_locator_nblocking_t);
     for (int i = 0; i < *max_nblockings; i++) {
       (*nblockings)[i].buffer = NULL;
@@ -1628,8 +1928,8 @@ _get_free_request(_fvmc_locator_nblocking_t **nblockings,
     }
     if (request == *max_nblockings) {
       *max_nblockings = 2 * (*max_nblockings);
-      BFTC_REALLOC(*nblockings, 
-                  *max_nblockings, 
+      BFTC_REALLOC(*nblockings,
+                  *max_nblockings,
                   _fvmc_locator_nblocking_t);
       for (int i = request; i < *max_nblockings; i++) {
         (*nblockings)[i].buffer = NULL;
@@ -1653,9 +1953,9 @@ _get_free_request(_fvmc_locator_nblocking_t **nblockings,
  *
  * parameters:
  *   this_locator  <-- pointer to locator structure
- *   var           <-- variable defined on distant points (distant_var) 
+ *   var           <-- variable defined on distant points (distant_var)
  *                     or on local points (local_var) if reverse
- *   local_var     <-- variable defined on local points 
+ *   local_var     <-- variable defined on local points
  *   local_list    <-- optional indirection list (1 to n) for local_var
  *   datatype      <-- variable type
  *   stride        <-- dimension (1 for scalar, 3 for interlaced vector)
@@ -1687,7 +1987,7 @@ _issend_point_var_distant(fvmc_locator_t     *this_locator,
 
   /* Get a free  request */
 
-  *request = _get_free_request(&(this_locator->nblockings_send), 
+  *request = _get_free_request(&(this_locator->nblockings_send),
                                &(this_locator->max_nblockings_send));
 
   _fvmc_locator_nblocking_t *nblocking_send = this_locator->nblockings_send + *request;
@@ -1719,12 +2019,12 @@ _issend_point_var_distant(fvmc_locator_t     *this_locator,
     /* Exchange information */
 
     if (reverse == false) {
-      
+
       void *distant_var = var;
 
       n_points_dist =   this_locator->distant_points_idx[i+1]
                       - this_locator->distant_points_idx[i];
-      
+
       dist_v_idx = this_locator->distant_points_idx[i] * stride*size;
       dist_v_count = n_points_dist * stride;
 
@@ -1753,7 +2053,7 @@ _issend_point_var_distant(fvmc_locator_t     *this_locator,
 
       n_points_loc =    this_locator->local_points_idx[i+1]
                        - this_locator->local_points_idx[i];
-      
+
       BFTC_MALLOC(nblocking_send->buffer[i], n_points_loc*size*stride, char);
 
       loc_v_count = n_points_loc*stride;
@@ -1839,7 +2139,7 @@ _irecv_point_var_distant(fvmc_locator_t     *this_locator,
 
   /* Get a free  request */
 
-  *request = _get_free_request(&(this_locator->nblockings_recv), 
+  *request = _get_free_request(&(this_locator->nblockings_recv),
                                &(this_locator->max_nblockings_recv));
 
   _fvmc_locator_nblocking_t *nblocking_recv = this_locator->nblockings_recv + *request;
@@ -1869,27 +2169,27 @@ _irecv_point_var_distant(fvmc_locator_t     *this_locator,
   /*---------------------------------------------*/
 
   for (i = 0; i < this_locator->n_intersects; i++) {
-    
+
     dist_index = i; /* Ordering (communication schema) not yet optimized */
     dist_rank = this_locator->intersect_rank[dist_index];
-    
+
     if (reverse == false) {
-      
+
       /* Initialization */
 
-      
+
       n_points_loc =    this_locator->local_points_idx[i+1]
                       - this_locator->local_points_idx[i];
-      
+
       loc_v_count = n_points_loc*stride;
 
       BFTC_MALLOC(nblocking_recv->buffer[i], n_points_loc*size*stride, char);
-      
+
       _locator_trace_start_comm(_fvmc_locator_log_start_p_comm, comm_timing);
-      
+
       MPI_Irecv(nblocking_recv->buffer[i], loc_v_count, datatype, dist_rank, tag,
                 this_locator->comm, nblocking_recv->MPI_request + i);
-                
+
       _locator_trace_end_comm(_fvmc_locator_log_end_p_comm, comm_timing);
 
     }
@@ -1903,11 +2203,11 @@ _irecv_point_var_distant(fvmc_locator_t     *this_locator,
 
       dist_v_idx = this_locator->distant_points_idx[i] * stride*size;
       dist_v_count = n_points_dist * stride;
-      
+
       loc_v_count = n_points_loc*stride;
-      
+
       /* Exchange information */
-      
+
       if (distant_var != NULL)
         dist_v_ptr = (void *)(((char *)distant_var) + dist_v_idx);
       else
@@ -2306,7 +2606,7 @@ _get_times(const fvmc_locator_t  *this_locator,
  * will work only locally.
  *
  * parameters:
- *   opt_bbox_step <-- Discretization for the computation of the 
+ *   opt_bbox_step <-- Discretization for the computation of the
  *                     ho element extents
  *                  extent = base_extent * (1 + tolerance)
  *   tolerance  <-- addition to local extents of each element:
@@ -2438,7 +2738,7 @@ fvmc_locator_destroy(fvmc_locator_t  * this_locator)
 
     if (this_locator->distant_point_projected_coords != NULL)
       BFTC_FREE(this_locator->distant_point_projected_coords);
-    
+
     if (this_locator->distant_point_uvw != NULL)
       BFTC_FREE(this_locator->distant_point_uvw);
 
@@ -2448,11 +2748,11 @@ fvmc_locator_destroy(fvmc_locator_t  * this_locator)
   return NULL;
 }
 /*----------------------------------------------------------------------------
- * locator size 
+ * locator size
  *
  * parameters:
  *   this_locator <-> locator to get size
- * 
+ *
  *----------------------------------------------------------------------------*/
 
 size_t
@@ -2468,11 +2768,11 @@ fvmc_locator_size(const fvmc_locator_t  * this_locator)
      il_size += 2 * sizeof(int);
 #endif
      il_size += this_locator->n_intersects * this_locator->dim * 2 * sizeof(double);
-     il_size += (this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t); 
+     il_size += (this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t);
      il_size += (this_locator->n_ranks + 1) * sizeof(fvmc_lnum_t);
-     il_size += (this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t); 
+     il_size += (this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t);
      il_size += (this_locator->n_ranks + 1) * sizeof(fvmc_lnum_t);
-     il_size +=  this_locator->local_points_idx[this_locator->n_intersects] * sizeof(fvmc_lnum_t);   
+     il_size +=  this_locator->local_points_idx[this_locator->n_intersects] * sizeof(fvmc_lnum_t);
      il_size +=  this_locator->distant_points_idx[this_locator->n_intersects] * sizeof(float);
      il_size +=  this_locator->distant_points_idx[this_locator->n_intersects] * sizeof(fvmc_lnum_t);
      il_size +=  this_locator->distant_points_idx[this_locator->n_intersects] *this_locator->dim  * sizeof(fvmc_coord_t);
@@ -2489,11 +2789,11 @@ fvmc_locator_size(const fvmc_locator_t  * this_locator)
  *
  * parameters:
  *   this_locator <-> locator to save
- * 
+ *
  *----------------------------------------------------------------------------*/
 
 
-void * 
+void *
 fvmc_locator_pack(void *p, const fvmc_locator_t  * this_locator)
 {
   size_t s_pack;
@@ -2558,7 +2858,7 @@ fvmc_locator_pack(void *p, const fvmc_locator_t  * this_locator)
     p = (void *) ((char *) p + s_pack);
 
     s_pack = this_locator->local_points_idx[this_locator->n_intersects] * sizeof(fvmc_lnum_t);
-    memcpy(p,(void *)this_locator->local_point_ids, s_pack); 
+    memcpy(p,(void *)this_locator->local_point_ids, s_pack);
     p = (void *) ((char *) p + s_pack);
 
     s_pack = this_locator->distant_points_idx[this_locator->n_intersects] * sizeof(float);
@@ -2578,7 +2878,7 @@ fvmc_locator_pack(void *p, const fvmc_locator_t  * this_locator)
     p = (void *) ((char *) p + s_pack);
 
     s_pack = this_locator->n_interior *  sizeof(fvmc_lnum_t);
-    memcpy(p,(void *)this_locator->interior_list, s_pack); 
+    memcpy(p,(void *)this_locator->interior_list, s_pack);
     p = (void *) ((char *) p + s_pack);
 
     s_pack = sizeof(fvmc_lnum_t);
@@ -2586,7 +2886,7 @@ fvmc_locator_pack(void *p, const fvmc_locator_t  * this_locator)
     p = (void *) ((char *) p + s_pack);
 
     s_pack =  this_locator->n_exterior *  sizeof(fvmc_lnum_t);
-    memcpy(p,(void *)this_locator->exterior_list, s_pack); 
+    memcpy(p,(void *)this_locator->exterior_list, s_pack);
     p = (void *) ((char *) p + s_pack);
   }
   return p;
@@ -2597,16 +2897,16 @@ fvmc_locator_pack(void *p, const fvmc_locator_t  * this_locator)
  *
  * parameters:
  *   this_locator <-> locator to read
- * 
+ *
  *----------------------------------------------------------------------------*/
 /* fonction de base aussi appele dans cwipi */
-size_t fvmc_locator_unpack_elem(const void * buffer, void *data,  const size_t data_size) 
+size_t fvmc_locator_unpack_elem(const void * buffer, void *data,  const size_t data_size)
 {
   memcpy(data, buffer, data_size);
-  return data_size;	 
+  return data_size;
 }
 
-size_t 
+size_t
 fvmc_locator_unpack(unsigned char *buff, fvmc_locator_t  * this_locator)
 {
   size_t cur_pos;
@@ -2617,12 +2917,12 @@ fvmc_locator_unpack(unsigned char *buff, fvmc_locator_t  * this_locator)
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->dim, sizeof(int));
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->n_ranks, sizeof(int));
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->start_rank, sizeof(int));
-  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->n_intersects, sizeof(int)); 
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->n_intersects, sizeof(int));
   BFTC_MALLOC(this_locator->intersect_rank,
 	      this_locator->n_intersects,
 	      int);
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->intersect_rank,this_locator->n_intersects*sizeof(int));
-#if defined(FVMC_HAVE_MPI)  
+#if defined(FVMC_HAVE_MPI)
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->max_nblockings_send,sizeof(int));
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->max_nblockings_recv,sizeof(int));
 #endif
@@ -2630,11 +2930,11 @@ fvmc_locator_unpack(unsigned char *buff, fvmc_locator_t  * this_locator)
 	      this_locator->n_intersects * this_locator->dim * 2 ,
 	      double);
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->intersect_extents,this_locator->n_intersects * this_locator->dim * 2 * sizeof(double));
-  
+
   BFTC_MALLOC(this_locator->local_points_idx,
 	      this_locator->n_intersects + 1,
 	      fvmc_lnum_t);
-  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->local_points_idx,(this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t)); 
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->local_points_idx,(this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t));
   BFTC_MALLOC(this_locator->local_distribution,
 	      this_locator->n_ranks + 1,
 	      fvmc_lnum_t);
@@ -2642,12 +2942,12 @@ fvmc_locator_unpack(unsigned char *buff, fvmc_locator_t  * this_locator)
   BFTC_MALLOC(this_locator->distant_points_idx,
 	      this_locator->n_intersects + 1,
 	      fvmc_lnum_t);
-  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->distant_points_idx,(this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t)); 
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->distant_points_idx,(this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t));
   BFTC_MALLOC(this_locator->distant_distribution,
 	      this_locator->n_ranks + 1,
 	      fvmc_lnum_t);
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->distant_distribution,(this_locator->n_ranks + 1) * sizeof(fvmc_lnum_t));
-  
+
   BFTC_MALLOC(this_locator->local_point_ids,
 	      this_locator->local_points_idx[this_locator->n_intersects],
 	      fvmc_lnum_t);
@@ -2664,7 +2964,7 @@ fvmc_locator_unpack(unsigned char *buff, fvmc_locator_t  * this_locator)
 	      this_locator->distant_points_idx[this_locator->n_intersects] *this_locator->dim,
 	      fvmc_coord_t);
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->distant_point_coords,this_locator->distant_points_idx[this_locator->n_intersects] *this_locator->dim * sizeof(fvmc_coord_t));
-  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->n_interior, sizeof(fvmc_lnum_t)); 
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->n_interior, sizeof(fvmc_lnum_t));
   BFTC_MALLOC(this_locator->interior_list, this_locator->n_interior, fvmc_lnum_t);
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->interior_list, this_locator->n_interior *  sizeof(fvmc_lnum_t));
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->n_exterior, sizeof(fvmc_lnum_t));
@@ -2743,6 +3043,7 @@ fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
                  point_list,
                  point_coords,
                  extents + 2*dim);
+
 
   /* Release information if previously present */
 
@@ -3322,16 +3623,16 @@ fvmc_locator_issend_point_var(fvmc_locator_t     *this_locator,
                              int               *request)
 {
   double w_start, w_end, cpu_start, cpu_end;
-  
+
   _Bool _reverse = reverse;
-  
+
   /* Initialize timing */
-  
+
   w_start = bftc_timer_wtime();
   cpu_start = bftc_timer_cpu_time();
-  
+
   MPI_Datatype datatype = MPI_DATATYPE_NULL;
-  
+
   if (type_size == sizeof(double))
     datatype = MPI_DOUBLE;
   else if (type_size == sizeof(float))
@@ -3340,9 +3641,9 @@ fvmc_locator_issend_point_var(fvmc_locator_t     *this_locator,
     bftc_error(__FILE__, __LINE__, 0,
               _("type_size passed to fvmc_locator_issend_point_var() does\n"
                 "not correspond to double or float."));
-  
+
   assert (datatype != MPI_DATATYPE_NULL);
-  
+
   _issend_point_var_distant(this_locator,
                             var,
                             local_list,
@@ -3356,7 +3657,7 @@ fvmc_locator_issend_point_var(fvmc_locator_t     *this_locator,
 
   w_end = bftc_timer_wtime();
   cpu_end = bftc_timer_cpu_time();
-  
+
   this_locator->issend_wtime[0] += (w_end - w_start);
   this_locator->issend_cpu_time[0] += (cpu_end - cpu_start);
 }
@@ -3378,9 +3679,9 @@ fvmc_locator_issend_wait(fvmc_locator_t     *this_locator,
   MPI_Status status;
 
   double w_start, w_end, cpu_start, cpu_end;
-  
+
   /* Initialize timing */
-  
+
   w_start = bftc_timer_wtime();
   cpu_start = bftc_timer_cpu_time();
 
@@ -3390,7 +3691,7 @@ fvmc_locator_issend_wait(fvmc_locator_t     *this_locator,
 
   for (int i = 0; i < this_locator->n_intersects; i++) {
     MPI_Wait(nblocking_send->MPI_request + i, &status);
-    if (nblocking_send->reverse) 
+    if (nblocking_send->reverse)
       BFTC_FREE(nblocking_send->buffer[i]);
   }
 
@@ -3413,7 +3714,7 @@ fvmc_locator_issend_wait(fvmc_locator_t     *this_locator,
 
   w_end = bftc_timer_wtime();
   cpu_end = bftc_timer_cpu_time();
-  
+
   this_locator->issend_wtime[0] += (w_end - w_start);
   this_locator->issend_cpu_time[0] += (cpu_end - cpu_start);
 
@@ -3456,7 +3757,7 @@ fvmc_locator_irecv_point_var(fvmc_locator_t     *this_locator,
   cpu_start = bftc_timer_cpu_time();
 
   MPI_Datatype datatype = MPI_DATATYPE_NULL;
-  
+
   if (type_size == sizeof(double))
     datatype = MPI_DOUBLE;
   else if (type_size == sizeof(float))
@@ -3467,7 +3768,7 @@ fvmc_locator_irecv_point_var(fvmc_locator_t     *this_locator,
                 "not correspond to double or float."));
 
   assert (datatype != MPI_DATATYPE_NULL);
-  
+
   _irecv_point_var_distant(this_locator,
                            var,
                            local_list,
@@ -3503,20 +3804,20 @@ fvmc_locator_irecv_wait(fvmc_locator_t     *this_locator,
 {
 
   MPI_Status status;
-  
+
   double w_start, w_end, cpu_start, cpu_end;
   fvmc_lnum_t n_points_loc;
-  
+
   /* Initialize timing */
-  
+
   w_start = bftc_timer_wtime();
   cpu_start = bftc_timer_cpu_time();
-  
+
   _fvmc_locator_nblocking_t *nblocking_recv = this_locator->nblockings_recv + request;
-  
+
 
   /* MPI_Wait for MPI_irecv requests */
-  
+
   for (int i = 0; i < this_locator->n_intersects; i++) {
     MPI_Wait(nblocking_recv->MPI_request + i, &status);
 
@@ -3525,7 +3826,7 @@ fvmc_locator_irecv_wait(fvmc_locator_t     *this_locator,
 
     n_points_loc =    this_locator->local_points_idx[i+1]
                      - this_locator->local_points_idx[i];
- 
+
     int size = nblocking_recv->size;
     int stride = nblocking_recv->stride;
 
@@ -3558,7 +3859,7 @@ fvmc_locator_irecv_wait(fvmc_locator_t     *this_locator,
   }
 
   /* Free request */
-  
+
   BFTC_FREE(nblocking_recv->MPI_request);
   BFTC_FREE(nblocking_recv->buffer);
 
@@ -3569,12 +3870,12 @@ fvmc_locator_irecv_wait(fvmc_locator_t     *this_locator,
   nblocking_recv->reverse = false;
   nblocking_recv->size = 0;
   nblocking_recv->stride = 0;
-  
+
   /* Finalize timing */
-  
+
   w_end = bftc_timer_wtime();
   cpu_end = bftc_timer_cpu_time();
-  
+
   this_locator->irecv_wtime[0] += (w_end - w_start);
   this_locator->irecv_cpu_time[0] += (cpu_end - cpu_start);
 

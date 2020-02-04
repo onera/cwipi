@@ -17,6 +17,7 @@ function(test_c_create name n_proc)
                                       PRIVATE ${CMAKE_BINARY_DIR}
                                       PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
    target_include_directories(${name} PRIVATE ${TEST_INC})
+
    target_link_libraries(${name} ${LINK_LIBRARIES})
    install(TARGETS ${name} RUNTIME DESTINATION bin)
    add_test (${name} ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${n_proc}
@@ -35,6 +36,7 @@ function(test_fortran_create name n_proc)
      set_target_properties(${name}
                            PROPERTIES
                            COMPILE_FLAGS ${MPI_Fortran_COMPILE_FLAGS})
+     target_include_directories(${name} PRIVATE ${MPI_Fortran_INCLUDE_PATH})                      
    endif()
    target_include_directories(${name} PRIVATE ${CMAKE_SOURCE_DIR}
                                       PRIVATE ${CMAKE_BINARY_DIR}
@@ -47,13 +49,14 @@ function(test_fortran_create name n_proc)
              ${MPIEXEC_PREFLAGS}
              ${CMAKE_CURRENT_BINARY_DIR}/${name}
              ${MPIEXEC_POSTFLAGS})
+
 endfunction()
 
 function(test_python_create name n_proc)
   file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/${name}.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
   add_test (${name} ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${n_proc}
             ${MPIEXEC_PREFLAGS}
-            python ${CMAKE_CURRENT_BINARY_DIR}/${name}.py
+            ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/${name}.py
             ${MPIEXEC_POSTFLAGS})
 
 endfunction()

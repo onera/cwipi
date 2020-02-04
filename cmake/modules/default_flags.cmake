@@ -14,6 +14,8 @@ if (NOT PASS_DEFAULT_FLAGS)
 
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
+  link_libraries("m")
+
   set (CMAKE_Fortran_FLAGS "-fPIC -Wall -pedantic -std=gnu -Wno-unused-dummy-argument -Wno-maybe-uninitialized")
 
   set (CMAKE_Fortran_FLAGS_RELEASE         "-O3")
@@ -237,6 +239,7 @@ mark_as_advanced (CMAKE_C_FLAGS_PROFILING)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
+  link_libraries ("m")
   set (CMAKE_CXX_FLAGS "-std=c++11 -fPIC -funsigned-char -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wunused -Wno-long-long -Wfloat-equal -Wno-unused-dummy-argument")
 
   set (CMAKE_CXX_FLAGS_RELEASE         "-O3")

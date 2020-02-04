@@ -213,15 +213,15 @@ _a_gt_b(fvmc_morton_code_t  code_a,
   if (a_diff > 0) {
     code_a.L = l;
     code_a.X[0] = code_a.X[0] << a_diff;
-    code_a.X[1] = code_a.X[2] << a_diff;
-    code_a.X[1] = code_a.X[2] << a_diff;
+    code_a.X[1] = code_a.X[1] << a_diff;
+    code_a.X[2] = code_a.X[2] << a_diff;
   }
 
   if (b_diff > 0) {
     code_b.L = l;
     code_b.X[0] = code_b.X[0] << b_diff;
-    code_b.X[1] = code_b.X[2] << b_diff;
-    code_b.X[1] = code_b.X[2] << b_diff;
+    code_b.X[1] = code_b.X[1] << b_diff;
+    code_b.X[2] = code_b.X[2] << b_diff;
   }
 
   i = l - 1;

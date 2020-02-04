@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011  ONERA
 
@@ -99,25 +99,25 @@ void LocationToLocalMesh::_computeNormal (int numPts, double *pts, double n[3])
   n[0] = 0.;
   n[1] = 0.;
   n[2] = 0.;
-  
+
   _computeBary (numPts, pts, bary);
-  
+
   for (int ipt = 0; ipt < numPts; ipt++) {
-    
+
     double *pt1 = pts + 3 * ipt;
     double *pt2 = pts + 3 * ((ipt+1)%numPts);
     double vect1[3];
     double vect2[3];
-    
+
     for (int i = 0; i < 3; i++) {
       vect1[i] = pt1[i] - bary[i];
       vect2[i] = pt2[i] - bary[i];
     }
-    
+
     n[0] += vect1[1] * vect2[2] - vect1[2] * vect2[1];
     n[1] += vect1[2] * vect2[0] - vect1[0] * vect2[2];
     n[2] += vect1[0] * vect2[1] - vect1[1] * vect2[0];
-    
+
   } //over all points
 
   length = sqrt (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
@@ -148,7 +148,7 @@ LocationToLocalMesh::LocationToLocalMesh(
   _coupledApplicationNRankCouplingComm(coupledApplicationNRankCouplingComm),
   _coupledApplicationBeginningRankCouplingComm(coupledApplicationBeginningRankCouplingComm),
   _isCoupledRank(isCoupledRank), _entitiesDim(entitiesDim), _localApplicationProperties(localApplicationProperties),
-  _locationToDistantMesh(locationToDistantMesh), 
+  _locationToDistantMesh(locationToDistantMesh),
   _locatedPointsDistribution(NULL), _distantDistribution(NULL)
 {
   _fvmLocator = NULL;
@@ -159,7 +159,7 @@ LocationToLocalMesh::LocationToLocalMesh(
   _location = NULL;
   _toLocate = true;
   _maxElementContainingNVertex = -1;
-  _nVertex = NULL; 
+  _nVertex = NULL;
   _supportMesh = NULL;
 
 }
@@ -194,12 +194,12 @@ size_t LocationToLocalMesh::locationSize()
     il_size += sizeof(int);
     il_size += fvmc_locator_size(_fvmLocator);
     const int nDistantPoint = fvmc_locator_get_n_dist_points(_fvmLocator);
-    
+
     il_size += sizeof(int);
     if (_barycentricCoordinatesIndex != NULL) {
       il_size += (nDistantPoint + 1)*sizeof(int);
     }
-    
+
     il_size += sizeof(int);
     if (_barycentricCoordinates != NULL) {
       std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
@@ -211,10 +211,10 @@ size_t LocationToLocalMesh::locationSize()
       std::vector <double> &  _refUvw = *_uvw;
       il_size += _refUvw.size()*sizeof(double);
     }
-    
+
     il_size += sizeof(int);
     if (_nVertex != NULL) {
-      il_size +=  _nDistantPoint*sizeof(int); 
+      il_size +=  _nDistantPoint*sizeof(int);
     }
   }
   return il_size;
@@ -232,18 +232,18 @@ void LocationToLocalMesh::packLocation(unsigned char *buff)
   p = (void *)buff;
 
   if ( _isCoupledRank) {
-    
+
     if (_fvmLocator != NULL) {
       s = 1;
       s_pack = sizeof(int);
       memcpy(p,(void *)&s, s_pack);
       p = (void *) ((char *) p + s_pack);
       p = fvmc_locator_pack(p, _fvmLocator);
-    } 
+    }
     else {
       s = 0;
       s_pack = sizeof(int);
-      memcpy(p,(void *)&s, s_pack);      
+      memcpy(p,(void *)&s, s_pack);
       p = (void *) ((char *) p + s_pack);
     }
 
@@ -257,50 +257,50 @@ void LocationToLocalMesh::packLocation(unsigned char *buff)
       s_pack = (nDistantPoint + 1)*sizeof(int);
       memcpy(p,(void *)&_refBarycentricCoordinatesIndex[0], s_pack);
       p = (void *) ((char *) p + s_pack);
-    } 
+    }
     else {
       s = 0;
       s_pack = sizeof(int);
-      memcpy(p,(void *)&s, s_pack);      
+      memcpy(p,(void *)&s, s_pack);
       p = (void *) ((char *) p + s_pack);
     }
 
     if (_barycentricCoordinates != NULL) {
       std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
-      // calcul de la taille de _barycentricCoordinates 
+      // calcul de la taille de _barycentricCoordinates
       s = _refBarycentricCoordinates.size();
       s_pack = sizeof(int);
-      memcpy(p,(void *)&s, s_pack);     
+      memcpy(p,(void *)&s, s_pack);
       p = (void *) ((char *) p + s_pack);
       s_pack = s * sizeof(double);
       memcpy(p,(void *)&_refBarycentricCoordinates[0], s_pack);
       p = (void *) ((char *) p + s_pack);
-    } 
+    }
     else {
       s = 0;
       s_pack = sizeof(int);
-      memcpy(p,(void *)&s, s_pack);      
+      memcpy(p,(void *)&s, s_pack);
       p = (void *) ((char *) p + s_pack);
     }
 
     if (_uvw != NULL) {
       std::vector <double> &  _refUvw = *_uvw;
-      // calcul de la taille de _uvw 
+      // calcul de la taille de _uvw
       s = _refUvw.size();
       s_pack = sizeof(int);
-      memcpy(p,(void *)&s, s_pack);     
+      memcpy(p,(void *)&s, s_pack);
       p = (void *) ((char *) p + s_pack);
       s_pack = s * sizeof(double);
       memcpy(p,(void *)&_refUvw[0], s_pack);
       p = (void *) ((char *) p + s_pack);
-    } 
+    }
     else {
       s = 0;
       s_pack = sizeof(int);
-      memcpy(p,(void *)&s, s_pack);      
+      memcpy(p,(void *)&s, s_pack);
       p = (void *) ((char *) p + s_pack);
     }
-    
+
     if (_nVertex != NULL) {
       s = 1;
       s_pack = sizeof(int);
@@ -310,14 +310,14 @@ void LocationToLocalMesh::packLocation(unsigned char *buff)
       s_pack = _nDistantPoint*sizeof(int);
       memcpy(p,(void *)&_nVertexRef[0], s_pack);
       p = (void *) ((char *) p + s_pack);
-    }  
+    }
     else {
       s = 0;
       s_pack = sizeof(int);
-      memcpy(p,(void *)&s, s_pack);      
+      memcpy(p,(void *)&s, s_pack);
       p = (void *) ((char *) p + s_pack);
     }
-  } 
+  }
 }
 
 
@@ -328,8 +328,8 @@ void LocationToLocalMesh::unpackLocation(unsigned char *buff)
   cur_pos = 0;
 
   if ( _isCoupledRank) {
-    // read the locator 
-    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
+    // read the locator
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
     if (s == 1) {
       _fvmLocator = fvmc_locator_create(_optBboxStep,
                                         _tolerance,
@@ -337,7 +337,7 @@ void LocationToLocalMesh::unpackLocation(unsigned char *buff)
                                         _coupledApplicationNRankCouplingComm,
                                         _coupledApplicationBeginningRankCouplingComm);
       cur_pos += fvmc_locator_unpack(&buff[cur_pos],_fvmLocator);
-      
+
       // mise à jour de l'objet locationToLocalMesh
 
       const int* locationList = fvmc_locator_get_dist_locations(_fvmLocator);
@@ -347,7 +347,7 @@ void LocationToLocalMesh::unpackLocation(unsigned char *buff)
 
       _distantDistribution =  const_cast<int *> (fvmc_locator_get_dist_distrib(_fvmLocator));
       _locatedPointsDistribution =  const_cast<int *> (fvmc_locator_get_loc_distrib(_fvmLocator));
-      
+
       _nDistantPoint = fvmc_locator_get_n_dist_points(_fvmLocator);
 
       // mise à jour de l'objet locationToDistantMesh
@@ -366,7 +366,7 @@ void LocationToLocalMesh::unpackLocation(unsigned char *buff)
     // load the barycentric coordinates
     const int nDistantPoint      = fvmc_locator_get_n_dist_points(_fvmLocator);
 
-    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
     if (s == 1) {
       if (_barycentricCoordinatesIndex != NULL) delete _barycentricCoordinatesIndex;
       _barycentricCoordinatesIndex = new std::vector <int> (nDistantPoint + 1);
@@ -374,7 +374,7 @@ void LocationToLocalMesh::unpackLocation(unsigned char *buff)
       cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_refBarycentricCoordinatesIndex[0], (nDistantPoint + 1)*sizeof(int));
     }
 
-    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
     if (s != 0) {
       if (_barycentricCoordinates != NULL) delete _barycentricCoordinates;
       _barycentricCoordinates = new std::vector <double> (s);
@@ -382,7 +382,7 @@ void LocationToLocalMesh::unpackLocation(unsigned char *buff)
       cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_refBarycentricCoordinates[0], s*sizeof(double));
     }
 
-    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
     if (s != 0) {
       if (_uvw != NULL) delete _uvw;
       _uvw = new std::vector <double> (s);
@@ -390,7 +390,7 @@ void LocationToLocalMesh::unpackLocation(unsigned char *buff)
       cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_refUvw[0], s*sizeof(double));
     }
 
-    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
     if (s == 1) {
       if(_nVertex != NULL) delete _nVertex;
       _nVertex = new std::vector <int> (_nDistantPoint, 0);
@@ -431,24 +431,24 @@ void LocationToLocalMesh::locate()
                                           _coupledApplicationNRankCouplingComm,
                                           _coupledApplicationBeginningRankCouplingComm);
 
-      // TODO: Revoir les coordonnees des points a localiser 
+      // TODO: Revoir les coordonnees des points a localiser
       // (cas centres sommets + centres faces + autres points)
       // TODO: Ajouter un locator pour les sommets pour les centres faces,...
-      
+
       double* coords = NULL;
       if (_locationToDistantMesh._coordsPointsToLocate != NULL)
         coords = _locationToDistantMesh._coordsPointsToLocate;
-      
+
       else if(_solverType == CWIPI_SOLVER_CELL_CENTER) {
         _locationToDistantMesh._nPointsToLocate = _supportMesh->getNElts();
         coords = const_cast <double*> (&(_supportMesh->getCellCenterCoords()[0]));
       }
-      
+
       else if(_solverType == CWIPI_SOLVER_CELL_VERTEX) {
         _locationToDistantMesh._nPointsToLocate = _supportMesh->getNVertex();
         coords = const_cast <double*> (_supportMesh->getVertexCoords());
       }
-      
+
       fvmc_locator_set_nodal(_fvmLocator,
                              &_supportMesh->getFvmNodal(),
                              0,
@@ -471,22 +471,22 @@ void LocationToLocalMesh::locate()
       _locationToDistantMesh._nUnlocatedPoint = nNotLocatedPoint;
       _locationToDistantMesh._nLocatedPoint = nLocatedPoint;
       _locationToDistantMesh._toLocate = false;
-      
+
       _location = const_cast<int *> (locationList);
       _distance = const_cast<float *> (distanceList);
-      
+
       _distantDistribution =  const_cast<int *> (fvmc_locator_get_dist_distrib(_fvmLocator));
       _locatedPointsDistribution =  const_cast<int *> (fvmc_locator_get_loc_distrib(_fvmLocator));
-      
+
       _nDistantPoint = fvmc_locator_get_n_dist_points(_fvmLocator);
-      
+
       if (_barycentricCoordinatesIndex != NULL) {
         delete _barycentricCoordinatesIndex;
         delete _barycentricCoordinates;
         _barycentricCoordinatesIndex = NULL;
         _barycentricCoordinates = NULL;
       }
-      
+
       if (_uvw != NULL) {
         delete _uvw;
         _uvw = NULL;
@@ -495,13 +495,13 @@ void LocationToLocalMesh::locate()
       //
       // TODO: Prevoir une fabrique pour supprimer les tests if sur _entitiesDim
       //       Le calcul des coordonnees barycentriques se fera dans cette fabrique
-      
+
       if (_barycentricCoordinatesIndex == NULL) {
         if (_entitiesDim == 1) {
           const int nDistantPoint      = fvmc_locator_get_n_dist_points(_fvmLocator);
           const int *distantLocation   = fvmc_locator_get_dist_locations(_fvmLocator);
           const double *distantCoords   = fvmc_locator_get_dist_coords(_fvmLocator);
-          
+
           const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
           const int *eltsConnec = _supportMesh->getEltConnectivity();
           const double *localCoords    = _supportMesh->getVertexCoords();
@@ -510,15 +510,15 @@ void LocationToLocalMesh::locate()
           //          const fvmc_coord_t *proj_coords = fvmc_locator_get_dist_projected_coords(_fvmLocator);
 
           if (order == -1) {
-          
+
             if ( nDistantPoint > 0 ) {
               _barycentricCoordinatesIndex = new std::vector <int> (nDistantPoint + 1);
               _barycentricCoordinates = new std::vector <double> (2 * nDistantPoint);
               std::vector <int> &  _refBarycentricCoordinatesIndex = *_barycentricCoordinatesIndex;
               std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
-              
+
               _refBarycentricCoordinatesIndex[0] = 0;
-              
+
               for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
                 int iel = distantLocation[ipoint] - 1;
                 _refBarycentricCoordinatesIndex[ipoint+1] = _refBarycentricCoordinatesIndex[ipoint] + 2;
@@ -539,9 +539,9 @@ void LocationToLocalMesh::locate()
                                     *(localCoords[3*pt2+1]-distantCoords[3*ipoint+1])+
                                     (localCoords[3*pt2+2]-distantCoords[3*ipoint+2])
                                     *(localCoords[3*pt2+2]-distantCoords[3*ipoint+2]));
-                _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]] = 
+                _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]] =
                   coef2/(coef1+coef2);
-                _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]+1] = 
+                _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]+1] =
                   coef1/(coef1+coef2);
               }
             }
@@ -554,7 +554,7 @@ void LocationToLocalMesh::locate()
             std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
 
             int max_entity_dim = fvmc_nodal_get_max_entity_dim (&(_supportMesh->getFvmNodal()));
-            
+
             _refBarycentricCoordinatesIndex[0] = 0;
             for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
               _refBarycentricCoordinatesIndex[ipoint + 1] =
@@ -562,30 +562,30 @@ void LocationToLocalMesh::locate()
             }
 
             const int *meshConnectivityIndex = _supportMesh->getEltConnectivityIndex();
-            
+
             const double *uvw = fvmc_locator_get_dist_uvw (_fvmLocator);
-     
+
             for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
-              
+
               int ielt = locationList[ipoint] - 1;
-              
+
               int n_node = meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
-              
+
               double *_weights = &(_refBarycentricCoordinates[0]) +
                                  _refBarycentricCoordinatesIndex[ipoint];
-              
+
               const double *_uvw_point_fvm = uvw + ipoint * max_entity_dim;
 
               FVMC_ho_basis (FVMC_EDGE, order, n_node, 1, _uvw_point_fvm, _weights);
-              
+
             }
           }
         }
-        
+
         else if (_entitiesDim == 2) {
           compute2DMeanValues();
         }
-        
+
         else if (_entitiesDim == 3) {
           compute3DMeanValues();
         }
@@ -593,45 +593,45 @@ void LocationToLocalMesh::locate()
 
       //
       // Exchange info status between root ranks
-      
+
       int currentRank;
       MPI_Comm_rank(_couplingComm, &currentRank);
       cwipi_located_point_info_t distantInfo;
       cwipi_located_point_info_t localInfo = _locationToDistantMesh._locationInfo;
       MPI_Status MPIStatus;
-      
+
       const bool isRootRank = (currentRank == 0 ||
                                currentRank == _coupledApplicationBeginningRankCouplingComm +
                                _coupledApplicationNRankCouplingComm);
-      
+
       int rootRank;
       if (isRootRank) {
-        
+
         MPI_Sendrecv((int*) &localInfo,   1, MPI_INT,
                      _coupledApplicationBeginningRankCouplingComm, 0,
                      (int*) &distantInfo, 1, MPI_INT,
                      _coupledApplicationBeginningRankCouplingComm, 0,
                      _couplingComm, &MPIStatus);
       }
-      
+
       //
       // application rootRank send the value of distantInfo to the other applications in the couplingComm
-      
+
       int sizeComm;
       MPI_Comm_size(_couplingComm, &sizeComm);
       MPI_Status status;
-      
+
       if ( _coupledApplicationBeginningRankCouplingComm == 0)
         rootRank = _coupledApplicationNRankCouplingComm;
       else
         rootRank = 0;
-      
+
       if (! isRootRank)
         MPI_Recv(&distantInfo, 1, MPI_INT, rootRank, 0, _couplingComm, &status);
       else {
         int rank1;
         int rank2;
-        
+
         if (rootRank == 0) {
           rank1 = 1;
           rank2 = _coupledApplicationBeginningRankCouplingComm;
@@ -640,28 +640,28 @@ void LocationToLocalMesh::locate()
           rank1 = _coupledApplicationNRankCouplingComm+1;
           rank2 = sizeComm;
         }
-        
+
         for (int i = rank1; i < rank2; i++)
           MPI_Send(&distantInfo, 1, MPI_INT, i, 0, _couplingComm);
-        
+
       }
-      
+
       //
       // Exchange info about distant mesh
-      
+
       if (distantInfo == CWIPI_DISTANT_MESH_INFO ||
           localInfo == CWIPI_DISTANT_MESH_INFO) {
-        
+
         //
         // Location
-        
+
         if (localInfo == CWIPI_DISTANT_MESH_INFO)
           _locationToDistantMesh._elementContaining = new int[_locationToDistantMesh._nLocatedPoint];
-        
+
         int *pLocation = NULL;
         if (distantInfo == CWIPI_DISTANT_MESH_INFO)
           pLocation = _location;
-        
+
         fvmc_locator_exchange_point_var(_fvmLocator,
                                         (void *) pLocation,
                                         (void *) _locationToDistantMesh._elementContaining,
@@ -669,24 +669,24 @@ void LocationToLocalMesh::locate()
                                         sizeof(int),
                                         1,
                                         0);
-        
+
         //
         // elementContainingMPIrankContaining
-        
+
         if (localInfo == CWIPI_DISTANT_MESH_INFO)
-          _locationToDistantMesh._elementContainingMPIrankContaining = 
+          _locationToDistantMesh._elementContainingMPIrankContaining =
             new int[_locationToDistantMesh._nLocatedPoint];
-        
+
         int *pMPIrank = NULL;
         std::vector <int> *MPIrank = NULL;
-        
+
         if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
           int rankInGlobalComm;
           MPI_Comm_rank(_localApplicationProperties.getGlobalComm(), &rankInGlobalComm);
           MPIrank = new std::vector <int> (_nDistantPoint, rankInGlobalComm);
           pMPIrank = &((*MPIrank)[0]);
         }
-        
+
         fvmc_locator_exchange_point_var(_fvmLocator,
                                         (void *) pMPIrank,
                                         (void *) _locationToDistantMesh._elementContainingMPIrankContaining,
@@ -694,30 +694,30 @@ void LocationToLocalMesh::locate()
                                         sizeof(int),
                                         1,
                                         0);
-        
+
         if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
           delete MPIrank;
         }
-        
+
         //
         // ElementContainingNVertex
-        
+
         if (localInfo == CWIPI_DISTANT_MESH_INFO)
           _locationToDistantMesh._elementContainingNVertex = new int[_locationToDistantMesh._nLocatedPoint + 1];
-        
+
         int *p_nVertex = NULL;
         _maxElementContainingNVertex = 0;
-        
+
         if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
           _nVertex = new std::vector <int> (_nDistantPoint, 0);
           std::vector <int> & _nVertexRef = *_nVertex;
-          
+
           for (int i = 0; i < _nDistantPoint; i++)
             _nVertexRef[i] = _supportMesh->getEltConnectivityIndex()[_location[i]] -
               _supportMesh->getEltConnectivityIndex()[_location[i]-1];
-          
+
           p_nVertex = &(*_nVertex)[0];
-          
+
           int localMaxElementContainingNVertex = *std::max_element(_nVertexRef.begin(), _nVertexRef.end());
           MPI_Allreduce (&localMaxElementContainingNVertex,
                          &_maxElementContainingNVertex,
@@ -733,11 +733,11 @@ void LocationToLocalMesh::locate()
                        _coupledApplicationBeginningRankCouplingComm, 0,
                        _couplingComm, &MPIStatus);
         }
-        
+
         MPI_Bcast(&distantMaxElementContainingNVertex, 1, MPI_INT, 0, _localApplicationProperties.getLocalComm());
-        
+
         _maxElementContainingNVertex = std::max(_maxElementContainingNVertex, distantMaxElementContainingNVertex);
-        
+
         fvmc_locator_exchange_point_var(_fvmLocator,
                                         (void *) p_nVertex,
                                         (void *) _locationToDistantMesh._elementContainingNVertex,
@@ -745,7 +745,7 @@ void LocationToLocalMesh::locate()
                                         sizeof(int),
                                         1,
                                         0);
-        
+
         if (localInfo == CWIPI_DISTANT_MESH_INFO) {
           int previous1 = _locationToDistantMesh._elementContainingNVertex[0];
           _locationToDistantMesh._elementContainingNVertex[0] = 0;
@@ -755,21 +755,21 @@ void LocationToLocalMesh::locate()
             previous1 = previous2;
           }
         }
-        
+
         //
         // ElementContainingVertex
-        
+
         int *tmpLocal = NULL;
         int *tmpDistant = NULL;
-        
+
         if (localInfo == CWIPI_DISTANT_MESH_INFO) {
           tmpDistant = new int [_locationToDistantMesh._nLocatedPoint];
           _locationToDistantMesh._elementContainingVertex = new int [_locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]];
         }
-        
+
         if (distantInfo == CWIPI_DISTANT_MESH_INFO)
           tmpLocal = new int [_nDistantPoint];
-        
+
         for (int i = 0; i < _maxElementContainingNVertex; i++) {
           if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
             std::vector <int> & _nVertexRef = *_nVertex;
@@ -782,7 +782,7 @@ void LocationToLocalMesh::locate()
                 tmpLocal[j] = -1;
             }
           }
-          
+
           fvmc_locator_exchange_point_var(_fvmLocator,
                                           (void *) tmpLocal,
                                           (void *) tmpDistant,
@@ -790,7 +790,7 @@ void LocationToLocalMesh::locate()
                                           sizeof(int),
                                           1,
                                           0);
-          
+
           if (localInfo == CWIPI_DISTANT_MESH_INFO) {
             for (int j = 0; j < _locationToDistantMesh._nLocatedPoint; j++) {
               int nVertices = _locationToDistantMesh._elementContainingNVertex[j+1] - _locationToDistantMesh._elementContainingNVertex[j];
@@ -801,30 +801,30 @@ void LocationToLocalMesh::locate()
             }
           }
         }
-        
+
         if (localInfo == CWIPI_DISTANT_MESH_INFO)
           delete [] tmpDistant;
-        
+
         if (distantInfo == CWIPI_DISTANT_MESH_INFO)
           delete [] tmpLocal;
-        
+
         //
         // ElementContainingBarycentricCoordinates
-        
+
         double *tmpLocal1 = NULL;
         double *tmpDistant1 = NULL;
-        
+
         if (localInfo == CWIPI_DISTANT_MESH_INFO) {
           tmpDistant1 = new double [_locationToDistantMesh._nLocatedPoint];
           _locationToDistantMesh._elementContainingBarycentricCoordinates = new double [_locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]];
         }
-        
+
         if (distantInfo == CWIPI_DISTANT_MESH_INFO)
           tmpLocal1 = new double [_nDistantPoint];
-        
+
         for (int i = 0; i < _maxElementContainingNVertex; i++) {
           std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
-          
+
           if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
             std::vector <int> & _nVertexRef = *_nVertex;
             for (int j = 0; j < _nDistantPoint; j++) {
@@ -834,7 +834,7 @@ void LocationToLocalMesh::locate()
               }
             }
           }
-          
+
           fvmc_locator_exchange_point_var(_fvmLocator,
                                           (void *) tmpLocal1,
                                           (void *) tmpDistant1,
@@ -852,31 +852,31 @@ void LocationToLocalMesh::locate()
             }
           }
         }
-        
+
         if (localInfo == CWIPI_DISTANT_MESH_INFO)
           delete [] tmpDistant1;
-        
+
         if (distantInfo == CWIPI_DISTANT_MESH_INFO)
           delete [] tmpLocal1;
-        
+
         // TODO: Optimisation a réaliser dans fvm en mettant un stride[dim]
         //       pour l'instant on calcule le max des nombre de sommets
         //       ou bien creer son propre graphe de communication MPI
-        
+
         //
         // ElementContainingVertexCoords
         tmpLocal1 = NULL;
         tmpDistant1 = NULL;
-        
+
         int stride = 3;
         if (localInfo == CWIPI_DISTANT_MESH_INFO) {
           tmpDistant1 = new double [stride * _locationToDistantMesh._nLocatedPoint];
           _locationToDistantMesh._elementContainingVertexCoords = new double [stride * _locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]];
         }
-        
+
         if (distantInfo == CWIPI_DISTANT_MESH_INFO)
           tmpLocal1 = new double [stride * _nDistantPoint];
-        
+
         for (int i = 0; i < _maxElementContainingNVertex; i++) {
           std::vector <int> & _nVertexRef = *_nVertex;
           if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
@@ -889,7 +889,7 @@ void LocationToLocalMesh::locate()
               }
             }
           }
-          
+
           fvmc_locator_exchange_point_var(_fvmLocator,
                                           (void *) tmpLocal1,
                                           (void *) tmpDistant1,
@@ -897,7 +897,7 @@ void LocationToLocalMesh::locate()
                                           sizeof(double),
                                           stride,
                                           0);
-          
+
           if (localInfo == CWIPI_DISTANT_MESH_INFO) {
             for (int j = 0; j < _locationToDistantMesh._nLocatedPoint; j++) {
               int nVertices = _locationToDistantMesh._elementContainingNVertex[j+1] - _locationToDistantMesh._elementContainingNVertex[j];
@@ -910,27 +910,27 @@ void LocationToLocalMesh::locate()
             }
           }
         }
-        
+
         if (localInfo == CWIPI_DISTANT_MESH_INFO)
           delete [] tmpDistant1;
-        
+
         if (distantInfo == CWIPI_DISTANT_MESH_INFO)
           delete [] tmpLocal1;
       }
-      
+
       // TODO: Attention la fonction synchronise ne devrait-elle pas etre dans le if precedent !
-      
+
     }
 
-    
+
     _locationToDistantMesh.synchronize();
     _toLocate = false;
-      
+
   }
   //  _locationToDistantMesh.synchronize();
-    
+
 }
-  
+
 ///
 /// \brief Exchange field on vertices of cells that contain each located points
 ///
@@ -1097,7 +1097,7 @@ void  LocationToLocalMesh::midplaneProjection
     coo_point_dist[icoo] -= barycentre_fac[icoo];
 
 
-  if (fabs(normale_fac[0]) > eps 
+  if (fabs(normale_fac[0]) > eps
       || fabs(normale_fac[1]) > eps) {
 
     /* Première rotation d'axe (Oz) et d'angle (Ox, proj normale sur Oxy) */
@@ -1214,7 +1214,7 @@ void LocationToLocalMesh::compute2DMeanValues()
   const double *meshVertexCoords = _supportMesh->getVertexCoords();
 
   const int order = _supportMesh->getOrder();
-  
+
   _barycentricCoordinatesIndex = new std::vector <int> (n_dist_points + 1);
   std::vector <int>& nDistBarCoords = *_barycentricCoordinatesIndex;
 
@@ -1225,8 +1225,8 @@ void LocationToLocalMesh::compute2DMeanValues()
   nDistBarCoords[0] = 0;
   for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
     int ielt = dist_locations[ipoint] - 1;
-    
-    int nbr_som_fac =  meshConnectivityIndex[ielt+1] - 
+
+    int nbr_som_fac =  meshConnectivityIndex[ielt+1] -
                        meshConnectivityIndex[ielt];
     nDistBarCoords[ipoint+1] = nDistBarCoords[ipoint] + nbr_som_fac;
   }
@@ -1235,7 +1235,7 @@ void LocationToLocalMesh::compute2DMeanValues()
   std::vector <double>& distBarCoords = *_barycentricCoordinates;
 
   if (order == -1) {
-  
+
     computePolygonMeanValues(n_dist_points,
                              dist_locations,
                              dist_coords,
@@ -1261,7 +1261,7 @@ void LocationToLocalMesh::compute2DMeanValues()
       double *_weights = &(distBarCoords[0]) + nDistBarCoords[ipoint];
       const double *_uvw_point_fvm = uvw + ipoint * max_entity_dim;
 
-      const int n_node_tria = (order+1)*(order+2)/2; 
+      const int n_node_tria = (order+1)*(order+2)/2;
 
       fvmc_element_t type;
 
@@ -1271,7 +1271,7 @@ void LocationToLocalMesh::compute2DMeanValues()
       else {
         type = FVMC_FACE_QUAD;
       }
-      
+
       FVMC_ho_basis (type, order, n_node, 1, _uvw_point_fvm, _weights);
 
     }
@@ -1290,7 +1290,7 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
                                                    const double       *meshVertexCoords,
                                                    const std::vector <int>& nDistBarCoords,
                                                    std::vector <double>& distBarCoords)
-                                                   
+
 {
   /* Boucle sur les points distants */
 
@@ -1300,13 +1300,13 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
 
   const double eps_base = 1e-10;
   std::vector <double> coo_som_fac;
-  std::vector <double> s; 
+  std::vector <double> s;
   std::vector <double> dist;
   std::vector <double> aire;
   std::vector <double> proScal;
 
   for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
-    
+
     double *_distBarCoords = &(distBarCoords[nDistBarCoords[ipoint]]);
 
     /* Initialisation - Copie locale */
@@ -1315,7 +1315,7 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
     int isVertex = 0;
     int ielt = dist_locations[ipoint] - 1;
 
-    int nbr_som_fac =  meshConnectivityIndex[ielt+1] - 
+    int nbr_som_fac =  meshConnectivityIndex[ielt+1] -
                        meshConnectivityIndex[ielt];
     coo_point_dist[0] = dist_coords[3*ipoint];
     coo_point_dist[1] = dist_coords[3*ipoint + 1];
@@ -1339,16 +1339,16 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
     }
 
     for (int isom = 0; isom < nbr_som_fac; isom++) {
-      coo_som_fac[3*isom]   = 
+      coo_som_fac[3*isom]   =
         meshVertexCoords[3*(meshConnectivity[meshConnectivityIndex[ielt]+isom]-1)];
 
-      coo_som_fac[3*isom+1] = 
+      coo_som_fac[3*isom+1] =
         meshVertexCoords[3*(meshConnectivity[meshConnectivityIndex[ielt]+isom]-1)+1];
 
-      coo_som_fac[3*isom+2] = 
+      coo_som_fac[3*isom+2] =
         meshVertexCoords[3*(meshConnectivity[meshConnectivityIndex[ielt]+isom]-1)+2];
     }
-    
+
     /* Projection sur un plan moyen */
 
     double bary[3];
@@ -1356,11 +1356,11 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
 
     double n[3] = {0, 0, 1};
     _computeNormal (nbr_som_fac, &(coo_som_fac[0]), n);
-  
+
     _project_point2(coo_point_dist, bary, n, coo_point_dist);
 
     for (int isom = 0; isom < nbr_som_fac; isom++) {
-      
+
       double *pt1 = &(coo_som_fac[0]) + 3 *isom;
       _project_point2 (pt1, bary, n, pt1);
 
@@ -1387,7 +1387,7 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
     if (fvmc_point_in_polygon (coo_point_dist,
                                nbr_som_fac,
                                &(coo_som_fac[0]),
-                               bounds, 
+                               bounds,
                                n) != 1) {
 
       double closestPoint[3];
@@ -1398,13 +1398,13 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
         double *p2 = &(coo_som_fac[3 * ((k+1) % nbr_som_fac)]);
         double closest[3];
         double t;
-        
-        double dist2 = fvmc_distance_to_line (coo_point_dist, 
-                                             p1, 
+
+        double dist2 = fvmc_distance_to_line (coo_point_dist,
+                                             p1,
                                              p2,
-                                             &t, 
+                                             &t,
                                              closest);
-        
+
         if (dist2 < dist_min) {
           dist_min = dist2;
           closestPoint[0] = closest[0];
@@ -1412,7 +1412,7 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
           closestPoint[2] = closest[2];
         }
       }
-     
+
       coo_point_dist[0] = closestPoint[0];
       coo_point_dist[1] = closestPoint[1];
       coo_point_dist[2] = closestPoint[2];
@@ -1463,9 +1463,9 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
       if (sign < 0) {
         aire[isom] = -aire[isom];
       }
-      
+
       if (dist[isom] <= eps) {
-      
+
         isVertex = 1;
         currentVertex = isom;
         break;
@@ -1476,7 +1476,7 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
         isOnEdge = 1;
         currentVertex = isom;
         break;
-        
+
       }
 
     }
@@ -1498,9 +1498,9 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
 
       int nextPoint = (currentVertex + 1) % nbr_som_fac;
 
-      _distBarCoords[currentVertex] = 
+      _distBarCoords[currentVertex] =
         dist[nextPoint]     / (dist[nextPoint]+dist[currentVertex]);
-      _distBarCoords[nextPoint]     = 
+      _distBarCoords[nextPoint]     =
         dist[currentVertex] / (dist[nextPoint]+dist[currentVertex]);
 
     }
@@ -1523,7 +1523,7 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
         _distBarCoords[isom] = coef;
 
       }
-      
+
       if (fabs(sigma) >= eps ) {
         for (int isom = 0; isom < nbr_som_fac; isom++) {
           _distBarCoords[isom] /= sigma;
@@ -1559,11 +1559,11 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
             double *p2 = &(coo_som_fac[3 * ((k+1) % nbr_som_fac)]);
             double closest[3];
             double t;
-            
-            double dist2 = fvmc_distance_to_line (coo_point_dist, 
-                                                 p1, 
+
+            double dist2 = fvmc_distance_to_line (coo_point_dist,
+                                                 p1,
                                                  p2,
-                                                 &t, 
+                                                 &t,
                                                  closest);
             if (dist2 < dist_min) {
               t_min = t;
@@ -1579,15 +1579,15 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
         }
 
       }
-      
+
     }
 
     if (0 == 1) {
       if ((n_dist_points == 1) && (dist_locations[0] == 1)) {
-      
+
         bftc_printf("coord %i %i :", ipoint+1, ielt+1);
-        bftc_printf(" %12.5e %12.5e %12.5e", dist_coords[3*ipoint], 
-                    dist_coords[3*ipoint+1], 
+        bftc_printf(" %12.5e %12.5e %12.5e", dist_coords[3*ipoint],
+                    dist_coords[3*ipoint+1],
                     dist_coords[3*ipoint+2] );
         bftc_printf("\n");
 
@@ -1621,7 +1621,7 @@ void LocationToLocalMesh::compute3DMeanValues()
   /**** Tableaux barycentriques ****/
 
   int tailleDistBarCoords =  4 * n_dist_points;
-  
+
   if (_barycentricCoordinatesIndex == NULL) {
     _barycentricCoordinatesIndex = new std::vector <int> (n_dist_points + 1);
     _barycentricCoordinates = new std::vector <double> (tailleDistBarCoords);
@@ -1631,8 +1631,8 @@ void LocationToLocalMesh::compute3DMeanValues()
     _barycentricCoordinates->resize(tailleDistBarCoords);
   }
 
-  std::vector <int>& nDistBarCoords = *_barycentricCoordinatesIndex; 
-  std::vector <double>& distBarCoords = *_barycentricCoordinates; 
+  std::vector <int>& nDistBarCoords = *_barycentricCoordinatesIndex;
+  std::vector <double>& distBarCoords = *_barycentricCoordinates;
 
   /* Const */
 
@@ -1658,9 +1658,9 @@ void LocationToLocalMesh::compute3DMeanValues()
 
   /* Boucle sur les points distants */
 
-  const int n_face_max = 6;  
-  const int n_vtx_max = 24; 
-    
+  const int n_face_max = 6;
+  const int n_vtx_max = 24;
+
   int faceConnectivityIndex[n_face_max + 1];
   int faceConnectivity[n_vtx_max];
   double faceVtxCoords[3*n_vtx_max];
@@ -1672,7 +1672,7 @@ void LocationToLocalMesh::compute3DMeanValues()
   //  for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
 
   const int order = _supportMesh->getOrder();
- 
+
   if (order == -1) {
 
     int ipoint = 0;
@@ -1700,14 +1700,14 @@ void LocationToLocalMesh::compute3DMeanValues()
       coo_point_dist[0] = dist_coords[3 * ipoint    ];
       coo_point_dist[1] = dist_coords[3 * ipoint + 1];
       coo_point_dist[2] = dist_coords[3 * ipoint + 2];
- 
+
 
       //
       // Adjust table length
       //
 
       int nbr_som;
-      if (ielt < nEltStd) 
+      if (ielt < nEltStd)
         nbr_som = meshConnectivityIndex[ielt + 1] - meshConnectivityIndex[ielt];
       else {
         int i = ielt - nEltStd;
@@ -1726,7 +1726,7 @@ void LocationToLocalMesh::compute3DMeanValues()
 
       if (isDegenerated[ielt]) {
 
-        for (int ivertex = 0; ivertex < nbr_som; ivertex++) 
+        for (int ivertex = 0; ivertex < nbr_som; ivertex++)
           distBarCoords[nDistBarCoords[ipoint] + ivertex] = 1./nbr_som;
 
         ipoint++;
@@ -1734,16 +1734,16 @@ void LocationToLocalMesh::compute3DMeanValues()
 
       else {
 
-        if (ielt < nEltStd) { 
+        if (ielt < nEltStd) {
 
           //
-          // Standard element    
+          // Standard element
           //
-        
+
           int ierr = 0;
 
           if (dist > 1.) {
-    
+
             int *_cellConnectivity = const_cast<int *> (&(meshConnectivity[meshConnectivityIndex[ielt]]));
 
             //
@@ -1753,33 +1753,33 @@ void LocationToLocalMesh::compute3DMeanValues()
             int n_face = 0;
 
             switch(nbr_som){
-          
+
             case 4 :
-          
+
               //
-              // Tetraedra :            
+              // Tetraedra :
               //
 
               n_face = 4;
-            
+
               tetrahedraFaces (1,
                                0,
                                _cellConnectivity,
                                faceConnectivityIndex,
-                               faceConnectivity); 
+                               faceConnectivity);
 
               tetrahedraFaces (1,
                                0,
                                localConnec,
                                faceConnectivityIndex,
-                               localFaceConnectivity);           
+                               localFaceConnectivity);
 
               break;
-          
-            case 5 : 
+
+            case 5 :
 
               //
-              // Pyramid             
+              // Pyramid
               //
 
               n_face = 5;
@@ -1788,20 +1788,20 @@ void LocationToLocalMesh::compute3DMeanValues()
                             0,
                             _cellConnectivity,
                             faceConnectivityIndex,
-                            faceConnectivity);           
+                            faceConnectivity);
 
               pyramidFaces (1,
                             0,
                             localConnec,
                             faceConnectivityIndex,
-                            localFaceConnectivity);           
+                            localFaceConnectivity);
 
               break;
-            
+
             case 6 :
-            
+
               //
-              // Prism               
+              // Prism
               //
 
               n_face = 5;
@@ -1810,20 +1810,20 @@ void LocationToLocalMesh::compute3DMeanValues()
                           0,
                           _cellConnectivity,
                           faceConnectivityIndex,
-                          faceConnectivity);           
+                          faceConnectivity);
 
               prismFaces (1,
                           0,
                           localConnec,
                           faceConnectivityIndex,
-                          localFaceConnectivity);           
+                          localFaceConnectivity);
 
               break;
 
             case 8 :
-            
+
               //
-              // Hexahedron          
+              // Hexahedron
               //
 
               n_face = 6;
@@ -1833,12 +1833,12 @@ void LocationToLocalMesh::compute3DMeanValues()
                               _cellConnectivity,
                               faceConnectivityIndex,
                               faceConnectivity);
-           
+
               hexahedraFaces (1,
                               0,
                               localConnec,
                               faceConnectivityIndex,
-                              localFaceConnectivity);           
+                              localFaceConnectivity);
 
               break;
 
@@ -1847,16 +1847,16 @@ void LocationToLocalMesh::compute3DMeanValues()
             for (int k = 0; k < n_face; k++) {
               for (int k1 = faceConnectivityIndex[k]; k1 < faceConnectivityIndex[k+1]; k1++) {
                 int iVtx = faceConnectivity[k1] - 1;
-                faceVtxCoords[3*k1  ] = meshVertexCoords[3*iVtx  ]; 
-                faceVtxCoords[3*k1+1] = meshVertexCoords[3*iVtx+1]; 
-                faceVtxCoords[3*k1+2] = meshVertexCoords[3*iVtx+2]; 
+                faceVtxCoords[3*k1  ] = meshVertexCoords[3*iVtx  ];
+                faceVtxCoords[3*k1+1] = meshVertexCoords[3*iVtx+1];
+                faceVtxCoords[3*k1+2] = meshVertexCoords[3*iVtx+2];
               }
             }
-          
+
             double *_faceVtxCoords = faceVtxCoords;
             double dist_min = DBL_MAX;
             int k_min = 0;
-          
+
             for (int k = 0; k < n_face; k++) {
               const int nVtx = faceConnectivityIndex[k+1] - faceConnectivityIndex[k];
               double closest[3];
@@ -1867,7 +1867,7 @@ void LocationToLocalMesh::compute3DMeanValues()
                                              pcoords, &dist_face);
 
               _faceVtxCoords += 3*nVtx;
- 
+
               if (dist_face < dist_min) {
                 dist_min = dist_face;
                 k_min = k;
@@ -1877,11 +1877,11 @@ void LocationToLocalMesh::compute3DMeanValues()
 
             int dist_locations1 = k_min + 1;
             const int nVtx = faceConnectivityIndex[k_min+1] - faceConnectivityIndex[k_min];
-          
+
             nFaceDistBarCoords[0] = 0;
             nFaceDistBarCoords[1] = nVtx;
-          
-          
+
+
             computePolygonMeanValues (1,
                                       &dist_locations1,
                                       coo_point_dist,
@@ -1902,9 +1902,9 @@ void LocationToLocalMesh::compute3DMeanValues()
             }
 
             ipoint++;
-          
+
           }
-        
+
           else {
 
             double uvw[3];
@@ -1912,53 +1912,53 @@ void LocationToLocalMesh::compute3DMeanValues()
             double deriv[8][3];
 
             for (int ivertex = 0; ivertex < nbr_som; ivertex++) {
-              vertex_coords[ivertex][0] = 
+              vertex_coords[ivertex][0] =
                 meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + ivertex] - 1) ];
-              vertex_coords[ivertex][1] = 
+              vertex_coords[ivertex][1] =
                 meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + ivertex] - 1) + 1];
-              vertex_coords[ivertex][2] = 
+              vertex_coords[ivertex][2] =
                 meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + ivertex] - 1) + 2];
             }
 
             switch(nbr_som){
-      
+
             case 4 :
-            
+
               //
-              // Tetraedra :            
+              // Tetraedra :
               //
-            
+
               ierr = compute_uvw(CWIPI_CELL_TETRA4,
                                  coo_point_dist,
                                  vertex_coords,
                                  1e-6,
                                  uvw);
-            
+
               compute_shapef_3d(CWIPI_CELL_TETRA4,
                                 uvw,
                                 &distBarCoords[0] + nDistBarCoords[ipoint],
-                                deriv);        
-            
+                                deriv);
 
-          
+
+
               break;
-          
-            case 5 : 
-              { 
+
+            case 5 :
+              {
                 //
-                // Pyramid             
+                // Pyramid
                 //
 
                 // Check if not a vertex for stability
-            
+
                 int onVtx = 0;
                 for (int k1 = 0; k1 < nbr_som; k1++) {
                   double v[3] = {vertex_coords[k1][0] - coo_point_dist[0],
                                  vertex_coords[k1][1] - coo_point_dist[1],
                                  vertex_coords[k1][2] - coo_point_dist[2]};
-              
+
                   double _dist = _MODULE(v);
-              
+
                   if (_dist < 1e-6 * _tolerance) {
                     double *_bar = &(distBarCoords[0]) + nDistBarCoords[ipoint];
                     for (int k2 = 0; k2 < nbr_som; k2++) {
@@ -1978,7 +1978,7 @@ void LocationToLocalMesh::compute3DMeanValues()
                                      vertex_coords,
                                      1e-6,
                                      uvw);
-              
+
                   compute_shapef_3d(CWIPI_CELL_PYRAM5,
                                     uvw,
                                     &(distBarCoords[0]) + nDistBarCoords[ipoint],
@@ -1987,11 +1987,11 @@ void LocationToLocalMesh::compute3DMeanValues()
                 break;
               }
             case 6 :
-            
+
               //
-              // Prism               
+              // Prism
               //
-            
+
               ierr = compute_uvw(CWIPI_CELL_PRISM6,
                                  coo_point_dist,
                                  vertex_coords,
@@ -2001,35 +2001,35 @@ void LocationToLocalMesh::compute3DMeanValues()
               compute_shapef_3d(CWIPI_CELL_PRISM6,
                                 uvw,
                                 &(distBarCoords[0]) + nDistBarCoords[ipoint],
-                                deriv);        
+                                deriv);
               break;
-            
+
             case 8 :
-            
+
               //
-              // Hexahedron          
+              // Hexahedron
               //
-            
+
               ierr = compute_uvw(CWIPI_CELL_HEXA8,
                                  coo_point_dist,
                                  vertex_coords,
                                  1e-6,
                                  uvw);
-            
+
               compute_shapef_3d(CWIPI_CELL_HEXA8,
                                 uvw,
                                 &(distBarCoords[0]) + nDistBarCoords[ipoint],
-                                deriv);        
+                                deriv);
               break;
-            
+
             default:
               bftc_error(__FILE__, __LINE__, 0,
                          "compute3DMeanValues: unhandled element type\n");
-          
+
 
             }
 
-            if (ierr != 0) { 
+            if (ierr != 0) {
               ipoint++;
             }
           }
@@ -2038,12 +2038,12 @@ void LocationToLocalMesh::compute3DMeanValues()
         else {
 
           //
-          // Polyhedron          
+          // Polyhedron
           //
 
           const int ipoly = ielt - nEltStd;
 
-          const int *polyCellToFaceIdx   =  _supportMesh->getPolyhedraFaceIndex(); 
+          const int *polyCellToFaceIdx   =  _supportMesh->getPolyhedraFaceIndex();
           const int *polyCellToFace      = _supportMesh->getPolyhedraCellToFaceConnectivity();
           const int *polyFaceToVertex    =  _supportMesh->getPolyhedraFaceConnectivity();
           const int *polyFaceToVertexIdx = _supportMesh->getPolyhedraFaceConnectivityIndex();
@@ -2052,7 +2052,7 @@ void LocationToLocalMesh::compute3DMeanValues()
           const int  vertexIdx           =  polyMeshConnectivityIndex[ipoly];
           const int  n_poly_face         =  polyCellToFaceIdx[ipoly + 1] - polyCellToFaceIdx[ipoly];
           const int  faceIdx             =  polyCellToFaceIdx[ipoly];
-         
+
           std::map <int, int> indirection;
           for (int i = 0; i < n_poly_vertex; i++)
             indirection[polyMeshConnectivity[vertexIdx + i]] = i+1;
@@ -2070,7 +2070,7 @@ void LocationToLocalMesh::compute3DMeanValues()
               + polyFaceToVertexIdx[iface+1]
               - polyFaceToVertexIdx[iface];
           }
- 
+
           int *faceToVertexElt = new int[faceToVertexEltIdx[n_poly_face]];
           int *faceDirection = new int[n_poly_face];
           int k = 0;
@@ -2082,7 +2082,7 @@ void LocationToLocalMesh::compute3DMeanValues()
               faceToVertexElt[k++] = indirection[polyFaceToVertex[j]];
             }
           }
-        
+
           double* vertex_coords_Elts = new double[3*n_poly_vertex];
           for (int i = 0; i < n_poly_vertex; i++) {
             int ivertex = polyMeshConnectivity[vertexIdx + i] - 1;
@@ -2108,7 +2108,7 @@ void LocationToLocalMesh::compute3DMeanValues()
           delete[] faceToVertexElt;
           delete[] faceToVertexEltIdx;
           delete[] faceDirection;
-      
+
           ipoint++;
         }
       }
@@ -2118,7 +2118,7 @@ void LocationToLocalMesh::compute3DMeanValues()
   else {
 
     int max_entity_dim = fvmc_nodal_get_max_entity_dim (&(_supportMesh->getFvmNodal()));
-    
+
     nDistBarCoords.resize(n_dist_points + 1);
 
     nDistBarCoords[0] = 0;
@@ -2142,10 +2142,10 @@ void LocationToLocalMesh::compute3DMeanValues()
       const double *_uvw_point_fvm = uvw + ipoint * max_entity_dim;
 
       fvmc_element_t type;
-    
-      const int n_node_tetra = (order+1)*(order+2)*(order+3)/6; 
-      const int n_node_hexa = (order+1)*(order+1)*(order+1); 
-      //const int n_node_prism = (order+1)*(order+1)*(order+2)/2; 
+
+      const int n_node_tetra = (order+1)*(order+2)*(order+3)/6;
+      const int n_node_hexa = (order+1)*(order+1)*(order+1);
+      //const int n_node_prism = (order+1)*(order+1)*(order+2)/2;
       const int n_node_pyramid = (order+1)*(order+2)*(2*order+3)/6;
 
       if (n_node == n_node_tetra) {
@@ -2160,9 +2160,9 @@ void LocationToLocalMesh::compute3DMeanValues()
       else {
         type = FVMC_CELL_PRISM;
       }
-      
+
       FVMC_ho_basis (type, order, n_node, 1, _uvw_point_fvm, _weights);
-      
+
     }
   }
 }
@@ -2179,31 +2179,31 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
                                                   const float  distElt,
                                                   double       distBarCoords[])
 {
- 
+
   //
-  // Polyhedron          
+  // Polyhedron
   //
 
 
-  // Mise a jour des tableaux locaux 
-  
-  std::vector <double> coo_som_face(3 * n_poly_vertex); 
+  // Mise a jour des tableaux locaux
+
+  std::vector <double> coo_som_face(3 * n_poly_vertex);
   std::vector <double> dist(n_poly_vertex);
   std::vector <double> s(3 * n_poly_vertex);
   std::vector <double> angle(3); //angle[  v(i) v v(i+1) ]
-  std::vector <double> normale(9); //normale 
- 
+  std::vector <double> normale(9); //normale
+
   double sigma = 0;
 
-  int isOnFace = 0; 
+  int isOnFace = 0;
 
   double eps_loc = geometricEpsilon(characteristicLength, GEOM_EPS_VOL);
 
   /**** Inialisation du tableau des coordonnees temporaires a 0 ****/
 
   for (int isom = 0; isom < n_poly_vertex; isom++)
-    distBarCoords[isom] = 0.; 
-  
+    distBarCoords[isom] = 0.;
+
   for (int isom = 0; isom < n_poly_vertex; isom++) {
     s[3 * isom    ] = vertex_coords[3 * isom    ] - point_coords[0];
     s[3 * isom + 1] = vertex_coords[3 * isom + 1] - point_coords[1];
@@ -2211,7 +2211,7 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
   }
 
   if (distElt > 1.) {
-    
+
     //
     // Search clostest face
     //
@@ -2244,38 +2244,38 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
       double closest[3];
       double pcoords[3];
       double dist_face;
-      
+
       fvmc_polygon_evaluate_Position(const_cast<double *> (point_coords),
                                                   n_vtx, poly_vertex, closest,
                                                   pcoords, &dist_face);
-      
+
       if (dist_face < dist_min) {
         dist_min = dist_face;
         iface = i;
       }
 
     }
-      
+
     free (poly_vertex);
 
     //
     // Compute mean value for this face if point is on face
     //
-    
+
     if (iface >= 0) {
 
-      const int n_face_vertex = faceToVertexIdx[iface + 1] 
+      const int n_face_vertex = faceToVertexIdx[iface + 1]
                               - faceToVertexIdx[iface];
 
       //
       // Copy
-      
+
       std::vector<int> distBarCoordsFaceIdx(2);
       distBarCoordsFaceIdx[0] = 0;
       distBarCoordsFaceIdx[1] = n_face_vertex;
       std::vector<double> distBarCoordsFace(n_face_vertex);
       int face_location = iface + 1;
-      
+
       computePolygonMeanValues(1,
                                &face_location,
                                point_coords,
@@ -2284,7 +2284,7 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
                                vertex_coords,
                                distBarCoordsFaceIdx,
                                distBarCoordsFace);
-      
+
       for (int j = 0; j < n_poly_vertex; j++)
         distBarCoords[j] = 0.;
 
@@ -2307,35 +2307,35 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
       double normS = sqrt(s[3*0]*s[3*0] + s[3*0+1]*s[3*0+1] + s[3*0+2]*s[3*0+2]);
       int closestVertex = 0;
       for (int isom = 1; isom < n_poly_vertex; isom++) {
-        
-        double nextNormS = sqrt(  s[3*isom]*s[3*isom] 
-                                  + s[3*isom+1]*s[3*isom+1] 
+
+        double nextNormS = sqrt(  s[3*isom]*s[3*isom]
+                                  + s[3*isom+1]*s[3*isom+1]
                                   + s[3*isom+2]*s[3*isom+2]);
         if (nextNormS < normS) {
           closestVertex = isom;
           normS = nextNormS;
         }
-      }    
-    
+      }
+
       distBarCoords[closestVertex] = 1;
-    
+
     }
 
   }
-  
+
   else if (distElt > 0 ) {
 
     //
     // Check if point is on a face
-    // 
-    
+    //
+
     const int   n_points  = 1;
     fvmc_lnum_t point_ids = 0;
-    
+
     //
     // Search clostest face
     //
-    
+
     fvmc_lnum_t face_location = -1;
     float face_distance = -1.;
 
@@ -2359,17 +2359,17 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
       isOnFace = 1;
 
       const int face_location_idx = face_location - 1;
-      const int n_face_vertex = faceToVertexIdx[face_location_idx+1] 
+      const int n_face_vertex = faceToVertexIdx[face_location_idx+1]
                               - faceToVertexIdx[face_location_idx];
 
       //
       // Copy
-      
+
       std::vector<int> distBarCoordsFaceIdx(2);
       distBarCoordsFaceIdx[0] = 0;
       distBarCoordsFaceIdx[1] = n_face_vertex;
       std::vector<double> distBarCoordsFace(n_face_vertex);
-      
+
       computePolygonMeanValues(1,
                                &face_location,
                                point_coords,
@@ -2378,7 +2378,7 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
                                vertex_coords,
                                distBarCoordsFaceIdx,
                                distBarCoordsFace);
-      
+
       for (int j = 0; j < n_poly_vertex; j++)
         distBarCoords[j] = 0.;
 
@@ -2393,64 +2393,64 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
       }
 
     }
-     
+
     //
     // General alogorithm for point in polyhedron
-    // 
+    //
 
     if (!isOnFace) {
-      
+
       for (int isom = 0; isom < n_poly_vertex; isom++) {
-        
-        dist[isom] = sqrt(s[3*isom    ] * s[3*isom    ] 
-                        + s[3*isom + 1] * s[3*isom + 1] 
-                        + s[3*isom + 2] * s[3*isom + 2]);           
-        
+
+        dist[isom] = sqrt(s[3*isom    ] * s[3*isom    ]
+                        + s[3*isom + 1] * s[3*isom + 1]
+                        + s[3*isom + 2] * s[3*isom + 2]);
+
         s[3*isom]     /= dist[isom];
         s[3*isom + 1] /= dist[isom];
-        s[3*isom + 2] /= dist[isom];      
-            
-      }              
-      
+        s[3*isom + 2] /= dist[isom];
+
+      }
+
       //
       // Second loop on faces to commpute barycentric coordinates
-      // 
-          
+      //
+
 
       std::vector <int> triangle_vertices(9); //Nombre de sommets apres decoupage en triangle
 
       for (int iface = 0; iface < n_poly_faces; iface++) {
-        
-        const int n_vertex_fac = faceToVertexIdx[iface + 1] 
+
+        const int n_vertex_fac = faceToVertexIdx[iface + 1]
                                - faceToVertexIdx[iface];
-        
+
         const int ind_fac_som = faceToVertexIdx[iface];
-        
+
         fvmc_triangulate_state_t *fvmc_triangulate = fvmc_triangulate_state_create(n_vertex_fac);
 
         int triangle_vertice_size = (n_vertex_fac-2) * 3;
-      
+
         if (triangle_vertices.size() < triangle_vertice_size)
           triangle_vertices.resize(triangle_vertice_size);
-    
+
         //
         // Face triangulation
-        // 
+        //
 
         int n_triangles;
 
-        if (n_vertex_fac == 4) {               
-          
+        if (n_vertex_fac == 4) {
+
           n_triangles = fvmc_triangulate_quadrangle(3,
                                                     vertex_coords,
                                                     NULL,
                                                     faceToVertex + ind_fac_som,
                                                     &(triangle_vertices[0]));
-          
+
         }
-              
+
         else if (n_vertex_fac > 4) {
-          
+
           n_triangles = fvmc_triangulate_polygon(3,
                                                  n_vertex_fac,
                                                  vertex_coords,
@@ -2459,21 +2459,21 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
                                                  FVMC_TRIANGULATE_MESH_DEF,
                                                  &(triangle_vertices[0]),
                                                  fvmc_triangulate);
-        }       
-        
-        else {          
+        }
+
+        else {
           n_triangles = 1;
-          for (int i = 0; i < 3; i++) { 
+          for (int i = 0; i < 3; i++) {
             triangle_vertices[i] = faceToVertex[ind_fac_som + i];
           }
         }
-          
+
         //
         // Loop on triangles
-        // 
-          
-        for (int itri = 0; itri < n_triangles; itri++) { 
-          
+        //
+
+        for (int itri = 0; itri < n_triangles; itri++) {
+
           //
           // Check triangle surface
           //
@@ -2488,32 +2488,32 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
             j = triangle_vertices[3*itri + 2] - 1;
             k = triangle_vertices[3*itri + 1] - 1;
           }
-          
+
           const double coo_ijx = vertex_coords[3*j]   - vertex_coords[3*i];
           const double coo_ijy = vertex_coords[3*j+1] - vertex_coords[3*i+1];
           const double coo_ijz = vertex_coords[3*j+2] - vertex_coords[3*i+2];
           const double coo_ikx = vertex_coords[3*k]   - vertex_coords[3*i];
           const double coo_iky = vertex_coords[3*k+1] - vertex_coords[3*i+1];
           const double coo_ikz = vertex_coords[3*k+2] - vertex_coords[3*i+2];
-          
-          const double areaTri_ijk = 0.5 * sqrt((coo_ijy * coo_ikz - coo_ijz * coo_iky) 
+
+          const double areaTri_ijk = 0.5 * sqrt((coo_ijy * coo_ikz - coo_ijz * coo_iky)
                                                 * (coo_ijy * coo_ikz - coo_ijz * coo_iky)
-                                                + (coo_ijz * coo_ikx - coo_ijx * coo_ikz) 
+                                                + (coo_ijz * coo_ikx - coo_ijx * coo_ikz)
                                                 * (coo_ijz * coo_ikx - coo_ijx * coo_ikz)
-                                                + (coo_ijx * coo_iky - coo_ijy * coo_ikx) 
+                                                + (coo_ijx * coo_iky - coo_ijy * coo_ikx)
                                                 * (coo_ijx * coo_iky - coo_ijy * coo_ikx));
-          
+
           double eps_face = geometricEpsilon(characteristicLength, GEOM_EPS_SURF);
-          
-          if (fabs(areaTri_ijk) > eps_face) { 
+
+          if (fabs(areaTri_ijk) > eps_face) {
 
             for (int isom = 0; isom < 3; isom++) {
-              
+
               int isuiv;
               int iprec;
               double prod_scal;
-              double mod;                    
-              
+              double mod;
+
               if (faceDirection[iface] < 0) {
                 iprec = triangle_vertices[3*itri + (isom + 2) % 3] - 1;
                 isuiv = triangle_vertices[3*itri + (isom + 1) % 3] - 1;
@@ -2526,16 +2526,16 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
               prod_scal = s[3*iprec    ] * s[3*isuiv    ]
                         + s[3*iprec + 1] * s[3*isuiv + 1]
                         + s[3*iprec + 2] * s[3*isuiv + 2];
-              
-              angle[isom] = acos(prod_scal); //s 
-              
-              normale[3 * isom    ] =  s[3*iprec + 1] * s[3*isuiv + 2] 
-                                     - s[3*iprec + 2] * s[3*isuiv + 1];        
-              normale[3 * isom + 1] =  s[3*iprec + 2] * s[3*isuiv    ]     
+
+              angle[isom] = acos(prod_scal); //s
+
+              normale[3 * isom    ] =  s[3*iprec + 1] * s[3*isuiv + 2]
+                                     - s[3*iprec + 2] * s[3*isuiv + 1];
+              normale[3 * isom + 1] =  s[3*iprec + 2] * s[3*isuiv    ]
                                      - s[3*iprec    ] * s[3*isuiv + 2];
-              normale[3 * isom + 2] =  s[3*iprec    ] * s[3*isuiv + 1] 
-                                     - s[3*iprec + 1] * s[3*isuiv    ];        
-              
+              normale[3 * isom + 2] =  s[3*iprec    ] * s[3*isuiv + 1]
+                                     - s[3*iprec + 1] * s[3*isuiv    ];
+
               /// verifier norm
 
               mod = sqrt(normale[3*isom    ] * normale[3*isom    ]
@@ -2549,117 +2549,117 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
               }
 
               else {
-              
+
                 normale[3*isom    ] /= mod;
                 normale[3*isom + 1] /= mod;
                 normale[3*isom + 2] /= mod;
               }
-              
-            }    
+
+            }
 
             for (int isom = 0; isom < 3; isom++) {
-              
+
               double ps_nij_njk; //a ameliorer
               double ps_nki_njk; //a ameliorer
-              double ps_ei_njk;  //a ameliorer          
-              
-              const int iprec = (isom + 2) % 3;            
-              const int isuiv = (isom + 1) % 3;            
-              
+              double ps_ei_njk;  //a ameliorer
+
+              const int iprec = (isom + 2) % 3;
+              const int isuiv = (isom + 1) % 3;
+
               ps_nij_njk = normale[3 * isom    ] * normale[3 * isuiv    ]
                 + normale[3 * isom + 1] * normale[3 * isuiv + 1]
                 + normale[3 * isom + 2] * normale[3 * isuiv + 2];
-              
+
               ps_nki_njk = normale[3 * isom    ] * normale[3 * iprec    ]
                 + normale[3 * isom + 1] * normale[3 * iprec + 1]
                 + normale[3 * isom + 2] * normale[3 * iprec + 2];
-              
+
               // ps_ei_njk --> sur la face
-              
-              
+
+
               const int ivertex_tri = triangle_vertices[3*itri + isom] - 1;
-              ps_ei_njk = s[3*ivertex_tri    ] * normale[3*isom] 
+              ps_ei_njk = s[3*ivertex_tri    ] * normale[3*isom]
                         + s[3*ivertex_tri + 1] * normale[3*isom + 1]
                         + s[3*ivertex_tri + 2] * normale[3*isom + 2];
-    
-              // vérifier ps_ei_njk 
+
+              // vérifier ps_ei_njk
 
               if (fabs(ps_ei_njk) >  eps_face) {
                 distBarCoords[ivertex_tri] +=
-                  (angle[isom] + angle[isuiv] * ps_nij_njk + angle[iprec] * ps_nki_njk) 
-                  / (2 * ps_ei_njk);  
+                  (angle[isom] + angle[isuiv] * ps_nij_njk + angle[iprec] * ps_nki_njk)
+                  / (2 * ps_ei_njk);
                }
-              
+
             } // Loop en vertices
-           
+
           } // Good triangle
-          
+
         } // Loop on triangles
-        
+
         fvmc_triangulate_state_destroy(fvmc_triangulate);
 
       } // Loop on faces
-    
+
       for (int isom = 0; isom < n_poly_vertex; isom++) {
-        
+
         distBarCoords[isom] /= dist[isom];
-        sigma += distBarCoords[isom];      
-        
+        sigma += distBarCoords[isom];
+
       }
-    
+
       for (int isom = 0; isom < n_poly_vertex; isom++)
         distBarCoords[isom] = distBarCoords[isom] / sigma;
-          
+
     } // End of general algorithm (if (!isonface))
 
     //
     // Output results
-    // 
-    
+    //
 
-    if (0 == 1) { 
-      
+
+    if (0 == 1) {
+
       std::vector <double> test(3);
-      
+
       for (int i = 0; i < 3; i++)
         test[i] = 0;
-      
+
       for (int isom = 0; isom < n_poly_vertex; isom++){
-        
+
         test[0] += distBarCoords[isom] * vertex_coords[3*isom];
         test[1] += distBarCoords[isom] * vertex_coords[3*isom + 1];
         test[2] += distBarCoords[isom] * vertex_coords[3*isom + 2];
-        
+
       }
-      
+
       bftc_printf("point distant | verification \n");
-      
+
       double dd = 0;
       for (int i = 0; i < 3; i++) {
         bftc_printf("  %f       |    %f \n",point_coords[i],test[i]);
         dd += (point_coords[i] - test[i]) * (point_coords[i] - test[i]);
       }
-      
+
       if (sqrt(dd) > 1e-3)
         bftc_printf(" !!!! Erreur sur les coordonnees baryc directionf: %12.5e %i !!!!\n",sqrt(dd), isOnFace);
       else
         bftc_printf(" ++++ ok                                         : %12.5e %i ++++\n",sqrt(dd), isOnFace);
-      
+
       bftc_printf("coord :");
-      bftc_printf(" %12.5e %12.5e %12.5e", point_coords[0], 
-                  point_coords[1], 
+      bftc_printf(" %12.5e %12.5e %12.5e", point_coords[0],
+                  point_coords[1],
                   point_coords[2] );
       bftc_printf("\n");
-      
+
       bftc_printf("coo b :");
-      for (int isom = 0; isom < n_poly_vertex; isom++) 
+      for (int isom = 0; isom < n_poly_vertex; isom++)
         bftc_printf(" %f", distBarCoords[isom]);
-      
+
       bftc_printf("\n");
-      
+
     }
   }
-  
+
 }
 
 ///
@@ -2853,7 +2853,7 @@ LocationToLocalMesh::compute_shapef_3d(const cwipi_element_t elt_type,
 }
 
 ///
-/// \brief Compute tetrzhedron, hexahedron, pyramid, or prism parametric coordinates 
+/// \brief Compute tetrzhedron, hexahedron, pyramid, or prism parametric coordinates
 /// for a given point.
 ///
 /// This function is adapted from the CGNS interpolation tool.
@@ -2881,32 +2881,32 @@ LocationToLocalMesh::compute_uvw(const cwipi_element_t elt_type,
   double a[3][3], b[3], x[3], shapef[8], dw[8][3];
 
   switch (elt_type) {
-    
+
   case CWIPI_CELL_TETRA4:
     n_elt_vertices = 4;
     break;
-    
+
   case CWIPI_CELL_HEXA8:
     n_elt_vertices = 8;
     break;
-    
+
   case CWIPI_CELL_PRISM6:
     n_elt_vertices = 6;
     break;
-    
+
   case CWIPI_CELL_PYRAM5:
     n_elt_vertices = 5;
     break;
-  
+
   default:
-    break;  
-          
+    break;
+
   }
 
   if (elt_type == CWIPI_CELL_TETRA4) {
 
     double vol6;
-    
+
     double t00, t10, t20, t01, t02, t03, t11, t12, t13, t21, t22, t23;
     double v01[3], v02[3], v03[3];
     double v12[3], v13[3];
@@ -2921,7 +2921,7 @@ LocationToLocalMesh::compute_uvw(const cwipi_element_t elt_type,
       v13[i] = vertex_coords[3][i] - vertex_coords[1][i];
       v23[i] = vertex_coords[3][i] - vertex_coords[2][i];
     }
-    
+
     n_v[0] = norm(v01);
     n_v[1] = norm(v02);
     n_v[2] = norm(v03);
@@ -2932,12 +2932,12 @@ LocationToLocalMesh::compute_uvw(const cwipi_element_t elt_type,
     double characteristicLength = std::min(n_v[0], n_v[1]);
     for (i = 2; i < 6; i++) {
       characteristicLength = std::min(characteristicLength, n_v[i]);
-    }   
+    }
 
     vol6 = fabs(  v01[0] * (v02[1]*v03[2] - v02[2]*v03[1])
                   - v02[0] * (v01[1]*v03[2] - v01[2]*v03[1])
                   + v03[0] * (v01[1]*v02[2] - v01[2]*v02[1]));
-    
+
     double epsilon_denom  = geometricEpsilon(characteristicLength,
                                              GEOM_EPS_VOL);
 
@@ -2949,19 +2949,19 @@ LocationToLocalMesh::compute_uvw(const cwipi_element_t elt_type,
     t00  =   point_coords[0] - vertex_coords[0][0];
     t10  =   point_coords[1] - vertex_coords[0][1];
     t20  =   point_coords[2] - vertex_coords[0][2];
-      
+
     t01  = - vertex_coords[0][0] + vertex_coords[1][0];
     t02  = - vertex_coords[0][0] + vertex_coords[2][0];
     t03  = - vertex_coords[0][0] + vertex_coords[3][0];
-      
+
     t11  = - vertex_coords[0][1] + vertex_coords[1][1];
     t12  = - vertex_coords[0][1] + vertex_coords[2][1];
     t13  = - vertex_coords[0][1] + vertex_coords[3][1];
-      
+
     t21  = - vertex_coords[0][2] + vertex_coords[1][2];
     t22  = - vertex_coords[0][2] + vertex_coords[2][2];
     t23  = - vertex_coords[0][2] + vertex_coords[3][2];
-    
+
     uvw[0] = (  t00 * (t12*t23 - t13*t22)
               - t10 * (t02*t23 - t22*t03)
               + t20 * (t02*t13 - t12*t03)) / vol6;
@@ -2971,7 +2971,7 @@ LocationToLocalMesh::compute_uvw(const cwipi_element_t elt_type,
     uvw[2] = (  t00 * (t11*t22 - t21*t12)
               - t10 * (t01*t22 - t21*t02)
               + t20 * (t01*t12 - t11*t02)) / vol6;
-  }    
+  }
 
   else if (   elt_type == CWIPI_CELL_HEXA8
               || elt_type == CWIPI_CELL_PRISM6
@@ -2989,51 +2989,51 @@ LocationToLocalMesh::compute_uvw(const cwipi_element_t elt_type,
       b[0] = - point_coords[0];
       b[1] = - point_coords[1];
       b[2] = - point_coords[2];
-      
+
       for (i = 0; i < 3; i++) {
         for (j = 0; j < 3; j++)
           a[i][j] = 0.0;
       }
-      
+
       for (i = 0; i < n_elt_vertices; i++) {
-        
+
         b[0] += (shapef[i] * vertex_coords[i][0]);
         b[1] += (shapef[i] * vertex_coords[i][1]);
         b[2] += (shapef[i] * vertex_coords[i][2]);
-        
+
         for (j = 0; j < 3; j++) {
           a[0][j] -= (dw[i][j] * vertex_coords[i][0]);
           a[1][j] -= (dw[i][j] * vertex_coords[i][1]);
           a[2][j] -= (dw[i][j] * vertex_coords[i][2]);
         }
-        
+
       }
 
       if (inverse_3x3(a, b, x)) {
         bftc_printf("error compute_uvw : matrice non iversible\n");
         return 0;
       }
-      
+
       dist = 0.0;
 
       for (i = 0; i < 3; i++) {
         dist += x[i] * x[i];
         uvw[i] += x[i];
       }
-      
+
       if (dist <= (tolerance * tolerance))
         return 1;
-      
+
     }
 
-    bftc_printf("Warning compute_uvw : no convergence for the point (%12.5e, %12.5e, %12.5e), dist = %12.5e\n", 
+    bftc_printf("Warning compute_uvw : no convergence for the point (%12.5e, %12.5e, %12.5e), dist = %12.5e\n",
                 point_coords[0], point_coords[1], point_coords[2], dist);
-    bftc_printf("                      in the element : (%12.5e, %12.5e, %12.5e)\n", vertex_coords[0][0], 
-                vertex_coords[0][1], 
+    bftc_printf("                      in the element : (%12.5e, %12.5e, %12.5e)\n", vertex_coords[0][0],
+                vertex_coords[0][1],
                 vertex_coords[0][2]);
     for (i = 1; i < n_elt_vertices; i++) {
-      bftc_printf("                                       (%12.5e, %12.5e, %12.5e)\n", vertex_coords[i][0], 
-                  vertex_coords[i][1], 
+      bftc_printf("                                       (%12.5e, %12.5e, %12.5e)\n", vertex_coords[i][0],
+                  vertex_coords[i][1],
                   vertex_coords[i][2]);
     }
     bftc_printf("                            shapef :");

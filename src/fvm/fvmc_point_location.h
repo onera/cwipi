@@ -87,7 +87,7 @@ extern "C" {
  *   point_coords      <-- point coordinates
  *   projected_coords  <-> coordinates of projected points in location elements
  *                         point (size: n_points * dim)
- *   uvw               <-> parametric coordinates of the point if inside the element 
+ *   uvw               <-> parametric coordinates of the point if inside the element
  *                         parametric coordinates of the projected point if outside the element
  *   location          <-> number of element containing or closest to each
  *                         point (size: n_points)
@@ -144,8 +144,8 @@ fvmc_point_location_closest_nodal(const fvmc_nodal_t  *this_nodal,
  * Compute distance to polygons
  *
  * parameters:
- *   dim               <-- dimension                                      
- *   n_poly            <-- number of polygon                              
+ *   dim               <-- dimension
+ *   n_poly            <-- number of polygon
  *   connectivity_idx  <-- polygon connectivity index
  *   connectivity      <-- polygon connectivity
  *   vertex_coords     <-- polygon connectivity
@@ -165,17 +165,17 @@ fvmc_point_dist_closest_polygon(const int            dim,
                                 const fvmc_lnum_t    connectivity_idx[],
                                 const fvmc_lnum_t    connectivity[],
                                 const fvmc_coord_t   vertex_coords[],
-                                const fvmc_lnum_t    n_points,                           
+                                const fvmc_lnum_t    n_points,
                                 const fvmc_lnum_t    point_ids[],
                                 const fvmc_coord_t   point_coords[],
                                 fvmc_lnum_t          location[],
                                 float                distance[]);
 
 
-int fvmc_point_in_polygon (double x[3], 
+int fvmc_point_in_polygon (double x[3],
                            int numPts,
                            double *pts,
-                           double *bounds, 
+                           double *bounds,
                            double *n);
 
 double fvmc_distance_to_line(double x[3], double p1[3], double p2[3],
@@ -194,6 +194,16 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts, double* closestP
 
 int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double* closestPoint,
                                    double pcoords[3], double* minDist2);
+
+int fvmc_edge_evaluate_Position (double x[3], double *pts, double* closestPoint,
+                                 double closestPointpcoords[1], double* dist2,
+                                 double closestPointweights[2]);
+
+int  fvmc_tetrahedron_evaluate_Position (double x[3], double *pts,
+                                         double* closestPoint,
+                                         double closestPointpcoords[3],
+                                         double *dist2,
+                                         double closestPointweights[4]);
 
 
 /*----------------------------------------------------------------------------*/
