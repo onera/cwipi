@@ -20,23 +20,23 @@ find_path(PARMETIS_INCLUDE_DIRS parmetis.h metis.h
 
 mark_as_advanced(PARMETIS_INCLUDE_DIRS)
 
-find_library(PARMETIS_LIBRARY   parmetis 
+find_library(PARMETIS_LIBRARY   parmetis
      HINTS ${PARMETIS_DIR}/lib $ENV{PARMETIS_DIR}/lib
      NO_DEFAULT_PATH
      DOC "The ParMETIS library"
-     ) 
-find_library(PARMETIS_LIBRARY   parmetis 
+     )
+find_library(PARMETIS_LIBRARY   parmetis
      DOC "The ParMETIS library"
-     ) 
+     )
 
-find_library(METIS_LIBRARY   metis 
+find_library(METIS_LIBRARY   metis
      HINTS ${PARMETIS_DIR}/lib $ENV{PARMETIS_DIR}/lib
      NO_DEFAULT_PATH
      DOC "The ParMETIS library"
-     ) 
-find_library(METIS_LIBRARY   metis 
+     )
+find_library(METIS_LIBRARY   metis
      DOC "The ParMETIS library"
-     ) 
+     )
 
 
 set(PARMETIS_LIBRARIES ${PARMETIS_LIBRARY} ${METIS_LIBRARY} CACHE STRING "ParMETIS libraries")
@@ -58,19 +58,19 @@ if (PARMETIS_LIBRARIES AND PARMETIS_INCLUDE_DIRS)
     "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/parmetis_config_test_version.c")
 
   file(WRITE ${PARMETIS_CONFIG_TEST_VERSION_C} "
-#include <stdio.h> 
+#include <stdio.h>
 #include \"parmetis.h\"
 
 int main() {
 #ifdef PARMETIS_SUBMINOR_VERSION
-  printf(\"%i.%i.%i\\n\", 
+  printf(\"%i.%i.%i\\n\",
          PARMETIS_MAJOR_VERSION,
-	 PARMETIS_MINOR_VERSION,  
+	 PARMETIS_MINOR_VERSION,
          PARMETIS_SUBMINOR_VERSION);
 #else
-  printf(\"%i.%i\\n\", 
+  printf(\"%i.%i\\n\",
          PARMETIS_MAJOR_VERSION,
-	 PARMETIS_MINOR_VERSION);  
+	 PARMETIS_MINOR_VERSION);
 #endif
   return 0;
 }
@@ -89,17 +89,18 @@ int main() {
   )
 
   if (   (NOT PARMETIS_CONFIG_TEST_VERSION_COMPILED)
-      OR (NOT (PARMETIS_CONFIG_TEST_VERSION_EXITCODE EQUAL 0))) 
+      OR (NOT (PARMETIS_CONFIG_TEST_VERSION_EXITCODE EQUAL 0)))
       message(WARNING "Unable to determine ParMETIS version")
       set(PARMETIS_VERSION_OK TRUE)
       set(PARMETIS_VERSION "??.??.??" CACHE TYPE STRING)
 
   else ()
-      set(PARMETIS_VERSION ${PARMETIS_CONFIG_TEST_VERSION_OUTPUT} CACHE TYPE STRING)
+      string(STRIP ${PARMETIS_CONFIG_TEST_VERSION_OUTPUT} OUTPUT)
+      set(PARMETIS_VERSION ${OUTPUT} CACHE TYPE STRING)
       mark_as_advanced(PARMETIS_VERSION)
       if (ParMETIS_FIND_VERSION)
         # Check if version found is >= required version
-        if (NOT "${PARMETIS_VERSION}" VERSION_LESS "${ParMETIS_FIND_VERSION}") 
+        if (NOT "${PARMETIS_VERSION}" VERSION_LESS "${ParMETIS_FIND_VERSION}")
           set(PARMETIS_VERSION_OK TRUE)
         endif()
       else()
@@ -125,4 +126,3 @@ mark_as_advanced(PARMETIS_LIBRARIES
 
 unset(PARMETIS_LIBRARY CACHE)
 unset(METIS_LIBRARY CACHE)
-
