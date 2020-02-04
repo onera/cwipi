@@ -359,7 +359,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'CWIPI', 'CWIPI Documentation',
-     author, 'CWIPI', 'One line description of project.',
+     author, 'CWIPI', 'Coupling With Interpolation Parallel Interface Library.',
      'Miscellaneous'),
 ]
 

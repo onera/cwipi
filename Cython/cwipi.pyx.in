@@ -281,15 +281,14 @@ EXCHANGE_BAD_RECEIVING = CWIPI_EXCHANGE_BAD_RECEIVING
 
 def init(MPI.Comm common_comm, char* application_name):
     """init(common_comm, application_name)
-    Initialize the cwipi library and create 
-    the current communicator application from 'common_comm'.
+    Initialize the cwipi library and create the current communicator application from ``common_comm``.
 
     Parameters:
         common_comm(MPI.Comm):   Common MPI communicator between all applications
         application_name(str):   Current local application name
 
     Returns:
-        application_comm (MPI.Comm): Internal MPI communicator for the current application group
+        application_comm (MPI.Comm): Internal MPI communicator for the current application group.
 
     It is a synchronization point between all applications.
     """
@@ -358,7 +357,7 @@ def add_local_parameter(name, value):
       value (int, float, str): its initial value
 
     Note: 
-      The parameter's type is guessed from type(value). So the following are different:
+      The parameter's type is guessed from ``type(value)``. So the following are different:
 
         >>> add_local_parameter('time', 10)
         >>> add_local_parameter('time', 10.0)
@@ -666,15 +665,16 @@ cdef class Coupling (object):
                     np.ndarray[np.int32_t] connectivity not None):
         """
         define_mesh(n_vertex, n_element, coordinates, connectivity_index, connectivity)
+        Define the mesh: nodes, elements and connectivity.
 
         Args:
             n_vertex(int): number of vertices/nodes
             n_element(int): number of elements
             coordinates(double ndarray): the nodes coordinates, an array whose shape is either (n_vertex*3) or (n_vertex, 3)
-            connectivity_index (int32 ndarray): the index of the first node of each element in `connectivity`; shape is (n_element+1), indices start at zero.
+            connectivity_index (int32 ndarray): the index of the first node of each element in ``connectivity``; shape is ``(n_element+1)``, indices start at zero.
             connectivity (int32 ndarray): the array defining elements' connectivity; indices start at 1 (i.e. 1 is the first node). 
-               For example element `iel` nodes are given by the slice connectivity[connectivity_index[iel] : connectivity_index[iel+1] ].
-               The array size is the sum over elements of el.nb_nodes.
+               For example the nodes of element ``iel`` are given by the slice ``connectivity[connectivity_index[iel]:connectivity_index[iel+1]]``.
+               The array's size is the sum over elements of el.nb_nodes.
         """
         global current_cpl
         current_cpl = self.name
