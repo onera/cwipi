@@ -682,14 +682,16 @@ cdef class Coupling (object):
         assert (n_element + 1) <= connectivity_index.size, "(%d) <= (%d)"%((n_element + 1), connectivity_index.size)
 
         ## safety verifications:
-        # Contiguity
-        assert coordinates.flags['C_CONTIGUOUS'], "coordinates must be C-contiguous" 
-        assert connectivity_index.flags['C_CONTIGUOUS'], "connectivity_index must be C-contiguous" 
-        assert connectivity.flags['C_CONTIGUOUS'], "connectivity must be C-contiguous" 
-        # Check for orphan nodes, which currently (0.9.5) segfaults in cpl.locate
-        assert (np.min(connectivity) == 1), "connectivity values must start at 1"
-        assert (np.max(connectivity) == n_vertex), "connectivity values must be <= n_vertex"
-        assert (len(np.unique(connectivity)) == n_vertex), "Cannot have orphan vertex (current limitation)"
+        # n_vertex = 0 may indeed happen, is even recommended to provide idle processes for load balancing
+        if n_vertex >1:
+            # Contiguity
+            assert coordinates.flags['C_CONTIGUOUS'], "coordinates must be C-contiguous"
+            assert connectivity_index.flags['C_CONTIGUOUS'], "connectivity_index must be C-contiguous"
+            assert connectivity.flags['C_CONTIGUOUS'], "connectivity must be C-contiguous"
+            # Check for orphan nodes, which currently (0.9.5) segfaults in cpl.locate
+            assert (np.min(connectivity) == 1), "connectivity values must start at 1"
+            assert (np.max(connectivity) == n_vertex), "connectivity values must be <= n_vertex"
+            assert (len(np.unique(connectivity)) == n_vertex), "Cannot have orphan vertex (current limitation)"
 
         cwipi_define_mesh(self.name,
                           n_vertex, 
