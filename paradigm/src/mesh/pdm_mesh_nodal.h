@@ -691,6 +691,28 @@ PDM_Mesh_nodal_block_poly2d_get
 );
 
 
+
+/**
+ * \brief Get global inside numbering of block elements
+ *
+ * \param [in]  idx            Nodal mesh handle
+ * \param [in]  id_block       Block identifier
+ * \param [in]  id_part        Partition identifier
+ *
+ * \return      Return global inside numbering of block elements
+ *  
+ */
+
+PDM_g_num_t *
+PDM_Mesh_nodal_block_inside_g_num_get 
+(   
+const int            idx,
+const int            id_block,     
+const int            id_part 
+) ;
+
+
+
 /**
  * \brief Define a polyhedra block
  *
