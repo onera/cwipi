@@ -38,6 +38,7 @@ typedef enum {
   PDM_NORTH,
   PDM_WEST,
   PDM_EAST,
+  PDM_N_DIRECTION,
 } PDM_para_octree_direction_t;
 
 /**
@@ -89,6 +90,7 @@ PDM_para_octree_create
  const int n_point_cloud,
  const int depth_max,
  const int points_in_leaf_max,
+ const int build_leaf_neighbours,
  const PDM_MPI_Comm comm
 );
 
@@ -219,6 +221,19 @@ PDM_g_num_t *closest_octree_pt_g_num,
 double      *closest_octree_pt_dist2
 );
 
+
+void
+PDM_para_octree_closest_point2
+(
+const int    id,
+const int    n_closest_points,
+const int    n_pts,
+double      *pts,
+PDM_g_num_t *pts_g_num,
+PDM_g_num_t *closest_octree_pt_g_num,
+double      *closest_octree_pt_dist2
+);
+
 /**
  *
  * \brief  Dump elapsed an CPU time
@@ -231,6 +246,25 @@ void
 PDM_para_octree_dump_times
 (
  const int id
+ );
+
+
+/**
+ *
+ * Get the location of a point cloud
+ *
+ */
+
+void
+PDM_para_octree_points_inside_boxes
+(
+ const int           octree_id,
+ const int           n_boxes,
+ const double       *box_extents,
+ const PDM_g_num_t  *box_g_num,
+ int               **pts_in_box_idx,
+ PDM_g_num_t       **pts_in_box_g_num,
+ double            **pts_in_box_coord
  );
 
 #ifdef	__cplusplus

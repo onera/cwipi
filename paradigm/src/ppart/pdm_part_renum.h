@@ -32,7 +32,7 @@ extern "C" {
  *
  */
 
-typedef void (*PDM_part_renum_fct_t) (_part_t  **ppart, int nPart, void* specific_data);
+typedef void (*PDM_part_renum_fct_t) (_part_t  **ppart, int n_part, void* specific_data);
 
 /*============================================================================
  * Public function definitions
@@ -281,7 +281,7 @@ void
 PDM_part_renum_cell
 (
  _part_t **part,
- int       nPart,
+ int       n_part,
  int       renum_cell_method,
  void     *specific_data
 );
@@ -299,7 +299,7 @@ void
 PDM_part_renum_face
 (
  _part_t **part,
- int       nPart,
+ int       n_part,
  int       renum_face_method,
  void     *specific_data
 );
@@ -308,7 +308,7 @@ PDM_part_renum_face
  *
  * \brief Perform cells renumbering from a new order
  *        Actualise all cells array according to the new numbering
- *        Connectivities/cellTag/cellColor/cellLNToGN
+ *        Connectivities/cell_tag/cell_color/cell_ln_to_gn
  *
  * \param [in,out]  part        Current partition
  * \param [in]      newToOldOrder    NewOrder
@@ -327,7 +327,7 @@ PDM_part_reorder_cell
  *
  * \brief Perform faces renumbering from a new order
  *        Actualise all cells array according to the new numbering
- *        Connectivities/faceTag/faceColor/faceLNToGN
+ *        Connectivities/face_tag/face_color/face_ln_to_gn
  *
  * \param [in,out]  part        Current partition
  * \param [in]      newToOldOrder    NewOrder
@@ -346,7 +346,7 @@ PDM_part_reorder_face
  *
  * \brief Perform faces renumbering from a new order
  *        Actualise all cells array according to the new numbering
- *        Connectivities/faceTag/faceColor/faceLNToGN
+ *        Connectivities/face_tag/face_color/face_ln_to_gn
  *
  * \param [in,out]  part        Current partition
  * \param [in]      newToOldOrder    NewOrder
@@ -380,7 +380,7 @@ int       *array
 );
 
 /**
- * \brief Order an array for faceCell
+ * \brief Order an array for face_cell
  *
  * \param [in]      sizeArray       Number of elements
  * \param [in]      newToOldOrder        New order (size = \ref nElt

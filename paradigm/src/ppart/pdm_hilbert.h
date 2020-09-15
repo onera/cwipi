@@ -67,7 +67,7 @@ PDM_hilbert_get_coord_extents_par(int           dim,
                                   size_t        n_coords,
                                   const double  coords[],
                                   double        g_extents[],
-                                  PDM_MPI_Comm      comm);
+                                  PDM_MPI_Comm  comm);
 void
 PDM_hilbert_get_coord_extents_seq(int      dim,
                               size_t       n_coords,
@@ -90,12 +90,12 @@ PDM_hilbert_get_coord_extents_seq(int      dim,
  *----------------------------------------------------------------------------*/
 
 void
-PDM_hilbert_encode_coords(int                 dim,
-			  PDM_hilbert_encode_t encode,
-                          const double    extents[],
-                          int           n_coords,
-                          const double    coords[],
-                          PDM_hilbert_code_t  h_code[]);
+PDM_hilbert_encode_coords(int                  dim,
+                          PDM_hilbert_encode_t encode,
+                          const double         extents[],
+                          int                  n_coords,
+                          const double         coords[],
+                          PDM_hilbert_code_t   h_code[]);
 
 /*----------------------------------------------------------------------------
  * Locally order a list of Hilbert ids.
@@ -111,9 +111,9 @@ PDM_hilbert_encode_coords(int                 dim,
  *----------------------------------------------------------------------------*/
 
 void
-PDM_hilbert_local_order(int                 n_codes,
-                        const PDM_hilbert_code_t  hilbert_codes[],
-                        int                 order[]);
+PDM_hilbert_local_order(int                      n_codes,
+                        const PDM_hilbert_code_t hilbert_codes[],
+                        int                      order[]);
 
 /*----------------------------------------------------------------------------
  * Locally order a list of coordinates based on their Hilbert code.
@@ -131,12 +131,12 @@ PDM_hilbert_local_order(int                 n_codes,
  *----------------------------------------------------------------------------*/
 
 void
-PDM_hilbert_local_order_coords(int                dim,
+PDM_hilbert_local_order_coords(int                  dim,
                                PDM_hilbert_encode_t encode,
-                               const double   extents[],
-                               int          n_coords,
-                               const double   coords[],
-                               int          order[]);
+                               const double         extents[],
+                               int                  n_coords,
+                               const double         coords[],
+                               int                  order[]);
 
 /*----------------------------------------------------------------------------
  * Get the quantile associated to a Hilbert code using a binary search.
@@ -177,7 +177,7 @@ PDM_hilbert_quantile_search(size_t              n_quantiles,
 
 double
 PDM_hilbert_build_rank_index(int                       dim,
-                             int                       nPart,
+                             int                       n_part,
                              int                       n_codes,
                              const PDM_hilbert_code_t  hilbert_code[],
                              const int                 weight[],

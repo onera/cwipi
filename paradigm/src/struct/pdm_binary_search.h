@@ -54,6 +54,26 @@ PDM_binary_search_gap_long
  int         lArray
 );
 
+/**
+ *
+ * \brief Search gap in a sorted array
+ *
+ * \param [in]   elt          Element to find
+ * \param [in]   array        Array where to search
+ * \param [in]   lArray       Array length
+ *
+ * \return       Index where element is stored
+ */
+
+int
+PDM_binary_search_gap_size_t
+(
+ const size_t  elt,
+ const size_t *array,
+ const int     lArray
+);
+
+
 
 /**
  *
@@ -134,6 +154,26 @@ PDM_binary_search_gap_double
  const int      lArray
 );
 
+
+/**
+ *
+ * \brief Search gap in a sorted array
+ *
+ * \param [in]   elt          Element to find
+ * \param [in]   array        Array where to search
+ * \param [in]   lArray       Array length
+ *
+ * \return       Index where element is stored
+ */
+
+int
+PDM_search_rank
+(
+ PDM_g_num_t   elt,
+ PDM_g_num_t  *array,
+ int            id1,
+ int            id2
+);
 
 
 #ifdef __cplusplus

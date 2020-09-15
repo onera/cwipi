@@ -36,14 +36,14 @@ extern "C" {
  *
  * \param [in]   pt_comm           Communicator
  * \param [in]   method            Choice between (1 for ParMETIS or 2 for PT-Scotch)
- * \param [in]   nPart             Number of partitions
- * \param [in]   nTPart            Total number of partitions
- * \param [in]   have_cellTag      Presence d'un tableau de tags pour les cellules
- * \param [in]   have_faceTag      Presence d'un tableau de tags pour les faces
- * \param [in]   have_vtxTag       Presence d'un tableau de tags pour les sommets
- * \param [in]   have_cellWeight   Presence d'un tableau de poids pour les cellules
- * \param [in]   have_faceWeight   Presence d'un tableau de poids pour les faces
- * \param [in]   have_faceGroup    Presence des tableaux de groupes de faces
+ * \param [in]   n_part             Number of partitions
+ * \param [in]   n_total_part            Total number of partitions
+ * \param [in]   have_cell_tag      Presence d'un tableau de tags pour les cellules
+ * \param [in]   have_face_tag      Presence d'un tableau de tags pour les faces
+ * \param [in]   have_vtx_tag       Presence d'un tableau de tags pour les sommets
+ * \param [in]   have_cell_weight   Presence d'un tableau de poids pour les cellules
+ * \param [in]   have_face_weight   Presence d'un tableau de poids pour les faces
+ * \param [in]   have_face_group    Presence des tableaux de groupes de faces
  */
 
 void
@@ -54,19 +54,19 @@ PDM_part_coarse_mesh_create
  const char*         method,
  const char         *renum_cell_method,
  const char         *renum_face_method,
- const int           nPropertyCell,
+ const int           n_property_cell,
  const int          *renum_properties_cell,
- const int           nPropertyFace,
+ const int           n_property_face,
  const int          *renum_properties_face,
- const int           nPart,
- const int           nTPart,
- const int           nFaceGroup,
- const int           have_cellTag,
- const int           have_faceTag,
- const int           have_vtxTag,
- const int           have_cellWeight,
- const int           have_faceWeight,
- const int           have_faceGroup
+ const int           n_part,
+ const int           n_total_part,
+ const int           n_face_group,
+ const int           have_cell_tag,
+ const int           have_face_tag,
+ const int           have_vtx_tag,
+ const int           have_cell_weight,
+ const int           have_face_weight,
+ const int           have_face_group
 );
 
 void
@@ -80,19 +80,19 @@ PROCF (pdm_part_coarse_mesh_create_cf, PDM_PART_COARSE_MESH_CREATE_CF)
  const int          *l_renum_cell_method,
  const char         *renum_face_method,
  const int          *l_renum_face_method,
- const int          *nPropertyCell,
+ const int          *n_property_cell,
  const int          *renum_properties_cell,
- const int          *nPropertyFace,
+ const int          *n_property_face,
  const int          *renum_properties_face,
- const int          *nPart,
- const int          *nTPart,
- const int          *nFaceGroup,
- const int          *have_cellTag,
- const int          *have_faceTag,
- const int          *have_vtxTag,
- const int          *have_cellWeight,
- const int          *have_faceWeight,
- const int          *have_faceGroup
+ const int          *n_part,
+ const int          *n_total_part,
+ const int          *n_face_group,
+ const int          *have_cell_tag,
+ const int          *have_face_tag,
+ const int          *have_vtx_tag,
+ const int          *have_cell_weight,
+ const int          *have_face_weight,
+ const int          *have_face_group
  );
 
 
@@ -101,35 +101,35 @@ PROCF (pdm_part_coarse_mesh_create_cf, PDM_PART_COARSE_MESH_CREATE_CF)
  * \brief Build a coarse mesh
  *
  * \param [in]  cmId               Coarse mesh identifier
- * \param [in]  iPart              Partition identifier
- * \param [in]  nCoarseCell        Number of cells in the coarse grid
- * \param [in]  nCell              Number of cells
- * \param [in]  nFace              Number of faces
- * \param [in]  nFacePartBound     Number of partitioning boundary faces
- * \param [in]  nVtx               Number of vertices
- * \param [in]  nFaceGroup         Number of face groups
- * \param [in]  cellFaceIdx        Cell to face connectivity index (size = nCell + 1, numbering : 0 to n-1)
- * \param [in]  cellFace           Cell to face connectivity (size = cellFaceIdx[nCell] = lCellFace
+ * \param [in]  i_part              Partition identifier
+ * \param [in]  n_coarse_cell        Number of cells in the coarse grid
+ * \param [in]  n_cell              Number of cells
+ * \param [in]  n_face              Number of faces
+ * \param [in]  n_face_part_bound     Number of partitioning boundary faces
+ * \param [in]  n_vtx               Number of vertices
+ * \param [in]  n_face_group         Number of face groups
+ * \param [in]  cell_face_idx        Cell to face connectivity index (size = n_cell + 1, numbering : 0 to n-1)
+ * \param [in]  cell_face           Cell to face connectivity (size = cell_face_idx[n_cell] = lcell_face
  *                                                             numbering : 1 to n)
- * \param [in]  cellTag            Cell tag (size = nCell)
- * \param [in]  cellLNToGN         Cell local numbering to global numbering (size = nCell, numbering : 1 to n)
- * \param [in]  cellWeight         Cell weight (size = nCell)
- * \param [in]  faceWeight         Face weight (size = nFace)
- * \param [in]  faceCell           Face to cell connectivity  (size = 2 * nFace, numbering : 1 to n)
- * \param [in]  faceVtxIdx         Face to Vertex connectivity index (size = nFace + 1, numbering : 0 to n-1)
- * \param [in]  faceVtx            Face to Vertex connectivity (size = faceVertexIdx[nFace], numbering : 1 to n)
- * \param [in]  faceTag            Face tag (size = nFace)
- * \param [in]  faceLNToGN         Face local numbering to global numbering (size = nFace, numbering : 1 to n)
+ * \param [in]  cell_tag            Cell tag (size = n_cell)
+ * \param [in]  cell_ln_to_gn         Cell local numbering to global numbering (size = n_cell, numbering : 1 to n)
+ * \param [in]  cell_weight         Cell weight (size = n_cell)
+ * \param [in]  face_weight         Face weight (size = n_face)
+ * \param [in]  face_cell           Face to cell connectivity  (size = 2 * n_face, numbering : 1 to n)
+ * \param [in]  face_vtx_idx         Face to Vertex connectivity index (size = n_face + 1, numbering : 0 to n-1)
+ * \param [in]  face_vtx            Face to Vertex connectivity (size = faceVertexIdx[n_face], numbering : 1 to n)
+ * \param [in]  face_tag            Face tag (size = n_face)
+ * \param [in]  face_ln_to_gn         Face local numbering to global numbering (size = n_face, numbering : 1 to n)
  * \param [in]  vtxCoord           Vertex coordinates (size = 3 * nVertex)
- * \param [in]  vtxTag             Vertex tag (size = nVertex)
- * \param [in]  vtxLNToGN          Vertex local numbering to global numbering (size = nVtx, numbering : 1 to n)
- * \param [in]  faceGroupIdx       Face group index (size = nFaceGroup + 1, numbering : 1 to n-1)
- * \param [in]  faceGroup          faces for each group (size = faceGroupIdx[nFaceGroup] = lFaceGroup, numbering : 1 to n)
- * \param [in]  faceGroupLNToGN    Faces global numbering for each group
- *                                  (size = faceGroupIdx[nFaceGroup] = lFaceGroup, numbering : 1 to n)
- * \param [in]  facePartBoundProcIdx  Partitioning boundary faces block distribution from processus (size = nProc + 1)
- * \param [in]  facePartBoundPartIdx  Partitioning boundary faces block distribution from partition (size = nTPart + 1)
- * \param [in]  facePartBound      Partitioning boundary faces (size = 4 * nFacePartBound)
+ * \param [in]  vtx_tag             Vertex tag (size = nVertex)
+ * \param [in]  vtx_ln_to_gn          Vertex local numbering to global numbering (size = n_vtx, numbering : 1 to n)
+ * \param [in]  face_group_idx       Face group index (size = n_face_group + 1, numbering : 1 to n-1)
+ * \param [in]  face_group          faces for each group (size = face_group_idx[n_face_group] = lFaceGroup, numbering : 1 to n)
+ * \param [in]  face_group_ln_to_gn    Faces global numbering for each group
+ *                                  (size = face_group_idx[n_face_group] = lFaceGroup, numbering : 1 to n)
+ * \param [in]  face_part_bound_proc_idx  Partitioning boundary faces block distribution from processus (size = n_proc + 1)
+ * \param [in]  face_part_bound_part_idx  Partitioning boundary faces block distribution from partition (size = n_total_part + 1)
+ * \param [in]  face_part_bound      Partitioning boundary faces (size = 4 * n_face_part_bound)
  *                                       sorted by processus, sorted by partition in each processus, and
  *                                       sorted by absolute face number in each partition
  *                                   For each face :
@@ -145,72 +145,72 @@ void
 PDM_part_coarse_mesh_input
 (
  int                 cmId,
- int                 iPart,
- const int           nCoarseCell,
- const int           nCell,
- const int           nFace,
- const int           nVtx,
- const int           nFaceGroup,
- const int           nFacePartBound,
- const int          *cellFaceIdx,
- const int          *cellFace,
- const int          *cellTag,
- const int          *cellWeight,
- const int          *faceWeight,
- const PDM_g_num_t  *cellLNToGN,
- const int          *faceCell,
- const int          *faceVtxIdx,
- const int          *faceVtx,
- const int          *faceTag,
- const PDM_g_num_t  *faceLNToGN,
+ int                 i_part,
+ const int           n_coarse_cell,
+ const int           n_cell,
+ const int           n_face,
+ const int           n_vtx,
+ const int           n_face_group,
+ const int           n_face_part_bound,
+ const int          *cell_face_idx,
+ const int          *cell_face,
+ const int          *cell_tag,
+ const int          *cell_weight,
+ const int          *face_weight,
+ const PDM_g_num_t  *cell_ln_to_gn,
+ const int          *face_cell,
+ const int          *face_vtx_idx,
+ const int          *face_vtx,
+ const int          *face_tag,
+ const PDM_g_num_t  *face_ln_to_gn,
  const double       *vtxCoord,
- const int          *vtxTag,
- const PDM_g_num_t  *vtxLNToGN,
- const int          *faceGroupIdx,
- const int          *faceGroup,
- const PDM_g_num_t  *faceGroupLNToGN,
- const int          *facePartBoundProcIdx,
- const int          *facePartBoundPartIdx,
- const int          *facePartBound
+ const int          *vtx_tag,
+ const PDM_g_num_t  *vtx_ln_to_gn,
+ const int          *face_group_idx,
+ const int          *face_group,
+ const PDM_g_num_t  *face_group_ln_to_gn,
+ const int          *face_part_bound_proc_idx,
+ const int          *face_part_bound_part_idx,
+ const int          *face_part_bound
 );
 
 void
 PROCF (pdm_part_coarse_mesh_input, PDM_PART_COARSE_MESH_INPUT)
 (
  int                *cmId,
- int                *iPart,
- const int          *nCoarseCell,
- const int          *nCell,
- const int          *nFace,
- const int          *nVtx,
- const int          *nFaceGroup,
- const int          *nFacePartBound,
- const int          *cellFaceIdx,
- const int          *cellFace,
- const int          *have_cellTag,
- const int          *cellTag,
- const int          *have_cellWeight,
- const int          *cellWeight,
- const int          *have_faceWeight,
- const int          *faceWeight,
- const PDM_g_num_t *cellLNToGN,
- const int          *faceCell,
- const int          *faceVtxIdx,
- const int          *faceVtx,
- const int          *have_faceTag,
- const int          *faceTag,
- const PDM_g_num_t *faceLNToGN,
+ int                *i_part,
+ const int          *n_coarse_cell,
+ const int          *n_cell,
+ const int          *n_face,
+ const int          *n_vtx,
+ const int          *n_face_group,
+ const int          *n_face_part_bound,
+ const int          *cell_face_idx,
+ const int          *cell_face,
+ const int          *have_cell_tag,
+ const int          *cell_tag,
+ const int          *have_cell_weight,
+ const int          *cell_weight,
+ const int          *have_face_weight,
+ const int          *face_weight,
+ const PDM_g_num_t *cell_ln_to_gn,
+ const int          *face_cell,
+ const int          *face_vtx_idx,
+ const int          *face_vtx,
+ const int          *have_face_tag,
+ const int          *face_tag,
+ const PDM_g_num_t *face_ln_to_gn,
  const double       *vtxCoord,
- const int          *have_vtxTag,
- const int          *vtxTag,
- const PDM_g_num_t *vtxLNToGN,
- const int          *have_faceGroup,
- const int          *faceGroupIdx,
- const int          *faceGroup,
- const PDM_g_num_t *faceGroupLNToGN,
- const int          *facePartBoundProcIdx,
- const int          *facePartBoundPartIdx,
- const int          *facePartBound
+ const int          *have_vtx_tag,
+ const int          *vtx_tag,
+ const PDM_g_num_t *vtx_ln_to_gn,
+ const int          *have_face_group,
+ const int          *face_group_idx,
+ const int          *face_group,
+ const PDM_g_num_t *face_group_ln_to_gn,
+ const int          *face_part_bound_proc_idx,
+ const int          *face_part_bound_part_idx,
+ const int          *face_part_bound
 );
 
 /**
@@ -237,18 +237,18 @@ PROCF (pdm_part_coarse_mesh_compute, PDM_PART_COARSE_MESH_COMPUTE)
  * \brief Return a coarse mesh partition dimensions
  *
  * \param [in]   cmId               Coarse mesh identifier
- * \param [in]   iPart              Current partition
+ * \param [in]   i_part              Current partition
  *
- * \param [out]  nCell              Number of cells
- * \param [out]  nFace              Number of faces
- * \param [out]  nFacePartBound     Number of partitioning boundary faces
- * \param [out]  nVtx               Number of vertices
- * \param [out]  nProc              Number of processus
- * \param [out]  nTPart             Number of partitions
- * \param [out]  sCellFace          Size of cell-face connectivity
- * \param [out]  sFaceVtx           Size of face-vertex connectivity
- * \param [out]  sFacePartBound     Size of facePartBound array
- * \param [out]  sFaceGroup         Size of faceGroup array
+ * \param [out]  n_cell              Number of cells
+ * \param [out]  n_face              Number of faces
+ * \param [out]  n_face_part_bound     Number of partitioning boundary faces
+ * \param [out]  n_vtx               Number of vertices
+ * \param [out]  n_proc              Number of processus
+ * \param [out]  n_total_part             Number of partitions
+ * \param [out]  scell_face          Size of cell-face connectivity
+ * \param [out]  sface_vtx           Size of face-vertex connectivity
+ * \param [out]  sFacePartBound     Size of face_part_bound array
+ * \param [out]  sface_group         Size of face_group array
  * \param [out]  sCoarseCellToFineCell  Size of coarseCellToFineCell array
  *
  */
@@ -257,17 +257,17 @@ void
 PDM_part_coarse_mesh_part_dim_get
 (
  const int      cmId,
- int            iPart,
- int           *nCell,
- int           *nFace,
- int           *nFacePartBound,
- int           *nVtx,
- int           *nProc,
- int           *nTPart,
- int           *nFaceGroup,
- int           *sCellFace,
- int           *sFaceVtx,
- int           *sFaceGroup,
+ int            i_part,
+ int           *n_cell,
+ int           *n_face,
+ int           *n_face_part_bound,
+ int           *n_vtx,
+ int           *n_proc,
+ int           *n_total_part,
+ int           *n_face_group,
+ int           *scell_face,
+ int           *sface_vtx,
+ int           *sface_group,
  int           *sCoarseCellToFineCell
 );
 
@@ -275,17 +275,17 @@ void
 PROCF (pdm_part_coarse_mesh_part_dim_get, PDM_PART_COARSE_MESH_PART_DIM_GET)
 (
  const int     *cmId,
- int           *iPart,
- int           *nCell,
- int           *nFace,
- int           *nFacePartBound,
- int           *nVtx,
- int           *nProc,
- int           *nTPart,
- int           *nFaceGroup,
- int           *sCellFace,
- int           *sFaceVtx,
- int           *sFaceGroup,
+ int           *i_part,
+ int           *n_cell,
+ int           *n_face,
+ int           *n_face_part_bound,
+ int           *n_vtx,
+ int           *n_proc,
+ int           *n_total_part,
+ int           *n_face_group,
+ int           *scell_face,
+ int           *sface_vtx,
+ int           *sface_group,
  int           *sCoarseCellToFineCell
 );
 
@@ -294,36 +294,36 @@ PROCF (pdm_part_coarse_mesh_part_dim_get, PDM_PART_COARSE_MESH_PART_DIM_GET)
  * \brief Return a mesh partition
  *
  * \param [in]   cmId               Coarse mesh identifier
- * \param [in]   iPart              Current partition
+ * \param [in]   i_part              Current partition
  *
- * \param [out]  cellFaceIdx        Cell to face connectivity index (size = nCell + 1, numbering : 0 to n-1)
- * \param [out]  cellFace           Cell to face connectivity (size = cellFaceIdx[nCell] = lCellFace
+ * \param [out]  cell_face_idx        Cell to face connectivity index (size = n_cell + 1, numbering : 0 to n-1)
+ * \param [out]  cell_face           Cell to face connectivity (size = cell_face_idx[n_cell] = lcell_face
  *                                                             numbering : 1 to n)
- * \param [out]  cellTag            Cell tag (size = nCell)
- * \param [out]  cellLNToGN         Cell local numbering to global numbering (size = nCell, numbering : 1 to n)
- * \param [out]  cellInitCellIdx    Array of indexes of the connected partitions (size : nCoarseCell + 1)
- * \param [out]  cellInitCell       Partitioning array (size : cellInitCellIdx[nCoarseCell])
+ * \param [out]  cell_tag            Cell tag (size = n_cell)
+ * \param [out]  cell_ln_to_gn         Cell local numbering to global numbering (size = n_cell, numbering : 1 to n)
+ * \param [out]  cellInitCellIdx    Array of indexes of the connected partitions (size : n_coarse_cell + 1)
+ * \param [out]  cellInitCell       Partitioning array (size : cellInitCellIdx[n_coarse_cell])
  *
- * \param [out]  faceCell           Face to cell connectivity  (size = 2 * nFace, numbering : 1 to n)
- * \param [out]  faceVtxIdx         Face to Vertex connectivity index (size = nFace + 1, numbering : 0 to n-1)
- * \param [out]  faceVtx            Face to Vertex connectivity (size = faceVertexIdx[nFace], numbering : 1 to n)
- * \param [out]  faceTag            Face tag (size = nFace)
- * \param [out]  faceLNToGN         Face local numbering to global numbering (size = nFace, numbering : 1 to n)
+ * \param [out]  face_cell           Face to cell connectivity  (size = 2 * n_face, numbering : 1 to n)
+ * \param [out]  face_vtx_idx         Face to Vertex connectivity index (size = n_face + 1, numbering : 0 to n-1)
+ * \param [out]  face_vtx            Face to Vertex connectivity (size = faceVertexIdx[n_face], numbering : 1 to n)
+ * \param [out]  face_tag            Face tag (size = n_face)
+ * \param [out]  face_ln_to_gn         Face local numbering to global numbering (size = n_face, numbering : 1 to n)
  * \param [out]  faceInitFace       Coarse face - fine face connectivity (size = nCoarseFace)
  *
- * \param [out]  vtxCoord           Vertex coordinates (size = 3 * nVtx)
- * \param [out]  vtxTag             Vertex tag (size = nVtx)
- * \param [out]  vtxLNToGN          Vertex local numbering to global numbering (size = nVtx, numbering : 1 to n)
+ * \param [out]  vtxCoord           Vertex coordinates (size = 3 * n_vtx)
+ * \param [out]  vtx_tag             Vertex tag (size = n_vtx)
+ * \param [out]  vtx_ln_to_gn          Vertex local numbering to global numbering (size = n_vtx, numbering : 1 to n)
  * \param [out]  vtxInitVtx         Coarse vertex - fine vertex connectivity (size = nCoarseVtx)
  *
- * \param [out]  faceGroupIdx       Face group index (size = nFaceGroup + 1, numbering : 1 to n-1)
- * \param [out]  faceGroup          faces for each group (size = faceGroupIdx[nFaceGroup] = lFaceGroup, numbering : 1 to n)
- * \param [out]  faceGroupLNToGN    Faces global numbering for each group
- *                                  (size = faceGroupIdx[nFaceGroup] = lFaceGroup, numbering : 1 to n)
+ * \param [out]  face_group_idx       Face group index (size = n_face_group + 1, numbering : 1 to n-1)
+ * \param [out]  face_group          faces for each group (size = face_group_idx[n_face_group] = lFaceGroup, numbering : 1 to n)
+ * \param [out]  face_group_ln_to_gn    Faces global numbering for each group
+ *                                  (size = face_group_idx[n_face_group] = lFaceGroup, numbering : 1 to n)
  *
- * \param [out]  facePartBoundProcIdx  Partitioning boundary faces block distribution from processus (size = nProc + 1)
- * \param [out]  facePartBoundPartIdx  Partitioning boundary faces block distribution from partition (size = nTPart + 1)
- * \param [out]  facePartBound      Partitioning boundary faces (size = 4 * nFacePartBound)
+ * \param [out]  face_part_bound_proc_idx  Partitioning boundary faces block distribution from processus (size = n_proc + 1)
+ * \param [out]  face_part_bound_part_idx  Partitioning boundary faces block distribution from partition (size = n_total_part + 1)
+ * \param [out]  face_part_bound      Partitioning boundary faces (size = 4 * n_face_part_bound)
  *                                       sorted by processus, sorted by partition in each processus, and
  *                                       sorted by absolute face number in each partition
  *                                   For each face :
@@ -340,80 +340,80 @@ void
 PDM_part_coarse_mesh_part_get
 (
  const int    cmId,
- const int    iPart,
- int          **cellFaceIdx,
- int          **cellFace,
- int          **cellTag,
- PDM_g_num_t **cellLNToGN,
+ const int    i_part,
+ int          **cell_face_idx,
+ int          **cell_face,
+ int          **cell_tag,
+ PDM_g_num_t **cell_ln_to_gn,
  int          **cellInitCellIdx,
  int          **cellInitCell,
- int          **faceCell,
- int          **faceVtxIdx,
- int          **faceVtx,
- int          **faceTag,
- PDM_g_num_t **faceLNToGN,
+ int          **face_cell,
+ int          **face_vtx_idx,
+ int          **face_vtx,
+ int          **face_tag,
+ PDM_g_num_t **face_ln_to_gn,
  int          **faceGroupInitFaceGroup,
  int          **faceInitFace,
  double       **vtxCoord,
- int          **vtxTag,
- PDM_g_num_t **vtxLNToGN,
+ int          **vtx_tag,
+ PDM_g_num_t **vtx_ln_to_gn,
  int          **vtxInitVtx,
- int          **faceGroupIdx,
- int          **faceGroup,
- PDM_g_num_t **faceGroupLNToGN,
- int          **facePartBoundProcIdx,
- int          **facePartBoundPartIdx,
- int          **facePartBound
+ int          **face_group_idx,
+ int          **face_group,
+ PDM_g_num_t **face_group_ln_to_gn,
+ int          **face_part_bound_proc_idx,
+ int          **face_part_bound_part_idx,
+ int          **face_part_bound
 );
 
 void
 PROCF (pdm_part_coarse_mesh_part_get, PDM_PART_COARSE_MESH_PART_GET)
 (
  int          *cmId,
- int          *iPart,
- int          *cellFaceIdx,
- int          *cellFace,
- int          *cellTag,
- PDM_g_num_t  *cellLNToGN,
+ int          *i_part,
+ int          *cell_face_idx,
+ int          *cell_face,
+ int          *cell_tag,
+ PDM_g_num_t  *cell_ln_to_gn,
  int          *cellInitCellIdx,
  int          *cellInitCell,
- int          *faceCell,
- int          *faceVtxIdx,
- int          *faceVtx,
- int          *faceTag,
- PDM_g_num_t *faceLNToGN,
+ int          *face_cell,
+ int          *face_vtx_idx,
+ int          *face_vtx,
+ int          *face_tag,
+ PDM_g_num_t *face_ln_to_gn,
  int          *faceGroupInitFaceGroup,
  int          *faceInitFace,
  double       *vtxCoord,
- int          *vtxTag,
- PDM_g_num_t *vtxLNToGN,
+ int          *vtx_tag,
+ PDM_g_num_t *vtx_ln_to_gn,
  int          *vtxInitVtx,
- int          *faceGroupIdx,
- int          *faceGroup,
- PDM_g_num_t *faceGroupLNToGN,
- int          *facePartBoundProcIdx,
- int          *facePartBoundPartIdx,
- int          *facePartBound
+ int          *face_group_idx,
+ int          *face_group,
+ PDM_g_num_t *face_group_ln_to_gn,
+ int          *face_part_bound_proc_idx,
+ int          *face_part_bound_part_idx,
+ int          *face_part_bound
 );
 
 /**
  *
  * \brief Return a mesh partition
  *
- * \param [in]   ppartId               ppart identifier
- * \param [in]   ipart                 Current partition
- * \param [out]  cellColor             Cell Color (size = nCell)
- * \param [out]  faceColor             Face Color (size = nFace)
+ * \param [in]   ppart_id               ppart identifier
+ * \param [in]   i_part                 Current partition
+ * \param [out]  cell_color             Cell Color (size = n_cell)
+ * \param [out]  face_color             Face Color (size = n_face)
  */
 
 void PDM_part_coarse_color_get
 (
  const int   cmId,
- const int   iPart,
-       int **cellColor,
-       int **faceColor,
-       int **threadColor,
-       int **hyperPlaneColor
+ const int   i_part,
+       int **cell_color,
+       int **face_color,
+       int **thread_color,
+       int **hyperplane_color
 );
 
 /**

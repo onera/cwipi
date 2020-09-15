@@ -26,6 +26,13 @@ extern "C" {
  * Public function definitions
  *============================================================================*/
 
+/**
+ * \brief Compute distribution from dNelmt
+ *
+ * \param [in]     elt_distrib          Distribution of elements on processes
+ * \param [in]     dnelt                Number of element on current process
+ * \param [in]     comm                 MPI Communicator
+ */
 void
 PDM_distrib_compute
 (
@@ -35,6 +42,19 @@ PDM_distrib_compute
  const PDM_MPI_Comm  comm
 );
 
+/**
+ * \brief Compute distribution from dNelmt
+ *
+ * \param [in]     elt_distrib          Distribution of elements on processes
+ * \param [in]     dnelt                Number of element on current process
+ * \param [in]     comm                 MPI Communicator
+ */
+PDM_g_num_t*
+PDM_compute_entity_distribution
+(
+ const PDM_MPI_Comm     comm,
+ const int              dn_entity
+);
 
 #ifdef __cplusplus
 }

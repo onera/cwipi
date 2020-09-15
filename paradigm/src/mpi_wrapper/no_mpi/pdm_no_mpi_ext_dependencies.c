@@ -16,11 +16,6 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-value"
-#endif
-
 /*=============================================================================
  * Macro definitions
  *============================================================================*/
@@ -62,7 +57,7 @@ const int *adjwgt,
 const int *wgtflag,
 const int *numflag,
 const int *ncon,
-const int *nparts,
+const int *n_parts,
 const double *tpwgts,
 const double *ubvec,
 const int *edgecut,
@@ -70,20 +65,20 @@ int *part,
 const PDM_MPI_Comm comm
 )
 {
-  vtxdist;
-  xadj;
-  adjncy;
-  vwgt;
-  adjwgt;
-  wgtflag;
-  numflag;
-  ncon;
-  nparts;
-  tpwgts;
-  ubvec;
-  edgecut;
-  part;
-  comm;
+  PDM_UNUSED(vtxdist);
+  PDM_UNUSED(xadj);
+  PDM_UNUSED(adjncy);
+  PDM_UNUSED(vwgt);
+  PDM_UNUSED(adjwgt);
+  PDM_UNUSED(wgtflag);
+  PDM_UNUSED(numflag);
+  PDM_UNUSED(ncon);
+  PDM_UNUSED(n_parts);
+  PDM_UNUSED(tpwgts);
+  PDM_UNUSED(ubvec);
+  PDM_UNUSED(edgecut);
+  PDM_UNUSED(part);
+  PDM_UNUSED(comm);
 
   PDM_error(__FILE__, __LINE__, 0,"PDM_ParMETIS_V3_PartKway : Unavailable function with pdm_no_mpi library\n" );
   abort();
@@ -98,26 +93,26 @@ const PDM_MPI_Comm comm
 void
 PDM_SCOTCH_dpart
 (
-const PDM_g_num_t dNCell,
-const PDM_g_num_t *dDualGraphIdx,
-const PDM_g_num_t *dDualGraph,
-const int *cellWeight,
+const PDM_g_num_t dn_cell,
+const PDM_g_num_t *ddual_graph_idx,
+const PDM_g_num_t *ddual_graph,
+const int *cell_weight,
 const int *edgeWeight,
 const int check,
 const PDM_MPI_Comm comm,
-const int nPart,
+const int n_part,
 int *part
 )
 {
-  dNCell;
-  dDualGraphIdx;
-  dDualGraph;
-  cellWeight;
-  edgeWeight;
-  check;
-  comm;
-  nPart;
-  part;
+  PDM_UNUSED(dn_cell);
+  PDM_UNUSED(ddual_graph_idx);
+  PDM_UNUSED(ddual_graph);
+  PDM_UNUSED(cell_weight);
+  PDM_UNUSED(edgeWeight);
+  PDM_UNUSED(check);
+  PDM_UNUSED(comm);
+  PDM_UNUSED(n_part);
+  PDM_UNUSED(part);
 
   PDM_error(__FILE__, __LINE__, 0,"PDM_SCOTCH_dpart : Unavailable function with pdm_no_mpi library\n" );
   abort();
@@ -131,7 +126,3 @@ int *part
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif

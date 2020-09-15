@@ -33,8 +33,8 @@ char *argv[]
 
   PDM_MPI_Init (&argc, &argv);
 
-  int myRank;
-  PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &myRank);
+  int i_rank;
+  PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &i_rank);
 
   int numProcs;
   PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &numProcs);
@@ -46,8 +46,8 @@ char *argv[]
   int *stride = malloc(sizeof(stride) * n_elt_proc);
 
   for (int i = 0; i < n_elt_proc; i++) {
-    numabs[i] = myRank * n_elt_proc + i + 1;
-    weights[i] = myRank+1;
+    numabs[i] = i_rank * n_elt_proc + i + 1;
+    weights[i] = i_rank+1;
     stride[i] = 1;
   }
 
@@ -107,6 +107,7 @@ char *argv[]
   free (weights_sum_procs);
   free (stride);
   free (block_stride);
+  free (block_weights);
 
   PDM_MPI_Finalize ();
 

@@ -153,9 +153,25 @@ PDM_block_to_part_free
 );
 
 
+/**
+ *
+ * \brief Return index in the block for a gnum
+ *
+ * \param [in] ptb         Part to block structure
+ * \param [in] gNum        Global number
+ *
+ * \return  Index
+ */
+
+PDM_l_num_t
+PDM_block_to_part_gnum_idx_get
+(
+ PDM_block_to_part_t *btp,
+ PDM_g_num_t gNum
+);
+
 #ifdef	__cplusplus
 }
 #endif
 
 #endif	/* PDM_BLOCK_TO_PART_H */
-

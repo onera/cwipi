@@ -171,15 +171,8 @@ void PDM_timer_hang_on(PDM_timer_t *timer)
                          (timer->t_elaps_debut.tv_usec + 1000000 *
                           timer->t_elaps_debut.tv_sec);
 
-#ifdef __INTEL_COMPILER
-#pragma warning(push)
-#pragma warning(disable:2259)
-#endif
   double tranche_elapsed_max = (double) tranche_elapsed;
   timer->t_elapsed += tranche_elapsed_max/1000000.;
-#ifdef __INTEL_COMPILER
-#pragma warning(pop)
-#endif
 
 #if defined (PDM_HAVE_GETRUSAGE)
  {

@@ -44,13 +44,13 @@ void
 PDM_part_graph_split
 (
  int         method,
- int         nPart,
+ int         n_part,
  _part_t    *part_ini,
- int        *cellCellIdx,
- int        *cellCell,
- int        *cellWeight,
- int        *faceWeight,
- int       **cellPart
+ int        *cell_cell_idx,
+ int        *cell_cell,
+ int        *cell_weight,
+ int        *face_weight,
+ int       **cell_part
 );
 
 /*----------------------------------------------------------------------------
@@ -64,8 +64,8 @@ void
 PDM_part_graph_compute_from_face_cell
 (
   _part_t        *part_ini,
-  int           **cellCellIdxCompressed,
-  int           **cellCellCompressed
+  int           **cell_cell_idxCompressed,
+  int           **cell_cellCompressed
 );
 
 
@@ -82,13 +82,13 @@ void
 PDM_part_graph_split_bis
 (
  int         method,
- int         nPart,
+ int         n_part,
  int         graphSize,
- int        *cellCellIdx,
- int        *cellCell,
- int        *cellWeight,
- int        *faceWeight,
- int       **cellPart
+ int        *cell_cell_idx,
+ int        *cell_cell,
+ int        *cell_weight,
+ int        *face_weight,
+ int       **cell_part
 );
 
 #ifdef __cplusplus

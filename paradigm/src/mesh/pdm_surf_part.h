@@ -53,13 +53,13 @@ typedef struct _pdm_surf_part_t PDM_surf_part_t;
  *
  * This function returns an initialized \ref PDM_surf_part_t structure
  *
- * \param [in]  nFace       Number of faces
- * \param [in]  faceVtxIdx  Index in the face -> vertex connectivity
- * \param [in]  faceVtxIdx  face -> vertex connectivity
- * \param [in]  faceLnToGn  Local face numbering to global face numbering
- * \param [in]  nVtx        Number of vertices
+ * \param [in]  n_face       Number of faces
+ * \param [in]  face_vtx_idx  Index in the face -> vertex connectivity
+ * \param [in]  face_vtx_idx  face -> vertex connectivity
+ * \param [in]  face_ln_to_gn  Local face numbering to global face numbering
+ * \param [in]  n_vtx        Number of vertices
  * \param [in]  coords      Coordinates
- * \param [in]  vtxLnToGn   Local vertex numbering to global vertex numbering
+ * \param [in]  vtx_ln_to_gn   Local vertex numbering to global vertex numbering
  *
  * \return      A new initialized \ref _part_t structure
  *
@@ -68,13 +68,13 @@ typedef struct _pdm_surf_part_t PDM_surf_part_t;
 PDM_surf_part_t *
 PDM_surf_part_create
 (
-const int         nFace,
-const int        *faceVtxIdx,
-const int        *faceVtx,
-const PDM_g_num_t *faceLnToGn,
-const int         nVtx,
+const int         n_face,
+const int        *face_vtx_idx,
+const int        *face_vtx,
+const PDM_g_num_t *face_ln_to_gn,
+const int         n_vtx,
 const double     *coords,
-const PDM_g_num_t *vtxLnToGn
+const PDM_g_num_t *vtx_ln_to_gn
  );
 
 
@@ -113,7 +113,7 @@ PDM_surf_part_t *part
 
 
 /**
- * \brief Return faceLnToGn
+ * \brief Return face_ln_to_gn
  *
  *
  * \param [in]  part      Partition to compute
@@ -126,6 +126,20 @@ PDM_surf_part_faceLnToGn_get
 PDM_surf_part_t *part
 );
 
+/**
+ * \brief Dump a surf_part_t object
+ *
+ * This function dumps a PDM_surf_part_t structure
+ *
+ * \param [in]  part       to dump
+ *
+ */
+
+void
+PDM_surf_part_dump
+(
+PDM_surf_part_t *part
+);
 
 
 

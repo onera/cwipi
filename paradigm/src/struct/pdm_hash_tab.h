@@ -158,6 +158,36 @@ void           *key
 
 
 /**
+ * \brief Return the number of used keys
+ *
+ * \param [in]  hash_table    Hash table to purge
+ *
+ * \return Number of used keys
+ */
+
+int
+PDM_hash_tab_n_used_keys_get
+(
+PDM_hash_tab_t *ht
+);
+
+
+/**
+ * \brief Return used keys
+ *
+ * \param [in]  hash_table    Hash table to purge
+ *
+ * \return Used keys
+ */
+
+PDM_g_num_t *
+PDM_hash_tab_used_keys_get
+(
+PDM_hash_tab_t *ht
+);
+
+
+/**
  * \brief Purge a \ref PDM_hash_table_t object
  *
  * This function empties an \ref PDM_hash_table_t object
@@ -230,10 +260,37 @@ PDM_hash_tab_keyType_get
 PDM_hash_tab_t *ht
 );
 
+/**
+ * \brief Dump hash table
+ *
+ * This function returns the key type
+ *
+ * \param [in]  ht        Hash table
+ *
+ */
+
+void
+PDM_hash_tab_dump
+(
+PDM_hash_tab_t *ht
+);
+
+
+/**
+ * Checks whether a given value is already contained in a hash table
+ */
+
+int
+PDM_hash_tab_check_collision
+(
+ PDM_hash_tab_t *ht,
+ const int       value,
+ const int       keyMax,
+ int            *key
+ );
 
 #ifdef	__cplusplus
 }
 #endif
 
 #endif	/* __PDM_HASH_TAB_H__ */
-

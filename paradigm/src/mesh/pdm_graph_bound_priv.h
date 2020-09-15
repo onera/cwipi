@@ -45,7 +45,7 @@ struct _graph_bound_t {
 
   int              lComm;         /*!< Size of communicator */
   PDM_MPI_Comm          comm;         /*!< MPI communicator */
-  int               nPart;        /*!< Number of local partitions */
+  int               n_part;        /*!< Number of local partitions */
   int               nExchRank;    /*!< Number of exchange ranks */
   int              *exchRank;     /*!< List of exchange ranks */
   PDM_part_bound_t **partBound;   /*!< pat_bound for each partition */
@@ -79,7 +79,7 @@ struct _graph_bound_t {
 
 
   int *nGhostEltPart;        /* Number of ghost element for each part
-                                (size = \ref nPart */
+                                (size = \ref n_part */
 
   int **ghostEltPartIdx;  /*!< Elements connected to each part ghost elements Idx for each part
                             (size for each part = (nGhostEltPart + 1) */
@@ -88,7 +88,7 @@ struct _graph_bound_t {
                                      (size for each part = \ref nGhostEltPart */
 
   int **ghostEltPartElt;   /*!< partition number of Elements connected to each ghost element
-                            (size for each part =  ghostEltPartIdx[iPart][ghostEltPartIdx[iPart][nGhostEltPart[iPart]]] */
+                            (size for each part =  ghostEltPartIdx[i_part][ghostEltPartIdx[i_part][nGhostEltPart[i_part]]] */
 
 
 };

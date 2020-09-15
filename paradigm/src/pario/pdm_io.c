@@ -134,8 +134,11 @@ _mkdir
 const char* path
  )
 {
+#ifdef _WIN32
+  if (mkdir(path) != 0) {
+#else
   if (mkdir(path, S_IRWXU|S_IRWXG|S_IRWXO) != 0) {
-
+#endif
     if (errno == EEXIST) {
       struct stat buf;
 
@@ -758,7 +761,7 @@ void PDM_io_open
   /*  if ((acces == PDM_IO_ACCES_SEQ) && (nouveau_fichier->n_rangs > 1)) {*/
   if (suff_t == PDM_IO_SUFF_AUTO) {
     if (acces == PDM_IO_ACCES_SEQ) {
-      char format[8];
+      char format[9];
       int ncharint = 0;
       double _n_rangs = nouveau_fichier->n_rangs;
       while (_n_rangs >= 1.) {
@@ -1264,14 +1267,7 @@ void PDM_io_ecriture_globale
           sprintf(s_tmp, fichier->fmt, *((int *) t_buffer));
           break;
         case PDM_IO_T_LONG :
-#ifdef __INTEL_COMPILER
-#pragma warning(push)
-#pragma warning(disable:2312)
-#endif
           sprintf(s_tmp, fichier->fmt, *((long *) t_buffer));
-#ifdef __INTEL_COMPILER
-#pragma warning(pop)
-#endif
           break;
         case PDM_IO_T_DOUBLE :
           sprintf(s_tmp, fichier->fmt, *((double *) t_buffer));
@@ -2784,10 +2780,10 @@ void PDM_io_ecr_par_entrelacee
         if (fichier->fmt_t == PDM_IO_FMT_TXT) {
           n_composante_trie =  (int*) malloc(sizeof(int) * _id_max);
 
-	  for (int i = 0; i < _id_max; i++){
-	    n_composante_trie[i] = 0;
-	  }
-	}
+          for (int i = 0; i < _id_max; i++){
+            n_composante_trie[i] = 0;
+          }
+        }
 
         int k = 0;
         for (int i = 0; i < n_donnees; i++){
@@ -2847,14 +2843,7 @@ void PDM_io_ecr_par_entrelacee
                 sprintf(s_tmp, fichier->fmt, *((int *) t_buffer));
                 break;
               case PDM_IO_T_LONG :
-#ifdef __INTEL_COMPILER
-#pragma warning(push)
-#pragma warning(disable:2312)
-#endif
                 sprintf(s_tmp, fichier->fmt, *((long *) t_buffer));
-#ifdef __INTEL_COMPILER
-#pragma warning(pop)
-#endif
                 break;
               case PDM_IO_T_DOUBLE :
                 sprintf(s_tmp, fichier->fmt, *((double *) t_buffer));
@@ -2879,14 +2868,7 @@ void PDM_io_ecr_par_entrelacee
                 sprintf(s_tmp, fichier->fmt, *((int *) t_buffer));
                 break;
               case PDM_IO_T_LONG :
-#ifdef __INTEL_COMPILER
-#pragma warning(push)
-#pragma warning(disable:2312)
-#endif
                 sprintf(s_tmp, fichier->fmt, *((long *) t_buffer));
-#ifdef __INTEL_COMPILER
-#pragma warning(pop)
-#endif
                 break;
               case PDM_IO_T_DOUBLE :
                 sprintf(s_tmp, fichier->fmt, *((double *) t_buffer));
@@ -2910,14 +2892,14 @@ void PDM_io_ecr_par_entrelacee
         int n_donnees_ecrites;
 
         if (fichier->PDM_file_seq != NULL) {
-	  PDM_g_num_t l_string_donnee_gnum = l_string_donnee - 1 ;
-	  PDM_g_num_t n_donnees_ecrites_gnum = PDM_file_seq_write(fichier->PDM_file_seq,
-                                                 sizeof(char),
-                                                 l_string_donnee_gnum,
-                                                 (void *) string_donnee);
-	  // Fonction intrinsèquement parallèle <=> pas de vérification
-	  // du dépassement de la taille max d'un int
-	  n_donnees_ecrites = (int) n_donnees_ecrites_gnum ;
+          PDM_g_num_t l_string_donnee_gnum = l_string_donnee - 1 ;
+          PDM_g_num_t n_donnees_ecrites_gnum = PDM_file_seq_write(fichier->PDM_file_seq,
+                                                                  sizeof(char),
+                                                                  l_string_donnee_gnum,
+                                                                  (void *) string_donnee);
+          // Fonction intrinsèquement parallèle <=> pas de vérification
+          // du dépassement de la taille max d'un int
+          n_donnees_ecrites = (int) n_donnees_ecrites_gnum ;
         }
         else if (fichier->PDM_file_par != NULL) {
           if (fichier->rang_actif) {
@@ -3325,7 +3307,7 @@ void PDM_io_ecr_par_entrelacee
           if (fichier->fmt_t == PDM_IO_FMT_TXT) {
             l_s_buffer = (max_l_blocs_alltoall / taille_donnee) * (fichier->n_char_fmt + 1) + 1;
             s_buffer = (char *) malloc(sizeof(char) * l_s_buffer);
-            for (int i = 0; i < l_s_buffer; i++)
+            for (size_t i = 0; i < l_s_buffer; i++)
               s_buffer[i] = '\0';
           }
         }
@@ -3335,7 +3317,7 @@ void PDM_io_ecr_par_entrelacee
           if (fichier->fmt_t == PDM_IO_FMT_TXT) {
             l_s_buffer = (l_blocs_alltoall / taille_donnee) * (fichier->n_char_fmt + 1) + 1;
             s_buffer = (char *) malloc(sizeof(char) * l_s_buffer);
-            for (int i = 0; i < l_s_buffer; i++)
+            for (size_t i = 0; i < l_s_buffer; i++)
               s_buffer[i] = '\0';
           }
         }
@@ -3418,14 +3400,7 @@ void PDM_io_ecr_par_entrelacee
                 sprintf(s_tmp, fichier->fmt, *((int *) t_buffer));
                 break;
               case PDM_IO_T_LONG :
-#ifdef __INTEL_COMPILER
-#pragma warning(push)
-#pragma warning(disable:2312)
-#endif
                 sprintf(s_tmp, fichier->fmt, *((long *) t_buffer));
-#ifdef __INTEL_COMPILER
-#pragma warning(pop)
-#endif
                 break;
               case PDM_IO_T_DOUBLE :
                 sprintf(s_tmp, fichier->fmt, *((double *) t_buffer));
@@ -3497,14 +3472,7 @@ void PDM_io_ecr_par_entrelacee
                 sprintf(s_tmp, fichier->fmt, *((int *) t_buffer));
                 break;
               case PDM_IO_T_LONG :
-#ifdef __INTEL_COMPILER
-#pragma warning(push)
-#pragma warning(disable:2312)
-#endif
                 sprintf(s_tmp, fichier->fmt, *((long *) t_buffer));
-#ifdef __INTEL_COMPILER
-#pragma warning(pop)
-#endif
                 break;
               case PDM_IO_T_DOUBLE :
                 sprintf(s_tmp, fichier->fmt, *((double *) t_buffer));
@@ -3598,7 +3566,7 @@ void PDM_io_ecr_par_entrelacee
               PDM_MPI_Recv(buffer, l_buffer, PDM_MPI_BYTE, fichier->rangs_actifs[i],
                            PDM_io_tag, fichier->comm);
 
-	      n_donnees_blocs_tmp = n_donnees_blocs[fichier->rangs_actifs[i]];
+              n_donnees_blocs_tmp = n_donnees_blocs[fichier->rangs_actifs[i]];
               donnees_ecrites =
                 PDM_file_seq_write(fichier->PDM_file_seq,
                                    _taille_donnee,

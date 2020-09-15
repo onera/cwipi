@@ -33,13 +33,13 @@ extern "C" {
 int
 PDM_METIS_PartGraphRecursive
 (
-int *nvtxs,
+int *n_vtxs,
 int *ncon,
 int *xadj,
 int *adjncy,
 int *vwgt,
 int *adjwgt,
-int *nparts,
+int *n_parts,
 double *tpwgts,
 double *ubvec,
 int *edgecut,
@@ -49,13 +49,13 @@ int *part
 int
 PDM_METIS_PartGraphKway
 (
-int *nvtxs,
+int *n_vtxs,
 int *ncon,
 int *xadj,
 int *adjncy,
 int *vwgt,
 int *adjwgt,
-int *nparts,
+int *n_parts,
 double *tpwgts,
 double *ubvec,
 int *edgecut,
@@ -69,31 +69,31 @@ int *part
 void
 PDM_SCOTCH_part
 (
-const int nCell,
+const int n_cell,
 int *dualGraphIdx,
 int *dualGraph,
-int *cellWeight,
+int *cell_weight,
 int *edgeWeight,
 int check,
-const int nPart,
+const int n_part,
 int *part
 );
 
 #endif
 
-void 
+void
 PDM_kaffpa
 (
-int* n, 
+int* n,
 int* vwgt,
-int* xadj, 
-int* adjcwgt, 
+int* xadj,
+int* adjcwgt,
 int* adjncy,
-int* nparts, 
-double* inbalance,  
-int seed, 
-int mode, 
-int* edgecut, 
+int* n_parts,
+double* inbalance,
+int seed,
+int mode,
+int* edgecut,
 int* part
 );
 #ifdef	__cplusplus

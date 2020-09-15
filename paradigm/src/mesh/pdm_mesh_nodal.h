@@ -28,6 +28,16 @@ extern "C" {
  * Types definition
  *============================================================================*/
 
+//-->>
+typedef enum {
+
+  PDM_BLOCK_ID_BLOCK_STD    = 0,
+  PDM_BLOCK_ID_BLOCK_POLY2D = 1000000,
+  PDM_BLOCK_ID_BLOCK_POLY3D = 2000000
+
+} PDM_block_id_block_t;
+//<<--
+
 /*----------------------------------------------------------------------------
  * Geometric element type
  *----------------------------------------------------------------------------*/
@@ -43,7 +53,8 @@ typedef enum {
   PDM_MESH_NODAL_PYRAMID5,
   PDM_MESH_NODAL_PRISM6,
   PDM_MESH_NODAL_HEXA8,
-  PDM_MESH_NODAL_POLY_3D
+  PDM_MESH_NODAL_POLY_3D,
+  PDM_MESH_NODAL_N_ELEMENT_TYPES
 
 } PDM_Mesh_nodal_elt_t;
 
@@ -161,16 +172,6 @@ PDM_Mesh_nodal_vertices_get
  const int          idx,
  const int          id_part
 );
-
-
-const double *
-PDM_Mesh_cell_centers_get
-(
- const int          idx,
- const int          id_block,
- const int          id_part
-) ;
-
 
 
 /**
@@ -597,23 +598,6 @@ const int            id_block,
 const int            id_part
 );
 
-/**
- * \brief Compute cell centers of a block
- *
- * \param [in]  idx            Nodal mesh handle
- * \param [in]  id_block       Block identifier
- * \param [in]  id_part        Partition identifier
- *
- */
-
-void
-PDM_Mesh_nodal_cell_centers_compute
-(
-const int         idx,
-const int         id_block,
-const int         i_part
-);
-
 
 /**
  * \brief Compute cell centers of a block
@@ -707,28 +691,6 @@ PDM_Mesh_nodal_block_poly2d_get
 );
 
 
-
-/**
- * \brief Get global inside numbering of block elements
- *
- * \param [in]  idx            Nodal mesh handle
- * \param [in]  id_block       Block identifier
- * \param [in]  id_part        Partition identifier
- *
- * \return      Return global inside numbering of block elements
- *  
- */
-
-PDM_g_num_t *
-PDM_Mesh_nodal_block_inside_g_num_get 
-(   
-const int            idx,
-const int            id_block,     
-const int            id_part 
-) ;
-
-
-
 /**
  * \brief Define a polyhedra block
  *
@@ -793,6 +755,27 @@ const int            id_part,
       PDM_l_num_t  **cellfac_idx,
       PDM_l_num_t  **cellfac
 );
+
+/**
+ * \brief Get the cell-vertex connectivity of a polyhedra block
+ *
+ * \param [in]  idx            Nodal mesh handle
+ * \param [in]  id_block       Block identifier
+ * \param [in]  id_part        Partition identifier
+ * \param [out] cellvtx_idx    Index of cell vertex connectivity
+ * \param [out] cellvtx        Cell vertex connectivity
+ *
+ */
+
+void
+PDM_Mesh_nodal_block_poly3d_cell_vtx_connect_get
+(
+ const int     idx,
+ const int     id_block,
+ const int     id_part,
+ PDM_l_num_t **cellvtx_idx,
+ PDM_l_num_t **cellvtx
+ );
 
 /**
  * \brief  Add some 3D cells from cell face conectivity.
@@ -981,6 +964,55 @@ void
 PDM_Mesh_nodal_reset
 (
 const int idx
+ );
+
+
+
+
+
+
+/**
+ * \brief Returns the number of vertices in an element
+ *
+ * \param [in]  elt_type   Element type
+ * \param [in]  order      Element order
+ *
+ * \return      Number of vertices in element
+ *
+ */
+
+int
+PDM_Mesh_nodal_n_vertices_element
+(
+ const PDM_Mesh_nodal_elt_t elt_type,
+ const int                  order
+ );
+
+
+
+
+
+void
+PDM_Mesh_nodal_compute_cell_extents
+(
+ const int     idx,
+ const int     id_block,
+ const int     i_part,
+ const double  tolerance,
+ double       *extents
+ );
+
+
+
+PDM_l_num_t
+PDM_Mesh_nodal_poly3d_cell_vtx_get
+(
+ const PDM_l_num_t   icell,
+ const PDM_l_num_t   face_vtx_idx[],
+ const PDM_l_num_t   face_vtx[],
+ const PDM_l_num_t   cell_face_idx[],
+ const PDM_l_num_t   cell_face[],
+ PDM_l_num_t       **cell_vtx
  );
 
 #ifdef __cplusplus

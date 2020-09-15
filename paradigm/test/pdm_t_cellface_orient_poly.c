@@ -40,16 +40,16 @@ int main(int argc, char *argv[])
    *  Init
    */
 
-  int myRank;
+  int i_rank;
   int numProcs;
 
   PDM_MPI_Init(&argc, &argv);
-  PDM_MPI_Comm_rank(PDM_MPI_COMM_WORLD, &myRank);
+  PDM_MPI_Comm_rank(PDM_MPI_COMM_WORLD, &i_rank);
   PDM_MPI_Comm_size(PDM_MPI_COMM_WORLD, &numProcs);
 
-  const int      nCell = 3;
-  const int      nFace = 42;
-  const int      nVtx  = 36;
+  const int      n_cell = 3;
+  const int      n_face = 42;
+  const int      n_vtx  = 36;
   double   vtx[108] = {0.,  0.,  0.,  2.,  0.,  0.,  4.,  0.,  0.,  6.,  0.,  0.,
                        0.,  2.,  0.,  2.,  2.,  0.,  4.,  2.,  0.,  6.,  2.,  0.,
                        0.,  4.,  0.,  2.,  4.,  0.,  4.,  4.,  0.,  6.,  4.,  0.,
@@ -60,23 +60,23 @@ int main(int argc, char *argv[])
                        0.,  2.,  4.,  2.,  2.,  4.,  4.,  2.,  4.,  6.,  2.,  4.,
                        0.,  4.,  4.,  2.,  4.,  4.,  4.,  4.,  4.,  6.,  4.,  4.};
 
-  int  cellFaceIdx[4] = {0, 18, 36, 52};
-  int  cellFace[52] = {  1,  2,  6,  7,  9, 10, 12, 15, 21, 24,
+  int  cell_face_idx[4] = {0, 18, 36, 52};
+  int  cell_face[52] = {  1,  2,  6,  7,  9, 10, 12, 15, 21, 24,
                         26, 27, 29, 35, 36, 37, 40, 41,
                          4,  5, 10, 11, 15, 16, 17, 18, 19, 20,
                         25, 28, 32, 33, 34, 35, 36, 42,
                          2,  3,  7,  8, 13, 14, 16, 17, 22, 23, 24, 25, 30, 31,
                         38, 39};
 
-  int  *faceCell = NULL;
+  int  *face_cell = NULL;
 
-  int faceVtxIdx[43] = { 0,  4,  8, 12, 16, 20, 24, 28, 32, 36, 40,
+  int face_vtx_idx[43] = { 0,  4,  8, 12, 16, 20, 24, 28, 32, 36, 40,
                          44, 48, 52, 56, 60, 64, 68, 72, 76,  80,  84,
                          88,  92,  96, 100, 104, 108, 112, 116, 120,
                          124, 128, 132, 136, 140, 144, 148, 152, 156,
                          160, 164, 168};
 
-  int faceVtx[168] = {13, 17,  5,  1,  2,  6, 18, 14,  4,  8,
+  int face_vtx[168] = {13, 17,  5,  1,  2,  6, 18, 14,  4,  8,
                       20, 16, 17, 21,  9,  5,  8, 12, 24, 20,
                       25, 29, 17, 13, 14, 18, 30, 26, 16, 20,
                       32, 28, 29, 33, 21, 17, 19, 23, 35, 31,
@@ -94,18 +94,17 @@ int main(int argc, char *argv[])
                       31, 30, 27, 28, 32, 31, 29, 30, 34, 33,
                       30, 31, 35, 34, 31, 32, 36, 35};
 
-  PDM_cellface_orient (nCell,
-                       nFace,
-                       nVtx,
+  PDM_cellface_orient (n_cell,
+                       n_face,
+                       n_vtx,
                        vtx,
-                       cellFaceIdx,
-                       cellFace,
-                       faceCell,
-                       faceVtxIdx,
-                       faceVtx);
+                       cell_face_idx,
+                       cell_face,
+                       face_cell,
+                       face_vtx_idx,
+                       face_vtx);
 
   PDM_MPI_Finalize();
 
   return 0;
 }
-

@@ -89,12 +89,12 @@ int main() {
 
   if (   (NOT PARMETIS_CONFIG_TEST_VERSION_COMPILED)
       OR (NOT (PARMETIS_CONFIG_TEST_VERSION_EXITCODE EQUAL 0)))
-      message(WARNING "Unable to determine ParMETIS version")
+      message("WARNING: Unable to determine ParMETIS version")
       set(PARMETIS_VERSION_OK TRUE)
-      set(PARMETIS_VERSION "??.??.??" CACHE TYPE STRING)
+      set(PARMETIS_VERSION "??.??.??" CACHE STRING "ParMETIS Version")
 
-  else ()
-      set(PARMETIS_VERSION ${PARMETIS_CONFIG_TEST_VERSION_OUTPUT} CACHE TYPE STRING)
+    else ()
+      set(PARMETIS_VERSION ${PARMETIS_CONFIG_TEST_VERSION_OUTPUT} CACHE STRING "ParMETIS Version")
       mark_as_advanced(PARMETIS_VERSION)
       if (ParMETIS_FIND_VERSION)
         # Check if version found is >= required version
@@ -123,4 +123,3 @@ mark_as_advanced(PARMETIS_LIBRARIES
                  PARMETIS_VERSION_OK)
 
 unset(PARMETIS_LIBRARY CACHE)
-unset(METIS_LIBRARY CACHE)

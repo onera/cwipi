@@ -39,23 +39,23 @@ extern "C" {
 
 struct _pdm_surf_part_t {
 
-  int               nFace;       /*!< Number of faces  */
+  int               n_face;       /*!< Number of faces  */
   double           *faceNormal;  /*!< Face normal  */
 
   int               nGhostFace;  /*!< Number of ghost faces  */
   int               nTotalFace;  /*!< Total number of faces  */
-  int               sFaceVtx;    /*!< Size of \ref faceVtx */
-  const int        *faceVtxIdx;  /*!< Index in \ref faceVtx */
-  const int        *faceVtx;     /*!< face -> vertex connectivity */
+  int               sface_vtx;    /*!< Size of \ref face_vtx */
+  const int        *face_vtx_idx;  /*!< Index in \ref face_vtx */
+  const int        *face_vtx;     /*!< face -> vertex connectivity */
   int              *faceEdgeIdx; /*!< face -> edge connectivity (NULL if not computed) */
   int              *faceEdge;    /*!< face -> edge connectivity (NULL if not computed) */
-  const PDM_g_num_t *faceLnToGn;  /*!< Local face numbering to global face numbering */
-  int               nVtx;        /*!< Number of vertices */
+  const PDM_g_num_t *face_ln_to_gn;  /*!< Local face numbering to global face numbering */
+  int               n_vtx;        /*!< Number of vertices */
   const double     *coords;      /*!< Vertex coordinates */
   int              *vtxEdgeIdx;  /*!< Index in \ref vtxEdge (NULL if not computed) */
   int              *vtxEdge;     /*!< Vertex -> edge connectivity
                                       (NULL if not computed) */
-  const PDM_g_num_t *vtxLnToGn;   /*!< Local vertex numbering to global vertex numbering */
+  const PDM_g_num_t *vtx_ln_to_gn;   /*!< Local vertex numbering to global vertex numbering */
   int               nEdge;       /*!< Number of edges */
   int               nGhostEdge;  /*!< Number of ghost edges */
   int               nTotalEdge;  /*!< Total number of edges */
@@ -70,7 +70,7 @@ struct _pdm_surf_part_t {
 
   double           *carLgthVtx;   /*!< Caracteristic length of vertices */
   double           *extents;      /*!< xmin, ymin, zmin, xmax, ymax, zmax for each face
-                                       (size = dim * nFace * 2) */
+                                       (size = dim * n_face * 2) */
 
 } ;
 

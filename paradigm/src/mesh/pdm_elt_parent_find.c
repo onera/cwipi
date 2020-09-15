@@ -21,7 +21,7 @@
 #include "pdm_elt_parent_find.h"
 #include "pdm_part_to_block.h"
 #include "pdm_block_to_block.h"
-#include "pdm_sort.h"
+#include "pdm_quick_sort.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,50 +40,6 @@ extern "C" {
 /*============================================================================
  * Private function definitions
  *============================================================================*/
-
-/**
- *
- * \brief Quick sort
- *
- * \param [inout]   a     Array to sort
- * \param [in]      l     First element
- * \param [in]      r     Last  element
- *
- */
-
-static void
-_quickSort_int
-(
- int a[],
- int l,
- int r
-)
-{
-  if (l < r) {
-    int j = r+1;
-    int t;
-    int pivot = a[l];
-    int i = l;
-
-    while(1) {
-      do ++i; while (a[i] <= pivot && i < r);
-      do --j; while (a[j] > pivot);
-      if (i >= j) break;
-
-      t    = a[i];
-      a[i] = a[j];
-      a[j] = t;
-
-    }
-    t    = a[l];
-    a[l] = a[j];
-    a[j] = t;
-
-    _quickSort_int(a, l  , j-1);
-    _quickSort_int(a, j+1,   r);
-  }
-}
-
 
 /**
  * \def _find_pairs
@@ -124,21 +80,21 @@ const int          nFac,
     if(AlreadyTreat[iPos] != 1){
 
       int curFac = IdxFace[iPos ];
-      int nVtx1  = data[curFac+2];
+      int n_vtx1  = data[curFac+2];
 
       /** Prepare ElemCon **/
-      int *ElmCon1 = (int *) malloc( sizeof(int *) * nVtx1); /* To sort out of loop */
+      int *ElmCon1 = (int *) malloc( sizeof(int *) * n_vtx1); /* To sort out of loop */
       int  tKey1   = 0;
-      for(int iVtx=0; iVtx < nVtx1; iVtx++){
+      for(int iVtx=0; iVtx < n_vtx1; iVtx++){
         ElmCon1[iVtx] = data[curFac+3+iVtx];
         tKey1        += data[curFac+3+iVtx];
       }
       // Normalement c'est 64 bit ici !!!
-      // PDM_sort_long(ElmCon1, 0, nVtx1-1);
-      _quickSort_int(ElmCon1, 0, nVtx1-1);
+      // PDM_sort_long(ElmCon1, 0, n_vtx1-1);
+      PDM_quick_sort_int(ElmCon1, 0, n_vtx1-1);
 
       if(0 == 1){
-        for(int iVtx=0; iVtx<nVtx1; iVtx++){
+        for(int iVtx=0; iVtx<n_vtx1; iVtx++){
           printf("ElmCon1[%d] : %d \n", iVtx, ElmCon1[iVtx]);
         }
       }
@@ -155,20 +111,20 @@ const int          nFac,
          * On sait que la prochaine a traiter est forcement plus grande
          */
         int nexFac = IdxFace[iNex ];
-        int nVtx2  = data[nexFac+2];
+        int n_vtx2  = data[nexFac+2];
 
-        // printf("+++++++++++++++++++ : %d - %d \n", nVtx1, nVtx2);
+        // printf("+++++++++++++++++++ : %d - %d \n", n_vtx1, n_vtx2);
         /*
          * First sort - Number of Vertex is different -> Si Vtx different c'est pas la meme
          */
-        if(nVtx1 == nVtx2){
+        if(n_vtx1 == n_vtx2){
 
           /*
            * Allocate memory and copy
            */
-          int *ElmCon2 = (int *) malloc( sizeof(int *) * nVtx1);
+          int *ElmCon2 = (int *) malloc( sizeof(int *) * n_vtx1);
           int  tKey2   = 0;
-          for(int iVtx=0; iVtx < nVtx1; iVtx++){
+          for(int iVtx=0; iVtx < n_vtx1; iVtx++){
             ElmCon2[iVtx] = data[nexFac+3+iVtx];
             tKey2        += data[nexFac+3+iVtx];
           }
@@ -176,17 +132,17 @@ const int          nFac,
           /*
            * Sort ElemCon2
            */
-          _quickSort_int(ElmCon2, 0, nVtx2-1);
+          PDM_quick_sort_int(ElmCon2, 0, n_vtx2-1);
 
           if(0 == 1){
-            for(int iVtx=0; iVtx < nVtx1; iVtx++){
+            for(int iVtx=0; iVtx < n_vtx1; iVtx++){
               printf("ElmCon2[%d] : %d \n", iVtx, ElmCon2[iVtx]);
             }
           }
 
           /** Compare **/
           int isSameFace = 1;
-          for(int iVtx=0; iVtx < nVtx1; iVtx++){
+          for(int iVtx=0; iVtx < n_vtx1; iVtx++){
              if(ElmCon1[iVtx] != ElmCon2[iVtx]){
                 isSameFace = -1;
                 break;
@@ -265,13 +221,13 @@ const int          nFac,
 
       int curFac  = IdxFace[iPos ];
       int flagCur = data[curFac+1];
-      int nVtx1   = data[curFac+2];
+      int n_vtx1   = data[curFac+2];
       if(flagCur == -1){
         printf("flagCur        : %d \n", flagCur);
         printf("curFac         : %d \n", curFac);
         printf("data[curFac];  : %d \n", data[curFac]);
 
-        for(int iVtx=0; iVtx < nVtx1; iVtx++){
+        for(int iVtx=0; iVtx < n_vtx1; iVtx++){
           printf("iVtx[%d] : %d \n", iVtx, data[curFac+3+iVtx]);
         }
 
@@ -331,17 +287,17 @@ PDM_elt_parent_find
 
   }
 
-  //FIXME: dNFace
+  //FIXME: dn_face
 
-  int myRank;
-  int nRank;
+  int i_rank;
+  int n_rank;
 
-  PDM_MPI_Comm_rank(comm, &myRank);
-  PDM_MPI_Comm_size(comm, &nRank);
+  PDM_MPI_Comm_rank(comm, &i_rank);
+  PDM_MPI_Comm_size(comm, &n_rank);
 
   /* Compute distribution for element */
 
-  PDM_g_num_t* elt_distrib = (PDM_g_num_t *) malloc((nRank+1) * sizeof(PDM_g_num_t));
+  PDM_g_num_t* elt_distrib = (PDM_g_num_t *) malloc((n_rank+1) * sizeof(PDM_g_num_t));
   PDM_g_num_t  _dnelt      = (PDM_g_num_t) dnelt;
 
   PDM_MPI_Allgather((void *) &_dnelt,
@@ -354,21 +310,21 @@ PDM_elt_parent_find
 
   elt_distrib[0] = 1;
 
-  for (int i = 1; i < nRank+1; i++) {
+  for (int i = 1; i < n_rank+1; i++) {
     elt_distrib[i] +=  elt_distrib[i-1];
   }
 
   /* Verbose */
   if (1 == 0) {
     PDM_printf("elt_distrib : "PDM_FMT_G_NUM,  elt_distrib[0]);
-    for (int i = 1; i < nRank+1; i++) {
+    for (int i = 1; i < n_rank+1; i++) {
       PDM_printf(" "PDM_FMT_G_NUM, elt_distrib[i]);
     }
     PDM_printf("\n");
   }
 
   /* Compute distribution for element to find */
-  PDM_g_num_t* elt_to_find_distrib = (PDM_g_num_t *) malloc((nRank+1) * sizeof(PDM_g_num_t));
+  PDM_g_num_t* elt_to_find_distrib = (PDM_g_num_t *) malloc((n_rank+1) * sizeof(PDM_g_num_t));
   PDM_g_num_t  _dnelt_to_find      = (PDM_g_num_t) dnelt_to_find;
 
   PDM_MPI_Allgather((void *) &_dnelt_to_find,
@@ -381,14 +337,14 @@ PDM_elt_parent_find
 
   elt_to_find_distrib[0] = 1;
 
-  for (int i = 1; i < nRank+1; i++) {
+  for (int i = 1; i < n_rank+1; i++) {
     elt_to_find_distrib[i] +=  elt_to_find_distrib[i-1];
   }
 
   /* Verbose */
   if (1 == 0) {
     PDM_printf("elt_distrib : "PDM_FMT_G_NUM,  elt_to_find_distrib[0]);
-    for (int i = 1; i < nRank+1; i++) {
+    for (int i = 1; i < n_rank+1; i++) {
       PDM_printf(" "PDM_FMT_G_NUM, elt_to_find_distrib[i]);
     }
     PDM_printf("\n");
@@ -449,24 +405,24 @@ PDM_elt_parent_find_from_distrib
   /* 2)  Distribution commence a 1 ou 0 ????, */
 
   /* elt_distrib = Distribution de face */
-  /* elt_def_idx ~= dFaceVtxIdx         */
+  /* elt_def_idx ~= dface_vtx_idx         */
   /* elt_def     ~= dFace               */
 
   printf("PDM_elt_parent_find_from_distrib \n");
 
-  int myRank;
-  int nRank;
+  int i_rank;
+  int n_rank;
 
-  PDM_MPI_Comm_rank(comm, &myRank);
-  PDM_MPI_Comm_size(comm, &nRank);
+  PDM_MPI_Comm_rank(comm, &i_rank);
+  PDM_MPI_Comm_size(comm, &n_rank);
 
   /* Build distributed hash tab (key = sum of integer used for element definition */
 
   /*
    * Allocate Disctribute Hash Key
    */
-  PDM_g_num_t nFacApprox = (elt_distrib        [myRank+1] - elt_distrib        [myRank]);
-  nFacApprox            += (elt_to_find_distrib[myRank+1] - elt_to_find_distrib[myRank]);
+  PDM_g_num_t nFacApprox = (elt_distrib        [i_rank+1] - elt_distrib        [i_rank]);
+  nFacApprox            += (elt_to_find_distrib[i_rank+1] - elt_to_find_distrib[i_rank]);
 
   // nFacApprox *= 2;
 
@@ -480,28 +436,28 @@ PDM_elt_parent_find_from_distrib
   // PDM_g_num_t* connect   = (PDM_g_num_t *) malloc( sizeof(PDM_g_num_t) * 18 );
 
   /** Initialisation of some data **/
-  int nFace  = 0;
+  int n_face  = 0;
   int nData  = 0;
 
   /* Prepare hash table with current element */
-  // for (PDM_g_num_t i = elt_distrib[myRank]; i < elt_distrib[myRank+1]; i++) {
+  // for (PDM_g_num_t i = elt_distrib[i_rank]; i < elt_distrib[i_rank+1]; i++) {
 
-  int dNElmts = (int) (elt_distrib[myRank+1]-elt_distrib[myRank]);
+  int dNElmts = (int) (elt_distrib[i_rank+1]-elt_distrib[i_rank]);
 
   /* Loop over all elements on current process */
   for(PDM_g_num_t iElmt = 0 ; iElmt < dNElmts; iElmt++) {
 
     if(0 == 1){
       printf("-----> iElmt : "PDM_FMT_G_NUM" \n", iElmt);
-      printf("%d/"PDM_FMT_G_NUM" : ", nFace, nFacApprox);
+      printf("%d/"PDM_FMT_G_NUM" : ", n_face, nFacApprox);
     }
 
-    part_data[nData++] = iElmt+elt_distrib[myRank]; //+1;
+    part_data[nData++] = iElmt+elt_distrib[i_rank]; //+1;
     part_data[nData++] = 1;
 
-    /* Setup nVtx */
-    int nVtx = elt_def_idx[iElmt+1]-elt_def_idx[iElmt] ;
-    part_data[nData++] = nVtx;
+    /* Setup n_vtx */
+    int n_vtx = elt_def_idx[iElmt+1]-elt_def_idx[iElmt] ;
+    part_data[nData++] = n_vtx;
 
     PDM_g_num_t iKey = 0;
     for(PDM_g_num_t idxElmt = elt_def_idx[iElmt] ; idxElmt < elt_def_idx[iElmt+1]; idxElmt++) {
@@ -509,37 +465,37 @@ PDM_elt_parent_find_from_distrib
       part_data[nData++] = elt_def[idxElmt];
     }
 
-    LNToGN[nFace]    = iKey;
+    LNToGN[n_face]    = iKey;
 
     /** Prepare part_data **/
-    part_stri[nFace] = 1+1+1+nVtx;
+    part_stri[n_face] = 1+1+1+n_vtx;
 
     /** Go to next face **/
-    nFace++;
+    n_face++;
 
   }
 
   /* Prepare hash table with current element to find */
 
-  int dNElmtsToFind = (int) (elt_to_find_distrib[myRank+1]-elt_to_find_distrib[myRank]);
+  int dNElmtsToFind = (int) (elt_to_find_distrib[i_rank+1]-elt_to_find_distrib[i_rank]);
 
   /* Loop over all elements on current process */
   for(PDM_g_num_t iElmt = 0 ; iElmt < dNElmtsToFind; iElmt++) {
 
     if(0 == 1){
       printf("-----> iElmt : "PDM_FMT_G_NUM" \n", iElmt);
-      printf("%d/"PDM_FMT_G_NUM" : ", nFace, nFacApprox);
+      printf("%d/"PDM_FMT_G_NUM" : ", n_face, nFacApprox);
     }
 
 
     // En parallele on va core dans find_pairs
-    part_data[nData++] = iElmt+elt_to_find_distrib[myRank];
+    part_data[nData++] = iElmt+elt_to_find_distrib[i_rank];
     // part_data[nData++] = iElmt+1;
     part_data[nData++] = -1;
 
-    /* Setup nVtx */
-    int nVtx = elt_to_find_def_idx[iElmt+1]-elt_to_find_def_idx[iElmt] ;
-    part_data[nData++] = nVtx;
+    /* Setup n_vtx */
+    int n_vtx = elt_to_find_def_idx[iElmt+1]-elt_to_find_def_idx[iElmt] ;
+    part_data[nData++] = n_vtx;
 
     PDM_g_num_t iKey = 0;
     for(PDM_g_num_t idxElmt = elt_to_find_def_idx[iElmt] ; idxElmt < elt_to_find_def_idx[iElmt+1]; idxElmt++) {
@@ -547,13 +503,13 @@ PDM_elt_parent_find_from_distrib
       part_data[nData++] = elt_to_find_def[idxElmt];
     }
 
-    LNToGN[nFace]    = iKey;
+    LNToGN[n_face]    = iKey;
 
     /** Prepare part_data **/
-    part_stri[nFace] = 1+1+1+nVtx;
+    part_stri[n_face] = 1+1+1+n_vtx;
 
     /** Go to next face **/
-    nFace++;
+    n_face++;
 
   }
 
@@ -566,7 +522,7 @@ PDM_elt_parent_find_from_distrib
                                                       1.,
                                                       &LNToGN,
                                                       NULL,
-                                                      &nFace,
+                                                      &n_face,
                                                       1,
                                                       comm);
 
@@ -615,7 +571,7 @@ PDM_elt_parent_find_from_distrib
 
   /* Find parent in distributed hash table */
 
-  PDM_g_num_t dNFace = 0; //FIXME: Attention : dNFace doit probabement etre declare en entier puis caster en long
+  PDM_g_num_t dn_face = 0; //FIXME: Attention : dn_face doit probabement etre declare en entier puis caster en long
 
   int nFacLocApprox = 10;
   int         *IdxFace      = (int         *) malloc( sizeof(int         *) * nFacLocApprox + 1);
@@ -630,7 +586,7 @@ PDM_elt_parent_find_from_distrib
 
     /*
      * Traitement des groupes de données
-     * Reminder Blk = [ [iCell, iType, nVtx, i1, i2, ...], ... ]
+     * Reminder Blk = [ [iCell, iType, n_vtx, i1, i2, ...], ... ]
      */
     int nEntryFace = BlkStriIdx[iBlk+1] - BlkStriIdx[iBlk];
 
@@ -701,24 +657,24 @@ PDM_elt_parent_find_from_distrib
      */
 
 
-    // dNFace = _find_pairs(IdxFace, BlkData, nFac, connect, elt_to_find_distrib[myRank], dNFace, &nFacApprox);
+    // dn_face = _find_pairs(IdxFace, BlkData, nFac, connect, elt_to_find_distrib[i_rank], dn_face, &nFacApprox);
 
     PDM_g_num_t iAbsFace = 0;
     iAbsFace = _find_pairs(IdxFace, BlkData, nFac, connectLocal, iAbsFace);
 
 
-    if(dNFace + iAbsFace > nFacApprox){
-        printf("[%d/%d] - Realloc :  "PDM_FMT_G_NUM" - "PDM_FMT_G_NUM" \n", myRank, nRank, nFacApprox, dNFace + iAbsFace);
+    if(dn_face + iAbsFace > nFacApprox){
+        printf("[%d/%d] - Realloc :  "PDM_FMT_G_NUM" - "PDM_FMT_G_NUM" \n", i_rank, n_rank, nFacApprox, dn_face + iAbsFace);
         nFacApprox *= 2;
         connect   = (PDM_g_num_t *) realloc(connect,  sizeof(PDM_g_num_t) * nFacApprox );
     }
 
     /* Copy on current array */
     for(int ilocface = 0; ilocface < iAbsFace; ilocface++) {
-      connect[dNFace+ilocface] = connectLocal[ilocface];
+      connect[dn_face+ilocface] = connectLocal[ilocface];
     }
 
-    dNFace = dNFace + iAbsFace;
+    dn_face = dn_face + iAbsFace;
 
 
 
@@ -734,18 +690,18 @@ PDM_elt_parent_find_from_distrib
 
   /* Verbose */
   if(0 == 1){
-    // printf("dElmtTot : %d\n", dNFace);
-    printf("[%d/%d] - dNFace : "PDM_FMT_G_NUM" / nFaceApprox : "PDM_FMT_G_NUM" \n", myRank, nRank, dNFace, nFacApprox);
+    // printf("dElmtTot : %d\n", dn_face);
+    printf("[%d/%d] - dn_face : "PDM_FMT_G_NUM" / n_faceApprox : "PDM_FMT_G_NUM" \n", i_rank, n_rank, dn_face, nFacApprox);
 
-    // for(int i = 0; i < dNFace; i++) {
+    // for(int i = 0; i < dn_face; i++) {
     //   printf("connect[%d]    : %d \n", i, connect[i]);
       // printf("BlkStri2[%d] : %d \n", i, BlkStri2[i]);
     // }
   }
 
   /* Realloc the connect array */
-  if(dNFace > 0){
-    connect   = (PDM_g_num_t *) realloc(connect,  sizeof(PDM_g_num_t) * dNFace );
+  if(dn_face > 0){
+    connect   = (PDM_g_num_t *) realloc(connect,  sizeof(PDM_g_num_t) * dn_face );
   }
 
   /*
@@ -753,13 +709,13 @@ PDM_elt_parent_find_from_distrib
    */
   PDM_g_num_t beg_NumAbs;
 
-  PDM_MPI_Scan(&dNFace, &beg_NumAbs, 1, PDM__PDM_MPI_G_NUM, PDM_MPI_SUM, comm);
-  beg_NumAbs -= dNFace;
+  PDM_MPI_Scan(&dn_face, &beg_NumAbs, 1, PDM__PDM_MPI_G_NUM, PDM_MPI_SUM, comm);
+  beg_NumAbs -= dn_face;
 
   /** Compute the distribution of elements amont proc **/
-  PDM_g_num_t* FaceDistrib = (PDM_g_num_t *) malloc((nRank+1) * sizeof(PDM_g_num_t));
-  PDM_g_num_t _dNFace = (PDM_g_num_t) dNFace;
-  PDM_MPI_Allgather((void *) &_dNFace,
+  PDM_g_num_t* FaceDistrib = (PDM_g_num_t *) malloc((n_rank+1) * sizeof(PDM_g_num_t));
+  PDM_g_num_t _dn_face = (PDM_g_num_t) dn_face;
+  PDM_MPI_Allgather((void *) &_dn_face,
                     1,
                     PDM__PDM_MPI_G_NUM,
                     (void *) (&FaceDistrib[1]),
@@ -769,7 +725,7 @@ PDM_elt_parent_find_from_distrib
 
   FaceDistrib[0] = 0;
 
-  for (int i = 1; i < nRank+1; i++) {
+  for (int i = 1; i < n_rank+1; i++) {
     FaceDistrib[i] +=  FaceDistrib[i-1];
   }
 
@@ -777,27 +733,27 @@ PDM_elt_parent_find_from_distrib
   if (0 == 1) {
     printf("beg_NumAbs::Face : "PDM_FMT_G_NUM" \n", beg_NumAbs);
     printf("mesh->face_distrib : "PDM_FMT_G_NUM,  FaceDistrib[0]);
-    for (int i = 1; i < nRank+1; i++) {
+    for (int i = 1; i < n_rank+1; i++) {
       printf(" "PDM_FMT_G_NUM, FaceDistrib[i]);
     }
     printf("\n");
   }
 
   /* Return result in the same order of elt_to_find_def array */
-  PDM_g_num_t *LNToGNElem = (PDM_g_num_t *) malloc( sizeof(PDM_g_num_t) * dNFace );
-  for (PDM_g_num_t i = FaceDistrib[myRank]; i < FaceDistrib[myRank+1]; i++) {
-    int idx = (int) (i-FaceDistrib[myRank]);
+  PDM_g_num_t *LNToGNElem = (PDM_g_num_t *) malloc( sizeof(PDM_g_num_t) * dn_face );
+  for (PDM_g_num_t i = FaceDistrib[i_rank]; i < FaceDistrib[i_rank+1]; i++) {
+    int idx = (int) (i-FaceDistrib[i_rank]);
     LNToGNElem[idx] = i+1;
   }
 
-  int __dNFace = (int) dNFace;
+  int __dn_face = (int) dn_face;
 
   PDM_part_to_block_t *ptb2 = PDM_part_to_block_create(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                                        PDM_PART_TO_BLOCK_POST_NOTHING,
                                                        1.,
                                                        &LNToGNElem,
                                                        NULL,
-                                                       &__dNFace,
+                                                       &__dn_face,
                                                        1,
                                                        comm);
 
@@ -825,7 +781,7 @@ PDM_elt_parent_find_from_distrib
    * Verbose
    */
   if(0 == 1){
-    printf("[%d/%d] - ElmtTot : %d\n", myRank, nRank, dElmtTot);
+    printf("[%d/%d] - ElmtTot : %d\n", i_rank, n_rank, dElmtTot);
     // for(int i = 0; i < dElmtTot; i++) {
     //   printf("BlockData[%d]    : %d \n", i, BlkData2[i]);
     //   // printf("BlkStri2[%d] : %d \n", i, BlkStri2[i]);
@@ -841,21 +797,21 @@ PDM_elt_parent_find_from_distrib
   }
 
 
-  PDM_g_num_t* FaceDistribNew = (PDM_g_num_t *) malloc((nRank+1) * sizeof(PDM_g_num_t));
+  PDM_g_num_t* FaceDistribNew = (PDM_g_num_t *) malloc((n_rank+1) * sizeof(PDM_g_num_t));
 
 
   FaceDistribNew[0] = 0;
-  FaceDistribNew[1] = FaceDistrib[nRank];
-  for (int i = 2; i < nRank+1; i++) {
+  FaceDistribNew[1] = FaceDistrib[n_rank];
+  for (int i = 2; i < n_rank+1; i++) {
     FaceDistribNew[i] = 0;
   }
-  for (int i = 1; i < nRank+1; i++) {
+  for (int i = 1; i < n_rank+1; i++) {
     FaceDistribNew[i] +=  FaceDistribNew[i-1];
   }
 
   if (0 == 1) {
     printf("FaceDistribNew : "PDM_FMT_G_NUM,  FaceDistribNew[0]);
-    for (int i = 1; i < nRank+1; i++) {
+    for (int i = 1; i < n_rank+1; i++) {
       printf(" "PDM_FMT_G_NUM, FaceDistribNew[i]);
     }
     printf("\n");

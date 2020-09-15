@@ -50,14 +50,18 @@ typedef enum {
  * Determine the reverse Cut-Hill Mac-Kee numbering
  *
  * parameters:
- *   part       --> Mesh Partition
- *   perm       <-- Array of prmutation
+ *   n_elm          --> Number of elements to reorder
+ *   dual_graph_idx --> Element to element connectivity indexes (size=n_elm+1)
+ *   dual_graph     --> Element to element connectivity (size=dual_graph_idx[n_elm])
+ *   perm           <-- Array of permutations
  *---------------------------------------------------------------------------*/
 
 void
 PDM_cuthill_generate
 (
- _part_t           *ppart,
+ int                n_elm,
+ int               *dual_graph_idx,
+ int               *dual_graph,
  int               *perm
 );
 
@@ -65,12 +69,16 @@ PDM_cuthill_generate
  * Compute the bandwidth of the current mesh
  *
  * parameters:
- *   part       --> Mesh Partition
+ *   n_elm          --> Number of elements to reorder
+ *   dual_graph_idx --> Element to element connectivity indexes (size=n_elm+1)
+ *   dual_graph     --> Element to element connectivity (size=dual_graph_idx[n_elm])
  *---------------------------------------------------------------------------*/
 int
 PDM_cuthill_checkbandwidth
 (
- _part_t           *ppart
+ int                n_elm,
+ int               *dual_graph_idx,
+ int               *dual_graph
 );
 
 /*----------------------------------------------------------------------------

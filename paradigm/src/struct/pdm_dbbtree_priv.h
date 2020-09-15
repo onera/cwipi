@@ -107,6 +107,10 @@ typedef struct {
   PDM_MPI_Comm   rankComm;        /*!< MPI ommunicator with only the current rank */
   int        dim;              /*!< Dimension */
 
+  double *global_extents;   /*!< User global extents */
+  double      s[3];           /* Translation for the normalization */
+  double      d[3];           /* Dilatation for the normalization */
+
 } _PDM_dbbtree_t;
 
 /*=============================================================================

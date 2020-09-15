@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 /*----------------------------------------------------------------------------
  *  Header for the current file
@@ -43,14 +44,14 @@ extern "C" {
 
 typedef struct {
 
-  PDM_hash_tab_key_t   tKey;    /*!< Type of key */
-  int                 *nDataKey;/*!< Number of data for each key */
-  PDM_g_num_t           keyMax;  /*!< Key max */
-  void              ***data;    /*!< Data */
-  int                 *mDataKey;/*!< Max data for each key */
+  PDM_hash_tab_key_t   tKey;       /*!< Type of key */
+  int                 *nDataKey;   /*!< Number of data for each key */
+  PDM_g_num_t          keyMax;     /*!< Key max */
+  void              ***data;       /*!< Data */
+  int                 *mDataKey;   /*!< Max data for each key */
   int                  n_key_info; /*!< Number keys with information */
   int                  l_key_info; /*!< Size of \ref key_info*/
-  PDM_g_num_t         *key_info; /*!< list of Keys with info */
+  PDM_g_num_t         *key_info;   /*!< list of Keys with info */
 
 } _hash_tab_t;
 
@@ -82,7 +83,7 @@ void                     *keyMax
 )
 {
   _hash_tab_t *ht = malloc (sizeof(_hash_tab_t));
-  const int nDataDefault = 4;
+  const int nDataDefault = 0;
 
   ht->tKey = tKey;
 
@@ -108,6 +109,9 @@ void                     *keyMax
     ht->nDataKey[i] = 0;
     ht->mDataKey[i] = nDataDefault;
     ht->data[i] = malloc (sizeof(void *) * nDataDefault);
+    for (int j = 0; j < nDataDefault; j++) {
+      ht->data[i][j] = NULL;
+    }
   }
 
   return (PDM_hash_tab_t *) ht;
@@ -134,7 +138,7 @@ void           *data
 )
 {
   _hash_tab_t *_ht = (_hash_tab_t *) ht;
-  PDM_g_num_t _key = -1;;
+  PDM_g_num_t _key = -1;
 
   if (_ht->tKey == PDM_HASH_TAB_KEY_INT) {
     _key = (PDM_g_num_t) *((int *) (key));
@@ -147,15 +151,17 @@ void           *data
 		abort();
 	}
 
+  assert ((PDM_g_num_t) _key < _ht->keyMax);
+
   if (_ht->nDataKey[_key] >= _ht->mDataKey[_key]) {
-    _ht->mDataKey[_key] *= 2;
+    _ht->mDataKey[_key] += PDM_MAX (1, _ht->mDataKey[_key]);
     _ht->data[_key] = realloc (_ht->data[_key], sizeof(void *) *
                                                 _ht->mDataKey[_key]);
   }
 
   if (_ht->nDataKey[_key] == 0) {
     if (_ht->n_key_info >= _ht->l_key_info) {
-      _ht->l_key_info *= 2;
+      _ht->l_key_info += PDM_MAX (1, _ht->l_key_info/3);
       _ht->key_info = realloc(_ht->key_info, sizeof(PDM_g_num_t) *  _ht->l_key_info);
     }
     _ht->key_info[_ht->n_key_info] = _key;
@@ -198,6 +204,8 @@ void           *key
 		abort();
 	}
 
+  assert ((PDM_g_num_t) _key < _ht->keyMax);
+
   for (int i = 0; i < _ht->nDataKey[_key]; i++) {
     if (_ht->data[_key][i] != NULL) {
       free (_ht->data[_key][i]);
@@ -230,6 +238,7 @@ void           *key
 )
 {
   _hash_tab_t *_ht = (_hash_tab_t *) ht;
+
   PDM_g_num_t _key = -1;
 
   if (_ht->tKey == PDM_HASH_TAB_KEY_INT) {
@@ -242,6 +251,9 @@ void           *key
 	  PDM_error(__FILE__, __LINE__, 0, "PDM_hash_tab_data_get error : unknown PDM_hash_tab_key_t\n");
 		abort();
 	}
+
+  assert ((PDM_g_num_t) _key < _ht->keyMax);
+
   return _ht->nDataKey[_key];
 }
 
@@ -278,6 +290,7 @@ void           *key
 	  PDM_error(__FILE__, __LINE__, 0, "PDM_hash_tab_data_get error : unknown PDM_hash_tab_key_t\n");
 		abort();
 	}
+  assert ((PDM_g_num_t) _key < _ht->keyMax);
   return _ht->data[_key];
 }
 
@@ -301,8 +314,8 @@ PDM_hash_tab_t *ht
 {
   _hash_tab_t *_ht = (_hash_tab_t *) ht;
 
-  for (int i = 0; i < _ht->keyMax; i++) {
-    free (_ht->data[i]);
+  for (int i = 0; i<_ht->keyMax; i++) {
+    free(_ht->data[i]);
   }
   free (_ht->data);
   free (_ht->nDataKey);
@@ -312,6 +325,47 @@ PDM_hash_tab_t *ht
   free (_ht);
 
   return NULL;
+}
+
+
+/**
+ * \brief Return the number of used keys
+ *
+ * \param [in]  hash_table    Hash table to purge
+ *
+ * \return Number of used keys
+ */
+
+int
+PDM_hash_tab_n_used_keys_get
+(
+PDM_hash_tab_t *ht
+)
+{
+  _hash_tab_t *_ht = (_hash_tab_t *) ht;
+
+  return _ht->n_key_info;
+
+}
+
+/**
+ * \brief Return used keys
+ *
+ * \param [in]  hash_table    Hash table to purge
+ *
+ * \return Used keys
+ */
+
+PDM_g_num_t *
+PDM_hash_tab_used_keys_get
+(
+PDM_hash_tab_t *ht
+)
+{
+  _hash_tab_t *_ht = (_hash_tab_t *) ht;
+
+  return _ht->key_info;
+
 }
 
 
@@ -397,8 +451,63 @@ PDM_hash_tab_t *ht
   return _ht->tKey;
 }
 
+void
+PDM_hash_tab_dump
+(
+PDM_hash_tab_t *ht
+)
+{
+ PDM_printf ("==== PDM_hash_tab_dump ==== \n");
+ _hash_tab_t *_ht = (_hash_tab_t *) ht;
+  for (int i=0; i <_ht->keyMax; i++){
+	  PDM_printf ("_ht->nDataKey[%d] : %d\n", i, _ht->nDataKey[i]);
+  }
+  PDM_printf ("_ht->data = %d\n", _ht->data);
+  for (int key=0; key < _ht->keyMax; key++){
+    PDM_printf ("_ht->data[%d] = %d, ",key, _ht->data[key]);
+    int n_data_in_key = PDM_hash_tab_n_data_get(ht, &key );
+    for(int i_data = 0; i_data < n_data_in_key; ++i_data){
+      PDM_printf ("_ht->data[%d][%i] = %d, ", key, i_data, _ht->data[key][i_data]);
+    }
+    PDM_printf ("\n");
+  }
+
+  PDM_printf ("==== PDM_hash_tab_dump ==== terminated ====\n");
+}
+
+
+
+
+
+/**
+ * Checks whether a given value is already contained in a hash table
+ */
+
+int
+PDM_hash_tab_check_collision
+(
+ PDM_hash_tab_t *ht,
+ const int       value,
+ const int       keyMax,
+ int            *key
+)
+{
+  *key = value % keyMax;
+
+  int n_data = PDM_hash_tab_n_data_get (ht, key);
+
+  PDM_g_num_t **data = (PDM_g_num_t **) PDM_hash_tab_data_get (ht, key);
+  for (int i = 0; i < n_data; i++) {
+    if (*(data[i]) == value) {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+
 
 #ifdef	__cplusplus
 }
 #endif
-

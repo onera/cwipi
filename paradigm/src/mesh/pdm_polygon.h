@@ -183,8 +183,85 @@ PDM_polygon_compute_barycenter
  const double *pts,
  double bary[3]
 );
+void
+PDM_polygon_orthonormal_basis
+(
+ const int     n_vtx,
+ const double *vtx_xyz,
+ double        tangent_u[3],
+ double        tangent_v[3],
+ double        normal[3]
+ );
+
+void PDM_polygon_compute_uv_coordinates
+(
+ const int     n_pts,
+ const double *xyz,
+ const double *orig_xyz,
+ const double *tangent_u,
+ const double *tangent_v,
+ double       *uv
+ );
 
 
+/**
+ * \brief Test if a point is inside a 2d polygon using the Winding Number method
+ *        (see http://geomalgorithms.com/a03-_inclusion.html)
+ *
+ * \param [in]  xy            Point (x,y)-coordinates
+ * \param [in]  n_vtx         Number of polygon vertices
+ * \param [in]  vtx_xy        Polygon vertices (x,y)-coordinates
+ * \param [in]  char_length   Characteristic length (used to scale tolerance)
+ * \param [in]  bounds        Bounds (xmin, xmax, ymin, ymax)
+ *
+ * \return      \ref Status inside, outside or degenerated
+ *
+ */
+
+
+PDM_polygon_status_t PDM_polygon_point_in_2d
+(
+ const double  xy[2],
+ const int     n_vtx,
+ const double *vtx_xy,
+ // const double  char_length,
+ double        bounds[4]
+ );
+
+/**
+ * \brief Test if a point is inside a 3d polygon using the Winding Number method
+ *        (see http://geomalgorithms.com/a03-_inclusion.html)
+ *
+ * \param [in]  xyz           Point (x,y,z)-coordinates
+ * \param [in]  n_vtx         Number of polygon vertices
+ * \param [in]  vtx_xyz       Polygon vertices (x,y,z)-coordinates
+ * \param [in]  char_length   Characteristic length (used to scale tolerance)
+ * \param [in]  bounds        Bounds (xmin, xmax, ymin, ymax, zmin, zmax)
+ *
+ * \return      \ref Status inside, outside or degenerated
+ *
+ */
+
+PDM_polygon_status_t PDM_polygon_point_in_3d
+(
+ const double  xyz[3],
+ const int     n_vtx,
+ const double *vtx_xyz,
+ // const double  char_length,
+ double        bounds[6],
+ double        normal[3]
+ );
+
+int PDM_polygon_3d_to_2d
+(
+ const int    n_vtx,
+ const double vtx_xyz[],
+ double       vtx_uv[],
+ const int    n_pts,
+ const double pts_xyz[],
+ double       pts_uv[],
+ double       normal[3]
+ );
 
 #ifdef __cplusplus
 }

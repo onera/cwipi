@@ -73,6 +73,23 @@ struct _PDM_box_distrib_t {
 
 };
 
+
+
+struct _PDM_boxes_t {
+  int          n_boxes;        /* Number of bounding boxes */
+  PDM_g_num_t *g_num;          /* Array of associated global numbers */
+  double      *extents;        /* Extents associated with each box:
+                                  * x_min_0, y_min_0, ..., x_max_0, y_max_0, ...
+                                  * x_min_n, y_min_n, ..., x_max_n, y_max_n,
+                                  * (size: n_boxes * dim * 2) */
+
+  int          n_part_orig;
+  int         *n_boxes_orig;   /* Number of origin bounding boxes */
+  int         *origin;         /* Initial location :
+                                  * iproc, i_part, local_num */
+};
+
+
 /* Set of bounding boxes */
 
 struct _PDM_box_set_t {
@@ -80,19 +97,13 @@ struct _PDM_box_set_t {
   int         dim;            /* Spatial dimension (1, 2 or 3) */
   int         dimensions[3];  /* Only used in 1 or 2D: X = 0, Y = 1, Z = 2 */
 
-  int         n_boxes;        /* Number of bounding boxes */
   PDM_g_num_t  n_g_boxes;      /* Global number of bounding boxes */
 
-  PDM_g_num_t *g_num;          /* Array of associated global numbers */
-  double     *extents;        /* Extents associated with each box:
-                                  * x_min_0, y_min_0, ..., x_max_0, y_max_0, ...
-                                  * x_min_n, y_min_n, ..., x_max_n, y_max_n,
-                                  * (size: n_boxes * dim * 2) */
+  PDM_boxes_t *local_boxes;   /* Local boxes */
 
-  int         n_part_orig;
-  int        *n_boxes_orig;   /* Number of origin bounding boxes */
-  int        *origin;         /* Initial location :
-                                  * iproc, ipart, local_num */
+  int n_copied_ranks;          /* Number of copies from other ranks */
+  int *copied_ranks;           /* Copied ranks */
+  PDM_boxes_t *rank_boxes;    /* Boxes copied from other ranks */
 
   double      gmin[3];        /* Global minima of the coordinates */
   double      gmax[3];        /* Global maxima of the coordinates */

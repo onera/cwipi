@@ -171,7 +171,8 @@ PDM_gnum_location_get
  *
  * \brief Free
  *
- * \param [in]   id           Identifier
+ * \param [in]   id            Identifier
+ * \param [in]   keep_results  Keep location results
  *
  */
 
@@ -179,7 +180,7 @@ void
 PDM_gnum_location_free
 (
  const int id,
- const int partial
+ const int keep_results
 );
 
 

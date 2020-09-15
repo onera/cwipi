@@ -24,21 +24,21 @@
 
 typedef struct  _subpartlayout_t {
 
-  int           nSdom;                  /*!< Number of subDomain                     */
-  int           nFaceInt;               /*!< Number of Interior face                 */
-  int           nFaceExt;               /*!< Number of Exterior face                 */
+  int           n_sdom;                   /*!< Number of subDomain                     */
+  int           n_face_int;               /*!< Number of Interior face                 */
+  int           n_face_ext;               /*!< Number of Exterior face                 */
 
   /* Idx array of displacement */
-  int*          cellTileIdx;           /*!< Cell Tile Index     (Size = nSdom + 1)   */
-  int*          faceTileIdx;           /*!< Face Tile Index     (Size = nSdom + 1)   */
-  int*          faceBndTileIdx;        /*!< Face Bnd Tile Index (Size = nSdom + 1)   */
+  int*          cell_tile_idx;           /*!< Cell Tile Index     (Size = n_sdom + 1)   */
+  int*          face_tile_idx;           /*!< Face Tile Index     (Size = n_sdom + 1)   */
+  int*          face_bnd_tile_idx;       /*!< Face Bnd Tile Index (Size = n_sdom + 1)   */
 
   /* Idx array of displacement */
-  int*          maskTileIdx;           /*!< Mask Tile Index   (Size = nSdom + 1)     */
-  int*          cellVectTileIdx;       /*!< Cell Tile Index   (Size = nSdom + 1)     */
-  int*          maskTileN;             /*!< Mask Tile number  (Size = nSdom + 1)     */
-  int*          cellVectTileN;         /*!< Cell Tile number  (Size = nSdom + 1)     */
-  int*          maskTile;              /*!< Mask Tile number                         */
+  int*          mask_tile_idx;           /*!< Mask Tile Index   (Size = n_sdom + 1)     */
+  int*          cell_vect_tile_idx;      /*!< Cell Tile Index   (Size = n_sdom + 1)     */
+  int*          mask_tile_n;             /*!< Mask Tile number  (Size = n_sdom + 1)     */
+  int*          cell_vect_tile_n;        /*!< Cell Tile number  (Size = n_sdom + 1)     */
+  int*          mask_tile;               /*!< Mask Tile number                          */
 
 
 } _subpartlayout_t;
@@ -53,41 +53,40 @@ typedef struct  _subpartlayout_t {
  */
 
 typedef struct  _part_t {
-  int           nVtx;               /*!< Number of vertices                   */
-  int           nCell;              /*!< Number of cells                      */
-  int           nFace;              /*!< Number of faces                      */
-  int           nFacePartBound;     /*!< Number of partitioning boundary faces*/
-  int           nFaceGroup;         /*!< Number of boundary faces             */
+  //Dimensions
+  int           n_vtx;               /*!< Number of vertices                   */
+  int           n_cell;              /*!< Number of cells                      */
+  int           n_face;              /*!< Number of faces                      */
+  int           n_face_part_bound;   /*!< Number of partitioning boundary faces*/
+  int           n_face_group;        /*!< Number of boundary faces             */
 
-  int          *cellFaceIdx;        /*!< Cell face connectivity index
-                                      (size = nCell + 1)                      */
-  PDM_g_num_t *gCellFace;          /*!< Global numbering cell face connectivity
-                                      (size = cellFaceIdx[nCell])             */
-  int          *cellFace;           /*!< Cell face connectivity
-                                      (size = cellFaceIdx[nCell])             */
-  PDM_g_num_t *cellLNToGN;         /*!< Local to global cell numbering
-                                      (size = nCell)                          */
-  int          *cellTag;            /*!< Cell tag
-                                      (size = nCell)                          */
+  //Geometry and connectivities
+  double       *vtx;                 /*!< Vertex coordinates (size = 3*n_vtx)  */
+  int          *face_vtx_idx;        /*!< Face vertex connectivity index
+                                      (size = n_face + 1)                      */
+  int          *face_vtx;            /*!< Face vertex connectivity
+                                      (size = face_vtx_idx[n_face])            */
+  PDM_g_num_t  *gface_vtx;           /*!< Global numbering face vtx connectivity
+                                      (size = face_vtx_idx[n_face])            */
+  int          *cell_face_idx;       /*!< Cell face connectivity index
+                                      (size = n_cell + 1)                      */
+  int          *cell_face;           /*!< Cell face connectivity
+                                      (size = cell_face_idx[n_cell])           */
+  PDM_g_num_t  *gcell_face;          /*!< Global numbering cell face connectivity
+                                      (size = cell_face_idx[n_cell])           */
+  int          *face_cell;           /*!< Face cell connectivity
+                                      (size = 2 * n_face)                      */
 
-  int          *faceCell;           /*!< Face cell connectivity
-                                      (size = 2 * nFace)                      */
-  int          *faceVtxIdx;         /*!< Face vertex connectivity index
-                                      (size = nFace + 1)                      */
-  PDM_g_num_t *gFaceVtx;           /*!< Global numbering face vtx connectivity
-                                      (size = faceVtxIdx[nFace])              */
-  int          *faceVtx;            /*!< Face vertex connectivity
-                                      (size = faceVtxIdx[nFace])              */
-  PDM_g_num_t *faceLNToGN ;         /*!< Local to global cell numbering
-                                      (size = nFace)                          */
-  int          *faceTag;            /*!< Tag face connectivity index
-                                      (size = nFace)                          */
-
-  int          *facePartBoundProcIdx;   /*!< Partitioning boundary bloc distribution
-                                      (size = nRanks + 1)                     */
-  int          *facePartBoundPartIdx;   /*!< Partitioning boundary bloc distribution
-                                      (size = nPartTotal + 1)                 */
-  int          *facePartBound;      /*!< Partitioning boundary faces sorted by
+  //Boundaries
+  int          *face_group_idx;      /*!< Face group index
+                                      (size = n_face_group + 1)                */
+  int          *face_group;          /*!< Face group index
+                                     (size = face_group_idx[n_face_group])     */
+  int   *face_part_bound_proc_idx;   /*!< Partitioning boundary bloc distribution
+                                      (size = n_ranks + 1)                     */
+  int   *face_part_bound_part_idx;   /*!< Partitioning boundary bloc distribution
+                                      (size = n_partTotal + 1)                 */
+  int          *face_part_bound;     /*!< Partitioning boundary faces sorted by
                                          proc, sorted by part in the proc, and
                                          sorted by absolute face number in the part
                                          For each face :
@@ -97,44 +96,52 @@ typedef struct  _part_t {
                                             on the connected process
                                           - Connected face local number
                                             in the connected partition
-                                      (size = 4* nFacePartBound)              */
+                                      (size = 4* n_face_part_bound)            */
+  //New interface differs boundary groups and interface groups
+  int          *face_bound_idx;      /*!< Indices of original boundary groups
+                                      (size = n_bounds + 1)                    */
+  int          *face_bound;          /*!< Original boundary groups faces
+                                      (size = face_bound_idx[n_bounds])        */
+  int          *face_join_idx;       /*!< Indices of original interface groups
+                                      (size = n_joins + 1)                     */
+  int          *face_join;           /*!< Original interface groups faces with
+                                      connecting data (see face_part_bound)
+                                      (size = 4*face_join_idx[n_joins])         */
 
-  int          *faceGroupIdx;       /*!< Face group index
-                                      (size = nFaceGroup + 1)                     */
-  int          *faceGroup;          /*!< Face group index
-                                      (size = faceGroupIdx[nFaceGroup])       */
+  //Local to global numbering
+  PDM_g_num_t *face_ln_to_gn ;       /*!< Local to global cell numbering
+                                      (size = n_face)                          */
+  PDM_g_num_t *cell_ln_to_gn;        /*!< Local to global cell numbering
+                                      (size = n_cell)                          */
+  PDM_g_num_t *vtx_ln_to_gn;         /*!< Local to global vertex numbering
+                                      (size = n_vtx)                           */
+  PDM_g_num_t *face_group_ln_to_gn;  /*!< Local to global boundary face numbering
+                                      (size = face_group_idx[n_face_group])    */
+  //New interface differs boundary groups and interface groups
+  PDM_g_num_t *face_bound_ln_to_gn;  /*!< Local to global boundary face numbering
+                                      (size = face_bound_idx[n_bounds])        */
+  PDM_g_num_t *face_join_ln_to_gn;   /*!< Local to global join face numbering
+                                      (size = face_join_idx[n_joins])          */
 
-  PDM_g_num_t *faceGroupLNToGN;    /*!< Local to global boundary face numbering
-                                      (size = faceGroupIdx[nFaceGroup])           */
+  //Tags -- integer fields on mesh entities
+  int         *cell_tag;             /*!< Cell tag (size = n_cell)             */
+  int         *face_tag;             /*!< Face tag (size = n_face)             */
+  int         *vtx_tag;              /*!< Vertex tag (size = n_face)           */
 
-  double       *vtx;                /*!< Vertex coordinates
-                                      (size = 3 * nVtx)                           */
-  PDM_g_num_t *vtxLNToGN;          /*!< Local to global vertex numbering
-                                      (size = nVtx)                           */
-  int          *vtxTag;             /*!< Tag vertex
-                                      (size = nVtx)                           */
+  //Coarse mesh data
+  const int   *cell_weight;          /*!< For coarse mesh (size = n_cell)      */
+  const int   *face_weight;          /*!< For coarse mesh (size = n_face)      */
 
+  // Cache blocking data
+  int         *cell_color;           /*!< For cache blocking (size = n_cell)   */
+  int         *face_color;           /*!< For cache blocking (size = n_face)   */
+  int         *thread_color;         /*!< For cache blocking (size = nThread)  */
+  int         *hyperplane_color;     /*!< For cache blocking (size = nThread?) */
 
-  const int          *cellWeight;             /*!< Cell weight - For coarse mesh
-                                            (size = nCel)                           */
-  const int          *faceWeight;             /*!< Face weight - For coarse mesh
-                                            (size = nFac)                           */
+  int         *new_to_old_order_cell;    /*!< Cell reordering (size = n_cell)  */
+  int         *new_to_old_order_face;    /*!< Face reordering (size = n_face)  */
 
-  int          *cellColor;             /*!< Cell color - For cache blocking
-                                            (size = nCel)                           */
-  int          *faceColor;             /*!< Face color - For cache blocking
-                                            (size = nFac)                           */
-  int          *threadColor;             /*!< Thread color - For cache blocking
-                                            (size = nThread)                        */
-  int          *hyperPlaneColor;         /*!< Thread color - For cache blocking
-                                            (size = nThread)                         */
-
-  int          *newToOldOrderCell;   /*!< Cell reordering
-                                         (size = nCel)                           */
-  int          *newToOldOrderFace;   /*!< Face reordering
-                                            (size = nFac)                        */
-
-  _subpartlayout_t *subpartlayout;    /*!< Layouts of subdomain                     */
+  _subpartlayout_t *subpartlayout;       /*!< Layouts of subdomain             */
 
 } _part_t;
 
@@ -150,87 +157,87 @@ typedef struct _PDM_part_t {
 
   /* Local dimensions */
 
-  int                 dNVtx;         /*!< Number of distributed vertices      */
-  int                 dNCell;        /*!< Number of distributed cells         */
-  int                 dNFace;        /*!< Number of distributed faces         */
-  int                 nFaceGroup;    /*!< Number of boundaries                */
+  int                 dn_vtx;         /*!< Number of distributed vertices      */
+  int                 dn_cell;        /*!< Number of distributed cells         */
+  int                 dn_face;        /*!< Number of distributed faces         */
+  int                 n_face_group;    /*!< Number of boundaries                */
 
   /* Cell definitions */
 
-  const int          *_dCellFaceIdx;  /*!< Cell-face connectivity of distributed
-                                       cells (size = dcellFaceIdx[dNCell],
+  const int          *_dcell_face_idx;  /*!< Cell-face connectivity of distributed
+                                       cells (size = dcell_face_idx[dn_cell],
                                        shared array) (computed)               */
-  const PDM_g_num_t *_dCellFace;    /*!< Tag of distributed cells
-                                       (size = dNCell, shared array)          */
-  const int          *_dCellTag;     /*!< Tag of distributed cells
-                                       (size = dNCell, shared array)          */
-  const int          *_dCellWeight;  /*!< Weight of distributed cells
-                                       (size = dNCell, shared array)          */
-  const int          *_dCellPart;    /*!< Partitioning of distributed cells
-                                       (size = dNCell, shared array)          */
-  int                *dCellFaceIdx;  /*!< Cell-face connectivity index of
+  const PDM_g_num_t *_dcell_face;    /*!< Tag of distributed cells
+                                       (size = dn_cell, shared array)          */
+  const int          *_dcell_tag;     /*!< Tag of distributed cells
+                                       (size = dn_cell, shared array)          */
+  const int          *_dcell_weight;  /*!< Weight of distributed cells
+                                       (size = dn_cell, shared array)          */
+  const int          *_dcell_part;    /*!< Partitioning of distributed cells
+                                       (size = dn_cell, shared array)          */
+  int                *dcell_face_idx;  /*!< Cell-face connectivity index of
                                        distributed cells
-                                       (size = dNCell + 1)
+                                       (size = dn_cell + 1)
                                         computed                             */
-  PDM_g_num_t       *dCellFace;     /*!< Cell-face connectivity of distributed
-                                       cells (size = dcellFaceIdx[dNCell],
+  PDM_g_num_t       *dcell_face;     /*!< Cell-face connectivity of distributed
+                                       cells (size = dcell_face_idx[dn_cell],
                                        computed                               */
-  PDM_g_num_t       *dCellProc;     /*!< Initial cell distribution on processes
-                                       (size = nRank + 1) (computed)          */
+  PDM_g_num_t       *dcell_proc;     /*!< Initial cell distribution on processes
+                                       (size = n_rank + 1) (computed)          */
 
   /* Face definitions */
 
-  const int          *_dFaceTag;     /*!< Tag of distributed face
-                                       (size = dNFace, shared array)          */
-  const PDM_g_num_t *_dFaceCell;    /*!< Face-cell connectivity of distributed
-                                       faces (size = 2 * dNFace, shared array)
+  const int          *_dface_tag;     /*!< Tag of distributed face
+                                       (size = dn_face, shared array)          */
+  const PDM_g_num_t *_dface_cell;    /*!< Face-cell connectivity of distributed
+                                       faces (size = 2 * dn_face, shared array)
                                        if iface is a boundary face,
-                                       _dFaceCell[2*iface + 1] = 0           */
-  const int          *_dFaceVtxIdx;  /*!< Face-vertex connectivity index of
-                                       distributed faces (size = dNFace + 1,
+                                       _dface_cell[2*iface + 1] = 0           */
+  const int          *_dface_vtx_idx;  /*!< Face-vertex connectivity index of
+                                       distributed faces (size = dn_face + 1,
                                        shared array)                          */
-  const PDM_g_num_t *_dFaceVtx;     /*!< Face-vertex connectivity of
+  const PDM_g_num_t *_dface_vtx;     /*!< Face-vertex connectivity of
                                        distributed faces
-                                       (size = dFaceVtxIdx[dNFace],shared array)
+                                       (size = dface_vtx_idx[dn_face],shared array)
                                      */
-  PDM_g_num_t       *dFaceProc;     /*!< Initial face distribution on processes
-                                       (size = nRank + 1)                     */
+  PDM_g_num_t       *dface_proc;     /*!< Initial face distribution on processes
+                                       (size = n_rank + 1)                     */
 
-  PDM_g_num_t       *dFaceCell;    /*!< Face-cell connectivity of distributed
-                                       faces (size = 2 * dNFace,) computed
+  PDM_g_num_t       *dface_cell;    /*!< Face-cell connectivity of distributed
+                                       faces (size = 2 * dn_face,) computed
                                        if iface is a boundary face,
-                                       _dFaceCell[2*iface + 1] = 0           */
+                                       _dface_cell[2*iface + 1] = 0           */
   /* Vertex definitions */
 
-  const double       *_dVtxCoord;    /*!< Coordinates of ditributed vertices
-                                       (size = 3 * dNVtx, shared array)       */
-  const int          *_dVtxTag;      /*!< Tag of distributed vertices
-                                       (size = dNVtx, shared array)           */
-  PDM_g_num_t       *dVtxProc;      /*!< Initial vertex distribution
-                                       (size = nrank + 1                      */
+  const double       *_dvtx_coord;    /*!< Coordinates of ditributed vertices
+                                       (size = 3 * dn_vtx, shared array)       */
+  const int          *_dvtx_tag;      /*!< Tag of distributed vertices
+                                       (size = dn_vtx, shared array)           */
+  PDM_g_num_t       *dvtx_proc;      /*!< Initial vertex distribution
+                                       (size = n_rank + 1                      */
 
   /* Face group */
 
-  const int          *_dFaceGroupIdx; /*!< Index of distributed faces list of
+  const int          *_dface_group_idx; /*!< Index of distributed faces list of
                                         each boundary (size = nBound + 1)
                                         or NULL                               */
-  const PDM_g_num_t *_dFaceGroup    ;/*!< Distributed faces list of each
-                                       boundary (size = dfaceBoundIdx[nBound])
+  const PDM_g_num_t *_dface_group    ;/*!< Distributed faces list of each
+                                       boundary (size = dface_bound_idx[nBound])
                                        or NULL                                */
 
   /* Partitioning boundary faces */
 
-  int          *dPartBound;          /*!< Partitioning boundary faces definition
+  int          *dpart_bound;          /*!< Partitioning boundary faces definition
                                        For each face :
                                        (rank1, part1, lFace1, rank2, part2, lFace2)
-                                       or -1 size = 6 * dNface  */
+                                       or -1 size = 6 * dn_face  */
 
   /* Dual graph */
 
-  PDM_g_num_t *dDualGraphIdx;      /*!< Dual graph index
-                                      (size = dNCell + 1)                     */
-  PDM_g_num_t *dDualGraph;         /*!< Dual graph
-                                      (size = dualGraphIdx[dNCell])           */
+  PDM_g_num_t *ddual_graph_idx;      /*!< Dual graph index
+                                      (size = dn_cell + 1)                     */
+  PDM_g_num_t *ddual_graph;         /*!< Dual graph
+                                      (size = dualGraphIdx[dn_cell])           */
 
   PDM_timer_t *timer;             /*!< Timer */
 
@@ -270,26 +277,26 @@ typedef struct _PDM_part_t {
 
   int renum_cell_method;                     /*!< Renumbering cell method */
 
-  int  nPropertyCell;                         /*!< Size of cells properties      */
-  int  nPropertyFace;                         /*!< Size of faces properties      */
+  int  n_property_cell;                         /*!< Size of cells properties      */
+  int  n_property_face;                         /*!< Size of faces properties      */
   const int* renum_properties_cell;           /*!< Renumbering cells properties  */
   const int* renum_properties_face;           /*!< Renumbering faces properties  */
 
 
-  int          nPart;               /*!< Number of partitions to define
+  int          n_part;               /*!< Number of partitions to define
                                       on this process */
-  int          tNPart;              /*!< Total number of partitions           */
-  int          mNPart;              /*!< Maximum number of partitions to define
+  int          tn_part;              /*!< Total number of partitions           */
+  int          mn_part;              /*!< Maximum number of partitions to define
                                       on one process */
-  int         *dPartProc;           /*!< Initial cell distribution on processes
-                                      (size = nRank + 1)                      */
-  int         *gPartTolProcPart;    /*!< For each lobal part number :
+  int         *dpart_proc;           /*!< Initial cell distribution on processes
+                                      (size = n_rank + 1)                      */
+  int         *gpart_to_lproc_part;    /*!< For each lobal part number :
                                           - process storing this partition
                                           - local number partition on this
                                             partition
-                                         (size = 2*tNpart)                    */
- _part_t     **meshParts;           /*!< Partitions built ont this process
-                                      (size = npart)                          */
+                                         (size = 2*tn_part)                    */
+ _part_t     **mesh_parts;           /*!< Partitions built ont this process
+                                      (size = n_part)                          */
 
 } _PDM_part_t;
 
@@ -307,36 +314,45 @@ void
 {
   _part_t *part = (_part_t *) malloc(sizeof(_part_t));
 
-  part->nVtx = 0;
-  part->nCell = 0;
-  part->nFace = 0;
-  part->nFacePartBound = 0;
-  part->cellFaceIdx = NULL;
-  part->gCellFace = NULL;
-  part->cellFace = NULL;
-  part->cellLNToGN = NULL;
-  part->cellTag = NULL;
-  part->faceCell = NULL;
-  part->faceVtxIdx = NULL;
-  part->gFaceVtx = NULL;
-  part->faceVtx = NULL;
-  part->faceLNToGN = NULL;
-  part->faceTag = NULL;
-  part->facePartBoundProcIdx = NULL;
-  part->facePartBoundPartIdx = NULL;
-  part->facePartBound = NULL;
-  part->faceGroupIdx = NULL;
-  part->faceGroup = NULL;
-  part->faceGroupLNToGN = NULL;
+  part->n_vtx = 0;
+  part->n_cell = 0;
+  part->n_face = 0;
+  part->n_face_part_bound = 0;
+  part->n_face_group = 0;
   part->vtx = NULL;
-  part->vtxLNToGN = NULL;
-  part->vtxTag = NULL;
-  part->cellColor = NULL;
-  part->faceColor = NULL;
-  part->threadColor = NULL;
-  part->hyperPlaneColor = NULL;
-  part->newToOldOrderCell = NULL;
-  part->newToOldOrderFace = NULL;
+  part->face_vtx_idx = NULL;
+  part->face_vtx = NULL;
+  part->gface_vtx = NULL;
+  part->cell_face_idx = NULL;
+  part->cell_face = NULL;
+  part->gcell_face = NULL;
+  part->face_cell = NULL;
+  part->face_group_idx = NULL;
+  part->face_group = NULL;
+  part->face_part_bound_proc_idx = NULL;
+  part->face_part_bound_part_idx = NULL;
+  part->face_part_bound = NULL;
+  part->face_bound_idx = NULL;
+  part->face_bound = NULL;
+  part->face_join_idx = NULL;
+  part->face_join = NULL;
+  part->face_ln_to_gn  = NULL;
+  part->cell_ln_to_gn = NULL;
+  part->vtx_ln_to_gn = NULL;
+  part->face_group_ln_to_gn = NULL;
+  part->face_bound_ln_to_gn = NULL;
+  part->face_join_ln_to_gn = NULL;
+  part->cell_tag = NULL;
+  part->face_tag = NULL;
+  part->vtx_tag = NULL;
+  part->cell_weight = NULL;
+  part->face_weight = NULL;
+  part->cell_color = NULL;
+  part->face_color = NULL;
+  part->thread_color = NULL;
+  part->hyperplane_color = NULL;
+  part->new_to_old_order_cell = NULL;
+  part->new_to_old_order_face = NULL;
   part->subpartlayout = NULL;
   return part;
 }

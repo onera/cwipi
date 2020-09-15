@@ -41,30 +41,34 @@ PDM_fortran_to_c_string
 )
 {
   char *chaine_c = NULL;
-  int imin = 0;
-  int imax = 0;
-
-  while ((imin < l_chaine_f) && (chaine_f[imin] == ' '))
-    imin++;
-
-  while ((imax < l_chaine_f) && (chaine_f[l_chaine_f-imax-1] == ' '))
-    imax++;
-
-  imax = l_chaine_f-imax-1;
-
-  assert(imax >= imin);
-
-  if ((imax == l_chaine_f) || (imin == l_chaine_f)) {
+  if (l_chaine_f == 0) {
     chaine_c = (char *) malloc(sizeof(char));
     chaine_c[0] = '\0';
   }
   else {
-    int size = imax - imin + 2;
-    chaine_c = (char *) malloc(sizeof(char) * size);;
-    int index = 0;
-    for (int k = imin; k <= imax; k++)
-      chaine_c[index++] = chaine_f[k];
-    chaine_c[index] = '\0';
+    int imin = 0;
+    int imax = 0;
+
+    while ((imin < l_chaine_f) && (chaine_f[imin] == ' '))
+      imin++;
+
+    while ((imax < l_chaine_f) && (chaine_f[l_chaine_f-imax-1] == ' '))
+      imax++;
+
+    imax = l_chaine_f-imax-1;
+
+    if ((imax < imin) || (imax == l_chaine_f) || (imin == l_chaine_f)) {
+      chaine_c = (char *) malloc(sizeof(char));
+      chaine_c[0] = '\0';
+    }
+    else {
+      int size = imax - imin + 2;
+      chaine_c = (char *) malloc(sizeof(char) * size);;
+      int index = 0;
+      for (int k = imin; k <= imax; k++)
+        chaine_c[index++] = chaine_f[k];
+      chaine_c[index] = '\0';
+    }
   }
 
   return chaine_c;

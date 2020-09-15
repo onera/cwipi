@@ -33,20 +33,20 @@ typedef struct  {
 
   _part_t      *part;        //Coarse mesh
 
-  int           nCoarseCellWanted;    /*!< Number Cell wanted for agglomeration     */
+  int           n_coarse_cell_wanted;    /*!< Number Cell wanted for agglomeration     */
 
-  // int *cellWeight;    /*!< Integer weight for graoh partitionning  */
-  // int *faceWeight;    /*!< Number Cell wanted for agglomeration     */
+  // int *cell_weight;    /*!< Integer weight for graoh partitionning  */
+  // int *face_weight;    /*!< Number Cell wanted for agglomeration     */
 
-  int *coarseCellCellIdx;    //Array of indexes of the connected partitions (size : nCoarseCell + 1)
+  int *coarse_cell_cell_idx;    //Array of indexes of the connected partitions (size : n_coarse_cell + 1)
 
-  int *coarseCellCell;       //Partitioning array (size : coarseCellCellIdx[nCoarseCell])
+  int *coarse_cell_cell;       //Partitioning array (size : coarse_cell_cell_idx[n_coarse_cell])
 
-  int *coarseFaceGroupToFineFaceGroup; //Coarse face group - fine face group connectivity (size = faceGroupIdx[nFaceGroup])
+  int *coarse_face_group_to_fine_face_group; //Coarse face group - fine face group connectivity (size = face_group_idx[n_face_group])
 
-  int *coarseFaceToFineFace; //Coarse face - fine face connectivity (size = nCoarseFace)
+  int *coarse_face_to_fine_face; //Coarse face - fine face connectivity (size = nCoarseFace)
 
-  int *coarseVtxToFineVtx;   //Coarse vertex - fine vertex connectivity (size = nCoarseVtx)
+  int *coarse_vtx_to_fine_vtx;   //Coarse vertex - fine vertex connectivity (size = nCoarseVtx)
 
   void *specific_data;       /*!< Specific data      */
 
@@ -75,19 +75,19 @@ typedef struct  {
 
   /* Partitions */
 
-  int nPart;        /*!< Number of partitions to define
+  int n_part;        /*!< Number of partitions to define
                                       on this process */
 
   int method;       /*!< Partitioning method */
-  int nTPart;       /*!< Total number of partitions */
-  int nFaceGroup;   /*!< Number of boundaries */
+  int n_total_part;       /*!< Total number of partitions */
+  int n_face_group;   /*!< Number of boundaries */
 
-  int have_cellTag;
-  int have_faceTag;
-  int have_vtxTag;
-  int have_cellWeight;
-  int have_faceWeight;
-  int have_faceGroup;
+  int have_cell_tag;
+  int have_face_tag;
+  int have_vtx_tag;
+  int have_cell_weight;
+  int have_face_weight;
+  int have_face_group;
 
   void *specific_data;
 
@@ -96,8 +96,8 @@ typedef struct  {
   /* Reordering */
   int        renum_face_method;               /*!< Renumbering face method       */
   int        renum_cell_method;               /*!< Renumbering cell method       */
-  int        nPropertyCell;                   /*!< Size of cells properties      */
-  int        nPropertyFace;                   /*!< Size of faces properties      */
+  int        n_property_cell;                   /*!< Size of cells properties      */
+  int        n_property_face;                   /*!< Size of faces properties      */
   const int* renum_properties_cell;           /*!< Renumbering cells properties  */
   const int* renum_properties_face;           /*!< Renumbering faces properties  */
 
@@ -151,11 +151,11 @@ typedef struct  {
  */
 
 typedef void (*PDM_coarse_mesh_fct_t) (_coarse_mesh_t  *cm,
-                                       const int       ipart,
-                                       int             *nCoarseCellComputed,
-                                       int             *cellCellIdx,
-                                       int             *cellCell,
-                                       int             *cellPart);
+                                       const int       i_part,
+                                       int             *n_coarse_cell_computed,
+                                       int             *cell_cell_idx,
+                                       int             *cell_cell,
+                                       int             *cell_part);
 
 /**
  * \struct _coarse_mesh_method_t
@@ -191,15 +191,15 @@ void
   _coarse_part_t *cp = (_coarse_part_t *) malloc(sizeof(_coarse_part_t));
   cp->part = _part_create();
 
-  cp->coarseCellCell = NULL;
+  cp->coarse_cell_cell = NULL;
 
-  cp->coarseCellCellIdx = NULL;
+  cp->coarse_cell_cell_idx = NULL;
 
-  cp->coarseFaceGroupToFineFaceGroup = NULL;
+  cp->coarse_face_group_to_fine_face_group = NULL;
 
-  cp->coarseFaceToFineFace = NULL;
+  cp->coarse_face_to_fine_face = NULL;
 
-  cp->coarseVtxToFineVtx = NULL;
+  cp->coarse_vtx_to_fine_vtx = NULL;
 
   cp->specific_data = NULL;
 

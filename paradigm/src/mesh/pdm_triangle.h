@@ -53,11 +53,11 @@ typedef enum {
 /**
  * \brief Evaluates the position in a triangle
  *
- * \param [in]  x        Point coordinates to evaluate position
- * \param [in]  pts      Triangle vertices coordinates
- * \param [out] closest  Closest Point in Triangle or NULL
- * \param [out] minDist2 Square of the distance
- * \param [out] weights  Vertices weights or NULL
+ * \param [in]  x         Point coordinates to evaluate position
+ * \param [in]  pts       Triangle vertices coordinates
+ * \param [out] closest   Closest Point in Triangle or NULL
+ * \param [out] min_dist2 Square of the distance
+ * \param [out] weights   Vertices weights or NULL
  *
  * \return      \ref PDM_TRIANGLE_INSIDE or \ref PDM_TRIANGLE_OUTSIDE
  *              if the projected is in the triangle or not
@@ -75,7 +75,7 @@ PDM_triangle_evaluate_position
  const double  x[3],
  const double  pts[9],
        double *closestPoint,
-       double *minDist2,
+       double *min_dist2,
        double *weights
  );
 
@@ -96,6 +96,18 @@ PDM_triangle_compute_barycenter
        double bary[3]
 );
 
+
+
+
+PDM_triangle_status_t
+PDM_triangle_closest_point
+(
+ const double  p[3],
+ const double  v[9],
+ double       *closest_point,
+ double       *min_dist2,
+ double       *weights
+ );
 
 #ifdef __cplusplus
 }

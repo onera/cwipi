@@ -57,7 +57,7 @@ _usage(int exit_code)
  *
  * \param [in]      argc     Number of arguments
  * \param [in]      argv     Arguments
- * \param [inout]   nVtxSeg  Number of vertices on the cube side
+ * \param [inout]   n_vtx_seg  Number of vertices on the cube side
  * \param [inout]   length   Cube length
  * \param [inout]   n_part   Number of partitions par process
  * \param [inout]   post     Ensight outputs status
@@ -68,7 +68,7 @@ _usage(int exit_code)
 static void
 _read_args(int            argc,
            char         **argv,
-           PDM_g_num_t  *nVtxSeg,
+           PDM_g_num_t  *n_vtx_seg,
            double        *length,
            int           *n_part,
 	   int           *post,
@@ -88,8 +88,8 @@ _read_args(int            argc,
       if (i >= argc)
         _usage(EXIT_FAILURE);
       else {
-        long _nVtxSeg = atol(argv[i]);
-        *nVtxSeg = (PDM_g_num_t) _nVtxSeg;
+        long _n_vtx_seg = atol(argv[i]);
+        *n_vtx_seg = (PDM_g_num_t) _n_vtx_seg;
       }
     }
     else if (strcmp(argv[i], "-l") == 0) {
@@ -139,9 +139,9 @@ int main(int argc, char *argv[])
    *  Set default values
    */
 
-  PDM_g_num_t  nVtxSeg = 10;
+  PDM_g_num_t  n_vtx_seg = 10;
   double        length  = 1.;
-  int           nPart   = 1;
+  int           n_part   = 1;
   int           post    = 0;
 #ifdef PDM_HAVE_PARMETIS
   PDM_part_split_t method  = PDM_PART_SPLIT_PARMETIS;
@@ -156,9 +156,9 @@ int main(int argc, char *argv[])
 
   _read_args(argc,
              argv,
-             &nVtxSeg,
+             &n_vtx_seg,
              &length,
-             &nPart,
+             &n_part,
              &post,
              (int *) &method);
 
@@ -168,24 +168,24 @@ int main(int argc, char *argv[])
 
   struct timeval t_elaps_debut;
 
-  int myRank;
+  int i_rank;
   int numProcs;
 
   PDM_MPI_Init(&argc, &argv);
-  PDM_MPI_Comm_rank(PDM_MPI_COMM_WORLD, &myRank);
+  PDM_MPI_Comm_rank(PDM_MPI_COMM_WORLD, &i_rank);
   PDM_MPI_Comm_size(PDM_MPI_COMM_WORLD, &numProcs);
 
-  int           dNCell;
-  int           dNFace;
-  int           dNVtx;
-  int           nFaceGroup;
-  PDM_g_num_t *dFaceCell = NULL;
-  int          *dFaceVtxIdx = NULL;
-  PDM_g_num_t *dFaceVtx = NULL;
-  double       *dVtxCoord = NULL;
-  int          *dFaceGroupIdx = NULL;
-  PDM_g_num_t *dFaceGroup = NULL;
-  int           dFaceVtxL;
+  int           dn_cell;
+  int           dn_face;
+  int           dn_vtx;
+  int           n_face_group;
+  PDM_g_num_t *dface_cell = NULL;
+  int          *dface_vtx_idx = NULL;
+  PDM_g_num_t *dface_vtx = NULL;
+  double       *dvtx_coord = NULL;
+  int          *dface_group_idx = NULL;
+  PDM_g_num_t *dface_group = NULL;
+  int           dface_vtxL;
   int           dFaceGroupL;
 
   /*
@@ -196,28 +196,28 @@ int main(int argc, char *argv[])
 
   PDM_dcube_gen_init(&id,
                       PDM_MPI_COMM_WORLD,
-                     nVtxSeg,
+                     n_vtx_seg,
                      length,
                      0.,
                      0.,
                      0.);
 
   PDM_dcube_gen_dim_get(id,
-                      &nFaceGroup,
-                      &dNCell,
-                      &dNFace,
-                      &dNVtx,
-                      &dFaceVtxL,
+                      &n_face_group,
+                      &dn_cell,
+                      &dn_face,
+                      &dn_vtx,
+                      &dface_vtxL,
                       &dFaceGroupL);
 
   PDM_dcube_gen_data_get(id,
-                       &dFaceCell,
-                       &dFaceVtxIdx,
-                       &dFaceVtx,
-                       &dVtxCoord,
-                       &dFaceGroupIdx,
-                       &dFaceGroup);
-  int ppartId = 0;
+                       &dface_cell,
+                       &dface_vtx_idx,
+                       &dface_vtx,
+                       &dvtx_coord,
+                       &dface_group_idx,
+                       &dface_group);
+  int ppart_id = 0;
 
   gettimeofday(&t_elaps_debut, NULL);
 
@@ -225,76 +225,76 @@ int main(int argc, char *argv[])
    *  Create mesh partitions
    */
 
-  int have_dCellPart = 0;
+  int have_dcell_part = 0;
 
-  int *dCellPart = (int *) malloc(dNCell*sizeof(int));
+  int *dcell_part = (int *) malloc(dn_cell*sizeof(int));
 //                  "PDM_PART_RENUM_CELL_CUTHILL",
   int *renum_properties_cell = NULL;
   int *renum_properties_face = NULL;
-  int nPropertyCell = 0;
-  int nPropertyFace = 0;
+  int n_property_cell = 0;
+  int n_property_face = 0;
 
-  PDM_part_create(&ppartId,
+  PDM_part_create(&ppart_id,
                   PDM_MPI_COMM_WORLD,
                   method,
                   "PDM_PART_RENUM_CELL_CUTHILL",
                   "PDM_PART_RENUM_FACE_NONE",
-                  nPropertyCell,
+                  n_property_cell,
                   renum_properties_cell,
-                  nPropertyFace,
+                  n_property_face,
                   renum_properties_face,
-                  nPart,
-                  dNCell,
-                  dNFace,
-                  dNVtx,
-                  nFaceGroup,
+                  n_part,
+                  dn_cell,
+                  dn_face,
+                  dn_vtx,
+                  n_face_group,
                   NULL,
                   NULL,
                   NULL,
                   NULL,
-                  have_dCellPart,
-                  dCellPart,
-                  dFaceCell,
-                  dFaceVtxIdx,
-                  dFaceVtx,
+                  have_dcell_part,
+                  dcell_part,
+                  dface_cell,
+                  dface_vtx_idx,
+                  dface_vtx,
                   NULL,
-                  dVtxCoord,
+                  dvtx_coord,
                   NULL,
-                  dFaceGroupIdx,
-                  dFaceGroup);
+                  dface_group_idx,
+                  dface_group);
 
-  free(dCellPart);
+  free(dcell_part);
 
   double  *elapsed = NULL;
   double  *cpu = NULL;
   double  *cpu_user = NULL;
   double  *cpu_sys = NULL;
 
-  PDM_part_time_get(ppartId,
+  PDM_part_time_get(ppart_id,
                     &elapsed,
                     &cpu,
                     &cpu_user,
                     &cpu_sys);
 
-  PDM_printf("[%i]   - elapsed total                    : %12.5e\n", myRank, elapsed[0]);
-  PDM_printf("[%i]   - elapsed building graph           : %12.5e\n", myRank, elapsed[1]);
-  PDM_printf("[%i]   - elapsed splitting graph          : %12.5e\n", myRank, elapsed[2]);
-  PDM_printf("[%i]   - elapsed building mesh partitions : %12.5e\n", myRank, elapsed[3]);
+  PDM_printf("[%i]   - elapsed total                    : %12.5e\n", i_rank, elapsed[0]);
+  PDM_printf("[%i]   - elapsed building graph           : %12.5e\n", i_rank, elapsed[1]);
+  PDM_printf("[%i]   - elapsed splitting graph          : %12.5e\n", i_rank, elapsed[2]);
+  PDM_printf("[%i]   - elapsed building mesh partitions : %12.5e\n", i_rank, elapsed[3]);
 
-  PDM_printf("[%i]   - cpu total                        : %12.5e\n", myRank, cpu[0]);
-  PDM_printf("[%i]   - cpu building graph               : %12.5e\n", myRank, cpu[1]);
-  PDM_printf("[%i]   - cpu splitting graph              : %12.5e\n", myRank, cpu[2]);
-  PDM_printf("[%i]   - cpu building mesh partitions     : %12.5e\n", myRank, cpu[3]);
+  PDM_printf("[%i]   - cpu total                        : %12.5e\n", i_rank, cpu[0]);
+  PDM_printf("[%i]   - cpu building graph               : %12.5e\n", i_rank, cpu[1]);
+  PDM_printf("[%i]   - cpu splitting graph              : %12.5e\n", i_rank, cpu[2]);
+  PDM_printf("[%i]   - cpu building mesh partitions     : %12.5e\n", i_rank, cpu[3]);
 
-  PDM_printf("[%i]   - cpu_user total                   : %12.5e\n", myRank, cpu_user[0]);
-  PDM_printf("[%i]   - cpu_user building graph          : %12.5e\n", myRank, cpu_user[1]);
-  PDM_printf("[%i]   - cpu_user splitting graph         : %12.5e\n", myRank, cpu_user[2]);
-  PDM_printf("[%i]   - cpu_user building mesh partitions: %12.5e\n", myRank, cpu_user[3]);
+  PDM_printf("[%i]   - cpu_user total                   : %12.5e\n", i_rank, cpu_user[0]);
+  PDM_printf("[%i]   - cpu_user building graph          : %12.5e\n", i_rank, cpu_user[1]);
+  PDM_printf("[%i]   - cpu_user splitting graph         : %12.5e\n", i_rank, cpu_user[2]);
+  PDM_printf("[%i]   - cpu_user building mesh partitions: %12.5e\n", i_rank, cpu_user[3]);
 
-  PDM_printf("[%i]   - cpu_sys total                    : %12.5e\n", myRank, cpu_sys[0]);
-  PDM_printf("[%i]   - cpu_sys building graph           : %12.5e\n", myRank, cpu_sys[1]);
-  PDM_printf("[%i]   - cpu_sys splitting graph          : %12.5e\n", myRank, cpu_sys[2]);
-  PDM_printf("[%i]   - cpu_sys building mesh partitions : %12.5e\n", myRank, cpu_sys[3]);
+  PDM_printf("[%i]   - cpu_sys total                    : %12.5e\n", i_rank, cpu_sys[0]);
+  PDM_printf("[%i]   - cpu_sys building graph           : %12.5e\n", i_rank, cpu_sys[1]);
+  PDM_printf("[%i]   - cpu_sys splitting graph          : %12.5e\n", i_rank, cpu_sys[2]);
+  PDM_printf("[%i]   - cpu_sys building mesh partitions : %12.5e\n", i_rank, cpu_sys[3]);
 
   struct timeval t_elaps_fin;
   gettimeofday(&t_elaps_fin, NULL);
@@ -303,15 +303,8 @@ int main(int argc, char *argv[])
                          (t_elaps_debut.tv_usec + 1000000 *
                           t_elaps_debut.tv_sec);
   long tranche_elapsed_max = tranche_elapsed;
-#if defined(__INTEL_COMPILER)
-#pragma warning(push)
-#pragma warning(disable:2259)
-#endif
   double t_elapsed = (double) tranche_elapsed_max/1000000.;
-#if defined(__INTEL_COMPILER)
-#pragma warning(pop)
-#endif
-  PDM_printf("[%i]   - TEMPS DANS PART_CUBE  : %12.5e\n", myRank,  t_elapsed);
+  PDM_printf("[%i]   - TEMPS DANS PART_CUBE  : %12.5e\n", i_rank,  t_elapsed);
 
   int id_cs = PDM_writer_create("Ensight",
                                 PDM_WRITER_FMT_ASCII,
@@ -330,7 +323,7 @@ int main(int argc, char *argv[])
                              "test3d_geom",
                              PDM_WRITER_OFF,
                              PDM_WRITER_OFF,
-                             nPart);
+                             n_part);
 
   /* Creation des variables */
 
@@ -356,130 +349,130 @@ int main(int argc, char *argv[])
 
   PDM_writer_step_beg(id_cs, 0.);
 
-  int **faceVtxNb = (int **) malloc(sizeof(int *) * nPart);
-  int **cellFaceNb = (int **) malloc(sizeof(int *) * nPart);
+  int **face_vtxNb = (int **) malloc(sizeof(int *) * n_part);
+  int **cell_faceNb = (int **) malloc(sizeof(int *) * n_part);
 
-  PDM_real_t **val_num_part = (PDM_real_t **) malloc(sizeof(PDM_real_t *) * nPart);
-  PDM_real_t **val_coo_x    = (PDM_real_t **) malloc(sizeof(PDM_real_t *) * nPart);
-  PDM_real_t **val_coo_xyz  = (PDM_real_t **) malloc(sizeof(PDM_real_t *) * nPart);
-  int *nsom_part  = (int *) malloc(sizeof(int) * nPart);
+  PDM_real_t **val_num_part = (PDM_real_t **) malloc(sizeof(PDM_real_t *) * n_part);
+  PDM_real_t **val_coo_x    = (PDM_real_t **) malloc(sizeof(PDM_real_t *) * n_part);
+  PDM_real_t **val_coo_xyz  = (PDM_real_t **) malloc(sizeof(PDM_real_t *) * n_part);
+  int *nsom_part  = (int *) malloc(sizeof(int) * n_part);
 
-  int *nPartProcs = (int *) malloc(sizeof(int) * numProcs);
+  int *n_partProcs = (int *) malloc(sizeof(int) * numProcs);
 
-  PDM_MPI_Allgather((void *) &nPart,      1, PDM_MPI_INT,
-                (void *) nPartProcs, 1, PDM_MPI_INT,
+  PDM_MPI_Allgather((void *) &n_part,      1, PDM_MPI_INT,
+                (void *) n_partProcs, 1, PDM_MPI_INT,
                 PDM_MPI_COMM_WORLD);
 
   int *debPartProcs = (int *) malloc(sizeof(int) * (numProcs + 1));
 
   debPartProcs[0] = 0;
   for (int i = 0; i < numProcs; i++) {
-    debPartProcs[i+1] = debPartProcs[i] + nPartProcs[i];
+    debPartProcs[i+1] = debPartProcs[i] + n_partProcs[i];
   }
 
-  free(nPartProcs);
+  free(n_partProcs);
 
-  for (int ipart = 0; ipart < nPart; ipart++) {
+  for (int i_part = 0; i_part < n_part; i_part++) {
 
-    int nCell;
-    int nFace;
-    int nFacePartBound;
-    int nVtx;
-    int nProc;
-    int nTPart;
-    int sCellFace;
-    int sFaceVtx;
-    int sFaceGroup;
+    int n_cell;
+    int n_face;
+    int n_face_part_bound;
+    int n_vtx;
+    int n_proc;
+    int n_total_part;
+    int scell_face;
+    int sface_vtx;
+    int sface_group;
     int nEdgeGroup2;
 
-    PDM_part_part_dim_get(ppartId,
-                       ipart,
-                       &nCell,
-                       &nFace,
-                       &nFacePartBound,
-                       &nVtx,
-                       &nProc,
-                       &nTPart,
-                       &sCellFace,
-                       &sFaceVtx,
-                       &sFaceGroup,
+    PDM_part_part_dim_get(ppart_id,
+                       i_part,
+                       &n_cell,
+                       &n_face,
+                       &n_face_part_bound,
+                       &n_vtx,
+                       &n_proc,
+                       &n_total_part,
+                       &scell_face,
+                       &sface_vtx,
+                       &sface_group,
                        &nEdgeGroup2);
 
-    int          *cellTag;
-    int          *cellFaceIdx;
-    int          *cellFace;
-    PDM_g_num_t *cellLNToGN;
-    int          *faceTag;
-    int          *faceCell;
-    int          *faceVtxIdx;
-    int          *faceVtx;
-    PDM_g_num_t *faceLNToGN;
-    int          *facePartBoundProcIdx;
-    int          *facePartBoundPartIdx;
-    int          *facePartBound;
-    int          *vtxTag;
+    int          *cell_tag;
+    int          *cell_face_idx;
+    int          *cell_face;
+    PDM_g_num_t *cell_ln_to_gn;
+    int          *face_tag;
+    int          *face_cell;
+    int          *face_vtx_idx;
+    int          *face_vtx;
+    PDM_g_num_t *face_ln_to_gn;
+    int          *face_part_bound_proc_idx;
+    int          *face_part_bound_part_idx;
+    int          *face_part_bound;
+    int          *vtx_tag;
     double       *vtx;
-    PDM_g_num_t *vtxLNToGN;
-    int          *faceGroupIdx;
-    int          *faceGroup;
-    PDM_g_num_t *faceGroupLNToGN;
+    PDM_g_num_t *vtx_ln_to_gn;
+    int          *face_group_idx;
+    int          *face_group;
+    PDM_g_num_t *face_group_ln_to_gn;
 
     assert(sizeof(PDM_g_num_t) == sizeof(PDM_g_num_t));
 
-    faceVtxNb[ipart] = (int *) malloc(sizeof(int) * nFace);
-    cellFaceNb[ipart] = (int *) malloc(sizeof(int) * nCell);
+    face_vtxNb[i_part] = (int *) malloc(sizeof(int) * n_face);
+    cell_faceNb[i_part] = (int *) malloc(sizeof(int) * n_cell);
 
-    PDM_part_part_val_get(ppartId,
-                       ipart,
-                       &cellTag,
-                       &cellFaceIdx,
-                       &cellFace,
-                       &cellLNToGN,
-                       &faceTag,
-                       &faceCell,
-                       &faceVtxIdx,
-                       &faceVtx,
-                       &faceLNToGN,
-                       &facePartBoundProcIdx,
-                       &facePartBoundPartIdx,
-                       &facePartBound,
-                       &vtxTag,
+    PDM_part_part_val_get(ppart_id,
+                       i_part,
+                       &cell_tag,
+                       &cell_face_idx,
+                       &cell_face,
+                       &cell_ln_to_gn,
+                       &face_tag,
+                       &face_cell,
+                       &face_vtx_idx,
+                       &face_vtx,
+                       &face_ln_to_gn,
+                       &face_part_bound_proc_idx,
+                       &face_part_bound_part_idx,
+                       &face_part_bound,
+                       &vtx_tag,
                        &vtx,
-                       &vtxLNToGN,
-                       &faceGroupIdx,
-                       &faceGroup,
-                       &faceGroupLNToGN);
+                       &vtx_ln_to_gn,
+                       &face_group_idx,
+                       &face_group,
+                       &face_group_ln_to_gn);
 
-    for (int i = 0; i < nCell; i++) {
-      cellFaceNb[ipart][i] = cellFaceIdx[i+1] - cellFaceIdx[i];
+    for (int i = 0; i < n_cell; i++) {
+      cell_faceNb[i_part][i] = cell_face_idx[i+1] - cell_face_idx[i];
     }
 
-    for (int i = 0; i < nFace; i++) {
-      faceVtxNb[ipart][i] = faceVtxIdx[i+1] - faceVtxIdx[i];
+    for (int i = 0; i < n_face; i++) {
+      face_vtxNb[i_part][i] = face_vtx_idx[i+1] - face_vtx_idx[i];
     }
 
-    val_num_part[ipart] = (PDM_real_t *) malloc(sizeof(PDM_real_t) * nCell);
-    val_coo_x[ipart]    = (PDM_real_t *) malloc(sizeof(PDM_real_t) * nVtx);
-    val_coo_xyz[ipart]  = (PDM_real_t *) malloc(sizeof(PDM_real_t) * 3 * nVtx);
-    nsom_part[ipart]    = nVtx;
+    val_num_part[i_part] = (PDM_real_t *) malloc(sizeof(PDM_real_t) * n_cell);
+    val_coo_x[i_part]    = (PDM_real_t *) malloc(sizeof(PDM_real_t) * n_vtx);
+    val_coo_xyz[i_part]  = (PDM_real_t *) malloc(sizeof(PDM_real_t) * 3 * n_vtx);
+    nsom_part[i_part]    = n_vtx;
 
-    for (int i = 0; i < nCell; i++) {
-      val_num_part[ipart][i] = ipart + 1 + debPartProcs[myRank];
+    for (int i = 0; i < n_cell; i++) {
+      val_num_part[i_part][i] = i_part + 1 + debPartProcs[i_rank];
     }
 
-    for (int i = 0; i < nVtx; i++) {
-      val_coo_x[ipart][i]       = vtx[3*i];
-      val_coo_xyz[ipart][3*i  ] = vtx[3*i  ];
-      val_coo_xyz[ipart][3*i+1] = vtx[3*i+1];
-      val_coo_xyz[ipart][3*i+2] = vtx[3*i+2];
+    for (int i = 0; i < n_vtx; i++) {
+      val_coo_x[i_part][i]       = vtx[3*i];
+      val_coo_xyz[i_part][3*i  ] = vtx[3*i  ];
+      val_coo_xyz[i_part][3*i+1] = vtx[3*i+1];
+      val_coo_xyz[i_part][3*i+2] = vtx[3*i+2];
     }
 
     PDM_writer_geom_coord_set(id_cs,
                       id_geom,
-                      ipart,
-                      nVtx,
+                      i_part,
+                      n_vtx,
                       vtx,
-                      vtxLNToGN);
+                      vtx_ln_to_gn);
 
 
 
@@ -487,16 +480,16 @@ int main(int argc, char *argv[])
 
     PDM_writer_geom_cell3d_cellface_add (id_cs,
                                          id_geom,
-                                         ipart,
-                                         nCell,
-                                         nFace,
-                                         faceVtxIdx,
-                                         faceVtxNb[ipart],
-                                         faceVtx,
-                                         cellFaceIdx,
-                                         cellFaceNb[ipart],
-                                         cellFace,
-                                         cellLNToGN);
+                                         i_part,
+                                         n_cell,
+                                         n_face,
+                                         face_vtx_idx,
+                                         face_vtxNb[i_part],
+                                         face_vtx,
+                                         cell_face_idx,
+                                         cell_faceNb[i_part],
+                                         cell_face,
+                                         cell_ln_to_gn);
 
   }
 
@@ -512,13 +505,13 @@ int main(int argc, char *argv[])
       - tenseur
    */
 
-  for (int ipart = 0; ipart < nPart; ipart++) {
+  for (int i_part = 0; i_part < n_part; i_part++) {
 
     PDM_writer_var_set(id_cs,
                id_var_num_part,
                id_geom,
-               ipart,
-               val_num_part[ipart]);
+               i_part,
+               val_num_part[i_part]);
   }
 
   PDM_writer_var_write(id_cs,
@@ -527,8 +520,8 @@ int main(int argc, char *argv[])
   PDM_writer_var_free(id_cs,
              id_var_num_part);
 
-  for (int ipart = 0; ipart < nPart; ipart++) {
-    free(val_num_part[ipart]);
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    free(val_num_part[i_part]);
   }
   free(val_num_part);
 
@@ -539,26 +532,26 @@ int main(int argc, char *argv[])
     if (nstep > 0)
       PDM_writer_step_beg(id_cs, tstep);
 
-    for (int ipart = 0; ipart < nPart; ipart++) {
+    for (int i_part = 0; i_part < n_part; i_part++) {
 
-      for (int i = 0; i < nsom_part[ipart]; i++) {
-        val_coo_x[ipart][i]       = val_coo_x[ipart][i]       + val_coo_x[ipart][i]/length;
-        val_coo_xyz[ipart][3*i]   = val_coo_xyz[ipart][3*i]   + val_coo_xyz[ipart][3*i]/length;
-        val_coo_xyz[ipart][3*i+1] = val_coo_xyz[ipart][3*i+1] + val_coo_xyz[ipart][3*i+1]/length;
-        val_coo_xyz[ipart][3*i+2] = val_coo_xyz[ipart][3*i+2] + val_coo_xyz[ipart][3*i+2]/length;
+      for (int i = 0; i < nsom_part[i_part]; i++) {
+        val_coo_x[i_part][i]       = val_coo_x[i_part][i]       + val_coo_x[i_part][i]/length;
+        val_coo_xyz[i_part][3*i]   = val_coo_xyz[i_part][3*i]   + val_coo_xyz[i_part][3*i]/length;
+        val_coo_xyz[i_part][3*i+1] = val_coo_xyz[i_part][3*i+1] + val_coo_xyz[i_part][3*i+1]/length;
+        val_coo_xyz[i_part][3*i+2] = val_coo_xyz[i_part][3*i+2] + val_coo_xyz[i_part][3*i+2]/length;
       }
 
       PDM_writer_var_set(id_cs,
                  id_var_coo_x,
                  id_geom,
-                 ipart,
-                 val_coo_x[ipart]);
+                 i_part,
+                 val_coo_x[i_part]);
 
       PDM_writer_var_set(id_cs,
                  id_var_coo_xyz,
                  id_geom,
-                 ipart,
-                 val_coo_xyz[ipart]);
+                 i_part,
+                 val_coo_xyz[i_part]);
 
     }
 
@@ -577,16 +570,16 @@ int main(int argc, char *argv[])
     PDM_writer_step_end(id_cs);
   }
 
-  for (int ipart = 0; ipart < nPart; ipart++) {
-    free(cellFaceNb[ipart]);
-    free(faceVtxNb[ipart]);
-    free(val_coo_x[ipart]);
-    free(val_coo_xyz[ipart]);
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    free(cell_faceNb[i_part]);
+    free(face_vtxNb[i_part]);
+    free(val_coo_x[i_part]);
+    free(val_coo_xyz[i_part]);
   }
   free(val_coo_x);
   free(val_coo_xyz);
-  free(cellFaceNb);
-  free(faceVtxNb);
+  free(cell_faceNb);
+  free(face_vtxNb);
   free(nsom_part);
 
   PDM_writer_var_free(id_cs,
@@ -620,7 +613,7 @@ int main(int argc, char *argv[])
   int    bound_part_faces_max;
   int    bound_part_faces_sum;
 
-  PDM_part_stat_get(ppartId,
+  PDM_part_stat_get(ppart_id,
                  &cells_average,
                  &cells_median,
                  &cells_std_deviation,
@@ -633,7 +626,7 @@ int main(int argc, char *argv[])
                  &bound_part_faces_max,
                  &bound_part_faces_sum);
 
-  if (myRank == 0) {
+  if (i_rank == 0) {
     PDM_printf("Statistics :\n");
     PDM_printf("  - Number of cells :\n");
     PDM_printf("       * average            : %i\n", cells_average);
@@ -650,7 +643,7 @@ int main(int argc, char *argv[])
     PDM_printf("       * total              : %i\n", bound_part_faces_sum);
   }
 
-  PDM_part_free(ppartId);
+  PDM_part_free(ppart_id);
 
   PDM_dcube_gen_free(id);
 
@@ -658,4 +651,3 @@ int main(int argc, char *argv[])
 
   return 0;
 }
-

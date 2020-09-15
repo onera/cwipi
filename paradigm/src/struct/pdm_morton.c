@@ -157,9 +157,9 @@ _a_ge_b(PDM_morton_code_t  code_a,
 
   if (b_diff > 0) {
     code_b.L = l;
-    code_b.X[0] = (code_b.X[0] << b_diff) + 1;
-    code_b.X[1] = (code_b.X[1] << b_diff) + 1;
-    code_b.X[2] = (code_b.X[2] << b_diff) + 1;
+    code_b.X[0] = ((code_b.X[0] + 1) << b_diff) - 1;
+    code_b.X[1] = ((code_b.X[1] + 1) << b_diff) - 1;
+    code_b.X[2] = ((code_b.X[2] + 1) << b_diff) - 1;
   }
 
   i = l - 1;
@@ -210,9 +210,9 @@ _a_eq_b(PDM_morton_code_t  code_a,
 
   if (b_diff > 0) {
     code_b.L = l;
-    code_b.X[0] = (code_b.X[0] << b_diff) + 1;
-    code_b.X[1] = (code_b.X[1] << b_diff) + 1;
-    code_b.X[2] = (code_b.X[2] << b_diff) + 1;
+    code_b.X[0] = ((code_b.X[0] + 1) << b_diff) - 1;
+    code_b.X[1] = ((code_b.X[1] + 1) << b_diff) - 1;
+    code_b.X[2] = ((code_b.X[2] + 1) << b_diff) - 1;
   }
 
   i = l - 1;
@@ -264,9 +264,9 @@ _a_gt_b(PDM_morton_code_t  code_a,
 
   if (b_diff > 0) {
     code_b.L = l;
-    code_b.X[0] = (code_b.X[0] << b_diff) + 1;
-    code_b.X[1] = (code_b.X[1] << b_diff) + 1;
-    code_b.X[2] = (code_b.X[2] << b_diff) + 1;
+    code_b.X[0] = ((code_b.X[0] + 1) << b_diff) - 1;
+    code_b.X[1] = ((code_b.X[1] + 1) << b_diff) - 1;
+    code_b.X[2] = ((code_b.X[2] + 1) << b_diff) - 1;
   }
 
   i = l - 1;
@@ -288,6 +288,65 @@ _a_gt_b(PDM_morton_code_t  code_a,
 
   return (a > b) ? true : false;
 }
+
+
+
+/*----------------------------------------------------------------------------
+ * Test if Morton code "a" is greater than Morton code "b" (compare anchors)
+ *
+ * parameters:
+ *   code_a <-- first Morton code to compare
+ *   code_b <-- second Morton code to compare
+ *
+ * returns:
+ *  true or false
+ *----------------------------------------------------------------------------*/
+
+inline static _Bool
+_a_gtmin_b(PDM_morton_code_t  code_a,
+           PDM_morton_code_t  code_b)
+{
+  int i, a, b, a_diff, b_diff;
+  int l = PDM_MAX(code_a.L, code_b.L);
+
+  a_diff = l - code_a.L;
+  b_diff = l - code_b.L;
+
+  if (a_diff > 0) {
+    code_a.L = l;
+    code_a.X[0] = code_a.X[0] << a_diff;
+    code_a.X[1] = code_a.X[1] << a_diff;
+    code_a.X[2] = code_a.X[2] << a_diff;
+  }
+
+  if (b_diff > 0) {
+    code_b.L = l;
+    code_b.X[0] = code_b.X[0] << b_diff;
+    code_b.X[1] = code_b.X[1] << b_diff;
+    code_b.X[2] = code_b.X[2] << b_diff;
+  }
+
+  i = l - 1;
+  while (i > 0) {
+
+    if (   code_a.X[0] >> i != code_b.X[0] >> i
+        || code_a.X[1] >> i != code_b.X[1] >> i
+        || code_a.X[2] >> i != code_b.X[2] >> i)
+      break;
+    i--;
+  }
+
+   a =   ((code_a.X[0] >> i) % 2) * 4
+       + ((code_a.X[1] >> i) % 2) * 2
+       + ((code_a.X[2] >> i) % 2);
+   b =   ((code_b.X[0] >> i) % 2) * 4
+       + ((code_b.X[1] >> i) % 2) * 2
+       + ((code_b.X[2] >> i) % 2);
+
+  return (a > b) ? true : false;
+}
+
+
 
 /*----------------------------------------------------------------------------
  * Build a heap structure or order a heap structure.
@@ -518,15 +577,15 @@ static void
 _define_rank_distrib(int                      dim,
                      int                      n_ranks,
                      int                      gmax_level,
-                     PDM_g_num_t                gsum_weight,
-                     int                n_codes,
+                     PDM_g_num_t              gsum_weight,
+                     int                      n_codes,
                      const PDM_morton_code_t  morton_codes[],
-                     const int          weight[],
-                     const int          order[],
+                     const int                weight[],
+                     const int                order[],
                      const double             sampling[],
                      double                   cfreq[],
-                     PDM_g_num_t                g_distrib[],
-                     PDM_MPI_Comm                 comm)
+                     PDM_g_num_t              g_distrib[],
+                     PDM_MPI_Comm             comm)
 {
   int  id, rank_id;
   PDM_morton_code_t  sample_code;
@@ -584,16 +643,9 @@ _define_rank_distrib(int                      dim,
   /* Define the cumulative frequency related to g_distribution */
 
   cfreq[0] = 0.;
-#ifdef __INTEL_COMPILER
-#pragma warning(push)
-#pragma warning(disable:2259)
-#endif
   for (id = 0; id < n_samples; id++)
     cfreq[id+1] = cfreq[id] + (double)g_distrib[id]/(double)gsum_weight;
   cfreq[n_samples] = 1.0;
-#ifdef __INTEL_COMPILER
-#pragma warning(pop)
-#endif
 
 #if 0 && defined(DEBUG) && !defined(DEBUG) /* For debugging purpose only */
 
@@ -765,13 +817,13 @@ _update_sampling(int      dim,
 static double
 _bucket_sampling(int                      dim,
                  int                      n_ranks,
-                 int                     gmax_level,
-                 int                n_codes,
+                 int                      gmax_level,
+                 int                      n_codes,
                  const PDM_morton_code_t  morton_codes[],
-                 const int          weight[],
-                 const int          order[],
+                 const int                weight[],
+                 const int                order[],
                  double                  *sampling[],
-                 PDM_MPI_Comm                 comm)
+                 PDM_MPI_Comm             comm)
 {
   int  i, n_iters;
   int   j;
@@ -794,14 +846,7 @@ _bucket_sampling(int                      dim,
 
   PDM_MPI_Allreduce(&lsum_weight, &gsum_weight, 1,  PDM__PDM_MPI_G_NUM, PDM_MPI_SUM, comm);
 
-#ifdef __INTEL_COMPILER
-#pragma warning(push)
-#pragma warning(disable:2259)
-#endif
   optim = (double)gsum_weight / (double)n_ranks;
-#ifdef __INTEL_COMPILER
-#pragma warning(pop)
-#endif
 
   /* Define a naive sampling (uniform distribution) */
 
@@ -907,11 +952,11 @@ _bucket_sampling(int                      dim,
  *---------------------------------------------------------------------------*/
 
 void
-PDM_morton_get_coord_extents(int               dim,
-                             size_t            n_coords,
-                             const double  coords[],
-                             double        g_extents[],
-                             PDM_MPI_Comm          comm)
+PDM_morton_get_coord_extents(int          dim,
+                             size_t       n_coords,
+                             const double coords[],
+                             double       g_extents[],
+                             PDM_MPI_Comm comm)
 {
   size_t  i, j;
 
@@ -948,11 +993,11 @@ PDM_morton_get_coord_extents(int               dim,
  *---------------------------------------------------------------------------*/
 
 void
-PDM_morton_get_global_extents(int               dim,
-                              size_t            n_extents,
+PDM_morton_get_global_extents(int           dim,
+                              size_t        n_extents,
                               const double  extents[],
                               double        g_extents[],
-                              PDM_MPI_Comm          comm)
+                              PDM_MPI_Comm  comm)
 {
   size_t  i, j;
 
@@ -993,7 +1038,7 @@ PDM_morton_get_global_extents(int               dim,
 PDM_morton_code_t
 PDM_morton_encode(int               dim,
                   PDM_morton_int_t  level,
-                  const double  coords[])
+                  const double      coords[])
 {
   int  i;
   PDM_morton_code_t  morton_code;
@@ -1033,9 +1078,9 @@ PDM_morton_encode(int               dim,
 void
 PDM_morton_encode_coords(int                dim,
                          PDM_morton_int_t   level,
-                         const double   extents[],
+                         const double       extents[],
                          size_t             n_coords,
-                         const double   coords[],
+                         const double       coords[],
                          PDM_morton_code_t  m_code[],
                          double             d[3],
                          double             s[3])
@@ -1166,9 +1211,9 @@ PDM_morton_get_children(int                dim,
  *----------------------------------------------------------------------------*/
 
 void
-PDM_morton_local_order(int                n_codes,
-                       const PDM_morton_code_t  morton_codes[],
-                       int                order[])
+PDM_morton_local_order(int                     n_codes,
+                       const PDM_morton_code_t morton_codes[],
+                       int                     order[])
 {
   int   i;
   int   tmp;
@@ -1217,8 +1262,8 @@ PDM_morton_local_order(int                n_codes,
  *----------------------------------------------------------------------------*/
 
 void
-PDM_morton_local_sort(int          n_codes,
-                      PDM_morton_code_t  morton_codes[])
+PDM_morton_local_sort(int               n_codes,
+                      PDM_morton_code_t morton_codes[])
 {
   int   i;
   PDM_morton_code_t  tmp;
@@ -1341,7 +1386,7 @@ PDM_morton_copy (PDM_morton_code_t  a,
 void
 PDM_morton_nearest_common_ancestor (PDM_morton_code_t  code_a,
                                     PDM_morton_code_t  code_b,
-                                    PDM_morton_code_t  *code_c)
+                                    PDM_morton_code_t *code_c)
 {
   int i, a_diff, b_diff;
   int l = PDM_MIN(code_a.L, code_b.L);
@@ -1482,9 +1527,9 @@ PDM_morton_assign_level (PDM_morton_code_t  *code,
  *----------------------------------------------------------------------------*/
 
 int
-PDM_morton_binary_search(int           size,
-                         PDM_morton_code_t   code,
-                         PDM_morton_code_t  *codes)
+PDM_morton_binary_search(int                size,
+                         PDM_morton_code_t  code,
+                         PDM_morton_code_t *codes)
 {
   int start = 0;
   int end = size;
@@ -1521,9 +1566,9 @@ PDM_morton_binary_search(int           size,
  *----------------------------------------------------------------------------*/
 
 size_t
-PDM_morton_quantile_search(size_t              n_quantiles,
-                           PDM_morton_code_t   code,
-                           PDM_morton_code_t  *quantile_start)
+PDM_morton_quantile_search(size_t             n_quantiles,
+                           PDM_morton_code_t  code,
+                           PDM_morton_code_t *quantile_start)
 {
   size_t mid_id = 0;
   size_t start_id = 0;
@@ -1566,11 +1611,74 @@ PDM_morton_quantile_search(size_t              n_quantiles,
  *----------------------------------------------------------------------------*/
 
 void
-PDM_morton_quantile_intersect(size_t              n_quantiles,
-                              PDM_morton_code_t   code,
-                              PDM_morton_code_t  *quantile_start,
-                              size_t              *n_intersect,
-                              int                 *intersect )
+PDM_morton_quantile_intersect(size_t             n_quantiles,
+                              PDM_morton_code_t  code,
+                              PDM_morton_code_t *quantile_start,
+                              size_t            *start,
+                              size_t            *end )
+{
+  size_t mid_id = 0;
+  size_t start_id = 0;
+  size_t end_id = n_quantiles;
+
+  while (start_id + 1 < end_id) {
+    mid_id = start_id + ((end_id -start_id) / 2);
+    if (_a_gt_b(code, quantile_start[mid_id]))
+      start_id = mid_id;
+    else
+      end_id = mid_id;
+  }
+
+  size_t start_id_save = start_id;
+  int assigned = 0, condition = 0;
+  for (size_t i = start_id_save; i < n_quantiles; i++) {
+
+    if (i == n_quantiles-1) {
+      condition = 1;
+    } else {
+      condition = _a_gtmin_b(quantile_start[i+1], code);
+    }
+
+    if (condition) {
+      if (_a_gt_b(quantile_start[i], code)) {
+        break;
+      } else {
+        if (!assigned) {
+          start_id = i;
+          end_id = i;
+          assigned = 1;
+        }
+        end_id++;
+      }
+    }
+  }
+
+  *start = start_id;
+  *end   = end_id;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Get, within a sorted list of Morton codes, the sublist of elements
+ * that intersect a Morton code, using a binary search.
+ *
+ * No check is done to ensure that the code is present in the quantiles.
+ *
+ * parameters:
+ *   n_quantiles    <-- number of quantiles
+ *   code           <-- code we are searching for
+ *   quantile_start <-- first Morton code in each quantile (size: n_quantiles)
+ *   n_intersect    <-> number of intersections with quantiles
+ *   intersect      <-> list intersected quantiles (size : n_quantiles)
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+PDM_morton_list_intersect(size_t             n_quantiles,
+                          PDM_morton_code_t  code,
+                          PDM_morton_code_t *quantile_start,
+                          size_t            *start,
+                          size_t            *end)
 {
   size_t mid_id = 0;
   size_t start_id = 0;
@@ -1580,51 +1688,53 @@ PDM_morton_quantile_intersect(size_t              n_quantiles,
 
   while (start_id + 1 < end_id) {
     mid_id = start_id + ((end_id -start_id) / 2);
-    if (_a_gt_b(quantile_start[mid_id], code))
-      end_id = mid_id;
-    else
+    if (_a_gt_b(code, quantile_start[mid_id]))
       start_id = mid_id;
+    else
+      end_id = mid_id;
   }
 
-  /* We may have stopped short of the required value,
-     or have multiple occurences of a quantile start
-     (in case of empty quantiles), of which we want to
-     find the find highest one */
 
-  *n_intersect = 0;
+  //*n_intersect = 0;
 
   int start_id_save = start_id;
 
-  while (   start_id < n_quantiles - 1
-            && quantile_start[start_id_save].L == quantile_start[start_id+1].L
-            && quantile_start[start_id_save].X[0] == quantile_start[start_id+1].X[0]
-            && quantile_start[start_id_save].X[1] == quantile_start[start_id+1].X[1]
-            && quantile_start[start_id_save].X[2] == quantile_start[start_id+1].X[2])
+  if (PDM_morton_ancestor_is (code, quantile_start[start_id]) ||
+      PDM_morton_ancestor_is (quantile_start[start_id], code)) {
+    // quantile #start_id_save does intersect
+    // Place start_id to the leftmost duplicate of quantile #start_id_save
+    while (start_id > 0
+           && quantile_start[start_id_save].L == quantile_start[start_id-1].L
+           && quantile_start[start_id_save].X[0] == quantile_start[start_id-1].X[0]
+           && quantile_start[start_id_save].X[1] == quantile_start[start_id-1].X[1]
+           && quantile_start[start_id_save].X[2] == quantile_start[start_id-1].X[2]) {
+      --start_id;
+    }
+  } else {
+    // quantile #start_id_save does NOT intersect
+    // Place start_id to the rightmost duplicate of quantile #start_id_save
     start_id++;
-
-  intersect[(*n_intersect)++] = start_id;
-
-  start_id = start_id_save;
-
-  while (start_id > 0
-         && quantile_start[start_id_save].L == quantile_start[start_id-1].L
-         && quantile_start[start_id_save].X[0] == quantile_start[start_id-1].X[0]
-         && quantile_start[start_id_save].X[1] == quantile_start[start_id-1].X[1]
-         && quantile_start[start_id_save].X[2] == quantile_start[start_id-1].X[2]) {
-    start_id--;
+    while (start_id < n_quantiles-1
+           && quantile_start[start_id_save].L == quantile_start[start_id+1].L
+           && quantile_start[start_id_save].X[0] == quantile_start[start_id+1].X[0]
+           && quantile_start[start_id_save].X[1] == quantile_start[start_id+1].X[1]
+           && quantile_start[start_id_save].X[2] == quantile_start[start_id+1].X[2]) {
+      ++start_id;
+    }
   }
 
-  while (start_id > 0
-         && PDM_morton_ancestor_is (code, quantile_start[start_id])
-         && !(code.L == quantile_start[start_id].L
-              && code.X[0] == quantile_start[start_id].X[0]
-              && code.X[1] == quantile_start[start_id].X[1]
-              && code.X[2] == quantile_start[start_id].X[2])) {
-    intersect[(*n_intersect)++] = start_id - 1;
-    start_id--;
+  // Sweep right
+  end_id = start_id;
+  while (end_id < n_quantiles
+         && (PDM_morton_ancestor_is (code, quantile_start[end_id]) ||
+             PDM_morton_ancestor_is (quantile_start[end_id], code))) {
+    end_id++;
   }
 
+  *start = start_id;
+  *end   = end_id;
 }
+
 
 /*----------------------------------------------------------------------------
  * Build a global Morton encoding rank index from ordered codes
@@ -1654,6 +1764,8 @@ PDM_morton_ordered_build_rank_index
  PDM_MPI_Comm             comm
 )
 {
+  PDM_UNUSED(dim);
+  PDM_UNUSED(gmax_level);
 
   PDM_g_num_t *_weight = malloc(sizeof(PDM_g_num_t) * n_codes);
 
@@ -1721,8 +1833,8 @@ PDM_morton_ordered_build_rank_index
   }
 
   for (int i = 0; i < n_codes; i++) {
-    int irank = PDM_binary_search_gap_long (_weight[i], quantiles, comm_size+1);
-    send_count[irank]++;
+    int i_rank = PDM_binary_search_gap_long (_weight[i], quantiles, comm_size+1);
+    send_count[i_rank]++;
   }
 
   int *recv_count = malloc (sizeof(int) * comm_size);
@@ -1747,11 +1859,11 @@ PDM_morton_ordered_build_rank_index
 
 
   for (int i = 0; i < n_codes; i++) {
-    int irank = PDM_binary_search_gap_long (_weight[i], quantiles, comm_size+1);
-    send_data[send_idx[irank]+send_count[irank]++] = ordered_code[i].L;
-    send_data[send_idx[irank]+send_count[irank]++] = ordered_code[i].X[0];
-    send_data[send_idx[irank]+send_count[irank]++] = ordered_code[i].X[1];
-    send_data[send_idx[irank]+send_count[irank]++] = ordered_code[i].X[2];
+    int i_rank = PDM_binary_search_gap_long (_weight[i], quantiles, comm_size+1);
+    send_data[send_idx[i_rank]+send_count[i_rank]++] = ordered_code[i].L;
+    send_data[send_idx[i_rank]+send_count[i_rank]++] = ordered_code[i].X[0];
+    send_data[send_idx[i_rank]+send_count[i_rank]++] = ordered_code[i].X[1];
+    send_data[send_idx[i_rank]+send_count[i_rank]++] = ordered_code[i].X[2];
   }
 
   free (quantiles);
@@ -1865,14 +1977,14 @@ PDM_morton_ordered_build_rank_index
  *----------------------------------------------------------------------------*/
 
 double
-PDM_morton_build_rank_index(int                      dim,
-                            int                      gmax_level,
-                            PDM_l_num_t                n_codes,
-                            const PDM_morton_code_t  code[],
-                            const int          weight[],
-                            const int          order[],
-                            PDM_morton_code_t        rank_index[],
-                            PDM_MPI_Comm                 comm)
+PDM_morton_build_rank_index(int                     dim,
+                            int                     gmax_level,
+                            PDM_l_num_t             n_codes,
+                            const PDM_morton_code_t code[],
+                            const int               weight[],
+                            const int               order[],
+                            PDM_morton_code_t       rank_index[],
+                            PDM_MPI_Comm            comm)
 {
   int  i, id, rank_id, n_ranks, n_samples;
   double  best_fit;
@@ -1948,14 +2060,7 @@ PDM_morton_dump(int                dim,
   double  coord[3];
 
   const unsigned long   n = 1u << code.L;
-#ifdef __INTEL_COMPILER
-#pragma warning(push)
-#pragma warning(disable:2259)
-#endif
   const double  stride = 1/(double)n;
-#ifdef __INTEL_COMPILER
-#pragma warning(pop)
-#endif
 
   for (i = 0; i < dim; i++)
     coord[i] = stride * code.X[i];
@@ -2002,6 +2107,181 @@ PDM_morton_ancestor_is (PDM_morton_code_t  a,
   }
 
   return status;
+}
+
+
+
+static int
+_intersect_node_box
+(
+ const int                dim,
+ const PDM_morton_code_t  node,
+ const PDM_morton_code_t  box_min,
+ const PDM_morton_code_t  box_max,
+ int                     *inside
+ )
+{
+  const int DEBUG = 0;
+  *inside = 1;
+
+  assert (box_min.L >= node.L);
+
+  const PDM_morton_int_t level_diff = box_min.L - node.L;
+
+  const PDM_morton_int_t side = 1 << level_diff;
+
+  for (int i = 0; i < dim; i++) {
+    PDM_morton_int_t xmin = side * node.X[i];
+    PDM_morton_int_t xmax = side * (node.X[i]+1);
+
+    if (xmin > box_max.X[i]+1 || xmax < box_min.X[i]) {
+      if (DEBUG) {
+	printf("\t not intersecting\n");
+      }
+      return 0;
+    } else if (xmin > box_min.X[i] || xmax > box_max.X[i]+1) {
+      *inside = 0;
+    };
+  }
+
+  if (DEBUG) {
+    printf("\t intersecting\n");
+  }
+
+  return 1;
+}
+
+
+const size_t N_BRUTE_FORCE = 10;
+void
+PDM_morton_intersect_box
+(
+ const int                dim,
+ const PDM_morton_code_t  node,
+ const PDM_morton_code_t  box_min,
+ const PDM_morton_code_t  box_max,
+ const PDM_morton_code_t  nodes[],
+ const size_t             start,
+ const size_t             end,
+ size_t                  *n_intersect,
+ int                     *intersect
+ )
+{
+  int inside;
+
+#if 0
+  printf("PDM_morton_intersect_box: node.L = %u (side = %f) \tstart = %zu, end = %zu\n",
+         node.L, 1./(double) (1 << node.L), start, end);
+  PDM_morton_dump (dim, node);
+#endif
+
+  /* If current range contains few octants, go brute force */
+  if (end - start < N_BRUTE_FORCE) {
+
+    for (size_t i = start; i < end; i++) {
+      if (_intersect_node_box (dim,
+			       nodes[i],
+			       box_min,
+			       box_max,
+			       &inside)) {
+	intersect[(*n_intersect)++] = i;
+      }
+    }
+
+  } else {
+
+    if (_intersect_node_box (dim,
+			     node,
+			     box_min,
+			     box_max,
+			     &inside)) {
+
+      if (inside) {
+	/* Every descendant must intersect the box */
+	for (size_t i = start; i < end; i++) {
+	  intersect[(*n_intersect)++] = i;
+	}
+
+      } else {
+	/* Some descendants may intersect the box */
+	const size_t n_children = 1 << dim;
+	PDM_morton_code_t *children = malloc (sizeof(PDM_morton_code_t) * n_children);
+	PDM_morton_get_children (dim,
+				 node,
+				 children);
+
+	size_t new_start, new_end;
+	size_t prev_end = start;
+	for (size_t ichild = 0; ichild < n_children; ichild++) {
+
+	  /* get start and end of range in list of nodes covered by current child */
+	  /* new_start <-- first descendant of child in list */
+	  //printf("previous child's end of range = %zu\n", prev_end);
+	  new_start = prev_end; // end of previous child's range
+#if 1
+	  // linear search
+	  while (new_start < end) {
+	    if (PDM_morton_ancestor_is (children[ichild], nodes[new_start])) {
+	      break;
+	    } else if (_a_gt_b(nodes[new_start], children[ichild])) {
+	      /* all the following nodes are clearly not descendants of current child */
+	      new_start = end+1;
+	      break;
+	    }
+	    new_start++;
+	  }
+
+	  if (new_start > end) {
+	    /* no need to go further for that child
+	       because it has no descendants in the node list */
+	    continue;
+	  }
+#else
+	  // binary search
+	  //?
+#endif
+
+	  /* new_end <-- next of last descendant of child in list */
+#if 0
+	  // linear search
+	  for (new_end = end; new_end > new_start; new_end--) {
+	    if (PDM_morton_ancestor_is (children[ichild], nodes[new_end-1])) {
+	      break;
+	    }
+	  }
+#else
+	  // binary search
+	  size_t l = new_start;
+	  new_end = end;
+	  while (new_end > l + 1) {
+	    size_t m = l + (new_end - l) / 2;
+	    if (PDM_morton_ancestor_is (children[ichild], nodes[m])) {
+	      l = m;
+	    } else {
+	      new_end = m;
+	    }
+	  }
+#endif
+
+	  prev_end = new_end;
+
+	  /* Carry on recursion */
+	  //printf("\n--> child #%d\n", ichild);
+	  PDM_morton_intersect_box (dim,
+				    children[ichild],
+				    box_min,
+				    box_max,
+				    nodes,
+				    new_start,
+				    new_end,
+				    n_intersect,
+				    intersect);
+	}
+
+	free (children);
+      }
+    }
+  }
 }
 
 /*----------------------------------------------------------------------------*/

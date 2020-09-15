@@ -45,7 +45,7 @@ struct _pdm_surf_mesh_t{
   PDM_g_num_t  nGVtx;  /*!< Global number of vertices  */
   PDM_g_num_t  nGEdge;  /*!< Global number of edges  */
   int         nGPart; /*!< Number of global partitions */
-  int         nPart;  /*!< Number of local partitions */
+  int         n_part;  /*!< Number of local partitions */
   double      gMinCarLgthVtx; /*!< Global min
                                    of caracteristic length vertex */
   double      gMaxCarLgthVtx; /*!< Global max

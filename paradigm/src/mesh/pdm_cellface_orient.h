@@ -45,34 +45,34 @@ extern "C" {
 /**
  * \brief Orient cell->face connectivity
  *
- * At the output of th function, a face number in \ref cellFace is positive
- * if surface normal is inside the cell, negative otherwise. \ref faceCell is
+ * At the output of th function, a face number in \ref cell_face is positive
+ * if surface normal is inside the cell, negative otherwise. \ref face_cell is
  * oriented in the same way
  *
- * \param [in]     nCell       Number of cells
- * \param [in]     nFace       Number of faces
- * \param [in]     nVtx        Number of vertices
+ * \param [in]     n_cell       Number of cells
+ * \param [in]     n_face       Number of faces
+ * \param [in]     n_vtx        Number of vertices
  * \param [in]     coords      Vertices coordinates
- * \param [in]     cellFaceIdx Cell to face connectivity index (size = \ref nCell + 1)
- * \param [in, out]cellFace    Cell to face connectivity (size = cellFaceIdx[nCell])
- * \param [in, out]faceCell    face to cell connectivity (size = 2 * \ref nFace) or NULL
- * \param [in]     faceVtxIdx  face to vertex connectivity index (size = \ref nFace + 1)
- * \param [in]     faceVtx     face to vertex connectivity (size = faceVtxIdx[nFace])
+ * \param [in]     cell_face_idx Cell to face connectivity index (size = \ref n_cell + 1)
+ * \param [in, out]cell_face    Cell to face connectivity (size = cell_face_idx[n_cell])
+ * \param [in, out]face_cell    face to cell connectivity (size = 2 * \ref n_face) or NULL
+ * \param [in]     face_vtx_idx  face to vertex connectivity index (size = \ref n_face + 1)
+ * \param [in]     face_vtx     face to vertex connectivity (size = face_vtx_idx[n_face])
  *
  */
 
 void
 PDM_cellface_orient
 (
-const int      nCell,
-const int      nFace,
-const int      nVtx,
+const int      n_cell,
+const int      n_face,
+const int      n_vtx,
 const double  *coords,
-const int     *cellFaceIdx,
-int           *cellFace,
-int           *faceCell,
-const int     *faceVtxIdx,
-const int     *faceVtx
+const int     *cell_face_idx,
+int           *cell_face,
+int           *face_cell,
+const int     *face_vtx_idx,
+const int     *face_vtx
 );
 
 
@@ -81,4 +81,3 @@ const int     *faceVtx
 #endif
 
 #endif	/* PDM_FACECELL_ORIENT_H */
-

@@ -24,9 +24,13 @@ if (NOT (PDM_IN_PDMA))
    set(PDM_IN_PDMA_BOOL 0)
 endif()
 
+# ----------------------------------------------------------------------
+find_program( MEMORYCHECK_COMMAND valgrind )
+set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
+# ----------------------------------------------------------------------
+
+include(CTest)
 enable_testing ()
-
-
 
 #------------------------------------------------------------------------------
 # User option Definition

@@ -234,7 +234,8 @@ _load_intern_fmt (void)
   /* Ensight */
 
   PDM_writer_fmt_t *fmt = malloc (sizeof(PDM_writer_fmt_t));
-  fmt->name = "Ensight";
+  fmt->name = malloc (sizeof(int) * 8);
+  strcpy (fmt->name, "Ensight");
   fmt->create_fct       = PDM_writer_ensight_create;
   fmt->free_fct         = PDM_writer_ensight_free;
   fmt->beg_step_fct     = PDM_writer_ensight_step_beg;
@@ -384,7 +385,11 @@ const char          *options
 
   /* Creation du r�pertoire de sortie si non cr�� */
 
+#ifdef _WIN32
+  mkdir(rep_sortie);
+#else
   mkdir(rep_sortie, 0775);
+#endif
 
   /* Allocation de la structure PDM_writer_t */
 
@@ -558,14 +563,8 @@ const int   id_cs
 
     cs_tab = PDM_Handles_free (cs_tab);
     int n_fmt_tab = PDM_Handles_n_get (fmt_tab);
-    const int *fmt_index = PDM_Handles_idx_get(fmt_tab);
     if (n_intern_fmt == n_fmt_tab) {
-      while (n_fmt_tab > 0) {
-        int idx = fmt_index[0];
-        PDM_Handles_handle_free (fmt_tab, idx, PDM_TRUE);
-        n_fmt_tab = PDM_Handles_n_get (fmt_tab);
-      }
-      fmt_tab = PDM_Handles_free (fmt_tab);
+      PDM_writer_fmt_free();
     }
   }
 
@@ -822,7 +821,7 @@ const PDM_g_num_t *numabs
   PDM_Mesh_nodal_coord_set (geom->idx_mesh, id_part, n_som, coords, numabs);
 
   if (0 == 1) {
-    printf("nvtx : %d\n", n_som);
+    printf("n_vtx : %d\n", n_som);
     for (int i = 0; i < n_som; i++) {
       printf ("%d "PDM_FMT_G_NUM" : %12.5e %12.5e %12.5e\n", i+1, numabs[i],
               coords[3*i], coords[3*i+1], coords[3*i+2]);
@@ -1307,17 +1306,17 @@ PDM_g_num_t   *numabs
 )
 {
   PDM_writer_geom_cell3d_cellface_add(*id_cs,
-                              *id_geom,
-                              *id_part,
-                              *n_cell,
-                              *n_face,
-                              face_som_idx,
-                              face_som_nb,
-                              face_som,
-                              cell_face_idx,
-                              cell_face_nb,
-                              cell_face,
-                              numabs);
+                                      *id_geom,
+                                      *id_part,
+                                      *n_cell,
+                                      *n_face,
+                                      face_som_idx,
+                                      face_som_nb,
+                                      face_som,
+                                      cell_face_idx,
+                                      cell_face_nb,
+                                      cell_face,
+                                      numabs);
 }
 
 void
@@ -1363,7 +1362,7 @@ PDM_g_num_t   *numabs
                                       cell_face,
                                       numabs);
   if (0 == 1) {
-    printf("ncell : %d\n", n_cell);
+    printf("n_cell : %d\n", n_cell);
     for (int i = 0; i < n_cell; i++) {
       printf ("%d "PDM_FMT_G_NUM" : \n", i+1, numabs[i]);
       for (int j = cell_face_idx[i]; j < cell_face_idx[i+1]; j++) {
@@ -1371,7 +1370,7 @@ PDM_g_num_t   *numabs
       }
       printf ("\n");
     }
-    printf("nface : %d\n", n_face);
+    printf("n_face : %d\n", n_face);
     for (int i = 0; i < n_face; i++) {
       printf ("%d: \n", i+1);
       for (int j = face_som_idx[i]; j < face_som_idx[i+1]; j++) {
@@ -1423,17 +1422,17 @@ PDM_g_num_t   *numabs
 )
 {
   PDM_writer_geom_cell2d_cellface_add(*id_cs,
-                              *id_geom,
-                              *id_part,
-                              *n_cell,
-                              *n_face,
-                              face_som_idx,
-                              face_som_nb,
-                              face_som,
-                              cell_face_idx,
-                              cell_face_nb,
-                              cell_face,
-                              numabs);
+                                      *id_geom,
+                                      *id_part,
+                                      *n_cell,
+                                      *n_face,
+                                      face_som_idx,
+                                      face_som_nb,
+                                      face_som,
+                                      cell_face_idx,
+                                      cell_face_nb,
+                                      cell_face,
+                                      numabs);
 }
 
 void
@@ -2081,20 +2080,20 @@ const PDM_real_t *val
     val_geom[id_part] = (double *) malloc(sizeof(double) * var->dim * n_cell);
     if (num_cell_parent_to_local != NULL) {
       for (int i = 0; i < n_cell; i++) {
-        for (int j = 0; j < var->dim; j++)
+        for (int j = 0; j < (int) var->dim; j++)
           val_geom[id_part][var->dim * num_cell_parent_to_local[i]+j] = val[i*var->dim + j];
       }
     }
     else {
       for (int i = 0; i < n_cell; i++) {
-        for (int j = 0; j < var->dim; j++)
+        for (int j = 0; j < (int) var->dim; j++)
           val_geom[id_part][var->dim * i+j] = val[i*var->dim + j];
       }
     }
   }
   else {
     val_geom[id_part] = (double *) malloc(sizeof(double) * var->dim * n_som);
-    for (int i = 0; i < n_som * var->dim; i++) {
+    for (int i = 0; i < n_som * (int) var->dim; i++) {
       val_geom[id_part][i] = val[i];
     }
   }

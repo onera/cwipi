@@ -408,67 +408,67 @@ static
 void _get_elmt_info
 (
   const PDM_Mesh_nodal_elt_t    t_elt,
-        int                  *  nVtxpFac,
+        int                  *  n_vtxpFac,
         int                  ** tabFacVtx
 )
 {
   int nFacPerElmt = _get_nbface_per_element(t_elt);
   switch(t_elt) {
     case PDM_MESH_NODAL_TRIA3:      /* Tri3   */
-      nVtxpFac[0] = 3;
+      n_vtxpFac[0] = 3;
       for(int i=0; i < nFacPerElmt; i++){
-          tabFacVtx[i] = (int *) malloc( sizeof(int *) * nVtxpFac[i]);
+          tabFacVtx[i] = (int *) malloc( sizeof(int *) * n_vtxpFac[i]);
           _get_index_of_face_node_tri(i, tabFacVtx[i], 0);
       }
       break;
     case PDM_MESH_NODAL_QUAD4:      /* Quad4  */
-      nVtxpFac[0] = 4;
+      n_vtxpFac[0] = 4;
       for(int i=0; i < nFacPerElmt; i++){
-          tabFacVtx[i] = (int *) malloc( sizeof(int *) * nVtxpFac[i]);
+          tabFacVtx[i] = (int *) malloc( sizeof(int *) * n_vtxpFac[i]);
           _get_index_of_face_node_quad(i, tabFacVtx[i], 0);
       }
       break;
     case PDM_MESH_NODAL_TETRA4:     /* Tetra4 */
-      nVtxpFac[0] = 3;
-      nVtxpFac[1] = 3;
-      nVtxpFac[2] = 3;
-      nVtxpFac[3] = 3;
+      n_vtxpFac[0] = 3;
+      n_vtxpFac[1] = 3;
+      n_vtxpFac[2] = 3;
+      n_vtxpFac[3] = 3;
       for(int i=0; i < nFacPerElmt; i++){
-          tabFacVtx[i] = (int *) malloc( sizeof(int *) * nVtxpFac[i]);
+          tabFacVtx[i] = (int *) malloc( sizeof(int *) * n_vtxpFac[i]);
           _get_index_of_face_node_tetra4(i, tabFacVtx[i], 0);
       }
       break;
     case PDM_MESH_NODAL_PYRAMID5:    /* Pyra5  */
-      nVtxpFac[0] = 4;
-      nVtxpFac[1] = 3;
-      nVtxpFac[2] = 3;
-      nVtxpFac[3] = 3;
-      nVtxpFac[4] = 3;
+      n_vtxpFac[0] = 4;
+      n_vtxpFac[1] = 3;
+      n_vtxpFac[2] = 3;
+      n_vtxpFac[3] = 3;
+      n_vtxpFac[4] = 3;
       for(int i=0; i < nFacPerElmt; i++){
-          tabFacVtx[i] = (int *) malloc( sizeof(int *) * nVtxpFac[i]);
+          tabFacVtx[i] = (int *) malloc( sizeof(int *) * n_vtxpFac[i]);
           _get_index_of_face_node_pyra5(i, tabFacVtx[i], 0);
       }
       break;
     case PDM_MESH_NODAL_PRISM6:     /* Penta6 */
-      nVtxpFac[0] = 4;
-      nVtxpFac[1] = 4;
-      nVtxpFac[2] = 4;
-      nVtxpFac[3] = 3;
-      nVtxpFac[4] = 3;
+      n_vtxpFac[0] = 4;
+      n_vtxpFac[1] = 4;
+      n_vtxpFac[2] = 4;
+      n_vtxpFac[3] = 3;
+      n_vtxpFac[4] = 3;
       for(int i=0; i < nFacPerElmt; i++){
-          tabFacVtx[i] = (int *) malloc( sizeof(int *) * nVtxpFac[i]);
+          tabFacVtx[i] = (int *) malloc( sizeof(int *) * n_vtxpFac[i]);
           _get_index_of_face_node_penta6(i, tabFacVtx[i], 0);
       }
       break;
     case PDM_MESH_NODAL_HEXA8:     /* Hexa8  */
-      nVtxpFac[0] = 4;
-      nVtxpFac[1] = 4;
-      nVtxpFac[2] = 4;
-      nVtxpFac[3] = 4;
-      nVtxpFac[4] = 4;
-      nVtxpFac[5] = 4;
+      n_vtxpFac[0] = 4;
+      n_vtxpFac[1] = 4;
+      n_vtxpFac[2] = 4;
+      n_vtxpFac[3] = 4;
+      n_vtxpFac[4] = 4;
+      n_vtxpFac[5] = 4;
       for(int i=0; i < nFacPerElmt; i++){
-          tabFacVtx[i] = (int *) malloc( sizeof(int *) * nVtxpFac[i]);
+          tabFacVtx[i] = (int *) malloc( sizeof(int *) * n_vtxpFac[i]);
           _get_index_of_face_node_hexa8(i, tabFacVtx[i], 0);
       }
       break;
@@ -489,11 +489,11 @@ _compute_key
   PDM_g_num_t* conn,
   int* lidx,
   int  begin,
-  int  nVtx
+  int  n_vtx
 )
 {
   int tKey = 0;
-  for(int iVtx=0; iVtx<nVtx; iVtx++){
+  for(int iVtx=0; iVtx<n_vtx; iVtx++){
     tKey += conn[begin+lidx[iVtx]];
   }
   return tKey;
@@ -517,8 +517,8 @@ int
 PDM_DMesh_nodal_create
 (
 const PDM_MPI_Comm comm,
-      PDM_g_num_t  nVtx,
-      PDM_g_num_t  nCel
+      PDM_g_num_t  n_vtx,
+      PDM_g_num_t  n_cell
 );
 
 
@@ -1036,8 +1036,8 @@ const int   hdl
  * \brief  Return cell->face connectivity
  *
  * \param [in]   hdl              Distributed nodal mesh handle
- * \param [out]  dCellFaceIdx    Index of distributed cell->face connectivity
- * \param [out]  dCellFace       Distributed cell->face connectivity
+ * \param [out]  dcell_faceIdx    Index of distributed cell->face connectivity
+ * \param [out]  dcell_face       Distributed cell->face connectivity
  *
  * \return     Number of cells on the current process
  *
@@ -1047,15 +1047,15 @@ int
 PDM_DMesh_nodal_cell_face_get
 (
 const int   hdl,
-      int   **dCellFaceIdx,
-PDM_g_num_t **dCellFace
+      int   **dcell_faceIdx,
+PDM_g_num_t **dcell_face
 );
 
 /**
  * \brief  Return face->cell connectivity
  *
  * \param [in]   hdl              Distributed nodal mesh handle
- * \param [out]  FaceCell       Distributed face->cell connectivity
+ * \param [out]  face_cell       Distributed face->cell connectivity
  *
  * \return     Number of cells on the current process
  *
@@ -1065,7 +1065,7 @@ int
 PDM_DMesh_nodal_face_cell_get
 (
 const int   hdl,
-PDM_g_num_t **dFaceCell
+PDM_g_num_t **dface_cell
 );
 
 
@@ -1073,7 +1073,7 @@ PDM_g_num_t **dFaceCell
  * \brief  Return face \rightarrow vertex connectivity
  *
  * \param [in]   hdl              Distributed nodal mesh handle
- * \param [out]  ddCellFaceIdx   Index of distributed cell->face connectivity
+ * \param [out]  ddcell_faceIdx   Index of distributed cell->face connectivity
  * \param [out]  dcell_face       Distributed cell->face connectivity
  *
  * \return     Number of faces on the current process
@@ -1084,8 +1084,8 @@ int
 PDM_DMesh_nodal_face_vtx_get
 (
 const int   hdl,
-      int   **dFaceVtxIdx,
-PDM_g_num_t **dFaceVtx
+      int   **dface_vtx_idx,
+PDM_g_num_t **dface_vtx
 );
 
 

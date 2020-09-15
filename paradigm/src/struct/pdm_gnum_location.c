@@ -45,6 +45,7 @@
 #include "pdm_error.h"
 #include "pdm_handles.h"
 #include "pdm_gnum_location.h"
+#include "pdm_priv.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -68,16 +69,16 @@ extern "C" {
  */
 
 typedef struct  {
-  int n_part_in;                       /*!< Number of local partitions  */
-  int n_part_out;                      /*!< Number of local partitions
-                                            for requested locations */
-  int *n_elts_in;                      /*!< Number of elements of each partition */
-  const PDM_g_num_t **g_nums_in;       /*!< Global numbering  */
-  int *n_elts_out;                     /*!< Number of elements requesting location */
-  const PDM_g_num_t **g_nums_out;      /*!< Global numbering of elements requesting location */
-  int **location_idx;                  /*!< Location index of elements requesting location */
-  int **location;                      /*!< Location of elements requesting location */
-  PDM_MPI_Comm comm;                   /*!< Communicator */
+  PDM_MPI_Comm        comm;         /*!< Communicator */
+  int                 n_part_in;    /*!< Number of local partitions  */
+  int                 n_part_out;   /*!< Number of local partitions
+                                        for requested locations */
+  int                *n_elts_in;    /*!< Number of elements of each partition */
+  const PDM_g_num_t **g_nums_in;    /*!< Global numbering  */
+  int                *n_elts_out;   /*!< Number of elements requesting location */
+  const PDM_g_num_t **g_nums_out;   /*!< Global numbering of elements requesting location */
+  int               **location_idx; /*!< Location index of elements requesting location */
+  int               **location;     /*!< Location of elements requesting location */
 } _pdm_gnum_location_t;
 
 /*============================================================================
@@ -95,7 +96,7 @@ static PDM_Handles_t *_glocs   = NULL;
  *
  * \brief Return ppart object from it identifier
  *
- * \param [in]   ppartId        ppart identifier
+ * \param [in]   ppart_id        ppart identifier
  *
  */
 
@@ -332,7 +333,7 @@ PDM_gnum_location_compute
     _gloc->location_idx[i] = malloc (sizeof(int) * (_gloc->n_elts_out[i] + 1));
     _gloc->location_idx[i][0] = 0;
     for (int j = 0; j < _gloc->n_elts_out[i]; j++) {
-      _gloc->location_idx[i][j+1] = _gloc->location_idx[i][j] + part_stride[i][j];;
+      _gloc->location_idx[i][j+1] = _gloc->location_idx[i][j] + part_stride[i][j];
     }
   }
   free (block_stride);
@@ -356,7 +357,7 @@ PDM_gnum_location_compute
  *
  * \param [in]    id             Identifier
  * \param [in]    i_part_out     Current partition
- * \param [out]   location_idx   Index in the location arrays (size = 3 * \ref n_elts + 1)
+ * \param [out]   location_idx   Index in the location arrays (size = \ref n_elts + 1)
  * \param [out]   location       Locations of each element
  *                                (Three informations : process, partition, element)
  *
@@ -381,7 +382,8 @@ PDM_gnum_location_get
  *
  * \brief Free
  *
- * \param [in]   id           Identifier
+ * \param [in]   id            Identifier
+ * \param [in]   keep_results  Keep location results
  *
  */
 
@@ -389,7 +391,7 @@ void
 PDM_gnum_location_free
 (
  const int id,
- const int partial
+ const int keep_results
 )
 {
   _pdm_gnum_location_t *_gloc = _get_from_id (id);
@@ -400,18 +402,20 @@ PDM_gnum_location_free
   free (_gloc->n_elts_out);
   free (_gloc->g_nums_out);
 
-  if (partial != 1) {
+  if (keep_results != 1) {//if (partial != 1) {
     for (int i = 0; i < _gloc->n_part_out; i++) {
       free (_gloc->location_idx[i]);
     }
-    free (_gloc->location_idx);
+    // free (_gloc->location_idx);
 
     for (int i = 0; i < _gloc->n_part_out; i++) {
       free (_gloc->location[i]);
     }
-    free (_gloc->location);
-
+    // free (_gloc->location);
   }
+
+  free (_gloc->location_idx);
+  free (_gloc->location);
 
   free (_gloc);
 

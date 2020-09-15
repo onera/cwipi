@@ -32,24 +32,25 @@ if ((NOT MPI_C_COMPILER) AND MPI_C_COMPILE_FLAGS)
 endif()
 
 target_include_directories(pdm_mpi
-                           INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE  ${PDM_BINARY_DIR}
-                           PRIVATE  ${CMAKE_BINARY_DIR}
-                           PUBLIC  ${CMAKE_SOURCE_DIR}
-                           PUBLIC  ${PDM_SOURCE_DIR}/src/io
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/..
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/../..)
+  INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  PRIVATE   $<BUILD_INTERFACE:${PDM_BINARY_DIR}>
+  PRIVATE   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+  PUBLIC    $<BUILD_INTERFACE:${PDM_SOURCE_DIR}/src/io>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>
+)
 
 if (PTSCOTCH_FOUND)
     target_include_directories(pdm_mpi
-                              PRIVATE ${PTSCOTCH_INCLUDE_DIRS})
+                              PRIVATE $<BUILD_INTERFACE:${PTSCOTCH_INCLUDE_DIRS}>)
 endif (PTSCOTCH_FOUND)
 
 if (PARMETIS_FOUND)
     target_include_directories(pdm_mpi
-                              PRIVATE ${PARMETIS_INCLUDE_DIRS})
+                              PRIVATE $<BUILD_INTERFACE:${PARMETIS_INCLUDE_DIRS}>)
 endif (PARMETIS_FOUND)
 
 set (LIST_HEADER "")
@@ -113,8 +114,17 @@ if (PDM_ENABLE_STATIC)
   list (APPEND _targets pdm_mpi_static)
 endif()
 
-install(TARGETS ${_targets}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        PUBLIC_HEADER DESTINATION include
-        ARCHIVE DESTINATION lib)
+foreach(_target IN ITEMS ${_targets})
+  install(TARGETS ${_target} EXPORT ${_target}Targets
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    PUBLIC_HEADER DESTINATION include
+    ARCHIVE DESTINATION lib
+  )
+  install(EXPORT ${_target}Targets
+    FILE ${_target}Targets.cmake
+    NAMESPACE pdm::
+    DESTINATION lib/cmake/${_target}
+  )
+  add_library(pdm::${_target} ALIAS ${_target})
+endforeach()

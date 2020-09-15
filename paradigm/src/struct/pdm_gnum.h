@@ -79,12 +79,12 @@ PDM_gnum_create
 void
 PROCF (pdm_gnum_create, PDM_GNUM_CREATE)
 (
- const int *dim,
- const int *n_part,
- const int *merge,
- const double *tolerance,
+ const int          *dim,
+ const int          *n_part,
+ const int          *merge,
+ const double       *tolerance,
  const PDM_MPI_Fint *fcomm,
-       int *id
+       int          *id
 );
 
 
@@ -104,9 +104,9 @@ PROCF (pdm_gnum_create, PDM_GNUM_CREATE)
 void
 PDM_gnum_set_from_coords
 (
- const int id,
- const int i_part,
- const int n_elts,
+ const int     id,
+ const int     i_part,
+ const int     n_elts,
  const double *coords,
  const double *char_length
 );
@@ -114,9 +114,9 @@ PDM_gnum_set_from_coords
 void
 PROCF (pdm_gnum_set_from_coords, PDM_GNUM_SET_FROM_COORDS)
 (
- const int *id,
- const int *i_part,
- const int *n_elts,
+ const int    *id,
+ const int    *i_part,
+ const int    *n_elts,
  const double *coords,
  const double *char_length
 
@@ -137,18 +137,18 @@ PROCF (pdm_gnum_set_from_coords, PDM_GNUM_SET_FROM_COORDS)
 void
 PDM_gnum_set_from_parents
 (
- const int id,
- const int i_part,
- const int n_elts,
+ const int          id,
+ const int          i_part,
+ const int          n_elts,
  const PDM_g_num_t *parent_gnum
 );
 
 void
 PROCF (pdm_gnum_set_from_parents, PDM_GNUM_SET_FROM_PARENTS)
 (
- const int *id,
- const int *i_part,
- const int *n_elts,
+ const int         *id,
+ const int         *i_part,
+ const int         *n_elts,
  const PDM_g_num_t *parent_gnum
 );
 
@@ -197,8 +197,8 @@ PDM_gnum_get
 void
 PROCF (pdm_gnum_get, PDM_GNUM_GET)
 (
- const int *id,
- const int *i_part,
+ const int   *id,
+ const int   *i_part,
  PDM_g_num_t *gnum
 );
 

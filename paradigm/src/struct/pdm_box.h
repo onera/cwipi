@@ -30,6 +30,8 @@ extern "C" {
  * Macro and type definitions
  *============================================================================*/
 
+typedef struct _PDM_boxes_t PDM_boxes_t;
+
 /* Collection of boxes */
 
 typedef struct _PDM_box_set_t PDM_box_set_t;
@@ -63,6 +65,46 @@ PDM_box_set_normalize_inv
 
 
 /*----------------------------------------------------------------------------
+ * Remove duplicated boxes
+ *
+ * parameters:
+ *   boxes <-> pointer to the PDM_box_set_t structure to delete
+ *---------------------------------------------------------------------------*/
+
+void
+PDM_box_set_remove_duplicate
+(
+ PDM_box_set_t  *boxes
+ );
+
+/*----------------------------------------------------------------------------
+ * Create a set of boxes and initialize it.
+ *
+ * parameters:
+ *   dim              <-- spatial dimension
+ *   n_boxes          <-- number of elements to create
+ *   box_gnum         <-- global numbering of boxes
+ *   box_extents      <-- coordinate extents (size: n_boxes*dim*2, as
+ *                        xmin1, ymin1, .. xmax1, ymax1, ..., xmin2, ...)
+ *   origin   <--  initial location (size: n_boxes*3, as
+ *                        iproc, i_part, local num, ...)
+ *
+ * returns:
+ *   a new allocated pointer to a PDM_boxes_t structure.
+ *---------------------------------------------------------------------------*/
+
+PDM_boxes_t *
+PDM_boxes_create(const int          dim,
+		         int                n_boxes,
+		         const PDM_g_num_t *box_gnum,
+		         const double      *box_extents,
+		         const int          n_part_orig,
+		         const int         *n_boxes_orig,
+		         const int         *origin);
+
+
+
+/*----------------------------------------------------------------------------
  * Create a set of boxes and initialize it.
  *
  * parameters:
@@ -75,7 +117,7 @@ PDM_box_set_normalize_inv
  *   extents          <-- coordinate extents (size: n_boxes*dim*2, as
  *                        xmin1, ymin1, .. xmax1, ymax1, ..., xmin2, ...)
  *   origin   <--  initial location (size: n_boxes*3, as
- *                        iproc, ipart, local num, ...)
+ *                        iproc, i_part, local num, ...)
  *   comm             <-- associated MPI communicator
  *
  * returns:
@@ -93,6 +135,16 @@ PDM_box_set_create(int                dim,
                    const int         *n_boxes_orig,
                    const int         *origin,
                    PDM_MPI_Comm           comm);
+
+/*----------------------------------------------------------------------------
+ * Delete a PDM_boxes_t structure.
+ *
+ * parameters:
+ *   boxes <-> pointer to the PDM_boxes_t structure to delete
+ *---------------------------------------------------------------------------*/
+
+void
+PDM_boxes_destroy(PDM_boxes_t  *boxes);
 
 /*----------------------------------------------------------------------------
  * Destroy a PDM_box_set_t structure.
@@ -174,6 +226,21 @@ PDM_box_set_get_extents(PDM_box_set_t  *boxes);
 
 const PDM_g_num_t *
 PDM_box_set_get_g_num(PDM_box_set_t  *boxes);
+
+
+/*----------------------------------------------------------------------------
+ * Return global numbers associated with a set of boxes (copied from another rank).
+ *
+ * parameters:
+ *   boxes <-- pointer to set of boxes
+ *
+ * returns:
+ *   pointer to global box numbers array
+ *---------------------------------------------------------------------------*/
+
+PDM_g_num_t *
+PDM_box_set_get_rank_boxes_g_num(PDM_box_set_t  *boxes,
+                                 const int       i_rank);
 
 
 /*----------------------------------------------------------------------------
@@ -295,13 +362,31 @@ PDM_box_set_send_data_to_origin_distrib
 );
 
 /*----------------------------------------------------------------------------
+ * Send copies of boxes from selected ranks to all other ranks for better load balancing
+ *
+ * parameters:
+ *   boxes     <-- pointer to the PDM_box_t structure
+ *   n_ranks   <-- number of ranks
+ *   ranks     <-- list of ranks
+ *---------------------------------------------------------------------------*/
+
+void
+PDM_box_copy_boxes_to_ranks
+(
+ PDM_box_set_t  *boxes,
+ const int       n_ranks,
+ int            *ranks
+);
+
+
+/*----------------------------------------------------------------------------
  * Create a PDM_box_distrib_t structure.
  *
  * parameters:
  *   n_boxes   <-- number of boxes
  *   n_g_boxes <-- global number of boxes
  *   max_level <-- max level reached locally in the related tree
- *   comm      <-- MPI comm. on which distribution takes place
+ *   comm      <-- MPI communicator. on which the distribution takes place
  *
  * returns:
  *   a pointer to a new allocated PDM_box_distrib_t structure.
@@ -345,6 +430,25 @@ PDM_box_distrib_clean(PDM_box_distrib_t  *distrib);
 void
 PDM_box_distrib_dump_statistics(const PDM_box_distrib_t  *distrib,
                                 PDM_MPI_Comm                  comm);
+
+
+/*----------------------------------------------------------------------------
+ * Display a histogramm on leaves associated to the boxes and
+ * several other pieces of information (min, max, ...)
+ *
+ * parameters:
+ *   distrib <-- pointer to the PDM_box_distrib_t structure
+ *   comm    <-- associated MPI communicator
+ *---------------------------------------------------------------------------*/
+
+void
+PDM_box_distrib_dump_statistics(const PDM_box_distrib_t  *distrib,
+                                PDM_MPI_Comm                  comm);
+
+
+/*----------------------------------------------------------------------------*/
+void
+PDM_box_distrib_dump(const PDM_box_distrib_t  *distrib);
 
 /*----------------------------------------------------------------------------*/
 

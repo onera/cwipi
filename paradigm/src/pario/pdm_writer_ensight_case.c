@@ -175,7 +175,7 @@ _add_var(PDM_writer_ensight_case_t       *const this_case,
 
   /* Some characters not allowed in format, replaced by '_' */
 
-  for (i = 0 ; i < l ; i++) {
+  for (i = 0 ; i < (int) l ; i++) {
     switch (description[i]) {
     case '(':
     case ')':
@@ -291,6 +291,7 @@ _add_var(PDM_writer_ensight_case_t       *const this_case,
     case '$':
     case '/':
       var->file_name_base[i1] = '_';
+      break;
     default:
       var->file_name_base[i1] = (char) tolower(var->file_name_base[i1]);
     }

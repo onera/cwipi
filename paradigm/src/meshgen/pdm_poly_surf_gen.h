@@ -55,11 +55,11 @@ PDM_g_num_t   ny,
 PDM_g_num_t  *nGFace,
 PDM_g_num_t  *nGVtx,
 PDM_g_num_t  *nGEdge,
-int         *dNVtx,
-double     **dVtxCoord,
-int         *dNFace,
-int        **dFaceVtxIdx,
-PDM_g_num_t **dFaceVtx,
+int         *dn_vtx,
+double     **dvtx_coord,
+int         *dn_face,
+int        **dface_vtx_idx,
+PDM_g_num_t **dface_vtx,
 PDM_g_num_t **dFaceEdge,
 int         *dNEdge,
 PDM_g_num_t **dEdgeVtx,
@@ -81,7 +81,7 @@ PDM_g_num_t **dEdgeGroup
 /* PDM_g_num_t *ny, */
 /* int        *nVertex_f, */
 /* double     *coords_f, */
-/* int        *nFace_f, */
+/* int        *n_face_f, */
 /* int        *faceVertexIdx_f, */
 /* PDM_g_num_t *faceVertex_f, */
 /* PDM_g_num_t *faceEdge_f,    */

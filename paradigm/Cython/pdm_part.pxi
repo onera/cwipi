@@ -1,6 +1,3 @@
-cdef extern from "numpy/arrayobject.h":
-    void PyArray_ENABLEFLAGS(NPY.ndarray arr, int flags)
-
 
 cdef extern from "pdm_part.h":
 
@@ -125,7 +122,6 @@ cdef extern from "pdm_part.h":
 # ------------------------------------------------------------------
 
 cdef extern from "pdm_mpi.h":
-
     PDM_MPI_Comm PDM_MPI_mpi_2_pdm_mpi_comm (void *mpi_comm)
 
 # ------------------------------------------------------------------

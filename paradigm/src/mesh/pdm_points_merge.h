@@ -130,6 +130,24 @@ PDM_points_merge_candidates_get
        int    **candidates_desc
 );
 
+/**
+ *
+ * \brief Get size of the resulting array
+ *
+ * \param [in]   id                Identifier
+ * \param [in]   i_point_cloud     Current cloud
+ * \param [out]  n_point_cloud     Number of points in the current cloud
+ * \param [out]  n_candidates_desc Size of candidates_desc = candidates_idx[n_point_cloud+1]
+ *
+ */
+void
+PDM_points_merge_candidates_size_get
+(
+ const int     id,
+ const int     i_point_cloud,
+       int    *n_point_cloud,
+       int    *n_candidates_desc
+);
 
 #ifdef	__cplusplus
 }

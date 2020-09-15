@@ -7,3 +7,6 @@
   integer, parameter :: pdm_l_num_s = 4
 
   integer, parameter :: pdm_max_char_length = 100
+
+  integer, parameter :: PDM_STRIDE_CST = 0
+  integer, parameter :: PDM_STRIDE_VAR = 1

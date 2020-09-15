@@ -56,13 +56,13 @@ cdef extern from "pdm_part_coarse_mesh.h":
                                      char          *method,
                                      char          *renum_cell_method,
                                      char          *renum_face_method,
-                                     int           nPropertyCell,
+                                     int           n_property_cell,
                                      int           *renum_properties_cell,
-                                     int           nPropertyFace,
+                                     int           n_property_face,
                                      int           *renum_properties_face,
-                                     int           nPart,
+                                     int           n_part,
                                      int           nTPart,
-                                     int           nFaceGroup,
+                                     int           n_face_group,
                                      int           have_cellTag,
                                      int           have_faceTag,
                                      int           have_vtxTag,
@@ -76,7 +76,7 @@ cdef extern from "pdm_part_coarse_mesh.h":
                                     int           nCell,
                                     int           nFace,
                                     int           nVertex,
-                                    int           nFaceGroup,
+                                    int           n_face_group,
                                     int           nFacePartBound,
                                     int          *cellFaceIdx,
                                     int          *cellFace,
@@ -109,7 +109,7 @@ cdef extern from "pdm_part_coarse_mesh.h":
                                            int *nVertex,
                                            int *nProc,
                                            int *nTPart,
-                                           int *nFaceGroup,
+                                           int *n_face_group,
                                            int *sCellFace,
                                            int *sFaceVtx,
                                            int *sFaceGroup,
@@ -188,20 +188,20 @@ cdef class CoarseMesh:
     Define a coarse mesh partitioning with PDM Library
     """
     cdef int _cmId
-    cdef int _nFaceGroup
+    cdef int _n_face_group
     # ------------------------------------------------------------------
     def __cinit__(self,
                   MPI.Comm                                  comm,
                   char                                      *method,
                   char                                      *renum_cell_method,
                   char                                      *renum_face_method,
-                  int                                        nPropertyCell,
+                  int                                        n_property_cell,
                   NPY.ndarray[NPY.int32_t, mode='c', ndim=1] renum_properties_cell,
-                  int                                        nPropertyFace,
+                  int                                        n_property_face,
                   NPY.ndarray[NPY.int32_t, mode='c', ndim=1] renum_properties_face,
-                  int                                        nPart,
+                  int                                        n_part,
                   int                                        nTPart,
-                  int                                        nFaceGroup,
+                  int                                        n_face_group,
                   int                                        have_cellTag    = 0,
                   int                                        have_faceTag    = 0,
                   int                                        have_vtxTag     = 0,
@@ -217,8 +217,8 @@ cdef class CoarseMesh:
       # ~> Communicator Mpi
       cdef MPI.MPI_Comm c_comm = comm.ob_mpi
 
-      # ~> Set _nFaceGroup
-      self._nFaceGroup =  nFaceGroup
+      # ~> Set _n_face_group
+      self._n_face_group =  n_face_group
 
       # ~> \param [in]   renum_properties_cell
       cdef int * renum_properties_cell_data
@@ -240,13 +240,13 @@ cdef class CoarseMesh:
                                   method,
                                   renum_cell_method,
                                   renum_face_method,
-                                  nPropertyCell,
+                                  n_property_cell,
                                   renum_properties_cell_data,
-                                  nPropertyFace,
+                                  n_property_face,
                                   renum_properties_face_data,
-                                  nPart,
+                                  n_part,
                                   nTPart,
-                                  self._nFaceGroup,
+                                  self._n_face_group,
                                   have_cellTag,
                                   have_faceTag,
                                   have_vtxTag,
@@ -280,7 +280,7 @@ cdef class CoarseMesh:
                        int      nCell,
                        int      nFace,
                        int      nVertex,
-                       int      nFaceGroup,
+                       int      n_face_group,
                        int      nFacePartBound,
                        NPY.ndarray[NPY.int32_t    , mode='c', ndim=1] CellFaceIdx not None,
                        NPY.ndarray[NPY.int32_t    , mode='c', ndim=1] CellFace not None,
@@ -406,7 +406,7 @@ cdef class CoarseMesh:
                                    nCell,
                                    nFace,
                                    nVertex,
-                                   nFaceGroup,
+                                   n_face_group,
                                    nFacePartBound,
                                    CellFaceIdx_data,
                                    CellFace_data,
@@ -772,17 +772,17 @@ cdef class CoarseMesh:
                                                            NPY.NPY_INT32,
                                                            <void *> facePartBoundPartIdx)
 
-        # \param [out]  faceGroupIdx       face group index (size = nFaceGroup + 1)
+        # \param [out]  faceGroupIdx       face group index (size = n_face_group + 1)
         if (faceGroupIdx == NULL) :
           npFaceGroupIdx = None
         else :
-          dim = <NPY.npy_intp> (self._nFaceGroup + 1)
+          dim = <NPY.npy_intp> (self._n_face_group + 1)
           npFaceGroupIdx  = NPY.PyArray_SimpleNewFromData(1,
                                                          &dim,
                                                          NPY.NPY_INT32,
                                                          <void *> faceGroupIdx)
 
-        # \param [out]  faceGroup          faces for each group (size = faceGroupIdx[nFaceGroup] = lFaceGroup)
+        # \param [out]  faceGroup          faces for each group (size = faceGroupIdx[n_face_group] = lFaceGroup)
         if (faceGroup == NULL) :
           npFaceGroup = None
         else :
@@ -792,7 +792,7 @@ cdef class CoarseMesh:
                                                      NPY.NPY_INT32,
                                                      <void *> faceGroup)
 
-        # \param [out]  faceGroupLNToGN    faces global numbering for each group (size = faceGroupIdx[nFaceGroup] = lFaceGroup)
+        # \param [out]  faceGroupLNToGN    faces global numbering for each group (size = faceGroupIdx[n_face_group] = lFaceGroup)
         if (faceGroupLNToGN == NULL) :
           npFaceGroupLNToGN = None
         else :

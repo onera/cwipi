@@ -259,7 +259,7 @@ int PDM_MPI_File_get_position(PDM_MPI_File, PDM_MPI_Offset *);
  *----------------------------------------------------------------------------*/
 
 int PDM_MPI_File_set_view(PDM_MPI_File, PDM_MPI_Offset, PDM_MPI_Datatype,
-                      PDM_MPI_Datatype, char *);
+                      PDM_MPI_Datatype, const char *);
 
 /*----------------------------------------------------------------------------
  * PDM_MPI_File_get_view (wrapping de la fonction MPI_File_get_view)

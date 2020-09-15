@@ -706,17 +706,17 @@ PDM_part_bound_dump
       PDM_printf("      - nConnectedElt %d\n", nConnectedElt);
       for (int k = 0; k < nConnectedElt; k++) {
         int iProc;
-        int iPart;
+        int i_part;
         int iElt;
         int iDistElt;
         PDM_part_bound_distant_elt_get (part_bound,
                                         j+1,
                                         k,
                                         &iProc,
-                                        &iPart,
+                                        &i_part,
                                         &iElt,
                                         &iDistElt);
-        PDM_printf("        - %d %d %d %d (iproc iPart, iElt, iDistElt)\n", iProc, iPart, iElt, iDistElt);
+        PDM_printf("        - %d %d %d %d (iproc i_part, iElt, iDistElt)\n", iProc, i_part, iElt, iDistElt);
 
       }
       int nOfferElt = PDM_part_bound_n_offer_elt_get (part_bound, j+1);

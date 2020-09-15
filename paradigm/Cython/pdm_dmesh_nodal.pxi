@@ -312,7 +312,7 @@ cdef class DistributedMeshNodal:
       # ************************************************************************
 
       # > Free Ppart Structure
-      print 'PDM_DMesh_nodal_free'
+      print('PDM_DMesh_nodal_free')
       PDM_DMesh_nodal_free(self.idmesh)
 
 

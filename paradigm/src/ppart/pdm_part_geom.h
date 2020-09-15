@@ -46,24 +46,24 @@ typedef enum {
  * \brief Perform geometric partitioning
  *
  * \param [in]   method         Geometric method
- * \param [in]   nPart          Number of partition to build on this process
+ * \param [in]   n_part          Number of partition to build on this process
  * \param [in]   comm           Communicator
- * \param [in]   dNCell         Number of distributed cells
- * \param [in]   dNFace         Number of distributed faces
- * \param [in]   dNVtx          Number of distributed vertices
- * \param [in]   dCellFaceIdx   Distributed cell face connectivity index or NULL
- *                              (size : dNCell + 1, numbering : 0 to n-1)
- * \param [in]   dCellFace      Distributed cell face connectivity or NULL
- *                              (size : dFaceVtxIdx[dNCell], numbering : 1 to n)
- * \param [in]   dCellWeight    Cell weight (size : nCell) or NULL
- * \param [in]   dFaceVtxIdx    Distributed face to vertex connectivity index
- *                              (size : dNFace + 1, numbering : 0 to n-1)
- * \param [in]   dFaceVtx       Distributed face to vertex connectivity
- *                              (size : dFaceVtxIdx[dNFace], numbering : 1 to n)
- * \param [in]   dVtxCoord      Distributed vertex coordinates
- *                              (size : 3*dNVtx)
- * \param [inout]   dCellPart      Distributed cell partitioning
- *                              (size = dNCell)
+ * \param [in]   dn_cell         Number of distributed cells
+ * \param [in]   dn_face         Number of distributed faces
+ * \param [in]   dn_vtx          Number of distributed vertices
+ * \param [in]   dcell_face_idx   Distributed cell face connectivity index or NULL
+ *                              (size : dn_cell + 1, numbering : 0 to n-1)
+ * \param [in]   dcell_face      Distributed cell face connectivity or NULL
+ *                              (size : dface_vtx_idx[dn_cell], numbering : 1 to n)
+ * \param [in]   dcell_weight    Cell weight (size : n_cell) or NULL
+ * \param [in]   dface_vtx_idx    Distributed face to vertex connectivity index
+ *                              (size : dn_face + 1, numbering : 0 to n-1)
+ * \param [in]   dface_vtx       Distributed face to vertex connectivity
+ *                              (size : dface_vtx_idx[dn_face], numbering : 1 to n)
+ * \param [in]   dvtx_coord      Distributed vertex coordinates
+ *                              (size : 3*dn_vtx)
+ * \param [inout]   dcell_part      Distributed cell partitioning
+ *                              (size = dn_cell)
  *
  */
 
@@ -71,18 +71,18 @@ void
 PDM_part_geom
 (
  PDM_part_geom_t     method,
- const int           nPart,
+ const int           n_part,
  const PDM_MPI_Comm  comm,
- const int           dNCell,
- const int          *dCellFaceIdx,
- const PDM_g_num_t  *dCellFace,
- const int          *dCellWeight,
- const int          *dFaceVtxIdx,
- const PDM_g_num_t  *dFaceVtx,
- const PDM_g_num_t  *dFaceProc,
- const double        *dVtxCoord,
- const PDM_g_num_t  *dVtxProc,
- int                *dcellPart
+ const int           dn_cell,
+ const int          *dcell_face_idx,
+ const PDM_g_num_t  *dcell_face,
+ const int          *dcell_weight,
+ const int          *dface_vtx_idx,
+ const PDM_g_num_t  *dface_vtx,
+ const PDM_g_num_t  *dface_proc,
+ const double        *dvtx_coord,
+ const PDM_g_num_t  *dvtx_proc,
+ int                *dcell_part
 );
 
 

@@ -59,14 +59,14 @@ static const int _sampling_factors[4] = {1, /* OD */
 static const unsigned  _imax = ~(0U);
 
 /* 2 dimension to nkey conversion */
-static const unsigned  _cs_idata2d[]
+static const unsigned  _pdm_idata2d[]
 = {0, 3, 1, 2,
    0, 1, 3, 2,
    2, 3, 1, 0,
    2, 1, 3, 0};
 
 /* 2 dimension to nkey state transitions */
-static const unsigned  _cs_istate2d[]
+static const unsigned  _pdm_istate2d[]
 = {1, 2, 0, 0,
    0, 1, 3, 1,
    2, 0, 2, 3,
@@ -112,7 +112,7 @@ static const unsigned _bader_istate2d[]
     };
 
 /* 3 dimension to nkey conversion */
-static const unsigned  _cs_idata3d[]
+static const unsigned  _pdm_idata3d[]
 = {0,  7,  3,  4,  1,  6,  2,  5,
    0,  1,  3,  2,  7,  6,  4,  5,
    0,  3,  7,  4,  1,  2,  6,  5,
@@ -139,7 +139,7 @@ static const unsigned  _cs_idata3d[]
    6,  5,  7,  4,  1,  2,  0,  3};
 
 /* 3 dimension to nkey state transitions */
-static const unsigned  _cs_istate3d[]
+static const unsigned  _pdm_istate3d[]
 = { 1,  6,  3,  4,  2,  5,  0,  0,
     0,  7,  8,  1,  9,  4,  5,  1,
    15, 22, 23, 20,  0,  2, 19,  2,
@@ -599,15 +599,15 @@ _evaluate_distribution(int          n_ranges,
 static void
 _define_rank_distrib(int                       dim,
                      int                       n_ranks,
-                     PDM_g_num_t                 gsum_weight,
-                     int                 n_codes,
+                     PDM_g_num_t               gsum_weight,
+                     int                       n_codes,
                      const PDM_hilbert_code_t  hilbert_codes[],
-                     const int           weight[],
-                     const int           order[],
+                     const int                 weight[],
+                     const int                 order[],
                      const PDM_hilbert_code_t  sampling[],
                      double                    cfreq[],
-                     PDM_g_num_t                 g_distrib[],
-                     PDM_MPI_Comm                  comm)
+                     PDM_g_num_t               g_distrib[],
+                     PDM_MPI_Comm              comm)
 {
   int  id, rank_id;
   PDM_hilbert_code_t  sample_code;
@@ -662,15 +662,8 @@ _define_rank_distrib(int                       dim,
 
   cfreq[0] = 0.;
   for (id = 0; id < n_samples; id++) {
-#ifdef __INTEL_COMPILER
-#pragma warning(push)
-#pragma warning(disable:2259)
-#endif
     double _g_distrib  = (double)g_distrib[id];
     double _gsum_weight = (double)gsum_weight;
-#ifdef __INTEL_COMPILER
-#pragma warning(pop)
-#endif
     cfreq[id+1] = cfreq[id] + _g_distrib/_gsum_weight;
   }
   cfreq[n_samples] = 1.0;
@@ -844,12 +837,12 @@ _update_sampling(int                  dim,
 static double
 _bucket_sampling(int                       dim,
                  int                       n_ranks,
-                 int                 n_codes,
+                 int                       n_codes,
                  const PDM_hilbert_code_t  hilbert_codes[],
-                 const int           weight[],
-                 const int           order[],
+                 const int                 weight[],
+                 const int                 order[],
                  PDM_hilbert_code_t       *sampling[],
-                 PDM_MPI_Comm                  comm)
+                 PDM_MPI_Comm              comm)
 {
   int  i, n_iters;
   int   j;
@@ -870,16 +863,9 @@ _bucket_sampling(int                       dim,
 
   PDM_MPI_Allreduce(&lsum_weight, &gsum_weight, 1, PDM__PDM_MPI_G_NUM, PDM_MPI_SUM, comm);
 
-#ifdef __INTEL_COMPILER
-#pragma warning(push)
-#pragma warning(disable:2259)
-#endif
   double _gsum_weight = (double)gsum_weight;
   double _n_ranks = (double)n_ranks;
   optim = _gsum_weight / _n_ranks;
-#ifdef __INTEL_COMPILER
-#pragma warning(pop)
-#endif
 
   /* Define a naive sampling (uniform distribution) */
 
@@ -984,10 +970,10 @@ _bucket_sampling(int                       dim,
  *---------------------------------------------------------------------------*/
 
 void
-PDM_hilbert_get_coord_extents_seq(int               dim,
-                              size_t            n_coords,
-                              const double  coords[],
-                              double        g_extents[])
+PDM_hilbert_get_coord_extents_seq(      int    dim,
+                                        size_t n_coords,
+                                  const double coords[],
+                                        double g_extents[])
 {
   size_t  i, j;
 
@@ -1009,11 +995,11 @@ PDM_hilbert_get_coord_extents_seq(int               dim,
 }
 
 void
-PDM_hilbert_get_coord_extents_par(int               dim,
-                              size_t            n_coords,
-                              const double  coords[],
-                              double        g_extents[],
-                              PDM_MPI_Comm          comm)
+PDM_hilbert_get_coord_extents_par(int           dim,
+                                  size_t        n_coords,
+                                  const double  coords[],
+                                  double        g_extents[],
+                                  PDM_MPI_Comm  comm)
 {
   PDM_hilbert_get_coord_extents_seq(dim,
                                     n_coords,
@@ -1040,12 +1026,12 @@ PDM_hilbert_get_coord_extents_par(int               dim,
  *----------------------------------------------------------------------------*/
 
 void
-PDM_hilbert_encode_coords(int                 dim,
-			  PDM_hilbert_encode_t encode,
-                          const double    extents[],
-                          int           n_coords,
-                          const double    coords[],
-                          PDM_hilbert_code_t  h_code[])
+PDM_hilbert_encode_coords(int                  dim,
+                          PDM_hilbert_encode_t encode,
+                          const double         extents[],
+                          int                  n_coords,
+                          const double         coords[],
+                          PDM_hilbert_code_t   h_code[])
 {
 
   const unsigned *idata = NULL;
@@ -1056,12 +1042,12 @@ PDM_hilbert_encode_coords(int                 dim,
   case PDM_HILBERT_CS:
 
     if (dim == 2) {
-      idata  = _cs_idata2d;
-      istate = _cs_istate2d;
+      idata  = _pdm_idata2d;
+      istate = _pdm_istate2d;
     }
     else if (dim == 3) {
-      idata  = _cs_idata3d;
-      istate = _cs_istate3d;
+      idata  = _pdm_idata3d;
+      istate = _pdm_istate3d;
     }
     break;
 
@@ -1211,9 +1197,9 @@ PDM_hilbert_encode_coords(int                 dim,
  *----------------------------------------------------------------------------*/
 
 void
-PDM_hilbert_local_order(int                 n_codes,
-                        const PDM_hilbert_code_t  hilbert_codes[],
-                        int                 order[])
+PDM_hilbert_local_order(int                      n_codes,
+                        const PDM_hilbert_code_t hilbert_codes[],
+                        int                      order[])
 {
   int   i, tmp;
 
@@ -1257,12 +1243,12 @@ PDM_hilbert_local_order(int                 n_codes,
  *----------------------------------------------------------------------------*/
 
 void
-PDM_hilbert_local_order_coords(int                dim,
+PDM_hilbert_local_order_coords(int                  dim,
                                PDM_hilbert_encode_t encode,
-                               const double   extents[],
-                               int          n_coords,
-                               const double   coords[],
-                               int          order[])
+                               const double         extents[],
+                               int                  n_coords,
+                               const double         coords[],
+                               int                  order[])
 {
   PDM_hilbert_code_t *h_code = (PDM_hilbert_code_t *) malloc (sizeof(PDM_hilbert_code_t) * n_coords);
 

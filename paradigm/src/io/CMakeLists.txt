@@ -6,12 +6,13 @@ file(GLOB_RECURSE SOURCES
 add_library(pdm_io OBJECT ${SOURCES})
 
 target_include_directories(pdm_io
-                           INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE  ${PDM_BINARY_DIR}
-                           PRIVATE  ${CMAKE_BINARY_DIR}
-                           PUBLIC  ${CMAKE_SOURCE_DIR}
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR})
+  INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  PRIVATE   $<BUILD_INTERFACE:${PDM_BINARY_DIR}>
+  PRIVATE   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)
 
 unset(LINK_LIBRARIES)
 list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
@@ -55,8 +56,17 @@ if (PDM_ENABLE_STATIC)
   list (APPEND _targets pdm_io_static)
 endif()
 
-install(TARGETS ${_targets}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        PUBLIC_HEADER DESTINATION include
-        ARCHIVE DESTINATION lib)
+foreach(_target IN ITEMS ${_targets})
+  install(TARGETS ${_target} EXPORT ${_target}Targets
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    PUBLIC_HEADER DESTINATION include
+    ARCHIVE DESTINATION lib
+  )
+  install(EXPORT ${_target}Targets
+    FILE ${_target}Targets.cmake
+    NAMESPACE pdm::
+    DESTINATION lib/cmake/${_target}
+  )
+  add_library(pdm::${_target} ALIAS ${_target})
+endforeach()

@@ -135,6 +135,7 @@ _read_args
 static double
 _random01
 (
+void
 )
 {
   int sign;
@@ -165,8 +166,8 @@ char *argv[]
 
   PDM_MPI_Init (&argc, &argv);
 
-  int myRank;
-  PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &myRank);
+  int i_rank;
+  PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &i_rank);
 
   int numProcs;
   PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &numProcs);
@@ -189,7 +190,7 @@ char *argv[]
     srand(time(NULL));
   }
   else {
-    srand(myRank);
+    srand(i_rank);
   }
 
   /* Define the number of points */
@@ -200,7 +201,7 @@ char *argv[]
   }
   else {
     _nPts_l = (int) (nPts/numProcs);
-    if (myRank < nPts%numProcs) {
+    if (i_rank < nPts%numProcs) {
       _nPts_l += 1;
     }
   }
@@ -237,16 +238,18 @@ char *argv[]
   const int depth_max = 31;
   const int points_in_leaf_max = 1;
 
+  const int build_leaf_neighbours = 1;
   int id2 = PDM_para_octree_create (n_point_cloud,
                                     depth_max,
                                     points_in_leaf_max,
+                                    build_leaf_neighbours,
                                     PDM_MPI_COMM_WORLD);
 
   PDM_para_octree_point_cloud_set (id2, 0, _nPts_l, coords, gnum);
 
   PDM_para_octree_build (id2);
 
-  //  PDM_para_octree_dump (id2);
+  //PDM_para_octree_dump (id2);
 
   PDM_para_octree_dump_times (id2);
 
@@ -258,7 +261,7 @@ char *argv[]
   free (char_length);
   free (gnum);
 
-  if (myRank == 0) {
+  if (i_rank == 0) {
 
     PDM_printf ("\nfin Test\n");
 

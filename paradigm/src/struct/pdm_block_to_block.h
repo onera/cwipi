@@ -72,8 +72,8 @@ typedef struct _pdm_block_to_block_t PDM_block_to_block_t;
 PDM_block_to_block_t *
 PDM_block_to_block_create
 (
- PDM_g_num_t   *blockDistribIniIdx,
- PDM_g_num_t   *blockDistribEndIdx,
+ PDM_g_num_t   *block_distrib_ini_idx,
+ PDM_g_num_t   *block_distrib_end_idx,
  PDM_MPI_Comm   comm
 );
 
@@ -106,19 +106,6 @@ PDM_block_to_block_exch
  int                 *block_stride_end,
  void               **block_data_end
 );
-
-/* int  */
-/* PDM_block_to_block_exch_int  */
-/* ( */
-/*  PDM_block_to_block_t *btb, */
-/*  size_t               s_data, */
-/*  PDM_stride_t         t_stride, */
-/*  int                 *block_stride_ini, */
-/*  int                 *block_data_ini, */
-/*  int                 *block_stride_end, */
-/*  int                 **block_data_end */
-/* ); */
-
 
 /**
  *

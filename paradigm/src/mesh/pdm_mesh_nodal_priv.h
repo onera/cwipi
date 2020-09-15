@@ -63,7 +63,7 @@ typedef struct PDM_Mesh_nodal_block_std_t {
   PDM_g_num_t              **_numabs;       /*!< Global numbering (Memory mapping) */
   PDM_g_num_t              **numabs_int;    /*!< Global numbering inside each block */
   PDM_l_num_t              **_parent_num;       /*!< Parent numbering or NULL */
-  double                   **_cell_centers;       /*!< Cell center coordinates */
+  double                   **cell_centers;       /*!< Cell center coordinates */
 
 } PDM_Mesh_nodal_block_std_t;
 
@@ -85,7 +85,7 @@ typedef struct PDM_Mesh_nodal_block_poly2d_t {
   PDM_g_num_t            **_numabs;       /*!< Global numbering  (Memory mapping) */
   PDM_g_num_t            **numabs_int;    /*!< Global numbering inside each block */
   PDM_l_num_t            **_parent_num;       /*!< Parent numbering or NULL */
-  double                 **_cell_centers;       /*!< Cell center coordinates */
+  double                 **cell_centers;       /*!< Cell center coordinates */
 
 } PDM_Mesh_nodal_block_poly2d_t;
 
@@ -109,13 +109,17 @@ typedef struct PDM_Mesh_nodal_block_poly3d_t{
 
   PDM_l_num_t           **_cellfac;     /*!< cell->face connectivity (Memory mapping) */
 
+  PDM_l_num_t           **_cellvtx_idx; /*!< Index of cell->vertex connectivity (Memory mapping) */
+
+  PDM_l_num_t           **_cellvtx;     /*!< cell->vertex connectivity (Memory mapping) */
+
   PDM_l_num_t           **_num_part;    /*!< Initial numbering in the partition (Memory mapping) */
 
   PDM_g_num_t           **_numabs;      /*!< Global numbering (Memory mapping) */
 
   PDM_g_num_t           **numabs_int;   /*!< Global numbering inside the block (Memory mapping) */
   PDM_l_num_t           **_parent_num;  /*!< Parent numbering or NULL */
-  double                **_cell_centers;       /*!< Cell center coordinates */
+  double                **cell_centers;       /*!< Cell center coordinates */
 
 } PDM_Mesh_nodal_block_poly3d_t;
 
@@ -138,8 +142,8 @@ typedef struct PDM_Mesh_nodal_prepa_blocks_t {
   PDM_l_num_t  n_pyramid_proc;    /*!< Number of pyramids per proc */
   PDM_l_num_t  n_poly3d_proc;     /*!< Number of poly3d per proc */
   PDM_l_num_t *add_etat;          /*!< Allows to check if all partitions are taking into account */
-  PDM_l_num_t  t_add;             /*!< Type of input (1 : cell3d_cellface,
-                                                      2 : cell2d_cellface,
+  PDM_l_num_t  t_add;             /*!< Type of input (1 : cell3d_cell_face,
+                                                      2 : cell2d_cell_face,
                                                       3 : faces_facesvtx_add) */
   PDM_l_num_t  *n_tetra;          /*!< Number of tetrahedra per partition */
   PDM_l_num_t  *n_hexa;           /*!< Number of hexhedra per partition */

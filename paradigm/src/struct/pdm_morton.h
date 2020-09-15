@@ -90,11 +90,11 @@ extern const  PDM_morton_int_t PDM_morton_max_level;
  *---------------------------------------------------------------------------*/
 
 void
-PDM_morton_get_coord_extents(int               dim,
-                             size_t            n_coords,
-                             const double      coords[],
-                             double             g_extents[],
-                             PDM_MPI_Comm          comm);
+PDM_morton_get_coord_extents(int            dim,
+                             size_t         n_coords,
+                             const double   coords[],
+                             double         g_extents[],
+                             PDM_MPI_Comm   comm);
 
 /*----------------------------------------------------------------------------
  * Determine the global extents associated with a set of local extents
@@ -110,9 +110,9 @@ PDM_morton_get_coord_extents(int               dim,
 void
 PDM_morton_get_global_extents(int               dim,
                               size_t            n_extents,
-                              const double  extents[],
-                              double        g_extents[],
-                              PDM_MPI_Comm          comm);
+                              const double      extents[],
+                              double            g_extents[],
+                              PDM_MPI_Comm      comm);
 
 /*----------------------------------------------------------------------------
  * Build a Morton code according to the level in an octree grid and its
@@ -130,7 +130,7 @@ PDM_morton_get_global_extents(int               dim,
 PDM_morton_code_t
 PDM_morton_encode(int                dim,
                   PDM_morton_int_t   level,
-                  const double   coords[]);
+                  const double       coords[]);
 
 /*----------------------------------------------------------------------------
  * Encode an array of coordinates.
@@ -152,9 +152,9 @@ PDM_morton_encode(int                dim,
 void
 PDM_morton_encode_coords(int                dim,
                          PDM_morton_int_t   level,
-                         const double   extents[],
+                         const double       extents[],
                          size_t             n_coords,
-                         const double   coords[],
+                         const double       coords[],
                          PDM_morton_code_t  m_code[],
                          double             d[3],
                          double             s[3]);
@@ -203,9 +203,9 @@ PDM_morton_compare(int                dim,
  *----------------------------------------------------------------------------*/
 
 void
-PDM_morton_local_order(int                n_codes,
+PDM_morton_local_order(int                      n_codes,
                        const PDM_morton_code_t  morton_codes[],
-                       int                order[]);
+                       int                      order[]);
 
 /*----------------------------------------------------------------------------
  * Locally sort a list of Morton ids.
@@ -216,7 +216,7 @@ PDM_morton_local_order(int                n_codes,
  *----------------------------------------------------------------------------*/
 
 void
-PDM_morton_local_sort(int          n_codes,
+PDM_morton_local_sort(int                n_codes,
                       PDM_morton_code_t  morton_codes[]);
 
 /*----------------------------------------------------------------------------
@@ -337,7 +337,7 @@ PDM_morton_assign_level (PDM_morton_code_t  *a,
  *----------------------------------------------------------------------------*/
 
 int
-PDM_morton_binary_search(int           size,
+PDM_morton_binary_search(int                 size,
                          PDM_morton_code_t   code,
                          PDM_morton_code_t  *codes);
 
@@ -378,8 +378,30 @@ void
 PDM_morton_quantile_intersect(size_t              n_quantiles,
                               PDM_morton_code_t   code,
                               PDM_morton_code_t  *quantile_start,
-                              size_t              *n_intersect,
-                              int                 *intersect );
+                              size_t             *start,
+                              size_t             *end);
+
+/*----------------------------------------------------------------------------
+ * Get, within a sorted list of Morton codes, the sublist of elements
+ * that intersect a Morton code, using a binary search.
+ *
+ * No check is done to ensure that the code is present in the quantiles.
+ *
+ * parameters:
+ *   n_quantiles    <-- number of quantiles
+ *   code           <-- code we are searching for
+ *   quantile_start <-- first Morton code in each quantile (size: n_quantiles)
+ *   n_intersect    <-> number of intersections with quantiles
+ *   intersect      <-> list intersected quantiles (size : n_quantiles)
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+PDM_morton_list_intersect(size_t              n_quantiles,
+                          PDM_morton_code_t   code,
+                          PDM_morton_code_t  *quantile_start,
+                          size_t             *start,
+                          size_t             *end);
 
 /*----------------------------------------------------------------------------
  * Build a global Morton encoding rank index from ordered codes
@@ -431,12 +453,12 @@ PDM_morton_ordered_build_rank_index
 double
 PDM_morton_build_rank_index(int                      dim,
                             int                      gmax_level,
-                            PDM_l_num_t                n_codes,
+                            PDM_l_num_t              n_codes,
                             const PDM_morton_code_t  code[],
-                            const int          weight[],
-                            const int          order[],
+                            const int                weight[],
+                            const int                order[],
                             PDM_morton_code_t        rank_index[],
-                            PDM_MPI_Comm                 comm);
+                            PDM_MPI_Comm             comm);
 
 /*----------------------------------------------------------------------------
  * Dump a Morton to standard output or to a file.
@@ -450,6 +472,24 @@ void
 PDM_morton_dump(int                 dim,
                 PDM_morton_code_t   code);
 
+
+
+
+
+
+void
+PDM_morton_intersect_box
+(
+ const int                dim,
+ const PDM_morton_code_t  node,
+ const PDM_morton_code_t  box_min,
+ const PDM_morton_code_t  box_max,
+ const PDM_morton_code_t  nodes[],
+ const size_t             start,
+ const size_t             end,
+ size_t                  *n_intersect,
+ int                     *intersect
+ );
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

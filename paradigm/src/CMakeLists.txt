@@ -16,6 +16,7 @@ file(GLOB_RECURSE SOURCES
      util/*.[ch]
      ext_wrapper/*.[ch]
      mpi_wrapper/pdm_mpi_node_first_rank.[hc]
+     io/pdm_logging.[hc]
      pdm.h
      pdm_priv.h)
 
@@ -30,59 +31,62 @@ if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
 endif()
 
 target_include_directories(pdm
-                           INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE  ${CMAKE_BINARY_DIR}
-                           PRIVATE  ${PDM_BINARY_DIR}
-                           PUBLIC  ${CMAKE_SOURCE_DIR}
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/pario
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/ppart
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/io
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_wrapper
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/ext_wrapper
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/mesh
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/meshgen
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/struct
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/util)
+  INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  PRIVATE   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+  PRIVATE   $<BUILD_INTERFACE:${PDM_BINARY_DIR}>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/pario>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ppart>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/io>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mpi_wrapper>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ext_wrapper>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mesh>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/meshgen>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/struct>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/util>
+)
+
 if (PDM_IN_PDMA)
   target_include_directories(pdm
-                             PUBLIC ${PDMA_SOURCE_DIR}/src/plugins/renum
-                             PUBLIC ${PDMA_SOURCE_DIR}/src/overlay)
+                             PUBLIC $<BUILD_INTERFACE:${PDMA_SOURCE_DIR}/src/plugins/renum>
+                             PUBLIC $<BUILD_INTERFACE:${PDMA_SOURCE_DIR}/src/overlay>)
 endif()
 
 if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
   target_include_directories(pdmf
-                           INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE   ${CMAKE_BINARY_DIR}
-                           PRIVATE  ${PDM_BINARY_DIR}
-                           PUBLIC    ${CMAKE_SOURCE_DIR}
-                           PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/pario
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/ppart
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/io
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_wrapper
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/ext_wrapper
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/mesh
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/meshgen
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/struct
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/util)
+    INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+    PRIVATE   $<BUILD_INTERFACE:${PDM_BINARY_DIR}>
+    PUBLIC    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+    PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/pario>
+    PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ppart>
+    PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/io>
+    PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mpi_wrapper>
+    PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ext_wrapper>
+    PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mesh>
+    PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/meshgen>
+    PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/struct>
+    PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/util>
+  )
     if (PDM_IN_PDMA)
       target_include_directories(pdmf
-                                 PUBLIC ${PDMA_SOURCE_DIR}/src/plugins/renum
-                                 PUBLIC ${PDMA_SOURCE_DIR}/src/overlay)
+                                 PUBLIC $<BUILD_INTERFACE:${PDMA_SOURCE_DIR}/src/plugins/renum>
+                                 PUBLIC $<BUILD_INTERFACE:${PDMA_SOURCE_DIR}/src/overlay>)
     endif()
 endif()
 
 if (PTSCOTCH_FOUND)
     target_include_directories(pdm
-                              PRIVATE ${PTSCOTCH_INCLUDE_DIRS})
+                              PRIVATE $<BUILD_INTERFACE:${PTSCOTCH_INCLUDE_DIRS}>)
 endif (PTSCOTCH_FOUND)
 
 if (PARMETIS_FOUND)
     target_include_directories(pdm
-                              PRIVATE ${PARMETIS_INCLUDE_DIRS})
+                              PRIVATE $<BUILD_INTERFACE:${PARMETIS_INCLUDE_DIRS}>)
 endif (PARMETIS_FOUND)
 
 # Liste des header
@@ -103,11 +107,15 @@ list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/util/pdm_timer.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/util/pdm_fortran_to_c_string.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/meshgen/pdm_dcube_gen.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_gnum.h")
+list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_gnum_from_hash_values.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_part_to_block.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_block_to_part.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_hash_tab.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_handles.h")
+list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_sort.h")
+list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_binary_search.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_global_mean.h")
+list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_radix_sort.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/mesh/pdm_cellface_orient.h")
 if (PDM_IN_PDMA)
   list(APPEND LIST_HEADER "${CMAKE_BINARY_DIR}/pdm_config.h")
@@ -124,7 +132,7 @@ if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_SOURCE_DIR}/ppart/mod_pdm_part.F90")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_SOURCE_DIR}/ppart/pdm_partf.h")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_SOURCE_DIR}/pdmf.h")
-    if (PDM_IN_PDMA)
+  if (PDM_IN_PDMA)
     list(APPEND LIST_HEADERF "${CMAKE_BINARY_DIR}/pdm_configf.h")
   else()
     list(APPEND LIST_HEADERF "${PDM_BINARY_DIR}/pdm_configf.h")
@@ -136,7 +144,8 @@ if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/pdm_part.mod")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/pdm_mesh_nodal.mod")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/pdm_dist_cloud_surf.mod")
-
+  list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/pdm_part_to_block.mod")
+  list(APPEND LIST_HEADERF "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_part_to_block.F90")
 endif ()
 
 if (OPENMP_FOUND)
@@ -238,8 +247,17 @@ if (PDM_ENABLE_STATIC_Fortran_INTERFACE)
   list (APPEND _targets pdmf_static)
 endif()
 
-install(TARGETS ${_targets}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        PUBLIC_HEADER DESTINATION include
-        ARCHIVE DESTINATION lib)
+foreach(_target IN ITEMS ${_targets})
+  install(TARGETS ${_target} EXPORT ${_target}Targets
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    PUBLIC_HEADER DESTINATION include
+    ARCHIVE DESTINATION lib
+  )
+  install(EXPORT ${_target}Targets
+    FILE ${_target}Targets.cmake
+    NAMESPACE pdm::
+    DESTINATION lib/cmake/${_target}
+  )
+  add_library(pdm::${_target} ALIAS ${_target})
+endforeach()

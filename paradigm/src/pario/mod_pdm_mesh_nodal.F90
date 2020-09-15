@@ -118,8 +118,10 @@ MODULE pdm_mesh_nodal
     integer, intent(in)                 :: idx
     integer, intent(in)                 :: id_part
     integer, intent(in)                 :: n_vtx
-    double precision, dimension(*)      :: coords
-    integer (pdm_g_num_s), dimension(*) :: numabs
+    double precision, pointer           :: coords
+    integer (pdm_g_num_s), pointer      :: numabs
+    type(c_ptr) :: c_coords
+    type(c_ptr) :: c_numabs
 
     interface
       subroutine pdm_mesh_nodal_coord_set_c(idx, id_part, n_vtx, coords, numabs) &
@@ -134,13 +136,18 @@ MODULE pdm_mesh_nodal
         integer (c_int), intent(in), value   :: id_part
         integer (c_int), intent(in), value   :: n_vtx
 
-        real (c_double)         :: coords(*)
-        integer (kind=pdm_g_num_s)   :: numabs(*)
+        ! real (c_double)         :: coords(*)
+        ! integer (kind=pdm_g_num_s)   :: numabs(*)
+        type (c_ptr), value         :: coords
+        type (c_ptr), value         :: numabs
         !integer (pdm_g_num_s)   :: numabs(*)
       end subroutine pdm_mesh_nodal_coord_set_c
     end interface
 
-    call  pdm_mesh_nodal_coord_set_c(idx, id_part, n_vtx, coords, numabs)
+    c_coords = c_loc (coords)
+    c_numabs = c_loc (numabs)
+
+    call  pdm_mesh_nodal_coord_set_c(idx, id_part, n_vtx, c_coords, c_numabs)
 
   end subroutine
 

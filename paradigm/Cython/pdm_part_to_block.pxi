@@ -24,6 +24,15 @@ cdef extern from "pdm_part_to_block.h":
                                                   int                           n_part,
                                                   PDM_MPI_Comm                  comm)
 
+    PDM_part_to_block_t *PDM_part_to_block_create2(PDM_part_to_block_distrib_t   t_distrib,
+                                                   PDM_part_to_block_post_t      t_post,
+                                                   double                        partActiveNode,
+                                                   PDM_g_num_t                 **gnum_elt,
+                                                   PDM_g_num_t                  *dataDistribIndex,
+                                                   int                          *n_elt,
+                                                   int                           n_part,
+                                                   PDM_MPI_Comm                  comm)
+
     int PDM_part_to_block_n_active_ranks_get(PDM_part_to_block_t *ptb)
 
     int *PDM_part_to_block_active_ranks_get(PDM_part_to_block_t *ptb)
@@ -77,7 +86,8 @@ cdef class PartToBlock:
                         PDM_part_to_block_distrib_t t_distrib = <PDM_part_to_block_distrib_t> (0),
                         PDM_part_to_block_post_t    t_post    = <PDM_part_to_block_post_t   > (0),
                         PDM_stride_t                t_stride  = <PDM_stride_t   > (0),
-                        double partActiveNode = 1.):
+                        double partActiveNode = 1.,
+                        NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] userDistribution=None):
         """
         TODOUX
         """
@@ -95,6 +105,8 @@ cdef class PartToBlock:
         assert(len(pLNToGN) == partN)
         if (pWeight is not None):
           assert(len(pWeight) == partN)
+        if (userDistribution is not None):
+          assert(userDistribution.shape[0]==comm.Get_size()+1)
 
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -151,14 +163,24 @@ cdef class PartToBlock:
 
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
         # > Create
-        self.PTB = PDM_part_to_block_create(t_distrib,
-                                            t_post,
-                                            partActiveNode,
-                                            self.LNToGN,
-                                            self.weight,
-                                            self.NbElmts,
-                                            self.partN,
-                                            PDMC)
+        if userDistribution is None:
+          self.PTB = PDM_part_to_block_create(t_distrib,
+                                              t_post,
+                                              partActiveNode,
+                                              self.LNToGN,
+                                              self.weight,
+                                              self.NbElmts,
+                                              self.partN,
+                                              PDMC)
+        else:
+          self.PTB = PDM_part_to_block_create2(t_distrib,
+                                               t_post,
+                                               partActiveNode,
+                                               self.LNToGN,
+                                               <PDM_g_num_t *> userDistribution.data,
+                                               self.NbElmts,
+                                               self.partN,
+                                               PDMC)
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
     # ------------------------------------------------------------------------
@@ -221,13 +243,16 @@ cdef class PartToBlock:
             # ------------------------------------------------
             # > Get flow solution
             if(pArray.ndim == 2):
-              assert(pArray.shape[1] == self.NbElmts[idx])
+              if (self.partN > 0):
+                assert(pArray.shape[1] == self.NbElmts[idx])
               ndim = 2
             else:
               if(self.t_stride == <PDM_stride_t   >(0)):
-                assert(pArray.shape[0] == self.NbElmts[idx])
+                if (self.partN > 0):
+                  assert(pArray.shape[0] == self.NbElmts[idx])
               ndim = 1
-            part_data[idx] = <void *> pArray.data
+            if (self.partN > 0):
+              part_data[idx] = <void *> pArray.data
             # ------------------------------------------------
 
             # ------------------------------------------------
@@ -306,6 +331,32 @@ cdef class PartToBlock:
         if(self.t_stride != 0): # Var Stride
           free(part_stride)
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
+
+    # ------------------------------------------------------------------------
+    def getBlockGnumCopy(self):
+      """
+         Return a copy of the global numbers, of element in the current process, 
+         array compute in library
+         Copy because remove of PTB object can made a core ...
+      """
+      # ************************************************************************
+      # > Declaration
+      cdef PDM_g_num_t* BlockGnum
+      cdef int          blkSize
+      # ************************************************************************
+
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::
+      # > Get
+      BlockGnum = PDM_part_to_block_block_gnum_get(self.PTB)
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::
+
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::
+      blkSize      = PDM_part_to_block_n_elt_block_get(self.PTB);
+      dim          = <NPY.npy_intp> blkSize
+      BlockGnumNPY = NPY.PyArray_SimpleNewFromData(1, &dim, PDM_G_NUM_NPY_INT, <void *> BlockGnum)
+      # ::::::::::::::::::::::::::::::::::::::::::::::::::
+
+      return NPY.copy(BlockGnumNPY)
 
     # ------------------------------------------------------------------------
     def getDistributionCopy(self):

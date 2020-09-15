@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #include <sys/types.h>
 
 /*----------------------------------------------------------------------------
@@ -20,6 +21,7 @@
 #include "pdm_writer_ensight_case.h"
 #include "pdm_io.h"
 #include "pdm.h"
+#include "pdm_priv.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_handles.h"
@@ -50,10 +52,10 @@ extern "C" {
 typedef struct {
 
   PDM_writer_ensight_case_t *ensight_case; /* Gestion du fichier case */
-  int                f_unit_geom;  /* Unite du fichier de géométrie */
-  int                n_time_step;  /* Nombre de pas de temps */
-  int                n_part_ecr;   /* Nombre de parts ensight
-                                      écrites dans le fichier chr.geo */
+  int                        f_unit_geom;  /* Unite du fichier de géométrie */
+  int                        n_time_step;  /* Nombre de pas de temps */
+  int                        n_part_ecr;   /* Nombre de parts ensight
+                                              écrites dans le fichier chr.geo */
 
 } PDM_writer_ensight_t;
 
@@ -102,7 +104,7 @@ static const char  *_ensight_type_name[10] = {"point",
                                               "pyramid5",
                                               "penta6",
                                               "hexa8",
-                                              "nfaced"};
+                                              "n_faced"};
 
 /*=============================================================================
  * Fonctions privées
@@ -151,9 +153,9 @@ _max_int
  *----------------------------------------------------------------------------*/
 
 static void
-_ecr_string(PDM_writer_t           *cs,
-            PDM_l_num_t  f_unit_geom,
-            const char     *s)
+_ecr_string(PDM_writer_t *cs,
+            PDM_l_num_t   f_unit_geom,
+            const char   *s)
 {
   size_t  i;
   char  buf[82];
@@ -163,9 +165,9 @@ _ecr_string(PDM_writer_t           *cs,
     buf[80] = '\0';
     buf[81] = '\n';
     PDM_io_fmt_donnee_set(f_unit_geom,
-                            1,
-                            PDM_IO_T_CHAR,
-                            "%c");
+                          1,
+                          PDM_IO_T_CHAR,
+                          "%c");
     size_t s_buf =  strlen(buf);
     PDM_io_ecriture_globale(f_unit_geom,
                             (PDM_l_num_t) sizeof(char),
@@ -192,9 +194,9 @@ _ecr_string(PDM_writer_t           *cs,
  *----------------------------------------------------------------------------*/
 
 inline static void
-_ecr_int(PDM_writer_t           *cs,
-         PDM_l_num_t  f_unit_geom,
-         int32_t         n)
+_ecr_int(PDM_writer_t *cs,
+         PDM_l_num_t   f_unit_geom,
+         int32_t       n)
 {
   if (cs->fmt_fic == PDM_WRITER_FMT_ASCII) {
     PDM_io_fmt_donnee_set(f_unit_geom, 10, PDM_IO_T_INT, "%10d");
@@ -213,14 +215,14 @@ _ecr_int(PDM_writer_t           *cs,
  *----------------------------------------------------------------------------*/
 
 static void
-_ecr_entrelace_float(PDM_writer_t                           *cs,
-                     const PDM_writer_statut_t               s_ecr_n_valeur,
-                     const PDM_l_num_t            f_unit_geom,
+_ecr_entrelace_float(PDM_writer_t                 *cs,
+                     const PDM_writer_statut_t     s_ecr_n_valeur,
+                     const PDM_l_num_t             f_unit_geom,
                      const PDM_io_n_composantes_t  t_comp,
-                     const PDM_l_num_t           *n_comp,
-                     const PDM_l_num_t            n_valeur,
-                     const PDM_g_num_t          *indirection,
-                     const float                    *valeurs)
+                     const PDM_l_num_t            *n_comp,
+                     const PDM_l_num_t             n_valeur,
+                     const PDM_g_num_t            *indirection,
+                     const float                  *valeurs)
 {
 
   if (s_ecr_n_valeur == PDM_WRITER_ON) {
@@ -273,14 +275,14 @@ _ecr_entrelace_float(PDM_writer_t                           *cs,
  *----------------------------------------------------------------------------*/
 
 static void
-_ecr_entrelace_int(PDM_writer_t                           *cs,
-                   const PDM_writer_statut_t               s_ecr_n_valeur,
-                   const PDM_l_num_t            f_unit_geom,
+_ecr_entrelace_int(PDM_writer_t                 *cs,
+                   const PDM_writer_statut_t     s_ecr_n_valeur,
+                   const PDM_l_num_t             f_unit_geom,
                    const PDM_io_n_composantes_t  t_comp,
-                   const PDM_l_num_t           *n_comp,
-                   const PDM_l_num_t            n_valeur,
-                   const PDM_g_num_t          *indirection,
-                   const int32_t                  *valeurs)
+                   const PDM_l_num_t            *n_comp,
+                   const PDM_l_num_t             n_valeur,
+                   const PDM_g_num_t            *indirection,
+                   const int32_t                *valeurs)
 {
   if (s_ecr_n_valeur == PDM_WRITER_ON) {
 
@@ -330,8 +332,8 @@ _ecr_entrelace_int(PDM_writer_t                           *cs,
  *----------------------------------------------------------------------------*/
 
 static void
-_geom_entete_ecr(PDM_writer_t          *cs,
-                 PDM_l_num_t f_unit_geom)
+_geom_entete_ecr(PDM_writer_t *cs,
+                 PDM_l_num_t   f_unit_geom)
 {
   if (cs->fmt_fic == PDM_WRITER_FMT_BIN)
     _ecr_string(cs, f_unit_geom, "C Binary");
@@ -363,9 +365,9 @@ _geom_entete_ecr(PDM_writer_t          *cs,
 static void
 _calcul_numabs_face_poly3d
 (
- PDM_writer_geom_t        *geom,
- const int                 iblock,
- PDM_g_num_t  **numabs_face
+ PDM_writer_geom_t  *geom,
+ const int           iblock,
+ PDM_g_num_t       **numabs_face
 )
 {
 
@@ -428,11 +430,11 @@ _calcul_numabs_face_poly3d
 
   /* Allocation des tableaux pour echanges MPI */
 
-  int *sendBuffN   = (int *) malloc (sizeof(int) * n_procs);
-  int *sendBuffIdx = (int *) malloc (sizeof(int) * n_procs);
+  int *send_buff_n   = (int *) malloc (sizeof(int) * n_procs);
+  int *send_buff_idx = (int *) malloc (sizeof(int) * n_procs);
 
-  int *recvBuffN   = (int *) malloc (sizeof(int) * n_procs);
-  int *recvBuffIdx = (int *) malloc (sizeof(int) * n_procs);
+  int *recv_buff_n   = (int *) malloc (sizeof(int) * n_procs);
+  int *recv_buff_idx = (int *) malloc (sizeof(int) * n_procs);
 
   /* Calcul du nombre total d'elements du bloc */
 
@@ -448,10 +450,10 @@ _calcul_numabs_face_poly3d
   /* Comptage du nombre d'elements a envoyer a chaque processus */
 
   for (int j = 0; j < n_procs; j++) {
-    sendBuffN[j]   = 0;
-    sendBuffIdx[j] = 0;
-    recvBuffN[j]   = 0;
-    recvBuffIdx[j] = 0;
+    send_buff_n[j]   = 0;
+    send_buff_idx[j] = 0;
+    recv_buff_n[j]   = 0;
+    recv_buff_idx[j] = 0;
   }
 
   for (int j = 0; j < n_part; j++) {
@@ -465,30 +467,30 @@ _calcul_numabs_face_poly3d
       const int i_elt_proc = PDM_binary_search_gap_long(numabs_block[k],
                                                         d_elt_proc,
                                                         n_procs+1);
-      sendBuffN[i_elt_proc] += 1;
+      send_buff_n[i_elt_proc] += 1;
     }
 
   }
 
 
-  sendBuffIdx[0] = 0;
+  send_buff_idx[0] = 0;
   for (int j = 1; j < n_procs; j++) {
-    sendBuffIdx[j] = sendBuffIdx[j-1] + sendBuffN[j-1];
+    send_buff_idx[j] = send_buff_idx[j-1] + send_buff_n[j-1];
   }
 
   /* Determination du nombre d'elements recu de chaque processus */
 
-  PDM_MPI_Alltoall(sendBuffN,
+  PDM_MPI_Alltoall(send_buff_n,
                1,
                PDM_MPI_INT,
-               recvBuffN,
+               recv_buff_n,
                1,
                PDM_MPI_INT,
                geom->pdm_mpi_comm);
 
-  recvBuffIdx[0] = 0;
+  recv_buff_idx[0] = 0;
   for(int j = 1; j < n_procs; j++) {
-    recvBuffIdx[j] = recvBuffIdx[j-1] + recvBuffN[j-1];
+    recv_buff_idx[j] = recv_buff_idx[j-1] + recv_buff_n[j-1];
   }
 
   /* Transmission : des numeros absolus des éléments + nb de faces
@@ -497,22 +499,22 @@ _calcul_numabs_face_poly3d
   const int n_octet_exch = sizeof(int) + sizeof(PDM_g_num_t); /* Nb d'octet échangés */
 
   for (int j = 0; j < n_procs; j++) {
-    sendBuffIdx[j] = sendBuffIdx[j] * n_octet_exch;
-    recvBuffIdx[j] = recvBuffIdx[j] * n_octet_exch;
-    recvBuffN[j]   = recvBuffN[j]   * n_octet_exch;
+    send_buff_idx[j] = send_buff_idx[j] * n_octet_exch;
+    recv_buff_idx[j] = recv_buff_idx[j] * n_octet_exch;
+    recv_buff_n[j]   = recv_buff_n[j]   * n_octet_exch;
   }
 
-  unsigned char *sendBuffData =
+  unsigned char *send_buff_data =
     (unsigned char *) malloc(sizeof(unsigned char) * n_elt_loc_total * n_octet_exch);
-  unsigned char *recvBuffData =
-    (unsigned char *) malloc(sizeof(unsigned char) * (recvBuffIdx[n_procs - 1] +
-                                                      recvBuffN[n_procs - 1]) * n_octet_exch);
+  unsigned char *recv_buff_data =
+    (unsigned char *) malloc(sizeof(unsigned char) * (recv_buff_idx[n_procs - 1] +
+                                                      recv_buff_n[n_procs - 1]) * n_octet_exch);
 
   for (int j = 0; j < n_procs; j++) {
-    sendBuffN[j] = 0;
+    send_buff_n[j] = 0;
   }
 
-  unsigned char *currentData = sendBuffData;
+  unsigned char *current_data = send_buff_data;
   for (int j = 0; j < n_part; j++) {
       int n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh, iblock, j);
       PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_g_num_get (geom->idx_mesh,
@@ -538,38 +540,31 @@ _calcul_numabs_face_poly3d
                                                          d_elt_proc,
                                                          n_procs+1);
 
-#ifdef __INTEL_COMPILER
-#pragma warning(push)
-#pragma warning(disable:2312)
-#endif
-      PDM_g_num_t *currentDataLong =
-        (PDM_g_num_t *) (currentData + sendBuffIdx[i_elt_proc] + sendBuffN[i_elt_proc]);
-      *currentDataLong = numabs_block[k];
-#ifdef __INTEL_COMPILER
-#pragma warning(pop)
-#endif
-      int *currentDataInt =
-        (int *) (currentData + sendBuffIdx[i_elt_proc] + sendBuffN[i_elt_proc] + sizeof(PDM_g_num_t));
-      *currentDataInt = cellfac_idx[k+1] - cellfac_idx[k];
+      PDM_g_num_t *current_data_long =
+        (PDM_g_num_t *) (current_data + send_buff_idx[i_elt_proc] + send_buff_n[i_elt_proc]);
+      *current_data_long = numabs_block[k];
+      int *current_dataInt =
+        (int *) (current_data + send_buff_idx[i_elt_proc] + send_buff_n[i_elt_proc] + sizeof(PDM_g_num_t));
+      *current_dataInt = cellfac_idx[k+1] - cellfac_idx[k];
 
-      sendBuffN[i_elt_proc] += n_octet_exch;
+      send_buff_n[i_elt_proc] += n_octet_exch;
 
     }
   }
 
-  PDM_MPI_Alltoallv((void *) sendBuffData,
-                sendBuffN,
-                sendBuffIdx,
+  PDM_MPI_Alltoallv((void *) send_buff_data,
+                send_buff_n,
+                send_buff_idx,
                 PDM_MPI_BYTE,
-                (void *) recvBuffData,
-                recvBuffN,
-                recvBuffIdx,
+                (void *) recv_buff_data,
+                recv_buff_n,
+                recv_buff_idx,
                 PDM_MPI_BYTE,
                 geom->pdm_mpi_comm);
 
   /* Tri des éléments locaux détermination */
 
-  int n_elt_recv = (recvBuffIdx[n_procs-1] + recvBuffN[n_procs-1]) / n_octet_exch;
+  int n_elt_recv = (recv_buff_idx[n_procs-1] + recv_buff_n[n_procs-1]) / n_octet_exch;
 
   PDM_g_num_t *face_abs = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (d_elt_proc[i_proc+1] - d_elt_proc[i_proc] + 1));
   PDM_g_num_t n_face_proc = 0;
@@ -577,19 +572,12 @@ _calcul_numabs_face_poly3d
   face_abs[0] = 0;
   int current_octet = 0;
   for (int i = 0; i < n_elt_recv; i++) {
-#ifdef __INTEL_COMPILER
-#pragma warning(push)
-#pragma warning(disable:2312)
-#endif
-    PDM_g_num_t *recvBuffDataLong = (PDM_g_num_t *) (recvBuffData + current_octet);
-#ifdef __INTEL_COMPILER
-#pragma warning(pop)
-#endif
-    int       *recvBuffDataInt = (int *) (recvBuffData + current_octet + sizeof(PDM_g_num_t));
-    PDM_g_num_t  gCel  = *recvBuffDataLong;
+    PDM_g_num_t *recv_buff_data_long = (PDM_g_num_t *) (recv_buff_data + current_octet);
+    int       *recv_buff_data_int = (int *) (recv_buff_data + current_octet + sizeof(PDM_g_num_t));
+    PDM_g_num_t  gCel  = *recv_buff_data_long;
     PDM_g_num_t _lCel  = gCel - d_elt_proc[i_proc]; // local numbering
     int          lCel  = (int) _lCel; // local numbering
-    face_abs[lCel+1] = (PDM_g_num_t) *recvBuffDataInt;
+    face_abs[lCel+1] = (PDM_g_num_t) *recv_buff_data_int;
     n_face_proc     += face_abs[lCel+1];
     current_octet += n_octet_exch;
   }
@@ -631,42 +619,35 @@ _calcul_numabs_face_poly3d
 
   current_octet = 0;
   for (int i = 0; i < n_elt_recv; i++) {
-#ifdef __INTEL_COMPILER
-#pragma warning(push)
-#pragma warning(disable:2312)
-#endif
-    PDM_g_num_t *recvBuffDataLong = (PDM_g_num_t *) (recvBuffData + current_octet);
-#ifdef __INTEL_COMPILER
-#pragma warning(pop)
-#endif
-    int       *recvBuffDataInt = (int *) (recvBuffData + current_octet + sizeof(PDM_g_num_t));
-    PDM_g_num_t  gCel  = *recvBuffDataLong;
-    PDM_g_num_t _lCel = gCel - d_elt_proc[i_proc];
-    int        lCel  = (int) _lCel; // local numbering
-    *recvBuffDataLong = face_abs[lCel];
-    *recvBuffDataInt = -1; /* Pas d'info dans la deuxieme partie du buffer */
+    PDM_g_num_t *recv_buff_data_long = (PDM_g_num_t *) (recv_buff_data + current_octet);
+    int         *recv_buff_data_int  = (int *        ) (recv_buff_data + current_octet + sizeof(PDM_g_num_t));
+    PDM_g_num_t  g_cell  = *recv_buff_data_long;
+    PDM_g_num_t _l_cell  = g_cell - d_elt_proc[i_proc];
+    int        l_cell    = (int) _l_cell; // local numbering
+    *recv_buff_data_long = face_abs[l_cell];
+    *recv_buff_data_int = -1; /* Pas d'info dans la deuxieme partie du buffer */
     current_octet += n_octet_exch;
   }
 
   free(face_abs);
 
-  PDM_MPI_Alltoallv((void *) recvBuffData,
-                recvBuffN,
-                recvBuffIdx,
-                PDM_MPI_BYTE,
-                (void *) sendBuffData,
-                sendBuffN,
-                sendBuffIdx,
-                PDM_MPI_BYTE,
-                geom->pdm_mpi_comm);
+  PDM_MPI_Alltoallv((void *) recv_buff_data,
+                    recv_buff_n,
+                    recv_buff_idx,
+                    PDM_MPI_BYTE,
+                    (void *) send_buff_data,
+                    send_buff_n,
+                    send_buff_idx,
+                    PDM_MPI_BYTE,
+                    geom->pdm_mpi_comm);
 
   /* On Stocke l'information recue */
 
   for (int j = 0; j < n_procs; j++) {
-    sendBuffN[j] = 0;
+    send_buff_n[j] = 0;
   }
 
-  currentData = sendBuffData;
+  current_data = send_buff_data;
   for (int j = 0; j < n_part; j++) {
 
     int n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh, iblock, j);
@@ -680,29 +661,22 @@ _calcul_numabs_face_poly3d
                                                          d_elt_proc,
                                                          n_procs+1);
 
-#ifdef __INTEL_COMPILER
-#pragma warning(push)
-#pragma warning(disable:2312)
-#endif
-      PDM_g_num_t *currentDataLong =
-        (PDM_g_num_t *) (currentData + sendBuffIdx[i_elt_proc] + sendBuffN[i_elt_proc]);
-#ifdef __INTEL_COMPILER
-#pragma warning(pop)
-#endif
-      numabs_face[j][k] = (PDM_g_num_t) *currentDataLong;
-      sendBuffN[i_elt_proc] += n_octet_exch;
+      PDM_g_num_t *current_data_long =
+        (PDM_g_num_t *) (current_data + send_buff_idx[i_elt_proc] + send_buff_n[i_elt_proc]);
+      numabs_face[j][k] = (PDM_g_num_t) *current_data_long;
+      send_buff_n[i_elt_proc] += n_octet_exch;
     }
   }
 
 
   /* Liberation memoire */
 
-  free(sendBuffN);
-  free(sendBuffIdx);
-  free(sendBuffData);
-  free(recvBuffN);
-  free(recvBuffIdx);
-  free(recvBuffData);
+  free(send_buff_n);
+  free(send_buff_idx);
+  free(send_buff_data);
+  free(recv_buff_n);
+  free(recv_buff_idx);
+  free(recv_buff_data);
   free(d_elt_proc);
 
 }
@@ -719,8 +693,8 @@ static void
 _geom_close(PDM_writer_t *cs)
 {
   int rank = 0;
-  PDM_MPI_Comm_rank(cs->pdm_mpi_comm,
-                &rank);
+  PDM_MPI_Comm_rank(cs->pdm_mpi_comm, &rank);
+
   PDM_writer_ensight_t *PDM_writer_ensight = (PDM_writer_ensight_t *) cs->sortie_fmt;
 
   if (PDM_writer_ensight->f_unit_geom >= 0) {
@@ -780,12 +754,11 @@ static void
 _vars_close(PDM_writer_t *cs)
 {
   int rank = 0;
-  PDM_MPI_Comm_rank(cs->pdm_mpi_comm,
-                &rank);
+  PDM_MPI_Comm_rank(cs->pdm_mpi_comm, &rank);
 
   if (cs->var_tab != NULL) {
     const int n_ind = PDM_Handles_n_get (cs->var_tab);
-    const int *ind = PDM_Handles_idx_get (cs->var_tab);
+    const int *ind  = PDM_Handles_idx_get (cs->var_tab);
 
     for (int i = 0; i < n_ind; i++) {
       PDM_writer_var_t *var = (PDM_writer_var_t * ) PDM_Handles_get (cs->var_tab, ind[i]);
@@ -889,8 +862,7 @@ PDM_writer_t *cs
 {
 
   int rank = 0;
-  PDM_MPI_Comm_rank(cs->pdm_mpi_comm,
-                &rank);
+  PDM_MPI_Comm_rank(cs->pdm_mpi_comm, &rank);
   PDM_writer_ensight_t *PDM_writer_ensight = (PDM_writer_ensight_t *) cs->sortie_fmt;
   _geom_close(cs);
   _vars_close(cs);
@@ -1025,8 +997,8 @@ PDM_writer_ensight_geom_write
 
   const int n_part = PDM_Mesh_nodal_n_part_get (geom->idx_mesh);
 
-  for (int ipart = 0; ipart < n_part; ipart++) {
-    const int n_vtx = PDM_Mesh_nodal_n_vertices_get (geom->idx_mesh, ipart);
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    const int n_vtx = PDM_Mesh_nodal_n_vertices_get (geom->idx_mesh, i_part);
     n_som_proc += n_vtx;
   }
 
@@ -1045,12 +1017,12 @@ PDM_writer_ensight_geom_write
       s_ecr_n_val = PDM_WRITER_OFF;
     n_som_proc = 0;
 
-    for (int ipart = 0; ipart < n_part; ipart++) {
+    for (int i_part = 0; i_part < n_part; i_part++) {
 
-      const int n_vtx = PDM_Mesh_nodal_n_vertices_get (geom->idx_mesh, ipart);
-      const double *vtx = PDM_Mesh_nodal_vertices_get (geom->idx_mesh, ipart);
+      const int n_vtx = PDM_Mesh_nodal_n_vertices_get (geom->idx_mesh, i_part);
+      const double *vtx = PDM_Mesh_nodal_vertices_get (geom->idx_mesh, i_part);
       const PDM_g_num_t *numabs =
-                    PDM_Mesh_nodal_vertices_g_num_get (geom->idx_mesh, ipart);
+                    PDM_Mesh_nodal_vertices_g_num_get (geom->idx_mesh, i_part);
 
       for (int i = 0; i < n_vtx; i++) {
         coord_tmp[n_som_proc+i] = (float) vtx[3*i+idim];
@@ -1091,8 +1063,8 @@ PDM_writer_ensight_geom_write
                 _ensight_type_name[t_elt]);
 
 
-    if (   (t_elt != PDM_MESH_NODAL_POLY_2D)
-        && (t_elt != PDM_MESH_NODAL_POLY_3D)) {
+    if (   (t_elt != PDM_WRITER_POLY_2D)
+        && (t_elt != PDM_WRITER_POLY_3D)) {
 
       PDM_g_num_t max_loc = 0;
       PDM_g_num_t max_abs = 0;
@@ -1196,7 +1168,7 @@ PDM_writer_ensight_geom_write
 
     }
 
-    else if (t_elt == PDM_MESH_NODAL_POLY_2D) {
+    else if (t_elt == PDM_WRITER_POLY_2D) {
 
       PDM_g_num_t max_loc = 0;
       PDM_g_num_t max_abs = 0;
@@ -1681,7 +1653,7 @@ PDM_writer_ensight_var_write
         }
 
         PDM_writer_statut_t s_ecr_n_val = PDM_WRITER_OFF ;
-        for (int k = 0; k < var->dim; k++) {
+        for (int k = 0; k < (int) var->dim; k++) {
           s_ecr_n_val = PDM_WRITER_OFF;
           n_som_proc = 0;
           int comp_a_ecrire;
@@ -1776,7 +1748,7 @@ PDM_writer_ensight_var_write
 
           PDM_writer_statut_t s_ecr_n_val = PDM_WRITER_OFF;
 
-          for (int k = 0; k < var->dim; k++) {
+          for (int k = 0; k < (int) var->dim; k++) {
             n_val_buff = 0;
             int comp_a_ecrire;
             comp_a_ecrire = k;

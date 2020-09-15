@@ -109,15 +109,15 @@ _quickSort_int
  * \brief Splits the graph
  *
  * \param [in]  method       Method to be used: choice between (1 for ParMETIS or 2 for PT-Scotch)
- * \param [in]  nPart        Number of partitions
+ * \param [in]  n_part        Number of partitions
  * \param [in]  part_ini     Part object fine mesh
  *
- * \param [in]  cellCell                  Dual graph (size : cellCellIdx[nCell])
- * \param [in]  cellCellIdx               Array of indexes of the dual graph (size : nCell + 1)
- * \param [in]  cellWeight         Cell weight (size = nCell)
- * \param [in]  faceWeight         Face weight (size = nFace)
+ * \param [in]  cell_cell                  Dual graph (size : cell_cell_idx[n_cell])
+ * \param [in]  cell_cell_idx               Array of indexes of the dual graph (size : n_cell + 1)
+ * \param [in]  cell_weight         Cell weight (size = n_cell)
+ * \param [in]  face_weight         Face weight (size = n_face)
  *
- * \param [inout] cellPart  Cell partitioning (size : nCell)
+ * \param [inout] cell_part  Cell partitioning (size : n_cell)
  *
  */
 
@@ -125,19 +125,19 @@ void
 PDM_part_graph_split
 (
  int         method,
- int         nPart,
+ int         n_part,
  _part_t    *part_ini,
- int        *cellCellIdx,
- int        *cellCell,
- int        *cellWeight,
- int        *faceWeight,
- int       **cellPart
+ int        *cell_cell_idx,
+ int        *cell_cell,
+ int        *cell_weight,
+ int        *face_weight,
+ int       **cell_part
 )
 {
-  *cellPart = (int *) malloc(part_ini->nCell * sizeof(int));
+  *cell_part = (int *) malloc(part_ini->n_cell * sizeof(int));
 
-  for (int i = 0; i < part_ini->nCell; i++){
-    (*cellPart)[i] = 0;
+  for (int i = 0; i < part_ini->n_cell; i++){
+    (*cell_part)[i] = 0;
   }
 
   switch(method) {
@@ -152,15 +152,15 @@ PDM_part_graph_split
 
       int ncon = 1; //The number of balancing constraints
 
-      int *vwgt = cellWeight; //Weights of the vertices of the graph (NULL if unused)
+      int *vwgt = cell_weight; //Weights of the vertices of the graph (NULL if unused)
 
-      int *adjwgt = faceWeight; //Weights of the edges of the graph (NULL if unused)
+      int *adjwgt = face_weight; //Weights of the edges of the graph (NULL if unused)
 
       double *tpwgts = NULL;
       if (flag_weights != 0) {
-        tpwgts = (double *) malloc(ncon * nPart * sizeof(double));
-        for (int i = 0; i < ncon * nPart; i++){
-          tpwgts[i] = (double) (1./nPart);
+        tpwgts = (double *) malloc(ncon * n_part * sizeof(double));
+        for (int i = 0; i < ncon * n_part; i++){
+          tpwgts[i] = (double) (1./n_part);
         }
       }
 
@@ -178,34 +178,34 @@ PDM_part_graph_split
 
       int edgecut;
       printf("PDM_part_graph_split \n");
-      if (nPart < 8) {
+      if (n_part < 8) {
 
-        PDM_METIS_PartGraphRecursive (&(part_ini->nCell),
+        PDM_METIS_PartGraphRecursive (&(part_ini->n_cell),
                                       &ncon,
-                                      cellCellIdx,
-                                      cellCell,
+                                      cell_cell_idx,
+                                      cell_cell,
                                       vwgt,
                                       adjwgt,
-                                      &nPart,
+                                      &n_part,
                                       tpwgts,
                                       ubvec,
                                       &edgecut,
-                                      *cellPart);
+                                      *cell_part);
       }
 
       else {
 
-        PDM_METIS_PartGraphKway (&(part_ini->nCell),
+        PDM_METIS_PartGraphKway (&(part_ini->n_cell),
                                  &ncon,
-                                 cellCellIdx,
-                                 cellCell,
+                                 cell_cell_idx,
+                                 cell_cell,
                                  vwgt,
                                  adjwgt,
-                                 &nPart,
+                                 &n_part,
                                  tpwgts,
                                  ubvec,
                                  &edgecut,
-                                 *cellPart);
+                                 *cell_part);
       }
       // double inbalance = 0.03;
       // double balance   = 0;
@@ -215,22 +215,22 @@ PDM_part_graph_split
       // int time_limit = 0;
       // int seed  = 0;
       // int mode = 2;
-      // PDM_kaffpa(&(part_ini->nCell),
+      // PDM_kaffpa(&(part_ini->n_cell),
       //            NULL,
-      //            cellCellIdx,
+      //            cell_cell_idx,
       //            NULL,
-      //            cellCell,
-      //            &nPart,
+      //            cell_cell,
+      //            &n_part,
       //             &inbalance,
       //             seed,
       //             mode,
       //             &edgecut,
-      //             *cellPart );
+      //             *cell_part );
 
       if (0 == 1) {
-        PDM_printf("\n Contenu de cellPart : \n");
-        for (int i = 0; i < part_ini->nCell; i++) {
-          PDM_printf(" %d ", (*cellPart)[i]);
+        PDM_printf("\n Contenu de cell_part : \n");
+        for (int i = 0; i < part_ini->n_cell; i++) {
+          PDM_printf(" %d ", (*cell_part)[i]);
         }
         PDM_printf("\n");
       }
@@ -257,14 +257,14 @@ PDM_part_graph_split
 
       int check = 0;
 
-      PDM_SCOTCH_part (part_ini->nCell,
-                       cellCellIdx,
-                       cellCell,
-                       cellWeight,
-                       faceWeight,
+      PDM_SCOTCH_part (part_ini->n_cell,
+                       cell_cell_idx,
+                       cell_cell,
+                       cell_weight,
+                       face_weight,
                        check,
-                       nPart,
-                       *cellPart);
+                       n_part,
+                       *cell_part);
 
 #else
       PDM_printf("PDM_part error : Scotch unavailable\n");
@@ -279,17 +279,17 @@ PDM_part_graph_split
       // To see with eric ...
       // abort();
       /* Allocation */
-      double *cellCenter = (double *) malloc (part_ini->nCell * 3 * sizeof(double ));
+      double *cellCenter = (double *) malloc (part_ini->n_cell * 3 * sizeof(double ));
 
-      PDM_hilbert_code_t *hilbertCodes = (PDM_hilbert_code_t *) malloc (part_ini->nCell * sizeof(PDM_hilbert_code_t));
+      PDM_hilbert_code_t *hilbert_codes = (PDM_hilbert_code_t *) malloc (part_ini->n_cell * sizeof(PDM_hilbert_code_t));
 
       /** Barycentre computation **/
 
       /* Allocate */
-      double *cellPond = (double *) malloc (part_ini->nCell * sizeof(double));
+      double *cellPond = (double *) malloc (part_ini->n_cell * sizeof(double));
 
       /* Nulliffy cellCenterArray */
-      for(int iCell = 0; iCell < part_ini->nCell; iCell++) {
+      for(int iCell = 0; iCell < part_ini->n_cell; iCell++) {
         cellCenter[3*iCell  ] = 0.;
         cellCenter[3*iCell+1] = 0.;
         cellCenter[3*iCell+2] = 0.;
@@ -297,24 +297,24 @@ PDM_part_graph_split
       }
 
       /* Compute */
-      for(int iCell = 0; iCell < part_ini->nCell; iCell++) {
+      for(int iCell = 0; iCell < part_ini->n_cell; iCell++) {
 
-        /* Cellule composé de nFace */
-        int aFac = part_ini->cellFaceIdx[iCell];
-        int nFac = part_ini->cellFaceIdx[iCell+1] - aFac;
+        /* Cellule composé de n_face */
+        int aFac = part_ini->cell_face_idx[iCell];
+        int nFac = part_ini->cell_face_idx[iCell+1] - aFac;
 
         for(int iFac = 0; iFac < nFac; iFac++) {
 
-          /* Face composé de nVtx */
-          int lFac = PDM_ABS(part_ini->cellFace[aFac + iFac]) - 1;
+          /* Face composé de n_vtx */
+          int lFac = PDM_ABS(part_ini->cell_face[aFac + iFac]) - 1;
 
-          int aVtx = part_ini->faceVtxIdx[lFac];
-          int nVtx = part_ini->faceVtxIdx[lFac+1] - aVtx;
+          int aVtx = part_ini->face_vtx_idx[lFac];
+          int n_vtx = part_ini->face_vtx_idx[lFac+1] - aVtx;
 
-          for(int iVtx = 0; iVtx < nVtx; iVtx++) {
+          for(int iVtx = 0; iVtx < n_vtx; iVtx++) {
 
-            /* Face composé de nVtx */
-            int lVtx = part_ini->faceVtx[aVtx + iVtx] - 1;
+            /* Face composé de n_vtx */
+            int lVtx = part_ini->face_vtx[aVtx + iVtx] - 1;
 
             /* Add to current cell and stack weight */
             cellCenter[3*iCell  ] += part_ini->vtx[3*lVtx  ];
@@ -327,7 +327,7 @@ PDM_part_graph_split
       }
 
       /* Nulliffy cellCenterArray */
-      for(int iCell = 0; iCell < part_ini->nCell; iCell++) {
+      for(int iCell = 0; iCell < part_ini->n_cell; iCell++) {
         cellCenter[3*iCell  ] = cellCenter[3*iCell  ]/cellPond[iCell];
         cellCenter[3*iCell+1] = cellCenter[3*iCell+1]/cellPond[iCell];
         cellCenter[3*iCell+2] = cellCenter[3*iCell+2]/cellPond[iCell];
@@ -338,26 +338,26 @@ PDM_part_graph_split
 
       /** Get EXTENTS LOCAL **/
 
-      PDM_hilbert_get_coord_extents_seq(3, part_ini->nCell, cellCenter, extents);
+      PDM_hilbert_get_coord_extents_seq(3, part_ini->n_cell, cellCenter, extents);
 
       /** Hilbert Coordinates Computation **/
 
-      PDM_hilbert_encode_coords(3, PDM_HILBERT_CS, extents, part_ini->nCell, cellCenter, hilbertCodes);
+      PDM_hilbert_encode_coords(3, PDM_HILBERT_CS, extents, part_ini->n_cell, cellCenter, hilbert_codes);
 
       /** CHECK H_CODES **/
 
       free(cellCenter);
       free(cellPond);
 
-      int *newToOldOrder = (int *) malloc (part_ini->nCell * sizeof(int));
-      for(int i = 0; i < part_ini->nCell; ++i) {
+      int *newToOldOrder = (int *) malloc (part_ini->n_cell * sizeof(int));
+      for(int i = 0; i < part_ini->n_cell; ++i) {
         newToOldOrder [i] = i;
       }
 
-      PDM_sort_double (hilbertCodes, *cellPart, part_ini->nCell);
+      PDM_sort_double (hilbert_codes, *cell_part, part_ini->n_cell);
 
       /* Free */
-      free (hilbertCodes);
+      free (hilbert_codes);
       free (newToOldOrder);
 
       break;
@@ -376,110 +376,110 @@ PDM_part_graph_split
  *
  * \param [inout] part_ini                 Part object - fine mesh partition
  *
- * \param [inout] cellCellIdxCompressed    Array of indexes of the dual graph
- * \param [inout] cellCellCompressed       Dual graph
+ * \param [inout] cell_cell_idxCompressed    Array of indexes of the dual graph
+ * \param [inout] cell_cellCompressed       Dual graph
  *
  */
 void
 PDM_part_graph_compute_from_face_cell
 (
   _part_t        *part_ini,
-  int           **cellCellIdxCompressed,
-  int           **cellCellCompressed
+  int           **cell_cell_idxCompressed,
+  int           **cell_cellCompressed
 )
 {
-  int *cellCellN = (int *) malloc(part_ini->nCell * sizeof(int));
-  for (int i = 0; i < part_ini->nCell; i++) {
-    cellCellN[i] = 0;
+  int *cell_cellN = (int *) malloc(part_ini->n_cell * sizeof(int));
+  for (int i = 0; i < part_ini->n_cell; i++) {
+    cell_cellN[i] = 0;
   }
 
-  int *cellCell = (int *) malloc(part_ini->cellFaceIdx[part_ini->nCell] * sizeof(int));
-  for (int i = 0; i < part_ini->cellFaceIdx[part_ini->nCell]; i++) {
-    cellCell[i] = -1;
+  int *cell_cell = (int *) malloc(part_ini->cell_face_idx[part_ini->n_cell] * sizeof(int));
+  for (int i = 0; i < part_ini->cell_face_idx[part_ini->n_cell]; i++) {
+    cell_cell[i] = -1;
   }
 
-  int *cellCellIdx = (int *) malloc((part_ini->nCell + 1) * sizeof(int));
-  for(int i = 0; i < part_ini->nCell + 1; i++) {
-    cellCellIdx[i] = part_ini->cellFaceIdx[i];
+  int *cell_cell_idx = (int *) malloc((part_ini->n_cell + 1) * sizeof(int));
+  for(int i = 0; i < part_ini->n_cell + 1; i++) {
+    cell_cell_idx[i] = part_ini->cell_face_idx[i];
   }
 
-  for (int i = 0; i < part_ini->nFace; i++) {
-    int iCell1 = PDM_ABS (part_ini->faceCell[2*i    ]);
-    int iCell2 = PDM_ABS (part_ini->faceCell[2*i + 1]);
+  for (int i = 0; i < part_ini->n_face; i++) {
+    int iCell1 = PDM_ABS (part_ini->face_cell[2*i    ]);
+    int iCell2 = PDM_ABS (part_ini->face_cell[2*i + 1]);
     //Only the non-boundary faces are stored
     if (iCell2 > 0) {
-      int idx1 = cellCellIdx[iCell1-1] + cellCellN[iCell1-1];
-      cellCell[idx1] = iCell2;
-      cellCellN[iCell1-1] += 1;
+      int idx1 = cell_cell_idx[iCell1-1] + cell_cellN[iCell1-1];
+      cell_cell[idx1] = iCell2;
+      cell_cellN[iCell1-1] += 1;
 
-      int idx2 = cellCellIdx[iCell2-1] + cellCellN[iCell2-1];
-      cellCell[idx2] = iCell1;
-      cellCellN[iCell2-1] += 1;
+      int idx2 = cell_cell_idx[iCell2-1] + cell_cellN[iCell2-1];
+      cell_cell[idx2] = iCell1;
+      cell_cellN[iCell2-1] += 1;
     }
   }
 
   if (0 == 1) {
-    PDM_printf("Content of cellCellN after looping over cellFace: ");
-    for(int i = 0; i < part_ini->nCell; i++) {
-      PDM_printf(" %d ", cellCellN[i]);
+    PDM_printf("Content of cell_cellN after looping over cell_face: ");
+    for(int i = 0; i < part_ini->n_cell; i++) {
+      PDM_printf(" %d ", cell_cellN[i]);
     }
     PDM_printf("\n");
 
-    PDM_printf("Content of cellCell after looping over cellFace: ");
-    for(int i = 0; i < part_ini->cellFaceIdx[part_ini->nCell]; i++) {
-      PDM_printf(" %d ", cellCell[i]);
+    PDM_printf("Content of cell_cell after looping over cell_face: ");
+    for(int i = 0; i < part_ini->cell_face_idx[part_ini->n_cell]; i++) {
+      PDM_printf(" %d ", cell_cell[i]);
     }
     PDM_printf("\n");
   }
 
-  //cellCellIdx is rebuilt
-  assert((*cellCellIdxCompressed) == NULL);
-  (*cellCellIdxCompressed) = (int *) malloc((part_ini->nCell + 1) * sizeof(int));
+  //cell_cell_idx is rebuilt
+  assert((*cell_cell_idxCompressed) == NULL);
+  (*cell_cell_idxCompressed) = (int *) malloc((part_ini->n_cell + 1) * sizeof(int));
 
-  (*cellCellIdxCompressed)[0] = 0;
-  for(int i = 0; i < part_ini->nCell; i++) {
-    (*cellCellIdxCompressed)[i + 1] = (*cellCellIdxCompressed)[i] + cellCellN[i];
+  (*cell_cell_idxCompressed)[0] = 0;
+  for(int i = 0; i < part_ini->n_cell; i++) {
+    (*cell_cell_idxCompressed)[i + 1] = (*cell_cell_idxCompressed)[i] + cell_cellN[i];
   }
 
-  //We compress the dual graph since cellCellIdx was built from cellFaceIdx
-  //We have then nFace elements in cellCell whereas it needs to be composed of nCell elements
+  //We compress the dual graph since cell_cell_idx was built from cell_face_idx
+  //We have then n_face elements in cell_cell whereas it needs to be composed of n_cell elements
 
-  //    PDM_printf("(*cellCellIdxCompressed)[part_ini->nCell] : %d \n", (*cellCellIdxCompressed)[part_ini->nCell]);
+  //    PDM_printf("(*cell_cell_idxCompressed)[part_ini->n_cell] : %d \n", (*cell_cell_idxCompressed)[part_ini->n_cell]);
   //
-  assert( (*cellCellCompressed) == NULL);
-  (*cellCellCompressed) = (int *) malloc((*cellCellIdxCompressed)[part_ini->nCell] * sizeof(int));
+  assert( (*cell_cellCompressed) == NULL);
+  (*cell_cellCompressed) = (int *) malloc((*cell_cell_idxCompressed)[part_ini->n_cell] * sizeof(int));
 
-  int cpt_cellCellCompressed = 0;
-  for(int i = 0; i < part_ini->cellFaceIdx[part_ini->nCell]; i++) {
+  int cpt_cell_cellCompressed = 0;
+  for(int i = 0; i < part_ini->cell_face_idx[part_ini->n_cell]; i++) {
     //        PDM_printf("I am testing a value for the %d time! \n", i);
 
     //We have an information to store when a neighboring cell exists
-    if(cellCell[i] > -1){
+    if(cell_cell[i] > -1){
       //            PDM_printf("I am storing a value for the %d time! \n", i);
       //We add a -1 to have the graph vertices numbered from 0 to n (C numbering)
-      (*cellCellCompressed)[cpt_cellCellCompressed++] = cellCell[i] - 1;
-      //            PDM_printf("Valeur stockee : %d \n ", (*cellCellCompressed)[cpt_cellCellCompressed - 1]);
+      (*cell_cellCompressed)[cpt_cell_cellCompressed++] = cell_cell[i] - 1;
+      //            PDM_printf("Valeur stockee : %d \n ", (*cell_cellCompressed)[cpt_cell_cellCompressed - 1]);
     }
   }
 
   if( 0 == 1) {
-    PDM_printf("Content of cellCellCompressed after compression and renumbering: ");
-    for(int i = 0; i < (*cellCellIdxCompressed)[part_ini->nCell]; i++) {
-      PDM_printf(" %d ", (*cellCellCompressed)[i]);
+    PDM_printf("Content of cell_cellCompressed after compression and renumbering: ");
+    for(int i = 0; i < (*cell_cell_idxCompressed)[part_ini->n_cell]; i++) {
+      PDM_printf(" %d ", (*cell_cellCompressed)[i]);
     }
     PDM_printf("\n");
   }
 
   /* Free temporary arrays*/
 
-  free(cellCellN);
-  free(cellCell);
-  free(cellCellIdx);
+  free(cell_cellN);
+  free(cell_cell);
+  free(cell_cell_idx);
 
   //Remove duplicate cells of the dual graph
   //We use the following scheme:
   //We loop over the indexes for the whole array to subdivide it into subarrays
-  //We sort locally each subarray (determined thanks to cellCellIdxCompressed)
+  //We sort locally each subarray (determined thanks to cell_cell_idxCompressed)
   //We loop over each subarray
   //We store the first value of each subarray anyway
   //We store each non-duplicated value and increment the writing index
@@ -488,59 +488,59 @@ PDM_part_graph_compute_from_face_cell
   int idx_write = 0;
   int tabIdxTemp = 0;
 
-  for (int i = 0; i < part_ini->nCell; i++) {
-    _quickSort_int((*cellCellCompressed), tabIdxTemp, (*cellCellIdxCompressed)[i + 1] - 1);
+  for (int i = 0; i < part_ini->n_cell; i++) {
+    _quickSort_int((*cell_cellCompressed), tabIdxTemp, (*cell_cell_idxCompressed)[i + 1] - 1);
 
     int last_value = -1;
 
-    for (int j = tabIdxTemp; j < (*cellCellIdxCompressed)[i + 1]; j++) {
-      //We need to have a local index (between 0 and nFace)
+    for (int j = tabIdxTemp; j < (*cell_cell_idxCompressed)[i + 1]; j++) {
+      //We need to have a local index (between 0 and n_face)
       //If the value is different from the previous one (higher than is the same as different since the array is sorted)
 
-      if(last_value != (*cellCellCompressed)[j]) {
-        (*cellCellCompressed)[idx_write++] = (*cellCellCompressed)[j];
-        last_value = (*cellCellCompressed)[j];
+      if(last_value != (*cell_cellCompressed)[j]) {
+        (*cell_cellCompressed)[idx_write++] = (*cell_cellCompressed)[j];
+        last_value = (*cell_cellCompressed)[j];
       }
     }
 
     if (0 == 1) {
-      PDM_printf("\n Contenu de cellCellCompressed apres reecriture: \n");
-      for(int i1 = 0; i1 < (*cellCellIdxCompressed)[part_ini->nCell]; i1++) {
-        PDM_printf(" %d ", (*cellCellCompressed)[i1]);
+      PDM_printf("\n Contenu de cell_cellCompressed apres reecriture: \n");
+      for(int i1 = 0; i1 < (*cell_cell_idxCompressed)[part_ini->n_cell]; i1++) {
+        PDM_printf(" %d ", (*cell_cellCompressed)[i1]);
       }
       PDM_printf("\n");
     }
 
-    tabIdxTemp = (*cellCellIdxCompressed)[i + 1];
-    (*cellCellIdxCompressed)[i + 1] = idx_write;
+    tabIdxTemp = (*cell_cell_idxCompressed)[i + 1];
+    (*cell_cell_idxCompressed)[i + 1] = idx_write;
 
     if (0 == 1) {
-      PDM_printf("\n Contenu de cellCellIdxCompressed apres reecriture: \n");
-      for(int i1 = 0; i1 < part_ini->nCell + 1; i1++) {
-        PDM_printf(" %d ", (*cellCellIdxCompressed)[i1]);
+      PDM_printf("\n Contenu de cell_cell_idxCompressed apres reecriture: \n");
+      for(int i1 = 0; i1 < part_ini->n_cell + 1; i1++) {
+        PDM_printf(" %d ", (*cell_cell_idxCompressed)[i1]);
       }
       PDM_printf("\n");
     }
   }
 
   if (0 == 1) {
-    PDM_printf("Content of cellCellIdxCompressed after compression: ");
-    for(int i1 = 0; i1 < part_ini->nCell + 1; i1++) {
-      PDM_printf(" %d ", (*cellCellIdxCompressed)[i1]);
+    PDM_printf("Content of cell_cell_idxCompressed after compression: ");
+    for(int i1 = 0; i1 < part_ini->n_cell + 1; i1++) {
+      PDM_printf(" %d ", (*cell_cell_idxCompressed)[i1]);
     }
     PDM_printf("\n");
 
-    PDM_printf("Content of cellCellCompressed after compression: ");
-    for(int i1 = 0; i1 < (*cellCellIdxCompressed)[part_ini->nCell]; i1++) {
-      PDM_printf(" %d ", (*cellCellCompressed)[i1]);
+    PDM_printf("Content of cell_cellCompressed after compression: ");
+    for(int i1 = 0; i1 < (*cell_cell_idxCompressed)[part_ini->n_cell]; i1++) {
+      PDM_printf(" %d ", (*cell_cellCompressed)[i1]);
     }
     PDM_printf("\n");
   }
 
   //We reallocate the memory in case of duplicated values removed
-  //The new array size is idx_write (stored in (*cellCellIdxCompressed)[part_ini->nCell])
-  *cellCellCompressed = realloc(*cellCellCompressed,
-                                (*cellCellIdxCompressed)[part_ini->nCell] * sizeof(int));
+  //The new array size is idx_write (stored in (*cell_cell_idxCompressed)[part_ini->n_cell])
+  *cell_cellCompressed = realloc(*cell_cellCompressed,
+                                (*cell_cell_idxCompressed)[part_ini->n_cell] * sizeof(int));
 
 }
 
@@ -551,19 +551,19 @@ void
 PDM_part_graph_split_bis
 (
  int         method,
- int         nPart,
+ int         n_part,
  int         graphSize,
- int        *cellCellIdx,
- int        *cellCell,
- int        *cellWeight,
- int        *faceWeight,
- int       **cellPart
+ int        *cell_cell_idx,
+ int        *cell_cell,
+ int        *cell_weight,
+ int        *face_weight,
+ int       **cell_part
 )
 {
-  *cellPart = (int *) malloc(graphSize * sizeof(int));
+  *cell_part = (int *) malloc(graphSize * sizeof(int));
 
   for (int i = 0; i < graphSize; i++){
-    (*cellPart)[i] = 0;
+    (*cell_part)[i] = 0;
   }
 
   switch(method) {
@@ -578,15 +578,15 @@ PDM_part_graph_split_bis
 
       int ncon = 1; //The number of balancing constraints
 
-      int *vwgt = cellWeight; //Weights of the vertices of the graph (NULL if unused)
+      int *vwgt = cell_weight; //Weights of the vertices of the graph (NULL if unused)
 
-      int *adjwgt = faceWeight; //Weights of the edges of the graph (NULL if unused)
+      int *adjwgt = face_weight; //Weights of the edges of the graph (NULL if unused)
 
       double *tpwgts = NULL;
       if (flag_weights != 0) {
-        tpwgts = (double *) malloc(ncon * nPart * sizeof(double));
-        for (int i = 0; i < ncon * nPart; i++){
-          tpwgts[i] = (double) (1./nPart);
+        tpwgts = (double *) malloc(ncon * n_part * sizeof(double));
+        for (int i = 0; i < ncon * n_part; i++){
+          tpwgts[i] = (double) (1./n_part);
         }
       }
 
@@ -604,34 +604,34 @@ PDM_part_graph_split_bis
 
       int edgecut;
 
-      if (nPart < 8) {
+      if (n_part < 8) {
 
         PDM_METIS_PartGraphRecursive (&(graphSize),
                                       &ncon,
-                                      cellCellIdx,
-                                      cellCell,
+                                      cell_cell_idx,
+                                      cell_cell,
                                       vwgt,
                                       adjwgt,
-                                      &nPart,
+                                      &n_part,
                                       tpwgts,
                                       ubvec,
                                       &edgecut,
-                                      *cellPart);
+                                      *cell_part);
       }
 
       else {
 
         PDM_METIS_PartGraphKway (&(graphSize),
                                  &ncon,
-                                 cellCellIdx,
-                                 cellCell,
+                                 cell_cell_idx,
+                                 cell_cell,
                                  vwgt,
                                  adjwgt,
-                                 &nPart,
+                                 &n_part,
                                  tpwgts,
                                  ubvec,
                                  &edgecut,
-                                 *cellPart);
+                                 *cell_part);
       }
 
       // double inbalance = 0.03;
@@ -644,20 +644,20 @@ PDM_part_graph_split_bis
       // int mode = 2;
       // PDM_kaffpa(&(graphSize),
       //            NULL,
-      //            cellCellIdx,
+      //            cell_cell_idx,
       //            NULL,
-      //            cellCell,
-      //            &nPart,
+      //            cell_cell,
+      //            &n_part,
       //             &inbalance,
       //             seed,
       //             mode,
       //             &edgecut,
-      //             *cellPart );
+      //             *cell_part );
 
       if (0 == 1) {
-        PDM_printf("\n Contenu de cellPart : \n");
+        PDM_printf("\n Contenu de cell_part : \n");
         for (int i = 0; i < graphSize; i++) {
-          PDM_printf(" %d ", (*cellPart)[i]);
+          PDM_printf(" %d ", (*cell_part)[i]);
         }
         PDM_printf("\n");
       }
@@ -685,13 +685,13 @@ PDM_part_graph_split_bis
       int check = 0;
 
       PDM_SCOTCH_part (graphSize,
-                       cellCellIdx,
-                       cellCell,
-                       cellWeight,
-                       faceWeight,
+                       cell_cell_idx,
+                       cell_cell,
+                       cell_weight,
+                       face_weight,
                        check,
-                       nPart,
-                       *cellPart);
+                       n_part,
+                       *cell_part);
 
 #else
       PDM_printf("PDM_part error : Scotch unavailable\n");

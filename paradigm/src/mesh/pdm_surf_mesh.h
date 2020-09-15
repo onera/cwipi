@@ -53,7 +53,7 @@ typedef struct _pdm_surf_mesh_t PDM_surf_mesh_t;
  *
  * \param [in]  nGface       Number of global faces
  * \param [in]  nGVtx        Number of global vertices
- * \param [in]  nPart        Number of partition
+ * \param [in]  n_part        Number of partition
  * \param [in]  comm         MSG communicator of mesh
  *
  * \return      A new initialized \ref PDM_surf_mesh_t structure
@@ -65,7 +65,7 @@ PDM_surf_mesh_create
 (
 const PDM_g_num_t  nGFace,
 const PDM_g_num_t  nGVtx,
-const int         nPart,
+const int         n_part,
 PDM_MPI_Comm          comm
  );
 
@@ -184,7 +184,7 @@ const double *
 PDM_surf_mesh_face_normal_get
 (
  PDM_surf_mesh_t  *mesh,
- int              iPart
+ int              i_part
 );
 
 
@@ -274,7 +274,7 @@ double *
 PDM_surf_mesh_part_carLgthVtx_get
 (
  PDM_surf_mesh_t *mesh,
- int              iPart
+ int              i_part
 );
 
 
@@ -284,14 +284,14 @@ PDM_surf_mesh_part_carLgthVtx_get
  * This function inputs a partition
  *
  * \param [in]  mesh       Mesh object
- * \param [in]  iPart       Partition to define
- * \param [in]  nFace       Number of faces
- * \param [in]  faceVtxIdx  Index in the face -> vertex connectivity
- * \param [in]  faceVtx     face -> vertex connectivity
- * \param [in]  faceLnToGn  Local face numbering to global face numbering
- * \param [in]  nVtx        Number of vertices
+ * \param [in]  i_part       Partition to define
+ * \param [in]  n_face       Number of faces
+ * \param [in]  face_vtx_idx  Index in the face -> vertex connectivity
+ * \param [in]  face_vtx     face -> vertex connectivity
+ * \param [in]  face_ln_to_gn  Local face numbering to global face numbering
+ * \param [in]  n_vtx        Number of vertices
  * \param [in]  coords      Coordinates
- * \param [in]  vtxLnToGn   Local vertex numbering to global vertex numbering
+ * \param [in]  vtx_ln_to_gn   Local vertex numbering to global vertex numbering
  *
  */
 
@@ -299,14 +299,14 @@ void
 PDM_surf_mesh_part_input
 (
  PDM_surf_mesh_t      *mesh,
- const int            iPart,
- const int            nFace,
- const int           *faceVtxIdx,
- const int           *faceVtx,
- const PDM_g_num_t    *faceLnToGn,
- const int            nVtx,
+ const int            i_part,
+ const int            n_face,
+ const int           *face_vtx_idx,
+ const int           *face_vtx,
+ const PDM_g_num_t    *face_ln_to_gn,
+ const int            n_vtx,
  const double        *coords,
- const PDM_g_num_t    *vtxLnToGn
+ const PDM_g_num_t    *vtx_ln_to_gn
 );
 
 
@@ -329,7 +329,7 @@ PDM_surf_mesh_n_part_get
  * \brief Return number of faces
  *
  * \param [in]  mesh       Mesh object
- * \param [in]  iPart      Part number
+ * \param [in]  i_part      Part number
  *
  * \return    Number of faces
  */
@@ -338,7 +338,7 @@ int
 PDM_surf_mesh_part_n_face_get
 (
  PDM_surf_mesh_t      *mesh,
- int                   iPart
+ int                   i_part
 );
 
 
@@ -346,7 +346,7 @@ PDM_surf_mesh_part_n_face_get
  * \brief Return number of vertices
  *
  * \param [in]  mesh       Mesh object
- * \param [in]  iPart      Part number
+ * \param [in]  i_part      Part number
  *
  * \return    Number of faces
  */
@@ -355,14 +355,14 @@ int
 PDM_surf_mesh_part_n_vtx_get
 (
  PDM_surf_mesh_t      *mesh,
- int                   iPart
+ int                   i_part
 );
 
 /**
  * \brief Return extents for any face
  *
  * \param [in]  mesh       Mesh object
- * \param [in]  iPart      Part number
+ * \param [in]  i_part      Part number
  *
  * \return    Extents
  */
@@ -371,7 +371,7 @@ const double *
 PDM_surf_mesh_part_extents_get
 (
  PDM_surf_mesh_t      *mesh,
- int                   iPart
+ int                   i_part
 );
 
 
@@ -379,7 +379,7 @@ PDM_surf_mesh_part_extents_get
  * \brief Return face global number
  *
  * \param [in]  mesh       Mesh object
- * \param [in]  iPart      Part number
+ * \param [in]  i_part      Part number
  *
  * \return     Face global number
  */
@@ -388,7 +388,7 @@ const PDM_g_num_t *
 PDM_surf_mesh_part_face_g_num_get
 (
  PDM_surf_mesh_t      *mesh,
- int                   iPart
+ int                   i_part
 );
 
 
@@ -396,7 +396,7 @@ PDM_surf_mesh_part_face_g_num_get
  * \brief Return Vertex global number
  *
  * \param [in]  mesh       Mesh object
- * \param [in]  iPart      Part number
+ * \param [in]  i_part      Part number
  *
  * \return    Vertex global number
  */
@@ -405,7 +405,7 @@ const PDM_g_num_t *
 PDM_surf_mesh_part_vtx_g_num_get
 (
  PDM_surf_mesh_t      *mesh,
- int                   iPart
+ int                   i_part
 );
 
 
@@ -413,7 +413,7 @@ PDM_surf_mesh_part_vtx_g_num_get
  * \brief Return Edge global number
  *
  * \param [in]  mesh       Mesh object
- * \param [in]  iPart      Part number
+ * \param [in]  i_part      Part number
  *
  * \return  Edge global number
  */
@@ -422,7 +422,7 @@ const PDM_g_num_t *
 PDM_surf_mesh_part_edge_g_num_get
 (
  PDM_surf_mesh_t      *mesh,
- int                   iPart
+ int                   i_part
 );
 
 
@@ -430,7 +430,7 @@ PDM_surf_mesh_part_edge_g_num_get
  * \brief Return Face to edge connectivity
  *
  * \param [in]  mesh       Mesh object
- * \param [in]  iPart      Part number
+ * \param [in]  i_part      Part number
  *
  * \return    Face to edge connectivity
  */
@@ -439,7 +439,7 @@ const int *
 PDM_surf_mesh_part_face_edge_get
 (
  PDM_surf_mesh_t      *mesh,
- int                   iPart
+ int                   i_part
 );
 
 
@@ -447,7 +447,7 @@ PDM_surf_mesh_part_face_edge_get
  * \brief Return Face to vertex connectivity
  *
  * \param [in]  mesh       Mesh object
- * \param [in]  iPart      Part number
+ * \param [in]  i_part      Part number
  *
  * \return    Face to vertex connectivity
  */
@@ -456,7 +456,7 @@ const int *
 PDM_surf_mesh_part_face_vtx_get
 (
  PDM_surf_mesh_t      *mesh,
- int                   iPart
+ int                   i_part
 );
 
 
@@ -464,7 +464,7 @@ PDM_surf_mesh_part_face_vtx_get
  * \brief Return Face to vertex connectivity index
  *
  * \param [in]  mesh       Mesh object
- * \param [in]  iPart      Part number
+ * \param [in]  i_part      Part number
  *
  * \return    Face to vertex connectivity index
  */
@@ -473,7 +473,7 @@ const int *
 PDM_surf_mesh_part_face_vtx_idx_get
 (
  PDM_surf_mesh_t      *mesh,
- int                   iPart
+ int                   i_part
 );
 
 
@@ -481,7 +481,7 @@ PDM_surf_mesh_part_face_vtx_idx_get
  * \brief Return Face to edge connectivity index
  *
  * \param [in]  mesh       Mesh object
- * \param [in]  iPart      Part number
+ * \param [in]  i_part      Part number
  *
  * \return    Face to edge connectivity index
  */
@@ -490,7 +490,7 @@ const int *
 PDM_surf_mesh_part_face_edge_idx_get
 (
  PDM_surf_mesh_t      *mesh,
- int                   iPart
+ int                   i_part
 );
 
 
@@ -498,7 +498,7 @@ PDM_surf_mesh_part_face_edge_idx_get
  * \brief Return vertex coordinates
  *
  * \param [in]  mesh       Mesh object
- * \param [in]  iPart      Part number
+ * \param [in]  i_part      Part number
  *
  * \return    Vertex coordinates
  */
@@ -507,7 +507,7 @@ const double *
 PDM_surf_mesh_part_vtx_get
 (
  PDM_surf_mesh_t      *mesh,
- int                   iPart
+ int                   i_part
 );
 
 

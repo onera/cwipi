@@ -1,10 +1,30 @@
 Original Authors
 ----------------
 
-Eric Quémerais  (ONERA, Châtillon, France) <eric.quemerais@onera.fr>
+Eric Quémerais (ONERA, France) <eric.quemerais@onera.fr>
+
+Major contributors
+------------------
+
+Bastien Andrieu (ONERA, France) <bastien.andrieu@onera.fr>
+Julien Coulet (ONERA, France) <julien.coulet@onera.fr>
+Stéphanie Lala (ONERA, France) <stephanie.lala@onera.fr>
+Bruno Maugars (ONERA, France) <bruno.maugars@onera.fr>
 
 Contributors
 ------------
+
+Bérenger Berthoul (ONERA, France) <berenger.berthoul@onera.fr>
+Sébastien Bourasseau (ONERA, France) <sebastien.bourasseau@onera.fr>
+Jérôme Esbrat (EOLEN) <jerome.esbrat-ext@onera.fr>
+Nicolas Lantos (ONERA, France) <nicolas.lantos@onera.fr>
+Niels Guilbert (ONERA, France) <niels.guilbert@onera.fr>
+Julien Magnenet (ONERA, France) <julien.magnenet@onera.fr>
+Lionel Matuszewski (ONERA, France) <lionel.matuszewski@onera.fr>
+Bertrand Michel (ONERA, France) <bertrand.michel@onera.fr>
+Victor Pacotte (EOLEN) <victor.pacotte-ext@onera.fr>
+Bruno Peres (EOLEN) <bruno.peres-ext@onera.fr>
+Christophe Peyret (ONERA, France) <christophe.peyret@onera.fr>
 
 Derived libraries
 -----------------
@@ -13,5 +33,5 @@ FVM :
 
 A part of this work is derived from "Finite Volume Mesh" library (FVM 0.15.5).
 FVM is licensed under LGPL 2.1. It is a piece of the CFD software code_saturne 2.0
-Principal authors are Yvan Fournier <yvan.fournier@edf.fr> and Jerome Bonelle <jerome.bonelle@edf.fr>.
+Major authors are Yvan Fournier <yvan.fournier@edf.fr> and Jerome Bonelle <jerome.bonelle@edf.fr>.
 This library can be downloaded from http://code-saturne.org/cms/download/2.0.

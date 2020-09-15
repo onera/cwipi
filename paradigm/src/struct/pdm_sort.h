@@ -26,6 +26,20 @@ extern "C" {
 /*============================================================================
  * Type
  *============================================================================*/
+typedef int (*pdm_operator_compare)(const void* a, const void* b, void* );
+
+typedef struct  {
+  int           *idx;
+  unsigned char *arr; /* Not void* to avoid arithmetic pointer */
+  size_t        *key;
+} PDM_user_defined_sort;
+
+// typedef struct  {
+//   int*  idx;
+//   unsigned char* arr;
+//   size_t*       hkey;
+// } PDM_user_defined_sort2;
+
 
 /*=============================================================================
  * Static global variables
@@ -88,6 +102,115 @@ PDM_sort_double
  int        *order,
  int         lArray
 );
+
+
+/**
+ *
+ * \brief Unique in place
+ *
+ * \param [inout]   a     Array to sort
+ * \param [in]      l     First element
+ * \param [in]      r     Last  element
+ *
+ */
+int
+PDM_inplace_unique_long
+(
+ PDM_g_num_t a[],
+ int l,
+ int r
+);
+
+/**
+ *
+ * \brief Unique in place
+ *
+ * \param [inout]   a     Array to sort
+ * \param [in]      l     First element
+ * \param [in]      r     Last  element
+ *
+ */
+int
+PDM_inplace_unique_long2
+(
+ PDM_g_num_t a[],
+ int unique_order[],
+ int l,
+ int r
+);
+
+/**
+ *
+ * \brief Compare operator for connectivities
+ *
+ */
+int
+PDM_operator_compare_string
+(
+const void* a,
+const void* b,
+      void* ctxt
+);
+
+/**
+ *
+ * \brief Equal operator for connectivities
+ *
+ */
+int
+PDM_operator_equal_string
+(
+const void* a,
+const void* b,
+      void* ctxt
+);
+
+/**
+ *
+ * \brief Compare operator for connectivities
+ *
+ */
+int
+PDM_operator_compare_connectivity
+(
+const void* a,
+const void* b,
+      void* ctxt
+);
+
+/**
+ *
+ * \brief Equal operator for connectivities
+ *
+ */
+int
+PDM_operator_equal_connectivity
+(
+const void* a,
+const void* b,
+      void* ctxt
+);
+
+
+/**
+ *
+ * \brief Indirect sort of structure according to a user comparison function
+ *
+ * \param [inout] array        Array to sort
+ * \param [in]    lArray       Array length
+ * \param [in]    lArray       User compare function (return int )
+ * \param [in]    lArray       Context anonymous pointer to a struct to perfomr user compare
+ *
+ */
+void
+PDM_sort_int_special
+(
+ int                  *array,
+ int                   lArray,
+ pdm_operator_compare  comp,
+ void*                 context
+);
+
 
 #ifdef __cplusplus
 }

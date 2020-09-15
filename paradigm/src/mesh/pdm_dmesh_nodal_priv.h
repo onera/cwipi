@@ -127,20 +127,20 @@ struct _PDM_DMesh_nodal_t {
   int                    i_proc;                   /*!< Number of processes */
   int                   *sections_id;              /*!< Blocks identifier */
   int                    n_sections;               /*!< Total number of sections */
-  PDM_g_num_t           *sectionDistribution;      /*!< Element distribution  */
+  PDM_g_num_t           *section_distribution;      /*!< Element distribution  */
 
   PDM_l_num_t            n_dcell;                  /*!< Local number of cells in the local block */
-  PDM_l_num_t           *dCellFaceIdx;           /*!< Index of the cell to face connectivity
+  PDM_l_num_t           *dcell_face_idx;           /*!< Index of the cell to face connectivity
                                                     * (size = \ref n_dcell) */
-  PDM_g_num_t           *dCellFace;               /*!< Cell to face connectivity
+  PDM_g_num_t           *dcell_face;               /*!< Cell to face connectivity
                                                     * (size = \ref dcell_face_idx[\ref n_dcell] */
-  PDM_g_num_t           *_dFaceCell;               /*!< Face to cell connectivity
+  PDM_g_num_t           *_dface_cell;               /*!< Face to cell connectivity
                                                     * (size = \ref dcell_face_idx[\ref n_dcell] */
   PDM_g_num_t           *cell_distrib;             /*!< Distribution of cells (size = number of processes + 1) */
-  PDM_l_num_t            dNFace;                  /*!< Local number of faces in the local block */
-  PDM_l_num_t           *_dFaceVtxIdx;            /*!< Index of the cell to face connectivity
+  PDM_l_num_t            dn_face;                  /*!< Local number of faces in the local block */
+  PDM_l_num_t           *_dface_vtx_idx;            /*!< Index of the cell to face connectivity
                                                     * (size = \ref n_dcell) */
-  PDM_g_num_t           *_dFaceVtx;                /*!< Cell to face connectivity
+  PDM_g_num_t           *_dface_vtx;                /*!< Cell to face connectivity
                                                     * (size = \ref dcell_face_idx[\ref n_dcell] */
   PDM_g_num_t           *face_distrib;             /*!< Distribution of faces (size = number of processes + 1) */
 

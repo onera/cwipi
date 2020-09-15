@@ -34,6 +34,7 @@
 
 #include "pdm_handles.h"
 #include "pdm_error.h"
+#include "pdm_priv.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -49,8 +50,8 @@ extern "C" {
  *============================================================================*/
 
 /**
- * \struct _pdm_gnum_t
- * \brief  Define a global numberring
+ * \struct _PDM_Handles_t
+ * \brief  Helper struct to hold a collection of private internal structure
  *
  */
 
@@ -59,8 +60,8 @@ struct _PDM_Handles_t {
   int *idx;            /*!< list of Index */
   int *idx_inv;        /*!< Index -> indice (1 to n_handles) */
   const void **array;  /*!< Storage array */
-  int s_array;   /*!< Size of array */
-  int n_handles; /*!< Number of stored handles */
+  int s_array;         /*!< Size of array */
+  int n_handles;       /*!< Number of stored handles */
 
 };
 
@@ -92,21 +93,21 @@ PDM_Handles_create
  const int init_size
 )
 {
-  PDM_Handles_t *new =  malloc (sizeof(PDM_Handles_t));
+  PDM_Handles_t *new_handle =  malloc (sizeof(PDM_Handles_t));
 
-  new->s_array = init_size;
-  new->n_handles = 0;
-  new->array = malloc(sizeof(void*) * init_size);
-  new->idx = malloc(sizeof(int) * init_size);
-  new->idx_inv = malloc(sizeof(int) * init_size);
+  new_handle->s_array   = init_size;
+  new_handle->n_handles = 0;
+  new_handle->array     = malloc(sizeof(void*) * init_size);
+  new_handle->idx       = malloc(sizeof(int  ) * init_size);
+  new_handle->idx_inv   = malloc(sizeof(int  ) * init_size);
 
-  for (int i = 0; i < new->s_array; i++) {
-    new->array[i] = NULL;
-    new->idx[i] = -1;
-    new->idx_inv[i] = -1;
+  for (int i = 0; i < new_handle->s_array; i++) {
+    new_handle->array[i]   = NULL;
+    new_handle->idx[i]     = -1;
+    new_handle->idx_inv[i] = -1;
   }
 
-  return new;
+  return new_handle;
 }
 
 
@@ -152,13 +153,13 @@ PDM_Handles_store
   if (handles->n_handles >= handles->s_array) {
     int p_s_array = handles->s_array;
     handles->s_array *= 2;
-    handles->array   = realloc(handles->array, sizeof(void*) * handles->s_array);
-    handles->idx     = realloc(handles->idx, sizeof(int) * handles->s_array);
-    handles->idx_inv = realloc(handles->idx_inv, sizeof(int) * handles->s_array);
+    handles->array   = realloc(handles->array  , sizeof(void*) * handles->s_array);
+    handles->idx     = realloc(handles->idx    , sizeof(int  ) * handles->s_array);
+    handles->idx_inv = realloc(handles->idx_inv, sizeof(int  ) * handles->s_array);
 
     for (int i = p_s_array; i < handles->s_array; i++) {
-      handles->array[i] = NULL;
-      handles->idx[i] = -1;
+      handles->array[i]   = NULL;
+      handles->idx[i]     = -1;
       handles->idx_inv[i] = -1;
     }
   }

@@ -54,8 +54,8 @@ typedef struct _graph_bound_t PDM_graph_bound_t;
  * This function returns an initialized \ref PDM_graph_bound_t structure
  *
  * \param [in]  comm         MPI communicator
- * \param [in]  nPart        Number of partitions
- * \param [in]  partBound    partition boundaries (size : \ref nPart)
+ * \param [in]  n_part        Number of partitions
+ * \param [in]  partBound    partition boundaries (size : \ref n_part)
  *
  * \return      A new initialized \ref PDM_graph_bound_t structure
  *
@@ -65,7 +65,7 @@ PDM_graph_bound_t *
 PDM_graph_bound_create
 (
 const PDM_MPI_Comm        comm,
-const int             nPart,
+const int             n_part,
       PDM_part_bound_t **partBound
 );
 
