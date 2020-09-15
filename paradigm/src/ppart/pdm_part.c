@@ -4246,6 +4246,17 @@ PDM_part_partial_free
 
 }
 
+PDM_part_t*
+PDM_get_meshpart_from_id
+(
+ int  ppartId
+)
+{
+  _PDM_part_t *ppart = _get_from_id(ppartId);
+  return ppart;
+}
+
+
 
 #ifdef __cplusplus
 }

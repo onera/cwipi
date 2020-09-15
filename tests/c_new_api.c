@@ -256,7 +256,7 @@ int main
   
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
     CWP_Cpl_create ("code1", cpl_id1, "code2", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, 1,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
 
 
@@ -265,7 +265,7 @@ int main
 
   if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
     CWP_Cpl_create ("code2", cpl_id1, "code1", CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_GEOM_LOCATION, 1,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
   
@@ -273,13 +273,13 @@ int main
 
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
     CWP_Cpl_create ("code1", cpl_id2, "code3", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, 1,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
    
   if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
     CWP_Cpl_create ("code3", cpl_id2, "code1", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, 1,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
   
@@ -287,13 +287,13 @@ int main
      
   if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
     CWP_Cpl_create ("code2", cpl_id3, "code3", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, 1,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
   
   if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
     CWP_Cpl_create ("code3", cpl_id3, "code2", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, 1,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
 
@@ -301,13 +301,13 @@ int main
      
   if (rank == 2 || rank == 4 || rank == 8) {
     CWP_Cpl_create ("code4", cpl_id4, "code3", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, 1,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
   
   if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
     CWP_Cpl_create ("code3", cpl_id4, "code4", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, 1,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
 
@@ -318,13 +318,13 @@ int main
   
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
     CWP_Cpl_create ("code1", cpl_id5, "code4", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, 1,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
      
   if (rank == 2 || rank == 4 || rank == 8) {
     CWP_Cpl_create ("code4", cpl_id5, "code1", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, 1,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
   
@@ -332,13 +332,13 @@ int main
      
   if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
     CWP_Cpl_create ("code2", cpl_id6, "code4", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, 1,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   } 
      
   if (rank == 2 || rank == 4 || rank == 8) {
     CWP_Cpl_create ("code4", cpl_id6, "code2", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, 1,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
 

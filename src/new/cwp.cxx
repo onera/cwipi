@@ -56,15 +56,22 @@
 #include "commWithPart.hxx"
 #include "commWithoutPart.hxx"
 #include "commSeq.hxx"
+#include "field.hxx"
 #include "pdm.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "surfMeshGenerator.hxx"
+#include "surfMeshGeneratorDB.hxx"
+#include "mapping.hxx"
+#include "mappingLocation.hxx"
 
-#include "geometry.hxx"
-// #include "location.hxx"
  #include "mesh.hxx"
-
-
+ #include "block.hxx"
+ #include "blockStd.hxx"
+ #include "blockFP.hxx"
+ #include "blockCP.hxx"
+ #include <algorithm>
+ #include <vector>
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
@@ -131,7 +138,37 @@ _cwipi_print_with_c
  *
  * \return                Coupling instance from it identifier
  */
+#include <stdlib.h>
 
+
+static bool
+_is_coupled
+(
+ const char *local_code_name
+ )
+{
+   cwipi::CodePropertiesDB & propertiesDB = cwipi::CodePropertiesDB::getInstance();
+   const cwipi::CodeProperties &properties = propertiesDB.codePropertiesGet(local_code_name);
+   return properties.isCoupledRank();
+}
+
+static bool
+_cpl_exist
+(
+ const char *local_code_name,
+ const char *cpl_id
+ )
+{
+  cwipi::CouplingDB & couplingDB =
+    cwipi::CouplingDB::getInstance();
+  
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+ 
+   const string &cpl_name_str = cpl_id;
+   return couplingDB.couplingIs(properties.codePropertiesGet(string(local_code_name)),
+                             cpl_name_str);
+}
 
 static cwipi::Coupling&
 _cpl_get
@@ -145,9 +182,9 @@ _cpl_get
   
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
-
-  const string &cpl_name_str = cpl_id;
-  return couplingDB.couplingGet (properties.codePropertiesGet(string(local_code_name)),
+ 
+   const string &cpl_name_str = cpl_id;
+   return couplingDB.couplingGet (properties.codePropertiesGet(string(local_code_name)),
                                  cpl_name_str);
 }
 
@@ -241,8 +278,8 @@ CWP_Init
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
-  PDM_printf("\ncwipi " CWIPI_VERSION " initializing\n");
-  PDM_printf("------------------------\n\n");
+  //PDM_printf("\ncwipi " CWIPI_VERSION " initializing\n");
+  //PDM_printf("------------------------\n\n");
 
   /*
    * Builds application communicator
@@ -262,6 +299,7 @@ CWP_Init
   
   MPI_Barrier(global_comm);
   
+
   for (int i = 0; i < n_code; i++) {
     const string &codeNameStr = code_names[i]; 
     properties.ctrlParamAdd <double> (codeNameStr, "time", time_init[i]);
@@ -269,7 +307,7 @@ CWP_Init
   }
 
   MPI_Barrier(global_comm);
-
+  
   /*
    * Create communication abstract factory 
    */
@@ -282,32 +320,33 @@ CWP_Init
   factoryComm.Register<cwipi::CommSeq>(CWP_COMM_SEQ);
 
   /*
-   * Create geometry abstract factory 
+   * Create mapping abstract factory 
    */
 
-  //cwipi::Factory<cwipi::Geometry, CWP_Geom_t> &factoryGeom = 
-  //  cwipi::Factory<cwipi::Geometry, CWP_Geom_t>::getInstance();
+  cwipi::Factory<cwipi::Mapping, CWP_Mapping_t> &factoryMapping = 
+    cwipi::Factory<cwipi::Mapping, CWP_Mapping_t>::getInstance();
 
-  // factoryGeom.Register<Location>(CWP_GEOM_LOCATION);
-  // factoryGeom.Register<Intersection>(CWP_GEOM_INTERSECTION);
-  // factoryGeom.Register<ClosestPoint>(CWP_GEOM_CLOSEST_POINT);
+  factoryMapping.Register<cwipi::MappingLocation>(CWP_MAPPING_LOCATION);
+  // factoryMapping.Register<MappingIntersection>(CWP_MAPPING_INTERSECTION);
+  // factoryMapping.Register<MappingClosestPoint>(CWP_MAPPING_CLOSEST_POINT);
 
   /*
    * Create block abstract factory 
    */
 
-  // Factory<Block, CWP_block_t> &factoryBlock = 
-  //   cwipi::Factory<Block, CWP_block_t>::getInstance();
+   cwipi::Factory<cwipi::Block, CWP_Block_t> &factoryBlock = 
+     cwipi::Factory<cwipi::Block, CWP_Block_t>::getInstance();
 
-  // factoryBlock.Register<BlockNode>(CWP_BLOCK_NODE);
-  // factoryBlock.Register<BlockEdge2>(CWP_BLOCK_FACE_EDGE2);
-  // factoryBlock.Register<BlockFaceTria3>(CWP_BLOCK_FACE_TRIA3);
-  // factoryBlock.Register<BlockFacepoly>(CWP_BLOCK_FACE_POLY);
-  // factoryBlock.Register<BlockCellTetra4>(CWP_BLOCK_CELL_TERTRA4);
-  // factoryBlock.Register<BlockCellHexa8>(CWP_BLOCK_CELL_HEXA8);
-  // factoryBlock.Register<BlockCellPrism6>(CWP_BLOCK_CELL_PRISM6);
-  // factoryBlock.Register<BlockCellPyram5>(CWP_BLOCK_CELL_PYRAM5);
-  // factoryBlock.Register<BlockCellPoly>(CWP_BLOCK_CELL_POLY);
+   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_NODE);
+   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_EDGE2);
+   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_FACE_TRIA3);
+   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_FACE_QUAD4);
+   factoryBlock.Register<cwipi::BlockFP >(CWP_BLOCK_FACE_POLY);
+   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_TETRA4);
+   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_HEXA8);
+   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_PRISM6);
+   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_PYRAM5);
+   factoryBlock.Register<cwipi::BlockCP > (CWP_BLOCK_CELL_POLY);
 
   MPI_Barrier(global_comm);
 
@@ -334,26 +373,30 @@ CWP_Init
 
 void 
 CWP_Finalize
-(
+(void
 )
 {
   int flag = 0;
+  
   MPI_Initialized(&flag);
 
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
   const MPI_Comm globalComm = properties.globalCommGet();
-  PDM_printf("CWP_Finalize\n");
+    
+ // PDM_printf("CWP_Finalize\n");
   fflush(stdout);
   if (flag != 0) {
     PDM_printf_flush();
     MPI_Barrier(globalComm);
 //    MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
   }
-  PDM_printf("Before properties.kill()\n");
+
+
+
   properties.kill();
-  PDM_printf("After properties.kill()\n");
+
 }
 
 /*----------------------------------------------------------------------------*
@@ -417,13 +460,32 @@ CWP_State_get
 
 int
 CWP_Codes_nb_get
-(
+(void
 )
 {
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
   return properties.codesNbGet();
+}
+
+
+MPI_Comm  
+CWP_Connectable_comm_get
+(
+  char* local_code_name
+)
+{
+
+  if(_is_coupled(local_code_name)){
+    cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
+    const cwipi::CodeProperties & localCodeProperties = properties.codePropertiesGet(string(local_code_name));
+    MPI_Comm connecComm = localCodeProperties.connectableCommGet();
+  
+    return connecComm;
+  }
+
+  return MPI_COMM_NULL;
 }
 
 
@@ -436,7 +498,7 @@ CWP_Codes_nb_get
 
 const char **
 CWP_Codes_list_get
-(
+(void
 )
 {
   cwipi::CodePropertiesDB & properties =
@@ -454,7 +516,7 @@ CWP_Codes_list_get
 
 int
 CWP_Loc_codes_nb_get
-(
+(void
 )
 {
   cwipi::CodePropertiesDB & properties =
@@ -473,7 +535,7 @@ CWP_Loc_codes_nb_get
 
 const char **
 CWP_Loc_codes_list_get
-(
+(void
 )
 {
   cwipi::CodePropertiesDB & properties =
@@ -500,7 +562,7 @@ CWP_Time_update
 )
 {
   cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+  cwipi::CodePropertiesDB::getInstance();
   properties.ctrlParamSet<double>(string(local_code_name),"time", current_time);
 }
 
@@ -553,7 +615,7 @@ CWP_Output_file_set
 
 void 
 CWP_Properties_dump
-(
+(void
 )
 {
   cwipi::CodePropertiesDB & properties =
@@ -574,7 +636,7 @@ CWP_Properties_dump
  * \param [in]  cpl_id              Coupling identifier
  * \param [in]  coupled_code_name   Distant or local coupled code name
  * \param [in]  comm_type           Communication type
- * \param [in]  geom_algo           Geometric algorithm
+ * \param [in]  mapping_algo           Mappingetric algorithm
  * \param [in]  n_part              Number of interface partition 
  * \param [in]  displacement        Mesh displacement
  * \param [in]  recv_freq_type      Type of receiving frequency
@@ -588,12 +650,12 @@ CWP_Cpl_create
  const char               *cpl_id,
  const char               *coupled_code_name,
  const CWP_Comm_t          comm_type, 
- const CWP_Geom_t          geom_algo,
+ const CWP_Mapping_t          mapping_algo,
  const int                 n_part,
  const CWP_Displacement_t  displacement,   
  const CWP_Freq_t          recv_freq_type 
 )
-{
+{  
   cwipi::CouplingDB & couplingDB =
     cwipi::CouplingDB::getInstance();
 
@@ -603,12 +665,14 @@ CWP_Cpl_create
   const string &coupling_name_str = cpl_id;
   const string &coupled_application_str = coupled_code_name;
   const string &local_application_str = local_code_name;
+  
 
+ // printf("couplingDB.couplingCreate(proper\n");
   couplingDB.couplingCreate(properties.codePropertiesGet(local_application_str),
                             coupling_name_str,
                             properties.codePropertiesGet(coupled_application_str),
                             comm_type,
-                            geom_algo,
+                            mapping_algo,
                             n_part,
                             displacement,
                             recv_freq_type);
@@ -646,29 +710,33 @@ const char *cpl_id
 
 
 
-// void
-// CWP_Exch
-// (
-//  const char *cpl_id
-// )
-// {
-//   //TODO: Voir comment enchainer les appels, voir comment prendre en compte l'interpolation temporelle 
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.exchange();
-// }
+ void
+ CWP_Exch
+ (
+ const char *local_code_name,
+ const char *cpl_id
+ )
+ {
+   //TODO: Voir comment enchainer les appels, voir comment prendre en compte l'interpolation temporelle 
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  // cpl.exchange();
+ }
 
 
 
-// int 
-// CWP_n_uncomputed_tgts_get
-// (
-//  const char *cpl_id
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+int 
+CWP_N_uncomputed_tgts_get
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const CWP_Field_value_t pointsCloudLocation,
+ const int  i_part
+)
+{
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
-//   return cpl.nUncomputedTargetsGet();
-// }
+   return cpl.nUncomputedTargetsGet(pointsCloudLocation,i_part);
+}
 
 
 
@@ -708,7 +776,7 @@ const char *cpl_id
 
 
 // const double *
-// CWP_computed_tgts_dist_to_geom_get
+// CWP_computed_tgts_dist_to_mapping_get
 // (
 //  const char *cpl_id
 // )
@@ -735,40 +803,321 @@ const char *cpl_id
 // }
 
 
-// void 
-// CWP_next_recv_time_set
-// (
-//  const char                 *cpl_id,
-//  const double                next_time
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.recvNextTimeSet(next_time);
-// }
+ void 
+ CWP_next_recv_time_set
+ (const char     *local_code_name,
+  const char     *cpl_id,
+  const double    next_time
+ )
+ {
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   cpl.recvNextTimeSet(next_time);
+ }
 
 /*----------------------------------------------------------------------------*
- * Functions about geometry                                                   *
+ * Functions about mapping                                                   *
  *----------------------------------------------------------------------------*/
 
 
-//void 
-//CWP_geom_compute
-//(
-// const char     *cpl_id,
-// CWP_status_t  storage_activation,
-// int            *n_uncomputed_tgt,
-// int            *storage_id
-//)
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//
-//   cpl.geomCompute(n_uncomputed_tgt);
-// }
+
+  //TODO: Pourquoi ne pas mettre le nom du code local ?
+  void 
+  CWP_Mapping_compute (const char     *local_code_name,
+                    const char     *cpl_id
+                   )
+  { 
+
+    typedef struct field_exch_type {
+      CWP_Field_value_t loc ;
+      CWP_Field_exch_t  exch;
+    } ;
+
+    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+    /* Only if the coupling exists */
+    map <string, cwipi::Field *>* fields = cpl.fieldsGet();
+    
+    std::map <std::string, field_exch_type> field_exch_type_map;
+    std::string fieldName="";
+    vector<int> fieldNameIdx;
+    fieldNameIdx.push_back(0);
+    std::vector<CWP_Field_exch_t> fieldExch;
+    std::vector<CWP_Field_value_t> fieldLocationV;
+    std::map <std::string, cwipi::Field *>::iterator it = fields -> begin();
+    
+    while(it != fields -> end()){
+      cwipi::Field* field = it -> second;
+      CWP_Field_value_t fieldLocation = field -> typeGet();
+      CWP_Field_exch_t  exchangeType  = field -> exchangeTypeGet();
+      field_exch_type field_eT;
+      field_eT.loc      = fieldLocation;
+      field_eT.exch     = exchangeType ;
+      field_exch_type_map.insert( std::pair<string,field_exch_type>(it -> first,field_eT) );
+      fieldName += it -> first;
+      fieldNameIdx .push_back(fieldNameIdx[fieldNameIdx.size()-1] + it -> first.size());
+      fieldLocationV.push_back(fieldLocation     );
+      fieldExch    .push_back(exchangeType      );
+            
+      it++;
+    }
+
+    int nb_field = fieldNameIdx.size() -1;
+    vector<int              > fieldNameIdx_cpl (nb_field+1,0);
+    vector<CWP_Field_exch_t > fieldExch_cpl    (nb_field  );
+    vector<CWP_Field_value_t> fieldLocationV_cpl(nb_field  );    
+    string fieldName_cpl;
+    
+    MPI_Comm unionComm = cpl.communicationGet()-> unionCommGet();
+    int unionCommCplCodeRootRank = cpl.communicationGet()-> unionCommCplCodeRootRanksGet();
+    int unionCommLocCodeRootRank = cpl.communicationGet()-> unionCommLocCodeRootRanksGet();
+
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+
+     int tag = 152;
+     int unionCommRank;
+     MPI_Status status;
+     MPI_Comm_rank(unionComm,&unionCommRank);
+     
+     
+     int CWP_Field_value_size = sizeof(int);
+     if(unionCommRank == unionCommLocCodeRootRank){
+        MPI_Sendrecv(&(fieldNameIdx[0]),fieldNameIdx.size(),MPI_INT,unionCommCplCodeRootRank,tag,
+                     &(fieldNameIdx_cpl[0]),fieldNameIdx_cpl.size(),MPI_INT,unionCommCplCodeRootRank,tag,
+                     unionComm,&status);
+        tag++;
+        fieldName_cpl.resize(fieldNameIdx_cpl[nb_field]);
+
+        MPI_Sendrecv(&(fieldName[0]),fieldName.size(),MPI_CHAR,unionCommCplCodeRootRank,tag,
+                     &(fieldName_cpl[0]),fieldName_cpl.size(),MPI_CHAR,unionCommCplCodeRootRank,tag,
+                     unionComm,&status);                             
+
+        tag++;
+        MPI_Sendrecv(&(fieldLocationV    [0]), sizeof(CWP_Field_value_t)*fieldLocationV    .size(),MPI_BYTE,unionCommCplCodeRootRank,tag,
+                     &(fieldLocationV_cpl[0]), sizeof(CWP_Field_value_t)*fieldLocationV_cpl.size(),MPI_BYTE,unionCommCplCodeRootRank,tag,
+                     unionComm,&status);     
+
+        tag++;
+        MPI_Sendrecv(&(fieldExch    [0]), sizeof(CWP_Field_exch_t)*fieldExch    .size(),MPI_BYTE,unionCommCplCodeRootRank,tag,
+                     &(fieldExch_cpl[0]), sizeof(CWP_Field_exch_t)*fieldExch_cpl.size(),MPI_BYTE,unionCommCplCodeRootRank,tag,
+                     unionComm,&status);   
+                     
+     }
+
+
+     int id     = cpl.localCodePropertiesGet()   -> idGet();
+     int id_cpl = cpl.coupledCodePropertiesGet() -> idGet();
+     int slave  = cpl.mappingGet(CWP_FIELD_VALUE_NODE) -> slaveGet();
+     int both_local = cpl.mappingGet(CWP_FIELD_VALUE_NODE) -> bothLocalGet();
+     if(both_local == 0 || (both_local == 1 && id < id_cpl) ){
+     
+      std::vector <int> tmp(3,0);
+      std::vector <int> tmp_fieldNameIdx(fieldNameIdx.size(),0);
+      std::vector <CWP_Field_value_t> tmp_fieldLocationV(fieldLocationV.size());      
+      std::vector <CWP_Field_exch_t> tmp_fieldExch(fieldExch.size());            
+      
+      string tmp_fieldName;
+      if(id < id_cpl) {
+         
+         MPI_Bcast(&(fieldNameIdx_cpl[0]),fieldNameIdx_cpl.size(),MPI_INT,unionCommLocCodeRootRank,unionComm);
+         MPI_Bcast(&(tmp_fieldNameIdx[0]),tmp_fieldNameIdx.size(),MPI_INT,unionCommCplCodeRootRank,unionComm); 
+
+         if(unionCommRank != unionCommLocCodeRootRank) fieldName_cpl.resize(fieldNameIdx_cpl[nb_field],'r');
+         tmp_fieldName.resize(fieldNameIdx_cpl[nb_field],'n');
+
+         MPI_Bcast(&(fieldName_cpl[0]),fieldName_cpl.size(),MPI_CHAR,unionCommLocCodeRootRank,unionComm);
+         MPI_Bcast(&(tmp_fieldName[0]),tmp_fieldName.size(),MPI_CHAR,unionCommCplCodeRootRank,unionComm); 
+         
+         MPI_Bcast(&(fieldLocationV_cpl[0]),sizeof(CWP_Field_value_t)*fieldLocationV_cpl.size(),MPI_BYTE,unionCommLocCodeRootRank,unionComm);
+         MPI_Bcast(&(tmp_fieldLocationV[0]),sizeof(CWP_Field_value_t)*tmp_fieldLocationV.size(),MPI_BYTE,unionCommCplCodeRootRank,unionComm);  
+  
+         MPI_Bcast(&(fieldExch_cpl[0]),sizeof(CWP_Field_exch_t)*fieldExch_cpl.size(),MPI_BYTE,unionCommLocCodeRootRank,unionComm);   
+         MPI_Bcast(&(tmp_fieldExch[0]),sizeof(CWP_Field_exch_t)*tmp_fieldExch.size(),MPI_BYTE,unionCommCplCodeRootRank,unionComm);
+           
+      }
+      else{
+         
+         MPI_Bcast(&(tmp_fieldNameIdx[0]),tmp_fieldNameIdx.size(),MPI_INT,unionCommCplCodeRootRank,unionComm);
+         MPI_Bcast(&(fieldNameIdx_cpl[0]),fieldNameIdx_cpl.size(),MPI_INT,unionCommLocCodeRootRank,unionComm);        
+
+         if(unionCommRank != unionCommLocCodeRootRank) fieldName_cpl.resize(fieldNameIdx_cpl[nb_field]);
+         tmp_fieldName.resize(fieldNameIdx_cpl[nb_field],'n');
+
+         MPI_Bcast(&(tmp_fieldName[0]),tmp_fieldName.size(),MPI_CHAR,unionCommCplCodeRootRank,unionComm);
+         MPI_Bcast(&(fieldName_cpl[0]),fieldName_cpl.size(),MPI_CHAR,unionCommLocCodeRootRank,unionComm);
+         
+         MPI_Bcast(&(tmp_fieldLocationV[0]),sizeof(CWP_Field_value_t)*tmp_fieldLocationV.size(),MPI_BYTE,unionCommCplCodeRootRank,unionComm);
+         MPI_Bcast(&(fieldLocationV_cpl[0]),sizeof(CWP_Field_value_t)*fieldLocationV_cpl.size(),MPI_BYTE,unionCommLocCodeRootRank,unionComm);   
+
+         MPI_Bcast(&(tmp_fieldExch[0]),sizeof(CWP_Field_exch_t)*tmp_fieldExch.size(),MPI_BYTE,unionCommCplCodeRootRank,unionComm);
+         MPI_Bcast(&(fieldExch_cpl[0]),sizeof(CWP_Field_exch_t)*fieldExch_cpl.size(),MPI_BYTE,unionCommLocCodeRootRank,unionComm);   
+           
+      }
+     }
+     else {
+
+       cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet()->nameGet().c_str(),cpl_id);
+       /* Only if the coupling exists */
+       map <string, cwipi::Field *>* fields_cpl = cpl_cpl.fieldsGet();     
+       it = fields_cpl -> begin();
+       fieldNameIdx_cpl.resize(0);
+       fieldNameIdx_cpl.push_back(0);
+       fieldLocationV_cpl.resize(0);
+       fieldExch_cpl.resize(0);
+       fieldName_cpl="";
+
+       while(it != fields_cpl -> end()){
+       
+        fieldNameIdx_cpl.push_back( fieldNameIdx_cpl[fieldNameIdx_cpl.size()-1] + it->first.size() );
+        fieldName_cpl += it->first;
+        cwipi::Field* field_cpl = it -> second;
+        CWP_Field_value_t fieldLocation = field_cpl -> typeGet();
+        fieldLocationV_cpl.push_back(fieldLocation);
+        CWP_Field_exch_t  exchangeType  = field_cpl -> exchangeTypeGet();
+        fieldExch_cpl.push_back(exchangeType);    
+            
+        it++;
+      }
+     }
+     
+     std::map<string,field_exch_type> field_cpl_map;
+     for(int i=0;i<nb_field;i++) {
+       string field_name = fieldName_cpl.substr( fieldNameIdx_cpl[i], fieldNameIdx_cpl[i+1]-fieldNameIdx_cpl[i] );
+       field_exch_type field_exch;
+       field_exch.loc  = fieldLocationV_cpl[i];
+       field_exch.exch = fieldExch_cpl     [i];       
+       field_cpl_map.insert( std::pair<string,field_exch_type>(field_name,field_exch) );
+       //printf("field_name %s %s %i %i\n",field_name.c_str(),fieldName_cpl.c_str(),fieldNameIdx_cpl[i], fieldNameIdx_cpl[i+1]);
+     }
+ 
+    static const char *CWP_Field_value_t_str[] = {"CWP_FIELD_VALUE_CELL_POINT","CWP_FIELD_VALUE_NODE","CWP_FIELD_VALUE_USER"};
+    static const char *CWP_Field_exch_t_str [] = {"CWP_FIELD_EXCH_SEND","CWP_FIELD_EXCH_RECV","CWP_FIELD_EXCH_SENDRECV"};     
+    std::vector<int> exchangeTypeByLocation(3,0);
+      
+     it = fields -> begin();
+     while(it != fields -> end()){
+       if(it -> second ->  exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
+         it -> second -> associatedCloudPointTypeSet(field_cpl_map[it->first].loc);
+       }
+       else if (it -> second ->  exchangeTypeGet() == CWP_FIELD_EXCH_RECV) {
+         it -> second -> associatedCloudPointTypeSet( it -> second -> typeGet() );       
+       }
+       else if (it -> second ->  exchangeTypeGet() == CWP_FIELD_EXCH_SENDRECV) {
+         it -> second -> associatedCloudPointTypeSet( it -> second -> typeGet() );             
+       } 
+       else{
+         PDM_error(__FILE__, __LINE__, 0, "Not correct exchange field value for this field.\n");
+       }
+       
+       if(exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] == 0) {
+         if(it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_SEND )
+           exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 1;
+         else if(it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_RECV)
+           exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 2;
+         else if(it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_SENDRECV)
+           exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 3;      
+       }
+       else {
+         if( exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] == 1 && it -> second -> exchangeTypeGet() != CWP_FIELD_EXCH_SEND){
+            exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 3;        
+         }
+         else if( exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] == 2 && it -> second -> exchangeTypeGet() != CWP_FIELD_EXCH_RECV){
+            exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 3;        
+         }     
+       }
+         
+       //printf(" %s typeGet() %s associatedCloudPointTypeGet %s rank %i exchangeTypeGet %i\n",it->first.c_str(),CWP_Field_value_t_str[it -> second -> typeGet()],
+       //CWP_Field_value_t_str[static_cast<int>(it -> second -> associatedCloudPointTypeGet())],rank,it -> second ->  exchangeTypeGet());
+       it++;
+     }      
+     
+
+      /*  Building of possible cloud points type vector */
+      std::vector<CWP_Field_value_t> locationV = {CWP_FIELD_VALUE_CELL_POINT, CWP_FIELD_VALUE_NODE, CWP_FIELD_VALUE_USER};    
+     
+      // Iteration over the possilbe cloud points type
+      for(size_t i_location=0; i_location < locationV.size(); i_location++){
+        CWP_Field_value_t pointsCloudLocation = locationV[i_location];
+        int mappingComputeSend  = 0;
+        int mappingComputeRcv = 0;
+        
+        if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 1) {
+          mappingComputeSend = 1;
+        }
+        else if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 2) {
+          mappingComputeRcv = 1;
+        }
+        else if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 3) {
+          mappingComputeSend = 1;
+          mappingComputeRcv  = 1;        
+        }
+        else if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 0) {
+          mappingComputeSend = 0;
+          mappingComputeRcv  = 0;        
+        }        
+
+        CWP_Field_exch_t exchange_type    ;
+        CWP_Field_exch_t exchange_type_cpl;
+        if (mappingComputeRcv == 1 && mappingComputeSend == 1 ) {
+          if(id < id_cpl) {
+             if(both_local == 1) {
+             
+              cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
+             
+              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND);        
+              cpl_cpl.mappingCompute(pointsCloudLocation,CWP_FIELD_EXCH_RECV);   
+              
+              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV);        
+              cpl_cpl.mappingCompute(pointsCloudLocation,CWP_FIELD_EXCH_SEND);   
+             }               
+             else if (both_local == 0) {
+              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND); 
+              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV); 
+            }
+          }
+          else {
+            if (both_local == 0) {
+              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV); 
+              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND); 
+            }          
+          }
+         // printf("pointsCloudLocation %s rank %i %i %i id<id_cpl %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, mappingComputeSend, mappingComputeRcv,id<id_cpl );
+           
+        }
+        else if (mappingComputeRcv == 1 && mappingComputeSend == 0) {
+          exchange_type     = CWP_FIELD_EXCH_RECV ;   
+          exchange_type_cpl = CWP_FIELD_EXCH_SEND ;
+          if(both_local == 1 && id < id_cpl) {
+            cpl.mappingCompute(pointsCloudLocation, exchange_type);        
+            cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
+            cpl_cpl.mappingCompute(pointsCloudLocation, exchange_type_cpl);   
+         }               
+          else if (both_local == 0) {
+            cpl.mappingCompute(pointsCloudLocation, exchange_type); 
+            //printf("pointsCloudLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, mappingComputeSend, mappingComputeRcv );
+          }
+        }
+        else if (mappingComputeSend == 1 && mappingComputeRcv == 0) {
+          exchange_type     = CWP_FIELD_EXCH_SEND ;
+          exchange_type_cpl = CWP_FIELD_EXCH_RECV ;              
+          if(both_local == 1 && id < id_cpl) {
+            cpl.mappingCompute(pointsCloudLocation, exchange_type); 
+            cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
+            cpl_cpl.mappingCompute(pointsCloudLocation, exchange_type_cpl);   
+          }               
+          else if (both_local == 0) {
+            cpl.mappingCompute(pointsCloudLocation, exchange_type); 
+           // printf("pointsCloudLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, mappingComputeSend, mappingComputeRcv );       
+          } 
+        }     
+       if((both_local == 1 && id < id_cpl) || both_local == 0) MPI_Barrier(unionComm);
+      } //end on location loop
+  }
 
 
 
 // void 
-// CWP_geom_update
+// CWP_mapping_update
 // (
 //  const char     *cpl_id,
 //  const int       storage_id
@@ -779,7 +1128,7 @@ const char *cpl_id
 
 
 // void 
-// CWP_geom_properties_set
+// CWP_mapping_properties_set
 // (
 //  const char     *cpl_id,
 //  const char     *fmt,
@@ -790,7 +1139,7 @@ const char *cpl_id
 
 //   va_list pa;
 //   va_start(pa, fmt);
-//   cpl.geomPropertiesSet(fmt, &pa);
+//   cpl.mappingPropertiesSet(fmt, &pa);
 //   va_end(pa);
 // }
 
@@ -799,39 +1148,58 @@ const char *cpl_id
  *----------------------------------------------------------------------------*/
 
 
-// void 
-// CWP_visu_set
-// (
-//  const char                 *cpl_id,
-//  const int                   freq,
-//  const char                 *format,
-//  const char                 *format_option
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.visuSet(freq, format, format_option);
-// }
+ void 
+ CWP_Visu_set
+ (const char                 *local_code_name,
+  const char                 *cpl_id,
+  const int                   freq,
+  const CWP_Visu_format_t     format,
+  const char                 *format_option
+ )
+ {
+   if(_is_coupled(local_code_name)){    
+     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+     cpl.visuSet(freq, format, format_option);
+   }
+ }
 
 /*----------------------------------------------------------------------------*
  * Functions about User target points                                         *
  *----------------------------------------------------------------------------*/
 
 
-// void 
-// CWP_user_tgt_pts_set
-// (
-//  const char                 *cpl_id,
-//  const int                   n_pts,
-//  double                      coord[]
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.userTgtPtsSet(n_pts, coord);
-// }
+ void 
+ CWP_User_tgt_pts_set
+ (const char                 *local_code_name,
+  const char                 *cpl_id,
+  const int                   i_part,
+  const int                   n_pts,
+  double                      coord[]
+ )
+ {
+   if(_is_coupled(local_code_name)){    
+     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+     cpl.userTgtPtsSet(i_part, n_pts, coord);
+   }
+ }
 
 /*----------------------------------------------------------------------------*
  * Functions about Mesh                                                    *
  *----------------------------------------------------------------------------*/
+
+
+ void 
+ CWP_Mesh_interf_finalize 
+ (const char                 *local_code_name,
+  const char                 *cpl_id
+ ) 
+ {
+   if(_is_coupled(local_code_name)){   
+     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+     cpl.meshFinalize();
+   }
+ }
+
 
  void 
  CWP_Mesh_interf_vtx_set
@@ -843,54 +1211,60 @@ const char *cpl_id
   CWP_g_num_t                 global_num[]
  )
  {
-   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-   cpl.meshVtcsSet(i_part,
-                   n_pts,
-                   coord,
-                   global_num);
+   if(_is_coupled(local_code_name)){ 
+     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+     cpl.meshVtcsSet(i_part,
+                     n_pts,
+                     coord,
+                     global_num);
+   }
  }
 
-
- void 
- CWP_Mesh_interf_end_set
- (const char                 *local_code_name,
-  const char                 *cpl_id
- )
- {
-   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-   cpl.meshEndSet();
- }
-
-
-void 
-CWP_Mesh_interf_std_block_add
+ int 
+ CWP_Mesh_interf_block_add
  (
-  const char        *local_code_name,
-  const char        *cpl_id,
-  const int          i_part,
-  const CWP_Block_t  block_type,
-  const int          n_elts,
-  int                connec[],
-  CWP_g_num_t        global_num[]
+  const char           *local_code_name,
+  const char           *cpl_id,
+  const CWP_Block_t     block_type
  )
  {
-   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-   cpl.meshBlockAdd(i_part,
-                    block_type,
-                    n_elts,
-                    connec,
-                    global_num,
-                    NULL);
+   if(_is_coupled(local_code_name)){ 
+     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+     int block_id = cpl.meshBlockAdd(block_type);
+     return block_id;
+   }
  }
 
-
 void 
-CWP_Mesh_interf_h_order_block_add
+CWP_Mesh_interf_block_std_set
 (
  const char        *local_code_name,
  const char        *cpl_id,
  const int          i_part,
- const CWP_Block_t  block_type,
+ const int          block_id,
+ const int          n_elts,
+ int                connec[],
+ CWP_g_num_t       global_num[]
+)
+{
+  if(_is_coupled(local_code_name)){ 
+    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+    cpl.meshStdBlockSet(i_part,
+                        block_id,
+                        n_elts,
+                        connec,
+                        global_num);
+  }
+}
+
+
+/*void 
+CWP_Mesh_interf_h_order_block_set
+(
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const int          i_part,
+ const int          block_id,
  const int          n_elts,
  const int          order, 
  int                connec[],
@@ -898,60 +1272,68 @@ CWP_Mesh_interf_h_order_block_add
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.meshHighOrderBlockAdd(i_part,
+  cpl.meshHighOrderBlockSet(i_part,
+                            block_id,
                             block_type,
                             n_elts,
                             order,
                             connec,
                             global_num);
 }
-
+*/
 
 void 
-CWP_Mesh_interf_f_poly_block_add
+CWP_Mesh_interf_f_poly_block_set
 (
  const char             *local_code_name,
  const char             *cpl_id,
  const int               i_part,
+ const int               block_id,
  const int               n_elts,
  int                     connec_idx[],
  int                     connec[],
- CWP_g_num_t             parent_num[]
+ CWP_g_num_t             global_num[]
 )
 {
-   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-   cpl.meshFPolyBlockAdd(i_part,
-                         n_elts,
-                         connec_idx,
-                         connec,
-                         parent_num);
+
+   if(_is_coupled(local_code_name)){ 
+     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+     cpl.meshFPolyBlockSet(i_part,
+                           block_id,
+                           n_elts,
+                           connec_idx,
+                           connec,
+                           global_num);
+  }
 }
 
 
 void 
-CWP_Mesh_interf_c_poly_block_add
+CWP_Mesh_interf_c_poly_block_set
 (
  const char           *local_code_name,
  const char           *cpl_id,
  const int             i_part,
+ const int             block_id,
  const int             n_elts,
- int                   cell_face_idx[],
- int                   cell_face[],
  const int             n_faces,
- int                   face_vtx_idx[],
- int                   face_vtx[],
- CWP_g_num_t           parent_num[]
+ int                   connec_faces_idx[],
+ int                   connec_faces[],
+ int                   connec_cells_idx[],
+ int                   connec_cells[],
+ CWP_g_num_t           global_num[]
 )
 {
    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-   cpl.meshCPolyBlockAdd(i_part,
-                            n_elts,
-                            cell_face_idx,
-                            cell_face,
-                            n_faces,
-                            face_vtx_idx,
-                            face_vtx,
-                            parent_num);
+   cpl.meshCPolyBlockSet(i_part,
+                         block_id,
+                         n_elts,
+                         n_faces,
+                         connec_faces_idx,
+                         connec_faces    ,
+                         connec_cells_idx,
+                         connec_cells    , 
+                         global_num);
 }
 
 
@@ -1021,7 +1403,7 @@ CWP_Mesh_interf_del
    cpl.meshDel();
 }
 
-
+/*
 void 
 CWP_Mesh_interf_shared_fvm_nodal
 (
@@ -1035,7 +1417,7 @@ CWP_Mesh_interf_shared_fvm_nodal
    cpl.fvmcNodalShared(i_part,
                        fvmc_nodal);
 }
-
+*/
 /*----------------------------------------------------------------------------*
  * Functions about field                                                      *
  *----------------------------------------------------------------------------*/
@@ -1043,41 +1425,59 @@ CWP_Mesh_interf_shared_fvm_nodal
  void
  CWP_Field_create
  (
-  const char                  *cpl_id,
   const char                  *codeName,
+  const char                  *cpl_id,
   const char                  *field_id,
-  const CWP_Type_t     data_type,
-  const CWP_Field_storage_t  storage,
+  const CWP_Type_t             data_type,
+  const CWP_Field_storage_t    storage,
   const int                    n_component,
-  const CWP_Field_value_t   nature,
-  const CWP_Field_exch_t     exchange_type,
-  const CWP_Status_t         visu_status)
+  const CWP_Field_value_t      value_location,
+  const CWP_Field_exch_t       exchange_type,
+  const CWP_Status_t           visu_status)
  {
    cwipi::Coupling& cpl = _cpl_get(codeName,cpl_id);
-   
    cpl.fieldCreate(field_id,
                    data_type,
                    storage,
                    n_component,
-                   nature,
+                   value_location,
                    exchange_type, 
                    visu_status);
  }
 
 
- void
- CWP_Field_mapping_set
+ void 
+ CWP_Interp_from_location_set
  (
-   const char      *local_code_name,
-   const char      *cpl_id,
-   const char      *field_id,
-   const int        i_part,
-   double           data[]
+  const char                 *local_code_name,
+  const char                 *cpl_id,
+  const char                 *field_id,
+  CWP_Interp_from_location_t    fct
  )
  {
-   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-   cpl.fieldMappingSet(field_id,
-                       data);   
+    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+    cpl.interpFromLocSet(field_id,fct);
+ } 
+
+
+
+
+
+ void
+ CWP_Field_data_set
+ (
+   const char           *local_code_name,
+   const char           *cpl_id,
+   const char           *field_id,
+   const int             i_part,
+   double                data[]
+ )
+ {
+ 
+   if(_is_coupled(local_code_name)){
+     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+     cpl.fieldDataSet(field_id,i_part,data);   
+   }
  }
 
 
@@ -1095,7 +1495,7 @@ CWP_Mesh_interf_shared_fvm_nodal
 
 
  CWP_Field_value_t
- CWP_Field_location_get
+ CWP_Field_triplet_location_get
  (
   const char                  *local_code_name,
   const char                  *cpl_id,
@@ -1103,10 +1503,10 @@ CWP_Mesh_interf_shared_fvm_nodal
  )
  {
    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-   return cpl.fieldNatureGet(field_id);
+   return cpl.fieldTypeGet(field_id);
  }
 
-
+/*
  CWP_Type_t
  CWP_Field_type_get
  (
@@ -1117,7 +1517,7 @@ CWP_Mesh_interf_shared_fvm_nodal
  {
    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
    return cpl.fieldTypeGet(field_id);
- }
+ }*/
 
 
  CWP_Field_storage_t
@@ -1150,74 +1550,85 @@ CWP_Mesh_interf_shared_fvm_nodal
  *----------------------------------------------------------------------------*/
 
 
-// CWP_error_t 
-// CWP_sendrecv
-// (
-//  const char   *cpl_id,
-//  const char   *src_field_id,
-//  const char   *tgt_field_id,
-//  int          *n_uncomputed_tgt
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   const string &src_field_id_str = src_field_id;
-//   const string &tgt_field_id_str = tgt_field_id;
+ void 
+ CWP_Issend
+ (const char        *local_code_name,
+  const char        *cpl_id,
+  const char        *referenceFieldID)
+ {
+ 
+   if(_is_coupled(local_code_name)){ 
+     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+     std::string referenceFieldID_str = const_cast<char*>(referenceFieldID);
 
-//   return cpl.sendRecv(src_field_id_str,
-//                       tgt_field_id_str,
-//                       NULL,
-//                       n_uncomputed_tgt);
-// }
+     cpl.issend(referenceFieldID_str);
+   } 
+ }
 
 
-
-// void 
-// CWP_Issend
-// (const char     *cpl_id,
-//  const char     *src_field_id,
-//  int            *request)
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   const string &src_field_id_str = src_field_id;
-
-//   cpl.issend(src_field_id_str,
-//              NULL,
-//              request);
-// }
+ void 
+ CWP_Irecv
+ (const char        *local_code_name,
+  const char        *cpl_id,
+  const char        *targetFieldID)
+ {
+   if(_is_coupled(local_code_name)){ 
+     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+     std::string targetFieldID_str = const_cast<char*>(targetFieldID);
+     cpl.irecv(targetFieldID_str);
+   }       
+ }
 
 
-// void 
-// CWP_Irecv
-// (const char   *cpl_id,
-//  const char   *tgt_field_id,
-//  int          *request)
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   const string &tgt_field_id_str = tgt_field_id;
+ void 
+ CWP_Wait_issend
+ (
+  const char  *local_code_name,
+  const char  *cpl_id,
+  const char  *src_field_id
+ )
+ {
 
-//   cpl.irecv(tgt_field_id_str,
-//             request);
-// }
-
-
-// void 
-// CWP_wait_issend
-// (const char  *cpl_id,
-//  int          request)
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.waitIssend(request);
-// }
+   if(_is_coupled(local_code_name)){ 
+     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+     std::string srcFieldID_str = const_cast<char*>(src_field_id);
+     cpl.waitIssend(srcFieldID_str);
+   } 
+ }
 
 
-// void 
-// CWP_wait_irecv
-// (const char  *cpl_id,
-//  int          request)
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.waitIrecv(request);
-// }
+ void 
+ CWP_Wait_irecv
+ (
+  const char  *local_code_name,
+  const char  *cpl_id,
+  const char  *distant_field_id
+ )
+ {
+ 
+   if(_is_coupled(local_code_name)){
+     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+     std::string distantFieldID_str = const_cast<char*>(distant_field_id);
+     cpl.waitIrecv(distantFieldID_str);
+   }
+ }
+
+
+
+ CWP_g_num_t* 
+ CWP_GlobalNumGet
+ (
+  const char  *local_code_name,
+  const char  *cpl_id,
+  const int    id_block,
+  const int    i_part
+ ) 
+ { 
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+   return cpl.globalNumGet(id_block,i_part);
+
+ }
 
 
 /*----------------------------------------------------------------------------*
@@ -1229,7 +1640,7 @@ CWP_Mesh_interf_shared_fvm_nodal
 // CWP_Interp_from_loc_set
 // (
 //  const char                  *cpl_id,
-//  CWP_Interp_from_location_t fct
+//  CWP_Interp_from_location fct
 // )
 // {
 //   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
@@ -1703,6 +2114,238 @@ const char *code_name
 
   properties.unLock(nameStr);
 }
+
+
+void          
+CWP_surf_gen_init
+(
+  char* genName, int nx, int ny, int nPart, MPI_Comm* comm, double prop, double width, double randomVar
+)
+{
+  if(_is_coupled(genName)){ 
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    surfMeshDB.createMember(genName);
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+    surfMesh -> init(nx,ny,nPart,comm,prop,width,randomVar);
+  }
+}
+
+void          
+CWP_surf_gen_compute(char* genName)
+{ 
+
+  if(_is_coupled(genName)){ 
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+    surfMesh -> computeMesh();
+  }
+}
+
+
+
+void          
+CWP_surf_gen_by_block_get
+( char* genName, int i_part,
+  int* nVtx , double** coords, CWP_g_num_t** vtxGnum, int* nElts,
+  int* nTri , int** eltsConnecTri , CWP_g_num_t** eltsGnumTri,
+  int* nQuad, int** eltsConnecQuad, CWP_g_num_t** eltsGnumQuad,
+  int* nPoly, int** eltsConnecPolyIndex, int** eltsConnecPoly, CWP_g_num_t** eltsGnumPoly
+)
+{
+
+
+  if(_is_coupled(genName)){ 
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+    *nVtx = surfMesh -> nVtxGet(i_part);
+    *nElts = surfMesh -> nEltsGet(i_part);
+    *coords = surfMesh -> coordsGet(i_part);
+    *vtxGnum = surfMesh -> vtxGnumGet(i_part);
+  
+    *nTri = surfMesh -> nTriGet(i_part);
+    *eltsConnecTri = surfMesh -> connecTriGet(i_part);
+    *eltsGnumTri = surfMesh -> eltsGnumTriGet(i_part);
+  
+    *nQuad = surfMesh -> nQuadGet(i_part);
+    *eltsConnecQuad = surfMesh -> connecQuadGet(i_part);
+    *eltsGnumQuad = surfMesh -> eltsGnumQuadGet(i_part);
+
+    *nPoly = surfMesh -> nPolyGet(i_part);
+    *eltsConnecPoly = surfMesh -> connecPolyGet(i_part);  
+    *eltsConnecPolyIndex = surfMesh -> connecPolyIndexGet(i_part);    
+    *eltsGnumPoly = surfMesh -> eltsGnumPolyGet(i_part);  
+  }
+  else{
+    *nVtx = 0;
+    *nElts = 0;
+    *coords = NULL;
+    *vtxGnum = NULL;
+  
+    *nTri = 0;
+    *eltsConnecTri = NULL;
+    *eltsGnumTri = NULL;
+  
+    *nQuad = 0;
+    *eltsConnecQuad = NULL;
+    *eltsGnumQuad = NULL;
+
+    *nPoly = 0;
+    *eltsConnecPoly = NULL;  
+    *eltsConnecPolyIndex = (int*)malloc(sizeof(int));
+    (*eltsConnecPolyIndex)[0]=0;
+    *eltsGnumPoly = NULL;  
+  }
+  
+    
+}
+
+
+void          
+CWP_surf_gen_one_connectivity_get
+( char* genName, int i_part,
+  int* nVtx , double** coords, CWP_g_num_t** vtxGnum,
+  int* nElts, int** eltsConnecIndex, int** eltsConnec, CWP_g_num_t** eltsGnum
+)
+{
+
+  if(_is_coupled(genName)){ 
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+  
+    *nVtx = surfMesh -> nVtxGet(i_part);
+    *nElts = surfMesh -> nEltsGet(i_part);
+    *coords = surfMesh -> coordsGet(i_part);
+    *vtxGnum = surfMesh -> vtxGnumGet(i_part);  
+
+    *eltsConnec = surfMesh -> connecGet(i_part);  
+    *eltsConnecIndex = surfMesh -> connecIndexGet(i_part);    
+    *eltsGnum = surfMesh -> eltsGnumGet(i_part);    
+  }
+  else{
+    *nVtx = 0;
+    *nElts = 0;
+    *coords = NULL;
+    *vtxGnum = NULL;
+  
+    *eltsConnec = NULL;  
+    *eltsConnecIndex = (int*)malloc(sizeof(int));
+    (*eltsConnecIndex)[0]=0;
+    *eltsGnum = NULL;  
+  }
+
+
+}
+
+
+
+void          
+CWP_surf_face_edge_get
+( char* genName, int i_part,
+  int* nVtx , double** coords, CWP_g_num_t** vtxGnum,
+  int* nFace, int** faceEdgeIdx, int** faceEdge, 
+  int* nEdge, int** edgeVtxIdx, int** edgeVtx, 
+  CWP_g_num_t** faceLNToGN
+)
+{
+
+  if(_is_coupled(genName)){ 
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+  
+    *nVtx = surfMesh -> nVtxGet(i_part);
+    *nFace = surfMesh -> nFaceGet(i_part);
+    *coords = surfMesh -> coordsGet(i_part);
+    *vtxGnum = surfMesh -> vtxGnumGet(i_part);  
+
+    *nEdge = surfMesh -> nEdgeGet(i_part);
+    *faceEdgeIdx = surfMesh -> faceEdgeIdxGet(i_part);
+    *faceEdge = surfMesh -> faceEdgeGet(i_part);
+
+    *edgeVtxIdx = surfMesh -> edgeVtxIdxGet(i_part);
+    *edgeVtx = surfMesh -> edgeVtxGet(i_part);
+
+    *faceLNToGN = surfMesh -> faceLNToGNGet(i_part);
+  }
+  else{
+    *nVtx = 0;
+    *coords = NULL;
+    *vtxGnum = NULL;
+
+    *faceEdgeIdx =(int*)malloc(sizeof(int));
+    (*faceEdgeIdx)[0]=0;
+
+    *faceEdge = NULL;
+
+    *edgeVtxIdx = (int*)malloc(sizeof(int));
+    (*edgeVtxIdx)[0]=0;
+
+    *edgeVtx = NULL;  
+
+    *faceLNToGN = NULL;  
+
+  }
+
+
+}
+
+
+
+
+
+
+void          
+CWP_surf_gen_tri_field_get
+( char* genName, int i_part,
+  double** field
+)
+{
+
+  if(_is_coupled(genName)){ 
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+    *field = surfMesh -> specialFieldTriGet(i_part);    
+  }
+  else{
+    *field = NULL;
+  }
+}
+
+
+void          
+CWP_surf_gen_quad_field_get
+( char* genName, int i_part,
+  double** field
+)
+{
+
+  if(_is_coupled(genName)){ 
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+    *field = surfMesh -> specialFieldQuadGet(i_part);    
+  }
+  else{
+    *field = NULL;
+  }
+}
+
+void          
+CWP_surf_gen_poly_field_get
+( char* genName, int i_part,
+  double** field
+)
+{
+
+  if(_is_coupled(genName)){ 
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+    *field = surfMesh -> specialFieldPolyGet(i_part);    
+  }
+  else{
+    *field = NULL;
+  }
+}
+
+
 
 /*-----------------------------------------------------------------------------*/
 

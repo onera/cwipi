@@ -24,6 +24,8 @@
 #include <cstdlib>
 #include <list>
 #include <map>
+#include <algorithm>    
+#include <vector>       
 
 #include "pdm_error.h"
 
@@ -203,7 +205,7 @@ namespace cwipi {
     delete[] concatenateNames;
     delete[] codesLengthName;
 
-    delete[] n_codes_rank;
+
 
     map < string, vector < int > * >  coupledRankCode;
     map < string, vector < int > * >  rankCode;
@@ -276,6 +278,45 @@ namespace cwipi {
         assert(index <= totalLength);
       }
     }
+
+    // Create intra code communicators
+    // -------------------------------
+
+    MPI_Group globalGroup;
+    MPI_Comm_group (globalComm, &globalGroup);
+    
+    typedef map <string, vector < int > * >::iterator Iterator;
+
+    for (Iterator p = rankCode.begin(); 
+                  p != rankCode.end(); p++){
+      p->second->resize(p->second->size());
+      const int *_ranks = &((*p->second)[0]);
+      _codePropertiesDB[p->first]->_intraRanks = p->second;
+      int _n_ranks = p->second->size();
+      MPI_Group_incl (globalGroup, _n_ranks, _ranks, 
+                     &(_codePropertiesDB[p->first]->_intraGroup));
+      MPI_Comm_create (globalComm, 
+                       _codePropertiesDB[p->first]->_intraGroup,
+                       &(_codePropertiesDB[p->first]->_intraComm));
+
+      int rootIdx = 0;
+      std::vector<int> cplRankCode = (*coupledRankCode[p->first]);
+      vector<int>::iterator it = std::find( cplRankCode.begin(), cplRankCode.end(), _ranks[rootIdx] );
+      
+      while((n_codes_rank[ _ranks[rootIdx] ] == 2 
+            || it == cplRankCode.end())
+            && rootIdx <_n_ranks){
+        rootIdx++;
+        it =  std::find( cplRankCode.begin(), cplRankCode.end(), _ranks[rootIdx] );
+      }
+      if(rootIdx == _n_ranks) 
+        PDM_error(__FILE__, __LINE__, 0, "At least one MPI process per code must be monocode.\n");
+      _codePropertiesDB[p->first]->_rootRankInGlobalComm = _ranks[rootIdx];
+    }
+
+    rankCode.clear();
+
+
 
     typedef map <string, CodeProperties *>::iterator IteratorCP;
       
@@ -492,32 +533,9 @@ namespace cwipi {
     delete [] iproc2;
     delete [] mergeNames;
     delete [] mergeIsCoupled;
+    delete[] n_codes_rank;
     
     
-    // Create intra code communicators
-    // -------------------------------
-
-    MPI_Group globalGroup;
-    MPI_Comm_group (globalComm, &globalGroup);
-    
-    typedef map <string, vector < int > * >::iterator Iterator;
-
-    for (Iterator p = rankCode.begin(); 
-                  p != rankCode.end(); p++){
-      p->second->resize(p->second->size());
-      const int *_ranks = &((*p->second)[0]);
-      _codePropertiesDB[p->first]->_intraRanks = p->second;
-      int _n_ranks = p->second->size();
-      MPI_Group_incl (globalGroup, _n_ranks, _ranks, 
-                     &(_codePropertiesDB[p->first]->_intraGroup));
-      MPI_Comm_create (globalComm, 
-                       _codePropertiesDB[p->first]->_intraGroup,
-                       &(_codePropertiesDB[p->first]->_intraComm));
-      _codePropertiesDB[p->first]->_rootRankInGlobalComm = _ranks[0];
-    }
-    
-    rankCode.clear();
-
     // Create intra coupled code group
     // -------------------------------
 

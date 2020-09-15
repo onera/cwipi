@@ -87,6 +87,58 @@ namespace cwipi {
      Communication &cplCodeComm 
     );
 
+
+    MPI_Comm 
+    unionCommGet
+    (
+    );
+
+    std::vector<int>*
+    unionCommCplRanksGet
+    (
+    );
+
+    std::vector<int>*
+    unionCommLocRanksGet
+    (
+    );
+
+    MPI_Comm 
+    cplCommGet
+    (
+    );
+
+    std::vector<int>*
+    cplCommCplRanksGet
+    (
+    );
+
+    std::vector<int>*
+    cplCommLocRanksGet
+    (
+    );
+
+
+    int
+    unionCommCplCodeRootRanksGet
+    (
+    );
+
+    int
+    unionCommLocCodeRootRanksGet
+    (
+    );
+
+    int
+    cplCommCplCodeRootRanksGet
+    (
+    );
+
+    int
+    cplCommLocCodeRootRanksGet
+    (
+    );
+
     /**
      *
      * \brief Return the communicator type
@@ -101,7 +153,7 @@ namespace cwipi {
      * \brief Synchronise
      *
      */
-
+/*
     virtual void
     sync
     (
@@ -109,7 +161,7 @@ namespace cwipi {
      MPI_Datatype mpiType, 
      int tabSize
     ) = 0;
-
+*/
   protected :
 
     /**
@@ -149,16 +201,19 @@ namespace cwipi {
     int       _tag;                     /*!< Tag for MPI */
     MPI_Group _unionGroup;              /*!< Union grou between coupled codes */
     MPI_Comm  _unionComm;               /*!< Union communicator between coupled codes */
+    vector <int>  *_unionCommCplRanks;
+    vector <int>  *_unionCommLocRanks;    
 
-    MPI_Group _cplGroup;                  /*!< Coupling group 
-                                          (part of merger inter communicator */
-    MPI_Comm _cplComm;                  /*!< Coupling communicator 
-                                          (part of merger inter communicator */
-    int      _locCodeRootRankCplComm;  /*!< Root rank associated to the coupled code
-                                          into the coupling communicator */
-    int      _cplCodeRootRankCplComm;  /*!< Root rank associated to the coupled code
-                                          into the coupling communicator */
-    bool      _isCplRank;               /*!< Is a current rank coupled */
+    vector <int>  *_cplCommCplRanks;
+    vector <int>  *_cplCommLocRanks;    
+
+    MPI_Group _cplGroup;                  /*!< Coupling group (part of merger inter communicator */
+    MPI_Comm _cplComm;                    /*!< Coupling communicator (part of merger inter communicator */
+    int      _locCodeRootRankUnionComm;   /*!< Root rank associated to the local code into the union communicator */
+    int      _cplCodeRootRankUnionComm;   /*!< Root rank associated to the coupled code into the union communicator */
+    int      _locCodeRootRankCplComm;   /*!< Root rank associated to the local code into the coupling communicator */
+    int      _cplCodeRootRankCplComm;   /*!< Root rank associated to the coupled code into the coupling communicator */    
+    bool      _isCplRank;                /*!< Is a current rank coupled */
   };
 }
 #endif //__COMMUNICATION_H__

@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <float.h>
 #include <assert.h>
 
 /*----------------------------------------------------------------------------
@@ -31,6 +32,8 @@
  *----------------------------------------------------------------------------*/
 
 #include "pdm_priv.h"
+#include "pdm_polygon.h"
+#include "pdm_plane.h"
 #include "pdm_geom_elem.h"
 #include "pdm_hash_tab.h"
 #include "pdm_printf.h"
@@ -900,6 +903,335 @@ PDM_geom_elem_quad_properties
                                                  isDegenerated);
 
   free (connectivityIndex);
+
+  return convergence;
+}
+
+/**
+ * \brief Compute the barycentric coordinates of a set of points inside
+          their belonging polygons.
+ *
+ *  @param [in]  nPoints               Number of points
+ *  @param [in]  ptsLocations          Numbering of the belonging polygons inside the connectivityIndex
+ *  @param [in]  connectivityIndex     Mesh connectivity Index
+ *  @param [in]  connectivity          Mesh connectivity
+ *  @param [in]  coords                Mesh coordinates
+ *  @param [out] barCoordsIndex        Pointer to the barycentric coordinates index
+ *  @param [out] barCoordsIndex        Pointer to the barycentric coordinates
+ *
+ *  @return                     The status of properties computation convergence
+ */
+
+int PDM_geom_elem_compute_polygon_barycentric_coordinates(const int           nPoints,
+                                                           const int          *ptsLocations,
+                                                           const double       *pts_coords,
+                                                           const int          *connectivityIndex,
+                                                           const int          *connectivity,
+                                                           const double       *coords,
+                                                           int               **barCoordsIndex,
+                                                           double            **barCoords
+)
+{
+
+  int convergence = 1;
+  double local_pts[3];
+
+  /* Tableaux locaux */
+
+  const double eps_base = 1e-10;
+  double* coords_sommets = NULL;
+  double* s = NULL;
+  double* dist = NULL;
+  double* aire = NULL;
+  double* proScal = NULL;
+  *barCoordsIndex = (int*) malloc(sizeof(int) * (nPoints+1) );
+  int* _barCoordsIndex = *barCoordsIndex;
+
+  int prev_n_sommets = 0;
+  int n_sommets = 0;
+
+  _barCoordsIndex[0] = 0;
+  /* Boucle sur les points distants */
+  for (int ipoint =  0; ipoint < nPoints; ipoint++ ) {
+
+    /* Initialisation - Copie locale */
+
+    int isOnEdge = 0;
+    int isVertex = 0;
+    int ielt = ptsLocations[ipoint] - 1;
+    prev_n_sommets = n_sommets;
+    n_sommets =  connectivityIndex[ielt+1] -
+                       connectivityIndex[ielt];
+
+    local_pts[0] = pts_coords[3*ipoint];
+    local_pts[1] = pts_coords[3*ipoint + 1];
+    local_pts[2] = pts_coords[3*ipoint + 2];
+
+    if (ipoint == 0) {
+      coords_sommets = (double*)malloc(sizeof(double)* 3 * n_sommets);
+      s              = (double*)malloc(sizeof(double)* 3 * n_sommets);
+      dist           = (double*)malloc(sizeof(double)* n_sommets);
+      aire           = (double*)malloc(sizeof(double)* n_sommets);
+      proScal        = (double*)malloc(sizeof(double)* n_sommets);
+    }
+    else {
+      if (prev_n_sommets < n_sommets) {
+        coords_sommets = (double*)realloc(coords_sommets,sizeof(double)* 3 * n_sommets);
+        s              = (double*)realloc(s,      sizeof(double)* 3 * n_sommets);
+        dist           = (double*)realloc(dist,   sizeof(double)* n_sommets);
+        aire           = (double*)realloc(aire,   sizeof(double)* n_sommets);
+        proScal        = (double*)realloc(proScal,sizeof(double)* n_sommets);
+      }
+    }
+
+    for (int isom = 0; isom < n_sommets; isom++) {
+      coords_sommets[3*isom]   =
+        coords[3*(connectivity[connectivityIndex[ielt]+isom]-1)];
+
+      coords_sommets[3*isom+1] =
+        coords[3*(connectivity[connectivityIndex[ielt]+isom]-1)+1];
+
+      coords_sommets[3*isom+2] =
+        coords[3*(connectivity[connectivityIndex[ielt]+isom]-1)+2];
+    }
+
+    /* Projection sur un plan moyen */
+
+    double bary[3];
+
+    PDM_polygon_compute_barycenter (n_sommets, &(coords_sommets[0]), bary);
+
+    double n[3]   = {0, 0, 1};
+    double p0 [3] = {0 ,0, 0};
+    double p10[3] = {0 ,0, 0};
+    double l10[3] = {0 ,0, 0};
+    double p20[3] = {0 ,0, 0};
+    double l20[3] = {0 ,0, 0};
+
+    /*Compute polygon normal*/
+    PDM_polygon_parameterize (n_sommets, &(coords_sommets[0]),p0,p10,l10,p20,l20, n);
+
+    PDM_plane_projection2 (local_pts, bary, n, local_pts);
+
+    for (int isom = 0; isom < n_sommets; isom++) {
+
+      double *pt1 = &(coords_sommets[0]) + 3 *isom;
+      PDM_plane_projection2 (pt1, bary, n, pt1);
+
+    }
+
+    double bounds[6] = {DBL_MAX, -DBL_MAX,
+                        DBL_MAX, -DBL_MAX,
+                        DBL_MAX, -DBL_MAX};
+
+    for (int isom = 0; isom < n_sommets; isom++) {
+      bounds[0] = PDM_MIN(bounds[0], coords_sommets[3*isom]);
+      bounds[1] = PDM_MAX(bounds[1], coords_sommets[3*isom]);
+
+      bounds[2] = PDM_MIN(bounds[2], coords_sommets[3*isom + 1]);
+      bounds[3] = PDM_MAX(bounds[3], coords_sommets[3*isom + 1]);
+
+      bounds[4] = PDM_MIN(bounds[4], coords_sommets[3*isom + 2]);
+      bounds[5] = PDM_MAX(bounds[5], coords_sommets[3*isom + 2]);
+    }
+
+
+    /* Verification que le point est dans l'element */
+    double closest[3];
+    double dist_min = DBL_MAX;
+
+    PDM_polygon_status_t position_inout
+      = PDM_polygon_evaluate_position(local_pts, n_sommets, &(coords_sommets[0]), closest, &dist_min);
+
+    if (position_inout == PDM_POLYGON_OUTSIDE) {
+      local_pts[0] = closest[0];
+      local_pts[1] = closest[1];
+      local_pts[2] = closest[2];
+    }
+
+    /* Calcul des coordonnnees barycentriques */
+
+    double min_dist = DBL_MAX;
+    for (int isom = 0; isom < n_sommets; isom++) {
+
+      int inext = (isom + 1) % n_sommets;
+      double *vect = &s[0] + 3*isom;
+      double l_edge;
+      vect[0] = coords_sommets[3*inext]   - coords_sommets[3*isom];
+      vect[1] = coords_sommets[3*inext+1] - coords_sommets[3*isom+1];
+      vect[2] = coords_sommets[3*inext+2] - coords_sommets[3*isom+2];
+      l_edge  = PDM_MODULE (vect);
+      min_dist = PDM_MIN(l_edge, min_dist);
+    }
+    double eps = PDM_MAX(min_dist * eps_base, 1.e-30);
+
+    for (int isom = 0; isom < n_sommets; isom++) {
+
+      double *vect = &s[0] + 3*isom;
+      vect[0] = coords_sommets[3*isom]   - local_pts[0];
+      vect[1] = coords_sommets[3*isom+1] - local_pts[1];
+      vect[2] = coords_sommets[3*isom+2] - local_pts[2];
+      dist[isom] = PDM_MODULE (vect);
+    }
+
+    int currentVertex;
+    for (int isom = 0; isom < n_sommets; isom++) {
+      int inext = (isom + 1) % n_sommets;
+      double *vect1 = &s[0] + 3 * isom;
+      double *vect2 = &s[0] + 3 * inext;
+      double pvect[3];
+
+      proScal[isom] = PDM_DOT_PRODUCT (vect1, vect2);
+      PDM_CROSS_PRODUCT(pvect, vect1, vect2);
+
+      double sign = PDM_DOT_PRODUCT (pvect, n);
+      aire[isom] = PDM_MODULE(pvect);
+
+      if (sign < 0) {
+        aire[isom] = -aire[isom];
+      }
+
+      if (dist[isom] <= eps) {
+
+        isVertex = 1;
+        currentVertex = isom;
+        break;
+      }
+
+      else if ((fabs(aire[isom]) <= eps)  && (proScal[isom] < 0)) {
+
+        isOnEdge = 1;
+        currentVertex = isom;
+        break;
+
+      }
+
+    }
+
+    _barCoordsIndex[ipoint+1] = _barCoordsIndex[ipoint] + n_sommets;
+    //Vector/Pointer containing Barycentric coordinates
+
+    *barCoords = (double*)realloc( *barCoords, sizeof(double)*(_barCoordsIndex[ipoint+1]) );
+
+    double *_barCoords = *barCoords;
+
+    double* _localBaryCoords  = &(_barCoords[ _barCoordsIndex[ipoint] ]);
+
+    /* Le point distant est un sommet */
+
+    if (isVertex) {
+      for (int isom = 0; isom < n_sommets; isom++)
+        _localBaryCoords[isom] = 0.;
+      _localBaryCoords[currentVertex] = 1.;
+    }
+    else if (isOnEdge) {
+      /* Le point distant est sur arete */
+      for (int isom = 0; isom < n_sommets; isom++)
+        _localBaryCoords[isom] = 0.;
+
+      int nextPoint = (currentVertex + 1) % n_sommets;
+
+      _localBaryCoords[currentVertex] =
+        dist[nextPoint]     / (dist[nextPoint]+dist[currentVertex]);
+      _localBaryCoords[nextPoint]     =
+        dist[currentVertex] / (dist[nextPoint]+dist[currentVertex]);
+    }
+    else {
+      /* Cas general */
+      double sigma = 0;
+      for (int isom = 0; isom < n_sommets; isom++) {
+        double coef = 0.;
+        int previousVertex = (isom - 1 + n_sommets) % n_sommets;
+        int nextVertex = (isom + 1) % n_sommets;
+
+        if (fabs(aire[previousVertex]) > eps)
+          coef += (dist[previousVertex] - proScal[previousVertex]/dist[isom]) / aire[previousVertex];
+        if (fabs(aire[isom]) > eps)
+          coef += (dist[nextVertex]     - proScal[isom]/dist[isom])           / aire[isom];
+        sigma += coef;
+        _localBaryCoords[isom] = coef;
+      }
+
+      if (PDM_ABS(sigma) >= eps ) {
+        for (int isom = 0; isom < n_sommets; isom++) {
+          _localBaryCoords[isom] /= sigma;
+        }
+      }
+      else {
+        double abs_sigma = fabs(sigma);
+        printf("Warning : Mise à NAN %f %f\n", abs_sigma,  eps);
+        for (int isom = 0; isom < n_sommets; isom++) {
+          _localBaryCoords[isom] = NAN;
+        }
+      }
+
+      /* Check Result */
+
+      for (int isom = 0; isom <  n_sommets; isom++) {
+        if ( _localBaryCoords[isom] != _localBaryCoords[isom] ||
+             _localBaryCoords[isom] < 0. ||
+             _localBaryCoords[isom] > 1. ) {
+
+          convergence = 0;
+  /*        double dist_min = DBL_MAX;
+          int k_min = 0;
+          double t_min;
+
+          for (int k = 0; k < n_sommets; k++) {
+            _localBaryCoords[k] = 0.0;
+          }
+
+          for (int k = 0; k < n_sommets; k++) {
+            double *p1 = &(coords_sommets[3 * k]);
+            double *p2 = &(coords_sommets[3 * ((k+1) % n_sommets)]);
+            double closest[3];
+            double t;
+
+            double dist2 = fvmc_distance_to_line (local_pts,
+                                                 p1,
+                                                 p2,
+                                                 &t,
+                                                 closest);
+            if (dist2 < dist_min) {
+              t_min = t;
+              k_min = k;
+            }
+          }
+
+          _localBaryCoords[k_min] = 1 - t_min;
+          _localBaryCoords[(k_min + 1) % n_sommets] = t_min;
+*/
+          break;
+
+        }
+
+      }
+
+    }
+
+    if (0 == 1) {
+      if ((nPoints == 1) && (ptsLocations[0] == 1)) {
+
+        PDM_printf("coord %i %i :", ipoint+1, ielt+1);
+        PDM_printf(" %12.5e %12.5e %12.5e", pts_coords[3*ipoint],
+                    pts_coords[3*ipoint+1],
+                    pts_coords[3*ipoint+2] );
+        PDM_printf("\n");
+
+        PDM_printf("coo b %i :", ipoint+1);
+        for (int isom = 0; isom < n_sommets; isom++) {
+          PDM_printf(" %f", _localBaryCoords[isom]);
+        }
+        PDM_printf("\n");
+      }
+    }
+  }
+
+  free(coords_sommets);
+  free(s);
+  free(aire);
+  free(dist);
+  free(proScal);
 
   return convergence;
 }

@@ -319,6 +319,34 @@ PDM_geom_elem_quad_properties
 
 
 /**
+ * \brief Compute the barycentric coordinates of a set of points inside
+          their belonging polygons.
+ *
+ *  @param [in]  nPoints               Number of points
+ *  @param [in]  ptsLocations          Numbering of the belonging polygons inside the connectivityIndex
+ *  @param [in]  connectivityIndex     Mesh connectivity Index
+ *  @param [in]  connectivity          Mesh connectivity
+ *  @param [in]  coords                Mesh coordinates
+ *  @param [out] barCoordsIndex        Pointer to the barycentric coordinates index
+ *  @param [out] barCoordsIndex        Pointer to the barycentric coordinates
+ *
+ *  @return                     The status of properties computation convergence
+ */
+
+int
+PDM_geom_elem_compute_polygon_barycentric_coordinates
+(
+ const int           n_points,
+ const int          *pts_locations,
+ const double       *pts_coords,
+ const int          *connectivityIndex,
+ const int          *connectivity,
+ const double       *coords,
+ int               **barCoordsIndex,
+ double            **barCoords
+);
+
+/**
  *  \brief Polygon properties
  *
  *  @param [in]  nPolygon              Number of polygon
@@ -495,4 +523,3 @@ PDM_geom_elem_polyhedra_properties
 #endif /* __cplusplus */
 
 #endif /* __PDM_ELEM_GEOM__ */
-

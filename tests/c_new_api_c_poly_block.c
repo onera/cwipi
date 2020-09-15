@@ -155,9 +155,8 @@ int main
   int comm_world_size;
   
   FILE* meshFile;
+
   meshFile = fopen("meshes/mesh_poly_d1", "r");
-
-
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
@@ -204,27 +203,21 @@ int main
   double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
 
-  if (rank == 0 || rank==1 || rank == 2 || rank == 3) {
-    n_code_name = 2;
+  if (rank == 0) {
+    n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
-    codeNames[0] ="code1";
-    codeNames[1] ="code2";
+    codeNames[0] ="cpoly";
     is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
     is_coupled_rank[0] = CWP_STATUS_ON;
-    is_coupled_rank[1] = CWP_STATUS_ON;
   }
    
-  char* fileName = NULL;
-  if (rank == 0) 
-    fileName="c_new_api_0000.txt";
-  else if (rank == 1)
-    fileName="c_new_api_0001.txt";
-  else if (rank == 2)
-    fileName="c_new_api_0002.txt";
-  else if (rank == 3)
-    fileName="c_new_api_0003.txt";
-
-  outputFile = fopen(fileName,"w");
+  if ( rank==1 ) {
+    n_code_name =1;
+    codeNames = malloc(sizeof(char *) * n_code_name);
+    codeNames[0] ="code2";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank[0] = CWP_STATUS_ON;
+  }
 
   times_init = malloc(sizeof(double) * n_code_name);
 
@@ -235,6 +228,7 @@ int main
   }
   
   MPI_Comm *localComm = malloc(sizeof(MPI_Comm)*n_code_name);
+  
   CWP_Init(MPI_COMM_WORLD,
            n_code_name,
            (const char **) codeNames,
@@ -242,9 +236,6 @@ int main
            times_init,
            localComm);
 
-
-  /* Output redirection
-   * ------------------ */
 
   int currentRank;
   int localCommSize;
@@ -255,17 +246,22 @@ int main
     printf("Size of localComm[%i]=%i et rang du proc=%i.\n",i,localCommSize,currentRank );
   }
 
-  /* Finalize
-   * -------- */
  
   char cpl_id1[] = "cpl_code1_code2";
 
   printf("Coupling creation\n");
-  if (rank == 0 || rank == 1 || rank == 2 || rank == 3) {
-    CWP_Cpl_create ("code1", cpl_id1, "code2", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, 1,
+  if ( rank == 0 ) {
+    CWP_Cpl_create ("cpoly", cpl_id1, "code2", CWP_COMM_PAR_WITHOUT_PART,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
-  printf("Coupling created\n");
+  }
+                    
+  if ( rank==1 ) {                   
+    CWP_Cpl_create ("code2", cpl_id1, "cpoly", CWP_COMM_PAR_WITHOUT_PART,
+                    CWP_MAPPING_LOCATION, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }                
+  printf("Coupling created %i\n",currentRank);
               
     /* Building of the local mesh */
     
@@ -309,30 +305,34 @@ int main
 
     fclose(meshFile);
 
+   if(rank==0) {
+         
+     printf("Visu Setting\n");
+     CWP_Visu_set("cpoly", cpl_id1,1.0,Ensight,"binary"); 
+     printf("Visu Set\n");
+  
     printf("vtx_set\n");
-    CWP_Mesh_interf_vtx_set("code1", cpl_id1,0,nVertex,coords,NULL);
+    CWP_Mesh_interf_vtx_set("cpoly", cpl_id1,0,nVertex,coords,NULL);
  
     printf("3D Cell Polyhedra Block Add\n");
-    CWP_Mesh_interf_c_poly_block_add("code1",
-                                     cpl_id1,
-                                     0,
+    int block_id = CWP_Mesh_interf_block_add("cpoly",cpl_id1,CWP_BLOCK_CELL_POLY);
+    
+    printf("3D Cell Polyhedra Block Set\n"); 
+    CWP_Mesh_interf_c_poly_block_set("cpoly", cpl_id1,0,block_id,
                                      nElements,
-                                     cellFaceIdx,
-                                     cellFace,
                                      nFace,
                                      faceVertexIdx,
                                      faceVertex,
+                                     cellFaceIdx,
+                                     cellFace,
                                      NULL);
-      
 
-    printf("Finalize Interface Mesh (end_set)\n");
-    CWP_Mesh_interf_end_set("code1", cpl_id1);
-    
+
     printf("Interface Mesh deletion\n");
-    CWP_Mesh_interf_del("code1", cpl_id1);
-        printf("Interface Mesh deleted\n");
-  }
-   
+    CWP_Mesh_interf_del("cpoly", cpl_id1);
+    printf("Interface Mesh deleted\n");
+      }
+
 
   fflush(stdout);
 
@@ -345,8 +345,6 @@ int main
   free (codeNames);
   free (is_coupled_rank);
   free (times_init);
-  fclose (outputFile);
-  printf("fin test\n");
-  fflush(stdout);
+
   return 0;
 }

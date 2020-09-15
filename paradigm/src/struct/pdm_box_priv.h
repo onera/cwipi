@@ -99,8 +99,9 @@ struct _PDM_box_set_t {
 
 
   int         normalized;     /* 1 if normalized, 0 otherwise */
-  double      s[3];           /* Translation for the normalisation */
-  double      d[3];           /* Dilatation for the normalisation */
+
+  double      s[3];           /* Translation for the normalization */
+  double      d[3];           /* Dilatation for the normalization */
 
 
   PDM_MPI_Comm    comm;           /* Associated MPI communicator */

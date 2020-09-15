@@ -158,13 +158,13 @@ namespace cwipi
       PDM_printf ("  - Is it a coupled rank : %d\n", _isCoupledRank);
     }
     PDM_printf ("  - Ranks in global communicator :");
-    for (int i = 0; i < _intraRanks->size(); i++) {
+    for (size_t i = 0; i < _intraRanks->size(); i++) {
       PDM_printf (" %d", (*_intraRanks)[i]);
     }    
     PDM_printf ("\n");
     
     PDM_printf ("  - Coupled ranks in global communicator :");
-    for (int i = 0; i < _connectableRanks->size(); i++) {
+    for (size_t i = 0; i < _connectableRanks->size(); i++) {
       PDM_printf (" %d", (*_connectableRanks)[i]);
     }    
     PDM_printf ("\n");
@@ -269,6 +269,10 @@ namespace cwipi
 
   CodeProperties::~CodeProperties()
   {
+  
+    if (_winGlob != MPI_WIN_NULL) {
+      MPI_Win_free(&_winGlob);
+    }  
     if (_winIntParamIdxName != MPI_WIN_NULL) {
       MPI_Win_free(&_winIntParamIdxName);
     }

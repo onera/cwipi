@@ -536,6 +536,8 @@ const int     *faceVtx
 
         if (!((tagFace[iface] == FACE_UNCHANGED_CYCLE) ||
               (tagFace[iface] == FACE_CHANGED_CYCLE))) {
+          printf(" oooo %i \n", iface);
+          printf(" Link to : %i %i \n", faceCell[2*iface], faceCell[2*iface+1]);
           PDM_error (__FILE__, __LINE__, 0, "Error reorient : a face of polyhedron is not processed\n");
         }
 

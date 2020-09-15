@@ -39,9 +39,11 @@ namespace cwipi {
      _unionComm(MPI_COMM_NULL), 
 //     _fvmComm(MPI_COMM_NULL), 
      _cplComm(MPI_COMM_NULL), 
-     _locCodeRootRankCplComm(-1),
-     _cplCodeRootRankCplComm(-1),
-     _isCplRank(false)
+     _locCodeRootRankUnionComm(-1),
+     _cplCodeRootRankUnionComm(-1),
+     _isCplRank(false),
+     _cplCommCplRanks(NULL),
+     _cplCommLocRanks(NULL)
   {
   }
 
@@ -83,6 +85,8 @@ namespace cwipi {
    CouplingDB           &cplDB
   )
   {
+  
+    _isCplRank = localCodeProperties.isCoupledRank();
     if (_cplComm == MPI_COMM_NULL) {
       _cplCodeProperties = &cplCodeProperties;
       _localCodeProperties = &localCodeProperties;
@@ -102,14 +106,11 @@ namespace cwipi {
             globalRank,
             localCodeProperties.nameGet().c_str());
       }
-
       else {
       
-        //
-        // Define coupling communicator
-        
+        //Build a specific tag through the cplId
         int tag = 0;
-        for (int i = 0; i < cplId.size(); i++) {
+        for (size_t i = 0; i < cplId.size(); i++) {
           tag += cplId[i];
         }
 
@@ -117,7 +118,6 @@ namespace cwipi {
           tag = tag % MPI_TAG_UB;
         }
     
-        //
         // Build the union communicator between the two coupled codes
 
         if (localCodeProperties.idGet() < cplCodeProperties.idGet()) {
@@ -178,20 +178,16 @@ namespace cwipi {
         // Build the coupling communicator
 
         _cplCommCreate(cplCommType);
-
         MPI_Group globalGroup;
         MPI_Comm_group(globalComm, &globalGroup);
 
-        MPI_Group cplGroup;
-        
         if (_isCplRank) {
-          MPI_Comm_group(_cplComm, &cplGroup);
-        
+          printf("I am coupled\n");
           MPI_Group_translate_ranks (globalGroup, 1, &localRootRank, 
-                                     cplGroup, &_locCodeRootRankCplComm);
+                                     _unionGroup, &_locCodeRootRankUnionComm);
 
           MPI_Group_translate_ranks (globalGroup, 1, &cplRootRank, 
-                                     cplGroup, &_cplCodeRootRankCplComm);
+                                     _unionGroup, &_cplCodeRootRankUnionComm);
         }
 
       }
@@ -221,8 +217,13 @@ namespace cwipi {
     _unionComm              = cplCodeComm._unionComm;
     _cplGroup               = cplCodeComm._cplGroup;
     _cplComm                = cplCodeComm._cplComm;
-    _locCodeRootRankCplComm = cplCodeComm._cplCodeRootRankCplComm;
-    _cplCodeRootRankCplComm = cplCodeComm._locCodeRootRankCplComm;
+    _locCodeRootRankUnionComm = cplCodeComm._cplCodeRootRankUnionComm;
+    _cplCodeRootRankUnionComm = cplCodeComm._locCodeRootRankUnionComm;
+    _unionCommCplRanks = new std::vector<int>(*(cplCodeComm._unionCommLocRanks));
+    _unionCommLocRanks = new std::vector<int>(*(cplCodeComm._unionCommCplRanks));    
+    _cplCommCplRanks = new std::vector<int>(*(cplCodeComm._cplCommLocRanks));
+    _cplCommLocRanks = new std::vector<int>(*(cplCodeComm._cplCommCplRanks));   
+
     
     const int localRootRank = _localCodeProperties->rootRankGet();
     
@@ -239,6 +240,88 @@ namespace cwipi {
     } 
     
   }
+  
+  MPI_Comm 
+  Communication::unionCommGet
+  (
+  )
+  {
+    return _unionComm;
+  }  
+
+  MPI_Comm 
+  Communication::cplCommGet
+  (
+  )
+  {
+    return _cplComm;
+  }  
+
+
+  std::vector<int>*
+  Communication::unionCommCplRanksGet
+  (
+  )
+  {
+    return _unionCommCplRanks;
+  }
+
+  std::vector<int>*
+  Communication::cplCommCplRanksGet
+  (
+  )
+  {
+    return _cplCommCplRanks;
+  }
+
+  std::vector<int>*
+  Communication::unionCommLocRanksGet
+  (
+  )
+  {
+    return _unionCommLocRanks;
+  }
+
+  std::vector<int>*
+  Communication::cplCommLocRanksGet
+  (
+  )
+  {
+    return _cplCommLocRanks;
+  }
+
+  int
+  Communication::unionCommCplCodeRootRanksGet
+  (
+  )
+  {
+     return  _cplCodeRootRankUnionComm;
+  }
+
+  int
+  Communication::cplCommCplCodeRootRanksGet
+  (
+  )
+  {
+     return  _cplCodeRootRankCplComm;
+  }
+
+  int
+  Communication::unionCommLocCodeRootRanksGet
+  (
+  )
+  {
+    return _locCodeRootRankUnionComm;
+  }
+
+  int
+  Communication::cplCommLocCodeRootRanksGet
+  (
+  )
+  {
+    return _locCodeRootRankCplComm;
+  }
+  
 
 }
 

@@ -26,8 +26,10 @@
 
 #include <pdm_mesh_nodal.h>
 #include <bftc_error.h>
-
+#include "pdm_error.h"
+#include "block.hxx"
 #include "cwp.h"
+#include "visualization.hxx"
 
 
 
@@ -35,42 +37,20 @@
 namespace cwipi {
 
 
-
-/**
- * \struct _block
- * \brief  Block element adresses              
- *
- * Structure containing block element adresses                 
- */
-
-typedef struct {
-    int              _id_part;               /*!< Partition identifier */
-    int              _id_block;              /*!< Block identifier */
-    CWP_Block_t      _blockType;             /*!< Block Type */
-    int              _nElts;                 /*!< Number of elements */
-    int*             _connec_idx;            /*!< Connectivity index */
-    int*             _connec;                /*!< Connectivity */
-    int              _nFaces;                /*!< Number of faces */             
-    int*             _connec_faces_idx;      /*!< Faces connectivity indexes (or NULL) */
-    int*             _connec_faces;          /*!< Faces connectivity or NULL */
-    CWP_g_num_t*     _global_num_block;      /*!< Block global Numbering */
-    int*             _parent_num;            /*!< Block parent numbering */
-    bool             _isBlockFinalized;      /*!< True if the block is Finalized (set) false otherwise. */
-} _block;
-
-
-
   /** 
    * \class Mesh mesh.hxx "mesh.hxx"
-   * \brief Geometry mesh
+   * \brief Interface mesh
    *
-   *  This class computes defines th geometry mesh
+   *  This class defines the interface mesh objects.
    * 
    */
-
+  class Coupling;
+  class Visu;
   class Mesh {
     
   public:
+
+
 
     /**
      * \brief Mesh constructor
@@ -79,11 +59,15 @@ typedef struct {
      * 
      * \param [in] localComm Coupling Communicator.
      * \param [in] npart     Number of mesh partitions.
+     * \param [in] visu      Pointer to the Visu object
      *
      */
  
     Mesh(const MPI_Comm &localComm,
-         int npart);
+              Visu* visu,
+              int npart,
+              CWP_Displacement_t displacement,
+              Coupling           *cpl);
 
 
     /**
@@ -110,13 +94,6 @@ typedef struct {
                           double      coords[],
                           CWP_g_num_t global_num[]); 
                           
-     /**
-     * \brief Finalize the mesh setting after blocks and coordinates additions
-     *
-     */
-       
-     void endSet();
-   
     /**
      * \brief Mesh deletion and free memory
      *
@@ -129,29 +106,78 @@ typedef struct {
      *
      * This function add a block to the geometric mesh.
      *
-     * \param [in] i_part       Index of the mesh partition
      * \param [in] block_type  Type of the block addition     
+     *
+     * \return block_id  Block Identifier
+     */
+
+     int blockAdd(const CWP_Block_t  block_type);
+                 
+                 
+     /**
+     * \brief Set a standard block to the interface mesh
+     *
+     * \param [in] i_part      Partition identifier
+     * \param [in] block_id    Block identifier  
+     * \param [in] n_elts      Number of block elements
+     * \param [in] connec      Vertices to elements connectivity 
+     * \param [in] global_num  Global numbering of the vertices in the block (or NULL)
+     *
+     */
+                 
+     void stdBlockSet( const int              i_part,
+                       const int              block_id,
+                       const int              n_elts,
+                       int                    connec[], 
+                       CWP_g_num_t            global_num[]
+                     );
+                     
+     /**
+     * \brief Set a face polygon block to the interface mesh
+     *
+     * \param [in] i_part      Partition identifier
+     * \param [in] block_id    Block identifier
      * \param [in] n_elts      Number of block elements
      * \param [in] connec_idx  Vertices to elements connectivity index
      * \param [in] connec      Vertices to elements connectivity 
-     * \param [in] n_faces     Number of faces elements (or NULL)
-     * \param [in] face_vtx_idx Vertices to faces connectivity index (or NULL)
-     * \param [in] face_vtx      Vertices to faces connectivity (or NULL)
      * \param [in] global_num  Global numbering of the vertices in the block (or NULL)
-     * \param [in] parent_num  Parent numbering in the block (or NULL)
      *
      */
+                 
+     void poly2DBlockSet( const int              i_part,
+                          const int              block_id,
+                          const int              n_elts,
+                          int                    connec_idx[],
+                          int                    connec[], 
+                          CWP_g_num_t            global_num[]
+                        );
 
-     int blockAdd(const int                  i_part,
-                       const CWP_Block_t      block_type,
-                       const int              n_elts,
-                       int                    connec_idx[],
-                       int                    connec[],
-                       const int              n_faces,
-                       int                    face_vtx_idx[],
-                       int                    face_vtx[],    
-                       CWP_g_num_t            global_num[],
-                       int                    parent_num[]);
+
+     /**
+     * \brief Set a face polhedron block to the interface mesh
+     *
+     * \param [in] i_part            Partition identifier
+     * \param [in] block_id          Block identifier
+     * \param [in] n_elts            Number of block elements
+     * \param [in] n_faces           Number of faces elements (or NULL)
+     * \param [in] connec_faces_idx  Vertices to faces connectivity index
+     * \param [in] connec_faces      Vertices to faces connectivity 
+     * \param [in] connec_cells_idx  Faces to cells connectivity index
+     * \param [in] connec_cells      Faces to cells connectivity 
+     * \param [in] global_num        Global numbering of the vertices in the block (or NULL)
+     *
+     */
+                 
+     void poly3DBlockSet( const int              i_part,
+                          const int              block_id,
+                          const int              n_elts,
+                          const int              n_faces,
+                          int                    connec_faces_idx[],
+                          int                    connec_faces[],
+                          int                    connec_cells_idx[],
+                          int                    connec_cells[], 
+                          CWP_g_num_t            global_num[]
+                        );               
 
      /**
      * \brief Get the Mesh Block Type
@@ -235,15 +261,14 @@ typedef struct {
                                
 
     /**
-    * \brief Update the block database of the id_part partition.
+    * \brief Update the block database.
     *
-    * This function updates the block database of the id_part partition.
+    * This function updates the block database .
     *
-    * \param [in] id_part   Partition identifier. 
     *
     */
 
-    void updateBlockDB(int id_part);
+    void updateBlockDB();
 
     /**
     * \brief Get the vertices number of the partition i_part
@@ -267,7 +292,10 @@ typedef struct {
     *
     */
 
-    inline const double* getVertexCoords(int i_part) const;
+    inline double* getVertexCoords(int i_part);
+
+
+    inline CWP_g_num_t* getVertexGNum(int i_part);
 
 
     /**
@@ -291,7 +319,7 @@ typedef struct {
     *
     */
 
-    inline int getBlockNElts(int id_block);
+    inline int getBlockNElts(int id_block, int i_part);
 
     /**
     * \brief Get the number of elements of the id_part partition
@@ -327,7 +355,7 @@ typedef struct {
     *
     */
 
-    inline int* getEltConnectivityIndex(int id_block);
+    inline int* getEltConnectivityIndex(int id_block,int i_part);
 
     /**
     * \brief Get a block element connectivity
@@ -339,75 +367,239 @@ typedef struct {
     *
     */
     
-    inline int* getEltConnectivity     (int id_block);
+    inline int* getEltConnectivity     (int id_block,int i_part);
  
-     /**
-    * \brief Get a block face connectivity index
-    *
-    * This function gets the face connectivity index of the id_block block.
-    *
-    * \param [in] id_block Block identifier
-    * \return              Face connectivity index of the id_block block
-    *
-    */
-    
-    inline int* getFaceConnectivityIndex(int id_block);
-
     /**
-    * \brief Get a block face connectivity
+    * \brief True if coordinates are defined on all partitions False otherwise.
     *
-    * This function gets the face connectivity of the id_block block.
-    *
-    * \param [in] id_block Block identifier
-    * \return              Face connectivity of the id_block block
     *
     */
-
-    inline int* getFaceConnectivity     (int id_block);
     
+    inline bool coordsDefined ();
 
    // inline const std::vector<double>& getVolume();
 
    // inline const std::vector<double>& getCellCenterCoords();
 
+   /**
+    * \brief Return pdmNodal Handler identifier
+    *
+    *
+    */
+   inline int getPdmNodalIndex();
+   
+   /**
+    * \brief Return Coordinates of the i_part partition.
+    *
+    * \param [in] i_part partition identifier.
+    * \return Coordinates of the i_part partition.
+    *
+    */
+    
+   inline double* getCoordinates(int i_part);
+   
 
+   /**
+    * \brief Return MPI communicator
+    *
+    *
+    */
+    
+   inline MPI_Comm getMPIComm();
+   
+   /**
+    * \brief Return MPI communicator pointer
+    *
+    *
+    */
+    
+   inline const MPI_Comm* getMPICommP();
+   
+   /**
+    * \brief Return number of partitions.
+    *
+    *
+    */
+    
+   inline int getNPart();
+
+   void geomFinalize();
+
+   inline bool gnumVtxRequired ();
+
+   inline CWP_Displacement_t getDisplacement();
+   inline int getIdVisu(int block_id);
+
+   /**
+    * \brief Set the Visu pointer object
+    *
+    * \param [in] visu Pointer to the Visu object
+    *
+    */
+    
+   inline void setVisu(Visu* visu);
+
+   CWP_g_num_t* globalNumGet(int id_block,int i_part) {
+      CWP_g_num_t* gnum = _blockDB[id_block] -> GNumMeshGet(i_part);
+      return gnum;
+   }
+
+   inline Visu* getVisu();
+   
+   void connecCompute(int i_part);   
+   int* connecIdxGet(int i_part);
+   int* connecGet(int i_part);
+   
+   int GNVerticeGet(int i_part);
+   int GNEltGet(int i_part);
+   CWP_g_num_t* GNumEltsGet(int i_part);
+   double* eltCentersGet(int i_part);
+   void eltCentersCompute(int i_part);
+   
+   int* blockDBGet() {
+     return _blocks_id;
+   }
+
+   int nBlockGet() {
+     return _nBlocks;
+   } 
+
+   CWP_Block_t blockTypeGet(int id_block) {
+     return _blockDB[id_block] -> blockTypeGet(); 
+   } 
+
+   CWP_g_num_t* gnumMeshBlockGet(int id_block,int i_part) {
+     return _blockDB[id_block] -> GNumMeshGet(i_part);
+   } 
+
+
+   CWP_g_num_t* gnumInsideBlockGet(int id_block,int i_part) {
+     return _blockDB[id_block] -> GNumBlockGet(i_part);
+   } 
+   
   private:
     
-    const MPI_Comm                         &_localComm;       /*!< Communicator */
-    int                                     _nDim;            /*!< Entities dimensions */  
-    int                                     _nBlocks;         /*!< Number of blocks of the mesh */
-    int*                                    _blocks_id;       /*!< List of block identifiers */
-    std::vector<int*>                       _blocks_id_part;  /*!< Communicator */
-    int                                     _order;           /*!< Mesh order */
-    std::vector<int>                        _nVertex;         /*!< Number of vertices for each partition  */
-    std::vector<int>                        _nElts;           /*!< Number of elements for each partition  */
-    std::vector<double*>                    _coords;          /*!< Vertices coordinate for each partition  */
-    std::map< int, CWP_g_num_t*>            _global_num;      /*!< Global numbering for each partition  */
-    std::map< int, CWP_g_num_t*>            _parent_num;      /*!< Parent numbering for each partition  */
-    int                                     _npart;           /*!< Number of partition  */
+    int _Mesh_nodal_block_std_type_size_get(CWP_Block_t type);
+
+    const MPI_Comm                          &_localComm;              /*!< Communicator */
+    PDM_MPI_Comm                             _pdm_localComm;
+    int                                     _nDim;                   /*!< Entities dimensions */  
+    int                                     _nBlocks;                /*!< Number of blocks of the mesh */
+    int*                                    _blocks_id;              /*!< List of block identifiers */
+    int                                     _order;                  /*!< Mesh order */
+    std::vector<int>                        _nVertex;                /*!< Number of vertices for each partition  */
+    std::vector<int>                        _nElts;                  /*!< Number of elements for each partition  */
+    std::vector<double*>                    _coords;                 /*!< Vertices coordinate for each partition  */
+    std::vector<int*>                       _connec_idx;
+    std::vector<int*>                       _connec;
+    std::vector<CWP_g_num_t*>               _gnum_elt;
+    std::vector<double*>                    _elt_centers; 
+    
+    std::vector <CWP_g_num_t*>              _global_num_vtx;             /*!< Global vertices numbering for each partition  */
+    std::vector <CWP_g_num_t*>              _global_num_elt;             /*!< Global elements numbering for each partition  */
+    int                                     _npart;                  /*!< Number of partition  */
     int                                     _pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
     int                                     _pdmGNum_handle_index;   /*!< Global number index for paradigm handler   */
-    bool                                    _isNodalFinalized;       /*!< True if all the block of the nodal are finalized   */
-    PDM_Mesh_nodal_t                       *_pdmNodal;           /*!< Pointer to the paradigm mesh (nodal) object   */
-    std::map<int,_block>                    _blocks;        /*!< Blocks database  */
+    int                                     _pdmGNum_handle_index_elt;   /*!< Global number index for paradigm handler   */
+    PDM_Mesh_nodal_t                       *_pdmNodal;               /*!< Pointer to the paradigm mesh (nodal) object   */
+    std::vector<cwipi::Block*>               _blockDB;                /*!< Blocks database  */
+    Visu                                   *_visu;                   /*!< Pointer to the Visu object */
+    std::map<int,int>                       _id_visu;                /*!< Map of the PDM_Writer block identifier */  
+    CWP_Displacement_t                      _displacement;          /*!< Type of mesh displacement */  
+    Coupling                               *_cpl;
 
-    
-    
+
+    std::vector<int>                        _nFace;                 
+    std::vector<int*>                       _faceEdgeIdx;
+    std::vector<int*>                       _faceEdge;
+    std::vector<int>                        _nEdge;                 
+    std::vector<int*>                       _edgeVtxIdx;
+    std::vector<int*>                       _edgeVtx;
+    std::vector<int*>                       _edgeVtxNb;
+    std::vector<int*>                       _faceEdgeNb;
+
+    std::vector<CWP_g_num_t*>               _faceLNToGN;
+
+    int                                     _faceEdgeMethod;
     
   //   Mesh &operator=(const Mesh &other);  /*!< Assigment operator not available */
   //   Mesh (const Mesh& other);            /*!< Copy constructor not available */
 
   };
 
+ 
+
+
+  CWP_Displacement_t Mesh::getDisplacement() {
+    return _displacement;
+  }
+
+  void Mesh::setVisu(Visu* visu) {
+    _visu = visu;
+  }
+
+  Visu* Mesh::getVisu() {
+    return _visu;
+  }
+
+  int  Mesh::getIdVisu(int block_id) {
+    return _id_visu[block_id];
+  }
+
+  int Mesh::getNPart() {
+    return _npart;
+  }
+
+  double* Mesh::getCoordinates(int i_part) {
+    return _coords[i_part];
+  }
+
+  int Mesh::getPdmNodalIndex() {
+    return _pdmNodal_handle_index;
+  }
+ 
+  MPI_Comm Mesh::getMPIComm() {
+    return _localComm;
+  }
+
+  const MPI_Comm* Mesh::getMPICommP() {
+    return &_localComm;
+  }
+
+
+  bool Mesh::coordsDefined () {
+    for(int i=0; i<_npart;i++){
+      if(_coords[i] == NULL)
+        return false;
+    }
+    return true;
+  }
+
+
+  bool Mesh::gnumVtxRequired () {
+    for(int i=0; i<_npart;i++){
+      if(_global_num_vtx[i] == NULL && _nVertex[i]>0)
+        return true;
+    }
+    return false;
+  }
+
+
   int Mesh::getPartNVertex(int i_part) const
   {
     return _nVertex[i_part];
   }
 
-  const double* Mesh::getVertexCoords(int i_part)  const
+  double* Mesh::getVertexCoords(int i_part)
   {
     return _coords[i_part];
   }
+
+  CWP_g_num_t* Mesh::getVertexGNum(int i_part)
+  {
+    return _global_num_vtx[i_part];
+  }
+
 
   PDM_Mesh_nodal_t& Mesh::getPdmNodal() const
   {
@@ -415,9 +607,9 @@ typedef struct {
   }
 
 
-  int Mesh::getBlockNElts(int id_block)
+  int Mesh::getBlockNElts(int id_block,int i_part)
   {
-    return _blocks[id_block]._nElts;
+    return _blockDB[id_block] -> NEltsGet()[i_part];
   }
 
   int Mesh::getPartNElts(int id_part) const
@@ -425,35 +617,21 @@ typedef struct {
     return _nElts[id_part];
   }
 
-  int Mesh::getPartNPolyhedra(int i_part) const
+  /*int Mesh::getPartNPolyhedra(int i_part) const
   {
-   // return _nPolyhedra[i_part];
+    return _nPolyhedra[i_part];
   }
+  */
 
-  inline int* Mesh::getEltConnectivityIndex(int id_block)
+  int* Mesh::getEltConnectivityIndex(int id_block,int i_part)
   {
-    return _blocks[id_block]._connec_idx;
+    return _blockDB[id_block] -> ConnecIDXGet()[i_part];
   }
 
-  inline int* Mesh::getEltConnectivity(int id_block)
+  int* Mesh::getEltConnectivity(int id_block,int i_part)
   { 
-    return _blocks[id_block]._connec;
+    return _blockDB[id_block] -> ConnecGet()[i_part];
   }
-  
-  
-  inline int* Mesh::getFaceConnectivity(int id_block)
-  { 
-    return _blocks[id_block]._connec_faces;
-  }
-
-  inline int* Mesh::getFaceConnectivityIndex(int id_block)
-  { 
-    return _blocks[id_block]._connec_faces_idx;
-  }
-
-
-
-
 
 }
 

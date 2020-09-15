@@ -3236,8 +3236,8 @@ PDM_box_tree_get_stats(const PDM_box_tree_t  *bt,
                        size_t                 mem_allocated[3])
 {
   int i;
-  size_t mem_per_node;
-  size_t s_mean[7], s_min[7], s_max[7];
+  uint64_t mem_per_node;
+  uint64_t s_mean[7], s_min[7], s_max[7];
   PDM_box_tree_stats_t s;
 
   int dim = 3;
@@ -3294,7 +3294,7 @@ PDM_box_tree_get_stats(const PDM_box_tree_t  *bt,
   if (bt->comm != PDM_MPI_COMM_NULL) {
 
     int n_ranks;
-    PDM_g_num_t s_l_sum[14], s_g_sum[14];
+    uint64_t s_l_sum[14], s_g_sum[14];
 
     PDM_MPI_Comm_size(bt->comm, &n_ranks);
 
@@ -3306,16 +3306,16 @@ PDM_box_tree_get_stats(const PDM_box_tree_t  *bt,
       s_l_sum[0] = s.n_linked_boxes/n_ranks;
       s_l_sum[7] = s.n_linked_boxes%n_ranks;
       for (i = 1; i < 7; i++) {
-        s_l_sum[i] = ((PDM_g_num_t) s_mean[i])/n_ranks;
-        s_l_sum[i+7] = ((PDM_g_num_t) s_mean[i])%n_ranks;
+        s_l_sum[i] = ((uint64_t) s_mean[i])/n_ranks;
+        s_l_sum[i+7] = ((uint64_t) s_mean[i])%n_ranks;
       }
 
-      PDM_MPI_Allreduce(s_l_sum, s_g_sum, 14, PDM__PDM_MPI_G_NUM, PDM_MPI_SUM, bt->comm);
+      PDM_MPI_Allreduce(s_l_sum, s_g_sum, 14, PDM_MPI_UINT64_T, PDM_MPI_SUM, bt->comm);
 
       s_mean[0] = s.min_linked_boxes;
-      PDM_MPI_Allreduce(s_mean, s_min, 7, PDM__PDM_MPI_G_NUM, PDM_MPI_MIN, bt->comm);
+      PDM_MPI_Allreduce(s_mean, s_min, 7, PDM_MPI_UINT64_T, PDM_MPI_MIN, bt->comm);
       s_mean[0] = s.max_linked_boxes;
-      PDM_MPI_Allreduce(s_mean, s_max, 7, PDM__PDM_MPI_G_NUM, PDM_MPI_MAX, bt->comm);
+      PDM_MPI_Allreduce(s_mean, s_max, 7, PDM_MPI_UINT64_T, PDM_MPI_MAX, bt->comm);
 
       /* Specific handling for linked boxes, so as to ensure correct
          total using large integers even if we do not know the

@@ -163,6 +163,36 @@ PDM_Mesh_nodal_vertices_get
 );
 
 
+const double *
+PDM_Mesh_cell_centers_get
+(
+ const int          idx,
+ const int          id_block,
+ const int          id_part
+) ;
+
+
+
+/**
+ * \brief  Return cell centers
+ *
+ * \param [in]  idx       Nodal mesh handle
+ * \param [in]  id_part   Partition identifier
+ * \param [in]  id_block   Block identifier
+ *
+ * \return  Return cell centers
+ *
+ */
+
+const double *
+PDM_Mesh_cell_centers_get
+(
+ const int          idx,
+ const int          id_block,
+ const int          id_part
+);
+
+
 /**
  * \brief  Return parent num of vertices
  *
@@ -529,15 +559,14 @@ const int            id_block,
 const int            id_part
 );
 
-
 /**
- * \brief Get global numbering of block elements
+ * \brief Get global element numbering of block elements inside the block
  *
  * \param [in]  idx            Nodal mesh handle
  * \param [in]  id_block       Block identifier
  * \param [in]  id_part        Partition identifier
  *
- * \return      Return global numbering of block elements
+ * \return      Return global numbering of block elements inside the block
  *
  */
 
@@ -549,24 +578,58 @@ const int            id_block,
 const int            id_part
 );
 
-
 /**
- * \brief Get global inside numbering of block elements
+ * \brief Get global element numbering of block elements
  *
  * \param [in]  idx            Nodal mesh handle
  * \param [in]  id_block       Block identifier
  * \param [in]  id_part        Partition identifier
  *
- * \return      Return global inside numbering of block elements
+ * \return      Return global element numbering of block elements
  *
  */
 
 PDM_g_num_t *
-PDM_Mesh_nodal_block_inside_g_num_get
+PDM_Mesh_nodal_g_num_get
 (
 const int            idx,
 const int            id_block,
 const int            id_part
+);
+
+/**
+ * \brief Compute cell centers of a block
+ *
+ * \param [in]  idx            Nodal mesh handle
+ * \param [in]  id_block       Block identifier
+ * \param [in]  id_part        Partition identifier
+ *
+ */
+
+void
+PDM_Mesh_nodal_cell_centers_compute
+(
+const int         idx,
+const int         id_block,
+const int         i_part
+);
+
+
+/**
+ * \brief Compute cell centers of a block
+ *
+ * \param [in]  idx            Nodal mesh handle
+ * \param [in]  id_block       Block identifier
+ * \param [in]  id_part        Partition identifier
+ *
+ */
+
+void
+PDM_Mesh_nodal_cell_centers_compute
+(
+const int         idx,
+const int         id_block,
+const int         i_part
 );
 
 
@@ -642,6 +705,28 @@ PDM_Mesh_nodal_block_poly2d_get
        PDM_l_num_t  **connec_idx,
        PDM_l_num_t  **connec
 );
+
+
+
+/**
+ * \brief Get global inside numbering of block elements
+ *
+ * \param [in]  idx            Nodal mesh handle
+ * \param [in]  id_block       Block identifier
+ * \param [in]  id_part        Partition identifier
+ *
+ * \return      Return global inside numbering of block elements
+ *  
+ */
+
+PDM_g_num_t *
+PDM_Mesh_nodal_block_inside_g_num_get 
+(   
+const int            idx,
+const int            id_block,     
+const int            id_part 
+) ;
+
 
 
 /**
@@ -733,17 +818,17 @@ const int            id_part,
 void
 PDM_Mesh_nodal_cell3d_cellface_add
 (
-const int         idx,
-const int         id_part,
-const int         n_elt,
-const int         n_face,
-const PDM_l_num_t      *face_vtx_idx,
-const PDM_l_num_t      *face_vtx_nb,
-const PDM_l_num_t      *face_vtx,
-const PDM_l_num_t      *cell_face_idx,
-const PDM_l_num_t      *cell_face_nb,
-const PDM_l_num_t      *cell_face,
-const PDM_g_num_t      *numabs
+const int          idx,
+const int          id_part,
+const int          n_elt,
+const int          n_face,
+const PDM_l_num_t *face_vtx_idx,
+const PDM_l_num_t *face_vtx_nb,
+const PDM_l_num_t *face_vtx,
+const PDM_l_num_t *cell_face_idx,
+const PDM_l_num_t *cell_face_nb,
+const PDM_l_num_t *cell_face,
+const PDM_g_num_t *numabs
 );
 
 
@@ -775,13 +860,13 @@ const int          idx,
 const int          id_part,
 const int          n_elt,
 const int          n_edge,
-const PDM_l_num_t       *edge_vtx_idx,
-const PDM_l_num_t       *edge_vtx_nb,
-const PDM_l_num_t       *edge_vtx,
-const PDM_l_num_t       *cell_edge_idx,
-const PDM_l_num_t       *cell_edge_nb,
-const PDM_l_num_t       *cell_edge,
-const PDM_g_num_t       *numabs
+const PDM_l_num_t *edge_vtx_idx,
+const PDM_l_num_t *edge_vtx_nb,
+const PDM_l_num_t *edge_vtx,
+const PDM_l_num_t *cell_edge_idx,
+const PDM_l_num_t *cell_edge_nb,
+const PDM_l_num_t *cell_edge,
+const PDM_g_num_t *numabs
 );
 
 
@@ -805,13 +890,13 @@ const PDM_g_num_t       *numabs
 void
 PDM_Mesh_nodal_faces_facevtx_add
 (
-const int         idx,
-const int         id_part,
-const int         n_face,
-const PDM_l_num_t      *face_vtx_idx,
-const PDM_l_num_t      *face_vtx_nb,
-const PDM_l_num_t      *face_vtx,
-const PDM_g_num_t      *numabs
+const int          idx,
+const int          id_part,
+const int          n_face,
+const PDM_l_num_t *face_vtx_idx,
+const PDM_l_num_t *face_vtx_nb,
+const PDM_l_num_t *face_vtx,
+const PDM_g_num_t *numabs
 );
 
 

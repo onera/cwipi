@@ -502,7 +502,8 @@ PDM_dist_cloud_surf_compute
     PDM_timer_resume(dist->timer);
 
     const double tolerance = 1e-4;
-    const int depth_max = 1000;
+    // const int depth_max = 35;
+    const int depth_max = 31;
     const int points_in_leaf_max = 4;
 
     int n_part_mesh = 0;
@@ -511,6 +512,35 @@ PDM_dist_cloud_surf_compute
     }
     else if (dist->_surf_mesh != NULL) {
       n_part_mesh = PDM_surf_mesh_n_part_get (dist->_surf_mesh);
+      /* PDM_surf_mesh_compute_faceExtentsMesh (dist->_surf_mesh, 1e-8); */
+
+      /* double glob_extents[6]; */
+      /* glob_extents[0] = HUGE_VAL; */
+      /* glob_extents[1] = HUGE_VAL; */
+      /* glob_extents[2] = HUGE_VAL; */
+      /* glob_extents[3] = -HUGE_VAL; */
+      /* glob_extents[4] = -HUGE_VAL; */
+      /* glob_extents[5] = -HUGE_VAL; */
+
+      /* for (int i = 0; i < n_part_mesh; i++) { */
+      /*   const double *_extents = PDM_surf_mesh_part_extents_get (dist->_surf_mesh, i); */
+      /*   glob_extents[0] = PDM_MIN (_extents[0], glob_extents[0]); */
+      /*   glob_extents[1] = PDM_MIN (_extents[1], glob_extents[1]); */
+      /*   glob_extents[2] = PDM_MIN (_extents[2], glob_extents[2]); */
+      /*   glob_extents[3] = PDM_MAX (_extents[3], glob_extents[3]); */
+      /*   glob_extents[4] = PDM_MAX (_extents[4], glob_extents[4]); */
+      /*   glob_extents[5] = PDM_MAX (_extents[5], glob_extents[5]); */
+      /* } */
+      /* double min_dim = HUGE_VAL; */
+      /* min_dim = glob_extents[3] - glob_extents[0]; */
+      /* min_dim = PDM_MIN (min_dim, glob_extents[4] - glob_extents[1]); */
+      /* min_dim = PDM_MIN (min_dim, glob_extents[5] - glob_extents[2]); */
+
+      /* depth_max = 0; */
+      /* while ((min_dim) > 1e-10) { */
+      /*   min_dim = min_dim / 2.; */
+      /*   depth_max += 1; */
+      /* } */
     }
     else {
       PDM_error(__FILE__, __LINE__, 0,
@@ -675,7 +705,6 @@ PDM_dist_cloud_surf_compute
     const double      **extents = malloc (sizeof(double *) * n_part_mesh);
     const PDM_g_num_t **gNum    = malloc (sizeof(PDM_g_num_t *) * n_part_mesh);
 
-
     if (dist->mesh_nodal_id != -1) {
 
 /*     int PDM_Mesh_nodal_n_blocks_get */
@@ -763,7 +792,6 @@ PDM_dist_cloud_surf_compute
                                                              nElts,
                                                              extents,
                                                              gNum);
-
 
     if (idebug) {
       printf ("surf_mesh_boxes->n_boxes : %d\n", PDM_box_set_get_size (surf_mesh_boxes));
@@ -984,7 +1012,6 @@ PDM_dist_cloud_surf_compute
       //PDM_hash_tab_purge (ht, PDM_FALSE);
       PDM_hash_tab_purge (ht, PDM_FALSE);
     }
-
 
     PDM_hash_tab_free (ht);
 
@@ -1554,6 +1581,7 @@ PDM_dist_cloud_surf_dump_times
                 " %12.5es %12.5es\n",
                 t_elaps_max[RESULT_TRANSMISSION],
                 t_cpu_max[RESULT_TRANSMISSION]);
+    PDM_printf_flush();
   }
 }
 

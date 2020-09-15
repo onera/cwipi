@@ -97,6 +97,7 @@ cdef class BlockToBlock:
         cdef int        *block_stride_end
         cdef void       *block_data_ini
         cdef void       *block_data_end
+        cdef NPY.ndarray tmpData
         # ************************************************************************
 
         # > Understand how to interface
@@ -126,13 +127,6 @@ cdef class BlockToBlock:
 
           # ::::::::::::::::::::::::::::::::::::::::::::::::::
           # > Compute
-          # PDM_block_to_block_exch(self.BTB,
-          #                         s_data,
-          #                         t_stride,
-          #                         block_stride_ini,
-          #                         block_data_ini,
-          #                         block_stride_end,
-          #                         block_data_end)
           c_size = PDM_block_to_block_exch(self.BTB,
                                            s_data,
                                            t_stride,
@@ -145,9 +139,12 @@ cdef class BlockToBlock:
           dim = <NPY.npy_intp> c_size
           # print "c_size : ", c_size
           if(c_size == 0):
-            dFieldEnd[field] = None
+            # dFieldEnd[field] = None
+            dFieldEnd[field] = NPY.empty((0), dtype=dArrayIni.dtype)
           else:
-            dFieldEnd[field] = NPY.PyArray_SimpleNewFromData(1, &dim, dtype_data, <void *> block_data_end)
+            tmpData = NPY.PyArray_SimpleNewFromData(1, &dim, dtype_data, <void *> block_data_end)
+            PyArray_ENABLEFLAGS(tmpData, NPY.NPY_OWNDATA);
+            dFieldEnd[field] = tmpData
             # print dFieldEnd[field]
           # ::::::::::::::::::::::::::::::::::::::::::::::::::
 

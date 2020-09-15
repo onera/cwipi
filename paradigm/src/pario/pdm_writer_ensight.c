@@ -1766,9 +1766,9 @@ PDM_writer_ensight_var_write
                                                                   i);
 
             PDM_g_num_t  *numabs_block =
-                    PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,
-                                                           blocks_id[iblock],
-                                                           i);
+                    PDM_Mesh_nodal_block_g_num_get (geom->idx_mesh,
+                                                    blocks_id[iblock],
+                                                    i);
             for (int j = 0; j < n_elt; j++) {
               numabs[n_val_buff++] = (PDM_g_num_t) numabs_block[j];
             }
@@ -1862,4 +1862,3 @@ PDM_writer_ensight_var_free
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-

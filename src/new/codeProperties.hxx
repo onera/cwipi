@@ -252,6 +252,9 @@ namespace cwipi {
 
     inline const vector <int> *
     connectableRanksGet() const;
+
+    inline const vector <int> *
+    intraRanksGet() const;
     
     /**
      * \brief Get connectable MPI Communicator
@@ -569,8 +572,8 @@ namespace cwipi {
     MPI_Comm  _globalComm;    /*!< MPI global communicator */
     MPI_Comm  _intraComm;     /*!< MPI intra communicator */
     bool      _isCoupledRank;  /*!< Is a coupled rank */
-    MPI_Group _intraGroup;     /*!< MPI group in 
-                                                    the global communicator */
+
+    MPI_Group _intraGroup;     /*!< MPI group in the global communicator */
     vector <int> *_intraRanks;  /*!< Code ranks in global communicator */
     MPI_Group _intraConnectableGroup; /*!< coupled MPI group in 
                                        the global communicator */
@@ -619,7 +622,7 @@ namespace cwipi {
     char     *_winStrParamValueData; /*!< Data of \ref _winStrParamValue window */
     
     int      _n_param_max; /*!< Maximum number of parameters */
-    int      _str_size_max; /*!< Maximum string size */
+    size_t   _str_size_max; /*!< Maximum string size */
 
   };
 
@@ -731,6 +734,13 @@ namespace cwipi {
   {
     return _connectableRanks;
   }
+
+  const vector <int> *
+  CodeProperties::intraRanksGet() const
+  {
+    return _intraRanks;
+  }
+
 
   /**
    * \brief Get identifier
@@ -1748,7 +1758,7 @@ namespace cwipi {
       int found;
       
       for (i = 0; i < nTypeParam; i++) {
-        int sParam = winTypeParamIdxNameData[i+1] - winTypeParamIdxNameData[i];
+        size_t sParam = winTypeParamIdxNameData[i+1] - winTypeParamIdxNameData[i];
         if (name.size() == sParam) {
          found = !strncmp(name.c_str(), 
                  winTypeParamNameData + winTypeParamIdxNameData[i], 

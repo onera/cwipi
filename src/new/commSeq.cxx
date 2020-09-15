@@ -102,7 +102,7 @@ namespace cwipi {
       vector <int> exRanks(cplRanks.size()-1);
       
       int j = 0;
-      for (int i = 0; i < cplRanks.size(); i++) {
+      for (size_t i = 0; i < cplRanks.size(); i++) {
         if (cplRanks[i] != _localCodeProperties->rootRankGet()) {
           exRanks[j++] = cplRanks[i]; 
         }      
@@ -139,7 +139,7 @@ namespace cwipi {
    * \brief Synchronise.
    *
    */
-
+/*
   void
   CommSeq::sync
   (
@@ -151,7 +151,7 @@ namespace cwipi {
     //
     // Nothing to do
     //
-  }
+  }*/
 #if defined(__INTEL_COMPILER)
 #pragma warning(pop)
 #elif defined(__clang__)	

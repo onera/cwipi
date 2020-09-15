@@ -234,16 +234,21 @@ const int         dim
   _dbbt->comm                 = comm;
   _dbbt->rankComm             = PDM_MPI_COMM_NULL;
   _dbbt->dim                  = dim;
+
   _dbbt->maxTreeDepth         = 30;
   _dbbt->maxBoxRatio          = 10.;
   _dbbt->maxBoxesLeaf         = 30;
 
   _dbbt->maxTreeDepthShared   = 10;
-  _dbbt->maxBoxRatioShared    = 6;
+  _dbbt->maxBoxRatioShared    =  6;
   _dbbt->maxBoxesLeafShared   = 5;
 
-  _dbbt->maxTreeDepthCoarse   = 30;
-  _dbbt->maxBoxRatioCoarse    =  6.;
+  // TOSEE ERIC - Changmeent pour cas à 2 milliards
+  // _dbbt->maxTreeDepthCoarse   = 20;
+  // _dbbt->maxBoxRatioCoarse    =  4.;
+
+  _dbbt->maxTreeDepthCoarse   = 20;
+  _dbbt->maxBoxRatioCoarse    =  4;
   _dbbt->maxBoxesLeafCoarse   = 30;
 
   _dbbt->rankBoxes            = NULL;

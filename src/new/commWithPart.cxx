@@ -58,35 +58,48 @@ namespace cwipi {
   {
     
     _isCplRank = true;
+                
+    vector <int> cplRanks = *(_cplCodeProperties->connectableRanksGet());
+    vector <int> locRanks = *(_localCodeProperties->connectableRanksGet());
+
+    _unionCommCplRanks = new std::vector<int>(cplRanks.size());
+    _unionCommLocRanks = new std::vector<int>(locRanks.size());
+
+    //Traduction de ces rangs dans _unionCommCplRanks - Contient les rangs (unionComm) correspondants
+
+    MPI_Group globalGroup;
+    MPI_Comm_group(_localCodeProperties->globalCommGet(), &globalGroup);
+      
+    MPI_Group unionGroup;
+    MPI_Comm_group(_unionComm, &unionGroup);      
+
+    MPI_Group_translate_ranks(globalGroup, cplRanks.size(), &(cplRanks[0]),
+                              unionGroup, &((*_unionCommCplRanks)[0]));
+
+    MPI_Group_translate_ranks(globalGroup, locRanks.size(), &(locRanks[0]),
+                              unionGroup , &((*_unionCommLocRanks)[0]));
+
+    _cplCommCplRanks = new std::vector<int>(*_unionCommCplRanks);
+    _cplCommLocRanks = new std::vector<int>(*_unionCommLocRanks);
+
+    /*
+    Use the unionComm which the union of coupled ranks to compute mapping for partitioned and unpartitioned case.
+    Use the intraComm to broadcast computation results in withOutPart case.
+
+    _cplComm = unionComm in withPart case and contained the two code root ranks in withOutPart case.
+    the _cplComm is 
     
+    
+    */
+          
     if (cplCodeCommType != CWP_COMM_PAR_WITH_PART) {
-      
-      const vector <int> &cplRanks = *(_cplCodeProperties->connectableRanksGet());
-      
-      vector <int> exRanks(cplRanks.size()-1);
-      
-      int j = 0;
-      for (int i = 0; i < cplRanks.size(); i++) {
-        if (cplRanks[i] != _cplCodeProperties->rootRankGet()) {
-          exRanks[j++] = cplRanks[i]; 
-        }      
-      }
 
-      vector <int> tExRanks(exRanks.size());
-      
-      MPI_Group globalGroup;
-      MPI_Comm_group(_localCodeProperties->globalCommGet(), &globalGroup);
-      
-      MPI_Group unionGroup;
-      MPI_Comm_group(_unionComm, &unionGroup);      
-      
-      MPI_Group_translate_ranks(globalGroup, exRanks.size(), &(exRanks[0]),
-                                unionGroup, &(tExRanks[0]));
-      MPI_Group_excl(unionGroup, exRanks.size(), &(tExRanks[0]), &_cplGroup);
-      
+      //Exclusion des rangs connectable (unionComm) du code couplé pour obtenir le communicateur cplComm
+      // contenant uniquement les rangs connectable du code couplé
+      MPI_Group_excl(unionGroup, cplRanks.size(), &((*_unionCommCplRanks)[0]), &_cplGroup);
       MPI_Comm_create(_unionComm, _cplGroup, &_cplComm);
+    
     }
-
     else {
 
       _cplComm = _unionComm;
@@ -108,7 +121,7 @@ namespace cwipi {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-value" 	
 #endif
-  void
+/*  void
   CommWithPart::sync
   (
    void *tab, 
@@ -116,7 +129,7 @@ namespace cwipi {
    int tabSize
   )
   {
-  }
+  }*/
 #if defined(__INTEL_COMPILER)
 #pragma warning(pop)
 #elif defined(__clang__)	

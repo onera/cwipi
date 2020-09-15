@@ -447,7 +447,9 @@ _gnum_from_coords_compute
   m_code = malloc (n_entities * sizeof(PDM_morton_code_t));
   order = malloc (n_entities * sizeof(PDM_l_num_t));
 
-  PDM_morton_encode_coords(_gnum->dim, level, extents, n_entities, coords, m_code);
+  double d[3];
+  double s[3];
+  PDM_morton_encode_coords(_gnum->dim, level, extents, n_entities, coords, m_code, d, s);
 
   PDM_morton_local_order(n_entities, m_code, order);
 
@@ -560,7 +562,9 @@ _gnum_from_coords_compute
                              extents,
                              n_block_ents,
                              recv_coords,
-                             m_code);
+                             m_code,
+                             d,
+                             s);
 
     PDM_morton_local_order((int) n_block_ents, m_code, order);
 

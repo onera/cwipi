@@ -21,10 +21,9 @@
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
-#include <math.h>
 #include "grid_mesh.h"
 #include <mpi.h>
-
+#include <math.h>
 #include "cwp.h"
 
 /*----------------------------------------------------------------------
@@ -49,7 +48,7 @@ static int _read_mesh_dim(FILE *f,
 
 {
   int r;
-  r = fscanf(f, "%d %d %d %d %d %d", 
+  r = fscanf(f, "%d %d %d %d %d %d",
              dimension,
              nVertex,
              nFace,
@@ -148,8 +147,6 @@ int main
 )
 {
 
-  FILE *outputFile;
-
   MPI_Init(&argc, &argv);
 
   int rank;
@@ -157,8 +154,6 @@ int main
 
   FILE* meshFile;
   meshFile = fopen("meshes/mesh_poly_d1", "r");
-
-
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
@@ -205,37 +200,32 @@ int main
   double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
 
-  if (rank == 0 || rank==1 || rank == 2 || rank == 3) {
-    n_code_name = 2;
+  if (rank == 0 ) {
+    n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
-    codeNames[0] ="code1";
-    codeNames[1] ="code2";
+    codeNames[0] ="code1_cell_faces";
     is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
     is_coupled_rank[0] = CWP_STATUS_ON;
-    is_coupled_rank[1] = CWP_STATUS_ON;
   }
 
-  char* fileName = NULL;
-  if (rank == 0)
-    fileName="c_new_api_0000.txt";
-  else if (rank == 1)
-    fileName="c_new_api_0001.txt";
-  else if (rank == 2)
-    fileName="c_new_api_0002.txt";
-  else if (rank == 3)
-    fileName="c_new_api_0003.txt";
+  if (rank == 1 ) {
+    n_code_name = 1;
+    codeNames = malloc(sizeof(char *) * n_code_name);
+    codeNames[0] ="code2";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank[0] = CWP_STATUS_ON;
+  }
 
-  outputFile = fopen(fileName,"w");
 
   times_init = malloc(sizeof(double) * n_code_name);
-
-  //CWP_Output_file_set (outputFile);
 
   for (int i = 0; i < n_code_name; i++) {
     times_init[i] = 0;
   }
 
   MPI_Comm *localComm = malloc(sizeof(MPI_Comm)*n_code_name);
+
+  printf("CWIPI Initialization rank %i\n",rank);
   CWP_Init(MPI_COMM_WORLD,
            n_code_name,
            (const char **) codeNames,
@@ -262,11 +252,21 @@ int main
   char cpl_id1[] = "cpl_code1_code2";
 
   printf("Coupling creation\n");
-  if (rank == 0 || rank == 1 || rank == 2 || rank == 3) {
-    CWP_Cpl_create ("code1", cpl_id1, "code2", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, 1,
+
+  if ( rank == 0 ) {
+    CWP_Cpl_create ("code1_cell_faces", cpl_id1, "code2", CWP_COMM_PAR_WITHOUT_PART,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
-  printf("Coupling created\n");
+  }
+
+  if ( rank==1 ) {
+    CWP_Cpl_create ("code2", cpl_id1, "code1_cell_faces", CWP_COMM_PAR_WITHOUT_PART,
+                    CWP_MAPPING_LOCATION, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+  printf("Coupling created %i\n",currentRank);
+
+
 
     /* Building of the local mesh */
 
@@ -310,26 +310,32 @@ int main
 
     fclose(meshFile);
 
-    printf("vtx_set\n");
-    CWP_Mesh_interf_vtx_set("code1", cpl_id1,0,nVertex,coords,NULL);
+    if(rank == 0) {
 
-    printf("CellFace Add and Setting\n");
-    CWP_Mesh_interf_from_cellface_set("code1",
-                                     cpl_id1,
-                                     0,
-                                     nElements,
-                                     cellFaceIdx,
-                                     cellFace,
-                                     nFace,
-                                     faceVertexIdx,
-                                     faceVertex,
-                                     NULL);
+     printf("Visu Setting\n");
+     CWP_Visu_set("code1_cell_faces", cpl_id1,1.0,Ensight,"binary");
+     printf("Visu Set\n");
+
+      printf("vtx_set\n");
+      CWP_Mesh_interf_vtx_set("code1_cell_faces", cpl_id1,0,nVertex,coords,NULL);
+
+      printf("CellFace Add and Setting\n");
+      CWP_Mesh_interf_from_cellface_set("code1_cell_faces",
+                                        cpl_id1,
+                                        0,
+                                        nElements,
+                                        cellFaceIdx,
+                                        cellFace,
+                                        nFace,
+                                        faceVertexIdx,
+                                        faceVertex,
+                                        NULL);
 
 
-    printf("Interface Mesh deletion\n");
-    CWP_Mesh_interf_del("code1", cpl_id1);
-        printf("Interface Mesh deleted\n");
-  }
+      printf("Interface Mesh deletion\n");
+      CWP_Mesh_interf_del("code1_cell_faces", cpl_id1);
+      printf("Interface Mesh deleted\n");
+    }
 
 
   fflush(stdout);
@@ -343,7 +349,6 @@ int main
   free (codeNames);
   free (is_coupled_rank);
   free (times_init);
-  fclose (outputFile);
 
   return 0;
 }

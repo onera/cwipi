@@ -92,14 +92,14 @@ static void _dumpNotLocatedPoints(FILE *outputFile,
  * parameters:
  *   f                   <-- Mesh file                 
  *   dimension           --> Dimension                   
- *   nvertex             --> number of vertices
+ *   nb_Vertex             --> number of vertices
  *   nElements           --> number of elements
  *   nConnecVertex       --> size of connectivity
  *---------------------------------------------------------------------*/
 
 static int _read_mesh_dim(FILE *f, 
                           int *dimension, 
-                          int *nVertex, 
+                          int *nb_Vertex, 
                           int *nFace, 
                           int *nElt,
                           int *lFaceConnec,
@@ -109,7 +109,7 @@ static int _read_mesh_dim(FILE *f,
   int r;
   r = fscanf(f, "%d %d %d %d %d %d", 
              dimension, 
-             nVertex, 
+             nb_Vertex, 
              nFace, 
              nElt,
              lFaceConnec,
@@ -119,6 +119,31 @@ static int _read_mesh_dim(FILE *f,
   else return 1;
 }
 
+
+
+
+void _goto(FILE *f,char* word) 
+{ char test[1000];
+  int r;
+  while(strcmp(test,word)!=0) {
+      r = fscanf(f, "%s",test);
+      if (r == EOF) 
+        return EXIT_FAILURE;
+      
+      printf("%s\n",&test[0]);
+  }
+}
+
+
+typedef struct elType elType;
+/* Declare the struct with integer members x, y */
+struct elType {
+   int    nNodes;
+   char*    descri;
+};
+
+
+
 /*----------------------------------------------------------------------
  *                                                                     
  * Read mesh dimension                                             
@@ -126,7 +151,7 @@ static int _read_mesh_dim(FILE *f,
  * parameters:
  *   f                   <-- Mesh file                 
  *   dimension           --> Dimension                   
- *   nvertex             <-- number of vertices
+ *   nb_Vertex             <-- number of vertices
  *   nElements           <-- number of elements
  *   nConnecVertex       <-- size of connectivity
  *   coords              --> vertices coordinates
@@ -134,58 +159,129 @@ static int _read_mesh_dim(FILE *f,
  *   connec              --> connectivity
  *---------------------------------------------------------------------*/
 
+
 static int _read_mesh(FILE *f, 
-                      int dimension, 
-                      int nVertex, 
-                      int nFace,
-                      int nElt,
-                      int lFaceConnec,
-                      int lCellConnec,
-                      double *coords, 
-                      int *faceVertexIdx, 
-                      int *faceVertex, 
-                      int *cellFaceIdx, 
-                      int *cellFace) 
-{
+                      int* nb_Vertex, 
+                      int* nb_Elts,
+                      int* nBlock,
+                      int** nElBlock,
+                      int** typeBlock,
+                      int*** connec,
+                      double **coords) {
+
+  elType* elementType = (elType*)malloc(sizeof(elType*)*100);
+  
+
+
+elementType[1] = (elType){2,"line"};
+elementType[2] = (elType){3,"triangle"};
+elementType[3] = (elType){4,"quadrangle"};
+elementType[4] = (elType){4,"tetrahedron"};
+elementType[5] = (elType){8,"hexahedron"};
+elementType[6] = (elType){6,"prism"};
+elementType[7] = (elType){5,"pyramid"};
+elementType[8] = (elType){3,"second order line (2 nodes associated with the vertices and 1 with the edge)"};
+elementType[9] = (elType){6,"second order triangle (3 nodes associated with the vertices and 3 with the edges)"};
+elementType[10] = (elType){9,"second order quadrangle (4 nodes associated with the vertices, 4 with the edges and 1 with the face)"};
+elementType[11] = (elType){10,"second order tetrahedron (4 nodes associated with the vertices and 6 with the edges)"};
+elementType[12] = (elType){27,"second order hexahedron (8 nodes associated with the vertices, 12 with the edges 6 with the faces and 1 with the volume)"};
+elementType[13] = (elType){18,"second order prism (6 nodes associated with the vertices], 9 with the edges and 3 with the quadrangular faces)"};
+elementType[14] = (elType){14,"second order pyramid (5 nodes associated with the vertices, 8 with the edges and 1 with the quadrangular face)"};
+elementType[15] = (elType){1,"point"};
+elementType[16] = (elType){8,"second order quadrangle (4 nodes associated with the vertices and 4 with the edges)"};
+elementType[17] = (elType){20,"second order hexahedron (8 nodes associated with the vertices and 12 with the edges)"};
+elementType[18] = (elType){15,"second order prism (6 nodes associated with the vertices and 9 with the edges)"};
+elementType[19] = (elType){13,"second order pyramid (5 nodes associated with the vertices and 8 with the edges)"};
+elementType[20] = (elType){9,"third order incomplete triangle (3 nodes associated with the vertices, 6 with the edges)"};
+elementType[21] = (elType){10,"third order triangle (3 nodes associated with the vertices, 6 with the edges, 1 with the face)"};
+elementType[22] = (elType){12,"fourth order incomplete triangle (3 nodes associated with the vertices, 9 with the edges)"};
+elementType[23] = (elType){15,"fourth order triangle (3 nodes associated with the vertices, 9 with the edges 3 with the face)"};
+elementType[24] = (elType){15,"fifth order incomplete triangle (3 nodes associated with the vertices, 12 with the edges)"};
+elementType[25] = (elType){21,"fifth order complete triangle (3 nodes associated with the vertices, 12 with the edges 6 with the face)"};
+elementType[26] = (elType){4,"third order edge (2 nodes associated with the vertices 2 internal to the edge)"};
+elementType[27] = (elType){5,"fourth order edge (2 nodes associated with the vertices 3 internal to the edge)"};
+elementType[28] = (elType){6,"fifth order edge (2 nodes associated with the vertices 4 internal to the edge)"};
+elementType[29] = (elType){20,"third order tetrahedron (4 nodes associated with the vertices 12 with the edges 4 with the faces)"};
+elementType[30] = (elType){35,"fourth order tetrahedron (4 nodes associated with the vertices 18 with the edges 12 with the faces 1 in the volume)"};
+elementType[31] = (elType){56,"fifth order tetrahedron (4 nodes associated with the vertices 24 with the edges 24 with the faces 4 in the volume)"};
+elementType[92] = (elType){64,"third order hexahedron (8 nodes associated with the vertices 24 with the edges 24 with the faces 8 in the volume)"};
+elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with the vertices 36 with the edges 54 with the faces 27 in the volume)"};
+
   int i, j, r;
 
-  // Read coordinates
-  for (i = 0; i < nVertex; i++) {
-    for (j = 0; j < dimension; j++) {
-      r = fscanf(f, "%lf", coords + i * dimension + j);
+
+  char test[1000];
+  
+  _goto(f,"$Nodes");
+   // _goto(f,"$EndNodes");
+  int nv,nEl;
+  r = fscanf(f, "%i",nBlock);
+  r = fscanf(f, "%i",nb_Vertex);
+  printf("%i\n",*nb_Vertex);
+
+  int dimension =3;
+
+  *coords = (double *) malloc(dimension * (*nb_Vertex) * sizeof(double));
+
+  for(int block = 1; block<(*nBlock)+1;block++) {
+    r = fscanf(f, "%i",&nv);  
+    printf("nv %i\n",nv);
+    r = fscanf(f, "%i",&nv);  
+    printf("nv %i\n",nv);
+    r = fscanf(f, "%i",&nv);
+    r = fscanf(f, "%i",&nv);
+    printf("nv %i\n",nv);  
+ //   r = fscanf(f, "%i",&nv);  
+
+    for (int i = 0; i < nv; i++) {
+      r = fscanf(f, "%i",&nEl);  
+      nEl=nEl-1;
+      r = fscanf(f, "%lf",(*coords)+3*nEl);
+      r = fscanf(f, "%lf",(*coords)+3*nEl+1);
+      r = fscanf(f, "%lf",(*coords)+3*nEl+2);       
+     // printf("nEl %i block %i nv %i x %f y %f z %f\n",nEl,block,nv,(*coords)[3*nEl],(*coords)[3*nEl+1],(*coords)[3*nEl+2]);
       if (r == EOF) 
         return EXIT_FAILURE;
     }
   }
+  
+  int IelType,nEl2,poub;
 
-  // Read face -> vertex connectivity index
-  for (i = 0; i < nFace + 1; i++ ) {
-    r = fscanf(f, "%d", faceVertexIdx + i);
-    if (r == EOF) 
-      return EXIT_FAILURE;
-  }
+  
+  _goto(f,"$Elements");
+  r = fscanf(f, "%i",&poub);
+  r = fscanf(f, "%i",nb_Elts);
+  printf("%i\n",*nb_Elts);
+  *connec = (int**)malloc((*nBlock)*sizeof(int*));
+  *nElBlock = (int*) malloc(sizeof(int)*(*nBlock));
+  *typeBlock = (int*) malloc(sizeof(int)*(*nBlock));
 
-  // Read face -> vertex connectivity
-  for (i = 0; i < lFaceConnec; i++ ) {
-    r = fscanf(f, "%d", faceVertex + i);
-    if (r == EOF) 
-      return EXIT_FAILURE;
-  }
+  for(int block = 0; block<(*nBlock);block++) {
+    r = fscanf(f, "%i",&nv);  
+    r = fscanf(f, "%i",&nv);
+    r = fscanf(f, "%i",&IelType);  
+    r = fscanf(f, "%i",&nv);
+    (*nElBlock)[block] = nv;
 
-  // Read cell -> face connectivity index
-  for (i = 0; i < nElt + 1; i++ ) {
-    r = fscanf(f, "%d", cellFaceIdx + i);
-    if (r == EOF) 
-      return EXIT_FAILURE;
-  }
+    (*typeBlock)[block] = IelType;
 
-  // Read cell -> face connectivity
-  for (i = 0; i < lCellConnec; i++ ) {
-    r = fscanf(f, "%d", cellFace + i);
-    if (r == EOF) 
-      return EXIT_FAILURE;
-  }
+    int size_el;
 
+    size_el = elementType[IelType].nNodes;
+
+    (*connec)[block]  = (int *) malloc(nv * size_el * sizeof(int));
+    
+    for (int i = 0; i < nv; i++) {
+      r = fscanf(f, "%i",&nEl2); 
+      for(int jv=0;jv<size_el;jv++) { 
+        r = fscanf(f, "%i",(*connec)[block]+size_el*i+jv);
+       // printf("nEl2 %i block %i nv %i connec %i size_el %i\n",nEl2,block,nv,(*connec)[block][size_el*i+jv],size_el);
+      }
+      if (r == EOF) 
+        return EXIT_FAILURE;
+    }
+   // free(connec);
+  }  
   return EXIT_SUCCESS;
 }
 
@@ -201,281 +297,31 @@ int main( int argc, char* argv[] ) {
   char* fileOutput = NULL;
   FILE* outputFile;
   FILE* meshFile;
-  MPI_Comm localComm;
 
-  // System initializations
-  MPI_Init(&argc, &argv);
-
-  // Initialisation of the variables
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
-
-  char *srcName = (char *) malloc (sizeof(char) * (strlen(__FILE__) + 1));
-  strcpy(srcName, __FILE__);
-  char *srcBaseName = NULL;
-  srcBaseName = strrchr(srcName, '.');
-  if (srcBaseName != NULL)
-    *srcBaseName = '\0';
-  srcBaseName = NULL;
-  srcBaseName = strrchr(srcName, '/');
-  if (srcBaseName != NULL)
-    srcBaseName += 1;
-  else
-    srcBaseName = srcName;
-
-  if (rank == 0)
-    printf("\nSTART: %s\n", srcBaseName);
-
-  if (comm_world_size != 2) {
-    if (rank == 0)
-      printf("      Not executed : only available for 2 processus\n");
-    MPI_Finalize();
-    return EXIT_FAILURE;
-  }
-
-  if (rank == 0)
-    meshFile = fopen("meshes/mesh_micro_poly_d1", "r");
-  else
-    meshFile = fopen("meshes/mesh_micro_poly_d2", "r");
-
-  fileOutput = (char *) malloc((strlen("c_vol_mirco_poly_cpl_P1P1_") + 4 + 1 + 4) * sizeof(char));
-  sprintf(fileOutput, "c_vol_mirco_poly_cpl_P1P1_%4.4d.txt", rank);
-  outputFile = fopen(fileOutput, "w");
-  free(fileOutput);
-
-  cwipi_set_output_listing( outputFile );
-
-  /* Initializations
-   * --------------- */
-
-  if (rank == 0)
-    cwipi_init(MPI_COMM_WORLD,
-               "codeC1",
-               &localComm);
-  else
-    cwipi_init(MPI_COMM_WORLD,
-               "codeC2",
-               &localComm);
-
-  MPI_Comm_rank(localComm, &localRank);
-  MPI_Comm_size(localComm, &nb_procs);
-
-  if (nb_procs > 1) {
-    printf("Test3D_1_c1 is not a parallel application\n");
-    exit(EXIT_FAILURE);
-  }
+  meshFile = fopen("carre01.msh", "r");
 
 
-  fprintf(outputFile, "\nDump after initialization\n");
-  fprintf(outputFile, "---------------------------\n");
-  cwipi_dump_application_properties();
+  printf("        Read mesh\n");
 
-  /* -----------------------
-   * Test coupling P1 <-> P1
-   * ----------------------- */
 
-  {
+  int nb_Vertex,nb_Elts,nBlock;
+  int* nElBlock=NULL;
+  int* typeBlock= NULL;
+  int** connec = NULL;
+  double* coords = NULL;
+  
+  _read_mesh(meshFile,
+             &nb_Vertex, 
+             &nb_Elts,
+             &nBlock,
+             &nElBlock,
+             &typeBlock,
+             &connec,
+             &coords);
 
-    /* Initialization of the coupling */
-    fprintf(outputFile, "Test 1 : Test coupling P1 <-> P1\n");
-    fprintf(outputFile, "\n");
-
-    if (rank == 0)
-      printf("        Create coupling\n");
-
-    if (rank == 0)
-      cwipi_create_coupling("c_vol_cpl_mirco_poly_P1P1",                   // Name of the coupling
-                            CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
-                            "codeC2",              // Coupled code
-                            3,                            // Dimension of the geometry
-                            0.1,                          // Geometrical epsilon
-                            CWIPI_STATIC_MESH,        // Static mesh
-                            CWIPI_SOLVER_CELL_VERTEX, // Type of the fields
-                            1,                            // Post-processing frequency
-                            "EnSight Gold",               // Post-processing format
-                            "text");                      // Post-processing options
-    else
-      cwipi_create_coupling("c_vol_cpl_mirco_poly_P1P1",                   // Name of the coupling
-                            CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
-                            "codeC1",              // Coupled code
-                            3,                            // Dimension of the geometry
-                            0.1,                          // Geometrical epsilon
-                            CWIPI_STATIC_MESH,        // Static mesh
-                            CWIPI_SOLVER_CELL_VERTEX, // Type of the fields
-                            1,                            // Post-processing frequency
-                            "EnSight Gold",               // Post-processing format
-                            "text");                      // Post-processing options
-    
-    /* Building of the local mesh */
-    
-    int dimension = 0;             // Dimension of the space
-    int nVertex = 0;               // Number of points in the mesh
-    int nFace = 0;                 // Number of face
-    int nElements = 0;             // Number of cells
-    int lFaceConnec = 0;
-    int lCellConnec = 0;
-
-    double* coords = NULL;         // Coordinates of the points
-    double* values = NULL;         // Received field
-    double* localValues = NULL;    // Sent field
-    int nNotLocatedPoints;         // Number of points out of the mesh
-    int *faceVertexIdx = NULL;
-    int *faceVertex    = NULL;
-    int *cellFaceIdx   = NULL;
-    int *cellFace      = NULL;
-
-    if  (rank == 0)
-      printf("        Read mesh\n");
-
-    _read_mesh_dim (meshFile, &dimension, &nVertex, &nFace, &nElements, &lFaceConnec, &lCellConnec);
-    /* printf("dims : %i %i %i %i %i %i\n",dimension, nVertex, nFace, nElements, lFaceConnec, lCellConnec); */
-    coords        = (double *) malloc(dimension * nVertex * sizeof(double));
-    faceVertexIdx = (int *) malloc((nFace + 1) * sizeof(int));
-    faceVertex    = (int *) malloc(lFaceConnec * sizeof(int));
-    cellFaceIdx   = (int *) malloc((nElements + 1) * sizeof(int));
-    cellFace      = (int *) malloc(lCellConnec * sizeof(int));
-
-    _read_mesh (meshFile, 
-                dimension, 
-                nVertex, 
-                nFace,
-                nElements, 
-                lFaceConnec, 
-                lCellConnec, 
-                coords, 
-                faceVertexIdx, 
-                faceVertex, 
-                cellFaceIdx, 
-                cellFace);
-    /* if  (rank == 0) { */
-    /* printf("faces : "); */
-    /* for (int i = 0; i < nFace + 1; i++) { */
-    /*   int idx = faceVertexIdx[i]; */
-    /*   int nn =  faceVertexIdx[i+1] - faceVertexIdx[i]; */
-    /*   for (int j = idx; j < idx + nn; j++) { */
-    /*     printf("%i ", faceVertex[j]); */
-    /*   } */
-    /*   printf("\n"); */
-    /* } */
-    /* } */
-
+    printf("coords %i\n",coords[1]);
     fclose(meshFile);
 
-    if  (rank == 0)
-      printf("        Define mesh\n");
-
-    int t[2];
-    t[0] = 0;
-    t[1] = 0;
-    cwipi_define_mesh("c_vol_cpl_mirco_poly_P1P1",
-                      nVertex,
-                      0,
-                      coords,
-                      t,
-                      t);
-
-    cwipi_add_polyhedra("c_vol_cpl_mirco_poly_P1P1",
-                        nElements,
-                        cellFaceIdx,
-                        cellFace,
-                        nFace,
-                        faceVertexIdx,
-                        faceVertex);
-
-    const int nPts = 1;
-    double *coordsPts        = (double *) malloc(3 * nPts * sizeof(double));
-    coordsPts[3*0  ] = 0.127113;
-    coordsPts[3*0+1  ] =  0.9180574119E-01; 
-    coordsPts[3*0+2  ] =  0.1829180270;
-
-    /* coordsPts[3*0  ] = 1.69822e-1; */
-    /* coordsPts[3*0+1  ] =  1.875e-1; */
-    /* coordsPts[3*0+2  ] =  2.e-1; */
-
-    /* cwipi_set_points_to_locate ("c_vol_cpl_poly_P1P1", nPts, coordsPts); */
-
-
-    /* Sending of the coordinate X
-       Receiving of the coordinate Y*/
-
-    values = (double *) malloc(nVertex * sizeof(double));
-   
-    for (int i = 0; i < nVertex; i++) 
-      values[i] = coords[3*i];
-    
-    localValues = (double *) malloc(nVertex * sizeof(double));
-
-    if (rank == 0)
-      printf("        Exchange\n");
-
-    cwipi_exchange_status_t status = cwipi_exchange("c_vol_cpl_mirco_poly_P1P1",
-                                                    "echange1",
-                                                    1,
-                                                    1,     // n_step
-                                                    0.1,   // physical_time
-                                                    "cooX",
-                                                    values,
-                                                    "cooY",
-                                                    localValues,
-                                                    &nNotLocatedPoints);
-    _dumpStatus(outputFile, status);
-    _dumpNotLocatedPoints(outputFile, "c_vol_cpl_mirco_poly_P1P1", nNotLocatedPoints);
-
-    /* Deletion of the coupling object */
-
-    if (rank == 0)
-      printf("        Delete coupling\n");
-
-    cwipi_delete_coupling("c_vol_cpl_mirco_poly_P1P1");
-
-    /* Check barycentric coordinates */
-    if (rank == 0)
-      printf("        Check results\n");    
-
-    double err = -DBL_MAX;
-
-    for (int i = 0; i < nVertex; i++) {
-
-      double val_err = fabs(localValues[i] - values[i]);
-      
-      err = (val_err) < (err) ? (err) : (val_err);
-
-      if (val_err >= 1e-6) {
-        printf ("[%d] err %d : %12.5e %12.5e %12.5e\n",
-                rank, i + 1, val_err, localValues[i], values[i]);
-      }
-   }
-
-    double err_max;
-    MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-
-    if (err_max >= 1.1e-5) {
-      if (rank == 0) {
-        printf("        !!! Error = %12.5e\n", err_max);
-      }
-      MPI_Finalize();
-      return EXIT_FAILURE;
-    }
-
-    free(coords);
-    free(faceVertexIdx);
-    free(faceVertex);
-    free(cellFaceIdx);
-    free(cellFace);
-    free(values);
-    free(localValues);
-
-    fprintf(outputFile, "--------------------------------------------------------\n");
-  }
-
-  /* End of the MPI communications */
-  /* ----------------------------- */
-
-  cwipi_finalize();
-
-  fclose(outputFile);
-
-  MPI_Finalize();
-
+  
   return EXIT_SUCCESS;
 }

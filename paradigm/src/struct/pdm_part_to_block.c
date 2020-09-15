@@ -1156,14 +1156,14 @@ PDM_part_to_block_exch
     recvStride = (int *) malloc (sizeof(int) * _ptb->tn_recvData);
 
     PDM_MPI_Alltoallv (sendStride,
-                   _ptb->n_sendData,
-                   _ptb->i_sendData,
-                   PDM_MPI_INT,
-                   recvStride,
-                   _ptb->n_recvData,
-                   _ptb->i_recvData,
-                   PDM_MPI_INT,
-                   _ptb->comm);
+                       _ptb->n_sendData,
+                       _ptb->i_sendData,
+                       PDM_MPI_INT,
+                       recvStride,
+                       _ptb->n_recvData,
+                       _ptb->i_recvData,
+                       PDM_MPI_INT,
+                       _ptb->comm);
 
     /*
      * Build buffers
@@ -1297,7 +1297,10 @@ PDM_part_to_block_exch
   int s_block_data = ((int) sizeof(unsigned char) * s_recvBuffer) / (int) s_data;
 
   if (t_stride == PDM_STRIDE_VAR) {
-    int *_block_stride = malloc(sizeof(int) * _ptb->tn_recvData);
+    int* _block_stride = NULL;
+    if(_ptb->tn_recvData > 0){
+      _block_stride = malloc(sizeof(int) * _ptb->tn_recvData);
+    }
     *block_stride = _block_stride;
     for (int i = 0; i < _ptb->tn_recvData; i++) {
       _block_stride[i] = recvStride[_ptb->order[i]];

@@ -870,6 +870,25 @@ int PDM_MPI_Alltoallv(void *sendbuf, int *sendcounts, int *sdispls,
   return 1;
 }
 
+int PDM_MPI_Alltoallv_l(void *sendbuf, int *sendcounts, size_t *sdispls,
+                      PDM_MPI_Datatype sendtype, void *recvbuf, int *recvcounts,
+                      size_t *rdispls, PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm)
+{
+  sendbuf;
+  sendcounts;
+  sdispls;
+  rdispls;
+  sendtype;
+  recvbuf;
+  recvcounts;
+  recvtype;
+  comm;
+
+  PDM_error(__FILE__, __LINE__, 0, "PDM_MPI_Alltoallv : Unavailable function with pdm_no_mpi library\n" );
+  abort();
+  return 1;
+}
+
 /*----------------------------------------------------------------------------
  * PDM_MPI_Ialltoallv (wrapping de la fonction MPI_Ialltoallv)
  *

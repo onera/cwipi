@@ -36,52 +36,52 @@ namespace cwipi {
 
   // const int * Coupling::getDistantLocation() const
   // {
-  //   return _locationToLocalMesh->getLocation();
+  //   return _target_proc_part_numToLocalMesh->getLocation();
   // }
 
   // const float * Coupling::getDistantDistance() const
   // {
-  //   return _locationToLocalMesh->getDistance();
+  //   return _target_proc_part_numToLocalMesh->getDistance();
   // }
 
   // int Coupling::getNNotlocatedPoint() const
   // {
-  //   return _locationToDistantMesh->getNUnlocatedPoint();
+  //   return _target_proc_part_numToDistantMesh->getNUnlocatedPoint();
   // }
 
   // const int *Coupling::getNotlocatedPoint() const
   // {
-  //   return _locationToDistantMesh->getUnlocatedPoint();
+  //   return _target_proc_part_numToDistantMesh->getUnlocatedPoint();
   // }
 
   // int Coupling::getNLocatedPoint() const
   // {
-  //   return _locationToDistantMesh->getNLocatedPoint();
+  //   return _target_proc_part_numToDistantMesh->getNLocatedPoint();
   // }
 
   // const int *Coupling::getLocatedPoint() const
   // {
-  //   return _locationToDistantMesh->getLocatedPoint();
+  //   return _target_proc_part_numToDistantMesh->getLocatedPoint();
   // }
 
   // const int *Coupling::getDistantBarycentricCoordinatesIndex() const
   // {
-  //   return &_locationToLocalMesh->getBarycentricCoordinatesIndex()[0];
+  //   return &_target_proc_part_numToLocalMesh->getBarycentricCoordinatesIndex()[0];
   // }
 
   // const double *Coupling::getDistantBarycentricCoordinates() const
   // {
-  //   return &_locationToLocalMesh->getBarycentricCoordinates()[0];
+  //   return &_target_proc_part_numToLocalMesh->getBarycentricCoordinates()[0];
   // }
 
   // int Coupling::getNDistantPoint() const
   // {
-  //   return _locationToLocalMesh->getNLocatedDistantPoint();
+  //   return _target_proc_part_numToLocalMesh->getNLocatedDistantPoint();
   // }
 
   // const double *Coupling::getDistantPointCoordinates() const
   // {
-  //   return &_locationToLocalMesh->getPointCoordinates()[0];
+  //   return &_target_proc_part_numToLocalMesh->getPointCoordinates()[0];
   // }
 
   // ///
@@ -92,7 +92,7 @@ namespace cwipi {
 
   // void Coupling::setInfo(cwipi_located_point_info_t info)
   // {
-  //     return _locationToDistantMesh->setInfo(info);
+  //     return _target_proc_part_numToDistantMesh->setInfo(info);
   // }
 
   // ///
@@ -101,7 +101,7 @@ namespace cwipi {
 
   // const int *Coupling::getElementContainingNVertex() const
   // {
-  //   return _locationToDistantMesh->getElementContainingNVertex();
+  //   return _target_proc_part_numToDistantMesh->getElementContainingNVertex();
   // }
 
   // ///
@@ -110,7 +110,7 @@ namespace cwipi {
 
   // const int *Coupling::getElementContainingVertex() const
   // {
-  //   return _locationToDistantMesh->getElementContainingVertex();
+  //   return _target_proc_part_numToDistantMesh->getElementContainingVertex();
   // }
 
   // ///
@@ -119,7 +119,7 @@ namespace cwipi {
 
   // const double *Coupling::getElementContainingVertexCoords() const
   // {
-  //   return _locationToDistantMesh->getElementContainingVertexCoords();
+  //   return _target_proc_part_numToDistantMesh->getElementContainingVertexCoords();
   // }
 
   // ///
@@ -128,7 +128,7 @@ namespace cwipi {
 
   // const double *Coupling::getElementContainingBarycentricCoordinates() const
   // {
-  //   return _locationToDistantMesh->getElementContainingBarycentricCoordinates();
+  //   return _target_proc_part_numToDistantMesh->getElementContainingBarycentricCoordinates();
   // }
 
   // ///
@@ -137,7 +137,7 @@ namespace cwipi {
 
   // const int *Coupling::getElementContainingMPIrank() const
   // {
-  //   return _locationToDistantMesh->getElementContainingMPIrank();
+  //   return _target_proc_part_numToDistantMesh->getElementContainingMPIrank();
   // }
 
 
@@ -147,7 +147,7 @@ namespace cwipi {
 
   // const int *Coupling::getElementContaining() const
   // {
-  //   return _locationToDistantMesh->getElementContaining();
+  //   return _target_proc_part_numToDistantMesh->getElementContaining();
   // }
 
 } // name space cwipi
