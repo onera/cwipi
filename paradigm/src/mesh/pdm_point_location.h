@@ -48,7 +48,7 @@ PDM_point_location_nodal
  const int           pts_idx[],
  const double        pts_coord[],
  const double        tolerance,
- float             **distance,
+ double            **distance,
  double            **projected_coord,
  int               **bar_coord_idx,
  double            **bar_coord

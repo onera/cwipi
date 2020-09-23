@@ -158,7 +158,7 @@ PDM_geom_elem_tria_surface_vector
 
     }
 
-    PDM_CROSS_PRODUCT(v1, v2, surface_vectorTri);
+    PDM_CROSS_PRODUCT(surface_vectorTri, v1, v2);
 
     surface_vectorTri[0] *= 0.5;
     surface_vectorTri[1] *= 0.5;

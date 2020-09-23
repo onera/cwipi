@@ -26,6 +26,7 @@
 #include "pdm_poly_surf_gen.h"
 #include "pdm_config.h"
 #include "pdm.h"
+#include "pdm_priv.h"
 #include "pdm_mpi.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
@@ -436,7 +437,9 @@ PDM_g_num_t **dEdgeGroup
     }
     //dvtx_coord[3*ix+2]=2*sin(3*dvtx_coord[3*ix+1])*sin(3*dvtx_coord[3*ix]);
     //dvtx_coord[3*ix+2]=20*sin(dvtx_coord[3*ix+1]/5.)*sin(dvtx_coord[3*ix]/5.);
-    (*dvtx_coord)[3*ix+2] = 0.;
+    //(*dvtx_coord)[3*ix+2] = random01() * 1e-9 * PDM_MIN (cote1, cote2); // Perturbation 0 machine plan
+    //printf("%12.5e\n", (*dvtx_coord)[3*ix+2]);
+
   }
 
   /* Construction simultanée des connectivites des elements et des aretes internes */

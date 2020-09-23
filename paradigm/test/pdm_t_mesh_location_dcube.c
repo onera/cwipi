@@ -545,19 +545,6 @@ int main(int argc, char *argv[])
                                 vtx_ln_to_gn);
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
   /* Set location parameters */
   PDM_mesh_location_tolerance_set (id_loc,
                                    tolerance);
@@ -583,6 +570,7 @@ int main(int argc, char *argv[])
   PDM_g_num_t *p_location    = NULL;
   int         *p_weights_idx = NULL;
   double      *p_weights     = NULL;
+  double      *p_proj_coord  = NULL;
   PDM_mesh_location_get (id_loc,
                          0,//i_point_cloud,
                          0,//i_part,
@@ -591,7 +579,8 @@ int main(int argc, char *argv[])
                          &p_gnum,
                          &p_location,
                          &p_weights_idx,
-                         &p_weights);
+                         &p_weights,
+                         &p_proj_coord);
 
 
   /* Check results */
@@ -605,8 +594,8 @@ int main(int argc, char *argv[])
   const PDM_g_num_t n_cell_seg = n_vtx_seg - 1;
   const double cell_side = length / ((double) n_cell_seg);
 
-  for (int ipt = 0; ipt < n_pts_l; ipt++) {
-    double *p = pts_coords + 3*ipt;
+  for (int ipt = 0; ipt < p_n_points; ipt++) {
+    double *p = p_coords + 3*ipt;
 
     int i = (int) floor (p[0] / cell_side);
     int j = (int) floor (p[1] / cell_side);
@@ -622,10 +611,12 @@ int main(int argc, char *argv[])
 
     //printf("%d: ("PDM_FMT_G_NUM") | ("PDM_FMT_G_NUM")\n", ipt, p_location[ipt], box_gnum);
     if (p_location[ipt] != box_gnum) {
-      printf("%d ("PDM_FMT_G_NUM") (%.15lf %.15lf %.15lf): ("PDM_FMT_G_NUM") | ("PDM_FMT_G_NUM")\n",
+      double *cp = p_proj_coord + 3*ipt;
+      printf("%d ("PDM_FMT_G_NUM") (%.15lf %.15lf %.15lf): ("PDM_FMT_G_NUM") | ("PDM_FMT_G_NUM") proj : (%.15lf %.15lf %.15lf)\n",
              ipt, pts_gnum[ipt],
              p[0], p[1], p[2],
-             p_location[ipt], box_gnum);
+             p_location[ipt], box_gnum,
+             cp[0], cp[1], cp[2]);
       printf("weights =");
       for (int l = p_weights_idx[ipt]; l < p_weights_idx[ipt+1]; l++) {
         printf(" %f", p_weights[l]);

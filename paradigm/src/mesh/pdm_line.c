@@ -35,8 +35,8 @@ extern "C" {
  * Static global variables
  *============================================================================*/
 
-//static  const double _eps = 1e-12;
-static  const double _eps = 1e-16;
+static  const double _eps = 1e-15;
+//static  const double _eps = 1e-16;
 
 /*============================================================================
  * Private function definitions

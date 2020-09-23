@@ -15,6 +15,7 @@
 
 #include "pdm_surf_mesh.h"
 #include "pdm_surf_mesh_priv.h"
+#include "pdm_part_to_block.h"
 #include "pdm_surf_part.h"
 #include "pdm_surf_part_priv.h"
 #include "pdm_binary_search.h"
@@ -1890,21 +1891,66 @@ PDM_surf_mesh_is_plane_surface
   }
 
   double center[3] = {0, 0, 0};
+
+
   if (isPlane) {
+
+    PDM_g_num_t **_gnums = (PDM_g_num_t **) malloc (sizeof(PDM_g_num_t *) * n_part);
+    int *_n_elts = (int *) malloc (sizeof(int) * n_part);
+    double **_coords = (double **) malloc (sizeof(double *) * n_part);
+
     for (int i = 0; i < n_part; i++) {
       PDM_surf_part_t *part = mesh->part[i];
       const int n_vtx = part->n_vtx;
       const double* coords = part->coords;
+      const PDM_g_num_t* gnum = part->vtx_ln_to_gn;
 
-      for (int j = 0; j < n_vtx; j++) {
-        for (int k = 0; k < 3; k++) {
-          center[k] += coords[3*j+k];
-        }
+      _gnums[i] = (PDM_g_num_t *) gnum;
+      _coords[i] = (double *) coords;
+      _n_elts[i] = n_vtx;
+
+    }
+
+    PDM_part_to_block_t *ptb = PDM_part_to_block_create (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+                                                         PDM_PART_TO_BLOCK_POST_CLEANUP,
+                                                         1,
+                                                         _gnums,
+                                                         NULL,
+                                                         _n_elts,
+                                                         n_part,
+                                                         mesh->comm);
+
+    double *_dcoords;
+    int * block_stride;
+
+    PDM_part_to_block_exch (ptb,
+                            sizeof(double),
+                            PDM_STRIDE_CST,
+                            3,
+                            NULL,
+                            (void **) _coords,
+                            &block_stride,
+                            (void **) &_dcoords);
+
+
+    int n_elt_block = PDM_part_to_block_n_elt_block_get (ptb);
+
+    PDM_part_to_block_free (ptb);
+
+    free (_gnums);
+    free (_n_elts);
+    free (_coords);
+
+    for (int j = 0; j < n_elt_block; j++) {
+      for (int k = 0; k < 3; k++) {
+        center[k] += _dcoords[3*j+k];
       }
     }
 
+    free (_dcoords);
+
     PDM_MPI_Allreduce (center, barycenter, 3,
-                   PDM__PDM_MPI_REAL, PDM_MPI_SUM, mesh->comm);
+                       PDM__PDM_MPI_REAL, PDM_MPI_SUM, mesh->comm);
 
     for (int k = 0; k < 3; k++) {
       barycenter[k] = barycenter[k] / mesh->nGVtx;
@@ -1921,6 +1967,18 @@ PDM_surf_mesh_is_plane_surface
       planeEquation[k] = 0;
     }
   }
+
+
+  printf("plane %d : %12.5e  %12.5e  %12.5e  %12.5e\n",isPlane,
+         planeEquation[0],
+         planeEquation[1],
+         planeEquation[2] ,
+         planeEquation[3]);
+  printf("barycentre : %12.5e  %12.5e  %12.5e\n",
+         barycenter[0],
+         barycenter[1],
+         barycenter[2]);
+  fflush(stdout);
 
   return isPlane;
 }

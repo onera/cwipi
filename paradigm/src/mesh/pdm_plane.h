@@ -37,6 +37,24 @@ extern "C" {
 
 
 /**
+ * \brief Computes barycenter
+ *
+ * \param [in]   numPts  Number of polygon vertices
+ * \param [in]   pts     Polygon vertices coordinates
+ * \param [out]  bary    Barycenter
+ *
+ */
+
+void
+PDM_plane_barycenter
+(
+ const int     numPts,
+ const double *pts,
+ double        n[3]
+ );
+
+
+/**
  * \brief Computes normal
  *
  * \param [in]   numPts  Number of polygon vertices

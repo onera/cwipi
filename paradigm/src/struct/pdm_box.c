@@ -842,7 +842,7 @@ PDM_box_set_redistribute(const PDM_box_distrib_t  *distrib,
 
   assert(distrib != NULL);
   assert(boxes != NULL);
-  assert(distrib->n_ranks > 1);
+  // assert(distrib->n_ranks > 1);
 
   PDM_boxes_t *_local_boxes = boxes->local_boxes;
   assert(_local_boxes != NULL);
@@ -1969,7 +1969,7 @@ PDM_box_distrib_create(int  n_boxes,
 
   new_distrib->n_boxes = n_boxes;
 
-  assert(n_ranks > 1);
+  // assert(n_ranks > 1);
 
   new_distrib->morton_index = (PDM_morton_code_t *) malloc((n_ranks + 1) * sizeof(PDM_morton_code_t));
 

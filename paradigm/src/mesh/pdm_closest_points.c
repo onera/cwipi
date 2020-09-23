@@ -167,7 +167,7 @@ static _PDM_closest_t *
 _get_from_id
 (
  int  id
- )
+)
 {
   _PDM_closest_t *closest = (_PDM_closest_t *) PDM_Handles_get (_closest_pts, id);
 
@@ -201,7 +201,7 @@ PDM_closest_points_create
 (
  const PDM_MPI_Comm comm,
  const int          n_closest
- )
+)
 {
   if (_closest_pts == NULL) {
     _closest_pts = PDM_Handles_create (4);
@@ -234,7 +234,7 @@ PDM_closest_points_create_cf
  const PDM_MPI_Fint comm,
  const int          n_closest,
  int *id
- )
+)
 {
   const PDM_MPI_Comm _comm        = PDM_MPI_Comm_f2c(comm);
 
@@ -258,7 +258,7 @@ PDM_closest_points_n_part_cloud_set
  const int  id,
  const int  n_part_cloud_src,
  const int  n_part_cloud_tgt
- )
+)
 {
   _PDM_closest_t *cls = _get_from_id (id);
   assert(cls->src_cloud == NULL);
@@ -299,9 +299,9 @@ PDM_closest_points_tgt_cloud_set
  const int          id,
  const int          i_part,
  const int          n_points,
- double      *coords,
- PDM_g_num_t *gnum
- )
+       double      *coords,
+       PDM_g_num_t *gnum
+)
 {
   _PDM_closest_t *cls = _get_from_id (id);
   assert(cls->tgt_cloud != NULL);
@@ -329,9 +329,9 @@ PDM_closest_points_src_cloud_set
  const int          id,
  const int          i_part,
  const int          n_points,
- double      *coords,
- PDM_g_num_t *gnum
- )
+       double      *coords,
+       PDM_g_num_t *gnum
+)
 {
   _PDM_closest_t *cls = _get_from_id (id);
   assert(cls->src_cloud != NULL);
@@ -352,7 +352,7 @@ void
 PDM_closest_points_compute
 (
  const int id
- )
+)
 {
   _PDM_closest_t *cls = _get_from_id (id);
 
@@ -487,11 +487,11 @@ PDM_closest_points_compute
 void
 PDM_closest_points_get
 (
- const int        id,
- const int        i_part_tgt,
- PDM_g_num_t    **closest_src_gnum,
- double   **closest_src_distance
- )
+ const int           id,
+ const int           i_part_tgt,
+       PDM_g_num_t **closest_src_gnum,
+       double      **closest_src_distance
+)
 {
   _PDM_closest_t *cls = _get_from_id (id);
 
@@ -518,7 +518,7 @@ PDM_closest_points_free
 (
  const int id,
  const int partial
- )
+)
 {
   _PDM_closest_t *cls = _get_from_id (id);
 
@@ -596,7 +596,7 @@ void
 PDM_closest_points_dump_times
 (
  const int id
- )
+)
 {
   _PDM_closest_t *cls = _get_from_id (id);
   double t1 = cls->times_elapsed[END] - cls->times_elapsed[BEGIN];
