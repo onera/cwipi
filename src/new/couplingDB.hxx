@@ -56,7 +56,7 @@ namespace cwipi {
      * \param [in]  cplId                Coupling identifier
      * \param [in]  coupledCodeProperties    Coupled code properties
      * \param [in]  commType             Communication type
-     * \param [in]  mappingAlgo             Mapping algorithm
+     * \param [in]  spatialInterpAlgo             Mapping algorithm
      * \param [in]  nPart                Number of interface partition 
      * \param [in]  movingStatus         Support moving status
      * \param [in]  recvFreqType         Type of receiving frequency
@@ -70,7 +70,7 @@ namespace cwipi {
      const string                &cplId,
      const CodeProperties        &coupledCodeProperties,
      const CWP_Comm_t           commType,
-     const CWP_Spatial_interp_t           mappingAlgo,
+     const CWP_Spatial_interp_t           spatialInterpAlgo,
      const int                    nPart,
      const CWP_Displacement_t  movingStatus,
      const CWP_Freq_t           recvFreqType

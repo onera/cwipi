@@ -19,7 +19,7 @@
 
 #include <vector>
 #include <map>
-#include <mapping.hxx>
+#include <spatialInterp.hxx>
 #include <mpi.h>
 
 #include <pdm_mesh_nodal.h>
@@ -37,26 +37,26 @@
 
 namespace cwipi {
 
-  Mapping::Mapping()
+  SpatialInterp::SpatialInterp()
   {
   }
 
 
-  Mapping::~Mapping()
+  SpatialInterp::~SpatialInterp()
   {
   }
-  
-  
+
+
 
 /***************************************************************************/
 /***************************************************************************/
 
 
 
-  void Mapping::_IAlltoallIndexSend(void* send_buffer,
+  void SpatialInterp::_IAlltoallIndexSend(void* send_buffer,
                                      int* send_count,
                                      int* send_disp,
-                                     MPI_Datatype type, 
+                                     MPI_Datatype type,
                                      MPI_Comm comm,
                                      std::vector<int> connectableRanks
                                     ){
@@ -71,29 +71,29 @@ namespace cwipi {
         tagsend =0;
       }
       else {
-       tagsend =1; 
+       tagsend =1;
       }
 
       for(int i_rank=0;i_rank<nranks;i_rank++) {
         int distant_rank = connectableRanks[i_rank];
-        
+
         if(type == MPI_BYTE){
            int* sendptr = (int*)send_buffer;
           //  target_data* sendptr = (target_data*)send_buffer;
             MPI_Issend(&(  sendptr [ send_disp[distant_rank]/sizeof(int) /*recv_size[distant_rank]*/ ] ), send_count[distant_rank] * 1, type, distant_rank, tagsend,
                    comm,
-                   &(_send_requests[i_rank]));        
-        }   
+                   &(_send_requests[i_rank]));
+        }
       }//end for on i_rank
   }
 
 
 
 
- void Mapping::_IAlltoallIndexRecv(void* recv_buffer,
+ void SpatialInterp::_IAlltoallIndexRecv(void* recv_buffer,
                 int* recv_count,
                 int* recv_disp,
-                MPI_Datatype type, 
+                MPI_Datatype type,
                 MPI_Comm comm,
                 std::vector<int> connectableRanks
                 ){
@@ -119,8 +119,8 @@ namespace cwipi {
           //target_data* recvptr = (target_data*)recv_buffer;
           MPI_Irecv(&(  recvptr [ recv_disp[distant_rank]/sizeof(int)  /*recv_size[distant_rank]*/ ] ), recv_count[distant_rank] * 1,type, distant_rank, tagrecv,
                     comm,
-                    &(_recv_requests[i_rank])); 
-        }   
+                    &(_recv_requests[i_rank]));
+        }
       }//end for on i_rank
 
   }
@@ -131,6 +131,3 @@ namespace cwipi {
 
 
 } // end namespace cwipi
-
-
-

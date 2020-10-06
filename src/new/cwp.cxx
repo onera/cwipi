@@ -62,8 +62,8 @@
 #include "pdm_error.h"
 #include "surfMeshGenerator.hxx"
 #include "surfMeshGeneratorDB.hxx"
-#include "mapping.hxx"
-#include "mappingLocation.hxx"
+#include "spatialInterp.hxx"
+#include "spatialInterpLocation.hxx"
 
  #include "mesh.hxx"
  #include "block.hxx"
@@ -327,7 +327,7 @@ CWP_Init
   cwipi::Factory<cwipi::Mapping, CWP_Spatial_interp_t> &factoryMapping =
     cwipi::Factory<cwipi::Mapping, CWP_Spatial_interp_t>::getInstance();
 
-  factoryMapping.Register<cwipi::MappingLocation>(CWP_SPATIAL_INTERP_FROM_LOCATION);
+  factoryMapping.Register<cwipi::SpatialInterpLocation>(CWP_SPATIAL_INTERP_FROM_LOCATION);
   // factoryMapping.Register<MappingIntersection>(CWP_MAPPING_INTERSECTION);
   // factoryMapping.Register<MappingClosestPoint>(CWP_MAPPING_CLOSEST_POINT);
 
@@ -916,8 +916,8 @@ CWP_Spatial_interp_weights_compute
 
   int id     = cpl.localCodePropertiesGet()   -> idGet();
   int id_cpl = cpl.coupledCodePropertiesGet() -> idGet();
-  int slave  = cpl.mappingGet(CWP_FIELD_VALUE_NODE) -> slaveGet();
-  int both_local = cpl.mappingGet(CWP_FIELD_VALUE_NODE) -> bothLocalGet();
+  int slave  = cpl.spatialInterpGet(CWP_FIELD_VALUE_NODE) -> slaveGet();
+  int both_local = cpl.spatialInterpGet(CWP_FIELD_VALUE_NODE) -> bothLocalGet();
   if(both_local == 0 || (both_local == 1 && id < id_cpl) ){
 
     std::vector <int> tmp(3,0);
@@ -1047,76 +1047,76 @@ CWP_Spatial_interp_weights_compute
       // Iteration over the possilbe cloud points type
       for(size_t i_location=0; i_location < locationV.size(); i_location++){
         CWP_Field_value_t pointsCloudLocation = locationV[i_location];
-        int mappingComputeSend  = 0;
-        int mappingComputeRcv = 0;
+        int spatialInterpComputeSend  = 0;
+        int spatialInterpComputeRcv = 0;
 
         if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 1) {
-          mappingComputeSend = 1;
+          spatialInterpComputeSend = 1;
         }
         else if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 2) {
-          mappingComputeRcv = 1;
+          spatialInterpComputeRcv = 1;
         }
         else if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 3) {
-          mappingComputeSend = 1;
-          mappingComputeRcv  = 1;
+          spatialInterpComputeSend = 1;
+          spatialInterpComputeRcv  = 1;
         }
         else if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 0) {
-          mappingComputeSend = 0;
-          mappingComputeRcv  = 0;
+          spatialInterpComputeSend = 0;
+          spatialInterpComputeRcv  = 0;
         }
 
         CWP_Field_exch_t exchange_type    ;
         CWP_Field_exch_t exchange_type_cpl;
-        if (mappingComputeRcv == 1 && mappingComputeSend == 1 ) {
+        if (spatialInterpComputeRcv == 1 && spatialInterpComputeSend == 1 ) {
           if(id < id_cpl) {
              if(both_local == 1) {
 
               cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
 
-              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND);
-              cpl_cpl.mappingCompute(pointsCloudLocation,CWP_FIELD_EXCH_RECV);
+              cpl.spatialInterpCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND);
+              cpl_cpl.spatialInterpCompute(pointsCloudLocation,CWP_FIELD_EXCH_RECV);
 
-              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV);
-              cpl_cpl.mappingCompute(pointsCloudLocation,CWP_FIELD_EXCH_SEND);
+              cpl.spatialInterpCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV);
+              cpl_cpl.spatialInterpCompute(pointsCloudLocation,CWP_FIELD_EXCH_SEND);
              }
              else if (both_local == 0) {
-              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND);
-              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV);
+              cpl.spatialInterpCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND);
+              cpl.spatialInterpCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV);
             }
           }
           else {
             if (both_local == 0) {
-              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV);
-              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND);
+              cpl.spatialInterpCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV);
+              cpl.spatialInterpCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND);
             }
           }
-         // printf("pointsCloudLocation %s rank %i %i %i id<id_cpl %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, mappingComputeSend, mappingComputeRcv,id<id_cpl );
+         // printf("pointsCloudLocation %s rank %i %i %i id<id_cpl %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, spatialInterpComputeSend, spatialInterpComputeRcv,id<id_cpl );
 
         }
-        else if (mappingComputeRcv == 1 && mappingComputeSend == 0) {
+        else if (spatialInterpComputeRcv == 1 && spatialInterpComputeSend == 0) {
           exchange_type     = CWP_FIELD_EXCH_RECV ;
           exchange_type_cpl = CWP_FIELD_EXCH_SEND ;
           if(both_local == 1 && id < id_cpl) {
-            cpl.mappingCompute(pointsCloudLocation, exchange_type);
+            cpl.spatialInterpCompute(pointsCloudLocation, exchange_type);
             cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
-            cpl_cpl.mappingCompute(pointsCloudLocation, exchange_type_cpl);
+            cpl_cpl.spatialInterpCompute(pointsCloudLocation, exchange_type_cpl);
          }
           else if (both_local == 0) {
-            cpl.mappingCompute(pointsCloudLocation, exchange_type);
-            //printf("pointsCloudLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, mappingComputeSend, mappingComputeRcv );
+            cpl.spatialInterpCompute(pointsCloudLocation, exchange_type);
+            //printf("pointsCloudLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, spatialInterpComputeSend, spatialInterpComputeRcv );
           }
         }
-        else if (mappingComputeSend == 1 && mappingComputeRcv == 0) {
+        else if (spatialInterpComputeSend == 1 && spatialInterpComputeRcv == 0) {
           exchange_type     = CWP_FIELD_EXCH_SEND ;
           exchange_type_cpl = CWP_FIELD_EXCH_RECV ;
           if(both_local == 1 && id < id_cpl) {
-            cpl.mappingCompute(pointsCloudLocation, exchange_type);
+            cpl.spatialInterpCompute(pointsCloudLocation, exchange_type);
             cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
-            cpl_cpl.mappingCompute(pointsCloudLocation, exchange_type_cpl);
+            cpl_cpl.spatialInterpCompute(pointsCloudLocation, exchange_type_cpl);
           }
           else if (both_local == 0) {
-            cpl.mappingCompute(pointsCloudLocation, exchange_type);
-           // printf("pointsCloudLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, mappingComputeSend, mappingComputeRcv );
+            cpl.spatialInterpCompute(pointsCloudLocation, exchange_type);
+           // printf("pointsCloudLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, spatialInterpComputeSend, spatialInterpComputeRcv );
           }
         }
        if((both_local == 1 && id < id_cpl) || both_local == 0) MPI_Barrier(unionComm);

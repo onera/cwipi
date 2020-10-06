@@ -32,7 +32,7 @@
 #include "couplingDB_i.hxx"
 #include "mesh.hxx"
 
-#include "mapping.hxx"
+#include "spatialInterp.hxx"
 #include "visualization.hxx"
 #include "field.hxx"
 
@@ -67,7 +67,7 @@ namespace cwipi {
      * \param [in]  commType                     Communication type
      * \param [in]  localCodeProperties          Local code properties
      * \param [in]  coupledCodeProperties        Coupled code properties
-     * \param [in]  mappingAlgo                     Mapping algorithm
+     * \param [in]  spatialInterpAlgo                     Mapping algorithm
      * \param [in]  nPart                        Number of interface partitions
      * \param [in]  movingStatus                 Mesh moving status
      * \param [in]  recvFreqType                 Type of receiving frequency
@@ -81,7 +81,7 @@ namespace cwipi {
      const CWP_Comm_t             commType,
      const CodeProperties        &localCodeProperties,
      const CodeProperties        &coupledCodeProperties,
-     const CWP_Spatial_interp_t            mappingAlgo,
+     const CWP_Spatial_interp_t            spatialInterpAlgo,
      const int                    nPart,
      const CWP_Displacement_t     movingStatus,
      const CWP_Freq_t             recvFreqType,
@@ -211,7 +211,7 @@ namespace cwipi {
      */
 
     void
-    mappingCompute
+    spatialInterpCompute
     (
      CWP_Field_value_t pointsCloudLocation,
      CWP_Field_exch_t exchange_type
@@ -1008,13 +1008,13 @@ namespace cwipi {
     inline Mesh* meshGet();
 
     inline std::map < string, Field * >* fieldsGet();
-    inline std::map <CWP_Field_value_t,Mapping*>* mappingGet();
+    inline std::map <CWP_Field_value_t,Mapping*>* spatialInterpGet();
     inline CodeProperties* localCodePropertiesGet();
     inline CodeProperties* coupledCodePropertiesGet();
 
     inline Communication* communicationGet();
 
-    inline Mapping*    mappingGet(CWP_Field_value_t field_value_t) ;
+    inline Mapping*    spatialInterpGet(CWP_Field_value_t field_value_t) ;
     inline CouplingDB*  couplingDBGet();
     inline string       IdGet();
 
@@ -1056,7 +1056,7 @@ namespace cwipi {
     return const_cast<Communication*>(&_communication);
   }
 
-  Mapping* Coupling::mappingGet(CWP_Field_value_t field_value_t) {
+  Mapping* Coupling::spatialInterpGet(CWP_Field_value_t field_value_t) {
 
     std::map <CWP_Field_value_t,Mapping*> ::iterator p;
     p = _spatial_interp.find(field_value_t);
@@ -1084,7 +1084,7 @@ namespace cwipi {
      return &_mesh;
   }
 
-  std::map <CWP_Field_value_t,Mapping*>* Coupling::mappingGet() {
+  std::map <CWP_Field_value_t,Mapping*>* Coupling::spatialInterpGet() {
      return &_spatial_interp;
   }
 

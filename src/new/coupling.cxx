@@ -95,7 +95,7 @@ namespace cwipi {
    const CWP_Comm_t           cplType,
    const CodeProperties       &localCodeProperties,
    const CodeProperties       &coupledCodeProperties,
-   const CWP_Spatial_interp_t           mappingAlgo,
+   const CWP_Spatial_interp_t           spatialInterpAlgo,
    const int                  nPart,
    const CWP_Displacement_t   displacement,
    const CWP_Freq_t           recvFreqType,
@@ -135,18 +135,18 @@ namespace cwipi {
         _mesh.setVisu(&_visu);
         mesh_cpl->setVisu(visu_cpl);
 
-        std::map <CWP_Field_value_t, Mapping*>* _spatial_interp_cpl = distCpl.mappingGet();
+        std::map <CWP_Field_value_t, Mapping*>* _spatial_interp_cpl = distCpl.spatialInterpGet();
 
         //Mapping initialization
-        //_spatial_interp[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(mappingAlgo);
-        _spatial_interp[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(mappingAlgo);
-        _spatial_interp[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(mappingAlgo);
-        _spatial_interp[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(mappingAlgo);
+        //_spatial_interp[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(spatialInterpAlgo);
+        _spatial_interp[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(spatialInterpAlgo);
+        _spatial_interp[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(spatialInterpAlgo);
+        _spatial_interp[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(spatialInterpAlgo);
 
-        //(*_spatial_interp_cpl)[CWP_FIELD_VALUE_CELL_MEAN]  = FG::getInstance().CreateObject(mappingAlgo);
-        (*_spatial_interp_cpl)[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(mappingAlgo);
-        (*_spatial_interp_cpl)[CWP_FIELD_VALUE_NODE]       = FG::getInstance().CreateObject(mappingAlgo);
-        (*_spatial_interp_cpl)[CWP_FIELD_VALUE_USER]       = FG::getInstance().CreateObject(mappingAlgo);
+        //(*_spatial_interp_cpl)[CWP_FIELD_VALUE_CELL_MEAN]  = FG::getInstance().CreateObject(spatialInterpAlgo);
+        (*_spatial_interp_cpl)[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(spatialInterpAlgo);
+        (*_spatial_interp_cpl)[CWP_FIELD_VALUE_NODE]       = FG::getInstance().CreateObject(spatialInterpAlgo);
+        (*_spatial_interp_cpl)[CWP_FIELD_VALUE_USER]       = FG::getInstance().CreateObject(spatialInterpAlgo);
 
         //Mapping initialization
         std::map <CWP_Field_value_t, Mapping*>::iterator it = _spatial_interp_cpl->begin();
@@ -195,10 +195,10 @@ namespace cwipi {
 
        _mesh.setVisu(&_visu);
       //Mapping creation
-     // _spatial_interp[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(mappingAlgo);
-      _spatial_interp[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(mappingAlgo);
-      _spatial_interp[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(mappingAlgo);
-      _spatial_interp[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(mappingAlgo);
+     // _spatial_interp[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(spatialInterpAlgo);
+      _spatial_interp[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(spatialInterpAlgo);
+      _spatial_interp[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(spatialInterpAlgo);
+      _spatial_interp[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(spatialInterpAlgo);
       //Mapping initialization
         std::map <CWP_Field_value_t, Mapping*>::iterator it = _spatial_interp.begin();
         while (it != _spatial_interp.end()) {
@@ -431,7 +431,7 @@ namespace cwipi {
 
 
    void
-   Coupling::mappingCompute (CWP_Field_value_t pointsCloudLocation, CWP_Field_exch_t exchange_type)
+   Coupling::spatialInterpCompute (CWP_Field_value_t pointsCloudLocation, CWP_Field_exch_t exchange_type)
    {
      _spatial_interp[pointsCloudLocation] -> compute(exchange_type);
 

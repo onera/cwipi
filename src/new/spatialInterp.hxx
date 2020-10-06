@@ -1,7 +1,7 @@
-#ifndef __MAPPING_H__
-#define __MAPPING_H__
+#ifndef __SPATIAL_INTERP_H__
+#define __SPATIAL_INTERP_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2012  ONERA
 
@@ -34,30 +34,30 @@ namespace cwipi {
     int          origin_proc     ;
     int          closest_elt_part;
     int          l_num_origin    ;
-    double       projectedX       ;     
+    double       projectedX       ;
     double       projectedY       ;
-    double       projectedZ       ;  
-    double       distance       ;    
+    double       projectedZ       ;
+    double       distance       ;
   };
 
 
   static const char *CWP_Field_exch_t_str [] = {"CWP_FIELD_EXCH_SEND","CWP_FIELD_EXCH_RECV","CWP_FIELD_EXCH_SENDRECV"};
 
   class Mesh;
-  class Field;  
+  class Field;
   class Visu;
-  /** 
-   * \class Mapping mapping.hxx "mapping.hxx"
-   * \brief Mapping algorithm
+  /**
+   * \class SpatialInterp spatialInterp.hxx "spatialInterp.hxx"
+   * \brief SpatialInterp algorithm
    *
    *  This class computes the mapping algotrithm of points cloud into a mesh and
-   *  builds a communication graph to transmit interpolated fieldsDouble on 
+   *  builds a communication graph to transmit interpolated fieldsDouble on
    *  points cloud from fieldsDouble defined on the mesh.
-   * 
+   *
    */
 
-  class Mapping {
-  friend class MappingLocation;
+  class SpatialInterp {
+  friend class SpatialInterpLocation;
   public:
 
     /**
@@ -65,14 +65,14 @@ namespace cwipi {
      *
      */
 
-    Mapping();
+    SpatialInterp();
 
     /**
      * \brief Destructor
      *
      */
 
-    virtual ~Mapping();
+    virtual ~SpatialInterp();
 
     virtual void init(Coupling *coupling, CWP_Field_value_t pointsCloudLocation,int slave) =0;
 
@@ -81,12 +81,12 @@ namespace cwipi {
     virtual void user_target_points_set(int i_part, int n_pts, double* coord) =0;
     /**
      *
-     * \brief Exchange data field with the coupled application with blocking 
+     * \brief Exchange data field with the coupled application with blocking
      *        communications.
      *
-     * This function exchanges interpolated fieldsDouble between coupled codes. 
-     * 
-     * \warning  The size of tgt_field_id size is n_computed_tgt. 
+     * This function exchanges interpolated fieldsDouble between coupled codes.
+     *
+     * \warning  The size of tgt_field_id size is n_computed_tgt.
      *           If \f$ n\_uncomputed\_tgt \ne n\_tgt\_pts \f$,
      *           user himself must set values for uncomputed target points.
      *
@@ -99,7 +99,7 @@ namespace cwipi {
      *
      */
 
-    CWP_Err_t 
+    CWP_Err_t
     sendRecv
     (Field *src,
      Field *tgt,
@@ -108,12 +108,12 @@ namespace cwipi {
 
     /**
      *
-     * \brief Sending of data field to the coupled application with nonblocking 
+     * \brief Sending of data field to the coupled application with nonblocking
      *        communications.
      *
-     * This function sends interpolated field to the coupled code. 
-     * 
-     * \param [in]  sendingField                      Sending field    
+     * This function sends interpolated field to the coupled code.
+     *
+     * \param [in]  sendingField                      Sending field
      *
      *
      */
@@ -131,19 +131,19 @@ namespace cwipi {
      *
      * This function waits the end of exchange related to request
      * from \ref CWP_Issend
-     * 
+     *
      */
 
     virtual void waitIssend(Field* sendingField) = 0;
     virtual void waitIssend_p2p(Field* sendingField) = 0;
     /**
      *
-     * \brief Receiving of Data field from the coupled application with nonblocking 
+     * \brief Receiving of Data field from the coupled application with nonblocking
      *        communications.
      *
-     * This function receives interpolated field from the coupled code 
-     * 
-     * \param [in]  recevingField       Receving field   
+     * This function receives interpolated field from the coupled code
+     *
+     * \param [in]  recevingField       Receving field
      *
      *
      */
@@ -154,28 +154,28 @@ namespace cwipi {
      *
      * \brief Waiting of the end of exchange related to request.
      *
-     * This function waits the end of exchange related to request 
+     * This function waits the end of exchange related to request
      * from \ref CWP_Irecv
-     * 
+     *
      * \param [in] request    Request to wait the end of exchange
      *
      */
 
-    virtual void waitIrecv(Field* recevingField) = 0;    
-    virtual void waitIrecv_p2p(Field* recevingField) = 0;    
+    virtual void waitIrecv(Field* recevingField) = 0;
+    virtual void waitIrecv_p2p(Field* recevingField) = 0;
 
     /**
      * \brief Setting user target points
      *
-     * This function must be called if the nature of receiving fieldsDouble 
+     * This function must be called if the nature of receiving fieldsDouble
      * is \ref CWP_FIELD_VALUE_USER
      *
      * \param [in]  n_pts   Number of points
-     * \param [in]  coords   Coordinates (size = 3 * n_pts)          
+     * \param [in]  coords   Coordinates (size = 3 * n_pts)
      *
      */
 
-    void 
+    void
     userTgtPtsSet
     (const int            n_pts,
      double               coords[]);
@@ -186,24 +186,24 @@ namespace cwipi {
      *
      * This function takes into account an user interpolation function written with
      * void (*\ref CWP_Interp_from_location_t) interface.
-     * 
+     *
      * \param [in] fct        Function
      *
      */
 
-    void 
+    void
     InterpUser
     (CWP_Interp_from_location_t fct);
 
     /**
      *
      * \brief Return the number of uncomputed targets
-     * 
+     *
      * \return                Number of uncomputed targets
      *
      */
 
-    int 
+    int
     nUncomputedTargetsGet(int i_part) {
       return n_uncomputed_tgt[i_part];
     }
@@ -222,17 +222,17 @@ namespace cwipi {
     /**
      *
      * \brief Return the number of computed targets
-     * 
+     *
      * \return                Number of computed targets
      */
 
-    inline int 
+    inline int
     nComputedTargetsGet() const;
 
     /**
      *
      * \brief Return computed targets
-     * 
+     *
      *
      * \return                Computed targets
      *
@@ -244,34 +244,34 @@ namespace cwipi {
     void _IAlltoallIndexSend(void* send_buffer,
                              int* send_count,
                              int* send_disp,
-                             MPI_Datatype type, 
+                             MPI_Datatype type,
                              MPI_Comm comm,
                              std::vector<int> connectableRanks
                             );
-                
+
     void _IAlltoallIndexRecv(void* recv_buffer,
                              int* recv_count,
                              int* recv_disp,
-                             MPI_Datatype type, 
+                             MPI_Datatype type,
                              MPI_Comm comm,
                              std::vector<int> connectableRanks
-                             );    
+                             );
 
     //TODO: Acess function
-    int _both_codes_are_local; 
-    
+    int _both_codes_are_local;
+
     int slaveGet() {
-      return  _slave;  
-    } 
- 
+      return  _slave;
+    }
+
    int bothLocalGet() {
-      return  _both_codes_are_local;   
-    } 
-     
+      return  _both_codes_are_local;
+    }
+
   protected:
-    
-    Mapping &operator=(const Mapping &other);  /*!< Assigment operator not available */
-    Mapping (const Mapping& other);            /*!< Copy constructor not available */
+
+    SpatialInterp &operator=(const SpatialInterp &other);  /*!< Assigment operator not available */
+    SpatialInterp (const SpatialInterp& other);            /*!< Copy constructor not available */
 
      //Pointer to other objects
     Mesh                                *_mesh                  ;    /*!< Interface Mesh       */
@@ -279,7 +279,7 @@ namespace cwipi {
     CodeProperties                      *_localCodeProperties   ;
     CodeProperties                      *_coupledCodeProperties ;
     Coupling                            *_cpl                   ;
-    
+
     std::map <std::string,Field*>       *_referenceFieldsDB     ;
     CWP_Field_exch_t                     _Texch_t               ;
 
@@ -287,51 +287,51 @@ namespace cwipi {
     int _id;
     int _id_cpl;
     string coupledName;
-    string localName; 
+    string localName;
 
-    int _senderRank;  
+    int _senderRank;
     int _senderRank_cpl;
 
     int _senderLocalRank;
 
    /** MPI processes informations **/
-   
+
    /* MPI Communicators */
    MPI_Comm _globalComm ;
-   MPI_Comm _cplComm ;   
+   MPI_Comm _cplComm ;
    MPI_Comm _localComm  ;
-   MPI_Comm _connectableComm  ;   
-   PDM_MPI_Comm  _pdm_connectableComm ;   
+   MPI_Comm _connectableComm  ;
+   PDM_MPI_Comm  _pdm_connectableComm ;
    PDM_MPI_Comm  _pdm_localComm ;
    PDM_MPI_Comm  _pdm_globalComm ;
    PDM_MPI_Comm  _pdm_cplComm ;
-   
+
    vector<string> _codeVector;
 
-   int  _slave;   
+   int  _slave;
 
    std::vector<int>* _connectableRanks_cpl;
-   std::vector<int>* _connectableRanks    ;  
+   std::vector<int>* _connectableRanks    ;
 
    /* informations about MPI process (rank) */
    bool _isCoupledRank;
    bool _isCoupledRank_cpl;
 
-   int _rank;    
+   int _rank;
    int  _n_ranks    ;
    int  _n_ranks_cpl;
    int  _n_ranks_g    ;
-   
+
    /* MPI Request */
    std::vector<MPI_Request> _send_requests;
-   std::vector<MPI_Request> _recv_requests;  
-   
+   std::vector<MPI_Request> _recv_requests;
+
    std::vector<int> n_uncomputed_tgt;
-   
+
   };
 
 
 
 }
 
-#endif //__MAPPING_H__
+#endif //__SPATIAL_INTERP_H__
