@@ -504,7 +504,7 @@ namespace cwipi {
       void* interpolate (Field* referenceField); 
 
         
-      MappingLocation    *_mapping_cpl            ;  /*!< Coupled code mapping object (for both codes are local case) */
+      MappingLocation    *_spatial_interp_cpl            ;  /*!< Coupled code mapping object (for both codes are local case) */
    
       CWP_Field_value_t    _pointsCloudLocation   ;  /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
  

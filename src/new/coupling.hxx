@@ -1,7 +1,7 @@
 #ifndef __COUPLING_H__
 #define __COUPLING_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2012-2017  ONERA
 
@@ -44,14 +44,14 @@ namespace cwipi {
   class Mapping;
   class Mesh;
   class Field;
-  class Visu;  
-  /** 
+  class Visu;
+  /**
    * \class Coupling coupling.hxx "coupling.hxx"
    * \brief Coupling between two codes.
    *
    *  This class defines a coupling object and the associated communcations
-   *  between two codes  
-   * 
+   *  between two codes
+   *
    */
 
   class Coupling {
@@ -68,7 +68,7 @@ namespace cwipi {
      * \param [in]  localCodeProperties          Local code properties
      * \param [in]  coupledCodeProperties        Coupled code properties
      * \param [in]  mappingAlgo                     Mapping algorithm
-     * \param [in]  nPart                        Number of interface partitions 
+     * \param [in]  nPart                        Number of interface partitions
      * \param [in]  movingStatus                 Mesh moving status
      * \param [in]  recvFreqType                 Type of receiving frequency
      * \param [in]  cplDB                        Coupling data base where it coupling is stored
@@ -85,7 +85,7 @@ namespace cwipi {
      const int                    nPart,
      const CWP_Displacement_t     movingStatus,
      const CWP_Freq_t             recvFreqType,
-     CouplingDB                  &cplDB 
+     CouplingDB                  &cplDB
     );
 
     /**
@@ -96,10 +96,10 @@ namespace cwipi {
     virtual ~Coupling();
 
     /**
-     * \brief data exchange <b>(Not implemented yet)</b> 
+     * \brief data exchange <b>(Not implemented yet)</b>
      *
      * Exchange depending on exchange frequency
-     * 
+     *
      */
 
     void
@@ -114,11 +114,11 @@ namespace cwipi {
     /**
      *
      * \brief Return the number of uncomputed targets
-     * 
+     *
      * \return                Number of uncomputed targets
      */
 
-    int 
+    int
     nUncomputedTargetsGet
     (
       const CWP_Field_value_t pointsCloudLocation,
@@ -140,11 +140,11 @@ namespace cwipi {
     /**
      *
      * \brief Return the number of computed targets
-     * 
+     *
      * \return                Number of computed targets
      */
 
-    inline int 
+    inline int
     nComputedTargetsGet
     (
     ) const;
@@ -152,7 +152,7 @@ namespace cwipi {
     /**
      *
      * \brief Return computed targets
-     * 
+     *
      * \return                Computed targets
      */
 
@@ -202,15 +202,15 @@ namespace cwipi {
      *----------------------------------------------------------------------------*/
 
     /**
-     * \brief Computation mapping                                  
+     * \brief Computation mapping
      *
-     * This function compute mapping 
+     * This function compute mapping
      *
      * \param [out] n_uncomputed_tgt    Number of uncomputed target
      *
      */
 
-    void 
+    void
     mappingCompute
     (
      CWP_Field_value_t pointsCloudLocation,
@@ -227,7 +227,7 @@ namespace cwipi {
      *
      */
 
-    void 
+    void
     mappingPropertiesSet
     (
      const char *fmt,
@@ -269,7 +269,7 @@ namespace cwipi {
      *
      */
 
-    void 
+    void
     visuSet
     (
      const int               freq,
@@ -284,15 +284,15 @@ namespace cwipi {
     /**
      * \brief Setting user target points
      *
-     * This function must be called if the nature of receiving fieldsDouble 
+     * This function must be called if the nature of receiving fieldsDouble
      * is \ref CWP_FIELD_VALUE_USER
      *
      * \param [in]  n_pts   Number of points
-     * \param [in]  coord   Coordinates (size = 3 * n_pts)          
+     * \param [in]  coord   Coordinates (size = 3 * n_pts)
      *
      */
 
-    void 
+    void
     userTgtPtsSet
     (
      const int i_part,
@@ -311,12 +311,12 @@ namespace cwipi {
      *
      * \param [in]  i_part      Current partition
      * \param [in]  n_pts       Number of points
-     * \param [in]  coord       Coordinates (size = 3 * n_pts)          
+     * \param [in]  coord       Coordinates (size = 3 * n_pts)
      * \param [in]  global_num  Pointer to global element number (or NULL)
      *
      */
 
-    void 
+    void
     meshVtcsSet
     (
      const int          i_part,
@@ -333,8 +333,8 @@ namespace cwipi {
     *
     * \return block identifier
     */
-    
-    int 
+
+    int
     meshBlockAdd
     (
       const CWP_Block_t     block_type
@@ -345,7 +345,7 @@ namespace cwipi {
      * \brief Set a standard block to the interface mesh
      *
      * This function adds a connectivity block to the mappingetric support.
-     * 
+     *
      *  Definition of element connectivity is :
      *
      *  - edge (\ref CWP_BLOCK_EDGE2) :
@@ -356,7 +356,7 @@ namespace cwipi {
      *
      *  - triangle (\ref CWP_BLOCK_FACE_TRIA3):
      *
-     *   \code 
+     *   \code
      *       1 x-------x 3
      *          \     /
      *           \   /
@@ -373,7 +373,7 @@ namespace cwipi {
      *       1 x-------x2
      *   \endcode
      *
-     *   - tetrahedron (\ref CWP_BLOCK_CELL_TETRA4) : 
+     *   - tetrahedron (\ref CWP_BLOCK_CELL_TETRA4) :
      *
      *   \code
      *             x 4
@@ -427,14 +427,14 @@ namespace cwipi {
      *   \endcode
      *
      * \param [in]  i_part      Current partition
-     * \param [in]  block_id    Block identifier 
+     * \param [in]  block_id    Block identifier
      * \param [in]  n_elts      Number of elements
-     * \param [in]  connec      Connectivity (size = n_vertex_elt * n_elts) 
-     * \param [in]  global_num  Pointer to global element numbering (or NULL)         
+     * \param [in]  connec      Connectivity (size = n_vertex_elt * n_elts)
+     * \param [in]  global_num  Pointer to global element numbering (or NULL)
      *
      */
 
-    void 
+    void
     meshStdBlockSet
     (
      const int           i_part,
@@ -450,15 +450,15 @@ namespace cwipi {
      *
      *
      * \param [in]  i_part      Partition identifier
-     * \param [in]  block_id    Block identifier  
+     * \param [in]  block_id    Block identifier
      * \param [in]  n_elts      Number of elements
      * \param [in]  order       Mapping order
-     * \param [in]  connec      Connectivity (size = n_vertex_elt * n_elts)          
+     * \param [in]  connec      Connectivity (size = n_vertex_elt * n_elts)
      * \param [in]  global_num  Pointer to global element number (or NULL)
      *
      */
-    
-   /* void 
+
+   /* void
     meshHighOrderBlockSet
     (
      const int           i_part,
@@ -474,16 +474,16 @@ namespace cwipi {
      *
      *
      * \param [in]  i_part      Current partition
-     * \param [in]  block_id    Block identifier  
+     * \param [in]  block_id    Block identifier
      * \param [in]  n_elts      Number of elements
-     * \param [in]  connec_idx  Connectivity index (connec_id[0] = 0 and 
-     *                          size = n_elts + 1)          
-     * \param [in]  connec      Connectivity (size = connec_id[n_elts] * n_elts)          
+     * \param [in]  connec_idx  Connectivity index (connec_id[0] = 0 and
+     *                          size = n_elts + 1)
+     * \param [in]  connec      Connectivity (size = connec_id[n_elts] * n_elts)
      * \param [in]  global_num  Pointer to global element number (or NULL)
      *
      */
-     
-    void 
+
+    void
     meshFPolyBlockSet
     (
      const int            i_part,
@@ -496,19 +496,19 @@ namespace cwipi {
 
     /**
      * \brief Set the connectivity of a polyhedron block in a mesh interface partition.
-     * 
+     *
      * Definition of element connectivity is :
      *
      * \param [in]  i_part            Current partition
-     * \param [in]  block_id          Block identifier 
+     * \param [in]  block_id          Block identifier
      * \param [in]  n_elts            Number of elements
-     * \param [in]  connec_cells_idx  Polyhedron to face index 
+     * \param [in]  connec_cells_idx  Polyhedron to face index
      *                                (src_poly_cell_face_idx[0] = 0 and
      *                                 size = n_elts + 1)
-     * \param [in]  connec_cells      Polyhedron to face connectivity 
+     * \param [in]  connec_cells      Polyhedron to face connectivity
      *                                (size = cell_face_idx[n_elts])
-     * \param [in]  n_faces           Number of faces      
-     * \param [in]  connec_faces_idx  Polyhedron face to vertex index 
+     * \param [in]  n_faces           Number of faces
+     * \param [in]  connec_faces_idx  Polyhedron face to vertex index
      *                                (face_vertex_idx[0] = 0 and
      *                                size_idx = max(cell_face_connec) + 1)
      * \param [in]  connec_faces      Polyhedron face to vertex connectivity
@@ -517,7 +517,7 @@ namespace cwipi {
      *
      */
 
-    void 
+    void
     meshCPolyBlockSet
     (
      const int           i_part,
@@ -540,13 +540,13 @@ namespace cwipi {
      *
      * \param [in]  i_part            Current partition
      * \param [in]  n_cells           Number of elements
-     * \param [in]  cell_face_idx     Polyhedron to face index 
+     * \param [in]  cell_face_idx     Polyhedron to face index
      *                                (src_poly_cell_face_idx[0] = 0 and
      *                                 size = n_elts + 1)
-     * \param [in]  cell_face         Polyhedron to face connectivity 
+     * \param [in]  cell_face         Polyhedron to face connectivity
      *                                (size = cell_face_idx[n_elts])
-     * \param [in]  n_faces           Number of faces      
-     * \param [in]  face_vtx_idx      Polyhedron vertices to faces index 
+     * \param [in]  n_faces           Number of faces
+     * \param [in]  face_vtx_idx      Polyhedron vertices to faces index
      *                                (face_vtx_idx[0] = 0 and
      *                                 size_idx = max(face_vtx) + 1)
      * \param [in]  face_vtx          Polyhedron vertices to faces connectivity
@@ -563,7 +563,7 @@ namespace cwipi {
                         int         n_faces,
                         int         face_vtx_idx[],
                         int         face_vtx[],
-                        CWP_g_num_t parent_num[]); 
+                        CWP_g_num_t parent_num[]);
 
 
 
@@ -576,23 +576,23 @@ namespace cwipi {
      * a vertices-to-faces connectivity and a edge-to-face connectivity.
      *
      * \param [in]  i_part            Current partition
-     * \param [in]  n_faces           Number of faces      
-     * \param [in]  face_edge_idx     Polygon vertices to faces index 
+     * \param [in]  n_faces           Number of faces
+     * \param [in]  face_edge_idx     Polygon vertices to faces index
      *                                (face_edge_idx[0] = 0 and
      *                                size_idx = max(face_edge) + 1)
      * \param [in]  face_edge         Polyhegon vertices to face connectivity
      *                                (size = face_edge_idx[size_idx - 1])
      * \param [in]  parent_num        Pointer to parent element number (or NULL)
-     * \param [in]  n_edges           Number of edges      
-     * \param [in]  edge_vtx_idx      Vertices to edges connectivity index 
+     * \param [in]  n_edges           Number of edges
+     * \param [in]  edge_vtx_idx      Vertices to edges connectivity index
      *                                (edge_vtx_idx[0] = 0 and
      *                                size_idx = max(edge_vtx) + 1)
      * \param [in]  edge_vtx          Polygon vertices to edges connectivity
      *                                (size = edge_vtx_idx[size_idx - 1])
-     * \param [in]  parent_num        Pointer to parent element number (or NULL)     
+     * \param [in]  parent_num        Pointer to parent element number (or NULL)
      *
      */
-     
+
     void
     meshFromFacesEdgeSet(const int   i_part,
                          const int   n_faces,
@@ -601,32 +601,32 @@ namespace cwipi {
                          const int   n_edges,
                          int         edge_vtx_idx[],
                          int         edge_vtx[],
-                         CWP_g_num_t parent_num[]); 
-     
-     
+                         CWP_g_num_t parent_num[]);
+
+
     /**
-     * \brief Mapping mesh removal                                  
+     * \brief Mapping mesh removal
      *
-     * This function delete the mappingetric mesh  
+     * This function delete the mappingetric mesh
      *
      */
-     
-    void 
+
+    void
     meshDel
     (
     );
 
     /**
-     * \brief Map a fvm nodal as mesh mesh                                  
+     * \brief Map a fvm nodal as mesh mesh
      *
      * This function  map a fvm nodal as mesh mesh
      *
      * \param [in]  i_part            Current partition
-     * \param [in]  fvmc_nodal        fvm nodal mesh 
+     * \param [in]  fvmc_nodal        fvm nodal mesh
      *
      */
 
-   /* void 
+   /* void
     fvmcNodalShared
     (
      const int           i_part,
@@ -640,15 +640,15 @@ namespace cwipi {
     /**
      *
      * \brief Create a new field
-     * 
+     *
      * \param [in]  field_id       Field id
-     * \param [in]  data_type      Data type          
-     * \param [in]  storage        Storage type          
+     * \param [in]  data_type      Data type
+     * \param [in]  storage        Storage type
      * \param [in]  n_component    Number of componenent
      * \param [in]  nature         Nature
      * \param [in]  exch_type      Exchange type
      * \param [in]  visu_status    Visualization status
-     * 
+     *
      */
 
     void
@@ -662,48 +662,48 @@ namespace cwipi {
      const CWP_Field_exch_t     exch_type,
      const CWP_Status_t         visu_status
     );
-    
-    
+
+
      /**
-     * \brief Return if a field identifier exists  
+     * \brief Return if a field identifier exists
      *
      * \param [in]  field_id         Field identifier
      *
      * \return status
      */
 
-    bool 
+    bool
     fieldIs
     (
      const string &field_id
     );
-    
-    
+
+
 
     /**
      *
      * \brief Set data mapping
-     * 
+     *
      * \param [in]  field_id       Field identifier
      * \param [in]  data           Storage array (Mapping)
-     * 
+     *
      */
 
   void fieldDataSet
   (
     const std::string &field_id,
     int i_part,
-    void *data   
+    void *data
   );
-  
+
     /**
      *
      * \brief Get nunmber of field components
-     * 
+     *
      * \param [in]   field_id       Field identifier
      *
      * \return                      number of field components
-     * 
+     *
      */
 
     int
@@ -715,11 +715,11 @@ namespace cwipi {
     /**
      *
      * \brief Get field nature
-     * 
+     *
      * \param [in]   field_id       Field identifier
      *
      * \return                      Field data type
-     * 
+     *
      */
 
     CWP_Field_value_t
@@ -727,29 +727,29 @@ namespace cwipi {
     (
      const string &field_id
     );
-    
+
     /**
      *
      * \brief Get field data type
-     * 
+     *
      * \param [in]   field_id       Field identifier
      *
      * \return                      Field data type
-     * 
+     *
      */
-  
+
     CWP_Field_value_t
     fieldTypeGet
     (
      const string &field_id
     );
-    
+
     /**
      *
      * \brief Get field storage type
-     * 
+     *
      * \param [in]   field_id       Field identifier
-     * 
+     *
      */
 
     CWP_Field_storage_t
@@ -761,9 +761,9 @@ namespace cwipi {
     /**
      *
      * \brief Removing a field
-     * 
+     *
      * \param [in]  field_id       Field identifier
-     * 
+     *
      */
 
     void
@@ -777,12 +777,12 @@ namespace cwipi {
      *----------------------------------------------------------------------------*/
 
    /**
-     * \brief Exchange data field with the coupled code with blocking 
+     * \brief Exchange data field with the coupled code with blocking
      *        communications.
      *
-     * This function exchanges interpolated fieldsDouble between coupled codes. 
-     * 
-     * \warning  The size of tgt_field_id size is n_computed_tgt. 
+     * This function exchanges interpolated fieldsDouble between coupled codes.
+     *
+     * \warning  The size of tgt_field_id size is n_computed_tgt.
      *           If \f$ n\_uncomputed\_tgt \ne n\_tgt\_pts \f$,
      *           user himself must set values for uncomputed target points.
      *
@@ -803,16 +803,16 @@ namespace cwipi {
 
     /**
      *
-     * \brief Sending of data field to the coupled code with nonblocking 
+     * \brief Sending of data field to the coupled code with nonblocking
      *        communications.
      *
-     * This function sends interpolated field to the coupled code. 
-     * 
-     * \param [in]  src_id                    Source field    
+     * This function sends interpolated field to the coupled code.
+     *
+     * \param [in]  src_id                    Source field
      *
      */
 
-    void 
+    void
     issend
     (
      string &src_field_id
@@ -824,12 +824,12 @@ namespace cwipi {
      *
      * This function waits the end of exchange related to request
      * from \ref CWP_Issend
-     * 
-     * \param [in] src_id                    Source field    
+     *
+     * \param [in] src_id                    Source field
      *
      */
 
-    void 
+    void
     waitIssend
     (
      string &src_field_id
@@ -837,22 +837,22 @@ namespace cwipi {
 
 
 
-    CWP_g_num_t* 
+    CWP_g_num_t*
     globalNumGet(int id_block,int i_part);
 
     /**
      *
-     * \brief Receiving of Data field from the coupled code with nonblocking 
+     * \brief Receiving of Data field from the coupled code with nonblocking
      *        communications.
      *
-     * This function receives interpolated field from the coupled code 
-     * 
-     * \param [in]  receving_field_id       Target field ID  
+     * This function receives interpolated field from the coupled code
+     *
+     * \param [in]  receving_field_id       Target field ID
      *
      *
      */
 
-    void 
+    void
     irecv
     (
      string &receving_field_id
@@ -862,18 +862,18 @@ namespace cwipi {
      *
      * \brief Waiting of the end of exchange related to request.
      *
-     * This function waits the end of exchange related to request 
+     * This function waits the end of exchange related to request
      * from \ref CWP_Irecv
-     * 
-     * \param [in]  receving_field_id       Target field ID  
+     *
+     * \param [in]  receving_field_id       Target field ID
      *
      */
 
-    void 
+    void
     waitIrecv
     (
      string &receving_field_id
-    );    
+    );
 
     /*----------------------------------------------------------------------------*
      * methods about user interpolation                                           *
@@ -885,12 +885,12 @@ namespace cwipi {
      *
      * This function takes into account an user interpolation function written with
      *  void (* \ref CWP_Interp_from_location_t) interface.
-     * 
+     *
      * \param [in] fct        Function
      *
      */
 
-    void 
+    void
     interpFromLocSet
     (  const string field_id,
        CWP_Interp_from_location_t fct
@@ -902,12 +902,12 @@ namespace cwipi {
      *
      * This function takes into account an user interpolation function written
      * in FORTRAN .
-     * 
+     *
      * \param [in] fct        Function
      *
      */
 
-    void 
+    void
     interpFromLocSetF
     (
      void       *fct
@@ -919,13 +919,13 @@ namespace cwipi {
      *
      * This function takes into account an user interpolation function written with
      *  void (* \ref CWP_Interp_from_intersec_t) interface.
-     * 
+     *
      * \param [in] fct        Function
      *
      */
 
-    void 
-    interpFromInterSet   
+    void
+    interpFromInterSet
     (
      CWP_Interp_from_intersec_t fct
     );
@@ -936,13 +936,13 @@ namespace cwipi {
      *
      * This function takes into account an user interpolation function written
      * in FORTRAN .
-     * 
+     *
      * \param [in] fct        Function
      *
      */
 
-    void 
-    interpFromInterSetF      
+    void
+    interpFromInterSetF
     (
      void       *fct
     );
@@ -953,13 +953,13 @@ namespace cwipi {
      *
      * This function takes into account an user interpolation function written with
      *  void (* \ref CWP_Interp_from_closest_pts_t) interface.
-     * 
+     *
      * \param [in] fct        Function
      *
      */
 
-    void 
-    interpFromClosestSet    
+    void
+    interpFromClosestSet
     (
      CWP_Interp_from_closest_pts_t fct
     );
@@ -970,13 +970,13 @@ namespace cwipi {
      *
      * This function takes into account an user interpolation function written
      * in FORTRAN .
-     * 
+     *
      * \param [in] fct        Function
      *
      */
 
-    void 
-    interpFromClosestSetF      
+    void
+    interpFromClosestSetF
     (
      void *fct
     );
@@ -990,23 +990,23 @@ namespace cwipi {
      *
      */
 
-    inline CWP_Comm_t 
-    commTypeGet      
+    inline CWP_Comm_t
+    commTypeGet
     (
     );
-    
+
     /**
      *
      * \brief Return the Visu object pointer handling visualization
      *
-     * \return Visu object pointer 
+     * \return Visu object pointer
      *
      */
-     
-    inline Visu* visuGet ();    
-    
+
+    inline Visu* visuGet ();
+
     inline Mesh* meshGet();
-    
+
     inline std::map < string, Field * >* fieldsGet();
     inline std::map <CWP_Field_value_t,Mapping*>* mappingGet();
     inline CodeProperties* localCodePropertiesGet();
@@ -1017,20 +1017,20 @@ namespace cwipi {
     inline Mapping*    mappingGet(CWP_Field_value_t field_value_t) ;
     inline CouplingDB*  couplingDBGet();
     inline string       IdGet();
-    
+
     void meshFinalize();
-        
+
   private:
 
     Coupling();
 
   private:
     const string                            _cplId;                 /*!< Coupling identifier */
-          CWP_Comm_t                        _commType;              /*!< Communication type */ 
-          Communication                    &_communication;         /*!< Communication */ 
+          CWP_Comm_t                        _commType;              /*!< Communication type */
+          Communication                    &_communication;         /*!< Communication */
     const CodeProperties                   &_localCodeProperties;   /*!< Local code properties */
     const CodeProperties                   &_coupledCodeProperties; /*!< Coupled code properties */
-    std::map <CWP_Field_value_t,Mapping*> &_mapping;              /*!< Mapping algorithm */
+    std::map <CWP_Field_value_t,Mapping*> &_spatial_interp;              /*!< Mapping algorithm */
           Mesh                             &_mesh;                  /*!< Mapping mesh */
     const CWP_Freq_t                        _recvFreqType  ;        /*!< Receiving frequency type */
           Visu                             &_visu;                  /*!< Visualization */
@@ -1040,14 +1040,14 @@ namespace cwipi {
           CouplingDB                       &_cplDB;                 /*!< Coupling Data base */
           int*                              _iteration;
           CWP_Displacement_t                _displacement;
-  }; 
+  };
 
 
 
   string Coupling::IdGet(){
      return _cplId;
   }
-  
+
   CodeProperties* Coupling::localCodePropertiesGet() {
     return const_cast<CodeProperties*>(&_localCodeProperties);
   }
@@ -1057,16 +1057,16 @@ namespace cwipi {
   }
 
   Mapping* Coupling::mappingGet(CWP_Field_value_t field_value_t) {
-  
+
     std::map <CWP_Field_value_t,Mapping*> ::iterator p;
-    p = _mapping.find(field_value_t);
-    if (p == _mapping.end()) 
+    p = _spatial_interp.find(field_value_t);
+    if (p == _spatial_interp.end())
       PDM_error(__FILE__, __LINE__, 0, "Mapping not found.\n");
     return p->second;
   }
 
 
-  
+
   CouplingDB* Coupling::couplingDBGet() {
     return &_cplDB;
   }
@@ -1078,23 +1078,23 @@ namespace cwipi {
 
   Visu* Coupling::visuGet() {
      return &_visu;
-  }    
-    
+  }
+
   Mesh* Coupling::meshGet() {
      return &_mesh;
-  }    
+  }
 
   std::map <CWP_Field_value_t,Mapping*>* Coupling::mappingGet() {
-     return &_mapping;
-  }    
+     return &_spatial_interp;
+  }
 
   std::map < string, Field * >* Coupling::fieldsGet() {
      return &_fields;
-  }  
+  }
 
 
 
-   
+
 
 
 
@@ -1106,8 +1106,8 @@ namespace cwipi {
      *
      */
 
-  CWP_Comm_t 
-  Coupling::commTypeGet      
+  CWP_Comm_t
+  Coupling::commTypeGet
   (
   )
   {

@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011-2017  ONERA
 
@@ -62,21 +62,21 @@ namespace cwipi {
 
   /**
    * \typedef FC
-   * 
+   *
    * \brief Communication Factory
    *
-   *  A communication \ref Factory wich makes \ref Communication 
+   *  A communication \ref Factory wich makes \ref Communication
    *  class objects.
    *  The type of communication objects build depends on the
    *  communication type \ref CWP_Comm_t .
    *
    */
-   
+
   typedef Factory<Communication, CWP_Comm_t> FC;
-  
+
    /**
    * \typedef FG
-   * 
+   *
    * \brief Mapping Factory
    *
    *  A mapping \ref Factory wich makes \ref Mapping class objects.
@@ -84,7 +84,7 @@ namespace cwipi {
    *  mapping algorithm type \ref CWP_Spatial_interp_t; .
    *
    */
-  
+
   typedef Factory<Mapping, CWP_Spatial_interp_t> FG;
 
 
@@ -99,18 +99,18 @@ namespace cwipi {
    const int                  nPart,
    const CWP_Displacement_t   displacement,
    const CWP_Freq_t           recvFreqType,
-   CouplingDB                 &cplDB          
+   CouplingDB                 &cplDB
    )
   :_cplId(cplId),
    _commType(cplType),
    _communication(*(FC::getInstance().CreateObject(cplType))),
    _localCodeProperties(localCodeProperties),
    _coupledCodeProperties(coupledCodeProperties),
-   _mapping(*new std::map <CWP_Field_value_t, Mapping*>()),   
-   _mesh(*new Mesh(localCodeProperties.connectableCommGet(),NULL,nPart,displacement,this)),   
+   _spatial_interp(*new std::map <CWP_Field_value_t, Mapping*>()),
+   _mesh(*new Mesh(localCodeProperties.connectableCommGet(),NULL,nPart,displacement,this)),
    _recvFreqType (recvFreqType),
-   _visu(*new Visu(localCodeProperties.connectableCommGet(),displacement)), 
-   _fields(*(new map < string, Field * >())),  
+   _visu(*new Visu(localCodeProperties.connectableCommGet(),displacement)),
+   _fields(*(new map < string, Field * >())),
    _cplDB(cplDB),
    _iteration(new int),
    _displacement(displacement)
@@ -122,90 +122,90 @@ namespace cwipi {
      //In case where the both codes are on the same MPI process.
     if (coupledCodeProperties.localCodeIs()) {
       if (cplDB.couplingIs(coupledCodeProperties, cplId) ) {
-        //Communication initialization, MPI communicator creation ... 
-        _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB); 
-      
+        //Communication initialization, MPI communicator creation ...
+        _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
+
         //Get distant coupling object
-        Coupling &distCpl = cplDB.couplingGet(coupledCodeProperties, cplId);        
+        Coupling &distCpl = cplDB.couplingGet(coupledCodeProperties, cplId);
         distCpl._communication.init(_communication);
 
         Visu* visu_cpl = distCpl.visuGet();
-        Mesh* mesh_cpl = distCpl.meshGet(); 
+        Mesh* mesh_cpl = distCpl.meshGet();
 
-        _mesh.setVisu(&_visu); 
-        mesh_cpl->setVisu(visu_cpl);  
+        _mesh.setVisu(&_visu);
+        mesh_cpl->setVisu(visu_cpl);
 
-        std::map <CWP_Field_value_t, Mapping*>* _mapping_cpl = distCpl.mappingGet();
+        std::map <CWP_Field_value_t, Mapping*>* _spatial_interp_cpl = distCpl.mappingGet();
 
         //Mapping initialization
-        //_mapping[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(mappingAlgo);
-        _mapping[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(mappingAlgo);
-        _mapping[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(mappingAlgo);
-        _mapping[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(mappingAlgo);
-        
-        //(*_mapping_cpl)[CWP_FIELD_VALUE_CELL_MEAN]  = FG::getInstance().CreateObject(mappingAlgo);
-        (*_mapping_cpl)[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(mappingAlgo);
-        (*_mapping_cpl)[CWP_FIELD_VALUE_NODE]       = FG::getInstance().CreateObject(mappingAlgo);
-        (*_mapping_cpl)[CWP_FIELD_VALUE_USER]       = FG::getInstance().CreateObject(mappingAlgo);
+        //_spatial_interp[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(mappingAlgo);
+        _spatial_interp[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(mappingAlgo);
+        _spatial_interp[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(mappingAlgo);
+        _spatial_interp[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(mappingAlgo);
 
-        //Mapping initialization 
-        std::map <CWP_Field_value_t, Mapping*>::iterator it = _mapping_cpl->begin();
-    
-        while (it != _mapping_cpl->end()) {    
+        //(*_spatial_interp_cpl)[CWP_FIELD_VALUE_CELL_MEAN]  = FG::getInstance().CreateObject(mappingAlgo);
+        (*_spatial_interp_cpl)[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(mappingAlgo);
+        (*_spatial_interp_cpl)[CWP_FIELD_VALUE_NODE]       = FG::getInstance().CreateObject(mappingAlgo);
+        (*_spatial_interp_cpl)[CWP_FIELD_VALUE_USER]       = FG::getInstance().CreateObject(mappingAlgo);
+
+        //Mapping initialization
+        std::map <CWP_Field_value_t, Mapping*>::iterator it = _spatial_interp_cpl->begin();
+
+        while (it != _spatial_interp_cpl->end()) {
          (it -> second) -> init(&distCpl,it->first,1);
           it++;
         }
-               
-        it = _mapping.begin();
-        while (it != _mapping.end()) {    
+
+        it = _spatial_interp.begin();
+        while (it != _spatial_interp.end()) {
          (it -> second) -> init(this,it->first,0);
          it++;
-        }           
-        
-      }   
-    } // if (coupledCodeProperties.localCodeIs())     
+        }
+
+      }
+    } // if (coupledCodeProperties.localCodeIs())
     else {
-      //Communication initialization, MPI communicator creation ... 
+      //Communication initialization, MPI communicator creation ...
       _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
-      
-      //Tips to provide the correct visu Communicator in case CWP_COMM_PAR_WITHOUT_PART 
+
+      //Tips to provide the correct visu Communicator in case CWP_COMM_PAR_WITHOUT_PART
       int unionRank;
       MPI_Comm_rank(_communication.unionCommGet(),&unionRank);
-      
+
       MPI_Comm visuComm;
       if(commTypeGet() == CWP_COMM_PAR_WITHOUT_PART) {
         MPI_Group unionGroup;
         MPI_Group intraGroup;
-        MPI_Comm_group(_localCodeProperties.connectableCommGet(), &intraGroup);      
-        MPI_Comm_group(_communication.unionCommGet(), &unionGroup); 
+        MPI_Comm_group(_localCodeProperties.connectableCommGet(), &intraGroup);
+        MPI_Comm_group(_communication.unionCommGet(), &unionGroup);
         MPI_Group visuGroup;
         int locRootRank = _communication.unionCommLocCodeRootRanksGet();
         int locRootRankIntra;
         MPI_Group_translate_ranks(unionGroup, 1, &locRootRank,
-                                  intraGroup , &locRootRankIntra); 
-        
+                                  intraGroup , &locRootRankIntra);
+
         MPI_Group_incl(intraGroup, 1, &locRootRankIntra, &visuGroup);
 
         MPI_Comm_create(_localCodeProperties.connectableCommGet(), visuGroup, &visuComm);
 
         if(unionRank == _communication.unionCommLocCodeRootRanksGet()){
-           _visu = *new Visu(visuComm,displacement);    
+           _visu = *new Visu(visuComm,displacement);
         }
       }
-      
+
        _mesh.setVisu(&_visu);
       //Mapping creation
-     // _mapping[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(mappingAlgo);
-      _mapping[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(mappingAlgo);
-      _mapping[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(mappingAlgo);
-      _mapping[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(mappingAlgo);
+     // _spatial_interp[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(mappingAlgo);
+      _spatial_interp[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(mappingAlgo);
+      _spatial_interp[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(mappingAlgo);
+      _spatial_interp[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(mappingAlgo);
       //Mapping initialization
-        std::map <CWP_Field_value_t, Mapping*>::iterator it = _mapping.begin();
-        while (it != _mapping.end()) {    
+        std::map <CWP_Field_value_t, Mapping*>::iterator it = _spatial_interp.begin();
+        while (it != _spatial_interp.end()) {
           (it -> second) -> init(this,it->first,0);
           it++;
         }
-      
+
     } // end else
 
   }
@@ -213,33 +213,33 @@ namespace cwipi {
 
   Coupling::~Coupling()
   {
-  
+
     if(_visu.isCreated()) {
        _visu.WriterStepEnd();
     }
-       
-    std::map <CWP_Field_value_t, Mapping*>::iterator it = _mapping.begin();
-    while (it != _mapping.end()) {    
+
+    std::map <CWP_Field_value_t, Mapping*>::iterator it = _spatial_interp.begin();
+    while (it != _spatial_interp.end()) {
        // delete it -> second;
         it++;
     }
-    
+
 
     std::map < string, Field * >::iterator itf = _fields.begin();
     while (itf != _fields.end()) {
-        if(_localCodeProperties.isCoupledRank() && _visu.isCreated() && itf -> second -> visuStatusGet() == CWP_STATUS_ON ) 
-          _visu.fieldDataFree(itf -> second);    
+        if(_localCodeProperties.isCoupledRank() && _visu.isCreated() && itf -> second -> visuStatusGet() == CWP_STATUS_ON )
+          _visu.fieldDataFree(itf -> second);
         delete itf -> second;
         itf++;
     }
-    
+
     if(_localCodeProperties.isCoupledRank() && _visu.isCreated()) {
       // _visu.MappingFree();
-      
-      delete _iteration;      
-    }    
-    
-    
+
+      delete _iteration;
+    }
+
+
     #if defined(DEBUG) && 0
     cout << "destroying '" << _name << "' coupling : TODO" << endl;
     #endif
@@ -254,104 +254,104 @@ namespace cwipi {
      map <string, Field *>::iterator it;
      it = _fields.find(field_id);
      if (it != _fields.end()) {
-       Field* field = it -> second;  
+       Field* field = it -> second;
        if(_localCodeProperties.isCoupledRank()) {
          if(_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
-            if(_mapping[field -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
-              _mapping[field -> associatedCloudPointTypeGet()] -> issend    ( field );
-              _mapping[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
+            if(_spatial_interp[field -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
+              _spatial_interp[field -> associatedCloudPointTypeGet()] -> issend    ( field );
+              _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
 
-              _mapping[field -> associatedCloudPointTypeGet()] -> irecv    ( field );
-              _mapping[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );            
+              _spatial_interp[field -> associatedCloudPointTypeGet()] -> irecv    ( field );
+              _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
             }
             else {
-              Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);   
+              Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
               map <std::string, Field *>::iterator it_recv = distCpl._fields.find(field_id);
               if (it_recv != distCpl._fields.end()) {
-                Field* field2 = it_recv -> second;   
-                _mapping[field -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field,field2);
-                _mapping[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
-                distCpl._mapping[field -> associatedCloudPointTypeGet()] -> waitIrecv(field2);     
-                
-                distCpl._mapping[field2 -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field2,field);
-                distCpl._mapping[field2 -> associatedCloudPointTypeGet()] -> waitIssend(field2);   
-                _mapping[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
+                Field* field2 = it_recv -> second;
+                _spatial_interp[field -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field,field2);
+                _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
+                distCpl._spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIrecv(field2);
+
+                distCpl._spatial_interp[field2 -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field2,field);
+                distCpl._spatial_interp[field2 -> associatedCloudPointTypeGet()] -> waitIssend(field2);
+                _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
               }
             } // end if both_codes_are_local == 0
          }
          else {
-           if(_mapping[field -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){      
-             _mapping[field -> associatedCloudPointTypeGet()] -> irecv    ( field );
-             _mapping[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
+           if(_spatial_interp[field -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
+             _spatial_interp[field -> associatedCloudPointTypeGet()] -> irecv    ( field );
+             _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
 
-             _mapping[field -> associatedCloudPointTypeGet()] -> issend    ( field );
-             _mapping[field -> associatedCloudPointTypeGet()] -> waitIssend( field );           
+             _spatial_interp[field -> associatedCloudPointTypeGet()] -> issend    ( field );
+             _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
            }
-           else {           
-             Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);   
+           else {
+             Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
              map <std::string, Field *>::iterator it_recv = distCpl._fields.find(field_id);
              if (it_recv != distCpl._fields.end()) {
-               Field* field2 = it_recv -> second;   
-               distCpl._mapping[field2 -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field2,field);
-               distCpl._mapping[field2 -> associatedCloudPointTypeGet()] -> waitIssend(field2);   
-               _mapping[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );  
-               
-               _mapping[field -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field,field2);
-               _mapping[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
-               distCpl._mapping[field -> associatedCloudPointTypeGet()] -> waitIrecv(field2);                
-             }            
-           } // end if both_codes_are_local == 0            
-         }// end if _localCodeProperties.idGet() < _coupledCodeProperties.idGet()) 
+               Field* field2 = it_recv -> second;
+               distCpl._spatial_interp[field2 -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field2,field);
+               distCpl._spatial_interp[field2 -> associatedCloudPointTypeGet()] -> waitIssend(field2);
+               _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
+
+               _spatial_interp[field -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field,field2);
+               _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
+               distCpl._spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIrecv(field2);
+             }
+           } // end if both_codes_are_local == 0
+         }// end if _localCodeProperties.idGet() < _coupledCodeProperties.idGet())
        }
        else {
-         _mapping[field -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();     
-       }  // end if _localCodeProperties.isCoupledRank()      
-     } //end if (it != _fields.end()) 
+         _spatial_interp[field -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();
+       }  // end if _localCodeProperties.isCoupledRank()
+     } //end if (it != _fields.end())
   }
 
 
 
  //TODO: Virer ptFortranInterpolationFct
-  void 
+  void
   Coupling::issend
   (string &sendingFieldID) {
-   
+
      map <string, Field *>::iterator it;
      it = _fields.find(sendingFieldID);
 
      if (it != _fields.end()) {
-       Field* sendingField = it -> second;  
+       Field* sendingField = it -> second;
        if(_localCodeProperties.isCoupledRank()) {
-         if(_mapping[sendingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
-          _mapping[sendingField -> associatedCloudPointTypeGet()] -> issend_p2p(sendingField);
+         if(_spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
+          _spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> issend_p2p(sendingField);
           return;
          }
          else {
-          Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);   
+          Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
           map <std::string, Field *>::iterator it_recv = distCpl._fields.find(sendingFieldID);
           if (it_recv != distCpl._fields.end()) {
-            Field* recevingField = it_recv -> second;   
-            _mapping[sendingField -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange_p2p(sendingField,recevingField);
+            Field* recevingField = it_recv -> second;
+            _spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange_p2p(sendingField,recevingField);
           }
         }
        }
        else {
-          _mapping[sendingField -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();
+          _spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();
        }
      }
   }
 
-  void 
+  void
   Coupling::irecv
   (string &recevingFieldID) {
        map <string, Field *>::iterator it = _fields.find(recevingFieldID);
        if (it != _fields.end()) {
-         Field* recevingField = it -> second;   
-         if(_mapping[recevingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0 ){
+         Field* recevingField = it -> second;
+         if(_spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0 ){
            if(_localCodeProperties.isCoupledRank())
-             _mapping[recevingField -> associatedCloudPointTypeGet()] -> irecv_p2p(recevingField);
+             _spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> irecv_p2p(recevingField);
            else
-             _mapping[recevingField -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();
+             _spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();
          }
          return;
        }
@@ -369,14 +369,14 @@ namespace cwipi {
    const string &field_id
   )
   {
-    map<string,Field*>::iterator It = _fields.find(field_id.c_str());  
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
        PDM_error(__FILE__, __LINE__, 0, "'%s' not existing field\n", field_id.c_str());
     }
     return It->second->nComponentGet();
   }
 
-  bool 
+  bool
   Coupling::fieldIs
   (
    const string &field_id
@@ -403,10 +403,10 @@ namespace cwipi {
       bftc_error(__FILE__, __LINE__, 0,
                 "'%s' existing field\n", field_id.c_str());
     }
-    
+
     //
     // Create the new field
-    
+
     double physTime=0.0;
     *_iteration = 0;
     cwipi::Field *newField = new cwipi::Field(field_id,
@@ -428,13 +428,13 @@ namespace cwipi {
       _visu.WriterFieldCreate(newField);
     }
   }
-  
 
-   void 
+
+   void
    Coupling::mappingCompute (CWP_Field_value_t pointsCloudLocation, CWP_Field_exch_t exchange_type)
-   {  
-     _mapping[pointsCloudLocation] -> compute(exchange_type);
-     
+   {
+     _spatial_interp[pointsCloudLocation] -> compute(exchange_type);
+
    }
 
 
@@ -444,35 +444,35 @@ namespace cwipi {
     const int  i_part
   )
   {
-    return _mapping[pointsCloudLocation] -> nUncomputedTargetsGet(i_part);
+    return _spatial_interp[pointsCloudLocation] -> nUncomputedTargetsGet(i_part);
   }
 
 
-   void 
+   void
    Coupling::waitIssend
    (
     string &sendingFieldID
    )
    {
-        
+
      map <string, Field *>::iterator it;
      it = _fields.find(sendingFieldID);
 
      if (it != _fields.end()) {
-       Field* sendingField = it -> second;   
-       if(_localCodeProperties.isCoupledRank()) {     
-         if(_mapping[sendingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
-          _mapping[sendingField -> associatedCloudPointTypeGet()] -> waitIssend_p2p(sendingField);
+       Field* sendingField = it -> second;
+       if(_localCodeProperties.isCoupledRank()) {
+         if(_spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
+          _spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> waitIssend_p2p(sendingField);
           return;
          }
          else {
-          _mapping[sendingField -> associatedCloudPointTypeGet()] -> waitIssend_p2p(sendingField);
-          Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);   
-          
+          _spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> waitIssend_p2p(sendingField);
+          Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
+
           map <std::string, Field *>::iterator it_recv = distCpl.fieldsGet() -> find(sendingFieldID);
           if (it_recv != distCpl.fieldsGet() -> end() ) {
-            Field* recevingField = it_recv -> second;   
-            distCpl._mapping[recevingField -> associatedCloudPointTypeGet()] -> waitIrecv_p2p(it_recv -> second);
+            Field* recevingField = it_recv -> second;
+            distCpl._spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> waitIrecv_p2p(it_recv -> second);
             return;
           }
 
@@ -482,7 +482,7 @@ namespace cwipi {
    }
 
 
-   void 
+   void
    Coupling::waitIrecv
    (
     string &recevingFieldID
@@ -493,17 +493,17 @@ namespace cwipi {
 
      if (it != _fields.end()) {
        Field* recevingField = it -> second;
-       if(_mapping[recevingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0 && _localCodeProperties.isCoupledRank())   
-         _mapping[recevingField -> associatedCloudPointTypeGet()] -> waitIrecv_p2p(recevingField);
+       if(_spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0 && _localCodeProperties.isCoupledRank())
+         _spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> waitIrecv_p2p(recevingField);
       }
    }
 
   /**
    *
    * \brief Get field storage type
-   * 
+   *
    * \param [in]   field_id       Field identifier
-   * 
+   *
    */
 
    CWP_Field_storage_t
@@ -512,23 +512,23 @@ namespace cwipi {
      const string &field_id
    )
    {
-    map<string,Field*>::iterator It = _fields.find(field_id.c_str());  
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
       bftc_error(__FILE__, __LINE__, 0,
                  "'%s' not existing field\n", field_id.c_str());
     }
 
     return It->second->storageTypeGet();
-    
+
    }
 
 
   /**
    *
    * \brief Get field fieldType
-   * 
+   *
    * \param [in]   field_id       Field identifier
-   * 
+   *
    */
 
   CWP_Field_value_t Coupling::fieldTypeGet
@@ -536,23 +536,23 @@ namespace cwipi {
     const string &field_id
   )
   {
-    map<string,Field*>::iterator It = _fields.find(field_id.c_str());  
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
       bftc_error(__FILE__, __LINE__, 0,
                  "'%s' not existing field\n", field_id.c_str());
     }
     return It->second->typeGet();
-    
+
   }
 
 
  /**
   *
   * \brief Set data mapping
-  * 
+  *
   * \param [in]  field_id       Field identifier
   * \param [in]  data           Storage array (Mapping)
-  * 
+  *
   */
   //TODO:Change to dataSet
   void
@@ -562,20 +562,20 @@ namespace cwipi {
     int i_part,
     void* data
   )
-  { 
-    map<string,Field*>::iterator It = _fields.find(field_id.c_str());  
+  {
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end())
       {
          bftc_error(__FILE__, __LINE__, 0,
                "'%s' not existing field\n", field_id.c_str());
       }
-    else 
+    else
       {
         It->second->dataSet(i_part,data);
         if(_visu.isCreated() && It -> second -> visuStatusGet() == CWP_STATUS_ON) {
           _visu.fieldDataSet(It->second,i_part);
-        }      
-      }   
+        }
+      }
   }
 
 
@@ -583,9 +583,9 @@ namespace cwipi {
   /**
    *
    * \brief Removing a field
-   * 
+   *
    * \param [in]   field_id       Field identifier
-   * 
+   *
    */
   void
   Coupling::fieldDel
@@ -593,21 +593,21 @@ namespace cwipi {
     const string &field_id
   )
   {
-    map<string,Field*>::iterator It = _fields.find(field_id.c_str());  
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end())
       {
          bftc_error(__FILE__, __LINE__, 0,
                "'%s' not existing field\n", field_id.c_str());
       }
-    else 
+    else
       {
         delete It->second;
-      }       
-   
+      }
+
   }
 
-  
-  
+
+
   void Coupling::meshVtcsSet
     (
      const int          i_part,
@@ -619,15 +619,15 @@ namespace cwipi {
       _mesh.nodal_coord_set(i_part,
                             n_pts,
                             coords,
-                            global_num); 
+                            global_num);
     }
-    
+
   int Coupling::meshBlockAdd
     (const CWP_Block_t     block_type){
      return _mesh.blockAdd(block_type);
     }
-    
-    
+
+
   void Coupling::meshStdBlockSet
     (
      const int           i_part,
@@ -640,11 +640,11 @@ namespace cwipi {
        _mesh.stdBlockSet( i_part,
                           block_id,
                           n_elts,
-                          connec, 
+                          connec,
                           global_num
                         );
   }
-/*  
+/*
   void Coupling::meshHighOrderBlockSet
     (
      const int           i_part,
@@ -654,7 +654,7 @@ namespace cwipi {
      int                 connec[],
      CWP_g_num_t         global_num[])
     {
-    
+
     }
   */
   void Coupling::meshFPolyBlockSet
@@ -671,11 +671,11 @@ namespace cwipi {
                           block_id,
                           n_elts,
                           connec_idx,
-                          connec, 
+                          connec,
                           global_num
                          );
    }
-  
+
 
   void Coupling::meshCPolyBlockSet
     (
@@ -697,28 +697,28 @@ namespace cwipi {
                             connec_faces_idx,
                             connec_faces    ,
                             connec_cells_idx,
-                            connec_cells    , 
-                            global_num      
-                        );               
+                            connec_cells    ,
+                            global_num
+                        );
 
    }
-  
-  
+
+
  /* void Coupling::fvmcNodalShared(const int           i_part,
                       fvmc_nodal_t        *fvmc_nodal)
   {
-    
+
   }
-  
-  
+
+
 */
 
 
   void Coupling::meshFinalize() {
     _mesh.geomFinalize();
   }
-        
-  
+
+
   void Coupling::meshFromCellFaceSet(const int   i_part,
                         const int   n_cells,
                         int         cell_face_idx[],
@@ -736,34 +736,34 @@ namespace cwipi {
                                face_vtx_idx,
                                face_vtx,
                                parent_num);
-  } 
-  
+  }
+
 
   void Coupling::interpFromLocSet (  const string field_id,
                                      CWP_Interp_from_location_t fct
-                                  ) 
+                                  )
   {
-    map<string,Field*>::iterator It = _fields.find(field_id.c_str());  
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end())
       {
          bftc_error(__FILE__, __LINE__, 0,
                "'%s' not existing field\n", field_id.c_str());
       }
-    else 
+    else
       {
         It -> second -> interpFromLocationSet(fct);
-      }       
+      }
   }
-                                  
- 
+
+
   void Coupling::userTgtPtsSet (const int i_part,
                                 const int n_pts,
                                 double    coord[] )
   {
-    _mapping[CWP_FIELD_VALUE_USER] -> user_target_points_set(i_part, n_pts, coord);
+    _spatial_interp[CWP_FIELD_VALUE_USER] -> user_target_points_set(i_part, n_pts, coord);
   }
-  
-  
+
+
   void Coupling::meshFromFacesEdgeSet(const int   i_part,
                          const int   n_faces,
                          int         face_edge_idx[],
@@ -780,7 +780,7 @@ namespace cwipi {
                             n_edges,
                             edge_vtx_idx,
                             edge_vtx,
-                            parent_num); 
+                            parent_num);
   }
 
 
@@ -792,12 +792,12 @@ namespace cwipi {
   void Coupling::visuSet(const int               freq,
                          const CWP_Visu_format_t format,
                          const char             *format_option
-                         ) 
+                         )
     {
       string CodeName = _localCodeProperties.nameGet();
       string cplCodeName = _coupledCodeProperties.nameGet();
       string cplId = IdGet();
-      
+
       string visuDir = "cwipi";
       char output_name [CodeName.length()];
       char output_dir   [visuDir.length() + 1 + cplId.length() + 1 + CodeName.length() + 1 + cplCodeName.length()];
@@ -805,40 +805,39 @@ namespace cwipi {
       sprintf(output_dir,"%s/%s_%s_%s",visuDir.c_str(),cplId.c_str(),CodeName.c_str(),cplCodeName.c_str());
       int rank;
       MPI_Comm_rank(_communication.unionCommGet(),&rank);
-      
-      if( _localCodeProperties.isCoupledRank() && 
-          (commTypeGet() == CWP_COMM_PAR_WITH_PART || (commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && rank == _communication.unionCommLocCodeRootRanksGet() ) ) 
+
+      if( _localCodeProperties.isCoupledRank() &&
+          (commTypeGet() == CWP_COMM_PAR_WITH_PART || (commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && rank == _communication.unionCommLocCodeRootRanksGet() ) )
         ){
         _visu.VisuCreate(freq,
                        format,
                        format_option,
                        output_dir,
-                       "chr");   
-                                   
+                       "chr");
+
         _visu.GeomCreate(_mesh.getNPart());
       }
   }
 
-    CWP_g_num_t* 
+    CWP_g_num_t*
     Coupling::globalNumGet(int id_block,int i_part) {
       return _mesh.globalNumGet(id_block,i_part);
     }
 
  void Coupling::recvNextTimeSet (double next_time) {
-   
+
    if(_visu.isCreated() and _visu.physicalTimeGet() > -1.0) {
        _visu.WriterStepEnd();
    }
-   
+
    _recvNextTime = next_time;
-   
+
    if(_visu.isCreated()) {
        _visu.WriterStepBegin(_recvNextTime,&_mesh);
-   }   
-   
-   
+   }
+
+
  }
 
 
 } // namespace cwipi
-

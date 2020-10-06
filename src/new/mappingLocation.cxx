@@ -116,9 +116,9 @@ namespace cwipi {
     }
     else {
       if(_Texch_t == CWP_FIELD_EXCH_SEND) {
-        _mapping_cpl -> _Texch_t =  CWP_FIELD_EXCH_RECV;
+        _spatial_interp_cpl -> _Texch_t =  CWP_FIELD_EXCH_RECV;
         if(_isCoupledRank && _pointsCloudLocation == CWP_FIELD_VALUE_USER) 
-          _mapping_cpl -> user_targets_gnum_compute();
+          _spatial_interp_cpl -> user_targets_gnum_compute();
       }
     }  
     /* Get informations about the local and the coupled meshes */
@@ -177,7 +177,7 @@ namespace cwipi {
       }
       else if( _both_codes_are_local == 1 && _cpl -> commTypeGet() == CWP_COMM_PAR_WITH_PART && _isCoupledRank ) {
         if(_Texch_t == CWP_FIELD_EXCH_SEND) {
-           _mapping_cpl -> _Texch_t = CWP_FIELD_EXCH_RECV;
+           _spatial_interp_cpl -> _Texch_t = CWP_FIELD_EXCH_RECV;
           localization_surface_setting(&_id_dist);    
           localization_compute        (_id_dist);  
 
@@ -191,18 +191,18 @@ namespace cwipi {
 
           PDM_gnum_location_free(_id_gnum_location,1);
 
-          _mapping_cpl -> filling_of_sending_communication_tree_array(); 
+          _spatial_interp_cpl -> filling_of_sending_communication_tree_array(); 
           initialization_of_receving_communication_tree_array();
           
           both_index_communication_p2p() ;
 
-          _mapping_cpl ->prepare_data_communication_send();
+          _spatial_interp_cpl ->prepare_data_communication_send();
           prepare_data_communication_recv() ;
 
 
           both_data_communication_p2p();
 
-          _mapping_cpl -> data_communication_wait_send();
+          _spatial_interp_cpl -> data_communication_wait_send();
           data_communication_wait_recv();      
 
         }
@@ -773,14 +773,14 @@ void MappingLocation::null_exchange_for_uncoupled_process() {
 
       /* Receving Section */
 
-     _idx_target  .resize   (_mapping_cpl -> _nb_part + 1);
+     _idx_target  .resize   (_spatial_interp_cpl -> _nb_part + 1);
      _idx_target[0] = 0;
-     for (int i_part = 0; i_part < _mapping_cpl -> _nb_part; i_part++) {
-       _idx_target[i_part+1] = _idx_target[i_part] + _mapping_cpl -> _n_target[i_part];   
+     for (int i_part = 0; i_part < _spatial_interp_cpl -> _nb_part; i_part++) {
+       _idx_target[i_part+1] = _idx_target[i_part] + _spatial_interp_cpl -> _n_target[i_part];   
      }
 
      int  dataTypeSize_recv = recevingField -> dataTypeSizeGet(); 
-     recevingField -> ReceptionBufferCreation(_mapping_cpl  -> _n_tot_target);
+     recevingField -> ReceptionBufferCreation(_spatial_interp_cpl  -> _n_tot_target);
 
      void* recv_ptr = recevingField -> recvBufferGet();
 
@@ -790,8 +790,8 @@ void MappingLocation::null_exchange_for_uncoupled_process() {
      int* count_recv = (int*)malloc(sizeof(int)*_n_ranks_g);
      for (int i_proc=0; i_proc < _n_ranks_g; i_proc++) {
        count_recv[i_proc]  =  dataTypeSize_recv * nComponent_recv 
-                           * ( _mapping_cpl -> _targets_localization_idx[ i_proc ][_mapping_cpl -> _nb_part_cpl] - _mapping_cpl -> _targets_localization_idx[i_proc][0]  );
-       displ_recv [i_proc]  =  dataTypeSize_recv * nComponent_recv * _mapping_cpl -> _targets_localization_idx[i_proc][0];
+                           * ( _spatial_interp_cpl -> _targets_localization_idx[ i_proc ][_spatial_interp_cpl -> _nb_part_cpl] - _spatial_interp_cpl -> _targets_localization_idx[i_proc][0]  );
+       displ_recv [i_proc]  =  dataTypeSize_recv * nComponent_recv * _spatial_interp_cpl -> _targets_localization_idx[i_proc][0];
      }
 
       MPI_Request request;
@@ -834,14 +834,14 @@ void MappingLocation::null_exchange_for_uncoupled_process() {
 
       /* Receving Section */
 
-     _idx_target  .resize   (_mapping_cpl -> _nb_part + 1);
+     _idx_target  .resize   (_spatial_interp_cpl -> _nb_part + 1);
      _idx_target[0] = 0;
-     for (int i_part = 0; i_part < _mapping_cpl -> _nb_part; i_part++) {
-       _idx_target[i_part+1] = _idx_target[i_part] + _mapping_cpl -> _n_target[i_part];   
+     for (int i_part = 0; i_part < _spatial_interp_cpl -> _nb_part; i_part++) {
+       _idx_target[i_part+1] = _idx_target[i_part] + _spatial_interp_cpl -> _n_target[i_part];   
      }
 
      int  dataTypeSize_recv = recevingField -> dataTypeSizeGet(); 
-     recevingField -> ReceptionBufferCreation(_mapping_cpl  -> _n_tot_target);
+     recevingField -> ReceptionBufferCreation(_spatial_interp_cpl  -> _n_tot_target);
 
      void* recv_ptr = recevingField -> recvBufferGet();
 
@@ -851,8 +851,8 @@ void MappingLocation::null_exchange_for_uncoupled_process() {
      int* count_recv = (int*)malloc(sizeof(int)*_n_ranks_g);
      for (int i_proc=0; i_proc < _n_ranks_g; i_proc++) {
        count_recv[i_proc]  =  dataTypeSize_recv * nComponent_recv 
-                           * ( _mapping_cpl -> _targets_localization_idx[ i_proc ][_mapping_cpl -> _nb_part_cpl] - _mapping_cpl -> _targets_localization_idx[i_proc][0]  );
-       displ_recv [i_proc]  =  dataTypeSize_recv * nComponent_recv * _mapping_cpl -> _targets_localization_idx[i_proc][0];
+                           * ( _spatial_interp_cpl -> _targets_localization_idx[ i_proc ][_spatial_interp_cpl -> _nb_part_cpl] - _spatial_interp_cpl -> _targets_localization_idx[i_proc][0]  );
+       displ_recv [i_proc]  =  dataTypeSize_recv * nComponent_recv * _spatial_interp_cpl -> _targets_localization_idx[i_proc][0];
      }
 
      std::vector<MPI_Request> rreq(_n_ranks,MPI_REQUEST_NULL);
@@ -976,8 +976,8 @@ void MappingLocation::null_exchange_for_uncoupled_process() {
     string cplId = coupling -> IdGet();     
     if(_both_codes_are_local == 1 && slave == 0) {
       Coupling coupling_cpl = cplDB -> couplingGet(*_coupledCodeProperties,cplId);
-      _mapping_cpl = dynamic_cast<MappingLocation*>( coupling_cpl.mappingGet(_pointsCloudLocation ) );
-      _mapping_cpl -> _mapping_cpl = this;
+      _spatial_interp_cpl = dynamic_cast<MappingLocation*>( coupling_cpl.mappingGet(_pointsCloudLocation ) );
+      _spatial_interp_cpl -> _spatial_interp_cpl = this;
     }
     
     int tmp1;
@@ -997,10 +997,10 @@ void MappingLocation::null_exchange_for_uncoupled_process() {
       //printf("_senderRank %i _senderRank_cpl %i\n",_senderRank,_senderRank_cpl);
       if(_id < _id_cpl) {
         MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_cplComm);
-        MPI_Bcast(&(_mapping_cpl -> _nb_part_cpl), 1,MPI_INT,_senderRank_cpl,_cplComm); 
+        MPI_Bcast(&(_spatial_interp_cpl -> _nb_part_cpl), 1,MPI_INT,_senderRank_cpl,_cplComm); 
       }
       else{
-        MPI_Bcast(&(_mapping_cpl -> _nb_part_cpl), 1,MPI_INT,_senderRank_cpl,_cplComm); 
+        MPI_Bcast(&(_spatial_interp_cpl -> _nb_part_cpl), 1,MPI_INT,_senderRank_cpl,_cplComm); 
         MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_cplComm);
       } 
     }
@@ -1151,8 +1151,8 @@ void MappingLocation::mesh_cpl_info_get() {
       }
     }
     else{
-      _n_g_elt_cpl_over_part = _mapping_cpl->_n_g_elt_over_part;
-      _n_g_vtx_cpl_over_part = _mapping_cpl->_n_g_vtx_over_part;
+      _n_g_elt_cpl_over_part = _spatial_interp_cpl->_n_g_elt_over_part;
+      _n_g_vtx_cpl_over_part = _spatial_interp_cpl->_n_g_vtx_over_part;
     }
   }
 
@@ -1169,10 +1169,10 @@ void MappingLocation::mesh_cpl_info_get() {
     }
     else if(_Texch_t == CWP_FIELD_EXCH_SEND) {
        mesh_info_get();  
-      _mapping_cpl -> mesh_info_get();
+      _spatial_interp_cpl -> mesh_info_get();
 
        mesh_cpl_info_get();
-      _mapping_cpl -> mesh_cpl_info_get();
+      _spatial_interp_cpl -> mesh_cpl_info_get();
     }
   }
 
@@ -1238,7 +1238,7 @@ void MappingLocation::mesh_cpl_info_get() {
    }
    else {
      for(int i_part =0; i_part<_nb_part_cpl; i_part++) {        
-        Mesh* mesh_cpl = _mapping_cpl -> _mesh;
+        Mesh* mesh_cpl = _spatial_interp_cpl -> _mesh;
         int*         connecIdx_cpl = mesh_cpl -> connecIdxGet(i_part);
         int*         connec_cpl    = mesh_cpl -> connecGet(i_part);
 
@@ -1436,9 +1436,9 @@ void MappingLocation::localization_null_setting_recv(int* id_dist) {
     }
     else {
       for(int i_part =0; i_part<_nb_part_cpl; i_part++) {  
-        int          n_target_cpl      = _mapping_cpl -> _n_target     [i_part];
-        CWP_g_num_t* gnum_target_cpl   = _mapping_cpl -> _gnum_target  [i_part];
-        double*      coords_target_cpl = _mapping_cpl -> _coords_target[i_part];
+        int          n_target_cpl      = _spatial_interp_cpl -> _n_target     [i_part];
+        CWP_g_num_t* gnum_target_cpl   = _spatial_interp_cpl -> _gnum_target  [i_part];
+        double*      coords_target_cpl = _spatial_interp_cpl -> _coords_target[i_part];
         PDM_dist_cloud_surf_cloud_set (*id_dist,
                               0,
                               i_part,
@@ -1467,25 +1467,25 @@ void MappingLocation::localization_null_setting_recv(int* id_dist) {
 
 
   void MappingLocation::localization_get_cpl(int id_dist) {
-    _mapping_cpl -> _distance           = (double**)malloc(sizeof(double*) * _nb_part_cpl);
-    _mapping_cpl -> _projected          = (double**)malloc(sizeof(double*) * _nb_part_cpl);
-    _mapping_cpl -> _closest_elt_gnum   = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*) * _nb_part_cpl);
+    _spatial_interp_cpl -> _distance           = (double**)malloc(sizeof(double*) * _nb_part_cpl);
+    _spatial_interp_cpl -> _projected          = (double**)malloc(sizeof(double*) * _nb_part_cpl);
+    _spatial_interp_cpl -> _closest_elt_gnum   = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*) * _nb_part_cpl);
     
     for(int i_part =0;i_part<_nb_part_cpl;i_part++) {     
-      int          n_target_cpl    = _mapping_cpl -> _n_target[i_part];
+      int          n_target_cpl    = _spatial_interp_cpl -> _n_target[i_part];
       PDM_dist_cloud_surf_get (id_dist,
                          0,
                          i_part,
-                         &(_mapping_cpl -> _distance[i_part]),
-                         &(_mapping_cpl -> _projected[i_part]),
-                         &(_mapping_cpl -> _closest_elt_gnum[i_part]));
+                         &(_spatial_interp_cpl -> _distance[i_part]),
+                         &(_spatial_interp_cpl -> _projected[i_part]),
+                         &(_spatial_interp_cpl -> _closest_elt_gnum[i_part]));
       
       for(int i=0;i<n_target_cpl;i++){
-        if(_mapping_cpl -> _closest_elt_gnum[i_part][i]>CWP_g_num_t(_n_g_elt_over_part) 
-           || _mapping_cpl -> _closest_elt_gnum[i_part][i]<CWP_g_num_t(1) 
-           || _mapping_cpl -> _distance[i_part][i]>0.01){
-          _mapping_cpl -> _closest_elt_gnum[i_part][i]=CWP_g_num_t(1);
-          _mapping_cpl -> _distance[i_part][i]=INFINITY;
+        if(_spatial_interp_cpl -> _closest_elt_gnum[i_part][i]>CWP_g_num_t(_n_g_elt_over_part) 
+           || _spatial_interp_cpl -> _closest_elt_gnum[i_part][i]<CWP_g_num_t(1) 
+           || _spatial_interp_cpl -> _distance[i_part][i]>0.01){
+          _spatial_interp_cpl -> _closest_elt_gnum[i_part][i]=CWP_g_num_t(1);
+          _spatial_interp_cpl -> _distance[i_part][i]=INFINITY;
         }       
       }         
     } //end loop on i_part
@@ -1565,7 +1565,7 @@ void MappingLocation::localization_null_setting_recv(int* id_dist) {
   }     
   else {
     for(int i_part =0; i_part<_nb_part_cpl; i_part++) {       
-      Mesh* mesh_cpl = _mapping_cpl -> _mesh;
+      Mesh* mesh_cpl = _spatial_interp_cpl -> _mesh;
       CWP_g_num_t* gnum_elt_cpl = mesh_cpl -> GNumEltsGet(i_part);     
       int          n_elt_cpl    = mesh_cpl -> getPartNElts(i_part);
        
@@ -1601,8 +1601,8 @@ void MappingLocation::localization_null_setting_recv(int* id_dist) {
   }     
   else {
     for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
-      int n_target_cpl = _mapping_cpl -> _n_target[i_part];
-      PDM_gnum_location_requested_elements_set(*id_gnum_location,i_part, n_target_cpl, _mapping_cpl -> _closest_elt_gnum[i_part]);
+      int n_target_cpl = _spatial_interp_cpl -> _n_target[i_part];
+      PDM_gnum_location_requested_elements_set(*id_gnum_location,i_part, n_target_cpl, _spatial_interp_cpl -> _closest_elt_gnum[i_part]);
    }//loop on part
   }//end if
  }
@@ -1679,14 +1679,14 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
 
 
   void MappingLocation::triplet_location_get_cpl(int id_gnum_location) {
-    _mapping_cpl ->_target_proc_part_num_idx =(int**)malloc(sizeof(int*)*_nb_part_cpl);
-    _mapping_cpl ->_target_proc_part_num     =(int**)malloc(sizeof(int*)*_nb_part_cpl);
+    _spatial_interp_cpl ->_target_proc_part_num_idx =(int**)malloc(sizeof(int*)*_nb_part_cpl);
+    _spatial_interp_cpl ->_target_proc_part_num     =(int**)malloc(sizeof(int*)*_nb_part_cpl);
 
     for(int i_part =0;i_part<_nb_part_cpl;i_part++) {     
       PDM_gnum_location_get(id_gnum_location,
                             i_part,
-                            &(_mapping_cpl ->_target_proc_part_num_idx[i_part]),
-                            &(_mapping_cpl ->_target_proc_part_num[i_part])
+                            &(_spatial_interp_cpl ->_target_proc_part_num_idx[i_part]),
+                            &(_spatial_interp_cpl ->_target_proc_part_num[i_part])
                             );  
     }
   }// End locate_cell_point
@@ -2006,7 +2006,7 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
    int* sbuffer = (int*) malloc(sizeof(int)*_n_ranks_g * _nb_part );
    for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
      for(int i_part=0;i_part< _nb_part; i_part++) {
-       sbuffer[ i_proc * _nb_part + i_part ] = (_mapping_cpl -> _process_and_partition_count)[i_proc][i_part];
+       sbuffer[ i_proc * _nb_part + i_part ] = (_spatial_interp_cpl -> _process_and_partition_count)[i_proc][i_part];
      }
 
    int* recvbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part);
@@ -2148,7 +2148,7 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
    int* sbuffer = (int*) malloc(sizeof(int)*_n_ranks_g * _nb_part );
    for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
      for(int i_part=0;i_part< _nb_part; i_part++) {
-       sbuffer[ i_proc * _nb_part + i_part ] = (_mapping_cpl -> _process_and_partition_count)[i_proc][i_part];
+       sbuffer[ i_proc * _nb_part + i_part ] = (_spatial_interp_cpl -> _process_and_partition_count)[i_proc][i_part];
      }
 
    int* recvbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part);
@@ -2342,7 +2342,7 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
  void MappingLocation::both_data_communication() {
    
    MPI_Request req;   
-   MPI_Ialltoallv((void*) (_mapping_cpl -> _targets_localization_data), _mapping_cpl -> _targets_localization_data_count_send, _mapping_cpl -> _targets_localization_data_disp_send, MPI_BYTE,  
+   MPI_Ialltoallv((void*) (_spatial_interp_cpl -> _targets_localization_data), _spatial_interp_cpl -> _targets_localization_data_count_send, _spatial_interp_cpl -> _targets_localization_data_disp_send, MPI_BYTE,  
                   (void*)_targets_localization_data_cpl,  _targets_localization_data_count_recv, _targets_localization_data_disp_recv, MPI_BYTE,
                  _cplComm,&req);     
    
@@ -2373,9 +2373,9 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
 
    ind = 0; 
    for( it = _connectableRanks -> begin(); it!=_connectableRanks -> end(); it++,ind++){
-     if( _mapping_cpl -> _targets_localization_data_count_send[*it] > 0 )
-        MPI_Issend( (void*)&( ( (char*) _mapping_cpl -> _targets_localization_data ) [_mapping_cpl -> _targets_localization_data_disp_send[*it]] )    , 
-                     _mapping_cpl -> _targets_localization_data_count_send[*it],  MPI_BYTE, 
+     if( _spatial_interp_cpl -> _targets_localization_data_count_send[*it] > 0 )
+        MPI_Issend( (void*)&( ( (char*) _spatial_interp_cpl -> _targets_localization_data ) [_spatial_interp_cpl -> _targets_localization_data_disp_send[*it]] )    , 
+                     _spatial_interp_cpl -> _targets_localization_data_count_send[*it],  MPI_BYTE, 
                      *it, tagcode ,
                      _cplComm, &(sreq[ind]) );
    } 
