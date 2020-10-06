@@ -408,7 +408,7 @@ int main
                     "c_new_api_surf_cpl_P1P0_P0P1_dynamic",  // Coupling id
                     codeCoupledName[i_code],         // Coupled application id
                     CWP_COMM_PAR_WITH_PART,  // Coupling type
-                    CWP_MAPPING_LOCATION,       // Solver type
+                    CWP_SPATIAL_INTERP_FROM_LOCATION,       // Solver type
                     nb_part,                 // Partition number
                     CWP_DISPLACEMENT_DEFORMABLE, // Mesh displacement type
                     CWP_FREQ_CPL_TIME_STEP); // Postprocessing frequency
@@ -638,7 +638,7 @@ int main
       CWP_next_recv_time_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",recv_time);
     }
     
-    CWP_Mapping_compute("c_new_api_surf_cpl_P1P0_P0P1_dynamic");
+    CWP_Spatial_interp_weights_compute("c_new_api_surf_cpl_P1P0_P0P1_dynamic");
           
     MPI_Barrier(MPI_COMM_WORLD);
     for(int i_code = 0; i_code < n_code_name; i_code++) {    

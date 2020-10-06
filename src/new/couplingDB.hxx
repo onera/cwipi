@@ -70,7 +70,7 @@ namespace cwipi {
      const string                &cplId,
      const CodeProperties        &coupledCodeProperties,
      const CWP_Comm_t           commType,
-     const CWP_Mapping_t           mappingAlgo,
+     const CWP_Spatial_interp_t           mappingAlgo,
      const int                    nPart,
      const CWP_Displacement_t  movingStatus,
      const CWP_Freq_t           recvFreqType

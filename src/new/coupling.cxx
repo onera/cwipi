@@ -81,11 +81,11 @@ namespace cwipi {
    *
    *  A mapping \ref Factory wich makes \ref Mapping class objects.
    *  The type of \ref Mapping objects build depends on the
-   *  mapping algorithm type \ref CWP_Mapping_t; .
+   *  mapping algorithm type \ref CWP_Spatial_interp_t; .
    *
    */
   
-  typedef Factory<Mapping, CWP_Mapping_t> FG;
+  typedef Factory<Mapping, CWP_Spatial_interp_t> FG;
 
 
 
@@ -95,7 +95,7 @@ namespace cwipi {
    const CWP_Comm_t           cplType,
    const CodeProperties       &localCodeProperties,
    const CodeProperties       &coupledCodeProperties,
-   const CWP_Mapping_t           mappingAlgo,
+   const CWP_Spatial_interp_t           mappingAlgo,
    const int                  nPart,
    const CWP_Displacement_t   displacement,
    const CWP_Freq_t           recvFreqType,

@@ -400,7 +400,7 @@ int main
                       "multipart_testcase",            // Coupling id
                       codeCoupledName[i_code],         // Coupled application id
                       CWP_COMM_PAR_WITH_PART,          // Coupling type
-                      CWP_MAPPING_LOCATION,            // Solver type
+                      CWP_SPATIAL_INTERP_FROM_LOCATION,            // Solver type
                       nb_part[i_code],                 // Partition number
                       CWP_DISPLACEMENT_STATIC,         // Mesh type
                       CWP_FREQ_CPL_TIME_STEP);         // Postprocessing frequency
@@ -771,7 +771,7 @@ int main
       PDM_timer_resume(timer2);
       for(int i_code = 0;i_code<n_code;i_code++){  
         if (is_coupled_rank[i_code] == CWP_STATUS_ON ) 
-          CWP_Mapping_compute(codeName[i_code],"multipart_testcase");
+          CWP_Spatial_interp_weights_compute(codeName[i_code],"multipart_testcase");
       }
 
       PDM_timer_hang_on(timer2);

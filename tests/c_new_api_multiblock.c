@@ -635,7 +635,7 @@ int main
    if( code_name == "code1") {
      char* codeCpl="code2";
      CWP_Cpl_create (code_name, cpl_id1, codeCpl, CWP_COMM_PAR_WITH_PART,
-                    CWP_MAPPING_LOCATION, nb_part,
+                    CWP_SPATIAL_INTERP_FROM_LOCATION, nb_part,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
      
    }
@@ -643,7 +643,7 @@ int main
    if( code_name == "code2") {
       char* codeCpl="code1";
       CWP_Cpl_create (code_name, cpl_id1, codeCpl, CWP_COMM_PAR_WITH_PART,
-                    CWP_MAPPING_LOCATION, nb_part,
+                    CWP_SPATIAL_INTERP_FROM_LOCATION, nb_part,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
      
    }
@@ -989,7 +989,7 @@ int main
 
   MPI_Barrier(MPI_COMM_WORLD);
   
-  printf("Before CWP_Mapping_compute\n");
+  printf("Before CWP_Spatial_interp_weights_compute\n");
   
 /*******************************
           Loop on Code Names
@@ -1001,8 +1001,8 @@ for (int i = 0; i < n_code_name; i++ ) {
   //TODO: Calcul géom piloté par la nature des champs
 //Erreur si on crée un champ après le calcul
   code_name = codeNames[i];
-  CWP_Mapping_compute(code_name,cpl_id1, CWP_FIELD_VALUE_NODE);
-  CWP_Mapping_compute(code_name,cpl_id1, CWP_FIELD_VALUE_CELL_POINT);
+  CWP_Spatial_interp_weights_compute(code_name,cpl_id1, CWP_FIELD_VALUE_NODE);
+  CWP_Spatial_interp_weights_compute(code_name,cpl_id1, CWP_FIELD_VALUE_CELL_POINT);
   for(int i_part =0; i_part<nb_part;i_part++) {
     int n_uncomputed_node = CWP_N_uncomputed_tgts_get(code_name,cpl_id1, CWP_FIELD_VALUE_NODE,i_part);
     int n_uncomputed_cell_value = CWP_N_uncomputed_tgts_get(code_name,cpl_id1, CWP_FIELD_VALUE_CELL_POINT,i_part);
@@ -1010,7 +1010,7 @@ for (int i = 0; i < n_code_name; i++ ) {
   }
   //Argument tag points localisé oui/non + print 
 
- // printf("After CWP_Mapping_compute code %i\n",i);
+ // printf("After CWP_Spatial_interp_weights_compute code %i\n",i);
  
   }//Loop on codes
   //while(1==1){}

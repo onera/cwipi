@@ -588,7 +588,7 @@ int main
                     "c_new_api_surf_cpl_P1P0_P0P1_part",  // Coupling id
                     codeCoupledName[i_code],         // Coupled application id
                     CWP_COMM_PAR_WITH_PART,  // Coupling type
-                    CWP_MAPPING_LOCATION,       // Solver type
+                    CWP_SPATIAL_INTERP_FROM_LOCATION,       // Solver type
                     nbPart[i_code],          // Partition number
                     CWP_DISPLACEMENT_STATIC, // Mesh type
                     CWP_FREQ_ASYNCHRONOUS); // frequency
@@ -1062,7 +1062,7 @@ int main
   printf("Before compute\n");
 
   for(int i_code = 0; i_code < n_code_name; i_code++) {    
-    CWP_Mapping_compute(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part");
+    CWP_Spatial_interp_weights_compute(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part");
   }
 
   double recv_time = 0.150;

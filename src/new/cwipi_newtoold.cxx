@@ -84,7 +84,7 @@ void cwipi_create_coupling
                     coupling_name  ,                       
                     codeCoupledName,                 
                     comm_type      ,
-                    CWP_MAPPING_LOCATION,               
+                    CWP_SPATIAL_INTERP_FROM_LOCATION,               
                     nb_part,                         
                     mesh_type_conv.at(mesh_type) ,      
                     CWP_FREQ_CPL_TIME_STEP);      
