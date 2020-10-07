@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011-2017  ONERA
 
@@ -63,7 +63,7 @@ namespace cwipi {
   }
 
   /**
-   * \brief Building and storage a coupling object 
+   * \brief Building and storage a coupling object
    *
    * This function creates a coupling object and defines its properties.
    *
@@ -71,14 +71,14 @@ namespace cwipi {
    * \param [in]  cplId                  Coupling identifier
    * \param [in]  coupledCodeProperties  Coupled code properties
    * \param [in]  commType               Communication type
-   * \param [in]  spatialInterpAlgo               Mapping algorithm
-   * \param [in]  nPart                  Number of interface partition 
+   * \param [in]  spatialInterpAlgo      Spatial interpolation algorithm
+   * \param [in]  nPart                  Number of interface partition
    * \param [in]  movingStatus           Support moving status
    * \param [in]  recvFreqType           Type of receiving frequency
    *
    */
 
-  void  
+  void
   CouplingDB::couplingCreate
   (
    const CodeProperties        &localCodeProperties,
@@ -125,7 +125,7 @@ namespace cwipi {
    *
    */
 
-  void  
+  void
   CouplingDB::couplingDel
   (
    const CodeProperties &localCodeProperties,
@@ -137,14 +137,14 @@ namespace cwipi {
     Iterator p = _couplingDB.find(&localCodeProperties);
     Iterator2 p1;
     if (p == _couplingDB.end()) {
-      bftc_error(__FILE__, __LINE__, 0, 
-                "'%s' coupling not found for '%s' code\n", cplId.c_str(), 
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' coupling not found for '%s' code\n", cplId.c_str(),
                 localCodeProperties.nameGet().c_str());
     }
     else {
       p1 = p->second.find(cplId);
       if (p1 == p->second.end()) {
-        bftc_error(__FILE__, __LINE__, 0, 
+        bftc_error(__FILE__, __LINE__, 0,
                     "'%s' coupling not found '%s' code\n", cplId.c_str(),
                    localCodeProperties.nameGet().c_str());
       }

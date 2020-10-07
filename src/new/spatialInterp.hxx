@@ -50,7 +50,7 @@ namespace cwipi {
    * \class SpatialInterp spatialInterp.hxx "spatialInterp.hxx"
    * \brief SpatialInterp algorithm
    *
-   *  This class computes the mapping algotrithm of points cloud into a mesh and
+   *  This class computes the spatial interpolation weights of points cloud into a mesh and
    *  builds a communication graph to transmit interpolated fieldsDouble on
    *  points cloud from fieldsDouble defined on the mesh.
    *
@@ -76,7 +76,7 @@ namespace cwipi {
 
     virtual void init(Coupling *coupling, CWP_Field_value_t pointsCloudLocation,int slave) =0;
 
-    virtual void compute(CWP_Field_exch_t Texch_t) =0;
+    virtual void spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) =0;
 
     virtual void user_target_points_set(int i_part, int n_pts, double* coord) =0;
     /**

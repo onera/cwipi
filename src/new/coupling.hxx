@@ -41,7 +41,7 @@ using namespace std;
 namespace cwipi {
 
   class CodeProperties;
-  class Mapping;
+  class SpatialInterp;
   class Mesh;
   class Field;
   class Visu;
@@ -67,7 +67,7 @@ namespace cwipi {
      * \param [in]  commType                     Communication type
      * \param [in]  localCodeProperties          Local code properties
      * \param [in]  coupledCodeProperties        Coupled code properties
-     * \param [in]  spatialInterpAlgo                     Mapping algorithm
+     * \param [in]  spatialInterpAlgo                     SpatialInterp algorithm
      * \param [in]  nPart                        Number of interface partitions
      * \param [in]  movingStatus                 Mesh moving status
      * \param [in]  recvFreqType                 Type of receiving frequency
@@ -198,29 +198,28 @@ namespace cwipi {
     );
 
     /*----------------------------------------------------------------------------*
-     * Methods about mapping                                                     *
+     * Methods about spatial interpolation                                        *
      *----------------------------------------------------------------------------*/
 
     /**
-     * \brief Computation mapping
+     * \brief Computation spatial interpolation weights
      *
-     * This function compute mapping
+     * This function compute spatial interpolation weights
      *
      * \param [out] n_uncomputed_tgt    Number of uncomputed target
      *
      */
 
     void
-    spatialInterpCompute
+    spatialInterpWeightsCompute
     (
      CWP_Field_value_t pointsCloudLocation,
      CWP_Field_exch_t exchange_type
     );
 
     /**
-     * \brief Setting mapping properties
+     * \brief Set the spatial interpolation properties.
      *
-     * This function set the mappingetric algorithm properties.
      *
      * \param [in]       fmt       Format with the syntax : "prop1, prop2, ..."
      * \param [in,out]   pa        List of properties values
@@ -228,7 +227,7 @@ namespace cwipi {
      */
 
     void
-    mappingPropertiesSet
+    spatialInterpPropertiesSet
     (
      const char *fmt,
      va_list    *pa
@@ -344,7 +343,7 @@ namespace cwipi {
     /**
      * \brief Set a standard block to the interface mesh
      *
-     * This function adds a connectivity block to the mappingetric support.
+     * This function adds a connectivity block to the geometric support.
      *
      *  Definition of element connectivity is :
      *
@@ -452,7 +451,7 @@ namespace cwipi {
      * \param [in]  i_part      Partition identifier
      * \param [in]  block_id    Block identifier
      * \param [in]  n_elts      Number of elements
-     * \param [in]  order       Mapping order
+     * \param [in]  order       SpatialInterp order
      * \param [in]  connec      Connectivity (size = n_vertex_elt * n_elts)
      * \param [in]  global_num  Pointer to global element number (or NULL)
      *
@@ -532,10 +531,10 @@ namespace cwipi {
     );
 
     /**
-     * \brief Adding a polyhedron block to the mappingetric mesh from
+     * \brief Adding a polyhedron block to the mesh from
      * a face-to-cell connectivity and a vertices-to-faces connectivity.
      *
-     * This function add a polyhedron 3D block to the mappingetric mesh from
+     * This function add a polyhedron 3D block to the mesh from
      * a face-to-cell connectivity and a vertices-to-faces connectivity.
      *
      * \param [in]  i_part            Current partition
@@ -569,10 +568,10 @@ namespace cwipi {
 
 
     /**
-     * \brief Adding a polygon 2D block to the mappingetric mesh from
+     * \brief Adding a polygon 2D block to the mesh from
      * a vertices-to-faces connectivity and a edge-to-face connectivity.
      *
-     * This function add a polygon 2D block to the mappingetric mesh from
+     * This function add a polygon 2D block to the mesh from
      * a vertices-to-faces connectivity and a edge-to-face connectivity.
      *
      * \param [in]  i_part            Current partition
@@ -605,9 +604,9 @@ namespace cwipi {
 
 
     /**
-     * \brief Mapping mesh removal
+     * \brief SpatialInterp mesh removal
      *
-     * This function delete the mappingetric mesh
+     * This function delete the  mesh
      *
      */
 
@@ -682,10 +681,10 @@ namespace cwipi {
 
     /**
      *
-     * \brief Set data mapping
+     * \brief Set Field
      *
      * \param [in]  field_id       Field identifier
-     * \param [in]  data           Storage array (Mapping)
+     * \param [in]  data           Storage array (mapping)
      *
      */
 
@@ -1008,13 +1007,13 @@ namespace cwipi {
     inline Mesh* meshGet();
 
     inline std::map < string, Field * >* fieldsGet();
-    inline std::map <CWP_Field_value_t,Mapping*>* spatialInterpGet();
+    inline std::map <CWP_Field_value_t,SpatialInterp*>* spatialInterpGet();
     inline CodeProperties* localCodePropertiesGet();
     inline CodeProperties* coupledCodePropertiesGet();
 
     inline Communication* communicationGet();
 
-    inline Mapping*    spatialInterpGet(CWP_Field_value_t field_value_t) ;
+    inline SpatialInterp*    spatialInterpGet(CWP_Field_value_t field_value_t) ;
     inline CouplingDB*  couplingDBGet();
     inline string       IdGet();
 
@@ -1030,8 +1029,8 @@ namespace cwipi {
           Communication                    &_communication;         /*!< Communication */
     const CodeProperties                   &_localCodeProperties;   /*!< Local code properties */
     const CodeProperties                   &_coupledCodeProperties; /*!< Coupled code properties */
-    std::map <CWP_Field_value_t,Mapping*> &_spatial_interp;              /*!< Mapping algorithm */
-          Mesh                             &_mesh;                  /*!< Mapping mesh */
+    std::map <CWP_Field_value_t,SpatialInterp*> &_spatial_interp;              /*!< SpatialInterp algorithm */
+          Mesh                             &_mesh;                  /*!< SpatialInterp mesh */
     const CWP_Freq_t                        _recvFreqType  ;        /*!< Receiving frequency type */
           Visu                             &_visu;                  /*!< Visualization */
           double                            _recvFreq;              /*!< Receiving frequency */
@@ -1056,12 +1055,12 @@ namespace cwipi {
     return const_cast<Communication*>(&_communication);
   }
 
-  Mapping* Coupling::spatialInterpGet(CWP_Field_value_t field_value_t) {
+  SpatialInterp* Coupling::spatialInterpGet(CWP_Field_value_t field_value_t) {
 
-    std::map <CWP_Field_value_t,Mapping*> ::iterator p;
+    std::map <CWP_Field_value_t,SpatialInterp*> ::iterator p;
     p = _spatial_interp.find(field_value_t);
     if (p == _spatial_interp.end())
-      PDM_error(__FILE__, __LINE__, 0, "Mapping not found.\n");
+      PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");
     return p->second;
   }
 
@@ -1084,7 +1083,7 @@ namespace cwipi {
      return &_mesh;
   }
 
-  std::map <CWP_Field_value_t,Mapping*>* Coupling::spatialInterpGet() {
+  std::map <CWP_Field_value_t,SpatialInterp*>* Coupling::spatialInterpGet() {
      return &_spatial_interp;
   }
 

@@ -1,4 +1,3 @@
-
 #ifndef __CWP_H__
 #define __CWP_H__
 /*
@@ -692,7 +691,7 @@ CWP_Properties_dump
  * \param [in]  cpl_id              Coupling identifier
  * \param [in]  coupled_code_name   Distant or local coupled code name
  * \param [in]  comm_type           Communication type
- * \param [in]  mapping_algo           Mappingetric algorithm
+ * \param [in]  spatial_interp      Spatial interpolation method
  * \param [in]  n_part              Number of interface partition
  * \param [in]  displacement        Mesh moving status
  * \param [in]  recv_freq_type      Type of receiving frequency
@@ -706,7 +705,7 @@ CWP_Cpl_create
  const char               *cpl_id,
  const char               *coupled_code_name,
  const CWP_Comm_t          comm_type,
- const CWP_Spatial_interp_t          mapping_algo,
+ const CWP_Spatial_interp_t spatial_interp,
  const int                 n_part,
  const CWP_Displacement_t  displacement,
  const CWP_Freq_t          recv_freq_type
@@ -740,8 +739,8 @@ CWP_Cpl_trans_init
  * \brief Define the next time step position.
  *
  * This function compute the next time step position from a relative distance. If
- * it is a known position, Mappingetric algorithm is not reprocessed. Otherwise,
- * mappingetric algorithm is launched from previous results.
+ * it is a known position, spatial interpolation weights are not recomputed. Otherwise,
+ * spatial interpolation weights are computed from previous results.
  *
  *
  * \param [in]  local_code_name  Local code name
@@ -788,8 +787,8 @@ CWP_Cpl_rotation_init
  * \brief Define the next time step position.
  *
  * This function compute the next time step position from a relative angle. If
- * it is a known position, Mappingetric algorithm is not reprocessed. Otherwise,
- * mappingetric algorithm is launched from previous results.
+ * it is a known position, the spatial interpolation weights are not reprocessed. Otherwise,
+ * the spatial interpolation weights are computed from previous results.
  *
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  local_code_name  Local code name
@@ -809,7 +808,7 @@ CWP_Cpl_rotation_update
 /**
  * \brief Set storage properties
  *
- * This functions activates the storage of mappingetric results in case of rotation
+ * This functions activates the storage of the spatial interpolation weights in case of rotation
  * or translation of the coupling interface.
  *
  * \param [in] cpl_id              Coupling identifier
@@ -920,7 +919,7 @@ CWP_Computed_tgts_get
 );
 
 /**
- * \brief Return distance from each target to the mappingetric interface
+ * \brief Return distance from each target to the source interface
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -930,7 +929,7 @@ CWP_Computed_tgts_get
  */
 
 const double *
-CWP_Computed_tgts_dist_to_mapping_get
+CWP_Computed_tgts_dist_to_spatial_interp_get
 (
  const char *local_code_name,
  const char *cpl_id
@@ -1002,13 +1001,11 @@ CWP_Cpl_time_step_set
 );
 
 /*----------------------------------------------------------------------------*
- * Functions about mapping                                                   *
+ * Functions about spatial interpolation                                      *
  *----------------------------------------------------------------------------*/
 
 /**
- * \brief Computation mapping
- *
- * This function compute mapping
+ * \brief Compute spatial interpolation weights
  *
  * \param [in]  local_code_name     Local code name
  * \param [in]  cpl_id              Coupling identifier
@@ -1023,10 +1020,7 @@ CWP_Spatial_interp_weights_compute
 );
 
 /**
- * \brief Load mapping results from it id
- *
- * This function set the location algorithm properties. It must be only used
- * when the type of mappingetric algorithm is \ref CWP_SPATIAL_INTERP_FROM_LOCATION
+ * \brief Set the properties of the spatial interpolation algorithm
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -1036,7 +1030,7 @@ CWP_Spatial_interp_weights_compute
  */
 
 void
-CWP_Mapping_properties_set
+CWP_spatial_interp_properties_set
 (
  const char     *local_code_name,
  const char     *cpl_id,
@@ -1527,13 +1521,13 @@ CWP_Field_create
 
 /**
  *
- * \brief Set data mapping
+ * \brief Set field data
  *
  * \param [in] local_code_name   Local code name
  * \param [in] cpl_id            Coupling identifier
  * \param [in] field_id          Field identifier
  * \param [in] i_part            Current partition
- * \param [in] data              Storage array
+ * \param [in] data              Storage array (Mapping)
  *
  */
 
@@ -1550,9 +1544,9 @@ CWP_Field_data_set
 
 /**
  *
- * \brief Set data mapping
+ * \brief Set field gradient (optional)
  *
- * TODO Define gradient storage
+ * TODO Define gradient
  *
  * \param [in] local_code_name Local code name
  * \param [in] cpl_id          Coupling identifier
@@ -1564,7 +1558,7 @@ CWP_Field_data_set
  */
 
 void
-CWP_Field_gradient_mapping_set
+CWP_Field_gradient_data_set
 (
  const char      *local_code_name,
  const char      *cpl_id,

@@ -104,7 +104,7 @@ namespace cwipi {
 
 
 
-  void SpatialInterpLocation::compute(CWP_Field_exch_t Texch_t) {
+  void SpatialInterpLocation::spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) {
     _Texch_t = Texch_t;
     /*
       In case of withOutPart the user provided not null data only on the root rank (senderRank).

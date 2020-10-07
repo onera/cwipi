@@ -1,7 +1,7 @@
 #ifndef __COUPLING_DB_H__
 #define __COUPLING_DB_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011-2017  ONERA
 
@@ -31,24 +31,24 @@ namespace cwipi {
 
   class Coupling;
   class CodeProperties;
-  
-  /** 
+
+  /**
    * \class CouplingDB couplingDB.hxx "couplingDB.hxx"
    * \brief Coupling instances storage
    *
    *  This class stores coupling instances
-   * 
+   *
    */
 
   class CouplingDB : public Singleton <CouplingDB>
   {
     friend class Singleton <CouplingDB>;
     friend class Coupling;
-    
+
   public:
 
     /**
-     * \brief Building and storage a coupling object 
+     * \brief Building and storage a coupling object
      *
      * This function creates a coupling object and defines its properties.
      *
@@ -56,14 +56,14 @@ namespace cwipi {
      * \param [in]  cplId                Coupling identifier
      * \param [in]  coupledCodeProperties    Coupled code properties
      * \param [in]  commType             Communication type
-     * \param [in]  spatialInterpAlgo             Mapping algorithm
-     * \param [in]  nPart                Number of interface partition 
+     * \param [in]  spatialInterpAlgo    Spatial interpolation algorithm
+     * \param [in]  nPart                Number of interface partition
      * \param [in]  movingStatus         Support moving status
      * \param [in]  recvFreqType         Type of receiving frequency
      *
      */
 
-    void 
+    void
     couplingCreate
     (
      const CodeProperties        &localCodeProperties,
@@ -75,7 +75,7 @@ namespace cwipi {
      const CWP_Displacement_t  movingStatus,
      const CWP_Freq_t           recvFreqType
     );
-    
+
     /**
      * \brief Deletion a coupling object int the database.
      *
@@ -84,13 +84,13 @@ namespace cwipi {
      *
      */
 
-    void 
+    void
     couplingDel
     (
      const CodeProperties &localCodeProperties,
      const string         &cplId
     );
-    
+
     /**
      * \brief Return a coupling object from it identifier
      *
@@ -99,15 +99,15 @@ namespace cwipi {
      *
      */
 
-    inline Coupling& 
+    inline Coupling&
     couplingGet
     (
      const CodeProperties &localCodeProperties,
      const string &cplId
     );
-    
+
     /**
-     * \brief Return if a coupling identifier exists  
+     * \brief Return if a coupling identifier exists
      *
      * \param [in]  localCodeProperties  Source code
      * \param [in]  cplId                Coupling identifier
@@ -115,13 +115,13 @@ namespace cwipi {
      * \return status
      */
 
-    inline bool 
+    inline bool
     couplingIs
     (
      const CodeProperties &localCodeProperties,
      const string &cplId
     );
-    
+
   private:
 
     /**
@@ -146,7 +146,7 @@ namespace cwipi {
      *
      */
 
-    CouplingDB & 
+    CouplingDB &
     operator=
     (
      const CouplingDB &other
@@ -158,7 +158,7 @@ namespace cwipi {
      */
 
     virtual ~CouplingDB();
-    
+
   private:
     map < const CodeProperties *, map < string, Coupling * > > & _couplingDB; /*!< Couplings storage for each local Code */
 

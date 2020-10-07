@@ -51,14 +51,14 @@ namespace cwipi {
 
     /**
       *
-      * \brief Compute of the coupling mapping. Localization and communication
+      * \brief Compute of the spatial interpolation weights. Localization and communication
       *        tree building.
       *
-      * \param [in] Texch_t    Type of exchange for the mapping (sending or reception).
+      * \param [in] Texch_t    Type of exchange (sending or reception).
       *
       */
 
-      void compute(CWP_Field_exch_t Texch_t) ;
+      void spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) ;
 
 
     /**
@@ -504,7 +504,7 @@ namespace cwipi {
       void* interpolate (Field* referenceField);
 
 
-      SpatialInterpLocation    *_spatial_interp_cpl            ;  /*!< Coupled code mapping object (for both codes are local case) */
+      SpatialInterpLocation    *_spatial_interp_cpl            ;  /*!< Spatial interpolation (for both codes are local case) */
 
       CWP_Field_value_t    _pointsCloudLocation   ;  /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
 

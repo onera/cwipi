@@ -77,15 +77,15 @@ namespace cwipi {
    /**
    * \typedef FG
    *
-   * \brief Mapping Factory
+   * \brief Spatial Interpolation Factory
    *
-   *  A mapping \ref Factory wich makes \ref Mapping class objects.
-   *  The type of \ref Mapping objects build depends on the
-   *  mapping algorithm type \ref CWP_Spatial_interp_t; .
+   *  A Spatial Interpolation \ref Factory wich makes  \ref SpatialInterp class objects.
+   *  The type of \ref SpatialInterp objects build depends on the
+   *  spatial interpolation algorithm type \ref CWP_Spatial_interp_t; .
    *
    */
 
-  typedef Factory<Mapping, CWP_Spatial_interp_t> FG;
+  typedef Factory<SpatialInterp, CWP_Spatial_interp_t> FG;
 
 
 
@@ -106,7 +106,7 @@ namespace cwipi {
    _communication(*(FC::getInstance().CreateObject(cplType))),
    _localCodeProperties(localCodeProperties),
    _coupledCodeProperties(coupledCodeProperties),
-   _spatial_interp(*new std::map <CWP_Field_value_t, Mapping*>()),
+   _spatial_interp(*new std::map <CWP_Field_value_t, SpatialInterp*>()),
    _mesh(*new Mesh(localCodeProperties.connectableCommGet(),NULL,nPart,displacement,this)),
    _recvFreqType (recvFreqType),
    _visu(*new Visu(localCodeProperties.connectableCommGet(),displacement)),
@@ -135,9 +135,9 @@ namespace cwipi {
         _mesh.setVisu(&_visu);
         mesh_cpl->setVisu(visu_cpl);
 
-        std::map <CWP_Field_value_t, Mapping*>* _spatial_interp_cpl = distCpl.spatialInterpGet();
+        std::map <CWP_Field_value_t, SpatialInterp*>* _spatial_interp_cpl = distCpl.spatialInterpGet();
 
-        //Mapping initialization
+        //SpatialInterp initialization
         //_spatial_interp[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(spatialInterpAlgo);
         _spatial_interp[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(spatialInterpAlgo);
         _spatial_interp[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(spatialInterpAlgo);
@@ -148,8 +148,8 @@ namespace cwipi {
         (*_spatial_interp_cpl)[CWP_FIELD_VALUE_NODE]       = FG::getInstance().CreateObject(spatialInterpAlgo);
         (*_spatial_interp_cpl)[CWP_FIELD_VALUE_USER]       = FG::getInstance().CreateObject(spatialInterpAlgo);
 
-        //Mapping initialization
-        std::map <CWP_Field_value_t, Mapping*>::iterator it = _spatial_interp_cpl->begin();
+        //SpatialInterp initialization
+        std::map <CWP_Field_value_t, SpatialInterp*>::iterator it = _spatial_interp_cpl->begin();
 
         while (it != _spatial_interp_cpl->end()) {
          (it -> second) -> init(&distCpl,it->first,1);
@@ -194,13 +194,13 @@ namespace cwipi {
       }
 
        _mesh.setVisu(&_visu);
-      //Mapping creation
+      //SpatialInterp creation
      // _spatial_interp[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(spatialInterpAlgo);
       _spatial_interp[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(spatialInterpAlgo);
       _spatial_interp[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(spatialInterpAlgo);
       _spatial_interp[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(spatialInterpAlgo);
-      //Mapping initialization
-        std::map <CWP_Field_value_t, Mapping*>::iterator it = _spatial_interp.begin();
+      //SpatialInterp initialization
+        std::map <CWP_Field_value_t, SpatialInterp*>::iterator it = _spatial_interp.begin();
         while (it != _spatial_interp.end()) {
           (it -> second) -> init(this,it->first,0);
           it++;
@@ -218,7 +218,7 @@ namespace cwipi {
        _visu.WriterStepEnd();
     }
 
-    std::map <CWP_Field_value_t, Mapping*>::iterator it = _spatial_interp.begin();
+    std::map <CWP_Field_value_t, SpatialInterp*>::iterator it = _spatial_interp.begin();
     while (it != _spatial_interp.end()) {
        // delete it -> second;
         it++;
@@ -234,7 +234,7 @@ namespace cwipi {
     }
 
     if(_localCodeProperties.isCoupledRank() && _visu.isCreated()) {
-      // _visu.MappingFree();
+      // _visu.SpatialInterpFree();
 
       delete _iteration;
     }
@@ -431,9 +431,9 @@ namespace cwipi {
 
 
    void
-   Coupling::spatialInterpCompute (CWP_Field_value_t pointsCloudLocation, CWP_Field_exch_t exchange_type)
+   Coupling::spatialInterpWeightsCompute (CWP_Field_value_t pointsCloudLocation, CWP_Field_exch_t exchange_type)
    {
-     _spatial_interp[pointsCloudLocation] -> compute(exchange_type);
+     _spatial_interp[pointsCloudLocation] -> spatialInterpWeightsCompute(exchange_type);
 
    }
 
@@ -548,10 +548,10 @@ namespace cwipi {
 
  /**
   *
-  * \brief Set data mapping
+  * \brief Set Field data
   *
   * \param [in]  field_id       Field identifier
-  * \param [in]  data           Storage array (Mapping)
+  * \param [in]  data           Storage array (mapping)
   *
   */
   //TODO:Change to dataSet

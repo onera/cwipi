@@ -321,33 +321,33 @@ CWP_Init
   factoryComm.Register<cwipi::CommSeq>(CWP_COMM_SEQ);
 
   /*
-   * Create mapping abstract factory
+   * Create spatial interpolation abstract factory
    */
 
-  cwipi::Factory<cwipi::Mapping, CWP_Spatial_interp_t> &factoryMapping =
-    cwipi::Factory<cwipi::Mapping, CWP_Spatial_interp_t>::getInstance();
+  cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t> &factorySpatialInterp =
+    cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t>::getInstance();
 
-  factoryMapping.Register<cwipi::SpatialInterpLocation>(CWP_SPATIAL_INTERP_FROM_LOCATION);
-  // factoryMapping.Register<MappingIntersection>(CWP_MAPPING_INTERSECTION);
-  // factoryMapping.Register<MappingClosestPoint>(CWP_MAPPING_CLOSEST_POINT);
+  factorySpatialInterp.Register<cwipi::SpatialInterpLocation>(CWP_SPATIAL_INTERP_FROM_LOCATION);
+  // factorySpatialInterp.Register<SpatialInterpIntersection>(CWP_SPATIAL_INTERP_INTERSECTION);
+  // factorySpatialInterp.Register<SpatialInterpClosestPoint>(CWP_SPATIAL_INTERP_CLOSEST_POINT);
 
   /*
    * Create block abstract factory
    */
 
-   cwipi::Factory<cwipi::Block, CWP_Block_t> &factoryBlock =
-     cwipi::Factory<cwipi::Block, CWP_Block_t>::getInstance();
+  cwipi::Factory<cwipi::Block, CWP_Block_t> &factoryBlock =
+    cwipi::Factory<cwipi::Block, CWP_Block_t>::getInstance();
 
-   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_NODE);
-   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_EDGE2);
-   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_FACE_TRIA3);
-   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_FACE_QUAD4);
-   factoryBlock.Register<cwipi::BlockFP >(CWP_BLOCK_FACE_POLY);
-   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_TETRA4);
-   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_HEXA8);
-   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_PRISM6);
-   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_PYRAM5);
-   factoryBlock.Register<cwipi::BlockCP > (CWP_BLOCK_CELL_POLY);
+  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_NODE);
+  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_EDGE2);
+  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_FACE_TRIA3);
+  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_FACE_QUAD4);
+  factoryBlock.Register<cwipi::BlockFP >(CWP_BLOCK_FACE_POLY);
+  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_TETRA4);
+  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_HEXA8);
+  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_PRISM6);
+  factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_PYRAM5);
+  factoryBlock.Register<cwipi::BlockCP > (CWP_BLOCK_CELL_POLY);
 
   MPI_Barrier(global_comm);
 
@@ -651,7 +651,7 @@ CWP_Cpl_create
  const char               *cpl_id,
  const char               *coupled_code_name,
  const CWP_Comm_t          comm_type,
- const CWP_Spatial_interp_t          mapping_algo,
+ const CWP_Spatial_interp_t  spatial_interp_algo,
  const int                 n_part,
  const CWP_Displacement_t  displacement,
  const CWP_Freq_t          recv_freq_type
@@ -673,7 +673,7 @@ CWP_Cpl_create
                             coupling_name_str,
                             properties.codePropertiesGet(coupled_application_str),
                             comm_type,
-                            mapping_algo,
+                            spatial_interp_algo,
                             n_part,
                             displacement,
                             recv_freq_type);
@@ -777,7 +777,7 @@ CWP_N_uncomputed_tgts_get
 
 
 // const double *
-// CWP_computed_tgts_dist_to_mapping_get
+// CWP_computed_tgts_dist_to_spatial_interp_get
 // (
 //  const char *cpl_id
 // )
@@ -816,7 +816,7 @@ CWP_N_uncomputed_tgts_get
  }
 
 /*----------------------------------------------------------------------------*
- * Functions about mapping                                                   *
+ * Functions about spatial interpolation                                      *
  *----------------------------------------------------------------------------*/
 
 void
@@ -1073,21 +1073,21 @@ CWP_Spatial_interp_weights_compute
 
               cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
 
-              cpl.spatialInterpCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND);
-              cpl_cpl.spatialInterpCompute(pointsCloudLocation,CWP_FIELD_EXCH_RECV);
+              cpl.spatialInterpWeightsCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND);
+              cpl_cpl.spatialInterpWeightsCompute(pointsCloudLocation,CWP_FIELD_EXCH_RECV);
 
-              cpl.spatialInterpCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV);
-              cpl_cpl.spatialInterpCompute(pointsCloudLocation,CWP_FIELD_EXCH_SEND);
+              cpl.spatialInterpWeightsCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV);
+              cpl_cpl.spatialInterpWeightsCompute(pointsCloudLocation,CWP_FIELD_EXCH_SEND);
              }
              else if (both_local == 0) {
-              cpl.spatialInterpCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND);
-              cpl.spatialInterpCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV);
+              cpl.spatialInterpWeightsCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND);
+              cpl.spatialInterpWeightsCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV);
             }
           }
           else {
             if (both_local == 0) {
-              cpl.spatialInterpCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV);
-              cpl.spatialInterpCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND);
+              cpl.spatialInterpWeightsCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV);
+              cpl.spatialInterpWeightsCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND);
             }
           }
          // printf("pointsCloudLocation %s rank %i %i %i id<id_cpl %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, spatialInterpComputeSend, spatialInterpComputeRcv,id<id_cpl );
@@ -1097,12 +1097,12 @@ CWP_Spatial_interp_weights_compute
           exchange_type     = CWP_FIELD_EXCH_RECV ;
           exchange_type_cpl = CWP_FIELD_EXCH_SEND ;
           if(both_local == 1 && id < id_cpl) {
-            cpl.spatialInterpCompute(pointsCloudLocation, exchange_type);
+            cpl.spatialInterpWeightsCompute(pointsCloudLocation, exchange_type);
             cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
-            cpl_cpl.spatialInterpCompute(pointsCloudLocation, exchange_type_cpl);
+            cpl_cpl.spatialInterpWeightsCompute(pointsCloudLocation, exchange_type_cpl);
          }
           else if (both_local == 0) {
-            cpl.spatialInterpCompute(pointsCloudLocation, exchange_type);
+            cpl.spatialInterpWeightsCompute(pointsCloudLocation, exchange_type);
             //printf("pointsCloudLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, spatialInterpComputeSend, spatialInterpComputeRcv );
           }
         }
@@ -1110,12 +1110,12 @@ CWP_Spatial_interp_weights_compute
           exchange_type     = CWP_FIELD_EXCH_SEND ;
           exchange_type_cpl = CWP_FIELD_EXCH_RECV ;
           if(both_local == 1 && id < id_cpl) {
-            cpl.spatialInterpCompute(pointsCloudLocation, exchange_type);
+            cpl.spatialInterpWeightsCompute(pointsCloudLocation, exchange_type);
             cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
-            cpl_cpl.spatialInterpCompute(pointsCloudLocation, exchange_type_cpl);
+            cpl_cpl.spatialInterpWeightsCompute(pointsCloudLocation, exchange_type_cpl);
           }
           else if (both_local == 0) {
-            cpl.spatialInterpCompute(pointsCloudLocation, exchange_type);
+            cpl.spatialInterpWeightsCompute(pointsCloudLocation, exchange_type);
            // printf("pointsCloudLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, spatialInterpComputeSend, spatialInterpComputeRcv );
           }
         }
@@ -1126,7 +1126,7 @@ CWP_Spatial_interp_weights_compute
 
 
 // void
-// CWP_mapping_update
+// CWP_spatial_interp_update
 // (
 //  const char     *cpl_id,
 //  const int       storage_id
@@ -1137,7 +1137,7 @@ CWP_Spatial_interp_weights_compute
 
 
 // void
-// CWP_mapping_properties_set
+// CWP_spatial_interp_properties_set
 // (
 //  const char     *cpl_id,
 //  const char     *fmt,
@@ -1148,7 +1148,7 @@ CWP_Spatial_interp_weights_compute
 
 //   va_list pa;
 //   va_start(pa, fmt);
-//   cpl.mappingPropertiesSet(fmt, &pa);
+//   cpl.spatialInterpPropertiesSet(fmt, &pa);
 //   va_end(pa);
 // }
 
