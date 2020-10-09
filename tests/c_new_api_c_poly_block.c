@@ -253,13 +253,13 @@ int main
   if ( rank == 0 ) {
     CWP_Cpl_create ("cpoly", cpl_id1, "code2", CWP_COMM_PAR_WITHOUT_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, 1,
-                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+                    CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
   }
                     
   if ( rank==1 ) {                   
     CWP_Cpl_create ("code2", cpl_id1, "cpoly", CWP_COMM_PAR_WITHOUT_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, 1,
-                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+                    CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
   }                
   printf("Coupling created %i\n",currentRank);
               
@@ -308,7 +308,7 @@ int main
    if(rank==0) {
          
      printf("Visu Setting\n");
-     CWP_Visu_set("cpoly", cpl_id1,1.0,Ensight,"binary"); 
+     CWP_Visu_set("cpoly", cpl_id1,1.0,CWP_VISU_FORMAT_ENSIGHT,"binary"); 
      printf("Visu Set\n");
   
     printf("vtx_set\n");

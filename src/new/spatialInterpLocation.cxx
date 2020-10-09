@@ -111,13 +111,13 @@ namespace cwipi {
     */
 
     if(_both_codes_are_local == 0 ){
-      if(_Texch_t == CWP_FIELD_EXCH_RECV && _pointsCloudLocation == CWP_FIELD_VALUE_USER)
+      if(_Texch_t == CWP_FIELD_EXCH_RECV && _pointsCloudLocation == CWP_DOF_LOCATION_USER)
         user_targets_gnum_compute();
     }
     else {
       if(_Texch_t == CWP_FIELD_EXCH_SEND) {
         _spatial_interp_cpl -> _Texch_t =  CWP_FIELD_EXCH_RECV;
-        if(_isCoupledRank && _pointsCloudLocation == CWP_FIELD_VALUE_USER)
+        if(_isCoupledRank && _pointsCloudLocation == CWP_DOF_LOCATION_USER)
           _spatial_interp_cpl -> user_targets_gnum_compute();
       }
     }
@@ -327,8 +327,8 @@ void SpatialInterpLocation::issend_p2p(Field* referenceField) {
 
 
   void SpatialInterpLocation::user_target_points_set(int i_part, int n_pts, double* coord) {
-    if( !(_pointsCloudLocation == CWP_FIELD_VALUE_USER ) )
-      PDM_error(__FILE__, __LINE__, 0, "You cannot use user_target_points_set for CWP_Field_value_t different of CWP_FIELD_VALUE_USER.\n");
+    if( !(_pointsCloudLocation == CWP_DOF_LOCATION_USER ) )
+      PDM_error(__FILE__, __LINE__, 0, "You cannot use user_target_points_set for CWP_Dof_location_t different of CWP_DOF_LOCATION_USER.\n");
     else {
       _n_user_targets     [i_part] = n_pts;
       _coords_user_targets[i_part] = coord;
@@ -888,7 +888,7 @@ void SpatialInterpLocation::null_exchange_for_uncoupled_process() {
 
 
 
-  void SpatialInterpLocation::init(Coupling *coupling, CWP_Field_value_t pointsCloudLocation, int slave) {
+  void SpatialInterpLocation::init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation, int slave) {
     _mesh   = coupling -> meshGet();
     _visu   = coupling -> visuGet();
     _referenceFieldsDB = coupling -> fieldsGet();
@@ -1050,17 +1050,17 @@ void SpatialInterpLocation::null_exchange_for_uncoupled_process() {
     _n_tot_user_targets=0;
     for(int i_part =0;i_part<_nb_part;i_part++) {
 
-      if (_pointsCloudLocation == CWP_FIELD_VALUE_CELL_POINT && _Texch_t == CWP_FIELD_EXCH_RECV ) {
+      if (_pointsCloudLocation == CWP_DOF_LOCATION_CELL_CENTER && _Texch_t == CWP_FIELD_EXCH_RECV ) {
         _n_target   [i_part]     = _mesh -> getPartNElts(i_part);
         _gnum_target[i_part]     = _mesh -> GNumEltsGet(i_part);
         _coords_target [i_part]  = _mesh -> eltCentersGet(i_part);
       }
-      else if (_pointsCloudLocation == CWP_FIELD_VALUE_NODE && _Texch_t == CWP_FIELD_EXCH_RECV) {
+      else if (_pointsCloudLocation == CWP_DOF_LOCATION_NODE && _Texch_t == CWP_FIELD_EXCH_RECV) {
         _n_target      [i_part]  = _mesh -> getPartNVertex (i_part);
         _gnum_target   [i_part]  = _mesh -> getVertexGNum  (i_part);
         _coords_target [i_part]  = _mesh -> getVertexCoords(i_part);
       }
-      else if (_pointsCloudLocation == CWP_FIELD_VALUE_USER && _Texch_t == CWP_FIELD_EXCH_RECV ) {
+      else if (_pointsCloudLocation == CWP_DOF_LOCATION_USER && _Texch_t == CWP_FIELD_EXCH_RECV ) {
         //   printf("info_mesh _n_target [i_part] %i _n_user_targets[i_part] %i\n",_n_target[i_part],_n_user_targets[i_part]);
            _n_target      [i_part]  = _n_user_targets     [i_part];
         //   printf("info_mesh _n_target [i_part] %i _n_user_targets[i_part] %i\n",_n_target[i_part],_n_user_targets[i_part]);
@@ -1079,13 +1079,13 @@ void SpatialInterpLocation::null_exchange_for_uncoupled_process() {
     } //end loop on i_part
 
 
-    if (_pointsCloudLocation == CWP_FIELD_VALUE_CELL_POINT && _Texch_t == CWP_FIELD_EXCH_RECV) {
+    if (_pointsCloudLocation == CWP_DOF_LOCATION_CELL_CENTER && _Texch_t == CWP_FIELD_EXCH_RECV) {
       _n_tot_target = _n_tot_elt;
     }
-    else if (_pointsCloudLocation == CWP_FIELD_VALUE_NODE && _Texch_t == CWP_FIELD_EXCH_RECV) {
+    else if (_pointsCloudLocation == CWP_DOF_LOCATION_NODE && _Texch_t == CWP_FIELD_EXCH_RECV) {
       _n_tot_target = _n_tot_vtx;
     }
-    else if (_pointsCloudLocation == CWP_FIELD_VALUE_USER && _Texch_t == CWP_FIELD_EXCH_RECV) {
+    else if (_pointsCloudLocation == CWP_DOF_LOCATION_USER && _Texch_t == CWP_FIELD_EXCH_RECV) {
       _n_tot_target = _n_tot_user_targets;
     }
 
@@ -2506,7 +2506,7 @@ void SpatialInterpLocation::triplet_location_null_recv(int* id_gnum_location) {
   void* SpatialInterpLocation::interpolate(Field* referenceField) {
 
     int                 nComponent         = referenceField -> nComponentGet  ();
-    CWP_Field_value_t   referenceFieldType = referenceField -> typeGet        ();
+    CWP_Dof_location_t   referenceFieldType = referenceField -> typeGet        ();
     int                 dataTypeSize       = referenceField -> dataTypeSizeGet();
     CWP_Interpolation_t interpolationType  = referenceField -> interpolationTypeGet();
     void               *interpolatedData   = referenceField -> sendBufferGet  ();
@@ -2593,7 +2593,7 @@ void SpatialInterpLocation::triplet_location_null_recv(int* id_gnum_location) {
 
         }
         else{
-         if (referenceFieldType == CWP_FIELD_VALUE_CELL_POINT) {
+         if (referenceFieldType == CWP_DOF_LOCATION_CELL_CENTER) {
 
           for (int itarget = _targets_localization_idx_cpl[i_proc][i_part]; itarget < _targets_localization_idx_cpl[i_proc][i_part+1]; itarget++) {
             //Index of the corresponding local reference Data.
@@ -2613,8 +2613,8 @@ void SpatialInterpLocation::triplet_location_null_recv(int* id_gnum_location) {
             }
           } // loop on itarget
 
-        } // if referenceFieldType == CWP_FIELD_VALUE_CELL_POINT
-        else if (referenceFieldType == CWP_FIELD_VALUE_NODE) {
+        } // if referenceFieldType == CWP_DOF_LOCATION_CELL_CENTER
+        else if (referenceFieldType == CWP_DOF_LOCATION_NODE) {
 
           int* connecIdx = _mesh -> connecIdxGet(i_part);
           int* connec    = _mesh -> connecGet(i_part);
@@ -2667,7 +2667,7 @@ void SpatialInterpLocation::triplet_location_null_recv(int* id_gnum_location) {
               }
             }
           } // loop on itarget
-        } // if referenceFieldType == CWP_FIELD_VALUE_NODE || referenceFieldType == CWP_FIELD_VALUE_USER
+        } // if referenceFieldType == CWP_DOF_LOCATION_NODE || referenceFieldType == CWP_DOF_LOCATION_USER
         }  // else if(interpolationType == CWP_INTERPOLATION_TYPE_USER)
       } //Loop on i_proc
     } // loop on i_part

@@ -61,7 +61,7 @@ namespace cwipi {
   Mesh::Mesh(const MPI_Comm &localComm,
              Visu* visu,
              const int npart,
-             const CWP_Displacement_t displacement,
+             const CWP_Dynamic_mesh_t displacement,
              Coupling *cpl) 
              : _localComm(localComm),
                _nDim(-1),_nBlocks(0), _order(-1),
@@ -264,7 +264,7 @@ namespace cwipi {
 
 
  double* Mesh::eltCentersGet(int i_part){
-   if(_elt_centers[i_part]==NULL || _displacement != CWP_DISPLACEMENT_STATIC) {
+   if(_elt_centers[i_part]==NULL || _displacement != CWP_DYNAMIC_MESH_STATIC) {
      eltCentersCompute(i_part);
    }//end if NULL
   
@@ -487,7 +487,7 @@ namespace cwipi {
                                     _coords        [i_part],   
                                     _global_num_vtx[i_part]);
 
-           if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
+           if(_visu -> isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC) {
              _visu -> GeomCoordSet(i_part,
                                    _nVertex       [i_part],
                                    _coords        [i_part],
@@ -574,7 +574,7 @@ namespace cwipi {
       _nBlocks     = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
       _blocks_id   = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
  
-      if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC ) {
+      if(_visu -> isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC ) {
         _visu -> GeomWrite(this);
       }
   } 
@@ -658,7 +658,7 @@ namespace cwipi {
                                      connec_cells_idx,connec_cells,
                                      global_num);   
                                      
-     if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
+     if(_visu -> isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC) {
 
         _visu -> GeomBlockPoly3D   (_id_visu[block_id],
                                     i_part,
@@ -695,7 +695,7 @@ namespace cwipi {
 
      _nBlocks   = _blockDB.size(); 
       
-      if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
+      if(_visu -> isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC) {
         int id_visu = _visu -> GeomBlockAdd(block_type);
         _id_visu.insert(std::pair <int,int> (myBlock -> blockIDCWIPIGet(),id_visu));
       }

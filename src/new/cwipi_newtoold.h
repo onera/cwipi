@@ -56,9 +56,9 @@ typedef enum {
 
 
 //TODO: Look at the precisely the equivalence for MOBILE and CYCLIC MESH 
-const std::map<cwipi_mesh_type_t,CWP_Displacement_t> mesh_type_conv = { {CWIPI_STATIC_MESH, CWP_DISPLACEMENT_STATIC},
-                                                                  {CWIPI_MOBILE_MESH, CWP_DISPLACEMENT_VARIABLE},
-                                                                  {CWIPI_CYCLIC_MESH, CWP_DISPLACEMENT_VARIABLE}
+const std::map<cwipi_mesh_type_t,CWP_Dynamic_mesh_t> mesh_type_conv = { {CWIPI_STATIC_MESH, CWP_DYNAMIC_MESH_STATIC},
+                                                                  {CWIPI_MOBILE_MESH, CWP_DYNAMIC_MESH_VARIABLE},
+                                                                  {CWIPI_CYCLIC_MESH, CWP_DYNAMIC_MESH_VARIABLE}
                                                                 };
 
 

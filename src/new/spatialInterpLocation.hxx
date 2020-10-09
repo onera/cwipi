@@ -143,7 +143,7 @@ namespace cwipi {
       *
       */
 
-      void init (Coupling *coupling, CWP_Field_value_t pointsCloudLocation,int slave) ;
+      void init (Coupling *coupling, CWP_Dof_location_t pointsCloudLocation,int slave) ;
 
 
       /***********************************************************
@@ -506,7 +506,7 @@ namespace cwipi {
 
       SpatialInterpLocation    *_spatial_interp_cpl            ;  /*!< Spatial interpolation (for both codes are local case) */
 
-      CWP_Field_value_t    _pointsCloudLocation   ;  /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
+      CWP_Dof_location_t    _pointsCloudLocation   ;  /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
 
        /* Localization data */
 
@@ -563,12 +563,12 @@ namespace cwipi {
       int _id_dist                                ;  /*!< Identifier for the localization object of paradigm */
       int _id_gnum_location                       ;  /*!< Identifier for the global numbering to (process,partition,numbering) triplet object of paradigm */
 
-      /* user targets definition for CWP_FIELD_VALUE_USER field type */
+      /* user targets definition for CWP_DOF_LOCATION_USER field type */
 
-      int*          _n_user_targets               ;  /*!< Number of targets defined by the user for CWP_FIELD_VALUE_USER field type        */
-      int           _n_tot_user_targets           ;  /*!< Total number of targets defined by the user for CWP_FIELD_VALUE_USER field type  */
-      double**      _coords_user_targets          ;  /*!< Target coordinates defined by the user for CWP_FIELD_VALUE_USER field type       */
-      CWP_g_num_t** _gnum_user_targets            ;  /*!< Target global numbering defined by the user for CWP_FIELD_VALUE_USER field type  */
+      int*          _n_user_targets               ;  /*!< Number of targets defined by the user for CWP_DOF_LOCATION_USER field type        */
+      int           _n_tot_user_targets           ;  /*!< Total number of targets defined by the user for CWP_DOF_LOCATION_USER field type  */
+      double**      _coords_user_targets          ;  /*!< Target coordinates defined by the user for CWP_DOF_LOCATION_USER field type       */
+      CWP_g_num_t** _gnum_user_targets            ;  /*!< Target global numbering defined by the user for CWP_DOF_LOCATION_USER field type  */
 
       int _pdmGNum_handle_index;
 

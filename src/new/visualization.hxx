@@ -48,7 +48,7 @@ namespace cwipi {
     * \param [in] MPIComm Coupling Communicator.
     */
   
-    Visu(const MPI_Comm &MPIComm, const CWP_Displacement_t topology);
+    Visu(const MPI_Comm &MPIComm, const CWP_Dynamic_mesh_t topology);
 
     /**
      * \brief Visu destructor
@@ -276,7 +276,7 @@ namespace cwipi {
     bool                 _visuCreated;       /*!< True if the creation has be done */
     double               _physical_time;     /*!< Physical time for visualization */
     int                  _n_part;            /*!< Number of mesh partition */
-    CWP_Displacement_t   _topology;          /*!< Mesh topology */
+    CWP_Dynamic_mesh_t   _topology;          /*!< Mesh topology */
 
     int _id_partitioning_field  ;
     std::vector<double*> _partitioning_field_data;

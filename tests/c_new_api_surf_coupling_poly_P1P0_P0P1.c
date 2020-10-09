@@ -182,7 +182,7 @@ _read_args
         _usage(EXIT_FAILURE);
       else
         *n_compute = atoi(argv[i]);
-    } 
+    }
     else if (strcmp(argv[i], "-new") == 0) {
       if (isOld != 0) {
         printf("Error : old CWIPI is already selected\n");
@@ -255,7 +255,7 @@ int main
 
 
   _read_args (argc, argv, &nx, &part, &s, &new, &old,&n_compute);
-  
+
 
   /* Init + create coupling
    * ---------------------- */
@@ -339,13 +339,13 @@ int main
                     CWP_COMM_PAR_WITH_PART,          // Coupling type
                     CWP_SPATIAL_INTERP_FROM_LOCATION,               // Solver type
                     nb_part,                         // Partition number
-                    CWP_DISPLACEMENT_STATIC,         // Mesh type
-                    CWP_FREQ_CPL_TIME_STEP);         // Postprocessing frequency
+                    CWP_DYNAMIC_MESH_STATIC,         // Mesh type
+                    CWP_TIME_EXCH_CPL_TIME_STEP);         // Postprocessing frequency
 
     CWP_Visu_set(codeName, // Code name
                  "new_cpl",     // Coupling id
                  1,           // Postprocessing frequency
-                 Ensight,     // Postprocessing format
+                 CWP_VISU_FORMAT_ENSIGHT,     // Postprocessing format
                  "text");     // Postprocessing option
   }
 
@@ -371,22 +371,22 @@ int main
      coords[3*i+2] = sqrt( pow(Rcurv,2) - pow(coords[3*i],2) - pow(coords[3*i+1],2) );
   */
 
-  
+
   PDM_timer_t* timer = PDM_timer_create();
   PDM_timer_t* timer2 = PDM_timer_create();
-  
+
   PDM_timer_init(timer);
-  
+
   double time[3];
-  
+
   int n_int = 1;
   double compute_time[n_compute];
   double compute_exch_time[n_int];
-  
+
   if (old) {
 
     int *eltsConnecIndex = NULL;
-    int *eltsConnec = NULL;  
+    int *eltsConnec = NULL;
     CWP_g_num_t *eltsGnum = NULL;
 
     CWP_surf_gen_one_connectivity_get ("generator",0,
@@ -399,11 +399,11 @@ int main
                       coords,
                       eltsConnecIndex,
                       eltsConnec);
-                      
+
     MPI_Barrier(MPI_COMM_WORLD);
-    
+
     PDM_timer_init(timer);
-    PDM_timer_init(timer2);  
+    PDM_timer_init(timer2);
 
     double mean =  0.0;
     double std_dev=0.0;
@@ -428,18 +428,18 @@ int main
       for(int h=0;h<=i;h++)
         std_dev += pow((compute_time[h] - mean2)/mean2 ,2);
       std_dev = sqrt(std_dev)/(double)(i+1);
-      
+
       double std2;
       MPI_Allreduce(&std_dev,&std2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
       std_dev = std2/(double)commWorldSize;
       n_it = i;
       if(i>3 && std_dev<dev_limit) {
         i=n_compute+1;
-      }   
- 
-      if(mean2*n_compute > 600) 
+      }
+
+      if(mean2*n_compute > 600)
          n_compute=n_compute/2;
-      
+
       if(localRank==0 ) printf("Survey localization %i %5.4e\n",i,std_dev);
     }
     PDM_timer_hang_on(timer);
@@ -452,16 +452,16 @@ int main
     int n_tri = 0;
     int n_quad = 0;
     int n_poly2d = 0;
-  
+
     int *eltsConnecQuad = NULL;
-    CWP_g_num_t *eltsGnumQuad = NULL;  
-    
+    CWP_g_num_t *eltsGnumQuad = NULL;
+
     int *eltsConnecTri = NULL;
-    CWP_g_num_t *eltsGnumTri = NULL;  
-  
+    CWP_g_num_t *eltsGnumTri = NULL;
+
     int *eltsConnecPolyIndex = NULL;
     int *eltsConnecPoly = NULL;
-    CWP_g_num_t *eltsGnumPoly = NULL;  
+    CWP_g_num_t *eltsGnumPoly = NULL;
 
 
     CWP_surf_gen_by_block_get( "generator", 0,
@@ -562,16 +562,16 @@ int main
     int tag = 1;
 
     double mean = 0.0;
-    double std_dev=0.0;    
+    double std_dev=0.0;
     double mean2 = 0.0;
-    
+
     PDM_timer_init(timer);
     PDM_timer_resume(timer);
 
     for(int i =0; i<n_int;i++){
       PDM_timer_init(timer2);
       PDM_timer_resume(timer2);
-      
+
       if (codeId == 1) {
       cwipi_issend("old_cpl",
                    "ech1",
@@ -625,7 +625,7 @@ g
 
       cwipi_wait_issend("old_cpl", sRequest);
  */   }
- 
+
       PDM_timer_hang_on(timer2);
       compute_exch_time[i] = PDM_timer_elapsed(timer2);
 
@@ -642,24 +642,24 @@ g
         */
       double std2;
       MPI_Allreduce(&std_dev,&std2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-      std_dev = std2/(double)commWorldSize;  
-      
+      std_dev = std2/(double)commWorldSize;
+
       if(i>3 && std_dev<dev_limit) {
         i=n_int+1;
-      }   
+      }
 
-      if(mean2*n_compute > 600) 
+      if(mean2*n_compute > 600)
          n_compute=n_compute/2;
-            
-      
+
+
       if(localRank==0 ) printf("Survey localization %i %5.4e\n",i,std_dev);
     }
-          
+
      PDM_timer_hang_on(timer);
-    
+
      if(localRank==0)
-       printf("Old exchange time for %i iterations %5.4e s codeName %s deviation %5.4e\n", 0, mean2,codeName,std_dev); 
- 
+       printf("Old exchange time for %i iterations %5.4e s codeName %s deviation %5.4e\n", 0, mean2,codeName,std_dev);
+
   }
 
   else {
@@ -675,7 +675,7 @@ g
                        CWP_DOUBLE,
                        CWP_FIELD_STORAGE_BLOCK,
                        1,
-                       CWP_FIELD_VALUE_NODE,
+                       CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_SEND,
                        visu_status);
 /*
@@ -685,7 +685,7 @@ g
                        CWP_DOUBLE,
                        CWP_FIELD_STORAGE_BLOCK,
                        1,
-                       CWP_FIELD_VALUE_CELL_POINT,
+                       CWP_DOF_LOCATION_CELL_CENTER,
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
 */
@@ -710,7 +710,7 @@ g
                        CWP_DOUBLE,
                        CWP_FIELD_STORAGE_BLOCK,
                        1,
-                       CWP_FIELD_VALUE_NODE,
+                       CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
 /*
@@ -720,7 +720,7 @@ g
                         CWP_DOUBLE,
                         CWP_FIELD_STORAGE_BLOCK,
                         1,
-                        CWP_FIELD_VALUE_CELL_POINT,
+                        CWP_DOF_LOCATION_CELL_CENTER,
                         CWP_FIELD_EXCH_SEND,
                         visu_status);
 
@@ -739,19 +739,19 @@ g
 
 
     }
-    
+
     MPI_Barrier(MPI_COMM_WORLD);
-    
+
     PDM_timer_init(timer);
-    
+
     PDM_timer_resume(timer);
-    
+
     PDM_timer_init(timer);
-    PDM_timer_init(timer2);  
-    
+    PDM_timer_init(timer2);
+
     PDM_timer_resume(timer);
     double mean = 0.0;
-    double mean2 = 0.0;    
+    double mean2 = 0.0;
     double std_dev=0.0;
     int n_it=0;
     for(int i=0;i<n_compute;i++){
@@ -760,7 +760,7 @@ g
       CWP_Spatial_interp_weights_compute(codeName,"new_cpl");;
       PDM_timer_hang_on(timer2);
       compute_time[i] = PDM_timer_elapsed(timer2);
-      
+
       mean +=  compute_time[i];
       MPI_Allreduce(&mean,&mean2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
       mean2 = mean2/((double)(i+1)*(double)commWorldSize);
@@ -769,16 +769,16 @@ g
       for(int h=0;h<=i;h++)
         std_dev += pow((compute_time[h] - mean2)/mean2 ,2);
       std_dev = sqrt(std_dev)/(double)(i+1);
-      
+
       double std2;
       MPI_Allreduce(&std_dev,&std2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-      std_dev = std2/(double)commWorldSize;  
-      
-      
+      std_dev = std2/(double)commWorldSize;
+
+
       n_it = i;
-      if(i>3 && std_dev<dev_limit) 
+      if(i>3 && std_dev<dev_limit)
         i=n_compute+1;
-      
+
       if(localRank==0 ) printf("Survey exchange %i %5.4e\n",i,std_dev);
     }
     PDM_timer_hang_on(timer);
@@ -788,37 +788,37 @@ g
 
     double recv_time = 0.150;
 
-    
+
     PDM_timer_init(timer);
     PDM_timer_resume(timer);
-    
+
     mean = 0.0;
-    std_dev=0.0;    
-    
+    std_dev=0.0;
+
     MPI_Barrier(MPI_COMM_WORLD);
-    
+
     for(int i =0; i<n_int;i++){
       PDM_timer_init(timer2);
       PDM_timer_resume(timer2);
-      
-      CWP_next_recv_time_set(codeName,"new_cpl",recv_time);
+
+      CWP_Next_recv_time_set(codeName,"new_cpl",recv_time);
       recv_time *= 0.01;
       if (codeName == "code1") {
-        CWP_Issend (codeName,"new_cpl",fieldName1);
+        CWP_Field_Issend (codeName,"new_cpl",fieldName1);
         CWP_Wait_issend (codeName,"new_cpl",fieldName1);
- /*     CWP_Irecv  (codeName,"new_cpl",fieldName2);
+ /*     CWP_Field_Irecv  (codeName,"new_cpl",fieldName2);
       CWP_Wait_irecv  (codeName,"new_cpl",fieldName2);
  */     }
       else {
-        CWP_Irecv  (codeName,"new_cpl",fieldName1);
-        CWP_Wait_irecv  (codeName,"new_cpl",fieldName1);      
-  /*    CWP_Issend (codeName,"new_cpl",fieldName2);
+        CWP_Field_Irecv  (codeName,"new_cpl",fieldName1);
+        CWP_Wait_irecv  (codeName,"new_cpl",fieldName1);
+  /*    CWP_Field_Issend (codeName,"new_cpl",fieldName2);
       CWP_Wait_issend (codeName,"new_cpl",fieldName2);
   */  }
-      
+
       PDM_timer_hang_on(timer2);
       compute_exch_time[i] = PDM_timer_elapsed(timer2);
-      
+
       mean +=  compute_exch_time[i];
       MPI_Allreduce(&mean,&mean2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
       mean2 = mean2/((double)(i+1)*(double)commWorldSize);
@@ -827,25 +827,25 @@ g
       for(int h=0;h<=i;h++)
         std_dev += pow((compute_exch_time[h] - mean2)/mean2 ,2);
       std_dev = sqrt(std_dev)/(double)(i+1);
-      
+
       double std2;
       MPI_Allreduce(&std_dev,&std2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-      std_dev = std2/(double)commWorldSize;        
-      
-      
-      
+      std_dev = std2/(double)commWorldSize;
+
+
+
       if(i>3 && std_dev<dev_limit) {
         i=n_int+1;
-      }   
+      }
       if(localRank==0) printf("Survey exchange %i %5.4e\n",i,std_dev);
       MPI_Barrier(MPI_COMM_WORLD);
-    }  
-  
-  
+    }
+
+
      PDM_timer_hang_on(timer);
-    
+
      if(localRank==0)
-       printf("New exchange time for %i iterations %5.4e s codeName %s deviation %5.4e\n", n_int, mean2,codeName,std_dev); 
+       printf("New exchange time for %i iterations %5.4e s codeName %s deviation %5.4e\n", n_int, mean2,codeName,std_dev);
 
   }
   int nNotLocatedPoints = 0;

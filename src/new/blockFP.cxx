@@ -114,7 +114,7 @@ namespace cwipi {
                                           NULL);      
 
       Visu* visu = ((Mesh*)_mesh) -> getVisu();
-      if(visu -> isCreated() && ((Mesh*)_mesh) -> getDisplacement() == CWP_DISPLACEMENT_STATIC) {
+      if(visu -> isCreated() && ((Mesh*)_mesh) -> getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
         visu -> GeomBlockPoly2D ( ((Mesh*)_mesh) -> getIdVisu( _block_id_cwipi ),
                                   i_part,
                                   _n_elt[i_part] ,

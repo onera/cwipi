@@ -68,7 +68,7 @@ _usage(int exit_code)
      "  Usage: \n\n"
      "  -n     <level>  Number of vertices in band width.\n\n"
      "  -rand  <level>  Random level ( > 0 and < 0.4) \n\n"
-     "  -visu           Ensight outputs \n\n"
+     "  -visu           CWP_VISU_FORMAT_ENSIGHT outputs \n\n"
      "  -a              Unlocking communication \n\n"
      "  -stdout         Standard output \n\n"
      "  -h             this message.\n\n");

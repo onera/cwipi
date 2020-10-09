@@ -74,7 +74,7 @@ namespace cwipi {
 
     virtual ~SpatialInterp();
 
-    virtual void init(Coupling *coupling, CWP_Field_value_t pointsCloudLocation,int slave) =0;
+    virtual void init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation,int slave) =0;
 
     virtual void spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) =0;
 
@@ -168,7 +168,7 @@ namespace cwipi {
      * \brief Setting user target points
      *
      * This function must be called if the nature of receiving fieldsDouble
-     * is \ref CWP_FIELD_VALUE_USER
+     * is \ref CWP_DOF_LOCATION_USER
      *
      * \param [in]  n_pts   Number of points
      * \param [in]  coords   Coordinates (size = 3 * n_pts)

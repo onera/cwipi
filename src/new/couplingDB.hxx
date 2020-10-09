@@ -72,8 +72,8 @@ namespace cwipi {
      const CWP_Comm_t           commType,
      const CWP_Spatial_interp_t           spatialInterpAlgo,
      const int                    nPart,
-     const CWP_Displacement_t  movingStatus,
-     const CWP_Freq_t           recvFreqType
+     const CWP_Dynamic_mesh_t  movingStatus,
+     const CWP_Time_exch_t           recvFreqType
     );
 
     /**

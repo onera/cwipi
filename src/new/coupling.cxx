@@ -97,8 +97,8 @@ namespace cwipi {
    const CodeProperties       &coupledCodeProperties,
    const CWP_Spatial_interp_t           spatialInterpAlgo,
    const int                  nPart,
-   const CWP_Displacement_t   displacement,
-   const CWP_Freq_t           recvFreqType,
+   const CWP_Dynamic_mesh_t   displacement,
+   const CWP_Time_exch_t           recvFreqType,
    CouplingDB                 &cplDB
    )
   :_cplId(cplId),
@@ -106,7 +106,7 @@ namespace cwipi {
    _communication(*(FC::getInstance().CreateObject(cplType))),
    _localCodeProperties(localCodeProperties),
    _coupledCodeProperties(coupledCodeProperties),
-   _spatial_interp(*new std::map <CWP_Field_value_t, SpatialInterp*>()),
+   _spatial_interp(*new std::map <CWP_Dof_location_t, SpatialInterp*>()),
    _mesh(*new Mesh(localCodeProperties.connectableCommGet(),NULL,nPart,displacement,this)),
    _recvFreqType (recvFreqType),
    _visu(*new Visu(localCodeProperties.connectableCommGet(),displacement)),
@@ -135,21 +135,21 @@ namespace cwipi {
         _mesh.setVisu(&_visu);
         mesh_cpl->setVisu(visu_cpl);
 
-        std::map <CWP_Field_value_t, SpatialInterp*>* _spatial_interp_cpl = distCpl.spatialInterpGet();
+        std::map <CWP_Dof_location_t, SpatialInterp*>* _spatial_interp_cpl = distCpl.spatialInterpGet();
 
         //SpatialInterp initialization
         //_spatial_interp[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(spatialInterpAlgo);
-        _spatial_interp[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(spatialInterpAlgo);
-        _spatial_interp[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(spatialInterpAlgo);
-        _spatial_interp[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(spatialInterpAlgo);
+        _spatial_interp[CWP_DOF_LOCATION_CELL_CENTER] = FG::getInstance().CreateObject(spatialInterpAlgo);
+        _spatial_interp[CWP_DOF_LOCATION_NODE] = FG::getInstance().CreateObject(spatialInterpAlgo);
+        _spatial_interp[CWP_DOF_LOCATION_USER] = FG::getInstance().CreateObject(spatialInterpAlgo);
 
         //(*_spatial_interp_cpl)[CWP_FIELD_VALUE_CELL_MEAN]  = FG::getInstance().CreateObject(spatialInterpAlgo);
-        (*_spatial_interp_cpl)[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(spatialInterpAlgo);
-        (*_spatial_interp_cpl)[CWP_FIELD_VALUE_NODE]       = FG::getInstance().CreateObject(spatialInterpAlgo);
-        (*_spatial_interp_cpl)[CWP_FIELD_VALUE_USER]       = FG::getInstance().CreateObject(spatialInterpAlgo);
+        (*_spatial_interp_cpl)[CWP_DOF_LOCATION_CELL_CENTER] = FG::getInstance().CreateObject(spatialInterpAlgo);
+        (*_spatial_interp_cpl)[CWP_DOF_LOCATION_NODE]       = FG::getInstance().CreateObject(spatialInterpAlgo);
+        (*_spatial_interp_cpl)[CWP_DOF_LOCATION_USER]       = FG::getInstance().CreateObject(spatialInterpAlgo);
 
         //SpatialInterp initialization
-        std::map <CWP_Field_value_t, SpatialInterp*>::iterator it = _spatial_interp_cpl->begin();
+        std::map <CWP_Dof_location_t, SpatialInterp*>::iterator it = _spatial_interp_cpl->begin();
 
         while (it != _spatial_interp_cpl->end()) {
          (it -> second) -> init(&distCpl,it->first,1);
@@ -196,11 +196,11 @@ namespace cwipi {
        _mesh.setVisu(&_visu);
       //SpatialInterp creation
      // _spatial_interp[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(spatialInterpAlgo);
-      _spatial_interp[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(spatialInterpAlgo);
-      _spatial_interp[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(spatialInterpAlgo);
-      _spatial_interp[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(spatialInterpAlgo);
+      _spatial_interp[CWP_DOF_LOCATION_CELL_CENTER] = FG::getInstance().CreateObject(spatialInterpAlgo);
+      _spatial_interp[CWP_DOF_LOCATION_NODE] = FG::getInstance().CreateObject(spatialInterpAlgo);
+      _spatial_interp[CWP_DOF_LOCATION_USER] = FG::getInstance().CreateObject(spatialInterpAlgo);
       //SpatialInterp initialization
-        std::map <CWP_Field_value_t, SpatialInterp*>::iterator it = _spatial_interp.begin();
+        std::map <CWP_Dof_location_t, SpatialInterp*>::iterator it = _spatial_interp.begin();
         while (it != _spatial_interp.end()) {
           (it -> second) -> init(this,it->first,0);
           it++;
@@ -218,7 +218,7 @@ namespace cwipi {
        _visu.WriterStepEnd();
     }
 
-    std::map <CWP_Field_value_t, SpatialInterp*>::iterator it = _spatial_interp.begin();
+    std::map <CWP_Dof_location_t, SpatialInterp*>::iterator it = _spatial_interp.begin();
     while (it != _spatial_interp.end()) {
        // delete it -> second;
         it++;
@@ -393,7 +393,7 @@ namespace cwipi {
    const CWP_Type_t           data_type,
    const CWP_Field_storage_t  storage,
    const int                  n_component,
-   const CWP_Field_value_t    fieldType,
+   const CWP_Dof_location_t    fieldType,
    const CWP_Field_exch_t     exch_type,
    const CWP_Status_t         visu_status
   )
@@ -431,7 +431,7 @@ namespace cwipi {
 
 
    void
-   Coupling::spatialInterpWeightsCompute (CWP_Field_value_t pointsCloudLocation, CWP_Field_exch_t exchange_type)
+   Coupling::spatialInterpWeightsCompute (CWP_Dof_location_t pointsCloudLocation, CWP_Field_exch_t exchange_type)
    {
      _spatial_interp[pointsCloudLocation] -> spatialInterpWeightsCompute(exchange_type);
 
@@ -440,7 +440,7 @@ namespace cwipi {
 
   int Coupling::nUncomputedTargetsGet
   (
-    const CWP_Field_value_t pointsCloudLocation,
+    const CWP_Dof_location_t pointsCloudLocation,
     const int  i_part
   )
   {
@@ -531,7 +531,7 @@ namespace cwipi {
    *
    */
 
-  CWP_Field_value_t Coupling::fieldTypeGet
+  CWP_Dof_location_t Coupling::fieldTypeGet
   (
     const string &field_id
   )
@@ -760,7 +760,7 @@ namespace cwipi {
                                 const int n_pts,
                                 double    coord[] )
   {
-    _spatial_interp[CWP_FIELD_VALUE_USER] -> user_target_points_set(i_part, n_pts, coord);
+    _spatial_interp[CWP_DOF_LOCATION_USER] -> user_target_points_set(i_part, n_pts, coord);
   }
 
 

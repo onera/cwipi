@@ -8,7 +8,7 @@ namespace cwipi {
    Field::Field (std::string            field_id    ,
            CWP_Type_t             dataType    ,
            Coupling*              cpl        ,
-           CWP_Field_value_t      fieldType   ,
+           CWP_Dof_location_t      fieldType   ,
            CWP_Field_storage_t    storage     ,
            int                    nComponent  ,
            CWP_Field_exch_t       exchangeType,

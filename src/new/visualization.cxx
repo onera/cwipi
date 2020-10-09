@@ -29,7 +29,7 @@
 
 namespace cwipi {
 
-  Visu::Visu(const MPI_Comm &MPIComm,const CWP_Displacement_t topology):
+  Visu::Visu(const MPI_Comm &MPIComm,const CWP_Dynamic_mesh_t topology):
                                       _visu_id(-1),_visu_mesh_id(-1),_freq(-1),
                                       _output_dir(NULL), 
                                       _output_name(NULL),  
@@ -77,9 +77,9 @@ namespace cwipi {
 
     PDM_writer_topologie_t pdm_topology = PDM_WRITER_TOPO_CONSTANTE;
     
-    if(_topology == CWP_DISPLACEMENT_STATIC)          pdm_topology  = PDM_WRITER_TOPO_CONSTANTE;
-    else if(_topology == CWP_DISPLACEMENT_DEFORMABLE) pdm_topology  = PDM_WRITER_TOPO_DEFORMABLE;
-    else if(_topology == CWP_DISPLACEMENT_VARIABLE  ) pdm_topology  = PDM_WRITER_TOPO_VARIABLE;   
+    if(_topology == CWP_DYNAMIC_MESH_STATIC)          pdm_topology  = PDM_WRITER_TOPO_CONSTANTE;
+    else if(_topology == CWP_DYNAMIC_MESH_DEFORMABLE) pdm_topology  = PDM_WRITER_TOPO_DEFORMABLE;
+    else if(_topology == CWP_DYNAMIC_MESH_VARIABLE  ) pdm_topology  = PDM_WRITER_TOPO_VARIABLE;   
 
     _output_dir  = output_dir; 
     _output_name = output_name;
@@ -309,13 +309,13 @@ namespace cwipi {
 
   void Visu::WriterFieldCreate(Field* field) {
 
-      CWP_Field_value_t CWPfielType = field -> typeGet();
+      CWP_Dof_location_t CWPfielType = field -> typeGet();
       int nComponent = field -> nComponentGet();
       PDM_writer_var_loc_t PDMfieldType;
       
-      if     (CWPfielType == CWP_FIELD_VALUE_CELL_POINT)   PDMfieldType = PDM_WRITER_VAR_ELEMENTS   ;
-      else if(CWPfielType == CWP_FIELD_VALUE_NODE)         PDMfieldType = PDM_WRITER_VAR_SOMMETS    ;      
-      else if(CWPfielType == CWP_FIELD_VALUE_USER)         PDMfieldType = PDM_WRITER_VAR_PARTICULES ;       
+      if     (CWPfielType == CWP_DOF_LOCATION_CELL_CENTER)   PDMfieldType = PDM_WRITER_VAR_ELEMENTS   ;
+      else if(CWPfielType == CWP_DOF_LOCATION_NODE)         PDMfieldType = PDM_WRITER_VAR_SOMMETS    ;      
+      else if(CWPfielType == CWP_DOF_LOCATION_USER)         PDMfieldType = PDM_WRITER_VAR_PARTICULES ;       
      
 
       PDM_writer_var_dim_t PDMfieldComp;
@@ -386,7 +386,7 @@ namespace cwipi {
   void Visu::WriterStepBegin(double physical_time,Mesh* mesh) {
     PDM_writer_step_beg(_visu_id,physical_time);
     _physical_time = physical_time;  
-    if(_topology != CWP_DISPLACEMENT_STATIC){
+    if(_topology != CWP_DYNAMIC_MESH_STATIC){
       for(int i_part=0;i_part<_n_part;i_part++) {
         int nVertex = mesh -> getPartNVertex(i_part);
         double* coords = mesh -> getVertexCoords(i_part);
@@ -438,7 +438,7 @@ namespace cwipi {
 
   void Visu::WriterStepEnd() {
   
-     if(_topology != CWP_DISPLACEMENT_STATIC)
+     if(_topology != CWP_DYNAMIC_MESH_STATIC)
        PDM_writer_geom_data_reset (_visu_id, _visu_mesh_id);
        
      PDM_writer_step_end(_visu_id); 

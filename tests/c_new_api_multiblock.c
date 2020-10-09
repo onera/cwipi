@@ -636,7 +636,7 @@ int main
      char* codeCpl="code2";
      CWP_Cpl_create (code_name, cpl_id1, codeCpl, CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, nb_part,
-                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+                    CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
      
    }
 
@@ -644,7 +644,7 @@ int main
       char* codeCpl="code1";
       CWP_Cpl_create (code_name, cpl_id1, codeCpl, CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, nb_part,
-                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+                    CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
      
    }
 
@@ -662,7 +662,7 @@ int main
    code_name = codeNames[i];
    int currentRank = currentRankA[i];
        
-    CWP_Visu_set(code_name, cpl_id1,1,Ensight,"text");
+    CWP_Visu_set(code_name, cpl_id1,1,CWP_VISU_FORMAT_ENSIGHT,"text");
 
 
     char* geoModelfile;
@@ -946,12 +946,12 @@ int main
 
       /* Rank field */
       CWP_Field_create (code_name,cpl_id1,"rank",CWP_DOUBLE,CWP_FIELD_STORAGE_BLOCK,1,
-                        CWP_FIELD_VALUE_CELL_POINT,
+                        CWP_DOF_LOCATION_CELL_CENTER,
                         CWP_FIELD_EXCH_SEND,
                         visu_status);
                         
       CWP_Field_create (code_name,cpl_id1,"rank_vtx",CWP_DOUBLE,CWP_FIELD_STORAGE_BLOCK,1,
-                        CWP_FIELD_VALUE_NODE,
+                        CWP_DOF_LOCATION_NODE,
                         CWP_FIELD_EXCH_SEND,
                         visu_status);                        
                         
@@ -961,12 +961,12 @@ int main
    if(code_name == "code2"){
               
     CWP_Field_create (code_name,cpl_id1,"rank",CWP_DOUBLE,CWP_FIELD_STORAGE_BLOCK,1,
-                      CWP_FIELD_VALUE_CELL_POINT,
+                      CWP_DOF_LOCATION_CELL_CENTER,
                       CWP_FIELD_EXCH_RECV,
                       visu_status);       
                       
     CWP_Field_create (code_name,cpl_id1,"rank_vtx",CWP_DOUBLE,CWP_FIELD_STORAGE_BLOCK,1,
-                      CWP_FIELD_VALUE_NODE,
+                      CWP_DOF_LOCATION_NODE,
                       CWP_FIELD_EXCH_RECV,
                       visu_status);      
                                          
@@ -1001,11 +1001,11 @@ for (int i = 0; i < n_code_name; i++ ) {
   //TODO: Calcul géom piloté par la nature des champs
 //Erreur si on crée un champ après le calcul
   code_name = codeNames[i];
-  CWP_Spatial_interp_weights_compute(code_name,cpl_id1, CWP_FIELD_VALUE_NODE);
-  CWP_Spatial_interp_weights_compute(code_name,cpl_id1, CWP_FIELD_VALUE_CELL_POINT);
+  CWP_Spatial_interp_weights_compute(code_name,cpl_id1, CWP_DOF_LOCATION_NODE);
+  CWP_Spatial_interp_weights_compute(code_name,cpl_id1, CWP_DOF_LOCATION_CELL_CENTER);
   for(int i_part =0; i_part<nb_part;i_part++) {
-    int n_uncomputed_node = CWP_N_uncomputed_tgts_get(code_name,cpl_id1, CWP_FIELD_VALUE_NODE,i_part);
-    int n_uncomputed_cell_value = CWP_N_uncomputed_tgts_get(code_name,cpl_id1, CWP_FIELD_VALUE_CELL_POINT,i_part);
+    int n_uncomputed_node = CWP_N_uncomputed_tgts_get(code_name,cpl_id1, CWP_DOF_LOCATION_NODE,i_part);
+    int n_uncomputed_cell_value = CWP_N_uncomputed_tgts_get(code_name,cpl_id1, CWP_DOF_LOCATION_CELL_CENTER,i_part);
     printf("  %i  vertices and   %i  cell centers have not been found on code %s proc %i partition %i\n",n_uncomputed_node,n_uncomputed_cell_value,code_name,rank,i_part);  
   }
   //Argument tag points localisé oui/non + print 
@@ -1043,14 +1043,14 @@ for (int i = 0; i < n_code_name; i++ ) {
           rank_data_vtx[i][i_part][j]= coords[i][i_part][3*j];          
       }
 
-      printf("CWP_Issend at %f\n",recv_time);
-      CWP_Issend (code_name,cpl_id1,"rank");    
-      CWP_Issend (code_name,cpl_id1,"rank_vtx");    
+      printf("CWP_Field_Issend at %f\n",recv_time);
+      CWP_Field_Issend (code_name,cpl_id1,"rank");    
+      CWP_Field_Issend (code_name,cpl_id1,"rank_vtx");    
    
     }
     else { 
-      CWP_Irecv (code_name,cpl_id1,"rank");
-      CWP_Irecv (code_name,cpl_id1,"rank_vtx");
+      CWP_Field_Irecv (code_name,cpl_id1,"rank");
+      CWP_Field_Irecv (code_name,cpl_id1,"rank_vtx");
     }
 
   }// end code loop  

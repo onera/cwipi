@@ -443,8 +443,8 @@ int main
                     CWP_COMM_PAR_WITH_PART,  // Coupling type
                     CWP_SPATIAL_INTERP_FROM_LOCATION,       // Solver type
                     nb_part,                 // Partition number
-                    CWP_DISPLACEMENT_STATIC, // Mesh type
-                    CWP_FREQ_CPL_TIME_STEP); // Postprocessing frequency
+                    CWP_DYNAMIC_MESH_STATIC, // Mesh type
+                    CWP_TIME_EXCH_CPL_TIME_STEP); // Postprocessing frequency
                     
     //  printf("   rank %i     After Create coupling code %i localCommSize %i\n",rank,i_code,11);               
                     
@@ -480,7 +480,7 @@ int main
     CWP_Visu_set(codeName[i_code], // Code name
                  "c_new_api_surf_cpl_P1P0_P0P1",     // Coupling id
                  1,           // Postprocessing frequency
-                 Ensight,     // Postprocessing format
+                 CWP_VISU_FORMAT_ENSIGHT,     // Postprocessing format
                  "text");     // Postprocessing option
   }
  
@@ -643,7 +643,7 @@ int main
                        CWP_DOUBLE,
                        CWP_FIELD_STORAGE_BLOCK,
                        1,
-                       CWP_FIELD_VALUE_NODE,
+                       CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_SEND,
                        visu_status);
 
@@ -653,7 +653,7 @@ int main
                        CWP_DOUBLE,
                        CWP_FIELD_STORAGE_BLOCK,
                        1,
-                       CWP_FIELD_VALUE_CELL_POINT,
+                       CWP_DOF_LOCATION_CELL_CENTER,
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
 
@@ -673,7 +673,7 @@ int main
                        CWP_DOUBLE,
                        CWP_FIELD_STORAGE_BLOCK,
                        1,
-                       CWP_FIELD_VALUE_NODE,
+                       CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
                      
@@ -683,7 +683,7 @@ int main
                      CWP_DOUBLE,
                      CWP_FIELD_STORAGE_BLOCK,
                      1,
-                     CWP_FIELD_VALUE_CELL_POINT,
+                     CWP_DOF_LOCATION_CELL_CENTER,
                      CWP_FIELD_EXCH_SEND,
                      visu_status);
 
@@ -722,12 +722,12 @@ int main
     CWP_next_recv_time_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",recv_time);
 
     if (codeName[i_code] == "code1") {
-      CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);   
-      CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);  
+      CWP_Field_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);   
+      CWP_Field_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);  
     }
     else {
-      CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);   
-      CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);    
+      CWP_Field_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);   
+      CWP_Field_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);    
     }
   }
 

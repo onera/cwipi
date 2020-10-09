@@ -66,7 +66,7 @@ namespace cwipi {
     Mesh(const MPI_Comm &localComm,
               Visu* visu,
               int npart,
-              CWP_Displacement_t displacement,
+              CWP_Dynamic_mesh_t displacement,
               Coupling           *cpl);
 
 
@@ -427,7 +427,7 @@ namespace cwipi {
 
    inline bool gnumVtxRequired ();
 
-   inline CWP_Displacement_t getDisplacement();
+   inline CWP_Dynamic_mesh_t getDisplacement();
    inline int getIdVisu(int block_id);
 
    /**
@@ -505,7 +505,7 @@ namespace cwipi {
     std::vector<cwipi::Block*>               _blockDB;                /*!< Blocks database  */
     Visu                                   *_visu;                   /*!< Pointer to the Visu object */
     std::map<int,int>                       _id_visu;                /*!< Map of the PDM_Writer block identifier */  
-    CWP_Displacement_t                      _displacement;          /*!< Type of mesh displacement */  
+    CWP_Dynamic_mesh_t                      _displacement;          /*!< Type of mesh displacement */  
     Coupling                               *_cpl;
 
 
@@ -530,7 +530,7 @@ namespace cwipi {
  
 
 
-  CWP_Displacement_t Mesh::getDisplacement() {
+  CWP_Dynamic_mesh_t Mesh::getDisplacement() {
     return _displacement;
   }
 

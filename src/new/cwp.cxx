@@ -653,8 +653,8 @@ CWP_Cpl_create
  const CWP_Comm_t          comm_type,
  const CWP_Spatial_interp_t  spatial_interp_algo,
  const int                 n_part,
- const CWP_Displacement_t  displacement,
- const CWP_Freq_t          recv_freq_type
+ const CWP_Dynamic_mesh_t  displacement,
+ const CWP_Time_exch_t          recv_freq_type
 )
 {
   cwipi::CouplingDB & couplingDB =
@@ -712,7 +712,7 @@ const char *cpl_id
 
 
  void
- CWP_Exch
+ CWP_Field_Exch
  (
  const char *local_code_name,
  const char *cpl_id
@@ -730,7 +730,7 @@ CWP_N_uncomputed_tgts_get
 (
  const char *local_code_name,
  const char *cpl_id,
- const CWP_Field_value_t pointsCloudLocation,
+ const CWP_Dof_location_t pointsCloudLocation,
  const int  i_part
 )
 {
@@ -805,7 +805,7 @@ CWP_N_uncomputed_tgts_get
 
 
  void
- CWP_next_recv_time_set
+ CWP_Next_recv_time_set
  (const char     *local_code_name,
   const char     *cpl_id,
   const double    next_time
@@ -828,7 +828,7 @@ CWP_Spatial_interp_weights_compute
 {
 
   typedef struct field_exch_type {
-    CWP_Field_value_t loc ;
+    CWP_Dof_location_t loc ;
     CWP_Field_exch_t  exch;
   };
 
@@ -842,12 +842,12 @@ CWP_Spatial_interp_weights_compute
   vector<int> fieldNameIdx;
   fieldNameIdx.push_back(0);
   std::vector<CWP_Field_exch_t> fieldExch;
-  std::vector<CWP_Field_value_t> fieldLocationV;
+  std::vector<CWP_Dof_location_t> fieldLocationV;
   std::map <std::string, cwipi::Field *>::iterator it = fields -> begin();
 
   while(it != fields -> end()){
     cwipi::Field* field = it -> second;
-    CWP_Field_value_t fieldLocation = field -> typeGet();
+    CWP_Dof_location_t fieldLocation = field -> typeGet();
     CWP_Field_exch_t  exchangeType  = field -> exchangeTypeGet();
     field_exch_type field_eT;
     field_eT.loc      = fieldLocation;
@@ -864,7 +864,7 @@ CWP_Spatial_interp_weights_compute
   int nb_field = fieldNameIdx.size() -1;
   vector<int              > fieldNameIdx_cpl (nb_field+1,0);
   vector<CWP_Field_exch_t > fieldExch_cpl    (nb_field  );
-  vector<CWP_Field_value_t> fieldLocationV_cpl(nb_field  );
+  vector<CWP_Dof_location_t> fieldLocationV_cpl(nb_field  );
   string fieldName_cpl;
 
   MPI_Comm unionComm = cpl.communicationGet()-> unionCommGet();
@@ -902,8 +902,8 @@ CWP_Spatial_interp_weights_compute
                  unionComm,&status);
 
     tag++;
-    MPI_Sendrecv(&(fieldLocationV    [0]), sizeof(CWP_Field_value_t)*fieldLocationV    .size(),MPI_BYTE,unionCommCplCodeRootRank,tag,
-                 &(fieldLocationV_cpl[0]), sizeof(CWP_Field_value_t)*fieldLocationV_cpl.size(),MPI_BYTE,unionCommCplCodeRootRank,tag,
+    MPI_Sendrecv(&(fieldLocationV    [0]), sizeof(CWP_Dof_location_t)*fieldLocationV    .size(),MPI_BYTE,unionCommCplCodeRootRank,tag,
+                 &(fieldLocationV_cpl[0]), sizeof(CWP_Dof_location_t)*fieldLocationV_cpl.size(),MPI_BYTE,unionCommCplCodeRootRank,tag,
                  unionComm,&status);
 
     tag++;
@@ -916,13 +916,13 @@ CWP_Spatial_interp_weights_compute
 
   int id     = cpl.localCodePropertiesGet()   -> idGet();
   int id_cpl = cpl.coupledCodePropertiesGet() -> idGet();
-  int slave  = cpl.spatialInterpGet(CWP_FIELD_VALUE_NODE) -> slaveGet();
-  int both_local = cpl.spatialInterpGet(CWP_FIELD_VALUE_NODE) -> bothLocalGet();
+  int slave  = cpl.spatialInterpGet(CWP_DOF_LOCATION_NODE) -> slaveGet();
+  int both_local = cpl.spatialInterpGet(CWP_DOF_LOCATION_NODE) -> bothLocalGet();
   if(both_local == 0 || (both_local == 1 && id < id_cpl) ){
 
     std::vector <int> tmp(3,0);
     std::vector <int> tmp_fieldNameIdx(fieldNameIdx.size(),0);
-    std::vector <CWP_Field_value_t> tmp_fieldLocationV(fieldLocationV.size());
+    std::vector <CWP_Dof_location_t> tmp_fieldLocationV(fieldLocationV.size());
     std::vector <CWP_Field_exch_t> tmp_fieldExch(fieldExch.size());
 
     string tmp_fieldName;
@@ -937,8 +937,8 @@ CWP_Spatial_interp_weights_compute
       MPI_Bcast(&(fieldName_cpl[0]),fieldName_cpl.size(),MPI_CHAR,unionCommLocCodeRootRank,unionComm);
       MPI_Bcast(&(tmp_fieldName[0]),tmp_fieldName.size(),MPI_CHAR,unionCommCplCodeRootRank,unionComm);
 
-      MPI_Bcast(&(fieldLocationV_cpl[0]),sizeof(CWP_Field_value_t)*fieldLocationV_cpl.size(),MPI_BYTE,unionCommLocCodeRootRank,unionComm);
-      MPI_Bcast(&(tmp_fieldLocationV[0]),sizeof(CWP_Field_value_t)*tmp_fieldLocationV.size(),MPI_BYTE,unionCommCplCodeRootRank,unionComm);
+      MPI_Bcast(&(fieldLocationV_cpl[0]),sizeof(CWP_Dof_location_t)*fieldLocationV_cpl.size(),MPI_BYTE,unionCommLocCodeRootRank,unionComm);
+      MPI_Bcast(&(tmp_fieldLocationV[0]),sizeof(CWP_Dof_location_t)*tmp_fieldLocationV.size(),MPI_BYTE,unionCommCplCodeRootRank,unionComm);
 
       MPI_Bcast(&(fieldExch_cpl[0]),sizeof(CWP_Field_exch_t)*fieldExch_cpl.size(),MPI_BYTE,unionCommLocCodeRootRank,unionComm);
       MPI_Bcast(&(tmp_fieldExch[0]),sizeof(CWP_Field_exch_t)*tmp_fieldExch.size(),MPI_BYTE,unionCommCplCodeRootRank,unionComm);
@@ -955,8 +955,8 @@ CWP_Spatial_interp_weights_compute
          MPI_Bcast(&(tmp_fieldName[0]),tmp_fieldName.size(),MPI_CHAR,unionCommCplCodeRootRank,unionComm);
          MPI_Bcast(&(fieldName_cpl[0]),fieldName_cpl.size(),MPI_CHAR,unionCommLocCodeRootRank,unionComm);
 
-         MPI_Bcast(&(tmp_fieldLocationV[0]),sizeof(CWP_Field_value_t)*tmp_fieldLocationV.size(),MPI_BYTE,unionCommCplCodeRootRank,unionComm);
-         MPI_Bcast(&(fieldLocationV_cpl[0]),sizeof(CWP_Field_value_t)*fieldLocationV_cpl.size(),MPI_BYTE,unionCommLocCodeRootRank,unionComm);
+         MPI_Bcast(&(tmp_fieldLocationV[0]),sizeof(CWP_Dof_location_t)*tmp_fieldLocationV.size(),MPI_BYTE,unionCommCplCodeRootRank,unionComm);
+         MPI_Bcast(&(fieldLocationV_cpl[0]),sizeof(CWP_Dof_location_t)*fieldLocationV_cpl.size(),MPI_BYTE,unionCommLocCodeRootRank,unionComm);
 
          MPI_Bcast(&(tmp_fieldExch[0]),sizeof(CWP_Field_exch_t)*tmp_fieldExch.size(),MPI_BYTE,unionCommCplCodeRootRank,unionComm);
          MPI_Bcast(&(fieldExch_cpl[0]),sizeof(CWP_Field_exch_t)*fieldExch_cpl.size(),MPI_BYTE,unionCommLocCodeRootRank,unionComm);
@@ -980,7 +980,7 @@ CWP_Spatial_interp_weights_compute
         fieldNameIdx_cpl.push_back( fieldNameIdx_cpl[fieldNameIdx_cpl.size()-1] + it->first.size() );
         fieldName_cpl += it->first;
         cwipi::Field* field_cpl = it -> second;
-        CWP_Field_value_t fieldLocation = field_cpl -> typeGet();
+        CWP_Dof_location_t fieldLocation = field_cpl -> typeGet();
         fieldLocationV_cpl.push_back(fieldLocation);
         CWP_Field_exch_t  exchangeType  = field_cpl -> exchangeTypeGet();
         fieldExch_cpl.push_back(exchangeType);
@@ -999,7 +999,7 @@ CWP_Spatial_interp_weights_compute
        //printf("field_name %s %s %i %i\n",field_name.c_str(),fieldName_cpl.c_str(),fieldNameIdx_cpl[i], fieldNameIdx_cpl[i+1]);
      }
 
-    static const char *CWP_Field_value_t_str[] = {"CWP_FIELD_VALUE_CELL_POINT","CWP_FIELD_VALUE_NODE","CWP_FIELD_VALUE_USER"};
+    static const char *CWP_Dof_location_t_str[] = {"CWP_DOF_LOCATION_CELL_CENTER","CWP_DOF_LOCATION_NODE","CWP_DOF_LOCATION_USER"};
     static const char *CWP_Field_exch_t_str [] = {"CWP_FIELD_EXCH_SEND","CWP_FIELD_EXCH_RECV","CWP_FIELD_EXCH_SENDRECV"};
     std::vector<int> exchangeTypeByLocation(3,0);
 
@@ -1035,18 +1035,18 @@ CWP_Spatial_interp_weights_compute
          }
        }
 
-       //printf(" %s typeGet() %s associatedCloudPointTypeGet %s rank %i exchangeTypeGet %i\n",it->first.c_str(),CWP_Field_value_t_str[it -> second -> typeGet()],
-       //CWP_Field_value_t_str[static_cast<int>(it -> second -> associatedCloudPointTypeGet())],rank,it -> second ->  exchangeTypeGet());
+       //printf(" %s typeGet() %s associatedCloudPointTypeGet %s rank %i exchangeTypeGet %i\n",it->first.c_str(),CWP_Dof_location_t_str[it -> second -> typeGet()],
+       //CWP_Dof_location_t_str[static_cast<int>(it -> second -> associatedCloudPointTypeGet())],rank,it -> second ->  exchangeTypeGet());
        it++;
      }
 
 
       /*  Building of possible cloud points type vector */
-      std::vector<CWP_Field_value_t> locationV = {CWP_FIELD_VALUE_CELL_POINT, CWP_FIELD_VALUE_NODE, CWP_FIELD_VALUE_USER};
+      std::vector<CWP_Dof_location_t> locationV = {CWP_DOF_LOCATION_CELL_CENTER, CWP_DOF_LOCATION_NODE, CWP_DOF_LOCATION_USER};
 
       // Iteration over the possilbe cloud points type
       for(size_t i_location=0; i_location < locationV.size(); i_location++){
-        CWP_Field_value_t pointsCloudLocation = locationV[i_location];
+        CWP_Dof_location_t pointsCloudLocation = locationV[i_location];
         int spatialInterpComputeSend  = 0;
         int spatialInterpComputeRcv = 0;
 
@@ -1090,7 +1090,7 @@ CWP_Spatial_interp_weights_compute
               cpl.spatialInterpWeightsCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND);
             }
           }
-         // printf("pointsCloudLocation %s rank %i %i %i id<id_cpl %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, spatialInterpComputeSend, spatialInterpComputeRcv,id<id_cpl );
+         // printf("pointsCloudLocation %s rank %i %i %i id<id_cpl %i\n", CWP_Dof_location_t_str[static_cast<int>( pointsCloudLocation )],rank, spatialInterpComputeSend, spatialInterpComputeRcv,id<id_cpl );
 
         }
         else if (spatialInterpComputeRcv == 1 && spatialInterpComputeSend == 0) {
@@ -1103,7 +1103,7 @@ CWP_Spatial_interp_weights_compute
          }
           else if (both_local == 0) {
             cpl.spatialInterpWeightsCompute(pointsCloudLocation, exchange_type);
-            //printf("pointsCloudLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, spatialInterpComputeSend, spatialInterpComputeRcv );
+            //printf("pointsCloudLocation %s rank %i %i %i\n", CWP_Dof_location_t_str[static_cast<int>( pointsCloudLocation )],rank, spatialInterpComputeSend, spatialInterpComputeRcv );
           }
         }
         else if (spatialInterpComputeSend == 1 && spatialInterpComputeRcv == 0) {
@@ -1116,7 +1116,7 @@ CWP_Spatial_interp_weights_compute
           }
           else if (both_local == 0) {
             cpl.spatialInterpWeightsCompute(pointsCloudLocation, exchange_type);
-           // printf("pointsCloudLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, spatialInterpComputeSend, spatialInterpComputeRcv );
+           // printf("pointsCloudLocation %s rank %i %i %i\n", CWP_Dof_location_t_str[static_cast<int>( pointsCloudLocation )],rank, spatialInterpComputeSend, spatialInterpComputeRcv );
           }
         }
        if((both_local == 1 && id < id_cpl) || both_local == 0) MPI_Barrier(unionComm);
@@ -1440,7 +1440,7 @@ CWP_Mesh_interf_shared_fvm_nodal
   const CWP_Type_t             data_type,
   const CWP_Field_storage_t    storage,
   const int                    n_component,
-  const CWP_Field_value_t      value_location,
+  const CWP_Dof_location_t      value_location,
   const CWP_Field_exch_t       exchange_type,
   const CWP_Status_t           visu_status)
  {
@@ -1503,8 +1503,8 @@ CWP_Mesh_interf_shared_fvm_nodal
  }
 
 
- CWP_Field_value_t
- CWP_Field_triplet_location_get
+ CWP_Dof_location_t
+ CWP_Field_target_dof_location_get
  (
   const char                  *local_code_name,
   const char                  *cpl_id,
@@ -1560,7 +1560,7 @@ CWP_Mesh_interf_shared_fvm_nodal
 
 
  void
- CWP_Issend
+ CWP_Field_Issend
  (const char        *local_code_name,
   const char        *cpl_id,
   const char        *referenceFieldID)
@@ -1576,7 +1576,7 @@ CWP_Mesh_interf_shared_fvm_nodal
 
 
  void
- CWP_Irecv
+ CWP_Field_Irecv
  (const char        *local_code_name,
   const char        *cpl_id,
   const char        *targetFieldID)
