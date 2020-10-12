@@ -27,6 +27,7 @@
 #include <assert.h>
 
 #include "cwp.h"
+#include "cwp_priv.h"
 #include "cwipi.h"
 #include "cwipi_config.h"
 #include "pdm_part.h"
@@ -805,15 +806,15 @@ g
       recv_time *= 0.01;
       if (codeName == "code1") {
         CWP_Field_Issend (codeName,"new_cpl",fieldName1);
-        CWP_Wait_issend (codeName,"new_cpl",fieldName1);
+        CWP_Field_wait_issend (codeName,"new_cpl",fieldName1);
  /*     CWP_Field_Irecv  (codeName,"new_cpl",fieldName2);
-      CWP_Wait_irecv  (codeName,"new_cpl",fieldName2);
+      CWP_Field_wait_irecv  (codeName,"new_cpl",fieldName2);
  */     }
       else {
         CWP_Field_Irecv  (codeName,"new_cpl",fieldName1);
-        CWP_Wait_irecv  (codeName,"new_cpl",fieldName1);
+        CWP_Field_wait_irecv  (codeName,"new_cpl",fieldName1);
   /*    CWP_Field_Issend (codeName,"new_cpl",fieldName2);
-      CWP_Wait_issend (codeName,"new_cpl",fieldName2);
+      CWP_Field_wait_issend (codeName,"new_cpl",fieldName2);
   */  }
 
       PDM_timer_hang_on(timer2);

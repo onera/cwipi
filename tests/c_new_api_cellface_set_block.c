@@ -25,6 +25,7 @@
 #include <mpi.h>
 #include <math.h>
 #include "cwp.h"
+#include "cwp_priv.h"
 
 /*----------------------------------------------------------------------
  *

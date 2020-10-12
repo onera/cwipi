@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2017  ONERA
 
@@ -25,13 +25,14 @@
 #include <mpi.h>
 
 #include "cwp.h"
+#include "cwp_priv.h"
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Main : linear coupling test                                         
+ *
+ * Main : linear coupling test
  *
  *---------------------------------------------------------------------*/
- 
+
 int main
 (
  int    argc,    /* Nombre d'arguments dans la ligne de commandes */
@@ -62,7 +63,7 @@ int main
   else
     srcBaseName = srcName;
 
-  if (rank == 0) 
+  if (rank == 0)
     printf("\nSTART: %s\n", srcBaseName);
 
 
@@ -163,9 +164,9 @@ int main
     is_coupled_rank[1] = CWP_STATUS_ON;
   }
 
-   
+
   char* fileName = NULL;
-  if (rank == 0) 
+  if (rank == 0)
     fileName="c_new_api_0000.txt";
   else if (rank == 1)
     fileName="c_new_api_0001.txt";
@@ -193,9 +194,9 @@ int main
   //CWP_Output_file_set (outputFile);
 
   for (int i = 0; i < n_code_name; i++) {
-    times_init[i] = 0; 
+    times_init[i] = 0;
   }
-  
+
   MPI_Comm *localComm = malloc(sizeof(MPI_Comm)*n_code_name);
   CWP_Init(MPI_COMM_WORLD,
            n_code_name,
@@ -218,33 +219,33 @@ int main
 
   /* Finalize
    * -------- */
-  
+
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
     int toto = 111;
-    CWP_Param_lock ("code1");    
+    CWP_Param_lock ("code1");
     //  MPI_Barrier (MPI_COMM_WORLD);
     CWP_Param_add ("code1", "toto", CWP_INT, &toto);
     char *A = "Bonjour !";
     CWP_Param_add ("code1", "toto2", CWP_CHAR, &A);
-    CWP_Param_unlock ("code1");    
+    CWP_Param_unlock ("code1");
   }
   //  else {
- 
+
   MPI_Barrier (MPI_COMM_WORLD);
-    
+
   // }
 
   int titi;
   CWP_Param_get ("code1", "toto", CWP_INT, &titi);
-  
+
   char *titi2;
   CWP_Param_get ("code1", "toto2", CWP_CHAR, &titi2);
-  
+
   free (titi2);
   assert(titi == 111);
 
   CWP_Properties_dump ();
-   
+
   char cpl_id1[] = "cpl_code1_code2";
   char cpl_id2[] = "cpl_code1_code3";
   char cpl_id3[] = "cpl_code2_code3";
@@ -253,7 +254,7 @@ int main
   char cpl_id6[] = "cpl_code2_code4";
 
   // cpl1
-  
+
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
     CWP_Cpl_create ("code1", cpl_id1, "code2", CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, 1,
@@ -261,14 +262,14 @@ int main
 
 
   }
-   
+
 
   if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
     CWP_Cpl_create ("code2", cpl_id1, "code1", CWP_COMM_PAR_WITHOUT_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, 1,
                     CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
   }
-  
+
   // cpl2
 
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
@@ -276,21 +277,21 @@ int main
                     CWP_SPATIAL_INTERP_FROM_LOCATION, 1,
                     CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
   }
-   
+
   if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
     CWP_Cpl_create ("code3", cpl_id2, "code1", CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, 1,
                     CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
   }
-  
+
   // cpl3
-     
+
   if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
     CWP_Cpl_create ("code2", cpl_id3, "code3", CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, 1,
                     CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
   }
-  
+
   if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
     CWP_Cpl_create ("code3", cpl_id3, "code2", CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, 1,
@@ -298,13 +299,13 @@ int main
   }
 
   // cpl4
-     
+
   if (rank == 2 || rank == 4 || rank == 8) {
     CWP_Cpl_create ("code4", cpl_id4, "code3", CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, 1,
                     CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
   }
-  
+
   if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
     CWP_Cpl_create ("code3", cpl_id4, "code4", CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, 1,
@@ -315,27 +316,27 @@ int main
   fflush(stdout);
 
   // cpl5
-  
+
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
     CWP_Cpl_create ("code1", cpl_id5, "code4", CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, 1,
                     CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
   }
-     
+
   if (rank == 2 || rank == 4 || rank == 8) {
     CWP_Cpl_create ("code4", cpl_id5, "code1", CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, 1,
                     CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
   }
-  
+
   // cpl6
-     
+
   if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
     CWP_Cpl_create ("code2", cpl_id6, "code4", CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, 1,
                     CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
-  } 
-     
+  }
+
   if (rank == 2 || rank == 4 || rank == 8) {
     CWP_Cpl_create ("code4", cpl_id6, "code2", CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, 1,

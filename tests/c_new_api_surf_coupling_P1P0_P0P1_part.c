@@ -26,6 +26,7 @@
 #include <math.h>
 
 #include "cwp.h"
+#include "cwp_priv.h"
 #include "grid_mesh.h"
 
 
@@ -1077,24 +1078,24 @@ int main
 
     if (codeName[i_code] == "code1") {
       if(code1I==1) CWP_Field_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);
-      if(code1I==1) CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);
+      if(code1I==1) CWP_Field_wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);
 
       if(code6I==1) CWP_Field_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName6);
-      if(code6I==1) CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName6);
+      if(code6I==1) CWP_Field_wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName6);
 
       if(code7I==1) CWP_Field_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName7);
-      if(code7I==1) CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName7);
+      if(code7I==1) CWP_Field_wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName7);
 
     }
     else {
      if(code1I==1) CWP_Field_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);
-     if(code1I==1) CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);
+     if(code1I==1) CWP_Field_wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);
 
      if(code6I==1) CWP_Field_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part"     ,fieldName6);
-     if(code6I==1) CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName6);
+     if(code6I==1) CWP_Field_wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName6);
 
      if(code7I==1) CWP_Field_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part"     ,fieldName7);
-     if(code7I==1) CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName7);
+     if(code7I==1) CWP_Field_wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName7);
 
     }
   }
@@ -1104,12 +1105,12 @@ int main
 
     if (codeName[i_code] == "code1") {
       if(code2I==1) CWP_Field_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);
-      if(code2I==1) CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);
+      if(code2I==1) CWP_Field_wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);
 
     }
     else {
      if(code2I==1) CWP_Field_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);
-     if(code2I==1) CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);
+     if(code2I==1) CWP_Field_wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);
     }
   }
 
@@ -1120,12 +1121,12 @@ int main
     if (codeName[i_code] == "code1") {
 
       if(code3I==1) CWP_Field_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);
-      if(code3I==1) CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);
+      if(code3I==1) CWP_Field_wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);
 
     }
     else {
      if(code3I==1) CWP_Field_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);
-     if(code3I==1) CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);
+     if(code3I==1) CWP_Field_wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);
     }
   }
 
@@ -1134,11 +1135,11 @@ int main
   for(int i_code = 0; i_code < n_code_name; i_code++) {
     if (codeName[i_code] == "code1") {
       if(code4I==1) CWP_Field_Issend      (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4);
-      if(code4I==1) CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4);
+      if(code4I==1) CWP_Field_wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4);
     }
     else {
      if(code4I==1) CWP_Field_Irecv       (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4);
-     if(code4I==1) CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4);
+     if(code4I==1) CWP_Field_wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4);
     }
   }
 
@@ -1147,11 +1148,11 @@ int main
   for(int i_code = 0; i_code < n_code_name; i_code++) {
     if (codeName[i_code] == "code1") {
       if(code5I==1) CWP_Field_Irecv      (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);
-      if(code5I==1) CWP_Wait_irecv (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);
+      if(code5I==1) CWP_Field_wait_irecv (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);
     }
     else {
      if(code5I==1) CWP_Field_Issend      (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);
-     if(code5I==1) CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);
+     if(code5I==1) CWP_Field_wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);
     }
   }
 

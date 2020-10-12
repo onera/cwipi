@@ -463,7 +463,8 @@ CWP_Init
 
 void
 CWP_Finalize
-(void
+(
+ void
 );
 
 /*----------------------------------------------------------------------------*
@@ -473,9 +474,8 @@ CWP_Finalize
 /**
  * \brief Update code state.
  *
- * This function set the code state.
- *
- * \param [in] state    State
+ * \param [in] local_code_name  Local code name
+ * \param [in] state            State
  *
  */
 
@@ -487,18 +487,10 @@ CWP_State_update
 );
 
 
-
-MPI_Comm
-CWP_Connectable_comm_get
-(
-  char* local_code_name
-);
-
 /**
- * \brief Update code time
+ * \brief Update code time.
  *
- * This function update the code current time.
- *
+ * \param [in] local_code_name  Local code name
  * \param [in]  current_time Current time
  *
  */
@@ -545,12 +537,11 @@ FILE *output_file
  *----------------------------------------------------------------------------*/
 
 /**
- * \brief Code state.
- *
- * This function return the state code.
+ * \brief Return code state.
  *
  * \param [in]  code_name    Code name
  *
+ * \return      Code state
  */
 
 CWP_State_t
@@ -563,6 +554,8 @@ CWP_State_get
 /**
  * \brief Return the number of codes known by CWIPI.
  *
+ * \return Number of codes
+ *
  */
 
 int
@@ -574,6 +567,7 @@ CWP_Codes_nb_get
 /**
  * \brief Return the list of code names known by CWIPI.
  *
+ * \return list of codes.
  */
 
 const char **
@@ -586,6 +580,7 @@ void
 /**
  * \brief Return the number of local codes known by CWIPI.
  *
+ * \return number of local codes.
  */
 
 int
@@ -598,6 +593,7 @@ CWP_Loc_codes_nb_get
 /**
  * \brief Return the list of local code names known by CWIPI.
  *
+ * \return list of local codes.
  */
 
 const char **
@@ -613,13 +609,12 @@ CWP_Loc_codes_list_get
 /**
  * \brief Dump code properties.
  *
- * This function dump code properties.
- *
  */
 
 void
 CWP_Properties_dump
-(void
+(
+void
 );
 
 /*----------------------------------------------------------------------------*
@@ -880,9 +875,9 @@ CWP_Computed_tgts_dist_to_spatial_interp_get
 //----------------------------------------------------------------------------
 
 /**
- * \brief Setting receiving frequency.
+ * \brief Set receiving frequency. <b>(Not implemented yet)</b>
  *
- * This function set receiving frequency. It must be used when
+ * This function set the receiving frequency. It must be used when
  * the type of receiving frequency is \ref CWP_TIME_EXCH_RELATED_N_TIME_STEP
  *
  * \param [in]  local_code_name  Local code name
@@ -945,7 +940,7 @@ CWP_Cpl_time_step_set
  *----------------------------------------------------------------------------*/
 
 /**
- * \brief Compute spatial interpolation weights
+ * \brief Compute spatial interpolation weights.
  *
  * \param [in]  local_code_name     Local code name
  * \param [in]  cpl_id              Coupling identifier
@@ -960,7 +955,7 @@ CWP_Spatial_interp_weights_compute
 );
 
 /**
- * \brief Set the properties of the spatial interpolation algorithm
+ * \brief Set the properties of the spatial interpolation algorithm. <b>(Not implemented yet)</b>
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -970,7 +965,7 @@ CWP_Spatial_interp_weights_compute
  */
 
 void
-CWP_spatial_interp_properties_set
+CWP_Spatial_interp_properties_set
 (
  const char     *local_code_name,
  const char     *cpl_id,
@@ -983,9 +978,7 @@ CWP_spatial_interp_properties_set
  *----------------------------------------------------------------------------*/
 
 /**
- * \brief Enable visualization output
- *
- * This function enable visualization output.
+ * \brief Enable visualization output.
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -1016,23 +1009,24 @@ CWP_spatial_interp_properties_set
  */
 
 void
- CWP_Visu_set
- (const char                 *local_code_name,
-  const char                 *cpl_id,
-  const int                   freq,
-  const CWP_Visu_format_t     format,
-  const char                 *format_option
- );
+CWP_Visu_set
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const int                   freq,
+ const CWP_Visu_format_t     format,
+ const char                 *format_option
+);
 
 /*----------------------------------------------------------------------------*
  * Functions about User target points                                         *
  *----------------------------------------------------------------------------*/
 
 /**
- * \brief Setting user target points
+ * \brief Setting user target points.
  *
- * This function must be called if the nature of receiving fieldsDouble
- * is \ref CWP_DOF_LOCATION_USER
+ * This function must be called if the degrees of freedom locations are
+ * \ref CWP_DOF_LOCATION_USER
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -1073,6 +1067,7 @@ CWP_Mesh_interf_finalize
  const char           *local_code_name,
  const char           *cpl_id
 );
+
 
 /**
  * \brief Set vertices.
@@ -1224,7 +1219,7 @@ CWP_Mesh_interf_block_std_set
 
 
 /**
- * \brief Set a generic high order block to the interface mesh
+ * \brief Set a generic high order block to the interface mesh. <b>(Not implemented yet)</b>
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -1237,7 +1232,6 @@ CWP_Mesh_interf_block_std_set
  *
  */
 
-/*
 void
 CWP_Mesh_interf_h_order_block_set
 (
@@ -1250,7 +1244,7 @@ CWP_Mesh_interf_h_order_block_set
  int                connec[],
  CWP_g_num_t        global_num[]
 );
-*/
+
 
 /**
  * \brief Set the connectivity of a polygon block in a interface mesh partition.
@@ -1336,7 +1330,7 @@ CWP_Mesh_interf_del
 
 
 /**
- * \brief Map a PDM mesh nodal as interface mesh.
+ * \brief Map a PDM mesh nodal as interface mesh. <b>(Not implemented yet)</b>
  *
  * \param [in] local_code_name   Local code name
  * \param [in] cpl_id            Coupling identifier
@@ -1489,7 +1483,7 @@ CWP_Field_data_set
 
 /**
  *
- * \brief Set field gradient (optional).  <b>(Not implemented yet)</b>
+ * \brief Set field gradient (optional). <b>(Not implemented yet)</b>
  *
  * \param [in] local_code_name Local code name
  * \param [in] cpl_id          Coupling identifier
@@ -1539,7 +1533,7 @@ CWP_Field_n_component_get
  * \param [in] cpl_id           Coupling identifier
  * \param [in] field_id         Field identifier
  *
- * \return                      Field nature
+ * \return                      Location of degrees of freedom
  *
  */
 
@@ -1554,7 +1548,7 @@ CWP_Field_target_dof_location_get
 
 /**
  *
- * \brief Get field data type.
+ * \brief Get field data type.  <b>(Not implemented yet)</b>
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -1678,10 +1672,7 @@ CWP_Field_Irecv
 
 /**
  *
- * \brief Waiting of the end of exchange related to request.
- *
- * This function waits the end of exchange related to request
- * from \ref CWP_Issend
+ * \brief Wait the end of an exchange related to request from \ref CWP_Field_issend.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -1689,7 +1680,7 @@ CWP_Field_Irecv
  */
 
 void
-CWP_Wait_issend
+CWP_Field_wait_issend
 (
  const char  *local_code_name,
  const char  *cpl_id,
@@ -1698,7 +1689,7 @@ CWP_Wait_issend
 
 /**
  *
- * \brief Waiting of the end of exchange related to request.
+ * \brief Wait the end of an exchange related to request from \ref CWP_Field_irecv.
  *
  * This function waits the end of exchange related to request
  * from \ref CWP_Irecv
@@ -1709,22 +1700,12 @@ CWP_Wait_issend
  */
 
 void
-CWP_Wait_irecv
+CWP_Field_wait_irecv
 (
  const char  *local_code_name,
  const char  *cpl_id,
  const char  *distant_field_id
 );
-
-
- CWP_g_num_t*
- CWP_GlobalNumGet
- (
-  const char  *local_code_name,
-  const char  *cpl_id,
-  const int    id_block,
-  const int    i_part
- );
 
 
 /*----------------------------------------------------------------------------*
@@ -1798,14 +1779,12 @@ CWP_Interp_from_closest_pts_set
 );
 
 /*----------------------------------------------------------------------------*
- * Functions about current code control parameters                            *
+ * Functions about control parameters                                         *
  *----------------------------------------------------------------------------*/
 
 /**
  *
- * \brief Add a control parameter
- *
- * Addition of a control parameter in the code properties.
+ * \brief Add a new parameter and intialize it.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] param_name       Parameter name
@@ -1826,7 +1805,7 @@ CWP_Param_add
 
 /**
  *
- * \brief Set a control parameter
+ * \brief Set a parameter.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] param_name       Parameter name
@@ -1847,7 +1826,7 @@ CWP_Param_set
 
 /**
  *
- * \brief Removing a local int control parameter
+ * \brief Delete a parameter.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] param_name       Parameter name
@@ -1870,7 +1849,7 @@ CWP_Param_del
 
 /**
  *
- * \brief Return the number of parameters of a code
+ * \brief Return the number of parameters for the code \p code_name.
  *
  * \param [in] code_name       Local or distant code name
  * \param [in] data_type       Parameter type,
@@ -1888,7 +1867,7 @@ CWP_Param_n_get
 
 /**
  *
- * \brief Return the parameter list of a code
+ * \brief Return the list of parameters for the code \p code_name.
  *
  * \param [in]  code_name      Local or distant code name
  * \param [in]  data_type      Parameter type,
@@ -1909,7 +1888,7 @@ CWP_Param_list_get
 
 /**
  *
- * \brief Is a parameter ?
+ * \brief Is this \p code_name a parameter ?
  *
  * \param [in] code_name      Local or distant code name
  * \param [in] param_name     Parameter name
@@ -1929,7 +1908,7 @@ CWP_Param_is
 
 /**
  *
- * \brief Return the value of a int control parameter from "code_name" code
+ * \brief Return the parameter value of \p param_name on \p code_name.
  *
  * \param [in]  code_name  Local or distant code name
  * \param [in]  param_name Parameter name
@@ -1942,22 +1921,23 @@ void
 CWP_Param_get
 (
  const char       *code_name,
- const char       *name,
+ const char       *param_name,
  const CWP_Type_t  data_type,
  void             *value
 );
 
 /**
  *
- * \brief Return the operation result on a control parameter
- *        (same name in all codes)
+ * \brief Return the result of a reduce operation about a parameter.
  *
- * \param [in]  op        Operation
- * \param [in]  name      Parameter name
- * \param [in]  data_type Parameter type,
- * \param [out] res       Result
- * \param [in]  nCode     Number of codes
- * \param       ...       Codes name
+ * The parameter name has to be the same for all codes.
+ *
+ * \param [in]  op           Operation
+ * \param [in]  param_name   Parameter name
+ * \param [in]  data_type    Parameter type,
+ * \param [out] res          Result
+ * \param [in]  nCode        Number of codes
+ * \param       ...          Codes name
  *
  */
 
@@ -1965,7 +1945,7 @@ void
 CWP_Param_reduce
 (
  const CWP_Op_t    op,
- const char       *name,
+ const char       *param_name,
  const CWP_Type_t  data_type,
  void             *res,
  const int         nCode,
@@ -1974,7 +1954,7 @@ CWP_Param_reduce
 
 /**
  *
- * \brief Lock access to local parameters from a distant code
+ * \brief Lock access to local parameters from a distant code.
  *
  * \param [in]  code_name  Code to lock
  *
@@ -1988,7 +1968,7 @@ const char *code_name
 
 /**
  *
- * \brief unlock access to local parameters from a distant code
+ * \brief Unlock access to local parameters from a distant code.
  *
  * \param [in]  code_name  Code to unlock
  *
@@ -1998,64 +1978,6 @@ void
 CWP_Param_unlock
 (
 const char *code_name
-);
-
-
-void
-CWP_surf_gen_init
-(char* genName,
-  int nx, int ny, int nPart, MPI_Comm* comm, double prop, double width, double randomVar
-);
-
-void
-CWP_surf_gen_compute
-(char* genName
-);
-
-
-
-void
-CWP_surf_gen_by_block_get
-( char* genName, int i_part,
-  int* nVtx , double** coords, CWP_g_num_t** vtxGnum, int* nElts,
-  int* nTri , int** eltsConnecTri , CWP_g_num_t** eltsGnumTri,
-  int* nQuad, int** eltsConnecQuad, CWP_g_num_t** eltsGnumQuad,
-  int* nPoly, int** eltsConnecPolyIndex, int** eltsConnecPoly, CWP_g_num_t** eltsGnumPoly
-);
-
-void
-CWP_surf_gen_one_connectivity_get
-( char* genName, int i_part,
-  int* nVtx , double** coords, CWP_g_num_t** vtxGnum,
-  int* nElts, int** eltsConnecIndex, int** eltsConnec, CWP_g_num_t** eltsGnum
-);
-
-void
-CWP_surf_face_edge_get
-( char* genName, int i_part,
-  int* nVtx , double** coords, CWP_g_num_t** vtxGnum,
-  int* nFace, int** faceEdgeIdx, int** faceEdge,
-  int* nEdge, int** edgeVtxIdx, int** edgeVtx,
-  CWP_g_num_t** faceLNToGN
-);
-
-
-void
-CWP_surf_gen_tri_field_get
-( char* genName, int i_part,
-  double** field
-);
-
-void
-CWP_surf_gen_quad_field_get
-( char* genName, int i_part,
-  double** field
-);
-
-void
-CWP_surf_gen_poly_field_get
-( char* genName, int i_part,
-  double** field
 );
 
 

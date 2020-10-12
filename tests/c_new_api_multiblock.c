@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2017  ONERA
 
@@ -26,6 +26,7 @@
 #include <mpi.h>
 
 #include "cwp.h"
+#include "cwp_priv.h"
 
 
 
@@ -33,14 +34,14 @@
 
 
 
-void _goto(FILE *f,char* word) 
+void _goto(FILE *f,char* word)
 { char test[1000];
   int r;
   while(strcmp(test,word)!=0) {
       r = fscanf(f, "%s",test);
-      if (r == EOF) 
+      if (r == EOF)
         return EXIT_FAILURE;
-      
+
  //     printf("%s\n",&test[0]);
   }
 }
@@ -50,18 +51,18 @@ void _generate_gmsh_mesh(char* geofile,int localCommSize,int order){
   int len=0;
   len = strlen(geofile);
  // for(len = 0; geofile[len] != '\0'; ++len);
-  
+
   char filename[len-4];//(char*)malloc(sizeof(char)*(len-4));
   for (int i=0;i<len-4;i++) filename[i]=geofile[i];
 
 
   printf("UUU %i\n",len);
-  if(localCommSize>1) 
+  if(localCommSize>1)
     sprintf(s, "gmsh %s -2 -format msh -order %i  -part %i -part_split -o %s.msh",geofile,order,localCommSize,filename);
   else
-    sprintf(s, "gmsh %s -2 -format msh -order %i  -o %s.msh",geofile,order,filename);    
+    sprintf(s, "gmsh %s -2 -format msh -order %i  -o %s.msh",geofile,order,filename);
 
-  printf("sssss %s\n",s);  
+  printf("sssss %s\n",s);
   system(s);
   //free(filename);
 }
@@ -83,28 +84,28 @@ struct elType {
 
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Read mesh dimension                                             
- *                                                                     
+ *
+ * Read mesh dimension
+ *
  * parameters:
- *   f                   <-- Mesh file                 
- *   dimension           --> Dimension                   
+ *   f                   <-- Mesh file
+ *   dimension           --> Dimension
  *   nVtx             <-- number of vertices
  *   nElements           <-- number of elements
  *   nConnecVertex       <-- size of connectivity
  *   coords              --> vertices coordinates
- *   connecPointer       --> connectivity index  
+ *   connecPointer       --> connectivity index
  *   connec              --> connectivity
  *---------------------------------------------------------------------*/
- static int _read_mesh_dim(FILE *f, 
-                      int* nVtx, 
+ static int _read_mesh_dim(FILE *f,
+                      int* nVtx,
                       int* nb_Elts,
                       int* nBlock,
                       int** nElBlock,
                       int** typeBlock) {
 
   elType elementType[100];// = (elType*)malloc(sizeof(elType*)*100);
-  
+
 elementType[1] = (elType){2,"line"};
 elementType[2] = (elType){3,"triangle"};
 elementType[3] = (elType){4,"quadrangle"};
@@ -143,32 +144,32 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
 
 
   char test[1000];
-  
+
   _goto(f,"$Nodes");
    // _goto(f,"$EndNodes");
   int nv,nEl;
   double poubd;
   r = fscanf(f, "%i",nBlock);
   r = fscanf(f, "%i",nVtx);
-  
+
   printf("nVtx %i\n",*nVtx);
 
   int dimension =3;
 
   for(int block = 1; block<(*nBlock)+1;block++) {
-    r = fscanf(f, "%i",&nv);  
-    r = fscanf(f, "%i",&nv);  
+    r = fscanf(f, "%i",&nv);
+    r = fscanf(f, "%i",&nv);
     r = fscanf(f, "%i",&nv);
     r = fscanf(f, "%i",&nv);
 
     for (int i = 0; i < nv; i++) {
-      r = fscanf(f, "%i",&nEl);  
+      r = fscanf(f, "%i",&nEl);
       nEl=nEl-1;
       r = fscanf(f, "%lf",&poubd);
       r = fscanf(f, "%lf",&poubd);
-      r = fscanf(f, "%lf",&poubd);       
+      r = fscanf(f, "%lf",&poubd);
 
-      if (r == EOF) 
+      if (r == EOF)
         return EXIT_FAILURE;
     }
   }
@@ -186,9 +187,9 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
 
   int block1 =0;
   for( int block=0;block<(*nBlock);block++) {
-    r = fscanf(f, "%i",&nv);  
     r = fscanf(f, "%i",&nv);
-    r = fscanf(f, "%i",&IelType);  
+    r = fscanf(f, "%i",&nv);
+    r = fscanf(f, "%i",&IelType);
     r = fscanf(f, "%i",&nv);
     //To use with Paraview
     if(IelType == 1 || IelType == 15) {/**nBlock=*nBlock-1;*//*block=block-1;*/*nb_Elts=*nb_Elts-nv;
@@ -201,21 +202,21 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
     (*typeBlock)[block1] = IelType;
 
     int size_el;
-    size_el = elementType[IelType].nNodes;   
+    size_el = elementType[IelType].nNodes;
 
     for (int i = 0; i < nv; i++) {
-      r = fscanf(f, "%i",&nEl2); 
-      for(int jv=0;jv<size_el;jv++) { 
+      r = fscanf(f, "%i",&nEl2);
+      for(int jv=0;jv<size_el;jv++) {
         r = fscanf(f, "%i",&poub);
       }
 
-      if (r == EOF) 
+      if (r == EOF)
         return EXIT_FAILURE;
     }
     block1++;
     }
    // free(connec);
-  }  
+  }
   *nBlock = block1;
     printf("nb_Elts %i\n",*nb_Elts);
   return EXIT_SUCCESS;
@@ -228,7 +229,7 @@ int tabSearch2(int value,int** gnum,int gnum_size) {
  int POS;   /* position de la valeur */
  int I;     /* indice courant */
  int INF, MIL, SUP; /* limites du champ de recherche */
- 
+
  /* Initialisation des limites du domaine de recherche */
  INF=0;
  SUP=gnum_size-1;
@@ -251,7 +252,7 @@ int tabSearch(int value,int** gnum,int gnum_size) {
  int POS;   /* position de la valeur */
  int I;     /* indice courant */
  int INF, MIL, SUP; /* limites du champ de recherche */
- 
+
  /* Initialisation des limites du domaine de recherche */
  INF=0;
  SUP=gnum_size-1;
@@ -268,7 +269,7 @@ int tabSearch(int value,int** gnum,int gnum_size) {
          else
                POS=MIL;
         }
- 
+
   /* Edition du résultat */
  if (POS==-1) {
      printf("La valueeur recherchée ne se trouve pas "
@@ -286,7 +287,7 @@ void tricroissant( int* a, int b) {
     int i=ind_min;
     int x=ind_min;
     int j=ind_min;
- 
+
     for(i=ind_min;i<b;i++)
     {
         for(j=ind_min+1;j<b;j++)
@@ -298,16 +299,16 @@ void tricroissant( int* a, int b) {
                 a[j]=x;
                 j--;
                 }
- 
+
         }
- 
+
         }
- 
+
     x=a[ind_min];
     for(i=ind_min;i<b;i++)
     a[i]=a[i+1];
     a[b-1]=x;
- 
+
 }
 
 
@@ -317,21 +318,21 @@ void tricroissant( int* a, int b) {
 
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Read mesh dimension                                             
- *                                                                     
+ *
+ * Read mesh dimension
+ *
  * parameters:
- *   f                   <-- Mesh file                 
- *   dimension           --> Dimension                   
+ *   f                   <-- Mesh file
+ *   dimension           --> Dimension
  *   nVtx             <-- number of vertices
  *   nElements           <-- number of elements
  *   nConnecVertex       <-- size of connectivity
  *   coords              --> vertices coordinates
- *   connecPointer       --> connectivity index  
+ *   connecPointer       --> connectivity index
  *   connec              --> connectivity
  *---------------------------------------------------------------------*/
- static int _read_mesh(FILE *f, 
-                      int* nVtx, 
+ static int _read_mesh(FILE *f,
+                      int* nVtx,
                       int* nb_Elts,
                       int* nBlock,
                       int** nElBlock,
@@ -341,7 +342,7 @@ void tricroissant( int* a, int b) {
                       int *gnum_coords) {
 
   elType elementType [100];//= (elType*)malloc(sizeof(elType*)*100);
-  
+
 elementType[1] = (elType){2,"line"};
 elementType[2] = (elType){3,"triangle"};
 elementType[3] = (elType){4,"quadrangle"};
@@ -380,7 +381,7 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
 
 
   char test[1000];
-  
+
   _goto(f,"$Nodes");
    // _goto(f,"$EndNodes");
   int nv,nEl;
@@ -392,46 +393,46 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
 
   int i_el=0;
   for(int block = 1; block<(*nBlock)+1;block++) {
-    r = fscanf(f, "%i",&nv);  
-    r = fscanf(f, "%i",&nv);  
+    r = fscanf(f, "%i",&nv);
+    r = fscanf(f, "%i",&nv);
     r = fscanf(f, "%i",&nv);
     r = fscanf(f, "%i",&nv);
 
     for (int i = 0; i < nv; i++) {
       //if(i_el>=0) {
-      r = fscanf(f, "%i",gnum_coords+i_el);  
+      r = fscanf(f, "%i",gnum_coords+i_el);
       r = fscanf(f, "%lf",coords+3*i_el);
       r = fscanf(f, "%lf",coords+3*i_el+1);
-      r = fscanf(f, "%lf",coords+3*i_el+2);       
+      r = fscanf(f, "%lf",coords+3*i_el+2);
       printf("gnum_coords %i block %i nv %i x %f y %f z %f\n",
       gnum_coords[i_el],block,nv,coords[3*i_el],coords[3*i_el+1],coords[3*i_el+2]);
     //  }
-      if (r == EOF) 
+      if (r == EOF)
         return EXIT_FAILURE;
       i_el++;
     }
   }
 //while(1==1){}
   int IelType,nEl2,poub;
-  
+
   _goto(f,"$Elements");
   r = fscanf(f, "%i",nBlock);
   r = fscanf(f, "%i",nb_Elts);
   //printf("nb_Elts %i\n",*nb_Elts);
   //printf("nBlock %i\n",*nBlock);
-    
+
   int** toto = *connec;
-  
+
   int iop = *nb_Elts;
-  
+
   int block1 = 0;
 
   for( int block=0;block<(*nBlock);block++) {
-  
 
-    r = fscanf(f, "%i",&nv);  
+
     r = fscanf(f, "%i",&nv);
-    r = fscanf(f, "%i",&IelType);  
+    r = fscanf(f, "%i",&nv);
+    r = fscanf(f, "%i",&IelType);
     r = fscanf(f, "%i",&nv);
     //To use with Paraview
     if(IelType != 2 && IelType != 3) {*nb_Elts=*nb_Elts-nv;
@@ -446,13 +447,13 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
 
     int size_el;
     if(IelType!=2 && IelType!=3) printf("IelType %i nv %i\n",IelType,nv);
-    size_el = elementType[IelType].nNodes;   
-    //  printf("IelType %i nv %i size_el %i block %i block1 %i nBlock %i\n",IelType,nv,size_el,block,block1,*nBlock); 
+    size_el = elementType[IelType].nNodes;
+    //  printf("IelType %i nv %i size_el %i block %i block1 %i nBlock %i\n",IelType,nv,size_el,block,block1,*nBlock);
     for (int i = 0; i < nv; i++) {
-      r = fscanf(f, "%i",&nEl2); 
-      for(int jv=0;jv<size_el;jv++) { 
+      r = fscanf(f, "%i",&nEl2);
+      for(int jv=0;jv<size_el;jv++) {
         r = fscanf(f, "%i",connec[block1]+size_el*i+jv);
-        
+
         connec[block1][size_el*i+jv] =  1+tabSearch2(connec[block1][size_el*i+jv],&gnum_coords,*nVtx);
         if(connec[block1][size_el*i+jv]<-1 || connec[block1][size_el*i+jv] >100000)
            printf("Alerte wrong connectivity\n");
@@ -460,15 +461,15 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
         //printf("%i nEl2 %i block %i nv %i connec %i %i %i size_el %i IelType %i\n",
         //*nb_Elts,nEl2,block,nv,i,jv,connec[block1][size_el*i+jv],size_el,IelType);
       }
-      
-          
-      if (r == EOF) 
+
+
+      if (r == EOF)
         return EXIT_FAILURE;
     }
     block1++;
     }
    // free(connec);
-  }  
+  }
   *nBlock = block1;
   //printf("nb_Elts %i *nBlock %i\n",*nb_Elts,*nBlock);
 
@@ -483,17 +484,17 @@ int sizeForType(int type) {
     case 3 : return 4;
     case 15: return 1;
     default: return 0;
-  
+
   }
  }
 
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Main : linear coupling test                                         
+ *
+ * Main : linear coupling test
  *
  *---------------------------------------------------------------------*/
- 
+
 int main
 (
  int    argc,    /* Nombre d'arguments dans la ligne de commandes */
@@ -507,7 +508,7 @@ int main
 
   int rank;
   int comm_world_size;
-  
+
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
@@ -536,7 +537,7 @@ int main
     is_coupled_rank = malloc(sizeof(CWP_Status_t) * 1);
     is_coupled_rank[0] = CWP_STATUS_ON;
   }
-   
+
   if( rank > 4) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
@@ -556,17 +557,17 @@ int main
   }
 
   char* code_name = (char*)malloc(sizeof(char)*5);
-  
+
   times_init = malloc(sizeof(double) * n_code_name);
 
   //CWP_Output_file_set (outputFile);
 
   for (int i = 0; i < n_code_name; i++) {
-    times_init[i] = 0; 
+    times_init[i] = 0;
   }
-  
+
   MPI_Comm *localComm = malloc(sizeof(MPI_Comm)*n_code_name);
-  
+
   CWP_Init(MPI_COMM_WORLD,
            n_code_name,
            (const char **) codeNames,
@@ -582,7 +583,7 @@ int main
     MPI_Comm_size(localComm[i], &localCommSize[i]);
   }
 
- 
+
   char cpl_id1[] = "cpl_code1_code2";
 
   int nb_part = 10;
@@ -610,7 +611,7 @@ int main
     nBlockOld = (int*)malloc(sizeof(int)*nb_part);
     typeBlock = (int***)malloc(sizeof(int**)*n_code_name);
 
-    
+
     coords = (double***)malloc(sizeof(double**)*n_code_name);
     gnum_coord = (int**)malloc(sizeof(int*)*nb_part);
     nElBlock = (int***)malloc(sizeof(int**)*n_code_name);
@@ -618,7 +619,7 @@ int main
 
   for (int i = 0; i < n_code_name; i++ ) {
 
-   
+
    int localComm_size = localCommSize[i];
    code_name = codeNames[i];
    int currentRank = currentRankA[i];
@@ -626,18 +627,18 @@ int main
    nElts[i] = (int*)malloc(sizeof(int)*nb_part);
    nVtx [i] = (int*)malloc(sizeof(int)*nb_part);
    eltsConnec[i] = (int***)malloc(sizeof(int**)*nb_part);
-   coords[i] = (double**)malloc(sizeof(double*)*nb_part);  
+   coords[i] = (double**)malloc(sizeof(double*)*nb_part);
    nElBlock[i] = (int**)malloc(sizeof(int*)*nb_part);
    nBlock[i] = (int*)malloc(sizeof(int)*nb_part);
-   typeBlock[i] = (int**)malloc(sizeof(int*)*nb_part);   
+   typeBlock[i] = (int**)malloc(sizeof(int*)*nb_part);
    printf("%i rank %i localCommSize %i code_name %s\n",i,currentRank,localComm_size,code_name);
-  
+
    if( code_name == "code1") {
      char* codeCpl="code2";
      CWP_Cpl_create (code_name, cpl_id1, codeCpl, CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, nb_part,
                     CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
-     
+
    }
 
    if( code_name == "code2") {
@@ -645,13 +646,13 @@ int main
       CWP_Cpl_create (code_name, cpl_id1, codeCpl, CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, nb_part,
                     CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
-     
+
    }
 
   }//Loop on codes
 
   MPI_Barrier(MPI_COMM_WORLD);
-  
+
 /*******************************
           Loop on Code Names
 *********************************/
@@ -661,7 +662,7 @@ int main
    int localComm_size = localCommSize[i];
    code_name = codeNames[i];
    int currentRank = currentRankA[i];
-       
+
     CWP_Visu_set(code_name, cpl_id1,1,CWP_VISU_FORMAT_ENSIGHT,"text");
 
 
@@ -676,19 +677,19 @@ int main
       geoModelfile=geoModelfile2;
     }
 
-    if(currentRank==0) {  
+    if(currentRank==0) {
       char* s =(char*)malloc(sizeof(char)*500);
       sprintf(s,"python meshes/gmsh_mesh.py %i %s",nb_part,geoModelfile);
       system(s);
-      
+
        system("cp meshes/sphere01Model.geo meshes/sphere02Model.geo");
     }
 
     geofile[i] =(char**)malloc(sizeof(char*)*nb_part);
-    
+
     for(int i_part =0;i_part<nb_part;i_part++){
 
-      geofile[i][i_part] =(char*)malloc(sizeof(char)*550); 
+      geofile[i][i_part] =(char*)malloc(sizeof(char)*550);
       sprintf(geofile[i][i_part],"%s_part%i.geo",geoModelfile,i_part);
       printf("geofile %s %i\n",geofile[i][i_part],localCommSize[i]);
       if(currentRank==0 /*&& code_name=="code1"*/) {
@@ -716,7 +717,7 @@ int main
     int currentRank = currentRankA[i];
 
     for(int i_part =0;i_part<nb_part;i_part++){
-   
+
     int len=0;
     for(len = 0; geofile[i][i_part][len] != '\0'; ++len);
 
@@ -724,7 +725,7 @@ int main
 
     if((1+currentRankA[i])>=1000 && (1+currentRankA[i])<10000) lenfile=len+5;
     else if((1+currentRankA[i])>=100) lenfile=len+4;
-    else if((1+currentRankA[i])>=10)  lenfile=len+3;  
+    else if((1+currentRankA[i])>=10)  lenfile=len+3;
     else lenfile=len+2;
 
     if(localCommSize[i]==1) {
@@ -733,13 +734,13 @@ int main
 
 
     char* root=(char*)malloc(sizeof(char)*(len-4));
-  
+
     printf("filename %s %i\n",geofile[i][i_part],len);
 
-    for (int j=0;j<len-4;j++) root[j]=geofile[i][i_part][j];   
+    for (int j=0;j<len-4;j++) root[j]=geofile[i][i_part][j];
 
-    char* filename=(char*)malloc(sizeof(char)*(lenfile));  
-    char* filename2=(char*)malloc(sizeof(char)*(10+2*lenfile));  
+    char* filename=(char*)malloc(sizeof(char)*(lenfile));
+    char* filename2=(char*)malloc(sizeof(char)*(10+2*lenfile));
 
     if(localCommSize[i]!=1) sprintf(filename,"%s_%i.msh",root,1+currentRank);
     else sprintf(filename,"%s.msh",root);
@@ -750,12 +751,12 @@ int main
     meshFile = fopen(filename, "r");
 
     eltsConnec[i][i_part] = NULL;        // Connectivity
-    coords[i][i_part]  = NULL; 
+    coords[i][i_part]  = NULL;
     nElBlock[i][i_part] = NULL;
     typeBlock[i][i_part] = NULL;
 
     _read_mesh_dim(meshFile,
-              &(nVtx[i][i_part]), 
+              &(nVtx[i][i_part]),
               &(nElts[i][i_part]),
               &(nBlock[i][i_part]),
               &(nElBlock[i][i_part]),
@@ -765,7 +766,7 @@ int main
     coords[i][i_part] = (double*) malloc(3 * nVtx[i][i_part] * sizeof(double));
     gnum_coord[i_part] = (int*) malloc(nVtx[i][i_part] * sizeof(int));
     eltsConnec[i][i_part] = (int**)malloc(nBlock[i][i_part]*sizeof(int*));
-  
+
     printf("currentRank %i nVtx[i][i_part] %i nElts[i][i_part] %i nBlock[i][i_part] %i nElBlock[i][i_part][0] %i typeBlock[i][i_part][0] %i\n",
     currentRankA[i], nVtx[i][i_part],nElts[i][i_part],nBlock[i][i_part],nElBlock[i][i_part][0],typeBlock[i][i_part][0]);
     nBlockOld[i_part] = nBlock[i][i_part];
@@ -774,16 +775,16 @@ int main
       eltsConnec[i][i_part][b]=(int*)malloc(sizeForType(typeBlock[i][i_part][b])*nElBlock[i][i_part][b]*sizeof(int));
     }
 
-    fclose(meshFile);    
+    fclose(meshFile);
     meshFile = fopen(filename/*"carre01.msh"*/, "r");
 
 
-    int** connec_p=eltsConnec[i][i_part];    
+    int** connec_p=eltsConnec[i][i_part];
 
     printf("filenamePP %s %i %i %i %i %i\n",filename,rank,nElts[i][i_part],nBlock[i][i_part],typeBlock[i][i_part][0],nVtx[i][i_part]);
 
       _read_mesh(meshFile,
-                &nVtx[i][i_part], 
+                &nVtx[i][i_part],
                 &nElts[i][i_part],
                 &nBlock[i][i_part],
                 &(nElBlock[i][i_part]),
@@ -804,25 +805,25 @@ int main
       }
     }
 
-    printf("CWP_Mesh_interf_vtx_set %i\n",nVtx[i][i_part]);           
-    CWP_Mesh_interf_vtx_set(codeNames[i], cpl_id1,i_part,nVtx[i][i_part],coords[i][i_part],NULL);                
-    printf("After CWP_Mesh_interf_vtx_set %i %i\n",i_part,rank);  
-    
+    printf("CWP_Mesh_interf_vtx_set %i\n",nVtx[i][i_part]);
+    CWP_Mesh_interf_vtx_set(codeNames[i], cpl_id1,i_part,nVtx[i][i_part],coords[i][i_part],NULL);
+    printf("After CWP_Mesh_interf_vtx_set %i %i\n",i_part,rank);
 
-   }//Loop on partition     
+
+   }//Loop on partition
 
 
   int nb_elt_type =100;
 
   int** nb_block_type = (int**) malloc(nb_part*sizeof(int*));
   int** nb_block_type_max = (int**) malloc(nb_part*sizeof(int*));
-   
+
   for(int i_part =0;i_part <nb_part;i_part++) {
     nb_block_type[i_part] = (int*) malloc(nb_elt_type*sizeof(int));
     nb_block_type_max[i_part] = (int*) malloc(nb_elt_type*sizeof(int));
     for(int l=0; l<nb_elt_type;l++) nb_block_type[i_part][l] = 0;
-    
-    for(int i_block =0;i_block <nBlock[i][i_part];i_block++) { 
+
+    for(int i_block =0;i_block <nBlock[i][i_part];i_block++) {
         nb_block_type[i_part][typeBlock[i][i_part][i_block]]++;
     }
     MPI_Allreduce(nb_block_type[i_part], nb_block_type_max[i_part], nb_elt_type, MPI_INT, MPI_MAX,
@@ -835,27 +836,27 @@ int main
     nBlock[i][i_part]=nBlock_correct;
 
     printf("nBlock_old %i %i\n",nBlock_old,nBlock_correct);
-    
+
     int* nElBlockNew   =  (int*) malloc  ( nBlock[i][i_part]*sizeof(int)  );
     int* typeBlockNew  =  (int*) malloc  ( nBlock[i][i_part]*sizeof(int)  );
     int**eltsConnecNew =  (int**) malloc ( nBlock[i][i_part]*sizeof(int*) );
 
     int ind_block = 0;
-    
+
     int* ibblock = (int*) malloc(nb_elt_type*sizeof(int));
 
     for(int bb=0; bb < nb_elt_type; bb++) ibblock[bb]=0;
-    
+
     for(int l=0; l<nb_elt_type;l++) {
       for(int l2=0;l2<nb_block_type_max[i_part][l];l2++) {
         printf("ind_block %i %i \n",ind_block,i_part);
         if(l2<nb_block_type[i_part][l]){
-        
-          
+
+
           while(typeBlock[i][i_part][ ibblock[l] ] != l) {
             ibblock[l]++;
           }
-          
+
           nElBlockNew [ind_block] = nElBlock[i][i_part][ ibblock[l] ];
           typeBlockNew[ind_block] = typeBlock[i][i_part][ ibblock[l] ];
           eltsConnecNew[ind_block]= eltsConnec[i][i_part][ ibblock[l] ];
@@ -863,36 +864,36 @@ int main
         }
         else {
           nElBlockNew [ind_block] = 0;
-          typeBlockNew[ind_block] = l;  
-          eltsConnecNew[ind_block] = (int*)malloc(sizeForType(typeBlockNew[ind_block])*nElBlockNew [ind_block]*sizeof(int)); 
+          typeBlockNew[ind_block] = l;
+          eltsConnecNew[ind_block] = (int*)malloc(sizeForType(typeBlockNew[ind_block])*nElBlockNew [ind_block]*sizeof(int));
         }
-        
+
         ind_block++;
       }//end l2 loop
     }//end l loop
- 
+
     realloc(nElBlock[i][i_part],0);
 
     nElBlock[i][i_part] = nElBlockNew;
 
-    realloc(typeBlock[i][i_part],0);     
+    realloc(typeBlock[i][i_part],0);
     typeBlock[i][i_part] = typeBlockNew;
 
-    realloc(eltsConnec[i] [i_part],0);     
+    realloc(eltsConnec[i] [i_part],0);
     eltsConnec[i][i_part] =eltsConnecNew;
 
  } // LOOP on i_part
 
 
   CWP_g_num_t*** GNUM=(CWP_g_num_t***) malloc(sizeof(CWP_g_num_t**)*nb_part);
-            
-  
+
+
   for(int i_part =0;i_part <nb_part;i_part++) {
- 
+
     nElts[i][i_part]=0;
     GNUM[i_part] = (CWP_g_num_t**) malloc(sizeof(CWP_g_num_t*)*nBlock[i][i_part]);
 
-    for(int i_block =0;i_block <nBlock[i][i_part];i_block++) { 
+    for(int i_block =0;i_block <nBlock[i][i_part];i_block++) {
       GNUM[i_part][i_block] = (CWP_g_num_t*) malloc(sizeof(CWP_g_num_t)*nElBlock[i][i_part][i_block]);
       printf("Standard Block Add\n");
       CWP_Block_t cwp_block_t;
@@ -900,7 +901,7 @@ int main
       if(typeBlock[i][i_part][i_block] == 2) cwp_block_t = CWP_BLOCK_FACE_TRIA3;
       if(typeBlock[i][i_part][i_block] == 3) cwp_block_t = CWP_BLOCK_FACE_QUAD4;
       if(typeBlock[i][i_part][i_block] == 15) cwp_block_t = CWP_BLOCK_NODE;
-  
+
       int block_id = CWP_Mesh_interf_block_add(code_name, cpl_id1,cwp_block_t);
 
       printf("Standard block set %i\n",i_block);
@@ -913,14 +914,14 @@ int main
       nElts[i][i_part]+=nElBlock[i][i_part][i_block];
 
     }//end i_block loop
-    
-               
+
+
   }//Loop on i_part
 
   }//Loop on codes
- 
+
   MPI_Barrier(MPI_COMM_WORLD);
-       
+
 /*******************************
           Loop on Code Names
 *********************************/
@@ -941,7 +942,7 @@ int main
     CWP_Status_t visu_status = CWP_STATUS_OFF;
 
 
-    
+
     if(code_name == "code1"){
 
       /* Rank field */
@@ -949,38 +950,38 @@ int main
                         CWP_DOF_LOCATION_CELL_CENTER,
                         CWP_FIELD_EXCH_SEND,
                         visu_status);
-                        
+
       CWP_Field_create (code_name,cpl_id1,"rank_vtx",CWP_DOUBLE,CWP_FIELD_STORAGE_BLOCK,1,
                         CWP_DOF_LOCATION_NODE,
                         CWP_FIELD_EXCH_SEND,
-                        visu_status);                        
-                        
+                        visu_status);
+
    } //end  if(code_name == "code1")
-   
-  
+
+
    if(code_name == "code2"){
-              
+
     CWP_Field_create (code_name,cpl_id1,"rank",CWP_DOUBLE,CWP_FIELD_STORAGE_BLOCK,1,
                       CWP_DOF_LOCATION_CELL_CENTER,
                       CWP_FIELD_EXCH_RECV,
-                      visu_status);       
-                      
+                      visu_status);
+
     CWP_Field_create (code_name,cpl_id1,"rank_vtx",CWP_DOUBLE,CWP_FIELD_STORAGE_BLOCK,1,
                       CWP_DOF_LOCATION_NODE,
                       CWP_FIELD_EXCH_RECV,
-                      visu_status);      
-                                         
+                      visu_status);
+
    }
 
    rank_data_vtx[i] = (double**)malloc(sizeof(double*)*nb_part);
    rank_data    [i] = (double**)malloc(sizeof(double*)*nb_part);
-   
-   for(int i_part =0;i_part <nb_part;i_part++) {    
+
+   for(int i_part =0;i_part <nb_part;i_part++) {
       rank_data    [i][i_part] = (double*)malloc(sizeof(double)*nElts[i][i_part]);
       rank_data_vtx[i][i_part] = (double*)malloc(sizeof(double)*nVtx [i][i_part]);
       CWP_Field_data_set(code_name,cpl_id1,"rank"    ,i_part,rank_data    [i][i_part]);
       CWP_Field_data_set(code_name,cpl_id1,"rank_vtx",i_part,rank_data_vtx[i][i_part]);
-   }   
+   }
 
    printf("After data set\n");
 
@@ -988,9 +989,9 @@ int main
 
 
   MPI_Barrier(MPI_COMM_WORLD);
-  
+
   printf("Before CWP_Spatial_interp_weights_compute\n");
-  
+
 /*******************************
           Loop on Code Names
 *********************************/
@@ -1006,12 +1007,12 @@ for (int i = 0; i < n_code_name; i++ ) {
   for(int i_part =0; i_part<nb_part;i_part++) {
     int n_uncomputed_node = CWP_N_uncomputed_tgts_get(code_name,cpl_id1, CWP_DOF_LOCATION_NODE,i_part);
     int n_uncomputed_cell_value = CWP_N_uncomputed_tgts_get(code_name,cpl_id1, CWP_DOF_LOCATION_CELL_CENTER,i_part);
-    printf("  %i  vertices and   %i  cell centers have not been found on code %s proc %i partition %i\n",n_uncomputed_node,n_uncomputed_cell_value,code_name,rank,i_part);  
+    printf("  %i  vertices and   %i  cell centers have not been found on code %s proc %i partition %i\n",n_uncomputed_node,n_uncomputed_cell_value,code_name,rank,i_part);
   }
-  //Argument tag points localisé oui/non + print 
+  //Argument tag points localisé oui/non + print
 
  // printf("After CWP_Spatial_interp_weights_compute code %i\n",i);
- 
+
   }//Loop on codes
   //while(1==1){}
   MPI_Barrier(MPI_COMM_WORLD);
@@ -1027,33 +1028,33 @@ for (int i = 0; i < n_code_name; i++ ) {
 
     int localComm_size = localCommSize[i];
     code_name = codeNames[i];
-    int currentRank = currentRankA[i];  
-    
+    int currentRank = currentRankA[i];
+
     printf("Before CWP_next_recv_time_set\n");
     CWP_next_recv_time_set(code_name,cpl_id1,recv_time);
     printf("After CWP_next_recv_time_set\n");
 
     if(code_name == "code1"){
       printf("TEST %i %s %s\n",rank,code_name,codeNames[i]);
-      for(int i_part =0;i_part <nb_part;i_part++) {     
+      for(int i_part =0;i_part <nb_part;i_part++) {
         for(int j=0;j<nElts[i][i_part];j++)
           rank_data[i][i_part][j]= rank;
 
         for(int j=0;j<nVtx[i][i_part];j++)
-          rank_data_vtx[i][i_part][j]= coords[i][i_part][3*j];          
+          rank_data_vtx[i][i_part][j]= coords[i][i_part][3*j];
       }
 
       printf("CWP_Field_Issend at %f\n",recv_time);
-      CWP_Field_Issend (code_name,cpl_id1,"rank");    
-      CWP_Field_Issend (code_name,cpl_id1,"rank_vtx");    
-   
+      CWP_Field_Issend (code_name,cpl_id1,"rank");
+      CWP_Field_Issend (code_name,cpl_id1,"rank_vtx");
+
     }
-    else { 
+    else {
       CWP_Field_Irecv (code_name,cpl_id1,"rank");
       CWP_Field_Irecv (code_name,cpl_id1,"rank_vtx");
     }
 
-  }// end code loop  
+  }// end code loop
 
 /*******************************
           Loop on Code Names
@@ -1061,21 +1062,21 @@ for (int i = 0; i < n_code_name; i++ ) {
   for (int i = 0; i < n_code_name; i++ ) {
     int localComm_size = localCommSize[i];
     code_name = codeNames[i];
-    int currentRank = currentRankA[i];  
-    
+    int currentRank = currentRankA[i];
+
     if(code_name == "code1"){
-      CWP_Wait_issend (code_name,cpl_id1,"rank");
-      CWP_Wait_issend (code_name,cpl_id1,"rank_vtx");
+      CWP_Field_wait_issend (code_name,cpl_id1,"rank");
+      CWP_Field_wait_issend (code_name,cpl_id1,"rank_vtx");
     }
-    else { 
-      CWP_Wait_irecv (code_name,cpl_id1,"rank"    );
-      CWP_Wait_irecv (code_name,cpl_id1,"rank_vtx");
+    else {
+      CWP_Field_wait_irecv (code_name,cpl_id1,"rank"    );
+      CWP_Field_wait_irecv (code_name,cpl_id1,"rank_vtx");
     }
 
    }//end codename loop
-     
-   recv_time+=0.1;  
-  }// end i_time loop  
+
+   recv_time+=0.1;
+  }// end i_time loop
 
 /*******************************
           Loop on Code Names
@@ -1084,17 +1085,17 @@ for (int i = 0; i < n_code_name; i++ ) {
 
     int localComm_size = localCommSize[i];
     code_name = codeNames[i];
-    int currentRank = currentRankA[i];  
- 
-  CWP_Mesh_interf_del(code_name, cpl_id1); 
+    int currentRank = currentRankA[i];
+
+  CWP_Mesh_interf_del(code_name, cpl_id1);
   CWP_Cpl_del (code_name, cpl_id1);
-           
+
  }//Loop on codenames
 
   MPI_Barrier(MPI_COMM_WORLD);
 
 
-/******************************************/ 
+/******************************************/
 
   fflush(stdout);
 
@@ -1108,8 +1109,3 @@ for (int i = 0; i < n_code_name; i++ ) {
 
   return 0;
 }
-
-
-
-
-

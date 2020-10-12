@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011  ONERA
 
@@ -26,15 +26,16 @@
 #include <math.h>
 
 #include "cwp.h"
+#include "cwp_priv.h"
 #include "grid_mesh.h"
 
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Dump status exchange                                                
- *                                                                     
+ *
+ * Dump status exchange
+ *
  * parameters:
- *   status              <-- Exchange status           
+ *   status              <-- Exchange status
  *---------------------------------------------------------------------*/
 
 static void _dumpStatus(FILE* outputFile, CWP_Status_t status)
@@ -53,11 +54,11 @@ static void _dumpStatus(FILE* outputFile, CWP_Status_t status)
 }
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Dump not located points                                             
- *                                                                     
+ *
+ * Dump not located points
+ *
  * parameters:
- *   coupling_id         <-- Coupling id               
+ *   coupling_id         <-- Coupling id
  *   nNotLocatedPoints   <-- Number of not located points
  *---------------------------------------------------------------------*/
 
@@ -75,9 +76,9 @@ static void _dumpNotLocatedPoints(FILE* outputFile,
 }
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Display usage                                             
- *                                                                     
+ *
+ * Display usage
+ *
  * parameters:
  *   exit code           <-- Exit code
  *---------------------------------------------------------------------*/
@@ -96,11 +97,11 @@ _usage(int exit_code)
 }
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Read args from the command line                           
- *                                                                     
+ *
+ * Read args from the command line
+ *
  * parameters:
- *   nVertex             <-- Number of vertices in bandwidth                         
+ *   nVertex             <-- Number of vertices in bandwidth
  *   randLevel           <-- Random level
  *---------------------------------------------------------------------*/
 
@@ -138,11 +139,11 @@ _read_args(int            argc,
 }
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Main : surface coupling test : P1P0_P0P1 
+ *
+ * Main : surface coupling test : P1P0_P0P1
  *
  *---------------------------------------------------------------------*/
- 
+
 int main
 (
  int    argc,    /* Nombre d'arguments dans la ligne de commandes */
@@ -200,7 +201,7 @@ int main
   /* Initialization
    * -------------- */
 
-  int nb_part = 1; 
+  int nb_part = 1;
 
   int n_code_name = 0;
   char **codeName = NULL;
@@ -217,9 +218,9 @@ int main
 
 
   //Random distribution of codes on processes.
-  int nsize = couplingSize;   
+  int nsize = couplingSize;
   int nranks[nsize];
-  
+
   if(rank==0){
     time_t t;
     /* Intializes random number generator */
@@ -232,19 +233,19 @@ int main
       rankCode2[i] = 0;
     }
     for(int i=0; i < size_code1_domain; i++){
-      int tmp = rand() % commWorldSize;   
+      int tmp = rand() % commWorldSize;
       while(rankCode1[tmp] == 1){
         tmp = rand() % commWorldSize;
       }
-      rankCode1[tmp]=1; 
+      rankCode1[tmp]=1;
     }
 
     for(int i=0; i < size_code2_domain; i++){
-      int tmp = rand() % commWorldSize;   
+      int tmp = rand() % commWorldSize;
       while(rankCode2[tmp] == 1){
         tmp = rand() % commWorldSize;
       }
-      rankCode2[tmp]=1; 
+      rankCode2[tmp]=1;
     }
 
 
@@ -256,18 +257,18 @@ int main
       if(rankCode1[i] == 1 && rankCode2[i] == 0)
         AtLeastOneMonocodeRank1 = 1;
     }
-    
+
     if(!AtLeastOneMonocodeRank1 || !AtLeastOneMonocodeRank2){
-      int tmp = rand() % commWorldSize;   
+      int tmp = rand() % commWorldSize;
       while( !(rankCode2[tmp] == 1 && rankCode1[tmp] == 1) ){
         tmp = rand() % couplingSize;
       }
-      rankCode2[tmp]=0; 
-      tmp = rand() % commWorldSize; 
+      rankCode2[tmp]=0;
+      tmp = rand() % commWorldSize;
       while( !(rankCode2[tmp] == 0 && rankCode1[tmp] == 0) ){
         tmp = rand() % couplingSize;
       }
-      rankCode2[tmp]=1; 
+      rankCode2[tmp]=1;
     }
 
 
@@ -280,7 +281,7 @@ int main
           rankCode1[5] = 0;
           rankCode1[6] = 0;
           rankCode1[7] = 0;
- 
+
           rankCode2[0] = 0;
           rankCode2[1] = 0;
           rankCode2[2] = 1;
@@ -296,15 +297,15 @@ int main
        nranks[ind]=i;
        ind++;
       }
-    }    
-   */ 
-    
-    
+    }
+   */
+
+
   } // if rank==0
 
 
-  int nsizercv=nsize;   
-  
+  int nsizercv=nsize;
+
   int rankCode1Rcv = -1;
   int rankCode2Rcv = -1;
 
@@ -313,7 +314,7 @@ int main
               0,
               MPI_COMM_WORLD
              );
-    
+
   MPI_Scatter(&rankCode2    ,1 ,MPI_INT,
               &rankCode2Rcv,1 ,MPI_INT,
               0,
@@ -325,7 +326,7 @@ int main
               0,
               MPI_COMM_WORLD
              );
-   
+
 
 
   if(rankCode1Rcv && rankCode2Rcv) {
@@ -333,16 +334,16 @@ int main
   }
   else if(rankCode1Rcv){
     printf("I am process %i and I own the code1.\n",rank);
-  } 
+  }
   else if(rankCode2Rcv){
     printf("I am process %i and I own the code2.\n",rank);
-  }    
+  }
   else {
     printf("I am process %i and I am not coupled.\n",rank);
-  } 
-  
- 
-  
+  }
+
+
+
   if (rankCode1Rcv) {
     n_code_name = 1;
     codeName = malloc(sizeof(char*)*n_code_name);
@@ -350,9 +351,9 @@ int main
     codeName[0] = "code1";
     codeCoupledName[0] = "code2";
     is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
-    is_coupled_rank[0] = CWP_STATUS_ON;    
+    is_coupled_rank[0] = CWP_STATUS_ON;
   }
-  
+
   if (rankCode2Rcv) {
     n_code_name = 1;
     codeName = malloc(sizeof(char*)*n_code_name);
@@ -360,7 +361,7 @@ int main
     codeName[0] = "code2";
     codeCoupledName[0] = "code1";
     is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
-    is_coupled_rank[0] = CWP_STATUS_ON;    
+    is_coupled_rank[0] = CWP_STATUS_ON;
   }
 
   if (rankCode1Rcv && rankCode2Rcv) {
@@ -372,9 +373,9 @@ int main
     codeCoupledName[0] = "code2";
     codeCoupledName[1] = "code1";
     is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
-    is_coupled_rank[0] = CWP_STATUS_ON;    
-    is_coupled_rank[1] = CWP_STATUS_ON;  
-  }  
+    is_coupled_rank[0] = CWP_STATUS_ON;
+    is_coupled_rank[1] = CWP_STATUS_ON;
+  }
 
   if (!rankCode1Rcv && !rankCode2Rcv) {
     n_code_name = 1;
@@ -386,14 +387,14 @@ int main
     }
     else {
       codeName[0]        = "code2";
-      codeCoupledName[0] = "code1";    
+      codeCoupledName[0] = "code1";
     }
     is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
-    is_coupled_rank[0] = CWP_STATUS_OFF;    
-  } 
+    is_coupled_rank[0] = CWP_STATUS_OFF;
+  }
 
 
- 
+
   char* fileName = (char *) malloc(sizeof(char) * 35);
   sprintf(fileName,"c_surf_coupling_P1P0_P0P1_%4.4d.txt",rank);
 
@@ -406,10 +407,10 @@ int main
   times_init = malloc(sizeof(double) * n_code_name);
 
   for (int i = 0; i < n_code_name; i++) {
-    times_init[i] = 0; 
+    times_init[i] = 0;
   }
 
-  
+
   MPI_Comm *localComm = malloc(sizeof(MPI_Comm)*n_code_name);
   CWP_Init(MPI_COMM_WORLD,
            n_code_name,
@@ -418,7 +419,7 @@ int main
            times_init,
            localComm);
 
- 
+
 
   /* Output redirection
    * ------------------ */
@@ -435,7 +436,7 @@ int main
   if (rank == 0)
     printf("        Create coupling %i\n",rank);
 
-  for(int i_code = 0; i_code < n_code_name; i_code++) { 
+  for(int i_code = 0; i_code < n_code_name; i_code++) {
       //printf("   rank %i     Create coupling code %i localCommSize %i\n",rank,i_code,localCommSize[i_code]);
       CWP_Cpl_create (codeName[i_code],             // Code name
                     "c_new_api_surf_cpl_P1P0_P0P1",  // Coupling id
@@ -445,9 +446,9 @@ int main
                     nb_part,                 // Partition number
                     CWP_DYNAMIC_MESH_STATIC, // Mesh type
                     CWP_TIME_EXCH_CPL_TIME_STEP); // Postprocessing frequency
-                    
-    //  printf("   rank %i     After Create coupling code %i localCommSize %i\n",rank,i_code,11);               
-                    
+
+    //  printf("   rank %i     After Create coupling code %i localCommSize %i\n",rank,i_code,11);
+
   }
 
 
@@ -457,35 +458,35 @@ int main
   MPI_Comm *connectableLocalComm = malloc(sizeof(MPI_Comm)*n_code_name);
 
 
-  for(int i_code = 0; i_code < n_code_name; i_code++) { 
-    if(is_coupled_rank[i_code] == CWP_STATUS_ON) {    
+  for(int i_code = 0; i_code < n_code_name; i_code++) {
+    if(is_coupled_rank[i_code] == CWP_STATUS_ON) {
       connectableLocalComm[i_code] = CWP_Connectable_comm_get(codeName[i_code]);
       if(localComm[i_code]!=MPI_COMM_NULL) MPI_Comm_rank(localComm[i_code], &currentRank[i_code]);
       if(localComm[i_code]!=MPI_COMM_NULL) MPI_Comm_size(localComm[i_code], &localCommSize[i_code]);
-      if(connectableLocalComm[i_code]!=MPI_COMM_NULL) MPI_Comm_size(connectableLocalComm[i_code], &connectableLocalCommSize[i_code]);    
+      if(connectableLocalComm[i_code]!=MPI_COMM_NULL) MPI_Comm_size(connectableLocalComm[i_code], &connectableLocalCommSize[i_code]);
     }
   }
 
   char *fieldName1;
   char *fieldName2;
-    
 
-  if(is_coupled_rank[0] == CWP_STATUS_ON) {    
+
+  if(is_coupled_rank[0] == CWP_STATUS_ON) {
 
   if (rank == 0)
     printf("        Set visu\n");
 
 
-  for(int i_code = 0; i_code < n_code_name; i_code++) {      
+  for(int i_code = 0; i_code < n_code_name; i_code++) {
     CWP_Visu_set(codeName[i_code], // Code name
                  "c_new_api_surf_cpl_P1P0_P0P1",     // Coupling id
                  1,           // Postprocessing frequency
                  CWP_VISU_FORMAT_ENSIGHT,     // Postprocessing format
                  "text");     // Postprocessing option
   }
- 
+
  }
- 
+
   /* Mesh definition
    * --------------- */
 
@@ -497,10 +498,10 @@ int main
   int nElts = 0;                 // Number of elements
   int **eltsConnecPointer = NULL; // Connectivity index
   int **eltsConnec = NULL;        // Connectivity
- 
- 
-  if(is_coupled_rank[0] == CWP_STATUS_ON) {    
-  
+
+
+  if(is_coupled_rank[0] == CWP_STATUS_ON) {
+
   /* Domain bounds */
 
   const double xmin = -10;
@@ -517,60 +518,60 @@ int main
 
   srand (time(NULL));
 
-  for(int i_code = 0; i_code < n_code_name; i_code++) { 
+  for(int i_code = 0; i_code < n_code_name; i_code++) {
     coords           [i_code] = (double *) malloc(sizeof(double) * 3 * nVertex );
     eltsConnecPointer[i_code] = (int *)    malloc(sizeof(int) * (nElts + 1));
     eltsConnec       [i_code] = (int *)    malloc(sizeof(int) * 4 * nElts);
     randLevel =0.4;
-    
-    
-    
+
+
+
     if(codeName[i_code]=="code1")
-      grid_mesh(xmin, 
-            xmax, 
-            ymin, 
-            ymax, 
+      grid_mesh(xmin,
+            xmax,
+            ymin,
+            ymax,
             randLevel,
             nVertexSeg,
-            sqrt(connectableLocalCommSize[i_code]), 
-            coords           [i_code], 
+            sqrt(connectableLocalCommSize[i_code]),
+            coords           [i_code],
             eltsConnecPointer[i_code],
             eltsConnec       [i_code],
-            connectableLocalComm[i_code]); 
+            connectableLocalComm[i_code]);
   }
- 
-  for(int i_code = 0; i_code < n_code_name; i_code++) { 
+
+  for(int i_code = 0; i_code < n_code_name; i_code++) {
     randLevel =0.2;
     if(codeName[i_code]=="code2")
-      grid_mesh(xmin, 
-            xmax, 
-            ymin, 
-            ymax, 
+      grid_mesh(xmin,
+            xmax,
+            ymin,
+            ymax,
             randLevel,
             nVertexSeg,
-            sqrt(connectableLocalCommSize[i_code]), 
-            coords           [i_code], 
+            sqrt(connectableLocalCommSize[i_code]),
+            coords           [i_code],
             eltsConnecPointer[i_code],
             eltsConnec       [i_code],
-            connectableLocalComm[i_code]); 
+            connectableLocalComm[i_code]);
   }
 
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
 
-  for(int i_code = 0; i_code < n_code_name; i_code++) {        
+  for(int i_code = 0; i_code < n_code_name; i_code++) {
     CWP_Mesh_interf_vtx_set(codeName[i_code],             //Code name
                             "c_new_api_surf_cpl_P1P0_P0P1",  // Coupling id
                             0,
                             nVertex,
                             coords[i_code],
-                            NULL);  
+                            NULL);
 
     int block_id = CWP_Mesh_interf_block_add(codeName[i_code],             // Code name
                                            "c_new_api_surf_cpl_P1P0_P0P1",  // Coupling id
                                            CWP_BLOCK_FACE_POLY);
-                       
+
     CWP_Mesh_interf_f_poly_block_set(codeName[i_code],             //Code name
                                      "c_new_api_surf_cpl_P1P0_P0P1",  // Coupling id
                                      0,
@@ -579,14 +580,14 @@ int main
                                      eltsConnecPointer[i_code],
                                      eltsConnec       [i_code],
                                      NULL);
-                                   
+
     CWP_Mesh_interf_finalize (codeName[i_code],
                               "c_new_api_surf_cpl_P1P0_P0P1"  // Coupling id
                              );
   }
-  
 
-  
+
+
   /* Fields exchange
    *     - Proc 0 : Send X coordinates
    *                Recv Y coordinates
@@ -601,41 +602,41 @@ int main
 
   double **sendValues = (double **) malloc(sizeof(double*) * n_code_name);
   double **recvValues = (double **) malloc(sizeof(double*) * n_code_name);
-  
-  if(is_coupled_rank[0] == CWP_STATUS_ON) {   
-  
-  for(int i_code = 0; i_code < n_code_name; i_code++) {   
+
+  if(is_coupled_rank[0] == CWP_STATUS_ON) {
+
+  for(int i_code = 0; i_code < n_code_name; i_code++) {
     if (codeName[i_code] == "code1") {
       sendValues[i_code] = (double *) malloc(sizeof(double) * nVertex);
-      recvValues[i_code] = (double *) malloc(sizeof(double) * nElts); 
+      recvValues[i_code] = (double *) malloc(sizeof(double) * nElts);
       for (int i = 0; i <nVertex; i++) {
         sendValues[i_code][i] = coords[i_code][3 * i];
       }
     }
     else {
       sendValues[i_code] = (double *) malloc(sizeof(double) * nElts);
-      recvValues[i_code] = (double *) malloc(sizeof(double) * nVertex); 
+      recvValues[i_code] = (double *) malloc(sizeof(double) * nVertex);
       for (int i = 0; i <nElts; i++) {
         sendValues[i_code][i] = rank;//i;//coords[3 * i];
-      }  
+      }
     }
-  
+
   }
-  
+
   }
   /* Define fields to send (X coordinate or Y coordinate) */
 
   /* Exchange */
 
   int nNotLocatedPoints = 0;
-  
+
   fieldName1 = "cooX";
   fieldName2 = "rank";
 
-  CWP_Status_t visu_status = CWP_STATUS_OFF; 
+  CWP_Status_t visu_status = CWP_STATUS_OFF;
   MPI_Barrier(MPI_COMM_WORLD);
   printf("        Field %i\n",rank);
-  for(int i_code = 0; i_code < n_code_name; i_code++) {   
+  for(int i_code = 0; i_code < n_code_name; i_code++) {
     if (codeName[i_code] == "code1") {
       CWP_Field_create (codeName[i_code],
                        "c_new_api_surf_cpl_P1P0_P0P1",
@@ -657,16 +658,16 @@ int main
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
 
-      if(is_coupled_rank[i_code] == CWP_STATUS_ON) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1,0, sendValues[i_code]); 
+      if(is_coupled_rank[i_code] == CWP_STATUS_ON) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1,0, sendValues[i_code]);
       if(is_coupled_rank[i_code] == CWP_STATUS_ON) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2,0, recvValues[i_code]);
-    
-    
+
+
  //   _dumpStatus(outputFile, status);
 //    _dumpNotLocatedPoints(outputFile, "c_new_api_surf_cpl_P1P0_P0P1", nNotLocatedPoints);
 
     }
     else {
-  
+
      CWP_Field_create (codeName[i_code],
                        "c_new_api_surf_cpl_P1P0_P0P1",
                        fieldName1,
@@ -676,7 +677,7 @@ int main
                        CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
-                     
+
       CWP_Field_create (codeName[i_code],
                      "c_new_api_surf_cpl_P1P0_P0P1",
                      fieldName2,
@@ -687,7 +688,7 @@ int main
                      CWP_FIELD_EXCH_SEND,
                      visu_status);
 
-    if(is_coupled_rank[i_code] == CWP_STATUS_ON) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2,0, sendValues[i_code]); 
+    if(is_coupled_rank[i_code] == CWP_STATUS_ON) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2,0, sendValues[i_code]);
     if(is_coupled_rank[i_code] == CWP_STATUS_ON) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1,0, recvValues[i_code]);
 
   //  _dumpStatus(outputFile, status);
@@ -702,7 +703,7 @@ int main
   MPI_Barrier(MPI_COMM_WORLD);
   int n_uncomputed_tgt;
 
-  
+
   printf("Before Mapping compute %i\n",rank);
 
   CWP_Spatial_interp_weights_compute("c_new_api_surf_cpl_P1P0_P0P1");
@@ -712,66 +713,66 @@ int main
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  if(is_coupled_rank[0] == CWP_STATUS_ON) {    
+  if(is_coupled_rank[0] == CWP_STATUS_ON) {
 
 
   double recv_time = 0.150;
-  
-  for(int i_code = 0; i_code < n_code_name; i_code++) {    
-  
+
+  for(int i_code = 0; i_code < n_code_name; i_code++) {
+
     CWP_next_recv_time_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",recv_time);
 
     if (codeName[i_code] == "code1") {
-      CWP_Field_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);   
-      CWP_Field_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);  
+      CWP_Field_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);
+      CWP_Field_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);
     }
     else {
-      CWP_Field_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);   
-      CWP_Field_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);    
+      CWP_Field_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);
+      CWP_Field_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);
     }
   }
 
-  for(int i_code = 0; i_code < n_code_name; i_code++) {       
+  for(int i_code = 0; i_code < n_code_name; i_code++) {
     if (codeName[i_code] == "code1") {
-      CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);  
-      CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);    
+      CWP_Field_wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);
+      CWP_Field_wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);
     }
     else {
-      CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);       
-      CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);   
-    }    
+      CWP_Field_wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);
+      CWP_Field_wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);
+    }
   }
 
 
   }//end if isCoupled
-  
+
   /* Coupling deletion
    * ----------------- */
 
   //if (rank == 0)
     printf("        Delete mesh\n",rank);
- 
-  for(int i_code = 0; i_code < n_code_name; i_code++) 
+
+  for(int i_code = 0; i_code < n_code_name; i_code++)
      CWP_Mesh_interf_del(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1");
 
   if (rank == 0)
     printf("        Delete coupling\n");
 
-  for(int i_code = 0; i_code < n_code_name; i_code++)    
+  for(int i_code = 0; i_code < n_code_name; i_code++)
     CWP_Cpl_del(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1");
 
   /* Freeing memory
    * -------------- */
 
-  if(is_coupled_rank[0] == CWP_STATUS_ON) {    
+  if(is_coupled_rank[0] == CWP_STATUS_ON) {
 
   free(coords);
 
-  free(sendValues);   
+  free(sendValues);
   free(recvValues);
-  
+
   }//end if isCoupledRank
-  
+
   free(srcName);
 
   /* Finalize
@@ -785,5 +786,3 @@ int main
 
   return EXIT_SUCCESS;
 }
-
-
