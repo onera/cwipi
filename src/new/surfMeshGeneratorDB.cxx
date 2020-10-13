@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011-2017  ONERA
 
@@ -31,6 +31,10 @@
 #include <stdio.h>
 #include <string.h>
 
+/**
+ * \cond
+ */
+
 namespace cwipi {
 
 surfMeshGeneratorDB::surfMeshGeneratorDB()
@@ -41,8 +45,8 @@ surfMeshGeneratorDB::surfMeshGeneratorDB()
 surfMeshGeneratorDB::~surfMeshGeneratorDB()
 {
 
-}      
- 
+}
+
 void surfMeshGeneratorDB::createMember(string genName)
 {
 
@@ -66,9 +70,9 @@ void surfMeshGeneratorDB::destroyMember(string genName)
   }
 
 }
-        
- 
- 
+
+
+
 surfMeshGenerator* surfMeshGeneratorDB::memberGet(string genName)
 {
   std::map<string,surfMeshGenerator*>::iterator itr = _dataBase.begin();
@@ -80,11 +84,12 @@ surfMeshGenerator* surfMeshGeneratorDB::memberGet(string genName)
        ++itr;
     }
   }
-}    
+}
 
 
 }//end namespace cwipi
 
 
-
-
+/**
+ * \endcond
+ */

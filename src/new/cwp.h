@@ -34,11 +34,21 @@
  * Macro definitions
  *============================================================================*/
 
+
+/**
+ * \cond
+ */
+
 #if !defined (__hpux) && !defined (_AIX)
 #define PROCF(x, y) x##_
 #else
 #define PROCF(x, y) x
 #endif
+
+
+/**
+ * \endcond
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -113,7 +123,7 @@ typedef enum {
 
 /**
  * \enum CWP_Time_exch_t
- * \brief  Modes of time exchange used by \ref CWP_Exch function to determine when to launch interpolation/exchange.
+ * \brief  Modes of time exchange used by \ref CWP_Field_exch function to determine when to launch interpolation/exchange.
  *
  */
 
@@ -121,7 +131,7 @@ typedef enum {
 typedef enum {
 
   CWP_TIME_EXCH_EACH_TIME_STEP,      /*!< Exchange at each time step */
-  CWP_TIME_EXCH_N_TIME_STEP,         /*!< Exchange every \it n time steps  */
+  CWP_TIME_EXCH_N_TIME_STEP,         /*!< Exchange every <EM> n </EM> time steps  */
   CWP_TIME_EXCH_CPL_TIME_STEP,       /*!< Coupling time step        */
   CWP_TIME_EXCH_ASYNCHRONOUS,        /*!< Exchanges are asynchronous with temporal interpolation */
   CWP_TIME_EXCH_SLAVE,               /*!< Give a converged state    */
@@ -638,14 +648,14 @@ void
 void
 CWP_Cpl_create
 (
- const char               *local_code_name,
- const char               *cpl_id,
- const char               *coupled_code_name,
- const CWP_Comm_t          comm_type,
+ const char                *local_code_name,
+ const char                *cpl_id,
+ const char                *coupled_code_name,
+ const CWP_Comm_t           comm_type,
  const CWP_Spatial_interp_t spatial_interp,
- const int                 n_part,
- const CWP_Dynamic_mesh_t  displacement,
- const CWP_Time_exch_t          recv_freq_type
+ const int                  n_part,
+ const CWP_Dynamic_mesh_t   displacement,
+ const CWP_Time_exch_t      recv_freq_type
 );
 
 
@@ -789,6 +799,8 @@ CWP_Cpl_del
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
+ * \param [in] target_location  Target location
+ * \param [in] i_part           Current partition
  *
  * \return                Number of uncomputed targets
  */
@@ -796,10 +808,10 @@ CWP_Cpl_del
 int
 CWP_N_uncomputed_tgts_get
 (
- const char *local_code_name,
- const char *cpl_id,
- const CWP_Dof_location_t pointsCloudLocation,
- const int  i_part
+ const char              *local_code_name,
+ const char              *cpl_id,
+ const CWP_Dof_location_t target_location,
+ const int                i_part
 );
 
 /**
@@ -878,7 +890,7 @@ CWP_Computed_tgts_dist_to_spatial_interp_get
  * \brief Set receiving frequency. <b>(Not implemented yet)</b>
  *
  * This function set the receiving frequency. It must be used when
- * the type of receiving frequency is \ref CWP_TIME_EXCH_RELATED_N_TIME_STEP
+ * the type of receiving frequency is \ref CWP_TIME_EXCH_N_TIME_STEP
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -1030,6 +1042,7 @@ CWP_Visu_set
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  i_part           Current partition
  * \param [in]  n_pts            Number of points
  * \param [in]  coord            Coordinates (size = 3 * n_pts)
  *
@@ -1431,15 +1444,15 @@ CWP_Mesh_interf_from_faceedge_set
  *
  * \brief Create a new field.
  *
- * \param [in] local_code_name Local code name
- * \param [in]  cpl_id         Coupling identifier
- * \param [in]  field_id       Field id
- * \param [in]  data_type      Data type
- * \param [in]  storage        Storage type
- * \param [in]  n_component    Number of component
- * \param [in]  nature         Value location
- * \param [in]  exch_type      Exchange type
- * \param [in]  visu_status    Visualization status
+ * \param [in]  local_code_name Local code name
+ * \param [in]  cpl_id          Coupling identifier
+ * \param [in]  field_id        Field id
+ * \param [in]  data_type       Data type
+ * \param [in]  storage         Storage type
+ * \param [in]  n_component     Number of component
+ * \param [in]  target_location Target location
+ * \param [in]  exch_type       Exchange type
+ * \param [in]  visu_status     Visualization status
  *
  */
 
@@ -1452,7 +1465,7 @@ CWP_Field_create
  const CWP_Type_t             data_type,
  const CWP_Field_storage_t    storage,
  const int                    n_component,
- const CWP_Dof_location_t      value_target_location,
+ const CWP_Dof_location_t     target_location,
  const CWP_Field_exch_t       exch_type,
  const CWP_Status_t           visu_status
 );
@@ -1618,7 +1631,7 @@ CWP_Field_del
  */
 
 void
-CWP_Field_Exch
+CWP_Field_exch
 (
  const char *local_code_name,
  const char *cpl_id
@@ -1640,7 +1653,7 @@ CWP_Field_Exch
  */
 
 void
-CWP_Field_Issend
+CWP_Field_issend
 (
  const char     *local_code_name,
  const char     *cpl_id,
@@ -1663,11 +1676,11 @@ CWP_Field_Issend
  */
 
 void
-CWP_Field_Irecv
+CWP_Field_irecv
 (
  const char        *local_code_name,
  const char        *cpl_id,
- const char        *targetFieldID
+ const char        *tgt_field_id
 );
 
 /**
@@ -1676,6 +1689,7 @@ CWP_Field_Irecv
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
+ * \param [in] src_field_id     Source field id
  *
  */
 
@@ -1692,10 +1706,11 @@ CWP_Field_wait_issend
  * \brief Wait the end of an exchange related to request from \ref CWP_Field_irecv.
  *
  * This function waits the end of exchange related to request
- * from \ref CWP_Irecv
+ * from \ref CWP_Field_irecv
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
+ * \param [in] tgt_field_id     Target field id
  *
  */
 
@@ -1704,7 +1719,7 @@ CWP_Field_wait_irecv
 (
  const char  *local_code_name,
  const char  *cpl_id,
- const char  *distant_field_id
+ const char  *tgt_field_id
 );
 
 
@@ -1723,6 +1738,7 @@ CWP_Field_wait_irecv
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
+ * \param [in] src_field_id     Source field id
  * \param [in] fct              Function
  *
  */
@@ -1732,7 +1748,7 @@ CWP_Interp_from_location_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
- const char                 *field_id,
+ const char                 *src_field_id,
  CWP_Interp_from_location_t  fct
 );
 

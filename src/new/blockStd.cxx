@@ -1,7 +1,7 @@
 
 
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2013-2017  ONERA
 
@@ -30,40 +30,44 @@
 
 #include <mesh.hxx>
 
+/**
+ * \cond
+ */
+
 namespace cwipi {
   BlockStd::BlockStd()
      :Block::Block()
   {
-  
+
   }
 
 
   BlockStd::~BlockStd()
   {
-  
+
   }
 
   void BlockStd::FromPDMBlock(int pdm_id_block, void* mesh){
-  
+
      _mesh     = mesh;
      _pdmNodal_handle_index = static_cast<Mesh*>(mesh) -> getPdmNodalIndex();
      _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh) -> getMPICommP());
      PDM_Mesh_nodal_elt_t PDM_block_type = PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,pdm_id_block);
-     _blockType = CwpBlockTypeFromPdmBlockType (PDM_block_type); 
+     _blockType = CwpBlockTypeFromPdmBlockType (PDM_block_type);
      BlockAdd(_blockType, mesh);
-     
+
      for(int id_part=0;id_part < _n_part;id_part++){
         int nElts = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index,
                                                    pdm_id_block,
                                                    id_part );
-        _block_id_pdm=pdm_id_block;         
-        int* connec = NULL;      
-                                
+        _block_id_pdm=pdm_id_block;
+        int* connec = NULL;
+
         PDM_Mesh_nodal_block_std_get (_pdmNodal_handle_index,
                                       _block_id_pdm,
                                       id_part,
-                                      &connec); 
-                                      
+                                      &connec);
+
          blockSet(id_part,nElts,connec,NULL);
        }
   }
@@ -97,11 +101,11 @@ namespace cwipi {
       if(already_in_pdm == 0)
         PDM_Mesh_nodal_block_std_set(_pdmNodal_handle_index,
                                      _block_id_pdm,
-                                     i_part,    
-                                     _n_elt[i_part],    
-                                     _connec[i_part],   
+                                     i_part,
+                                     _n_elt[i_part],
+                                     _connec[i_part],
                                      _global_num [i_part],
-                                      NULL); 
+                                      NULL);
 
       Visu* visu = ((Mesh*)_mesh) -> getVisu();
       if(visu -> isCreated() && ((Mesh*)_mesh) -> getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
@@ -118,10 +122,6 @@ namespace cwipi {
 }
 
 
-
-
-
-
-
-
-
+/**
+ * \endcond
+ */

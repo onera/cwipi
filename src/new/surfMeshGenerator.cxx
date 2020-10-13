@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011-2017  ONERA
 
@@ -17,6 +17,10 @@
   License along with this library. If not, see <http://www.gnu.org/license_width/>.
 */
 
+
+/**
+ * \cond
+ */
 
 
 #include "pdm_timer.h"
@@ -43,10 +47,10 @@ const double MIN = DOUBLE.min();
 const double MAX = DOUBLE.max();
 
 struct Point { double x, y; };
- 
+
 struct Edge {
     Point a, b;
- 
+
     bool operator()(const Point& p) const
     {
         if (a.y > b.y) return Edge{ b, a }(p);
@@ -58,26 +62,26 @@ struct Edge {
         return blue >= red;
     }
 };
- 
+
 struct Figure {
     const string  name;
     vector<Edge> edges;
- 
-    bool contains(Point& p) 
+
+    bool contains(Point& p)
     {
         auto c = 0;
         for (auto e : edges) if (e(p)) c++;
         return c % 2 != 0;
     }
- 
+
 };
- 
+
 
 
 
 
 namespace cwipi {
- 
+
 
 
 surfMeshGenerator::surfMeshGenerator()
@@ -85,8 +89,8 @@ surfMeshGenerator::surfMeshGenerator()
 {
 
 }
-      
-      
+
+
 void surfMeshGenerator::init(int nx, int ny, int nPart, MPI_Comm* comm, double prop, double width, double randomVar)
 {
 
@@ -94,14 +98,14 @@ void surfMeshGenerator::init(int nx, int ny, int nPart, MPI_Comm* comm, double p
   _ny = ny;
   _prop = prop;
   _width = width;
-  _comm = _interfComm = PDM_MPI_mpi_2_pdm_mpi_comm(&comm);  
+  _comm = _interfComm = PDM_MPI_mpi_2_pdm_mpi_comm(&comm);
   _randomVar = randomVar;
   _nPart = nPart;
-  
+
   _nVtx    .resize (_nPart);
   _coords  .resize (_nPart);
   _vtxGnum .resize (_nPart);
-  
+
   _nPoly              .resize (_nPart);
   _eltsConnecPolyIndex.resize (_nPart);
   _eltsConnecPoly     .resize (_nPart);
@@ -118,7 +122,7 @@ void surfMeshGenerator::init(int nx, int ny, int nPart, MPI_Comm* comm, double p
   _centerTri    .resize (_nPart);
   _charLengthTri.resize (_nPart);
   _isDegTri     .resize (_nPart);
-  
+
 
   _nQuad         .resize (_nPart);
   _eltsConnecQuad.resize (_nPart);
@@ -136,15 +140,15 @@ void surfMeshGenerator::init(int nx, int ny, int nPart, MPI_Comm* comm, double p
   _edgeVtxIdx .resize (_nPart);
   _edgeVtx    .resize (_nPart);
   _faceLNToGN .resize (_nPart);
-  _nElts   .resize (_nPart);  
+  _nElts   .resize (_nPart);
   _eltsConnecIndex.resize (_nPart);
-  _eltsConnec     .resize (_nPart);   
+  _eltsConnec     .resize (_nPart);
   _eltsGnum       .resize (_nPart);
-  
+
   _specialFieldTri.resize(_nPart);
   _specialFieldQuad.resize(_nPart);
   _specialFieldPoly.resize(_nPart);
-  
+
   /* Interface communicator
    * ---------------------- */
 
@@ -157,30 +161,30 @@ void surfMeshGenerator::init(int nx, int ny, int nPart, MPI_Comm* comm, double p
   if (_rank == 0) {
     _color = 1;
   }
- 
+
   MPI_Comm interfComm = MPI_COMM_NULL;
   MPI_Comm_split(*comm, _color, _rank, &interfComm);
   MPI_Comm_size(interfComm, &_interfCommSize);
-  _interfComm = PDM_MPI_mpi_2_pdm_mpi_comm(&interfComm);  
-  
+  _interfComm = PDM_MPI_mpi_2_pdm_mpi_comm(&interfComm);
+
   _xmin = -_width/2.;
   _xmax =  _width/2.;
   _ymin = -_width/2.;
   _ymax =  _width/2.;
 
-}      
-      
-      
-surfMeshGenerator::~surfMeshGenerator() {
-  
 }
-  
+
+
+surfMeshGenerator::~surfMeshGenerator() {
+
+}
+
 
 double surfMeshGenerator::_inBox(double x, double y, double x1, double y1 , double x2, double y2) {
 
   double xr = x/_width;
   double yr = y/_width;
-  
+
   if( x1< xr && xr<x2 && yr<y2 && y1<yr)
     return 1.;
   else
@@ -189,14 +193,14 @@ double surfMeshGenerator::_inBox(double x, double y, double x1, double y1 , doub
 
 
 Point _transform0 (Point p){
-  return { 3.0 * ((p.x - 5.0)/10.0 + 0.295), 3.0 * ((p.y - 5.0)/10.0 + 0.0244) } ; 
+  return { 3.0 * ((p.x - 5.0)/10.0 + 0.295), 3.0 * ((p.y - 5.0)/10.0 + 0.0244) } ;
 }
 
 
 Point _transform (Point p){
   Point center = {-165.,-26.};
   Point size = {7.,7.};
-  return { 0.8 * ((p.x - center.x)/size.x ) -0.183,  -0.8 * ((p.y - center.y)/size.y ) - 0.0414 } ; 
+  return { 0.8 * ((p.x - center.x)/size.x ) -0.183,  -0.8 * ((p.y - center.y)/size.y ) - 0.0414 } ;
 }
 
 
@@ -209,8 +213,8 @@ double surfMeshGenerator::_inBox2(double x,double y) {
   Figure square = { "Square",
        {  {{0.0, 0.0}, {0.2, 0.0}}, {{0.2, 0.0}, {0.2, 0.2}}, {{0.2, 0.2}, {0.0, 0.2}}, {{0.0, 0.2}, {0.0, 0.0}} }
   };
-  
-  
+
+
 std::vector<Point> path = {
 {-166.22656,-26.4375},{-166.220597128,-26.6790365708},{-166.19357045,-26.9201755029},{-166.146217463,-27.1573567309},{-166.079288711,-27.389159316},
 {-165.992940712,-27.6154946081},{-165.888212905,-27.833561281},{-165.765799333,-28.0419162912},{-165.62593096,-28.2397014179},{-165.469951007,-28.4244658927},
@@ -250,26 +254,26 @@ std::vector<Point> path = {
 {-166.224639268,-26.3332669881},{-166.225314169,-26.3593950481},{-166.225883442,-26.3863008709},{-166.226331393,-26.4119332545},{-166.22671,-26.437503},
 {-166.22656,-26.4375},{-166.22656,-26.4375},{-166.22656,-26.4375},{-166.22656,-26.4375},{-166.22656,-26.4375},{-166.22656,-26.4375},{-166.22656,-26.4375},
 {-166.22656,-26.4375},{-166.22656,-26.4375},{-166.22656,-26.4375} };
-  
+
   std::vector<Point> path0 = {
   {1.19,4.77},{1.45,5.46},{2.05,5.69},{2.39,5.58},{2.50,5.47},{2.64,5.66},{2.69,5.70},{2.69,4.99},{2.67,4.93},
   {2.62,4.97},{2.52,5.31},{2.26,5.58},{1.95,5.61},{1.59,5.37},{1.43,4.86},{1.47,4.33},{1.76,3.92},{2.07,3.82},
   {2.41,3.95},{2.59,4.20},{2.63,4.44},{2.67,4.47},{2.70,4.42},{2.50,3.96},{2.29,3.79},{2.04,3.74},{1.64,3.85},
   {1.36,4.11},{1.21,4.39},{1.19,4.77} };
-  
+
   std::vector<Edge> path2;
   for (int i=0; i<path.size()-1; i++){
      Point p = {0.0,0.0};
      Edge e = { {1.19,4.77},{1.45,5.46} };
-     
-     //path[0].x = 3.0 * ( (path[0].x - 5.0)/10.0 + 0.295 ) ; 
-     //path[0].y = 3.0 * ( (path[0].y - 5.0)/10.0 + 0.0244 ) ; 
+
+     //path[0].x = 3.0 * ( (path[0].x - 5.0)/10.0 + 0.295 ) ;
+     //path[0].y = 3.0 * ( (path[0].y - 5.0)/10.0 + 0.0244 ) ;
      path[0] = _transform (path[0]);
-     
-     
+
+
      if(i+1 != path.size()){
-       //path[i+1].x = 3.0 * ( (path[i+1].x - 5.0)/10.0 + 0.295 ) ; 
-       //path[i+1].y = 3.0 * ( (path[i+1].y - 5.0)/10.0 + 0.0244 ) ; 
+       //path[i+1].x = 3.0 * ( (path[i+1].x - 5.0)/10.0 + 0.295 ) ;
+       //path[i+1].y = 3.0 * ( (path[i+1].y - 5.0)/10.0 + 0.0244 ) ;
        path[i+1] = _transform (path[i+1]);
        e = {path[i],path[i+1]};
      }
@@ -279,12 +283,12 @@ std::vector<Point> path = {
      //printf("edge %3.2f,%3.2f  %3.2f,%3.2f\n",e.a.x,e.a.y,e.b.x,e.b.y);
      path2.push_back(e);
   }
-  
+
   Figure cell = { "C",path2};
-  
+
   Point p = {xr,yr};
-  
-  
+
+
   if(cell.contains(p))
     return p.y;
   else
@@ -296,7 +300,7 @@ double surfMeshGenerator::_inCircle(double x, double y, double R) {
 
   double xr = x/_width;
   double yr = y/_width;
-  
+
   if(xr*xr + yr*yr < R*R)
     return 1.;
   else
@@ -306,22 +310,22 @@ double surfMeshGenerator::_inCircle(double x, double y, double R) {
 
 double surfMeshGenerator::_motif(double x, double y) {
 
-   
+
    std::vector<double> box_lim = {0.1,0.1, 0.4,0.4};
    double result = 0.0;
    int nBox = box_lim.size()/4;
-   
+
    result = _inBox2(x,y);//,  x1,y1, x2,y2 );
-   
-/*   
+
+/*
    for(int i=0; i<nBox; i++){
      double x1 = box_lim[4*i];
-     double y1 = box_lim[4*i+1];     
-     double x2 = box_lim[4*i+2]; 
+     double y1 = box_lim[4*i+1];
+     double x2 = box_lim[4*i+2];
      double y2 = box_lim[4*i+3];
      result = _inBox2(x,y);//,  x1,y1, x2,y2 );
    }
-  */ 
+  */
    return result;
 }
 
@@ -329,11 +333,11 @@ double* surfMeshGenerator::specialFieldTriGet(int i_part) {
 
   _specialFieldTri[i_part] = (double*)malloc(sizeof(double) * _nTri[i_part]);
   _surfVecTri     [i_part] = (double*)malloc(sizeof(double) * 3 * _nTri[i_part]);
-  _centerTri      [i_part] = (double*)malloc(sizeof(double) * 3 * _nTri[i_part]);  
+  _centerTri      [i_part] = (double*)malloc(sizeof(double) * 3 * _nTri[i_part]);
   _charLengthTri  [i_part] = (double*)malloc(sizeof(double) * _nTri[i_part]);
   _isDegTri       [i_part] = (int*)   malloc(sizeof(int) * _nTri[i_part]);
 
-  PDM_geom_elem_tria_properties(_nTri[i_part], 
+  PDM_geom_elem_tria_properties(_nTri[i_part],
                                 _eltsConnecTri[i_part],
                                 _coords[i_part],
                                 _surfVecTri[i_part],
@@ -342,15 +346,15 @@ double* surfMeshGenerator::specialFieldTriGet(int i_part) {
                                 _isDegTri[i_part]);
 
   for(int i_tri=0; i_tri < _nTri[i_part]; i_tri++){
-    
+
     double xc = _centerTri[i_part][3*i_tri]  ;
     double yc = _centerTri[i_part][3*i_tri+1];
     double zc = _centerTri[i_part][3*i_tri+2];
-    
+
     _specialFieldTri[i_part][i_tri] = _motif(xc,yc);
-    
+
   }
-  
+
   return _specialFieldTri[i_part];
 }
 
@@ -359,11 +363,11 @@ double* surfMeshGenerator::specialFieldQuadGet(int i_part) {
 
   _specialFieldQuad[i_part] = (double*)malloc(sizeof(double) * _nQuad[i_part]);
   _surfVecQuad     [i_part] = (double*)malloc(sizeof(double) * 3 * _nQuad[i_part]);
-  _centerQuad      [i_part] = (double*)malloc(sizeof(double) * 3 * _nQuad[i_part]);  
+  _centerQuad      [i_part] = (double*)malloc(sizeof(double) * 3 * _nQuad[i_part]);
   _charLengthQuad  [i_part] = (double*)malloc(sizeof(double) * _nQuad[i_part]);
   _isDegQuad       [i_part] = (int*)   malloc(sizeof(int) * _nQuad[i_part]);
 
-  PDM_geom_elem_quad_properties(_nQuad[i_part], 
+  PDM_geom_elem_quad_properties(_nQuad[i_part],
                                 _eltsConnecQuad[i_part],
                                 _coords[i_part],
                                 _surfVecQuad[i_part],
@@ -372,15 +376,15 @@ double* surfMeshGenerator::specialFieldQuadGet(int i_part) {
                                 _isDegQuad[i_part]);
 
   for(int i_Quad=0; i_Quad < _nQuad[i_part]; i_Quad++){
-    
+
     double xc = _centerQuad[i_part][3*i_Quad]  ;
     double yc = _centerQuad[i_part][3*i_Quad+1];
     double zc = _centerQuad[i_part][3*i_Quad+2];
-    
+
     _specialFieldQuad[i_part][i_Quad] = _motif(xc,yc);
-    
+
   }
-  
+
   return _specialFieldQuad[i_part];
 }
 
@@ -389,27 +393,27 @@ double* surfMeshGenerator::specialFieldPolyGet(int i_part) {
 
   _specialFieldPoly[i_part] = (double*)malloc(sizeof(double) * _nPoly[i_part]);
   _surfVecPoly     [i_part] = (double*)malloc(sizeof(double) * 3 * _nPoly[i_part]);
-  _centerPoly      [i_part] = (double*)malloc(sizeof(double) * 3 * _nPoly[i_part]);  
+  _centerPoly      [i_part] = (double*)malloc(sizeof(double) * 3 * _nPoly[i_part]);
   _charLengthPoly  [i_part] = (double*)malloc(sizeof(double) * _nPoly[i_part]);
   _isDegPoly       [i_part] = (int*)   malloc(sizeof(int) * _nPoly[i_part]);
 
-  PDM_geom_elem_polygon_properties(_nPoly[i_part], 
-                                   _eltsConnecPolyIndex[i_part],  
+  PDM_geom_elem_polygon_properties(_nPoly[i_part],
+                                   _eltsConnecPolyIndex[i_part],
                                    _eltsConnecPoly[i_part],
                                    _coords[i_part],
                                    _surfVecPoly[i_part],
                                    _centerPoly[i_part],
                                    _charLengthPoly[i_part],
                                    _isDegPoly[i_part]);
-  
+
   for(int i_poly=0; i_poly < _nPoly[i_part]; i_poly++){
-    
+
     double xc = _centerPoly[i_part][3*i_poly]  ;
     double yc = _centerPoly[i_part][3*i_poly+1];
     double zc = _centerPoly[i_part][3*i_poly+2];
-    
+
     _specialFieldPoly[i_part][i_poly] = _motif(xc,yc);
-  
+
   }
   return _specialFieldPoly[i_part];
 }
@@ -520,10 +524,10 @@ void surfMeshGenerator::computeMesh() {
 
     free (dCellPart);
 
-    
+
     int id_mn = PDM_Mesh_nodal_create(_nPart, _interfComm);
     for(int i_part =0;i_part<_nPart;i_part++){
-    
+
       int nEdgePartBound;
       int nVtx1;
       int nProc;
@@ -545,7 +549,7 @@ void surfMeshGenerator::computeMesh() {
                            &sEdgeVtx,
                            &sEdgeGroup,
                            &nEdgeGroup2);
-      
+
       int          *faceTag;
       int          *edgeTag;
       int          *edgeFace;
@@ -580,7 +584,7 @@ void surfMeshGenerator::computeMesh() {
                            &edgeGroupIdx,
                            &edgeGroup,
                            &edgeGroupLNToGN);
-                
+
       _nVtx[i_part] = nVtx1;
       _coords[i_part] = (double*)malloc (sizeof(double) * 3 * nVtx1);
       for (int i = 0; i < 3 * nVtx1; i++) {
@@ -634,7 +638,7 @@ void surfMeshGenerator::computeMesh() {
     assert (PDM_Mesh_nodal_block_type_get (id_mn, block_ids[0]) == PDM_MESH_NODAL_TRIA3);
     assert (PDM_Mesh_nodal_block_type_get (id_mn, block_ids[1]) == PDM_MESH_NODAL_QUAD4);
     assert (PDM_Mesh_nodal_block_type_get (id_mn, block_ids[2]) == PDM_MESH_NODAL_POLY_2D);
-    
+
 
 
     for (int i = 0; i < n_block; i++) {
@@ -644,62 +648,62 @@ void surfMeshGenerator::computeMesh() {
 
       if (t_block == PDM_MESH_NODAL_TRIA3){
         for(int i_part =0;i_part<_nPart;i_part++){
-          _nTri[i_part] = PDM_Mesh_nodal_block_n_elt_get (id_mn, id_block, i_part);            
+          _nTri[i_part] = PDM_Mesh_nodal_block_n_elt_get (id_mn, id_block, i_part);
           PDM_Mesh_nodal_block_std_get (id_mn, id_block, i_part, &_eltsConnecTri[i_part]);
-          _eltsGnumTri[i_part] = PDM_Mesh_nodal_g_num_get (id_mn, id_block, i_part);      
-          
+          _eltsGnumTri[i_part] = PDM_Mesh_nodal_g_num_get (id_mn, id_block, i_part);
+
           /*
           for(int i =0; i<_nTri[i_part]; i++){
             for (int j=0;j<3;j++){
              printf("eltsConnecTri[%i] %i rank %i nVtx %i _nTri %i color %i n_block %i\n",3*i+j,_eltsConnecTri[i_part][3*i+j],_rank,_nVtx[i_part],_nTri[i_part],_color,n_block);
             }
-          }        
+          }
           */
         }
       }
       else if(t_block == PDM_MESH_NODAL_QUAD4) {
         for(int i_part =0;i_part<_nPart;i_part++){
-          _nQuad[i_part] = PDM_Mesh_nodal_block_n_elt_get (id_mn, id_block, i_part);            
+          _nQuad[i_part] = PDM_Mesh_nodal_block_n_elt_get (id_mn, id_block, i_part);
           PDM_Mesh_nodal_block_std_get (id_mn, id_block, i_part, &_eltsConnecQuad[i_part]);
-          _eltsGnumQuad[i_part] = PDM_Mesh_nodal_g_num_get (id_mn, id_block, i_part);      
+          _eltsGnumQuad[i_part] = PDM_Mesh_nodal_g_num_get (id_mn, id_block, i_part);
           /*
           for(int i =0; i<_nTri;i++){
             for (int j=0;j<3;j++){
              printf("eltsConnecTri[%i] %i rank %i nVtx %i _nTri %i color %i n_block %i\n",3*i+j,_eltsConnecTri[3*i+j],_rank,_nVtx,_nTri,_color,n_block);
             }
-          }        
+          }
           */
-        }         
-        
+        }
+
       }
       else if(t_block == PDM_MESH_NODAL_POLY_2D){
         for(int i_part =0;i_part<_nPart;i_part++){
           _nPoly[i_part]  = PDM_Mesh_nodal_block_n_elt_get (id_mn, id_block, i_part);
           PDM_Mesh_nodal_block_poly2d_get (id_mn, id_block, i_part, &_eltsConnecPolyIndex[i_part] , &_eltsConnecPoly[i_part] );
-          
+
           if(_nPoly[i_part] == 0){
             _eltsConnecPolyIndex[i_part] = (int*) malloc(sizeof(int));
             _eltsConnecPolyIndex[i_part][0]=0;
           }
-          
-          _eltsGnumPoly[i_part]  = PDM_Mesh_nodal_g_num_get (id_mn, id_block, i_part);    
+
+          _eltsGnumPoly[i_part]  = PDM_Mesh_nodal_g_num_get (id_mn, id_block, i_part);
          /* for(int i =0; i<_nPoly;i++){
             for (int j=_eltsConnecPolyIndex[i];j<_eltsConnecPolyIndex[i+1];j++){
               printf("_eltsConnecPoly[%i] %i rank %i nVtx %i _nPoly %i color %i n_block %i\n",j,_eltsConnecPoly[j],_rank,_nVtx,_nPoly,_color,n_block);
             }
           }
-         */             
+         */
         }
       }
     }
-   
+
     for(int i_part =0;i_part<_nPart;i_part++){
       assert(_nElts[i_part] == _nTri[i_part] + _nQuad[i_part] + _nPoly[i_part]);
-    
+
       _eltsConnecIndex[i_part] = (int*) malloc( sizeof(int) * (_nElts[i_part]+1) );
       _eltsConnecIndex[i_part][0] = 0;
 
-      int idx =0; 
+      int idx =0;
       for(int i =0; i<_nTri[i_part];i++){
         _eltsConnecIndex[i_part][idx+1] = _eltsConnecIndex[i_part][idx] + 3;
         idx++;
@@ -712,18 +716,18 @@ void surfMeshGenerator::computeMesh() {
 
       for(int i =0; i< _nPoly[i_part]; i++){
         _eltsConnecIndex[i_part][idx+1] = _eltsConnecIndex[i_part][idx] + (_eltsConnecPolyIndex[i_part][i+1]-_eltsConnecPolyIndex[i_part][i]);
-        idx++;     
+        idx++;
       }
-    
+
       _nElts[i_part] = _nPoly[i_part] + _nTri[i_part] + _nQuad[i_part];
-    
+
       _eltsConnec[i_part] = (int*) malloc(sizeof(int) * _eltsConnecIndex[i_part][_nElts[i_part]] );
       memcpy( _eltsConnec[i_part], _eltsConnecTri[i_part], sizeof(int)*3*_nTri[i_part] );
-      memcpy( &(_eltsConnec[i_part][3*_nTri[i_part]]), _eltsConnecQuad[i_part], sizeof(int)*4*_nQuad[i_part] );    
-   
+      memcpy( &(_eltsConnec[i_part][3*_nTri[i_part]]), _eltsConnecQuad[i_part], sizeof(int)*4*_nQuad[i_part] );
+
       if(_nPoly[i_part]>0)
-        memcpy( &(_eltsConnec[i_part][ 3*_nTri[i_part]+4*_nQuad[i_part] ]), _eltsConnecPoly[i_part], sizeof(int)*_eltsConnecPolyIndex[i_part][ _nPoly[i_part] ] );       
-      /* 
+        memcpy( &(_eltsConnec[i_part][ 3*_nTri[i_part]+4*_nQuad[i_part] ]), _eltsConnecPoly[i_part], sizeof(int)*_eltsConnecPolyIndex[i_part][ _nPoly[i_part] ] );
+      /*
       for(int i =0; i<_nElts;i++){
         for (int j=_eltsConnecIndex[i];j<_eltsConnecIndex[i+1];j++){
           printf("_eltsConnec[%i] %i rank %i Elts %i nVtx %i _nElts %i color %i n_block %i\n",j,_eltsConnec[j],_rank,i,_nVtx,_nElts,_color,n_block);
@@ -732,8 +736,8 @@ void surfMeshGenerator::computeMesh() {
      */
 
    }//end for i_part
-   
-     //PDM_Mesh_nodal_free (id_mn);   
+
+     //PDM_Mesh_nodal_free (id_mn);
     //PDM_part_free (ppartId);
 
    /* free (dEdgeVtxIdx);
@@ -743,8 +747,8 @@ void surfMeshGenerator::computeMesh() {
     //PDM_MPI_Comm_free(&_interfComm);
   }
   else {
-  
-    for(int i_part =0;i_part<_nPart;i_part++){  
+
+    for(int i_part =0;i_part<_nPart;i_part++){
       _nVtx[i_part] = 0;
       _nElts[i_part] = 0;
       _coords[i_part] = (double*)malloc (sizeof(double) * 3 * _nVtx[i_part]);
@@ -752,7 +756,7 @@ void surfMeshGenerator::computeMesh() {
 
       _eltsConnecTri[i_part] = (int*)malloc(sizeof(int) * (_nElts[i_part]));
       _eltsConnecQuad[i_part] = (int*)malloc(sizeof(int) * (_nElts[i_part]));
-      _eltsConnecPolyIndex[i_part] = (int*)malloc(sizeof(int) * (_nElts[i_part]+1));    
+      _eltsConnecPolyIndex[i_part] = (int*)malloc(sizeof(int) * (_nElts[i_part]+1));
       _eltsConnecPolyIndex[i_part][0] = 0;
       _eltsConnecPoly[i_part] = (int*)malloc(sizeof(int) * _eltsConnecPolyIndex[i_part][_nElts[i_part]]);
       _eltsGnumTri[i_part] = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * _nElts[i_part]);
@@ -762,13 +766,14 @@ void surfMeshGenerator::computeMesh() {
   }
 
 
-    
-    
-    
+
+
+
 }
 
 }//end namespace cwipi
 
 
-
-
+/**
+ * \endcond
+ */

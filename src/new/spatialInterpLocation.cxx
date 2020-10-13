@@ -36,6 +36,10 @@
 #include <cmath>
 #include <pdm_timer.h>
 
+/**
+ * \cond
+ */
+
 namespace cwipi {
 
   void _transform_to_index(int** array,int l1, int l2) {
@@ -908,6 +912,8 @@ void SpatialInterpLocation::null_exchange_for_uncoupled_process() {
     _localComm = _mesh -> getMPIComm();
     _connectableComm =_localCodeProperties -> connectableCommGet();
 
+
+    printf("_cplComm : %d\n", _cplComm);
     MPI_Comm_size(_cplComm,&_n_ranks_g);
 
     _pdm_globalComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_globalComm));
@@ -2681,3 +2687,7 @@ void SpatialInterpLocation::triplet_location_null_recv(int* id_gnum_location) {
 
 
 }//end_cwipi
+
+/**
+ * \endcond
+ */

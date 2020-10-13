@@ -36,6 +36,10 @@
 #include "visualization.hxx"
 #include "field.hxx"
 
+
+/**
+ * \cond
+ */
 using namespace std;
 
 namespace cwipi {
@@ -1114,5 +1118,9 @@ namespace cwipi {
   }
 
 }
+
+/**
+ * \endcond
+ */
 
 #endif //__COUPLING_PROPERTIES_H__

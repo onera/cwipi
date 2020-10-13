@@ -1044,14 +1044,14 @@ for (int i = 0; i < n_code_name; i++ ) {
           rank_data_vtx[i][i_part][j]= coords[i][i_part][3*j];
       }
 
-      printf("CWP_Field_Issend at %f\n",recv_time);
-      CWP_Field_Issend (code_name,cpl_id1,"rank");
-      CWP_Field_Issend (code_name,cpl_id1,"rank_vtx");
+      printf("CWP_Field_issend at %f\n",recv_time);
+      CWP_Field_issend (code_name,cpl_id1,"rank");
+      CWP_Field_issend (code_name,cpl_id1,"rank_vtx");
 
     }
     else {
-      CWP_Field_Irecv (code_name,cpl_id1,"rank");
-      CWP_Field_Irecv (code_name,cpl_id1,"rank_vtx");
+      CWP_Field_irecv (code_name,cpl_id1,"rank");
+      CWP_Field_irecv (code_name,cpl_id1,"rank_vtx");
     }
 
   }// end code loop

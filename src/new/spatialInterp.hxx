@@ -24,6 +24,9 @@
 #include "codeProperties.hxx"
 #include "coupling.hxx"
 
+/**
+ * \cond
+ */
 namespace cwipi {
 
 
@@ -47,6 +50,7 @@ namespace cwipi {
   class Field;
   class Visu;
   /**
+   *
    * \class SpatialInterp spatialInterp.hxx "spatialInterp.hxx"
    * \brief SpatialInterp algorithm
    *
@@ -330,7 +334,9 @@ namespace cwipi {
 
   };
 
-
+    /**
+     * \endcond
+     */
 
 }
 

@@ -50,6 +50,10 @@
  * lowercase or uppercase) between C and Fortran, for link resolution.
  *----------------------------------------------------------------------------*/
 
+/**
+ * \cond
+ */
+
 #if !defined (__hpux) &&  !defined (_AIX)
 #define PROCF(x, y) x##_
 #else
@@ -841,3 +845,7 @@ namespace cwipi {
 
 
 } // namespace cwipi
+
+/**
+ * \endcond
+ */

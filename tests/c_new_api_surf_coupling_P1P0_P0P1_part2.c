@@ -828,17 +828,17 @@ int main
           recv_time *= 0.01;
 
           if (codeName[i_code] == "code1" ) {
-           /*  CWP_Field_Issend (codeName[i_code],"multipart_testcase",fieldName1);
+           /*  CWP_Field_issend (codeName[i_code],"multipart_testcase",fieldName1);
              CWP_Field_wait_issend (codeName[i_code],"multipart_testcase",fieldName1);
            */
-             CWP_Field_Irecv  (codeName[i_code],"multipart_testcase",fieldName2);
+             CWP_Field_irecv  (codeName[i_code],"multipart_testcase",fieldName2);
              CWP_Field_wait_irecv  (codeName[i_code],"multipart_testcase",fieldName2);
           }
           else if (codeName[i_code] == "code2") {
-        /*    CWP_Field_Irecv  (codeName[i_code],"multipart_testcase",fieldName1);
+        /*    CWP_Field_irecv  (codeName[i_code],"multipart_testcase",fieldName1);
             CWP_Field_wait_irecv  (codeName[i_code],"multipart_testcase",fieldName1);
           */
-            CWP_Field_Issend (codeName[i_code],"multipart_testcase",fieldName2);
+            CWP_Field_issend (codeName[i_code],"multipart_testcase",fieldName2);
             CWP_Field_wait_issend (codeName[i_code],"multipart_testcase",fieldName2);
           }
         }

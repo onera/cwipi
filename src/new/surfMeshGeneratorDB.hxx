@@ -1,7 +1,7 @@
 #ifndef __SURF_MESH_GEN_DB_H__
 #define __SURF_MESH_GEN_DB_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2012-2017  ONERA
 
@@ -35,6 +35,10 @@
 #include "surfMeshGenerator.hxx"
 
 
+/**
+ * \cond
+ */
+
 
 using namespace std;
 
@@ -44,7 +48,7 @@ namespace cwipi {
      : public Singleton <surfMeshGeneratorDB>
   {
     friend class Singleton <surfMeshGeneratorDB>;
-  
+
     public:
       surfMeshGeneratorDB();
 
@@ -54,16 +58,20 @@ namespace cwipi {
       void createMember(string genName);
 
       void destroyMember(string genName);
-      
+
       surfMeshGenerator* memberGet(string genName);
-      
+
     private:
-    
+
       std::map<string,surfMeshGenerator*> _dataBase;
 
-  };//end class surfMeshGeneratorDB      
+  };//end class surfMeshGeneratorDB
 }
 
+
+/**
+ * \endcond
+ */
 
 
 #endif //__SURF_MESH_GEN_DB_H__

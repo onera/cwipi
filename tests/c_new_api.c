@@ -265,7 +265,7 @@ int main
 
 
   if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
-    CWP_Cpl_create ("code2", cpl_id1, "code1", CWP_COMM_PAR_WITHOUT_PART,
+    CWP_Cpl_create ("code2", cpl_id1, "code1", CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION, 1,
                     CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
   }

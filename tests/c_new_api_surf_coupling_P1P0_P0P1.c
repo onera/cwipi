@@ -723,12 +723,12 @@ int main
     CWP_next_recv_time_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",recv_time);
 
     if (codeName[i_code] == "code1") {
-      CWP_Field_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);
-      CWP_Field_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);
+      CWP_Field_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);
+      CWP_Field_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);
     }
     else {
-      CWP_Field_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);
-      CWP_Field_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);
+      CWP_Field_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName1);
+      CWP_Field_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1",fieldName2);
     }
   }
 

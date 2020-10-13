@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011-2017  ONERA
 
@@ -24,6 +24,11 @@
 #include "codeProperties.hxx"
 #include "pdm_printf.h"
 
+
+/**
+ * \cond
+ */
+
 using namespace std;
 
 namespace cwipi
@@ -36,24 +41,24 @@ namespace cwipi
    * \param [in]  id           Identifier
    * \param [in]  rootRank     Root rank in global communicator
    * \param [in]  isLocal      Is a local code
-   * \param [in]  globalComm   MPI communicator containing all processes 
+   * \param [in]  globalComm   MPI communicator containing all processes
    *                           of all codes
    * \param [in]  n_param_max  Maximum number of parameters
-   * \param [in]  str_size_max Maximum string size 
+   * \param [in]  str_size_max Maximum string size
    *
    */
 
   CodeProperties::CodeProperties
   (
    string &name,
-   int    id,   
-   int    rootRank,   
-   bool   isLocal,   
+   int    id,
+   int    rootRank,
+   bool   isLocal,
    const MPI_Comm globalComm,
    int            n_param_max,
-   int            str_size_max      
+   int            str_size_max
   ): _name(name), _id(id), _isLocal(isLocal),
-     _rootRankInGlobalComm(rootRank),  
+     _rootRankInGlobalComm(rootRank),
      _globalComm(globalComm),
      _isCoupledRank(false),
      _winIntParamIdxName(MPI_WIN_NULL),
@@ -85,12 +90,12 @@ namespace cwipi
     _intraGroup        = MPI_GROUP_NULL;
     _intraRanks        = NULL;
     _connectableRanks      = NULL;
-    
+
     _winGlobData[0] = 0; // Unlock parameters access
     _winGlobData[1] = 0; // 0 int param
     _winGlobData[2] = 0; // 0 doube param
     _winGlobData[3] = 0; // 0 str param
-    
+
   }
 
   /**
@@ -104,15 +109,15 @@ namespace cwipi
   (
    const CodeProperties& other
   ): _name(other._name), _id(other._id), _isLocal(other._isLocal),
-     _rootRankInGlobalComm(other._rootRankInGlobalComm),  
-     _globalComm(other._globalComm), 
+     _rootRankInGlobalComm(other._rootRankInGlobalComm),
+     _globalComm(other._globalComm),
      _intraComm(other._intraComm),
-     _isCoupledRank(other._isCoupledRank), 
+     _isCoupledRank(other._isCoupledRank),
      _intraGroup(other._intraGroup),
-     _intraRanks(other._intraRanks), 
+     _intraRanks(other._intraRanks),
      _intraConnectableGroup(other._intraConnectableGroup),
      _intraConnectableComm(other._intraConnectableComm),
-     _connectableRanks(other._connectableRanks), 
+     _connectableRanks(other._connectableRanks),
      _winIntParamIdxName(other._winIntParamIdxName),
      _winIntParamName(other._winIntParamName),
      _winIntParamValue(other._winIntParamValue),
@@ -134,12 +139,12 @@ namespace cwipi
      _winStrParamIdxValueData(other._winStrParamIdxValueData),
      _winStrParamValueData(other._winStrParamValueData),
      _n_param_max(other._n_param_max),
-     _str_size_max(other._str_size_max) 
+     _str_size_max(other._str_size_max)
 
   {
-    
+
     memcpy(_winGlobData, other._winGlobData, 4 *sizeof(int));
-    
+
   }
 
   /**
@@ -147,7 +152,7 @@ namespace cwipi
    *
    */
 
-  void 
+  void
   CodeProperties::dump()
   {
     PDM_printf ("'%s' properties\n",_name.c_str());
@@ -160,20 +165,20 @@ namespace cwipi
     PDM_printf ("  - Ranks in global communicator :");
     for (size_t i = 0; i < _intraRanks->size(); i++) {
       PDM_printf (" %d", (*_intraRanks)[i]);
-    }    
+    }
     PDM_printf ("\n");
-    
+
     PDM_printf ("  - Coupled ranks in global communicator :");
     for (size_t i = 0; i < _connectableRanks->size(); i++) {
       PDM_printf (" %d", (*_connectableRanks)[i]);
-    }    
+    }
     PDM_printf ("\n");
-    
+
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
-    _updateIntValues ();   
-    _updateDoubleValues ();   
-    _updateStrValues ();   
+    _updateIntValues ();
+    _updateDoubleValues ();
+    _updateStrValues ();
 
     PDM_printf ("  - %d integer control parameters \n", _winGlobData[1]);
 
@@ -194,7 +199,7 @@ namespace cwipi
       int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
       sValueMax = max(sValue, sValueMax);
     }
-    
+
 
     if (sParamMax > 80) sParamMax = 80;
 
@@ -214,44 +219,44 @@ namespace cwipi
 
     for (int i = 0; i < _winGlobData[1]; i++) {
       int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
-      strncpy (tmpName, 
-               _winIntParamNameData + _winIntParamIdxNameData[i], 
+      strncpy (tmpName,
+               _winIntParamNameData + _winIntParamIdxNameData[i],
                min (sParam, sParamMax));
       tmpName[sParam] = '\0';
-      
+
       PDM_printf (fmtIntName, tmpName, _winIntParamValueData[i]);
-      
+
     }
 
     PDM_printf ("  - %d double control parameters \n", _winGlobData[2]);
 
     for (int i = 0; i < _winGlobData[2]; i++) {
       int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
-      strncpy (tmpName, 
-               _winDoubleParamNameData + _winDoubleParamIdxNameData[i], 
+      strncpy (tmpName,
+               _winDoubleParamNameData + _winDoubleParamIdxNameData[i],
                min (sParam, sParamMax));
       tmpName[sParam] = '\0';
-      
+
       PDM_printf (fmtDoubleName, tmpName, _winDoubleParamValueData[i]);
-      
+
     }
 
     PDM_printf ("  - %d string control parameters \n", _winGlobData[3]);
 
     for (int i = 0; i < _winGlobData[3]; i++) {
       int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
-      strncpy (tmpName, 
-               _winStrParamNameData + _winStrParamIdxNameData[i], 
+      strncpy (tmpName,
+               _winStrParamNameData + _winStrParamIdxNameData[i],
                min (sParam, sParamMax));
       tmpName[sParam] = '\0';
 
       int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
-      strncpy (tmpValue, 
-               _winStrParamValueData + _winStrParamIdxValueData[i], 
+      strncpy (tmpValue,
+               _winStrParamValueData + _winStrParamIdxValueData[i],
                min (sValue, sValueMax));
-      
+
       PDM_printf (fmtStrName, tmpName, tmpValue);
-      
+
     }
 
     free (tmpName);
@@ -269,10 +274,10 @@ namespace cwipi
 
   CodeProperties::~CodeProperties()
   {
-  
+
     if (_winGlob != MPI_WIN_NULL) {
       MPI_Win_free(&_winGlob);
-    }  
+    }
     if (_winIntParamIdxName != MPI_WIN_NULL) {
       MPI_Win_free(&_winIntParamIdxName);
     }
@@ -353,22 +358,22 @@ namespace cwipi
       free (_winStrParamValueData);
       _winStrParamValueData = NULL;
     }
-    
+
     if (_intraComm != MPI_COMM_NULL) {
       MPI_Comm_free(&_intraComm);
     }
     if (_intraGroup != MPI_GROUP_NULL) {
       MPI_Group_free(&_intraGroup);
     }
-    
+
     if ( _intraConnectableComm != MPI_COMM_NULL) {
       MPI_Comm_free(&_intraConnectableComm);
     }
-    
+
     if ( _intraConnectableGroup != MPI_GROUP_NULL) {
       MPI_Group_free(&_intraConnectableGroup);
     }
-    
+
     if (_intraRanks != NULL) {
       delete _intraRanks;
     }
@@ -378,3 +383,7 @@ namespace cwipi
     }
   }
 }
+
+/**
+ * \endcond
+ */

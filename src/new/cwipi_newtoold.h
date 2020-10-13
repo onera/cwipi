@@ -1,7 +1,7 @@
 #ifndef __CWIPI_NEWTOOLD_H__
 #define __CWIPI_NEWTOOLD_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011-2017  ONERA
 
@@ -21,11 +21,14 @@
 
 
 /** \file cwipi_newtoold.h
-  * \brief CWIPI API faking CWIPI 0.x API but using CWIPI 1.0 
-  * 
+  * \brief CWIPI API faking CWIPI 0.x API but using CWIPI 1.0
+  *
   */
 
 #include <stdio.h>
+/**
+ * \cond
+ */
 
 /*=============================================================================
  * Macro definitions
@@ -55,7 +58,7 @@ typedef enum {
 } cwipi_mesh_type_t;
 
 
-//TODO: Look at the precisely the equivalence for MOBILE and CYCLIC MESH 
+//TODO: Look at the precisely the equivalence for MOBILE and CYCLIC MESH
 const std::map<cwipi_mesh_type_t,CWP_Dynamic_mesh_t> mesh_type_conv = { {CWIPI_STATIC_MESH, CWP_DYNAMIC_MESH_STATIC},
                                                                   {CWIPI_MOBILE_MESH, CWP_DYNAMIC_MESH_VARIABLE},
                                                                   {CWIPI_CYCLIC_MESH, CWP_DYNAMIC_MESH_VARIABLE}
@@ -132,7 +135,7 @@ void cwipi_init
  *   tolerance               <-- Geometric tolerance to locate
  *   mesh_type               <-- CWIPI_STATIC_MESH
  *                               CWIPI_MOBILE_MESH (not implemented yet)
- *                               CWIPI_CYCLIC_MESH 
+ *                               CWIPI_CYCLIC_MESH
  *   solver_type             <-- CWIPI_SOLVER_CELL_CENTER
  *                               CWIPI_SOLVER_CELL_VERTEX
  *   output_frequency        <-- Output frequency
@@ -182,8 +185,8 @@ void cwipi_create_coupling
 }
 #endif /* __cplusplus */
 
+/**
+ * \endcond
+ */
+
 #endif /* __CWIPI_H__ */
-
-
-
-

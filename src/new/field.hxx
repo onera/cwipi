@@ -27,6 +27,10 @@
 #include <map>
 
 
+/**
+ * \cond
+ */
+
 namespace cwipi {
 
   /**
@@ -319,5 +323,9 @@ namespace cwipi {
 
 
 }
+
+/**
+ * \endcond
+ */
 
 #endif //__FIELD_H__

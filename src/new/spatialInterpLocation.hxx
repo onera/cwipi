@@ -22,6 +22,9 @@
 #include "mesh.hxx"
 #include "spatialInterp.hxx"
 #include "field.hxx"
+/**
+ * \cond
+ */
 
 namespace cwipi {
 
@@ -574,6 +577,9 @@ namespace cwipi {
 
   }; //end SpatialInterpLocation
 
+/**
+ * \endcond
+ */
 
 
 }

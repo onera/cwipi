@@ -805,15 +805,15 @@ g
       CWP_Next_recv_time_set(codeName,"new_cpl",recv_time);
       recv_time *= 0.01;
       if (codeName == "code1") {
-        CWP_Field_Issend (codeName,"new_cpl",fieldName1);
+        CWP_Field_issend (codeName,"new_cpl",fieldName1);
         CWP_Field_wait_issend (codeName,"new_cpl",fieldName1);
- /*     CWP_Field_Irecv  (codeName,"new_cpl",fieldName2);
+ /*     CWP_Field_irecv  (codeName,"new_cpl",fieldName2);
       CWP_Field_wait_irecv  (codeName,"new_cpl",fieldName2);
  */     }
       else {
-        CWP_Field_Irecv  (codeName,"new_cpl",fieldName1);
+        CWP_Field_irecv  (codeName,"new_cpl",fieldName1);
         CWP_Field_wait_irecv  (codeName,"new_cpl",fieldName1);
-  /*    CWP_Field_Issend (codeName,"new_cpl",fieldName2);
+  /*    CWP_Field_issend (codeName,"new_cpl",fieldName2);
       CWP_Field_wait_issend (codeName,"new_cpl",fieldName2);
   */  }
 

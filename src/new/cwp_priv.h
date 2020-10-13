@@ -204,6 +204,12 @@ CWP_GlobalNumGet
  const int    i_part
 );
 
+MPI_Comm
+CWP_Connectable_comm_get
+(
+ char* local_code_name
+ );
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

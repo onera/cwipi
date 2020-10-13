@@ -35,6 +35,11 @@
 #include <algorithm>
 #include <cmath>
 
+
+/**
+ * \cond
+ */
+
 namespace cwipi {
 
   SpatialInterp::SpatialInterp()
@@ -131,3 +136,7 @@ namespace cwipi {
 
 
 } // end namespace cwipi
+
+/**
+ * \endcond
+ */

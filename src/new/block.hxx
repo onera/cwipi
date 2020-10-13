@@ -1,7 +1,7 @@
 #ifndef __BLOCK_H__
 #define __BLOCK_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2013-2017  ONERA
 
@@ -28,20 +28,25 @@
 #include "pdm_error.h"
 #define UNUSED(x) (void)(x)
 
+
+/**
+ * \cond
+ */
+
 namespace cwipi {
 
-  /** 
+  /**
    * \class Block block.hxx "block.hxx"
    * \brief Mesh mother Block definition
    *
    *  This class defines the Block objects.
    *  Blocks contain elements, are a part of
    *  a Mesh and are defined on Mesh partitions.
-   * 
+   *
    */
 
   class Block {
-    
+
   public :
 
     /**
@@ -62,75 +67,75 @@ namespace cwipi {
 
     /**
      * \brief Block Type conversion from Paradigm to CWIPI
-     * 
-     * Converts a Paradigm block type to a CWIPI block type. 
-     * 
+     *
+     * Converts a Paradigm block type to a CWIPI block type.
+     *
      * \param [in] PDM_block_type A paradigm block type.
      *
      * \return A CWIPI block type.
      *
      */
-     
+
     CWP_Block_t          CwpBlockTypeFromPdmBlockType (PDM_Mesh_nodal_elt_t PDM_block_type);
-    
+
     /**
      * \brief Block Type conversion from CWIPI to Paradigm
-     * 
-     * Converts a CWIPI block type to a Paradigm block type. 
-     * 
+     *
+     * Converts a CWIPI block type to a Paradigm block type.
+     *
      * \param [in] CWP_block_type        A CWIPI block type.
      * \return A Paradigm block type.
      *
      */
-    
+
     PDM_Mesh_nodal_elt_t PdmBlockTypeFromCwpBlockType (CWP_Block_t CWP_block_type);
 
 
     /**
-     * \brief Add and Set the CWIPI block from a Paradigm block 
-     * 
+     * \brief Add and Set the CWIPI block from a Paradigm block
+     *
      * \param [in] pdm_id_block A block identifier from Paradigm
      * \param [in] mesh         Pointer to the Mesh object owning the block.
      *
      *
-     */    
+     */
 
     virtual void FromPDMBlock(int pdm_id_block, void* mesh)
-    {      
+    {
       UNUSED(pdm_id_block  );
       UNUSED(mesh );
-      PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");     
+      PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
     }
-    
+
     /**
      * \brief Set a CWIPI block in a partition
-     * 
+     *
      * \param [in]  i_part          Partition identifier
      * \param [in]  n_elts          Number of elements of the block in the partition.
      * \param [in]  connec          Elements connectivity.
      * \param [in]  mesh_global_num Mesh global numbering of the block
      *
-     */    
-    
+     */
+
     virtual void blockSet(int i_part,int n_elts,int* connec,CWP_g_num_t* mesh_global_num)
     {
       UNUSED(i_part          );
       UNUSED(n_elts          );
       UNUSED(connec          );
       UNUSED(mesh_global_num      );
-      PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");        
+      PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
     }
 
     /**
      * \brief Set a CWIPI block in a partition
-     * 
+     *
      * \param [in]  i_part     Partition identifier
      * \param [in]  n_elts     Number of elements of the block in the partition.
      * \param [in]  connec_idx Elements connectivity index
      * \param [in]  connec     Elements connectivity
      * \param [in]  global_num Mesh global numbering of the block
      *
-     */    
+     */
 
     virtual void blockSet(int i_part,int n_elts,
                           int* connec_idx,
@@ -142,12 +147,12 @@ namespace cwipi {
       UNUSED(connec_idx      );
       UNUSED(connec          );
       UNUSED(global_num      );
-      PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");    
+      PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
     }
- 
+
     /**
      * \brief Set a CWIPI block in a partition
-     * 
+     *
      * \param [in]  i_part     Partition identifier
      * \param [in]  n_elts     Number of elements of the block in the partition
      * \param [in]  n_faces    Number of faces of the block in the partition
@@ -157,10 +162,10 @@ namespace cwipi {
      * \param [in]  connec_cells     Faces to cells connectivity
      * \param [in]  global_num Mesh  Global numbering of the block
      *
-     */    
-      
+     */
+
     virtual void blockSet(int i_part,int n_elts,int n_faces,
-                          int* connec_faces_idx, 
+                          int* connec_faces_idx,
                           int* connec_faces,
                           int* connec_cells_idx,
                           int* connec_cells,
@@ -176,7 +181,7 @@ namespace cwipi {
       UNUSED(global_num      );
       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
     }
-      
+
     /**
      *
      * \brief Block addition
@@ -197,28 +202,28 @@ namespace cwipi {
      */
 
     inline CWP_Block_t blockTypeGet();
-    
-    
+
+
     /**
      *
      * \brief Return the block identifier.
      *
      */
-    
+
     inline int         blockIDGet();
     inline int         blockIDCWIPIGet();
 
     inline void blockIDCWIPISet(int block_id);
-  
+
     inline void blockIDPDMSet(int block_id);
 
     /**
      *
      * \brief return the number of element for each partition
-     * 
+     *
      *
      */
-     
+
      inline std::vector <int>  NEltsGet();
 
      inline int  NEltsGet(int i_part);
@@ -226,10 +231,10 @@ namespace cwipi {
     /**
      *
      * \brief return the element global numbering for each partition
-     * 
+     *
      *
      */
-     
+
     CWP_g_num_t* GNumMeshGet(int i_part);
 
     void GNumMeshSet(int i_part, CWP_g_num_t* gnum);
@@ -241,66 +246,66 @@ namespace cwipi {
     /**
      *
      * \brief return the number of partition
-     * 
+     *
      *
      */
-     
+
      inline int NPartGet();
 
 
     /**
      *
      * \brief return true is the global numbering (inside the mesh) is defined
-     * 
+     *
      *
      */
-    
+
     inline bool globNumDefined();
 
 
     /**
      *
      * \brief return true is the Block is set on all the partition (ready for global numbering computation).
-     * 
+     *
      * It returns true if the block is set on all the partition (ready for global numbering computation).
      *
      */
-    
+
     inline bool isSet();
 
     /**
      *
      * \brief Return true if the Block is already in Paradigm block database and false otherwise.
-     * 
+     *
      */
-     
+
     inline bool inPDMDB();
-    
-    
+
+
     /**
      *
      * \brief Set the _inPDMDB variable to true, and so indicate that the block is already in the PDM database.
-     * 
+     *
      */
-    
+
     inline void SetinPDMDB();
-    
+
     /**
      *
      * \brief return the element connectivity (Standard or Face_Poly_2D CWP_Block_t) or cells-faces connectivity (Cells_POLY_3D)
      * for each partition.
-     * 
+     *
      *
      */
-     
-     virtual std::map<int,int*>  ConnecGet() 
+
+     virtual std::map<int,int*>  ConnecGet()
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
        std::map<int,int*> null;
        return null;
      }
 
-     virtual int*  ConnecGet(int i_part) 
+     virtual int*  ConnecGet(int i_part)
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
        return NULL;
@@ -311,82 +316,82 @@ namespace cwipi {
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
      }
-     
-     
+
+
      virtual void GNumBlockSet(int i_part, CWP_g_num_t* global_num)
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
      }
-          
+
     /**
      *
      * \brief return the element connectivity index (Face_Poly_2D CWP_Block_t) or cells-faces connectivity index (Cells_POLY_3D)
      * for each partition.
-     * 
+     *
      *
      */
-     
-     virtual std::map<int,int*>  ConnecIDXGet() 
+
+     virtual std::map<int,int*>  ConnecIDXGet()
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
        std::map<int,int*> null;
        return null;
      }
 
-     virtual int*  ConnecIDXGet(int i_part) 
+     virtual int*  ConnecIDXGet(int i_part)
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
        return NULL;
      }
 
-     
+
     /**
      *
      * \brief return the element faces connectivity (Cells_POLY_3D)
      * for each partition.
-     * 
+     *
      *
      */
-     
+
      virtual std::map<int,int*>  ConnecFacesGet()
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
        std::map<int,int*> null;
        return null;
      }
-      
+
     /**
      *
      * \brief return the element faces connectivity index (Cells_POLY_3D)
      * for each partition.
-     * 
+     *
      *
      */
-     
+
      virtual std::map<int,int*>  ConnecFacesIDXGet()
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
        std::map<int,int*> null;
        return null;
      }
-    
-     
-      
+
+
+
     /**
      *
      * \brief return the number of faces for each partition (Cells_POLY_3D)
-     * 
+     *
      *
      */
-     
-     virtual std::map <int,int>  NFacesGet() 
+
+     virtual std::map <int,int>  NFacesGet()
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
        std::map<int,int> null;
        return null;
      }
-     
-      
+
+
   private :
 
     /**
@@ -394,8 +399,8 @@ namespace cwipi {
      * \brief Assigment operator
      *
      */
-    
-    Block 
+
+    Block
     &operator=
     (const Block &other);
 
@@ -405,7 +410,7 @@ namespace cwipi {
      *
      */
 
-    Block (const Block& other); 
+    Block (const Block& other);
 
   protected:
 
@@ -428,30 +433,30 @@ namespace cwipi {
     bool                       _isGNumSet;              /*!< Global Numbering set or not for each partition */
     bool                       _inPDMDB;                /*!< Indicate the Block is already in the Paradigm database */
   };
-  
-  bool 
+
+  bool
   Block::globNumDefined() {
-    return _isGNumSet;              
+    return _isGNumSet;
   }
-  
+
   std::vector <int>
   Block::NEltsGet() {
-    return _n_elt;  
+    return _n_elt;
   }
 
 
   int
   Block::NEltsGet(int i_part) {
-    return _n_elt[i_part];  
+    return _n_elt[i_part];
   }
 
   int
   Block::NPartGet() {
-    return _n_part;  
+    return _n_part;
   }
-  
 
-  
+
+
   bool Block::inPDMDB() {
     return _inPDMDB;
   }
@@ -460,22 +465,22 @@ namespace cwipi {
     _inPDMDB=true;
   }
 
-  
+
   bool
   Block:: isSet() {
     for(int i=0;i<_n_part;i++) {
       if(_isSet[i] == false)
         return false;
     }
-    return true;  
+    return true;
   }
-  
-  CWP_Block_t 
+
+  CWP_Block_t
   Block::blockTypeGet(){
     return _blockType;
   }
-  
-    
+
+
   int
   Block::blockIDGet(){
     return _block_id_pdm;
@@ -495,7 +500,11 @@ namespace cwipi {
   Block::blockIDPDMSet(int block_id){
     _block_id_pdm = block_id;
   }
-  
-  
+
+
 }
 #endif //__BLOCK_H__
+
+/**
+ * \endcond
+ */

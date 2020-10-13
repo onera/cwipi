@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2013-2017  ONERA
 
@@ -21,6 +21,11 @@
 #include "coupling.hxx"
 #include "pdm_printf.h"
 
+
+/**
+ * \cond
+ */
+
 using namespace std;
 
 namespace cwipi {
@@ -35,10 +40,10 @@ namespace cwipi {
     :_localCodeProperties(NULL),
      _cplCodeProperties(NULL),
      _tag(-1),
-     _unionGroup(MPI_GROUP_NULL), 
-     _unionComm(MPI_COMM_NULL), 
-//     _fvmComm(MPI_COMM_NULL), 
-     _cplComm(MPI_COMM_NULL), 
+     _unionGroup(MPI_GROUP_NULL),
+     _unionComm(MPI_COMM_NULL),
+//     _fvmComm(MPI_COMM_NULL),
+     _cplComm(MPI_COMM_NULL),
      _locCodeRootRankUnionComm(-1),
      _cplCodeRootRankUnionComm(-1),
      _isCplRank(false),
@@ -76,16 +81,16 @@ namespace cwipi {
    *
    */
 
-  void 
+  void
   Communication::init
   (
-   const CodeProperties &localCodeProperties, 
+   const CodeProperties &localCodeProperties,
    const CodeProperties &cplCodeProperties,
    const string         &cplId,
    CouplingDB           &cplDB
   )
   {
-  
+
     _isCplRank = localCodeProperties.isCoupledRank();
     if (_cplComm == MPI_COMM_NULL) {
       _cplCodeProperties = &cplCodeProperties;
@@ -95,10 +100,10 @@ namespace cwipi {
       const int cplRootRank = cplCodeProperties.rootRankGet();
 
       const MPI_Comm& globalComm = localCodeProperties.globalCommGet();
-      
+
       int globalRank;
       MPI_Comm_rank(globalComm, &globalRank);
-      
+
       if (!localCodeProperties.isCoupledRank()) {
         PDM_printf(
            "Warning CWP_Cpl_create : Call CWP_Cpl_create function"
@@ -107,7 +112,7 @@ namespace cwipi {
             localCodeProperties.nameGet().c_str());
       }
       else {
-      
+
         //Build a specific tag through the cplId
         int tag = 0;
         for (size_t i = 0; i < cplId.size(); i++) {
@@ -117,7 +122,7 @@ namespace cwipi {
         if (MPI_TAG_UB > 0) {
           tag = tag % MPI_TAG_UB;
         }
-    
+
         // Build the union communicator between the two coupled codes
 
         if (localCodeProperties.idGet() < cplCodeProperties.idGet()) {
@@ -128,9 +133,9 @@ namespace cwipi {
         else {
           MPI_Group_union (cplCodeProperties.connectableGroupGet(),
                            localCodeProperties.connectableGroupGet(),
-                           &_unionGroup);          
+                           &_unionGroup);
         }
-        
+
         MPI_Comm_create_group(globalComm, _unionGroup, tag, &_unionComm);
 
         int mergeInterCommSize;
@@ -138,7 +143,7 @@ namespace cwipi {
         MPI_Comm_size(_unionComm, &mergeInterCommSize);
 
         CWP_Comm_t commType = commTypeGet();
-        
+
         CWP_Comm_t cplCommType;
 
         if (globalRank == localRootRank) {
@@ -152,10 +157,10 @@ namespace cwipi {
                           cplRootRank, tag,
                           &cplCommType, 1, MPI_INT,
                            cplRootRank, tag,
-                           globalComm, MPI_STATUS_IGNORE);            
+                           globalComm, MPI_STATUS_IGNORE);
             }
           }
-          
+
           else {
             MPI_Sendrecv (&commType, 1, MPI_INT,
                           cplRootRank, tag,
@@ -164,16 +169,16 @@ namespace cwipi {
                            globalComm, MPI_STATUS_IGNORE);
           }
         }
-        
-        MPI_Bcast(&cplCommType, 1, MPI_INT, 0, 
+
+        MPI_Bcast(&cplCommType, 1, MPI_INT, 0,
                   localCodeProperties.connectableCommGet());
-        
+
         if (cplCodeProperties.localCodeIs()) {
           CWP_Comm_t &cplcommType2 = commType;
-          MPI_Bcast(&cplcommType2, 1, MPI_INT, 0, 
-                    cplCodeProperties.connectableCommGet());          
+          MPI_Bcast(&cplcommType2, 1, MPI_INT, 0,
+                    cplCodeProperties.connectableCommGet());
         }
-        
+
         //
         // Build the coupling communicator
 
@@ -183,18 +188,18 @@ namespace cwipi {
 
         if (_isCplRank) {
           printf("I am coupled\n");
-          MPI_Group_translate_ranks (globalGroup, 1, &localRootRank, 
+          MPI_Group_translate_ranks (globalGroup, 1, &localRootRank,
                                      _unionGroup, &_locCodeRootRankUnionComm);
 
-          MPI_Group_translate_ranks (globalGroup, 1, &cplRootRank, 
+          MPI_Group_translate_ranks (globalGroup, 1, &cplRootRank,
                                      _unionGroup, &_cplCodeRootRankUnionComm);
         }
 
       }
     }
   }
-  
-  
+
+
   /**
    *
    * \brief Initialize coupling communicators.
@@ -203,15 +208,15 @@ namespace cwipi {
    *
    */
 
-  void 
+  void
   Communication::init
   (
-   Communication &cplCodeComm 
+   Communication &cplCodeComm
   )
   {
     _localCodeProperties    = cplCodeComm._cplCodeProperties;
     _cplCodeProperties      = cplCodeComm._localCodeProperties;
-    
+
     _tag                    = cplCodeComm._tag;
     _unionGroup             = cplCodeComm._unionGroup;
     _unionComm              = cplCodeComm._unionComm;
@@ -220,13 +225,13 @@ namespace cwipi {
     _locCodeRootRankUnionComm = cplCodeComm._cplCodeRootRankUnionComm;
     _cplCodeRootRankUnionComm = cplCodeComm._locCodeRootRankUnionComm;
     _unionCommCplRanks = new std::vector<int>(*(cplCodeComm._unionCommLocRanks));
-    _unionCommLocRanks = new std::vector<int>(*(cplCodeComm._unionCommCplRanks));    
+    _unionCommLocRanks = new std::vector<int>(*(cplCodeComm._unionCommCplRanks));
     _cplCommCplRanks = new std::vector<int>(*(cplCodeComm._cplCommLocRanks));
-    _cplCommLocRanks = new std::vector<int>(*(cplCodeComm._cplCommCplRanks));   
+    _cplCommLocRanks = new std::vector<int>(*(cplCodeComm._cplCommCplRanks));
 
-    
+
     const int localRootRank = _localCodeProperties->rootRankGet();
-    
+
     const MPI_Comm& globalComm = _localCodeProperties->globalCommGet();
 
     int currentRank;
@@ -237,25 +242,25 @@ namespace cwipi {
     }
     else {
       _isCplRank = true;
-    } 
-    
+    }
+
   }
-  
-  MPI_Comm 
+
+  MPI_Comm
   Communication::unionCommGet
   (
   )
   {
     return _unionComm;
-  }  
+  }
 
-  MPI_Comm 
+  MPI_Comm
   Communication::cplCommGet
   (
   )
   {
     return _cplComm;
-  }  
+  }
 
 
   std::vector<int>*
@@ -321,7 +326,10 @@ namespace cwipi {
   {
     return _locCodeRootRankCplComm;
   }
-  
+
 
 }
 
+/**
+ * \endcond
+ */

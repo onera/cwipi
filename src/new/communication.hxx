@@ -1,7 +1,7 @@
 #ifndef __COMMUNICATION_H__
 #define __COMMUNICATION_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2013-2017  ONERA
 
@@ -22,11 +22,16 @@
 #include "codeProperties.hxx"
 #include "couplingDB.hxx"
 
+
+/**
+ * \cond
+ */
+
 using namespace std;
 
 namespace cwipi {
 
-  /** 
+  /**
    * \class Communication communication.hxx "communication.hxx"
    * \brief Communication abstract interface
    *
@@ -35,7 +40,7 @@ namespace cwipi {
    */
 
   class Communication {
-    
+
   public :
 
     /**
@@ -64,13 +69,13 @@ namespace cwipi {
      *
      */
 
-    void 
+    void
     init
     (
-     const CodeProperties &localCodeProperties, 
+     const CodeProperties &localCodeProperties,
      const CodeProperties &cplCodeProperties,
      const string         &cplId,
-     CouplingDB           &cplDB    
+     CouplingDB           &cplDB
      );
 
     /**
@@ -81,14 +86,14 @@ namespace cwipi {
      *
      */
 
-    void 
+    void
     init
     (
-     Communication &cplCodeComm 
+     Communication &cplCodeComm
     );
 
 
-    MPI_Comm 
+    MPI_Comm
     unionCommGet
     (
     );
@@ -103,7 +108,7 @@ namespace cwipi {
     (
     );
 
-    MPI_Comm 
+    MPI_Comm
     cplCommGet
     (
     );
@@ -145,7 +150,7 @@ namespace cwipi {
      *
      */
 
-    virtual CWP_Comm_t 
+    virtual CWP_Comm_t
     commTypeGet() = 0;
 
     /**
@@ -157,8 +162,8 @@ namespace cwipi {
     virtual void
     sync
     (
-     void *tab, 
-     MPI_Datatype mpiType, 
+     void *tab,
+     MPI_Datatype mpiType,
      int tabSize
     ) = 0;
 */
@@ -180,8 +185,8 @@ namespace cwipi {
      * \brief Assigment operator
      *
      */
-    
-    Communication 
+
+    Communication
     &operator=
     (const Communication &other);
 
@@ -191,7 +196,7 @@ namespace cwipi {
      *
      */
 
-    Communication (const Communication& other); 
+    Communication (const Communication& other);
 
   protected:
 
@@ -202,18 +207,24 @@ namespace cwipi {
     MPI_Group _unionGroup;              /*!< Union grou between coupled codes */
     MPI_Comm  _unionComm;               /*!< Union communicator between coupled codes */
     vector <int>  *_unionCommCplRanks;
-    vector <int>  *_unionCommLocRanks;    
+    vector <int>  *_unionCommLocRanks;
 
     vector <int>  *_cplCommCplRanks;
-    vector <int>  *_cplCommLocRanks;    
+    vector <int>  *_cplCommLocRanks;
 
     MPI_Group _cplGroup;                  /*!< Coupling group (part of merger inter communicator */
     MPI_Comm _cplComm;                    /*!< Coupling communicator (part of merger inter communicator */
     int      _locCodeRootRankUnionComm;   /*!< Root rank associated to the local code into the union communicator */
     int      _cplCodeRootRankUnionComm;   /*!< Root rank associated to the coupled code into the union communicator */
     int      _locCodeRootRankCplComm;   /*!< Root rank associated to the local code into the coupling communicator */
-    int      _cplCodeRootRankCplComm;   /*!< Root rank associated to the coupled code into the coupling communicator */    
+    int      _cplCodeRootRankCplComm;   /*!< Root rank associated to the coupled code into the coupling communicator */
     bool      _isCplRank;                /*!< Is a current rank coupled */
   };
 }
+
+
+/**
+ * \endcond
+ */
+
 #endif //__COMMUNICATION_H__

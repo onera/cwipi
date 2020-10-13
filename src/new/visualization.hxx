@@ -1,7 +1,7 @@
 #ifndef __VISUALIZATION_H__
 #define __VISUALIZATION_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2012-2017  ONERA
 
@@ -26,28 +26,32 @@
 #include "field.hxx"
 #include <string>
 
+/**
+ * \cond
+ */
+
 namespace cwipi {
 
-  /** 
+  /**
    * \class Visu visualization.hxx "visualization.hxx"
    * \brief Interface mesh
    *
    *  This class defines the interface mesh objects.
-   * 
+   *
    */
   class Mesh;
   class Visu {
-  
+
   public:
-  
+
    /**
     * \brief Visu constructor
-    * 
+    *
     * Construct the CWIPI visualization by using paradigm pario methods.
-    * 
+    *
     * \param [in] MPIComm Coupling Communicator.
     */
-  
+
     Visu(const MPI_Comm &MPIComm, const CWP_Dynamic_mesh_t topology);
 
     /**
@@ -56,7 +60,7 @@ namespace cwipi {
      * Destroy the Visu object.
      *
      */
-    
+
     ~Visu();
 
 
@@ -85,12 +89,12 @@ namespace cwipi {
      *                                              with tetrahedra and pyramids
      *                                              (adding a vertex near
      *                                               each polyhedron's center)
-     *                         
+     *
      * \param [in] output_dir  Output directory
-     * \param [in] output_name Output name 
+     * \param [in] output_name Output name
      *
      */
-  
+
     void VisuCreate(const int          freq,
                     CWP_Visu_format_t  format,
                     const char        *format_option,
@@ -101,9 +105,9 @@ namespace cwipi {
     * \brief Create the visu geom
     *
     * \param [in] n_part       Number of mesh partition
-    * 
+    *
     */
-     
+
     void GeomCreate(int n_part);
 
      /**
@@ -128,7 +132,7 @@ namespace cwipi {
      *
      * This function add a block to a Visu geom partition
      *
-     * \param [in] blockType  Type of the block addition     
+     * \param [in] blockType  Type of the block addition
      *
      * \return block_id  Block Identifier
      */
@@ -146,9 +150,9 @@ namespace cwipi {
     * \brief Set a standard block to a Visu geom partition
     *
     * \param [in] id_part     Partition identifier
-    * \param [in] id_block    Block identifier  
+    * \param [in] id_block    Block identifier
     * \param [in] n_elt       Number of block elements
-    * \param [in] connec      Vertices to elements connectivity 
+    * \param [in] connec      Vertices to elements connectivity
     * \param [in] global_num  Global numbering of the vertices in the block (or NULL)
     *
     */
@@ -158,13 +162,13 @@ namespace cwipi {
                           int n_elt,
                           int *connec,
                           CWP_g_num_t *global_num);
-                          
+
 
    /**
     * \brief Set a standard block to a Visu geom partition
     *
     * \param [in] id_part     Partition identifier
-    * \param [in] id_block    Block identifier  
+    * \param [in] id_block    Block identifier
     * \param [in] global_num  Global numbering of the vertices in the block (or NULL)
     *
     */
@@ -172,7 +176,7 @@ namespace cwipi {
     void GeomBlockGNumMeshSet (int id_block,
                                int id_part,
                                CWP_g_num_t *global_num);
-                          
+
      /**
      * \brief Set a face polygon block to a Visu geom partition
      *
@@ -180,11 +184,11 @@ namespace cwipi {
      * \param [in] id_block    Block identifier
      * \param [in] n_elt       Number of block elements
      * \param [in] connec_idx  Vertices to elements connectivity index
-     * \param [in] connec      Vertices to elements connectivity 
+     * \param [in] connec      Vertices to elements connectivity
      * \param [in] global_num  Global numbering of the block vertices (or NULL)
      *
      */
-                 
+
      void GeomBlockPoly2D(int id_block,
                           int id_part,
                           int n_elt,
@@ -200,13 +204,13 @@ namespace cwipi {
      * \param [in] n_elts            Number of block elements
      * \param [in] n_faces           Number of faces elements (or NULL)
      * \param [in] connec_faces_idx  Vertices to faces connectivity index
-     * \param [in] connec_faces      Vertices to faces connectivity 
+     * \param [in] connec_faces      Vertices to faces connectivity
      * \param [in] connec_cells_idx  Faces to cells connectivity index
-     * \param [in] connec_cells      Faces to cells connectivity 
+     * \param [in] connec_cells      Faces to cells connectivity
      * \param [in] global_num        Global numbering of the block vertices (or NULL)
      *
      */
-                 
+
      void GeomBlockPoly3D(int              id_block,
                           int              id_part,
                           int              n_elts,
@@ -214,9 +218,9 @@ namespace cwipi {
                           int              connec_faces_idx[],
                           int              connec_faces[],
                           int              connec_cells_idx[],
-                          int              connec_cells[], 
+                          int              connec_cells[],
                           CWP_g_num_t      global_num[]
-                        );         
+                        );
 
    /**
     * \brief Indicate the beginning of the writing step
@@ -248,7 +252,7 @@ namespace cwipi {
     void WriterField(Field* field);
 
    /**
-    * \brief Convert a CWIPI block type CWP_Block_t to a PDM_writer block type 
+    * \brief Convert a CWIPI block type CWP_Block_t to a PDM_writer block type
     *
     * \param [in] CWP_block_type  A CWIPI Block type
     *
@@ -286,7 +290,7 @@ namespace cwipi {
 
     int _id_blocking_field  ;
     std::vector<double*> _blocking_field_data;
-    
+
   };
 
   bool Visu::isCreated() {
@@ -300,5 +304,9 @@ namespace cwipi {
 
 
 }
+
+/**
+ * \endcond
+ */
 
 #endif //__VISUALIZATION_H__

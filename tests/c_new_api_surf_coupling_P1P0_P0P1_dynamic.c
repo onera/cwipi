@@ -645,12 +645,12 @@ int main
     for(int i_code = 0; i_code < n_code_name; i_code++) {
 
       if (codeName[i_code] == "code1") {
-	CWP_Field_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName1);
-	CWP_Field_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName2);
+	CWP_Field_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName1);
+	CWP_Field_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName2);
       }
       else {
-	CWP_Field_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName1);
-	CWP_Field_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName2);
+	CWP_Field_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName1);
+	CWP_Field_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName2);
       }
     }
 
