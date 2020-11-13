@@ -698,7 +698,7 @@ PDM_dist_cloud_surf_compute
     b_t_cpu_s   = PDM_timer_cpu_sys(dist->timer);
     PDM_timer_resume(dist->timer);
 
-    PDM_dbbtree_t *dbbt = PDM_dbbtree_create (dist->comm, 3, NULL);
+    //PDM_dbbtree_t *dbbt = PDM_dbbtree_create (dist->comm, 3, NULL);
 
     int          *nElts   = malloc (sizeof(int) * n_part_mesh);
     const double      **extents = malloc (sizeof(double *) * n_part_mesh);
@@ -785,6 +785,31 @@ PDM_dist_cloud_surf_compute
                 "        Call PDM_dist_cloud_surf_surf_mesh_global_data_set +"
                 " PDM_dist_cloud_surf_surf_mesh_part_set\n");
     }
+
+//-->>
+    /* Compute local extents */
+    double my_extents[6] = {HUGE_VAL, HUGE_VAL, HUGE_VAL, -HUGE_VAL, -HUGE_VAL, -HUGE_VAL};
+    for (int ipart = 0; ipart < n_part_mesh; ipart++) {
+      for (int i = 0; i < nElts[ipart]; i++) {
+        for (int j = 0; j < 3; j++) {
+          my_extents[j]   = PDM_MIN (my_extents[j],   extents[ipart][6*i + j]);
+          my_extents[j+3] = PDM_MAX (my_extents[j+3], extents[ipart][6*i + 3 + j]);
+        }
+      }
+    }
+
+    /* Compute global extents */
+    double global_extents[6];
+    PDM_MPI_Allreduce (my_extents,   global_extents,   3, PDM_MPI_DOUBLE, PDM_MPI_MIN, dist->comm);
+    PDM_MPI_Allreduce (my_extents+3, global_extents+3, 3, PDM_MPI_DOUBLE, PDM_MPI_MAX, dist->comm);
+
+    /* Break symmetry */
+    for (int i = 0; i < 3; i++) {
+      global_extents[i] -= 0.001;
+    }
+
+    PDM_dbbtree_t *dbbt = PDM_dbbtree_create (dist->comm, 3, global_extents);
+//<<--
 
     PDM_box_set_t  *surf_mesh_boxes = PDM_dbbtree_boxes_set (dbbt,
                                                              n_part_mesh,

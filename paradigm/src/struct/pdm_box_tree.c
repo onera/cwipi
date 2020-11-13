@@ -4946,7 +4946,6 @@ PDM_box_tree_points_inside_boxes
     _pts_coord = (double *) pts_coord;
   }
 
-
   int *pts_in_box_count = malloc (sizeof(int) * n_boxes);
   for (int ibox = 0; ibox < n_boxes; ibox++) {
     pts_in_box_count[ibox] = 0;

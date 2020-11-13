@@ -144,7 +144,8 @@ PDM_para_octree_point_cloud_set
 void
 PDM_para_octree_build
 (
- const int          id
+ const int          id,
+ double            *global_extents
 );
 
 

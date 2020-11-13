@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -4624,7 +4625,8 @@ PDM_para_octree_point_cloud_set
 void
 PDM_para_octree_build
 (
- const int  id
+ const int  id,
+ double    *global_extents
  )
 {
   _octree_t *octree = _get_from_id (id);
@@ -4662,23 +4664,27 @@ PDM_para_octree_build
   /*
    * Get coord extents
    */
+  if (global_extents != NULL) {
+    memcpy (octree->global_extents, global_extents, sizeof(double) * dim * 2);
+  }
 
-  PDM_morton_get_coord_extents(dim,
-                               octree->n_points,
-                               octree->points,
-                               octree->global_extents,
-                               octree->comm);
+  else {
+    PDM_morton_get_coord_extents(dim,
+                                 octree->n_points,
+                                 octree->points,
+                                 octree->global_extents,
+                                 octree->comm);
+//-->>
+    const double EPS_range  = 1.e-6;
+    const double EPS_double = 1.e-6;
 
-  /*
-   * Dilate extents
-   */
-  const double EPS_range  = 1.e-6;
-  const double EPS_double = 1.e-12;
-  for (int i = 0; i < dim; i++) {
-    double range = octree->global_extents[i+dim] - octree->global_extents[i];
-    double epsilon = PDM_MAX (EPS_double, range * EPS_range);
-    octree->global_extents[i]     -= epsilon;
-    octree->global_extents[i+dim] += epsilon;
+    for (int i = 0; i < dim; i++) {
+      double range = octree->global_extents[i+dim] - octree->global_extents[i];
+      double epsilon = PDM_MAX (EPS_double, range * EPS_range);
+      octree->global_extents[i]     -= 1.1*epsilon; // On casse la symetrie !
+      octree->global_extents[i+dim] += epsilon;
+    }
+//<<--
   }
 
 

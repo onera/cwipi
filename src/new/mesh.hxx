@@ -423,6 +423,20 @@ namespace cwipi {
     
    inline int getNPart();
 
+    //-->>
+    inline int getNFace(int id_part) const;
+
+    inline int getNEdge(int id_part) const;
+
+    inline int* getFaceEdgeIndex(int i_part);
+
+    inline int* getFaceEdge(int i_part);
+
+    inline int* getEdgeVtxIndex(int i_part);
+
+    inline int* getEdgeVtx(int i_part);
+    //<<--
+
    void geomFinalize();
 
    inline bool gnumVtxRequired ();
@@ -632,6 +646,38 @@ namespace cwipi {
   { 
     return _blockDB[id_block] -> ConnecGet()[i_part];
   }
+
+  //-->>
+  int Mesh::getNFace(int id_part) const
+  {
+    return _nFace[id_part];
+  }
+
+  int Mesh::getNEdge(int id_part) const
+  {
+    return _nEdge[id_part];
+  }
+
+  int* Mesh::getFaceEdgeIndex(int i_part)
+  {
+    return _faceEdgeIdx[i_part];
+  }
+
+  int* Mesh::getFaceEdge(int i_part)
+  {
+    return _faceEdge[i_part];
+  }
+
+  int* Mesh::getEdgeVtxIndex(int i_part)
+  {
+    return _edgeVtxIdx[i_part];
+  }
+
+  int* Mesh::getEdgeVtx(int i_part)
+  {
+    return _edgeVtx[i_part];
+  }
+  //<<--
 
 }
 

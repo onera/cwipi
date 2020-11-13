@@ -390,8 +390,41 @@ PDM_closest_points_compute
   }
 
 
+  /* Compute global extents of source and target point clouds */
+  double local_min[3] = { HUGE_VAL,  HUGE_VAL,  HUGE_VAL};
+  double local_max[3] = {-HUGE_VAL, -HUGE_VAL, -HUGE_VAL};
+  for (int i_part = 0; i_part < cls->src_cloud->n_part; i_part++) {
+    double *x = cls->src_cloud->coords[i_part];
+    for (int i = 0; i < cls->src_cloud->n_points[i_part]; i++) {
+      for (int j = 0; j < 3; j++) {
+        if (*x < local_min[j])
+          local_min[j] = *x;
+        if (*x > local_max[j])
+          local_max[j] = *x;
+        x++;
+      }
+    }
+  }
+
+  for (int i_part = 0; i_part < cls->tgt_cloud->n_part; i_part++) {
+    double *x = cls->tgt_cloud->coords[i_part];
+    for (int i = 0; i < cls->tgt_cloud->n_points[i_part]; i++) {
+      for (int j = 0; j < 3; j++) {
+        if (*x < local_min[j])
+          local_min[j] = *x;
+        if (*x > local_max[j])
+          local_max[j] = *x;
+        x++;
+      }
+    }
+  }
+
+  double global_extents[6];
+  PDM_MPI_Allreduce(local_min, global_extents,     3, PDM_MPI_DOUBLE, PDM_MPI_MIN, cls->comm);
+  PDM_MPI_Allreduce(local_max, global_extents + 3, 3, PDM_MPI_DOUBLE, PDM_MPI_MAX, cls->comm);
+
   /* Build parallel octree */
-  PDM_para_octree_build (octree_id);
+  PDM_para_octree_build (octree_id, global_extents);
   //PDM_para_octree_dump (octree_id);
   PDM_para_octree_dump_times (octree_id);
 

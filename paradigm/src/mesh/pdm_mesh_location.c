@@ -1363,7 +1363,7 @@ PDM_mesh_location_free
         free (pcloud->n_points);
       }
 
-      if (pcloud->coords != NULL) {
+      if (pcloud->coords != NULL && !partial) {//pcloud->coords != NULL) {
         for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
           if (pcloud->coords[ipart] != NULL) {
             free (pcloud->coords[ipart]);
@@ -1381,7 +1381,7 @@ PDM_mesh_location_free
         free (pcloud->gnum);
       }
 
-      if (pcloud->location != NULL) {
+      if (pcloud->location != NULL && !partial) {//pcloud->location != NULL) {
         for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
           if (pcloud->location[ipart] != NULL) {
             free (pcloud->location[ipart]);
@@ -1417,7 +1417,7 @@ PDM_mesh_location_free
         free (pcloud->weights);
       }
 
-      if (pcloud->projected_coords != NULL) {
+      if (pcloud->projected_coords != NULL && !partial) {//pcloud->projected_coords != NULL) {
         for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
           if (pcloud->projected_coords[ipart] != NULL) {
             free (pcloud->projected_coords[ipart]);
@@ -1661,7 +1661,26 @@ PDM_mesh_location_compute
   PDM_dbbtree_t *dbbt = NULL;
   if (location->method == PDM_MESH_LOCATION_DBBTREE) {
 
-    dbbt = PDM_dbbtree_create (location->comm, dim, NULL);
+    /* Compute local extents */
+    double my_extents[6] = {HUGE_VAL, HUGE_VAL, HUGE_VAL, -HUGE_VAL, -HUGE_VAL, -HUGE_VAL};
+    for (int i = 0; i < n_boxes; i++) {
+      for (int j = 0; j < 3; j++) {
+        my_extents[j]   = PDM_MIN (my_extents[j],   box_extents[6*i + j]);
+        my_extents[j+3] = PDM_MAX (my_extents[j+3], box_extents[6*i + 3 + j]);
+      }
+    }
+
+    /* Compute global extents */
+    double global_extents[6];
+    PDM_MPI_Allreduce (my_extents,   global_extents,   3, PDM_MPI_DOUBLE, PDM_MPI_MIN, location->comm);
+    PDM_MPI_Allreduce (my_extents+3, global_extents+3, 3, PDM_MPI_DOUBLE, PDM_MPI_MAX, location->comm);
+
+    /* Break symmetry */
+    for (int i = 0; i < 3; i++) {
+      global_extents[i] -= 0.001;
+    }
+
+    dbbt = PDM_dbbtree_create (location->comm, dim, global_extents);
 
     PDM_dbbtree_boxes_set (dbbt,
                            1,//const int n_part,
@@ -1754,9 +1773,12 @@ PDM_mesh_location_compute
                                        pcloud_g_num);
 
       /* Build parallel octree */
-      PDM_para_octree_build (octree_id);
+      PDM_para_octree_build (octree_id, NULL);
       //PDM_para_octree_dump (octree_id);
-      //PDM_para_octree_dump_times (octree_id);
+      if (DEBUG) {
+        PDM_para_octree_dump_times (octree_id);
+      }
+
 
       /* Locate points inside boxes */
       PDM_para_octree_points_inside_boxes (octree_id,
@@ -1791,7 +1813,7 @@ PDM_mesh_location_compute
     free (pcloud_coord);
 
 
-    if (DEBUG) {
+    if (0) {//DEBUG) {
       printf("\n[%d] --- Pts in box ---\n", my_rank);
       for (ibox = 0; ibox < n_boxes; ibox++) {
 
