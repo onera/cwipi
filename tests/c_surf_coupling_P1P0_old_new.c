@@ -792,6 +792,74 @@ _create_split_mesh
 
 
 
+static int _set_rank_has_mesh
+(
+ const MPI_Comm  comm,
+ const int       nProcData,
+ PDM_MPI_Comm   *meshComm
+ )
+{
+  int current_rank_has_mesh = 1;
+
+  int rank;
+  int commSize;
+
+  MPI_Comm_rank (comm, &rank);
+  MPI_Comm_size (comm, &commSize);
+
+  PDM_MPI_Comm _comm = PDM_MPI_mpi_2_pdm_mpi_comm ((void *) &comm);
+
+  if (nProcData > 0 && nProcData < commSize) {
+
+    int rankInNode = PDM_io_mpi_node_rank (_comm);
+
+    int nNode = 0;
+    int iNode = -1;
+    int masterRank = (rankInNode == 0);
+
+    int *rankInNodes = malloc(sizeof(int) * commSize);
+
+    MPI_Allreduce (&masterRank, &nNode, 1, MPI_INT, MPI_SUM, comm);
+    MPI_Allgather (&rankInNode, 1, MPI_INT, rankInNodes, 1, MPI_INT, comm);
+
+    current_rank_has_mesh = 0;
+
+    for (int i = 0; i < rank; i++) {
+      if (rankInNodes[i] == 0) {
+        iNode += 1;
+      }
+    }
+
+    if (nProcData <= nNode) {
+      if (iNode < nProcData && masterRank) {
+        current_rank_has_mesh = 1;
+      }
+    }
+
+    else {
+
+      if (rankInNode < (nProcData / nNode)) {
+        current_rank_has_mesh = 1;
+      }
+      if ((rankInNode == (nProcData / nNode)) && (iNode < (nProcData % nNode))) {
+        current_rank_has_mesh = 1;
+      }
+
+    }
+
+    PDM_MPI_Comm_split (_comm,
+                        current_rank_has_mesh,
+                        rank,
+                        meshComm);
+    free (rankInNodes);
+  }
+
+  return current_rank_has_mesh;
+}
+
+
+
+
 /*----------------------------------------------------------------------
  *
  * Main : surface coupling test : P1P0_P0P1
@@ -899,8 +967,10 @@ int main
   /*
    *  Create coupling
    */
+  char *coupling_name = "c_surf_cpl_P1P0_P0P1";
+
   if (version == CWP_VERSION_OLD) {
-    cwipi_create_coupling ("c_surf_cpl_P1P0_P0P1",                    // Coupling id
+    cwipi_create_coupling (coupling_name,                             // Coupling id
                            CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                            coupled_code_name[0],                      // Coupled application id
                            2,                                         // Geometric entities dimension
@@ -914,7 +984,7 @@ int main
 
   else {
     CWP_Cpl_create (code_name[0],
-                    "c_surf_cpl_P1P0_P0P1",
+                    coupling_name,
                     coupled_code_name[0],
                     CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION,
@@ -929,13 +999,19 @@ int main
   /*
    *  Define mesh
    */
-  PDM_MPI_Comm mesh_comm = PDM_MPI_COMM_WORLD;
+  PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm ((void *) intra_comm);
 
-  /********************************
-   * TO DO : ré-implémenter la répartition inégale des données...
-   *******************************/
-  int current_rank_has_mesh = 1;
-  /*******************************/
+  int _n_proc_data = n_proc_data;
+  if (n_proc_data > 0) {
+    if (code_id == 1) {
+      _n_proc_data /= 2;
+    } else {
+     _n_proc_data -= n_proc_data/2;
+    }
+  }
+  int current_rank_has_mesh = _set_rank_has_mesh (intra_comm[0],
+                                                  _n_proc_data,
+                                                  &mesh_comm);
 
   const double xmin = -0.5*width;
   const double ymin = -0.5*width;
@@ -960,70 +1036,42 @@ int main
   PDM_MPI_Comm code_mesh_comm;
   PDM_MPI_Comm_split (mesh_comm, code_id, rank, &code_mesh_comm);
 
-  if (code_id == 1) {
-    _create_split_mesh (current_rank_has_mesh,
-                        code_mesh_comm,
-                        xmin,
-                        ymin,
-                        n_vtx_seg,
-                        width,
-                        depth,
-                        n_part,
-                        part_method,
-                        randomize,
-                        init_random,
-                        &nGFace,
-                        &nGVtx,
-                        &nFace,
-                        &faceEdgeIdx,
-                        &faceEdge,
-                        &faceVtxIdx,
-                        &faceVtx,
-                        &faceLNToGN,
-                        &nEdge,
-                        &edgeVtxIdx,
-                        &edgeVtx,
-                        &nVtx,
-                        &vtxCoord,
-                        &vtxLNToGN);
-  }
-
-  else {
+  if (code_id == 2) {
     init_random++;
-
-    _create_split_mesh (current_rank_has_mesh,
-                        code_mesh_comm,
-                        xmin,
-                        ymin,
-                        n_vtx_seg,
-                        width,
-                        depth,
-                        n_part,
-                        part_method,
-                        randomize,
-                        init_random,
-                        &nGFace,
-                        &nGVtx,
-                        &nFace,
-                        &faceEdgeIdx,
-                        &faceEdge,
-                        &faceVtxIdx,
-                        &faceVtx,
-                        &faceLNToGN,
-                        &nEdge,
-                        &edgeVtxIdx,
-                        &edgeVtx,
-                        &nVtx,
-                        &vtxCoord,
-                        &vtxLNToGN);
   }
+
+  _create_split_mesh (current_rank_has_mesh,
+                      code_mesh_comm,
+                      xmin,
+                      ymin,
+                      n_vtx_seg,
+                      width,
+                      depth,
+                      n_part,
+                      part_method,
+                      randomize,
+                      init_random,
+                      &nGFace,
+                      &nGVtx,
+                      &nFace,
+                      &faceEdgeIdx,
+                      &faceEdge,
+                      &faceVtxIdx,
+                      &faceVtx,
+                      &faceLNToGN,
+                      &nEdge,
+                      &edgeVtxIdx,
+                      &edgeVtx,
+                      &nVtx,
+                      &vtxCoord,
+                      &vtxLNToGN);
 
 
   /*
    *  Set interface mesh
    */
   if (version == CWP_VERSION_OLD) {
-    cwipi_define_mesh ("c_surf_cpl_P1P0_P0P1",
+    cwipi_define_mesh (coupling_name,
                      nVtx[0],
                      nFace[0],
                      vtxCoord[0],
@@ -1033,14 +1081,14 @@ int main
 
   else {
     CWP_Mesh_interf_vtx_set (code_name[0],
-                             "c_surf_cpl_P1P0_P0P1",
+                             coupling_name,
                              0,
                              nVtx[0],
                              vtxCoord[0],
                              vtxLNToGN[0]);
 
     CWP_Mesh_interf_from_faceedge_set (code_name[0],
-                                       "c_surf_cpl_P1P0_P0P1",
+                                       coupling_name,
                                        0,
                                        nFace[0],
                                        faceEdgeIdx[0],
@@ -1051,7 +1099,7 @@ int main
                                        faceLNToGN[0]);
 
     CWP_Mesh_interf_finalize (code_name[0],
-                              "c_surf_cpl_P1P0_P0P1");
+                              coupling_name);
   }
 
   if (verbose && rank == 0) printf("Set mesh OK\n");
@@ -1085,7 +1133,7 @@ int main
 
     if (code_id == 1) {
       CWP_Field_create (code_name[0],
-                        "c_surf_cpl_P1P0_P0P1",
+                        coupling_name,
                         field_name,
                         CWP_DOUBLE,
                         CWP_FIELD_STORAGE_BLOCK,
@@ -1095,7 +1143,7 @@ int main
                         visu_status);
 
       CWP_Field_data_set (code_name[0],
-                          "c_surf_cpl_P1P0_P0P1",
+                          coupling_name,
                           field_name,
                           0,
                           send_val);
@@ -1103,7 +1151,7 @@ int main
 
     else {
       CWP_Field_create (code_name[0],
-                        "c_surf_cpl_P1P0_P0P1",
+                        coupling_name,
                         field_name,
                         CWP_DOUBLE,
                         CWP_FIELD_STORAGE_BLOCK,
@@ -1113,7 +1161,7 @@ int main
                         visu_status);
 
       CWP_Field_data_set (code_name[0],
-                          "c_surf_cpl_P1P0_P0P1",
+                          coupling_name,
                           field_name,
                           0,
                           recv_val);
@@ -1137,12 +1185,12 @@ int main
   PDM_timer_resume (timer);
 
   if (version == CWP_VERSION_OLD) {
-    cwipi_locate ("c_surf_cpl_P1P0_P0P1");
+    cwipi_locate (coupling_name);
   }
 
   else {
     CWP_Spatial_interp_weights_compute (code_name[0],
-                                        "c_surf_cpl_P1P0_P0P1");
+                                        coupling_name);
   }
 
   PDM_timer_hang_on (timer);
@@ -1171,7 +1219,7 @@ int main
     int request;
 
     if (code_id == 1) {
-      cwipi_issend ("c_surf_cpl_P1P0_P0P1",
+      cwipi_issend (coupling_name,
                     "ech",
                     0,
                     1,
@@ -1182,7 +1230,7 @@ int main
                     &request);
     }
     else {
-      cwipi_irecv ("c_surf_cpl_P1P0_P0P1",
+      cwipi_irecv (coupling_name,
                    "ech",
                    0,
                    1,
@@ -1194,11 +1242,11 @@ int main
     }
 
     if (code_id == 1) {
-      cwipi_wait_issend ("c_surf_cpl_P1P0_P0P1",
+      cwipi_wait_issend (coupling_name,
                          request);
     }
     else {
-      cwipi_wait_irecv ("c_surf_cpl_P1P0_P0P1",
+      cwipi_wait_irecv (coupling_name,
                         request);
     }
   }
@@ -1206,24 +1254,24 @@ int main
   else {
     if (code_id == 1) {
       CWP_Issend (code_name[0],
-                  "c_surf_cpl_P1P0_P0P1",
+                  coupling_name,
                   field_name);
     }
     else {
       CWP_Irecv (code_name[0],
-                 "c_surf_cpl_P1P0_P0P1",
+                 coupling_name,
                  field_name);
     }
 
 
     if (code_id == 1) {
       CWP_Wait_issend (code_name[0],
-                       "c_surf_cpl_P1P0_P0P1",
+                       coupling_name,
                        field_name);
     }
     else {
       CWP_Wait_irecv (code_name[0],
-                      "c_surf_cpl_P1P0_P0P1",
+                      coupling_name,
                       field_name);
     }
   }
@@ -1237,8 +1285,8 @@ int main
   MPI_Reduce (&exch_time, &max_exch_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
   if (rank == 0) {
-    printf("Exchange fields     :%12.5es\n", max_exch_time);
-    printf("Total               :%12.5es\n", max_geom_time + max_exch_time);
+    printf("Exchange fields         :%12.5es\n", max_exch_time);
+    printf("Total                   :%12.5es\n", max_geom_time + max_exch_time);
   }
 
 
@@ -1264,13 +1312,12 @@ int main
   }
 
 
-
   /*
    *  Delete interface mesh
    */
   if (version == CWP_VERSION_NEW) {
     CWP_Mesh_interf_del (code_name[0],
-                         "c_surf_cpl_P1P0_P0P1");
+                         coupling_name);
   }
 
 
@@ -1278,11 +1325,11 @@ int main
    *  Delete coupling
    */
   if (version == CWP_VERSION_OLD) {
-    cwipi_delete_coupling ("c_surf_cpl_P1P0_P0P1");
+    cwipi_delete_coupling (coupling_name);
   }
   else {
     CWP_Cpl_del (code_name[0],
-                 "c_surf_cpl_P1P0_P0P1");
+                 coupling_name);
   }
 
 
