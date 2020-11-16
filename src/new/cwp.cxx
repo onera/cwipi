@@ -1180,26 +1180,9 @@ CWP_Spatial_interp_weights_compute
  * \param [in]  format           Output format to visualize exchanged fieldsDouble
  *                               on the coupled mesh. Choice between :
  *                               - "EnSight Gold"
- *                               - "MED_ficher"
- *                               - "CGNS"
- *                               .
  * \param [in]  format_option   Output options "opt1, opt2, ..."
- *                               - text               output text files
- *                               - binary             output binary files (default)
- *                               - big_endian         force binary files
- *                                                    to big-endian
- *                               - discard_polygons   do not output polygons
- *                                                    or related values
- *                               - discard_polyhedra  do not output polyhedra
- *                                                    or related values
- *                               - divide_polygons    tesselate polygons
- *                                                    with triangles
- *                               - divide_polyhedra   tesselate polyhedra
- *                                                    with tetrahedra and pyramids
- *                                                    (adding a vertex near
- *                                                    each polyhedron's center)
- *                               .
- *
+ *                               - text : output text files
+ *                               - binary : output binary files (default)
  */
 
 void
