@@ -78,7 +78,9 @@ namespace cwipi {
    _coords_target(NULL),
    _n_vtx(NULL),
    _n_elt(NULL),
-   _pdmGNum_handle_index(-1)
+   _pdmGNum_handle_index(-1),
+   _weights_src_idx(NULL),
+   _weights_src(NULL)
   {
   }
 
@@ -96,6 +98,19 @@ namespace cwipi {
     free(_gnum_user_targets);
     free(_coords_user_targets);
 
+    if (_weights_src_idx != NULL) {
+      for (int i = 0; i < _nb_part; i++) {
+        free (_weights_src_idx[i]);
+      }
+      free (_weights_src_idx);
+    }
+
+    if (_weights_src != NULL) {
+      for (int i = 0; i < _nb_part; i++) {
+        free (_weights_src[i]);
+      }
+      free (_weights_src);
+    }
     computeFree();
   }
 
@@ -3066,7 +3081,36 @@ void SpatialInterpLocation::triplet_location_null_recv(int* id_gnum_location) {
     if (interpolatedData != NULL) free(interpolatedData);
     interpolatedData = (void*) malloc( dataTypeSize * nComponent*_n_tot_target_cpl);
 
+    if (_weights_src_idx == NULL) {
+      _weights_src_idx  = (int **) malloc(sizeof(int*)* _nb_part);
+      for (int i = 0; i < _nb_part; i++) {
+        _weights_src_idx[i] = NULL;
+      }
+      _weights_src  = (double **) malloc(sizeof(double*)* _nb_part);
+      for (int i = 0; i < _nb_part; i++) {
+        _weights_src[i] = NULL;
+      }
+    }
+
+
     for(int i_part=0;i_part<_nb_part;i_part++){
+
+      int weights_src_empty = 0;
+      int l_weights_src = -1;
+      int s_weights_src = -1;
+
+      if (_weights_src_idx[i_part] == NULL) {
+        weights_src_empty = 1;
+        _weights_src_idx[i_part] = (int *) malloc (sizeof(int) *
+                 (_targets_localization_idx_cpl[_n_ranks_g-1][i_part+1] + 1));
+        _weights_src_idx[i_part][0] = 0;
+
+        s_weights_src =
+          4 * _targets_localization_idx_cpl[_n_ranks_g-1][i_part+1];
+        _weights_src[i_part] =
+          (double *) malloc (sizeof(double) * s_weights_src);
+        l_weights_src = 0;
+      }
 
       void* referenceData = referenceField -> dataGet(i_part);
       // For a cell center field : give the value of the located cell
@@ -3105,14 +3149,14 @@ void SpatialInterpLocation::triplet_location_null_recv(int* id_gnum_location) {
             }
 
             PDM_geom_elem_compute_polygon_barycentric_coordinates(n_tgt,
-                        	    		                  tgt_pts_location_p1,
+                                                                  tgt_pts_location_p1,
                                                                   tgt_pts_projected_coords,
-                                                         	  connecIdx,
+                                                                  connecIdx,
                                                                   connec,
-                                                           	  coords,
-                                                  		  &tgt_pts_bary_coords_idx,
+                                                                  coords,
+                                                                  &tgt_pts_bary_coords_idx,
                                                                   &tgt_pts_bary_coords
-                                                         	 );
+                                                                  );
 
             void* tmpData = (char*) interpolatedData + dataTypeSize * nComponent * _targets_localization_idx_cpl[i_proc][i_part];
 
@@ -3188,29 +3232,52 @@ void SpatialInterpLocation::triplet_location_null_recv(int* id_gnum_location) {
               double z_target = _targets_localization_data_cpl[itarget].projectedZ;
 
               double tgtCoords[3]    = {x_target,y_target,z_target};
-              int    *barCoordsIndex = NULL;
               double *barCoords      = NULL;
            /*   printf("iel %i itarget %i target %f %f %f _n_tot_target_cpl %i conneIDX \n",
               iel,itarget,x_target,y_target,z_target,_n_tot_target_cpl);*/
-              PDM_geom_elem_compute_polygon_barycentric_coordinates(1,
-                        	    		                    &ielP1,
-                                                                    tgtCoords,
-                                                         	    connecIdx,
-                                                                    connec,
-                                                           	    coords,
-                                                  		   &barCoordsIndex,
-                                                                   &barCoords
-                                                         	   );
+
+              if (weights_src_empty) {
+                int    *_barCoordsIndex = NULL;
+                double *_barCoords      = NULL;
+                PDM_geom_elem_compute_polygon_barycentric_coordinates(1,
+                                                                      &ielP1,
+                                                                      tgtCoords,
+                                                                      connecIdx,
+                                                                      connec,
+                                                                      coords,
+                                                                      &_barCoordsIndex,
+                                                                      &_barCoords
+                                                                      );
+                int n_elt = connecIdx[iel+1] - connecIdx[iel];
+                _weights_src_idx[i_part][itarget+1] =
+                  _weights_src_idx[i_part][itarget] + n_elt;
+
+                if (s_weights_src <= _weights_src_idx[i_part][itarget+1]) {
+                  s_weights_src *= 2;
+                  _weights_src[i_part] = (double *)realloc((void *)(_weights_src[i_part]),
+                    sizeof(double) * s_weights_src);
+                }
+
+                for (int i = 0; i < n_elt; i++) {
+                  _weights_src[i_part][_weights_src_idx[i_part][itarget] +i] =
+                    _barCoords[i];
+                }
+
+                free (_barCoordsIndex);
+                free (_barCoords);
+              }
+
+              barCoords = &(_weights_src[i_part][_weights_src_idx[i_part][itarget]]);
+
               for (int k = 0; k < nComponent; k++) {
                 value = 0.0;
+                int k1=0;
                 for (int i_vtx = connecIdx[iel]; i_vtx < connecIdx[iel+1]; i_vtx++) {
-                   value +=  barCoords[i_vtx - connecIdx[iel] ] * (*(double*)( (char*)referenceData + dataTypeSize * (nComponent * (connec[i_vtx]-1) + k) ) );
+                   value +=  barCoords[k1++] * (*(double*)( (char*)referenceData + dataTypeSize * (nComponent * (connec[i_vtx]-1) + k) ) );
                 }
                 memcpy((char*)interpolatedData + dataTypeSize * ( nComponent * interpInd + k), &value, dataTypeSize);
               }//end k component loop
 
-              if(barCoordsIndex != NULL) free(barCoordsIndex);
-              if(barCoords      != NULL) free(barCoords     );
             }
             else {
               for (int k = 0; k < nComponent; k++) {

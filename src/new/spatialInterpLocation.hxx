@@ -572,6 +572,10 @@ namespace cwipi {
 
       int _pdmGNum_handle_index;
 
+      int **_weights_src_idx;
+      double **_weights_src;
+
+
   }; //end SpatialInterpLocation
 
 
