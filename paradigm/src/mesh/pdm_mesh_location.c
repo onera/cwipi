@@ -1775,7 +1775,7 @@ PDM_mesh_location_compute
       /* Build parallel octree */
       PDM_para_octree_build (octree_id, NULL);
       //PDM_para_octree_dump (octree_id);
-      if (DEBUG) {
+      if (1) {//DEBUG) {
         PDM_para_octree_dump_times (octree_id);
       }
 

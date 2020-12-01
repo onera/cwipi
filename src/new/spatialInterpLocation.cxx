@@ -152,6 +152,20 @@ static CWP_Location_method_t _get_location_method
     return location_method;
   }
 
+  static double _get_location_tolerance
+  (
+   )
+  {
+    double tolerance = CWP_MESH_LOCATION_BBOX_TOLERANCE;
+    char *env_location_tolerance;
+    env_location_tolerance = getenv ("CWP_LOCATION_TOLERANCE");
+
+    if (env_location_tolerance != NULL) {
+      tolerance = atof(env_location_tolerance);
+    }
+
+    return tolerance;
+  }
 
 
   void SpatialInterpLocation::spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) {
@@ -1364,7 +1378,7 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
       }
 
       PDM_mesh_location_method_set (*id_dist, mesh_location_method);
-      PDM_mesh_location_tolerance_set (*id_dist, CWP_MESH_LOCATION_BBOX_TOLERANCE);
+      PDM_mesh_location_tolerance_set (*id_dist, _get_location_tolerance());
 
 
       PDM_mesh_location_n_part_cloud_set (*id_dist, 0, _nb_part);
@@ -1539,7 +1553,7 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
       }
 
       PDM_mesh_location_method_set (*id_dist, mesh_location_method);
-      PDM_mesh_location_tolerance_set (*id_dist, CWP_MESH_LOCATION_BBOX_TOLERANCE);
+      PDM_mesh_location_tolerance_set (*id_dist, _get_location_tolerance());
 
 
       PDM_mesh_location_n_part_cloud_set (*id_dist, 0, _nb_part_cpl);
@@ -1667,7 +1681,7 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
       }
 
       PDM_mesh_location_method_set (*id_dist, mesh_location_method);
-      PDM_mesh_location_tolerance_set (*id_dist, CWP_MESH_LOCATION_BBOX_TOLERANCE);
+      PDM_mesh_location_tolerance_set (*id_dist, _get_location_tolerance());
 
 
       PDM_mesh_location_n_part_cloud_set (*id_dist, 0, _nb_part);
@@ -1810,7 +1824,7 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
       }
 
       PDM_mesh_location_method_set (*id_dist, mesh_location_method);
-      PDM_mesh_location_tolerance_set (*id_dist, CWP_MESH_LOCATION_BBOX_TOLERANCE);
+      PDM_mesh_location_tolerance_set (*id_dist, _get_location_tolerance());
 
 
       PDM_mesh_location_n_part_cloud_set (*id_dist, 0, _nb_part_cpl);

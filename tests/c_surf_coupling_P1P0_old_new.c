@@ -62,9 +62,11 @@ static void
 _read_args(int             argc,
            char          **argv,
            CWP_Version_t  *version,
-           int            *n_vtx_seg,
+           int            *n_vtx_seg1,
+           int            *n_vtx_seg2,
            double         *width,
            double         *depth,
+           int            *rotation,
            int            *randomize,
            int            *nProcData,
            int            *part_method,
@@ -88,8 +90,24 @@ _read_args(int             argc,
       i++;
       if (i >= argc)
         _usage(EXIT_FAILURE);
+      else {
+        *n_vtx_seg1 = atoi(argv[i]);
+        *n_vtx_seg2 = atoi(argv[i]);
+      }
+    }
+    else if (strcmp(argv[i], "-n1") == 0) {
+      i++;
+      if (i >= argc)
+        _usage(EXIT_FAILURE);
       else
-        *n_vtx_seg = atoi(argv[i]);
+        *n_vtx_seg1 = atoi(argv[i]);
+    }
+    else if (strcmp(argv[i], "-n2") == 0) {
+      i++;
+      if (i >= argc)
+        _usage(EXIT_FAILURE);
+      else
+        *n_vtx_seg2 = atoi(argv[i]);
     }
     else if (strcmp(argv[i], "-width") == 0) {
       i++;
@@ -104,6 +122,9 @@ _read_args(int             argc,
         _usage(EXIT_FAILURE);
       else
         *depth = atof(argv[i]);
+    }
+    else if (strcmp(argv[i], "-rot") == 0) {
+        *rotation = 1;
     }
     else if (strcmp(argv[i], "-no_random") == 0) {
         *randomize = 0;
@@ -570,6 +591,25 @@ static void _add_depth (const int     n_pts,
 }
 
 
+static void _rotate (const int  n_pts,
+                     double    *coord)
+{
+  double R[3][3] = {{0.9362934, -0.2896295, 0.1986693},
+                    {0.3129918,  0.9447025, -0.0978434},
+                    {-0.1593451,  0.1537920,  0.9751703}};
+
+  for (int i = 0; i < n_pts; i++) {
+    double x = coord[3*i];
+    double y = coord[3*i+1];
+    double z = coord[3*i+2];
+
+    for (int j = 0; j < 3; j++) {
+      coord[3*i+j] = R[j][0]*x + R[j][1]*y + R[j][2]*z;
+    }
+  }
+}
+
+
 static void
 _create_split_mesh
 (
@@ -580,6 +620,7 @@ _create_split_mesh
  PDM_g_num_t         nVtxSeg,
  double              length,
  double              depth,
+ int                 rotation,
  int                 n_part,
  PDM_part_split_t    method,
  int                 haveRandom,
@@ -660,6 +701,11 @@ _create_split_mesh
                 length,
                 depth,
                 dVtxCoord);
+
+    if (rotation) {
+      _rotate (dNVtx,
+               dVtxCoord);
+    }
 
     /*
      *  Create mesh partitions
@@ -875,7 +921,8 @@ int main
    *  Read args from command line
    */
   CWP_Version_t version = CWP_VERSION_OLD;
-  int n_vtx_seg = 100;
+  int n_vtx_seg1 = 100;
+  int n_vtx_seg2 = 100;
   int randomize = 1;
   int n_proc_data = -1;
 #ifdef PDM_HAVE_PARMETIS
@@ -891,13 +938,16 @@ int main
 
   double width = 20.;
   double depth = 1.;
+  int rotation = 0;
 
   _read_args (argc,
               argv,
               &version,
-              &n_vtx_seg,
+              &n_vtx_seg1,
+              &n_vtx_seg2,
               &width,
               &depth,
+              &rotation,
               &randomize,
               &n_proc_data,
               (int *) &part_method,
@@ -931,15 +981,18 @@ int main
   CWP_Status_t *is_active_rank = malloc (sizeof(CWP_Status_t) * n_code);
   double *time_init = malloc (sizeof(double) * n_code);
 
+  int n_vtx_seg;
   if (rank < comm_world_size / 2) {
     code_id = 1;
     code_name[0] = "code1";
     coupled_code_name[0] = "code2";
+    n_vtx_seg = n_vtx_seg1;
   }
   else {
     code_id = 2;
     code_name[0] = "code2";
     coupled_code_name[0] = "code1";
+    n_vtx_seg = n_vtx_seg2;
   }
 
   MPI_Comm *intra_comm = malloc (sizeof(MPI_Comm) * n_code);
@@ -1012,7 +1065,11 @@ int main
   int current_rank_has_mesh = _set_rank_has_mesh (intra_comm[0],
                                                   _n_proc_data,
                                                   &mesh_comm);
-
+//-->>
+int true_n_proc_data;
+MPI_Reduce (&current_rank_has_mesh, &true_n_proc_data, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
+//<<--
   const double xmin = -0.5*width;
   const double ymin = -0.5*width;
   int init_random = time(NULL);
@@ -1047,6 +1104,7 @@ int main
                       n_vtx_seg,
                       width,
                       depth,
+                      rotation,
                       n_part,
                       part_method,
                       randomize,
