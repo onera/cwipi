@@ -198,6 +198,12 @@ namespace cwipi {
               printf("connec_idx[%i][%i] %i n_elt %i blockDB[%i]\n",i_part,i,connec_idx[i],n_elt,i);
             while(1==1){}
             */
+            //-->> Tmp fix for n_proc_data < n_proc
+            if (connec_idx == NULL && n_elt == 0) {
+              connec_idx = (int *) malloc (sizeof(int));
+              connec_idx[0] = 0;
+            }
+            //<<--
             connec_size+=connec_idx[n_elt];
 
           }

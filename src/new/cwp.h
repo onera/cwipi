@@ -919,7 +919,7 @@ CWP_Recv_freq_set
  */
 
 void
-CWP_Next_recv_time_set
+CWP_next_recv_time_set
 (
  const char      *local_code_name,
  const char      *cpl_id,

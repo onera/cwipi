@@ -25,6 +25,7 @@
 #include <pdm_mpi.h>
 #include <pdm_mesh_nodal.h>
 #include <pdm_dist_cloud_surf.h>
+#include <pdm_mesh_location.h>
 #include <pdm_gnum.h>
 #include <pdm_gnum_location.h>
 #include <pdm_geom_elem.h>
@@ -81,7 +82,9 @@ namespace cwipi {
    _coords_target(NULL),
    _n_vtx(NULL),
    _n_elt(NULL),
-   _pdmGNum_handle_index(-1)
+   _pdmGNum_handle_index(-1),
+   _weights_src_idx(NULL),
+   _weights_src(NULL)
   {
   }
 
@@ -99,13 +102,74 @@ namespace cwipi {
     free(_gnum_user_targets);
     free(_coords_user_targets);
 
+    if (_weights_src_idx != NULL) {
+      for (int i = 0; i < _nb_part; i++) {
+        free (_weights_src_idx[i]);
+      }
+      free (_weights_src_idx);
+    }
+
+    if (_weights_src != NULL) {
+      for (int i = 0; i < _nb_part; i++) {
+        free (_weights_src[i]);
+      }
+      free (_weights_src);
+    }
     computeFree();
   }
 
 
 
+  typedef enum {
+    CWP_LOCATION_DIST_CLOUD_SURF,
+    CWP_LOCATION_MESH_LOCATION_OCTREE,
+    CWP_LOCATION_MESH_LOCATION_DBBTREE
+  } CWP_Location_method_t;
 
+  const double CWP_MESH_LOCATION_BBOX_TOLERANCE = 1.e-3;
 
+static CWP_Location_method_t _get_location_method
+  (
+   )
+  {
+    CWP_Location_method_t location_method = CWP_LOCATION_DIST_CLOUD_SURF; // default location method
+    char *env_location_method;
+    env_location_method = getenv ("CWP_LOCATION_METHOD");
+    if (env_location_method != NULL) {
+
+      int i_location_method = atoi(env_location_method);
+      if (i_location_method == 0) {
+        location_method = CWP_LOCATION_DIST_CLOUD_SURF;
+      }
+      else if (i_location_method == 1) {
+        location_method = CWP_LOCATION_MESH_LOCATION_OCTREE;
+      }
+      else if (i_location_method == 2) {
+        location_method = CWP_LOCATION_MESH_LOCATION_DBBTREE;
+      }
+
+      if (0) {
+        printf("CWP_LOCATION_METHOD = %d\n", location_method);
+      }
+    }
+
+    return location_method;
+  }
+
+  static double _get_location_tolerance
+  (
+   )
+  {
+    double tolerance = CWP_MESH_LOCATION_BBOX_TOLERANCE;
+    char *env_location_tolerance;
+    env_location_tolerance = getenv ("CWP_LOCATION_TOLERANCE");
+
+    if (env_location_tolerance != NULL) {
+      tolerance = atof(env_location_tolerance);
+    }
+
+    return tolerance;
+  }
 
 
   void SpatialInterpLocation::spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) {
@@ -137,10 +201,21 @@ namespace cwipi {
         if(_Texch_t == CWP_FIELD_EXCH_SEND ) localization_surface_setting     (&_id_dist);
         if(_Texch_t == CWP_FIELD_EXCH_RECV ) localization_points_cloud_setting(&_id_dist);
 
-        /* Localization compute, get and free*/
-        localization_compute        (_id_dist);
-        if(_Texch_t == CWP_FIELD_EXCH_RECV) localization_get(_id_dist)  ;
-        PDM_dist_cloud_surf_free(_id_dist,1);
+      /* Localization compute, get and free*/
+      localization_compute        (_id_dist);
+      if(_Texch_t == CWP_FIELD_EXCH_RECV) localization_get(_id_dist)  ;
+      //PDM_dist_cloud_surf_free(_id_dist,1);
+      CWP_Location_method_t location_method = _get_location_method();
+        if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
+          PDM_dist_cloud_surf_free (_id_dist, 1);
+        }
+        else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
+                   location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
+          PDM_mesh_location_free (_id_dist, 1);
+        }
+        else {
+          PDM_error (__FILE__, __LINE__, 0, "Unknown location method.\n");
+        }
 
 
         /*********************************/
@@ -185,8 +260,19 @@ namespace cwipi {
           localization_surface_setting(&_id_dist);
           localization_compute        (_id_dist);
 
-          localization_get_cpl        (_id_dist) ;
-          PDM_dist_cloud_surf_free(_id_dist,1);
+        localization_get_cpl        (_id_dist) ;
+        //PDM_dist_cloud_surf_free(_id_dist,1);
+        CWP_Location_method_t location_method = _get_location_method();
+        if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
+          PDM_dist_cloud_surf_free (_id_dist, 1);
+        }
+        else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
+                   location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
+          PDM_mesh_location_free (_id_dist, 1);
+        }
+        else {
+          PDM_error (__FILE__, __LINE__, 0, "Unknown location method.\n");
+        }
 
           triplet_location_set    (&_id_gnum_location);
 
@@ -220,7 +306,18 @@ namespace cwipi {
 
         localization_compute     (_id_dist);
 
-        PDM_dist_cloud_surf_free(_id_dist,1);
+      //PDM_dist_cloud_surf_free(_id_dist,1);
+      CWP_Location_method_t location_method = _get_location_method();
+      if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
+        PDM_dist_cloud_surf_free (_id_dist, 1);
+      }
+      else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
+               location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
+        PDM_mesh_location_free (_id_dist, 1);
+      }
+      else {
+        PDM_error (__FILE__, __LINE__, 0, "Unknown location method.\n");
+      }
 
         /***************************************************************/
         /*  Communication tree building for uncoupled ranks processes **/
@@ -515,9 +612,9 @@ void SpatialInterpLocation::issend_p2p(Field* referenceField) {
 
 
     int tag = recevingField -> fieldIDIntGet();
-    int request = recevingField -> lastRequestGet(tag);
-   // printf("%s recevingField -> fieldIDIntGet() %i rank %i both %i request %i\n",
-   // recevingField ->fieldIDGet().c_str(),recevingField -> fieldIDIntGet(),_rank,_both_codes_are_local,request);
+    MPI_Request request = recevingField -> lastRequestGet(tag);
+    // printf("%s recevingField -> fieldIDIntGet() %i rank %i both %i request %i\n",
+    // recevingField ->fieldIDGet().c_str(),recevingField -> fieldIDIntGet(),_rank,_both_codes_are_local,request);
 
     if(_both_codes_are_local == 0)
       MPI_Wait(&request, &status);
@@ -961,8 +1058,10 @@ void SpatialInterpLocation::null_exchange_for_uncoupled_process() {
 
 
     _both_codes_are_local=0;
-    if(_localCodeProperties ->localCodeIs() && _coupledCodeProperties ->localCodeIs())
-       _both_codes_are_local = 1;
+    if(_localCodeProperties ->localCodeIs() && _coupledCodeProperties ->localCodeIs()) {
+      _both_codes_are_local = 1;
+      _nb_part_cpl = _nb_part;//fix?
+    }
 
 
     _id     = _localCodeProperties   -> idGet();
@@ -1195,112 +1294,232 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
 
   void SpatialInterpLocation::localization_points_cloud_setting(int* id_dist) {
 
-    /* Paradigm mesh localisation _distance creation */
-    *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm );
+    CWP_Location_method_t location_method = _get_location_method();
 
-    PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part);
+    if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
+      /* Paradigm mesh localisation _distance creation */
+      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm );
 
-    PDM_dist_cloud_surf_surf_mesh_global_data_set (*id_dist,
-                                             _n_g_elt_cpl_over_part,
-                                             _n_g_vtx_cpl_over_part,
-                                             _nb_part_cpl);
+      PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part);
 
-    for(int i_part =0;i_part<_nb_part;i_part++) {
+      PDM_dist_cloud_surf_surf_mesh_global_data_set (*id_dist,
+                                                     _n_g_elt_cpl_over_part,
+                                                     _n_g_vtx_cpl_over_part,
+                                                     _nb_part_cpl);
 
-      CWP_g_num_t* gnum_target          = _gnum_target  [i_part];
-      double*      coords_target        = _coords_target[i_part];
+      for (int i_part = 0; i_part < _nb_part; i_part++) {
 
-      PDM_dist_cloud_surf_cloud_set (*id_dist,
-                              0,
-                              i_part,
-                              _n_target[i_part],
-                              coords_target,
-                              gnum_target
-                             );
+        CWP_g_num_t* gnum_target          = _gnum_target  [i_part];
+        double*      coords_target        = _coords_target[i_part];
+
+        PDM_dist_cloud_surf_cloud_set (*id_dist,
+                                       0,
+                                       i_part,
+                                       _n_target[i_part],
+                                       coords_target,
+                                       gnum_target
+                                       );
+      }
+
+      if(_both_codes_are_local == 0) {
+        for(int i_part =0; i_part<_nb_part_cpl; i_part++) {
+          int n_elt_null = 0;
+          int*         connecIdx = (int*)malloc(sizeof(int)*(1+n_elt_null));
+          int*         connec    = (int*)malloc(sizeof(int)*n_elt_null);
+
+          double*      coords    = (double*)malloc(3*sizeof(double)*n_elt_null);
+          CWP_g_num_t* gnum_vtx  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
+          CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
+
+          connecIdx[0]=0;
+
+          PDM_dist_cloud_surf_surf_mesh_part_set (*id_dist,
+                                                  i_part,
+                                                  0,
+                                                  connecIdx,
+                                                  connec,
+                                                  gnum_elt,
+                                                  0,
+                                                  coords,
+                                                  gnum_vtx);
+        }
+      }
+      else {
+        for(int i_part =0; i_part<_nb_part_cpl; i_part++) {
+          Mesh* mesh_cpl = _spatial_interp_cpl -> _mesh;
+          int*         connecIdx_cpl = mesh_cpl -> connecIdxGet(i_part);
+          int*         connec_cpl    = mesh_cpl -> connecGet(i_part);
+
+          int          n_vtx_cpl     = mesh_cpl -> getPartNVertex(i_part);
+          int          n_elts_cpl    = mesh_cpl -> getPartNElts(i_part);
+          double*      coords_cpl    = mesh_cpl -> getVertexCoords(i_part);
+          CWP_g_num_t* gnum_vtx_cpl  = mesh_cpl -> getVertexGNum(i_part);
+          CWP_g_num_t* gnum_elt_cpl  = mesh_cpl -> GNumEltsGet(i_part);
+
+          PDM_dist_cloud_surf_surf_mesh_part_set (*id_dist,
+                                                  i_part,
+                                                  n_elts_cpl,
+                                                  connecIdx_cpl,
+                                                  connec_cpl,
+                                                  gnum_elt_cpl,
+                                                  n_vtx_cpl,
+                                                  coords_cpl,
+                                                  gnum_vtx_cpl);
+
+        }//loop on part
+      }//end if
+    } // End if location_method == CWP_LOCATION_DIST_CLOUD_SURF
+
+    else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
+             location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
+
+      *id_dist = PDM_mesh_location_create (PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm);
+
+      PDM_mesh_location_method_t mesh_location_method;
+      if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE) {
+        mesh_location_method = PDM_MESH_LOCATION_OCTREE;
+      }
+      else if (location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
+        mesh_location_method = PDM_MESH_LOCATION_DBBTREE;
+      }
+
+      PDM_mesh_location_method_set (*id_dist, mesh_location_method);
+      PDM_mesh_location_tolerance_set (*id_dist, _get_location_tolerance());
+
+
+      PDM_mesh_location_n_part_cloud_set (*id_dist, 0, _nb_part);
+
+      PDM_mesh_location_mesh_global_data_set (*id_dist,
+                                              _nb_part_cpl);
+
+      for (int i_part = 0; i_part < _nb_part; i_part++) {
+
+        CWP_g_num_t *gnum_target   = _gnum_target[i_part];
+        double      *coords_target = _coords_target[i_part];
+
+        PDM_mesh_location_cloud_set (*id_dist,
+                                     0,
+                                     i_part,
+                                     _n_target[i_part],
+                                     coords_target,
+                                     gnum_target);
+      }
+
+      if (_both_codes_are_local == 0) {
+        for (int i_part = 0; i_part < _nb_part_cpl; i_part++) {
+          int n_elt_null = 0;
+          int         *face_edge_idx = (int*) malloc (sizeof(int) * (n_elt_null + 1));
+          int         *face_edge     = (int*) malloc (sizeof(int) * n_elt_null);
+          int         *edge_vtx_idx  = (int*) malloc (sizeof(int) * (n_elt_null + 1));
+          int         *edge_vtx      = (int*) malloc (sizeof(int) * n_elt_null);
+
+          double      *coords        = (double*) malloc (sizeof(double) * n_elt_null * 3);
+          CWP_g_num_t *vtx_gnum      = (CWP_g_num_t*) malloc (sizeof(CWP_g_num_t) * n_elt_null);
+          CWP_g_num_t *edge_gnum     = (CWP_g_num_t*) malloc (sizeof(CWP_g_num_t) * n_elt_null);
+          CWP_g_num_t *face_gnum     = (CWP_g_num_t*) malloc (sizeof(CWP_g_num_t) * n_elt_null);
+
+          face_edge_idx[0] = 0;
+          edge_vtx_idx[0] = 0;
+
+          PDM_mesh_location_part_set_2d (*id_dist,
+                                         i_part,
+                                         0,
+                                         face_edge_idx,
+                                         face_edge,
+                                         face_gnum,
+                                         0,
+                                         edge_vtx_idx,
+                                         edge_vtx,
+                                         edge_gnum,
+                                         0,
+                                         coords,
+                                         vtx_gnum);
+        }
+      }
+
+      else {
+        Mesh *mesh_cpl = _spatial_interp_cpl -> _mesh;
+
+        /*int mesh_nodal_id = mesh_cpl->getPdmNodalIndex();
+
+        PDM_mesh_location_shared_nodal_mesh_set (*id_dist,
+        mesh_nodal_id);*/
+        for (int i_part = 0; i_part < _nb_part_cpl; i_part++) {
+          int n_vtx  = mesh_cpl -> getPartNVertex(i_part);
+          int n_face = mesh_cpl -> getNFace(i_part);
+          int n_edge = mesh_cpl -> getNEdge(i_part);
+
+          CWP_g_num_t *vtx_gnum  = mesh_cpl -> getVertexGNum(i_part);
+          CWP_g_num_t *face_gnum = mesh_cpl -> GNumEltsGet(i_part);
+          CWP_g_num_t *edge_gnum = NULL;//unused
+
+          double *coords        = mesh_cpl -> getVertexCoords(i_part);
+          int    *face_edge_idx = mesh_cpl -> getFaceEdgeIndex(i_part);
+          int    *face_edge     = mesh_cpl -> getFaceEdge(i_part);
+          int    *edge_vtx_idx  = mesh_cpl -> getEdgeVtxIndex(i_part);
+          int    *edge_vtx      = mesh_cpl -> getEdgeVtx(i_part);
+
+
+          PDM_mesh_location_part_set_2d (*id_dist,
+                                         i_part,
+                                         n_face,
+                                         face_edge_idx,
+                                         face_edge,
+                                         face_gnum,
+                                         n_edge,
+                                         edge_vtx_idx,
+                                         edge_vtx,
+                                         edge_gnum,
+                                         n_vtx,
+                                         coords,
+                                         vtx_gnum);
+        }
+      }
+
+    } // End if location_method == CWP_LOCATION_MESH_LOCATION_*
+
+    else {
+      PDM_error (__FILE__, __LINE__, 0, "Unknown location method.\n");
     }
 
-    if(_both_codes_are_local == 0) {
-      for(int i_part =0; i_part<_nb_part_cpl; i_part++) {
+  }
+
+
+
+
+
+
+
+  void SpatialInterpLocation::localization_null_setting_send(int* id_dist) {
+
+    CWP_Location_method_t location_method = _get_location_method();
+
+    if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
+      /* Paradigm mesh localisation _distance creation */
+      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm );
+
+      PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part_cpl);
+
+      PDM_dist_cloud_surf_surf_mesh_global_data_set (*id_dist          ,
+                                                     _n_g_elt_over_part,
+                                                     _n_g_vtx_over_part,
+                                                     _nb_part          );
+
+      // printf("ENULL send %I64d %I64d _nb_part %i _nb_part_cpl %i\n",_n_g_elt_cpl_over_part,_n_g_vtx_cpl_over_part,_nb_part,_nb_part_cpl);
+
+      for(int i_part =0;i_part<_nb_part_cpl;i_part++) {
         int n_elt_null = 0;
-        int*         connecIdx = (int*)malloc(sizeof(int)*(1+n_elt_null));
-        int*         connec    = (int*)malloc(sizeof(int)*n_elt_null);
+        double*      coords_null    = (double*)malloc(3*sizeof(double)*n_elt_null);
+        CWP_g_num_t* gnum_elt_null  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
 
-        double*      coords    = (double*)malloc(3*sizeof(double)*n_elt_null);
-        CWP_g_num_t* gnum_vtx  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
-        CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
-
-        connecIdx[0]=0;
-
-        PDM_dist_cloud_surf_surf_mesh_part_set (*id_dist,
-                                          i_part,
-                                          0,
-                                          connecIdx,
-                                          connec,
-                                          gnum_elt,
-                                          0,
-                                          coords,
-                                          gnum_vtx);
-     }
-   }
-   else {
-     for(int i_part =0; i_part<_nb_part_cpl; i_part++) {
-        Mesh* mesh_cpl = _spatial_interp_cpl -> _mesh;
-        int*         connecIdx_cpl = mesh_cpl -> connecIdxGet(i_part);
-        int*         connec_cpl    = mesh_cpl -> connecGet(i_part);
-
-        int          n_vtx_cpl     = mesh_cpl -> getPartNVertex(i_part);
-        int          n_elts_cpl    = mesh_cpl -> getPartNElts(i_part);
-        double*      coords_cpl    = mesh_cpl -> getVertexCoords(i_part);
-        CWP_g_num_t* gnum_vtx_cpl  = mesh_cpl -> getVertexGNum(i_part);
-        CWP_g_num_t* gnum_elt_cpl  = mesh_cpl -> GNumEltsGet(i_part);
-
-        PDM_dist_cloud_surf_surf_mesh_part_set (*id_dist,
-                                          i_part,
-                                          n_elts_cpl,
-                                          connecIdx_cpl,
-                                          connec_cpl,
-                                          gnum_elt_cpl,
-                                          n_vtx_cpl,
-                                          coords_cpl,
-                                          gnum_vtx_cpl);
-
-     }//loop on part
-   }//end if
- }
-
-
-
-
-
-
-
-void SpatialInterpLocation::localization_null_setting_send(int* id_dist) {
-
-    /* Paradigm mesh localisation _distance creation */
-    *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm );
-
-    PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part_cpl);
-
-    PDM_dist_cloud_surf_surf_mesh_global_data_set (*id_dist          ,
-                                                   _n_g_elt_over_part,
-                                                   _n_g_vtx_over_part,
-                                                   _nb_part          );
-
-   // printf("ENULL send %I64d %I64d _nb_part %i _nb_part_cpl %i\n",_n_g_elt_cpl_over_part,_n_g_vtx_cpl_over_part,_nb_part,_nb_part_cpl);
-
-    for(int i_part =0;i_part<_nb_part_cpl;i_part++) {
-      int n_elt_null = 0;
-      double*      coords_null    = (double*)malloc(3*sizeof(double)*n_elt_null);
-      CWP_g_num_t* gnum_elt_null  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
-
-      PDM_dist_cloud_surf_cloud_set (*id_dist,
-                              0,
-                              i_part,
-                              0,
-                              NULL,//coords_null,
-                              NULL//gnum_elt_null
-                             );
-    }
+        PDM_dist_cloud_surf_cloud_set (*id_dist,
+                                       0,
+                                       i_part,
+                                       0,
+                                       NULL,//coords_null,
+                                       NULL//gnum_elt_null
+                                       );
+      }
 
       for(int i_part =0; i_part<_nb_part; i_part++) {
         int n_elt_null = 0;
@@ -1323,45 +1542,113 @@ void SpatialInterpLocation::localization_null_setting_send(int* id_dist) {
                                                 coords_null   ,
                                                 gnum_vtx_null );
 
+      }
+    } // End if location_method == CWP_LOCATION_DIST_CLOUD_SURF
+
+    else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
+             location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
+
+      *id_dist = PDM_mesh_location_create (PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm);
+
+      PDM_mesh_location_method_t mesh_location_method;
+      if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE) {
+        mesh_location_method = PDM_MESH_LOCATION_OCTREE;
+      }
+      else if (location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
+        mesh_location_method = PDM_MESH_LOCATION_DBBTREE;
+      }
+
+      PDM_mesh_location_method_set (*id_dist, mesh_location_method);
+      PDM_mesh_location_tolerance_set (*id_dist, _get_location_tolerance());
 
 
-     }
- }
+      PDM_mesh_location_n_part_cloud_set (*id_dist, 0, _nb_part_cpl);
+
+      PDM_mesh_location_mesh_global_data_set (*id_dist,
+                                              _nb_part);
+
+      for (int i_part = 0; i_part < _nb_part_cpl; i_part++) {
+        PDM_mesh_location_cloud_set (*id_dist,
+                                     0,
+                                     i_part,
+                                     0,
+                                     NULL,
+                                     NULL);
+      }
 
 
+      for (int i_part = 0; i_part < _nb_part; i_part++) {
+        int n_elt_null = 0;
+        int         *face_edge_idx = (int*) malloc (sizeof(int) * (n_elt_null + 1));
+        int         *face_edge     = (int*) malloc (sizeof(int) * n_elt_null);
+        int         *edge_vtx_idx  = (int*) malloc (sizeof(int) * (n_elt_null + 1));
+        int         *edge_vtx      = (int*) malloc (sizeof(int) * n_elt_null);
 
+        double      *coords        = (double*) malloc (sizeof(double) * n_elt_null * 3);
+        CWP_g_num_t *vtx_gnum      = (CWP_g_num_t*) malloc (sizeof(CWP_g_num_t) * n_elt_null);
+        CWP_g_num_t *edge_gnum     = (CWP_g_num_t*) malloc (sizeof(CWP_g_num_t) * n_elt_null);
+        CWP_g_num_t *face_gnum     = (CWP_g_num_t*) malloc (sizeof(CWP_g_num_t) * n_elt_null);
 
+        face_edge_idx[0] = 0;
+        edge_vtx_idx[0] = 0;
 
+        PDM_mesh_location_part_set_2d (*id_dist,
+                                       i_part,
+                                       0,
+                                       face_edge_idx,
+                                       face_edge,
+                                       face_gnum,
+                                       0,
+                                       edge_vtx_idx,
+                                       edge_vtx,
+                                       edge_gnum,
+                                       0,
+                                       coords,
+                                       vtx_gnum);
+      }
+    } // End if location_method == CWP_LOCATION_MESH_LOCATION_*
 
-
-void SpatialInterpLocation::localization_null_setting_recv(int* id_dist) {
-
-
-    /* Paradigm mesh localisation _distance creation */
-    *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm );
-
-    PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part);
-
-    PDM_dist_cloud_surf_surf_mesh_global_data_set (*id_dist,
-                                             _n_g_elt_cpl_over_part,
-                                             _n_g_vtx_cpl_over_part,
-                                             _nb_part_cpl);
-
-    //printf("ENULL %I64d %I64d _nb_part %i _nb_part_cpl %i\n",_n_g_elt_cpl_over_part,_n_g_vtx_cpl_over_part,_nb_part,_nb_part_cpl);
-
-    for(int i_part =0;i_part<_nb_part;i_part++) {
-      int n_elt_null = 1;
-      double*      coords_null    = (double*)malloc(3*sizeof(double)*n_elt_null);
-      CWP_g_num_t* gnum_elt_null  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
-
-      PDM_dist_cloud_surf_cloud_set (*id_dist,
-                              0,
-                              i_part,
-                              0,
-                              NULL,//coords_null,
-                              NULL//gnum_elt_null
-                             );
+    else {
+      PDM_error (__FILE__, __LINE__, 0, "Unknown location method.\n");
     }
+  }
+
+
+
+
+
+
+
+  void SpatialInterpLocation::localization_null_setting_recv(int* id_dist) {
+
+    CWP_Location_method_t location_method = _get_location_method();
+
+    if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
+      /* Paradigm mesh localisation _distance creation */
+      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm );
+
+      PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part);
+
+      PDM_dist_cloud_surf_surf_mesh_global_data_set (*id_dist,
+                                                     _n_g_elt_cpl_over_part,
+                                                     _n_g_vtx_cpl_over_part,
+                                                     _nb_part_cpl);
+
+      //printf("ENULL %I64d %I64d _nb_part %i _nb_part_cpl %i\n",_n_g_elt_cpl_over_part,_n_g_vtx_cpl_over_part,_nb_part,_nb_part_cpl);
+
+      for(int i_part =0;i_part<_nb_part;i_part++) {
+        int n_elt_null = 1;
+        double*      coords_null    = (double*)malloc(3*sizeof(double)*n_elt_null);
+        CWP_g_num_t* gnum_elt_null  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
+
+        PDM_dist_cloud_surf_cloud_set (*id_dist,
+                                       0,
+                                       i_part,
+                                       0,
+                                       NULL,//coords_null,
+                                       NULL//gnum_elt_null
+                                       );
+      }
 
       for(int i_part =0; i_part<_nb_part_cpl; i_part++) {
         int n_elt_null = 0;
@@ -1375,16 +1662,84 @@ void SpatialInterpLocation::localization_null_setting_recv(int* id_dist) {
         connecIdx_null[0]=0;
 
         PDM_dist_cloud_surf_surf_mesh_part_set (*id_dist,
-                                          i_part,
-                                          0,
-                                          connecIdx_null,
-                                          connec_null,
-                                          gnum_elt_null,
-                                          0,
-                                          coords_null,
-                                          gnum_vtx_null);
-     }
- }
+                                                i_part,
+                                                0,
+                                                connecIdx_null,
+                                                connec_null,
+                                                gnum_elt_null,
+                                                0,
+                                                coords_null,
+                                                gnum_vtx_null);
+      }
+    } // End if location_method == CWP_LOCATION_DIST_CLOUD_SURF
+
+    else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
+             location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
+
+      *id_dist = PDM_mesh_location_create (PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm);
+
+      PDM_mesh_location_method_t mesh_location_method;
+      if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE) {
+        mesh_location_method = PDM_MESH_LOCATION_OCTREE;
+      }
+      else if (location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
+        mesh_location_method = PDM_MESH_LOCATION_DBBTREE;
+      }
+
+      PDM_mesh_location_method_set (*id_dist, mesh_location_method);
+      PDM_mesh_location_tolerance_set (*id_dist, _get_location_tolerance());
+
+
+      PDM_mesh_location_n_part_cloud_set (*id_dist, 0, _nb_part);
+
+      PDM_mesh_location_mesh_global_data_set (*id_dist,
+                                              _nb_part_cpl);
+
+
+      for (int i_part = 0; i_part < _nb_part; i_part++) {
+        PDM_dist_cloud_surf_cloud_set (*id_dist,
+                                       0,
+                                       i_part,
+                                       0,
+                                       NULL,
+                                       NULL);
+      }
+
+      for (int i_part = 0; i_part < _nb_part_cpl; i_part++) {
+        int n_elt_null = 0;
+        int         *face_edge_idx = (int*) malloc (sizeof(int) * (n_elt_null + 1));
+        int         *face_edge     = (int*) malloc (sizeof(int) * n_elt_null);
+        int         *edge_vtx_idx  = (int*) malloc (sizeof(int) * (n_elt_null + 1));
+        int         *edge_vtx      = (int*) malloc (sizeof(int) * n_elt_null);
+
+        double      *coords        = (double*) malloc (sizeof(double) * n_elt_null * 3);
+        CWP_g_num_t *vtx_gnum      = (CWP_g_num_t*) malloc (sizeof(CWP_g_num_t) * n_elt_null);
+        CWP_g_num_t *edge_gnum     = (CWP_g_num_t*) malloc (sizeof(CWP_g_num_t) * n_elt_null);
+        CWP_g_num_t *face_gnum     = (CWP_g_num_t*) malloc (sizeof(CWP_g_num_t) * n_elt_null);
+
+        face_edge_idx[0] = 0;
+        edge_vtx_idx[0] = 0;
+
+        PDM_mesh_location_part_set_2d (*id_dist,
+                                       i_part,
+                                       0,
+                                       face_edge_idx,
+                                       face_edge,
+                                       face_gnum,
+                                       0,
+                                       edge_vtx_idx,
+                                       edge_vtx,
+                                       edge_gnum,
+                                       0,
+                                       coords,
+                                       vtx_gnum);
+      }
+    } // End if location_method == CWP_LOCATION_MESH_LOCATION_*
+
+    else {
+      PDM_error (__FILE__, __LINE__, 0, "Unknown location method.\n");
+    }
+  }
 
 
 
@@ -1393,67 +1748,163 @@ void SpatialInterpLocation::localization_null_setting_recv(int* id_dist) {
 
   void SpatialInterpLocation::localization_surface_setting(int* id_dist) {
 
-    /* Paradigm mesh localisation _distance creation */
-    *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm );
+    CWP_Location_method_t location_method = _get_location_method();
 
-    PDM_dist_cloud_surf_n_part_cloud_set(*id_dist, 0, _nb_part_cpl);
-    //printf("_n_g_elt_over_part %i _n_g_vtx_over_part %i\n",_n_g_elt_over_part,_n_g_vtx_over_part);
-    PDM_dist_cloud_surf_surf_mesh_global_data_set (*id_dist,
-                                           _n_g_elt_over_part,
-                                           _n_g_vtx_over_part,
-                                           _nb_part);
+    if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
+      /* Paradigm mesh localisation _distance creation */
+      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm );
 
-    for(int i_part =0;i_part<_nb_part;i_part++) {
-      int* connecIdx = _mesh -> connecIdxGet(i_part);
-      int* connec = _mesh -> connecGet(i_part);
+      //printf("_nb_part_cpl = %d\n", _nb_part_cpl);
+      PDM_dist_cloud_surf_n_part_cloud_set(*id_dist, 0, _nb_part_cpl);
+      //printf("_n_g_elt_over_part %i _n_g_vtx_over_part %i\n",_n_g_elt_over_part,_n_g_vtx_over_part);
+      PDM_dist_cloud_surf_surf_mesh_global_data_set (*id_dist,
+                                                     _n_g_elt_over_part,
+                                                     _n_g_vtx_over_part,
+                                                     _nb_part);
 
-      int n_vtx  = _mesh -> getPartNVertex(i_part);
-      int n_elts  = _mesh -> getPartNElts(i_part);
-      double* coords = _mesh -> getVertexCoords(i_part);
-      CWP_g_num_t* gnum_vtx = _mesh -> getVertexGNum(i_part);
-      CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);
+      for(int i_part =0;i_part<_nb_part;i_part++) {
+        int* connecIdx = _mesh -> connecIdxGet(i_part);
+        int* connec = _mesh -> connecGet(i_part);
 
-      PDM_dist_cloud_surf_surf_mesh_part_set (*id_dist,
-                                      i_part,
-                                      n_elts,
-                                      connecIdx,
-                                      connec,
-                                      gnum_elt,
-                                      n_vtx,
-                                      coords,
-                                      gnum_vtx);
-    }
+        int n_vtx  = _mesh -> getPartNVertex(i_part);
+        int n_elts  = _mesh -> getPartNElts(i_part);
+        double* coords = _mesh -> getVertexCoords(i_part);
+        CWP_g_num_t* gnum_vtx = _mesh -> getVertexGNum(i_part);
+        CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);
 
-    if(_both_codes_are_local == 0) {
-      for(int i_part =0; i_part<_nb_part_cpl; i_part++) {
+        PDM_dist_cloud_surf_surf_mesh_part_set (*id_dist,
+                                                i_part,
+                                                n_elts,
+                                                connecIdx,
+                                                connec,
+                                                gnum_elt,
+                                                n_vtx,
+                                                coords,
+                                                gnum_vtx);
+      }
 
-        int n_elt_null = 0;
-        double*      coords    = (double*)malloc(3*sizeof(double)*n_elt_null);
-        CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
+      if(_both_codes_are_local == 0) {
+        for(int i_part =0; i_part<_nb_part_cpl; i_part++) {
 
-        PDM_dist_cloud_surf_cloud_set (*id_dist,
-                              0,
-                              i_part,
-                              n_elt_null,
-                              coords ,
-                              gnum_elt
-                             );
-     }//loop on part
-    }
+          int n_elt_null = 0;
+          double*      coords    = (double*)malloc(3*sizeof(double)*n_elt_null);
+          CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
+
+          PDM_dist_cloud_surf_cloud_set (*id_dist,
+                                         0,
+                                         i_part,
+                                         n_elt_null,
+                                         coords ,
+                                         gnum_elt
+                                         );
+        }//loop on part
+      }
+      else {
+        for(int i_part =0; i_part<_nb_part_cpl; i_part++) {
+          int          n_target_cpl      = _spatial_interp_cpl -> _n_target     [i_part];
+          CWP_g_num_t* gnum_target_cpl   = _spatial_interp_cpl -> _gnum_target  [i_part];
+          double*      coords_target_cpl = _spatial_interp_cpl -> _coords_target[i_part];
+          PDM_dist_cloud_surf_cloud_set (*id_dist,
+                                         0,
+                                         i_part,
+                                         n_target_cpl,
+                                         coords_target_cpl,
+                                         gnum_target_cpl
+                                         );
+        }//loop on part
+      } //end of if
+
+    } // End if location_method == CWP_LOCATION_DIST_CLOUD_SURF
+
+    else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
+             location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
+
+      *id_dist = PDM_mesh_location_create (PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm);
+
+      PDM_mesh_location_method_t mesh_location_method;
+      if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE) {
+        mesh_location_method = PDM_MESH_LOCATION_OCTREE;
+      }
+      else if (location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
+        mesh_location_method = PDM_MESH_LOCATION_DBBTREE;
+      }
+
+      PDM_mesh_location_method_set (*id_dist, mesh_location_method);
+      PDM_mesh_location_tolerance_set (*id_dist, _get_location_tolerance());
+
+
+      PDM_mesh_location_n_part_cloud_set (*id_dist, 0, _nb_part_cpl);
+
+      PDM_mesh_location_mesh_global_data_set (*id_dist,
+                                              _nb_part);
+      /*int mesh_nodal_id = _mesh->getPdmNodalIndex();
+
+      PDM_mesh_location_shared_nodal_mesh_set (*id_dist,
+      mesh_nodal_id);*/
+      for (int i_part = 0; i_part < _nb_part; i_part++) {
+          int n_vtx  = _mesh -> getPartNVertex(i_part);
+          int n_face = _mesh -> getNFace(i_part);
+          int n_edge = _mesh -> getNEdge(i_part);
+
+          CWP_g_num_t *vtx_gnum  = _mesh -> getVertexGNum(i_part);
+          CWP_g_num_t *face_gnum = _mesh -> GNumEltsGet(i_part);
+          CWP_g_num_t *edge_gnum = NULL;//unused
+
+          double *coords        = _mesh -> getVertexCoords(i_part);
+          int    *face_edge_idx = _mesh -> getFaceEdgeIndex(i_part);
+          int    *face_edge     = _mesh -> getFaceEdge(i_part);
+          int    *edge_vtx_idx  = _mesh -> getEdgeVtxIndex(i_part);
+          int    *edge_vtx      = _mesh -> getEdgeVtx(i_part);
+
+          PDM_mesh_location_part_set_2d (*id_dist,
+                                         i_part,
+                                         n_face,
+                                         face_edge_idx,
+                                         face_edge,
+                                         face_gnum,
+                                         n_edge,
+                                         edge_vtx_idx,
+                                         edge_vtx,
+                                         edge_gnum,
+                                         n_vtx,
+                                         coords,
+                                         vtx_gnum);
+        }
+
+      if (_both_codes_are_local == 0) {
+        for (int i_part = 0; i_part < _nb_part_cpl; i_part++) {
+
+          int n_elt_null = 0;
+          double      *coords   = (double*)      malloc (sizeof(double)      * n_elt_null * 3);
+          CWP_g_num_t *gnum_elt = (CWP_g_num_t*) malloc (sizeof(CWP_g_num_t) * n_elt_null);
+
+          PDM_mesh_location_cloud_set (*id_dist,
+                                       0,
+                                       i_part,
+                                       n_elt_null,
+                                       coords ,
+                                       gnum_elt);
+        }
+      }
+      else {
+        for (int i_part = 0; i_part < _nb_part_cpl; i_part++) {
+          int          n_target_cpl      = _spatial_interp_cpl -> _n_target     [i_part];
+          CWP_g_num_t *gnum_target_cpl   = _spatial_interp_cpl -> _gnum_target  [i_part];
+          double      *coords_target_cpl = _spatial_interp_cpl -> _coords_target[i_part];
+          PDM_mesh_location_cloud_set (*id_dist,
+                                       0,
+                                       i_part,
+                                       n_target_cpl,
+                                       coords_target_cpl,
+                                       gnum_target_cpl);
+        }
+      }
+
+    } // End if location_method == CWP_LOCATION_MESH_LOCATION_*
+
     else {
-      for(int i_part =0; i_part<_nb_part_cpl; i_part++) {
-        int          n_target_cpl      = _spatial_interp_cpl -> _n_target     [i_part];
-        CWP_g_num_t* gnum_target_cpl   = _spatial_interp_cpl -> _gnum_target  [i_part];
-        double*      coords_target_cpl = _spatial_interp_cpl -> _coords_target[i_part];
-        PDM_dist_cloud_surf_cloud_set (*id_dist,
-                              0,
-                              i_part,
-                              n_target_cpl,
-                              coords_target_cpl,
-                              gnum_target_cpl
-                             );
-      }//loop on part
-    } //end of if
+      PDM_error (__FILE__, __LINE__, 0, "Unknown location method.\n");
+    }
   }
 
 
@@ -1463,8 +1914,23 @@ void SpatialInterpLocation::localization_null_setting_recv(int* id_dist) {
 
 
   void SpatialInterpLocation::localization_compute(int id_dist) {
-    PDM_dist_cloud_surf_compute(id_dist);
-    PDM_dist_cloud_surf_dump_times(id_dist);
+
+    CWP_Location_method_t location_method = _get_location_method();
+
+    if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
+      PDM_dist_cloud_surf_compute (id_dist);
+      PDM_dist_cloud_surf_dump_times (id_dist);
+    }
+
+    else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
+             location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
+      PDM_mesh_location_compute (id_dist);
+      PDM_mesh_location_dump_times (id_dist);
+    }
+
+    else {
+      PDM_error (__FILE__, __LINE__, 0, "Unknown location method.\n");
+    }
   }
 
 
@@ -1473,29 +1939,87 @@ void SpatialInterpLocation::localization_null_setting_recv(int* id_dist) {
 
 
   void SpatialInterpLocation::localization_get_cpl(int id_dist) {
-    _spatial_interp_cpl -> _distance           = (double**)malloc(sizeof(double*) * _nb_part_cpl);
-    _spatial_interp_cpl -> _projected          = (double**)malloc(sizeof(double*) * _nb_part_cpl);
-    _spatial_interp_cpl -> _closest_elt_gnum   = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*) * _nb_part_cpl);
 
-    for(int i_part =0;i_part<_nb_part_cpl;i_part++) {
-      int          n_target_cpl    = _spatial_interp_cpl -> _n_target[i_part];
-      PDM_dist_cloud_surf_get (id_dist,
-                         0,
-                         i_part,
-                         &(_spatial_interp_cpl -> _distance[i_part]),
-                         &(_spatial_interp_cpl -> _projected[i_part]),
-                         &(_spatial_interp_cpl -> _closest_elt_gnum[i_part]));
+    CWP_Location_method_t location_method = _get_location_method();
 
-      for(int i=0;i<n_target_cpl;i++){
-        if(_spatial_interp_cpl -> _closest_elt_gnum[i_part][i]>CWP_g_num_t(_n_g_elt_over_part)
-           || _spatial_interp_cpl -> _closest_elt_gnum[i_part][i]<CWP_g_num_t(1)
-           || _spatial_interp_cpl -> _distance[i_part][i]>0.01){
-          _spatial_interp_cpl -> _closest_elt_gnum[i_part][i]=CWP_g_num_t(1);
-          _spatial_interp_cpl -> _distance[i_part][i]=INFINITY;
+    if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
+      _spatial_interp_cpl -> _distance           = (double**)malloc(sizeof(double*) * _nb_part_cpl);
+      _spatial_interp_cpl -> _projected          = (double**)malloc(sizeof(double*) * _nb_part_cpl);
+      _spatial_interp_cpl -> _closest_elt_gnum   = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*) * _nb_part_cpl);
+
+      for(int i_part =0;i_part<_nb_part_cpl;i_part++) {
+        int          n_target_cpl    = _spatial_interp_cpl -> _n_target[i_part];
+        PDM_dist_cloud_surf_get (id_dist,
+                                 0,
+                                 i_part,
+                                 &(_spatial_interp_cpl -> _distance[i_part]),
+                                 &(_spatial_interp_cpl -> _projected[i_part]),
+                                 &(_spatial_interp_cpl -> _closest_elt_gnum[i_part]));
+
+        for(int i=0;i<n_target_cpl;i++){
+          if(_spatial_interp_cpl -> _closest_elt_gnum[i_part][i]>CWP_g_num_t(_n_g_elt_over_part)
+             || _spatial_interp_cpl -> _closest_elt_gnum[i_part][i]<CWP_g_num_t(1)
+             || _spatial_interp_cpl -> _distance[i_part][i]>0.01){
+            _spatial_interp_cpl -> _closest_elt_gnum[i_part][i]=CWP_g_num_t(1);
+            _spatial_interp_cpl -> _distance[i_part][i]=INFINITY;
+          }
+        }
+      } //end loop on i_part
+
+    } // End if location_method == CWP_LOCATION_DIST_CLOUD_SURF
+
+    else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
+             location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
+      _spatial_interp_cpl -> _distance          = (double **)      malloc (sizeof(double *)      * _nb_part_cpl);
+      _spatial_interp_cpl -> _projected         = (double **)      malloc (sizeof(double *)      * _nb_part_cpl);
+      _spatial_interp_cpl -> _closest_elt_gnum  = (CWP_g_num_t **) malloc (sizeof(CWP_g_num_t *) * _nb_part_cpl);
+
+      int          useless_n_points;
+      double      *useless_coord;
+      PDM_g_num_t *useless_g_num;
+
+      int    *weights_idx; //?
+      double *weights;     //?
+
+      for (int i_part = 0; i_part < _nb_part_cpl; i_part++) {
+        int n_target_cpl = _spatial_interp_cpl -> _n_target[i_part];
+
+        PDM_mesh_location_get (id_dist,
+                               0,
+                               i_part,
+                               &useless_n_points,
+                               &useless_coord,
+                               &useless_g_num,
+                               &(_spatial_interp_cpl -> _closest_elt_gnum[i_part]),
+                               &weights_idx,
+                               &weights,
+                               &(_spatial_interp_cpl -> _projected[i_part]));
+
+        _spatial_interp_cpl -> _distance[i_part] = (double *) malloc (sizeof(double) * n_target_cpl);
+        //double *coords_target = _spatial_interp_cpl -> _coords_target[i_part];
+
+        for (int i = 0; i < n_target_cpl; i++) {
+          _spatial_interp_cpl -> _distance[i_part][i] = 0.;
+          /*for (int j = 0; j < 3; j++) {
+            double d = _projected[i_part][3*i + j] - coords_target[3*i + j];
+            _spatial_interp_cpl -> _distance[i_part][i] += d*d;
+            }*/
+
+          if (_spatial_interp_cpl -> _closest_elt_gnum[i_part][i] > CWP_g_num_t(_n_g_elt_cpl_over_part) ||
+              _spatial_interp_cpl -> _closest_elt_gnum[i_part][i] < CWP_g_num_t(1) ||
+              _spatial_interp_cpl -> _distance [i_part][i] > 0.1) {
+            _spatial_interp_cpl -> _closest_elt_gnum[i_part][i] = CWP_g_num_t(1);
+            _spatial_interp_cpl -> _distance[i_part][i] = INFINITY;
+          }
         }
       }
-    } //end loop on i_part
-  }// End locate_cell_point
+
+    } // End if location_method == CWP_LOCATION_MESH_LOCATION_*
+
+    else {
+      PDM_error (__FILE__, __LINE__, 0, "Unknown location method.\n");
+    }
+  }
 
 
 
@@ -1505,27 +2029,84 @@ void SpatialInterpLocation::localization_null_setting_recv(int* id_dist) {
 
   void SpatialInterpLocation::localization_get(int id_dist) {
 
-    _distance           = (double**)malloc(sizeof(double*) * _nb_part);
-    _projected          = (double**)malloc(sizeof(double*) * _nb_part);
-    _closest_elt_gnum   = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*) * _nb_part);
+    CWP_Location_method_t location_method = _get_location_method();
 
-    for(int i_part =0;i_part<_nb_part;i_part++) {
+    if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
+      _distance           = (double**)malloc(sizeof(double*) * _nb_part);
+      _projected          = (double**)malloc(sizeof(double*) * _nb_part);
+      _closest_elt_gnum   = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*) * _nb_part);
+
+      for (int i_part = 0; i_part < _nb_part; i_part++) {
 
         PDM_dist_cloud_surf_get (id_dist,
-                         0,
-                         i_part,
-                         &(_distance [i_part]),
-                         &(_projected[i_part]),
-                         &(_closest_elt_gnum[i_part]));
+                                 0,
+                                 i_part,
+                                 &(_distance [i_part]),
+                                 &(_projected[i_part]),
+                                 &(_closest_elt_gnum[i_part]));
 
 
-       for(int i=0;i<_n_target[i_part];i++){
-         if(_closest_elt_gnum[i_part][i]>CWP_g_num_t(_n_g_elt_cpl_over_part) || _closest_elt_gnum[i_part][i]<CWP_g_num_t(1) || _distance [i_part][i]>0.1){
-           _closest_elt_gnum[i_part][i]=CWP_g_num_t(1);
-           _distance [i_part][i]=INFINITY;
+        for (int i = 0; i < _n_target[i_part]; i++){
+          if (_closest_elt_gnum[i_part][i] > CWP_g_num_t(_n_g_elt_cpl_over_part) ||
+              _closest_elt_gnum[i_part][i] < CWP_g_num_t(1) ||
+              _distance [i_part][i] > 0.1) {
+            _closest_elt_gnum[i_part][i] = CWP_g_num_t(1);
+            _distance[i_part][i] = INFINITY;
+          }
+        }
+      }
 
-         }
-       }
+    } // End if location_method == CWP_LOCATION_DIST_CLOUD_SURF
+
+    else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
+             location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
+      _distance          = (double **)      malloc (sizeof(double *)      * _nb_part);
+      _projected         = (double **)      malloc (sizeof(double *)      * _nb_part);
+      _closest_elt_gnum  = (CWP_g_num_t **) malloc (sizeof(CWP_g_num_t *) * _nb_part);
+
+      int          useless_n_points;
+      double      *useless_coord;
+      PDM_g_num_t *useless_g_num;
+
+      int    *weights_idx; //?
+      double *weights;     //?
+
+      for (int i_part = 0; i_part < _nb_part; i_part++) {
+
+        PDM_mesh_location_get (id_dist,
+                               0,
+                               i_part,
+                               &useless_n_points,
+                               &useless_coord,
+                               &useless_g_num,
+                               &(_closest_elt_gnum[i_part]),
+                               &weights_idx,
+                               &weights,
+                               &(_projected[i_part]));
+
+        _distance[i_part] = (double *) malloc (sizeof(double) * _n_target[i_part]);
+        double *coords_target = _coords_target[i_part];
+
+        for (int i = 0; i < _n_target[i_part]; i++) {
+          _distance[i_part][i] = 0.;
+          for (int j = 0; j < 3; j++) {
+            double d = _projected[i_part][3*i + j] - coords_target[3*i + j];
+            _distance[i_part][i] += d*d;
+          }
+
+          if (_closest_elt_gnum[i_part][i] > CWP_g_num_t(_n_g_elt_cpl_over_part) ||
+              _closest_elt_gnum[i_part][i] < CWP_g_num_t(1) ||
+              _distance [i_part][i] > 0.1) {
+            _closest_elt_gnum[i_part][i] = CWP_g_num_t(1);
+            _distance[i_part][i] = INFINITY;
+          }
+        }
+      }
+
+    } // End if location_method == CWP_LOCATION_MESH_LOCATION_*
+
+    else {
+      PDM_error (__FILE__, __LINE__, 0, "Unknown location method.\n");
     }
  }// End locate_cell_point
 
@@ -2520,7 +3101,36 @@ void SpatialInterpLocation::triplet_location_null_recv(int* id_gnum_location) {
     if (interpolatedData != NULL) free(interpolatedData);
     interpolatedData = (void*) malloc( dataTypeSize * nComponent*_n_tot_target_cpl);
 
+    if (_weights_src_idx == NULL) {
+      _weights_src_idx  = (int **) malloc(sizeof(int*)* _nb_part);
+      for (int i = 0; i < _nb_part; i++) {
+        _weights_src_idx[i] = NULL;
+      }
+      _weights_src  = (double **) malloc(sizeof(double*)* _nb_part);
+      for (int i = 0; i < _nb_part; i++) {
+        _weights_src[i] = NULL;
+      }
+    }
+
+
     for(int i_part=0;i_part<_nb_part;i_part++){
+
+      int weights_src_empty = 0;
+      int l_weights_src = -1;
+      int s_weights_src = -1;
+
+      if (_weights_src_idx[i_part] == NULL) {
+        weights_src_empty = 1;
+        _weights_src_idx[i_part] = (int *) malloc (sizeof(int) *
+                 (_targets_localization_idx_cpl[_n_ranks_g-1][i_part+1] + 1));
+        _weights_src_idx[i_part][0] = 0;
+
+        s_weights_src =
+          4 * _targets_localization_idx_cpl[_n_ranks_g-1][i_part+1];
+        _weights_src[i_part] =
+          (double *) malloc (sizeof(double) * s_weights_src);
+        l_weights_src = 0;
+      }
 
       void* referenceData = referenceField -> dataGet(i_part);
       // For a cell center field : give the value of the located cell
@@ -2559,14 +3169,14 @@ void SpatialInterpLocation::triplet_location_null_recv(int* id_gnum_location) {
             }
 
             PDM_geom_elem_compute_polygon_barycentric_coordinates(n_tgt,
-                        	    		                  tgt_pts_location_p1,
+                                                                  tgt_pts_location_p1,
                                                                   tgt_pts_projected_coords,
-                                                         	  connecIdx,
+                                                                  connecIdx,
                                                                   connec,
-                                                           	  coords,
-                                                  		  &tgt_pts_bary_coords_idx,
+                                                                  coords,
+                                                                  &tgt_pts_bary_coords_idx,
                                                                   &tgt_pts_bary_coords
-                                                         	 );
+                                                                  );
 
             void* tmpData = (char*) interpolatedData + dataTypeSize * nComponent * _targets_localization_idx_cpl[i_proc][i_part];
 
@@ -2642,29 +3252,52 @@ void SpatialInterpLocation::triplet_location_null_recv(int* id_gnum_location) {
               double z_target = _targets_localization_data_cpl[itarget].projectedZ;
 
               double tgtCoords[3]    = {x_target,y_target,z_target};
-              int    *barCoordsIndex = NULL;
               double *barCoords      = NULL;
            /*   printf("iel %i itarget %i target %f %f %f _n_tot_target_cpl %i conneIDX \n",
               iel,itarget,x_target,y_target,z_target,_n_tot_target_cpl);*/
-              PDM_geom_elem_compute_polygon_barycentric_coordinates(1,
-                        	    		                    &ielP1,
-                                                                    tgtCoords,
-                                                         	    connecIdx,
-                                                                    connec,
-                                                           	    coords,
-                                                  		   &barCoordsIndex,
-                                                                   &barCoords
-                                                         	   );
+
+              if (weights_src_empty) {
+                int    *_barCoordsIndex = NULL;
+                double *_barCoords      = NULL;
+                PDM_geom_elem_compute_polygon_barycentric_coordinates(1,
+                                                                      &ielP1,
+                                                                      tgtCoords,
+                                                                      connecIdx,
+                                                                      connec,
+                                                                      coords,
+                                                                      &_barCoordsIndex,
+                                                                      &_barCoords
+                                                                      );
+                int n_elt = connecIdx[iel+1] - connecIdx[iel];
+                _weights_src_idx[i_part][itarget+1] =
+                  _weights_src_idx[i_part][itarget] + n_elt;
+
+                if (s_weights_src <= _weights_src_idx[i_part][itarget+1]) {
+                  s_weights_src *= 2;
+                  _weights_src[i_part] = (double *)realloc((void *)(_weights_src[i_part]),
+                    sizeof(double) * s_weights_src);
+                }
+
+                for (int i = 0; i < n_elt; i++) {
+                  _weights_src[i_part][_weights_src_idx[i_part][itarget] +i] =
+                    _barCoords[i];
+                }
+
+                free (_barCoordsIndex);
+                free (_barCoords);
+              }
+
+              barCoords = &(_weights_src[i_part][_weights_src_idx[i_part][itarget]]);
+
               for (int k = 0; k < nComponent; k++) {
                 value = 0.0;
+                int k1=0;
                 for (int i_vtx = connecIdx[iel]; i_vtx < connecIdx[iel+1]; i_vtx++) {
-                   value +=  barCoords[i_vtx - connecIdx[iel] ] * (*(double*)( (char*)referenceData + dataTypeSize * (nComponent * (connec[i_vtx]-1) + k) ) );
+                   value +=  barCoords[k1++] * (*(double*)( (char*)referenceData + dataTypeSize * (nComponent * (connec[i_vtx]-1) + k) ) );
                 }
                 memcpy((char*)interpolatedData + dataTypeSize * ( nComponent * interpInd + k), &value, dataTypeSize);
               }//end k component loop
 
-              if(barCoordsIndex != NULL) free(barCoordsIndex);
-              if(barCoords      != NULL) free(barCoords     );
             }
             else {
               for (int k = 0; k < nComponent; k++) {

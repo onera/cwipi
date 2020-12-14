@@ -1,4 +1,3 @@
-
 /*
   This file is part of the CWIPI library.
 
@@ -864,13 +863,13 @@ CWP_Spatial_interp_weights_compute
     CWP_Dof_location_t fieldLocation = field -> typeGet();
     CWP_Field_exch_t  exchangeType  = field -> exchangeTypeGet();
     field_exch_type field_eT;
-    field_eT.loc      = fieldLocation;
-    field_eT.exch     = exchangeType ;
-    field_exch_type_map.insert( std::pair<string,field_exch_type>(it -> first,field_eT) );
-    fieldName += it -> first;
-    fieldNameIdx .push_back(fieldNameIdx[fieldNameIdx.size()-1] + it -> first.size());
-    fieldLocationV.push_back(fieldLocation     );
-    fieldExch    .push_back(exchangeType      );
+    field_eT.loc  = fieldLocation;
+    field_eT.exch = exchangeType ;
+    field_exch_type_map.insert( std::pair<string,field_exch_type>(it->first, field_eT) );
+    fieldName += it->first;
+    fieldNameIdx.push_back(fieldNameIdx[fieldNameIdx.size() - 1] + it->first.size());
+    fieldLocationV.push_back(fieldLocation);
+    fieldExch.push_back(exchangeType);
 
     it++;
   }
@@ -881,49 +880,76 @@ CWP_Spatial_interp_weights_compute
   vector<CWP_Dof_location_t> fieldLocationV_cpl(nb_field  );
   string fieldName_cpl;
 
-  MPI_Comm unionComm = cpl.communicationGet()-> unionCommGet();
-  int unionCommCplCodeRootRank = cpl.communicationGet()-> unionCommCplCodeRootRanksGet();
-  int unionCommLocCodeRootRank = cpl.communicationGet()-> unionCommLocCodeRootRanksGet();
+  MPI_Comm unionComm = cpl.communicationGet() -> unionCommGet();
+  int unionCommCplCodeRootRank = cpl.communicationGet() -> unionCommCplCodeRootRanksGet();
+  int unionCommLocCodeRootRank = cpl.communicationGet() -> unionCommLocCodeRootRanksGet();
 
   int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+  MPI_Comm_rank (MPI_COMM_WORLD, &rank);
 
   int tag = 152;
   int unionCommRank;
   MPI_Status status;
-  MPI_Comm_rank(unionComm,&unionCommRank);
+  MPI_Comm_rank (unionComm, &unionCommRank);
 
 
   int CWP_Field_value_size = sizeof(int);
-  if(unionCommRank == unionCommLocCodeRootRank){
-    MPI_Sendrecv(&(fieldNameIdx[0]),
-                 fieldNameIdx.size(),
-                 MPI_INT,
-                 unionCommCplCodeRootRank,
-                 tag,
-                 &(fieldNameIdx_cpl[0]),
-                 fieldNameIdx_cpl.size(),
-                 MPI_INT,
-                 unionCommCplCodeRootRank,
-                 tag,
-                 unionComm,
-                 &status);
+  if (unionCommRank == unionCommLocCodeRootRank) {
+    MPI_Sendrecv (&(fieldNameIdx[0]),
+                  fieldNameIdx.size(),
+                  MPI_INT,
+                  unionCommCplCodeRootRank,
+                  tag,
+                  &(fieldNameIdx_cpl[0]),
+                  fieldNameIdx_cpl.size(),
+                  MPI_INT,
+                  unionCommCplCodeRootRank,
+                  tag,
+                  unionComm,
+                  &status);
     tag++;
     fieldName_cpl.resize(fieldNameIdx_cpl[nb_field]);
 
-    MPI_Sendrecv(&(fieldName[0]),fieldName.size(),MPI_CHAR,unionCommCplCodeRootRank,tag,
-                 &(fieldName_cpl[0]),fieldName_cpl.size(),MPI_CHAR,unionCommCplCodeRootRank,tag,
-                 unionComm,&status);
+    MPI_Sendrecv (&(fieldName[0]),
+                  fieldName.size(),
+                  MPI_CHAR,
+                  unionCommCplCodeRootRank,
+                  tag,
+                  &(fieldName_cpl[0]),
+                  fieldName_cpl.size(),
+                  MPI_CHAR,
+                  unionCommCplCodeRootRank,
+                  tag,
+                  unionComm,
+                  &status);
 
     tag++;
-    MPI_Sendrecv(&(fieldLocationV    [0]), sizeof(CWP_Dof_location_t)*fieldLocationV    .size(),MPI_BYTE,unionCommCplCodeRootRank,tag,
-                 &(fieldLocationV_cpl[0]), sizeof(CWP_Dof_location_t)*fieldLocationV_cpl.size(),MPI_BYTE,unionCommCplCodeRootRank,tag,
-                 unionComm,&status);
+    MPI_Sendrecv (&(fieldLocationV[0]),
+                  sizeof(CWP_Dof_location_t) * fieldLocationV.size(),
+                  MPI_BYTE,
+                  unionCommCplCodeRootRank,
+                  tag,
+                  &(fieldLocationV_cpl[0]),
+                  sizeof(CWP_Dof_location_t) * fieldLocationV_cpl.size(),
+                  MPI_BYTE,
+                  unionCommCplCodeRootRank,
+                  tag,
+                  unionComm,
+                  &status);
 
     tag++;
-    MPI_Sendrecv(&(fieldExch    [0]), sizeof(CWP_Field_exch_t)*fieldExch    .size(),MPI_BYTE,unionCommCplCodeRootRank,tag,
-                 &(fieldExch_cpl[0]), sizeof(CWP_Field_exch_t)*fieldExch_cpl.size(),MPI_BYTE,unionCommCplCodeRootRank,tag,
-                 unionComm,&status);
+    MPI_Sendrecv (&(fieldExch[0]),
+                  sizeof(CWP_Field_exch_t) * fieldExch.size(),
+                  MPI_BYTE,
+                  unionCommCplCodeRootRank,
+                  tag,
+                  &(fieldExch_cpl[0]),
+                  sizeof(CWP_Field_exch_t) * fieldExch_cpl.size(),
+                  MPI_BYTE,
+                  unionCommCplCodeRootRank,
+                  tag,
+                  unionComm,
+                  &status);
 
   }
 
@@ -942,38 +968,113 @@ CWP_Spatial_interp_weights_compute
     string tmp_fieldName;
     if (id < id_cpl) {
 
-      MPI_Bcast(&(fieldNameIdx_cpl[0]),fieldNameIdx_cpl.size(),MPI_INT,unionCommLocCodeRootRank,unionComm);
-      MPI_Bcast(&(tmp_fieldNameIdx[0]),tmp_fieldNameIdx.size(),MPI_INT,unionCommCplCodeRootRank,unionComm);
+      MPI_Bcast (&(fieldNameIdx_cpl[0]),
+                 fieldNameIdx_cpl.size(),
+                 MPI_INT,
+                 unionCommLocCodeRootRank,
+                 unionComm);
 
-      if(unionCommRank != unionCommLocCodeRootRank) fieldName_cpl.resize(fieldNameIdx_cpl[nb_field],'r');
+      MPI_Bcast (&(tmp_fieldNameIdx[0]),
+                 tmp_fieldNameIdx.size(),
+                 MPI_INT,
+                 unionCommCplCodeRootRank,
+                 unionComm);
+
+      if (unionCommRank != unionCommLocCodeRootRank) {
+        fieldName_cpl.resize(fieldNameIdx_cpl[nb_field],'r');
+      }
       tmp_fieldName.resize(fieldNameIdx_cpl[nb_field],'n');
 
-      MPI_Bcast(&(fieldName_cpl[0]),fieldName_cpl.size(),MPI_CHAR,unionCommLocCodeRootRank,unionComm);
-      MPI_Bcast(&(tmp_fieldName[0]),tmp_fieldName.size(),MPI_CHAR,unionCommCplCodeRootRank,unionComm);
+      MPI_Bcast (&(fieldName_cpl[0]),
+                 fieldName_cpl.size(),
+                 MPI_CHAR,
+                 unionCommLocCodeRootRank,
+                 unionComm);
+      MPI_Bcast (&(tmp_fieldName[0]),
+                 tmp_fieldName.size(),
+                 MPI_CHAR,
+                 unionCommCplCodeRootRank,
+                 unionComm);
 
-      MPI_Bcast(&(fieldLocationV_cpl[0]),sizeof(CWP_Dof_location_t)*fieldLocationV_cpl.size(),MPI_BYTE,unionCommLocCodeRootRank,unionComm);
-      MPI_Bcast(&(tmp_fieldLocationV[0]),sizeof(CWP_Dof_location_t)*tmp_fieldLocationV.size(),MPI_BYTE,unionCommCplCodeRootRank,unionComm);
+      MPI_Bcast (&(fieldLocationV_cpl[0]),
+                 sizeof(CWP_Dof_location_t) * fieldLocationV_cpl.size(),
+                 MPI_BYTE,
+                 unionCommLocCodeRootRank,
+                 unionComm);
 
-      MPI_Bcast(&(fieldExch_cpl[0]),sizeof(CWP_Field_exch_t)*fieldExch_cpl.size(),MPI_BYTE,unionCommLocCodeRootRank,unionComm);
-      MPI_Bcast(&(tmp_fieldExch[0]),sizeof(CWP_Field_exch_t)*tmp_fieldExch.size(),MPI_BYTE,unionCommCplCodeRootRank,unionComm);
+      MPI_Bcast (&(tmp_fieldLocationV[0]),
+                 sizeof(CWP_Dof_location_t) * tmp_fieldLocationV.size(),
+                 MPI_BYTE,
+                 unionCommCplCodeRootRank,
+                 unionComm);
+
+      MPI_Bcast (&(fieldExch_cpl[0]),
+                 sizeof(CWP_Field_exch_t) * fieldExch_cpl.size(),
+                 MPI_BYTE,
+                 unionCommLocCodeRootRank,
+                 unionComm);
+
+      MPI_Bcast (&(tmp_fieldExch[0]),
+                 sizeof(CWP_Field_exch_t) * tmp_fieldExch.size(),
+                 MPI_BYTE,
+                 unionCommCplCodeRootRank,
+                 unionComm);
 
     }
       else{
 
-         MPI_Bcast(&(tmp_fieldNameIdx[0]),tmp_fieldNameIdx.size(),MPI_INT,unionCommCplCodeRootRank,unionComm);
-         MPI_Bcast(&(fieldNameIdx_cpl[0]),fieldNameIdx_cpl.size(),MPI_INT,unionCommLocCodeRootRank,unionComm);
+         MPI_Bcast (&(tmp_fieldNameIdx[0]),
+                    tmp_fieldNameIdx.size(),
+                    MPI_INT,
+                    unionCommCplCodeRootRank,
+                    unionComm);
+         MPI_Bcast (&(fieldNameIdx_cpl[0]),
+                    fieldNameIdx_cpl.size(),
+                    MPI_INT,
+                    unionCommLocCodeRootRank,
+                    unionComm);
 
-         if(unionCommRank != unionCommLocCodeRootRank) fieldName_cpl.resize(fieldNameIdx_cpl[nb_field]);
+         if (unionCommRank != unionCommLocCodeRootRank) {
+           fieldName_cpl.resize(fieldNameIdx_cpl[nb_field]);
+         }
          tmp_fieldName.resize(fieldNameIdx_cpl[nb_field],'n');
 
-         MPI_Bcast(&(tmp_fieldName[0]),tmp_fieldName.size(),MPI_CHAR,unionCommCplCodeRootRank,unionComm);
-         MPI_Bcast(&(fieldName_cpl[0]),fieldName_cpl.size(),MPI_CHAR,unionCommLocCodeRootRank,unionComm);
+         MPI_Bcast (&(tmp_fieldName[0]),
+                    tmp_fieldName.size(),
+                    MPI_CHAR,
+                    unionCommCplCodeRootRank,
+                    unionComm);
 
-         MPI_Bcast(&(tmp_fieldLocationV[0]),sizeof(CWP_Dof_location_t)*tmp_fieldLocationV.size(),MPI_BYTE,unionCommCplCodeRootRank,unionComm);
-         MPI_Bcast(&(fieldLocationV_cpl[0]),sizeof(CWP_Dof_location_t)*fieldLocationV_cpl.size(),MPI_BYTE,unionCommLocCodeRootRank,unionComm);
+         MPI_Bcast (&(fieldName_cpl[0]),
+                    fieldName_cpl.size(),
+                    MPI_CHAR,
+                    unionCommLocCodeRootRank,
+                    unionComm);
 
-         MPI_Bcast(&(tmp_fieldExch[0]),sizeof(CWP_Field_exch_t)*tmp_fieldExch.size(),MPI_BYTE,unionCommCplCodeRootRank,unionComm);
-         MPI_Bcast(&(fieldExch_cpl[0]),sizeof(CWP_Field_exch_t)*fieldExch_cpl.size(),MPI_BYTE,unionCommLocCodeRootRank,unionComm);
+         MPI_Bcast (&(tmp_fieldLocationV[0]),
+                    sizeof(CWP_Dof_location_t) * tmp_fieldLocationV.size(),
+                    MPI_BYTE,
+                    unionCommCplCodeRootRank,
+                    unionComm);
+
+         MPI_Bcast (&(fieldLocationV_cpl[0]),
+                    sizeof(CWP_Dof_location_t) * fieldLocationV_cpl.size(),
+                    MPI_BYTE,
+                    unionCommLocCodeRootRank,
+                    unionComm);
+
+         MPI_Bcast (&(tmp_fieldExch[0]),
+                    sizeof(CWP_Field_exch_t) * tmp_fieldExch.size(),
+                    MPI_BYTE,
+                    unionCommCplCodeRootRank,
+                    unionComm);
+
+         MPI_Bcast (&(fieldExch_cpl[0]),
+                    sizeof(CWP_Field_exch_t) * fieldExch_cpl.size(),
+                    MPI_BYTE,
+                    unionCommLocCodeRootRank,
+                    unionComm);
+>>>>>>> dev_fix_new_api
 
       }
      }
@@ -989,7 +1090,7 @@ CWP_Spatial_interp_weights_compute
        fieldExch_cpl.resize(0);
        fieldName_cpl="";
 
-       while(it != fields_cpl -> end()){
+       while (it != fields_cpl -> end()) {
 
         fieldNameIdx_cpl.push_back( fieldNameIdx_cpl[fieldNameIdx_cpl.size()-1] + it->first.size() );
         fieldName_cpl += it->first;
@@ -1004,7 +1105,7 @@ CWP_Spatial_interp_weights_compute
      }
 
      std::map<string,field_exch_type> field_cpl_map;
-     for(int i=0;i<nb_field;i++) {
+     for (int i = 0; i < nb_field; i++) {
        string field_name = fieldName_cpl.substr( fieldNameIdx_cpl[i], fieldNameIdx_cpl[i+1]-fieldNameIdx_cpl[i] );
        field_exch_type field_exch;
        field_exch.loc  = fieldLocationV_cpl[i];
@@ -1018,7 +1119,7 @@ CWP_Spatial_interp_weights_compute
     std::vector<int> exchangeTypeByLocation(3,0);
 
      it = fields -> begin();
-     while(it != fields -> end()){
+     while (it != fields -> end()) {
        if(it -> second ->  exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
          it -> second -> associatedCloudPointTypeSet(field_cpl_map[it->first].loc);
        }
@@ -1032,19 +1133,19 @@ CWP_Spatial_interp_weights_compute
          PDM_error(__FILE__, __LINE__, 0, "Not correct exchange field value for this field.\n");
        }
 
-       if(exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] == 0) {
-         if(it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_SEND )
+       if (exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] == 0) {
+         if (it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_SEND )
            exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 1;
-         else if(it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_RECV)
+         else if (it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_RECV)
            exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 2;
-         else if(it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_SENDRECV)
+         else if (it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_SENDRECV)
            exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 3;
        }
        else {
-         if( exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] == 1 && it -> second -> exchangeTypeGet() != CWP_FIELD_EXCH_SEND){
+         if ( exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] == 1 && it -> second -> exchangeTypeGet() != CWP_FIELD_EXCH_SEND){
             exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 3;
          }
-         else if( exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] == 2 && it -> second -> exchangeTypeGet() != CWP_FIELD_EXCH_RECV){
+         else if ( exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] == 2 && it -> second -> exchangeTypeGet() != CWP_FIELD_EXCH_RECV){
             exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 3;
          }
        }
@@ -1064,17 +1165,17 @@ CWP_Spatial_interp_weights_compute
         int spatialInterpComputeSend  = 0;
         int spatialInterpComputeRcv = 0;
 
-        if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 1) {
+        if (exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 1) {
           spatialInterpComputeSend = 1;
         }
-        else if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 2) {
+        else if (exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 2) {
           spatialInterpComputeRcv = 1;
         }
-        else if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 3) {
+        else if (exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 3) {
           spatialInterpComputeSend = 1;
           spatialInterpComputeRcv  = 1;
         }
-        else if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 0) {
+        else if (exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 0) {
           spatialInterpComputeSend = 0;
           spatialInterpComputeRcv  = 0;
         }
@@ -1082,8 +1183,8 @@ CWP_Spatial_interp_weights_compute
         CWP_Field_exch_t exchange_type    ;
         CWP_Field_exch_t exchange_type_cpl;
         if (spatialInterpComputeRcv == 1 && spatialInterpComputeSend == 1 ) {
-          if(id < id_cpl) {
-             if(both_local == 1) {
+          if (id < id_cpl) {
+             if (both_local == 1) {
 
               cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
 
