@@ -43,7 +43,7 @@
 
 namespace cwipi {
 
-  void _transform_to_index(int** array,int l1, int l2) {
+  static void _transform_to_index(int** array,int l1, int l2) {
 
     for (int i_proc = 0; i_proc < l1; i_proc++) {
       int sav = array [i_proc][0];
@@ -58,7 +58,7 @@ namespace cwipi {
     }
   }
 
-  void _transform_to_index(int* array,int l1) {
+  static void _transform_to_index(int* array,int l1) {
 
     int sav = array[0];
     array[0]=0;
@@ -1298,7 +1298,7 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
 
     if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
       /* Paradigm mesh localisation _distance creation */
-      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm );
+      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_MESH_SETTED, 1, _pdm_cplComm );
 
       PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part);
 
@@ -1373,7 +1373,7 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
     else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
              location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
 
-      *id_dist = PDM_mesh_location_create (PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm);
+      *id_dist = PDM_mesh_location_create (PDM_MESH_NATURE_MESH_SETTED, 1, _pdm_cplComm);
 
       PDM_mesh_location_method_t mesh_location_method;
       if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE) {
@@ -1496,7 +1496,7 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
 
     if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
       /* Paradigm mesh localisation _distance creation */
-      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm );
+      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_MESH_SETTED, 1, _pdm_cplComm );
 
       PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part_cpl);
 
@@ -1548,7 +1548,7 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
     else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
              location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
 
-      *id_dist = PDM_mesh_location_create (PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm);
+      *id_dist = PDM_mesh_location_create (PDM_MESH_NATURE_MESH_SETTED, 1, _pdm_cplComm);
 
       PDM_mesh_location_method_t mesh_location_method;
       if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE) {
@@ -1625,7 +1625,7 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
 
     if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
       /* Paradigm mesh localisation _distance creation */
-      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm );
+      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_MESH_SETTED, 1, _pdm_cplComm );
 
       PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part);
 
@@ -1676,7 +1676,7 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
     else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
              location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
 
-      *id_dist = PDM_mesh_location_create (PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm);
+      *id_dist = PDM_mesh_location_create (PDM_MESH_NATURE_MESH_SETTED, 1, _pdm_cplComm);
 
       PDM_mesh_location_method_t mesh_location_method;
       if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE) {
@@ -1752,7 +1752,7 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
 
     if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
       /* Paradigm mesh localisation _distance creation */
-      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm );
+      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_MESH_SETTED, 1, _pdm_cplComm );
 
       //printf("_nb_part_cpl = %d\n", _nb_part_cpl);
       PDM_dist_cloud_surf_n_part_cloud_set(*id_dist, 0, _nb_part_cpl);
@@ -1819,7 +1819,7 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
     else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
              location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
 
-      *id_dist = PDM_mesh_location_create (PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_cplComm);
+      *id_dist = PDM_mesh_location_create (PDM_MESH_NATURE_MESH_SETTED, 1, _pdm_cplComm);
 
       PDM_mesh_location_method_t mesh_location_method;
       if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE) {
@@ -1987,9 +1987,6 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
         PDM_mesh_location_get (id_dist,
                                0,
                                i_part,
-                               &useless_n_points,
-                               &useless_coord,
-                               &useless_g_num,
                                &(_spatial_interp_cpl -> _closest_elt_gnum[i_part]),
                                &weights_idx,
                                &weights,
@@ -2076,9 +2073,6 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
         PDM_mesh_location_get (id_dist,
                                0,
                                i_part,
-                               &useless_n_points,
-                               &useless_coord,
-                               &useless_g_num,
                                &(_closest_elt_gnum[i_part]),
                                &weights_idx,
                                &weights,

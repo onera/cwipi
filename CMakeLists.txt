@@ -421,7 +421,7 @@ set(CWP_ETC_DIR "etc")
 
 if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/paradigm")
   add_subdirectory(paradigm)
-  add_subdirectory(paradigm/doc)
+#  add_subdirectory(paradigm/doc)
 endif()
 
 add_subdirectory(src)
