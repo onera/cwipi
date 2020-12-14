@@ -1074,10 +1074,8 @@ CWP_Spatial_interp_weights_compute
                     MPI_BYTE,
                     unionCommLocCodeRootRank,
                     unionComm);
->>>>>>> dev_fix_new_api
-
       }
-     }
+  }
      else {
 
        cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet()->nameGet().c_str(),cpl_id);

@@ -1042,8 +1042,8 @@ int main
                     CWP_COMM_PAR_WITH_PART,
                     CWP_SPATIAL_INTERP_FROM_LOCATION,
                     n_part,
-                    CWP_DISPLACEMENT_STATIC,
-                    CWP_FREQ_CPL_TIME_STEP);
+                    CWP_DYNAMIC_MESH_STATIC,
+                    CWP_TIME_EXCH_CPL_TIME_STEP);
   }
 
   if (verbose && rank == 0) printf("Create coupling OK\n");
@@ -1196,7 +1196,7 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
                         CWP_DOUBLE,
                         CWP_FIELD_STORAGE_BLOCK,
                         1,
-                        CWP_FIELD_VALUE_NODE,
+                        CWP_DOF_LOCATION_NODE,
                         CWP_FIELD_EXCH_SEND,
                         visu_status);
 
@@ -1214,7 +1214,7 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
                         CWP_DOUBLE,
                         CWP_FIELD_STORAGE_BLOCK,
                         1,
-                        CWP_FIELD_VALUE_NODE,
+                        CWP_DOF_LOCATION_NODE,
                         CWP_FIELD_EXCH_RECV,
                         visu_status);
 
@@ -1302,12 +1302,12 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
 
   else {
     if (code_id == 1) {
-      CWP_Issend (code_name[0],
+      CWP_Field_issend (code_name[0],
                   coupling_name,
                   field_name);
     }
     else {
-      CWP_Irecv (code_name[0],
+      CWP_Field_irecv (code_name[0],
                  coupling_name,
                  field_name);
     }
@@ -1334,12 +1334,12 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
   }
   else {
     if (code_id == 1) {
-      CWP_Wait_issend (code_name[0],
+      CWP_Field_wait_issend (code_name[0],
                        coupling_name,
                        field_name);
     }
     else {
-      CWP_Wait_irecv (code_name[0],
+      CWP_Field_wait_irecv (code_name[0],
                       coupling_name,
                       field_name);
     }
@@ -1400,14 +1400,14 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
 
   else {
     if (code_id == 1) {
-      CWP_Issend (code_name[0],
-                  coupling_name,
-                  field_name);
+      CWP_Field_issend (code_name[0],
+                        coupling_name,
+                        field_name);
     }
     else {
-      CWP_Irecv (code_name[0],
-                 coupling_name,
-                 field_name);
+      CWP_Field_irecv (code_name[0],
+                       coupling_name,
+                       field_name);
     }
   }
 
@@ -1434,14 +1434,14 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
   }
   else {
     if (code_id == 1) {
-      CWP_Wait_issend (code_name[0],
-                       coupling_name,
-                       field_name);
+      CWP_Field_wait_issend (code_name[0],
+                             coupling_name,
+                             field_name);
     }
     else {
-      CWP_Wait_irecv (code_name[0],
-                      coupling_name,
-                      field_name);
+      CWP_Field_wait_irecv (code_name[0],
+                            coupling_name,
+                            field_name);
     }
   }
 
