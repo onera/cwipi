@@ -75,7 +75,8 @@ option(CWP_ENABLE_Fortran  "Build Shared Fortran Interface" OFF)
 # New to old API
 # -----------------
 
-option(CWP_NEW_TO_OLD_API  "Build Fake Old API refering to New one" OFF)
+option(CWP_ENABLE_NEW_API  "Build new API (under construction)" OFF)
+#option(CWP_NEW_TO_OLD_API  "Build Fake Old API refering to New one" OFF)
 
 # MKL, BLAS, LAPACK
 # -----------------
@@ -419,9 +420,11 @@ set(CWP_ETC_DIR "etc")
 # En fonction des top_targets a installer
 #------------------------------------------------------------------------------
 
-if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/paradigm")
+if (CWP_ENABLE_NEW_API)
+  if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/paradigm")
   add_subdirectory(paradigm)
 #  add_subdirectory(paradigm/doc)
+  endif()
 endif()
 
 add_subdirectory(src)
