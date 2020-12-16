@@ -1,3 +1,26 @@
+## [0.12.0] - 2020-12-16
+### Added
+- New API (directory new) (Switch PDM_ENABLE_NEW_API to ON to install it)
+- ParaDiGM 1.12.0 library
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- Python3 patch
+## [0.11.1] - 2020-03-27
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- Python3 patch
+## [0.11.0] - 2020-02-04
+### Added
+### Changed
+- Python3 compatibility
+### Deprecated
+### Removed
+### Fixed
 ## [0.10.4] - 2019-12-13
 ### Added
 ### Changed
