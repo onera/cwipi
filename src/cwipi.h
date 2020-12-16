@@ -216,6 +216,7 @@ typedef void (*cwipi_interpolation_fct_t)
    );
 
 
+
 /*----------------------------------------------------------------------------
  * Function pointer to define an user interpolation method (callback)
  *
@@ -226,7 +227,7 @@ typedef void (*cwipi_interpolation_fct_t)
  *                                               the local mesh (1, 2 or 3)
  * order                                     <-- Mesh order
  * n_local_vertex                            <-- local mesh vertices number
- * n_local_element                           <-- local mesh elements number
+ * n_local_element                           <-- local mesh elements number 
  *                                               (without polyhedra)
  * n_local_polyhedra                         <-- local mesh elements number
  * n_distant_point                           <-- located distant point number
@@ -238,7 +239,7 @@ typedef void (*cwipi_interpolation_fct_t)
  *                                               size:n_local_elements + 1
  * local_connectivity                        <-- element -> vertex connectivity
  *                                                       of the local mesh
- *                               size:local_connectivity_index[n_local_elements]
+ *                                               size:local_connectivity_index[n_local_elements]
  * local_polyhedra_face_index                <-- polyhedra volume -> faces index
  * local_polyhedra_cell_to_face_connectivity <-- polyhedra -> face connectivity
  * local_polyhedra_face_connectivity_index   <-- polyhedra faces
@@ -315,7 +316,7 @@ typedef double (*cwipi_ho_location_fct_t)
 
 /*----------------------------------------------------------------------------
  * 
- * Callback to define location the basis functions of an high order 
+ * Callback to define the basis functions of an high order 
  * element
  * 
  * parameters:
@@ -1047,6 +1048,32 @@ void cwipi_define_mesh(const char *coupling_id,
                        int connectivity_index[],
                        int connectivity[]);
 
+void cwipi_shared_fvmc_nodal(const char *coupling_name,
+                            void * fvmc_nodal);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Define a high order mesh interface for the current coupling. 
+ *
+ *    1D : edges (not implemented yet)
+ *    2D : triangles, quadrangles
+ *    3D : tetrahedra, pyramids, prism, hexaedra (not implemented yet)
+ *
+ *
+ * parameters:
+ *   coupling_id        <-- coupling name
+ *   n_vertex           <-- number of vertices
+ *   n_elements         <-- number of elements
+ *   coordinates        <-- vertex interlaced coordinates
+ *   connectivity_index <-> element -> vertices index (O to n-1)
+ *                          size: n_elements + 1
+ *                          (out : ordered connectivity_index)
+ *   connectivity       <-> element -> vertex connectivity (1 to n)
+ *                          size: connectivity_index[n_elements]
+ *
+ *----------------------------------------------------------------------------*/
+
 void cwipi_ho_define_mesh(const char *coupling_id,
                           const int n_vertex,
                           const int n_element,
@@ -1055,8 +1082,7 @@ void cwipi_ho_define_mesh(const char *coupling_id,
                           int connectivity_index[],
                           int connectivity[]);
 
-void cwipi_shared_fvmc_nodal(const char *coupling_name,
-                            void * fvmc_nodal);
+
 
 /*----------------------------------------------------------------------------
  *
@@ -1326,7 +1352,7 @@ void cwipi_irecv
  const int                 stride,
  const int                 time_step,
  const double              time_value,
- char                      *receiving_field_name,
+ const char                *receiving_field_name,
  double                    *receiving_field,
  int                       *request);
 

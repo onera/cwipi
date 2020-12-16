@@ -2827,14 +2827,6 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
             continue;
           }
 
-          /* fvmc_polygon_evaluate_Position((double *) _point_coords,  */
-          /*                                3,  */
-          /*                                tria_coords,  */
-          /*                                closest, */
-          /*                                pcoords,  */
-          /*                                &minDist2); */
-
-
           float dist = (float) sqrt (minDist2);
 
           if (min_dist[ipt] > dist) {
@@ -2997,6 +2989,9 @@ _polygons_section_locate_3d(const fvmc_nodal_section_t   *this_section,
 
     _Bool elt_initialized = false;
     int k1 = 0;
+
+    n_vertices = (  this_section->vertex_index[i + 1]
+                  - this_section->vertex_index[i]);
 
     for (j = this_section->vertex_index[i];
          j < this_section->vertex_index[i + 1];
@@ -5019,11 +5014,11 @@ idebug = 0;
    int error = _project_point2 (x, pt1, n, cp);
 
    if (error == 1) {
-     /* printf ("Warning fvmc_triangle_evaluate_Position : degenerated triangle :"); */
-     /* for (int iii = 0; iii < 3; iii++) { */
-     /*   printf (" %16.9e %16.9e %16.9e\n", pts[3*iii], pts[3*iii+1], pts[3*iii+2]); */
-     /* } */
-     /* printf ("\n"); */
+     //printf ("Warning fvmc_triangle_evaluate_Position : degenerated triangle :");
+     //for (int iii = 0; iii < 3; iii++) {
+     //  printf (" %16.9e %16.9e %16.9e\n", pts[3*iii], pts[3*iii+1], pts[3*iii+2]);
+     //}
+     //printf ("\n");
      return - 1;
    }
 

@@ -29,7 +29,8 @@ endif()
 # Sources list
 # ------------
 
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new") 
+if (CWP_ENABLE_NEW_API)
+ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new") 
   file(GLOB SOURCES 
        bft/*.[ch]
        fvm/*.[ch]
@@ -37,7 +38,17 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
        new/*.[ch]xx
        *.[ch]
        *.[ch]xx)
+
+  if (CWP_NEW_TO_OLD_API)
+    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/cwipi.cxx")
+    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/cwipi.h")
+  else()
+    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/new/cwipi_newtoold.cxx")
+    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/new/cwipi_newtoold.h")
+  endif()
+
   get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
+ endif()
 else()
   file(GLOB SOURCES 
        bft/*.[ch]
@@ -75,10 +86,13 @@ target_include_directories(cwp
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft)
 
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new") 
-  add_dependencies(cwp pdm)
-  target_include_directories(cwp
-                             PRIVATE ${PDM_INC}) 
+
+if (CWP_ENABLE_NEW_API)
+  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new") 
+    add_dependencies(cwp pdm)
+    target_include_directories(cwp
+                               PRIVATE ${PDM_INC}) 
+  endif ()
 endif ()
 
 #if (CWP_ENABLE_SPACE_NODAL_BASIS) 
@@ -103,6 +117,7 @@ if (CWP_ENABLE_Fortran)
                            PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
                            PRIVATE   ${CMAKE_BINARY_DIR}
                            PUBLIC    ${CMAKE_SOURCE_DIR}
+                           PUBLIC    ${MPI_Fortran_ADDITIONAL_INCLUDE_DIRS}
                            PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/new
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
@@ -114,12 +129,14 @@ if (CWP_ENABLE_SPACE_NODAL_BASIS)
   add_dependencies(cwpf spaceBasis)        
 endif()
 
+if (CWP_ENABLE_NEW_API)
   if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
     add_dependencies(cwpf pdmf)
     target_include_directories(cwpf PRIVATE ${PDM_INC}) 
     target_include_directories(cwpf PRIVATE ${CMAKE_BINARY_DIR}/spaceBasis/src)
     target_include_directories(cwpf PRIVATE ${CMAKE_BINARY_DIR}/spaceBasis)
   endif()
+endif()
 endif()
 
 # Liste des header
@@ -174,9 +191,11 @@ if (CWP_ENABLE_SHARED)
   set_target_properties(cwp_shared PROPERTIES OUTPUT_NAME "cwp")
   set_target_properties(cwp_shared PROPERTIES VERSION ${CWP_VERSION})
   target_link_libraries(cwp_shared ${LINK_LIBRARIES}) 
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
-    target_link_libraries(cwp_shared pdm_shared)
-    target_link_libraries(cwp_shared pdm_mpi_shared)
+  if (CWP_ENABLE_NEW_API)
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
+      target_link_libraries(cwp_shared pdm_shared)
+      target_link_libraries(cwp_shared pdm_mpi_shared)
+    endif()
   endif()
   set_target_properties(cwp_shared PROPERTIES
                         PUBLIC_HEADER "${LIST_HEADER}")
@@ -214,10 +233,12 @@ if (CWP_ENABLE_STATIC)
   set_target_properties(cwp_static PROPERTIES OUTPUT_NAME "cwp")
   set_target_properties(cwp_static PROPERTIES VERSION ${CWP_VERSION})
   target_link_libraries(cwp_static ${LINK_LIBRARIES}) 
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
-    target_link_libraries(cwp_static pdm_static)
-    target_link_libraries(cwp_static pdm_mpi_static)
-  endif()
+  if (CWP_ENABLE_NEW_API)
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
+      target_link_libraries(cwp_static pdm_static)
+      target_link_libraries(cwp_static pdm_mpi_static)
+    endif()
+  endif()  
   set_target_properties(cwp_static PROPERTIES
                              PUBLIC_HEADER "${LIST_HEADER}")
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)

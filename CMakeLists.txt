@@ -19,7 +19,7 @@ enable_testing()
 set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules")
 
-project(CWP VERSION 0.11.0 LANGUAGES C CXX Fortran)
+project(CWP VERSION 0.12.0 LANGUAGES C CXX Fortran)
 
 #------------------------------------------------------------------------------
 # Enable languages
@@ -71,6 +71,12 @@ option(CWP_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
 # -----------------
 
 option(CWP_ENABLE_Fortran  "Build Shared Fortran Interface" OFF)
+
+# New to old API
+# -----------------
+
+option(CWP_ENABLE_NEW_API  "Build new API (under construction)" OFF)
+#option(CWP_NEW_TO_OLD_API  "Build Fake Old API refering to New one" OFF)
 
 # MKL, BLAS, LAPACK
 # -----------------
@@ -413,9 +419,11 @@ set(CWP_ETC_DIR "etc")
 # En fonction des top_targets a installer
 #------------------------------------------------------------------------------
 
-if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/paradigm")
+if (CWP_ENABLE_NEW_API)
+  if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/paradigm")
   add_subdirectory(paradigm)
-  add_subdirectory(paradigm/doc)
+#  add_subdirectory(paradigm/doc)
+  endif()
 endif()
 
 add_subdirectory(src)
