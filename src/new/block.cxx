@@ -56,7 +56,12 @@ namespace cwipi {
      _isSet              .resize(_n_part);
 
      PDM_MPI_Comm pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(_localComm);
-     _pdmGNum_handle_index  = PDM_gnum_create           (3, _n_part, PDM_FALSE, 1e-3, pdm_localComm);
+     _pdmGNum_handle_index  = PDM_gnum_create (3,
+                                               _n_part,
+                                               PDM_FALSE,
+                                               1e-3,
+                                               pdm_localComm,
+                                               PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
   }
 

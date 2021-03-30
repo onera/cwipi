@@ -207,7 +207,7 @@ static CWP_Location_method_t _get_location_method
       //PDM_dist_cloud_surf_free(_id_dist,1);
       CWP_Location_method_t location_method = _get_location_method();
         if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
-          PDM_dist_cloud_surf_free (_id_dist, 1);
+          PDM_dist_cloud_surf_free (_id_dist);
         }
         else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
                    location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
@@ -264,7 +264,7 @@ static CWP_Location_method_t _get_location_method
         //PDM_dist_cloud_surf_free(_id_dist,1);
         CWP_Location_method_t location_method = _get_location_method();
         if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
-          PDM_dist_cloud_surf_free (_id_dist, 1);
+          PDM_dist_cloud_surf_free (_id_dist);
         }
         else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
                    location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
@@ -309,7 +309,7 @@ static CWP_Location_method_t _get_location_method
       //PDM_dist_cloud_surf_free(_id_dist,1);
       CWP_Location_method_t location_method = _get_location_method();
       if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
-        PDM_dist_cloud_surf_free (_id_dist, 1);
+        PDM_dist_cloud_surf_free (_id_dist);
       }
       else if (location_method == CWP_LOCATION_MESH_LOCATION_OCTREE ||
                location_method == CWP_LOCATION_MESH_LOCATION_DBBTREE) {
@@ -1298,7 +1298,10 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
 
     if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
       /* Paradigm mesh localisation _distance creation */
-      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_MESH_SETTED, 1, _pdm_cplComm );
+      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_MESH_SETTED,
+                                               1,
+                                               _pdm_cplComm,
+                                               PDM_OWNERSHIP_UNGET_RESULT_IS_FREE );
 
       PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part);
 
@@ -1496,7 +1499,8 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
 
     if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
       /* Paradigm mesh localisation _distance creation */
-      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_MESH_SETTED, 1, _pdm_cplComm );
+      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_MESH_SETTED, 1, _pdm_cplComm,
+                                               PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
       PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part_cpl);
 
@@ -1625,7 +1629,8 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
 
     if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
       /* Paradigm mesh localisation _distance creation */
-      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_MESH_SETTED, 1, _pdm_cplComm );
+      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_MESH_SETTED, 1, _pdm_cplComm,
+                                               PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
       PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part);
 
@@ -1752,7 +1757,8 @@ void SpatialInterpLocation::mesh_cpl_info_get() {
 
     if (location_method == CWP_LOCATION_DIST_CLOUD_SURF) {
       /* Paradigm mesh localisation _distance creation */
-      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_MESH_SETTED, 1, _pdm_cplComm );
+      *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_MESH_SETTED, 1, _pdm_cplComm,
+                                               PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
       //printf("_nb_part_cpl = %d\n", _nb_part_cpl);
       PDM_dist_cloud_surf_n_part_cloud_set(*id_dist, 0, _nb_part_cpl);
@@ -3052,7 +3058,8 @@ void SpatialInterpLocation::triplet_location_null_recv(int* id_gnum_location) {
     }
 
     if(coord_def == 1) {
-      _pdmGNum_handle_index  = PDM_gnum_create (3, _nb_part, PDM_FALSE, 1e-3, _pdm_connectableComm);
+      _pdmGNum_handle_index  = PDM_gnum_create (3, _nb_part, PDM_FALSE, 1e-3, _pdm_connectableComm,
+                                                PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
       for (int i_part=0; i_part<_nb_part; i_part++){
         PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, _n_user_targets[i_part], _coords_user_targets[i_part], NULL);
       }

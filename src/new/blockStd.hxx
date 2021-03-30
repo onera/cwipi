@@ -23,6 +23,7 @@
 #include "cwp.h"
 #include <map>
 #include <vector>
+#include <cstdlib>
 
 /**
  * \cond

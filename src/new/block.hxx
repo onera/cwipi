@@ -415,7 +415,7 @@ namespace cwipi {
   protected:
 
     CWP_Block_t                _blockType;              /*!< Block Type */
-    int                        _pdmNodal_handle_index;  /*!< PDM Nodal Index */
+    PDM_Mesh_nodal_t          *_pdmNodal_handle_index;  /*!< PDM Nodal Index */
     MPI_Comm                  *_localComm;              /*!< Communicator */
     int                        _n_part;                 /*!< Number of partitions */
     int                        _n_part_def;             /*!< Number of partitions where the block is defined */

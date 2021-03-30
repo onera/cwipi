@@ -390,7 +390,7 @@ namespace cwipi {
     *
     *
     */
-   inline int getPdmNodalIndex();
+    inline  PDM_Mesh_nodal_t * getPdmNodalIndex();
 
    /**
     * \brief Return Coordinates of the i_part partition.
@@ -516,7 +516,7 @@ namespace cwipi {
     std::vector <CWP_g_num_t*>              _global_num_vtx;             /*!< Global vertices numbering for each partition  */
     std::vector <CWP_g_num_t*>              _global_num_elt;             /*!< Global elements numbering for each partition  */
     int                                     _npart;                  /*!< Number of partition  */
-    int                                     _pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
+    PDM_Mesh_nodal_t                       *_pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
     int                                     _pdmGNum_handle_index;   /*!< Global number index for paradigm handler   */
     int                                     _pdmGNum_handle_index_elt;   /*!< Global number index for paradigm handler   */
     PDM_Mesh_nodal_t                       *_pdmNodal;               /*!< Pointer to the paradigm mesh (nodal) object   */
@@ -572,7 +572,7 @@ namespace cwipi {
     return _coords[i_part];
   }
 
-  int Mesh::getPdmNodalIndex() {
+  PDM_Mesh_nodal_t *Mesh::getPdmNodalIndex() {
     return _pdmNodal_handle_index;
   }
 

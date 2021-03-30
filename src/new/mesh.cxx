@@ -80,8 +80,13 @@ namespace cwipi {
    // _pdm_localComm=&pdm_localComm;
     // pdm_nodal building
 
-    _pdmGNum_handle_index  = PDM_gnum_create           (3, npart, PDM_FALSE, 1e-3, _pdm_localComm);
-    _pdmGNum_handle_index_elt  = PDM_gnum_create           (3, npart, PDM_FALSE, 1e-3, _pdm_localComm);
+    _pdmGNum_handle_index  = PDM_gnum_create           (3, npart,
+                                                        PDM_FALSE,
+                                                        1e-3,
+                                                        _pdm_localComm,
+                                                        PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+    _pdmGNum_handle_index_elt  = PDM_gnum_create           (3, npart, PDM_FALSE, 1e-3, _pdm_localComm,
+                                                            PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
     _npart                 = npart;
     _nVertex   .resize(npart,0);
     _nElts     .resize(npart,0);

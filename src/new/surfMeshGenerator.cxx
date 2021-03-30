@@ -525,7 +525,7 @@ void surfMeshGenerator::computeMesh() {
     free (dCellPart);
 
 
-    int id_mn = PDM_Mesh_nodal_create(_nPart, _interfComm);
+    PDM_Mesh_nodal_t *id_mn = PDM_Mesh_nodal_create(_nPart, _interfComm);
     for(int i_part =0;i_part<_nPart;i_part++){
 
       int nEdgePartBound;
