@@ -1000,22 +1000,17 @@ void SpatialInterpLocation::null_exchange_for_uncoupled_process() {
     _coupledCodeProperties = _cpl -> coupledCodePropertiesGet();
 
     _slave = slave;
-    _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(_mesh -> getMPICommP()));
     _nb_part = _mesh -> getNPart();
 
 
     _cplComm = _cpl -> communicationGet() -> cplCommGet();
     _globalComm = _localCodeProperties -> globalCommGet();
     _localComm = _mesh -> getMPIComm();
-    _connectableComm =_localCodeProperties -> connectableCommGet();
 
-
-    printf("_cplComm : %d\n", _cplComm);
     MPI_Comm_size(_cplComm,&_n_ranks_g);
 
-    _pdm_globalComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_globalComm));
     _pdm_cplComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_cplComm));
-    _pdm_connectableComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_connectableComm));
+    _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_localComm));
 
     localName   = _localCodeProperties -> nameGet();
     coupledName = _coupledCodeProperties -> nameGet();
@@ -1194,18 +1189,18 @@ void SpatialInterpLocation::null_exchange_for_uncoupled_process() {
       _n_tot_target = _n_tot_user_targets;
     }
 
-    MPI_Barrier(_connectableComm);
+    MPI_Barrier(_localComm);
 
     if(_cpl -> commTypeGet() == CWP_COMM_PAR_WITH_PART){
       /************* Elements ***********/
       CWP_g_num_t n_tot_elt_long = (CWP_g_num_t)_n_tot_elt;
-      MPI_Reduce(&n_tot_elt_long,&_n_g_elt_over_part,1,MPI_LONG,MPI_SUM,0,_connectableComm);
-      MPI_Bcast(&_n_g_elt_over_part,1,MPI_LONG,0,_connectableComm);
+      MPI_Reduce(&n_tot_elt_long,&_n_g_elt_over_part,1,MPI_LONG,MPI_SUM,0,_localComm);
+      MPI_Bcast(&_n_g_elt_over_part,1,MPI_LONG,0,_localComm);
 
       /************* Vertices ***********/
       CWP_g_num_t n_tot_vtx_long = (CWP_g_num_t)_n_tot_vtx;
-      MPI_Reduce(&n_tot_vtx_long,&_n_g_vtx_over_part,1,MPI_LONG,MPI_SUM,0,_connectableComm);
-      MPI_Bcast(&_n_g_vtx_over_part,1,MPI_LONG,0,_connectableComm);
+      MPI_Reduce(&n_tot_vtx_long,&_n_g_vtx_over_part,1,MPI_LONG,MPI_SUM,0,_localComm);
+      MPI_Bcast(&_n_g_vtx_over_part,1,MPI_LONG,0,_localComm);
     }
     else {
       _n_g_vtx_over_part = (CWP_g_num_t)_n_tot_vtx;
@@ -3058,7 +3053,7 @@ void SpatialInterpLocation::triplet_location_null_recv(int* id_gnum_location) {
     }
 
     if(coord_def == 1) {
-      _pdmGNum_handle_index  = PDM_gnum_create (3, _nb_part, PDM_FALSE, 1e-3, _pdm_connectableComm,
+      _pdmGNum_handle_index  = PDM_gnum_create (3, _nb_part, PDM_FALSE, 1e-3, _pdm_localComm,
                                                 PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
       for (int i_part=0; i_part<_nb_part; i_part++){
         PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, _n_user_targets[i_part], _coords_user_targets[i_part], NULL);

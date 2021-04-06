@@ -301,14 +301,11 @@ namespace cwipi {
    /** MPI processes informations **/
 
    /* MPI Communicators */
-   MPI_Comm _globalComm ;
-   MPI_Comm _cplComm ;
-   MPI_Comm _localComm  ;
-   MPI_Comm _connectableComm  ;
-   PDM_MPI_Comm  _pdm_connectableComm ;
-   PDM_MPI_Comm  _pdm_localComm ;
-   PDM_MPI_Comm  _pdm_globalComm ;
-   PDM_MPI_Comm  _pdm_cplComm ;
+   MPI_Comm _globalComm;       // Gathers every processus
+   MPI_Comm _cplComm;          // Processus involved in the coupling in either code
+   MPI_Comm _localComm;        // Processus involved in the coupling for the local code
+   PDM_MPI_Comm  _pdm_cplComm; // _cplComm for Paradigm
+   PDM_MPI_Comm  _pdm_localComm; // _localComm for Paradigm
 
    vector<string> _codeVector;
 
