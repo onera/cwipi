@@ -357,8 +357,6 @@ namespace cwipi {
 
       SpatialInterpLocation    *_spatial_interp_cpl;  /*!< Spatial interpolation of coupled code (for both codes are local case) */
 
-      CWP_Dof_location_t    _pointsCloudLocation   ;  /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
-
     /* Localization data */
 
       double      **_distance                     ;  /*!< Distance to the closest element surface by partition */
@@ -368,29 +366,15 @@ namespace cwipi {
       int** _target_proc_part_num_idx             ;  /*!< Index array of triplet process, partition, numbering for each target */
       int** _target_proc_part_num                 ;  /*!< Array of triplet process, partition, numbering for each target */
 
-      /* Mesh informations */
-
-      CWP_g_num_t  **_gnum_target                 ;  /*<! Target global numbering by partition */
-      double       **_coords_target               ;  /*<! Target coordinates by partition */
-
       CWP_g_num_t _n_g_elt_over_part              ;  /*!< Number of element of the process (over all the partitions)              */
       CWP_g_num_t _n_g_vtx_over_part              ;  /*!< Number of vertices of the process (over all the partitions)             */
       CWP_g_num_t _n_g_elt_cpl_over_part          ;  /*!< Number of coupled code element of the process (over all the partitions) */
       CWP_g_num_t _n_g_vtx_cpl_over_part          ;  /*!< Number of coupled code vertices of the process (over all the partitions)*/
 
-      int *_n_vtx                                 ;  /*!< Vertice total number on the process by partition                         */
-      int  _n_tot_vtx                             ;  /*!< Vertice total number on the process                                      */
-
-      int *_n_elt                                 ;  /*!< Element total number on the process by partition                         */
-      int  _n_tot_elt                             ;  /*!< Element total number on the process                                      */
-
       /* Paradigm structure identifier */
 
       int _id_dist                                ;  /*!< Identifier for the localization object of paradigm */
       int _id_gnum_location                       ;  /*!< Identifier for the global numbering to (process,partition,numbering) triplet object of paradigm */
-
-      int **_weights_src_idx;
-      double **_weights_src;
 
   }; //end SpatialInterpLocation
 

@@ -82,7 +82,7 @@ namespace cwipi {
 
     static void _transform_to_index(int* array,int l1);
 
-    virtual void init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation,int slave) =0;
+    virtual void init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation,int slave);
 
     virtual void spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) =0;
 
@@ -380,6 +380,8 @@ namespace cwipi {
 
     SpatialInterp                       *_spatial_interp_cpl    ;  /*!< Spatial interpolation (for both codes are local case) */
 
+    CWP_Dof_location_t                  _pointsCloudLocation    ;  /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
+
     CWP_Field_exch_t                     _Texch_t               ;
 
     /* code Properties */
@@ -404,7 +406,10 @@ namespace cwipi {
    PDM_MPI_Comm  _pdm_cplComm;   // _cplComm for Paradigm
    PDM_MPI_Comm  _pdm_localComm; // _localComm for Paradigm
 
-   vector<string> _codeVector;
+    int **_weights_src_idx;
+    double **_weights_src;
+
+    vector<string> _codeVector;
 
    int  _slave;
 
@@ -452,9 +457,19 @@ namespace cwipi {
 
     int*          _n_user_targets               ;  /*!< Number of targets defined by the user for CWP_DOF_LOCATION_USER field type        */
     int           _n_tot_user_targets           ;  /*!< Total number of targets defined by the user for CWP_DOF_LOCATION_USER field type  */
-    double**      _coords_user_targets          ;  /*!< Target coordinates defined by the user for CWP_DOF_LOCATION_USER field type       */
     CWP_g_num_t** _gnum_user_targets            ;  /*!< Target global numbering defined by the user for CWP_DOF_LOCATION_USER field type  */
 
+    /* Mesh informations */
+
+    CWP_g_num_t  **_gnum_target                 ;  /*!< Target global numbering by partition */
+    double       **_coords_target               ;  /*!< Target coordinates by partition */
+    double**      _coords_user_targets          ;  /*!< Target coordinates defined by the user for CWP_DOF_LOCATION_USER field type       */
+
+    int *_n_vtx                                 ;  /*!< Vertice total number on the process by partition                         */
+    int  _n_tot_vtx                             ;  /*!< Vertice total number on the process                                      */
+
+    int *_n_elt                                 ;  /*!< Element total number on the process by partition                         */
+    int  _n_tot_elt                             ;  /*!< Element total number on the process                                      */
   };
 
     /**

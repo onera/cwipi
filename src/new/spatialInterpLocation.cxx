@@ -44,13 +44,7 @@
 namespace cwipi {
 
   SpatialInterpLocation::SpatialInterpLocation()
-  :SpatialInterp::SpatialInterp(),
-   _gnum_target(NULL),
-   _coords_target(NULL),
-   _n_vtx(NULL),
-   _n_elt(NULL),
-   _weights_src_idx(NULL),
-   _weights_src(NULL)
+  :SpatialInterp::SpatialInterp()
   {
   }
 
@@ -319,86 +313,9 @@ static CWP_Location_method_t _get_location_method
   }
 
   void SpatialInterpLocation::init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation, int slave) {
-    _mesh   = coupling -> meshGet();
-    _visu   = coupling -> visuGet();
-    _pointsCloudLocation = pointsCloudLocation;
-    _cpl = coupling;
+    SpatialInterp::init(coupling, pointsCloudLocation, slave);
+
     _id_dist = -1;
-    _localCodeProperties = _cpl -> localCodePropertiesGet();
-    _coupledCodeProperties = _cpl -> coupledCodePropertiesGet();
-
-    _slave = slave;
-    _nb_part = _mesh -> getNPart();
-
-
-    _cplComm = _cpl -> communicationGet() -> cplCommGet();
-    _globalComm = _localCodeProperties -> globalCommGet();
-    _localComm = _mesh -> getMPIComm();
-
-    MPI_Comm_size(_cplComm,&_n_ranks_g);
-
-    _pdm_cplComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_cplComm));
-    _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_localComm));
-
-    localName   = _localCodeProperties -> nameGet();
-    coupledName = _coupledCodeProperties -> nameGet();
-
-    _senderRank     = _cpl -> communicationGet() -> unionCommLocCodeRootRanksGet();
-    _senderRank_cpl = _cpl -> communicationGet() -> unionCommCplCodeRootRanksGet();
-
-    _connectableRanks_cpl = _cpl -> communicationGet() -> cplCommCplRanksGet();
-    _connectableRanks     = _cpl -> communicationGet() -> cplCommLocRanksGet();
-    _n_ranks_cpl = _connectableRanks_cpl->size();
-    _n_ranks     = _connectableRanks->size();
-
-   /* for(int i=0;i<_connectableRanks_cpl->size();i++)
-      printf("_connectableRanks_cpl %i\n",(*_connectableRanks_cpl)[i]);
-   */
-
-    MPI_Comm_rank(_cplComm,&_rank);
-
-
-    MPI_Group globalGroup,unionGroup;
-    MPI_Comm_group(_globalComm, &globalGroup);
-
-    MPI_Group intraGroup = _localCodeProperties -> connectableGroupGet();
-    MPI_Comm_group(_cplComm, &unionGroup);
-
-
-    MPI_Group_translate_ranks(unionGroup, 1, &_senderRank,
-                              intraGroup ,    &_senderLocalRank);
-
-    int comp = localName.compare(coupledName);
-    _codeVector.resize(2);
-    if(comp>0) {
-      _codeVector[0] = localName  ;
-      _codeVector[1] = coupledName;
-    }
-    else {
-      _codeVector[1] = localName  ;
-      _codeVector[0] = coupledName;
-    }
-
-
-    _both_codes_are_local=0;
-    if(_localCodeProperties ->localCodeIs() && _coupledCodeProperties ->localCodeIs()) {
-      _both_codes_are_local = 1;
-      _nb_part_cpl = _nb_part;//fix?
-    }
-
-
-    _id     = _localCodeProperties   -> idGet();
-    _id_cpl = _coupledCodeProperties -> idGet();
-
-    if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && slave == 0 ) ){
-
-      if(_rank == _senderRank) {
-        int tagsend = 2;
-        int tagrecv = 2;
-        MPI_Status status;
-        MPI_Sendrecv(&_nb_part,1,MPI_INT,_senderRank_cpl,tagsend,&_nb_part_cpl,1,MPI_INT,_senderRank_cpl,tagrecv,_cplComm,&status);
-      }
-    }
 
     CouplingDB* cplDB = _cpl -> couplingDBGet();
     string cplId = coupling -> IdGet();
@@ -432,31 +349,6 @@ static CWP_Location_method_t _get_location_method
         MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_cplComm);
       }
     }
-
-
-
-
-    _isCoupledRank     = _localCodeProperties   -> isCoupledRank();
-
-    n_uncomputed_tgt.resize(_nb_part);
-
-    _gnum_target   =(CWP_g_num_t**)malloc( sizeof(CWP_g_num_t*)*_nb_part);
-    _coords_target =(double**)     malloc( sizeof(double*)     *_nb_part);
-    _coords_user_targets =(double**)     malloc( sizeof(double*)     *_nb_part);
-
-
-    for(int i_part=0;i_part<_nb_part;i_part++){
-      _coords_user_targets[i_part] = NULL;
-      _coords_target      [i_part] = NULL;
-    }
-
-    _gnum_user_targets   =(CWP_g_num_t**)malloc( sizeof(CWP_g_num_t*)*_nb_part);
-
-    _n_vtx          = (int*)malloc(sizeof(int)*_nb_part);
-    _n_elt          = (int*)malloc(sizeof(int)*_nb_part);
-    _n_target       = (int*)malloc(sizeof(int)*_nb_part);
-    _n_user_targets = (int*)malloc(sizeof(int)*_nb_part);
-
   }
 
 
