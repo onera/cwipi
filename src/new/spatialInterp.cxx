@@ -175,6 +175,132 @@ namespace cwipi {
     _n_user_targets = (int*)malloc(sizeof(int)*_nb_part);
   }
 
+  /***********************************************************
+**           Mesh information functions                  **
+***********************************************************/
+
+  void SpatialInterp::mesh_info_get() {
+
+    _n_tot_elt         =0;
+    _n_tot_vtx         =0;
+    _n_tot_user_targets=0;
+    for(int i_part =0;i_part<_nb_part;i_part++) {
+
+      if (_pointsCloudLocation == CWP_DOF_LOCATION_CELL_CENTER && _Texch_t == CWP_FIELD_EXCH_RECV ) {
+        _n_target   [i_part]     = _mesh -> getPartNElts(i_part);
+        _gnum_target[i_part]     = _mesh -> GNumEltsGet(i_part);
+        _coords_target [i_part]  = _mesh -> eltCentersGet(i_part);
+      }
+      else if (_pointsCloudLocation == CWP_DOF_LOCATION_NODE && _Texch_t == CWP_FIELD_EXCH_RECV) {
+        _n_target      [i_part]  = _mesh -> getPartNVertex (i_part);
+        _gnum_target   [i_part]  = _mesh -> getVertexGNum  (i_part);
+        _coords_target [i_part]  = _mesh -> getVertexCoords(i_part);
+      }
+      else if (_pointsCloudLocation == CWP_DOF_LOCATION_USER && _Texch_t == CWP_FIELD_EXCH_RECV ) {
+        //   printf("info_mesh _n_target [i_part] %i _n_user_targets[i_part] %i\n",_n_target[i_part],_n_user_targets[i_part]);
+        _n_target      [i_part]  = _n_user_targets     [i_part];
+        //   printf("info_mesh _n_target [i_part] %i _n_user_targets[i_part] %i\n",_n_target[i_part],_n_user_targets[i_part]);
+        _gnum_target   [i_part]  = _gnum_user_targets  [i_part];
+        _coords_target [i_part]  = _coords_user_targets[i_part];
+      }
+
+      _n_elt[i_part]  = _mesh -> getPartNElts(i_part);
+      _n_tot_elt+=_n_elt[i_part];
+
+      _n_vtx[i_part]  = _mesh -> getPartNVertex(i_part);
+      _n_tot_vtx+=_n_vtx[i_part];
+
+      _n_tot_user_targets += _n_user_targets [i_part];
+
+    } //end loop on i_part
+
+
+    if (_pointsCloudLocation == CWP_DOF_LOCATION_CELL_CENTER && _Texch_t == CWP_FIELD_EXCH_RECV) {
+      _n_tot_target = _n_tot_elt;
+    }
+    else if (_pointsCloudLocation == CWP_DOF_LOCATION_NODE && _Texch_t == CWP_FIELD_EXCH_RECV) {
+      _n_tot_target = _n_tot_vtx;
+    }
+    else if (_pointsCloudLocation == CWP_DOF_LOCATION_USER && _Texch_t == CWP_FIELD_EXCH_RECV) {
+      _n_tot_target = _n_tot_user_targets;
+    }
+
+    MPI_Barrier(_localComm);
+
+    if(_cpl -> commTypeGet() == CWP_COMM_PAR_WITH_PART){
+      /************* Elements ***********/
+      CWP_g_num_t n_tot_elt_long = (CWP_g_num_t)_n_tot_elt;
+      MPI_Reduce(&n_tot_elt_long,&_n_g_elt_over_part,1,MPI_LONG,MPI_SUM,0,_localComm);
+      MPI_Bcast(&_n_g_elt_over_part,1,MPI_LONG,0,_localComm);
+
+      /************* Vertices ***********/
+      CWP_g_num_t n_tot_vtx_long = (CWP_g_num_t)_n_tot_vtx;
+      MPI_Reduce(&n_tot_vtx_long,&_n_g_vtx_over_part,1,MPI_LONG,MPI_SUM,0,_localComm);
+      MPI_Bcast(&_n_g_vtx_over_part,1,MPI_LONG,0,_localComm);
+    }
+    else {
+      _n_g_vtx_over_part = (CWP_g_num_t)_n_tot_vtx;
+      _n_g_elt_over_part = (CWP_g_num_t)_n_tot_elt;
+    }
+
+  }
+
+  void SpatialInterp::mesh_cpl_info_get() {
+
+    if(_slave==0){
+      /*      Partition Number exchange           */
+
+      if(_rank == _senderRank) {
+        int tagsend = 2;
+        int tagrecv = 2;
+        MPI_Status status;
+        MPI_Sendrecv(&_n_g_elt_over_part,1,MPI_LONG,_senderRank_cpl,tagsend,&_n_g_elt_cpl_over_part,1,MPI_LONG,_senderRank_cpl,tagrecv,_cplComm,&status);
+        tagsend = 3;
+        tagrecv = 3;
+        MPI_Sendrecv(&_n_g_vtx_over_part,1,MPI_LONG,_senderRank_cpl,tagsend,&_n_g_vtx_cpl_over_part,1,MPI_LONG,_senderRank_cpl,tagrecv,_cplComm,&status);
+      }
+
+      CWP_g_num_t tmp1;
+
+      if(_id < _id_cpl) {
+        MPI_Bcast(&_n_g_elt_cpl_over_part,1,MPI_LONG,_senderRank,_cplComm);
+        MPI_Bcast(&tmp1,1,MPI_LONG,_senderRank_cpl,_cplComm);
+      }
+      else{
+        MPI_Bcast(&tmp1,1,MPI_LONG,_senderRank_cpl,_cplComm);
+        MPI_Bcast(&_n_g_elt_cpl_over_part,1,MPI_LONG,_senderRank,_cplComm);
+      }
+
+      if(_id < _id_cpl) {
+        MPI_Bcast(&_n_g_vtx_cpl_over_part,1,MPI_LONG,_senderRank,_cplComm);
+        MPI_Bcast(&tmp1,1,MPI_LONG,_senderRank_cpl,_cplComm);
+      }
+      else{
+        MPI_Bcast(&tmp1,1,MPI_LONG,_senderRank_cpl,_cplComm);
+        MPI_Bcast(&_n_g_vtx_cpl_over_part,1,MPI_LONG,_senderRank,_cplComm);
+      }
+    }
+    else{
+      _n_g_elt_cpl_over_part = _spatial_interp_cpl->_n_g_elt_over_part;
+      _n_g_vtx_cpl_over_part = _spatial_interp_cpl->_n_g_vtx_over_part;
+    }
+  }
+
+  void SpatialInterp::info_mesh() {
+
+    if(_both_codes_are_local == 0){
+      if(_isCoupledRank)  mesh_info_get();
+      mesh_cpl_info_get();
+    }
+    else if(_Texch_t == CWP_FIELD_EXCH_SEND) {
+      mesh_info_get();
+      _spatial_interp_cpl -> mesh_info_get();
+
+      mesh_cpl_info_get();
+      _spatial_interp_cpl -> mesh_cpl_info_get();
+    }
+  }
+
   void SpatialInterp::user_targets_gnum_compute() {
     int coord_def = 1;
     for (int i=0; i<_nb_part; i++){

@@ -78,39 +78,6 @@ namespace cwipi {
 
       void init (Coupling *coupling, CWP_Dof_location_t pointsCloudLocation,int slave) ;
 
-
-      /***********************************************************
-       **           Mesh information functions                  **
-       ***********************************************************/
-
-    /**
-      *
-      * \brief Get informations from the code mesh to use
-      * in SpatialInterp object.
-      *
-      */
-
-      void mesh_info_get();
-
-    /**
-      *
-      * \brief Get informations from the coupled code mesh to use
-      * in SpatialInterp object.
-      *
-      */
-
-      void mesh_cpl_info_get();
-
-    /**
-      *
-      * \brief Get informations from local and coupled code mesh
-      *  to use in SpatialInterp object.
-      *
-      */
-
-      void info_mesh() ;
-
-
       /***********************************************************
        ***********************************************************
        **                                                       **
@@ -365,11 +332,6 @@ namespace cwipi {
 
       int** _target_proc_part_num_idx             ;  /*!< Index array of triplet process, partition, numbering for each target */
       int** _target_proc_part_num                 ;  /*!< Array of triplet process, partition, numbering for each target */
-
-      CWP_g_num_t _n_g_elt_over_part              ;  /*!< Number of element of the process (over all the partitions)              */
-      CWP_g_num_t _n_g_vtx_over_part              ;  /*!< Number of vertices of the process (over all the partitions)             */
-      CWP_g_num_t _n_g_elt_cpl_over_part          ;  /*!< Number of coupled code element of the process (over all the partitions) */
-      CWP_g_num_t _n_g_vtx_cpl_over_part          ;  /*!< Number of coupled code vertices of the process (over all the partitions)*/
 
       /* Paradigm structure identifier */
 

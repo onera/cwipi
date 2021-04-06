@@ -84,6 +84,36 @@ namespace cwipi {
 
     virtual void init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation,int slave);
 
+    /***********************************************************
+     **           Mesh information functions                  **
+     ***********************************************************/
+
+    /**
+      *
+      * \brief Get informations from the code mesh to use
+      * in SpatialInterp object.
+      *
+      */
+
+    void mesh_info_get();
+
+    /**
+      *
+      * \brief Get informations from the coupled code mesh to use
+      * in SpatialInterp object.
+      *
+      */
+
+    void mesh_cpl_info_get();
+
+    /**
+      *
+      * \brief Get informations from local and coupled code mesh
+      *  to use in SpatialInterp object.
+      *
+      */
+
+    void info_mesh() ;
     virtual void spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) =0;
 
     virtual void* interpolate (Field* referenceField) = 0;
@@ -458,6 +488,11 @@ namespace cwipi {
     int*          _n_user_targets               ;  /*!< Number of targets defined by the user for CWP_DOF_LOCATION_USER field type        */
     int           _n_tot_user_targets           ;  /*!< Total number of targets defined by the user for CWP_DOF_LOCATION_USER field type  */
     CWP_g_num_t** _gnum_user_targets            ;  /*!< Target global numbering defined by the user for CWP_DOF_LOCATION_USER field type  */
+
+    CWP_g_num_t _n_g_elt_over_part              ;  /*!< Number of element of the process (over all the partitions)              */
+    CWP_g_num_t _n_g_vtx_over_part              ;  /*!< Number of vertices of the process (over all the partitions)             */
+    CWP_g_num_t _n_g_elt_cpl_over_part          ;  /*!< Number of coupled code element of the process (over all the partitions) */
+    CWP_g_num_t _n_g_vtx_cpl_over_part          ;  /*!< Number of coupled code vertices of the process (over all the partitions)*/
 
     /* Mesh informations */
 
