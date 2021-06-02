@@ -22,6 +22,11 @@
 #include "mesh.hxx"
 #include "spatialInterp.hxx"
 #include "field.hxx"
+#include "pdm_dist_cloud_surf.h"
+#include "pdm_mesh_location.h"
+#include "pdm_gnum_location.h"
+#include "pdm_gnum.h"
+
 /**
  * \cond
  */
@@ -198,7 +203,8 @@ namespace cwipi {
       *
       */
 
-      void localization_points_cloud_setting (int* id_dist) ;
+      void localization_points_cloud_setting (  PDM_dist_cloud_surf_t **id_dist,
+                                   PDM_mesh_location_t **id_loc) ;
 
 
     /**
@@ -211,7 +217,8 @@ namespace cwipi {
       *
       */
 
-      void localization_null_setting_send (int* id_dist) ;
+      void localization_null_setting_send (  PDM_dist_cloud_surf_t **id_dist,
+                                   PDM_mesh_location_t **id_loc) ;
 
 
     /**
@@ -224,7 +231,8 @@ namespace cwipi {
       *
       */
 
-      void localization_null_setting_recv (int* id_dist) ;
+      void localization_null_setting_recv (  PDM_dist_cloud_surf_t **id_dist,
+                                   PDM_mesh_location_t **id_loc) ;
 
 
     /**
@@ -237,7 +245,8 @@ namespace cwipi {
       *
       */
 
-      void localization_surface_setting (int* id_dist) ;
+      void localization_surface_setting (  PDM_dist_cloud_surf_t **id_dist,
+                                   PDM_mesh_location_t **id_loc) ;
 
 
     /**
@@ -249,7 +258,8 @@ namespace cwipi {
       *
       */
 
-      void localization_compute (int id_dist) ;
+      void localization_compute (  PDM_dist_cloud_surf_t *id_dist,
+                                   PDM_mesh_location_t *id_loc) ;
 
 
     /**
@@ -260,7 +270,8 @@ namespace cwipi {
       *
       */
 
-      void localization_get (int id_dist) ;
+      void localization_get (  PDM_dist_cloud_surf_t *id_dist,
+                                   PDM_mesh_location_t *id_loc) ;
 
 
     /**
@@ -273,7 +284,8 @@ namespace cwipi {
       *
       */
 
-      void localization_get_cpl (int id_dist) ;
+      void localization_get_cpl (  PDM_dist_cloud_surf_t *id_dist,
+                                   PDM_mesh_location_t *id_loc) ;
 
 
       /***********************************************************
@@ -296,7 +308,7 @@ namespace cwipi {
       *
       */
 
-      void triplet_location_request (int* id_gnum_location) ;
+      void triplet_location_request (PDM_gnum_location_t ** id_gnum_location) ;
 
 
    /**
@@ -309,7 +321,7 @@ namespace cwipi {
       *
       */
 
-      void triplet_location_set (int* id_gnum_location) ;
+      void triplet_location_set (PDM_gnum_location_t ** id_gnum_location) ;
 
 
     /**
@@ -323,7 +335,7 @@ namespace cwipi {
       *
       */
 
-      void triplet_location_null_send (int* id_gnum_location) ;
+      void triplet_location_null_send (PDM_gnum_location_t ** id_gnum_location) ;
 
     /**
       *
@@ -336,7 +348,7 @@ namespace cwipi {
       *
       */
 
-      void triplet_location_null_recv (int* id_gnum_location) ;
+      void triplet_location_null_recv (PDM_gnum_location_t ** id_gnum_location) ;
 
 
     /**
@@ -349,7 +361,7 @@ namespace cwipi {
       *
       */
 
-      void triplet_location_compute  (int id_gnum_location) ;
+      void triplet_location_compute  (PDM_gnum_location_t *id_gnum_location) ;
 
 
 
@@ -364,7 +376,7 @@ namespace cwipi {
       *
       */
 
-      void triplet_location_get(int id_gnum_location)      ;
+      void triplet_location_get(PDM_gnum_location_t *id_gnum_location)      ;
 
 
     /**
@@ -377,7 +389,7 @@ namespace cwipi {
       *                                  from global numbering identifier.
       */
 
-      void triplet_location_get_cpl(int id_gnum_location)  ;
+      void triplet_location_get_cpl(PDM_gnum_location_t *id_gnum_location)  ;
 
 
       /***********************************************************
@@ -563,8 +575,9 @@ namespace cwipi {
 
       /* Paradigm structure identifier */
 
-      int _id_dist                                ;  /*!< Identifier for the localization object of paradigm */
-      int _id_gnum_location                       ;  /*!< Identifier for the global numbering to (process,partition,numbering) triplet object of paradigm */
+      PDM_dist_cloud_surf_t *_id_dist                                ;  /*!< Identifier for the localization object of paradigm */
+      PDM_mesh_location_t *_id_loc                                ;  /*!< Identifier for the localization object of paradigm */
+      PDM_gnum_location_t *_id_gnum_location                       ;  /*!< Identifier for the global numbering to (process,partition,numbering) triplet object of paradigm */
 
       /* user targets definition for CWP_DOF_LOCATION_USER field type */
 
@@ -573,7 +586,7 @@ namespace cwipi {
       double**      _coords_user_targets          ;  /*!< Target coordinates defined by the user for CWP_DOF_LOCATION_USER field type       */
       CWP_g_num_t** _gnum_user_targets            ;  /*!< Target global numbering defined by the user for CWP_DOF_LOCATION_USER field type  */
 
-      int _pdmGNum_handle_index;
+      PDM_gen_gnum_t *_pdmGNum_handle_index;
 
       int **_weights_src_idx;
       double **_weights_src;

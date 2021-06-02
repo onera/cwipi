@@ -27,6 +27,7 @@
 #include <pdm_mesh_nodal.h>
 #include <bftc_error.h>
 #include "pdm_error.h"
+#include "pdm_gnum.h"
 #include "block.hxx"
 #include "cwp.h"
 #include "visualization.hxx"
@@ -517,8 +518,8 @@ namespace cwipi {
     std::vector <CWP_g_num_t*>              _global_num_elt;             /*!< Global elements numbering for each partition  */
     int                                     _npart;                  /*!< Number of partition  */
     PDM_Mesh_nodal_t                       *_pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
-    int                                     _pdmGNum_handle_index;   /*!< Global number index for paradigm handler   */
-    int                                     _pdmGNum_handle_index_elt;   /*!< Global number index for paradigm handler   */
+    PDM_gen_gnum_t                         *_pdmGNum_handle_index;   /*!< Global number index for paradigm handler   */
+    PDM_gen_gnum_t                         *_pdmGNum_handle_index_elt;   /*!< Global number index for paradigm handler   */
     PDM_Mesh_nodal_t                       *_pdmNodal;               /*!< Pointer to the paradigm mesh (nodal) object   */
     std::vector<cwipi::Block*>               _blockDB;                /*!< Blocks database  */
     Visu                                   *_visu;                   /*!< Pointer to the Visu object */

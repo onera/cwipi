@@ -22,6 +22,7 @@
 #include "cwp.h"
 #include "pdm_mesh_nodal.h"
 #include "pdm_geom_elem.h"
+#include "pdm_gnum.h"
 #include <map>
 #include <vector>
 #include <bftc_error.h>
@@ -424,7 +425,7 @@ namespace cwipi {
     std::vector <int>          _part_id;                /*!< Partition where the block is defined  */
     int                        _block_id_pdm;           /*!< Block identifier */
     int                        _block_id_cwipi;         /*!< Block identifier */
-    int                        _pdmGNum_handle_index;   /*!< Index used by the paradigm global numbering object */
+    PDM_gen_gnum_t            *_pdmGNum_handle_index;   /*!< Index used by the paradigm global numbering object */
     std::vector <CWP_g_num_t*> _global_num;             /*!< Global numbering in the Mesh  */
     std::vector <CWP_g_num_t*> _global_num_computed;    /*!< Global numbering computed in the Mesh  */
     std::vector <CWP_g_num_t*> _global_num_block;       /*!< Global numbering in the Block */

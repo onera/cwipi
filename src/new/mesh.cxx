@@ -69,7 +69,7 @@ namespace cwipi {
              Coupling *cpl)
              : _localComm(localComm),
                _nDim(-1),_nBlocks(0), _order(-1),
-               _pdmGNum_handle_index(-1),
+               _pdmGNum_handle_index(NULL),
                 //_hoOrdering (NULL),
                _pdmNodal(NULL),_visu(visu),
                _displacement(displacement),
