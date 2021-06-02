@@ -51,6 +51,8 @@ extern "C" {
  * Type definitions
  *============================================================================*/
 
+typedef struct _pdm_gnum_location_t PDM_gnum_location_t;
+
 /*=============================================================================
  * Static global variables
  *============================================================================*/
@@ -70,7 +72,7 @@ extern "C" {
  * \return     Identifier
  */
 
-int
+PDM_gnum_location_t*
 PDM_gnum_location_create
 (
  const int          n_part_in,
@@ -79,14 +81,13 @@ PDM_gnum_location_create
 );
 
 
-void
+PDM_gnum_location_t*
 PDM_gnum_location_create_cf
 (
  const int          n_part_in,
  const int          n_part_out,
- const PDM_MPI_Fint comm,
- int *id
- );
+ const PDM_MPI_Fint comm
+);
 
 /**
  *
@@ -102,10 +103,10 @@ PDM_gnum_location_create_cf
 void
 PDM_gnum_location_elements_set
 (
- const int id,
- const int i_part_in,
- const int n_elts_in,
- const PDM_g_num_t *gnum_in
+       PDM_gnum_location_t *gnum_loc,
+ const int                  i_part_in,
+ const int                  n_elts_in,
+ const PDM_g_num_t         *gnum_in
 );
 
 
@@ -123,10 +124,10 @@ PDM_gnum_location_elements_set
 void
 PDM_gnum_location_requested_elements_set
 (
- const int id,
- const int i_part_out,
- const int n_elts_out,
- const PDM_g_num_t *gnum_out
+       PDM_gnum_location_t *gnum_loc,
+ const int                  i_part_out,
+ const int                  n_elts_out,
+ const PDM_g_num_t         *gnum_out
 );
 
 
@@ -141,7 +142,7 @@ PDM_gnum_location_requested_elements_set
 void
 PDM_gnum_location_compute
 (
- const int id
+ PDM_gnum_location_t *gnum_loc
 );
 
 
@@ -160,10 +161,10 @@ PDM_gnum_location_compute
 void
 PDM_gnum_location_get
 (
- const int id,
- const int i_part_out,
-       int **location_idx,
-       int **location
+       PDM_gnum_location_t  *gnum_loc,
+ const int                   i_part_out,
+       int                 **location_idx,
+       int                 **location
 );
 
 
@@ -179,8 +180,8 @@ PDM_gnum_location_get
 void
 PDM_gnum_location_free
 (
- const int id,
- const int keep_results
+       PDM_gnum_location_t *gnum_loc,
+ const int                  keep_results
 );
 
 

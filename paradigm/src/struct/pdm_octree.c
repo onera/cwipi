@@ -24,6 +24,7 @@
 #include "pdm_box.h"
 #include "pdm_box_tree.h"
 #include "pdm_box_priv.h"
+#include "pdm_array.h"
 
 /*----------------------------------------------------------------------------
  *  Header for the current file
@@ -931,11 +932,7 @@ double      *closest_octree_pt_dist2
    *
    ***********************************/
 
-  int *n_send_pts = (int *) malloc (sizeof(int) * n_rank);
-
-  for (int i = 0; i < n_rank; i++) {
-    n_send_pts[i] = 0;
-  }
+  int *n_send_pts = PDM_array_zeros_int(n_rank);
 
   for (int i = 0; i < n_pts; i++) {
     n_send_pts[rank_id[i]]++;
@@ -1037,9 +1034,8 @@ double      *closest_octree_pt_dist2
 
   double *upper_bound_dist = (double *) malloc (sizeof(double) * n_pts);
 
-  for (int i = 0; i < n_rank; i++) {
-    n_send_pts[i] = 0;
-  }
+  PDM_array_reset_int(n_send_pts, n_rank, 0);
+
 
   for (int i = 0; i < n_pts; i++) {
     int id_rank = rank_id[i];
@@ -1176,10 +1172,7 @@ double      *closest_octree_pt_dist2
     i_send_pts1 = i_send_pts;
   }
   else {
-    n_send_pts1 = (int *) malloc (sizeof(int) * n_rank);
-    for (int i = 0; i < n_rank; i++) {
-      n_send_pts1[i] = 0;
-    }
+    n_send_pts1 = PDM_array_zeros_int(n_rank);
     i_send_pts1 = (int *) malloc (sizeof(int) * (n_rank + 1));
     i_send_pts1[0] = 0;
   }

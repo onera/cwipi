@@ -29,6 +29,8 @@ extern "C" {
  * Type definitions
  *============================================================================*/
 
+typedef struct _pdm_global_point_mean_t PDM_global_point_mean_t;
+
 /*============================================================================
  * Public function definitions
  *============================================================================*/
@@ -43,21 +45,29 @@ extern "C" {
  * \return     Identifier
  */
 
-int
+PDM_global_point_mean_t*
 PDM_global_mean_create
 (
  const int n_part,
  const PDM_MPI_Comm comm
 );
 
-void
-PROCF (pdm_global_mean_create, PDM_GLOBAL_MEAN_CREATE)
-(
- const int *n_part,
- const PDM_MPI_Fint *fcomm,
-       int *id
-);
+/**
+ *
+ * \brief Create a structure that compute a global mean
+ *
+ * \param [in]   n_part       Number of local partitions
+ * \param [in]   comm         PDM_MPI communicator
+ *
+ * \return     Identifier
+ */
 
+PDM_global_point_mean_t*
+PDM_global_mean_create_cf
+(
+ const int          n_part,
+ const PDM_MPI_Fint comm
+);
 
 /**
  *
@@ -73,21 +83,11 @@ PROCF (pdm_global_mean_create, PDM_GLOBAL_MEAN_CREATE)
 void
 PDM_global_mean_set
 (
- const int          id,
- const int          i_part,
- const int          n_point,
- const PDM_g_num_t *numabs
+       PDM_global_point_mean_t *gmean,
+ const int                      i_part,
+ const int                      n_point,
+ const PDM_g_num_t             *numabs
 );
-
-void
-PROCF (pdm_global_mean_set, PDM_GLOBAL_MEAN_SET)
-(
- const int         *id,
- const int         *i_part,
- const int         *n_point,
- const PDM_g_num_t *numabs
-);
-
 
 /**
  *
@@ -101,15 +101,8 @@ PROCF (pdm_global_mean_set, PDM_GLOBAL_MEAN_SET)
 void
 PDM_global_mean_free
 (
- const int          id
+ PDM_global_point_mean_t *gmean
 );
-
-void
-PROCF (pdm_global_mean_free, PDM_GLOBAL_MEAN_FREE)
-(
- const int         *id
-);
-
 
 /**
  *
@@ -127,25 +120,13 @@ PROCF (pdm_global_mean_free, PDM_GLOBAL_MEAN_FREE)
 void
 PDM_global_mean_field_set
 (
- const int          id,
- const int          i_part,
- const int          stride,
- const double      *local_field,
- const double      *local_weight,
- double            *global_mean_field_ptr
+ PDM_global_point_mean_t  *gmean,
+ const int                 i_part,
+ const int                 stride,
+ const double             *local_field,
+ const double             *local_weight,
+ double                   *global_mean_field_ptr
 );
-
-void
-PROCF (pdm_global_mean_field_set, PDM_GLOBAL_MEAN_FIELD_SET)
-(
- const int         *id,
- const int         *i_part,
- const int         *stride,
- const double      *local_field,
- const double      *local_weight,
- double            *global_mean_field_ptr
-);
-
 
 /**
  *
@@ -158,15 +139,8 @@ PROCF (pdm_global_mean_field_set, PDM_GLOBAL_MEAN_FIELD_SET)
 void
 PDM_global_mean_field_compute
 (
- const int          id
+ PDM_global_point_mean_t *gmean
 );
-
-void
-PROCF (pdm_global_mean_field_compute, PDM_GLOBAL_MEAN_FIELD_COMPUTE)
-(
- const int         *id
-);
-
 
 
 #ifdef __cplusplus

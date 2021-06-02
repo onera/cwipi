@@ -221,13 +221,13 @@ _create_split_mesh
                      &dedge_group_idx,
                      &dedge_group);
 
-  int id = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, pdm_mpi_comm, PDM_OWNERSHIP_KEEP);
+  PDM_gen_gnum_t* gen_gnum = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, pdm_mpi_comm, PDM_OWNERSHIP_KEEP);
 
-  PDM_gnum_set_from_coords (id, 0, dn_vtx, dvtx_coord, NULL);
+  PDM_gnum_set_from_coords (gen_gnum, 0, dn_vtx, dvtx_coord, NULL);
 
-  PDM_gnum_compute (id);
+  PDM_gnum_compute (gen_gnum);
 
-  const PDM_g_num_t *_numabs2 = PDM_gnum_get (id, 0);
+  const PDM_g_num_t *_numabs2 = PDM_gnum_get (gen_gnum, 0);
 
   /* const PDM_g_num_t *_numabs2 = NULL; */
   /* int id; */
@@ -470,7 +470,7 @@ _create_split_mesh
   free (dedge_group_idx);
   free (dedge_group);
 
-  int id2 = PDM_gnum_create (3, n_part, PDM_TRUE, 1e-3, pdm_mpi_comm, PDM_OWNERSHIP_KEEP);
+  PDM_gen_gnum_t* gen_gnum2 = PDM_gnum_create (3, n_part, PDM_TRUE, 1e-3, pdm_mpi_comm, PDM_OWNERSHIP_KEEP);
 
   double **char_length = malloc(sizeof(double *) * n_part);
 
@@ -566,13 +566,13 @@ _create_split_mesh
       }
     }
 
-    PDM_gnum_set_from_coords (id2, i_part, n_vtx, vtx, char_length[i_part]);
+    PDM_gnum_set_from_coords (gen_gnum2, i_part, n_vtx, vtx, char_length[i_part]);
 
   }
 
   PDM_timer_t *timer = PDM_timer_create();
   PDM_timer_resume(timer);
-  PDM_gnum_compute (id2);
+  PDM_gnum_compute (gen_gnum2);
   PDM_timer_hang_on(timer);
   printf("Compute gnum end %12.5es\n", PDM_timer_elapsed(timer));
   fflush(stdout);
@@ -608,7 +608,7 @@ _create_split_mesh
 
   for (int i_part = 0; i_part < n_part; i_part++) {
 
-    _numabs[i_part] = PDM_gnum_get (id2, i_part);
+    _numabs[i_part] = PDM_gnum_get (gen_gnum2, i_part);
 
     int n_face;
     int nEdge;
@@ -728,9 +728,9 @@ _create_split_mesh
   free(numabs_init);
   free(distrib);
 
-  PDM_gnum_free (id2);
+  PDM_gnum_free (gen_gnum2);
 
-  PDM_gnum_free (id);
+  PDM_gnum_free (gen_gnum);
 
   PDM_part_to_block_free (ptb1);
   PDM_part_to_block_free (ptb2);

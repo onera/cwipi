@@ -30,6 +30,7 @@
 #include "pdm_error.h"
 #include "pdm_sort.h"
 #include "pdm_ext_wrapper.h"
+#include "pdm_array.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -134,11 +135,7 @@ PDM_part_graph_split
  int       **cell_part
 )
 {
-  *cell_part = (int *) malloc(part_ini->n_cell * sizeof(int));
-
-  for (int i = 0; i < part_ini->n_cell; i++){
-    (*cell_part)[i] = 0;
-  }
+  *cell_part = PDM_array_zeros_int(part_ini->n_cell);
 
   if (n_part > 1) {
     switch(method) {
@@ -393,15 +390,9 @@ PDM_part_graph_compute_from_face_cell
   int           **cell_cellCompressed
 )
 {
-  int *cell_cellN = (int *) malloc(part_ini->n_cell * sizeof(int));
-  for (int i = 0; i < part_ini->n_cell; i++) {
-    cell_cellN[i] = 0;
-  }
+  int *cell_cellN = PDM_array_zeros_int(part_ini->n_cell);
 
-  int *cell_cell = (int *) malloc(part_ini->cell_face_idx[part_ini->n_cell] * sizeof(int));
-  for (int i = 0; i < part_ini->cell_face_idx[part_ini->n_cell]; i++) {
-    cell_cell[i] = -1;
-  }
+  int *cell_cell = PDM_array_const_int(part_ini->cell_face_idx[part_ini->n_cell], -1);
 
   int *cell_cell_idx = (int *) malloc((part_ini->n_cell + 1) * sizeof(int));
   for(int i = 0; i < part_ini->n_cell + 1; i++) {
@@ -439,12 +430,7 @@ PDM_part_graph_compute_from_face_cell
 
   //cell_cell_idx is rebuilt
   assert((*cell_cell_idxCompressed) == NULL);
-  (*cell_cell_idxCompressed) = (int *) malloc((part_ini->n_cell + 1) * sizeof(int));
-
-  (*cell_cell_idxCompressed)[0] = 0;
-  for(int i = 0; i < part_ini->n_cell; i++) {
-    (*cell_cell_idxCompressed)[i + 1] = (*cell_cell_idxCompressed)[i] + cell_cellN[i];
-  }
+  *cell_cell_idxCompressed = PDM_array_new_idx_from_sizes_int(cell_cellN, part_ini->n_cell);
 
   //We compress the dual graph since cell_cell_idx was built from cell_face_idx
   //We have then n_face elements in cell_cell whereas it needs to be composed of n_cell elements
@@ -565,11 +551,7 @@ PDM_part_graph_split_bis
  int       **cell_part
 )
 {
-  *cell_part = (int *) malloc(graphSize * sizeof(int));
-
-  for (int i = 0; i < graphSize; i++){
-    (*cell_part)[i] = 0;
-  }
+  *cell_part = PDM_array_zeros_int(graphSize);
 
   switch(method) {
   case 1:

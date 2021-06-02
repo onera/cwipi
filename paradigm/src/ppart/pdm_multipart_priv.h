@@ -95,7 +95,7 @@ _run_ppart_zone_nodal
   PDM_dmesh_nodal_t *dmesh_nodal,
   _part_mesh_t      *pmesh,
   PDM_split_dual_t   split_method,
-  int                dn_part, 
+  int                dn_part,
   PDM_MPI_Comm       comm
 );
 

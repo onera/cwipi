@@ -22,6 +22,7 @@
 #include "pdm_error.h"
 #include "pdm_timer.h"
 #include "pdm_unique.h"
+#include "pdm_array.h"
 #include "pdm_logging.h"
 
 #ifdef __cplusplus
@@ -167,11 +168,8 @@ const int   n_entity2,
 )
 {
   int* _entity2_entity1_idx = (int * ) malloc( (n_entity2 + 1) * sizeof(int));
-  int* entity2_entity1_n    = (int * ) malloc( (n_entity2    ) * sizeof(int));
+  int* entity2_entity1_n    = PDM_array_zeros_int(n_entity2);
 
-  for(int i_entity2 = 0; i_entity2 < n_entity2; ++i_entity2) {
-    entity2_entity1_n[i_entity2] = 0;
-  }
 
   for(int i_entity1 = 0; i_entity1 < n_entity1; ++i_entity1) {
     for(int idx_1 = entity1_entity2_idx[i_entity1]; idx_1 < entity1_entity2_idx[i_entity1+1]; ++idx_1 ) {
@@ -180,11 +178,8 @@ const int   n_entity2,
     }
   }
 
-  _entity2_entity1_idx[0] = 0;
-  for(int i_entity2 = 0; i_entity2 < n_entity2; ++i_entity2) {
-    _entity2_entity1_idx[i_entity2+1] = _entity2_entity1_idx[i_entity2] + entity2_entity1_n[i_entity2];
-    entity2_entity1_n[i_entity2] = 0;
-  }
+  PDM_array_idx_from_sizes_int(entity2_entity1_n, n_entity2, _entity2_entity1_idx);
+  PDM_array_reset_int(entity2_entity1_n, n_entity2, 0);
 
   int* _entity2_entity1 = (int * ) malloc( _entity2_entity1_idx[n_entity2] * sizeof(int));
 

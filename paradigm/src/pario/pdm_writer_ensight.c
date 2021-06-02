@@ -24,6 +24,7 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_handles.h"
+#include "pdm_array.h"
 
 /*=============================================================================
  * Definitions des macro
@@ -509,9 +510,8 @@ _calcul_numabs_face_poly3d
     (unsigned char *) malloc(sizeof(unsigned char) * (recv_buff_idx[n_procs - 1] +
                                                       recv_buff_n[n_procs - 1]) * n_octet_exch);
 
-  for (int j = 0; j < n_procs; j++) {
-    send_buff_n[j] = 0;
-  }
+  PDM_array_reset_int(send_buff_n, n_procs, 0);
+
 
   unsigned char *current_data = send_buff_data;
   for (int j = 0; j < n_part; j++) {
@@ -642,9 +642,7 @@ _calcul_numabs_face_poly3d
 
   /* On Stocke l'information recue */
 
-  for (int j = 0; j < n_procs; j++) {
-    send_buff_n[j] = 0;
-  }
+  PDM_array_reset_int(send_buff_n, n_procs, 0);
 
   current_data = send_buff_data;
   for (int j = 0; j < n_part; j++) {
@@ -1713,10 +1711,7 @@ PDM_writer_ensight_var_write
 
         /* Boucle sur les blocs standard */
 
-        int *ideb = (int *) malloc(sizeof(int) * n_part);
-        for (int i = 0; i < n_part; i++) {
-          ideb[i] = 0;
-        }
+        int *ideb = PDM_array_zeros_int(n_part);
 
         for (int iblock = 0; iblock < n_blocks; iblock++) {
 

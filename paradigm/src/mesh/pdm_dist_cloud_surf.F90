@@ -36,7 +36,8 @@ module pdm_dist_cloud_surf
     !! \param [inout] id             Identifier
     !!
 
-    subroutine pdm_dist_cloud_surf_create (mesh_nature, n_point_cloud, fComm, owner, id) &
+    function pdm_dist_cloud_surf_create (mesh_nature, n_point_cloud, fComm, owner) &
+                                       result(ptrC) &
          bind (c, name = 'PDM_dist_cloud_surf_create_cf')
 
       use iso_c_binding
@@ -48,9 +49,9 @@ module pdm_dist_cloud_surf
       integer(c_int), value :: fComm
       integer(c_int), value :: owner
 
-      integer(c_int)        :: id
+      type (c_ptr) :: ptrC
 
-    end subroutine pdm_dist_cloud_surf_create
+    end function pdm_dist_cloud_surf_create
 
     !> \brief Set the number of partitions of a point cloud
     !!
@@ -59,14 +60,14 @@ module pdm_dist_cloud_surf
     !! \param [in]   n_part          Number of partitions
     !!
 
-    subroutine pdm_dist_cloud_surf_n_part_cloud_set (id, i_point_cloud, n_part) &
+    subroutine pdm_dist_cloud_surf_n_part_cloud_set (ptrC, i_point_cloud, n_part) &
          bind (c, name = 'PDM_dist_cloud_surf_n_part_cloud_set')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value        :: id
+      type (c_ptr), value          :: ptrC
       integer(c_int), value        :: i_point_cloud
       integer(c_int), value        :: n_part
 
@@ -82,14 +83,14 @@ module pdm_dist_cloud_surf
     !! \param [in]   gnum            Point global number
     !!
 
-    subroutine pdm_dist_cloud_surf_cloud_set (id, i_point_cloud, i_part, n_points, coords, gnum ) &
+    subroutine pdm_dist_cloud_surf_cloud_set (ptrC, i_point_cloud, i_part, n_points, coords, gnum ) &
          bind (c, name = 'PDM_dist_cloud_surf_cloud_set')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value        :: id
+      type (c_ptr), value          :: ptrC
       integer(c_int), value        :: i_point_cloud
       integer(c_int), value        :: i_part
       integer(c_int), value        :: n_points
@@ -106,14 +107,14 @@ module pdm_dist_cloud_surf
     !!
     !!
 
-    subroutine pdm_dist_cloud_surf_nodal_mesh_set (id, mesh_nodal_id) &
+    subroutine pdm_dist_cloud_surf_nodal_mesh_set (ptrC, mesh_nodal_id) &
          bind (c, name = 'pdm_dist_cloud_surf_nodal_mesh_set')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value        :: id
+      type (c_ptr), value          :: ptrC
       integer(c_int), value        :: mesh_nodal_id
 
     end subroutine pdm_dist_cloud_surf_nodal_mesh_set
@@ -126,14 +127,14 @@ module pdm_dist_cloud_surf
     !! \param [in]   n_part         Number of partition
     !!
 
-    subroutine pdm_dist_cloud_surf_surf_mesh_global_data_set (id, n_g_face, n_g_vtx, n_part) &
+    subroutine pdm_dist_cloud_surf_surf_mesh_global_data_set (ptrC, n_g_face, n_g_vtx, n_part) &
          bind (c, name = 'PDM_dist_cloud_surf_surf_mesh_global_data_set')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value        :: id
+      type (c_ptr), value          :: ptrC
 #ifdef PDM_LONG_G_NUM
       integer(c_long), value       :: n_g_face
       integer(c_long), value       :: n_g_vtx
@@ -157,7 +158,7 @@ module pdm_dist_cloud_surf
     !! \param [in]   vtx_ln_to_gn  Local vertex numbering to global vertex numbering
     !!
 
-    subroutine pdm_dist_cloud_surf_surf_mesh_part_set (id, i_part, n_face, face_vtx_idx, &
+    subroutine pdm_dist_cloud_surf_surf_mesh_part_set (ptrC, i_part, n_face, face_vtx_idx, &
                                                  face_vtx, face_ln_to_gn, n_vtx, coords, &
                                                  vtx_ln_to_gn) &
       bind (c, name = 'PDM_dist_cloud_surf_surf_mesh_part_set')
@@ -165,7 +166,7 @@ module pdm_dist_cloud_surf
 
       implicit none
 
-      integer(c_int), value     :: id
+      type (c_ptr), value       :: ptrC
       integer(c_int), value     :: i_part
       integer(c_int), value     :: n_face
       type(c_ptr), value        :: face_vtx_idx
@@ -182,13 +183,13 @@ module pdm_dist_cloud_surf
     !! \param [in]   id  Identifier
     !!
 
-    subroutine pdm_dist_cloud_surf_compute (id) &
+    subroutine pdm_dist_cloud_surf_compute (ptrC) &
          bind (c, name = 'PDM_dist_cloud_surf_compute')
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value     :: id
+      type (c_ptr), value       :: ptrC
     end subroutine pdm_dist_cloud_surf_compute
 
     !> \brief Get mesh distance
@@ -201,7 +202,7 @@ module pdm_dist_cloud_surf
     !! \param [out]  closest_elt_g_num     Global number of the closest element
     !!
 
-    subroutine pdm_dist_cloud_surf_get (id, i_point_cloud, i_part, &
+    subroutine pdm_dist_cloud_surf_get (ptrC, i_point_cloud, i_part, &
                                   closest_elt_distance, &
                                   closest_elt_projected, &
                                   closest_elt_gnum) &
@@ -211,7 +212,7 @@ module pdm_dist_cloud_surf
 
       implicit none
 
-      integer(c_int), value     :: id
+      type (c_ptr), value       :: ptrC
       integer(c_int), value     :: i_point_cloud
       integer(c_int), value     :: i_part
       type(c_ptr)               :: closest_elt_distance
@@ -227,14 +228,14 @@ module pdm_dist_cloud_surf
     !!                       Otherwise, results are kept.
     !!
 
-    subroutine pdm_dist_cloud_surf_free (id, partial) &
+    subroutine pdm_dist_cloud_surf_free (ptrC, partial) &
        bind (c, name = 'PDM_dist_cloud_surf_free')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value     :: id
+      type (c_ptr), value       :: ptrC
       integer(c_int), value     :: partial
 
     end subroutine pdm_dist_cloud_surf_free
@@ -244,14 +245,14 @@ module pdm_dist_cloud_surf
     !! \param [in]  id       Identifier
     !!
 
-    subroutine pdm_dist_cloud_surf_dump_times (id) &
+    subroutine pdm_dist_cloud_surf_dump_times (ptrC) &
          bind (c, name = 'PDM_dist_cloud_surf_dump_times')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value     :: id
+      type (c_ptr), value       :: ptrC
     end subroutine pdm_dist_cloud_surf_dump_times
 
   end interface

@@ -112,6 +112,7 @@ cdef extern from "pdm_multipart.h":
                                       int            ipart,
                                       int          **cell_color,
                                       int          **face_color,
+                                      int          **face_hp_color,
                                       int          **thread_color,
                                       int          **hyper_plane_color)
 
@@ -173,7 +174,6 @@ cdef class MultiPart:
                                               part_fraction_data,
                                               PDM_MPI_mpi_2_pdm_mpi_comm (<void *> &c_comm),
                                               PDM_OWNERSHIP_USER) # Python take ownership
-        print("MultiPart::end ")
 
     # ------------------------------------------------------------------
     def __dealloc__(self):
@@ -743,6 +743,7 @@ cdef class MultiPart:
         # > Declaration
         cdef int          *cell_color,
         cdef int          *face_color
+        cdef int          *face_hp_color
         cdef int          *thread_color
         cdef int          *hyper_plane_color
         # ************************************************************************
@@ -756,6 +757,7 @@ cdef class MultiPart:
                                      ipart,
                                      &cell_color,
                                      &face_color,
+                                     &face_hp_color,
                                      &thread_color,
                                      &hyper_plane_color)
         # -> Begin
@@ -783,6 +785,17 @@ cdef class MultiPart:
                                                         <void *> face_color)
             PyArray_ENABLEFLAGS(np_face_color, NPY.NPY_OWNDATA);
 
+        # \param [out]  face_hp_color            Cell tag (size = n_face)
+        if (face_hp_color == NULL):
+            np_face_hp_color = None
+        else :
+            dim = <NPY.npy_intp> dims['n_face']
+            np_face_hp_color = NPY.PyArray_SimpleNewFromData(1,
+                                                        &dim,
+                                                        NPY.NPY_INT32,
+                                                        <void *> face_hp_color)
+            PyArray_ENABLEFLAGS(np_face_hp_color, NPY.NPY_OWNDATA);
+
         # \param [out]  thread_color            Cell tag (size = n_cell)
         if (thread_color == NULL):
             np_thread_color = None
@@ -807,6 +820,7 @@ cdef class MultiPart:
 
         return {'np_cell_color'        : np_cell_color,
                 'np_face_color'        : np_face_color,
+                'np_face_hp_color'     : np_face_hp_color,
                 'np_thread_color'      : np_thread_color,
                 'np_hyper_plane_color' : np_hyper_plane_color}
 

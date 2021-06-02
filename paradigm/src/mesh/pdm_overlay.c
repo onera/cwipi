@@ -30,6 +30,7 @@
 #include "pdm_timer.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm_array.h"
 #include "pdm_gnum.h"
 
 #include "pdm_part_to_block_priv.h"
@@ -673,10 +674,8 @@ _compute_overlay_planes
                          &blockA_boxesB_stride,
                          (void **) &blockA_boxesB_gnum_data);
 
-  int *blockA_boxesB_idx = (int *) malloc (sizeof(int) * (n_elt_blockA + 1));
-  for (int i = 0; i < n_elt_blockA + 1; i++) {
-    blockA_boxesB_idx[i] = 0;
-  }
+  int *blockA_boxesB_idx = PDM_array_zeros_int(n_elt_blockA + 1);
+
   for (int i = 0; i < n_elt_blockA; i++) {
     blockA_boxesB_idx[i+1] = blockA_boxesB_idx[i] + blockA_boxesB_stride[i];
   }
@@ -684,10 +683,7 @@ _compute_overlay_planes
   free (blockA_boxesB_stride);
 
   int idx = 0;
-  int *blockA_boxesB_idx_new = (int *) malloc (sizeof(int) * (n_elt_blockA + 1));
-  for (int i = 0; i < n_elt_blockA + 1; i++) {
-    blockA_boxesB_idx_new[i] = 0;
-  }
+  int *blockA_boxesB_idx_new = PDM_array_zeros_int(n_elt_blockA + 1);
 
   for (int i = 0; i < n_elt_blockA; i++) {
 
@@ -1049,17 +1045,8 @@ _compute_overlay_planes
   /* Stocker les intersection dans une structure */
 
   int *faceIdxCurrent[2];
-  faceIdxCurrent[0] = (int *) malloc (sizeof(int) * (n_elt_blockA + 1));
-  faceIdxCurrent[1] = (int *) malloc (sizeof(int) * (n_eltB + 1));
-  for (int i = 0; i < 2; i++) {
-    faceIdxCurrent[i][0] = 0;
-  }
-  for (int j = 0; j < n_elt_blockA; j++) {
-    faceIdxCurrent[0][j+1] = faceIdxCurrent[0][j] + faceStrideCurrent[0][j];
-  }
-  for (int j = 0; j < n_eltB; j++) {
-    faceIdxCurrent[1][j+1] = faceIdxCurrent[1][j] + faceStrideCurrent[1][j];
-  }
+  faceIdxCurrent[0] = PDM_array_new_idx_from_sizes_int(faceStrideCurrent[0], n_elt_blockA);
+  faceIdxCurrent[1] = PDM_array_new_idx_from_sizes_int(faceStrideCurrent[1], n_eltB);
 
   /*****************************************************************************
    *                                                                           *
@@ -1527,7 +1514,7 @@ _compute_overlay_planes
   const PDM_bool_t   merge = PDM_FALSE;
   const double       tolerance = 1e-8;
 
-  int gnum_B_into_A = PDM_gnum_create (dim, n_part, merge, tolerance, ol->comm, PDM_OWNERSHIP_KEEP);
+  PDM_gen_gnum_t *gnum_B_into_A = PDM_gnum_create (dim, n_part, merge, tolerance, ol->comm, PDM_OWNERSHIP_KEEP);
 
   int n_elt_B_into_A = 0;
   for (int i = 0; i < subFacesConnecIdx[nSharedSubFaces]; i++) {
@@ -1564,7 +1551,7 @@ _compute_overlay_planes
   PDM_gnum_free (gnum_B_into_A);
   free (elt_B_into_A_g_num);
 
-  int gnum_A_into_B = PDM_gnum_create (dim, n_part, merge, tolerance, ol->comm, PDM_OWNERSHIP_KEEP);
+  PDM_gen_gnum_t *gnum_A_into_B = PDM_gnum_create (dim, n_part, merge, tolerance, ol->comm, PDM_OWNERSHIP_KEEP);
 
   int n_elt_A_into_B = 0;
   for (int i = 0; i < subFacesConnecIdx[nSharedSubFaces]; i++) {
@@ -1963,9 +1950,8 @@ _compute_overlay_planes
       int _key = used_keys[j];
       int n_data = PDM_hash_tab_n_data_get (htSubEdgeA, &_key);
       int tag[n_data];
-      for (int k1 = 0; k1 < n_data; k1++) {
-        tag[k1] = 0;
-      }
+      PDM_array_reset_int(tag, n_data, 0);
+
       _sub_edge_t **se = (_sub_edge_t **) PDM_hash_tab_data_get (htSubEdgeA, &_key);
       for (int k1 = 0; k1 < n_data; k1++) {
         if (tag[k1] == 1) continue;
@@ -2437,9 +2423,7 @@ _compute_overlay_planes
 
   int *recv_stride2 = NULL;
 
-  for (int i = 0; i < n_boxesB_without_dupl; i++) {
-    _tmp_stride[i] = 0;
-  }
+  PDM_array_reset_int(_tmp_stride, n_boxesB_without_dupl, 0);
 
   for (int i = 0; i < blockA_boxesB_idx[n_elt_blockA]; i++) {
     int _idx = blockB_lnum_data[i];
@@ -2478,9 +2462,7 @@ _compute_overlay_planes
 
   free (subFacesConnecB_ordered);
 
-  for (int i = 0; i < n_boxesB_without_dupl; i++) {
-    _tmp_stride[i] = 0;
-  }
+  PDM_array_reset_int(_tmp_stride, n_boxesB_without_dupl, 0);
 
   double *subFacesCoordsA_ordered = malloc(3 * sizeof(double) * subFacesConnecIdx[nSharedSubFaces]);
   for (int i = 0; i < blockA_boxesB_idx[n_elt_blockA]; i++) {
@@ -2536,22 +2518,14 @@ _compute_overlay_planes
 
   int *recv_stride4 = NULL;
 
-  PDM_g_num_t *sendFaceToEdgeNPtInt = malloc (sizeof(PDM_g_num_t) * 3 * _tmp_idx[n_boxesB_without_dupl]);
-
-  for (int i = 0; i < 3 * _tmp_idx[n_boxesB_without_dupl]; i++) {
-    sendFaceToEdgeNPtInt[i] = 0;
-  }
-
+  PDM_g_num_t *sendFaceToEdgeNPtInt = PDM_array_const_gnum(3*_tmp_idx[n_boxesB_without_dupl], 0);
   idx1 = 0;
   int s_properties = 0;
 
-  int *_tmp_stride2 = malloc (sizeof(int) * n_boxesB_without_dupl);
+  int *_tmp_stride2 = PDM_array_zeros_int(n_boxesB_without_dupl);
   int *_tmp_idx2 = malloc (sizeof(int) * (n_boxesB_without_dupl + 1));
 
   _tmp_idx2[0] = 0;
-  for (int i = 0; i < n_boxesB_without_dupl; i++) {
-    _tmp_stride2[i] = 0;
-  }
 
   for (int i = 0; i < blockA_boxesB_idx[n_elt_blockA]; i++) {
     if (_tmp_stride[idx_without_dupl[i]] == 0) {
@@ -2631,9 +2605,7 @@ _compute_overlay_planes
 
   free (sendFaceToEdgeNPtInt);
 
-  for (int i = 0; i < n_boxesB_without_dupl; i++) {
-    _tmp_stride[i] = 0;
-  }
+  PDM_array_reset_int(_tmp_stride, n_boxesB_without_dupl, 0);
 
   int *recv_stride41 = NULL;
 
@@ -3277,9 +3249,8 @@ _compute_overlay_planes
       int _key = (int) used_keys[j];
       int n_data = PDM_hash_tab_n_data_get (htSubEdgeB, &_key);
       int tag[n_data];
-      for (int k11 = 0; k11 < n_data; k11++) {
-        tag[k11] = 0;
-      }
+      PDM_array_reset_int(tag, n_data, 0);
+
       _sub_edge_t **se = (_sub_edge_t **) PDM_hash_tab_data_get (htSubEdgeB, &_key);
       for (int k11 = 0; k11 < n_data; k11++) {
         if (tag[k11] == 1) continue;
@@ -3895,15 +3866,8 @@ _compute_overlay_planes
                                      1, // Don't use in this case
                                      ol->comm);
 
-  countEltsB = (int *) malloc (sizeof(int) * lComm);
-
-  for (int i = 0; i < lComm + 1; i++) {
-    distribB->index[i] = 0;
-  }
-
-  for (int i = 0; i < lComm; i++) {
-    countEltsB[i] = 0;
-  }
+  countEltsB = PDM_array_zeros_int(lComm);
+  PDM_array_reset_int(distribB->index, lComm+1, 0);
 
   for (int i = 0; i < box_size; i++) {
     int iProc = PDM_binary_search_gap_long (boxes_gnum[i] - 1,
@@ -4157,10 +4121,8 @@ _compute_overlay_planes
   PDM_g_num_t nSubFaceA = 0;
   int *nUnChangedFacePartA = malloc(sizeof(int) * n_partA);
   int *nSubFacePartA = malloc(sizeof(int) * n_partA);
-  int *s_olface_vtxA = malloc(sizeof(int) * n_partA);
-  for (int i = 0; i < n_partA; i++) {
-    s_olface_vtxA[i] = 0;
-  }
+  int *s_olface_vtxA = PDM_array_zeros_int(n_partA);
+
 
   /*
    * Compute dimensions
@@ -4612,10 +4574,7 @@ _compute_overlay_planes
   PDM_g_num_t nSubFaceB = 0;
   int *nUnChangedFacePartB = malloc(sizeof(int) * n_partB);
   int *nSubFacePartB = malloc(sizeof(int) * n_partB);
-  int *s_olface_vtxB = malloc(sizeof(int) * n_partB);
-  for (int i = 0; i < n_partB; i++) {
-    s_olface_vtxB[i] = 0;
-  }
+  int *s_olface_vtxB = PDM_array_zeros_int(n_partB);
 
   /*
    * Compute dimensions
@@ -5061,16 +5020,13 @@ _compute_overlay_planes
    ****************************************************************************/
 
   int *sendIdx = malloc (sizeof(int)*lComm);
-  int *sendN   = malloc (sizeof(int)*lComm);
+  int *sendN   = PDM_array_zeros_int(lComm);
   PDM_g_num_t *sendBuff = NULL;
 
   int *recvIdx = malloc (sizeof(int)*lComm);
   int *recvN   = malloc (sizeof(int)*lComm);
   PDM_g_num_t *recvBuff = NULL;
 
-  for (int i = 0; i < lComm; i++) {
-    sendN[i] = 0;
-  }
 
   int n_t_send = 0;
   for (int i = 0; i < n_partA; i++) {
@@ -5212,9 +5168,7 @@ _compute_overlay_planes
 
   k = 0;
 
-  for (int i = 0; i < lComm; i++) {
-    sendN[i] = 0;
-  }
+  PDM_array_reset_int(sendN, lComm, 0);
 
   for (int i = 0; i < n_partA; i++) {
     _ol_part_t *olp = ol->olMeshA->part[i];
@@ -5269,10 +5223,7 @@ _compute_overlay_planes
     int *sortGraph = malloc (sizeof(int) * olp->nLinkedFace);
     int *orderGraph = malloc (sizeof(int) * olp->nLinkedFace);
 
-    olp->linkedFacesProcIdx = malloc(sizeof(int) * (lComm + 1));
-    for (int j = 0; j < lComm + 1; j++) {
-      olp->linkedFacesProcIdx[j] = 0;
-    }
+    olp->linkedFacesProcIdx = PDM_array_zeros_int(lComm + 1);
 
     for (int j = 0; j < olp->nLinkedFace; j++) {
       orderGraph[j] = j;
@@ -5323,10 +5274,7 @@ _compute_overlay_planes
     int *sortGraph = malloc (sizeof(int) * olp->nLinkedFace);
     int *orderGraph = malloc (sizeof(int) * olp->nLinkedFace);
 
-    olp->linkedFacesProcIdx = malloc(sizeof(int) * (lComm + 1));
-    for (int j = 0; j < lComm + 1; j++) {
-      olp->linkedFacesProcIdx[j] = 0;
-    }
+    olp->linkedFacesProcIdx = PDM_array_zeros_int(lComm + 1);
 
     for (int j = 0; j < olp->nLinkedFace; j++) {
       orderGraph[j] = j;

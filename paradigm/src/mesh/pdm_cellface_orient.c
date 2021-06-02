@@ -15,6 +15,7 @@
 #include "pdm.h"
 #include "pdm_priv.h"
 #include "pdm_mpi.h"
+#include "pdm_array.h"
 #include "pdm_geom_elem.h"
 #include "pdm_cellface_orient.h"
 #include "pdm_hash_tab.h"
@@ -130,11 +131,7 @@ const int     *face_vtx
     _faceCell = face_cell;
   }
   else {
-    _faceCell = malloc (sizeof(int)* 2 * n_face);
-
-    for (int i = 0; i < 2 * n_face; i++) {
-      _faceCell[i] = 0;
-    }
+    _faceCell = PDM_array_zeros_int(2*n_face);
 
     for (int i = 0; i < n_cell; i++) {
       for (int j = cell_face_idx[i]; j < cell_face_idx[i+1]; j++) {
@@ -158,11 +155,8 @@ const int     *face_vtx
     printf("\n");
   }
 
-  int *orientedface_cell = malloc (sizeof(int)* 2 * n_face);
+  int *orientedface_cell = PDM_array_zeros_int(2*n_face);
 
-  for (int i = 0; i < 2 * n_face; i++) {
-    orientedface_cell[i] = 0;
-  }
 
   int keyMax = 2 * n_vtx;
   PDM_hash_tab_t *hashOrient = PDM_hash_tab_create (PDM_HASH_TAB_KEY_INT, &keyMax);
@@ -187,18 +181,11 @@ const int     *face_vtx
 
   int nStackCell = -1;
   int *stackCell = (int *) malloc (sizeof(int) * n_cell);
-  int *tagFace = (int *) malloc (sizeof(int) * maxNPolyFace);
   int n_processedFace = 0;
   int *processedFace = (int *) malloc (sizeof(int) * maxNPolyFace);
-  int *tagCell = (int *) malloc (sizeof(int) * n_cell);
+  int *tagCell = PDM_array_const_int(n_cell, CELL_Un_procESSED);
+  int *tagFace = PDM_array_const_int(maxNPolyFace, FACE_Un_procESSED);
 
-  for (int i = 0; i < n_cell; i++) {
-    tagCell[i] = CELL_Un_procESSED;
-  }
-
-  for (int iface = 0; iface < maxNPolyFace; iface++) {
-    tagFace[iface] = FACE_Un_procESSED;
-  }
 
   tagCell[0] = CELL_COMPLETED;
 

@@ -56,11 +56,6 @@ typedef enum {
 
 } PDM_Mesh_nodal_elt_t;
 
-int
-is_2D_element(PDM_Mesh_nodal_elt_t type);
-int
-is_3D_element(PDM_Mesh_nodal_elt_t type);
-
 
 typedef struct _PDM_Mesh_nodal_t PDM_Mesh_nodal_t;
 
@@ -71,6 +66,37 @@ typedef struct _PDM_Mesh_nodal_t PDM_Mesh_nodal_t;
 /*=============================================================================
  * Public function interfaces
  *============================================================================*/
+
+
+int
+PDM_Mesh_nodal_is_2D_element
+(
+  PDM_Mesh_nodal_elt_t type
+);
+
+int
+PDM_Mesh_nodal_is_3D_element
+(
+  PDM_Mesh_nodal_elt_t type
+);
+
+
+/**
+ * \brief Get the number of vertices of an element type
+ *
+ * \param [in]   type     Element type
+ * \param [in]   comm     Element order
+ *
+ * \return       Number of vertices
+ *
+ */
+
+int
+PDM_Mesh_nodal_n_vtx_elt_get
+(
+  PDM_Mesh_nodal_elt_t type,
+  const int order
+);
 
 /**
  * \brief Create a Mesh nodal structure
@@ -1033,6 +1059,23 @@ PDM_Mesh_nodal_poly3d_cell_vtx_get
  const PDM_l_num_t   cell_face_idx[],
  const PDM_l_num_t   cell_face[],
        PDM_l_num_t **cell_vtx
+);
+
+
+/**
+ * \brief Get the cell global numbering
+ *
+ * \param [in]  idx   Nodal mesh handle
+ *
+ * \return      NULL
+ *
+ */
+
+PDM_g_num_t *
+PDM_Mesh_nodal_g_num_get_from_part
+(
+ PDM_Mesh_nodal_t *mesh,
+ const int i_part
 );
 
 #ifdef __cplusplus

@@ -49,6 +49,7 @@
 #include "pdm_part_to_block.h"
 #include "pdm_block_to_part.h"
 #include "pdm_distrib.h"
+#include "pdm_array.h"
 
 /*----------------------------------------------------------------------------
  *  Header for the current file
@@ -129,7 +130,7 @@ _build_join_uface_distribution
   PDM_MPI_Comm_rank(_multipart->comm, &i_rank);
   PDM_MPI_Comm_size(_multipart->comm, &n_rank);
 
-  PDM_printf("pdm::_build_join_uface_distribution\n");
+  // PDM_printf("pdm::_build_join_uface_distribution\n");
   int n_total_joins  = _multipart->n_total_joins;
   int n_unique_joins = n_total_joins/2;
   *join_to_ref_join    = (int *) malloc(n_total_joins  * sizeof(int));
@@ -158,9 +159,7 @@ _build_join_uface_distribution
   */
 
   //Count faces in joins
-  int *nb_face_in_joins = (int *) malloc(n_unique_joins * sizeof(int));
-  for (int i = 0; i < n_unique_joins; i++)
-    nb_face_in_joins[i] = 0;
+  int *nb_face_in_joins = PDM_array_zeros_int(n_unique_joins);
 
   for (int izone = 0; izone < _multipart->n_zone; izone++){
     for (int i_part = 0; i_part < _multipart->n_part[izone]; i_part++){
@@ -186,9 +185,7 @@ _build_join_uface_distribution
                     PDM_MPI_INT, PDM_MPI_SUM, _multipart->comm);
 
   _face_in_join_distri[0] = 0;
-  for (int i=0; i < n_unique_joins; i++) {
-    _face_in_join_distri[i+1] = _face_in_join_distri[i+1] + _face_in_join_distri[i];
-  }
+  PDM_array_accumulate_int(_face_in_join_distri, n_unique_joins+1);
 
   /*
   PDM_printf("[%d] _face_in_join_distri : ", i_rank);
@@ -198,7 +195,7 @@ _build_join_uface_distribution
   */
 
   free(nb_face_in_joins);
-  PDM_printf("pdm::_build_join_uface_distribution end \n");
+  // PDM_printf("pdm::_build_join_uface_distribution end \n");
 }
 
 /**
@@ -725,9 +722,9 @@ PDM_multipart_create
  const PDM_ownership_t  owner
 )
 {
-  printf("PDM_multipart_create::n_zone:: %d \n", n_zone);
-  printf("PDM_multipart_create::n_part:: %d \n", n_part[0]);
-  printf("PDM_multipart_create::split_method:: %d \n", split_method);
+  // printf("PDM_multipart_create::n_zone:: %d \n", n_zone);
+  // printf("PDM_multipart_create::n_part:: %d \n", n_part[0]);
+  // printf("PDM_multipart_create::split_method:: %d \n", split_method);
 
   /*
    * Search a ppart free id
@@ -924,7 +921,7 @@ PDM_MPI_Comm      comm
 
   // This will store all the partitions created by this proc on this zone
   // Copy number of bounds and joins (global data) in the part structure
-  printf("pmeshes->n_bounds :: %i \n", n_bnd);
+  // printf("pmeshes->n_bounds :: %i \n", n_bnd);
   pmeshes->n_bounds  = n_bnd;
   pmeshes->n_joins   = n_join;
   pmeshes->joins_ids = (int *) malloc(n_join * sizeof(int));
@@ -1403,7 +1400,7 @@ _run_ppart_zone_nodal
   PDM_MPI_Comm       comm
 )
 {
-  printf("run_ppart_zone_nodal\n");
+  // printf("run_ppart_zone_nodal\n");
   // TODO: joins
   int i_rank;
   int n_rank;
@@ -1485,7 +1482,7 @@ _run_ppart_zone_nodal
 
     PDM_Mesh_nodal_elt_t type = PDM_DMesh_nodal_section_elt_type_get(dmesh_nodal,i_section);
     int counter=0;
-    if (is_3D_element(type)) {
+    if (PDM_Mesh_nodal_is_3D_element(type)) {
       int n_elt = section_idx[i_section+1] - section_idx[i_section];
       for (int i=0; i<n_elt; ++i) {
         elt_section_part[i] = cell_part[counter];
@@ -1498,7 +1495,7 @@ _run_ppart_zone_nodal
     int* elt_section_part = elt_part + section_idx[i_section];
 
     PDM_Mesh_nodal_elt_t type = PDM_DMesh_nodal_section_elt_type_get(dmesh_nodal,i_section);
-    if (is_2D_element(type)) {
+    if (PDM_Mesh_nodal_is_2D_element(type)) {
       int n_elt = section_idx[i_section+1] - section_idx[i_section];
       face_part_from_parent(n_elt,
                             dn_elt,
@@ -1540,7 +1537,7 @@ _run_ppart_zone_nodal
     pn_cell[i_part] = 0;
     for (int i_section=0; i_section<n_section; ++i_section) {
       PDM_Mesh_nodal_elt_t type = PDM_DMesh_nodal_section_elt_type_get(dmesh_nodal,i_section);
-      if (is_3D_element(type)) { // only counting cells
+      if (PDM_Mesh_nodal_is_3D_element(type)) { // only counting cells
         pn_cell[i_part] += pn_elt_section[i_section][i_part];
       }
     }
@@ -1556,7 +1553,7 @@ _run_ppart_zone_nodal
     int offset = 0;
     for (int i_section=0; i_section<n_section; ++i_section) {
       PDM_Mesh_nodal_elt_t type = PDM_DMesh_nodal_section_elt_type_get(dmesh_nodal,i_section);
-      if (is_3D_element(type)) { // only counting cells
+      if (PDM_Mesh_nodal_is_3D_element(type)) { // only counting cells
         int pn_elt = pn_elt_section[i_section][i_part];
         for (int i=0; i<pn_elt; ++i) {
           pcell_ln_to_gn[i_part][pos] = pelt_section_ln_to_gn[i_section][i_part][i] + offset;
@@ -1684,10 +1681,8 @@ _run_ppart_zone_nodal
   // reorder vtx priority itself
   for (int i_part=0; i_part<dn_part; ++i_part) {
     int n_kind = 3;
-    int* priority_count = (int*)malloc(n_kind*sizeof(int));
-    for (int k=0; k<n_kind; ++k) {
-      priority_count[k] = 0;
-    }
+    int* priority_count = PDM_array_zeros_int(n_kind);
+
     for (int i=0; i<pn_vtx[i_part]; ++i) {
       ++priority_count[pinternal_vtx_priority[i_part][i]];
     }
@@ -1839,19 +1834,14 @@ PDM_multipart_run_ppart
     // 1. Generate global numerotation using all blocks
     // 2. Call the partitionner once on the global numbering
   } else {
-    int n_zone = _multipart->n_zone;
-    int* starting_part_idx = (int *) malloc( (n_zone+1) * sizeof(int));
-    starting_part_idx[0] = 0;
-    for (int i = 0; i < n_zone; ++i) {
-      starting_part_idx[i+1] = starting_part_idx[i] + _multipart->n_part[i];
-    }
+    int *starting_part_idx =  PDM_array_new_idx_from_sizes_int(_multipart->n_part, _multipart->n_zone);
 
     int is_by_elt = 0;
     for (int i_zone = 0; i_zone < _multipart->n_zone; ++i_zone) {
       PDM_dmesh_nodal_t* dmesh_nodal = _multipart->dmeshes_nodal[i_zone];
       if (dmesh_nodal != NULL) { // element representation
         is_by_elt = 1;
-        PDM_printf("Partitionning elt zone %d/%d \n", i_zone+1, _multipart->n_zone);
+        // PDM_printf("Partitionning elt zone %d/%d \n", i_zone+1, _multipart->n_zone);
         PDM_MPI_Comm comm = _multipart->comm;
         PDM_split_dual_t split_method = _multipart->split_method;
         int n_part = _multipart->n_part[i_zone];
@@ -1859,7 +1849,7 @@ PDM_multipart_run_ppart
 
         _run_ppart_zone_nodal(dmesh_nodal,pmesh,split_method,n_part,comm);
       } else { // face representation
-        PDM_printf("Partitionning face zone %d/%d \n", i_zone+1, _multipart->n_zone);
+        // PDM_printf("Partitionning face zone %d/%d \n", i_zone+1, _multipart->n_zone);
 
         PDM_MPI_Comm comm = _multipart->comm;
 
@@ -1961,8 +1951,8 @@ PDM_multipart_part_graph_comm_vtx_dim_get
   assert(i_zone < _multipart->n_zone && i_part < _multipart->n_part[i_zone]);
   _part_mesh_t _pmeshes = _multipart->pmeshes[i_zone];
 
-  printf(" n_vtx_part_bound = %i \n", _pmeshes.parts[i_part]->vtx_part_bound_part_idx[_pmeshes.tn_part]);
-  printf(" _pmeshes.tn_part = %i \n", _pmeshes.tn_part);
+  // printf(" n_vtx_part_bound = %i \n", _pmeshes.parts[i_part]->vtx_part_bound_part_idx[_pmeshes.tn_part]);
+  // printf(" _pmeshes.tn_part = %i \n", _pmeshes.tn_part);
 
   *n_vtx_part_bound = _pmeshes.parts[i_part]->vtx_part_bound_part_idx[_pmeshes.tn_part];
 }
@@ -2090,6 +2080,7 @@ const int            i_zone,
 const int            i_part,
       int          **cell_color,
       int          **face_color,
+      int          **face_hp_color,
       int          **thread_color,
       int          **hyperplane_color
 )
@@ -2100,6 +2091,7 @@ const int            i_part,
   _part_mesh_t _pmeshes = _multipart->pmeshes[i_zone];
   *cell_color       = _pmeshes.parts[i_part]->cell_color;
   *face_color       = _pmeshes.parts[i_part]->face_color;
+  *face_hp_color    = _pmeshes.parts[i_part]->face_hp_color;
   *thread_color     = _pmeshes.parts[i_part]->thread_color;
   *hyperplane_color = _pmeshes.parts[i_part]->hyperplane_color;
 
@@ -2136,7 +2128,7 @@ const int       i_zone,
   _pdm_multipart_t *_multipart = _get_from_id (mpart_id);
   assert(i_zone < _multipart->n_zone);
 
-  PDM_printf("PDM_multipart_time_get: Not implemented\n");
+  // PDM_printf("PDM_multipart_time_get: Not implemented\n");
   *elapsed  = NULL;
   *cpu      = NULL;
   *cpu_user = NULL;
@@ -2184,7 +2176,7 @@ PDM_multipart_free
   if (n_multipart == 0) {
     _multiparts = PDM_Handles_free (_multiparts);
   }
-  PDM_printf("Cleaned from PDM_multipart_free\n");
+  // PDM_printf("Cleaned from PDM_multipart_free\n");
 }
 
 

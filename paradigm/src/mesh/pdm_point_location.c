@@ -890,39 +890,43 @@ _locate_in_cell_3d
     _cell_coord = (double *) cell_coord;
   }
   else {
+
+    //FIXME: Allocation a chaque passage. Prevoir buffer en argument alloue a 8 * 3
+
     _cell_coord = malloc (sizeof(double) * n_vtx * 3);
     _cell_coord[ 0] = cell_coord[ 0];
     _cell_coord[ 1] = cell_coord[ 1];
     _cell_coord[ 2] = cell_coord[ 2];
 
-    _cell_coord[ 3] = cell_coord[ 6];
-    _cell_coord[ 4] = cell_coord[ 7];
-    _cell_coord[ 5] = cell_coord[ 8];
+    _cell_coord[ 3] = cell_coord[ 3];
+    _cell_coord[ 4] = cell_coord[ 4];
+    _cell_coord[ 5] = cell_coord[ 5];
 
-    _cell_coord[ 6] = cell_coord[ 3];
-    _cell_coord[ 7] = cell_coord[ 4];
-    _cell_coord[ 8] = cell_coord[ 5];
+    _cell_coord[ 6] = cell_coord[ 9];
+    _cell_coord[ 7] = cell_coord[10];
+    _cell_coord[ 8] = cell_coord[11];
 
-    _cell_coord[ 9] = cell_coord[ 9];
-    _cell_coord[10] = cell_coord[10];
-    _cell_coord[11] = cell_coord[11];
+    _cell_coord[ 9] = cell_coord[ 6];
+    _cell_coord[10] = cell_coord[ 7];
+    _cell_coord[11] = cell_coord[ 8];
+
 
     _cell_coord[12] = cell_coord[12];
     _cell_coord[13] = cell_coord[13];
     _cell_coord[14] = cell_coord[14];
 
     if (elt_type == PDM_MESH_NODAL_HEXA8) {
-      _cell_coord[15] = cell_coord[18];
-      _cell_coord[16] = cell_coord[19];
-      _cell_coord[17] = cell_coord[20];
+      _cell_coord[15] = cell_coord[15];
+      _cell_coord[16] = cell_coord[16];
+      _cell_coord[17] = cell_coord[17];
 
-      _cell_coord[18] = cell_coord[15];
-      _cell_coord[19] = cell_coord[16];
-      _cell_coord[20] = cell_coord[17];
+      _cell_coord[18] = cell_coord[21];
+      _cell_coord[19] = cell_coord[22];
+      _cell_coord[20] = cell_coord[23];
 
-      _cell_coord[21] = cell_coord[21];
-      _cell_coord[22] = cell_coord[22];
-      _cell_coord[23] = cell_coord[23];
+      _cell_coord[21] = cell_coord[18];
+      _cell_coord[22] = cell_coord[19];
+      _cell_coord[23] = cell_coord[20];
     }
   }
 
@@ -966,7 +970,7 @@ _locate_in_cell_3d
       continue;
     }
 
-    /* Compute parametric coordinates */
+    /* Compute parametric coordinates : Try Newton */
     PDM_bool_t stat_uvw = _compute_uvw (elt_type,
                                         _pt,
                                         cell_coord,
@@ -1575,6 +1579,7 @@ _locate_in_polyhedron
 /*============================================================================
  * Public function definitions
  *============================================================================*/
+
 void
 PDM_point_location_nodal
 (
@@ -1607,6 +1612,7 @@ PDM_point_location_nodal
   /*
    * Allocate arrays
    */
+
   int n_elt = type_idx[PDM_MESH_NODAL_N_ELEMENT_TYPES];
   int n_pts = pts_idx[n_elt];
   *distance = malloc (sizeof(double) * n_pts);

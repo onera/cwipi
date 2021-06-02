@@ -177,6 +177,7 @@ typedef struct  _part_t {
   // Cache blocking data
   int         *cell_color;           /*!< For cache blocking (size = n_cell)   */
   int         *face_color;           /*!< For cache blocking (size = n_face)   */
+  int         *face_hp_color;        /*!< For cache blocking (size = n_face)   */
   int         *edge_color;           /*!< For cache blocking (size = n_face)   */
   int         *vtx_color;           /*!< For cache blocking (size = n_face)   */
   int         *thread_color;         /*!< For cache blocking (size = nThread)  */
@@ -411,6 +412,7 @@ void
   part->face_weight              = NULL;
   part->cell_color               = NULL;
   part->face_color               = NULL;
+  part->face_hp_color            = NULL;
   part->edge_color               = NULL;
   part->vtx_color                = NULL;
   part->thread_color             = NULL;

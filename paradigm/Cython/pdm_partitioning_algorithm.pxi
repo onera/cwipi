@@ -137,7 +137,39 @@ def part_distgroup_to_partgroup(MPI.Comm                                      co
         list_group_part.append(dict_group_part)
 
     free(_pn_entity)
+    free(_pgroup_idx)
+    free(_pgroup)
+    free(_pgroup_ln_to_gn)
     free(LNToGN)
 
     return list_group_part
 
+cdef extern from "pdm_closest_points.h":
+    # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    void PDM_transform_to_parent_gnum(PDM_g_num_t *results,
+                                  int          n_results,
+                                  PDM_g_num_t *ln_to_gn,
+                                  PDM_g_num_t *parent_ln_to_gn,
+                                  int          n_elmt,
+                                  PDM_MPI_Comm  comm)
+    # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+# ===================================================================================
+def transform_to_parent_gnum(NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] results,
+                             NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] ln_to_gn,
+                             NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] parent_ln_to_gn,
+                             MPI.Comm                                      comm):
+  """
+  """
+  cdef int n_results = results.shape[0]
+  cdef int n_elmt = ln_to_gn.shape[0]
+  cdef MPI.MPI_Comm c_comm = comm.ob_mpi
+  cdef PDM_MPI_Comm PDMC   = PDM_MPI_mpi_2_pdm_mpi_comm(&c_comm)
+  print("transform_to_parent_gnum", results)
+  PDM_transform_to_parent_gnum(<PDM_g_num_t*> results.data,
+                               n_results,
+                               <PDM_g_num_t*>ln_to_gn.data,
+                               <PDM_g_num_t*>parent_ln_to_gn.data,
+                               n_elmt,
+                               PDMC)
+  print("transform_to_parent_gnum end", results)

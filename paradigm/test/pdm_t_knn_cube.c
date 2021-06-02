@@ -190,8 +190,8 @@ _gen_cube_cell_centers
 
   PDM_g_num_t *distribCell = (PDM_g_num_t *) malloc((n_rank + 1) * sizeof(PDM_g_num_t));
 
-  PDM_g_num_t n_cell     = n_faceSeg * n_faceSeg * n_faceSeg;
-  PDM_g_num_t n_faceFace = n_faceSeg * n_faceSeg;
+  PDM_g_num_t n_cell      = n_faceSeg * n_faceSeg * n_faceSeg;
+  PDM_g_num_t n_face_face = n_faceSeg * n_faceSeg;
 
   // Define distribution
   distribCell[0] = 0;
@@ -219,13 +219,13 @@ _gen_cube_cell_centers
   int _npts = 0;
   for (PDM_g_num_t g = distribCell[i_rank]; g < distribCell[i_rank+1]; g++) {
     PDM_g_num_t i = g % n_faceSeg;
-    PDM_g_num_t j = ((g - i) % n_faceFace) / n_faceSeg;
-    PDM_g_num_t k = (g - i - n_faceSeg * j) / n_faceFace;
+    PDM_g_num_t j = ((g - i) % n_face_face) / n_faceSeg;
+    PDM_g_num_t k = (g - i - n_faceSeg * j) / n_face_face;
 
     (*coord)[3 * _npts    ] = (i + 0.5) * step + zero_x;
     (*coord)[3 * _npts + 1] = (j + 0.5) * step + zero_y;
     (*coord)[3 * _npts + 2] = (k + 0.5) * step + zero_z;
-    (*g_num)[_npts++] = g + 1;//1 + i + n_faceSeg * j + n_faceFace * k;
+    (*g_num)[_npts++] = g + 1;//1 + i + n_faceSeg * j + n_face_face * k;
   }
 
   *npts = _npts;
@@ -278,30 +278,30 @@ int main(int argc, char *argv[])
 
   /* Define the target point cloud */
   double *tgt_coords = NULL;
-  int _nTgt_l;
+  int _n_tgt_l;
   _gen_clouds_random (nTgt,
                       length,
                       numProcs,
                       i_rank,
                       n_faceSeg,
                       &tgt_coords,
-                      &_nTgt_l);
+                      &_n_tgt_l);
 
-  int id = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_USER);
+  PDM_gen_gnum_t* gen_gnum = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_USER);
 
-  double *tgt_char_length = malloc(sizeof(double) * _nTgt_l);
+  double *tgt_char_length = malloc(sizeof(double) * _n_tgt_l);
 
-  for (int i = 0; i < _nTgt_l; i++) {
+  for (int i = 0; i < _n_tgt_l; i++) {
     tgt_char_length[i] = length * 1.e-6;
   }
 
-  PDM_gnum_set_from_coords (id, 0, _nTgt_l, tgt_coords, tgt_char_length);
+  PDM_gnum_set_from_coords (gen_gnum, 0, _n_tgt_l, tgt_coords, tgt_char_length);
 
-  PDM_gnum_compute (id);
+  PDM_gnum_compute (gen_gnum);
 
-  PDM_g_num_t *tgt_gnum = PDM_gnum_get(id, 0);
+  PDM_g_num_t *tgt_gnum = PDM_gnum_get(gen_gnum, 0);
 
-  PDM_gnum_free (id);
+  PDM_gnum_free (gen_gnum);
 
 
 
@@ -309,7 +309,7 @@ int main(int argc, char *argv[])
    *  Define the source point cloud (cell centers of cube)
    */
   n_part = 1;
-  int _nSrc_l;
+  int _n_src_l;
   double *src_coords = NULL;
   PDM_g_num_t *src_gnum = NULL;
   _gen_cube_cell_centers (PDM_MPI_COMM_WORLD,
@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
                           0.,
                           0.,
                           0.,
-                          &_nSrc_l,
+                          &_n_src_l,
                           &src_gnum,
                           &src_coords);
 
@@ -326,37 +326,37 @@ int main(int argc, char *argv[])
 
 
   /* Init closest points structure */
-  int id2 = PDM_closest_points_create (PDM_MPI_COMM_WORLD,
-                                       n_closest_points,
-                                       PDM_OWNERSHIP_KEEP);
+  PDM_closest_point_t* clsp = PDM_closest_points_create (PDM_MPI_COMM_WORLD,
+                                                         n_closest_points,
+                                                         PDM_OWNERSHIP_KEEP);
 
-  PDM_closest_points_n_part_cloud_set (id2,
+  PDM_closest_points_n_part_cloud_set (clsp,
                                        n_part,
                                        1);
 
   // set tgt point cloud
-  PDM_closest_points_tgt_cloud_set (id2,
+  PDM_closest_points_tgt_cloud_set (clsp,
                                     0,
-                                    _nTgt_l,
+                                    _n_tgt_l,
                                     tgt_coords,
                                     tgt_gnum);
 
   // set src point cloud
-  PDM_closest_points_src_cloud_set (id2,
+  PDM_closest_points_src_cloud_set (clsp,
                                     0,
-                                    _nSrc_l,
+                                    _n_src_l,
                                     src_coords,
                                     src_gnum);
 
   /* Compute closest points */
-  PDM_closest_points_compute (id2);
+  PDM_closest_points_compute (clsp);
 
-  PDM_closest_points_dump_times (id2);
+  PDM_closest_points_dump_times (clsp);
 
   PDM_g_num_t *closest_src_gnum = NULL;
   double      *closest_src_dist = NULL;
 
-  PDM_closest_points_get (id2,
+  PDM_closest_points_get (clsp,
                           0,
                           &closest_src_gnum,
                           &closest_src_dist);
@@ -381,8 +381,8 @@ int main(int argc, char *argv[])
   double cell_side = length / ((double) n_faceSeg);
   double cell_ctr[3];
 
-  for (int itgt = 0; itgt < _nTgt_l; itgt++) {
-    /*printf("[%d] %d/%d\n", i_rank, itgt, _nTgt_l);*/
+  for (int itgt = 0; itgt < _n_tgt_l; itgt++) {
+    /*printf("[%d] %d/%d\n", i_rank, itgt, _n_tgt_l);*/
 
     n_tgt++;
     int wrong = 0;
@@ -536,7 +536,7 @@ int main(int argc, char *argv[])
 
 
   /* Free */
-  PDM_closest_points_free (id2);
+  PDM_closest_points_free (clsp);
 
   free (tgt_coords);
   free (tgt_char_length);

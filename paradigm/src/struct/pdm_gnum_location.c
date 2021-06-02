@@ -43,8 +43,8 @@
 #include "pdm_block_to_part.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
-#include "pdm_handles.h"
 #include "pdm_gnum_location.h"
+#include "pdm_gnum_location_priv.h"
 #include "pdm_priv.h"
 
 /*----------------------------------------------------------------------------*/
@@ -62,60 +62,13 @@ extern "C" {
  *============================================================================*/
 
 
-/**
- * \struct _pdm_gnum_location_t
- * \brief  Define a global numbering location structure
- *
- */
-
-typedef struct  {
-  PDM_MPI_Comm        comm;         /*!< Communicator */
-  int                 n_part_in;    /*!< Number of local partitions  */
-  int                 n_part_out;   /*!< Number of local partitions
-                                        for requested locations */
-  int                *n_elts_in;    /*!< Number of elements of each partition */
-  const PDM_g_num_t **g_nums_in;    /*!< Global numbering  */
-  int                *n_elts_out;   /*!< Number of elements requesting location */
-  const PDM_g_num_t **g_nums_out;   /*!< Global numbering of elements requesting location */
-  int               **location_idx; /*!< Location index of elements requesting location */
-  int               **location;     /*!< Location of elements requesting location */
-} _pdm_gnum_location_t;
-
 /*============================================================================
  * Global variable
  *============================================================================*/
 
-static PDM_Handles_t *_glocs   = NULL;
-
 /*=============================================================================
  * Private function definitions
  *============================================================================*/
-
-
-/**
- *
- * \brief Return ppart object from it identifier
- *
- * \param [in]   ppart_id        ppart identifier
- *
- */
-
-static _pdm_gnum_location_t *
-_get_from_id
-(
- int  id
-)
-{
-
-  _pdm_gnum_location_t *gloc = (_pdm_gnum_location_t *) PDM_Handles_get (_glocs, id);
-
-  if (gloc == NULL) {
-    PDM_error(__FILE__, __LINE__, 0, "PDM_gnum_location error : Bad identifier\n");
-  }
-
-  return gloc;
-}
-
 
 /*=============================================================================
  * Public function definitions
@@ -134,7 +87,7 @@ _get_from_id
  * \return     Identifier
  */
 
-int
+PDM_gnum_location_t*
 PDM_gnum_location_create
 (
  const int          n_part_in,
@@ -142,52 +95,42 @@ PDM_gnum_location_create
  const PDM_MPI_Comm comm
 )
 {
-  /*
-   * Search a ppart free id
-   */
 
-  if (_glocs == NULL) {
-    _glocs = PDM_Handles_create (4);
-  }
+  PDM_gnum_location_t *gnum_loc = (PDM_gnum_location_t *) malloc(sizeof(PDM_gnum_location_t));
 
-  _pdm_gnum_location_t *_gloc = (_pdm_gnum_location_t *) malloc(sizeof(_pdm_gnum_location_t));
-  int id = PDM_Handles_store (_glocs, _gloc);
+  gnum_loc->n_part_in  = n_part_in;
+  gnum_loc->n_part_out = n_part_out;
 
-  _gloc->n_part_in = n_part_in;
-  _gloc->n_part_out = n_part_out;
-
-  _gloc->n_elts_in = (int *) malloc (sizeof(int) * n_part_in);
-  _gloc->g_nums_in = (const PDM_g_num_t **) malloc (sizeof(const PDM_g_num_t *) * n_part_in);
+  gnum_loc->n_elts_in = (      int          *) malloc (sizeof(      int          ) * n_part_in);
+  gnum_loc->g_nums_in = (const PDM_g_num_t **) malloc (sizeof(const PDM_g_num_t *) * n_part_in);
   for (int i = 0; i < n_part_in; i++) {
-    _gloc->g_nums_in[i] = NULL;
+    gnum_loc->g_nums_in[i] = NULL;
   }
-  _gloc->n_elts_out = (int *) malloc (sizeof(int) * n_part_out);
-  _gloc->g_nums_out = (const PDM_g_num_t **) malloc (sizeof(const PDM_g_num_t *) * n_part_out);
+  gnum_loc->n_elts_out = (      int          *) malloc (sizeof(      int          ) * n_part_out);
+  gnum_loc->g_nums_out = (const PDM_g_num_t **) malloc (sizeof(const PDM_g_num_t *) * n_part_out);
   for (int i = 0; i < n_part_out; i++) {
-    _gloc->g_nums_out[i] = NULL;
+    gnum_loc->g_nums_out[i] = NULL;
   }
 
-  _gloc->location_idx = NULL;
-  _gloc->location = NULL;
-  _gloc->comm = comm;
+  gnum_loc->location_idx = NULL;
+  gnum_loc->location     = NULL;
+  gnum_loc->comm         = comm;
 
-  return id;
-
+  return gnum_loc;
 }
 
 
-void
+PDM_gnum_location_t*
 PDM_gnum_location_create_cf
 (
  const int          n_part_in,
  const int          n_part_out,
- const PDM_MPI_Fint comm,
- int *id
+ const PDM_MPI_Fint comm
 )
 {
   const PDM_MPI_Comm _comm = PDM_MPI_Comm_f2c(comm);
 
-  *id = PDM_gnum_location_create (n_part_in, n_part_out, _comm);
+  return PDM_gnum_location_create (n_part_in, n_part_out, _comm);
 }
 
 /**
@@ -204,15 +147,14 @@ PDM_gnum_location_create_cf
 void
 PDM_gnum_location_elements_set
 (
- const int id,
- const int i_part_in,
- const int n_elts_in,
- const PDM_g_num_t *gnum_in
+       PDM_gnum_location_t *gnum_loc,
+ const int                  i_part_in,
+ const int                  n_elts_in,
+ const PDM_g_num_t         *gnum_in
 )
 {
-  _pdm_gnum_location_t *_gloc = _get_from_id (id);
-  _gloc->n_elts_in[i_part_in] = n_elts_in;
-  _gloc->g_nums_in[i_part_in] = gnum_in;
+  gnum_loc->n_elts_in[i_part_in] = n_elts_in;
+  gnum_loc->g_nums_in[i_part_in] = gnum_in;
 }
 
 
@@ -231,15 +173,14 @@ PDM_gnum_location_elements_set
 void
 PDM_gnum_location_requested_elements_set
 (
- const int id,
- const int i_part_out,
- const int n_elts_out,
- const PDM_g_num_t *gnum_out
+       PDM_gnum_location_t *gnum_loc,
+ const int                  i_part_out,
+ const int                  n_elts_out,
+ const PDM_g_num_t         *gnum_out
 )
 {
-  _pdm_gnum_location_t *_gloc = _get_from_id (id);
-  _gloc->n_elts_out[i_part_out] = n_elts_out;
-  _gloc->g_nums_out[i_part_out] = gnum_out;
+  gnum_loc->n_elts_out[i_part_out] = n_elts_out;
+  gnum_loc->g_nums_out[i_part_out] = gnum_out;
 }
 
 
@@ -254,25 +195,24 @@ PDM_gnum_location_requested_elements_set
 void
 PDM_gnum_location_compute
 (
- const int id
+ PDM_gnum_location_t *gnum_loc
 )
 {
-  _pdm_gnum_location_t *_gloc = _get_from_id (id);
 
   int rank;
-  PDM_MPI_Comm_rank (_gloc->comm, &rank);
+  PDM_MPI_Comm_rank (gnum_loc->comm, &rank);
 
   int n_rank;
-  PDM_MPI_Comm_size (_gloc->comm, &n_rank);
+  PDM_MPI_Comm_size (gnum_loc->comm, &n_rank);
 
   PDM_part_to_block_t *ptb = PDM_part_to_block_create (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                                        PDM_PART_TO_BLOCK_POST_MERGE,
                                                        1,
-                                                       (PDM_g_num_t **) _gloc->g_nums_in,
+                                                       (PDM_g_num_t **) gnum_loc->g_nums_in,
                                                        NULL,
-                                                       _gloc->n_elts_in,
-                                                       _gloc->n_part_in,
-                                                       _gloc->comm);
+                                                       gnum_loc->n_elts_in,
+                                                       gnum_loc->n_part_in,
+                                                       gnum_loc->comm);
 
   PDM_g_num_t *block_distrib_index = PDM_part_to_block_distrib_index_get (ptb);
 
@@ -280,13 +220,13 @@ PDM_gnum_location_compute
   const PDM_stride_t t_stride = PDM_STRIDE_VAR;
   const int cst_stride = 3;
 
-  int  **part_stride = (int **) malloc (sizeof(int *) * _gloc->n_part_in);
-  int  **part_data = (int **) malloc (sizeof(int *) * _gloc->n_part_in);
+  int  **part_stride = (int **) malloc (sizeof(int *) * gnum_loc->n_part_in);
+  int  **part_data = (int **) malloc (sizeof(int *) * gnum_loc->n_part_in);
 
-  for (int i = 0; i < _gloc->n_part_in; i++) {
-    part_stride[i] = malloc (sizeof(int) * _gloc->n_elts_in[i]);
-    part_data[i] = malloc (sizeof(int) * 3 * _gloc->n_elts_in[i]);
-    for (int j = 0; j < _gloc->n_elts_in[i]; j++) {
+  for (int i = 0; i < gnum_loc->n_part_in; i++) {
+    part_stride[i] = malloc (sizeof(int) * gnum_loc->n_elts_in[i]);
+    part_data[i] = malloc (sizeof(int) * 3 * gnum_loc->n_elts_in[i]);
+    for (int j = 0; j < gnum_loc->n_elts_in[i]; j++) {
       part_stride[i][j]   = 3;
       part_data[i][3*j]   = rank;
       part_data[i][3*j+1] = i;
@@ -306,7 +246,7 @@ PDM_gnum_location_compute
                           &block_stride,
                           (void **) &block_data);
 
-  for (int i = 0; i < _gloc->n_part_in; i++) {
+  for (int i = 0; i < gnum_loc->n_part_in; i++) {
     free (part_stride[i]);
     free (part_data[i]);
   }
@@ -315,10 +255,10 @@ PDM_gnum_location_compute
   free (part_stride);
 
   PDM_block_to_part_t *btp = PDM_block_to_part_create (block_distrib_index,
-                                                       _gloc->g_nums_out,
-                                                       _gloc->n_elts_out,
-                                                       _gloc->n_part_out,
-                                                       _gloc->comm);
+                                                       gnum_loc->g_nums_out,
+                                                       gnum_loc->n_elts_out,
+                                                       gnum_loc->n_part_out,
+                                                       gnum_loc->comm);
 
   PDM_block_to_part_exch2 (btp,
                           s_data,
@@ -326,20 +266,20 @@ PDM_gnum_location_compute
                           block_stride,
                           block_data,
                           &part_stride,
-                           (void ***) &_gloc->location);
+                           (void ***) &gnum_loc->location);
 
-  _gloc->location_idx = (int **) malloc (sizeof(int *) * _gloc->n_part_out);
-  for (int i = 0; i < _gloc->n_part_out; i++) {
-    _gloc->location_idx[i] = malloc (sizeof(int) * (_gloc->n_elts_out[i] + 1));
-    _gloc->location_idx[i][0] = 0;
-    for (int j = 0; j < _gloc->n_elts_out[i]; j++) {
-      _gloc->location_idx[i][j+1] = _gloc->location_idx[i][j] + part_stride[i][j];
+  gnum_loc->location_idx = (int **) malloc (sizeof(int *) * gnum_loc->n_part_out);
+  for (int i = 0; i < gnum_loc->n_part_out; i++) {
+    gnum_loc->location_idx[i] = malloc (sizeof(int) * (gnum_loc->n_elts_out[i] + 1));
+    gnum_loc->location_idx[i][0] = 0;
+    for (int j = 0; j < gnum_loc->n_elts_out[i]; j++) {
+      gnum_loc->location_idx[i][j+1] = gnum_loc->location_idx[i][j] + part_stride[i][j];
     }
   }
   free (block_stride);
   free (block_data);
 
-  for (int i = 0; i < _gloc->n_part_out; i++) {
+  for (int i = 0; i < gnum_loc->n_part_out; i++) {
     free (part_stride[i]);
   }
 
@@ -366,15 +306,14 @@ PDM_gnum_location_compute
 void
 PDM_gnum_location_get
 (
- const int id,
- const int i_part_out,
-       int **location_idx,
-       int **location
+       PDM_gnum_location_t  *gnum_loc,
+ const int                   i_part_out,
+       int                 **location_idx,
+       int                 **location
 )
 {
-  _pdm_gnum_location_t *_gloc = _get_from_id (id);
-  *location_idx = _gloc->location_idx[i_part_out];
-  *location     = _gloc->location[i_part_out];
+  *location_idx = gnum_loc->location_idx[i_part_out];
+  *location     = gnum_loc->location    [i_part_out];
 }
 
 
@@ -390,42 +329,34 @@ PDM_gnum_location_get
 void
 PDM_gnum_location_free
 (
- const int id,
- const int keep_results
+       PDM_gnum_location_t *gnum_loc,
+ const int                  keep_results
 )
 {
-  _pdm_gnum_location_t *_gloc = _get_from_id (id);
 
-  free (_gloc->n_elts_in);
-  free (_gloc->g_nums_in);
+  free (gnum_loc->n_elts_in);
+  free (gnum_loc->g_nums_in);
 
-  free (_gloc->n_elts_out);
-  free (_gloc->g_nums_out);
+  free (gnum_loc->n_elts_out);
+  free (gnum_loc->g_nums_out);
 
   if (keep_results != 1) {//if (partial != 1) {
-    for (int i = 0; i < _gloc->n_part_out; i++) {
-      free (_gloc->location_idx[i]);
+    for (int i = 0; i < gnum_loc->n_part_out; i++) {
+      free (gnum_loc->location_idx[i]);
     }
-    // free (_gloc->location_idx);
+    // free (gnum_loc->location_idx);
 
-    for (int i = 0; i < _gloc->n_part_out; i++) {
-      free (_gloc->location[i]);
+    for (int i = 0; i < gnum_loc->n_part_out; i++) {
+      free (gnum_loc->location[i]);
     }
-    // free (_gloc->location);
+    // free (gnum_loc->location);
   }
 
-  free (_gloc->location_idx);
-  free (_gloc->location);
+  free (gnum_loc->location_idx);
+  free (gnum_loc->location);
 
-  free (_gloc);
+  free (gnum_loc);
 
-  PDM_Handles_handle_free (_glocs, id, PDM_FALSE);
-
-  const int n_gloc = PDM_Handles_n_get (_glocs);
-
-  if (n_gloc == 0) {
-    _glocs = PDM_Handles_free (_glocs);
-  }
 }
 
 

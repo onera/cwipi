@@ -40,6 +40,7 @@
 #include "pdm_mpi.h"
 #include "pdm_timer.h"
 #include "pdm_closest_points.cuh"
+#include "pdm_closest_points_priv.h"
 #include "pdm_para_octree.h"
 #include "pdm_para_octree.cuh"
 
@@ -76,73 +77,6 @@ typedef enum {
   END      = 1,
 
 } _timer_step_t;
-
-
-/**
- * \struct _tgt_point_cloud_t
- * \brief  Target point cloud structure
- *
- */
-
-typedef struct {
-
-  int           n_part;            /*!< Number of partition */
-  int          *n_points;          /*!< Number of points of each partition */
-  double      **coords;            /*!< Point coordinates points of each partition */
-  PDM_g_num_t **gnum;              /*!< Point global numbering of each partition */
-  PDM_g_num_t **closest_src_gnum;  /*!< Global numbering of the n_closest source points
-                                     for each point of each partition  */
-  double      **closest_src_dist; /*!< Distance to the n_closest source points
-                                    for each point of each partition  */
-
-} _tgt_point_cloud_t;
-
-
-/**
- * \struct _src_point_cloud_t
- * \brief  Src point cloud structure
- *
- */
-
-typedef struct {
-
-  int           n_part;            /*!< Number of partition */
-  int          *n_points;          /*!< Number of points of each partition */
-  double      **coords;            /*!< Point coordinates points of each partition */
-  PDM_g_num_t **gnum;              /*!< Point global numbering of each partition */
-
-} _src_point_cloud_t;
-
-
-/**
- * \struct _PDM_closest_t
- * \brief  Closest points structure
- *
- */
-
-typedef struct {
-
-  PDM_MPI_Comm comm;  /*!< MPI communicator */
-
-  int n_closest;  /*!< Number of closest source points to find for each
-                    target point  */
-
-  _src_point_cloud_t *src_cloud; /*!< Source point cloud */
-
-  _tgt_point_cloud_t *tgt_cloud; /*!< Target point cloud */
-
-  PDM_timer_t *timer; /*!< Timer */
-
-  double times_elapsed[NTIMER]; /*!< Elapsed time */
-
-  double times_cpu[NTIMER];     /*!< CPU time */
-
-  double times_cpu_u[NTIMER];  /*!< User CPU time */
-
-  double times_cpu_s[NTIMER];  /*!< System CPU time */
-
-
-} _PDM_closest_t;
 
 
 /*============================================================================
@@ -195,8 +129,8 @@ void
 PDM_closest_points_compute_GPU
 (
  const int id,
- PDM_Handles_t *var
- )
+ PDM_closest_point_t *var
+)
 {
   _closest_pts = var;
   _PDM_closest_t *cls = _get_from_id (id);
@@ -221,7 +155,7 @@ PDM_closest_points_compute_GPU
 
   int i_rank;
   PDM_MPI_Comm_rank (cls->comm, &i_rank);
-  
+
   const int depth_max = 31;//?
   const int points_in_leaf_max = 1;//2*cls->n_closest;//?
   const int build_leaf_neighbours = 1;

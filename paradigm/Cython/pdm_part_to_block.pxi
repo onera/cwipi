@@ -350,7 +350,7 @@ cdef class PartToBlock:
     # ------------------------------------------------------------------------
     def getBlockGnumCopy(self):
       """
-         Return a copy of the global numbers, of element in the current process, 
+         Return a copy of the global numbers, of element in the current process,
          array compute in library
          Copy because remove of PTB object can made a core ...
       """

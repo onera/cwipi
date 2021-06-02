@@ -195,42 +195,42 @@ char *argv[]
 
   /* Define the number of points */
 
-  int _nPts_l = 0;
+  int _n_pts_l = 0;
   if (local) {
-    _nPts_l = (int) nPts;
+    _n_pts_l = (int) nPts;
   }
   else {
-    _nPts_l = (int) (nPts/numProcs);
+    _n_pts_l = (int) (nPts/numProcs);
     if (i_rank < nPts%numProcs) {
-      _nPts_l += 1;
+      _n_pts_l += 1;
     }
   }
 
   /* Points definition : coordinates + gnum */
 
-  double *coords = malloc(sizeof(double) * 3 * _nPts_l);
+  double *coords = malloc(sizeof(double) * 3 * _n_pts_l);
 
-  for (int i = 0; i < _nPts_l; i++) {
+  for (int i = 0; i < _n_pts_l; i++) {
     for (int j = 0; j < 3; j++) {
       coords[3*i+j] = _random01() * radius;
     }
   }
 
-  int id = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_USER);
+  PDM_gen_gnum_t* gen_gnum = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_USER);
 
-  double *char_length = malloc(sizeof(double) * _nPts_l);
+  double *char_length = malloc(sizeof(double) * _n_pts_l);
 
-  for (int i = 0; i < _nPts_l; i++) {
+  for (int i = 0; i < _n_pts_l; i++) {
     char_length[i] = radius * 1.e-6;
   }
 
-  PDM_gnum_set_from_coords (id, 0, _nPts_l, coords, char_length);
+  PDM_gnum_set_from_coords (gen_gnum, 0, _n_pts_l, coords, char_length);
 
-  PDM_gnum_compute (id);
+  PDM_gnum_compute (gen_gnum);
 
-  PDM_g_num_t *gnum = PDM_gnum_get(id, 0);
+  PDM_g_num_t *gnum = PDM_gnum_get(gen_gnum, 0);
 
-  PDM_gnum_free (id);
+  PDM_gnum_free (gen_gnum);
 
   /* Parallel octree */
 
@@ -245,7 +245,7 @@ char *argv[]
                                     build_leaf_neighbours,
                                     PDM_MPI_COMM_WORLD);
 
-  PDM_para_octree_point_cloud_set (id2, 0, _nPts_l, coords, gnum);
+  PDM_para_octree_point_cloud_set (id2, 0, _n_pts_l, coords, gnum);
 
   PDM_para_octree_build (id2, NULL);
 

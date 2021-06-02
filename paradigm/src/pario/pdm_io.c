@@ -26,6 +26,7 @@
 #include "pdm_file_seq.h"
 #include "pdm_file_par.h"
 #include "pdm_timer.h"
+#include "pdm_array.h"
 #include "pdm.h"
 #include "pdm_priv.h"
 #include "pdm_mpi_node_first_rank.h"
@@ -356,8 +357,7 @@ static void _n_donnees_rang
   if (reste != 0)
     *n_donnees_rang_max = n_donnees_rang + 1;
 
-  for (int i = 0; i < fichier->n_rangs + 1; i++)
-    n_donnees_rangs[i] = 0;
+  PDM_array_reset_gnum(n_donnees_rangs, fichier->n_rangs + 1, 0);
 
   int k = 0;
   for (int i = 0; i < fichier->n_rangs; i++) {
@@ -1511,12 +1511,8 @@ void PDM_io_lec_par_entrelacee
 
       if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
 
-        index = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t)*
-                                           (n_donnees + 1));
+        index = PDM_array_const_gnum(n_donnees + 1, 0);
 
-        for (int i = 0; i < n_donnees + 1; i++) {
-          index[i] = 0;
-        }
         for (int i = 0; i < n_donnees; i++) {
           index[indirection[i] - 1 + 1] = n_composantes[i] * taille_donnee;
         }
@@ -1637,8 +1633,7 @@ void PDM_io_lec_par_entrelacee
        *  decrits par l'indirection
        *---------------------------------------*/
 
-      int *n_donnees_a_envoyer = (int *) malloc(sizeof(int) *
-                                                fichier->n_rangs);
+      int *n_donnees_a_envoyer = PDM_array_zeros_int(fichier->n_rangs);
       int *n_donnees_a_recevoir = (int *) malloc(sizeof(int) *
                                                  fichier->n_rangs);
 
@@ -1649,8 +1644,6 @@ void PDM_io_lec_par_entrelacee
 
       /* Calcul du nombre de donnees a envoyer a chaque procesus */
 
-      for (int i = 0; i < fichier->n_rangs; i++)
-        n_donnees_a_envoyer[i] = 0;
 
       for (int i = 0; i < n_donnees; i++) {
 
@@ -1702,8 +1695,7 @@ void PDM_io_lec_par_entrelacee
                                    (i_donnees_a_envoyer[fichier->n_rangs - 1] +
                                     n_donnees_a_envoyer[fichier->n_rangs - 1]));
 
-      for (int i = 0; i < fichier->n_rangs; i++)
-        n_donnees_a_envoyer[i] = 0;
+      PDM_array_reset_int(n_donnees_a_envoyer, fichier->n_rangs, 0);
 
       for (int i = 0; i < n_donnees; i++) {
         int iproc = donnees_proc[i];
@@ -1749,9 +1741,7 @@ void PDM_io_lec_par_entrelacee
           (int *) malloc(sizeof(int) *
                          (i_donnees_a_envoyer[fichier->n_rangs - 1] +
                           n_donnees_a_envoyer[fichier->n_rangs - 1]));
-
-        for (int i = 0; i < fichier->n_rangs; i++)
-          n_donnees_a_envoyer[i] = 0;
+        PDM_array_reset_int(n_donnees_a_envoyer, fichier->n_rangs, 0);
 
         for (int i = 0; i < n_donnees; i++) {
           int iproc = donnees_proc[i];
@@ -1783,9 +1773,7 @@ void PDM_io_lec_par_entrelacee
            en fonction de la taille du type et du nombre de composantes
            de chaque donnees */
 
-        int *tag = malloc(sizeof(int) * _n_donnees_rang);
-        for (int i = 0; i < _n_donnees_rang; i++)
-          tag[i] = 0;
+        int *tag = PDM_array_zeros_int(_n_donnees_rang);
 
         for (int i = 0; i < l_n_composantes_recues; i++) {
           PDM_g_num_t _num_abs = num_absolue_recues[i] - 1 -
@@ -2756,13 +2744,8 @@ void PDM_io_ecr_par_entrelacee
 
       if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
 
-        PDM_g_num_t *index =
-          (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t)*
-                                 (n_donnees + 1));
+        PDM_g_num_t *index = PDM_array_const_gnum(n_donnees + 1, 0);
 
-        for (int i = 0; i < n_donnees + 1; i++) {
-          index[i] = 0;
-        }
         for (int i = 0; i < n_donnees; i++) {
           index[indirection[i] - 1 + 1] = n_composantes[i] * taille_donnee;
         }
@@ -2778,11 +2761,7 @@ void PDM_io_ecr_par_entrelacee
                                          index[n_donnees]);
 
         if (fichier->fmt_t == PDM_IO_FMT_TXT) {
-          n_composante_trie =  (int*) malloc(sizeof(int) * _id_max);
-
-          for (int i = 0; i < _id_max; i++){
-            n_composante_trie[i] = 0;
-          }
+          n_composante_trie =  PDM_array_zeros_int(_id_max);
         }
 
         int k = 0;
@@ -2987,8 +2966,7 @@ void PDM_io_ecr_par_entrelacee
        *  decrits par l'indirection
        *---------------------------------------*/
 
-      int *n_donnees_a_envoyer = (int *) malloc(sizeof(int) *
-                                                fichier->n_rangs);
+      int *n_donnees_a_envoyer = PDM_array_zeros_int(fichier->n_rangs);
       int *n_donnees_a_recevoir = (int *) malloc(sizeof(int) *
                                                  fichier->n_rangs);
 
@@ -2998,9 +2976,6 @@ void PDM_io_ecr_par_entrelacee
       int *indirection_locale = (int *) malloc(sizeof(int) * n_donnees);
 
       /* Calcul du nombre de donnees a envoyer a chaque procesus */
-
-      for (int i = 0; i < fichier->n_rangs; i++)
-        n_donnees_a_envoyer[i] = 0;
 
       for (int i = 0; i < n_donnees; i++) {
 
@@ -3050,8 +3025,7 @@ void PDM_io_ecr_par_entrelacee
                                (i_donnees_a_envoyer[fichier->n_rangs - 1] +
                                 n_donnees_a_envoyer[fichier->n_rangs - 1]));
 
-      for (int i = 0; i < fichier->n_rangs; i++)
-        n_donnees_a_envoyer[i] = 0;
+      PDM_array_reset_int(n_donnees_a_envoyer, fichier->n_rangs, 0);
 
       for (int i = 0; i < n_donnees; i++) {
         int iproc = donnees_proc[i];
@@ -3102,8 +3076,7 @@ void PDM_io_ecr_par_entrelacee
                          (i_donnees_a_envoyer[fichier->n_rangs - 1] +
                           n_donnees_a_envoyer[fichier->n_rangs - 1]));
 
-        for (int i = 0; i < fichier->n_rangs; i++)
-          n_donnees_a_envoyer[i] = 0;
+        PDM_array_reset_int(n_donnees_a_envoyer, fichier->n_rangs, 0);
 
         for (int i = 0; i < n_donnees; i++) {
           int iproc = donnees_proc[i];
@@ -3341,19 +3314,13 @@ void PDM_io_ecr_par_entrelacee
            n_donnees_rangs[fichier->rang]);
 
         const int _n_donnees_rang = (int) __n_donnees_rang;
-        int *tag = malloc(sizeof(int) * _n_donnees_rang);
-        for (int i = 0; i < _n_donnees_rang; i++)
-          tag[i] = 0;
+        int *tag = PDM_array_zeros_int(_n_donnees_rang);
 
-        int *index_buffer = (int *) malloc(sizeof(int) *
-                                           (_n_quantites + 1));
+        int *index_buffer = PDM_array_zeros_int(_n_quantites+1);
 
         if (fichier->fmt_t == PDM_IO_FMT_TXT) {
           n_composante_trie =  (int*) malloc(sizeof(int) * _n_donnees_rang);
         }
-
-        for (int i = 0; i < _n_quantites + 1; i++)
-          index_buffer[i] = 0;
 
         for (int i = 0; i < _n_quantites; i++) {
           const PDM_g_num_t _num_abs = num_absolue_recues[i] - 1 -
@@ -3439,9 +3406,7 @@ void PDM_io_ecr_par_entrelacee
            n_donnees_rangs[fichier->rang]);
 
         const int _n_donnees_rang = (int) __n_donnees_rang;
-        int *tag = malloc(sizeof(int) * _n_donnees_rang);
-        for (int i = 0; i < _n_donnees_rang; i++)
-          tag[i] = 0;
+        int *tag = PDM_array_zeros_int(_n_donnees_rang);
 
         n_donnees_bloc = 0;
 
@@ -4912,7 +4877,7 @@ PDM_io_n_donnees_get
          *  decrits par l'indirection
          *---------------------------------------*/
 
-        int *n_donnees_a_envoyer = (int *) malloc(sizeof(int) * fichier->n_rangs);
+        int *n_donnees_a_envoyer = PDM_array_zeros_int(fichier->n_rangs);
         int *n_donnees_a_recevoir = (int *) malloc(sizeof(int) * fichier->n_rangs);
 
         /* Pour chaque donnee le proc ou elle va etre envoyee */
@@ -4921,9 +4886,6 @@ PDM_io_n_donnees_get
         int *indirection_locale = (int *) malloc(sizeof(int) * n_donnees);
 
         /* Calcul du nombre de donnees a envoyer a chaque procesus */
-
-        for (int i = 0; i < fichier->n_rangs; i++)
-          n_donnees_a_envoyer[i] = 0;
 
         for (int i = 0; i < n_donnees; i++) {
 
@@ -4973,8 +4935,7 @@ PDM_io_n_donnees_get
                                      (i_donnees_a_envoyer[fichier->n_rangs - 1] +
                                       n_donnees_a_envoyer[fichier->n_rangs - 1]));
 
-        for (int i = 0; i < fichier->n_rangs; i++)
-          n_donnees_a_envoyer[i] = 0;
+        PDM_array_reset_int(n_donnees_a_envoyer, fichier->n_rangs, 0);
 
         for (int i = 0; i < n_donnees; i++) {
           int iproc = donnees_proc[i];
@@ -5012,11 +4973,7 @@ PDM_io_n_donnees_get
         int l_data_recv = n_donnees_a_recevoir[fichier->n_rangs-1] + i_donnees_a_recevoir[fichier->n_rangs-1];
         int l_bloc = n_donnees_rangs[fichier->rang+1] - n_donnees_rangs[fichier->rang];
 
-        int *n_comp_bloc = (int *) malloc(sizeof(int) * l_bloc);
-
-        for (int i = 0; i < l_bloc; i++) {
-          n_comp_bloc[i] = 0;
-        }
+        int *n_comp_bloc = PDM_array_zeros_int(l_bloc);
 
         /*------------------------------------------------------------
          * Envoi/reception du nombre de composantes
@@ -5027,8 +4984,7 @@ PDM_io_n_donnees_get
                          (i_donnees_a_envoyer[fichier->n_rangs - 1] +
                           n_donnees_a_envoyer[fichier->n_rangs - 1]));
 
-        for (int i = 0; i < fichier->n_rangs; i++)
-          n_donnees_a_envoyer[i] = 0;
+        PDM_array_reset_int(n_donnees_a_envoyer, fichier->n_rangs, 0);
 
         for (int i = 0; i < n_donnees; i++) {
           int iproc = donnees_proc[i];

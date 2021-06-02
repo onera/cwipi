@@ -51,6 +51,7 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_hash_tab.h"
+#include "pdm_array.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -97,7 +98,7 @@ _get_distrib_statistics(const PDM_box_distrib_t  *distrib,
                         int                      *n_ranks,
                         PDM_MPI_Comm                  comm)
 {
-  int   i, j, k, step, delta, _n_rank_boxes;
+  int   i, k, step, delta, _n_rank_boxes;
 
   int  _n_ranks = 0;
   int   _min = INT_MAX, _max = 0, gmin = 0, gmax = 0;
@@ -148,9 +149,7 @@ _get_distrib_statistics(const PDM_box_distrib_t  *distrib,
     quantile_start[_n_quantiles] = gmax + 1;
 
     /* Count for quantiles */
-
-    for (j = 0; j < _n_quantiles; j++)
-      n_quantile_boxes[j] = 0;
+    PDM_array_reset_int(n_quantile_boxes, _n_quantiles, 0);
 
     if (delta > 0) {  /* Loop on boxes */
 
@@ -506,10 +505,7 @@ PDM_boxes_destroy(PDM_boxes_t  *boxes)
 void
 PDM_box_set_remove_duplicate(PDM_box_set_t  *boxes)
 {
-  int *selected = malloc (sizeof(int)* boxes->local_boxes->n_boxes);
-  for (int i = 0; i < boxes->local_boxes->n_boxes; i++) {
-    selected[i] = 0;
-  }
+  int *selected = PDM_array_zeros_int(boxes->local_boxes->n_boxes);
 
   int lComm;
   PDM_MPI_Comm_size (boxes->comm, &lComm);
@@ -853,7 +849,6 @@ PDM_box_set_redistribute(const PDM_box_distrib_t  *distrib,
   send_count = (int *) malloc(distrib->n_ranks * sizeof(int));
   recv_count = (int *) malloc(distrib->n_ranks * sizeof(int));
   send_shift = (int *) malloc((distrib->n_ranks + 1) * sizeof(int));
-  recv_shift = (int *) malloc((distrib->n_ranks + 1) * sizeof(int));
 
   for (rank_id = 0; rank_id < distrib->n_ranks; rank_id++)
     send_count[rank_id]
@@ -867,9 +862,7 @@ PDM_box_set_redistribute(const PDM_box_distrib_t  *distrib,
   for (i = 0; i < distrib->n_ranks; i++)
     send_shift[i] = distrib->index[i];
 
-  recv_shift[0] = 0;
-  for (rank_id = 0; rank_id < distrib->n_ranks; rank_id++)
-    recv_shift[rank_id + 1] = recv_shift[rank_id] + recv_count[rank_id];
+  recv_shift = PDM_array_new_idx_from_sizes_int(recv_count, distrib->n_ranks);
 
   /* Build send_buffers */
 
@@ -880,8 +873,7 @@ PDM_box_set_redistribute(const PDM_box_distrib_t  *distrib,
   send_origin = (int *) malloc(distrib->index[distrib->n_ranks] * 3
                                    * sizeof(int));
 
-  for (rank_id = 0; rank_id < distrib->n_ranks; rank_id++)
-    send_count[rank_id] = 0;
+  PDM_array_reset_int(send_count, distrib->n_ranks, 0);
 
   for (rank_id = 0; rank_id < distrib->n_ranks; rank_id++) {
 
@@ -1157,10 +1149,7 @@ PDM_box_set_recv_data_from_origin_distrib
   int s_comm;
   PDM_MPI_Comm_size (boxes->comm, &s_comm);
 
-  int *curr_count = (int *) malloc (sizeof(int) * s_comm);
-  for (int i = 0; i < s_comm; i++) {
-    curr_count[i] = 0;
-  }
+  int *curr_count = PDM_array_zeros_int(s_comm);
 
   for (int i = 0; i < n_boxes; i++) {
     curr_count[origin[3*i]] += 1;
@@ -1195,9 +1184,7 @@ PDM_box_set_recv_data_from_origin_distrib
   int *orig_loc      = (int *) malloc (sizeof(int) * orig_shift[s_comm]);
   int *idxCurrToBuff = (int *) malloc (sizeof(int) * n_boxes);
 
-  for (int i = 0; i < s_comm; i++) {
-    curr_count[i] = 0;
-  }
+  PDM_array_reset_int(curr_count, s_comm, 0);
 
   for (int i = 0; i < n_boxes; i++) {
     int iProc = origin[3*i    ];
@@ -1311,10 +1298,8 @@ PDM_box_set_recv_data_from_origin_distrib
 
     int **_origin_distrib_idx = (int **) malloc (sizeof(int *) * _local_boxes->n_part_orig);
     for (int i = 0; i < _local_boxes->n_part_orig; i++) {
-      _origin_distrib_idx[i] = (int *) malloc (sizeof(int) * (_local_boxes->n_boxes_orig[i] + 1));
-      for (int k = 0; k < _local_boxes->n_boxes_orig[i] + 1; k++) {
-        _origin_distrib_idx[i][k] = 0;
-      }
+      _origin_distrib_idx[i] = PDM_array_zeros_int(_local_boxes->n_boxes_orig[i] + 1);
+
       for (int k = 0; k < _local_boxes->n_boxes_orig[i]; k++) {
         _origin_distrib_idx[i][k+1] = _origin_distrib_idx[i][k] + origin_distrib_stride[i][k];
       }
@@ -1498,10 +1483,7 @@ PDM_box_set_send_data_to_origin_distrib
   int s_comm;
   PDM_MPI_Comm_size (boxes->comm, &s_comm);
 
-  int *curr_count = (int *) malloc (sizeof(int) * s_comm);
-  for (int i = 0; i < s_comm; i++) {
-    curr_count[i] = 0;
-  }
+  int *curr_count = PDM_array_zeros_int(s_comm);
 
   for (int i = 0; i < n_boxes; i++) {
     curr_count[origin[3*i]] += 1;
@@ -1536,9 +1518,7 @@ PDM_box_set_send_data_to_origin_distrib
   int *curr_loc      = (int *) malloc (sizeof(int) * curr_shift[s_comm]);
   int *orig_loc      = (int *) malloc (sizeof(int) * orig_shift[s_comm]);
 
-  for (int i = 0; i < s_comm; i++) {
-    curr_count[i] = 0;
-  }
+  PDM_array_reset_int(curr_count, s_comm, 0);
 
   for (int i = 0; i < n_boxes; i++) {
     int iProc = origin[3*i    ];
@@ -1581,9 +1561,7 @@ PDM_box_set_send_data_to_origin_distrib
     orig_stride = (int *) malloc (sizeof(int) * orig_shift[s_comm]);
     curr_stride = (int *) malloc (sizeof(int) * curr_shift[s_comm]);
 
-    for (int i = 0; i < s_comm; i++) {
-      curr_count[i] = 0;
-    }
+    PDM_array_reset_int(curr_count, s_comm, 0);
 
     for (int i = 0; i < n_boxes; i++) {
       int iProc = origin[3*i    ];
@@ -1600,9 +1578,7 @@ PDM_box_set_send_data_to_origin_distrib
     int n_elt = orig_shift[s_comm];
 
     for (int i = 0; i < _local_boxes->n_part_orig; i++) {
-      for (int j = 0; j < n_boxes_orig[i]; j++) {
-        origin_distrib_stride[i][j] = 0;
-      }
+      PDM_array_reset_int(origin_distrib_stride[i], n_boxes_orig[i], 0);
     }
 
     for (int i = 0; i < orig_shift[s_comm]; i++) {
@@ -1649,9 +1625,7 @@ PDM_box_set_send_data_to_origin_distrib
       orig_count[i] *= (int) data_size;
     }
 
-    for (int i = 0; i < s_comm; i++) {
-      curr_count[i] = 0;
-    }
+    PDM_array_reset_int(curr_count, s_comm, 0);
 
     unsigned char *curr_data = (unsigned char *) malloc (sizeof(unsigned char)
                                                          * curr_shift[s_comm]);
@@ -1659,10 +1633,7 @@ PDM_box_set_send_data_to_origin_distrib
     unsigned char *orig_data = (unsigned char *) malloc (sizeof(unsigned char)
                                                          * orig_shift[s_comm]);
 
-    int *current_distrib_idx = (int *) malloc (sizeof(int) * (_local_boxes->n_boxes + 1));
-    for (int i = 0; i < _local_boxes->n_boxes + 1; i++) {
-      current_distrib_idx[i] = 0;
-    }
+    int *current_distrib_idx = PDM_array_zeros_int(_local_boxes->n_boxes + 1);
 
     for (int i = 0; i < _local_boxes->n_boxes; i++) {
       current_distrib_idx[i+1] = current_distrib_idx[i] + current_distrib_stride[i];
@@ -1703,10 +1674,8 @@ PDM_box_set_send_data_to_origin_distrib
 
     int **_origin_distrib_idx = (int **) malloc (sizeof(int *) * _local_boxes->n_part_orig);
     for (int i = 0; i < _local_boxes->n_part_orig; i++) {
-      _origin_distrib_idx[i]   = (int *) malloc (sizeof(int) * (_local_boxes->n_boxes_orig[i] + 1));
-      for (int k = 0; k < _local_boxes->n_boxes_orig[i] + 1; k++) {
-        _origin_distrib_idx[i][k] = 0;
-      }
+      _origin_distrib_idx[i]   = PDM_array_zeros_int(_local_boxes->n_boxes_orig[i] + 1);
+
       for (int k = 0; k < _local_boxes->n_boxes_orig[i]; k++) {
         _origin_distrib_idx[i][k+1] = _origin_distrib_idx[i][k] + origin_distrib_stride[i][k];
       }
@@ -1764,9 +1733,7 @@ PDM_box_set_send_data_to_origin_distrib
     unsigned char *curr_data = (unsigned char *) malloc (sizeof(unsigned char)
                                                          * curr_shift[s_comm]);
 
-    for (int i = 0; i < s_comm; i++) {
-      curr_count[i] = 0;
-    }
+    PDM_array_reset_int(curr_count, s_comm, 0);
 
     unsigned char *_current_distrib_data = (unsigned char *) current_distrib_data;
 
@@ -1952,7 +1919,7 @@ PDM_box_distrib_create(int  n_boxes,
                        int        max_level,
                        PDM_MPI_Comm   comm)
 {
-  int  i, n_ranks, gmax_level;
+  int  n_ranks, gmax_level;
 
   PDM_box_distrib_t  *new_distrib = NULL;
 
@@ -1978,11 +1945,7 @@ PDM_box_distrib_create(int  n_boxes,
   new_distrib->max_level = gmax_level;
   new_distrib->fit = 999.0;
 
-  new_distrib->index = (int *) malloc((n_ranks + 1) * sizeof(int));
-
-  for (i = 0; i < n_ranks + 1; i++){
-    new_distrib->index[i] = 0;
-  }
+  new_distrib->index = PDM_array_zeros_int(n_ranks + 1);
 
   new_distrib->list = NULL;
 
@@ -2029,10 +1992,7 @@ PDM_box_distrib_clean(PDM_box_distrib_t  *distrib)
   int   *counter = NULL, *new_index = NULL;
 
   counter = (int *) malloc(distrib->n_boxes * sizeof(int));
-  new_index = (int *) malloc((distrib->n_ranks + 1) * sizeof(int));
-
-  for (i = 0; i < distrib->n_ranks + 1; i++)
-    new_index[i] = 0;
+  new_index = PDM_array_zeros_int(distrib->n_ranks + 1);
 
   for (rank = 0; rank < distrib->n_ranks; rank++) {
 
@@ -2042,8 +2002,7 @@ PDM_box_distrib_clean(PDM_box_distrib_t  *distrib)
 
     if (end - start > 0) {
 
-      for (i = 0; i < distrib->n_boxes; i++)
-        counter[i] = 0;
+      PDM_array_reset_int(counter, distrib->n_boxes, 0);
 
       for (i = start; i < end; i++)
         counter[distrib->list[i]] += 1;

@@ -103,7 +103,24 @@ cdef extern from "pdm.h":
        PDM_BOUND_TYPE_VTX    = 4,
        PDM_BOUND_TYPE_MAX    = 5,
 
+    ctypedef enum PDM_mesh_location_method_t:
+      PDM_MESH_LOCATION_OCTREE  = 0
+      PDM_MESH_LOCATION_DBBTREE = 1
+
     void PDM_Finalize ()
+
+cdef extern from "pdm_dmesh_nodal.h":
+    ctypedef enum PDM_Mesh_nodal_elt_t:
+      PDM_MESH_NODAL_POINT    = 0
+      PDM_MESH_NODAL_BAR2     = 1
+      PDM_MESH_NODAL_TRIA3    = 2
+      PDM_MESH_NODAL_QUAD4    = 3
+      PDM_MESH_NODAL_POLY_2D  = 4
+      PDM_MESH_NODAL_TETRA4   = 5
+      PDM_MESH_NODAL_PYRAMID5 = 6
+      PDM_MESH_NODAL_PRISM6   = 7
+      PDM_MESH_NODAL_HEXA8    = 8
+      PDM_MESH_NODAL_POLY_3D  = 9
 
 def Finalize ():
     PDM_Finalize
@@ -154,6 +171,17 @@ _PDM_BOUND_TYPE_MAX    = PDM_BOUND_TYPE_MAX
 _PDM_EXTEND_FROM_FACE   = PDM_EXTEND_FROM_FACE
 _PDM_EXTEND_FROM_EDGE   = PDM_EXTEND_FROM_EDGE
 _PDM_EXTEND_FROM_VTX    = PDM_EXTEND_FROM_VTX
+
+_PDM_MESH_NODAL_POINT    = PDM_MESH_NODAL_POINT
+_PDM_MESH_NODAL_BAR2     = PDM_MESH_NODAL_BAR2
+_PDM_MESH_NODAL_TRIA3    = PDM_MESH_NODAL_TRIA3
+_PDM_MESH_NODAL_QUAD4    = PDM_MESH_NODAL_QUAD4
+_PDM_MESH_NODAL_POLY_2D  = PDM_MESH_NODAL_POLY_2D
+_PDM_MESH_NODAL_TETRA4   = PDM_MESH_NODAL_TETRA4
+_PDM_MESH_NODAL_PYRAMID5 = PDM_MESH_NODAL_PYRAMID5
+_PDM_MESH_NODAL_PRISM6   = PDM_MESH_NODAL_PRISM6
+_PDM_MESH_NODAL_HEXA8    = PDM_MESH_NODAL_HEXA8
+_PDM_MESH_NODAL_POLY_3D  = PDM_MESH_NODAL_POLY_3D
 
 
 @COMMENT_NOT_PDMA@
@@ -237,6 +265,10 @@ include "pdm_gnum.pxi"
 # --------------------
 include "pdm_mesh_location.pxi"
 
+# PDM_interpolate_from_mesh_location :
+# --------------------
+include "pdm_interpolate_from_mesh_location.pxi"
+
 # PDM_mesh_location :
 # --------------------
 include "pdm_closest_points.pxi"
@@ -249,6 +281,10 @@ include "pdm_overlay.pxi"
 # --------------------
 include "pdm_dcube_gen.pxi"
 
+# PDM_dcube_nodal_gen :
+# --------------------
+include "pdm_dcube_nodal_gen.pxi"
+
 # PDM_poly_mesh_surf :
 # --------------------
 include "pdm_poly_mesh_surf.pxi"
@@ -260,7 +296,5 @@ include "pdm_partitioning_algorithm.pxi"
 # PDM_poly_mesh_surf :
 # --------------------
 include "pdm_part_extension.pxi"
-
-
 
 # TODO: PDM_writer, ...

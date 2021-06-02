@@ -39,6 +39,7 @@ typedef enum {
 } PDM_part_split_t;
 
 typedef struct _PDM_part_t PDM_part_t;
+typedef struct _part_t     part_t;
 
 /*=============================================================================
  * Static global variables

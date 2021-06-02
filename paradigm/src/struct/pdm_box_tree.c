@@ -46,6 +46,7 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_sort.h"
+#include "pdm_array.h"
 
 #include "pdm_morton.h"
 
@@ -3381,10 +3382,7 @@ PDM_box_tree_get_distrib(PDM_box_tree_t        *bt,
 
  distrib->list = (int *) malloc(distrib->index[distrib->n_ranks] * sizeof(int));
 
-  counter = (int *) malloc(distrib->n_ranks * sizeof(int));
-
-  for (i = 0; i < distrib->n_ranks; i++)
-    counter[i] = 0;
+  counter = PDM_array_zeros_int(distrib->n_ranks);
 
   _build_rank_to_box_list(bt,
                           distrib,
@@ -3444,10 +3442,7 @@ PDM_box_tree_get_boxes_intersects(PDM_box_tree_t       *bt,
 
   /* Build index */
 
-  _index = (int *) malloc((boxes->local_boxes->n_boxes + 1) * sizeof(int));
-
-  for (i = 0; i < boxes->local_boxes->n_boxes + 1; i++)
-    _index[i] = 0;
+  _index = PDM_array_zeros_int(boxes->local_boxes->n_boxes + 1);
 
   int ncall=0;
   int n_boxes =0;
@@ -3472,10 +3467,7 @@ PDM_box_tree_get_boxes_intersects(PDM_box_tree_t       *bt,
 
   _l_num = (int *) malloc(list_size * sizeof(int));
 
-  counter = (int *) malloc(boxes->local_boxes->n_boxes * sizeof(int));
-
-  for (i = 0; i < boxes->local_boxes->n_boxes; i++)
-    counter[i] = 0;
+  counter = PDM_array_zeros_int(boxes->local_boxes->n_boxes);
 
   /* Build list */
 
@@ -3556,10 +3548,7 @@ PDM_box_tree_get_intern_intersects(PDM_box_tree_t       *bt,
 
   /* Build index */
 
-  _index = (int *) malloc((_local_boxes->n_boxes + 1) * sizeof(int));
-
-  for (i = 0; i < _local_boxes->n_boxes + 1; i++)
-    _index[i] = 0;
+  _index = PDM_array_zeros_int(_local_boxes->n_boxes + 1);
 
   _count_intern_intersections(bt,
                               0, /* start from root */
@@ -3574,10 +3563,7 @@ PDM_box_tree_get_intern_intersects(PDM_box_tree_t       *bt,
 
   _g_num = (PDM_g_num_t *) malloc(list_size * sizeof(PDM_g_num_t));
 
-  counter = (int *) malloc(_local_boxes->n_boxes * sizeof(int));
-
-  for (i = 0; i < _local_boxes->n_boxes; i++)
-    counter[i] = 0;
+  counter = PDM_array_zeros_int(_local_boxes->n_boxes);
 
   /* Build list */
 
@@ -3858,9 +3844,7 @@ PDM_box_tree_dump_statistics(const PDM_box_tree_t  *bt)
   box_ratio = _n_g_linked_boxes / _n_g_boxes;
 
   /* Define axis subdivisions */
-
-  for (j = 0; j < n_steps; j++)
-    count[j] = 0;
+  PDM_array_reset_gnum(count, n_steps, 0);
 
   delta = g_max_linked_boxes - g_min_linked_boxes;
 
@@ -4165,9 +4149,7 @@ PDM_box_tree_closest_upper_bound_dist_boxes_get
   *i_boxes = malloc (sizeof(int) * (n_pts + 1));
   int *_i_boxes = *i_boxes;
 
-  for (int i = 0; i < n_pts + 1; i++) {
-    _i_boxes[i] = 0;
-  }
+  PDM_array_reset_int(_i_boxes, n_pts + 1, 0);
 
   int tmp_s_boxes = 4 * n_pts;
   *boxes = malloc (sizeof(int) * tmp_s_boxes);
@@ -4185,10 +4167,8 @@ PDM_box_tree_closest_upper_bound_dist_boxes_get
 
   int n_boxes = bt->boxes->local_boxes->n_boxes;
 
-  int *tag = malloc(sizeof(int) * n_boxes);
-  for (int i = 0; i < n_boxes; i++) {
-    tag[i] = 0;
-  }
+  int *tag = PDM_array_zeros_int(n_boxes);
+
   int n_visited_boxes = 0;
 
   int *visited_boxes = malloc(sizeof(int) * n_boxes); // A optimiser
@@ -4361,9 +4341,7 @@ PDM_box_tree_closest_upper_bound_dist_boxes_get_v2
   *i_boxes = malloc (sizeof(int) * (n_pts + 1));
   int *_i_boxes = *i_boxes;
 
-  for (int i = 0; i < n_pts + 1; i++) {
-    _i_boxes[i] = 0;
-  }
+  PDM_array_reset_int(_i_boxes, n_pts + 1, 0);
 
   int tmp_s_boxes = 4 * n_pts;
   *boxes = malloc (sizeof(int) * tmp_s_boxes);
@@ -4386,10 +4364,8 @@ PDM_box_tree_closest_upper_bound_dist_boxes_get_v2
     n_boxes = bt->boxes->rank_boxes[i_rank].n_boxes;
   }
 
-  int *tag = malloc(sizeof(int) * n_boxes);
-  for (int i = 0; i < n_boxes; i++) {
-    tag[i] = 0;
-  }
+  int *tag = PDM_array_zeros_int(n_boxes);
+
   int n_visited_boxes = 0;
 
   int *visited_boxes = malloc(sizeof(int) * n_boxes); // A optimiser
@@ -4590,10 +4566,7 @@ PDM_box_tree_closest_upper_bound_dist_boxes_get_from_copied_ranks
   *i_boxes_rank = (int **) malloc (sizeof(int *) * bt->n_copied_ranks);
   int **_i_boxes_rank = *i_boxes_rank;
   for (int i = 0; i < bt->n_copied_ranks; i++) {
-    _i_boxes_rank[i] = (int *) malloc (sizeof(int) * (n_pts_rank[i] + 1));
-    for (int j = 0; j < n_pts_rank[i]+1; j++) {
-      _i_boxes_rank[i][j] = 0;
-    }
+    _i_boxes_rank[i] = PDM_array_zeros_int(n_pts_rank[i] + 1);
   }
 
 
@@ -4626,9 +4599,8 @@ PDM_box_tree_closest_upper_bound_dist_boxes_get_from_copied_ranks
 
     int n_boxes = bt->boxes->rank_boxes[i_copied_rank].n_boxes;
 
-    for (int i = 0; i < n_boxes; i++) {
-      tag[i] = 0;
-    }
+    PDM_array_reset_int(tag, n_boxes, 0);
+
     int n_visited_boxes = 0;
 
     size_t n_node = 0;
@@ -4789,9 +4761,7 @@ PDM_box_tree_copy_to_ranks
     rank_copy_num = (int *) malloc (sizeof(int) * n_ranks);
   }
   int i = 0;
-  for (i = 0; i < n_ranks; i++) {
-    rank_copy_num[i] = -1;
-  }
+  PDM_array_reset_int(rank_copy_num, n_ranks, -1);
 
 
   bt->n_copied_ranks = 0;
@@ -4959,10 +4929,7 @@ PDM_box_tree_points_inside_boxes
   }
 
 
-  int *pts_in_box_count = malloc (sizeof(int) * n_boxes);
-  for (int ibox = 0; ibox < n_boxes; ibox++) {
-    pts_in_box_count[ibox] = 0;
-  }
+  int *pts_in_box_count = PDM_array_zeros_int(n_boxes);
 
   int *boxes_idx = malloc (sizeof(int) * (n_pts + 1));
   boxes_idx[0] = 0;

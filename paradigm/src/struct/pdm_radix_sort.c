@@ -12,6 +12,7 @@
  *----------------------------------------------------------------------------*/
 
 #include "pdm.h"
+#include "pdm_array.h"
 #include "pdm_radix_sort.h"
 
 #ifdef __cplusplus
@@ -81,12 +82,7 @@ _counting_sort
 {
   /* First step - Count */
   int n_buckets = _radix_base;
-  int* count = malloc( (n_buckets + 1) * sizeof(int));
-
-  /* Set to zero */
-  for(int i = 0; i < n_buckets+1; ++i){
-    count[i] = 0;
-  }
+  int* count = PDM_array_zeros_int(n_buckets + 1);
 
   /* Count */
   for(int i = beg; i < end; ++i) {
@@ -175,12 +171,7 @@ _counting_sort_with_order
   PDM_UNUSED(place);
   /* First step - Count */
   int n_buckets = _radix_base;
-  int* count = malloc( (n_buckets + 1) * sizeof(int));
-
-  /* Set to zero */
-  for(int i = 0; i < n_buckets+1; ++i){
-    count[i] = 0;
-  }
+  int* count = PDM_array_zeros_int(n_buckets + 1);
 
   /* Count */
   for(int i = beg; i < end; ++i) {
@@ -238,9 +229,7 @@ _counting_sort_with_order_recurse
     }
 
   } else {
-    for(int i = 0; i < _radix_base+1; ++i){
-      count_next[i] = 0;
-    }
+    PDM_array_reset_int(count_next, _radix_base+1, 0);
   }
 
   /* Rebuild array of displacement */

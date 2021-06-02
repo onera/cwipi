@@ -15,7 +15,6 @@
 
 #include "pdm.h"
 #include "pdm_part.h"
-#include "pdm_part_priv.h"
 
 #ifdef	__cplusplus
 extern "C" {
@@ -32,7 +31,7 @@ extern "C" {
  *
  */
 
-typedef void (*PDM_part_renum_fct_t) (_part_t  **ppart, int n_part, void* specific_data);
+typedef void (*PDM_part_renum_fct_t) (part_t  **ppart, int n_part, void* specific_data);
 
 /*============================================================================
  * Public function definitions
@@ -296,7 +295,7 @@ void
 void
 PDM_part_renum_cell
 (
- _part_t **part,
+ part_t **part,
  int       n_part,
  int       renum_cell_method,
  void     *specific_data
@@ -314,7 +313,7 @@ PDM_part_renum_cell
 void
 PDM_part_renum_face
 (
- _part_t **part,
+ part_t **part,
  int       n_part,
  int       renum_face_method,
  void     *specific_data
@@ -332,7 +331,7 @@ PDM_part_renum_face
 void
 PDM_part_renum_edge
 (
- _part_t **part,
+ part_t **part,
  int       n_part,
  int       renum_vtx_method,
  void     *specific_data
@@ -349,7 +348,7 @@ PDM_part_renum_edge
 void
 PDM_part_renum_vtx
 (
- _part_t **part,
+ part_t **part,
  int       n_part,
  int       renum_vtx_method,
  void     *specific_data
@@ -370,7 +369,7 @@ PDM_part_renum_vtx
 void
 PDM_part_reorder_cell
 (
- _part_t *part,
+ part_t *part,
  int     *new_to_old_order
 );
 
@@ -389,7 +388,7 @@ PDM_part_reorder_cell
 void
 PDM_part_reorder_face
 (
- _part_t *part,
+ part_t *part,
  int     *new_to_old_order
 );
 
@@ -407,7 +406,7 @@ PDM_part_reorder_face
 void
 PDM_part_reorder_edge
 (
- _part_t *part,
+ part_t *part,
  int     *new_to_old_order
 );
 
@@ -425,7 +424,7 @@ PDM_part_reorder_edge
 void
 PDM_part_reorder_vtx
 (
- _part_t *part,
+ part_t *part,
  int     *new_to_old_order
 );
 
@@ -446,7 +445,7 @@ PDM_part_renum_connectivities
 (
   const int nElt,
   const int *new_to_old_order,
-  int       *connectivityIdx,
+  int       *connectivity_idx,
   int       *connectivities
 );
 
@@ -463,7 +462,7 @@ void
 PDM_part_renum_array
 (
 const int  sizeArray,
-const int *olToNewOrder,
+const int *old_to_new_order,
 int       *array
 );
 
@@ -480,7 +479,7 @@ void
 PDM_part_renum_array_face_cell
 (
 const int  sizeArray,
-const int *olToNewOrder,
+const int *old_to_new_order,
 int       *array
 );
 

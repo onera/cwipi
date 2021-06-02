@@ -62,7 +62,7 @@ program testf
 
   integer :: i
 
-  integer :: id
+  type(c_ptr)              :: cls
 
   call mpi_init(code)
   call mpi_comm_rank(mpi_comm_world, i_rank, code)
@@ -126,17 +126,16 @@ program testf
   !
 
 
-  call PDM_closest_points_create (MPI_COMM_WORLD, &
-                                  n_closest, &
-                                  PDM_OWNERSHIP_KEEP, &
-                                  id)
+  cls = PDM_closest_points_create (MPI_COMM_WORLD, &
+                                   n_closest, &
+                                   PDM_OWNERSHIP_KEEP)
 
 
   !
   ! Set the number of local partition of the source point cloud and of the target point cloud
   !
 
-  call PDM_closest_points_n_part_cloud_set (id, &
+  call PDM_closest_points_n_part_cloud_set (cls, &
                                             n_part_cloud_src, &
                                             n_part_cloud_tgt)
 
@@ -155,7 +154,7 @@ program testf
   do i = 1, n_part_cloud_src
     cptr_gnum_src = c_loc(gnum_src)
     cptr_coords_src = c_loc(coords_src)
-    call PDM_closest_points_src_cloud_set (id, &
+    call PDM_closest_points_src_cloud_set (cls, &
                                            i-1, & !!! ipart : 0 -> n_part-1 !!!
                                            n_local_points_src, &
                                            cptr_coords_src(i), &
@@ -177,7 +176,7 @@ program testf
   do i = 1, n_part_cloud_tgt
     cptr_gnum_tgt(i) = c_loc(gnum_tgt)
     cptr_coords_tgt(i) = c_loc(coords_tgt)
-    call PDM_closest_points_tgt_cloud_set (id, &
+    call PDM_closest_points_tgt_cloud_set (cls, &
                                            i-1, &  !!! ipart : 0 -> n_part-1 !!!
                                            n_local_points_tgt, &
                                            cptr_coords_tgt(i), &
@@ -189,13 +188,13 @@ program testf
   ! Compute the 'n' closest neighbors into the source point cloud for any taget point
   !
 
-  call PDM_closest_points_compute (id)
+  call PDM_closest_points_compute (cls)
 
   !
   ! Dump the time used to compute
   !
 
-  call PDM_closest_points_dump_times (id)
+  call PDM_closest_points_dump_times (cls)
 
   !
   ! Get the 'n' closest neighbors into the source point cloud for any taget point
@@ -203,7 +202,7 @@ program testf
 
 
   do i = 1, n_part_cloud_tgt
-    call PDM_closest_points_get (id, &
+    call PDM_closest_points_get (cls, &
                                  i-1, & !!! ipart : 0 -> n_part-1 !!!
                                  cptr_closest_src_gnum, &
                                  cptr_closest_src_distance)
@@ -223,7 +222,7 @@ program testf
   ! Free the current cloest_point structure
   !
 
-  call PDM_closest_points_free (id)
+  call PDM_closest_points_free (cls)
 
   deallocate (coords_src)
   deallocate (coords_tgt)

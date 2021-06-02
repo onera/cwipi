@@ -22,7 +22,7 @@
 module pdm_closest_points
 
   use pdm
-  use iso_c_binding
+  implicit none
 
   interface
 
@@ -39,10 +39,10 @@ module pdm_closest_points
     !!
     !!
 
-    subroutine PDM_closest_points_create (fcomm,     &
-                                          n_closest, &
-                                          owner,     &
-                                          id) &
+    function PDM_closest_points_create (fcomm,     &
+                                        n_closest, &
+                                        owner)     &
+                                        result(cls) &
       bind (c, name = 'PDM_closest_points_create_cf')
 
       use iso_c_binding
@@ -53,10 +53,9 @@ module pdm_closest_points
       integer(c_int), value :: n_closest
       integer(c_int), value :: owner
 
-      integer(c_int)        :: id
+      type(c_ptr)        :: cls
 
-
-    end subroutine PDM_closest_points_create
+    end function PDM_closest_points_create
 
     !>
     !!
@@ -68,7 +67,7 @@ module pdm_closest_points
     !!
     !!
 
-    subroutine PDM_closest_points_n_part_cloud_set (id, &
+    subroutine PDM_closest_points_n_part_cloud_set (cls, &
                                                     n_part_cloud_src, &
                                                     n_part_cloud_tgt) &
       bind (c, name = 'PDM_closest_points_n_part_cloud_set')
@@ -77,7 +76,7 @@ module pdm_closest_points
 
       implicit none
 
-      integer(c_int), value :: id
+      type(c_ptr), value :: cls
 
       integer(c_int), value :: n_part_cloud_src
       integer(c_int), value :: n_part_cloud_tgt
@@ -97,7 +96,7 @@ module pdm_closest_points
     !!
     !!
 
-    subroutine PDM_closest_points_tgt_cloud_set (id, &
+    subroutine PDM_closest_points_tgt_cloud_set (cls, &
                                                  i_part, &
                                                  n_points, &
                                                  coords, &
@@ -108,7 +107,7 @@ module pdm_closest_points
 
       implicit none
 
-      integer(c_int), value :: id
+      type(c_ptr), value :: cls
 
       integer(c_int), value :: i_part
       integer(c_int), value :: n_points
@@ -131,7 +130,7 @@ module pdm_closest_points
     !!
     !!
 
-    subroutine PDM_closest_points_src_cloud_set (id, &
+    subroutine PDM_closest_points_src_cloud_set (cls, &
                                                  i_part, &
                                                  n_points, &
                                                  coords, &
@@ -142,7 +141,7 @@ module pdm_closest_points
 
       implicit none
 
-      integer(c_int), value :: id
+      type(c_ptr), value :: cls
 
       integer(c_int), value :: i_part
       integer(c_int), value :: n_points
@@ -161,14 +160,14 @@ module pdm_closest_points
     !!
     !!
 
-    subroutine PDM_closest_points_compute (id) &
+    subroutine PDM_closest_points_compute (cls) &
       bind (c, name = 'PDM_closest_points_compute')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value :: id
+      type(c_ptr), value :: cls
 
     end subroutine PDM_closest_points_compute
 
@@ -183,7 +182,7 @@ module pdm_closest_points
     !!
     !!
 
-    subroutine PDM_closest_points_get (id, &
+    subroutine PDM_closest_points_get (cls, &
                                        i_part_tgt, &
                                        closest_src_gnum, &
                                        closest_src_distance) &
@@ -193,7 +192,7 @@ module pdm_closest_points
 
       implicit none
 
-      integer(c_int), value :: id
+      type(c_ptr), value :: cls
 
       integer(c_int), value :: i_part_tgt
 
@@ -213,14 +212,14 @@ module pdm_closest_points
     !!
     !!
 
-    subroutine PDM_closest_points_free (id) &
+    subroutine PDM_closest_points_free (cls) &
      bind (c, name = 'PDM_closest_points_free')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value :: id
+      type(c_ptr), value :: cls
 
     end subroutine PDM_closest_points_free
 
@@ -232,14 +231,14 @@ module pdm_closest_points
     !!
     !!
 
-    subroutine PDM_closest_points_dump_times (id) &
+    subroutine PDM_closest_points_dump_times (cls) &
       bind (c, name = 'PDM_closest_points_dump_times')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value :: id
+      type(c_ptr), value :: cls
 
     end subroutine PDM_closest_points_dump_times
 

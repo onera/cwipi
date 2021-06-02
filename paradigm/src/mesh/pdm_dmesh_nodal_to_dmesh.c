@@ -522,7 +522,6 @@ PDM_g_num_t  **dentity_elmt
         for(int i = 0; i < idx_next_same_entity; ++i) {
           int i_same_entity = same_entity_idx[i];
           int sign = sens_entity[i];
-          // Signe à faire
           _dentity_elmt[_dentity_elmt_idx[i_abs_entity+1]++] = sign*blk_elmt_entity_elmt[idx+i_same_entity];
           already_treat[i_same_entity] = 1;
         }

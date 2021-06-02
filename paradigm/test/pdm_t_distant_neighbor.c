@@ -166,20 +166,20 @@ char *argv[]
    * Call pdm_points_merge to find match between the two block
    */
   double tolerance = 0.1;
-  int pm_id = PDM_points_merge_create(n_cloud, tolerance, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_KEEP);
+  PDM_points_merge_t* pts_merge = PDM_points_merge_create(n_cloud, tolerance, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_KEEP);
 
   if(n_rank == 1){
-    PDM_points_merge_cloud_set(pm_id, 0, n_points, coords[0], char_lenght[0]);
-    PDM_points_merge_cloud_set(pm_id, 1, n_points, coords[1], char_lenght[1]);
+    PDM_points_merge_cloud_set(pts_merge, 0, n_points, coords[0], char_lenght[0]);
+    PDM_points_merge_cloud_set(pts_merge, 1, n_points, coords[1], char_lenght[1]);
   } else if(n_rank == 2){
     if(i_rank == 0){
-      PDM_points_merge_cloud_set(pm_id, 0, n_points, coords[0], char_lenght[0]);
+      PDM_points_merge_cloud_set(pts_merge, 0, n_points, coords[0], char_lenght[0]);
     } else if(i_rank == 1){
-      PDM_points_merge_cloud_set(pm_id, 0, n_points, coords[0], char_lenght[0]);
+      PDM_points_merge_cloud_set(pts_merge, 0, n_points, coords[0], char_lenght[0]);
     }
   }
 
-  PDM_points_merge_process(pm_id);
+  PDM_points_merge_process(pts_merge);
 
   /*
    * Get resulting points_merge
@@ -190,8 +190,8 @@ char *argv[]
   for(int i_cloud = 0; i_cloud < n_cloud; i_cloud++){
     int n_cloud_points = -1;
     int n_desc   = -1;
-    PDM_points_merge_candidates_get(pm_id, i_cloud, &candidates_idx[i_cloud], &candidates_desc[i_cloud]);
-    PDM_points_merge_candidates_size_get(pm_id, i_cloud, &n_cloud_points, &n_desc);
+    PDM_points_merge_candidates_get(pts_merge, i_cloud, &candidates_idx[i_cloud], &candidates_desc[i_cloud]);
+    PDM_points_merge_candidates_size_get(pts_merge, i_cloud, &n_cloud_points, &n_desc);
 
     n_entity[i_cloud] = n_cloud_points;
 
@@ -303,7 +303,7 @@ char *argv[]
    * Free
    */
   PDM_distant_neighbor_free(dn);
-  PDM_points_merge_free(pm_id);
+  PDM_points_merge_free(pts_merge);
   free(coords);
   free(char_lenght);
   free(candidates_idx);

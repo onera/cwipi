@@ -27,6 +27,7 @@
 #include "pdm_edges_intersect.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm_array.h"
 
 /*=============================================================================
  * Macro definitions
@@ -1742,10 +1743,7 @@ double                **polyClippCoordsB
           else {
 
 
-            int *used_vtx = malloc (sizeof(int) * n_vtxClipp);
-            for (int i = 0; i < n_vtxClipp; i++) {
-              used_vtx[i] = 0;
-            }
+            int *used_vtx = PDM_array_zeros_int(n_vtxClipp);
 
             int i = 0;
             int inext = -1;

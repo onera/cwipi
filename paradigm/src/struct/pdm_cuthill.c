@@ -26,6 +26,7 @@
 #include "pdm_cuthill.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm_array.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -627,12 +628,7 @@ int perm[]
   int root;
 
   int *level_row  = (int *) malloc(sizeof(int) * (node_num + 1)); //level_row = new int[node_num+1];
-  int *mask       = (int *) malloc(sizeof(int) * (node_num    )); //mask = new int[node_num];
-
-  for ( i = 0; i < node_num; i++ )
-  {
-    mask[i] = 1;
-  }
+  int *mask       = PDM_array_const_int(node_num, 1); //mask = new int[node_num];
 
   num = 1;
 

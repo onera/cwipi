@@ -284,6 +284,7 @@ const int            i_zone,
 const int            i_part,
       int          **cell_color,
       int          **face_color,
+      int          **face_hp_color,
       int          **thread_color,
       int          **hyperplane_color
 );

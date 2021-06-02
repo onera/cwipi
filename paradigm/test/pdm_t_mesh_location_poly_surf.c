@@ -333,7 +333,7 @@ static void _add_depth (const int     n_pts,
                         double       *coord)
 {
   double inv_length = 1.;
-  if (length != 0) inv_length /= length;
+  if (PDM_ABS (length) > 1e-15) inv_length /= length;
 
   for (int i = 0; i < n_pts; i++) {
     double x = 2.*coord[3*i]   * inv_length;
@@ -1052,7 +1052,7 @@ int main(int argc, char *argv[])
 
 
   /* Point cloud global numbering */
-  int id_gnum = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_USER);
+  PDM_gen_gnum_t* gen_gnum = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_USER);
 
   double *char_length = malloc(sizeof(double) * n_pts_l);
 
@@ -1060,13 +1060,13 @@ int main(int argc, char *argv[])
     char_length[i] = length * 1.e-6;
   }
 
-  PDM_gnum_set_from_coords (id_gnum, 0, n_pts_l, pts_coords, char_length);
+  PDM_gnum_set_from_coords (gen_gnum, 0, n_pts_l, pts_coords, char_length);
 
-  PDM_gnum_compute (id_gnum);
+  PDM_gnum_compute (gen_gnum);
 
-  PDM_g_num_t *pts_gnum = PDM_gnum_get(id_gnum, 0);
+  PDM_g_num_t *pts_gnum = PDM_gnum_get(gen_gnum, 0);
 
-  PDM_gnum_free (id_gnum);
+  PDM_gnum_free (gen_gnum);
   free (char_length);
 
   /************************
@@ -1075,28 +1075,28 @@ int main(int argc, char *argv[])
    *
    ************************/
 
-  int id_loc = PDM_mesh_location_create (PDM_MESH_NATURE_MESH_SETTED,//???
+  PDM_mesh_location_t* mesh_loc = PDM_mesh_location_create (PDM_MESH_NATURE_MESH_SETTED,//???
                                          1,//const int n_point_cloud,
                                          PDM_MPI_COMM_WORLD);
 
   /* Set point cloud(s) */
-  PDM_mesh_location_n_part_cloud_set (id_loc,
+  PDM_mesh_location_n_part_cloud_set (mesh_loc,
                                       0,//i_point_cloud,
                                       1);//n_part
 
-  PDM_mesh_location_cloud_set (id_loc,
+  PDM_mesh_location_cloud_set (mesh_loc,
                                0,//i_point_cloud,
                                0,//i_part,
                                n_pts_l,
                                pts_coords,
                                pts_gnum);
 
-  PDM_mesh_location_mesh_global_data_set (id_loc,
+  PDM_mesh_location_mesh_global_data_set (mesh_loc,
                                           n_part);
 
   /* Set mesh */
   for (int ipart = 0; ipart < n_part; ipart++) {
-    PDM_mesh_location_part_set_2d (id_loc,
+    PDM_mesh_location_part_set_2d (mesh_loc,
                                    ipart,
                                    nFace[ipart],
                                    faceEdgeIdx[ipart],
@@ -1115,10 +1115,10 @@ int main(int argc, char *argv[])
 
 
   /* Set location parameters */
-  PDM_mesh_location_tolerance_set (id_loc,
+  PDM_mesh_location_tolerance_set (mesh_loc,
                                    tolerance);
 
-  PDM_mesh_location_method_set (id_loc,
+  PDM_mesh_location_method_set (mesh_loc,
                                 loc_method);
 
 
@@ -1130,9 +1130,9 @@ int main(int argc, char *argv[])
     fflush(stdout);
   }
 
-  PDM_mesh_location_compute (id_loc);
+  PDM_mesh_location_compute (mesh_loc);
 
-  PDM_mesh_location_dump_times (id_loc);
+  PDM_mesh_location_dump_times (mesh_loc);
 
 
 
@@ -1146,32 +1146,110 @@ int main(int argc, char *argv[])
     fflush(stdout);
   }
 
-  /* int p_n_points; */
-  PDM_g_num_t *p_location    = NULL;
-  int         *p_weights_idx = NULL;
-  double      *p_weights     = NULL;
-  double      *p_proj_coord  = NULL;
+  int n_located = PDM_mesh_location_n_located_get (mesh_loc,
+                                                   0,//i_point_cloud,
+                                                   0);//i_part,
 
-  PDM_mesh_location_get (id_loc,
-                         0,//i_point_cloud,
-                         0,//i_part,
-                         &p_location,
-                         &p_weights_idx,
-                         &p_weights,
-                         &p_proj_coord);
-  if (0) {
-    for (int ipt = 0; ipt < n_pts_l; ipt++) {
-      printf("Point ("PDM_FMT_G_NUM") (%f %f %f), location = ("PDM_FMT_G_NUM"), proj = (%f %f %f), weights =",
-             pts_gnum[ipt],
-             pts_coords[3*ipt], pts_coords[3*ipt+1], pts_coords[3*ipt+2],
-             p_location[ipt],
-             p_proj_coord[3*ipt], p_proj_coord[3*ipt+1], p_proj_coord[3*ipt+2]);
-      for (int i = p_weights_idx[ipt]; i < p_weights_idx[ipt+1]; i++) {
-        printf(" %f", p_weights[i]);
-      }
+  int *located = PDM_mesh_location_located_get (mesh_loc,
+                                                0,//i_point_cloud,
+                                                0);
+
+  int n_unlocated = PDM_mesh_location_n_unlocated_get (mesh_loc,
+                                                       0,//i_point_cloud,
+                                                       0);
+
+  int *unlocated = PDM_mesh_location_unlocated_get (mesh_loc,
+                                                    0,//i_point_cloud,
+                                                    0);
+
+  PDM_g_num_t *p_location    = NULL;
+  double      *p_dist2  = NULL;
+  double      *p_proj_coord  = NULL;
+  PDM_mesh_location_point_location_get (mesh_loc,
+                                        0,//i_point_cloud,
+                                        0,//i_part,
+                                        &p_location,
+                                        &p_dist2,
+                                        &p_proj_coord);
+
+  if (1) {
+    printf("Unlocated %d :\n", n_unlocated);
+    for (int k1 = 0; k1 < n_unlocated; k1++) {
+      printf("%d\n", unlocated[k1]);
+    }
+    printf("\n");
+
+    printf("Located %d :\n", n_located);
+    for (int k1 = 0; k1 < n_located; k1++) {
+      printf("%d\n", located[k1]);
+    }
+    printf("\n");
+
+    printf("Located %d :\n", n_located);
+    for (int k1 = 0; k1 < n_located; k1++) {
+      int ipt = located[k1] - 1;
+      printf(PDM_FMT_G_NUM" : "PDM_FMT_G_NUM" / %12.5e %12.5e %12.5e / %12.5e / %12.5e %12.5e %12.5e",
+        pts_gnum[ipt],  p_location[k1],
+        pts_coords[3*ipt], pts_coords[3*ipt+1], pts_coords[3*ipt+2],
+        p_dist2[k1],
+        p_proj_coord[3*k1], p_proj_coord[3*k1+1], p_proj_coord[3*k1+2]);
       printf("\n");
     }
   }
+
+
+  // /* int p_n_points; */
+  // PDM_g_num_t *p_location    = NULL;
+  // int         *p_weights_idx = NULL;
+  // double      *p_weights     = NULL;
+  // double      *p_proj_coord  = NULL;
+
+  // PDM_mesh_location_get (mesh_loc,
+  //                        0,//i_point_cloud,
+  //                        0,//i_part,
+  //                        &p_location,
+  //                        &p_weights_idx,
+  //                        &p_weights,
+  //                        &p_proj_coord);
+
+  if (1) {
+    printf("Unlocated %d :\n", n_unlocated);
+    for (int k1 = 0; k1 < n_unlocated; k1++) {
+      printf("%d\n", unlocated[k1]);
+    }
+    printf("\n");
+
+    printf("Located %d :\n", n_located);
+    for (int k1 = 0; k1 < n_located; k1++) {
+      printf("%d\n", located[k1]);
+    }
+    printf("\n");
+
+    printf("Located %d :\n", n_located);
+    for (int k1 = 0; k1 < n_located; k1++) {
+      int ipt = located[k1] - 1;
+      printf(PDM_FMT_G_NUM" : "PDM_FMT_G_NUM" / %12.5e %12.5e %12.5e / %12.5e / %12.5e %12.5e %12.5e",
+        pts_gnum[ipt],  p_location[k1],
+        pts_coords[3*ipt], pts_coords[3*ipt+1], pts_coords[3*ipt+2],
+        p_dist2[k1],
+        p_proj_coord[3*k1], p_proj_coord[3*k1+1], p_proj_coord[3*k1+2]);
+      printf("\n");
+    }
+  }
+
+  //  if (0) {
+  //   for (int ipt = 0; ipt < n_pts_l; ipt++) {
+  //     printf("Point ("PDM_FMT_G_NUM") (%f %f %f), location = ("PDM_FMT_G_NUM"), proj = (%f %f %f), weights =",
+  //            pts_gnum[ipt],
+  //            pts_coords[3*ipt], pts_coords[3*ipt+1], pts_coords[3*ipt+2],
+  //            p_location[ipt],
+  //            p_proj_coord[3*ipt], p_proj_coord[3*ipt+1], p_proj_coord[3*ipt+2]);
+  //     for (int i = p_weights_idx[ipt]; i < p_weights_idx[ipt+1]; i++) {
+  //       printf(" %f", p_weights[i]);
+  //     }
+  //     printf("\n");
+  //   }
+  // }
 
 
 
@@ -1180,7 +1258,7 @@ int main(int argc, char *argv[])
   /*
    * Finalize
    */
-  PDM_mesh_location_free (id_loc,
+  PDM_mesh_location_free (mesh_loc,
                           0);
 
   for (int ipart = 0; ipart < n_part; ipart++) {

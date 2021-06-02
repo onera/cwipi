@@ -27,7 +27,6 @@
 
 #include "pdm.h"
 #include "pdm_mpi.h"
-#include "pdm_handles.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -51,7 +50,7 @@ void
 PDM_closest_points_compute_GPU
 (
  const int id,
- PDM_Handles_t *var
+ PDM_closest_point_t *var
 );
 
 

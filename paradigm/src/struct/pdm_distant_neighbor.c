@@ -17,6 +17,7 @@
 #include "pdm_printf.h"
 #include "pdm_distant_neighbor_priv.h"
 #include "pdm_distant_neighbor.h"
+#include "pdm_array.h"
 #include "pdm_error.h"
 #include "pdm_order.h"
 
@@ -188,21 +189,12 @@ const int           *n_entity,
   dn->n_entity             = n_entity;
   dn->neighbor_idx         = neighbor_idx;
   dn->neighbor_desc        = neighbor_desc;
-  dn->order                = (int **) malloc(   dn->n_part       * sizeof(int **));
-  dn->order_unique         = (int **) malloc(   dn->n_part       * sizeof(int **));
-  dn->requested_data_n     = (int * ) malloc( ( n_rank         ) * sizeof(int * ));
-  dn->requested_data_idx   = (int * ) malloc( ( n_rank + 1     ) * sizeof(int * ));
-  dn->distributed_part_n   = (int * ) malloc( ( dn->n_part     ) * sizeof(int * ));
-  dn->distributed_part_idx = (int * ) malloc( ( dn->n_part + 1 ) * sizeof(int * ));
-
-  /*
-   * Init the requested counter
-   */
-  for (int i = 0; i < n_rank; i++) {
-    dn->requested_data_idx[i] = 0;
-    dn->requested_data_n  [i] = 0;
-  }
-  dn->requested_data_idx[n_rank] = 0;
+  dn->order                = (int **) malloc(   dn->n_part       * sizeof(int*));
+  dn->order_unique         = (int **) malloc(   dn->n_part       * sizeof(int*));
+  dn->requested_data_n     = PDM_array_zeros_int(n_rank);
+  dn->requested_data_idx   = (int * ) malloc( ( n_rank + 1     ) * sizeof(int));
+  dn->distributed_part_n   = (int * ) malloc( ( dn->n_part     ) * sizeof(int));
+  dn->distributed_part_idx = (int * ) malloc( ( dn->n_part + 1 ) * sizeof(int));
 
   /*
    * Sort/unique the triplet (iproc, i_part, ientity)
@@ -222,8 +214,8 @@ const int           *n_entity,
 
     // printf("[%i] - n_entity:: %d\n", i_part, n_entity[i_part]);
 
-    dn->order       [i_part] = (int *) malloc( _part_neighbor_idx[n_entity[i_part]] * sizeof(int *));
-    dn->order_unique[i_part] = (int *) malloc( _part_neighbor_idx[n_entity[i_part]] * sizeof(int *));
+    dn->order       [i_part] = (int *) malloc( _part_neighbor_idx[n_entity[i_part]] * sizeof(int));
+    dn->order_unique[i_part] = (int *) malloc( _part_neighbor_idx[n_entity[i_part]] * sizeof(int));
 
     // PDM_log_trace_array_int(_part_neighbor_idx , n_entity[i_part], "_part_neighbor_idx::");
     // PDM_log_trace_array_int(_part_neighbor_desc, 3 * _part_neighbor_idx[n_entity[i_part]], "_part_neighbor_desc::");
@@ -254,10 +246,7 @@ const int           *n_entity,
     }
   }
 
-  for (int i = 0; i < n_rank; i++) {
-    dn->requested_data_idx[i+1] = dn->requested_data_idx[i] +
-                                   dn->requested_data_n[i];
-  }
+  PDM_array_idx_from_sizes_int(dn->requested_data_n, n_rank, dn->requested_data_idx);
 
   /*
    * Compute size and reset counter
@@ -265,9 +254,7 @@ const int           *n_entity,
   int s_requested_data = dn->requested_data_idx[n_rank-1] + dn->requested_data_n[n_rank-1];
 
   // printf("s_requested_data:: %d \n", s_requested_data);
-  for (int i = 0; i < n_rank; i++) {
-    dn->requested_data_n[i] = 0;
-  }
+  PDM_array_reset_int(dn->requested_data_n, n_rank, 0);
 
   int *requested_data = malloc (sizeof(int) *  2 * s_requested_data); // Store i_part/ientity
 
@@ -276,7 +263,6 @@ const int           *n_entity,
     int *_part_neighbor_idx  = dn->neighbor_idx[i_part];
     int *_part_neighbor_desc = dn->neighbor_desc[i_part];
     dn->distributed_part_n  [i_part] = 0;
-    dn->distributed_part_idx[i_part] = 0;
 
     int lastidx = -1;
     for(int i_entity = 0; i_entity < _part_neighbor_idx[n_entity[i_part]]; i_entity++){
@@ -307,10 +293,7 @@ const int           *n_entity,
     dn->requested_data_idx[i] = 2*dn->requested_data_idx[i];
   }
 
-  for (int i = 0; i < dn->n_part; i++) {
-    dn->distributed_part_idx[i+1] = dn->distributed_part_n[i] +
-                                     dn->distributed_part_idx[i];
-  }
+  PDM_array_idx_from_sizes_int(dn->distributed_part_n, dn->n_part, dn->distributed_part_idx);
 
   if(0 == 1){
     log_trace("PDM_distant_neighbor_create::requested_data :: --> ");
@@ -356,13 +339,7 @@ const int           *n_entity,
     log_trace("\n");
   }
 
-  dn->distributed_data_idx = malloc (sizeof(int) * (n_rank + 1));
-  dn->distributed_data_idx[0] = 0;
-
-  for (int i = 0; i < n_rank; i++) {
-    dn->distributed_data_idx[i+1] = dn->distributed_data_n[i] +
-                                     dn->distributed_data_idx[i];
-  }
+  dn->distributed_data_idx = PDM_array_new_idx_from_sizes_int(dn->distributed_data_n, n_rank);
 
   if(0 == 1){
     log_trace("PDM_distant_neighbor_create::distributed_data_idx :: --> ");
@@ -547,12 +524,12 @@ PDM_distant_neighbor_exch
     /*
      * Fill the recv stride for all parts / entity
      */
-    *recv_entity_stride = malloc( dn->n_part * sizeof(int *) );
+    *recv_entity_stride = (int **) malloc(dn->n_part * sizeof(int *));
     int **_recv_entity_stride = (*(int ***) recv_entity_stride);
 
     for(int i_part = 0; i_part < dn->n_part; i_part++){
       int *_part_neighbor_idx  = dn->neighbor_idx[i_part];
-      _recv_entity_stride[i_part] = (int *) malloc( _part_neighbor_idx[dn->n_entity[i_part]] * sizeof(int *));
+      _recv_entity_stride[i_part] = (int *) malloc( _part_neighbor_idx[dn->n_entity[i_part]] * sizeof(int));
 
       for(int i_entity = 0; i_entity < _part_neighbor_idx[dn->n_entity[i_part]]; i_entity++){
         int s_entity = dn->order[i_part][i_entity]; // On doit remettre dans l'ordre initiale !
@@ -616,21 +593,14 @@ PDM_distant_neighbor_exch
     // log_trace("PDM_distant_neighbor_exch::s_send_buffer :: %d --> \n ", s_send_buffer);
     // log_trace("PDM_distant_neighbor_exch::s_recv_buffer :: %d --> \n ", s_recv_buffer);
 
-    recv_stride_idx[0] = 0;
-    for (int i = 0; i < s_requested_data; i++) {
-      recv_stride_idx[i+1] = recv_stride_idx[i] + recv_stride[i];
-    }
+    PDM_array_idx_from_sizes_int(recv_stride, s_requested_data, recv_stride_idx);
 
     /*
      * Compute stride for each part (in the order of send buffer )
      */
-    int** stride_idx = (int**) malloc( dn->n_part * sizeof(int **));
+    int** stride_idx = (int**) malloc( dn->n_part * sizeof(int *));
     for(int i_part = 0; i_part < dn->n_part; i_part++){
-      stride_idx[i_part] = (int*) malloc( (dn->n_entity[i_part] + 1)  * sizeof(int*));
-      stride_idx[i_part][0] = 0;
-      for(int i_entity = 0; i_entity < dn->n_entity[i_part]; i_entity++){
-        stride_idx[i_part][i_entity+1] = stride_idx[i_part][i_entity] + send_entity_stride[i_part][i_entity];
-      }
+      stride_idx[i_part] = PDM_array_new_idx_from_sizes_int(send_entity_stride[i_part], dn->n_entity[i_part]);
     }
 
     /*
@@ -723,14 +693,11 @@ PDM_distant_neighbor_exch
      * Compute the recv stride index for each entity
      */
     int** _recv_entity_stride = (*(int ***) recv_entity_stride);
-    int** _recv_entity_stride_idx = (int**) malloc( dn->n_part * sizeof(int **));
+    int** _recv_entity_stride_idx = (int**) malloc( dn->n_part * sizeof(int *));
     for(int i_part = 0; i_part < dn->n_part; i_part++){
       int *_part_neighbor_idx  = dn->neighbor_idx[i_part];
-      _recv_entity_stride_idx[i_part] = (int*) malloc( (_part_neighbor_idx[dn->n_entity[i_part]] + 1)  * sizeof(int*));
-      _recv_entity_stride_idx[i_part][0] = 0;
-      for(int i_entity = 0; i_entity < _part_neighbor_idx[dn->n_entity[i_part]]; i_entity++){
-        _recv_entity_stride_idx[i_part][i_entity+1] = _recv_entity_stride_idx[i_part][i_entity] + _recv_entity_stride[i_part][i_entity];
-      }
+      _recv_entity_stride_idx[i_part] = PDM_array_new_idx_from_sizes_int(_recv_entity_stride[i_part],
+                                                                         _part_neighbor_idx[dn->n_entity[i_part]]);
     }
 
     if(0 == 1){
@@ -760,7 +727,7 @@ PDM_distant_neighbor_exch
       }
 
       // log_trace("PDM_distant_neighbor_exch::recv_part_size :: --> %d --> %d ( Octet ) \n ", recv_part_size, recv_part_size * s_data);
-      _recv_entity_data[i_part] = (unsigned char *) malloc( recv_part_size * s_data * sizeof(unsigned char *) );
+      _recv_entity_data[i_part] = (unsigned char *) malloc( recv_part_size * s_data * sizeof(unsigned char) );
 
       for(int i_entity = 0; i_entity < _part_neighbor_idx[dn->n_entity[i_part]]; i_entity++){
         int s_entity = dn->order[i_part][i_entity]; // On doit remettre dans l'ordre initiale !
@@ -791,7 +758,7 @@ PDM_distant_neighbor_exch
     for(int i_part = 0; i_part < dn->n_part; i_part++){
       int *_part_neighbor_idx  = dn->neighbor_idx[i_part];
 
-      _recv_entity_data[i_part] = (unsigned char *) malloc( _part_neighbor_idx[dn->n_entity[i_part]] * s_block_unit * sizeof(unsigned char *));
+      _recv_entity_data[i_part] = (unsigned char *) malloc( _part_neighbor_idx[dn->n_entity[i_part]] * s_block_unit * sizeof(unsigned char));
 
       // log_trace("PDM_distant_neighbor_exch::size :: --> %d \n ", _part_neighbor_idx[dn->n_entity[i_part]] * s_block_unit);
       // log_trace("PDM_distant_neighbor_exch::recv_buffer :: --> \n ");
@@ -902,12 +869,12 @@ PDM_distant_neighbor_exch_int
     /*
      * Fill the recv stride for all parts / entity
      */
-    *recv_entity_stride = malloc( dn->n_part * sizeof(int *) );
+    *recv_entity_stride = (int **) malloc( dn->n_part * sizeof(int *) );
     int **_recv_entity_stride = (*(int ***) recv_entity_stride);
 
     for(int i_part = 0; i_part < dn->n_part; i_part++){
       int *_part_neighbor_idx  = dn->neighbor_idx[i_part];
-      _recv_entity_stride[i_part] = (int *) malloc( _part_neighbor_idx[dn->n_entity[i_part]] * sizeof(int *));
+      _recv_entity_stride[i_part] = (int *) malloc( _part_neighbor_idx[dn->n_entity[i_part]] * sizeof(int));
 
       for(int i_entity = 0; i_entity < _part_neighbor_idx[dn->n_entity[i_part]]; i_entity++){
         int s_entity = dn->order[i_part][i_entity]; // On doit remettre dans l'ordre initiale !
@@ -975,21 +942,14 @@ PDM_distant_neighbor_exch_int
     send_buffer = (int *) malloc(sizeof(int) * s_send_buffer);
     recv_buffer = (int *) malloc(sizeof(int) * s_recv_buffer);
 
-    recv_stride_idx[0] = 0;
-    for (int i = 0; i < s_requested_data; i++) {
-      recv_stride_idx[i+1] = recv_stride_idx[i] + recv_stride[i];
-    }
+    PDM_array_idx_from_sizes_int(recv_stride, s_requested_data, recv_stride_idx);
 
     /*
      * Compute stride for each part (in the order of send buffer )
      */
-    int** stride_idx = (int**) malloc( dn->n_part * sizeof(int **));
+    int** stride_idx = (int**) malloc( dn->n_part * sizeof(int *));
     for(int i_part = 0; i_part < dn->n_part; i_part++){
-      stride_idx[i_part] = (int*) malloc( (dn->n_entity[i_part] + 1)  * sizeof(int*));
-      stride_idx[i_part][0] = 0;
-      for(int i_entity = 0; i_entity < dn->n_entity[i_part]; i_entity++){
-        stride_idx[i_part][i_entity+1] = stride_idx[i_part][i_entity] + send_entity_stride[i_part][i_entity];
-      }
+      stride_idx[i_part] = PDM_array_new_idx_from_sizes_int(send_entity_stride[i_part], dn->n_entity[i_part]);
     }
 
     /*
@@ -1095,7 +1055,7 @@ PDM_distant_neighbor_exch_int
    * Une seule valeur est echangé mais plusieurs occurence peuvent exister donc on passe du buffer MPI
    * au donné sans le sort/unique
    */
-  *recv_entity_data = malloc( dn->n_part * sizeof(int *) );
+  *recv_entity_data = (int **) malloc( dn->n_part * sizeof(int *) );
   int **_recv_entity_data = (*(int ***) recv_entity_data);
 
   if (t_stride == PDM_STRIDE_VAR) {
@@ -1104,15 +1064,11 @@ PDM_distant_neighbor_exch_int
      * Compute the recv stride index for each entity
      */
     int** _recv_entity_stride = (*(int ***) recv_entity_stride);
-    int** _recv_entity_stride_idx = (int**) malloc( dn->n_part * sizeof(int **));
+    int** _recv_entity_stride_idx = (int**) malloc( dn->n_part * sizeof(int *));
     for(int i_part = 0; i_part < dn->n_part; i_part++){
       int *_part_neighbor_idx  = dn->neighbor_idx[i_part];
-      _recv_entity_stride_idx[i_part] = (int*) malloc( (_part_neighbor_idx[dn->n_entity[i_part]] + 1)  * sizeof(int*));
-      _recv_entity_stride_idx[i_part][0] = 0;
-      // for(int i_entity = 0; i_entity < dn->n_entity[i_part]; i_entity++){
-      for(int i_entity = 0; i_entity < _part_neighbor_idx[dn->n_entity[i_part]]; i_entity++){
-        _recv_entity_stride_idx[i_part][i_entity+1] = _recv_entity_stride_idx[i_part][i_entity] + _recv_entity_stride[i_part][i_entity];
-      }
+      _recv_entity_stride_idx[i_part] = PDM_array_new_idx_from_sizes_int(_recv_entity_stride[i_part],
+                                                                         _part_neighbor_idx[dn->n_entity[i_part]]);
     }
 
     if(0 == 1){
@@ -1137,7 +1093,7 @@ PDM_distant_neighbor_exch_int
       }
 
       // log_trace("PDM_distant_neighbor_exch::recv_part_size :: --> %d \n ", recv_part_size);
-      _recv_entity_data[i_part] = (int *) malloc( recv_part_size * sizeof(int *));
+      _recv_entity_data[i_part] = (int *) malloc( recv_part_size * sizeof(int));
 
       // for(int i = 0; i < recv_part_size; ++i) {
       //  _recv_entity_data[i_part][i] = -100;
@@ -1177,7 +1133,7 @@ PDM_distant_neighbor_exch_int
     // Shift is not good because the buffer contains only one occurence of each elements !!!
     for(int i_part = 0; i_part < dn->n_part; i_part++){
       int *_part_neighbor_idx  = dn->neighbor_idx[i_part];
-      _recv_entity_data[i_part] = (int *) malloc( _part_neighbor_idx[dn->n_entity[i_part]] * cst_stride * sizeof(int *));
+      _recv_entity_data[i_part] = (int *) malloc( _part_neighbor_idx[dn->n_entity[i_part]] * cst_stride * sizeof(int));
 
       // log_trace("PDM_distant_neighbor_exch::size :: --> %d \n ", _part_neighbor_idx[dn->n_entity[i_part]] * cst_stride);
       // log_trace("PDM_distant_neighbor_exch::recv_buffer :: --> \n ");

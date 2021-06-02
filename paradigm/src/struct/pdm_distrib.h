@@ -56,6 +56,22 @@ PDM_compute_entity_distribution
  const int              dn_entity
 );
 
+
+int
+PDM_compute_uniform_dn_entity
+(
+ const PDM_MPI_Comm     comm,
+ const PDM_g_num_t      n_g_entity
+);
+
+
+PDM_g_num_t*
+PDM_compute_uniform_entity_distribution
+(
+ const PDM_MPI_Comm     comm,
+ const PDM_g_num_t      n_g_entity
+);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

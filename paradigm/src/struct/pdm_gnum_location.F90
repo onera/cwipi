@@ -37,7 +37,8 @@ module pdm_gnum_location
     !! \param [out]  id             Identifier
     !!
 
-    subroutine pdm_gnum_location_create (n_part_in, n_part_out, fComm, id) &
+    function pdm_gnum_location_create (n_part_in, n_part_out, fComm) &
+         result(ptrC) &
          bind (c, name = 'PDM_gnum_location_create_cf')
 
       use iso_c_binding
@@ -48,9 +49,10 @@ module pdm_gnum_location
       integer(c_int), value :: n_part_out
       integer(c_int), value :: fComm
 
-      integer(c_int)        :: id
+      type (c_ptr) :: ptrC
 
-    end subroutine pdm_gnum_location_create
+
+    end function pdm_gnum_location_create
 
 
     !>
@@ -63,14 +65,14 @@ module pdm_gnum_location
     !! \param [in]   gnum_in     Global numbering
     !!
 
-    subroutine pdm_gnum_location_elements_set (id, i_part_in, n_elts_in, gnum_in) &
+    subroutine pdm_gnum_location_elements_set (ptrC, i_part_in, n_elts_in, gnum_in) &
          bind (c, name = 'PDM_gnum_location_elements_set')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value :: id
+      type (c_ptr), value :: ptrC
       integer(c_int), value :: i_part_in
       integer(c_int), value :: n_elts_in
 
@@ -90,14 +92,14 @@ module pdm_gnum_location
     !!
     !!
 
-    subroutine pdm_gnum_location_requested_elements_set (id, i_part_out, n_elts_out, gnum_out) &
+    subroutine pdm_gnum_location_requested_elements_set (ptrC, i_part_out, n_elts_out, gnum_out) &
          bind (c, name = 'PDM_gnum_location_requested_elements_set')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value :: id
+      type (c_ptr), value :: ptrC
       integer(c_int), value :: i_part_out
       integer(c_int), value :: n_elts_out
 
@@ -114,14 +116,14 @@ module pdm_gnum_location
     !!
     !!
 
-    subroutine pdm_gnum_location_compute (id) &
+    subroutine pdm_gnum_location_compute (ptrC) &
       bind (c, name = 'PDM_gnum_location_compute')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value :: id
+      type (c_ptr), value :: ptrC
 
     end subroutine pdm_gnum_location_compute
 
@@ -137,14 +139,14 @@ module pdm_gnum_location
     !!                                (Three informations : process, partition, element)
     !!
 
-    subroutine pdm_gnum_location_get (id, i_part_out, location_idx, location) &
+    subroutine pdm_gnum_location_get (ptrC, i_part_out, location_idx, location) &
       bind (c, name = 'PDM_gnum_location_get')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value :: id
+      type (c_ptr), value :: ptrC
       integer(c_int), value :: i_part_out
 
       type(c_ptr)           :: location_idx
@@ -162,14 +164,14 @@ module pdm_gnum_location
     !!
     !!/
 
-    subroutine pdm_gnum_location_free (id, partial) &
+    subroutine pdm_gnum_location_free (ptrC, partial) &
       bind (c, name = 'PDM_gnum_location_free')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value :: id
+      type (c_ptr), value :: ptrC
       integer(c_int), value :: partial
     end subroutine pdm_gnum_location_free
 

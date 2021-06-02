@@ -26,7 +26,8 @@ MPI_TEST_CASE("decomposes hexa ",1) {
   PDM_DMesh_nodal_section_std_set(dmn,
                                   hexa_section_1,
                                   n_hexa_section_1,
-                                  connec_hexa_1);
+                                  connec_hexa_1,
+                                  PDM_OWNERSHIP_USER); // Ownership is just a mapping here
   PDM_dmesh_nodal_generate_distribution(dmn);
 
   int n_face_elt_tot     = -1;
@@ -135,7 +136,8 @@ MPI_TEST_CASE("decomposes tetra ",1) {
   PDM_DMesh_nodal_section_std_set(dmn,
                                   tetra_section_1,
                                   n_tetra_section_1,
-                                  connec_tetra_1);
+                                  connec_tetra_1,
+                                  PDM_OWNERSHIP_USER);
   PDM_dmesh_nodal_generate_distribution(dmn);
 
   int n_face_elt_tot     = -1;
@@ -237,7 +239,8 @@ MPI_TEST_CASE("decomposes pyra ",1) {
   PDM_DMesh_nodal_section_std_set(dmn,
                                   pyra_section_1,
                                   n_pyra_section_1,
-                                  connec_pyra_1);
+                                  connec_pyra_1,
+                                  PDM_OWNERSHIP_USER);
   PDM_dmesh_nodal_generate_distribution(dmn);
 
   int n_face_elt_tot     = -1;
@@ -337,7 +340,8 @@ MPI_TEST_CASE("decomposes prism ",1) {
   PDM_DMesh_nodal_section_std_set(dmn,
                                   prism_section_1,
                                   n_prism_section_1,
-                                  connec_prism_1);
+                                  connec_prism_1,
+                                  PDM_OWNERSHIP_USER);
   PDM_dmesh_nodal_generate_distribution(dmn);
 
   int n_face_elt_tot     = -1;
@@ -438,7 +442,8 @@ MPI_TEST_CASE("decomposes quad ",1) {
   PDM_DMesh_nodal_section_std_set(dmn,
                                   quad_section_1,
                                   n_quad_section_1,
-                                  connec_quad_1);
+                                  connec_quad_1,
+                                  PDM_OWNERSHIP_USER);
   PDM_dmesh_nodal_generate_distribution(dmn);
 
   int n_edge_elt_tot     = -1;
@@ -545,7 +550,8 @@ MPI_TEST_CASE("decomposes tri ",1) {
   PDM_DMesh_nodal_section_std_set(dmn,
                                   tri_section_1,
                                   n_tri_section_1,
-                                  connec_tri_1);
+                                  connec_tri_1,
+                                  PDM_OWNERSHIP_USER);
   PDM_dmesh_nodal_generate_distribution(dmn);
 
   int n_edge_elt_tot     = -1;

@@ -23,6 +23,7 @@
 #include "pdm_part_extension.h"
 #include "pdm_part_extension_priv.h"
 #include "pdm_part_connectivity_transform.h"
+#include "pdm_array.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -242,10 +243,7 @@ _create_cell_graph_comm
 
       int* _neighbor_idx  = part_ext->neighbor_idx [i_part+shift_part];
 
-      int* _neighbor_n = (int * ) malloc( part_ext->n_entity_bound[i_part+shift_part] * sizeof(int));
-      for(int i_entity = 0; i_entity < part_ext->n_entity_bound[i_part+shift_part]; ++i_entity) {
-        _neighbor_n[i_entity] = 0;
-      }
+      int* _neighbor_n = PDM_array_zeros_int(part_ext->n_entity_bound[i_part+shift_part]);
 
       /* Just copy to remove the 4 indices to 3 indices */
       for(int idx_entity = 0; idx_entity < n_part_entity_bound_tot; ++idx_entity) {
@@ -333,26 +331,15 @@ _create_cell_graph_comm
       int n_entity = part_ext->n_entity_bound[i_part+shift_part]; // n_face / n_edge / n_vtx
       int n_elmt   = _neighbor_idx[n_entity];
 
-      part_ext->entity_cell_opp_idx   [i_part+shift_part] = (int *) malloc((n_elmt+1) * sizeof(int) );
-
       // int n_cell = part_ext->parts[i_domain][i_part].n_cell;
-      part_ext->dist_neighbor_cell_n  [i_part+shift_part] = (int *) malloc(  n_cell    * sizeof(int) );
+      part_ext->entity_cell_opp_idx   [i_part+shift_part] = PDM_array_new_idx_from_sizes_int(_entity_cell_opp_n, n_elmt);
+      part_ext->dist_neighbor_cell_n  [i_part+shift_part] = PDM_array_zeros_int(n_cell);
       part_ext->dist_neighbor_cell_idx[i_part+shift_part] = (int *) malloc( (n_cell+1) * sizeof(int) );
 
       int* _entity_cell_opp_idx    = part_ext->entity_cell_opp_idx   [i_part+shift_part];
       int* _dist_neighbor_cell_n   = part_ext->dist_neighbor_cell_n  [i_part+shift_part];
       int* _dist_neighbor_cell_idx = part_ext->dist_neighbor_cell_idx[i_part+shift_part];
 
-      // printf(" n_elmt = %i \n", n_elmt);
-      _entity_cell_opp_idx[0] = 0;
-      for(int i_elmt = 0; i_elmt < n_elmt; ++i_elmt) {
-        _entity_cell_opp_idx[i_elmt+1] = _entity_cell_opp_idx[i_elmt] + _entity_cell_opp_n[i_elmt];
-      }
-
-      /* Init in order to count after - two pass to count = interior then border */
-      for(int i_cell = 0; i_cell < n_cell; ++i_cell) {
-        _dist_neighbor_cell_n[i_cell] = 0;
-      }
 
       part_ext->border_cell_list[i_part+shift_part] = malloc( n_elmt * sizeof(int));
       // for(int i = 0; i < n_elmt; ++i) {
@@ -392,9 +379,7 @@ _create_cell_graph_comm
       // PDM_log_trace_array_int(part_ext->border_cell_list[i_part+shift_part]  , idx_indic  , "border_cell_list::");
 
       /* Reset */
-      for(int i_cell = 0; i_cell < n_cell; ++i_cell) {
-        _dist_neighbor_cell_n[i_cell] = 0;
-      }
+      PDM_array_reset_int(_dist_neighbor_cell_n, n_cell, 0);
 
       /* Allocate */
       part_ext->dist_neighbor_cell_desc[i_part+shift_part] = (int * ) malloc( 3 * _dist_neighbor_cell_idx[n_cell] * sizeof(int));
@@ -595,10 +580,7 @@ _compute_dual_graph
       /*
        * Generate tag to know is a local cell is a border or not
        */
-      int* idx_border_cell = (int *) malloc( n_cell * sizeof(int));
-      for(int i_cell = 0; i_cell < n_cell; ++i_cell) {
-        idx_border_cell[i_cell] = -1;
-      }
+      int* idx_border_cell = PDM_array_const_int(n_cell, -1);
 
       for(int idx_cell = 0; idx_cell < n_cell_border; ++idx_cell) {
         int i_cell = part_ext->border_cell_list[i_part+shift_part][idx_cell];
@@ -1661,13 +1643,7 @@ _rebuild_connectivity
 
       /* On refait l'index */
       int n_neight_tot = entity1_entity1_extended_idx[i_part+shift_part][pn_entity1];
-      (*border_lentity1_entity2_idx)[i_part+shift_part] = (int *) malloc( ( n_neight_tot + 1 ) * sizeof(int));
-      int *_border_lentity1_entity2_idx = (*border_lentity1_entity2_idx)[i_part+shift_part];
-      _border_lentity1_entity2_idx[0] = 0;
-      for(int i = 0; i < n_neight_tot; ++i ) {
-        _border_lentity1_entity2_idx[i+1] = _border_lentity1_entity2_idx[i] + border_lentity1_entity2_n[i_part+shift_part][i];
-      }
-
+      (*border_lentity1_entity2_idx)[i_part+shift_part] = PDM_array_new_idx_from_sizes_int(border_lentity1_entity2_n[i_part+shift_part], n_neight_tot);
     }
     shift_part += part_ext->n_part[i_domain];
   }
@@ -1989,9 +1965,7 @@ _rebuild_face_group
       part_ext->border_face_group_idx[shift_part+i_part] = malloc( (n_face_group+1) * sizeof(int));
       int *_pborder_face_group_idx = part_ext->border_face_group_idx[shift_part+i_part];
 
-      for(int i_group = 0; i_group < n_face_group+1; ++i_group) {
-        _pborder_face_group_idx[i_group] = 0;
-      }
+      PDM_array_reset_int(_pborder_face_group_idx, n_face_group+1, 0);
 
       int idx = 0;
       for(int i = 0; i < n_face_border; ++i) {
@@ -2013,10 +1987,7 @@ _rebuild_face_group
       int         *_pborder_face_group          = part_ext->border_face_group         [shift_part+i_part];
       PDM_g_num_t *_pborder_face_group_ln_to_gn = part_ext->border_face_group_ln_to_gn[shift_part+i_part];
 
-      int* pborder_face_group_n = (int *) malloc( n_face_group * sizeof(int) );
-      for(int i_group = 0; i_group < n_face_group; ++i_group) {
-        pborder_face_group_n[i_group] = 0;
-      }
+      int* pborder_face_group_n = PDM_array_zeros_int(n_face_group);
 
       // PDM_log_trace_array_long(part_ext->border_face_ln_to_gn[shift_part+i_part], n_face_border, "border_face_ln_to_gn::");
 
@@ -2100,7 +2071,10 @@ PDM_part_extension_create
   PDM_part_extension_t *part_ext = (PDM_part_extension_t *) malloc(sizeof(PDM_part_extension_t));
 
   part_ext->n_domain    = n_domain;
-  part_ext->n_part      = n_part;
+  part_ext->n_part      = malloc( n_domain * sizeof(int)); // Make a copy to avoid pb in cython
+  for(int i = 0; i < part_ext->n_domain; ++i) {
+    part_ext->n_part[i] = n_part[i];
+  }
   part_ext->comm        = comm;
   part_ext->owner       = owner;
   part_ext->extend_type = extend_type;
@@ -2704,6 +2678,7 @@ PDM_part_extension_free
   free(part_ext->cell_cell_extended_pruned_idx);
   free(part_ext->cell_cell_extended_pruned    );
 
+  free(part_ext->n_part);
   part_ext->n_part = NULL;
 
   for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {

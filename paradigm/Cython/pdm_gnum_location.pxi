@@ -1,29 +1,33 @@
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # > Wrapping of functions
 cdef extern from "pdm_gnum_location.h":
-    int                  PDM_gnum_location_create(const int          n_part_in,
+
+    ctypedef struct PDM_gnum_location_t:
+        pass
+
+    PDM_gnum_location_t* PDM_gnum_location_create(const int          n_part_in,
                                                   const int          n_part_out,
                                                   const PDM_MPI_Comm comm);
 
-    void           PDM_gnum_location_elements_set(const int         id,
-                                                  const int         i_part_in,
-                                                  const int         n_elts_in,
-                                                  const PDM_g_num_t *gnum_in);
+    void           PDM_gnum_location_elements_set(      PDM_gnum_location_t *gnum_loc,
+                                                  const int                  i_part_in,
+                                                  const int                  n_elts_in,
+                                                  const PDM_g_num_t         *gnum_in);
 
-    void PDM_gnum_location_requested_elements_set(const int         id,
-                                                  const int         i_part_out,
-                                                  const int         n_elts_out,
-                                                  const PDM_g_num_t *gnum_out);
+    void PDM_gnum_location_requested_elements_set(      PDM_gnum_location_t *gnum_loc,
+                                                  const int                  i_part_out,
+                                                  const int                  n_elts_out,
+                                                  const PDM_g_num_t         *gnum_out);
 
-    void                PDM_gnum_location_compute(const int id);
+    void                PDM_gnum_location_compute(PDM_gnum_location_t *gnum_loc);
 
-    void                    PDM_gnum_location_get(const int id,
-                                                  const int i_part_out,
-                                                  int **location_idx,
-                                                  int **location);
+    void                    PDM_gnum_location_get(      PDM_gnum_location_t  *gnum_loc,
+                                                  const int                   i_part_out,
+                                                        int                 **location_idx,
+                                                        int                 **location);
 
-    void                   PDM_gnum_location_free(const int id,
-                                                  const int partial);
+    void                   PDM_gnum_location_free(      PDM_gnum_location_t *gnum_loc,
+                                                  const int                  partial);
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -34,6 +38,7 @@ cdef class GlobalNumberingLocation:
   """
   # --------------------------------------------------------------------------
   # > Class attributesint _id
+  cdef PDM_gnum_location_t* _gnum_loc
   cdef NPY.int32_t[:] _n_elmts_in_part
   cdef NPY.int32_t[:] _n_elmts_out_part
   # --------------------------------------------------------------------------
@@ -54,9 +59,9 @@ cdef class GlobalNumberingLocation:
 
     # ************************************************************************
     # > PDM call
-    self._id = PDM_gnum_location_create(n_part_in,
-                                        n_part_out,
-                                        PDM_MPI_mpi_2_pdm_mpi_comm (<void *> &c_comm))
+    self._gnum_loc = PDM_gnum_location_create(n_part_in,
+                                              n_part_out,
+                                              PDM_MPI_mpi_2_pdm_mpi_comm (<void *> &c_comm))
     # ************************************************************************
 
   # --------------------------------------------------------------------------
@@ -73,7 +78,7 @@ cdef class GlobalNumberingLocation:
 
     # ************************************************************************
     # > PDM call
-    PDM_gnum_location_elements_set(self._id,
+    PDM_gnum_location_elements_set(self._gnum_loc,
                                    i_part_in,
                                    n_elmts_in,
                                    <PDM_g_num_t*> gnum_in.data)
@@ -97,7 +102,7 @@ cdef class GlobalNumberingLocation:
 
     # ************************************************************************
     # > PDM call
-    PDM_gnum_location_requested_elements_set(self._id,
+    PDM_gnum_location_requested_elements_set(self._gnum_loc,
                                              i_part_out,
                                              n_elmts_out,
                               <PDM_g_num_t*> gnum_out.data)
@@ -118,7 +123,7 @@ cdef class GlobalNumberingLocation:
 
     # ************************************************************************
     # > PDM call
-    PDM_gnum_location_compute(self._id)
+    PDM_gnum_location_compute(self._gnum_loc)
     # ************************************************************************
 
   # --------------------------------------------------------------------------
@@ -135,7 +140,7 @@ cdef class GlobalNumberingLocation:
     cdef NPY.npy_intp  dim
     # ************************************************************************
     # > PDM call
-    PDM_gnum_location_get(self._id,
+    PDM_gnum_location_get(self._gnum_loc,
                           i_part_out,
                           &location_idx,
                           &location)
@@ -176,7 +181,7 @@ cdef class GlobalNumberingLocation:
     # ************************************************************************
     # > PDM call
     # Todo : tenir compte du partial ?
-    PDM_gnum_location_free(self._id, 1)
+    PDM_gnum_location_free(self._gnum_loc, 1)
     # ************************************************************************
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

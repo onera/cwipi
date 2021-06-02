@@ -90,6 +90,24 @@ PDM_log_trace_array_long
  *
  */
 void
+PDM_log_trace_array_double
+(
+ const double*      array,
+ const int          larray,
+ const char*        header
+);
+
+
+/**
+ *
+ * \brief Pretty print of array in trace_log
+ *
+ * \param [inout] array        Array to print
+ * \param [in]    lArray       Array length
+ * \param [inout] header       First line of log
+ *
+ */
+void
 PDM_log_trace_array_size_t
 (
  const size_t *array,

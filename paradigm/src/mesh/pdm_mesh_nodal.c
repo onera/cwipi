@@ -1,4 +1,3 @@
-
 /*----------------------------------------------------------------------------
  *  System headers
  *----------------------------------------------------------------------------*/
@@ -54,29 +53,6 @@ extern "C" {
  * Private function definitions
  *============================================================================*/
 
-/**
- *
- * \brief Free vtx structure
- *
- * \param[inout]  vtx    Vertices
- *
- * \return        NULL
- *
- */
-int
-is_2D_element(PDM_Mesh_nodal_elt_t type) {
-  return type==PDM_MESH_NODAL_TRIA3
-      || type==PDM_MESH_NODAL_QUAD4
-      || type==PDM_MESH_NODAL_POLY_2D;
-}
-int
-is_3D_element(PDM_Mesh_nodal_elt_t type) {
-  return type==PDM_MESH_NODAL_TETRA4
-      || type==PDM_MESH_NODAL_PYRAMID5
-      || type==PDM_MESH_NODAL_PRISM6
-      || type==PDM_MESH_NODAL_HEXA8
-      || type==PDM_MESH_NODAL_POLY_3D;
-}
 
 static
 PDM_Mesh_nodal_vtx_t *
@@ -120,7 +96,7 @@ _mesh_init
 {
 
   mesh->n_part                   = n_part;
-
+  mesh->numabs                   = NULL;
   mesh->vtx                      = malloc(n_part * sizeof(PDM_Mesh_nodal_vtx_t *));
   mesh->n_cell                   = malloc(n_part * sizeof(int));
   for (int i = 0; i < n_part; i++) {
@@ -1242,6 +1218,95 @@ _type_cell_3D
  *============================================================================*/
 
 /**
+ *
+ * \brief Free vtx structure
+ *
+ * \param[inout]  vtx    Vertices
+ *
+ * \return        NULL
+ *
+ */
+
+int
+PDM_Mesh_nodal_is_2D_element
+(
+  PDM_Mesh_nodal_elt_t type
+)
+{
+  return type==PDM_MESH_NODAL_TRIA3
+      || type==PDM_MESH_NODAL_QUAD4
+      || type==PDM_MESH_NODAL_POLY_2D;
+}
+
+int
+PDM_Mesh_nodal_is_3D_element
+(
+  PDM_Mesh_nodal_elt_t type
+)
+{
+  return type==PDM_MESH_NODAL_TETRA4
+      || type==PDM_MESH_NODAL_PYRAMID5
+      || type==PDM_MESH_NODAL_PRISM6
+      || type==PDM_MESH_NODAL_HEXA8
+      || type==PDM_MESH_NODAL_POLY_3D;
+}
+
+
+/**
+ * \brief Get the number of vertices of an element type
+ *
+ * \param [in]   type     Element type
+ * \param [in]   comm     Element order
+ *
+ * \return       Number of vertices
+ *
+ */
+
+int
+PDM_Mesh_nodal_n_vtx_elt_get
+(
+  PDM_Mesh_nodal_elt_t type,
+  const int order
+)
+{
+  if (order != 1) {
+     PDM_error (__FILE__, __LINE__, 0, "Not implemented yet for order > 1\n");
+  }
+
+  switch (type) {
+  case PDM_MESH_NODAL_POINT :
+    return 1;
+    break;
+  case PDM_MESH_NODAL_BAR2 :
+    return 2;
+    break;
+  case PDM_MESH_NODAL_TRIA3 :
+    return 3;
+    break;
+  case PDM_MESH_NODAL_QUAD4 :
+    return 4;
+    break;
+  case PDM_MESH_NODAL_TETRA4 :
+    return 4;
+    break;
+  case PDM_MESH_NODAL_PYRAMID5 :
+    return 5;
+    break;
+  case PDM_MESH_NODAL_PRISM6 :
+    return 6;
+    break;
+  case PDM_MESH_NODAL_HEXA8 :
+    return 8;
+    break;
+  default :
+    PDM_error (__FILE__, __LINE__, 0, "Unknown for order Poly2D and Polyu3D\n");
+  }
+  return -1;
+}
+
+
+
+/**
  * \brief Create a Mesh nodal structure
  *
  * \param [in]   n_part   Number of partition on the current process
@@ -1322,6 +1387,80 @@ PDM_Mesh_nodal_t *mesh
 
 
 /**
+ * \brief Get the cell global numbering taking into account parent_num
+ *
+ * \param [in]  idx   Nodal mesh handle
+ *
+ * \return      NULL
+ *
+ */
+
+PDM_g_num_t *
+PDM_Mesh_nodal_g_num_get_from_part
+(
+PDM_Mesh_nodal_t *mesh,
+const int i_part
+)
+{
+
+
+  if (mesh->numabs == NULL) {
+    mesh->numabs = malloc (sizeof(PDM_g_num_t*)*mesh->n_part);
+    int is_parent_num = (PDM_Mesh_nodal_block_parent_num_get(mesh, mesh->blocks_id[0], 0) == NULL);
+    for (int i = 0; i < mesh->n_part; i++) {
+      for (int i1 = 0; i1 < mesh->n_blocks; i1++) {
+        assert (is_parent_num == (PDM_Mesh_nodal_block_parent_num_get(mesh, mesh->blocks_id[i1], i) == NULL));
+      }
+    }
+
+    if (!is_parent_num) {
+
+      for (int i = 0; i < mesh->n_part; i++) {
+        int k = 0;
+        mesh->numabs[i] = malloc (sizeof(PDM_g_num_t)*mesh->n_cell[i]);
+        for (int i1 = 0; i1 < mesh->n_block_std; i1++) {
+          for (int i2 = 0; i2 < mesh->blocks_std[i1]->n_elt[i]; i2++) {
+            mesh->numabs[i][k++] = mesh->blocks_std[i1]->_numabs[i][i2];
+          }
+        }
+        for (int i1 = 0; i1 < mesh->n_block_poly2d; i1++) {
+          for (int i2 = 0; i2 < mesh->blocks_poly2d[i1]->n_elt[i]; i2++) {
+            mesh->numabs[i][k++] = mesh->blocks_poly2d[i1]->_numabs[i][i2];
+          }
+        }
+        for (int i1 = 0; i1 < mesh->n_block_poly3d; i1++) {
+          for (int i2 = 0; i2 < mesh->blocks_poly3d[i1]->n_elt[i]; i2++) {
+            mesh->numabs[i][k++] = mesh->blocks_poly3d[i1]->_numabs[i][i2];
+          }
+        }
+      }
+    }
+
+    else {
+      for (int i = 0; i < mesh->n_part; i++) {
+        mesh->numabs[i] = malloc (sizeof(PDM_g_num_t)*mesh->n_cell[i]);
+        for (int i1 = 0; i1 < mesh->n_block_std; i1++) {
+          for (int i2 = 0; i2 < mesh->blocks_std[i1]->n_elt[i]; i2++) {
+            mesh->numabs[i][mesh->blocks_std[i1]->_parent_num[i][i2]] = mesh->blocks_std[i1]->_numabs[i][i2];
+          }
+        }
+        for (int i1 = 0; i1 < mesh->n_block_poly2d; i1++) {
+          for (int i2 = 0; i2 < mesh->blocks_poly2d[i1]->n_elt[i]; i2++) {
+            mesh->numabs[i][mesh->blocks_poly2d[i1]->_parent_num[i][i2]] = mesh->blocks_poly2d[i1]->_numabs[i][i2];
+          }
+        }
+        for (int i1 = 0; i1 < mesh->n_block_poly3d; i1++) {
+          for (int i2 = 0; i2 < mesh->blocks_poly3d[i1]->n_elt[i]; i2++) {
+            mesh->numabs[i][mesh->blocks_poly3d[i1]->_parent_num[i][i2]] = mesh->blocks_poly3d[i1]->_numabs[i][i2];
+          }
+        }
+      }
+    }
+  }
+  return mesh->numabs[i_part];
+}
+
+/**
  * \brief Free a nodal mesh structure
  *
  * \param [in]  idx   Nodal mesh handle
@@ -1340,6 +1479,13 @@ PDM_Mesh_nodal_t *mesh
   PDM_Mesh_nodal_partial_free (mesh);
 
   if (mesh != NULL) {
+
+    if (mesh->numabs != NULL) {
+      for (int i = 0; i < mesh->n_part; i++) {
+        free (mesh->numabs[i]);
+      }
+      free (mesh->numabs);
+    }
 
     if (mesh->blocks_id != NULL) {
       free (mesh->blocks_id);
@@ -3047,6 +3193,7 @@ const PDM_l_num_t      *cell_face,
 const PDM_g_num_t      *numabs
 )
 {
+
   int adjust = 0;
   if (n_cell > 0) {
     if (cell_face_idx[0] == 1) {
@@ -3309,34 +3456,34 @@ const PDM_g_num_t      *numabs
         }
       }
 
-      if (n_tetra_part > 0) {
+//      if (n_tetra_part > 0) {
         connec_tetra = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * 4 *n_tetra_part);
         numabs_tetra = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_tetra_part);
         num_parent_tetra = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * n_tetra_part);
-      }
+//      }
 
-      if (n_hexa_part > 0) {
+//      if (n_hexa_part > 0) {
         connec_hexa = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * 8 * n_hexa_part);
         numabs_hexa = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_hexa_part);
         num_parent_hexa = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * n_hexa_part);
-      }
+//      }
 
-      if (n_prism_part > 0) {
+//      if (n_prism_part > 0) {
         connec_prism = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * 6 * n_prism_part);
         numabs_prism = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_prism_part);
         num_parent_prism = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * n_prism_part);
-      }
+//      }
 
-      if (n_pyramid_part > 0) {
+//      if (n_pyramid_part > 0) {
         connec_pyramid = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * 5 * n_pyramid_part);
         numabs_pyramid = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_pyramid_part);
         num_parent_pyramid = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * n_pyramid_part);
-      }
+//      }
 
-      if (n_poly3d_part > 0) {
+//      if (n_poly3d_part > 0) {
         numabs_poly3d = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_poly3d_part);
         num_parent_poly3d = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * n_poly3d_part);
-      }
+//      }
 
       PDM_l_num_t *num_parent_tetra_courant = num_parent_tetra;
       PDM_l_num_t *num_parent_hexa_courant = num_parent_hexa;
@@ -3806,25 +3953,26 @@ const PDM_g_num_t      *numabs
       PDM_l_num_t *num_parent_quad = NULL;
       PDM_l_num_t *num_parent_poly2d = NULL;
 
-      if (n_tria > 0) {
+//      if (n_tria > 0) {
         connec_tria = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * 3 *n_tria);
         numabs_tria = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_tria);
         num_parent_tria = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * n_tria);
-      }
+//      }
 
-      if (n_quad > 0) {
+//      if (n_quad > 0) {
         connec_quad = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * 4 * n_quad);
         numabs_quad = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_quad);
         num_parent_quad = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * n_quad);
-      }
+//      }
 
-      if (n_poly2d > 0) {
+//      if (n_poly2d > 0) {
         connec_poly2d_idx = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * (n_poly2d + 1));
         connec_poly2d_idx[0] = 0;
         connec_poly2d = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * l_connec_poly2d);
         numabs_poly2d = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_poly2d);
         num_parent_poly2d = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * n_poly2d);
-      }
+//      }
+
 
       PDM_l_num_t *connec_tria_courant = connec_tria;
       PDM_l_num_t *connec_quad_courant = connec_quad;
@@ -4018,6 +4166,7 @@ const PDM_l_num_t      *face_vtx,
 const PDM_g_num_t      *numabs
 )
 {
+
   int adjust = 0;
   if (n_face > 0) {
     if (face_vtx_idx[0] == 1) {
@@ -4332,11 +4481,11 @@ const int               id_block
     PDM_error (__FILE__, __LINE__, 0, "Bad mesh nodal identifier\n");
   }
 
-  int id_gnum = PDM_gnum_create (3, mesh->n_part,
-                                 PDM_FALSE,
-                                 1e-3,
-                                 mesh->pdm_mpi_comm,
-                                 PDM_OWNERSHIP_USER); /* The result is getted and you are owner */
+  PDM_gen_gnum_t *gnum_gen = PDM_gnum_create (3, mesh->n_part,
+                                              PDM_FALSE,
+                                              1e-3,
+                                              mesh->pdm_mpi_comm,
+                                              PDM_OWNERSHIP_USER); /* The result is getted and you are owner */
 
   if (id_block >= PDM_BLOCK_ID_BLOCK_POLY3D) {
 
@@ -4359,7 +4508,7 @@ const int               id_block
     }
 
     for (int i = 0; i < mesh->n_part; i++) {
-      PDM_gnum_set_from_parents (id_gnum, i, block->n_elt[i], block->_numabs[i]);
+      PDM_gnum_set_from_parents (gnum_gen, i, block->n_elt[i], block->_numabs[i]);
     }
 
   }
@@ -4386,7 +4535,7 @@ const int               id_block
     }
 
     for (int i = 0; i < mesh->n_part; i++) {
-      PDM_gnum_set_from_parents (id_gnum, i, block->n_elt[i], block->_numabs[i]);
+      PDM_gnum_set_from_parents (gnum_gen, i, block->n_elt[i], block->_numabs[i]);
     }
 
   }
@@ -4412,12 +4561,12 @@ const int               id_block
     }
 
     for (int i = 0; i < mesh->n_part; i++) {
-      PDM_gnum_set_from_parents (id_gnum, i, block->n_elt[i], block->_numabs[i]);
+      PDM_gnum_set_from_parents (gnum_gen, i, block->n_elt[i], block->_numabs[i]);
     }
 
   }
 
-  PDM_gnum_compute (id_gnum);
+  PDM_gnum_compute (gnum_gen);
 
   if (id_block >= PDM_BLOCK_ID_BLOCK_POLY3D) {
     int _id_block = id_block - PDM_BLOCK_ID_BLOCK_POLY3D;
@@ -4425,7 +4574,7 @@ const int               id_block
     PDM_Mesh_nodal_block_poly3d_t *block = mesh->blocks_poly3d[_id_block];
 
     for (int i = 0; i < mesh->n_part; i++) {
-      block->numabs_int[i] = (PDM_g_num_t *) PDM_gnum_get (id_gnum, i);
+      block->numabs_int[i] = (PDM_g_num_t *) PDM_gnum_get (gnum_gen, i);
     }
   }
 
@@ -4435,7 +4584,7 @@ const int               id_block
     PDM_Mesh_nodal_block_poly2d_t *block = mesh->blocks_poly2d[_id_block];
 
     for (int i = 0; i < mesh->n_part; i++) {
-      block->numabs_int[i] = (PDM_g_num_t *) PDM_gnum_get (id_gnum, i);
+      block->numabs_int[i] = (PDM_g_num_t *) PDM_gnum_get (gnum_gen, i);
     }
   }
 
@@ -4446,11 +4595,11 @@ const int               id_block
     PDM_Mesh_nodal_block_std_t *block = mesh->blocks_std[_id_block];
 
     for (int i = 0; i < mesh->n_part; i++) {
-      block->numabs_int[i] = (PDM_g_num_t *) PDM_gnum_get (id_gnum, i);
+      block->numabs_int[i] = (PDM_g_num_t *) PDM_gnum_get (gnum_gen, i);
     }
   }
 
-  PDM_gnum_free (id_gnum);
+  PDM_gnum_free (gnum_gen);
 
 }
 

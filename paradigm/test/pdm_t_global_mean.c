@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
   int n_property_cell = 0;
   int n_property_face = 0;
 
-  int gmid = PDM_global_mean_create (n_part, comm);
+  PDM_global_point_mean_t* gmean = PDM_global_mean_create (n_part, comm);
 
   PDM_part_create(&ppart_id,
                   comm,
@@ -498,7 +498,7 @@ int main(int argc, char *argv[])
       }
     }
 
-    PDM_global_mean_set (gmid, i_part, n_cellVtx, cellVtxGN[i_part]);
+    PDM_global_mean_set (gmean, i_part, n_cellVtx, cellVtxGN[i_part]);
 
   }
 
@@ -600,14 +600,14 @@ int main(int argc, char *argv[])
       }
     }
 
-    PDM_global_mean_field_set (gmid, i_part, 3,
+    PDM_global_mean_field_set (gmean, i_part, 3,
                                local_field[i_part],
                                local_weight[i_part],
                                global_mean_field_ptr[i_part]);
 
   }
 
-  PDM_global_mean_field_compute (gmid);
+  PDM_global_mean_field_compute (gmean);
 
   for (int i_part = 0; i_part < n_part; i_part++) {
 
@@ -704,7 +704,7 @@ int main(int argc, char *argv[])
 
   PDM_part_free(ppart_id);
 
-  PDM_global_mean_free (gmid);
+  PDM_global_mean_free (gmean);
 
   PDM_dcube_gen_free(dcube);
 

@@ -420,6 +420,13 @@ PDM_part_to_block_destination_get
 );
 
 
+PDM_g_num_t*
+PDM_part_to_block_adapt_partial_block_to_block
+(
+ PDM_part_to_block_t  *ptb,
+ int                 **block_n,
+ int                   n_g_block
+);
 
 #ifdef __cplusplus
 }

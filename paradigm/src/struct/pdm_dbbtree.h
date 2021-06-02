@@ -14,6 +14,13 @@
 #include "pdm.h"
 #include "pdm_box.h"
 
+#ifdef __cplusplus
+extern "C" {
+#if 0
+} /* Fake brace to force back Emacs auto-indentation back to column 0 */
+#endif
+#endif /* __cplusplus */
+
 /*=============================================================================
  * Macro definitions
  *============================================================================*/
@@ -152,19 +159,6 @@ PDM_dbbtree_intersect_boxes_set
  *   \param [out] box_g_num       Global num of boxes (size = i_boxes[n_pts])
  *
  */
-
-void
-PDM_dbbtree_closest_upper_bound_dist_boxes_get_OLD
-(
- PDM_dbbtree_t    *dbbt,
- const int        n_pts,
- double           pts[],
- PDM_g_num_t      pts_g_num[],
- double           upper_bound_dist2[],
- int             *box_index[],
- PDM_g_num_t     *box_g_num[]
- );
-
 
 void
 PDM_dbbtree_closest_upper_bound_dist_boxes_get

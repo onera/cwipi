@@ -22,6 +22,7 @@
 #include "pdm_part_to_block.h"
 #include "pdm_block_to_block.h"
 #include "pdm_quick_sort.h"
+#include "pdm_array.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,10 +60,7 @@ const int          nFac,
   /*
    * Make array of already treated face
    */
-  int *AlreadyTreat = (int * ) malloc( sizeof(int *) * nFac);
-  for(int i=0; i < nFac; i++){
-    AlreadyTreat[i] = -1;
-  }
+  int *AlreadyTreat = PDM_array_const_int(nFac, -1);
 
   /*
    * Begin with the first face of the array
@@ -562,11 +560,7 @@ PDM_elt_parent_find_from_distrib
   /*
    *  Creation of array of diplacement
    */
-  int* BlkStriIdx = (int *) malloc( sizeof(int *) * (BlkSize+1) ) ;
-  BlkStriIdx[0] = 0;
-  for (int i = 0; i < BlkSize; i++) {
-    BlkStriIdx[i+1] = BlkStriIdx[i] + BlkStri[i];
-  }
+  int *BlkStriIdx = PDM_array_new_idx_from_sizes_int(BlkStri, BlkSize);
   free(BlkStri);
 
   /* Find parent in distributed hash table */
@@ -724,10 +718,7 @@ PDM_elt_parent_find_from_distrib
                     comm);
 
   FaceDistrib[0] = 0;
-
-  for (int i = 1; i < n_rank+1; i++) {
-    FaceDistrib[i] +=  FaceDistrib[i-1];
-  }
+  PDM_array_accumulate_gnum(FaceDistrib, n_rank+1);
 
   /* Verbose */
   if (0 == 1) {

@@ -22,6 +22,7 @@
 #include "pdm_error.h"
 #include "pdm_timer.h"
 #include "pdm_logging.h"
+#include "pdm_array.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -469,10 +470,7 @@ PDM_dconnectivity_transpose
                                     comm);
   }
 
-  int* send_stri = (int *) malloc(dentity1_entity2_idx[dn_entity1] * sizeof(int));
-  for (int i = 0; i < dentity1_entity2_idx[dn_entity1]; i++) {
-    send_stri[i] = 1;
-  }
+  int* send_stri = PDM_array_const_int(dentity1_entity2_idx[dn_entity1], 1);
 
   if(is_signed) {
     free(ln_to_gn);

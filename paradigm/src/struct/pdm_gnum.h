@@ -1,5 +1,5 @@
-#ifndef __PDM_GNUM_H__
-#define __PDM_GNUM_H__
+#ifndef __PDM_gen_GNUM_H__
+#define __PDM_gen_GNUM_H__
 
 /*
   This file is part of the ParaDiGM library.
@@ -45,6 +45,8 @@ extern "C" {
  * Type definitions
  *============================================================================*/
 
+typedef struct _pdm_gen_gnum_t PDM_gen_gnum_t;
+
 /*=============================================================================
  * Static global variables
  *============================================================================*/
@@ -66,7 +68,7 @@ extern "C" {
  * \return     Identifier
  */
 
-int
+PDM_gen_gnum_t*
 PDM_gnum_create
 (
  const int             dim,
@@ -77,16 +79,15 @@ PDM_gnum_create
  const PDM_ownership_t owner
 );
 
-void
-PROCF (pdm_gnum_create, PDM_GNUM_CREATE)
+PDM_gen_gnum_t*
+PDM_gnum_create_cf
 (
  const int             *dim,
  const int             *n_part,
  const int             *merge,
  const double          *tolerance,
  const PDM_MPI_Fint    *fcomm,
- const PDM_ownership_t *owner,
-       int             *id
+ const PDM_ownership_t *owner
 );
 
 
@@ -106,24 +107,12 @@ PROCF (pdm_gnum_create, PDM_GNUM_CREATE)
 void
 PDM_gnum_set_from_coords
 (
- const int     id,
- const int     i_part,
- const int     n_elts,
- const double *coords,
- const double *char_length
+       PDM_gen_gnum_t *gnum,
+ const int             i_part,
+ const int             n_elts,
+ const double         *coords,
+ const double         *char_length
 );
-
-void
-PROCF (pdm_gnum_set_from_coords, PDM_GNUM_SET_FROM_COORDS)
-(
- const int    *id,
- const int    *i_part,
- const int    *n_elts,
- const double *coords,
- const double *char_length
-
-);
-
 
 /**
  *
@@ -139,21 +128,11 @@ PROCF (pdm_gnum_set_from_coords, PDM_GNUM_SET_FROM_COORDS)
 void
 PDM_gnum_set_from_parents
 (
- const int          id,
- const int          i_part,
- const int          n_elts,
- const PDM_g_num_t *parent_gnum
+       PDM_gen_gnum_t  *gnum,
+ const int              i_part,
+ const int              n_elts,
+ const PDM_g_num_t     *parent_gnum
 );
-
-void
-PROCF (pdm_gnum_set_from_parents, PDM_GNUM_SET_FROM_PARENTS)
-(
- const int         *id,
- const int         *i_part,
- const int         *n_elts,
- const PDM_g_num_t *parent_gnum
-);
-
 
 /**
  *
@@ -166,16 +145,8 @@ PROCF (pdm_gnum_set_from_parents, PDM_GNUM_SET_FROM_PARENTS)
 void
 PDM_gnum_compute
 (
- const int id
+ PDM_gen_gnum_t  *gnum
 );
-
-
-void
-PROCF (pdm_gnum_compute, PDM_GNUM_COMPUTE)
-(
- const int *id
-);
-
 
 /**
  *
@@ -192,18 +163,9 @@ PROCF (pdm_gnum_compute, PDM_GNUM_COMPUTE)
 PDM_g_num_t *
 PDM_gnum_get
 (
- const int id,
- const int i_part
+       PDM_gen_gnum_t *gnum,
+ const int             i_part
 );
-
-void
-PROCF (pdm_gnum_get, PDM_GNUM_GET)
-(
- const int   *id,
- const int   *i_part,
- PDM_g_num_t *gnum
-);
-
 
 /**
  *
@@ -216,13 +178,7 @@ PROCF (pdm_gnum_get, PDM_GNUM_GET)
 void
 PDM_gnum_free
 (
- const int id
-);
-
-void
-PROCF (pdm_gnum_free, PDM_GNUM_FREE)
-(
- const int *id
+PDM_gen_gnum_t *gnum
 );
 
 /*----------------------------------------------------------------------------*/
@@ -231,4 +187,4 @@ PROCF (pdm_gnum_free, PDM_GNUM_FREE)
 }
 #endif /* __cplusplus */
 
-#endif /* __PDM_GNUM_H__ */
+#endif /* __PDM_gen_GNUM_H__ */

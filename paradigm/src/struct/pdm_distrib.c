@@ -137,6 +137,79 @@ PDM_compute_entity_distribution
 }
 
 
+/**
+ * \brief Compute uniform distribution distribution from dNelmt
+ *
+ * \param [in]     elt_distrib          Distribution of elements on processes
+ * \param [in]     dnelt                Number of element on current process
+ * \param [in]     comm                 MPI Communicator
+ */
+int
+PDM_compute_uniform_dn_entity
+(
+ const PDM_MPI_Comm     comm,
+ const PDM_g_num_t      n_g_entity
+)
+{
+  int i_rank;
+  int n_rank;
+
+  PDM_MPI_Comm_rank(comm, &i_rank);
+  PDM_MPI_Comm_size(comm, &n_rank);
+
+  PDM_g_num_t step      = n_g_entity/n_rank;
+  PDM_g_num_t remainder = n_g_entity%n_rank;
+
+  int dn_elmt = step;
+  if (i_rank < remainder) { /* Distribute the remainder */
+    dn_elmt += 1;
+  }
+
+  return dn_elmt;
+}
+
+/**
+ * \brief Compute uniform distribution distribution from dNelmt
+ *
+ * \param [in]     elt_distrib          Distribution of elements on processes
+ * \param [in]     dnelt                Number of element on current process
+ * \param [in]     comm                 MPI Communicator
+ */
+PDM_g_num_t*
+PDM_compute_uniform_entity_distribution
+(
+ const PDM_MPI_Comm     comm,
+ const PDM_g_num_t      n_g_entity
+)
+{
+  int i_rank;
+  int n_rank;
+
+  PDM_MPI_Comm_rank(comm, &i_rank);
+  PDM_MPI_Comm_size(comm, &n_rank);
+
+  PDM_g_num_t* dentity_proc = (PDM_g_num_t *) malloc( (n_rank+1) * sizeof(PDM_g_num_t));
+
+  PDM_g_num_t step      = n_g_entity/n_rank;
+  PDM_g_num_t remainder = n_g_entity%n_rank;
+
+  dentity_proc[0] = 0;
+  for (int i = 1; i < n_rank + 1; i++) {
+    dentity_proc[i] = step;
+    const int i1 = i - 1;
+    if (i1 < remainder) { /* Distribute the remainder */
+      dentity_proc[i]  += 1;
+    }
+  }
+
+  for (int i = 1; i < n_rank + 1; i++) {
+    dentity_proc[i] += dentity_proc[i-1];
+  }
+
+  return dentity_proc;
+}
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

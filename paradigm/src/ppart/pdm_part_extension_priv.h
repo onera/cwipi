@@ -43,7 +43,7 @@ struct _pdm_part_extension_t {
   int               depth;
 
   int             n_domain;
-  const int      *n_part;
+  int            *n_part;
   int            *n_part_idx;
 
   _part_t  **parts;

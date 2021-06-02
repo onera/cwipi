@@ -29,6 +29,8 @@ extern "C" {
  * Type definitions
  *============================================================================*/
 
+typedef struct _pdm_points_merge_t PDM_points_merge_t;
+
 /*============================================================================
  * Public function definitions
  *============================================================================*/
@@ -45,7 +47,7 @@ extern "C" {
  * \return     Identifier
  */
 
-int
+PDM_points_merge_t*
 PDM_points_merge_create
 (
  const int             n_point_cloud,
@@ -66,7 +68,7 @@ PDM_points_merge_create
 void
 PDM_points_merge_free
 (
- const int          id
+ PDM_points_merge_t* pm
 );
 
 
@@ -85,11 +87,11 @@ PDM_points_merge_free
 void
 PDM_points_merge_cloud_set
 (
- const int          id,
- const int          i_point_cloud,
- const int          n_points,
- const double      *coords,
- const double      *char_length
+       PDM_points_merge_t *pm,
+ const int                 i_point_cloud,
+ const int                 n_points,
+ const double             *coords,
+ const double             *char_length
 );
 
 
@@ -104,7 +106,7 @@ PDM_points_merge_cloud_set
 void
 PDM_points_merge_process
 (
- const int        id
+ PDM_points_merge_t *pm
 );
 
 
@@ -125,10 +127,10 @@ PDM_points_merge_process
 void
 PDM_points_merge_candidates_get
 (
- const int      id,
- const int      i_point_cloud,
-       int    **candidates_idx,
-       int    **candidates_desc
+       PDM_points_merge_t  *pm,
+ const int                  i_point_cloud,
+       int                **candidates_idx,
+       int                **candidates_desc
 );
 
 /**
@@ -144,10 +146,10 @@ PDM_points_merge_candidates_get
 void
 PDM_points_merge_candidates_size_get
 (
- const int     id,
- const int     i_point_cloud,
-       int    *n_point_cloud,
-       int    *n_candidates_desc
+       PDM_points_merge_t *pm,
+ const int                 i_point_cloud,
+       int                *n_point_cloud,
+       int                *n_candidates_desc
 );
 
 #ifdef	__cplusplus

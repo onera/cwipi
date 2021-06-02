@@ -375,19 +375,19 @@ main
 
   /* Define the numbers of Source/Target points */
 
-  int _nSrc_l = 0, _nTgt_l = 0;
+  int _n_src_l = 0, _n_tgt_l = 0;
   if (local) {
-    _nSrc_l = (int) nSrc;
-    _nTgt_l = (int) nTgt;
+    _n_src_l = (int) nSrc;
+    _n_tgt_l = (int) nTgt;
   }
   else {
-    _nSrc_l = (int) (nSrc/numProcs);
-    _nTgt_l = (int) (nTgt/numProcs);
+    _n_src_l = (int) (nSrc/numProcs);
+    _n_tgt_l = (int) (nTgt/numProcs);
     if (i_rank < nSrc%numProcs) {
-      _nSrc_l += 1;
+      _n_src_l += 1;
     }
     if (i_rank < nTgt%numProcs) {
-      _nTgt_l += 1;
+      _n_tgt_l += 1;
     }
   }
 
@@ -406,95 +406,95 @@ main
                         clump_scale,
                         &src_coords,
                         &tgt_coords,
-                        &_nTgt_l,
-                        &_nSrc_l);
+                        &_n_tgt_l,
+                        &_n_src_l);
   } else {
-    /*_gen_clouds_random (_nSrc_l,
-      _nTgt_l,
+    /*_gen_clouds_random (_n_src_l,
+      _n_tgt_l,
       radius,
       &src_coords,
       &tgt_coords);*/
     _gen_clouds_random2 (nSrc,
-                         _nTgt_l,
+                         _n_tgt_l,
                          radius,
                          numProcs,
                          i_rank,
                          &src_coords,
                          &tgt_coords,
-                         &_nSrc_l);
+                         &_n_src_l);
   }
 
 
   //n_closest_points = PDM_MIN (n_closest_points, nSrc);
 
   /* Source points definition  */
-  int id = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_USER);
+  PDM_gen_gnum_t* gen_gnum = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_USER);
 
-  double *src_char_length = malloc(sizeof(double) * _nSrc_l);
+  double *src_char_length = malloc(sizeof(double) * _n_src_l);
 
-  for (int i = 0; i < _nSrc_l; i++) {
+  for (int i = 0; i < _n_src_l; i++) {
     src_char_length[i] = radius * 1.e-6;
   }
 
-  PDM_gnum_set_from_coords (id, 0, _nSrc_l, src_coords, src_char_length);
+  PDM_gnum_set_from_coords (gen_gnum, 0, _n_src_l, src_coords, src_char_length);
 
-  PDM_gnum_compute (id);
+  PDM_gnum_compute (gen_gnum);
 
-  PDM_g_num_t *src_gnum = PDM_gnum_get(id, 0);
+  PDM_g_num_t *src_gnum = PDM_gnum_get(gen_gnum, 0);
 
-  PDM_gnum_free (id);
+  PDM_gnum_free (gen_gnum);
 
 
 
   /* Target points definition */
-  id = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_USER);
+  gen_gnum = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_USER);
 
-  double *tgt_char_length = malloc(sizeof(double) * _nTgt_l);
+  double *tgt_char_length = malloc(sizeof(double) * _n_tgt_l);
 
-  for (int i = 0; i < _nTgt_l; i++) {
+  for (int i = 0; i < _n_tgt_l; i++) {
     tgt_char_length[i] = radius * 1.e-6;
   }
 
-  PDM_gnum_set_from_coords (id, 0, _nTgt_l, tgt_coords, tgt_char_length);
+  PDM_gnum_set_from_coords (gen_gnum, 0, _n_tgt_l, tgt_coords, tgt_char_length);
 
-  PDM_gnum_compute (id);
+  PDM_gnum_compute (gen_gnum);
 
-  PDM_g_num_t *tgt_gnum = PDM_gnum_get(id, 0);
+  PDM_g_num_t *tgt_gnum = PDM_gnum_get(gen_gnum, 0);
 
-  PDM_gnum_free (id);
+  PDM_gnum_free (gen_gnum);
 
 
 
-  int id2 = PDM_closest_points_create (PDM_MPI_COMM_WORLD,
-                                       n_closest_points,
-                                       PDM_OWNERSHIP_KEEP);
+  PDM_closest_point_t* clsp = PDM_closest_points_create (PDM_MPI_COMM_WORLD,
+                                                         n_closest_points,
+                                                         PDM_OWNERSHIP_KEEP);
 
-  PDM_closest_points_n_part_cloud_set (id2,
+  PDM_closest_points_n_part_cloud_set (clsp,
                                        1,
                                        1);
 
-  PDM_closest_points_src_cloud_set (id2,
+  PDM_closest_points_src_cloud_set (clsp,
                                     0,
-                                    _nSrc_l,
+                                    _n_src_l,
                                     src_coords,
                                     src_gnum);
 
-  PDM_closest_points_tgt_cloud_set (id2,
+  PDM_closest_points_tgt_cloud_set (clsp,
                                     0,
-                                    _nTgt_l,
+                                    _n_tgt_l,
                                     tgt_coords,
                                     tgt_gnum);
 
 
-  PDM_closest_points_compute (id2);
+  PDM_closest_points_compute (clsp);
 
 
-  PDM_closest_points_dump_times (id2);
+  PDM_closest_points_dump_times (clsp);
 
   PDM_g_num_t *closest_src_gnum = NULL;
   double      *closest_src_dist = NULL;
 
-  PDM_closest_points_get (id2,
+  PDM_closest_points_get (clsp,
                           0,
                           &closest_src_gnum,
                           &closest_src_dist);
@@ -503,7 +503,7 @@ main
   if (0 == 1) {
     printf("\n\n============================\n\n");
 
-    for (int i = 0; i < _nTgt_l; i++) {
+    for (int i = 0; i < _n_tgt_l; i++) {
       printf("Target point #%d ("PDM_FMT_G_NUM") [%f, %f, %f]\n", i, tgt_gnum[i],
              tgt_coords[3*i], tgt_coords[3*i+1], tgt_coords[3*i+2]);
       for (int j = 0; j < n_closest_points; j++)
@@ -518,7 +518,7 @@ main
     printf("============================\n\n");
   }
 
-  PDM_closest_points_free (id2);
+  PDM_closest_points_free (clsp);
 
 
 

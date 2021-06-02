@@ -12,18 +12,18 @@
 
 MPI_TEST_CASE("decomposes hexa ho",1) {
 
-  const PDM_g_num_t n_vtx            = 12;
-  const PDM_g_num_t n_cell           = 2;
-  const int         n_hexa_section_1 = 2;
-  PDM_g_num_t connec_hexa_1[16] = {1, 2, 5, 4, 7, 8, 11, 10, // First
-                                   2, 3, 6, 5, 8, 9, 12, 11};
+  // const PDM_g_num_t n_vtx            = 12;
+  // const PDM_g_num_t n_cell           = 2;
+  // const int         n_hexa_section_1 = 2;
+  // PDM_g_num_t connec_hexa_1[16] = {1, 2, 5, 4, 7, 8, 11, 10, // First
+  //                                  2, 3, 6, 5, 8, 9, 12, 11};
 
-  PDM_MPI_Comm pdm_comm = PDM_MPI_mpi_2_pdm_mpi_comm(&test_comm);
+  // PDM_MPI_Comm pdm_comm = PDM_MPI_mpi_2_pdm_mpi_comm(&test_comm);
 
-  printf("coucou\n");
+  // printf("coucou\n");
 
-  int toto = 10;
-  int toto_expected = 10; 
-  CHECK( toto == toto_expected );
+  // int toto = 10;
+  // int toto_expected = 10;
+  // CHECK( toto == toto_expected );
 
 }

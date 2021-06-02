@@ -209,14 +209,14 @@ _create_split_mesh
                      &dedge_group);
 
   // validation
-  int id = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, pdm_mpi_comm, PDM_OWNERSHIP_KEEP);
-// fin validation
+  PDM_gen_gnum_t* gen_gnum = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, pdm_mpi_comm, PDM_OWNERSHIP_KEEP);
+  // fin validation
 
-  PDM_gnum_set_from_coords (id, 0, dn_vtx, dvtx_coord, NULL);
+  PDM_gnum_set_from_coords (gen_gnum, 0, dn_vtx, dvtx_coord, NULL);
 
-  PDM_gnum_compute (id);
+  PDM_gnum_compute (gen_gnum);
 
-  const PDM_g_num_t *_numabs = PDM_gnum_get (id, 0);
+  const PDM_g_num_t *_numabs = PDM_gnum_get (gen_gnum, 0);
 
   for (int j = 0; j < dn_vtx; j++) {
     PDM_printf (PDM_FMT_G_NUM" %12.5e %12.5e %12.5e\n", _numabs[j], dvtx_coord[3*j],
@@ -224,7 +224,7 @@ _create_split_mesh
                                                      dvtx_coord[3*j+2]);
   }
 
-  PDM_gnum_free (id);
+  PDM_gnum_free (gen_gnum);
 
   struct timeval t_elaps_fin;
 

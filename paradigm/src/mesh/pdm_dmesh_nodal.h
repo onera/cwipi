@@ -85,7 +85,19 @@ PDM_DMesh_nodal_coord_set
 (
        PDM_dmesh_nodal_t *dmesh_nodal,
  const int                n_vtx,
- const PDM_real_t        *coords
+       PDM_real_t        *coords,
+       PDM_ownership_t    owner
+);
+
+
+void
+PDM_DMesh_nodal_section_g_dims_get
+(
+  PDM_dmesh_nodal_t *dmesh_nodal,
+  PDM_g_num_t       *n_cell_abs,
+  PDM_g_num_t       *n_face_abs,
+  PDM_g_num_t       *n_edge_abs,
+  PDM_g_num_t       *n_vtx_abs
 );
 
 
@@ -148,7 +160,7 @@ PDM_DMesh_nodal_n_vtx_get
  *
  */
 
-const double *
+double *
 PDM_DMesh_nodal_vtx_get
 (
   PDM_dmesh_nodal_t *dmesh_nodal
@@ -180,11 +192,11 @@ PDM_DMesh_nodal_n_section_get
  *
  */
 
-// int *
-// PDM_DMesh_nodal_sections_id_get
-// (
-// const int   hdl
-// );
+int *
+PDM_DMesh_nodal_sections_id_get
+(
+PDM_dmesh_nodal_t  *dmesh_nodal
+);
 
 
 /**
@@ -231,6 +243,22 @@ const int                id_section
  */
 PDM_g_num_t*
 PDM_DMesh_nodal_section_distri_std_get
+(
+  PDM_dmesh_nodal_t  *dmesh_nodal,
+  const int   id_section
+);
+
+/**
+ * \brief  Return distri of section (by copy)
+ *
+ * \param [in] dmesh_nodal
+ * \param [in]  id_section   Block identifier
+ *
+ * \return  distri
+ *
+ */
+PDM_g_num_t*
+PDM_DMesh_nodal_section_distri_std_copy_get
 (
   PDM_dmesh_nodal_t  *dmesh_nodal,
   const int   id_section
@@ -341,17 +369,29 @@ PDM_DMesh_nodal_section_std_set
       PDM_dmesh_nodal_t *dmesh_nodal,
 const int                id_section,
 const int                n_elt,
-      PDM_g_num_t       *connec
+      PDM_g_num_t       *connec,
+      PDM_ownership_t    owner
 );
 
 void
 PDM_DMesh_nodal_section_group_elmt_set
 (
-PDM_dmesh_nodal_t  *dmesh_nodal,
-const int           n_group_elmt,
-      int          *dgroup_elmt_idx,
-      PDM_g_num_t  *dgroup_elmt
+PDM_dmesh_nodal_t     *dmesh_nodal,
+const int              n_group_elmt,
+      int             *dgroup_elmt_idx,
+      PDM_g_num_t     *dgroup_elmt,
+      PDM_ownership_t  owner
 );
+
+void
+PDM_DMesh_nodal_section_group_elmt_get
+(
+PDM_dmesh_nodal_t     *dmesh_nodal,
+      int             *n_group_elmt,
+      int             **dgroup_elmt_idx,
+      PDM_g_num_t     **dgroup_elmt
+);
+
 
 /**
  * \brief Return standard section description
@@ -475,7 +515,8 @@ PDM_DMesh_nodal_section_poly2d_set
 const int                id_section,
 const PDM_l_num_t        n_elt,
       PDM_l_num_t       *connec_idx,
-      PDM_g_num_t       *connec
+      PDM_g_num_t       *connec,
+      PDM_ownership_t    owner
 );
 
 
@@ -523,7 +564,8 @@ const PDM_l_num_t        n_face,
       PDM_l_num_t       *facvtx_idx,
       PDM_g_num_t       *facvtx,
       PDM_l_num_t       *cellfac_idx,
-      PDM_g_num_t       *cellfac
+      PDM_g_num_t       *cellfac,
+      PDM_ownership_t    owner
 );
 
 
@@ -599,6 +641,12 @@ PDM_dmesh_nodal_vtx_distrib_get
   PDM_dmesh_nodal_t  *dmesh_nodal
 );
 
+
+PDM_g_num_t*
+PDM_dmesh_nodal_vtx_distrib_copy_get
+(
+  PDM_dmesh_nodal_t  *dmesh_nodal
+);
 
 /**
  * \brief  Return total number of vertices of a distributed mesh
@@ -681,7 +729,7 @@ PDM_dmesh_nodal_t *dmesh_nodal
 
 /**
 *
-* \brief Concatenates all element sections blocks 
+* \brief Concatenates all element sections blocks
 *
 * \param [in]   dmesh_nodal
 * \param [out]  section_idx        index of element section
@@ -690,14 +738,15 @@ PDM_dmesh_nodal_t *dmesh_nodal
 *
  * \return     Number sections
 */
-int PDM_concat_elt_sections(
+int PDM_concat_elt_sections
+(
   PDM_dmesh_nodal_t  *dmesh_nodal,
-  int** section_idx,
-  int** cat_delt_vtx_idx,
-  PDM_g_num_t** cat_dcell_vtx
+  int               **section_idx,
+  int               **cat_delt_vtx_idx,
+  PDM_g_num_t       **cat_dcell_vtx
 );
 
-/**
+/**ss
 *
 * \brief Concatenates 3D element sections blocks
 *

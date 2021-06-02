@@ -1827,7 +1827,7 @@ PDM_part_to_block_async_wait
  int                  request_id
 )
 {
-  printf("PDM_part_to_block_async_wait::request_id::%d \n", request_id);
+  // printf("PDM_part_to_block_async_wait::request_id::%d \n", request_id);
 
   assert(ptb->wait_status[request_id] == 0);
 
@@ -1857,7 +1857,7 @@ PDM_part_to_block_asyn_get_raw
  void               **block_data
 )
 {
-  printf("PDM_part_to_block_asyn_get_raw::request_id::%d \n", request_id);
+  // printf("PDM_part_to_block_asyn_get_raw::request_id::%d \n", request_id);
 
   assert(ptb->wait_status[request_id] == 1);
 
@@ -2069,6 +2069,62 @@ PDM_part_to_block_destination_get
 {
   return ptb->dest_proc;
 }
+
+PDM_g_num_t*
+PDM_part_to_block_adapt_partial_block_to_block
+(
+ PDM_part_to_block_t  *ptb,
+ int                 **block_n,
+ int                   n_g_block
+)
+{
+  PDM_g_num_t *_block_distrib_idx = malloc (sizeof(PDM_g_num_t) * (ptb->s_comm + 1));
+
+  for (int i = 0; i < ptb->s_comm + 1; i++) {
+    _block_distrib_idx[i] = ptb->data_distrib_index[i];
+  }
+  int block_n_elt = PDM_part_to_block_n_elt_block_get (ptb);
+
+  int block_n_elt_tot = _block_distrib_idx[ptb->i_rank+1] - _block_distrib_idx[ptb->i_rank];
+  int* block_n_tmp = (int *) malloc( block_n_elt_tot * sizeof(int));
+
+  for (int i1 = 0; i1 < block_n_elt_tot; i1++) {
+    block_n_tmp[i1] = 0;
+  }
+
+  int* _block_n = *block_n;
+  for (int i1 = 0; i1 < block_n_elt; i1++) {
+    int i = (int) (ptb->block_gnum[i1] - _block_distrib_idx[ptb->i_rank] - 1);
+    // printf(" ptb->block_gnum[%i] = %i --> %i (%i)\n", i1, ptb->block_gnum[i1], _block_distrib_idx[ptb->i_rank], i);
+    block_n_tmp[i] = _block_n[i1];
+  }
+
+  *block_n = realloc(*block_n, sizeof(int) * block_n_elt_tot);
+  _block_n = *block_n;
+  for (int i1 = 0; i1 < block_n_elt_tot; i1++) {
+    _block_n[i1] = block_n_tmp[i1];
+  }
+
+  free(block_n_tmp);
+
+  PDM_g_num_t old_max = _block_distrib_idx[ptb->s_comm];
+  PDM_g_num_t new_max = n_g_block;
+  int diff_last = (int) (new_max - old_max);
+
+  _block_distrib_idx[ptb->s_comm] = new_max;
+
+  if (ptb->i_rank == (ptb->s_comm - 1)) {
+    int new_size = block_n_elt_tot + diff_last;
+    *block_n = realloc(*block_n, sizeof(int) * new_size);
+    _block_n = *block_n;
+    for (int i = block_n_elt_tot; i < new_size; i++) {
+      _block_n[i] = 0;
+    }
+  }
+
+  return _block_distrib_idx;
+}
+
 
 #undef _MIN
 #undef _MAX

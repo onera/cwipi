@@ -30,6 +30,8 @@
 #include "pdm_box.h"
 #include "pdm_box_tree.h"
 #include "pdm_box_priv.h"
+#include "pdm_array.h"
+#include "pdm_logging.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -1262,15 +1264,12 @@ _distribute_octants
   int n_ranks;
   PDM_MPI_Comm_size (comm, &n_ranks);
 
-  int *send_count = malloc(sizeof(int) * n_ranks);
+  int *send_count = PDM_array_zeros_int(n_ranks);
   size_t *send_shift = malloc(sizeof(size_t) * (n_ranks+1));
 
   int *recv_count = malloc(sizeof(int) * n_ranks);
   size_t *recv_shift = malloc(sizeof(size_t) * (n_ranks+1));
 
-  for (int i = 0; i < n_ranks; i++) {
-    send_count[i] = 0;
-  }
 
   int irank = 0;
   for (int i = 0; i < L->n_nodes; i++) {
@@ -1300,9 +1299,8 @@ _distribute_octants
   PDM_morton_int_t *send_codes =
     malloc (send_shift[n_ranks] * sizeof(PDM_morton_int_t));
 
-  for (int rank_id = 0; rank_id < n_ranks; rank_id++) {
-    send_count[rank_id] = 0;
-  }
+  PDM_array_reset_int(send_count, n_ranks, 0);
+
 
   irank = 0;
   for (int i = 0; i < L->n_nodes; i++) {
@@ -1712,9 +1710,7 @@ _distribute_points
   int *send_shift = malloc ((n_ranks + 1) * sizeof (int));
   int *recv_shift = malloc ((n_ranks + 1) * sizeof (int));
 
-  for (int rank_id = 0; rank_id < n_ranks; rank_id++) {
-    send_count[rank_id] = 0;
-  }
+  PDM_array_reset_int(send_count, n_ranks, 0);
 
   for (int i = 0; i < _n_points; i++) {
     send_count[c_rank[i]] += dim;
@@ -1736,8 +1732,7 @@ _distribute_points
 
   double *send_coords = malloc (send_shift[n_ranks] * sizeof(double));
 
-  for (int rank_id = 0; rank_id < n_ranks; rank_id++)
-    send_count[rank_id] = 0;
+  PDM_array_reset_int(send_count, n_ranks, 0);
 
   for (int i = 0; i < _n_points; i++) {
     int rank_id = c_rank[i];
@@ -1794,9 +1789,7 @@ _distribute_points
   PDM_g_num_t *send_points_gnum =
     malloc (send_shift[n_ranks] * sizeof(PDM_g_num_t));
 
-  for (int rank_id = 0; rank_id < n_ranks; rank_id++) {
-    send_count[rank_id] = 0;
-  }
+  PDM_array_reset_int(send_count, n_ranks, 0);
 
   for (int i = 0; i < _n_points; i++) {
     int rank_id = c_rank[i];
@@ -2097,16 +2090,13 @@ _block_partition
   free (code_buff);
   free (rank_buff);
 
-  int *send_count = malloc(sizeof(int) * n_ranks);
+  int *send_count = PDM_array_zeros_int(n_ranks);
   int *send_shift = malloc(sizeof(int) * (n_ranks+1));
 
   int *recv_count = malloc(sizeof(int) * n_ranks);
   int *recv_shift = malloc(sizeof(int) * (n_ranks+1));
 
   int irank = 0;
-  for (int i = 0; i < n_ranks; i++) {
-    send_count[i] = 0;
-  }
 
   /* printf("rank codes deb\n"); */
   /* for (int i = 0; i < n_active_ranks; i++) { */
@@ -2145,9 +2135,7 @@ _block_partition
   PDM_morton_int_t *send_codes =
     malloc (send_shift[n_ranks] * sizeof(PDM_morton_int_t));
 
-  for (int rank_id = 0; rank_id < n_ranks; rank_id++) {
-    send_count[rank_id] = 0;
-  }
+  PDM_array_reset_int(send_count, n_ranks, 0);
 
   irank = 0;
   for (int i = 0; i < octant_list->n_nodes; i++) {
@@ -2198,11 +2186,7 @@ _block_partition
 
   free (recv_shift);
 
-  int *weight = malloc (sizeof(int) * G->n_nodes);
-
-  for (int i = 0; i < G->n_nodes; i++) {
-    weight[i] = 0;
-  }
+  int *weight = PDM_array_zeros_int(G->n_nodes);
 
   /* - compute weight of each cell */
 
@@ -2292,9 +2276,7 @@ _compute_connected_parts
   octree->connected_idx = malloc (sizeof(int) * s_connected);
   octree->connected_idx[0] = 0;
 
-  int *visited = malloc (sizeof(int) * octree->octants->n_nodes);
-  for (int i = 0; i < octree->octants->n_nodes; i++)
-    visited[i] = 0;
+  int *visited = PDM_array_zeros_int(octree->octants->n_nodes);
 
   int *stack = malloc (sizeof(int) * octree->octants->n_nodes);
   int pos_stack = 0;
@@ -2562,12 +2544,9 @@ _compute_neighbours
   if (n_ranks > 1) {
     const int n_quantile =  n_ranks * n_direction;
 
-    int *neighbour_rank_n = malloc (sizeof(int) * n_quantile);
+    int *neighbour_rank_n = PDM_array_zeros_int(n_quantile);
     int *neighbour_rank_idx = malloc (sizeof(int) * (n_quantile + 1));
 
-    for (int i = 0; i < n_quantile; i++) {
-      neighbour_rank_n[i] = 0;
-    }
 
     /* Premiere boucle pour compter */
 
@@ -2666,11 +2645,8 @@ _compute_neighbours
 
     /* Envoi / reception (Les donnees recues sont triees) */
 
-    int *recv_neighbour_rank_n = malloc (sizeof(int) * n_quantile);
+    int *recv_neighbour_rank_n = PDM_array_zeros_int(n_quantile);
 
-    for (int i = 0; i < n_quantile; i++) {
-      recv_neighbour_rank_n[i] = 0;
-    }
 
     PDM_MPI_Request *recv_request = malloc (sizeof(PDM_MPI_Request) * n_ranks);
     PDM_MPI_Request *send_request = malloc (sizeof(PDM_MPI_Request) * n_ranks);
@@ -2681,13 +2657,7 @@ _compute_neighbours
                       recv_neighbour_rank_n, n_direction, PDM_MPI_INT,
                       octree->comm);
 
-    int *recv_neighbour_rank_idx = malloc (sizeof(int) * (n_direction * n_ranks + 1));
-    recv_neighbour_rank_idx[0] = 0;
-
-
-    for (int i = 0; i <  n_direction * n_ranks; i++)
-      recv_neighbour_rank_idx[i+1] = recv_neighbour_rank_idx[i] + recv_neighbour_rank_n[i];
-
+    int *recv_neighbour_rank_idx = PDM_array_new_idx_from_sizes_int(recv_neighbour_rank_n, n_direction * n_ranks);
 
 
     int *recv_neighbour_rank_node_id   = malloc (sizeof(int) * recv_neighbour_rank_idx[n_quantile]);
@@ -3091,12 +3061,9 @@ _finalize_neighbours
   if (n_ranks > 1) {
     const int n_quantile = n_ranks * n_direction;
 
-    int *neighbour_rank_n   = malloc (sizeof(int) * n_quantile);
+    int *neighbour_rank_n   = PDM_array_zeros_int(n_quantile);
     int *neighbour_rank_idx = malloc (sizeof(int) * (n_quantile + 1));
 
-    for (int i = 0; i < n_quantile; i++) {
-      neighbour_rank_n[i] = 0;
-    }
 
     /* Premiere boucle pour compter */
     for (int i = 0; i < octree->octants->n_nodes; i++) {
@@ -3219,11 +3186,8 @@ _finalize_neighbours
 
     /* Envoi / reception (Les donnees recues sont triees) */
 
-    int *recv_neighbour_rank_n = malloc (sizeof(int) * n_quantile);
+    int *recv_neighbour_rank_n = PDM_array_zeros_int(n_quantile);
 
-    for (int i = 0; i < n_quantile; i++) {
-      recv_neighbour_rank_n[i] = 0;
-    }
 
     PDM_MPI_Request *recv_request = malloc (sizeof(PDM_MPI_Request) * n_ranks);
     PDM_MPI_Request *send_request = malloc (sizeof(PDM_MPI_Request) * n_ranks);
@@ -3234,13 +3198,7 @@ _finalize_neighbours
                       recv_neighbour_rank_n, n_direction, PDM_MPI_INT,
                       octree->comm);
 
-    int *recv_neighbour_rank_idx = malloc (sizeof(int) * (n_direction * n_ranks + 1));
-    recv_neighbour_rank_idx[0] = 0;
-
-
-    for (int i = 0; i <  n_direction * n_ranks; i++)
-      recv_neighbour_rank_idx[i+1] = recv_neighbour_rank_idx[i] + recv_neighbour_rank_n[i];
-
+    int *recv_neighbour_rank_idx = PDM_array_new_idx_from_sizes_int(recv_neighbour_rank_n, n_direction * n_ranks);
 
 
     int *recv_neighbour_rank_node_id   = malloc (sizeof(int) * recv_neighbour_rank_idx[n_quantile]);
@@ -3674,11 +3632,8 @@ _check_neighbours_area
                       recv_rank_ngb_n, 1, PDM_MPI_INT,
                       octree->comm);
 
-    recv_rank_ngb_idx = malloc (sizeof(int) * (n_ranks + 1));
-    recv_rank_ngb_idx[0] = 0;
-    for (int i = 0; i < n_ranks; i++) {
-      recv_rank_ngb_idx[i+1] = recv_rank_ngb_idx[i] + recv_rank_ngb_n[i];
-    }
+    recv_rank_ngb_idx = PDM_array_new_idx_from_sizes_int(recv_rank_ngb_n, n_ranks);
+
 
     recv_rank_ngb_id_level = malloc (sizeof(int) * recv_rank_ngb_idx[n_ranks]);
     PDM_MPI_Alltoallv (rank_ngb_id_level, rank_ngb_n, rank_ngb_idx, PDM_MPI_INT,
@@ -4191,10 +4146,7 @@ _compute_rank_extents
 
   // Box tree...
   const int n_info_location = 3;
-  int *init_location_proc = (int *) malloc (sizeof(int) * n_info_location * octree->n_used_rank);
-  for (int i = 0; i < n_info_location * octree->n_used_rank; i++) {
-    init_location_proc[i] = 0;
-  }
+  int *init_location_proc = PDM_array_zeros_int(n_info_location * octree->n_used_rank);
 
   PDM_MPI_Comm_split (octree->comm, i_rank, 0, &(octree->rank_comm));
 
@@ -4688,10 +4640,7 @@ PDM_para_octree_build
 
   if (n_ranks > 1) {
 
-    int *weight = malloc (sizeof(int) * octree->n_points);
-    for (int i = 0; i < octree->n_points; i++) {
-      weight[i] = 1;
-    }
+    int *weight = PDM_array_const_int(octree->n_points, 1);
 
     PDM_morton_code_t *morton_index =
       malloc (sizeof(PDM_morton_code_t) * (n_ranks + 1));
@@ -5144,9 +5093,7 @@ PDM_para_octree_build
       int range_children[n_child];
       int n_points_children[n_child];
 
-      for (int i = 0; i < n_child; i++) {
-        n_points_children[i] = 0;
-      }
+      PDM_array_reset_int(n_points_children, n_child, 0);
 
       int ichild = 0;
       for (int i = 0; i < n_points; i++) {
@@ -5163,10 +5110,7 @@ PDM_para_octree_build
         n_points_children[ichild] += 1;
       }
 
-      range_children[0] = 0;
-      for (int i = 0; i < n_child - 1; i++) {
-        range_children[i+1] = range_children[i] + n_points_children[i];
-      }
+      PDM_array_idx_from_sizes_int(n_points_children, n_child - 1, range_children);
 
       for (int i = n_child - 1; i >= 0; i--) {
         int is_pushed = _heap_push (heap,
@@ -5622,11 +5566,8 @@ PDM_para_octree_closest_points
                            s);
 
     /*   2) Use binary search to associate each target point to the appropriate process */
-    send_count = malloc (sizeof(int) * n_rank);
+    send_count = PDM_array_zeros_int(n_rank);
     recv_count = malloc (sizeof(int) * n_rank);
-    for (int i = 0; i < n_rank; i++) {
-      send_count[i] = 0;
-    }
 
     int *rank_pt = malloc (sizeof(int) * n_pts);
     for (int i = 0; i < n_pts; i++) {
@@ -5688,11 +5629,9 @@ PDM_para_octree_closest_points
       if (i_rank == 0) printf("phase 1: 0 copied ranks\n");
     }
 
-    int *i_copied_rank1 = malloc (sizeof(int) * n_rank);
+    int *i_copied_rank1 = PDM_array_const_int(n_rank, -1);
     int *copied_count = malloc (sizeof(int) * octree->n_copied_ranks);
-    for (int i = 0; i < n_rank; i++) {
-      i_copied_rank1[i] = -1;
-    }
+
     for (int i = 0; i < octree->n_copied_ranks; i++) {
       i_copied_rank1[octree->copied_ranks[i]] = i;
       copied_count[i] = 0;
@@ -5979,10 +5918,7 @@ PDM_para_octree_closest_points
                                                          1,
                                                          octree->comm);
 
-  int *part_stride = malloc (sizeof(int) * n_pts1);
-  for (int i = 0; i < n_pts1; i++) {
-    part_stride[i] = n_closest_points;
-  }
+  int *part_stride = PDM_array_const_int(n_pts1, n_closest_points);
 
   int *block_stride = NULL;
   double *block_closest_pts_dist2 = NULL;
@@ -6036,9 +5972,7 @@ PDM_para_octree_closest_points
     }
   }
 
-  for (int i = 0; i < n_rank; i++) {
-    send_count[i] = 0;
-  }
+  PDM_array_reset_int(send_count, n_rank, 0);
 
   for (int i = 0; i < idx_pts1[2]; i++) {
     for (int j = close_ranks_idx[i]; j < close_ranks_idx[i+1]; j++) {
@@ -6110,11 +6044,9 @@ PDM_para_octree_closest_points
     if (i_rank == 0) printf("phase 2: 0 copied ranks\n");
   }
 
-  int *i_copied_rank2 = malloc (sizeof(int) * n_rank);
+  int *i_copied_rank2 = PDM_array_const_int(n_rank,-1);
   int *copied_count = malloc (sizeof(int) * octree->n_copied_ranks);
-  for (int i = 0; i < n_rank; i++) {
-    i_copied_rank2[i] = -1;
-  }
+
   for (int i = 0; i < octree->n_copied_ranks; i++) {
     i_copied_rank2[octree->copied_ranks[i]] = i;
     copied_count[i] = 0;
@@ -6367,9 +6299,7 @@ PDM_para_octree_closest_points
 
 
   _closest_pts_g_num = realloc (_closest_pts_g_num, sizeof(PDM_g_num_t) * n_pts2 * n_closest_points);
-  for (int i = 0; i < n_pts2 * n_closest_points; i++) {
-    _closest_pts_g_num[i] = -1;
-  }
+  PDM_array_reset_gnum(_closest_pts_g_num, n_pts2 * n_closest_points, -1);
 
   _closest_points (n_closest_points,
                    dim,
@@ -6419,10 +6349,7 @@ PDM_para_octree_closest_points
                                     &n_pts2,
                                     1,
                                     octree->comm);
-  part_stride = malloc (sizeof(int) * n_pts2);
-  for (int i = 0; i < n_pts2; i++) {
-    part_stride[i] = n_closest_points;
-  }
+  part_stride = PDM_array_const_int(n_pts2, n_closest_points);
 
   double *tmp_block_closest_pts_dist2 = NULL;
   PDM_part_to_block_exch (ptb1,
@@ -6625,11 +6552,8 @@ PDM_para_octree_single_closest_point
                            s);
 
     /*   2) Use binary search to associate each target point to the appropriate process */
-    send_count = malloc (sizeof(int) * n_rank);
+    send_count = PDM_array_zeros_int(n_rank);
     recv_count = malloc (sizeof(int) * n_rank);
-    for (int i = 0; i < n_rank; i++) {
-      send_count[i] = 0;
-    }
 
     int *rank_pt = malloc (sizeof(int) * n_pts);
     for (int i = 0; i < n_pts; i++) {
@@ -6691,11 +6615,9 @@ PDM_para_octree_single_closest_point
       if (i_rank == 0) printf("phase 1: 0 copied ranks\n");
     }
 
-    int *i_copied_rank1 = malloc (sizeof(int) * n_rank);
+    int *i_copied_rank1 = PDM_array_const_int(n_rank, -1);
     int *copied_count = malloc (sizeof(int) * octree->n_copied_ranks);
-    for (int i = 0; i < n_rank; i++) {
-      i_copied_rank1[i] = -1;
-    }
+
     for (int i = 0; i < octree->n_copied_ranks; i++) {
       i_copied_rank1[octree->copied_ranks[i]] = i;
       copied_count[i] = 0;
@@ -7038,10 +6960,7 @@ PDM_para_octree_single_closest_point
                                                          1,
                                                          octree->comm);
 
-  int *part_stride = malloc (sizeof(int) * n_pts1);
-  for (int i = 0; i < n_pts1; i++) {
-    part_stride[i] = 1;
-  }
+  int *part_stride = PDM_array_const_int(n_pts1, 1);
 
   int *block_stride = NULL;
   double *block_closest_pt_dist2 = NULL;
@@ -7090,9 +7009,7 @@ PDM_para_octree_single_closest_point
     }
   }
 
-  for (int i = 0; i < n_rank; i++) {
-    send_count[i] = 0;
-  }
+  PDM_array_reset_int(send_count, n_rank, 0);
 
   for (int i = 0; i < idx_pts1[2]; i++) {
     for (int j = close_ranks_idx[i]; j < close_ranks_idx[i+1]; j++) {
@@ -7164,11 +7081,9 @@ PDM_para_octree_single_closest_point
     if (i_rank == 0) printf("phase 2: 0 copied ranks\n");
   }
 
-  int *i_copied_rank2 = malloc (sizeof(int) * n_rank);
+  int *i_copied_rank2 = PDM_array_const_int(n_rank, -1);
   int *copied_count = malloc (sizeof(int) * octree->n_copied_ranks);
-  for (int i = 0; i < n_rank; i++) {
-    i_copied_rank2[i] = -1;
-  }
+
   for (int i = 0; i < octree->n_copied_ranks; i++) {
     i_copied_rank2[octree->copied_ranks[i]] = i;
     copied_count[i] = 0;
@@ -7409,9 +7324,7 @@ PDM_para_octree_single_closest_point
   free (recv_shift);
 
   _closest_pt_g_num = realloc (_closest_pt_g_num, sizeof(PDM_g_num_t) * n_pts2);
-  for (int i = 0; i < n_pts2; i++) {
-    _closest_pt_g_num[i] = -1;
-  }
+  PDM_array_reset_gnum(_closest_pt_g_num, n_pts2, -1);
 
   _single_closest_point (dim,
                          octree->d,
@@ -7458,10 +7371,7 @@ PDM_para_octree_single_closest_point
                                     &n_pts2,
                                     1,
                                     octree->comm);
-  part_stride = malloc (sizeof(int) * n_pts2);
-  for (int i = 0; i < n_pts2; i++) {
-    part_stride[i] = 1;
-  }
+  part_stride = PDM_array_const_int(n_pts2, 1);
 
   double *tmp_block_closest_pt_dist2 = NULL;
   PDM_part_to_block_exch (ptb1,
@@ -7716,10 +7626,7 @@ PDM_para_octree_points_inside_boxes
     /***************************************
      * Redistribute bounding boxes
      ***************************************/
-    int *send_count = malloc (sizeof(int) * n_ranks);
-    for (int i = 0; i < n_ranks; i++) {
-      send_count[i] = 0;
-    }
+    int *send_count = PDM_array_zeros_int(n_ranks);
 
     /* Encode box corners */
     box_corners = malloc (sizeof(PDM_morton_code_t) * 2 * n_boxes);
@@ -7888,6 +7795,7 @@ PDM_para_octree_points_inside_boxes
     size_t new_max_size = box_pts_idx[ibox] + n_intersect_nodes * octree->points_in_leaf_max;
     if (s_box_pts <= new_max_size) {
       s_box_pts = PDM_MAX (2*s_box_pts, new_max_size);
+      // log_debug("new_max_size = %i | new_max_size = %i | s_box_pts = %i \n", new_max_size, (int)new_max_size, (int)s_box_pts);
       box_pts = realloc (box_pts, sizeof(int) * s_box_pts);
     }
 
@@ -8012,14 +7920,8 @@ PDM_para_octree_points_inside_boxes
                             NULL,
                             (void **) &pts_in_box_n);
 
-    *pts_in_box_idx = malloc (sizeof(int) * (n_boxes + 1));
-    int *_pts_in_box_idx = *pts_in_box_idx;
-    _pts_in_box_idx[0] = 0;
-    for (int ibox = 0; ibox < n_boxes; ibox++) {
-      _pts_in_box_idx[ibox+1] = _pts_in_box_idx[ibox] + pts_in_box_n[ibox];
-    }
-
-    *pts_in_box_g_num = malloc (sizeof(PDM_g_num_t) * _pts_in_box_idx[n_boxes]);
+    *pts_in_box_idx = PDM_array_new_idx_from_sizes_int(pts_in_box_n, n_boxes);
+    *pts_in_box_g_num = malloc (sizeof(PDM_g_num_t) * (*pts_in_box_idx)[n_boxes]);
 
     PDM_block_to_part_exch (btp,
                             sizeof(PDM_g_num_t),
@@ -8034,7 +7936,7 @@ PDM_para_octree_points_inside_boxes
       pts_in_box_n_coord[ibox] = pts_in_box_n[ibox] * dim;
     }
 
-    *pts_in_box_coord = malloc (sizeof(double) * _pts_in_box_idx[n_boxes] * dim);
+    *pts_in_box_coord = malloc (sizeof(double) * (*pts_in_box_idx)[n_boxes] * dim);
 
     PDM_block_to_part_exch (btp,
                             sizeof(double),

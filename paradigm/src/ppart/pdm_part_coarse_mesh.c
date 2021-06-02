@@ -19,6 +19,7 @@
 #include "pdm_part_renum.h"
 #include "pdm_order.h"
 #include "pdm_mpi.h"
+#include "pdm_array.h"
 
 #include "pdm_part_to_block.h"
 #include "pdm_block_to_part.h"
@@ -455,15 +456,8 @@ _dual_graph_from_face_cell
   //cell_cell: dual graph to be built
   //cell_cell_idx: array of indexes of the dual graph (same as cell_face_idx)
 
-  int *cell_cellN = (int *) malloc(part_ini->n_cell * sizeof(int));
-  for (int i = 0; i < part_ini->n_cell; i++) {
-    cell_cellN[i] = 0;
-  }
-
-  int *cell_cell = (int *) malloc(part_ini->cell_face_idx[part_ini->n_cell] * sizeof(int));
-  for (int i = 0; i < part_ini->cell_face_idx[part_ini->n_cell]; i++) {
-    cell_cell[i] = -1;
-  }
+  int *cell_cellN = PDM_array_zeros_int(part_ini->n_cell);
+  int *cell_cell = PDM_array_const_int(part_ini->cell_face_idx[part_ini->n_cell], -1);
 
   int *cell_cell_idx = (int *) malloc((part_ini->n_cell + 1) * sizeof(int));
   for(int i = 0; i < part_ini->n_cell + 1; i++) {
@@ -500,12 +494,7 @@ _dual_graph_from_face_cell
   }
 
   //cell_cell_idx is rebuilt
-  *cell_cell_idxCompressed = malloc((part_ini->n_cell + 1) * sizeof(int));
-
-  (*cell_cell_idxCompressed)[0] = 0;
-  for(int i = 0; i < part_ini->n_cell; i++) {
-    (*cell_cell_idxCompressed)[i + 1] = (*cell_cell_idxCompressed)[i] + cell_cellN[i];
-  }
+  *cell_cell_idxCompressed = PDM_array_new_idx_from_sizes_int(cell_cellN, part_ini->n_cell);
 
   //We compress the dual graph since cell_cell_idx was built from cell_face_idx
   //We have then n_face elements in cell_cell whereas it needs to be composed of n_cell elements
@@ -640,11 +629,7 @@ int            **cell_part)
 
   int method = cm->method;
 
-  *cell_part = (int *) malloc(part_ini->n_cell * sizeof(int));
-
-  for (int i = 0; i < part_ini->n_cell; i++){
-    (*cell_part)[i] = 0;
-  }
+  *cell_part = PDM_array_zeros_int(part_ini->n_cell);
 
   const _coarse_mesh_method_t *method_ptr = (const _coarse_mesh_method_t *)
                                       PDM_Handles_get (_coarse_mesh_methods, method);
@@ -686,10 +671,7 @@ _part_cell_from_cell_part
 )
 {
   //Allocation of an array to count the number of cells per partition
-  int * cpt_cells_per_partitions = (int *) malloc(n_coarse_cell * sizeof(int));
-  for (int i = 0; i < n_coarse_cell; i++){
-    cpt_cells_per_partitions[i] = 0;
-  }
+  int * cpt_cells_per_partitions = PDM_array_zeros_int(n_coarse_cell);
 
   for (int i = 0; i < n_cell; i++){
     int color = cell_part[i]; //A color is a number of partition (output of Metis or Scotch)
@@ -705,11 +687,7 @@ _part_cell_from_cell_part
   }
 
   //Allocation of an array for counter indexes
-  *part_cell_idx = (int *) malloc((n_coarse_cell + 1) * sizeof(int));
-  (*part_cell_idx)[0] = 0;
-  for (int i = 0; i < n_coarse_cell; i++){
-    (*part_cell_idx)[i + 1] = (*part_cell_idx)[i] + cpt_cells_per_partitions[i];
-  }
+  *part_cell_idx = PDM_array_new_idx_from_sizes_int(cpt_cells_per_partitions, n_coarse_cell);
 
   if (0 == 1) {
     PDM_printf("\n Contenu de part_cell_idx : \n");
@@ -722,9 +700,7 @@ _part_cell_from_cell_part
   *part_cell = (int *) malloc((*part_cell_idx)[n_coarse_cell] * sizeof(int));
 
   //cpt_cells_per_partitions is reused for building part_cell
-  for (int i = 0; i < n_coarse_cell; i++){
-    cpt_cells_per_partitions[i] = 0;
-  }
+  PDM_array_reset_int(cpt_cells_per_partitions, n_coarse_cell, 0);
 
   //We store each cell in part_cell by means of (*part_cell_idx)
   for (int i = 0; i < n_cell; i++){
@@ -854,11 +830,7 @@ _adapt_Connectedness
 {
   int number_global_partition = 1;
 
-  *cell_coarse_cell = (int *) malloc(n_cell * sizeof(int));
-
-  for (int i = 0; i < n_cell; i++) {
-    (*cell_coarse_cell)[i] = -1;
-  }
+  *cell_coarse_cell = PDM_array_const_int(n_cell, -1);
 
   /*
    *  We store the initial number of coarse cells wanted by the user
@@ -962,10 +934,7 @@ _adapt_Connectedness
    * Size of *coarse_cell_cell_idx may be dynamic
    */
 
-  *coarse_cell_cell_idx = malloc(((*n_coarse_cell_checked) + 1) * sizeof(int));
-  for (int i = 0; i < (*n_coarse_cell_checked) + 1; i++) {
-    (*coarse_cell_cell_idx)[i] = 0;
-  }
+  *coarse_cell_cell_idx =  PDM_array_zeros_int((*n_coarse_cell_checked) + 1);
 
   for (int i = 0; i < n_cell; i++) {
     (*coarse_cell_cell_idx)[(*cell_coarse_cell)[i]]++;
@@ -997,10 +966,7 @@ _adapt_Connectedness
 
   *coarse_cell_cell = (int *) malloc(n_cell * sizeof(int));
 
-  int * cpt_cells_per_partitions = (int *) malloc((*n_coarse_cell_checked) * sizeof(int));
-  for (int i = 0; i < (*n_coarse_cell_checked); i++){
-    cpt_cells_per_partitions[i] = 0;
-  }
+  int *cpt_cells_per_partitions = PDM_array_zeros_int(*n_coarse_cell_checked);
 
   /*
    * We store each cell in part_cell by means of (*part_cell_idx)
@@ -1051,17 +1017,10 @@ _build_face_coarse_cell
    * Fine face - coarse face connectivity (size = n_face)
    */
 
-  *fine_face_to_coarse_face = malloc(n_face * sizeof(int));
+  *fine_face_to_coarse_face = PDM_array_const_int(n_face, -1);
+  int *face_cell_temp = PDM_array_zeros_int(2 * n_face);
 
-  int *face_cell_temp = (int *) malloc(2 * n_face * sizeof(int));
 
-  for (int i = 0; i < n_face; i++) {
-    (*fine_face_to_coarse_face)[i] = -1;
-  }
-
-  for (int i = 0; i < 2 * n_face; i++) {
-    face_cell_temp[i] = 0;
-  }
 
   /*
    * Loop over face_cell. i = number of face, face_cell[i] = cell number
@@ -1208,10 +1167,7 @@ _coarsecell_face_from_face_coarse_cell
    *  Allocation of an array to count the number of faces per coarse cell
    */
 
-  int * cpt_faces_per_coarse_cell = (int *) malloc(n_coarse_cell_checked * sizeof(int));
-  for (int i = 0; i < n_coarse_cell_checked; i++) {
-    cpt_faces_per_coarse_cell[i] = 0;
-  }
+  int *cpt_faces_per_coarse_cell = PDM_array_zeros_int(n_coarse_cell_checked);
 
   /*
    * Loop over face_coarse_cell. i = number of face
@@ -1244,21 +1200,14 @@ _coarsecell_face_from_face_coarse_cell
    * Allocation of an array for counter indexes
    */
 
-  *coarsecell_face_idx = (int *)malloc((n_coarse_cell_checked + 1) * sizeof(int));
-  (*coarsecell_face_idx)[0] = 0;
-  for (int i = 0; i < n_coarse_cell_checked; i++) {
-    (*coarsecell_face_idx)[i + 1] = (*coarsecell_face_idx)[i] + cpt_faces_per_coarse_cell[i];
-  }
+  *coarsecell_face_idx = PDM_array_new_idx_from_sizes_int(cpt_faces_per_coarse_cell, n_coarse_cell_checked);
 
   *coarsecell_face = (int *) malloc((*coarsecell_face_idx)[n_coarse_cell_checked] * sizeof(int));
 
   /*
    *  cpt_faces_per_coarse_cell is reused for building coarsecell_face
    */
-
-  for (int i = 0; i < n_coarse_cell_checked; i++){
-    cpt_faces_per_coarse_cell[i] = 0;
-  }
+  PDM_array_reset_int(cpt_faces_per_coarse_cell, n_coarse_cell_checked, 0);
 
   /*
    * We store each face in coarsecell_face by means of (*coarsecell_face_idx)
@@ -1442,11 +1391,7 @@ _build_face_vtx
    * Creation of a correspondence table fine vertex to coarse vertex
    */
 
-  *fine_vtx_to_coarse_vtx = malloc(n_vtx * sizeof(int));
-
-  for (int i = 0; i < n_vtx; i++) {
-    (*fine_vtx_to_coarse_vtx)[i] = -1;
-  }
+  *fine_vtx_to_coarse_vtx = PDM_array_const_int(n_vtx, -1);
 
   /*
    * Loop over (*coarse_vtx_to_fine_vtx)
@@ -1732,11 +1677,8 @@ _build_faceGroup
   int idx = 0;
 
   //Counter of faces per group
-  int *cptFacesPerGroup = malloc(n_face_group * sizeof(int));
+  int *cptFacesPerGroup = PDM_array_zeros_int(n_face_group);
 
-  for (int i = 0; i < n_face_group; i++) {
-    cptFacesPerGroup[i] = 0;
-  }
 
   //face_group_idx is rebuilt
   //Loop over face_group_idx, i = group number
@@ -1763,12 +1705,7 @@ _build_faceGroup
   }
 
   //Update of face_group_idx
-  (*face_group_idx)[0] = 0;
-
-  //Loop over cptFacesPerGroup, i = group number
-  for (int i = 0; i < n_face_group; i++) {
-    (*face_group_idx)[i + 1] = (*face_group_idx)[i] + cptFacesPerGroup[i];
-  }
+  PDM_array_idx_from_sizes_int(cptFacesPerGroup, n_face_group, *face_group_idx);
 
   (*face_group) = realloc((*face_group), (*face_group_idx)[n_face_group] * sizeof(int));
   (*coarse_face_group_to_fine_face_group) = realloc((*coarse_face_group_to_fine_face_group), (*face_group_idx)[n_face_group] * sizeof(int));
@@ -2356,12 +2293,8 @@ _coarse_mesh_t * cm
 
   for (int i = 0; i < cm->n_part; i++) {
     idx_write = 0;
-    face_ln_to_gnTag[i] = (PDM_g_num_t *) malloc(cm->part_ini[i]->n_face * sizeof(PDM_g_num_t));
-      //Loop over coarse_face_to_fine_face, i = index of coarse_face_to_fine_face (from 0 to cm->part_res[i_part]->part->n_face)
-
-    for (int j = 0; j < cm->part_ini[i]->n_face; j++) {
-      face_ln_to_gnTag[i][j] = -1;
-    }
+    //Loop over coarse_face_to_fine_face, i = index of coarse_face_to_fine_face (from 0 to cm->part_res[i_part]->part->n_face)
+    face_ln_to_gnTag[i] = PDM_array_const_gnum(cm->part_ini[i]->n_face, -1);
 
     for (int j = 0; j < cm->part_res[i]->part->n_face; j++) {
           //If the vertex studied is the same as in coarse_face_to_fine_face, it is to be stored
@@ -2556,11 +2489,8 @@ _coarse_mesh_t * cm
     int nFine_vtx = cm->part_ini[i]->n_vtx;
     int nCoarseVtx = cm->part_res[i]->part->n_vtx;
     idx_write = 0;
-    vtx_ln_to_gnTag[i] = (PDM_g_num_t *) malloc(nFine_vtx * sizeof(PDM_g_num_t));
     //Loop over coarse_face_to_fine_face, i = index of coarse_vtx_to_fine_vtx (from 0 to cm->part_res[i_part]->part->n_vtx)
-    for (int j = 0; j < nFine_vtx; j++) {
-      vtx_ln_to_gnTag[i][j] = -1;
-    }
+    vtx_ln_to_gnTag[i] = PDM_array_const_gnum(nFine_vtx, -1);
 
     for (int j = 0; j < nCoarseVtx; j++) {
         //If the vertex studied is the same as in coarse_vtx_to_fine_vtx, it is to be stored
@@ -2728,11 +2658,9 @@ _coarse_mesh_t * cm
 
   for (int i = 0; i < cm->n_part; i++) {
     idx_write = 0;
-    face_ln_to_gnTag[i] = (int *) malloc(cm->part_ini[i]->n_face * sizeof(int));
+    face_ln_to_gnTag[i] = PDM_array_const_int(cm->part_ini[i]->n_face, -1);
     int n_face = cm->part_res[i]->part->n_face;
-    for (int j = 0; j < cm->part_ini[i]->n_face; j++) {
-      face_ln_to_gnTag[i][j] = -1;
-    }
+
     //Loop over coarse_face_to_fine_face, i = index of coarse_face_to_fine_face (from 0 to cm->part_res[i_part]->part->n_face)
     for (int j = 0; j < n_face; j++) {
       //If the face studied is the same as in coarse_face_to_fine_face, it is to be stored
@@ -3043,12 +2971,7 @@ _coarse_mesh_t * cm
     _part_t *cmp_coarse = cm->part_res[i_part]->part;
 
     //Creation of fine_face_to_coarse_face
-    fine_face_to_coarse_face[i_part] = (int *) malloc(cmp_fine->n_face * sizeof(int));
-
-    //Initialization to -1
-    for (int i = 0; i < cmp_fine->n_face; i++) {
-      fine_face_to_coarse_face[i_part][i] = -1;
-    }
+    fine_face_to_coarse_face[i_part] = PDM_array_const_int(cmp_fine->n_face, -1);
 
     //Loop over coarse_face_to_fine_face
     for (int i = 0; i < cmp_coarse->n_face; i++) {
@@ -3068,17 +2991,14 @@ _coarse_mesh_t * cm
 
   }
 
-  int *sendIdx = malloc(sizeof(int) * n_proc);
-  int *sendN = malloc(sizeof(int) * n_proc);
+  int *sendIdx = malloc(sizeof(int) * (n_proc+1));
+  int *sendN = PDM_array_zeros_int(n_proc);
   PDM_g_num_t *sendBuff = NULL;
 
-  int *recvIdx = malloc(sizeof(int) * n_proc);
+  int *recvIdx = malloc(sizeof(int) * (n_proc+1));
   int *recvN = malloc(sizeof(int) * n_proc);
   PDM_g_num_t *recvBuff = NULL;
 
-  for (int i = 0; i < n_proc; i++) {
-    sendN[i] = 0;
-  }
 
   int n_t_send = 0;
   for (int i = 0; i < cm->n_part; i++)  {
@@ -3102,13 +3022,8 @@ _coarse_mesh_t * cm
     n_t_recv += cmp_coarse->n_face_part_bound;
   }
 
-  sendIdx[0] = 0;
-  for (int i = 1; i < n_proc; i++) {
-    sendIdx[i] = sendIdx[i - 1] + sendN[i - 1];
-    sendN[i - 1] = 0;
-  }
-
-  sendN[n_proc - 1] = 0;
+  PDM_array_idx_from_sizes_int(sendN, n_proc, sendIdx);
+  PDM_array_reset_int(sendN, n_proc, 0);
 
   sendBuff = malloc(sizeof(PDM_g_num_t) * n_t_send * 3);
   recvBuff = malloc(sizeof(PDM_g_num_t) * n_t_recv * 3);
@@ -3118,12 +3033,7 @@ _coarse_mesh_t * cm
   for (int i = 0; i < cm->n_part; i++) {
     _part_t *cmp = cm->part_ini[i];
     //Creation of iFaceLocToIPartBound
-    iFaceLocToIPartBound[i] = (int *) malloc(cmp->n_face * sizeof(int));
-
-    //Initialization to -1
-    for (int cpt = 0; cpt < cmp->n_face; cpt++) {
-      iFaceLocToIPartBound[i][cpt] = -1;
-    }
+    iFaceLocToIPartBound[i] = PDM_array_const_int(cmp->n_face, -1);
 
     if(0 == 1) {
       PDM_printf("Valeur de n_face_part_bound : %d \n", cmp->n_face_part_bound);
@@ -3179,11 +3089,8 @@ _coarse_mesh_t * cm
   PDM_MPI_Alltoall (sendN, 1, PDM_MPI_INT,
                 recvN, 1, PDM_MPI_INT,
                 cm->comm);
-  recvIdx[0] = 0;
 
-  for (int i = 1; i < n_proc; i++)  {
-    recvIdx[i] = recvIdx[i - 1] + recvN[i - 1];
-  }
+  PDM_array_idx_from_sizes_int(recvN, n_proc, recvIdx);
 
   PDM_MPI_Alltoallv(sendBuff, sendN, sendIdx, PDM__PDM_MPI_G_NUM,
                 recvBuff, recvN, recvIdx, PDM__PDM_MPI_G_NUM, cm->comm);

@@ -27,7 +27,6 @@
 
 #include "pdm.h"
 #include "pdm_mpi.h"
-#include "pdm_handles.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -42,6 +41,8 @@ extern "C" {
 /*============================================================================
  * Type definitions
  *============================================================================*/
+
+typedef struct _pdm_closest_point_t PDM_closest_point_t;
 
 /*============================================================================
  * Public function definitions
@@ -61,7 +62,7 @@ extern "C" {
  *
  */
 
-int
+PDM_closest_point_t*
 PDM_closest_points_create
 (
  const PDM_MPI_Comm    comm,
@@ -69,13 +70,12 @@ PDM_closest_points_create
  const PDM_ownership_t owner
 );
 
-void
+PDM_closest_point_t*
 PDM_closest_points_create_cf
 (
  const PDM_MPI_Fint     comm,
  const int              n_closest,
- const PDM_ownership_t  owner,
-       int             *id
+ const PDM_ownership_t  owner
 );
 
 
@@ -92,9 +92,9 @@ PDM_closest_points_create_cf
 void
 PDM_closest_points_n_part_cloud_set
 (
- const int  id,
- const int  n_part_cloud_src,
- const int  n_part_cloud_tgt
+       PDM_closest_point_t* cls,
+ const int                  n_part_cloud_src,
+ const int                  n_part_cloud_tgt
 );
 
 
@@ -113,11 +113,11 @@ PDM_closest_points_n_part_cloud_set
 void
 PDM_closest_points_tgt_cloud_set
 (
- const int          id,
- const int          i_part,
- const int          n_points,
-       double      *coords,
-       PDM_g_num_t *gnum
+       PDM_closest_point_t *cls,
+ const int                  i_part,
+ const int                  n_points,
+       double              *coords,
+       PDM_g_num_t         *gnum
 );
 
 
@@ -136,11 +136,11 @@ PDM_closest_points_tgt_cloud_set
 void
 PDM_closest_points_src_cloud_set
 (
- const int          id,
- const int          i_part,
- const int          n_points,
-       double      *coords,
-       PDM_g_num_t *gnum
+       PDM_closest_point_t *cls,
+ const int                  i_part,
+ const int                  n_points,
+       double              *coords,
+       PDM_g_num_t         *gnum
 );
 
 /**
@@ -154,7 +154,7 @@ PDM_closest_points_src_cloud_set
 void
 PDM_closest_points_compute
 (
- const int id
+ PDM_closest_point_t *cls
 );
 
 
@@ -172,10 +172,10 @@ PDM_closest_points_compute
 void
 PDM_closest_points_get
 (
- const int        id,
- const int        i_part_tgt,
- PDM_g_num_t    **closest_src_gnum,
-       double   **closest_src_distance
+       PDM_closest_point_t  *cls,
+ const int                   i_part_tgt,
+       PDM_g_num_t         **closest_src_gnum,
+       double              **closest_src_distance
 );
 
 
@@ -192,7 +192,7 @@ PDM_closest_points_get
 void
 PDM_closest_points_free
 (
- const int id
+ PDM_closest_point_t  *cls
 );
 
 
@@ -207,21 +207,54 @@ PDM_closest_points_free
 void
 PDM_closest_points_dump_times
 (
- const int id
+ PDM_closest_point_t  *cls
 );
 
- /**
+/**
+ *
+ * \brief Get mesh distance
+ *
+ * \param [in]   id                 Identifier
+ * \param [in]   i_part_src         Index of partition of the cloud
+ * \param [out]  tgt_in_src_idx     For each src point the number of target localised  (size = n_src_points )
+ * \param [out]  tgt_in_src         For each src point the globla number of target point located (size = tgt_in_src_idx[n_src_points] )
+ *
+ */
+
+void
+PDM_closest_points_tgt_in_src_get
+(
+       PDM_closest_point_t  *cls,
+ const int                   i_part_src,
+       int                 **tgt_in_src_idx,
+       PDM_g_num_t         **tgt_in_src
+);
+
+
+void
+PDM_transform_to_parent_gnum
+(
+       PDM_g_num_t  *results,
+ const int           n_results,
+ const PDM_g_num_t  *ln_to_gn,
+ const PDM_g_num_t  *parent_ln_to_gn,
+ const int           n_elmt,
+       PDM_MPI_Comm  comm
+);
+
+
+/**
  *
  * \brief  transfert _closest_pts var as it seems this static var is not readable
  *          when we switch to the nvcc compiler
  *
  */
 
-PDM_Handles_t *
+PDM_closest_point_t*
 PDM_closest_points_closest_transfert
 (
-  void
- );
+  PDM_closest_point_t  *cls
+);
 
 #ifdef	__cplusplus
 }

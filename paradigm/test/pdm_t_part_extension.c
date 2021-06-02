@@ -409,6 +409,7 @@ int main(int argc, char *argv[])
                                 face_group_ln_to_gn,
                                 vtx);
 
+    // PDM_log_trace_array_long (cell_ln_to_gn, n_cell, "cell_ln_to_gn::");
     if( 0 == 1) {
       PDM_printf("[%i] n_face_group     : %i\n", i_rank, n_face_group);
       PDM_printf("[%i] n_cell          : %i\n", i_rank, n_cell);

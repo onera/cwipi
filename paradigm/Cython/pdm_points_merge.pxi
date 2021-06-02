@@ -2,29 +2,31 @@
 cdef extern from "pdm_points_merge.h":
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     # > Wrapping of structure
+    ctypedef struct PDM_points_merge_t:
+        pass
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     # > Wrapping of function
-    int PDM_points_merge_create(int                   n_point_cloud,
-                                double                tolerance,
-                                PDM_MPI_Comm          comm,
-                                const PDM_ownership_t owner);
-    void PDM_points_merge_free(int          id);
-    void PDM_points_merge_cloud_set(int          id,
-                                    int          i_point_cloud,
-                                    int          n_points,
-                                    double      *coords,
-                                    double      *char_length);
-    void PDM_points_merge_process(int        id);
-    void PDM_points_merge_candidates_get(int    id,
-                                         int    i_point_cloud,
-                                         int    **candidates_idx,
-                                         int    **candidates_desc);
-    void PDM_points_merge_candidates_size_get(int    id,
-                                              int    i_point_cloud,
-                                              int   *n_point_cloud,
-                                              int   *n_candidates_desc);
+    PDM_points_merge_t * PDM_points_merge_create(int                   n_point_cloud,
+                                                double                tolerance,
+                                                PDM_MPI_Comm          comm,
+                                                const PDM_ownership_t owner);
+    void PDM_points_merge_free(PDM_points_merge_t *pm);
+    void PDM_points_merge_cloud_set(PDM_points_merge_t *pm,
+                                    int                i_point_cloud,
+                                    int                n_points,
+                                    double            *coords,
+                                    double            *char_length);
+    void PDM_points_merge_process(PDM_points_merge_t *pm);
+    void PDM_points_merge_candidates_get(PDM_points_merge_t  *pm,
+                                         int                 i_point_cloud,
+                                         int               **candidates_idx,
+                                         int               **candidates_desc);
+    void PDM_points_merge_candidates_size_get(PDM_points_merge_t *pm,
+                                              int                i_point_cloud,
+                                              int               *n_point_cloud,
+                                              int               *n_candidates_desc);
 
 
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -37,7 +39,7 @@ cdef class PointsMerge:
     """
     # ************************************************************************
     # > Class attributes
-    cdef int _id
+    cdef PDM_points_merge_t* _pm
     cdef int _size
     cdef int _rank
     # ************************************************************************
@@ -68,7 +70,7 @@ cdef class PointsMerge:
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        self._id = PDM_points_merge_create(n_point_cloud,
+        self._pm = PDM_points_merge_create(n_point_cloud,
                                            relative_tolerance,
                                            pdm_comm,
                                            PDM_OWNERSHIP_USER) # Python take ownership
@@ -86,7 +88,7 @@ cdef class PointsMerge:
         # ************************************************************************
 
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        PDM_points_merge_cloud_set(self._id,
+        PDM_points_merge_cloud_set(self._pm,
                                    i_point_cloud,
                                    n_points,
                                    <double *> coords.data,
@@ -100,7 +102,7 @@ cdef class PointsMerge:
         # ************************************************************************
         # > Declaration
         # ************************************************************************
-        PDM_points_merge_process(self._id)
+        PDM_points_merge_process(self._pm)
 
     # ------------------------------------------------------------------------
     def get_merge_candidates(self, int i_point_cloud):
@@ -115,14 +117,14 @@ cdef class PointsMerge:
         cdef NPY.npy_intp  dim
         # ************************************************************************
 
-        PDM_points_merge_candidates_size_get(self._id,
+        PDM_points_merge_candidates_size_get(self._pm,
                                              i_point_cloud,
                                              &n_point_cloud,
                                              &n_candidates_desc)
 
 
         # > Get Size
-        PDM_points_merge_candidates_get(self._id,
+        PDM_points_merge_candidates_get(self._pm,
                                         i_point_cloud,
                                         &candidates_idx,
                                         &candidates_desc)
@@ -151,5 +153,5 @@ cdef class PointsMerge:
       """
          Use the free method of PDM Lib
       """
-      PDM_points_merge_free(self._id)
+      PDM_points_merge_free(self._pm)
 

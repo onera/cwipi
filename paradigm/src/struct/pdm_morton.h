@@ -230,9 +230,11 @@ PDM_morton_local_sort(int                n_codes,
  *  true or false
  *----------------------------------------------------------------------------*/
 
+#ifndef __cplusplus
 _Bool
 PDM_morton_a_gt_b(PDM_morton_code_t  a,
                   PDM_morton_code_t  b);
+#endif
 
 /*----------------------------------------------------------------------------
  * Copy the code a into the code b
@@ -273,6 +275,7 @@ PDM_morton_nearest_common_ancestor (PDM_morton_code_t  code_a,
  *
  *----------------------------------------------------------------------------*/
 
+#ifndef __cplusplus
 _Bool
 PDM_morton_ancestor_is (PDM_morton_code_t  a,
                         PDM_morton_code_t  b);
@@ -308,6 +311,7 @@ PDM_morton_a_ge_b(PDM_morton_code_t  a,
 _Bool
 PDM_morton_a_eq_b(PDM_morton_code_t  a,
                   PDM_morton_code_t  b);
+#endif
 
 /*----------------------------------------------------------------------------
  * Assigne a level to Morton code

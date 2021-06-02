@@ -48,10 +48,10 @@ module pdm_mesh_location
     !!
     !!
 
-    subroutine PDM_mesh_location_create (mesh_nature, &
+    function PDM_mesh_location_create (mesh_nature, &
                                          n_point_cloud, &
-                                         fcomm, &
-                                         id) &
+                                         fcomm) &
+                                         result(ptrC) &
       bind (c, name = 'PDM_mesh_location_create_cf')
 
       use iso_c_binding
@@ -62,9 +62,9 @@ module pdm_mesh_location
       integer(c_int), value :: n_point_cloud
       integer(c_int), value :: fComm
 
-      integer(c_int)        :: id
+      type(c_ptr)        :: ptrC
 
-    end subroutine PDM_mesh_location_create
+    end function PDM_mesh_location_create
 
     !>
     !!
@@ -76,7 +76,7 @@ module pdm_mesh_location
     !!
     !!
 
-    subroutine PDM_mesh_location_n_part_cloud_set (id, &
+    subroutine PDM_mesh_location_n_part_cloud_set (ml, &
                                                    i_point_cloud, &
                                                    n_part) &
      bind (c, name = 'PDM_mesh_location_n_part_cloud_set')
@@ -85,7 +85,7 @@ module pdm_mesh_location
 
       implicit none
 
-      integer(c_int), value :: id
+      type (c_ptr), value :: ml
       integer(c_int), value :: i_point_cloud
       integer(c_int), value :: n_part
 
@@ -104,7 +104,7 @@ module pdm_mesh_location
     !!
     !!
 
-    subroutine PDM_mesh_location_cloud_set (id, &
+    subroutine PDM_mesh_location_cloud_set (ml, &
                                             i_point_cloud, &
                                             i_part, &
                                             n_points, &
@@ -116,7 +116,8 @@ module pdm_mesh_location
 
       implicit none
 
-      integer(c_int), value :: id
+
+      type (c_ptr), value :: ml
       integer(c_int), value :: i_point_cloud
       integer(c_int), value :: i_part
       integer(c_int), value :: n_points
@@ -138,7 +139,7 @@ module pdm_mesh_location
     !!
     !!
 
-    subroutine PDM_mesh_location_cloud_get (id, &
+    subroutine PDM_mesh_location_cloud_get (ml, &
                                             i_point_cloud, &
                                             i_part, &
                                             n_points, &
@@ -150,7 +151,8 @@ module pdm_mesh_location
 
       implicit none
 
-      integer(c_int), value :: id
+
+      type (c_ptr), value :: ml
       integer(c_int), value :: i_point_cloud
       integer(c_int), value :: i_part
       integer(c_int), value :: n_points
@@ -168,7 +170,7 @@ module pdm_mesh_location
     !!
     !!
 
-    subroutine PDM_mesh_location_shared_nodal_mesh_set (id, &
+    subroutine PDM_mesh_location_shared_nodal_mesh_set (ml, &
                                                         mesh_nodal_id) &
      bind (c, name = 'PDM_mesh_location_shared_nodal_mesh_set')
 
@@ -176,7 +178,8 @@ module pdm_mesh_location
 
       implicit none
 
-      integer(c_int), value :: id
+
+      type (c_ptr), value :: ml
       integer(c_int), value :: mesh_nodal_id
 
     end subroutine PDM_mesh_location_shared_nodal_mesh_set
@@ -190,7 +193,7 @@ module pdm_mesh_location
     !!
     !!
 
-    subroutine PDM_mesh_location_mesh_global_data_set (id, &
+    subroutine PDM_mesh_location_mesh_global_data_set (ml, &
                                                        n_part) &
      bind (c, name = 'PDM_mesh_location_mesh_global_data_set')
 
@@ -198,10 +201,41 @@ module pdm_mesh_location
 
       implicit none
 
-      integer(c_int), value :: id
+
+      type (c_ptr), value :: ml
       integer(c_int), value :: n_part
 
     end subroutine PDM_mesh_location_mesh_global_data_set
+
+    !>
+    !!
+    !! \brief get cell vertex connectivity
+    !!
+    !! \param [in]   id                    Identifier
+    !! \param [in]   i_part                Index of partition of the cloud
+    !! \param [out]  cell_vtx_idx          Index in (size = n_elt + 1)
+    !! \param [out]  cell_vtx              Cell vertex connectivity
+    !!
+    !!
+
+    subroutine PDM_mesh_location_cell_vertex_get (ml, &
+                                                  i_part, &
+                                                  cell_vtx_idx, &
+                                                  cell_vtx) &
+     bind (c, name = 'PDM_mesh_location_cell_vertex_get')
+
+      use iso_c_binding
+
+      implicit none
+
+
+      type (c_ptr), value :: ml
+      integer(c_int), value :: i_part
+      type(c_ptr)           :: cell_vtx_idx
+      type(c_ptr)           :: cell_vtx
+
+    end subroutine PDM_mesh_location_cell_vertex_get
+
 
     !>
     !!
@@ -223,7 +257,7 @@ module pdm_mesh_location
     !!
     !!
 
-    subroutine PDM_mesh_location_part_set (id, &
+    subroutine PDM_mesh_location_part_set (ml, &
                                            i_part, &
                                            n_cell, &
                                            cell_face_idx, &
@@ -242,7 +276,8 @@ module pdm_mesh_location
 
       implicit none
 
-      integer(c_int), value :: id
+
+      type (c_ptr), value :: ml
       integer(c_int), value :: i_part
       integer(c_int), value :: n_cell
       type(c_ptr), value    :: cell_face_idx
@@ -278,7 +313,7 @@ module pdm_mesh_location
     !!
     !!
 
-    subroutine PDM_mesh_location_part_set_2d (id, &
+    subroutine PDM_mesh_location_part_set_2d (ml, &
                                               i_part, &
                                               n_cell, &
                                               cell_edge_idx, &
@@ -297,7 +332,8 @@ module pdm_mesh_location
 
       implicit none
 
-      integer(c_int), value :: id
+
+      type (c_ptr), value :: ml
       integer(c_int), value :: i_part
       integer(c_int), value :: n_cell
       type(c_ptr), value    :: cell_edge_idx
@@ -322,7 +358,7 @@ module pdm_mesh_location
     !!
     !!
 
-    subroutine PDM_mesh_location_tolerance_set (id, &
+    subroutine PDM_mesh_location_tolerance_set (ml, &
                                                 tol) &
      bind (c, name = 'PDM_mesh_location_tolerance_set')
 
@@ -330,7 +366,8 @@ module pdm_mesh_location
 
       implicit none
 
-      integer(c_int), value :: id
+
+      type (c_ptr), value :: ml
       real(c_double), value :: tol
 
     end subroutine PDM_mesh_location_tolerance_set
@@ -344,7 +381,7 @@ module pdm_mesh_location
     !!
     !!
 
-    subroutine PDM_mesh_location_method_set (id, &
+    subroutine PDM_mesh_location_method_set (ml, &
                                              method) &
      bind (c, name = 'PDM_mesh_location_method_set')
 
@@ -352,7 +389,8 @@ module pdm_mesh_location
 
       implicit none
 
-      integer(c_int), value :: id
+
+      type (c_ptr), value :: ml
       integer(c_int), value :: method
 
     end subroutine PDM_mesh_location_method_set
@@ -365,55 +403,253 @@ module pdm_mesh_location
     !!
     !!
 
-    subroutine PDM_mesh_location_compute (id) &
+    subroutine PDM_mesh_location_compute (ml) &
       bind (c, name = 'PDM_mesh_location_compute')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value :: id
+
+      type (c_ptr), value :: ml
 
     end subroutine PDM_mesh_location_compute
 
     !>
     !!
-    !! \brief Get mesh location
+    !! \brief Get the number of located points
     !!
-    !! \param [in]   id                    Identifier
-    !! \param [in]   i_point_cloud         Current cloud
-    !! \param [in]   i_part                Index of partition of the cloud
-    !! \param [out]  n_points              Number of points in point cloud
-    !! \param [out]  coord                 Coordinates of points in point cloud
-    !! \param [out]  g_num                 Global numbers of points in point cloud
-    !! \param [out]  location              The global number of the closest element if the point is located,
-    !!                                     -1 otherwise
+    !! \param [in]   id              Identifier
+    !! \param [in]   i_point_cloud   Index of point cloud
+    !! \param [in]   i_part          Index of partition
     !!
+    !! \return     The number of located points
     !!
 
-    subroutine PDM_mesh_location_get (id, &
-                                      i_point_cloud, &
-                                      i_part, &
-                                      location, &
-                                      weights_idx, &
-                                      weights, &
-                                      projected_coords) &
-     bind (c, name = 'PDM_mesh_location_get')
+    function PDM_mesh_location_n_located_get (ml, &
+                                              i_point_cloud, &
+                                              i_part) &
+                                              result(n_located) &
+      bind (c, name = 'PDM_mesh_location_n_located_get')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value :: id
+
+      type (c_ptr), value :: ml
+      integer(c_int), value :: i_point_cloud
+      integer(c_int), value :: i_part
+      integer(c_int)        :: n_located
+
+    end function PDM_mesh_location_n_located_get
+
+
+    !>
+    !!
+    !! \brief Get the number of cells
+    !!
+    !! \param [in]  id       Identifier
+    !! \param [in]  i_part   Index of partition of the mesh
+    !!
+    !! \return Number of cells
+    !!
+
+    function PDM_mesh_location_n_cell_get (ml, &
+                                           i_part) &
+                                           result(n_cell) &
+      bind (c, name = 'PDM_mesh_location_n_cell_get')
+
+      use iso_c_binding
+
+      implicit none
+
+
+      type (c_ptr), value :: ml
+      integer(c_int), value :: i_part
+      integer(c_int)        :: n_cell
+
+    end function PDM_mesh_location_n_cell_get
+
+    !>
+    !!
+    !! \brief Get the number of unlocated points
+    !!
+    !! \param [in]   id              Identifier
+    !! \param [in]   i_point_cloud   Index of point cloud
+    !! \param [in]   i_part          Index of partition
+    !!
+    !! \return     The number of unlocated points
+    !!
+
+    function PDM_mesh_location_n_unlocated_get (ml, &
+                                                i_point_cloud, &
+                                                i_part) &
+                                                result(n_unlocated) &
+      bind (c, name = 'PDM_mesh_location_n_unlocated_get')
+
+      use iso_c_binding
+
+      implicit none
+
+
+      type (c_ptr), value :: ml
+      integer(c_int), value :: i_point_cloud
+      integer(c_int), value :: i_part
+      integer(c_int)        :: n_unlocated
+
+    end function PDM_mesh_location_n_unlocated_get
+
+
+    !>
+    !!
+    !! \brief Get the list of unlocated points
+    !!
+    !! \param [in]   id              Identifier
+    !! \param [in]   i_point_cloud   Index of point cloud
+    !! \param [in]   i_part          Index of partition
+    !!
+    !! \return     The list of unlocated points
+    !!
+    !!
+
+    function PDM_mesh_location_unlocated_get (ml, &
+                                              i_point_cloud, &
+                                              i_part) &
+                                              result(unlocated) &
+      bind (c, name = 'PDM_mesh_location_unlocated_get')
+
+      use iso_c_binding
+
+      implicit none
+
+
+      type (c_ptr), value :: ml
+      integer(c_int), value :: i_point_cloud
+      integer(c_int), value :: i_part
+      type(c_ptr)           :: unlocated
+
+    end function PDM_mesh_location_unlocated_get
+
+
+    !>
+    !!
+    !! \brief Get the list of located points
+    !!
+    !! \param [in]   id              Identifier
+    !! \param [in]   i_point_cloud   Index of point cloud
+    !! \param [in]   i_part          Index of partition
+    !!
+    !! \return     The list of located points
+    !!
+    !!
+
+    function PDM_mesh_location_located_get (ml, &
+                                            i_point_cloud, &
+                                            i_part) &
+                                            result(located) &
+      bind (c, name = 'PDM_mesh_location_located_get')
+
+      use iso_c_binding
+
+      implicit none
+
+
+      type (c_ptr), value :: ml
+      integer(c_int), value :: i_point_cloud
+      integer(c_int), value :: i_part
+      type(c_ptr)           :: located
+
+    end function PDM_mesh_location_located_get
+
+    !>
+    !!
+    !! \brief Get point location for located points
+    !!
+    !! \param [in]   id                    Identifier
+    !! \param [in]   i_point_cloud         Current cloud
+    !! \param [in]   i_part                Index of partition of the cloud
+    !! \param [out]  n_points              Number of points in point cloud
+    !! \param [out]  location              The global number of the closest element for located points
+    !! \param [out]  dist2                 Distance to the located element
+    !! \param [out]  projected_coord       Projection on the located element
+    !!
+    !!
+    !!
+
+    subroutine PDM_mesh_location_point_location_get (ml, &
+                                                     i_point_cloud, &
+                                                     i_part, &
+                                                     location, &
+                                                     dist2, &
+                                                     projected_coords) &
+     bind (c, name = 'PDM_mesh_location_point_location_get')
+
+      use iso_c_binding
+
+      implicit none
+
+
+      type (c_ptr), value :: ml
       integer(c_int), value :: i_point_cloud
       integer(c_int), value :: i_part
       type(c_ptr)           :: location
-      type(c_ptr)           :: weights_idx
-      type(c_ptr)           :: weights
+      type(c_ptr)           :: dist2
       type(c_ptr)           :: projected_coords
 
 
-    end subroutine PDM_mesh_location_get
+    end subroutine PDM_mesh_location_point_location_get
+
+    !>
+    !!
+    !! \brief Get point list located in elements
+    !!
+    !! \param [in]   id                      Identifier
+    !! \param [in]   i_part                  Index of partition of the mesh
+    !! \param [in]   i_point_cloud           Index of cloud
+    !! \param [out]  elt_pts_inside_idx      Points index (size = n_elt + 1)
+    !! \param [out]  points_gnum             Points global number
+    !! \param [out]  points_coords           Points coordinates
+    !! \param [out]  points_uvw              Points parametric coordinates in elements
+    !! \param [out]  points_weights_idx      Interpolation weights index (size = elt_pts_inside_idx[n_elt] + 1)
+    !! \param [out]  points_weights          Interpolation weights
+    !! \param [out]  points_dist2            Distance element-points (dist < 0 if the point is inside)
+    !! \param [out]  points_projected_coords Point projection on element if the point is outside
+    !!
+
+    subroutine PDM_mesh_location_points_in_elt_get (ml, &
+                                                    i_part, &
+                                                    i_point_cloud, &
+                                                    elt_pts_inside_idx, &
+                                                    points_gnum, &
+                                                    points_coords, &
+                                                    points_uvw, &
+                                                    points_weights_idx, &
+                                                    points_weights, &
+                                                    points_dist2, &
+                                                    points_projected_coords) &
+
+      bind (c, name = 'PDM_mesh_location_points_in_elt_get')
+
+      use iso_c_binding
+
+      implicit none
+
+
+      type (c_ptr), value :: ml
+      integer(c_int), value :: i_part
+      integer(c_int), value :: i_point_cloud
+      type(c_ptr)           :: elt_pts_inside_idx
+      type(c_ptr)           :: points_gnum
+      type(c_ptr)           :: points_coords
+      type(c_ptr)           :: points_uvw
+      type(c_ptr)           :: points_weights_idx
+      type(c_ptr)           :: points_weights
+      type(c_ptr)           :: points_dist2
+      type(c_ptr)           :: points_projected_coords
+
+    end subroutine PDM_mesh_location_points_in_elt_get
+
 
     !>
     !!
@@ -425,7 +661,7 @@ module pdm_mesh_location
     !!
     !!
 
-    subroutine PDM_mesh_location_free (id, &
+    subroutine PDM_mesh_location_free (ml, &
                                        partial) &
      bind (c, name = 'PDM_mesh_location_free')
 
@@ -433,7 +669,8 @@ module pdm_mesh_location
 
       implicit none
 
-      integer(c_int), value :: id
+
+      type (c_ptr), value :: ml
       integer(c_int), value :: partial
 
     end subroutine PDM_mesh_location_free
@@ -447,30 +684,32 @@ module pdm_mesh_location
     !!
     !!
 
-    subroutine PDM_mesh_location_dump_times (id) &
+    subroutine PDM_mesh_location_dump_times (ml) &
       bind (c, name = 'PDM_mesh_location_dump_times')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value :: id
+
+      type (c_ptr), value :: ml
 
     end subroutine PDM_mesh_location_dump_times
 
 
-    function PDM_mesh_location_mesh_nodal_id_get (id) &
-                                                 result(mesh_nodal_id) &
-      bind (c, name = 'PDM_mesh_location_mesh_nodal_id_get')
+    function PDM_mesh_location_mesh_nodal_get (ml) &
+                                                 result(mesh_nodal) &
+      bind (c, name = 'PDM_mesh_location_mesh_nodal_get')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value :: id
-      integer(c_int)        :: mesh_nodal_id
 
-    end function PDM_mesh_location_mesh_nodal_id_get
+      type (c_ptr), value :: ml
+      type (c_ptr) :: mesh_nodal
+
+    end function PDM_mesh_location_mesh_nodal_get
 
   end interface
 

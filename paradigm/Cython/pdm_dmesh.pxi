@@ -107,9 +107,7 @@ cdef class DistributedMeshCaspule:
     """
        Use the free method of PDM Lib
     """
-    print("DistributedMeshCaspule::__dealloc__")
     PDM_dmesh_free(self._dm)
-    print("DistributedMeshCaspule::__dealloc__ end z")
 
 # ------------------------------------------------------------------
 cdef class DistributedMesh:
@@ -202,9 +200,9 @@ cdef class DistributedMesh:
     # ************************************************************************
     # > Declaration
     # ************************************************************************
-    print("DistributedMesh::__dealloc__")
+    # print("DistributedMesh::__dealloc__")
     PDM_dmesh_free(self._dm)
-    print("DistributedMesh::__dealloc__")
+    # print("DistributedMesh::__dealloc__")
 
 ctypedef fused DMesh:
   DistributedMesh

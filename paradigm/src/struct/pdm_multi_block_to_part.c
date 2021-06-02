@@ -12,6 +12,7 @@
 #include "pdm_multi_block_to_part.h"
 #include "pdm_multi_block_to_part_priv.h"
 #include "pdm_binary_search.h"
+#include "pdm_array.h"
 #include "pdm_priv.h"
 #include "pdm_logging.h"
 
@@ -183,13 +184,7 @@ PDM_multi_block_to_part_create
                     comm);
 
 
-  mbtp->distributed_block_idx = malloc (sizeof(int) * (mbtp->n_data_block + 1));
-  mbtp->distributed_block_idx[0] = 0;
-
-  for (int i = 0; i < mbtp->n_data_block; i++) {
-    mbtp->distributed_block_idx[i+1] = mbtp->distributed_block_n[i] +
-                                       mbtp->distributed_block_idx[i];
-  }
+  mbtp->distributed_block_idx = PDM_array_new_idx_from_sizes_int(mbtp->distributed_block_n, mbtp->n_data_block);
 
   if( 0 == 1) {
     PDM_log_trace_array_int(mbtp->requested_block_n    , mbtp->n_data_block  , "mbtp->requested_block_n    :: ");
@@ -398,11 +393,7 @@ PDM_multi_block_to_part_exch2
     for(int i_block = 0; i_block < mbtp->n_block; ++i_block) {
       int n_elt_block = mbtp->block_distrib_idx[i_block][mbtp->i_rank+1] - mbtp->block_distrib_idx[i_block][mbtp->i_rank];
       // printf(" n_elt_block :: %i \n", n_elt_block);
-      block_stride_idx[i_block] = (int *) malloc( sizeof(int) * (n_elt_block + 1));
-      block_stride_idx[i_block][0] = 0;
-      for(int i = 0; i < n_elt_block; ++i){
-        block_stride_idx[i_block][i+1] = block_stride_idx[i_block][i] + block_stride[i_block][i];
-      }
+      block_stride_idx[i_block] = PDM_array_new_idx_from_sizes_int(block_stride[i_block], n_elt_block);
     }
 
     int idx1 = 0;
@@ -508,22 +499,10 @@ PDM_multi_block_to_part_exch2
     int s_recv_elt = mbtp->requested_data_idx[n_rank1] + mbtp->requested_data_n[n_rank1];
 
     int **part_idx = malloc (sizeof(int *) * (mbtp->n_part ));
-    int  *recv_idx = malloc (sizeof(int  ) * (s_recv_elt + 1));
-
-    recv_idx[0] = 0;
-    for (int i = 0; i < s_recv_elt; i++) {
-      recv_idx[i+1] = recv_idx[i] + recv_stride[i];
-    }
+    int  *recv_idx = PDM_array_new_idx_from_sizes_int(recv_stride, s_recv_elt);
 
     for (int i_part = 0; i_part < mbtp->n_part; i_part++) {
-
-      part_idx[i_part] = malloc (sizeof(int) * (mbtp->n_elt[i_part] + 1));
-      part_idx[i_part][0] = 0;
-
-      for (int j = 0; j < mbtp->n_elt[i_part]; j++) {
-        part_idx[i_part][j+1] = part_idx[i_part][j] + _part_stride[i_part][j];
-      }
-
+      part_idx[i_part] = PDM_array_new_idx_from_sizes_int(_part_stride[i_part], mbtp->n_elt[i_part]);
     }
 
     for (int i_part = 0; i_part < mbtp->n_part; i_part++) {
