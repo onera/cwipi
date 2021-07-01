@@ -1,5 +1,5 @@
-#ifndef __PDM_PARTGNUM1_PARTGNUM2_PRIV_H__
-#define __PDM_PARTGNUM1_PARTGNUM2_PRIV_H__
+#ifndef __PDM_PART1_TO_SELECTED_PART2_PRIV_H__
+#define __PDM_PART1_TO_SELECTED_PART2_PRIV_H__
 
 /*----------------------------------------------------------------------------
  * Standard C library headers
@@ -35,7 +35,7 @@ extern "C" {
  *
  */
 
-struct _pdm_partgnum1_to_partgnum2_t {
+struct _pdm_part1_to_selected_part2_t {
 
         int           n_part1;                  /*!< Number of parts for gnum1 */    
   const PDM_g_num_t **gnum_elt1;                /*!< gnum of elements in the partition for gnum1 */
