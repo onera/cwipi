@@ -288,6 +288,30 @@ PDM_para_octree_points_inside_boxes
  double            **pts_in_box_coord
  );
 
+void
+PDM_para_octree_points_inside_boxes_with_copies
+(
+ const int           octree_id,
+ const int           n_boxes,
+ const double       *box_extents,
+ const PDM_g_num_t  *box_g_num,
+ int               **pts_in_box_idx,
+ PDM_g_num_t       **pts_in_box_g_num,
+ double            **pts_in_box_coord
+ );
+
+void
+PDM_para_octree_points_inside_boxes2
+(
+ const int           octree_id,
+ const int           n_boxes,
+ const double       *box_extents,
+ const PDM_g_num_t  *box_g_num,
+ int               **pts_in_box_idx,
+ PDM_g_num_t       **pts_in_box_g_num,
+ double            **pts_in_box_coord
+ );
+
 /**
  *
  * \brief Copy octree data of some ranks into all ranks

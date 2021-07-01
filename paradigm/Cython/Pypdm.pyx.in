@@ -4,13 +4,13 @@ import numpy     as NPY
 
 # Import Section (Cython) :
 # ------------------------
-from    libc.stdlib cimport malloc, free
-from    cpython.ref cimport PyObject, Py_INCREF, Py_DECREF, Py_XDECREF
-from    cpython.pycapsule cimport PyCapsule_New, PyCapsule_GetPointer, PyCapsule_IsValid, PyCapsule_GetName
+from libc.stdlib       cimport malloc, free
+from cpython.ref       cimport PyObject, Py_INCREF, Py_DECREF, Py_XDECREF
+from cpython.pycapsule cimport PyCapsule_New, PyCapsule_GetPointer, PyCapsule_IsValid, PyCapsule_GetName
 cimport cython
-cimport numpy       as      NPY
+cimport numpy as NPY
 
-from    mpi4py      cimport MPI
+from mpi4py cimport MPI
 
 # -----------------------------------------------------------------
 cdef extern from "numpy/arrayobject.h":
@@ -130,6 +130,9 @@ cdef extern from "pdm_mpi.h":
     PDM_MPI_Comm PDM_MPI_mpi_2_pdm_mpi_comm(void *pt_comm)
 # -----------------------------------------------------------------
 
+
+
+
 _PDM_MESH_ENTITY_CELL   = PDM_MESH_ENTITY_CELL
 _PDM_MESH_ENTITY_FACE   = PDM_MESH_ENTITY_FACE
 _PDM_MESH_ENTITY_EDGE   = PDM_MESH_ENTITY_EDGE
@@ -196,6 +199,67 @@ _PDM_MESH_NODAL_POLY_3D  = PDM_MESH_NODAL_POLY_3D
 cdef extern from "numpy/arrayobject.h":
     void PyArray_ENABLEFLAGS(NPY.ndarray arr, int flags)
 # -----------------------------------------------------------------
+
+# -----------------------------------------------------------------
+cdef create_numpy_i(int* array, int size):
+    cdef object nparray
+    if (array == NULL):
+        nparray = None
+    else :
+        dim = <NPY.npy_intp> size
+        nparray = NPY.PyArray_SimpleNewFromData(1,
+                                                &dim,
+                                                NPY.NPY_INT32,
+                                                <void *> array)
+    return nparray
+
+cdef create_numpy_l(long int* array, int size):
+    cdef object nparray
+    if (array == NULL):
+        nparray = None
+    else :
+        dim = <NPY.npy_intp> size
+        nparray = NPY.PyArray_SimpleNewFromData(1,
+                                                &dim,
+                                                NPY.NPY_INT64,
+                                                <void *> array)
+    return nparray
+
+cdef create_numpy_pdm_gnum(PDM_g_num_t* array, int size):
+    cdef object nparray
+    if (array == NULL):
+        nparray = None
+    else :
+        dim = <NPY.npy_intp> size
+        nparray = NPY.PyArray_SimpleNewFromData(1,
+                                                &dim,
+                                                PDM_G_NUM_NPY_INT,
+                                                <void *> array)
+    return nparray
+
+cdef create_numpy_f(float* array, int size):
+    cdef object nparray
+    if (array == NULL):
+        nparray = None
+    else :
+        dim = <NPY.npy_intp> size
+        nparray = NPY.PyArray_SimpleNewFromData(1,
+                                                &dim,
+                                                NPY.NPY_FLOAT,
+                                                <void *> array)
+    return nparray
+
+cdef create_numpy_d(double* array, int size):
+    cdef object nparray
+    if (array == NULL):
+        nparray = None
+    else :
+        dim = <NPY.npy_intp> size
+        nparray = NPY.PyArray_SimpleNewFromData(1,
+                                                &dim,
+                                                NPY.NPY_DOUBLE,
+                                                <void *> array)
+    return nparray
 
 # PDM_dmesh :
 # --------------------

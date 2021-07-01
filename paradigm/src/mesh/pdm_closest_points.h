@@ -234,11 +234,13 @@ PDM_closest_points_tgt_in_src_get
 void
 PDM_transform_to_parent_gnum
 (
-       PDM_g_num_t  *results,
- const int           n_results,
- const PDM_g_num_t  *ln_to_gn,
- const PDM_g_num_t  *parent_ln_to_gn,
- const int           n_elmt,
+ const int           n_part_initial,
+ const int          *n_elmt_initial,
+ const PDM_g_num_t **child_ln_to_gn,
+ const PDM_g_num_t **parent_ln_to_gn,
+ const int           n_part_to_transform,
+ const int          *n_elmt_to_transform,
+       PDM_g_num_t **gnum_to_transform,
        PDM_MPI_Comm  comm
 );
 

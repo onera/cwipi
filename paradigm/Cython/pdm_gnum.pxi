@@ -8,25 +8,25 @@ cdef extern from "pdm_gnum.h":
                                 const PDM_bool_t      merge,
                                 const double          tolerance,
                                 const PDM_MPI_Comm    comm,
-                                const PDM_ownership_t owner);
+                                const PDM_ownership_t owner)
 
   void PDM_gnum_set_from_coords(PDM_gen_gnum_t* gen_gnum,
                                 const int     i_part,
                                 const int     n_elts,
                                 const double *coords,
-                                const double *char_length);
+                                const double *char_length)
 
   void PDM_gnum_set_from_parents(PDM_gen_gnum_t *gen_gnum,
                                  const int             i_part,
                                  const int             n_elts,
-                                 const PDM_g_num_t    *parent_gnum);
+                                 const PDM_g_num_t    *parent_gnum)
 
-  void         PDM_gnum_compute(PDM_gen_gnum_t* gen_gnum);
+  void         PDM_gnum_compute(PDM_gen_gnum_t* gen_gnum)
 
   PDM_g_num_t*     PDM_gnum_get(PDM_gen_gnum_t* gen_gnum,
-                                const int i_part);
+                                const int i_part)
 
-  void            PDM_gnum_free(PDM_gen_gnum_t* gen_gnum);
+  void            PDM_gnum_free(PDM_gen_gnum_t* gen_gnum)
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -97,7 +97,7 @@ cdef class GlobalNumbering:
                              i_part,
                              n_elts,
                              coords_data,
-                             caracteristic_length_data);
+                             caracteristic_length_data)
     # ************************************************************************
 
   # --------------------------------------------------------------------------
@@ -121,7 +121,7 @@ cdef class GlobalNumbering:
     PDM_gnum_set_from_parents(self._gen_gnum,
                               i_part,
                               n_elts,
-               <PDM_g_num_t*> parent_gnum.data);
+               <PDM_g_num_t*> parent_gnum.data)
     # ************************************************************************
 
   # --------------------------------------------------------------------------
@@ -139,7 +139,7 @@ cdef class GlobalNumbering:
 
     # ************************************************************************
     # > PDM call
-    gnum_array = PDM_gnum_get(self._gen_gnum, i_part);
+    gnum_array = PDM_gnum_get(self._gen_gnum, i_part)
     # ************************************************************************
 
     # ************************************************************************
@@ -151,7 +151,7 @@ cdef class GlobalNumbering:
                                                     &dim,
                                                     PDM_G_NUM_NPY_INT,
                                                     <void *> gnum_array)
-    PyArray_ENABLEFLAGS(np_gnum_array, NPY.NPY_OWNDATA);
+    PyArray_ENABLEFLAGS(np_gnum_array, NPY.NPY_OWNDATA)
     return {'gnum' : np_gnum_array}
     # ************************************************************************
 

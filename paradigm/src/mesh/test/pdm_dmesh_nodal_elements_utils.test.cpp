@@ -47,13 +47,15 @@ MPI_TEST_CASE("decomposes hexa ",1) {
   std::vector<int>         dcell_face_vtx_idx(n_face_elt_tot +1);
   std::vector<PDM_g_num_t> dcell_face_vtx(n_sum_vtx_face_tot);
   std::vector<PDM_g_num_t> delmt_face_cell(n_face_elt_tot);
+  std::vector<int>         dparent_elmt_pos(n_face_elt_tot);
 
   dcell_face_vtx_idx[0] = 0;
   PDM_sections_decompose_faces(dmn,
                                   dcell_face_vtx_idx.data(),
                                   dcell_face_vtx.data(),
                                   delmt_face_cell.data(),
-                                  NULL, NULL);
+                                  NULL, NULL,
+                                  dparent_elmt_pos.data());
   // dcell_face_vtx_idx[0] = 0;
   // PDM_sections_decompose_faces(dmn,
   //                                 dcell_face_vtx_idx,
@@ -64,6 +66,7 @@ MPI_TEST_CASE("decomposes hexa ",1) {
   // PDM_log_trace_array_long(delmt_face_cell, n_face_elt_tot, "delmt_face_cell:: ");
   // PDM_log_trace_array_int(dcell_face_vtx_idx, n_face_elt_tot+1, "dcell_face_vtx_idx:: ");
   // PDM_log_trace_array_long(dcell_face_vtx, n_sum_vtx_face_tot, "dcell_face_vtx:: ");
+  // PDM_log_trace_array_long(dparent_elmt_pos.data(), n_face_elt_tot, "dparent_elmt_pos:: ");
 
   std::vector<PDM_g_num_t> delmt_face_cell_expected    = {1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2};
   std::vector<int>         dcell_face_vtx_idx_expected = {0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48};
@@ -73,10 +76,12 @@ MPI_TEST_CASE("decomposes hexa ",1) {
                                                           5, 6, 3, 2, 12, 11, 8, 9,
                                                           8, 11, 5, 2, 11, 12, 6, 5,
                                                           6, 12, 9, 3, 3, 9, 8, 2};
+  std::vector<int> dparent_elmt_pos_expected           = {0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5};
 
   CHECK( delmt_face_cell    == delmt_face_cell_expected);
   CHECK( dcell_face_vtx_idx == dcell_face_vtx_idx_expected);
   CHECK( dcell_face_vtx     == dcell_face_vtx_expected);
+  CHECK( dparent_elmt_pos   == dparent_elmt_pos_expected);
 
   PDM_DMesh_nodal_cell_face_compute(dmn);
 
@@ -157,13 +162,15 @@ MPI_TEST_CASE("decomposes tetra ",1) {
   std::vector<int>         dcell_face_vtx_idx(n_face_elt_tot +1);
   std::vector<PDM_g_num_t> dcell_face_vtx(n_sum_vtx_face_tot);
   std::vector<PDM_g_num_t> delmt_face_cell(n_face_elt_tot);
+  std::vector<int>         dparent_elmt_pos(n_face_elt_tot);
 
   dcell_face_vtx_idx[0] = 0;
   PDM_sections_decompose_faces(dmn,
                                   dcell_face_vtx_idx.data(),
                                   dcell_face_vtx.data(),
                                   delmt_face_cell.data(),
-                                  NULL, NULL);
+                                  NULL, NULL,
+                                  dparent_elmt_pos.data());
   // dcell_face_vtx_idx[0] = 0;
   // PDM_sections_decompose_faces(dmn,
   //                                 dcell_face_vtx_idx,
@@ -181,10 +188,12 @@ MPI_TEST_CASE("decomposes tetra ",1) {
   std::vector<PDM_g_num_t> delmt_face_cell_expected    = {1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10};
   std::vector<int>         dcell_face_vtx_idx_expected = {0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63, 66, 69, 72, 75, 78, 81, 84, 87, 90, 93, 96, 99, 102, 105, 108, 111, 114, 117, 120};
   std::vector<PDM_g_num_t> dcell_face_vtx_expected     = {1, 2, 4, 1, 7, 2, 1, 4, 7, 2, 7, 4, 2, 5, 4, 2, 11, 5, 2, 4, 11, 5, 11, 4, 4, 7, 11, 4, 10, 7, 4, 11, 10, 7, 10, 11, 2, 7, 8, 2, 11, 7, 2, 8, 11, 7, 11, 8, 2, 4, 7, 2, 11, 4, 2, 7, 11, 4, 11, 7, 2, 6, 5, 2, 11, 6, 2, 5, 11, 6, 11, 5, 2, 9, 3, 2, 6, 9, 2, 3, 6, 9, 6, 3, 11, 12, 9, 11, 6, 12, 11, 9, 6, 12, 6, 9, 9, 11, 2, 9, 8, 11, 9, 2, 8, 11, 8, 2, 9, 2, 11, 9, 6, 2, 9, 11, 6, 2, 6, 11};
+  std::vector<int>         dparent_elmt_pos_expected   = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3};
 
   CHECK( delmt_face_cell    == delmt_face_cell_expected);
   CHECK( dcell_face_vtx_idx == dcell_face_vtx_idx_expected);
   CHECK( dcell_face_vtx     == dcell_face_vtx_expected);
+  CHECK( dparent_elmt_pos   == dparent_elmt_pos_expected);
 
   PDM_DMesh_nodal_cell_face_compute(dmn);
 
@@ -260,19 +269,15 @@ MPI_TEST_CASE("decomposes pyra ",1) {
   std::vector<int>         dcell_face_vtx_idx(n_face_elt_tot +1);
   std::vector<PDM_g_num_t> dcell_face_vtx(n_sum_vtx_face_tot);
   std::vector<PDM_g_num_t> delmt_face_cell(n_face_elt_tot);
+  std::vector<int>         dparent_elmt_pos(n_face_elt_tot);
 
   dcell_face_vtx_idx[0] = 0;
   PDM_sections_decompose_faces(dmn,
                                   dcell_face_vtx_idx.data(),
                                   dcell_face_vtx.data(),
                                   delmt_face_cell.data(),
-                                  NULL, NULL);
-  // dcell_face_vtx_idx[0] = 0;
-  // PDM_sections_decompose_faces(dmn,
-  //                                 dcell_face_vtx_idx,
-  //                                 dcell_face_vtx,
-  //                                 delmt_face_cell,
-  //                                 NULL, NULL);
+                                  NULL, NULL,
+                                  dparent_elmt_pos.data());
 
   if( 0 == 1)
   {
@@ -284,10 +289,12 @@ MPI_TEST_CASE("decomposes pyra ",1) {
   std::vector<PDM_g_num_t> delmt_face_cell_expected    = {1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6};
   std::vector<int>         dcell_face_vtx_idx_expected = {0, 4, 7, 10, 13, 16, 20, 23, 26, 29, 32, 36, 39, 42, 45, 48, 52, 55, 58, 61, 64, 68, 71, 74, 77, 80, 84, 87, 90, 93, 96};
   std::vector<PDM_g_num_t> dcell_face_vtx_expected     = {3 ,4, 2, 1, 9, 1, 2, 9, 2, 4, 9, 4, 3, 9, 3, 1, 6, 8, 7, 5, 9, 5, 7, 9, 7, 8, 9, 8, 6, 9, 6, 5, 5, 7, 3, 1, 9, 1, 3, 9, 3, 7, 9, 7, 5, 9, 5, 1, 4, 8, 6, 2, 9, 2, 6, 9, 6, 8, 9, 8, 4, 9, 4, 2, 2, 6, 5, 1, 9, 1, 5, 9, 5, 6, 9, 6, 2, 9, 2, 1, 7, 8, 4, 3, 9, 3, 4, 9, 4, 8, 9, 8, 7, 9, 7, 3};
+  std::vector<int>         dparent_elmt_pos_expected   = {0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4};
 
   CHECK( delmt_face_cell    == delmt_face_cell_expected);
   CHECK( dcell_face_vtx_idx == dcell_face_vtx_idx_expected);
   CHECK( dcell_face_vtx     == dcell_face_vtx_expected);
+  CHECK( dparent_elmt_pos   == dparent_elmt_pos_expected);
 
   PDM_DMesh_nodal_cell_face_compute(dmn);
 
@@ -361,20 +368,15 @@ MPI_TEST_CASE("decomposes prism ",1) {
   std::vector<int>         dcell_face_vtx_idx(n_face_elt_tot +1);
   std::vector<PDM_g_num_t> dcell_face_vtx(n_sum_vtx_face_tot);
   std::vector<PDM_g_num_t> delmt_face_cell(n_face_elt_tot);
+  std::vector<int>         dparent_elmt_pos(n_face_elt_tot);
 
   dcell_face_vtx_idx[0] = 0;
   PDM_sections_decompose_faces(dmn,
                                   dcell_face_vtx_idx.data(),
                                   dcell_face_vtx.data(),
                                   delmt_face_cell.data(),
-                                  NULL, NULL);
-  // dcell_face_vtx_idx[0] = 0;
-  // PDM_sections_decompose_faces(dmn,
-  //                                 dcell_face_vtx_idx,
-  //                                 dcell_face_vtx,
-  //                                 delmt_face_cell,
-  //                                 NULL, NULL);
-
+                                  NULL, NULL,
+                                  dparent_elmt_pos.data());
   if( 0 == 1)
   {
     PDM_log_trace_array_long(delmt_face_cell.data()  , n_face_elt_tot    , "delmt_face_cell:: ");
@@ -385,10 +387,12 @@ MPI_TEST_CASE("decomposes prism ",1) {
   std::vector<PDM_g_num_t> delmt_face_cell_expected    = {1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4};
   std::vector<int>         dcell_face_vtx_idx_expected = {0, 3, 6, 10, 14, 18, 21, 24, 28, 32, 36, 39, 42, 46, 50, 54, 57, 60, 64, 68, 72};
   std::vector<PDM_g_num_t> dcell_face_vtx_expected     = {4, 5, 1, 11, 10, 7, 10, 11, 5, 4, 11, 7, 1, 5, 7, 10, 4, 1, 5, 2, 1, 8, 11, 7, 11, 8, 2, 5, 8, 7, 1, 2, 7, 11, 5, 1, 5, 6, 2, 12, 11, 8, 11, 12, 6, 5, 12, 8, 2, 6, 8, 11, 5, 2, 6, 3, 2, 9, 12, 8, 12, 9, 3, 6, 9, 8, 2, 3, 8, 12, 6, 2};
+  std::vector<int>         dparent_elmt_pos_expected   = {0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4};
 
   CHECK( delmt_face_cell    == delmt_face_cell_expected);
   CHECK( dcell_face_vtx_idx == dcell_face_vtx_idx_expected);
   CHECK( dcell_face_vtx     == dcell_face_vtx_expected);
+  CHECK( dparent_elmt_pos   == dparent_elmt_pos_expected);
 
   PDM_DMesh_nodal_cell_face_compute(dmn);
 
@@ -463,19 +467,15 @@ MPI_TEST_CASE("decomposes quad ",1) {
   std::vector<int>         dcell_edge_vtx_idx(n_edge_elt_tot +1);
   std::vector<PDM_g_num_t> dcell_edge_vtx(n_sum_vtx_edge_tot);
   std::vector<PDM_g_num_t> delmt_edge_cell(n_edge_elt_tot, -1);
+  std::vector<int>         dparent_elmt_pos(n_edge_elt_tot);
 
   dcell_edge_vtx_idx[0] = 0;
   PDM_sections_decompose_edges(dmn,
                                dcell_edge_vtx_idx.data(),
                                dcell_edge_vtx.data(),
                                delmt_edge_cell.data(),
-                               NULL, NULL);
-  // // dcell_edge_vtx_idx[0] = 0;
-  // // PDM_dmesh_nodal_decompose_edges(dmn,
-  // //                                 dcell_edge_vtx_idx,
-  // //                                 dcell_edge_vtx,
-  // //                                 delmt_edge_cell,
-  // //                                 NULL, NULL);
+                               NULL, NULL,
+                               dparent_elmt_pos.data());
 
   if( 1 == 1)
   {
@@ -487,10 +487,12 @@ MPI_TEST_CASE("decomposes quad ",1) {
   std::vector<PDM_g_num_t> delmt_edge_cell_expected    = {1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4};
   std::vector<int>         dcell_edge_vtx_idx_expected = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32};
   std::vector<PDM_g_num_t> dcell_edge_vtx_expected     = {1, 2, 2, 5, 5, 4, 4, 1, 2, 3, 3, 6, 6, 5, 5, 2, 4, 5, 5, 8, 8, 7, 7, 4, 5, 6, 6, 9, 9, 8, 8, 5};
+  std::vector<int>         dparent_elmt_pos_expected   = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3};
 
   CHECK( delmt_edge_cell    == delmt_edge_cell_expected);
   CHECK( dcell_edge_vtx_idx == dcell_edge_vtx_idx_expected);
   CHECK( dcell_edge_vtx     == dcell_edge_vtx_expected);
+  CHECK( dparent_elmt_pos   == dparent_elmt_pos_expected);
 
   // To replace by dmesh_nodal_to_dmesh
   // PDM_DMesh_nodal_cell_face_compute(dmn);
@@ -571,13 +573,15 @@ MPI_TEST_CASE("decomposes tri ",1) {
   std::vector<int>         dcell_edge_vtx_idx(n_edge_elt_tot +1);
   std::vector<PDM_g_num_t> dcell_edge_vtx(n_sum_vtx_edge_tot);
   std::vector<PDM_g_num_t> delmt_edge_cell(n_edge_elt_tot, -1);
+  std::vector<int>         dparent_elmt_pos(n_edge_elt_tot, -1);
 
   dcell_edge_vtx_idx[0] = 0;
   PDM_sections_decompose_edges(dmn,
                                dcell_edge_vtx_idx.data(),
                                dcell_edge_vtx.data(),
                                delmt_edge_cell.data(),
-                               NULL, NULL);
+                               NULL, NULL,
+                               dparent_elmt_pos.data());
   // // dcell_edge_vtx_idx[0] = 0;
   // // PDM_dmesh_nodal_decompose_edges(dmn,
   // //                                 dcell_edge_vtx_idx,
@@ -595,10 +599,12 @@ MPI_TEST_CASE("decomposes tri ",1) {
   std::vector<PDM_g_num_t> delmt_edge_cell_expected    = {1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8};
   std::vector<int>         dcell_edge_vtx_idx_expected = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48 };
   std::vector<PDM_g_num_t> dcell_edge_vtx_expected     = {1, 2, 2, 5, 5, 1, 1, 5, 5, 4, 4, 1, 2, 3, 3, 6, 6, 2, 2, 6, 6, 5, 5, 2, 4, 5, 5, 8, 8, 4, 4, 8, 8, 7, 7, 4, 5, 6, 6, 9, 9, 5, 5, 9, 9, 8, 8, 5};
+  std::vector<int>         dparent_elmt_pos_expected   = {0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2};
 
   CHECK( delmt_edge_cell    == delmt_edge_cell_expected);
   CHECK( dcell_edge_vtx_idx == dcell_edge_vtx_idx_expected);
   CHECK( dcell_edge_vtx     == dcell_edge_vtx_expected);
+  CHECK( dparent_elmt_pos   == dparent_elmt_pos_expected);
 
   // To replace by dmesh_nodal_to_dmesh
   // PDM_DMesh_nodal_cell_face_compute(dmn);

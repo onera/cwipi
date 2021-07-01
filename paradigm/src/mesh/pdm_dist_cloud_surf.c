@@ -30,7 +30,8 @@
 #include "pdm_polygon.h"
 #include "pdm_timer.h"
 #include "pdm_hash_tab.h"
-
+#include "pdm_sort.h"
+#include "pdm_logging.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -82,7 +83,6 @@ PDM_dist_cloud_surf_create
  const PDM_ownership_t   owner
 )
 {
-
   PDM_dist_cloud_surf_t *dist = (PDM_dist_cloud_surf_t *) malloc(sizeof(PDM_dist_cloud_surf_t));
 
   dist->comm              = comm;
@@ -352,13 +352,18 @@ PDM_dist_cloud_surf_compute
 
   int rank;
   PDM_MPI_Comm_rank (comm, &rank);
+  int n_rank;
+  PDM_MPI_Comm_size (comm, &n_rank);
 
   //--->>>
-  _octree_type_t octree_type = PDM_OCTREE_SERIAL;
+  _octree_type_t octree_type = PDM_OCTREE_PARALLEL;
   char *env_octree_type = getenv ("PDM_OCTREE_TYPE");
   if (env_octree_type != NULL) {
     if (atoi(env_octree_type) == 0) {
       octree_type = PDM_OCTREE_SERIAL;
+    }
+    else if (atoi(env_octree_type) == 1) {
+      octree_type = PDM_OCTREE_PARALLEL;
     }
   }
   if (rank == 0) printf("octree_type = %d\n", octree_type);
@@ -562,8 +567,10 @@ PDM_dist_cloud_surf_compute
       malloc (sizeof(PDM_g_num_t) * n_pts_rank);
 
     double *closest_vertices_dist2 =  malloc (sizeof(double) * n_pts_rank);
+    // log_trace("n_pts_rank:: %d\n", n_pts_rank);
 
     if (octree_type == PDM_OCTREE_SERIAL) {
+      // log_trace("PDM_OCTREE_SERIAL \n");
       PDM_octree_closest_point (octree_id,
                                 n_pts_rank,
                                 pts_rank,
@@ -571,6 +578,7 @@ PDM_dist_cloud_surf_compute
                                 closest_vertices_gnum,
                                 closest_vertices_dist2);
     } else {
+      // log_trace("PDM_OCTREE_PARALLEL \n");
       PDM_para_octree_single_closest_point (octree_id,
                                             n_pts_rank,
                                             pts_rank,
@@ -578,6 +586,8 @@ PDM_dist_cloud_surf_compute
                                             closest_vertices_gnum,
                                             closest_vertices_dist2);
     }
+    // PDM_log_trace_array_long(closest_vertices_gnum, n_pts_rank, "closest_vertices_gnum::");
+    // PDM_log_trace_array_double(closest_vertices_dist2, n_pts_rank, "closest_vertices_dist2::");
     free (closest_vertices_gnum);
 
     if (octree_type == PDM_OCTREE_SERIAL) {
@@ -675,6 +685,20 @@ PDM_dist_cloud_surf_compute
                                                     closest_vertices_dist2,
                                                     &part_pts_elt_idx,
                                                     &part_pts_elt_g_num);
+    if (0) {
+      int nmax = 0;
+      int imax = 0;
+      for (int i = 0; i < n_pts_rank; i++) {
+        int n = part_pts_elt_idx[i+1] - part_pts_elt_idx[i];
+        if (n > nmax) {
+          nmax = n;
+          imax = i;
+        }
+      }
+
+      printf("[%3d] pt %6d ("PDM_FMT_G_NUM") : %5d candidates (dist = %f)\n",
+             rank, imax, pts_g_num_rank[imax], nmax, sqrt(closest_vertices_dist2[imax]));
+    }
     if (idebug) {
       printf (" PDM_dbbtree_closest_upper_bound_dist_boxes_get n_pts_rank : %d\n", n_pts_rank);
       for (int i = 0; i < n_pts_rank; i++) {
@@ -767,14 +791,14 @@ PDM_dist_cloud_surf_compute
     free (part_pts_g_num);
 
 
-    for (int i = 0; i < part_pts_elt_idx[n_pts_rank]; i++) {
+    /*for (int i = 0; i < part_pts_elt_idx[n_pts_rank]; i++) {
       part_stride[i] = 3;
-    }
+      }*/
 
     int *block_elt_pts_n3 = NULL;
     double *block_elt_pts_coord = NULL;
     PDM_part_to_block_exch (ptb,
-                            sizeof(double),
+                            3*sizeof(double),
                             PDM_STRIDE_VAR,
                             1,
                             &part_stride,
@@ -790,15 +814,36 @@ PDM_dist_cloud_surf_compute
      *  Transfer element coords from parts to blocks
      *******************************************************************/
     PDM_g_num_t *block_elt_distrib_idx = PDM_part_to_block_distrib_index_get (ptb);
+    PDM_g_num_t *_block_elt_distrib_idx = block_elt_distrib_idx;
+
+    /* Fix incomplete distribution */
+    /*PDM_g_num_t l_max_elt_g_num = 0;
+    for (int ipart = 0; ipart < n_part_mesh; ipart++) {
+      for (int i = 0; i < part_n_elt[ipart]; i++) {
+        l_max_elt_g_num = PDM_MAX (l_max_elt_g_num, part_elt_g_num[ipart][i]);
+      }
+    }
+    PDM_g_num_t g_max_elt_g_num;
+    PDM_MPI_Allreduce (&l_max_elt_g_num, &g_max_elt_g_num, 1,
+    PDM__PDM_MPI_G_NUM, PDM_MPI_MAX, comm);*/
+    PDM_g_num_t g_max_elt_g_num = PDM_surf_mesh_n_g_face_get (surf_mesh);
+
+    if (block_elt_distrib_idx[n_rank] < g_max_elt_g_num) {
+      _block_elt_distrib_idx = malloc (sizeof(PDM_g_num_t) * (n_rank + 1));
+      for (int i = 0; i < n_rank; i++) {
+        _block_elt_distrib_idx[i] = block_elt_distrib_idx[i];
+      }
+      _block_elt_distrib_idx[n_rank] = g_max_elt_g_num;
+    }
 
     PDM_part_to_block_t *ptb_elt = PDM_part_to_block_create2 (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
-                                                           PDM_PART_TO_BLOCK_POST_MERGE,
-                                                           1.,
-                                                           (PDM_g_num_t **) part_elt_g_num,
-                                                           block_elt_distrib_idx,
-                                                           part_n_elt,
-                                                           n_part_mesh,
-                                                           comm);
+                                                              PDM_PART_TO_BLOCK_POST_MERGE,
+                                                              1.,
+                                                              (PDM_g_num_t **) part_elt_g_num,
+                                                              _block_elt_distrib_idx,
+                                                              part_n_elt,
+                                                              n_part_mesh,
+                                                              comm);
 
     int **part_elt_vtx_n = malloc (sizeof(int *) * n_part_mesh);
     double **part_elt_vtx_coord = malloc (sizeof(double *) * n_part_mesh);
@@ -814,7 +859,7 @@ PDM_dist_cloud_surf_compute
 
       for (int i = 0; i < part_n_elt[ipart]; i++) {
         int face_vtx_n = part_face_vtx_idx[i+1] - part_face_vtx_idx[i];
-        part_elt_vtx_n[ipart][i] = 3 * face_vtx_n;
+        part_elt_vtx_n[ipart][i] = face_vtx_n;//3 * face_vtx_n;
         for (int j = part_face_vtx_idx[i]; j < part_face_vtx_idx[i+1]; j++) {
           int ivtx = part_face_vtx[j] - 1;
           for (int k = 0; k < 3; k++) {
@@ -827,7 +872,7 @@ PDM_dist_cloud_surf_compute
     int *block_elt_vtx_n = NULL;
     double *block_elt_vtx_coord = NULL;
     PDM_part_to_block_exch (ptb_elt,
-                            sizeof(double),
+                            3*sizeof(double),
                             PDM_STRIDE_VAR,
                             -1,
                             part_elt_vtx_n,
@@ -875,11 +920,11 @@ PDM_dist_cloud_surf_compute
     for (int ielt = 0; ielt < n_elt_block; ielt++) {
 
       while (block_elt_g_num_full[i1] < block_elt_g_num[ielt]) {
-        _vtx_coord += block_elt_vtx_n[i1];
+        _vtx_coord += 3*block_elt_vtx_n[i1];//block_elt_vtx_n[i1];
         i1++;
       }
 
-      int elt_vtx_n = block_elt_vtx_n[i1] / 3;
+      int elt_vtx_n = block_elt_vtx_n[i1];// / 3;
 
       /* Triangle */
       if (elt_vtx_n == 3) {
@@ -1026,13 +1071,13 @@ PDM_dist_cloud_surf_compute
     free (block_elt_pts_dist2);
 
 
-    for (int i = 0; i < l_block_elt_pts; i++) {
+    /*for (int i = 0; i < l_block_elt_pts; i++) {
       part_stride[i] = 3;
-    }
+      }*/
     double *tmp_block_pts_elt_proj = NULL;
     int *block_pts_elt_n3 = NULL;
     PDM_part_to_block_exch (ptb2,
-                            sizeof(double),
+                            3*sizeof(double),
                             PDM_STRIDE_VAR,
                             1,
                             &part_stride,
@@ -1051,23 +1096,38 @@ PDM_dist_cloud_surf_compute
     double      *block_pts_elt_proj  = malloc (sizeof(double)      * n_pts_block * 3);
 
     idx = 0;
+    int n_max = 0;
+    for (int i = 0; i < n_pts_block; i++) {
+      n_max = PDM_MAX (n_max, block_pts_elt_n[i]);
+    }
+    int *order = malloc (sizeof(int) * n_max);
+
     for (int i = 0; i < n_pts_block; i++) {
       block_pts_elt_dist2[i] = HUGE_VAL;
 
-      int idx_min = 0;
+      PDM_g_num_t *_tmp_g_num = tmp_block_pts_elt_g_num + idx;
+      double      *_tmp_dist2 = tmp_block_pts_elt_dist2 + idx;
+      double      *_tmp_proj  = tmp_block_pts_elt_proj  + idx * 3;
+
       for (int j = 0; j < block_pts_elt_n[i]; j++) {
-        if (tmp_block_pts_elt_dist2[idx] < block_pts_elt_dist2[i]) {
-          block_pts_elt_dist2[i] = tmp_block_pts_elt_dist2[idx];
-          idx_min = idx;
+        order[j] = j;
+      }
+      PDM_sort_long (_tmp_g_num, order, block_pts_elt_n[i]);
+      int jmin = 0;
+      for (int j = 0; j < block_pts_elt_n[i]; j++) {
+        if (_tmp_dist2[order[j]] < block_pts_elt_dist2[i]) {
+          block_pts_elt_dist2[i] = _tmp_dist2[order[j]];
+          jmin = j;
         }
         idx++;
       }
 
-      block_pts_elt_g_num[i] = tmp_block_pts_elt_g_num[idx_min];
+      block_pts_elt_g_num[i] = _tmp_g_num[jmin];
       for (int k = 0; k < 3; k++) {
-        block_pts_elt_proj[3*i + k] = tmp_block_pts_elt_proj[3*idx_min + k];
+        block_pts_elt_proj[3*i + k] = _tmp_proj[3*order[jmin] + k];
       }
     }
+    free (order);
     free (tmp_block_pts_elt_g_num);
     free (tmp_block_pts_elt_dist2);
     free (tmp_block_pts_elt_proj);
@@ -1126,6 +1186,7 @@ PDM_dist_cloud_surf_compute
     free (block_pts_elt_g_num);
 
 
+    if (_block_elt_distrib_idx != block_elt_distrib_idx) free (_block_elt_distrib_idx);
     btp = PDM_block_to_part_free (btp);
     ptb_pts = PDM_part_to_block_free (ptb_pts);
     ptb = PDM_part_to_block_free (ptb);

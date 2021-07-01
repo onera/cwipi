@@ -18,11 +18,11 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 
-#ifdef PDM_HAVE_PARMETIS
-#include <metis.h>
-#endif
 #ifdef PDM_HAVE_PTSCOTCH
 #include <scotch.h>
+#endif
+#ifdef PDM_HAVE_PARMETIS
+#include <metis.h>
 #endif
 
 /*=============================================================================

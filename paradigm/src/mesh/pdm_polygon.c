@@ -220,8 +220,8 @@ PDM_polygon_evaluate_position
     if (closestPoint) {
       *minDist2 = DBL_MAX;
       for (int i=0; i<numPts; i++) {
-        pt1 = (double *) pts + 3 * i;
-        pt2 = (double *) pts + 3 * ((i+1)%numPts);
+        pt1 = (double *) pts_p + 3 * i;
+        pt2 = (double *) pts_p + 3 * ((i+1)%numPts);
         dist2 = PDM_line_distance (x, pt1, pt2, &t, closest);
         if ( dist2 < *minDist2 ) {
           closestPoint[0] = closest[0];

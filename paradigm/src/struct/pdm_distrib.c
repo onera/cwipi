@@ -210,6 +210,55 @@ PDM_compute_uniform_entity_distribution
 }
 
 
+/**
+ * \brief Compute uniform distribution distribution from dNelmt
+ *
+ * \param [in]     elt_distrib          Distribution of elements on processes
+ * \param [in]     dnelt                Number of element on current process
+ * \param [in]     comm                 MPI Communicator
+ */
+PDM_g_num_t*
+PDM_compute_uniform_entity_distribution_from_partition
+(
+ const PDM_MPI_Comm     comm,
+ const int              n_part,
+ const int             *n_elmts,
+ const PDM_g_num_t    **ln_to_gn
+)
+{
+  int i_rank;
+  int n_rank;
+
+  PDM_MPI_Comm_rank(comm, &i_rank);
+  PDM_MPI_Comm_size(comm, &n_rank);
+
+  /*
+   * Compute the max
+   */
+  PDM_g_num_t _id_max = 0;
+  PDM_g_num_t n_g_entity = 0;
+
+  for(int i_part = 0; i_part < n_part; ++i_part) {
+    for(int i_elmt = 0; i_elmt < n_elmts[i_part]; ++i_elmt) {
+      _id_max = PDM_MAX (_id_max, ln_to_gn[i_part][i_elmt]);
+    }
+  }
+
+  // double t1 = PDM_MPI_Wtime();
+  PDM_MPI_Allreduce (&_id_max,
+                     &n_g_entity,
+                     1,
+                     PDM__PDM_MPI_G_NUM,
+                     PDM_MPI_MAX,
+                     comm);
+  // double t2 = PDM_MPI_Wtime();
+  // double dt = t2-t1;
+  // printf("[%i] dt = %12.5e \n ", i_rank, dt);
+
+  return PDM_compute_uniform_entity_distribution(comm, n_g_entity);
+}
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

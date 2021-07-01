@@ -68,6 +68,9 @@ struct _pdm_dcube_nodal_t {
   PDM_Mesh_nodal_elt_t  t_elt;                  /*!< Type of elements to generate              */
 
   PDM_dmesh_nodal_t    *dmesh_nodal;            /*!< Results                                   */
+
+  int                   api_type;
+
 } ;
 
 

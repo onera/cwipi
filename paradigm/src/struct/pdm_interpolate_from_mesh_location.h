@@ -181,6 +181,7 @@ PDM_interpolate_from_mesh_location_points_in_elt_set
  PDM_interpolate_from_mesh_location_t  *interp_from_ml,
  const int                              i_part,
  const int                              i_point_cloud,
+ const int                              n_elts,
  int                                   *elt_pts_inside_idx,
  PDM_g_num_t                           *points_gnum,
  double                                *points_coords,

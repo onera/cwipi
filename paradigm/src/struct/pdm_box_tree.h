@@ -347,33 +347,6 @@ PDM_box_tree_closest_upper_bound_dist_boxes_get_v2
 
 
 /*----------------------------------------------------------------------------
- * Get minimum of maximum distance of boxes (extended version: rank tree data)
- *
- * parameters:
- *   bt                <-- pointer to box tree structure
- *   i_pts             <-- index of points (size = bt->n_copied_ranks+1)
- *   pts               <-- Point coordinates (size = 3 * n_pts) (with n_pts = i_pts[bt->n_copied_ranks])
- *   upper_bound_dist2 <-- Upper bound of the square of the distance (size = n_pts)
- *   i_boxes_rank      --> Index of boxes (size = bt->n_copied_ranks)
- *                            i_boxes_rank[r] is of size n_pts_rank[r] + 1 (with n_pts_rank[r] = i_pts[r+1] - i_pts[r])
- *   boxes_rank        --> Boxes (size = bt->n_copied_ranks)
- *                            boxes_rank[r] is of size i_boxes_rank[r][n_pts_rank[r]]
- *----------------------------------------------------------------------------*/
-void
-PDM_box_tree_closest_upper_bound_dist_boxes_get_from_copied_ranks
-(
- PDM_box_tree_t  *bt,
- const int        i_pts[],
- double           pts[],
- double           upper_bound_dist2[],
- int            **i_boxes_rank[],
- int            **boxes_rank[]
- );
-
-
-
-
-/*----------------------------------------------------------------------------
  * Send copies of box tree data from selected ranks to all other ranks for better load balancing
  *---------------------------------------------------------------------------*/
 void
@@ -399,6 +372,32 @@ PDM_box_tree_points_inside_boxes
  double            **pts_in_box_coord
  );
 
+void
+PDM_box_tree_points_inside_boxes2
+(
+ PDM_box_tree_t *bt,
+ const int       i_copied_rank,
+ const int       n_pts,
+ const double   *pts_coord,
+ int           **box_idx,
+ int           **box_l_num
+ );
+
+/**
+ * We assume boxes are mutually disjoint
+ * For a point P,
+ * if there is box that contain p, pick that box (it is unique)
+ * else, pick the box with min max dist
+ **/
+void
+PDM_box_tree_min_dist_max_box_disjoint
+(
+ PDM_box_tree_t  *bt,
+ const int        n_pts,
+ double          *pts,
+ int             *box_id,
+ double          *box_max_dist
+ );
 
 #ifdef __cplusplus
 }

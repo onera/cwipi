@@ -939,9 +939,6 @@ _basis_hexa_pn
   double       *restrict weights
 )
 {
-
-  int n_nodes = (order+1) * (order+1) * (order+1);
-
   if (order == 1) {
     for (int i = 0; i < n_pts; i++) {
 
@@ -1025,11 +1022,12 @@ _basis_hexa_pn
   }
   else {
 
+    int n_nodes = (order+1) * (order+1) * (order+1);
     int nMod = order + 1;
 
-    double *u  = malloc (sizeof(double) *n_pts);
-    double *v  = malloc (sizeof(double) *n_pts);
-    double *w  = malloc (sizeof(double) *n_pts);
+    double *u  = malloc (sizeof(double) * n_pts);
+    double *v  = malloc (sizeof(double) * n_pts);
+    double *w  = malloc (sizeof(double) * n_pts);
 
     for (int i = 0; i < n_pts; i++) {
       u[i] = 2 * uvw[3*i]   - 1;

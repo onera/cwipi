@@ -59,7 +59,7 @@ def part_distgroup_to_partgroup(MPI.Comm                                      co
 
     # ~> \param [in]   pn_entity
     cdef int * _pn_entity
-    _pn_entity        = <int *> malloc(sizeof(int*) * _n_part )
+    _pn_entity        = <int *> malloc(sizeof(int) * _n_part )
     for idx, part_pn_entity  in enumerate(pn_entity):
         _pn_entity[idx] = part_pn_entity
 
@@ -67,7 +67,7 @@ def part_distgroup_to_partgroup(MPI.Comm                                      co
     cdef NPY.ndarray[npy_pdm_gnum_t, ndim=1, mode='c'] partLNToGN
     cdef PDM_g_num_t ** LNToGN
 
-    LNToGN        = <PDM_g_num_t **> malloc(sizeof(PDM_g_num_t **) * _n_part )
+    LNToGN        = <PDM_g_num_t **> malloc(sizeof(PDM_g_num_t *) * _n_part )
     for idx, partLNToGN in enumerate(pentity_ln_to_gn):
         LNToGN[idx] = <PDM_g_num_t *> partLNToGN.data
 
@@ -146,30 +146,63 @@ def part_distgroup_to_partgroup(MPI.Comm                                      co
 
 cdef extern from "pdm_closest_points.h":
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    void PDM_transform_to_parent_gnum(PDM_g_num_t *results,
-                                  int          n_results,
-                                  PDM_g_num_t *ln_to_gn,
-                                  PDM_g_num_t *parent_ln_to_gn,
-                                  int          n_elmt,
-                                  PDM_MPI_Comm  comm)
+    void PDM_transform_to_parent_gnum(int           n_part_initial,
+                                      int          *n_elmt_initial,
+                                      PDM_g_num_t **child_ln_to_gn,
+                                      PDM_g_num_t **parent_ln_to_gn,
+                                      int           n_part_to_transform,
+                                      int          *n_elmt_to_transform,
+                                      PDM_g_num_t **gnum_to_transform,
+                                      PDM_MPI_Comm  comm)
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 # ===================================================================================
-def transform_to_parent_gnum(NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] results,
-                             NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] ln_to_gn,
-                             NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] parent_ln_to_gn,
-                             MPI.Comm                                      comm):
+#Why here ? Could be moved in closest_point
+def transform_to_parent_gnum(list     gnum_to_transform,
+                             list     child_ln_to_gn,
+                             list     parent_ln_to_gn,
+                             MPI.Comm comm):
   """
   """
-  cdef int n_results = results.shape[0]
-  cdef int n_elmt = ln_to_gn.shape[0]
+  assert len(parent_ln_to_gn) == len(child_ln_to_gn)
+  for child_gn, parent_gn in zip(child_ln_to_gn, parent_ln_to_gn):
+    assert child_gn.shape == parent_gn.shape
+
+  cdef NPY.ndarray[npy_pdm_gnum_t, ndim=1, mode='c'] np_array
+  cdef int n_part_out = len(gnum_to_transform)
+  cdef int n_part_ini   = len(child_ln_to_gn)
+
+  cdef PDM_g_num_t **_gnum_to_transform = <PDM_g_num_t **> malloc(sizeof(PDM_g_num_t *) * n_part_out)
+  cdef int          *_pn_elt_out        = <int *>          malloc(sizeof(int)           * n_part_out)
+  for idx, np_array in enumerate(gnum_to_transform):
+      _gnum_to_transform[idx] = <PDM_g_num_t *> np_array.data
+      _pn_elt_out[idx] = <int> np_array.shape[0]
+
+  cdef PDM_g_num_t **_child_ln_to_gn  = <PDM_g_num_t **> malloc(sizeof(PDM_g_num_t *) * n_part_ini)
+  cdef PDM_g_num_t **_parent_ln_to_gn = <PDM_g_num_t **> malloc(sizeof(PDM_g_num_t *) * n_part_ini)
+  cdef int          *_pn_elt_in       = <int *>          malloc(sizeof(int)           * n_part_ini)
+  for idx in range(n_part_ini):
+      np_array = child_ln_to_gn[idx]
+      _child_ln_to_gn[idx] = <PDM_g_num_t *> np_array.data
+      np_array = parent_ln_to_gn[idx]
+      _parent_ln_to_gn[idx] = <PDM_g_num_t *> np_array.data
+      _pn_elt_in[idx] = <int> np_array.shape[0]
+    
   cdef MPI.MPI_Comm c_comm = comm.ob_mpi
   cdef PDM_MPI_Comm PDMC   = PDM_MPI_mpi_2_pdm_mpi_comm(&c_comm)
-  print("transform_to_parent_gnum", results)
-  PDM_transform_to_parent_gnum(<PDM_g_num_t*> results.data,
-                               n_results,
-                               <PDM_g_num_t*>ln_to_gn.data,
-                               <PDM_g_num_t*>parent_ln_to_gn.data,
-                               n_elmt,
+  PDM_transform_to_parent_gnum(n_part_ini,
+                               _pn_elt_in,
+                               <PDM_g_num_t **> _child_ln_to_gn,
+                               <PDM_g_num_t **> _parent_ln_to_gn,
+                               n_part_out,
+                               _pn_elt_out,
+                               _gnum_to_transform,
                                PDMC)
-  print("transform_to_parent_gnum end", results)
+
+  free(_pn_elt_out)
+  free(_pn_elt_in)
+  free(_child_ln_to_gn)
+  free(_parent_ln_to_gn)
+  free(_gnum_to_transform)
+# ===================================================================================
+

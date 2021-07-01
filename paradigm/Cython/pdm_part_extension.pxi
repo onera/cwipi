@@ -47,20 +47,20 @@ cdef extern from "pdm_part_extension.h":
                                    PDM_g_num_t          *face_group_ln_to_gn,
                                    double               *vtx_coord)
 
-  void PDM_part_extension_free(PDM_part_extension_t *part_ext);
+  void PDM_part_extension_free(PDM_part_extension_t *part_ext)
 
   int PDM_part_extension_connectivity_get(PDM_part_extension_t     *part_ext,
                                           int                       i_domain,
                                           int                       i_part,
                                           PDM_connectivity_type_t   connectivity_type,
                                           int                     **connect,
-                                          int                     **connect_idx);
+                                          int                     **connect_idx)
 
   int PDM_part_extension_ln_to_gn_get(PDM_part_extension_t     *part_ext,
                                       int                       i_domain,
                                       int                       i_part,
                                       PDM_mesh_entities_t       connectivity_type,
-                                      PDM_g_num_t             **ln_to_gn);
+                                      PDM_g_num_t             **ln_to_gn)
 
   int PDM_part_extension_group_get(PDM_part_extension_t     *part_ext,
                                    int                       i_domain,
@@ -68,12 +68,12 @@ cdef extern from "pdm_part_extension.h":
                                    PDM_mesh_entities_t       mesh_entity,
                                    int                     **connect,
                                    int                     **connect_idx,
-                                   PDM_g_num_t             **ln_to_gn);
+                                   PDM_g_num_t             **ln_to_gn)
 
   int PDM_part_extension_coord_get(PDM_part_extension_t     *part_ext,
                                    int                       i_domain,
                                    int                       i_part,
-                                   double                  **vtx_coord);
+                                   double                  **vtx_coord)
 
 cdef class PartExtension:
   """
@@ -305,7 +305,7 @@ cdef class PartExtension:
                                                   &dim,
                                                   NPY.NPY_INT32,
                                                   <void *> connect_idx)
-      PyArray_ENABLEFLAGS(np_connect_idx, NPY.NPY_OWNDATA);
+      PyArray_ENABLEFLAGS(np_connect_idx, NPY.NPY_OWNDATA)
 
     if (connect == NULL) :
       np_connect = None
@@ -315,7 +315,7 @@ cdef class PartExtension:
                                                   &dim,
                                                   NPY.NPY_INT32,
                                                   <void *> connect)
-      PyArray_ENABLEFLAGS(np_connect, NPY.NPY_OWNDATA);
+      PyArray_ENABLEFLAGS(np_connect, NPY.NPY_OWNDATA)
 
     return (np_connect, np_connect_idx)
 
@@ -339,7 +339,7 @@ cdef class PartExtension:
                                                   &dim,
                                                   PDM_G_NUM_NPY_INT,
                                                   <void *> ln_to_gn)
-      PyArray_ENABLEFLAGS(np_ln_to_gn, NPY.NPY_OWNDATA);
+      PyArray_ENABLEFLAGS(np_ln_to_gn, NPY.NPY_OWNDATA)
 
     return np_ln_to_gn
 
@@ -369,7 +369,7 @@ cdef class PartExtension:
                                                   &dim,
                                                   PDM_G_NUM_NPY_INT,
                                                   <void *> group_ln_to_gn)
-      PyArray_ENABLEFLAGS(np_group_ln_to_gn, NPY.NPY_OWNDATA);
+      PyArray_ENABLEFLAGS(np_group_ln_to_gn, NPY.NPY_OWNDATA)
 
     if (entity_group_idx == NULL) :
       np_entity_group_idx = None
@@ -379,7 +379,7 @@ cdef class PartExtension:
                                                           &dim,
                                                           NPY.NPY_INT32,
                                                           <void *> entity_group_idx)
-      PyArray_ENABLEFLAGS(np_entity_group_idx, NPY.NPY_OWNDATA);
+      PyArray_ENABLEFLAGS(np_entity_group_idx, NPY.NPY_OWNDATA)
 
     if (entity_group == NULL) :
       np_entity_group = None
@@ -389,7 +389,7 @@ cdef class PartExtension:
                                                       &dim,
                                                       NPY.NPY_INT32,
                                                       <void *> entity_group)
-      PyArray_ENABLEFLAGS(np_entity_group, NPY.NPY_OWNDATA);
+      PyArray_ENABLEFLAGS(np_entity_group, NPY.NPY_OWNDATA)
 
     return (np_entity_group_idx, np_entity_group, np_group_ln_to_gn)
 
@@ -410,7 +410,7 @@ cdef class PartExtension:
                                                   &dim,
                                                   NPY.NPY_DOUBLE,
                                                   <void *> coord)
-      PyArray_ENABLEFLAGS(np_coord, NPY.NPY_OWNDATA);
+      PyArray_ENABLEFLAGS(np_coord, NPY.NPY_OWNDATA)
 
     return np_coord
 

@@ -42,7 +42,7 @@ cdef extern from "pdm_multipart.h":
                                               const char *renum_face_method)
 
     # ------------------------------------------------------------------
-    void PDM_multipart_run_ppart(int id);
+    void PDM_multipart_run_ppart(int id)
 
     # ------------------------------------------------------------------
     void PDM_multipart_part_dim_get(int   mpart_id,
@@ -61,7 +61,7 @@ cdef extern from "pdm_multipart.h":
                                     int  *s_face_bound,
                                     int  *n_face_bound,
                                     int  *s_face_join,
-                                    int  *n_face_join);
+                                    int  *n_face_join)
 
     # ------------------------------------------------------------------
     void PDM_multipart_part_val_get(int            mpart_id,
@@ -104,7 +104,7 @@ cdef extern from "pdm_multipart.h":
                                                     int            i_part,
                                                     int          **vtx_part_bound_proc_idx,
                                                     int          **vtx_part_bound_part_idx,
-                                                    int          **vtx_part_bound);
+                                                    int          **vtx_part_bound)
 
     # ------------------------------------------------------------------
     void PDM_multipart_part_color_get(int            mpart_id,
@@ -128,9 +128,9 @@ cdef extern from "pdm_multipart.h":
                                 double  **elapsed,
                                 double  **cpu,
                                 double  **cpu_user,
-                                double  **cpu_sys);
+                                double  **cpu_sys)
     # ------------------------------------------------------------------
-    void PDM_multipart_free(int id);
+    void PDM_multipart_free(int id)
 
 # ------------------------------------------------------------------
 cdef class MultiPart:

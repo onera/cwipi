@@ -41,27 +41,27 @@ cdef extern from "pdm_overlay.h":
                              PDM_g_num_t  *face_ln_to_gn,
                              int           n_vtx,
                              double       *coords,
-                             PDM_g_num_t  *vtx_ln_to_gn);
+                             PDM_g_num_t  *vtx_ln_to_gn)
 
   void PDM_ol_moving_type_set(int           id,
                               PDM_ol_mesh_t mesh,
-                              PDM_ol_mv_t   mv);
+                              PDM_ol_mv_t   mv)
 
   void PDM_ol_translation_set(int           id,
                               double       *vect,
-                              double       *center);
+                              double       *center)
 
   void PDM_ol_rotation_set(int      id,
                            double  *direction,
                            double  *center,
-                           double   angle);
+                           double   angle)
 
-  void PDM_ol_compute(int          id);
+  void PDM_ol_compute(int          id)
 
   void PDM_ol_mesh_dim_get(int             id,
                            PDM_ol_mesh_t   mesh,
                            PDM_g_num_t    *nGOlFace,
-                           PDM_g_num_t    *nGOlVtx);
+                           PDM_g_num_t    *nGOlVtx)
 
   void PDM_ol_part_mesh_dim_get(int            id,
                                 PDM_ol_mesh_t  mesh,
@@ -71,7 +71,7 @@ cdef extern from "pdm_overlay.h":
                                 int           *nOlVtx,
                                 int           *sOlFaceIniVtx,
                                 int           *sOlface_vtx,
-                                int           *sInit_to_ol_face);
+                                int           *sInit_to_ol_face)
 
   void PDM_ol_mesh_entities_get(int              id,
                                 PDM_ol_mesh_t    mesh,
@@ -86,11 +86,11 @@ cdef extern from "pdm_overlay.h":
                                 double         **olCoords,
                                 PDM_g_num_t    **olvtx_ln_to_gn,
                                 int            **init_to_ol_face_idx,
-                                int            **init_to_ol_face);
+                                int            **init_to_ol_face)
 
-  void PDM_ol_del(int     id);
+  void PDM_ol_del(int     id)
 
-  void PDM_ol_dump_times(int     id);
+  void PDM_ol_dump_times(int     id)
   # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 # ------------------------------------------------------------------
@@ -165,14 +165,14 @@ cdef class Overlay:
            <PDM_g_num_t*> face_ln_to_gn.data,
                           n_vtx,
            <double*>      coords.data,
-           <PDM_g_num_t*> vtx_ln_to_gn.data);
+           <PDM_g_num_t*> vtx_ln_to_gn.data)
 
   # ------------------------------------------------------------------------
   def moving_type_set(self, PDM_ol_mesh_t mesh,
                             PDM_ol_mv_t   mv):
     """
     """
-    PDM_ol_moving_type_set(self._id, mesh, mv);
+    PDM_ol_moving_type_set(self._id, mesh, mv)
 
   # ------------------------------------------------------------------------
   def translation_set(self, NPY.ndarray[NPY.double_t  , mode='c', ndim=1] vect,
@@ -181,7 +181,7 @@ cdef class Overlay:
     """
     PDM_ol_translation_set(self._id,
                  <double*> vect.data,
-                 <double*> center.data);
+                 <double*> center.data)
 
   # ------------------------------------------------------------------------
   def rotation_set(self, NPY.ndarray[NPY.double_t  , mode='c', ndim=1] direction,
@@ -192,7 +192,7 @@ cdef class Overlay:
     PDM_ol_rotation_set(self._id,
               <double*> direction.data,
               <double*> center.data,
-                        angle);
+                        angle)
 
   # ------------------------------------------------------------------------
   def compute(self):
@@ -293,7 +293,7 @@ cdef class Overlay:
                              &olCoords,
                              &olvtx_ln_to_gn,
                              &init_to_ol_face_idx,
-                             &init_to_ol_face);
+                             &init_to_ol_face)
 
     cdef NPY.npy_intp dim
     # > Build numpy capsule

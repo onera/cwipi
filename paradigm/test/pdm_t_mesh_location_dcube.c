@@ -174,17 +174,25 @@ _read_args(int            argc,
 static void _rotate (const int  n_pts,
                      double    *coord)
 {
-  double R[3][3] = {{0.9362934, -0.2896295, 0.1986693},
-                    {0.3129918,  0.9447025, -0.0978434},
-                    {-0.1593451,  0.1537920,  0.9751703}};
+  if (0) {
+    double R[3][3] = {{0.9362934, -0.2896295, 0.1986693},
+                      {0.3129918,  0.9447025, -0.0978434},
+                      {-0.1593451,  0.1537920,  0.9751703}};
 
-  for (int i = 0; i < n_pts; i++) {
-    double x = coord[3*i];
-    double y = coord[3*i+1];
-    double z = coord[3*i+2];
+    for (int i = 0; i < n_pts; i++) {
+      double x = coord[3*i];
+      double y = coord[3*i+1];
+      double z = coord[3*i+2];
 
-    for (int j = 0; j < 3; j++) {
-      coord[3*i+j] = R[j][0]*x + R[j][1]*y + R[j][2]*z;
+      for (int j = 0; j < 3; j++) {
+        coord[3*i+j] = R[j][0]*x + R[j][1]*y + R[j][2]*z;
+      }
+    }
+  }
+  else {
+    for (int i = 0; i < n_pts; i++) {
+      double x = coord[3*i];
+      coord[3*i+2] += 0.3 * cos(x * PDM_PI);
     }
   }
 }
@@ -701,7 +709,7 @@ int main(int argc, char *argv[])
                                          &points_projected_coords);
 
 
-    if (1) {
+    if (0) {
       printf("cell_vtx : \n");
       for (int j = 0; j < n_cell; j++) {
         printf("%d :", j);
@@ -739,7 +747,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (1) {
+  if (0) {
     printf("Unlocated %d :\n", n_unlocated);
     for (int k1 = 0; k1 < n_unlocated; k1++) {
       printf("%d\n", unlocated[k1]);
@@ -776,11 +784,13 @@ int main(int argc, char *argv[])
     const PDM_g_num_t n_cell_seg = n_vtx_seg - 1;
     const double cell_side = length / ((double) n_cell_seg);
 
-    printf("Unlocated :\n");
-    for (int k1 = 0; k1 < n_unlocated; k1++) {
-      printf("%d\n", unlocated[k1]);
+    if(0 == 1) {
+      printf("Unlocated :\n");
+      for (int k1 = 0; k1 < n_unlocated; k1++) {
+        printf("%d\n", unlocated[k1]);
+      }
+      printf("\n");
     }
-    printf("\n");
 
     for (int k1 = 0; k1 < n_located; k1++) {
       int ipt = located[k1] - 1;

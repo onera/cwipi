@@ -274,6 +274,7 @@ PDM_log_trace_array_double
   log_trace(header);
   for(int i = 0; i < larray; ++i){
     log_trace("%12.5e ", array[i]);
+    // log_trace("%20.16e ", array[i]);
   }
   log_trace("\n");
 }

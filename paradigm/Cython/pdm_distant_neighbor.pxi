@@ -24,7 +24,7 @@ cdef extern from "pdm_distant_neighbor.h":
                                    int                     **send_entity_stride,
                                    void                    **send_entity_data,
                                    int                    ***recv_entity_stride,
-                                   void                   ***recv_entity_data);
+                                   void                   ***recv_entity_data)
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
@@ -125,7 +125,7 @@ cdef class DistantNeighbor:
         cdef size_t        s_data
         cdef int           stride_one
         cdef int           size_data
-        cdef int           npyflags=-1;
+        cdef int           npyflags=-1
         cdef NPY.ndarray   tmp_data
         cdef PDM_stride_t  t_stride
         # ************************************************************************

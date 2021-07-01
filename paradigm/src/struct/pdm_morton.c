@@ -1443,6 +1443,24 @@ PDM_morton_a_gt_b(PDM_morton_code_t  a,
 }
 
 /*----------------------------------------------------------------------------
+ * Test if Morton code "a" is greater than Morton code "b" (compare anchors)
+ *
+ * parameters:
+ *   code_a <-- first Morton code to compare
+ *   code_b <-- second Morton code to compare
+ *
+ * returns:
+ *  true or false
+ *----------------------------------------------------------------------------*/
+
+_Bool
+PDM_morton_a_gtmin_b(PDM_morton_code_t  a,
+                     PDM_morton_code_t  b)
+{
+  return  _a_gtmin_b(a, b);
+}
+
+/*----------------------------------------------------------------------------
  * Test if Morton code "a" is greater or equal to Morton code "b"
  *
  * parameters:
@@ -1693,9 +1711,6 @@ PDM_morton_list_intersect(size_t             n_quantiles,
     else
       end_id = mid_id;
   }
-
-
-  //*n_intersect = 0;
 
   int start_id_save = start_id;
 
@@ -2125,6 +2140,9 @@ _intersect_node_box
   *inside = 1;
 
   assert (box_min.L >= node.L);
+  if (DEBUG) {
+    printf("node: L = %u, X = %u %u %u\n", node.L, node.X[0], node.X[1], node.X[2]);
+  }
 
   const PDM_morton_int_t level_diff = box_min.L - node.L;
 
@@ -2136,10 +2154,12 @@ _intersect_node_box
 
     if (xmin > box_max.X[i]+1 || xmax < box_min.X[i]) {
       if (DEBUG) {
-	printf("\t not intersecting\n");
+        //printf("\t not intersecting (dim %d, xmin = %u, box_max = %u, box_min = %u, xmax = %u\n", i, xmin, box_max.X[i]+1, box_min.X[i], xmax);
+        double s = 1. / pow(2., box_min.L);
+        printf("\t not intersecting (dim %d, xmin = %f, box_max = %f, box_min = %f, xmax = %f\n", i, xmin*s, (box_max.X[i]+1)*s, box_min.X[i]*s, xmax*s);
       }
       return 0;
-    } else if (xmin > box_min.X[i] || xmax > box_max.X[i]+1) {
+    } else if (xmin < box_min.X[i] || xmax > box_max.X[i]+1) {
       *inside = 0;
     };
   }
@@ -2161,24 +2181,47 @@ PDM_morton_intersect_box
  const PDM_morton_code_t  box_min,
  const PDM_morton_code_t  box_max,
  const PDM_morton_code_t  nodes[],
+ int                     *n_points,
  const size_t             start,
  const size_t             end,
  size_t                  *n_intersect,
  int                     *intersect
  )
 {
+  int DEBUG = 0;
   int inside;
+
+  if (DEBUG) {
+    printf("node: L = %u, X = %u %u %u, start = %zu, end = %zu\n",
+           node.L, node.X[0], node.X[1], node.X[2], start, end);
+  }
 
   /* If current range contains few octants, go brute force */
   if (end - start < N_BRUTE_FORCE) {
 
-    for (size_t i = start; i < end; i++) {
-      if (_intersect_node_box (dim,
-			       nodes[i],
-			       box_min,
-			       box_max,
-			       &inside)) {
-	intersect[(*n_intersect)++] = i;
+    if (n_points == NULL) {
+      for (size_t i = start; i < end; i++) {
+        if (_intersect_node_box (dim,
+                                 nodes[i],
+                                 box_min,
+                                 box_max,
+                                 &inside)) {
+          intersect[(*n_intersect)++] = i;
+        }
+      }
+    }
+
+    else {
+      for (size_t i = start; i < end; i++) {
+        if (n_points[i] > 0) {
+          if (_intersect_node_box (dim,
+                                   nodes[i],
+                                   box_min,
+                                   box_max,
+                                   &inside)) {
+            intersect[(*n_intersect)++] = i;
+          }
+        }
       }
     }
     return;
@@ -2188,16 +2231,25 @@ PDM_morton_intersect_box
   else {
 
     if (_intersect_node_box (dim,
-			     node,
-			     box_min,
-			     box_max,
-			     &inside)) {
+                             node,
+                             box_min,
+                             box_max,
+                             &inside)) {
 
       if (inside) {
-	/* Every descendant must intersect the box */
-	for (size_t i = start; i < end; i++) {
-	  intersect[(*n_intersect)++] = i;
-	}
+        /* Every descendant must intersect the box */
+        if (n_points == NULL) {
+          for (size_t i = start; i < end; i++) {
+            intersect[(*n_intersect)++] = i;
+          }
+        }
+        else {
+          for (size_t i = start; i < end; i++) {
+            if (n_points[i] > 0) {
+              intersect[(*n_intersect)++] = i;
+            }
+          }
+        }
       }
 
       else {
@@ -2208,9 +2260,14 @@ PDM_morton_intersect_box
                                  node,
                                  children);
 
-	size_t new_start, new_end;
-	size_t prev_end = start;
-	for (size_t ichild = 0; ichild < n_children; ichild++) {
+        size_t new_start, new_end;
+        size_t prev_end = start;
+        for (size_t ichild = 0; ichild < n_children; ichild++) {
+          if (DEBUG) {
+            printf("  child: L = %u, X = %u %u %u\n",
+                   children[ichild].L,
+                   children[ichild].X[0], children[ichild].X[1], children[ichild].X[2]);
+          }
 
           /* get start and end of range in list of nodes covered by current child */
           /* new_start <-- first descendant of child in list */
@@ -2225,6 +2282,10 @@ PDM_morton_intersect_box
               break;
             }
             new_start++;
+          }
+
+          if (DEBUG) {
+            printf("   new_start = %zu\n", new_start);
           }
 
           if (new_start > end) {
@@ -2246,6 +2307,10 @@ PDM_morton_intersect_box
           }
 
           prev_end = new_end;
+          if (DEBUG) {
+            printf("   new_end   = %zu\n", new_end);
+          }
+
 
           /* Carry on recursion */
           PDM_morton_intersect_box (dim,
@@ -2253,6 +2318,7 @@ PDM_morton_intersect_box
                                     box_min,
                                     box_max,
                                     nodes,
+                                    n_points,
                                     new_start,
                                     new_end,
                                     n_intersect,

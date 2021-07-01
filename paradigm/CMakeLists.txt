@@ -167,7 +167,7 @@ if (NOT PDM_IN_PDMA)
     endif()
 
     if (NOT CMAKE_BUILD_TYPE)
-       set(CMAKE_BUILD_TYPE "Release" CACHE STRING  "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel")
+       set(CMAKE_BUILD_TYPE "Release" CACHE STRING  "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel" FORCE)
     endif()
 
     # ADD "-DDEBUG_CLASSE" in Debug
@@ -262,19 +262,22 @@ if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
   # ---------------
 
   if (PDM_ENABLE_PYTHON_BINDINGS)
-     find_package(PythonInterp REQUIRED)
-     find_package(PythonLibs REQUIRED)
-     find_package(NumPy REQUIRED)
-     find_package(Mpi4Py REQUIRED)
-     include(UseCython)
+    # NB: cython module must use mpicxx to avoid "mpi.h" not found.
+    find_package(MPI REQUIRED COMPONENTS CXX)
 
-     if (NOT CMAKE_PDM_INSTALL_PYTHON_DIR)
+    find_package(PythonInterp REQUIRED)
+    find_package(PythonLibs REQUIRED)
+    find_package(NumPy REQUIRED)
+    find_package(Mpi4Py REQUIRED)
+    include(UseCython)
 
-        set (CMAKE_PDM_INSTALL_PYTHON_DIR  "${CMAKE_INSTALL_PREFIX}")
-        set (CMAKE_PDM_INSTALL_PYTHON_DIR
-             ${CMAKE_PDM_INSTALL_PYTHON_DIR} CACHE STRING "Install path directory for Python packages")
+    if (NOT CMAKE_PDM_INSTALL_PYTHON_DIR)
 
-     endif ()
+       set (CMAKE_PDM_INSTALL_PYTHON_DIR  "${CMAKE_INSTALL_PREFIX}")
+       set (CMAKE_PDM_INSTALL_PYTHON_DIR
+            ${CMAKE_PDM_INSTALL_PYTHON_DIR} CACHE STRING "Install path directory for Python packages")
+
+    endif ()
 
   endif()
 

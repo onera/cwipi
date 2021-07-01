@@ -101,6 +101,7 @@ PDM_interpolate_from_mesh_location_free
 
     _points_in_element_t *_points_in_elements = interp_from_ml->points_in_elements + icloud;
 
+    free (_points_in_elements->n_elts);
     free (_points_in_elements->pts_inside_idx);
     free (_points_in_elements->gnum);
     free (_points_in_elements->uvw);
@@ -343,19 +344,17 @@ PDM_interpolate_from_mesh_location_exch_inplace
 
   for(int i_part = 0; i_part < interp_from_ml->n_part_src; ++i_part){
 
-    int n_cell = interp_from_ml->n_cell[i_part];
-    int n_elmt = n_cell; // By construction of _points_in_element_t
+    int n_elmt = _points_in_elements->n_elts[i_part]; // By construction of _points_in_element_t
     int* _elt_pts_inside_idx = _points_in_elements->pts_inside_idx[i_part];
 
     n_point_tot[i_part] = _elt_pts_inside_idx[n_elmt];
 
     printf("n_point_tot[%i] = %i \n", i_part, n_point_tot[i_part]);
-    printf("pcloud->n_points[%i] = %i \n", i_part, pcloud->n_points[i_part]);
 
     cloud_data_in_current_src  [i_part] = (double *) malloc( _elt_pts_inside_idx[n_elmt] * sizeof(double));
     cloud_data_in_current_src_n[i_part] = (int    *) malloc( _elt_pts_inside_idx[n_elmt] * sizeof(int   ));
 
-    for(int i_cell = 0; i_cell < n_cell; ++i_cell) {
+    for(int i_cell = 0; i_cell < n_elmt; ++i_cell) {
       for (int i_point = _elt_pts_inside_idx[i_cell]; i_point < _elt_pts_inside_idx[i_cell+1]; i_point++) {
         cloud_data_in_current_src  [i_part][i_point] = part_data_in[i_part][i_cell]; // Simple extrapolation
         // printf(" cloud_data_in_current_src[%i][%i] = %12.5e (from cell = %i) | gnum = %i \n", i_part, i_point, part_data_in[i_part][i_cell], i_cell, (int)_points_in_elements->gnum[i_part][i_point] );
@@ -441,8 +440,8 @@ PDM_interpolate_from_mesh_location_exch_inplace
   /*
    * Recopie dans le vrai tableau
    */
-  int idx = 0;
   for(int i_part = 0; i_part < pcloud->n_part; ++i_part){
+    int idx = 0;
     for(int i = 0; i < pcloud->n_points[i_part]; ++i) {
       int n_interp = part_strid[i_part][i];
       if(n_interp == 1) { // Normalement ne peux valoir que 1 ou 0
@@ -533,6 +532,7 @@ PDM_interpolate_from_mesh_location_mesh_global_data_set
     _points_in_element_t *_points_in_elements = interp_from_ml->points_in_elements + icloud;
 
     _points_in_elements->n_part           = n_part;
+    _points_in_elements->n_elts           = (int          *) malloc( interp_from_ml->n_part_src * sizeof(int          ));
     _points_in_elements->pts_inside_idx   = (int         **) malloc( interp_from_ml->n_part_src * sizeof(int         *));
     _points_in_elements->gnum             = (PDM_g_num_t **) malloc( interp_from_ml->n_part_src * sizeof(PDM_g_num_t *));
     _points_in_elements->uvw              = (double      **) malloc( interp_from_ml->n_part_src * sizeof(double      *));
@@ -686,6 +686,7 @@ PDM_interpolate_from_mesh_location_points_in_elt_set
  PDM_interpolate_from_mesh_location_t *interp_from_ml,
  const int                             i_part,
  const int                             i_point_cloud,
+ const int                             n_elts,
  int                                  *elt_pts_inside_idx,
  PDM_g_num_t                          *points_gnum,
  double                               *points_coords,
@@ -705,6 +706,7 @@ PDM_interpolate_from_mesh_location_points_in_elt_set
   assert (interp_from_ml->points_in_elements != NULL);
   assert (i_part < _points_in_elements->n_part);
 
+  _points_in_elements->n_elts          [i_part] = n_elts;
   _points_in_elements->pts_inside_idx  [i_part] = elt_pts_inside_idx;
   _points_in_elements->gnum            [i_part] = points_gnum;
   _points_in_elements->coords          [i_part] = points_coords;

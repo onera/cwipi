@@ -211,7 +211,7 @@ cdef class PartToBlock:
         cdef void    *block_data
         cdef void   **part_data
         cdef int      ndim
-        cdef int      npyflags=-1;
+        cdef int      npyflags=-1
         cdef NPY.ndarray tmpData
         # ************************************************************************
 

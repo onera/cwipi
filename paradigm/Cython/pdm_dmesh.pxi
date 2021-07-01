@@ -15,7 +15,7 @@ cdef extern from "pdm_dmesh.h":
                                   int             dn_vtx,
                                   int             n_bnd,
                                   int             n_join,
-                                  PDM_MPI_Comm    comm);
+                                  PDM_MPI_Comm    comm)
 
     void PDM_dmesh_set(PDM_dmesh_t  *dm,
                        double       *dvtx_coord,
@@ -26,7 +26,7 @@ cdef extern from "pdm_dmesh.h":
                        PDM_g_num_t  *dface_bound,
                        int          *join_g_dms,
                        int          *dface_join_idx,
-                       PDM_g_num_t  *dface_join);
+                       PDM_g_num_t  *dface_join)
 
     void PDM_dmesh_dims_get(PDM_dmesh_t *dm,
                             int         *dn_cell,
@@ -34,7 +34,7 @@ cdef extern from "pdm_dmesh.h":
                             int         *dn_edge,
                             int         *dn_vtx,
                             int         *n_bnd,
-                            int         *n_joins);
+                            int         *n_joins)
 
     void PDM_dmesh_data_get(PDM_dmesh_t   *dm,
                             double       **dvtx_coord,
@@ -45,7 +45,7 @@ cdef extern from "pdm_dmesh.h":
                             PDM_g_num_t  **dface_bound,
                             int          **join_g_dms,
                             int          **dface_join_idx,
-                            PDM_g_num_t  **dface_join);
+                            PDM_g_num_t  **dface_join)
     int PDM_dmesh_connectivity_get(PDM_dmesh_t              *dmesh,
                                    PDM_connectivity_type_t   connectivity_type,
                                    PDM_g_num_t             **connect,
@@ -59,7 +59,7 @@ cdef extern from "pdm_dmesh.h":
                              PDM_g_num_t      **connect,
                              int              **connect_idx,
                              PDM_ownership_t    ownership)
-    void PDM_dmesh_free(PDM_dmesh_t   *dm);
+    void PDM_dmesh_free(PDM_dmesh_t   *dm)
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 # ------------------------------------------------------------------

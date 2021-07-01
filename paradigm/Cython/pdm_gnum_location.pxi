@@ -7,27 +7,27 @@ cdef extern from "pdm_gnum_location.h":
 
     PDM_gnum_location_t* PDM_gnum_location_create(const int          n_part_in,
                                                   const int          n_part_out,
-                                                  const PDM_MPI_Comm comm);
+                                                  const PDM_MPI_Comm comm)
 
     void           PDM_gnum_location_elements_set(      PDM_gnum_location_t *gnum_loc,
                                                   const int                  i_part_in,
                                                   const int                  n_elts_in,
-                                                  const PDM_g_num_t         *gnum_in);
+                                                  const PDM_g_num_t         *gnum_in)
 
     void PDM_gnum_location_requested_elements_set(      PDM_gnum_location_t *gnum_loc,
                                                   const int                  i_part_out,
                                                   const int                  n_elts_out,
-                                                  const PDM_g_num_t         *gnum_out);
+                                                  const PDM_g_num_t         *gnum_out)
 
-    void                PDM_gnum_location_compute(PDM_gnum_location_t *gnum_loc);
+    void                PDM_gnum_location_compute(PDM_gnum_location_t *gnum_loc)
 
     void                    PDM_gnum_location_get(      PDM_gnum_location_t  *gnum_loc,
                                                   const int                   i_part_out,
                                                         int                 **location_idx,
-                                                        int                 **location);
+                                                        int                 **location)
 
     void                   PDM_gnum_location_free(      PDM_gnum_location_t *gnum_loc,
-                                                  const int                  partial);
+                                                  const int                  partial)
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

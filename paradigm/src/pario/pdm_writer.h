@@ -328,7 +328,15 @@ const PDM_writer_statut_t   st_decoup_poly3d,
 const int           n_part
 );
 
-
+int
+PDM_writer_geom_create_from_mesh_nodal
+(
+const int                  id_cs,
+const char                *nom_geom,
+const PDM_writer_statut_t  st_decoup_poly2d,
+const PDM_writer_statut_t  st_decoup_poly3d,
+PDM_Mesh_nodal_t          *mesh
+ );
 /*----------------------------------------------------------------------------
  * Definition des coordonnees de la partition courante
  *

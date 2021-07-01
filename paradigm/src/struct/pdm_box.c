@@ -272,12 +272,12 @@ PDM_box_set_create(int                dim,
                    int                normalize,
                    int                allow_projection,
                    int                n_boxes,
-                   const PDM_g_num_t  *box_gnum,
+                   const PDM_g_num_t *box_gnum,
                    const double      *box_extents,
                    const int          n_part_orig,
                    const int         *n_boxes_orig,
                    const int         *origin,
-                   PDM_MPI_Comm           comm)
+                   PDM_MPI_Comm       comm)
 {
   int j, k;
   int   i;

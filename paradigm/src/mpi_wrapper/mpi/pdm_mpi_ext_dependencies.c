@@ -22,13 +22,13 @@
  *  Optional headers
  *----------------------------------------------------------------------------*/
 
-#ifdef PDM_HAVE_PARMETIS
-#include <parmetis.h>
-#include <metis.h>
-#endif
 #ifdef PDM_HAVE_PTSCOTCH
 #include <ptscotch.h>
-#include <scotch.h>
+// #include <scotch.h>
+#endif
+#ifdef PDM_HAVE_PARMETIS
+#include <parmetis.h>
+// #include <metis.h>
 #endif
 
 /*=============================================================================

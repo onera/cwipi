@@ -150,6 +150,10 @@ _gen_clouds_random
  )
 {
   *nPts_l = (int) (nPts/numProcs);
+  if (i_rank < nPts%numProcs) {
+    (*nPts_l)++;
+  }
+
   *pts_coord = malloc (sizeof(double) * 3 * (*nPts_l));
   double *_pts_coord = *pts_coord;
 

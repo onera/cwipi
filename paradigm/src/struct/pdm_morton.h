@@ -234,6 +234,21 @@ PDM_morton_local_sort(int                n_codes,
 _Bool
 PDM_morton_a_gt_b(PDM_morton_code_t  a,
                   PDM_morton_code_t  b);
+
+/*----------------------------------------------------------------------------
+ * Test if Morton code "a" is greater than Morton code "b" (compare anchors)
+ *
+ * parameters:
+ *   code_a <-- first Morton code to compare
+ *   code_b <-- second Morton code to compare
+ *
+ * returns:
+ *  true or false
+ *----------------------------------------------------------------------------*/
+
+_Bool
+PDM_morton_a_gtmin_b(PDM_morton_code_t  a,
+                     PDM_morton_code_t  b);
 #endif
 
 /*----------------------------------------------------------------------------
@@ -489,6 +504,7 @@ PDM_morton_intersect_box
  const PDM_morton_code_t  box_min,
  const PDM_morton_code_t  box_max,
  const PDM_morton_code_t  nodes[],
+ int                     *n_points,
  const size_t             start,
  const size_t             end,
  size_t                  *n_intersect,

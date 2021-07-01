@@ -1,7 +1,7 @@
 
 cdef extern from "pdm_mesh_nodal.h":
   int PDM_Mesh_nodal_n_vertices_element(PDM_Mesh_nodal_elt_t type,
-                                        int            order);
+                                        int            order)
 
 cdef extern from "pdm_dmesh_nodal.h":
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -511,6 +511,16 @@ PDM_mesh_location_mesh_nodal_get
 PDM_mesh_location_t *ml
 );
 
+
+/**
+  * Disable uvw computation after reverse location data
+  */
+void
+PDM_mesh_location_disable_uvw_computation
+(
+PDM_mesh_location_t *ml
+);
+
 #ifdef	__cplusplus
 }
 #endif

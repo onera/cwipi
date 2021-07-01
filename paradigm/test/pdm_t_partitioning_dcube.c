@@ -703,6 +703,7 @@ int main(int argc, char *argv[])
    */
   int n_edge_elt_tot = dface_vtx_idx[dn_face];
   PDM_g_num_t* tmp_dface_edge         = (PDM_g_num_t *) malloc(     n_edge_elt_tot    * sizeof(PDM_g_num_t) );
+  int*         tmp_parent_elmt_pos    = (int         *) malloc(     n_edge_elt_tot    * sizeof(int        ) );
   int*         tmp_dface_edge_vtx_idx = (int         *) malloc( ( n_edge_elt_tot + 1) * sizeof(int        ) );
   PDM_g_num_t* tmp_dface_edge_vtx     = (PDM_g_num_t *) malloc( 2 * n_edge_elt_tot    * sizeof(PDM_g_num_t) );
 
@@ -720,7 +721,8 @@ int main(int argc, char *argv[])
                               tmp_dface_edge_vtx,
                               tmp_dface_edge,
                               NULL,
-                              NULL);
+                              NULL,
+                              tmp_parent_elmt_pos);
   assert(n_edge_current == n_edge_elt_tot);
 
   int  dn_edge = -1;

@@ -67,13 +67,23 @@ _decompose_into_bar_i
 
   }
 
-  int id_bar = PDM_DMesh_nodal_section_add(dmesh_nodal, PDM_MESH_NODAL_BAR2);
+  if(dcube->api_type == 0){
+    int id_bar = PDM_DMesh_nodal_section_add(dmesh_nodal, PDM_MESH_NODAL_BAR2);
+    PDM_DMesh_nodal_section_std_set(dmesh_nodal,
+                                    id_bar,
+                                    dcube->dn_quad_seq_lim,
+                                    delmt_vtx,
+                                    dcube->owner_for_dmesh_nodal);
+  } else{
+    int id_bar = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->ridge, PDM_MESH_NODAL_BAR2);
+    printf("id_bar = %i \n", id_bar);
+    PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->ridge,
+                                          id_bar,
+                                          dcube->dn_quad_seq_lim,
+                                          delmt_vtx,
+                                          dcube->owner_for_dmesh_nodal);
+  }
 
-  PDM_DMesh_nodal_section_std_set(dmesh_nodal,
-                                  id_bar,
-                                  dcube->dn_quad_seq_lim,
-                                  delmt_vtx,
-                                  dcube->owner_for_dmesh_nodal);
 }
 
 static
@@ -114,13 +124,23 @@ _decompose_into_bar_j
 
   }
 
-  int id_bar = PDM_DMesh_nodal_section_add(dmesh_nodal, PDM_MESH_NODAL_BAR2);
+  if(dcube->api_type == 0){
+      int id_bar = PDM_DMesh_nodal_section_add(dmesh_nodal, PDM_MESH_NODAL_BAR2);
+      PDM_DMesh_nodal_section_std_set(dmesh_nodal,
+                                      id_bar,
+                                      dcube->dn_quad_seq_lim,
+                                      delmt_vtx,
+                                      dcube->owner_for_dmesh_nodal);
+  } else{
+    int id_bar = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->ridge, PDM_MESH_NODAL_BAR2);
+    printf("id_bar = %i \n", id_bar);
+    PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->ridge,
+                                          id_bar,
+                                          dcube->dn_quad_seq_lim,
+                                          delmt_vtx,
+                                          dcube->owner_for_dmesh_nodal);
+  }
 
-  PDM_DMesh_nodal_section_std_set(dmesh_nodal,
-                                  id_bar,
-                                  dcube->dn_quad_seq_lim,
-                                  delmt_vtx,
-                                  dcube->owner_for_dmesh_nodal);
 }
 
 /*
@@ -718,12 +738,23 @@ _generate_quad_from_hexa
 
   }
 
-  int id_quad = PDM_DMesh_nodal_section_add(dmesh_nodal, PDM_MESH_NODAL_QUAD4);
-  PDM_DMesh_nodal_section_std_set(dmesh_nodal,
-                                  id_quad,
-                                  dn_quad_cell,
-                                  delmt_vtx,
-                                  dcube->owner_for_dmesh_nodal);
+  printf(" ***** %i \n", dcube->api_type);
+  if(dcube->api_type == 0){
+    int id_quad = PDM_DMesh_nodal_section_add(dmesh_nodal, PDM_MESH_NODAL_QUAD4);
+    PDM_DMesh_nodal_section_std_set(dmesh_nodal,
+                                    id_quad,
+                                    dn_quad_cell,
+                                    delmt_vtx,
+                                    dcube->owner_for_dmesh_nodal);
+  } else {
+    int id_quad = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic, PDM_MESH_NODAL_QUAD4);
+    printf("id_quad = %i \n", id_quad);
+    PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->surfacic,
+                                          id_quad,
+                                          dn_quad_cell,
+                                          delmt_vtx,
+                                          dcube->owner_for_dmesh_nodal);
+  }
 
   int         *delmt_group_idx = (int         *) malloc( (4 + 1                                   ) * sizeof(int        ));
   int dn_quad_face = dcube->distrib_quad_seg_lim[i_rank+1] - dcube->distrib_quad_seg_lim[i_rank];
@@ -731,7 +762,12 @@ _generate_quad_from_hexa
 
   delmt_group_idx[0] = 0;
 
-  PDM_g_num_t shift_elmt = dcube->distrib_hexa[n_rank]+1; // Car les elements surfaciques se mettent après les volumiques et un tetra = 5 Hexa
+  PDM_g_num_t shift_elmt = 0;
+  if(dcube->api_type == 0) {
+    shift_elmt = dcube->distrib_hexa[n_rank]+1; // Car les elements surfaciques se mettent après les volumiques et un tetra = 5 Hexa
+  } else {
+    shift_elmt = 1;
+  }
 
   delmt_group_idx[1] = dn_quad_face;
   _decompose_into_bar_i(dcube, dmesh_nodal, 0, shift_elmt, &delmt_group[delmt_group_idx[0]]);
@@ -749,11 +785,19 @@ _generate_quad_from_hexa
   _decompose_into_bar_j(dcube, dmesh_nodal, dcube->n_g_hexa_cell_seg, shift_elmt, &delmt_group[delmt_group_idx[3]]);
 
   // Rajout dans le dmesh_nodal
-  PDM_DMesh_nodal_section_group_elmt_set(dmesh_nodal,
-                                         4,
-                                         delmt_group_idx,
-                                         delmt_group,
-                                         dcube->owner_for_dmesh_nodal);
+  if(dcube->api_type == 0){
+    PDM_DMesh_nodal_section_group_elmt_set(dmesh_nodal,
+                                           4,
+                                           delmt_group_idx,
+                                           delmt_group,
+                                           dcube->owner_for_dmesh_nodal);
+  } else {
+    PDM_DMesh_nodal_elmts_group_set(dmesh_nodal->ridge,
+                                    4,
+                                    delmt_group_idx,
+                                    delmt_group,
+                                    dcube->owner_for_dmesh_nodal);
+  }
 }
 
 static
@@ -1126,6 +1170,19 @@ const double                zero_z,
 
   PDM_dcube_nodal_t *dcube = (PDM_dcube_nodal_t *) malloc(sizeof(PDM_dcube_nodal_t));
 
+  char *env_dmesh_nodal_api = getenv("PDM_NEW_DMESH_NODAL_API");
+  int api_type = 0;
+  if (env_dmesh_nodal_api != NULL) {
+    if (atoi(env_dmesh_nodal_api) == 0) {
+      api_type = 0;
+    } else {
+      api_type = 1;
+    }
+  }
+  dcube->api_type = api_type;
+
+  double t1 = PDM_MPI_Wtime();
+
   /*
    * Build dcube structure
    */
@@ -1163,7 +1220,6 @@ const double                zero_z,
     n_quad_seg_face          = dcube->n_g_hexa_cell_seg * dcube->n_g_hexa_cell_seg;
   }
   double step = length / (double) dcube->n_g_hexa_cell_seg;
-
 
   /*
    * Create the dmesh_nodal that hold the resulting mesh
@@ -1256,6 +1312,38 @@ const double                zero_z,
   PDM_g_num_t _dn_quad_seq_lim  = dcube->distrib_quad_seg_lim[i_rank+1] - dcube->distrib_quad_seg_lim[i_rank];
   dcube->dn_quad_seq_lim        = (int) _dn_quad_seq_lim;
 
+  PDM_DMesh_nodal_elmts_t* dmn_elmts_vol    = NULL;
+  PDM_DMesh_nodal_elmts_t* dmn_elmts_surf   = NULL;
+  PDM_DMesh_nodal_elmts_t* dmn_elmts_ridge  = NULL;
+  PDM_DMesh_nodal_elmts_t* dmn_elmts_corner = NULL;
+
+  // printf("dcube->n_g_hexa_cell = "PDM_FMT_G_NUM" \n", dcube->n_g_hexa_cell);
+  // printf("n_g_quad_lim         = "PDM_FMT_G_NUM" \n", n_g_quad_lim);
+  // printf("n_quad_seg_face      = "PDM_FMT_G_NUM" \n", n_quad_seg_face);
+  if(dim == 2) {
+    dmn_elmts_surf   = PDM_DMesh_nodal_elmts_create(dcube->comm, 2, dcube->n_g_hexa_cell );
+    dmn_elmts_ridge  = PDM_DMesh_nodal_elmts_create(dcube->comm, 1, n_g_quad_lim);
+    // dmn_elmts_corner = PDM_DMesh_nodal_elmts_create(dcube->comm, 0, n_ridge);
+  } else {
+    dmn_elmts_vol    = PDM_DMesh_nodal_elmts_create(dcube->comm, 3, dcube->n_g_hexa_cell );
+    dmn_elmts_surf   = PDM_DMesh_nodal_elmts_create(dcube->comm, 2, n_g_quad_lim );
+    // dmn_elmts_ridge  = PDM_DMesh_nodal_elmts_create(dcube->comm, 1, n_ridge);
+    // dmn_elmts_corner = PDM_DMesh_nodal_elmts_create(dcube->comm, 0, n_ridge);
+  }
+
+  if(dmn_elmts_vol != NULL) {
+    PDM_Mesh_nodal_add_desh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_vol   );
+  }
+  if(dmn_elmts_surf != NULL) {
+    PDM_Mesh_nodal_add_desh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_surf  );
+  }
+  if(dmn_elmts_ridge != NULL) {
+    PDM_Mesh_nodal_add_desh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_ridge );
+  }
+  if(dmn_elmts_corner != NULL) {
+    PDM_Mesh_nodal_add_desh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_corner);
+  }
+
   switch (t_elt) {
     case PDM_MESH_NODAL_TRIA3    :
     {
@@ -1296,8 +1384,32 @@ const double                zero_z,
 
   }
 
-  return dcube;
 
+  double t2 = PDM_MPI_Wtime();
+
+  double delta_t = t2 - t1;
+  double delta_max;
+  double delta_min;
+
+  PDM_MPI_Allreduce (&delta_t,
+                     &delta_max,
+                     1,
+                     PDM_MPI_DOUBLE,
+                     PDM_MPI_MAX,
+                     dcube->comm);
+
+  PDM_MPI_Allreduce (&delta_t,
+                     &delta_min,
+                     1,
+                     PDM_MPI_DOUBLE,
+                     PDM_MPI_MIN,
+                     dcube->comm);
+
+  if(i_rank == 0) {
+    printf("[%i] PDM_dcube_nodal : duration min/max -> %12.5e %12.5e \n", n_rank, delta_min, delta_max);
+  }
+
+  return dcube;
 }
 
 PDM_dmesh_nodal_t*

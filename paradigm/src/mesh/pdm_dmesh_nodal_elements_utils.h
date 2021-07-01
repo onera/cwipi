@@ -106,7 +106,8 @@ PDM_sections_decompose_faces
   PDM_g_num_t       *elmt_face_vtx,
   PDM_g_num_t       *elmt_face_cell,
   int               *elmt_cell_face_idx,
-  PDM_g_num_t       *elmt_cell_face
+  PDM_g_num_t       *elmt_cell_face,
+  int               *parent_elmt_position
 );
 
 void
@@ -117,7 +118,8 @@ PDM_sections_decompose_edges
   PDM_g_num_t       *elmt_edge_vtx,
   PDM_g_num_t       *elmt_edge_cell,
   int               *elmt_cell_edge_int,
-  PDM_g_num_t       *elmt_cell_edge
+  PDM_g_num_t       *elmt_cell_edge,
+  int               *parent_elmt_position
 );
 
 /**
@@ -137,7 +139,8 @@ PDM_tetra_decomposes_faces
        PDM_g_num_t *elmt_face_vtx,
        PDM_g_num_t *elmt_face_cell,
        int         *elmt_cell_face_idx,
-       PDM_g_num_t *elmt_cell_face
+       PDM_g_num_t *elmt_cell_face,
+       int         *parent_elmt_position
 );
 
 /**
@@ -157,7 +160,8 @@ PDM_tetra_decomposes_edges
        PDM_g_num_t *elmt_edge_vtx,
        PDM_g_num_t *elmt_edge_cell,
        int         *elmt_cell_edge_idx,
-       PDM_g_num_t *elmt_cell_edge
+       PDM_g_num_t *elmt_cell_edge,
+       int         *parent_elmt_position
 );
 
 /**
@@ -177,7 +181,8 @@ PDM_pyra_decomposes_faces
        PDM_g_num_t *elmt_face_vtx,
        PDM_g_num_t *elmt_face_cell,
        int         *elmt_cell_face_idx,
-       PDM_g_num_t *elmt_cell_face
+       PDM_g_num_t *elmt_cell_face,
+       int         *parent_elmt_position
 );
 
 /**
@@ -197,7 +202,8 @@ PDM_pyra_decomposes_edges
        PDM_g_num_t *elmt_edge_vtx,
        PDM_g_num_t *elmt_edge_cell,
        int         *elmt_cell_edge_idx,
-       PDM_g_num_t *elmt_cell_edge
+       PDM_g_num_t *elmt_cell_edge,
+       int         *parent_elmt_position
 );
 
 /**
@@ -217,7 +223,8 @@ PDM_prism_decomposes_faces
        PDM_g_num_t *elmt_face_vtx,
        PDM_g_num_t *elmt_face_cell,
        int         *elmt_cell_face_idx,
-       PDM_g_num_t *elmt_cell_face
+       PDM_g_num_t *elmt_cell_face,
+       int         *parent_elmt_position
 );
 
 /**
@@ -237,7 +244,8 @@ PDM_prism_decomposes_edges
        PDM_g_num_t *elmt_edge_vtx,
        PDM_g_num_t *elmt_edge_cell,
        int         *elmt_cell_edge_idx,
-       PDM_g_num_t *elmt_cell_edge
+       PDM_g_num_t *elmt_cell_edge,
+       int         *parent_elmt_position
 );
 
 /**
@@ -257,7 +265,8 @@ PDM_hexa_decomposes_faces
        PDM_g_num_t *elmt_face_vtx,
        PDM_g_num_t *elmt_face_cell,
        int         *elmt_cell_face_idx,
-       PDM_g_num_t *elmt_cell_face
+       PDM_g_num_t *elmt_cell_face,
+       int         *parent_elmt_position
 );
 
 /**
@@ -277,7 +286,8 @@ PDM_hexa_decomposes_edges
        PDM_g_num_t *elmt_edge_vtx,
        PDM_g_num_t *elmt_edge_cell,
        int         *elmt_cell_edge_idx,
-       PDM_g_num_t *elmt_cell_edge
+       PDM_g_num_t *elmt_cell_edge,
+       int         *parent_elmt_position
 );
 
 void
@@ -293,7 +303,8 @@ PDM_bar_decomposes_edges
        PDM_g_num_t *elmt_edge_vtx,
        PDM_g_num_t *elmt_edge_cell,
        int         *elmt_cell_edge_idx,
-       PDM_g_num_t *elmt_cell_edge
+       PDM_g_num_t *elmt_cell_edge,
+       int         *parent_elmt_position
 );
 
 /**
@@ -313,7 +324,8 @@ PDM_tri_decomposes_edges
        PDM_g_num_t *elmt_edge_vtx,
        PDM_g_num_t *elmt_edge_cell,
        int         *elmt_cell_edge_idx,
-       PDM_g_num_t *elmt_cell_edge
+       PDM_g_num_t *elmt_cell_edge,
+       int         *parent_elmt_position
 );
 
 /**
@@ -333,7 +345,8 @@ PDM_quad_decomposes_edges
        PDM_g_num_t *elmt_edge_vtx,
        PDM_g_num_t *elmt_edge_cell,
        int         *elmt_cell_edge_idx,
-       PDM_g_num_t *elmt_cell_edge
+       PDM_g_num_t *elmt_cell_edge,
+       int         *parent_elmt_position
 );
 
 /**
@@ -353,7 +366,8 @@ PDM_tri_decomposes_faces
        PDM_g_num_t *elmt_face_vtx,
        PDM_g_num_t *elmt_face_cell,
        int         *elmt_cell_face_idx,
-       PDM_g_num_t *elmt_cell_face
+       PDM_g_num_t *elmt_cell_face,
+       int         *parent_elmt_position
 );
 
 /**
@@ -373,7 +387,8 @@ PDM_quad_decomposes_faces
        PDM_g_num_t *elmt_face_vtx,
        PDM_g_num_t *elmt_face_cell,
        int         *elmt_cell_face_idx,
-       PDM_g_num_t *elmt_cell_face
+       PDM_g_num_t *elmt_cell_face,
+       int         *parent_elmt_position
 );
 
 void
@@ -390,7 +405,8 @@ PDM_poly2d_decomposes_faces
        PDM_g_num_t *elmt_face_vtx,
        PDM_g_num_t *elmt_face_cell,
        int         *elmt_cell_face_idx,
-       PDM_g_num_t *elmt_cell_face
+       PDM_g_num_t *elmt_cell_face,
+       int         *parent_elmt_position
 );
 
 void
@@ -407,7 +423,8 @@ PDM_poly2d_decomposes_edges
        PDM_g_num_t *elmt_edge_vtx,
        PDM_g_num_t *elmt_edge_cell,
        int         *elmt_cell_edge_idx,
-       PDM_g_num_t *elmt_cell_edge
+       PDM_g_num_t *elmt_cell_edge,
+       int         *parent_elmt_position
 );
 
 void
@@ -424,7 +441,8 @@ PDM_poly3d_decomposes_faces
        PDM_g_num_t *elmt_face_vtx,
        PDM_g_num_t *elmt_face_cell,
        int         *elmt_cell_face_idx,
-       PDM_g_num_t *elmt_cell_face
+       PDM_g_num_t *elmt_cell_face,
+       int         *parent_elmt_position
 );
 
 /**
@@ -445,7 +463,70 @@ PDM_poly3d_decomposes_edges
        PDM_g_num_t *elmt_edge_vtx,
        PDM_g_num_t *elmt_edge_cell,
        int         *elmt_cell_edge_idx,
-       PDM_g_num_t *elmt_cell_edge
+       PDM_g_num_t *elmt_cell_edge,
+       int         *parent_elmt_position
+);
+
+
+void
+PDM_sections_decompose_faces2
+(
+  PDM_DMesh_nodal_elmts_t *dmn_elts,
+  int                     *elmt_face_vtx_idx,
+  PDM_g_num_t             *elmt_face_vtx,
+  PDM_g_num_t             *elmt_face_cell,
+  int                     *elmt_cell_face_idx,
+  PDM_g_num_t             *elmt_cell_face,
+       int         *parent_elmt_position
+);
+
+void
+PDM_sections_decompose_edges2
+(
+  PDM_DMesh_nodal_elmts_t *dmn_elts,
+  int                     *elmt_edge_vtx_idx,
+  PDM_g_num_t             *elmt_edge_vtx,
+  PDM_g_num_t             *elmt_edge_cell,
+  int                     *elmt_cell_edge_idx,
+  PDM_g_num_t             *elmt_cell_edge,
+  int                     *parent_elmt_position
+);
+
+int
+PDM_section_size_elt_faces_get2
+(
+  PDM_DMesh_nodal_elmts_t *dmn_elts,
+  int                     *s_elt_face_vtx_idx,
+  int                     *s_elt_face_vtx,
+  int                     *s_elt_face_cell
+);
+
+int
+PDM_section_size_elt_edges_get2
+(
+  PDM_DMesh_nodal_elmts_t *dmn_elts,
+  int                     *s_elt_edge_vtx_idx,
+  int                     *s_elt_edge_vtx,
+  int                     *s_elt_edge_cell
+);
+
+
+void
+PDM_std_decomposes_edges
+(
+       PDM_Mesh_nodal_elt_t  t_elt,
+       int                   n_elt,
+       int                  *n_elt_current,
+       int                  *n_dedge_current,
+       PDM_g_num_t           beg_gnum_elt_current,
+       PDM_g_num_t           beg_gnum_edge_current,
+ const PDM_g_num_t          *connectivity_elmt_vtx,
+       int                  *elmt_edge_vtx_idx,
+       PDM_g_num_t          *elmt_edge_vtx,
+       PDM_g_num_t          *elmt_edge_cell,
+       int                  *elmt_cell_edge_idx,
+       PDM_g_num_t          *elmt_cell_edge,
+       int                  *parent_elmt_position
 );
 
 #ifdef __cplusplus

@@ -32,7 +32,7 @@ cdef extern from "pdm_dmesh_nodal_to_dmesh.h":
 
     void PDM_dmesh_nodal_to_dmesh_compute(PDM_dmesh_nodal_to_dmesh_t                 *dmn_to_dm,
                                           PDM_dmesh_nodal_to_dmesh_transform_t        transform_kind,
-                                          PDM_dmesh_nodal_to_dmesh_translate_group_t  transform_group_kind);
+                                          PDM_dmesh_nodal_to_dmesh_translate_group_t  transform_group_kind)
 
     void PDM_dmesh_nodal_to_dmesh_get_dmesh(PDM_dmesh_nodal_to_dmesh_t  *dmn_to_dm,
                                             int                          i_mesh,
@@ -120,6 +120,6 @@ cdef class DMeshNodalToDMesh:
     # ************************************************************************
     # > Declaration
     # ************************************************************************
-    print("DMeshNodalToDMesh::__dealloc__")
+    # print("DMeshNodalToDMesh::__dealloc__")
     PDM_dmesh_nodal_to_dmesh_free(self.dmn_to_dm)
-    print("DMeshNodalToDMesh::__dealloc__ end ")
+    # print("DMeshNodalToDMesh::__dealloc__ end ")

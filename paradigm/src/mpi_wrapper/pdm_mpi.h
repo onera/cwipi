@@ -454,6 +454,13 @@ int PDM_MPI_Scatter(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
 int PDM_MPI_Barrier(PDM_MPI_Comm comm);
 
 /*----------------------------------------------------------------------------
+ * PDM_MPI_Wtime (wrapping de la fonction MPI_Barrier)
+ *
+ *----------------------------------------------------------------------------*/
+
+double PDM_MPI_Wtime(void);
+
+/*----------------------------------------------------------------------------
  * PDM_MPI_Bcast (wrapping de la fonction MPI_Bcast)
  *
  *----------------------------------------------------------------------------*/

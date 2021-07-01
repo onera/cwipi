@@ -1078,6 +1078,43 @@ PDM_Mesh_nodal_g_num_get_from_part
  const int i_part
 );
 
+
+/**
+ * \brief Create a new Mesh nodal from elements selected in a parent Mesh nodal
+ *
+ * \param [in]   parent_mesh       Parent Mesh nodal structure
+ * \param [in]   n_select_elt      Number of selected element for each partition of each nodal block
+ * \param [in]   select_elt_l_num  Local numbers of selected elements (for each partition of each nodal block)
+ *
+ * \return       New mesh nodal
+ *
+ */
+
+PDM_Mesh_nodal_t *
+PDM_Mesh_nodal_extract_selection
+(
+ PDM_Mesh_nodal_t  *parent_mesh,
+ const int        **n_select_elt,
+ const int       ***select_elt_l_num
+ );
+
+
+/**
+ * \brief Write a mesh nodal in Ensight Gold Format
+ *
+ * \param [in]   filename   Output file name
+ * \param [in]   mesh       Pointer to Mesh nodal structure
+ *
+ */
+
+void
+PDM_Mesh_nodal_write
+(
+ const char       *filename,
+ PDM_Mesh_nodal_t *mesh
+);
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

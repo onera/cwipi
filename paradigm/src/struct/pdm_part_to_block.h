@@ -425,7 +425,25 @@ PDM_part_to_block_adapt_partial_block_to_block
 (
  PDM_part_to_block_t  *ptb,
  int                 **block_n,
- int                   n_g_block
+ PDM_g_num_t           n_g_block
+);
+
+
+
+/**
+ *
+ * \brief Return global weights of element in the current process
+ *
+ * \param [in]   ptb          Part to block structure
+ *
+ * \return  Global weights
+ *
+ */
+
+double **
+PDM_part_to_block_global_weight_get
+(
+ PDM_part_to_block_t *ptb
 );
 
 #ifdef __cplusplus

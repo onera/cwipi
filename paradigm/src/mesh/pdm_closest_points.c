@@ -309,17 +309,17 @@ PDM_closest_points_n_part_cloud_set
   cls->tgt_cloud = malloc (sizeof(_tgt_point_cloud_t));
 
   cls->src_cloud->n_part   = n_part_cloud_src;
-  cls->src_cloud->coords   = malloc (sizeof(double *) * n_part_cloud_src);
-  cls->src_cloud->gnum     = malloc (sizeof(int *) * n_part_cloud_src);
-  cls->src_cloud->n_points = malloc (sizeof(int) * n_part_cloud_src);
+  cls->src_cloud->coords   = malloc (sizeof(double      *) * n_part_cloud_src);
+  cls->src_cloud->gnum     = malloc (sizeof(PDM_g_num_t *) * n_part_cloud_src);
+  cls->src_cloud->n_points = malloc (sizeof(int          ) * n_part_cloud_src);
 
   cls->src_cloud->tgt_in_src_idx = NULL;
   cls->src_cloud->tgt_in_src     = NULL;
 
   cls->tgt_cloud->n_part           = n_part_cloud_tgt;
-  cls->tgt_cloud->coords           = malloc (sizeof(double *) * n_part_cloud_tgt);
-  cls->tgt_cloud->gnum             = malloc (sizeof(int *) * n_part_cloud_tgt);
-  cls->tgt_cloud->n_points         = malloc (sizeof(int) * n_part_cloud_tgt);
+  cls->tgt_cloud->coords           = malloc (sizeof(double      *) * n_part_cloud_tgt);
+  cls->tgt_cloud->gnum             = malloc (sizeof(PDM_g_num_t *) * n_part_cloud_tgt);
+  cls->tgt_cloud->n_points         = malloc (sizeof(int          ) * n_part_cloud_tgt);
   cls->tgt_cloud->closest_src_gnum = NULL;
   cls->tgt_cloud->closest_src_dist = NULL;
 }
@@ -451,7 +451,7 @@ PDM_closest_point_t *cls
   for (int i_part = 0; i_part < cls->tgt_cloud->n_part; i_part++) {
     for (int i = 0; i < cls->tgt_cloud->n_points[i_part]; i++) {
       for (int j = 0; j < 3; j++)
-        tgt_coord[n_tgt + 3*i + j] = cls->tgt_cloud->coords[i_part][3*i + j];
+        tgt_coord[3*(n_tgt + i) + j] = cls->tgt_cloud->coords[i_part][3*i + j];
       tgt_g_num[n_tgt + i] = cls->tgt_cloud->gnum[i_part][i];
     }
     n_tgt += cls->tgt_cloud->n_points[i_part];
@@ -720,25 +720,39 @@ PDM_closest_point_t  *cls
   }
 }
 
+/*
+ * Reverse operation of child creation : from a parent global numbering
+ * (parent_ln_to_gn) and a child global numbering (child_ln_to_gn) created
+ * from it, take some child global numbers (gnum_to_transform) and retrieve
+ * their original parent number.
+ *
+ * This function allow parent/child numbering to have a different partitionning than
+ * gnum_to_transform. For both arrays, number of part and number of elt per part must 
+ * be provided.
+ *
+ * gnum_to_transform is modified inplace
+*/
 
 void
 PDM_transform_to_parent_gnum
 (
-       PDM_g_num_t  *results,
- const int           n_results,
- const PDM_g_num_t  *ln_to_gn,
- const PDM_g_num_t  *parent_ln_to_gn,
- const int           n_elmt,
+ const int           n_part_initial,
+ const int          *n_elmt_initial,
+ const PDM_g_num_t **child_ln_to_gn,
+ const PDM_g_num_t **parent_ln_to_gn,
+ const int           n_part_to_transform,
+ const int          *n_elmt_to_transform,
+       PDM_g_num_t **gnum_to_transform,
        PDM_MPI_Comm  comm
 )
 {
   PDM_part_to_block_t* ptb = PDM_part_to_block_create(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                                       PDM_PART_TO_BLOCK_POST_CLEANUP,
                                                       1.,
-                                ( PDM_g_num_t **)    &ln_to_gn,
+                                     (PDM_g_num_t **) child_ln_to_gn,
                                                       NULL,
-                                          ( int *)   &n_elmt,
-                                                      1,
+                                              (int *) n_elmt_initial,
+                                                      n_part_initial,
                                                       comm);
 
   int         *block_stride = NULL;
@@ -748,7 +762,7 @@ PDM_transform_to_parent_gnum
                           PDM_STRIDE_CST,
                           1,
                           NULL,
-               (void **) &parent_ln_to_gn,
+               (void **)  parent_ln_to_gn,
                          &block_stride,
                (void **) &block_parent);
 
@@ -759,19 +773,19 @@ PDM_transform_to_parent_gnum
   }
 
   PDM_block_to_part_t *btp = PDM_block_to_part_create(block_distrib_idx,
-                               (const PDM_g_num_t **) &results,
-                                                      &n_results,
-                                                      1,
+                               (const PDM_g_num_t **) gnum_to_transform,
+                                                      n_elmt_to_transform,
+                                                      n_part_to_transform,
                                                       comm);
 
   int stride_one = 1;
   PDM_block_to_part_exch(btp,
-                          sizeof(PDM_g_num_t),
-                          PDM_STRIDE_CST,
-                          &stride_one,
-                          block_parent,
-                          NULL,
-              (void **) &results);
+                         sizeof(PDM_g_num_t),
+                         PDM_STRIDE_CST,
+                        &stride_one,
+                         block_parent,
+                         NULL,
+               (void **) gnum_to_transform);
 
 
   PDM_part_to_block_free(ptb);

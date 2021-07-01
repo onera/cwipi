@@ -4744,7 +4744,6 @@ _compute_dist2_from_closest_tetra_subdivision
                                     &_dist2_current,
                                     &_child);
 
-
     if (is_empty) {
       PDM_error(__FILE__, __LINE__, 0,
                 "Heap is empty %s\n");
@@ -4921,10 +4920,9 @@ _compute_dist2_from_uniform_tetra_subdivision
                                     &_dist2_current,
                                     &_child);
 
-
     if (is_empty) {
       PDM_error(__FILE__, __LINE__, 0,
-                "Heap is empty %s\n");
+                "Heap is empty\n");
       abort();
     }
 

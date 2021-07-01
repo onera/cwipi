@@ -748,7 +748,7 @@ int main(int argc, char *argv[])
                            PDM_ABS (cell_center[i_part][3*i+2] - zmax));
       double d = PDM_MIN (PDM_MIN (d1,d2), d3);
       d = d * d;
-      if (PDM_ABS(distance[i] - d) > 1e-6) {
+      if (PDM_ABS(distance[i] - d) > 1e-10) {
         ierr += 1;
         printf ("Erreur distance %d (%12.5e %12.5e %12.5e) : %12.5e %12.5e "PDM_FMT_G_NUM"\n", i,
                 cell_center[i_part][3*i],

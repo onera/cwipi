@@ -68,49 +68,103 @@ cdef class DistCloudSurf:
     """
     # ************************************************************************
     # > Class attributes
-    cdef PDM_dist_cloud_surf_t*  _dist
-    cdef int  _n_point_cloud
-    cdef int  **_nb_pts
-    cdef int  _part_n
+    cdef PDM_dist_cloud_surf_t* _dist
+    cdef MPI.Comm               _comm,
+    cdef PDM_mesh_nature_t      _mesh_nature
+    cdef int                    _n_part_surf
+    cdef list                   _nb_pts
+    cdef dict                   _results
     # ************************************************************************
     # ------------------------------------------------------------------
     def __cinit__(self,
+                  MPI.Comm          comm,
                   PDM_mesh_nature_t mesh_nature,
-                  int n_point_cloud,
-                  MPI.Comm  comm):
+                  int               n_part_surf=1,
+                  list              point_clouds=[]):
         """
         Compute the distance from point clouds to a surface
         """
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Convert mpi4py -> PDM_MPI
-        cdef MPI.MPI_Comm c_comm   = comm.ob_mpi
+        self._nb_pts      = []
+        self._comm        = comm
+        self._mesh_nature = mesh_nature
+        self.n_part_surf  = n_part_surf
+        if len(point_clouds) > 0:
+            # NB: Create paradigm structure
+            self.n_point_cloud = len(point_clouds)
+            # Set number of partition per point cloud
+            for i_point_cloud, n_part_cloud in enumerate(point_clouds):
+                self.set_n_part_cloud(i_point_cloud, n_part_cloud)
+            print("self.n_part_surf = ",self.n_part_surf,", self.n_point_cloud = ",self.n_point_cloud)
+            for i_point_cloud in range(self.n_point_cloud):
+                print("self.get_n_part_cloud(",i_point_cloud,") = ",self.get_n_part_cloud(i_point_cloud))
+
+    def _create_pdm_structure(self):
+        # Free memory if it has been previously allocated
+        if self._dist:
+            PDM_dist_cloud_surf_free(self._dist)
+
+        # Convert mpi4py -> PDM_MPI
+        cdef MPI.MPI_Comm c_comm   = self._comm.ob_mpi
         cdef PDM_MPI_Comm pdm_comm = PDM_MPI_mpi_2_pdm_mpi_comm(&c_comm)
 
-        self._dist = PDM_dist_cloud_surf_create(mesh_nature,
-                                                n_point_cloud,
+        # NB: Python take ownership
+        self._dist = PDM_dist_cloud_surf_create(self._mesh_nature,
+                                                self.n_point_cloud,
                                                 pdm_comm,
-                                                PDM_OWNERSHIP_USER) # Python take ownership)
-        self._n_point_cloud = n_point_cloud
-        self._nb_pts = <int **>  malloc(sizeof(int *) * n_point_cloud)
+                                                PDM_OWNERSHIP_USER)
 
     # ------------------------------------------------------------------
-    def n_part_cloud_set(self,
+    def get_n_part_surf(self):
+        return self._n_part_surf
+
+    def set_n_part_surf(self, value):
+        if value >= 1:
+            self._n_part_surf = <int> value
+        else:
+            raise ValueError("n_part_surf must be >= 1, but {} given here.".format(value))
+    n_part_surf = property(get_n_part_surf, set_n_part_surf)
+
+    def get_n_point_cloud(self):
+        return len(self._nb_pts)
+
+    def set_n_point_cloud(self, value):
+        if value != self.get_n_point_cloud():
+            if value >= 1:
+                self._nb_pts = [None] * value
+                self._create_pdm_structure()
+            else:
+                raise ValueError("n_point_cloud must be >= 1, but {} given here.".format(value))
+    n_point_cloud = property(get_n_point_cloud, set_n_point_cloud)
+
+    def get_n_part_cloud(self,
+                         int i_point_cloud):
+        if self._nb_pts[i_point_cloud] is not None:
+            return self._nb_pts[i_point_cloud].size
+        else:
+            return None
+
+    def set_n_part_cloud(self,
                          int i_point_cloud,
-                         int n_part):
+                         int n_part_cloud):
         """
         Give the number of partitions of a point cloud
         """
-        PDM_dist_cloud_surf_n_part_cloud_set(self._dist, i_point_cloud, n_part)
-        self._nb_pts[i_point_cloud] =  <int *>  malloc(sizeof(int) * n_part)
-        self._part_n = n_part
+        if n_part_cloud >= 1:
+            if i_point_cloud >= 0 and i_point_cloud < self.n_point_cloud:
+                PDM_dist_cloud_surf_n_part_cloud_set(self._dist, i_point_cloud, n_part_cloud)
+                self._nb_pts[i_point_cloud] = NPY.zeros(n_part_cloud, dtype='int32', order='C')
+            else:
+                raise ValueError("i_point_cloud must be >= 0 and < {}, but {} given here.".format(self.n_point_cloud, i_point_cloud))
+        else:
+            raise ValueError("n_part_cloud must be >= 1, but {} given here.".format(n_part_cloud))
 
     # ------------------------------------------------------------------
     def cloud_set(self,
                   int i_point_cloud,
                   int i_part,
                   int n_points,
-                  NPY.ndarray[NPY.double_t   , mode='c', ndim=1] coords not None,
-                  NPY.ndarray[npy_pdm_gnum_t , mode='c', ndim=1] gnum not None):
+                  NPY.ndarray[NPY.double_t  , mode='c', ndim=1] coords not None,
+                  NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] gnum not None):
         """
         Give the properties of a partition of a point cloud
         """
@@ -125,26 +179,25 @@ cdef class DistCloudSurf:
     # ------------------------------------------------------------------
     def surf_mesh_global_data_set(self,
                                   PDM_g_num_t n_g_face,
-                                  PDM_g_num_t n_g_vtx,
-                                  int n_part):
+                                  PDM_g_num_t n_g_vtx):
         """
         Give the global properties of the surface mesh
         """
         PDM_dist_cloud_surf_surf_mesh_global_data_set(self._dist,
                                                       n_g_face,
                                                       n_g_vtx,
-                                                      n_part)
+                                                      self.n_part_surf)
 
-    # ------------------------------------------------------------------
+
     def surf_mesh_part_set(self,
                            i_part,
                            n_face,
-                           NPY.ndarray[NPY.int32_t    , mode='c', ndim=1] face_vtx_idx not None,
-                           NPY.ndarray[NPY.int32_t    , mode='c', ndim=1] face_vtx not None,
-                           NPY.ndarray[npy_pdm_gnum_t , mode='c', ndim=1] face_ln_to_gn not None,
+                           NPY.ndarray[NPY.int32_t   , mode='c', ndim=1] face_vtx_idx not None,
+                           NPY.ndarray[NPY.int32_t   , mode='c', ndim=1] face_vtx not None,
+                           NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] face_ln_to_gn not None,
                            n_vtx,
-                           NPY.ndarray[NPY.double_t   , mode='c', ndim=1] coords not None,
-                           NPY.ndarray[npy_pdm_gnum_t , mode='c', ndim=1] vtx_ln_to_gn not None):
+                           NPY.ndarray[NPY.double_t  , mode='c', ndim=1] coords not None,
+                           NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] vtx_ln_to_gn not None):
         """
         Give the properties of a partition of the surface mesh
         """
@@ -163,61 +216,48 @@ cdef class DistCloudSurf:
         """
         Compute distance
         """
-        PDM_dist_cloud_surf_compute (self._dist)
-
-    # ------------------------------------------------------------------
-    def get(self,
-           int i_point_cloud,
-           int i_part):
-        """
-        Return the properties of the closest surface element
-        (distance, projected point coordinates and global numbering)
-        """
-
         cdef double *closest_elt_distance
         cdef double *closest_elt_projected
         cdef PDM_g_num_t *closest_elt_gnum
 
-        PDM_dist_cloud_surf_get (self._dist,
-                                 i_point_cloud,
-                                 i_part,
-                                 &closest_elt_distance,
-                                 &closest_elt_projected,
-                                 &closest_elt_gnum)
+        PDM_dist_cloud_surf_compute(self._dist)
 
-        if (closest_elt_distance == NULL) :
-            npClosestEltDistance = None
-        else :
-            dim = <NPY.npy_intp> self._nb_pts[i_point_cloud][i_part]
-            npClosestEltDistance = NPY.PyArray_SimpleNewFromData(1,
-                                                                 &dim,
-                                                                 NPY.NPY_DOUBLE,
-                                                                 <void *> closest_elt_distance)
-            PyArray_ENABLEFLAGS(npClosestEltDistance, NPY.NPY_OWNDATA);
+        # Store results in numpy directory
+        self._results = {} # [None]*self.n_point_cloud
+        for i_point_cloud in range(self.n_point_cloud):
+            n_part_cloud = self.get_n_part_cloud(i_point_cloud)
+            self._results[i_point_cloud] = {} # [None]*n_part_cloud
+            for i_part_cloud in range(n_part_cloud):
+                PDM_dist_cloud_surf_get(self._dist,
+                                        i_point_cloud,
+                                        i_part_cloud,
+                                        &closest_elt_distance,
+                                        &closest_elt_projected,
+                                        &closest_elt_gnum)
 
-        if (closest_elt_projected == NULL) :
-            npClosestEltProjected = None
-        else :
-            dim = <NPY.npy_intp> (3 * self._nb_pts[i_point_cloud][i_part])
-            npClosestEltProjected = NPY.PyArray_SimpleNewFromData(1,
-                                                                  &dim,
-                                                                  NPY.NPY_DOUBLE,
-                                                                  <void *> closest_elt_projected)
-            PyArray_ENABLEFLAGS(npClosestEltProjected, NPY.NPY_OWNDATA);
+                # Encapsulate C array into a numpy array
+                np_closest_elt_distance  = create_numpy_d(closest_elt_distance, self._nb_pts[i_point_cloud][i_part_cloud])
+                np_closest_elt_projected = create_numpy_d(closest_elt_projected, 3 * self._nb_pts[i_point_cloud][i_part_cloud])
+                np_closest_elt_gnum      = create_numpy_pdm_gnum(closest_elt_gnum, self._nb_pts[i_point_cloud][i_part_cloud])
 
-        if (closest_elt_gnum == NULL) :
-            npClosestEltGnum = None
-        else :
-            dim = <NPY.npy_intp> self._nb_pts[i_point_cloud][i_part]
-            npClosestEltGnum = NPY.PyArray_SimpleNewFromData(1,
-                                                             &dim,
-                                                             PDM_G_NUM_NPY_INT,
-                                                             <void *> closest_elt_gnum)
-            PyArray_ENABLEFLAGS(npClosestEltGnum, NPY.NPY_OWNDATA);
+                dresults = {'ClosestEltDistance'    : np_closest_elt_distance,
+                            'ClosestEltProjected'   : np_closest_elt_projected,
+                            'ClosestEltGnum'        : np_closest_elt_gnum}
+                self._results[i_point_cloud][i_part_cloud] = dresults
 
-        return {'ClosestEltDistance'    : npClosestEltDistance,
-                'ClosestEltProjected'   : npClosestEltProjected,
-                'ClosestEltGnum'        : npClosestEltGnum}
+    # ------------------------------------------------------------------
+    def get(self, int i_point_cloud, int i_part_cloud):
+        """
+        Return the properties of the closest surface element
+        (distance, projected point coordinates and global numbering)
+        """
+        if self._results is None:
+            self.compute()
+        if i_point_cloud >= self.n_point_cloud:
+            raise KeyError (f"Only {self.n_point_cloud} results are available, query item {i_point_cloud} here.")
+        if i_part_cloud >= self.get_n_part_cloud(i_point_cloud):
+            raise KeyError (f"Only {self.get_n_part_cloud(i_point_cloud)} results are available, query item {i_part_cloud} here.")
+        return self._results[i_point_cloud][i_part_cloud]
 
     # ------------------------------------------------------------------
     def dump_times(self):
@@ -229,8 +269,6 @@ cdef class DistCloudSurf:
     # ------------------------------------------------------------------
     def __dealloc__(self):
         """
+        Free a distance mesh structure
         """
-        for idx in xrange(self._part_n):
-            free (self._nb_pts[idx])
-        free (self._nb_pts)
         PDM_dist_cloud_surf_free(self._dist)

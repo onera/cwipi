@@ -7,39 +7,39 @@ cdef extern from "pdm_closest_points.h":
 
   PDM_closest_point_t* PDM_closest_points_create(PDM_MPI_Comm    comm,
                                 int             n_closest,
-                                PDM_ownership_t owner);
+                                PDM_ownership_t owner)
 
   void PDM_closest_points_n_part_cloud_set(PDM_closest_point_t* cls,
                                            int                  n_part_cloud_src,
-                                           int                  n_part_cloud_tgt);
+                                           int                  n_part_cloud_tgt)
 
   void PDM_closest_points_tgt_cloud_set(PDM_closest_point_t *cls,
                                         int                  i_part,
                                         int                  n_points,
                                         double              *coords,
-                                        PDM_g_num_t         *gnum);
+                                        PDM_g_num_t         *gnum)
 
   void PDM_closest_points_src_cloud_set(PDM_closest_point_t *cls,
                                         int                  i_part,
                                         int                  n_points,
                                         double              *coords,
-                                        PDM_g_num_t         *gnum);
+                                        PDM_g_num_t         *gnum)
 
-  void PDM_closest_points_compute(PDM_closest_point_t  *cls);
+  void PDM_closest_points_compute(PDM_closest_point_t  *cls)
 
   void PDM_closest_points_get(PDM_closest_point_t  *cls,
                               int                   i_part_tgt,
                               PDM_g_num_t         **closest_src_gnum,
-                              double              **closest_src_distance);
+                              double              **closest_src_distance)
 
   void PDM_closest_points_tgt_in_src_get(PDM_closest_point_t  *cls,
                                          int                   i_part_src,
                                          int                 **tgt_in_src_idx,
-                                         PDM_g_num_t         **tgt_in_src);
+                                         PDM_g_num_t         **tgt_in_src)
 
   void PDM_closest_points_free(PDM_closest_point_t *cls)
 
-  void PDM_closest_points_dump_times(PDM_closest_point_t *cls);
+  void PDM_closest_points_dump_times(PDM_closest_point_t *cls)
 
 
 # ------------------------------------------------------------------
@@ -157,13 +157,13 @@ cdef class ClosestPoints:
                                                         &dim,
                                                         PDM_G_NUM_NPY_INT,
                                                         <void *> closest_src_gnum)
-    PyArray_ENABLEFLAGS(np_closest_src_gnum, NPY.NPY_OWNDATA);
+    PyArray_ENABLEFLAGS(np_closest_src_gnum, NPY.NPY_OWNDATA)
 
     np_closest_src_distance = NPY.PyArray_SimpleNewFromData(1,
                                                             &dim,
                                                             NPY.NPY_DOUBLE,
                                                             <void *> closest_src_distance)
-    PyArray_ENABLEFLAGS(np_closest_src_distance, NPY.NPY_OWNDATA);
+    PyArray_ENABLEFLAGS(np_closest_src_distance, NPY.NPY_OWNDATA)
 
     return {'closest_src_gnum'  : np_closest_src_gnum,
             'closest_src_distance' : np_closest_src_distance
@@ -193,14 +193,14 @@ cdef class ClosestPoints:
                                                       &dim,
                                                       NPY.NPY_INT32,
                                                       <void *> tgt_in_src_idx)
-    PyArray_ENABLEFLAGS(np_tgt_in_src_idx, NPY.NPY_OWNDATA);
+    PyArray_ENABLEFLAGS(np_tgt_in_src_idx, NPY.NPY_OWNDATA)
 
     dim = <NPY.npy_intp> np_tgt_in_src_idx[self.src_n_points[i_part_src]]
     np_tgt_in_src = NPY.PyArray_SimpleNewFromData(1,
                                                   &dim,
                                                   PDM_G_NUM_NPY_INT,
                                                   <void *> tgt_in_src)
-    PyArray_ENABLEFLAGS(np_tgt_in_src, NPY.NPY_OWNDATA);
+    PyArray_ENABLEFLAGS(np_tgt_in_src, NPY.NPY_OWNDATA)
 
     return {'tgt_in_src_idx' : np_tgt_in_src_idx,
             'tgt_in_src'     : np_tgt_in_src

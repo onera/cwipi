@@ -13,6 +13,7 @@ file(GLOB_RECURSE SOURCES
      ppart/*.[ch]
      ppart/*.cxx
      struct/*.[ch]
+     struct/*.cxx
      util/*.[ch]
      ext_wrapper/*.[ch]
      mpi_wrapper/pdm_mpi_node_first_rank.[hc]
@@ -117,7 +118,9 @@ endif (PTSCOTCH_FOUND)
 
 if (PARMETIS_FOUND)
     target_include_directories(pdm
-                              PRIVATE $<BUILD_INTERFACE:${PARMETIS_INCLUDE_DIRS}>)
+                               PRIVATE $<BUILD_INTERFACE:${PARMETIS_INCLUDE_DIRS}>)
+    target_include_directories(pdm
+                               PRIVATE $<BUILD_INTERFACE:${METIS_INCLUDE_DIRS}>)
 endif (PARMETIS_FOUND)
 
 if (PDM_ENABLE_CUDA)

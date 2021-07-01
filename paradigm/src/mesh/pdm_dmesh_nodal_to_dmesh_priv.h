@@ -48,9 +48,11 @@ typedef struct _pdm_link_dmesh_nodal_to_dmesh_t {
 
   PDM_g_num_t  *_dface_elmt;
   int          *_dface_elmt_idx;
+  int          *_dface_parent_element_position;
 
   PDM_g_num_t  *_delmt_edge;
   int          *_delmt_edge_idx;
+  int          *_dedge_parent_element_position;
 
   PDM_g_num_t  *_dedge_elmt;
   int          *_dedge_elmt_idx;

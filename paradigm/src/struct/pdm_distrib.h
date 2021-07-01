@@ -72,6 +72,16 @@ PDM_compute_uniform_entity_distribution
  const PDM_g_num_t      n_g_entity
 );
 
+
+PDM_g_num_t*
+PDM_compute_uniform_entity_distribution_from_partition
+(
+ const PDM_MPI_Comm     comm,
+ const int              n_part,
+ const int             *n_elmts,
+ const PDM_g_num_t    **ln_to_gn
+);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

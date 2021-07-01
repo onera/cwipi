@@ -8,25 +8,25 @@ cdef extern from "pdm_points_merge.h":
 
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     # > Wrapping of function
-    PDM_points_merge_t * PDM_points_merge_create(int                   n_point_cloud,
+    PDM_points_merge_t * PDM_points_merge_create(int                   _n_point_cloud,
                                                 double                tolerance,
                                                 PDM_MPI_Comm          comm,
-                                                const PDM_ownership_t owner);
-    void PDM_points_merge_free(PDM_points_merge_t *pm);
+                                                const PDM_ownership_t owner)
+    void PDM_points_merge_free(PDM_points_merge_t *pm)
     void PDM_points_merge_cloud_set(PDM_points_merge_t *pm,
                                     int                i_point_cloud,
                                     int                n_points,
                                     double            *coords,
-                                    double            *char_length);
-    void PDM_points_merge_process(PDM_points_merge_t *pm);
+                                    double            *char_length)
+    void PDM_points_merge_process(PDM_points_merge_t *pm)
     void PDM_points_merge_candidates_get(PDM_points_merge_t  *pm,
                                          int                 i_point_cloud,
                                          int               **candidates_idx,
-                                         int               **candidates_desc);
+                                         int               **candidates_desc)
     void PDM_points_merge_candidates_size_get(PDM_points_merge_t *pm,
                                               int                i_point_cloud,
-                                              int               *n_point_cloud,
-                                              int               *n_candidates_desc);
+                                              int               *_n_point_cloud,
+                                              int               *n_candidates_desc)
 
 
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

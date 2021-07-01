@@ -41,7 +41,7 @@ target_include_directories(pdm_mpi
   PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
   PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>
-  PUBLIC    $<INSTALL_INTERFACE:include/>
+#   PUBLIC    $<INSTALL_INTERFACE:include/>
 )
 
 if (PTSCOTCH_FOUND)
@@ -52,6 +52,8 @@ endif (PTSCOTCH_FOUND)
 if (PARMETIS_FOUND)
     target_include_directories(pdm_mpi
                               PRIVATE $<BUILD_INTERFACE:${PARMETIS_INCLUDE_DIRS}>)
+    target_include_directories(pdm_mpi
+                              PRIVATE $<BUILD_INTERFACE:${METIS_INCLUDE_DIRS}>)
 endif (PARMETIS_FOUND)
 
 set (LIST_HEADER "")

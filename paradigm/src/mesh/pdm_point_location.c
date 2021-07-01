@@ -145,16 +145,17 @@ _compute_shapef_3d
  double                     deriv[8][3]
  )
 {
-  switch (elt_type) {
+  double u = uvw[0];
+  double v = uvw[1];
+  double w = uvw[2];
+  double u1 = 1. - u;
+  double v1 = 1. - v;
+  double w1 = 1. - w;
 
+  switch (elt_type) {
 
   case PDM_MESH_NODAL_PYRAMID5: {
 
-    double u = uvw[0];
-    double v = uvw[1];
-    double w = uvw[2];
-
-    double w1 = 1. - w;
     if (fabs(w1) > 1.e-6) {
       w1 = 1. / w1;
     }
@@ -194,32 +195,32 @@ _compute_shapef_3d
 
   case PDM_MESH_NODAL_PRISM6: {
 
-    shapef[0] = (1.0 - uvw[0] - uvw[1]) * (1.0 - uvw[2]);
-    shapef[1] = uvw[0] * (1.0 - uvw[2]);
-    shapef[2] = uvw[1] * (1.0 - uvw[2]);
-    shapef[3] = (1.0 - uvw[0] - uvw[1]) * uvw[2];
-    shapef[4] = uvw[0] * uvw[2];
-    shapef[5] = uvw[1] * uvw[2];
+    shapef[0] = (1. - u - v) * w1;
+    shapef[1] = u * w1;
+    shapef[2] = v * w1;
+    shapef[3] = (1. - u - v) * w;
+    shapef[4] = u * w;
+    shapef[5] = v * w;
 
     if (deriv != NULL) {
-      deriv[0][0] = -(1.0 - uvw[2]);
-      deriv[0][1] = -(1.0 - uvw[2]);
-      deriv[0][2] = -(1.0 - uvw[0] - uvw[1]);
-      deriv[1][0] =  (1.0 - uvw[2]);
-      deriv[1][1] =  0.0;
-      deriv[1][2] = -uvw[0];
-      deriv[2][0] =  0.0;
-      deriv[2][1] =  (1.0 - uvw[2]);
-      deriv[2][2] = -uvw[1];
-      deriv[3][0] = -uvw[2];
-      deriv[3][1] = -uvw[2];
-      deriv[3][2] =  (1.0 - uvw[0] - uvw[1]);
-      deriv[4][0] =  uvw[2];
-      deriv[4][1] =  0.0;
-      deriv[4][2] =  uvw[0];
-      deriv[5][0] =  0.0;
-      deriv[5][1] =  uvw[2];
-      deriv[5][2] =  uvw[1];
+      deriv[0][0] = -w1;
+      deriv[0][1] = -w1;
+      deriv[0][2] = -(1. - u - v);
+      deriv[1][0] =  w1;
+      deriv[1][1] =  0.;
+      deriv[1][2] = -u;
+      deriv[2][0] =  0.;
+      deriv[2][1] =  w1;
+      deriv[2][2] = -v;
+      deriv[3][0] = -w;
+      deriv[3][1] = -w;
+      deriv[3][2] =  (1. - u - v);
+      deriv[4][0] =  w;
+      deriv[4][1] =  0.;
+      deriv[4][2] =  u;
+      deriv[5][0] =  0.;
+      deriv[5][1] =  w;
+      deriv[5][2] =  v;
     }
 
     break;
@@ -229,40 +230,40 @@ _compute_shapef_3d
 
   case PDM_MESH_NODAL_HEXA8: {
 
-    shapef[0] = (1.0 - uvw[0]) * (1.0 - uvw[1]) * (1.0 - uvw[2]);
-    shapef[1] =        uvw[0]  * (1.0 - uvw[1]) * (1.0 - uvw[2]);
-    shapef[2] =        uvw[0]  *        uvw[1]  * (1.0 - uvw[2]);
-    shapef[3] = (1.0 - uvw[0]) *        uvw[1]  * (1.0 - uvw[2]);
-    shapef[4] = (1.0 - uvw[0]) * (1.0 - uvw[1]) *        uvw[2];
-    shapef[5] =        uvw[0]  * (1.0 - uvw[1]) *        uvw[2];
-    shapef[6] =        uvw[0]  *        uvw[1]  *        uvw[2];
-    shapef[7] = (1.0 - uvw[0]) *        uvw[1]  *        uvw[2];
+    shapef[0] = u1 * v1 * w1;
+    shapef[1] = u  * v1 * w1;
+    shapef[2] = u  * v  * w1;
+    shapef[3] = u1 * v  * w1;
+    shapef[4] = u1 * v1 * w;
+    shapef[5] = u  * v1 * w;
+    shapef[6] = u  * v  * w;
+    shapef[7] = u1 * v  * w;
 
     if (deriv != NULL) {
-      deriv[0][0] = -(1.0 - uvw[1]) * (1.0 - uvw[2]);
-      deriv[0][1] = -(1.0 - uvw[0]) * (1.0 - uvw[2]);
-      deriv[0][2] = -(1.0 - uvw[0]) * (1.0 - uvw[1]);
-      deriv[1][0] =  (1.0 - uvw[1]) * (1.0 - uvw[2]);
-      deriv[1][1] = -uvw[0] * (1.0 - uvw[2]);
-      deriv[1][2] = -uvw[0] * (1.0 - uvw[1]);
-      deriv[2][0] =  uvw[1] * (1.0 - uvw[2]);
-      deriv[2][1] =  uvw[0] * (1.0 - uvw[2]);
-      deriv[2][2] = -uvw[0] * uvw[1];
-      deriv[3][0] = -uvw[1] * (1.0 - uvw[2]);
-      deriv[3][1] =  (1.0 - uvw[0]) * (1.0 - uvw[2]);
-      deriv[3][2] = -(1.0 - uvw[0]) * uvw[1];
-      deriv[4][0] = -(1.0 - uvw[1]) * uvw[2];
-      deriv[4][1] = -(1.0 - uvw[0]) * uvw[2];
-      deriv[4][2] =  (1.0 - uvw[0]) * (1.0 - uvw[1]);
-      deriv[5][0] =  (1.0 - uvw[1]) * uvw[2];
-      deriv[5][1] = -uvw[0] * uvw[2];
-      deriv[5][2] =  uvw[0] * (1.0 - uvw[1]);
-      deriv[6][0] =  uvw[1] * uvw[2];
-      deriv[6][1] =  uvw[0] * uvw[2];
-      deriv[6][2] =  uvw[0] * uvw[1];
-      deriv[7][0] = -uvw[1] * uvw[2];
-      deriv[7][1] =  (1.0 - uvw[0]) * uvw[2];
-      deriv[7][2] =  (1.0 - uvw[0]) * uvw[1];
+      deriv[0][0] = -v1 * w1;
+      deriv[0][1] = -u1 * w1;
+      deriv[0][2] = -u1 * v1;
+      deriv[1][0] =  v1 * w1;
+      deriv[1][1] = -u  * w1;
+      deriv[1][2] = -u  * v1;
+      deriv[2][0] =  v  * w1;
+      deriv[2][1] =  u  * w1;
+      deriv[2][2] = -u  * v;
+      deriv[3][0] = -v  * w1;
+      deriv[3][1] =  u1 * w1;
+      deriv[3][2] = -u1 * v;
+      deriv[4][0] = -v1 * w;
+      deriv[4][1] = -u1 * w;
+      deriv[4][2] =  u1 * v1;
+      deriv[5][0] =  v1 * w;
+      deriv[5][1] = -u  * w;
+      deriv[5][2] =  u  * v1;
+      deriv[6][0] =  v  * w;
+      deriv[6][1] =  u  * w;
+      deriv[6][2] =  u  * v;
+      deriv[7][0] = -v  * w;
+      deriv[7][1] =  u1 * w;
+      deriv[7][2] =  u1 * v;
     }
 
     break;
@@ -1659,6 +1660,8 @@ PDM_point_location_nodal
    */
   for (ielt = type_idx[PDM_MESH_NODAL_BAR2]; ielt < type_idx[PDM_MESH_NODAL_TRIA3]; ielt++) {
 
+    if (pts_idx[ielt+1] == pts_idx[ielt]) continue;
+
     _locate_on_edge (elt_vtx_coord + elt_vtx_idx[ielt] * 3,
                      pts_idx[ielt+1] - pts_idx[ielt],
                      pts_coord + pts_idx[ielt] * 3,
@@ -1673,6 +1676,8 @@ PDM_point_location_nodal
    */
   const int _connec[3] = {1, 2, 3};
   for (ielt = type_idx[PDM_MESH_NODAL_TRIA3]; ielt < type_idx[PDM_MESH_NODAL_QUAD4]; ielt++) {
+
+    if (pts_idx[ielt+1] == pts_idx[ielt]) continue;
 
     _locate_on_triangles (1,
                           _connec,
@@ -1691,6 +1696,8 @@ PDM_point_location_nodal
    */
   for (ielt = type_idx[PDM_MESH_NODAL_QUAD4]; ielt < type_idx[PDM_MESH_NODAL_POLY_2D]; ielt++) {
 
+    if (pts_idx[ielt+1] == pts_idx[ielt]) continue;
+
     _locate_on_quadrangle (elt_vtx_coord + elt_vtx_idx[ielt] * 3,
                            pts_idx[ielt+1] - pts_idx[ielt],
                            pts_coord + pts_idx[ielt] * 3,
@@ -1704,6 +1711,8 @@ PDM_point_location_nodal
    * Polygons
    */
   for (ielt = type_idx[PDM_MESH_NODAL_POLY_2D]; ielt < type_idx[PDM_MESH_NODAL_TETRA4]; ielt++) {
+
+    if (pts_idx[ielt+1] == pts_idx[ielt]) continue;
 
     _locate_in_polygon (elt_vtx_idx[ielt+1] - elt_vtx_idx[ielt],
                         elt_vtx_coord + elt_vtx_idx[ielt] * 3,
@@ -1720,6 +1729,8 @@ PDM_point_location_nodal
    * Tetrahedra
    */
   for (ielt = type_idx[PDM_MESH_NODAL_TETRA4]; ielt < type_idx[PDM_MESH_NODAL_PYRAMID5]; ielt++) {
+
+if (pts_idx[ielt+1] == pts_idx[ielt]) continue;
 
     _locate_in_tetrahedron (elt_vtx_coord + elt_vtx_idx[ielt] * 3,
                             pts_idx[ielt+1] - pts_idx[ielt],
@@ -1739,6 +1750,8 @@ PDM_point_location_nodal
 
     for (ielt = type_idx[type]; ielt < type_idx[type+1]; ielt++) {
 
+      if (pts_idx[ielt+1] == pts_idx[ielt]) continue;
+
       _locate_in_cell_3d (type,
                           elt_vtx_coord + elt_vtx_idx[ielt] * 3,
                           pts_idx[ielt+1] - pts_idx[ielt],
@@ -1757,6 +1770,8 @@ PDM_point_location_nodal
   int ipoly = 0;
   for (ielt = type_idx[PDM_MESH_NODAL_POLY_3D]; ielt < n_elt; ielt++) {
 
+    if (pts_idx[ielt+1] == pts_idx[ielt]) continue;
+
     int n_vtx = elt_vtx_idx[ielt+1] - elt_vtx_idx[ielt];
     _locate_in_polyhedron (n_vtx,
                            elt_vtx_coord + elt_vtx_idx[ielt] * 3,
@@ -1773,6 +1788,39 @@ PDM_point_location_nodal
     ipoly++;
   }
 
+}
+
+
+
+
+/**
+ * Compute hexahedron, pyramid, or prism parametric coordinates for a
+ * given point.
+ *
+ * This function is adapted from the CGNS interpolation tool.
+ *
+ * \param [in]   elt_type       Type of element
+ * \param [in]   point_coords   Point coordinates
+ * \param [in]   vertex_coords  Pointer to element vertex coordinates
+ * \param [in]   tolerance      Location tolerance factor
+ * \param [out]  uvw            Parametric coordinates of point in element
+ **/
+
+PDM_bool_t
+PDM_point_location_compute_uvw
+(
+ const PDM_Mesh_nodal_elt_t elt_type,
+ const double               point_coords[3],
+ const double               vertex_coords[],
+ const double               tolerance,
+ double                     uvw[3]
+ )
+{
+  return _compute_uvw (elt_type,
+                       point_coords,
+                       vertex_coords,
+                       tolerance,
+                       uvw);
 }
 
 #ifdef __cplusplus

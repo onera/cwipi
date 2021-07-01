@@ -9,37 +9,57 @@
 
 set(PARMETIS_FOUND FALSE)
 
-find_path(PARMETIS_INCLUDE_DIRS parmetis.h metis.h
-     HINTS ${PARMETIS_DIR}/include $ENV{PARMETIS_DIR}/include
+# Parmetis
+find_path(PARMETIS_INCLUDE_DIRS parmetis.h
+     HINTS ${PARMETIS_DIR}/include $ENV{PARMETIS_DIR}/include $ENV{PARMETIS_ROOT}/include
      NO_DEFAULT_PATH
      "Directory where the ParMETIS header is located"
     )
-find_path(PARMETIS_INCLUDE_DIRS parmetis.h metis.h
+find_path(PARMETIS_INCLUDE_DIRS parmetis.h
      "Directory where the ParMETIS header is located"
      )
 
+find_library(PARMETIS_LIBRARY   parmetis
+     HINTS ${PARMETIS_DIR}/lib $ENV{PARMETIS_DIR}/lib $ENV{PARMETIS_ROOT}/lib
+     NO_DEFAULT_PATH
+     DOC "The ParMETIS library"
+     )
+find_library(PARMETIS_LIBRARY   parmetis
+     DOC "The ParMETIS library"
+     )
+
+# Metis
+if (NOT EXISTS ${PARMETIS_INCLUDE_DIRS}/metis.h)
+  find_path(METIS_INCLUDE_DIRS metis.h
+       HINTS ${METIS_DIR}/include $ENV{METIS_DIR}/include $ENV{METIS_ROOT}/include
+       NO_DEFAULT_PATH
+       "Directory where the METIS header is located"
+      )
+  find_path(METIS_INCLUDE_DIRS metis.h
+       "Directory where the METIS header is located"
+       )
+endif()
+
+  find_library(METIS_LIBRARY   metis
+       HINTS ${METIS_DIR}/lib $ENV{METIS_DIR}/lib $ENV{METIS_ROOT}/lib
+       NO_DEFAULT_PATH
+       DOC "The METIS library"
+       )
+  find_library(METIS_LIBRARY   metis
+       DOC "The METIS library"
+       )
+
+# message("PARMETIS_LIBRARY    = " ${PARMETIS_LIBRARY})
+# message("METIS_LIBRARY    = " ${METIS_LIBRARY})
+# message("METIS_INCLUDE_DIRS    = " ${METIS_INCLUDE_DIRS})
+# Concatenate
+set(PARMETIS_INCLUDE_DIRS ${PARMETIS_INCLUDE_DIRS}) # ${METIS_INCLUDE_DIRS})
 mark_as_advanced(PARMETIS_INCLUDE_DIRS)
-
-find_library(PARMETIS_LIBRARY   parmetis
-     HINTS ${PARMETIS_DIR}/lib $ENV{PARMETIS_DIR}/lib
-     NO_DEFAULT_PATH
-     DOC "The ParMETIS library"
-     )
-find_library(PARMETIS_LIBRARY   parmetis
-     DOC "The ParMETIS library"
-     )
-
-find_library(METIS_LIBRARY   metis
-     HINTS ${PARMETIS_DIR}/lib $ENV{PARMETIS_DIR}/lib
-     NO_DEFAULT_PATH
-     DOC "The METIS library"
-     )
-find_library(METIS_LIBRARY   metis
-     DOC "The METIS library"
-     )
-
-set(PARMETIS_LIBRARIES ${PARMETIS_LIBRARY} ${METIS_LIBRARY} CACHE STRING "ParMETIS libraries")
+set(PARMETIS_LIBRARIES ${PARMETIS_LIBRARY}) # ${METIS_LIBRARY})
+# set(PARMETIS_LIBRARIES ${PARMETIS_LIBRARIES} ${METIS_LIBRARY} CACHE STRING "ParMETIS libraries")
 mark_as_advanced(PARMETIS_LIBRARIES)
+# message("PARMETIS_INCLUDE_DIRS = " ${PARMETIS_INCLUDE_DIRS})
+# message("PARMETIS_LIBRARIES    = " ${PARMETIS_LIBRARIES})
 
 if (PARMETIS_LIBRARIES AND PARMETIS_INCLUDE_DIRS)
 
@@ -64,12 +84,12 @@ int main() {
 #ifdef PARMETIS_SUBMINOR_VERSION
   printf(\"%i.%i.%i\",
          PARMETIS_MAJOR_VERSION,
-	 PARMETIS_MINOR_VERSION,
+   PARMETIS_MINOR_VERSION,
          PARMETIS_SUBMINOR_VERSION);
 #else
   printf(\"%i.%i\\n\",
          PARMETIS_MAJOR_VERSION,
-	 PARMETIS_MINOR_VERSION);
+   PARMETIS_MINOR_VERSION);
 #endif
   return 0;
 }
@@ -115,8 +135,8 @@ find_package_handle_standard_args(ParMETIS
                                   "ParMETIS could not be found/configured."
                                   PARMETIS_LIBRARIES
                                   PARMETIS_INCLUDE_DIRS
-				  PARMETIS_VERSION
-				  PARMETIS_VERSION_OK)
+                                  PARMETIS_VERSION
+                                  PARMETIS_VERSION_OK)
 mark_as_advanced(PARMETIS_LIBRARIES
                  PARMETIS_INCLUDE_DIRS
                  PARMETIS_VERSION

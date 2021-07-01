@@ -1731,10 +1731,15 @@ PDM_writer_ensight_var_write
                                                                   blocks_id[iblock],
                                                                   i);
 
-            PDM_g_num_t  *numabs_block =
+           PDM_g_num_t  *numabs_block =
                     PDM_Mesh_nodal_block_g_num_get (geom->mesh_nodal,
                                                     blocks_id[iblock],
                                                     i);
+             // PDM_g_num_t  *numabs_block =
+             //PDM_Mesh_nodal_g_num_get (geom->mesh_nodal,
+             //                           blocks_id[iblock],
+             //                           i);
+
             for (int j = 0; j < n_elt; j++) {
               numabs[n_val_buff++] = (PDM_g_num_t) numabs_block[j];
             }

@@ -23,6 +23,7 @@
 #include "pdm_sort.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm_array.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -469,8 +470,8 @@ _distrib_data
   //    _id_max = _MAX (_id_max, ptb->gnum_elt[i][j]);
   //  }
   //}
+  // fflush(stdout);
 
-  fflush(stdout);
   for (int i = 0; i < ptb->n_part; i++) {
 
     ptb->n_elt_proc+= ptb->n_elt[i];
@@ -819,6 +820,87 @@ _distrib_data
   }
 }
 
+
+
+static void
+_compute_global_weights
+(
+ PDM_part_to_block_t *ptb
+ )
+{
+  /* Send local weights */
+  int *send_count = PDM_array_zeros_int (ptb->s_comm);
+  double *part_weight = malloc (sizeof(double) * ptb->tn_send_data);
+  int idx = 0;
+  for (int i = 0; i < ptb->n_part; i++) {
+    for (int j = 0; j < ptb->n_elt[i]; j++) {
+      int rank = ptb->dest_proc[idx++];
+      part_weight[ptb->i_send_data[rank] + send_count[rank]++] = ptb->weight[i][j];
+    }
+  }
+
+  double *recv_weight = malloc (sizeof(double) * ptb->tn_recv_data);
+  PDM_MPI_Alltoallv (part_weight,
+                     ptb->n_send_data,
+                     ptb->i_send_data,
+                     PDM_MPI_DOUBLE,
+                     recv_weight,
+                     ptb->n_recv_data,
+                     ptb->i_recv_data,
+                     PDM_MPI_DOUBLE,
+                     ptb->comm);
+
+  /* Sum received weights */
+  double *block_weight = malloc (sizeof(double) * ptb->n_elt_block);
+  for (int i = 0; i < ptb->n_elt_block; i++) {
+    block_weight[i] = 0.;
+  }
+
+  idx = 0;
+  for (int i = 0; i < ptb->tn_recv_data; i++) {
+    int j = ptb->order[i];
+    while (ptb->block_gnum[idx] < ptb->sorted_recv_gnum[i]) {
+      idx++;
+    }
+    block_weight[idx] += recv_weight[j];
+  }
+
+  idx = 0;
+  for (int i = 0; i < ptb->tn_recv_data; i++) {
+    int j = ptb->order[i];
+    while (ptb->block_gnum[idx] < ptb->sorted_recv_gnum[i]) {
+      idx++;
+    }
+    recv_weight[j] = block_weight[idx];
+  }
+  free (block_weight);
+
+  /* Send back global weights */
+  PDM_MPI_Alltoallv (recv_weight,
+                     ptb->n_recv_data,
+                     ptb->i_recv_data,
+                     PDM_MPI_DOUBLE,
+                     part_weight,
+                     ptb->n_send_data,
+                     ptb->i_send_data,
+                     PDM_MPI_DOUBLE,
+                     ptb->comm);
+  free (recv_weight);
+
+  /* Store global weights */
+  ptb->weight_g = malloc (sizeof(double *) * ptb->n_part);
+  PDM_array_reset_int (send_count, ptb->s_comm, 0);
+  idx = 0;
+  for (int i = 0; i < ptb->n_part; i++) {
+    ptb->weight_g[i] = malloc (sizeof(double) * ptb->n_elt[i]);
+    for (int j = 0; j < ptb->n_elt[i]; j++) {
+      int rank = ptb->dest_proc[idx++];
+      ptb->weight_g[i][j] = part_weight[ptb->i_send_data[rank] + send_count[rank]++];
+    }
+  }
+  free (send_count);
+  free (part_weight);
+}
 /*=============================================================================
  * Public function definitions
  *============================================================================*/
@@ -914,6 +996,8 @@ PDM_part_to_block_create
   ptb->n_elt_block       = 0;
   ptb->block_gnum        = NULL;  /*!< Global number of reveived data (size = tn_recv_data) */
 
+  ptb->weight_g          = NULL; /*!< Global weights of elements for any part */
+
   /* Asynchone */
   ptb->max_exch_request = 10;
   ptb->next_request     = 0;
@@ -951,6 +1035,14 @@ PDM_part_to_block_create
    */
 
   _distrib_data (ptb, 0);
+
+
+  /*
+   * Compute global weight for each element
+   */
+  if (ptb->weight != NULL && ptb->t_post == PDM_PART_TO_BLOCK_POST_MERGE) {
+    _compute_global_weights (ptb);
+  }
 
   return (PDM_part_to_block_t *) ptb;
 }
@@ -1046,6 +1138,8 @@ PDM_part_to_block_create2
   ptb->order            = NULL;  /*!< Order */
   ptb->n_elt_block      = 0;
   ptb->block_gnum       = NULL;  /*!< Global number of reveived data (size = tn_recv_data) */
+
+  ptb->weight_g          = NULL; /*!< Global weights of elements for any part */
 
   /* Asynchone */
   ptb->max_exch_request = 10;
@@ -1912,6 +2006,9 @@ PDM_part_to_block_asyn_post_treatment
 
   assert(ptb->wait_status[request_id] == 1);
 
+  // size_t s_send_buffer = ptb->i_send_buffer[request_id][ptb->s_comm - 1] + ptb->n_send_buffer[request_id][ptb->s_comm -1];
+  size_t s_recv_buffer = ptb->i_recv_buffer[request_id][ptb->s_comm - 1] + ptb->n_recv_buffer[request_id][ptb->s_comm -1];
+
   free(ptb->send_buffer  [request_id]);
   free(ptb->n_send_buffer[request_id]);
   free(ptb->i_send_buffer[request_id]);
@@ -1924,9 +2021,174 @@ PDM_part_to_block_asyn_post_treatment
   ptb->n_recv_buffer[request_id] = NULL;
   ptb->i_recv_buffer[request_id] = NULL;
 
+  size_t s_data         = ptb->s_data    [request_id];
+  PDM_stride_t t_stride = ptb->t_stride  [request_id];
+  int cst_stride        = ptb->cst_stride[request_id];
+
   /* Classic post-treatment */
+  unsigned char *_block_data = malloc(sizeof(unsigned char) * s_recv_buffer);
+  assert(_block_data != NULL);
 
+  int* recv_stride = ptb->recv_stride[request_id];
+  unsigned char* recv_buffer = ptb->recv_buffer[request_id];
 
+  *block_data = _block_data;
+  *block_stride = NULL;
+  int *i_recv_stride = NULL;
+  int *i_block_stride = NULL;
+  int s_block_data = ((int) sizeof(unsigned char) * s_recv_buffer) / (int) s_data;
+
+  if (t_stride == PDM_STRIDE_VAR) {
+    int* _block_stride = NULL;
+    if(ptb->tn_recv_data > 0){
+      _block_stride = malloc(sizeof(int) * ptb->tn_recv_data);
+    }
+    *block_stride = _block_stride;
+    for (int i = 0; i < ptb->tn_recv_data; i++) {
+      _block_stride[i] = recv_stride[ptb->order[i]];
+    }
+
+    /*
+     * Compute index in data
+     */
+
+    i_recv_stride = malloc (sizeof(int) * (ptb->tn_recv_data + 1));
+    i_block_stride = malloc (sizeof(int) * (ptb->tn_recv_data + 1));
+
+    i_recv_stride[0] = 0;
+    i_block_stride[0] = 0;
+    for (int i = 0; i < ptb->tn_recv_data; i++) {
+      i_recv_stride[i+1]  = i_recv_stride[i] + recv_stride[i];
+      i_block_stride[i+1] = i_block_stride[i] + _block_stride[i];
+    }
+
+    for (int i = 0; i < ptb->tn_recv_data; i++) {
+      i_recv_stride[i+1]  *= (int) s_data;
+      i_block_stride[i+1] *= (int) s_data;
+    }
+
+    /*
+     * Sort Buffer
+     */
+
+    for (int i = 0; i < ptb->tn_recv_data; i++) {
+      int old = ptb->order[i];
+      int idOld = i_recv_stride[old];
+      for (int k = i_block_stride[i]; k < i_block_stride[i+1]; k++) {
+        _block_data[k] = recv_buffer[idOld++];
+      }
+    }
+
+//    free (recv_buffer);
+    // free (recv_stride);
+    free (i_recv_stride);
+
+    /*
+     * post processing
+     */
+
+    if (ptb->t_post != PDM_PART_TO_BLOCK_POST_NOTHING) {
+
+      int idx1 = 0;
+      int idx2 = 0;
+
+      if (ptb->tn_recv_data == 1) {
+        idx2 = i_block_stride[1];
+      }
+
+      for (int i = 1; i < ptb->tn_recv_data; i++) {
+        if (i == 1) {
+          idx2 = i_block_stride[1];
+        }
+        if (ptb->block_gnum[idx1] != ptb->sorted_recv_gnum[i]) {
+          idx1 += 1;
+          _block_stride[idx1] = _block_stride[i];
+          if (ptb->t_post == PDM_PART_TO_BLOCK_POST_CLEANUP) {
+            for (int k = i_block_stride[i]; k < i_block_stride[i+1]; k++) {
+              _block_data[idx2++] = _block_data[k];
+            }
+          }
+        }
+        else {
+          if (ptb->t_post == PDM_PART_TO_BLOCK_POST_MERGE) {
+            _block_stride[idx1] += _block_stride[i];
+          }
+        }
+      }
+
+      /* Cleanup */
+
+      if (ptb->t_post == PDM_PART_TO_BLOCK_POST_CLEANUP) {
+        _block_data = realloc (_block_data, sizeof(unsigned char) * idx2);
+        *block_data = _block_data;
+
+        _block_stride = realloc (_block_stride, sizeof(int) * ptb->n_elt_block);
+
+        *block_stride = _block_stride;
+        s_block_data = idx2 / (int) s_data;
+
+      }
+
+    }
+
+    free (i_block_stride);
+
+  }
+
+  else {
+
+    /*
+     * Sort Buffer
+     */
+
+    for (int i = 0; i < ptb->tn_recv_data; i++) {
+      int n_octet = cst_stride * (int) s_data;
+      int old = ptb->order[i];
+      int idOld = old * n_octet;
+
+      for (int k = i*n_octet; k < (i+1)*n_octet; k++) {
+        _block_data[k] = recv_buffer[idOld++];
+      }
+    }
+
+    /*
+     * Post processing
+     */
+
+    if (ptb->t_post != PDM_PART_TO_BLOCK_POST_NOTHING) {
+      int idx2 = 0;
+      int idx1 = 0;
+
+      assert (ptb->t_post != PDM_PART_TO_BLOCK_POST_MERGE);
+
+      if (ptb->tn_recv_data == 1) {
+        idx2 =  cst_stride * (int) s_data;
+      }
+
+      for (int i = 1; i < ptb->tn_recv_data; i++) {
+        int n_octet = cst_stride * (int) s_data;
+        if (i == 1) {
+          idx2 = n_octet;
+        }
+        if (ptb->block_gnum[idx1] != ptb->sorted_recv_gnum[i]) {
+          idx1 += 1;
+          if (ptb->t_post == PDM_PART_TO_BLOCK_POST_CLEANUP) {
+            int idx3 = i * cst_stride * (int) s_data;
+            for (int k = 0; k < n_octet; k++) {
+              _block_data[idx2++] = _block_data[idx3++];
+            }
+          }
+        }
+      }
+
+      if (ptb->t_post == PDM_PART_TO_BLOCK_POST_CLEANUP) {
+        _block_data = realloc (_block_data, sizeof(unsigned char) * idx2);
+        *block_data = _block_data;
+        s_block_data = idx2 / (int) s_data;
+      }
+
+    }
+  }
 
   /*
    * Free
@@ -1937,6 +2199,8 @@ PDM_part_to_block_asyn_post_treatment
   ptb->recv_buffer[request_id] = NULL;
 
   ptb->wait_status[request_id] = 2;
+
+  PDM_UNUSED(s_block_data);
 
 }
 
@@ -2002,6 +2266,13 @@ PDM_part_to_block_free
       (ptb->t_post != PDM_PART_TO_BLOCK_POST_MERGE_UNIFORM) && (ptb->block_gnum != NULL)) {
     free (ptb->block_gnum);
     ptb->block_gnum = NULL;
+  }
+
+  if (ptb->weight_g != NULL) {
+    for (int i = 0; i < ptb->n_part; i++) {
+      free (ptb->weight_g[i]);
+    }
+    free (ptb->weight_g);
   }
 
   /* This one check if all buffer has been correctly move or delete */
@@ -2075,7 +2346,7 @@ PDM_part_to_block_adapt_partial_block_to_block
 (
  PDM_part_to_block_t  *ptb,
  int                 **block_n,
- int                   n_g_block
+ PDM_g_num_t           n_g_block
 )
 {
   PDM_g_num_t *_block_distrib_idx = malloc (sizeof(PDM_g_num_t) * (ptb->s_comm + 1));
@@ -2125,6 +2396,28 @@ PDM_part_to_block_adapt_partial_block_to_block
   return _block_distrib_idx;
 }
 
+
+
+
+
+/**
+ *
+ * \brief Return global weights of element in the current process
+ *
+ * \param [in]   ptb          Part to block structure
+ *
+ * \return  Global weights
+ *
+ */
+
+double **
+PDM_part_to_block_global_weight_get
+(
+ PDM_part_to_block_t *ptb
+)
+{
+  return ptb->weight_g;
+}
 
 #undef _MIN
 #undef _MAX

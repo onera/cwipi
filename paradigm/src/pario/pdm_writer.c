@@ -760,6 +760,71 @@ const int               n_part
   return id_geom;
 }
 
+//-->>
+int
+PDM_writer_geom_create_from_mesh_nodal
+(
+const int                  id_cs,
+const char                *nom_geom,
+const PDM_writer_statut_t  st_decoup_poly2d,
+const PDM_writer_statut_t  st_decoup_poly3d,
+PDM_Mesh_nodal_t          *mesh
+)
+{
+  /* Erreur si le d�coupage des polygones ou polyedres est choisi */
+
+  if ((st_decoup_poly2d == 1) || (st_decoup_poly3d == 1)) {
+    PDM_error(__FILE__, __LINE__, 0, "Erreur cs_geom_create : Les fonctions de decoupage ne sont pas operationnelles\n");
+    abort();
+  }
+
+  /* Recherche de l'objet cs courant */
+
+  PDM_writer_t *cs = (PDM_writer_t *) PDM_Handles_get (cs_tab, id_cs);
+  if (cs == NULL) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad writer identifier\n");
+  }
+
+  /* Mise a jour du tableau de stockage */
+
+  if (cs->geom_tab == NULL) {
+    cs->geom_tab = PDM_Handles_create (4);
+  }
+
+  /* Allocation de la structure PDM_writer_geom_t */
+
+  PDM_writer_geom_t *geom = (PDM_writer_geom_t *) malloc(sizeof(PDM_writer_geom_t));
+
+  int id_geom = PDM_Handles_store (cs->geom_tab, geom);
+
+  /* Initialisation de la structure PDM_writer_geom_t */
+
+  //_geom_init(geom, n_part, cs->pdm_mpi_comm);
+  geom->nom_geom = NULL;
+  geom->st_decoup_poly2d = PDM_WRITER_OFF;
+  geom->st_decoup_poly3d = PDM_WRITER_OFF;
+  geom->mesh_nodal = mesh;
+  geom->geom_fmt       = NULL;
+
+  geom->_cs = cs;
+  geom->pdm_mpi_comm = cs->pdm_mpi_comm;
+  size_t l_nom_geom = strlen(nom_geom);
+  geom->nom_geom = (char *) malloc(sizeof(char) * (l_nom_geom + 1));
+  strcpy(geom->nom_geom, nom_geom);  /* Nom de la geometrie */
+
+  /* Appel de la fonction complementaire propre au format */
+
+  PDM_writer_fmt_t * fmt_ptr = (PDM_writer_fmt_t *) PDM_Handles_get (fmt_tab, cs->fmt_id);
+
+  if (fmt_ptr->geom_create_fct != NULL) {
+    (fmt_ptr->geom_create_fct) (geom);
+  }
+
+  return id_geom;
+}
+//<<--
+
+
 /*----------------------------------------------------------------------------
  * Definition des coordonnees de la partition courante
  *
