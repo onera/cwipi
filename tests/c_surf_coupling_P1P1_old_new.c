@@ -1039,8 +1039,9 @@ int main
     CWP_Cpl_create (code_name[0],
                     coupling_name,
                     coupled_code_name[0],
+                    CWP_INTERFACE_SURFACE,
                     CWP_COMM_PAR_WITH_PART,
-                    CWP_SPATIAL_INTERP_FROM_LOCATION,
+                    CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF,
                     n_part,
                     CWP_DYNAMIC_MESH_STATIC,
                     CWP_TIME_EXCH_CPL_TIME_STEP);

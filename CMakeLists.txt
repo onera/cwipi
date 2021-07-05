@@ -35,17 +35,17 @@ set(PDM_VERSION "${PDM_VERSION_MAJOR}.${PDM_VERSION_MINOR}.${PDM_VERSION_PATCH}"
 # OpenMP
 # ------
 
-option(CWP_ENABLE_OPENMP "Enable OpenMP" OFF)
+option(CWP_ENABLE_OPENMP "Enable OpenMP" ON)
 
 # Pt-scotch
 # ---------
 
-option(CWP_ENABLE_PTSCOTCH "Compile with support for Pt-SCOTCH." OFF)
+option(CWP_ENABLE_PTSCOTCH "Compile with support for Pt-SCOTCH." ON)
 
 # ParMetis
 # --------
 
-option(CWP_ENABLE_PARMETIS "Compile with support for ParMetis." OFF)
+option(CWP_ENABLE_PARMETIS "Compile with support for ParMetis." ON)
 
 # Shared libraries
 # ----------------
@@ -70,13 +70,14 @@ option(CWP_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
 # Fortran interface
 # -----------------
 
-option(CWP_ENABLE_Fortran  "Build Shared Fortran Interface" OFF)
+option(CWP_ENABLE_Fortran  "Build Shared Fortran Interface" ON)
 
 # New to old API
 # -----------------
 
-option(CWP_ENABLE_NEW_API  "Build new API (under construction)" OFF)
-#option(CWP_NEW_TO_OLD_API  "Build Fake Old API refering to New one" OFF)
+option(CWP_NEW_TO_OLD_API  "Build Fake Old API refering to New one" OFF)
+
+option(CWP_ENABLE_NEW_API  "Build new API (under construction)" ON)
 
 # MKL, BLAS, LAPACK
 # -----------------

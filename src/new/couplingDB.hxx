@@ -69,6 +69,7 @@ namespace cwipi {
      const CodeProperties        &localCodeProperties,
      const string                &cplId,
      const CodeProperties        &coupledCodeProperties,
+     const CWP_Interface_t       entities_dim,
      const CWP_Comm_t           commType,
      const CWP_Spatial_interp_t           spatialInterpAlgo,
      const int                    nPart,

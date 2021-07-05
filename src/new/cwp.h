@@ -249,9 +249,11 @@ typedef enum {
 
 typedef enum {
 
-  CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES, /*!< Least squares from closest points */
-  CWP_SPATIAL_INTERP_FROM_INTERSECTION,                /*!< Meshes intersection */
-  CWP_SPATIAL_INTERP_FROM_LOCATION                     /*!< Location into a mesh */
+  CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES,   /*!< Least squares from closest points */
+  CWP_SPATIAL_INTERP_FROM_INTERSECTION,                  /*!< Meshes intersection */
+  CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF,      /*!< Location into a mesh with the distance from the points cloud to surface */
+  CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, /*!< Location into a mesh with the octree method*/
+  CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE /*!< Location into a mesh with the dbbtree method */
 
 } CWP_Spatial_interp_t;
 
@@ -651,6 +653,7 @@ CWP_Cpl_create
  const char                *local_code_name,
  const char                *cpl_id,
  const char                *coupled_code_name,
+ CWP_Interface_t            entities_dim,
  const CWP_Comm_t           comm_type,
  const CWP_Spatial_interp_t spatial_interp,
  const int                  n_part,
@@ -1979,6 +1982,7 @@ CWP_Param_unlock
 const char *code_name
 );
 
+#include "cwp_cf.h"
 
 #ifdef __cplusplus
 }

@@ -68,25 +68,18 @@ namespace cwipi {
              const CWP_Dynamic_mesh_t displacement,
              Coupling *cpl)
              : _localComm(localComm),
-               _nDim(-1),_nBlocks(0), _order(-1),
-               _pdmGNum_handle_index(-1),
+               _nBlocks(0),
+               _pdmNodal_handle_index(),
                 //_hoOrdering (NULL),
-               _pdmNodal(NULL),_visu(visu),
+               _visu(visu),
                _displacement(displacement),
                _cpl(cpl),
-               _faceEdgeMethod(0) {
+               _faceEdgeMethod(0),
+               _cellFaceMethod(0){
 
     _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&localComm));
-   // _pdm_localComm=&pdm_localComm;
     // pdm_nodal building
 
-    _pdmGNum_handle_index  = PDM_gnum_create           (3, npart,
-                                                        PDM_FALSE,
-                                                        1e-3,
-                                                        _pdm_localComm,
-                                                        PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
-    _pdmGNum_handle_index_elt  = PDM_gnum_create           (3, npart, PDM_FALSE, 1e-3, _pdm_localComm,
-                                                            PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
     _npart                 = npart;
     _nVertex   .resize(npart,0);
     _nElts     .resize(npart,0);
@@ -99,17 +92,25 @@ namespace cwipi {
     _global_num_vtx .resize(npart,NULL);
     _global_num_elt .resize(npart,NULL);
 
+    _nCells      .resize(npart, 0)  ;
+    _cellFaceIdx .resize(npart, NULL);
+    _cellFace    .resize(npart, NULL);
     _nFace       .resize(npart,0)   ;
     _faceEdgeIdx .resize(npart,NULL);
     _faceEdge    .resize(npart,NULL);
+    _faceVtxIdx  .resize(npart,NULL);
+    _faceVtx     .resize(npart,NULL);
     _nEdge       .resize(npart,0)   ;
     _edgeVtxIdx  .resize(npart,NULL);
     _edgeVtx     .resize(npart,NULL);
 
+    _cellFaceNb  .resize(npart,NULL);
     _edgeVtxNb   .resize(npart,NULL);
     _faceEdgeNb  .resize(npart,NULL);
+    _faceVtxNb   .resize(npart,NULL);
 
     _faceLNToGN  .resize(npart,NULL);
+    _cellLNToGN  .resize(npart,NULL);
 
   }
 
@@ -350,52 +351,6 @@ namespace cwipi {
 
 
 
-  /****************************************************/
-
-
-   CWP_Block_t Mesh::Mesh_nodal_block_type_get(const int id_block) {
-
-      PDM_Mesh_nodal_elt_t pdm_id_block = PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,id_block);
-      CWP_Block_t block_type;
-      switch (pdm_id_block) {
-
-       case PDM_MESH_NODAL_POINT: block_type = CWP_BLOCK_NODE;
-       break;
-
-       case PDM_MESH_NODAL_BAR2: block_type = CWP_BLOCK_EDGE2;
-       break;
-
-       case PDM_MESH_NODAL_TRIA3: block_type = CWP_BLOCK_FACE_TRIA3;
-       break;
-
-       case PDM_MESH_NODAL_QUAD4: block_type = CWP_BLOCK_FACE_QUAD4;
-       break;
-
-       case PDM_MESH_NODAL_TETRA4: block_type = CWP_BLOCK_CELL_TETRA4;
-       break;
-
-       case PDM_MESH_NODAL_POLY_2D: block_type = CWP_BLOCK_FACE_POLY;
-       break;
-
-       case PDM_MESH_NODAL_HEXA8: block_type = CWP_BLOCK_CELL_HEXA8;
-       break;
-
-       case PDM_MESH_NODAL_PYRAMID5: block_type = CWP_BLOCK_CELL_PYRAM5;
-       break;
-
-       case PDM_MESH_NODAL_PRISM6: block_type = CWP_BLOCK_CELL_PRISM6;
-       break;
-
-       case PDM_MESH_NODAL_POLY_3D: block_type = CWP_BLOCK_CELL_POLY;
-       break;
-
-       default: block_type = CWP_BLOCK_NODE;
-                PDM_error(__FILE__, __LINE__, 0, "No referenced PDM_Mesh_nodal_elt_t.\n");
-      }
-      return block_type;
-   }
-
-
   /**************************************************************/
 
 
@@ -457,8 +412,20 @@ namespace cwipi {
                            gnum   );
         }
       }
-    }
+      else if (t_block == PDM_MESH_NODAL_HEXA8) {
+        int block_id = blockAdd(CWP_BLOCK_CELL_HEXA8);
+        for (int i_part = 0 ; i_part < _npart ; i_part++) {
+          int n_hexa = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index, block_ids[i], i_part);
+          int *connec = nullptr;
+          CWP_g_num_t *gnum;
+          PDM_Mesh_nodal_block_std_get(_pdmNodal_handle_index, block_ids[i], i_part, &connec);
+          gnum = PDM_Mesh_nodal_g_num_get(_pdmNodal_handle_index, block_ids[i], i_part);
 
+          stdBlockSet(i_part, block_id, n_hexa, connec, gnum);
+        }
+      }
+      // Define all the other types
+     }
    }
 
 
@@ -478,20 +445,22 @@ namespace cwipi {
 
       if(coordsDefined()){
         if(gnumVtxRequired () ){
-          for(int i_part=0;i_part<_npart;i_part++) {
+            int pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+
+            for(int i_part=0;i_part<_npart;i_part++) {
             if(   _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART
                || (_cpl -> commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && unionRank == _cpl->communicationGet() -> unionCommLocCodeRootRanksGet() ) ) {
-              PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, _nVertex[i_part], _coords[i_part], NULL);
+              PDM_gnum_set_from_coords (pdmGNum_handle_index, i_part, _nVertex[i_part], _coords[i_part], NULL);
             }
             else {
               double* coords_null = (double*)malloc(3*0*sizeof(double));
-              PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, 0, coords_null, NULL);
+              PDM_gnum_set_from_coords (pdmGNum_handle_index, i_part, 0, coords_null, NULL);
             }
           }
 
-          PDM_gnum_compute (_pdmGNum_handle_index);
+          PDM_gnum_compute (pdmGNum_handle_index);
           for(int i_part=0;i_part<_npart;i_part++)
-            _global_num_vtx[i_part] =const_cast<CWP_g_num_t*>(PDM_gnum_get (_pdmGNum_handle_index, i_part));
+            _global_num_vtx[i_part] =const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
         }
 
         for(int i_part=0;i_part<_npart;i_part++) {
@@ -514,7 +483,7 @@ namespace cwipi {
 
        if(_faceEdgeMethod == 1){
          for(int i_part=0;i_part<_npart;i_part++){
-            PDM_Mesh_nodal_cell2d_celledge_add(_pdmNodal_handle_index,
+             PDM_Mesh_nodal_cell2d_celledge_add(_pdmNodal_handle_index,
                                                i_part,
                                                _nFace[i_part],
                                                _nEdge[i_part]    ,
@@ -530,6 +499,25 @@ namespace cwipi {
 
          updateBlockDB();
        }
+        if(_cellFaceMethod == 1){
+            for(int i_part=0;i_part<_npart;i_part++){
+                PDM_Mesh_nodal_cell3d_cellface_add(_pdmNodal_handle_index,
+                                                   i_part,
+                                                   _nCells[i_part],
+                                                   _nFace[i_part]    ,
+                                                   _faceVtxIdx[i_part],
+                                                   _faceVtxNb[i_part],
+                                                   _faceVtx[i_part],
+                                                   _cellFaceIdx[i_part],
+                                                   _cellFaceNb[i_part],
+                                                   _cellFace[i_part],
+                                                   _cellLNToGN[i_part]);
+
+
+            }//end i_part loop
+
+            updateBlockDB();
+        }
 
        int g_num_computation_required = 0;
        for(int i_block = 0; i_block<_nBlocks;i_block++) {
@@ -543,30 +531,22 @@ namespace cwipi {
        }
 
        if(g_num_computation_required == 1 ) {
-         if(_cpl -> commTypeGet() == CWP_COMM_PAR_WITH_PART){
-            for(int i_block = 0; i_block<_nBlocks;i_block++) {
-              for(int i_part =0;i_part<_npart;i_part++) {
-                 const double* blockCellCenters = _blockDB[i_block] -> eltCentersGet(i_part);
-              }
-            }
-         }
-
-
+         int pdmGNum_handle_index_elt = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
          for(int i_part=0;i_part<_npart;i_part++) {
             if(   _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART
                  || (_cpl -> commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && unionRank == _cpl->communicationGet() -> unionCommLocCodeRootRanksGet() ) ) {
-                PDM_gnum_set_from_coords (_pdmGNum_handle_index_elt, i_part, _nElts[i_part], eltCentersGet(i_part), NULL);
+                PDM_gnum_set_from_coords (pdmGNum_handle_index_elt, i_part, _nElts[i_part], eltCentersGet(i_part), NULL);
             }
             else {
               double* coords_null = (double*)malloc(3*0*sizeof(double));
-              PDM_gnum_set_from_coords (_pdmGNum_handle_index_elt, i_part, 0, coords_null, NULL);
+              PDM_gnum_set_from_coords (pdmGNum_handle_index_elt, i_part, 0, coords_null, NULL);
             }
          }
 
-         PDM_gnum_compute (_pdmGNum_handle_index_elt);
+         PDM_gnum_compute (pdmGNum_handle_index_elt);
 
          for(int i_part=0;i_part<_npart;i_part++){
-           _global_num_elt[i_part] =const_cast<CWP_g_num_t*>(PDM_gnum_get (_pdmGNum_handle_index_elt, i_part));
+           _global_num_elt[i_part] =const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index_elt, i_part));
          }
 
 
@@ -582,12 +562,20 @@ namespace cwipi {
 
 
 
-       for(int i_block = 0; i_block<_nBlocks;i_block++) {
-         _blockDB[i_block] -> geomFinalize(_faceEdgeMethod);
-       } //Loop on blockDB
+        if (_faceEdgeMethod) {
+            for (int i_block = 0 ; i_block < _nBlocks ; i_block++) {
+                _blockDB[i_block]->geomFinalize(_faceEdgeMethod);
+            } //Loop on blockDB
+        }
 
-      _nBlocks     = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
-      _blocks_id   = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
+        if (_cellFaceMethod) {
+            for (int i_block = 0 ; i_block < _nBlocks ; i_block++) {
+                _blockDB[i_block]->geomFinalize(_cellFaceMethod);
+            } //Loop on blockDB
+        }
+
+        _nBlocks     = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
+        _blocks_id   = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
 
       if(_visu -> isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC ) {
         _visu -> GeomWrite(this);
@@ -727,30 +715,28 @@ namespace cwipi {
                         int         face_vtx_idx[],
                         int         face_vtx[],
                         CWP_g_num_t global_num[]) {
-       UNUSED(global_num);
-       int face_vtx_nb[n_faces];
-       for (int i=0;i<n_faces;i++)
-         {
-           face_vtx_nb[i] = face_vtx_idx[i+1] - face_vtx_idx[i] ;
+         _cellFaceMethod = 1;
+         if (global_num == NULL) {
+             int pdmGNum_local_recalculation = PDM_gnum_create(2, 1, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+             PDM_gnum_set_from_coords(pdmGNum_local_recalculation, i_part, n_cells, _coords[i_part], NULL); // TODO Is it really _coords[i_part] for cells numbering?
+             PDM_gnum_compute(pdmGNum_local_recalculation);
+             _cellLNToGN[i_part] = PDM_gnum_get(pdmGNum_local_recalculation, i_part);
          }
+         _cellLNToGN[i_part] = global_num;
 
-       int cell_face_nb[n_cells];
-       for (int i=0;i<n_cells;i++)
-         {
-           cell_face_nb[i] = cell_face_idx[i+1] - cell_face_idx[i] ;
-         }
-       PDM_Mesh_nodal_cell3d_cellface_add(_pdmNodal_handle_index,
-                                          i_part,
-                                          n_cells,
-                                          n_faces,
-                                          face_vtx_idx,
-                                          face_vtx_nb,
-                                          face_vtx,
-                                          cell_face_idx,
-                                          cell_face_nb,
-                                          cell_face,
-                                          NULL);
-       updateBlockDB();
+         _faceVtxIdx[i_part] = face_vtx_idx;
+         _cellFaceIdx[i_part] = cell_face_idx;
+         _faceVtx[i_part] = face_vtx;
+         _cellFace[i_part] = cell_face;
+
+         _faceVtxNb[i_part] = (int *) malloc(sizeof(int) * n_faces);
+         for (int i = 0 ; i < n_faces ; i++) _faceVtxNb[i_part][i] = face_vtx_idx[i + 1] - face_vtx_idx[i];
+
+         _cellFaceNb[i_part] = (int *) malloc(sizeof(int) * n_cells);
+         for (int i = 0 ; i < n_cells ; i++) _cellFaceNb[i_part][i] = cell_face_idx[i + 1] - cell_face_idx[i];
+
+         _nFace[i_part] = n_faces;
+         _nCells[i_part] = n_cells;
      }
 
 
@@ -762,34 +748,29 @@ namespace cwipi {
                                  int         edge_vtx_idx[],
                                  int         edge_vtx[],
                                  CWP_g_num_t global_num[]) {
-
-       _faceEdgeMethod = 1;
-       _faceLNToGN[i_part] = global_num;
-
-       _edgeVtxIdx[i_part] = edge_vtx_idx;
-       _faceEdgeIdx[i_part] = face_edge_idx;
-       _edgeVtx [i_part] = edge_vtx  ;
-       _faceEdge[i_part] = face_edge ;
-
-
-       _edgeVtxNb[i_part] = (int*)malloc(sizeof(int)*n_edges);
-       for (int i=0;i<n_edges;i++)
-         {
-          _edgeVtxNb[i_part][i] = edge_vtx_idx[i+1] - edge_vtx_idx[i] ;
+         _faceEdgeMethod = 1;
+         if (global_num == nullptr) {
+             int pdmGNum_local_recalculation = PDM_gnum_create(2, 1, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+             PDM_gnum_set_from_coords(pdmGNum_local_recalculation, i_part, n_faces, _coords[i_part], nullptr); // TODO Idem for faces
+             PDM_gnum_compute(pdmGNum_local_recalculation);
+             _faceLNToGN[i_part] = PDM_gnum_get(pdmGNum_local_recalculation, i_part);
          }
+         else _faceLNToGN[i_part] = global_num;
 
-       _faceEdgeNb[i_part] = (int*)malloc(sizeof(int)*n_faces);
-       for (int i=0;i<n_faces;i++)  {
-         _faceEdgeNb[i_part][i] = face_edge_idx[i+1] - face_edge_idx[i] ;
-       }
+         _edgeVtxIdx[i_part] = edge_vtx_idx;
+         _faceEdgeIdx[i_part] = face_edge_idx;
+         _edgeVtx[i_part] = edge_vtx;
+         _faceEdge[i_part] = face_edge;
 
+         _edgeVtxNb[i_part] = (int *) malloc(sizeof(int) * n_edges);
+         for (int i = 0 ; i < n_edges ; i++) _edgeVtxNb[i_part][i] = edge_vtx_idx[i + 1] - edge_vtx_idx[i];
 
-       _nEdge[i_part] = n_edges;
-       _nFace[i_part] = n_faces;
+         _faceEdgeNb[i_part] = (int *) malloc(sizeof(int) * n_faces);
+         for (int i = 0 ; i < n_faces ; i++) _faceEdgeNb[i_part][i] = face_edge_idx[i + 1] - face_edge_idx[i];
 
-
+         _nEdge[i_part] = n_edges;
+         _nFace[i_part] = n_faces;
      }
-
 }
 
 /**

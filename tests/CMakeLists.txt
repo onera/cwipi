@@ -123,9 +123,18 @@ include(TestCreate)
 set (_MPIEXEC_MAX_NUMPROCS 2)
 
 if (CWP_ENABLE_NEW_API)
+  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_dcube.c")
+    test_c_create(c_new_api_dcube 6)
+  endif()
+
   if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api.c")
+    set(MPIEXEC_PREFLAGS "--oversubscribe")
     test_c_create (c_new_api 10)
   endif ()
+
+  #if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_cellface_set_block.c")
+  #  test_c_create(c_new_api_cellface_set_block 2)
+  #endif()
 
   #if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_multiblock.c")
   #  test_c_create (c_new_api_multiblock 2)
@@ -221,6 +230,7 @@ if (CWP_ENABLE_Fortran AND NOT CWP_NEW_TO_OLD_API)
 #    test_fortran_create  (fortran_surf_TriaP2_PiPj   ${_MPIEXEC_MAX_NUMPROCS})
 #    target_link_libraries(fortran_surf_TriaP2_PiPj   spaceBasis)
 #    add_dependencies(fortran_surf_TriaP2_PiPj   spaceBasis)
+    test_fortran_create(fortran_new_api 10)
 
 endif()
 
