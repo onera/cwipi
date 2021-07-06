@@ -574,6 +574,13 @@ namespace cwipi {
             } //Loop on blockDB
         }
 
+        // For the case where the blocks were created with blockAdd
+        if (!_faceEdgeMethod && !_cellFaceMethod) {
+            for (int i_block = 0 ; i_block < _nBlocks ; i_block++) {
+                _blockDB[i_block]->geomFinalize(0);
+            } //Loop on blockDB
+        }
+
         _nBlocks     = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
         _blocks_id   = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
 
@@ -722,7 +729,7 @@ namespace cwipi {
              PDM_gnum_compute(pdmGNum_local_recalculation);
              _cellLNToGN[i_part] = PDM_gnum_get(pdmGNum_local_recalculation, i_part);
          }
-         _cellLNToGN[i_part] = global_num;
+         else _cellLNToGN[i_part] = global_num;
 
          _faceVtxIdx[i_part] = face_vtx_idx;
          _cellFaceIdx[i_part] = cell_face_idx;
