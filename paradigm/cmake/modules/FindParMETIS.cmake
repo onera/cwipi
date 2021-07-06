@@ -40,14 +40,27 @@ if (NOT EXISTS ${PARMETIS_INCLUDE_DIRS}/metis.h)
        )
 endif()
 
+
   find_library(METIS_LIBRARY   metis
-       HINTS ${METIS_DIR}/lib $ENV{METIS_DIR}/lib $ENV{METIS_ROOT}/lib
+       HINTS ${PARMETIS_DIR}/lib $ENV{PARMETIS_DIR}/lib $ENV{PARMETIS_ROOT}/lib
        NO_DEFAULT_PATH
        DOC "The METIS library"
        )
   find_library(METIS_LIBRARY   metis
        DOC "The METIS library"
        )
+  
+  if (NOT METIS_LIBRARY)
+    find_library(METIS_LIBRARY   metis
+         HINTS ${METIS_DIR}/lib $ENV{METIS_DIR}/lib $ENV{METIS_ROOT}/lib
+         NO_DEFAULT_PATH
+         DOC "The METIS library"
+         )
+
+    find_library(METIS_LIBRARY   metis
+       DOC "The METIS library"
+       )
+  endif()
 
 # message("PARMETIS_LIBRARY    = " ${PARMETIS_LIBRARY})
 # message("METIS_LIBRARY    = " ${METIS_LIBRARY})
@@ -55,7 +68,7 @@ endif()
 # Concatenate
 set(PARMETIS_INCLUDE_DIRS ${PARMETIS_INCLUDE_DIRS}) # ${METIS_INCLUDE_DIRS})
 mark_as_advanced(PARMETIS_INCLUDE_DIRS)
-set(PARMETIS_LIBRARIES ${PARMETIS_LIBRARY}) # ${METIS_LIBRARY})
+set(PARMETIS_LIBRARIES ${PARMETIS_LIBRARY} ${METIS_LIBRARY})
 # set(PARMETIS_LIBRARIES ${PARMETIS_LIBRARIES} ${METIS_LIBRARY} CACHE STRING "ParMETIS libraries")
 mark_as_advanced(PARMETIS_LIBRARIES)
 # message("PARMETIS_INCLUDE_DIRS = " ${PARMETIS_INCLUDE_DIRS})

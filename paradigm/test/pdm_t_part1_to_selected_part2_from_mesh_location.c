@@ -1092,10 +1092,21 @@ int main(int argc, char *argv[])
 
 
   int send_request = -1;
+
+  PDM_g_num_t **gnum1_gnum2_data = malloc (sizeof(PDM_g_num_t *) * n_part);
+  for (int i = 0; i < n_part; i++) {
+    gnum1_gnum2_data[i] = malloc (sizeof(PDM_g_num_t) * elt_pts_inside_idx[i][n_elt1[i]]);
+    for (int j = 0; j < n_elt1[i]; j++) {
+      for (int k = elt_pts_inside_idx[i][j]; k < elt_pts_inside_idx[i][j+1]; k++) {
+        gnum1_gnum2_data[i][k] = gnum_elt1[i][j];
+      }
+    }
+  }
+
   PDM_part1_to_selected_part2_issend (ptp,
                                      sizeof (PDM_g_num_t),
                                      1,
-                                     (void **) gnum_elt1,
+                                     (void **)  gnum1_gnum2_data,
                                      100,
                                      &send_request);
 
@@ -1120,14 +1131,27 @@ int main(int argc, char *argv[])
 
   PDM_part1_to_selected_part2_irecv_wait (ptp, recv_request);
 
+  for (int i = 0; i < n_part; i++) {
+    free (gnum1_gnum2_data[i]);
+  }
+  free (gnum1_gnum2_data);
 
 
+  PDM_g_num_t **ptp2_s_data = malloc (sizeof(PDM_g_num_t *) * n_part);
+  for (int i = 0; i < n_part; i++) {
+    ptp2_s_data[i] = malloc (sizeof(PDM_g_num_t) * location_idx[i][n_elt2[i]]);
+    for (int j = 0; j < n_elt2[i]; j++) {
+      for (int k = location_idx[i][j]; k < location_idx[i][j+1]; k++) {
+        ptp2_s_data[i][k] = gnum_elt2[i][j];
+      }
+    }
+  }
 
   send_request = -1;
   PDM_part1_to_selected_part2_issend (ptp2,
                                      sizeof (PDM_g_num_t),
                                      1,
-                                     (void **) gnum_elt2,
+                                     (void **) ptp2_s_data,
                                      100,
                                      &send_request);
 
@@ -1150,8 +1174,10 @@ int main(int argc, char *argv[])
 
   PDM_part1_to_selected_part2_irecv_wait (ptp2, recv_request);
 
-
-
+  for (int i = 0; i < n_part; i++) {
+    free (ptp2_s_data[i]);
+  }
+  free (ptp2_s_data);
 
 
   for (int i = 0; i < n_part; i++) {

@@ -744,7 +744,6 @@ int main(int argc, char *argv[])
   int n_wrong = 0;
   const PDM_g_num_t n_cell_seg = n_vtx_seg - 1;
   const double cell_side = length / ((double) n_cell_seg);
-  const double location_tolerance = 1.e-6;
 
   for (int ipart = 0; ipart < n_part; ipart++) {
     int n_located = PDM_mesh_location_n_located_get (mesh_loc,
@@ -825,7 +824,7 @@ int main(int argc, char *argv[])
             dist = PDM_MIN (dist, _dist);
           }
 
-          if (dist > location_tolerance) {
+          if (dist > tolerance) {
             n_wrong++;
           }
         }
@@ -925,7 +924,7 @@ int main(int argc, char *argv[])
               dist = PDM_MIN (dist, _dist);
             }
 
-            if (dist > location_tolerance) {
+            if (dist > tolerance) {
               //printf("!!! part %d, from source cell "PDM_FMT_G_NUM", point "PDM_FMT_G_NUM"\n", ipart, src_g_num[ipart][i], points_gnum[j]);
               n_wrong++;
             }

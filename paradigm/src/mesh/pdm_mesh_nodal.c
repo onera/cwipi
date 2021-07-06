@@ -1409,14 +1409,14 @@ const int i_part
 
   if (mesh->numabs == NULL) {
     mesh->numabs = malloc (sizeof(PDM_g_num_t*)*mesh->n_part);
-    int is_parent_num = (PDM_Mesh_nodal_block_parent_num_get(mesh, mesh->blocks_id[0], 0) == NULL);
+    int is_not_parent_num = (PDM_Mesh_nodal_block_parent_num_get(mesh, mesh->blocks_id[0], 0) == NULL);
     for (int i = 0; i < mesh->n_part; i++) {
       for (int i1 = 0; i1 < mesh->n_blocks; i1++) {
-        assert (is_parent_num == (PDM_Mesh_nodal_block_parent_num_get(mesh, mesh->blocks_id[i1], i) == NULL));
+        assert (is_not_parent_num == (PDM_Mesh_nodal_block_parent_num_get(mesh, mesh->blocks_id[i1], i) == NULL));
       }
     }
 
-    if (!is_parent_num) {
+    if (is_not_parent_num) {
 
       for (int i = 0; i < mesh->n_part; i++) {
         int k = 0;

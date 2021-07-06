@@ -1,6 +1,7 @@
 #ifndef __PDM_CONFIG_H__
 #define __PDM_CONFIG_H__
 
+#cmakedefine PDM_HAVE_FORTRAN_MPI_MODULE
 #cmakedefine PDM_HAVE_PARMETIS
 #cmakedefine PDM_HAVE_OPENMP
 #cmakedefine PDM_HAVE_PTSCOTCH

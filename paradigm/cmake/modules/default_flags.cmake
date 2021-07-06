@@ -192,23 +192,25 @@ elseif (CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
   set (CMAKE_C_FLAGS_SANITIZE        "-g -O0 -fsanitize=address -fno-omit-frame-pointer -Wall -Wextra")
 
 elseif (CMAKE_C_COMPILER_ID STREQUAL "IntelLLVM")
-  # set (CMAKE_C_FLAGS "-std=c99 -fPIC -funsigned-char -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused -Wno-empty-translation-unit -Wno-unused-function")
 
-  # set (CMAKE_C_FLAGS_RELEASE         "-O3")
-  # set (CMAKE_C_FLAGS_DEBUG           "-g -O0")
-  # set (CMAKE_C_FLAGS_PROFILING       "${CMAKE_C_FLAGS_RELEASE} -p")
-  # set (CMAKE_C_FLAGS_RELWITHDEBINFO  "-O3 -g")
-  # set (CMAKE_C_FLAGS_MINSIZEREL      "-O2")
-  # set (CMAKE_C_FLAGS_SANITIZE        "-g -O0 -fsanitize=address -fno-omit-frame-pointer -Wall -Wextra")
+  set (CMAKE_C_FLAGS "-fPIC -std=c99 -fPIC -funsigned-char -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused -Wno-empty-translation-unit -Wno-unused-function")
 
-  set (CMAKE_C_FLAGS "-fPIC -fuse-ld=lld")
-  # set (CMAKE_C_FLAGS "")
-  set (CMAKE_C_FLAGS_RELEASE "-O")
-  set (CMAKE_C_FLAGS_DEBUG   "-g")
-  set (CMAKE_C_FLAGS_PROFILING       "${CMAKE_C_FLAGS_RELEASE}")
-  set (CMAKE_C_FLAGS_RELWITHDEBINFO  "${CMAKE_C_FLAGS_RELEASE}")
-  set (CMAKE_C_FLAGS_MINSIZEREL      "-O")
+  set (CMAKE_C_FLAGS_RELEASE         "-O3")
+  set (CMAKE_C_FLAGS_DEBUG           "-g -O0")
+  set (CMAKE_C_FLAGS_PROFILING       "${CMAKE_C_FLAGS_RELEASE} -p")
+  set (CMAKE_C_FLAGS_RELWITHDEBINFO  "-O3 -g")
+  set (CMAKE_C_FLAGS_MINSIZEREL      "-O2")
   set (CMAKE_C_FLAGS_SANITIZE        "-g -O0 -fsanitize=address -fno-omit-frame-pointer -Wall -Wextra")
+
+  SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")  
+
+  # set (CMAKE_C_FLAGS "")
+  #set (CMAKE_C_FLAGS_RELEASE "-O")
+  #set (CMAKE_C_FLAGS_DEBUG   "-g")
+  #set (CMAKE_C_FLAGS_PROFILING       "${CMAKE_C_FLAGS_RELEASE}")
+  #set (CMAKE_C_FLAGS_RELWITHDEBINFO  "${CMAKE_C_FLAGS_RELEASE}")
+  #set (CMAKE_C_FLAGS_MINSIZEREL      "-O")
+  #set (CMAKE_C_FLAGS_SANITIZE        "-g -O0 -fsanitize=address -fno-omit-frame-pointer -Wall -Wextra")
   # set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=lld")
 
 
@@ -222,6 +224,8 @@ elseif (CMAKE_C_COMPILER_ID STREQUAL "Clang")
   set (CMAKE_C_FLAGS_RELWITHDEBINFO  "-O3 -g")
   set (CMAKE_C_FLAGS_MINSIZEREL      "-O2")
   set (CMAKE_C_FLAGS_SANITIZE        "-g -O0 -fsanitize=address -fno-omit-frame-pointer -Wall -Wextra")
+  SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lm")  
+
 
 elseif (CMAKE_C_COMPILER_ID MATCHES "XL")
 

@@ -52,9 +52,9 @@ typedef struct _pdm_part1_to_selected_part2_t PDM_part1_to_selected_part2_t;
  * \param [in]   gnum_elt2          Element global number (size : \ref n_part2)
  * \param [in]   n_elt2             Local number of elements (size : \ref n_part2)
  * \param [in]   n_part2            Number of partition
- * \param [in]   gnum1_to_gnum2_idx  Index of data to send to gnum2 from gnum1 
+ * \param [in]   selected_part2_idx  Index of data to send to gnum2 from gnum1 
  *                                  (for each part size : \ref n_elt1+1) 
- * \param [in]   gnum1_to_gnum2      Data to send to gnum2 from gnum1 
+ * \param [in]   selected_part2      Data to send to gnum2 from gnum1 
  * \param [in]   comm               MPI communicator
  *
  * \return   Initialized \ref PDM_part1_to_selected_part2 instance
@@ -70,8 +70,8 @@ PDM_part1_to_selected_part2_create
  const PDM_g_num_t   **gnum_elt2,
  const int            *n_elt2,
  const int             n_part2,
- const int           **gnum1_to_gnum2_idx,
- const PDM_g_num_t   **gnum1_to_gnum2,
+ const int           **selected_part2_idx,
+ const PDM_g_num_t   **selected_part2,
  const PDM_MPI_Comm    comm
 );
 
@@ -85,64 +85,96 @@ PDM_part1_to_selected_part2_create_cf
  const PDM_g_num_t    **gnum_elt2,
  const int            *n_elt2,
  const int             n_part2,
- const int           **gnum1_to_gnum2_idx,
- const PDM_g_num_t   **gnum1_to_gnum2,
+ const int           **selected_part2_idx,
+ const PDM_g_num_t   **selected_part2,
  const PDM_MPI_Fint    fcomm
 );
 
 
 /**
  *
- * \brief Initialize an exchange
+ * \brief Initialize an exchange based on MPI_ialltoall
  *
- * \param [in]   ptp           Block to part structure
- * \param [in]   s_data        Data size
- * \param [in]   t_stride      Stride type
- * \param [in]   part1_stride  Partition 1 stride
- * \param [in]   part1_data    Partition 1 data
- * \param [out]  part2_stride  Partition 2 stride
- * \param [out]  part2_data    Partition 2 data
+ * \param [in]   ptp                 Block to part structure
+ * \param [in]   s_data              Data size
+ * \param [in]   cst_stride          Constant stride
+ * \param [in]   selected_part2_data Data in same order than selected_part2 array
+ * \param [out]  ref_part2_data      Data to referenced part2 elements
+ * \param [out]  request             Request
  *
  */
 
 void
-PDM_part1_to_selected_part2_exch
+PDM_part1_to_selected_part2_ialltoall
 (
- PDM_part1_to_selected_part2_t    *ptp,
+PDM_part1_to_selected_part2_t *ptp,
  const size_t                  s_data,
- const PDM_stride_t            t_stride,
- int                         **part1_stride,
- void                        **part1_data,
- int                         **part2_stride,
- void                        **part2_data
+ const int                     cst_stride,
+ void                        **selected_part2_data,
+ void                        **ref_part2_data,
+ int                          *request
 );
 
 
 /**
  *
- * \brief Initialize an exchange with allocation of result arrays
+ * \brief Wait a asynchronus issend
  *
- * \param [in]   ptp           Block to part structure
- * \param [in]   s_data        Data size
- * \param [in]   t_stride      Stride type
- * \param [in]   part1_stride  Partition 1 stride
- * \param [in]   part1_data    Partition 1 data
- * \param [out]  part2_stride  Partition 2 stride
- * \param [out]  part2_data    Partition 2 data
+ * \param [in]  ptp           part to part structure
+ * \param [in]  request       Request
  *
  */
 
 void
-PDM_part1_to_selected_part2_exch_with_alloc
+PDM_part1_to_selected_part2_ialltoall_wait
 (
  PDM_part1_to_selected_part2_t *ptp,
- const size_t               s_data,
- const PDM_stride_t         t_stride,
- int                      **part1_stride,
- void                     **part1_data,
- int                     ***part2_stride,
- void                    ***part2_data
+ int                           request
 );
+
+
+
+/**
+ *
+ * \brief Initialize an exchange based on MPI_ineighbor_alltoall
+ *
+ * \param [in]   ptp                 Block to part structure
+ * \param [in]   s_data              Data size
+ * \param [in]   cst_stride          Constant stride
+ * \param [in]   selected_part2_data Data in same order than selected_part2 array
+ * \param [out]  ref_part2_data      Data to referenced part2 elements
+ * \param [out]  request             Request
+ *
+ */
+
+void
+PDM_part1_to_selected_part2_ineighbor_alltoall
+(
+PDM_part1_to_selected_part2_t *ptp,
+ const size_t                  s_data,
+ const int                     cst_stride,
+ void                        **selected_part2_data,
+ void                        **ref_part2_data,
+ int                          *request
+);
+
+
+/**
+ *
+ * \brief Wait a asynchronus issend
+ *
+ * \param [in]  ptp           part to part structure
+ * \param [in]  request       Request
+ *
+ */
+
+void
+PDM_part1_to_selected_part2_ineighbor_alltoall_wait
+(
+ PDM_part1_to_selected_part2_t *ptp,
+ int                           request
+);
+
 
 
 /**
@@ -206,12 +238,12 @@ PDM_part1_to_selected_part2_gnum1_come_from_get
  *
  * \brief Initialize a asynchronus issend
  *
- * \param [in]   ptp           Block to part structure
- * \param [in]   s_data        Data size
- * \param [in]   cst_stride    Constant stride
- * \param [in]   part1_data    Partition 1 data
- * \param [in]   tag           Tag of the exchange 
- * \param [out]  request       Request
+ * \param [in]   ptp                 Block to part structure
+ * \param [in]   s_data              Data size
+ * \param [in]   cst_stride          Constant stride
+ * \param [in]   selected_part2_data Data in same order than selected_part2 array
+ * \param [in]   tag                 Tag of the exchange 
+ * \param [out]  request             Request
  *
  */
 
@@ -221,7 +253,7 @@ PDM_part1_to_selected_part2_issend
  PDM_part1_to_selected_part2_t *ptp,
  const size_t                  s_data,
  const int                     cst_stride,
- void                        **part1_data,
+ void                        **selected_part2_data,
  int                           tag,
  int                          *request
 );
@@ -252,7 +284,7 @@ PDM_part1_to_selected_part2_issend_wait
  * \param [in]  ptp           Part to part structure
  * \param [in]  s_data        Data size
  * \param [in]  cst_stride    Constant stride
- * \param [in]  part1_data    Partition 2 data
+ * \param [in]  part2_data    Partition 2 data
  * \param [in]  tag           Tag of the exchange 
  * \param [out] request       Request
  *

@@ -17,15 +17,23 @@
 ! License along with this library. If not, see <http://www.gnu.org/licenses/>.
 !-----------------------------------------------------------------------------
 
+#include "pdm_configf.h"
+
 program testf
 
   use pdm
+#ifdef PDM_HAVE_FORTRAN_MPI_MODULE  
   use mpi
+#endif  
   use pdm_closest_points
   use iso_c_binding
 
 
   implicit none
+
+#ifndef PDM_HAVE_FORTRAN_MPI_MODULE  
+  include "mpif.h"
+#endif  
 
   ! integer (kind = pdm_g_num_s), parameter :: n_g_points_src = 10
   ! integer (kind = pdm_g_num_s), parameter :: n_g_points_tgt = 10

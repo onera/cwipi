@@ -5,6 +5,7 @@
 #include <mpi.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -23,7 +24,7 @@
  *----------------------------------------------------------------------------*/
 
 #ifdef PDM_HAVE_PTSCOTCH
-#include <ptscotch.h>
+#include "ptscotch.h"
 // #include <scotch.h>
 #endif
 #ifdef PDM_HAVE_PARMETIS

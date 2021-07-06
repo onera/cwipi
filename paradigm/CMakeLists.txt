@@ -95,6 +95,8 @@ if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
       set(PDM_ENABLE_SHARED_Fortran_INTERFACE ON)
    endif ()
 
+   option(PDM_ENABLE_Fortran_MPI_MODULE "Use Fortran MPI module" ON)
+
    # Unit test mpi with doctect
    # ------
    option(PDM_ENABLE_UNIT_TEST "Enable unit test " OFF)
@@ -149,6 +151,8 @@ elseif (PDM_IN_CWP)
   set(PDM_ENABLE_SHARED_Fortran_INTERFACE ${CWP_ENABLE_SHARED_Fortran_LIB})
 
   set(PDM_ENABLE_STATIC_Fortran_INTERFACE ${CWP_ENABLE_STATIC_Fortran_LIB})
+
+  option(PDM_ENABLE_Fortran_MPI_MODULE "Use Fortran MPI module" ON)
 
 endif ()
 
@@ -219,6 +223,10 @@ if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
     find_package(MPI REQUIRED COMPONENTS C Fortran)
   else()
     find_package(MPI REQUIRED COMPONENTS C)
+  endif()
+
+  if (PDM_ENABLE_Fortran_MPI_MODULE)
+    set (PDM_HAVE_FORTRAN_MPI_MODULE 1)
   endif()
 
   mark_as_advanced (MPI_EXTRA_LIBRARY MPI_LIBRARY)

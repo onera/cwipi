@@ -9,6 +9,7 @@
 if [ $1 = 'CC' ]
     then
     if   [ -n "$($2 --version 2>&1 | grep -i "^icc")" ] && [ -n "$($3 --version 2>&1 | grep -i "^icc")" ]; then exit 1
+    elif [ -n "$($2 --version 2>&1 | grep -i "^Intel(R) oneAPI DPC++")" ] && [ -n "$($3 --version 2>&1 | grep -i "^Intel(R) oneAPI DPC++")" ]; then exit 1
     elif [ -n "$($2 --version 2>&1 | grep -i "^gcc")" ] && [ -n "$($3 --version 2>&1 | grep -i "^gcc")" ]; then exit 1
     elif [ -n "$($2 --version 2>&1 | grep -i "clang")" ] && [ -n "$($3 --version 2>&1 | grep -i "clang")" ]; then exit 1
     elif [ -n "$($2 --version 2>&1 | grep -i "PathScale")" ] && [ -n "$($3 --version 2>&1 | grep -i "PathScale")" ]; then exit 1
@@ -22,6 +23,7 @@ fi
 if [ $1 = 'CXX' ]
     then
     if   [ -n "$($2 --version 2>&1 | grep -i "^icpc")" ] && [ -n "$($3 --version 2>&1 | grep -i "^icpc")" ]; then exit 1
+    elif [ -n "$($2 --version 2>&1 | grep -i "^icpx")" ] && [ -n "$($3 --version 2>&1 | grep -i "^icpx")" ];        then exit 1
     elif [ -n "$($2 --version 2>&1 | grep -i "^g++")" ] && [ -n "$($3 --version 2>&1 | grep -i "^g++")" ];        then exit 1
     elif [ -n "$($2 --version 2>&1 | grep -i "clang")" ] && [ -n "$($3 --version 2>&1 | grep -i "clang")" ];        then exit 1
     elif [ -n "$($2 --version 2>&1 | grep -i "PathScale")" ] && [ -n "$($3 --version 2>&1 | grep -i "PathScale")" ]; then exit 1
