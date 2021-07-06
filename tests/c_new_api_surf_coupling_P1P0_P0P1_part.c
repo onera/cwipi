@@ -588,8 +588,9 @@ int main
     CWP_Cpl_create (codeName[i_code],             // Code name
                     "c_new_api_surf_cpl_P1P0_P0P1_part",  // Coupling id
                     codeCoupledName[i_code],         // Coupled application id
+                    CWP_INTERFACE_SURFACE,
                     CWP_COMM_PAR_WITH_PART,  // Coupling type
-                    CWP_SPATIAL_INTERP_FROM_LOCATION,       // Solver type
+                    CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF,       // Solver type
                     nbPart[i_code],          // Partition number
                     CWP_DYNAMIC_MESH_STATIC, // Mesh type
                     CWP_TIME_EXCH_ASYNCHRONOUS); // frequency
@@ -1074,7 +1075,7 @@ int main
 
   for(int i_code = 0; i_code < n_code_name; i_code++) {
 
-    CWP_Next_recv_time_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",recv_time);
+    CWP_next_recv_time_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",recv_time);
 
     if (codeName[i_code] == "code1") {
       if(code1I==1) CWP_Field_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);

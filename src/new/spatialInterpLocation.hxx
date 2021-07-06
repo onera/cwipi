@@ -1,5 +1,5 @@
-#ifndef __SPATIALINTERPLOCATION_H__
-#define __SPATIALINTERPLOCATION_H__
+#ifndef SPATIALINTERPLOCATION_H_
+#define SPATIALINTERPLOCATION_H_
 /*
   This file is part of the CWIPI library.
 
@@ -19,585 +19,273 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "mesh.hxx"
 #include "spatialInterp.hxx"
-#include "field.hxx"
-#include "pdm_dist_cloud_surf.h"
-#include "pdm_mesh_location.h"
 #include "pdm_gnum_location.h"
-#include "pdm_gnum.h"
 
 /**
  * \cond
  */
 
 namespace cwipi {
-
-  class SpatialInterpLocation: public SpatialInterp
-    {
-
+    class SpatialInterpLocation : public SpatialInterp {
     public:
 
-
-    /**
-      *
-      * \brief SpatialInterp location constructor.
-      *
-      */
-
-      SpatialInterpLocation();
-
-
-    /**
-      *
-      * \brief SpatialInterp location destructor.
-      *
-      */
-
-      virtual ~SpatialInterpLocation();
-
-
-    /**
-      *
-      * \brief Compute of the spatial interpolation weights. Localization and communication
-      *        tree building.
-      *
-      * \param [in] Texch_t    Type of exchange (sending or reception).
-      *
-      */
-
-      void spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) ;
-
-
-    /**
-      *
-      * \brief Non-blocking sending communication including interpolation.
-      *
-      * \param [in] sendingField    Pointer to the referenceField used for interpolation.
-      *
-      */
-
-      void issend(Field* referenceField);
-      void issend_p2p(Field* referenceField);
-    /**
-      *
-      * \brief Wait for non-blocking sending communication.
-      *
-      * \param [in] sendingField    Pointer to the referenceField used for interpolation.
-      *
-      */
-
-      void waitIssend(Field* referenceField);
-      void waitIssend_p2p(Field* referenceField);
-
-
-    /**
-      *
-      * \brief Non-blocking receving communication.
-      *
-      * \param [in] recevingField    Pointer to the resulting interpolated field.
-      *
-      */
-
-      void irecv(Field* recevingField);
-      void irecv_p2p(Field* recevingField);
-    /**
-      *
-      * \brief Wait for non-blocking receving communication.
-      *
-      * \param [in] recevingField     Pointer to the resulting interpolated field.
-      *
-      */
-
-      void waitIrecv (Field* recevingField);
-      void waitIrecv_p2p (Field* recevingField);
-
-    /**
-      *
-      * \brief Null exchange communication for uncoupled MPI process.
-      *
-      */
-
-      void null_exchange_for_uncoupled_process() ;
-      void null_exchange_for_uncoupled_process_p2p() ;
-
-
-    /**
-      *
-      * \brief Exchange communication in case where local and coupled codes are
-      *        on the same MPI process.
-      *
-      * \param [in] sendingField      Pointer to the referenceField used for interpolation.
-      * \param [in] recevingField     Pointer to the resulting interpolated field.
-      *
-      */
-
-      void both_codes_on_the_same_process_exchange (Field* sendingField,
-                                                    Field* recevingField
-                                                    ) ;
-      void both_codes_on_the_same_process_exchange_p2p (Field* sendingField,
-                                                    Field* recevingField
-                                                    ) ;
-    private:
-
-
-    /**
-      *
-      * \brief Initialization of the SpatialInterp object.
-      *
-      * \param [in] coupling            Pointer the coupling object.
-      * \param [in] pointsCloudLocation Location of the cloud of points.
-      * \param [in] coupling            Pointer the coupling object.
-      *
-      */
-
-      void init (Coupling *coupling, CWP_Dof_location_t pointsCloudLocation,int slave) ;
-
-
-      /***********************************************************
-       **           Mesh information functions                  **
-       ***********************************************************/
-
-    /**
-      *
-      * \brief Get informations from the code mesh to use
-      * in SpatialInterp object.
-      *
-      */
-
-      void mesh_info_get();
-
-    /**
-      *
-      * \brief Get informations from the coupled code mesh to use
-      * in SpatialInterp object.
-      *
-      */
-
-      void mesh_cpl_info_get();
-
-    /**
-      *
-      * \brief Get informations from local and coupled code mesh
-      *  to use in SpatialInterp object.
-      *
-      */
-
-      void info_mesh() ;
-
-
-      /***********************************************************
-       ***********************************************************
-       **                                                       **
-       **            Localization object functions              **
-       **                                                       **
-       ***********************************************************
-       ***********************************************************/
-
-
-   /**
-      *
-      * \brief Setting of the points cloud for localization.
-      *
-      * \param [out] id_dist   Localization object identifier.
-      *
-      */
-
-      void localization_points_cloud_setting (  PDM_dist_cloud_surf_t **id_dist,
-                                   PDM_mesh_location_t **id_loc) ;
-
-
-    /**
-      *
-      * \brief Setting of the surface mesh and cloud points at
-      * null for the localization object in a case of sending
-      * code i.e. code which interpolate reference field.
-      *
-      * \param [out] id_dist   Localization object identifier.
-      *
-      */
-
-      void localization_null_setting_send (  PDM_dist_cloud_surf_t **id_dist,
-                                   PDM_mesh_location_t **id_loc) ;
-
-
-    /**
-      *
-      * \brief Setting of the surface mesh and cloud points at
-      * null for the localization object in a case of receving
-      * code i.e. code which provides cloud points for interpolation.
-      *
-      * \param [out] id_dist   Localization object identifier.
-      *
-      */
-
-      void localization_null_setting_recv (  PDM_dist_cloud_surf_t **id_dist,
-                                   PDM_mesh_location_t **id_loc) ;
-
-
-    /**
-      *
-      * \brief Setting of the surface mesh and cloud points at
-      * null for the localization object in a case of receving
-      * code i.e. code which provides cloud points for interpolation.
-      *
-      * \param [out] id_dist   Localization object identifier.
-      *
-      */
-
-      void localization_surface_setting (  PDM_dist_cloud_surf_t **id_dist,
-                                   PDM_mesh_location_t **id_loc) ;
-
-
-    /**
-      *
-      * \brief Compute of localization of a points cloud on a surface
-      *  mesh through the localization object.
-      *
-      * \param [int] id_dist   Localization object identifier.
-      *
-      */
-
-      void localization_compute (  PDM_dist_cloud_surf_t *id_dist,
-                                   PDM_mesh_location_t *id_loc) ;
-
-
-    /**
-      *
-      * \brief Get localization results from localization object.
-      *
-      * \param [int] id_dist   Localization object identifier.
-      *
-      */
-
-      void localization_get (  PDM_dist_cloud_surf_t *id_dist,
-                                   PDM_mesh_location_t *id_loc) ;
-
-
-    /**
-      *
-      * \brief Get localization results from localization object
-      * from the coupled code in the case where the both codes are on
-      * the same process.
-      *
-      * \param [int] id_dist   Localization object identifier.
-      *
-      */
-
-      void localization_get_cpl (  PDM_dist_cloud_surf_t *id_dist,
-                                   PDM_mesh_location_t *id_loc) ;
-
-
-      /***********************************************************
-       ***********************************************************
-       **                                                       **
-       **   Process, partition, num triplet location from       **
-       **           global numbering functions                  **
-       **                                                       **
-       ***********************************************************
-       ***********************************************************/
-
-
-   /**
-      *
-      * \brief Setting of requested global numbering for process, partition,
-      *        num triplet location from global numbering object.
-      *
-      * \param [in] id_gnum_location  process, partition, num triplet location
-      *              from global numbering identifier.
-      *
-      */
-
-      void triplet_location_request (PDM_gnum_location_t ** id_gnum_location) ;
-
-
-   /**
-      *
-      * \brief Setting of researched global numbering for process, partition,
-      *        num triplet location from global numbering object.
-      *
-      * \param [in] id_gnum_location  rocess, partition, num triplet location
-      *              from global numbering identifier.
-      *
-      */
-
-      void triplet_location_set (PDM_gnum_location_t ** id_gnum_location) ;
-
-
-    /**
-      *
-      * \brief Setting of researched global numbering for process, partition,
-      *  num triplet location from global numbering object in a case of sending
-      * code i.e. code which interpolates provided cloud points.
-      *
-      * \param [in] id_gnum_location  rocess, partition, num triplet location
-      *              from global numbering identifier.
-      *
-      */
-
-      void triplet_location_null_send (PDM_gnum_location_t ** id_gnum_location) ;
-
-    /**
-      *
-      * \brief Setting of researched global numbering for process, partition,
-      *  num triplet location from global numbering object in a case of receving
-      * code i.e. code which provides cloud points for interpolation.
-      *
-      * \param [in] id_gnum_location  rocess, partition, num triplet location
-      *              from global numbering identifier.
-      *
-      */
-
-      void triplet_location_null_recv (PDM_gnum_location_t ** id_gnum_location) ;
-
-
-    /**
-      *
-      * \brief Compute of process, partition, num triplet location
-      *        from global numbering object.
-      *
-      * \param [in] id_gnum_location    Process, partition, num triplet location
-      *                                 from global numbering identifier.
-      *
-      */
-
-      void triplet_location_compute  (PDM_gnum_location_t *id_gnum_location) ;
-
-
-
-    /**
-      *
-      * \brief Get process, partition, num triplet location
-      *        the case where the both codes are on
-      *        the same process.
-      *
-      * \param [in] id_gnum_location     Process, partition, num triplet location
-      *                                  from global numbering identifier.
-      *
-      */
-
-      void triplet_location_get(PDM_gnum_location_t *id_gnum_location)      ;
-
-
-    /**
-      *
-      * \brief Get process, partition, num triplet location
-      * from the coupled code in the case where the both codes are on
-      * the same process.
-      *
-      * \param [in] id_gnum_location     Process, partition, num triplet location
-      *                                  from global numbering identifier.
-      */
-
-      void triplet_location_get_cpl(PDM_gnum_location_t *id_gnum_location)  ;
-
-
-      /***********************************************************
-       ***********************************************************
-       **            Communication tree array functions         **
-       **                                                       **
-       ***********************************************************
-       ***********************************************************/
-
-    /**
-      *
-      * \brief Initialization of the communication tree array
-      *        containing localization informations of the coupled
-      *        mesh point cloud.
-      *
-      */
-
-      void initialization_of_receving_communication_tree_array ();
-
-
-    /**
-      *
-      * \brief Filling of the communication tree array
-      *        containing localization informations of the
-      *        mesh point cloud.
-      *
-      */
-
-      void filling_of_sending_communication_tree_array ();
-
-
-
-      /***********************************************************
-       ***********************************************************
-       **            Data index communication functions         **
-       **                                                       **
-       ***********************************************************
-       ***********************************************************/
-
-    /**
-      *
-      * \brief Send of the communication tree array index
-      *        containing localization informations of the
-      *        mesh point cloud.
-      *
-      */
-
-      void data_index_communication_send()    ;
-
-
-      void data_index_communication_send_p2p()    ;
-
-
-
-    /**
-      *
-      * \brief Reception of the communication tree array index
-      *        containing localization informations of the
-      *        coupled mesh point cloud.
-      *
-      */
-
-      void data_index_communication_recv()    ;
-
-      void data_index_communication_recv_p2p()    ;
-
-    /**
-      *
-      * \brief Send and reception of the communication tree
-      *        array index containing localization informations
-      *        in a case where the both are on the same MPI process.
-      *
-      */
-
-      void both_index_communication()    ;
-      void both_index_communication_p2p()    ;
-
-
-    /**
-      *
-      * \brief Null communication the communication tree
-      *        array index for uncoupled MPI process.
-      *
-      */
-
-      void data_index_communication_null();
-
-      /***********************************************************
-       ***********************************************************
-       **            Data communication functions               **
-       **                                                       **
-       ***********************************************************
-       ***********************************************************/
-
-      void prepare_data_communication_send()  ;
-      void prepare_data_communication_recv()  ;
-
-      void data_communication_send()          ;
-      void data_communication_recv()          ;
-      void data_communication_null()          ;
-      void both_data_communication()          ;
-
-      void data_communication_send_p2p()      ;
-      void data_communication_recv_p2p()      ;
-      void both_data_communication_p2p()      ;
-
-      void data_communication_wait_send()     ;
-      void data_communication_wait_recv()     ;
-
-      void computeFree();
-
-      /***********************************************************
-       **         User definde cloud points functions           **
-       ***********************************************************/
-
-      void user_target_points_set(int i_part, int n_pts, double* coord);
-      void user_targets_gnum_compute();
-
-    /**
-      *
-      * \brief Interpolation of a point cloud on a reference field.
-      *
-      * \param [in]   referenceField   Reference field pointer
-      *
-      */
-
-      void* interpolate (Field* referenceField);
-
-
-      SpatialInterpLocation    *_spatial_interp_cpl            ;  /*!< Spatial interpolation (for both codes are local case) */
-
-      CWP_Dof_location_t    _pointsCloudLocation   ;  /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
-
-       /* Localization data */
-
-      double      **_distance                     ;  /*!< Distance to the closest element surface by partition */
-      double      **_projected                    ;  /*!< Projected point coordinates (on the closest element surface) */
-      CWP_g_num_t **_closest_elt_gnum             ;  /*!< Closest element global numbering */
-
-      int         **_targets_localization_idx     ;  /*!< Data index (by process and by partition) of target localization*/
-      target_data  *_targets_localization_data    ;  /*!< Data of target localization */
-      int         **_targets_localization_idx_cpl ;  /*!< Data index (by process and by partition) of the received target localization*/
-      target_data  *_targets_localization_data_cpl;  /*!< Data of the received target localization */
-
-      //TODO: To delete and replace by using other members
-      std::vector<int>   _idx_target              ;  /*!< Index of the number of target by partition */
-
-      /* Displacement and count for all_to_all MPI communication of targets_localization_data */
-
-      int* _targets_localization_data_count_recv  ;  /* Counts for all_to_all MPI communication of targets_localization_data (reception) */
-      int* _targets_localization_data_count_send  ;  /* Counts for all_to_all MPI communication of targets_localization_data (sending) */
-      int* _targets_localization_data_disp_recv   ;  /* Displacements for all_to_all MPI communication of targets_localization_data (reception) */
-      int* _targets_localization_data_disp_send   ;  /* Displacements for all_to_all MPI communication of targets_localization_data (sending) */
-
-      /* Triplet global numbering, MPI process, partition results */
-
-      int** _process_and_partition_count          ;  /*!< Element count by MPI process rank and partition */
-      int** _target_proc_part_num_idx             ;  /*!< Index array of triplet process, partition, numbering for each target */
-      int** _target_proc_part_num                 ;  /*!< Array of triplet process, partition, numbering for each target */
-
-      /* Mesh informations */
-
-      CWP_g_num_t  **_gnum_target                 ;  /*<! Target global numbering by partition */
-      double       **_coords_target               ;  /*<! Target coordinates by partition */
-
-      CWP_g_num_t _n_g_elt_over_part              ;  /*!< Number of element of the process (over all the partitions)              */
-      CWP_g_num_t _n_g_vtx_over_part              ;  /*!< Number of vertices of the process (over all the partitions)             */
-      CWP_g_num_t _n_g_elt_cpl_over_part          ;  /*!< Number of coupled code element of the process (over all the partitions) */
-      CWP_g_num_t _n_g_vtx_cpl_over_part          ;  /*!< Number of coupled code vertices of the process (over all the partitions)*/
-
-      int  _n_tot_target                          ;  /*!< Target total number on the process                                       */
-      int  _n_tot_target_cpl                      ;  /*!< Number of coupled code target received by the process for interpolation  */
-      int *_n_target                              ;  /*!< Target total number on the process by partition                          */
-
-      int *_n_vtx                                 ;  /*!< Vertice total number on the process by partition                         */
-      int  _n_tot_vtx                             ;  /*!< Vertice total number on the process                                      */
-
-      int *_n_elt                                 ;  /*!< Element total number on the process by partition                         */
-      int  _n_tot_elt                             ;  /*!< Element total number on the process                                      */
-
-      int  _nb_part_cpl                           ;  /*!< Coupled code mesh partition number                                       */
-      int  _nb_part                               ;  /*!< Mesh partition number                                                    */
-
-      /* Paradigm structure identifier */
-
-      PDM_dist_cloud_surf_t *_id_dist                                ;  /*!< Identifier for the localization object of paradigm */
-      PDM_mesh_location_t *_id_loc                                ;  /*!< Identifier for the localization object of paradigm */
-      PDM_gnum_location_t *_id_gnum_location                       ;  /*!< Identifier for the global numbering to (process,partition,numbering) triplet object of paradigm */
-
-      /* user targets definition for CWP_DOF_LOCATION_USER field type */
-
-      int*          _n_user_targets               ;  /*!< Number of targets defined by the user for CWP_DOF_LOCATION_USER field type        */
-      int           _n_tot_user_targets           ;  /*!< Total number of targets defined by the user for CWP_DOF_LOCATION_USER field type  */
-      double**      _coords_user_targets          ;  /*!< Target coordinates defined by the user for CWP_DOF_LOCATION_USER field type       */
-      CWP_g_num_t** _gnum_user_targets            ;  /*!< Target global numbering defined by the user for CWP_DOF_LOCATION_USER field type  */
-
-      PDM_gen_gnum_t *_pdmGNum_handle_index;
-
-      int **_weights_src_idx;
-      double **_weights_src;
-
-
-  }; //end SpatialInterpLocation
+        /**
+          *
+          * \brief SpatialInterp location constructor.
+          *
+          */
+        SpatialInterpLocation();
+
+        /**
+          *
+          * \brief SpatialInterp location destructor.
+          *
+          */
+        ~SpatialInterpLocation() override;
+
+        /**
+          *
+          * \brief Compute of the spatial interpolation weights. Localization and communication
+          *        tree building.
+          *
+          * \param [in] Texch_t    Type of exchange (sending or reception).
+          *
+          */
+        void spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) override;
+
+        SpatialInterpLocation *_spatial_interp_cpl{};
+
+        // Localization data
+        double **_distance{};                 // Distance to the closest element surface by partition
+        double **_projected{};                // Projected point coordinates (on the closest element surface)
+        CWP_g_num_t **_closest_elt_gnum{};    // Closest element global numbering
+
+    protected:
+        /**
+          *
+          * \brief Interpolation of a point cloud on a reference field.
+          *
+          * \param [in]   referenceField   Reference field pointer
+          *
+          */
+        void *interpolate(Field *referenceField) override;
+
+        /**
+          *
+          * \brief Initialization of the SpatialInterp object.
+          *
+          * \param [in] coupling            Pointer the coupling object.
+          * \param [in] pointsCloudLocation Location of the cloud of points.
+          * \param [in] coupling            Pointer the coupling object.
+          *
+          */
+        void init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation, bool slave) override;
+
+        /***********************************************************
+         ***********************************************************
+         **                                                       **
+         **            Localization object functions              **
+         **                                                       **
+         ***********************************************************
+         ***********************************************************/
+        /**
+           *
+           * \brief Setting of the points cloud for localization.
+           *
+           * \param [out] id_dist   Localization object identifier.
+           *
+           */
+        virtual void localization_points_cloud_setting();
+
+        /**
+          *
+          * \brief Setting of the surface mesh and cloud points at
+          * null for the localization object in a case of sending
+          * code i.e. code which interpolate reference field.
+          *
+          * \param [out] id_dist   Localization object identifier.
+          *
+          */
+        virtual void localization_null_setting_send();
+
+        /**
+          *
+          * \brief Setting of the surface mesh and cloud points at
+          * null for the localization object in a case of receving
+          * code i.e. code which provides cloud points for interpolation.
+          *
+          * \param [out] id_dist   Localization object identifier.
+          *
+          */
+        virtual void localization_null_setting_recv();
+
+        /**
+          *
+          * \brief Setting of the surface mesh and cloud points at
+          * null for the localization object in a case of receving
+          * code i.e. code which provides cloud points for interpolation.
+          *
+          * \param [out] id_dist   Localization object identifier.
+          *
+          */
+        virtual void localization_surface_setting();
+
+        /**
+          *
+          * \brief Compute of localization of a points cloud on a surface
+          *  mesh through the localization object.
+          *
+          * \param [int] id_dist   Localization object identifier.
+          *
+          */
+        virtual void localization_compute();
+
+        /**
+          *
+          * \brief Get localization results from localization object.
+          *
+          * \param [int] id_dist   Localization object identifier.
+          *
+          */
+        virtual void localization_get();
+
+        /**
+          *
+          * \brief Get localization results from localization object
+          * from the coupled code in the case where the both codes are on
+          * the same process.
+          *
+          * \param [int] id_dist   Localization object identifier.
+          *
+          */
+        virtual void localization_get_cpl();
+
+        virtual void localization_free();
+
+        /***********************************************************
+         ***********************************************************
+         **                                                       **
+         **   Process, partition, num triplet location from       **
+         **           global numbering functions                  **
+         **                                                       **
+         ***********************************************************
+         ***********************************************************/
+        /**
+           *
+           * \brief Setting of requested global numbering for process, partition,
+           *        num triplet location from global numbering object.
+           *
+           * \param [in] id_gnum_location  process, partition, num triplet location
+           *              from global numbering identifier.
+           *
+           */
+        void triplet_location_request();
+
+        /**
+           *
+           * \brief Setting of researched global numbering for process, partition,
+           *        num triplet location from global numbering object.
+           *
+           * \param [in] id_gnum_location  rocess, partition, num triplet location
+           *              from global numbering identifier.
+           *
+           */
+        void triplet_location_set();
+
+        /**
+          *
+          * \brief Setting of researched global numbering for process, partition,
+          *  num triplet location from global numbering object in a case of sending
+          * code i.e. code which interpolates provided cloud points.
+          *
+          * \param [in] id_gnum_location  rocess, partition, num triplet location
+          *              from global numbering identifier.
+          *
+          */
+        void triplet_location_null_send();
+
+        /**
+          *
+          * \brief Setting of researched global numbering for process, partition,
+          *  num triplet location from global numbering object in a case of receving
+          * code i.e. code which provides cloud points for interpolation.
+          *
+          * \param [in] id_gnum_location  rocess, partition, num triplet location
+          *              from global numbering identifier.
+          *
+          */
+        void triplet_location_null_recv();
+
+        /**
+          *
+          * \brief Compute of process, partition, num triplet location
+          *        from global numbering object.
+          *
+          * \param [in] id_gnum_location    Process, partition, num triplet location
+          *                                 from global numbering identifier.
+          *
+          */
+        void triplet_location_compute() const;
+
+        /**
+          *
+          * \brief Get process, partition, num triplet location
+          *        the case where the both codes are on
+          *        the same process.
+          *
+          * \param [in] id_gnum_location     Process, partition, num triplet location
+          *                                  from global numbering identifier.
+          *
+          */
+        void triplet_location_get();
+
+        /**
+          *
+          * \brief Get process, partition, num triplet location
+          * from the coupled code in the case where the both codes are on
+          * the same process.
+          *
+          * \param [in] id_gnum_location     Process, partition, num triplet location
+          *                                  from global numbering identifier.
+          */
+        void triplet_location_get_cpl();
+
+        /***********************************************************
+         ***********************************************************
+         **            Communication tree array functions         **
+         **                                                       **
+         ***********************************************************
+         ***********************************************************/
+        /**
+          *
+          * \brief Initialization of the communication tree array
+          *        containing localization informations of the coupled
+          *        mesh point cloud.
+          *
+          */
+        void initialization_of_receving_communication_tree_array();
+
+        /**
+          *
+          * \brief Filling of the communication tree array
+          *        containing localization informations of the
+          *        mesh point cloud.
+          *
+          */
+        void filling_of_sending_communication_tree_array();
+
+        // Triplet global numbering, MPI process, partition results
+        int **_target_proc_part_num_idx{};    // Index array of triplet process, partition, numbering for each target
+        int **_target_proc_part_num{};        // Array of triplet process, partition, numbering for each target
+
+        // Paradigm structure identifier
+        PDM_gnum_location_t *_id_gnum_location{};              // Identifier for the global numbering to (process,partition,numbering) triplet object of paradigm
+    }; //end SpatialInterpLocation
 
 /**
  * \endcond
  */
 
-
 }
-#endif // __SPATIALINTERPLOCATION__
+#endif // SPATIALINTERPLOCATION_H_

@@ -429,17 +429,27 @@ namespace cwipi {
    inline int getNPart();
 
     //-->>
+    inline int getNCell(int id_part) const;
+
     inline int getNFace(int id_part) const;
 
     inline int getNEdge(int id_part) const;
 
-    inline int* getFaceEdgeIndex(int i_part);
+    inline int *getCellFaceIndex(int i_part);
 
-    inline int* getFaceEdge(int i_part);
+    inline int *getCellFace(int i_part);
 
-    inline int* getEdgeVtxIndex(int i_part);
+    inline int *getFaceEdgeIndex(int i_part);
 
-    inline int* getEdgeVtx(int i_part);
+    inline int *getFaceEdge(int i_part);
+
+    inline int *getFaceVtxIndex(int i_part);
+
+    inline int *getFaceVtx(int i_part);
+
+    inline int *getEdgeVtxIndex(int i_part);
+
+    inline int *getEdgeVtx(int i_part);
     //<<--
 
    void geomFinalize();
@@ -496,16 +506,14 @@ namespace cwipi {
      return _blockDB[id_block] -> GNumBlockGet(i_part);
    }
 
+      PDM_MPI_Comm _pdm_localComm;
   private:
 
     int _Mesh_nodal_block_std_type_size_get(CWP_Block_t type);
 
     const MPI_Comm                          &_localComm;              /*!< Communicator */
-    PDM_MPI_Comm                             _pdm_localComm;
-    int                                     _nDim;                   /*!< Entities dimensions */
     int                                     _nBlocks;                /*!< Number of blocks of the mesh */
     int*                                    _blocks_id;              /*!< List of block identifiers */
-    int                                     _order;                  /*!< Mesh order */
     std::vector<int>                        _nVertex;                /*!< Number of vertices for each partition  */
     std::vector<int>                        _nElts;                  /*!< Number of elements for each partition  */
     std::vector<double*>                    _coords;                 /*!< Vertices coordinate for each partition  */
@@ -518,9 +526,6 @@ namespace cwipi {
     std::vector <CWP_g_num_t*>              _global_num_elt;             /*!< Global elements numbering for each partition  */
     int                                     _npart;                  /*!< Number of partition  */
     PDM_Mesh_nodal_t                       *_pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
-    PDM_gen_gnum_t                         *_pdmGNum_handle_index;   /*!< Global number index for paradigm handler   */
-    PDM_gen_gnum_t                         *_pdmGNum_handle_index_elt;   /*!< Global number index for paradigm handler   */
-    PDM_Mesh_nodal_t                       *_pdmNodal;               /*!< Pointer to the paradigm mesh (nodal) object   */
     std::vector<cwipi::Block*>               _blockDB;                /*!< Blocks database  */
     Visu                                   *_visu;                   /*!< Pointer to the Visu object */
     std::map<int,int>                       _id_visu;                /*!< Map of the PDM_Writer block identifier */
@@ -528,18 +533,27 @@ namespace cwipi {
     Coupling                               *_cpl;
 
 
+    std::vector<int>                        _nCells;
+    std::vector<int*>                       _cellFaceIdx;
+    std::vector<int*>                       _cellFace;
     std::vector<int>                        _nFace;
     std::vector<int*>                       _faceEdgeIdx;
     std::vector<int*>                       _faceEdge;
+    std::vector<int*>                       _faceVtxIdx;
+    std::vector<int*>                       _faceVtx;
     std::vector<int>                        _nEdge;
     std::vector<int*>                       _edgeVtxIdx;
     std::vector<int*>                       _edgeVtx;
     std::vector<int*>                       _edgeVtxNb;
+    std::vector<int*>                       _faceVtxNb;
     std::vector<int*>                       _faceEdgeNb;
+    std::vector<int*>                       _cellFaceNb;
 
     std::vector<CWP_g_num_t*>               _faceLNToGN;
+    std::vector<CWP_g_num_t*>               _cellLNToGN;
 
     int                                     _faceEdgeMethod;
+    int                                     _cellFaceMethod;
 
   //   Mesh &operator=(const Mesh &other);  /*!< Assigment operator not available */
   //   Mesh (const Mesh& other);            /*!< Copy constructor not available */
@@ -619,13 +633,6 @@ namespace cwipi {
     return _global_num_vtx[i_part];
   }
 
-
-  PDM_Mesh_nodal_t& Mesh::getPdmNodal() const
-  {
-    return *_pdmNodal;
-  }
-
-
   int Mesh::getBlockNElts(int id_block,int i_part)
   {
     return _blockDB[id_block] -> NEltsGet()[i_part];
@@ -653,34 +660,48 @@ namespace cwipi {
   }
 
   //-->>
-  int Mesh::getNFace(int id_part) const
-  {
-    return _nFace[id_part];
+  int Mesh::getNCell(int id_part) const {
+      return _nCells[id_part];
   }
 
-  int Mesh::getNEdge(int id_part) const
-  {
-    return _nEdge[id_part];
+  int Mesh::getNFace(int id_part) const {
+      return _nFace[id_part];
   }
 
-  int* Mesh::getFaceEdgeIndex(int i_part)
-  {
-    return _faceEdgeIdx[i_part];
+  int Mesh::getNEdge(int id_part) const {
+      return _nEdge[id_part];
   }
 
-  int* Mesh::getFaceEdge(int i_part)
-  {
-    return _faceEdge[i_part];
+  int *Mesh::getCellFaceIndex(int i_part) {
+      return _cellFaceIdx[i_part];
   }
 
-  int* Mesh::getEdgeVtxIndex(int i_part)
-  {
-    return _edgeVtxIdx[i_part];
+  int *Mesh::getCellFace(int i_part) {
+      return _cellFace[i_part];
   }
 
-  int* Mesh::getEdgeVtx(int i_part)
-  {
-    return _edgeVtx[i_part];
+  int *Mesh::getFaceEdgeIndex(int i_part) {
+      return _faceEdgeIdx[i_part];
+  }
+
+  int *Mesh::getFaceEdge(int i_part) {
+      return _faceEdge[i_part];
+  }
+
+  int *Mesh::getFaceVtxIndex(int i_part) {
+      return _faceVtxIdx[i_part];
+  }
+
+  int *Mesh::getFaceVtx(int i_part) {
+      return _faceVtx[i_part];
+  }
+
+  int *Mesh::getEdgeVtxIndex(int i_part) {
+      return _edgeVtxIdx[i_part];
+  }
+
+  int *Mesh::getEdgeVtx(int i_part) {
+      return _edgeVtx[i_part];
   }
   //<<--
 

@@ -99,6 +99,7 @@ namespace cwipi {
    const CWP_Comm_t           cplType,
    const CodeProperties       &localCodeProperties,
    const CodeProperties       &coupledCodeProperties,
+   const CWP_Interface_t      entities_dim,
    const CWP_Spatial_interp_t           spatialInterpAlgo,
    const int                  nPart,
    const CWP_Dynamic_mesh_t   displacement,
@@ -110,6 +111,7 @@ namespace cwipi {
    _communication(*(FC::getInstance().CreateObject(cplType))),
    _localCodeProperties(localCodeProperties),
    _coupledCodeProperties(coupledCodeProperties),
+   _entities_dim(entities_dim),
    _spatial_interp(*new std::map <CWP_Dof_location_t, SpatialInterp*>()),
    _mesh(*new Mesh(localCodeProperties.connectableCommGet(),NULL,nPart,displacement,this)),
    _recvFreqType (recvFreqType),
@@ -248,71 +250,6 @@ namespace cwipi {
     cout << "destroying '" << _name << "' coupling : TODO" << endl;
     #endif
   }
-
-
-
-  void
-  Coupling::sendrecv
-  (string &field_id) {
-
-     map <string, Field *>::iterator it;
-     it = _fields.find(field_id);
-     if (it != _fields.end()) {
-       Field* field = it -> second;
-       if(_localCodeProperties.isCoupledRank()) {
-         if(_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
-            if(_spatial_interp[field -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
-              _spatial_interp[field -> associatedCloudPointTypeGet()] -> issend    ( field );
-              _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
-
-              _spatial_interp[field -> associatedCloudPointTypeGet()] -> irecv    ( field );
-              _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
-            }
-            else {
-              Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
-              map <std::string, Field *>::iterator it_recv = distCpl._fields.find(field_id);
-              if (it_recv != distCpl._fields.end()) {
-                Field* field2 = it_recv -> second;
-                _spatial_interp[field -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field,field2);
-                _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
-                distCpl._spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIrecv(field2);
-
-                distCpl._spatial_interp[field2 -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field2,field);
-                distCpl._spatial_interp[field2 -> associatedCloudPointTypeGet()] -> waitIssend(field2);
-                _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
-              }
-            } // end if both_codes_are_local == 0
-         }
-         else {
-           if(_spatial_interp[field -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
-             _spatial_interp[field -> associatedCloudPointTypeGet()] -> irecv    ( field );
-             _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
-
-             _spatial_interp[field -> associatedCloudPointTypeGet()] -> issend    ( field );
-             _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
-           }
-           else {
-             Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
-             map <std::string, Field *>::iterator it_recv = distCpl._fields.find(field_id);
-             if (it_recv != distCpl._fields.end()) {
-               Field* field2 = it_recv -> second;
-               distCpl._spatial_interp[field2 -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field2,field);
-               distCpl._spatial_interp[field2 -> associatedCloudPointTypeGet()] -> waitIssend(field2);
-               _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
-
-               _spatial_interp[field -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field,field2);
-               _spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
-               distCpl._spatial_interp[field -> associatedCloudPointTypeGet()] -> waitIrecv(field2);
-             }
-           } // end if both_codes_are_local == 0
-         }// end if _localCodeProperties.idGet() < _coupledCodeProperties.idGet())
-       }
-       else {
-         _spatial_interp[field -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();
-       }  // end if _localCodeProperties.isCoupledRank()
-     } //end if (it != _fields.end())
-  }
-
 
 
  //TODO: Virer ptFortranInterpolationFct

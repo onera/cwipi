@@ -116,7 +116,7 @@ typedef enum {
  * It is a synchronization point between all applications
  *----------------------------------------------------------------------------*/
 
-void cwipi_init
+void cwipi_init_new_to_old
 (const MPI_Comm                           global_comm,
  const char                               *code_name,
  MPI_Comm                                 *local_comm
@@ -164,7 +164,7 @@ void cwipi_init
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_create_coupling
+void cwipi_create_coupling_new_to_old
 ( const char  *coupling_name,
   const cwipi_coupling_type_t coupling_type,
   const char  *coupled_application,

@@ -38,7 +38,7 @@
  * Public function prototypes
  *============================================================================*/
 
-void cwipi_init
+void cwipi_init_new_to_old
 (const MPI_Comm                           global_comm,
  const char                               *code_name,
  MPI_Comm                                 *local_comm
@@ -60,7 +60,7 @@ void cwipi_init
 
 
 
-void cwipi_create_coupling
+void cwipi_create_coupling_new_to_old
 ( const char  *coupling_name,
   const cwipi_coupling_type_t coupling_type,
   const char  *codeCoupledName,
@@ -82,20 +82,20 @@ void cwipi_create_coupling
 
     CWP_Cpl_create (local_name     ,                        
                     coupling_name  ,                       
-                    codeCoupledName,                 
+                    codeCoupledName,
+                    (CWP_Interface_t) entitiesDim    ,
                     comm_type      ,
-                    CWP_SPATIAL_INTERP_FROM_LOCATION,               
+                    CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF,
                     nb_part,                         
-                    mesh_type_conv.at(mesh_type) ,      
-                    CWP_FREQ_CPL_TIME_STEP);      
+                    mesh_type_conv.at(mesh_type), (CWP_Time_exch_t) 1);
     
     CWP_Visu_format_t format;
 
     if(output_format == "EnSight Gold"){
-      format = Ensight;
+      format = CWP_VISU_FORMAT_ENSIGHT;
     } 
     else{
-      format = Ensight;
+      format = CWP_VISU_FORMAT_ENSIGHT;
     }
          
     const int freq = output_frequency;

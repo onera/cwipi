@@ -19,6 +19,8 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <cmath>
+
 #include "mesh.hxx"
 #include "field.hxx"
 #include "codeProperties.hxx"
@@ -28,7 +30,10 @@
  * \cond
  */
 namespace cwipi {
-
+    typedef enum {
+        CWP_INTERP_AT_SEND,
+        CWP_INTERP_AT_RECV
+    } CWP_INTERP_TIME;
 
   struct target_data {
     int          lnum    ;
@@ -61,7 +66,6 @@ namespace cwipi {
    */
 
   class SpatialInterp {
-  friend class SpatialInterpLocation;
   public:
 
     /**
@@ -78,126 +82,181 @@ namespace cwipi {
 
     virtual ~SpatialInterp();
 
-    virtual void init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation,int slave) =0;
+    static void _transform_to_index(int** array,int l1, int l2);
+
+    virtual void init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation, bool slave);
+
+    /***********************************************************
+     **           Mesh information functions                  **
+     ***********************************************************/
+
+    /**
+      *
+      * \brief Get informations from the code mesh to use
+      * in SpatialInterp object.
+      *
+      */
+
+    void mesh_info_get();
+
+    /**
+      *
+      * \brief Get informations from the coupled code mesh to use
+      * in SpatialInterp object.
+      *
+      */
+
+    void mesh_cpl_info_get();
+
+    /**
+      *
+      * \brief Get informations from local and coupled code mesh
+      *  to use in SpatialInterp object.
+      *
+      */
+
+    void info_mesh() ;
 
     virtual void spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) =0;
 
-    virtual void user_target_points_set(int i_part, int n_pts, double* coord) =0;
-    /**
-     *
-     * \brief Exchange data field with the coupled application with blocking
-     *        communications.
-     *
-     * This function exchanges interpolated fieldsDouble between coupled codes.
-     *
-     * \warning  The size of tgt_field_id size is n_computed_tgt.
-     *           If \f$ n\_uncomputed\_tgt \ne n\_tgt\_pts \f$,
-     *           user himself must set values for uncomputed target points.
-     *
-     * \param [in]  src                       Source field (NULL -> no sending)
-     * \param [in]  tgt                       Target field (NULL -> no receiving)
-     * \param [in]  ptFortranInterpolationFct Fortran user interpolation (or NULL)
-     * \param [out] n_uncomputed_tgt          Number of uncomputed target
-     *
-     * \return                                Exchange status
-     *
-     */
+    virtual void* interpolate (Field* referenceField) = 0;
 
-    CWP_Err_t
-    sendRecv
-    (Field *src,
-     Field *tgt,
-     void      *ptFortranInterpolationFct,
-     int       *n_uncomputed_tgt);
+    void user_target_points_set(int i_part, int n_pts, double* coord);
+
+    void user_targets_gnum_compute();
+
 
     /**
-     *
-     * \brief Sending of data field to the coupled application with nonblocking
-     *        communications.
-     *
-     * This function sends interpolated field to the coupled code.
-     *
-     * \param [in]  sendingField                      Sending field
-     *
-     *
-     */
+      *
+      * \brief Non-blocking sending communication including interpolation.
+      *
+      * \param [in] sendingField    Pointer to the referenceField used for interpolation.
+      *
+      */
 
-    virtual void issend (Field* sendingField) = 0;
-    virtual void issend_p2p (Field* sendingField) = 0;
-
-    virtual void null_exchange_for_uncoupled_process () = 0;
-
-    virtual void both_codes_on_the_same_process_exchange (Field* sendingField,Field* recevingField) = 0;
-    virtual void both_codes_on_the_same_process_exchange_p2p (Field* sendingField,Field* recevingField) = 0;
-    /**
-     *
-     * \brief Waiting of the end of exchange related to request.
-     *
-     * This function waits the end of exchange related to request
-     * from \ref CWP_Issend
-     *
-     */
-
-    virtual void waitIssend(Field* sendingField) = 0;
-    virtual void waitIssend_p2p(Field* sendingField) = 0;
-    /**
-     *
-     * \brief Receiving of Data field from the coupled application with nonblocking
-     *        communications.
-     *
-     * This function receives interpolated field from the coupled code
-     *
-     * \param [in]  recevingField       Receving field
-     *
-     *
-     */
-
-    virtual void irecv (Field* recevingField) = 0;
-    virtual void irecv_p2p (Field* recevingField) = 0;
-    /**
-     *
-     * \brief Waiting of the end of exchange related to request.
-     *
-     * This function waits the end of exchange related to request
-     * from \ref CWP_Irecv
-     *
-     * \param [in] request    Request to wait the end of exchange
-     *
-     */
-
-    virtual void waitIrecv(Field* recevingField) = 0;
-    virtual void waitIrecv_p2p(Field* recevingField) = 0;
+    void issend(Field* referenceField);
+    void issend_p2p(Field* referenceField);
 
     /**
-     * \brief Setting user target points
-     *
-     * This function must be called if the nature of receiving fieldsDouble
-     * is \ref CWP_DOF_LOCATION_USER
-     *
-     * \param [in]  n_pts   Number of points
-     * \param [in]  coords   Coordinates (size = 3 * n_pts)
-     *
-     */
+      *
+      * \brief Wait for non-blocking sending communication.
+      *
+      * \param [in] sendingField    Pointer to the referenceField used for interpolation.
+      *
+      */
 
-    void
-    userTgtPtsSet
-    (const int            n_pts,
-     double               coords[]);
+    void waitIssend_p2p(Field* referenceField);
 
     /**
-     *
-     * \brief Setting of an user interpolation from location.
-     *
-     * This function takes into account an user interpolation function written with
-     * void (*\ref CWP_Interp_from_location_t) interface.
-     *
-     * \param [in] fct        Function
-     *
-     */
+      *
+      * \brief Non-blocking receving communication.
+      *
+      * \param [in] recevingField    Pointer to the resulting interpolated field.
+      *
+      */
 
-    void
-    InterpUser
-    (CWP_Interp_from_location_t fct);
+    void irecv(Field* recevingField);
+    void irecv_p2p(Field* recevingField);
+
+    /**
+      *
+      * \brief Wait for non-blocking receving communication.
+      *
+      * \param [in] recevingField     Pointer to the resulting interpolated field.
+      *
+      */
+
+    void waitIrecv_p2p (Field* recevingField);
+
+    /**
+      *
+      * \brief Null exchange communication for uncoupled MPI process.
+      *
+      */
+
+    void null_exchange_for_uncoupled_process() ;
+
+    /**
+      *
+      * \brief Exchange communication in case where local and coupled codes are
+      *        on the same MPI process.
+      *
+      * \param [in] sendingField      Pointer to the referenceField used for interpolation.
+      * \param [in] recevingField     Pointer to the resulting interpolated field.
+      *
+      */
+
+    void both_codes_on_the_same_process_exchange_p2p (Field* sendingField,
+                                                      Field* recevingField
+    ) ;
+
+    /**
+  *
+  * \brief Reception of the communication tree array index
+  *        containing localization informations of the
+  *        coupled mesh point cloud.
+  *
+  */
+
+    void data_index_communication_recv_p2p()    ;
+
+    /**
+      *
+      * \brief Send and reception of the communication tree
+      *        array index containing localization informations
+      *        in a case where the both are on the same MPI process.
+      *
+      */
+
+    void both_index_communication_p2p()    ;
+
+
+    /**
+      *
+      * \brief Null communication the communication tree
+      *        array index for uncoupled MPI process.
+      *
+      */
+
+    void data_index_communication_null();
+
+    /***********************************************************
+     ***********************************************************
+     **            Data communication functions               **
+     **                                                       **
+     ***********************************************************
+     ***********************************************************/
+
+    void prepare_data_communication_send()  ;
+    void prepare_data_communication_recv()  ;
+
+    void data_communication_null()          ;
+
+    void data_communication_send_p2p()      ;
+    void data_communication_recv_p2p()      ;
+    void both_data_communication_p2p()      ;
+
+    void data_communication_wait_send()     ;
+    void data_communication_wait_recv()     ;
+
+    void computeFree()                      ;
+
+    /***********************************************************
+     ***********************************************************
+     **            Data index communication functions         **
+     **                                                       **
+     ***********************************************************
+     ***********************************************************/
+
+    /**
+      *
+      * \brief Send of the communication tree array index
+      *        containing localization informations of the
+      *        mesh point cloud.
+      *
+      */
+
+    void data_index_communication_send_p2p()    ;
 
     /**
      *
@@ -245,93 +304,111 @@ namespace cwipi {
     inline const int *
     computedTargetsGet() const;
 
-    void _IAlltoallIndexSend(void* send_buffer,
-                             int* send_count,
-                             int* send_disp,
-                             MPI_Datatype type,
-                             MPI_Comm comm,
-                             std::vector<int> connectableRanks
-                            );
 
-    void _IAlltoallIndexRecv(void* recv_buffer,
-                             int* recv_count,
-                             int* recv_disp,
-                             MPI_Datatype type,
-                             MPI_Comm comm,
-                             std::vector<int> connectableRanks
-                             );
-
-    //TODO: Acess function
-    int _both_codes_are_local;
-
-    int slaveGet() {
-      return  _slave;
-    }
-
-   int bothLocalGet() {
-      return  _both_codes_are_local;
-    }
-
-  protected:
-
-    SpatialInterp &operator=(const SpatialInterp &other);  /*!< Assigment operator not available */
-    SpatialInterp (const SpatialInterp& other);            /*!< Copy constructor not available */
-
-     //Pointer to other objects
-    Mesh                                *_mesh                  ;    /*!< Interface Mesh       */
-    Visu                                *_visu                  ;    /*!< Visualization object */
-    CodeProperties                      *_localCodeProperties   ;
-    CodeProperties                      *_coupledCodeProperties ;
     Coupling                            *_cpl                   ;
+    Mesh                                *_mesh                  ;  /*!< Interface Mesh */
 
-    std::map <std::string,Field*>       *_referenceFieldsDB     ;
-    CWP_Field_exch_t                     _Texch_t               ;
+    bool _both_codes_are_local{};
+    bool _slave{};
+    CWP_Field_exch_t _Texch_t{};
+
+    int *_n_target                                              ;  /*!< Target total number on the process by partition */
+
+    /* Mesh informations */
+    CWP_g_num_t  **_gnum_target                                 ;  /*!< Target global numbering by partition */
+    double       **_coords_target                               ;  /*!< Target coordinates by partition */
+
+protected:
+    //Pointer to other objects
+    Visu                                *_visu{}                  ;    /*!< Visualization object */
+    CodeProperties                      *_localCodeProperties{}   ;
+    CodeProperties                      *_coupledCodeProperties{} ;
+
+    CWP_INTERP_TIME                     interpolation_time      ;
+
+    SpatialInterp                         *_spatial_interp_cpl{}  ;  /*!< Spatial interpolation (for both codes are local case) */
+
+    CWP_Dof_location_t                  _pointsCloudLocation{}    ;  /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
 
     /* code Properties */
-    int _id;
-    int _id_cpl;
-    string coupledName;
-    string localName;
+    int _id{};
+    int _id_cpl{};
+    string coupledName{};
+    string localName{};
 
-    int _senderRank;
-    int _senderRank_cpl;
+    int _senderRank{};
+    int _senderRank_cpl{};
+    int _senderLocalRank{};
 
-    int _senderLocalRank;
+    int  _nb_part_cpl{}                           ;  /*!< Coupled code mesh partition number                                       */
+    int  _nb_part{}                               ;  /*!< Mesh partition number                                                    */
 
-   /** MPI processes informations **/
+    /** MPI processes informations **/
 
-   /* MPI Communicators */
-   MPI_Comm _globalComm ;
-   MPI_Comm _cplComm ;
-   MPI_Comm _localComm  ;
-   MPI_Comm _connectableComm  ;
-   PDM_MPI_Comm  _pdm_connectableComm ;
-   PDM_MPI_Comm  _pdm_localComm ;
-   PDM_MPI_Comm  _pdm_globalComm ;
-   PDM_MPI_Comm  _pdm_cplComm ;
+    /* MPI Communicators */
+    MPI_Comm _globalComm{};         // Gathers every processus
+    MPI_Comm _cplComm{};            // Processus involved in the coupling in either code
+    MPI_Comm _localComm{};          // Processus involved in the coupling for the local code
+    PDM_MPI_Comm  _pdm_cplComm{};   // _cplComm for Paradigm
 
-   vector<string> _codeVector;
+    int **_weights_src_idx{};
+    double **_weights_src{};
 
-   int  _slave;
+    vector<string> _codeVector;
 
-   std::vector<int>* _connectableRanks_cpl;
-   std::vector<int>* _connectableRanks    ;
+    std::vector<int>* _connectableRanks_cpl{};
+    std::vector<int>* _connectableRanks{}    ;
 
-   /* informations about MPI process (rank) */
-   bool _isCoupledRank;
-   bool _isCoupledRank_cpl;
+    /* informations about MPI process (rank) */
+    bool _isCoupledRank{};
+    int cplComm_rank{};       // Rank in cplComm
+    int cplComm_size{};       // Size of cplComm
+    int localComm_size{};     // Size of localComm
+    int localComm_size_cpl{}; // Size of localComm of the coupled code
 
-   int _rank;
-   int  _n_ranks    ;
-   int  _n_ranks_cpl;
-   int  _n_ranks_g    ;
+    std::vector<int> n_uncomputed_tgt;
 
-   /* MPI Request */
-   std::vector<MPI_Request> _send_requests;
-   std::vector<MPI_Request> _recv_requests;
+    int         **_targets_localization_idx{}     ;  /*!< Data index (by process and by partition) of target localization*/
+    target_data  *_targets_localization_data{}    ;  /*!< Data of target localization */
+    int         **_targets_localization_idx_cpl{} ;  /*!< Data index (by process and by partition) of the received target localization*/
+    target_data  *_targets_localization_data_cpl{};  /*!< Data of the received target localization */
 
-   std::vector<int> n_uncomputed_tgt;
+    //TODO: To delete and replace by using other members
+    std::vector<int>   _idx_target              ;  /*!< Index of the number of target by partition */
 
+    /* Displacement and count for all_to_all MPI communication of targets_localization_data */
+
+    int* _targets_localization_data_count_recv{}  ;  /* Counts for all_to_all MPI communication of targets_localization_data (reception) */
+    int* _targets_localization_data_count_send{}  ;  /* Counts for all_to_all MPI communication of targets_localization_data (sending) */
+    int* _targets_localization_data_disp_recv{}   ;  /* Displacements for all_to_all MPI communication of targets_localization_data (reception) */
+    int* _targets_localization_data_disp_send{}   ;  /* Displacements for all_to_all MPI communication of targets_localization_data (sending) */
+
+    /* Triplet global numbering, MPI process, partition results */
+
+    int** _process_and_partition_count{}          ;  /*!< Element count by MPI process rank and partition */
+
+    int  _n_tot_target{}                          ;  /*!< Target total number on the process                                       */
+    int  _n_tot_target_cpl{}                      ;  /*!< Number of coupled code target received by the process for interpolation  */
+
+    /* user targets definition for CWP_DOF_LOCATION_USER field type */
+
+    int*          _n_user_targets{}               ;  /*!< Number of targets defined by the user for CWP_DOF_LOCATION_USER field type        */
+    int           _n_tot_user_targets{}           ;  /*!< Total number of targets defined by the user for CWP_DOF_LOCATION_USER field type  */
+    CWP_g_num_t** _gnum_user_targets{}            ;  /*!< Target global numbering defined by the user for CWP_DOF_LOCATION_USER field type  */
+
+    CWP_g_num_t _n_g_elt_over_part{}              ;  /*!< Number of element of the process (over all the partitions)              */
+    CWP_g_num_t _n_g_vtx_over_part{}              ;  /*!< Number of vertices of the process (over all the partitions)             */
+    CWP_g_num_t _n_g_elt_cpl_over_part{}          ;  /*!< Number of coupled code element of the process (over all the partitions) */
+    CWP_g_num_t _n_g_vtx_cpl_over_part{}          ;  /*!< Number of coupled code vertices of the process (over all the partitions)*/
+
+    /* Mesh informations */
+    double**      _coords_user_targets{}          ;  /*!< Target coordinates defined by the user for CWP_DOF_LOCATION_USER field type       */
+
+    int *_n_vtx{}                                 ;  /*!< Vertice total number on the process by partition                         */
+    int  _n_tot_vtx{}                             ;  /*!< Vertice total number on the process                                      */
+
+    int *_n_elt{}                                 ;  /*!< Element total number on the process by partition                         */
+    int  _n_tot_elt{}                             ;  /*!< Element total number on the process                                      */
   };
 
     /**

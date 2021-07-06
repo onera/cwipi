@@ -72,7 +72,8 @@ file(GLOB SOURCESF
     fortran/cwp_output_fortran_unit_set.f90
     fortran/cwp_printfort_cf.cxx
     fortran/printfort.f90
-    fortran/mod_fvmc_ho_basis.f90)
+    fortran/mod_fvmc_ho_basis.f90
+    new/cwp_f.f90)
 
 add_library(cwp OBJECT ${SOURCES})
 
@@ -151,6 +152,7 @@ if (CWP_ENABLE_Fortran)
   set (LIST_HEADERF "")
   list(APPEND LIST_HEADERF "${CMAKE_BINARY_DIR}/cwipi_configf.h")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/cwipi.mod")
+  list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/cwp.mod")
 
 endif ()
 

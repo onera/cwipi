@@ -61,8 +61,10 @@
 #include "pdm_error.h"
 #include "surfMeshGenerator.hxx"
 #include "surfMeshGeneratorDB.hxx"
-#include "spatialInterp.hxx"
-#include "spatialInterpLocation.hxx"
+#include "spatialInterpIntersection.hxx"
+#include "spatialInterpClosestPoint.hxx"
+#include "spatialInterpLocationDistSurf.hxx"
+#include "spatialInterpLocationMeshLocation.hxx"
 
  #include "mesh.hxx"
  #include "block.hxx"
@@ -326,9 +328,11 @@ CWP_Init
   cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t> &factorySpatialInterp =
     cwipi::Factory<cwipi::SpatialInterp, CWP_Spatial_interp_t>::getInstance();
 
-  factorySpatialInterp.Register<cwipi::SpatialInterpLocation>(CWP_SPATIAL_INTERP_FROM_LOCATION);
-  // factorySpatialInterp.Register<SpatialInterpIntersection>(CWP_SPATIAL_INTERP_INTERSECTION);
-  // factorySpatialInterp.Register<SpatialInterpClosestPoint>(CWP_SPATIAL_INTERP_CLOSEST_POINT);
+  factorySpatialInterp.Register<cwipi::SpatialInterpLocationDistSurf>(CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF);
+  factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationOctree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE);
+  factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationDbbtree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE);
+  factorySpatialInterp.Register<cwipi::SpatialInterpIntersection>(CWP_SPATIAL_INTERP_FROM_INTERSECTION);
+  factorySpatialInterp.Register<cwipi::SpatialInterpClosestPoint>(CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES);
 
   /*
    * Create block abstract factory
@@ -600,6 +604,7 @@ CWP_Properties_dump
  * \param [in]  local_code_name     Local code name
  * \param [in]  cpl_id              Coupling identifier
  * \param [in]  coupled_code_name   Distant or local coupled code name
+ * \param [in]  entities_dim        Dimensions of the entities
  * \param [in]  comm_type           Communication type
  * \param [in]  spatial_interp      Spatial interpolation method
  * \param [in]  n_part              Number of interface partition
@@ -614,6 +619,7 @@ CWP_Cpl_create
  const char                 *local_code_name,
  const char                 *cpl_id,
  const char                 *coupled_code_name,
+ CWP_Interface_t             entities_dim,
  const CWP_Comm_t            comm_type,
  const CWP_Spatial_interp_t  spatial_interp,
  const int                   n_part,
@@ -636,6 +642,7 @@ CWP_Cpl_create
   couplingDB.couplingCreate(properties.codePropertiesGet(local_application_str),
                             coupling_name_str,
                             properties.codePropertiesGet(coupled_application_str),
+                            entities_dim,
                             comm_type,
                             spatial_interp,
                             n_part,
@@ -724,15 +731,17 @@ CWP_N_uncomputed_tgts_get
 }
 
 
-// const int *
-// CWP_Uncomputed_tgts_get
-// (
-//  const char *cpl_id
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   return cpl.uncomputedTargetsGet();
-// }
+const int *
+CWP_Uncomputed_tgts_get
+(
+  const char *local_code_name,
+  const char *cpl_id
+)
+{
+  // TODO
+//  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+//  return cpl.uncomputedTargetsGet();
+}
 
 
 /**
@@ -745,38 +754,43 @@ CWP_N_uncomputed_tgts_get
  * \return                Number of computed targets
  */
 
-// int
-// CWP_N_computed_tgts_get
-// (
-//  const char *cpl_id
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   return cpl.nComputedTargetsGet();
-// }
+int
+CWP_N_computed_tgts_get
+(
+  const char *local_code_name,
+  const char *cpl_id
+)
+{
+  // TODO
+//  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+//  return cpl.nComputedTargetsGet();
+}
 
 
 
-// const int *
-// CWP_computed_tgts_get
-// (
-//  const char *cpl_id
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   return cpl.getLocatedPoint();
-// }
+const int *
+CWP_Computed_tgts_get
+(
+  const char *local_code_name,
+  const char *cpl_id
+)
+{
+  // TODO
+//  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+//  return cpl.getLocatedPoint();
+}
 
 
 
-// const double *
-// CWP_computed_tgts_dist_to_spatial_interp_get
-// (
-//  const char *cpl_id
-// )
-// {
-//   TODO
-// }
+const double *
+CWP_Computed_tgts_dist_to_spatial_interp_get
+(
+  const char *local_code_name,
+  const char *cpl_id
+)
+{
+  // TODO
+}
 
 
 /*----------------------------------------------------------------------------*
@@ -810,7 +824,7 @@ CWP_N_uncomputed_tgts_get
  */
 
  void
- CWP_Next_recv_time_set
+ CWP_next_recv_time_set
  (const char     *local_code_name,
   const char     *cpl_id,
   const double    next_time
@@ -956,8 +970,7 @@ CWP_Spatial_interp_weights_compute
 
   int id     = cpl.localCodePropertiesGet()   -> idGet();
   int id_cpl = cpl.coupledCodePropertiesGet() -> idGet();
-  int slave  = cpl.spatialInterpGet(CWP_DOF_LOCATION_NODE) -> slaveGet();
-  int both_local = cpl.spatialInterpGet(CWP_DOF_LOCATION_NODE) -> bothLocalGet();
+  bool both_local = cpl.spatialInterpGet(CWP_DOF_LOCATION_NODE)->_both_codes_are_local;
   if(both_local == 0 || (both_local == 1 && id < id_cpl) ){
 
     std::vector <int> tmp(3,0);

@@ -85,6 +85,7 @@ namespace cwipi {
      const CWP_Comm_t             commType,
      const CodeProperties        &localCodeProperties,
      const CodeProperties        &coupledCodeProperties,
+     const CWP_Interface_t       entities_dim,
      const CWP_Spatial_interp_t            spatialInterpAlgo,
      const int                    nPart,
      const CWP_Dynamic_mesh_t     movingStatus,
@@ -1009,6 +1010,7 @@ namespace cwipi {
     inline Visu* visuGet ();
 
     inline Mesh* meshGet();
+    inline CWP_Interface_t entitiesDimGet();
 
     inline std::map < string, Field * >* fieldsGet();
     inline std::map <CWP_Dof_location_t,SpatialInterp*>* spatialInterpGet();
@@ -1033,6 +1035,7 @@ namespace cwipi {
           Communication                    &_communication;         /*!< Communication */
     const CodeProperties                   &_localCodeProperties;   /*!< Local code properties */
     const CodeProperties                   &_coupledCodeProperties; /*!< Coupled code properties */
+    const CWP_Interface_t                  _entities_dim;           /*!< Mesh entities dimension */
     std::map <CWP_Dof_location_t,SpatialInterp*> &_spatial_interp;              /*!< SpatialInterp algorithm */
           Mesh                             &_mesh;                  /*!< SpatialInterp mesh */
     const CWP_Time_exch_t                        _recvFreqType  ;        /*!< Receiving frequency type */
@@ -1087,6 +1090,10 @@ namespace cwipi {
      return &_mesh;
   }
 
+  CWP_Interface_t Coupling::entitiesDimGet() {
+     return _entities_dim;
+  }
+
   std::map <CWP_Dof_location_t,SpatialInterp*>* Coupling::spatialInterpGet() {
      return &_spatial_interp;
   }
@@ -1123,4 +1130,4 @@ namespace cwipi {
  * \endcond
  */
 
-#endif //__COUPLING_PROPERTIES_H__
+#endif //__COUPLING_H__
