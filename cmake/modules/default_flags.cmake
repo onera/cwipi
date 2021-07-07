@@ -16,14 +16,14 @@ if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
   link_libraries("m")
 
-  set (CMAKE_Fortran_FLAGS "-fPIC -Wall -pedantic -std=gnu -Wno-unused-dummy-argument -Wno-maybe-uninitialized")
+  set (CMAKE_Fortran_FLAGS "-fPIC -cpp -Wall -pedantic -std=gnu -Wno-unused-dummy-argument -Wno-maybe-uninitialized")
 
   set (CMAKE_Fortran_FLAGS_RELEASE         "-O3")
   set (CMAKE_Fortran_FLAGS_DEBUG           "-O0 -g -fcheck=bounds -fbacktrace")
   set (CMAKE_Fortran_FLAGS_PROFILING       "-O3 -pg")
   set (CMAKE_Fortran_FLAGS_RELWITHDEBINFO  "-O3 -g")
   set (CMAKE_Fortran_FLAGS_MINSIZEREL      "-O2 -g")
-    
+
   set (FORTRAN_LIBRARIES                   )
   set (FORTRAN_LIBRARIES_FLAG              )
 
@@ -55,19 +55,19 @@ elseif (CMAKE_Fortran_COMPILER_ID MATCHES "XL")
   set (CMAKE_Fortran_FLAGS_PROFILING       "${CMAKE_Fortran_FLAGS_RELEASE} -p")
   set (CMAKE_Fortran_FLAGS_RELWITHDEBINFO  "-O3 -qhot -g")
   set (CMAKE_Fortran_FLAGS_MINSIZEREL      "-O3")
-  
+
   set(FORTRAN_LIBRARIES xl xlf90_r xlsmp xlopt ${FORTRAN_LIBRARIES})
 
   if (${HOSTNAME} STREQUAL "tanit")
     link_directories(/opt/ibmcmp/xlsmp/3.1/lib64 /opt/ibmcmp/vacpp/12.1/lib64 /opt/ibmcmp/xlf/14.1/lib64)
-  endif()   
+  endif()
 
 elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PGI")
 
   # pgi
   # ---
 
-  # Ajout des flags communs  
+  # Ajout des flags communs
 
   set (CMAKE_Fortran_FLAGS "-Mpreprocess -noswitcherror")
 
@@ -358,5 +358,3 @@ set (CXX_LIBRARIES_FLAG "${CXX_LIBRARIES_FLAG}" CACHE STRING "C++ flags" FORCE)
 set (PASS_DEFAULT_FLAGS 1 CACHE STRING "")
 mark_as_advanced (CMAKE_CXX_FLAGS_PROFILING CXX_LIBRARIES CXX_LIBRARIES_FLAG PASS_DEFAULT_FLAGS)
 endif()
-
-
