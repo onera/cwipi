@@ -306,6 +306,11 @@ elseif (PDM_IN_CWP)
      endif()
   endif()
 
+  if (PDM_ENABLE_Fortran_MPI_MODULE)
+    set (PDM_HAVE_FORTRAN_MPI_MODULE 1)
+  endif()
+
+
 endif ()
 
 #------------------------------------------------------------------------------
