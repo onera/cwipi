@@ -152,7 +152,7 @@ elseif (PDM_IN_CWP)
 
   set(PDM_ENABLE_STATIC_Fortran_INTERFACE ${CWP_ENABLE_STATIC_Fortran_LIB})
 
-  set(PDM_ENABLE_Fortran_MPI_MODULE ${$CWP_ENABLE_Fortran_MPI_MODULE})
+  set(PDM_ENABLE_Fortran_MPI_MODULE ${CWP_ENABLE_Fortran_MPI_MODULE})
 
 endif ()
 
