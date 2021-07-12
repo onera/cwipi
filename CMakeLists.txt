@@ -72,6 +72,12 @@ option(CWP_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
 
 option(CWP_ENABLE_Fortran  "Build Shared Fortran Interface" ON)
 
+option(CWP_ENABLE_Fortran_MPI_MODULE "Use Fortran MPI module" ON)
+
+if (CWP_ENABLE_Fortran_MPI_MODULE)
+  set (CWP_HAVE_FORTRAN_MPI_MODULE 1)
+endif()
+
 # New to old API
 # -----------------
 
@@ -305,7 +311,11 @@ set(COMMON_LIBRARIES)
 # Check MPI (TODO : check MPI wrapper function check )
 # ----------------------------------------------------
 
-find_package(MPI REQUIRED)
+if (CWP_ENABLE_Fortran)
+  find_package(MPI REQUIRED COMPONENTS C Fortran)
+else()
+  find_package(MPI REQUIRED COMPONENTS C)
+endif()
 
 mark_as_advanced (MPI_EXTRA_LIBRARY MPI_LIBRARY)
 

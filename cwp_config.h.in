@@ -24,6 +24,8 @@
 
 #cmakedefine HAVE_SPACE_BASIS
 
+#cmakedefine CWP_HAVE_FORTRAN_MPI_MODULE
+
 #cmakedefine CWP_HAVE_BLAS
 
 #cmakedefine CWP_HAVE_LAPACK

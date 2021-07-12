@@ -181,7 +181,9 @@ module spaceMessages
 
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
+#ifdef CWP_HAVE_FORTRAN_MPI_MODULE 
   use mpi
+#endif
   use variablesCommunes
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
 
@@ -190,6 +192,9 @@ module spaceMessages
 contains
 
   subroutine msg0(msg)
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+  include "mpif.h"
+#endif  
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*)                :: msg
     !>
@@ -223,6 +228,9 @@ contains
   
   subroutine msg1(buffer)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+  include "mpif.h"
+#endif  
     character(*)                   :: buffer
     !>
     integer                        :: length
@@ -1451,6 +1459,9 @@ subroutine  userInterpolation                        ( &
   !---
   implicit none
   !---
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+  include "mpif.h"
+#endif  
   integer :: entitiesDim
   integer :: order
   integer :: nLocalVertex
@@ -1793,7 +1804,9 @@ subroutine fortran_surf_PiQj_common (tmaillage)
   use iso_fortran_env
   use iso_c_binding, only: c_loc,c_f_pointer,c_ptr
   
+#ifdef CWP_HAVE_FORTRAN_MPI_MODULE  
   use mpi
+#endif
   use cwipi
   
   use variablesCommunes
@@ -1806,6 +1819,11 @@ subroutine fortran_surf_PiQj_common (tmaillage)
   implicit none
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+  !include "mpif.h"
+#endif  
+
   interface
 
     subroutine test_loc (entities_dim, &
@@ -1904,6 +1922,9 @@ subroutine fortran_surf_PiQj_common (tmaillage)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !include 'libmeshb7.ins'
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+  include "mpif.h"
+#endif  
 
   integer, intent(in) :: tmaillage
   

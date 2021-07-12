@@ -17,6 +17,8 @@
 ! License along with this library. If not, see <http://www.gnu.org/licenses/>.
 !-----------------------------------------------------------------------------
 
+#include "cwipi_configf.h"
+
 subroutine printStatus(iiunit, status)
   use cwipi
   implicit none
@@ -110,11 +112,16 @@ end subroutine userInterpolation
 
 program testf
 
+#ifdef CWP_HAVE_FORTRAN_MPI_MODULE  
   use mpi
-
+#endif
   use cwipi
 
   implicit none
+
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+  include "mpif.h"
+#endif  
 
   interface
        subroutine  userInterpolation(entitiesDim, &

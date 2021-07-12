@@ -17,6 +17,8 @@
 ! License along with this library. If not, see <http://www.gnu.org/licenses/>.
 !-----------------------------------------------------------------------------
 
+#include "cwipi_configf.h"
+
 
 !  mpirun -n 1 ./fortran_surf_TetraP1_PiPj : -n 1 ./fortran_surf_TetraP1_PiPj
 !  mpirun -n 1 tests/fortran_surf_TetraP1_PiPj : -n 1 tests/fortran_surf_TetraP1_PiPj
@@ -272,7 +274,10 @@ program testf
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
   
+#ifdef PDM_HAVE_FORTRAN_MPI_MODULE  
   use mpi
+#endif
+
   use cwipi
   
   use modDeterminant
@@ -284,6 +289,10 @@ program testf
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
+
+#ifndef PDM_HAVE_FORTRAN_MPI_MODULE  
+  include "mpif.h"
+#endif  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   interface

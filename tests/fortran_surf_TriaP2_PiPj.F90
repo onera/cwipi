@@ -550,7 +550,9 @@ program fortran_surf_TriaP2_PiPj
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
   
+#ifdef CWP_HAVE_FORTRAN_MPI_MODULE  
   use mpi
+#endif
   use cwipi
   
   use modDeterminant
@@ -564,6 +566,10 @@ program fortran_surf_TriaP2_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
+
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+  include "mpif.h"
+#endif  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   interface
