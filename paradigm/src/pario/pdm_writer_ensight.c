@@ -104,7 +104,7 @@ static const char  *_ensight_type_name[10] = {"point",
                                               "pyramid5",
                                               "penta6",
                                               "hexa8",
-                                              "n_faced"};
+                                              "nfaced"};
 
 /*=============================================================================
  * Fonctions privées

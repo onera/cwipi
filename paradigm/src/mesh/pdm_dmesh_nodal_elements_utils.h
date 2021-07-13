@@ -471,7 +471,7 @@ PDM_poly3d_decomposes_edges
 void
 PDM_sections_decompose_faces2
 (
-  PDM_DMesh_nodal_elmts_t *dmn_elts,
+  PDM_dmesh_nodal_elmts_t *dmn_elts,
   int                     *elmt_face_vtx_idx,
   PDM_g_num_t             *elmt_face_vtx,
   PDM_g_num_t             *elmt_face_cell,
@@ -483,7 +483,7 @@ PDM_sections_decompose_faces2
 void
 PDM_sections_decompose_edges2
 (
-  PDM_DMesh_nodal_elmts_t *dmn_elts,
+  PDM_dmesh_nodal_elmts_t *dmn_elts,
   int                     *elmt_edge_vtx_idx,
   PDM_g_num_t             *elmt_edge_vtx,
   PDM_g_num_t             *elmt_edge_cell,
@@ -495,7 +495,7 @@ PDM_sections_decompose_edges2
 int
 PDM_section_size_elt_faces_get2
 (
-  PDM_DMesh_nodal_elmts_t *dmn_elts,
+  PDM_dmesh_nodal_elmts_t *dmn_elts,
   int                     *s_elt_face_vtx_idx,
   int                     *s_elt_face_vtx,
   int                     *s_elt_face_cell
@@ -504,7 +504,7 @@ PDM_section_size_elt_faces_get2
 int
 PDM_section_size_elt_edges_get2
 (
-  PDM_DMesh_nodal_elmts_t *dmn_elts,
+  PDM_dmesh_nodal_elmts_t *dmn_elts,
   int                     *s_elt_edge_vtx_idx,
   int                     *s_elt_edge_vtx,
   int                     *s_elt_edge_cell

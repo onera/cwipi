@@ -1,10 +1,16 @@
-#------------------------------------------------------------------------------
-#
-# Default flags for several compiler
-#
-#------------------------------------------------------------------------------
 
 cmake_host_system_information(RESULT HOSTNAME QUERY HOSTNAME)
+
+# For GCC, C math functions are not linked by default
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+  link_libraries ("m")
+endif()
+
+#------------------------------------------------------------------------------
+#
+# Default flags for several compilers
+#
+#------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 # Fortran default flags
@@ -112,7 +118,9 @@ elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PathScale")
 
 else ()
 
-  message (WARNING "Default flags are not defined for ${CMAKE_Fortran_COMPILER_ID}")
+  if (PDM_ENABLE_Fortran)
+    message (WARNING "Default flags are not defined for ${CMAKE_Fortran_COMPILER_ID}")
+  endif()
 
   set (CMAKE_Fortran_FLAGS "")
   set (CMAKE_Fortran_FLAGS_RELEASE "-O")
@@ -154,9 +162,6 @@ mark_as_advanced (CMAKE_Fortran_FLAGS_PROFILING CMAKE_Fortran_FLAGS_SANITIZE FOR
 #------------------------------------------------------------------------------
 
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-
-  link_libraries ("m")
-
   set (CMAKE_C_FLAGS "-std=gnu99 -fPIC -funsigned-char -pedantic -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wunused -Wfloat-equal  -Wno-unknown-pragmas")
   set (CMAKE_CUDA_FLAGS "--compiler-options -fPIC")
 

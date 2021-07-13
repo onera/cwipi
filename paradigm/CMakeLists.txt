@@ -4,25 +4,22 @@
 #
 #==============================================================================
 
-cmake_minimum_required(VERSION 3.0)
-cmake_policy(VERSION 3.0)
+cmake_minimum_required(VERSION 3.12)
+cmake_policy(VERSION 3.12)
 
 #------------------------------------------------------------------------------
 # Internal CMake module (shared with ParaDiGMA or CWIPI)
 #------------------------------------------------------------------------------
 
-if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
-   set(PDM_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-   set(CMAKE_MODULE_PATH "${PDM_CMAKE_DIR}/modules")
+if (NOT (PDM_IN_CWP))
+  set(PDM_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+  set(CMAKE_MODULE_PATH "${PDM_CMAKE_DIR}/modules")
 endif()
 
 include(${CMAKE_MODULE_PATH}/version.cmake)
 project(PDM VERSION ${PDM_DEF_VERSION_MAJOR} LANGUAGES C CXX)
 
-if (NOT (PDM_IN_PDMA))
-   set(PDM_VERSION "${PDM_VERSION_MAJOR}.${PDM_VERSION_MINOR}.${PDM_VERSION_PATCH}")
-   set(PDM_IN_PDMA_BOOL 0)
-endif()
+set(PDM_VERSION "${PDM_VERSION_MAJOR}.${PDM_VERSION_MINOR}.${PDM_VERSION_PATCH}")
 
 # ----------------------------------------------------------------------
 find_program( MEMORYCHECK_COMMAND valgrind )
@@ -36,72 +33,12 @@ enable_testing ()
 # User option Definition
 #------------------------------------------------------------------------------
 
-if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
+if (PDM_IN_CWP)
 
-   # OpenMP
-   # ------
+  # Extensions
+  # ----------
 
-   option(PDM_ENABLE_OPENMP "Enable OpenMP" OFF)
-
-   # Enable long for absolute number
-   # -------------------------------
-
-   option(PDM_ENABLE_LONG_G_NUM "Enable long for global number" OFF)
-
-   # Pt-scotch
-   # ---------
-
-   option(PDM_ENABLE_PTSCOTCH "Compile with support for SCOTCH." ON)
-
-   # ParMetis
-   # --------
-
-   option(PDM_ENABLE_PARMETIS "Compile with support for SCOTCH." ON)
-
-   # Shared libraries
-   # ----------------
-
-   option(PDM_ENABLE_SHARED "Build Shared Libraries" OFF)
-
-   # Static libraries
-   # ----------------
-
-   option(PDM_ENABLE_STATIC "Build Static Libraries" ON)
-
-   # Check MPI Wrapper
-   # -----------------
-
-   option(PDM_ENABLE_MPI_CHECK "Check MPI Wrapper" ON)
-
-   # Python Bindings
-   # ---------------
-
-   option(PDM_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
-
-   # Fortran interface
-   # -----------------
-
-   option(PDM_ENABLE_Fortran "Build Fortran Interface" ON)
-
-   if (PDM_ENABLE_Fortran)
-     enable_language(Fortran)
-   endif()
-
-   if (PDM_ENABLE_STATIC AND PDM_ENABLE_Fortran)
-      set(PDM_ENABLE_STATIC_Fortran_INTERFACE ON)
-   endif ()
-
-   if (PDM_ENABLE_SHARED AND PDM_ENABLE_Fortran)
-      set(PDM_ENABLE_SHARED_Fortran_INTERFACE ON)
-   endif ()
-
-   option(PDM_ENABLE_Fortran_MPI_MODULE "Use Fortran MPI module" ON)
-
-   # Unit test mpi with doctect
-   # ------
-   option(PDM_ENABLE_UNIT_TEST "Enable unit test " OFF)
-
-elseif (PDM_IN_CWP)
+  set (PDM_ENABLE_EXTENSION_PDMA OFF)
 
   # OpenMP
   # ------
@@ -154,47 +91,122 @@ elseif (PDM_IN_CWP)
 
   set(PDM_ENABLE_Fortran_MPI_MODULE ${CWP_ENABLE_Fortran_MPI_MODULE})
 
+else ()
+
+  # Extensions
+  # ----------
+
+  option(PDM_ENABLE_EXTENSION_PDMA "Enable advanced functionalities extension" OFF)
+
+  # OpenMP
+  # ------
+
+  option(PDM_ENABLE_OPENMP "Enable OpenMP" OFF)
+
+  # CUDA
+  # ------
+
+  option(PDM_ENABLE_CUDA "Enable CUDA" OFF)
+  if (PDM_ENABLE_CUDA)
+    enable_language(CUDA)
+  endif ()
+
+  # Enable long for absolute number
+  # -------------------------------
+
+  option(PDM_ENABLE_LONG_G_NUM "Enable long for global number" OFF)
+
+  # Pt-scotch
+  # ---------
+
+  option(PDM_ENABLE_PTSCOTCH "Compile with support for SCOTCH." ON)
+
+  # ParMetis
+  # --------
+
+  option(PDM_ENABLE_PARMETIS "Compile with support for SCOTCH." ON)
+
+  # Shared libraries
+  # ----------------
+
+  option(PDM_ENABLE_SHARED "Build Shared Libraries" OFF)
+
+  # Static libraries
+  # ----------------
+
+  option(PDM_ENABLE_STATIC "Build Static Libraries" ON)
+
+  # Check MPI Wrapper
+  # -----------------
+
+  option(PDM_ENABLE_MPI_CHECK "Check MPI Wrapper" ON)
+
+  # Python Bindings
+  # ---------------
+
+  option(PDM_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
+
+  # Fortran interface
+  # -----------------
+
+  option(PDM_ENABLE_Fortran "Build Fortran Interface" ON)
+
+  if (PDM_ENABLE_Fortran)
+    enable_language(Fortran)
+  endif()
+
+  if (PDM_ENABLE_STATIC AND PDM_ENABLE_Fortran)
+    set(PDM_ENABLE_STATIC_Fortran_INTERFACE ON)
+  endif ()
+
+  if (PDM_ENABLE_SHARED AND PDM_ENABLE_Fortran)
+    set(PDM_ENABLE_SHARED_Fortran_INTERFACE ON)
+  endif ()
+
+  option(PDM_ENABLE_Fortran_MPI_MODULE "Use Fortran MPI module" ON)
+
+  # Unit test mpi with doctect
+  # ------
+
+  option(PDM_ENABLE_UNIT_TEST "Enable unit test " OFF)
+
 endif ()
 
 #------------------------------------------------------------------------------
 # Default build : Release
 #------------------------------------------------------------------------------
 
-if (NOT PDM_IN_PDMA)
+if ((PDM_ENABLE_PYTHON_BINDINGS OR PDM_ENABLE_SHARED_Fortran_INTERFACE) AND (NOT PDM_ENABLE_SHARED))
+  set (PDM_ENABLE_SHARED "ON" CACHE STRING "Build Shared Libraries" FORCE )
+endif()
 
-    if ((PDM_ENABLE_PYTHON_BINDINGS OR PDM_ENABLE_SHARED_Fortran_INTERFACE) AND (NOT PDM_ENABLE_SHARED))
-      set (PDM_ENABLE_SHARED "ON" CACHE STRING "Build Shared Libraries" FORCE )
-    endif()
+if ((NOT PDM_ENABLE_STATIC) AND (NOT PDM_ENABLE_SHARED))
+  message (FATAL_ERROR "No enabled library. Please, enable shared or static library")
+endif()
 
-    if ((NOT PDM_ENABLE_STATIC) AND (NOT PDM_ENABLE_SHARED))
-       message (FATAL_ERROR "No enabled library. Please, enable shared or static library")
-    endif()
+if (NOT CMAKE_BUILD_TYPE)
+ set(CMAKE_BUILD_TYPE "Release" CACHE STRING  "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel" FORCE)
+endif()
 
-    if (NOT CMAKE_BUILD_TYPE)
-       set(CMAKE_BUILD_TYPE "Release" CACHE STRING  "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel" FORCE)
-    endif()
+# ADD "-DDEBUG_CLASSE" in Debug
+#------------------------------
 
-    # ADD "-DDEBUG_CLASSE" in Debug
-    #------------------------------
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_definitions (-DDEBUG_CLASSE)
+endif()
 
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-       add_definitions (-DDEBUG_CLASSE)
-    endif()
+# Add "-DHAVE_GETRUSAGE" if function getrusage and gettimeofday exist
+#--------------------------------------------------------------------
 
-    # Add "-DHAVE_GETRUSAGE" if function getrusage and gettimeofday exist
-    #--------------------------------------------------------------------
-
-    include(CheckFunctionExists)
-    CHECK_FUNCTION_EXISTS(getrusage PDM_HAVE_GETRUSAGE)
-    CHECK_FUNCTION_EXISTS(gettimeofday PDM_HAVE_GETTIMEOFDAY)
-
-endif ()
+include(CheckFunctionExists)
+CHECK_FUNCTION_EXISTS(getrusage PDM_HAVE_GETRUSAGE)
+CHECK_FUNCTION_EXISTS(gettimeofday PDM_HAVE_GETTIMEOFDAY)
 
 #------------------------------------------------------------------------------
 # Default compiler flags
 #------------------------------------------------------------------------------
 
-if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
+if (NOT (PDM_IN_CWP))
 
    include(${CMAKE_MODULE_PATH}/default_flags.cmake)
 
@@ -204,7 +216,7 @@ endif ()
 # Libraries to add to link
 #------------------------------------------------------------------------------
 
-if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
+if (NOT (PDM_IN_CWP))
 
    set(COMMON_LIBRARIES)
 
@@ -214,7 +226,28 @@ endif ()
 # Check dependecies
 #------------------------------------------------------------------------------
 
-if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
+if (PDM_IN_CWP)
+
+  # Checck SCOTCH an ParMETIS
+  # -------------------------
+
+  if (PDM_ENABLE_PARMETIS)
+     if (PARMETIS_FOUND)
+        set(PDM_HAVE_PARMETIS 1)
+     endif()
+  endif()
+
+  if (PDM_ENABLE_PTSCOTCH)
+     if (PTSCOTCH_FOUND)
+        set(PDM_HAVE_PTSCOTCH 1)
+     endif()
+  endif()
+
+  if (PDM_ENABLE_Fortran_MPI_MODULE)
+    set (PDM_HAVE_FORTRAN_MPI_MODULE 1)
+  endif()
+
+else ()
 
   # Check MPI (TODO : check MPI wrapper function check )
   # -------------
@@ -289,58 +322,32 @@ if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
 
   endif()
 
-elseif (PDM_IN_CWP)
-
-  # Checck SCOTCH an ParMETIS
-  # -------------------------
-
-  if (PDM_ENABLE_PARMETIS)
-     if (PARMETIS_FOUND)
-        set(PDM_HAVE_PARMETIS 1)
-     endif()
-  endif()
-
-  if (PDM_ENABLE_PTSCOTCH)
-     if (PTSCOTCH_FOUND)
-        set(PDM_HAVE_PTSCOTCH 1)
-     endif()
-  endif()
-
-  if (PDM_ENABLE_Fortran_MPI_MODULE)
-    set (PDM_HAVE_FORTRAN_MPI_MODULE 1)
-  endif()
-
-
 endif ()
 
 #------------------------------------------------------------------------------
 # Store variable in configure file
 #------------------------------------------------------------------------------
 
-if (NOT (PDM_IN_PDMA))
+if (PDM_ENABLE_LONG_G_NUM)
+  set(PDM_LONG_G_NUM 1)
+endif ()
 
-  if (PDM_ENABLE_LONG_G_NUM)
-     set(PDM_LONG_G_NUM 1)
+configure_file(pdm_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
+
+if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
+  if ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h" IS_NEWER_THAN  "${CMAKE_CURRENT_BINARY_DIR}/pdm_configf.h")
+    include (FortranizeFile)
+    fortranize ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
   endif ()
-
-  configure_file(pdm_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
-
-  if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
-    if ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h" IS_NEWER_THAN  "${CMAKE_CURRENT_BINARY_DIR}/pdm_configf.h")
-     include (FortranizeFile)
-     fortranize ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
-    endif ()
-  endif ()
-
 endif ()
 
 #------------------------------------------------------------------------------
 # Doc
 #------------------------------------------------------------------------------
 
-if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
+if (NOT (PDM_IN_CWP))
 
-   find_package(Doxygen)
+  find_package(Doxygen)
 
 endif ()
 
@@ -348,10 +355,10 @@ endif ()
 # Print summary of found and not found optional packages
 #------------------------------------------------------------------------------
 
-if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
+if (NOT (PDM_IN_CWP))
 
-   include(FeatureSummary)
-   FEATURE_SUMMARY(WHAT ALL)
+  include(FeatureSummary)
+  FEATURE_SUMMARY(WHAT ALL)
 
 endif()
 
@@ -360,6 +367,7 @@ endif()
 #------------------------------------------------------------------------------
 
 # Append the library version information to the library target properties
+
 if (PDM_WITH_LIBRARY_VERSION)
   string(REPLACE "+" "" PDM_LIBRARY_VERSION ${PDM_VERSION})
   # This setting of SOVERSION assumes that any API change
@@ -386,12 +394,19 @@ set(PDM_ETC_DIR "etc")
 #------------------------------------------------------------------------------
 
 add_subdirectory(src)
+
+add_subdirectory(extensions)
+
 if (PDM_ENABLE_PYTHON_BINDINGS)
   add_subdirectory(Cython)
 endif()
+
 add_subdirectory(test)
 
+add_subdirectory(doc)
+
 #------------------------------------------------------------------------------
+
 if(PDM_ENABLE_UNIT_TEST)
   include(FetchContent)
   # FetchContent_Declare(
@@ -410,12 +425,14 @@ if(PDM_ENABLE_UNIT_TEST)
     add_subdirectory(${doctest_SOURCE_DIR} ${doctest_BINARY_DIR})
   endif()
 endif()
+
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 # Création d'un package pdmConfig.cmake pour importer facilement paradigm
 # pour les clients utilisant CMake
 #------------------------------------------------------------------------------
+
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/pdmConfig.cmake.in"
   pdmConfig.cmake
@@ -429,7 +446,7 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pdmConfig.cmake"
 # Affichage du message de fin d'installation
 #------------------------------------------------------------------------------
 
-if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
+if (NOT (PDM_IN_CWP))
 
 add_subdirectory(${PDM_CMAKE_DIR}/post-install)
 

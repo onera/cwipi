@@ -17,7 +17,7 @@ endif()
 unset(LINK_LIBRARIES)
 
 if (PDM_ENABLE_STATIC)
- if (PDM_IN_PDMA)
+ if (PDM_ENABLE_EXTENSION_PDMA)
   list(APPEND LINK_LIBRARIES
        pdma_static)
  endif()
@@ -25,7 +25,7 @@ if (PDM_ENABLE_STATIC)
       pdm_static
       pdm_mpi_static
       ${COMMON_LIBRARIES})
- if (PDM_IN_PDMA)
+ if (PDM_ENABLE_EXTENSION_PDMA)
   list(APPEND LINK_LIBRARIES
        pdma_static)
  endif()
@@ -33,7 +33,7 @@ else ()
  list(APPEND LINK_LIBRARIES
       pdm_shared
       pdm_mpi_shared ${COMMON_LIBRARIES})
- if (PDM_IN_PDMA)
+ if (PDM_ENABLE_EXTENSION_PDMA)
   list(APPEND LINK_LIBRARIES
        pdma_shared)
  endif()

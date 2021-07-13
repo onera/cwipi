@@ -39,9 +39,9 @@ endif ()
 file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.pxi")
 file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.py")
 
-if (PDM_IN_PDMA)
-  file ( COPY ${PDMA_SOURCE_DIR}/Cython DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.pxi")
-  file ( COPY ${PDMA_SOURCE_DIR}/Cython DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.py")
+if (PDM_ENABLE_EXTENSION_PDMA)
+  file ( COPY ${PDM_SOURCE_DIR}/extensions/paradigma/Cython DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.pxi")
+  file ( COPY ${PDM_SOURCE_DIR}/extensions/paradigma/Cython DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.py")
 endif()
 
 set (include_dirs "")
@@ -49,10 +49,9 @@ list (APPEND include_dirs ${Mpi4Py_INCLUDE_DIR})
 list (APPEND include_dirs ${NumPy_INCLUDE_DIR})
 list (APPEND include_dirs ${CMAKE_CURRENT_BINARY_DIR})
 list (APPEND include_dirs ${CMAKE_BINARY_DIR})
-if (PDM_IN_PDMA)
-  list (APPEND include_dirs ${PDMA_SOURCE_DIR}/src/mesh)
-  list (APPEND include_dirs ${PDMA_SOURCE_DIR}/src/overlay)
-  list (APPEND include_dirs ${PDMA_SOURCE_DIR}/src/plugins)
+if (PDM_ENABLE_EXTENSION_PDMA)
+  list (APPEND include_dirs ${PDM_SOURCE_DIR}/extensions/paradigma/src/mesh)
+  list (APPEND include_dirs ${PDM_SOURCE_DIR}/extensions/paradigma/src/plugins)
 else ()
   set(COMMENT_NOT_PDMA "\#")
 endif()
@@ -63,17 +62,19 @@ configure_file(pdm_part_coarse.pxi.in pdm_part_coarse.pxi)
 include(UseCython)
 set(_pyx_file "${CMAKE_CURRENT_BINARY_DIR}/Pypdm.pyx")
 set_source_files_properties(${_pyx_file} PROPERTIES CYTHON_IS_CXX FALSE)
-if (PDM_IN_PDMA)
-cython_add_module (Pypdm
-                   PYX_SOURCES "${_pyx_file}"
-                   OTHER_SOURCES $<TARGET_OBJECTS:pdm> $<TARGET_OBJECTS:pdma>
-                   INCLUDE_DIRECTORIES ${include_dirs})
+
+if (PDM_ENABLE_EXTENSION_PDMA)
+  cython_add_module (Pypdm
+                     PYX_SOURCES "${_pyx_file}"
+                     OTHER_SOURCES $<TARGET_OBJECTS:pdm> $<TARGET_OBJECTS:pdma>
+                     INCLUDE_DIRECTORIES ${include_dirs})
 else ()
-cython_add_module (Pypdm
-                   PYX_SOURCES "${_pyx_file}"
-                   OTHER_SOURCES $<TARGET_OBJECTS:pdm>
-                   INCLUDE_DIRECTORIES ${include_dirs})
+  cython_add_module (Pypdm
+                     PYX_SOURCES "${_pyx_file}"
+                     OTHER_SOURCES $<TARGET_OBJECTS:pdm>
+                     INCLUDE_DIRECTORIES ${include_dirs})
 endif()
+
 set_target_properties(Pypdm PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Pypdm/")
 
 get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
@@ -89,7 +90,8 @@ if (${PTSCOTCH_FOUND})
   list(APPEND LINK_LIBRARIES ${PTSCOTCH_LIBRARIES})
   list(APPEND LINK_LIBRARIES ${SCOTCH_LIBRARIES})
 endif ()
-if (PDM_IN_PDMA)
+
+if (PDM_ENABLE_EXTENSION_PDMA)
   list(APPEND LINK_LIBRARIES pdma_shared)
 endif()
 

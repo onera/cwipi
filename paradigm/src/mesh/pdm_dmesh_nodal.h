@@ -30,7 +30,7 @@ extern "C" {
  *============================================================================*/
 
 typedef struct _pdm_dmesh_nodal_t      PDM_dmesh_nodal_t;
-typedef struct _pdm_dmesh_nodal_elts_t PDM_DMesh_nodal_elmts_t;
+typedef struct _pdm_dmesh_nodal_elts_t PDM_dmesh_nodal_elmts_t;
 
 /*=============================================================================
  * Global variables
@@ -903,7 +903,7 @@ PDM_dmesh_nodal_t  *dmesh_nodal
 );
 
 
-PDM_DMesh_nodal_elmts_t*
+PDM_dmesh_nodal_elmts_t*
 PDM_DMesh_nodal_elmts_create
 (
 const PDM_MPI_Comm comm,
@@ -914,14 +914,14 @@ const PDM_MPI_Comm comm,
 int
 PDM_DMesh_nodal_elmts_section_add
 (
-      PDM_DMesh_nodal_elmts_t *dmn_elts,
+      PDM_dmesh_nodal_elmts_t *dmn_elts,
 const PDM_Mesh_nodal_elt_t     t_elt
 );
 
 void
 PDM_DMesh_nodal_elmts_section_std_set
 (
-PDM_DMesh_nodal_elmts_t *dmn_elts,
+PDM_dmesh_nodal_elmts_t *dmn_elts,
 const int                id_section,
 const int                n_elt,
       PDM_g_num_t       *connec,
@@ -931,7 +931,7 @@ const int                n_elt,
 void
 PDM_DMesh_nodal_elmts_group_set
 (
-PDM_DMesh_nodal_elmts_t *dmn_elts,
+PDM_dmesh_nodal_elmts_t *dmn_elts,
 const int                n_group_elmt,
       int               *dgroup_elmt_idx,
       PDM_g_num_t       *dgroup_elmt,
@@ -941,34 +941,34 @@ const int                n_group_elmt,
 void
 PDM_DMesh_nodal_elmts_free
 (
-PDM_DMesh_nodal_elmts_t* dmn_elts
+PDM_dmesh_nodal_elmts_t* dmn_elts
 );
 
 void
-PDM_Mesh_nodal_add_desh_nodal_elmts
+PDM_Mesh_nodal_add_dmesh_nodal_elmts
 (
  PDM_dmesh_nodal_t       *dmesh_nodal,
- PDM_DMesh_nodal_elmts_t *dmn_elts
+ PDM_dmesh_nodal_elmts_t *dmn_elts
 );
 
 const PDM_g_num_t *
 PDM_DMesh_nodal_elmts_distrib_section_get
 (
-      PDM_DMesh_nodal_elmts_t *dmn_elts,
+      PDM_dmesh_nodal_elmts_t *dmn_elts,
 const int                      id_section
 );
 
 void
 PDM_dmesh_nodal_elmts_generate_distribution
 (
- PDM_DMesh_nodal_elmts_t *dmn_elts
+ PDM_dmesh_nodal_elmts_t *dmn_elts
 );
 
 
 void
 PDM_dmesh_nodal_decompose_edges_get_size2
 (
-PDM_DMesh_nodal_elmts_t *dmn_elts,
+PDM_dmesh_nodal_elmts_t *dmn_elts,
 int                     *n_edge_elt_tot,
 int                     *n_sum_vtx_edge_tot
 );
@@ -976,21 +976,21 @@ int                     *n_sum_vtx_edge_tot
 PDM_Mesh_nodal_elt_t
 PDM_DMesh_nodal_elmts_section_type_get
 (
-      PDM_DMesh_nodal_elmts_t *dmn_elts,
+      PDM_dmesh_nodal_elmts_t *dmn_elts,
 const int                      id_section
 );
 
 PDM_g_num_t *
 PDM_DMesh_nodal_elmts_section_std_get
 (
-      PDM_DMesh_nodal_elmts_t *dmn_elts,
+      PDM_dmesh_nodal_elmts_t *dmn_elts,
 const int                      id_section
 );
 
 int
 PDM_DMesh_nodal_elmts_section_n_elt_get
 (
-      PDM_DMesh_nodal_elmts_t *dmn_elts,
+      PDM_dmesh_nodal_elmts_t *dmn_elts,
 const int                      id_section
 );
 

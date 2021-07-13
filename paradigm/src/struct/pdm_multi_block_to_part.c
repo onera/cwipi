@@ -74,11 +74,19 @@ PDM_multi_block_to_part_create
   PDM_multi_block_to_part_t *mbtp =
     (PDM_multi_block_to_part_t *) malloc (sizeof(PDM_multi_block_to_part_t));
 
-  mbtp->comm       = comm;
+  mbtp->comm        = comm;
   mbtp->pttopt_comm = 0;
 
   PDM_MPI_Comm_size (comm, &mbtp->n_rank);
   PDM_MPI_Comm_rank (comm, &mbtp->i_rank);
+
+  if(0 == 1) {
+    printf(" PDM_multi_block_to_part_create :: n_part = %i \n", n_part);
+    printf(" PDM_multi_block_to_part_create :: n_block = %i \n", n_block);
+    for(int i_part = 0; i_part < n_part; ++i_part) {
+      printf(" PDM_multi_block_to_part_create :: n_elt[%i] = %i \n", i_part, n_elt[i_part]);
+    }
+  }
 
   mbtp->n_block = n_block;
 
@@ -233,7 +241,9 @@ PDM_multi_block_to_part_create
                      PDM_MPI_INT,
                      comm);
 
-  PDM_log_trace_array_int(mbtp->distributed_data    , mbtp->distributed_data_idx[mbtp->n_rank], "mbtp->distributed_data:: ");
+  if( 0 == 1) {
+    PDM_log_trace_array_int(mbtp->distributed_data    , mbtp->distributed_data_idx[mbtp->n_rank], "mbtp->distributed_data:: ");
+  }
 
   free (requested_data);
 

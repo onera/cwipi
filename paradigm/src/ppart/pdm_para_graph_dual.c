@@ -926,6 +926,7 @@ const PDM_MPI_Comm      comm
 
   int dn_elmt = graph_node_distrib[i_rank+1] - graph_node_distrib[i_rank];
 
+  printf("dn_elmt = %i \n", dn_elmt);
   PDM_array_reset_int(node_part_id, dn_elmt, 0);
 
   switch (split_method) {

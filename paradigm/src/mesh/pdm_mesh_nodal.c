@@ -62,7 +62,7 @@ PDM_Mesh_nodal_vtx_t *
 _vtx_free
 (
  PDM_Mesh_nodal_vtx_t *vtx
- )
+)
 {
 
   if (vtx != NULL) {
@@ -258,7 +258,7 @@ PDM_Mesh_nodal_block_std_t *
 _block_std_free
 (
  PDM_Mesh_nodal_block_std_t *_block_std
- )
+)
 {
 
   if (_block_std == NULL) {
@@ -322,7 +322,7 @@ void
 _block_poly2d_free_partial
 (
  PDM_Mesh_nodal_block_poly2d_t *_block_poly2d
- )
+)
 {
 
   if (_block_poly2d->_connec_idx != NULL) {
@@ -391,7 +391,7 @@ PDM_Mesh_nodal_block_poly2d_t *
 _block_poly2d_free
 (
  PDM_Mesh_nodal_block_poly2d_t *_block_poly2d
- )
+)
 {
   _block_poly2d_free_partial(_block_poly2d);
 

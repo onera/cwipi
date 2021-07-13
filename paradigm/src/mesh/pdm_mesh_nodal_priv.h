@@ -43,6 +43,8 @@ struct PDM_Mesh_nodal_vtx_t {
   const double         *_coords;    /*!< Coordinates (Mapping) */
   const PDM_g_num_t    *_numabs;    /*!< Global numbering */
   const int            *_numparent; /*!< Numbering in the parent vertices (mapping) */
+
+  PDM_ownership_t       owner;
 };
 
 /**
@@ -63,6 +65,8 @@ typedef struct PDM_Mesh_nodal_block_std_t {
   PDM_g_num_t              **numabs_int;    /*!< Global numbering inside each block */
   PDM_l_num_t              **_parent_num;       /*!< Parent numbering or NULL */
   double                   **cell_centers;       /*!< Cell center coordinates */
+
+  PDM_ownership_t            owner;
 
 } PDM_Mesh_nodal_block_std_t;
 
@@ -85,6 +89,8 @@ typedef struct PDM_Mesh_nodal_block_poly2d_t {
   PDM_g_num_t            **numabs_int;    /*!< Global numbering inside each block */
   PDM_l_num_t            **_parent_num;       /*!< Parent numbering or NULL */
   double                 **cell_centers;       /*!< Cell center coordinates */
+
+  PDM_ownership_t          owner;
 
 } PDM_Mesh_nodal_block_poly2d_t;
 
@@ -119,6 +125,8 @@ typedef struct PDM_Mesh_nodal_block_poly3d_t{
   PDM_g_num_t           **numabs_int;   /*!< Global numbering inside the block (Memory mapping) */
   PDM_l_num_t           **_parent_num;  /*!< Parent numbering or NULL */
   double                **cell_centers;       /*!< Cell center coordinates */
+
+  PDM_ownership_t          owner;
 
 } PDM_Mesh_nodal_block_poly3d_t;
 
@@ -196,6 +204,14 @@ struct _PDM_Mesh_nodal_t {
   int                      is_vtx_def_from_parent;              /*<! Are the points defined from parents */
   PDM_g_num_t                          **numabs;                 /*<! Global numbering per cell per partition */
 };
+
+
+// struct _PDM_part_mesh_nodal_t {
+//   // PDM_mesh_nodal_elmts_t     *volumic;
+//   // PDM_mesh_nodal_elmts_t     *surfacic;
+//   // PDM_mesh_nodal_elmts_t     *ridge;
+//   // PDM_mesh_nodal_elmts_t     *corner;
+// };
 
 #ifdef __cplusplus
 }

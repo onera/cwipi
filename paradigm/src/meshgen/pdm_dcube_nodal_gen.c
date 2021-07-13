@@ -1312,10 +1312,10 @@ const double                zero_z,
   PDM_g_num_t _dn_quad_seq_lim  = dcube->distrib_quad_seg_lim[i_rank+1] - dcube->distrib_quad_seg_lim[i_rank];
   dcube->dn_quad_seq_lim        = (int) _dn_quad_seq_lim;
 
-  PDM_DMesh_nodal_elmts_t* dmn_elmts_vol    = NULL;
-  PDM_DMesh_nodal_elmts_t* dmn_elmts_surf   = NULL;
-  PDM_DMesh_nodal_elmts_t* dmn_elmts_ridge  = NULL;
-  PDM_DMesh_nodal_elmts_t* dmn_elmts_corner = NULL;
+  PDM_dmesh_nodal_elmts_t* dmn_elmts_vol    = NULL;
+  PDM_dmesh_nodal_elmts_t* dmn_elmts_surf   = NULL;
+  PDM_dmesh_nodal_elmts_t* dmn_elmts_ridge  = NULL;
+  PDM_dmesh_nodal_elmts_t* dmn_elmts_corner = NULL;
 
   // printf("dcube->n_g_hexa_cell = "PDM_FMT_G_NUM" \n", dcube->n_g_hexa_cell);
   // printf("n_g_quad_lim         = "PDM_FMT_G_NUM" \n", n_g_quad_lim);
@@ -1332,16 +1332,16 @@ const double                zero_z,
   }
 
   if(dmn_elmts_vol != NULL) {
-    PDM_Mesh_nodal_add_desh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_vol   );
+    PDM_Mesh_nodal_add_dmesh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_vol   );
   }
   if(dmn_elmts_surf != NULL) {
-    PDM_Mesh_nodal_add_desh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_surf  );
+    PDM_Mesh_nodal_add_dmesh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_surf  );
   }
   if(dmn_elmts_ridge != NULL) {
-    PDM_Mesh_nodal_add_desh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_ridge );
+    PDM_Mesh_nodal_add_dmesh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_ridge );
   }
   if(dmn_elmts_corner != NULL) {
-    PDM_Mesh_nodal_add_desh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_corner);
+    PDM_Mesh_nodal_add_dmesh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_corner);
   }
 
   switch (t_elt) {

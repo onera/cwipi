@@ -79,9 +79,9 @@ target_include_directories(pdm
   PUBLIC    $<INSTALL_INTERFACE:include/>
 )
 
-if (PDM_IN_PDMA)
+if (PDM_ENABLE_EXTENSION_PDMA)
   target_include_directories(pdm
-                             PUBLIC $<BUILD_INTERFACE:${PDMA_SOURCE_DIR}/src/plugins/renum>
+                             PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/extensions/paradigma/src/plugins/renum>
                              )
 endif()
 
@@ -104,9 +104,9 @@ if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
     PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/util>
     PUBLIC    $<INSTALL_INTERFACE:include/>
   )
-    if (PDM_IN_PDMA)
+    if (PDM_ENABLE_EXTENSION_PDMA)
       target_include_directories(pdmf
-                                 PUBLIC $<BUILD_INTERFACE:${PDMA_SOURCE_DIR}/src/plugins/renum>
+                                 PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/extensions/paradigma/src/plugins/renum>
                                  )
     endif()
 endif()
@@ -186,11 +186,7 @@ list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/mesh/pdm_overlay.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/mesh/pdm_edges_intersect.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/mesh/pdm_overlayf.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/mesh/pdm_poly_clipp.h")
-if (PDM_IN_PDMA)
-  list(APPEND LIST_HEADER "${CMAKE_BINARY_DIR}/pdm_config.h")
-else()
-  list(APPEND LIST_HEADER "${PDM_BINARY_DIR}/pdm_config.h")
-endif()
+list(APPEND LIST_HEADER "${PDM_BINARY_DIR}/pdm_config.h")
 
 if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
 
@@ -201,11 +197,7 @@ if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_SOURCE_DIR}/ppart/mod_pdm_part.F90")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_SOURCE_DIR}/ppart/pdm_partf.h")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_SOURCE_DIR}/pdmf.h")
-  if (PDM_IN_PDMA)
-    list(APPEND LIST_HEADERF "${CMAKE_BINARY_DIR}/pdm_configf.h")
-  else()
-    list(APPEND LIST_HEADERF "${PDM_BINARY_DIR}/pdm_configf.h")
-  endif()
+  list(APPEND LIST_HEADERF "${PDM_BINARY_DIR}/pdm_configf.h")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/pdm_io.mod")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/pdm_fortran.mod")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/pdm_writer.mod")
