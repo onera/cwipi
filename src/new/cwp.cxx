@@ -143,7 +143,7 @@ _cwipi_print_with_c
 
 
 static bool
-_is_coupled
+_is_active_rank
 (
  const char *local_code_name
  )
@@ -1307,7 +1307,7 @@ CWP_Visu_set
  const char                 *format_option
 )
 {
-  if(_is_coupled(local_code_name)){
+  if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
     cpl.visuSet(freq, format, format_option);
   }
@@ -1342,7 +1342,7 @@ CWP_User_tgt_pts_set
  double                      coord[]
 )
 {
-  if(_is_coupled(local_code_name)){
+  if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
     cpl.userTgtPtsSet(i_part, n_pts, coord);
   }
@@ -1370,7 +1370,7 @@ CWP_Mesh_interf_finalize
  const char                 *cpl_id
 )
 {
-  if(_is_coupled(local_code_name)){
+  if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
     cpl.meshFinalize();
   }
@@ -1401,7 +1401,7 @@ CWP_Mesh_interf_vtx_set
  CWP_g_num_t                 global_num[]
 )
 {
-  if(_is_coupled(local_code_name)){
+  if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
     cpl.meshVtcsSet(i_part,
                     n_pts,
@@ -1428,7 +1428,7 @@ CWP_Mesh_interf_block_add
  const CWP_Block_t     block_type
 )
 {
-  if(_is_coupled(local_code_name)){
+  if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
     int block_id = cpl.meshBlockAdd(block_type);
     return block_id;
@@ -1542,7 +1542,7 @@ CWP_Mesh_interf_block_std_set
  CWP_g_num_t       global_num[]
 )
 {
-  if(_is_coupled(local_code_name)){
+  if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
     cpl.meshStdBlockSet(i_part,
                         block_id,
@@ -1606,7 +1606,7 @@ CWP_Mesh_interf_f_poly_block_set
 )
 {
 
-   if(_is_coupled(local_code_name)){
+   if(_is_active_rank(local_code_name)){
      cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
      cpl.meshFPolyBlockSet(i_part,
                            block_id,
@@ -1897,7 +1897,7 @@ CWP_Field_data_set
  double                data[]
 )
 {
-  if(_is_coupled(local_code_name)){
+  if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
     cpl.fieldDataSet(field_id,i_part,data);
   }
@@ -2038,7 +2038,7 @@ CWP_Field_issend
  const char        *src_field_id
 )
 {
-  if(_is_coupled(local_code_name)){
+  if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
     std::string referenceFieldID_str = const_cast<char*>(src_field_id);
 
@@ -2070,7 +2070,7 @@ CWP_Field_irecv
  const char        *tgt_field_id
 )
 {
-  if(_is_coupled(local_code_name)){
+  if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
     std::string targetFieldID_str = const_cast<char*>(tgt_field_id);
     cpl.irecv(targetFieldID_str);
@@ -2096,7 +2096,7 @@ CWP_Field_wait_issend
  const char  *src_field_id
 )
 {
-  if(_is_coupled(local_code_name)){
+  if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
     std::string srcFieldID_str = const_cast<char*>(src_field_id);
     cpl.waitIssend(srcFieldID_str);
@@ -2125,7 +2125,7 @@ CWP_Field_wait_irecv
  const char  *tgt_field_id
 )
 {
-  if(_is_coupled(local_code_name)){
+  if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
     std::string distantFieldID_str = const_cast<char*>(tgt_field_id);
     cpl.waitIrecv(distantFieldID_str);
@@ -2635,7 +2635,7 @@ CWP_surf_gen_init
   char* genName, int nx, int ny, int nPart, MPI_Comm* comm, double prop, double width, double randomVar
 )
 {
-  if(_is_coupled(genName)){
+  if(_is_active_rank(genName)){
     cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
     surfMeshDB.createMember(genName);
     cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
@@ -2647,7 +2647,7 @@ void
 CWP_surf_gen_compute(char* genName)
 {
 
-  if(_is_coupled(genName)){
+  if(_is_active_rank(genName)){
     cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
     cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
     surfMesh -> computeMesh();
@@ -2667,7 +2667,7 @@ CWP_surf_gen_by_block_get
 {
 
 
-  if(_is_coupled(genName)){
+  if(_is_active_rank(genName)){
     cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
     cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
     *nVtx = surfMesh -> nVtxGet(i_part);
@@ -2721,7 +2721,7 @@ CWP_surf_gen_one_connectivity_get
 )
 {
 
-  if(_is_coupled(genName)){
+  if(_is_active_rank(genName)){
     cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
     cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
 
@@ -2761,7 +2761,7 @@ CWP_surf_face_edge_get
 )
 {
 
-  if(_is_coupled(genName)){
+  if(_is_active_rank(genName)){
     cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
     cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
 
@@ -2813,7 +2813,7 @@ CWP_surf_gen_tri_field_get
 )
 {
 
-  if(_is_coupled(genName)){
+  if(_is_active_rank(genName)){
     cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
     cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
     *field = surfMesh -> specialFieldTriGet(i_part);
@@ -2831,7 +2831,7 @@ CWP_surf_gen_quad_field_get
 )
 {
 
-  if(_is_coupled(genName)){
+  if(_is_active_rank(genName)){
     cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
     cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
     *field = surfMesh -> specialFieldQuadGet(i_part);
@@ -2848,7 +2848,7 @@ CWP_surf_gen_poly_field_get
 )
 {
 
-  if(_is_coupled(genName)){
+  if(_is_active_rank(genName)){
     cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
     cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
     *field = surfMesh -> specialFieldPolyGet(i_part);
@@ -2885,7 +2885,7 @@ CWP_Connectable_comm_get
 )
 {
 
-  if(_is_coupled(local_code_name)){
+  if(_is_active_rank(local_code_name)){
     cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
     const cwipi::CodeProperties & localCodeProperties = properties.codePropertiesGet(string(local_code_name));
     MPI_Comm connecComm = localCodeProperties.connectableCommGet();
