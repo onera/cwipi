@@ -57,9 +57,9 @@ namespace cwipi {
 
         void localization_free() override;
 
-        PDM_mesh_location_t *_id_pdm{};
+        PDM_mesh_location_t *_id_pdm;
 
-        PDM_mesh_location_method_t _location_method{};
+        PDM_mesh_location_method_t _location_method;
         double _tolerance = _get_location_tolerance();
     };
 

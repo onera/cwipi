@@ -54,12 +54,12 @@ namespace cwipi {
           */
         void spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) override;
 
-        SpatialInterpLocation *_spatial_interp_cpl{};
+        SpatialInterpLocation *_spatial_interp_cpl;
 
         // Localization data
-        double **_distance{};                 // Distance to the closest element surface by partition
-        double **_projected{};                // Projected point coordinates (on the closest element surface)
-        CWP_g_num_t **_closest_elt_gnum{};    // Closest element global numbering
+        double **_distance;                 // Distance to the closest element surface by partition
+        double **_projected;                // Projected point coordinates (on the closest element surface)
+        CWP_g_num_t **_closest_elt_gnum;    // Closest element global numbering
 
     protected:
         /**
@@ -276,11 +276,11 @@ namespace cwipi {
         void filling_of_sending_communication_tree_array();
 
         // Triplet global numbering, MPI process, partition results
-        int **_target_proc_part_num_idx{};    // Index array of triplet process, partition, numbering for each target
-        int **_target_proc_part_num{};        // Array of triplet process, partition, numbering for each target
+        int **_target_proc_part_num_idx;    // Index array of triplet process, partition, numbering for each target
+        int **_target_proc_part_num;        // Array of triplet process, partition, numbering for each target
 
         // Paradigm structure identifier
-        PDM_gnum_location_t *_id_gnum_location{};              // Identifier for the global numbering to (process,partition,numbering) triplet object of paradigm
+        PDM_gnum_location_t *_id_gnum_location;              // Identifier for the global numbering to (process,partition,numbering) triplet object of paradigm
     }; //end SpatialInterpLocation
 
 /**

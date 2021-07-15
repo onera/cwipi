@@ -308,9 +308,9 @@ namespace cwipi {
     Coupling                            *_cpl                   ;
     Mesh                                *_mesh                  ;  /*!< Interface Mesh */
 
-    bool _both_codes_are_local{};
-    bool _slave{};
-    CWP_Field_exch_t _Texch_t{};
+    bool _both_codes_are_local;
+    bool _slave;
+    CWP_Field_exch_t _Texch_t;
 
     int *_n_target                                              ;  /*!< Target total number on the process by partition */
 
@@ -320,95 +320,95 @@ namespace cwipi {
 
 protected:
     //Pointer to other objects
-    Visu                                *_visu{}                  ;    /*!< Visualization object */
-    CodeProperties                      *_localCodeProperties{}   ;
-    CodeProperties                      *_coupledCodeProperties{} ;
+    Visu                                *_visu                  ;    /*!< Visualization object */
+    CodeProperties                      *_localCodeProperties   ;
+    CodeProperties                      *_coupledCodeProperties ;
 
     CWP_INTERP_TIME                     interpolation_time      ;
 
-    SpatialInterp                         *_spatial_interp_cpl{}  ;  /*!< Spatial interpolation (for both codes are local case) */
+    SpatialInterp                         *_spatial_interp_cpl  ;  /*!< Spatial interpolation (for both codes are local case) */
 
-    CWP_Dof_location_t                  _pointsCloudLocation{}    ;  /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
+    CWP_Dof_location_t                  _pointsCloudLocation    ;  /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
 
     /* code Properties */
-    int _id{};
-    int _id_cpl{};
-    string coupledName{};
-    string localName{};
+    int _id;
+    int _id_cpl;
+    string coupledName;
+    string localName;
 
-    int _senderRank{};
-    int _senderRank_cpl{};
-    int _senderLocalRank{};
+    int _senderRank;
+    int _senderRank_cpl;
+    int _senderLocalRank;
 
-    int  _nb_part_cpl{}                           ;  /*!< Coupled code mesh partition number                                       */
-    int  _nb_part{}                               ;  /*!< Mesh partition number                                                    */
+    int  _nb_part_cpl                           ;  /*!< Coupled code mesh partition number                                       */
+    int  _nb_part                               ;  /*!< Mesh partition number                                                    */
 
     /** MPI processes informations **/
 
     /* MPI Communicators */
-    MPI_Comm _globalComm{};         // Gathers every processus
-    MPI_Comm _cplComm{};            // Processus involved in the coupling in either code
-    MPI_Comm _localComm{};          // Processus involved in the coupling for the local code
-    PDM_MPI_Comm  _pdm_cplComm{};   // _cplComm for Paradigm
+    MPI_Comm _globalComm;         // Gathers every processus
+    MPI_Comm _cplComm;            // Processus involved in the coupling in either code
+    MPI_Comm _localComm;          // Processus involved in the coupling for the local code
+    PDM_MPI_Comm  _pdm_cplComm;   // _cplComm for Paradigm
 
-    int **_weights_src_idx{};
-    double **_weights_src{};
+    int **_weights_src_idx;
+    double **_weights_src;
 
     vector<string> _codeVector;
 
-    std::vector<int>* _connectableRanks_cpl{};
-    std::vector<int>* _connectableRanks{}    ;
+    std::vector<int>* _connectableRanks_cpl;
+    std::vector<int>* _connectableRanks    ;
 
     /* informations about MPI process (rank) */
-    bool _isActiveRank{};
-    int cplComm_rank{};       // Rank in cplComm
-    int cplComm_size{};       // Size of cplComm
-    int localComm_size{};     // Size of localComm
-    int localComm_size_cpl{}; // Size of localComm of the coupled code
+    bool _isActiveRank;
+    int cplComm_rank;       // Rank in cplComm
+    int cplComm_size;       // Size of cplComm
+    int localComm_size;     // Size of localComm
+    int localComm_size_cpl; // Size of localComm of the coupled code
 
     std::vector<int> n_uncomputed_tgt;
 
-    int         **_targets_localization_idx{}     ;  /*!< Data index (by process and by partition) of target localization*/
-    target_data  *_targets_localization_data{}    ;  /*!< Data of target localization */
-    int         **_targets_localization_idx_cpl{} ;  /*!< Data index (by process and by partition) of the received target localization*/
-    target_data  *_targets_localization_data_cpl{};  /*!< Data of the received target localization */
+    int         **_targets_localization_idx     ;  /*!< Data index (by process and by partition) of target localization*/
+    target_data  *_targets_localization_data    ;  /*!< Data of target localization */
+    int         **_targets_localization_idx_cpl ;  /*!< Data index (by process and by partition) of the received target localization*/
+    target_data  *_targets_localization_data_cpl;  /*!< Data of the received target localization */
 
     //TODO: To delete and replace by using other members
     std::vector<int>   _idx_target              ;  /*!< Index of the number of target by partition */
 
     /* Displacement and count for all_to_all MPI communication of targets_localization_data */
 
-    int* _targets_localization_data_count_recv{}  ;  /* Counts for all_to_all MPI communication of targets_localization_data (reception) */
-    int* _targets_localization_data_count_send{}  ;  /* Counts for all_to_all MPI communication of targets_localization_data (sending) */
-    int* _targets_localization_data_disp_recv{}   ;  /* Displacements for all_to_all MPI communication of targets_localization_data (reception) */
-    int* _targets_localization_data_disp_send{}   ;  /* Displacements for all_to_all MPI communication of targets_localization_data (sending) */
+    int* _targets_localization_data_count_recv  ;  /* Counts for all_to_all MPI communication of targets_localization_data (reception) */
+    int* _targets_localization_data_count_send  ;  /* Counts for all_to_all MPI communication of targets_localization_data (sending) */
+    int* _targets_localization_data_disp_recv   ;  /* Displacements for all_to_all MPI communication of targets_localization_data (reception) */
+    int* _targets_localization_data_disp_send   ;  /* Displacements for all_to_all MPI communication of targets_localization_data (sending) */
 
     /* Triplet global numbering, MPI process, partition results */
 
-    int** _process_and_partition_count{}          ;  /*!< Element count by MPI process rank and partition */
+    int** _process_and_partition_count          ;  /*!< Element count by MPI process rank and partition */
 
-    int  _n_tot_target{}                          ;  /*!< Target total number on the process                                       */
-    int  _n_tot_target_cpl{}                      ;  /*!< Number of coupled code target received by the process for interpolation  */
+    int  _n_tot_target                          ;  /*!< Target total number on the process                                       */
+    int  _n_tot_target_cpl                      ;  /*!< Number of coupled code target received by the process for interpolation  */
 
     /* user targets definition for CWP_DOF_LOCATION_USER field type */
 
-    int*          _n_user_targets{}               ;  /*!< Number of targets defined by the user for CWP_DOF_LOCATION_USER field type        */
-    int           _n_tot_user_targets{}           ;  /*!< Total number of targets defined by the user for CWP_DOF_LOCATION_USER field type  */
-    CWP_g_num_t** _gnum_user_targets{}            ;  /*!< Target global numbering defined by the user for CWP_DOF_LOCATION_USER field type  */
+    int*          _n_user_targets               ;  /*!< Number of targets defined by the user for CWP_DOF_LOCATION_USER field type        */
+    int           _n_tot_user_targets           ;  /*!< Total number of targets defined by the user for CWP_DOF_LOCATION_USER field type  */
+    CWP_g_num_t** _gnum_user_targets            ;  /*!< Target global numbering defined by the user for CWP_DOF_LOCATION_USER field type  */
 
-    CWP_g_num_t _n_g_elt_over_part{}              ;  /*!< Number of element of the process (over all the partitions)              */
-    CWP_g_num_t _n_g_vtx_over_part{}              ;  /*!< Number of vertices of the process (over all the partitions)             */
-    CWP_g_num_t _n_g_elt_cpl_over_part{}          ;  /*!< Number of coupled code element of the process (over all the partitions) */
-    CWP_g_num_t _n_g_vtx_cpl_over_part{}          ;  /*!< Number of coupled code vertices of the process (over all the partitions)*/
+    CWP_g_num_t _n_g_elt_over_part              ;  /*!< Number of element of the process (over all the partitions)              */
+    CWP_g_num_t _n_g_vtx_over_part              ;  /*!< Number of vertices of the process (over all the partitions)             */
+    CWP_g_num_t _n_g_elt_cpl_over_part          ;  /*!< Number of coupled code element of the process (over all the partitions) */
+    CWP_g_num_t _n_g_vtx_cpl_over_part          ;  /*!< Number of coupled code vertices of the process (over all the partitions)*/
 
     /* Mesh informations */
-    double**      _coords_user_targets{}          ;  /*!< Target coordinates defined by the user for CWP_DOF_LOCATION_USER field type       */
+    double**      _coords_user_targets          ;  /*!< Target coordinates defined by the user for CWP_DOF_LOCATION_USER field type       */
 
-    int *_n_vtx{}                                 ;  /*!< Vertice total number on the process by partition                         */
-    int  _n_tot_vtx{}                             ;  /*!< Vertice total number on the process                                      */
+    int *_n_vtx                                 ;  /*!< Vertice total number on the process by partition                         */
+    int  _n_tot_vtx                             ;  /*!< Vertice total number on the process                                      */
 
-    int *_n_elt{}                                 ;  /*!< Element total number on the process by partition                         */
-    int  _n_tot_elt{}                             ;  /*!< Element total number on the process                                      */
+    int *_n_elt                                 ;  /*!< Element total number on the process by partition                         */
+    int  _n_tot_elt                             ;  /*!< Element total number on the process                                      */
   };
 
     /**

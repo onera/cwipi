@@ -36,10 +36,10 @@ namespace cwipi {
 
         void init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation, bool slave) override;
 
-        SpatialInterpClosestPoint *_spatial_interp_cpl{};
+        SpatialInterpClosestPoint *_spatial_interp_cpl;
 
-        PDM_g_num_t *closest_src_gnum{};
-        double *closest_src_dstance{};
+        PDM_g_num_t *closest_src_gnum;
+        double *closest_src_dstance;
 
     protected:
         PDM_closest_point_t *_id_pdm;

@@ -47,7 +47,7 @@ namespace cwipi {
         void localization_free() override;
 
     protected:
-        PDM_dist_cloud_surf_t *_id_pdm{};
+        PDM_dist_cloud_surf_t *_id_pdm;
     };
 
 /**
