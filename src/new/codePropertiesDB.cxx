@@ -90,7 +90,7 @@ namespace cwipi {
    *                              of all codes
    * \param [in]  n_codes         Number of codes on the current rank
    * \param [in]  code_names      Codes names on the current rank  (n_codes)
-   * \param [in]  is_coupled_rank Current rank is it a coupled rank (n_codes)
+   * \param [in]  is_active_rank Current rank is it a coupled rank (n_codes)
    * \param [in]  n_param_max     Maximum number of parameters
    * \param [in]  str_size_max    Maximum size for a string
    * \param [out] intra_comms      Current codes intra-communicators  (n_codes)
@@ -103,7 +103,7 @@ namespace cwipi {
   const MPI_Comm     globalComm,
   const int          n_codes,
   const char**       code_names, 
-  const CWP_Status_t *is_coupled_rank,
+  const CWP_Status_t *is_active_rank,
   const int          n_param_max,
   const int          str_size_max,      
   MPI_Comm           *intra_comms       
@@ -144,7 +144,7 @@ namespace cwipi {
     for (int i = 0; i < n_codes; i++) {
       properties[1] += strlen(code_names[i]) + 1;
     }
-    //properties[2] = is_coupled_rank;
+    //properties[2] = is_active_rank;
 
     int *allProperties = new int[2*globalCommSize];
 
@@ -193,7 +193,7 @@ namespace cwipi {
                    MPI_CHAR,
                    globalComm);
 
-    MPI_Allgatherv((void*) is_coupled_rank,
+    MPI_Allgatherv((void*) is_active_rank,
                    properties[0],
                    MPI_INT,
                    mergeIsCoupled,
@@ -271,7 +271,7 @@ namespace cwipi {
         rankCode[currentName]->push_back(irank);
 
         if (currentRank == irank) {
-          _codePropertiesDB[currentName]->isCoupledRankset(is_coupled_rank[k]);
+          _codePropertiesDB[currentName]->isActiveRankset(is_active_rank[k]);
         }
 
         index += currentName.size() + 1;

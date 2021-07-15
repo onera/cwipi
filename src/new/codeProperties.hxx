@@ -84,12 +84,12 @@ namespace cwipi {
     /**
      * \brief Return if the current rank is a coupled rank
      *
-     * \return  isCoupledRank
+     * \return  isActiveRank
      *
      */
 
     inline bool
-    isCoupledRank() const;
+    isActiveRank() const;
 
 
     /**
@@ -100,7 +100,7 @@ namespace cwipi {
      */
 
     inline void
-    isCoupledRankset
+    isActiveRankset
     (
     bool status
     );
@@ -575,7 +575,7 @@ namespace cwipi {
                                          *   in MPI global communicator */
     MPI_Comm  _globalComm;    /*!< MPI global communicator */
     MPI_Comm  _intraComm;     /*!< MPI intra communicator */
-    bool      _isCoupledRank;  /*!< Is a coupled rank */
+    bool      _isActiveRank;  /*!< Is a coupled rank */
 
     MPI_Group _intraGroup;     /*!< MPI group in the global communicator */
     vector <int> *_intraRanks;  /*!< Code ranks in global communicator */
@@ -672,14 +672,14 @@ namespace cwipi {
   /**
    * \brief Return if the current rank is a coupled rank
    *
-   * \return  isCoupledRank
+   * \return  isActiveRank
    *
    */
 
   bool
-  CodeProperties::isCoupledRank() const
+  CodeProperties::isActiveRank() const
   {
-    return _isCoupledRank;
+    return _isActiveRank;
   }
 
 
@@ -691,12 +691,12 @@ namespace cwipi {
    */
 
   void
-  CodeProperties::isCoupledRankset
+  CodeProperties::isActiveRankset
   (
   bool status
   )
   {
-    _isCoupledRank = status;
+    _isActiveRank = status;
   }
 
 

@@ -91,7 +91,7 @@ namespace cwipi {
   )
   {
 
-    _isCplRank = localCodeProperties.isCoupledRank();
+    _isCplRank = localCodeProperties.isActiveRank();
     if (_cplComm == MPI_COMM_NULL) {
       _cplCodeProperties = &cplCodeProperties;
       _localCodeProperties = &localCodeProperties;
@@ -104,7 +104,7 @@ namespace cwipi {
       int globalRank;
       MPI_Comm_rank(globalComm, &globalRank);
 
-      if (!localCodeProperties.isCoupledRank()) {
+      if (!localCodeProperties.isActiveRank()) {
         PDM_printf(
            "Warning CWP_Cpl_create : Call CWP_Cpl_create function"
            " on an uncoupled rank (%d) of the '%s' code\n",

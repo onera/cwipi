@@ -233,13 +233,13 @@ namespace cwipi {
 
     std::map < string, Field * >::iterator itf = _fields.begin();
     while (itf != _fields.end()) {
-        if(_localCodeProperties.isCoupledRank() && _visu.isCreated() && itf -> second -> visuStatusGet() == CWP_STATUS_ON )
+        if(_localCodeProperties.isActiveRank() && _visu.isCreated() && itf -> second -> visuStatusGet() == CWP_STATUS_ON )
           _visu.fieldDataFree(itf -> second);
         delete itf -> second;
         itf++;
     }
 
-    if(_localCodeProperties.isCoupledRank() && _visu.isCreated()) {
+    if(_localCodeProperties.isActiveRank() && _visu.isCreated()) {
       // _visu.SpatialInterpFree();
 
       delete _iteration;
@@ -255,14 +255,15 @@ namespace cwipi {
  //TODO: Virer ptFortranInterpolationFct
   void
   Coupling::issend
-  (string &sendingFieldID) {
+  (string &sendingFieldID)
 
+  {
      map <string, Field *>::iterator it;
      it = _fields.find(sendingFieldID);
 
      if (it != _fields.end()) {
        Field* sendingField = it -> second;
-       if(_localCodeProperties.isCoupledRank()) {
+       if(_localCodeProperties.isActiveRank()) {
          if(_spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
           _spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> issend_p2p(sendingField);
           return;
@@ -289,7 +290,7 @@ namespace cwipi {
        if (it != _fields.end()) {
          Field* recevingField = it -> second;
          if(_spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0 ){
-           if(_localCodeProperties.isCoupledRank())
+           if(_localCodeProperties.isActiveRank())
              _spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> irecv_p2p(recevingField);
            else
              _spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();
@@ -365,7 +366,7 @@ namespace cwipi {
     pair<string, Field* > newPair(string(field_id), newField);
     string localName = _localCodeProperties.nameGet();
     _fields.insert(newPair);
-    if (_localCodeProperties.isCoupledRank() && _visu.isCreated() && newField -> visuStatusGet() == CWP_STATUS_ON) {
+    if (_localCodeProperties.isActiveRank() && _visu.isCreated() && newField -> visuStatusGet() == CWP_STATUS_ON) {
       _visu.WriterFieldCreate(newField);
     }
   }
@@ -401,7 +402,7 @@ namespace cwipi {
 
      if (it != _fields.end()) {
        Field* sendingField = it -> second;
-       if(_localCodeProperties.isCoupledRank()) {
+       if(_localCodeProperties.isActiveRank()) {
          if(_spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
           _spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> waitIssend_p2p(sendingField);
           return;
@@ -434,7 +435,7 @@ namespace cwipi {
 
      if (it != _fields.end()) {
        Field* recevingField = it -> second;
-       if(_spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0 && _localCodeProperties.isCoupledRank())
+       if(_spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0 && _localCodeProperties.isActiveRank())
          _spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> waitIrecv_p2p(recevingField);
       }
    }
@@ -747,7 +748,7 @@ namespace cwipi {
       int rank;
       MPI_Comm_rank(_communication.unionCommGet(),&rank);
 
-      if( _localCodeProperties.isCoupledRank() &&
+      if( _localCodeProperties.isActiveRank() &&
           (commTypeGet() == CWP_COMM_PAR_WITH_PART || (commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && rank == _communication.unionCommLocCodeRootRanksGet() ) )
         ){
         _visu.VisuCreate(freq,

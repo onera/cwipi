@@ -42,15 +42,15 @@ namespace cwipi {
         else {
             if (_Texch_t == CWP_FIELD_EXCH_SEND) {
                 _spatial_interp_cpl->_Texch_t = CWP_FIELD_EXCH_RECV;
-                if (_isCoupledRank && _pointsCloudLocation == CWP_DOF_LOCATION_USER) _spatial_interp_cpl->user_targets_gnum_compute();
+                if (_isActiveRank && _pointsCloudLocation == CWP_DOF_LOCATION_USER) _spatial_interp_cpl->user_targets_gnum_compute();
             }
         }
 
         // Get informations about the local and the coupled meshes
         info_mesh();
 
-        if ((!_both_codes_are_local && _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART && _isCoupledRank)
-            || (!_both_codes_are_local && _cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && _isCoupledRank && cplComm_rank == _senderRank)) {
+        if ((!_both_codes_are_local && _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART && _isActiveRank)
+            || (!_both_codes_are_local && _cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && _isActiveRank && cplComm_rank == _senderRank)) {
             // Localization
             // Surface and cloud points localization setting
             if (_Texch_t == CWP_FIELD_EXCH_SEND) localization_surface_setting();
@@ -89,7 +89,7 @@ namespace cwipi {
             if (_Texch_t == CWP_FIELD_EXCH_SEND) data_communication_wait_recv();
 
         }
-        else if (_both_codes_are_local && _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART && _isCoupledRank) {
+        else if (_both_codes_are_local && _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART && _isActiveRank) {
             if (_Texch_t == CWP_FIELD_EXCH_SEND) {
                 _spatial_interp_cpl->_Texch_t = CWP_FIELD_EXCH_RECV;
                 localization_surface_setting();
@@ -116,7 +116,7 @@ namespace cwipi {
                 data_communication_wait_recv();
             }
         }
-        else if (!_both_codes_are_local && _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART && !_isCoupledRank) {
+        else if (!_both_codes_are_local && _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART && !_isActiveRank) {
             // Localization for uncoupled ranks processes
             if (_Texch_t == CWP_FIELD_EXCH_SEND) localization_null_setting_send();
             if (_Texch_t == CWP_FIELD_EXCH_RECV) localization_null_setting_recv();

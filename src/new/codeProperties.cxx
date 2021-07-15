@@ -60,7 +60,7 @@ namespace cwipi
   ): _name(name), _id(id), _isLocal(isLocal),
      _rootRankInGlobalComm(rootRank),
      _globalComm(globalComm),
-     _isCoupledRank(false),
+     _isActiveRank(false),
      _winIntParamIdxName(MPI_WIN_NULL),
      _winIntParamName(MPI_WIN_NULL),
      _winIntParamValue(MPI_WIN_NULL),
@@ -112,7 +112,7 @@ namespace cwipi
      _rootRankInGlobalComm(other._rootRankInGlobalComm),
      _globalComm(other._globalComm),
      _intraComm(other._intraComm),
-     _isCoupledRank(other._isCoupledRank),
+     _isActiveRank(other._isActiveRank),
      _intraGroup(other._intraGroup),
      _intraRanks(other._intraRanks),
      _intraConnectableGroup(other._intraConnectableGroup),
@@ -160,7 +160,7 @@ namespace cwipi
     PDM_printf ("  - Root rank in global communicator : %d\n", _rootRankInGlobalComm);
     PDM_printf ("  - Is it a local code : %d\n", _isLocal);
     if (_isLocal) {
-      PDM_printf ("  - Is it a coupled rank : %d\n", _isCoupledRank);
+      PDM_printf ("  - Is it a coupled rank : %d\n", _isActiveRank);
     }
     PDM_printf ("  - Ranks in global communicator :");
     for (size_t i = 0; i < _intraRanks->size(); i++) {

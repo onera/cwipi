@@ -68,7 +68,7 @@ namespace cwipi {
      *                              of all codes
      * \param [in]  n_codes         Number of codes on the current rank
      * \param [in]  code_names      Codes names on the current rank 
-     * \param [in]  is_coupled_rank Current rank is it a coupled rank 
+     * \param [in]  is_active_rank Current rank is it a coupled rank 
      * \param [in]  n_param_max     Maximum number of parameters
      * \param [in]  str_size_max    Maximum size for a string
      * \param [out] intra_comms     Current codes intra-communicators 
@@ -81,7 +81,7 @@ namespace cwipi {
      const MPI_Comm     globalComm,
      const int          n_codes,
      const char**       code_names, 
-     const CWP_Status_t *is_coupled_rank,
+     const CWP_Status_t *is_active_rank,
      const int          n_param_max,
      const int          str_size_max,      
      MPI_Comm           *intra_comms

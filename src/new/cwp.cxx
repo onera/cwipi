@@ -150,7 +150,7 @@ _is_coupled
 {
    cwipi::CodePropertiesDB & propertiesDB = cwipi::CodePropertiesDB::getInstance();
    const cwipi::CodeProperties &properties = propertiesDB.codePropertiesGet(local_code_name);
-   return properties.isCoupledRank();
+   return properties.isActiveRank();
 }
 
 static bool
