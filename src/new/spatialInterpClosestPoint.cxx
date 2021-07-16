@@ -69,7 +69,7 @@ namespace cwipi {
         else {
             if (_Texch_t == CWP_FIELD_EXCH_SEND) {
                 _spatial_interp_cpl->_Texch_t = CWP_FIELD_EXCH_RECV;
-                if (_isActiveRank && _pointsCloudLocation == CWP_DOF_LOCATION_USER) _spatial_interp_cpl->user_targets_gnum_compute();
+                if (_pointsCloudLocation == CWP_DOF_LOCATION_USER) _spatial_interp_cpl->user_targets_gnum_compute();
             }
         }
 

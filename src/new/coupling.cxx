@@ -1,5 +1,4 @@
-/*
-  This file is part of the CWIPI library.
+/*   This file is part of the CWIPI library.
 
   Copyright (C) 2011-2017  ONERA
 
@@ -255,19 +254,20 @@ namespace cwipi {
  //TODO: Virer ptFortranInterpolationFct
   void
   Coupling::issend
-  (string &sendingFieldID)
-
+  (
+    string &sendingFieldID
+  )
   {
-     map <string, Field *>::iterator it;
-     it = _fields.find(sendingFieldID);
+    map <string, Field *>::iterator it;
+    it = _fields.find(sendingFieldID);
 
-     if (it != _fields.end()) {
-       Field* sendingField = it -> second;
-       if(_spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
+    if (it != _fields.end()) {
+      Field* sendingField = it -> second;
+      if(_spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
         _spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> issend_p2p(sendingField);
         return;
-       }
-       else {
+      }
+      else {
         Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
         map <std::string, Field *>::iterator it_recv = distCpl._fields.find(sendingFieldID);
         if (it_recv != distCpl._fields.end()) {
@@ -275,26 +275,24 @@ namespace cwipi {
           _spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange_p2p(sendingField,recevingField);
         }
       }
-     }
+    }
   }
 
   void
   Coupling::irecv
-  (string &recevingFieldID) {
-       map <string, Field *>::iterator it = _fields.find(recevingFieldID);
-       if (it != _fields.end()) {
-         Field* recevingField = it -> second;
-         if(_spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0 ){
-           _spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> irecv_p2p(recevingField);
-         }
-         return;
-       }
+  (
+    string &recevingFieldID
+  ) 
+  {
+    map <string, Field *>::iterator it = _fields.find(recevingFieldID);
+    if (it != _fields.end()) {
+      Field* recevingField = it -> second;
+      if(_spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0 ){
+        _spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> irecv_p2p(recevingField);
+      } 
+      return;
+    }
   }
-
-
-
-
-
 
 
   int

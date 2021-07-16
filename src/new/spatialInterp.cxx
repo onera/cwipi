@@ -137,8 +137,6 @@ namespace cwipi {
       }
     }
 
-    _isActiveRank     = _localCodeProperties   -> isActiveRank();
-
     n_uncomputed_tgt.resize(_nb_part);
 
     _gnum_target   =(CWP_g_num_t**)malloc( sizeof(CWP_g_num_t*)*_nb_part);
@@ -273,7 +271,7 @@ namespace cwipi {
   void SpatialInterp::info_mesh() {
 
     if(_both_codes_are_local == 0){
-      if(_isActiveRank)  mesh_info_get();
+      mesh_info_get();
       mesh_cpl_info_get();
     }
     else if(_Texch_t == CWP_FIELD_EXCH_SEND) {

@@ -360,7 +360,6 @@ protected:
     std::vector<int>* _connectableRanks    ;
 
     /* informations about MPI process (rank) */
-    bool _isActiveRank;
     int cplComm_rank;       // Rank in cplComm
     int cplComm_size;       // Size of cplComm
     int localComm_size;     // Size of localComm
