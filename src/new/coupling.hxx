@@ -216,11 +216,7 @@ namespace cwipi {
      */
 
     void
-    spatialInterpWeightsCompute
-    (
-     CWP_Dof_location_t pointsCloudLocation,
-     CWP_Field_exch_t exchange_type
-    );
+    spatialInterpWeightsCompute ();
 
     /**
      * \brief Set the spatial interpolation properties.
