@@ -146,7 +146,7 @@ typedef enum {
  */
 
 typedef enum {
-
+  CWP_DOF_LOCATION_UNDEF,   /*!< Location is undefined  */
   CWP_DOF_LOCATION_CELL_CENTER,   /*!< Field defined in cell point  */
   CWP_DOF_LOCATION_NODE,     /*!< Cell vertex field */
   CWP_DOF_LOCATION_USER           /*!< User defined field */

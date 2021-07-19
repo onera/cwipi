@@ -62,13 +62,6 @@ int main(int argc, char *argv[]) {
     CWP_Status_t *is_coupled_rank = NULL;
 
     if (rank == 0) {
-        n_code_name = 1;
-        codeNames = malloc(sizeof(char *) * n_code_name);
-        codeNames[0] = "code1";
-        is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
-        is_coupled_rank[0] = CWP_STATUS_ON;
-    }
-    else if (rank == 1) {
         n_code_name = 2;
         codeNames = malloc(sizeof(char *) * n_code_name);
         codeNames[0] = "code1";
@@ -76,6 +69,13 @@ int main(int argc, char *argv[]) {
         is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
         is_coupled_rank[0] = CWP_STATUS_ON;
         is_coupled_rank[1] = CWP_STATUS_ON;
+    }
+    else if (rank == 1) {
+        n_code_name = 1;
+        codeNames = malloc(sizeof(char *) * n_code_name);
+        codeNames[0] = "code1";
+        is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+        is_coupled_rank[0] = CWP_STATUS_ON;
     }
     else if (rank == 2) {
         n_code_name = 4;
@@ -212,18 +212,18 @@ int main(int argc, char *argv[]) {
     char cpl_id6[] = "cpl6_code2_code4";
 
     CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF;
-
+printf("toto\n");
     // cpl1
     if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) CWP_Cpl_create("code1", cpl_id1, "code2", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
-    if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) CWP_Cpl_create("code2", cpl_id1, "code1", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
-    CWP_Visu_set("code1", cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+    if (rank == 0 || rank == 2 || rank == 6 || rank == 7 || rank == 9) CWP_Cpl_create("code2", cpl_id1, "code1", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+    //CWP_Visu_set("code1", cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
 
     // cpl2
     if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7)              CWP_Cpl_create("code1", cpl_id2, "code3", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
     if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7 || rank == 9) CWP_Cpl_create("code3", cpl_id2, "code1", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
 
     // cpl3
-    if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9)              CWP_Cpl_create("code2", cpl_id3, "code3", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+    if (rank == 0 || rank == 2 || rank == 6 || rank == 7 || rank == 9)              CWP_Cpl_create("code2", cpl_id3, "code3", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
     if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7 || rank == 9) CWP_Cpl_create("code3", cpl_id3, "code2", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
 
     // cpl4
@@ -235,11 +235,11 @@ int main(int argc, char *argv[]) {
     if (rank == 2 || rank == 4 || rank == 8)                           CWP_Cpl_create("code4", cpl_id5, "code1", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
 
     // cpl6
-    if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) CWP_Cpl_create("code2", cpl_id6, "code4", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+    if (rank == 0 || rank == 2 || rank == 6 || rank == 7 || rank == 9) CWP_Cpl_create("code2", cpl_id6, "code4", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
     if (rank == 2 || rank == 4 || rank == 8)                           CWP_Cpl_create("code4", cpl_id6, "code2", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
 
-    double coord[3] = {9., 4., 2.};
-    CWP_Mesh_interf_vtx_set("code1", cpl_id1, 0, 1, coord, NULL);
+    //double coord[3] = {9., 4., 2.};
+    //CWP_Mesh_interf_vtx_set("code1", cpl_id1, 0, 1, coord, NULL);
 
     printf("All done for rank %d\n", rank);
 

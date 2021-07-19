@@ -122,7 +122,7 @@ namespace cwipi {
   void *SpatialInterpLocation::interpolate (Field *referenceField) 
   {
     int nComponent = referenceField->nComponentGet();
-    CWP_Dof_location_t referenceFieldType = referenceField->typeGet();
+    CWP_Dof_location_t referenceFieldType = referenceField->locationGet();
     int dataTypeSize = referenceField->dataTypeSizeGet();
     CWP_Interpolation_t interpolationType = referenceField->interpolationTypeGet();
     void *interpolatedData = referenceField->sendBufferGet();

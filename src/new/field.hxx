@@ -130,7 +130,7 @@ namespace cwipi {
      */
 
     inline CWP_Dof_location_t
-    typeGet() const
+    locationGet() const
     {
       return _fieldLocation;
     }
@@ -279,12 +279,12 @@ namespace cwipi {
     _sendBuffer = sendBuffer;
   }
 
-  void associatedCloudPointTypeSet(CWP_Dof_location_t associatedCloudPointType){
-    _associatedCloudPointType = associatedCloudPointType;
+  void linkedFieldLocationSet(CWP_Dof_location_t linkedFieldLocation){
+    _linkedFieldLocation = linkedFieldLocation;
   }
 
-  CWP_Dof_location_t associatedCloudPointTypeGet(){
-    return _associatedCloudPointType;
+  CWP_Dof_location_t linkedFieldLocationGet(){
+    return _linkedFieldLocation;
   }
 
 
@@ -292,8 +292,8 @@ namespace cwipi {
 
     CWP_Field_storage_t                      _storage;        /*!< Storage type */
     int                                      _nComponent;     /*!< Number of component */
-    CWP_Dof_location_t                        _fieldLocation;  /*!< Value location Interpolation methods for sender and cloud points type for receiver */
-    CWP_Dof_location_t                        _associatedCloudPointType; /*!< Value location Interpolation methods for sender and cloud points type for receiver */
+    CWP_Dof_location_t                       _fieldLocation;  /*!< Value location Interpolation methods for sender and cloud points type for receiver */
+    CWP_Dof_location_t                       _linkedFieldLocation; /*!< Value location Interpolation methods for sender and cloud points type for receiver */
     CWP_Field_exch_t                         _exchangeType;   /*!< Exchange type */
     CWP_Status_t                             _visuStatus;     /*!< Visualization status */
     std::vector<void* >                      _data;           /*!< Pointer to data array */

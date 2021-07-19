@@ -114,13 +114,13 @@ namespace cwipi {
       else {
 
         //Build a specific tag through the cplId
-        int tag = 0;
+        _tag = 0;
         for (size_t i = 0; i < cplId.size(); i++) {
-          tag += cplId[i];
+          _tag += cplId[i];
         }
 
         if (MPI_TAG_UB > 0) {
-          tag = tag % MPI_TAG_UB;
+          _tag = _tag % MPI_TAG_UB;
         }
 
         // Build the union communicator between the two coupled codes
@@ -136,7 +136,7 @@ namespace cwipi {
                            &_unionGroup);
         }
 
-        MPI_Comm_create_group(globalComm, _unionGroup, tag, &_unionComm);
+        MPI_Comm_create_group(globalComm, _unionGroup, _tag, &_unionComm);
 
         int mergeInterCommSize;
 
@@ -154,29 +154,34 @@ namespace cwipi {
             }
             else {
               MPI_Sendrecv (&commType, 1, MPI_INT,
-                          cplRootRank, tag,
+                          cplRootRank, _tag,
                           &cplCommType, 1, MPI_INT,
-                           cplRootRank, tag,
+                           cplRootRank, _tag,
                            globalComm, MPI_STATUS_IGNORE);
             }
           }
 
           else {
             MPI_Sendrecv (&commType, 1, MPI_INT,
-                          cplRootRank, tag,
+                          cplRootRank, _tag,
                           &cplCommType, 1, MPI_INT,
-                           cplRootRank, tag,
+                           cplRootRank, _tag,
                            globalComm, MPI_STATUS_IGNORE);
           }
         }
 
-        MPI_Bcast(&cplCommType, 1, MPI_INT, 0,
-                  localCodeProperties.connectableCommGet());
+        MPI_Request request1;
+        MPI_Request request2;
+
+        MPI_Ibcast(&cplCommType, 1, MPI_INT, 0,
+                  localCodeProperties.connectableCommGet(), &request1);
+        MPI_Wait(&request1, MPI_STATUS_IGNORE);
 
         if (cplCodeProperties.localCodeIs()) {
           CWP_Comm_t &cplcommType2 = commType;
-          MPI_Bcast(&cplcommType2, 1, MPI_INT, 0,
-                    cplCodeProperties.connectableCommGet());
+          MPI_Ibcast(&cplcommType2, 1, MPI_INT, 0,
+                    cplCodeProperties.connectableCommGet(), & request2);
+          MPI_Wait(&request2, MPI_STATUS_IGNORE);
         }
 
         //
@@ -327,6 +332,85 @@ namespace cwipi {
     return _locCodeRootRankCplComm;
   }
 
+
+  /**
+   *
+   * \brief Exchange Data between two coupled code through Union Comminucator
+   *        All code ranks receive data (sendRecv between root rank then Bcast)
+   *
+   * \param [in]    s_data           Size of a data tot exchange
+   * \param [in]    n_send_data      Number of data to send
+   * \param [in]    send_data        Array of data to send
+   * \param [in]    n_recv_data      Number of data to receive
+   * \param [inout] recv_data        Array of data to receive
+   * \param [inout] request          MPI Request
+   *
+   */
+
+  void
+  Communication::iexchGlobalDataBetweenCodesThroughUnionCom
+  (
+   size_t       s_data,
+   int          n_send_data,
+   void        *send_data,
+   int          n_recv_data,
+   void        *recv_data,
+   MPI_Request *request
+  )
+  {
+
+
+    int unionCommRank;
+    MPI_Status status;
+    MPI_Comm_rank (_unionComm, &unionCommRank);
+
+    if (unionCommRank ==  _locCodeRootRankUnionComm) {
+      if (_cplCodeProperties->localCodeIs()) {
+        if (_locCodeRootRankUnionComm == _cplCodeRootRankUnionComm) {
+          assert (n_send_data == n_recv_data);
+          memcpy (recv_data, send_data, s_data * n_send_data);
+        }
+        else {
+          MPI_Sendrecv (send_data,
+                        (int) s_data * n_send_data,
+                        MPI_UNSIGNED_CHAR,
+                        _locCodeRootRankUnionComm,
+                        _tag,
+                        recv_data,
+                        (int) s_data * n_recv_data,
+                        MPI_UNSIGNED_CHAR,
+                        _cplCodeRootRankUnionComm,
+                        _tag,
+                        _unionComm,
+                        &status);
+        }
+      }
+      else {
+        MPI_Sendrecv (send_data,
+                      (int) s_data * n_send_data,
+                      MPI_UNSIGNED_CHAR,
+                      _locCodeRootRankUnionComm,
+                      _tag,
+                      recv_data,
+                      (int) s_data * n_recv_data,
+                      MPI_UNSIGNED_CHAR,
+                      _cplCodeRootRankUnionComm,
+                      _tag,
+                      _unionComm,
+                      &status);
+      }
+    }
+   
+    // BCast in the intraComm (Use Ibcast to be sure)
+
+    MPI_Ibcast (recv_data,
+               (int) s_data * n_recv_data,
+               MPI_UNSIGNED_CHAR,
+               0,
+               _localCodeProperties->connectableCommGet(),
+               request);
+
+  }
 
 }
 

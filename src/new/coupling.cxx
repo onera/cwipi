@@ -1,4 +1,4 @@
-/*   This file is part of the CWIPI library.
+/*  This file is part of the CWIPI library.
 
   Copyright (C) 2011-2017  ONERA
 
@@ -142,6 +142,8 @@ namespace cwipi {
 
         std::map <CWP_Dof_location_t, SpatialInterp*>* _spatial_interp_cpl = distCpl.spatialInterpGet();
 
+        // A creer plus tard dans une double
+
         //SpatialInterp initialization
         //_spatial_interp[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(spatialInterpAlgo);
         _spatial_interp[CWP_DOF_LOCATION_CELL_CENTER] = FG::getInstance().CreateObject(spatialInterpAlgo);
@@ -263,8 +265,8 @@ namespace cwipi {
 
     if (it != _fields.end()) {
       Field* sendingField = it -> second;
-      if(_spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
-        _spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> issend_p2p(sendingField);
+      if(_spatial_interp[sendingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0){
+        _spatial_interp[sendingField -> linkedFieldLocationGet()] -> issend_p2p(sendingField);
         return;
       }
       else {
@@ -272,7 +274,7 @@ namespace cwipi {
         map <std::string, Field *>::iterator it_recv = distCpl._fields.find(sendingFieldID);
         if (it_recv != distCpl._fields.end()) {
           Field* recevingField = it_recv -> second;
-          _spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange_p2p(sendingField,recevingField);
+          _spatial_interp[sendingField -> linkedFieldLocationGet()] -> both_codes_on_the_same_process_exchange_p2p(sendingField,recevingField);
         }
       }
     }
@@ -287,8 +289,8 @@ namespace cwipi {
     map <string, Field *>::iterator it = _fields.find(recevingFieldID);
     if (it != _fields.end()) {
       Field* recevingField = it -> second;
-      if(_spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0 ){
-        _spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> irecv_p2p(recevingField);
+      if(_spatial_interp[recevingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0 ){
+        _spatial_interp[recevingField -> linkedFieldLocationGet()] -> irecv_p2p(recevingField);
       } 
       return;
     }
@@ -392,18 +394,18 @@ namespace cwipi {
 
      if (it != _fields.end()) {
        Field* sendingField = it -> second;
-       if(_spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
-        _spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> waitIssend_p2p(sendingField);
+       if(_spatial_interp[sendingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0){
+        _spatial_interp[sendingField -> linkedFieldLocationGet()] -> waitIssend_p2p(sendingField);
         return;
        }
        else {
-        _spatial_interp[sendingField -> associatedCloudPointTypeGet()] -> waitIssend_p2p(sendingField);
+        _spatial_interp[sendingField -> linkedFieldLocationGet()] -> waitIssend_p2p(sendingField);
         Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
 
         map <std::string, Field *>::iterator it_recv = distCpl.fieldsGet() -> find(sendingFieldID);
         if (it_recv != distCpl.fieldsGet() -> end() ) {
           Field* recevingField = it_recv -> second;
-          distCpl._spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> waitIrecv_p2p(it_recv -> second);
+          distCpl._spatial_interp[recevingField -> linkedFieldLocationGet()] -> waitIrecv_p2p(it_recv -> second);
           return;
         }
 
@@ -423,8 +425,8 @@ namespace cwipi {
 
      if (it != _fields.end()) {
        Field* recevingField = it -> second;
-       if(_spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0)
-         _spatial_interp[recevingField -> associatedCloudPointTypeGet()] -> waitIrecv_p2p(recevingField);
+       if(_spatial_interp[recevingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0)
+         _spatial_interp[recevingField -> linkedFieldLocationGet()] -> waitIrecv_p2p(recevingField);
       }
    }
 
@@ -471,7 +473,7 @@ namespace cwipi {
       bftc_error(__FILE__, __LINE__, 0,
                  "'%s' not existing field\n", field_id.c_str());
     }
-    return It->second->typeGet();
+    return It->second->locationGet();
 
   }
 

@@ -313,7 +313,7 @@ namespace cwipi {
 
   void Visu::WriterFieldCreate(Field* field) {
 
-      CWP_Dof_location_t CWPfielType = field -> typeGet();
+      CWP_Dof_location_t CWPfielType = field -> locationGet();
       int nComponent = field -> nComponentGet();
       PDM_writer_var_loc_t PDMfieldType;
 

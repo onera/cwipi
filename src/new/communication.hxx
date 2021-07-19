@@ -93,6 +93,33 @@ namespace cwipi {
     );
 
 
+    /**
+     *
+     * \brief Exchange Data between two coupled code through Union Comminucator
+     *        All code ranks receive data (sendRecv between root rank then Bcast)
+     *
+     * \param [in]    s_data           Size of a data tot exchange
+     * \param [in]    n_send_data      Number of data to send
+     * \param [in]    send_data        Array of data to send
+     * \param [in]    n_recv_data      Number of data to receive
+     * \param [inout] recv_data        Array of data to receive
+     * \param [inout] request          MPI Request
+     *
+     */
+
+    void
+    iexchGlobalDataBetweenCodesThroughUnionCom
+    (
+     size_t       s_data,
+     int          n_send_data,
+     void        *send_data,
+     int          n_recv_data,
+     void        *recv_data,
+     MPI_Request *request
+    );
+
+
+
     MPI_Comm
     unionCommGet
     (
