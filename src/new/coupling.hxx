@@ -85,11 +85,11 @@ namespace cwipi {
      const CWP_Comm_t             commType,
      const CodeProperties        &localCodeProperties,
      const CodeProperties        &coupledCodeProperties,
-     const CWP_Interface_t       entities_dim,
-     const CWP_Spatial_interp_t            spatialInterpAlgo,
+     const CWP_Interface_t        entities_dim,
+     const CWP_Spatial_interp_t   spatialInterpAlgo,
      const int                    nPart,
      const CWP_Dynamic_mesh_t     movingStatus,
-     const CWP_Time_exch_t             recvFreqType,
+     const CWP_Time_exch_t        recvFreqType,
      CouplingDB                  &cplDB
     );
 
@@ -1009,13 +1009,15 @@ namespace cwipi {
     inline CWP_Interface_t entitiesDimGet();
 
     inline std::map < string, Field * >* fieldsGet();
-    inline std::map <CWP_Dof_location_t,SpatialInterp*>* spatialInterpGet();
+    inline std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*>* spatialInterpGet(CWP_Field_exch_t exch_t);
     inline CodeProperties* localCodePropertiesGet();
     inline CodeProperties* coupledCodePropertiesGet();
 
     inline Communication* communicationGet();
 
-    inline SpatialInterp*    spatialInterpGet(CWP_Dof_location_t field_value_t) ;
+    inline SpatialInterp*    spatialInterpGet(CWP_Dof_location_t localLocation, 
+                                            CWP_Dof_location_t cplLocation, 
+                                            CWP_Field_exch_t exch_t);
     inline CouplingDB*  couplingDBGet();
     inline string       IdGet();
 
@@ -1032,7 +1034,11 @@ namespace cwipi {
     const CodeProperties                   &_localCodeProperties;   /*!< Local code properties */
     const CodeProperties                   &_coupledCodeProperties; /*!< Coupled code properties */
     const CWP_Interface_t                  _entities_dim;           /*!< Mesh entities dimension */
-    std::map <CWP_Dof_location_t,SpatialInterp*> &_spatial_interp;              /*!< SpatialInterp algorithm */
+
+    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*> &_spatial_interp_send; /*!< local sent Spatial interpolation objects 
+                                                                                                                  to associate with receive distant spatial interpolatiol */
+    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*> &_spatial_interp_recv; /*!< local receive Spatial interpolation objects 
+                                                                                                                  to associate with sent distant spatial interpolatiol */
           Mesh                             &_mesh;                  /*!< SpatialInterp mesh */
     const CWP_Time_exch_t                        _recvFreqType  ;        /*!< Receiving frequency type */
           Visu                             &_visu;                  /*!< Visualization */
@@ -1042,6 +1048,7 @@ namespace cwipi {
           CouplingDB                       &_cplDB;                 /*!< Coupling Data base */
           int*                              _iteration;
           CWP_Dynamic_mesh_t                _displacement;
+   const CWP_Spatial_interp_t               _spatialInterpAlgo;       
   };
 
 
@@ -1058,13 +1065,30 @@ namespace cwipi {
     return const_cast<Communication*>(&_communication);
   }
 
-  SpatialInterp* Coupling::spatialInterpGet(CWP_Dof_location_t field_value_t) {
+  SpatialInterp* Coupling::spatialInterpGet(CWP_Dof_location_t localLocation, 
+                                            CWP_Dof_location_t cplLocation, 
+                                            CWP_Field_exch_t exch_t) {
 
-    std::map <CWP_Dof_location_t,SpatialInterp*> ::iterator p;
-    p = _spatial_interp.find(field_value_t);
-    if (p == _spatial_interp.end())
+    if (exch_t == CWP_FIELD_EXCH_SEND) {
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*> ::iterator p;
+      p = _spatial_interp_send.find(make_pair(localLocation, cplLocation));
+      if (p == _spatial_interp_send.end())
+        PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");
+      return p->second;
+    }
+
+    else if (exch_t == CWP_FIELD_EXCH_RECV) {
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*> ::iterator p;
+      p = _spatial_interp_recv.find(make_pair(localLocation, cplLocation));
+      if (p == _spatial_interp_recv.end())
+        PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");
+      return p->second;
+    }
+
+    else {
       PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");
-    return p->second;
+    }
+
   }
 
 
@@ -1090,8 +1114,18 @@ namespace cwipi {
      return _entities_dim;
   }
 
-  std::map <CWP_Dof_location_t,SpatialInterp*>* Coupling::spatialInterpGet() {
-     return &_spatial_interp;
+  std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*>* Coupling::spatialInterpGet(CWP_Field_exch_t exch_t)
+  {
+    if (exch_t == CWP_FIELD_EXCH_SEND) {
+      return &_spatial_interp_send;
+    }
+    else if (exch_t == CWP_FIELD_EXCH_RECV) {
+      return &_spatial_interp_recv;
+    }
+    else {
+      PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");     
+    } 
+
   }
 
   std::map < string, Field * >* Coupling::fieldsGet() {

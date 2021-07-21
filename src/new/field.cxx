@@ -23,6 +23,7 @@ namespace cwipi {
            _storage        (storage)     ,
            _nComponent     (nComponent)  ,
            _fieldLocation  (fieldType)   ,
+           _linkedFieldLocation (CWP_DOF_LOCATION_UNDEF),
            _exchangeType   (exchangeType),
            _visuStatus     (visuStatus)  ,
            _dataType       (dataType)    ,

@@ -26,39 +26,39 @@ namespace cwipi {
     SpatialInterpClosestPoint::~SpatialInterpClosestPoint() = default;
 
     void SpatialInterpClosestPoint::init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation, bool slave) {
-        SpatialInterp::init(coupling, pointsCloudLocation, slave);
+        // SpatialInterp::init(coupling, pointsCloudLocation, slave);
 
-        interpolation_time = CWP_INTERP_AT_RECV;
+        // interpolation_time = CWP_INTERP_AT_RECV;
 
-        CouplingDB *cplDB = _cpl->couplingDBGet();
-        string cplId = coupling->IdGet();
-        if (_both_codes_are_local && !_slave) {
-            Coupling coupling_cpl = cplDB->couplingGet(*_coupledCodeProperties, cplId);
-            _spatial_interp_cpl = dynamic_cast<SpatialInterpClosestPoint *>( coupling_cpl.spatialInterpGet(_pointsCloudLocation));
-            _spatial_interp_cpl->_spatial_interp_cpl = this;
-        }
+        // CouplingDB *cplDB = _cpl->couplingDBGet();
+        // string cplId = coupling->IdGet();
+        // if (_both_codes_are_local && !_slave) {
+        //     Coupling coupling_cpl = cplDB->couplingGet(*_coupledCodeProperties, cplId);
+        //     _spatial_interp_cpl = dynamic_cast<SpatialInterpClosestPoint *>( coupling_cpl.spatialInterpGet(_pointsCloudLocation));
+        //     _spatial_interp_cpl->_spatial_interp_cpl = this;
+        // }
 
-        int tmp1; // For dummy communications
-        if (!_both_codes_are_local) {
-            if (_id < _id_cpl) {
-                MPI_Bcast(&_nb_part_cpl, 1, MPI_INT, _senderRank, _cplComm);
-                MPI_Bcast(&tmp1, 1, MPI_INT, _senderRank_cpl, _cplComm);
-            }
-            else {
-                MPI_Bcast(&tmp1, 1, MPI_INT, _senderRank_cpl, _cplComm);
-                MPI_Bcast(&_nb_part_cpl, 1, MPI_INT, _senderRank, _cplComm);
-            }
-        }
-        else if (!_slave) {
-            if (_id < _id_cpl) {
-                MPI_Bcast(&_nb_part_cpl, 1, MPI_INT, _senderRank, _cplComm);
-                MPI_Bcast(&(_spatial_interp_cpl->_nb_part_cpl), 1, MPI_INT, _senderRank_cpl, _cplComm);
-            }
-            else {
-                MPI_Bcast(&(_spatial_interp_cpl->_nb_part_cpl), 1, MPI_INT, _senderRank_cpl, _cplComm);
-                MPI_Bcast(&_nb_part_cpl, 1, MPI_INT, _senderRank, _cplComm);
-            }
-        }
+        // int tmp1; // For dummy communications
+        // if (!_both_codes_are_local) {
+        //     if (_id < _id_cpl) {
+        //         MPI_Bcast(&_nb_part_cpl, 1, MPI_INT, _senderRank, _cplComm);
+        //         MPI_Bcast(&tmp1, 1, MPI_INT, _senderRank_cpl, _cplComm);
+        //     }
+        //     else {
+        //         MPI_Bcast(&tmp1, 1, MPI_INT, _senderRank_cpl, _cplComm);
+        //         MPI_Bcast(&_nb_part_cpl, 1, MPI_INT, _senderRank, _cplComm);
+        //     }
+        // }
+        // else if (!_slave) {
+        //     if (_id < _id_cpl) {
+        //         MPI_Bcast(&_nb_part_cpl, 1, MPI_INT, _senderRank, _cplComm);
+        //         MPI_Bcast(&(_spatial_interp_cpl->_nb_part_cpl), 1, MPI_INT, _senderRank_cpl, _cplComm);
+        //     }
+        //     else {
+        //         MPI_Bcast(&(_spatial_interp_cpl->_nb_part_cpl), 1, MPI_INT, _senderRank_cpl, _cplComm);
+        //         MPI_Bcast(&_nb_part_cpl, 1, MPI_INT, _senderRank, _cplComm);
+        //     }
+        // }
     }
 
     void SpatialInterpClosestPoint::spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) {
