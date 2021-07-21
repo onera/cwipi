@@ -30,6 +30,10 @@
  * \cond
  */
 namespace cwipi {
+
+// A conserver et à renommer !!!
+
+
     typedef enum {
         CWP_INTERP_AT_SEND,
         CWP_INTERP_AT_RECV

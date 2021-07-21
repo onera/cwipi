@@ -1031,6 +1031,7 @@ CWP_Visu_set
  * \param [in]  i_part           Current partition
  * \param [in]  n_pts            Number of points
  * \param [in]  coord            Coordinates (size = 3 * n_pts)
+ * \param [in]  g_num            global number or NUL (size = n_pts)
  *
  */
 
@@ -1041,7 +1042,8 @@ CWP_User_tgt_pts_set
  const char    *cpl_id,
  const int      i_part,
  const int      n_pts,
- double         coord[]
+ double         coord[],
+ CWP_g_num_t    global_num[]
 );
 
 /*----------------------------------------------------------------------------*

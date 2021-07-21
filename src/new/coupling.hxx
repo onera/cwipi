@@ -287,17 +287,20 @@ namespace cwipi {
      * This function must be called if the nature of receiving fieldsDouble
      * is \ref CWP_DOF_LOCATION_USER
      *
+     * \param [in]  i_part  Current partition
      * \param [in]  n_pts   Number of points
      * \param [in]  coord   Coordinates (size = 3 * n_pts)
+     * \param [in]  g_num   global number or NUL (size = n_pts)
      *
      */
 
     void
     userTgtPtsSet
     (
-     const int i_part,
-     const int n_pts,
-     double    coord[]
+     const int     i_part,
+     const int     n_pts,
+     double        coord[],
+     CWP_g_num_t   global_num[]    
     );
 
     /*----------------------------------------------------------------------------*

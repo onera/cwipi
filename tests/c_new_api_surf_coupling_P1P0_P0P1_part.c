@@ -1052,7 +1052,8 @@ int main
                             "c_new_api_surf_cpl_P1P0_P0P1_part",
                             i_part,
                             nbPointsUser[i_code][i_part],
-                            coordsPointsUser[i_code][i_part]);
+                            coordsPointsUser[i_code][i_part],
+                            NULL);
 
 
      }//loop on part
