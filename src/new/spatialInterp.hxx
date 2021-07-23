@@ -172,12 +172,7 @@ namespace cwipi {
     SpatialInterp              *_spatial_interp_cpl  ;  /*!< Spatial interpolation (for both codes are local case) */
 
     /* Mesh informations */
-    int *_n_target                                              ;  /*!< Target total number on the process by partition */
-    CWP_g_num_t  **_gnum_target                                 ;  /*!< Target global numbering by partition */
-    double       **_coords_target                               ;  /*!< Target coordinates by partition */
-    /* Mesh informations */
-    double**      _coords_user_targets          ;  /*!< Target coordinates defined by the user for CWP_DOF_LOCATION_USER field type       */
-
+  
 
     CWP_INTERP_TIME                     interpolation_time      ;
 

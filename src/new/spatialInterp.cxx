@@ -283,27 +283,6 @@ namespace cwipi {
     }
   }
 
-  void SpatialInterp::user_targets_gnum_compute() {
-    int coord_def = 1;
-    for (int i=0; i<_nb_part; i++){
-      if(_coords_user_targets[i] == NULL) {
-        coord_def = 0;
-        break;
-      }
-    }
-
-    if(coord_def == 1) {
-      PDM_gen_gnum_t *pdmGNum_handle_index  = PDM_gnum_create (3, _nb_part, PDM_FALSE, 1e-3, _mesh->_pdm_localComm,
-                                                   PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
-      for (int i_part=0; i_part<_nb_part; i_part++){
-        PDM_gnum_set_from_coords (pdmGNum_handle_index, i_part, _n_user_targets[i_part], _coords_user_targets[i_part], NULL);
-      }
-      PDM_gnum_compute (pdmGNum_handle_index);
-      for (int i_part=0; i_part<_nb_part; i_part++){
-        _gnum_user_targets[i_part] = const_cast<CWP_g_num_t*>(PDM_gnum_get(pdmGNum_handle_index, i_part));
-      }
-    }
-  }
 
   void SpatialInterp::user_target_points_set(int i_part, int n_pts, double *coord) {
     if (_pointsCloudLocation != CWP_DOF_LOCATION_USER) PDM_error(__FILE__, __LINE__, 0, "You cannot use user_target_points_set for CWP_Dof_location_t different of CWP_DOF_LOCATION_USER.\n");

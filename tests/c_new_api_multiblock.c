@@ -29,11 +29,6 @@
 #include "cwp_priv.h"
 
 
-
-
-
-
-
 void _goto(FILE *f,char* word)
 { char test[1000];
   int r;
@@ -997,17 +992,24 @@ int main
 *********************************/
 for (int i = 0; i < n_code_name; i++ ) {
 
-  int* n_uncomputed_tgt;
 
   //TODO: Calcul géom piloté par la nature des champs
 //Erreur si on crée un champ après le calcul
   code_name = codeNames[i];
-  CWP_Spatial_interp_weights_compute(code_name,cpl_id1, CWP_DOF_LOCATION_NODE);
-  CWP_Spatial_interp_weights_compute(code_name,cpl_id1, CWP_DOF_LOCATION_CELL_CENTER);
-  for(int i_part =0; i_part<nb_part;i_part++) {
-    int n_uncomputed_node = CWP_N_uncomputed_tgts_get(code_name,cpl_id1, CWP_DOF_LOCATION_NODE,i_part);
-    int n_uncomputed_cell_value = CWP_N_uncomputed_tgts_get(code_name,cpl_id1, CWP_DOF_LOCATION_CELL_CENTER,i_part);
-    printf("  %i  vertices and   %i  cell centers have not been found on code %s proc %i partition %i\n",n_uncomputed_node,n_uncomputed_cell_value,code_name,rank,i_part);
+  CWP_Spatial_interp_weights_compute(code_name, cpl_id1);
+}
+
+for (int i = 0; i < n_code_name; i++ ) {
+
+  int* n_uncomputed_tgt;
+  code_name = codeNames[i];
+
+  if(code_name == "code2"){
+    for(int i_part =0; i_part<nb_part;i_part++) {
+      int n_uncomputed_node = CWP_N_uncomputed_tgts_get(code_name,cpl_id1, "rank_vtx",i_part);
+      int n_uncomputed_cell_value = CWP_N_uncomputed_tgts_get(code_name,cpl_id1, "rank",i_part);
+      printf("  %i  vertices and   %i  cell centers have not been found on code %s proc %i partition %i\n",n_uncomputed_node,n_uncomputed_cell_value,code_name,rank,i_part);
+    }
   }
   //Argument tag points localisé oui/non + print
 

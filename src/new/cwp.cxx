@@ -66,13 +66,14 @@
 #include "spatialInterpLocationDistSurf.hxx"
 #include "spatialInterpLocationMeshLocation.hxx"
 
- #include "mesh.hxx"
- #include "block.hxx"
- #include "blockStd.hxx"
- #include "blockFP.hxx"
- #include "blockCP.hxx"
- #include <algorithm>
- #include <vector>
+#include "mesh.hxx"
+#include "block.hxx"
+#include "blockStd.hxx"
+#include "blockFP.hxx"
+#include "blockCP.hxx"
+#include <algorithm>
+#include <vector>
+
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
@@ -709,7 +710,7 @@ CWP_Field_exch
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] target_location  Target location
+ * \param [in] field_id         Field identifier
  * \param [in] i_part           Current partition
  *
  * \return                Number of uncomputed targets
@@ -719,28 +720,42 @@ CWP_Field_exch
 int
 CWP_N_uncomputed_tgts_get
 (
- const char               *local_code_name,
- const char               *cpl_id,
- const CWP_Dof_location_t  target_location,
- const int                 i_part
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id,
+ const int   i_part
 )
 {
-   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
-   return cpl.nUncomputedTargetsGet(target_location,i_part);
+  return cpl.nUncomputedTargetsGet(string (field_id), i_part);
 }
 
+
+/**
+ *
+ * \brief Return uncomputed targets.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ * \param [in] i_part           Current partition
+ *
+ * \return                Uncomputed targets
+ */
 
 const int *
 CWP_Uncomputed_tgts_get
 (
   const char *local_code_name,
-  const char *cpl_id
+  const char *cpl_id,
+  const char *field_id,
+  const int   i_part
 )
 {
-  // TODO
-//  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//  return cpl.uncomputedTargetsGet();
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  return cpl.uncomputedTargetsGet(string (field_id), i_part);
 }
 
 
@@ -750,6 +765,8 @@ CWP_Uncomputed_tgts_get
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ * \param [in] i_part           Current partition
  *
  * \return                Number of computed targets
  */
@@ -758,28 +775,53 @@ int
 CWP_N_computed_tgts_get
 (
   const char *local_code_name,
-  const char *cpl_id
+  const char *cpl_id,
+  const char *field_id,
+  const int   i_part
 )
 {
-  // TODO
-//  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//  return cpl.nComputedTargetsGet();
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  return cpl.nComputedTargetsGet(string (field_id), i_part);
 }
 
-
+/**
+ *
+ * \brief Return computed targets. <b>(Not implemented yet)</b>
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ * \param [in] i_part           Current partition
+ *
+ * \return                Computed targets
+ */
 
 const int *
 CWP_Computed_tgts_get
 (
   const char *local_code_name,
-  const char *cpl_id
+  const char *cpl_id,
+  const char *field_id,
+  const int   i_part
 )
 {
-  // TODO
-//  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//  return cpl.getLocatedPoint();
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  return cpl.computedTargetsGet(string (field_id), i_part);
 }
 
+/**
+ * \brief Return distance from each target to the source interface. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ *
+ * \return               Distance
+ * 
+ * A supprimer ???
+ *
+ */
 
 
 const double *
@@ -959,7 +1001,7 @@ CWP_User_tgt_pts_set
 {
   if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-    cpl.userTgtPtsSet(i_part, n_pts, coord, global_num);
+    cpl.userTargetSet(i_part, n_pts, coord, global_num);
   }
 }
 

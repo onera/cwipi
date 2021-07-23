@@ -796,13 +796,14 @@ CWP_Cpl_del
  const char *cpl_id
 );
 
+
 /**
  *
  * \brief Return the number of uncomputed targets.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] target_location  Target location
+ * \param [in] field_id         Field identifier
  * \param [in] i_part           Current partition
  *
  * \return                Number of uncomputed targets
@@ -811,11 +812,12 @@ CWP_Cpl_del
 int
 CWP_N_uncomputed_tgts_get
 (
- const char              *local_code_name,
- const char              *cpl_id,
- const CWP_Dof_location_t target_location,
- const int                i_part
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id,
+ const int   i_part
 );
+
 
 /**
  *
@@ -823,6 +825,8 @@ CWP_N_uncomputed_tgts_get
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ * \param [in] i_part           Current partition
  *
  * \return                Uncomputed targets
  */
@@ -831,7 +835,9 @@ const int *
 CWP_Uncomputed_tgts_get
 (
  const char *local_code_name,
- const char *cpl_id
+ const char *cpl_id,
+ const char *field_id,
+ const int   i_part
 );
 
 /**
@@ -840,6 +846,8 @@ CWP_Uncomputed_tgts_get
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ * \param [in] i_part           Current partition
  *
  * \return                Number of computed targets
  */
@@ -848,7 +856,9 @@ int
 CWP_N_computed_tgts_get
 (
  const char *local_code_name,
- const char *cpl_id
+ const char *cpl_id,
+ const char *field_id,
+ const int   i_part
 );
 
 /**
@@ -857,6 +867,8 @@ CWP_N_computed_tgts_get
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ * \param [in] i_part           Current partition
  *
  * \return                Computed targets
  */
@@ -865,7 +877,9 @@ const int *
 CWP_Computed_tgts_get
 (
  const char *local_code_name,
- const char *cpl_id
+ const char *cpl_id,
+ const char *field_id,
+ const int   i_part
 );
 
 /**
@@ -1092,6 +1106,7 @@ CWP_Mesh_interf_vtx_set
  double                coord[],
  CWP_g_num_t           global_num[]
 );
+
 
 /**
  * \brief Add a connectivity block to the interface mesh.
@@ -1688,6 +1703,7 @@ CWP_Field_wait_issend
  const char  *cpl_id,
  const char  *src_field_id
 );
+
 
 /**
  *

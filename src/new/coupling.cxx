@@ -23,10 +23,7 @@
 #include <cstring>
 #include <sstream>
 
-#include <bftc_error.h>
-#include <bftc_file.h>
-
-#include <fvmc_parall.h>
+#include <pdm_error.h>
 
 #include "coupling.hxx"
 #include "coupling_i.hxx"
@@ -91,6 +88,22 @@ namespace cwipi {
   typedef Factory<SpatialInterp, CWP_Spatial_interp_t> FG;
 
 
+  /**
+   * \brief Constructor.
+   *
+   * This function creates a coupling object and defines its properties.
+   *
+   * \param [in]  cplId                        Coupling identifier
+   * \param [in]  commType                     Communication type
+   * \param [in]  localCodeProperties          Local code properties
+   * \param [in]  coupledCodeProperties        Coupled code properties
+   * \param [in]  spatialInterpAlgo                     SpatialInterp algorithm
+   * \param [in]  nPart                        Number of interface partitions
+   * \param [in]  movingStatus                 Mesh moving status
+   * \param [in]  recvFreqType                 Type of receiving frequency
+   * \param [in]  cplDB                        Coupling data base where it coupling is stored
+   *
+   */
 
   Coupling::Coupling
   (
@@ -99,10 +112,10 @@ namespace cwipi {
    const CodeProperties       &localCodeProperties,
    const CodeProperties       &coupledCodeProperties,
    const CWP_Interface_t      entities_dim,
-   const CWP_Spatial_interp_t           spatialInterpAlgo,
+   const CWP_Spatial_interp_t spatialInterpAlgo,
    const int                  nPart,
    const CWP_Dynamic_mesh_t   displacement,
-   const CWP_Time_exch_t           recvFreqType,
+   const CWP_Time_exch_t      recvFreqType,
    CouplingDB                 &cplDB
    )
   :_cplId(cplId),
@@ -120,7 +133,12 @@ namespace cwipi {
    _cplDB(cplDB),
    _iteration(new int),
    _displacement(displacement),
-   _spatialInterpAlgo(spatialInterpAlgo)
+   _spatialInterpAlgo(spatialInterpAlgo),
+   _userTargetN(nullptr),
+   _userTargetGnum(nullptr),
+   _localUserTargetGnum(nullptr),
+   _userTargetCoord(nullptr),
+   _nPart(nPart)
   {
 
 /*    int rank;
@@ -181,6 +199,11 @@ namespace cwipi {
   }
 
 
+  /**
+   * \brief Destructor.
+   *
+   */
+
   Coupling::~Coupling()
   {
 
@@ -214,6 +237,16 @@ namespace cwipi {
       delete _iteration;
     }
 
+    if (_userTargetN != nullptr) {
+      if (_localUserTargetGnum != nullptr) {
+        for (int iPart; iPart < _nPart; iPart++) {
+          free (_localUserTargetGnum[iPart]); 
+        }
+      }
+      delete [] _userTargetN;        
+      delete [] _userTargetGnum;     
+      delete [] _userTargetCoord;    
+    }
 
     #if defined(DEBUG) && 0
     cout << "destroying '" << _name << "' coupling : TODO" << endl;
@@ -221,116 +254,43 @@ namespace cwipi {
   }
 
 
- //TODO: Virer ptFortranInterpolationFct
-  void
-  Coupling::issend
-  (
-    string &sendingFieldID
-  )
-  {
-/*    map <string, Field *>::iterator it;
-    it = _fields.find(sendingFieldID);
+  /*----------------------------------------------------------------------------*
+   * Methods about exchange frequency                                           *
+   *----------------------------------------------------------------------------*/
 
-    if (it != _fields.end()) {
-      Field* sendingField = it -> second;
-      if(_spatial_interp[sendingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0){
-        _spatial_interp[sendingField -> linkedFieldLocationGet()] -> issend_p2p(sendingField);
-        return;
-      }
-      else {
-        Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
-        map <std::string, Field *>::iterator it_recv = distCpl._fields.find(sendingFieldID);
-        if (it_recv != distCpl._fields.end()) {
-          Field* recevingField = it_recv -> second;
-          _spatial_interp[sendingField -> linkedFieldLocationGet()] -> both_codes_on_the_same_process_exchange_p2p(sendingField,recevingField);
-        }
-      }
-    }
-*/  }
 
-  void
-  Coupling::irecv
-  (
-    string &recevingFieldID
+
+
+  /**
+   * \brief Setting the next receiving time.
+   *
+   * This function set the next receiving time. It must be used when
+   * the type of receiving frequency is \ref CWP_TIME_EXCH_ASYNCHRONOUS
+   *
+   * \param [in]  next_time     Next receiving time
+   *
+   */
+
+  void 
+  Coupling::recvNextTimeSet (
+    double next_time
   ) 
-  {
-/*    map <string, Field *>::iterator it = _fields.find(recevingFieldID);
-    if (it != _fields.end()) {
-      Field* recevingField = it -> second;
-      if(_spatial_interp[recevingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0 ){
-        _spatial_interp[recevingField -> linkedFieldLocationGet()] -> irecv_p2p(recevingField);
-      } 
-      return;
-    }
-*/  }
+ 
+
+ 
+  /*----------------------------------------------------------------------------*
+   * Methods about spatial interpolation                                        *
+   *----------------------------------------------------------------------------*/
 
 
-  int
-  Coupling::fieldNComponentGet
-  (
-   const string &field_id
-  )
-  {
-    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
-    if (It == _fields.end()) {
-       PDM_error(__FILE__, __LINE__, 0, "'%s' not existing field\n", field_id.c_str());
-    }
-    return It->second->nComponentGet();
-  }
-
-  bool
-  Coupling::fieldIs
-  (
-   const string &field_id
-  )
-  {
-    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
-    return (It != _fields.end());
-  }
-
-  void
-  Coupling::fieldCreate
-  (
-   const string               &field_id,
-   const CWP_Type_t           data_type,
-   const CWP_Field_storage_t  storage,
-   const int                  n_component,
-   const CWP_Dof_location_t    fieldType,
-   const CWP_Field_exch_t     exch_type,
-   const CWP_Status_t         visu_status
-  )
-  {
-
-    if (fieldIs(field_id)) {
-      bftc_error(__FILE__, __LINE__, 0,
-                "'%s' existing field\n", field_id.c_str());
-    }
-
-    //
-    // Create the new field
-
-    double physTime=0.0;
-    *_iteration = 0;
-    cwipi::Field *newField = new cwipi::Field(field_id,
-                                              data_type,
-                                              this,
-                                              fieldType,
-                                              storage,
-                                              n_component,
-                                              exch_type,
-                                              visu_status,
-                                              _iteration, //iteration
-                                             &physTime);  //physTime
-
-
-    pair<string, Field* > newPair(string(field_id), newField);
-    string localName = _localCodeProperties.nameGet();
-    _fields.insert(newPair);
-    if (_visu.isCreated() && newField -> visuStatusGet() == CWP_STATUS_ON) {
-      _visu.WriterFieldCreate(newField);
-    }
-  }
-
+  /**
+   * \brief Computation spatial interpolation weights
+   *
+   * This function compute spatial interpolation weights
+   *
+   * \param [out] n_uncomputed_tgt    Number of uncomputed target
+   *
+   */
 
   void
   Coupling::spatialInterpWeightsCompute ()
@@ -627,373 +587,47 @@ namespace cwipi {
   }
 
 
-  int Coupling::nUncomputedTargetsGet
-  (
-    const CWP_Dof_location_t pointsCloudLocation,
-    const int  i_part
-  )
-  {
- //   return _spatial_interp[pointsCloudLocation] -> nUncomputedTargetsGet(i_part);
-  }
-
-
-   void
-   Coupling::waitIssend
-   (
-    string &sendingFieldID
-   )
-   {
-/*
-     map <string, Field *>::iterator it;
-     it = _fields.find(sendingFieldID);
-
-     if (it != _fields.end()) {
-       Field* sendingField = it -> second;
-       if(_spatial_interp[sendingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0){
-        _spatial_interp[sendingField -> linkedFieldLocationGet()] -> waitIssend_p2p(sendingField);
-        return;
-       }
-       else {
-        _spatial_interp[sendingField -> linkedFieldLocationGet()] -> waitIssend_p2p(sendingField);
-        Coupling &cplCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
-
-        map <std::string, Field *>::iterator it_recv = distCpl.fieldsGet() -> find(sendingFieldID);
-        if (it_recv != distCpl.fieldsGet() -> end() ) {
-          Field* recevingField = it_recv -> second;
-          distCpl._spatial_interp[recevingField -> linkedFieldLocationGet()] -> waitIrecv_p2p(it_recv -> second);
-          return;
-        }
-
-       }
-     }
-*/   }
-
-
-   void
-   Coupling::waitIrecv
-   (
-    string &recevingFieldID
-   )
-   {
-/*     map <string, Field *>::iterator it;
-     it = _fields.find(recevingFieldID);
-
-     if (it != _fields.end()) {
-       Field* recevingField = it -> second;
-       if(_spatial_interp[recevingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0)
-         _spatial_interp[recevingField -> linkedFieldLocationGet()] -> waitIrecv_p2p(recevingField);
-      }
-*/   }
+  /*----------------------------------------------------------------------------*
+   * Methods about visualization                                                *
+   *----------------------------------------------------------------------------*/
 
   /**
+   * \brief Enable visualization output
    *
-   * \brief Get field storage type
+   * This function enable visualization output.
    *
-   * \param [in]   field_id       Field identifier
+   * \param [in]  freq             Output frequency
+   * \param [in]  format           Output format to visualize exchanged fieldsDouble
+   *                               on the coupled mesh. Choice between :
+   *                               - "EnSight Gold"
+   *                               - "MED_ficher"
+   *                               - "CGNS"
+   *                               .
+   * \param [in]  format_option   Output options "opt1, opt2, ..." :
+   *                         - text               output text files
+   *                         - binary             output binary files (default)
+   *                         - big_endian         force binary files
+   *                                              to big-endian
+   *                         - discard_polygons   do not output polygons
+   *                                              or related values
+   *                         - discard_polyhedra  do not output polyhedra
+   *                                              or related values
+   *                         - divide_polygons    tesselate polygons
+   *                                              with triangles
+   *                         - divide_polyhedra   tesselate polyhedra
+   *                                              with tetrahedra and pyramids
+   *                                              (adding a vertex near
+   *                                               each polyhedron's center)
+   *                         .
    *
    */
 
-   CWP_Field_storage_t
-   Coupling::fieldStorageGet
-   (
-     const string &field_id
-   )
-   {
-    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
-    if (It == _fields.end()) {
-      bftc_error(__FILE__, __LINE__, 0,
-                 "'%s' not existing field\n", field_id.c_str());
-    }
-
-    return It->second->storageTypeGet();
-
-   }
-
-
-  /**
-   *
-   * \brief Get field fieldType
-   *
-   * \param [in]   field_id       Field identifier
-   *
-   */
-
-  CWP_Dof_location_t Coupling::fieldTypeGet
-  (
-    const string &field_id
+  void 
+  Coupling::visuSet (
+    const int               freq,
+    const CWP_Visu_format_t format,
+    const char             *format_option
   )
-  {
-    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
-    if (It == _fields.end()) {
-      bftc_error(__FILE__, __LINE__, 0,
-                 "'%s' not existing field\n", field_id.c_str());
-    }
-    return It->second->locationGet();
-
-  }
-
-
- /**
-  *
-  * \brief Set Field data
-  *
-  * \param [in]  field_id       Field identifier
-  * \param [in]  data           Storage array (mapping)
-  *
-  */
-  //TODO:Change to dataSet
-  void
-  Coupling::fieldDataSet
-  (
-    const string &field_id,
-    int i_part,
-    void* data
-  )
-  {
-    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
-    if (It == _fields.end())
-      {
-         bftc_error(__FILE__, __LINE__, 0,
-               "'%s' not existing field\n", field_id.c_str());
-      }
-    else
-      {
-        It->second->dataSet(i_part,data);
-        if(_visu.isCreated() && It -> second -> visuStatusGet() == CWP_STATUS_ON) {
-          _visu.fieldDataSet(It->second,i_part);
-        }
-      }
-  }
-
-
-
-  /**
-   *
-   * \brief Removing a field
-   *
-   * \param [in]   field_id       Field identifier
-   *
-   */
-  void
-  Coupling::fieldDel
-  (
-    const string &field_id
-  )
-  {
-    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
-    if (It == _fields.end())
-      {
-         bftc_error(__FILE__, __LINE__, 0,
-               "'%s' not existing field\n", field_id.c_str());
-      }
-    else
-      {
-        delete It->second;
-      }
-
-  }
-
-
-
-  void Coupling::meshVtcsSet
-    (
-     const int          i_part,
-     const int          n_pts,
-     double             coords[],
-     CWP_g_num_t        global_num[]
-    )
-    {
-      _mesh.nodal_coord_set(i_part,
-                            n_pts,
-                            coords,
-                            global_num);
-    }
-
-  int Coupling::meshBlockAdd
-    (const CWP_Block_t     block_type){
-     return _mesh.blockAdd(block_type);
-    }
-
-
-  void Coupling::meshStdBlockSet
-    (
-     const int           i_part,
-     const int           block_id,
-     const int           n_elts,
-     int                 connec[],
-     CWP_g_num_t        global_num[]
-    )
-  {
-       _mesh.stdBlockSet( i_part,
-                          block_id,
-                          n_elts,
-                          connec,
-                          global_num
-                        );
-  }
-/*
-  void Coupling::meshHighOrderBlockSet
-    (
-     const int           i_part,
-     const int           block_id,
-     const int           n_elts,
-     const int           order,
-     int                 connec[],
-     CWP_g_num_t         global_num[])
-    {
-
-    }
-  */
-  void Coupling::meshFPolyBlockSet
-    (
-     const int            i_part,
-     const int            block_id,
-     const int            n_elts,
-     int                  connec_idx[],
-     int                  connec[],
-     CWP_g_num_t          global_num[]
-    )
-    {
-     _mesh.poly2DBlockSet(i_part,
-                          block_id,
-                          n_elts,
-                          connec_idx,
-                          connec,
-                          global_num
-                         );
-   }
-
-
-  void Coupling::meshCPolyBlockSet
-    (
-     const int           i_part,
-     const int           block_id,
-     const int           n_elts,
-     const int           n_faces,
-     int                 connec_faces_idx[],
-     int                 connec_faces[],
-     int                 connec_cells_idx[],
-     int                 connec_cells[],
-     CWP_g_num_t         global_num[]
-    )
-    {
-       _mesh.poly3DBlockSet(i_part,
-                            block_id,
-                            n_elts,
-                            n_faces,
-                            connec_faces_idx,
-                            connec_faces    ,
-                            connec_cells_idx,
-                            connec_cells    ,
-                            global_num
-                        );
-
-   }
-
-
- /* void Coupling::fvmcNodalShared(const int           i_part,
-                      fvmc_nodal_t        *fvmc_nodal)
-  {
-
-  }
-
-
-*/
-
-
-  void Coupling::meshFinalize() 
-  {
-    _mesh.geomFinalize();
-  }
-
-
-  void Coupling::meshFromCellFaceSet(const int   i_part,
-                        const int   n_cells,
-                        int         cell_face_idx[],
-                        int         cell_face[],
-                        int         n_faces,
-                        int         face_vtx_idx[],
-                        int         face_vtx[],
-                        CWP_g_num_t parent_num[])
-  {
-     _mesh.fromCellFaceSet(i_part,
-                               n_cells,
-                               cell_face_idx,
-                               cell_face,
-                               n_faces,
-                               face_vtx_idx,
-                               face_vtx,
-                               parent_num);
-  }
-
-
-  void Coupling::interpFromLocSet (  const string field_id,
-                                     CWP_Interp_from_location_t fct
-                                  )
-  {
-    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
-    if (It == _fields.end())
-      {
-         bftc_error(__FILE__, __LINE__, 0,
-               "'%s' not existing field\n", field_id.c_str());
-      }
-    else
-      {
-        It -> second -> interpFromLocationSet(fct);
-      }
-  }
-
-  /**
-   * \brief Setting user target points
-   *
-   * This function must be called if the nature of receiving fieldsDouble
-   * is \ref CWP_DOF_LOCATION_USER
-   *
-   * \param [in]  i_part  Current partition
-   * \param [in]  n_pts   Number of points
-   * \param [in]  coord   Coordinates (size = 3 * n_pts)
-   * \param [in]  g_num   global number or NUL (size = n_pts)
-   *
-   */
-  void Coupling::userTgtPtsSet (const int i_part,
-                                const int n_pts,
-                                double    coord[],
-                                CWP_g_num_t   global_num[])
-  {
-//    _spatial_interp[CWP_DOF_LOCATION_USER] -> user_target_points_set(i_part, n_pts, coord);
-  }
-
-
-  void Coupling::meshFromFacesEdgeSet(const int   i_part,
-                         const int   n_faces,
-                         int         face_edge_idx[],
-                         int         face_edge[],
-                         const int   n_edges,
-                         int         edge_vtx_idx[],
-                         int         edge_vtx[],
-                         CWP_g_num_t parent_num[])
-  {
-     _mesh.fromFacesEdgeSet(i_part,
-                            n_faces,
-                            face_edge_idx,
-                            face_edge,
-                            n_edges,
-                            edge_vtx_idx,
-                            edge_vtx,
-                            parent_num);
-  }
-
-
-  void Coupling::meshDel()
-  {
-    _mesh.meshDel();
-  }
-
-
-  void Coupling::visuSet(const int               freq,
-                         const CWP_Visu_format_t format,
-                         const char             *format_option
-                         )
   {
     string CodeName = _localCodeProperties.nameGet();
     string cplCodeName = _coupledCodeProperties.nameGet();
@@ -1019,27 +653,358 @@ namespace cwipi {
     }
   }
 
+  /*----------------------------------------------------------------------------*
+   * Methods  about mesh                                                        *
+   *----------------------------------------------------------------------------*/
+
+
+
+
+  /*----------------------------------------------------------------------------*
+   * Methods about field                                                        *
+   *----------------------------------------------------------------------------*/
+
+  /**
+   *
+   * \brief Create a new field
+   *
+   * \param [in]  field_id       Field id
+   * \param [in]  data_type      Data type
+   * \param [in]  storage        Storage type
+   * \param [in]  n_component    Number of componenent
+   * \param [in]  nature         Nature
+   * \param [in]  exch_type      Exchange type
+   * \param [in]  visu_status    Visualization status
+   *
+   */
+
+  void
+  Coupling::fieldCreate
+  (
+   const string               &field_id,
+   const CWP_Type_t           data_type,
+   const CWP_Field_storage_t  storage,
+   const int                  n_component,
+   const CWP_Dof_location_t    fieldType,
+   const CWP_Field_exch_t     exch_type,
+   const CWP_Status_t         visu_status
+  )
+  {
+
+    if (fieldIs(field_id)) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "'%s' existing field\n", field_id.c_str());
+    }
+
+    //
+    // Create the new field
+
+    double physTime=0.0;
+    *_iteration = 0;
+    cwipi::Field *newField = new cwipi::Field(field_id,
+                                              data_type,
+                                              this,
+                                              fieldType,
+                                              storage,
+                                              n_component,
+                                              exch_type,
+                                              visu_status,
+                                              _iteration, //iteration
+                                             &physTime);  //physTime
+
+
+    pair<string, Field* > newPair(string(field_id), newField);
+    string localName = _localCodeProperties.nameGet();
+    _fields.insert(newPair);
+    if (_visu.isCreated() && newField -> visuStatusGet() == CWP_STATUS_ON) {
+      _visu.WriterFieldCreate(newField);
+    }
+  }
+
+
+  /**
+   * \brief Return if a field identifier exists
+   *
+   * \param [in]  field_id         Field identifier
+   *
+   * \return status
+   */
+
+
+  bool
+  Coupling::fieldIs
+  (
+   const string &field_id
+  )
+  {
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
+    return (It != _fields.end());
+  }
+
+
+ /**
+  *
+  * \brief Set Field data
+  *
+  * \param [in]  field_id       Field identifier
+  * \param [in]  data           Storage array (mapping)
+  *
+  */
+
+  void
+  Coupling::fieldDataSet
+  (
+    const string &field_id,
+    int i_part,
+    void* data
+  )
+  {
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
+    if (It == _fields.end()) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "'%s' not existing field\n", field_id.c_str());
+    }
+    else {
+      It->second->dataSet(i_part,data);
+      if (_visu.isCreated() && It -> second -> visuStatusGet() == CWP_STATUS_ON) {
+        _visu.fieldDataSet(It->second,i_part);
+      }
+    }
+  }
+
+  /*----------------------------------------------------------------------------*
+   * Methods about exchange                                                     *
+   *----------------------------------------------------------------------------*/
+
+
+  /**
+   * \brief data exchange <b>(Not implemented yet)</b>
+   *
+   * Exchange depending on exchange frequency
+   *
+   */
+
+  void
+  Coupling::exchange ()
+  {
+    PDM_error("\nexchange not implemented yet\n");
+  }
+
+
+  /**
+   * \brief Exchange data field with the coupled code with blocking
+   *        communications. <b>(Not implemented yet)</b>
+   *
+   * This function exchanges interpolated fieldsDouble between coupled codes.
+   *
+   * \warning  The size of tgt_field_id size is n_computed_tgt.
+   *           If \f$ n\_uncomputed\_tgt \ne n\_tgt\_pts \f$,
+   *           user himself must set values for uncomputed target points.
+   *
+   * \param [in]  src_field_id              Source field (NULL -> no sending)
+   * \param [in]  tgt_field_id              Target field (NULL -> no receiving)
+   * \param [in]  ptFortranInterpolationFct Fortran user interpolation (or NULL)
+   * \param [out] n_uncomputed_tgt          Number of uncomputed target
+   *
+   * \return                                Exchange status
+   *
+   */
+
+  void
+  Coupling::sendrecv (
+    const string &field_id
+  )
+  {
+    PDM_UNUSED (field_id);
+    PDM_error("\nsendrecv not implemented yet\n");
+  }
+
+
+  /**
+   *
+   * \brief Sending of data field to the coupled code with nonblocking
+   *        communications.
+   *
+   * This function sends interpolated field to the coupled code.
+   *
+   * \param [in]  src_id                    Source field
+   *
+   */
+
+  void
+  Coupling::issend (
+    string &sendingFieldID
+  )
+  {
+    // map <string, Field *>::iterator it;
+    // it = _fields.find(sendingFieldID);
+
+    // if (it != _fields.end()) {
+    //   Field* sendingField = it -> second;
+    //   if(_spatial_interp[sendingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0){
+    //     _spatial_interp[sendingField -> linkedFieldLocationGet()] -> issend_p2p(sendingField);
+    //     return;
+    //   }
+    //   else {
+    //     Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
+    //     map <std::string, Field *>::iterator it_recv = distCpl._fields.find(sendingFieldID);
+    //     if (it_recv != distCpl._fields.end()) {
+    //       Field* recevingField = it_recv -> second;
+    //       _spatial_interp[sendingField -> linkedFieldLocationGet()] -> both_codes_on_the_same_process_exchange_p2p(sendingField,recevingField);
+    //     }
+    //   }
+    // }
+  }
+
+
+  /**
+   *
+   * \brief Waiting of the end of exchange related to request.
+   *
+   * This function waits the end of exchange related to request
+   * from \ref CWP_Issend
+   *
+   * \param [in] src_id                    Source field
+   *
+   */
+
+  void
+  Coupling::waitIssend (
+    const string &sendingFieldID
+  )
+  {
+
+    // map <string, Field *>::iterator it;
+    // it = _fields.find(sendingFieldID);
+
+    // if (it != _fields.end()) {
+    //   Field* sendingField = it -> second;
+    //   if(_spatial_interp[sendingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0){
+    //    _spatial_interp[sendingField -> linkedFieldLocationGet()] -> waitIssend_p2p(sendingField);
+    //    return;
+    //   }
+    //   else {
+    //    _spatial_interp[sendingField -> linkedFieldLocationGet()] -> waitIssend_p2p(sendingField);
+    //    Coupling &cplCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
+
+    //    map <std::string, Field *>::iterator it_recv = distCpl.fieldsGet() -> find(sendingFieldID);
+    //    if (it_recv != distCpl.fieldsGet() -> end() ) {
+    //      Field* recevingField = it_recv -> second;
+    //      distCpl._spatial_interp[recevingField -> linkedFieldLocationGet()] -> waitIrecv_p2p(it_recv -> second);
+    //      return;
+    //    }
+
+    //   }
+    // }
+  }
+
+
+  /**
+   *
+   * \brief Receiving of Data field from the coupled code with nonblocking
+   *        communications.
+   *
+   * This function receives interpolated field from the coupled code
+   *
+   * \param [in]  receving_field_id       Target field ID
+   *
+   *
+   */
+
+  void
+  Coupling::irecv
+  (
+    const string &recevingFieldID
+  ) 
+  {
+    // map <string, Field *>::iterator it = _fields.find(recevingFieldID);
+    // if (it != _fields.end()) {
+    //   Field* recevingField = it -> second;
+    //   if(_spatial_interp[recevingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0 ){
+    //     _spatial_interp[recevingField -> linkedFieldLocationGet()] -> irecv_p2p(recevingField);
+    //   } 
+    //   return;
+    // }
+  }
+
+
+  /**
+   *
+   * \brief Waiting of the end of exchange related to request.
+   *
+   * This function waits the end of exchange related to request
+   * from \ref CWP_Irecv
+   *
+   * \param [in]  receving_field_id       Target field ID
+   *
+   */
+
+  void
+  Coupling::waitIrecv (
+    const string &recevingFieldID
+  )
+  {
+    // map <string, Field *>::iterator it;
+    // it = _fields.find(recevingFieldID);
+
+    // if (it != _fields.end()) {
+    //   Field* recevingField = it -> second;
+    //   if(_spatial_interp[recevingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0)
+    //     _spatial_interp[recevingField -> linkedFieldLocationGet()] -> waitIrecv_p2p(recevingField);
+    //  }
+  }
+
+
+  /*----------------------------------------------------------------------------*
+   * methods about user interpolation                                           *
+   *----------------------------------------------------------------------------*/
+
+
+  /*----------------------------------------------------------------------------*
+   * Private methods                                                            *
+   *----------------------------------------------------------------------------*/
+
+  /**
+   *
+   * \brief Compute user target global number (if not given by user)
+   *
+   */
+
+  void 
+  SpatialInterp::userTargetGnumCompute() 
+  {
+    if (_userTargetN != nullptr) {
+      if (_userTargetGnum == nullptr) {
+        PDM_gen_gnum_t *pgg  = PDM_gnum_create (3, _nb_part, PDM_FALSE, 1e-3, _mesh->_pdm_localComm,
+                                                   PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+        for (int iPart = 0; iPart <_nPart; iPart++){
+          PDM_gnum_set_from_coords (pgg, iPart, _userTargetN[iPart], _userTargetCoord[iPart], NULL);
+        }
+
+        PDM_gnum_compute (pgg);
+  
+        _localUserTargetGnum = new (CWP_g_num_t *) [_nPart];
+
+        for (int iPart = 0; iPart < _nPart; iPart++){
+          _localUserTargetGnum[iPart] = const_cast <CWP_g_num_t*> (PDM_gnum_get (pgg, iPart));
+        }
+
+        PDM_gnum_free (pgg);
+
+        _userTargetGnum = _localUserTargetGnum;
+      }
+    }
+  }
+
+
+// A supprimer
+
   CWP_g_num_t*
   Coupling::globalNumGet(int id_block,int i_part) 
   {
     return _mesh.globalNumGet(id_block,i_part);
   }
 
- void Coupling::recvNextTimeSet (double next_time) 
- {
-
-   if(_visu.isCreated() and _visu.physicalTimeGet() > -1.0) {
-       _visu.WriterStepEnd();
-   }
-
-   _recvNextTime = next_time;
-
-   if(_visu.isCreated()) {
-       _visu.WriterStepBegin(_recvNextTime,&_mesh);
-   }
-
-
- }
 
 
 } // namespace cwipi

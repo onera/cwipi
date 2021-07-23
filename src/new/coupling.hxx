@@ -23,10 +23,8 @@
 #include <map>
 #include <vector>
 
-#include <fvmc_nodal.h>
-
 #include "cwp.h"
-#include "bftc_printf.h"
+#include "pdm_printf.h"
 #include "communication.hxx"
 #include "couplingDB.hxx"
 #include "couplingDB_i.hxx"
@@ -79,8 +77,7 @@ namespace cwipi {
      *
      */
 
-    Coupling
-    (
+    Coupling (
      const string                &cplId,
      const CWP_Comm_t             commType,
      const CodeProperties        &localCodeProperties,
@@ -100,72 +97,6 @@ namespace cwipi {
 
     virtual ~Coupling();
 
-    /**
-     * \brief data exchange <b>(Not implemented yet)</b>
-     *
-     * Exchange depending on exchange frequency
-     *
-     */
-
-    void
-    exchange
-    (
-    )
-    {
-      bftc_printf("\n cwipi error : CWIPI_exchange not implemented yet\n");
-      exit(1);
-    }
-
-    /**
-     *
-     * \brief Return the number of uncomputed targets
-     *
-     * \return                Number of uncomputed targets
-     */
-
-    int
-    nUncomputedTargetsGet
-    (
-      const CWP_Dof_location_t pointsCloudLocation,
-      const int  i_part
-    ) ;
-
-    /**
-     *
-     * \brief Return uncomputed targets
-     *
-     * \return                Uncomputed targets
-     */
-
-    inline const int *
-    uncomputedTargetsGet
-    (
-    ) const;
-
-    /**
-     *
-     * \brief Return the number of computed targets
-     *
-     * \return                Number of computed targets
-     */
-
-    inline int
-    nComputedTargetsGet
-    (
-    ) const;
-
-    /**
-     *
-     * \brief Return computed targets
-     *
-     * \return                Computed targets
-     */
-
-    inline const int *
-    computedTargetsGet
-    (
-    ) const;
-
     /*----------------------------------------------------------------------------*
      * Methods about exchange frequency                                           *
      *----------------------------------------------------------------------------*/
@@ -181,9 +112,8 @@ namespace cwipi {
      */
 
     inline void
-    recvFreqSet
-    (
-     int n_step
+    recvFreqSet (
+      int n_step
     );
 
     /**
@@ -196,10 +126,9 @@ namespace cwipi {
      *
      */
 
-    void
-    recvNextTimeSet
-    (
-     double next_time
+    inline void
+    recvNextTimeSet (
+      double next_time
     );
 
     /*----------------------------------------------------------------------------*
@@ -228,10 +157,9 @@ namespace cwipi {
      */
 
     void
-    spatialInterpPropertiesSet
-    (
-     const char *fmt,
-     va_list    *pa
+    spatialInterpPropertiesSet (
+      const char *fmt,
+      va_list    *pa
     );
 
     /*----------------------------------------------------------------------------*
@@ -270,38 +198,23 @@ namespace cwipi {
      */
 
     void
-    visuSet
-    (
-     const int               freq,
-     const CWP_Visu_format_t format,
-     const char             *format_option
+    visuSet (
+      const int               freq,
+      const CWP_Visu_format_t format,
+      const char             *format_option
     );
 
-    /*----------------------------------------------------------------------------*
-     * Methods about User target points                                           *
-     *----------------------------------------------------------------------------*/
 
     /**
-     * \brief Setting user target points
      *
-     * This function must be called if the nature of receiving fieldsDouble
-     * is \ref CWP_DOF_LOCATION_USER
+     * \brief Return the Visu object associated to this coupling
      *
-     * \param [in]  i_part  Current partition
-     * \param [in]  n_pts   Number of points
-     * \param [in]  coord   Coordinates (size = 3 * n_pts)
-     * \param [in]  g_num   global number or NUL (size = n_pts)
+     * \return Visu object pointer
      *
      */
 
-    void
-    userTgtPtsSet
-    (
-     const int     i_part,
-     const int     n_pts,
-     double        coord[],
-     CWP_g_num_t   global_num[]    
-    );
+    inline Visu* 
+    visuGet ();
 
     /*----------------------------------------------------------------------------*
      * Methods  about mesh                                                     *
@@ -319,14 +232,14 @@ namespace cwipi {
      *
      */
 
-    void
-    meshVtcsSet
-    (
-     const int          i_part,
-     const int          n_pts,
-     double             coord[],
-     CWP_g_num_t        global_num[]
+    inline void
+    meshVtcsSet (
+      const int          i_part,
+      const int          n_pts,
+      double             coord[],
+      CWP_g_num_t        global_num[]
     );
+
 
    /**
     * \brief Add a block to the interface mesh.
@@ -337,9 +250,8 @@ namespace cwipi {
     * \return block identifier
     */
 
-    int
-    meshBlockAdd
-    (
+    inline int
+    meshBlockAdd (
       const CWP_Block_t     block_type
     );
 
@@ -437,14 +349,13 @@ namespace cwipi {
      *
      */
 
-    void
-    meshStdBlockSet
-    (
-     const int           i_part,
-     const int           block_id,
-     const int           n_elts,
-     int                 connec[],
-     CWP_g_num_t       global_num[]
+    inline void
+    meshStdBlockSet(
+      const int           i_part,
+      const int           block_id,
+      const int           n_elts,
+      int                 connec[],
+      CWP_g_num_t       global_num[]
     );
 
 
@@ -461,17 +372,16 @@ namespace cwipi {
      *
      */
 
-   /* void
-    meshHighOrderBlockSet
-    (
-     const int           i_part,
-     const int           block_id,
-     const int           n_elts,
-     const int           order,
-     int                 connec[],
-     CWP_g_num_t         global_num[]);
+    inline void
+    meshHighOrderBlockSet (
+      const int           i_part,
+      const int           block_id,
+      const int           n_elts,
+      const int           order,
+      int                 connec[],
+      CWP_g_num_t         global_num[]
+    );
 
-*/
     /**
      * \brief Set the connectivity of a polygon block in a mesh interface partition.
      *
@@ -486,15 +396,14 @@ namespace cwipi {
      *
      */
 
-    void
-    meshFPolyBlockSet
-    (
-     const int            i_part,
-     const int            block_id,
-     const int            n_elts,
-     int                  connec_idx[],
-     int                  connec[],
-     CWP_g_num_t          global_num[]
+    inline void
+    meshFPolyBlockSet (
+      const int            i_part,
+      const int            block_id,
+      const int            n_elts,
+      int                  connec_idx[],
+      int                  connec[],
+      CWP_g_num_t          global_num[]
     );
 
     /**
@@ -520,25 +429,25 @@ namespace cwipi {
      *
      */
 
-    void
-    meshCPolyBlockSet
-    (
-     const int           i_part,
-     const int           block_id,
-     const int           n_elts,
-     const int           n_faces,
-     int                 connec_faces_idx[],
-     int                 connec_faces[],
-     int                 connec_cells_idx[],
-     int                 connec_cells[],
-     CWP_g_num_t         global_num[]
+    inline void
+    meshCPolyBlockSet (
+      const int           i_part,
+      const int           block_id,
+      const int           n_elts,
+      const int           n_faces,
+      int                 connec_faces_idx[],
+      int                 connec_faces[],
+      int                 connec_cells_idx[],
+      int                 connec_cells[],
+      CWP_g_num_t         global_num[]
     );
+
 
     /**
      * \brief Adding a polyhedron block to the mesh from
      * a face-to-cell connectivity and a vertices-to-faces connectivity.
      *
-     * This function add a polyhedron 3D block to the mesh from
+     * This function adds a polyhedron 3D block to the mesh from
      * a face-to-cell connectivity and a vertices-to-faces connectivity.
      *
      * \param [in]  i_part            Current partition
@@ -558,17 +467,17 @@ namespace cwipi {
      *
      */
 
-    void
-    meshFromCellFaceSet(const int   i_part,
-                        const int   n_cells,
-                        int         cell_face_idx[],
-                        int         cell_face[],
-                        int         n_faces,
-                        int         face_vtx_idx[],
-                        int         face_vtx[],
-                        CWP_g_num_t parent_num[]);
-
-
+    inline void
+    meshFromCellFaceSet(
+      const int   i_part,
+      const int   n_cells,
+      int         cell_face_idx[],
+      int         cell_face[],
+      int         n_faces,
+      int         face_vtx_idx[],
+      int         face_vtx[],
+      CWP_g_num_t parent_num[]
+    );
 
 
     /**
@@ -596,15 +505,17 @@ namespace cwipi {
      *
      */
 
-    void
-    meshFromFacesEdgeSet(const int   i_part,
-                         const int   n_faces,
-                         int         face_edge_idx[],
-                         int         face_edge[],
-                         const int   n_edges,
-                         int         edge_vtx_idx[],
-                         int         edge_vtx[],
-                         CWP_g_num_t parent_num[]);
+    inline void
+    meshFromFacesEdgeSet(
+      const int   i_part,
+      const int   n_faces,
+      int         face_edge_idx[],
+      int         face_edge[],
+      const int   n_edges,
+      int         edge_vtx_idx[],
+      int         edge_vtx[],
+      CWP_g_num_t parent_num[]
+    );
 
 
     /**
@@ -614,27 +525,30 @@ namespace cwipi {
      *
      */
 
-    void
-    meshDel
-    (
-    );
+    inline void
+    meshDel();
+
 
     /**
-     * \brief Map a fvm nodal as mesh mesh
      *
-     * This function  map a fvm nodal as mesh mesh
-     *
-     * \param [in]  i_part            Current partition
-     * \param [in]  fvmc_nodal        fvm nodal mesh
+     * \brief Finalize mesh description (Computation of entities global numbers if not given by the user)
      *
      */
 
-   /* void
-    fvmcNodalShared
-    (
-     const int           i_part,
-     fvmc_nodal_t       *fvmc_nodal
-    );*/
+    inline void 
+    meshFinalize();
+
+    /**
+     *
+     * \brief Return the mesh object associated to this coupling
+     *
+     * \return Mesh object pointer
+     *
+     */
+
+    inline Mesh* 
+    meshGet();
+
 
     /*----------------------------------------------------------------------------*
      * Methods about field                                                        *
@@ -654,9 +568,8 @@ namespace cwipi {
      *
      */
 
-    void
-    fieldCreate
-    (
+    void 
+    fieldCreate (
      const string               &field_id,
      const CWP_Type_t           data_type,
      const CWP_Field_storage_t  storage,
@@ -667,7 +580,7 @@ namespace cwipi {
     );
 
 
-     /**
+    /**
      * \brief Return if a field identifier exists
      *
      * \param [in]  field_id         Field identifier
@@ -676,28 +589,26 @@ namespace cwipi {
      */
 
     bool
-    fieldIs
-    (
+    fieldIs (
      const string &field_id
     );
 
 
+   /**
+    *
+    * \brief Set Field data
+    *
+    * \param [in]  field_id       Field identifier
+    * \param [in]  data           Storage array (mapping)
+    *
+    */
 
-    /**
-     *
-     * \brief Set Field
-     *
-     * \param [in]  field_id       Field identifier
-     * \param [in]  data           Storage array (mapping)
-     *
-     */
+    void fieldDataSet (
+      const std::string &field_id,
+      int i_part,
+      void *data
+    );
 
-  void fieldDataSet
-  (
-    const std::string &field_id,
-    int i_part,
-    void *data
-  );
 
     /**
      *
@@ -709,15 +620,15 @@ namespace cwipi {
      *
      */
 
-    int
-    fieldNComponentGet
-    (
-     const string &field_id
+    inline int
+    fieldNComponentGet (
+      const string &field_id
     );
+
 
     /**
      *
-     * \brief Get field nature
+     * \brief Get location of the degrees of freedom
      *
      * \param [in]   field_id       Field identifier
      *
@@ -725,27 +636,11 @@ namespace cwipi {
      *
      */
 
-    CWP_Dof_location_t
-    fieldNatureGet
-    (
-     const string &field_id
+    inline CWP_Dof_location_t
+    fieldDofLOcationGet (
+      const string &field_id
     );
 
-    /**
-     *
-     * \brief Get field data type
-     *
-     * \param [in]   field_id       Field identifier
-     *
-     * \return                      Field data type
-     *
-     */
-
-    CWP_Dof_location_t
-    fieldTypeGet
-    (
-     const string &field_id
-    );
 
     /**
      *
@@ -755,10 +650,9 @@ namespace cwipi {
      *
      */
 
-    CWP_Field_storage_t
-    fieldStorageGet
-    (
-     const string &field_id
+    inline CWP_Field_storage_t
+    fieldStorageGet (
+      const string &field_id
     );
 
     /**
@@ -769,15 +663,25 @@ namespace cwipi {
      *
      */
 
-    void
-    fieldDel
-    (
+    inline void
+    fieldDel (
      const string &field_id
     );
 
     /*----------------------------------------------------------------------------*
      * Methods about exchange                                                     *
      *----------------------------------------------------------------------------*/
+
+    /**
+     * \brief data exchange <b>(Not implemented yet)</b>
+     *
+     * Exchange depending on exchange frequency
+     *
+     */
+
+    void
+    exchange ();
+
 
    /**
      * \brief Exchange data field with the coupled code with blocking
@@ -799,9 +703,8 @@ namespace cwipi {
      */
 
     void
-    sendrecv
-    (
-     string &field_id
+    sendrecv (
+      const string &field_id
     );
 
     /**
@@ -816,10 +719,10 @@ namespace cwipi {
      */
 
     void
-    issend
-    (
-     string &src_field_id
+    issend (
+      const string &src_field_id
     );
+
 
     /**
      *
@@ -833,15 +736,9 @@ namespace cwipi {
      */
 
     void
-    waitIssend
-    (
-     string &src_field_id
+    waitIssend (
+      const string &src_field_id
     );
-
-
-
-    CWP_g_num_t*
-    globalNumGet(int id_block,int i_part);
 
     /**
      *
@@ -856,9 +753,8 @@ namespace cwipi {
      */
 
     void
-    irecv
-    (
-     string &receving_field_id
+    irecv (
+      const string &receving_field_id
     );
 
     /**
@@ -873,10 +769,62 @@ namespace cwipi {
      */
 
     void
-    waitIrecv
-    (
-     string &receving_field_id
+    waitIrecv (
+      const string &receving_field_id
     );
+
+
+    /**
+     *
+     * \brief Return the number of uncomputed targets
+     *
+     * \return                Number of uncomputed targets
+     */
+
+    inline int
+    nUncomputedTargetsGet(
+      string &field_id,
+      const int  i_part
+    ) ;
+
+    /**
+     *
+     * \brief Return uncomputed targets
+     *
+     * \return                Uncomputed targets
+     */
+
+    inline const int *
+    uncomputedTargetsGet (
+      string &field_id,
+      const int  i_part
+    ) const;
+
+    /**
+     *
+     * \brief Return the number of computed targets
+     *
+     * \return                Number of computed targets
+     */
+
+    inline int
+    nComputedTargetsGet (
+      string &field_id,
+      const int  i_part
+    ) const;
+
+    /**
+     *
+     * \brief Return computed targets
+     *
+     * \return                Computed targets
+     */
+
+    inline const int *
+    computedTargetsGet (
+      string &field_id,
+      const int  i_part
+    ) const;
 
     /*----------------------------------------------------------------------------*
      * methods about user interpolation                                           *
@@ -893,10 +841,10 @@ namespace cwipi {
      *
      */
 
-    void
-    interpFromLocSet
-    (  const string field_id,
-       CWP_Interp_from_location_t fct
+    inline void
+    interpFromLocSet ( 
+      const string field_id,
+      CWP_Interp_from_location_t fct
     );
 
     /**
@@ -910,10 +858,9 @@ namespace cwipi {
      *
      */
 
-    void
-    interpFromLocSetF
-    (
-     void       *fct
+    inline void
+    interpFromLocSetF (
+      void       *fct
     );
 
     /**
@@ -927,10 +874,9 @@ namespace cwipi {
      *
      */
 
-    void
-    interpFromInterSet
-    (
-     CWP_Interp_from_intersect_t fct
+    inline void
+    interpFromInterSet (
+      CWP_Interp_from_intersect_t fct
     );
 
     /**
@@ -944,10 +890,9 @@ namespace cwipi {
      *
      */
 
-    void
-    interpFromInterSetF
-    (
-     void       *fct
+    inline void
+    interpFromInterSetF (
+      void       *fct
     );
 
     /**
@@ -961,10 +906,9 @@ namespace cwipi {
      *
      */
 
-    void
-    interpFromClosestSet
-    (
-     CWP_Interp_from_closest_pts_t fct
+    inline void
+    interpFromClosestSet (
+      CWP_Interp_from_closest_pts_t fct
     );
 
     /**
@@ -978,12 +922,15 @@ namespace cwipi {
      *
      */
 
-    void
-    interpFromClosestSetF
-    (
-     void *fct
+    inline void
+    interpFromClosestSetF (
+      void *fct
     );
 
+
+    /*----------------------------------------------------------------------------*
+     * methods about attributes                                                   *
+     *----------------------------------------------------------------------------*/
 
     /**
      *
@@ -994,39 +941,222 @@ namespace cwipi {
      */
 
     inline CWP_Comm_t
-    commTypeGet
-    (
+    commTypeGet();
+
+
+    /**
+     *
+     * \brief Return the dimesnion of geometric entities of this coupling
+     *
+     * \return Entities dimension 
+     *
+     */
+
+    inline CWP_Interface_t 
+    entitiesDimGet();
+
+
+    /**
+     *
+     * \brief Return the local code fields defined for this coupling
+     *
+     * \return Fields 
+     *
+     */
+
+    inline std::map < string, Field * >* 
+    fieldsGet();
+
+
+    /**
+     *
+     * \brief Return the spatial interpolation objects according to direction of the exchange
+     * 
+     * \param [in] exchDirection     Direction of the exchange
+     *
+     * \return Local  spatial interpolation objects
+     *
+     */
+
+    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*>* 
+    Coupling::spatialInterpGet(
+      CWP_Field_exch_t exchDirection
+    );
+
+
+    /**
+     *
+     * \brief Return the spatial interpolation according to parameters
+     * 
+     * \param [in] localLocation     Local location of degrees of freedom
+     * \param [in] cplLocation       Coupled location of degrees of freedom
+     * \param [in] exchDirection     Direction of the exchange
+     *
+     * \return Local code properties
+     *
+     */
+
+    inline SpatialInterp* 
+    spatialInterpGet (
+      CWP_Dof_location_t localLocation, 
+      CWP_Dof_location_t cplLocation, 
+      CWP_Field_exch_t   exchDirection
     );
 
     /**
      *
-     * \brief Return the Visu object pointer handling visualization
+     * \brief Return the local code properties
      *
-     * \return Visu object pointer
+     * \return Local code properties
+     *
+     */
+    
+    inline CodeProperties* 
+    localCodePropertiesGet();
+    
+
+    /**
+     *
+     * \brief Return the coupled code properties
+     *
+     * \return Local code properties
+     *
+     */
+    
+    inline CodeProperties* 
+    coupledCodePropertiesGet();
+
+    /**
+     *
+     * \brief Return the communication way 
+     *
+     * \return Local code properties
      *
      */
 
-    inline Visu* visuGet ();
+    inline Communication* 
+    communicationGet();
 
-    inline Mesh* meshGet();
-    inline CWP_Interface_t entitiesDimGet();
+    /**
+     *
+     * \brief Return the couplings data base
+     *
+     * \return Coupling data base
+     *  
+     */
 
-    inline std::map < string, Field * >* fieldsGet();
-    inline std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*>* spatialInterpGet(CWP_Field_exch_t exch_t);
-    inline CodeProperties* localCodePropertiesGet();
-    inline CodeProperties* coupledCodePropertiesGet();
+    inline CouplingDB*  
+    couplingDBGet();
+    
 
-    inline Communication* communicationGet();
+    /**
+     *
+     * \brief Return the coupling id
+     *
+     * \return id
+     *  
+     */
+ 
+    inline string       
+    IdGet();
 
-    inline SpatialInterp*    spatialInterpGet(CWP_Dof_location_t localLocation, 
-                                            CWP_Dof_location_t cplLocation, 
-                                            CWP_Field_exch_t exch_t);
-    inline CouplingDB*  couplingDBGet();
-    inline string       IdGet();
+    /*----------------------------------------------------------------------------*
+     * methods about user target                                                  *
+     *----------------------------------------------------------------------------*/
 
-    void meshFinalize();
+
+    /**
+     * \brief Define user target points 
+     * 
+     * \param [in]  iPart     Current partition
+     * \param [in]  nPts      Number of points
+     * \param [in]  coords    Coordinates
+     * \param [in]  gNum      Global Number (or NULL)
+     *
+     */
+
+    inline void
+    userTargetSet (
+      const int         iPart,
+      const int         nPts,
+      const double      coords[],
+      const CWP_g_num_t gNum[]
+    );
+
+
+    /**
+     * \brief Return global number of user targets 
+     * 
+     * \param [in]  iPart     Current partition
+     * 
+     * 
+     * \return Global Number 
+     *
+     */
+
+    inline CWP_g_num_t *
+    userTargetGNumGet (
+      const int         iPart
+    );
+
+
+    /**
+     * \brief Return coords of user targets 
+     * 
+     * \param [in]  iPart     Current partition
+     * 
+     * 
+     * \return Coordinates 
+     *
+     */
+
+    inline double *
+    userTargetCoordsGet (
+      const int         iPart
+    );
+
+
+    /**
+     * \brief Return number of user targets 
+     * 
+     * \param [in]  iPart     Current partition
+     * 
+     * 
+     * \return Number of user targets
+     *
+     */
+
+    inline int
+    userTargetNGet (
+      const int         iPart
+    );
+
+
+  public:
+
+    // A supprimer 
+
+    CWP_g_num_t*
+    globalNumGet(int id_block,int i_part);
 
   private:
+
+
+    /**
+     *
+     * \brief Compute user target global number (if not given by user)
+     *
+     */
+
+    void 
+    userTargetGnumCompute();
+
+
+    /**
+     *
+     * \brief unused default constructor
+     *
+     */
 
     Coupling();
 
@@ -1037,126 +1167,28 @@ namespace cwipi {
     const CodeProperties                   &_localCodeProperties;   /*!< Local code properties */
     const CodeProperties                   &_coupledCodeProperties; /*!< Coupled code properties */
     const CWP_Interface_t                  _entities_dim;           /*!< Mesh entities dimension */
-
-    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*> &_spatial_interp_send; /*!< local sent Spatial interpolation objects 
-                                                                                                                  to associate with receive distant spatial interpolatiol */
-    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*> &_spatial_interp_recv; /*!< local receive Spatial interpolation objects 
-                                                                                                                  to associate with sent distant spatial interpolatiol */
           Mesh                             &_mesh;                  /*!< SpatialInterp mesh */
-    const CWP_Time_exch_t                        _recvFreqType  ;        /*!< Receiving frequency type */
+    const CWP_Time_exch_t                   _recvFreqType;          /*!< Receiving frequency type */
           Visu                             &_visu;                  /*!< Visualization */
           double                            _recvFreq;              /*!< Receiving frequency */
           double                            _recvNextTime;          /*!< Next receiving time */
-    std::map < string, Field * >           &_fields;          /*!< Fields Data Base */
+          std::map < string, Field * >     &_fields;                /*!< Fields Data Base */
           CouplingDB                       &_cplDB;                 /*!< Coupling Data base */
-          int*                              _iteration;
-          CWP_Dynamic_mesh_t                _displacement;
-   const CWP_Spatial_interp_t               _spatialInterpAlgo;       
+          int*                              _iteration;             /*!< Interation ???? */
+          CWP_Dynamic_mesh_t                _displacement;          /*!< Type of mesh displacement */ 
+    const CWP_Spatial_interp_t              _spatialInterpAlgo;     /*!< Spatial intepolation algorithm */
+    const int                               _nPart;                 /*!< Number of partitions */  
+
+          int                              *_userTargetN;           /*!< Number of user targets on by partition (size number partitions of the mesh) */
+    const CWP_g_num_t                     **_userTargetGnum;        /*!< Target global numbering by partition (size number partitions of the mesh) */
+          CWP_g_num_t                     **_localUserTargetGnum;   /*!< Target global numbering by partition (used if _gnum_user_target is not setted by user) */
+    const double                          **_userTargetCoord;       /*!< Target coordinates by partition (size number partitions of the mesh) */
+
+    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &_spatial_interp_send; /*!< local sent Spatial interpolation objects 
+                                                                                                                  to associate with receive distant spatial interpolatiol */
+    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &_spatial_interp_recv; /*!< local receive Spatial interpolation objects 
+                                                                                                                  to associate with sent distant spatial interpolatiol */
   };
-
-
-
-  string Coupling::IdGet(){
-     return _cplId;
-  }
-
-  CodeProperties* Coupling::localCodePropertiesGet() {
-    return const_cast<CodeProperties*>(&_localCodeProperties);
-  }
-
-  Communication* Coupling::communicationGet() {
-    return const_cast<Communication*>(&_communication);
-  }
-
-  SpatialInterp* Coupling::spatialInterpGet(CWP_Dof_location_t localLocation, 
-                                            CWP_Dof_location_t cplLocation, 
-                                            CWP_Field_exch_t exch_t) {
-
-    if (exch_t == CWP_FIELD_EXCH_SEND) {
-      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*> ::iterator p;
-      p = _spatial_interp_send.find(make_pair(localLocation, cplLocation));
-      if (p == _spatial_interp_send.end())
-        PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");
-      return p->second;
-    }
-
-    else if (exch_t == CWP_FIELD_EXCH_RECV) {
-      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*> ::iterator p;
-      p = _spatial_interp_recv.find(make_pair(localLocation, cplLocation));
-      if (p == _spatial_interp_recv.end())
-        PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");
-      return p->second;
-    }
-
-    else {
-      PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");
-    }
-
-  }
-
-
-
-  CouplingDB* Coupling::couplingDBGet() {
-    return &_cplDB;
-  }
-
-
-  CodeProperties* Coupling::coupledCodePropertiesGet() {
-    return const_cast<CodeProperties*>(&_coupledCodeProperties);
-  }
-
-  Visu* Coupling::visuGet() {
-     return &_visu;
-  }
-
-  Mesh* Coupling::meshGet() {
-     return &_mesh;
-  }
-
-  CWP_Interface_t Coupling::entitiesDimGet() {
-     return _entities_dim;
-  }
-
-  std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*>* Coupling::spatialInterpGet(CWP_Field_exch_t exch_t)
-  {
-    if (exch_t == CWP_FIELD_EXCH_SEND) {
-      return &_spatial_interp_send;
-    }
-    else if (exch_t == CWP_FIELD_EXCH_RECV) {
-      return &_spatial_interp_recv;
-    }
-    else {
-      PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");     
-    } 
-
-  }
-
-  std::map < string, Field * >* Coupling::fieldsGet() {
-     return &_fields;
-  }
-
-
-
-
-
-
-
-    /**
-     *
-     * \brief Return communication type
-     *
-     * \return CWP_Comm_t Communication Type
-     *
-     */
-
-  CWP_Comm_t
-  Coupling::commTypeGet
-  (
-  )
-  {
-    return _commType;
-  }
-
 }
 
 /**
