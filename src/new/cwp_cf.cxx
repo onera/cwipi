@@ -165,7 +165,7 @@ CWP_State_update_cf
  const CWP_State_t state
 )
 {
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_local_code_name = _fortran_to_c_string(local_code_name, l_local_code_name);
 
   CWP_State_update (c_local_code_name,
                     state);
@@ -191,7 +191,7 @@ CWP_Time_update_cf
  const double current_time
 )
 {
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_local_code_name = _fortran_to_c_string(local_code_name, l_local_code_name);
 
   CWP_Time_update (c_local_code_name, current_time);
   
@@ -214,17 +214,19 @@ CWP_Time_update_cf
  */
 
 CWP_State_t
-CWP_State_get
+CWP_State_get_cf
 (
  const char    *code_name,
- const int l_local_code_name,
+ const int l_local_code_name
 )
 {
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_local_code_name = _fortran_to_c_string(code_name, l_local_code_name);
 
   CWP_State_t res = CWP_State_get (c_local_code_name);
 
   delete [] c_local_code_name;
+
+  return res;
 
 }
 
@@ -269,9 +271,9 @@ CWP_Cpl_create_cf (
 {
   char *c_local_code_name, *c_cpl_id, *c_coupled_code_name;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
-  c_coupled_code_name = CWP_fortran_to_c_string(f_coupled_code_name, l_coupled_code_name);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_coupled_code_name = _fortran_to_c_string(f_coupled_code_name, l_coupled_code_name);
 
   CWP_Cpl_create((const char *) c_local_code_name, 
                  (const char *) c_cpl_id, 
@@ -306,10 +308,9 @@ CWP_Cpl_del_cf (
   const int l_cpl_id
 ) 
 {
-  char *c_local_code_name, *c_cpl_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
   CWP_Cpl_del(c_local_code_name, c_cpl_id);
 
@@ -344,15 +345,16 @@ CWP_N_uncomputed_tgts_get_cf (
   int i_part
 ) 
 {
-  char *c_local_code_name, *c_cpl_id;
+ 
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
-
-  int res = CWP_N_uncomputed_tgts_get(c_local_code_name, c_cpl_id, target_location, i_part);
+  int res = CWP_N_uncomputed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
+  delete [] c_field_id;
 
   return res;
 }
@@ -373,8 +375,8 @@ CWP_N_uncomputed_tgts_get_cf (
  * \return                Uncomputed targets
  */
 
-const int 
-*CWP_Uncomputed_tgts_get_cf (
+const int *
+CWP_Uncomputed_tgts_get_cf (
   const char *f_local_code_name,
   const int l_local_code_name,
   const char *f_cpl_id, 
@@ -384,15 +386,16 @@ const int
   int i_part
 ) 
 {
-  char *c_local_code_name, *c_cpl_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  int res = CWP_Uncomputed_tgts_get(c_local_code_name, c_cpl_id);
+  const int* res = CWP_Uncomputed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
+  delete [] c_field_id;
 
   return res;
 }
@@ -423,15 +426,15 @@ CWP_N_computed_tgts_get_cf (
   int i_part
 ) 
 {
-  char *c_local_code_name, *c_cpl_id;
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
-
-  int res = CWP_N_computed_tgts_get(c_local_code_name, c_cpl_id);
+  int res = CWP_N_computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
+  delete [] c_field_id;
 
   return res;
 }
@@ -462,15 +465,15 @@ CWP_Computed_tgts_get_cf (
   int i_part
 )
 {
-  char *c_local_code_name, *c_cpl_id;
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
-
-  int* res = CWP_Computed_tgts_get(c_local_code_name, c_cpl_id);
+  const int *res = CWP_Computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
+  delete [] c_field_id;
 
   return res;
 }
@@ -497,10 +500,10 @@ CWP_Computed_tgts_dist_to_spatial_interp_get_cf (
 {
   char *c_local_code_name, *c_cpl_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
-  double *res = CWP_Computed_tgts_dist_to_spatial_interp_get(c_local_code_name, c_cpl_id);
+  const double *res = CWP_Computed_tgts_dist_to_spatial_interp_get(c_local_code_name, c_cpl_id);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -529,8 +532,8 @@ CWP_Spatial_interp_weights_compute_cf (
 {
   char *c_local_code_name, *c_cpl_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
   CWP_Spatial_interp_weights_compute(c_local_code_name, c_cpl_id);
 
@@ -572,9 +575,9 @@ void CWP_Visu_set_cf (
 {
   char *c_local_code_name, *c_cpl_id, *c_format_option;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
-  c_format_option = CWP_fortran_to_c_string(f_format_option, l_format_option);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_format_option = _fortran_to_c_string(f_format_option, l_format_option);
 
   CWP_Visu_set(c_local_code_name, c_cpl_id, freq, format, c_format_option);
 
@@ -608,8 +611,8 @@ CWP_Mesh_interf_finalize_cf
 {
   char *c_local_code_name, *c_cpl_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
   CWP_Mesh_interf_finalize(c_local_code_name, c_cpl_id);
 
@@ -644,8 +647,8 @@ CWP_Mesh_interf_vtx_set_cf(
 {
   char *c_local_code_name, *c_cpl_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
   CWP_Mesh_interf_vtx_set(c_local_code_name, c_cpl_id, i_part, n_pts, coord, global_num);
 
@@ -677,8 +680,8 @@ CWP_Mesh_interf_block_add_cf (
 {
   char *c_local_code_name, *c_cpl_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
   int id = CWP_Mesh_interf_block_add(c_local_code_name, c_cpl_id, block_type);
 
@@ -801,8 +804,8 @@ CWP_Mesh_interf_block_std_set_cf (
 {
   char *c_local_code_name, *c_cpl_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
   CWP_Mesh_interf_block_std_set(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, connec, global_num);
 
@@ -844,8 +847,8 @@ CWP_Mesh_interf_f_poly_block_set_cf (
 {
   char *c_local_code_name, *c_cpl_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
   CWP_Mesh_interf_f_poly_block_set(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, connec_idx, connec, global_num);
 
@@ -898,8 +901,8 @@ CWP_Mesh_interf_c_poly_block_set_cf (
 {
   char *c_local_code_name, *c_cpl_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
   CWP_Mesh_interf_c_poly_block_set(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, n_faces, connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num);
 
@@ -950,8 +953,8 @@ CWP_Mesh_interf_from_cellface_set_cf (
 {
   char *c_local_code_name, *c_cpl_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
   CWP_Mesh_interf_from_cellface_set(c_local_code_name, c_cpl_id, i_part, n_cells, cell_face_idx, cell_face, n_faces, face_vtx_idx, face_vtx, parent_num);
 
@@ -1002,8 +1005,8 @@ CWP_Mesh_interf_from_faceedge_set_cf (
 {
   char *c_local_code_name, *c_cpl_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
   CWP_Mesh_interf_from_faceedge_set(c_local_code_name, 
                                     c_cpl_id, 
@@ -1063,9 +1066,9 @@ CWP_Field_create_cf
 {
   char *c_local_code_name, *c_cpl_id, *c_field_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
-  c_field_id = CWP_fortran_to_c_string(f_field_id, l_field_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
   CWP_Field_create(c_local_code_name, 
                    c_cpl_id, 
@@ -1111,9 +1114,9 @@ CWP_Field_data_set_cf (
 {
   char *c_local_code_name, *c_cpl_id, *c_field_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
-  c_field_id = CWP_fortran_to_c_string(f_field_id, l_field_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
   CWP_Field_data_set(c_local_code_name, c_cpl_id, c_field_id, i_part, data);
 
@@ -1152,9 +1155,9 @@ CWP_Field_issend_cf (
 {
   char *c_local_code_name, *c_cpl_id, *c_src_field_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
-  c_src_field_id = CWP_fortran_to_c_string(f_src_field_id, l_src_field_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
   CWP_Field_issend(c_local_code_name, c_cpl_id, c_src_field_id);
 
@@ -1193,9 +1196,9 @@ CWP_Field_irecv_cf(
 {
   char *c_local_code_name, *c_cpl_id, *c_tgt_field_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
-  c_tgt_field_id = CWP_fortran_to_c_string(f_tgt_field_id, l_tgt_field_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_tgt_field_id = _fortran_to_c_string(f_tgt_field_id, l_tgt_field_id);
 
   CWP_Field_irecv(c_local_code_name, c_cpl_id, c_tgt_field_id);
 
@@ -1229,9 +1232,9 @@ CWP_Field_wait_issend_cf (
 {
   char *c_local_code_name, *c_cpl_id, *c_src_field_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
-  c_src_field_id = CWP_fortran_to_c_string(f_src_field_id, l_src_field_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
   CWP_Field_wait_issend(c_local_code_name, c_cpl_id, c_src_field_id);
 
@@ -1268,9 +1271,9 @@ CWP_Field_wait_irecv_cf (
 {
   char *c_local_code_name, *c_cpl_id, *c_tgt_field_id;
 
-  c_local_code_name = CWP_fortran_to_c_string(f_local_code_name, l_local_code_name);
-  c_cpl_id = CWP_fortran_to_c_string(f_cpl_id, l_cpl_id);
-  c_tgt_field_id = CWP_fortran_to_c_string(f_tgt_field_id, l_tgt_field_id);
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_tgt_field_id = _fortran_to_c_string(f_tgt_field_id, l_tgt_field_id);
 
   CWP_Field_wait_irecv(c_local_code_name, c_cpl_id, c_tgt_field_id);
 

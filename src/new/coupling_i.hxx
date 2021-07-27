@@ -95,7 +95,7 @@ namespace cwipi {
    */
 
   void
-  spatialInterpPropertiesSet (
+  Coupling::spatialInterpPropertiesSet (
     const char *fmt,
     va_list    *pa
   )
@@ -617,7 +617,7 @@ namespace cwipi {
    */
 
   void
-  fieldDel (
+  Coupling::fieldDel (
     const string &field_id
   )
   {
@@ -648,7 +648,7 @@ namespace cwipi {
   int 
   Coupling::nUncomputedTargetsGet
   (
-    string &field_id,
+    const string &field_id,
     const int  i_part
   ) const
   {
@@ -658,13 +658,13 @@ namespace cwipi {
       PDM_error(__FILE__, __LINE__, 0, "Error nUncomputedTargetsGet : '%s' not existing field\n", field_id.c_str());
     }
 
-    Field* field = It->second;
+    Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
       PDM_error(__FILE__, __LINE__, 0, "Error nUncomputedTargetsGet : '%s' does not receive data\n", field_id.c_str());     
     }
 
-    _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->nUncomputedTargetsGet(i_part);
+    return _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->nUncomputedTargetsGet(i_part);
 
   }
 
@@ -679,7 +679,7 @@ namespace cwipi {
 
   const int *
   Coupling::uncomputedTargetsGet (
-    string &field_id,
+    const string &field_id,
     const int  i_part
   ) const
   {
@@ -689,13 +689,13 @@ namespace cwipi {
       PDM_error(__FILE__, __LINE__, 0, "Error uncomputedTargetsGet : '%s' not existing field\n", field_id.c_str());
     }
 
-    Field* field = It->second;
+    Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
       PDM_error(__FILE__, __LINE__, 0, "Error unncomputedTargetsGet : '%s' does not receive data\n", field_id.c_str());     
     }
 
-    _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->uncomputedTargetsGet(i_part);
+    return _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->uncomputedTargetsGet(i_part);
   }
 
   /**
@@ -707,7 +707,7 @@ namespace cwipi {
 
   int
   Coupling::nComputedTargetsGet (
-    string &field_id,
+    const string &field_id,
     const int  i_part
   ) const
   {
@@ -717,13 +717,13 @@ namespace cwipi {
       PDM_error(__FILE__, __LINE__, 0, "Error nComputedTargetsGet : '%s' not existing field\n", field_id.c_str());
     }
 
-    Field* field = It->second;
+    Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
       PDM_error(__FILE__, __LINE__, 0, "Error nComputedTargetsGet : '%s' does not receive data\n", field_id.c_str());     
     }
 
-    _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->nComputedTargetsGet(i_part);
+    return _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->nComputedTargetsGet(i_part);
   }
 
   /**
@@ -735,7 +735,7 @@ namespace cwipi {
 
   const int *
   Coupling::computedTargetsGet (
-    string &field_id,
+    const string &field_id,
     const int  i_part
   ) const
   {
@@ -745,13 +745,13 @@ namespace cwipi {
       PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : '%s' not existing field\n", field_id.c_str());
     }
 
-    Field* field = It->second;
+    Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
       PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : '%s' does not receive data\n", field_id.c_str());     
     }
 
-    _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->computedTargetsGet(i_part);
+    return _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->computedTargetsGet(i_part);
   }
 
 
@@ -804,7 +804,7 @@ namespace cwipi {
   )
   {
     PDM_UNUSED (fct);
-    PDM_error("\ninterpFromLocSetF not implemented yet\n");
+    PDM_error(__FILE__, __LINE__, 0, "\ninterpFromLocSetF not implemented yet\n");
   }
 
   /**
@@ -824,7 +824,7 @@ namespace cwipi {
   )
   {
     PDM_UNUSED (fct);
-    PDM_error("\ninterpFromInterSet not implemented yet\n");  
+    PDM_error(__FILE__, __LINE__, 0, "\ninterpFromInterSet not implemented yet\n");  
   }
 
   /**
@@ -844,7 +844,7 @@ namespace cwipi {
   )
   {
     PDM_UNUSED (fct);
-    PDM_error("\ninterpFromInterSetF not implemented yet\n");      
+    PDM_error(__FILE__, __LINE__, 0, "\ninterpFromInterSetF not implemented yet\n");      
   }
 
   /**
@@ -864,7 +864,7 @@ namespace cwipi {
   )
   {
     PDM_UNUSED (fct);
-    PDM_error("\ninterpFromClosestSet not implemented yet\n");     
+    PDM_error(__FILE__, __LINE__, 0, "\ninterpFromClosestSet not implemented yet\n");     
   }
 
   /**
@@ -884,7 +884,7 @@ namespace cwipi {
   )
   {
     PDM_UNUSED (fct);
-    PDM_error("\ninterpFromClosestSetF not implemented yet\n");     
+    PDM_error(__FILE__, __LINE__, 0, "\ninterpFromClosestSetF not implemented yet\n");     
   }
 
   /*----------------------------------------------------------------------------*
@@ -915,7 +915,8 @@ namespace cwipi {
    *
    */
 
-  CWP_Interface_t Coupling::entitiesDimGet() 
+  CWP_Interface_t 
+  Coupling::entitiesDimGet() 
   {
      return _entities_dim;
   }
@@ -1111,12 +1112,12 @@ namespace cwipi {
         _userTargetN[iPart] = 0;
       }
       if (gNum != nullptr) {
-        _userTargetGnum = new (PDM_g_num_t *) [_nPart]; 
+        _userTargetGnum = new const PDM_g_num_t* [_nPart]; 
         for (int iPart = 0; iPart < _nPart; iPart++) {
           _userTargetGnum[iPart] = nullptr;
         }
       }
-      _userTargetCoord = new (double *) [_nPart]; 
+      _userTargetCoord = new const double* [_nPart]; 
       for (int iPart = 0; iPart < _nPart; iPart++) {
         _userTargetCoord[iPart] = nullptr;
       }
@@ -1141,10 +1142,10 @@ namespace cwipi {
    *
    */
 
-  CWP_g_num_t *
+  const CWP_g_num_t *
   Coupling::userTargetGNumGet (
     const int         iPart
-  )
+  ) const 
   {
     assert (_userTargetGnum != nullptr);
     return _userTargetGnum[iPart];
@@ -1161,10 +1162,10 @@ namespace cwipi {
    *
    */
 
-  double *
+  const double *
   Coupling::userTargetCoordsGet (
     const int         iPart
-  )
+  ) const
   {
     assert (_userTargetCoord != nullptr);
     return _userTargetCoord[iPart]; 

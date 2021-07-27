@@ -139,22 +139,22 @@ namespace cwipi {
     }
 
     void SpatialInterpLocationDistSurf::localization_get() {
-        _distance = (double **) malloc(sizeof(double *) * _nb_part);
-        _projected = (double **) malloc(sizeof(double *) * _nb_part);
-        _closest_elt_gnum = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * _nb_part);
+        // _distance = (double **) malloc(sizeof(double *) * _nb_part);
+        // _projected = (double **) malloc(sizeof(double *) * _nb_part);
+        // _closest_elt_gnum = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * _nb_part);
 
-        for (int i_part = 0 ; i_part < _nb_part ; i_part++) {
-            PDM_dist_cloud_surf_get(_id_pdm, 0, i_part, &(_distance[i_part]), &(_projected[i_part]), &(_closest_elt_gnum[i_part]));
+        // for (int i_part = 0 ; i_part < _nb_part ; i_part++) {
+        //     PDM_dist_cloud_surf_get(_id_pdm, 0, i_part, &(_distance[i_part]), &(_projected[i_part]), &(_closest_elt_gnum[i_part]));
 
-            for (int i = 0 ; i < _n_target[i_part] ; i++) {
-                if (_closest_elt_gnum[i_part][i] > CWP_g_num_t(_n_g_elt_cpl_over_part) ||
-                    _closest_elt_gnum[i_part][i] < CWP_g_num_t(1) ||
-                    _distance[i_part][i] > 0.1) {
-                    _closest_elt_gnum[i_part][i] = CWP_g_num_t(1);
-                    _distance[i_part][i] = INFINITY;
-                }
-            }
-        }
+        //     for (int i = 0 ; i < _n_target[i_part] ; i++) {
+        //         if (_closest_elt_gnum[i_part][i] > CWP_g_num_t(_n_g_elt_cpl_over_part) ||
+        //             _closest_elt_gnum[i_part][i] < CWP_g_num_t(1) ||
+        //             _distance[i_part][i] > 0.1) {
+        //             _closest_elt_gnum[i_part][i] = CWP_g_num_t(1);
+        //             _distance[i_part][i] = INFINITY;
+        //         }
+        //     }
+        // }
     }
 
     void SpatialInterpLocationDistSurf::localization_free() {

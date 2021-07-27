@@ -128,10 +128,10 @@ CWP_Time_update_cf
  */
 
 CWP_State_t
-CWP_State_get
+CWP_State_get_cf
 (
  const char    *code_name,
- const int l_local_code_name,
+ const int l_local_code_name
 );
 
 
@@ -664,7 +664,7 @@ CWP_Mesh_interf_from_cellface_set_cf (
   int face_vtx_idx[], 
   int face_vtx[], 
   CWP_g_num_t parent_num[]
-)
+);
 
 
 /**
@@ -876,7 +876,7 @@ CWP_Field_wait_irecv_cf (
   const int l_cpl_id, 
   const char *f_tgt_field_id, 
   const int l_tgt_field_id
-)
-void CWP_Field_wait_irecv_cf(const char *f_local_code_name, int l_local_code_name, const char *f_cpl_id, int l_cpl_id, const char *f_tgt_field_id, int l_tgt_field_id);
+);
+
 
 #endif //CWP_CF_H_

@@ -115,7 +115,7 @@ namespace cwipi {
      */
 
     int
-    nUncomputedTargetsGet(int i_part) {
+    nUncomputedTargetsGet(int i_part) const {
       return n_uncomputed_tgt[i_part];
     }
 
@@ -128,7 +128,7 @@ namespace cwipi {
      */
 
     inline const int *
-    uncomputedTargetsGet() const;
+    uncomputedTargetsGet(int i_part) const;
 
     /**
      *
@@ -138,7 +138,7 @@ namespace cwipi {
      */
 
     inline int
-    nComputedTargetsGet() const;
+    nComputedTargetsGet(int i_part) const;
 
     /**
      *
@@ -150,7 +150,7 @@ namespace cwipi {
      */
 
     inline const int *
-    computedTargetsGet() const;
+    computedTargetsGet(int i_part) const;
 
   protected:
 

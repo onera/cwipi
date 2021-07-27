@@ -164,43 +164,84 @@ module cwp
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id
       end subroutine CWP_Cpl_del_cf
 
-      function CWP_N_uncomputed_tgts_get_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
-        target_location, i_part) result (n_uncomputed_tgts) &
+      function CWP_N_uncomputed_tgts_get_cf (local_code_name,   &
+                                             l_local_code_name, &
+                                             cpl_id,            &
+                                             l_cpl_id,          &
+                                             field_id,          &
+                                             l_field_id,        &
+                                             i_part)            & 
+                                             result (n_uncomputed_tgts) &
         bind(c, name = 'CWP_N_uncomputed_tgts_get_cf')
         use, intrinsic :: iso_c_binding
         implicit none
+
         character(kind = c_char, len = 1) :: local_code_name, cpl_id
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id
-        integer(c_int) :: target_location, i_part
+        character(kind = c_char, len = 1) :: field_id
+        integer(kind = c_int), value :: l_field_id
+        integer(c_int), value :: i_part
         integer(kind = c_int) :: n_uncomputed_tgts
+
       end function CWP_N_uncomputed_tgts_get_cf
 
-      function CWP_Uncomputed_tgts_get_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id) result (uncomputed_tgts) &
-            bind(c, name = 'CWP_Uncomputed_tgts_get_cf')
-        use, intrinsic :: iso_c_binding
-        implicit none
-        character(kind = c_char, len = 1) :: local_code_name, cpl_id
-        integer(kind = c_int), value :: l_local_code_name, l_cpl_id
-        type(c_ptr) :: uncomputed_tgts
-      end function CWP_Uncomputed_tgts_get_cf
-
-      function CWP_N_computed_tgts_get_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id) result (n_computed_tgts) &
+      function CWP_N_computed_tgts_get_cf(local_code_name,   &
+                                          l_local_code_name, &
+                                          cpl_id,            &
+                                          l_cpl_id,          &
+                                          field_id,          &
+                                          l_field_id,        &
+                                          i_part)            & 
+                                          result (n_computed_tgts) &
             bind(c, name = 'CWP_N_computed_tgts_get_cf')
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id
+        character(kind = c_char, len = 1) :: field_id
+        integer(kind = c_int), value :: l_field_id
+        integer(c_int), value :: i_part
         integer(kind = c_int) :: n_computed_tgts
       end function CWP_N_computed_tgts_get_cf
 
-      function CWP_Computed_tgts_get_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id) result (computed_tgts) &
+      function CWP_Computed_tgts_get_cf(local_code_name,   &
+                                        l_local_code_name, &
+                                        cpl_id,            &
+                                        l_cpl_id,          &
+                                        field_id,          &
+                                        l_field_id,        &
+                                        i_part)            & 
+                                        result (computed_tgts) &
             bind(c, name = 'CWP_Computed_tgts_get_cf')
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id
+        character(kind = c_char, len = 1) :: field_id
+        integer(kind = c_int), value :: l_field_id
+        integer(c_int), value :: i_part
         type(c_ptr) :: computed_tgts
       end function CWP_Computed_tgts_get_cf
+
+
+      function CWP_Uncomputed_tgts_get_cf (local_code_name,   &
+                                          l_local_code_name, &
+                                          cpl_id,            &
+                                          l_cpl_id,          &
+                                          field_id,          &
+                                          l_field_id,        &
+                                          i_part)            & 
+                                          result (uncomputed_tgts) &
+        bind(c, name = 'CWP_Uncomputed_tgts_get_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id
+        character(kind = c_char, len = 1) :: field_id
+        integer(kind = c_int), value :: l_field_id
+        integer(c_int), value :: i_part
+        type(c_ptr) :: uncomputed_tgts
+      end function CWP_Uncomputed_tgts_get_cf
 
       function CWP_Computed_tgts_dist_to_spatial_interp_get_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id) &
             result (dists) &
@@ -645,13 +686,13 @@ contains
     l_cpl_id = len(cpl_id)
     l_field_id = len(field_id)
 
-    n_computed_tgts = CWP_N_ncomputed_tgts_get_cf (local_code_name,   &
-                                                   l_local_code_name, &
-                                                   cpl_id,            &
-                                                   l_cpl_id,          &
-                                                   field_id,          &
-                                                   l_field_id,        &
-                                                   i_part)
+    n_computed_tgts = CWP_N_computed_tgts_get_cf (local_code_name,   &
+                                                  l_local_code_name, &
+                                                  cpl_id,            &
+                                                  l_cpl_id,          &
+                                                  field_id,          &
+                                                  l_field_id,        &
+                                                  i_part)
   
   end function CWP_N_computed_tgts_get
 

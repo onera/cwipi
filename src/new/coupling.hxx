@@ -156,7 +156,7 @@ namespace cwipi {
      *
      */
 
-    void
+    inline void
     spatialInterpPropertiesSet (
       const char *fmt,
       va_list    *pa
@@ -783,9 +783,9 @@ namespace cwipi {
 
     inline int
     nUncomputedTargetsGet(
-      string &field_id,
+      const string &field_id,
       const int  i_part
-    ) ;
+    ) const;
 
     /**
      *
@@ -796,7 +796,7 @@ namespace cwipi {
 
     inline const int *
     uncomputedTargetsGet (
-      string &field_id,
+      const string &field_id,
       const int  i_part
     ) const;
 
@@ -809,7 +809,7 @@ namespace cwipi {
 
     inline int
     nComputedTargetsGet (
-      string &field_id,
+      const string &field_id,
       const int  i_part
     ) const;
 
@@ -822,7 +822,7 @@ namespace cwipi {
 
     inline const int *
     computedTargetsGet (
-      string &field_id,
+      const string &field_id,
       const int  i_part
     ) const;
 
@@ -978,8 +978,8 @@ namespace cwipi {
      *
      */
 
-    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*>* 
-    Coupling::spatialInterpGet(
+    inline std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > ,SpatialInterp*>* 
+    spatialInterpGet(
       CWP_Field_exch_t exchDirection
     );
 
@@ -1094,10 +1094,10 @@ namespace cwipi {
      *
      */
 
-    inline CWP_g_num_t *
+    inline const CWP_g_num_t *
     userTargetGNumGet (
       const int         iPart
-    );
+    ) const;
 
 
     /**
@@ -1110,10 +1110,10 @@ namespace cwipi {
      *
      */
 
-    inline double *
+    inline const double *
     userTargetCoordsGet (
       const int         iPart
-    );
+    ) const ;
 
 
     /**

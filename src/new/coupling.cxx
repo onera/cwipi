@@ -271,11 +271,14 @@ namespace cwipi {
    *
    */
 
-  void 
-  Coupling::recvNextTimeSet (
-    double next_time
-  ) 
- 
+  // void 
+  // Coupling::recvNextTimeSet (
+  //   double next_time
+  // ) 
+  // {
+  //   PDM_UNUSED (next_time);
+  //   PDM_error(__FILE__, __LINE__, 0, "\nrecvNextTimeSet not implemented yet\n");    
+  // }
 
  
   /*----------------------------------------------------------------------------*
@@ -287,8 +290,6 @@ namespace cwipi {
    * \brief Computation spatial interpolation weights
    *
    * This function compute spatial interpolation weights
-   *
-   * \param [out] n_uncomputed_tgt    Number of uncomputed target
    *
    */
 
@@ -433,6 +434,7 @@ namespace cwipi {
               std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
               if (_spatial_interp_send.find( newKey ) != _spatial_interp_send.end()) {
                 _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
+//                _spatial_interp_send[newKey].init(localFieldLocation, cplFieldLocationV[j]);
               }
             }
 
@@ -440,6 +442,7 @@ namespace cwipi {
               std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
               if (_spatial_interp_recv.find( newKey ) != _spatial_interp_recv.end()) {
                 _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
+//                _spatial_interp_recv[newKey].init(localFieldLocation, cplFieldLocationV[j]);
               }
             }
           }
@@ -787,7 +790,7 @@ namespace cwipi {
   void
   Coupling::exchange ()
   {
-    PDM_error("\nexchange not implemented yet\n");
+    PDM_error(__FILE__, __LINE__, 0, "\nexchange not implemented yet\n");
   }
 
 
@@ -816,7 +819,7 @@ namespace cwipi {
   )
   {
     PDM_UNUSED (field_id);
-    PDM_error("\nsendrecv not implemented yet\n");
+    PDM_error(__FILE__, __LINE__, 0, "\nsendrecv not implemented yet\n");
   }
 
 
@@ -833,7 +836,7 @@ namespace cwipi {
 
   void
   Coupling::issend (
-    string &sendingFieldID
+    const string &sendingFieldID
   )
   {
     // map <string, Field *>::iterator it;
@@ -971,11 +974,14 @@ namespace cwipi {
    */
 
   void 
-  SpatialInterp::userTargetGnumCompute() 
+  Coupling::userTargetGnumCompute() 
   {
     if (_userTargetN != nullptr) {
       if (_userTargetGnum == nullptr) {
-        PDM_gen_gnum_t *pgg  = PDM_gnum_create (3, _nb_part, PDM_FALSE, 1e-3, _mesh->_pdm_localComm,
+
+        PDM_MPI_Comm comm = PDM_MPI_mpi_2_pdm_mpi_comm (_localCodeProperties.intraCommGet());
+
+        PDM_gen_gnum_t *pgg  = PDM_gnum_create (3, _nPart, PDM_FALSE, 1e-3, comm,
                                                    PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
         for (int iPart = 0; iPart <_nPart; iPart++){
           PDM_gnum_set_from_coords (pgg, iPart, _userTargetN[iPart], _userTargetCoord[iPart], NULL);
@@ -983,7 +989,7 @@ namespace cwipi {
 
         PDM_gnum_compute (pgg);
   
-        _localUserTargetGnum = new (CWP_g_num_t *) [_nPart];
+        _localUserTargetGnum = new  CWP_g_num_t * [_nPart];
 
         for (int iPart = 0; iPart < _nPart; iPart++){
           _localUserTargetGnum[iPart] = const_cast <CWP_g_num_t*> (PDM_gnum_get (pgg, iPart));
@@ -991,7 +997,7 @@ namespace cwipi {
 
         PDM_gnum_free (pgg);
 
-        _userTargetGnum = _localUserTargetGnum;
+        _userTargetGnum = const_cast <const CWP_g_num_t**> (_localUserTargetGnum);
       }
     }
   }

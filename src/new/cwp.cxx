@@ -728,7 +728,8 @@ CWP_N_uncomputed_tgts_get
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
-  return cpl.nUncomputedTargetsGet(string (field_id), i_part);
+  const string &field_name_str = field_id;
+  return cpl.nUncomputedTargetsGet(field_name_str, i_part);
 }
 
 
@@ -755,7 +756,8 @@ CWP_Uncomputed_tgts_get
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
-  return cpl.uncomputedTargetsGet(string (field_id), i_part);
+  const string &field_name_str = field_id;
+  return cpl.uncomputedTargetsGet(field_name_str, i_part);
 }
 
 
@@ -782,7 +784,8 @@ CWP_N_computed_tgts_get
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
-  return cpl.nComputedTargetsGet(string (field_id), i_part);
+  const string &field_name_str = field_id;
+  return cpl.nComputedTargetsGet(field_name_str, i_part);
 }
 
 /**
@@ -808,7 +811,8 @@ CWP_Computed_tgts_get
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
-  return cpl.computedTargetsGet(string (field_id), i_part);
+  const string &field_name_str = field_id;
+  return cpl.computedTargetsGet(field_name_str, i_part);
 }
 
 /**
@@ -1607,7 +1611,7 @@ CWP_Field_target_dof_location_get
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  return cpl.fieldTypeGet(field_id);
+  return cpl.fieldDofLOcationGet(field_id);
 }
 
 /*
