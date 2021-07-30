@@ -66,62 +66,41 @@ namespace cwipi {
     // }
   }
 
-  void SpatialInterp::init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation,bool slave) {
-    // _mesh   = coupling -> meshGet();
-    // _visu   = coupling -> visuGet();
-    // _pointsCloudLocation = pointsCloudLocation;
-    // _cpl = coupling;
-    // _localCodeProperties = _cpl -> localCodePropertiesGet();
-    // _coupledCodeProperties = _cpl -> coupledCodePropertiesGet();
+  void 
+  SpatialInterp::init init (
+    Coupling           *coupling, 
+    CWP_Dof_location_t localCodeDofLocation,
+    CWP_Dof_location_t cplCodeDofLocation 
+  )
+  {
+    _cpl                    = coupling;
+    _visu                   = coupling->visuGet();
+    _mesh                   = coupling->meshGet();
+    _visu                   = coupling->visuGet();
+    _pointsCloudLocation    = pointsCloudLocation;
 
-    // _slave = slave;
-    // _nb_part = _mesh -> getNPart();
+    _localCodeDofLocation   = localCodeDofLocation;
+    _coupledCodeDofLocation = cplCodeDofLocation;
 
-    // _cplComm = _cpl -> communicationGet() -> cplCommGet();
-    // _globalComm = _localCodeProperties -> globalCommGet();
-    // _localComm = _mesh -> getMPIComm();
-    // _pdm_cplComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_cplComm));
+    _localCodeProperties    = _cpl->localCodePropertiesGet();
+    _coupledCodeProperties  = _cpl->coupledCodePropertiesGet();
 
-    // localName   = _localCodeProperties -> nameGet();
-    // coupledName = _coupledCodeProperties -> nameGet();
+    _cplComm                = _cpl->communicationGet()->cplCommGet();
+    _pdmCplComm             = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_cplComm));
 
-    // _senderRank     = _cpl -> communicationGet() -> unionCommLocCodeRootRanksGet();
-    // _senderRank_cpl = _cpl -> communicationGet() -> unionCommCplCodeRootRanksGet();
+    _unionComm              = _cpl->communicationGet()->unionCommGet();
+    _pdmUnionComm           = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_unionComm));
+
+    _nPart                  = _mesh -> getNPart();
+
+    _rootRankUnionComm      = _cpl->communicationGet()->unionCommLocCodeRootRanksGet();
+    _cplRootRankUnionComm   = _cpl->communicationGet()->unionCommCplCodeRootRanksGet();
+
+    _rootRankCplComm        = _cpl->communicationGet()->cplCommLocCodeRootRanksGet();
+    _cplRootRankCplComm     = _cpl->communicationGet()->cplCommCplCodeRootRanksGet();
 
     // _connectableRanks_cpl = _cpl -> communicationGet() -> cplCommCplRanksGet();
     // _connectableRanks     = _cpl -> communicationGet() -> cplCommLocRanksGet();
-    // localComm_size = _connectableRanks->size();
-    // localComm_size_cpl = _connectableRanks_cpl->size();
-
-    // MPI_Group cplGroup, localGroup;
-    // MPI_Comm_group(_localComm, &localGroup);
-    // MPI_Comm_group(_cplComm, &cplGroup);
-    // MPI_Group_translate_ranks(cplGroup, 1, &_senderRank, localGroup, &_senderLocalRank);
-
-    // int globalComm_size, globalComm_rank;
-    // MPI_Comm_size(_globalComm, &globalComm_size);
-    // MPI_Comm_rank(_globalComm, &globalComm_rank);
-    // MPI_Comm_size(_cplComm, &cplComm_size);
-    // MPI_Comm_rank(_cplComm, &cplComm_rank);
-    // MPI_Comm_size(_localComm, &localComm_size);
-
-    // int comp = localName.compare(coupledName);
-    // _codeVector.resize(2);
-    // if(comp>0) {
-    //   _codeVector[0] = localName  ;
-    //   _codeVector[1] = coupledName;
-    // }
-    // else {
-    //   _codeVector[1] = localName  ;
-    //   _codeVector[0] = coupledName;
-    // }
-
-
-    // _both_codes_are_local=0;
-    // if(_localCodeProperties ->localCodeIs() && _coupledCodeProperties ->localCodeIs()) {
-    //   _both_codes_are_local = 1;
-    //   _nb_part_cpl = _nb_part;//fix?
-    // }
 
 
     // _id     = _localCodeProperties   -> idGet();

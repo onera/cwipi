@@ -33,11 +33,10 @@ namespace cwipi {
 
 // A conserver et à renommer !!!
 
-
-    typedef enum {
-        CWP_INTERP_AT_SEND,
-        CWP_INTERP_AT_RECV
-    } CWP_INTERP_TIME;
+  typedef enum {
+    CWP_SPATIAL_INTERP_AT_SEND,
+    CWP_SPATIAL_INTERP_AT_RECV
+  } CWP_SpatialInterp_time_t;
 
 // A supprimer !!!
 
@@ -91,9 +90,11 @@ namespace cwipi {
 
     virtual ~SpatialInterp();
 
-    virtual void init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation, bool slave);
-//   virtual void init(Coupling *coupling, CWP_Dof_location_t localCode, CWP_Dof_location_t coupledCode, CWP_Field_exch_t exch);
-//     Mettre les send du code avec les recv du code couple    
+    virtual void 
+    init (
+      Coupling           *coupling, 
+      CWP_Dof_location_t localCodeDofLOcation,
+      CWP_Dof_location_t cplCodeDofLOcation);
 
     virtual void spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) =0;
 
@@ -158,23 +159,24 @@ namespace cwipi {
 
   protected:
 
-    Coupling                   *_cpl                   ;
-    Mesh                       *_mesh                  ;  /*!< Interface Mesh */
+    Coupling                   *_cpl;
+    Mesh                       *_mesh;                  /*!< Interface Mesh */
 
     //Pointer to other objects
-    Visu                       *_visu                  ;    /*!< Visualization object */
-    CodeProperties             *_localCodeProperties   ;
-    CodeProperties             *_coupledCodeProperties ;
+    Visu                       *_visu;                  /*!< Visualization object */
+    CodeProperties             *_localCodeProperties   
+    CodeProperties             *_coupledCodeProperties 
 
-    CWP_Field_exch_t          _Texch_t;    // A renomer
-    CWP_Dof_location_t        _pointsCloudLocation    ;  /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
+    CWP_Dof_location_t        _localCodeDofLocation     /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
+    CWP_Dof_location_t        _coupledCodeDofLocation   /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
 
-    SpatialInterp              *_spatial_interp_cpl  ;  /*!< Spatial interpolation (for both codes are local case) */
+    CWP_Field_exch_t          _exchDirection;    // A renomer
 
-    /* Mesh informations */
-  
-
-    CWP_INTERP_TIME                     interpolation_time      ;
+    SpatialInterp              *_cplSpatialInterp;  /*!< Spatial interpolation (for both codes are local case) */
+   
+    PDM_part1_to_selected_part2_t *ptsp;
+    
+    CWP_SpatialInterp_time_t     interpolation_time      ;
 
 
   // A conserver ou supprimer 

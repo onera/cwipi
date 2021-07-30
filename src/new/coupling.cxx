@@ -369,7 +369,6 @@ namespace cwipi {
     localFieldNameIdx.clear();
 
     cplFieldName.resize(cplFieldNameIdx[cplNbField]);
-
     nSendData   = localFieldNameIdx[localNbField];
     nRecvData   = cplFieldNameIdx[cplNbField];
 
@@ -459,6 +458,9 @@ namespace cwipi {
 
     int codeID    = localCodePropertiesGet()   -> idGet();
     int cplCodeID = coupledCodePropertiesGet() -> idGet();
+
+
+    // Continuer ici sur le calcul des poids !!!!! 
 
 
 ////    std::map<string,field_exch_type> field_cpl_map;
