@@ -135,14 +135,14 @@ namespace cwipi {
     // interpolatedData = malloc(dataTypeSize * nComponent * _n_tot_target_cpl);
 
     // if (_weights_src_idx == NULL) {
-    //   _weights_src_idx = (int **) malloc(sizeof(int *) * _nb_part);
-    //   for (int i = 0 ; i < _nb_part ; i++) _weights_src_idx[i] = NULL;
-    //   _weights_src = (double **) malloc(sizeof(double *) * _nb_part);
-    //   for (int i = 0 ; i < _nb_part ; i++) _weights_src[i] = NULL;
+    //   _weights_src_idx = (int **) malloc(sizeof(int *) * _nPart);
+    //   for (int i = 0 ; i < _nPart ; i++) _weights_src_idx[i] = NULL;
+    //   _weights_src = (double **) malloc(sizeof(double *) * _nPart);
+    //   for (int i = 0 ; i < _nPart ; i++) _weights_src[i] = NULL;
     // }
 
     // // Actually calculate weights with PDM_geom_elem_compute_polygon_barycentric_coordinates for each part
-    // for (int i_part = 0 ; i_part < _nb_part ; i_part++) {
+    // for (int i_part = 0 ; i_part < _nPart ; i_part++) {
     //   bool weights_src_empty = false;
     //   int s_weights_src = -1;
 
@@ -282,7 +282,12 @@ namespace cwipi {
     // return interpolatedData;
   }
 
-  void SpatialInterpLocation::init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation, bool slave) 
+  void SpatialInterpLocation::init 
+  (
+    Coupling           *coupling, 
+    CWP_Dof_location_t localCodeDofLOcation,
+    CWP_Dof_location_t cplCodeDofLOcation
+  )
   {
     // SpatialInterp::init(coupling, pointsCloudLocation, slave);
 
@@ -299,22 +304,22 @@ namespace cwipi {
     // int tmp1 = -1000000; // For dummy communications
     // if (!_both_codes_are_local) {
     //   if (_id < _id_cpl) {
-    //     MPI_Bcast(&_nb_part_cpl, 1, MPI_INT, _senderRank, _cplComm);
+    //     MPI_Bcast(&_nPart_cpl, 1, MPI_INT, _senderRank, _cplComm);
     //     MPI_Bcast(&tmp1, 1, MPI_INT, _senderRank_cpl, _cplComm);
     //   }
     //   else {
     //     MPI_Bcast(&tmp1, 1, MPI_INT, _senderRank_cpl, _cplComm);
-    //     MPI_Bcast(&_nb_part_cpl, 1, MPI_INT, _senderRank, _cplComm);
+    //     MPI_Bcast(&_nPart_cpl, 1, MPI_INT, _senderRank, _cplComm);
     //   }
     // }
     // else if (!_slave) {
     //   if (_id < _id_cpl) {
-    //     MPI_Bcast(&_nb_part_cpl, 1, MPI_INT, _senderRank, _cplComm);
-    //     MPI_Bcast(&(_spatial_interp_cpl->_nb_part_cpl), 1, MPI_INT, _senderRank_cpl, _cplComm);
+    //     MPI_Bcast(&_nPart_cpl, 1, MPI_INT, _senderRank, _cplComm);
+    //     MPI_Bcast(&(_spatial_interp_cpl->_nPart_cpl), 1, MPI_INT, _senderRank_cpl, _cplComm);
     //   }
     //   else {
-    //     MPI_Bcast(&(_spatial_interp_cpl->_nb_part_cpl), 1, MPI_INT, _senderRank_cpl, _cplComm);
-    //     MPI_Bcast(&_nb_part_cpl, 1, MPI_INT, _senderRank, _cplComm);
+    //     MPI_Bcast(&(_spatial_interp_cpl->_nPart_cpl), 1, MPI_INT, _senderRank_cpl, _cplComm);
+    //     MPI_Bcast(&_nPart_cpl, 1, MPI_INT, _senderRank, _cplComm);
     //   }
     // }
   }
@@ -377,19 +382,19 @@ namespace cwipi {
   
   void SpatialInterpLocation::triplet_location_request() 
   {
-    // _id_gnum_location = PDM_gnum_location_create(_nb_part_cpl, _nb_part, _pdm_cplComm);
+    // _id_gnum_location = PDM_gnum_location_create(_nPart_cpl, _nPart, _pdmCplComm);
 
-    // for (int i_part = 0 ; i_part < _nb_part ; i_part++) {
+    // for (int i_part = 0 ; i_part < _nPart ; i_part++) {
     //   PDM_gnum_location_requested_elements_set(_id_gnum_location, i_part, _n_target[i_part], &(_closest_elt_gnum[i_part][0]));
     // }
 
     // if (!_both_codes_are_local) {
-    //   for (int i_part = 0 ; i_part < _nb_part_cpl ; i_part++) {
+    //   for (int i_part = 0 ; i_part < _nPart_cpl ; i_part++) {
     //     PDM_gnum_location_elements_set(_id_gnum_location, i_part, 0, NULL);
     //   }
     // }
     // else {
-    //   for (int i_part = 0 ; i_part < _nb_part_cpl ; i_part++) {
+    //   for (int i_part = 0 ; i_part < _nPart_cpl ; i_part++) {
     //     Mesh *mesh_cpl = _spatial_interp_cpl->_mesh;
     //     CWP_g_num_t *gnum_elt_cpl = mesh_cpl->GNumEltsGet(i_part);
     //     int n_elt_cpl = mesh_cpl->getPartNElts(i_part);
@@ -401,17 +406,17 @@ namespace cwipi {
 
   void SpatialInterpLocation::triplet_location_set() 
   {
-    // _id_gnum_location = PDM_gnum_location_create(_nb_part, _nb_part_cpl, _pdm_cplComm);
+    // _id_gnum_location = PDM_gnum_location_create(_nPart, _nPart_cpl, _pdmCplComm);
 
-    // for (int i_part = 0 ; i_part < _nb_part ; i_part++) {
+    // for (int i_part = 0 ; i_part < _nPart ; i_part++) {
     //   CWP_g_num_t *gnum_elt = _mesh->GNumEltsGet(i_part);
     //   PDM_gnum_location_elements_set(_id_gnum_location, i_part, _n_elt[i_part], gnum_elt);
     // }
 
     // if (!_both_codes_are_local)
-    //   for (int i_part = 0 ; i_part < _nb_part_cpl ; i_part++) PDM_gnum_location_requested_elements_set(_id_gnum_location, i_part, 0, NULL);
+    //   for (int i_part = 0 ; i_part < _nPart_cpl ; i_part++) PDM_gnum_location_requested_elements_set(_id_gnum_location, i_part, 0, NULL);
     // else {
-    //   for (int i_part = 0 ; i_part < _nb_part_cpl ; i_part++) {
+    //   for (int i_part = 0 ; i_part < _nPart_cpl ; i_part++) {
     //     int n_target_cpl = _spatial_interp_cpl->_n_target[i_part];
     //     PDM_gnum_location_requested_elements_set(_id_gnum_location, i_part, n_target_cpl, _spatial_interp_cpl->_closest_elt_gnum[i_part]);
     //   }
@@ -420,24 +425,24 @@ namespace cwipi {
 
   void SpatialInterpLocation::triplet_location_null_send() 
   {
-    // _id_gnum_location = PDM_gnum_location_create(_nb_part, _nb_part_cpl, _pdm_cplComm);
+    // _id_gnum_location = PDM_gnum_location_create(_nPart, _nPart_cpl, _pdmCplComm);
 
-    // for (int i_part = 0 ; i_part < _nb_part ; i_part++) {
+    // for (int i_part = 0 ; i_part < _nPart ; i_part++) {
     //   PDM_gnum_location_elements_set(_id_gnum_location, i_part, 0, NULL);
     // }
-    // for (int i_part = 0 ; i_part < _nb_part_cpl ; i_part++) {
+    // for (int i_part = 0 ; i_part < _nPart_cpl ; i_part++) {
     //   PDM_gnum_location_requested_elements_set(_id_gnum_location, i_part, 0, NULL);
     // }
   }
 
   void SpatialInterpLocation::triplet_location_null_recv()
   {
-    // _id_gnum_location = PDM_gnum_location_create(_nb_part_cpl, _nb_part, _pdm_cplComm);
+    // _id_gnum_location = PDM_gnum_location_create(_nPart_cpl, _nPart, _pdmCplComm);
 
-    // for (int i_part = 0 ; i_part < _nb_part_cpl ; i_part++) {
+    // for (int i_part = 0 ; i_part < _nPart_cpl ; i_part++) {
     //   PDM_gnum_location_elements_set(_id_gnum_location, i_part, 0, NULL);
     // }
-    // for (int i_part = 0 ; i_part < _nb_part ; i_part++) {
+    // for (int i_part = 0 ; i_part < _nPart ; i_part++) {
     //   PDM_gnum_location_requested_elements_set(_id_gnum_location, i_part, 0, NULL);
     // }
   }
@@ -449,20 +454,20 @@ namespace cwipi {
 
   void SpatialInterpLocation::triplet_location_get() 
   {
-    // _target_proc_part_num_idx = (int **) malloc(sizeof(int *) * _nb_part);
-    // _target_proc_part_num = (int **) malloc(sizeof(int *) * _nb_part);
+    // _target_proc_part_num_idx = (int **) malloc(sizeof(int *) * _nPart);
+    // _target_proc_part_num = (int **) malloc(sizeof(int *) * _nPart);
 
-    // for (int i_part = 0 ; i_part < _nb_part ; i_part++) {
+    // for (int i_part = 0 ; i_part < _nPart ; i_part++) {
     //   PDM_gnum_location_get(_id_gnum_location, i_part, &(_target_proc_part_num_idx[i_part]), &(_target_proc_part_num[i_part]));
     // }
   }
 
   void SpatialInterpLocation::triplet_location_get_cpl() 
   {
-    _spatial_interp_cpl->_target_proc_part_num_idx = (int **) malloc(sizeof(int *) * _nb_part_cpl);
-    _spatial_interp_cpl->_target_proc_part_num = (int **) malloc(sizeof(int *) * _nb_part_cpl);
+    _spatial_interp_cpl->_target_proc_part_num_idx = (int **) malloc(sizeof(int *) * _nPart_cpl);
+    _spatial_interp_cpl->_target_proc_part_num = (int **) malloc(sizeof(int *) * _nPart_cpl);
 
-    for (int i_part = 0 ; i_part < _nb_part_cpl ; i_part++) {
+    for (int i_part = 0 ; i_part < _nPart_cpl ; i_part++) {
       PDM_gnum_location_get(_id_gnum_location, i_part, &(_spatial_interp_cpl->_target_proc_part_num_idx[i_part]), &(_spatial_interp_cpl->_target_proc_part_num[i_part]));
     }
   }
@@ -484,9 +489,9 @@ namespace cwipi {
 
     for (int i = 0 ; i < cplComm_size ; i++) {
       if (_targets_localization_idx_cpl[i] == NULL) {
-        _targets_localization_idx_cpl[i] = (int *) malloc(sizeof(int) * (1 + _nb_part));
+        _targets_localization_idx_cpl[i] = (int *) malloc(sizeof(int) * (1 + _nPart));
       }
-      for (int i_part = 0 ; i_part < _nb_part + 1 ; i_part++) {
+      for (int i_part = 0 ; i_part < _nPart + 1 ; i_part++) {
         _targets_localization_idx_cpl[i][i_part] = 0;
       }
     }
@@ -499,16 +504,16 @@ namespace cwipi {
   //   _process_and_partition_count = (int **) malloc(sizeof(int *) * cplComm_size);
 
   //   for (int i_proc = 0 ; i_proc < cplComm_size ; i_proc++) {
-  //     _targets_localization_idx[i_proc] = (int *) malloc(sizeof(int) * (1 + _nb_part_cpl));
-  //     _process_and_partition_count[i_proc] = (int *) malloc(sizeof(int) * (1 + _nb_part_cpl));
+  //     _targets_localization_idx[i_proc] = (int *) malloc(sizeof(int) * (1 + _nPart_cpl));
+  //     _process_and_partition_count[i_proc] = (int *) malloc(sizeof(int) * (1 + _nPart_cpl));
 
-  //     for (int i_part = 0 ; i_part < _nb_part_cpl + 1 ; i_part++) {
+  //     for (int i_part = 0 ; i_part < _nPart_cpl + 1 ; i_part++) {
   //       _targets_localization_idx[i_proc][i_part] = 0;
   //       _process_and_partition_count[i_proc][i_part] = 0;
   //     }
   //   }
 
-  //   for (int i_part = 0 ; i_part < _nb_part ; i_part++) {
+  //   for (int i_part = 0 ; i_part < _nPart ; i_part++) {
   //     for (int k = 0 ; k < _n_target[i_part] ; k++) {
   //       int elt_proc = _target_proc_part_num[i_part][_target_proc_part_num_idx[i_part][k]];
   //       int elt_part = _target_proc_part_num[i_part][_target_proc_part_num_idx[i_part][k] + 1];
@@ -518,12 +523,12 @@ namespace cwipi {
   //     }
   //   } //end i_part
 
-  //   _transform_to_index(_targets_localization_idx, cplComm_size, _nb_part_cpl);
+  //   _transform_to_index(_targets_localization_idx, cplComm_size, _nPart_cpl);
 
   //   int **idx_proc = (int **) malloc(sizeof(int *) * cplComm_size);
   //   for (int i_proc = 0 ; i_proc < cplComm_size ; i_proc++) {
-  //     idx_proc[i_proc] = (int *) malloc(sizeof(int) * _nb_part_cpl);
-  //     for (int i_part = 0 ; i_part < _nb_part_cpl ; i_part++) {
+  //     idx_proc[i_proc] = (int *) malloc(sizeof(int) * _nPart_cpl);
+  //     for (int i_part = 0 ; i_part < _nPart_cpl ; i_part++) {
   //       idx_proc[i_proc][i_part] = 0;
   //     }
   //   }
@@ -531,9 +536,9 @@ namespace cwipi {
   //   if (_targets_localization_data != NULL) {
   //     free(_targets_localization_data);
   //   }
-  //   _targets_localization_data = (target_data *) malloc(sizeof(target_data) * _targets_localization_idx[cplComm_size - 1][_nb_part_cpl]);
+  //   _targets_localization_data = (target_data *) malloc(sizeof(target_data) * _targets_localization_idx[cplComm_size - 1][_nPart_cpl]);
 
-  //   for (int i_part = 0 ; i_part < _nb_part ; i_part++) {
+  //   for (int i_part = 0 ; i_part < _nPart ; i_part++) {
   //     for (int k = 0 ; k < _n_target[i_part] ; k++) {
   //       int elt_proc = _target_proc_part_num[i_part][_target_proc_part_num_idx[i_part][k]];
   //       int elt_part = _target_proc_part_num[i_part][_target_proc_part_num_idx[i_part][k] + 1];
@@ -560,7 +565,7 @@ namespace cwipi {
   //     free(idx_proc[i_proc]);
   //   }
 
-  //   for (int i_part = 0 ; i_part < _nb_part ; i_part++) {
+  //   for (int i_part = 0 ; i_part < _nPart ; i_part++) {
   //     free(_distance[i_part]);
   //     free(_projected[i_part]);
   //     free(_closest_elt_gnum[i_part]);

@@ -24,7 +24,13 @@ namespace cwipi {
 
     SpatialInterpIntersection::~SpatialInterpIntersection() = default;
 
-    void SpatialInterpIntersection::init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation, bool slave) {
+    void SpatialInterpIntersection::init 
+    (
+      Coupling           *coupling, 
+      CWP_Dof_location_t localCodeDofLOcation,
+      CWP_Dof_location_t cplCodeDofLOcation
+    )
+    {
     }
 
     void *SpatialInterpIntersection::interpolate(Field *referenceField) {

@@ -34,7 +34,20 @@ namespace cwipi {
     private:
         void *interpolate(Field *referenceField) override;
 
-        void init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation, bool slave) override;
+        /**
+          *
+          * \brief Initialization of the SpatialInterp object.
+          *
+          * \param [in] coupling            Pointer the coupling object.
+          * \param [in] pointsCloudLocation Location of the cloud of points.
+          * \param [in] coupling            Pointer the coupling object.
+          *
+          */
+
+        void init (
+          Coupling *coupling, 
+          CWP_Dof_location_t pointsCloudLocation,
+          CWP_Dof_location_t cplCodeDofLOcation) override;
 
         SpatialInterpClosestPoint *_spatial_interp_cpl;
 

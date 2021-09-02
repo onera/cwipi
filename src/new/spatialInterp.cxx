@@ -67,7 +67,7 @@ namespace cwipi {
   }
 
   void 
-  SpatialInterp::init init (
+  SpatialInterp::init(
     Coupling           *coupling, 
     CWP_Dof_location_t localCodeDofLocation,
     CWP_Dof_location_t cplCodeDofLocation 
@@ -77,7 +77,6 @@ namespace cwipi {
     _visu                   = coupling->visuGet();
     _mesh                   = coupling->meshGet();
     _visu                   = coupling->visuGet();
-    _pointsCloudLocation    = pointsCloudLocation;
 
     _localCodeDofLocation   = localCodeDofLocation;
     _coupledCodeDofLocation = cplCodeDofLocation;

@@ -80,7 +80,11 @@ namespace cwipi {
           * \param [in] coupling            Pointer the coupling object.
           *
           */
-        void init(Coupling *coupling, CWP_Dof_location_t pointsCloudLocation, bool slave) override;
+
+        void init (
+          Coupling *coupling, 
+          CWP_Dof_location_t pointsCloudLocation,
+          CWP_Dof_location_t cplCodeDofLOcation) override;
 
         /***********************************************************
          ***********************************************************

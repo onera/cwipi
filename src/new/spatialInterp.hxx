@@ -25,6 +25,7 @@
 #include "field.hxx"
 #include "codeProperties.hxx"
 #include "coupling.hxx"
+#include "pdm_part1_to_selected_part2.h"
 
 /**
  * \cond
@@ -164,21 +165,34 @@ namespace cwipi {
 
     //Pointer to other objects
     Visu                       *_visu;                  /*!< Visualization object */
-    CodeProperties             *_localCodeProperties   
-    CodeProperties             *_coupledCodeProperties 
+    CodeProperties             *_localCodeProperties;   
+    CodeProperties             *_coupledCodeProperties; 
 
-    CWP_Dof_location_t        _localCodeDofLocation     /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
-    CWP_Dof_location_t        _coupledCodeDofLocation   /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
+    CWP_Dof_location_t        _localCodeDofLocation;     /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
+    CWP_Dof_location_t        _coupledCodeDofLocation;   /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
 
-    CWP_Field_exch_t          _exchDirection;    // A renomer
+    CWP_Field_exch_t          _exchDirection;    // A renommer Utilité ???
 
     SpatialInterp              *_cplSpatialInterp;  /*!< Spatial interpolation (for both codes are local case) */
    
-    PDM_part1_to_selected_part2_t *ptsp;
+    PDM_part1_to_selected_part2_t *_ptsp;
     
-    CWP_SpatialInterp_time_t     interpolation_time      ;
+    CWP_SpatialInterp_time_t     _interpolation_time      ;
 
+    int  _nPart                               ;  /*!< Mesh partition number                                                    */
 
+    int _rootRankUnionComm   ;
+    int _cplRootRankUnionComm;
+
+    int _rootRankCplComm   ;
+    int _cplRootRankCplComm;
+
+    MPI_Comm _cplComm;
+    PDM_MPI_Comm _pdmCplComm;
+    MPI_Comm _unionComm;
+    PDM_MPI_Comm _pdmUnionComm;
+
+    MPI_Comm _localComm;          // Processus involved in the coupling for the local code
   // A conserver ou supprimer 
   protected:
     /* code Properties */
@@ -188,13 +202,8 @@ namespace cwipi {
     string localName;
 
 
-    int  _nb_part_cpl                           ;  /*!< Coupled code mesh partition number                                       */
-    int  _nb_part                               ;  /*!< Mesh partition number                                                    */
+    int  _nPart_cpl                           ;  /*!< Coupled code mesh partition number                                       */
 
-    MPI_Comm _globalComm;         // Gathers every processus
-    MPI_Comm _cplComm;            // Processus involved in the coupling in either code
-    MPI_Comm _localComm;          // Processus involved in the coupling for the local code
-    PDM_MPI_Comm  _pdm_cplComm;   // _cplComm for Paradigm
 
     /* informations about MPI process (rank) */
     int cplComm_rank;       // Rank in cplComm

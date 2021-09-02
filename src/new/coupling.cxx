@@ -403,16 +403,6 @@ namespace cwipi {
     MPI_Wait (&request, &status);
     localFieldLocationV.clear();
 
-/*    if (coupledCodeProperties.localCodeIs()) {
-      if (cplDB.couplingIs(coupledCodeProperties, cplId) ) {
-*/
-
-/*        it = _spatial_interp.begin();
-        while (it != _spatial_interp.end()) {
-         (it -> second) -> init(this,it->first,0);
-         it++;
-        }
-*/
 
     // Create spatial interpolation objects
 
@@ -433,7 +423,7 @@ namespace cwipi {
               std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
               if (_spatial_interp_send.find( newKey ) != _spatial_interp_send.end()) {
                 _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
-//                _spatial_interp_send[newKey].init(localFieldLocation, cplFieldLocationV[j]);
+                _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldLocationV[j]);
               }
             }
 
@@ -441,7 +431,7 @@ namespace cwipi {
               std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
               if (_spatial_interp_recv.find( newKey ) != _spatial_interp_recv.end()) {
                 _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
-//                _spatial_interp_recv[newKey].init(localFieldLocation, cplFieldLocationV[j]);
+                _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldLocationV[j]);
               }
             }
           }
