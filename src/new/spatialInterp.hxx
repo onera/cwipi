@@ -97,6 +97,8 @@ namespace cwipi {
       CWP_Dof_location_t localCodeDofLOcation,
       CWP_Dof_location_t cplCodeDofLOcation);
 
+virtual void spatialInterpWeightsCompute(){//TODO
+};
     virtual void spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) =0;
 
     virtual void* interpolate (Field* referenceField) = 0;

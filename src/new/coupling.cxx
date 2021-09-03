@@ -403,10 +403,9 @@ namespace cwipi {
     MPI_Wait (&request, &status);
     localFieldLocationV.clear();
 
-
     // Create spatial interpolation objects
 
-    while(it != _fields.end()){
+    while(it != _fields.end()) {
       cwipi::Field* field = it -> second;
       string localFieldName = it -> first;
       CWP_Field_exch_t   localFieldExch     = field->exchangeTypeGet();
@@ -421,7 +420,7 @@ namespace cwipi {
   
             if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_SEND) {
               std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
-              if (_spatial_interp_send.find( newKey ) != _spatial_interp_send.end()) {
+              if (_spatial_interp_send.find(newKey) == _spatial_interp_send.end()) {
                 _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
                 _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldLocationV[j]);
               }
@@ -429,7 +428,7 @@ namespace cwipi {
 
             if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_RECV) {
               std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
-              if (_spatial_interp_recv.find( newKey ) != _spatial_interp_recv.end()) {
+              if (_spatial_interp_recv.find(newKey) == _spatial_interp_recv.end()) {
                 _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
                 _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldLocationV[j]);
               }
@@ -438,146 +437,118 @@ namespace cwipi {
         }
       }
       it++;
+    }  
+
+    MPI_Comm unionComm = communicationGet()->unionCommGet();
+    int unionCommCplCodeRootRank = communicationGet()->unionCommCplCodeRootRanksGet();
+    int unionCommLocCodeRootRank = communicationGet()->unionCommLocCodeRootRanksGet();
+
+    int codeID    = localCodePropertiesGet()->idGet();
+    int cplCodeID = coupledCodePropertiesGet()->idGet();
+
+    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = _spatial_interp_send.begin();
+    int sis_s = (int) _spatial_interp_send.size();
+
+    vector<CWP_Dof_location_t> sis_loc;
+    sis_loc.reserve(2*sis_s);
+
+    while(sis_it != _spatial_interp_send.end()) {
+      sis_loc.push_back((sis_it->first).first);
+      sis_loc.push_back((sis_it->first).second);
+      sis_it++;
     }
 
-    // Initialize spatial interpolation objects
+    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sir_it = _spatial_interp_recv.begin();
+    int sir_s = (int) _spatial_interp_recv.size();
 
-    MPI_Comm unionComm = communicationGet() -> unionCommGet();
-    int unionCommCplCodeRootRank = communicationGet() -> unionCommCplCodeRootRanksGet();
-    int unionCommLocCodeRootRank = communicationGet() -> unionCommLocCodeRootRanksGet();
+    vector<CWP_Dof_location_t> sir_loc;
+    sir_loc.reserve(2*sir_s);
 
-    int codeID    = localCodePropertiesGet()   -> idGet();
-    int cplCodeID = coupledCodePropertiesGet() -> idGet();
+    while(sir_it != _spatial_interp_recv.end()) {
+      sir_loc.push_back((sir_it->first).first);
+      sir_loc.push_back((sir_it->first).second);
+      sir_it++;
+    }
 
+    int cpl_sis_s;
+    _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                               1,
+                                                               (void *) &sis_s,
+                                                               1,
+                                                               (void *) &cpl_sis_s,
+                                                               &request);
 
-    // Continuer ici sur le calcul des poids !!!!! 
+    MPI_Wait (&request, &status);
+    assert(cpl_sis_s == sir_s);
 
+    int cpl_sir_s;
+    _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                               1,
+                                                               (void *) &sir_s,
+                                                               1,
+                                                               (void *) &cpl_sir_s,
+                                                               &request);
 
-////    std::map<string,field_exch_type> field_cpl_map;
-//    for (int i = 0; i < localNbField; i++) {
-//      string field_name = fieldName_cpl.substr( fieldNameIdx_cpl[i], fieldNameIdx_cpl[i+1]-fieldNameIdx_cpl[i] );
-//      for (int j = 0; j < cplNbField; j++) {
-//      string field_name = fieldName_cpl.substr( fieldNameIdx_cpl[i], fieldNameIdx_cpl[i+1]-fieldNameIdx_cpl[i] );
-//  //    field_exch_type field_exch;
-//  //    field_exch.loc  = fieldLocationV_cpl[i];
-//  //    field_exch.exch = fieldExch_cpl     [i];
-//  //    field_cpl_map.insert( std::pair<string,field_exch_type>(field_name,field_exch) );
-//      //printf("field_name %s %s %i %i\n",field_name.c_str(),fieldName_cpl.c_str(),fieldNameIdx_cpl[i], fieldNameIdx_cpl[i+1]);
-//    }
-//
-//    static const char *CWP_Dof_location_t_str[] = {"CWP_DOF_LOCATION_CELL_CENTER","CWP_DOF_LOCATION_NODE","CWP_DOF_LOCATION_USER"};
-//    static const char *CWP_Field_exch_t_str [] = {"CWP_FIELD_EXCH_SEND","CWP_FIELD_EXCH_RECV","CWP_FIELD_EXCH_SENDRECV"};
-//    std::vector<int> exchangeTypeByLocation(3,0);
-//
-//    it = fields -> begin();
-//    while (it != fields -> end()) {
-//      if(it -> second ->  exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
-//        it -> second -> linkedFieldLocationSet(field_cpl_map[it->first].loc);
-//      }
-//      else if (it -> second ->  exchangeTypeGet() == CWP_FIELD_EXCH_RECV) {
-//        it -> second -> linkedFieldLocationSet( it -> second -> locationGet() );
-//      }
-//      else if (it -> second ->  exchangeTypeGet() == CWP_FIELD_EXCH_SENDRECV) {
-//        it -> second -> linkedFieldLocationSet( it -> second -> locationGet() );
-//      }
-//      else{
-//        PDM_error(__FILE__, __LINE__, 0, "Not correct exchange field value for this field.\n");
-//      }
-//      if (exchangeTypeByLocation[ static_cast<int>( it -> second -> linkedFieldLocationGet() )] == 0) {
-//        if (it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_SEND )
-//          exchangeTypeByLocation[ static_cast<int>( it -> second -> linkedFieldLocationGet() )] = 1;
-//        else if (it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_RECV)
-//          exchangeTypeByLocation[ static_cast<int>( it -> second -> linkedFieldLocationGet() )] = 2;
-//        else if (it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_SENDRECV)
-//          exchangeTypeByLocation[ static_cast<int>( it -> second -> linkedFieldLocationGet() )] = 3;
-//      }
-//      else {
-//        if ( exchangeTypeByLocation[ static_cast<int>( it -> second -> linkedFieldLocationGet() )] == 1 && it -> second -> exchangeTypeGet() != CWP_FIELD_EXCH_SEND){
-//           exchangeTypeByLocation[ static_cast<int>( it -> second -> linkedFieldLocationGet() )] = 3;
-//        }
-//        else if ( exchangeTypeByLocation[ static_cast<int>( it -> second -> linkedFieldLocationGet() )] == 2 && it -> second -> exchangeTypeGet() != CWP_FIELD_EXCH_RECV){
-//           exchangeTypeByLocation[ static_cast<int>( it -> second -> linkedFieldLocationGet() )] = 3;
-//        }
-//      }
-//      //printf(" %s typeGet() %s linkedFieldLocationGet %s rank %i exchangeTypeGet %i\n",it->first.c_str(),CWP_Dof_location_t_str[it -> second -> locationGet()],
-//      //CWP_Dof_location_t_str[static_cast<int>(it -> second -> linkedFieldLocationGet())],rank,it -> second ->  exchangeTypeGet());
-//      it++;
-//    }
-//
-//
-//    /*  Building of possible cloud points type vector */
-//    std::vector<CWP_Dof_location_t> locationV = {CWP_DOF_LOCATION_CELL_CENTER, CWP_DOF_LOCATION_NODE, CWP_DOF_LOCATION_USER};
-//    // Iteration over the possilbe cloud points type
-//    for(size_t i_location=0; i_location < locationV.size(); i_location++) {
-//      CWP_Dof_location_t dofLocation = locationV[i_location];
-//      int spatialInterpComputeSend  = 0;
-//      int spatialInterpComputeRcv = 0;
-//      if (exchangeTypeByLocation[ static_cast<int>( dofLocation ) ] == 1) {
-//        spatialInterpComputeSend = 1;
-//      }
-//      else if (exchangeTypeByLocation[ static_cast<int>( dofLocation ) ] == 2) {
-//        spatialInterpComputeRcv = 1;
-//      }
-//      else if (exchangeTypeByLocation[ static_cast<int>( dofLocation ) ] == 3) {
-//        spatialInterpComputeSend = 1;
-//        spatialInterpComputeRcv  = 1;
-//      }
-//      else if (exchangeTypeByLocation[ static_cast<int>( dofLocation ) ] == 0) {
-//        spatialInterpComputeSend = 0;
-//        spatialInterpComputeRcv  = 0;
-//      }
-//      CWP_Field_exch_t exchange_type    ;
-//      CWP_Field_exch_t exchange_type_cpl;
-//      if (spatialInterpComputeRcv == 1 && spatialInterpComputeSend == 1 ) {
-//        if (id_code < id_cpl_code) {
-//          if (both_local == 1) {
-//            cwipi::Coupling& cpl_cpl = couplingDBGet()->couplingGet (_coupledCodeProperties, _cplId);
-//            _spatial_interp[dofLocation] -> spatialInterpWeightsCompute(CWP_FIELD_EXCH_SEND);
-//            cpl_cpl._spatial_interp[dofLocation] -> spatialInterpWeightsCompute(CWP_FIELD_EXCH_RECV);
-//            _spatial_interp[dofLocation] -> spatialInterpWeightsCompute(CWP_FIELD_EXCH_RECV);
-//            cpl_cpl._spatial_interp[dofLocation] -> spatialInterpWeightsCompute(CWP_FIELD_EXCH_SEND);
-//          }
-//          else if (both_local == 0) {
-//            _spatial_interp[dofLocation] -> spatialInterpWeightsCompute(CWP_FIELD_EXCH_SEND);
-//            _spatial_interp[dofLocation] -> spatialInterpWeightsCompute(CWP_FIELD_EXCH_RECV);
-//          }
-//        }
-//        else {
-//          if (both_local == 0) {
-//            _spatial_interp[dofLocation] -> spatialInterpWeightsCompute(CWP_FIELD_EXCH_RECV);
-//            _spatial_interp[dofLocation] -> spatialInterpWeightsCompute(CWP_FIELD_EXCH_SEND);
-//          }
-//        }
-//       // printf("dofLocation %s rank %i %i %i id<id_cpl %i\n", CWP_Dof_location_t_str[static_cast<int>( dofLocation )],rank, spatialInterpComputeSend, spatialInterpComputeRcv,id<id_cpl );
-//      }
-//      else if (spatialInterpComputeRcv == 1 && spatialInterpComputeSend == 0) {
-//        exchange_type     = CWP_FIELD_EXCH_RECV ;
-//        exchange_type_cpl = CWP_FIELD_EXCH_SEND ;
-//        if(both_local == 1 && id_code < id_cpl_code) {
-//          cwipi::Coupling& cpl_cpl = couplingDBGet()->couplingGet (_coupledCodeProperties, _cplId);
-//          _spatial_interp[dofLocation] -> spatialInterpWeightsCompute(exchange_type);
-//          cpl_cpl._spatial_interp[dofLocation] -> spatialInterpWeightsCompute(exchange_type_cpl);
-//        }
-//        else if (both_local == 0) {
-//          _spatial_interp[dofLocation] -> spatialInterpWeightsCompute(exchange_type);
-//        }
-//      }
-//      else if (spatialInterpComputeSend == 1 && spatialInterpComputeRcv == 0) {
-//        exchange_type     = CWP_FIELD_EXCH_SEND ;
-//        exchange_type_cpl = CWP_FIELD_EXCH_RECV ;
-//        if(both_local == 1 && id_code < id_cpl_code) {
-//          cwipi::Coupling& cpl_cpl = couplingDBGet()->couplingGet (_coupledCodeProperties, _cplId);
-//          _spatial_interp[dofLocation] -> spatialInterpWeightsCompute(exchange_type);
-//          cpl_cpl._spatial_interp[dofLocation] -> spatialInterpWeightsCompute(exchange_type_cpl);
-//        }
-//        else if (both_local == 0) {
-//          _spatial_interp[dofLocation] -> spatialInterpWeightsCompute(exchange_type);
-//        }
-//      }
-//      if((both_local == 1 && id_code < id_cpl_code) || both_local == 0) MPI_Barrier(unionComm);
-//    } //end on location loop
-//
-////     _spatial_interp[pointsCloudLocation] -> spatialInterpWeightsCompute(exchange_type);
+    MPI_Wait (&request, &status);
+    assert(cpl_sir_s == sis_s);
+
+    vector<CWP_Dof_location_t> cpl_sis_loc;
+    cpl_sis_loc.reserve(2*sir_s);
+
+    _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+                                                               2*sis_s,
+                                                               (void *) &(sis_loc[0]),
+                                                               2*cpl_sis_s,
+                                                               (void *) &(cpl_sis_loc[0]),
+                                                               &request);
+
+    MPI_Wait (&request, &status);
+
+    vector<CWP_Dof_location_t> cpl_sir_loc;
+    cpl_sir_loc.reserve(2*sis_s);
+
+    _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+                                                               2*sir_s,
+                                                               (void *) &(sis_loc[0]),
+                                                               2*cpl_sir_s,
+                                                               (void *) &(cpl_sis_loc[0]),
+                                                               &request);
+
+    MPI_Wait (&request, &status);
+
+    if (codeID < cplCodeID) {
+
+      // spatial_interp send 
+
+      sis_it = _spatial_interp_send.begin();
+      while(sis_it != _spatial_interp_send.end()) {
+        sis_it->second->spatialInterpWeightsCompute();
+      }
+
+      // spatial_interp recv 
+
+      for (int i = 0; i < sir_s; i++) {
+        _spatial_interp_recv[make_pair(cpl_sis_loc[2*i+1], cpl_sis_loc[2*i])]->spatialInterpWeightsCompute();  
+      }
+
+    }
+
+    else {
+
+      // spatial_interp recv 
+
+      for (int i = 0; i < sir_s; i++) {
+        _spatial_interp_recv[make_pair(cpl_sis_loc[2*i+1], cpl_sis_loc[2*i])]->spatialInterpWeightsCompute();  
+      }
+
+      // spatial_interp send 
+
+      sis_it = _spatial_interp_send.begin();
+      while(sis_it != _spatial_interp_send.end()) {
+        sis_it->second->spatialInterpWeightsCompute();
+      }
+
+    }
 
   }
 
