@@ -32,7 +32,7 @@ namespace cwipi {
 
   SpatialInterpLocation::~SpatialInterpLocation() = default;
 
-  void SpatialInterpLocation::spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) 
+  void SpatialInterpLocation::weightsCompute() 
   {
     // _Texch_t = Texch_t;
 
@@ -282,47 +282,68 @@ namespace cwipi {
     // return interpolatedData;
   }
 
-  void SpatialInterpLocation::init 
-  (
-    Coupling           *coupling, 
-    CWP_Dof_location_t localCodeDofLOcation,
-    CWP_Dof_location_t cplCodeDofLOcation
-  )
-  {
-    // SpatialInterp::init(coupling, pointsCloudLocation, slave);
 
-    // interpolation_time = CWP_INTERP_AT_SEND;
 
-    // CouplingDB *cplDB = _cpl->couplingDBGet();
-    // string cplId = coupling->IdGet();
-    // if (_both_codes_are_local && !_slave) {
-    //   Coupling coupling_cpl = cplDB->couplingGet(*_coupledCodeProperties, cplId);
-    //   _spatial_interp_cpl = dynamic_cast<SpatialInterpLocation *>( coupling_cpl.spatialInterpGet(_pointsCloudLocation));
-    //   _spatial_interp_cpl->_spatial_interp_cpl = this;
-    // }
 
-    // int tmp1 = -1000000; // For dummy communications
-    // if (!_both_codes_are_local) {
-    //   if (_id < _id_cpl) {
-    //     MPI_Bcast(&_nPart_cpl, 1, MPI_INT, _senderRank, _cplComm);
-    //     MPI_Bcast(&tmp1, 1, MPI_INT, _senderRank_cpl, _cplComm);
-    //   }
-    //   else {
-    //     MPI_Bcast(&tmp1, 1, MPI_INT, _senderRank_cpl, _cplComm);
-    //     MPI_Bcast(&_nPart_cpl, 1, MPI_INT, _senderRank, _cplComm);
-    //   }
-    // }
-    // else if (!_slave) {
-    //   if (_id < _id_cpl) {
-    //     MPI_Bcast(&_nPart_cpl, 1, MPI_INT, _senderRank, _cplComm);
-    //     MPI_Bcast(&(_spatial_interp_cpl->_nPart_cpl), 1, MPI_INT, _senderRank_cpl, _cplComm);
-    //   }
-    //   else {
-    //     MPI_Bcast(&(_spatial_interp_cpl->_nPart_cpl), 1, MPI_INT, _senderRank_cpl, _cplComm);
-    //     MPI_Bcast(&_nPart_cpl, 1, MPI_INT, _senderRank, _cplComm);
-    //   }
-    // }
+  /**
+   *
+   * \brief Return the number of uncomputed targets
+   *
+   * \return                Number of uncomputed targets
+   *
+   */
+
+  int
+  SpatialInterpLocation::nUncomputedTargetsGet(int i_part)  const 
+  { 
+    return 0;
   }
+
+  /**
+   *
+   * \brief Return uncomputed targets
+   *
+   * \return                Uncomputed targets
+   *
+   */
+
+  const int *
+  SpatialInterpLocation::uncomputedTargetsGet(int i_part)  const 
+  {
+    return 0;
+  }
+
+  /**
+   *
+   * \brief Return the number of computed targets
+   *
+   * \return                Number of computed targets
+   */
+
+  int
+  SpatialInterpLocation::nComputedTargetsGet(int i_part)  const 
+  {
+    return 0;
+  }
+
+  /**
+   *
+   * \brief Return computed targets
+   *
+   *
+   * \return                Computed targets
+   *
+   */
+
+  const int *
+  SpatialInterpLocation::computedTargetsGet(int i_part) const
+  {
+    return 0;
+  }
+
+
+
+
 
   /**********************************************************
   ***********************************************************

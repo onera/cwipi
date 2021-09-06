@@ -54,6 +54,12 @@ namespace cwipi {
     double       distance       ;
   };
 
+
+  typedef enum {
+    SPATIAL_INTERP_EXCH_SEND,
+    SPATIAL_INTERP_EXCH_RECV
+  } SpatialInterpExchDirection;
+
 // A supprimer !!!
 
   static const char *CWP_Field_exch_t_str [] = {"CWP_FIELD_EXCH_SEND","CWP_FIELD_EXCH_RECV","CWP_FIELD_EXCH_SENDRECV"};
@@ -95,15 +101,12 @@ namespace cwipi {
     init (
       Coupling           *coupling, 
       CWP_Dof_location_t localCodeDofLOcation,
-      CWP_Dof_location_t cplCodeDofLOcation);
+      CWP_Dof_location_t cplCodeDofLOcation,
+      SpatialInterpExchDirection exchDirection );
 
-virtual void spatialInterpWeightsCompute(){//TODO
-};
-    virtual void spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) =0;
-
+    virtual void weightsCompute()  = 0; // A changer de nom
+    
     virtual void* interpolate (Field* referenceField) = 0;
-
-    void user_target_points_set(int i_part, int n_pts, double* coord);
 
     void issend(Field* referenceField);
 
@@ -118,10 +121,8 @@ virtual void spatialInterpWeightsCompute(){//TODO
      *
      */
 
-    int
-    nUncomputedTargetsGet(int i_part) const {
-      return n_uncomputed_tgt[i_part];
-    }
+    virtual int
+    nUncomputedTargetsGet(int i_part) const = 0;
 
     /**
      *
@@ -131,8 +132,8 @@ virtual void spatialInterpWeightsCompute(){//TODO
      *
      */
 
-    inline const int *
-    uncomputedTargetsGet(int i_part) const;
+    virtual const int *
+    uncomputedTargetsGet(int i_part) const = 0;
 
     /**
      *
@@ -141,8 +142,8 @@ virtual void spatialInterpWeightsCompute(){//TODO
      * \return                Number of computed targets
      */
 
-    inline int
-    nComputedTargetsGet(int i_part) const;
+    virtual int
+    nComputedTargetsGet(int i_part) const = 0;
 
     /**
      *
@@ -153,19 +154,15 @@ virtual void spatialInterpWeightsCompute(){//TODO
      *
      */
 
-    inline const int *
-    computedTargetsGet(int i_part) const;
+    virtual const int *
+    computedTargetsGet(int i_part) const = 0;
 
-  protected:
-
-    void user_targets_gnum_compute();
 
   protected:
 
     Coupling                   *_cpl;
     Mesh                       *_mesh;                  /*!< Interface Mesh */
 
-    //Pointer to other objects
     Visu                       *_visu;                  /*!< Visualization object */
     CodeProperties             *_localCodeProperties;   
     CodeProperties             *_coupledCodeProperties; 
@@ -173,9 +170,7 @@ virtual void spatialInterpWeightsCompute(){//TODO
     CWP_Dof_location_t        _localCodeDofLocation;     /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
     CWP_Dof_location_t        _coupledCodeDofLocation;   /*!< Type of points cloud treated by this mapping instance (cell centers, vertices or user defined) */
 
-    CWP_Field_exch_t          _exchDirection;    // A renommer Utilité ???
-
-    SpatialInterp              *_cplSpatialInterp;  /*!< Spatial interpolation (for both codes are local case) */
+    SpatialInterpExchDirection  _exchDirection;  /*!< Spatial interpolation (for both codes are local case) */
    
     PDM_part1_to_selected_part2_t *_ptsp;
     
@@ -195,6 +190,10 @@ virtual void spatialInterpWeightsCompute(){//TODO
     PDM_MPI_Comm _pdmUnionComm;
 
     MPI_Comm _localComm;          // Processus involved in the coupling for the local code
+
+
+
+
   // A conserver ou supprimer 
   protected:
     /* code Properties */
@@ -316,6 +315,7 @@ virtual void spatialInterpWeightsCompute(){//TODO
     /**
      * \endcond
      */
+
 
 }
 

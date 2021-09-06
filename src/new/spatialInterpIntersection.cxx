@@ -20,24 +20,76 @@
 #include <spatialInterpIntersection.hxx>
 
 namespace cwipi {
-    SpatialInterpIntersection::SpatialInterpIntersection() = default;
+  SpatialInterpIntersection::SpatialInterpIntersection() = default;
 
-    SpatialInterpIntersection::~SpatialInterpIntersection() = default;
+  SpatialInterpIntersection::~SpatialInterpIntersection() = default;
 
-    void SpatialInterpIntersection::init 
-    (
-      Coupling           *coupling, 
-      CWP_Dof_location_t localCodeDofLOcation,
-      CWP_Dof_location_t cplCodeDofLOcation
-    )
-    {
-    }
 
-    void *SpatialInterpIntersection::interpolate(Field *referenceField) {
-        return NULL;
-    }
+  void *SpatialInterpIntersection::interpolate(Field *referenceField) {
+      return NULL;
+  }
 
-    void SpatialInterpIntersection::spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) {
+  void SpatialInterpIntersection::weightsCompute() {
 
-    }
+  }
+
+
+
+
+  /**
+   *
+   * \brief Return the number of uncomputed targets
+   *
+   * \return                Number of uncomputed targets
+   *
+   */
+
+  int
+  SpatialInterpIntersection::nUncomputedTargetsGet(int i_part)  const 
+  { 
+    return 0;
+  }
+
+  /**
+   *
+   * \brief Return uncomputed targets
+   *
+   * \return                Uncomputed targets
+   *
+   */
+
+  const int *
+  SpatialInterpIntersection::uncomputedTargetsGet(int i_part)  const 
+  {
+    return 0;
+  }
+
+  /**
+   *
+   * \brief Return the number of computed targets
+   *
+   * \return                Number of computed targets
+   */
+
+  int
+  SpatialInterpIntersection::nComputedTargetsGet(int i_part)  const 
+  {
+    return 0;
+  }
+
+  /**
+   *
+   * \brief Return computed targets
+   *
+   *
+   * \return                Computed targets
+   *
+   */
+
+  const int *
+  SpatialInterpIntersection::computedTargetsGet(int i_part) const
+  {
+    return 0;
+  }
+
 };

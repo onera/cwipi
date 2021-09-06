@@ -22,31 +22,62 @@
 #include "spatialInterp.hxx"
 
 namespace cwipi {
-    class SpatialInterpIntersection : public SpatialInterp {
-    public:
-        SpatialInterpIntersection();
+  class SpatialInterpIntersection : public SpatialInterp {
+  public:
+    SpatialInterpIntersection();
 
-        ~SpatialInterpIntersection() override;
+    ~SpatialInterpIntersection() override;
 
-        void spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) override;
+    void weightsCompute() override;
 
-        void *interpolate(Field *referenceField) override;
+    void *interpolate(Field *referenceField) override;
 
-        /**
-          *
-          * \brief Initialization of the SpatialInterp object.
-          *
-          * \param [in] coupling            Pointer the coupling object.
-          * \param [in] pointsCloudLocation Location of the cloud of points.
-          * \param [in] coupling            Pointer the coupling object.
-          *
-          */
 
-        void init (
-          Coupling *coupling, 
-          CWP_Dof_location_t pointsCloudLocation,
-          CWP_Dof_location_t cplCodeDofLOcation) override;
-    };
+    /**
+     *
+     * \brief Return the number of uncomputed targets
+     *
+     * \return                Number of uncomputed targets
+     *
+     */
+
+    int
+    nUncomputedTargetsGet(int i_part) const override; 
+
+    /**
+     *
+     * \brief Return uncomputed targets
+     *
+     * \return                Uncomputed targets
+     *
+     */
+
+    const int *
+    uncomputedTargetsGet(int i_part) const override;
+
+    /**
+     *
+     * \brief Return the number of computed targets
+     *
+     * \return                Number of computed targets
+     */
+
+    int
+    nComputedTargetsGet(int i_part) const override;
+
+    /**
+     *
+     * \brief Return computed targets
+     *
+     *
+     * \return                Computed targets
+     *
+     */
+
+    const int *
+    computedTargetsGet(int i_part) const override;
+  };
+
 }
 
 #endif //CWP_SPATIALINTERPINTERSECTION_HXX

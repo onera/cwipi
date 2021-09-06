@@ -19,17 +19,65 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "spatialInterp.hxx"
 #include "pdm_closest_points.h"
+#include "spatialInterp.hxx"
 
 namespace cwipi {
-    class SpatialInterpClosestPoint : public SpatialInterp {
-    public:
-        SpatialInterpClosestPoint();
+  class SpatialInterpClosestPoint : public SpatialInterp {
+  public:
+    SpatialInterpClosestPoint();
 
-        ~SpatialInterpClosestPoint() override;
+    ~SpatialInterpClosestPoint() override;
 
-        void spatialInterpWeightsCompute(CWP_Field_exch_t Texch_t) override;
+    void weightsCompute() override;
+
+
+    /**
+     *
+     * \brief Return the number of uncomputed targets
+     *
+     * \return                Number of uncomputed targets
+     *
+     */
+
+    int
+    nUncomputedTargetsGet(int i_part) const override; 
+
+    /**
+     *
+     * \brief Return uncomputed targets
+     *
+     * \return                Uncomputed targets
+     *
+     */
+
+    const int *
+    uncomputedTargetsGet(int i_part) const override;
+
+    /**
+     *
+     * \brief Return the number of computed targets
+     *
+     * \return                Number of computed targets
+     */
+
+    int
+    nComputedTargetsGet(int i_part) const override;
+
+    /**
+     *
+     * \brief Return computed targets
+     *
+     *
+     * \return                Computed targets
+     *
+     */
+
+    const int *
+    computedTargetsGet(int i_part) const override;
+
+
+
 
     private:
         void *interpolate(Field *referenceField) override;
@@ -44,10 +92,10 @@ namespace cwipi {
           *
           */
 
-        void init (
-          Coupling *coupling, 
-          CWP_Dof_location_t pointsCloudLocation,
-          CWP_Dof_location_t cplCodeDofLOcation) override;
+        // void init (
+        //   Coupling *coupling, 
+        //   CWP_Dof_location_t pointsCloudLocation,
+        //   CWP_Dof_location_t cplCodeDofLOcation) override;
 
         SpatialInterpClosestPoint *_spatial_interp_cpl;
 

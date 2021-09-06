@@ -196,6 +196,8 @@ namespace cwipi {
 
     } // end else
 
+    //entitiesDimGet();
+
   }
 
 
@@ -422,7 +424,7 @@ namespace cwipi {
               std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
               if (_spatial_interp_send.find(newKey) == _spatial_interp_send.end()) {
                 _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
-                _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldLocationV[j]);
+                _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_SEND);
               }
             }
 
@@ -430,7 +432,7 @@ namespace cwipi {
               std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
               if (_spatial_interp_recv.find(newKey) == _spatial_interp_recv.end()) {
                 _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
-                _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldLocationV[j]);
+                _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_RECV);
               }
             }
           }
@@ -522,13 +524,13 @@ namespace cwipi {
 
       sis_it = _spatial_interp_send.begin();
       while(sis_it != _spatial_interp_send.end()) {
-        sis_it->second->spatialInterpWeightsCompute();
+        sis_it->second->weightsCompute();
       }
 
       // spatial_interp recv 
 
       for (int i = 0; i < sir_s; i++) {
-        _spatial_interp_recv[make_pair(cpl_sis_loc[2*i+1], cpl_sis_loc[2*i])]->spatialInterpWeightsCompute();  
+        _spatial_interp_recv[make_pair(cpl_sis_loc[2*i+1], cpl_sis_loc[2*i])]->weightsCompute();  
       }
 
     }
@@ -538,14 +540,14 @@ namespace cwipi {
       // spatial_interp recv 
 
       for (int i = 0; i < sir_s; i++) {
-        _spatial_interp_recv[make_pair(cpl_sis_loc[2*i+1], cpl_sis_loc[2*i])]->spatialInterpWeightsCompute();  
+        _spatial_interp_recv[make_pair(cpl_sis_loc[2*i+1], cpl_sis_loc[2*i])]->weightsCompute();  
       }
 
       // spatial_interp send 
 
       sis_it = _spatial_interp_send.begin();
       while(sis_it != _spatial_interp_send.end()) {
-        sis_it->second->spatialInterpWeightsCompute();
+        sis_it->second->weightsCompute();
       }
 
     }

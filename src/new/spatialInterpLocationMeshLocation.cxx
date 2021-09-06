@@ -17,7 +17,9 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <spatialInterpLocationMeshLocation.hxx>
+#include "spatialInterpLocationMeshLocation.hxx"
+#include "coupling.hxx"
+#include "coupling_i.hxx"
 
 /**
  * \cond
@@ -80,21 +82,21 @@ namespace cwipi {
     }
 
     void SpatialInterpLocationMeshLocation::localization_null_setting_send() {
-        _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm);
+        //  _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm);
 
-        PDM_mesh_location_method_set(_id_pdm, _location_method);
-        PDM_mesh_location_tolerance_set(_id_pdm, _tolerance);
-        PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _nPart_cpl);
-        PDM_mesh_location_mesh_global_data_set(_id_pdm, _nPart);
+        // PDM_mesh_location_method_set(_id_pdm, _location_method);
+        // PDM_mesh_location_tolerance_set(_id_pdm, _tolerance);
+        // PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _nPart_cpl);
+        // PDM_mesh_location_mesh_global_data_set(_id_pdm, _nPart);
 
-        for (int i_part = 0 ; i_part < _nPart_cpl ; i_part++) PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, 0, NULL, NULL);
+        // for (int i_part = 0 ; i_part < _nPart_cpl ; i_part++) PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, 0, NULL, NULL);
 
         CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
 
-        for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-            if (interf_dim == CWP_INTERFACE_SURFACE) PDM_mesh_location_part_set_2d(_id_pdm, i_part, 0, NULL, NULL, NULL, 0, NULL, NULL, NULL, 0, NULL, NULL);
-            else if (interf_dim == CWP_INTERFACE_VOLUME) PDM_mesh_location_part_set(_id_pdm, i_part, 0, NULL, NULL, NULL, 0, NULL, NULL, NULL, 0, NULL, NULL);
-        }
+        // for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+        //     if (interf_dim == CWP_INTERFACE_SURFACE) PDM_mesh_location_part_set_2d(_id_pdm, i_part, 0, NULL, NULL, NULL, 0, NULL, NULL, NULL, 0, NULL, NULL);
+        //     else if (interf_dim == CWP_INTERFACE_VOLUME) PDM_mesh_location_part_set(_id_pdm, i_part, 0, NULL, NULL, NULL, 0, NULL, NULL, NULL, 0, NULL, NULL);
+        // }
     }
 
     void SpatialInterpLocationMeshLocation::localization_null_setting_recv() {

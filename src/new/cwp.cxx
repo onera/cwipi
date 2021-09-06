@@ -61,8 +61,8 @@
 #include "pdm_error.h"
 #include "surfMeshGenerator.hxx"
 #include "surfMeshGeneratorDB.hxx"
-#include "spatialInterpIntersection.hxx"
 #include "spatialInterpClosestPoint.hxx"
+#include "spatialInterpIntersection.hxx"
 #include "spatialInterpLocationDistSurf.hxx"
 #include "spatialInterpLocationMeshLocation.hxx"
 
