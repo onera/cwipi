@@ -20,6 +20,8 @@
 #include <vector>
 #include <map>
 #include <spatialInterp.hxx>
+#include "coupling.hxx"
+#include "coupling_i.hxx"
 #include <mpi.h>
 
 #include <pdm_mesh_nodal.h>

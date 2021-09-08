@@ -101,9 +101,12 @@ namespace cwipi {
      * \param [in]    s_data           Size of a data tot exchange
      * \param [in]    n_send_data      Number of data to send
      * \param [in]    send_data        Array of data to send
+     * \param [in]    n_send_data_cpl  Number of data to send (if current rank is shared betweenn code en coupled code)
+     * \param [in]    send_data_cpl    Array of data to send (if current rank is shared betweenn code en coupled code)
      * \param [in]    n_recv_data      Number of data to receive
      * \param [inout] recv_data        Array of data to receive
-     * \param [inout] request          MPI Request
+     * \param [in]    n_recv_data_cpl  Number of data to receive (if current rank is shared betweenn code en coupled code)
+     * \param [inout] recv_data_cpl    Array of data to receive (if current rank is shared betweenn code en coupled code)
      *
      */
 
@@ -113,11 +116,13 @@ namespace cwipi {
      size_t       s_data,
      int          n_send_data,
      void        *send_data,
+     int          n_send_data_cpl,
+     void        *send_data_cpl,
      int          n_recv_data,
      void        *recv_data,
-     MPI_Request *request
+     int          n_recv_data_cpl,
+     void        *recv_data_cpl
     );
-
 
 
     MPI_Comm

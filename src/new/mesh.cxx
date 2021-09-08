@@ -29,6 +29,8 @@
 #include "cwp.h"
 #include "factory.hpp"
 #include "block.hxx"
+#include "coupling.hxx"
+#include "coupling_i.hxx"
 
 
 

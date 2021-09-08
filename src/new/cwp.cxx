@@ -900,11 +900,9 @@ CWP_Spatial_interp_weights_compute
 )
 {
 
-
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
   cpl.spatialInterpWeightsCompute ();
-
 
 }
 

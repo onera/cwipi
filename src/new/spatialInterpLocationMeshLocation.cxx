@@ -27,6 +27,15 @@
 
 namespace cwipi {
     void SpatialInterpLocationMeshLocation::localization_points_cloud_setting() {
+
+        // if (!(_coupledCodeProperties->localCodeIs() && cp < dl) )
+
+
+        // if (_coupledCodeProperties->localCodeIs() && cp < dl) { 
+        //     if 
+
+
+
         // _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm);
 
         // PDM_mesh_location_method_set(_id_pdm, _location_method);
