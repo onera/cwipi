@@ -299,262 +299,697 @@ namespace cwipi {
   Coupling::spatialInterpWeightsCompute ()
   {
 
-    // /////////////////////////////////////////////////////////////////////////////
-    // //                                                                         //
-    // // Exchange fields properties to obtain spatial intepolation to build      // 
-    // //                                                                         //
-    // /////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////
+    //                                                                         //
+    // Exchange fields properties to obtain spatial intepolation to build      // 
+    //                                                                         //
+    /////////////////////////////////////////////////////////////////////////////
 
-    // // - Store Data to send 
+    // - Store Data to send 
 
-    // std::string localFieldName=""; 
-    // vector<int> localFieldNameIdx;
+    if (!_coupledCodeProperties.localCodeIs()) {
 
-    // int localNbField = _fields.size();
+      std::string localFieldName=""; 
+      vector<int> localFieldNameIdx;
 
-    // localFieldNameIdx.reserve(localNbField + 1);
-    // localFieldNameIdx.push_back(0);
-  
-    // std::vector<CWP_Field_exch_t> localFieldExch;
-    // localFieldExch.reserve(localNbField);
+      int localNbField = _fields.size();
 
-    // std::vector<CWP_Dof_location_t> localFieldLocationV;
-    // localFieldLocationV.reserve(localNbField);
-  
-    // std::map <std::string, cwipi::Field *>::iterator it = _fields.begin();
+      localFieldNameIdx.reserve(localNbField + 1);
+      localFieldNameIdx.push_back(0);
+    
+      std::vector<CWP_Field_exch_t> localFieldExch;
+      localFieldExch.reserve(localNbField);
 
-    // while(it != _fields.end()){
-    //   cwipi::Field* field = it -> second;
-  
-    //   localFieldName += it->first;
-    //   localFieldNameIdx.push_back(localFieldNameIdx[localFieldNameIdx.size()-1]+it->first.size());
-    //   localFieldLocationV.push_back(field->locationGet());
-    //   localFieldExch.push_back(field->exchangeTypeGet());
+      std::vector<CWP_Dof_location_t> localFieldLocationV;
+      localFieldLocationV.reserve(localNbField);
+    
+      std::map <std::string, cwipi::Field *>::iterator it = _fields.begin();
 
-    //   it++;
-    // }
+      while(it != _fields.end()){
+        cwipi::Field* field = it -> second;
+    
+        localFieldName += it->first;
+        localFieldNameIdx.push_back(localFieldNameIdx[localFieldNameIdx.size()-1]+it->first.size());
+        localFieldLocationV.push_back(field->locationGet());
+        localFieldExch.push_back(field->exchangeTypeGet());
 
-    // // - Exchange number of fields 
+        it++;
+      }
 
-    // int nSendData   = 1;
-    // int nRecvData   = 1;
-    // int cplNbField = 0;
-    // MPI_Request     request;
-    // MPI_Status      status;
+      // - Exchange number of fields 
 
-    // //printf("toto\n");
-    // //fflush(stdout);
-    // //abort();
+      int nSendData   = 1;
+      int nRecvData   = 1;
+      int cplNbField = 0;
+      MPI_Request     request;
+      MPI_Status      status;
 
-    // _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
-    //                                                            nSendData,
-    //                                                            (void *) &localNbField,
-    //                                                            nRecvData,
-    //                                                            (void *) &cplNbField,
-    //                                                            &request);
-    // MPI_Wait (&request, &status);
+      //printf("toto\n");
+      //fflush(stdout);
+      //abort();
 
-    // // - Allocate memory to receive data 
+      _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                 nSendData,
+                                                                 (void *) &localNbField,
+                                                                 -1,
+                                                                 NULL,
+                                                                 nRecvData,
+                                                                 (void *) &cplNbField,
+                                                                 -1,
+                                                                 NULL);
+      // - Allocate memory to receive data 
 
-    // vector<int               > cplFieldNameIdx (cplNbField + 1, 0);
-    // vector<CWP_Field_exch_t  > cplFieldExch (cplNbField);
-    // vector<CWP_Dof_location_t> cplFieldLocationV (cplNbField);
-    // string                     cplFieldName;
+      vector<int               > cplFieldNameIdx (cplNbField + 1, 0);
+      vector<CWP_Field_exch_t  > cplFieldExch (cplNbField);
+      vector<CWP_Dof_location_t> cplFieldLocationV (cplNbField);
+      string                     cplFieldName;
 
-    // // - Transfer memory to receive data 
+      // - Transfer memory to receive data 
 
-    // nSendData   = localNbField + 1;
-    // nRecvData   = cplNbField + 1;
-    // _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
-    //                                                            nSendData,
-    //                                                            (void *) &(localFieldNameIdx[0]),
-    //                                                            nRecvData,
-    //                                                            (void *) &(cplFieldNameIdx[0]),
-    //                                                            &request);
-    // MPI_Wait (&request, &status);
-    // localFieldNameIdx.clear();
+      nSendData   = localNbField + 1;
+      nRecvData   = cplNbField + 1;
+      _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                 nSendData,
+                                                                 (void *) &(localFieldNameIdx[0]),
+                                                                 -1,
+                                                                 NULL,
+                                                                 nRecvData,
+                                                                 (void *) &(cplFieldNameIdx[0]),
+                                                                 -1,
+                                                                 NULL);
+      localFieldNameIdx.clear();
 
-    // cplFieldName.resize(cplFieldNameIdx[cplNbField]);
-    // nSendData   = localFieldNameIdx[localNbField];
-    // nRecvData   = cplFieldNameIdx[cplNbField];
+      cplFieldName.resize(cplFieldNameIdx[cplNbField]);
+      nSendData   = localFieldNameIdx[localNbField];
+      nRecvData   = cplFieldNameIdx[cplNbField];
 
-    // _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
-    //                                                            nSendData,
-    //                                                            (void *) localFieldName.c_str(),
-    //                                                            nRecvData,
-    //                                                            (void *) cplFieldName.c_str(),
-    //                                                            &request);
-    // MPI_Wait (&request, &status);
-    // localFieldName.clear();
+      _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                 nSendData,
+                                                                 (void *) localFieldName.c_str(),
+                                                                 -1,
+                                                                 NULL,
+                                                                 nRecvData,
+                                                                 (void *) cplFieldName.c_str(),
+                                                                 -1,
+                                                                 NULL);
+      localFieldName.clear();
 
-    // nSendData   = localNbField;
-    // nRecvData   = cplNbField;
-    // _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Field_exch_t),
-    //                                                            nSendData,
-    //                                                            (void *) &(localFieldExch[0]),
-    //                                                            nRecvData,
-    //                                                            (void *) &(cplFieldExch[0]),
-    //                                                            &request);
-    // MPI_Wait (&request, &status);
-    // localFieldExch.clear();
+      nSendData   = localNbField;
+      nRecvData   = cplNbField;
+      _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Field_exch_t),
+                                                                 nSendData,
+                                                                 (void *) &(localFieldExch[0]),
+                                                                 -1,
+                                                                 NULL,
+                                                                 nRecvData,
+                                                                 (void *) &(cplFieldExch[0]),
+                                                                 -1,
+                                                                 NULL);
+      localFieldExch.clear();
 
-    // nSendData   = localNbField;
-    // nRecvData   = cplNbField;
-    // _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
-    //                                                            nSendData,
-    //                                                            (void *) &(localFieldLocationV[0]),
-    //                                                            nRecvData,
-    //                                                            (void *) &(cplFieldLocationV[0]),
-    //                                                            &request);
-    // MPI_Wait (&request, &status);
-    // localFieldLocationV.clear();
+      nSendData   = localNbField;
+      nRecvData   = cplNbField;
+      _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+                                                                 nSendData,
+                                                                 (void *) &(localFieldLocationV[0]),
+                                                                 -1,
+                                                                 NULL,
+                                                                 nRecvData,
+                                                                 (void *) &(cplFieldLocationV[0]),
+                                                                 -1,
+                                                                 NULL);
+      localFieldLocationV.clear();
 
-    // // Create spatial interpolation objects
+      // Create spatial interpolation objects
 
-    // while(it != _fields.end()) {
-    //   cwipi::Field* field = it -> second;
-    //   string localFieldName = it -> first;
-    //   CWP_Field_exch_t   localFieldExch     = field->exchangeTypeGet();
-    //   CWP_Dof_location_t localFieldLocation = field->locationGet();
+      while(it != _fields.end()) {
+        cwipi::Field* field = it -> second;
+        string localFieldName = it -> first;
+        CWP_Field_exch_t   localFieldExch     = field->exchangeTypeGet();
+        CWP_Dof_location_t localFieldLocation = field->locationGet();
+        
+        for (int j = 0; j < cplNbField; j++) {
+          string cplFieldName = cplFieldName.substr( cplFieldNameIdx[j], cplFieldNameIdx[j+1]-cplFieldNameIdx[j] );
+          if (cplFieldName == localFieldName) {
+            if (  (localFieldExch == CWP_FIELD_EXCH_SENDRECV && cplFieldExch[j] == CWP_FIELD_EXCH_SENDRECV)
+                ||(localFieldExch == CWP_FIELD_EXCH_SEND     && cplFieldExch[j] == CWP_FIELD_EXCH_RECV)
+                ||(localFieldExch == CWP_FIELD_EXCH_RECV     && cplFieldExch[j] == CWP_FIELD_EXCH_SEND)) {
+    
+              if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_SEND) {
+                std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
+                if (_spatial_interp_send.find(newKey) == _spatial_interp_send.end()) {
+                  _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
+                  _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_SEND);
+                }
+              }
+
+              if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_RECV) {
+                std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
+                if (_spatial_interp_recv.find(newKey) == _spatial_interp_recv.end()) {
+                  _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
+                  _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_RECV);
+                }
+              }
+            }
+          }
+        }
+        it++;
+      }  
+
+      MPI_Comm unionComm = communicationGet()->unionCommGet();
+      int unionCommCplCodeRootRank = communicationGet()->unionCommCplCodeRootRanksGet();
+      int unionCommLocCodeRootRank = communicationGet()->unionCommLocCodeRootRanksGet();
+
+      int codeID    = localCodePropertiesGet()->idGet();
+      int cplCodeID = coupledCodePropertiesGet()->idGet();
+
+      int sis_s = (int) _spatial_interp_send.size();
+
+      vector<CWP_Dof_location_t> sis_loc;
+      sis_loc.reserve(2*sis_s);
+
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = _spatial_interp_send.begin();
+      while(sis_it != _spatial_interp_send.end()) {
+        sis_loc.push_back((sis_it->first).first);
+        sis_loc.push_back((sis_it->first).second);
+        sis_it++;
+      }
+
+      int sis_r;
+      _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                 1,
+                                                                 (void *) &sis_s,
+                                                                 -1,
+                                                                 NULL,
+                                                                 1,
+                                                                 (void *) &sis_r,
+                                                                 -1,
+                                                                 NULL);
+
+      int sir_s = (int) _spatial_interp_recv.size();
+      assert(sis_r == sir_s);
+
+      vector<CWP_Dof_location_t> sir_loc;
+      sir_loc.reserve(2*sir_s);
+
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sir_it = _spatial_interp_recv.begin();
+      while(sir_it != _spatial_interp_recv.end()) {
+        sir_loc.push_back((sir_it->first).first);
+        sir_loc.push_back((sir_it->first).second);
+        sir_it++;
+      }
+
+      int sir_r;
+      _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                 1,
+                                                                 (void *) &sir_s,
+                                                                 -1,
+                                                                 NULL,
+                                                                 1,
+                                                                 (void *) &sir_r,
+                                                                 -1,
+                                                                 NULL);
+
+      assert(sir_r == sis_s);
+
+      vector<CWP_Dof_location_t> cpl_sis_loc;
+      cpl_sis_loc.reserve(2*sir_s);
+
+      _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+                                                                 2*sis_s,
+                                                                 (void *) &(sis_loc[0]),
+                                                                 -1,
+                                                                 NULL,
+                                                                 2*sis_r,
+                                                                 (void *) &(cpl_sis_loc[0]),
+                                                                 -1,
+                                                                 NULL);
+
+      vector<CWP_Dof_location_t> cpl_sir_loc;
+      cpl_sir_loc.reserve(2*sis_s);
+
+      _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+                                                                 2*sir_s,
+                                                                 (void *) &(sir_loc[0]),
+                                                                 -1,
+                                                                 NULL,
+                                                                 2*sir_r,
+                                                                 (void *) &(cpl_sir_loc[0]),
+                                                                 -1,
+                                                                 NULL);
+
+      if (codeID < cplCodeID) {
+
+        // spatial_interp send 
+
+        sis_it = _spatial_interp_send.begin();
+        while(sis_it != _spatial_interp_send.end()) {
+          sis_it->second->weightsCompute();
+          sis_it++;
+        }
+
+        // spatial_interp recv 
+
+        for (int i = 0; i < sir_s; i++) {
+          _spatial_interp_recv[make_pair(cpl_sis_loc[2*i+1], cpl_sis_loc[2*i])]->weightsCompute();  
+        }
+
+      }
+
+      else {
+
+        // spatial_interp recv 
+
+        for (int i = 0; i < sir_s; i++) {
+          _spatial_interp_recv[make_pair(cpl_sis_loc[2*i+1], cpl_sis_loc[2*i])]->weightsCompute();  
+        }
+
+        // spatial_interp send 
+
+        sis_it = _spatial_interp_send.begin();
+        while(sis_it != _spatial_interp_send.end()) {
+          sis_it->second->weightsCompute();
+          sis_it++;
+        }
+
+      }
+
+    }
+
+    // if an instance of each code on the same rank. All work is made in the call from the smallest code id
+
+    else { 
+
+      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+
+        cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
+
+        std::string localFieldName=""; 
+        vector<int> localFieldNameIdx;
+
+        int localNbField = _fields.size();
+
+        localFieldNameIdx.reserve(localNbField + 1);
+        localFieldNameIdx.push_back(0);
       
-    //   for (int j = 0; j < cplNbField; j++) {
-    //     string cplFieldName = cplFieldName.substr( cplFieldNameIdx[j], cplFieldNameIdx[j+1]-cplFieldNameIdx[j] );
-    //     if (cplFieldName == localFieldName) {
-    //       if (  (localFieldExch == CWP_FIELD_EXCH_SENDRECV && cplFieldExch[j] == CWP_FIELD_EXCH_SENDRECV)
-    //           ||(localFieldExch == CWP_FIELD_EXCH_SEND     && cplFieldExch[j] == CWP_FIELD_EXCH_RECV)
-    //           ||(localFieldExch == CWP_FIELD_EXCH_RECV     && cplFieldExch[j] == CWP_FIELD_EXCH_SEND)) {
-  
-    //         if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_SEND) {
-    //           std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
-    //           if (_spatial_interp_send.find(newKey) == _spatial_interp_send.end()) {
-    //             _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
-    //             _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_SEND);
-    //           }
-    //         }
+        std::vector<CWP_Field_exch_t> localFieldExch;
+        localFieldExch.reserve(localNbField);
 
-    //         if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_RECV) {
-    //           std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
-    //           if (_spatial_interp_recv.find(newKey) == _spatial_interp_recv.end()) {
-    //             _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
-    //             _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_RECV);
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    //   it++;
-    // }  
+        std::vector<CWP_Dof_location_t> localFieldLocationV;
+        localFieldLocationV.reserve(localNbField);
+      
+        std::map <std::string, cwipi::Field *>::iterator it = _fields.begin();
 
-    // MPI_Comm unionComm = communicationGet()->unionCommGet();
-    // int unionCommCplCodeRootRank = communicationGet()->unionCommCplCodeRootRanksGet();
-    // int unionCommLocCodeRootRank = communicationGet()->unionCommLocCodeRootRanksGet();
+        while(it != _fields.end()){
+          cwipi::Field* field = it -> second;
+      
+          localFieldName += it->first;
+          localFieldNameIdx.push_back(localFieldNameIdx[localFieldNameIdx.size()-1]+it->first.size());
+          localFieldLocationV.push_back(field->locationGet());
+          localFieldExch.push_back(field->exchangeTypeGet());
 
-    // int codeID    = localCodePropertiesGet()->idGet();
-    // int cplCodeID = coupledCodePropertiesGet()->idGet();
+          it++;
+        }
 
-    // std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = _spatial_interp_send.begin();
-    // int sis_s = (int) _spatial_interp_send.size();
+        std::string cpl_localFieldName=""; 
+        vector<int> cpl_localFieldNameIdx;
 
-    // vector<CWP_Dof_location_t> sis_loc;
-    // sis_loc.reserve(2*sis_s);
+        int cpl_localNbField = cpl_cpl._fields.size();
 
-    // while(sis_it != _spatial_interp_send.end()) {
-    //   sis_loc.push_back((sis_it->first).first);
-    //   sis_loc.push_back((sis_it->first).second);
-    //   sis_it++;
-    // }
+        cpl_localFieldNameIdx.reserve(cpl_localNbField + 1);
+        cpl_localFieldNameIdx.push_back(0);
+      
+        std::vector<CWP_Field_exch_t> cpl_localFieldExch;
+        cpl_localFieldExch.reserve(cpl_localNbField);
 
-    // std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sir_it = _spatial_interp_recv.begin();
-    // int sir_s = (int) _spatial_interp_recv.size();
+        std::vector<CWP_Dof_location_t> cpl_localFieldLocationV;
+        cpl_localFieldLocationV.reserve(cpl_localNbField);
+      
+        it = cpl_cpl._fields.begin();
 
-    // vector<CWP_Dof_location_t> sir_loc;
-    // sir_loc.reserve(2*sir_s);
+        while(it != cpl_cpl._fields.end()){
+          cwipi::Field* field = it -> second;
+      
+          cpl_localFieldName += it->first;
+          cpl_localFieldNameIdx.push_back(cpl_localFieldNameIdx[cpl_localFieldNameIdx.size()-1]+it->first.size());
+          cpl_localFieldLocationV.push_back(field->locationGet());
+          cpl_localFieldExch.push_back(field->exchangeTypeGet());
 
-    // while(sir_it != _spatial_interp_recv.end()) {
-    //   sir_loc.push_back((sir_it->first).first);
-    //   sir_loc.push_back((sir_it->first).second);
-    //   sir_it++;
-    // }
+          it++;
+        }
 
-    // int cpl_sis_s;
-    // _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
-    //                                                            1,
-    //                                                            (void *) &sis_s,
-    //                                                            1,
-    //                                                            (void *) &cpl_sis_s,
-    //                                                            &request);
+        // - Exchange number of fields 
 
-    // MPI_Wait (&request, &status);
-    // assert(cpl_sis_s == sir_s);
+        int nSendData       = 1;
+        int nRecvData       = 1;
+        int cplNbField      = 0;
 
-    // int cpl_sir_s;
-    // _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
-    //                                                            1,
-    //                                                            (void *) &sir_s,
-    //                                                            1,
-    //                                                            (void *) &cpl_sir_s,
-    //                                                            &request);
+        int cpl_nSendData       = 1;
+        int cpl_nRecvData       = 1;
+        int cpl_cplNbField      = 0;
 
-    // MPI_Wait (&request, &status);
-    // assert(cpl_sir_s == sis_s);
+        MPI_Request     request;
+        MPI_Status      status;
 
-    // vector<CWP_Dof_location_t> cpl_sis_loc;
-    // cpl_sis_loc.reserve(2*sir_s);
+        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                   nSendData,
+                                                                   (void *) &localNbField,
+                                                                   cpl_nSendData,
+                                                                   (void *) &cpl_localNbField,
+                                                                   nRecvData,
+                                                                   (void *) &cplNbField,
+                                                                   cpl_nRecvData,
+                                                                   (void *) &cpl_cplNbField);
+        // - Allocate memory to receive data 
 
-    // _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
-    //                                                            2*sis_s,
-    //                                                            (void *) &(sis_loc[0]),
-    //                                                            2*cpl_sis_s,
-    //                                                            (void *) &(cpl_sis_loc[0]),
-    //                                                            &request);
+        vector<int               > cplFieldNameIdx (cplNbField + 1, 0);
+        vector<CWP_Field_exch_t  > cplFieldExch (cplNbField);
+        vector<CWP_Dof_location_t> cplFieldLocationV (cplNbField);
+        string                     cplFieldName;
 
-    // MPI_Wait (&request, &status);
+        vector<int               > cpl_cplFieldNameIdx (cpl_cplNbField + 1, 0);
+        vector<CWP_Field_exch_t  > cpl_cplFieldExch (cpl_cplNbField);
+        vector<CWP_Dof_location_t> cpl_cplFieldLocationV (cpl_cplNbField);
+        string                     cpl_cplFieldName;
 
-    // vector<CWP_Dof_location_t> cpl_sir_loc;
-    // cpl_sir_loc.reserve(2*sis_s);
+        // - Transfer memory to receive data 
 
-    // _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
-    //                                                            2*sir_s,
-    //                                                            (void *) &(sis_loc[0]),
-    //                                                            2*cpl_sir_s,
-    //                                                            (void *) &(cpl_sis_loc[0]),
-    //                                                            &request);
+        nSendData   = localNbField + 1;
+        nRecvData   = cplNbField + 1;
 
-    // MPI_Wait (&request, &status);
+        cpl_nSendData   = cpl_localNbField + 1;
+        cpl_nRecvData   = cpl_cplNbField + 1;
 
-    // if (codeID < cplCodeID) {
+        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                   nSendData,
+                                                                   (void *) &(localFieldNameIdx[0]),
+                                                                   cpl_nSendData,
+                                                                   (void *) &(cpl_localFieldNameIdx[0]),
+                                                                   nRecvData,
+                                                                   (void *) &(cplFieldNameIdx[0]),
+                                                                   cpl_nRecvData,
+                                                                   (void *) &(cpl_cplFieldNameIdx[0]));
+        localFieldNameIdx.clear();
 
-    //   // spatial_interp send 
+        cpl_localFieldNameIdx.clear();
 
-    //   sis_it = _spatial_interp_send.begin();
-    //   while(sis_it != _spatial_interp_send.end()) {
-    //     sis_it->second->weightsCompute();
-    //   }
+        cplFieldName.resize(cplFieldNameIdx[cplNbField]);
+        nSendData   = localFieldNameIdx[localNbField];
+        nRecvData   = cplFieldNameIdx[cplNbField];
 
-    //   // spatial_interp recv 
+        cpl_cplFieldName.resize(cpl_cplFieldNameIdx[cpl_cplNbField]);
+        cpl_nSendData   = cpl_localFieldNameIdx[cpl_localNbField];
+        cpl_nRecvData   = cpl_cplFieldNameIdx[cpl_cplNbField];
 
-    //   for (int i = 0; i < sir_s; i++) {
-    //     _spatial_interp_recv[make_pair(cpl_sis_loc[2*i+1], cpl_sis_loc[2*i])]->weightsCompute();  
-    //   }
+        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                   nSendData,
+                                                                   (void *) localFieldName.c_str(),
+                                                                   cpl_nSendData,
+                                                                   (void *) cpl_localFieldName.c_str(),
+                                                                   nRecvData,
+                                                                   (void *) cplFieldName.c_str(),
+                                                                   cpl_nRecvData,
+                                                                   (void *) cpl_cplFieldName.c_str());
 
-    // }
+        localFieldName.clear();
+        cpl_localFieldName.clear();
 
-    // else {
+        nSendData   = localNbField;
+        nRecvData   = cplNbField;
 
-    //   // spatial_interp recv 
+        cpl_nSendData   = cpl_localNbField;
+        cpl_nRecvData   = cpl_cplNbField;
 
-    //   for (int i = 0; i < sir_s; i++) {
-    //     _spatial_interp_recv[make_pair(cpl_sis_loc[2*i+1], cpl_sis_loc[2*i])]->weightsCompute();  
-    //   }
+        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Field_exch_t),
+                                                                   nSendData,
+                                                                   (void *) &(localFieldExch[0]),
+                                                                   cpl_nSendData,
+                                                                   (void *) &(cpl_localFieldExch[0]),
+                                                                   nRecvData,
+                                                                   (void *) &(cplFieldExch[0]),
+                                                                   cpl_nRecvData,
+                                                                   (void *) &(cpl_cplFieldExch[0]));
 
-    //   // spatial_interp send 
+        localFieldExch.clear();
+        cpl_localFieldExch.clear();
 
-    //   sis_it = _spatial_interp_send.begin();
-    //   while(sis_it != _spatial_interp_send.end()) {
-    //     sis_it->second->weightsCompute();
-    //   }
+        nSendData   = localNbField;
+        nRecvData   = cplNbField;
 
-    // }
+        cpl_nSendData   = cpl_localNbField;
+        cpl_nRecvData   = cpl_cplNbField;
+
+        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+                                                                   nSendData,
+                                                                   (void *) &(localFieldLocationV[0]),
+                                                                   cpl_nSendData,
+                                                                   (void *) &(cpl_localFieldLocationV[0]),
+                                                                   nRecvData,
+                                                                   (void *) &(cplFieldLocationV[0]),
+                                                                   cpl_nRecvData,
+                                                                   (void *) &(cpl_cplFieldLocationV[0]));
+
+        localFieldLocationV.clear();
+        cpl_localFieldLocationV.clear();
+
+        // Create spatial interpolation objects
+
+        it = _fields.begin();
+        while(it != _fields.end()) {
+          cwipi::Field* field = it -> second;
+          string localFieldName = it -> first;
+          CWP_Field_exch_t   localFieldExch     = field->exchangeTypeGet();
+          CWP_Dof_location_t localFieldLocation = field->locationGet();
+          
+          for (int j = 0; j < cplNbField; j++) {
+            string cplFieldName = cplFieldName.substr( cplFieldNameIdx[j], cplFieldNameIdx[j+1]-cplFieldNameIdx[j] );
+            if (cplFieldName == localFieldName) {
+              if (  (localFieldExch == CWP_FIELD_EXCH_SENDRECV && cplFieldExch[j] == CWP_FIELD_EXCH_SENDRECV)
+                  ||(localFieldExch == CWP_FIELD_EXCH_SEND     && cplFieldExch[j] == CWP_FIELD_EXCH_RECV)
+                  ||(localFieldExch == CWP_FIELD_EXCH_RECV     && cplFieldExch[j] == CWP_FIELD_EXCH_SEND)) {
+      
+                if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_SEND) {
+                  std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
+                  if (_spatial_interp_send.find(newKey) == _spatial_interp_send.end()) {
+                    _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
+                    _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_SEND);
+                  }
+                }
+
+                if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_RECV) {
+                  std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
+                  if (_spatial_interp_recv.find(newKey) == _spatial_interp_recv.end()) {
+                    _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
+                    _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_RECV);
+                  }
+                }
+              }
+            }
+          }
+          it++;
+        }  
+
+        it = cpl_cpl._fields.begin();
+        while(it != cpl_cpl._fields.end()) {
+          cwipi::Field* field = it -> second;
+          string localFieldName = it -> first;
+          CWP_Field_exch_t   localFieldExch     = field->exchangeTypeGet();
+          CWP_Dof_location_t localFieldLocation = field->locationGet();
+          
+          for (int j = 0; j < cpl_cplNbField; j++) {
+            string cplFieldName = cpl_cplFieldName.substr( cpl_cplFieldNameIdx[j], cpl_cplFieldNameIdx[j+1]-cpl_cplFieldNameIdx[j] );
+            if (cplFieldName == cpl_localFieldName) {
+              if (  (localFieldExch == CWP_FIELD_EXCH_SENDRECV && cpl_cplFieldExch[j] == CWP_FIELD_EXCH_SENDRECV)
+                  ||(localFieldExch == CWP_FIELD_EXCH_SEND     && cpl_cplFieldExch[j] == CWP_FIELD_EXCH_RECV)
+                  ||(localFieldExch == CWP_FIELD_EXCH_RECV     && cpl_cplFieldExch[j] == CWP_FIELD_EXCH_SEND)) {
+      
+                if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_SEND) {
+                  std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cpl_cplFieldLocationV[j]); 
+                  if (cpl_cpl._spatial_interp_send.find(newKey) == cpl_cpl._spatial_interp_send.end()) {
+                    cpl_cpl._spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(cpl_cpl._spatialInterpAlgo)));
+                    cpl_cpl._spatial_interp_send[newKey]->init(this, localFieldLocation, cpl_cplFieldLocationV[j], SPATIAL_INTERP_EXCH_SEND);
+                  }
+                }
+
+                if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_RECV) {
+                  std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cpl_cplFieldLocationV[j]); 
+                  if (cpl_cpl._spatial_interp_recv.find(newKey) == cpl_cpl._spatial_interp_recv.end()) {
+                    cpl_cpl._spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(cpl_cpl._spatialInterpAlgo)));
+                    cpl_cpl._spatial_interp_recv[newKey]->init(this, localFieldLocation, cpl_cplFieldLocationV[j], SPATIAL_INTERP_EXCH_RECV);
+                  }
+                }
+              }
+            }
+          }
+          it++;
+        }  
+
+
+        MPI_Comm unionComm = communicationGet()->unionCommGet();
+        int unionCommCplCodeRootRank = communicationGet()->unionCommCplCodeRootRanksGet();
+        int unionCommLocCodeRootRank = communicationGet()->unionCommLocCodeRootRanksGet();
+
+        int codeID    = localCodePropertiesGet()->idGet();
+        int cplCodeID = coupledCodePropertiesGet()->idGet();
+
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = _spatial_interp_send.begin();
+        int sis_s = (int) _spatial_interp_send.size();
+
+        vector<CWP_Dof_location_t> sis_loc;
+        sis_loc.reserve(2*sis_s);
+
+        while(sis_it != _spatial_interp_send.end()) {
+          sis_loc.push_back((sis_it->first).first);
+          sis_loc.push_back((sis_it->first).second);
+          sis_it++;
+        }
+
+        int cpl_sis_s = (int) cpl_cpl._spatial_interp_send.size();
+
+        vector<CWP_Dof_location_t> cpl_sis_loc;
+        cpl_sis_loc.reserve(2*cpl_sis_s);
+
+        sis_it = cpl_cpl._spatial_interp_send.begin();
+        while(sis_it != cpl_cpl._spatial_interp_send.end()) {
+          cpl_sis_loc.push_back((sis_it->first).first);
+          cpl_sis_loc.push_back((sis_it->first).second);
+          sis_it++;
+        }
+
+        int sis_r;
+        int cpl_sis_r;
+        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                   1,
+                                                                   (void *) &sis_s,
+                                                                   1,
+                                                                   (void *) &cpl_sis_s,
+                                                                   1,
+                                                                   (void *) &sis_r,
+                                                                   1,
+                                                                   (void *) &cpl_sis_r);
+
+        vector<CWP_Dof_location_t> sis_loc_r;
+        sis_loc_r.reserve(2*sis_r);
+        vector<CWP_Dof_location_t> cpl_sis_loc_r;
+        cpl_sis_loc_r.reserve(2*cpl_sis_r);
+
+        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+                                                                   2*sis_s,
+                                                                   (void *) &(sis_loc[0]),
+                                                                   2*cpl_sis_s,
+                                                                   (void *) &(cpl_sis_loc[0]),
+                                                                   2*sis_r,
+                                                                   (void *) &(sis_loc_r[0]),
+                                                                   2*cpl_sis_r,
+                                                                   (void *) &(cpl_sis_loc_r[0]));
+
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sir_it = _spatial_interp_recv.begin();
+        int sir_s = (int) _spatial_interp_recv.size();
+
+        vector<CWP_Dof_location_t> sir_loc;
+        sir_loc.reserve(2*sis_r);
+
+        while(sir_it != _spatial_interp_recv.end()) {
+          sir_loc.push_back((sir_it->first).first);
+          sir_loc.push_back((sir_it->first).second);
+          sir_it++;
+        }
+
+        sir_it = _spatial_interp_recv.begin();
+        int cpl_sir_s = (int) cpl_cpl._spatial_interp_recv.size();
+
+        vector<CWP_Dof_location_t> cpl_sir_loc;
+        cpl_sir_loc.reserve(2*cpl_sis_r);
+
+        while(sir_it != cpl_cpl._spatial_interp_recv.end()) {
+          cpl_sir_loc.push_back((sir_it->first).first);
+          cpl_sir_loc.push_back((sir_it->first).second);
+          sir_it++;
+        }
+
+        int sir_r;
+        int cpl_sir_r;
+        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                   1,
+                                                                   (void *) &sir_s,
+                                                                   1,
+                                                                   (void *) &cpl_sir_s,
+                                                                   1,
+                                                                   (void *) &sir_r,
+                                                                   1,
+                                                                   (void *) &cpl_sir_r);
+
+        vector<CWP_Dof_location_t> sir_loc_r;
+        sir_loc_r.reserve(2*sir_r);
+        vector<CWP_Dof_location_t> cpl_sir_loc_r;
+        cpl_sir_loc_r.reserve(2*cpl_sir_r);
+
+        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+                                                                   2*sir_s,
+                                                                   (void *) &(sir_loc[0]),
+                                                                   2*cpl_sir_s,
+                                                                   (void *) &(cpl_sir_loc[0]),
+                                                                   2*sir_r,
+                                                                   (void *) &(sir_loc_r[0]),
+                                                                   2*cpl_sir_r,
+                                                                   (void *) &(cpl_sir_loc_r[0]));
+
+        assert(sir_r     == sis_s);
+        assert(sis_r     == sir_s);
+        assert(cpl_sir_r == cpl_sis_s);
+        assert(cpl_sis_r == cpl_sir_s);
+
+        if (codeID < cplCodeID) {
+
+          // spatial_interp send 
+
+          sis_it = _spatial_interp_send.begin();
+          int i = 0;
+          while(sis_it != _spatial_interp_send.end()) {
+            sis_it->second->weightsCompute();
+            cpl_cpl._spatial_interp_recv[make_pair(cpl_sir_loc_r[2*i+1], cpl_sir_loc_r[2*i])]->weightsCompute();  
+            sis_it++;
+            i++;
+          }
+
+          sis_it = cpl_cpl._spatial_interp_send.begin();
+          i = 0;
+          while(sis_it != cpl_cpl._spatial_interp_send.end()) {
+            _spatial_interp_recv[make_pair(sir_loc_r[2*i+1], sir_loc_r[2*i])]->weightsCompute();  
+            sis_it->second->weightsCompute();
+            sis_it++;
+            i++;
+          }
+
+        }
+
+        else {
+
+          // spatial_interp recv 
+
+          int i = 0;
+          sis_it = cpl_cpl._spatial_interp_send.begin();
+          while(sis_it != _spatial_interp_send.end()) {
+            _spatial_interp_recv[make_pair(sis_loc_r[2*i+1], sis_loc_r[2*i])]->weightsCompute();  
+            sis_it->second->weightsCompute();
+            sis_it++;
+            i++;
+          }
+
+
+          // spatial_interp send 
+
+          sis_it = _spatial_interp_send.begin();
+          while(sis_it != _spatial_interp_send.end()) {
+            sis_it->second->weightsCompute();
+            cpl_cpl._spatial_interp_recv[make_pair(cpl_sis_loc_r[2*i+1], cpl_sis_loc_r[2*i])]->weightsCompute();  
+            sis_it++;
+            i++;
+          }
+
+        }
+      }    
+    }
 
   }
 
