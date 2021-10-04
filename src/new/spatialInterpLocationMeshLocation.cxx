@@ -49,6 +49,10 @@ namespace cwipi {
 
     else {
 
+      // Attention : 
+      //     - creation d'un objet unique pdm sur le plus petit des 2 id + Copie de l'id dans l'objet du code couple
+      //     - rien a faire pour id le plus grand
+
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
 
         _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm);

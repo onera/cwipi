@@ -579,7 +579,7 @@ namespace cwipi {
     // if an instance of each code on the same rank. All work is made in the call from the smallest code id
 
     else { 
-
+    
       if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
 
         cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
