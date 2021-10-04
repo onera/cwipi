@@ -770,17 +770,25 @@ namespace cwipi {
       
                 if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_SEND) {
                   std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
+                  std::pair < CWP_Dof_location_t, CWP_Dof_location_t > cpl_newKey (cplFieldLocationV[j], localFieldLocation); 
+
                   if (_spatial_interp_send.find(newKey) == _spatial_interp_send.end()) {
                     _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
-                    _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_SEND);
+                    cpl_cpl._spatial_interp_recv.insert(make_pair(cpl_newKey, FG::getInstance().CreateObject(cpl_cpl._spatialInterpAlgo)));
+                    _spatial_interp_send[newKey]->init(&cpl_cpl, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_SEND);
+                    cpl_cpl._spatial_interp_recv[cpl_newKey]->init(&cpl_cpl, cplFieldLocationV[j], localFieldLocation, SPATIAL_INTERP_EXCH_RECV);
                   }
                 }
 
                 if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_RECV) {
                   std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
+                  std::pair < CWP_Dof_location_t, CWP_Dof_location_t > cpl_newKey (cplFieldLocationV[j], localFieldLocation); 
+
                   if (_spatial_interp_recv.find(newKey) == _spatial_interp_recv.end()) {
                     _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
+                    cpl_cpl._spatial_interp_send.insert(make_pair(cpl_newKey, FG::getInstance().CreateObject(cpl_cpl._spatialInterpAlgo)));
                     _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_RECV);
+                    cpl_cpl._spatial_interp_send[cpl_newKey]->init(&cpl_cpl, cplFieldLocationV[j], localFieldLocation, SPATIAL_INTERP_EXCH_SEND);
                   }
                 }
               }
@@ -789,40 +797,40 @@ namespace cwipi {
           it++;
         }  
 
-        it = cpl_cpl._fields.begin();
-        while(it != cpl_cpl._fields.end()) {
-          cwipi::Field* field = it -> second;
-          string localFieldName = it -> first;
-          CWP_Field_exch_t   localFieldExch     = field->exchangeTypeGet();
-          CWP_Dof_location_t localFieldLocation = field->locationGet();
+        // it = cpl_cpl._fields.begin();
+        // while(it != cpl_cpl._fields.end()) {
+        //   cwipi::Field* field = it -> second;
+        //   string localFieldName = it -> first;
+        //   CWP_Field_exch_t   localFieldExch     = field->exchangeTypeGet();
+        //   CWP_Dof_location_t localFieldLocation = field->locationGet();
           
-          for (int j = 0; j < cpl_cplNbField; j++) {
-            string cplFieldName = cpl_cplFieldName.substr( cpl_cplFieldNameIdx[j], cpl_cplFieldNameIdx[j+1]-cpl_cplFieldNameIdx[j] );
-            if (cplFieldName == cpl_localFieldName) {
-              if (  (localFieldExch == CWP_FIELD_EXCH_SENDRECV && cpl_cplFieldExch[j] == CWP_FIELD_EXCH_SENDRECV)
-                  ||(localFieldExch == CWP_FIELD_EXCH_SEND     && cpl_cplFieldExch[j] == CWP_FIELD_EXCH_RECV)
-                  ||(localFieldExch == CWP_FIELD_EXCH_RECV     && cpl_cplFieldExch[j] == CWP_FIELD_EXCH_SEND)) {
+        //   for (int j = 0; j < cpl_cplNbField; j++) {
+        //     string cplFieldName = cpl_cplFieldName.substr( cpl_cplFieldNameIdx[j], cpl_cplFieldNameIdx[j+1]-cpl_cplFieldNameIdx[j] );
+        //     if (cplFieldName == cpl_localFieldName) {
+        //       if (  (localFieldExch == CWP_FIELD_EXCH_SENDRECV && cpl_cplFieldExch[j] == CWP_FIELD_EXCH_SENDRECV)
+        //           ||(localFieldExch == CWP_FIELD_EXCH_SEND     && cpl_cplFieldExch[j] == CWP_FIELD_EXCH_RECV)
+        //           ||(localFieldExch == CWP_FIELD_EXCH_RECV     && cpl_cplFieldExch[j] == CWP_FIELD_EXCH_SEND)) {
       
-                if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_SEND) {
-                  std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cpl_cplFieldLocationV[j]); 
-                  if (cpl_cpl._spatial_interp_send.find(newKey) == cpl_cpl._spatial_interp_send.end()) {
-                    cpl_cpl._spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(cpl_cpl._spatialInterpAlgo)));
-                    cpl_cpl._spatial_interp_send[newKey]->init(this, localFieldLocation, cpl_cplFieldLocationV[j], SPATIAL_INTERP_EXCH_SEND);
-                  }
-                }
+        //         if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_SEND) {
+        //           std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cpl_cplFieldLocationV[j]); 
+        //           if (cpl_cpl._spatial_interp_send.find(newKey) == cpl_cpl._spatial_interp_send.end()) {
+        //             cpl_cpl._spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(cpl_cpl._spatialInterpAlgo)));
+        //             cpl_cpl._spatial_interp_send[newKey]->init(this, localFieldLocation, cpl_cplFieldLocationV[j], SPATIAL_INTERP_EXCH_SEND);
+        //           }
+        //         }
 
-                if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_RECV) {
-                  std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cpl_cplFieldLocationV[j]); 
-                  if (cpl_cpl._spatial_interp_recv.find(newKey) == cpl_cpl._spatial_interp_recv.end()) {
-                    cpl_cpl._spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(cpl_cpl._spatialInterpAlgo)));
-                    cpl_cpl._spatial_interp_recv[newKey]->init(this, localFieldLocation, cpl_cplFieldLocationV[j], SPATIAL_INTERP_EXCH_RECV);
-                  }
-                }
-              }
-            }
-          }
-          it++;
-        }  
+        //         if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_RECV) {
+        //           std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cpl_cplFieldLocationV[j]); 
+        //           if (cpl_cpl._spatial_interp_recv.find(newKey) == cpl_cpl._spatial_interp_recv.end()) {
+        //             cpl_cpl._spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(cpl_cpl._spatialInterpAlgo)));
+        //             cpl_cpl._spatial_interp_recv[newKey]->init(this, localFieldLocation, cpl_cplFieldLocationV[j], SPATIAL_INTERP_EXCH_RECV);
+        //           }
+        //         }
+        //       }
+        //     }
+        //   }
+        //   it++;
+        // }  
 
 
         MPI_Comm unionComm = communicationGet()->unionCommGet();

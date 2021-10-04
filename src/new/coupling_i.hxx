@@ -1075,10 +1075,37 @@ namespace cwipi {
 
   string 
   Coupling::IdGet(){
-     return _cplId;
+    return _cplId;
   }
 
 
+
+  /**
+   *
+   * \brief Return sendSpatial map
+   *
+   * \return id
+   *  
+   */
+
+  std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &    
+  Coupling::sendSpatialInterpGet() {
+    return _spatial_interp_send;
+  }
+
+
+  /**
+   *
+   * \brief Return recvSpatial map
+   *
+   * \return id
+   *  
+   */
+
+  std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &    
+  Coupling::recvSpatialInterpGet(){
+    return _spatial_interp_recv;
+  }
 
   /*----------------------------------------------------------------------------*
    * methods about user target                                                  *

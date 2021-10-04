@@ -26,10 +26,111 @@
  */
 
 namespace cwipi {
-    void SpatialInterpLocationMeshLocation::localization_points_cloud_setting() {
 
-        // if (!(_coupledCodeProperties->localCodeIs() && cp < dl) )
+  void SpatialInterpLocationMeshLocation::localization_init() {
 
+    if (!_coupledCodeProperties->localCodeIs()) {
+
+      _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm);
+
+      PDM_mesh_location_method_set(_id_pdm, _location_method);
+      PDM_mesh_location_tolerance_set(_id_pdm, _tolerance);
+  
+      if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+
+        PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _nPart);
+        // PDM_mesh_location_mesh_global_data_set(_id_pdm, _nPart_cpl);
+            //To be continued
+
+
+      }
+
+    }
+
+    else {
+
+      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+
+        _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm);
+
+        SpatialInterpLocationMeshLocation *cpl_spatial_interp;
+
+        cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+
+        if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
+
+          cpl_spatial_interp = 
+            dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+
+            //To be continued 
+
+        }
+
+        else {
+
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
+
+          cpl_spatial_interp = 
+            dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+
+            //To be continued
+
+        }
+
+        cpl_spatial_interp->_id_pdm = _id_pdm;
+
+      }
+
+    }
+  }
+
+  void SpatialInterpLocationMeshLocation::localization_points_cloud_setting() {
+
+      if (!_coupledCodeProperties->localCodeIs()) {
+
+        if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+
+              //To be continued
+
+
+        }
+
+      }
+
+      else {
+
+        if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+
+          cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+
+          if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+
+            std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
+
+            SpatialInterpLocationMeshLocation * cpl_spatial_interp_send = 
+              dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+
+              //To be continued 
+
+          }
+
+          else {
+
+            std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
+
+            SpatialInterpLocationMeshLocation * cpl_spatial_interp_recv = 
+              dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+
+              //To be continued
+
+          }
+
+
+        }
+
+      }
 
         // if (_coupledCodeProperties->localCodeIs() && cp < dl) { 
         //     if 

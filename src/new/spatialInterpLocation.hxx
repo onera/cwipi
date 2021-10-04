@@ -100,13 +100,12 @@ namespace cwipi {
     const int *
     computedTargetsGet(int i_part) const override;
 
-
     // A mettre en privé !!!
-
 
     SpatialInterpLocation *_spatial_interp_cpl;
 
     // Localization data
+
     double **_distance;                 // Distance to the closest element surface by partition
     double **_projected;                // Projected point coordinates (on the closest element surface)
     CWP_g_num_t **_closest_elt_gnum;    // Closest element global numbering
@@ -129,6 +128,15 @@ namespace cwipi {
      **                                                       **
      ***********************************************************
      ***********************************************************/
+    /**
+       *
+       * \brief Setting of the points cloud for localization.
+       *
+       * \param [out] id_dist   Localization object identifier.
+       *
+       */
+    virtual void localization_init();
+
     /**
        *
        * \brief Setting of the points cloud for localization.
@@ -321,6 +329,7 @@ namespace cwipi {
 
     // Paradigm structure identifier
     PDM_gnum_location_t *_id_gnum_location;              // Identifier for the global numbering to (process,partition,numbering) triplet object of paradigm
+  
   }; //end SpatialInterpLocation
 
 /**

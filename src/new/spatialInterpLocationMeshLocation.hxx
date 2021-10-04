@@ -41,6 +41,8 @@ namespace cwipi {
             return tolerance;
         }
 
+        void localization_init() override;
+
         void localization_points_cloud_setting() override;
 
         void localization_null_setting_send() override;

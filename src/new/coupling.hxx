@@ -1060,6 +1060,29 @@ namespace cwipi {
     inline string       
     IdGet();
 
+    /**
+     *
+     * \brief Return sendSpatial map
+     *
+     * \return id
+     *  
+     */
+ 
+    inline std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &    
+    sendSpatialInterpGet();
+
+
+    /**
+     *
+     * \brief Return recvSpatial map
+     *
+     * \return id
+     *  
+     */
+ 
+    inline std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &    
+    recvSpatialInterpGet();
+
     /*----------------------------------------------------------------------------*
      * methods about user target                                                  *
      *----------------------------------------------------------------------------*/
