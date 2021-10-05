@@ -305,9 +305,15 @@ namespace cwipi {
     //                                                                         //
     /////////////////////////////////////////////////////////////////////////////
 
+    printf("Coupling::spatialInterpWeightsCompute - 1\n");
+    fflush(stdout);
+
     // - Store Data to send 
 
     if (!_coupledCodeProperties.localCodeIs()) {
+
+      printf("Coupling::spatialInterpWeightsCompute - not cpl loacal code is - 1\n");
+      fflush(stdout);
 
       std::string localFieldName=""; 
       vector<int> localFieldNameIdx;
@@ -335,6 +341,9 @@ namespace cwipi {
 
         it++;
       }
+
+      printf("Coupling::spatialInterpWeightsCompute - not cpl loacal code is - 2\n");
+      fflush(stdout);
 
       // - Exchange number of fields 
 
@@ -422,6 +431,9 @@ namespace cwipi {
 
       // Create spatial interpolation objects
 
+      printf("Coupling::spatialInterpWeightsCompute - not cpl loacal code is - 3\n");
+      fflush(stdout);
+
       while(it != _fields.end()) {
         cwipi::Field* field = it -> second;
         string localFieldName = it -> first;
@@ -455,6 +467,10 @@ namespace cwipi {
         }
         it++;
       }  
+
+      printf("Coupling::spatialInterpWeightsCompute - not cpl loacal code is - 4\n");
+      fflush(stdout);
+
 
       MPI_Comm unionComm = communicationGet()->unionCommGet();
       int unionCommCplCodeRootRank = communicationGet()->unionCommCplCodeRootRanksGet();
@@ -538,6 +554,9 @@ namespace cwipi {
                                                                  -1,
                                                                  NULL);
 
+      printf("Coupling::spatialInterpWeightsCompute - not cpl loacal code is - 5\n");
+      fflush(stdout);
+
       if (codeID < cplCodeID) {
 
         // spatial_interp send 
@@ -554,6 +573,8 @@ namespace cwipi {
           _spatial_interp_recv[make_pair(cpl_sis_loc[2*i+1], cpl_sis_loc[2*i])]->weightsCompute();  
         }
 
+      printf("Coupling::spatialInterpWeightsCompute - not cpl loacal code is - 6\n");
+      fflush(stdout);
       }
 
       else {
@@ -571,6 +592,8 @@ namespace cwipi {
           sis_it->second->weightsCompute();
           sis_it++;
         }
+      printf("Coupling::spatialInterpWeightsCompute - not cpl loacal code is - 7\n");
+      fflush(stdout);
 
       }
 
@@ -581,6 +604,9 @@ namespace cwipi {
     else { 
     
       if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+
+      printf("Coupling::spatialInterpWeightsCompute - cpl loacal code is - 1\n");
+      fflush(stdout);
 
         cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
 
@@ -754,6 +780,9 @@ namespace cwipi {
 
         // Create spatial interpolation objects
 
+      printf("Coupling::spatialInterpWeightsCompute - cpl loacal code is - 2\n");
+      fflush(stdout);
+
         it = _fields.begin();
         while(it != _fields.end()) {
           cwipi::Field* field = it -> second;
@@ -796,6 +825,9 @@ namespace cwipi {
           }
           it++;
         }  
+
+      printf("Coupling::spatialInterpWeightsCompute - cpl loacal code is - 3\n");
+      fflush(stdout);
 
         // it = cpl_cpl._fields.begin();
         // while(it != cpl_cpl._fields.end()) {
@@ -863,6 +895,9 @@ namespace cwipi {
           cpl_sis_loc.push_back((sis_it->first).second);
           sis_it++;
         }
+
+      printf("Coupling::spatialInterpWeightsCompute - cpl loacal code is - 4\n");
+      fflush(stdout);
 
         int sis_r;
         int cpl_sis_r;
@@ -947,9 +982,14 @@ namespace cwipi {
         assert(cpl_sir_r == cpl_sis_s);
         assert(cpl_sis_r == cpl_sir_s);
 
+      printf("Coupling::spatialInterpWeightsCompute - cpl loacal code is - 5\n");
+      fflush(stdout);
+
         if (codeID < cplCodeID) {
 
           // spatial_interp send 
+      printf("Coupling::spatialInterpWeightsCompute - cpl loacal code is - 61\n");
+      fflush(stdout);
 
           sis_it = _spatial_interp_send.begin();
           int i = 0;
@@ -974,6 +1014,8 @@ namespace cwipi {
         else {
 
           // spatial_interp recv 
+      printf("Coupling::spatialInterpWeightsCompute - cpl loacal code is - 62\n");
+      fflush(stdout);
 
           int i = 0;
           sis_it = cpl_cpl._spatial_interp_send.begin();
@@ -999,6 +1041,8 @@ namespace cwipi {
       }    
     }
 
+      printf("Coupling::spatialInterpWeightsCompute - fin\n");
+      fflush(stdout);
   }
 
 

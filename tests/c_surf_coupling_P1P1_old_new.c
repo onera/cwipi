@@ -1251,8 +1251,8 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
   }
 
   else {
-      printf("avant locate2\n");
-  fflush(stdout);
+    printf("avant locate2\n");
+    fflush(stdout);
     CWP_Spatial_interp_weights_compute (code_name[0],
                                         coupling_name);
   }

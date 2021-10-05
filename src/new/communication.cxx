@@ -365,6 +365,9 @@ namespace cwipi {
   )
   {
 
+    printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 1\n");
+    fflush(stdout);
+
     int unionCommRank;
     MPI_Status status;
     MPI_Request request1;
@@ -381,13 +384,21 @@ namespace cwipi {
 
     MPI_Comm_rank (_unionComm, &unionCommRank);
 
+    printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 2\n");
+    fflush(stdout);
+
     if (unionCommRank ==  _locCodeRootRankUnionComm) {
       if (_cplCodeProperties->localCodeIs()) {
+
         if (_locCodeRootRankUnionComm == _cplCodeRootRankUnionComm) {
+          printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 2.1\n");
+          fflush(stdout);
           assert (n_send_data     == n_recv_data_cpl);
           memcpy (recv_data_cpl, send_data    , s_data * n_send_data);
         }
         else {
+          printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 2.2\n");
+          fflush(stdout);
           MPI_Sendrecv (send_data,
                         (int) s_data * n_send_data,
                         MPI_UNSIGNED_CHAR,
@@ -403,10 +414,12 @@ namespace cwipi {
         }
       }
       else {
+        printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 2.3\n");
+        fflush(stdout);
         MPI_Sendrecv (send_data,
                       (int) s_data * n_send_data,
                       MPI_UNSIGNED_CHAR,
-                      _locCodeRootRankUnionComm,
+                      _cplCodeRootRankUnionComm,
                       _tag,
                       recv_data,
                       (int) s_data * n_recv_data,
@@ -421,14 +434,18 @@ namespace cwipi {
     if (_cplCodeProperties->localCodeIs()) {
       if (unionCommRank ==  _cplCodeRootRankUnionComm) {
         if (_locCodeRootRankUnionComm == _cplCodeRootRankUnionComm) {
+          printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 3.1\n");
+          fflush(stdout);
           assert (n_send_data_cpl == n_recv_data);
           memcpy (recv_data    , send_data_cpl, s_data * n_send_data_cpl);
         }
         else {
+          printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 3.2\n");
+          fflush(stdout);
           MPI_Sendrecv (send_data_cpl,
                         (int) s_data * n_send_data_cpl,
                         MPI_UNSIGNED_CHAR,
-                        _locCodeRootRankUnionComm,
+                        _cplCodeRootRankUnionComm,
                         _tag,
                         recv_data_cpl,
                         (int) s_data * n_recv_data_cpl,
@@ -441,6 +458,8 @@ namespace cwipi {
       }
     }
 
+    printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 4.1\n");
+    fflush(stdout);
     MPI_Ibcast (recv_data,
                (int) s_data * n_recv_data,
                MPI_UNSIGNED_CHAR,
@@ -450,6 +469,8 @@ namespace cwipi {
 
     if (_cplCodeProperties->localCodeIs()) {
 
+    printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 4.2\n");
+    fflush(stdout);
       MPI_Ibcast (recv_data_cpl,
                  (int) s_data * n_recv_data_cpl,
                  MPI_UNSIGNED_CHAR,
@@ -459,9 +480,14 @@ namespace cwipi {
     }
 
     MPI_Wait (&request1, &status);
+    printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 5.1\n");
+    fflush(stdout);
 
     if (_cplCodeProperties->localCodeIs()) {
       MPI_Wait (&request2, &status);
+      printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 5.2\n");
+      fflush(stdout);
+
     }
 
   }
