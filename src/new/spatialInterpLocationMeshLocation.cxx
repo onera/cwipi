@@ -27,21 +27,28 @@
 
 namespace cwipi {
 
-  void SpatialInterpLocationMeshLocation::localization_init() {
+  void SpatialInterpLocationMeshLocation::localization_init() {   
 
     if (!_coupledCodeProperties->localCodeIs()) {
+
+      printf("localization_init - 1.1\n");
+      fflush(stdout);
 
       _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm);
 
       PDM_mesh_location_method_set(_id_pdm, _location_method);
       PDM_mesh_location_tolerance_set(_id_pdm, _tolerance);
   
+      printf("localization_init - 1.2\n");
+      fflush(stdout);
+
       if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
         PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _nPart);
         // PDM_mesh_location_mesh_global_data_set(_id_pdm, _nPart_cpl);
             //To be continued
-
+        printf("localization_init - 1.3\n");
+        fflush(stdout);
 
       }
 
@@ -55,6 +62,9 @@ namespace cwipi {
 
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
 
+        printf("localization_init - 2.1\n");
+        fflush(stdout);
+
         _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm);
 
         SpatialInterpLocationMeshLocation *cpl_spatial_interp;
@@ -62,6 +72,9 @@ namespace cwipi {
         cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
 
         if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+
+          printf("localization_init - 2.2\n");
+          fflush(stdout);
 
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
 
@@ -73,6 +86,9 @@ namespace cwipi {
         }
 
         else {
+
+          printf("localization_init - 2.3\n");
+          fflush(stdout);
 
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
 
@@ -88,6 +104,10 @@ namespace cwipi {
       }
 
     }
+
+    printf("localization_init - end\n");
+    fflush(stdout);
+
   }
 
   void SpatialInterpLocationMeshLocation::localization_points_cloud_setting() {

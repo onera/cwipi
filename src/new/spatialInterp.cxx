@@ -92,9 +92,59 @@ namespace cwipi {
     // _connectableRanks_cpl = _cpl -> communicationGet() -> cplCommCplRanksGet();
     // _connectableRanks     = _cpl -> communicationGet() -> cplCommLocRanksGet();
 
+    //_id     = _localCodeProperties   -> idGet();
+    //_id_cpl = _coupledCodeProperties -> idGet();
 
-    // _id     = _localCodeProperties   -> idGet();
-    // _id_cpl = _coupledCodeProperties -> idGet();
+
+    if (!_coupledCodeProperties->localCodeIs()) {
+      _cpl->communicationGet()->iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                            1,
+                                                                            (void *) &_nPart,
+                                                                            -1,
+                                                                            NULL,
+                                                                            1,
+                                                                            (void *) &_cplNPart,
+                                                                            -1,
+                                                                            NULL);
+   
+    }
+
+    else {
+      cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+
+      SpatialInterp *cpl_spatial_interp;
+
+      if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
+
+        cpl_spatial_interp = cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
+
+      }
+
+      else {
+
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
+
+        cpl_spatial_interp = cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
+
+      }
+
+
+      int cpl_cplNPart = cpl_cpl.meshGet()-> getNPart();
+      _cpl->communicationGet()->iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                            1,
+                                                                            (void *) &_nPart,
+                                                                            1,
+                                                                            (void *) &cpl_cplNPart,
+                                                                            1,
+                                                                            (void *) &_cplNPart,
+                                                                            1,
+                                                                            (void *) &(cpl_spatial_interp->_cplNPart));
+
+    }
+
+
 
     // if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && slave == 0 ) ){
 

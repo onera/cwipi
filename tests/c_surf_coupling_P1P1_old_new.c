@@ -1041,7 +1041,8 @@ int main
                     coupled_code_name[0],
                     CWP_INTERFACE_SURFACE,
                     CWP_COMM_PAR_WITH_PART,
-                    CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF,
+//                    CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF,
+                    CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
                     n_part,
                     CWP_DYNAMIC_MESH_STATIC,
                     CWP_TIME_EXCH_CPL_TIME_STEP);
@@ -1173,6 +1174,7 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
   double *recv_val = NULL;
 
   char *field_name = "cooX";
+  char *field_name2 = "coocooY";
 
   if (code_id == 1) {
     send_val = (double *) malloc (sizeof(double) * nVtx[0]);
@@ -1206,12 +1208,43 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
                           field_name,
                           0,
                           send_val);
+
+      CWP_Field_create (code_name[0],
+                        coupling_name,
+                        field_name2,
+                        CWP_DOUBLE,
+                        CWP_FIELD_STORAGE_BLOCK,
+                        1,
+                        CWP_DOF_LOCATION_NODE,
+                        CWP_FIELD_EXCH_SEND,
+                        visu_status);
+
+      CWP_Field_data_set (code_name[0],
+                          coupling_name,
+                          field_name,
+                          0,
+                          send_val);
     }
 
     else {
       CWP_Field_create (code_name[0],
                         coupling_name,
                         field_name,
+                        CWP_DOUBLE,
+                        CWP_FIELD_STORAGE_BLOCK,
+                        1,
+                        CWP_DOF_LOCATION_NODE,
+                        CWP_FIELD_EXCH_RECV,
+                        visu_status);
+
+      CWP_Field_data_set (code_name[0],
+                          coupling_name,
+                          field_name,
+                          0,
+                          recv_val);
+      CWP_Field_create (code_name[0],
+                        coupling_name,
+                        field_name2,
                         CWP_DOUBLE,
                         CWP_FIELD_STORAGE_BLOCK,
                         1,

@@ -176,7 +176,8 @@ namespace cwipi {
     
     CWP_SpatialInterp_time_t     _interpolation_time      ;
 
-    int  _nPart                               ;  /*!< Mesh partition number                                                    */
+    int  _nPart; /*!< Mesh partition number                                                    */
+    int  _cplNPart;  /*!< Coupled mesh partition number                                                    */
 
     int _rootRankUnionComm   ;
     int _cplRootRankUnionComm;
