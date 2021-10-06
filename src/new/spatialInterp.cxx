@@ -144,7 +144,8 @@ namespace cwipi {
 
     }
 
-
+    printf("_nPart, _cplNPart : %d %d\n", _nPart, _cplNPart);
+    fflush(stdout);
 
     // if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && slave == 0 ) ){
 

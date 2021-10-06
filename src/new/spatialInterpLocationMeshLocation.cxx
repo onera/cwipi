@@ -29,6 +29,9 @@ namespace cwipi {
 
   void SpatialInterpLocationMeshLocation::localization_init() {   
 
+    printf("_nPart, _cplNPart : %d %d\n", _nPart, _cplNPart);
+    fflush(stdout);
+
     if (!_coupledCodeProperties->localCodeIs()) {
 
       printf("localization_init - 1.1\n");
@@ -44,10 +47,20 @@ namespace cwipi {
 
       if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
+        PDM_mesh_location_mesh_global_data_set(_id_pdm, _cplNPart);
         PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _nPart);
-        // PDM_mesh_location_mesh_global_data_set(_id_pdm, _nPart_cpl);
-            //To be continued
+
         printf("localization_init - 1.3\n");
+        fflush(stdout);
+
+      }
+
+      else {
+
+        PDM_mesh_location_mesh_global_data_set(_id_pdm, _nPart);
+        PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _cplNPart);
+
+        printf("localization_init - 1.4\n");
         fflush(stdout);
 
       }
@@ -81,6 +94,7 @@ namespace cwipi {
           cpl_spatial_interp = 
             dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
 
+
             //To be continued 
 
         }
@@ -94,15 +108,30 @@ namespace cwipi {
 
           cpl_spatial_interp = 
             dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-
-            //To be continued
-
         }
 
         cpl_spatial_interp->_id_pdm = _id_pdm;
 
-      }
+        if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
+          PDM_mesh_location_mesh_global_data_set(_id_pdm, _cplNPart);
+          PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _nPart);
+
+          printf("localization_init - 2.4\n");
+          fflush(stdout);
+
+        }
+
+        else {
+
+          PDM_mesh_location_mesh_global_data_set(_id_pdm, _nPart);
+          PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _cplNPart);
+
+          printf("localization_init - 2.5\n");
+          fflush(stdout);
+
+        }
+      }
     }
 
     printf("localization_init - end\n");
