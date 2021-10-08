@@ -19,18 +19,19 @@
 
 #include <vector>
 #include <map>
-#include <spatialInterp.hxx>
+#include "spatialInterp.hxx"
+#include "spatialInterp_i.hxx"
 #include "coupling.hxx"
 #include "coupling_i.hxx"
 #include <mpi.h>
 
-#include <pdm_mesh_nodal.h>
-#include <pdm_dist_cloud_surf.h>
-#include <pdm_gnum.h>
-#include <pdm_timer.h>
-#include <pdm_gnum_location.h>
-#include <bftc_error.h>
-#include <bftc_printf.h>
+#include "pdm_mesh_nodal.h"
+#include "pdm_dist_cloud_surf.h"
+#include "pdm_gnum.h"
+#include "pdm_timer.h"
+#include "pdm_gnum_location.h"
+#include "bftc_error.h"
+#include "bftc_printf.h"
 #include "cwp.h"
 #include <limits>
 #include <vector>

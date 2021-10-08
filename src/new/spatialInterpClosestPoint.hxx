@@ -31,54 +31,6 @@ namespace cwipi {
 
     void weightsCompute() override;
 
-
-    /**
-     *
-     * \brief Return the number of uncomputed targets
-     *
-     * \return                Number of uncomputed targets
-     *
-     */
-
-    int
-    nUncomputedTargetsGet(int i_part) const override; 
-
-    /**
-     *
-     * \brief Return uncomputed targets
-     *
-     * \return                Uncomputed targets
-     *
-     */
-
-    const int *
-    uncomputedTargetsGet(int i_part) const override;
-
-    /**
-     *
-     * \brief Return the number of computed targets
-     *
-     * \return                Number of computed targets
-     */
-
-    int
-    nComputedTargetsGet(int i_part) const override;
-
-    /**
-     *
-     * \brief Return computed targets
-     *
-     *
-     * \return                Computed targets
-     *
-     */
-
-    const int *
-    computedTargetsGet(int i_part) const override;
-
-
-
-
     private:
         void *interpolate(Field *referenceField) override;
 

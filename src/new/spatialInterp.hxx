@@ -121,8 +121,8 @@ namespace cwipi {
      *
      */
 
-    virtual int
-    nUncomputedTargetsGet(int i_part) const = 0;
+    int
+    nUncomputedTargetsGet(int i_part) const;
 
     /**
      *
@@ -132,8 +132,8 @@ namespace cwipi {
      *
      */
 
-    virtual const int *
-    uncomputedTargetsGet(int i_part) const = 0;
+    const int *
+    uncomputedTargetsGet(int i_part) const;
 
     /**
      *
@@ -142,8 +142,8 @@ namespace cwipi {
      * \return                Number of computed targets
      */
 
-    virtual int
-    nComputedTargetsGet(int i_part) const = 0;
+    int
+    nComputedTargetsGet(int i_part) const;
 
     /**
      *
@@ -154,8 +154,8 @@ namespace cwipi {
      *
      */
 
-    virtual const int *
-    computedTargetsGet(int i_part) const = 0;
+    const int *
+    computedTargetsGet(int i_part) const;
 
 
   protected:
@@ -214,8 +214,16 @@ namespace cwipi {
     int localComm_size_cpl; // Size of localComm of the coupled code
 
 
-    int **_weights_src_idx;
-    double **_weights_src;
+    int *_n_elt_weights;
+    int **_weights_idx;
+    double **_weights;
+
+    int *_n_computed_tgt;
+    int **_computed_tgt;
+
+    int *_n_uncomputed_tgt;
+    int **_uncomputed_tgt;
+
 
   // A supprimer
   protected:
@@ -312,11 +320,6 @@ namespace cwipi {
     void data_index_communication_send_p2p()    ;
 
   };
-
-    /**
-     * \endcond
-     */
-
 
 }
 

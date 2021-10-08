@@ -74,63 +74,6 @@ namespace cwipi {
     }
 
 
-    /**
-     *
-     * \brief Return the number of uncomputed targets
-     *
-     * \return                Number of uncomputed targets
-     *
-     */
-
-    int
-    SpatialInterpClosestPoint::nUncomputedTargetsGet(int i_part)  const 
-    { 
-      return 0;
-    }
-
-    /**
-     *
-     * \brief Return uncomputed targets
-     *
-     * \return                Uncomputed targets
-     *
-     */
-
-    const int *
-    SpatialInterpClosestPoint::uncomputedTargetsGet(int i_part)  const 
-    {
-      return 0;
-    }
-
-    /**
-     *
-     * \brief Return the number of computed targets
-     *
-     * \return                Number of computed targets
-     */
-
-    int
-    SpatialInterpClosestPoint::nComputedTargetsGet(int i_part)  const 
-    {
-      return 0;
-    }
-
-    /**
-     *
-     * \brief Return computed targets
-     *
-     *
-     * \return                Computed targets
-     *
-     */
-
-    const int *
-    SpatialInterpClosestPoint::computedTargetsGet(int i_part) const
-    {
-      return 0;
-    }
-
-
 
 
 };
