@@ -61,9 +61,27 @@ namespace cwipi {
 
     // Localization data
 
-    double **_distance;                 // Distance to the closest element surface by partition
-    double **_projected;                // Projected point coordinates (on the closest element surface)
-    CWP_g_num_t **_closest_elt_gnum;    // Closest element global numbering
+  private:
+
+    //
+    // Target properties
+    
+    double **_tgt_distance;                 // Distance to the closest source element surface by partition
+    double **_tgt_projected;                // Projected point coordinates (on the closest source element surface)
+    CWP_g_num_t **_tgt_closest_elt_gnum;    // Closest source element global numbering
+
+    //
+    // Source properties
+
+    int         **_elt_pts_inside_idx;
+    PDM_g_num_t **_points_gnum;
+    double      **_points_coords;
+    double      **_points_uvw;
+    int         **_points_weights_idx;
+    double      **_points_weights;
+    double      **_points_dist2;
+    double      **_points_projected_coords;
+
 
   protected:
     /**
