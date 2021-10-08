@@ -45,10 +45,6 @@ namespace cwipi {
 
         void localization_points_cloud_setting() override;
 
-        void localization_null_setting_send() override;
-
-        void localization_null_setting_recv() override;
-
         void localization_surface_setting() override;
 
         void localization_compute() override;

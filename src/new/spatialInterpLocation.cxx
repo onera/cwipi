@@ -35,6 +35,20 @@ namespace cwipi {
   void SpatialInterpLocation::weightsCompute() 
   {
     localization_init();
+
+    localization_points_cloud_setting();
+    
+    localization_surface_setting();
+
+    localization_compute();
+
+
+    // Construction du graphe de communication + transfert des poids d'interpolation
+
+
+    //localization_free();
+
+
     // _Texch_t = Texch_t;
 
     // // In case of withOutPart the user provided not null data only on the root rank (senderRank).
@@ -359,16 +373,6 @@ namespace cwipi {
   }
 
   void SpatialInterpLocation::localization_points_cloud_setting() 
-  {
-    PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
-  }
-
-  void SpatialInterpLocation::localization_null_setting_send() 
-  {
-    PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
-  }
-
-  void SpatialInterpLocation::localization_null_setting_recv() 
   {
     PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
   }

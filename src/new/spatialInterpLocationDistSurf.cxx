@@ -58,33 +58,6 @@ namespace cwipi {
         // }
     }
 
-    void SpatialInterpLocationDistSurf::localization_null_setting_send() {
-        _id_pdm = PDM_dist_cloud_surf_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
-        PDM_dist_cloud_surf_n_part_cloud_set(_id_pdm, 0, _nPart_cpl);
-        PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, _n_g_elt_over_part, _n_g_vtx_over_part, _nPart);
-
-        for (int i_part = 0 ; i_part < _nPart_cpl ; i_part++) PDM_dist_cloud_surf_cloud_set(_id_pdm, 0, i_part, 0, NULL, NULL);
-        for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-            int *connec_idx_null = (int *) malloc(sizeof(int));
-            connec_idx_null[0] = 0;
-            PDM_dist_cloud_surf_surf_mesh_part_set(_id_pdm, i_part, 0, connec_idx_null, NULL, NULL, 0, NULL, NULL);
-        }
-    }
-
-    void SpatialInterpLocationDistSurf::localization_null_setting_recv() {
-        _id_pdm = PDM_dist_cloud_surf_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
-
-        PDM_dist_cloud_surf_n_part_cloud_set(_id_pdm, 0, _nPart);
-        PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, _n_g_elt_cpl_over_part, _n_g_vtx_cpl_over_part, _nPart_cpl);
-
-        for (int i_part = 0 ; i_part < _nPart ; i_part++) PDM_dist_cloud_surf_cloud_set(_id_pdm, 0, i_part, 0, NULL, NULL);
-        for (int i_part = 0 ; i_part < _nPart_cpl ; i_part++) {
-            int *connec_idx_null = (int *) malloc(sizeof(int));
-            connec_idx_null[0] = 0;
-            PDM_dist_cloud_surf_surf_mesh_part_set(_id_pdm, i_part, 0, connec_idx_null, NULL, NULL, 0, NULL, NULL);
-        }
-    }
-
     void SpatialInterpLocationDistSurf::localization_surface_setting() {
         // _id_pdm = PDM_dist_cloud_surf_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 

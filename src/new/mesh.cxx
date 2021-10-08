@@ -299,6 +299,8 @@ namespace cwipi {
 
      int n_vert_global=0;
 
+     //FIXME: C'est faux : faut faire un allreduce max et pas la somme des sommets (sommets en double)
+
      PDM_MPI_Allreduce(&n_vert,&n_vert_global,1,PDM_MPI_INT, PDM_MPI_SUM,_pdm_localComm);
 
      return n_vert_global;
@@ -589,7 +591,7 @@ namespace cwipi {
       if(_visu -> isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC ) {
         _visu -> GeomWrite(this);
       }
-  }
+    }
 
 
   void Mesh::stdBlockSet( const int              i_part,

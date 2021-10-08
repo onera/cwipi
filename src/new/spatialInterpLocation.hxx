@@ -149,28 +149,6 @@ namespace cwipi {
     /**
       *
       * \brief Setting of the surface mesh and cloud points at
-      * null for the localization object in a case of sending
-      * code i.e. code which interpolate reference field.
-      *
-      * \param [out] id_dist   Localization object identifier.
-      *
-      */
-    virtual void localization_null_setting_send();
-
-    /**
-      *
-      * \brief Setting of the surface mesh and cloud points at
-      * null for the localization object in a case of receving
-      * code i.e. code which provides cloud points for interpolation.
-      *
-      * \param [out] id_dist   Localization object identifier.
-      *
-      */
-    virtual void localization_null_setting_recv();
-
-    /**
-      *
-      * \brief Setting of the surface mesh and cloud points at
       * null for the localization object in a case of receving
       *    * code i.e. code which provides cloud points for interpolation.
       *
