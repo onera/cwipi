@@ -52,6 +52,18 @@ namespace cwipi {
 
   SpatialInterp::~SpatialInterp()
   {
+    delete[] _n_elt_weights;
+    delete[] _weights_idx;
+    delete[] _weights;
+
+    delete[] _n_computed_tgt;
+    delete[] _computed_tgt;
+
+    delete[] _n_uncomputed_tgt;
+    delete[] _uncomputed_tgt;
+
+        printf("delete SpatialInterp\n");
+
   }
 
 
@@ -131,7 +143,6 @@ namespace cwipi {
 
       }
 
-
       int cpl_cplNPart = cpl_cpl.meshGet()-> getNPart();
       _cpl->communicationGet()->iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
                                                                             1,
@@ -147,6 +158,26 @@ namespace cwipi {
 
     printf("_nPart, _cplNPart : %d %d\n", _nPart, _cplNPart);
     fflush(stdout);
+
+    _n_elt_weights = new int [_nPart];
+    _weights_idx = new int* [_nPart];
+    _weights = new double* [_nPart];
+
+    _n_computed_tgt = new int [_nPart];
+    _computed_tgt = new int* [_nPart];
+
+    _n_uncomputed_tgt = new int [_nPart];
+    _uncomputed_tgt = new int* [_nPart];
+
+    for (int i = 0; i < _nPart; i++) {
+      _weights_idx[i] = NULL;
+      _weights[i] = NULL;
+      _computed_tgt[i] = NULL;
+      _uncomputed_tgt[i] = NULL;
+      _n_uncomputed_tgt[i] = 0;
+      _n_computed_tgt[i] = 0;
+      _n_elt_weights[i] = 0;
+    }
 
     // if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && slave == 0 ) ){
 

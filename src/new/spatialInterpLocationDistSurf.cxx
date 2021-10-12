@@ -88,7 +88,7 @@ namespace cwipi {
         PDM_dist_cloud_surf_dump_times(_id_pdm);
     }
 
-    void SpatialInterpLocationDistSurf::localization_get_cpl() {
+//    void SpatialInterpLocationDistSurf::localization_get_cpl() {
         // _spatial_interp_cpl->_distance = (double **) malloc(sizeof(double *) * _nPart_cpl);
         // _spatial_interp_cpl->_projected = (double **) malloc(sizeof(double *) * _nPart_cpl);
         // _spatial_interp_cpl->_closest_elt_gnum = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * _nPart_cpl);
@@ -109,7 +109,7 @@ namespace cwipi {
         //         }
         //     }
         // }
-    }
+//    }
 
     void SpatialInterpLocationDistSurf::localization_get() {
         // _distance = (double **) malloc(sizeof(double *) * _nPart);

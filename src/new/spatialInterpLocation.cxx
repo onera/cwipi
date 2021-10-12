@@ -30,7 +30,80 @@
 namespace cwipi {
   SpatialInterpLocation::SpatialInterpLocation() = default;
 
-  SpatialInterpLocation::~SpatialInterpLocation() = default;
+  SpatialInterpLocation::~SpatialInterpLocation
+  (
+  )
+  {
+
+    delete[] _tgt_distance;
+    delete[] _tgt_projected;
+    delete[] _tgt_closest_elt_gnum;
+
+    delete[] _elt_pts_inside_idx;
+    delete[] _points_gnum;
+    delete[] _points_coords;
+    delete[] _points_uvw;
+    delete[] _points_dist2;
+    delete[] _points_projected_coords;
+
+    printf("delete SpatialInterpLocation\n");
+
+  }
+
+
+  /**
+    *
+    * \brief SpatialInterp location Init.
+    *
+    */
+
+  void 
+  SpatialInterpLocation::init 
+  (
+    Coupling           *coupling, 
+    CWP_Dof_location_t localCodeDofLOcation,
+    CWP_Dof_location_t cplCodeDofLOcation,
+    SpatialInterpExchDirection exchDirection 
+  )
+  {
+    SpatialInterp::init (coupling, 
+                         localCodeDofLOcation, 
+                         cplCodeDofLOcation, 
+                         exchDirection);
+
+    _interpolation_time = CWP_SPATIAL_INTERP_AT_SEND;
+
+    //
+    // Target properties
+    
+    _tgt_distance = new double* [_nPart];                 // Distance to the closest source element surface by partition
+    _tgt_projected = new double* [_nPart];                // Projected point coordinates (on the closest source element surface)
+    _tgt_closest_elt_gnum = new CWP_g_num_t* [_nPart];    // Closest source element global numbering
+
+    //
+    // Source properties
+
+    _elt_pts_inside_idx = new int* [_nPart];
+    _points_gnum = new CWP_g_num_t* [_nPart];
+    _points_coords = new double* [_nPart];
+    _points_uvw = new double* [_nPart];
+    _points_dist2 = new double* [_nPart];
+    _points_projected_coords = new double* [_nPart];
+
+    for (int i_part = 0; i_part < _nPart; i_part++) {
+      _tgt_distance[i_part] = NULL;
+      _tgt_projected[i_part] = NULL;
+      _tgt_closest_elt_gnum[i_part] = NULL;
+      _elt_pts_inside_idx[i_part] = NULL;
+      _points_gnum[i_part] = NULL;
+      _points_coords[i_part] = NULL;
+      _points_uvw[i_part] = NULL;
+      _points_dist2[i_part] = NULL;
+      _points_projected_coords[i_part] = NULL;
+    }
+
+  }
+
 
   void SpatialInterpLocation::weightsCompute() 
   {
@@ -42,6 +115,7 @@ namespace cwipi {
 
     localization_compute();
 
+    localization_get();
 
     // Construction du graphe de communication + transfert des poids d'interpolation
 
@@ -325,11 +399,6 @@ namespace cwipi {
   }
 
   void SpatialInterpLocation::localization_compute() 
-  {
-    PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
-  }
-
-  void SpatialInterpLocation::localization_get_cpl() 
   {
     PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");
   }

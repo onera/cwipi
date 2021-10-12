@@ -29,7 +29,7 @@ namespace cwipi {
     public:
         SpatialInterpLocationMeshLocation() = default;
 
-        ~SpatialInterpLocationMeshLocation() override = default;
+        virtual ~SpatialInterpLocationMeshLocation();
 
     protected:
         static double _get_location_tolerance() {
@@ -50,8 +50,6 @@ namespace cwipi {
         void localization_compute() override;
 
         void localization_get() override;
-
-        void localization_get_cpl() override;
 
         void localization_free() override;
 

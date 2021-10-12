@@ -140,6 +140,17 @@ namespace cwipi {
 
   }
 
+
+  SpatialInterpLocationMeshLocation::~SpatialInterpLocationMeshLocation
+  (
+  )
+  {
+
+  }
+
+
+
+
   void 
   SpatialInterpLocationMeshLocation::localization_points_cloud_setting
   (
@@ -513,62 +524,73 @@ namespace cwipi {
     }
   }
 
-  
-  void SpatialInterpLocationMeshLocation::localization_get_cpl() {
-
-//         _spatial_interp_cpl->_distance = (double **) malloc(sizeof(double *) * _nPart_cpl);
-//         _spatial_interp_cpl->_projected = (double **) malloc(sizeof(double *) * _nPart_cpl);
-//         _spatial_interp_cpl->_closest_elt_gnum = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t * ) * _nPart_cpl);
-
-//         for (int i_part = 0 ; i_part < _nPart_cpl ; i_part++) {
-//             int n_target_cpl = _spatial_interp_cpl->_n_target[i_part];
-
-// //            PDM_mesh_location_get(_id_pdm, 0, i_part, &(_spatial_interp_cpl->_closest_elt_gnum[i_part]), &unused_weights_idx, &unused_weights, &(_spatial_interp_cpl->_projected[i_part]));
-//             int n_unlocated = PDM_mesh_location_n_unlocated_get (_id_pdm, 0, i_part);
-
-//             assert (n_unlocated == 0);
-
-//             PDM_mesh_location_point_location_get (_id_pdm,
-//                                                   0,
-//                                                   i_part,
-//                                                   &(_spatial_interp_cpl -> _closest_elt_gnum[i_part]),
-//                                                   &(_spatial_interp_cpl -> _distance[i_part]),
-//                                                   &(_spatial_interp_cpl -> _projected[i_part]));
-//             _spatial_interp_cpl->_distance[i_part] = (double *) malloc(sizeof(double) * n_target_cpl);
-
-//             for (int i = 0 ; i < n_target_cpl ; i++) {
-//                 _spatial_interp_cpl->_distance[i_part][i] = 0.;
-
-//                 if (_spatial_interp_cpl->_closest_elt_gnum[i_part][i] > CWP_g_num_t(_n_g_elt_cpl_over_part) ||
-//                     _spatial_interp_cpl->_closest_elt_gnum[i_part][i] < CWP_g_num_t(1) ||
-//                     _spatial_interp_cpl->_distance[i_part][i] > 0.1) {
-//                     _spatial_interp_cpl->_closest_elt_gnum[i_part][i] = CWP_g_num_t(1);
-//                     _spatial_interp_cpl->_distance[i_part][i] = INFINITY;
-//                 }
-//             }
-//         }
-  }
-
 
   void 
   SpatialInterpLocationMeshLocation::localization_get
   (
   ) 
   {
+
     if (!_coupledCodeProperties->localCodeIs()) {
 
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
 
-        if (_interpolation_time ==  CWP_SPATIAL_INTERP_AT_SEND) { // weights
+        for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+
+          PDM_mesh_location_points_in_elt_get (_id_pdm,
+                                               i_part,
+                                               0,
+                                               &(_elt_pts_inside_idx[i_part]),
+                                               &(_points_gnum[i_part]),
+                                               &(_points_coords[i_part]),
+                                               &(_points_uvw[i_part]),
+                                               &(_weights_idx[i_part]),
+                                               &(_weights[i_part]),
+                                               &(_points_dist2[i_part]),
+                                               &(_points_projected_coords[i_part]));
+
+          int n_elt = 0;
+          CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
+
+          if (interf_dim == CWP_INTERFACE_SURFACE) {
+            n_elt = _mesh->getNFace(i_part);
+          }
+          else if (interf_dim == CWP_INTERFACE_VOLUME) {
+            n_elt = _mesh->getNCell(i_part);
+          }
+
+          _n_elt_weights[i_part] = _elt_pts_inside_idx[i_part][n_elt];
 
         }
-
       }
 
-      else {
+      else if (_interpolation_time ==  CWP_SPATIAL_INTERP_AT_RECV) {
 
-        if (_interpolation_time ==  CWP_SPATIAL_INTERP_AT_RECV) { // weights
-          
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+
+          _n_computed_tgt[i_part] = PDM_mesh_location_n_located_get (_id_pdm,
+                                                                     0, 
+                                                                     i_part);
+
+          _n_uncomputed_tgt[i_part] = PDM_mesh_location_n_unlocated_get (_id_pdm,
+                                                                         0, 
+                                                                         i_part);
+
+          _computed_tgt[i_part] = PDM_mesh_location_located_get (_id_pdm,
+                                                                 0, 
+                                                                 i_part);
+
+          _uncomputed_tgt[i_part] = PDM_mesh_location_unlocated_get (_id_pdm,
+                                                                     0, 
+                                                                     i_part);
+
+          PDM_mesh_location_point_location_get (_id_pdm,
+                                                0,
+                                                i_part,
+                                                &(_tgt_closest_elt_gnum[i_part]),
+                                                &(_tgt_distance[i_part]),
+                                                &(_tgt_projected[i_part]));
+
         }      
       }
     }
@@ -577,101 +599,145 @@ namespace cwipi {
 
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
         cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+
+        SpatialInterpLocationMeshLocation *cpl_spatial_interp;
+
+        if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
+
+          cpl_spatial_interp = dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+
+        }
+
+        else {
+
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
+
+          cpl_spatial_interp = dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+
+        }
+
+        if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+
+          for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+
+            PDM_mesh_location_points_in_elt_get (_id_pdm,
+                                                 i_part,
+                                                 0,
+                                                 &(_elt_pts_inside_idx[i_part]),
+                                                 &(_points_gnum[i_part]),
+                                                 &(_points_coords[i_part]),
+                                                 &(_points_uvw[i_part]),
+                                                 &(_weights_idx[i_part]),
+                                                 &(_weights[i_part]),
+                                                 &(_points_dist2[i_part]),
+                                                 &(_points_projected_coords[i_part]));
+
+            int n_elt = 0;
+            CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
+
+            if (interf_dim == CWP_INTERFACE_SURFACE) {
+              n_elt = _mesh->getNFace(i_part);
+            }
+            else if (interf_dim == CWP_INTERFACE_VOLUME) {
+              n_elt = _mesh->getNCell(i_part);
+            }
+
+            _n_elt_weights[i_part] = _elt_pts_inside_idx[i_part][n_elt];
+
+          }
+
+          for (int i_part = 0; i_part < _cplNPart; i_part++) {
+
+            cpl_spatial_interp->_n_computed_tgt[i_part] = PDM_mesh_location_n_located_get (_id_pdm,
+                                                                                           0, 
+                                                                                           i_part);
+
+            cpl_spatial_interp->_n_uncomputed_tgt[i_part] = PDM_mesh_location_n_unlocated_get (_id_pdm,
+                                                                                               0, 
+                                                                                               i_part);
+
+            cpl_spatial_interp->_computed_tgt[i_part] = PDM_mesh_location_located_get (_id_pdm,
+                                                                                       0, 
+                                                                                       i_part);
+
+            cpl_spatial_interp->_uncomputed_tgt[i_part] = PDM_mesh_location_unlocated_get (_id_pdm,
+                                                                                           0, 
+                                                                                           i_part);
+
+            PDM_mesh_location_point_location_get (_id_pdm,
+                                                  0,
+                                                  i_part,
+                                                  &(cpl_spatial_interp->_tgt_closest_elt_gnum[i_part]),
+                                                  &(cpl_spatial_interp->_tgt_distance[i_part]),
+                                                  &(cpl_spatial_interp->_tgt_projected[i_part]));
+
+          }      
+
+        }
+
+        else if (_interpolation_time ==  CWP_SPATIAL_INTERP_AT_RECV) {
+
+          for (int i_part = 0; i_part < _nPart; i_part++) {
+
+            _n_computed_tgt[i_part] = PDM_mesh_location_n_located_get (_id_pdm,
+                                                                       0, 
+                                                                       i_part);
+
+            _n_uncomputed_tgt[i_part] = PDM_mesh_location_n_unlocated_get (_id_pdm,
+                                                                           0, 
+                                                                           i_part);
+
+            _computed_tgt[i_part] = PDM_mesh_location_located_get (_id_pdm,
+                                                                   0, 
+                                                                   i_part);
+
+            _uncomputed_tgt[i_part] = PDM_mesh_location_unlocated_get (_id_pdm,
+                                                                       0, 
+                                                                       i_part);
+
+            PDM_mesh_location_point_location_get (_id_pdm,
+                                                  0,
+                                                  i_part,
+                                                  &(_tgt_closest_elt_gnum[i_part]),
+                                                  &(_tgt_distance[i_part]),
+                                                  &(_tgt_projected[i_part]));
+
+          }
+
+          for (int i_part = 0 ; i_part < _cplNPart ; i_part++) {
+
+            PDM_mesh_location_points_in_elt_get (_id_pdm,
+                                                 i_part,
+                                                 0,
+                                                 &(cpl_spatial_interp->_elt_pts_inside_idx[i_part]),
+                                                 &(cpl_spatial_interp->_points_gnum[i_part]),
+                                                 &(cpl_spatial_interp->_points_coords[i_part]),
+                                                 &(cpl_spatial_interp->_points_uvw[i_part]),
+                                                 &(cpl_spatial_interp->_weights_idx[i_part]),
+                                                 &(cpl_spatial_interp->_weights[i_part]),
+                                                 &(cpl_spatial_interp->_points_dist2[i_part]),
+                                                 &(cpl_spatial_interp->_points_projected_coords[i_part]));
+
+            int n_elt = 0;
+            CWP_Interface_t interf_dim = cpl_cpl.entitiesDimGet();
+
+            if (interf_dim == CWP_INTERFACE_SURFACE) {
+              n_elt = cpl_spatial_interp->_mesh->getNFace(i_part);
+            }
+            else if (interf_dim == CWP_INTERFACE_VOLUME) {
+              n_elt = cpl_spatial_interp->_mesh->getNCell(i_part);
+            }
+
+            cpl_spatial_interp->_n_elt_weights[i_part] = cpl_spatial_interp->_elt_pts_inside_idx[i_part][n_elt];
+
+          }
+
+        }
       }
-
     }
-
   }
-
-
- // Resultat vu de la source
- //      
- //      PDM_mesh_location_points_in_elt_get(
- //       PDM_mesh_location_t  *ml,
- // const int                   i_part,
- // const int                   i_point_cloud,
- //       int                 **elt_pts_inside_idx,
- //       PDM_g_num_t         **points_gnum,
- //       double              **points_coords,
- //       double              **points_uvw,
- //       int                 **points_weights_idx,
- //       double              **points_weights,
- //       double              **points_dist2,
- //       double              **points_projected_coords);
-
- // Resultat vu de la cible
- //      
-
-
-// PDM_mesh_location_n_located_get
-// (
-//        PDM_mesh_location_t *ml,
-//  const int                  i_point_cloud,
-//  const int                  i_part
-// );
-
-//       int
-// PDM_mesh_location_n_unlocated_get
-// (
-//        PDM_mesh_location_t *ml,
-//  const int                  i_point_cloud,
-//  const int                  i_part
-// );
-
-// int *
-// PDM_mesh_location_unlocated_get
-// (
-//        PDM_mesh_location_t *ml,
-//  const int                  i_point_cloud,
-//  const int                  i_part
-// );
-
-
-// int *
-// PDM_mesh_location_located_get
-// (
-//        PDM_mesh_location_t *ml,
-//  const int                  i_point_cloud,
-//  const int                  i_part
-// );
-
-
-//         _distance = (double **) malloc(sizeof(double *) * _nPart);
-//         _projected = (double **) malloc(sizeof(double *) * _nPart);
-//         _closest_elt_gnum = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t * ) * _nPart);
-
-//         for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-// //            PDM_mesh_location_get(_id_pdm, 0, i_part, &(_closest_elt_gnum[i_part]), &unused_weights_idx, &unused_weights, &(_projected[i_part]));
-//             _distance[i_part] = (double *) malloc (sizeof(double) * _n_target[i_part]);
-
-//             int n_unlocated = PDM_mesh_location_n_unlocated_get (_id_pdm, 0, i_part);
-
-//             assert (n_unlocated == 0);
-
-//             PDM_mesh_location_point_location_get (_id_pdm,
-//                                                   0,
-//                                                   i_part,
-//                                                   &(_closest_elt_gnum[i_part]),
-//                                                   &(_distance[i_part]),
-//                                                   &(_projected[i_part]));
-
-//             _distance[i_part] = (double *) malloc(sizeof(double) * _n_target[i_part]);
-//             double *coords_target = _coords_target[i_part];
-
-//             for (int i = 0 ; i < _n_target[i_part] ; i++) {
-//                 _distance[i_part][i] = 0.;
-//                 for (int j = 0 ; j < 3 ; j++) {
-//                     double d = _projected[i_part][3 * i + j] - coords_target[3 * i + j];
-//                     _distance[i_part][i] += d * d;
-//                 }
-//                 if (_closest_elt_gnum[i_part][i] > CWP_g_num_t(_n_g_elt_cpl_over_part) ||
-//                     _closest_elt_gnum[i_part][i] < CWP_g_num_t(1) ||
-//                     _distance[i_part][i] > 0.1) {
-//                     _closest_elt_gnum[i_part][i] = CWP_g_num_t(1);
-//                     _distance[i_part][i] = INFINITY;
-//                 }
-//             }
-//         }
 
 
   void SpatialInterpLocationMeshLocation::localization_free() {

@@ -215,13 +215,13 @@ namespace cwipi {
 
     std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*>::iterator it = _spatial_interp_send.begin();
     while (it != _spatial_interp_send.end()) {
-       // delete it -> second;
+        delete it -> second;
         it++;
     }
 
     it = _spatial_interp_recv.begin();
     while (it != _spatial_interp_recv.end()) {
-       // delete it -> second;
+       delete it -> second;
         it++;
     }
 

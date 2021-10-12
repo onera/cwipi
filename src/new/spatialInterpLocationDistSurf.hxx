@@ -38,8 +38,6 @@ namespace cwipi {
 
         void localization_get() override;
 
-        void localization_get_cpl() override;
-
         void localization_free() override;
 
     protected:

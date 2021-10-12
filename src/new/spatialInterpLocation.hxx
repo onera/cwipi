@@ -37,12 +37,27 @@ namespace cwipi {
       */
     SpatialInterpLocation();
 
+
+    /**
+      *
+      * \brief SpatialInterp location Init.
+      *
+      */
+
+    virtual void 
+    init (
+      Coupling           *coupling, 
+      CWP_Dof_location_t localCodeDofLOcation,
+      CWP_Dof_location_t cplCodeDofLOcation,
+      SpatialInterpExchDirection exchDirection );
+
+
     /**
       *
       * \brief SpatialInterp location destructor.
       *
       */
-    ~SpatialInterpLocation() override;
+    virtual ~SpatialInterpLocation();
 
     /**
       *
@@ -61,7 +76,7 @@ namespace cwipi {
 
     // Localization data
 
-  private:
+  protected:
 
     //
     // Target properties
@@ -77,8 +92,6 @@ namespace cwipi {
     PDM_g_num_t **_points_gnum;
     double      **_points_coords;
     double      **_points_uvw;
-    int         **_points_weights_idx;
-    double      **_points_weights;
     double      **_points_dist2;
     double      **_points_projected_coords;
 
@@ -97,7 +110,7 @@ namespace cwipi {
     /***********************************************************
      ***********************************************************
      **                                                       **
-     **            Localization object functions              **
+     **             object functions              **
      **                                                       **
      ***********************************************************
      ***********************************************************/
@@ -158,7 +171,6 @@ namespace cwipi {
       * \param [int] id_dist   Localization object identifier.
       *
       */
-    virtual void localization_get_cpl();
 
     virtual void localization_free();
 
