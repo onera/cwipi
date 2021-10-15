@@ -172,9 +172,13 @@ namespace cwipi {
 
     SpatialInterpExchDirection  _exchDirection;  /*!< Spatial interpolation (for both codes are local case) */
    
-    PDM_part1_to_selected_part2_t *_ptsp;
+    PDM_part1_to_selected_part2_t *_ptsp;  /*!< Exchange protocol between src and target */
+    int* _src_n_gnum;                      /*!< Number of source element by part (used by _ptsp) */
+    int* _tgt_n_gnum;                      /*!< Number of target element by part (used by _ptsp) */
+    const PDM_g_num_t** _src_gnum;                /*!< Global number of source element (used by _ptsp) */
+    const PDM_g_num_t** _tgt_gnum;                /*!< Global number of target element (used by _ptsp) */
     
-    CWP_SpatialInterp_time_t     _interpolation_time      ;
+    CWP_SpatialInterp_time_t     _interpolation_time; /*!< Interpolation time : before or after exchange field */
 
     int  _nPart; /*!< Mesh partition number                                                    */
     int  _cplNPart;  /*!< Coupled mesh partition number                                                    */
@@ -192,8 +196,15 @@ namespace cwipi {
 
     MPI_Comm _localComm;          // Processus involved in the coupling for the local code
 
+    int *_n_elt_weights;
+    int **_weights_idx;
+    double **_weights;
 
+    int *_n_computed_tgt;
+    int **_computed_tgt;
 
+    int *_n_uncomputed_tgt;
+    int **_uncomputed_tgt;
 
   // A conserver ou supprimer 
   protected:
@@ -212,18 +223,6 @@ namespace cwipi {
     int cplComm_size;       // Size of cplComm
     int localComm_size;     // Size of localComm
     int localComm_size_cpl; // Size of localComm of the coupled code
-
-
-    int *_n_elt_weights;
-    int **_weights_idx;
-    double **_weights;
-
-    int *_n_computed_tgt;
-    int **_computed_tgt;
-
-    int *_n_uncomputed_tgt;
-    int **_uncomputed_tgt;
-
 
   // A supprimer
   protected:

@@ -74,6 +74,35 @@ namespace cwipi {
     _interpolation_time = CWP_SPATIAL_INTERP_AT_SEND;
 
     //
+    // Data for PDM_part1_to_selected_part2_t
+
+    if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+      for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
+       _src_gnum[i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
+       printf("_mesh->getPartNElts (i_part) : %d\n", _mesh->getPartNElts (i_part));
+       _src_n_gnum[i_part] = _mesh->getPartNElts (i_part);
+      }
+    }
+
+    else {
+      for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
+        if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+          _tgt_gnum[i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
+          _tgt_n_gnum[i_part] = _mesh->getPartNElts (i_part);
+
+        }
+        else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
+          _tgt_gnum[i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum (i_part);
+          _tgt_n_gnum[i_part] = _mesh->getPartNVertex (i_part);            
+        }
+        else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
+          _tgt_gnum[i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet (i_part);
+          _tgt_n_gnum[i_part] = _cpl->userTargetNGet (i_part);
+        }
+      }
+    }
+
+    //
     // Target properties
     
     _tgt_distance = new double* [_nPart];                 // Distance to the closest source element surface by partition
@@ -107,6 +136,56 @@ namespace cwipi {
 
   void SpatialInterpLocation::weightsCompute() 
   {
+    for (int i_part = 0; i_part < _nPart; i_part++) {
+      if (_tgt_distance[i_part] != NULL) {
+        free (_tgt_distance[i_part]);
+        free (_tgt_projected[i_part]);
+        free (_tgt_closest_elt_gnum[i_part]);
+      }
+      if (_elt_pts_inside_idx[i_part] != NULL) {
+        free (_elt_pts_inside_idx[i_part]);
+        free (_points_gnum[i_part]);
+        free (_points_coords[i_part]);
+        free (_points_uvw[i_part]);
+        free (_points_dist2[i_part]);
+        free (_points_projected_coords[i_part]);
+      }
+
+      if (_weights_idx[i_part] != NULL) {
+        free (_weights_idx[i_part]);
+        free (_weights[i_part]);
+      }
+
+      if (_computed_tgt[i_part] != NULL) {
+        free (_computed_tgt[i_part]);   
+      }
+
+      if (_uncomputed_tgt[i_part] != NULL) {
+        free (_uncomputed_tgt[i_part]);   
+      }
+
+      _n_elt_weights[i_part] = 0;
+      _weights_idx[i_part] = NULL;
+      _weights[i_part] = NULL;
+
+      _n_computed_tgt[i_part] = 0;
+      _computed_tgt[i_part] = NULL;
+
+      _n_uncomputed_tgt[i_part] = 0;
+      _uncomputed_tgt[i_part] = NULL;
+
+      _tgt_distance[i_part] = NULL;
+      _tgt_projected[i_part] = NULL;
+      _tgt_closest_elt_gnum[i_part] = NULL;
+      _elt_pts_inside_idx[i_part] = NULL;
+      _points_gnum[i_part] = NULL;
+      _points_coords[i_part] = NULL;
+      _points_uvw[i_part] = NULL;
+      _points_dist2[i_part] = NULL;
+      _points_projected_coords[i_part] = NULL;
+
+    }
+
     localization_init();
 
     localization_points_cloud_setting();
@@ -117,95 +196,121 @@ namespace cwipi {
 
     localization_get();
 
-    // Construction du graphe de communication + transfert des poids d'interpolation
+    localization_free();
+
+    if (_ptsp != nullptr) {
+      if (!_coupledCodeProperties->localCodeIs()) {
+        PDM_part1_to_selected_part2_free (_ptsp);
+        _ptsp = nullptr;
+      }
+      else {
+
+        if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+          PDM_part1_to_selected_part2_free (_ptsp);
+          _ptsp = nullptr;
+  
+          SpatialInterpLocation *cpl_spatial_interp;
+
+          cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+
+          if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+            std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
+            cpl_spatial_interp = 
+              dynamic_cast <SpatialInterpLocation *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+          }
+
+          else {
+            std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
+            cpl_spatial_interp = 
+              dynamic_cast <SpatialInterpLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+          }
+
+          cpl_spatial_interp->_ptsp = NULL;
+        }
+
+      }
+    }
 
 
-    //localization_free();
+    if (!_coupledCodeProperties->localCodeIs()) {
+      printf("_src_gnum %d :", _src_n_gnum[0]);
+      for (int i = 0; i < _src_n_gnum[0]; i++) {
+        printf(" %ld", _src_gnum[0][i]);
+      }
+      printf("\n");
 
+      printf("_tgt_gnum %d :", _tgt_n_gnum[0]);
+      for (int i = 0; i < _tgt_n_gnum[0]; i++) {
+        printf(" %ld", _tgt_gnum[0][i]);
+      }
+      printf("\n");
 
-    // _Texch_t = Texch_t;
+      printf("_points_gnum %d :", _src_n_gnum[0]);
+      for (int i = 0; i < _src_n_gnum[0]; i++) {
+        for (int j = _elt_pts_inside_idx[0][i]; j < _elt_pts_inside_idx[0][i+1]; j++) {
+          printf(" %ld", _points_gnum[0][j]);
+        }
+        printf("\n");
+      }
+      printf("\n");
+      fflush(stdout);
+      _ptsp = PDM_part1_to_selected_part2_create ((const PDM_g_num_t **)_src_gnum,
+                                                  (const int *)_src_n_gnum,
+                                                  _nPart,
+                                                  (const PDM_g_num_t **)_tgt_gnum,
+                                                  (const int *)_tgt_n_gnum,
+                                                  _nPart,
+                                                  (const int **)_elt_pts_inside_idx,
+                                                  (const PDM_g_num_t **)_points_gnum,
+                                                  _pdmCplComm);                         
+    }
+    else {
 
-    // // In case of withOutPart the user provided not null data only on the root rank (senderRank).
-    // if (!_both_codes_are_local) {
-    //     if (_Texch_t == CWP_FIELD_EXCH_RECV && _pointsCloudLocation == CWP_DOF_LOCATION_USER) user_targets_gnum_compute();
-    // }
-    // else {
-    //   if (_Texch_t == CWP_FIELD_EXCH_SEND) {
-    //       _spatial_interp_cpl->_Texch_t = CWP_FIELD_EXCH_RECV;
-    //       if (_pointsCloudLocation == CWP_DOF_LOCATION_USER) _spatial_interp_cpl->user_targets_gnum_compute();
-    //   }
-    // }
+      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
 
-    // // Get informations about the local and the coupled meshes
-    // info_mesh();
+        SpatialInterpLocation *cpl_spatial_interp;
 
-    // if ((!_both_codes_are_local && _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART)
-    //     || (!_both_codes_are_local && _cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && cplComm_rank == _senderRank)) {
-    //   // Localization
-    //   // Surface and cloud points localization setting
-    //   if (_Texch_t == CWP_FIELD_EXCH_SEND) localization_surface_setting();
-    //   if (_Texch_t == CWP_FIELD_EXCH_RECV) localization_points_cloud_setting();
-    //   // Localization compute, get and free
-    //   localization_compute();
-    //   if (_Texch_t == CWP_FIELD_EXCH_RECV) localization_get();
-    //   localization_free();
+        cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
 
-    //   // Communication tree building
-    //   // From a global number obtained the MPI rank and mesh partition of the element
-    //   // Setting and request
-    //   if (_Texch_t == CWP_FIELD_EXCH_RECV) triplet_location_request();
-    //   if (_Texch_t == CWP_FIELD_EXCH_SEND) triplet_location_set();
-    //   // Compute, get and free
-    //   triplet_location_compute();
-    //   if (_Texch_t == CWP_FIELD_EXCH_RECV) triplet_location_get();
-    //   PDM_gnum_location_free(_id_gnum_location, 1);
-    //   // Initialization
-    //   if (_Texch_t == CWP_FIELD_EXCH_RECV) filling_of_sending_communication_tree_array();
-    //   // targets_localization_idx_cpl allocation and init
-    //   if (_Texch_t == CWP_FIELD_EXCH_SEND) initialization_of_receving_communication_tree_array();
-    //   // Communication  of the communication tree index
-    //   if (_Texch_t == CWP_FIELD_EXCH_RECV) data_index_communication_send_p2p();
-    //   if (_Texch_t == CWP_FIELD_EXCH_SEND) data_index_communication_recv_p2p();
+        if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
+          cpl_spatial_interp = 
+            dynamic_cast <SpatialInterpLocation *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+        }
 
-    //   // Communication of the communication tree
-    //   // Preparation
-    //   if (_Texch_t == CWP_FIELD_EXCH_RECV) prepare_data_communication_send();
-    //   if (_Texch_t == CWP_FIELD_EXCH_SEND) prepare_data_communication_recv();
-    //   // MPI asynchronous communication //
-    //   if (_Texch_t == CWP_FIELD_EXCH_RECV) data_communication_send_p2p();
-    //   if (_Texch_t == CWP_FIELD_EXCH_SEND) data_communication_recv_p2p();
-    //   // MPI Wait
-    //   if (_Texch_t == CWP_FIELD_EXCH_RECV) data_communication_wait_send();
-    //   if (_Texch_t == CWP_FIELD_EXCH_SEND) data_communication_wait_recv();
+        else {
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
+          cpl_spatial_interp = 
+            dynamic_cast <SpatialInterpLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+        }
 
-    // }
-    // else if (_both_codes_are_local && _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART) {
-    //   if (_Texch_t == CWP_FIELD_EXCH_SEND) {
-    //       _spatial_interp_cpl->_Texch_t = CWP_FIELD_EXCH_RECV;
-    //     localization_surface_setting();
-    //     localization_compute();
-    //     localization_get_cpl();
-    //     localization_free();
+        if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+          _ptsp = PDM_part1_to_selected_part2_create ((const PDM_g_num_t **)_src_gnum,
+                                                      (const int *)_src_n_gnum,
+                                                      _nPart,
+                                                      (const PDM_g_num_t **)cpl_spatial_interp->_tgt_gnum,
+                                                      (const int *)cpl_spatial_interp->_tgt_n_gnum,
+                                                      _cplNPart,
+                                                      (const int **)_elt_pts_inside_idx,
+                                                      (const PDM_g_num_t **)_points_gnum,
+                                                      _pdmCplComm);                         
+        }
+        else {
+          _ptsp = PDM_part1_to_selected_part2_create ((const PDM_g_num_t **)cpl_spatial_interp->_src_gnum,
+                                                      (const int *)cpl_spatial_interp->_src_n_gnum,
+                                                      _cplNPart,
+                                                      (const PDM_g_num_t **)_tgt_gnum,
+                                                      (const int *)cpl_spatial_interp->_tgt_n_gnum,
+                                                      _nPart,
+                                                      (const int **)cpl_spatial_interp->_elt_pts_inside_idx,
+                                                      (const PDM_g_num_t **)cpl_spatial_interp->_points_gnum,
+                                                      _pdmCplComm);                         
 
-    //     triplet_location_set();
-    //     triplet_location_compute();
-    //     triplet_location_get_cpl();
+        }
 
-    //     PDM_gnum_location_free(_id_gnum_location, 1);
-
-    //     _spatial_interp_cpl->filling_of_sending_communication_tree_array();
-    //     initialization_of_receving_communication_tree_array();
-
-    //     both_index_communication_p2p();
-
-    //     _spatial_interp_cpl->prepare_data_communication_send();
-    //     prepare_data_communication_recv();
-    //     both_data_communication_p2p();
-
-    //     _spatial_interp_cpl->data_communication_wait_send();
-    //     data_communication_wait_recv();
-    //   }
-    // }
+        cpl_spatial_interp->_ptsp = _ptsp;
+      } 
+    }
   }
 
   void *SpatialInterpLocation::interpolate (Field *referenceField) 

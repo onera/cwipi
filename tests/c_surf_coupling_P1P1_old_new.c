@@ -921,8 +921,8 @@ int main
    *  Read args from command line
    */
   CWP_Version_t version = CWP_VERSION_OLD;
-  int n_vtx_seg1 = 100;
-  int n_vtx_seg2 = 100;
+  int n_vtx_seg1 = 4;
+  int n_vtx_seg2 = 4;
   int randomize = 1;
   int n_proc_data = -1;
 #ifdef PDM_HAVE_PARMETIS
@@ -1146,6 +1146,9 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
                              nVtx[0],
                              vtxCoord[0],
                              vtxLNToGN[0]);
+
+
+    printf("nFace, nVtx,  n_vtx_seg : %d %d %d\n", nFace[0],  nVtx[0], n_vtx_seg);
 
     CWP_Mesh_interf_from_faceedge_set (code_name[0],
                                        coupling_name,

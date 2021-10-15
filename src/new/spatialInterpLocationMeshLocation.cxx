@@ -233,12 +233,13 @@ namespace cwipi {
             }
 
             PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, part_n, (double *) part_coord, (PDM_g_num_t*) part_gnum);
+
           }
 
         }
 
         else {
-
+  
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
 
           SpatialInterpLocationMeshLocation * cpl_spatial_interp_recv = 
@@ -285,10 +286,13 @@ namespace cwipi {
   {
     printf("localization_surface_setting - 1.0\n");
     fflush(stdout);
+
     if (!_coupledCodeProperties->localCodeIs()) {
+
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
         printf("localization_surface_setting - 1.1\n");
         fflush(stdout);
+
         for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
           int n_vtx = _mesh->getPartNVertex(i_part);
           int n_face = _mesh->getNFace(i_part);
@@ -296,6 +300,7 @@ namespace cwipi {
           CWP_g_num_t *vtx_gnum = _mesh->getVertexGNum(i_part);
           CWP_g_num_t *elt_gnum = _mesh->GNumEltsGet(i_part);
           CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
+
           if (interf_dim == CWP_INTERFACE_SURFACE) {
             printf("localization_surface_setting - 1.1.1\n");
             fflush(stdout);
@@ -304,6 +309,7 @@ namespace cwipi {
             int *face_edge = _mesh->getFaceEdge(i_part);
             int *edge_vtx_idx = _mesh->getEdgeVtxIndex(i_part);
             int *edge_vtx = _mesh->getEdgeVtx(i_part);
+
             PDM_mesh_location_part_set_2d (_id_pdm, 
                                            i_part, 
                                            n_face, 
@@ -320,13 +326,16 @@ namespace cwipi {
           }
 
           else if (interf_dim == CWP_INTERFACE_VOLUME) {
+
             printf("localization_surface_setting - 1.1.2\n");
             fflush(stdout);
+
             int n_cell = _mesh->getNCell(i_part);
             int *cell_face_idx = _mesh->getCellFaceIndex(i_part);
             int *cell_face = _mesh->getCellFace(i_part);
             int *face_vtx_idx = _mesh->getFaceVtxIndex(i_part);
             int *face_vtx = _mesh->getFaceVtx(i_part);
+
             PDM_mesh_location_part_set (_id_pdm, 
                                         i_part, 
                                         n_cell, 
@@ -353,11 +362,11 @@ namespace cwipi {
             PDM_mesh_location_part_set_2d (_id_pdm, 
                                            i_part, 
                                            0, 
-                                           NULL, 
+                                           fake_idx, 
                                            NULL, 
                                            NULL, 
                                            0, 
-                                           NULL, 
+                                           fake_idx, 
                                            NULL, 
                                            NULL, 
                                            0, 
@@ -369,11 +378,11 @@ namespace cwipi {
             PDM_mesh_location_part_set (_id_pdm, 
                                         i_part, 
                                         0, 
-                                        NULL, 
+                                        fake_idx, 
                                         NULL, 
                                         NULL, 
                                         0, 
-                                        NULL, 
+                                        fake_idx, 
                                         NULL, 
                                         NULL, 
                                         0, 
@@ -383,6 +392,7 @@ namespace cwipi {
         }
       }
     }
+
     else {
       CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
 
@@ -391,42 +401,64 @@ namespace cwipi {
 
         if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
 
-          for (int i_part = 0; i_part < _cplNPart; i_part++) { 
+          for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
+            int n_vtx = _mesh->getPartNVertex(i_part);
+            int n_face = _mesh->getNFace(i_part);
+            double *coords = _mesh->getVertexCoords(i_part);
+            CWP_g_num_t *vtx_gnum = _mesh->getVertexGNum(i_part);
+            CWP_g_num_t *elt_gnum = _mesh->GNumEltsGet(i_part);
+            CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
 
             if (interf_dim == CWP_INTERFACE_SURFACE) {
-              PDM_mesh_location_part_set_2d (_id_pdm,
+              printf("localization_surface_setting - 1.1.1\n");
+              fflush(stdout);
+              int n_edge = _mesh->getNEdge(i_part);
+              int *face_edge_idx = _mesh->getFaceEdgeIndex(i_part);
+              int *face_edge = _mesh->getFaceEdge(i_part);
+              int *edge_vtx_idx = _mesh->getEdgeVtxIndex(i_part);
+              int *edge_vtx = _mesh->getEdgeVtx(i_part);
+
+              PDM_mesh_location_part_set_2d (_id_pdm, 
                                              i_part, 
-                                             0, 
+                                             n_face, 
+                                             face_edge_idx,
+                                             face_edge, 
+                                             elt_gnum, 
+                                             n_edge, 
+                                             edge_vtx_idx, 
+                                             edge_vtx, 
                                              NULL, 
-                                             NULL, 
-                                             NULL, 
-                                             0, 
-                                             NULL, 
-                                             NULL, 
-                                             NULL, 
-                                             0, 
-                                             NULL, 
-                                             NULL);
+                                             n_vtx, 
+                                             coords, 
+                                             vtx_gnum);
             }
 
             else if (interf_dim == CWP_INTERFACE_VOLUME) {
+
+              printf("localization_surface_setting - 1.1.2\n");
+              fflush(stdout);
+
+              int n_cell = _mesh->getNCell(i_part);
+              int *cell_face_idx = _mesh->getCellFaceIndex(i_part);
+              int *cell_face = _mesh->getCellFace(i_part);
+              int *face_vtx_idx = _mesh->getFaceVtxIndex(i_part);
+              int *face_vtx = _mesh->getFaceVtx(i_part);
+
               PDM_mesh_location_part_set (_id_pdm, 
                                           i_part, 
-                                          0, 
+                                          n_cell, 
+                                          cell_face_idx, 
+                                          cell_face, 
+                                          elt_gnum, 
+                                          n_face, 
+                                          face_vtx_idx, 
+                                          face_vtx, 
                                           NULL, 
-                                          NULL, 
-                                          NULL, 
-                                          0, 
-                                          NULL, 
-                                          NULL, 
-                                          NULL, 
-                                          0, 
-                                          NULL, 
-                                          NULL);
+                                          n_vtx, 
+                                          coords, 
+                                          vtx_gnum);
             }
-
           }
-
         }
 
         else {
@@ -564,7 +596,7 @@ namespace cwipi {
         }
       }
 
-      else if (_interpolation_time ==  CWP_SPATIAL_INTERP_AT_RECV) {
+      else {
 
         for (int i_part = 0; i_part < _nPart; i_part++) {
 
@@ -590,6 +622,10 @@ namespace cwipi {
                                                 &(_tgt_closest_elt_gnum[i_part]),
                                                 &(_tgt_distance[i_part]),
                                                 &(_tgt_projected[i_part]));
+          // For pdm_part1_to_selected_part2
+
+          _elt_pts_inside_idx[i_part] = (int*) malloc (sizeof(int)); // Use malloc not new [] !
+          _elt_pts_inside_idx[i_part][0] = 0;
 
         }      
       }
@@ -672,12 +708,16 @@ namespace cwipi {
                                                   &(cpl_spatial_interp->_tgt_closest_elt_gnum[i_part]),
                                                   &(cpl_spatial_interp->_tgt_distance[i_part]),
                                                   &(cpl_spatial_interp->_tgt_projected[i_part]));
+            // For pdm_part1_to_selected_part2
+
+            cpl_spatial_interp->_elt_pts_inside_idx[i_part] = (int*) malloc (sizeof(int)); // Use malloc not new [] !
+            cpl_spatial_interp->_elt_pts_inside_idx[i_part][0] = 0; 
 
           }      
 
         }
 
-        else if (_interpolation_time ==  CWP_SPATIAL_INTERP_AT_RECV) {
+        else {
 
           for (int i_part = 0; i_part < _nPart; i_part++) {
 
@@ -703,6 +743,11 @@ namespace cwipi {
                                                   &(_tgt_closest_elt_gnum[i_part]),
                                                   &(_tgt_distance[i_part]),
                                                   &(_tgt_projected[i_part]));
+            // For pdm_part1_to_selected_part2
+
+            _elt_pts_inside_idx[i_part] = (int*)  malloc(sizeof(int)); // Use malloc not new [] !
+            _elt_pts_inside_idx[i_part][0] = 0;
+
 
           }
 
@@ -741,7 +786,41 @@ namespace cwipi {
 
 
   void SpatialInterpLocationMeshLocation::localization_free() {
+
+    if (!_coupledCodeProperties->localCodeIs()) {
       PDM_mesh_location_free(_id_pdm, 1);
+      _id_pdm = nullptr;
+    }
+
+    else {
+
+      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+
+        PDM_mesh_location_free(_id_pdm, 1);
+        _id_pdm = nullptr;
+
+        cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+
+        SpatialInterpLocationMeshLocation *cpl_spatial_interp;
+
+        if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
+
+          cpl_spatial_interp = dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+
+        }
+
+        else {
+
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
+
+          cpl_spatial_interp = dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+
+        }
+        cpl_spatial_interp->_id_pdm = nullptr;
+      }
+    }
   }
 }
 

@@ -95,6 +95,7 @@ namespace cwipi {
     double      **_points_dist2;
     double      **_points_projected_coords;
 
+    int fake_idx[1] = {0};
 
   protected:
     /**

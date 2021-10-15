@@ -52,6 +52,11 @@ namespace cwipi {
 
   SpatialInterp::~SpatialInterp()
   {
+    if (_ptsp != nullptr) {
+      PDM_part1_to_selected_part2_free (_ptsp);
+      _ptsp = nullptr;
+    }
+
     delete[] _n_elt_weights;
     delete[] _weights_idx;
     delete[] _weights;
@@ -62,8 +67,10 @@ namespace cwipi {
     delete[] _n_uncomputed_tgt;
     delete[] _uncomputed_tgt;
 
-        printf("delete SpatialInterp\n");
-
+    delete[] _src_n_gnum;
+    delete[] _tgt_n_gnum;
+    delete[] _src_gnum;
+    delete[] _tgt_gnum;
   }
 
 
@@ -78,7 +85,6 @@ namespace cwipi {
     _cpl                    = coupling;
     _visu                   = coupling->visuGet();
     _mesh                   = coupling->meshGet();
-    _visu                   = coupling->visuGet();
 
     _localCodeDofLocation   = localCodeDofLocation;
     _coupledCodeDofLocation = cplCodeDofLocation;
@@ -107,6 +113,8 @@ namespace cwipi {
 
     //_id     = _localCodeProperties   -> idGet();
     //_id_cpl = _coupledCodeProperties -> idGet();
+
+
 
 
     if (!_coupledCodeProperties->localCodeIs()) {
@@ -156,6 +164,43 @@ namespace cwipi {
 
     }
 
+    _ptsp = NULL;
+
+    if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+      _src_n_gnum = new int [_nPart];
+      _src_gnum = new const PDM_g_num_t* [_nPart];
+
+      _tgt_n_gnum = new int [_cplNPart];
+      _tgt_gnum = new const PDM_g_num_t* [_cplNPart];
+
+      for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
+        _src_n_gnum[i_part] = 0;
+        _src_gnum[i_part] = nullptr;
+      }
+
+      for (int i_part = 0 ; i_part < _cplNPart ; i_part++) { 
+        _tgt_n_gnum[i_part] = 0;
+        _tgt_gnum[i_part] = nullptr;
+      }
+    }
+    else {
+      _src_n_gnum = new int [_cplNPart];
+      _src_gnum = new const PDM_g_num_t* [_cplNPart];
+
+      _tgt_n_gnum = new int [_nPart];
+      _tgt_gnum = new const PDM_g_num_t* [_nPart];
+
+      for (int i_part = 0 ; i_part < _cplNPart ; i_part++) { 
+        _src_n_gnum[i_part] = 0;
+        _src_gnum[i_part] = nullptr;
+      }
+
+      for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
+        _tgt_n_gnum[i_part] = 0;
+        _tgt_gnum[i_part] = nullptr;
+      }
+    }
+
     printf("_nPart, _cplNPart : %d %d\n", _nPart, _cplNPart);
     fflush(stdout);
 
@@ -179,33 +224,6 @@ namespace cwipi {
       _n_elt_weights[i] = 0;
     }
 
-    // if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && slave == 0 ) ){
-
-    //   if(cplComm_rank == _senderRank) {
-    //     int tagsend = 2;
-    //     int tagrecv = 2;
-    //     MPI_Status status;
-    //     MPI_Sendrecv(&_nb_part,1,MPI_INT,_senderRank_cpl,tagsend,&_nb_part_cpl,1,MPI_INT,_senderRank_cpl,tagrecv,_cplComm,&status);
-    //   }
-    // }
-
-    // n_uncomputed_tgt.resize(_nb_part);
-
-    // _coords_target =(double**)     malloc( sizeof(double*)     *_nb_part);
-    // _coords_user_targets =(double**)     malloc( sizeof(double*)     *_nb_part);
-
-
-    // for(int i_part=0;i_part<_nb_part;i_part++){
-    //   _coords_user_targets[i_part] = NULL;
-    //   _coords_target      [i_part] = NULL;
-    // }
-
-    // _gnum_user_targets   =(CWP_g_num_t**)malloc( sizeof(CWP_g_num_t*)*_nb_part);
-
-    // _n_vtx          = (int*)malloc(sizeof(int)*_nb_part);
-    // _n_elt          = (int*)malloc(sizeof(int)*_nb_part);
-    // _n_target       = (int*)malloc(sizeof(int)*_nb_part);
-    // _n_user_targets = (int*)malloc(sizeof(int)*_nb_part);
   }
 
 
