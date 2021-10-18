@@ -694,6 +694,7 @@ g
                          "new_cpl",
                          fieldName1,
                          0,
+                         CWP_FIELD_MAP_SOURCE,
                          sendValues);
 /*
       CWP_Field_data_set(codeName,
@@ -735,6 +736,7 @@ g
                          "new_cpl",
                          fieldName1,
                          0,
+                         CWP_FIELD_MAP_TARGET,
                          recvValues);
 
 

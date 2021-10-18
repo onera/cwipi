@@ -77,7 +77,7 @@ namespace cwipi {
      *
      */
 
-    void dataSet ( int i_part, void* data);
+    void dataSet (int i_part, const CWP_Field_map_t  map_type, void* data);
 
 
     /**
@@ -183,9 +183,18 @@ namespace cwipi {
      *
      */
 
-    void* dataGet(int i_part) const
+    void* dataGet(int i_part,  const CWP_Field_map_t  map_type) const
     {
-      return _data[i_part];
+      if (map_type == CWP_FIELD_MAP_SOURCE) {
+        return _data_src[i_part];
+      }
+      else if (map_type == CWP_FIELD_MAP_TARGET) {
+        return _data_tgt[i_part];
+      }
+      else {
+        printf("Field::dataGet Error : unknoown data type");
+        abort();
+      }
     }
 
     void visuIdSet(int visu_id)
@@ -215,10 +224,10 @@ namespace cwipi {
 
 
 
-    std::vector<void*> dataGetAll() const
-    {
-      return _data;
-    }
+    // std::vector<void*> dataGetAll() const
+    // {
+    //   return _data;
+    // }
 
 
     int* iterationGet() const
@@ -296,7 +305,8 @@ namespace cwipi {
     CWP_Dof_location_t                       _linkedFieldLocation; /*!< Value location Interpolation methods for sender and cloud points type for receiver */
     CWP_Field_exch_t                         _exchangeType;   /*!< Exchange type */
     CWP_Status_t                             _visuStatus;     /*!< Visualization status */
-    std::vector<void* >                      _data;           /*!< Pointer to data array Add a another data poiter for send/recv fields */
+    std::vector<void* >                      _data_src;       /*!< Pointer to data array Add a another data poiter for send fields */
+    std::vector<void* >                      _data_tgt;       /*!< Pointer to data array Add a another data poiter for recv fields */
     CWP_Type_t                               _dataType;
     std::string                              _fieldID;
     int                                      _fieldIDInt;

@@ -238,7 +238,7 @@ namespace cwipi {
 
     void WriterStepEnd();
 
-    void fieldDataSet(Field* field,int i_part);
+    void fieldDataSet(Field* field, CWP_Field_map_t map_type, int i_part);
 
     void fieldDataFree(Field* field);
 
@@ -249,7 +249,7 @@ namespace cwipi {
 
     inline double physicalTimeGet();
 
-    void WriterField(Field* field);
+    void WriterField(Field* field, CWP_Field_map_t map_type);
 
    /**
     * \brief Convert a CWIPI block type CWP_Block_t to a PDM_writer block type

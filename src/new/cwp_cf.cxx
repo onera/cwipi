@@ -1109,6 +1109,7 @@ CWP_Field_data_set_cf (
   const char *f_field_id, 
   int l_field_id, 
   int i_part, 
+  int map_type,
   double data[]
 ) 
 {
@@ -1118,7 +1119,7 @@ CWP_Field_data_set_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  CWP_Field_data_set(c_local_code_name, c_cpl_id, c_field_id, i_part, data);
+  CWP_Field_data_set(c_local_code_name, c_cpl_id, c_field_id, i_part, (CWP_Field_map_t) map_type, data);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;

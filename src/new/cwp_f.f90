@@ -368,12 +368,13 @@ module cwp
       end subroutine
 
       subroutine CWP_Field_data_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, field_id, l_field_id, &
-            i_part, data) &
+            i_part, map_type, data) &
             bind(c, name = 'CWP_Field_data_set_cf')
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
         integer(c_int) :: i_part
+        integer(c_int) :: map_type
         type(c_ptr) :: data
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_field_id
       end subroutine CWP_Field_data_set_cf
@@ -1362,6 +1363,7 @@ contains
   !! \param [in] cpl_id            Coupling identifier
   !! \param [in] field_id          Field identifier
   !! \param [in] i_part            Current partition
+  !! \param [in] data_type         Choice if data is setted for the source or the target
   !! \param [in] data              Storage array (Mapping)
   !!
   
@@ -1369,13 +1371,15 @@ contains
                                  cpl_id,          &
                                  field_id,        &
                                  i_part,          &
+                                 map_type,        &
                                  data)
 
     use, intrinsic :: iso_c_binding
     implicit none
  
     character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
-    integer(c_int) :: i_part
+    integer(c_int) :: i_part  
+    integer(c_int) :: map_type
     double precision, dimension(:), pointer :: data
     integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
  
@@ -1390,6 +1394,7 @@ contains
                                 field_id,          &
                                 l_field_id,        &
                                 i_part,            &
+                                map_type,          &
                                 c_loc(data))
   
   end subroutine CWP_Field_data_set

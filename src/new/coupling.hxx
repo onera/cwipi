@@ -606,6 +606,7 @@ namespace cwipi {
     void fieldDataSet (
       const std::string &field_id,
       int i_part,
+      const CWP_Field_map_t   map_type,
       void *data
     );
 

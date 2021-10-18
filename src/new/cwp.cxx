@@ -1542,6 +1542,7 @@ CWP_Interp_from_location_set
  * \param [in] cpl_id            Coupling identifier
  * \param [in] field_id          Field identifier
  * \param [in] i_part            Current partition
+ * \param [in] data_type         Choice if data is setted for the source or the target
  * \param [in] data              Storage array (Mapping)
  *
  */
@@ -1549,16 +1550,17 @@ CWP_Interp_from_location_set
 void
 CWP_Field_data_set
 (
- const char           *local_code_name,
- const char           *cpl_id,
- const char           *field_id,
- const int             i_part,
- double                data[]
+ const char              *local_code_name,
+ const char              *cpl_id,
+ const char              *field_id,
+ const int                i_part,
+ const CWP_Field_map_t    map_type,
+ double                   data[]
 )
 {
   if(_is_active_rank(local_code_name)){
-    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-    cpl.fieldDataSet(field_id,i_part,data);
+    cwipi::Coupling& cpl = _cpl_get(local_code_name, cpl_id);
+    cpl.fieldDataSet(field_id, i_part, map_type, data);
   }
 }
 

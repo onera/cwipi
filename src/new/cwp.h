@@ -168,6 +168,19 @@ typedef enum {
 
 
 /**
+ * \enum CWP_Field_exch_t
+ * \brief Modes of field exchange.
+ */
+
+typedef enum {
+
+  CWP_FIELD_MAP_SOURCE,        /*!< Data array used to send field */
+  CWP_FIELD_MAP_TARGET,        /*!< Data array used to receive interpolated field*/
+
+} CWP_Field_map_t ;
+
+
+/**
  * \enum CWP_Field_storage_t
  * \brief Modes of field storage.
  */
@@ -1482,6 +1495,7 @@ CWP_Field_create
  * \param [in] cpl_id            Coupling identifier
  * \param [in] field_id          Field identifier
  * \param [in] i_part            Current partition
+ * \param [in] data_type         Choice if data is setted for the source or the target
  * \param [in] data              Storage array (Mapping)
  *
  */
@@ -1489,11 +1503,12 @@ CWP_Field_create
 void
 CWP_Field_data_set
 (
- const char         *local_code_name,
- const char         *cpl_id,
- const char         *field_id,
- const int           i_part,
- double              data[]
+ const char              *local_code_name,
+ const char              *cpl_id,
+ const char              *field_id,
+ const int                i_part,
+ const CWP_Field_map_t    map_type,
+ double                   data[]
 );
 
 
@@ -1506,6 +1521,7 @@ CWP_Field_data_set
  * \param [in] field_id        Field identifier
  * \param [in] i_part          Current partition
  * \param [in] order           Order
+ * \param [in] data_type       Choice if data is setted for the source or the target
  * \param [in] data            Storage array (Mapping)
  *
  */
@@ -1513,19 +1529,19 @@ CWP_Field_data_set
 void
 CWP_Field_gradient_data_set
 (
- const char      *local_code_name,
- const char      *cpl_id,
- const char      *field_id,
- const int        i_part,
- const int        order,
- double           data[]
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const char             *field_id,
+ const int               i_part,
+ const int               order,
+ const CWP_Field_storage_t  storage_type,
+ double                  data[]
 );
 
 /**
  *
  * \brief Get number of field components.
- *
- * \param [in] local_code_name  Local code name
+ *  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] field_id         Field identifier
  *

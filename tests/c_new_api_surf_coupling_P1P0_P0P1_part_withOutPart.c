@@ -815,11 +815,11 @@ int main
 
 
      for(int i_part=0;i_part<nbPart[i_code];i_part++)  {
-       if(code1I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1,i_part, sendValues[i_code][i_part]);
-       if(code2I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2,i_part, recvValues[i_code][i_part]);
-       if(code3I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3,i_part, sendValues[i_code][i_part]);
-       if(code4I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4,i_part, sendValues[i_code][i_part]);
-       if(code5I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5,i_part, Values2Vertex[i_code][i_part]);
+       if(code1I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1,i_part,CWP_FIELD_MAP_SOURCE, sendValues[i_code][i_part]);
+       if(code2I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2,i_part,CWP_FIELD_MAP_TARGET, recvValues[i_code][i_part]);
+       if(code3I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3,i_part,CWP_FIELD_MAP_SOURCE, sendValues[i_code][i_part]);
+       if(code4I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4,i_part,CWP_FIELD_MAP_SOURCE, sendValues[i_code][i_part]);
+       if(code5I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5,i_part,CWP_FIELD_MAP_TARGET, Values2Vertex[i_code][i_part]);
      }
 
      if(code4I==1) CWP_Interp_from_location_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4,_userInterpolation);
@@ -882,11 +882,11 @@ int main
                        CWP_STATUS_ON);
 
      for(int i_part=0;i_part<nbPart[i_code];i_part++)  {
-       if(code1I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1,i_part, Values2Vertex[i_code][i_part]);
-       if(code2I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2,i_part, sendValues[i_code][i_part]);
-       if(code3I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3,i_part, recvValuesUser[i_code][i_part]);
-       if(code4I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4,i_part, recvValues[i_code][i_part]);
-       if(code5I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5,i_part, Values2Vertex[i_code][i_part]);
+       if(code1I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1,i_part,CWP_FIELD_MAP_TARGET, Values2Vertex[i_code][i_part]);
+       if(code2I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2,i_part,CWP_FIELD_MAP_SOURCE, sendValues[i_code][i_part]);
+       if(code3I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3,i_part,CWP_FIELD_MAP_TARGET, recvValuesUser[i_code][i_part]);
+       if(code4I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4,i_part,CWP_FIELD_MAP_TARGET, recvValues[i_code][i_part]);
+       if(code5I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5,i_part,CWP_FIELD_MAP_SOURCE, Values2Vertex[i_code][i_part]);
 
        if(code3I==1)
        CWP_User_tgt_pts_set(codeName[i_code],

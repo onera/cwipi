@@ -706,6 +706,7 @@ int main
                             "multipart_testcase",
                             fieldName2,
                             i_part,
+                            CWP_FIELD_MAP_TARGET,
                             recvValues[i_code][i_part]);
       }
     }
@@ -743,6 +744,7 @@ int main
                              "multipart_testcase",
                              fieldName2,
                              i_part,
+                             CWP_FIELD_MAP_SOURCE,
                              sendValues[i_code][i_part]);
 
         }

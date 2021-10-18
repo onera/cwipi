@@ -1210,6 +1210,7 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
                           coupling_name,
                           field_name,
                           0,
+                          CWP_FIELD_MAP_SOURCE,
                           send_val);
 
       CWP_Field_create (code_name[0],
@@ -1226,6 +1227,7 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
                           coupling_name,
                           field_name,
                           0,
+                          CWP_FIELD_MAP_SOURCE,
                           send_val);
     }
 
@@ -1244,6 +1246,7 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
                           coupling_name,
                           field_name,
                           0,
+                          CWP_FIELD_MAP_TARGET,
                           recv_val);
       CWP_Field_create (code_name[0],
                         coupling_name,
@@ -1259,6 +1262,7 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
                           coupling_name,
                           field_name,
                           0,
+                          CWP_FIELD_MAP_TARGET,
                           recv_val);
     }
   }

@@ -35,7 +35,8 @@ namespace cwipi {
 
        _mesh = cpl -> meshGet();
        _n_part = _mesh -> getNPart();
-       _data.resize(_n_part,NULL);
+       _data_tgt.resize(_n_part,NULL);
+       _data_src.resize(_n_part,NULL);
        _sendBuffer = NULL;
        _recvBuffer = NULL;
 
@@ -65,13 +66,26 @@ namespace cwipi {
 
 
     Field::~Field(){
+      _data_tgt.clear();
+      _data_src.clear();
+
        if (_sendBuffer != NULL) free(_sendBuffer);
        if (_recvBuffer != NULL) free(_recvBuffer);
      }
 
-  void Field::dataSet ( int i_part, void* data)
+  void Field::dataSet ( int i_part, const CWP_Field_map_t   map_type, void* data)
   {
-    _data[i_part] = data;
+    if (map_type == CWP_FIELD_MAP_SOURCE) {
+      _data_src[i_part] = data;
+    }
+    else if (map_type == CWP_FIELD_MAP_TARGET) {
+      _data_tgt[i_part] = data;
+    }
+    else {
+      printf("Field::dataSet Error : unknoown data type");
+      abort();
+    }
+
   }
 
 

@@ -584,8 +584,8 @@ int main
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
 
-      CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName1,0, sendValues[i_code]);
-      CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName2,0, recvValues[i_code]);
+      CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName1,0, CWP_FIELD_MAP_SOURCE, sendValues[i_code]);
+      CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName2,0, CWP_FIELD_MAP_TARGET, recvValues[i_code]);
 //
 
  //   _dumpStatus(outputFile, status);
@@ -614,8 +614,8 @@ int main
                      CWP_FIELD_EXCH_SEND,
                      visu_status);
 
-    CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName2,0, sendValues[i_code]);
-    CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName1,0, recvValues[i_code]);
+    CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName2,0, CWP_FIELD_MAP_TARGET, sendValues[i_code]);
+    CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName1,0, CWP_FIELD_MAP_SOURCE, recvValues[i_code]);
 
   //  _dumpStatus(outputFile, status);
   //  _dumpNotLocatedPoints(outputFile, "c_new_api_surf_cpl_P1P0_P0P1_dynamic", nNotLocatedPoints);

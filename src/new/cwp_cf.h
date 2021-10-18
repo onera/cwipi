@@ -770,7 +770,8 @@ CWP_Field_data_set_cf (
   int l_cpl_id, 
   const char *f_field_id, 
   int l_field_id, 
-  int i_part, 
+  int i_part,
+  int map_type,
   double data[]
 );
 

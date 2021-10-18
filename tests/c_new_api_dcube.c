@@ -163,11 +163,11 @@ int main(int argc, char *argv[]) {
 
     if (strcmp(code_name[0], "code1")) {
         CWP_Field_create(code_name[0], coupling_name, field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, 1, CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_SEND, visu_status);
-        CWP_Field_data_set(code_name[0], coupling_name, field_name, 0, send_val);
+        CWP_Field_data_set(code_name[0], coupling_name, field_name, 0, CWP_FIELD_MAP_SOURCE, send_val);
     }
     else {
         CWP_Field_create(code_name[0], coupling_name, field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, 1, CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_RECV, visu_status);
-        CWP_Field_data_set(code_name[0], coupling_name, field_name, 0, recv_val);
+        CWP_Field_data_set(code_name[0], coupling_name, field_name, 0, CWP_FIELD_MAP_TARGET, recv_val);
     }
 
     // Compute weights

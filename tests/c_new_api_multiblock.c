@@ -936,9 +936,11 @@ int main
 
     CWP_Status_t visu_status = CWP_STATUS_OFF;
 
-
+    CWP_Field_map_t map_type;
 
     if(code_name == "code1"){
+
+      map_type = CWP_FIELD_MAP_SOURCE;
 
       /* Rank field */
       CWP_Field_create (code_name,cpl_id1,"rank",CWP_DOUBLE,CWP_FIELD_STORAGE_BLOCK,1,
@@ -955,6 +957,8 @@ int main
 
 
    if(code_name == "code2"){
+
+    map_type = CWP_FIELD_MAP_TARGET;
 
     CWP_Field_create (code_name,cpl_id1,"rank",CWP_DOUBLE,CWP_FIELD_STORAGE_BLOCK,1,
                       CWP_DOF_LOCATION_CELL_CENTER,
@@ -974,8 +978,8 @@ int main
    for(int i_part =0;i_part <nb_part;i_part++) {
       rank_data    [i][i_part] = (double*)malloc(sizeof(double)*nElts[i][i_part]);
       rank_data_vtx[i][i_part] = (double*)malloc(sizeof(double)*nVtx [i][i_part]);
-      CWP_Field_data_set(code_name,cpl_id1,"rank"    ,i_part,rank_data    [i][i_part]);
-      CWP_Field_data_set(code_name,cpl_id1,"rank_vtx",i_part,rank_data_vtx[i][i_part]);
+      CWP_Field_data_set(code_name,cpl_id1,"rank"    ,i_part, map_type,rank_data    [i][i_part]);
+      CWP_Field_data_set(code_name,cpl_id1,"rank_vtx",i_part, map_type,rank_data_vtx[i][i_part]);
    }
 
    printf("After data set\n");

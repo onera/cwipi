@@ -1210,6 +1210,7 @@ namespace cwipi {
   (
     const string &field_id,
     int i_part,
+    const CWP_Field_map_t   map_type,
     void* data
   )
   {
@@ -1219,9 +1220,9 @@ namespace cwipi {
                 "'%s' not existing field\n", field_id.c_str());
     }
     else {
-      It->second->dataSet(i_part,data);
+      It->second->dataSet(i_part, map_type, data);
       if (_visu.isCreated() && It -> second -> visuStatusGet() == CWP_STATUS_ON) {
-        _visu.fieldDataSet(It->second,i_part);
+        _visu.fieldDataSet(It->second,map_type, i_part);
       }
     }
   }

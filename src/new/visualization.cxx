@@ -349,12 +349,12 @@ namespace cwipi {
 
 /********************************************************/
 
-  void Visu::fieldDataSet(Field* field,int i_part) {
+  void Visu::fieldDataSet(Field* field, CWP_Field_map_t storage_type, int i_part) {
 
     int id_var = -1;
 
     id_var = field -> visuIdGet();
-    void* data = field -> dataGet(i_part);
+    void* data = field -> dataGet(i_part, storage_type);
     //TODO: CHange double for multitype
 
     PDM_writer_var_set(_visu_id, id_var, _visu_mesh_id, i_part,(double*)data);
@@ -373,13 +373,13 @@ namespace cwipi {
 
 /********************************************************/
 
-  void Visu::WriterField(Field* field) {
+  void Visu::WriterField(Field* field, CWP_Field_map_t map_type) {
     int id_var = -1;
 
     id_var = field -> visuIdGet();
 
     for (int i_part =0;i_part<_n_part;i_part++) {
-       fieldDataSet(field,i_part);
+       fieldDataSet(field, map_type, i_part);
     }
     PDM_writer_var_write(_visu_id, id_var);
 
