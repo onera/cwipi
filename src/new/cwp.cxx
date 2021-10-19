@@ -1699,12 +1699,10 @@ CWP_Field_issend
  const char        *src_field_id
 )
 {
-  if(_is_active_rank(local_code_name)){
-    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-    std::string referenceFieldID_str = const_cast<char*>(src_field_id);
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  std::string referenceFieldID_str = const_cast<char*>(src_field_id);
 
-    cpl.issend(referenceFieldID_str);
-  }
+  cpl.issend(referenceFieldID_str);
 }
 
 
@@ -1731,11 +1729,9 @@ CWP_Field_irecv
  const char        *tgt_field_id
 )
 {
-  if(_is_active_rank(local_code_name)){
-    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-    std::string targetFieldID_str = const_cast<char*>(tgt_field_id);
-    cpl.irecv(targetFieldID_str);
-  }
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  std::string targetFieldID_str = const_cast<char*>(tgt_field_id);
+  cpl.irecv(targetFieldID_str);
 }
 
 
@@ -1757,11 +1753,9 @@ CWP_Field_wait_issend
  const char  *src_field_id
 )
 {
-  if(_is_active_rank(local_code_name)){
-    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-    std::string srcFieldID_str = const_cast<char*>(src_field_id);
-    cpl.waitIssend(srcFieldID_str);
-  }
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  std::string srcFieldID_str = const_cast<char*>(src_field_id);
+  cpl.waitIssend(srcFieldID_str);
 }
 
 
@@ -1786,11 +1780,9 @@ CWP_Field_wait_irecv
  const char  *tgt_field_id
 )
 {
-  if(_is_active_rank(local_code_name)){
-    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-    std::string distantFieldID_str = const_cast<char*>(tgt_field_id);
-    cpl.waitIrecv(distantFieldID_str);
-  }
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  std::string distantFieldID_str = const_cast<char*>(tgt_field_id);
+  cpl.waitIrecv(distantFieldID_str);
 }
 
 

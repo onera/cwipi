@@ -458,8 +458,8 @@ namespace cwipi {
         for (int j = 0; j < cplNbField; j++) {
           string _cplFieldName = cplFieldName.substr(cplFieldNameIdx[j], cplFieldNameIdx[j+1]-cplFieldNameIdx[j]);
           printf("cplFieldName : %s %d %d\n", _cplFieldName.c_str(), cplFieldNameIdx[j], cplFieldNameIdx[j+1]);
-
           if (_cplFieldName == localFieldName) {
+            field->linkedFieldLocationSet(cplFieldLocationV[j]);
             printf("find field\n");
             if (  (localFieldExch == CWP_FIELD_EXCH_SENDRECV && cplFieldExch[j] == CWP_FIELD_EXCH_SENDRECV)
                 ||(localFieldExch == CWP_FIELD_EXCH_SEND     && cplFieldExch[j] == CWP_FIELD_EXCH_RECV)
@@ -823,6 +823,14 @@ namespace cwipi {
           for (int j = 0; j < cplNbField; j++) {
             string cplFieldName = cplFieldName.substr( cplFieldNameIdx[j], cplFieldNameIdx[j+1]-cplFieldNameIdx[j] );
             if (cplFieldName == localFieldName) {
+              field->linkedFieldLocationSet(cplFieldLocationV[j]);
+              std::map <std::string, cwipi::Field *>::iterator it2 = cpl_cpl._fields.begin();
+              if (cpl_cpl._fields.find(cplFieldName) == cpl_cpl._fields.end()) {
+                PDM_error(__FILE__, __LINE__, 0,
+                  "'%s' Field not found\n", cplFieldName);
+              }
+              cpl_cpl._fields["cplFieldName"]->linkedFieldLocationSet(localFieldLocation);
+
               if (  (localFieldExch == CWP_FIELD_EXCH_SENDRECV && cplFieldExch[j] == CWP_FIELD_EXCH_SENDRECV)
                   ||(localFieldExch == CWP_FIELD_EXCH_SEND     && cplFieldExch[j] == CWP_FIELD_EXCH_RECV)
                   ||(localFieldExch == CWP_FIELD_EXCH_RECV     && cplFieldExch[j] == CWP_FIELD_EXCH_SEND)) {
@@ -1291,11 +1299,23 @@ namespace cwipi {
     const string &sendingFieldID
   )
   {
-    // map <string, Field *>::iterator it;
-    // it = _fields.find(sendingFieldID);
+    map <string, Field *>::iterator it;
+    it = _fields.find(sendingFieldID);
 
     // if (it != _fields.end()) {
-    //   Field* sendingField = it -> second;
+    //   Field* sendingField = it->second;
+
+    //   std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2;
+
+    //   std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
+
+    //   CWP_Dof_location_t localFieldLocation = sendingField->locationGet();
+
+    //   if (_spatial_interp_send.find(newKey) == _spatial_interp_send.end()) {
+    //   }
+
+    // }
+
     //   if(_spatial_interp[sendingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0){
     //     _spatial_interp[sendingField -> linkedFieldLocationGet()] -> issend_p2p(sendingField);
     //     return;
