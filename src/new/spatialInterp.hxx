@@ -112,6 +112,9 @@ namespace cwipi {
 
     void irecv(Field* recevingField);
 
+    void waitIssend(Field* referenceField);
+
+    void waitIrecv(Field* recevingField);
 
     /**
      *

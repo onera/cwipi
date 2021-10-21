@@ -272,6 +272,11 @@ namespace cwipi {
     // referenceField -> lastRequestAdd(tag,request);
   }
 
+  void SpatialInterp::waitIssend(Field* referenceField) {
+
+  }
+
+
   void SpatialInterp::irecv(Field *recevingField) {
     // _idx_target  .resize   (_nb_part + 1);
     // _idx_target[0] = 0;
@@ -330,6 +335,9 @@ namespace cwipi {
     // recevingField -> lastRequestAdd (tag,request);
   }
 
+  void SpatialInterp::waitIrecv(Field* referenceField) {
+
+  }
 
 
 

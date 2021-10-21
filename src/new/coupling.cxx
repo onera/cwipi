@@ -1299,36 +1299,63 @@ namespace cwipi {
     const string &sendingFieldID
   )
   {
-    map <string, Field *>::iterator it;
-    it = _fields.find(sendingFieldID);
 
-    // if (it != _fields.end()) {
-    //   Field* sendingField = it->second;
+    if (!_coupledCodeProperties.localCodeIs()) {
 
-    //   std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2;
+      map <string, Field *>::iterator it;
+      it = _fields.find(sendingFieldID);
 
-    //   std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
+      if (it != _fields.end()) {
+        Field* sendingField = it->second;
 
-    //   CWP_Dof_location_t localFieldLocation = sendingField->locationGet();
+        CWP_Dof_location_t localFieldLocation = sendingField->locationGet();
+        CWP_Dof_location_t cplFieldLocation = sendingField->linkedFieldLocationGet();
 
-    //   if (_spatial_interp_send.find(newKey) == _spatial_interp_send.end()) {
-    //   }
+        std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation); 
 
-    // }
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2;
 
-    //   if(_spatial_interp[sendingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0){
-    //     _spatial_interp[sendingField -> linkedFieldLocationGet()] -> issend_p2p(sendingField);
-    //     return;
-    //   }
-    //   else {
-    //     Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
-    //     map <std::string, Field *>::iterator it_recv = distCpl._fields.find(sendingFieldID);
-    //     if (it_recv != distCpl._fields.end()) {
-    //       Field* recevingField = it_recv -> second;
-    //       _spatial_interp[sendingField -> linkedFieldLocationGet()] -> both_codes_on_the_same_process_exchange_p2p(sendingField,recevingField);
-    //     }
-    //   }
-    // }
+        it2 = _spatial_interp_send.find(newKey); 
+
+        if (it2 == _spatial_interp_send.end()) {
+          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+        }
+        else {
+          it2->second->issend(sendingField);
+        }
+      }
+    }
+
+    else {
+
+      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+
+
+
+        map <string, Field *>::iterator it;
+        it = _fields.find(sendingFieldID);
+
+        if (it != _fields.end()) {
+          Field* sendingField = it->second;
+
+          CWP_Dof_location_t localFieldLocation = sendingField->locationGet();
+          CWP_Dof_location_t cplFieldLocation = sendingField->linkedFieldLocationGet();
+
+          std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation); 
+
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2;
+
+          it2 = _spatial_interp_send.find(newKey); 
+
+          if (it2 == _spatial_interp_send.end()) {
+            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+          }
+          else {
+            it2->second->issend(sendingField);
+          }
+        }
+      }
+    }
   }
 
 
@@ -1348,29 +1375,28 @@ namespace cwipi {
     const string &sendingFieldID
   )
   {
+    map <string, Field *>::iterator it;
+    it = _fields.find(sendingFieldID);
 
-    // map <string, Field *>::iterator it;
-    // it = _fields.find(sendingFieldID);
+    if (it != _fields.end()) {
+      Field* sendingField = it->second;
 
-    // if (it != _fields.end()) {
-    //   Field* sendingField = it -> second;
-    //   if(_spatial_interp[sendingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0){
-    //    _spatial_interp[sendingField -> linkedFieldLocationGet()] -> waitIssend_p2p(sendingField);
-    //    return;
-    //   }
-    //   else {
-    //    _spatial_interp[sendingField -> linkedFieldLocationGet()] -> waitIssend_p2p(sendingField);
-    //    Coupling &cplCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);
+      CWP_Dof_location_t localFieldLocation = sendingField->locationGet();
+      CWP_Dof_location_t cplFieldLocation = sendingField->linkedFieldLocationGet();
 
-    //    map <std::string, Field *>::iterator it_recv = distCpl.fieldsGet() -> find(sendingFieldID);
-    //    if (it_recv != distCpl.fieldsGet() -> end() ) {
-    //      Field* recevingField = it_recv -> second;
-    //      distCpl._spatial_interp[recevingField -> linkedFieldLocationGet()] -> waitIrecv_p2p(it_recv -> second);
-    //      return;
-    //    }
+      std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation); 
 
-    //   }
-    // }
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2;
+
+      it2 = _spatial_interp_send.find(newKey); 
+
+      if (it2 == _spatial_interp_send.end()) {
+        PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+      }
+      else {
+        it2->second->waitIssend(sendingField);
+      }
+    }
   }
 
 
@@ -1392,14 +1418,7 @@ namespace cwipi {
     const string &recevingFieldID
   ) 
   {
-    // map <string, Field *>::iterator it = _fields.find(recevingFieldID);
-    // if (it != _fields.end()) {
-    //   Field* recevingField = it -> second;
-    //   if(_spatial_interp[recevingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0 ){
-    //     _spatial_interp[recevingField -> linkedFieldLocationGet()] -> irecv_p2p(recevingField);
-    //   } 
-    //   return;
-    // }
+
   }
 
 
