@@ -29,7 +29,9 @@ namespace cwipi {
 
         ~SpatialInterpLocationDistSurf() override = default;
 
-    private:
+    protected:
+        void localization_init() override;
+
         void localization_points_cloud_setting() override;
 
         void localization_surface_setting() override;
@@ -40,7 +42,6 @@ namespace cwipi {
 
         void localization_free() override;
 
-    protected:
         PDM_dist_cloud_surf_t *_id_pdm;
     };
 

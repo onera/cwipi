@@ -826,8 +826,8 @@ namespace cwipi {
               field->linkedFieldLocationSet(cplFieldLocationV[j]);
               std::map <std::string, cwipi::Field *>::iterator it2 = cpl_cpl._fields.begin();
               if (cpl_cpl._fields.find(cplFieldName) == cpl_cpl._fields.end()) {
-                PDM_error(__FILE__, __LINE__, 0,
-                  "'%s' Field not found\n", cplFieldName);
+//                PDM_error(__FILE__, __LINE__, 0,
+//                  "'%s' Field not found\n", cplFieldName);
               }
               cpl_cpl._fields["cplFieldName"]->linkedFieldLocationSet(localFieldLocation);
 

@@ -87,6 +87,7 @@ namespace cwipi {
 
     //
     // Source properties
+    // TODO These are not defined for DIST_CLOUD_SURF method, is that normal?
 
     int         **_elt_pts_inside_idx;
     PDM_g_num_t **_points_gnum;
