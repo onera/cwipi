@@ -1324,16 +1324,30 @@ namespace cwipi {
           it2->second->issend(sendingField);
         }
       }
+      else {
+        PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+      }
     }
 
     else {
 
       if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
 
-
+        cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
 
         map <string, Field *>::iterator it;
         it = _fields.find(sendingFieldID);
+
+        map <string, Field *>::iterator cpl_it;
+        cpl_it = cpl_cpl._fields.find(sendingFieldID);
+
+        Field* recvField;
+        if (cpl_it != cpl_cpl._fields.end()) {
+          Field* recvField = it->second;
+        }
+        else {
+          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+        }
 
         if (it != _fields.end()) {
           Field* sendingField = it->second;
@@ -1342,10 +1356,20 @@ namespace cwipi {
           CWP_Dof_location_t cplFieldLocation = sendingField->linkedFieldLocationGet();
 
           std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation); 
+          std::pair < CWP_Dof_location_t, CWP_Dof_location_t > cpl_newKey (cplFieldLocation, localFieldLocation);       
 
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2;
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2;                   
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator cpl_it2;                   
 
           it2 = _spatial_interp_send.find(newKey); 
+          cpl_it2 = cpl_cpl._spatial_interp_recv.find(newKey); 
+
+          if (cpl_it2 == cpl_cpl._spatial_interp_recv.end()) {
+            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+          }
+          else {
+            cpl_it2->second->irecv(recvField);
+          }
 
           if (it2 == _spatial_interp_send.end()) {
             PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
@@ -1353,6 +1377,9 @@ namespace cwipi {
           else {
             it2->second->issend(sendingField);
           }
+        }
+        else {
+          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
         }
       }
     }
@@ -1375,26 +1402,80 @@ namespace cwipi {
     const string &sendingFieldID
   )
   {
-    map <string, Field *>::iterator it;
-    it = _fields.find(sendingFieldID);
+    if (!_coupledCodeProperties.localCodeIs()) {
+      map <string, Field *>::iterator it;
+      it = _fields.find(sendingFieldID);
 
-    if (it != _fields.end()) {
-      Field* sendingField = it->second;
+      if (it != _fields.end()) {
+        Field* sendingField = it->second;
 
-      CWP_Dof_location_t localFieldLocation = sendingField->locationGet();
-      CWP_Dof_location_t cplFieldLocation = sendingField->linkedFieldLocationGet();
+        CWP_Dof_location_t localFieldLocation = sendingField->locationGet();
+        CWP_Dof_location_t cplFieldLocation = sendingField->linkedFieldLocationGet();
 
-      std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation); 
+        std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation); 
 
-      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2;
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2;
 
-      it2 = _spatial_interp_send.find(newKey); 
+        it2 = _spatial_interp_send.find(newKey); 
 
-      if (it2 == _spatial_interp_send.end()) {
-        PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+        if (it2 == _spatial_interp_send.end()) {
+          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+        }
+        else {
+          it2->second->waitIssend(sendingField);
+        }
       }
-      else {
-        it2->second->waitIssend(sendingField);
+    }
+    else {
+      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+        cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
+
+        map <string, Field *>::iterator it;
+        it = _fields.find(sendingFieldID);
+
+        map <string, Field *>::iterator cpl_it;
+        cpl_it = cpl_cpl._fields.find(sendingFieldID);
+
+        Field* recvField;
+        if (cpl_it != cpl_cpl._fields.end()) {
+          Field* recvField = it->second;
+        }
+        else {
+          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+        }
+
+        if (it != _fields.end()) {
+          Field* sendingField = it->second;
+
+          CWP_Dof_location_t localFieldLocation = sendingField->locationGet();
+          CWP_Dof_location_t cplFieldLocation = sendingField->linkedFieldLocationGet();
+
+          std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation); 
+          std::pair < CWP_Dof_location_t, CWP_Dof_location_t > cpl_newKey (cplFieldLocation, localFieldLocation);       
+
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2;                   
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator cpl_it2;                   
+
+          it2 = _spatial_interp_send.find(newKey); 
+          cpl_it2 = cpl_cpl._spatial_interp_recv.find(newKey); 
+
+          if (cpl_it2 == cpl_cpl._spatial_interp_recv.end()) {
+            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+          }
+          else {
+            cpl_it2->second->waitIrecv(recvField);
+          }
+
+          if (it2 == _spatial_interp_send.end()) {
+            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+          }
+          else {
+            it2->second->waitIssend(sendingField);
+          }
+        }
+        else {
+          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+        }
       }
     }
   }
@@ -1415,9 +1496,93 @@ namespace cwipi {
   void
   Coupling::irecv
   (
-    const string &recevingFieldID
+    const string &receivingFieldID
   ) 
   {
+    if (!_coupledCodeProperties.localCodeIs()) {
+
+      map <string, Field *>::iterator it;
+      it = _fields.find(receivingFieldID);
+
+      if (it != _fields.end()) {
+        Field* receivingField = it->second;
+
+        CWP_Dof_location_t localFieldLocation = receivingField->locationGet();
+        CWP_Dof_location_t cplFieldLocation = receivingField->linkedFieldLocationGet();
+
+        std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation); 
+
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2;
+
+        it2 = _spatial_interp_recv.find(newKey); 
+
+        if (it2 == _spatial_interp_recv.end()) {
+          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+        }
+        else {
+          it2->second->irecv(receivingField);
+        }
+      }
+      else {
+        PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+      }
+    }
+
+    else {
+
+      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+
+        cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
+
+        map <string, Field *>::iterator it;
+        it = _fields.find(receivingFieldID);
+
+        map <string, Field *>::iterator cpl_it;
+        cpl_it = cpl_cpl._fields.find(receivingFieldID);
+
+        Field* sendField;
+        if (cpl_it != cpl_cpl._fields.end()) {
+          Field* sendField = it->second;
+        }
+        else {
+          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+        }
+
+        if (it != _fields.end()) {
+          Field* receivingField = it->second;
+
+          CWP_Dof_location_t localFieldLocation = receivingField->locationGet();
+          CWP_Dof_location_t cplFieldLocation = receivingField->linkedFieldLocationGet();
+
+          std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation); 
+          std::pair < CWP_Dof_location_t, CWP_Dof_location_t > cpl_newKey (cplFieldLocation, localFieldLocation);       
+
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2;                   
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator cpl_it2;                   
+
+          it2 = _spatial_interp_recv.find(newKey); 
+          cpl_it2 = cpl_cpl._spatial_interp_send.find(newKey); 
+
+          if (it2 == _spatial_interp_recv.end()) {
+            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+          }
+          else {
+            it2->second->irecv(receivingField);
+          }
+
+          if (cpl_it2 == cpl_cpl._spatial_interp_send.end()) {
+            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+          }
+          else {
+            cpl_it2->second->issend(sendField);
+          }
+
+        }
+        else {
+          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+        }
+      }
+    }
 
   }
 
@@ -1435,17 +1600,93 @@ namespace cwipi {
 
   void
   Coupling::waitIrecv (
-    const string &recevingFieldID
+    const string &receivingFieldID
   )
   {
-    // map <string, Field *>::iterator it;
-    // it = _fields.find(recevingFieldID);
+    if (!_coupledCodeProperties.localCodeIs()) {
 
-    // if (it != _fields.end()) {
-    //   Field* recevingField = it -> second;
-    //   if(_spatial_interp[recevingField -> linkedFieldLocationGet()] -> _both_codes_are_local == 0)
-    //     _spatial_interp[recevingField -> linkedFieldLocationGet()] -> waitIrecv_p2p(recevingField);
-    //  }
+      map <string, Field *>::iterator it;
+      it = _fields.find(receivingFieldID);
+
+      if (it != _fields.end()) {
+        Field* receivingField = it->second;
+
+        CWP_Dof_location_t localFieldLocation = receivingField->locationGet();
+        CWP_Dof_location_t cplFieldLocation = receivingField->linkedFieldLocationGet();
+
+        std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation); 
+
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2;
+
+        it2 = _spatial_interp_recv.find(newKey); 
+
+        if (it2 == _spatial_interp_recv.end()) {
+          PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+        }
+        else {
+          it2->second->waitIrecv(receivingField);
+        }
+      }
+      else {
+        PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+      }
+    }
+
+    else {
+
+      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+
+        cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
+
+        map <string, Field *>::iterator it;
+        it = _fields.find(receivingFieldID);
+
+        map <string, Field *>::iterator cpl_it;
+        cpl_it = cpl_cpl._fields.find(receivingFieldID);
+
+        Field* sendField;
+        if (cpl_it != cpl_cpl._fields.end()) {
+          Field* sendField = it->second;
+        }
+        else {
+          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+        }
+
+        if (it != _fields.end()) {
+          Field* receivingField = it->second;
+
+          CWP_Dof_location_t localFieldLocation = receivingField->locationGet();
+          CWP_Dof_location_t cplFieldLocation = receivingField->linkedFieldLocationGet();
+
+          std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation); 
+          std::pair < CWP_Dof_location_t, CWP_Dof_location_t > cpl_newKey (cplFieldLocation, localFieldLocation);       
+
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2;                   
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator cpl_it2;                   
+
+          it2 = _spatial_interp_recv.find(newKey); 
+          cpl_it2 = cpl_cpl._spatial_interp_send.find(newKey); 
+
+          if (it2 == _spatial_interp_recv.end()) {
+            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+          }
+          else {
+            it2->second->waitIrecv(receivingField);
+          }
+
+          if (cpl_it2 == cpl_cpl._spatial_interp_send.end()) {
+            PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
+          }
+          else {
+            cpl_it2->second->waitIssend(sendField);
+          }
+
+        }
+        else {
+          PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
+        }
+      }
+    }
   }
 
 
