@@ -50,6 +50,7 @@
 #include "pdm_binary_search.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm_logging.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -1796,6 +1797,9 @@ PDM_morton_ordered_build_rank_index
       _weight[i] = (PDM_g_num_t) weight[i] + _weight[i-1];
     }
   }
+  /*log_trace("n_codes = %d\n", n_codes);
+  PDM_log_trace_array_int ( weight, n_codes ,"weight  : ");
+  PDM_log_trace_array_long(_weight, n_codes ,"_weight : ");*/
 
 
   PDM_g_num_t scan;
@@ -1880,6 +1884,14 @@ PDM_morton_ordered_build_rank_index
     send_data[send_idx[i_rank]+send_count[i_rank]++] = ordered_code[i].X[1];
     send_data[send_idx[i_rank]+send_count[i_rank]++] = ordered_code[i].X[2];
   }
+  /*for (int i = 0; i < send_idx[comm_size]/4; i++) {
+    log_trace("send_data[%d] : L = %zu, X = %zu %zu %zu\n",
+              i,
+              send_data[4*i],
+              send_data[4*i+1],
+              send_data[4*i+2],
+              send_data[4*i+3]);
+              }*/
 
   free (quantiles);
   free (_weight);
@@ -1889,6 +1901,14 @@ PDM_morton_ordered_build_rank_index
                     comm);
 
   int n_recv_codes = recv_idx[comm_size] / 4;
+  /*for (int i = 0; i < n_recv_codes; i++) {
+    log_trace("recv_data[%d] : L = %zu, X = %zu %zu %zu\n",
+              i,
+              recv_data[4*i],
+              recv_data[4*i+1],
+              recv_data[4*i+2],
+              recv_data[4*i+3]);
+              }*/
 
   free (send_data);
   free (send_count);
@@ -1904,7 +1924,7 @@ PDM_morton_ordered_build_rank_index
 
   idx = 0;
 
-  PDM_morton_int_t send_min_code[4] = {31u, 0, 0, 0};
+  PDM_morton_int_t send_min_code[4] = {min_code.L, min_code.X[0], min_code.X[1], min_code.X[2]};//{31u, 0, 0, 0};
 
   for (int i = 0; i < n_recv_codes; i++) {
     PDM_morton_code_t tmp_code;
@@ -1913,7 +1933,21 @@ PDM_morton_ordered_build_rank_index
     tmp_code.X[1] = recv_data[idx++];
     tmp_code.X[2] = recv_data[idx++];
 
-    if (_a_gt_b( min_code, tmp_code)) {
+    /*log_trace("i = %d, tmp_code : L = %zu, X = %zu %zu %zu, min_code : L = %zu, X = %zu %zu %zu\n",
+      i,
+      tmp_code.L,
+      tmp_code.X[0],
+      tmp_code.X[1],
+      tmp_code.X[2],
+      min_code.L,
+      min_code.X[0],
+      min_code.X[1],
+      min_code.X[2]);
+      log_trace("min gt tmp? %d\n", _a_gt_b( min_code, tmp_code));
+      log_trace("min ge tmp? %d\n", _a_ge_b( min_code, tmp_code));*/
+
+    //if (_a_gt_b( min_code, tmp_code)) {
+    if (_a_ge_b( min_code, tmp_code)) {
       min_code.L = tmp_code.L;
       min_code.X[0] = tmp_code.X[0];
       min_code.X[1] = tmp_code.X[1];
@@ -1925,6 +1959,12 @@ PDM_morton_ordered_build_rank_index
     }
   }
 
+  /*log_trace("send_min_code : L = %zu, X = %zu %zu %zu\n",
+            send_min_code[0],
+            send_min_code[1],
+            send_min_code[2],
+            send_min_code[3]);*/
+
   free (recv_data);
 
   PDM_morton_int_t *buff_min_codes = malloc(sizeof(PDM_morton_int_t) * 4 * comm_size);
@@ -1934,13 +1974,21 @@ PDM_morton_ordered_build_rank_index
   PDM_MPI_Allgather (&n_recv_codes, 1, PDM_MPI_INT,
                      n_nodes, 1, PDM_MPI_INT,
                      comm);
-
   PDM_MPI_Allgather (send_min_code, 4, PDM_MPI_UNSIGNED,
                      buff_min_codes, 4, PDM_MPI_UNSIGNED,
                      comm);
+  /*for (int i = 0; i < comm_size; i++) {
+    log_trace("buff_min_codes :: rank %d : L = %zu, X = %zu %zu %zu\n",
+              i,
+              buff_min_codes[4*i],
+              buff_min_codes[4*i+1],
+              buff_min_codes[4*i+2],
+              buff_min_codes[4*i+3]);
+              }*/
 
   idx = 0;
   for (int i = 0; i < comm_size; i++) {
+    //log_trace("rank %d, n_nodes = %d, idx = %d\n", i, n_nodes[i], idx);
     if (n_nodes[i] > 0) {
       rank_index[i].L = buff_min_codes[idx++];
       rank_index[i].X[0] = buff_min_codes[idx++];
@@ -1951,6 +1999,15 @@ PDM_morton_ordered_build_rank_index
       idx += 4;
     }
   }
+
+  /*for (int i = 0; i < comm_size; i++) {
+    log_trace("rank_index (1) [%d] : L = %zu, X = %zu %zu %zu\n",
+              i,
+              rank_index[i].L,
+              rank_index[i].X[0],
+              rank_index[i].X[1],
+              rank_index[i].X[2]);
+              }*/
 
   for (int i = comm_size - 1; i >= 0; i--) {
     if ((n_nodes[i] == 0) && (i != comm_size - 1)) {
@@ -1965,6 +2022,10 @@ PDM_morton_ordered_build_rank_index
   rank_index[comm_size].X[0] = (1u << 31u) - 1u;
   rank_index[comm_size].X[1] = (1u << 31u) - 1u;
   rank_index[comm_size].X[2] = (1u << 31u) - 1u;
+
+  for (int i = 0; i < comm_size; i++) {
+    assert(_a_ge_b(rank_index[i+1], rank_index[i]));
+  }
 
   free (buff_min_codes);
   free (n_nodes);
@@ -2081,7 +2142,8 @@ PDM_morton_dump(int                dim,
     coord[i] = stride * code.X[i];
 
   if (dim == 3)
-    PDM_printf("Morton Code:\n"
+    //PDM_printf("Morton Code:\n"
+    log_trace("Morton Code:\n"
                "L =  %3u [X, Y, Z] - [%5u %5u %5u]"
                "[%6.5lf %6.5lf %6.5lf]\n",
                code.L, code.X[0], code.X[1], code.X[2],

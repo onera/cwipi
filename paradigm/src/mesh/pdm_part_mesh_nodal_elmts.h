@@ -88,7 +88,9 @@ PDM_part_mesh_nodal_elmts_block_std_get
       PDM_part_mesh_nodal_elmts_t  *pmne,
 const int                           id_block,
 const int                           id_part,
-      int                         **connec
+      int                         **connec,
+      PDM_g_num_t                 **numabs,
+      int                         **parent_num
 );
 
 int
@@ -97,6 +99,25 @@ PDM_part_mesh_nodal_elmts_block_n_elt_get
       PDM_part_mesh_nodal_elmts_t *pmne,
 const int                          id_block,
 const int                          id_part
+);
+
+int
+PDM_part_mesh_nodal_elmts_n_section_get
+(
+ PDM_part_mesh_nodal_elmts_t *pmne
+);
+
+int *
+PDM_part_mesh_nodal_elmts_sections_id_get
+(
+  PDM_part_mesh_nodal_elmts_t *pmne
+);
+
+PDM_Mesh_nodal_elt_t
+PDM_part_mesh_nodal_elmts_block_type_get
+(
+      PDM_part_mesh_nodal_elmts_t *mesh,
+const int                          id_block
 );
 
 

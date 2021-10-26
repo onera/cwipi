@@ -178,6 +178,11 @@ PDM_multipart_run_ppart
  const int id
 );
 
+void
+PDM_multipart_compute_part_mesh_nodal
+(
+const int   id
+);
 /**
  *
  * \brief Construct the partitioned meshes on every zones

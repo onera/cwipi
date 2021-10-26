@@ -96,6 +96,9 @@ PDM_inplace_unique_long
 {
   // PDM_quick_sort_long(a, l, r); /* Less optimal than PDM_sort_long */
   int array_size = r - l + 1;
+  if(array_size == 0) {
+    return 0;
+  }
   // printf("PDM_inplace_unique_long::array_size::%d\n", array_size);
   PDM_sort_long(&a[l], order, array_size);
 
@@ -149,6 +152,9 @@ PDM_inplace_unique_long2
 
   // PDM_quick_sort_long(a, l, r); /* Less optimal than PDM_sort_long */
   int array_size = r - l + 1;
+  if(array_size == 0) {
+    return array_size;
+  }
   // printf("PDM_inplace_unique_long::array_size::%d\n", array_size);
   int* order = (int *) malloc( (array_size) * sizeof(int));
 

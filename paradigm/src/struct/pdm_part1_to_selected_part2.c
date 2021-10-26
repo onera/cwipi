@@ -1085,6 +1085,32 @@ PDM_part1_to_selected_part2_create_cf
                                             selected_part2_idx, selected_part2, _comm);
 }
 
+
+/**
+ *
+ * \brief Get selected numbers of part2
+ *
+ * \param [in]   ptp                 Block to part structure
+ * \param [out]  selected_part2_idx  Index of data to send to gnum2 from gnum1 
+ *                                  (for each part size : \ref n_elt1+1) 
+ * \param [out]  selected_part2      Data to send to gnum2 from gnum1 for each part
+ *
+ */
+
+void
+PDM_part1_to_selected_part2_selected_part2_get
+(
+ PDM_part1_to_selected_part2_t *ptp,
+ int                         ***selected_part2_idx,
+ PDM_g_num_t                 ***selected_part2
+)
+{
+  *selected_part2_idx = ptp->selected_part2_idx;
+  *selected_part2     = ptp->selected_part2;
+}
+
+
+
 /**
  *
  * \brief Initialize an exchange based on MPI_ialltoall

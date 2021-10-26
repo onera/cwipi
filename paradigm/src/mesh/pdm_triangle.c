@@ -15,6 +15,7 @@
 #include "pdm_triangle.h"
 #include "pdm_line.h"
 #include "pdm_plane.h"
+#include "pdm_logging.h"
 
 /*=============================================================================
  * Macro definitions
@@ -507,6 +508,65 @@ PDM_triangle_closest_point
   }
 
 }
+
+
+
+
+
+void
+PDM_triangle_circumcircle
+(
+ const double  vtx_coord[9],
+ double        center[3],
+ double       *radius
+ )
+{
+  double a[3] = {vtx_coord[0] - vtx_coord[6],
+                 vtx_coord[1] - vtx_coord[7],
+                 vtx_coord[2] - vtx_coord[8]};
+
+  double b[3] = {vtx_coord[3] - vtx_coord[6],
+                 vtx_coord[4] - vtx_coord[7],
+                 vtx_coord[5] - vtx_coord[8]};
+
+  double ab[3] = {b[0] - a[0],
+                  b[1] - a[1],
+                  b[2] - a[2]};
+
+
+  double axb[3];
+  PDM_CROSS_PRODUCT (axb, a, b);
+
+  double a2 = PDM_DOT_PRODUCT (a, a);
+  double b2 = PDM_DOT_PRODUCT (b, b);
+  double ab2 = PDM_DOT_PRODUCT (ab, ab);
+  double axb2 = PDM_DOT_PRODUCT (axb, axb);
+
+  PDM_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wfloat-equal")
+
+    if (axb2 == 0) {
+      center[0] = vtx_coord[6];
+      center[1] = vtx_coord[7];
+      center[2] = vtx_coord[8];
+      *radius = 0.;
+    }
+
+    else {
+      axb2 = 0.25 / axb2;
+
+      a[0] = a2*b[0] - b2*a[0];
+      a[1] = a2*b[1] - b2*a[1];
+      a[2] = a2*b[2] - b2*a[2];
+      PDM_CROSS_PRODUCT (b, a, axb);
+
+      center[0] = vtx_coord[6] + 2. * b[0] * axb2;
+      center[1] = vtx_coord[7] + 2. * b[1] * axb2;
+      center[2] = vtx_coord[8] + 2. * b[2] * axb2;
+      *radius = sqrt(a2 * b2 * ab2 * axb2);
+    }
+
+  PDM_GCC_SUPPRESS_WARNING_POP
+    }
 
 
 

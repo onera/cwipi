@@ -2,6 +2,7 @@
 #include "pdm.h"
 #include "pdm_doctest.h"
 #include "pdm_dconnectivity_transform.h"
+#include "pdm_logging.h"
 
 /*
  *  Use case
@@ -48,7 +49,7 @@ MPI_TEST_CASE("[1p] pdm_dconnectivity_transform dcell_face + dface_vtx = dcell_v
                               vtx_distrib,
                               dcell_vtx_idx,
                               dcell_vtx,
-                              0,
+                              1,
                               &dvtx_cell_idx,
                               &dvtx_cell);
 
@@ -154,5 +155,62 @@ MPI_TEST_CASE("[2p] pdm_dconnectivity_transform dcell_face + dface_vtx = dcell_v
 
   free(dcell_vtx_idx);
   free(dcell_vtx);
+
+}
+
+
+MPI_TEST_CASE("[1p] PDM_dorder_reverse",1) {
+
+  PDM_MPI_Comm pdm_comm = PDM_MPI_mpi_2_pdm_mpi_comm(&test_comm);
+  int i_rank;
+  PDM_MPI_Comm_rank(pdm_comm, &i_rank);
+
+  std::vector<PDM_g_num_t> entity_distrib = {0, 5};
+  int dn_entity = entity_distrib[i_rank+1] - entity_distrib[i_rank];
+  std::vector<PDM_g_num_t> new_to_old = {5, 3, 2, 1, 4};
+
+  PDM_g_num_t* old_to_new;
+  PDM_dorder_reverse(pdm_comm,
+                     entity_distrib.data(),
+                     new_to_old.data(),
+                     &old_to_new);
+
+  std::vector<PDM_g_num_t> old_to_new_expected = {4, 3, 2, 5, 1};
+  MPI_CHECK_EQ_C_ARRAY(0, old_to_new, old_to_new_expected.data(), dn_entity);
+
+  // PDM_log_trace_array_long(old_to_new, dn_entity, "old_to_new : ");
+
+}
+
+
+MPI_TEST_CASE("[2p] PDM_dorder_reverse",2) {
+
+  PDM_MPI_Comm pdm_comm = PDM_MPI_mpi_2_pdm_mpi_comm(&test_comm);
+  int i_rank;
+  PDM_MPI_Comm_rank(pdm_comm, &i_rank);
+
+  std::vector<PDM_g_num_t> entity_distrib = {0, 3, 5};
+  std::vector<PDM_g_num_t> new_to_old;
+  if(i_rank == 0) {
+    new_to_old = {5, 3, 2};
+  } else {
+    new_to_old = {1, 4};
+  }
+
+  int dn_entity = entity_distrib[i_rank+1] - entity_distrib[i_rank];
+
+  PDM_g_num_t* old_to_new;
+  PDM_dorder_reverse(pdm_comm,
+                     entity_distrib.data(),
+                     new_to_old.data(),
+                     &old_to_new);
+
+  std::vector<PDM_g_num_t> old_to_new_expected_p0 = {4, 3, 2};
+  std::vector<PDM_g_num_t> old_to_new_expected_p1 = {5, 1};
+
+  MPI_CHECK_EQ_C_ARRAY(0, old_to_new, old_to_new_expected_p0.data(), dn_entity);
+  MPI_CHECK_EQ_C_ARRAY(1, old_to_new, old_to_new_expected_p1.data(), dn_entity);
+
+  // PDM_log_trace_array_long(old_to_new, dn_entity, "old_to_new : ");
 
 }

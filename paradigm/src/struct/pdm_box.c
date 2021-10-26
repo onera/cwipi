@@ -52,6 +52,7 @@
 #include "pdm_error.h"
 #include "pdm_hash_tab.h"
 #include "pdm_array.h"
+#include "pdm_logging.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -471,6 +472,45 @@ PDM_box_set_normalize_inv
 {
   for (int j = 0; j < boxes->dim; j++) {
     pt_origin[j] = pt_nomalized[j] * boxes->d[j] + boxes->s[j];
+  }
+}
+
+
+
+
+
+
+
+void
+PDM_box_set_normalize_robust
+(
+ PDM_box_set_t  *boxes,
+ const int       n_pts,
+ double         *pts_origin,
+ double         *pts_normalized
+ )
+{
+  double invd[3] = {1., 1., 1.};
+
+  double d_max = 0.0;
+  const double epsilon = 1e-4;
+
+  for (int i = 0; i < boxes->dim; i++) {
+    d_max = PDM_MAX(d_max, boxes->d[i]);
+  }
+
+  double eps_max = PDM_MAX (d_max * epsilon, 1e-6);
+
+  for (int i = 0; i < boxes->dim; i++) {
+    if (boxes->d[i] >= eps_max) {
+      invd[i] = 1. / boxes->d[i];
+    }
+  }
+
+  for (int i = 0; i < n_pts; i++) {
+    for (int j = 0; j < boxes->dim; j++) {
+      pts_normalized[3*i + j] = (pts_origin[3*i + j] - boxes->s[j]) * invd[j];
+    }
   }
 }
 

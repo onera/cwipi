@@ -94,12 +94,12 @@ MPI_TEST_CASE("[PDM_delmts_nodal_elmts_t] Constructor",1) {
    * Generate the connectivity
    */
   //
-  PDM_dmesh_nodal_generate_distribution2(dmn);
+  PDM_dmesh_nodal_generate_distribution(dmn);
   PDM_dmesh_nodal_to_dmesh_t* dmn_to_dm = PDM_dmesh_nodal_to_dmesh_create(1, pdm_comm, PDM_OWNERSHIP_KEEP);
   PDM_dmesh_nodal_to_dmesh_add_dmesh_nodal(dmn_to_dm, 0, dmn);
-  PDM_dmesh_nodal_to_dmesh_compute2(dmn_to_dm,
-                                    PDM_DMESH_NODAL_TO_DMESH_TRANSFORM_TO_EDGE,
-                                    PDM_DMESH_NODAL_TO_DMESH_TRANSLATE_GROUP_TO_EDGE);
+  PDM_dmesh_nodal_to_dmesh_compute(dmn_to_dm,
+                                   PDM_DMESH_NODAL_TO_DMESH_TRANSFORM_TO_EDGE,
+                                   PDM_DMESH_NODAL_TO_DMESH_TRANSLATE_GROUP_TO_EDGE);
 
   PDM_dmesh_t* dm;
   PDM_dmesh_nodal_to_dmesh_get_dmesh(dmn_to_dm, 0, &dm);
@@ -143,5 +143,5 @@ MPI_TEST_CASE("[PDM_delmts_nodal_elmts_t] Constructor",1) {
   // PDM_DMesh_nodal_elmts_free(dmn_elmts_surf);
   // PDM_DMesh_nodal_elmts_free(dmn_elmts_ridge);
 
-  PDM_DMesh_nodal_free(dmn, 0);
+  PDM_DMesh_nodal_free(dmn);
 }

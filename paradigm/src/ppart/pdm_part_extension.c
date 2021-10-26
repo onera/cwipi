@@ -1089,8 +1089,8 @@ _generate_extended_partition_connectivity
     order_entity1_entity2[i] = i;
   }
 
-  PDM_sort_long(_sorted_entity2_ln_to_gn, order, n_entity2-1);
-  PDM_sort_long(gentity1_entity2        , order_entity1_entity2, entity1_entity2_idx[n_entity1]-1);
+  PDM_sort_long(_sorted_entity2_ln_to_gn, order                , n_entity2                     );
+  PDM_sort_long(gentity1_entity2        , order_entity1_entity2, entity1_entity2_idx[n_entity1]);
   // abort(); // Il faut trier le cell_face !!!!! --> Permet de prendre le bon signe aprés !
 
   if(0 == 1) {

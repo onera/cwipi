@@ -3210,14 +3210,14 @@ _heap_fill_pn_tetra_sub_tetra
         double _weights_closest_point_P1[4];
         double _dist2;
 
-        int is_degenerate = PDM_tetrahedron_evaluate_position (point_coords,
+        PDM_tetrahedron_status_t status = PDM_tetrahedron_evaluate_position (point_coords,
                                                                __vertex_coords,
                                                                _closest_point_P1,
                                                                &_dist2,
                                                                _weights_closest_point_P1);
 
 
-        if (is_degenerate != -1) {
+        if (status != PDM_TETRAHEDRON_DEGENERATED) {
 
           double *_uvw_closest_point_P1 = _weights_closest_point_P1 + 1;
           double _uvw_closest_point_Pn[3] = {0., 0., 0.};
@@ -3315,13 +3315,13 @@ _heap_fill_pn_tetra_sub_tetra
             }
 
 
-            is_degenerate = PDM_tetrahedron_evaluate_position (point_coords,
-                                                               __vertex_coords,
-                                                               _closest_point_P1,
-                                                               &_dist2,
-                                                               _weights_closest_point_P1);
+            status  = PDM_tetrahedron_evaluate_position (point_coords,
+                                                         __vertex_coords,
+                                                         _closest_point_P1,
+                                                         &_dist2,
+                                                         _weights_closest_point_P1);
 
-            if (is_degenerate != -1) {
+            if (status != PDM_TETRAHEDRON_DEGENERATED) {
 
               double *_uvw_closest_point_P1 = _weights_closest_point_P1 + 1;
               double _uvw_closest_point_Pn[3] = {0., 0., 0.};
@@ -3488,14 +3488,14 @@ _heap_fill_pn_pyra_sub_tetra
           double _weights_closest_point_P1[4];
           double _dist2;
 
-          int is_degenerate = PDM_tetrahedron_evaluate_position (point_coords,
+          PDM_tetrahedron_status_t status = PDM_tetrahedron_evaluate_position (point_coords,
                                                                  __vertex_coords,
                                                                  _closest_point_P1,
                                                                  &_dist2,
                                                                  _weights_closest_point_P1);
 
 
-          if (is_degenerate != -1) {
+          if (status != PDM_TETRAHEDRON_DEGENERATED) {
 
             double *_uvw_closest_point_P1 = _weights_closest_point_P1 + 1;
             double _uvw_closest_point_Pn[3] = {0., 0., 0.};
@@ -3764,13 +3764,13 @@ _heap_fill_pn_pyra_sub_tetra
             double _weights_closest_point_P1[4];
             double _dist2;
 
-            int is_degenerate = PDM_tetrahedron_evaluate_position (point_coords,
+            PDM_tetrahedron_status_t status = PDM_tetrahedron_evaluate_position (point_coords,
                                                                    __vertex_coords,
                                                                    _closest_point_P1,
                                                                    &_dist2,
                                                                    _weights_closest_point_P1);
 
-            if (is_degenerate != -1) {
+            if (status != PDM_TETRAHEDRON_DEGENERATED) {
 
               double *_uvw_closest_point_P1 = _weights_closest_point_P1 + 1;
               double _uvw_closest_point_Pn[3] = {0., 0., 0.};
@@ -3998,13 +3998,13 @@ _heap_fill_pn_prism_sub_tetra
           double _weights_closest_point_P1[4];
           double _dist2;
 
-          int is_degenerate = PDM_tetrahedron_evaluate_position (point_coords,
+          PDM_tetrahedron_status_t status = PDM_tetrahedron_evaluate_position (point_coords,
                                                                  __vertex_coords,
                                                                  _closest_point_P1,
                                                                  &_dist2,
                                                                  _weights_closest_point_P1);
 
-          if (is_degenerate != -1) {
+          if (status != PDM_TETRAHEDRON_DEGENERATED) {
 
             double *_uvw_closest_point_P1 = _weights_closest_point_P1 + 1;
             double _uvw_closest_point_Pn[3] = {0., 0., 0.};
@@ -4081,13 +4081,13 @@ _heap_fill_pn_prism_sub_tetra
           double _weights_closest_point_P1[4];
           double _dist2;
 
-          int is_degenerate = PDM_tetrahedron_evaluate_position (point_coords,
+          PDM_tetrahedron_status_t status = PDM_tetrahedron_evaluate_position (point_coords,
                                                                  __vertex_coords,
                                                                  _closest_point_P1,
                                                                  &_dist2,
                                                                  _weights_closest_point_P1);
 
-          if (is_degenerate != -1) {
+          if (status != PDM_TETRAHEDRON_DEGENERATED) {
 
             double *_uvw_closest_point_P1 = _weights_closest_point_P1 + 1;
             double _uvw_closest_point_Pn[3] = {0., 0., 0.};
@@ -4184,13 +4184,13 @@ _heap_fill_pn_prism_sub_tetra
         double _weights_closest_point_P1[4];
         double _dist2;
 
-        int is_degenerate = PDM_tetrahedron_evaluate_position (point_coords,
+        PDM_tetrahedron_status_t status = PDM_tetrahedron_evaluate_position (point_coords,
                                                                __vertex_coords,
                                                                _closest_point_P1,
                                                                &_dist2,
                                                                _weights_closest_point_P1);
 
-        if (is_degenerate != -1) {
+        if (status != PDM_TETRAHEDRON_DEGENERATED) {
 
           double *_uvw_closest_point_P1 = _weights_closest_point_P1 + 1;
           double _uvw_closest_point_Pn[3] = {0., 0., 0.};
@@ -4468,13 +4468,13 @@ _heap_fill_pn_hexa_sub_tetra
           double _weights_closest_point_P1[4];
           double _dist2;
 
-          int is_degenerate = PDM_tetrahedron_evaluate_position (point_coords,
+          PDM_tetrahedron_status_t status = PDM_tetrahedron_evaluate_position (point_coords,
                                                                  __vertex_coords,
                                                                  _closest_point_P1,
                                                                  &_dist2,
                                                                  _weights_closest_point_P1);
 
-          if (is_degenerate != -1) {
+          if (status != PDM_TETRAHEDRON_DEGENERATED) {
 
             double *_uvw_closest_point_P1 = _weights_closest_point_P1 + 1;
             double _uvw_closest_point_Pn[3] = {0., 0., 0.};
@@ -4636,7 +4636,7 @@ _insert_subtetra
     double _dist2_child = 0;
     double _closest_pt_weights_child[4];
 
-    int is_degenerate = PDM_tetrahedron_evaluate_position (point_coords,
+    PDM_tetrahedron_status_t status = PDM_tetrahedron_evaluate_position (point_coords,
                                                            _vtx_tetra_child,
                                                            _closest_pt_child,
                                                            &_dist2_child,
@@ -4644,7 +4644,7 @@ _insert_subtetra
 
 
 
-    if (is_degenerate == -1) {
+    if (status == PDM_TETRAHEDRON_DEGENERATED) {
       continue;
     }
 

@@ -149,7 +149,7 @@ cdef class DistCloudSurf:
         """
         Give the number of partitions of a point cloud
         """
-        if n_part_cloud >= 1:
+        if n_part_cloud >= 0:
             if i_point_cloud >= 0 and i_point_cloud < self.n_point_cloud:
                 PDM_dist_cloud_surf_n_part_cloud_set(self._dist, i_point_cloud, n_part_cloud)
                 self._nb_pts[i_point_cloud] = NPY.zeros(n_part_cloud, dtype='int32', order='C')

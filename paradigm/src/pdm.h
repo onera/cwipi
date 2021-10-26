@@ -227,11 +227,29 @@ typedef enum {
 } PDM_bound_type_t;
 
 typedef enum {
+  PDM_GEOMETRY_KIND_VOLUMIC  = 0,
+  PDM_GEOMETRY_KIND_SURFACIC = 1,
+  PDM_GEOMETRY_KIND_RIDGE    = 2,
+  PDM_GEOMETRY_KIND_CORNER   = 3,
+  PDM_GEOMETRY_KIND_MAX      = 4,
+} PDM_geometry_kind_t;
+
+typedef enum {
 
   PDM_MESH_LOCATION_OCTREE,
   PDM_MESH_LOCATION_DBBTREE,
 
 } PDM_mesh_location_method_t;
+
+
+typedef enum {
+  PDM_VTX_KIND_NONE               = 0x0000000, /*=* empty flag, all values set to false */
+  PDM_VTX_KIND_NULL               = 0xFFFFFFF, /*=* unsignificant flags value           */
+  PDM_VTX_KIND_ON_VOLUME          = 0x0000001, /*=*  0                                  */
+  PDM_VTX_KIND_ON_SURFACE         = 0x0000002, /*=*  1                                  */
+  PDM_VTX_KIND_ON_RIDGE           = 0x0000004, /*=*  2                                  */
+  PDM_VTX_KIND_ON_CORNER          = 0x0000008, /*=*  3                                  */
+} PDM_vtx_kind;
 
 
 /*=============================================================================

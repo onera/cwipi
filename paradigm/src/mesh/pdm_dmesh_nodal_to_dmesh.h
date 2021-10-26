@@ -59,7 +59,7 @@ typedef enum {
  *
  */
 void
-PDM_generate_entitiy_connectivity
+PDM_generate_entitiy_connectivity_raw
 (
 PDM_MPI_Comm   comm,
 PDM_g_num_t    n_vtx_abs,
@@ -82,10 +82,11 @@ PDM_g_num_t  **dentity_elmt
  *
  */
 void
-PDM_generate_entitiy_connectivity2
+PDM_generate_entitiy_connectivity
 (
 PDM_MPI_Comm   comm,
 PDM_g_num_t    n_vtx_abs,
+PDM_g_num_t    n_g_child,
 int            n_part,
 int           *n_entity_elt_tot,
 PDM_g_num_t  **delmt_entity,
@@ -99,8 +100,12 @@ PDM_g_num_t  **dentity_vtx,
 int          **dentity_elmt_idx,
 PDM_g_num_t  **dentity_elmt,
 int          **dentity_parent_element_position,
+int          **dparent_idx,
 PDM_g_num_t  **dparent_gnum,
-PDM_g_num_t  **delmt_child_distrib
+int          **dparent_sign,
+PDM_g_num_t  **delmt_child_distrib,
+PDM_g_num_t  **distrib_missing_child,
+PDM_g_num_t  **dmissing_child_parent_g_num
 );
 
 /**
@@ -119,6 +124,12 @@ const PDM_MPI_Comm    comm,
 const PDM_ownership_t owner
 );
 
+void
+PDM_dmesh_nodal_to_dmesh_set_post_treat_result
+(
+ PDM_dmesh_nodal_to_dmesh_t *dmesh_nodal_to_dm,
+ int                         post_treat_result
+);
 
 void
 PDM_dmesh_nodal_to_dmesh_add_dmesh_nodal
@@ -130,14 +141,6 @@ PDM_dmesh_nodal_to_dmesh_add_dmesh_nodal
 
 void
 PDM_dmesh_nodal_to_dmesh_compute
-(
-        PDM_dmesh_nodal_to_dmesh_t                 *dmn_to_dm,
-  const PDM_dmesh_nodal_to_dmesh_transform_t        transform_kind,
-  const PDM_dmesh_nodal_to_dmesh_translate_group_t  transform_group_kind
-);
-
-void
-PDM_dmesh_nodal_to_dmesh_compute2
 (
         PDM_dmesh_nodal_to_dmesh_t                 *dmn_to_dm,
   const PDM_dmesh_nodal_to_dmesh_transform_t        transform_kind,
@@ -158,12 +161,17 @@ PDM_dmesh_nodal_to_dmesh_free
   PDM_dmesh_nodal_to_dmesh_t* dmn_to_dm
 );
 
+
 void
-PDM_dmesh_nodal_to_dmesh_transform_to_coherent_dmesh
+PDM_dmesh_nodal_to_dmesh_get_missing
 (
-        PDM_dmesh_nodal_to_dmesh_t *dmn_to_dm,
-  const int                         extract_dim
-);
+ PDM_dmesh_nodal_to_dmesh_t *dmn_to_dm,
+ const int                   i_mesh,
+ PDM_geometry_kind_t         geom_kind,
+ PDM_g_num_t               **distrib_missing,
+ PDM_g_num_t               **dmissing_parent_g_num
+ );
+
 
 #ifdef __cplusplus
 }

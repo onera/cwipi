@@ -36,23 +36,23 @@ MPI_TEST_CASE("[PDM_part_mesh_nodal_elmts_t] Constructor",1) {
   const int         n_tri_section_1  = 8;
   const int         n_bar_section_1  = 8;
 
-  PDM_g_num_t connec_tri_1[24] = {6, 8, 9,
-                                  9, 5, 6,
-                                  2, 8, 1,
-                                  9, 3, 4,
-                                  6, 7, 8,
-                                  9, 4, 5,
-                                  2, 9, 8,
-                                  9, 2, 3};
+  int connec_tri_1[24] = {6, 8, 9,
+                          9, 5, 6,
+                          2, 8, 1,
+                          9, 3, 4,
+                          6, 7, 8,
+                          9, 4, 5,
+                          2, 9, 8,
+                          9, 2, 3};
 
-  PDM_g_num_t connec_bar_1[16] = {1, 2,
-                                  2, 3,
-                                  4, 5,
-                                  3, 4,
-                                  6, 7,
-                                  5, 6,
-                                  8, 1,
-                                  7, 8};
+  int connec_bar_1[16] = {1, 2,
+                          2, 3,
+                          4, 5,
+                          3, 4,
+                          6, 7,
+                          5, 6,
+                          8, 1,
+                          7, 8};
 
   int n_part = 1;
   // int n_group_elmt = 1;

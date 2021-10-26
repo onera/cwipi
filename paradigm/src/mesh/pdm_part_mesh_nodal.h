@@ -62,9 +62,117 @@ PDM_part_mesh_nodal_coord_set
        PDM_part_mesh_nodal_t *pmn,
  const int                    id_part,
  const int                    n_vtx,
- const PDM_real_t            *coords,
+ const double                *coords,
  const PDM_g_num_t           *numabs,
        PDM_ownership_t        owner
+);
+
+int
+PDM_part_mesh_nodal_n_part_get
+(
+       PDM_part_mesh_nodal_t *pmn
+);
+
+int
+PDM_part_mesh_nodal_n_vtx_get
+(
+       PDM_part_mesh_nodal_t *pmn,
+ const int                    id_part
+);
+
+double*
+PDM_part_mesh_nodal_vtx_coord_get
+(
+       PDM_part_mesh_nodal_t *pmn,
+ const int                    id_part
+);
+
+
+PDM_g_num_t*
+PDM_part_mesh_nodal_vtx_g_num_get
+(
+       PDM_part_mesh_nodal_t *pmn,
+ const int                    id_part
+);
+
+int
+PDM_part_mesh_nodal_n_section_get
+(
+ PDM_part_mesh_nodal_t *pmn,
+ PDM_geometry_kind_t    geom_kind
+);
+
+
+int *
+PDM_part_mesh_nodal_sections_id_get
+(
+ PDM_part_mesh_nodal_t *pmn,
+ PDM_geometry_kind_t    geom_kind
+);
+
+
+PDM_Mesh_nodal_elt_t
+PDM_part_mesh_nodal_section_elt_type_get
+(
+        PDM_part_mesh_nodal_t *pmn,
+        PDM_geometry_kind_t    geom_kind,
+  const int                    id_section
+);
+
+int
+PDM_part_mesh_nodal_section_add
+(
+      PDM_part_mesh_nodal_t *pmn,
+      PDM_geometry_kind_t    geom_kind,
+const PDM_Mesh_nodal_elt_t   t_elt
+);
+
+
+
+void
+PDM_part_mesh_nodal_section_std_set
+(
+      PDM_part_mesh_nodal_t *pmn,
+      PDM_geometry_kind_t    geom_kind,
+const int                    id_block,
+const int                    id_part,
+const int                    n_elt,
+const int                   *connec,
+const PDM_g_num_t           *numabs,
+const int                   *parent_num,
+      PDM_ownership_t        owner
+);
+
+
+
+int
+PDM_part_mesh_nodal_block_n_elt_get
+(
+      PDM_part_mesh_nodal_t  *pmn,
+      PDM_geometry_kind_t     geom_kind,
+const int                     id_block,
+const int                     id_part
+);
+
+
+void
+PDM_part_mesh_nodal_block_std_get
+(
+      PDM_part_mesh_nodal_t  *pmn,
+      PDM_geometry_kind_t     geom_kind,
+const int                     id_block,
+const int                     id_part,
+      int                   **connec,
+      PDM_g_num_t           **numabs,
+      int                   **parent_num
+);
+
+PDM_Mesh_nodal_elt_t
+PDM_part_mesh_nodal_block_type_get
+(
+      PDM_part_mesh_nodal_t  *pmn,
+      PDM_geometry_kind_t     geom_kind,
+const int                     id_block
 );
 
 void

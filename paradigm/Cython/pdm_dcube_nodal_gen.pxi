@@ -6,30 +6,17 @@ cdef extern from "pdm_dcube_nodal_gen.h":
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     # ------------------------------------------------------------------
-    PDM_dcube_nodal_t* PDM_dcube_nodal_gen_init(PDM_MPI_Comm   comm,
-                                    const PDM_g_num_t    n_vtx_seg,
-                                    const double         length,
-                                    const double         zero_x,
-                                    const double         zero_y,
-                                    const double         zero_z,
-                                    PDM_Mesh_nodal_elt_t t_elt,
-                                    PDM_ownership_t      owner)
-
-    # ------------------------------------------------------------------
-    # void PDM_dcube_nodal_gen_dim_get(PDM_dcube_nodal_t        *pdm_dcube,
-    #                            int                *n_face_group,
-    #                            int                *dn_cell,
-    #                            int                *dn_face,
-    #                            int                *dn_vtx,
-    #                            int                *sface_vtx,
-    #                            int                *sface_group)
-
-    # ------------------------------------------------------------------
-    # void PDM_dcube_nodal_gen_data_get(PDM_dcube_nodal_t        *pdm_dcube,
-    #                                   PDM_g_num_t       **delmt_vtx,
-    #                                   double            **dvtx_coord,
-    #                                   int               **dface_group_idx,
-    #                                   PDM_g_num_t       **dface_group)
+    PDM_dcube_nodal_t* PDM_dcube_nodal_gen_create(      PDM_MPI_Comm   comm,
+                                                  const PDM_g_num_t    nx,
+                                                  const PDM_g_num_t    ny,
+                                                  const PDM_g_num_t    nz,
+                                                  const double         length,
+                                                  const double         zero_x,
+                                                  const double         zero_y,
+                                                  const double         zero_z,
+                                                  PDM_Mesh_nodal_elt_t t_elt,
+                                                  int                  order,
+                                                  PDM_ownership_t      owner)
 
     # ------------------------------------------------------------------
     void PDM_dcube_nodal_gen_free(PDM_dcube_nodal_t        *pdm_dcube)
@@ -45,12 +32,15 @@ cdef class DCubeNodalGenerator:
     cdef PDM_dcube_nodal_t* _dcube
     # ------------------------------------------------------------------
     def __cinit__(self,
-                  npy_pdm_gnum_t                         n_vtx_seg,
+                  npy_pdm_gnum_t                         nx,
+                  npy_pdm_gnum_t                         ny,
+                  npy_pdm_gnum_t                         nz,
                   NPY.double_t                           length,
                   NPY.double_t                           zero_x,
                   NPY.double_t                           zero_y,
                   NPY.double_t                           zero_z,
                   PDM_Mesh_nodal_elt_t                   t_elmt,
+                  int                                    order,
                   MPI.Comm                               comm):
 
         """
@@ -59,14 +49,17 @@ cdef class DCubeNodalGenerator:
         cdef MPI.MPI_Comm c_comm = comm.ob_mpi
 
         # -> Create dcube
-        self._dcube = PDM_dcube_nodal_gen_init(PDM_MPI_mpi_2_pdm_mpi_comm (<void *> &c_comm),
-                                         n_vtx_seg,
-                                         length,
-                                         zero_x,
-                                         zero_y,
-                                         zero_z,
-                                         t_elmt,
-                                         PDM_OWNERSHIP_USER) # Python take owership
+        self._dcube = PDM_dcube_nodal_gen_create(PDM_MPI_mpi_2_pdm_mpi_comm (<void *> &c_comm),
+                                                 nx,
+                                                 ny,
+                                                 nz,
+                                                 length,
+                                                 zero_x,
+                                                 zero_y,
+                                                 zero_z,
+                                                 t_elmt,
+                                                 order,
+                                                 PDM_OWNERSHIP_USER) # Python take owership
 
     # ------------------------------------------------------------------
     def __dealloc__(self):

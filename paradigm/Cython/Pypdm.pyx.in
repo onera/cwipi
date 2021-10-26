@@ -55,6 +55,13 @@ cdef extern from "pdm.h":
         PDM_MESH_ENTITY_EDGE
         PDM_MESH_ENTITY_VERTEX
 
+    ctypedef enum PDM_geometry_kind_t:
+        PDM_GEOMETRY_KIND_VOLUMIC  = 0,
+        PDM_GEOMETRY_KIND_SURFACIC = 1,
+        PDM_GEOMETRY_KIND_RIDGE    = 2,
+        PDM_GEOMETRY_KIND_CORNER   = 3,
+        PDM_GEOMETRY_KIND_MAX      = 4
+
     ctypedef enum PDM_bool_t:
         PDM_FALSE = 0
         PDM_TRUE  = 1
@@ -126,13 +133,16 @@ cdef extern from "pdm_mpi.h":
     PDM_MPI_Comm PDM_MPI_mpi_2_pdm_mpi_comm(void *pt_comm)
 # -----------------------------------------------------------------
 
-
-
-
 _PDM_MESH_ENTITY_CELL   = PDM_MESH_ENTITY_CELL
 _PDM_MESH_ENTITY_FACE   = PDM_MESH_ENTITY_FACE
 _PDM_MESH_ENTITY_EDGE   = PDM_MESH_ENTITY_EDGE
 _PDM_MESH_ENTITY_VERTEX = PDM_MESH_ENTITY_VERTEX
+
+_PDM_GEOMETRY_KIND_VOLUMIC  = PDM_GEOMETRY_KIND_VOLUMIC
+_PDM_GEOMETRY_KIND_SURFACIC = PDM_GEOMETRY_KIND_SURFACIC
+_PDM_GEOMETRY_KIND_RIDGE    = PDM_GEOMETRY_KIND_RIDGE
+_PDM_GEOMETRY_KIND_CORNER   = PDM_GEOMETRY_KIND_CORNER
+_PDM_GEOMETRY_KIND_MAX      = PDM_GEOMETRY_KIND_MAX
 
 _PDM_CONNECTIVITY_TYPE_CELL_ELMT = PDM_CONNECTIVITY_TYPE_CELL_ELMT
 _PDM_CONNECTIVITY_TYPE_CELL_CELL = PDM_CONNECTIVITY_TYPE_CELL_CELL
@@ -189,6 +199,7 @@ _PDM_MESH_NODAL_POLY_3D  = PDM_MESH_NODAL_POLY_3D
 # @COMMENT_NOT_PDMA@print(f"Pypdm : load plugin (PDM_plugin_load).")
 @COMMENT_NOT_PDMA@PDM_plugin_load()
 @COMMENT_NOT_PDMA@
+
 
 # -----------------------------------------------------------------
 # > Enable transfer of ownership between C and Python
@@ -267,6 +278,10 @@ include "pdm_dmesh_nodal.pxi"
 
 # PDM_dmesh_nodal :
 # ----------------
+include "pdm_part_mesh_nodal.pxi"
+
+# PDM_dmesh_nodal :
+# ----------------
 include "pdm_dmesh_nodal_to_dmesh.pxi"
 
 # PDM_part :
@@ -303,7 +318,12 @@ include "pdm_dist_cloud_surf.pxi"
 
 # PDM_dist_cloud_surf :
 # --------------------
-@COMMENT_NOT_PDMA@include "../../Cython/pdm_dist_cellcenter_surf.pxi"
+@COMMENT_NOT_PDMA@include "pdm_dist_cellcenter_surf.pxi"
+
+# PDM_delaunay :
+# --------------------
+@COMMENT_NOT_PDMA@include "pdm_delaunay.pxi"
+@COMMENT_NOT_PDMA@include "pdm_remesh.pxi"
 
 # PDM_points_merge :
 # --------------------

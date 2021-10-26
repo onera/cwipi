@@ -34,7 +34,7 @@ if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
 elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
 
-  set (CMAKE_Fortran_FLAGS "-cpp -fpic -warn -diag-disable 7712")
+  set (CMAKE_Fortran_FLAGS "-fpp -Wp,-P -fpic -warn -diag-disable 7712")
 
   set (CMAKE_Fortran_FLAGS_RELEASE "-O3")
 

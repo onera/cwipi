@@ -149,6 +149,10 @@ PDM_dmesh_create
   dmesh->dbound_idx      = malloc( PDM_BOUND_TYPE_MAX * sizeof(int         *) );
   dmesh->is_owner_bound  = malloc( PDM_BOUND_TYPE_MAX * sizeof(PDM_bool_t   ) );
 
+  for(int i = 0; i < PDM_BOUND_TYPE_MAX; ++i ) {
+    dmesh->n_group_bnd[i] = 0;
+  }
+
   for(int i = 0; i < PDM_BOUND_TYPE_MAX; ++i) {
     dmesh->is_owner_bound[i] = PDM_FALSE;
     dmesh->dbound        [i] = NULL;
@@ -365,7 +369,7 @@ PDM_dmesh_bound_get
   *connect     = dmesh->dbound    [bound_type];
   *connect_idx = dmesh->dbound_idx[bound_type];
 
-  return dmesh->n_bnd;
+  return dmesh->n_group_bnd[bound_type];
 }
 
 

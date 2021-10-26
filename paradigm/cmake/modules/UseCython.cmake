@@ -17,7 +17,7 @@
 #
 #   cython_add_standalone_executable( <executable_name> [MAIN_MODULE src1] <src1> <src2> ... <srcN> )
 #
-# To avoid dependence on Python, set the PYTHON_LIBRARY cache variable to point
+# To avoid dependence on Python, set the Python_LIBRARY cache variable to point
 # to a static library.  If a MAIN_MODULE source is specified,
 # the "if __name__ == '__main__':" from that module is used as the C main() method
 # for the executable.  If MAIN_MODULE, the source with the same basename as
@@ -72,10 +72,43 @@ set( CYTHON_FLAGS "" CACHE STRING
 mark_as_advanced( CYTHON_ANNOTATE CYTHON_NO_DOCSTRINGS CYTHON_FLAGS )
 
 find_package( Cython REQUIRED)
-find_package( PythonLibs REQUIRED )
+#find_package( PythonLibs REQUIRED )
 
 set( CYTHON_CXX_EXTENSION "cxx" )
 set( CYTHON_C_EXTENSION "c" )
+
+function(PYTHON_ADD_MODULE_INTERNAL _NAME )
+  get_property(_TARGET_SUPPORTS_SHARED_LIBS
+    GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS)
+  option(PYTHON_ENABLE_MODULE_${_NAME} "Add module ${_NAME}" TRUE)
+  option(PYTHON_MODULE_${_NAME}_BUILD_SHARED
+    "Add module ${_NAME} shared" ${_TARGET_SUPPORTS_SHARED_LIBS})
+
+  # Mark these options as advanced
+  mark_as_advanced(PYTHON_ENABLE_MODULE_${_NAME}
+    PYTHON_MODULE_${_NAME}_BUILD_SHARED)
+
+  if(PYTHON_ENABLE_MODULE_${_NAME})
+    if(PYTHON_MODULE_${_NAME}_BUILD_SHARED)
+      set(PY_MODULE_TYPE MODULE)
+    else()
+      set(PY_MODULE_TYPE STATIC)
+      set_property(GLOBAL  APPEND  PROPERTY  PY_STATIC_MODULES_LIST ${_NAME})
+    endif()
+
+    set_property(GLOBAL  APPEND  PROPERTY  PY_MODULES_LIST ${_NAME})
+    add_library(${_NAME} ${PY_MODULE_TYPE} ${ARGN})
+#    target_link_libraries(${_NAME} ${PYTHON_LIBRARIES})
+
+    if(PYTHON_MODULE_${_NAME}_BUILD_SHARED)
+      set_target_properties(${_NAME} PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}")
+      if(WIN32 AND NOT CYGWIN)
+        set_target_properties(${_NAME} PROPERTIES SUFFIX ".pyd")
+      endif()
+    endif()
+
+  endif()
+endfunction()
 
 # Create a *.c or *.cxx file from a *.pyx file.
 # Input the generated file basename.  The generate file will put into the variable
@@ -138,9 +171,9 @@ function( COMPILE_PYX _name generated_file)
       set( cython_debug_arg "--gdb" )
   endif()
 
-  if( "${PYTHONLIBS_VERSION_STRING}" MATCHES "^2." )
+  if( "${Python_VERSION}" MATCHES "^2." )
     set( version_arg "-2" )
-  elseif( "${PYTHONLIBS_VERSION_STRING}" MATCHES "^3." )
+  elseif( "${Python_VERSION}" MATCHES "^3." )
     set( version_arg "-3" )
   else()
     set( version_arg )
@@ -182,14 +215,14 @@ function( CYTHON_ADD_MODULE _name )
                 PYX_SOURCES ${CYTHON_ADD_MODULE_PYX_SOURCES}
                 INCLUDE_DIRECTORIES ${CYTHON_ADD_MODULE_INCLUDE_DIRECTORIES})
 
-  include_directories( ${PYTHON_INCLUDE_DIRS} )
-  python_add_module( ${_name} ${generated_file} ${CYTHON_ADD_MODULE_OTHER_SOURCES})
+  include_directories( ${Python_INCLUDE_DIRS} )
+  add_library( ${_name} MODULE ${generated_file} ${CYTHON_ADD_MODULE_OTHER_SOURCES})
   target_include_directories(${_name} PRIVATE ${CYTHON_ADD_MODULE_INCLUDE_DIRECTORIES})
 
   if( APPLE )
     set_target_properties( ${_name} PROPERTIES LINK_FLAGS "-undefined dynamic_lookup" )
   else()
-    target_link_libraries( ${_name} ${PYTHON_LIBRARIES} )
+    set_target_properties( ${_name} PROPERTIES LINK_LIBRARIES ${Python_LIBRARIES} )
   endif()
 endfunction()
 
@@ -202,14 +235,14 @@ function( cython_add_standalone_executable _name )
   set( other_module_sources "" )
   set( main_module "" )
   cmake_parse_arguments( cython_arguments "" "MAIN_MODULE" "" ${ARGN} )
-  include_directories( ${PYTHON_INCLUDE_DIRS} )
+  include_directories( ${Python_INCLUDE_DIRS} )
   foreach( _file ${cython_arguments_UNPARSED_ARGUMENTS} )
     if( ${_file} MATCHES ".*\\.py[x]?$" )
       get_filename_component( _file_we ${_file} NAME_WE )
       if( "${_file_we}" STREQUAL "${_name}" )
         set( main_module "${_file}" )
       elseif( NOT "${_file}" STREQUAL "${cython_arguments_MAIN_MODULE}" )
-        set( PYTHON_MODULE_${_file_we}_static_BUILD_SHARED OFF )
+        set( Python_MODULE_${_file_we}_static_BUILD_SHARED OFF )
         compile_pyx( "${_file_we}_static" generated_file "${_file}" )
         list( APPEND pyx_module_sources "${generated_file}" )
       endif()
@@ -228,5 +261,5 @@ function( cython_add_standalone_executable _name )
   set( CYTHON_FLAGS ${CYTHON_FLAGS} --embed )
   compile_pyx( "${main_module_we}_static" generated_file ${main_module} )
   add_executable( ${_name} ${generated_file} ${pyx_module_sources} ${other_module_sources} )
-  target_link_libraries( ${_name} ${PYTHON_LIBRARIES} ${pyx_module_libs} )
+  target_link_libraries( ${_name} ${Python_LIBRARIES} ${pyx_module_libs} )
 endfunction()

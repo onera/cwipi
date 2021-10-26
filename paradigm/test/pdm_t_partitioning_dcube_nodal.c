@@ -177,27 +177,19 @@ int main(int argc, char *argv[])
   PDM_MPI_Comm_rank(comm, &i_rank);
   PDM_MPI_Comm_size(comm, &n_rank);
 
-  int ok = setenv("PDM_NEW_DMESH_NODAL_API", "1", 1);
-  assert(ok == 0);
-
-  // char *env_dmesh_nodal_api = getenv ("PDM_NEW_DMESH_NODAL_API");
-  // int api_type = 0;
-  // if (env_dmesh_nodal_api != NULL) {
-  //   if (atoi(env_dmesh_nodal_api) == 0) {
-  //     api_type = 0;
-  //   } else {
-  //     api_type = 1;
-  //   }
-  // }
-
-  PDM_dcube_nodal_t* dcube = PDM_dcube_nodal_gen_init(comm,
-                                                      n_vtx_seg,
-                                                      length,
-                                                      0.,
-                                                      0.,
-                                                      0.,
-                                                      PDM_MESH_NODAL_QUAD4,
-                                                      PDM_OWNERSHIP_KEEP);
+  PDM_dcube_nodal_t* dcube = PDM_dcube_nodal_gen_create(comm,
+                                                        n_vtx_seg,
+                                                        n_vtx_seg,
+                                                        n_vtx_seg,
+                                                        length,
+                                                        0.,
+                                                        0.,
+                                                        0.,
+                                                        PDM_MESH_NODAL_QUAD4,
+                                                        1,
+                                                        PDM_OWNERSHIP_KEEP);
+  PDM_dcube_nodal_gen_ordering_set (dcube, "PDM_HO_ORDERING_CGNS");
+  PDM_dcube_nodal_gen_build (dcube);
 
 
   PDM_dmesh_nodal_t* dmn = PDM_dcube_nodal_gen_dmesh_nodal_get(dcube);
@@ -208,47 +200,76 @@ int main(int argc, char *argv[])
   PDM_dmesh_nodal_to_dmesh_t* dmn_to_dm = PDM_dmesh_nodal_to_dmesh_create(1, comm, PDM_OWNERSHIP_KEEP);
   PDM_dmesh_nodal_to_dmesh_add_dmesh_nodal(dmn_to_dm, 0, dmn);
 
-  // PDM_dmesh_nodal_generate_distribution(dmn);
-  // PDM_dmesh_nodal_to_dmesh_compute(dmn_to_dm,
-  //                                   PDM_DMESH_NODAL_TO_DMESH_TRANSFORM_TO_EDGE,
-  //                                   PDM_DMESH_NODAL_TO_DMESH_TRANSLATE_GROUP_TO_EDGE);
-  // PDM_dmesh_nodal_to_dmesh_transform_to_coherent_dmesh(dmn_to_dm, 2);
-
-  PDM_dmesh_nodal_generate_distribution2(dmn);
-  PDM_dmesh_nodal_to_dmesh_compute2(dmn_to_dm,
-                                    PDM_DMESH_NODAL_TO_DMESH_TRANSFORM_TO_EDGE,
-                                    PDM_DMESH_NODAL_TO_DMESH_TRANSLATE_GROUP_TO_EDGE);
+  PDM_dmesh_nodal_generate_distribution(dmn);
+  PDM_dmesh_nodal_to_dmesh_compute(dmn_to_dm,
+                                   PDM_DMESH_NODAL_TO_DMESH_TRANSFORM_TO_EDGE,
+                                   PDM_DMESH_NODAL_TO_DMESH_TRANSLATE_GROUP_TO_EDGE);
 
   PDM_dmesh_t* dm = NULL;
   PDM_dmesh_nodal_to_dmesh_get_dmesh(dmn_to_dm, 0, &dm);
 
   /*
+   * Test tranpose
+   */
+  PDM_g_num_t *dedge_distrib;
+  PDM_dmesh_distrib_get(dm, PDM_MESH_ENTITY_EDGE, &dedge_distrib);
+  int         *dedge_group_idx;
+  PDM_g_num_t *dedge_group;
+  int n_group = PDM_dmesh_bound_get(dm,
+                                    PDM_BOUND_TYPE_EDGE,
+                                    &dedge_group,
+                                    &dedge_group_idx,
+                                    PDM_OWNERSHIP_KEEP);
+  int *dedge_to_group;
+  int *dedge_to_group_idx;
+  PDM_dgroup_entity_transpose(n_group,
+                              dedge_group_idx,
+                              dedge_group,
+                              dedge_distrib,
+                              &dedge_to_group_idx,
+                              &dedge_to_group,
+                              comm);
+
+  int dn_edge = dedge_distrib[i_rank+1] - dedge_distrib[i_rank];
+  if(1 == 1) {
+    PDM_log_trace_array_int (dedge_group_idx, n_group+1, "dedge_group_idx ::");
+    PDM_log_trace_array_long(dedge_group, dedge_group_idx[n_group], "dedge_group ::");
+    PDM_log_trace_connectivity_int(dedge_to_group_idx, dedge_to_group, dn_edge, "dedge_to_group ::");
+  }
+  free(dedge_to_group);
+  free(dedge_to_group_idx);
+
+  /*
    * Partitionnement
    */
-  int n_zone = 1;
-  int n_part_zones = n_part;
-  int mpart_id = PDM_multipart_create(n_zone,
-                                      &n_part_zones,
-                                      PDM_FALSE,
-                                      part_method,
-                                      PDM_PART_SIZE_HOMOGENEOUS,
-                                      NULL,
-                                      comm,
-                                      PDM_OWNERSHIP_KEEP);
+  // int n_zone = 1;
+  // int n_part_zones = n_part;
+  // int mpart_id = PDM_multipart_create(n_zone,
+  //                                     &n_part_zones,
+  //                                     PDM_FALSE,
+  //                                     part_method,
+  //                                     PDM_PART_SIZE_HOMOGENEOUS,
+  //                                     NULL,
+  //                                     comm,
+  //                                     PDM_OWNERSHIP_KEEP);
 
-  PDM_multipart_set_reordering_options(mpart_id, -1, "PDM_PART_RENUM_CELL_NONE", NULL, "PDM_PART_RENUM_FACE_NONE");
+  // PDM_multipart_set_reordering_options(mpart_id, -1, "PDM_PART_RENUM_CELL_NONE", NULL, "PDM_PART_RENUM_FACE_NONE");
 
-  PDM_multipart_register_dmesh_nodal(mpart_id, 0, dmn);
-  PDM_multipart_register_block(mpart_id, 0, dm);
+  // // PDM_multipart_register_dmesh_nodal(mpart_id, 0, dmn);
+  // PDM_multipart_register_block(mpart_id, 0, dm);
 
-  PDM_multipart_run_ppart(mpart_id);
+  // PDM_multipart_run_ppart(mpart_id);
 
-  PDM_multipart_free(mpart_id);
+  // PDM_multipart_free(mpart_id);
 
 
+  // A faire : Extraction d'un maillage surfacique à partir du volumique (en dmesh et dmesh_nodal )
+  //           Et également en part_mesh et part_mesh_nodal
 
-  // PDM_dmesh_nodal_to_dmesh_free(dmn_to_dm);
+
+  PDM_dmesh_nodal_to_dmesh_free(dmn_to_dm);
   PDM_dcube_nodal_gen_free(dcube);
+
   PDM_MPI_Finalize();
 
   return 0;

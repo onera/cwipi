@@ -732,18 +732,18 @@ int main(int argc, char *argv[])
   int          *dedge_face_idx;
   PDM_g_num_t  *dedge_face;
 
-  PDM_generate_entitiy_connectivity(comm,
-                                    vtx_distribution[n_rank],
-                                    n_edge_elt_tot,
-                                    tmp_dface_edge,
-                                    tmp_dface_edge_vtx_idx,
-                                    tmp_dface_edge_vtx,
-                                    &dn_edge,
-                                    &dedge_distrib,
-                                    &dedge_vtx_idx,
-                                    &dedge_vtx,
-                                    &dedge_face_idx,
-                                    &dedge_face);
+  PDM_generate_entitiy_connectivity_raw(comm,
+                                        vtx_distribution[n_rank],
+                                        n_edge_elt_tot,
+                                        tmp_dface_edge,
+                                        tmp_dface_edge_vtx_idx,
+                                        tmp_dface_edge_vtx,
+                                        &dn_edge,
+                                        &dedge_distrib,
+                                        &dedge_vtx_idx,
+                                        &dedge_vtx,
+                                        &dedge_face_idx,
+                                        &dedge_face);
 
   /* Make ascending connectivity */
   int          *dface_edge_idx;

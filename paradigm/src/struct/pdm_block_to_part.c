@@ -37,6 +37,59 @@ extern "C" {
  * Static function definitions
  *============================================================================*/
 
+static
+void
+_comm_graph_statistics
+(
+ PDM_block_to_part_t* btp
+)
+{
+  /*
+   *  Statistic of send --> requested_data_idx
+   */
+  int min_n_rank_connected  = btp->n_rank+1;
+  int max_n_rank_connected  = -1;
+
+  int n_connect_rank = 0;
+  for(int i = 0; i < btp->n_rank; ++i) {
+    if(btp->requested_data_n[i] > 0) {
+      n_connect_rank++;
+    }
+  }
+
+  double d_n_rank_connected = n_connect_rank;
+  double mean_n_rank_connected = 0;
+  PDM_MPI_Allreduce(&n_connect_rank    , &max_n_rank_connected , 1, PDM_MPI_INT   , PDM_MPI_MAX, btp->comm);
+  PDM_MPI_Allreduce(&n_connect_rank    , &min_n_rank_connected , 1, PDM_MPI_INT   , PDM_MPI_MIN, btp->comm);
+  PDM_MPI_Allreduce(&d_n_rank_connected, &mean_n_rank_connected, 1, PDM_MPI_DOUBLE, PDM_MPI_SUM, btp->comm);
+
+  mean_n_rank_connected = mean_n_rank_connected/btp->n_rank;
+
+  if(btp->i_rank == 0) {
+    printf("PDM_block_to_part requested statistics : [min/max/mean] = %i / %i / %12.5e \n", min_n_rank_connected, max_n_rank_connected, mean_n_rank_connected);
+  }
+
+  n_connect_rank = 0;
+  for(int i = 0; i < btp->n_rank; ++i) {
+    if(btp->distributed_data_n[i] > 0) {
+      n_connect_rank++;
+    }
+  }
+
+  d_n_rank_connected = n_connect_rank;
+  mean_n_rank_connected = 0;
+  PDM_MPI_Allreduce(&n_connect_rank    , &max_n_rank_connected , 1, PDM_MPI_INT   , PDM_MPI_MAX, btp->comm);
+  PDM_MPI_Allreduce(&n_connect_rank    , &min_n_rank_connected , 1, PDM_MPI_INT   , PDM_MPI_MIN, btp->comm);
+  PDM_MPI_Allreduce(&d_n_rank_connected, &mean_n_rank_connected, 1, PDM_MPI_DOUBLE, PDM_MPI_SUM, btp->comm);
+
+  mean_n_rank_connected = mean_n_rank_connected/btp->n_rank;
+
+  if(btp->i_rank == 0) {
+    printf("PDM_block_to_part to send statistics : [min/max/mean] = %i / %i / %12.5e \n", min_n_rank_connected, max_n_rank_connected, mean_n_rank_connected);
+  }
+
+}
+
 
 /*=============================================================================
  * Public function definitions
@@ -62,7 +115,7 @@ extern "C" {
 PDM_block_to_part_t *
 PDM_block_to_part_create_cf
 (
- const PDM_g_num_t    *block_distrib_idx,
+ const PDM_g_num_t     *block_distrib_idx,
  const PDM_g_num_t    **gnum_elt,
  const int            *n_elt,
  const int             n_part,
@@ -196,6 +249,10 @@ PDM_block_to_part_create
   int coeff = 10;
   if (btp->distributed_data_idx[btp->n_rank] >= coeff * max_data_block) {
     btp->pttopt_comm = 1;
+  }
+
+  if(0 == 1) {
+    _comm_graph_statistics(btp);
   }
 
   //PDM_log_trace_array_long(btp->distributed_data_idx, btp->n_rank+1, "block_distrib");

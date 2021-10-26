@@ -97,7 +97,7 @@ enum {X, Y, Z};
  * Sign of value
  */
 
-#define PDM_SIGN(a)  ((a) > 0) ? 1 : (((a) < 0) ? -1 : 0)
+#define PDM_SIGN(a)  (((a) > 0) ? 1 : (((a) < 0) ? -1 : 0))
 
 /**
  * Dot product
@@ -126,6 +126,8 @@ enum {X, Y, Z};
 
 #define PDM_PI 3.1415926535897931
 
+#define PDM_SQRT2     1.415//1.4142135623730951
+#define PDM_SQRT2_INV 0.707//0.7071067811865476
 
 #ifdef __cplusplus
 }

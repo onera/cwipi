@@ -70,7 +70,6 @@ struct _pdm_dmesh_t
   PDM_g_num_t *edge_distrib;
   PDM_g_num_t *vtx_distrib;
 
-
   PDM_g_num_t *_dface_cell;                     /*!< Face-cell connectivity of distributed
                                                   faces (size = 2 * dn_face)
                                                   if iface is a boundary face,
@@ -117,6 +116,7 @@ struct _pdm_dmesh_t
                                                  join (size = dface_join_idx[n_join])
                                                   or NULL                               */
 
+  int           n_group_bnd[PDM_BOUND_TYPE_MAX]; /*!< Number of group by elememnt type            */
   PDM_g_num_t **dconnectivity;                   /* Array of connectivty (size = PDM_CONNECTIVITY_TYPE_MAX) */
   int         **dconnectivity_idx;               /* Array of connectivty_idx if any (size = PDM_CONNECTIVITY_TYPE_MAX) */
 

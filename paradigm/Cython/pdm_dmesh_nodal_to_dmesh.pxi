@@ -37,8 +37,6 @@ cdef extern from "pdm_dmesh_nodal_to_dmesh.h":
     void PDM_dmesh_nodal_to_dmesh_get_dmesh(PDM_dmesh_nodal_to_dmesh_t  *dmn_to_dm,
                                             int                          i_mesh,
                                             PDM_dmesh_t                **dm)
-    void PDM_dmesh_nodal_to_dmesh_transform_to_coherent_dmesh(PDM_dmesh_nodal_to_dmesh_t *dmesh_nodal_to_dm,
-                                                              int                         extract_dim)
 
     void PDM_dmesh_nodal_to_dmesh_free(PDM_dmesh_nodal_to_dmesh_t* dmn_to_dm)
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -91,12 +89,6 @@ cdef class DMeshNodalToDMesh:
     """
     """
     PDM_dmesh_nodal_to_dmesh_compute(self.dmn_to_dm, transform_kind, transform_group_kind)
-
-  # ------------------------------------------------------------------------
-  def transform_to_coherent_dmesh(self, int extract_dim):
-    """
-    """
-    PDM_dmesh_nodal_to_dmesh_transform_to_coherent_dmesh(self.dmn_to_dm, extract_dim)
 
   # ------------------------------------------------------------------------
   def get_dmesh(self, int i_mesh):

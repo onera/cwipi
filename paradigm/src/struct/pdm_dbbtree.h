@@ -240,8 +240,46 @@ PDM_dbbtree_points_inside_boxes_with_copies
  const PDM_g_num_t   box_g_num[],
  int               **pts_in_box_idx,
  PDM_g_num_t       **pts_in_box_g_num,
- double            **pts_in_box_coord
+ double            **pts_in_box_coord,
+ const int           ellipsoids
  );
+
+
+
+
+void
+PDM_dbbtree_boxes_containing_points
+(
+ PDM_dbbtree_t      *dbbt,
+ const int           n_pts,
+ PDM_g_num_t         pts_g_num[],
+ double              pts_coord[],
+ int               **box_idx,
+ PDM_g_num_t       **box_g_num,
+ const int           ellipsoids
+ );
+
+
+void
+PDM_dbbtree_lines_intersect_boxes
+(
+ PDM_dbbtree_t  *dbbt,
+ const int       n_line,
+ PDM_g_num_t    *line_g_num,
+ double         *line_coord,
+ int           **box_index,
+ PDM_g_num_t   **box_g_num
+);
+
+void
+PDM_dbbtree_points_debug
+(
+ char*               filename_pattern,
+ PDM_dbbtree_t      *dbbt,
+ const int           n_pts,
+ double             *pts_coord,
+ PDM_g_num_t        *pts_g_num
+);
 
 #ifdef __cplusplus
 }

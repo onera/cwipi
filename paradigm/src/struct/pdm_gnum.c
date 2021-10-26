@@ -1200,17 +1200,17 @@ PDM_gnum_create
 PDM_gen_gnum_t*
 PDM_gnum_create_cf
 (
- const int             *dim,
- const int             *n_part,
- const int             *merge,
- const double          *tolerance,
- const PDM_MPI_Fint    *fcomm,
- const PDM_ownership_t *owner
+ const int             dim,
+ const int             n_part,
+ const int             merge,
+ const double          tolerance,
+ const PDM_MPI_Fint    fcomm,
+ const PDM_ownership_t owner
 )
 {
-  const PDM_MPI_Comm c_comm = PDM_MPI_Comm_f2c (*fcomm);
+  const PDM_MPI_Comm c_comm = PDM_MPI_Comm_f2c (fcomm);
 
-  return PDM_gnum_create (*dim, *n_part, (PDM_bool_t) *merge, *tolerance, c_comm, *owner);
+  return PDM_gnum_create (dim, n_part, (PDM_bool_t) merge, tolerance, c_comm, owner);
 }
 
 
@@ -1313,11 +1313,19 @@ PDM_gnum_compute
  PDM_gen_gnum_t  *gen_gnum
 )
 {
-  if (gen_gnum->coords != NULL) {
+  //Detect if geometric or topologic -- works if a procs holds no partitions
+  int from_coords = (gen_gnum->coords != NULL);
+  int from_parent = (gen_gnum->parent != NULL);
+  int from_coords_g, from_parent_g;
+  PDM_MPI_Allreduce(&from_coords, &from_coords_g, 1, PDM_MPI_INT, PDM_MPI_SUM, gen_gnum->comm);
+  PDM_MPI_Allreduce(&from_parent, &from_parent_g, 1, PDM_MPI_INT, PDM_MPI_SUM, gen_gnum->comm);
+
+  assert (from_coords_g * from_parent_g == 0);
+
+  if (from_coords_g != 0) {
     _gnum_from_coords_compute (gen_gnum);
   }
-
-  else if (gen_gnum->parent != NULL) {
+  else if (from_parent_g != 0) {
     _gnum_from_parent_compute (gen_gnum);
   }
 

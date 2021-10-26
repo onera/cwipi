@@ -1272,34 +1272,34 @@ PDM_Mesh_nodal_n_vtx_elt_get
   const int order
 )
 {
-  if (order != 1) {
-     PDM_error (__FILE__, __LINE__, 0, "Not implemented yet for order > 1\n");
-  }
-
   switch (type) {
   case PDM_MESH_NODAL_POINT :
     return 1;
     break;
   case PDM_MESH_NODAL_BAR2 :
-    return 2;
+    return order + 1;
     break;
   case PDM_MESH_NODAL_TRIA3 :
-    return 3;
+    return (order + 1) * (order + 2) / 2;
     break;
   case PDM_MESH_NODAL_QUAD4 :
-    return 4;
+    return (order + 1) * (order + 1);
     break;
   case PDM_MESH_NODAL_TETRA4 :
-    return 4;
+    return (order + 1) * (order + 2) * (order + 3) / 6;
     break;
   case PDM_MESH_NODAL_PYRAMID5 :
-    return 5;
+    /*if (order != 1) {
+      PDM_error (__FILE__, __LINE__, 0, "Pyramid not implemented yet for order > 1\n");
+    }
+    return 5;*/
+    return (order + 1) * (order + 2) * (2*order + 3) / 6;
     break;
   case PDM_MESH_NODAL_PRISM6 :
-    return 6;
+    return (order + 1) * (order + 1) * (order + 2) / 2;
     break;
   case PDM_MESH_NODAL_HEXA8 :
-    return 8;
+    return (order + 1) * (order + 1) * (order + 1);
     break;
   default :
     PDM_error (__FILE__, __LINE__, 0, "Unknown for order Poly2D and Polyu3D\n");

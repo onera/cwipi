@@ -128,6 +128,7 @@ PDM_sort_long
  int          lArray
 )
 {
+  if (lArray <= 0) return;
   /* size of subarray sorted by straight insertion */
   const int M = 7;
   /* default size of the stack */

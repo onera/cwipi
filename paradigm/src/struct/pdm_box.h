@@ -452,6 +452,16 @@ PDM_box_distrib_dump(const PDM_box_distrib_t  *distrib);
 
 /*----------------------------------------------------------------------------*/
 
+
+void
+PDM_box_set_normalize_robust
+(
+ PDM_box_set_t  *boxes,
+ const int       n_pts,
+ double         *pts_origin,
+ double         *pts_normalized
+ );
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -937,19 +937,30 @@ int main(int argc, char *argv[])
    *  Init
    */
 
-  int my_rank;
-  int n_ranks;
+  int i_rank;
+  int n_rank;
 
   PDM_MPI_Init (&argc, &argv);
-  PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &my_rank);
-  PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &n_ranks);
+  PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &i_rank);
+  PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &n_rank);
 
+  if (i_rank == 0) {
+    PDM_printf ("%Parametres : \n");
+    PDM_printf ("  - n_rank      : %d\n", n_rank);
+    PDM_printf ("  - n_vtx_seg   : "PDM_FMT_G_NUM"\n", n_vtx_seg);
+    PDM_printf ("  - n_pts       : "PDM_FMT_G_NUM"\n", n_pts);
+    PDM_printf ("  - length      : %f\n", length);
+    PDM_printf ("  - depth       : %f\n", depth);
+    PDM_printf ("  - tolerance   : %f\n", tolerance);
+    PDM_printf ("  - part_method : %d\n", (int) part_method);
+    PDM_printf ("  - loc_method  : %d\n", (int) loc_method);
+  }
 
   /*
    *  Create partitionned surface mesh
    */
 
-  if (my_rank == 0) {
+  if (i_rank == 0) {
     printf("-- Build surface mesh\n");
     fflush(stdout);
   }
@@ -1010,7 +1021,7 @@ int main(int argc, char *argv[])
    * Point cloud definition
    *
    ************************/
-  if (my_rank == 0) {
+  if (i_rank == 0) {
     printf("-- Point cloud\n");
     fflush(stdout);
   }
@@ -1039,8 +1050,8 @@ int main(int argc, char *argv[])
     _random_cloud (n_pts,
                    xyz_min,
                    xyz_max,
-                   n_ranks,
-                   my_rank,
+                   n_rank,
+                   i_rank,
                    &pts_coords,
                    &n_pts_l);
   }
@@ -1125,7 +1136,7 @@ int main(int argc, char *argv[])
   /*
    * Compute location
    */
-  if (my_rank == 0) {
+  if (i_rank == 0) {
     printf("-- Locate\n");
     fflush(stdout);
   }
@@ -1141,7 +1152,7 @@ int main(int argc, char *argv[])
   /*
    * Check results
    */
-  if (my_rank == 0) {
+  if (i_rank == 0) {
     printf("-- Check\n");
     fflush(stdout);
   }
@@ -1172,7 +1183,7 @@ int main(int argc, char *argv[])
                                         &p_dist2,
                                         &p_proj_coord);
 
-  if (1) {
+  if (0) {
     printf("Unlocated %d :\n", n_unlocated);
     for (int k1 = 0; k1 < n_unlocated; k1++) {
       printf("%d\n", unlocated[k1]);
@@ -1212,7 +1223,7 @@ int main(int argc, char *argv[])
   //                        &p_weights,
   //                        &p_proj_coord);
 
-  if (1) {
+  if (0) {
     printf("Unlocated %d :\n", n_unlocated);
     for (int k1 = 0; k1 < n_unlocated; k1++) {
       printf("%d\n", unlocated[k1]);
@@ -1302,7 +1313,7 @@ int main(int argc, char *argv[])
 
   PDM_MPI_Finalize();
 
-  if (my_rank == 0) {
+  if (i_rank == 0) {
     printf("-- End\n");
     fflush(stdout);
   }

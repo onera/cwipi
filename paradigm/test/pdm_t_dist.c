@@ -151,6 +151,8 @@ int main(int argc, char *argv[])
 #else
 #ifdef PDM_HAVE_PTSCOTCH
   PDM_part_split_t method  = PDM_PART_SPLIT_PTSCOTCH;
+#else
+  PDM_part_split_t method  = PDM_PART_SPLIT_HILBERT;
 #endif
 #endif
 
@@ -178,6 +180,14 @@ int main(int argc, char *argv[])
   PDM_MPI_Init(&argc, &argv);
   PDM_MPI_Comm_rank(PDM_MPI_COMM_WORLD, &i_rank);
   PDM_MPI_Comm_size(PDM_MPI_COMM_WORLD, &n_rank);
+
+  if (i_rank == 0) {
+    PDM_printf ("%Parametres : \n");
+    PDM_printf ("  - n_rank    : %d\n", n_rank);
+    PDM_printf ("  - n_vtx_seg : "PDM_FMT_G_NUM"\n", n_vtx_seg);
+    PDM_printf ("  - length    : %f\n", length);
+    PDM_printf ("  - method    : %d\n", method);
+  }
 
   int           dn_cell;
   int           dn_face;

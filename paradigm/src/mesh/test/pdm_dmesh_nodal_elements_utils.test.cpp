@@ -12,27 +12,27 @@
 
 MPI_TEST_CASE("decomposes hexa ",1) {
 
-  const PDM_g_num_t n_vtx            = 12;
+  // const PDM_g_num_t n_vtx            = 12;
   const PDM_g_num_t n_cell           = 2;
   const int         n_hexa_section_1 = 2;
   PDM_g_num_t connec_hexa_1[16] = {1, 2, 5, 4, 7, 8, 11, 10, // First
                                    2, 3, 6, 5, 8, 9, 12, 11};
 
   PDM_MPI_Comm pdm_comm = PDM_MPI_mpi_2_pdm_mpi_comm(&test_comm);
-  PDM_dmesh_nodal_t* dmn = PDM_DMesh_nodal_create(pdm_comm, 3, n_vtx, n_cell, -1, -1);
+  PDM_dmesh_nodal_elmts_t* dmn = PDM_DMesh_nodal_elmts_create(pdm_comm, 3, n_cell);
 
-  int hexa_section_1 = PDM_DMesh_nodal_section_add(dmn, PDM_MESH_NODAL_HEXA8);
+  int hexa_section_1 = PDM_DMesh_nodal_elmts_section_add(dmn, PDM_MESH_NODAL_HEXA8);
 
-  PDM_DMesh_nodal_section_std_set(dmn,
-                                  hexa_section_1,
-                                  n_hexa_section_1,
-                                  connec_hexa_1,
-                                  PDM_OWNERSHIP_USER); // Ownership is just a mapping here
-  PDM_dmesh_nodal_generate_distribution(dmn);
+  PDM_DMesh_nodal_elmts_section_std_set(dmn,
+                                        hexa_section_1,
+                                        n_hexa_section_1,
+                                        connec_hexa_1,
+                                        PDM_OWNERSHIP_USER); // Ownership is just a mapping here
+  PDM_dmesh_nodal_elmts_generate_distribution(dmn);
 
   int n_face_elt_tot     = -1;
   int n_sum_vtx_face_tot = -1;
-  PDM_dmesh_nodal_decompose_faces_get_size(dmn, &n_face_elt_tot, &n_sum_vtx_face_tot);
+  PDM_dmesh_nodal_elmts_decompose_faces_get_size(dmn, &n_face_elt_tot, &n_sum_vtx_face_tot);
 
   printf("n_face_elt_tot     = %i\n", n_face_elt_tot);
   printf("n_sum_vtx_face_tot = %i\n", n_sum_vtx_face_tot);
@@ -83,34 +83,7 @@ MPI_TEST_CASE("decomposes hexa ",1) {
   CHECK( dcell_face_vtx     == dcell_face_vtx_expected);
   CHECK( dparent_elmt_pos   == dparent_elmt_pos_expected);
 
-  PDM_DMesh_nodal_cell_face_compute(dmn);
-
-  // free(delmt_face_cell);
-  // free(dcell_face_vtx_idx);
-  // free(dcell_face_vtx);
-  PDM_g_num_t* dface_cell;
-  PDM_g_num_t* dface_vtx;
-  int*         dface_vtx_idx;
-  int dn_face = PDM_DMesh_nodal_face_cell_get(dmn, &dface_cell);
-  PDM_DMesh_nodal_face_vtx_get(dmn, &dface_vtx_idx, &dface_vtx);
-
-  CHECK( dn_face == 11);
-
-  PDM_g_num_t dface_cell_expected[22]    = {1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 2, 0, 1, 0, 2, 0, 1, 0, 2, 0 };
-  int         dface_vtx_idx_expected[12] = {0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44};
-  PDM_g_num_t dface_vtx_expected[44]     = {4, 5, 2, 1, 5, 6, 3, 2, 2, 8, 7, 1, 3, 9, 8, 2, 7, 10, 4, 1, 8, 11,
-                                            5, 2, 6, 12, 9, 3, 10, 11, 5, 4, 11, 12, 6, 5, 11, 10, 7, 8, 12, 11, 8, 9};
-
-  MPI_CHECK_EQ_C_ARRAY(0, dface_cell   , dface_cell_expected   , 2*dn_face             );
-  MPI_CHECK_EQ_C_ARRAY(0, dface_vtx_idx, dface_vtx_idx_expected, dn_face+1             );
-  MPI_CHECK_EQ_C_ARRAY(0, dface_vtx    , dface_vtx_expected    , dface_vtx_idx[dn_face]);
-
-  // printf(" dface_vtx_idx[dn_face]::%i\n",  dface_vtx_idx[dn_face]);
-  // PDM_log_trace_array_long(dface_cell, 2*dn_face, "dface_cell:: ");
-  // PDM_log_trace_array_int(dface_vtx_idx, dn_face+1, "dface_vtx_idx:: ");
-  // PDM_log_trace_array_long(dface_vtx, dface_vtx_idx[dn_face], "dface_vtx:: ");
-
-  PDM_DMesh_nodal_free(dmn, 0);
+  PDM_DMesh_nodal_elmts_free(dmn);
 }
 
 
@@ -119,7 +92,7 @@ MPI_TEST_CASE("decomposes hexa ",1) {
 // double coord_tetra_z[n_vtx] = {0., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 1};
 
 MPI_TEST_CASE("decomposes tetra ",1) {
-  const PDM_g_num_t n_vtx             = 12;
+  // const PDM_g_num_t n_vtx             = 12;
   const PDM_g_num_t n_cell            = 10;
   const int         n_tetra_section_1 = 10;
   PDM_g_num_t connec_tetra_1[40] = {1, 2, 4, 7,
@@ -134,20 +107,20 @@ MPI_TEST_CASE("decomposes tetra ",1) {
                                     9, 2, 11, 6};
 
   PDM_MPI_Comm pdm_comm = PDM_MPI_mpi_2_pdm_mpi_comm(&test_comm);
-  PDM_dmesh_nodal_t* dmn = PDM_DMesh_nodal_create(pdm_comm, 3, n_vtx, n_cell, -1, -1);
+  PDM_dmesh_nodal_elmts_t* dmn = PDM_DMesh_nodal_elmts_create(pdm_comm, 3, n_cell);
 
-  int tetra_section_1 = PDM_DMesh_nodal_section_add(dmn, PDM_MESH_NODAL_TETRA4);
+  int tetra_section_1 = PDM_DMesh_nodal_elmts_section_add(dmn, PDM_MESH_NODAL_TETRA4);
 
-  PDM_DMesh_nodal_section_std_set(dmn,
-                                  tetra_section_1,
-                                  n_tetra_section_1,
-                                  connec_tetra_1,
-                                  PDM_OWNERSHIP_USER);
-  PDM_dmesh_nodal_generate_distribution(dmn);
+  PDM_DMesh_nodal_elmts_section_std_set(dmn,
+                                        tetra_section_1,
+                                        n_tetra_section_1,
+                                        connec_tetra_1,
+                                        PDM_OWNERSHIP_USER);
+  PDM_dmesh_nodal_elmts_generate_distribution(dmn);
 
   int n_face_elt_tot     = -1;
   int n_sum_vtx_face_tot = -1;
-  PDM_dmesh_nodal_decompose_faces_get_size(dmn, &n_face_elt_tot, &n_sum_vtx_face_tot);
+  PDM_dmesh_nodal_elmts_decompose_faces_get_size(dmn, &n_face_elt_tot, &n_sum_vtx_face_tot);
 
   printf("n_face_elt_tot     = %i\n", n_face_elt_tot);
   printf("n_sum_vtx_face_tot = %i\n", n_sum_vtx_face_tot);
@@ -195,33 +168,7 @@ MPI_TEST_CASE("decomposes tetra ",1) {
   CHECK( dcell_face_vtx     == dcell_face_vtx_expected);
   CHECK( dparent_elmt_pos   == dparent_elmt_pos_expected);
 
-  PDM_DMesh_nodal_cell_face_compute(dmn);
-
-  // free(delmt_face_cell);
-  // free(dcell_face_vtx_idx);
-  // free(dcell_face_vtx);
-  PDM_g_num_t* dface_cell;
-  PDM_g_num_t* dface_vtx;
-  int*         dface_vtx_idx;
-  int dn_face = PDM_DMesh_nodal_face_cell_get(dmn, &dface_cell);
-  PDM_DMesh_nodal_face_vtx_get(dmn, &dface_vtx_idx, &dface_vtx);
-
-  CHECK( dn_face == 30);
-
-  PDM_g_num_t dface_cell_expected[60]    = {1, 0, 1, 0, 2, 0, 7, 0, 1, 0, 5, 1, 6, 0, 7, 0, 10, 7, 5, 2, 4, 0, 6, 2, 7, 0, 9, 0, 6, 10, 5, 4, 2, 0, 4, 9, 3, 0, 9, 10, 3, 5, 6, 0, 3, 0, 8, 10, 4, 0, 8, 0, 3, 0, 9, 0, 8, 0, 8, 0};
-  int         dface_vtx_idx_expected[61] = {0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63, 66, 69, 72, 75, 78, 81, 84, 87, 90};
-  PDM_g_num_t dface_vtx_expected[90]     = {1, 2, 4, 1, 7, 2, 2, 5, 4, 2, 3, 6, 1, 4, 7, 2, 4, 7, 2, 6, 5, 2, 9, 3, 9, 6, 2, 2, 11, 4, 2, 7, 8, 2, 5, 11, 9, 6, 3, 9, 2, 8, 2, 11, 6, 2, 7, 11, 5, 11, 4, 2, 8, 11, 4, 10, 7, 9, 11, 2, 4, 7, 11, 6, 11, 5, 4, 11, 10, 11, 9, 6, 7, 11, 8, 12, 6, 9, 7, 10, 11, 9, 8, 11, 11, 6, 12, 11, 12, 9};
-
-  MPI_CHECK_EQ_C_ARRAY(0, dface_cell   , dface_cell_expected   , 2*dn_face             );
-  MPI_CHECK_EQ_C_ARRAY(0, dface_vtx_idx, dface_vtx_idx_expected, dn_face+1             );
-  MPI_CHECK_EQ_C_ARRAY(0, dface_vtx    , dface_vtx_expected    , dface_vtx_idx[dn_face]);
-
-  // printf(" dface_vtx_idx[dn_face]::%i\n",  dface_vtx_idx[dn_face]);
-  // PDM_log_trace_array_long(dface_cell, 2*dn_face, "dface_cell:: ");
-  // PDM_log_trace_array_int(dface_vtx_idx, dn_face+1, "dface_vtx_idx:: ");
-  // PDM_log_trace_array_long(dface_vtx, dface_vtx_idx[dn_face], "dface_vtx:: ");
-
-  PDM_DMesh_nodal_free(dmn, 0);
+  PDM_DMesh_nodal_elmts_free(dmn);
 }
 
 
@@ -230,7 +177,7 @@ MPI_TEST_CASE("decomposes tetra ",1) {
 // double coord_pyra_z[9] = {0., 0., 0., 0., 1., 1., 1., 1., 0.5};
 
 MPI_TEST_CASE("decomposes pyra ",1) {
-  const PDM_g_num_t n_vtx            = 9;
+  // const PDM_g_num_t n_vtx            = 9;
   const PDM_g_num_t n_cell           = 6;
   const int         n_pyra_section_1 = 6;
   PDM_g_num_t connec_pyra_1[30] = {1, 2, 4, 3, 9,
@@ -241,20 +188,20 @@ MPI_TEST_CASE("decomposes pyra ",1) {
                                    3, 4, 8, 7, 9};
 
   PDM_MPI_Comm pdm_comm = PDM_MPI_mpi_2_pdm_mpi_comm(&test_comm);
-  PDM_dmesh_nodal_t* dmn = PDM_DMesh_nodal_create(pdm_comm, 3, n_vtx, n_cell, -1, -1);
+  PDM_dmesh_nodal_elmts_t* dmn = PDM_DMesh_nodal_elmts_create(pdm_comm, 3, n_cell);
 
-  int pyra_section_1 = PDM_DMesh_nodal_section_add(dmn, PDM_MESH_NODAL_PYRAMID5);
+  int pyra_section_1 = PDM_DMesh_nodal_elmts_section_add(dmn, PDM_MESH_NODAL_PYRAMID5);
 
-  PDM_DMesh_nodal_section_std_set(dmn,
-                                  pyra_section_1,
-                                  n_pyra_section_1,
-                                  connec_pyra_1,
-                                  PDM_OWNERSHIP_USER);
-  PDM_dmesh_nodal_generate_distribution(dmn);
+  PDM_DMesh_nodal_elmts_section_std_set(dmn,
+                                        pyra_section_1,
+                                        n_pyra_section_1,
+                                        connec_pyra_1,
+                                        PDM_OWNERSHIP_USER);
+  PDM_dmesh_nodal_elmts_generate_distribution(dmn);
 
   int n_face_elt_tot     = -1;
   int n_sum_vtx_face_tot = -1;
-  PDM_dmesh_nodal_decompose_faces_get_size(dmn, &n_face_elt_tot, &n_sum_vtx_face_tot);
+  PDM_dmesh_nodal_elmts_decompose_faces_get_size(dmn, &n_face_elt_tot, &n_sum_vtx_face_tot);
 
   printf("n_face_elt_tot     = %i\n", n_face_elt_tot);
   printf("n_sum_vtx_face_tot = %i\n", n_sum_vtx_face_tot);
@@ -296,33 +243,7 @@ MPI_TEST_CASE("decomposes pyra ",1) {
   CHECK( dcell_face_vtx     == dcell_face_vtx_expected);
   CHECK( dparent_elmt_pos   == dparent_elmt_pos_expected);
 
-  PDM_DMesh_nodal_cell_face_compute(dmn);
-
-  // free(delmt_face_cell);
-  // free(dcell_face_vtx_idx);
-  // free(dcell_face_vtx);
-  PDM_g_num_t* dface_cell;
-  PDM_g_num_t* dface_vtx;
-  int*         dface_vtx_idx;
-  int dn_face = PDM_DMesh_nodal_face_cell_get(dmn, &dface_cell);
-  PDM_DMesh_nodal_face_vtx_get(dmn, &dface_vtx_idx, &dface_vtx);
-
-  CHECK( dn_face == 18);
-
-  PDM_g_num_t dface_cell_expected[38]    = {1, 0, 1, 5, 3, 1, 5, 0, 4, 1, 5, 3, 3, 0, 1, 6, 5, 4, 3, 6, 5, 2, 4, 0, 4, 6, 3, 2, 6, 0, 2, 4, 2, 6, 2, 0};
-  int         dface_vtx_idx_expected[19] = {0, 4, 7, 10, 14, 17, 20, 24, 27, 30, 33, 36, 40, 43, 46, 50, 53, 56, 60 };
-  PDM_g_num_t dface_vtx_expected[60]     = {3, 4, 2, 1, 9, 1, 2, 9, 1, 3, 2, 6, 5, 1, 9, 4, 2, 9, 1, 5, 5, 7, 3, 1, 9, 4, 3, 9, 6, 2, 9, 3, 7, 9, 5, 6, 4, 8, 6, 2, 9, 8, 4, 9, 7, 5, 7, 8, 4, 3, 9, 8, 6, 9, 7, 8, 6, 8, 7, 5};
-
-  MPI_CHECK_EQ_C_ARRAY(0, dface_cell   , dface_cell_expected   , 2*dn_face             );
-  MPI_CHECK_EQ_C_ARRAY(0, dface_vtx_idx, dface_vtx_idx_expected, dn_face+1             );
-  MPI_CHECK_EQ_C_ARRAY(0, dface_vtx    , dface_vtx_expected    , dface_vtx_idx[dn_face]);
-
-  // printf(" dface_vtx_idx[dn_face]::%i\n",  dface_vtx_idx[dn_face]);
-  // PDM_log_trace_array_long(dface_cell, 2*dn_face, "dface_cell:: ");
-  // PDM_log_trace_array_int(dface_vtx_idx, dn_face+1, "dface_vtx_idx:: ");
-  // PDM_log_trace_array_long(dface_vtx, dface_vtx_idx[dn_face], "dface_vtx:: ");
-
-  PDM_DMesh_nodal_free(dmn, 0);
+  PDM_DMesh_nodal_elmts_free(dmn);
 }
 
 
@@ -331,7 +252,7 @@ MPI_TEST_CASE("decomposes pyra ",1) {
 // double coord_prism_z[12] = {0., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 1}
 
 MPI_TEST_CASE("decomposes prism ",1) {
-  const PDM_g_num_t n_vtx             = 12;
+  // const PDM_g_num_t n_vtx             = 12;
   const PDM_g_num_t n_cell            = 4;
   const int         n_prism_section_1 = 4;
   PDM_g_num_t connec_prism_1[24] = {1, 5, 4, 7, 11, 10,
@@ -340,20 +261,20 @@ MPI_TEST_CASE("decomposes prism ",1) {
                                     2, 3, 6, 8, 9, 12};
 
   PDM_MPI_Comm pdm_comm = PDM_MPI_mpi_2_pdm_mpi_comm(&test_comm);
-  PDM_dmesh_nodal_t* dmn = PDM_DMesh_nodal_create(pdm_comm, 3, n_vtx, n_cell, -1, -1);
+  PDM_dmesh_nodal_elmts_t* dmn = PDM_DMesh_nodal_elmts_create(pdm_comm, 3, n_cell);
 
-  int prism_section_1 = PDM_DMesh_nodal_section_add(dmn, PDM_MESH_NODAL_PRISM6);
+  int prism_section_1 = PDM_DMesh_nodal_elmts_section_add(dmn, PDM_MESH_NODAL_PRISM6);
 
-  PDM_DMesh_nodal_section_std_set(dmn,
-                                  prism_section_1,
-                                  n_prism_section_1,
-                                  connec_prism_1,
-                                  PDM_OWNERSHIP_USER);
-  PDM_dmesh_nodal_generate_distribution(dmn);
+  PDM_DMesh_nodal_elmts_section_std_set(dmn,
+                                        prism_section_1,
+                                        n_prism_section_1,
+                                        connec_prism_1,
+                                        PDM_OWNERSHIP_USER);
+  PDM_dmesh_nodal_elmts_generate_distribution(dmn);
 
   int n_face_elt_tot     = -1;
   int n_sum_vtx_face_tot = -1;
-  PDM_dmesh_nodal_decompose_faces_get_size(dmn, &n_face_elt_tot, &n_sum_vtx_face_tot);
+  PDM_dmesh_nodal_elmts_decompose_faces_get_size(dmn, &n_face_elt_tot, &n_sum_vtx_face_tot);
 
   printf("n_face_elt_tot     = %i\n", n_face_elt_tot);
   printf("n_sum_vtx_face_tot = %i\n", n_sum_vtx_face_tot);
@@ -372,11 +293,11 @@ MPI_TEST_CASE("decomposes prism ",1) {
 
   dcell_face_vtx_idx[0] = 0;
   PDM_sections_decompose_faces(dmn,
-                                  dcell_face_vtx_idx.data(),
-                                  dcell_face_vtx.data(),
-                                  delmt_face_cell.data(),
-                                  NULL, NULL,
-                                  dparent_elmt_pos.data());
+                               dcell_face_vtx_idx.data(),
+                               dcell_face_vtx.data(),
+                               delmt_face_cell.data(),
+                               NULL, NULL,
+                               dparent_elmt_pos.data());
   if( 0 == 1)
   {
     PDM_log_trace_array_long(delmt_face_cell.data()  , n_face_elt_tot    , "delmt_face_cell:: ");
@@ -394,33 +315,12 @@ MPI_TEST_CASE("decomposes prism ",1) {
   CHECK( dcell_face_vtx     == dcell_face_vtx_expected);
   CHECK( dparent_elmt_pos   == dparent_elmt_pos_expected);
 
-  PDM_DMesh_nodal_cell_face_compute(dmn);
-
-  // free(delmt_face_cell);
-  // free(dcell_face_vtx_idx);
-  // free(dcell_face_vtx);
-  PDM_g_num_t* dface_cell;
-  PDM_g_num_t* dface_vtx;
-  int*         dface_vtx_idx;
-  int dn_face = PDM_DMesh_nodal_face_cell_get(dmn, &dface_cell);
-  PDM_DMesh_nodal_face_vtx_get(dmn, &dface_vtx_idx, &dface_vtx);
-
-  CHECK( dn_face == 17);
-
-  PDM_g_num_t dface_cell_expected[34]    = {2, 0, 1, 0, 4, 0, 3, 0, 2, 0, 4, 0, 1, 0, 2, 1, 2, 3, 2, 0, 3, 4, 1, 0, 4, 0, 4, 0, 1, 0, 3, 0, 3, 0};
-  int         dface_vtx_idx_expected[18] = {0, 3, 6, 9, 12, 16, 20, 24, 28, 32, 35, 39, 42, 45, 49, 53, 56, 60};
-  PDM_g_num_t dface_vtx_expected[60]     = {5, 2, 1, 4, 5, 1, 6, 3, 2, 5, 6, 2, 8, 7, 1, 2, 9, 8, 2, 3, 7, 10, 4, 1, 7, 11, 5, 1, 11, 8, 2, 5, 8, 11, 7, 12, 8, 2, 6, 11, 10, 7, 9, 12, 8, 12, 9, 3, 6, 10, 11, 5, 4, 12, 11, 8, 11, 12, 6, 5};
-
-  MPI_CHECK_EQ_C_ARRAY(0, dface_cell   , dface_cell_expected   , 2*dn_face             );
-  MPI_CHECK_EQ_C_ARRAY(0, dface_vtx_idx, dface_vtx_idx_expected, dn_face+1             );
-  MPI_CHECK_EQ_C_ARRAY(0, dface_vtx    , dface_vtx_expected    , dface_vtx_idx[dn_face]);
-
   // printf(" dface_vtx_idx[dn_face]::%i\n",  dface_vtx_idx[dn_face]);
   // PDM_log_trace_array_long(dface_cell, 2*dn_face, "dface_cell:: ");
   // PDM_log_trace_array_int(dface_vtx_idx, dn_face+1, "dface_vtx_idx:: ");
   // PDM_log_trace_array_long(dface_vtx, dface_vtx_idx[dn_face], "dface_vtx:: ");
 
-  PDM_DMesh_nodal_free(dmn, 0);
+  PDM_DMesh_nodal_elmts_free(dmn);
 }
 
 
@@ -430,8 +330,8 @@ MPI_TEST_CASE("decomposes prism ",1) {
 // double coord_quad_z[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
 MPI_TEST_CASE("decomposes quad ",1) {
-  const PDM_g_num_t n_vtx            = 9;
-  const PDM_g_num_t n_cell           = 4;
+  // const PDM_g_num_t n_vtx            = 9;
+  const PDM_g_num_t n_face           = 4;
   const int         n_quad_section_1 = 4;
   PDM_g_num_t connec_quad_1[16] = {1, 2, 5, 4,
                                    2, 3, 6, 5,
@@ -439,20 +339,20 @@ MPI_TEST_CASE("decomposes quad ",1) {
                                    5, 6, 9, 8,};
 
   PDM_MPI_Comm pdm_comm = PDM_MPI_mpi_2_pdm_mpi_comm(&test_comm);
-  PDM_dmesh_nodal_t* dmn = PDM_DMesh_nodal_create(pdm_comm, 3, n_vtx, n_cell, -1, -1);
+  PDM_dmesh_nodal_elmts_t* dmn = PDM_DMesh_nodal_elmts_create(pdm_comm, 2, n_face);
 
-  int quad_section_1 = PDM_DMesh_nodal_section_add(dmn, PDM_MESH_NODAL_QUAD4);
+  int quad_section_1 = PDM_DMesh_nodal_elmts_section_add(dmn, PDM_MESH_NODAL_QUAD4);
 
-  PDM_DMesh_nodal_section_std_set(dmn,
-                                  quad_section_1,
-                                  n_quad_section_1,
-                                  connec_quad_1,
-                                  PDM_OWNERSHIP_USER);
-  PDM_dmesh_nodal_generate_distribution(dmn);
+  PDM_DMesh_nodal_elmts_section_std_set(dmn,
+                                        quad_section_1,
+                                        n_quad_section_1,
+                                        connec_quad_1,
+                                        PDM_OWNERSHIP_USER);
+  PDM_dmesh_nodal_elmts_generate_distribution(dmn);
 
   int n_edge_elt_tot     = -1;
   int n_sum_vtx_edge_tot = -1;
-  PDM_dmesh_nodal_decompose_edges_get_size(dmn, &n_edge_elt_tot, &n_sum_vtx_edge_tot);
+  PDM_dmesh_nodal_elmts_decompose_edges_get_size(dmn, &n_edge_elt_tot, &n_sum_vtx_edge_tot);
 
   printf("n_edge_elt_tot     = %i\n", n_edge_elt_tot);
   printf("n_sum_vtx_edge_tot = %i\n", n_sum_vtx_edge_tot);
@@ -494,34 +394,7 @@ MPI_TEST_CASE("decomposes quad ",1) {
   CHECK( dcell_edge_vtx     == dcell_edge_vtx_expected);
   CHECK( dparent_elmt_pos   == dparent_elmt_pos_expected);
 
-  // To replace by dmesh_nodal_to_dmesh
-  // PDM_DMesh_nodal_cell_face_compute(dmn);
-
-  // // // free(delmt_face_cell);
-  // // // free(dcell_face_vtx_idx);
-  // // // free(dcell_face_vtx);
-  // PDM_g_num_t* dface_cell;
-  // PDM_g_num_t* dface_vtx;
-  // int*         dface_vtx_idx;
-  // int dn_face = PDM_DMesh_nodal_face_cell_get(dmn, &dface_cell);
-  // PDM_DMesh_nodal_face_vtx_get(dmn, &dface_vtx_idx, &dface_vtx);
-
-  // CHECK( dn_face == 17);
-
-  // PDM_g_num_t dface_cell_expected[34]    = {2, 0, 1, 0, 4, 0, 3, 0, 2, 0, 4, 0, 1, 0, 2, 1, 2, 3, 2, 0, 3, 4, 1, 0, 4, 0, 4, 0, 1, 0, 3, 0, 3, 0};
-  // int         dface_vtx_idx_expected[18] = {0, 3, 6, 9, 12, 16, 20, 24, 28, 32, 35, 39, 42, 45, 49, 53, 56, 60};
-  // PDM_g_num_t dface_vtx_expected[60]     = {5, 2, 1, 4, 5, 1, 6, 3, 2, 5, 6, 2, 8, 7, 1, 2, 9, 8, 2, 3, 7, 10, 4, 1, 7, 11, 5, 1, 11, 8, 2, 5, 8, 11, 7, 12, 8, 2, 6, 11, 10, 7, 9, 12, 8, 12, 9, 3, 6, 10, 11, 5, 4, 12, 11, 8, 11, 12, 6, 5};
-
-  // MPI_CHECK_EQ_C_ARRAY(0, dface_cell   , dface_cell_expected   , 2*dn_face             );
-  // MPI_CHECK_EQ_C_ARRAY(0, dface_vtx_idx, dface_vtx_idx_expected, dn_face+1             );
-  // MPI_CHECK_EQ_C_ARRAY(0, dface_vtx    , dface_vtx_expected    , dface_vtx_idx[dn_face]);
-
-  // printf(" dface_vtx_idx[dn_face]::%i\n",  dface_vtx_idx[dn_face]);
-  // PDM_log_trace_array_long(dface_cell, 2*dn_face, "dface_cell:: ");
-  // PDM_log_trace_array_int(dface_vtx_idx, dn_face+1, "dface_vtx_idx:: ");
-  // PDM_log_trace_array_long(dface_vtx, dface_vtx_idx[dn_face], "dface_vtx:: ");
-
-  PDM_DMesh_nodal_free(dmn, 0);
+  PDM_DMesh_nodal_elmts_free(dmn);
 }
 
 
@@ -532,8 +405,8 @@ MPI_TEST_CASE("decomposes quad ",1) {
 // // double coord_tri_z[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
 MPI_TEST_CASE("decomposes tri ",1) {
-  const PDM_g_num_t n_vtx            = 9;
-  const PDM_g_num_t n_cell           = 8;
+  // const PDM_g_num_t n_vtx            = 9;
+  const PDM_g_num_t n_face           = 8;
   const int         n_tri_section_1  = 8;
   PDM_g_num_t connec_tri_1[24] = {1, 2, 5,
                                   1, 5, 4,
@@ -545,20 +418,20 @@ MPI_TEST_CASE("decomposes tri ",1) {
                                   5, 9, 8};
 
   PDM_MPI_Comm pdm_comm = PDM_MPI_mpi_2_pdm_mpi_comm(&test_comm);
-  PDM_dmesh_nodal_t* dmn = PDM_DMesh_nodal_create(pdm_comm, 3, n_vtx, n_cell, -1, -1);
+  PDM_dmesh_nodal_elmts_t* dmn = PDM_DMesh_nodal_elmts_create(pdm_comm, 2, n_face);
 
-  int tri_section_1 = PDM_DMesh_nodal_section_add(dmn, PDM_MESH_NODAL_TRIA3);
+  int tri_section_1 = PDM_DMesh_nodal_elmts_section_add(dmn, PDM_MESH_NODAL_TRIA3);
 
-  PDM_DMesh_nodal_section_std_set(dmn,
-                                  tri_section_1,
-                                  n_tri_section_1,
-                                  connec_tri_1,
-                                  PDM_OWNERSHIP_USER);
-  PDM_dmesh_nodal_generate_distribution(dmn);
+  PDM_DMesh_nodal_elmts_section_std_set(dmn,
+                                        tri_section_1,
+                                        n_tri_section_1,
+                                        connec_tri_1,
+                                        PDM_OWNERSHIP_USER);
+  PDM_dmesh_nodal_elmts_generate_distribution(dmn);
 
   int n_edge_elt_tot     = -1;
   int n_sum_vtx_edge_tot = -1;
-  PDM_dmesh_nodal_decompose_edges_get_size(dmn, &n_edge_elt_tot, &n_sum_vtx_edge_tot);
+  PDM_dmesh_nodal_elmts_decompose_edges_get_size(dmn, &n_edge_elt_tot, &n_sum_vtx_edge_tot);
 
   printf("n_edge_elt_tot     = %i\n", n_edge_elt_tot);
   printf("n_sum_vtx_edge_tot = %i\n", n_sum_vtx_edge_tot);
@@ -606,34 +479,7 @@ MPI_TEST_CASE("decomposes tri ",1) {
   CHECK( dcell_edge_vtx     == dcell_edge_vtx_expected);
   CHECK( dparent_elmt_pos   == dparent_elmt_pos_expected);
 
-  // To replace by dmesh_nodal_to_dmesh
-  // PDM_DMesh_nodal_cell_face_compute(dmn);
-
-  // // // free(delmt_face_cell);
-  // // // free(dcell_face_vtx_idx);
-  // // // free(dcell_face_vtx);
-  // PDM_g_num_t* dface_cell;
-  // PDM_g_num_t* dface_vtx;
-  // int*         dface_vtx_idx;
-  // int dn_face = PDM_DMesh_nodal_face_cell_get(dmn, &dface_cell);
-  // PDM_DMesh_nodal_face_vtx_get(dmn, &dface_vtx_idx, &dface_vtx);
-
-  // CHECK( dn_face == 16);
-
-  // PDM_g_num_t dface_cell_expected[32]    = {1, 0, 3, 0, 2, 0, 1, 2, 1, 4, 4, 3, 3, 0, 5, 2, 4, 7, 6, 0, 6, 5, 8, 5, 8, 7, 7, 0, 6, 0, 8, 0 };
-  // int         dface_vtx_idx_expected[17] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32};
-  // PDM_g_num_t dface_vtx_expected[32]     = {1, 2, 2, 3, 4, 1, 5, 1, 2, 5, 2, 6, 3, 6, 4, 5, 6, 5, 7, 4, 4, 8, 8, 5, 5, 9, 6, 9, 8, 7, 9, 8};
-
-  // MPI_CHECK_EQ_C_ARRAY(0, dface_cell   , dface_cell_expected   , 2*dn_face             );
-  // MPI_CHECK_EQ_C_ARRAY(0, dface_vtx_idx, dface_vtx_idx_expected, dn_face+1             );
-  // MPI_CHECK_EQ_C_ARRAY(0, dface_vtx    , dface_vtx_expected    , dface_vtx_idx[dn_face]);
-
-  // printf(" dface_vtx_idx[dn_face]::%i\n",  dface_vtx_idx[dn_face]);
-  // PDM_log_trace_array_long(dface_cell, 2*dn_face, "dface_cell:: ");
-  // PDM_log_trace_array_int(dface_vtx_idx, dn_face+1, "dface_vtx_idx:: ");
-  // PDM_log_trace_array_long(dface_vtx, dface_vtx_idx[dn_face], "dface_vtx:: ");
-
-  PDM_DMesh_nodal_free(dmn, 0);
+  PDM_DMesh_nodal_elmts_free(dmn);
 }
 
 

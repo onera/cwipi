@@ -77,6 +77,32 @@ _vtx_free
   }
 }
 
+static
+PDM_part_mesh_nodal_elmts_t*
+_get_from_geometry_kind
+(
+ PDM_part_mesh_nodal_t *pmn,
+ PDM_geometry_kind_t    geom_kind
+)
+{
+  PDM_part_mesh_nodal_elmts_t* pmne = NULL;
+  if(geom_kind == PDM_GEOMETRY_KIND_VOLUMIC){
+    assert(pmn->mesh_dimension == 3);
+    pmne = pmn->volumic;
+  } else if( geom_kind == PDM_GEOMETRY_KIND_SURFACIC){
+    assert(pmn->mesh_dimension >= 2);
+    pmne = pmn->surfacic;
+  } else if( geom_kind == PDM_GEOMETRY_KIND_RIDGE){
+    assert(pmn->mesh_dimension >= 1);
+    pmne = pmn->ridge;
+  } else if( geom_kind == PDM_GEOMETRY_KIND_CORNER){
+    pmne = pmn->corner;
+  } else {
+    PDM_error(__FILE__, __LINE__, 0, "Bad geom_kind in _get_from_geometry_kind \n");
+  }
+  return pmne;
+}
+
 /*=============================================================================
  * Public function definitions
  *============================================================================*/
@@ -142,7 +168,7 @@ PDM_part_mesh_nodal_coord_set
        PDM_part_mesh_nodal_t *pmn,
  const int                    id_part,
  const int                    n_vtx,
- const PDM_real_t            *coords,
+ const double                *coords,
  const PDM_g_num_t           *numabs,
        PDM_ownership_t        owner
 )
@@ -194,6 +220,205 @@ PDM_part_mesh_nodal_add_part_mesh_nodal_elmts
   }
 }
 
+
+int
+PDM_part_mesh_nodal_n_part_get
+(
+       PDM_part_mesh_nodal_t *pmn
+)
+{
+  return pmn->n_part;
+}
+
+
+int
+PDM_part_mesh_nodal_n_vtx_get
+(
+       PDM_part_mesh_nodal_t *pmn,
+ const int                    id_part
+)
+{
+  if (id_part >= pmn->n_part) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad part identifier\n");
+  }
+
+  PDM_Mesh_nodal_vtx_t *vtx = pmn->vtx[id_part];
+  return vtx->n_vtx;
+}
+
+double*
+PDM_part_mesh_nodal_vtx_coord_get
+(
+       PDM_part_mesh_nodal_t *pmn,
+ const int                    id_part
+)
+{
+  if (id_part >= pmn->n_part) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad part identifier\n");
+  }
+
+  PDM_Mesh_nodal_vtx_t *vtx = pmn->vtx[id_part];
+  return (double *) vtx->_coords;
+}
+
+PDM_g_num_t*
+PDM_part_mesh_nodal_vtx_g_num_get
+(
+       PDM_part_mesh_nodal_t *pmn,
+ const int                    id_part
+)
+{
+  if (id_part >= pmn->n_part) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad part identifier\n");
+  }
+
+  PDM_Mesh_nodal_vtx_t *vtx = pmn->vtx[id_part];
+  return (PDM_g_num_t*) vtx->_numabs;
+}
+
+
+int
+PDM_part_mesh_nodal_n_section_get
+(
+ PDM_part_mesh_nodal_t *pmn,
+ PDM_geometry_kind_t    geom_kind
+)
+{
+  if (pmn == NULL) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad part mesh nodal identifier\n");
+  }
+  PDM_part_mesh_nodal_elmts_t* pmne = _get_from_geometry_kind(pmn, geom_kind);
+  if(pmne){
+    return pmne->n_section;
+  } else {
+    return 0;
+  }
+}
+
+
+int *
+PDM_part_mesh_nodal_sections_id_get
+(
+ PDM_part_mesh_nodal_t *pmn,
+ PDM_geometry_kind_t    geom_kind
+)
+{
+  if (pmn == NULL) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad part mesh nodal identifier\n");
+  }
+  PDM_part_mesh_nodal_elmts_t* pmne = _get_from_geometry_kind(pmn, geom_kind);
+  return pmne->sections_id;
+}
+
+PDM_Mesh_nodal_elt_t
+PDM_part_mesh_nodal_section_elt_type_get
+(
+        PDM_part_mesh_nodal_t *pmn,
+        PDM_geometry_kind_t    geom_kind,
+  const int                    id_section
+)
+{
+  PDM_part_mesh_nodal_elmts_t* dmne = _get_from_geometry_kind(pmn, geom_kind);
+  if (id_section <= PDM_BLOCK_ID_BLOCK_POLY2D) { // std
+    int _id_section = id_section - PDM_BLOCK_ID_BLOCK_STD;
+    return dmne->sections_std[_id_section]->t_elt;
+  }
+  assert(0); // only useful for std elements
+  return -1;
+}
+
+int
+PDM_part_mesh_nodal_section_add
+(
+      PDM_part_mesh_nodal_t *pmn,
+      PDM_geometry_kind_t    geom_kind,
+const PDM_Mesh_nodal_elt_t   t_elt
+)
+{
+  if( _get_from_geometry_kind(pmn, geom_kind) == NULL) {
+    if(geom_kind == PDM_GEOMETRY_KIND_VOLUMIC) {
+      pmn->volumic = PDM_part_mesh_nodal_elmts_create(pmn->mesh_dimension, pmn->n_part, pmn->comm);
+    } else if( geom_kind == PDM_GEOMETRY_KIND_SURFACIC) {
+      pmn->surfacic = PDM_part_mesh_nodal_elmts_create(pmn->mesh_dimension, pmn->n_part, pmn->comm);
+    } else if( geom_kind == PDM_GEOMETRY_KIND_RIDGE) {
+      pmn->ridge = PDM_part_mesh_nodal_elmts_create(pmn->mesh_dimension, pmn->n_part, pmn->comm);
+    } else if( geom_kind == PDM_GEOMETRY_KIND_CORNER) {
+      pmn->corner = PDM_part_mesh_nodal_elmts_create(pmn->mesh_dimension, pmn->n_part, pmn->comm);
+    }
+  }
+
+  PDM_part_mesh_nodal_elmts_t* pmne = _get_from_geometry_kind(pmn, geom_kind);
+  assert(pmne != NULL);
+  return PDM_part_mesh_nodal_elmts_add(pmne, t_elt);
+}
+
+
+void
+PDM_part_mesh_nodal_section_std_set
+(
+      PDM_part_mesh_nodal_t *pmn,
+      PDM_geometry_kind_t    geom_kind,
+const int                    id_block,
+const int                    id_part,
+const int                    n_elt,
+const int                   *connec,
+const PDM_g_num_t           *numabs,
+const int                   *parent_num,
+      PDM_ownership_t        owner
+)
+{
+  PDM_part_mesh_nodal_elmts_t* pmne = _get_from_geometry_kind(pmn, geom_kind);
+  assert(pmne != NULL);
+  PDM_part_mesh_nodal_elmts_std_set(pmne, id_block, id_part, n_elt, connec, numabs, parent_num, owner);
+}
+
+int
+PDM_part_mesh_nodal_block_n_elt_get
+(
+      PDM_part_mesh_nodal_t  *pmn,
+      PDM_geometry_kind_t     geom_kind,
+const int                     id_block,
+const int                     id_part
+)
+{
+  PDM_part_mesh_nodal_elmts_t* pmne = _get_from_geometry_kind(pmn, geom_kind);
+  assert(pmne != NULL);
+  return PDM_part_mesh_nodal_elmts_block_n_elt_get(pmne, id_block, id_part);
+}
+
+
+
+void
+PDM_part_mesh_nodal_block_std_get
+(
+      PDM_part_mesh_nodal_t  *pmn,
+      PDM_geometry_kind_t     geom_kind,
+const int                     id_block,
+const int                     id_part,
+      int                   **connec,
+      PDM_g_num_t           **numabs,
+      int                   **parent_num
+)
+{
+  PDM_part_mesh_nodal_elmts_t* pmne = _get_from_geometry_kind(pmn, geom_kind);
+  assert(pmne != NULL);
+  PDM_part_mesh_nodal_elmts_block_std_get(pmne, id_block, id_part, connec, numabs, parent_num);
+}
+
+
+PDM_Mesh_nodal_elt_t
+PDM_part_mesh_nodal_block_type_get
+(
+      PDM_part_mesh_nodal_t  *pmn,
+      PDM_geometry_kind_t     geom_kind,
+const int                     id_block
+)
+{
+  PDM_part_mesh_nodal_elmts_t* pmne = _get_from_geometry_kind(pmn, geom_kind);
+  assert(pmne != NULL);
+  return PDM_part_mesh_nodal_elmts_block_type_get(pmne, id_block);
+}
+
 void
 PDM_part_mesh_nodal_free
 (
@@ -232,3 +457,9 @@ PDM_part_mesh_nodal_free
 
   free(pmn);
 }
+
+
+
+// Faire extraction de maillage depuis mesh_nodal
+// Donc par exemple rendre un nouveau maillage (avec numero absolu des rigdes à partir du mesh_nodal )
+// PDM_extract_from_indices()

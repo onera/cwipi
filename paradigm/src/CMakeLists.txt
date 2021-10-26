@@ -18,6 +18,7 @@ file(GLOB_RECURSE SOURCES
      ext_wrapper/*.[ch]
      mpi_wrapper/pdm_mpi_node_first_rank.[hc]
      io/pdm_logging.[hc]
+     io/pdm_vtk.[hc]
      pdm.h
      pdm_priv.h)
 
@@ -63,7 +64,7 @@ target_include_directories(pdm
   PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   PRIVATE   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
   PRIVATE   $<BUILD_INTERFACE:${PDM_BINARY_DIR}>
-  PUBLIC    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+  PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
   PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/pario>
   PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ppart>
@@ -81,7 +82,7 @@ target_include_directories(pdm
 
 if (PDM_ENABLE_EXTENSION_PDMA)
   target_include_directories(pdm
-                             PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/extensions/paradigma/src/plugins/renum>
+                             PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../extensions/paradigma/src/plugins/renum>
                              )
 endif()
 
@@ -91,7 +92,7 @@ if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
     PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     PRIVATE   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
     PRIVATE   $<BUILD_INTERFACE:${PDM_BINARY_DIR}>
-    PUBLIC    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+    PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
     PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/pario>
     PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ppart>
@@ -106,7 +107,7 @@ if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
   )
     if (PDM_ENABLE_EXTENSION_PDMA)
       target_include_directories(pdmf
-                                 PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/extensions/paradigma/src/plugins/renum>
+                                 PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../extensions/paradigma/src/plugins/renum>
                                  )
     endif()
 endif()
@@ -129,7 +130,7 @@ if (PDM_ENABLE_CUDA)
                               PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
                               PRIVATE  ${CMAKE_BINARY_DIR}
                               PRIVATE  ${PDM_BINARY_DIR}
-                              PUBLIC  ${CMAKE_SOURCE_DIR}
+                              PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/..
                               PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
                               #PUBLIC  /opt/tools/openmpi/4.0.1-gnu-8.3/include/
                               PUBLIC  ${MPI_INCLUDE_PATH}

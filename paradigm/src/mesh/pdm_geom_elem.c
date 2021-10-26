@@ -159,6 +159,10 @@ PDM_geom_elem_tria_surface_vector
     }
 
     PDM_CROSS_PRODUCT(surface_vectorTri, v1, v2);
+    printf(" surface_vector = %20.16e - %20.16e,  %20.16e - %20.16e,  %20.16e - %20.16e\n",
+           v1[1]*v2[2], v1[2]*v2[1],
+           v1[2]*v2[0], v1[0]*v2[2],
+           v1[0]*v2[1], v1[1]*v2[0]);
 
     surface_vectorTri[0] *= 0.5;
     surface_vectorTri[1] *= 0.5;

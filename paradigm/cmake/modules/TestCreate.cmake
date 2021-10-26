@@ -18,6 +18,15 @@ function(test_c_create name n_proc)
                                       PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
    target_include_directories(${name} PRIVATE ${TEST_INC})
    target_link_libraries(${name} ${LINK_LIBRARIES})
+   #if(mmg_FOUND)
+   #  target_link_libraries(${name} Mmg::libmmg2d_so)
+   if (LAPACK_FOUND)
+     target_link_libraries(${name} LAPACK::LAPACK)
+   endif()
+   if (NOT LAPACK_FOUND AND BLAS_FOUND)
+     target_link_libraries(${name} BLAS::BLAS)
+   endif()
+   #endif()
    install(TARGETS ${name} RUNTIME DESTINATION bin)
    add_test (${name} ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${n_proc}
              ${MPIEXEC_PREFLAGS}
@@ -106,6 +115,3 @@ function(test_cpp_create name n_proc)
              ${CMAKE_CURRENT_BINARY_DIR}/${name}
              ${MPIEXEC_POSTFLAGS})
 endfunction()
-
-
-

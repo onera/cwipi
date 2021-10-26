@@ -62,10 +62,10 @@ module pdm_gnum
 
       type(c_ptr), value :: gen_gnum
 
-      integer(c_int) :: i_part
-      integer(c_int) :: n_elts
-      type(c_ptr) :: coords
-      type(c_ptr) :: char_length
+      integer(c_int), value :: i_part
+      integer(c_int), value :: n_elts
+      type(c_ptr), value :: coords
+      type(c_ptr), value :: char_length
 
     end subroutine PDM_gnum_set_from_coords
 
@@ -80,9 +80,9 @@ module pdm_gnum
 
       type(c_ptr), value :: gen_gnum
 
-      integer(c_int) :: i_part
-      integer(c_int) :: n_elts
-      type(c_ptr) :: parent_gnum
+      integer(c_int), value :: i_part
+      integer(c_int), value :: n_elts
+      type(c_ptr), value :: parent_gnum
 
     end subroutine PDM_gnum_set_from_parents
 
@@ -96,7 +96,7 @@ module pdm_gnum
 
     end subroutine PDM_gnum_compute
 
-    function PDM_gnum_get (gen_gnum) &
+    function PDM_gnum_get (gen_gnum, i_part) &
       result (g_nums) &
       bind (c, name = 'PDM_gnum_get')
 
@@ -105,6 +105,7 @@ module pdm_gnum
 
       type(c_ptr) :: g_nums
       type(c_ptr), value :: gen_gnum
+      integer(c_int), value :: i_part
 
     end function PDM_gnum_get
 

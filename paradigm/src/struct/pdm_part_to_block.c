@@ -706,7 +706,7 @@ _distrib_data
                                               ptb->s_comm + 1);
 
       ptb->dest_proc[++idx] = iproc;
-      assert (ptb->dest_proc[idx] >= 0);
+      // assert (ptb->dest_proc[idx] >= 0);
       ptb->n_send_data[iproc] += 1;
     }
   }
@@ -1526,12 +1526,12 @@ PDM_part_to_block_exch
   assert(_block_data != NULL);
 
   *block_data = _block_data;
-  *block_stride = NULL;
   int *i_recv_stride = NULL;
   int *i_block_stride = NULL;
   int s_block_data = ((int) sizeof(unsigned char) * s_recv_buffer) / (int) s_data;
 
   if (t_stride == PDM_STRIDE_VAR) {
+    *block_stride = NULL;
     int* _block_stride = NULL;
     if(ptb->tn_recv_data > 0){
       _block_stride = malloc(sizeof(int) * ptb->tn_recv_data);

@@ -231,6 +231,9 @@ _read_args
     else if (strcmp (argv[i], "-parmetis") == 0) {
       *method = 1;
     }
+    else if (strcmp (argv[i], "-hilbert") == 0) {
+      *method = 3;
+    }
     else if (strcmp (argv[i], "-n_proc_data") == 0) {
       i++;
       if (i >= argc)
@@ -616,7 +619,7 @@ _create_split_mesh
     //                  dEdgeGroupIdx,
     //                  dEdgeGroup);
 
-    printf("dNFace = %i | dNEdge = %i | dNVtx = %i \n", dNFace, dNEdge, dNVtx);
+    //printf("dNFace = %i | dNEdge = %i | dNVtx = %i \n", dNFace, dNEdge, dNVtx);
     PDM_part_create (&ppartId,
                      pdm_mpi_comm,
                      method,
@@ -1457,7 +1460,15 @@ char *argv[]
   int              n_partB   = 1;
 
   int              post    = 0;
+#ifdef PDM_HAVE_PARMETIS
   PDM_part_split_t method  = PDM_PART_SPLIT_PARMETIS;
+#else
+#ifdef PDM_HAVE_PTSCOTCH
+  PDM_part_split_t method  = PDM_PART_SPLIT_PTSCOTCH;
+#else
+  PDM_part_split_t method  = PDM_PART_SPLIT_HILBERT;
+#endif
+#endif
   int              haveRandom = 1;
   int              randomTimeInit = 0;
 
@@ -1499,20 +1510,22 @@ char *argv[]
 
   if (i_rank == 0) {
     PDM_printf ("%Parametres : \n");
-    PDM_printf ("  - n_vtx_segA : %d\n", n_vtx_segA);
-    PDM_printf ("  - lengthA : %f\n", lengthA);
-    PDM_printf ("  - xminA : %d\n", xminA);
-    PDM_printf ("  - yminA : %d\n", yminA);
-    PDM_printf ("  - n_partA : %d\n", n_partA);
-    PDM_printf ("  - n_vtx_segB : %d\n", n_vtx_segB);
-    PDM_printf ("  - lengthB : %f\n", lengthB);
-    PDM_printf ("  - xminB : %d\n", xminB);
-    PDM_printf ("  - yminB : %d\n", yminB);
-    PDM_printf ("  - n_partB : %d\n", n_partB);
-    PDM_printf ("  - post : %d\n", post);
-    PDM_printf ("  - method : %d\n", method);
-    PDM_printf ("  - haveRandom : %d\n", haveRandom);
+    PDM_printf ("  - n_rank         : %d\n", numProcs);
+    PDM_printf ("  - n_vtx_segA     : %d\n", n_vtx_segA);
+    PDM_printf ("  - lengthA        : %f\n", lengthA);
+    PDM_printf ("  - xminA          : %d\n", xminA);
+    PDM_printf ("  - yminA          : %d\n", yminA);
+    PDM_printf ("  - n_partA        : %d\n", n_partA);
+    PDM_printf ("  - n_vtx_segB     : %d\n", n_vtx_segB);
+    PDM_printf ("  - lengthB        : %f\n", lengthB);
+    PDM_printf ("  - xminB          : %d\n", xminB);
+    PDM_printf ("  - yminB          : %d\n", yminB);
+    PDM_printf ("  - n_partB        : %d\n", n_partB);
+    PDM_printf ("  - post           : %d\n", post);
+    PDM_printf ("  - method         : %d\n", method);
+    PDM_printf ("  - haveRandom     : %d\n", haveRandom);
     PDM_printf ("  - randomTimeInit : %d\n", randomTimeInit);
+    PDM_printf ("  - nProcData      : %d\n", nProcData);
   }
 
   /*

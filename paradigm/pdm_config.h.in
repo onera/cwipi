@@ -11,6 +11,9 @@
 #cmakedefine PDM_HAVE_GETRUSAGE
 #cmakedefine PDM_HAVE_GETTIMEOFDAY
 #cmakedefine PDM_LONG_G_NUM
+#cmakedefine PDM_HAVE_LAPACK
+#cmakedefine PDM_HAVE_BLAS
+#cmakedefine PDM_HAVE_MKL
 
 #define PDM_LONG_G_NUM_BOOL "@PDM_LONG_G_NUM_BOOL@"
 #define PDM_VERSION_MAJOR "@PDM_VERSION_MAJOR@"

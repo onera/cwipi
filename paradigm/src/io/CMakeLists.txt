@@ -1,7 +1,7 @@
 
 file(GLOB_RECURSE SOURCES
-     pdm_printf.c
-     pdm_error.c)
+  pdm_printf.c
+  pdm_error.c)
 
 add_library(pdm_io OBJECT ${SOURCES})
 

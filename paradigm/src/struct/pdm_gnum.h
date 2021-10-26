@@ -82,12 +82,12 @@ PDM_gnum_create
 PDM_gen_gnum_t*
 PDM_gnum_create_cf
 (
- const int             *dim,
- const int             *n_part,
- const int             *merge,
- const double          *tolerance,
- const PDM_MPI_Fint    *fcomm,
- const PDM_ownership_t *owner
+ const int             dim,
+ const int             n_part,
+ const int             merge,
+ const double          tolerance,
+ const PDM_MPI_Fint    fcomm,
+ const PDM_ownership_t owner
 );
 
 

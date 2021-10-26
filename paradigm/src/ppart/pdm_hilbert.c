@@ -986,10 +986,15 @@ PDM_hilbert_get_coord_extents_seq(      int    dim,
 
   for (i = 0; i < n_coords; i++) {
     for (j = 0; j < (size_t)dim; j++) {
-      if (coords[i*dim + j] < g_extents[j])
+
+      if (coords[i*dim + j] < g_extents[j]){
         g_extents[j] = coords[i*dim + j];
-      else if (coords[i*dim + j] > g_extents[j + dim])
+      }
+
+      if (coords[i*dim + j] > g_extents[j + dim]){
         g_extents[j + dim] = coords[i*dim + j];
+      }
+
     }
   }
 }

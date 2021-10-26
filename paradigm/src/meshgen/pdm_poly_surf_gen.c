@@ -860,6 +860,8 @@ PDM_g_num_t    **dedge_group
   *ng_edge = dn_edge_abs;
   *ng_face = dn_face_abs;
 
+  printf("gn_vtx = "PDM_FMT_G_NUM", gn_face = "PDM_FMT_G_NUM"\n", *ng_vtx, *ng_face);
+
   /* Definition des limites */
   /* ---------------------- */
 

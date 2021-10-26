@@ -92,7 +92,8 @@ _read_args(int            argc,
            int           *post,
            int           *part_method,
            PDM_mesh_location_method_t *loc_method,
-           int           *disable_uvw)
+           int           *disable_uvw,
+           int           *use_tgt_nodes)
 {
   int i = 1;
 
@@ -203,6 +204,9 @@ _read_args(int            argc,
     }
     else if (strcmp(argv[i], "-post") == 0) {
       *post = 1;
+    }
+    else if (strcmp(argv[i], "-nodes") == 0) {
+      *use_tgt_nodes = 1;
     }
     else
       _usage(EXIT_FAILURE);
@@ -442,6 +446,7 @@ int main(int argc, char *argv[])
   PDM_g_num_t n_pts = 10;
   PDM_mesh_location_method_t loc_method = PDM_MESH_LOCATION_OCTREE;
   int disable_uvw = 0;
+  int use_tgt_nodes = 0;
 
   /*
    *  Read args
@@ -462,7 +467,8 @@ int main(int argc, char *argv[])
               &post,
               (int *) &part_method,
               &loc_method,
-              &disable_uvw);
+              &disable_uvw,
+              &use_tgt_nodes);
 
 
   /*
@@ -515,12 +521,12 @@ int main(int argc, char *argv[])
                                       0,
                                       n_part);
 
-  double **cell_volume = malloc (sizeof(double *) * n_part);
-  double **cell_center = malloc (sizeof(double *) * n_part);
+  /*double **cell_volume = malloc (sizeof(double *) * n_part);
+    double **cell_center = malloc (sizeof(double *) * n_part);*/
 
   int *n_tgt = malloc (sizeof(double *) * n_part);
   PDM_g_num_t **tgt_g_num = malloc (sizeof(PDM_g_num_t *) * n_part);
-
+  double      **tgt_coord = malloc (sizeof(double *)      * n_part);
   for (int ipart = 0; ipart < n_part; ipart++) {
     int n_cell;
     int n_face;
@@ -586,34 +592,45 @@ int main(int argc, char *argv[])
                            &face_group,
                            &face_group_ln_to_gn);
 
-    n_tgt[ipart] = n_cell;
-    tgt_g_num[ipart] = malloc (sizeof(PDM_g_num_t) * n_cell);
-    memcpy (tgt_g_num[ipart], cell_ln_to_gn, sizeof(PDM_g_num_t) * n_cell);
+    if (use_tgt_nodes) {
+      n_tgt[ipart] = n_vtx;
+      tgt_g_num[ipart] = malloc (sizeof(PDM_g_num_t) * n_vtx);
+      memcpy (tgt_g_num[ipart], vtx_ln_to_gn, sizeof(PDM_g_num_t) * n_vtx);
 
-    const int is_oriented = 0;
-    cell_volume[ipart] = malloc(sizeof(double) * n_cell);
-    cell_center[ipart] = malloc(sizeof(double) * 3 * n_cell);
+      tgt_coord[ipart] = malloc (sizeof(double) * n_vtx * 3);
+      memcpy (tgt_coord[ipart], vtx, sizeof(double) * n_vtx * 3);
+    }
+    else {
+      n_tgt[ipart] = n_cell;
+      tgt_g_num[ipart] = malloc (sizeof(PDM_g_num_t) * n_cell);
+      memcpy (tgt_g_num[ipart], cell_ln_to_gn, sizeof(PDM_g_num_t) * n_cell);
 
-    PDM_geom_elem_polyhedra_properties (is_oriented,
-                                        n_cell,
-                                        n_face,
-                                        face_vtx_idx,
-                                        face_vtx,
-                                        cell_face_idx,
-                                        cell_face,
-                                        n_vtx,
-                                        vtx,
-                                        cell_volume[ipart],
-                                        cell_center[ipart],
-                                        NULL,
-                                        NULL);
+      const int is_oriented = 0;
+      double *cell_volume = malloc(sizeof(double) * n_cell);
+      tgt_coord[ipart] = malloc(sizeof(double) * 3 * n_cell);
+
+      PDM_geom_elem_polyhedra_properties (is_oriented,
+                                          n_cell,
+                                          n_face,
+                                          face_vtx_idx,
+                                          face_vtx,
+                                          cell_face_idx,
+                                          cell_face,
+                                          n_vtx,
+                                          vtx,
+                                          cell_volume,
+                                          tgt_coord[ipart],
+                                          NULL,
+                                          NULL);
+      free (cell_volume);
+    }
 
     PDM_mesh_location_cloud_set (mesh_loc,
                                  0,
                                  ipart,
-                                 n_cell,
-                                 cell_center[ipart],
-                                 cell_ln_to_gn);
+                                 n_tgt[ipart],
+                                 tgt_coord[ipart],
+                                 tgt_g_num[ipart]);
   }
 
 
@@ -789,7 +806,7 @@ int main(int argc, char *argv[])
       int i = unlocated[j] - 1;
       tgt_location[ipart][i] = -1;
       for (int k = 0; k < 3; k++) {
-        tgt_proj_coord[ipart][3*i+k] = cell_center[ipart][3*i+k];
+        tgt_proj_coord[ipart][3*i+k] = tgt_coord[ipart][3*i+k];
       }
     }
 
@@ -798,7 +815,7 @@ int main(int argc, char *argv[])
 
       for (int k1 = 0; k1 < n_located; k1++) {
         int ipt = located[k1] - 1;
-        double *p = cell_center[ipart] + 3*ipt;
+        double *p = tgt_coord[ipart] + 3*ipt;
 
         int i = (int) floor (p[0] / cell_side);
         int j = (int) floor (p[1] / cell_side);
@@ -835,9 +852,9 @@ int main(int argc, char *argv[])
       for (int k1 = 0; k1 < n_unlocated; k1++) {
         int ipt = unlocated[k1] - 1;
 
-        double x = cell_center[ipart][3*ipt];
-        double y = cell_center[ipart][3*ipt+1];
-        double z = cell_center[ipart][3*ipt+2];
+        double x = tgt_coord[ipart][3*ipt];
+        double y = tgt_coord[ipart][3*ipt+1];
+        double z = tgt_coord[ipart][3*ipt+2];
         if (x >= xmin && x <= xmin + length &&
             y >= ymin && y <= ymin + length &&
             z >= zmin && z <= zmin + length) {
@@ -948,37 +965,39 @@ int main(int argc, char *argv[])
 
     sprintf(filename, "tgt_location_%3.3d.vtk", i_rank);
     _export_point_cloud (filename,
-                       n_part,
-                       n_tgt,
-                       cell_center,
-                       tgt_g_num,
-                       tgt_location);
+                         n_part,
+                         n_tgt,
+                         tgt_coord,
+                         tgt_g_num,
+                         tgt_location);
 
     sprintf(filename, "tgt_proj_coord_%3.3d.vtk", i_rank);
 
     _export_point_cloud (filename,
-                       n_part,
-                       n_tgt,
-                       tgt_proj_coord,
-                       tgt_g_num,
-                       tgt_location);
+                         n_part,
+                         n_tgt,
+                         tgt_proj_coord,
+                         tgt_g_num,
+                         tgt_location);
   }
 
 
 
   for (int ipart = 0; ipart < n_part; ipart++) {
-    free (cell_center[ipart]);
-    free (cell_volume[ipart]);
+    /*free (cell_center[ipart]);
+      free (cell_volume[ipart]);*/
     free (tgt_g_num[ipart]);
+    free (tgt_coord[ipart]);
     free (tgt_location[ipart]);
     free (tgt_proj_coord[ipart]);
     free (src_g_num[ipart]);
   }
   free (n_tgt);
   free (n_src);
-  free (cell_center);
-  free (cell_volume);
+  /*free (cell_center);
+    free (cell_volume);*/
   free (tgt_g_num);
+  free (tgt_coord);
   free (tgt_location);
   free (tgt_proj_coord);
   free (src_g_num);
@@ -998,3 +1017,4 @@ int main(int argc, char *argv[])
 
   return g_n_wrong;
 }
+

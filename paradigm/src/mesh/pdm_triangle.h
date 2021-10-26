@@ -109,6 +109,16 @@ PDM_triangle_closest_point
  double       *weights
  );
 
+
+void
+PDM_triangle_circumcircle
+(
+ const double  vtx_coord[9],
+ double        center[3],
+ double       *radius
+ );
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

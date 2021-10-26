@@ -104,7 +104,7 @@ PDM_multi_block_to_part_create
       mbtp->block_distrib_idx[i_block][i] = shift + block_distrib_idx[i_block][i];
     }
     shift += block_distrib_idx[i_block][mbtp->n_rank];
-    PDM_log_trace_array_long(mbtp->block_distrib_idx[i_block], mbtp->n_rank + 1, "mbtp->block_distrib_idx:: ");
+    // PDM_log_trace_array_long(mbtp->block_distrib_idx[i_block], mbtp->n_rank + 1, "mbtp->block_distrib_idx:: ");
   }
 
   mbtp->n_part  = n_part;

@@ -115,6 +115,32 @@ PDM_log_trace_array_size_t
  const char   *header
 );
 
+/**
+ *
+ * \brief Pretty print of array in trace_log
+ *
+ * \param [inout] array        Array to print
+ * \param [in]    lArray       Array length
+ * \param [inout] header       First line of log
+ *
+ */
+void
+PDM_log_trace_connectivity_long
+(
+ const int         *array_idx,
+ const PDM_g_num_t *array,
+ const int          larray,
+ const char*        header
+);
+
+void
+PDM_log_trace_connectivity_int
+(
+ const int         *array_idx,
+ const int         *array,
+ const int          larray,
+ const char*        header
+);
 
 /*----------------------------------------------------------------------------*/
 

@@ -79,9 +79,64 @@ extern "C" {
  * Static global variables
  *============================================================================*/
 
-/*============================================================================
- * Private function definitions
+static double _epsilon_denom = 1.e-30;       /* Minimum denominator */
+
+/*=============================================================================
+ * Private function definition
  *============================================================================*/
+/*---------------------------------------------------------------------------
+ * Solve the equation "A.x = b" with Cramer's rule.
+ *
+ * parameters:
+ *   A[3][3] <-- equation matrix
+ *   b[3]    <-- b equation right hand side
+ *   x[3]    <-> equation solution (unchanged if matrix is singular)
+ *
+ * returns:
+ *   PDM_FALSE if matrix is singular, PDM_TRUE otherwise
+ *----------------------------------------------------------------------------*/
+
+static int
+_solve_3x3(double  A[3][3],
+           double  b[3],
+           double  x[3])
+{
+  double det, det_inv, x0, x1, x2;
+
+  det = A[0][0]*(A[1][1]*A[2][2] - A[2][1]*A[1][2])
+    -   A[1][0]*(A[0][1]*A[2][2] - A[2][1]*A[0][2])
+    +   A[2][0]*(A[0][1]*A[1][2] - A[1][1]*A[0][2]);
+
+  if (PDM_ABS(det) < _epsilon_denom) {
+    printf("_solve_3x3: det = %e\n", det);
+    return PDM_FALSE;
+  }
+
+  else {
+    det_inv = 1./det;
+  }
+
+  /* Use local variables to ensure no aliasing */
+
+  x0 = (  b[0]*(A[1][1]*A[2][2] - A[2][1]*A[1][2])
+          - b[1]*(A[0][1]*A[2][2] - A[2][1]*A[0][2])
+          + b[2]*(A[0][1]*A[1][2] - A[1][1]*A[0][2])) * det_inv;
+
+  x1 = (  A[0][0]*(b[1]*A[2][2] - b[2]*A[1][2])
+          - A[1][0]*(b[0]*A[2][2] - b[2]*A[0][2])
+          + A[2][0]*(b[0]*A[1][2] - b[1]*A[0][2])) * det_inv;
+
+  x2 = (  A[0][0]*(A[1][1]*b[2] - A[2][1]*b[1])
+          - A[1][0]*(A[0][1]*b[2] - A[2][1]*b[0])
+          + A[2][0]*(A[0][1]*b[1] - A[1][1]*b[0])) * det_inv;
+
+  /* Copy local variables to output */
+  x[0] = x0;
+  x[1] = x1;
+  x[2] = x2;
+
+  return PDM_TRUE;
+}
 
 /*============================================================================
  * Public function definitions
@@ -100,11 +155,15 @@ extern "C" {
  *
  */
 
-int  PDM_tetrahedron_evaluate_position (const double  x[3],
-                                        const double  vtx_coord[12],
-                                        double        closest_point[3],
-                                        double       *closest_point_dist2,
-                                        double        closest_point_weights[4])
+PDM_tetrahedron_status_t
+PDM_tetrahedron_evaluate_position
+(
+ const double  x[3],
+ const double  vtx_coord[12],
+ double        closest_point[3],
+ double       *closest_point_dist2,
+ double        closest_point_weights[4]
+ )
 {
   double vtx_tria[9];
   double p0p1[3], p0p2[3], p0p3[3], p1p2[3], p1p3[3], p2p3[3];
@@ -149,7 +208,7 @@ PDM_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wfloat-equal")
       norm2_p1p2 == 0.0 ||
       norm2_p1p3 == 0.0 ||
       norm2_p2p3 == 0.0) {
-    return -1;
+    return PDM_TETRAHEDRON_DEGENERATED;
   }
 
   vol6 = p0p1[0] * (p0p2[1]*p0p3[2] - p0p2[2]*p0p3[1])
@@ -157,7 +216,7 @@ PDM_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wfloat-equal")
     +    p0p1[2] * (p0p2[0]*p0p3[1] - p0p2[1]*p0p3[0]);
 
   if (vol6 == 0) {
-    return -1;
+    return PDM_TETRAHEDRON_DEGENERATED;
   }
 PDM_GCC_SUPPRESS_WARNING_POP
 
@@ -180,14 +239,20 @@ PDM_GCC_SUPPRESS_WARNING_POP
 
 
   if (u + v + w <= 1 && u >= 0 && v >= 0 && w >= 0) { // point a l'interieur du tetra
-    for (int i = 0; i < 3; i++) {
-      closest_point[i] = x[i];
+    if (closest_point != NULL) {
+      for (int i = 0; i < 3; i++) {
+        closest_point[i] = x[i];
+      }
     }
     *closest_point_dist2 = 0.0;
-    closest_point_weights[0] = 1 - u - v - w;
-    closest_point_weights[1] = u;
-    closest_point_weights[2] = v;
-    closest_point_weights[3] = w;
+    if (closest_point_weights != NULL) {
+      closest_point_weights[0] = 1 - u - v - w;
+      closest_point_weights[1] = u;
+      closest_point_weights[2] = v;
+      closest_point_weights[3] = w;
+    }
+
+    return PDM_TETRAHEDRON_INSIDE;
   }
 
   else if (u + v + w > 1) {// la face la plus proche est [P1,P2,P3]
@@ -209,6 +274,7 @@ PDM_GCC_SUPPRESS_WARNING_POP
                                     closest_point_dist2,
                                     weights_tria);
     double p0cp[3], p1cp[3], p2cp[3], p3cp[3];
+
     for (int i = 0; i < 3; i++){
       p0cp[i] = closest_point[i] - pt0[i];
       p1cp[i] = closest_point[i] - pt1[i];
@@ -378,7 +444,82 @@ PDM_GCC_SUPPRESS_WARNING_POP
     closest_point_weights[3] = w;
   }
 
-  return 0;
+  return PDM_TETRAHEDRON_OUTSIDE;
+}
+
+
+
+
+/**
+ * \brief Computes tetrahedron barycenter
+ *
+ * \param [in]   pts     Tetrahedron vertices coordinates
+ * \param [out]  bary    Barycenter
+ *
+ */
+
+void
+PDM_tetrahedron_compute_barycenter
+(
+ const double pts[12],
+       double bary[3]
+)
+{
+  bary[0] = 0.;
+  bary[1] = 0.;
+  bary[2] = 0.;
+
+  for (int i = 0; i < 4; i++) {
+    for (int ipt = 0; ipt < 3; ipt++) {
+      bary[i] += pts[3*ipt+i];
+    }
+    bary[i] *= 0.25;
+  }
+}
+
+
+
+
+void
+PDM_tetrahedron_circumsphere
+(
+ const double  vtx_coord[12],
+ double        center[3],
+ double       *radius
+ )
+{
+  /*double d1[3] = {vtx_coord[ 3] - vtx_coord[0],
+                  vtx_coord[ 4] - vtx_coord[1],
+                  vtx_coord[ 5] - vtx_coord[2]};
+
+  double d2[3] = {vtx_coord[ 6] - vtx_coord[0],
+                  vtx_coord[ 7] - vtx_coord[1],
+                  vtx_coord[ 8] - vtx_coord[2]};
+
+  double d3[3] = {vtx_coord[ 9] - vtx_coord[0],
+                  vtx_coord[10] - vtx_coord[1],
+                  vtx_coord[11] - vtx_coord[2]};*/
+
+
+  double A[3][3];
+  double b[3] = {0.};
+  for (int j = 0; j < 3; j++) {
+    for (int i = 0; i < 3; i++) {
+      double aij = vtx_coord[3*(i+1) + j] - vtx_coord[j];
+      A[i][j] = 2.*aij;
+      b[i] += aij*aij;
+    }
+  }
+
+  _solve_3x3 (A, b, center);
+
+  double radius2 = 0.;
+  for (int i = 0; i < 3; i++) {
+    radius2 += center[i] * center[i];
+    center[i] += vtx_coord[i];
+  }
+
+  *radius = sqrt(radius2);
 }
 
 #ifdef __cplusplus

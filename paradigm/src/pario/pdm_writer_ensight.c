@@ -1322,7 +1322,7 @@ PDM_writer_ensight_geom_write
         for (int k = 0; k < n_elt; k++) {
           n_face_proc += cellfac_idx[k+1] - cellfac_idx[k];
           for (int j = cellfac_idx[k]; j < cellfac_idx[k+1]; j++) {
-            int ifac = cellfac[j] - 1;
+            int ifac = PDM_ABS(cellfac[j]) - 1;//cellfac[j] - 1;
             l_connec += facvtx_idx[ifac+1] - facvtx_idx[ifac];
           }
           max_loc = _max( (PDM_g_num_t) numabs_block[k], max_loc);
@@ -1423,7 +1423,7 @@ PDM_writer_ensight_geom_write
 
         for (int k = 0; k < n_elt; k++) {
           for (int j = cellfac_idx[k]; j < cellfac_idx[k+1]; j++) {
-            int ifac = cellfac[j] - 1;
+            int ifac = PDM_ABS(cellfac[j]) - 1;//;cellfac[j] - 1;
             buff_int32[n_face_proc] =
               (int32_t) (facvtx_idx[ifac+1] -
                          facvtx_idx[ifac]);
@@ -1479,7 +1479,7 @@ PDM_writer_ensight_geom_write
 
         for (int k = 0; k < n_elt; k++) {
           for (int j = cellfac_idx[k]; j < cellfac_idx[k+1]; j++) {
-            int ifac = cellfac[j] - 1;
+            int ifac = PDM_ABS(cellfac[j]) - 1;//cellfac[j] - 1;
             for (int j2 = facvtx_idx[ifac]; j2 < facvtx_idx[ifac+1]; j2++) {
               int isom = facvtx[j2] - 1;
               buff_int32[l_connec] =  (int32_t) g_num_vtx[isom];

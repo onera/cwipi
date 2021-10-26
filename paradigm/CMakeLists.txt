@@ -4,8 +4,8 @@
 #
 #==============================================================================
 
-cmake_minimum_required(VERSION 3.12)
-cmake_policy(VERSION 3.12)
+cmake_minimum_required(VERSION 3.19)
+cmake_policy(VERSION 3.19)
 
 #------------------------------------------------------------------------------
 # Internal CMake module (shared with ParaDiGMA or CWIPI)
@@ -111,6 +111,42 @@ else ()
     enable_language(CUDA)
   endif ()
 
+  # ANISO_AGGLO (only if pdma)
+  # ------
+  if (PDM_ENABLE_EXTENSION_PDMA)
+    option(PDM_ENABLE_ANISO_AGGLO "Enable Anisotropic agglomeration for coarse mesh function" ON)
+
+    if (PDM_ENABLE_ANISO_AGGLO)
+      if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
+          message(FATAL_ERROR "Insufficient g++ version for Anisotropic agglomeration : set PDM_ENABLE_ANISO_AGGLO to OFF and re-run")
+        endif()
+      elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15)
+          message(FATAL_ERROR "Insufficient icpc version for Anisotropic agglomeration : set PDM_ENABLE_ANISO_AGGLO to OFF and re-run")
+        endif()
+      elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.2)
+          message(FATAL_ERROR "Insufficient clang version for Anisotropic agglomeration : set PDM_ENABLE_ANISO_AGGLO to OFF and re-run")
+        endif()
+      elseif (CMAKE_CXX_COMPILER_ID MATCHES "XL")
+        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 13.1.3)
+          message(FATAL_ERROR "Insufficient xlc++ version for Anisotropic agglomeration : set PDM_ENABLE_ANISO_AGGLO to OFF and re-run")
+        endif()
+      endif ()
+      set (PDM_HAVE_ANISO_AGGLO 1)
+    endif ()
+  endif()
+
+  # Nuga (only if pdma)
+  # --------
+  if (PDM_ENABLE_EXTENSION_PDMA)
+    option(PDM_ENABLE_NUGA "Compile with support for NUGA." OFF)
+    if (PDM_ENABLE_NUGA)
+        set(PDM_HAVE_NUGA 1)
+    endif()
+  endif()
+
   # Enable long for absolute number
   # -------------------------------
 
@@ -145,6 +181,11 @@ else ()
   # ---------------
 
   option(PDM_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
+
+  # BLAS/LAPACK 
+  # -----------
+
+  option(PDM_ENABLE_BLASLAPACK "Build with BLAS/LAPACK" OFF)
 
   # Fortran interface
   # -----------------
@@ -259,6 +300,7 @@ else ()
   endif()
 
   if (PDM_ENABLE_Fortran_MPI_MODULE)
+    set(CMAKE_Fortran_PREPROCESS ON)
     set (PDM_HAVE_FORTRAN_MPI_MODULE 1)
   endif()
 
@@ -289,6 +331,39 @@ else ()
      endif()
   endif()
 
+
+  if (PDM_ENABLE_BLASLAPACK)
+
+    if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
+      set (BLA_VENDOR "Intel10_64lp")
+      find_package(BLAS)
+      find_package(LAPACK)
+      if (BLAS_FOUND AND LAPACK_FOUND)
+        set(PDM_HAVE_MKL 1)
+      endif()
+      unset (BLA_VENDOR)
+    endif()
+
+    if (NOT BLAS_FOUND)
+      find_package(BLAS)
+    endif()
+
+    if (NOT LAPACK_FOUND)
+      find_package(LAPACK)
+    endif()
+
+    if (BLAS_FOUND)
+      set(PDM_HAVE_BLAS 1)
+    endif()
+
+    if (LAPACK_FOUND)
+      set(PDM_HAVE_LAPACK 1)
+    endif()
+
+  endif()
+
+  #find_package(mmg CONFIG)
+
   # Check OpenMP (TODO : check MPI wrapper function check )
   # -------------------------------------------------------
 
@@ -306,10 +381,9 @@ else ()
     # NB: cython module must use mpicxx to avoid "mpi.h" not found.
     find_package(MPI REQUIRED COMPONENTS CXX)
 
-    find_package(PythonInterp REQUIRED)
-    find_package(PythonLibs REQUIRED)
-    find_package(NumPy REQUIRED)
+    find_package(Python REQUIRED COMPONENTS Interpreter Development NumPy)
     find_package(Mpi4Py REQUIRED)
+
     include(UseCython)
 
     if (NOT CMAKE_PDM_INSTALL_PYTHON_DIR)
@@ -439,7 +513,7 @@ configure_file(
   @ONLY
 )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pdmConfig.cmake"
-  DESTINATION lib/cmake
+  DESTINATION lib/cmake/pdm
 )
 
 #------------------------------------------------------------------------------

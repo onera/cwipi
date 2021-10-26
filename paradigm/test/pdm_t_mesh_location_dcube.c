@@ -294,12 +294,23 @@ int main(int argc, char *argv[])
 
   struct timeval t_elaps_debut;
 
-  int my_rank;
-  int n_procs;
+  int i_rank;
+  int n_rank;
 
   PDM_MPI_Init (&argc, &argv);
-  PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &my_rank);
-  PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &n_procs);
+  PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &i_rank);
+  PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &n_rank);
+
+  if (i_rank == 0) {
+    PDM_printf ("%Parametres : \n");
+    PDM_printf ("  - n_rank      : %d\n", n_rank);
+    PDM_printf ("  - n_vtx_seg   : "PDM_FMT_G_NUM"\n", n_vtx_seg);
+    PDM_printf ("  - n_pts       : "PDM_FMT_G_NUM"\n", n_pts);
+    PDM_printf ("  - length      : %f\n", length);
+    PDM_printf ("  - tolerance   : %f\n", tolerance);
+    PDM_printf ("  - part_method : %d\n", (int) part_method);
+    PDM_printf ("  - loc_method  : %d\n", (int) loc_method);
+  }
 
   int          dn_cell;
   int          dn_face;
@@ -326,7 +337,7 @@ int main(int argc, char *argv[])
     const double ymax = ymin + length;
     const double zmax = zmin + length;*/
 
-  if (my_rank == 0) {
+  if (i_rank == 0) {
     printf("-- Build cube\n");
     fflush(stdout);
   }
@@ -376,7 +387,7 @@ int main(int argc, char *argv[])
   int n_property_cell = 0;
   int n_property_face = 0;
 
-  if (my_rank == 0) {
+  if (i_rank == 0) {
     printf("-- Part\n");
     fflush(stdout);
   }
@@ -419,7 +430,7 @@ int main(int argc, char *argv[])
    * Point cloud definition
    *
    ************************/
-  if (my_rank == 0) {
+  if (i_rank == 0) {
     printf("-- Point cloud\n");
     fflush(stdout);
   }
@@ -433,8 +444,8 @@ int main(int argc, char *argv[])
   _random_cloud (n_pts,
                  xyz_min,
                  xyz_max,
-                 n_procs,
-                 my_rank,
+                 n_rank,
+                 i_rank,
                  &pts_coords,
                  &n_pts_l);
 
@@ -577,7 +588,7 @@ int main(int argc, char *argv[])
 
 
   /* Compute location */
-  if (my_rank == 0) {
+  if (i_rank == 0) {
     printf("-- Locate\n");
     fflush(stdout);
   }
@@ -774,12 +785,12 @@ int main(int argc, char *argv[])
 
   /* Check results */
   if (!rotation) {
-    if (my_rank == 0) {
+    if (i_rank == 0) {
       printf("-- Check\n");
       fflush(stdout);
     }
 
-    const double location_tolerance = 1.e-6;
+    const double location_tolerance = 1.e-6 * length;
 
     const PDM_g_num_t n_cell_seg = n_vtx_seg - 1;
     const double cell_side = length / ((double) n_cell_seg);
@@ -811,12 +822,12 @@ int main(int argc, char *argv[])
       //printf("%d: ("PDM_FMT_G_NUM") | ("PDM_FMT_G_NUM")\n", ipt, p_location[ipt], box_gnum);
       if (p_location[ipt] != box_gnum) {
         double *cp = p_proj_coord + 3*ipt;
-        printf("%d ("PDM_FMT_G_NUM") (%.15lf %.15lf %.15lf): ("PDM_FMT_G_NUM") | ("PDM_FMT_G_NUM") proj : (%.15lf %.15lf %.15lf)\n",
+        /*printf("%d ("PDM_FMT_G_NUM") (%.15lf %.15lf %.15lf): ("PDM_FMT_G_NUM") | ("PDM_FMT_G_NUM") proj : (%.15lf %.15lf %.15lf)\n",
                ipt, pts_gnum[ipt],
                p[0], p[1], p[2],
                p_location[ipt], box_gnum,
                cp[0], cp[1], cp[2]);
-        printf("\n");
+               printf("\n");*/
 
         //-->>
         double cell_min[3] = {cell_side * i,     cell_side * j,     cell_side * k};
@@ -832,7 +843,7 @@ int main(int argc, char *argv[])
           double _dist = PDM_MIN (_dist1, _dist2);
           dist = PDM_MIN (dist, _dist);
         }
-        printf("distance = %e\n\n", dist);
+        //printf("distance = %e\n\n", dist);
         assert (dist < location_tolerance);
         //<<--
       }
@@ -851,7 +862,7 @@ int main(int argc, char *argv[])
 
   PDM_MPI_Finalize();
 
-  if (my_rank == 0) {
+  if (i_rank == 0) {
     printf("-- End\n");
     fflush(stdout);
   }

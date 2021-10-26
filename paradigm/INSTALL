@@ -22,8 +22,11 @@ Enable fortran interface :
 Enable python interface :
     PDM_ENABLE_PYTHON_BINDINGS=<ON | OFF> (default : OFF)
       If a simple autodetection fails, you can use these options to find Python :
-        PYTHON_LIBRARY=<path>
-        PYTHON_INCLUDE_DIR=<path>
+        Python_ROOT_DIR=<path> 
+        Python_LIBRARY=<path>
+        Python_INCLUDE_DIR=<path>
+        Python_EXECUTABLE=<path>
+        
       Refere to FindPython in the CMake documentation for more informations.
       shared libraries are necessary for python interface (CWP_ENABLE_SHARED=ON)
 
