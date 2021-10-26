@@ -108,14 +108,17 @@ namespace cwipi {
 
     _exchDirection          = exchDirection;
 
-    // _connectableRanks_cpl = _cpl -> communicationGet() -> cplCommCplRanksGet();
-    // _connectableRanks     = _cpl -> communicationGet() -> cplCommLocRanksGet();
+    //_connectableRanks_cpl = _cpl -> communicationGet() -> cplCommCplRanksGet();
+    //_connectableRanks     = _cpl -> communicationGet() -> cplCommLocRanksGet();
 
     //_id     = _localCodeProperties   -> idGet();
     //_id_cpl = _coupledCodeProperties -> idGet();
 
+    _send_buffer.resize(_cpl->fieldsGet()->size());  /*!< Send buffer (size = n_field) */
+    _recv_buffer.resize(_cpl->fieldsGet()->size());  /*!< Recv buffer (size = n_field) */
 
-
+    _send_request.resize(_cpl->fieldsGet()->size()); /*!< Send request (size = n_field) */
+    _recv_request.resize(_cpl->fieldsGet()->size()); /*!< Recv request (size = n_field) */
 
     if (!_coupledCodeProperties->localCodeIs()) {
       _cpl->communicationGet()->iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
@@ -232,44 +235,40 @@ namespace cwipi {
 
   void SpatialInterp::issend(Field* referenceField) {
 
-    // int  dataTypeSize       = referenceField -> dataTypeSizeGet();
-    // int nComponent = referenceField -> nComponentGet();
+    // if (!_coupledCodeProperties->localCodeIs()) {
 
-    // int tag =referenceField -> fieldIDIntGet();
-    // void* dist_v_ptr = NULL;
+    //   // Allocation des buffer !!!
 
-    // void* interpolatedFieldData = interpolate(referenceField);
+    //   // Remplissage buffer avec l'interpolation
 
-    // dist_v_ptr = interpolatedFieldData;
+    //   if (_interpolation_time == CWP_SPATIAL_INTERP_AT_SEND) {
+    //     interpolate (referenceField);
+    //   }
 
-    // MPI_Request request;
+    //   const CWP_Type_t data_type = referenceField->dataTypeGet();
+    //   const size_t s_data        = sizeof(double);
+    //   const int stride           = referenceField->nComponentGet();
+    //   const int fieldIntID       = referenceField->fieldIDIntGet();
 
-    // int* displ_send = (int*)malloc(sizeof(int)*cplComm_size);
-    // int* count_send = (int*)malloc(sizeof(int)*cplComm_size);
-    // for (int i_proc=0; i_proc < cplComm_size; i_proc++) {
-    //   count_send[i_proc]= dataTypeSize * nComponent * (_targets_localization_idx_cpl[i_proc][_nb_part]-_targets_localization_idx_cpl[i_proc][0]);
-    //   displ_send[i_proc]=  dataTypeSize * nComponent * _targets_localization_idx_cpl[i_proc][0];
+    //   PDM_part1_to_selected_part2_issend (_ptsp,
+    //                                       s_data,
+    //                                       stride,
+    //                             (void **) _send_buffer[fieldIntID],
+    //                                       fieldIntID,
+    //                                       &(_send_request[fieldIntID]));
+
+    //   if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
+    //     interpolate (referenceField);
+    //   }
+
     // }
 
-    // int* displ_recv = (int*)malloc(sizeof(int)*cplComm_size);
-    // int* count_recv = (int*)malloc(sizeof(int)*cplComm_size);
-    // for (int i_proc=0; i_proc < cplComm_size; i_proc++) {
-    //   count_recv[i_proc]  =  0 ;
-    //   displ_recv [i_proc]  =  0 ;
+    // else {
+    //   if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+
+    //   }
     // }
 
-    // void* recv_buffer = NULL;
-
-    // MPI_Ialltoallv(dist_v_ptr ,count_send,displ_send,MPI_BYTE,
-    //                recv_buffer,count_recv,displ_recv,MPI_BYTE,
-    //                _cplComm,&request);
-
-
-    // free(count_recv);
-    // free(displ_recv);
-    // free(count_send);
-    // free(displ_send);
-    // referenceField -> lastRequestAdd(tag,request);
   }
 
   void SpatialInterp::waitIssend(Field* referenceField) {
@@ -278,6 +277,39 @@ namespace cwipi {
 
 
   void SpatialInterp::irecv(Field *recevingField) {
+
+
+
+  // int  *ptp2_n_ref_gnum2;
+  // int **ptp2_ref_gnum2;
+  // PDM_part1_to_selected_part2_ref_gnum2_get (ptp2,
+  //                                           &ptp2_n_ref_gnum2,
+  //                                           &ptp2_ref_gnum2);
+
+  // int  *ptp2_n_unref_gnum2;
+  // int **ptp2_unref_gnum2;
+  // PDM_part1_to_selected_part2_unref_gnum2_get (ptp2,
+  //                                           &ptp2_n_unref_gnum2,
+  //                                           &ptp2_unref_gnum2);
+
+
+  // int         **ptp2_gnum1_come_from_idx;
+  // PDM_g_num_t **ptp2_gnum1_come_from;
+  // PDM_part1_to_selected_part2_gnum1_come_from_get (ptp2,
+  //                                                 &ptp2_gnum1_come_from_idx,
+  //                                                 &ptp2_gnum1_come_from);
+
+
+      // for (int j = 0; j < n_ref_gnum2[i]; j++) {
+      //   for (int k = gnum1_come_from_idx[i][j] ; k < gnum1_come_from_idx[i][j+1]; k++) {
+      //     printf(" "PDM_FMT_G_NUM"", gnum1_come_from[i][k]);
+      //   }
+      //   printf ("\n");
+      // }
+
+
+
+
     // _idx_target  .resize   (_nb_part + 1);
     // _idx_target[0] = 0;
     // for (int i_part = 0; i_part < _nb_part; i_part++) {

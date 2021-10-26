@@ -53,6 +53,7 @@ namespace cwipi {
     Field() {}
 
     Field (std::string            field_id    ,
+           int                    fieldIDInt,      
            CWP_Type_t             dataType    ,
            Coupling*              cpl         ,
            CWP_Dof_location_t      fieldType   ,

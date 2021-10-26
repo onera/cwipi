@@ -209,6 +209,11 @@ namespace cwipi {
     int *_n_uncomputed_tgt;
     int **_uncomputed_tgt;
 
+    std::vector <double **> _send_buffer;   /*!< Send buffer (size = n_field) */
+    std::vector <double **> _recv_buffer;   /*!< Recv buffer (size = n_field) */
+    std::vector <int  >     _send_request;  /*!< Send request (size = n_field) */
+    std::vector <int  >     _recv_request;  /*!< Recv request (size = n_field) */
+
   // A conserver ou supprimer 
   protected:
     /* code Properties */
@@ -232,17 +237,14 @@ namespace cwipi {
     bool _both_codes_are_local;
     bool _slave;
 
-
     int _senderRank;
     int _senderRank_cpl;
     int _senderLocalRank;
-
 
     vector<string> _codeVector;
 
     std::vector<int>* _connectableRanks_cpl;
     std::vector<int>* _connectableRanks    ;
-
 
     std::vector<int> n_uncomputed_tgt;
 

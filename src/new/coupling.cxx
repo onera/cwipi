@@ -1163,7 +1163,11 @@ namespace cwipi {
 
     double physTime=0.0;
     *_iteration = 0;
+
+    printf("sizeof fields : %d\n", _fields.size());
+
     cwipi::Field *newField = new cwipi::Field(field_id,
+                                              _fields.size()+1,
                                               data_type,
                                               this,
                                               fieldType,

@@ -11,41 +11,36 @@
 namespace cwipi {
 
    Field::Field (std::string            field_id    ,
-           CWP_Type_t             dataType    ,
-           Coupling*              cpl        ,
-           CWP_Dof_location_t      fieldType   ,
-           CWP_Field_storage_t    storage     ,
-           int                    nComponent  ,
-           CWP_Field_exch_t       exchangeType,
-           CWP_Status_t           visuStatus  ,
-           int*                   iteration   ,
-           double*                physTime    ):
-           _storage        (storage)     ,
-           _nComponent     (nComponent)  ,
-           _fieldLocation  (fieldType)   ,
-           _linkedFieldLocation (CWP_DOF_LOCATION_UNDEF),
-           _exchangeType   (exchangeType),
-           _visuStatus     (visuStatus)  ,
-           _dataType       (dataType)    ,
-           _fieldID        (field_id)    ,
-           _physTime       (physTime)    ,
-           _iteration      (iteration)
+                 int                     fieldIDInt,      
+                 CWP_Type_t             dataType    ,
+                 Coupling*              cpl        ,
+                 CWP_Dof_location_t      fieldType   ,
+                 CWP_Field_storage_t    storage     ,
+                 int                    nComponent  ,
+                 CWP_Field_exch_t       exchangeType,
+                 CWP_Status_t           visuStatus  ,
+                 int*                   iteration   ,
+                 double*                physTime    ):
+   _storage        (storage)     ,
+   _nComponent     (nComponent)  ,
+   _fieldLocation  (fieldType)   ,
+   _linkedFieldLocation (CWP_DOF_LOCATION_UNDEF),
+   _exchangeType   (exchangeType),
+   _visuStatus     (visuStatus)  ,
+   _dataType       (dataType)    ,
+   _fieldID        (field_id)    ,
+   _fieldIDInt     (fieldIDInt),
+   _physTime       (physTime)    ,
+   _iteration      (iteration)
 
     {
+      _mesh = cpl -> meshGet();
+      _n_part = _mesh -> getNPart();
+      _data_tgt.resize(_n_part,NULL);
+      _data_src.resize(_n_part,NULL);
+      _sendBuffer = NULL;
+      _recvBuffer = NULL;
 
-       _mesh = cpl -> meshGet();
-       _n_part = _mesh -> getNPart();
-       _data_tgt.resize(_n_part,NULL);
-       _data_src.resize(_n_part,NULL);
-       _sendBuffer = NULL;
-       _recvBuffer = NULL;
-
-       int len = _fieldID.length();
-       int id=0;
-       for(int i=0;i<len;i++) {
-         id+=(int)_fieldID[i];
-       }
-       _fieldIDInt = id;
 
       _dataTypeSize = 0;
       switch (_dataType) {
