@@ -1102,7 +1102,7 @@ void
 PDM_part1_to_selected_part2_selected_part2_get
 (
  PDM_part1_to_selected_part2_t *ptp,
- int                           *n_elt1,
+ int                          **n_elt1,
  int                         ***selected_part2_idx,
  PDM_g_num_t                 ***selected_part2
 )
