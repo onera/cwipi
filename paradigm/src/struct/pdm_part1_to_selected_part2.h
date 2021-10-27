@@ -181,6 +181,7 @@ PDM_part1_to_selected_part2_ineighbor_alltoall_wait
  * \brief Get selected numbers of part2
  *
  * \param [in]   ptp                 Block to part structure
+ * \param [out]  n_elt1              Number of gnum1 element  
  * \param [out]  selected_part2_idx  Index of data to send to gnum2 from gnum1 
  *                                  (for each part size : \ref n_elt1+1) 
  * \param [out]  selected_part2      Data to send to gnum2 from gnum1 for each part
@@ -191,6 +192,7 @@ void
 PDM_part1_to_selected_part2_selected_part2_get
 (
  PDM_part1_to_selected_part2_t *ptp,
+ int                           *n_elt1,
  int                         ***selected_part2_idx,
  PDM_g_num_t                 ***selected_part2
 );
