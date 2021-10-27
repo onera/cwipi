@@ -120,6 +120,13 @@ namespace cwipi {
     _send_request.resize(_cpl->fieldsGet()->size()); /*!< Send request (size = n_field) */
     _recv_request.resize(_cpl->fieldsGet()->size()); /*!< Recv request (size = n_field) */
 
+    for (int i = 0; i < _cpl->fieldsGet()->size(); i++) {
+      _send_buffer[i]  = NULL;
+      _recv_buffer[i]  = NULL;
+      _send_request[i] = -1;
+      _recv_request[i] = -1;
+    }
+
     if (!_coupledCodeProperties->localCodeIs()) {
       _cpl->communicationGet()->iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
                                                                             1,
@@ -237,7 +244,7 @@ namespace cwipi {
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
-      int          **n_elt1
+      int          **n_elt1;
       int          **selected_part2_idx;
       PDM_g_num_t  **selected_part2;
 
