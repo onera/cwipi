@@ -235,7 +235,14 @@ namespace cwipi {
 
   void SpatialInterp::issend(Field* referenceField) {
 
-    // if (!_coupledCodeProperties->localCodeIs()) {
+    if (!_coupledCodeProperties->localCodeIs()) {
+
+      int          **selected_part2_idx;
+      PDM_g_num_t  **selected_part2;
+
+      PDM_part1_to_selected_part2_selected_part2_get (_ptsp,
+                                                      &selected_part2_idx,
+                                                      &selected_part2);
 
     //   // Allocation des buffer !!!
 
