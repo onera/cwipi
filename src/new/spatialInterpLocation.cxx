@@ -313,7 +313,7 @@ namespace cwipi {
     }
   }
 
-  void *SpatialInterpLocation::interpolate (Field *referenceField) 
+  void *SpatialInterpLocation::interpolate (Field *referenceField, double **buffer) 
   {
     // int nComponent = referenceField->nComponentGet();
     // CWP_Dof_location_t referenceFieldType = referenceField->locationGet();

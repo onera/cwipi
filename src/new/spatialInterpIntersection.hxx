@@ -30,7 +30,7 @@ namespace cwipi {
 
     void weightsCompute() override;
 
-    void *interpolate(Field *referenceField) override;
+    void *interpolate(Field *referenceField, double **buffer) override;
 
 };
 

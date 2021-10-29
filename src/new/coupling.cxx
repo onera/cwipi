@@ -1167,7 +1167,7 @@ namespace cwipi {
     printf("sizeof fields : %d\n", _fields.size());
 
     cwipi::Field *newField = new cwipi::Field(field_id,
-                                              _fields.size()+1,
+                                              _fields.size(),
                                               data_type,
                                               this,
                                               fieldType,

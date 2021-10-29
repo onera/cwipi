@@ -106,7 +106,7 @@ namespace cwipi {
 
     virtual void weightsCompute()  = 0; // A changer de nom
     
-    virtual void* interpolate (Field* referenceField) = 0;
+    virtual void* interpolate (Field* referenceField, double **buffer) = 0;
 
     void issend(Field* referenceField);
 
@@ -211,8 +211,18 @@ namespace cwipi {
 
     std::vector <double **> _send_buffer;   /*!< Send buffer (size = n_field) */
     std::vector <double **> _recv_buffer;   /*!< Recv buffer (size = n_field) */
-    std::vector <int  >     _send_request;  /*!< Send request (size = n_field) */
-    std::vector <int  >     _recv_request;  /*!< Recv request (size = n_field) */
+    std::vector <int>       _send_request;  /*!< Send request (size = n_field) */
+    std::vector <int>       _recv_request;  /*!< Recv request (size = n_field) */
+    std::vector <uint32_t>  _send_adler;    /*!< tag MPI from adler code */
+    std::vector <uint32_t>  _recv_adler;    /*!< tag MPI from adler code */
+
+  private:
+    uint32_t _adler32 
+    (
+      const void *buf,
+      size_t buflength
+    );
+
 
   // A conserver ou supprimer 
   protected:

@@ -30,6 +30,7 @@
 #include "pdm_gnum.h"
 #include "pdm_timer.h"
 #include "pdm_gnum_location.h"
+#include "pdm_binary_search.h"
 #include "bftc_error.h"
 #include "bftc_printf.h"
 #include "cwp.h"
@@ -119,6 +120,9 @@ namespace cwipi {
 
     _send_request.resize(_cpl->fieldsGet()->size()); /*!< Send request (size = n_field) */
     _recv_request.resize(_cpl->fieldsGet()->size()); /*!< Recv request (size = n_field) */
+
+    _send_adler.reserve(_cpl->fieldsGet()->size());
+    _recv_adler.reserve(_cpl->fieldsGet()->size());
 
     for (int i = 0; i < _cpl->fieldsGet()->size(); i++) {
       _send_buffer[i]  = NULL;
@@ -244,7 +248,7 @@ namespace cwipi {
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
-      int          **n_elt1;
+      int           *n_elt1;
       int          **selected_part2_idx;
       PDM_g_num_t  **selected_part2;
 
@@ -253,37 +257,66 @@ namespace cwipi {
                                                       &selected_part2_idx,
                                                       &selected_part2);
 
-    //   // Allocation des buffer !!!
+      const int intId = referenceField->fieldIDIntGet();
+      _send_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
 
-    //   // Remplissage buffer avec l'interpolation
+      for (int i = 0; i < _nPart; i++) {
+        _send_buffer[intId][i] = (double *) malloc(sizeof(double) * n_elt1[i]);
+      }
 
-    //   if (_interpolation_time == CWP_SPATIAL_INTERP_AT_SEND) {
-    //     interpolate (referenceField);
-    //   }
+      if (_interpolation_time == CWP_SPATIAL_INTERP_AT_SEND) {
+        interpolate (referenceField, _send_buffer[intId]);
+      }
 
-    //   const CWP_Type_t data_type = referenceField->dataTypeGet();
-    //   const size_t s_data        = sizeof(double);
-    //   const int stride           = referenceField->nComponentGet();
-    //   const int fieldIntID       = referenceField->fieldIDIntGet();
+      const CWP_Type_t data_type = referenceField->dataTypeGet();
+      const size_t s_data        = sizeof(double);
+      const int stride           = referenceField->nComponentGet();
+      const int tag              = intId; // Pas bon si les champs n'ont pas été définis dans le même ordre
 
-    //   PDM_part1_to_selected_part2_issend (_ptsp,
-    //                                       s_data,
-    //                                       stride,
-    //                             (void **) _send_buffer[fieldIntID],
-    //                                       fieldIntID,
-    //                                       &(_send_request[fieldIntID]));
+      uint32_t adler_code = _adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size());
 
-    //   if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
-    //     interpolate (referenceField);
-    //   }
+      int idx = -1;
 
-    // }
+//       if (_send_adler.size()) { 
+//         idx = PDM_binary_search_int ((int) adler_code,
+//                                      &(_send_adler[0]),
+//                                      _send_adler.size());
+//       }
+
+//       if (idx == -1) {
+//         std::vector<uint32_t>::iterator it  = _send_adler.begin();
+//         std::vector<uint32_t>::iterator it2 = _send_adler.end();
+  
+//         // while(it != _send_adler.end()) {
+//         //   if (it->second > adler_code) {
+//         //     it2 = it;
+//         //     break;
+//         //   }
+//         //   it++;
+//         // }
+ 
+//         // _send_adler.insert (it2, adler_code);
+
+//       }  
+
+//       // PDM_part1_to_selected_part2_issend (_ptsp,
+//       //                                     s_data,
+//       //                                     stride,
+//       //                           (void **) _send_buffer[intId],
+//       //                                     intId,
+//       //                                    &(_send_request[intId]));
+
+// //      if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
+// //        interpolate (referenceField, _recv_buffer[intId]);
+// //      }
+
+//     }
 
     // else {
     //   if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
 
     //   }
-    // }
+    }
 
   }
 
@@ -387,6 +420,26 @@ namespace cwipi {
 
   }
 
+  
+  uint32_t SpatialInterp::_adler32 
+  (
+    const void *buf,
+    size_t buflength
+  )
+  {
+
+    const uint8_t * buffer = (const uint8_t *)buf;
+
+    uint32_t s1 = 1;
+    uint32_t s2 = 0;
+
+    for (size_t n = 0; n < buflength; n++) {
+      s1 = (s1 + buffer[n]) % 65521;
+      s2 = (s2 + s1) % 65521;
+    }
+
+    return (s2 << 16) | s1;
+  }
 
 
 
