@@ -446,7 +446,7 @@ PDM_closest_point_t *cls
 
   const int depth_max = 31;
   const int points_in_leaf_max = cls->n_closest;
-  const int build_leaf_neighbours = 1;
+  const int build_leaf_neighbours = 0;
 
 
   /* Create empty parallel octree structure */

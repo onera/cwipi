@@ -17,6 +17,7 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_gnum.h"
+#include "pdm_distrib.h"
 #include "pdm_closest_points.h"
 #include "pdm_version.h"
 
@@ -82,10 +83,7 @@ _read_args
  int           *nClosest,
  PDM_g_num_t   *nSrc,
  PDM_g_num_t   *nTgt,
- double        *radius,
- int           *local,
- int           *rand,
- int           *clumps
+ double        *radius
  )
 {
   int i = 1;
@@ -139,19 +137,6 @@ _read_args
       }
     }
 
-    else if (strcmp(argv[i], "-local") == 0) {
-      *local = 1;
-    }
-
-    else if (strcmp(argv[i], "-rand") == 0) {
-      *rand = 1;
-    }
-
-    else if (strcmp(argv[i], "-clumps") == 0) {
-      *clumps = 1;
-    }
-
-
     else {
       _usage(EXIT_FAILURE);
     }
@@ -159,160 +144,60 @@ _read_args
   }
 }
 
-/**
- *
- * \brief  Random value
- *
- *  \return a random double in [-1, 1]
- */
-
-static double
-_random01
-(
- void
-)
-{
-  int sign;
-  int rsigna = rand();
-  int rsignb = rand();
-  if (rsigna == rsignb) {printf("!!!! rsigna = rsignb\n"); fflush(stdout);};
-  //sign = (rsigna - rsignb) / PDM_ABS (rsigna - rsignb);
-  sign = PDM_SIGN(rsigna - rsignb);
-  double resultat = sign*((double)rand())/((double)RAND_MAX);
-  return resultat;
-}
 
 
 static void
-_gen_clouds_random2
+_gen_point_cloud
 (
- const int      nSrc,
- const int      nTgt_l,
- const double   radius,
- const int      numProcs,
- const int      i_rank,
- double       **src_coord,
- double       **tgt_coord,
- int           *nSrc_l
+ PDM_MPI_Comm        comm,
+ const PDM_g_num_t   gn_pts,
+ const double        radius,
+ int                *n_pts,
+ double            **pts_coord,
+ PDM_g_num_t       **pts_g_num
  )
 {
-  *nSrc_l = (int) (nSrc/numProcs);
-  if (i_rank < nSrc%numProcs) {
-    (*nSrc_l) += 1;
+  int i_rank, n_rank;
+  PDM_MPI_Comm_rank (comm, &i_rank);
+  PDM_MPI_Comm_size (comm, &n_rank);
+
+  *n_pts = (int) (gn_pts / n_rank);
+  if (i_rank < gn_pts % n_rank) {
+    (*n_pts)++;
   }
 
-  *src_coord = malloc (sizeof(double) * 3 * (*nSrc_l));
-  double *_src_coord = *src_coord;
-  double x;
-  int idx = 0;
-  for (int i = 0; i < numProcs*(*nSrc_l); i++) {
+  srand(0);
+
+  PDM_g_num_t* distrib_pts = PDM_compute_entity_distribution(comm, (*n_pts));
+  for(int i = 0; i < 3 * distrib_pts[i_rank]; ++i) {
+    rand();
+  }
+
+  *pts_coord = malloc (sizeof(double) * (*n_pts) * 3);
+  for (int i = 0; i < *n_pts; i++) {
     for (int j = 0; j < 3; j++) {
-      x = _random01() * radius;
-      if (i%numProcs == i_rank) {
-        _src_coord[idx++] = x;
-      }
+      (*pts_coord)[3*i + j] = radius * (2*(double) rand() / ((double) RAND_MAX) - 1.);
     }
   }
 
-
-  *tgt_coord = malloc (sizeof(double) * 3 * nTgt_l);
-  double *_tgt_coord = *tgt_coord;
-  for (int i = 0; i < nTgt_l; i++) {
-    for (int j = 0; j < 3; j++) {
-      _tgt_coord[3*i+j] = _random01() * radius;
-    }
+  PDM_gen_gnum_t *gen_gnum = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, comm, PDM_OWNERSHIP_USER);
+  double *char_length = malloc (sizeof(double) * (*n_pts));
+  for (int i = 0; i < *n_pts; i++) {
+    char_length[i] = radius * 1e-6;
   }
-}
 
+  PDM_gnum_set_from_coords (gen_gnum, 0, *n_pts, *pts_coord, char_length);
 
-/* FIXME: _gen_clouds_random a conserver ? */
-   /* static void */
-/* _gen_clouds_random */
-/* ( */
-/*  const int      nSrc_l, */
-/*  const int      nTgt_l, */
-/*  const double   radius, */
-/*  double       **src_coord, */
-/*  double       **tgt_coord */
-/*  ) */
-/* { */
+  // PDM_log_trace_array_double((*pts_coord), 3 * (*n_pts), "pts_coord :: ");
 
-/*   *src_coord = malloc (sizeof(double) * 3 * nSrc_l); */
-/*   double *_src_coord = *src_coord; */
-/*   for (int i = 0; i < nSrc_l; i++) { */
-/*     for (int j = 0; j < 3; j++) { */
-/*       _src_coord[3*i+j] = _random01() * radius; */
-/*     } */
-/*   } */
+  PDM_gnum_compute (gen_gnum);
 
-/*   *tgt_coord = malloc (sizeof(double) * 3 * nTgt_l); */
-/*   double *_tgt_coord = *tgt_coord; */
-/*   for (int i = 0; i < nTgt_l; i++) { */
-/*     for (int j = 0; j < 3; j++) { */
-/*       _tgt_coord[3*i+j] = _random01() * radius; */
-/*     } */
-/*   } */
-/* } */
+  *pts_g_num = PDM_gnum_get (gen_gnum, 0);
 
+  PDM_gnum_free (gen_gnum);
+  free (char_length);
 
-
-
-
-
-
-
-
-
-
-static void
-_gen_clouds_clumps
-(
- const int      n_closest_points,
- const int      nTgt,
- const double   radius,
- const int      numProcs,
- const int      i_rank,
- const double   clump_scale,
- double       **src_coord,
- double       **tgt_coord,
- int           *nTgt_l,
- int           *nSrc_l
- )
-{
-  *nTgt_l = (int) nTgt/numProcs;
-  *nSrc_l = n_closest_points * (*nTgt_l);
-
-  const double clump_radius = clump_scale * radius / pow(nTgt, 1./3);
-
-  *tgt_coord = malloc (sizeof(double) * 3 * (*nTgt_l));
-  *src_coord = malloc (sizeof(double) * 3 * (*nSrc_l));
-
-  double *_tgt_coord = *tgt_coord;
-  double *_src_coord = *src_coord;
-  double x;
-
-  int ii = 0;
-  int idx = 0;
-  for (int i = 0; i < (*nTgt_l)*numProcs; i++) {
-    for (int j = 0; j < 3; j++) {
-      x = _random01() * radius;
-      if (i%numProcs == i_rank) {
-        _tgt_coord[3*ii+j] = x;
-      }
-    }
-
-    for (int k = 0; k < n_closest_points; k++) {
-      for (int j = 0; j < 3; j++) {
-        x = _random01() * clump_radius;
-
-        if (i%numProcs == i_rank)
-          _src_coord[idx++] = _tgt_coord[3*ii+j] + x;
-      }
-    }
-
-    if (i%numProcs == i_rank)
-      ii++;
-  }
+  free(distrib_pts);
 }
 
 
@@ -335,11 +220,11 @@ main
 
   PDM_MPI_Init (&argc, &argv);
 
-  int i_rank;
-  PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &i_rank);
+  PDM_MPI_Comm comm = PDM_MPI_COMM_WORLD;
 
-  int n_rank;
-  PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &n_rank);
+  int i_rank, n_rank;
+  PDM_MPI_Comm_rank (comm, &i_rank);
+  PDM_MPI_Comm_size (comm, &n_rank);
 
   if (i_rank == 0) {
     char *version = PDM_version_get();
@@ -348,134 +233,48 @@ main
     free(version);
   }
 
-  int n_closest_points = 10;
-  PDM_g_num_t nSrc = 10;
-  PDM_g_num_t nTgt = 10;
-  double radius = 10.;
-  int local = 0;
-  int rand = 0;
-  int clumps = 0;
+  int         n_closest_points = 10;
+  PDM_g_num_t gn_src           = 10;
+  PDM_g_num_t gn_tgt           = 10;
+  double      radius           = 10.;
 
   _read_args(argc,
              argv,
              &n_closest_points,
-             &nSrc,
-             &nTgt,
-             &radius,
-             &local,
-             &rand,
-             &clumps);
+             &gn_src,
+             &gn_tgt,
+             &radius);
 
   if (i_rank == 0) {
     PDM_printf ("%Parametres : \n");
     PDM_printf ("  - n_rank           : %d\n", n_rank);
     PDM_printf ("  - n_closest_points : %d\n", n_closest_points);
-    PDM_printf ("  - n_src            : "PDM_FMT_G_NUM"\n", nSrc);
-    PDM_printf ("  - n_tgt            : "PDM_FMT_G_NUM"\n", nTgt);
+    PDM_printf ("  - n_src            : "PDM_FMT_G_NUM"\n", gn_src);
+    PDM_printf ("  - n_tgt            : "PDM_FMT_G_NUM"\n", gn_tgt);
     PDM_printf ("  - radius           : %f\n", radius);
-    PDM_printf ("  - rand             : %d\n", rand);
-  }
-
-  /* Initialize random */
-
-  if (rand) {
-    srand(time(NULL));
-  }
-  else {
-    srand(i_rank);
   }
 
 
-  /* Define the numbers of Source/Target points */
+  /* Generate src and tgt point clouds */
+  int          n_src;
+  double      *src_coord;
+  PDM_g_num_t *src_g_num;
+  _gen_point_cloud (comm,
+                    gn_src,
+                    radius,
+                    &n_src,
+                    &src_coord,
+                    &src_g_num);
 
-  int _n_src_l = 0, _n_tgt_l = 0;
-  if (local) {
-    _n_src_l = (int) nSrc;
-    _n_tgt_l = (int) nTgt;
-  }
-  else {
-    _n_src_l = (int) (nSrc/n_rank);
-    _n_tgt_l = (int) (nTgt/n_rank);
-    if (i_rank < nSrc%n_rank) {
-      _n_src_l += 1;
-    }
-    if (i_rank < nTgt%n_rank) {
-      _n_tgt_l += 1;
-    }
-  }
-
-  double *src_coords = NULL;
-  double *tgt_coords = NULL;
-
-
-  if (clumps) {
-    const double clump_scale = 0.3;
-
-    _gen_clouds_clumps (n_closest_points,
-                        nTgt,
-                        radius,
-                        n_rank,
-                        i_rank,
-                        clump_scale,
-                        &src_coords,
-                        &tgt_coords,
-                        &_n_tgt_l,
-                        &_n_src_l);
-  } else {
-    /*_gen_clouds_random (_n_src_l,
-      _n_tgt_l,
-      radius,
-      &src_coords,
-      &tgt_coords);*/
-    _gen_clouds_random2 (nSrc,
-                         _n_tgt_l,
-                         radius,
-                         n_rank,
-                         i_rank,
-                         &src_coords,
-                         &tgt_coords,
-                         &_n_src_l);
-  }
-
-
-  //n_closest_points = PDM_MIN (n_closest_points, nSrc);
-
-  /* Source points definition  */
-  PDM_gen_gnum_t* gen_gnum = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_USER);
-
-  double *src_char_length = malloc(sizeof(double) * _n_src_l);
-
-  for (int i = 0; i < _n_src_l; i++) {
-    src_char_length[i] = radius * 1.e-6;
-  }
-
-  PDM_gnum_set_from_coords (gen_gnum, 0, _n_src_l, src_coords, src_char_length);
-
-  PDM_gnum_compute (gen_gnum);
-
-  PDM_g_num_t *src_gnum = PDM_gnum_get(gen_gnum, 0);
-
-  PDM_gnum_free (gen_gnum);
-
-
-
-  /* Target points definition */
-  gen_gnum = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_USER);
-
-  double *tgt_char_length = malloc(sizeof(double) * _n_tgt_l);
-
-  for (int i = 0; i < _n_tgt_l; i++) {
-    tgt_char_length[i] = radius * 1.e-6;
-  }
-
-  PDM_gnum_set_from_coords (gen_gnum, 0, _n_tgt_l, tgt_coords, tgt_char_length);
-
-  PDM_gnum_compute (gen_gnum);
-
-  PDM_g_num_t *tgt_gnum = PDM_gnum_get(gen_gnum, 0);
-
-  PDM_gnum_free (gen_gnum);
-
+  int          n_tgt;
+  double      *tgt_coord;
+  PDM_g_num_t *tgt_g_num;
+  _gen_point_cloud (comm,
+                    gn_tgt,
+                    radius,
+                    &n_tgt,
+                    &tgt_coord,
+                    &tgt_g_num);
 
 
   PDM_closest_point_t* clsp = PDM_closest_points_create (PDM_MPI_COMM_WORLD,
@@ -488,15 +287,15 @@ main
 
   PDM_closest_points_src_cloud_set (clsp,
                                     0,
-                                    _n_src_l,
-                                    src_coords,
-                                    src_gnum);
+                                    n_src,
+                                    src_coord,
+                                    src_g_num);
 
   PDM_closest_points_tgt_cloud_set (clsp,
                                     0,
-                                    _n_tgt_l,
-                                    tgt_coords,
-                                    tgt_gnum);
+                                    n_tgt,
+                                    tgt_coord,
+                                    tgt_g_num);
 
 
   PDM_closest_points_compute (clsp);
@@ -516,9 +315,9 @@ main
   if (0 == 1) {
     printf("\n\n============================\n\n");
 
-    for (int i = 0; i < _n_tgt_l; i++) {
-      printf("Target point #%d ("PDM_FMT_G_NUM") [%f, %f, %f]\n", i, tgt_gnum[i],
-             tgt_coords[3*i], tgt_coords[3*i+1], tgt_coords[3*i+2]);
+    for (int i = 0; i < n_tgt; i++) {
+      printf("Target point #%d ("PDM_FMT_G_NUM") [%f, %f, %f]\n", i, tgt_g_num[i],
+             tgt_coord[3*i], tgt_coord[3*i+1], tgt_coord[3*i+2]);
       for (int j = 0; j < n_closest_points; j++)
         printf("\t%d:\t"PDM_FMT_G_NUM"\t%f\n",
                j+1,
@@ -539,12 +338,10 @@ main
 
   /* Free */
 
-  free (src_coords);
-  free (src_char_length);
-  free (src_gnum);
-  free (tgt_coords);
-  free (tgt_char_length);
-  free (tgt_gnum);
+  free (src_coord);
+  free (src_g_num);
+  free (tgt_coord);
+  free (tgt_g_num);
 
   if (i_rank == 0) {
 

@@ -5,6 +5,7 @@
  * Standard C library headers
  *----------------------------------------------------------------------------*/
 
+#include <stdint.h>
 
 /*----------------------------------------------------------------------------
  *  Header for the current file
@@ -111,6 +112,26 @@ PDM_binary_search_int
 (
  const int          elt,
  const int         *array,
+ const int          lArray
+);
+
+
+/**
+ *
+ * \brief Search element index in a sorted array
+ *
+ * \param [in]   elt          Element to find
+ * \param [in]   array        Array where to search
+ * \param [in]   lArray       Array length
+ *
+ * \return       Index where element is stored
+ */
+
+int
+PDM_binary_search_uint32t
+(
+ const uint32_t     elt,
+ const uint32_t    *array,
  const int          lArray
 );
 
