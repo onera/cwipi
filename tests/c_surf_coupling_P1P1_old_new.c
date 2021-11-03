@@ -1020,7 +1020,7 @@ int main
   /*
    *  Create coupling
    */
-  char *coupling_name = "c_surf_cpl_P1P0_P0P1";
+  char *coupling_name = "c_surf_cpl_P1P1";
 
   if (version == CWP_VERSION_OLD) {
     cwipi_create_coupling (coupling_name,                             // Coupling id
@@ -1225,7 +1225,7 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
 
       CWP_Field_data_set (code_name[0],
                           coupling_name,
-                          field_name,
+                          field_name2,
                           0,
                           CWP_FIELD_MAP_SOURCE,
                           send_val);
@@ -1248,6 +1248,7 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
                           0,
                           CWP_FIELD_MAP_TARGET,
                           recv_val);
+
       CWP_Field_create (code_name[0],
                         coupling_name,
                         field_name2,
@@ -1260,7 +1261,7 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
 
       CWP_Field_data_set (code_name[0],
                           coupling_name,
-                          field_name,
+                          field_name2,
                           0,
                           CWP_FIELD_MAP_TARGET,
                           recv_val);
@@ -1427,7 +1428,7 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
                     1,
                     1,
                     0.1,
-                    field_name,
+                    field_name2,
                     send_val,
                     &request);
     }
@@ -1438,7 +1439,7 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
                    1,
                    1,
                    0.1,
-                   field_name,
+                   field_name2,
                    recv_val,
                    &request);
     }
@@ -1448,12 +1449,12 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
     if (code_id == 1) {
       CWP_Field_issend (code_name[0],
                         coupling_name,
-                        field_name);
+                        field_name2);
     }
     else {
       CWP_Field_irecv (code_name[0],
                        coupling_name,
-                       field_name);
+                       field_name2);
     }
   }
 
@@ -1482,12 +1483,12 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
     if (code_id == 1) {
       CWP_Field_wait_issend (code_name[0],
                              coupling_name,
-                             field_name);
+                             field_name2);
     }
     else {
       CWP_Field_wait_irecv (code_name[0],
                             coupling_name,
-                            field_name);
+                            field_name2);
     }
   }
 

@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
     double *recv_val = NULL;
     char *field_name = "cooX";
 
-    if (strcmp(code_name[0], "code1")) {
+    if (strcmp(code_name[0], "code1") != 0) {
         send_val = (double *) malloc(sizeof(double) * n_vtx[0]);
         for (int i = 0 ; i < n_vtx[0] ; i++) send_val[i] = vtx_coord[0][3 * i];
     }
@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
     CWP_Status_t visu_status = CWP_STATUS_OFF;
     MPI_Barrier(MPI_COMM_WORLD);
 
-    if (strcmp(code_name[0], "code1")) {
+    if (strcmp(code_name[0], "code1") != 0) {
         CWP_Field_create(code_name[0], coupling_name, field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, 1, CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_SEND, visu_status);
         CWP_Field_data_set(code_name[0], coupling_name, field_name, 0, CWP_FIELD_MAP_SOURCE, send_val);
     }
@@ -172,6 +172,15 @@ int main(int argc, char *argv[]) {
 
     // Compute weights
     CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
+
+    if (strcmp(code_name[0], "code1") != 0) {
+        CWP_Field_issend(code_name[0], coupling_name, field_name);
+        CWP_Field_wait_issend(code_name[0], coupling_name, field_name);
+    }
+    else {
+        CWP_Field_irecv(code_name[0], coupling_name, field_name);
+        CWP_Field_wait_irecv(code_name[0], coupling_name, field_name);
+    }
 
     // Finalize
     CWP_Mesh_interf_del(code_name[0], coupling_name);
