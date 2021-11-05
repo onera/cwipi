@@ -124,6 +124,10 @@ int main(int argc, char *argv[]) {
     bool cond_code1 = rank % 2 == 0 && rank % 5 != 0;
     bool cond_code2 = rank % 2 != 0 && rank % 5 == 0;
     bool cond_both = rank % 2 == 0 && rank % 5 == 0;
+    int master_code1 = 0; // These should be calculated, with master_both = -1 if no procs are on both codes
+    int master_code2 = 0;
+    int master_both = 0;
+
     int n_vtx_seg_code1 = 9, n_vtx_seg_code2 = 25;
     double x_min_code1 = 0., x_min_code2 = 0.9;
     double y_min_code1 = 0., y_min_code2 = 0.8;
@@ -147,6 +151,8 @@ int main(int argc, char *argv[]) {
     MPI_Comm *intra_comms = (MPI_Comm *) malloc(n_code * sizeof(MPI_Comm));
 
     // Define which rank works for which code
+    rank_is_on_code[0] = 0;
+    rank_is_on_code[1] = 0;
     if (cond_both) {
         rank_is_on_code[0] = 1;
         rank_is_on_code[1] = 1;
@@ -203,53 +209,51 @@ int main(int argc, char *argv[]) {
         assert(intra_comm_size[i_code] > 0);
     }
 
-    int **ranks_on_code = NULL;
-    ranks_on_code = (int **) malloc(2 * sizeof(int *));
-    for (int i_code = 0 ; i_code < 2 ; ++i_code) {
-        ranks_on_code[i_code] = (int *) malloc(intra_comm_size[i_code] * sizeof(int));
-    }
+    int *ranks_on_code1 = (int *) malloc(comm_world_size * sizeof(int));
+    int *ranks_on_code2 = (int *) malloc(comm_world_size * sizeof(int));
 
     // TODO There must be a better way of doing that?
+    int comm_nb = 0;
     // Gather ranks on code1
     if (rank_is_on_code[0]) {
-        MPI_Gather(&rank, 1, MPI_INT, ranks_on_code[0], 1, MPI_INT, 0, intra_comms[0]);
+        MPI_Allgather(&rank, 1, MPI_INT, ranks_on_code1, 1, MPI_INT, intra_comms[0]);
     }
     // Gather ranks on code2
     if (rank_is_on_code[1]) {
-        int comm_nb = 0;
         if (n_code == 1) comm_nb = 0;
         else if (n_code == 2) comm_nb = 1;
-        MPI_Gather(&rank, 1, MPI_INT, ranks_on_code[1], 1, MPI_INT, 0, intra_comms[comm_nb]);
+        MPI_Allgather(&rank, 1, MPI_INT, ranks_on_code2, 1, MPI_INT, intra_comms[comm_nb]);
     }
 
-    // Detect ranks which are on both codes on rank 0 (supposed to work on both codes)
-    if (rank == 0) {
+    if (rank == master_code1) {
+        printf("%d --- %d procs work for code %d (%.1f %%): ", rank, intra_comm_size[0], code_id[0], (double) intra_comm_size[0] / comm_world_size * 100);
+        for (int i = 0 ; i < intra_comm_size[0] ; ++i) printf("%d ", ranks_on_code1[i]);
+        printf("\n");
+    }
+    if (rank == master_code2) {
+        if (n_code == 1) comm_nb = 0;
+        else if (n_code == 2) comm_nb = 1;
+        printf("%d --- %d procs work for code %d (%.1f %%): ", rank, intra_comm_size[comm_nb], code_id[comm_nb], (double) intra_comm_size[comm_nb] / comm_world_size * 100);
+        for (int i = 0 ; i < intra_comm_size[comm_nb] ; ++i) printf("%d ", ranks_on_code2[i]);
+        printf("\n");
+    }
+    if (master_both == -1 && rank == 0) {
+        printf("0 --- no procs work for both codes\n");
+    }
+    else if (master_both != -1 && rank == master_both) {
         int tmp_code1 = -1, tmp_code2 = -1;
         int nb_both_codes = 0;
         int *ranks_on_both = (int *) malloc(comm_world_size * sizeof(int));
         for (int i = 0 ; i < comm_world_size ; ++i) {
             for (int j = 0 ; j < intra_comm_size[0] ; ++j) {
-                if (i == ranks_on_code[0][j]) tmp_code1 = i;
+                if (i == ranks_on_code1[j]) tmp_code1 = i;
             }
             for (int j = 0 ; j < intra_comm_size[1] ; ++j) {
-                if (i == ranks_on_code[1][j]) tmp_code2 = i;
+                if (i == ranks_on_code2[j]) tmp_code2 = i;
             }
             if (tmp_code1 != -1 && tmp_code2 != -1) ranks_on_both[nb_both_codes++] = i;
             tmp_code1 = -1, tmp_code2 = -1;
         }
-
-        printf("%d --- %d procs work for code %d (%.1f %%): ", rank, intra_comm_size[0], code_id[0], (double) intra_comm_size[0] / comm_world_size * 100);
-        for (int i = 0 ; i < intra_comm_size[0] ; ++i) {
-            printf("%d ", ranks_on_code[0][i]);
-        }
-        printf("\n");
-
-        printf("%d --- %d procs work for code %d (%.1f %%): ", rank, intra_comm_size[1], code_id[1], (double) intra_comm_size[1] / comm_world_size * 100);
-        for (int i = 0 ; i < intra_comm_size[1] ; ++i) {
-            printf("%d ", ranks_on_code[1][i]);
-        }
-        printf("\n");
-
         printf("%d --- %d procs work for both codes (%.1f %%): ", rank, nb_both_codes, (double) nb_both_codes / comm_world_size * 100);
         for (int i = 0 ; i < nb_both_codes ; ++i) printf("%d ", ranks_on_both[i]);
         printf("\n");
