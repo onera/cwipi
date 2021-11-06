@@ -121,12 +121,9 @@ int main(int argc, char *argv[]) {
     assert(comm_world_size > 0);
 
     // Input
-    bool cond_code1 = rank % 2 == 0 && rank % 5 != 0;
-    bool cond_code2 = rank % 2 != 0 && rank % 5 == 0;
-    bool cond_both = rank % 2 == 0 && rank % 5 == 0;
-    int master_code1 = 0; // These should be calculated, with master_both = -1 if no procs are on both codes
-    int master_code2 = 0;
-    int master_both = 0;
+    bool cond_code1 = rank % 2 == 1;
+    bool cond_code2 = rank % 5 == 0;
+    bool cond_both = cond_code1 && cond_code2;
 
     int n_vtx_seg_code1 = 9, n_vtx_seg_code2 = 25;
     double x_min_code1 = 0., x_min_code2 = 0.9;
@@ -138,7 +135,6 @@ int main(int argc, char *argv[]) {
     else if (cond_code1 || cond_code2) n_code = 1;
     else n_code = 0;
 
-    bool rank_is_on_code[2];
     int *code_id = (int *) malloc(n_code * sizeof(int));
     char **code_names = (char **) malloc(n_code * sizeof(char *));
     char **coupled_code_names = (char **) malloc(n_code * sizeof(char *));
@@ -151,11 +147,7 @@ int main(int argc, char *argv[]) {
     MPI_Comm *intra_comms = (MPI_Comm *) malloc(n_code * sizeof(MPI_Comm));
 
     // Define which rank works for which code
-    rank_is_on_code[0] = 0;
-    rank_is_on_code[1] = 0;
     if (cond_both) {
-        rank_is_on_code[0] = 1;
-        rank_is_on_code[1] = 1;
         code_id[0] = 1;
         code_id[1] = 2;
         code_names[0] = "code1";
@@ -174,8 +166,6 @@ int main(int argc, char *argv[]) {
         y_min[1] = y_min_code2;
     }
     else if (cond_code1) {
-        rank_is_on_code[0] = 1;
-        rank_is_on_code[1] = 0;
         code_id[0] = 1;
         code_names[0] = "code1";
         coupled_code_names[0] = "code2";
@@ -186,8 +176,6 @@ int main(int argc, char *argv[]) {
         y_min[0] = y_min_code1;
     }
     else if (cond_code2) {
-        rank_is_on_code[0] = 0;
-        rank_is_on_code[1] = 1;
         code_id[0] = 2;
         code_names[0] = "code2";
         coupled_code_names[0] = "code1";
@@ -198,9 +186,11 @@ int main(int argc, char *argv[]) {
         y_min[0] = y_min_code2;
     }
 
+    // Init cwipi
     CWP_Init(MPI_COMM_WORLD, n_code, (const char **) code_names, is_active_rank, time_init, intra_comms);
     printf("%d --- CWIPI initialized\n", rank);
 
+    // Get the comm size and rank
     int *intra_comm_rank = (int *) malloc(n_code * sizeof(int));
     int *intra_comm_size = (int *) malloc(n_code * sizeof(int));
     for (int i_code = 0 ; i_code < n_code ; ++i_code) {
@@ -209,22 +199,34 @@ int main(int argc, char *argv[]) {
         assert(intra_comm_size[i_code] > 0);
     }
 
+    // Gather ranks and master ranks
     int *ranks_on_code1 = (int *) malloc(comm_world_size * sizeof(int));
     int *ranks_on_code2 = (int *) malloc(comm_world_size * sizeof(int));
+    int master_code1 = -1, master_code2 = -1, master_both = -1;
 
-    // TODO There must be a better way of doing that?
     int comm_nb = 0;
-    // Gather ranks on code1
-    if (rank_is_on_code[0]) {
+    if (cond_code1) {
         MPI_Allgather(&rank, 1, MPI_INT, ranks_on_code1, 1, MPI_INT, intra_comms[0]);
+        MPI_Allreduce(&rank, &master_code1, 1, MPI_INT, MPI_MIN, intra_comms[0]);
     }
-    // Gather ranks on code2
-    if (rank_is_on_code[1]) {
+    if (cond_code2) {
         if (n_code == 1) comm_nb = 0;
         else if (n_code == 2) comm_nb = 1;
         MPI_Allgather(&rank, 1, MPI_INT, ranks_on_code2, 1, MPI_INT, intra_comms[comm_nb]);
+        MPI_Allreduce(&rank, &master_code2, 1, MPI_INT, MPI_MIN, intra_comms[comm_nb]);
+    }
+    if (cond_both) {
+        for (int i = 0 ; i < intra_comm_size[0] ; ++i) {
+            for (int j = 0 ; j < intra_comm_size[1] ; ++j) {
+                if (ranks_on_code1[i] == ranks_on_code2[j]) {
+                    master_both = ranks_on_code1[i];
+                    break;
+                }
+            }
+        }
     }
 
+    // Print the number and ranks for each code
     if (rank == master_code1) {
         printf("%d --- %d procs work for code %d (%.1f %%): ", rank, intra_comm_size[0], code_id[0], (double) intra_comm_size[0] / comm_world_size * 100);
         for (int i = 0 ; i < intra_comm_size[0] ; ++i) printf("%d ", ranks_on_code1[i]);
@@ -237,10 +239,7 @@ int main(int argc, char *argv[]) {
         for (int i = 0 ; i < intra_comm_size[comm_nb] ; ++i) printf("%d ", ranks_on_code2[i]);
         printf("\n");
     }
-    if (master_both == -1 && rank == 0) {
-        printf("0 --- no procs work for both codes\n");
-    }
-    else if (master_both != -1 && rank == master_both) {
+    if (rank == master_both) {
         int tmp_code1 = -1, tmp_code2 = -1;
         int nb_both_codes = 0;
         int *ranks_on_both = (int *) malloc(comm_world_size * sizeof(int));
@@ -259,6 +258,7 @@ int main(int argc, char *argv[]) {
         printf("\n");
     }
 
+    // Create coupling and visu
     char *cpl_name = "c_new_api_disjoint_comms";
     CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
 
@@ -272,12 +272,14 @@ int main(int argc, char *argv[]) {
         printf("%d (%d, %s) --- Visu set\n", rank, intra_comm_rank[i_code], code_names[i_code]);
     }
 
+    // Create PDM communicators
     PDM_MPI_Comm *pdm_intra_comms = (PDM_MPI_Comm *) malloc(n_code * sizeof(PDM_MPI_Comm));
     for (int i_code = 0 ; i_code < n_code ; ++i_code) {
         pdm_intra_comms[i_code] = PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comms[i_code]);
         printf("%d (%d, %s) --- PDM comm created\n", rank, intra_comm_rank[i_code], code_names[i_code]);
     }
 
+    // Create geometry
     int **n_vtx, **n_faces, **n_cells;
     int ***face_vtx_idx, ***face_vtx;
     int ***cell_face, ***cell_face_idx;
@@ -307,6 +309,7 @@ int main(int argc, char *argv[]) {
         printf("%d (%d, %s) --- Geometry set\n", rank, intra_comm_rank[i_code], code_names[i_code]);
     }
 
+    // Create and initialise Fields: code1 -> code2
     char *field_name = "cooX";
 
     double **send_values = (double **) malloc(n_code * sizeof(double *));
@@ -335,11 +338,13 @@ int main(int argc, char *argv[]) {
 
     MPI_Barrier(MPI_COMM_WORLD);
 
+    // Compute weights
     for (int i_code = 0 ; i_code < n_code ; ++i_code) {
         CWP_Spatial_interp_weights_compute(code_names[i_code], cpl_name);
         printf("%d (%d, %s) --- Weights computed\n", rank, intra_comm_rank[i_code], code_names[i_code]);
     }
 
+    // Send and receive field
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
         if (code_id[i_code] == 1) {
             CWP_Field_issend(code_names[i_code], cpl_name, field_name);
