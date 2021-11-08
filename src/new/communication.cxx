@@ -392,6 +392,9 @@ namespace cwipi {
       fflush(stdout);
     }
 
+    int codeID    = _localCodeProperties->idGet();
+    int cplCodeID = _cplCodeProperties->idGet();
+
     if (unionCommRank ==  _locCodeRootRankUnionComm) {
       if (_cplCodeProperties->localCodeIs()) {
 
@@ -400,8 +403,16 @@ namespace cwipi {
             printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 2.1\n");
             fflush(stdout);
           }
-          assert (n_send_data     == n_recv_data_cpl);
-          memcpy (recv_data_cpl, send_data    , s_data * n_send_data);
+
+          if (codeID < cplCodeID) {
+
+            assert (n_send_data     == n_recv_data_cpl);
+            memcpy (recv_data_cpl, send_data    , s_data * n_send_data);
+
+            assert (n_send_data_cpl  == n_recv_data);
+            memcpy (recv_data,      send_data_cpl    , s_data * n_send_data_cpl);
+          }
+
         }
         else {
           if (debug) {
@@ -442,41 +453,42 @@ namespace cwipi {
       }
     }
   
-    if (_cplCodeProperties->localCodeIs()) {
-      if (unionCommRank ==  _cplCodeRootRankUnionComm) {
-        if (_locCodeRootRankUnionComm == _cplCodeRootRankUnionComm) {
-          if (debug) {
-            printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 3.1\n");
-            fflush(stdout);
-          }
-          assert (n_send_data_cpl == n_recv_data);
-          memcpy (recv_data    , send_data_cpl, s_data * n_send_data_cpl);
-        }
-        else {
-          if (debug) {
-            printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 3.2\n");
-            fflush(stdout);
-          }
-          MPI_Sendrecv (send_data_cpl,
-                        (int) s_data * n_send_data_cpl,
-                        MPI_UNSIGNED_CHAR,
-                        _cplCodeRootRankUnionComm,
-                        _tag,
-                        recv_data_cpl,
-                        (int) s_data * n_recv_data_cpl,
-                        MPI_UNSIGNED_CHAR,
-                        _cplCodeRootRankUnionComm,
-                        _tag,
-                        _unionComm,
-                        &status);
-        }
-      }
-    }
+    // if (_cplCodeProperties->localCodeIs()) {
+    //   if (unionCommRank ==  _cplCodeRootRankUnionComm) {
+    //     if (_locCodeRootRankUnionComm == _cplCodeRootRankUnionComm) {
+    //       if (debug) {
+    //         printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 3.1\n");
+    //         fflush(stdout);
+    //       }
+    //       assert (n_send_data_cpl == n_recv_data);
+    //       memcpy (recv_data    , send_data_cpl, s_data * n_send_data_cpl);
+    //     }
+    //     else {
+    //       if (debug) {
+    //         printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 3.2\n");
+    //         fflush(stdout);
+    //       }
+    //       MPI_Sendrecv (send_data_cpl,
+    //                     (int) s_data * n_send_data_cpl,
+    //                     MPI_UNSIGNED_CHAR,
+    //                     _cplCodeRootRankUnionComm,
+    //                     _tag,
+    //                     recv_data_cpl,
+    //                     (int) s_data * n_recv_data_cpl,
+    //                     MPI_UNSIGNED_CHAR,
+    //                     _cplCodeRootRankUnionComm,
+    //                     _tag,
+    //                     _unionComm,
+    //                     &status);
+    //     }
+    //   }
+    // }
 
     if (debug) {
       printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 4.1\n");
       fflush(stdout);
     }
+
     MPI_Ibcast (recv_data,
                (int) s_data * n_recv_data,
                MPI_UNSIGNED_CHAR,

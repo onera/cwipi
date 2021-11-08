@@ -346,15 +346,24 @@ int main(int argc, char *argv[]) {
 
     // Send and receive field
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
-        if (code_id[i_code] == 1) {
-            CWP_Field_issend(code_names[i_code], cpl_name, field_name);
-            CWP_Field_wait_issend(code_names[i_code], cpl_name, field_name);
-            printf("%d (%d, %s) --- Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-        }
         if (code_id[i_code] == 2) {
             CWP_Field_irecv(code_names[i_code], cpl_name, field_name);
+            printf("%d (%d, %s) --- Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+        }
+        if (code_id[i_code] == 1) {
+            CWP_Field_issend(code_names[i_code], cpl_name, field_name);
+            printf("%d (%d, %s) --- Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+        }
+    }
+
+    for (int i_code = 0 ; i_code < n_code ; i_code++) {
+        if (code_id[i_code] == 2) {
             CWP_Field_wait_irecv(code_names[i_code], cpl_name, field_name);
             printf("%d (%d, %s) --- Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+        }
+        if (code_id[i_code] == 1) {
+            CWP_Field_wait_issend(code_names[i_code], cpl_name, field_name);
+            printf("%d (%d, %s) --- Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
         }
     }
 

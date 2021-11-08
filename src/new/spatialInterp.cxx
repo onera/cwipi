@@ -638,36 +638,36 @@ namespace cwipi {
   }
 
 
-  void SpatialInterp::waitIssend(Field* referenceField) {
+  // void SpatialInterp::waitIssend(Field* referenceField) {
 
-    if (!_coupledCodeProperties->localCodeIs()) {
+  //   if (!_coupledCodeProperties->localCodeIs()) {
 
-      const int intId            = referenceField->fieldIDIntGet();
+  //     const int intId            = referenceField->fieldIDIntGet();
 
-      PDM_part1_to_selected_part2_irecv_wait (_ptsp, _recv_request[intId]);
-      PDM_part1_to_selected_part2_issend_wait (_ptsp, _send_request[intId]);
+  //     PDM_part1_to_selected_part2_irecv_wait (_ptsp, _recv_request[intId]);
+  //     PDM_part1_to_selected_part2_issend_wait (_ptsp, _send_request[intId]);
 
-    }
+  //   }
 
-    else {
-      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-        cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+  //   else {
+  //     if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+  //       cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
 
-        const int intId            = referenceField->fieldIDIntGet();
+  //       const int intId            = referenceField->fieldIDIntGet();
 
-        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
-        SpatialInterp *cpl_spatial_interp = cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
+  //       std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
+  //       SpatialInterp *cpl_spatial_interp = cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
 
-        Field* cpl_referenceField = (*cpl_cpl.fieldsGet())[referenceField->fieldIDGet()];
+  //       Field* cpl_referenceField = (*cpl_cpl.fieldsGet())[referenceField->fieldIDGet()];
 
-        const int cpl_intId = cpl_referenceField->fieldIDIntGet();
+  //       const int cpl_intId = cpl_referenceField->fieldIDIntGet();
 
-        PDM_part1_to_selected_part2_irecv_wait (_ptsp, cpl_spatial_interp->_recv_request[cpl_intId]);
-        PDM_part1_to_selected_part2_issend_wait (_ptsp, _send_request[intId]);
+  //       PDM_part1_to_selected_part2_irecv_wait (_ptsp, cpl_spatial_interp->_recv_request[cpl_intId]);
+  //       PDM_part1_to_selected_part2_issend_wait (_ptsp, _send_request[intId]);
 
-      }
-    }
-  }
+  //     }
+  //   }
+  // }
 
 
   void SpatialInterp::waitIrecv(Field* referenceField) {
