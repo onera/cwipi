@@ -248,15 +248,15 @@ namespace cwipi {
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
-      int           *n_elt1;
-      int          **selected_part2_idx;
-      PDM_g_num_t  **selected_part2;
-
       const int intId            = referenceField->fieldIDIntGet();
       const CWP_Type_t data_type = referenceField->dataTypeGet();
       const size_t s_data        = sizeof(double);
       const int stride           = referenceField->nComponentGet();
       const int tag              = intId; // Pas bon si les champs n'ont pas été définis dans le même ordre
+
+      int           *n_elt1;
+      int          **selected_part2_idx;
+      PDM_g_num_t  **selected_part2;
 
       PDM_part1_to_selected_part2_selected_part2_get (_ptsp,
                                                       &n_elt1,
@@ -266,8 +266,11 @@ namespace cwipi {
       _send_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
       _recv_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
 
+      // A n_elt1
+
       for (int i = 0; i < _nPart; i++) {
-        _send_buffer[intId][i] = (double *) malloc(sizeof(double) * stride * n_elt1[i]);
+        _send_buffer[intId][i] = 
+          (double *) malloc(sizeof(double) * stride * selected_part2_idx[i][n_elt1[i]]);
         _recv_buffer[intId][i] = nullptr;
       }
 
@@ -275,39 +278,33 @@ namespace cwipi {
         interpolate (referenceField, _send_buffer[intId]);
       }
 
-      uint32_t mpi_tag = _adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % MPI_TAG_UB;
+      uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (MPI_TAG_UB - 1)) + 1;
 
-      int idx = -1;
+      int idx = PDM_binary_search_uint32t (mpi_tag,
+                                           &(_send_adler[0]),
+                                           _send_adler.size()) ;
 
       while (idx != -1) {
-        if (_send_adler.size()) { 
-          idx = PDM_binary_search_uint32t (mpi_tag,
+
+        mpi_tag = (mpi_tag + 1) % (MPI_TAG_UB - 1) + 1;
+
+        idx = PDM_binary_search_uint32t (mpi_tag,
                                        &(_send_adler[0]),
                                        _send_adler.size()) ;
-          if (idx != 1) {
-            mpi_tag = (mpi_tag + 1) % MPI_TAG_UB;
-            if (mpi_tag == 0) {
-              mpi_tag += 1;
-            }
-          }
-        }
       }
 
-      if (idx == -1) {
-        std::vector<uint32_t>::iterator it  = _send_adler.begin();
-        std::vector<uint32_t>::iterator it2 = _send_adler.end();
+      std::vector<uint32_t>::iterator it  = _send_adler.begin();
+      std::vector<uint32_t>::iterator it2 = _send_adler.end();
   
-        while(it != _send_adler.end()) {
-          if (*it > mpi_tag) {
-            it2 = it;
-            break;
-          }
-          it++;
+      while(it != _send_adler.end()) {
+        if (*it > mpi_tag) {
+          it2 = it;
+          break;
         }
- 
-        _send_adler.insert (it2, mpi_tag);
+        it++;
+      }
 
-      }  
+      _send_adler.insert (it2, mpi_tag);
 
       // Fake reveceive
 
@@ -332,15 +329,15 @@ namespace cwipi {
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
         cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
 
-        int           *n_elt1;
-        int          **selected_part2_idx;
-        PDM_g_num_t  **selected_part2;
-
         const int intId            = referenceField->fieldIDIntGet();
         const CWP_Type_t data_type = referenceField->dataTypeGet();
         const size_t s_data        = sizeof(double);
         const int stride           = referenceField->nComponentGet();
         const int tag              = intId; // Pas bon si les champs n'ont pas été définis dans le même ordre
+
+        int           *n_elt1;
+        int          **selected_part2_idx;
+        PDM_g_num_t  **selected_part2;
 
         PDM_part1_to_selected_part2_selected_part2_get (_ptsp,
                                                         &n_elt1,
@@ -350,59 +347,66 @@ namespace cwipi {
         _send_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
 
         for (int i = 0; i < _nPart; i++) {
-          _send_buffer[intId][i] = (double *) malloc(sizeof(double) * stride  * n_elt1[i]);
+          _send_buffer[intId][i] = (double *) malloc(sizeof(double) * stride  * selected_part2_idx[i][n_elt1[i]]);
         }
 
         if (_interpolation_time == CWP_SPATIAL_INTERP_AT_SEND) {
           interpolate (referenceField, _send_buffer[intId]);
         }
 
-        uint32_t mpi_tag = _adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % MPI_TAG_UB;
+        uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (MPI_TAG_UB - 1)) + 1;
 
-        int idx = -1;
+        int idx = PDM_binary_search_uint32t (mpi_tag,
+                                             &(_send_adler[0]),
+                                             _send_adler.size()) ;
 
         while (idx != -1) {
-          if (_send_adler.size()) { 
-            idx = PDM_binary_search_uint32t (mpi_tag,
+
+          mpi_tag = (mpi_tag + 1) % (MPI_TAG_UB - 1) + 1;
+
+          idx = PDM_binary_search_uint32t (mpi_tag,
                                          &(_send_adler[0]),
                                          _send_adler.size()) ;
-            if (idx != 1) {
-              mpi_tag = (mpi_tag + 1) % MPI_TAG_UB;
-              if (mpi_tag == 0) {
-                mpi_tag += 1;
-              }
-            }
-          }
         }
 
-        if (idx == -1) {
-          std::vector<uint32_t>::iterator it  = _send_adler.begin();
-          std::vector<uint32_t>::iterator it2 = _send_adler.end();
+        std::vector<uint32_t>::iterator it  = _send_adler.begin();
+        std::vector<uint32_t>::iterator it2 = _send_adler.end();
     
-          while(it != _send_adler.end()) {
-            if (*it > mpi_tag) {
-              it2 = it;
-              break;
-            }
-            it++;
+        while(it != _send_adler.end()) {
+          if (*it > mpi_tag) {
+            it2 = it;
+            break;
           }
-   
-          _send_adler.insert (it2, mpi_tag);
+          it++;
+        }
 
-        }  
+        _send_adler.insert (it2, mpi_tag);
 
         std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
         SpatialInterp *cpl_spatial_interp = cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
 
         Field* cpl_referenceField = (*cpl_cpl.fieldsGet())[referenceField->fieldIDGet()];
 
-
         const int cpl_intId = cpl_referenceField->fieldIDIntGet();
         cpl_spatial_interp->_send_buffer[cpl_intId] = (double **) malloc(sizeof(double *) * _cplNPart);
         cpl_spatial_interp->_recv_buffer[cpl_intId] = (double **) malloc(sizeof(double *) * _cplNPart);
 
+        int  *n_ref_gnum2;
+        int **ref_gnum2;
+
+        PDM_part1_to_selected_part2_ref_gnum2_get (_ptsp,
+                                                   &n_ref_gnum2,
+                                                   &ref_gnum2);
+
+        int          **gnum1_come_from_idx;
+        PDM_g_num_t  **gnum1_come_from;
+       
+        PDM_part1_to_selected_part2_gnum1_come_from_get (_ptsp,
+                                                         &gnum1_come_from_idx,
+                                                         &gnum1_come_from);
+
         for (int i = 0; i < _cplNPart; i++) {
-          cpl_spatial_interp->_recv_buffer[cpl_intId][i] = (double *) malloc(sizeof(double) * stride * cpl_spatial_interp->_n_computed_tgt[i]);
+          cpl_spatial_interp->_recv_buffer[cpl_intId][i] = (double *) malloc(sizeof(double) * stride * gnum1_come_from_idx[i][n_ref_gnum2[i]]);
         }
 
         PDM_part1_to_selected_part2_irecv (_ptsp,
@@ -418,8 +422,6 @@ namespace cwipi {
                                   (void **) _send_buffer[intId],
                                       (int) mpi_tag,
                                            &(_send_request[intId]));
-
-
       }
     }
   }
@@ -433,6 +435,28 @@ namespace cwipi {
 
       PDM_part1_to_selected_part2_irecv_wait (_ptsp, _recv_request[intId]);
       PDM_part1_to_selected_part2_issend_wait (_ptsp, _send_request[intId]);
+
+      if (_send_buffer[intId] != NULL) {
+        for (int i = 0; i < _nPart; i++) {
+          if (_send_buffer[intId][i] != NULL) {
+            free (_send_buffer[intId][i]);
+            _send_buffer[intId][i] = NULL;
+          }
+        }
+        free (_send_buffer[intId]);
+        _send_buffer[intId] = NULL;
+      }
+
+      if (_recv_buffer[intId] != NULL) {
+        for (int i = 0; i < _nPart; i++) {
+          if (_recv_buffer[intId][i] != NULL) {
+            free (_recv_buffer[intId][i]);
+            _recv_buffer[intId][i] = NULL;
+          }
+        }
+        free (_recv_buffer[intId]);
+        _recv_buffer[intId] = NULL;
+      }
 
     }
 
@@ -452,226 +476,283 @@ namespace cwipi {
         PDM_part1_to_selected_part2_irecv_wait (_ptsp, cpl_spatial_interp->_recv_request[cpl_intId]);
         PDM_part1_to_selected_part2_issend_wait (_ptsp, _send_request[intId]);
 
+        for (int i = 0; i < _nPart; i++) {
+          if (_send_buffer[intId] != NULL) {
+            if (_send_buffer[intId][i] != NULL) {
+              free (_send_buffer[intId][i]);
+              _send_buffer[intId][i] = NULL;
+            }
+            free (_send_buffer[intId]);
+            _send_buffer[intId] = NULL;
+          }
+
+          if (cpl_spatial_interp->_recv_buffer[intId] != NULL) {
+            if (cpl_spatial_interp->_recv_buffer[intId][i] != NULL) {
+              free (cpl_spatial_interp->_recv_buffer[intId][i]);
+              cpl_spatial_interp->_recv_buffer[intId][i] = NULL;
+            }
+            free (cpl_spatial_interp->_recv_buffer[intId]);
+            cpl_spatial_interp->_recv_buffer[intId] = NULL;
+          }
+        }
       }
     }
   }
 
 
-  void SpatialInterp::irecv(Field *recevingField) {
+  void SpatialInterp::irecv(Field *referenceField) {
 
-    // if (!_coupledCodeProperties->localCodeIs()) {
+    if (!_coupledCodeProperties->localCodeIs()) {
 
-    //   int           *n_elt1;
-    //   int          **selected_part2_idx;
-    //   PDM_g_num_t  **selected_part2;
+      const int intId            = referenceField->fieldIDIntGet();
+      const CWP_Type_t data_type = referenceField->dataTypeGet();
+      const size_t s_data        = sizeof(double);
+      const int stride           = referenceField->nComponentGet();
+      const int tag              = intId; // Pas bon si les champs n'ont pas été définis dans le même ordre
 
-    //   const int intId            = referenceField->fieldIDIntGet();
-    //   const CWP_Type_t data_type = referenceField->dataTypeGet();
-    //   const size_t s_data        = sizeof(double);
-    //   const int stride           = referenceField->nComponentGet();
-    //   const int tag              = intId; // Pas bon si les champs n'ont pas été définis dans le même ordre
+      int  *n_ref_gnum2;
+      int **ref_gnum2;
 
-    //   PDM_part1_to_selected_part2_selected_part2_get (_ptsp,
-    //                                                   &n_elt1,
-    //                                                   &selected_part2_idx,
-    //                                                   &selected_part2);
+      PDM_part1_to_selected_part2_ref_gnum2_get (_ptsp,
+                                                 &n_ref_gnum2,
+                                                 &ref_gnum2);
 
-    //   _send_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
-    //   _recv_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
+      int          **gnum1_come_from_idx;
+      PDM_g_num_t  **gnum1_come_from;
+     
+      PDM_part1_to_selected_part2_gnum1_come_from_get (_ptsp,
+                                                       &gnum1_come_from_idx,
+                                                       &gnum1_come_from);
 
-    //   for (int i = 0; i < _nPart; i++) {
-    //     _send_buffer[intId][i] = (double *) malloc(sizeof(double) * stride * n_elt1[i]);
-    //     _recv_buffer[intId][i] = nullptr;
-    //   }
+      _send_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
+      _recv_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
 
-    //   if (_interpolation_time == CWP_SPATIAL_INTERP_AT_SEND) {
-    //     interpolate (referenceField, _send_buffer[intId]);
-    //   }
+      for (int i = 0; i < _nPart; i++) {
+        _send_buffer[intId][i] = nullptr;
+        _recv_buffer[intId][i] = (double *) malloc(sizeof(double) * stride * gnum1_come_from_idx[i][n_ref_gnum2[i]]);
+      }
 
-    //   uint32_t mpi_tag = _adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % MPI_TAG_UB;
+      uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (MPI_TAG_UB - 1)) + 1;
 
-    //   int idx = -1;
+      int idx = PDM_binary_search_uint32t (mpi_tag,
+                                           &(_recv_adler[0]),
+                                           _recv_adler.size()) ;
 
-    //   while (idx != -1) {
-    //     if (_send_adler.size()) { 
-    //       idx = PDM_binary_search_uint32t (mpi_tag,
-    //                                    &(_send_adler[0]),
-    //                                    _send_adler.size()) ;
-    //       if (idx != 1) {
-    //         mpi_tag = (mpi_tag + 1) % MPI_TAG_UB;
-    //         if (mpi_tag == 0) {
-    //           mpi_tag += 1;
-    //         }
-    //       }
-    //     }
-    //   }
+      while (idx != -1) {
 
-    //   if (idx == -1) {
-    //     std::vector<uint32_t>::iterator it  = _send_adler.begin();
-    //     std::vector<uint32_t>::iterator it2 = _send_adler.end();
+        mpi_tag = (mpi_tag + 1) % (MPI_TAG_UB - 1) + 1;
+
+        idx = PDM_binary_search_uint32t (mpi_tag,
+                                       &(_recv_adler[0]),
+                                        _recv_adler.size());
+      }
+
+      std::vector<uint32_t>::iterator it  = _recv_adler.begin();
+      std::vector<uint32_t>::iterator it2 = _recv_adler.end();
   
-    //     while(it != _send_adler.end()) {
-    //       if (*it > mpi_tag) {
-    //         it2 = it;
-    //         break;
-    //       }
-    //       it++;
-    //     }
- 
-    //     _send_adler.insert (it2, mpi_tag);
+      while(it != _recv_adler.end()) {
+        if (*it > mpi_tag) {
+          it2 = it;
+          break;
+        }
+        it++;
+      }
 
-    //   }  
+      _recv_adler.insert (it2, mpi_tag);
 
-    //   // Fake reveceive
+      // Fake reveceive
 
-    //   PDM_part1_to_selected_part2_irecv (_ptsp,
-    //                                       s_data,
-    //                                       stride,
-    //                             (void **) _recv_buffer[intId],
-    //                                       (int) mpi_tag,
-    //                                      &(_recv_request[intId]));
+      PDM_part1_to_selected_part2_irecv (_ptsp,
+                                          s_data,
+                                          stride,
+                                (void **) _recv_buffer[intId],
+                                          (int) mpi_tag,
+                                         &(_recv_request[intId]));
 
-    //   PDM_part1_to_selected_part2_issend (_ptsp,
-    //                                       s_data,
-    //                                       stride,
-    //                             (void **) _send_buffer[intId],
-    //                                       (int) mpi_tag,
-    //                                      &(_send_request[intId]));
+      PDM_part1_to_selected_part2_issend (_ptsp,
+                                          s_data,
+                                          stride,
+                                (void **) _send_buffer[intId],
+                                          (int) mpi_tag,
+                                         &(_send_request[intId]));
+    }
 
+    else {
+      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+        cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
 
-    // }
+        const int intId            = referenceField->fieldIDIntGet();
+        const CWP_Type_t data_type = referenceField->dataTypeGet();
+        const size_t s_data        = sizeof(double);
+        const int stride           = referenceField->nComponentGet();
+        const int tag              = intId; // Pas bon si les champs n'ont pas été définis dans le même ordre
 
-    // else {
-    //   if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-    //     cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+        int  *n_ref_gnum2;
+        int **ref_gnum2;
 
-    //     int           *n_elt1;
-    //     int          **selected_part2_idx;
-    //     PDM_g_num_t  **selected_part2;
+        PDM_part1_to_selected_part2_ref_gnum2_get (_ptsp,
+                                                   &n_ref_gnum2,
+                                                   &ref_gnum2);
 
-    //     const int intId            = referenceField->fieldIDIntGet();
-    //     const CWP_Type_t data_type = referenceField->dataTypeGet();
-    //     const size_t s_data        = sizeof(double);
-    //     const int stride           = referenceField->nComponentGet();
-    //     const int tag              = intId; // Pas bon si les champs n'ont pas été définis dans le même ordre
+        int          **gnum1_come_from_idx;
+        PDM_g_num_t  **gnum1_come_from;
+       
+        PDM_part1_to_selected_part2_gnum1_come_from_get (_ptsp,
+                                                         &gnum1_come_from_idx,
+                                                         &gnum1_come_from);
 
-    //     PDM_part1_to_selected_part2_selected_part2_get (_ptsp,
-    //                                                     &n_elt1,
-    //                                                     &selected_part2_idx,
-    //                                                     &selected_part2);
+        _recv_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
 
-    //     _send_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
+        for (int i = 0; i < _nPart; i++) {
+          _recv_buffer[intId][i] = (double *) malloc(sizeof(double) * stride * gnum1_come_from_idx[i][n_ref_gnum2[i]]);
+        }
 
-    //     for (int i = 0; i < _nPart; i++) {
-    //       _send_buffer[intId][i] = (double *) malloc(sizeof(double) * stride  * n_elt1[i]);
-    //     }
+        uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (MPI_TAG_UB - 1)) + 1;
 
-    //     if (_interpolation_time == CWP_SPATIAL_INTERP_AT_SEND) {
-    //       interpolate (referenceField, _send_buffer[intId]);
-    //     }
+        int idx = PDM_binary_search_uint32t (mpi_tag,
+                                             &(_recv_adler[0]),
+                                             _recv_adler.size()) ;
 
-    //     uint32_t mpi_tag = _adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % MPI_TAG_UB;
+        while (idx != -1) {
 
-    //     int idx = -1;
+          mpi_tag = (mpi_tag + 1) % (MPI_TAG_UB - 1) + 1;
 
-    //     while (idx != -1) {
-    //       if (_send_adler.size()) { 
-    //         idx = PDM_binary_search_uint32t (mpi_tag,
-    //                                      &(_send_adler[0]),
-    //                                      _send_adler.size()) ;
-    //         if (idx != 1) {
-    //           mpi_tag = (mpi_tag + 1) % MPI_TAG_UB;
-    //           if (mpi_tag == 0) {
-    //             mpi_tag += 1;
-    //           }
-    //         }
-    //       }
-    //     }
+          idx = PDM_binary_search_uint32t (mpi_tag,
+                                         &(_recv_adler[0]),
+                                          _recv_adler.size()) ;
+        }
 
-    //     if (idx == -1) {
-    //       std::vector<uint32_t>::iterator it  = _send_adler.begin();
-    //       std::vector<uint32_t>::iterator it2 = _send_adler.end();
+        std::vector<uint32_t>::iterator it  = _recv_adler.begin();
+        std::vector<uint32_t>::iterator it2 = _recv_adler.end();
     
-    //       while(it != _send_adler.end()) {
-    //         if (*it > mpi_tag) {
-    //           it2 = it;
-    //           break;
-    //         }
-    //         it++;
-    //       }
-   
-    //       _send_adler.insert (it2, mpi_tag);
+        while(it != _recv_adler.end()) {
+          if (*it > mpi_tag) {
+            it2 = it;
+            break;
+          }
+          it++;
+        }
 
-    //     }  
+        _recv_adler.insert (it2, mpi_tag);
 
-    //     std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
-    //     SpatialInterp *cpl_spatial_interp = cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
+        SpatialInterp *cpl_spatial_interp = cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
 
-    //     Field* cpl_referenceField = (*cpl_cpl.fieldsGet())[referenceField->fieldIDGet()];
+        Field* cpl_referenceField = (*cpl_cpl.fieldsGet())[referenceField->fieldIDGet()];
 
+        const int cpl_intId = cpl_referenceField->fieldIDIntGet();
+        cpl_spatial_interp->_send_buffer[cpl_intId] = (double **) malloc(sizeof(double *) * _cplNPart);
 
-    //     const int cpl_intId = cpl_referenceField->fieldIDIntGet();
-    //     cpl_spatial_interp->_send_buffer[cpl_intId] = (double **) malloc(sizeof(double *) * _cplNPart);
-    //     cpl_spatial_interp->_recv_buffer[cpl_intId] = (double **) malloc(sizeof(double *) * _cplNPart);
+        int           *cpl_n_elt1;
+        int          **cpl_selected_part2_idx;
+        PDM_g_num_t  **cpl_selected_part2;
 
-    //     for (int i = 0; i < _cplNPart; i++) {
-    //       cpl_spatial_interp->_recv_buffer[cpl_intId][i] = (double *) malloc(sizeof(double) * stride * cpl_spatial_interp->_n_computed_tgt[i]);
-    //     }
+        PDM_part1_to_selected_part2_selected_part2_get (_ptsp,
+                                                        &cpl_n_elt1,
+                                                        &cpl_selected_part2_idx,
+                                                        &cpl_selected_part2);
 
-    //     PDM_part1_to_selected_part2_irecv (_ptsp,
-    //                                        s_data,
-    //                                        stride,
-    //                              (void **) cpl_spatial_interp->_recv_buffer[cpl_intId],
-    //                                  (int) mpi_tag,
-    //                                       &(cpl_spatial_interp->_recv_request[cpl_intId]));
+        for (int i = 0; i < _cplNPart; i++) {
+          cpl_spatial_interp->_send_buffer[cpl_intId][i] = (double *) malloc(sizeof(double) * stride * cpl_selected_part2_idx[i][cpl_n_elt1[i]]);
+        }
 
-    //     PDM_part1_to_selected_part2_issend (_ptsp,
-    //                                         s_data,
-    //                                         stride,
-    //                               (void **) _send_buffer[intId],
-    //                                   (int) mpi_tag,
-    //                                        &(_send_request[intId]));
+        PDM_part1_to_selected_part2_irecv (_ptsp,
+                                           s_data,
+                                           stride,
+                                 (void **) _recv_buffer[cpl_intId],
+                                     (int) mpi_tag,
+                                          &(_recv_request[cpl_intId]));
 
+        PDM_part1_to_selected_part2_issend (_ptsp,
+                                            s_data,
+                                            stride,
+                                  (void **) cpl_spatial_interp->_send_buffer[intId],
+                                      (int) mpi_tag,
+                                          &(cpl_spatial_interp->_send_request[intId]));
 
-    //   }
-    // }
+      }
+    }
   }
 
 
-  // void SpatialInterp::waitIssend(Field* referenceField) {
-
-  //   if (!_coupledCodeProperties->localCodeIs()) {
-
-  //     const int intId            = referenceField->fieldIDIntGet();
-
-  //     PDM_part1_to_selected_part2_irecv_wait (_ptsp, _recv_request[intId]);
-  //     PDM_part1_to_selected_part2_issend_wait (_ptsp, _send_request[intId]);
-
-  //   }
-
-  //   else {
-  //     if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-  //       cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-
-  //       const int intId            = referenceField->fieldIDIntGet();
-
-  //       std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
-  //       SpatialInterp *cpl_spatial_interp = cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
-
-  //       Field* cpl_referenceField = (*cpl_cpl.fieldsGet())[referenceField->fieldIDGet()];
-
-  //       const int cpl_intId = cpl_referenceField->fieldIDIntGet();
-
-  //       PDM_part1_to_selected_part2_irecv_wait (_ptsp, cpl_spatial_interp->_recv_request[cpl_intId]);
-  //       PDM_part1_to_selected_part2_issend_wait (_ptsp, _send_request[intId]);
-
-  //     }
-  //   }
-  // }
-
-
   void SpatialInterp::waitIrecv(Field* referenceField) {
+    if (!_coupledCodeProperties->localCodeIs()) {
 
+      const int intId = referenceField->fieldIDIntGet();
+
+      PDM_part1_to_selected_part2_irecv_wait (_ptsp, _recv_request[intId]);
+      PDM_part1_to_selected_part2_issend_wait (_ptsp, _send_request[intId]);
+
+      if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
+        interpolate (referenceField, _recv_buffer[intId]);
+      }
+
+      if (_send_buffer[intId] != NULL) {
+        for (int i = 0; i < _nPart; i++) {
+          if (_send_buffer[intId][i] != NULL) {
+            free (_send_buffer[intId][i]);
+            _send_buffer[intId][i] = NULL;
+          }
+        }
+        free (_send_buffer[intId]);
+        _send_buffer[intId] = NULL;
+      }
+
+      if (_recv_buffer[intId] != NULL) {
+        for (int i = 0; i < _nPart; i++) {
+          if (_recv_buffer[intId][i] != NULL) {
+            free (_recv_buffer[intId][i]);
+            _recv_buffer[intId][i] = NULL;
+          }
+        }
+        free (_recv_buffer[intId]);
+        _recv_buffer[intId] = NULL;
+      }
+
+    }
+
+    else {
+      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+        cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+
+        const int intId = referenceField->fieldIDIntGet();
+
+        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
+        SpatialInterp *cpl_spatial_interp = cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)];
+
+        Field* cpl_referenceField = (*cpl_cpl.fieldsGet())[referenceField->fieldIDGet()];
+
+        const int cpl_intId = cpl_referenceField->fieldIDIntGet();
+
+        PDM_part1_to_selected_part2_irecv_wait (_ptsp, _recv_request[cpl_intId]);
+        PDM_part1_to_selected_part2_issend_wait (_ptsp, cpl_spatial_interp->_send_request[intId]);
+
+        if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
+          interpolate (referenceField, _recv_buffer[intId]);
+        }
+
+        for (int i = 0; i < _nPart; i++) {
+          if (cpl_spatial_interp->_send_buffer[intId] != NULL) {
+            if (cpl_spatial_interp->_send_buffer[intId][i] != NULL) {
+              free (cpl_spatial_interp->_send_buffer[intId][i]);
+              cpl_spatial_interp->_send_buffer[intId][i] = NULL;
+            }
+            free (cpl_spatial_interp->_send_buffer[intId]);
+            cpl_spatial_interp->_send_buffer[intId] = NULL;
+          }
+
+          if (_recv_buffer[intId] != NULL) {
+            if (_recv_buffer[intId][i] != NULL) {
+              free (_recv_buffer[intId][i]);
+              _recv_buffer[intId][i] = NULL;
+            }
+            free (_recv_buffer[intId]);
+            _recv_buffer[intId] = NULL;
+          }
+        }
+
+      }
+    }
   }
 
   
