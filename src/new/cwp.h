@@ -1747,7 +1747,24 @@ CWP_Field_wait_irecv
  * Functions about user interpolation                                         *
  *----------------------------------------------------------------------------*/
 
-/* /TODO: associer l'interpolation utilisateur au champ plutot qu'au couplage */
+/**
+ *
+ * \brief Unsetting of an user interpolation.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] src_field_id     Source field id
+ *
+ */
+
+void
+CWP_Interp_from_location_unset
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const char                 *src_field_id
+);
+
 
 /**
  *

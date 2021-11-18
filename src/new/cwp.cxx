@@ -1508,6 +1508,30 @@ CWP_Field_create
 
 /**
  *
+ * \brief Unsetting of an user interpolation.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] src_field_id     Source field id
+ *
+ */
+
+void
+CWP_Interp_from_location_unset
+(
+ const char                 *local_code_name,
+ const char                 *cpl_id,
+ const char                 *src_field_id
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+//  cpl.interpFromLocUnSet(src_field_id,fct);
+}
+
+
+
+/**
+ *
  * \brief Setting of an user interpolation from location.
  *
  * This function takes into account an user interpolation function written with

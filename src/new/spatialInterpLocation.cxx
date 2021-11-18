@@ -315,10 +315,14 @@ namespace cwipi {
 
   void *SpatialInterpLocation::interpolate (Field *referenceField, double **buffer) 
   {
-    // int nComponent = referenceField->nComponentGet();
-    // CWP_Dof_location_t referenceFieldType = referenceField->locationGet();
-    // int dataTypeSize = referenceField->dataTypeSizeGet();
-    // CWP_Interpolation_t interpolationType = referenceField->interpolationTypeGet();
+    int nComponent = referenceField->nComponentGet();
+    CWP_Dof_location_t referenceFieldType = referenceField->locationGet();
+    int dataTypeSize = referenceField->dataTypeSizeGet();
+    CWP_Interpolation_t interpolationType = referenceField->interpolationTypeGet();
+
+    
+
+
     // void *interpolatedData = referenceField->sendBufferGet();
 
     // // Allocate interpolatedData and weights
