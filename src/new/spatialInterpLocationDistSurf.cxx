@@ -17,9 +17,8 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <pdm_dist_cloud_surf.h>
-
 #include <spatialInterpLocationDistSurf.hxx>
+#include "coupling_i.hxx"
 
 /**
  * \cond

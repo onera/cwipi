@@ -22,6 +22,7 @@
 #include <pdm_gnum_location.h>
 
 #include <spatialInterpLocation.hxx>
+#include <coupling_i.hxx>
 
 /**
  * \cond

@@ -19,6 +19,7 @@
 
 #include "communication.hxx"
 #include "coupling.hxx"
+#include "coupling_i.hxx"
 #include "pdm_printf.h"
 
 

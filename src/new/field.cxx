@@ -3,6 +3,7 @@
 #include <mesh.hxx>
 #include <field.hxx>
 
+#include <coupling_i.hxx>
 
 /**
  * \cond
