@@ -121,11 +121,11 @@ int main(int argc, char *argv[]) {
     assert(comm_world_size > 0);
 
     // Input
-    bool cond_code1 = rank % 2 == 1;
-    bool cond_code2 = rank % 5 == 0;
+    bool cond_code1 = rank % 2 == 0;
+    bool cond_code2 = rank % 2 == 1;
     bool cond_both = cond_code1 && cond_code2;
 
-    int n_vtx_seg_code1 = 9, n_vtx_seg_code2 = 25;
+    int n_vtx_seg_code1 = 4, n_vtx_seg_code2 = 4;
     double x_min_code1 = 0., x_min_code2 = 0.9;
     double y_min_code1 = 0., y_min_code2 = 0.8;
 

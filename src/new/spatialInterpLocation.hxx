@@ -106,7 +106,7 @@ namespace cwipi {
       * \param [in]   referenceField   Reference field pointer
       *
       */
-    void *interpolate(Field *referenceField, double **buffer) override;
+    void interpolate(Field *referenceField, double **buffer) override;
 
 
     /***********************************************************

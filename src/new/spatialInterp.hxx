@@ -106,7 +106,7 @@ namespace cwipi {
 
     virtual void weightsCompute()  = 0; // A changer de nom
     
-    virtual void* interpolate (Field* referenceField, double **buffer) = 0;
+    virtual void interpolate (Field* referenceField, double **buffer) = 0;
 
     void issend(Field* referenceField);
 

@@ -69,8 +69,8 @@ namespace cwipi {
 // //        cout << cplComm_rank << ": PDM_closest_point freed " << _id_pdm << endl;
     }
 
-    void *SpatialInterpClosestPoint::interpolate(Field *referenceField, double **buffer) {
-        return NULL;
+    void SpatialInterpClosestPoint::interpolate(Field *referenceField, double **buffer) {
+        
     }
 
 
