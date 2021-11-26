@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
     bool cond_code2 = rank % 2 == 1;
     bool cond_both = cond_code1 && cond_code2;
 
-    int n_vtx_seg_code1 = 3, n_vtx_seg_code2 = 4;
+    int n_vtx_seg_code1 = 4, n_vtx_seg_code2 = 4;
     double x_min_code1 = 0., x_min_code2 = 0.9;
     double y_min_code1 = 0., y_min_code2 = 0.8;
 
