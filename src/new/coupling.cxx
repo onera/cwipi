@@ -312,13 +312,13 @@ namespace cwipi {
 
     if (!_coupledCodeProperties.localCodeIs()) {
 
-      printf("Coupling::spatialInterpWeightsCompute - not cpl loacal code is - 1\n");
+      printf("Coupling::spatialInterpWeightsCompute - not cpl local code is - 1\n");
       fflush(stdout);
 
       std::string localFieldName=""; 
       vector<int> localFieldNameIdx;
 
-      int localNbField = _fields.size();
+      int localNbField = (int) _fields.size();
 
       localFieldNameIdx.reserve(localNbField + 1);
       localFieldNameIdx.push_back(0);
@@ -335,14 +335,14 @@ namespace cwipi {
         cwipi::Field* field = it -> second;
     
         localFieldName += it->first;
-        localFieldNameIdx.push_back(localFieldNameIdx[localFieldNameIdx.size()-1]+it->first.size());
+        localFieldNameIdx.push_back((int) (localFieldNameIdx[localFieldNameIdx.size()-1]+it->first.size()));
         localFieldLocationV.push_back(field->locationGet());
         localFieldExch.push_back(field->exchangeTypeGet());
 
         it++;
       }
 
-      printf("Coupling::spatialInterpWeightsCompute - not cpl loacal code is - 2\n");
+      printf("Coupling::spatialInterpWeightsCompute - not cpl local code is - 2\n");
       fflush(stdout);
 
       // - Exchange number of fields 
@@ -350,12 +350,6 @@ namespace cwipi {
       int nSendData   = 1;
       int nRecvData   = 1;
       int cplNbField = 0;
-      MPI_Request     request;
-      MPI_Status      status;
-
-      //printf("toto\n");
-      //fflush(stdout);
-      //abort();
 
       _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
                                                                  nSendData,
@@ -496,15 +490,13 @@ namespace cwipi {
           }
         }
         it++;
-      }  
+      }
 
-      printf("Coupling::spatialInterpWeightsCompute - not cpl loacal code is - 4\n");
+      printf("_spatial_interp_send.size() %d\n", (int) _spatial_interp_send.size());
+      printf("_spatial_interp_recv.size() %d\n", (int) _spatial_interp_recv.size());
+
+      printf("Coupling::spatialInterpWeightsCompute - not cpl local code is - 4\n");
       fflush(stdout);
-
-
-      MPI_Comm unionComm = communicationGet()->unionCommGet();
-      int unionCommCplCodeRootRank = communicationGet()->unionCommCplCodeRootRanksGet();
-      int unionCommLocCodeRootRank = communicationGet()->unionCommLocCodeRootRanksGet();
 
       int codeID    = localCodePropertiesGet()->idGet();
       int cplCodeID = coupledCodePropertiesGet()->idGet();
@@ -584,7 +576,7 @@ namespace cwipi {
                                                                  -1,
                                                                  NULL);
 
-      printf("Coupling::spatialInterpWeightsCompute - not cpl loacal code is - 5\n");
+      printf("Coupling::spatialInterpWeightsCompute - not cpl local code is - 5\n");
       fflush(stdout);
 
       if (codeID < cplCodeID) {
@@ -603,7 +595,7 @@ namespace cwipi {
           _spatial_interp_recv[make_pair(cpl_sis_loc[2*i+1], cpl_sis_loc[2*i])]->weightsCompute();  
         }
 
-      printf("Coupling::spatialInterpWeightsCompute - not cpl loacal code is - 6\n");
+      printf("Coupling::spatialInterpWeightsCompute - not cpl local code is - 6\n");
       fflush(stdout);
       }
 
@@ -622,7 +614,7 @@ namespace cwipi {
           sis_it->second->weightsCompute();
           sis_it++;
         }
-      printf("Coupling::spatialInterpWeightsCompute - not cpl loacal code is - 7\n");
+      printf("Coupling::spatialInterpWeightsCompute - not cpl local code is - 7\n");
       fflush(stdout);
 
       }
@@ -635,7 +627,7 @@ namespace cwipi {
     
       if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
 
-      printf("Coupling::spatialInterpWeightsCompute - cpl loacal code is - 1\n");
+        printf("Coupling::spatialInterpWeightsCompute - cpl local code is - 1\n");
       fflush(stdout);
 
         cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
@@ -643,7 +635,7 @@ namespace cwipi {
         std::string localFieldName=""; 
         vector<int> localFieldNameIdx;
 
-        int localNbField = _fields.size();
+        int localNbField = (int) _fields.size();
 
         localFieldNameIdx.reserve(localNbField + 1);
         localFieldNameIdx.push_back(0);
@@ -660,7 +652,7 @@ namespace cwipi {
           cwipi::Field* field = it -> second;
       
           localFieldName += it->first;
-          localFieldNameIdx.push_back(localFieldNameIdx[localFieldNameIdx.size()-1]+it->first.size());
+          localFieldNameIdx.push_back((int) (localFieldNameIdx[localFieldNameIdx.size() - 1] + it->first.size()));
           localFieldLocationV.push_back(field->locationGet());
           localFieldExch.push_back(field->exchangeTypeGet());
 
@@ -670,31 +662,34 @@ namespace cwipi {
         std::string cpl_localFieldName=""; 
         vector<int> cpl_localFieldNameIdx;
 
-        int cpl_localNbField = cpl_cpl._fields.size();
+        int cpl_localNbField = (int) cpl_cpl._fields.size();
+
+        printf("cpl_localNbField %d\n", cpl_localNbField);
+        printf("localNbField %d\n", localNbField);
 
         cpl_localFieldNameIdx.reserve(cpl_localNbField + 1);
         cpl_localFieldNameIdx.push_back(0);
-      
+
         std::vector<CWP_Field_exch_t> cpl_localFieldExch;
         cpl_localFieldExch.reserve(cpl_localNbField);
 
         std::vector<CWP_Dof_location_t> cpl_localFieldLocationV;
         cpl_localFieldLocationV.reserve(cpl_localNbField);
-      
+
         it = cpl_cpl._fields.begin();
 
         while(it != cpl_cpl._fields.end()){
           cwipi::Field* field = it -> second;
-      
+
           cpl_localFieldName += it->first;
-          cpl_localFieldNameIdx.push_back(cpl_localFieldNameIdx[cpl_localFieldNameIdx.size()-1]+it->first.size());
+          cpl_localFieldNameIdx.push_back((int) (cpl_localFieldNameIdx[cpl_localFieldNameIdx.size()-1]+it->first.size()));
           cpl_localFieldLocationV.push_back(field->locationGet());
           cpl_localFieldExch.push_back(field->exchangeTypeGet());
 
           it++;
         }
 
-        // - Exchange number of fields 
+        // - Exchange number of fields
 
         int nSendData       = 1;
         int nRecvData       = 1;
@@ -703,9 +698,6 @@ namespace cwipi {
         int cpl_nSendData       = 1;
         int cpl_nRecvData       = 1;
         int cpl_cplNbField      = 0;
-
-        MPI_Request     request;
-        MPI_Status      status;
 
         _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
                                                                    nSendData,
@@ -717,6 +709,9 @@ namespace cwipi {
                                                                    cpl_nRecvData,
                                                                    (void *) &cpl_cplNbField);
         // - Allocate memory to receive data 
+
+        printf("cplNbField %d\n", cplNbField);
+        printf("cpl_cplNbField %d\n", cpl_cplNbField);
 
         vector<int               > cplFieldNameIdx (cplNbField + 1, 0);
         vector<CWP_Field_exch_t  > cplFieldExch (cplNbField);
@@ -810,8 +805,8 @@ namespace cwipi {
 
         // Create spatial interpolation objects
 
-      printf("Coupling::spatialInterpWeightsCompute - cpl loacal code is - 2\n");
-      fflush(stdout);
+        printf("Coupling::spatialInterpWeightsCompute - cpl local code is - 2\n");
+        fflush(stdout);
 
         it = _fields.begin();
         while(it != _fields.end()) {
@@ -819,17 +814,41 @@ namespace cwipi {
           string localFieldName = it -> first;
           CWP_Field_exch_t   localFieldExch     = field->exchangeTypeGet();
           CWP_Dof_location_t localFieldLocation = field->locationGet();
-          
+
+          printf("cplNbField %d\n", cplNbField);
+
           for (int j = 0; j < cplNbField; j++) {
-            string cplFieldName = cplFieldName.substr( cplFieldNameIdx[j], cplFieldNameIdx[j+1]-cplFieldNameIdx[j] );
+            printf("step1 cplFieldName cpl_cplFieldName localFieldName <%s> <%s> <%s>\n", cplFieldName.c_str(), cpl_cplFieldName.c_str(), localFieldName.c_str());
+
+            // TODO What is the puropose of this sustr ?
+//            string cplFieldName = cplFieldName.substr( cplFieldNameIdx[j], cplFieldNameIdx[j+1]-cplFieldNameIdx[j] );
+
+            printf("step2 cplFieldName cpl_cplFieldName localFieldName <%s> <%s> <%s>\n", cplFieldName.c_str(), cpl_cplFieldName.c_str(), localFieldName.c_str());
+
             if (cplFieldName == localFieldName) {
+              printf("step3 cplFieldName cpl_cplFieldName localFieldName <%s> <%s> <%s>\n", cplFieldName.c_str(), cpl_cplFieldName.c_str(), localFieldName.c_str());
+
               field->linkedFieldLocationSet(cplFieldLocationV[j]);
-              std::map <std::string, cwipi::Field *>::iterator it2 = cpl_cpl._fields.begin();
+
+              printf("step4 cplFieldName cpl_cplFieldName localFieldName <%s> <%s> <%s>\n", cplFieldName.c_str(), cpl_cplFieldName.c_str(), localFieldName.c_str());
+
               if (cpl_cpl._fields.find(cplFieldName) == cpl_cpl._fields.end()) {
-//                PDM_error(__FILE__, __LINE__, 0,
-//                  "'%s' Field not found\n", cplFieldName);
+                PDM_error(__FILE__, __LINE__, 0, "'%s' Field not found\n",
+                          cplFieldName.c_str());
               }
-              cpl_cpl._fields["cplFieldName"]->linkedFieldLocationSet(localFieldLocation);
+
+              cpl_cpl._fields[cplFieldName]->linkedFieldLocationSet(localFieldLocation);
+
+              printf("step5 cplFieldName cpl_cplFieldName localFieldName <%s> <%s> <%s>\n", cplFieldName.c_str(), cpl_cplFieldName.c_str(), localFieldName.c_str());
+
+              printf("cpl_cpl._fields[\"cplFieldName\"] %s\n", cpl_cpl._fields[cplFieldName]->fieldIDGet().c_str());
+              fflush(stdout);
+
+              printf("_spatial_interp_send.size() %d\n", (int) _spatial_interp_send.size());
+              printf("_spatial_interp_recv.size() %d\n", (int) _spatial_interp_recv.size());
+
+              printf("cpl_cpl._spatial_interp_send.size() %d\n", (int) cpl_cpl._spatial_interp_send.size());
+              printf("cpl_cpl._spatial_interp_recv.size() %d\n", (int) cpl_cpl._spatial_interp_recv.size());
 
               if (  (localFieldExch == CWP_FIELD_EXCH_SENDRECV && cplFieldExch[j] == CWP_FIELD_EXCH_SENDRECV)
                   ||(localFieldExch == CWP_FIELD_EXCH_SEND     && cplFieldExch[j] == CWP_FIELD_EXCH_RECV)
@@ -840,18 +859,24 @@ namespace cwipi {
                   std::pair < CWP_Dof_location_t, CWP_Dof_location_t > cpl_newKey (cplFieldLocationV[j], localFieldLocation); 
 
                   if (_spatial_interp_send.find(newKey) == _spatial_interp_send.end()) {
+                    printf("Creating send spatialInterp\n");
+
                     _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
                     cpl_cpl._spatial_interp_recv.insert(make_pair(cpl_newKey, FG::getInstance().CreateObject(cpl_cpl._spatialInterpAlgo)));
-                    _spatial_interp_send[newKey]->init(&cpl_cpl, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_SEND);
+                    _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_SEND);
                     cpl_cpl._spatial_interp_recv[cpl_newKey]->init(&cpl_cpl, cplFieldLocationV[j], localFieldLocation, SPATIAL_INTERP_EXCH_RECV);
                   }
                 }
 
                 if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_RECV) {
-                  std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]); 
-                  std::pair < CWP_Dof_location_t, CWP_Dof_location_t > cpl_newKey (cplFieldLocationV[j], localFieldLocation); 
+                  printf("Entering recv\n");
+
+                  std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]);
+                  std::pair < CWP_Dof_location_t, CWP_Dof_location_t > cpl_newKey (cplFieldLocationV[j], localFieldLocation);
 
                   if (_spatial_interp_recv.find(newKey) == _spatial_interp_recv.end()) {
+                    printf("Creating recv spatialInterp\n");
+
                     _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
                     cpl_cpl._spatial_interp_send.insert(make_pair(cpl_newKey, FG::getInstance().CreateObject(cpl_cpl._spatialInterpAlgo)));
                     _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_RECV);
@@ -864,19 +889,21 @@ namespace cwipi {
           it++;
         }  
 
-      printf("Coupling::spatialInterpWeightsCompute - cpl loacal code is - 3\n");
-      fflush(stdout);
+        printf("cpl_cpl._fields.size() %d\n", (int) cpl_cpl._fields.size());
 
-  
-        MPI_Comm unionComm = communicationGet()->unionCommGet();
-        int unionCommCplCodeRootRank = communicationGet()->unionCommCplCodeRootRanksGet();
-        int unionCommLocCodeRootRank = communicationGet()->unionCommLocCodeRootRanksGet();
+        printf("_spatial_interp_send.size() %d\n", (int) _spatial_interp_send.size());
+        printf("_spatial_interp_recv.size() %d\n", (int) _spatial_interp_recv.size());
+        printf("cpl_cpl._spatial_interp_send.size() %d\n", (int) cpl_cpl._spatial_interp_send.size());
+        printf("cpl_cpl._spatial_interp_recv.size() %d\n", (int) cpl_cpl._spatial_interp_recv.size());
 
+        printf("Coupling::spatialInterpWeightsCompute - cpl local code is - 3\n");
+        fflush(stdout);
         int codeID    = localCodePropertiesGet()->idGet();
         int cplCodeID = coupledCodePropertiesGet()->idGet();
 
         std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = _spatial_interp_send.begin();
         int sis_s = (int) _spatial_interp_send.size();
+        printf("sis_s %d\n", sis_s);
 
         vector<CWP_Dof_location_t> sis_loc;
         sis_loc.reserve(2*sis_s);
@@ -884,10 +911,13 @@ namespace cwipi {
         while(sis_it != _spatial_interp_send.end()) {
           sis_loc.push_back((sis_it->first).first);
           sis_loc.push_back((sis_it->first).second);
+          printf("1 sis_it++\n");
+          fflush(stdout);
           sis_it++;
         }
 
         int cpl_sis_s = (int) cpl_cpl._spatial_interp_send.size();
+        printf("cpl_sis_s %d\n", cpl_sis_s);
 
         vector<CWP_Dof_location_t> cpl_sis_loc;
         cpl_sis_loc.reserve(2*cpl_sis_s);
@@ -896,10 +926,12 @@ namespace cwipi {
         while(sis_it != cpl_cpl._spatial_interp_send.end()) {
           cpl_sis_loc.push_back((sis_it->first).first);
           cpl_sis_loc.push_back((sis_it->first).second);
+          printf("2 sis_it++\n");
+          fflush(stdout);
           sis_it++;
         }
 
-      printf("Coupling::spatialInterpWeightsCompute - cpl loacal code is - 4\n");
+      printf("Coupling::spatialInterpWeightsCompute - cpl local code is - 4\n");
       fflush(stdout);
 
         int sis_r;
@@ -913,135 +945,158 @@ namespace cwipi {
                                                                    (void *) &sis_r,
                                                                    1,
                                                                    (void *) &cpl_sis_r);
+      printf("sis_r %d\n", sis_r);
+      printf("cpl_sis_r %d\n", cpl_sis_r);
 
-        vector<CWP_Dof_location_t> sis_loc_r;
-        sis_loc_r.reserve(2*sis_r);
-        vector<CWP_Dof_location_t> cpl_sis_loc_r;
-        cpl_sis_loc_r.reserve(2*cpl_sis_r);
+      vector<CWP_Dof_location_t> sis_loc_r;
+      sis_loc_r.reserve(2*sis_r);
+      vector<CWP_Dof_location_t> cpl_sis_loc_r;
+      cpl_sis_loc_r.reserve(2*cpl_sis_r);
 
-        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
-                                                                   2*sis_s,
-                                                                   (void *) &(sis_loc[0]),
-                                                                   2*cpl_sis_s,
-                                                                   (void *) &(cpl_sis_loc[0]),
-                                                                   2*sis_r,
-                                                                   (void *) &(sis_loc_r[0]),
-                                                                   2*cpl_sis_r,
-                                                                   (void *) &(cpl_sis_loc_r[0]));
-
-        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sir_it = _spatial_interp_recv.begin();
-        int sir_s = (int) _spatial_interp_recv.size();
-
-        vector<CWP_Dof_location_t> sir_loc;
-        sir_loc.reserve(2*sis_r);
-
-        while(sir_it != _spatial_interp_recv.end()) {
-          sir_loc.push_back((sir_it->first).first);
-          sir_loc.push_back((sir_it->first).second);
-          sir_it++;
-        }
-
-        sir_it = _spatial_interp_recv.begin();
-        int cpl_sir_s = (int) cpl_cpl._spatial_interp_recv.size();
-
-        vector<CWP_Dof_location_t> cpl_sir_loc;
-        cpl_sir_loc.reserve(2*cpl_sis_r);
-
-        while(sir_it != cpl_cpl._spatial_interp_recv.end()) {
-          cpl_sir_loc.push_back((sir_it->first).first);
-          cpl_sir_loc.push_back((sir_it->first).second);
-          sir_it++;
-        }
-
-        int sir_r;
-        int cpl_sir_r;
-        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
-                                                                   1,
-                                                                   (void *) &sir_s,
-                                                                   1,
-                                                                   (void *) &cpl_sir_s,
-                                                                   1,
-                                                                   (void *) &sir_r,
-                                                                   1,
-                                                                   (void *) &cpl_sir_r);
-
-        vector<CWP_Dof_location_t> sir_loc_r;
-        sir_loc_r.reserve(2*sir_r);
-        vector<CWP_Dof_location_t> cpl_sir_loc_r;
-        cpl_sir_loc_r.reserve(2*cpl_sir_r);
-
-        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
-                                                                   2*sir_s,
-                                                                   (void *) &(sir_loc[0]),
-                                                                   2*cpl_sir_s,
-                                                                   (void *) &(cpl_sir_loc[0]),
-                                                                   2*sir_r,
-                                                                   (void *) &(sir_loc_r[0]),
-                                                                   2*cpl_sir_r,
-                                                                   (void *) &(cpl_sir_loc_r[0]));
-
-        assert(sir_r     == sis_s);
-        assert(sis_r     == sir_s);
-        assert(cpl_sir_r == cpl_sis_s);
-        assert(cpl_sis_r == cpl_sir_s);
-
-      printf("Coupling::spatialInterpWeightsCompute - cpl loacal code is - 5\n");
+      printf("Coupling::spatialInterpWeightsCompute - cpl local code is - 41\n");
       fflush(stdout);
 
-        if (codeID < cplCodeID) {
+      _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+                                                                 2*sis_s,
+                                                                 (void *) &(sis_loc[0]),
+                                                                 2*cpl_sis_s,
+                                                                 (void *) &(cpl_sis_loc[0]),
+                                                                 2*sis_r,
+                                                                 (void *) &(sis_loc_r[0]),
+                                                                 2*cpl_sis_r,
+                                                                 (void *) &(cpl_sis_loc_r[0]));
 
-          // spatial_interp send 
-      printf("Coupling::spatialInterpWeightsCompute - cpl loacal code is - 61\n");
+       printf("Coupling::spatialInterpWeightsCompute - cpl local code is - 42\n");
+       fflush(stdout);
+
+      auto sir_it = _spatial_interp_recv.begin();
+      int sir_s = (int) _spatial_interp_recv.size();
+      printf("sir_s %d\n", sir_s);
+
+      vector<CWP_Dof_location_t> sir_loc;
+      sir_loc.reserve(2*sis_r);
+
+      while(sir_it != _spatial_interp_recv.end()) {
+        sir_loc.push_back((sir_it->first).first);
+        sir_loc.push_back((sir_it->first).second);
+        printf("1 sir_it++\n");
+        fflush(stdout);
+        sir_it++;
+      }
+
+      int cpl_sir_s = (int) cpl_cpl._spatial_interp_recv.size();
+      printf("cpl_sir_s %d\n", cpl_sir_s);
+
+      vector<CWP_Dof_location_t> cpl_sir_loc;
+      cpl_sir_loc.reserve(2*cpl_sir_s);
+
+      sir_it = cpl_cpl._spatial_interp_recv.begin();
+      while(sir_it != cpl_cpl._spatial_interp_recv.end()) {
+        cpl_sir_loc.push_back((sir_it->first).first);
+        cpl_sir_loc.push_back((sir_it->first).second);
+        printf("2 sir_it++\n");
+        fflush(stdout);
+        sir_it++;
+      }
+
+      printf("Coupling::spatialInterpWeightsCompute - cpl local code is - 5\n");
       fflush(stdout);
 
-          sis_it = _spatial_interp_send.begin();
-          int i = 0;
-          while(sis_it != _spatial_interp_send.end()) {
-            sis_it->second->weightsCompute();
-            cpl_cpl._spatial_interp_recv[make_pair(cpl_sir_loc_r[2*i+1], cpl_sir_loc_r[2*i])]->weightsCompute();  
-            sis_it++;
-            i++;
-          }
+      int sir_r;
+      int cpl_sir_r;
+      _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                 1,
+                                                                 (void *) &sir_s,
+                                                                 1,
+                                                                 (void *) &cpl_sir_s,
+                                                                 1,
+                                                                 (void *) &sir_r,
+                                                                 1,
+                                                                 (void *) &cpl_sir_r);
+      printf("sir_s %d\n", sir_r);
+      printf("cpl_sir_s %d\n", cpl_sir_r);
 
-          sis_it = cpl_cpl._spatial_interp_send.begin();
-          i = 0;
-          while(sis_it != cpl_cpl._spatial_interp_send.end()) {
-            _spatial_interp_recv[make_pair(sir_loc_r[2*i+1], sir_loc_r[2*i])]->weightsCompute();  
-            sis_it->second->weightsCompute();
-            sis_it++;
-            i++;
-          }
+      vector<CWP_Dof_location_t> sir_loc_r;
+      sir_loc_r.reserve(2*sir_r);
+      vector<CWP_Dof_location_t> cpl_sir_loc_r;
+      cpl_sir_loc_r.reserve(2*cpl_sir_r);
 
-        }
-
-        else {
-
-          // spatial_interp recv 
-      printf("Coupling::spatialInterpWeightsCompute - cpl loacal code is - 62\n");
+      printf("Coupling::spatialInterpWeightsCompute - cpl local code is - 51\n");
       fflush(stdout);
 
-          int i = 0;
-          sis_it = cpl_cpl._spatial_interp_send.begin();
-          while(sis_it != _spatial_interp_send.end()) {
-            _spatial_interp_recv[make_pair(sis_loc_r[2*i+1], sis_loc_r[2*i])]->weightsCompute();  
-            sis_it->second->weightsCompute();
-            sis_it++;
-            i++;
-          }
+      _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
+                                                                 2*sir_s,
+                                                                 (void *) &(sir_loc[0]),
+                                                                 2*cpl_sir_s,
+                                                                 (void *) &(cpl_sir_loc[0]),
+                                                                 2*sir_r,
+                                                                 (void *) &(sir_loc_r[0]),
+                                                                 2*cpl_sir_r,
+                                                                 (void *) &(cpl_sir_loc_r[0]));
 
+      assert(sir_r     == sis_s);
+      assert(sis_r     == sir_s);
+      assert(cpl_sir_r == cpl_sis_s);
+      assert(cpl_sis_r == cpl_sir_s);
 
-          // spatial_interp send 
+      printf("Coupling::spatialInterpWeightsCompute - cpl local code is - 6\n");
+      fflush(stdout);
 
-          sis_it = _spatial_interp_send.begin();
-          while(sis_it != _spatial_interp_send.end()) {
-            sis_it->second->weightsCompute();
-            cpl_cpl._spatial_interp_recv[make_pair(cpl_sis_loc_r[2*i+1], cpl_sis_loc_r[2*i])]->weightsCompute();  
-            sis_it++;
-            i++;
-          }
+      printf("codeID cplCodeID %d %d\n", codeID, cplCodeID);
 
+      if (codeID < cplCodeID) {
+        // spatial_interp send
+        printf("Coupling::spatialInterpWeightsCompute - cpl local code is - 61\n");
+        fflush(stdout);
+
+        sis_it = _spatial_interp_send.begin();
+        int i = 0;
+        while(sis_it != _spatial_interp_send.end()) {
+          sis_it->second->weightsCompute();
+          cpl_cpl._spatial_interp_recv[make_pair(cpl_sis_loc_r[2 * i + 1], cpl_sis_loc_r[2 * i])]->weightsCompute();
+          sis_it++;
+          i++;
         }
-      }    
+
+        printf("Coupling::spatialInterpWeightsCompute - cpl local code is - 611\n");
+        fflush(stdout);
+
+        sis_it = cpl_cpl._spatial_interp_send.begin();
+        i = 0;
+        while(sis_it != cpl_cpl._spatial_interp_send.end()) {
+          _spatial_interp_recv[make_pair(sis_loc_r[2 * i + 1], sis_loc_r[2 * i])]->weightsCompute();
+          sis_it->second->weightsCompute();
+          sis_it++;
+          i++;
+        }
+      }
+      else {
+        // spatial_interp recv
+        printf("Coupling::spatialInterpWeightsCompute - cpl local code is - 62\n");
+        fflush(stdout);
+
+        int i = 0;
+        sis_it = cpl_cpl._spatial_interp_send.begin();
+        while(sis_it != _spatial_interp_send.end()) {
+          _spatial_interp_recv[make_pair(sis_loc_r[2*i+1], sis_loc_r[2*i])]->weightsCompute();
+          sis_it->second->weightsCompute();
+          sis_it++;
+          i++;
+        }
+
+        // spatial_interp send
+        sis_it = _spatial_interp_send.begin();
+        while(sis_it != _spatial_interp_send.end()) {
+          sis_it->second->weightsCompute();
+          cpl_cpl._spatial_interp_recv[make_pair(cpl_sis_loc_r[2*i+1], cpl_sis_loc_r[2*i])]->weightsCompute();
+          sis_it++;
+          i++;
+        }
+      }
+    }
+      else {
+        printf("Coupling::spatialInterpWeightsCompute - cpl local code is - 7\n");
+      }
     }
 
       printf("Coupling::spatialInterpWeightsCompute - fin\n");
@@ -1103,13 +1158,13 @@ namespace cwipi {
     int rank;
     MPI_Comm_rank(_communication.unionCommGet(),&rank);
 
-    if (commTypeGet() == CWP_COMM_PAR_WITH_PART || 
+    if (commTypeGet() == CWP_COMM_PAR_WITH_PART ||
         (commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && rank == _communication.unionCommLocCodeRootRanksGet())) {
       _visu.VisuCreate(freq,
                      format,
                      format_option,
                      output_dir,
-                     "chr");
+                     (char*) "chr");
 
       _visu.GeomCreate(_mesh.getNPart());
     }
@@ -1164,7 +1219,7 @@ namespace cwipi {
     double physTime=0.0;
     *_iteration = 0;
 
-    printf("sizeof fields : %d\n", _fields.size());
+    printf("sizeof fields : %d\n", (int) _fields.size());
 
     cwipi::Field *newField = new cwipi::Field(field_id,
                                               _fields.size(),
@@ -1345,9 +1400,9 @@ namespace cwipi {
         map <string, Field *>::iterator cpl_it;
         cpl_it = cpl_cpl._fields.find(sendingFieldID);
 
-        Field* recvField;
+        Field* recvField = NULL;
         if (cpl_it != cpl_cpl._fields.end()) {
-          Field* recvField = it->second;
+          recvField = it->second;
         }
         else {
           PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
@@ -1440,9 +1495,9 @@ namespace cwipi {
         map <string, Field *>::iterator cpl_it;
         cpl_it = cpl_cpl._fields.find(sendingFieldID);
 
-        Field* recvField;
+        Field* recvField = NULL;
         if (cpl_it != cpl_cpl._fields.end()) {
-          Field* recvField = it->second;
+          recvField = it->second;
         }
         else {
           PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
@@ -1544,9 +1599,9 @@ namespace cwipi {
         map <string, Field *>::iterator cpl_it;
         cpl_it = cpl_cpl._fields.find(receivingFieldID);
 
-        Field* sendField;
+        Field* sendField = NULL;
         if (cpl_it != cpl_cpl._fields.end()) {
-          Field* sendField = it->second;
+          sendField = it->second;
         }
         else {
           PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
@@ -1648,9 +1703,9 @@ namespace cwipi {
         map <string, Field *>::iterator cpl_it;
         cpl_it = cpl_cpl._fields.find(receivingFieldID);
 
-        Field* sendField;
+        Field* sendField = NULL;
         if (cpl_it != cpl_cpl._fields.end()) {
-          Field* sendField = it->second;
+          sendField = it->second;
         }
         else {
           PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");
