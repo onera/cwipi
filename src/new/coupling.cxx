@@ -845,7 +845,7 @@ namespace cwipi {
 
               cpl_cpl._fields[cplFieldName]->linkedFieldLocationSet(localFieldLocation);
 
-              printf("step5 cplFieldName cpl_cplFieldName localFieldName <%s> <%s> <%s>\n", cplFieldName.c_str(), cpl_cplFieldName.c_str(), localFieldName.c_str());
+              printf("step5 cplFieldName cpl_cplFieldName localFieldName <%s> <%s> <%s>\n", cplFieldName.c_str(), cpl_cplFieldsName.c_str(), localFieldName.c_str());
 
               printf("cpl_cpl._fields[\"cplFieldName\"] %s\n", cpl_cpl._fields[cplFieldName]->fieldIDGet().c_str());
               fflush(stdout);
