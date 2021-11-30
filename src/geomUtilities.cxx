@@ -110,6 +110,8 @@ namespace cwipi {
                          int          *isDegenerated)
 
   {
+    CWIPI_UNUSED (nVertices);
+
     int convergence = 1;
     
     const double dispMin = 1e-9; // Minimum displacement
@@ -643,7 +645,7 @@ namespace cwipi {
           if (!colorVertice[vertex]) {
             colorVertice[vertex] = 1;
 
-            if (nPolyhedraVertices >= polyhedraVertices.size())
+            if (nPolyhedraVertices >= (int) polyhedraVertices.size())
               polyhedraVertices.resize(2 * polyhedraVertices.size());
             polyhedraVertices[nPolyhedraVertices++] = vertex;
           }

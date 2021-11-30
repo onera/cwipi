@@ -19,6 +19,7 @@
 
 #include "communication.hxx"
 #include "coupling.hxx"
+#include "coupling_i.hxx"
 #include "pdm_printf.h"
 
 
@@ -42,13 +43,17 @@ namespace cwipi {
      _tag(-1),
      _unionGroup(MPI_GROUP_NULL),
      _unionComm(MPI_COMM_NULL),
-//     _fvmComm(MPI_COMM_NULL),
+     _unionCommCplRanks(NULL),
+     _unionCommLocRanks(NULL),
+     _cplCommCplRanks(NULL),
+     _cplCommLocRanks(NULL),
+     _cplGroup(MPI_GROUP_NULL),
      _cplComm(MPI_COMM_NULL),
      _locCodeRootRankUnionComm(-1),
      _cplCodeRootRankUnionComm(-1),
-     _isCplRank(false),
-     _cplCommCplRanks(NULL),
-     _cplCommLocRanks(NULL)
+     _locCodeRootRankCplComm(-1),
+     _cplCodeRootRankCplComm(-1),
+     _isCplRank(false)
   {
   }
 
@@ -119,9 +124,11 @@ namespace cwipi {
           _tag += cplId[i];
         }
 
+        CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wdiv-by-zero")
         if (MPI_TAG_UB > 0) {
           _tag = _tag % MPI_TAG_UB;
         }
+        CWP_GCC_SUPPRESS_WARNING_POP
 
         // Build the union communicator between the two coupled codes
 

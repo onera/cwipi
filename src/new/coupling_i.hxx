@@ -1135,18 +1135,18 @@ namespace cwipi {
   {
     if (_userTargetN == nullptr) {
       _userTargetN = new int [_nPart];
-      for (int iPart = 0; iPart < _nPart; iPart++) {
-        _userTargetN[iPart] = 0;
+      for (int iPart1 = 0; iPart1 < _nPart; iPart1++) {
+        _userTargetN[iPart1] = 0;
       }
       if (gNum != nullptr) {
         _userTargetGnum = new const PDM_g_num_t* [_nPart]; 
-        for (int iPart = 0; iPart < _nPart; iPart++) {
-          _userTargetGnum[iPart] = nullptr;
+        for (int iPart1 = 0; iPart1 < _nPart; iPart1++) {
+          _userTargetGnum[iPart1] = nullptr;
         }
       }
       _userTargetCoord = new const double* [_nPart]; 
-      for (int iPart = 0; iPart < _nPart; iPart++) {
-        _userTargetCoord[iPart] = nullptr;
+      for (int iPart1 = 0; iPart1 < _nPart; iPart1++) {
+        _userTargetCoord[iPart1] = nullptr;
       }
     }
 

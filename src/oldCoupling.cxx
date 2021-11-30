@@ -202,7 +202,7 @@ namespace cwipi {
 
     std::vector<double> &vertexField = *_tmpVertexField;
 
-    for (int i = 0; i < vertexField.size(); i++)
+    for (size_t i = 0; i < vertexField.size(); i++)
       vertexField[i] = 0.;
 
     // TODO: Faire l'allocation qu'une fois comme _tmpVertexField

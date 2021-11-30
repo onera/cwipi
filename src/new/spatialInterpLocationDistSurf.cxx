@@ -19,7 +19,9 @@
 
 #include <pdm_dist_cloud_surf.h>
 
-#include <spatialInterpLocationDistSurf.hxx>
+#include "spatialInterpLocationDistSurf.hxx"
+#include "coupling.hxx"
+#include "coupling_i.hxx"
 
 /**
  * \cond

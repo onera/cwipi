@@ -61,7 +61,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-static double random01()
+static double random01(void)
 {
   int sign;
   int rsigna = rand();

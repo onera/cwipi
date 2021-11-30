@@ -55,7 +55,7 @@ namespace cwipi {
   {
     if (!strcmp(option, "opt_bbox_step")) {
       sscanf(value, "%d", &_optBboxStep);
-      for (int i = 0; i<_tablelocationToLocalMesh.size(); i++) {
+      for (size_t i = 0; i<_tablelocationToLocalMesh.size(); i++) {
         _tablelocationToLocalMesh[i]->optBboxStep(_optBboxStep);
       }
     }

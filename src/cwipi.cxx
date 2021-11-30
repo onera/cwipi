@@ -1471,7 +1471,7 @@ cwipi_exchange_status_t cwipi_exchange
  const double               time_value,
  const char                *sending_field_name,
  const double              *sending_field,
- char                      *receiving_field_name,
+ const char                *receiving_field_name,
  double                    *receiving_field,
  int                       *nNotLocatedPoints)
 
@@ -1491,7 +1491,7 @@ cwipi_exchange_status_t cwipi_exchange
                              time_value,
                              sending_field_name,
                              sending_field,
-                             receiving_field_name,
+                             (char *) receiving_field_name,
                              receiving_field,
                              NULL);
 

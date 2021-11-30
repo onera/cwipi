@@ -60,9 +60,6 @@ namespace cwipi {
     SPATIAL_INTERP_EXCH_RECV
   } SpatialInterpExchDirection;
 
-// A supprimer !!!
-
-  static const char *CWP_Field_exch_t_str [] = {"CWP_FIELD_EXCH_SEND","CWP_FIELD_EXCH_RECV","CWP_FIELD_EXCH_SENDRECV"};
 
   class Mesh;
   class Field;

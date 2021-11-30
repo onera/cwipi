@@ -20,14 +20,16 @@
 */
 
 #include "cwp.h"
+#include "cwp_priv.h"
+
 #include "pdm_mesh_nodal.h"
 #include "pdm_geom_elem.h"
 #include "pdm_gnum.h"
+
 #include <map>
 #include <vector>
-#include <bftc_error.h>
+//#include "bftc_error.h"
 #include "pdm_error.h"
-#define UNUSED(x) (void)(x)
 
 
 /**
@@ -103,8 +105,8 @@ namespace cwipi {
 
     virtual void FromPDMBlock(int pdm_id_block, void* mesh)
     {
-      UNUSED(pdm_id_block  );
-      UNUSED(mesh );
+      CWP_UNUSED(pdm_id_block  );
+      CWP_UNUSED(mesh );
       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
     }
 
@@ -120,10 +122,10 @@ namespace cwipi {
 
     virtual void blockSet(int i_part,int n_elts,int* connec,CWP_g_num_t* mesh_global_num)
     {
-      UNUSED(i_part          );
-      UNUSED(n_elts          );
-      UNUSED(connec          );
-      UNUSED(mesh_global_num      );
+      CWP_UNUSED(i_part          );
+      CWP_UNUSED(n_elts          );
+      CWP_UNUSED(connec          );
+      CWP_UNUSED(mesh_global_num      );
       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
     }
 
@@ -143,11 +145,11 @@ namespace cwipi {
                           int* connec,
                           CWP_g_num_t* global_num)
     {
-      UNUSED(i_part          );
-      UNUSED(n_elts          );
-      UNUSED(connec_idx      );
-      UNUSED(connec          );
-      UNUSED(global_num      );
+      CWP_UNUSED(i_part          );
+      CWP_UNUSED(n_elts          );
+      CWP_UNUSED(connec_idx      );
+      CWP_UNUSED(connec          );
+      CWP_UNUSED(global_num      );
       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
     }
 
@@ -172,14 +174,14 @@ namespace cwipi {
                           int* connec_cells,
                           CWP_g_num_t* global_num)
     {
-      UNUSED(i_part          );
-      UNUSED(n_elts          );
-      UNUSED(n_faces         );
-      UNUSED(connec_faces_idx);
-      UNUSED(connec_faces    );
-      UNUSED(connec_cells_idx);
-      UNUSED(connec_cells    );
-      UNUSED(global_num      );
+      CWP_UNUSED(i_part          );
+      CWP_UNUSED(n_elts          );
+      CWP_UNUSED(n_faces         );
+      CWP_UNUSED(connec_faces_idx);
+      CWP_UNUSED(connec_faces    );
+      CWP_UNUSED(connec_cells_idx);
+      CWP_UNUSED(connec_cells    );
+      CWP_UNUSED(global_num      );
       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
     }
 
@@ -308,6 +310,7 @@ namespace cwipi {
 
      virtual int*  ConnecGet(int i_part)
      {
+       CWP_UNUSED (i_part);
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
        return NULL;
      }
@@ -315,12 +318,15 @@ namespace cwipi {
 
      virtual void geomFinalize(int already_in_pdm)
      {
+       CWP_UNUSED (already_in_pdm);      
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
      }
 
 
      virtual void GNumBlockSet(int i_part, CWP_g_num_t* global_num)
      {
+       CWP_UNUSED (i_part);
+       CWP_UNUSED (global_num);
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
      }
 
@@ -341,6 +347,7 @@ namespace cwipi {
 
      virtual int*  ConnecIDXGet(int i_part)
      {
+       CWP_UNUSED (i_part);
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
        return NULL;
      }

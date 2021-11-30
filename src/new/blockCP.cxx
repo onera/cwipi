@@ -87,7 +87,7 @@ namespace cwipi {
                         int* connec_cells,
                         CWP_g_num_t* global_num) {
 
-     UNUSED(global_num );
+     CWP_UNUSED(global_num );
      double* _cells_center_part = (double*)malloc (sizeof(double) * 3 * n_elts);
      double* faces_center_part = (double*)malloc (sizeof(double) * 3 * n_faces);
      double* coords = static_cast<Mesh*>(_mesh) -> getCoordinates(i_part);

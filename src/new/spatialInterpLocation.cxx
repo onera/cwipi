@@ -19,9 +19,11 @@
 
 #include <vector>
 #include <cmath>
-#include <pdm_gnum_location.h>
+#include "pdm_gnum_location.h"
 
-#include <spatialInterpLocation.hxx>
+#include "spatialInterpLocation.hxx"
+#include "coupling.hxx"
+#include "coupling_i.hxx"
 
 /**
  * \cond

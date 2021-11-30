@@ -5529,6 +5529,8 @@ int  fvmc_tetrahedron_evaluate_Position (double x[3], double *pts,
                                                          uvw_tria,
                                                          dist2,
                                                          weights_tria);
+    FVMC_UNUSED(isDegenerated);
+
     double p0cp[3], p1cp[3], p2cp[3], p3cp[3];
     for (int i = 0; i < 3; i++){
       p0cp[i] = closestPoint[i] - pt0[i];
@@ -5577,6 +5579,10 @@ int  fvmc_tetrahedron_evaluate_Position (double x[3], double *pts,
                                                          uvw_tria,
                                                          dist2,
                                                          weights_tria);
+
+
+    FVMC_UNUSED(isDegenerated);
+
     double p0cp[3], p1cp[3], p2cp[3], p3cp[3];
     for (int i = 0; i < 3; i++){
       p0cp[i] = closestPoint[i] - pt0[i];
@@ -5625,6 +5631,7 @@ int  fvmc_tetrahedron_evaluate_Position (double x[3], double *pts,
                                                          uvw_tria,
                                                          dist2,
                                                          weights_tria);
+    FVMC_UNUSED(isDegenerated);
     double p0cp[3], p1cp[3], p2cp[3], p3cp[3];
     for (int i = 0; i < 3; i++){
       p0cp[i] = closestPoint[i] - pt0[i];
@@ -5673,6 +5680,7 @@ int  fvmc_tetrahedron_evaluate_Position (double x[3], double *pts,
                                                          uvw_tria,
                                                          dist2,
                                                          weights_tria);
+    FVMC_UNUSED(isDegenerated);
     double p0cp[3], p1cp[3], p2cp[3], p3cp[3];
     for (int i = 0; i < 3; i++){
       p0cp[i] = closestPoint[i] - pt0[i];
