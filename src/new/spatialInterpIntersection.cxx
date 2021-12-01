@@ -26,7 +26,8 @@ namespace cwipi {
 
 
   void SpatialInterpIntersection::interpolate(Field *referenceField, double **buffer) {
-      
+    CWP_UNUSED (referenceField);    
+    CWP_UNUSED (buffer);        
   }
 
   void SpatialInterpIntersection::weightsCompute() {

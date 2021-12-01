@@ -19,6 +19,9 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "coupling.hxx"
+#include "coupling_i.hxx"
+
 namespace cwipi {
 
   /**

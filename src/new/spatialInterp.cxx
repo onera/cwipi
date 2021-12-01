@@ -34,6 +34,7 @@
 #include "bftc_error.h"
 #include "bftc_printf.h"
 #include "cwp.h"
+#include "cwp_priv.h"
 #include <limits>
 #include <vector>
 #include <algorithm>
@@ -124,7 +125,7 @@ namespace cwipi {
     _send_adler.reserve(_cpl->fieldsGet()->size());
     _recv_adler.reserve(_cpl->fieldsGet()->size());
 
-    for (int i = 0; i < _cpl->fieldsGet()->size(); i++) {
+    for (size_t i = 0; i < _cpl->fieldsGet()->size(); i++) {
       _send_buffer[i]  = NULL;
       _recv_buffer[i]  = NULL;
       _send_request[i] = -1;
@@ -251,9 +252,9 @@ namespace cwipi {
 
       const int intId            = referenceField->fieldIDIntGet();
       const CWP_Type_t data_type = referenceField->dataTypeGet();
+      CWP_UNUSED (data_type);
       const size_t s_data        = sizeof(double);
       const int stride           = referenceField->nComponentGet();
-      const int tag              = intId; // Pas bon si les champs n'ont pas été définis dans le même ordre
 
       int           *n_elt1;
       int          **selected_part2_idx;
@@ -333,9 +334,9 @@ namespace cwipi {
 
         const int intId            = referenceField->fieldIDIntGet();
         const CWP_Type_t data_type = referenceField->dataTypeGet();
+        CWP_UNUSED(data_type);
         const size_t s_data        = sizeof(double);
         const int stride           = referenceField->nComponentGet();
-        const int tag              = intId; // Pas bon si les champs n'ont pas été définis dans le même ordre
 
         int           *n_elt1;
         int          **selected_part2_idx;
@@ -510,9 +511,9 @@ namespace cwipi {
 
       const int intId            = referenceField->fieldIDIntGet();
       const CWP_Type_t data_type = referenceField->dataTypeGet();
+      CWP_UNUSED(data_type);
       const size_t s_data        = sizeof(double);
       const int stride           = referenceField->nComponentGet();
-      const int tag              = intId; // Pas bon si les champs n'ont pas été définis dans le même ordre
 
       int  *n_ref_gnum2;
       int **ref_gnum2;
@@ -588,9 +589,9 @@ namespace cwipi {
 
         const int intId            = referenceField->fieldIDIntGet();
         const CWP_Type_t data_type = referenceField->dataTypeGet();
+        CWP_UNUSED(data_type);
         const size_t s_data        = sizeof(double);
         const int stride           = referenceField->nComponentGet();
-        const int tag              = intId; // Pas bon si les champs n'ont pas été définis dans le même ordre
 
         int  *n_ref_gnum2;
         int **ref_gnum2;

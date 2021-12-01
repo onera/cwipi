@@ -70,7 +70,8 @@ namespace cwipi {
     }
 
     void SpatialInterpClosestPoint::interpolate(Field *referenceField, double **buffer) {
-        
+      CWP_UNUSED (referenceField);    
+      CWP_UNUSED (buffer);    
     }
 
 

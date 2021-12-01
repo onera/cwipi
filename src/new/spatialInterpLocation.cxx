@@ -327,8 +327,20 @@ namespace cwipi {
 
 
     if (interpolationType == CWP_INTERPOLATION_USER) {
-
     // for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+          // int         *part_elt_pts_inside_idx      = _elt_pts_inside_idx[i_part];
+          // PDM_g_num_t *part_points_gnum             = _points_gnum[i_part];
+          // double      *part_points_coords           = _points_coords[i_part];
+          // double      *part_points_uvw              = _points_uvw[i_part];
+          // double      *part_points_dist2            = _points_dist2[i_part];
+          // double      *part_points_projected_coords = _points_projected_coords[i_part];
+          // double      *referenceData                = (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE);
+
+          // int          part_n_elt_weights           = _n_elt_weights[i_part];
+          // int         *part_weights_idx             = _weights_idx[i_part];
+          // double      *part_weights                 = _weights[i_part];
+
+          // int          part_n_elt                   = _mesh->getPartNElts(i_part);
     //       (*interpolationFunction)(CWP_INTERFACE_SURFACE, _n_vtx[i_part], _n_elt[i_part], n_tgt, coords, connecIdx, connec,
     //                                tgt_pts_projected_coords, tgt_pts_location, tgt_pts_dist, tgt_pts_bary_coords_idx, tgt_pts_bary_coords,
     //                                nComponent, referenceFieldType, referenceData, referenceFieldType, tmpData);
@@ -342,16 +354,7 @@ namespace cwipi {
 
         for (int i_part = 0; i_part < _nPart; i_part++) {
           int         *part_elt_pts_inside_idx      = _elt_pts_inside_idx[i_part];
-          PDM_g_num_t *part_points_gnum             = _points_gnum[i_part];
-          double      *part_points_coords           = _points_coords[i_part];
-          double      *part_points_uvw              = _points_uvw[i_part];
-          double      *part_points_dist2            = _points_dist2[i_part];
-          double      *part_points_projected_coords = _points_projected_coords[i_part];
           void        *referenceData                = referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE);
-
-          int          part_n_elt_weights           = _n_elt_weights[i_part];
-          int         *part_weights_idx             = _weights_idx[i_part];
-          double      *part_weights                 = _weights[i_part];
 
           int          part_n_elt                   = _mesh->getPartNElts(i_part);
 
@@ -373,14 +376,8 @@ namespace cwipi {
 
         for (int i_part = 0; i_part < _nPart; i_part++) {
           int         *part_elt_pts_inside_idx      = _elt_pts_inside_idx[i_part];
-          PDM_g_num_t *part_points_gnum             = _points_gnum[i_part];
-          double      *part_points_coords           = _points_coords[i_part];
-          double      *part_points_uvw              = _points_uvw[i_part];
-          double      *part_points_dist2            = _points_dist2[i_part];
-          double      *part_points_projected_coords = _points_projected_coords[i_part];
           double      *referenceData                = (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE);
 
-          int          part_n_elt_weights           = _n_elt_weights[i_part];
           int         *part_weights_idx             = _weights_idx[i_part];
           double      *part_weights                 = _weights[i_part];
 
