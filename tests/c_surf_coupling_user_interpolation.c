@@ -26,6 +26,7 @@
 #include <mpi.h>
 
 #include "cwipi.h"
+#include "cwipi_priv.h"
 #include "grid_mesh.h"
 
 
@@ -169,12 +170,30 @@ static void _userInterpolation(const int entities_dim,
                                void *distant_field)
 {
 
+  CWIPI_UNUSED (entities_dim);
+  CWIPI_UNUSED (n_local_vertex);
+  CWIPI_UNUSED (n_local_element);
+  CWIPI_UNUSED (n_local_polhyedra);
+  CWIPI_UNUSED (local_coordinates);
+  CWIPI_UNUSED (local_connectivity_index);
+  CWIPI_UNUSED (local_connectivity);
+  CWIPI_UNUSED (local_polyhedra_face_index);
+  CWIPI_UNUSED (local_polyhedra_cell_to_face_connectivity);
+  CWIPI_UNUSED (local_polyhedra_face_connectivity_index);
+  CWIPI_UNUSED (local_polyhedra_face_connectivity);
+  CWIPI_UNUSED (distant_points_coordinates);
+  CWIPI_UNUSED (distant_points_distance);
+  CWIPI_UNUSED (distant_points_barycentric_coordinates_index);
+  CWIPI_UNUSED (distant_points_barycentric_coordinates);
+  CWIPI_UNUSED (stride);
   //
   // For each target point, give the value of the cell that contains the target point 
 
   if (solver_type == CWIPI_SOLVER_CELL_CENTER) {
+    double *_local_field = (double *) local_field;
+    double *_distant_field = (double *) distant_field;
     for (int i = 0; i < n_distant_point; i++) {
-      ((double *) distant_field)[i] = ((double *) local_field)[distant_points_location[i]-1];
+      _distant_field[i] = _local_field[distant_points_location[i]-1];
     }
   }
   else {

@@ -912,7 +912,7 @@ namespace cwipi {
   }
 
 
-  void oldCoupling::openLocationFile(char *file, const char *moderwa)
+  void oldCoupling::openLocationFile(const char *file, const char *moderwa)
   {
 
     int mode = MPI_MODE_CREATE+MPI_MODE_WRONLY;

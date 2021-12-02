@@ -913,7 +913,7 @@ void cwipi_save_location(const char *coupling_name);
  *----------------------------------------------------------------------------*/
 
 void cwipi_open_location_file (const char *coupling_name,
-                               char *filename,
+                               const char *filename,
                                const char *mode);
 /*----------------------------------------------------------------------------
  *

@@ -888,7 +888,7 @@ void cwipi_load_location(const char *coupling_name)
  *----------------------------------------------------------------------------*/
 
 void cwipi_open_location_file (const char *coupling_name,
-			       char *filename,
+			       const char *filename,
 			       const char *mode)
 {
   cwipi::CouplingDataBase & couplingDataBase =
