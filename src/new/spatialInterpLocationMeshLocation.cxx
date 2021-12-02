@@ -240,11 +240,6 @@ namespace cwipi {
 
         else {
   
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
-
-          SpatialInterpLocationMeshLocation * cpl_spatial_interp_recv = 
-            dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-
           cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
 
           for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
@@ -407,7 +402,6 @@ namespace cwipi {
             double *coords = _mesh->getVertexCoords(i_part);
             CWP_g_num_t *vtx_gnum = _mesh->getVertexGNum(i_part);
             CWP_g_num_t *elt_gnum = _mesh->GNumEltsGet(i_part);
-            CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
 
             if (interf_dim == CWP_INTERFACE_SURFACE) {
               printf("localization_surface_setting - 1.1.1\n");
@@ -463,10 +457,6 @@ namespace cwipi {
 
         else {
 
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
-          SpatialInterpLocationMeshLocation * cpl_spatial_interp_recv = 
-            dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-          cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
           cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
 
           for (int i_part = 0 ; i_part < _cplNPart ; i_part++) { 
@@ -476,7 +466,6 @@ namespace cwipi {
             double *coords = cpl_mesh->getVertexCoords(i_part);
             CWP_g_num_t *vtx_gnum = cpl_mesh->getVertexGNum(i_part);
             CWP_g_num_t *elt_gnum = cpl_mesh->GNumEltsGet(i_part);
-            CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
 
             if (interf_dim == CWP_INTERFACE_SURFACE) {
               printf("localization_surface_setting - 1.1.1\n");

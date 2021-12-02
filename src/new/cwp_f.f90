@@ -780,7 +780,7 @@ contains
     character(kind = c_char, len = *) :: local_code_name, cpl_id
     integer(c_int) :: l_local_code_name, l_cpl_id
     double precision, dimension(:), pointer :: dists
-    type(c_ptr) :: cptr_dists
+!!    type(c_ptr) :: cptr_dists
 
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)

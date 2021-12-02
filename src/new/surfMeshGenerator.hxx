@@ -26,6 +26,7 @@
 #include "pdm_printf.h"
 
 #include "cwp.h"
+#include "cwp_priv.h"
 
 
 /**

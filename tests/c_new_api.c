@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
 
     // Initialization
     int n_code_name = 0;
-    char **codeNames = NULL;
+    const char **codeNames = NULL;
     double *times_init = NULL;
     CWP_Status_t *is_coupled_rank = NULL;
 
@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
         is_coupled_rank[1] = CWP_STATUS_ON;
     }
 
-    char *fileName = NULL;
+    const char *fileName = NULL;
     if (rank == 0) fileName = "c_new_api_0000.txt";
     else if (rank == 1) fileName = "c_new_api_0001.txt";
     else if (rank == 2) fileName = "c_new_api_0002.txt";
@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
         CWP_Param_lock("code1");
         //  MPI_Barrier (MPI_COMM_WORLD);
         CWP_Param_add("code1", "toto", CWP_INT, &toto);
-        char *A = "Bonjour !";
+        const char *A = "Bonjour !";
         CWP_Param_add("code1", "toto2", CWP_CHAR, &A);
         CWP_Param_unlock("code1");
     }

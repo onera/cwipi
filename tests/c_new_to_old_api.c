@@ -26,6 +26,7 @@
 #include <mpi.h>
 
 #include "cwipi.h"
+#include "cwipi_priv.h"
 #include "grid_mesh.h"
 
 
@@ -36,7 +37,7 @@
  * parameters:
  *   status              <-- Exchange status           
  *---------------------------------------------------------------------*/
-
+CWIPI_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wunused-function")
 static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status)
 {
   switch(status) {
@@ -51,7 +52,7 @@ static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status)
     exit(1);
   }
 }
-
+CWIPI_GCC_SUPPRESS_WARNING_POP
 /*----------------------------------------------------------------------
  *                                                                     
  * Display usage                                             
@@ -216,18 +217,18 @@ int main
   /* Initialization
    * -------------- */
 
-  char *codeName;
-  int codeId;
-  char *codeCoupledName;
+  const char *codeName;
+  //int codeId;
+  const char *codeCoupledName;
 
   if (rank < commWorldSize / 2) {
     codeName = "code1";
-    codeId = 1;
+    //codeId = 1;
     codeCoupledName = "code2";
   }
   else {
     codeName = "code2";
-    codeId = 2;
+    //codeId = 2;
     codeCoupledName = "code1";
   }
 
@@ -344,11 +345,11 @@ int main
   if (rank == 0)
     printf("        Exchange Code1 <-> Code2\n");
 
-  double *sendValues = NULL;
-  double *recvValues = NULL;
+  //double *sendValues = NULL;
+  //double *recvValues = NULL;
   
-  sendValues = (double *) malloc(sizeof(double) * nVertex);
-  recvValues = (double *) malloc(sizeof(double) * nVertex);
+  //sendValues = (double *) malloc(sizeof(double) * nVertex);
+  //recvValues = (double *) malloc(sizeof(double) * nVertex);
 
   MPI_Finalize();
 

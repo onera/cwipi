@@ -233,7 +233,7 @@ contains
 #endif  
     character(*)                   :: buffer
     !>
-    integer                        :: length
+    integer                        :: length, j
     integer                        :: iRank,iErr
     character(len=:), allocatable  :: cTab0(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -241,9 +241,16 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     length=len(buffer)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        
+      
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    
+
     allocate( character(len=length) :: cTab0(1:sizeWorld) )
+
+    do iRank=1,sizeWorld
+      do j = 1, length 
+       cTab0(iRank)(j:j) = ' '
+      enddo 
+    enddo
 
     call mpi_gather(                      &
     &    buffer   , length, mpi_character,&

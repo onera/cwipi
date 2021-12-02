@@ -136,8 +136,8 @@ int main(int argc, char *argv[]) {
     else n_code = 0;
 
     int *code_id = (int *) malloc(n_code * sizeof(int));
-    char **code_names = (char **) malloc(n_code * sizeof(char *));
-    char **coupled_code_names = (char **) malloc(n_code * sizeof(char *));
+    const char **code_names = (const char **) malloc(n_code * sizeof(char *));
+    const char **coupled_code_names = (const char **) malloc(n_code * sizeof(char *));
     double *time_init = (double *) malloc(n_code * sizeof(double));
     PDM_g_num_t *n_vtx_seg = (PDM_g_num_t *) malloc(n_code * sizeof(PDM_g_num_t));
     double *x_min = (double *) malloc(n_code * sizeof(double));
@@ -259,7 +259,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Create coupling and visu
-    char *cpl_name = "c_new_api_disjoint_comms";
+    const char *cpl_name = "c_new_api_disjoint_comms";
     CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
 
     for (int i_code = 0 ; i_code < n_code ; ++i_code) {
@@ -310,7 +310,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Create and initialise Fields: code1 -> code2
-    char *field_name = "cooX";
+    const char *field_name = "cooX";
 
     double **send_values = (double **) malloc(n_code * sizeof(double *));
     double **recv_values = (double **) malloc(n_code * sizeof(double *));
