@@ -51,6 +51,10 @@ interp_ho_loc_f={}
 interp_ho_bas_f={}
 current_cpl = "" 
 
+cdef extern from "cwipi_cython.h":
+    ctypedef enum cwipi_fake_enum_t:
+      CWIPI_FAKE_ENUM
+
 
 cdef extern from "cwipi.h":
 

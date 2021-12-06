@@ -35,7 +35,8 @@
 namespace cwipi {
 
   Visu::Visu(const MPI_Comm &MPIComm,const CWP_Dynamic_mesh_t topology):
-                                      _visu_id(-1),_visu_mesh_id(-1),_freq(-1),
+                                      _visu_id(-1),_visu_mesh_id(-1),
+                                      //_freq(-1), 
                                       _output_dir(NULL),
                                       _output_name(NULL),
                                       _divide_polygons(PDM_WRITER_OFF),
@@ -323,14 +324,14 @@ namespace cwipi {
 
       CWP_Dof_location_t CWPfielType = field -> locationGet();
       int nComponent = field -> nComponentGet();
-      PDM_writer_var_loc_t PDMfieldType;
+      PDM_writer_var_loc_t PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
 
       if     (CWPfielType == CWP_DOF_LOCATION_CELL_CENTER)   PDMfieldType = PDM_WRITER_VAR_ELEMENTS   ;
       else if(CWPfielType == CWP_DOF_LOCATION_NODE)         PDMfieldType = PDM_WRITER_VAR_SOMMETS    ;
       else if(CWPfielType == CWP_DOF_LOCATION_USER)         PDMfieldType = PDM_WRITER_VAR_PARTICULES ;
 
 
-      PDM_writer_var_dim_t PDMfieldComp;
+      PDM_writer_var_dim_t PDMfieldComp = PDM_WRITER_VAR_SCALAIRE;
       if( nComponent == 1) PDMfieldComp = PDM_WRITER_VAR_SCALAIRE;
       else if( nComponent == 3) PDMfieldComp = PDM_WRITER_VAR_VECTEUR;
       else if (nComponent !=0)

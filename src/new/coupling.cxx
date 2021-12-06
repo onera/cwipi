@@ -241,7 +241,7 @@ namespace cwipi {
 
     if (_userTargetN != nullptr) {
       if (_localUserTargetGnum != nullptr) {
-        for (int iPart; iPart < _nPart; iPart++) {
+        for (int iPart = 0; iPart < _nPart; iPart++) {
           free (_localUserTargetGnum[iPart]);
         }
       }
@@ -1159,11 +1159,10 @@ namespace cwipi {
     string cplId = IdGet();
 
     string visuDir = "cwipi";
-    char output_name [CodeName.length()];
-    char output_dir   [visuDir.length() + 1 + cplId.length() + 1 + CodeName.length() + 1 + cplCodeName.length()];
-    sprintf(output_name,"%s",CodeName.c_str());
-    sprintf(output_dir,"%s/%s_%s_%s",visuDir.c_str(),cplId.c_str(),CodeName.c_str(),cplCodeName.c_str());
+    string output_dir = visuDir+"/"+cplId+"_"+CodeName+"_"+cplCodeName;  
+
     int rank;
+
     MPI_Comm_rank(_communication.unionCommGet(),&rank);
 
     if (commTypeGet() == CWP_COMM_PAR_WITH_PART ||
@@ -1171,7 +1170,7 @@ namespace cwipi {
       _visu.VisuCreate(freq,
                      format,
                      format_option,
-                     output_dir,
+                     (char *) output_dir.c_str(),
                      (char *) string("chr").c_str());
 
       _visu.GeomCreate(_mesh.getNPart());
@@ -1778,7 +1777,7 @@ namespace cwipi {
     if (_userTargetN != nullptr) {
       if (_userTargetGnum == nullptr) {
 
-        PDM_MPI_Comm comm = PDM_MPI_mpi_2_pdm_mpi_comm (_localCodeProperties.intraCommGet());
+        PDM_MPI_Comm comm = PDM_MPI_mpi_2_pdm_mpi_comm ((void *) &(_localCodeProperties.intraCommGet()));
 
         PDM_gen_gnum_t *pgg  = PDM_gnum_create (3, _nPart, PDM_FALSE, 1e-3, comm,
                                                    PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);

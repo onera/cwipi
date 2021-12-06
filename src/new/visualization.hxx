@@ -271,7 +271,7 @@ namespace cwipi {
   private:
     int                  _visu_id;      /*!< Visualization identifier */
     int                  _visu_mesh_id; /*!< Visualization identifier */
-    int                  _freq;         /*!< Visualization frequency */
+    //int                  _freq;         /*!< Visualization frequency */
     char                *_output_dir;   /*!< Output directory */
     char                *_output_name;  /*!< Output Name */
     PDM_MPI_Comm         _pdmComm;      /*!< Paradigm communicator */

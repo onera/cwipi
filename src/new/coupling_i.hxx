@@ -959,7 +959,8 @@ namespace cwipi {
       return &_spatial_interp_recv;
     }
     else {
-      PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");     
+      PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");
+      return nullptr;     
     } 
 
   }
@@ -1001,6 +1002,7 @@ namespace cwipi {
 
     else {
       PDM_error(__FILE__, __LINE__, 0, "SpatialInterp not found.\n");
+      return nullptr;     
     }
 
   }

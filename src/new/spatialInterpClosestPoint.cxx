@@ -17,10 +17,15 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <pdm_closest_points.h>
-#include <spatialInterpClosestPoint.hxx>
+#include "pdm_closest_points.h"
+#include "spatialInterpClosestPoint.hxx"
+#include "cwp_priv.h"
+
+CWP_CLANG_SUPPRESS_WARNING("-Wunused-private-field")
+
 
 namespace cwipi {
+    //CWIPI_CLANG_SUPPRESS_WARNING("-Wunused-private-field")
     SpatialInterpClosestPoint::SpatialInterpClosestPoint() = default;
 
     SpatialInterpClosestPoint::~SpatialInterpClosestPoint() = default;

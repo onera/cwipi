@@ -49,7 +49,7 @@ namespace cwipi {
       Coupling           *coupling, 
       CWP_Dof_location_t localCodeDofLOcation,
       CWP_Dof_location_t cplCodeDofLOcation,
-      SpatialInterpExchDirection exchDirection );
+      SpatialInterpExchDirection exchDirection ) override;
 
 
     /**

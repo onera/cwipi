@@ -23,6 +23,7 @@ set (include_dirs "")
 list (APPEND include_dirs ${Mpi4Py_INCLUDE_DIR})
 list (APPEND include_dirs ${NumPy_INCLUDE_DIR})
 list (APPEND include_dirs ${CMAKE_CURRENT_BINARY_DIR})
+list (APPEND include_dirs ${CMAKE_CURRENT_SOURCE_DIR})
 list (APPEND include_dirs ${CMAKE_BINARY_DIR})
 
 include(UseCython)

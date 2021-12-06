@@ -4094,4 +4094,4 @@ typedef struct {
 } fvmc_to_med_fake_t;
 
 
-#endif /* HAVE_MED */
+#endif
