@@ -52,20 +52,20 @@ void
 PDM_dcube_nodal_gen_free
 (
  PDM_dcube_nodal_t *dcube
- );
+);
 
 void PDM_dcube_nodal_gen_ordering_set
 (
- PDM_dcube_nodal_t *dcube,
- char              *ordering
- );
+       PDM_dcube_nodal_t *dcube,
+ const char              *ordering
+);
 
 
 PDM_dmesh_nodal_t *
 PDM_dcube_nodal_gen_build
 (
  PDM_dcube_nodal_t *dcube
- );
+);
 
 /**
  *
@@ -85,7 +85,7 @@ PDM_dmesh_nodal_t *
 PDM_dcube_nodal_gen_dmesh_nodal_get
 (
  PDM_dcube_nodal_t *dcube
- );
+);
 
 
 

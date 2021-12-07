@@ -1107,9 +1107,9 @@ PDM_part1_to_selected_part2_selected_part2_get
  PDM_g_num_t                 ***selected_part2
 )
 {
-  *n_elt1             = ptp->n_elt1;
-  *selected_part2_idx = ptp->selected_part2_idx;
-  *selected_part2     = ptp->selected_part2;
+  *n_elt1             = (int          *) ptp->n_elt1;
+  *selected_part2_idx = (int         **) ptp->selected_part2_idx;
+  *selected_part2     = (PDM_g_num_t **) ptp->selected_part2;
 }
 
 

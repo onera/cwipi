@@ -32,35 +32,6 @@
  * Private function definitions
  *============================================================================*/
 
-/**
- *
- * \brief  Usage
- *
- */
-
-static void
-_usage
-(
- int exit_code
- )
-{
-  PDM_printf
-    ("\n"
-     "  Usage: \n\n"
-     "  -c       <level> Number of closest points (default : 10).\n\n"
-     "  -s       <level> Number of Source points (default : 10).\n\n"
-     "  -t       <level> Number of Target points (default : 10).\n\n"
-     "  -radius <level>  Radius of domain (default : 10).\n\n"
-     "  -local           Number of points is local (default : global).\n\n"
-     "  -rand            Random definition of point coordinates (default : false).\n\n"
-     "  -clumps          Source points distributed in clumps around target points (default : false).\n\n"
-     "  -h               This message.\n\n");
-
-  exit (exit_code);
-}
-
-
-
 /*============================================================================
  * Public function definitions
  *============================================================================*/

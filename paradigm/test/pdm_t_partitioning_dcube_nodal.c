@@ -239,28 +239,36 @@ int main(int argc, char *argv[])
   free(dedge_to_group);
   free(dedge_to_group_idx);
 
+
+  /*
+   *  Pour le 3D, il faut calculer les edge + les faces (suffit de branché dans dmesh_nodal to dmesh)
+   *   --> Appel du partitionnement et rebuild de toutes les connectivités disponibles
+   *   --> Transort de tout les elements à la fin
+   */
+
+
   /*
    * Partitionnement
    */
-  // int n_zone = 1;
-  // int n_part_zones = n_part;
-  // int mpart_id = PDM_multipart_create(n_zone,
-  //                                     &n_part_zones,
-  //                                     PDM_FALSE,
-  //                                     part_method,
-  //                                     PDM_PART_SIZE_HOMOGENEOUS,
-  //                                     NULL,
-  //                                     comm,
-  //                                     PDM_OWNERSHIP_KEEP);
+  int n_zone = 1;
+  int n_part_zones = n_part;
+  int mpart_id = PDM_multipart_create(n_zone,
+                                      &n_part_zones,
+                                      PDM_FALSE,
+                                      part_method,
+                                      PDM_PART_SIZE_HOMOGENEOUS,
+                                      NULL,
+                                      comm,
+                                      PDM_OWNERSHIP_KEEP);
 
-  // PDM_multipart_set_reordering_options(mpart_id, -1, "PDM_PART_RENUM_CELL_NONE", NULL, "PDM_PART_RENUM_FACE_NONE");
+  PDM_multipart_set_reordering_options(mpart_id, -1, "PDM_PART_RENUM_CELL_NONE", NULL, "PDM_PART_RENUM_FACE_NONE");
 
-  // // PDM_multipart_register_dmesh_nodal(mpart_id, 0, dmn);
-  // PDM_multipart_register_block(mpart_id, 0, dm);
+  PDM_multipart_register_dmesh_nodal(mpart_id, 0, dmn);
+  PDM_multipart_register_block(mpart_id, 0, dm);
 
-  // PDM_multipart_run_ppart(mpart_id);
+  PDM_multipart_run_ppart(mpart_id);
 
-  // PDM_multipart_free(mpart_id);
+  PDM_multipart_free(mpart_id);
 
 
   // A faire : Extraction d'un maillage surfacique à partir du volumique (en dmesh et dmesh_nodal )

@@ -274,7 +274,7 @@ cdef class PartToBlock:
             #Dont know how to get dtype_size from dtype_id, create a fake array ;)
             zero       = <NPY.npy_intp> 0
             tpm_array = NPY.PyArray_EMPTY(1, &zero, dtype_data, 0)
-            s_data    = tpm_array.dtype.itemsize
+            s_data    = tpm_array.itemsize
           assert (dtype_data == dtype_data_max)
           # ::::::::::::::::::::::::::::::::::::::::::::::::::
           # > Prepare block_data

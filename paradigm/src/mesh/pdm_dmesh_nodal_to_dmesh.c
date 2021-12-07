@@ -239,8 +239,8 @@ PDM_g_num_t  **dmissing_child_parent_g_num
   int*         already_treat    = (int         *) malloc(  n_max_entity_per_key    * sizeof(int        ) );
   int*         same_entity_idx  = (int         *) malloc( (n_max_entity_per_key+1) * sizeof(int        ) );
   int*         sens_entity      = (int         *) malloc(  n_max_entity_per_key    * sizeof(int        ) );
-  PDM_g_num_t *tmp_parent       = malloc (sizeof(PDM_g_num_t) * n_max_entity_per_key);
-  int         *order            = malloc (sizeof(int)         * n_max_entity_per_key);
+  PDM_g_num_t *tmp_parent       = (PDM_g_num_t *) malloc(n_max_entity_per_key      * sizeof(PDM_g_num_t) );
+  int         *order            = (int         *) malloc(n_max_entity_per_key      * sizeof(int        ) );
 
   /*
    * Allocate Memory - entity_vtx - entity_elmt
@@ -1081,7 +1081,7 @@ _generate_faces_from_dmesh_nodal
     dm->dconnectivity    [PDM_CONNECTIVITY_TYPE_FACE_CELL] = dface_cell;
     dm->dconnectivity_idx[PDM_CONNECTIVITY_TYPE_FACE_CELL] = NULL;
 
-    if(1 == 1) {
+    if(0 == 1) {
       PDM_log_trace_array_long(dface_cell, 2 * dm->dn_face, "face_cell::");
       PDM_log_trace_array_long(_dface_vtx, _dface_vtx_idx[dm->dn_face], "_dface_vtx::");
     }
@@ -1997,7 +1997,7 @@ PDM_dmesh_nodal_to_dmesh_compute
   const PDM_dmesh_nodal_to_dmesh_translate_group_t  transform_group_kind
 )
 {
-
+  double t1 = PDM_MPI_Wtime();
   for(int i_mesh = 0; i_mesh < dmesh_nodal_to_dm->n_mesh; ++i_mesh) {
 
     if(dmesh_nodal_to_dm->link[i_mesh]->dmesh_nodal->mesh_dimension == 2) {
@@ -2048,7 +2048,7 @@ PDM_dmesh_nodal_to_dmesh_compute
       }
     // }
   }
-
+  end_timer_and_print("PDM_dmesh_nodal_to_dmesh_compute", dmesh_nodal_to_dm->comm, t1);
 }
 
 // static
@@ -2450,6 +2450,8 @@ PDM_g_num_t  **dentity_elmt
   int*         already_treat    = (int         *) malloc(  n_max_entity_per_key    * sizeof(int        ) );
   int*         same_entity_idx  = (int         *) malloc( (n_max_entity_per_key+1) * sizeof(int        ) );
   int*         sens_entity      = (int         *) malloc(  n_max_entity_per_key    * sizeof(int        ) );
+  PDM_g_num_t *tmp_parent       = (PDM_g_num_t *) malloc(n_max_entity_per_key      * sizeof(PDM_g_num_t) );
+  int         *order            = (int         *) malloc(n_max_entity_per_key      * sizeof(int        ) );
 
   /*
    * Allocate Memory - entity_vtx - entity_elmt
@@ -2481,13 +2483,20 @@ PDM_g_num_t  **dentity_elmt
 
     int n_conflict_entitys = blk_n_entity_per_key[i_key];
 
+    for (int i = 0; i < n_conflict_entitys; i++) {
+      tmp_parent[i] = blk_elmt_entity_elmt[idx+i];
+      order[i] = i;
+    }
+    PDM_sort_long(tmp_parent, order, n_conflict_entitys);
+
     /* Reset */
     for(int j = 0; j < n_conflict_entitys; ++j) {
       already_treat[j] = -1;
     }
 
     /* Loop over all entitys in conflict */
-    for(int i_entity = 0; i_entity < n_conflict_entitys; ++i_entity) {
+    for(int idx_entity = 0; idx_entity < n_conflict_entitys; ++idx_entity) {
+      int i_entity = order[idx_entity];
       // printf("Number of vtx on entitys %i :: %i with index [%i] \n", i_entity, blk_entity_vtx_n[idx+i_entity], idx+i_entity);
 
       int n_vtx_entity_1 = blk_entity_vtx_n  [idx+i_entity];
@@ -2511,7 +2520,16 @@ PDM_g_num_t  **dentity_elmt
         }
         PDM_quick_sort_long(loc_entity_vtx_1, 0, n_vtx_entity_1-1);
 
-        for(int i_entity_next = i_entity+1; i_entity_next < n_conflict_entitys; ++i_entity_next) {
+        for(int idx_entity2 = 0; idx_entity2 < n_conflict_entitys; ++idx_entity2) {
+          int i_entity_next = order[idx_entity2];
+
+          if (i_entity_next == i_entity) {
+            continue;
+          }
+          //printf("conflict : i_entity = %d, i_entity_next = %d...\n", i_entity, i_entity_next);
+          if(already_treat[i_entity_next] == 1) {
+            continue;
+          }
 
           int n_vtx_entity_2 = blk_entity_vtx_n[idx+i_entity_next];
 
@@ -2648,6 +2666,8 @@ PDM_g_num_t  **dentity_elmt
   free(blk_n_entity_per_key);
   free(blk_entity_vtx_n);
   free(blk_elmt_entity_elmt);
+  free(tmp_parent);
+  free(order);
 
   if( 0 == 1 ){
     printf("i_abs_entity::%i \n", i_abs_entity+1);

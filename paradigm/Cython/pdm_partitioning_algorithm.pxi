@@ -12,6 +12,13 @@ cdef extern from "pdm_partitioning_algorithm.h":
                                          int            ***pgroup_idx,
                                          int            ***pgroup,
                                          PDM_g_num_t    ***pgroup_ln_to_gn)
+    void PDM_part_dcoordinates_to_pcoordinates(PDM_MPI_Comm    comm,
+                                               int             n_part,
+                                               PDM_g_num_t    *vertex_distribution,
+                                               double         *dvtx_coord,
+                                               int            *pn_vtx,
+                                               PDM_g_num_t   **pvtx_ln_to_gn,
+                                               double       ***pvtx_coord)
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
@@ -206,3 +213,47 @@ def transform_to_parent_gnum(list     gnum_to_transform,
   free(_gnum_to_transform)
 # ===================================================================================
 
+
+# ===================================================================================
+def part_dcoordinates_to_pcoordinates(MPI.Comm                                      comm,
+                                      NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] vtx_distribution,
+                                      NPY.ndarray[NPY.double_t  , mode='c', ndim=1] dvtx_coord   not None,
+                                      list                                          l_pvtx_ln_to_gn):
+    """
+    """
+    cdef MPI.MPI_Comm c_comm = comm.ob_mpi
+    cdef PDM_MPI_Comm PDMC   = PDM_MPI_mpi_2_pdm_mpi_comm(&c_comm)
+    cdef NPY.ndarray[npy_pdm_gnum_t, ndim=1, mode='fortran'] part_ln_to_gn
+
+    cdef int n_part = len(l_pvtx_ln_to_gn)
+    cdef int          *pn_vtx        = <int          *> malloc(n_part * sizeof(int          ))
+    cdef PDM_g_num_t **pvtx_ln_to_gn = <PDM_g_num_t **> malloc(n_part * sizeof(PDM_g_num_t *))
+    cdef double      **pvtx_coord
+
+    for i, part_ln_to_gn in enumerate(l_pvtx_ln_to_gn):
+        pn_vtx[i]        = l_pvtx_ln_to_gn[i].shape[0]
+        pvtx_ln_to_gn[i] = <PDM_g_num_t *> part_ln_to_gn.data
+
+    PDM_part_dcoordinates_to_pcoordinates(PDMC,
+                                          n_part,
+                           <PDM_g_num_t*> vtx_distribution.data,
+                           <double*>      dvtx_coord.data,
+                                          pn_vtx,
+                                          pvtx_ln_to_gn,
+                                          &pvtx_coord);
+
+    l_pvtx_coord = list()
+    for i in range(n_part):
+        dim = <NPY.npy_intp> 3 * pn_vtx[i]
+        np_vtx_coord = NPY.PyArray_SimpleNewFromData(1,
+                                                   &dim,
+                                                   NPY.NPY_DOUBLE,
+                                          <void *> pvtx_coord[i])
+        PyArray_ENABLEFLAGS(np_vtx_coord, NPY.NPY_OWNDATA);
+        l_pvtx_coord.append(np_vtx_coord)
+
+    free(pvtx_coord)
+    free(pn_vtx)
+    free(pvtx_ln_to_gn)
+
+    return l_pvtx_coord

@@ -299,6 +299,7 @@ main (int argc, char *argv[])
 
   free (tgt_coord);
   free (tgt_g_num);
+  free (closest_src_idx);
 
   if (i_rank == 0) {
     printf("-- End\n");

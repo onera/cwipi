@@ -84,19 +84,21 @@ cdef class DistCloudSurf:
         """
         Compute the distance from point clouds to a surface
         """
+        #print(f"[{comm.rank}] cinit DistCloudSurf object, n_part_surf = {n_part_surf}, point_clouds = {point_clouds} (len = {len(point_clouds)})")
         self._nb_pts      = []
         self._comm        = comm
         self._mesh_nature = mesh_nature
         self.n_part_surf  = n_part_surf
+        #print(f"[{comm.rank}] OK")
         if len(point_clouds) > 0:
             # NB: Create paradigm structure
             self.n_point_cloud = len(point_clouds)
             # Set number of partition per point cloud
             for i_point_cloud, n_part_cloud in enumerate(point_clouds):
                 self.set_n_part_cloud(i_point_cloud, n_part_cloud)
-            print("self.n_part_surf = ",self.n_part_surf,", self.n_point_cloud = ",self.n_point_cloud)
-            for i_point_cloud in range(self.n_point_cloud):
-                print("self.get_n_part_cloud(",i_point_cloud,") = ",self.get_n_part_cloud(i_point_cloud))
+            # print("self.n_part_surf = ",self.n_part_surf,", self.n_point_cloud = ",self.n_point_cloud)
+            # for i_point_cloud in range(self.n_point_cloud):
+                # print("self.get_n_part_cloud(",i_point_cloud,") = ",self.get_n_part_cloud(i_point_cloud))
 
     def _create_pdm_structure(self):
         # Free memory if it has been previously allocated
@@ -118,7 +120,7 @@ cdef class DistCloudSurf:
         return self._n_part_surf
 
     def set_n_part_surf(self, value):
-        if value >= 1:
+        if value >= 0:
             self._n_part_surf = <int> value
         else:
             raise ValueError("n_part_surf must be >= 1, but {} given here.".format(value))

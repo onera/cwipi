@@ -83,6 +83,18 @@ PDM_g_num_t* PDM_array_new_idx_from_sizes_gnum(const int *size_array, const int 
   return idx_array;
 }
 
+/* Utils functions compararing arrays */
+
+/*
+ * Return 1 if the two arrays are equal, 0 otherwise
+*/
+int PDM_array_are_equal_int(int *array1, int *array2, int size) {
+  for (int i = 0; i < size; i++) {
+    if (array1[i] != array2[i])
+      return 0;
+  }
+  return 1;
+}
 
 /* Utils functions modifying arrays*/
 

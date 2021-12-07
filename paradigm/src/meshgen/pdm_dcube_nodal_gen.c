@@ -32,7 +32,7 @@ static int
 _get_n_sub_elt
 (
  PDM_Mesh_nodal_elt_t t_elmt
- )
+)
 {
   switch (t_elmt) {
     case PDM_MESH_NODAL_TRIA3:
@@ -102,7 +102,7 @@ sub2ind
  int                i,
  int                j,
  int                k
- )
+)
 {
   return 1 + dcube->order*icell + i + (dcube->order*dcube->nx + 1)*(dcube->order*jcell + j + (dcube->order*dcube->ny + 1)*(dcube->order*kcell + k));
 }
@@ -852,7 +852,7 @@ _g_to_ijk_uv
  PDM_g_num_t       *ind,
  int               *u,
  int               *v
- )
+)
 {
   PDM_g_num_t h;
   if (g < group_idx[1]) {
@@ -922,7 +922,7 @@ _set_surf_groups
   const int             n_group,
   const PDM_g_num_t    *group_idx,
   PDM_Mesh_nodal_elt_t  t_elt[3]
- )
+)
 {
   int i_rank;
   PDM_MPI_Comm_rank(dcube->comm, &i_rank);
@@ -989,7 +989,7 @@ _generate_tetra_surf
 (
  PDM_dcube_nodal_t *dcube,
  PDM_dmesh_nodal_t *dmesh_nodal
- )
+)
 {
   int n_rank, i_rank;
   PDM_MPI_Comm_rank(dcube->comm, &i_rank);
@@ -1092,7 +1092,7 @@ _generate_pyramid_surf
 (
  PDM_dcube_nodal_t *dcube,
  PDM_dmesh_nodal_t *dmesh_nodal
- )
+)
 {
   int n_rank, i_rank;
   PDM_MPI_Comm_rank(dcube->comm, &i_rank);
@@ -1353,7 +1353,7 @@ _generate_prism_surf
 (
  PDM_dcube_nodal_t *dcube,
  PDM_dmesh_nodal_t *dmesh_nodal
- )
+)
 {
   int n_rank, i_rank;
   PDM_MPI_Comm_rank(dcube->comm, &i_rank);
@@ -1606,7 +1606,7 @@ PDM_dcube_nodal_gen_create
  PDM_Mesh_nodal_elt_t  t_elt,
  const int             order,
  PDM_ownership_t       owner
- )
+)
 {
   int n_rank;
   int i_rank;
@@ -1628,7 +1628,11 @@ PDM_dcube_nodal_gen_create
   dcube->order  = order;
   dcube->owner  = owner;
 
+  dcube->dmesh_nodal = NULL;
   dcube->ordering = NULL;
+  dcube->distrib_bar  = NULL;
+  dcube->distrib_quad = NULL;
+  dcube->distrib_hexa = NULL;
 
   return dcube;
 }
@@ -1646,7 +1650,7 @@ void
 PDM_dcube_nodal_gen_free
 (
  PDM_dcube_nodal_t *dcube
- )
+)
 {
   if (dcube == NULL) {
     return;
@@ -1668,10 +1672,10 @@ PDM_dcube_nodal_gen_free
 void PDM_dcube_nodal_gen_ordering_set
 (
  PDM_dcube_nodal_t *dcube,
- char              *ordering
- )
+ const char        *ordering
+)
 {
-  dcube->ordering = ordering;
+  dcube->ordering = (char *) ordering;
 }
 
 
@@ -1679,7 +1683,7 @@ PDM_dmesh_nodal_t *
 PDM_dcube_nodal_gen_build
 (
  PDM_dcube_nodal_t *dcube
- )
+)
 {
   double t1 = PDM_MPI_Wtime();
 

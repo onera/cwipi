@@ -1788,49 +1788,49 @@ static REAL orient2dadapt
 
 
 
-static REAL orient2dexact(REAL *pa,
-                   REAL *pb,
-                   REAL *pc)
-{
-  INEXACT REAL axby1, axcy1, bxcy1, bxay1, cxay1, cxby1;
-  REAL axby0, axcy0, bxcy0, bxay0, cxay0, cxby0;
-  REAL aterms[4], bterms[4], cterms[4];
-  INEXACT REAL aterms3, bterms3, cterms3;
-  REAL v[8], w[12];
-  int vlength, wlength;
+// static REAL orient2dexact(REAL *pa,
+//                    REAL *pb,
+//                    REAL *pc)
+// {
+//   INEXACT REAL axby1, axcy1, bxcy1, bxay1, cxay1, cxby1;
+//   REAL axby0, axcy0, bxcy0, bxay0, cxay0, cxby0;
+//   REAL aterms[4], bterms[4], cterms[4];
+//   INEXACT REAL aterms3, bterms3, cterms3;
+//   REAL v[8], w[12];
+//   int vlength, wlength;
 
-  INEXACT REAL bvirt;
-  REAL avirt, bround, around;
-  INEXACT REAL c;
-  INEXACT REAL abig;
-  REAL ahi, alo, bhi, blo;
-  REAL err1, err2, err3;
-  INEXACT REAL _i, _j;
-  REAL _0;
+//   INEXACT REAL bvirt;
+//   REAL avirt, bround, around;
+//   INEXACT REAL c;
+//   INEXACT REAL abig;
+//   REAL ahi, alo, bhi, blo;
+//   REAL err1, err2, err3;
+//   INEXACT REAL _i, _j;
+//   REAL _0;
 
-  Two_Product(pa[0], pb[1], axby1, axby0);
-  Two_Product(pa[0], pc[1], axcy1, axcy0);
-  Two_Two_Diff(axby1, axby0, axcy1, axcy0,
-               aterms3, aterms[2], aterms[1], aterms[0]);
-  aterms[3] = aterms3;
+//   Two_Product(pa[0], pb[1], axby1, axby0);
+//   Two_Product(pa[0], pc[1], axcy1, axcy0);
+//   Two_Two_Diff(axby1, axby0, axcy1, axcy0,
+//                aterms3, aterms[2], aterms[1], aterms[0]);
+//   aterms[3] = aterms3;
 
-  Two_Product(pb[0], pc[1], bxcy1, bxcy0);
-  Two_Product(pb[0], pa[1], bxay1, bxay0);
-  Two_Two_Diff(bxcy1, bxcy0, bxay1, bxay0,
-               bterms3, bterms[2], bterms[1], bterms[0]);
-  bterms[3] = bterms3;
+//   Two_Product(pb[0], pc[1], bxcy1, bxcy0);
+//   Two_Product(pb[0], pa[1], bxay1, bxay0);
+//   Two_Two_Diff(bxcy1, bxcy0, bxay1, bxay0,
+//                bterms3, bterms[2], bterms[1], bterms[0]);
+//   bterms[3] = bterms3;
 
-  Two_Product(pc[0], pa[1], cxay1, cxay0);
-  Two_Product(pc[0], pb[1], cxby1, cxby0);
-  Two_Two_Diff(cxay1, cxay0, cxby1, cxby0,
-               cterms3, cterms[2], cterms[1], cterms[0]);
-  cterms[3] = cterms3;
+//   Two_Product(pc[0], pa[1], cxay1, cxay0);
+//   Two_Product(pc[0], pb[1], cxby1, cxby0);
+//   Two_Two_Diff(cxay1, cxay0, cxby1, cxby0,
+//                cterms3, cterms[2], cterms[1], cterms[0]);
+//   cterms[3] = cterms3;
 
-  vlength = fast_expansion_sum_zeroelim(4, aterms, 4, bterms, v);
-  wlength = fast_expansion_sum_zeroelim(vlength, v, 4, cterms, w);
+//   vlength = fast_expansion_sum_zeroelim(4, aterms, 4, bterms, v);
+//   wlength = fast_expansion_sum_zeroelim(vlength, v, 4, cterms, w);
 
-  return w[wlength - 1];
-}
+//   return w[wlength - 1];
+// }
 
 
 

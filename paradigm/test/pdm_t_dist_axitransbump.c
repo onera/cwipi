@@ -1696,6 +1696,7 @@ int main(int argc, char *argv[])
                         gface_vtx, all_tn_face, shift_face, PDM_MPI_INT,
                         PDM_MPI_COMM_WORLD);
     free (tface_vtx);
+    free (tface_vtx_idx);
 
     for (int i = 0; i < n_rank; i++) {
       for (int j = shift_face[i]; j < shift_face[i+1]; j++) {
@@ -1863,6 +1864,8 @@ int main(int argc, char *argv[])
       }
     }
 
+    free(gface_vtx);
+    free(gface_vtx_idx);
 
     free (gface_g_num);
     free (gvtx_coord);

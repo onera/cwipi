@@ -92,22 +92,22 @@ _read_args(int            argc,
 
 
 
-static void _check_ijk_to_ijk
-(
- const PDM_Mesh_nodal_elt_t  t_elt,
- const int                   order,
- int                        *ijk_to_user
- )
-{
-  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (t_elt, order);
-  for (int i = 0; i < n_nodes; i++) {
-    //assert(ijk_to_user[i] == i);
-    if (ijk_to_user[i] != i) {
-      printf("error for t_elt %d\n", (int) t_elt);
-      return;
-    }
-  }
-}
+// static void _check_ijk_to_ijk
+// (
+//  const PDM_Mesh_nodal_elt_t  t_elt,
+//  const int                   order,
+//  int                        *ijk_to_user
+//  )
+// {
+//   int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (t_elt, order);
+//   for (int i = 0; i < n_nodes; i++) {
+//     //assert(ijk_to_user[i] == i);
+//     if (ijk_to_user[i] != i) {
+//       printf("error for t_elt %d\n", (int) t_elt);
+//       return;
+//     }
+//   }
+// }
 
 /**
  *

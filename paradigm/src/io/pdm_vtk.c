@@ -138,7 +138,7 @@ _ijk_to_vtk
  const PDM_Mesh_nodal_elt_t elt_type,
  const int                  order,
  int                        idx[]
- )
+)
 {
   switch (elt_type) {
 
@@ -262,6 +262,13 @@ _ijk_to_vtk
     } else {
       PDM_error(__FILE__, __LINE__, 0, "HEXA VTK ordering not implemented for order %d\n", order);
     }
+    break;
+
+  case PDM_MESH_NODAL_POLY_2D:
+  case PDM_MESH_NODAL_PYRAMID5:
+  case PDM_MESH_NODAL_POLY_3D:
+  case PDM_MESH_NODAL_N_ELEMENT_TYPES:
+    PDM_error(__FILE__, __LINE__, 0, "HEXA VTK ordering not implemented for order %d\n", order);
     break;
   }
 }
@@ -1257,20 +1264,6 @@ PDM_vtk_write_std_elements_double
   fclose(f);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void
 PDM_vtk_write_std_elements_ho
 (
@@ -1306,10 +1299,10 @@ PDM_vtk_write_std_elements_ho
   }
 
   int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get (elt_type, order);
-  /*int *vtk_idx = malloc (sizeof(int) * n_vtx_elt);
-  _ijk_to_vtk (elt_type,
-                order,
-                vtk_idx);*/
+  if(0 == 1) {
+    int *vtk_idx = malloc (sizeof(int) * n_vtx_elt);
+    _ijk_to_vtk (elt_type, order, vtk_idx);
+  }
 
   fprintf(f, "CELLS %d %d\n", n_elt, n_elt * (1 + n_vtx_elt));
   for (int i = 0; i < n_elt; i++) {
