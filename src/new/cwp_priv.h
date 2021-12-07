@@ -27,9 +27,62 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+#include "cwp.h" 
+
 /*=============================================================================
  * Macro definitions
  *============================================================================*/
+
+/*============================================================================
+ * Suppress warning
+ *============================================================================*/
+
+#if defined(__INTEL_COMPILER)
+#define CWP_PRAGMA_TO_STR(x) _Pragma(#x)
+#define CWP_INTEL_SUPPRESS_WARNING_PUSH _Pragma("warning(push)")
+#define CWP_INTEL_SUPPRESS_WARNING(w) CWP_PRAGMA_TO_STR(warning(disable:w))
+#define CWP_INTEL_SUPPRESS_WARNING_POP _Pragma("warning(pop)")
+#define CWP_INTEL_SUPPRESS_WARNING_WITH_PUSH(w)                                                \
+    CWP_INTEL_SUPPRESS_WARNING_PUSH CWP_INTEL_SUPPRESS_WARNING(w)
+#else // CWP_INTEL
+#define CWP_INTEL_SUPPRESS_WARNING_PUSH
+#define CWP_INTEL_SUPPRESS_WARNING(w)
+#define CWP_INTEL_SUPPRESS_WARNING_POP
+#define CWP_INTEL_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif // CWP_INTEL
+
+#if defined(__clang__)
+#define CWP_PRAGMA_TO_STR(x) _Pragma(#x)
+#define CWP_CLANG_SUPPRESS_WARNING_PUSH _Pragma("clang diagnostic push")
+#define CWP_CLANG_SUPPRESS_WARNING(w) CWP_PRAGMA_TO_STR(clang diagnostic ignored w)
+#define CWP_CLANG_SUPPRESS_WARNING_POP _Pragma("clang diagnostic pop")
+#define CWP_CLANG_SUPPRESS_WARNING_WITH_PUSH(w)                                                \
+    CWP_CLANG_SUPPRESS_WARNING_PUSH CWP_CLANG_SUPPRESS_WARNING(w)
+#else // CWP_CLANG
+#define CWP_CLANG_SUPPRESS_WARNING_PUSH
+#define CWP_CLANG_SUPPRESS_WARNING(w)
+#define CWP_CLANG_SUPPRESS_WARNING_POP
+#define CWP_CLANG_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif // CWP_CLANG
+
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+#define CWP_PRAGMA_TO_STR(x) _Pragma(#x)
+#define CWP_GCC_SUPPRESS_WARNING_PUSH _Pragma("GCC diagnostic push")
+#define CWP_GCC_SUPPRESS_WARNING(w) CWP_PRAGMA_TO_STR(GCC diagnostic ignored w)
+#define CWP_GCC_SUPPRESS_WARNING_POP _Pragma("GCC diagnostic pop")
+#define CWP_GCC_SUPPRESS_WARNING_WITH_PUSH(w)                                                  \
+    CWP_GCC_SUPPRESS_WARNING_PUSH CWP_GCC_SUPPRESS_WARNING(w)
+#else // CWP_GCC
+#define CWP_GCC_SUPPRESS_WARNING_PUSH
+#define CWP_GCC_SUPPRESS_WARNING(w)
+#define CWP_GCC_SUPPRESS_WARNING_POP
+#define CWP_GCC_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif // DOCTEST_GCC
+
+#define CWP_UNUSED(x) (void)(x)  
+
+CWP_GCC_SUPPRESS_WARNING("-Wcast-qual")
+CWP_GCC_SUPPRESS_WARNING("-Wunknown-pragmas")
 
 /*============================================================================
  * Type

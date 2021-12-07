@@ -116,7 +116,7 @@ namespace cwipi {
     void updateLocation();
 
     void setLocationIndex(const int index);
-    void openLocationFile(char *file, const char *moderwa);
+    void openLocationFile(const char *file, const char *moderwa);
     void closeLocationFile();
     void saveLocation();
     void loadLocation();

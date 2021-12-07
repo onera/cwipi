@@ -84,6 +84,7 @@ surfMeshGenerator* surfMeshGeneratorDB::memberGet(string genName)
        ++itr;
     }
   }
+  return nullptr;
 }
 
 

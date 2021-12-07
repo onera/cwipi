@@ -38,6 +38,7 @@
  *   status              <-- Exchange status
  *---------------------------------------------------------------------*/
 
+CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wunused-function")
 static void _dumpStatus(FILE* outputFile, CWP_Status_t status)
 {
   switch(status) {
@@ -52,6 +53,7 @@ static void _dumpStatus(FILE* outputFile, CWP_Status_t status)
     exit(1);
   }
 }
+CWP_GCC_SUPPRESS_WARNING_POP
 
 /*----------------------------------------------------------------------
  *
@@ -140,30 +142,79 @@ _read_args(int            argc,
 
 //double *shapef = NULL;
 
-static void _userInterpolation(const int                   interface_type,
-                               const int                   n_src_vtcs,
-                               const int                   n_src_std_elts,
-                          //   const int                   n_src_poly,
-                               const int                   n_tgt_pts,
-                               const double                src_vtcs_coords[],
-                               const int                   src_connec_idx[],
-                               const int                   src_connec[],
-                               const double                tgt_pts_coords[],
-                               const int                   tgt_pts_target_location[],
-                               const float                 tgt_pts_dist[],
-                               const int                   tgt_pts_bary_coords_idx[],
-                               const double                tgt_pts_bary_coords[],
-                               const int                   stride,
-                               const CWP_Dof_location_t     src_field_location,
-                               const void                 *src_field,
-                               const CWP_Dof_location_t     tgt_field_location,
-                               void                       *tgt_field
-                              )
+static void _userInterpolation(
+ const int                   interface_type,
+ const int                   n_src_vtcs,
+ const int                   n_src_std_elts,
+ const int                  n_src_poly,
+ const int                   n_tgt_pts,
+ const double                src_vtcs_coords[],
+ const CWP_g_num_t          src_global_elts_num[],
+ const CWP_g_num_t         src_global_vtcs_num[],
+ const int                   src_connec_idx[],
+ const int                   src_connec[],
+ const int                 src_poly_cell_face_idx[],
+ const int                 src_poly_cell_face_connec[],
+ const int                 src_poly_face_vtx_idx[],
+ const int                  src_poly_face_vtx_connec[],
+ const double                tgt_pts_coords[],
+ const int                   tgt_pts_target_location[],
+ const double                tgt_pts_dist[],
+ const int                   tgt_pts_bary_coords_idx[],
+ const double                tgt_pts_bary_coords[],
+ const int                   stride,
+ const CWP_Dof_location_t     src_field_location,
+ const void                 *src_field,
+ const CWP_Dof_location_t     tgt_field_location,
+ void                       *tgt_field
+)
+  // const int                   interface_type,
+  //                              const int                   n_src_vtcs,
+  //                              const int                   n_src_std_elts,
+  //                         //   const int                   n_src_poly,
+  //                              const int                   n_tgt_pts,
+  //                              const double                src_vtcs_coords[],
+  //                              const int                   src_connec_idx[],
+  //                              const int                   src_connec[],
+  //                              const double                tgt_pts_coords[],
+  //                              const int                   tgt_pts_target_location[],
+  //                              const float                 tgt_pts_dist[],
+  //                              const int                   tgt_pts_bary_coords_idx[],
+  //                              const double                tgt_pts_bary_coords[],
+  //                              const int                   stride,
+  //                              const CWP_Dof_location_t     src_field_location,
+  //                              const void                 *src_field,
+  //                              const CWP_Dof_location_t     tgt_field_location,
+  //                              void                       *tgt_field
+  //                             )
 {
+  CWP_UNUSED (n_src_poly);
+  CWP_UNUSED (src_global_elts_num);
+  CWP_UNUSED (src_global_vtcs_num);
+  CWP_UNUSED (src_poly_cell_face_idx);
+  CWP_UNUSED (src_poly_cell_face_connec);
+  CWP_UNUSED (src_poly_face_vtx_idx);
+  CWP_UNUSED (src_poly_face_vtx_connec);
+
+
+  CWP_UNUSED (interface_type);
+  CWP_UNUSED (n_src_vtcs);
+  CWP_UNUSED (n_tgt_pts);
+  CWP_UNUSED (src_vtcs_coords);
+  CWP_UNUSED (src_connec_idx);
+  CWP_UNUSED (src_connec);
+  CWP_UNUSED (tgt_pts_coords);
+  CWP_UNUSED (tgt_pts_dist);
+  CWP_UNUSED (tgt_pts_bary_coords_idx);
+  CWP_UNUSED (tgt_pts_bary_coords);
+  CWP_UNUSED (stride);
+  CWP_UNUSED (src_field_location);
+  CWP_UNUSED (src_field);
+  CWP_UNUSED (tgt_field_location);
 
   // Compute shapef
 
-  int compute_shape_f = 0;
+  // int compute_shape_f = 0;
 
   if ( src_field_location == CWP_DOF_LOCATION_NODE ) {
 
@@ -172,19 +223,19 @@ static void _userInterpolation(const int                   interface_type,
     for (int i = 0; i < n_tgt_pts; i++) {
 
       int ielt = tgt_pts_target_location[i];
-      int ivertex[4];
+      // int ivertex[4];
 
-      ivertex[0] = src_connec[src_connec_idx[ielt]  ] ;
-      ivertex[1] = src_connec[src_connec_idx[ielt]+1] ;
-      ivertex[2] = src_connec[src_connec_idx[ielt]+2] ;
-      ivertex[3] = src_connec[src_connec_idx[ielt]+3] ;
+      // ivertex[0] = src_connec[src_connec_idx[ielt]  ] ;
+      // ivertex[1] = src_connec[src_connec_idx[ielt]+1] ;
+      // ivertex[2] = src_connec[src_connec_idx[ielt]+2] ;
+      // ivertex[3] = src_connec[src_connec_idx[ielt]+3] ;
 
      // if (shapef == NULL) {
         double *shapef = (double *) malloc(4 * n_src_std_elts * sizeof(double));
-        compute_shape_f = 1;
+     //   compute_shape_f = 1;
      // }
       double *shapef_elt = shapef + 4 * ielt;
-
+      CWP_UNUSED (shapef_elt);
       //
     //  printf(" Compute shape function %i %i\n",i,n_tgt_pts);
       //
@@ -355,20 +406,20 @@ int main
    * -------------- */
 
   int n_code_name = 0;
-  char **codeName = NULL;
+  const char **codeName = NULL;
   double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
 
-  char **codeCoupledName = NULL;
-  int codeId;
+  const char **codeCoupledName = NULL;
+  //int codeId;
 
   int rankCode1[ commWorldSize];
   int rankCode2[ commWorldSize];
 
 
+  //int nsize = commWorldSize;
+  //int nranks[nsize];
   //Random distribution of codes on processes.
-  int nsize = commWorldSize;
-  int nranks[nsize];
 
   if(rank==0){
     time_t t;
@@ -399,17 +450,17 @@ int main
 
     for(int i=0; i < commWorldSize; i++) {
       if(rankCode1[i] == 0 && rankCode2[i] == 0){
-        int t = rand()%commWorldSize;
+        int t1 = rand()%commWorldSize;
         while(!(rankCode1[t] == 1 && rankCode2[t] == 1)){
-          t = rand()%commWorldSize;
+          t1 = rand()%commWorldSize;
         }
         int h12 = rand()%2;
         if(h12 ==0) {
-          rankCode1[t] = 0;
+          rankCode1[t1] = 0;
           rankCode1[i] = 1;
         }
         else {
-          rankCode2[t] = 0;
+          rankCode2[t1] = 0;
           rankCode2[i] = 1;
         }
       }
@@ -433,7 +484,7 @@ int main
     int ind=0;
     for(int i=0; i < commWorldSize; i++) {
       if(rankCode2[i] || rankCode1[i]){
-       nranks[ind]=i;
+//       nranks[ind]=i;
        ind++;
       }
     }
@@ -443,7 +494,7 @@ int main
   } // if rank==0
 
 
-  int nsizercv=nsize;
+  //int nsizercv=nsize;
 
   int rankCode1Rcv = -1;
   int rankCode2Rcv = -1;
@@ -658,7 +709,7 @@ int main
         coords           [i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nVertex[i_code][i_part] );
         eltsConnecPointer[i_code][i_part] = (int *)    malloc(sizeof(int) * (nElts[i_code][i_part] + 1));
         eltsConnec       [i_code][i_part] = (int *)    malloc(sizeof(int) * 4 * nElts[i_code][i_part]);
-        if(codeName[i_code]=="code1") {
+        if(!strcmp(codeName[i_code],"code1")) {
           double xminPart = xmin + xSegPart * v;
           double yminPart = ymin + ySegPart * u;
           double xmaxPart = xminPart + xSegPart;
@@ -693,7 +744,7 @@ int main
       for(int v=0;v<nbPartSeg[i_code];v++) {
         int i_part = nbPartSeg[i_code] * u + v;
         int nVertexSegPart = nVertexSeg/nbPartSeg[i_code];
-        if(codeName[i_code]=="code2") {
+        if(!strcmp(codeName[i_code], "code2")) {
           double xminPart = xmin + xSegPart * v;
           double yminPart = ymin + ySegPart * u;
           double xmaxPart = xminPart + xSegPart;
@@ -718,8 +769,8 @@ int main
   } // loop on codes
 
 
-  fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
-  fprintf(outputFile, "   Number of elements : %i\n", nElts);
+  //fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
+  //fprintf(outputFile, "   Number of elements : %i\n", nElts);
 
   for(int i_code = 0; i_code < n_code_name; i_code++) {
     for(int i_part=0;i_part<nbPart[i_code];i_part++)  {
@@ -779,7 +830,7 @@ int main
   int nbPoints = 3;
   int** nbPointsUser = (int **) malloc(sizeof(int*) * n_code_name);
 
-  double*** coordsPointsUser = (int ***) malloc(sizeof(int**) * n_code_name);
+  double*** coordsPointsUser = (double ***) malloc(sizeof(double**) * n_code_name);
 
   for(int i_code = 0; i_code < n_code_name; i_code++) {
     sendValues[i_code] = (double **) malloc(sizeof(double*) * nbPart[i_code]);
@@ -795,7 +846,7 @@ int main
     coordsPointsUser[i_code] = (double **) malloc(sizeof(double*) * nbPart[i_code]);
     for(int i_part=0;i_part<nbPart[i_code];i_part++)  {
 
-      if (codeName[i_code] == "code1") {
+      if (!strcmp(codeName[i_code],"code1")) {
         sendValues[i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);
         sendValues2[i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);
         sendValues3[i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);
@@ -852,26 +903,27 @@ int main
   int code7I = 1;
 
 
-  int nNotLocatedPoints = 0;
-  char *fieldName1;
-  char *fieldName2;
-  char *fieldName3;
+  // int nNotLocatedPoints = 0;
+  const char *fieldName1;
+  const char *fieldName2;
+  const char *fieldName3;
   fieldName1 = "cooX";
   fieldName2 = "rank";
   fieldName3 = "userField";
-  char *fieldName4 = "userInterpolation";
-  char *fieldName5 = "sendRecvField";
-  char *fieldName6 = "part";
-  char *fieldName7 = "num";
+  const char *fieldName4 = "userInterpolation";
+  const char *fieldName5 = "sendRecvField";
+  const char *fieldName6 = "part";
+  const char *fieldName7 = "num";
 
-  CWP_Status_t visu_status = CWP_STATUS_OFF;
+  // CWP_Status_t visu_status = CWP_STATUS_OFF;
 
   printf("        Field %i\n",rank);
 
-  CWP_Field_map_t map_type;
+  // CWP_Field_map_t map_type;
+
 
   for(int i_code = 0; i_code < n_code_name; i_code++) {
-    if (codeName[i_code] == "code1") {
+    if (!strcmp(codeName[i_code],"code1")) {
 
      if(code1I==1)  CWP_Field_create (codeName[i_code],
                        "c_new_api_surf_cpl_P1P0_P0P1_part",
@@ -914,7 +966,7 @@ int main
                        CWP_FIELD_EXCH_RECV,
                        CWP_STATUS_ON);
      if(code3I==1)
-     CWP_Field_create (codeName[i_code],
+       CWP_Field_create (codeName[i_code],
                        "c_new_api_surf_cpl_P1P0_P0P1_part",
                        fieldName3,
                        CWP_DOUBLE,
@@ -936,8 +988,8 @@ int main
                        CWP_FIELD_EXCH_SEND,
                        CWP_STATUS_ON);
 
-    if(code5I==1)
-     CWP_Field_create (codeName[i_code],
+    if(code5I == 1 )
+      CWP_Field_create (codeName[i_code],
                        "c_new_api_surf_cpl_P1P0_P0P1_part",
                        fieldName5,
                        CWP_DOUBLE,
@@ -958,7 +1010,12 @@ int main
        if(code5I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5,i_part, CWP_FIELD_MAP_TARGET, Values2Vertex[i_code][i_part]);
      }
 
-     if(code4I==1) CWP_Interp_from_location_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4,_userInterpolation);
+     if(code4I==1) {
+      CWP_Interp_from_location_set(codeName[i_code],
+                                   "c_new_api_surf_cpl_P1P0_P0P1_part",
+                                   fieldName4,
+                                   _userInterpolation);
+     }
 
     }
     else {
@@ -1081,7 +1138,7 @@ int main
 
     CWP_next_recv_time_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",recv_time);
 
-    if (codeName[i_code] == "code1") {
+    if (!strcmp(codeName[i_code],"code1")) {
       if(code1I==1) CWP_Field_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);
       if(code1I==1) CWP_Field_wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);
 
@@ -1108,7 +1165,7 @@ int main
 
   for(int i_code = 0; i_code < n_code_name; i_code++) {
 
-    if (codeName[i_code] == "code1") {
+    if (!strcmp(codeName[i_code],"code1")) {
       if(code2I==1) CWP_Field_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);
       if(code2I==1) CWP_Field_wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);
 
@@ -1123,7 +1180,7 @@ int main
 
   for(int i_code = 0; i_code < n_code_name; i_code++) {
 
-    if (codeName[i_code] == "code1") {
+    if (!strcmp(codeName[i_code],"code1")) {
 
       if(code3I==1) CWP_Field_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);
       if(code3I==1) CWP_Field_wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);
@@ -1138,7 +1195,7 @@ int main
   MPI_Barrier(MPI_COMM_WORLD);
 
   for(int i_code = 0; i_code < n_code_name; i_code++) {
-    if (codeName[i_code] == "code1") {
+    if (!strcmp(codeName[i_code],"code1")) {
       if(code4I==1) CWP_Field_issend      (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4);
       if(code4I==1) CWP_Field_wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4);
     }
@@ -1151,7 +1208,7 @@ int main
   MPI_Barrier(MPI_COMM_WORLD);
 
   for(int i_code = 0; i_code < n_code_name; i_code++) {
-    if (codeName[i_code] == "code1") {
+    if (!strcmp(codeName[i_code],"code1")) {
       if(code5I==1) CWP_Field_irecv      (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);
       if(code5I==1) CWP_Field_wait_irecv (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);
     }
@@ -1171,7 +1228,7 @@ int main
    * ----------------- */
 
   //if (rank == 0)
-   printf("        Delete mesh\n",rank);
+   printf("        Delete mesh\n");
    MPI_Barrier(MPI_COMM_WORLD);
   for(int i_code = 0; i_code < n_code_name; i_code++)
      CWP_Mesh_interf_del(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part");

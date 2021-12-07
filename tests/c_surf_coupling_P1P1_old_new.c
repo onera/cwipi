@@ -10,6 +10,7 @@
 
 #include "cwipi.h"
 #include "cwp.h"
+#include "cwp_priv.h"
 
 #include "pdm_poly_surf_gen.h"
 #include "pdm_part.h"
@@ -166,6 +167,8 @@ _read_args(int             argc,
  *
  * \return          faceVtx connectivity for each partition of each mesh
  */
+
+CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wunused-function")
 
 static void
 _compute_faceVtx
@@ -358,6 +361,7 @@ _compute_faceVtx
   }
 
 }
+CWP_GCC_SUPPRESS_WARNING_POP
 
 
 static void
@@ -976,8 +980,8 @@ int main
   int n_part = 1;
   int n_code = 1;
   int code_id;
-  char **code_name = malloc (sizeof(char *) * n_code);
-  char **coupled_code_name = malloc (sizeof(char *) * n_code);
+  const char **code_name = malloc (sizeof(char *) * n_code);
+  const char **coupled_code_name = malloc (sizeof(char *) * n_code);
   CWP_Status_t *is_active_rank = malloc (sizeof(CWP_Status_t) * n_code);
   double *time_init = malloc (sizeof(double) * n_code);
 
@@ -1020,7 +1024,7 @@ int main
   /*
    *  Create coupling
    */
-  char *coupling_name = "c_surf_cpl_P1P1";
+  const char *coupling_name = "c_surf_cpl_P1P1";
 
   if (version == CWP_VERSION_OLD) {
     cwipi_create_coupling (coupling_name,                             // Coupling id
@@ -1176,8 +1180,8 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
   double *send_val = NULL;
   double *recv_val = NULL;
 
-  char *field_name = "cooX";
-  char *field_name2 = "coocooY";
+  const char *field_name = "cooX";
+  const char *field_name2 = "coocooY";
 
   if (code_id == 1) {
     send_val = (double *) malloc (sizeof(double) * nVtx[0]);
@@ -1462,7 +1466,7 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
   PDM_timer_hang_on (timer);
   t_end = PDM_timer_elapsed (timer);
   exch_time1 = t_end - t_start;
-  max_exch_time1;
+  CWP_UNUSED (max_exch_time1);
   t_start = t_end;
   MPI_Reduce (&exch_time1, &max_exch_time1, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
   PDM_timer_resume (timer);
@@ -1496,7 +1500,7 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
   PDM_timer_hang_on (timer);
   t_end = PDM_timer_elapsed (timer);
   exch_time = t_end - t_start;
-   max_exch_time;
+  CWP_UNUSED (max_exch_time1);
   MPI_Reduce (&exch_time, &max_exch_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
   if (rank == 0) {

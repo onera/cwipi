@@ -261,6 +261,22 @@ PDM_part_to_block_block_gnum_get
  PDM_part_to_block_t *ptb
 );
 
+/**
+ *
+ * \brief Return numbers of occurence of each gnum element in the current process
+ *
+ * \param [in]   ptb          Part to block structure
+ *
+ * \return  Global numbers counter
+ *
+ */
+
+int *
+PDM_part_to_block_block_gnum_count_get
+(
+ PDM_part_to_block_t *ptb
+);
+
 
 /**
  *

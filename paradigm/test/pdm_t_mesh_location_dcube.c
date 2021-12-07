@@ -821,7 +821,7 @@ int main(int argc, char *argv[])
 
       //printf("%d: ("PDM_FMT_G_NUM") | ("PDM_FMT_G_NUM")\n", ipt, p_location[ipt], box_gnum);
       if (p_location[ipt] != box_gnum) {
-        double *cp = p_proj_coord + 3*ipt;
+        // double *cp = p_proj_coord + 3*ipt;
         /*printf("%d ("PDM_FMT_G_NUM") (%.15lf %.15lf %.15lf): ("PDM_FMT_G_NUM") | ("PDM_FMT_G_NUM") proj : (%.15lf %.15lf %.15lf)\n",
                ipt, pts_gnum[ipt],
                p[0], p[1], p[2],

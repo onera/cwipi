@@ -47,6 +47,7 @@ cdef extern from "pdm_dmesh_nodal.h":
     PDM_g_num_t*         PDM_dmesh_nodal_vtx_distrib_copy_get(PDM_dmesh_nodal_t *dmesh_nodal)
     int                  PDM_DMesh_nodal_section_add(PDM_dmesh_nodal_t* dmn, PDM_geometry_kind_t geom_kind, PDM_Mesh_nodal_elt_t t_elt)
 
+    void                 PDM_DMesh_nodal_update_ownership(PDM_dmesh_nodal_t* dmn, PDM_ownership_t owner)
     void                 PDM_DMesh_nodal_section_std_set(PDM_dmesh_nodal_t* dmn,
                                                                             PDM_geometry_kind_t geom_kind,
                                                                             int                 id_section,
@@ -316,6 +317,7 @@ def dmesh_nodal_get_vtx(DMeshNodal pydmn, MPI.Comm    comm):
   cdef NPY.npy_intp          dim
   # ************************************************************************
 
+  PDM_DMesh_nodal_update_ownership(pydmn.dmn, PDM_OWNERSHIP_USER)
   vtx_distrib = PDM_dmesh_nodal_vtx_distrib_copy_get(pydmn.dmn)
   n_vtx = PDM_DMesh_nodal_n_vtx_get(pydmn.dmn);
   vtx_coord = PDM_DMesh_nodal_vtx_get(pydmn.dmn)
@@ -355,6 +357,7 @@ def dmesh_nodal_get_sections(DMeshNodal          pydmn,
   cdef NPY.npy_intp          dim
   # ************************************************************************
 
+  PDM_DMesh_nodal_update_ownership(pydmn.dmn, PDM_OWNERSHIP_USER)
   n_section  = PDM_DMesh_nodal_n_section_get(pydmn.dmn, geom_kind)
   section_id = PDM_DMesh_nodal_sections_id_get(pydmn.dmn, geom_kind)
 
@@ -410,6 +413,7 @@ def dmesh_nodal_get_group(DMeshNodal pydmn, PDM_geometry_kind_t geom_kind):
   cdef NPY.npy_intp          dim
   # ************************************************************************
 
+  PDM_DMesh_nodal_update_ownership(pydmn.dmn, PDM_OWNERSHIP_USER)
   PDM_DMesh_nodal_section_group_elmt_get(pydmn.dmn, geom_kind, &n_group, &dgroup_elmt_idx, &dgroup_elmt);
 
   dim = <NPY.npy_intp> n_group + 1

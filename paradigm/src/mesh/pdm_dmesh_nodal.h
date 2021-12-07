@@ -300,6 +300,13 @@ PDM_DMesh_nodal_section_add
 const PDM_Mesh_nodal_elt_t  t_elt
 );
 
+void
+PDM_DMesh_nodal_update_ownership
+(
+ PDM_dmesh_nodal_t   *dmesh_nodal,
+ PDM_ownership_t      owner
+);
+
 
 /**
  * \brief Define a standard section

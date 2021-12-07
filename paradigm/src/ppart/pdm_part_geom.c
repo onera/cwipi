@@ -25,6 +25,7 @@
 #include "pdm_logging.h"
 #include "pdm_vtk.h"
 #include "pdm_partitioning_algorithm.h"
+#include "pdm_dgeom_elem.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,79 +45,6 @@ extern "C" {
 /*============================================================================
  * Private function definitions
  *============================================================================*/
-
-
-
-
-
-static
-void
-_compute_center_from_descending_connectivity
-(
-  const int            *dentity1_entity2_idx,
-  const PDM_g_num_t    *dentity1_entity2,
-  const int             dn_entity1,
-  const PDM_g_num_t    *dentity2_distrib,
-  double               *dentity1_coord,
-  double               *dentity2_coord,
-  PDM_MPI_Comm          comm
-)
-{
-  int *dentity1_entity2_sgn = malloc(dentity1_entity2_idx[dn_entity1] * sizeof(int));
-  PDM_g_num_t *dentity1_entity2_abs = malloc(dentity1_entity2_idx[dn_entity1] * sizeof(PDM_g_num_t));
-  for(int i = 0; i < dentity1_entity2_idx[dn_entity1]; ++i) {
-    dentity1_entity2_sgn[i] = PDM_SIGN(dentity1_entity2[i]);
-    dentity1_entity2_abs[i] = PDM_ABS (dentity1_entity2[i]);
-  }
-  PDM_block_to_part_t *btp_entity1_coord = PDM_block_to_part_create (dentity2_distrib,
-                                              (const PDM_g_num_t **) &dentity1_entity2_abs,
-                                                                     &dentity1_entity2_idx[dn_entity1],
-                                                                     1,
-                                                                     comm);
-  /*for(int i = 0; i < dentity1_entity2_idx[dn_entity1]; ++i) {
-    dentity1_entity2[i]     = dentity1_entity2[i]*dentity1_entity2_sgn[i];
-    }*/
-  free(dentity1_entity2_sgn);
-  free(dentity1_entity2_abs);
-
-  int strid_one = 1;
-  double **tmp_entity1_entity2_coord;
-  PDM_block_to_part_exch2 (btp_entity1_coord,
-                           3 * sizeof(double),
-                           PDM_STRIDE_CST,
-                           &strid_one,
-                  (void *) dentity2_coord,
-                           NULL,
-                (void ***) &tmp_entity1_entity2_coord);
-  double *dentity1_entity2_coord = tmp_entity1_entity2_coord[0];
-  free(tmp_entity1_entity2_coord);
-  PDM_block_to_part_free(btp_entity1_coord);
-
-  for(int i_entity1 = 0; i_entity1 < dn_entity1; ++i_entity1) {
-    dentity1_coord[3*i_entity1  ] = 0.;
-    dentity1_coord[3*i_entity1+1] = 0.;
-    dentity1_coord[3*i_entity1+2] = 0.;
-    int n_entity2_per_entity1 = dentity1_entity2_idx[i_entity1+1] - dentity1_entity2_idx[i_entity1];
-    double inv = 1./n_entity2_per_entity1;
-    for(int idx_entity2 = dentity1_entity2_idx[i_entity1]; idx_entity2 < dentity1_entity2_idx[i_entity1+1]; ++idx_entity2) {
-      dentity1_coord[3*i_entity1  ] += dentity1_entity2_coord[3*idx_entity2  ];
-      dentity1_coord[3*i_entity1+1] += dentity1_entity2_coord[3*idx_entity2+1];
-      dentity1_coord[3*i_entity1+2] += dentity1_entity2_coord[3*idx_entity2+2];
-    }
-    dentity1_coord[3*i_entity1  ] = dentity1_coord[3*i_entity1  ]*inv;
-    dentity1_coord[3*i_entity1+1] = dentity1_coord[3*i_entity1+1]*inv;
-    dentity1_coord[3*i_entity1+2] = dentity1_coord[3*i_entity1+2]*inv;
-
-  }
-  free(dentity1_entity2_coord);
-
-
-}
-
-
-
-
-
 
 /**
  *
@@ -235,13 +163,13 @@ PDM_dcompute_cell_center
   free (pface_vtx);
 
   /* Compute cell centers */
-  _compute_center_from_descending_connectivity (dcell_face_idx,
-                                                dcell_face,
-                                                dn_cell,
-                                                distrib_face,
-                                                cell_center,
-                                                dface_center,
-                                                comm);
+  PDM_compute_center_from_descending_connectivity (dcell_face_idx,
+                                                   dcell_face,
+                                                   dn_cell,
+                                                   distrib_face,
+                                                   cell_center,
+                                                   dface_center,
+                                                   comm);
   free (dface_center);
   free (distrib_face);
 }

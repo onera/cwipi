@@ -202,7 +202,7 @@ namespace cwipi {
 
     std::vector<double> &vertexField = *_tmpVertexField;
 
-    for (int i = 0; i < vertexField.size(); i++)
+    for (size_t i = 0; i < vertexField.size(); i++)
       vertexField[i] = 0.;
 
     // TODO: Faire l'allocation qu'une fois comme _tmpVertexField
@@ -265,7 +265,7 @@ namespace cwipi {
 
           int ivertex = -1;
 
-          for (int j1 = 0; j1 < vertexPoly.size(); j1++) {
+          for (size_t j1 = 0; j1 < vertexPoly.size(); j1++) {
             if (ivertex < vertexPoly[j1]) {
               ivertex = vertexPoly[j1];
               volumeVertex[ivertex - 1] += cellVolume[i];
@@ -337,12 +337,12 @@ namespace cwipi {
 
       delete _supportMesh;
 
-      for (int i = 0; i < _tablelocationToDistantMesh.size(); i++)
+      for (size_t i = 0; i < _tablelocationToDistantMesh.size(); i++)
         delete _tablelocationToDistantMesh[i]; // libère chaque _tablelocationToDistantMesh
       _tablelocationToDistantMesh.clear();     // vide le vecteur
       delete &_tablelocationToDistantMesh;     // pour libère le new std::vector du constructeur
 
-      for (int i = 0; i < _tablelocationToLocalMesh.size(); i++)
+      for (size_t i = 0; i < _tablelocationToLocalMesh.size(); i++)
         delete _tablelocationToLocalMesh[i];
       _tablelocationToLocalMesh.clear();
       delete &_tablelocationToLocalMesh;
@@ -734,7 +734,7 @@ namespace cwipi {
                               {0., 0., 0., 0.}};
             double b[4] = {0., 0., 0., 0.};
 
-            for (int j = 0; j < vertexPoly.size(); j++) {
+            for (size_t j = 0; j < vertexPoly.size(); j++) {
               if (iVertex < vertexPoly[j]) {
                 iVertex = vertexPoly[j];
                 v_x = coords[3*iVertex];
@@ -912,7 +912,7 @@ namespace cwipi {
   }
 
 
-  void oldCoupling::openLocationFile(char *file, const char *moderwa)
+  void oldCoupling::openLocationFile(const char *file, const char *moderwa)
   {
 
     int mode = MPI_MODE_CREATE+MPI_MODE_WRONLY;
@@ -1069,7 +1069,7 @@ namespace cwipi {
       il_position = 0;
       int nLocPts;
       il_position += fvmc_locator_unpack_elem((void *)&copybuf[il_position],(void *)&nLocPts,sizeof(int));
-      if (_distance.size() != nLocPts)
+      if ((int) _distance.size() != nLocPts)
         _distance.resize(nLocPts);
       il_position += fvmc_locator_unpack_elem((void *)&copybuf[il_position],(void *)&(_distance[0]),nLocPts*sizeof(float));
 
@@ -1221,7 +1221,7 @@ namespace cwipi {
         _tmpDistantField = new std::vector<double> (lDistantField);
 
       std::vector<double>& tmpDistantField = *_tmpDistantField;
-      if (tmpDistantField.size() < lDistantField)
+      if ((int) tmpDistantField.size() < lDistantField)
         tmpDistantField.resize(lDistantField);
 
       //
@@ -2272,7 +2272,7 @@ namespace cwipi {
 
     int nLocPts = getNLocatedPoint();
 
-    if (_distance.size() != nLocPts)
+    if ((int) _distance.size() !=  nLocPts)
       _distance.resize(nLocPts);
 
     if (_isCoupledRank) {

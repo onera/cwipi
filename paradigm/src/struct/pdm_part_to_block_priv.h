@@ -85,6 +85,8 @@ struct _pdm_part_to_block_t {
   int                         n_elt_block ;         /*!< Number of element in current block */
   PDM_g_num_t                *block_gnum;           /*!< Sorted Global number of
                                                          reveived data (size = block_n_elt) */
+  int                        *block_gnum_count;     /*!< Number of occurence of each gnum in partitions
+                                                         (size = block_n_elt) */
 
   double                    **weight_g;             /*!< Global weights of elements for any part */
 

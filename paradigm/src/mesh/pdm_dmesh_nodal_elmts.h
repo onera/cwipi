@@ -60,6 +60,13 @@ const PDM_Mesh_nodal_elt_t     t_elt
 );
 
 void
+PDM_DMesh_nodal_elmts_update_ownership
+(
+  PDM_dmesh_nodal_elmts_t *dmn_elts,
+  PDM_ownership_t          owner
+);
+
+void
 PDM_DMesh_nodal_elmts_section_std_set
 (
 PDM_dmesh_nodal_elmts_t *dmn_elts,

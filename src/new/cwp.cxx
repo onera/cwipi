@@ -31,8 +31,10 @@
 /*----------------------------------------------------------------------------
  * FVM library headers
  *----------------------------------------------------------------------------*/
-#include <fvmc_parall.h>
-#include <fvmc_nodal.h>
+
+#include "fvmc_parall.h"
+#include "fvmc_nodal.h"
+#include "cwp_priv.h"
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -154,23 +156,6 @@ _is_active_rank
    return properties.isActiveRank();
 }
 
-static bool
-_cpl_exist
-(
- const char *local_code_name,
- const char *cpl_id
- )
-{
-  cwipi::CouplingDB & couplingDB =
-    cwipi::CouplingDB::getInstance();
-
-  cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
-
-   const string &cpl_name_str = cpl_id;
-   return couplingDB.couplingIs(properties.codePropertiesGet(string(local_code_name)),
-                             cpl_name_str);
-}
 
 static cwipi::Coupling&
 _cpl_get
@@ -700,6 +685,10 @@ CWP_Field_exch
 {
   //TODO: Voir comment enchainer les appels, voir comment prendre en compte l'interpolation temporelle
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  CWP_UNUSED(cpl);
+  printf("CWP_Field_exch : Not implemented yet\n");
+  abort();
+
   // cpl.exchange();
 }
 
@@ -834,7 +823,13 @@ CWP_Computed_tgts_dist_to_spatial_interp_get
   const char *local_code_name,
   const char *cpl_id
 )
+
 {
+  CWP_UNUSED (local_code_name);
+  CWP_UNUSED (cpl_id);
+  printf("CWP_Computed_tgts_dist_to_spatial_interp_get : Not implemented yet\n");
+  abort();
+  return nullptr;
   // TODO
 }
 
@@ -1076,7 +1071,7 @@ CWP_Mesh_interf_vtx_set
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  block_type       Block type
  *
- * \return block identifier
+ * \return block identifier (-1 if not added)
  */
 
 int
@@ -1087,11 +1082,12 @@ CWP_Mesh_interf_block_add
  const CWP_Block_t     block_type
 )
 {
+  int block_id = -1;
   if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-    int block_id = cpl.meshBlockAdd(block_type);
-    return block_id;
+    block_id = cpl.meshBlockAdd(block_type);
   }
+  return block_id;
 }
 
 
@@ -1525,6 +1521,10 @@ CWP_Interp_from_location_unset
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  CWP_UNUSED (cpl);
+  CWP_UNUSED (src_field_id);
+  printf("CWP_Interp_from_location_unset : Not implemented yet\n");
+  abort();
 //  cpl.interpFromLocUnSet(src_field_id,fct);
 }
 

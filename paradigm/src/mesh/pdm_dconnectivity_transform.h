@@ -113,6 +113,25 @@ PDM_dgroup_entity_transpose
 );
 
 
+void
+PDM_dconnectivity_to_extract_dconnectivity
+(
+ const PDM_MPI_Comm    comm,
+       int             n_selected_entity1,
+       PDM_g_num_t    *select_entity1,
+       PDM_g_num_t    *entity1_distribution,
+       int            *dentity1_entity2_idx,
+       PDM_g_num_t    *dentity1_entity2,
+       PDM_g_num_t   **extract_entity1_distribution,
+       PDM_g_num_t   **extract_entity2_distribution,
+       int           **dextract_entity1_entity2_idx,
+       PDM_g_num_t   **dextract_entity1_entity2,
+       PDM_g_num_t   **dparent_entity1_g_num,
+       PDM_g_num_t   **dparent_entity2_g_num,
+       PDM_g_num_t   **entity1_old_to_new
+);
+
+
 #ifdef  __cplusplus
 }
 #endif

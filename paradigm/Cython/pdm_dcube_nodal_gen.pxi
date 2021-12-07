@@ -19,6 +19,10 @@ cdef extern from "pdm_dcube_nodal_gen.h":
                                                   PDM_ownership_t      owner)
 
     # ------------------------------------------------------------------
+    void PDM_dcube_nodal_gen_ordering_set(PDM_dcube_nodal_t *dcube,
+                                          char              *ordering)
+
+    PDM_dmesh_nodal_t *PDM_dcube_nodal_gen_build(PDM_dcube_nodal_t *dcube)
     void PDM_dcube_nodal_gen_free(PDM_dcube_nodal_t        *pdm_dcube)
     PDM_dmesh_nodal_t* PDM_dcube_nodal_gen_dmesh_nodal_get(PDM_dcube_nodal_t  *dcube)
     # ------------------------------------------------------------------
@@ -61,9 +65,18 @@ cdef class DCubeNodalGenerator:
                                                  order,
                                                  PDM_OWNERSHIP_USER) # Python take owership
 
+
+
     # ------------------------------------------------------------------
     def __dealloc__(self):
         PDM_dcube_nodal_gen_free(self._dcube)
+    # ------------------------------------------------------------------
+    def set_ordering(self, char *pdm_ho_ordering):
+      PDM_dcube_nodal_gen_ordering_set(self._dcube, pdm_ho_ordering)
+    # ------------------------------------------------------------------
+    def compute(self):
+      PDM_dcube_nodal_gen_build(self._dcube)
+
 
     # ------------------------------------------------------------------
     # def dcube_dim_get(self):

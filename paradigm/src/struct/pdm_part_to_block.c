@@ -808,15 +808,28 @@ _distrib_data
       }
     }
     ptb->n_elt_block = n_elt_block;
-
     ptb->block_gnum = realloc (ptb->block_gnum, sizeof(PDM_g_num_t) * ptb->n_elt_block);
 
+    ptb->block_gnum_count = malloc (sizeof(int) * ptb->n_elt_block);
+    n_elt_block = 0;
+    if (ptb->tn_recv_data > 0)
+      ptb->block_gnum_count[0] = 1;
+    for (int i = 1; i < ptb->tn_recv_data; i++) {
+      //If same than previous, juste increase stride counter
+      if (ptb->sorted_recv_gnum[i-1] == ptb->sorted_recv_gnum[i]) {
+        ptb->block_gnum_count[n_elt_block]++;
+      }
+      else { //Otherwise, count next
+        ptb->block_gnum_count[++n_elt_block] = 1;
+      }
+    }
   }
 
   else {
 
     ptb->block_gnum = ptb->sorted_recv_gnum;
 
+    ptb->block_gnum_count = PDM_array_const_int(ptb->tn_recv_data, 1);
   }
 }
 
@@ -995,6 +1008,7 @@ PDM_part_to_block_create
   ptb->order             = NULL;  /*!< Order */
   ptb->n_elt_block       = 0;
   ptb->block_gnum        = NULL;  /*!< Global number of reveived data (size = tn_recv_data) */
+  ptb->block_gnum_count  = NULL;  /*!< Number of occurence of reveived data (size = tn_recv_data) */
 
   ptb->weight_g          = NULL; /*!< Global weights of elements for any part */
 
@@ -1138,6 +1152,7 @@ PDM_part_to_block_create2
   ptb->order            = NULL;  /*!< Order */
   ptb->n_elt_block      = 0;
   ptb->block_gnum       = NULL;  /*!< Global number of reveived data (size = tn_recv_data) */
+  ptb->block_gnum_count = NULL;  /*!< Number of occurence of reveived data (size = tn_recv_data) */
 
   ptb->weight_g          = NULL; /*!< Global weights of elements for any part */
 
@@ -1280,6 +1295,25 @@ PDM_part_to_block_block_gnum_get
 )
 {
   return ptb->block_gnum;
+}
+
+/**
+ *
+ * \brief Return numbers of occurence of each gnum element in the current process
+ *
+ * \param [in]   ptb          Part to block structure
+ *
+ * \return  Global numbers counter
+ *
+ */
+
+int *
+PDM_part_to_block_block_gnum_count_get
+(
+ PDM_part_to_block_t *ptb
+)
+{
+  return ptb->block_gnum_count;
 }
 
 
@@ -2267,6 +2301,10 @@ PDM_part_to_block_free
     free (ptb->block_gnum);
     ptb->block_gnum = NULL;
   }
+  if (ptb->block_gnum_count != NULL) {
+    free(ptb->block_gnum_count);
+    ptb->block_gnum_count=NULL;
+  }
 
   if (ptb->weight_g != NULL) {
     for (int i = 0; i < ptb->n_part; i++) {
@@ -2357,11 +2395,7 @@ PDM_part_to_block_adapt_partial_block_to_block
   int block_n_elt = PDM_part_to_block_n_elt_block_get (ptb);
 
   int block_n_elt_tot = _block_distrib_idx[ptb->i_rank+1] - _block_distrib_idx[ptb->i_rank];
-  int* block_n_tmp = (int *) malloc( block_n_elt_tot * sizeof(int));
-
-  for (int i1 = 0; i1 < block_n_elt_tot; i1++) {
-    block_n_tmp[i1] = 0;
-  }
+  int* block_n_tmp = PDM_array_zeros_int(block_n_elt_tot);
 
   int* _block_n = *block_n;
   for (int i1 = 0; i1 < block_n_elt; i1++) {

@@ -105,7 +105,7 @@ const char   *fvmc_datatype_name[] = {"",
                                      "double",
                                      "int16",
                                      "int32",
-                                     "int64"
+                                     "int64",
                                      "uint16",
                                      "uint32",
                                      "uint64"};

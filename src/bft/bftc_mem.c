@@ -968,7 +968,9 @@ bftc_mem_memalign(size_t       alignment,
 
   /* Allocate memory and check return */
 
+  BFTC_CLANG_SUPPRESS_WARNING_WITH_PUSH("-Wimplicit-function-declaration")
   retval = posix_memalign(&p_loc, alignment, alloc_size);
+  BFTC_CLANG_SUPPRESS_WARNING_POP
 
   if (retval != 0) {
     switch (retval) {

@@ -17,7 +17,10 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <spatialInterpLocationDistSurf.hxx>
+#include <pdm_dist_cloud_surf.h>
+
+#include "spatialInterpLocationDistSurf.hxx"
+#include "coupling.hxx"
 #include "coupling_i.hxx"
 
 /**
@@ -146,8 +149,6 @@ namespace cwipi {
                 else {
                     cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
 
-                    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
-
                     cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
 
                     for (int i_part = 0 ; i_part < _nPart ; i_part++) {
@@ -250,8 +251,6 @@ namespace cwipi {
                 }
                 else {
                     cwipi::Coupling &cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-
-                    std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
 
                     cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
 

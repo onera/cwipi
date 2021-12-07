@@ -207,9 +207,9 @@ int main
   /* Initialization
    * -------------- */
 
-  char *codeName;
+  const char *codeName;
   int codeId;
-  char *codeCoupledName;
+  const char *codeCoupledName;
 
   if (rank < commWorldSize / 2) {
     codeName = "code1";
@@ -377,8 +377,8 @@ int main
   /* Exchange */
 
   int nNotLocatedPoints = 0;
-  char *sendValuesName;
-  char *recvValuesName;
+  const char *sendValuesName;
+  const char *recvValuesName;
   if (codeId == 1) {
     sendValuesName = "cooX";
     recvValuesName = "cooY";
@@ -388,17 +388,17 @@ int main
     recvValuesName = "cooX";
   }
   // pour sauvegarde
-  char *cl_savefile;
+  const char *cl_savefile;
   cl_savefile = "savefile.sav";
   FILE *fichier_existe;
   fichier_existe = fopen(cl_savefile, "r");
   if(fichier_existe == NULL) {
     //    printf("Le fichier n existe pas, creation pour stockage\n");
-    cwipi_open_location_file("c_surf_cpl_P1P0_P0P1",cl_savefile,"w"); 
+    cwipi_open_location_file("c_surf_cpl_P1P0_P0P1", cl_savefile,"w"); 
   } else {
     //printf("Le fichier existe, mode lecture \n");
     fclose(fichier_existe);
-    cwipi_open_location_file("c_surf_cpl_P1P0_P0P1",cl_savefile,"r"); 
+    cwipi_open_location_file("c_surf_cpl_P1P0_P0P1", cl_savefile,"r"); 
   }
   //fclose(fichier_existe);
 

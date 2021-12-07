@@ -46,6 +46,58 @@ extern "C" {
  * Basic macros
  *============================================================================*/
 
+
+#if defined(__INTEL_COMPILER)
+#define FVMC_PRAGMA_TO_STR(x) _Pragma(#x)
+#define FVMC_INTEL_SUPPRESS_WARNING_PUSH _Pragma("warning(push)")
+#define FVMC_INTEL_SUPPRESS_WARNING(w) FVMC_PRAGMA_TO_STR(warning(disable:w))
+#define FVMC_INTEL_SUPPRESS_WARNING_POP _Pragma("warning(pop)")
+#define FVMC_INTEL_SUPPRESS_WARNING_WITH_PUSH(w)                                                \
+    FVMC_INTEL_SUPPRESS_WARNING_PUSH FVMC_INTEL_SUPPRESS_WARNING(w)
+#else // FVMC_INTEL
+#define FVMC_INTEL_SUPPRESS_WARNING_PUSH
+#define FVMC_INTEL_SUPPRESS_WARNING(w)
+#define FVMC_INTEL_SUPPRESS_WARNING_POP
+#define FVMC_INTEL_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif // FVMC_INTEL
+
+#if defined(__clang__)
+#define FVMC_PRAGMA_TO_STR(x) _Pragma(#x)
+#define FVMC_CLANG_SUPPRESS_WARNING_PUSH _Pragma("clang diagnostic push")
+#define FVMC_CLANG_SUPPRESS_WARNING(w) FVMC_PRAGMA_TO_STR(clang diagnostic ignored w)
+#define FVMC_CLANG_SUPPRESS_WARNING_POP _Pragma("clang diagnostic pop")
+#define FVMC_CLANG_SUPPRESS_WARNING_WITH_PUSH(w)                                                \
+    FVMC_CLANG_SUPPRESS_WARNING_PUSH FVMC_CLANG_SUPPRESS_WARNING(w)
+#else // FVMC_CLANG
+#define FVMC_CLANG_SUPPRESS_WARNING_PUSH
+#define FVMC_CLANG_SUPPRESS_WARNING(w)
+#define FVMC_CLANG_SUPPRESS_WARNING_POP
+#define FVMC_CLANG_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif // FVMC_CLANG
+
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+#define FVMC_PRAGMA_TO_STR(x) _Pragma(#x)
+#define FVMC_GCC_SUPPRESS_WARNING_PUSH _Pragma("GCC diagnostic push")
+#define FVMC_GCC_SUPPRESS_WARNING(w) FVMC_PRAGMA_TO_STR(GCC diagnostic ignored w)
+#define FVMC_GCC_SUPPRESS_WARNING_POP _Pragma("GCC diagnostic pop")
+#define FVMC_GCC_SUPPRESS_WARNING_WITH_PUSH(w)                                                  \
+    FVMC_GCC_SUPPRESS_WARNING_PUSH FVMC_GCC_SUPPRESS_WARNING(w)
+#else // FVMC_GCC
+#define FVMC_GCC_SUPPRESS_WARNING_PUSH
+#define FVMC_GCC_SUPPRESS_WARNING(w)
+#define FVMC_GCC_SUPPRESS_WARNING_POP
+#define FVMC_GCC_SUPPRESS_WARNING_WITH_PUSH(w)
+#endif // DOCTEST_GCC
+
+#define FVMC_UNUSED(x) (void)(x)
+
+
+FVMC_GCC_SUPPRESS_WARNING("-Wcast-qual")
+FVMC_GCC_SUPPRESS_WARNING("-Wunknown-pragmas")
+FVMC_GCC_SUPPRESS_WARNING("-Wsign-compare")
+FVMC_GCC_SUPPRESS_WARNING("-Wfloat-equal")
+
+
 /*============================================================================
  * Internationalization (future)
  *============================================================================*/

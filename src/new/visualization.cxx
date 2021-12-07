@@ -25,7 +25,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "field.hxx"
-#define UNUSED(x) (void)(x)
+#include "cwp.h"
+#include "cwp_priv.h"
 
 /**
  * \cond
@@ -34,7 +35,8 @@
 namespace cwipi {
 
   Visu::Visu(const MPI_Comm &MPIComm,const CWP_Dynamic_mesh_t topology):
-                                      _visu_id(-1),_visu_mesh_id(-1),_freq(-1),
+                                      _visu_id(-1),_visu_mesh_id(-1),
+                                      //_freq(-1), 
                                       _output_dir(NULL),
                                       _output_name(NULL),
                                       _divide_polygons(PDM_WRITER_OFF),
@@ -68,8 +70,8 @@ namespace cwipi {
                         char              *output_dir,
                         char              *output_name) {
 
-    UNUSED(freq);
-    UNUSED(format);
+    CWP_UNUSED(freq);
+    CWP_UNUSED(format);
 
     PDM_writer_fmt_fic_t fmt_fic      = PDM_WRITER_FMT_BIN;
     const char* fmt                   = "Ensight";
@@ -173,19 +175,19 @@ namespace cwipi {
 
     PDM_writer_var_dim_t PDMfieldComp = PDM_WRITER_VAR_SCALAIRE;
 
-    int _id_partitioning_field = PDM_writer_var_create(_visu_id,
+    int id_partitioning_field = PDM_writer_var_create(_visu_id,
                                                        PDM_WRITER_OFF,
                                                        PDMfieldComp,
                                                        PDMfieldType,
                                                        "partitioning");
 
-    int _id_ranking_field = PDM_writer_var_create(_visu_id,
+    int id_ranking_field = PDM_writer_var_create(_visu_id,
                                                   PDM_WRITER_OFF,
                                                   PDMfieldComp,
                                                   PDMfieldType,
                                                   "ranking");
 
-    int _id_blocking_field = PDM_writer_var_create(_visu_id,
+    int id_blocking_field = PDM_writer_var_create(_visu_id,
                                                   PDM_WRITER_OFF,
                                                   PDMfieldComp,
                                                   PDMfieldType,
@@ -198,7 +200,7 @@ namespace cwipi {
     int worldRank;
     MPI_Comm_rank(MPI_COMM_WORLD,&worldRank);
 
-    int* blockDB = mesh -> blockDBGet();
+//    int* blockDB = mesh -> blockDBGet();
 
     int nBlock = mesh -> nBlockGet();
     for(int i_part=0;i_part<_n_part;i_part++){
@@ -207,7 +209,7 @@ namespace cwipi {
       _blocking_field_data[i_part] = (double*) malloc( mesh -> getPartNElts(i_part) * sizeof(double) );
       int idx=0;
       for(int i_block=0;i_block < nBlock; i_block++){
-        int id_block = blockDB[i_block];
+ //       int id_block = blockDB[i_block];
         for(int i_elt=0; i_elt< mesh -> getBlockNElts(i_block,i_part); i_elt++){
           _blocking_field_data[i_part][idx++] = (double)i_block;
         }
@@ -220,14 +222,14 @@ namespace cwipi {
         _ranking_field_data[i_part][i_elt] = (double)worldRank;
       }
 
-      PDM_writer_var_set(_visu_id, _id_partitioning_field, _visu_mesh_id, i_part, (double*)_partitioning_field_data[i_part]);
-      PDM_writer_var_set(_visu_id, _id_ranking_field, _visu_mesh_id, i_part, (double*)_ranking_field_data[i_part]);
-      PDM_writer_var_set(_visu_id, _id_blocking_field, _visu_mesh_id, i_part, (double*)_blocking_field_data[i_part]);
+      PDM_writer_var_set(_visu_id, id_partitioning_field, _visu_mesh_id, i_part, (double*)_partitioning_field_data[i_part]);
+      PDM_writer_var_set(_visu_id, id_ranking_field, _visu_mesh_id, i_part, (double*)_ranking_field_data[i_part]);
+      PDM_writer_var_set(_visu_id, id_blocking_field, _visu_mesh_id, i_part, (double*)_blocking_field_data[i_part]);
     }
 
-    PDM_writer_var_write(_visu_id, _id_partitioning_field);
-    PDM_writer_var_write(_visu_id, _id_ranking_field);
-    PDM_writer_var_write(_visu_id, _id_blocking_field);
+    PDM_writer_var_write(_visu_id, id_partitioning_field);
+    PDM_writer_var_write(_visu_id, id_ranking_field);
+    PDM_writer_var_write(_visu_id, id_blocking_field);
   }
 
 /*****************************************/
@@ -251,7 +253,14 @@ namespace cwipi {
   void Visu::GeomBlockGNumMeshSet (int id_block,
                                    int id_part,
                                    CWP_g_num_t *global_num) {
-                                  /*
+    CWP_UNUSED(id_block);
+    CWP_UNUSED(id_part);
+    CWP_UNUSED(global_num);
+
+    printf("Visu::GeomBlockGNumMeshSet : not implemented yet \n");
+    exit(1);
+
+                                  /*                              
       PDM_writer_geom_bloc_g_num_mesh_set(_visu_id,
                                           _visu_mesh_id,
                                           id_block,
@@ -315,14 +324,14 @@ namespace cwipi {
 
       CWP_Dof_location_t CWPfielType = field -> locationGet();
       int nComponent = field -> nComponentGet();
-      PDM_writer_var_loc_t PDMfieldType;
+      PDM_writer_var_loc_t PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
 
       if     (CWPfielType == CWP_DOF_LOCATION_CELL_CENTER)   PDMfieldType = PDM_WRITER_VAR_ELEMENTS   ;
       else if(CWPfielType == CWP_DOF_LOCATION_NODE)         PDMfieldType = PDM_WRITER_VAR_SOMMETS    ;
       else if(CWPfielType == CWP_DOF_LOCATION_USER)         PDMfieldType = PDM_WRITER_VAR_PARTICULES ;
 
 
-      PDM_writer_var_dim_t PDMfieldComp;
+      PDM_writer_var_dim_t PDMfieldComp = PDM_WRITER_VAR_SCALAIRE;
       if( nComponent == 1) PDMfieldComp = PDM_WRITER_VAR_SCALAIRE;
       else if( nComponent == 3) PDMfieldComp = PDM_WRITER_VAR_VECTEUR;
       else if (nComponent !=0)

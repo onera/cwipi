@@ -205,9 +205,9 @@ int main
   /* Initialization
    * -------------- */
 
-  char *codeName;
+  const char *codeName;
   int codeId;
-  char *codeCoupledName;
+  const char *codeCoupledName;
 
   if (rank < commWorldSize / 2) {
     codeName = "code1";
@@ -346,8 +346,8 @@ int main
   /* Exchange */
 
   int nNotLocatedPoints = 0;
-  char *sendValuesName;
-  char *recvValuesName;
+  const char *sendValuesName;
+  const char *recvValuesName;
   if (codeId == 1) {
     sendValuesName = "cooX";
     recvValuesName = "cooY";

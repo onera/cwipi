@@ -358,14 +358,7 @@ bftc_backtrace_demangle(bftc_backtrace_t  *bt)
 
   }
 #else
-#if defined(__clang__)	
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-value" 	
-#endif
-  bt; //To remove intel unused warning
-#if defined(__clang__)	
-#pragma clang diagnostic pop
-#endif
+  BFTC_UNUSED (bt); //To remove intel unused warning
 #endif /* defined(HAVE_GLIBC_BACKTRACE) && defined(HAVE_CPLUS_DEMANGLE) */
 }
 

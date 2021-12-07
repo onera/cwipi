@@ -41,9 +41,32 @@ extern "C" {
  * Type definitions
  *============================================================================*/
 
+typedef struct {
+
+  int  order;
+  int *user_to_ijk;
+  int *ijk_to_user;
+
+} _ordering_t;
+
+typedef struct {
+
+  char           *name;
+  PDM_hash_tab_t *elt_ordering[PDM_MESH_NODAL_N_ELEMENT_TYPES];
+
+} PDM_ho_ordering_t;
+
 /*============================================================================
  * Global variable
  *============================================================================*/
+
+/**
+ * Storage of high-order node orderings
+ */
+static int key_max_order  = 4;
+static int s_ho_orderings = 0;
+static int n_ho_orderings = 0;
+static PDM_ho_ordering_t **ho_orderings = NULL;
 
 #define n_default_orderings 2
 

@@ -330,5 +330,5 @@ cdef class InterpolateFromMeshLocation:
     # ************************************************************************
     # > Declaration
     # ************************************************************************
-    print('PDM_interpolate_from_mesh_location_free')
+    #print('PDM_interpolate_from_mesh_location_free')
     PDM_interpolate_from_mesh_location_free(self._interp_from_ml)

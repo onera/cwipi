@@ -663,7 +663,7 @@ namespace cwipi {
                               int                    connec_cells[],
                               CWP_g_num_t            global_num[]
                             ) {
-     UNUSED(global_num);
+     CWP_UNUSED(global_num);
      if(_coords[i_part]==NULL) bftc_error(__FILE__, __LINE__, 0,
             "Set the partition coordinates vertices before finalizing.\n");
 

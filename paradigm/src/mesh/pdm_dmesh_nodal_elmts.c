@@ -523,6 +523,29 @@ const PDM_Mesh_nodal_elt_t     t_elt
   return id_block ;
 }
 
+
+
+/* Update the owner ship of the different composents of dmn_elts */
+void
+PDM_DMesh_nodal_elmts_update_ownership
+(
+  PDM_dmesh_nodal_elmts_t *dmn_elts,
+  PDM_ownership_t          owner
+)
+{
+  for(int i_section = 0; i_section < dmn_elts->n_section_std; ++i_section) {
+    dmn_elts->sections_std[i_section]->owner = owner;
+  }
+  for(int i_section = 0; i_section < dmn_elts->n_section_poly2d; ++i_section) {
+    dmn_elts->sections_poly2d[i_section]->owner = owner;
+  }
+  for(int i_section = 0; i_section < dmn_elts->n_section_poly3d; ++i_section) {
+    dmn_elts->sections_poly3d[i_section]->owner = owner;
+  }
+  dmn_elts->dgroup_elmt_owner = owner;
+}
+
+
 /**
  * \brief Define a standard section
  *

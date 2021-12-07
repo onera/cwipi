@@ -28,6 +28,7 @@
 #include <fvmc_parall.h>
 
 #include "cwipi_config.h"
+#include "cwipi_priv.h"
 #include "applicationPropertiesDataBase.hxx"
 #include "applicationPropertiesDataBase_i.hxx"
 
@@ -490,9 +491,12 @@ namespace cwipi {
             delete[] distantParamName;
 
             MPI_Recv(&distantValue, 1, MPI_DOUBLE, irank, 0, localComm, &status);
+            
+            CWIPI_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wfloat-equal")
             if (distantValue != value)
               bftc_error(__FILE__, __LINE__, 0,
                         "Different values for '%s' parameter for the rank 0 and the rank '%i'\n", paramName, irank);
+            CWIPI_GCC_SUPPRESS_WARNING_POP
           }
         }
 

@@ -121,11 +121,11 @@ int main(int argc, char *argv[]) {
     assert(comm_world_size > 0);
 
     // Input
-    bool cond_code1 = rank % 2 == 1;
-    bool cond_code2 = rank % 5 == 0;
+    bool cond_code1 = rank % 2 == 0;
+    bool cond_code2 = rank % 2 == 1;
     bool cond_both = cond_code1 && cond_code2;
 
-    int n_vtx_seg_code1 = 9, n_vtx_seg_code2 = 25;
+    int n_vtx_seg_code1 = 4, n_vtx_seg_code2 = 4;
     double x_min_code1 = 0., x_min_code2 = 0.9;
     double y_min_code1 = 0., y_min_code2 = 0.8;
 
@@ -136,8 +136,8 @@ int main(int argc, char *argv[]) {
     else n_code = 0;
 
     int *code_id = (int *) malloc(n_code * sizeof(int));
-    char **code_names = (char **) malloc(n_code * sizeof(char *));
-    char **coupled_code_names = (char **) malloc(n_code * sizeof(char *));
+    const char **code_names = (const char **) malloc(n_code * sizeof(char *));
+    const char **coupled_code_names = (const char **) malloc(n_code * sizeof(char *));
     double *time_init = (double *) malloc(n_code * sizeof(double));
     PDM_g_num_t *n_vtx_seg = (PDM_g_num_t *) malloc(n_code * sizeof(PDM_g_num_t));
     double *x_min = (double *) malloc(n_code * sizeof(double));
@@ -259,7 +259,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Create coupling and visu
-    char *cpl_name = "c_new_api_disjoint_comms";
+    const char *cpl_name = "c_new_api_disjoint_comms";
     CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
 
     for (int i_code = 0 ; i_code < n_code ; ++i_code) {
@@ -267,10 +267,10 @@ int main(int argc, char *argv[]) {
         printf("%d (%d, %s) --- Coupling created between %s and %s\n", rank, intra_comm_rank[i_code], code_names[i_code], code_names[i_code], coupled_code_names[i_code]);
     }
 
-    for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-        CWP_Visu_set(code_names[i_code], cpl_name, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
-        printf("%d (%d, %s) --- Visu set\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-    }
+//    for (int i_code = 0 ; i_code < n_code ; ++i_code) {
+//        CWP_Visu_set(code_names[i_code], cpl_name, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+//        printf("%d (%d, %s) --- Visu set\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+//    }
 
     // Create PDM communicators
     PDM_MPI_Comm *pdm_intra_comms = (PDM_MPI_Comm *) malloc(n_code * sizeof(PDM_MPI_Comm));
@@ -310,7 +310,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Create and initialise Fields: code1 -> code2
-    char *field_name = "cooX";
+    const char *field_name = "cooX";
 
     double **send_values = (double **) malloc(n_code * sizeof(double *));
     double **recv_values = (double **) malloc(n_code * sizeof(double *));
@@ -342,6 +342,29 @@ int main(int argc, char *argv[]) {
     for (int i_code = 0 ; i_code < n_code ; ++i_code) {
         CWP_Spatial_interp_weights_compute(code_names[i_code], cpl_name);
         printf("%d (%d, %s) --- Weights computed\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+    }
+
+    int n_computed_tgts = 0, n_uncomputed_tgts = 0;
+    const int *computed_tgts = NULL, *uncomputed_tgts = NULL;
+    if (cond_code2) {
+        n_computed_tgts = CWP_N_computed_tgts_get("code2", cpl_name, field_name, 0);
+        n_uncomputed_tgts = CWP_N_uncomputed_tgts_get("code2", cpl_name, field_name, 0);
+        computed_tgts = (int *) malloc(n_computed_tgts * sizeof(int));
+        uncomputed_tgts = (int *) malloc(n_uncomputed_tgts * sizeof(int));
+        computed_tgts = CWP_Computed_tgts_get("code2", cpl_name, field_name, 0);
+        uncomputed_tgts = CWP_Uncomputed_tgts_get("code2", cpl_name, field_name, 0);
+        printf("%d (%d, %s) --- n computed targets: %d\n", rank, intra_comm_rank[0], code_names[0], n_computed_tgts);
+        printf("%d (%d, %s) --- n uncomputed targets: %d\n", rank, intra_comm_rank[0], code_names[0], n_uncomputed_tgts);
+        if (n_computed_tgts != 0) {
+            printf("%d (%d, %s) --- computed targets: ", rank, intra_comm_rank[0], code_names[0]);
+            for (int i = 0 ; i < n_computed_tgts ; ++i) printf("%d ", computed_tgts[i]);
+            printf("\n");
+        }
+        if (n_uncomputed_tgts != 0) {
+            printf("%d (%d, %s) --- uncomputed targets: ", rank, intra_comm_rank[0], code_names[0]);
+            for (int i = 0 ; i < n_uncomputed_tgts ; ++i) printf("%d ", uncomputed_tgts[i]);
+            printf("\n");
+        }
     }
 
     // Send and receive field

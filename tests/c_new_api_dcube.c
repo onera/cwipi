@@ -17,8 +17,8 @@ int main(int argc, char *argv[]) {
 
     // Init CWIPI
     int n_code = 1;
-    char **code_name = malloc(sizeof(char *) * n_code);
-    char **coupled_code_name = malloc(sizeof(char *) * n_code);
+    const char **code_name = malloc(sizeof(char *) * n_code);
+    const char **coupled_code_name = malloc(sizeof(char *) * n_code);
     CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
     double *time_init = malloc(sizeof(double) * n_code);
     MPI_Comm *intra_comm = malloc(sizeof(MPI_Comm) * n_code);
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 
     // Create CWIPI coupling
     int n_part = 1;
-    char *coupling_name = "c_new_api_dcube";
+    const char *coupling_name = "c_new_api_dcube";
     CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
     CWP_Cpl_create(code_name[0], coupling_name, coupled_code_name[0], CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITH_PART, interp_method, n_part, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
 
@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
     // Set fields
     double *send_val = NULL;
     double *recv_val = NULL;
-    char *field_name = "cooX";
+    const char *field_name = "cooX";
 
     if (strcmp(code_name[0], "code1") != 0) {
         send_val = (double *) malloc(sizeof(double) * n_vtx[0]);

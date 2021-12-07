@@ -51,6 +51,7 @@ struct Point { double x, y; };
 struct Edge {
     Point a, b;
 
+    CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wfloat-equal")
     bool operator()(const Point& p) const
     {
         if (a.y > b.y) return Edge{ b, a }(p);
@@ -61,6 +62,7 @@ struct Edge {
         auto red = abs(a.x - b.x) > MIN ? (b.y - a.y) / (b.x - a.x) : MAX;
         return blue >= red;
     }
+    CWP_GCC_SUPPRESS_WARNING_POP
 };
 
 struct Figure {
@@ -85,7 +87,7 @@ namespace cwipi {
 
 
 surfMeshGenerator::surfMeshGenerator()
-                  :_nx(0),_ny(0),_prop(1.0),_color(0),_width(0.0),_randomVar(1.0)
+                  :_nx(0),_ny(0),_color(0),_prop(1.0),_width(0.0),_randomVar(1.0)
 {
 
 }
@@ -262,8 +264,7 @@ std::vector<Point> path = {
   {1.36,4.11},{1.21,4.39},{1.19,4.77} };
 
   std::vector<Edge> path2;
-  for (int i=0; i<path.size()-1; i++){
-     Point p = {0.0,0.0};
+  for (size_t i=0; i<path.size()-1; i++){
      Edge e = { {1.19,4.77},{1.45,5.46} };
 
      //path[0].x = 3.0 * ( (path[0].x - 5.0)/10.0 + 0.295 ) ;
@@ -313,7 +314,6 @@ double surfMeshGenerator::_motif(double x, double y) {
 
    std::vector<double> box_lim = {0.1,0.1, 0.4,0.4};
    double result = 0.0;
-   int nBox = box_lim.size()/4;
 
    result = _inBox2(x,y);//,  x1,y1, x2,y2 );
 
@@ -349,7 +349,6 @@ double* surfMeshGenerator::specialFieldTriGet(int i_part) {
 
     double xc = _centerTri[i_part][3*i_tri]  ;
     double yc = _centerTri[i_part][3*i_tri+1];
-    double zc = _centerTri[i_part][3*i_tri+2];
 
     _specialFieldTri[i_part][i_tri] = _motif(xc,yc);
 
@@ -379,7 +378,6 @@ double* surfMeshGenerator::specialFieldQuadGet(int i_part) {
 
     double xc = _centerQuad[i_part][3*i_Quad]  ;
     double yc = _centerQuad[i_part][3*i_Quad+1];
-    double zc = _centerQuad[i_part][3*i_Quad+2];
 
     _specialFieldQuad[i_part][i_Quad] = _motif(xc,yc);
 
@@ -410,7 +408,6 @@ double* surfMeshGenerator::specialFieldPolyGet(int i_part) {
 
     double xc = _centerPoly[i_part][3*i_poly]  ;
     double yc = _centerPoly[i_part][3*i_poly+1];
-    double zc = _centerPoly[i_part][3*i_poly+2];
 
     _specialFieldPoly[i_part][i_poly] = _motif(xc,yc);
 

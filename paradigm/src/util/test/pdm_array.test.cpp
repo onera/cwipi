@@ -78,6 +78,14 @@ MPI_TEST_CASE("[1p] _PDM_array_idx_from_sizes", 1) {
   CHECK_EQ_C_ARRAY(idx_array_gnum, expected_idx_array_gnum, 4+1);
 }
 
+MPI_TEST_CASE("[1p] _PDM_array_are_equal", 1) {
+  int arrayA[] = {0,3,6,4,2};
+  int arrayB[] = {0,3,6,4,2};
+  int arrayC[] = {0,3,6,4,3};
+  CHECK(PDM_array_are_equal_int(arrayA, arrayB, 5) == 1);
+  CHECK(PDM_array_are_equal_int(arrayA, arrayC, 5) == 0);
+}
+
 MPI_TEST_CASE("[1p] _PDM_array_accumulate", 1) {
   int array[] = {0,3,6,4,2};
   int expected_array[] = {0,3,9,13,15};

@@ -724,6 +724,7 @@ int main(int argc, char *argv[])
                               NULL,
                               tmp_parent_elmt_pos);
   assert(n_edge_current == n_edge_elt_tot);
+  free(tmp_parent_elmt_pos);
 
   int  dn_edge = -1;
   PDM_g_num_t  *dedge_distrib;

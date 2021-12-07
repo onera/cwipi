@@ -34,6 +34,7 @@
 #include "bftc_error.h"
 #include "bftc_printf.h"
 #include "cwp.h"
+#include "cwp_priv.h"
 #include <limits>
 #include <vector>
 #include <algorithm>
@@ -124,7 +125,7 @@ namespace cwipi {
     _send_adler.reserve(_cpl->fieldsGet()->size());
     _recv_adler.reserve(_cpl->fieldsGet()->size());
 
-    for (int i = 0; i < _cpl->fieldsGet()->size(); i++) {
+    for (size_t i = 0; i < _cpl->fieldsGet()->size(); i++) {
       _send_buffer[i]  = NULL;
       _recv_buffer[i]  = NULL;
       _send_request[i] = -1;
@@ -181,6 +182,9 @@ namespace cwipi {
     _ptsp = NULL;
 
     if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+      printf("_nPart, _cplNPart : %d %d\n", _nPart, _cplNPart);
+      fflush(stdout);
+
       _src_n_gnum = new int [_nPart];
       _src_gnum = new const PDM_g_num_t* [_nPart];
 
@@ -215,8 +219,6 @@ namespace cwipi {
       }
     }
 
-    printf("_nPart, _cplNPart : %d %d\n", _nPart, _cplNPart);
-    fflush(stdout);
 
     _n_elt_weights = new int [_nPart];
     _weights_idx = new int* [_nPart];
@@ -250,9 +252,9 @@ namespace cwipi {
 
       const int intId            = referenceField->fieldIDIntGet();
       const CWP_Type_t data_type = referenceField->dataTypeGet();
+      CWP_UNUSED (data_type);
       const size_t s_data        = sizeof(double);
       const int stride           = referenceField->nComponentGet();
-      const int tag              = intId; // Pas bon si les champs n'ont pas été définis dans le même ordre
 
       int           *n_elt1;
       int          **selected_part2_idx;
@@ -280,17 +282,18 @@ namespace cwipi {
 
       uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (MPI_TAG_UB - 1)) + 1;
 
-      int idx = PDM_binary_search_uint32t (mpi_tag,
-                                           &(_send_adler[0]),
-                                           _send_adler.size()) ;
+      if ((int) _send_adler.size() != 0) {
+        int idx = PDM_binary_search_uint32t (mpi_tag,
+                                             &(_send_adler[0]),
+                                             (int) _send_adler.size());
 
-      while (idx != -1) {
+        while (idx != -1) {
+          mpi_tag = (mpi_tag + 1) % (MPI_TAG_UB - 1) + 1;
 
-        mpi_tag = (mpi_tag + 1) % (MPI_TAG_UB - 1) + 1;
-
-        idx = PDM_binary_search_uint32t (mpi_tag,
-                                       &(_send_adler[0]),
-                                       _send_adler.size()) ;
+          idx = PDM_binary_search_uint32t(mpi_tag,
+                                          &(_send_adler[0]),
+                                          (int) _send_adler.size());
+          }
       }
 
       std::vector<uint32_t>::iterator it  = _send_adler.begin();
@@ -331,9 +334,9 @@ namespace cwipi {
 
         const int intId            = referenceField->fieldIDIntGet();
         const CWP_Type_t data_type = referenceField->dataTypeGet();
+        CWP_UNUSED(data_type);
         const size_t s_data        = sizeof(double);
         const int stride           = referenceField->nComponentGet();
-        const int tag              = intId; // Pas bon si les champs n'ont pas été définis dans le même ordre
 
         int           *n_elt1;
         int          **selected_part2_idx;
@@ -356,17 +359,19 @@ namespace cwipi {
 
         uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (MPI_TAG_UB - 1)) + 1;
 
-        int idx = PDM_binary_search_uint32t (mpi_tag,
-                                             &(_send_adler[0]),
-                                             _send_adler.size()) ;
+        if ((int) _send_adler.size() != 0) {
+          int idx = PDM_binary_search_uint32t(mpi_tag,
+                                              &(_send_adler[0]),
+                                              _send_adler.size());
 
-        while (idx != -1) {
+          while (idx != -1) {
 
-          mpi_tag = (mpi_tag + 1) % (MPI_TAG_UB - 1) + 1;
+            mpi_tag = (mpi_tag + 1) % (MPI_TAG_UB - 1) + 1;
 
-          idx = PDM_binary_search_uint32t (mpi_tag,
-                                         &(_send_adler[0]),
-                                         _send_adler.size()) ;
+            idx = PDM_binary_search_uint32t(mpi_tag,
+                                            &(_send_adler[0]),
+                                            _send_adler.size());
+          }
         }
 
         std::vector<uint32_t>::iterator it  = _send_adler.begin();
@@ -506,9 +511,9 @@ namespace cwipi {
 
       const int intId            = referenceField->fieldIDIntGet();
       const CWP_Type_t data_type = referenceField->dataTypeGet();
+      CWP_UNUSED(data_type);
       const size_t s_data        = sizeof(double);
       const int stride           = referenceField->nComponentGet();
-      const int tag              = intId; // Pas bon si les champs n'ont pas été définis dans le même ordre
 
       int  *n_ref_gnum2;
       int **ref_gnum2;
@@ -534,17 +539,18 @@ namespace cwipi {
 
       uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (MPI_TAG_UB - 1)) + 1;
 
-      int idx = PDM_binary_search_uint32t (mpi_tag,
-                                           &(_recv_adler[0]),
-                                           _recv_adler.size()) ;
+      if ((int) _send_adler.size() != 0) {
+        int idx = PDM_binary_search_uint32t(mpi_tag,
+                                            &(_recv_adler[0]),
+                                            (int) _recv_adler.size());
 
-      while (idx != -1) {
+        while (idx != -1) {
+          mpi_tag = (mpi_tag + 1) % (MPI_TAG_UB - 1) + 1;
 
-        mpi_tag = (mpi_tag + 1) % (MPI_TAG_UB - 1) + 1;
-
-        idx = PDM_binary_search_uint32t (mpi_tag,
-                                       &(_recv_adler[0]),
-                                        _recv_adler.size());
+          idx = PDM_binary_search_uint32t(mpi_tag,
+                                          &(_recv_adler[0]),
+                                          (int) _recv_adler.size());
+          }
       }
 
       std::vector<uint32_t>::iterator it  = _recv_adler.begin();
@@ -583,9 +589,9 @@ namespace cwipi {
 
         const int intId            = referenceField->fieldIDIntGet();
         const CWP_Type_t data_type = referenceField->dataTypeGet();
+        CWP_UNUSED(data_type);
         const size_t s_data        = sizeof(double);
         const int stride           = referenceField->nComponentGet();
-        const int tag              = intId; // Pas bon si les champs n'ont pas été définis dans le même ordre
 
         int  *n_ref_gnum2;
         int **ref_gnum2;

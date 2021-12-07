@@ -640,6 +640,24 @@ const PDM_Mesh_nodal_elt_t  t_elt
   return PDM_DMesh_nodal_elmts_section_add(dmne, t_elt);
 }
 
+void
+PDM_DMesh_nodal_update_ownership
+(
+ PDM_dmesh_nodal_t   *dmesh_nodal,
+ PDM_ownership_t      owner
+)
+{
+  dmesh_nodal->vtx->owner = owner;
+  if (dmesh_nodal->volumic != NULL)
+    PDM_DMesh_nodal_elmts_update_ownership(dmesh_nodal->volumic, owner);
+  if (dmesh_nodal->surfacic != NULL)
+    PDM_DMesh_nodal_elmts_update_ownership(dmesh_nodal->surfacic, owner);
+  if (dmesh_nodal->ridge != NULL)
+    PDM_DMesh_nodal_elmts_update_ownership(dmesh_nodal->ridge, owner);
+  if (dmesh_nodal->corner != NULL)
+    PDM_DMesh_nodal_elmts_update_ownership(dmesh_nodal->corner, owner);
+}
+
 
 void
 PDM_DMesh_nodal_section_std_set
