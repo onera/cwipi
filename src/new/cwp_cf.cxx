@@ -350,7 +350,7 @@ CWP_N_uncomputed_tgts_get_cf (
   char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  int res = CWP_N_uncomputed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
+  int res = CWP_N_uncomputed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -391,7 +391,7 @@ CWP_Uncomputed_tgts_get_cf (
   char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  const int* res = CWP_Uncomputed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
+  const int* res = CWP_Uncomputed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -430,7 +430,7 @@ CWP_N_computed_tgts_get_cf (
   char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  int res = CWP_N_computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
+  int res = CWP_N_computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -469,7 +469,7 @@ CWP_Computed_tgts_get_cf (
   char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  const int *res = CWP_Computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
+  const int *res = CWP_Computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -586,6 +586,44 @@ void CWP_Visu_set_cf (
   delete [] c_format_option;
 }
 
+/*----------------------------------------------------------------------------*
+ * Functions about User target points                                         *
+ *----------------------------------------------------------------------------*/
+
+/**
+ * \brief Setting user target points.
+ *
+ * This function must be called if the degrees of freedom locations are
+ * \ref CWP_DOF_LOCATION_USER
+ *
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  i_part           Current partition
+ * \param [in]  n_pts            Number of points
+ * \param [in]  coord            Coordinates (size = 3 * n_pts)
+ * \param [in]  g_num            global number or NUL (size = n_pts)
+ *
+ */
+
+void CWP_User_tgt_pts_set_cf (
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  int i_part,
+  int n_pts,
+  double coord[],
+  CWP_g_num_t global_num[]
+)
+{
+  char *c_local_code_name, *c_cpl_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+
+  CWP_User_tgt_pts_set(c_local_code_name, c_cpl_id, i_part - 1, n_pts, coord, global_num);
+}
+
 
 /**
  * \brief Finalize interface mesh.
@@ -650,7 +688,7 @@ CWP_Mesh_interf_vtx_set_cf(
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
-  CWP_Mesh_interf_vtx_set(c_local_code_name, c_cpl_id, i_part, n_pts, coord, global_num);
+  CWP_Mesh_interf_vtx_set(c_local_code_name, c_cpl_id, i_part - 1, n_pts, coord, global_num);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -807,7 +845,7 @@ CWP_Mesh_interf_block_std_set_cf (
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
-  CWP_Mesh_interf_block_std_set(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, connec, global_num);
+  CWP_Mesh_interf_block_std_set(c_local_code_name, c_cpl_id, i_part - 1, block_id, n_elts, connec, global_num);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -850,7 +888,7 @@ CWP_Mesh_interf_f_poly_block_set_cf (
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
-  CWP_Mesh_interf_f_poly_block_set(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, connec_idx, connec, global_num);
+  CWP_Mesh_interf_f_poly_block_set(c_local_code_name, c_cpl_id, i_part - 1, block_id, n_elts, connec_idx, connec, global_num);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -904,7 +942,7 @@ CWP_Mesh_interf_c_poly_block_set_cf (
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
-  CWP_Mesh_interf_c_poly_block_set(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, n_faces, connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num);
+  CWP_Mesh_interf_c_poly_block_set(c_local_code_name, c_cpl_id, i_part - 1, block_id, n_elts, n_faces, connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -956,7 +994,7 @@ CWP_Mesh_interf_from_cellface_set_cf (
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
-  CWP_Mesh_interf_from_cellface_set(c_local_code_name, c_cpl_id, i_part, n_cells, cell_face_idx, cell_face, n_faces, face_vtx_idx, face_vtx, parent_num);
+  CWP_Mesh_interf_from_cellface_set(c_local_code_name, c_cpl_id, i_part - 1, n_cells, cell_face_idx, cell_face, n_faces, face_vtx_idx, face_vtx, parent_num);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -1010,7 +1048,7 @@ CWP_Mesh_interf_from_faceedge_set_cf (
 
   CWP_Mesh_interf_from_faceedge_set(c_local_code_name, 
                                     c_cpl_id, 
-                                    i_part, 
+                                    i_part - 1,
                                     n_faces, 
                                     face_edge_idx, 
                                     face_edge, 
@@ -1119,7 +1157,7 @@ CWP_Field_data_set_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  CWP_Field_data_set(c_local_code_name, c_cpl_id, c_field_id, i_part, (CWP_Field_map_t) map_type, data);
+  CWP_Field_data_set(c_local_code_name, c_cpl_id, c_field_id, i_part - 1, (CWP_Field_map_t) map_type, data);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -1281,6 +1319,44 @@ CWP_Field_wait_irecv_cf (
   delete [] c_local_code_name;
   delete [] c_cpl_id;
   delete [] c_tgt_field_id;
+}
+
+/**
+ *
+ * \brief Setting of an user interpolation from location.
+ *
+ * This function takes into account an user interpolation function written with
+ * void (*\ref CWP_Interp_from_location_t) interface.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] src_field_id     Source field id
+ * \param [in] fct              Function
+ *
+ */
+
+void
+CWP_Interp_from_location_set_cf (
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  const char *f_src_field_id,
+  int l_src_field_id,
+  void* ptInterpolationFct
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_src_field_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
+
+  CWP_Interp_from_location_set(c_local_code_name, c_cpl_id, c_src_field_id, (CWP_Interp_from_location_t) ptInterpolationFct);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_src_field_id);
 }
 
 /*----------------------------------------------------------------------------*/

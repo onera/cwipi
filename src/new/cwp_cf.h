@@ -366,6 +366,32 @@ void CWP_Visu_set_cf (
   const int l_format_option
 );
 
+/**
+ * \brief Setting user target points.
+ *
+ * This function must be called if the degrees of freedom locations are
+ * \ref CWP_DOF_LOCATION_USER
+ *
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  i_part           Current partition
+ * \param [in]  n_pts            Number of points
+ * \param [in]  coord            Coordinates (size = 3 * n_pts)
+ * \param [in]  g_num            global number or NUL (size = n_pts)
+ *
+ */
+
+void CWP_User_tgt_pts_set_cf (
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  int i_part,
+  int n_pts,
+  double coord[],
+  CWP_g_num_t global_num[]
+);
+
 
 /**
  * \brief Finalize interface mesh.
@@ -879,5 +905,29 @@ CWP_Field_wait_irecv_cf (
   const int l_tgt_field_id
 );
 
+/**
+ *
+ * \brief Setting of an user interpolation from location.
+ *
+ * This function takes into account an user interpolation function written with
+ * void (*\ref CWP_Interp_from_location_t) interface.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] src_field_id     Source field id
+ * \param [in] fct              Function
+ *
+ */
+
+void
+CWP_Interp_from_location_set_cf(
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  const char *f_src_field_id,
+  int l_src_field_id,
+  void* ptInterpolationFct
+);
 
 #endif //CWP_CF_H_

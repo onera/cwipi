@@ -19,7 +19,7 @@ program new_api
     integer, dimension(:), pointer :: intra_comms
     integer :: interp_method, block_id
 
-    INTEGER, POINTER, DIMENSION(:) :: global_num => NULL()
+    INTEGER(8), POINTER, DIMENSION(:) :: global_num => NULL()
 
     call MPI_Init(ierr)
     call MPI_Comm_rank(MPI_comm_world, rank, ierr)

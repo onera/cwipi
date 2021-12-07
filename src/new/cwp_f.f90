@@ -77,6 +77,13 @@ module cwp
                 CWP_FIELD_EXCH_SENDRECV
     end enum
 
+    ! CWP_Field_exch_t
+    enum, bind(c)
+      enumerator :: &
+                CWP_FIELD_MAP_SOURCE, &
+                CWP_FIELD_MAP_TARGET
+    end enum
+
     ! CWP_Field_storage_t
     enum, bind(c)
         enumerator :: &
@@ -272,6 +279,18 @@ module cwp
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_format_option
       end subroutine CWP_Visu_set_cf
 
+      subroutine CWP_User_tgt_pts_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, i_part, n_pts, coord, global_num) &
+              bind(c, name = 'CWP_User_tgt_pts_set_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id
+        integer(c_int), value :: i_part, n_pts
+        type(c_ptr), value :: coord
+        type(c_ptr), value :: global_num
+      end subroutine CWP_User_tgt_pts_set_cf
+
       subroutine CWP_Mesh_interf_finalize_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id) &
             bind(c, name = 'CWP_Mesh_interf_finalize_cf')
         use, intrinsic :: iso_c_binding
@@ -308,8 +327,8 @@ module cwp
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id
-        integer(c_int) :: i_part, block_id, n_elts
-        type(c_ptr) :: connec, global_num
+        integer(c_int), value :: i_part, block_id, n_elts
+        type(c_ptr), value :: connec, global_num
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id
       end subroutine CWP_Mesh_interf_block_std_set_cf
 
@@ -319,8 +338,8 @@ module cwp
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id
-        integer(c_int) :: i_part, block_id, n_elts
-        type(c_ptr) :: connec_idx, connec, global_num
+        integer(c_int), value :: i_part, block_id, n_elts
+        type(c_ptr), value :: connec_idx, connec, global_num
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id
       end subroutine CWP_Mesh_interf_f_poly_block_set_cf
 
@@ -330,8 +349,8 @@ module cwp
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id
-        integer(c_int) :: i_part, block_id, n_elts, n_faces
-        type(c_ptr) :: connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num
+        integer(c_int), value :: i_part, block_id, n_elts, n_faces
+        type(c_ptr), value :: connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id
       end subroutine CWP_Mesh_interf_c_poly_block_set_cf
 
@@ -341,9 +360,9 @@ module cwp
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id
-        integer(c_int) :: i_part, n_cells, n_faces
-        type(c_ptr) :: cell_face_idx, cell_face, face_vtx_idx, face_vtx, parent_num
-        integer(kind = c_int) :: l_local_code_name, l_cpl_id
+        integer(c_int), value :: i_part, n_cells, n_faces
+        type(c_ptr), value :: cell_face_idx, cell_face, face_vtx_idx, face_vtx, parent_num
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id
       end subroutine CWP_Mesh_interf_from_cellface_set_cf
 
       subroutine CWP_Mesh_interf_from_faceedge_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, i_part, n_faces, &
@@ -352,9 +371,9 @@ module cwp
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id
-        integer(c_int) :: i_part, n_faces, n_edges
-        type(c_ptr) :: face_edge_idx, face_edge, edge_vtx_idx, edge_vtx, parent_num
-        integer(kind = c_int) :: l_local_code_name, l_cpl_id
+        integer(c_int), value :: i_part, n_faces, n_edges
+        type(c_ptr), value :: face_edge_idx, face_edge, edge_vtx_idx, edge_vtx, parent_num
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id
       end subroutine CWP_Mesh_interf_from_faceedge_set_cf
 
       subroutine CWP_Field_create_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, field_id, l_field_id, &
@@ -363,7 +382,7 @@ module cwp
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
-        integer(c_int) :: data_type, storage, n_component, target_location, exch_type, visu_status
+        integer(c_int), value :: data_type, storage, n_component, target_location, exch_type, visu_status
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_field_id
       end subroutine
 
@@ -373,9 +392,9 @@ module cwp
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
-        integer(c_int) :: i_part
-        integer(c_int) :: map_type
-        type(c_ptr) :: data
+        integer(c_int), value :: i_part
+        integer(c_int), value :: map_type
+        type(c_ptr), value :: data
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_field_id
       end subroutine CWP_Field_data_set_cf
 
@@ -410,6 +429,57 @@ module cwp
         character(kind = c_char, len = 1) :: local_code_name, cpl_id, tgt_field_id
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_tgt_field_id
       end subroutine CWP_Field_wait_irecv_cf
+
+      subroutine CWP_Interp_from_location_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+              src_field_id, l_src_field_id, ptInterpolationFct) &
+              bind(c, name = 'CWP_Interp_from_location_set_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+
+        abstract interface
+          subroutine ptInterpolationFct ( &
+                  interface_type, &
+                  n_src_vtcs, &
+                  n_src_std_elts, &
+                  n_tgt_pts, &
+                  src_vtcs_coords, &
+                  src_connec_idx, &
+                  src_connec, &
+                  tgt_pts_coords, &
+                  tgt_pts_target_location, &
+                  tgt_pts_dist, &
+                  tgt_pts_bary_coords_idx, &
+                  tgt_pts_bary_coords, &
+                  stride, &
+                  src_field_location, &
+                  src_field, &
+                  tgt_field_location, &
+                  tgt_field &
+                  ) &
+                  bind (c)
+            use, intrinsic :: iso_c_binding
+            integer(kind = c_int)               :: interface_type
+            integer(kind = c_int)               :: n_src_vtcs
+            integer(kind = c_int)               :: n_src_std_elts
+            integer(kind = c_int)               :: n_tgt_pts
+            real(kind = c_double), dimension(*) :: src_vtcs_coords
+            integer(kind = c_int), dimension(*) :: src_connec_idx
+            integer(kind = c_int), dimension(*) :: src_connec
+            real(kind = c_double), dimension(*) :: tgt_pts_coords
+            integer(kind = c_int), dimension(*) :: tgt_pts_target_location
+            real(kind = c_double), dimension(*) :: tgt_pts_dist
+            integer(kind = c_int), dimension(*) :: tgt_pts_bary_coords_idx
+            real(kind = c_double), dimension(*) :: tgt_pts_bary_coords
+            integer(kind = c_int)               :: stride
+            integer(kind = c_int)               :: src_field_location
+            real(kind = c_double), dimension(*) :: src_field
+            integer(kind = c_int)               :: tgt_field_location
+            real(kind = c_double), dimension(*) :: tgt_field
+          end subroutine ptInterpolationFct
+        end interface
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_src_field_id
+      end subroutine CWP_Interp_from_location_set_cf
 
       subroutine CWP_Finalize() &
             bind(c, name = 'CWP_Finalize')
@@ -496,12 +566,12 @@ contains
     implicit none
 
     character(kind = c_char, len = *) :: local_code_name, cpl_id, coupled_code_name
-    integer(kind = c_int), value :: entities_dim
-    integer(kind = c_int), value :: comm_type
+    integer(kind = c_int) :: entities_dim
+    integer(kind = c_int) :: comm_type
     integer(kind = c_int) :: spatial_interp
-    integer(kind = c_int), value :: n_part
-    integer(kind = c_int), value :: displacement
-    integer(kind = c_int), value :: freq
+    integer(kind = c_int) :: n_part
+    integer(kind = c_int) :: displacement
+    integer(kind = c_int) :: freq
     integer(c_int) :: l_local_code_name, l_cpl_id, l_coupled_code_name
 
     l_local_code_name   = len(local_code_name)
@@ -857,6 +927,42 @@ contains
 
 
   !>
+  !! \brief Setting user target points.
+  !!
+  !! This function must be called if the degrees of freedom locations are
+  !! \ref CWP_DOF_LOCATION_USER
+  !!
+  !! \param [in]  local_code_name  Local code name
+  !! \param [in]  cpl_id           Coupling identifier
+  !! \param [in]  i_part           Current partition
+  !! \param [in]  n_pts            Number of points
+  !! \param [in]  coord            Coordinates (size = 3 * n_pts)
+  !! \param [in]  g_num            global number or NUL (size = n_pts)
+  !!
+
+  subroutine CWP_User_tgt_pts_set(local_code_name, &
+                                  cpl_id, &
+                                  i_part, &
+                                  n_pts, &
+                                  coord, &
+                                  global_num)
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id
+    integer(kind = c_int) :: i_part, n_pts
+    double precision, dimension(:), pointer :: coord
+    integer(kind = c_long), dimension(:), pointer :: global_num
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+
+    call CWP_User_tgt_pts_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, i_part, n_pts, &
+            c_loc(coord), c_loc(global_num))
+  end subroutine CWP_User_tgt_pts_set
+
+  !>
   !! \brief Finalize interface mesh.
   !!
   !! This function computes the global numbers of mesh entities if they are
@@ -907,7 +1013,7 @@ contains
     character(kind = c_char, len = *) :: local_code_name, cpl_id
     integer(c_int) :: i_part, n_pts
     double precision, dimension(:), pointer :: coord
-    integer(c_int), dimension(:), pointer :: global_num
+    integer(c_long), dimension(:), pointer :: global_num
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
 
     l_local_code_name = len(local_code_name)
@@ -1061,7 +1167,8 @@ contains
 
     character(kind = c_char, len = *) :: local_code_name, cpl_id
     integer(c_int) :: i_part, block_id, n_elts
-    integer(c_int), dimension(:), pointer :: connec, global_num
+    integer(c_int), dimension(:), pointer :: connec
+    integer(c_long), dimension(:), pointer :: global_num
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
 
     l_local_code_name = len(local_code_name)
@@ -1108,7 +1215,8 @@ contains
 
     character(kind = c_char, len = *) :: local_code_name, cpl_id
     integer(c_int) :: i_part, block_id, n_elts
-    integer(c_int), dimension(:), pointer :: connec_idx, connec, global_num
+    integer(c_int), dimension(:), pointer :: connec_idx, connec
+    integer(c_long), dimension(:), pointer :: global_num
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
 
     l_local_code_name = len(local_code_name)
@@ -1164,7 +1272,8 @@ contains
 
     character(kind = c_char, len = *) :: local_code_name, cpl_id
     integer(c_int) :: i_part, block_id, n_elts, n_faces
-    integer(c_int), dimension(:), pointer :: connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num
+    integer(c_int), dimension(:), pointer :: connec_faces_idx, connec_faces, connec_cells_idx, connec_cells
+    integer(c_long), dimension(:), pointer :: global_num
     integer(kind = c_int) :: l_local_code_name, l_cpl_id
 
     l_local_code_name = len(local_code_name)
@@ -1540,4 +1649,77 @@ contains
   
   end subroutine CWP_Field_wait_irecv
 
+  !>
+  !!
+  !! \brief Setting of an user interpolation from location.
+  !!
+  !! This function takes into account an user interpolation function written with
+  !! void (*\ref CWP_Interp_from_location_t) interface.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] src_field_id     Source field id
+  !! \param [in] fct              Function
+  !!
+
+  subroutine CWP_Interp_from_location_set(local_code_name, &
+                                          cpl_id, &
+                                          src_field_id, &
+                                          ptInterpolationFct)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    abstract interface
+      subroutine ptInterpolationFct ( &
+              interface_type, &
+              n_src_vtcs, &
+              n_src_std_elts, &
+              n_tgt_pts, &
+              src_vtcs_coords, &
+              src_connec_idx, &
+              src_connec, &
+              tgt_pts_coords, &
+              tgt_pts_target_location, &
+              tgt_pts_dist, &
+              tgt_pts_bary_coords_idx, &
+              tgt_pts_bary_coords, &
+              stride, &
+              src_field_location, &
+              src_field, &
+              tgt_field_location, &
+              tgt_field &
+              )
+        use, intrinsic :: iso_c_binding
+        implicit none
+
+        integer(kind = c_int)               :: interface_type
+        integer(kind = c_int)               :: n_src_vtcs
+        integer(kind = c_int)               :: n_src_std_elts
+        integer(kind = c_int)               :: n_tgt_pts
+        real(kind = c_double), dimension(*) :: src_vtcs_coords
+        integer(kind = c_int), dimension(*) :: src_connec_idx
+        integer(kind = c_int), dimension(*) :: src_connec
+        real(kind = c_double), dimension(*) :: tgt_pts_coords
+        integer(kind = c_int), dimension(*) :: tgt_pts_target_location
+        real(kind = c_double), dimension(*) :: tgt_pts_dist
+        integer(kind = c_int), dimension(*) :: tgt_pts_bary_coords_idx
+        real(kind = c_double), dimension(*) :: tgt_pts_bary_coords
+        integer(kind = c_int)               :: stride
+        integer(kind = c_int)               :: src_field_location
+        real(kind = c_double), dimension(*) :: src_field
+        integer(kind = c_int)               :: tgt_field_location
+        real(kind = c_double), dimension(*) :: tgt_field
+      end subroutine ptInterpolationFct
+    end interface
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+    l_src_field_id = len(src_field_id)
+
+    call CWP_Interp_from_location_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+            & src_field_id, l_src_field_id, ptInterpolationFct)
+  end subroutine CWP_Interp_from_location_set
 end module cwp
