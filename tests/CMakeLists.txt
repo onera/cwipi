@@ -147,6 +147,11 @@ if (CWP_ENABLE_NEW_API)
       test_c_create (c_new_api_disjoint_comms 10)
     endif ()
 
+  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_avbp.c")
+      set(MPIEXEC_PREFLAGS "--oversubscribe")
+      test_c_create (c_new_api_avbp 2)
+  endif ()
+
   #if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_cellface_set_block.c")
   #  test_c_create(c_new_api_cellface_set_block 2)
   #endif()
