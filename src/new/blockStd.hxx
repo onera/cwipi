@@ -134,8 +134,16 @@ namespace cwipi {
        n_vtx_per_cell = 3;
      else if (_blockType == CWP_BLOCK_FACE_QUAD4)
        n_vtx_per_cell = 4;
+     else if (_blockType == CWP_BLOCK_CELL_TETRA4)
+       n_vtx_per_cell = 4;
+     else if (_blockType == CWP_BLOCK_CELL_PYRAM5)
+       n_vtx_per_cell = 5;
+     else if (_blockType == CWP_BLOCK_CELL_PRISM6)
+       n_vtx_per_cell = 6;
+     else if (_blockType == CWP_BLOCK_CELL_HEXA8)
+       n_vtx_per_cell = 8;
      else{
-       while(1==1);
+       PDM_error(__FILE__, __LINE__, 0, "Unknown block type in BlockStd::ConnecIDXGet.\n");
      }
 
      _connec_idx[i_part] = (int*)malloc(sizeof(int)*(1 + _n_elt[i_part]));
