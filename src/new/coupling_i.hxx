@@ -1174,9 +1174,11 @@ namespace cwipi {
   const CWP_g_num_t *
   Coupling::userTargetGNumGet (
     const int         iPart
-  ) const 
+  )
   {
-    assert (_userTargetGnum != nullptr);
+    if (! _userTargetGnum) {
+      userTargetGnumCompute();
+    }
     return _userTargetGnum[iPart];
   }
 

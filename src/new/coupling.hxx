@@ -1121,7 +1121,7 @@ namespace cwipi {
     inline const CWP_g_num_t *
     userTargetGNumGet (
       const int         iPart
-    ) const;
+    );
 
 
     /**
