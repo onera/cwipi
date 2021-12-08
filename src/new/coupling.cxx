@@ -397,7 +397,7 @@ namespace cwipi {
       nSendData   = localFieldsNameIdx[localNbField];
       nRecvData   = cplFieldNameIdx[cplNbField];
 
-      _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+      _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(char),
                                                                  nSendData,
                                                                  (void *) localFieldsName.c_str(),
                                                                  -1,

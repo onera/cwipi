@@ -156,8 +156,8 @@ int main(int argc, char *argv[]) {
     CWP_Mesh_interf_finalize(code_name, coupling_name);
     printf("%d --- Geometry set\n", rank);
 
-    char *field = "d";
-    char *fieldr = "r";
+    char *field = "direct";
+    char *fieldr = "reverse";
 
     // field:  avbp1 -> avbp2
     // fieldr: avbp2-> avbp1
