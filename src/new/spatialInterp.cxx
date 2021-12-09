@@ -463,6 +463,9 @@ namespace cwipi {
         _recv_buffer[intId] = NULL;
       }
 
+      if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
+        _visu -> WriterField(referenceField, CWP_FIELD_MAP_SOURCE);
+      }
     }
 
     else {
@@ -715,6 +718,9 @@ namespace cwipi {
         _recv_buffer[intId] = NULL;
       }
 
+      if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
+        _visu -> WriterField(referenceField, CWP_FIELD_MAP_TARGET);
+      }
     }
 
     else {
