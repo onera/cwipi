@@ -387,11 +387,17 @@ namespace cwipi {
 
           int ival = 0;
           for (int i = 0; i < part_n_elt; i++) {
+            int *connec_idx = _mesh->connecIdxGet(i);
+            int *connec     = _mesh->connecGet(i);
+
             for (int j = part_elt_pts_inside_idx[i]; j < part_elt_pts_inside_idx[i+1]; j++) {
               for (int k1 = 0; k1 < nComponent; k1++) {
                 local_buffer[ival] = 0;
-                for (int k = part_weights_idx[j]; k < part_weights_idx[j+1]; k++) {
-                  local_buffer[ival] += part_weights[k] * referenceData[j*nComponent+k1];
+                for (int k = part_weights_idx[i]; k < part_weights_idx[i+1]; k++) {
+                  assert (k == connec_idx[i]);
+                  int isom = connec[k] - 1;
+//                  int isom = connec[connec_idx[i]] - 1;
+                  local_buffer[ival] += part_weights[k] * referenceData[isom*nComponent+k1];
                 }
                 ival++;
               }

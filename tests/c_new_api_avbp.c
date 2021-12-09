@@ -34,9 +34,9 @@ int main(int argc, char *argv[]) {
     MPI_Comm_rank(commcwipi, &rank);
     MPI_Comm_size(commcwipi, &comm_world_size);
 
-    char *coupling_name = "cpl12";
+    const char *coupling_name = "cpl12";
 
-    char *code_name, *code_coupled_name;
+    const char *code_name, *code_coupled_name;
     int code_id;
     if (rank == 0) {
         code_name = "avbp1";
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
     }
 
     int nb_codes = 1;
-    char **code_names = (char **) malloc(sizeof(char *) * nb_codes);
+    const char **code_names = (const char **) malloc(sizeof(char *) * nb_codes);
     double *time_init = (double *) malloc(sizeof(double) * nb_codes);
     CWP_Status_t *statuses = (CWP_Status_t *) malloc(sizeof(CWP_Status_t) * nb_codes);
     MPI_Comm *cwp_comms = (MPI_Comm *) malloc(sizeof(MPI_Comm) * nb_codes);
@@ -156,8 +156,8 @@ int main(int argc, char *argv[]) {
     CWP_Mesh_interf_finalize(code_name, coupling_name);
     printf("%d --- Geometry set\n", rank);
 
-    char *field = "direct";
-    char *fieldr = "reverse";
+    const char *field = "direct";
+    const char *fieldr = "reverse";
 
     // field:  avbp1 -> avbp2
     // fieldr: avbp2-> avbp1
