@@ -251,6 +251,12 @@ typedef enum {
   PDM_VTX_KIND_ON_CORNER          = 0x0000008, /*=*  3                                  */
 } PDM_vtx_kind;
 
+typedef enum {
+  PDM_REDUCE_OP_MIN,
+  PDM_REDUCE_OP_MAX,
+  PDM_REDUCE_OP_SUM,
+  PDM_REDUCE_OP_MEAN
+} PDM_reduce_op_t;
 
 /*=============================================================================
  * Public function prototypes
