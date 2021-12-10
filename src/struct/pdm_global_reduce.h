@@ -1,0 +1,157 @@
+#ifndef __PDM_GLOBAL_REDUCE_H__
+#define __PDM_GLOBAL_REDUCE_H__
+
+/*----------------------------------------------------------------------------
+ * Standard C library headers
+ *----------------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------------
+ * Local headers
+ *----------------------------------------------------------------------------*/
+
+#include "pdm.h"
+#include "pdm_mpi.h"
+#include "pdm_part_to_block.h"
+#include "pdm_block_to_part.h"
+
+/*----------------------------------------------------------------------------*/
+
+#ifdef __cplusplus
+extern "C" {
+#if 0
+} /* Fake brace */
+#endif
+#endif /* __cplusplus */
+
+/*============================================================================
+ * Macro definitions
+ *============================================================================*/
+
+/*============================================================================
+ * Type definitions
+ *============================================================================*/
+
+typedef struct _pdm_global_reduce_t PDM_global_reduce_t;
+
+/*============================================================================
+ * Public function definitions
+ *============================================================================*/
+
+/**
+ *
+ * \brief Create a structure that computes a global reduction
+ *
+ * \param [in]   n_part       Number of local partitions
+ * \param [in]   comm         PDM_MPI communicator
+ *
+ * \return     Pointer to global reduction object
+ */
+
+PDM_global_reduce_t *
+PDM_global_reduce_create
+(
+ const int          n_part,
+ const PDM_MPI_Comm comm
+);
+
+
+/**
+ *
+ * \brief Create a structure that computes a global reduction
+ *
+ * \param [in]   n_part       Number of local partitions
+ * \param [in]   comm         PDM_MPI communicator
+ *
+ * \return     Pointer to global reduction object
+ */
+
+PDM_global_reduce_t*
+PDM_global_reduce_create_cf
+(
+ const int          n_part,
+ const PDM_MPI_Fint comm
+);
+
+
+/**
+ *
+ * \brief Free a global point mean structure
+ *
+ * \param [in]   gre          Pointer to global reduction object
+ *
+ */
+
+void
+PDM_global_reduce_free
+(
+ PDM_global_reduce_t *gmean
+);
+
+
+/**
+ *
+ * \brief Set absolute number
+ *
+ * \param [in]   gre           Pointer to global reduction object
+ * \param [in]   i_part        Current partition
+ * \param [in]   n_pts         Number of points in the partition
+ * \param [in]   pts_ln_to_gn  Global ids of points in the partition
+ *
+ */
+
+void
+PDM_global_reduce_g_num_set
+(
+ PDM_global_reduce_t *gre,
+ const int            i_part,
+ const int            n_pts,
+ const PDM_g_num_t   *pts_ln_to_gn
+ );
+
+
+/**
+ *
+ * \brief Set local field and it associated weight
+ *
+ * \param [in]   gre                       Pointer to global reduction object
+ * \param [in]   i_part                    Current partition
+ * \param [in]   stride                    Stride of the field
+ * \param [in]   local_field               Local value of field
+ * \param [in]   local_weight              Local weight used to compute the mean value
+ *                                         (can be NULL for any other reduction operation)
+ * \param [in]   global_reduced_field_ptr  Pointer where global reduced field
+ *                                         will be stored after computing
+ */
+
+void
+PDM_global_reduce_field_set
+(
+ PDM_global_reduce_t   *gre,
+ const int              i_part,
+ const int              stride,
+ const PDM_reduce_op_t  operation,
+ const double          *local_field,
+ const double          *local_weight,
+ double                *global_reduced_field_ptr
+);
+
+
+/**
+ *
+ * \brief Compute the global reduced field
+ *
+ * \param [in]   gre          Pointer to global reduction object
+ *
+ */
+
+void
+PDM_global_reduce_field_compute
+(
+ PDM_global_reduce_t *gre
+);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* __PDM_GLOBAL_REDUCE_H__ */
