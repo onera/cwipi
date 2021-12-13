@@ -116,6 +116,7 @@ if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
   test_fortran_create (pdm_t_block_to_part_f 1)
   test_fortran_create (pdm_t_dcube_gen_f 1)
   test_fortran_create (pdm_t_plane_intersect_unit_f 1)
+  test_fortran_create (pdm_t_global_reduce_f 2)
 endif()
 
 test_c_create (pdm_t_points_inside_boxes 1)

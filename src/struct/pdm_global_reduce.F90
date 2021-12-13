@@ -37,7 +37,7 @@ module pdm_global_reduce
   !! \return     Pointer to global reduction object
   !!
 
-  function pdm_global_reduce_create ( &
+  function PDM_global_reduce_create ( &
     n_part,                           &
     fComm)                            &
   result (gre)                        &
@@ -51,7 +51,7 @@ module pdm_global_reduce
 
   type (c_ptr)          :: gre
 
-end function pdm_global_reduce_create
+end function PDM_global_reduce_create
 
 
 !>
