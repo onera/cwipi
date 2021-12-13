@@ -64,13 +64,13 @@ _usage(int exit_code)
  */
 
 static void
-_read_args(int            argc,
-           char         **argv,
+_read_args(int           argc,
+           char        **argv,
            PDM_g_num_t  *n_vtx_seg,
-           double        *length,
-           int           *n_part,
-           int           *post,
-           int           *method)
+           double       *length,
+           int          *n_part,
+           int          *verbose,
+           int          *method)
 {
   int i = 1;
 
@@ -105,8 +105,8 @@ _read_args(int            argc,
         *n_part = atoi(argv[i]);
       }
     }
-    else if (strcmp(argv[i], "-post") == 0) {
-      *post = 1;
+    else if (strcmp(argv[i], "-v") == 0) {
+      *verbose = 1;
     }
     else if (strcmp(argv[i], "-parmetis") == 0) {
       *method = 1;
@@ -137,10 +137,10 @@ int main(int argc, char *argv[])
    *  Set default values
    */
 
-  PDM_g_num_t        n_vtx_seg = 10;
-  double             length    = 1.;
-  int                n_part    = 1;
-  int                post      = 0;
+  PDM_g_num_t n_vtx_seg = 10;
+  double      length    = 1.;
+  int         n_part    = 1;
+  int         verbose   = 0;
 #ifdef PDM_HAVE_PARMETIS
   PDM_part_split_t method  = PDM_PART_SPLIT_PARMETIS;
 #else
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
              &n_vtx_seg,
              &length,
              &n_part,
-             &post,
+             &verbose,
              (int *) &method);
 
   /*
@@ -395,20 +395,22 @@ int main(int argc, char *argv[])
     printf("  elapsed: %12.5es\n", elapsed_max);
   }
 
-  log_trace ("-- Global min --\n");
-  for (int i_part = 0; i_part < n_part; i_part++) {
+  if (verbose) {
+    log_trace ("-- Global min --\n");
+    for (int i_part = 0; i_part < n_part; i_part++) {
 
-    log_trace ("  part %d:\n",i_part);
+      log_trace ("  part %d:\n",i_part);
 
-    for (int i = 0; i < part_n_vtx[i_part]; i++) {
-      log_trace("    [%d] ("PDM_FMT_G_NUM"): %f %f %f --> %f %f %f\n",
-                i, part_vtx_ln_to_gn[i_part][i],
-                part_local_field[i_part][3*i  ],
-                part_local_field[i_part][3*i+1],
-                part_local_field[i_part][3*i+2],
-                part_reduced_field[i_part][3*i  ],
-                part_reduced_field[i_part][3*i+1],
-                part_reduced_field[i_part][3*i+2]);
+      for (int i = 0; i < part_n_vtx[i_part]; i++) {
+        log_trace("    [%d] ("PDM_FMT_G_NUM"): %f %f %f --> %f %f %f\n",
+                  i, part_vtx_ln_to_gn[i_part][i],
+                  part_local_field[i_part][3*i  ],
+                  part_local_field[i_part][3*i+1],
+                  part_local_field[i_part][3*i+2],
+                  part_reduced_field[i_part][3*i  ],
+                  part_reduced_field[i_part][3*i+1],
+                  part_reduced_field[i_part][3*i+2]);
+      }
     }
   }
 
@@ -440,20 +442,22 @@ int main(int argc, char *argv[])
     printf("  elapsed: %12.5es\n", elapsed_max);
   }
 
-  log_trace ("-- Global max --\n");
-  for (int i_part = 0; i_part < n_part; i_part++) {
+  if (verbose) {
+    log_trace ("-- Global max --\n");
+    for (int i_part = 0; i_part < n_part; i_part++) {
 
-    log_trace ("  part %d:\n",i_part);
+      log_trace ("  part %d:\n",i_part);
 
-    for (int i = 0; i < part_n_vtx[i_part]; i++) {
-      log_trace("    [%d] ("PDM_FMT_G_NUM"): %f %f %f --> %f %f %f\n",
-                i, part_vtx_ln_to_gn[i_part][i],
-                part_local_field[i_part][3*i  ],
-                part_local_field[i_part][3*i+1],
-                part_local_field[i_part][3*i+2],
-                part_reduced_field[i_part][3*i  ],
-                part_reduced_field[i_part][3*i+1],
-                part_reduced_field[i_part][3*i+2]);
+      for (int i = 0; i < part_n_vtx[i_part]; i++) {
+        log_trace("    [%d] ("PDM_FMT_G_NUM"): %f %f %f --> %f %f %f\n",
+                  i, part_vtx_ln_to_gn[i_part][i],
+                  part_local_field[i_part][3*i  ],
+                  part_local_field[i_part][3*i+1],
+                  part_local_field[i_part][3*i+2],
+                  part_reduced_field[i_part][3*i  ],
+                  part_reduced_field[i_part][3*i+1],
+                  part_reduced_field[i_part][3*i+2]);
+      }
     }
   }
 
@@ -484,23 +488,24 @@ int main(int argc, char *argv[])
     printf("  elapsed: %12.5es\n", elapsed_max);
   }
 
-  log_trace ("-- Global sum --\n");
-  for (int i_part = 0; i_part < n_part; i_part++) {
+  if (verbose) {
+    log_trace ("-- Global sum --\n");
+    for (int i_part = 0; i_part < n_part; i_part++) {
 
-    log_trace ("  part %d:\n",i_part);
+      log_trace ("  part %d:\n",i_part);
 
-    for (int i = 0; i < part_n_vtx[i_part]; i++) {
-      log_trace("    [%d] ("PDM_FMT_G_NUM"): %f %f %f --> %f %f %f\n",
-                i, part_vtx_ln_to_gn[i_part][i],
-                part_local_field[i_part][3*i  ],
-                part_local_field[i_part][3*i+1],
-                part_local_field[i_part][3*i+2],
-                part_reduced_field[i_part][3*i  ],
-                part_reduced_field[i_part][3*i+1],
-                part_reduced_field[i_part][3*i+2]);
+      for (int i = 0; i < part_n_vtx[i_part]; i++) {
+        log_trace("    [%d] ("PDM_FMT_G_NUM"): %f %f %f --> %f %f %f\n",
+                  i, part_vtx_ln_to_gn[i_part][i],
+                  part_local_field[i_part][3*i  ],
+                  part_local_field[i_part][3*i+1],
+                  part_local_field[i_part][3*i+2],
+                  part_reduced_field[i_part][3*i  ],
+                  part_reduced_field[i_part][3*i+1],
+                  part_reduced_field[i_part][3*i+2]);
+      }
     }
   }
-
 
 
   for (int i_part = 0; i_part < n_part; i_part++) {
