@@ -48,13 +48,9 @@ struct _pdm_global_reduce_t {
 
   PDM_part_to_block_t *ptb;       /*!< Part to block structure */
   PDM_block_to_part_t *btp;       /*!< Block to part structure */
-  int           stride;           /*!< Current Field stride */
-  int         **strides;          /*!< Strides array storage
+  int                  stride;    /*!< Current Field stride */
+  int                **strides;   /*!< Strides array storage
                                    *   (In ptb strides are variable) */
-
-  double       *s_weight;         /*!< Sum of weights */
-  double      **local_weight;     /*!< Weight */
-
 } ;
 
 /*=============================================================================

@@ -65,7 +65,7 @@ PDM_global_reduce_create
  * \return     Pointer to global reduction object
  */
 
-PDM_global_reduce_t*
+PDM_global_reduce_t *
 PDM_global_reduce_create_cf
 (
  const int          n_part,
@@ -84,7 +84,7 @@ PDM_global_reduce_create_cf
 void
 PDM_global_reduce_free
 (
- PDM_global_reduce_t *gmean
+ PDM_global_reduce_t *gre
 );
 
 
@@ -111,13 +111,28 @@ PDM_global_reduce_g_num_set
 
 /**
  *
- * \brief Set local field and it associated weight
+ * \brief Set reduction operation
+ *
+ * \param [in]   gre                       Pointer to global reduction object
+ * \param [in]   operation                 Type of reduction operation
+ */
+
+void
+PDM_global_reduce_operation_set
+(
+ PDM_global_reduce_t   *gre,
+ const PDM_reduce_op_t  operation
+);
+
+
+/**
+ *
+ * \brief Set local field
  *
  * \param [in]   gre                       Pointer to global reduction object
  * \param [in]   i_part                    Current partition
  * \param [in]   stride                    Stride of the field
  * \param [in]   local_field               Local value of field
- * \param [in]   local_weight              Local weight used to compute the mean value
  *                                         (can be NULL for any other reduction operation)
  * \param [in]   global_reduced_field_ptr  Pointer where global reduced field
  *                                         will be stored after computing
@@ -129,9 +144,7 @@ PDM_global_reduce_field_set
  PDM_global_reduce_t   *gre,
  const int              i_part,
  const int              stride,
- const PDM_reduce_op_t  operation,
  const double          *local_field,
- const double          *local_weight,
  double                *global_reduced_field_ptr
 );
 

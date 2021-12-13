@@ -254,8 +254,8 @@ typedef enum {
 typedef enum {
   PDM_REDUCE_OP_MIN,
   PDM_REDUCE_OP_MAX,
-  PDM_REDUCE_OP_SUM,
-  PDM_REDUCE_OP_MEAN
+  PDM_REDUCE_OP_SUM//,
+  // PDM_REDUCE_OP_MEAN
 } PDM_reduce_op_t;
 
 /*=============================================================================

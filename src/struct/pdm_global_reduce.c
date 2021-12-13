@@ -53,6 +53,17 @@ extern "C" {
  * Private function definitions
  *============================================================================*/
 
+static inline double _min_a_b (const double a, const double b) {
+  return PDM_MIN (a, b);
+}
+
+static inline double _max_a_b (const double a, const double b) {
+  return PDM_MAX (a, b);
+}
+
+static inline double _sum_a_b (const double a, const double b) {
+  return a + b;
+}
 
 /*=============================================================================
  * Public function definitions
@@ -85,9 +96,7 @@ PDM_global_reduce_create
   gre->ptb     = NULL;
   gre->btp     = NULL;
 
-  gre->operation = PDM_REDUCE_OP_MEAN;
-
-  gre->s_weight = NULL;
+  gre->operation = PDM_REDUCE_OP_MIN;
 
   for (int i = 0; i < n_part; i++) {
     gre->g_nums [i] = NULL;
@@ -95,16 +104,265 @@ PDM_global_reduce_create
   }
 
   gre->local_field          = (double **) malloc (sizeof(double * ) * n_part);
-  gre->local_weight         = (double **) malloc (sizeof(double * ) * n_part);
   gre->global_reduced_field = (double **) malloc (sizeof(double * ) * n_part);
 
   for (int i = 0; i < n_part; i++) {
     gre->local_field         [i] = NULL;
-    gre->local_weight        [i] = NULL;
     gre->global_reduced_field[i] = NULL;
   }
 
   return gre;
+}
+
+
+
+/**
+ *
+ * \brief Create a structure that computes a global reduction
+ *
+ * \param [in]   n_part       Number of local partitions
+ * \param [in]   comm         PDM_MPI communicator
+ *
+ * \return     Pointer to global reduction object
+ */
+
+PDM_global_reduce_t *
+PDM_global_reduce_create_cf
+(
+ const int          n_part,
+ const PDM_MPI_Fint comm
+)
+{
+  const PDM_MPI_Comm _comm = PDM_MPI_Comm_f2c(comm);
+
+  return PDM_global_reduce_create (n_part, _comm);
+}
+
+
+/**
+ *
+ * \brief Free a global point mean structure
+ *
+ * \param [in]   gre          Pointer to global reduction object
+ *
+ */
+
+void
+PDM_global_reduce_free
+(
+ PDM_global_reduce_t *gre
+)
+{
+  if (gre->ptb != NULL) {
+    gre->ptb = PDM_part_to_block_free (gre->ptb);
+  }
+
+  if (gre->btp != NULL) {
+    gre->btp = PDM_block_to_part_free (gre->btp);
+  }
+
+  free (gre->g_nums);
+  free (gre->n_elts);
+  free (gre->local_field);
+  free (gre->global_reduced_field);
+
+  for (int i = 0; i < gre->n_part; i++) {
+    if (gre->strides[i] != NULL) {
+      free (gre->strides[i]);
+    }
+  }
+
+  if (gre->strides != NULL) {
+    free (gre->strides);
+  }
+
+  free(gre);
+}
+
+
+/**
+ *
+ * \brief Set absolute number
+ *
+ * \param [in]   gre           Pointer to global reduction object
+ * \param [in]   i_part        Current partition
+ * \param [in]   n_pts         Number of points in the partition
+ * \param [in]   pts_ln_to_gn  Global ids of points in the partition
+ *
+ */
+
+void
+PDM_global_reduce_g_num_set
+(
+ PDM_global_reduce_t *gre,
+ const int            i_part,
+ const int            n_pts,
+ const PDM_g_num_t   *pts_ln_to_gn
+ )
+ {
+  gre->g_nums [i_part] = (PDM_g_num_t *) pts_ln_to_gn;
+  gre->n_elts [i_part] = n_pts;
+  gre->strides[i_part] = malloc (sizeof(int) * n_pts);
+ }
+
+
+/**
+ *
+ * \brief Set reduction operation
+ *
+ * \param [in]   gre                       Pointer to global reduction object
+ * \param [in]   operation                 Type of reduction operation
+ */
+
+void
+PDM_global_reduce_operation_set
+(
+ PDM_global_reduce_t   *gre,
+ const PDM_reduce_op_t  operation
+)
+{
+  gre->operation = operation;
+}
+
+
+ /**
+ *
+ * \brief Set local field
+ *
+ * \param [in]   gre                       Pointer to global reduction object
+ * \param [in]   i_part                    Current partition
+ * \param [in]   stride                    Stride of the field
+ * \param [in]   local_field               Local value of field
+ * \param [in]   global_reduced_field_ptr  Pointer where global reduced field
+ *                                         will be stored after computing
+ */
+
+void
+PDM_global_reduce_field_set
+(
+ PDM_global_reduce_t   *gre,
+ const int              i_part,
+ const int              stride,
+ const double          *local_field,
+ double                *global_reduced_field_ptr
+)
+{
+  gre->local_field         [i_part] = (double *) local_field;
+  gre->global_reduced_field[i_part] = (double *) global_reduced_field_ptr;
+  gre->stride                       = stride;
+}
+
+
+
+/**
+ *
+ * \brief Compute the global reduced field
+ *
+ * \param [in]   gre          Pointer to global reduction object
+ *
+ */
+
+void
+PDM_global_reduce_field_compute
+(
+ PDM_global_reduce_t *gre
+)
+{
+  if (gre->ptb == NULL) {
+    gre->ptb = PDM_part_to_block_create (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+                                         PDM_PART_TO_BLOCK_POST_MERGE,
+                                         1.,
+                                         gre->g_nums,
+                                         NULL,
+                                         gre->n_elts,
+                                         gre->n_part,
+                                         gre->comm);
+  }
+
+  if (gre->btp == NULL) {
+    PDM_g_num_t *distrib = PDM_part_to_block_distrib_index_get (gre->ptb);
+
+    gre->btp = PDM_block_to_part_create (distrib,
+                                         (const PDM_g_num_t **) gre->g_nums,
+                                         gre->n_elts,
+                                         gre->n_part,
+                                         gre->comm);
+  }
+
+  int    *block_field_stride  = NULL;
+  double *block_field         = NULL;
+
+  for (int i = 0; i < gre->n_part; i++) {
+    for (int j = 0; j < gre->n_elts[i]; j++) {
+      gre->strides[i][j] = gre->stride;
+    }
+  }
+
+  PDM_part_to_block_exch (gre->ptb,
+                          sizeof(double),
+                          PDM_STRIDE_VAR,
+                          1,
+                          gre->strides,
+                          (void **) gre->local_field,
+                          &block_field_stride,
+                          (void **) &block_field);
+
+  int n_elt_block = PDM_part_to_block_n_elt_block_get(gre->ptb);
+
+  int *stride_idx = malloc(sizeof(int) * (n_elt_block + 1));
+  stride_idx[0] = 0;
+
+  for (int i = 0; i < n_elt_block; i++) {
+    stride_idx[i+1] = stride_idx[i] + block_field_stride[i]/gre->stride;
+  }
+  free (block_field_stride);
+
+
+  double (*_reduce) (const double, const double);
+
+  switch (gre->operation) {
+    case PDM_REDUCE_OP_MIN:
+    _reduce = &_min_a_b;
+    break;
+
+    case PDM_REDUCE_OP_MAX:
+    _reduce = &_max_a_b;
+    break;
+
+    case PDM_REDUCE_OP_SUM:
+    _reduce = &_sum_a_b;
+    break;
+
+    default:
+    PDM_error(__FILE__, __LINE__, 0, "Invalid reduction operation\n");
+  }
+
+
+  for (int i = 0; i < n_elt_block; i++) {
+    for (int j = stride_idx[i]+1; j < stride_idx[i+1]; j++) {
+      for (int k = 0; k < gre->stride; k++) {
+        double val = block_field[j*gre->stride + k];
+        block_field[i*gre->stride + k] = _reduce(block_field[i*gre->stride + k],
+                                                 val);
+      }
+    }
+  }
+  free (stride_idx);
+
+
+  PDM_block_to_part_exch (gre->btp,
+                          sizeof(double),
+                          PDM_STRIDE_CST,
+                          &gre->stride,
+                          block_field,
+                          NULL,
+                          (void **) gre->global_reduced_field);
+  free (block_field);
+
+  for (int i = 0; i < gre->n_part; i++) {
+    gre->local_field         [i] = NULL;
+    gre->global_reduced_field[i] = NULL;
+  }
 }
 
 /*----------------------------------------------------------------------------*/
