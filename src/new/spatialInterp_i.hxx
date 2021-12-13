@@ -35,7 +35,7 @@ namespace cwipi {
   int
   SpatialInterp::nUncomputedTargetsGet(int i_part) const
   {
-    return _n_computed_tgt[i_part];
+    return _n_uncomputed_tgt[i_part];
   }
 
   /**
@@ -49,7 +49,7 @@ namespace cwipi {
   const int *
   SpatialInterp::uncomputedTargetsGet(int i_part) const
   {
-    return _computed_tgt[i_part];
+    return _uncomputed_tgt[i_part];
   }
 
   /**
@@ -62,7 +62,7 @@ namespace cwipi {
   int
   SpatialInterp::nComputedTargetsGet(int i_part) const
   {
-    return _n_uncomputed_tgt[i_part];
+    return _n_computed_tgt[i_part];
   }
 
   /**
@@ -77,7 +77,7 @@ namespace cwipi {
   const int *
   SpatialInterp::computedTargetsGet(int i_part) const
   {
-    return _uncomputed_tgt[i_part];
+    return _computed_tgt[i_part];
   }
 
 

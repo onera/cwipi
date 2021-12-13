@@ -235,27 +235,27 @@ namespace cwipi {
 
 
     if (!_coupledCodeProperties->localCodeIs()) {
-      printf("_src_gnum %d :", _src_n_gnum[0]);
-      for (int i = 0; i < _src_n_gnum[0]; i++) {
-        printf(" %ld", _src_gnum[0][i]);
-      }
-      printf("\n");
+//      printf("_src_gnum %d :", _src_n_gnum[0]);
+//      for (int i = 0; i < _src_n_gnum[0]; i++) {
+//        printf(" %ld", _src_gnum[0][i]);
+//      }
+//      printf("\n");
 
-      printf("_tgt_gnum %d :", _tgt_n_gnum[0]);
-      for (int i = 0; i < _tgt_n_gnum[0]; i++) {
-        printf(" %ld", _tgt_gnum[0][i]);
-      }
-      printf("\n");
+//      printf("_tgt_gnum %d :", _tgt_n_gnum[0]);
+//      for (int i = 0; i < _tgt_n_gnum[0]; i++) {
+//        printf(" %ld", _tgt_gnum[0][i]);
+//      }
+//      printf("\n");
 
-      printf("_points_gnum %d :", _src_n_gnum[0]);
-      for (int i = 0; i < _src_n_gnum[0]; i++) {
-        for (int j = _elt_pts_inside_idx[0][i]; j < _elt_pts_inside_idx[0][i+1]; j++) {
-          printf(" %ld", _points_gnum[0][j]);
-        }
-        printf("\n");
-      }
-      printf("\n");
-      fflush(stdout);
+//      for (int i = 0; i < _src_n_gnum[0]; i++) {
+//        printf("_elt_pts_inside_idx %d %d: ", _elt_pts_inside_idx[0][i], _elt_pts_inside_idx[0][i+1]);
+//        for (int j = _elt_pts_inside_idx[0][i]; j < _elt_pts_inside_idx[0][i+1]; j++) {
+//          printf(" %ld", _points_gnum[0][j]);
+//        }
+//        printf("\n");
+//      }
+//      printf("\n");
+//      fflush(stdout);
       _ptsp = PDM_part1_to_selected_part2_create ((const PDM_g_num_t **)_src_gnum,
                                                   (const int *)_src_n_gnum,
                                                   _nPart,
@@ -390,18 +390,20 @@ namespace cwipi {
 
           int ival = 0;
           for (int i = 0; i < part_n_elt; i++) {
-
             for (int j = part_elt_pts_inside_idx[i]; j < part_elt_pts_inside_idx[i+1]; j++) {
               for (int k1 = 0; k1 < nComponent; k1++) {
                 local_buffer[ival] = 0;
-                assert (connec_idx[i] == part_weights_idx[i]);
-                for (int k = part_weights_idx[i]; k < part_weights_idx[i+1]; k++) {
-                  int isom = connec[k] - 1;
-//                  int isom = connec[connec_idx[i]] - 1;
+                int k2 = connec_idx[i];
+                assert(connec_idx[i+1] - connec_idx[i] == part_weights_idx[j + 1] - part_weights_idx[j]);
+                for (int k = part_weights_idx[j]; k < part_weights_idx[j+1]; k++) {
+                  int isom = connec[k2++] - 1;
+//                  printf("\ti, k, weights isom %d %d %f %d\n", i, k, part_weights[k], isom);
                   local_buffer[ival] += part_weights[k] * referenceData[isom*nComponent+k1];
                 }
                 ival++;
               }
+
+//              printf("coords dist projected_x gnum weight_idx local_buffer %f %f %f %f %f %ld %d %f\n", _points_coords[i_part][3 * j], _points_coords[i_part][3 * j + 1], _points_coords[i_part][3 * j + 2], _points_dist2[i_part][j], _points_projected_coords[i_part][3 * j], _points_gnum[i_part][j], part_weights_idx[j], local_buffer[ival - 1]);
             }
           }
         }

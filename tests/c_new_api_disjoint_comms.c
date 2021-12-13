@@ -1,3 +1,4 @@
+#include <math.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -310,20 +311,20 @@ int main(int argc, char *argv[]) {
     }
 
     // Create and initialise Fields: code1 -> code2
-    const char *field_name = "cooX";
+    const char *field_name = "coo";
 
     double **send_values = (double **) malloc(n_code * sizeof(double *));
     double **recv_values = (double **) malloc(n_code * sizeof(double *));
     for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-        send_values[i_code] = (double *) malloc(n_vtx[i_code][0] * sizeof(double));
-        recv_values[i_code] = (double *) malloc(n_vtx[i_code][0] * sizeof(double));
+        send_values[i_code] = (double *) malloc(3 * n_vtx[i_code][0] * sizeof(double));
+        recv_values[i_code] = (double *) malloc(3 * n_vtx[i_code][0] * sizeof(double));
         if (code_id[i_code] == 1) {
-          for (int i = 0 ; i < n_vtx[i_code][0] ; i++) {
-            send_values[i_code][i] = coord[i_code][0][3 * i];
+          for (int i = 0 ; i < 3 * n_vtx[i_code][0] ; i++) {
+            send_values[i_code][i] = coord[i_code][0][i];
           }
         }
         if (code_id[i_code] == 2) {
-          for (int i = 0 ; i < n_vtx[i_code][0] ; i++) {
+          for (int i = 0 ; i < 3 * n_vtx[i_code][0] ; i++) {
             recv_values[i_code][i] = 0;
           }
         }
@@ -331,11 +332,11 @@ int main(int argc, char *argv[]) {
 
     for (int i_code = 0 ; i_code < n_code ; ++i_code) {
         if (code_id[i_code] == 1) {
-            CWP_Field_create(code_names[i_code], cpl_name, field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, 1, CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_SEND, CWP_STATUS_ON);
+            CWP_Field_create(code_names[i_code], cpl_name, field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, 3, CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_SEND, CWP_STATUS_ON);
             CWP_Field_data_set(code_names[i_code], cpl_name, field_name, 0, CWP_FIELD_MAP_SOURCE, send_values[i_code]);
         }
         if (code_id[i_code] == 2) {
-            CWP_Field_create(code_names[i_code], cpl_name, field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, 1, CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_RECV, CWP_STATUS_ON);
+            CWP_Field_create(code_names[i_code], cpl_name, field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, 3, CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_RECV, CWP_STATUS_ON);
             CWP_Field_data_set(code_names[i_code], cpl_name, field_name, 0, CWP_FIELD_MAP_TARGET, recv_values[i_code]);
         }
         printf("%d (%d, %s) --- Field created and data set\n", rank, intra_comm_rank[i_code], code_names[i_code]);
@@ -395,11 +396,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // Print output
     for (int i_code = 0 ; i_code < n_code ; ++i_code) {
       if (code_id[i_code] == 2) {
-        for (int i = 0 ; i < n_vtx[i_code][0] ; i++) {
-          printf("%f\n", recv_values[i_code][i]);
+        for (int i = 0 ; i < n_computed_tgts ; i++) {
+          assert(fabs(recv_values[i_code][3 * i] - coord[i_code][0][3 * (computed_tgts[i] - 1)]) < 1.e-4);
         }
       }
     }
