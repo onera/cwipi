@@ -48,7 +48,7 @@ static void
 _export_ol_mesh
 (
  const PDM_MPI_Comm pdm_mpi_comm,
- const int pdm_id,
+ const PDM_ol_t *ol,
  int           nFace[2][1],
  double  **sFieldOlA,
  double  **rFieldOlB,
@@ -187,7 +187,7 @@ _export_ol_mesh
     PDM_g_num_t    nGOlFace;
     PDM_g_num_t    nGOlVtx;
 
-    PDM_ol_mesh_dim_get (pdm_id,
+    PDM_ol_mesh_dim_get (ol,
                          mesht,
                          &nGOlFace,
                          &nGOlVtx);
@@ -209,7 +209,7 @@ _export_ol_mesh
       int           sOlface_vtx;
       int           sInitToOlFace;
 
-      PDM_ol_part_mesh_dim_get (pdm_id,
+      PDM_ol_part_mesh_dim_get (ol,
                                 mesht,
                                 ipart,
                                 &nOlFace,
@@ -231,7 +231,7 @@ _export_ol_mesh
       int            *initToOlFaceIdx;
       int            *initToOlFace;
 
-      PDM_ol_mesh_entities_get (pdm_id,
+      PDM_ol_mesh_entities_get (ol,
                                 mesht,
                                 ipart,
                                 &olFaceIniVtxIdx,
@@ -1058,24 +1058,24 @@ main
   // meshes intersection
   //
 
-  int pdm_id = PDM_ol_create (n_part,
-                              nGFace[0],
-                              nGVtx[0],
-                              n_part,
-                              nGFace[1],
-                              nGVtx[1],
-                              projectCoeff,
-                              PDM_MPI_COMM_WORLD);
+  PDM_ol_t *ol = PDM_ol_create (n_part,
+                                nGFace[0],
+                                nGVtx[0],
+                                n_part,
+                                nGFace[1],
+                                nGVtx[1],
+                                projectCoeff,
+                                PDM_MPI_COMM_WORLD);
 
-  PDM_ol_parameter_set (pdm_id,
+  PDM_ol_parameter_set (ol,
                         PDM_OL_CAR_LENGTH_TOL,
                         1e-3);
 
-  PDM_ol_parameter_set (pdm_id,
+  PDM_ol_parameter_set (ol,
                         PDM_OL_EXTENTS_TOL,
                         1e-3);
 
-  PDM_ol_input_mesh_set (pdm_id,
+  PDM_ol_input_mesh_set (ol,
                          PDM_OL_MESH_A,
                          0,
                          nFaceA_merge,
@@ -1087,7 +1087,7 @@ main
                          vtxLNToGNA_merge);
 
 
-  PDM_ol_input_mesh_set (pdm_id,
+  PDM_ol_input_mesh_set (ol,
                          PDM_OL_MESH_B,
                          0,
                          nFaceB,
@@ -1098,10 +1098,10 @@ main
                          vtxCoordB,
                          vtxLNToGNB);
 
-  PDM_ol_compute (pdm_id);
+  PDM_ol_compute (ol);
 
 
-  PDM_ol_dump_times (pdm_id);
+  PDM_ol_dump_times (ol);
 
   //
   // Field exchange
@@ -1152,7 +1152,7 @@ main
   int           sOlface_vtxA;
   int           sInitToOlFaceA;
 
-  PDM_ol_part_mesh_dim_get (pdm_id,
+  PDM_ol_part_mesh_dim_get (ol,
                             PDM_OL_MESH_A,
                             0,
                             &nOlFaceA,
@@ -1174,7 +1174,7 @@ main
   int            *initToOlFaceIdxA;
   int            *initToOlFaceA;
 
-  PDM_ol_mesh_entities_get (pdm_id,
+  PDM_ol_mesh_entities_get (ol,
                             PDM_OL_MESH_A,
                             0,
                             &olFaceIniVtxIdxA,
@@ -1197,7 +1197,7 @@ main
   int           sOlface_vtxB;
   int           sInitToOlFaceB;
 
-  PDM_ol_part_mesh_dim_get (pdm_id,
+  PDM_ol_part_mesh_dim_get (ol,
                             PDM_OL_MESH_B,
                             0,
                             &nOlFaceB,
@@ -1219,7 +1219,7 @@ main
   int            *initToOlFaceIdxB;
   int            *initToOlFaceB;
 
-  PDM_ol_mesh_entities_get (pdm_id,
+  PDM_ol_mesh_entities_get (ol,
                             PDM_OL_MESH_B,
                             0,
                             &olFaceIniVtxIdxB,
@@ -1489,7 +1489,7 @@ main
 
 
   _export_ol_mesh (PDM_MPI_COMM_WORLD,
-                   pdm_id,
+                   ol,
                    nFace,
                    &sFieldOlA,
                    &rFieldOlB,
@@ -1540,7 +1540,7 @@ main
   free (vtxLNToGNA_merge);
   free (faceLNToGNA_merge);
 
-  PDM_ol_del (pdm_id);
+  PDM_ol_del (ol);
 
   PDM_MPI_Finalize ();
 

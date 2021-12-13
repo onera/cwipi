@@ -63,6 +63,7 @@ typedef struct  _part_t {
   int           n_face_part_bound;   /*!< Number of partitioning boundary faces*/
   int           n_vtx_part_bound;    /*!< Number of partitioning boundary vtx  */
   int           n_face_group;        /*!< Number of boundary faces             */
+  int           n_edge_group;        /*!< Number of boundary faces             */
   int           n_total_part;        /*!< Number of partition in configuration
                                           Shorcut to have size of all
                                           part_bound_part_idx                  */
@@ -119,6 +120,23 @@ typedef struct  _part_t {
                                           - Connected face local number
                                             in the connected partition
                                       (size = 4* n_face_part_bound)            */
+
+  int   *edge_part_bound_proc_idx;   /*!< Partitioning boundary bloc distribution
+                                      (size = n_ranks + 1)                     */
+  int   *edge_part_bound_part_idx;   /*!< Partitioning boundary bloc distribution
+                                      (size = n_partTotal + 1)                 */
+  int          *edge_part_bound;     /*!< Partitioning boundary edges sorted by
+                                         proc, sorted by part in the proc, and
+                                         sorted by absolute edge number in the part
+                                         For each edge :
+                                          - edge local number
+                                          - Connected process
+                                          - Connected Partition
+                                            on the connected process
+                                          - Connected edge local number
+                                            in the connected partition
+                                      (size = 4* n_edge_part_bound)            */
+
   int   *vtx_part_bound_proc_idx;   /*!< Partitioning boundary bloc distribution
                                       (size = n_ranks + 1)                     */
   int   *vtx_part_bound_part_idx;   /*!< Partitioning boundary bloc distribution
@@ -145,6 +163,16 @@ typedef struct  _part_t {
                                       connecting data (see face_part_bound)
                                       (size = 4*face_join_idx[n_joins])        */
 
+  int          *edge_bound_idx;      /*!< Indices of original boundary groups
+                                      (size = n_bounds + 1)                    */
+  int          *edge_bound;          /*!< Original boundary groups edges
+                                      (size = edge_bound_idx[n_bounds])        */
+  int          *edge_join_idx;       /*!< Indices of original interedge groups
+                                      (size = n_joins + 1)                     */
+  int          *edge_join;           /*!< Original interedge groups edges with
+                                      connecting data (see edge_part_bound)
+                                      (size = 4*edge_join_idx[n_joins])        */
+
   // Local to global numbering
   PDM_g_num_t **elt_section_ln_to_gn;/*!< Local to global element numbering
                                       (size = n_section,n_elements[i_section])                          */
@@ -160,6 +188,8 @@ typedef struct  _part_t {
                                       (size = face_group_idx[n_face_group])    */
   //New interface differs boundary groups and interface groups
   PDM_g_num_t *face_bound_ln_to_gn;  /*!< Local to global boundary face numbering
+                                      (size = face_bound_idx[n_bounds])        */
+  PDM_g_num_t *edge_bound_ln_to_gn;  /*!< Local to global boundary face numbering
                                       (size = face_bound_idx[n_bounds])        */
   PDM_g_num_t *face_join_ln_to_gn;   /*!< Local to global join face numbering
                                       (size = face_join_idx[n_joins])          */
@@ -211,6 +241,7 @@ typedef struct _PDM_part_t {
   int                 dn_cell;        /*!< Number of distributed cells         */
   int                 dn_face;        /*!< Number of distributed faces         */
   int                 n_face_group;   /*!< Number of boundaries                */
+  int                 n_edge_group;   /*!< Number of boundaries                */
 
   /* Cell definitions */
 
@@ -319,9 +350,10 @@ typedef struct _PDM_part_t {
 
   PDM_part_split_t split_method;             /*!< Partitioning method */
 
-  int renum_face_method;                     /*!< Renumbering face method */
-
   int renum_cell_method;                     /*!< Renumbering cell method */
+  int renum_face_method;                     /*!< Renumbering face method */
+  int renum_edge_method;                     /*!< Renumbering edge method */
+  int renum_vtx_method;                     /*!< Renumbering vtx method */
 
   int  n_property_cell;                       /*!< Size of cells properties      */
   int  n_property_face;                       /*!< Size of faces properties      */
@@ -369,6 +401,7 @@ void
   part->n_face_part_bound        = 0;
   part->n_vtx_part_bound         = 0;
   part->n_face_group             = 0;
+  part->n_edge_group             = 0;
   part->vtx                      = NULL;
   part->face_vtx_idx             = NULL;
   part->face_vtx                 = NULL;
@@ -389,6 +422,9 @@ void
   part->face_part_bound_proc_idx = NULL;
   part->face_part_bound_part_idx = NULL;
   part->face_part_bound          = NULL;
+  part->edge_part_bound_proc_idx = NULL;
+  part->edge_part_bound_part_idx = NULL;
+  part->edge_part_bound          = NULL;
   part->vtx_part_bound_proc_idx  = NULL;
   part->vtx_part_bound_part_idx  = NULL;
   part->vtx_part_bound           = NULL;
@@ -396,6 +432,10 @@ void
   part->face_bound               = NULL;
   part->face_join_idx            = NULL;
   part->face_join                = NULL;
+  part->edge_bound_idx           = NULL;
+  part->edge_bound               = NULL;
+  part->edge_join_idx            = NULL;
+  part->edge_join                = NULL;
   part->elt_section_ln_to_gn     = NULL;
   part->face_ln_to_gn            = NULL;
   part->cell_ln_to_gn            = NULL;
@@ -403,6 +443,7 @@ void
   part->vtx_ln_to_gn             = NULL;
   part->face_group_ln_to_gn      = NULL;
   part->face_bound_ln_to_gn      = NULL;
+  part->edge_bound_ln_to_gn      = NULL;
   part->face_join_ln_to_gn       = NULL;
   part->cell_tag                 = NULL;
   part->face_tag                 = NULL;

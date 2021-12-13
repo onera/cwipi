@@ -200,12 +200,10 @@ _PDM_MESH_NODAL_POLY_3D  = PDM_MESH_NODAL_POLY_3D
 @COMMENT_NOT_PDMA@PDM_plugin_load()
 @COMMENT_NOT_PDMA@
 
-
 # -----------------------------------------------------------------
 # > Enable transfer of ownership between C and Python
 cdef extern from "numpy/arrayobject.h":
     void PyArray_ENABLEFLAGS(NPY.ndarray arr, int flags)
-# -----------------------------------------------------------------
 
 # -----------------------------------------------------------------
 cdef create_numpy_i(int* array, int size):
@@ -380,4 +378,9 @@ include "pdm_part_extension.pxi"
 # PDM_dconnectivity_transform :
 # --------------------
 include "pdm_dconnectivity_transform.pxi"
+
+# PDM_domain_interface:
+# --------------------
+include "pdm_domain_interface.pxi"
+
 # TODO: PDM_writer, ...

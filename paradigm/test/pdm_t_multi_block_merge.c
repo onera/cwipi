@@ -201,6 +201,7 @@ int main(int argc, char *argv[])
   PDM_g_num_t** selected_g_num = malloc(n_block * sizeof(PDM_g_num_t *));
   for(int i_block = 0; i_block < n_block ; ++i_block) {
     selected_g_num[i_block] = malloc(n_selected[i_block] * sizeof(PDM_g_num_t));
+    PDM_log_trace_array_long(block_distrib_idx[i_block], n_rank+1, "block_distrib_idx ::");
     for(int i = 0; i < n_selected[i_block]; ++i) {
       selected_g_num[i_block][i] = block_distrib_idx[i_block][i_rank] + i + 1;
     }
@@ -221,10 +222,18 @@ int main(int argc, char *argv[])
 
     dmerge_idx     [i_block][0] = 0;
 
-    PDM_g_num_t vtx_g_num_next = 1;
+    // PDM_g_num_t vtx_g_num_next = 1;
+    PDM_g_num_t step = (block_distrib_idx[i_block][i_rank] + 1) / (n_vtx_seg + 1);
+    PDM_g_num_t rem  = (block_distrib_idx[i_block][i_rank] + 1) % (n_vtx_seg + 1);
+    // PDM_g_num_t vtx_g_num_next = step + 1;
+    // PDM_g_num_t vtx_g_num_next = step*(n_vtx_seg+1) + rem;
+    PDM_g_num_t vtx_g_num_next = step * ( n_vtx_seg + 1 ) + 1;
+
+    // PDM_g_num_t vtx_g_num_next = (block_distrib_idx[i_block][i_rank] + 1) % ;
     if(i_block == 1) {
-      vtx_g_num_next = 5;
+      vtx_g_num_next = (step+1) * (n_vtx_seg + 1) ; //+rem;
     }
+    log_trace("dist = %i | step = %i | rem = %i -> %i \n", block_distrib_idx[i_block][i_rank], step, rem, vtx_g_num_next);
 
     int idx_write = 0;
     for(int j = 0; j < dn_vtx; ++j) {
@@ -238,7 +247,6 @@ int main(int argc, char *argv[])
         dmerge_block_id[i_block][idx_write] = 1;
         dmerge_g_num   [i_block][idx_write] = vtx_g_num_next;
         vtx_g_num_next += n_vtx_seg+1;
-
         idx_write++;
       } else if(indi == 1 && i_block == 1) {
         dmerge_idx     [i_block][j+1] = dmerge_idx[i_block][j] + 1;
@@ -323,6 +331,7 @@ int main(int argc, char *argv[])
 
 
   free(dvtx_coord);
+  exit(1);
 
   /*
    * Same protocol for cells
@@ -373,7 +382,7 @@ int main(int argc, char *argv[])
    */
 
   PDM_g_num_t *old_vtx_distrib;
-  PDM_g_num_t *dold_vtx_to_new_idx;
+  int         *dold_vtx_to_new_idx;
   PDM_g_num_t *dold_vtx_to_new;
   PDM_multi_block_merge_get_old_to_new(mbm, &old_vtx_distrib, &dold_vtx_to_new_idx, &dold_vtx_to_new);
 
@@ -384,8 +393,9 @@ int main(int argc, char *argv[])
   block_elmt_vtx[0] = PDM_DMesh_nodal_section_std_get(dmn1, PDM_GEOMETRY_KIND_SURFACIC, 0);
   block_elmt_vtx[1] = PDM_DMesh_nodal_section_std_get(dmn2, PDM_GEOMETRY_KIND_SURFACIC, 0);
   PDM_g_num_t** block_elmt_shift_distrib_idx = malloc(n_block * sizeof(PDM_g_num_t *));
+  int strid_cst = 4;
   for(int i_block = 0; i_block < n_block ; ++i_block) {
-    stride_one[i_block][0] = 4; // Because QUAD
+    stride_one[i_block][0] = strid_cst; // Because QUAD
     block_elmt_shift_distrib_idx[i_block] = malloc( 4 * n_elmt_selected[i_block] * sizeof(PDM_g_num_t));
 
 
@@ -401,7 +411,7 @@ int main(int argc, char *argv[])
                                                     dold_vtx_to_new_idx,
                                                     dold_vtx_to_new,
                                                     PDM_STRIDE_CST,
-                                                    sizeof(PDM_g_num_t),
+                                                    strid_cst,
                                                     stride_one,
                                      (void *)       block_elmt_shift_distrib_idx,
                                                     NULL,
@@ -429,6 +439,9 @@ int main(int argc, char *argv[])
     merge_elmt_ln_to_gn[i] = distrib_merge_elmt[i_rank] + i + 1;
     dconnec_idx[i+1] = dconnec_idx[i] + 4; // Because QUAD
   }
+
+  PDM_log_trace_connectivity_long(dconnec_idx, dmerge_elmt_vtx, dn_merge_elmt, "dmerge_elmt_vtx :: ");
+
 
   PDM_g_num_t *pvtx_ln_to_gn;
   int         *pcell_vtx_idx;

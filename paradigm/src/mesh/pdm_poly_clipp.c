@@ -430,7 +430,7 @@ double nB[3]
   _vertex_poly_t *vtx_currB = vtxpB;
   for (int i = 0; i < n_vtxB; i++) {
     const double *_coo = face_vtxCooB + 3*i;
-    PDM_polygon_status_t stat = PDM_polygon_point_in (_coo,
+    PDM_polygon_status_t stat = PDM_polygon_point_in_new (_coo,
                                                       n_vtxA,
                                                       face_vtxCooA,
                                                       boundsA,
@@ -451,7 +451,7 @@ double nB[3]
   _vertex_poly_t *vtx_currA = vtxpA;
   for (int i = 0; i < n_vtxA; i++) {
     const double *_coo = face_vtxCooA + 3*i;
-    PDM_polygon_status_t stat = PDM_polygon_point_in (_coo,
+    PDM_polygon_status_t stat = PDM_polygon_point_in_new (_coo,
                                                       n_vtxB,
                                                       face_vtxCooB,
                                                       boundsB,
@@ -1596,12 +1596,12 @@ double                **polyClippCoordsB
               printf("Poly clipp erreur : point exterieur dans un sous-poly\n");
               printf("polyA : "PDM_FMT_G_NUM" %d\n", gnum_boxA, n_vtxA);
               for (int i = 0; i < n_vtxA; i++) {
-                printf("%15.8e %15.8e %15.8e\n", _face_vtxCooA[3*i], _face_vtxCooA[3*i+1], _face_vtxCooA[3*i+2]);
+                printf("%20.16e %20.16e %20.16e\n", _face_vtxCooA[3*i], _face_vtxCooA[3*i+1], _face_vtxCooA[3*i+2]);
               }
 
               printf("polyB : "PDM_FMT_G_NUM" %d\n", gnum_boxB, n_vtxB);
               for (int i = 0; i < n_vtxB; i++) {
-                printf("%15.5e %15.8e %15.8e\n", _face_vtxCooB[3*i], _face_vtxCooB[3*i+1], _face_vtxCooB[3*i+2]);
+                printf("%20.16e %20.16e %20.16e\n", _face_vtxCooB[3*i], _face_vtxCooB[3*i+1], _face_vtxCooB[3*i+2]);
               }
 
               fflush(stdout);

@@ -2742,7 +2742,7 @@ PDM_mesh_location_t        *ml
   const int octree_depth_max = 31;
   const int octree_points_in_leaf_max = 1;
   const int octree_build_leaf_neighbours = 0;
-  int octree_id;
+  PDM_para_octree_t *octree = NULL;
 
   const int VISU = 0;
   int allow_extraction = 1;
@@ -3035,7 +3035,7 @@ PDM_mesh_location_t        *ml
 
 
     /*
-     *  Select elements whose bounding box itersect
+     *  Select elements whose bounding box intersect
      *  the global extents of the extracted point clouds
      *  Brute force (could be accelerated using bbtree)
      */
@@ -3101,7 +3101,7 @@ PDM_mesh_location_t        *ml
     use_extracted_mesh = (g_n_elt[1] < extraction_threshold * g_n_elt[0]);
 
 
-    if (DEBUG && my_rank == 0 && use_extracted_mesh) {
+    if (1 && my_rank == 0 && use_extracted_mesh) {
       printf("extract "PDM_FMT_G_NUM" / "PDM_FMT_G_NUM" mesh elts ("PDM_FMT_G_NUM"%%)\n",
              g_n_elt[1], g_n_elt[0], (100 * g_n_elt[1]) / g_n_elt[0]);
     }
@@ -3167,6 +3167,16 @@ PDM_mesh_location_t        *ml
         _export_boxes (filename, n_select_boxes, select_box_extents, select_box_g_num);
       }
 
+    }
+  }
+
+
+  if (1) {
+    PDM_g_num_t ln_elt = n_select_boxes;
+    PDM_g_num_t gn_elt;
+    PDM_MPI_Allreduce (&ln_elt, &gn_elt, 1, PDM__PDM_MPI_G_NUM, PDM_MPI_SUM, ml->comm);
+    if (my_rank == 0) {
+      printf("gn_elt = "PDM_FMT_G_NUM"\n", gn_elt);
     }
   }
 
@@ -3659,6 +3669,15 @@ PDM_mesh_location_t        *ml
       pcloud_parent_g_num = pcloud_g_num;
     }
 
+    if (1) {
+      PDM_g_num_t ln_pts = (PDM_g_num_t) n_pts_pcloud;
+      if (0) printf("[%6d] n_pts_pcloud = %d, ln_pts = "PDM_FMT_G_NUM"\n", my_rank, n_pts_pcloud, ln_pts);
+      PDM_g_num_t gn_pts;
+      PDM_MPI_Allreduce (&ln_pts, &gn_pts, 1, PDM__PDM_MPI_G_NUM, PDM_MPI_SUM, ml->comm);
+      if (my_rank == 0) {
+        printf("cloud %d : gn_pts = "PDM_FMT_G_NUM"\n", icloud, gn_pts);
+      }
+    }
 
     /*
      * Get points inside bounding boxes of elements
@@ -3668,14 +3687,14 @@ PDM_mesh_location_t        *ml
 
     case PDM_MESH_LOCATION_OCTREE: {
       /* Create octree structure */
-      octree_id = PDM_para_octree_create (1,
-                                          octree_depth_max,
-                                          octree_points_in_leaf_max,
-                                          octree_build_leaf_neighbours,
-                                          ml->comm);
+      octree = PDM_para_octree_create (1,
+                                       octree_depth_max,
+                                       octree_points_in_leaf_max,
+                                       octree_build_leaf_neighbours,
+                                       ml->comm);
 
       /* Set octree point cloud */
-      PDM_para_octree_point_cloud_set (octree_id,
+      PDM_para_octree_point_cloud_set (octree,
                                        0,
                                        n_pts_pcloud,
                                        pcloud_coord,
@@ -3684,18 +3703,18 @@ PDM_mesh_location_t        *ml
       /* Build parallel octree */
       PDM_MPI_Barrier(ml->comm);
       double t1 = PDM_MPI_Wtime();
-      PDM_para_octree_build (octree_id, NULL);
+      PDM_para_octree_build (octree, NULL);
       end_timer_and_print("PDM_para_octree_build ", ml->comm, t1);
-      // PDM_para_octree_dump (octree_id);
+      // PDM_para_octree_dump (octree);
       // if (DEBUG) {
-        // PDM_para_octree_dump_times (octree_id);
+        // PDM_para_octree_dump_times (octree);
       // }
 
       /* Locate points inside boxes */
       PDM_MPI_Barrier(ml->comm);
       t1 = PDM_MPI_Wtime();
       if (USE_OCTREE_BTSHARED) {
-        PDM_para_octree_points_inside_boxes2 (octree_id,
+        PDM_para_octree_points_inside_boxes2 (octree,
                                               n_select_boxes,
                                               select_box_extents,
                                               select_box_g_num,
@@ -3704,7 +3723,7 @@ PDM_mesh_location_t        *ml
                                               &pts_coord);
       } else {
         if (USE_OCTREE_COPIES) {
-          PDM_para_octree_points_inside_boxes_with_copies (octree_id,
+          PDM_para_octree_points_inside_boxes_with_copies (octree,
                                                            n_select_boxes,
                                                            select_box_extents,
                                                            select_box_g_num,
@@ -3712,7 +3731,7 @@ PDM_mesh_location_t        *ml
                                                            &pts_g_num,
                                                            &pts_coord);
         } else {
-          PDM_para_octree_points_inside_boxes (octree_id,
+          PDM_para_octree_points_inside_boxes (octree,
                                                n_select_boxes,
                                                select_box_extents,
                                                select_box_g_num,
@@ -3724,7 +3743,7 @@ PDM_mesh_location_t        *ml
       end_timer_and_print("PDM_para_octree_points_inside_boxes ", ml->comm, t1);
 
       /* Free octree */
-      PDM_para_octree_free (octree_id);
+      PDM_para_octree_free (octree);
       break;
      }
     case PDM_MESH_LOCATION_DBBTREE:

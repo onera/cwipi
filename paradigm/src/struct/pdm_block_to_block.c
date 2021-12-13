@@ -232,11 +232,15 @@ PDM_block_to_block_exch
 
   else if (t_stride == PDM_STRIDE_CST) {
 
+    for(int i = 0; i < _btb->n_rank; i++){
+      n_send_buffer[i] *= cst_stride;
+      n_recv_buffer[i] *= cst_stride;
+    }
     for(int i = 1; i < _btb->n_rank; i++){
       // i_send_buffer[i] = i_send_buffer[i-1] + n_send_buffer[i-1] * s_data * cst_stride;
       // i_recv_buffer[i] = i_recv_buffer[i-1] + n_recv_buffer[i-1] * s_data * cst_stride;
-      i_send_buffer[i] = i_send_buffer[i-1] + n_send_buffer[i-1] * cst_stride;
-      i_recv_buffer[i] = i_recv_buffer[i-1] + n_recv_buffer[i-1] * cst_stride;
+      i_send_buffer[i] = i_send_buffer[i-1] + n_send_buffer[i-1];
+      i_recv_buffer[i] = i_recv_buffer[i-1] + n_recv_buffer[i-1];
     }
 
   }

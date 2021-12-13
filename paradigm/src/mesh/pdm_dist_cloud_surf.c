@@ -433,6 +433,7 @@ PDM_dist_cloud_surf_compute
     }
 
     int octree_id;
+    PDM_para_octree_t *octree = NULL;
     if (octree_type == PDM_OCTREE_SERIAL) {
       octree_id = PDM_octree_create (n_part_mesh,
                                      depth_max,
@@ -440,11 +441,11 @@ PDM_dist_cloud_surf_compute
                                      tolerance,
                                      comm);
     } else {
-      octree_id = PDM_para_octree_create (n_part_mesh,
-                                          depth_max,
-                                          points_in_leaf_max,
-                                          0,
-                                          comm);
+      octree = PDM_para_octree_create (n_part_mesh,
+                                       depth_max,
+                                       points_in_leaf_max,
+                                       0,
+                                       comm);
     }
 
     for (int i_part = 0; i_part < n_part_mesh; i_part++) {
@@ -475,7 +476,7 @@ PDM_dist_cloud_surf_compute
         PDM_octree_point_cloud_set (octree_id, i_part, n_vertices,
                                     vertices_coords, vertices_gnum);
       } else {
-        PDM_para_octree_point_cloud_set (octree_id, i_part, n_vertices,
+        PDM_para_octree_point_cloud_set (octree, i_part, n_vertices,
                                          vertices_coords, vertices_gnum);
       }
     }
@@ -533,8 +534,8 @@ PDM_dist_cloud_surf_compute
     if (octree_type == PDM_OCTREE_SERIAL) {
       PDM_octree_build (octree_id);
     } else {
-      PDM_para_octree_build (octree_id, NULL);//global_extents);
-      PDM_para_octree_dump_times (octree_id);
+      PDM_para_octree_build (octree, NULL);//global_extents);
+      PDM_para_octree_dump_times (octree);
     }
 
     /*
@@ -579,7 +580,7 @@ PDM_dist_cloud_surf_compute
                                 closest_vertices_dist2);
     } else {
       // log_trace("PDM_OCTREE_PARALLEL \n");
-      PDM_para_octree_single_closest_point (octree_id,
+      PDM_para_octree_single_closest_point (octree,
                                             n_pts_rank,
                                             pts_rank,
                                             pts_g_num_rank,
@@ -593,7 +594,7 @@ PDM_dist_cloud_surf_compute
     if (octree_type == PDM_OCTREE_SERIAL) {
       PDM_octree_free (octree_id);
     } else {
-      PDM_para_octree_free (octree_id);
+      PDM_para_octree_free (octree);
     }
 
 

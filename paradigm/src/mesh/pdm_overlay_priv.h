@@ -16,7 +16,7 @@
 #include "pdm_surf_part_priv.h"
 #include "pdm_timer.h"
 #include "pdm_overlay.h"
-#include "pdm_handles.h"
+// #include "pdm_handles.h"
 #include "pdm_error.h"
 #include "pdm_printf.h"
 
@@ -118,15 +118,15 @@ typedef struct _ol_mesh_t {
 } _ol_mesh_t;
 
 /**
- * \struct PDM_ol_t
+ * \struct _PDM_ol_t
  * \brief  Overlay type
  *
- * PDM_ol_t defines a overlaying structure
+ * _PDM_ol_t defines a overlaying structure
  *
  */
 
 
- typedef struct PDM_ol_t{
+ typedef struct _PDM_ol_t{
 
   double   projectCoeff;      /*!< Projection coefficient to define the overlay
                                    surface projection :
@@ -167,13 +167,13 @@ typedef struct _ol_mesh_t {
 
   double times_cpu_s[NTIMER];  /*!< System CPU time */
 
-} PDM_ol_t;
+} _PDM_ol_t;
 
 /*=============================================================================
  * Static global variables
  *============================================================================*/
 
-static PDM_Handles_t *olArray = NULL; /*!< Array to storage overlay identifiers */
+// static PDM_Handles_t *olArray = NULL; /*!< Array to storage overlay identifiers */
 
 /*=============================================================================
  * Static function definitions
@@ -339,20 +339,20 @@ const int         n_part
  *
  */
 
-static inline PDM_ol_t *
-_ol_get
-(
-const int  id
-)
-{
-  PDM_ol_t *ol = (PDM_ol_t *) PDM_Handles_get (olArray, id);
+// static inline PDM_ol_t *
+// _ol_get
+// (
+// const int  id
+// )
+// {
+//   PDM_ol_t *ol = (PDM_ol_t *) PDM_Handles_get (olArray, id);
 
-  if (ol == NULL) {
-    PDM_error (__FILE__, __LINE__, 0,  "Error _ol_get : '%i' Undefined identifier\n", id);
-  }
+//   if (ol == NULL) {
+//     PDM_error (__FILE__, __LINE__, 0,  "Error _ol_get : '%i' Undefined identifier\n", id);
+//   }
 
-  return ol;
-}
+//   return ol;
+// }
 
 #ifdef __cplusplus
 }

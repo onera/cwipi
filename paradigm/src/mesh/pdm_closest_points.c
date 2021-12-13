@@ -450,16 +450,16 @@ PDM_closest_point_t *cls
 
 
   /* Create empty parallel octree structure */
-  int octree_id = PDM_para_octree_create (cls->src_cloud->n_part,
-                                          depth_max,
-                                          points_in_leaf_max,
-                                          build_leaf_neighbours,
-                                          cls->comm);
+  PDM_para_octree_t *octree = PDM_para_octree_create (cls->src_cloud->n_part,
+                                                      depth_max,
+                                                      points_in_leaf_max,
+                                                      build_leaf_neighbours,
+                                                      cls->comm);
 
 
   /* Set source point clouds */
   for (int i_part = 0; i_part < cls->src_cloud->n_part; i_part++) {
-    PDM_para_octree_point_cloud_set (octree_id,
+    PDM_para_octree_point_cloud_set (octree,
                                      i_part,
                                      cls->src_cloud->n_points[i_part],
                                      cls->src_cloud->coords[i_part],
@@ -467,15 +467,15 @@ PDM_closest_point_t *cls
   }
 
   /* Build parallel octree */
-  PDM_para_octree_build (octree_id, NULL);
+  PDM_para_octree_build (octree, NULL);
 
   /*if (i_rank == 0) {
     printf("PDM_para_octree_build OK\n");
     fflush(stdout);
     }*/
 
-  //PDM_para_octree_dump (octree_id);
-  PDM_para_octree_dump_times (octree_id);
+  //PDM_para_octree_dump (octree);
+  PDM_para_octree_dump_times (octree);
   //<--
 
 
@@ -501,14 +501,14 @@ PDM_closest_point_t *cls
 
   /* Search closest source points from target points */
   if (cls->n_closest == 1) {
-    PDM_para_octree_single_closest_point (octree_id,
+    PDM_para_octree_single_closest_point (octree,
                                           n_tgt,
                                           tgt_coord,
                                           tgt_g_num,
                                           closest_src_gnum,
                                           closest_src_dist);
   } else {
-    PDM_para_octree_closest_points (octree_id,
+    PDM_para_octree_closest_points (octree,
                                     cls->n_closest,
                                     n_tgt,
                                     tgt_coord,
@@ -555,7 +555,7 @@ PDM_closest_point_t *cls
 
   //-->GPU
   /* Free parallel octree */
-  PDM_para_octree_free (octree_id);
+  PDM_para_octree_free (octree);
   //<--
 
   _closest_points_reverse_results(cls);

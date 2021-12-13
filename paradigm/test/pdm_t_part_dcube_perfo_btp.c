@@ -20,6 +20,7 @@
 #include "pdm_dconnectivity_transform.h"
 #include "pdm_partitioning_algorithm.h"
 #include "pdm_logging.h"
+#include "pdm_priv.h"
 
 /*============================================================================
  * Type definitions

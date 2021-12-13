@@ -27,6 +27,7 @@ program testf
 #endif  
   use pdm_overlay
   use iso_c_binding
+  use pdm_fortran
 
   implicit none
 
@@ -38,7 +39,8 @@ program testf
   integer :: i_rank
   integer :: n_rank
 
-  integer :: id
+  integer(c_int), parameter :: fComm = MPI_COMM_WORLD
+  type (c_ptr) :: c_ol
 
   integer (c_int), parameter ::  n_partMeshA = 1
   integer (kind = pdm_g_num_s), parameter ::  nGFaceMeshA = 1
@@ -51,15 +53,22 @@ program testf
 
   integer (c_int), parameter              :: ipartA = 0
   integer (c_int), parameter              :: nFaceA = 1
-  integer (c_int), allocatable                :: faceVtxIdxA(:)
-  integer (c_int), allocatable                :: faceVtxA(:)
-  integer (kind = pdm_g_num_s), allocatable   :: faceLNToGNA(:)
+  integer (c_int), pointer                :: faceVtxIdxA(:)
+  integer (c_int), pointer                :: faceVtxA(:)
+  integer (kind = pdm_g_num_s), pointer   :: faceLNToGNA(:)
   integer (c_int), parameter              :: nVtxA = 3
-  double precision, allocatable               :: vtxCoordA(:)
-  integer (kind = pdm_g_num_s), allocatable   :: vtxLNToGNA(:)
+  double precision, pointer               :: vtxCoordA(:)
+  integer (kind = pdm_g_num_s), pointer   :: vtxLNToGNA(:)
 
   integer (kind = pdm_g_num_s) :: nGOlFaceA
   integer (kind = pdm_g_num_s) :: nGOlVtxA
+#ifdef PDM_LONG_G_NUM
+  integer (c_long)             :: c_nGOlFaceA
+  integer (c_long)             :: c_nGOlVtxA
+#else
+  integer (c_int)              :: c_nGOlFaceA
+  integer (c_int)              :: c_nGOlVtxA
+#endif
 
   integer (c_int) :: nOlFaceA
   integer (c_int) :: nOlLinkedFaceA
@@ -68,30 +77,37 @@ program testf
   integer (c_int) :: sOlface_vtxA
   integer (c_int) :: sInitToOlFaceA
 
-  integer (c_int), allocatable                :: olFaceIniVtxIdxA(:)
-  integer (c_int), allocatable                :: olFaceIniVtxA(:)
-  integer (c_int), allocatable                :: olface_vtx_idxA(:)
-  integer (c_int), allocatable                :: olface_vtxA(:)
-  integer (c_int), allocatable                :: olLinkedface_procIdxA(:)
-  integer (c_int), allocatable                :: olLinkedFaceA(:)
-  integer (kind = pdm_g_num_s), allocatable   :: olface_ln_to_gnA(:)
-  double precision, allocatable               :: olCoordsA(:)
-  integer (kind = pdm_g_num_s), allocatable   :: olvtx_ln_to_gnA(:)
-  integer (c_int), allocatable                :: initToOlFaceIdxA(:)
-  integer (c_int), allocatable                :: initToOlFaceA(:)
+  integer (c_int), pointer                :: olFaceIniVtxIdxA(:)
+  integer (c_int), pointer                :: olFaceIniVtxA(:)
+  integer (c_int), pointer                :: olface_vtx_idxA(:)
+  integer (c_int), pointer                :: olface_vtxA(:)
+  integer (c_int), pointer                :: olLinkedface_procIdxA(:)
+  integer (c_int), pointer                :: olLinkedFaceA(:)
+  integer (kind = pdm_g_num_s), pointer   :: olface_ln_to_gnA(:)
+  double precision, pointer               :: olCoordsA(:)
+  integer (kind = pdm_g_num_s), pointer   :: olvtx_ln_to_gnA(:)
+  integer (c_int), pointer                :: initToOlFaceIdxA(:)
+  integer (c_int), pointer                :: initToOlFaceA(:)
 
 
   integer (c_int), parameter              :: ipartB = 0
   integer (c_int), parameter              :: nFaceB = 1
-  integer (c_int), allocatable                :: faceVtxIdxB(:)
-  integer (c_int), allocatable                :: faceVtxB(:)
-  integer (kind = pdm_g_num_s), allocatable   :: faceLNToGNB(:)
+  integer (c_int), pointer                :: faceVtxIdxB(:)
+  integer (c_int), pointer                :: faceVtxB(:)
+  integer (kind = pdm_g_num_s), pointer   :: faceLNToGNB(:)
   integer (c_int), parameter              :: nVtxB = 3
-  double precision, allocatable               :: vtxCoordB(:)
-  integer (kind = pdm_g_num_s), allocatable   :: vtxLNToGNB(:)
+  double precision, pointer               :: vtxCoordB(:)
+  integer (kind = pdm_g_num_s), pointer   :: vtxLNToGNB(:)
 
   integer (kind = pdm_g_num_s) :: nGOlFaceB
   integer (kind = pdm_g_num_s) :: nGOlVtxB
+#ifdef PDM_LONG_G_NUM
+  integer (c_long)             :: c_nGOlFaceB
+  integer (c_long)             :: c_nGOlVtxB
+#else
+  integer (c_int)              :: c_nGOlFaceB
+  integer (c_int)              :: c_nGOlVtxB
+#endif
 
   integer (c_int) :: nOlFaceB
   integer (c_int) :: nOlLinkedFaceB
@@ -100,17 +116,50 @@ program testf
   integer (c_int) :: sOlface_vtxB
   integer (c_int) :: sInitToOlFaceB
 
-  integer (c_int), allocatable                :: olFaceIniVtxIdxB(:)
-  integer (c_int), allocatable                :: olFaceIniVtxB(:)
-  integer (c_int), allocatable                :: olface_vtx_idxB(:)
-  integer (c_int), allocatable                :: olface_vtxB(:)
-  integer (c_int), allocatable                :: olLinkedface_procIdxB(:)
-  integer (c_int), allocatable                :: olLinkedFaceB(:)
-  integer (kind = pdm_g_num_s), allocatable   :: olface_ln_to_gnB(:)
-  double precision, allocatable               :: olCoordsB(:)
-  integer (kind = pdm_g_num_s), allocatable   :: olvtx_ln_to_gnB(:)
-  integer (c_int), allocatable                :: initToOlFaceIdxB(:)
-  integer (c_int), allocatable                :: initToOlFaceB(:)
+  integer (c_int), pointer                :: olFaceIniVtxIdxB(:)
+  integer (c_int), pointer                :: olFaceIniVtxB(:)
+  integer (c_int), pointer                :: olface_vtx_idxB(:)
+  integer (c_int), pointer                :: olface_vtxB(:)
+  integer (c_int), pointer                :: olLinkedface_procIdxB(:)
+  integer (c_int), pointer                :: olLinkedFaceB(:)
+  integer (kind = pdm_g_num_s), pointer   :: olface_ln_to_gnB(:)
+  double precision, pointer               :: olCoordsB(:)
+  integer (kind = pdm_g_num_s), pointer   :: olvtx_ln_to_gnB(:)
+  integer (c_int), pointer                :: initToOlFaceIdxB(:)
+  integer (c_int), pointer                :: initToOlFaceB(:)
+
+  type (c_ptr)                                :: c_faceVtxIdxA
+  type (c_ptr)                                :: c_faceVtxA
+  type (c_ptr)                                :: c_faceLNToGNA
+  type (c_ptr)                                :: c_vtxCoordA
+  type (c_ptr)                                :: c_vtxLNToGNA
+  type (c_ptr)                                :: c_faceVtxIdxB
+  type (c_ptr)                                :: c_faceVtxB
+  type (c_ptr)                                :: c_faceLNToGNB
+  type (c_ptr)                                :: c_vtxCoordB
+  type (c_ptr)                                :: c_vtxLNToGNB
+  type (c_ptr)                                :: c_olFaceIniVtxIdxA
+  type (c_ptr)                                :: c_olFaceIniVtxA
+  type (c_ptr)                                :: c_olface_vtx_idxA
+  type (c_ptr)                                :: c_olface_vtxA
+  type (c_ptr)                                :: c_olLinkedface_procIdxA
+  type (c_ptr)                                :: c_olLinkedFaceA
+  type (c_ptr)                                :: c_olface_ln_to_gnA
+  type (c_ptr)                                :: c_olCoordsA
+  type (c_ptr)                                :: c_olvtx_ln_to_gnA
+  type (c_ptr)                                :: c_initToOlFaceIdxA
+  type (c_ptr)                                :: c_initToOlFaceA
+  type (c_ptr)                                :: c_olFaceIniVtxIdxB
+  type (c_ptr)                                :: c_olFaceIniVtxB
+  type (c_ptr)                                :: c_olface_vtx_idxB
+  type (c_ptr)                                :: c_olface_vtxB
+  type (c_ptr)                                :: c_olLinkedface_procIdxB
+  type (c_ptr)                                :: c_olLinkedFaceB
+  type (c_ptr)                                :: c_olface_ln_to_gnB
+  type (c_ptr)                                :: c_olCoordsB
+  type (c_ptr)                                :: c_olvtx_ln_to_gnB
+  type (c_ptr)                                :: c_initToOlFaceIdxB
+  type (c_ptr)                                :: c_initToOlFaceB
 
   !
   ! Init
@@ -202,56 +251,69 @@ program testf
   !   The MPI communicator and the number of point cloud are setted
   !
 
-  call PDM_ol_create (n_partMeshA, &
-                      nGFaceMeshA, &
-                      nGVtxMeshA, &
-                      n_partMeshB, &
-                      nGFaceMeshB, &
-                      nGVtxMeshB, &
-                      projectCoeff, &
-                      MPI_COMM_WORLD, &
-                      id)
+  c_ol = PDM_ol_create (n_partMeshA, &
+                        nGFaceMeshA, &
+                        nGVtxMeshA, &
+                        n_partMeshB, &
+                        nGFaceMeshB, &
+                        nGVtxMeshB, &
+                        projectCoeff, &
+                        fComm)
 
-  call PDM_ol_parameter_set (id, &
+  call PDM_ol_parameter_set (c_ol, &
                              PDM_OL_CAR_LENGTH_TOL, &
                              1.d-4)
 
-  call PDM_ol_parameter_set (id, &
+  call PDM_ol_parameter_set (c_ol, &
                              PDM_OL_EXTENTS_TOL, &
                              1.d-4)
 
-  call PDM_ol_input_mesh_set (id, &
+  c_faceVtxIdxA = c_loc (faceVtxIdxA)
+  c_faceVtxA    = c_loc (faceVtxA)
+  c_faceLNToGNA = c_loc (faceLNToGNA)
+  c_vtxCoordA   = c_loc (vtxCoordA)
+  c_vtxLNToGNA  = c_loc (vtxLNToGNA)
+
+  call PDM_ol_input_mesh_set (c_ol, &
                               PDM_OL_MESH_A, &
                               ipartA, &
                               nFaceA, &
-                              faceVtxIdxA, &
-                              faceVtxA, &
-                              faceLNToGNA, &
+                              c_faceVtxIdxA, &
+                              c_faceVtxA, &
+                              c_faceLNToGNA, &
                               nVtxA, &
-                              vtxCoordA, &
-                              vtxLNToGNA)
+                              c_vtxCoordA, &
+                              c_vtxLNToGNA)
 
-  call PDM_ol_input_mesh_set (id, &
+  c_faceVtxIdxB = c_loc (faceVtxIdxB)
+  c_faceVtxB    = c_loc (faceVtxB)
+  c_faceLNToGNB = c_loc (faceLNToGNB)
+  c_vtxCoordB   = c_loc (vtxCoordB)
+  c_vtxLNToGNB  = c_loc (vtxLNToGNB)
+
+  call PDM_ol_input_mesh_set (c_ol, &
                               PDM_OL_MESH_B, &
                               ipartB, &
                               nFaceB, &
-                              faceVtxIdxB, &
-                              faceVtxB, &
-                              faceLNToGNB, &
+                              c_faceVtxIdxB, &
+                              c_faceVtxB, &
+                              c_faceLNToGNB, &
                               nVtxB, &
-                              vtxCoordB, &
-                              vtxLNToGNB)
+                              c_vtxCoordB, &
+                              c_vtxLNToGNB)
 
-  call PDM_ol_compute (id);
+  call PDM_ol_compute (c_ol);
 
-  call PDM_ol_dump_times (id);
+  call PDM_ol_dump_times (c_ol);
 
-  call PDM_ol_mesh_dim_get (id, &
+  call PDM_ol_mesh_dim_get (c_ol, &
                             PDM_OL_MESH_A, &
-                            nGOlFaceA, &
-                            nGOlVtxA)
+                            c_nGOlFaceA, &
+                            c_nGOlVtxA)
+  nGOlFaceA = c_nGOlFaceA
+  nGOlVtxA  = c_nGOlVtxA
 
-  call PDM_ol_part_mesh_dim_get (id, &
+  call PDM_ol_part_mesh_dim_get (c_ol, &
                                  PDM_OL_MESH_A, &
                                  ipartA, &
                                  nOlFaceA, &
@@ -261,40 +323,53 @@ program testf
                                  sOlface_vtxA, &
                                  sInitToOlFaceA);
 
-  allocate(olFaceIniVtxIdxA(nFaceA+1))
-  allocate(olFaceIniVtxA(sOlFaceIniVtxA))
-  allocate(olface_vtx_idxA(nOlFaceA+1))
-  allocate(olface_vtxA(sOlface_vtxA))
-  allocate(olLinkedface_procIdxA(n_rank+1))
-  allocate(olLinkedFaceA(4*nOlLinkedFaceA))
-  allocate(olface_ln_to_gnA(nOlFaceA))
-  allocate(olCoordsA(3*nOlVtxA))
-  allocate(olvtx_ln_to_gnA(nOlVtxA))
-  allocate(initToOlFaceIdxA(nFaceA+1))
-  allocate(initToOlFaceA(sInitToOlFaceA))
+  ! allocate(olFaceIniVtxIdxA(nFaceA+1))
+  ! allocate(olFaceIniVtxA(sOlFaceIniVtxA))
+  ! allocate(olface_vtx_idxA(nOlFaceA+1))
+  ! allocate(olface_vtxA(sOlface_vtxA))
+  ! allocate(olLinkedface_procIdxA(n_rank+1))
+  ! allocate(olLinkedFaceA(4*nOlLinkedFaceA))
+  ! allocate(olface_ln_to_gnA(nOlFaceA))
+  ! allocate(olCoordsA(3*nOlVtxA))
+  ! allocate(olvtx_ln_to_gnA(nOlVtxA))
+  ! allocate(initToOlFaceIdxA(nFaceA+1))
+  ! allocate(initToOlFaceA(sInitToOlFaceA))
 
-  call PDM_ol_mesh_entities_get (id, &
+  call PDM_ol_mesh_entities_get (c_ol, &
                                  PDM_OL_MESH_A, &
                                  ipartA, &
-                                 olFaceIniVtxIdxA, &
-                                 olFaceIniVtxA, &
-                                 olface_vtx_idxA, &
-                                 olface_vtxA, &
-                                 olLinkedface_procIdxA, &
-                                 olLinkedFaceA, &
-                                 olface_ln_to_gnA, &
-                                 olCoordsA, &
-                                 olvtx_ln_to_gnA, &
-                                 initToOlFaceIdxA, &
-                                 initToOlFaceA)
+                                 c_olFaceIniVtxIdxA, &
+                                 c_olFaceIniVtxA, &
+                                 c_olface_vtx_idxA, &
+                                 c_olface_vtxA, &
+                                 c_olLinkedface_procIdxA, &
+                                 c_olLinkedFaceA, &
+                                 c_olface_ln_to_gnA, &
+                                 c_olCoordsA, &
+                                 c_olvtx_ln_to_gnA, &
+                                 c_initToOlFaceIdxA, &
+                                 c_initToOlFaceA)
+  call c_f_pointer (c_olFaceIniVtxIdxA,      olFaceIniVtxIdxA,      [nFaceA+1])
+  call c_f_pointer (c_olFaceIniVtxA,         olFaceIniVtxA,         [sOlFaceIniVtxA])
+  call c_f_pointer (c_olface_vtx_idxA,       olface_vtx_idxA,       [nOlFaceA+1])
+  call c_f_pointer (c_olface_vtxA,           olface_vtxA,           [sOlface_vtxA])
+  call c_f_pointer (c_olLinkedface_procIdxA, olLinkedface_procIdxA, [n_rank+1])
+  call c_f_pointer (c_olLinkedFaceA,         olLinkedFaceA,         [4*nOlLinkedFaceA])
+  call c_f_pointer (c_olface_ln_to_gnA,      olface_ln_to_gnA,      [nOlFaceA])
+  call c_f_pointer (c_olCoordsA,             olCoordsA,             [3*nOlVtxA])
+  call c_f_pointer (c_olvtx_ln_to_gnA,       olvtx_ln_to_gnA,       [nOlVtxA])
+  call c_f_pointer (c_initToOlFaceIdxA,      initToOlFaceIdxA,      [nFaceA+1])
+  call c_f_pointer (c_initToOlFaceA,         initToOlFaceA,         [sInitToOlFaceA])
 
 
-  call PDM_ol_mesh_dim_get (id, &
+  call PDM_ol_mesh_dim_get (c_ol, &
                             PDM_OL_MESH_B, &
-                            nGOlFaceB, &
-                            nGOlVtxB)
+                            c_nGOlFaceB, &
+                            c_nGOlVtxB)
+  nGOlFaceB = c_nGOlFaceB
+  nGOlVtxB  = c_nGOlVtxB
 
-  call PDM_ol_part_mesh_dim_get (id, &
+  call PDM_ol_part_mesh_dim_get (c_ol, &
                                  PDM_OL_MESH_B, &
                                  ipartB, &
                                  nOlFaceB, &
@@ -305,59 +380,94 @@ program testf
                                  sInitToOlFaceB);
 
 
-  allocate(olFaceIniVtxIdxB(nFaceB+1))
-  allocate(olFaceIniVtxB(sOlFaceIniVtxB))
-  allocate(olface_vtx_idxB(nOlFaceB+1))
-  allocate(olface_vtxB(sOlface_vtxB))
-  allocate(olLinkedface_procIdxB(n_rank+1))
-  allocate(olLinkedFaceB(4*nOlLinkedFaceB))
-  allocate(olface_ln_to_gnB(nOlFaceB))
-  allocate(olCoordsB(3*nOlVtxB))
-  allocate(olvtx_ln_to_gnB(nOlVtxB))
-  allocate(initToOlFaceIdxB(nFaceB+1))
-  allocate(initToOlFaceB(sInitToOlFaceB))
+  ! allocate(olFaceIniVtxIdxB(nFaceB+1))
+  ! allocate(olFaceIniVtxB(sOlFaceIniVtxB))
+  ! allocate(olface_vtx_idxB(nOlFaceB+1))
+  ! allocate(olface_vtxB(sOlface_vtxB))
+  ! allocate(olLinkedface_procIdxB(n_rank+1))
+  ! allocate(olLinkedFaceB(4*nOlLinkedFaceB))
+  ! allocate(olface_ln_to_gnB(nOlFaceB))
+  ! allocate(olCoordsB(3*nOlVtxB))
+  ! allocate(olvtx_ln_to_gnB(nOlVtxB))
+  ! allocate(initToOlFaceIdxB(nFaceB+1))
+  ! allocate(initToOlFaceB(sInitToOlFaceB))
 
-  call PDM_ol_mesh_entities_get (id, &
+  call PDM_ol_mesh_entities_get (c_ol, &
                                  PDM_OL_MESH_B, &
                                  ipartB, &
-                                 olFaceIniVtxIdxB, &
-                                 olFaceIniVtxB, &
-                                 olface_vtx_idxB, &
-                                 olface_vtxB, &
-                                 olLinkedface_procIdxB, &
-                                 olLinkedFaceB, &
-                                 olface_ln_to_gnB, &
-                                 olCoordsB, &
-                                 olvtx_ln_to_gnB, &
-                                 initToOlFaceIdxB, &
-                                 initToOlFaceB)
+                                 c_olFaceIniVtxIdxB, &
+                                 c_olFaceIniVtxB, &
+                                 c_olface_vtx_idxB, &
+                                 c_olface_vtxB, &
+                                 c_olLinkedface_procIdxB, &
+                                 c_olLinkedFaceB, &
+                                 c_olface_ln_to_gnB, &
+                                 c_olCoordsB, &
+                                 c_olvtx_ln_to_gnB, &
+                                 c_initToOlFaceIdxB, &
+                                 c_initToOlFaceB)
+  call c_f_pointer (c_olFaceIniVtxIdxB,      olFaceIniVtxIdxB,      [nFaceB+1])
+  call c_f_pointer (c_olFaceIniVtxB,         olFaceIniVtxB,         [sOlFaceIniVtxB])
+  call c_f_pointer (c_olface_vtx_idxB,       olface_vtx_idxB,       [nOlFaceB+1])
+  call c_f_pointer (c_olface_vtxB,           olface_vtxB,           [sOlface_vtxB])
+  call c_f_pointer (c_olLinkedface_procIdxB, olLinkedface_procIdxB, [n_rank+1])
+  call c_f_pointer (c_olLinkedFaceB,         olLinkedFaceB,         [4*nOlLinkedFaceB])
+  call c_f_pointer (c_olface_ln_to_gnB,      olface_ln_to_gnB,      [nOlFaceB])
+  call c_f_pointer (c_olCoordsB,             olCoordsB,             [3*nOlVtxB])
+  call c_f_pointer (c_olvtx_ln_to_gnB,       olvtx_ln_to_gnB,       [nOlVtxB])
+  call c_f_pointer (c_initToOlFaceIdxB,      initToOlFaceIdxB,      [nFaceB+1])
+  call c_f_pointer (c_initToOlFaceB,         initToOlFaceB,         [sInitToOlFaceB])
 
 
-  call PDM_ol_del (id)
+  call PDM_ol_del (c_ol)
 
-  deallocate(olFaceIniVtxIdxA)
-  deallocate(olFaceIniVtxA)
-  deallocate(olface_vtx_idxA)
-  deallocate(olface_vtxA)
-  deallocate(olLinkedface_procIdxA)
-  deallocate(olLinkedFaceA)
-  deallocate(olface_ln_to_gnA)
-  deallocate(olCoordsA)
-  deallocate(olvtx_ln_to_gnA)
-  deallocate(initToOlFaceIdxA)
-  deallocate(initToOlFaceA)
+  ! deallocate(olFaceIniVtxIdxA)
+  ! deallocate(olFaceIniVtxA)
+  ! deallocate(olface_vtx_idxA)
+  ! deallocate(olface_vtxA)
+  ! deallocate(olLinkedface_procIdxA)
+  ! deallocate(olLinkedFaceA)
+  ! deallocate(olface_ln_to_gnA)
+  ! deallocate(olCoordsA)
+  ! deallocate(olvtx_ln_to_gnA)
+  ! deallocate(initToOlFaceIdxA)
+  ! deallocate(initToOlFaceA)
 
-  deallocate(olFaceIniVtxIdxB)
-  deallocate(olFaceIniVtxB)
-  deallocate(olface_vtx_idxB)
-  deallocate(olface_vtxB)
-  deallocate(olLinkedface_procIdxB)
-  deallocate(olLinkedFaceB)
-  deallocate(olface_ln_to_gnB)
-  deallocate(olCoordsB)
-  deallocate(olvtx_ln_to_gnB)
-  deallocate(initToOlFaceIdxB)
-  deallocate(initToOlFaceB)
+  ! deallocate(olFaceIniVtxIdxB)
+  ! deallocate(olFaceIniVtxB)
+  ! deallocate(olface_vtx_idxB)
+  ! deallocate(olface_vtxB)
+  ! deallocate(olLinkedface_procIdxB)
+  ! deallocate(olLinkedFaceB)
+  ! deallocate(olface_ln_to_gnB)
+  ! deallocate(olCoordsB)
+  ! deallocate(olvtx_ln_to_gnB)
+  ! deallocate(initToOlFaceIdxB)
+  ! deallocate(initToOlFaceB)
+
+  call pdm_fortran_free_c (c_olFaceIniVtxIdxA)
+  call pdm_fortran_free_c (c_olFaceIniVtxA)
+  call pdm_fortran_free_c (c_olface_vtx_idxA)
+  call pdm_fortran_free_c (c_olface_vtxA)
+  call pdm_fortran_free_c (c_olLinkedface_procIdxA)
+  call pdm_fortran_free_c (c_olLinkedFaceA)
+  call pdm_fortran_free_c (c_olface_ln_to_gnA)
+  call pdm_fortran_free_c (c_olCoordsA)
+  call pdm_fortran_free_c (c_olvtx_ln_to_gnA)
+  call pdm_fortran_free_c (c_initToOlFaceIdxA)
+  call pdm_fortran_free_c (c_initToOlFaceA)
+
+  call pdm_fortran_free_c (c_olFaceIniVtxIdxB)
+  call pdm_fortran_free_c (c_olFaceIniVtxB)
+  call pdm_fortran_free_c (c_olface_vtx_idxB)
+  call pdm_fortran_free_c (c_olface_vtxB)
+  call pdm_fortran_free_c (c_olLinkedface_procIdxB)
+  call pdm_fortran_free_c (c_olLinkedFaceB)
+  call pdm_fortran_free_c (c_olface_ln_to_gnB)
+  call pdm_fortran_free_c (c_olCoordsB)
+  call pdm_fortran_free_c (c_olvtx_ln_to_gnB)
+  call pdm_fortran_free_c (c_initToOlFaceIdxB)
+  call pdm_fortran_free_c (c_initToOlFaceB)
 
   deallocate (faceVtxIdxA)
   deallocate (faceVtxA)

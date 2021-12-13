@@ -15,6 +15,7 @@
 #include "pdm_plane.h"
 #include "pdm_line.h"
 #include "pdm_polygon.h"
+#include "pdm_predicate.h"
 
 /*=============================================================================
  * Macro definitions
@@ -920,6 +921,165 @@ int PDM_polygon_3d_to_2d
 
   return 1;
 }
+
+
+
+
+
+
+
+
+PDM_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wfloat-equal")
+inline static int _a_eq_b (const double a,
+                           const double b) {
+  return a == b;
+  const double eps = 1e-15;
+  return PDM_ABS (a - b) < eps;
+}
+
+
+inline static int _crossing (const double piy,
+                             const double pipy,
+                             const double ry) {
+  return ((piy < ry) != (pipy < ry));
+}
+
+inline static int _right_crossing (const double det,
+                                   const double piy,
+                                   const double pipy)
+{
+  return ((det > 0) == (pipy > piy));
+}
+
+inline static void _modify_w (const double  piy,
+                              const double  pipy,
+                              int          *w) {
+  *w += 2*(pipy > piy) - 1;
+}
+PDM_GCC_SUPPRESS_WARNING_POP
+
+/**
+ *  Algorithm 7 from
+ *  "The point in polygon problem for arbitrary polygons", K.Hormann, A. Agathos (2001)
+ **/
+
+PDM_polygon_status_t PDM_polygon_point_in_new
+(
+ const double  xyz[3],
+ const int     n_vtx,
+ const double *vtx_xyz,
+ double        bounds[6],
+ double        normal[3]
+ )
+{
+  const double eps = 1e-15;
+
+  /*
+   *  Do a quick bounds check
+   */
+  if (bounds != NULL) {
+    if (xyz[0] < bounds[0] || xyz[0] > bounds[1] ||
+        xyz[1] < bounds[2] || xyz[1] > bounds[3] ||
+        xyz[2] < bounds[4] || xyz[2] > bounds[5]) {
+      return PDM_POLYGON_OUTSIDE;
+    }
+  }
+
+  int imax = 0;
+  double nmax = 0.;
+  for (int i = 0; i < 3; i++) {
+    double ni = PDM_ABS (normal[i]);
+    if (ni > nmax) {
+      imax = i;
+      nmax = ni;
+    }
+  }
+  if (nmax < eps) {
+    return PDM_POLYGON_DEGENERATED;
+  }
+
+  int i1 = (imax + 1)%3;
+  int i2 = (i1 + 1)%3;
+
+  const double x = xyz[i1];
+  const double y = xyz[i2];
+
+  /*
+   *  Perform 2d point-in-polygon test
+   */
+  const double *xi = vtx_xyz + i1;
+  const double *yi = vtx_xyz + i2;
+
+  if (_a_eq_b(*yi, y) && _a_eq_b(*xi, x)) {
+    /* Point on vertex */
+    return PDM_POLYGON_INSIDE;
+  }
+
+  const double *xj;
+  const double *yj;
+  int w = 0;
+
+  for (int i = 0; i < n_vtx; i++) {
+    int j = (i + 1)%n_vtx;
+
+    xj = vtx_xyz + 3*j + i1;
+    yj = vtx_xyz + 3*j + i2;
+
+    if (_a_eq_b(*yj, y)) {
+      if (_a_eq_b(*xj, x)) {
+        /* Point on vertex */
+        return PDM_POLYGON_INSIDE;
+      } else {
+        if (_a_eq_b(*yi, y) &&
+            ((*xj > x) == (*xi < x))) {
+          /* Point on edge */
+          return PDM_POLYGON_INSIDE;
+        }
+      }
+    }
+
+    if (_crossing(*yi, *yj, y)) {
+      //double det = (*xi - x)*(*yj - y) - (*yi - y)*(*xj - x);
+      /*double a[2] = {x, y};
+      double b[2] = {*xi, *yi};
+      double c[2] = {*xj, *yj};*/
+      double a[2], b[2], c[2];
+      a[0] = x; a[1] = y; b[0] = *xi; b[1] = *yi; c[0] = *xj; c[1] = *yj;
+      double det = PDM_predicate_orient2d (a, b, c);
+      if (PDM_ABS(det) < 0) {//eps) {
+        /* Point on edge */
+        return PDM_POLYGON_INSIDE;
+      }
+
+      if (*xi >= x) {
+        if (*xj > x) {
+          _modify_w (*yi, *yj, &w);
+        } else {
+          if (_right_crossing(det, *yi, *yj)) {
+            _modify_w (*yi, *yj, &w);
+          }
+        }
+      } else {
+        if (*xj > x) {
+          if (_right_crossing(det, *yi, *yj)) {
+            _modify_w (*yi, *yj, &w);
+          }
+        }
+      }
+    }
+
+
+    xi += 3;
+    yi += 3;
+  }
+
+  if (w == 0) {
+    return PDM_POLYGON_OUTSIDE;
+  } else {
+    return PDM_POLYGON_INSIDE;
+  }
+}
+
 
 #ifdef __cplusplus
 }

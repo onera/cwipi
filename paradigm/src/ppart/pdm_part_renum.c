@@ -178,8 +178,8 @@ const int  n_face,
  *
  */
 
-static void
-_order_face_cell
+void
+PDM_order_face_cell
 (
 int          n_face,
 int         *new_to_old_order,
@@ -230,6 +230,53 @@ int       *array
   }
 
   free(old_array);
+}
+
+/**
+ * \brief Order an array
+ *
+ * \param [in]      sizeArray       Number of elements
+ * \param [in]      new_to_old_order        New order (size = \ref n_elmt
+ * \param [in, out] Array           Array to renumber
+ *
+ */
+
+void
+PDM_part_renum_graph
+(
+const int   n_entity1,
+      int  *entity1_entity1_idx,
+      int  *entity1_entity1,
+const int  *new_to_old_order,
+int         start
+)
+{
+
+  PDM_part_renum_connectivities (n_entity1,
+                                 new_to_old_order,
+                                 entity1_entity1_idx,
+                                 entity1_entity1);
+
+
+  int *old_to_new_order = (int *) malloc (n_entity1 * sizeof(int));
+  for(int i = 0; i < n_entity1; i++) {
+    old_to_new_order[new_to_old_order[i]] = i;
+  }
+
+  int *old_array = (int *) malloc (sizeof(int) * entity1_entity1_idx[n_entity1]);
+
+  for (int i = 0; i < entity1_entity1_idx[n_entity1]; ++i) {
+    old_array[i] = entity1_entity1[i];
+  }
+
+  for (int i = 0; i < entity1_entity1_idx[n_entity1]; ++i) {
+    int old_idx        = PDM_ABS (old_array[i]);
+    int sign           = PDM_SIGN(old_array[i]);
+    entity1_entity1[i] = sign * (old_to_new_order[old_idx-start] + start);
+  }
+
+  free(old_array);
+  free(old_to_new_order);
 }
 
 
@@ -1193,6 +1240,103 @@ const char *name
   return idx;
 }
 
+/**
+ *
+ * \brief Get index of a renumbering edge method
+ *
+ * \param [in]  name   Name of the method
+ *
+ * \return Index (-1 if not found)
+ */
+
+void
+PROCF (pdm_part_renum_method_edge_idx_get_cf, PDM_PART_RENUM_METHOD_edge_IDX_GET_CF)
+(
+ char *name,
+ int  *l_name,
+ int  *idx
+ )
+{
+  char *_name = PDM_fortran_to_c_string (name, *l_name);
+
+  *idx = PDM_part_renum_method_edge_idx_get (_name);
+
+  free (_name);
+
+}
+
+int
+PDM_part_renum_method_edge_idx_get
+(
+const char *name
+)
+{
+  if (edge_methods == NULL) {
+    PDM_part_renum_method_load_local();
+  }
+  int idx = -1;
+  int n_methods = PDM_Handles_n_get (edge_methods);
+  const int *index =  PDM_Handles_idx_get (edge_methods);
+
+  for (int i = 0; i < n_methods; i++) {
+    _renum_method_t *method_ptr =
+            (_renum_method_t *) PDM_Handles_get (edge_methods, index[i]);
+    if (!strcmp(method_ptr->name, name)) {
+      idx = index[i];
+      break;
+    }
+  }
+  return idx;
+}
+
+/**
+ *
+ * \brief Get index of a renumbering vtx method
+ *
+ * \param [in]  name   Name of the method
+ *
+ * \return Index (-1 if not found)
+ */
+
+void
+PROCF (pdm_part_renum_method_vtx_idx_get_cf, PDM_PART_RENUM_METHOD_vtx_IDX_GET_CF)
+(
+ char *name,
+ int  *l_name,
+ int  *idx
+ )
+{
+  char *_name = PDM_fortran_to_c_string (name, *l_name);
+
+  *idx = PDM_part_renum_method_vtx_idx_get (_name);
+
+  free (_name);
+
+}
+
+int
+PDM_part_renum_method_vtx_idx_get
+(
+const char *name
+)
+{
+  if (vtx_methods == NULL) {
+    PDM_part_renum_method_load_local();
+  }
+  int idx = -1;
+  int n_methods = PDM_Handles_n_get (vtx_methods);
+  const int *index =  PDM_Handles_idx_get (vtx_methods);
+
+  for (int i = 0; i < n_methods; i++) {
+    _renum_method_t *method_ptr =
+            (_renum_method_t *) PDM_Handles_get (vtx_methods, index[i]);
+    if (!strcmp(method_ptr->name, name)) {
+      idx = index[i];
+      break;
+    }
+  }
+  return idx;
+}
 
 /**
  *
@@ -1382,6 +1526,38 @@ PDM_part_renum_method_face_add
  */
 
 int
+PDM_part_renum_method_edge_add
+(
+ const char                 *name,     /*!< Name          */
+ const PDM_part_renum_fct_t  renum_fct /*!< Customize \ref PDM_part_renum_edge function for the format */
+)
+{
+  if (edge_methods == NULL) {
+    PDM_part_renum_method_load_local ();
+  }
+
+  _renum_method_t *method_ptr = malloc (sizeof(_renum_method_t));
+
+  int idx = PDM_Handles_store  (edge_methods, method_ptr);
+
+  method_ptr->name = malloc (sizeof(char) * (strlen(name) + 1));
+  strcpy (method_ptr->name, name);
+
+  method_ptr->fct = renum_fct;
+
+  return idx;
+}
+
+/**
+ *
+ * \brief Add a new method for face renumbering
+ *
+ * \param [in]      name           Mesh entity to renumber
+ * \param [in]      renum_fct      Renumbering function
+ *
+ */
+
+int
 PDM_part_renum_method_vtx_add
 (
  const char                 *name,     /*!< Name          */
@@ -1442,6 +1618,14 @@ void
                                     _renum_faces_random);
     PDM_part_renum_method_face_add ("PDM_PART_RENUM_FACE_LEXICOGRAPHIC",
                                     _renum_faces_lexicographic);
+  }
+
+  if (edge_methods == NULL)  {
+    const int n_default_methods = 2;
+    edge_methods = PDM_Handles_create (n_default_methods);
+
+    PDM_part_renum_method_edge_add ("PDM_PART_RENUM_EDGE_NONE",
+                                    NULL);
   }
 
   if (vtx_methods == NULL)  {
@@ -1730,10 +1914,12 @@ int     *new_to_old_order
 {
 
   /** Renum face_vtx / face_vtx_idx **/
-  PDM_part_renum_connectivities (part->n_face,
-                                 new_to_old_order,
-                                 part->face_vtx_idx,
-                                 part->face_vtx);
+  if(part->face_vtx != NULL) {
+    PDM_part_renum_connectivities (part->n_face,
+                                   new_to_old_order,
+                                   part->face_vtx_idx,
+                                   part->face_vtx);
+  }
 
   /** Renum face_edge / face_edge_idx **/
   if(part->face_edge != NULL) {
@@ -1798,9 +1984,9 @@ int     *new_to_old_order
   }
 
   /** face_cell Face **/
-  _order_face_cell (part->n_face,
-                    new_to_old_order,
-                    part->face_cell);
+  PDM_order_face_cell (part->n_face,
+                       new_to_old_order,
+                       part->face_cell);
 
   /* Free */
   free (old_to_new_order);
@@ -1842,9 +2028,9 @@ int     *new_to_old_order
   }
 
   if( part->edge_vtx != NULL) {
-    _order_face_cell(part->n_edge,
-                     new_to_old_order,
-                     part->edge_vtx);
+    PDM_order_face_cell(part->n_edge,
+                        new_to_old_order,
+                        part->edge_vtx);
   }
 
   /** edge_tag **/
@@ -1903,9 +2089,11 @@ int     *new_to_old_order
   }
 
   if (part->n_face!=0) {
-    PDM_part_renum_array (part->face_vtx_idx[part->n_face],
-                          old_to_new_order,
-                          part->face_vtx);
+    if(part->face_vtx != NULL) {
+      PDM_part_renum_array (part->face_vtx_idx[part->n_face],
+                            old_to_new_order,
+                            part->face_vtx);
+    }
   } else { // the mesh is supposed to be described by elements
     int n_section = part->n_section;
     assert(n_section!=0);
@@ -1916,6 +2104,9 @@ int     *new_to_old_order
                             old_to_new_order,
                             part->elt_vtx[i_section]);
     }
+  }
+
+  if(part->vtx_ghost_information != NULL) {
     PDM_order_array (part->n_vtx,
                      sizeof(int),
                      new_to_old_order,
@@ -1923,11 +2114,10 @@ int     *new_to_old_order
   }
 
   if(part->edge_vtx != NULL) {
-    printf("PDM_part_reorder_vtx TO DEBUG \n");
-    abort();
-    PDM_part_renum_array (2 * part->n_edge,
-                          old_to_new_order,
-                          part->edge_vtx);
+    _renum_face_cell (part->n_vtx,
+                      part->n_edge,
+                      part->edge_vtx,
+                      new_to_old_order);
   }
 
   /** vtx **/
@@ -1945,12 +2135,12 @@ int     *new_to_old_order
   }
 
   /** vtx_color **/
-  // if (part->vtx_color != NULL) {
-  //   PDM_order_array (part->n_vtx,
-  //                    sizeof(int),
-  //                    new_to_old_order,
-  //                    part->vtx_color);
-  // }
+  if (part->vtx_color != NULL) {
+    PDM_order_array (part->n_vtx,
+                     sizeof(int),
+                     new_to_old_order,
+                     part->vtx_color);
+  }
 
   /** vtx_color **/
   if (part->new_to_old_order_vtx != NULL) {

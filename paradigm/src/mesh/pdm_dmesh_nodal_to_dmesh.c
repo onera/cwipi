@@ -1278,6 +1278,11 @@ _generate_faces_from_dmesh_nodal
       free(dparent_sign);
       free(delmt_child_distrib);
     }
+    free(n_edge_elt_tot    );
+    free(delmt_edge        );
+    free(dparent_face_pos  );
+    free(delmt_edge_vtx_idx);
+    free(delmt_edge_vtx    );
 
     dm->is_owner_connectivity[PDM_CONNECTIVITY_TYPE_EDGE_VTX ] = PDM_TRUE;
     dm->is_owner_connectivity[PDM_CONNECTIVITY_TYPE_EDGE_FACE] = PDM_TRUE;
@@ -1292,8 +1297,22 @@ _generate_faces_from_dmesh_nodal
 
       PDM_log_trace_array_int (dm->dconnectivity_idx[PDM_CONNECTIVITY_TYPE_EDGE_FACE], dm->dn_edge+1                   , "dm->_dedge_face_idx:: ");
       PDM_log_trace_array_long(dm->dconnectivity    [PDM_CONNECTIVITY_TYPE_EDGE_FACE], dm->dconnectivity_idx[PDM_CONNECTIVITY_TYPE_EDGE_FACE][dm->dn_edge], "dm->_dedge_face:: ");
-
     }
+
+    assert(dm->edge_distrib != NULL);
+    assert(dm->face_distrib != NULL);
+    dm->is_owner_connectivity[PDM_CONNECTIVITY_TYPE_FACE_EDGE] = PDM_TRUE;
+    PDM_dconnectivity_transpose(dmesh_nodal->comm,
+                                dm->edge_distrib,
+                                dm->face_distrib,
+                                dm->dconnectivity_idx[PDM_CONNECTIVITY_TYPE_EDGE_FACE],
+                                dm->dconnectivity    [PDM_CONNECTIVITY_TYPE_EDGE_FACE],
+                                1, // is_signed
+                                &dm->dconnectivity_idx[PDM_CONNECTIVITY_TYPE_FACE_EDGE],
+                                &dm->dconnectivity    [PDM_CONNECTIVITY_TYPE_FACE_EDGE]);
+
+
+
   }
 }
 
@@ -1449,7 +1468,7 @@ _generate_edges_from_dmesh_nodal
   PDM_g_num_t* _dedge_face_tmp     = dm->dconnectivity    [PDM_CONNECTIVITY_TYPE_EDGE_FACE];
   int        * _dedge_face_idx_tmp = dm->dconnectivity_idx[PDM_CONNECTIVITY_TYPE_EDGE_FACE];
 
-   if (1) {
+   if (0) {
     PDM_log_trace_connectivity_long(_dedge_face_idx_tmp, _dedge_face_tmp, dm->dn_edge, "dedge_face_tmp : ");
   }
 
@@ -2549,7 +2568,7 @@ PDM_g_num_t  **dentity_elmt
             }
             PDM_quick_sort_long(loc_entity_vtx_2, 0, n_vtx_entity_2-1);
 
-            assert(key_1 == key_2);
+            assert(key_1 % key_mod == key_2 % key_mod);
 
             int is_same_entity = 1;
             for(int i_vtx = 0; i_vtx < n_vtx_entity_1; ++i_vtx) {

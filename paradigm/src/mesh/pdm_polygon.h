@@ -165,7 +165,15 @@ PDM_polygon_point_in
  double       *n
 );
 
-
+PDM_polygon_status_t
+PDM_polygon_point_in_new
+(
+ const double  x[3],
+ const int     numPts,
+ const double *pts,
+ double       *bounds,
+ double       *n
+);
 /**
  * \brief Computes polygon barycenter
  *

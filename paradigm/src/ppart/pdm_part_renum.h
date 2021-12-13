@@ -69,6 +69,22 @@ PDM_part_renum_method_face_add
  const PDM_part_renum_fct_t  renum_fct /*!< Customize \ref PDM_part_renum_face function for the format */
 );
 
+/**
+ *
+ * \brief Add a new method for edge renumbering
+ *
+ * \param [in]      name           Mesh entity to renumber
+ * \param [in]      renum_fct      Renumbering function
+ *
+ */
+
+int
+PDM_part_renum_method_edge_add
+(
+ const char                 *name,     /*!< Name          */
+ const PDM_part_renum_fct_t  renum_fct /*!< Customize \ref PDM_part_renum_face function for the format */
+);
+
 
 /**
  *
@@ -132,6 +148,53 @@ PDM_part_renum_method_face_idx_get
 (
 const char *name
 );
+
+/**
+ *
+ * \brief Get index of a renumbering edge method
+ *
+ * \param [in]  name   Name of the method
+ *
+ * \return Index (-1 if not found)
+ */
+
+void
+PROCF (pdm_part_renum_method_edge_idx_get_cf, PDM_PART_RENUM_METHOD_edge_IDX_GET_CF)
+(
+ char *name,
+ int  *l_name,
+ int  *idx
+ );
+
+int
+PDM_part_renum_method_edge_idx_get
+(
+const char *name
+);
+
+/**
+ *
+ * \brief Get index of a renumbering vtx method
+ *
+ * \param [in]  name   Name of the method
+ *
+ * \return Index (-1 if not found)
+ */
+
+void
+PROCF (pdm_part_renum_method_vtx_idx_get_cf, PDM_PART_RENUM_METHOD_vtx_IDX_GET_CF)
+(
+ char *name,
+ int  *l_name,
+ int  *idx
+ );
+
+int
+PDM_part_renum_method_vtx_idx_get
+(
+const char *name
+);
+
 
 
 /**
@@ -450,6 +513,22 @@ PDM_part_renum_connectivities
 );
 
 /**
+ * \brief Order face_cell or edge_vtx array
+ *
+ * \param [in]      n_face              Number of elements
+ * \param [in]      new_to_old_order    New order (size = \ref nElt
+ * \param [in, out] face_cell           Connectivity ( size = 2 * n_face)
+ *
+ */
+void
+PDM_order_face_cell
+(
+int          n_face,
+int         *new_to_old_order,
+int         *face_cell
+);
+
+/**
  * \brief Order an array
  *
  * \param [in]      sizeArray       Number of elements
@@ -464,6 +543,25 @@ PDM_part_renum_array
 const int  sizeArray,
 const int *old_to_new_order,
 int       *array
+);
+
+/**
+ * \brief Order an array
+ *
+ * \param [in]      sizeArray       Number of elements
+ * \param [in]      new_to_old_order        New order (size = \ref n_elmt
+ * \param [in, out] Array           Array to renumber
+ *
+ */
+
+void
+PDM_part_renum_graph
+(
+const int   n_entity1,
+      int  *entity1_entity1_idx,
+      int  *entity1_entity1,
+const int  *new_to_old_order,
+int         start
 );
 
 /**

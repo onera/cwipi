@@ -175,6 +175,14 @@ PDM_dmesh_data_get
  const PDM_g_num_t  **dface_join
 );
 
+
+void
+PDM_dmesh_vtx_coord_get
+(
+       PDM_dmesh_t   *dmesh,
+ const double       **dvtx_coord
+);
+
 int
 PDM_dmesh_connectivity_get
 (

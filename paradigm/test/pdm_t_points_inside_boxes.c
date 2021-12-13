@@ -491,21 +491,21 @@ main (int argc, char *argv[])
   const int octree_build_leaf_neighbours = 0;
 
   /* Create octree structure */
-  int octree_id = PDM_para_octree_create (1,
-                                          octree_depth_max,
-                                          octree_points_in_leaf_max,
-                                          octree_build_leaf_neighbours,
-                                          comm);
+  PDM_para_octree_t *octree = PDM_para_octree_create (1,
+                                                      octree_depth_max,
+                                                      octree_points_in_leaf_max,
+                                                      octree_build_leaf_neighbours,
+                                                      comm);
 
   /* Set octree point cloud */
-  PDM_para_octree_point_cloud_set (octree_id,
+  PDM_para_octree_point_cloud_set (octree,
                                    0,
                                    n_pts,
                                    pts_coord,
                                    pts_g_num);
 
   /* Build parallel octree */
-  PDM_para_octree_build (octree_id, NULL);
+  PDM_para_octree_build (octree, NULL);
 
 
 
@@ -515,7 +515,7 @@ main (int argc, char *argv[])
   int         *box_pts_idx   = NULL;
   PDM_g_num_t *box_pts_g_num = NULL;
   double      *box_pts_coord = NULL;
-  PDM_para_octree_points_inside_boxes_with_copies (octree_id,
+  PDM_para_octree_points_inside_boxes_with_copies (octree,
                                                    n_box,
                                                    box_extents,
                                                    box_g_num,
@@ -524,7 +524,7 @@ main (int argc, char *argv[])
                                                    &box_pts_coord);
 
   /* Free octree */
-  PDM_para_octree_free (octree_id);
+  PDM_para_octree_free (octree);
 
   // PDM_log_trace_connectivity_long (box_pts_idx,
   //                                  box_pts_g_num,

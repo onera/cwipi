@@ -17,7 +17,6 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_gnum.h"
-#include "pdm_para_octree.h"
 #include "pdm_distrib.h"
 #include "pdm_logging.h"
 #include "pdm_closest_points.h"

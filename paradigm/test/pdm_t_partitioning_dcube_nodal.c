@@ -24,6 +24,7 @@
 #include "pdm_sort.h"
 #include "pdm_distrib.h"
 #include "pdm_error.h"
+#include "pdm_vtk.h"
 #include "pdm_logging.h"
 #include "pdm_priv.h"
 
@@ -194,6 +195,7 @@ int main(int argc, char *argv[])
 
   PDM_dmesh_nodal_t* dmn = PDM_dcube_nodal_gen_dmesh_nodal_get(dcube);
 
+  PDM_dmesh_nodal_dump_vtk(dmn, PDM_GEOMETRY_KIND_SURFACIC, "out_surfacic");
   /*
    *  Warm up dmesh from dmesh_nodal
    */

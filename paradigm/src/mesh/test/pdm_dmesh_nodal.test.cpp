@@ -33,7 +33,7 @@ MPI_TEST_CASE("[PDM_delmts_nodal_elmts_t] Constructor",1) {
 
   const PDM_g_num_t n_vtx            = 9;
   const PDM_g_num_t n_face           = 8;
-  const PDM_g_num_t n_ridge          = 8;
+  // const PDM_g_num_t n_ridge          = 8;
   const int         n_tri_section_1  = 8;
   const int         n_bar_section_1  = 8;
 
@@ -63,33 +63,31 @@ MPI_TEST_CASE("[PDM_delmts_nodal_elmts_t] Constructor",1) {
   PDM_MPI_Comm pdm_comm = PDM_MPI_mpi_2_pdm_mpi_comm(&test_comm);
   PDM_dmesh_nodal_t* dmn = PDM_DMesh_nodal_create(pdm_comm, 3, n_vtx, -1, n_face, -1);
 
-  PDM_dmesh_nodal_elmts_t* dmn_elmts_surf  = PDM_DMesh_nodal_elmts_create(pdm_comm, 2, n_face );
-  PDM_dmesh_nodal_elmts_t* dmn_elmts_ridge = PDM_DMesh_nodal_elmts_create(pdm_comm, 1, n_ridge);
-
   // The order of call is important for global numbering
-  int tri_section_1 = PDM_DMesh_nodal_elmts_section_add(dmn_elmts_surf , PDM_MESH_NODAL_TRIA3);
-  int bar_section_1 = PDM_DMesh_nodal_elmts_section_add(dmn_elmts_ridge, PDM_MESH_NODAL_BAR2);
+  int tri_section_1 = PDM_DMesh_nodal_section_add(dmn, PDM_GEOMETRY_KIND_SURFACIC, PDM_MESH_NODAL_TRIA3);
+  int bar_section_1 = PDM_DMesh_nodal_section_add(dmn, PDM_GEOMETRY_KIND_RIDGE   , PDM_MESH_NODAL_BAR2);
 
-  PDM_DMesh_nodal_elmts_group_set(dmn_elmts_ridge,
-                                  n_group_elmt,
-                                  dgroup_elmt_idx,
-                                  dgroup_elmt,
+  PDM_DMesh_nodal_section_group_elmt_set(dmn,
+                                         PDM_GEOMETRY_KIND_RIDGE,
+                                         n_group_elmt,
+                                         dgroup_elmt_idx,
+                                         dgroup_elmt,
+                                         PDM_OWNERSHIP_USER);
+
+  PDM_DMesh_nodal_section_std_set(dmn,
+                                  PDM_GEOMETRY_KIND_SURFACIC,
+                                  tri_section_1,
+                                  n_tri_section_1,
+                                  connec_tri_1,
                                   PDM_OWNERSHIP_USER);
 
-  PDM_DMesh_nodal_elmts_section_std_set(dmn_elmts_surf,
-                                        tri_section_1,
-                                        n_tri_section_1,
-                                        connec_tri_1,
-                                        PDM_OWNERSHIP_USER);
+  PDM_DMesh_nodal_section_std_set(dmn,
+                                  PDM_GEOMETRY_KIND_RIDGE,
+                                  bar_section_1,
+                                  n_bar_section_1,
+                                  connec_bar_1,
+                                  PDM_OWNERSHIP_USER);
 
-  PDM_DMesh_nodal_elmts_section_std_set(dmn_elmts_ridge,
-                                        bar_section_1,
-                                        n_bar_section_1,
-                                        connec_bar_1,
-                                        PDM_OWNERSHIP_USER);
-
-  PDM_Mesh_nodal_add_dmesh_nodal_elmts(dmn, dmn_elmts_surf );
-  PDM_Mesh_nodal_add_dmesh_nodal_elmts(dmn, dmn_elmts_ridge);
   /*
    * Generate the connectivity
    */
@@ -126,11 +124,11 @@ MPI_TEST_CASE("[PDM_delmts_nodal_elmts_t] Constructor",1) {
   // PDM_log_trace_array_int (dface_edge_idx, dn_face+1, "dface_edge_idx:: ");
   // PDM_log_trace_array_long (dface_edge, dface_edge_idx[dn_face], "dface_edge:: ");
 
-  int dedge_face_idx_expected[17] =  {0, 1, 2, 3, 4, 5, 7, 9, 10, 12, 13, 15, 17, 19, 20, 22, 24 };
-  PDM_g_num_t dedge_face_expected[24] =  {3, 8, 4, 6, 3, 7, -3, 7, -8, 2, 8, -4, 5, 4, -6, 1, -5, 2, -6, 5, 1, -2, 1, -7};
+  // int dedge_face_idx_expected[17] =  {0, 1, 2, 3, 4, 5, 7, 9, 10, 12, 13, 15, 17, 19, 20, 22, 24 };
+  // PDM_g_num_t dedge_face_expected[24] =  {3, 8, 4, 6, 3, 7, -3, 7, -8, 2, 8, -4, 5, 4, -6, 1, -5, 2, -6, 5, 1, -2, 1, -7};
 
-  int dface_edge_idx_expected[9] =  {0, 3, 6, 9, 12, 15, 18, 21, 24};
-  PDM_g_num_t dface_edge_expected[24] =  {12, 15, 16, -15, 8, 13, -6, 1, 5, -9, 3, 11, -12, 10, 14, -13, -11, 4, -16, 6, 7, -7, 2, 9};
+  // int dface_edge_idx_expected[9] =  {0, 3, 6, 9, 12, 15, 18, 21, 24};
+  // PDM_g_num_t dface_edge_expected[24] =  {12, 15, 16, -15, 8, 13, -6, 1, 5, -9, 3, 11, -12, 10, 14, -13, -11, 4, -16, 6, 7, -7, 2, 9};
 
   // Test FAUX car maintenant dedge_face = 2*dn_face !!!
   // CHECK_EQ_C_ARRAY(dedge_face_idx, dedge_face_idx_expected, dn_edge+1                       );
@@ -140,8 +138,6 @@ MPI_TEST_CASE("[PDM_delmts_nodal_elmts_t] Constructor",1) {
 
 
   PDM_dmesh_nodal_to_dmesh_free(dmn_to_dm);
-  // PDM_DMesh_nodal_elmts_free(dmn_elmts_surf);
-  // PDM_DMesh_nodal_elmts_free(dmn_elmts_ridge);
 
   PDM_DMesh_nodal_free(dmn);
 }

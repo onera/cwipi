@@ -472,10 +472,18 @@ const double                 coordsVtxB[6]
   double u1;
   double v1;
 
+#if 1
   PDM_line_intersect_t tIntersect =
     PDM_line_intersection_mean_square (coordsVtxA, &(coordsVtxA[3]),
                                        coordsVtxB, &(coordsVtxB[3]),
                                        &u1, &v1);
+#else
+  // !!! Works only in the xy-plane
+  PDM_line_intersect_t tIntersect =
+    PDM_line_intersection_2drobust (coordsVtxA, &(coordsVtxA[3]),
+                                    coordsVtxB, &(coordsVtxB[3]),
+                                    &u1, &v1);
+#endif
   /*  PDM_LINE_INTERSECT_UNDEF   = -1,  !< No intersection */
   /*  PDM_LINE_INTERSECT_NO      = 0,  !< No intersection */
   /*  PDM_LINE_INTERSECT_YES     = 1,  !< Intersection */

@@ -4,8 +4,8 @@
 #
 #==============================================================================
 
-cmake_minimum_required(VERSION 3.19)
-cmake_policy(VERSION 3.19)
+cmake_minimum_required(VERSION 3.16)
+cmake_policy(VERSION 3.16)
 
 #------------------------------------------------------------------------------
 # Internal CMake module (shared with ParaDiGMA or CWIPI)
@@ -182,7 +182,7 @@ else ()
 
   option(PDM_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
 
-  # BLAS/LAPACK 
+  # BLAS/LAPACK
   # -----------
 
   option(PDM_ENABLE_BLASLAPACK "Build with BLAS/LAPACK" OFF)

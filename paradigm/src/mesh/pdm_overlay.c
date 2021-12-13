@@ -386,7 +386,7 @@ static int
 _is_same_plane
 (
  PDM_ol_t *ol,
- double   *dist
+ double    *dist
 )
 {
   double planeEquationA[4] = {0, 0, 0, 0};
@@ -1221,7 +1221,7 @@ _compute_overlay_planes
       PDM_g_num_t *polyClippConnecB = NULL;
       double     *polyClippCoordsB = NULL;
 
-      if (0 && (gnum_boxA == 19189330) && (gnum_boxB == 3206132)) {
+      if (0 && (gnum_boxA == 1) && (gnum_boxB == 504101)) {
 
         FILE *f = fopen("poly_unit.case", "w");
 
@@ -1335,10 +1335,12 @@ _compute_overlay_planes
                       &polyClippConnecB,
                       &polyClippCoordsB);
 
-      if (vb) {
+      if (0) {//vb) {
         printf(" ---> poly_clipp gnumEltA gnumEltB : "PDM_FMT_G_NUM" "PDM_FMT_G_NUM" fin\n", gnum_boxA, gnum_boxB);
       }
-
+      if (nPolyClippA != nPolyClippB) {
+         printf("error poly_clipp gnumEltA gnumEltB : "PDM_FMT_G_NUM" "PDM_FMT_G_NUM"\n", gnum_boxA, gnum_boxB);
+      }
       assert (nPolyClippA == nPolyClippB);
 
       facesToSubFacesAIdx[i+1] += nPolyClippA;
@@ -3283,167 +3285,197 @@ _compute_overlay_planes
       }
     }
 
-    PDM_g_num_t *tag = malloc(sizeof(PDM_g_num_t) * nOneRef);
-    int nAddSubFace = 0;
-    int *addSubFaceIdx = malloc(sizeof(int) * (nOneRef + 1));
-    PDM_g_num_t *addSubFace = malloc(sizeof(PDM_g_num_t) * nOneRef);
-    double *addSubFaceCoords = malloc(sizeof(double) * 3 * nOneRef);
-    for (int k11 = 0; k11 < nOneRef; k11++) {
-      tag[k11] = 0;
-      addSubFaceIdx[k11] = 0;
+
+    if (nOneRef < 2) {
+      if (nOneRef == 1) {
+        printf("[%6d] Warning : nOneRef = 1\n", i_rank);
+      }
+      facesToSubFacesBIdx[i+1] = facesToSubFacesBIdx[i]
+        + n_SubFaceFace;
+      free(oneRef);
+      free(coordsOneRef);
     }
+    else {
 
-    /* Add additional sub-faces */
-
-    PDM_g_num_t iniVal = -1;
-    PDM_g_num_t nextVal = -1;
-    int idx_addSubFace1 = 0;
-    int idx_addSubFace = 0;
-    for (int k11 = 0; k11 < nOneRef; k11++) {
-      if (tag[k11] == 1) continue;
-
-      iniVal = oneRef[2*k11];
-      nextVal = oneRef[2*k11 + 1];
-
-      addSubFace[idx_addSubFace1++] = iniVal;
-      addSubFace[idx_addSubFace1++] = oneRef[2*k11 + 1];
-
-      for (int k3 = 0; k3 < 3; k3++) {
-        addSubFaceCoords[idx_addSubFace++] = coordsOneRef[6*k11+k3];
-      }
-      for (int k3 = 0; k3 < 3; k3++) {
-        addSubFaceCoords[idx_addSubFace++] = coordsOneRef[6*k11+3+k3];
+      PDM_g_num_t *tag = malloc(sizeof(PDM_g_num_t) * nOneRef);
+      int nAddSubFace = 0;
+      int *addSubFaceIdx = malloc(sizeof(int) * (nOneRef + 1));
+      PDM_g_num_t *addSubFace = malloc(sizeof(PDM_g_num_t) * nOneRef);
+      double *addSubFaceCoords = malloc(sizeof(double) * 3 * nOneRef);
+      for (int k11 = 0; k11 < nOneRef; k11++) {
+        tag[k11] = 0;
+        addSubFaceIdx[k11] = 0;
       }
 
-      nAddSubFace += 1;
-      addSubFaceIdx[nAddSubFace] += 2;
+      /* Add additional sub-faces */
 
-      int k_prev = k11;
-      while (iniVal != nextVal) {
-        for (int k2 = 0; k2 < nOneRef; k2++) {
-          if ((tag[k2] == 1) || (k_prev == k2)) continue;
-          if (nextVal == oneRef[2*k2]) {
-            nextVal = oneRef[2*k2 + 1];
-            if (nextVal != iniVal) {
-              addSubFace[idx_addSubFace1++] = nextVal;
-              for (int k3 = 0; k3 < 3; k3++) {
-                addSubFaceCoords[idx_addSubFace++] = coordsOneRef[6*k2+3+k3];
-              }
-              addSubFaceIdx[nAddSubFace]++;
-            }
-            tag[k2] = 1;
-            k_prev = k2;
-            break;
+      PDM_g_num_t iniVal = -1;
+      PDM_g_num_t nextVal = -1;
+      int idx_addSubFace1 = 0;
+      int idx_addSubFace = 0;
+      for (int k11 = 0; k11 < nOneRef; k11++) {
+        if (tag[k11] == 1) continue;
+
+        iniVal = oneRef[2*k11];
+        nextVal = oneRef[2*k11 + 1];
+
+        addSubFace[idx_addSubFace1++] = iniVal;
+        addSubFace[idx_addSubFace1++] = oneRef[2*k11 + 1];
+
+        for (int k3 = 0; k3 < 3; k3++) {
+          addSubFaceCoords[idx_addSubFace++] = coordsOneRef[6*k11+k3];
+        }
+        for (int k3 = 0; k3 < 3; k3++) {
+          addSubFaceCoords[idx_addSubFace++] = coordsOneRef[6*k11+3+k3];
+        }
+
+        nAddSubFace += 1;
+        addSubFaceIdx[nAddSubFace] += 2;
+
+        int k_prev = k11;
+        int count = 0;
+        while (iniVal != nextVal) {
+          count++;
+          if (count > 1000) {
+            printf("[%6d] error nOneRef = %d, gnumB = "PDM_FMT_G_NUM", k11 = %d, iniVal = "PDM_FMT_G_NUM", nextVal = "PDM_FMT_G_NUM", oneRef[2*k11 + 1] = "PDM_FMT_G_NUM"\n", i_rank, nOneRef, block_gnumB[i], k11, iniVal, nextVal, oneRef[2*k11 + 1]);
+            abort();
           }
-          else if (nextVal == oneRef[2*k2 + 1]) {
-            nextVal = oneRef[2*k2];
-            if (nextVal != iniVal) {
-              addSubFace[idx_addSubFace1++] = nextVal;
-              for (int k3 = 0; k3 < 3; k3++) {
-                addSubFaceCoords[idx_addSubFace++] = coordsOneRef[6*k2+k3];
+          int found = 0;
+          for (int k2 = 0; k2 < nOneRef; k2++) {
+            if ((tag[k2] == 1) || (k_prev == k2)) continue;
+            if (nextVal == oneRef[2*k2]) {
+              nextVal = oneRef[2*k2 + 1];
+              if (nextVal != iniVal) {
+                addSubFace[idx_addSubFace1++] = nextVal;
+                for (int k3 = 0; k3 < 3; k3++) {
+                  addSubFaceCoords[idx_addSubFace++] = coordsOneRef[6*k2+3+k3];
+                }
+                addSubFaceIdx[nAddSubFace]++;
               }
-              addSubFaceIdx[nAddSubFace]++;
+              tag[k2] = 1;
+              k_prev = k2;
+              found = 1;
+              break;
             }
-            tag[k2] = 1;
-            k_prev = k2;
-            break;
+            else if (nextVal == oneRef[2*k2 + 1]) {
+              nextVal = oneRef[2*k2];
+              if (nextVal != iniVal) {
+                addSubFace[idx_addSubFace1++] = nextVal;
+                for (int k3 = 0; k3 < 3; k3++) {
+                  addSubFaceCoords[idx_addSubFace++] = coordsOneRef[6*k2+k3];
+                }
+                addSubFaceIdx[nAddSubFace]++;
+              }
+              tag[k2] = 1;
+              k_prev = k2;
+              found = 1;
+              break;
+            }
+          }
+          if (!found) {
+            printf("[%6d] !found nOneRef = %d, gnumB = "PDM_FMT_G_NUM", k11 = %d, iniVal = "PDM_FMT_G_NUM", nextVal = "PDM_FMT_G_NUM", oneRef[2*k11 + 1] = "PDM_FMT_G_NUM"\n", i_rank, nOneRef, block_gnumB[i], k11, iniVal, nextVal, oneRef[2*k11 + 1]);
+            abort();
           }
         }
       }
-    }
 
-    free (tag);
+      free (tag);
 
-    for (int k11 = 0; k11 < nAddSubFace; k11++) {
-      addSubFaceIdx[k11+1] += addSubFaceIdx[k11];
-    }
-
-    newSize = nSubFacesB + nAddSubFace + 1;
-    if (newSize > s_subFacesConnecIdxB) {
-      while (newSize > s_subFacesConnecIdxB) {
-        s_subFacesConnecIdxB += PDM_MAX (1, s_subFacesConnecIdxB/3);
+      for (int k11 = 0; k11 < nAddSubFace; k11++) {
+        addSubFaceIdx[k11+1] += addSubFaceIdx[k11];
       }
-      subFacesConnecIdxB = realloc(subFacesConnecIdxB,
-                                   sizeof(int) * s_subFacesConnecIdxB);
-    }
 
-    newSize =  nSubFacesB + nAddSubFace;
-    if (newSize > s_subFacesToFaceB) {
-      while (newSize > s_subFacesToFaceB) {
-        s_subFacesToFaceB += PDM_MAX (1, s_subFacesToFaceB/3);
+      newSize = nSubFacesB + nAddSubFace + 1;
+      if (newSize > s_subFacesConnecIdxB) {
+        while (newSize > s_subFacesConnecIdxB) {
+          s_subFacesConnecIdxB += PDM_MAX (1, s_subFacesConnecIdxB/3);
+        }
+        subFacesConnecIdxB = realloc(subFacesConnecIdxB,
+                                     sizeof(int) * s_subFacesConnecIdxB);
       }
-      subFacesToFaceB = realloc(subFacesToFaceB,
+
+      newSize =  nSubFacesB + nAddSubFace;
+      if (newSize > s_subFacesToFaceB) {
+        while (newSize > s_subFacesToFaceB) {
+          s_subFacesToFaceB += PDM_MAX (1, s_subFacesToFaceB/3);
+        }
+        subFacesToFaceB = realloc(subFacesToFaceB,
+                                  sizeof(PDM_g_num_t) * s_subFacesToFaceB);
+        gNumSubFacesB = realloc(gNumSubFacesB,
                                 sizeof(PDM_g_num_t) * s_subFacesToFaceB);
-      gNumSubFacesB = realloc(gNumSubFacesB,
-                                sizeof(PDM_g_num_t) * s_subFacesToFaceB);
+      }
+
+      newSize =  3 * (nSubFacesB + nAddSubFace);
+      if (newSize > s_subFacesToLinkA) {
+        while (newSize > s_subFacesToLinkA) {
+          s_subFacesToLinkA += PDM_MAX (1, s_subFacesToLinkA/3) ;
+        }
+        subFacesToLinkA = realloc(subFacesToLinkA,
+                                  sizeof(PDM_g_num_t) * s_subFacesToLinkA);
+      }
+
+      n_t_nAddSubFace += nAddSubFace;
+
+      for (int j = 0; j < nAddSubFace; j++) {
+
+        int _n_vtx = addSubFaceIdx[j+1] - addSubFaceIdx[j];
+        subFacesToFaceB[nSubFacesB] = gnum_boxB;
+        gNumSubFacesB[nSubFacesB] = -1;
+
+        subFacesToLinkA[3*nSubFacesB] = -1;
+        subFacesToLinkA[3*nSubFacesB+1] = -1;
+        subFacesToLinkA[3*nSubFacesB+2] = -1;
+
+        subFacesConnecIdxB[nSubFacesB+1] =
+          subFacesConnecIdxB[nSubFacesB] + _n_vtx;
+
+        nSubFacesB += 1;
+
+        newSize = subFacesConnecIdxB[nSubFacesB];
+        if (newSize > s_subFacesConnecB) {
+          while (newSize > s_subFacesConnecB) {
+            s_subFacesConnecB += PDM_MAX(1, s_subFacesConnecB/3) ;
+          }
+          subFacesConnecB = realloc(subFacesConnecB,
+                                    sizeof(PDM_g_num_t) * s_subFacesConnecB);
+        }
+
+        newSize = 3 * subFacesConnecIdxB[nSubFacesB];
+        if (newSize > s_subFacesCoordsB) {
+          while (newSize > s_subFacesCoordsB) {
+            s_subFacesCoordsB += PDM_MAX(1, s_subFacesCoordsB/3);
+          }
+          subFacesCoordsB = realloc(subFacesCoordsB,
+                                    sizeof(double) * s_subFacesCoordsB);
+        }
+
+        int _ideb2 =     subFacesConnecIdxB[nSubFacesB-1];
+        int ideb3 = 3 * subFacesConnecIdxB[nSubFacesB-1];
+
+        for (int k = addSubFaceIdx[j]; k < addSubFaceIdx[j+1]; k++) {
+          subFacesConnecB[_ideb2++] = addSubFace[k];
+          for (int k11 = 0; k11 < 3; k11++) {
+            subFacesCoordsB[ideb3++] = addSubFaceCoords[3*k+k11];
+          }
+        }
+      }
+
+      facesToSubFacesBIdx[i+1] = facesToSubFacesBIdx[i]
+        + n_SubFaceFace
+        + nAddSubFace;
+      /* Cleanup */
+
+      free (oneRef);
+      free (coordsOneRef);
+      free (addSubFaceIdx);
+      free (addSubFace);
+      free (addSubFaceCoords);
     }
 
-    newSize =  3 * (nSubFacesB + nAddSubFace);
-    if (newSize > s_subFacesToLinkA) {
-      while (newSize > s_subFacesToLinkA) {
-        s_subFacesToLinkA += PDM_MAX (1, s_subFacesToLinkA/3) ;
-      }
-      subFacesToLinkA = realloc(subFacesToLinkA,
-                                sizeof(PDM_g_num_t) * s_subFacesToLinkA);
-    }
-
-    n_t_nAddSubFace += nAddSubFace;
-
-    for (int j = 0; j < nAddSubFace; j++) {
-
-      int _n_vtx = addSubFaceIdx[j+1] - addSubFaceIdx[j];
-      subFacesToFaceB[nSubFacesB] = gnum_boxB;
-      gNumSubFacesB[nSubFacesB] = -1;
-
-      subFacesToLinkA[3*nSubFacesB] = -1;
-      subFacesToLinkA[3*nSubFacesB+1] = -1;
-      subFacesToLinkA[3*nSubFacesB+2] = -1;
-
-      subFacesConnecIdxB[nSubFacesB+1] =
-        subFacesConnecIdxB[nSubFacesB] + _n_vtx;
-
-      nSubFacesB += 1;
-
-      newSize = subFacesConnecIdxB[nSubFacesB];
-      if (newSize > s_subFacesConnecB) {
-        while (newSize > s_subFacesConnecB) {
-          s_subFacesConnecB += PDM_MAX(1, s_subFacesConnecB/3) ;
-        }
-        subFacesConnecB = realloc(subFacesConnecB,
-                                  sizeof(PDM_g_num_t) * s_subFacesConnecB);
-      }
-
-      newSize = 3 * subFacesConnecIdxB[nSubFacesB];
-      if (newSize > s_subFacesCoordsB) {
-        while (newSize > s_subFacesCoordsB) {
-          s_subFacesCoordsB += PDM_MAX(1, s_subFacesCoordsB/3);
-        }
-        subFacesCoordsB = realloc(subFacesCoordsB,
-                                     sizeof(double) * s_subFacesCoordsB);
-      }
-
-      int _ideb2 =     subFacesConnecIdxB[nSubFacesB-1];
-      int ideb3 = 3 * subFacesConnecIdxB[nSubFacesB-1];
-
-      for (int k = addSubFaceIdx[j]; k < addSubFaceIdx[j+1]; k++) {
-        subFacesConnecB[_ideb2++] = addSubFace[k];
-        for (int k11 = 0; k11 < 3; k11++) {
-          subFacesCoordsB[ideb3++] = addSubFaceCoords[3*k+k11];
-        }
-      }
-    }
-
-    facesToSubFacesBIdx[i+1] = facesToSubFacesBIdx[i]
-                             + n_SubFaceFace
-                             + nAddSubFace;
-    /* Cleanup */
-
-    free (oneRef);
-    free (coordsOneRef);
-    free (addSubFaceIdx);
-    free (addSubFace);
-    free (addSubFaceCoords);
-
+  }
+  if (vb) {
+    printf("[%6d] >> hash_tab purge, free\n", i_rank);
+    fflush(stdout);
   }
 
   if (sum_vtx != NULL) {
@@ -3473,7 +3505,10 @@ _compute_overlay_planes
   /*
    * Update memory
    */
-
+  if (vb) {
+    printf("[%6d] >> Realloc\n", i_rank);
+    fflush(stdout);
+  }
   subFacesConnecB = realloc (subFacesConnecB, sizeof(PDM_g_num_t) * subFacesConnecIdxB[nSubFacesB]);
   subFacesCoordsB = realloc (subFacesCoordsB, sizeof(double) * 3 * subFacesConnecIdxB[nSubFacesB]);
   subFacesConnecIdxB = realloc (subFacesConnecIdxB, sizeof(int) * (nSubFacesB + 1));
@@ -3516,6 +3551,10 @@ _compute_overlay_planes
     }
   }
 
+  if (vb) {
+    printf("[%6d] >> Scan n_t_nAddSubFace\n", i_rank);
+    fflush(stdout);
+  }
   PDM_MPI_Scan (&n_t_nAddSubFace, &beg_nAddSubFaces,
             1, PDM__PDM_MPI_G_NUM, PDM_MPI_SUM, ol->comm);
 
@@ -3536,6 +3575,10 @@ _compute_overlay_planes
   /*   _max_gnum_loc = gNumSubFacesA[nSharedSubFaces-1]; */
   /* } */
 
+  if (vb) {
+    printf("[%6d] >> Allreduce _max_gnum_loc\n", i_rank);
+    fflush(stdout);
+  }
   PDM_MPI_Allreduce(&_max_gnum_loc, &nTSubFacesB, 1,
                     PDM__PDM_MPI_G_NUM, PDM_MPI_MAX, ol->comm);
 
@@ -5473,7 +5516,7 @@ _compute_overlay
  *
  */
 
-int
+PDM_ol_t *
 PDM_ol_create
 (
  const int          n_partMeshA,
@@ -5487,20 +5530,10 @@ PDM_ol_create
 )
 {
   /*
-   * Update olArray size
-   */
-
-  if (olArray == NULL) {
-    olArray = PDM_Handles_create (4);
-  }
-
-  /*
    * Allocate structure
    */
 
   PDM_ol_t *ol = (PDM_ol_t *) malloc(sizeof(PDM_ol_t));
-
-  int id = PDM_Handles_store (olArray, ol);
 
   /*
    * Initialization
@@ -5530,38 +5563,33 @@ PDM_ol_create
 
   PDM_timer_hang_on(ol->timer);
 
-  return id;
+  return ol;
 }
 
 
-void
-PROCF (pdm_ol_create, PDM_OL_CREATE)
+PDM_ol_t *
+PDM_ol_create_cf
 (
- int        *n_partMeshA,
- PDM_g_num_t *nGFaceMeshA,
- PDM_g_num_t *nGVtxMeshA,
- int        *n_partMeshB,
- PDM_g_num_t *nGFaceMeshB,
- PDM_g_num_t *nGVtxMeshB,
- double     *projectCoeff,
- PDM_MPI_Fint   *comm,
- int        *id
+ const int          n_partMeshA,
+ const PDM_g_num_t  nGFaceMeshA,
+ const PDM_g_num_t  nGVtxMeshA,
+ const int          n_partMeshB,
+ const PDM_g_num_t  nGFaceMeshB,
+ const PDM_g_num_t  nGVtxMeshB,
+ const double       projectCoeff,
+ const PDM_MPI_Fint fcomm
 )
 {
+  const PDM_MPI_Comm _comm = PDM_MPI_Comm_f2c(fcomm);
 
-  // printf("tototo :%d %ld %ld %d %ld %ld %12.5e %d\n", *n_partMeshA,  *nGFaceMeshA,
-  //        *nGVtxMeshA, *n_partMeshB, *nGFaceMeshB, *nGVtxMeshB, *projectCoeff, *comm);
-
-  PDM_MPI_Comm comm_c = PDM_MPI_Comm_f2c(*comm);
-
-  *id = PDM_ol_create (*n_partMeshA,
-                       *nGFaceMeshA,
-                       *nGVtxMeshA,
-                       *n_partMeshB,
-                       *nGFaceMeshB,
-                       *nGVtxMeshB,
-                       *projectCoeff,
-                       comm_c);
+  return PDM_ol_create (n_partMeshA,
+                        nGFaceMeshA,
+                        nGVtxMeshA,
+                        n_partMeshB,
+                        nGFaceMeshB,
+                        nGVtxMeshB,
+                        projectCoeff,
+                        _comm);
 }
 
 
@@ -5579,12 +5607,11 @@ PROCF (pdm_ol_create, PDM_OL_CREATE)
 void
 PDM_ol_parameter_set
 (
- const int                id,
- const PDM_ol_parameter_t parameter,
- const double             value
+       PDM_ol_t           *ol,
+ const PDM_ol_parameter_t  parameter,
+ const double              value
 )
 {
-  PDM_ol_t *ol = _ol_get(id);
   PDM_timer_resume(ol->timer);
 
   switch (parameter) {
@@ -5610,21 +5637,6 @@ PDM_ol_parameter_set
   PDM_timer_hang_on(ol->timer);
 }
 
-
-void
-PROCF (pdm_ol_parameter_set, PDM_OL_PARAMETER_SET)
-(
- int                *id,
- PDM_ol_parameter_t *parameter,
- double             *value
-)
-{
-  PDM_ol_parameter_set (*id,
-                        *parameter,
-                        *value);
-}
-
-
 /**
  * \brief Define input meshes properties
  *
@@ -5647,7 +5659,7 @@ PROCF (pdm_ol_parameter_set, PDM_OL_PARAMETER_SET)
 void
 PDM_ol_input_mesh_set
 (
- const int            id,
+       PDM_ol_t      *ol,
  const PDM_ol_mesh_t  mesh,
  const int            i_part,
  const int            n_face,
@@ -5659,11 +5671,6 @@ PDM_ol_input_mesh_set
  const PDM_g_num_t    *vtx_ln_to_gn
 )
 {
-  /*
-   * Get overlay object
-   */
-
-  PDM_ol_t *ol = _ol_get(id);
   PDM_timer_resume(ol->timer);
 
   PDM_surf_mesh_t *_mesh = NULL;
@@ -5711,33 +5718,6 @@ PDM_ol_input_mesh_set
   PDM_timer_hang_on(ol->timer);
 }
 
-void
-PROCF (pdm_ol_input_mesh_set, PDM_OL_INPUT_MESH_SET)
-(
- int           *id,
- PDM_ol_mesh_t *mesh,
- int           *i_part,
- int           *n_face,
- int           *face_vtx_idx,
- int           *face_vtx,
- PDM_g_num_t    *face_ln_to_gn,
- int           *n_vtx,
- double        *coords,
- PDM_g_num_t    *vtx_ln_to_gn
-)
-{
-  PDM_ol_input_mesh_set (*id,
-                         *mesh,
-                         *i_part,
-                         *n_face,
-                         face_vtx_idx,
-                         face_vtx,
-                         face_ln_to_gn,
-                         *n_vtx,
-                         coords,
-                         vtx_ln_to_gn);
-}
-
 
 /**
  * \brief Overlaying the input surface meshes
@@ -5751,15 +5731,9 @@ PROCF (pdm_ol_input_mesh_set, PDM_OL_INPUT_MESH_SET)
 void
 PDM_ol_compute
 (
- const int id
+ PDM_ol_t *ol
 )
 {
-
-  /*
-   * Get overlay object
-   */
-
-  PDM_ol_t *ol = _ol_get(id);
 
   PDM_timer_resume(ol->timer);
 
@@ -5850,15 +5824,6 @@ PDM_ol_compute
 }
 
 
-void
-PROCF (pdm_ol_compute, PDM_OL_COMPUTE)
-(
- int         *id
-)
-{
-  PDM_ol_compute (*id);
-}
-
 
 /**
  * \brief Define the type of a mesh moving
@@ -5875,16 +5840,12 @@ PROCF (pdm_ol_compute, PDM_OL_COMPUTE)
 void
 PDM_ol_moving_type_set
 (
- const int           id,
- const PDM_ol_mesh_t mesh,
- const PDM_ol_mv_t   mv
+       PDM_ol_t      *ol,
+ const PDM_ol_mesh_t  mesh,
+ const PDM_ol_mv_t    mv
 )
 {
-  /*
-   * Get overlay object
-   */
 
-  PDM_ol_t *ol = _ol_get(id);
   PDM_timer_resume(ol->timer);
   PDM_UNUSED(mesh);
   PDM_UNUSED(mv);
@@ -5893,19 +5854,6 @@ PDM_ol_moving_type_set
   PDM_timer_hang_on(ol->timer);
 }
 
-
-void
-PROCF (pdm_ol_moving_type_set, PDM_OL_MOVING_TYPE_SET)
-(
- int           *id,
- PDM_ol_mesh_t *mesh,
- PDM_ol_mv_t   *mv
-)
-{
-  PDM_ol_moving_type_set (*id,
-                          *mesh,
-                          *mv);
-}
 
 /**
  * \brief Define a translation
@@ -5921,16 +5869,12 @@ PROCF (pdm_ol_moving_type_set, PDM_OL_MOVING_TYPE_SET)
 void
 PDM_ol_translation_set
 (
- const int       id,
+       PDM_ol_t *ol,
  const double   *vect,
  const double   *center
  )
 {
-  /*
-   * Get overlay object
-   */
 
-  PDM_ol_t *ol = _ol_get(id);
   PDM_timer_resume(ol->timer);
 
   PDM_UNUSED(vect);
@@ -5939,20 +5883,6 @@ PDM_ol_translation_set
   exit(1);
 
   PDM_timer_hang_on(ol->timer);
-}
-
-
-void
-PROCF (pdm_ol_translation_set, PDM_OL_TRANSLATION_SET)
-(
- int          *id,
- double       *vect,
- double       *center
-)
-{
-  PDM_ol_translation_set (*id,
-                          vect,
-                          center);
 }
 
 
@@ -5972,17 +5902,12 @@ PROCF (pdm_ol_translation_set, PDM_OL_TRANSLATION_SET)
 void
 PDM_ol_rotation_set
 (
- const int      id,
- const double  *direction,
- const double  *center,
- const double   angle
+       PDM_ol_t *ol,
+ const double   *direction,
+ const double   *center,
+ const double    angle
 )
 {
-  /*
-   * Get overlay object
-   */
-
-  PDM_ol_t *ol = _ol_get(id);
 
   PDM_timer_resume(ol->timer);
 
@@ -5992,22 +5917,6 @@ PDM_ol_rotation_set
   PDM_error(__FILE__, __LINE__, 0, "PDM ERROR : PDM_ol_rotation_set not implemented yet");
   exit(EXIT_FAILURE);
   PDM_timer_hang_on(ol->timer);
-}
-
-
-void
-PROCF (pdm_ol_rotation_set, PDM_OL_ROTATION_SET)
-(
- int     *id,
- double  *direction,
- double  *center,
- double  *angle
-)
-{
-  PDM_ol_rotation_set (*id,
-                       direction,
-                       center,
-                       *angle);
 }
 
 
@@ -6028,17 +5937,12 @@ PROCF (pdm_ol_rotation_set, PDM_OL_ROTATION_SET)
 void
 PDM_ol_mesh_dim_get
 (
- const int            id,
+ const PDM_ol_t      *ol,
  const PDM_ol_mesh_t  mesh,
-       PDM_g_num_t    *nGOlFace,
-       PDM_g_num_t    *nGOlVtx
+       PDM_g_num_t   *nGOlFace,
+       PDM_g_num_t   *nGOlVtx
 )
 {
-  /*
-   * Get overlay object
-   */
-
-  PDM_ol_t *ol = _ol_get(id);
   PDM_timer_resume(ol->timer);
 
   switch(mesh) {
@@ -6062,24 +5966,6 @@ PDM_ol_mesh_dim_get
 }
 
 
-void
-PROCF (pdm_ol_mesh_dim_get, PDM_OL_MESH_DIM_GET)
-(
- int           *id,
- PDM_ol_mesh_t *mesh,
- PDM_g_num_t   *nGOlFace,
- PDM_g_num_t   *nGOlVtx
-)
-{
-  PDM_ol_mesh_dim_get (*id,
-                       *mesh,
-                       nGOlFace,
-                       nGOlVtx);
-}
-
-
-
-
 /**
  * \brief Return the entitie sizes of the overlay mesh
  *
@@ -6101,7 +5987,7 @@ PROCF (pdm_ol_mesh_dim_get, PDM_OL_MESH_DIM_GET)
 void
 PDM_ol_part_mesh_dim_get
 (
- const int            id,
+ const PDM_ol_t      *ol,
  const PDM_ol_mesh_t  mesh,
  const int            i_part,
        int           *nOlFace,
@@ -6112,11 +5998,6 @@ PDM_ol_part_mesh_dim_get
        int           *sInitToOlFace
 )
 {
-  /*
-   * Get overlay object
-   */
-
-  PDM_ol_t *ol = _ol_get(id);
 
   PDM_timer_resume(ol->timer);
 
@@ -6148,32 +6029,6 @@ PDM_ol_part_mesh_dim_get
 
   PDM_timer_hang_on(ol->timer);
 
-}
-
-
-void
-PROCF (pdm_ol_part_mesh_dim_get, PDM_OL_PART_MESH_DIM_GET)
-(
- int           *id,
- PDM_ol_mesh_t *mesh,
- int           *i_part,
- int           *nOlFace,
- int           *nOlLinkedFace,
- int           *nOlVtx,
- int           *sOlFaceIniVtx,
- int           *sOlface_vtx,
- int           *sInitToOlFace
-)
-{
-  PDM_ol_part_mesh_dim_get (*id,
-                            *mesh,
-                            *i_part,
-                            nOlFace,
-                            nOlLinkedFace,
-                            nOlVtx,
-                            sOlFaceIniVtx,
-                            sOlface_vtx,
-                            sInitToOlFace);
 }
 
 
@@ -6215,7 +6070,7 @@ PROCF (pdm_ol_part_mesh_dim_get, PDM_OL_PART_MESH_DIM_GET)
 void
 PDM_ol_mesh_entities_get
 (
-const int              id,
+const PDM_ol_t        *ol,
 const PDM_ol_mesh_t    mesh,
 const int              i_part,
       int            **olFaceIniVtxIdx,
@@ -6231,11 +6086,6 @@ const int              i_part,
       int            **initToOlFace
 )
 {
-  /*
-   * Get overlay object
-   */
-
-  PDM_ol_t *ol = _ol_get(id);
 
   PDM_timer_resume(ol->timer);
 
@@ -6274,140 +6124,6 @@ const int              i_part,
 }
 
 
-void
-PROCF (pdm_ol_mesh_entities_get, PDM_OL_MESH_ENTITIES_GET)
-(
- int            *id,
- PDM_ol_mesh_t  *mesh,
- int            *i_part,
- int            *olFaceIniVtxIdx,
- int            *olFaceIniVtx,
- int            *olface_vtx_idx,
- int            *olface_vtx,
- int            *olLinkedface_procIdx,
- int            *olLinkedFace,
- PDM_g_num_t    *olface_ln_to_gn,
- double         *olCoords,
- PDM_g_num_t    *olvtx_ln_to_gn,
- int            *initToOlFaceIdx,
- int            *initToOlFace
-)
-{
-  int          *_olFaceIniVtxIdx;
-  int          *_olFaceIniVtx;
-  int          *_olface_vtx_idx;
-  int          *_olface_vtx;
-  int          *_olFaceLinkFaceProcIdx;
-  int          *_olFaceLinkFace;
-  PDM_g_num_t  *_olface_ln_to_gn;
-  double       *_olCoords;
-  PDM_g_num_t  *_olvtx_ln_to_gn;
-  int          *_initToOlFaceIdx;
-  int          *_initToOlFace;
-
-  int           nOlFace;
-  int           nOlLinkedFace;
-  int           nOlVtx;
-  int           sOlFaceIniVtx;
-  int           sOlface_vtx;
-  int           sInitToOlFace;
-
-  PDM_ol_t *ol = _ol_get(*id);
-
-  int lComm;
-  PDM_MPI_Comm_size (ol->comm, &lComm);
-
-  PDM_surf_mesh_t *_mesh;
-
-  switch (*mesh) {
-
-  case PDM_OL_MESH_A:
-    _mesh = ol->meshA;
-    break;
-
-  case PDM_OL_MESH_B:
-    _mesh = ol->meshB;
-    break;
-
-  default:
-    PDM_error(__FILE__, __LINE__, 0, "Error PDM_ol_mesh_dim_get : unknown PDM_ol_mesh_t mesh\n");
-    abort();
-  }
-
-  int n_face_ini = PDM_surf_mesh_part_n_face_get (_mesh, *i_part);
-
-  PDM_ol_part_mesh_dim_get (*id,
-                            *mesh,
-                            *i_part,
-                            &nOlFace,
-                            &nOlLinkedFace,
-                            &nOlVtx,
-                            &sOlFaceIniVtx,
-                            &sOlface_vtx,
-                            &sInitToOlFace);
-
-
-  PDM_ol_mesh_entities_get (*id,
-                            *mesh,
-                            *i_part,
-                            &_olFaceIniVtxIdx,
-                            &_olFaceIniVtx,
-                            &_olface_vtx_idx,
-                            &_olface_vtx,
-                            &_olFaceLinkFaceProcIdx,
-                            &_olFaceLinkFace,
-                            &_olface_ln_to_gn,
-                            &_olCoords,
-                            &_olvtx_ln_to_gn,
-                            &_initToOlFaceIdx,
-                            &_initToOlFace);
-
-  for (int i = 0; i < nOlFace + 1; i++) {
-    olface_vtx_idx[i] = _olface_vtx_idx[i];
-  }
-
-  for (int i = 0; i < _olface_vtx_idx[nOlFace]; i++) {
-    olface_vtx[i] = _olface_vtx[i];
-  }
-
-  for (int i = 0; i < n_face_ini + 1; i++) {
-    olFaceIniVtxIdx[i] = _olFaceIniVtxIdx[i];
-  }
-
-  for (int i = 0; i < _olFaceIniVtxIdx[n_face_ini]; i++) {
-    olFaceIniVtx[i] = _olFaceIniVtx[i];
-  }
-
-  for (int i = 0; i < lComm + 1; i++) {
-    olLinkedface_procIdx[i] = _olFaceLinkFaceProcIdx[i];
-  }
-
-  for (int i = 0; i < 4 * olLinkedface_procIdx[lComm]; i++) {
-    olLinkedFace[i] = _olFaceLinkFace[i];
-  }
-
-  for (int i = 0; i < nOlFace; i++) {
-    olface_ln_to_gn[i] = _olface_ln_to_gn[i];
-  }
-
-  for (int i = 0; i < 3 * nOlVtx; i++) {
-    olCoords[i] = _olCoords[i];
-  }
-
-  for (int i = 0; i < nOlVtx; i++) {
-    olvtx_ln_to_gn[i] = _olvtx_ln_to_gn[i];
-  }
-
-  for (int i = 0; i < n_face_ini + 1; i++) {
-    initToOlFaceIdx[i] = _initToOlFaceIdx[i];
-  }
-
-  for (int i = 0; i < _initToOlFaceIdx[n_face_ini]; i++) {
-    initToOlFace[i] = _initToOlFace[i];
-  }
-
-}
-
 
 /**
  * \brief Delete an overlay object
@@ -6421,15 +6137,9 @@ PROCF (pdm_ol_mesh_entities_get, PDM_OL_MESH_ENTITIES_GET)
 void
 PDM_ol_del
 (
- const int     id
+ PDM_ol_t *ol
 )
 {
-  /*
-   * Get overlay object
-   */
-
-  PDM_ol_t *ol = _ol_get(id);
-
   /*
    * Delete
    */
@@ -6451,115 +6161,107 @@ PDM_ol_del
      */
 
     free(ol);
-
-    PDM_Handles_handle_free (olArray, id, PDM_FALSE);
-
-    const int n_ol = PDM_Handles_n_get (olArray);
-
-    if (n_ol == 0) {
-      olArray = PDM_Handles_free (olArray);
-    }
   }
 }
 
-void
-PROCF (pdm_ol_del, PDM_OL_DEL)
-(
- int     *id
-)
-{
+// void
+// PROCF (pdm_ol_del, PDM_OL_DEL)
+// (
+//  int     *id
+// )
+// {
 
-  PDM_ol_t *ol = _ol_get(*id);
+//   PDM_ol_t *ol = _ol_get(*id);
 
-  const int n_partA = PDM_surf_mesh_n_part_get (ol->meshA);
-  const int n_partB = PDM_surf_mesh_n_part_get (ol->meshB);
+//   const int n_partA = PDM_surf_mesh_n_part_get (ol->meshA);
+//   const int n_partB = PDM_surf_mesh_n_part_get (ol->meshB);
 
-  for (int i = 0; i < n_partA; i++) {
-    int          *_olFaceIniVtxIdx;
-    int          *_olFaceIniVtx;
-    int          *_olface_vtx_idx;
-    int          *_olface_vtx;
-    int          *_olFaceLinkFaceProcIdx;
-    int          *_olFaceLinkFace;
-    PDM_g_num_t  *_olface_ln_to_gn;
-    double       *_olCoords;
-    PDM_g_num_t  *_olvtx_ln_to_gn;
-    int          *_initToOlFaceIdx;
-    int          *_initToOlFace;
+//   for (int i = 0; i < n_partA; i++) {
+//     int          *_olFaceIniVtxIdx;
+//     int          *_olFaceIniVtx;
+//     int          *_olface_vtx_idx;
+//     int          *_olface_vtx;
+//     int          *_olFaceLinkFaceProcIdx;
+//     int          *_olFaceLinkFace;
+//     PDM_g_num_t  *_olface_ln_to_gn;
+//     double       *_olCoords;
+//     PDM_g_num_t  *_olvtx_ln_to_gn;
+//     int          *_initToOlFaceIdx;
+//     int          *_initToOlFace;
 
-    PDM_ol_mesh_entities_get (*id,
-                              PDM_OL_MESH_A,
-                              i,
-                              &_olFaceIniVtxIdx,
-                              &_olFaceIniVtx,
-                              &_olface_vtx_idx,
-                              &_olface_vtx,
-                              &_olFaceLinkFaceProcIdx,
-                              &_olFaceLinkFace,
-                              &_olface_ln_to_gn,
-                              &_olCoords,
-                              &_olvtx_ln_to_gn,
-                              &_initToOlFaceIdx,
-                              &_initToOlFace);
+//     PDM_ol_mesh_entities_get (*id,
+//                               PDM_OL_MESH_A,
+//                               i,
+//                               &_olFaceIniVtxIdx,
+//                               &_olFaceIniVtx,
+//                               &_olface_vtx_idx,
+//                               &_olface_vtx,
+//                               &_olFaceLinkFaceProcIdx,
+//                               &_olFaceLinkFace,
+//                               &_olface_ln_to_gn,
+//                               &_olCoords,
+//                               &_olvtx_ln_to_gn,
+//                               &_initToOlFaceIdx,
+//                               &_initToOlFace);
 
-    free (_olFaceIniVtxIdx);
-    free (_olFaceIniVtx);
-    free (_olface_vtx_idx);
-    free (_olface_vtx);
-    free (_olFaceLinkFaceProcIdx);
-    free (_olFaceLinkFace);
-    free (_olface_ln_to_gn);
-    free (_olCoords);
-    free (_olvtx_ln_to_gn);
-    free (_initToOlFaceIdx);
-    free (_initToOlFace);
+//     free (_olFaceIniVtxIdx);
+//     free (_olFaceIniVtx);
+//     free (_olface_vtx_idx);
+//     free (_olface_vtx);
+//     free (_olFaceLinkFaceProcIdx);
+//     free (_olFaceLinkFace);
+//     free (_olface_ln_to_gn);
+//     free (_olCoords);
+//     free (_olvtx_ln_to_gn);
+//     free (_initToOlFaceIdx);
+//     free (_initToOlFace);
 
-  }
+//   }
 
-  for (int i = 0; i < n_partB; i++) {
-    int          *_olFaceIniVtxIdx;
-    int          *_olFaceIniVtx;
-    int          *_olface_vtx_idx;
-    int          *_olface_vtx;
-    int          *_olFaceLinkFaceProcIdx;
-    int          *_olFaceLinkFace;
-    PDM_g_num_t  *_olface_ln_to_gn;
-    double       *_olCoords;
-    PDM_g_num_t  *_olvtx_ln_to_gn;
-    int          *_initToOlFaceIdx;
-    int          *_initToOlFace;
+//   for (int i = 0; i < n_partB; i++) {
+//     int          *_olFaceIniVtxIdx;
+//     int          *_olFaceIniVtx;
+//     int          *_olface_vtx_idx;
+//     int          *_olface_vtx;
+//     int          *_olFaceLinkFaceProcIdx;
+//     int          *_olFaceLinkFace;
+//     PDM_g_num_t  *_olface_ln_to_gn;
+//     double       *_olCoords;
+//     PDM_g_num_t  *_olvtx_ln_to_gn;
+//     int          *_initToOlFaceIdx;
+//     int          *_initToOlFace;
 
-    PDM_ol_mesh_entities_get (*id,
-                              PDM_OL_MESH_B,
-                              i,
-                              &_olFaceIniVtxIdx,
-                              &_olFaceIniVtx,
-                              &_olface_vtx_idx,
-                              &_olface_vtx,
-                              &_olFaceLinkFaceProcIdx,
-                              &_olFaceLinkFace,
-                              &_olface_ln_to_gn,
-                              &_olCoords,
-                              &_olvtx_ln_to_gn,
-                              &_initToOlFaceIdx,
-                              &_initToOlFace);
+//     PDM_ol_mesh_entities_get (*id,
+//                               PDM_OL_MESH_B,
+//                               i,
+//                               &_olFaceIniVtxIdx,
+//                               &_olFaceIniVtx,
+//                               &_olface_vtx_idx,
+//                               &_olface_vtx,
+//                               &_olFaceLinkFaceProcIdx,
+//                               &_olFaceLinkFace,
+//                               &_olface_ln_to_gn,
+//                               &_olCoords,
+//                               &_olvtx_ln_to_gn,
+//                               &_initToOlFaceIdx,
+//                               &_initToOlFace);
 
-    free (_olFaceIniVtxIdx);
-    free (_olFaceIniVtx);
-    free (_olface_vtx_idx);
-    free (_olface_vtx);
-    free (_olFaceLinkFaceProcIdx);
-    free (_olFaceLinkFace);
-    free (_olface_ln_to_gn);
-    free (_olCoords);
-    free (_olvtx_ln_to_gn);
-    free (_initToOlFaceIdx);
-    free (_initToOlFace);
+//     free (_olFaceIniVtxIdx);
+//     free (_olFaceIniVtx);
+//     free (_olface_vtx_idx);
+//     free (_olface_vtx);
+//     free (_olFaceLinkFaceProcIdx);
+//     free (_olFaceLinkFace);
+//     free (_olface_ln_to_gn);
+//     free (_olCoords);
+//     free (_olvtx_ln_to_gn);
+//     free (_initToOlFaceIdx);
+//     free (_initToOlFace);
 
-  }
+//   }
 
-  PDM_ol_del (*id);
-}
+//   PDM_ol_del (*id);
+// }
 
 /**
  * \brief Dump elapsed an CPU time
@@ -6572,28 +6274,10 @@ PROCF (pdm_ol_del, PDM_OL_DEL)
 void
 PDM_ol_dump_times
 (
- const int     id
+ PDM_ol_t *ol
 )
 {
-  /*
-   * Get overlay object
-   */
-
-  PDM_ol_t *ol = _ol_get(id);
-
   _ol_dump_times (ol);
-
-}
-
-
-
-void
-PROCF (pdm_ol_dump_times, PDM_OL_DUMP_TIMES)
-(
- int     *id
-)
-{
-  PDM_ol_dump_times (*id);
 }
 
 

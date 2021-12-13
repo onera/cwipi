@@ -178,10 +178,10 @@ const PDM_MPI_Comm        comm,
   dmesh_nodal->vtx->dvtx_tag            = NULL;
   dmesh_nodal->vtx->dvtx_parent_g_num   = NULL;
 
-  dmesh_nodal->volumic                  = NULL;
-  dmesh_nodal->surfacic                 = NULL;
-  dmesh_nodal->ridge                    = NULL;
-  dmesh_nodal->corner                   = NULL;
+  dmesh_nodal->volumic  = PDM_DMesh_nodal_elmts_create(dmesh_nodal->comm, 3, dmesh_nodal->n_cell_abs);
+  dmesh_nodal->surfacic = PDM_DMesh_nodal_elmts_create(dmesh_nodal->comm, 2, dmesh_nodal->n_face_abs);
+  dmesh_nodal->ridge    = PDM_DMesh_nodal_elmts_create(dmesh_nodal->comm, 1, dmesh_nodal->n_edge_abs);
+  dmesh_nodal->corner   = PDM_DMesh_nodal_elmts_create(dmesh_nodal->comm, 0, dmesh_nodal->n_vtx_abs );
 
 }
 
@@ -1352,27 +1352,6 @@ const int                  id_section
 }
 
 void
-PDM_Mesh_nodal_add_dmesh_nodal_elmts
-(
- PDM_dmesh_nodal_t       *dmesh_nodal,
- PDM_dmesh_nodal_elmts_t *dmn_elts
-)
-{
-  if(dmn_elts->mesh_dimension == 3) {
-    dmesh_nodal->volumic = dmn_elts;
-  } else if(dmn_elts->mesh_dimension == 2){
-    dmesh_nodal->surfacic = dmn_elts;
-  } else if(dmn_elts->mesh_dimension == 1){
-    dmesh_nodal->ridge = dmn_elts;
-  } else if(dmn_elts->mesh_dimension == 0){
-    dmesh_nodal->corner = dmn_elts;
-  } else {
-    PDM_error (__FILE__, __LINE__, 0, "PDM_Mesh_nodal_add_dmesh_nodal_elmts bad mesh_dimension\n");
-  }
-}
-
-
-void
 PDM_dmesh_nodal_transfer_to_new_dmesh_nodal
 (
  PDM_dmesh_nodal_t   *dmn_in,
@@ -1671,6 +1650,23 @@ PDM_dmesh_nodal_reorder
   free (delt_vtx_ijk);
 }
 
+
+
+PDM_part_mesh_nodal_elmts_t*
+PDM_dmesh_nodal_to_part_mesh_nodal_elmts
+(
+ PDM_dmesh_nodal_t            *dmn,
+ PDM_geometry_kind_t           geom_kind,
+ int                           n_part,
+ int                          *pn_vtx,
+ PDM_g_num_t                 **vtx_ln_to_gn,
+ int                          *pn_elmt,
+ PDM_g_num_t                 **elmt_ln_to_gn
+)
+{
+  PDM_dmesh_nodal_elmts_t* dmne = _get_from_geometry_kind(dmn, geom_kind);
+  return PDM_dmesh_nodal_elmts_to_part_mesh_nodal_elmts(dmne, n_part, pn_vtx, vtx_ln_to_gn, pn_elmt, elmt_ln_to_gn);
+}
 
 // TODO : remove
 // void

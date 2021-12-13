@@ -242,7 +242,7 @@ main
 
   PDM_gen_gnum_t *gen_gnum = PDM_gnum_create (3,
                                               1,
-                                              0,
+                                              PDM_FALSE,
                                               1.e-3,
                                               comm,
                                               PDM_OWNERSHIP_USER);
@@ -290,7 +290,7 @@ main
 
   gen_gnum = PDM_gnum_create (3,
                               1,
-                              0,
+                              PDM_FALSE,
                               1.e-3,
                               comm,
                               PDM_OWNERSHIP_USER);

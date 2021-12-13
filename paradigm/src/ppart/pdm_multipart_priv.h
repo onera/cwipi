@@ -47,6 +47,8 @@ typedef struct {
   int        renum_cell_method;     // Choice of renumbering method for cells
   const int *renum_cell_properties; // Parameters used by some renumbering methods
   int        renum_face_method;     // Choice of renumbering method for faces
+  int        renum_edge_method;     // Choice of renumbering method for faces
+  int        renum_vtx_method;      // Choice of renumbering method for faces
 } _part_mesh_t;
 
 

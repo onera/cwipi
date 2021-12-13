@@ -10,7 +10,7 @@
  *----------------------------------------------------------------------------*/
 
 #include "pdm.h"
-
+#include <mpi.h>
 /*----------------------------------------------------------------------------
  *  Header for the current file
  *----------------------------------------------------------------------------*/
@@ -38,6 +38,10 @@ typedef long long PDM_MPI_Offset;
 
 typedef long PDM_MPI_Aint;
 typedef int PDM_MPI_Fint;
+
+#define PDM_MPI_UNDEFINED MPI_UNDEFINED
+#define PDM_MPI_IN_PLACE  MPI_IN_PLACE
+
 
 enum  {
 
@@ -172,6 +176,12 @@ enum {
   PDM_MPI_REQUEST_NULL  = -1
 };
 
+enum {
+  PDM_MPI_SPLIT_SHARED  = 1,
+  PDM_MPI_SPLIT_NUMA    = 2
+};
+
+typedef struct _pdm_mpi_win_shared_t PDM_mpi_win_shared_t;
 
 /*============================================================================
  * Prototype des fonctions publiques
@@ -469,6 +479,14 @@ int PDM_MPI_Bcast(void *buffer, int count, PDM_MPI_Datatype datatype,
               int root, PDM_MPI_Comm comm);
 
 /*----------------------------------------------------------------------------
+ * PDM_MPI_IBcast (wrapping de la fonction MPI_IBcast)
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Ibcast(void *buffer, int count, PDM_MPI_Datatype datatype,
+                   int root, PDM_MPI_Comm comm, PDM_MPI_Request *request);
+
+/*----------------------------------------------------------------------------
  * PDM_MPI_Allgather (wrapping de la fonction MPI_Allgather)
  *
  *----------------------------------------------------------------------------*/
@@ -602,6 +620,39 @@ int PDM_MPI_Comm_free(PDM_MPI_Comm *comm);
  *----------------------------------------------------------------------------*/
 
 int PDM_MPI_Comm_split(PDM_MPI_Comm comm, int color, int key, PDM_MPI_Comm *newcomm);
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Comm_split
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Comm_split_type_numa(PDM_MPI_Comm comm, PDM_MPI_Comm *newcomm);
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Comm_split
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Comm_split_type(PDM_MPI_Comm comm, int split_type, PDM_MPI_Comm *newcomm);
+
+/*----------------------------------------------------------------------------
+ * PDM_mpi_Win_allocate_shared_get
+ *
+ *----------------------------------------------------------------------------*/
+PDM_mpi_win_shared_t*
+PDM_mpi_win_shared_create(PDM_MPI_Aint          size,
+                          int                   disp_unit,
+                          PDM_MPI_Comm          comm);
+
+void* PDM_mpi_win_shared_get(PDM_mpi_win_shared_t *wins);
+
+void PDM_mpi_win_shared_free(PDM_mpi_win_shared_t *wins);
+
+PDM_MPI_Comm PDM_MPI_get_group_of_master(PDM_MPI_Comm comm, PDM_MPI_Comm sub_comm);
+
+int PDM_mpi_win_shared_lock_all(int assert, PDM_mpi_win_shared_t* win);
+int PDM_mpi_win_shared_unlock_all(PDM_mpi_win_shared_t* win);
+int PDM_mpi_win_shared_sync(PDM_mpi_win_shared_t* win);
 
 #ifdef __cplusplus
 }

@@ -387,7 +387,7 @@ int main(int argc, char *argv[])
 
     PDM_part_create(&id_part,
                     PDM_MPI_COMM_WORLD,
-                    method,
+                    (PDM_part_split_t) method,
                     "PDM_PART_RENUM_CELL_NONE",
                     "PDM_PART_RENUM_FACE_NONE",
                     n_property_cell,

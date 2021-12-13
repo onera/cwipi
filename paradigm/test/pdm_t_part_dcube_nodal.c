@@ -665,6 +665,10 @@ int main(int argc, char *argv[])
                                                                 }*/
 
 
+  // PDM_mpi_win_shared_t* wins_recv = PDM_mpi_win_allocate_shared_create(n_data, sizeof(int), comm);
+  // int* recv = (int *) PDM_mpi_win_allocate_shared_get(wins_recv);
+
+
   free(pface_cell);
   free(pface_vtx);
 

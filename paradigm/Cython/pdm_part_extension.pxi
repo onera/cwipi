@@ -24,6 +24,7 @@ cdef extern from "pdm_part_extension.h":
                                    int                   n_face,
                                    int                   n_face_part_bound,
                                    int                   n_face_group,
+                                   int                   n_edge,
                                    int                   n_vtx,
                                    int                  *cell_face_idx,
                                    int                  *cell_face,
@@ -40,6 +41,9 @@ cdef extern from "pdm_part_extension.h":
                                    int                  *face_part_bound_proc_idx,
                                    int                  *face_part_bound_part_idx,
                                    int                  *face_part_bound,
+                                   int                  *vtx_part_bound_proc_idx,
+                                   int                  *vtx_part_bound_part_idx,
+                                   int                  *vtx_part_bound,
                                    PDM_g_num_t          *cell_ln_to_gn,
                                    PDM_g_num_t          *face_ln_to_gn,
                                    PDM_g_num_t          *edge_ln_to_gn,
@@ -105,6 +109,7 @@ cdef class PartExtension:
                int n_face,
                int n_face_part_bound,
                int n_face_group,
+               int n_edge,
                int n_vtx,
                NPY.ndarray[NPY.int32_t, mode='c', ndim=1]    cell_face_idx,
                NPY.ndarray[NPY.int32_t, mode='c', ndim=1]    cell_face,
@@ -121,6 +126,9 @@ cdef class PartExtension:
                NPY.ndarray[NPY.int32_t, mode='c', ndim=1]    face_part_bound_proc_idx,
                NPY.ndarray[NPY.int32_t, mode='c', ndim=1]    face_part_bound_part_idx,
                NPY.ndarray[NPY.int32_t, mode='c', ndim=1]    face_part_bound,
+               NPY.ndarray[NPY.int32_t, mode='c', ndim=1]    vtx_part_bound_proc_idx,
+               NPY.ndarray[NPY.int32_t, mode='c', ndim=1]    vtx_part_bound_part_idx,
+               NPY.ndarray[NPY.int32_t, mode='c', ndim=1]    vtx_part_bound,
                NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] cell_ln_to_gn,
                NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] face_ln_to_gn,
                NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] edge_ln_to_gn,
@@ -220,6 +228,24 @@ cdef class PartExtension:
     else:
       face_part_bound_data = <int *> face_part_bound.data
 
+    cdef int * vtx_part_bound_proc_idx_data
+    if (vtx_part_bound_proc_idx is None):
+      vtx_part_bound_proc_idx_data = NULL
+    else:
+      vtx_part_bound_proc_idx_data = <int *> vtx_part_bound_proc_idx.data
+
+    cdef int * vtx_part_bound_part_idx_data
+    if (vtx_part_bound_part_idx is None):
+      vtx_part_bound_part_idx_data = NULL
+    else:
+      vtx_part_bound_part_idx_data = <int *> vtx_part_bound_part_idx.data
+
+    cdef int * vtx_part_bound_data
+    if (vtx_part_bound is None):
+      vtx_part_bound_data = NULL
+    else:
+      vtx_part_bound_data = <int *> vtx_part_bound.data
+
     cdef PDM_g_num_t * cell_ln_to_gn_data
     if (cell_ln_to_gn is None):
       cell_ln_to_gn_data = NULL
@@ -257,6 +283,7 @@ cdef class PartExtension:
                                 n_face,
                                 n_face_part_bound,
                                 n_face_group,
+                                n_edge,
                                 n_vtx,
                                 cell_face_idx_data,
                                 cell_face_data,
@@ -273,6 +300,9 @@ cdef class PartExtension:
                                 face_part_bound_proc_idx_data,
                                 face_part_bound_part_idx_data,
                                 face_part_bound_data,
+                                vtx_part_bound_proc_idx_data,
+                                vtx_part_bound_part_idx_data,
+                                vtx_part_bound_data,
                                 cell_ln_to_gn_data,
                                 face_ln_to_gn_data,
                                 edge_ln_to_gn_data,

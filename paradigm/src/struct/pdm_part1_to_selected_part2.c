@@ -490,7 +490,7 @@ PDM_part1_to_selected_part2_create
         merge_selected_part2_rank1[n_total_elt] = my_rank;
         merge_selected_part2_part1[n_total_elt] = i;
         merge_selected_part2_lnum1[n_total_elt] = j; 
-        merge_selected_part2_addr1[n_total_elt] = k; 
+        merge_selected_part2_addr1[n_total_elt] = selected_part2_idx[i][j];
         order[n_total_elt]                      = n_total_elt;
         n_total_elt++;
       }

@@ -25,6 +25,8 @@ extern "C" {
  * Type definitions
  *============================================================================*/
 
+typedef struct _pdm_para_octree_t PDM_para_octree_t;
+
 /**
  * \enum pdm_para_octree_child_t
  * \brief Names of 8 children of a node
@@ -84,13 +86,13 @@ typedef enum {
  * \return     Identifier
  */
 
-int
+PDM_para_octree_t *
 PDM_para_octree_create
 (
- const int n_point_cloud,
- const int depth_max,
- const int points_in_leaf_max,
- const int build_leaf_neighbours,
+ const int          n_point_cloud,
+ const int          depth_max,
+ const int          points_in_leaf_max,
+ const int          build_leaf_neighbours,
  const PDM_MPI_Comm comm
 );
 
@@ -98,14 +100,14 @@ PDM_para_octree_create
  *
  * \brief Free an octree structure
  *
- * \param [in]   id                 Identifier
+ * \param [in]   octree             Pointer to octree structure
  *
  */
 
 void
 PDM_para_octree_free
 (
- const int          id
+ const PDM_para_octree_t *octree
 );
 
 
@@ -113,7 +115,7 @@ PDM_para_octree_free
  *
  * \brief Set a point cloud
  *
- * \param [in]   id                 Identifier
+ * \param [in]   octree             Pointer to octree structure
  * \param [in]   i_point_cloud      Number of point cloud
  * \param [in]   n_points           Maximum depth
  * \param [in]   coords             Point coordinates
@@ -125,11 +127,11 @@ PDM_para_octree_free
 void
 PDM_para_octree_point_cloud_set
 (
- const int          id,
- const int          i_point_cloud,
- const int          n_points,
- const double      *coords,
- const PDM_g_num_t *g_num
+ const PDM_para_octree_t *octree,
+ const int                i_point_cloud,
+ const int                n_points,
+ const double            *coords,
+ const PDM_g_num_t       *g_num
 );
 
 
@@ -137,15 +139,15 @@ PDM_para_octree_point_cloud_set
  *
  * \brief Build octree
  *
- * \param [in]   id                 Identifier
+ * \param [in]   octree             Pointer to octree structure
  *
  */
 
 void
 PDM_para_octree_build
 (
- const int          id,
- double            *global_extents
+ const PDM_para_octree_t *octree,
+ double                  *global_extents
 );
 
 
@@ -153,14 +155,14 @@ PDM_para_octree_build
  *
  * \brief Dump octree
  *
- * \param [in]   id                 Identifier
+ * \param [in]   octree             Pointer to octree structure
  *
  */
 
 void
 PDM_para_octree_dump
 (
- const int          id
+ const PDM_para_octree_t *octree
 );
 
 
@@ -168,7 +170,7 @@ PDM_para_octree_dump
  *
  * \brief Get extents
  *
- * \param [in]   id                 Identifier
+ * \param [in]   octree             Pointer to octree structure
  *
  * \return     Extents
  *
@@ -177,7 +179,7 @@ PDM_para_octree_dump
 double *
 PDM_para_octree_extents_get
 (
- const int          id
+ const PDM_para_octree_t *octree
 );
 
 
@@ -185,14 +187,14 @@ PDM_para_octree_extents_get
  *
  * \brief Dump octree
  *
- * \param [in]   id                 Identifier
+ * \param [in]   octree             Pointer to octree structure
  *
  */
 
 void
 PDM_para_octree_dump
 (
- const int          id
+ const PDM_para_octree_t *octree
  );
 
 
@@ -213,13 +215,13 @@ PDM_para_octree_dump
 void
 PDM_para_octree_closest_points
 (
-const int    id,
-const int    n_closest_points,
-const int    n_pts,
-double      *pts,
-PDM_g_num_t *pts_g_num,
-PDM_g_num_t *closest_octree_pt_g_num,
-double      *closest_octree_pt_dist2
+const PDM_para_octree_t *octree,
+const int                n_closest_points,
+const int                n_pts,
+double                  *pts,
+PDM_g_num_t             *pts_g_num,
+PDM_g_num_t             *closest_octree_pt_g_num,
+double                  *closest_octree_pt_dist2
 );
 
 
@@ -239,12 +241,12 @@ double      *closest_octree_pt_dist2
 void
 PDM_para_octree_single_closest_point
 (
-const int    id,
-const int    n_pts,
-double      *pts,
-PDM_g_num_t *pts_g_num,
-PDM_g_num_t *closest_octree_pt_g_num,
-double      *closest_octree_pt_dist2
+const PDM_para_octree_t *octree,
+const int                n_pts,
+double                  *pts,
+PDM_g_num_t             *pts_g_num,
+PDM_g_num_t             *closest_octree_pt_g_num,
+double                  *closest_octree_pt_dist2
 );
 
 /**
@@ -258,7 +260,7 @@ double      *closest_octree_pt_dist2
 void
 PDM_para_octree_dump_times
 (
- const int id
+ const PDM_para_octree_t *octree
  );
 
 
@@ -279,44 +281,44 @@ PDM_para_octree_dump_times
 void
 PDM_para_octree_points_inside_boxes
 (
- const int           octree_id,
- const int           n_boxes,
- const double       *box_extents,
- const PDM_g_num_t  *box_g_num,
- int               **pts_in_box_idx,
- PDM_g_num_t       **pts_in_box_g_num,
- double            **pts_in_box_coord
+ const PDM_para_octree_t  *octree,
+ const int                 n_boxes,
+ const double             *box_extents,
+ const PDM_g_num_t        *box_g_num,
+ int                     **pts_in_box_idx,
+ PDM_g_num_t             **pts_in_box_g_num,
+ double                  **pts_in_box_coord
  );
 
 void
 PDM_para_octree_points_inside_boxes_with_copies
 (
- const int           octree_id,
- const int           n_boxes,
- const double       *box_extents,
- const PDM_g_num_t  *box_g_num,
- int               **pts_in_box_idx,
- PDM_g_num_t       **pts_in_box_g_num,
- double            **pts_in_box_coord
+ const PDM_para_octree_t  *octree,
+ const int                 n_boxes,
+ const double             *box_extents,
+ const PDM_g_num_t        *box_g_num,
+ int                     **pts_in_box_idx,
+ PDM_g_num_t             **pts_in_box_g_num,
+ double                  **pts_in_box_coord
  );
 
 void
 PDM_para_octree_points_inside_boxes2
 (
- const int           octree_id,
- const int           n_boxes,
- const double       *box_extents,
- const PDM_g_num_t  *box_g_num,
- int               **pts_in_box_idx,
- PDM_g_num_t       **pts_in_box_g_num,
- double            **pts_in_box_coord
+ const PDM_para_octree_t  *octree,
+ const int                 n_boxes,
+ const double             *box_extents,
+ const PDM_g_num_t        *box_g_num,
+ int                     **pts_in_box_idx,
+ PDM_g_num_t             **pts_in_box_g_num,
+ double                  **pts_in_box_coord
  );
 
 /**
  *
  * \brief Copy octree data of some ranks into all ranks
  *
- * \param [in]   id                 Identifier
+ * \param [in]   octree             Pointer to octree structure
  * \param [in]   n_copied_ranks     Number of ranks to copy
  * \param [in]   copied_ranks       Array of ranks to copy
  *
@@ -325,28 +327,34 @@ PDM_para_octree_points_inside_boxes2
 void
 PDM_para_octree_copy_ranks
 (
- const int  id,
- const int  n_copied_ranks,
- const int *copied_ranks
+ const PDM_para_octree_t *octree,
+ const int                n_copied_ranks,
+ const int               *copied_ranks
  );
 
 /**
  *
  * \brief Free copied data in an octree structure
  *
- * \param [in]   id                 Identifier
+ * \param [in]   octree             Pointer to octree structure
  *
  */
 
 void
 PDM_para_octree_free_copies
 (
- const int          id
+ const PDM_para_octree_t *octree
  );
 
 
 
-
+void
+PDM_para_octree_copy_ranks_win_shared
+(
+ const PDM_para_octree_t *octree,
+ const int                n_copied_ranks,
+ const int               *copied_ranks
+ );
 
 
 #ifdef	__cplusplus

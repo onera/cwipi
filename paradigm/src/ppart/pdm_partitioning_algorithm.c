@@ -328,15 +328,17 @@ PDM_part_reorient_bound_faces
         }
 
         /* Reverse face->vertex connectivity : start from same vtx but reverse array*/
-        int offset     = pface_vtx_idx[i_part][i_face] + 1;
-        int n_face_vtx = pface_vtx_idx[i_part][i_face+1] - pface_vtx_idx[i_part][i_face] - 1;
-        int end_index  = n_face_vtx - 1;
-        int tmp_swap;
-        for (int j = 0; j < n_face_vtx/2; j++){
-          tmp_swap = pface_vtx[i_part][offset+end_index];
-          pface_vtx[i_part][offset+end_index] = pface_vtx[i_part][offset+j];
-          pface_vtx[i_part][offset+j] = tmp_swap;
-          end_index--;
+        if(pface_vtx_idx != NULL) {
+          int offset     = pface_vtx_idx[i_part][i_face] + 1;
+          int n_face_vtx = pface_vtx_idx[i_part][i_face+1] - pface_vtx_idx[i_part][i_face] - 1;
+          int end_index  = n_face_vtx - 1;
+          int tmp_swap;
+          for (int j = 0; j < n_face_vtx/2; j++){
+            tmp_swap = pface_vtx[i_part][offset+end_index];
+            pface_vtx[i_part][offset+end_index] = pface_vtx[i_part][offset+j];
+            pface_vtx[i_part][offset+j] = tmp_swap;
+            end_index--;
+          }
         }
 
         /* Change sign of edge */

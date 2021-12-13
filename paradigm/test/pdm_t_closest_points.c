@@ -18,6 +18,7 @@
 #include "pdm_error.h"
 #include "pdm_gnum.h"
 #include "pdm_distrib.h"
+#include "pdm_point_cloud_gen.h"
 #include "pdm_closest_points.h"
 #include "pdm_version.h"
 
@@ -146,61 +147,6 @@ _read_args
 
 
 
-static void
-_gen_point_cloud
-(
- PDM_MPI_Comm        comm,
- const PDM_g_num_t   gn_pts,
- const double        radius,
- int                *n_pts,
- double            **pts_coord,
- PDM_g_num_t       **pts_g_num
- )
-{
-  int i_rank, n_rank;
-  PDM_MPI_Comm_rank (comm, &i_rank);
-  PDM_MPI_Comm_size (comm, &n_rank);
-
-  *n_pts = (int) (gn_pts / n_rank);
-  if (i_rank < gn_pts % n_rank) {
-    (*n_pts)++;
-  }
-
-  srand(0);
-
-  PDM_g_num_t* distrib_pts = PDM_compute_entity_distribution(comm, (*n_pts));
-  for(int i = 0; i < 3 * distrib_pts[i_rank]; ++i) {
-    rand();
-  }
-
-  *pts_coord = malloc (sizeof(double) * (*n_pts) * 3);
-  for (int i = 0; i < *n_pts; i++) {
-    for (int j = 0; j < 3; j++) {
-      (*pts_coord)[3*i + j] = radius * (2*(double) rand() / ((double) RAND_MAX) - 1.);
-    }
-  }
-
-  PDM_gen_gnum_t *gen_gnum = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, comm, PDM_OWNERSHIP_USER);
-  double *char_length = malloc (sizeof(double) * (*n_pts));
-  for (int i = 0; i < *n_pts; i++) {
-    char_length[i] = radius * 1e-6;
-  }
-
-  PDM_gnum_set_from_coords (gen_gnum, 0, *n_pts, *pts_coord, char_length);
-
-  // PDM_log_trace_array_double((*pts_coord), 3 * (*n_pts), "pts_coord :: ");
-
-  PDM_gnum_compute (gen_gnum);
-
-  *pts_g_num = PDM_gnum_get (gen_gnum, 0);
-
-  PDM_gnum_free (gen_gnum);
-  free (char_length);
-
-  free(distrib_pts);
-}
-
-
 /*============================================================================
  * Public function definitions
  *============================================================================*/
@@ -259,22 +205,25 @@ main
   int          n_src;
   double      *src_coord;
   PDM_g_num_t *src_g_num;
-  _gen_point_cloud (comm,
-                    gn_src,
-                    radius,
-                    &n_src,
-                    &src_coord,
-                    &src_g_num);
+  PDM_point_cloud_gen_random (comm,
+                              gn_src,
+                              -radius, -radius, -radius,
+                              radius, radius, radius,
+                              &n_src,
+                              &src_coord,
+                              &src_g_num);
+
 
   int          n_tgt;
   double      *tgt_coord;
   PDM_g_num_t *tgt_g_num;
-  _gen_point_cloud (comm,
-                    gn_tgt,
-                    radius,
-                    &n_tgt,
-                    &tgt_coord,
-                    &tgt_g_num);
+  PDM_point_cloud_gen_random (comm,
+                              gn_tgt,
+                              -radius, -radius, -radius,
+                              radius, radius, radius,
+                              &n_tgt,
+                              &tgt_coord,
+                              &tgt_g_num);
 
 
   PDM_closest_point_t* clsp = PDM_closest_points_create (PDM_MPI_COMM_WORLD,

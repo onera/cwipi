@@ -17,6 +17,7 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_gnum.h"
+#include "pdm_point_cloud_gen.h"
 #include "pdm_para_octree.h"
 
 /*============================================================================
@@ -124,28 +125,6 @@ _read_args
   }
 }
 
-
-/**
- *
- * \brief  Random value
- *
- *  \return a random double in [-1, 1]
- */
-
-static double
-_random01
-(
-void
-)
-{
-  int sign;
-  int rsigna = rand();
-  int rsignb = rand();
-  sign = (rsigna - rsignb) / PDM_ABS (rsigna - rsignb);
-  double resultat = sign*((double)rand())/((double)RAND_MAX);
-  return resultat;
-}
-
 /*============================================================================
  * Public function definitions
  *============================================================================*/
@@ -193,44 +172,17 @@ char *argv[]
     srand(i_rank);
   }
 
-  /* Define the number of points */
-
-  int _n_pts_l = 0;
-  if (local) {
-    _n_pts_l = (int) nPts;
-  }
-  else {
-    _n_pts_l = (int) (nPts/numProcs);
-    if (i_rank < nPts%numProcs) {
-      _n_pts_l += 1;
-    }
-  }
-
-  /* Points definition : coordinates + gnum */
-
-  double *coords = malloc(sizeof(double) * 3 * _n_pts_l);
-
-  for (int i = 0; i < _n_pts_l; i++) {
-    for (int j = 0; j < 3; j++) {
-      coords[3*i+j] = _random01() * radius;
-    }
-  }
-
-  PDM_gen_gnum_t* gen_gnum = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_USER);
-
-  double *char_length = malloc(sizeof(double) * _n_pts_l);
-
-  for (int i = 0; i < _n_pts_l; i++) {
-    char_length[i] = radius * 1.e-6;
-  }
-
-  PDM_gnum_set_from_coords (gen_gnum, 0, _n_pts_l, coords, char_length);
-
-  PDM_gnum_compute (gen_gnum);
-
-  PDM_g_num_t *gnum = PDM_gnum_get(gen_gnum, 0);
-
-  PDM_gnum_free (gen_gnum);
+  /* Random point cloud */
+  int _n_pts_l;
+  double      *coords = NULL;
+  PDM_g_num_t *gnum   = NULL;
+  PDM_point_cloud_gen_random (PDM_MPI_COMM_WORLD,
+                              nPts,
+                              -radius, -radius, -radius,
+                              radius, radius, radius,
+                              &_n_pts_l,
+                              &coords,
+                              &gnum);
 
   /* Parallel octree */
 
@@ -239,26 +191,25 @@ char *argv[]
   const int points_in_leaf_max = 1;
 
   const int build_leaf_neighbours = 1;
-  int id2 = PDM_para_octree_create (n_point_cloud,
-                                    depth_max,
-                                    points_in_leaf_max,
-                                    build_leaf_neighbours,
-                                    PDM_MPI_COMM_WORLD);
+  PDM_para_octree_t *octree = PDM_para_octree_create (n_point_cloud,
+                                                      depth_max,
+                                                      points_in_leaf_max,
+                                                      build_leaf_neighbours,
+                                                      PDM_MPI_COMM_WORLD);
 
-  PDM_para_octree_point_cloud_set (id2, 0, _n_pts_l, coords, gnum);
+  PDM_para_octree_point_cloud_set (octree, 0, _n_pts_l, coords, gnum);
 
-  PDM_para_octree_build (id2, NULL);
+  PDM_para_octree_build (octree, NULL);
 
-  //PDM_para_octree_dump (id2);
+  //PDM_para_octree_dump (octree);
 
-  PDM_para_octree_dump_times (id2);
+  PDM_para_octree_dump_times (octree);
 
-  PDM_para_octree_free (id2);
+  PDM_para_octree_free (octree);
 
   /* Free */
 
   free (coords);
-  free (char_length);
   free (gnum);
 
   if (i_rank == 0) {

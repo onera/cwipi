@@ -17,10 +17,12 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_gnum.h"
+#include "pdm_point_cloud_gen.h"
 #include "pdm_closest_points.h"
 #include "pdm_dcube_gen.h"
 #include "pdm_geom_elem.h"
-
+#include "pdm_version.h"
+#include "pdm_logging.h"
 
 
 /*============================================================================
@@ -137,40 +139,6 @@ _read_args(int            argc,
 }
 
 
-static void
-_gen_clouds_random
-(
- const int         nPts,
- const double      length,
- const int         numProcs,
- const int         i_rank,
- const PDM_g_num_t n_faceSeg,
- double          **pts_coord,
- int              *nPts_l
- )
-{
-  *nPts_l = (int) (nPts/numProcs);
-  if (i_rank < nPts%numProcs) {
-    (*nPts_l)++;
-  }
-
-  *pts_coord = malloc (sizeof(double) * 3 * (*nPts_l));
-  double *_pts_coord = *pts_coord;
-
-  double offset = 0.5 * length / ((double) n_faceSeg);
-  double length2 = length - 2*offset;
-
-  int idx = 0;
-  for (int i = 0; i < numProcs*(*nPts_l); i++) {
-    for (int j = 0; j < 3; j++) {
-      double x = offset + length2 * (double) rand() / ((double) RAND_MAX);
-      if (i%numProcs == i_rank) {
-        _pts_coord[idx++] = x;
-      }
-    }
-  }
-}
-
 
 static void
 _gen_cube_cell_centers
@@ -256,6 +224,11 @@ int main(int argc, char *argv[])
   PDM_MPI_Comm_rank(PDM_MPI_COMM_WORLD, &i_rank);
   PDM_MPI_Comm_size(PDM_MPI_COMM_WORLD, &numProcs);
 
+  char *version = PDM_version_get();
+
+  log_trace("Version de ParaDiGM : %s\n", version);
+  free(version);
+
   /*
    *  Set default values
    */
@@ -281,33 +254,19 @@ int main(int argc, char *argv[])
 
 
   /* Define the target point cloud */
-  double *tgt_coords = NULL;
+  srand(0);
+  double      *tgt_coords = NULL;
+  PDM_g_num_t *tgt_gnum   = NULL;
   int _n_tgt_l;
-  _gen_clouds_random (nTgt,
-                      length,
-                      numProcs,
-                      i_rank,
-                      n_faceSeg,
-                      &tgt_coords,
-                      &_n_tgt_l);
 
-  PDM_gen_gnum_t* gen_gnum = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD, PDM_OWNERSHIP_USER);
-
-  double *tgt_char_length = malloc(sizeof(double) * _n_tgt_l);
-
-  for (int i = 0; i < _n_tgt_l; i++) {
-    tgt_char_length[i] = length * 1.e-6;
-  }
-
-  PDM_gnum_set_from_coords (gen_gnum, 0, _n_tgt_l, tgt_coords, tgt_char_length);
-
-  PDM_gnum_compute (gen_gnum);
-
-  PDM_g_num_t *tgt_gnum = PDM_gnum_get(gen_gnum, 0);
-
-  PDM_gnum_free (gen_gnum);
-
-
+  double h = 0.5 * length / (double) n_faceSeg;
+  PDM_point_cloud_gen_random (PDM_MPI_COMM_WORLD,
+                              nTgt,
+                              h, h, h,
+                              length - 2*h, length - 2*h, length - 2*h,
+                              &_n_tgt_l,
+                              &tgt_coords,
+                              &tgt_gnum);
 
   /*
    *  Define the source point cloud (cell centers of cube)
@@ -543,7 +502,6 @@ int main(int argc, char *argv[])
   PDM_closest_points_free (clsp);
 
   free (tgt_coords);
-  free (tgt_char_length);
   free (tgt_gnum);
 
   free (src_coords);

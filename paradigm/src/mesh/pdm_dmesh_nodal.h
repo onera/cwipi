@@ -12,6 +12,7 @@
 #include "pdm.h"
 #include "pdm_mesh_nodal.h"
 #include "pdm_dmesh_nodal_elmts.h"
+#include "pdm_part_mesh_nodal_elmts.h"
 #include "pdm_mpi.h"
 #include "pdm_io.h"
 
@@ -768,14 +769,6 @@ PDM_dmesh_nodal_dual_graph
 );
 
 void
-PDM_Mesh_nodal_add_dmesh_nodal_elmts
-(
- PDM_dmesh_nodal_t       *dmesh_nodal,
- PDM_dmesh_nodal_elmts_t *dmn_elts
-);
-
-
-void
 PDM_dmesh_nodal_transfer_to_new_dmesh_nodal
 (
  PDM_dmesh_nodal_t   *dmn_in,
@@ -811,6 +804,20 @@ PDM_dmesh_nodal_reorder
  const char        *ordering_name,
  const int          order
  );
+
+
+
+PDM_part_mesh_nodal_elmts_t*
+PDM_dmesh_nodal_to_part_mesh_nodal_elmts
+(
+ PDM_dmesh_nodal_t            *dmn,
+ PDM_geometry_kind_t           geom_kind,
+ int                           n_part,
+ int                          *pn_vtx,
+ PDM_g_num_t                 **vtx_ln_to_gn,
+ int                          *pn_elmt,
+ PDM_g_num_t                 **elmt_ln_to_gn
+);
 
 #ifdef __cplusplus
 }

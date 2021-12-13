@@ -90,6 +90,10 @@ PDM_multi_block_merge_create
     mbm->multi_block_distrib[i_block+1] = mbm->multi_block_distrib[i_block] + block_distrib_idx[i_block][mbm->n_rank];
   }
 
+  // PDM_log_trace_array_int(n_selected, n_block, "n_selected ::");
+  // for(int i_block = 0; i_block < n_block; ++i_block) {
+  //   PDM_log_trace_array_long(selected_g_num[i_block], n_selected[i_block], "selected_g_num ::");
+  // }
   /*
    * Shift des données d'entrés
    */
@@ -97,7 +101,7 @@ PDM_multi_block_merge_create
   PDM_g_num_t **_send_orig_g_num = malloc( (n_block * 2) * sizeof(PDM_g_num_t *));
   int         **_select_kind     = malloc( (n_block * 2) * sizeof(int         *));
   int         **_stride_one      = malloc( (n_block * 2) * sizeof(int         *));
-  PDM_g_num_t  *_n_selected      = malloc( (n_block * 2) * sizeof(PDM_g_num_t  ));
+  int          *_n_selected      = malloc( (n_block * 2) * sizeof(int          ));
   for(int i_block = 0; i_block < n_block; ++i_block) {
 
     _n_selected     [i_block] = n_selected[i_block];
@@ -296,10 +300,10 @@ PDM_multi_block_merge_create
   // if(reorder_block == PDM_HILBERT) {
   // }
 
-  if(1 == 1) {
+  if(0 == 1) {
     int dn_orig = mbm->old_distrib[mbm->i_rank+1] - mbm->old_distrib[mbm->i_rank];
     PDM_log_trace_array_int (dnew_to_old_idx, mbm->dn_new_block+1               , "dnew_to_old_idx :: ");
-    PDM_log_trace_array_long(filter_g_num   , mbm->dold_to_new_idx[dn_orig], "dold_to_new     :: ");
+    PDM_log_trace_array_long(filter_g_num   , dnew_to_old_idx[mbm->dn_new_block], "filter_g_num    :: ");
 
     PDM_log_trace_array_int (mbm->dold_to_new_idx, dn_orig+1                    , "dold_to_new_idx :: ");
     PDM_log_trace_array_long(mbm->dold_to_new    , mbm->dold_to_new_idx[dn_orig], "dold_to_new     :: ");
@@ -405,7 +409,7 @@ PDM_multi_block_merge_exch_and_update_child_g_num
    */
 
   int pn_merge_parent = PDM_multi_block_merge_get_n_block(mbm);
-  int n_parent;
+  int n_parent = 0;
   if (t_stride == PDM_STRIDE_CST) {
     n_parent = cst_stride * pn_merge_parent;
   } else {

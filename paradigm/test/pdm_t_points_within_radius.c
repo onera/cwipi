@@ -275,14 +275,14 @@ _points_within_radius
   /* Build parallel octree */
   const int depth_max = 31;
 
-  int octree_id = PDM_para_octree_create (n_part_src,
-                                          depth_max,
-                                          n_max_per_leaf,
-                                          0,
-                                          comm);
+  PDM_para_octree_t *octree = PDM_para_octree_create (n_part_src,
+                                                      depth_max,
+                                                      n_max_per_leaf,
+                                                      0,
+                                                      comm);
 
   for (int i_part = 0; i_part < n_part_src; i_part++) {
-    PDM_para_octree_point_cloud_set (octree_id,
+    PDM_para_octree_point_cloud_set (octree,
                                      i_part,
                                      n_src[i_part],
                                      src_coord[i_part],
@@ -332,9 +332,9 @@ _points_within_radius
     global_extents[i+3] += max_range * 1.0e-3;
   }
 
-  PDM_para_octree_build (octree_id, global_extents);
-  //PDM_para_octree_dump (octree_id);
-  PDM_para_octree_dump_times (octree_id);
+  PDM_para_octree_build (octree, global_extents);
+  //PDM_para_octree_dump (octree);
+  PDM_para_octree_dump_times (octree);
 
 
 
@@ -367,7 +367,7 @@ _points_within_radius
   PDM_g_num_t *_close_pts_g_num = NULL;
   double      *_close_pts_dist2 = NULL;
 
-  PDM_para_octree_points_within_radius (octree_id,
+  PDM_para_octree_points_within_radius (octree,
                                         sort_close_points,
                                         _n_tgt,
                                         _tgt_coord,
@@ -423,7 +423,7 @@ _points_within_radius
   free (_close_pts_dist2);
 
   /* Free parallel octree */
-  PDM_para_octree_free (octree_id);
+  PDM_para_octree_free (octree);
 }
 
 

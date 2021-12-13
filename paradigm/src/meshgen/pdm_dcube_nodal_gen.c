@@ -1799,32 +1799,6 @@ PDM_dcube_nodal_gen_build
   }
 
 
-
-  PDM_dmesh_nodal_elmts_t* dmn_elmts_vol    = NULL;
-  PDM_dmesh_nodal_elmts_t* dmn_elmts_surf   = NULL;
-  PDM_dmesh_nodal_elmts_t* dmn_elmts_ridge  = NULL;
-  PDM_dmesh_nodal_elmts_t* dmn_elmts_corner = NULL;
-
-  dmn_elmts_corner = PDM_DMesh_nodal_elmts_create(dcube->comm, 0, -1);
-  dmn_elmts_ridge  = PDM_DMesh_nodal_elmts_create(dcube->comm, 1, -1);
-  dmn_elmts_surf   = PDM_DMesh_nodal_elmts_create(dcube->comm, 2, -1);
-  if (dim == 3) {
-    dmn_elmts_vol  = PDM_DMesh_nodal_elmts_create(dcube->comm, 3, -1);
-  }
-
-  if (dmn_elmts_vol != NULL) {
-    PDM_Mesh_nodal_add_dmesh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_vol   );
-  }
-  if (dmn_elmts_surf != NULL) {
-    PDM_Mesh_nodal_add_dmesh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_surf  );
-  }
-  if (dmn_elmts_ridge != NULL) {
-    PDM_Mesh_nodal_add_dmesh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_ridge );
-  }
-  if (dmn_elmts_corner != NULL) {
-    PDM_Mesh_nodal_add_dmesh_nodal_elmts(dcube->dmesh_nodal, dmn_elmts_corner);
-  }
-
   switch (dcube->t_elt) {
   case PDM_MESH_NODAL_TRIA3:
     {
