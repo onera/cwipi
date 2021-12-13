@@ -240,11 +240,11 @@ PDM_global_reduce_operation_set
 void
 PDM_global_reduce_field_set
 (
- PDM_global_reduce_t   *gre,
- const int              i_part,
- const int              stride,
- const double          *local_field,
- double                *global_reduced_field_ptr
+ PDM_global_reduce_t *gre,
+ const int            i_part,
+ const int            stride,
+ const double        *local_field,
+ double              *global_reduced_field_ptr
 )
 {
   gre->local_field         [i_part] = (double *) local_field;
