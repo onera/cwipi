@@ -125,8 +125,8 @@ int main(int argc, char *argv[]) {
     bool cond_code2 = rank % 2 == 1;
     bool cond_both = cond_code1 && cond_code2;
 
-    int n_vtx_seg_code1 = 4, n_vtx_seg_code2 = 4;
-    double x_min_code1 = 0., x_min_code2 = 0.9;
+    int n_vtx_seg_code1 = 3, n_vtx_seg_code2 = 4;
+    double x_min_code1 = 0., x_min_code2 = 0.2;
     double y_min_code1 = 0., y_min_code2 = 0.8;
 
     // Define the number of codes per rank
@@ -267,10 +267,10 @@ int main(int argc, char *argv[]) {
         printf("%d (%d, %s) --- Coupling created between %s and %s\n", rank, intra_comm_rank[i_code], code_names[i_code], code_names[i_code], coupled_code_names[i_code]);
     }
 
-//    for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-//        CWP_Visu_set(code_names[i_code], cpl_name, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
-//        printf("%d (%d, %s) --- Visu set\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-//    }
+    for (int i_code = 0 ; i_code < n_code ; ++i_code) {
+        CWP_Visu_set(code_names[i_code], cpl_name, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+        printf("%d (%d, %s) --- Visu set\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+    }
 
     // Create PDM communicators
     PDM_MPI_Comm *pdm_intra_comms = (PDM_MPI_Comm *) malloc(n_code * sizeof(PDM_MPI_Comm));
@@ -318,9 +318,14 @@ int main(int argc, char *argv[]) {
         send_values[i_code] = (double *) malloc(n_vtx[i_code][0] * sizeof(double));
         recv_values[i_code] = (double *) malloc(n_vtx[i_code][0] * sizeof(double));
         if (code_id[i_code] == 1) {
-            for (int i = 0 ; i < n_vtx[i_code][0] ; i++) {
-                send_values[i_code][i] = coord[i_code][0][3 * i];
-            }
+          for (int i = 0 ; i < n_vtx[i_code][0] ; i++) {
+            send_values[i_code][i] = coord[i_code][0][3 * i];
+          }
+        }
+        if (code_id[i_code] == 2) {
+          for (int i = 0 ; i < n_vtx[i_code][0] ; i++) {
+            recv_values[i_code][i] = 0;
+          }
         }
     }
 
@@ -390,7 +395,16 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // Delete interf
+    // Print output
+    for (int i_code = 0 ; i_code < n_code ; ++i_code) {
+      if (code_id[i_code] == 2) {
+        for (int i = 0 ; i < n_vtx[i_code][0] ; i++) {
+          printf("%f\n", recv_values[i_code][i]);
+        }
+      }
+    }
+
+  // Delete interf
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
         CWP_Mesh_interf_del(code_names[i_code], cpl_name);
         printf("%d (%d, %s) --- Interface deleted\n", rank, intra_comm_rank[i_code], code_names[i_code]);
