@@ -39,12 +39,6 @@ program testf
   integer :: i_rank
   integer :: n_rank
 
-  ! integer (kind = pdm_g_num_s), pointer :: block_distrib_index(:)
-  ! type(c_ptr)                           :: cptr_block_distrib_index
-  ! integer (kind = pdm_g_num_s), pointer :: gnum_elt(:)
-  ! type(c_ptr), pointer                  :: cptr_gnum_elt(:)
-  ! type(c_ptr)                           :: cptr_cptr_gnum_elt
-
   integer(c_int), parameter :: fComm = MPI_COMM_WORLD
 
   type(c_ptr)              :: dcube

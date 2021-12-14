@@ -36,14 +36,15 @@ program testf
   include "mpif.h"
 #endif
 
+  !-----------------------------------------------------------
+
   integer :: code
   integer :: i_rank
   integer :: n_rank
 
-  integer(c_int), parameter :: fComm = MPI_COMM_WORLD
-
-  integer, parameter :: n_part = 1
-  integer, parameter :: n_pts  = 6
+  integer(c_int), parameter :: fComm  = MPI_COMM_WORLD
+  integer(c_int), parameter :: n_part = 1
+  integer(c_int), parameter :: n_pts  = 6
 
   integer(kind = pdm_g_num_s), pointer :: pts_ln_to_gn(:)      => null()
   double precision,            pointer :: pts_local_field(:)   => null()
@@ -56,6 +57,10 @@ program testf
 
   integer(kind = pdm_g_num_s) :: i, j, k
   integer                     :: n_error
+
+  !-----------------------------------------------------------
+
+
 
   !*
   ! Init
@@ -73,8 +78,8 @@ program testf
   !*
   !  Create 'partitions'
   !*
-  allocate(pts_ln_to_gn(n_pts))
-  allocate(pts_local_field(2*n_pts))
+  allocate(pts_ln_to_gn     (  n_pts))
+  allocate(pts_local_field  (2*n_pts))
   allocate(pts_reduced_field(2*n_pts))
   k = 0
   do j = 0,2
@@ -91,37 +96,40 @@ program testf
     pts_local_field = pts_local_field + 1
   end if
 
-  write (*, *) "rank #", i_rank, "local :", pts_local_field(:)
+  write(*, *) "rank #", i_rank, "local :", pts_local_field(:)
 
-  c_pts_ln_to_gn      = c_loc (pts_ln_to_gn)
-  c_pts_local_field   = c_loc (pts_local_field)
-  c_pts_reduced_field = c_loc (pts_reduced_field)
+  c_pts_ln_to_gn      = c_loc(pts_ln_to_gn)
+  c_pts_local_field   = c_loc(pts_local_field)
+  c_pts_reduced_field = c_loc(pts_reduced_field)
 
   !*
   !  Create global reduction object
   !*
   gre = PDM_global_reduce_create(n_part, fComm)
 
-  call PDM_global_reduce_g_num_set (gre,            & !
-                                    0,              & !
-                                    n_pts,          & !
-                                    c_pts_ln_to_gn)   !
+  call PDM_global_reduce_g_num_set(gre,            & !
+                                   0,              & ! i_part
+                                   n_pts,          & !
+                                   c_pts_ln_to_gn)   !
 
-  call PDM_global_reduce_field_set (gre,                & !
-                                    0,                  & !
-                                    2,                  & !
-                                    c_pts_local_field,  & !
-                                    c_pts_reduced_field)  !
+  call PDM_global_reduce_field_set(gre,                & !
+                                   0,                  & ! i_part
+                                   2,                  & ! stride
+                                   c_pts_local_field,  & !
+                                   c_pts_reduced_field)  !
 
-  call PDM_global_reduce_operation_set (gre, & !
-                                        0)     !
+  ! 0: MIN
+  ! 1: MAX
+  ! 2: SUM
+  call PDM_global_reduce_operation_set(gre, & !
+                                       0)     ! operation
 
   !*
   !  Compute global min
   !*
-  call PDM_global_reduce_field_compute (gre)
+  call PDM_global_reduce_field_compute(gre)
 
-  write (*, *) "rank #", i_rank, "reduced :", pts_reduced_field(:)
+  write(*, *) "rank #", i_rank, "reduced :", pts_reduced_field(:)
 
 
   !*
@@ -139,11 +147,11 @@ program testf
 
     if (abs(pts_local_field(2*k - 1) - i) > 1.d-6 .and. &
         abs(pts_local_field(2*k    ) - j) > 1.d-6) then
-      write (*,*) "Error for point ", k
+      write(*,*) "Error for point ", k
     end if
   end do
 
-  write (*, *) "rank #", i_rank, ":", n_error, "error(s) /", n_pts
+  write(*, *) "rank #", i_rank, ":", n_error, "error(s) /", n_pts
 
   !*
   !  Free memory
@@ -155,7 +163,7 @@ program testf
   call PDM_global_reduce_free(gre)
 
   if (i_rank .eq. 0) then
-    write (*, *) "-- End"
+    write(*, *) "-- End"
   end if
 
   call mpi_finalize(code)
