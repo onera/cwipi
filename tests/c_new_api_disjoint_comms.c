@@ -399,7 +399,8 @@ int main(int argc, char *argv[]) {
     for (int i_code = 0 ; i_code < n_code ; ++i_code) {
       if (code_id[i_code] == 2) {
         for (int i = 0 ; i < n_computed_tgts ; i++) {
-          assert(fabs(recv_values[i_code][3 * i] - coord[i_code][0][3 * (computed_tgts[i] - 1)]) < 1.e-4);
+            printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
+//          assert(fabs(recv_values[i_code][3 * i] - coord[i_code][0][3 * (computed_tgts[i] - 1)]) < 1.e-4);
         }
       }
     }
