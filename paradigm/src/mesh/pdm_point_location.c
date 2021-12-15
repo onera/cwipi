@@ -1581,6 +1581,29 @@ _locate_in_polyhedron
  * Public function definitions
  *============================================================================*/
 
+/**
+ * \brief Locate a set points inside a set of elements
+ *
+ * Elements are ordered by type (points, lines, triangles, quadrangles,
+ * polygons, tetrahedra, pyramids, prisms, hexahedra, polyhedra).
+ *
+ * \param [in]   type_idx           Index for the element types (size = 11)
+ * \param [in]   elt_vtx_idx        Index of the element-vertex connectivity
+ * \param [in]   elt_vtx_coord      Coordinates of the elements' vertices
+ * \param [in]   poly3d_face_idx    Index of the element-face connectivity (only for polyhedra)
+ * \param [in]   face_vtx_idx       Index for the face-vertex connectivity
+ * \param [in]   face_vtx           Face-vertex connectivity
+ * \param [in]   face_orientation   Orientation of the faces
+ * \param [in]   pts_idx            Index of points (size = n_elt + 1)
+ * \param [in]   pts_coord          Coordinates of the points to locate
+ * \param [in]   tolerance          Geometric tolerance
+ * \param [out]  distance           Distance from points to elements (< 0 if inside, > 0 if outside)
+ * \param [out]  projected_coord    Coordinates of the projection of the points on the elements
+ * \param [out]  bar_coord_idx      Index for the mean-value coordinates of the projections
+ * \param [out]  bar_coord          Mean-value coordinates of the projections
+ *
+ */
+
 void
 PDM_point_location_nodal
 (
@@ -1792,9 +1815,8 @@ if (pts_idx[ielt+1] == pts_idx[ielt]) continue;
 
 
 
-
 /**
- * Compute hexahedron, pyramid, or prism parametric coordinates for a
+ * \brief Compute hexahedron, pyramid, or prism parametric coordinates for a
  * given point.
  *
  * This function is adapted from the CGNS interpolation tool.
@@ -1804,7 +1826,8 @@ if (pts_idx[ielt+1] == pts_idx[ielt]) continue;
  * \param [in]   vertex_coords  Pointer to element vertex coordinates
  * \param [in]   tolerance      Location tolerance factor
  * \param [out]  uvw            Parametric coordinates of point in element
- **/
+ *
+ */
 
 PDM_bool_t
 PDM_point_location_compute_uvw
