@@ -17,11 +17,18 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
+/*----------------------------------------------------------------------------
+ *  System headers
+ *----------------------------------------------------------------------------*/
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
+
+/*----------------------------------------------------------------------------
+ *  Local headers
+ *----------------------------------------------------------------------------*/
 
 #include "pdm_poly_surf_gen.h"
 #include "pdm_config.h"
@@ -30,6 +37,12 @@
 #include "pdm_mpi.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+
+
+/*============================================================================
+ * Local macro definitions
+ *============================================================================*/
+
 
 #define ABS(a)     ((a) <  0  ? -(a) : (a))
 #define MIN(a,b)   ((a) > (b) ?  (b) : (a))
@@ -42,6 +55,11 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/*============================================================================
+ * Private function definitions
+ *============================================================================*/
+
+
 static double random01(void)
 {
   int sign;
@@ -51,6 +69,42 @@ static double random01(void)
   double resultat = sign*((double)rand())/((double)RAND_MAX);
   return resultat;
 }
+
+
+/*=============================================================================
+ * Public function definitions
+ *============================================================================*/
+
+
+/**
+ *
+ * \brief Generate a distributed polygonal surface mesh
+ *
+ * \param [in]   pdm_comm         MPI communicator
+ * \param [in]   xmin             Minimum x-coordinate
+ * \param [in]   xmax             Maximum x-coordinate
+ * \param [in]   ymin             Minimum y-coordinate
+ * \param [in]   ymax             Maximum y-coordinate
+ * \param [in]   have_random      Enable/disable randomization
+ * \param [in]   init_random      Random seed
+ * \param [in]   nx               Number of vertices in the x-direction
+ * \param [in]   ny               Number of vertices in the y-direction
+ * \param [out]  ng_face          Global number of faces
+ * \param [out]  ng_vtx           Global number of vertices
+ * \param [out]  ng_vtx           Global number of edges
+ * \param [out]  dn_vtx           Local number of vertices
+ * \param [out]  dvtx_coord       Coordinates of local vertices (size = 3 * \ref dn_vtx)
+ * \param [out]  dn_face          Local number of faces
+ * \param [out]  dface_vtx_idx    Index of face-vertex connectivity (size = \ref dn_face + 1)
+ * \param [out]  dface_vtx        Distributed face-vertex connectivity (size = \ref dface_vtx_idx[\ref dn_face])
+ * \param [out]  dn_edge          Local number of edges
+ * \param [out]  dedge_vtx        Distributed edge-vertex connectivity (size = 2 * \ref dn_edge)
+ * \param [out]  dedge_face       Distributed edge-face connectivity (size = 2 * \ref dn_edge)
+ * \param [out]  n_edge_group     Number of edge groups
+ * \param [out]  dedge_group_idx  Index of dedge_group (size = \ref n_edge_group + 1)
+ * \param [out]  dedge_group      Distributed lists of edges in each group (size = \ref dedge_group_idx[\ref n_edge_group])
+ *
+ */
 
 void PDM_poly_surf_gen
 (
