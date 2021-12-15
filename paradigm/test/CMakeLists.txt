@@ -119,7 +119,6 @@ if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
   test_fortran_create (pdm_t_global_reduce_f 2)
 endif()
 
-test_c_create (pdm_t_points_inside_boxes 1)
 test_c_create (pdm_t_closest_points_1_point 1)
 test_c_create (pdm_t_dist_ridge 1)
 # test_c_create (pdm_t_multi_block_merge 1)

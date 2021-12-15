@@ -2766,21 +2766,21 @@ PDM_mesh_location_t        *ml
   int n_procs;
   PDM_MPI_Comm_size (ml->comm, &n_procs);
 
-  int USE_OCTREE_BTSHARED = 0;
-  env_var = getenv ("USE_OCTREE_BTSHARED");
-  if (env_var != NULL) {
-    USE_OCTREE_BTSHARED = atoi(env_var);
-  }
-  if (DEBUG && my_rank == 0 && ml->method == PDM_MESH_LOCATION_OCTREE)
-    printf("USE_OCTREE_BTSHARED = %d\n", USE_OCTREE_BTSHARED);
+  // int USE_OCTREE_BTSHARED = 0;
+  // env_var = getenv ("USE_OCTREE_BTSHARED");
+  // if (env_var != NULL) {
+  //   USE_OCTREE_BTSHARED = atoi(env_var);
+  // }
+  // if (DEBUG && my_rank == 0 && ml->method == PDM_MESH_LOCATION_OCTREE)
+  //   printf("USE_OCTREE_BTSHARED = %d\n", USE_OCTREE_BTSHARED);
 
-  int USE_OCTREE_COPIES = 1;
-  env_var = getenv ("USE_OCTREE_COPIES");
-  if (env_var != NULL) {
-    USE_OCTREE_COPIES = atoi(env_var);
-  }
-  if (DEBUG && my_rank == 0) // && ml->method == PDM_MESH_LOCATION_OCTREE)
-    printf("USE_OCTREE_COPIES = %d\n", USE_OCTREE_COPIES);
+  // int USE_OCTREE_COPIES = 1;
+  // env_var = getenv ("USE_OCTREE_COPIES");
+  // if (env_var != NULL) {
+  //   USE_OCTREE_COPIES = atoi(env_var);
+  // }
+  // if (DEBUG && my_rank == 0) // && ml->method == PDM_MESH_LOCATION_OCTREE)
+  //   printf("USE_OCTREE_COPIES = %d\n", USE_OCTREE_COPIES);
 
   double b_t_elapsed;
   double b_t_cpu;
@@ -3713,33 +3713,13 @@ PDM_mesh_location_t        *ml
       /* Locate points inside boxes */
       PDM_MPI_Barrier(ml->comm);
       t1 = PDM_MPI_Wtime();
-      if (USE_OCTREE_BTSHARED) {
-        PDM_para_octree_points_inside_boxes2 (octree,
-                                              n_select_boxes,
-                                              select_box_extents,
-                                              select_box_g_num,
-                                              &pts_idx,
-                                              &pts_g_num,
-                                              &pts_coord);
-      } else {
-        if (USE_OCTREE_COPIES) {
-          PDM_para_octree_points_inside_boxes_with_copies (octree,
-                                                           n_select_boxes,
-                                                           select_box_extents,
-                                                           select_box_g_num,
-                                                           &pts_idx,
-                                                           &pts_g_num,
-                                                           &pts_coord);
-        } else {
-          PDM_para_octree_points_inside_boxes (octree,
-                                               n_select_boxes,
-                                               select_box_extents,
-                                               select_box_g_num,
-                                               &pts_idx,
-                                               &pts_g_num,
-                                               &pts_coord);
-        }
-      }
+      PDM_para_octree_points_inside_boxes (octree,
+                                           n_select_boxes,
+                                           select_box_extents,
+                                           select_box_g_num,
+                                           &pts_idx,
+                                           &pts_g_num,
+                                           &pts_coord);
       end_timer_and_print("PDM_para_octree_points_inside_boxes ", ml->comm, t1);
 
       /* Free octree */
@@ -3748,7 +3728,7 @@ PDM_mesh_location_t        *ml
      }
     case PDM_MESH_LOCATION_DBBTREE:
       if (DEBUG) printf("[%d] n_pts_pcloud = %d, n_select_boxes = %d\n", my_rank, n_pts_pcloud, n_select_boxes);//
-      if (USE_OCTREE_COPIES) {
+      // if (USE_OCTREE_COPIES) {
         PDM_dbbtree_points_inside_boxes_with_copies (dbbt,
                                                      n_pts_pcloud,
                                                      pcloud_g_num,
@@ -3759,17 +3739,17 @@ PDM_mesh_location_t        *ml
                                                      &pts_g_num,
                                                      &pts_coord,
                                                      0);
-      } else {
-        PDM_dbbtree_points_inside_boxes (dbbt,
-                                         n_pts_pcloud,
-                                         pcloud_g_num,
-                                         pcloud_coord,
-                                         n_select_boxes,
-                                         select_box_g_num,
-                                         &pts_idx,
-                                         &pts_g_num,
-                                         &pts_coord);
-      }
+      // } else {
+      //   PDM_dbbtree_points_inside_boxes (dbbt,
+      //                                    n_pts_pcloud,
+      //                                    pcloud_g_num,
+      //                                    pcloud_coord,
+      //                                    n_select_boxes,
+      //                                    select_box_g_num,
+      //                                    &pts_idx,
+      //                                    &pts_g_num,
+      //                                    &pts_coord);
+      // }
       break;
 
     default:
