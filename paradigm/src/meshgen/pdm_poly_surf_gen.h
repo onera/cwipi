@@ -58,7 +58,7 @@ extern "C" {
  * \param [in]   ny               Number of vertices in the y-direction
  * \param [out]  ng_face          Global number of faces
  * \param [out]  ng_vtx           Global number of vertices
- * \param [out]  ng_vtx           Global number of edges
+ * \param [out]  ng_edge          Global number of edges
  * \param [out]  dn_vtx           Local number of vertices
  * \param [out]  dvtx_coord       Coordinates of local vertices (size = 3 * \ref dn_vtx)
  * \param [out]  dn_face          Local number of faces
