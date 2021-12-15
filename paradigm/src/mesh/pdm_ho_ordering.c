@@ -601,9 +601,36 @@ _ho_ordering_free
 }
 
 
+static int
+PDM_ho_ordering_id_get
+(
+ const char *name
+ )
+{
+  if (ho_orderings == NULL) {
+    PDM_ho_ordering_init ();
+  }
+
+  int id = -1;
+
+  for (int i = 0; i < n_ho_orderings; i++) {
+    if (strcmp(ho_orderings[i]->name, name) == 0) {
+      id = i;
+      break;
+    }
+  }
+
+  return id;
+}
+
+
 /*=============================================================================
  * Public function definitions
  *============================================================================*/
+
+/**
+ * \brief Initialize the structure that stores HO orderings
+ */
 
 void
 PDM_ho_ordering_init
@@ -845,6 +872,14 @@ void
 
 
 
+/**
+ * \brief Free the structure that stores HO orderings
+ *
+ * This function is automatically called upon exit of
+ * the program which called \ref PDM_ho_ordering_init.
+ *
+ */
+
 void
 PDM_ho_ordering_free
 (
@@ -862,30 +897,19 @@ void
 }
 
 
-static int
-PDM_ho_ordering_id_get
-(
- const char *name
- )
-{
-  if (ho_orderings == NULL) {
-    PDM_ho_ordering_init ();
-  }
 
-  int id = -1;
-
-  for (int i = 0; i < n_ho_orderings; i++) {
-    if (strcmp(ho_orderings[i]->name, name) == 0) {
-      id = i;
-      break;
-    }
-  }
-
-  return id;
-}
-
-
-
+/**
+ * \brief Add a user-defined HO ordering from the locations
+ * in the reference uvw-grid of a given element type of a given order
+ *
+ * \param[in] name         Name of the HO ordering
+ * \param[in] t_elt        Element type
+ * \param[in] order        Element order
+ * \param[in] n_nodes      Number of nodes in the high-order element
+ * \param[in] user_to_ijk  IJK-coordinates of the nodes in the high-order element
+ *
+ * \return                 Id of the HO ordering
+ */
 
 int
 PDM_ho_ordering_user_to_ijk_add
@@ -989,7 +1013,16 @@ PDM_ho_ordering_user_to_ijk_add
 
 
 
-
+/**
+ * \brief Get the node locations in the reference uvw-grid
+ * for a user-defined HO ordering of a given element type of a given order
+ *
+ * \param[in] name         Name of the HO ordering
+ * \param[in] t_elt        Element type
+ * \param[in] order        Element order
+ *
+ * \return                 IJK-coordinates of the nodes in the high-order element
+ */
 
 int *
 PDM_ho_ordering_user_to_ijk_get
@@ -1035,6 +1068,16 @@ PDM_ho_ordering_user_to_ijk_get
 
 
 
+/**
+ * \brief Get the map from ijk HO ordering to a user-defined HO ordering
+ * for a given element type of a given order
+ *
+ * \param[in] name         Name of the HO ordering
+ * \param[in] t_elt        Element type
+ * \param[in] order        Element order
+ *
+ * \return                 User-defined ordering of the nodes in the high-order element
+ */
 
 int *
 PDM_ho_ordering_ijk_to_user_get
@@ -1078,6 +1121,17 @@ PDM_ho_ordering_ijk_to_user_get
 }
 
 
+
+/**
+ * \brief Compute the map from ijk HO ordering to a user-defined HO ordering
+ * for a given element type of a given order
+ *
+ * \param[in] name         Name of the HO ordering
+ * \param[in] t_elt        Element type
+ * \param[in] order        Element order
+ *
+ * \return                 User-defined ordering of the nodes in the high-order element
+ */
 
 int *
 PDM_ho_ordering_compute_ijk_to_user
