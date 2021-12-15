@@ -13,7 +13,7 @@
 #include <limits.h>
 #include <unistd.h>
 #include <assert.h>
-#include <sys/syscall.h>
+//#include <sys/syscall.h> //Non portable mettre un ifdef
 
 /*----------------------------------------------------------------------------
  *  Header for the current file
@@ -2132,7 +2132,7 @@ int PDM_MPI_Comm_split(PDM_MPI_Comm comm, int color, int key, PDM_MPI_Comm *newc
 }
 
 /*----------------------------------------------------------------------------
- * PDM_MPI_Comm_split_type_numa
+ * PDM_MPI_Comm_split_type_numa // Non portable mettre un ifdef
  *
  *----------------------------------------------------------------------------*/
 int
@@ -2149,7 +2149,9 @@ PDM_MPI_Comm_split_type_numa
   PDM_MPI_Comm_rank(comm_node, &i_rank_node);
 
   int i_cpu, i_numa;
-  syscall(SYS_getcpu, &i_cpu, &i_numa, NULL);
+  //syscall(SYS_getcpu, &i_cpu, &i_numa, NULL);
+  printf("DM_MPI_Comm_split_type_numa : appel a SYS_getcpu commente car non portable : a reintroduire après tests dans CMake\n");
+  abort();
 
   /* Sur le shared on split par numa */
   int code = PDM_MPI_Comm_split(comm_node, i_numa, i_rank_node, comm_numa);
