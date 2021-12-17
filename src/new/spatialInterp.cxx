@@ -182,9 +182,6 @@ namespace cwipi {
     _ptsp = NULL;
 
     if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-      printf("_nPart, _cplNPart : %d %d\n", _nPart, _cplNPart);
-      fflush(stdout);
-
       _src_n_gnum = new int [_nPart];
       _src_gnum = new const PDM_g_num_t* [_nPart];
 

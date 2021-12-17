@@ -33,9 +33,6 @@ namespace cwipi {
   ) 
   {   
 
-    printf("_nPart, _cplNPart : %d %d\n", _nPart, _cplNPart);
-    fflush(stdout);
-
     if (!_coupledCodeProperties->localCodeIs()) {
 
       printf("localization_init - 1.1\n");

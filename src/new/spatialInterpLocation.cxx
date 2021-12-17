@@ -47,9 +47,6 @@ namespace cwipi {
     delete[] _points_uvw;
     delete[] _points_dist2;
     delete[] _points_projected_coords;
-
-    printf("delete SpatialInterpLocation\n");
-
   }
 
 
@@ -81,7 +78,6 @@ namespace cwipi {
     if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
       for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
        _src_gnum[i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
-       printf("_mesh->getPartNElts (i_part) : %d\n", _mesh->getPartNElts (i_part));
        _src_n_gnum[i_part] = _mesh->getPartNElts (i_part);
       }
     }
