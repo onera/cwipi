@@ -1022,60 +1022,6 @@ REAL incircleadapt
 
 
 
-REAL PDM_predicate_incircle
-(
- REAL *pa,
- REAL *pb,
- REAL *pc,
- REAL *pd
- )
-{
-  REAL adx, bdx, cdx, ady, bdy, cdy;
-  REAL bdxcdy, cdxbdy, cdxady, adxcdy, adxbdy, bdxady;
-  REAL alift, blift, clift;
-  REAL det;
-  REAL permanent, errbound;
-
-
-  adx = pa[0] - pd[0];
-  bdx = pb[0] - pd[0];
-  cdx = pc[0] - pd[0];
-  ady = pa[1] - pd[1];
-  bdy = pb[1] - pd[1];
-  cdy = pc[1] - pd[1];
-
-  bdxcdy = bdx * cdy;
-  cdxbdy = cdx * bdy;
-  alift = adx * adx + ady * ady;
-
-  cdxady = cdx * ady;
-  adxcdy = adx * cdy;
-  blift = bdx * bdx + bdy * bdy;
-
-  adxbdy = adx * bdy;
-  bdxady = bdx * ady;
-  clift = cdx * cdx + cdy * cdy;
-
-  det = alift * (bdxcdy - cdxbdy)
-      + blift * (cdxady - adxcdy)
-      + clift * (adxbdy - bdxady);
-
-  if (0) {//b->noexact) {
-    return det;
-  }
-
-  permanent = (Absolute(bdxcdy) + Absolute(cdxbdy)) * alift
-            + (Absolute(cdxady) + Absolute(adxcdy)) * blift
-            + (Absolute(adxbdy) + Absolute(bdxady)) * clift;
-  errbound = iccerrboundA * permanent;
-    if ((det > errbound) || (-det > errbound)) {
-    return det;
-  }
-
-  return incircleadapt(pa, pb, pc, pd, permanent);
-}
-
-
 
 
 
@@ -1344,6 +1290,9 @@ static REAL insphereexact
 }
 
 
+
+
+
 static REAL insphereadapt
 (
  REAL *pa,
@@ -1567,133 +1516,6 @@ static REAL insphereadapt
 }
 
 
-REAL PDM_predicate_insphere
-(
- REAL *pa,
- REAL *pb,
- REAL *pc,
- REAL *pd,
- REAL *pe
- )
-{
-  REAL aex, bex, cex, dex;
-  REAL aey, bey, cey, dey;
-  REAL aez, bez, cez, dez;
-  REAL aexbey, bexaey, bexcey, cexbey, cexdey, dexcey, dexaey, aexdey;
-  REAL aexcey, cexaey, bexdey, dexbey;
-  REAL alift, blift, clift, dlift;
-  REAL ab, bc, cd, da, ac, bd;
-  REAL abc, bcd, cda, dab;
-  REAL aezplus, bezplus, cezplus, dezplus;
-  REAL aexbeyplus, bexaeyplus, bexceyplus, cexbeyplus;
-  REAL cexdeyplus, dexceyplus, dexaeyplus, aexdeyplus;
-  REAL aexceyplus, cexaeyplus, bexdeyplus, dexbeyplus;
-  REAL det;
-  REAL permanent, errbound;
-
-  aex = pa[0] - pe[0];
-  bex = pb[0] - pe[0];
-  cex = pc[0] - pe[0];
-  dex = pd[0] - pe[0];
-  aey = pa[1] - pe[1];
-  bey = pb[1] - pe[1];
-  cey = pc[1] - pe[1];
-  dey = pd[1] - pe[1];
-  aez = pa[2] - pe[2];
-  bez = pb[2] - pe[2];
-  cez = pc[2] - pe[2];
-  dez = pd[2] - pe[2];
-
-  aexbey = aex * bey;
-  bexaey = bex * aey;
-  ab = aexbey - bexaey;
-  bexcey = bex * cey;
-  cexbey = cex * bey;
-  bc = bexcey - cexbey;
-  cexdey = cex * dey;
-  dexcey = dex * cey;
-  cd = cexdey - dexcey;
-  dexaey = dex * aey;
-  aexdey = aex * dey;
-  da = dexaey - aexdey;
-
-  aexcey = aex * cey;
-  cexaey = cex * aey;
-  ac = aexcey - cexaey;
-  bexdey = bex * dey;
-  dexbey = dex * bey;
-  bd = bexdey - dexbey;
-
-  abc = aez * bc - bez * ac + cez * ab;
-  bcd = bez * cd - cez * bd + dez * bc;
-  cda = cez * da + dez * ac + aez * cd;
-  dab = dez * ab + aez * bd + bez * da;
-
-  alift = aex * aex + aey * aey + aez * aez;
-  blift = bex * bex + bey * bey + bez * bez;
-  clift = cex * cex + cey * cey + cez * cez;
-  dlift = dex * dex + dey * dey + dez * dez;
-
-  det = (dlift * abc - clift * dab) + (blift * cda - alift * bcd);
-
-  aezplus = Absolute(aez);
-  bezplus = Absolute(bez);
-  cezplus = Absolute(cez);
-  dezplus = Absolute(dez);
-  aexbeyplus = Absolute(aexbey);
-  bexaeyplus = Absolute(bexaey);
-  bexceyplus = Absolute(bexcey);
-  cexbeyplus = Absolute(cexbey);
-  cexdeyplus = Absolute(cexdey);
-  dexceyplus = Absolute(dexcey);
-  dexaeyplus = Absolute(dexaey);
-  aexdeyplus = Absolute(aexdey);
-  aexceyplus = Absolute(aexcey);
-  cexaeyplus = Absolute(cexaey);
-  bexdeyplus = Absolute(bexdey);
-  dexbeyplus = Absolute(dexbey);
-  permanent = ((cexdeyplus + dexceyplus) * bezplus
-               + (dexbeyplus + bexdeyplus) * cezplus
-               + (bexceyplus + cexbeyplus) * dezplus)
-            * alift
-            + ((dexaeyplus + aexdeyplus) * cezplus
-               + (aexceyplus + cexaeyplus) * dezplus
-               + (cexdeyplus + dexceyplus) * aezplus)
-            * blift
-            + ((aexbeyplus + bexaeyplus) * dezplus
-               + (bexdeyplus + dexbeyplus) * aezplus
-               + (dexaeyplus + aexdeyplus) * bezplus)
-            * clift
-            + ((bexceyplus + cexbeyplus) * aezplus
-               + (cexaeyplus + aexceyplus) * bezplus
-               + (aexbeyplus + bexaeyplus) * cezplus)
-            * dlift;
-  errbound = isperrboundA * permanent;
-  if ((det > errbound) || (-det > errbound)) {
-    return -det;
-  }
-
-  return -insphereadapt(pa, pb, pc, pd, pe, permanent);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1831,52 +1653,6 @@ static REAL orient2dadapt
 
 //   return w[wlength - 1];
 // }
-
-
-
-REAL PDM_predicate_orient2d
-(
- REAL *pa,
- REAL *pb,
- REAL *pc
- )
-{
-  //return orient2dexact(pa, pb, pc);
-  REAL detleft, detright, det;
-  REAL detsum, errbound;
-
-  detleft = (pa[0] - pc[0]) * (pb[1] - pc[1]);
-  detright = (pa[1] - pc[1]) * (pb[0] - pc[0]);
-  det = detleft - detright;
-
-  if (detleft > 0.0) {
-    if (detright <= 0.0) {
-      return det;
-    } else {
-      detsum = detleft + detright;
-    }
-  } else if (detleft < 0.0) {
-    if (detright >= 0.0) {
-      return det;
-    } else {
-      detsum = -detleft - detright;
-    }
-  } else {
-    return det;
-  }
-
-  errbound = ccwerrboundA * detsum;
-  if ((det >= errbound) || (-det >= errbound)) {
-    return det;
-  }
-
-  return orient2dadapt(pa, pb, pc, detsum);
-}
-
-
-
-
-
 
 
 
@@ -2289,9 +2065,278 @@ static REAL orient3dadapt
 
 
 
+/*=============================================================================
+ * Public function definitions
+ *============================================================================*/
 
 
 
+/**
+ *
+ * \brief Determine if a point D is inside/out/on the circumcircle of triangle ABC
+ *
+ * This function assumes that all points lie in the z=0 plane.
+ *
+ * \param [in]   pa   Point A
+ * \param [in]   pb   Point B
+ * \param [in]   pc   Point C
+ * \param [in]   pd   Point D
+ *
+ * \return Strictly positive value if D is inside the circumdisk
+ *         Strictly negative value if D is outside the circumdisk
+ *         Zero if D is on the circumcircle
+ *
+ */
+
+REAL PDM_predicate_incircle
+(
+ REAL *pa,
+ REAL *pb,
+ REAL *pc,
+ REAL *pd
+ )
+{
+  REAL adx, bdx, cdx, ady, bdy, cdy;
+  REAL bdxcdy, cdxbdy, cdxady, adxcdy, adxbdy, bdxady;
+  REAL alift, blift, clift;
+  REAL det;
+  REAL permanent, errbound;
+
+
+  adx = pa[0] - pd[0];
+  bdx = pb[0] - pd[0];
+  cdx = pc[0] - pd[0];
+  ady = pa[1] - pd[1];
+  bdy = pb[1] - pd[1];
+  cdy = pc[1] - pd[1];
+
+  bdxcdy = bdx * cdy;
+  cdxbdy = cdx * bdy;
+  alift = adx * adx + ady * ady;
+
+  cdxady = cdx * ady;
+  adxcdy = adx * cdy;
+  blift = bdx * bdx + bdy * bdy;
+
+  adxbdy = adx * bdy;
+  bdxady = bdx * ady;
+  clift = cdx * cdx + cdy * cdy;
+
+  det = alift * (bdxcdy - cdxbdy)
+      + blift * (cdxady - adxcdy)
+      + clift * (adxbdy - bdxady);
+
+  if (0) {//b->noexact) {
+    return det;
+  }
+
+  permanent = (Absolute(bdxcdy) + Absolute(cdxbdy)) * alift
+            + (Absolute(cdxady) + Absolute(adxcdy)) * blift
+            + (Absolute(adxbdy) + Absolute(bdxady)) * clift;
+  errbound = iccerrboundA * permanent;
+    if ((det > errbound) || (-det > errbound)) {
+    return det;
+  }
+
+  return incircleadapt(pa, pb, pc, pd, permanent);
+}
+
+
+
+/**
+ *
+ * \brief Determine if a point E is inside/out/on the circumsphere of tetrahedron ABCD
+ *
+ * \param [in]   pa   Point A
+ * \param [in]   pb   Point B
+ * \param [in]   pc   Point C
+ * \param [in]   pd   Point D
+ * \param [in]   pe   Point E
+ *
+ * \return Strictly positive value if E is inside the circumball
+ *         Strictly negative value if E is outside the circumball
+ *         Zero if E is on the circumsphere
+ *
+ */
+
+REAL PDM_predicate_insphere
+(
+ REAL *pa,
+ REAL *pb,
+ REAL *pc,
+ REAL *pd,
+ REAL *pe
+ )
+{
+  REAL aex, bex, cex, dex;
+  REAL aey, bey, cey, dey;
+  REAL aez, bez, cez, dez;
+  REAL aexbey, bexaey, bexcey, cexbey, cexdey, dexcey, dexaey, aexdey;
+  REAL aexcey, cexaey, bexdey, dexbey;
+  REAL alift, blift, clift, dlift;
+  REAL ab, bc, cd, da, ac, bd;
+  REAL abc, bcd, cda, dab;
+  REAL aezplus, bezplus, cezplus, dezplus;
+  REAL aexbeyplus, bexaeyplus, bexceyplus, cexbeyplus;
+  REAL cexdeyplus, dexceyplus, dexaeyplus, aexdeyplus;
+  REAL aexceyplus, cexaeyplus, bexdeyplus, dexbeyplus;
+  REAL det;
+  REAL permanent, errbound;
+
+  aex = pa[0] - pe[0];
+  bex = pb[0] - pe[0];
+  cex = pc[0] - pe[0];
+  dex = pd[0] - pe[0];
+  aey = pa[1] - pe[1];
+  bey = pb[1] - pe[1];
+  cey = pc[1] - pe[1];
+  dey = pd[1] - pe[1];
+  aez = pa[2] - pe[2];
+  bez = pb[2] - pe[2];
+  cez = pc[2] - pe[2];
+  dez = pd[2] - pe[2];
+
+  aexbey = aex * bey;
+  bexaey = bex * aey;
+  ab = aexbey - bexaey;
+  bexcey = bex * cey;
+  cexbey = cex * bey;
+  bc = bexcey - cexbey;
+  cexdey = cex * dey;
+  dexcey = dex * cey;
+  cd = cexdey - dexcey;
+  dexaey = dex * aey;
+  aexdey = aex * dey;
+  da = dexaey - aexdey;
+
+  aexcey = aex * cey;
+  cexaey = cex * aey;
+  ac = aexcey - cexaey;
+  bexdey = bex * dey;
+  dexbey = dex * bey;
+  bd = bexdey - dexbey;
+
+  abc = aez * bc - bez * ac + cez * ab;
+  bcd = bez * cd - cez * bd + dez * bc;
+  cda = cez * da + dez * ac + aez * cd;
+  dab = dez * ab + aez * bd + bez * da;
+
+  alift = aex * aex + aey * aey + aez * aez;
+  blift = bex * bex + bey * bey + bez * bez;
+  clift = cex * cex + cey * cey + cez * cez;
+  dlift = dex * dex + dey * dey + dez * dez;
+
+  det = (dlift * abc - clift * dab) + (blift * cda - alift * bcd);
+
+  aezplus = Absolute(aez);
+  bezplus = Absolute(bez);
+  cezplus = Absolute(cez);
+  dezplus = Absolute(dez);
+  aexbeyplus = Absolute(aexbey);
+  bexaeyplus = Absolute(bexaey);
+  bexceyplus = Absolute(bexcey);
+  cexbeyplus = Absolute(cexbey);
+  cexdeyplus = Absolute(cexdey);
+  dexceyplus = Absolute(dexcey);
+  dexaeyplus = Absolute(dexaey);
+  aexdeyplus = Absolute(aexdey);
+  aexceyplus = Absolute(aexcey);
+  cexaeyplus = Absolute(cexaey);
+  bexdeyplus = Absolute(bexdey);
+  dexbeyplus = Absolute(dexbey);
+  permanent = ((cexdeyplus + dexceyplus) * bezplus
+               + (dexbeyplus + bexdeyplus) * cezplus
+               + (bexceyplus + cexbeyplus) * dezplus)
+            * alift
+            + ((dexaeyplus + aexdeyplus) * cezplus
+               + (aexceyplus + cexaeyplus) * dezplus
+               + (cexdeyplus + dexceyplus) * aezplus)
+            * blift
+            + ((aexbeyplus + bexaeyplus) * dezplus
+               + (bexdeyplus + dexbeyplus) * aezplus
+               + (dexaeyplus + aexdeyplus) * bezplus)
+            * clift
+            + ((bexceyplus + cexbeyplus) * aezplus
+               + (cexaeyplus + aexceyplus) * bezplus
+               + (aexbeyplus + bexaeyplus) * cezplus)
+            * dlift;
+  errbound = isperrboundA * permanent;
+  if ((det > errbound) || (-det > errbound)) {
+    return -det;
+  }
+
+  return -insphereadapt(pa, pb, pc, pd, pe, permanent);
+}
+
+
+
+/**
+ *
+ * \brief Determine the orientation of triangle ABC.
+ *
+ * This function assumes that all points lie in the z=0 plane.
+ *
+ * \param [in]   pa   Point A
+ * \param [in]   pb   Point B
+ * \param [in]   pc   Point C
+ *
+ * \return Twice the signed area of triangle ABC
+ *
+ */
+
+REAL PDM_predicate_orient2d
+(
+ REAL *pa,
+ REAL *pb,
+ REAL *pc
+ )
+{
+  //return orient2dexact(pa, pb, pc);
+  REAL detleft, detright, det;
+  REAL detsum, errbound;
+
+  detleft = (pa[0] - pc[0]) * (pb[1] - pc[1]);
+  detright = (pa[1] - pc[1]) * (pb[0] - pc[0]);
+  det = detleft - detright;
+
+  if (detleft > 0.0) {
+    if (detright <= 0.0) {
+      return det;
+    } else {
+      detsum = detleft + detright;
+    }
+  } else if (detleft < 0.0) {
+    if (detright >= 0.0) {
+      return det;
+    } else {
+      detsum = -detleft - detright;
+    }
+  } else {
+    return det;
+  }
+
+  errbound = ccwerrboundA * detsum;
+  if ((det >= errbound) || (-det >= errbound)) {
+    return det;
+  }
+
+  return orient2dadapt(pa, pb, pc, detsum);
+}
+
+
+
+/**
+ *
+ * \brief Determine the orientation of tetrahedron ABCD.
+ * *
+ * \param [in]   pa   Point A
+ * \param [in]   pb   Point B
+ * \param [in]   pc   Point C
+ * \param [in]   pd   Point D
+ *
+ * \return Twice the signed volume of tetrahedron ABCD
+ *
+ */
 
 REAL PDM_predicate_orient3d
 (

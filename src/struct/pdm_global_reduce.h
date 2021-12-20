@@ -90,7 +90,7 @@ PDM_global_reduce_free
 
 /**
  *
- * \brief Set absolute number
+ * \brief Set global ids
  *
  * \param [in]   gre           Pointer to global reduction object
  * \param [in]   i_part        Current partition
