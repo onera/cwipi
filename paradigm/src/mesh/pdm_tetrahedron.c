@@ -479,6 +479,14 @@ PDM_tetrahedron_compute_barycenter
 
 
 
+/**
+ * \brief Computes the center and radius of a tetrahedron's circumsphere
+ *
+ * \param [in]   vtx_coord  Tetrahedron vertices coordinates
+ * \param [out]  center     Circumsphere center
+ * \param [out]  radius     Circumsphere radius
+ *
+ */
 
 void
 PDM_tetrahedron_circumsphere
