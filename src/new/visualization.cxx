@@ -230,6 +230,11 @@ namespace cwipi {
     PDM_writer_var_write(_visu_id, id_partitioning_field);
     PDM_writer_var_write(_visu_id, id_ranking_field);
     PDM_writer_var_write(_visu_id, id_blocking_field);
+
+    PDM_writer_var_data_free(_visu_id, id_partitioning_field);
+    PDM_writer_var_data_free(_visu_id, id_ranking_field);
+    PDM_writer_var_data_free(_visu_id, id_blocking_field);
+
   }
 
 /*****************************************/
@@ -361,6 +366,7 @@ namespace cwipi {
   void Visu::fieldDataSet(Field* field, CWP_Field_map_t storage_type, int i_part) {
 
     int id_var = -1;
+    printf("Visu::fieldDataSet PDM_writer : \n");
 
     id_var = field -> visuIdGet();
     void* data = field -> dataGet(i_part, storage_type);
@@ -387,10 +393,11 @@ namespace cwipi {
 
     id_var = field -> visuIdGet();
 
-    for (int i_part =0;i_part<_n_part;i_part++) {
-       fieldDataSet(field, map_type, i_part);
-    }
+    //for (int i_part =0;i_part<_n_part;i_part++) {
+    //   fieldDataSet(field, map_type, i_part);
+    //}
     PDM_writer_var_write(_visu_id, id_var);
+    PDM_writer_var_data_free(_visu_id, id_var);
 
   }
 

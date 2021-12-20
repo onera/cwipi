@@ -476,6 +476,7 @@ namespace cwipi {
       }
 
       if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
+        printf("visu send field\n");
         _visu -> WriterField(referenceField, CWP_FIELD_MAP_SOURCE);
       }
     }
