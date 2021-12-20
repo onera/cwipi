@@ -33,6 +33,7 @@
 #include "pdm_binary_search.h"
 #include "pdm_para_octree.h"
 #include "pdm_gnum.h"
+#include "pdm_sort.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -5055,9 +5056,6 @@ PDM_mesh_location_t        *ml
                              &pts_in_elt_n,
                              (void ***) &(pts_weights_stride));
 
-    if (ml->uvw_to_compute) {
-      _points_in_elements->uvw = malloc (sizeof(double *) * n_part_nodal);
-    }
     _points_in_elements->weights_idx = malloc(sizeof(int *) * n_part_nodal);
     for (int i_part = 0; i_part < n_part_nodal; i_part++) {
       _points_in_elements->weights_idx[i_part] =
@@ -5066,9 +5064,6 @@ PDM_mesh_location_t        *ml
       for (int i = 0; i < _points_in_elements->pts_inside_idx[i_part][n_elt_nodal[i_part]]; i++) {
         _points_in_elements->weights_idx[i_part][i+1] = _points_in_elements->weights_idx[i_part][i] +
                                                         pts_weights_stride[i_part][i];
-      }
-      if (ml->uvw_to_compute) {
-        _points_in_elements->uvw[i_part] = malloc(sizeof(double) * 3 * _points_in_elements->pts_inside_idx[i_part][n_elt_nodal[i_part]]);
       }
       free (pts_in_elt_n[i_part]);
       free (pts_weights_stride[i_part]);
@@ -5141,17 +5136,217 @@ PDM_mesh_location_t        *ml
                              &pts_in_elt_n,
                              (void ***) &(_points_in_elements->weights));
 
+    int elt_n_pts_max    = 0;
+    int elt_n_weight_max = 0;
+
+    for (int i_part = 0; i_part < n_part_nodal; i_part++) {
+      for (int i = 0; i < n_elt_nodal[i_part]; i++) {
+        int elt_i_pt = _points_in_elements->pts_inside_idx[i_part][i];
+
+        int elt_n_pts = _points_in_elements->pts_inside_idx[i_part][i+1] - elt_i_pt;
+
+        elt_n_pts_max = PDM_MAX(elt_n_pts_max, elt_n_pts);
+
+        for (int j = _points_in_elements->pts_inside_idx[i_part][i]; 
+                 j < _points_in_elements->pts_inside_idx[i_part][i+1]; j++) {
+
+          elt_n_weight_max = PDM_MAX (elt_n_weight_max, 
+                                      _points_in_elements->weights_idx[i_part][j+1] -
+                                      _points_in_elements->weights_idx[i_part][j]); 
+        }    
+      }
+    }
+
+    printf("elt_n_weight_max, elt_n_pts_max : %d %d\n", elt_n_weight_max, elt_n_pts_max);
+
+    double *tmp_elt_coords           = malloc (sizeof(double     ) * 3 * elt_n_pts_max);
+    double *tmp_elt_projected_coords = malloc (sizeof(double     ) * 3 * elt_n_pts_max);
+    double *tmp_elt_dist2            = malloc (sizeof(double     ) *     elt_n_pts_max); 
+    int    *tmp_elt_weights_idx      = malloc (sizeof(int        ) *     elt_n_pts_max);
+    double *tmp_elt_weights          = malloc (sizeof(double     ) *     elt_n_weight_max * elt_n_pts_max);
+
+    int    *order                    = malloc (sizeof(int        ) *     elt_n_pts_max);
+
+
+    if (1 == 0) {
+
+      for (int i_part = 0; i_part < n_part_nodal; i_part++) {
+
+        for (int i = 0; i < n_elt_nodal[i_part]; i++) {
+          printf("elt : %d\n", i); 
+
+          int elt_i_pt = _points_in_elements->pts_inside_idx[i_part][i];
+
+          int elt_n_pts = _points_in_elements->pts_inside_idx[i_part][i+1] - elt_i_pt;
+
+          for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
+            printf (" %ld", _points_in_elements->gnum[i_part][j]);
+          }
+          printf("\n");
+    
+          for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
+            printf (" %12.5e  %12.5e  %12.5e /", _points_in_elements->coords[i_part][3*j], _points_in_elements->coords[i_part][3*j+1], _points_in_elements->coords[i_part][3*j+2]);
+          }
+          printf("\n");
+
+          for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
+            printf (" %12.5e  %12.5e  %12.5e /", _points_in_elements->projected_coords[i_part][3*j], _points_in_elements->projected_coords[i_part][3*j+1], _points_in_elements->projected_coords[i_part][3*j+2]);
+          }
+          printf("\n");
+
+          for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
+            printf (" %12.5e", _points_in_elements->dist2[i_part][j]);
+          }
+          printf("\n");
+
+          for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
+            printf (" %d", _points_in_elements->weights_idx[i_part][j]);
+          }
+          printf("\n");
+    
+          for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
+            for (int k = _points_in_elements->weights_idx[i_part][j]; k < _points_in_elements->weights_idx[i_part][j+1]; k++) {
+              printf (" %12.5e", _points_in_elements->weights[i_part][k]);
+            }
+            printf("/");
+          }
+          printf("\n");
+
+        }
+      }
+    }
+
+    for (int i_part = 0; i_part < n_part_nodal; i_part++) {
+
+      int idx1       = 0;
+      int idx_weight = 0;
+
+      for (int i = 0; i < n_elt_nodal[i_part]; i++) {
+
+        int elt_i_pt = _points_in_elements->pts_inside_idx[i_part][i];
+
+        int elt_n_pts = _points_in_elements->pts_inside_idx[i_part][i+1] - elt_i_pt;
+
+        _points_in_elements->pts_inside_idx[i_part][i] = idx1;
+
+        for (int j = 0; j < elt_n_pts; j++) {  
+          order[j] = j;
+        }
+
+        int n_vtx_elt = -1;
+        if (elt_n_pts > 0) {
+          n_vtx_elt = _points_in_elements->weights_idx[i_part][elt_i_pt + 1] - _points_in_elements->weights_idx[i_part][elt_i_pt ];
+        }
+
+        PDM_g_num_t *_elt_gnum             = _points_in_elements->gnum[i_part]             +     elt_i_pt;
+        double      *_elt_coords           = _points_in_elements->coords[i_part]           + 3 * elt_i_pt;
+        double      *_elt_projected_coords = _points_in_elements->projected_coords[i_part] + 3 * elt_i_pt;
+        double      *_elt_dist2            = _points_in_elements->dist2[i_part]            +     elt_i_pt; 
+        int         *_elt_weights_idx      = _points_in_elements->weights_idx[i_part]      +     elt_i_pt;
+        double      *_elt_weights          = _points_in_elements->weights[i_part]          +     _elt_weights_idx[0];
+
+        memcpy (tmp_elt_coords,           _elt_coords,           sizeof(double) * 3 *         elt_n_pts);
+        memcpy (tmp_elt_projected_coords, _elt_projected_coords, sizeof(double) * 3 *         elt_n_pts);
+        memcpy (tmp_elt_dist2,            _elt_dist2,            sizeof(double) *             elt_n_pts);
+        memcpy (tmp_elt_weights_idx,      _elt_weights_idx,      sizeof(int)    *             elt_n_pts);
+        memcpy (tmp_elt_weights,          _elt_weights,          sizeof(double) * n_vtx_elt * elt_n_pts);
+
+        PDM_sort_long (_elt_gnum, order, elt_n_pts);
+
+        PDM_g_num_t pre = -1;
+
+        for (int j = 0; j < elt_n_pts; j++) {
+          if (pre != _elt_gnum[j]) {
+            _points_in_elements->gnum[i_part][idx1]          = _elt_gnum[j];
+            _points_in_elements->dist2[i_part][idx1]         = tmp_elt_dist2[order[j]];
+            _points_in_elements->weights_idx[i_part][idx1+1] = _points_in_elements->weights_idx[i_part][idx1] + n_vtx_elt; 
+            for (int k = 0; k < 3; k++) {
+              _points_in_elements->coords[i_part][3*idx1+k]           = tmp_elt_coords[3*order[j]+k];
+              _points_in_elements->projected_coords[i_part][3*idx1+k] = tmp_elt_projected_coords[3*order[j]+k];
+            }
+
+            for (int k = 0; k < n_vtx_elt; k++) {
+              _points_in_elements->weights[i_part][idx_weight++] = tmp_elt_weights[n_vtx_elt*order[j]+k]; 
+            }
+
+            pre = _elt_gnum[j];
+            idx1++;
+          }
+        }      
+      }
+
+      _points_in_elements->pts_inside_idx[i_part][n_elt_nodal[i_part]] = idx1;
+
+      _points_in_elements->gnum[i_part]             = realloc (_points_in_elements->gnum[i_part], 
+                                                                sizeof(PDM_g_num_t) * _points_in_elements->pts_inside_idx[i_part][n_elt_nodal[i_part]]);
+
+      _points_in_elements->dist2[i_part]            = realloc (_points_in_elements->dist2[i_part], 
+                                                                sizeof(double) * _points_in_elements->pts_inside_idx[i_part][n_elt_nodal[i_part]]);
+
+      _points_in_elements->weights_idx[i_part]      = realloc (_points_in_elements->weights_idx[i_part], 
+                                                                sizeof(int) * (_points_in_elements->pts_inside_idx[i_part][n_elt_nodal[i_part]] + 1)); 
+
+      _points_in_elements->coords[i_part]           = realloc (_points_in_elements->coords[i_part], 
+                                                                sizeof(double) * 3 * _points_in_elements->pts_inside_idx[i_part][n_elt_nodal[i_part]]);
+
+      _points_in_elements->projected_coords[i_part] = realloc (_points_in_elements->projected_coords[i_part], 
+                                                                sizeof(double) * 3 * _points_in_elements->pts_inside_idx[i_part][n_elt_nodal[i_part]]);
+
+      _points_in_elements->weights[i_part]          = realloc (_points_in_elements->weights[i_part], 
+                                                                sizeof(double) * (_points_in_elements->weights_idx[i_part][_points_in_elements->pts_inside_idx[i_part][n_elt_nodal[i_part]]]+1)); 
+
+    }
+
     for (int i_part = 0; i_part < n_part_nodal; i_part++) {
       free (pts_in_elt_n[i_part]);
     }
-    free (pts_in_elt_n);
-    free (block_pts_weights);
 
-    free (block_pts_per_elt_n);
-    free (block_pts_per_elt_n2);
-    free (numabs_nodal);
-    free (n_elt_nodal);
-    PDM_block_to_part_free (btp);
+    if (1 == 0) {
+      for (int i_part = 0; i_part < n_part_nodal; i_part++) {
+
+        for (int i = 0; i < n_elt_nodal[i_part]; i++) {
+          printf("elt : %d\n", i); 
+
+          int elt_i_pt = _points_in_elements->pts_inside_idx[i_part][i];
+
+          int elt_n_pts = _points_in_elements->pts_inside_idx[i_part][i+1] - elt_i_pt;
+
+          for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
+            printf (" %ld", _points_in_elements->gnum[i_part][j]);
+          }
+          printf("\n");
+    
+          for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
+            printf (" %12.5e  %12.5e  %12.5e /", _points_in_elements->coords[i_part][3*j], _points_in_elements->coords[i_part][3*j+1], _points_in_elements->coords[i_part][3*j+2]);
+          }
+          printf("\n");
+
+          for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
+            printf (" %12.5e  %12.5e  %12.5e /", _points_in_elements->projected_coords[i_part][3*j], _points_in_elements->projected_coords[i_part][3*j+1], _points_in_elements->projected_coords[i_part][3*j+2]);
+          }
+          printf("\n");
+
+          for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
+            printf (" %12.5e", _points_in_elements->dist2[i_part][j]);
+          }
+          printf("\n");
+
+          for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
+            printf (" %d", _points_in_elements->weights_idx[i_part][j]);
+          }
+          printf("\n");
+    
+          for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
+            for (int k = _points_in_elements->weights_idx[i_part][j]; k < _points_in_elements->weights_idx[i_part][j+1]; k++) {
+              printf (" %12.5e", _points_in_elements->weights[i_part][k]);
+            }
+            printf("/");
+          }
+          printf("\n");
+
+        }
+      }
+    }
 
 
 
@@ -5175,6 +5370,13 @@ PDM_mesh_location_t        *ml
 
     /* Compute uvw */
     if (ml->uvw_to_compute) {
+
+      _points_in_elements->uvw = malloc (sizeof(double *) * n_part_nodal);
+
+      for (int i_part = 0; i_part < n_part_nodal; i_part++) {
+        _points_in_elements->uvw[i_part] = malloc(sizeof(double) * 3 * _points_in_elements->pts_inside_idx[i_part][n_elt_nodal[i_part]]);
+      }
+
       const double newton_tol = 1.e-6;
 
       // Allocation uvw
@@ -5325,6 +5527,21 @@ PDM_mesh_location_t        *ml
       if (_cell_coords_ijk != _cell_coords) free (_cell_coords_ijk);
       free (_cell_coords);
     }
+
+    free (pts_in_elt_n);
+    free (block_pts_weights);
+
+    free (block_pts_per_elt_n);
+    free (block_pts_per_elt_n2);
+    free (numabs_nodal);
+    free (n_elt_nodal);
+    PDM_block_to_part_free (btp);
+    free (order);
+    free (tmp_elt_coords);
+    free (tmp_elt_projected_coords);
+    free (tmp_elt_dist2);
+    free (tmp_elt_weights_idx);
+    free (tmp_elt_weights);
 
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
