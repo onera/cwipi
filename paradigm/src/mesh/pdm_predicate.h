@@ -164,6 +164,24 @@ extern "C" {
 /* #define INEXACT volatile */
 void PDM_predicate_exactinit (void);
 
+
+/**
+ *
+ * \brief Determine if a point D is inside/out/on the circumcircle of triangle ABC
+ *
+ * This function assumes that all points lie in the z=0 plane.
+ *
+ * \param [in]   pa   Point A
+ * \param [in]   pb   Point B
+ * \param [in]   pc   Point C
+ * \param [in]   pd   Point D
+ *
+ * \return Strictly positive value if D is inside the circumdisk
+ *         Strictly negative value if D is outside the circumdisk
+ *         Zero if D is on the circumcircle
+ *
+ */
+
 REAL PDM_predicate_incircle
 (
  vertex pa,
@@ -171,6 +189,23 @@ REAL PDM_predicate_incircle
  vertex pc,
  vertex pd
  );
+
+
+/**
+ *
+ * \brief Determine if a point E is inside/out/on the circumsphere of tetrahedron ABCD
+ *
+ * \param [in]   pa   Point A
+ * \param [in]   pb   Point B
+ * \param [in]   pc   Point C
+ * \param [in]   pd   Point D
+ * \param [in]   pe   Point E
+ *
+ * \return Strictly positive value if E is inside the circumball
+ *         Strictly negative value if E is outside the circumball
+ *         Zero if E is on the circumsphere
+ *
+ */
 
 REAL PDM_predicate_insphere
 (
@@ -182,12 +217,41 @@ REAL PDM_predicate_insphere
  );
 
 
+/**
+ *
+ * \brief Determine the orientation of triangle ABC.
+ *
+ * This function assumes that all points lie in the z=0 plane.
+ *
+ * \param [in]   pa   Point A
+ * \param [in]   pb   Point B
+ * \param [in]   pc   Point C
+ *
+ * \return Twice the signed area of triangle ABC
+ *
+ */
+
 REAL PDM_predicate_orient2d
 (
  REAL *pa,
  REAL *pb,
  REAL *pc
  );
+
+
+
+/**
+ *
+ * \brief Determine the orientation of tetrahedron ABCD.
+ * *
+ * \param [in]   pa   Point A
+ * \param [in]   pb   Point B
+ * \param [in]   pc   Point C
+ * \param [in]   pd   Point D
+ *
+ * \return Twice the signed volume of tetrahedron ABCD
+ *
+ */
 
 REAL PDM_predicate_orient3d
 (

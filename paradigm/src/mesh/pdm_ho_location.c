@@ -5622,23 +5622,20 @@ _get_user_elt (PDM_Mesh_nodal_elt_t elt_type)
  * Public function definitions
  *============================================================================*/
 
-/*----------------------------------------------------------------------------
+/**
+ * \brief Point location in a high order element
  *
- * Point location in a high order cell
+ * \param [in]   type              Element type
+ * \param [in]   order             Element order
+ * \param [in]   n_nodes           Number of nodes
+ * \param [in]   nodes_coords      Coordinates of the nodes (size = 3 * \ref n_nodes)
+ * \param [in]   point_coords      Coordinates of the point to locate (size = 3)
+ * \param [out]  projected_coords  Coordinates of the projection on the element (size = 3)
+ * \param [out]  uvw               Parametric coordinates of the projection on the element
  *
- * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_nodes          <-- number of nodes
- *   nodes_coords     <-- nodes coordinates (size = 3 * n_nodes)
- *   point_coords     <-- point to locate coordinates (size = 3)
- *   projected_coords --> projected point coordinates (size = 3)
- *   uvw              --> parametric coordinates of the projected point on the element
+ * \return       Distance from the point to the element
  *
- * return:
- *   distance to the cell
- *
- *----------------------------------------------------------------------------*/
+ */
 
 double
 PDM_ho_location

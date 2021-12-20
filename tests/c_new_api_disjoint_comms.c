@@ -19,7 +19,7 @@ create_dcube
     int n_part = 1;
 
     // Create PDM cube mesh
-    PDM_dcube_t *dcube = PDM_dcube_gen_init(pdm_comm, n_vtx_seg, length, xmin, ymin, zmin, PDM_OWNERSHIP_KEEP);
+    PDM_dcube_t *dcube = PDM_dcube_gen_init(pdm_comm, n_vtx_seg, length, xmin, ymin, zmin, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
     // Create mesh partitions
     int d_n_cell, d_n_face, d_n_vertices, s_face_vtx, s_face_group, n_face_group;
@@ -110,6 +110,7 @@ create_dcube
 
     // Free
     PDM_part_free(ppart_id);
+    PDM_dcube_gen_free (dcube);
 }
 
 int main(int argc, char *argv[]) {
@@ -418,6 +419,7 @@ int main(int argc, char *argv[]) {
         CWP_Cpl_del(code_names[i_code], cpl_name);
         printf("%d (%d, %s) --- Coupling deleted\n", rank, intra_comm_rank[i_code], code_names[i_code]);
     }
+
 
     //Finalize cwipi
     CWP_Finalize();

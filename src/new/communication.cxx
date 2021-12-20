@@ -66,11 +66,44 @@ namespace cwipi {
   Communication::~Communication()
   {
 
-    if (_unionComm != MPI_COMM_NULL)
-      MPI_Comm_free(&_unionComm);
+    if (_cplComm != _unionComm) {
+      if (_cplComm != MPI_COMM_NULL) {
+        MPI_Comm_free(&_cplComm);
+        _cplComm = MPI_COMM_NULL;
+      }
 
-    if (_cplComm != MPI_COMM_NULL)
-      MPI_Comm_free(&_cplComm);
+      if (_unionComm != MPI_COMM_NULL) {
+        MPI_Comm_free(&_unionComm);
+      }
+    }
+    else {
+      if (_cplComm != MPI_COMM_NULL) {
+        MPI_Comm_free(&_cplComm);
+        _cplComm = MPI_COMM_NULL;
+      }
+    }
+    
+//    if (_unionGroup != MPI_GROUP_NULL) {
+//      MPI_Group_free(&_unionGroup);
+//    }
+
+
+    if (_unionCommCplRanks != NULL) {
+      delete _unionCommCplRanks;
+    }
+
+    if (_unionCommLocRanks != NULL) {
+      delete _unionCommLocRanks;
+    }
+
+    if (_cplCommCplRanks != NULL) {
+      delete _cplCommCplRanks;
+    }
+
+    if (_cplCommLocRanks != NULL) {
+      delete _cplCommLocRanks;
+    }
+
 
 //    if (_fvmComm != MPI_COMM_NULL)
 //      MPI_Comm_free(&_fvmComm);
@@ -144,6 +177,7 @@ namespace cwipi {
         }
 
         MPI_Comm_create_group(globalComm, _unionGroup, _tag, &_unionComm);
+
 
         int mergeInterCommSize;
 

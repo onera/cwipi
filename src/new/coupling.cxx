@@ -219,11 +219,16 @@ namespace cwipi {
         it++;
     }
 
+    delete &_spatial_interp_send;
+
     it = _spatial_interp_recv.begin();
     while (it != _spatial_interp_recv.end()) {
        delete it -> second;
         it++;
     }
+
+    delete &_spatial_interp_recv;
+
 
     std::map < string, Field * >::iterator itf = _fields.begin();
     while (itf != _fields.end()) {
@@ -233,11 +238,19 @@ namespace cwipi {
       itf++;
     }
 
+    delete &_fields;
+
     if(_visu.isCreated()) {
       // _visu.SpatialInterpFree();
 
       delete _iteration;
     }
+
+//    delete &_visu;
+
+    delete &_communication;
+
+//    delete &_mesh;
 
     if (_userTargetN != nullptr) {
       if (_localUserTargetGnum != nullptr) {
@@ -1254,6 +1267,8 @@ namespace cwipi {
     void* data
   )
   {
+
+    printf("Coupling::fieldDataSet PDM_writer : %s\n", field_id.c_str());
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
     if (It == _fields.end()) {
       PDM_error(__FILE__, __LINE__, 0,

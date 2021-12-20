@@ -76,54 +76,53 @@ typedef enum {
  * Public function prototypes
  *============================================================================*/
 
-/*----------------------------------------------------------------------------
- * Create a structure necessary to the polygon triangulation algorithm.
+/**
+ * \brief Create a structure necessary to the polygon triangulation algorithm
  *
- * parameters:
- *   n_vertices_max    <-- maximum expected number of vertices per polygon.
+ * \param [in]   n_vertices_max  Maximum expected number of vertices per polygon
  *
- * returns:
- *   pointer to polygon triangulation state structure.
- *----------------------------------------------------------------------------*/
+ * \return  Pointer to polygon triangulation state structure
+ *
+ */
 
 PDM_triangulate_state_t *
 PDM_triangulate_state_create(const int  n_vertices_max);
 
-/*----------------------------------------------------------------------------
- * Destroy a structure necessary to the polygon triangulation algorithm.
+
+/**
+ * \brief Destroy a structure necessary to the polygon triangulation algorithm
  *
- * parameters:
- *   this_state  <-> pointer to structure that should be destroyed.
+ * \param [in]   this_state  Pointer to structure that should be destroyed
  *
- * returns:
- *   NULL pointer.
- *----------------------------------------------------------------------------*/
+ * \return  NULL pointer
+ *
+ */
 
 PDM_triangulate_state_t *
 PDM_triangulate_state_destroy(PDM_triangulate_state_t  *this_state);
 
-/*----------------------------------------------------------------------------
- * Triangulate a polygonal face.
+
+/**
+ * \brief Triangulate a polygonal face
  *
  * For a polygon with n vertices, we should obtain a triangluation with
  * (n-2) triangles and (2n-3) edges. If the polygon_vertices argument
  * is NULL, 1, 2, ...,n local numbering is implied.
  *
- * parameters:
- *   dim               <-- spatial dimension (2 or 3).
- *   n_vertices        <-- number of vertices defining the polygon.
- *   coords            <-- coordinates of the triangulation's vertices.
- *   parent_vertex_num <-- optional indirection to vertex coordinates (1 to n).
- *   polygon_vertices  <-- polygon connectivity; size: n_vertices or empty.
- *   mode              <-- triangles connectivity by vertex number or
- *                         polygon vertex index (1 to n).
- *   triangle_vertices --> triangles connectivity;
- *                         size: (n_vertices - 2) * 3.
- *   state             <-> associated triangulation state structure.
+ * \param [in]   dim                Spatial dimension (2 or 3)
+ * \param [in]   n_vertices         Number of vertices defining the polygon
+ * \param [in]   coords             Coordinates of the triangulation's vertices
+ * \param [in]   parent_vertex_num  Optional indirection to vertex coordinates (1 to n)
+ * \param [in]   polygon_vertices   Polygon connectivity; size: n_vertices or empty
+ * \param [in]   mode               Triangles connectivity by vertex number or
+ *                                  polygon vertex index (1 to n)
+ * \param [out]   triangle_vertices Triangles connectivity
+ *                                  (size = (\ref n_vertices - 2) * 3)
+ * \param [in]   state              Associated triangulation state structure
  *
- * returns:
- *   number of resulting triangles.
- *----------------------------------------------------------------------------*/
+ * \return  Number of resulting triangles
+ *
+ */
 
 int
 PDM_triangulate_polygon(int                             dim,
@@ -135,26 +134,24 @@ PDM_triangulate_polygon(int                             dim,
                         PDM_l_num_t                     triangle_vertices[],
                         PDM_triangulate_state_t  *const state);
 
-/*----------------------------------------------------------------------------
- * Triangulate a quadrangle.
+
+/**
+ * \brief Triangulate a quadrangle
  *
  * A convex quadrangle is divided into two triangles along its shortest
  * diagonal. A non-convex quadrangle may only be divided along the diagonal
  * which lies inside the quadrangle.
  *
- * If the quadrangle_vertices argument is NULL, 1, 2, ...,n local numbering
- * is implied.
+ * \param [in]   dim                  Spatial dimension (2 or 3)
+ * \param [in]   coords               Coordinates of the triangulation's vertices
+ * \param [in]   parent_vertex_num    Optional indirection to vertex coordinates (1 to 4)
+ * \param [in]   quadrangle_vertices  Quadrangle connectivity (size = 4 or empty)
+ * \param [out]  triangle_vertices    Triangles connectivity (size = 2 * 3)
+ * \param [in]   state                Associated triangulation state structure
  *
- * parameters:
- *   dim                  <-- spatial dimension (2 or 3).
- *   coords               <-- coordinates of the triangulation's vertices.
- *   parent_vertex_num    <-- optional indirection to vertex coordinates
- *   quadrangle_vertices  <-- polygon connectivity; size: n_vertices or empty.
- *   triangle_vertices    --> triangles connectivity; size: 2 * 3.
+ * \return  Number of resulting triangles
  *
- * returns:
- *   number of resulting triangles.
- *----------------------------------------------------------------------------*/
+ */
 
 int
 PDM_triangulate_quadrangle(int                dim,
@@ -164,6 +161,19 @@ PDM_triangulate_quadrangle(int                dim,
                            PDM_l_num_t        triangle_vertices[]);
 
 
+/**
+ * \brief Tetrahedralize a pyramid
+ *
+ * \param [in]   dim               Spatial dimension (3)
+ * \param [in]   coords            Coordinates of the vertices
+ * \param [in]   parent_vertex_num Optional indirection to vertex coordinates (1 to 5)
+ * \param [in]   pyramid_vertices  Pyramid connectivity (size = 5)
+ * \param [out]  tetra_vertices    Tetrahedra connectivity (size = 2 * 4)
+ *
+ * \return  Number of resulting tetrahedra
+ *
+ */
+
 int
 PDM_triangulate_pyramid (int               dim,
                          const double      coords[],
@@ -171,12 +181,46 @@ PDM_triangulate_pyramid (int               dim,
                          const PDM_l_num_t pyramid_vertices[],
                          PDM_l_num_t       tetra_vertices[]);
 
+
+/**
+ * \brief Tetrahedralize a prism
+ *
+ * A simple look-up table is currently used,
+ * thus no validity check is performed on the tetrahedra.
+ *
+ * \param [in]   dim               Spatial dimension (3) (unused)
+ * \param [in]   coords            Coordinates of the vertices (unused)
+ * \param [in]   parent_vertex_num Optional indirection to vertex coordinates (1 to 6) (unused)
+ * \param [in]   prism_vertices    Prism connectivity (size = 6)
+ * \param [out]  tetra_vertices    Tetrahedra connectivity (size = 3 * 4)
+ *
+ * \return  Number of resulting tetrahedra
+ *
+ */
+
 int
 PDM_triangulate_prism (int               dim,
                        const double      coords[],
                        const PDM_l_num_t parent_vertex_num[],
                        const PDM_l_num_t prism_vertices[],
                        PDM_l_num_t       tetrahedron_vertices[]);
+
+
+/**
+ * \brief Tetrahedralize a hexahedron
+ *
+ * A simple look-up table is currently used,
+ * thus no validity check is performed on the tetrahedra.
+ *
+ * \param [in]   dim               Spatial dimension (3) (unused)
+ * \param [in]   coords            Coordinates of the vertices (unused)
+ * \param [in]   parent_vertex_num Optional indirection to vertex coordinates (1 to 8) (unused)
+ * \param [in]   hexa_vertices     Hexahedron connectivity (size = 8)
+ * \param [out]  tetra_vertices    Tetrahedra connectivity (size = 5 * 4)
+ *
+ * \return  Number of resulting tetrahedra
+ *
+ */
 
 int
 PDM_triangulate_hexahedron (int               dim,

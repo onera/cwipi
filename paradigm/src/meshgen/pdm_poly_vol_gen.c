@@ -17,11 +17,18 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
+/*----------------------------------------------------------------------------
+ *  System headers
+ *----------------------------------------------------------------------------*/
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
+
+/*----------------------------------------------------------------------------
+ *  Local headers
+ *----------------------------------------------------------------------------*/
 
 #include "pdm_poly_vol_gen.h"
 #include "pdm_config.h"
@@ -32,6 +39,15 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 
+
+/*============================================================================
+ * Local macro definitions
+ *============================================================================*/
+
+/*============================================================================
+ * Private function definitions
+ *============================================================================*/
+
 static double _rand (void)
 {
   int sign;
@@ -41,6 +57,45 @@ static double _rand (void)
   double resultat = sign*((double)rand())/((double)RAND_MAX);
   return resultat;
 }
+
+/*=============================================================================
+ * Public function definitions
+ *============================================================================*/
+
+
+/**
+ *
+ * \brief Generate a distributed polyhedral mesh
+ *
+ * \param [in]   pdm_comm         MPI communicator
+ * \param [in]   xmin             Minimum x-coordinate
+ * \param [in]   ymin             Minimum y-coordinate
+ * \param [in]   zmin             Minimum z-coordinate
+ * \param [in]   lengthx          Length in the x-direction
+ * \param [in]   lengthy          Length in the y-direction
+ * \param [in]   lengthz          Length in the z-direction
+ * \param [in]   nx               Number of vertices in the x-direction
+ * \param [in]   ny               Number of vertices in the y-direction
+ * \param [in]   nz               Number of vertices in the z-direction
+ * \param [in]   randomize        Enable/disable randomization
+ * \param [in]   random_seed      Random seed
+ * \param [out]  ng_cell          Global number of cells
+ * \param [out]  ng_face          Global number of faces
+ * \param [out]  ng_vtx           Global number of vertices
+ * \param [out]  n_face_group     Number of face groups
+ * \param [out]  dn_cell          Local number of cells
+ * \param [out]  dn_face          Local number of faces
+ * \param [out]  dn_vtx           Local number of vertices
+ * \param [out]  dcell_face_idx   Index of cell-face connectivity (size = \ref dn_cell + 1)
+ * \param [out]  dcell_face       Distributed cell-face connectivity (size = \ref dcell_face_idx[\ref dn_cell])
+ * \param [out]  dface_cell       Distributed face-cell connectivity (size = 2 * \ref dn_face)
+ * \param [out]  dface_vtx_idx    Index of face-vertex connectivity (size = \ref dn_face + 1)
+ * \param [out]  dface_vtx        Distributed face-vertex connectivity (size = \ref dface_vtx_idx[\ref dn_face])
+ * \param [out]  dvtx_coord       Coordinates of local vertices (size = 3 * \ref dn_vtx)
+ * \param [out]  dface_group_idx  Index of dface_group (size = \ref n_face_group + 1)
+ * \param [out]  dface_group      Distributed lists of faces in each group (size = \ref dface_group_idx[\ref n_face_group])
+ *
+ */
 
 void
 PDM_poly_vol_gen

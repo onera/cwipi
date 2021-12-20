@@ -937,20 +937,98 @@ _bucket_sampling(int                      dim,
   return best_fit;
 }
 
+
+
+
+static int
+_intersect_node_box
+(
+ const int                dim,
+ const PDM_morton_code_t  node,
+ const PDM_morton_code_t  box_min,
+ const PDM_morton_code_t  box_max,
+ int                     *inside
+ )
+{
+  const int DEBUG = 0;
+  *inside = 1;
+
+  assert (box_min.L >= node.L);
+  if (DEBUG) {
+    printf("node: L = %u, X = %u %u %u\n", node.L, node.X[0], node.X[1], node.X[2]);
+  }
+
+  const PDM_morton_int_t level_diff = box_min.L - node.L;
+
+  const PDM_morton_int_t side = 1 << level_diff;
+
+  for (int i = 0; i < dim; i++) {
+    PDM_morton_int_t xmin = side * node.X[i];
+    PDM_morton_int_t xmax = xmin + side;
+
+    if (xmin > box_max.X[i]+1 || xmax < box_min.X[i]) {
+      if (DEBUG) {
+        //printf("\t not intersecting (dim %d, xmin = %u, box_max = %u, box_min = %u, xmax = %u\n", i, xmin, box_max.X[i]+1, box_min.X[i], xmax);
+        double s = 1. / pow(2., box_min.L);
+        printf("\t not intersecting (dim %d, xmin = %f, box_max = %f, box_min = %f, xmax = %f\n", i, xmin*s, (box_max.X[i]+1)*s, box_min.X[i]*s, xmax*s);
+      }
+      return 0;
+    } else if (xmin < box_min.X[i] || xmax > box_max.X[i]+1) {
+      *inside = 0;
+    };
+  }
+
+  if (DEBUG) {
+    printf("\t intersecting\n");
+  }
+
+  return 1;
+}
+
+
+inline static double
+_min_dist2
+(
+ const int               dim,
+ const PDM_morton_code_t node,
+ const double            point[],
+ const double            d[]
+ )
+{
+  double min_dist2 = 0.;
+  double delta, xmin, xmax;
+  double side = 1. / ((double) (1 << node.L));
+
+  for (int i = 0; i < dim; i++) {
+    xmin = side * node.X[i];
+    xmax = xmin + side;
+
+    if (point[i] > xmax) {
+      delta = d[i] * (point[i] - xmax);
+      min_dist2 += delta * delta;
+    } else if (point[i] < xmin) {
+      delta = d[i] * (point[i] - xmin);
+      min_dist2 += delta * delta;
+    }
+  }
+
+  return min_dist2;
+}
+
 /*============================================================================
  * Public function definitions
  *============================================================================*/
 
-/*----------------------------------------------------------------------------
- * Determine the global extents associated with a set of coordinates
+/**
+ * \brief Determine the global extents associated with a set of coordinates
  *
- * parameters:
- *   dim       <-- spatial dimension
- *   n_coords  <-- local number of coordinates
- *   coords    <-- entity coordinates; size: n_entities*dim (interlaced)
- *   g_extents --> global extents (size: dim*2)
- *   comm      <-- associated MPI communicator
- *---------------------------------------------------------------------------*/
+ * \param [in]   dim        Spatial dimension
+ * \param [in]   n_coords   Local number of coordinates
+ * \param [in]   coords     Coordinates, interleaved (size = \ref dim * \ref n_coords)
+ * \param [out]  g_extents  Global extents (size = 2 * \ref dim)
+ * \param [in]   comm       Associated MPI communicator
+ *
+ */
 
 void
 PDM_morton_get_coord_extents(int          dim,
@@ -982,16 +1060,18 @@ PDM_morton_get_coord_extents(int          dim,
 
 }
 
-/*----------------------------------------------------------------------------
- * Determine the global extents associated with a set of local extents
+
+
+/**
+ * \brief Determine the global extents associated with a set of local extents
  *
- * parameters:
- *   dim       <-- spatial dimension
- *   n_extents <-- local number of coordinates
- *   extents   <-- entity coordinates; size: n_entities*dim*2 (interlaced)
- *   g_extents --> global extents (size: dim*2)
- *   comm      <-- associated MPI communicator
- *---------------------------------------------------------------------------*/
+ * \param [in]   dim        Spatial dimension
+ * \param [in]   n_extents  Local number of extents
+ * \param [in]   extents    Local extents (size = 2 * \ref dim * \ref n_extents)
+ * \param [out]  g_extents  Global extents (size = 2 * \ref dim)
+ * \param [in]   comm       Associated MPI communicator
+ *
+ */
 
 void
 PDM_morton_get_global_extents(int           dim,
@@ -1023,18 +1103,18 @@ PDM_morton_get_global_extents(int           dim,
 
 }
 
-/*----------------------------------------------------------------------------
- * Build a Morton code according to the level in an octree grid and its
- * coordinates in the grid.
+
+
+/**
+ * \brief Build a Morton code according to the level in an octree grid and its coordinates in the grid.
  *
- * parameters:
- *   dim    <-- 1D, 2D or 3D
- *   level  <-- level in the grid
- *   coords <-- coordinates in the grid (normalized)
+ * \param [in]   dim        Spatial dimension (1, 2 or 3)
+ * \param [in]   level      Level in the grid
+ * \param [in]   coords     Coordinates in the grid (normalized) (size = \ref dim)
  *
- * returns:
- *  a Morton code
- *----------------------------------------------------------------------------*/
+ * \return                  a Morton code
+ *
+ */
 
 PDM_morton_code_t
 PDM_morton_encode(int               dim,
@@ -1059,22 +1139,24 @@ PDM_morton_encode(int               dim,
   return morton_code;
 }
 
-/*----------------------------------------------------------------------------
- * Encode an array of coordinates.
+
+
+/**
+ * \brief Encode an array of coordinates.
  *
  * The caller is responsible for freeing the returned array once it is
  * no longer useful.
  *
- * parameters:
- *   dim      <-- 1D, 2D or 3D
- *   level    <-- level in the grid
- *   extents  <-- coordinate extents for normalization (size: dim*2)
- *   n_coords <-- nomber of coordinates in array
- *   coords   <-- coordinates in the grid (interlaced, not normalized)
- *   m_code   --> array of corresponding Morton codes
- *   d        --> Normalization (dilatation component)
- *   s        --> Normalization (translation component)
- *----------------------------------------------------------------------------*/
+ * \param [in]   dim        Spatial dimension (1, 2 or 3)
+ * \param [in]   level      Level in the grid
+ * \param [in]   extents    Coordinate extents for normalization (size = 2 * \ref dim)
+ * \param [in]   n_coords   Local number of coordinates
+ * \param [in]   coords     Coordinates, interleaved (size = \ref dim * \ref n_coords)
+ * \param [out]  m_code     Array of corresponding Morton codes (size = \ref n_coords)
+ * \param [out]  d          Normalization vector (dilatation component)
+ * \param [out]  s          Normalization vector (translation component)
+ *
+ */
 
 void
 PDM_morton_encode_coords(int                dim,
@@ -1142,16 +1224,19 @@ PDM_morton_encode_coords(int                dim,
   }
 }
 
-/*----------------------------------------------------------------------------
+
+
+/**
+ * \brief Compute the Morton codes of the children of a node
+ *
  * Given a Morton code in the grid, compute the Morton codes of its
  * children when refining the grid by one level.
  *
- * parameters:
- *   dim      <-- 1D, 2D or 3D
- *   parent   <-- Morton code associated with parent
- *   children --> array of children Morton codes
- *                (size: 8 in 3D, 4 in 2D, 2 in 1D)
- *----------------------------------------------------------------------------*/
+ * \param [in]   dim        Spatial dimension (1, 2 or 3)
+ * \param [in]   parent     Morton code associated with the parent
+ * \param [out]  children   Array of children Morton codes (size = 2^\ref dim)
+ *
+ */
 
 void
 PDM_morton_get_children(int                dim,
@@ -1202,14 +1287,16 @@ PDM_morton_get_children(int                dim,
   }
 }
 
-/*----------------------------------------------------------------------------
- * Locally order a list of Morton ids.
+
+
+/**
+ * \brief Get local order in a list of Morton codes
  *
- * parameters:
- *   n_codes      <-- number of Morton ids to order
- *   morton_codes <-- array of Morton ids to order
- *   order        --> pointer to pre-allocated ordering table
- *----------------------------------------------------------------------------*/
+ * \param [in]   n_codes       Number of Morton codes to order
+ * \param [in]   morton_codes  Array of Morton codes to order
+ * \param [out]  order         Pointer to pre-allocated ordering table
+ *
+ */
 
 void
 PDM_morton_local_order(int                     n_codes,
@@ -1254,13 +1341,15 @@ PDM_morton_local_order(int                     n_codes,
 #endif
 }
 
-/*----------------------------------------------------------------------------
- * Locally sort a list of Morton ids.
+
+
+/**
+ * \brief Sort a local list of Morton codes
  *
- * parameters:
- *   n_codes      <-- number of Morton ids to order
- *   morton_codes <-> array of Morton ids to sort
- *----------------------------------------------------------------------------*/
+ * \param [in]     n_codes       Number of Morton codes to sort
+ * \param [in,out] morton_codes  Array of Morton codes to sort
+ *
+ */
 
 void
 PDM_morton_local_sort(int               n_codes,
@@ -1299,18 +1388,21 @@ PDM_morton_local_sort(int               n_codes,
 
 }
 
-/*----------------------------------------------------------------------------
- * Compare two Morton encodings and check if these two codes are equal,
+
+
+/**
+ * \brief Compare two Morton codes
+ *
+ * Compare two Morton encoding and check if these two codes are equal,
  * different or shared the same anchor.
  *
- * parameters:
- *   dim    <--  2D or 3D
- *   code_a <--  first Morton code to compare
- *   code_b <--  second Morton code to compare
+ * \param [in]   dim        Spatial dimension (2 or 3)
+ * \param [in]   code_a     First Morton code to compare
+ * \param [in]   code_b     Second Morton code to compare
  *
- * returns:
- *  a type on the kind of relation between the two Morton encodings.
- *----------------------------------------------------------------------------*/
+ * \return                  A type on the kind of relation between the two Morton codes.
+ *
+ */
 
 PDM_morton_compare_t
 PDM_morton_compare(int                dim,
@@ -1355,14 +1447,15 @@ PDM_morton_compare(int                dim,
 
 }
 
-/*----------------------------------------------------------------------------
- * Copy the code a into the code b
+
+
+/**
+ * \brief Copy Morton code "a" into Morton code "b"
  *
- * parameters:
- *   code_a <-- code a
- *   code_b <-> copy of the code a into the code b
+ * \param [in]   a     Morton code to copy
+ * \param [out]  b     Morton code receiving the copy
  *
- *----------------------------------------------------------------------------*/
+ */
 
 void
 PDM_morton_copy (PDM_morton_code_t  a,
@@ -1374,15 +1467,16 @@ PDM_morton_copy (PDM_morton_code_t  a,
   }
 }
 
-/*----------------------------------------------------------------------------
- * Get the nearest common ancestor between two codes
+
+
+/**
+ * \brief Get the nearest common ancestor of two Morton codes
  *
- * parameters:
- *   a <-- code a
- *   b <-- code b
- *   c <-> Nearest common ancestor between a and b
+ * \param [in]   code_a     First Morton code
+ * \param [in]   code_b     Second Morton code
+ * \param [out]  c          Nearest common ancestor of the two codes
  *
- *----------------------------------------------------------------------------*/
+ */
 
 void
 PDM_morton_nearest_common_ancestor (PDM_morton_code_t  code_a,
@@ -1425,16 +1519,17 @@ PDM_morton_nearest_common_ancestor (PDM_morton_code_t  code_a,
 
 }
 
-/*----------------------------------------------------------------------------
- * Test if Morton code "a" is greater than Morton code "b"
+
+
+/**
+ * \brief Test if Morton code "a" is greater than Morton code "b"
  *
- * parameters:
- *   code_a <-- first Morton code to compare
- *   code_b <-- second Morton code to compare
+ * \param [in]   a     First Morton code to compare
+ * \param [in]   b     Second Morton code to compare
  *
- * returns:
- *  true or false
- *----------------------------------------------------------------------------*/
+ * \return             True or false
+ *
+ */
 
 _Bool
 PDM_morton_a_gt_b(PDM_morton_code_t  a,
@@ -1443,16 +1538,18 @@ PDM_morton_a_gt_b(PDM_morton_code_t  a,
   return  _a_gt_b(a, b);
 }
 
-/*----------------------------------------------------------------------------
- * Test if Morton code "a" is greater than Morton code "b" (compare anchors)
+
+
+
+/**
+ * \brief Test if Morton code "a" is greater than Morton code "b" (compare \em anchors)
  *
- * parameters:
- *   code_a <-- first Morton code to compare
- *   code_b <-- second Morton code to compare
+ * \param [in]   a     First Morton code to compare
+ * \param [in]   b     Second Morton code to compare
  *
- * returns:
- *  true or false
- *----------------------------------------------------------------------------*/
+ * \return             True or false
+ *
+ */
 
 _Bool
 PDM_morton_a_gtmin_b(PDM_morton_code_t  a,
@@ -1461,16 +1558,17 @@ PDM_morton_a_gtmin_b(PDM_morton_code_t  a,
   return  _a_gtmin_b(a, b);
 }
 
-/*----------------------------------------------------------------------------
- * Test if Morton code "a" is greater or equal to Morton code "b"
+
+
+/**
+ * \brief Test if Morton code "a" is greater than or equal to Morton code "b"
  *
- * parameters:
- *   code_a <-- first Morton code to compare
- *   code_b <-- second Morton code to compare
+ * \param [in]   a     First Morton code to compare
+ * \param [in]   b     Second Morton code to compare
  *
- * returns:
- *  true or false
- *----------------------------------------------------------------------------*/
+ * \return             True or false
+ *
+ */
 
 _Bool
 PDM_morton_a_ge_b(PDM_morton_code_t  a,
@@ -1480,17 +1578,16 @@ PDM_morton_a_ge_b(PDM_morton_code_t  a,
 }
 
 
-/*----------------------------------------------------------------------------
- * Test if Morton code "a" is equal to Morton code "b" to the
- * level = max (level a, level b)
+
+/**
+ * \brief Test if Morton code "a" is equal to Morton code "b" at the level = max (level a , level b)
  *
- * parameters:
- *   code_a <-- first Morton code to compare
- *   code_b <-- second Morton code to compare
+ * \param [in]   a     First Morton code to compare
+ * \param [in]   b     Second Morton code to compare
  *
- * returns:
- *  true or false
- *----------------------------------------------------------------------------*/
+ * \return             True or false
+ *
+ */
 
 _Bool
 PDM_morton_a_eq_b(PDM_morton_code_t  a,
@@ -1499,14 +1596,15 @@ PDM_morton_a_eq_b(PDM_morton_code_t  a,
   return  _a_eq_b (a, b);
 }
 
-/*----------------------------------------------------------------------------
- * Assigne a level to Morton code
+
+
+/**
+ * \brief Assign a level to a Morton code
  *
- * parameters:
- *   code <-- Morton code
- *   l    <-- Level to assign
+ * \param [in,out]  a     Morton code
+ * \param [in]      l     Level to assign
  *
- *----------------------------------------------------------------------------*/
+ */
 
 void
 PDM_morton_assign_level (PDM_morton_code_t  *code,
@@ -1531,19 +1629,18 @@ PDM_morton_assign_level (PDM_morton_code_t  *code,
 
 }
 
-/*----------------------------------------------------------------------------
- * Get the index associated to a Morton code using a binary search.
+
+
+/**
+ * \brief Get the id associated to a Morton code in an array using a binary search.
  *
- * No check is done to ensure that the code is present in the array.
+ * \param [in]  size   Size of the array
+ * \param [in]  code   Morton code we are searching for
+ * \param [in]  codes  Array of Morton codes
  *
- * parameters:
- *   size  <-- size of the array
- *   code  <-- code we are searching for
- *   codes <-- array of Morton codes
+ * \return             Id associated to the given code in the codes array.
  *
- * returns:
- *   id associated to the given code in the codes array.
- *----------------------------------------------------------------------------*/
+ */
 
 int
 PDM_morton_binary_search(int                size,
@@ -1570,19 +1667,20 @@ PDM_morton_binary_search(int                size,
   return start;
 }
 
-/*----------------------------------------------------------------------------
- * Get the quantile associated to a Morton code using a binary search.
+
+
+/**
+ * \brief Get the quantile associated to a Morton code using a binary search.
  *
  * No check is done to ensure that the code is present in the quantiles.
  *
- * parameters:
- *   n_quantiles    <-- number of quantiles
- *   code           <-- code we are searching for
- *   quantile_start <-- first Morton code in each quantile (size: n_quantiles)
+ * \param [in]  n_quantiles     Number of quantiles
+ * \param [in]  code            Morton code we are searching for
+ * \param [in]  quantile_start  First Morton code in each quantile (size = \ref n_quantiles)
  *
- * returns:
- *   id associated to the given code in the codes array.
- *----------------------------------------------------------------------------*/
+ * \return                      Quantile associated to the given code in the codes array.
+ *
+ */
 
 size_t
 PDM_morton_quantile_search(size_t             n_quantiles,
@@ -1615,19 +1713,20 @@ PDM_morton_quantile_search(size_t             n_quantiles,
   return start_id;
 }
 
-/*----------------------------------------------------------------------------
- * Get the intersected quantiles associated to a Morton code using a binary search.
+
+
+/**
+ * \brief Get the quantiles intersected by a Morton code using a binary search.
  *
  * No check is done to ensure that the code is present in the quantiles.
  *
- * parameters:
- *   n_quantiles    <-- number of quantiles
- *   code           <-- code we are searching for
- *   quantile_start <-- first Morton code in each quantile (size: n_quantiles)
- *   n_intersect    <-> number of intersections with quantiles
- *   intersect      <-> list intersected quantiles (size : n_quantiles)
+ * \param [in]  n_quantiles     Number of quantiles
+ * \param [in]  code            Morton code we are searching for
+ * \param [in]  quantile_start  First Morton code in each quantile (size = \ref n_quantiles)
+ * \param [out] n_intersect     Number of intersected quantiles
+ * \param [out] intersect       Intersected quantiles (size = \ref n_quantiles)
  *
- *----------------------------------------------------------------------------*/
+ */
 
 void
 PDM_morton_quantile_intersect(size_t             n_quantiles,
@@ -1677,25 +1776,24 @@ PDM_morton_quantile_intersect(size_t             n_quantiles,
 }
 
 
-/*----------------------------------------------------------------------------
- * Get, within a sorted list of Morton codes, the sublist of elements
- * that intersect a Morton code, using a binary search.
+
+/**
+ * \brief Get the Morton codes intersected by a given Morton code using a binary search.
  *
- * No check is done to ensure that the code is present in the quantiles.
+ * The array of Morton codes \emph must be sorted in ascending order.
  *
- * parameters:
- *   n_quantiles    <-- number of quantiles
- *   code           <-- code we are searching for
- *   quantile_start <-- first Morton code in each quantile (size: n_quantiles)
- *   n_intersect    <-> number of intersections with quantiles
- *   intersect      <-> list intersected quantiles (size : n_quantiles)
+ * \param [in]  n_codes       Number of codes
+ * \param [in]  code          Morton code we are searching for
+ * \param [in]  codes         First Morton code in each code (size = \ref n_codes)
+ * \param [out] start         Id of the first intersected Morton code
+ * \param [out] end           Id of the last intersected Morton code + 1
  *
- *----------------------------------------------------------------------------*/
+ */
 
 void
 PDM_morton_list_intersect(size_t             n_quantiles,
                           PDM_morton_code_t  code,
-                          PDM_morton_code_t *quantile_start,
+                          PDM_morton_code_t *codes,
                           size_t            *start,
                           size_t            *end)
 {
@@ -1707,7 +1805,7 @@ PDM_morton_list_intersect(size_t             n_quantiles,
 
   while (start_id + 1 < end_id) {
     mid_id = start_id + ((end_id -start_id) / 2);
-    if (_a_gt_b(code, quantile_start[mid_id]))
+    if (_a_gt_b(code, codes[mid_id]))
       start_id = mid_id;
     else
       end_id = mid_id;
@@ -1715,15 +1813,15 @@ PDM_morton_list_intersect(size_t             n_quantiles,
 
   int start_id_save = start_id;
 
-  if (PDM_morton_ancestor_is (code, quantile_start[start_id]) ||
-      PDM_morton_ancestor_is (quantile_start[start_id], code)) {
+  if (PDM_morton_ancestor_is (code, codes[start_id]) ||
+      PDM_morton_ancestor_is (codes[start_id], code)) {
     // quantile #start_id_save does intersect
     // Place start_id to the leftmost duplicate of quantile #start_id_save
     while (start_id > 0
-           && quantile_start[start_id_save].L == quantile_start[start_id-1].L
-           && quantile_start[start_id_save].X[0] == quantile_start[start_id-1].X[0]
-           && quantile_start[start_id_save].X[1] == quantile_start[start_id-1].X[1]
-           && quantile_start[start_id_save].X[2] == quantile_start[start_id-1].X[2]) {
+           && codes[start_id_save].L    == codes[start_id-1].L
+           && codes[start_id_save].X[0] == codes[start_id-1].X[0]
+           && codes[start_id_save].X[1] == codes[start_id-1].X[1]
+           && codes[start_id_save].X[2] == codes[start_id-1].X[2]) {
       --start_id;
     }
   } else {
@@ -1731,10 +1829,10 @@ PDM_morton_list_intersect(size_t             n_quantiles,
     // Place start_id to the rightmost duplicate of quantile #start_id_save
     start_id++;
     while (start_id < n_quantiles-1
-           && quantile_start[start_id_save].L == quantile_start[start_id+1].L
-           && quantile_start[start_id_save].X[0] == quantile_start[start_id+1].X[0]
-           && quantile_start[start_id_save].X[1] == quantile_start[start_id+1].X[1]
-           && quantile_start[start_id_save].X[2] == quantile_start[start_id+1].X[2]) {
+           && codes[start_id_save].L    == codes[start_id+1].L
+           && codes[start_id_save].X[0] == codes[start_id+1].X[0]
+           && codes[start_id_save].X[1] == codes[start_id+1].X[1]
+           && codes[start_id_save].X[2] == codes[start_id+1].X[2]) {
       ++start_id;
     }
   }
@@ -1742,8 +1840,8 @@ PDM_morton_list_intersect(size_t             n_quantiles,
   // Sweep right
   end_id = start_id;
   while (end_id < n_quantiles
-         && (PDM_morton_ancestor_is (code, quantile_start[end_id]) ||
-             PDM_morton_ancestor_is (quantile_start[end_id], code))) {
+         && (PDM_morton_ancestor_is (code, codes[end_id]) ||
+             PDM_morton_ancestor_is (codes[end_id], code))) {
     end_id++;
   }
 
@@ -1752,21 +1850,21 @@ PDM_morton_list_intersect(size_t             n_quantiles,
 }
 
 
-/*----------------------------------------------------------------------------
- * Build a global Morton encoding rank index from ordered codes
+
+/**
+ * \brief Build a global Morton encoding rank index from sorted Morton codes
  *
- * The rank_index[i] contains the first Morton code assigned to rank [i].
+ * The rank_index[i] contains the first Morton code assigned to rank i.
  *
- * parameters:
- *   dim         <-- 1D, 2D or 3D
- *   gmax_level  <-- level in octree used to build the Morton encoding
- *   n_codes     <-- number of Morton codes to be indexed
- *   orderer_code<-- array of Morton codes to be indexed
- *   weight      <-- weighting related to each code
- *   rank_index  <-> pointer to the global Morton encoding rank index
- *   comm        <-- MPI communicator on which we build the global index
+ * \param [in]  dim           Spatial dimension (1, 2 or 3)
+ * \param [in]  gmax_level    Level in octree used to build the Morton encoding
+ * \param [in]  n_codes       Number of Morton codes to be indexed
+ * \param [in]  ordered_code  Array of Morton codes to be indexed (size = \ref n_codes)
+ * \param [in]  weight        Weight associated to each Morton code (size = \ref n_codes)
+ * \param [out] rank_index    Pointer to the global Morton encoding rank index (size = n_rank + 1)
+ * \param [in]  comm          MPI communicator on which we build the global index
  *
- *----------------------------------------------------------------------------*/
+ */
 
 void
 PDM_morton_ordered_build_rank_index
@@ -2033,24 +2131,22 @@ PDM_morton_ordered_build_rank_index
 }
 
 
-/*----------------------------------------------------------------------------
- * Build a global Morton encoding rank index.
+
+/**
+ * \brief Build a global Morton encoding rank index
  *
- * The rank_index[i] contains the first Morton code assigned to rank [i].
+ * The rank_index[i] contains the first Morton code assigned to rank i.
  *
- * parameters:
- *   dim         <-- 1D, 2D or 3D
- *   gmax_level  <-- level in octree used to build the Morton encoding
- *   n_codes     <-- number of Morton codes to be indexed
- *   morton_code <-- array of Morton codes to be indexed
- *   weight      <-- weighting related to each code
- *   order       <-- ordering array
- *   rank_index  <-> pointer to the global Morton encoding rank index
- *   comm        <-- MPI communicator on which we build the global index
+ * \param [in]  dim           Spatial dimension (1, 2 or 3)
+ * \param [in]  gmax_level    Level in octree used to build the Morton encoding
+ * \param [in]  n_codes       Number of Morton codes to be indexed
+ * \param [in]  ordered_code  Array of Morton codes to be indexed (size = \ref n_codes)
+ * \param [in]  weight        Weight associated to each Morton code (size = \ref n_codes)
+ * \param [in]  order         Ordering array (size = \ref n_codes)
+ * \param [out] rank_index    Pointer to the global Morton encoding rank index (size = n_rank + 1)
+ * \param [in]  comm          MPI communicator on which we build the global index
  *
- * returns:
- *  the fit related to the Morton encoding distribution (lower is better).
- *----------------------------------------------------------------------------*/
+ */
 
 double
 PDM_morton_build_rank_index(int                     dim,
@@ -2120,13 +2216,15 @@ PDM_morton_build_rank_index(int                     dim,
   return best_fit;
 }
 
-/*----------------------------------------------------------------------------
- * Dump a Morton to standard output or to a file.
+
+
+/**
+ * \brief Dump a Morton to standard output or to a file
  *
- * parameters:
- *   dim  <-- 2D or 3D
- *   code <-- Morton code to dump
- *----------------------------------------------------------------------------*/
+ * \param [in]  dim           Spatial dimension (2 or 3)
+ * \param [in]  code          Morton code to dump
+ *
+ */
 
 void
 PDM_morton_dump(int                dim,
@@ -2157,16 +2255,17 @@ PDM_morton_dump(int                dim,
   fflush(stdout);
 }
 
-/*----------------------------------------------------------------------------
- * Is 'a' an ancestor of 'b' ?
+
+
+/**
+ * \brief Test if Morton code 'a' is an ancestor of Morton code 'b'
  *
- * parameters:
- *   a <-- code a
- *   b <-- code b
+ * \param [in]   a     First Morton code
+ * \param [in]   b     Second Morton code
  *
- * return True if a is an ancestor of b
+ * \return             True or false
  *
- *----------------------------------------------------------------------------*/
+ */
 
 _Bool
 PDM_morton_ancestor_is (PDM_morton_code_t  a,
@@ -2188,51 +2287,28 @@ PDM_morton_ancestor_is (PDM_morton_code_t  a,
 
 
 
-static int
-_intersect_node_box
-(
- const int                dim,
- const PDM_morton_code_t  node,
- const PDM_morton_code_t  box_min,
- const PDM_morton_code_t  box_max,
- int                     *inside
- )
-{
-  const int DEBUG = 0;
-  *inside = 1;
 
-  assert (box_min.L >= node.L);
-  if (DEBUG) {
-    printf("node: L = %u, X = %u %u %u\n", node.L, node.X[0], node.X[1], node.X[2]);
-  }
 
-  const PDM_morton_int_t level_diff = box_min.L - node.L;
 
-  const PDM_morton_int_t side = 1 << level_diff;
 
-  for (int i = 0; i < dim; i++) {
-    PDM_morton_int_t xmin = side * node.X[i];
-    PDM_morton_int_t xmax = xmin + side;
-
-    if (xmin > box_max.X[i]+1 || xmax < box_min.X[i]) {
-      if (DEBUG) {
-        //printf("\t not intersecting (dim %d, xmin = %u, box_max = %u, box_min = %u, xmax = %u\n", i, xmin, box_max.X[i]+1, box_min.X[i], xmax);
-        double s = 1. / pow(2., box_min.L);
-        printf("\t not intersecting (dim %d, xmin = %f, box_max = %f, box_min = %f, xmax = %f\n", i, xmin*s, (box_max.X[i]+1)*s, box_min.X[i]*s, xmax*s);
-      }
-      return 0;
-    } else if (xmin < box_min.X[i] || xmax > box_max.X[i]+1) {
-      *inside = 0;
-    };
-  }
-
-  if (DEBUG) {
-    printf("\t intersecting\n");
-  }
-
-  return 1;
-}
-
+/**
+ * \brief Intersect a box with an array of sorted Morton codes
+ *
+ * A recursive top-down approach is used, starting from the deepest common
+ * ancestor of all the Morton codes in the array.
+ *
+ * \param [in]     dim           Spatial dimension
+ * \param [in]     node          Morton code of current node
+ * \param [in]     box_min       Morton code of the box's lower corner
+ * \param [in]     box_max       Morton code of the box's upper corner
+ * \param [in]     nodes         Array of Morton codes
+ * \param [in]     n_points      Number of points stored inside each node
+ * \param [in]     start         Id of the first descendant of the current node
+ * \param [in]     end           Id of the last descendant of the current node + 1
+ * \param [in,out] n_intersect   Number of intersected nodes
+ * \param [in,out] intersect     Intersected nodes
+ *
+ */
 
 const size_t N_BRUTE_FORCE = 10;
 void
@@ -2394,36 +2470,28 @@ PDM_morton_intersect_box
 
 
 
-inline static double
-_min_dist2
-(
- const int               dim,
- const PDM_morton_code_t node,
- const double            point[],
- const double            d[]
- )
-{
-  double min_dist2 = 0.;
-  double delta, xmin, xmax;
-  double side = 1. / ((double) (1 << node.L));
-
-  for (int i = 0; i < dim; i++) {
-    xmin = side * node.X[i];
-    xmax = xmin + side;
-
-    if (point[i] > xmax) {
-      delta = d[i] * (point[i] - xmax);
-      min_dist2 += delta * delta;
-    } else if (point[i] < xmin) {
-      delta = d[i] * (point[i] - xmin);
-      min_dist2 += delta * delta;
-    }
-  }
-
-  return min_dist2;
-}
 
 
+
+
+/**
+ * \brief Get the closest node (described by Morton codes) of a given point.
+ *
+ * A recursive top-down approach is used, starting from the deepest common
+ * ancestor of all the Morton codes in the array.
+ * (NOT USED ANYMORE)
+ *
+ * \param [in]     dim            Spatial dimension
+ * \param [in]     node           Morton code of current node
+ * \param [in]     nodes          Array of Morton codes
+ * \param [in]     point          Coordinates of the point
+ * \param [in]     d              Normalization vector (dilatation component)
+ * \param [in]     start          Id of the first descendant of the current node
+ * \param [in]     end            Id of the last descendant of the current node + 1
+ * \param [in,out] closest_node   Id of the closest node
+ * \param [in,out] closest_dist2  Squared distance between the point and the closest node
+ *
+ */
 
 void
 PDM_morton_closest_node

@@ -37,6 +37,29 @@ namespace cwipi {
   )
   {
 
+    for (int i = 0; i < _nPart; i++) {
+      if (_tgt_distance[i] != NULL) {
+        free (_tgt_distance[i]);
+      }
+      if (_tgt_projected[i] != NULL) {
+        free (_tgt_projected[i]);
+      }
+      if (_tgt_closest_elt_gnum[i] != NULL) {
+        free (_tgt_closest_elt_gnum[i]);
+      }
+
+      if (_elt_pts_inside_idx[i] != NULL) {
+        free (_elt_pts_inside_idx[i]);
+        free (_points_gnum[i]);
+        free (_points_coords[i]);
+        free (_points_dist2[i]);
+        free (_points_projected_coords[i]);
+      }
+
+      if (_points_uvw[i] != NULL) {
+        free (_points_uvw[i]);
+      }      
+    }
     delete[] _tgt_distance;
     delete[] _tgt_projected;
     delete[] _tgt_closest_elt_gnum;
@@ -414,6 +437,7 @@ namespace cwipi {
   **                                                       **
   ***********************************************************
   **********************************************************/
+
   void SpatialInterpLocation::localization_init()
   {
     PDM_error(__FILE__, __LINE__, 0, "Unknown location method.\n");

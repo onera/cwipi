@@ -60,17 +60,32 @@ namespace cwipi {
     }
 
     delete[] _n_elt_weights;
+    delete[] _n_computed_tgt;
+    delete[] _n_uncomputed_tgt;
+    delete[] _src_n_gnum;
+    delete[] _tgt_n_gnum;
+
+    for (int i = 0; i < _nPart; i++) {
+      if (_weights_idx[i] != NULL) {
+        free (_weights_idx[i]);
+      }
+      if (_weights[i] != NULL) {
+        free (_weights[i]);
+      }
+      if (_computed_tgt[i] != NULL) {
+        free (_computed_tgt[i]);
+      }
+      if (_uncomputed_tgt[i] != NULL) {
+        free (_uncomputed_tgt[i]);
+      }
+    }
     delete[] _weights_idx;
     delete[] _weights;
 
-    delete[] _n_computed_tgt;
     delete[] _computed_tgt;
 
-    delete[] _n_uncomputed_tgt;
     delete[] _uncomputed_tgt;
 
-    delete[] _src_n_gnum;
-    delete[] _tgt_n_gnum;
     delete[] _src_gnum;
     delete[] _tgt_gnum;
   }
@@ -461,6 +476,7 @@ namespace cwipi {
       }
 
       if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
+        printf("visu send field\n");
         _visu -> WriterField(referenceField, CWP_FIELD_MAP_SOURCE);
       }
     }

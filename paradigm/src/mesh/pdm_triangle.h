@@ -81,10 +81,9 @@ PDM_triangle_evaluate_position
 
 
 /**
- * \brief Computes polygon barycenter
+ * \brief Computes triangle barycenter
  *
- * \param [in]   numPts  Number of polygon vertices
- * \param [in]   pts     Polygon vertices coordinates
+ * \param [in]   pts     Triangle vertices coordinates
  * \param [out]  bary    Barycenter
  *
  */
@@ -98,6 +97,16 @@ PDM_triangle_compute_barycenter
 
 
 
+/**
+ * \brief Computes closest point on a triangle
+ *
+ * \param [in]   p              Point coordinates
+ * \param [in]   v              Triangle vertices coordinates
+ * \param [out]  closest_point  Closest point coordinates
+ * \param [out]  min_dist2      Squared distance from point to triangle
+ * \param [out]  weights        Barycentric coordinates of closest point
+ *
+ */
 
 PDM_triangle_status_t
 PDM_triangle_closest_point
@@ -109,6 +118,15 @@ PDM_triangle_closest_point
  double       *weights
  );
 
+
+/**
+ * \brief Computes the center and radius of a triangle's circumcircle
+ *
+ * \param [in]   vtx_coord  Triangle vertices coordinates
+ * \param [out]  center     Circumcircle center
+ * \param [out]  radius     Circumcircle radius
+ *
+ */
 
 void
 PDM_triangle_circumcircle
