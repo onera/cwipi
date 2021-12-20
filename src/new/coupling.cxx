@@ -368,12 +368,6 @@ namespace cwipi {
       string                     cplFieldName;
 
       // - Transfer memory to receive data
-
-      printf("Coupling::spatialInterpWeightsCompute - localNbField, cplNbField : <%d> <%d>\n",
-             localNbField, cplNbField);
-      fflush(stdout);
-//      abort();
-
       nSendData   = localNbField + 1;
       nRecvData   = cplNbField + 1;
       _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
@@ -386,12 +380,6 @@ namespace cwipi {
                                                                  -1,
                                                                  NULL);
       localFieldsNameIdx.clear();
-      printf("Coupling::spatialInterpWeightsCompute - cplFieldNameIdx :");
-      for (int j = 0; j < cplNbField + 1; j++) {
-        printf(" %d", localFieldsNameIdx[j]);
-      }
-      printf("\n");
-      fflush(stdout);
 
       cplFieldName.resize(cplFieldNameIdx[cplNbField]);
       nSendData   = localFieldsNameIdx[localNbField];
@@ -406,9 +394,6 @@ namespace cwipi {
                                                                  (void *) cplFieldName.c_str(),
                                                                  -1,
                                                                  NULL);
-      printf("Coupling::spatialInterpWeightsCompute - field name : <%s> <%s>\n",
-             localFieldsName.c_str(), cplFieldName.c_str());
-      fflush(stdout);
       localFieldsName.clear();
 
       nSendData   = localNbField;
@@ -451,10 +436,8 @@ namespace cwipi {
 
         for (int j = 0; j < cplNbField; j++) {
           string _cplFieldName = cplFieldName.substr(cplFieldNameIdx[j], cplFieldNameIdx[j+1]-cplFieldNameIdx[j]);
-          printf("cplFieldName : %s %d %d\n", _cplFieldName.c_str(), cplFieldNameIdx[j], cplFieldNameIdx[j+1]);
           if (_cplFieldName == localFieldName) {
             field->linkedFieldLocationSet(cplFieldLocationV[j]);
-            printf("find field\n");
             if (  (localFieldExch == CWP_FIELD_EXCH_SENDRECV && cplFieldExch[j] == CWP_FIELD_EXCH_SENDRECV)
                 ||(localFieldExch == CWP_FIELD_EXCH_SEND     && cplFieldExch[j] == CWP_FIELD_EXCH_RECV)
                 ||(localFieldExch == CWP_FIELD_EXCH_RECV     && cplFieldExch[j] == CWP_FIELD_EXCH_SEND)) {
@@ -462,13 +445,7 @@ namespace cwipi {
               if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_SEND) {
                 std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]);
                 if (_spatial_interp_send.find(newKey) == _spatial_interp_send.end()) {
-                  printf("Coupling::spatialInterpWeightsCompute - add spatial send <%d> <%d>\n",
-                         localFieldLocation, cplFieldLocationV[j]);
-                  fflush(stdout);
                   _spatial_interp_send.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
-                  printf("Coupling::spatialInterpWeightsCompute - init spatial send <%d> <%d>\n",
-                         localFieldLocation, cplFieldLocationV[j]);
-                  fflush(stdout);
                   _spatial_interp_send[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_SEND);
                 }
               }
@@ -476,13 +453,7 @@ namespace cwipi {
               if (localFieldExch == CWP_FIELD_EXCH_SENDRECV || localFieldExch == CWP_FIELD_EXCH_RECV) {
                 std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocationV[j]);
                 if (_spatial_interp_recv.find(newKey) == _spatial_interp_recv.end()) {
-                  printf("Coupling::spatialInterpWeightsCompute - add spatial recv <%d> <%d>\n",
-                         localFieldLocation, cplFieldLocationV[j]);
-                  fflush(stdout);
                   _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
-                  printf("Coupling::spatialInterpWeightsCompute - init spatial recv <%d> <%d>\n",
-                         localFieldLocation, cplFieldLocationV[j]);
-                  fflush(stdout);
                   _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_RECV);
                 }
               }
@@ -491,9 +462,6 @@ namespace cwipi {
         }
         it++;
       }
-
-      printf("_spatial_interp_send.size() %d\n", (int) _spatial_interp_send.size());
-      printf("_spatial_interp_recv.size() %d\n", (int) _spatial_interp_recv.size());
 
       printf("Coupling::spatialInterpWeightsCompute - not cpl local code is - 4\n");
       fflush(stdout);
@@ -1225,8 +1193,6 @@ namespace cwipi {
 
     double physTime=0.0;
     *_iteration = 0;
-
-    printf("sizeof fields : %d\n", (int) _fields.size());
 
     cwipi::Field *newField = new cwipi::Field(field_id,
                                               _fields.size(),
