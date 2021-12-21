@@ -123,10 +123,10 @@ int main(int argc, char *argv[]) {
     assert(comm_world_size > 0);
 
     // Input
-//    bool cond_code1 = rank % 2 == 0;
-//    bool cond_code2 = rank % 2 == 1;
-    bool cond_code1 = rank == 0;
-    bool cond_code2 = rank == 0 || rank == 1;
+    bool cond_code1 = rank % 2 == 0;
+    bool cond_code2 = rank % 2 == 1;
+//    bool cond_code1 = rank == 0;
+//    bool cond_code2 = rank == 0 || rank == 1;
     bool cond_both = cond_code1 && cond_code2;
 
     int n_vtx_seg_code1 = 3, n_vtx_seg_code2 = 4;
@@ -151,6 +151,9 @@ int main(int argc, char *argv[]) {
     MPI_Comm *intra_comms = (MPI_Comm *) malloc(n_code * sizeof(MPI_Comm));
 
     // Define which rank works for which code
+
+    //printf("rank cond_both conde_code2 conde_code2 : %d %d %d %d\n", rank,  cond_both, cond_code1, cond_code2); 
+
     if (cond_both) {
         code_id[0] = 1;
         code_id[1] = 2;
