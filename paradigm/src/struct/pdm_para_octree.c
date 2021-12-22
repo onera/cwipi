@@ -7969,11 +7969,6 @@ PDM_para_octree_closest_points
                                      pts_coord,
                                      rank_pt,
                                      node_min_dist);
-      /*PDM_box_tree_min_dist_max_box_disjoint (bt_shared,
-        n_pts,
-        pts_coord,
-        rank_pt,
-        node_min_dist);*/
       free (node_min_dist);
 
       for (int i = 0; i < n_pts; i++) {
@@ -9334,11 +9329,6 @@ PDM_para_octree_single_closest_point
                                      pts_coord,
                                      rank_pt,
                                      node_min_dist);
-      /*PDM_box_tree_min_dist_max_box_disjoint (bt_shared,
-                                              n_pts,
-                                              pts_coord,
-                                              rank_pt,
-                                              node_min_dist);*/
       free (node_min_dist);
 
       for (int i = 0; i < n_pts; i++) {

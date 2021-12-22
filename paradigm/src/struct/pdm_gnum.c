@@ -1181,7 +1181,7 @@ _gnum_from_parent_compute
  * \param [in]   tolerance    Geometric tolerance (used if merge double points is activated)
  * \param [in]   comm         PDM_MPI communicator
  *
- * \return     Identifier
+ * \return     Pointer to PDM_gen_gnum object
  */
 
 PDM_gen_gnum_t*
@@ -1247,7 +1247,7 @@ PDM_gnum_create_cf
  * In the case that 2 entities have a same Morton code, their global
  * number will be determined by lexicographical ordering of coordinates.
  *
- * \param [in]   id           Identifier
+ * \param [in]   gnum         Pointer to PDM_gen_gnum object
  * \param [in]   i_part       Current partition
  * \param [in]   n_elts       Number of elements
  * \param [in]   coords       Coordinates (size = 3 * \ref n_elts)
@@ -1292,7 +1292,7 @@ PDM_gnum_set_from_coords
  *
  * \brief Set Parent global numbering
  *
- * \param [in]   id           Identifier
+ * \param [in]   gnum         Pointer to PDM_gen_gnum object
  * \param [in]   i_part       Current partition
  * \param [in]   n_elts       Number of elements
  * \param [in]   parent_gnum  Parent global numbering (size = \ref n_elts)
@@ -1326,7 +1326,7 @@ PDM_gnum_set_from_parents
  *
  * \brief Compute
  *
- * \param [in]   id           Identifier
+ * \param [in]   gnum         Pointer to PDM_gen_gnum object
  *
  */
 
@@ -1359,7 +1359,7 @@ PDM_gnum_compute
  *
  * \brief Set from coordinates
  *
- * \param [in]   id           Identifier
+ * \param [in]   gnum         Pointer to PDM_gen_gnum object
  * \param [in]   i_part       Current partition
  * \param [in]   n_elts       Number of elements
  * \param [in]   coords       Coordinates (size = 3 * \ref n_elts)
@@ -1382,7 +1382,7 @@ PDM_gnum_get
  *
  * \brief Free
  *
- * \param [in]   id           Identifier
+ * \param [in]   gnum         Pointer to PDM_gen_gnum object
  *
  */
 

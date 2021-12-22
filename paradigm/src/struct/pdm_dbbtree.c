@@ -28,7 +28,7 @@
 #include "pdm_error.h"
 #include "pdm_priv.h"
 #include "pdm_distrib.h"
-
+#include "pdm_vtk.h"
 #include "pdm_part_to_block.h"
 #include "pdm_block_to_part.h"
 #include "pdm_timer.h"
@@ -233,6 +233,69 @@ _redistribute_boxes
 
 }
 
+
+
+static void _export_point_cloud
+(
+ char         *filename,
+ int           n_part,
+ const int    *n_pts,
+ double      **coord,
+ PDM_g_num_t **g_num,
+ PDM_g_num_t **parent_g_num
+ )
+{
+  FILE *f = fopen(filename, "w");
+
+  fprintf(f, "# vtk DataFile Version 2.0\noctree points\nASCII\nDATASET UNSTRUCTURED_GRID\n");
+
+  int n_pts_t = 0;
+  for (int ipart = 0; ipart < n_part; ipart++) {
+    n_pts_t += n_pts[ipart];
+  }
+
+  fprintf(f, "POINTS %d double\n", n_pts_t);
+  for (int ipart = 0; ipart < n_part; ipart++) {
+    for (int i = 0; i < n_pts[ipart]; i++) {
+      for (int j = 0; j < 3; j++) {
+        fprintf(f, "%f ", coord[ipart][3*i + j]);
+      }
+      fprintf(f, "\n");
+    }
+  }
+
+  fprintf(f, "CELLS %d %d\n", n_pts_t, 2*n_pts_t);
+  for (int i = 0; i < n_pts_t; i++) {
+    fprintf(f, "1 %d\n", i);
+  }
+
+  fprintf(f, "CELL_TYPES %d\n", n_pts_t);
+  for (int i = 0; i < n_pts_t; i++) {
+    fprintf(f, "1\n");
+  }
+
+  fprintf(f, "CELL_DATA %d\n", n_pts_t);
+  fprintf(f, "SCALARS gnum int\n LOOKUP_TABLE default\n");
+  for (int ipart = 0; ipart < n_part; ipart++) {
+    for (int i = 0; i < n_pts[ipart]; i++) {
+      fprintf(f, ""PDM_FMT_G_NUM"\n", g_num[ipart][i]);
+    }
+  }
+
+  if (parent_g_num != NULL) {
+    fprintf(f, "FIELD FieldData 1\n");
+    fprintf(f, "parent_gnum 1 %d int\n", n_pts_t);
+    for (int ipart = 0; ipart < n_part; ipart++) {
+      for (int i = 0; i < n_pts[ipart]; i++) {
+        fprintf(f, ""PDM_FMT_G_NUM"\n", parent_g_num[ipart][i]);
+      }
+    }
+  }
+
+  fclose(f);
+}
+
+
 /*=============================================================================
  * Public function definitions
  *============================================================================*/
@@ -254,8 +317,8 @@ _redistribute_boxes
 PDM_dbbtree_t *
 PDM_dbbtree_create
 (
- PDM_MPI_Comm          comm,
- const int         dim,
+ PDM_MPI_Comm  comm,
+ int           dim,
  double       *global_extents
  )
 {
@@ -312,8 +375,11 @@ PDM_dbbtree_create
 }
 
 
+
 /**
  * \brief Free a \ref PDM_dbbtree_t structure
+ *
+ * \param [in]  dbbt   Pointer to a distributed bounding box tree
  *
  * \return      NULL
  *
@@ -367,14 +433,13 @@ PDM_dbbtree_free
  *
  */
 
-
-PDM_box_set_t  *
+PDM_box_set_t *
 PDM_dbbtree_boxes_set
 (
- PDM_dbbtree_t     *dbbt,
- const int          n_part,
- const int         *nElts,
- const double     **extents,
+ PDM_dbbtree_t      *dbbt,
+ const int           n_part,
+ const int          *nElts,
+ const double      **extents,
  const PDM_g_num_t **gNum
  )
 {
@@ -618,32 +683,35 @@ PDM_dbbtree_boxes_set
 }
 
 
+
 /**
  * \brief Assign boxes to intersect to the tree.
  *
- * This function assigns boxes to intersect to the tree.
+ * This function  assigns boxes to intersect to the tree.
  *
- * \param [in]  dbbt     Pointer to a distributed bounding box tree
- * \param [in]  n_part    Number of partitions
- * \param [in]  nElts    Number of elements of each partition
- * \param [in]  extents  Extents of each element of each partition
- * \param [in]  gNum     Global number of each element of each partition
+ * \param [in]  dbbt       Pointer to a distributed bounding box tree
+ * \param [in]  n_part     Number of partitions
+ * \param [in]  nElts      Number of elements of each partition
+ * \param [in]  extents    Extents of each element of each partition
+ * \param [in]  gNum       Global number of each element of each partition
+ * \param [out] box_index  Pointer to the index array on associated tree bounding boxeq
+ * \param [out] box_g_num  Pointer to the list of intersecting bounding boxes
  *
  * \return associated \ref PDM_box_set_t structure distributed according
  * to the tree intersection
  *
  */
 
-PDM_box_set_t  *
+PDM_box_set_t *
 PDM_dbbtree_intersect_boxes_set
 (
- PDM_dbbtree_t    *dbbt,
- const int         n_part,
- const int        *nElts,
- const double     **extents,
+ PDM_dbbtree_t      *dbbt,
+ const int           n_part,
+ const int          *nElts,
+ const double      **extents,
  const PDM_g_num_t **gNum,
- int              *box_index[],
- int              *box_l_num[]
+ int                *box_index[],
+ int                *box_l_num[]
  )
 {
 
@@ -921,17 +989,19 @@ PDM_dbbtree_intersect_boxes_set
 
 }
 
+
+
 /**
  *
- * Get the boxes closer than the upper bound distance
+ * \brief Get the boxes closer than the upper bound distance
  *
- *   \param [in]  dbbbt               Pointer to box tree structure
- *   \param [in]  n_pts               Number of points
- *   \param [in]  pts                 Point coordinates (size = 3 * n_pts)
- *   \param [in]  pts_g_num           Point global numbers (not used)
- *   \param [in]  upper_bound_dist2   Upper bound of the squer of the distance (size = n_pts)
- *   \param [out] box_index           Index of boxes (size = n_pts + 1)
- *   \param [out] box_g_num           Global num of boxes (size = i_boxes[n_pts])
+ *   \param [in]  bt                 Pointer to box tree structure
+ *   \param [in]  n_pts              Number of points
+ *   \param [in]  pts                Point coordinates (size = 3 * \ref n_pts)
+ *   \param [in]  pts_g_num          Point global ids
+ *   \param [in]  upper_bound_dist2  Upper bound of the square of the distance (size = \ref n_pts)
+ *   \param [out] box_index          Index of boxes (size = \ref n_pts + 1)
+ *   \param [out] box_g_num          Global ids of boxes (size = \ref i_boxes[\ref n_pts])
  *
  */
 
@@ -1574,6 +1644,22 @@ PDM_dbbtree_closest_upper_bound_dist_boxes_get
   }
 
 }
+
+
+
+/**
+ *
+ * \brief Get the boxes closer than the upper bound distance (Asynchronous)
+ *
+ *   \param [in]  bt                 Pointer to box tree structure
+ *   \param [in]  n_pts              Number of points
+ *   \param [in]  pts                Point coordinates (size = 3 * \ref n_pts)
+ *   \param [in]  pts_g_num          Point global ids
+ *   \param [in]  upper_bound_dist2  Upper bound of the square of the distance (size = \ref n_pts)
+ *   \param [out] box_index          Index of boxes (size = \ref n_pts + 1)
+ *   \param [out] box_g_num          Global ids of boxes (size = \ref i_boxes[\ref n_pts])
+ *
+ */
 
 void
 PDM_dbbtree_closest_upper_bound_dist_boxes_get_async
@@ -2265,126 +2351,22 @@ PDM_dbbtree_closest_upper_bound_dist_boxes_get_async
 
 }
 
+
+
 /**
  *
- * Get the location of a point cloud
+ * \brief Export boxes and points to ASCII VTK format for debugging purposes
  *
- *   \param [in] bt                    Pointer to box tree structure
- *   \param [in] n_pts                 Number of points
- *   \param [in] pts_coord             Point coordinates (size = 3 * n_pts)
- *   \param [in] pts_g_num             Point global numbers (size = n_pts)
- *   \param [in] n_boxes               Number of boxes
- *   \param [in] box_g_num             Global num of boxes (size = n_boxes)
- *   \param [inout] pts_in_box_idx     Index of points in boxes (size = n_boxes+1, allocated inside function)
- *   \param [inout] pts_in_box_g_num   Global num of points in boxes (size = pts_in_box_idx[n_boxes], allocated inside function)
- *   \param [inout] pts_in_box_coord   Coordinates of points in boxes (size = 3*pts_in_box_idx[n_boxes], allocated inside function)
+ * A set of files (normalized/unnormalized points and boxes) is written
+ * for each MPI rank.
+ *
+ *   \param [in]  filename_pattern  File name pattern (prefix)
+ *   \param [in]  dbbt              Pointer to distributed box tree structure
+ *   \param [in]  n_pts             Number of points
+ *   \param [in]  pts_g_num         Point global ids (size = \ref n_pts)
+ *   \param [in]  pts_coord         Point coordinates (size = 3 * \ref n_pts)
  *
  */
-static void _export_boxes
-(
- const char        *filename,
- const int          n_box,
- const double      *box_extents,
- const PDM_g_num_t *box_g_num
- )
-{
-  FILE *f = fopen(filename, "w");
-
-  fprintf(f, "# vtk DataFile Version 2.0\nboxes\nASCII\nDATASET UNSTRUCTURED_GRID\n");
-
-  fprintf(f, "POINTS %d double\n", 8*n_box);
-  for (int i = 0; i < n_box; i++) {
-    const double *e = box_extents + 6*i;
-    fprintf(f, "%f %f %f\n", e[0], e[1], e[2]);
-    fprintf(f, "%f %f %f\n", e[3], e[1], e[2]);
-    fprintf(f, "%f %f %f\n", e[3], e[4], e[2]);
-    fprintf(f, "%f %f %f\n", e[0], e[4], e[2]);
-    fprintf(f, "%f %f %f\n", e[0], e[1], e[5]);
-    fprintf(f, "%f %f %f\n", e[3], e[1], e[5]);
-    fprintf(f, "%f %f %f\n", e[3], e[4], e[5]);
-    fprintf(f, "%f %f %f\n", e[0], e[4], e[5]);
-  }
-
-  fprintf(f, "CELLS %d %d\n", n_box, 9*n_box);
-  for (int i = 0; i < n_box; i++) {
-    int j = 8*i;
-    fprintf(f, "8 %d %d %d %d %d %d %d %d\n", j, j+1, j+2, j+3, j+4, j+5, j+6, j+7);
-  }
-
-  fprintf(f, "CELL_TYPES %d\n", n_box);
-  for (int i = 0; i < n_box; i++) {
-    fprintf(f, "12\n");
-  }
-
-  fprintf(f, "CELL_DATA %d\n", n_box);
-  fprintf(f, "SCALARS gnum int\n LOOKUP_TABLE default\n");
-  for (int i = 0; i < n_box; i++) {
-    fprintf(f, ""PDM_FMT_G_NUM"\n", box_g_num[i]);
-  }
-
-  fclose(f);
-}
-
-
-static void _export_point_cloud
-(
- char         *filename,
- int           n_part,
- const int    *n_pts,
- double      **coord,
- PDM_g_num_t **g_num,
- PDM_g_num_t **parent_g_num
- )
-{
-  FILE *f = fopen(filename, "w");
-
-  fprintf(f, "# vtk DataFile Version 2.0\noctree points\nASCII\nDATASET UNSTRUCTURED_GRID\n");
-
-  int n_pts_t = 0;
-  for (int ipart = 0; ipart < n_part; ipart++) {
-    n_pts_t += n_pts[ipart];
-  }
-
-  fprintf(f, "POINTS %d double\n", n_pts_t);
-  for (int ipart = 0; ipart < n_part; ipart++) {
-    for (int i = 0; i < n_pts[ipart]; i++) {
-      for (int j = 0; j < 3; j++) {
-        fprintf(f, "%f ", coord[ipart][3*i + j]);
-      }
-      fprintf(f, "\n");
-    }
-  }
-
-  fprintf(f, "CELLS %d %d\n", n_pts_t, 2*n_pts_t);
-  for (int i = 0; i < n_pts_t; i++) {
-    fprintf(f, "1 %d\n", i);
-  }
-
-  fprintf(f, "CELL_TYPES %d\n", n_pts_t);
-  for (int i = 0; i < n_pts_t; i++) {
-    fprintf(f, "1\n");
-  }
-
-  fprintf(f, "CELL_DATA %d\n", n_pts_t);
-  fprintf(f, "SCALARS gnum int\n LOOKUP_TABLE default\n");
-  for (int ipart = 0; ipart < n_part; ipart++) {
-    for (int i = 0; i < n_pts[ipart]; i++) {
-      fprintf(f, ""PDM_FMT_G_NUM"\n", g_num[ipart][i]);
-    }
-  }
-
-  if (parent_g_num != NULL) {
-    fprintf(f, "FIELD FieldData 1\n");
-    fprintf(f, "parent_gnum 1 %d int\n", n_pts_t);
-    for (int ipart = 0; ipart < n_part; ipart++) {
-      for (int i = 0; i < n_pts[ipart]; i++) {
-        fprintf(f, ""PDM_FMT_G_NUM"\n", parent_g_num[ipart][i]);
-      }
-    }
-  }
-
-  fclose(f);
-}
 
 void
 PDM_dbbtree_points_debug
@@ -2419,10 +2401,10 @@ PDM_dbbtree_points_debug
                        NULL);
 
   sprintf(filename, "%s_dbbt_boxes_n_%3.3d.vtk", filename_pattern, my_rank);
-  _export_boxes (filename,
-                 _dbbt->boxes->local_boxes->n_boxes,
-                 _dbbt->boxes->local_boxes->extents,
-                 _dbbt->boxes->local_boxes->g_num);
+  PDM_vtk_write_boxes (filename,
+                       _dbbt->boxes->local_boxes->n_boxes,
+                       _dbbt->boxes->local_boxes->extents,
+                       _dbbt->boxes->local_boxes->g_num);
 
 
   double *_extents = malloc (sizeof(double) * _dbbt->boxes->local_boxes->n_boxes * 6);
@@ -2441,404 +2423,36 @@ PDM_dbbtree_points_debug
                        NULL);
 
   sprintf(filename, "%s_dbbt_boxes_%3.3d.vtk", filename_pattern, my_rank);
-  _export_boxes (filename,
-                 _dbbt->boxes->local_boxes->n_boxes,
-                 _extents,
-                 _dbbt->boxes->local_boxes->g_num);
+  PDM_vtk_write_boxes (filename,
+                       _dbbt->boxes->local_boxes->n_boxes,
+                       _extents,
+                       _dbbt->boxes->local_boxes->g_num);
 
   free(_extents);
   free(_pts_coord);
 }
 
 
+
+/**
+ *
+ * \brief Get an indexed list of all points inside the boxes of a distributed box tree
+ *
+ *   \param [in]  dbbt               Pointer to distributed box tree structure
+ *   \param [in]  n_pts              Number of points
+ *   \param [in]  pts_g_num          Point global ids (size = \ref n_pts)
+ *   \param [in]  pts_coord          Point coordinates (size = 3 * \ref n_pts)
+ *   \param [in]  n_boxes            Number of boxes
+ *   \param [in]  box_g_num          Global ids of boxes (size = \ref n_boxes)
+ *   \param [out] pts_in_box_idx     Index of points in boxes (size = \ref n_boxes + 1, allocated inside function)
+ *   \param [out] pts_in_box_g_num   Global ids of points in boxes (size = \ref pts_in_box_idx[\ref n_boxes], allocated inside function)
+ *   \param [out] pts_in_box_coord   Coordinates of points in boxes (size = 3 *\ref pts_in_box_idx[\ref n_boxes], allocated inside function)
+ *   \param [in]  ellipsoids         Consider boxes as axis-aligned ellipsoids (1 or 0)
+ *
+ */
+
 void
 PDM_dbbtree_points_inside_boxes
-(
- PDM_dbbtree_t      *dbbt,
- const int           n_pts,
- PDM_g_num_t         pts_g_num[],
- double              pts_coord[],
- const int           n_boxes,
- const PDM_g_num_t   box_g_num[],
- int               **pts_in_box_idx,
- PDM_g_num_t       **pts_in_box_g_num,
- double            **pts_in_box_coord
- )
-{
-  assert (dbbt != NULL);
-  _PDM_dbbtree_t *_dbbt = (_PDM_dbbtree_t *) dbbt;
-
-  double t_begin, t_end;//
-  PDM_timer_t *timer = PDM_timer_create ();//
-
-  int my_rank;
-  PDM_MPI_Comm_rank (_dbbt->comm, &my_rank);
-
-  int n_ranks;
-  PDM_MPI_Comm_size (_dbbt->comm, &n_ranks);
-
-  const int *used_ranks   = _dbbt->usedRank;
-  const int  n_used_ranks = _dbbt->nUsedRank;
-
-  if (my_rank == 0) printf("dbbt->nUsedRank = %d\n", _dbbt->nUsedRank);
-
-  //-->>
-  if (my_rank == 0) {
-    for (int i = 0; i < n_used_ranks; i++) {
-      double vol_n = 1., vol = 1.;
-      double *e = _dbbt->rankBoxes->local_boxes->extents + 6*i;
-      for (int j = 0; j < 3; j++) {
-        double ej = e[j+3] - e[j];
-        vol_n *= ej;
-        vol *= ej * _dbbt->d[j];
-      }
-      printf("rank %d: %f  %f\n", used_ranks[i], vol, vol_n);
-    }
-  }
-  //<<--
-
-  /***************************************
-   * Redistribute points
-   ***************************************/
-  int *send_count = NULL;
-  int *send_shift = NULL;
-
-  int *recv_count = NULL;
-  int *recv_shift = NULL;
-
-  int n_recv_pts = 0;
-  PDM_g_num_t *send_g_num = NULL;
-  PDM_g_num_t *recv_g_num = NULL;
-  double      *send_coord = NULL;
-  double      *recv_coord = NULL;
-
-  t_begin = PDM_timer_elapsed (timer);
-  PDM_timer_resume (timer);
-  //-->>
-  double *_pts_coord = malloc (sizeof(double) * n_pts * 3);
-  for (int i = 0; i < n_pts; i++) {
-    _normalize (_dbbt,
-                pts_coord + 3*i,
-                _pts_coord + 3*i);
-  }
-  //<<--
-  PDM_timer_hang_on (timer);
-  t_end = PDM_timer_elapsed (timer);
-  printf("[%d] normalization : %12.5es\n", my_rank, t_end - t_begin);
-  t_begin = t_end;
-  PDM_timer_resume (timer);
-
-  if (1) {
-    char filename[999];
-
-    sprintf(filename, "dbbt_pts_n_%3.3d.vtk", my_rank);
-    _export_point_cloud (filename,
-                         1,
-                         &n_pts,
-                         &_pts_coord,
-                         &pts_g_num,
-                         NULL);
-
-    sprintf(filename, "dbbt_boxes_n_%3.3d.vtk", my_rank);
-    _export_boxes (filename,
-                   _dbbt->boxes->local_boxes->n_boxes,
-                   _dbbt->boxes->local_boxes->extents,
-                   _dbbt->boxes->local_boxes->g_num);
-
-
-    double *_extents = malloc (sizeof(double) * _dbbt->boxes->local_boxes->n_boxes * 6);
-    for (int i = 0; i < 2*_dbbt->boxes->local_boxes->n_boxes; i++) {
-      for (int j = 0; j < 3; j++) {
-        _extents[3*i+j] = _dbbt->s[j] + _dbbt->d[j] * _dbbt->boxes->local_boxes->extents[3*i+j];
-      }
-    }
-
-    sprintf(filename, "dbbt_pts_%3.3d.vtk", my_rank);
-    _export_point_cloud (filename,
-                         1,
-                         &n_pts,
-                         &pts_coord,
-                         &pts_g_num,
-                         NULL);
-
-    sprintf(filename, "dbbt_boxes_%3.3d.vtk", my_rank);
-    _export_boxes (filename,
-                   _dbbt->boxes->local_boxes->n_boxes,
-                   _extents,
-                   _dbbt->boxes->local_boxes->g_num);
-
-    free (_extents);
-  }
-
-  if (_dbbt->btShared != NULL) {
-    PDM_box_tree_points_inside_boxes (_dbbt->btShared,
-                                      n_pts,
-                                      pts_g_num,
-                                      _pts_coord,
-                                      &send_shift,
-                                      &send_g_num,
-                                      &send_coord);
-    free (_pts_coord);
-
-    /* Count points to send to each rank */
-    send_count = malloc (sizeof(int) * n_ranks);
-    if (n_used_ranks < n_ranks) {
-      PDM_array_reset_int(send_count, n_ranks, 0);
-    }
-
-    for (int i = 0; i < n_used_ranks; i++) {
-      int j = used_ranks[i];
-      send_count[j] = send_shift[i+1] - send_shift[i];
-    }
-
-    if (n_used_ranks < n_ranks) {
-      send_shift = realloc (send_shift, sizeof(int) * (n_ranks + 1));
-      PDM_array_idx_from_sizes_int(send_count, n_ranks, send_shift);
-    }
-
-    recv_count = malloc (sizeof(int) * n_ranks);
-    PDM_MPI_Alltoall (send_count, 1, PDM_MPI_INT,
-                      recv_count, 1, PDM_MPI_INT,
-                      _dbbt->comm);
-
-    recv_shift = PDM_array_new_idx_from_sizes_int(recv_count, n_ranks);
-    n_recv_pts = recv_shift[n_ranks];
-
-    /* Exchange points */
-    recv_g_num = malloc (sizeof(PDM_g_num_t) * recv_shift[n_ranks]);
-    PDM_MPI_Alltoallv (send_g_num, send_count, send_shift, PDM__PDM_MPI_G_NUM,
-                       recv_g_num, recv_count, recv_shift, PDM__PDM_MPI_G_NUM,
-                       _dbbt->comm);
-    free (send_g_num);
-
-
-    for (int i = 0; i < n_ranks; i++) {
-      send_count[i] *= 3;
-      recv_count[i] *= 3;
-      send_shift[i+1] *= 3;
-      recv_shift[i+1] *= 3;
-    }
-
-    recv_coord = malloc (sizeof(double) * recv_shift[n_ranks]);
-    PDM_MPI_Alltoallv (send_coord, send_count, send_shift, PDM_MPI_DOUBLE,
-                       recv_coord, recv_count, recv_shift, PDM_MPI_DOUBLE,
-                       _dbbt->comm);
-
-    free (send_coord);
-    free (send_count);
-    free (send_shift);
-    free (recv_count);
-    free (recv_shift);
-  }
-
-  /* dbbt == NULL (Single rank) */
-  else {
-    n_recv_pts = n_pts;
-    recv_g_num = (PDM_g_num_t *) pts_g_num;
-    recv_coord = (double *) _pts_coord;
-  }
-
-  PDM_timer_hang_on (timer);
-  t_end = PDM_timer_elapsed (timer);
-  printf("[%d] redistribution : %12.5es\n", my_rank, t_end - t_begin);
-  t_begin = t_end;
-  PDM_timer_resume (timer);
-
-  printf("[%d] dbbt->n_boxes = %d, n_pts = %d, n_recv_pts = %d\n",
-         my_rank, _dbbt->boxes->local_boxes->n_boxes, n_pts, n_recv_pts);
-
-
-  /***************************************
-   * Get list of boxes that contain each redistributed point
-   ***************************************/
-  int         *pts_in_box_idx2   = NULL;
-  PDM_g_num_t *pts_in_box_g_num2 = NULL;
-  double      *pts_in_box_coord2 = NULL;
-  PDM_box_tree_points_inside_boxes (_dbbt->btLoc,
-                                    n_recv_pts,
-                                    recv_g_num,
-                                    recv_coord,
-                                    &pts_in_box_idx2,
-                                    &pts_in_box_g_num2,
-                                    &pts_in_box_coord2);
-
-  PDM_timer_hang_on (timer);
-  t_end = PDM_timer_elapsed (timer);
-  printf("[%d] box_tree : %12.5es\n", my_rank, t_end - t_begin);
-  t_begin = t_end;
-  PDM_timer_resume (timer);
-
-
-  /* Conform to original partitioning */
-  if (box_g_num != NULL) {
-    /* Part2 to Block */
-    int n_boxes2 = _dbbt->boxes->local_boxes->n_boxes;
-
-    int *pts_in_box_count = malloc (sizeof(int) * n_boxes2);
-    double *weight = malloc (sizeof(double) * n_boxes2);
-    for (int i = 0; i < n_boxes2; i++) {
-      pts_in_box_count[i] = pts_in_box_idx2[i+1] - pts_in_box_idx2[i];
-      weight[i] = (double) pts_in_box_count[i];
-    }
-    free (pts_in_box_idx2);
-
-    PDM_part_to_block_t *ptb = PDM_part_to_block_create (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
-                                                         PDM_PART_TO_BLOCK_POST_MERGE,
-                                                         1.,
-                                                         &(_dbbt->boxes->local_boxes->g_num),
-                                                         &weight,
-                                                         &n_boxes2,
-                                                         1,
-                                                         _dbbt->comm);
-    free (weight);
-
-    int *block_pts_in_box_count = NULL;
-    PDM_g_num_t *block_pts_in_box_g_num = NULL;
-    PDM_part_to_block_exch (ptb,
-                            sizeof(PDM_g_num_t),
-                            PDM_STRIDE_VAR,
-                            1,
-                            &pts_in_box_count,
-                            (void **) &pts_in_box_g_num2,
-                            &block_pts_in_box_count,
-                            (void **) &block_pts_in_box_g_num);
-    free (pts_in_box_g_num2);
-
-    for (int ibox = 0; ibox < n_boxes2; ibox++) {
-      pts_in_box_count[ibox] *= 3;
-    }
-    double *block_pts_in_box_coord = NULL;
-    int *block_pts_in_box_3count = NULL;
-    PDM_part_to_block_exch (ptb,
-                            sizeof(double),
-                            PDM_STRIDE_VAR,
-                            1,
-                            &pts_in_box_count,
-                            (void **) &pts_in_box_coord2,
-                            &block_pts_in_box_3count,
-                            (void **) &block_pts_in_box_coord);
-    free (pts_in_box_coord2);
-
-    PDM_g_num_t *block_distrib_idx = PDM_part_to_block_distrib_index_get (ptb);
-    int *block_pts_in_box_count_full = NULL;
-    int *block_pts_in_box_3count_full = NULL;
-    int n_elt_block = PDM_part_to_block_n_elt_block_get (ptb);
-    int n_elt_block_full = (int) (block_distrib_idx[my_rank+1] - block_distrib_idx[my_rank]);
-
-    if (n_elt_block < n_elt_block_full) {
-      PDM_g_num_t *block_g_num = PDM_part_to_block_block_gnum_get (ptb);
-      block_pts_in_box_count_full = PDM_array_zeros_int (n_elt_block_full);
-      block_pts_in_box_3count_full = PDM_array_zeros_int (n_elt_block_full);
-
-      int i1 = 0;
-      for (int i = 0; i < n_elt_block; i++) {
-
-        while (block_distrib_idx[my_rank] + 1 + i1 < block_g_num[i]) {
-          i1++;
-        }
-
-        block_pts_in_box_count_full[i1] = block_pts_in_box_count[i];
-        block_pts_in_box_3count_full[i1] = block_pts_in_box_3count[i];
-      }
-
-      free (block_pts_in_box_count);
-      free (block_pts_in_box_3count);
-      block_pts_in_box_count = block_pts_in_box_count_full;
-      block_pts_in_box_3count = block_pts_in_box_3count_full;
-    }
-
-
-    /* Block to Part1 */
-    PDM_block_to_part_t *btp = PDM_block_to_part_create (block_distrib_idx,
-                                                         (const PDM_g_num_t **) &box_g_num,
-                                                         &n_boxes,
-                                                         1,
-                                                         _dbbt->comm);
-
-    if (n_boxes > n_boxes2) {
-      pts_in_box_count = realloc (pts_in_box_count, sizeof(int) * n_boxes);
-    }
-
-    int one = 1;
-    PDM_block_to_part_exch (btp,
-                            sizeof(int),
-                            PDM_STRIDE_CST,
-                            &one,
-                            block_pts_in_box_count,
-                            NULL,
-                            (void **) &pts_in_box_count);
-
-    *pts_in_box_idx = PDM_array_new_idx_from_sizes_int(pts_in_box_count, n_boxes);
-
-    *pts_in_box_g_num = malloc (sizeof(PDM_g_num_t) * (*pts_in_box_idx)[n_boxes]);
-    PDM_block_to_part_exch (btp,
-                            sizeof(PDM_g_num_t),
-                            PDM_STRIDE_VAR,
-                            block_pts_in_box_count,
-                            block_pts_in_box_g_num,
-                            &pts_in_box_count,
-                            (void **) pts_in_box_g_num);
-    free (block_pts_in_box_g_num);
-    free (block_pts_in_box_count);
-
-    *pts_in_box_coord = malloc (sizeof(double) * (*pts_in_box_idx)[n_boxes] * 3);
-    PDM_block_to_part_exch (btp,
-                            sizeof(double),
-                            PDM_STRIDE_VAR,
-                            block_pts_in_box_3count,
-                            block_pts_in_box_coord,
-                            &pts_in_box_count,
-                            (void **) pts_in_box_coord);
-    free (block_pts_in_box_coord);
-    free (block_pts_in_box_3count);
-    free (pts_in_box_count);
-
-
-    PDM_part_to_block_free (ptb);
-    PDM_block_to_part_free (btp);
-  }
-
-  else {
-    *pts_in_box_idx   = pts_in_box_idx2;
-    *pts_in_box_g_num = pts_in_box_g_num2;
-    *pts_in_box_coord = pts_in_box_coord2;
-  }
-
-  if (_dbbt->btShared != NULL) {
-    free (recv_g_num);
-    free (recv_coord);
-  }
-
-  PDM_timer_hang_on (timer);
-  t_end = PDM_timer_elapsed (timer);
-  printf("[%d] part_to_part : %12.5es\n", my_rank, t_end - t_begin);
-  t_begin = t_end;
-  PDM_timer_resume (timer);
-
-  //-->>
-  for (int i = 0; i < (*pts_in_box_idx)[n_boxes]; i++) {
-    for (int j = 0; j < 3; j++) {
-      (*pts_in_box_coord)[3*i+j] = _dbbt->s[j] + _dbbt->d[j] * ((*pts_in_box_coord)[3*i+j]);
-    }
-  }
-  //<<--
-
-  PDM_timer_hang_on (timer);
-  t_end = PDM_timer_elapsed (timer);
-  printf("[%d] de-normalization : %12.5es\n", my_rank, t_end - t_begin);
-  t_begin = t_end;
-  PDM_timer_free (timer);
-}
-
-
-
-
-
-
-
-
-void
-PDM_dbbtree_points_inside_boxes_with_copies
 (
  PDM_dbbtree_t      *dbbt,
  const int           n_pts,
@@ -2899,7 +2513,7 @@ PDM_dbbtree_points_inside_boxes_with_copies
   if (_dbbt->btShared != NULL) {
     int *pts_rank_idx = NULL;
     int *pts_rank = NULL;
-    PDM_box_tree_points_inside_boxes2 (_dbbt->btShared,
+    PDM_box_tree_boxes_containing_points (_dbbt->btShared,
                                        -1,
                                        n_pts,
                                        pts_coord,
@@ -3189,20 +2803,14 @@ PDM_dbbtree_points_inside_boxes_with_copies
                                   int **,
                                   int **);
   if (ellipsoids) {
-    _points_inside_volumes = &PDM_box_tree_points_inside_ellipsoids;
+    _points_inside_volumes = &PDM_box_tree_ellipsoids_containing_points;
   } else {
-    _points_inside_volumes = &PDM_box_tree_points_inside_boxes2;
+    _points_inside_volumes = &PDM_box_tree_boxes_containing_points;
   }
 
   /*
    *  Search in local tree
    */
-  /*PDM_box_tree_points_inside_boxes2 (_dbbt->btLoc,
-                                     -1,
-                                     part_n_pts[0],
-                                     pts_coord1,
-                                     &(pts_box_idx[0]),
-                                     &(pts_box_l_num[0]));*/
   _points_inside_volumes (_dbbt->btLoc,
                           -1,
                           part_n_pts[0],
@@ -3223,12 +2831,6 @@ PDM_dbbtree_points_inside_boxes_with_copies
     for (int i = 0; i < n_copied_ranks; i++) {
       part_n_pts[i+1] = copied_shift[i+1] - copied_shift[i];
 
-      /*PDM_box_tree_points_inside_boxes2 (_dbbt->btLoc,
-                                         i,
-                                         part_n_pts[i+1],
-                                         pts_coord_copied + copied_shift[i] * 3,
-                                         &(pts_box_idx[i+1]),
-                                         &(pts_box_l_num[i+1]));*/
       _points_inside_volumes (_dbbt->btLoc,
                               i,
                               part_n_pts[i+1],
@@ -3401,11 +3003,19 @@ PDM_dbbtree_points_inside_boxes_with_copies
 
 
 
-
-
-
-
-
+/**
+ *
+ * \brief Get an indexed list of all boxes containing points
+ *
+ *   \param [in]  dbbt        Pointer to distributed box tree structure
+ *   \param [in]  n_pts       Number of points
+ *   \param [in]  pts_g_num   Point global ids (size = \ref n_pts)
+ *   \param [in]  pts_coord   Point coordinates (size = 3 * \ref n_pts)
+ *   \param [out] box_idx     Index of boxes (size = \ref n_pts + 1, allocated inside function)
+ *   \param [out] box_g_num   Global ids of boxes (size = \ref box_idx[\ref n_pts], allocated inside function)
+ *   \param [in]  ellipsoids  Consider boxes as axis-aligned ellipsoids (1 or 0)
+ *
+ */
 
 void
 PDM_dbbtree_boxes_containing_points
@@ -3466,7 +3076,7 @@ PDM_dbbtree_boxes_containing_points
   if (_dbbt->btShared != NULL) {
     int *pts_rank_idx = NULL;
     int *pts_rank = NULL;
-    PDM_box_tree_points_inside_boxes2 (_dbbt->btShared,
+    PDM_box_tree_boxes_containing_points (_dbbt->btShared,
                                        -1,
                                        n_pts,
                                        pts_coord,
@@ -3754,9 +3364,9 @@ PDM_dbbtree_boxes_containing_points
                                   int **,
                                   int **);
   if (ellipsoids) {
-    _points_inside_volumes = &PDM_box_tree_points_inside_ellipsoids;
+    _points_inside_volumes = &PDM_box_tree_ellipsoids_containing_points;
   } else {
-    _points_inside_volumes = &PDM_box_tree_points_inside_boxes2;
+    _points_inside_volumes = &PDM_box_tree_boxes_containing_points;
   }
 
   /*
@@ -3974,10 +3584,18 @@ PDM_dbbtree_boxes_containing_points
 
 
 
-
-
-
-
+/**
+ *
+ * \brief Get an indexed list of all boxes intersecting lines
+ *
+ *   \param [in]  dbbt        Pointer to distributed box tree structure
+ *   \param [in]  n_line      Number of points
+ *   \param [in]  line_g_num  Line global ids (size = \ref n_line)
+ *   \param [in]  line_coord  Line coordinates (size = 6 * \ref n_line)
+ *   \param [out] box_idx     Index of boxes (size = \ref n_line + 1, allocated inside function)
+ *   \param [out] box_g_num   Global ids of boxes (size = \ref box_idx[\ref n_line], allocated inside function)
+ *
+ */
 
 void
 PDM_dbbtree_lines_intersect_boxes

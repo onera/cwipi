@@ -3010,12 +3010,14 @@ _dump_node(const PDM_box_tree_t  *bt,
  *============================================================================*/
 
 
-/*----------------------------------------------------------------------------
- * Create a PDM_box_tree_data_t structure and initialize it.
+/**
  *
- * returns:
- *   pointer to an empty PDM_box_tree_data_t structure.
- *----------------------------------------------------------------------------*/
+ * \brief Create a \ref PDM_box_tree_data_t structure and initialize it
+ *
+ * \return Pointer to an empty \ref PDM_box_tree_data_t structure
+ *
+ */
+
 PDM_box_tree_data_t *
 PDM_box_tree_data_create(void)
 {
@@ -3040,20 +3042,17 @@ PDM_box_tree_data_create(void)
 
 
 
-
-
-/*----------------------------------------------------------------------------
- * Create a PDM_box_tree_t structure and initialize it.
+/**
  *
- * parameters:
- *  max_level     <-- max possible level
- *  threshold     <-- max number of  boxes linked to an octant if
- *                    max_level is not reached
- *  max_box_ratio <-- max n_linked_boxes / n_boxes ratio
+ * \brief Create a \ref PDM_box_tree_t structure and initialize it
  *
- * returns:
- *   pointer to an empty PDM_box_tree_t structure.
- *----------------------------------------------------------------------------*/
+ * \param [in]   max_level      Max possible level
+ * \param [in]   threshold      Max number of boxes linked to an octant if \ref max_level is not reached
+ * \param [in]   max_box_ratio  Max n_linked_boxes / n_boxes ratio
+ *
+ * \return Pointer to an empty \ref PDM_box_tree_t structure
+ *
+ */
 
 PDM_box_tree_t *
 PDM_box_tree_create(int    max_level,
@@ -3132,12 +3131,14 @@ PDM_box_tree_create(int    max_level,
 }
 
 
-/*----------------------------------------------------------------------------
- * Destroy a PDM_box_tree_data_t structure.
+
+/**
  *
- * parameters:
- *   btd <-- pointer to pointer to PDM_box_tree_data_t structure to destroy
- *----------------------------------------------------------------------------*/
+ * \brief Destroy a \ref PDM_box_tree_data_t structure
+ *
+ * \param [in]   btd  Pointer to pointer to \ref PDM_box_tree_data_t structure to destroy
+ *
+ */
 
 void
 PDM_box_tree_data_destroy(PDM_box_tree_data_t  *btd)
@@ -3154,12 +3155,14 @@ PDM_box_tree_data_destroy(PDM_box_tree_data_t  *btd)
 }
 
 
-/*----------------------------------------------------------------------------
- * Destroy a PDM_box_tree_t structure.
+
+/**
  *
- * parameters:
- *   bt <-- pointer to pointer to PDM_box_tree_t structure to destroy
- *----------------------------------------------------------------------------*/
+ * \brief Destroy a \ref PDM_box_tree_t structure
+ *
+ * \param [in]   bt   Pointer to pointer to \ref PDM_box_tree_t structure to destroy
+ *
+ */
 
 void
 PDM_box_tree_destroy(PDM_box_tree_t  **bt)
@@ -3189,15 +3192,17 @@ PDM_box_tree_destroy(PDM_box_tree_t  **bt)
   *bt = _bt;
 }
 
-/*----------------------------------------------------------------------------
- * Get the deepest level allowed by the tree structure.
+
+
+/**
  *
- * parameters:
- *   bt <-- pointer to PDM_box_tree_t structure.
+ * \brief Get the deepest level allowed by the tree structure
  *
- * returns:
- *   deepest allowed level of the tree
- *----------------------------------------------------------------------------*/
+ * \param [in]   bt   Pointer to pointer to PDM_box_tree_t structure to destroy
+ *
+ * \return  Deepest allowed level of the tree
+ *
+ */
 
 int
 PDM_box_tree_get_max_level(const PDM_box_tree_t  *bt)
@@ -3205,8 +3210,11 @@ PDM_box_tree_get_max_level(const PDM_box_tree_t  *bt)
   return bt->max_level;
 }
 
-/*----------------------------------------------------------------------------
- * Assign a set of boxes to an empty PDM_box_tree_t structure.
+
+
+/**
+ *
+ * \brief Assign a set of boxes to an empty \ref PDM_box_tree_t structure
  *
  * The box tree structure must have been created using to PDM_tree_create().
  *
@@ -3217,16 +3225,16 @@ PDM_box_tree_get_max_level(const PDM_box_tree_t  *bt)
  * If max_level = -1, the highest level reachable is PDM_TREE_MAX_LEVEL but
  * there is no defined target level.
  *
- * parameters:
- *   bt         <-> pointer to PDM_box_tree_t structure.
- *   boxes      <-- pointer to the associated box set structure
- *   build_type <-- layout variant for building the tree structure
- *----------------------------------------------------------------------------*/
+ * \param [in]   bt           Pointer to \ref PDM_box_tree_t structure
+ * \param [in]   boxes        Pointer to the associated box set structure
+ * \param [in]   build_type   Layout variant for building the tree structure
+ *
+ */
 
 void
-PDM_box_tree_set_boxes(PDM_box_tree_t       *bt,
-                       PDM_box_set_t  *boxes,
-                       PDM_box_tree_sync_t   build_type)
+PDM_box_tree_set_boxes(PDM_box_tree_t      *bt,
+                       PDM_box_set_t       *boxes,
+                       PDM_box_tree_sync_t  build_type)
 {
   //printf("  -->> PDM_box_tree_set_boxes\n");
   PDM_boxes_t *_local_boxes = boxes->local_boxes;
@@ -3342,17 +3350,19 @@ PDM_box_tree_set_boxes(PDM_box_tree_t       *bt,
   //printf("  <<-- PDM_box_tree_set_boxes\n");
 }
 
-/*----------------------------------------------------------------------------
- * Compute an index based on Morton encoding to ensure a good distribution
- * of boxes among the participating ranks.
+
+
+/**
  *
- * parameters:
- *   bt         <-> pointer to PDM_box_tree_t structure.
- *   boxes      <-- pointer to the associated box set structure
+ * \brief Compute an index based on Morton encoding to ensure a good distribution
+ * of boxes among the participating ranks
  *
- * returns:
- *   pointer to newly created PDM_box_distrib_t structure.
- *----------------------------------------------------------------------------*/
+ * \param [in]   bt           Pointer to \ref PDM_box_tree_t structure
+ * \param [in]   boxes        Pointer to the associated box set structure
+ *
+ * \return   Pointer to newly created \ref PDM_box_distrib_t structure
+ *
+ */
 
 PDM_box_distrib_t *
 PDM_box_tree_get_distrib(PDM_box_tree_t        *bt,
@@ -3473,8 +3483,10 @@ PDM_box_tree_get_distrib(PDM_box_tree_t        *bt,
 }
 
 
-/*----------------------------------------------------------------------------
- * Build an indexed list on associated bt boxes to list boxes B intersections.
+
+/**
+ *
+ * \brief Build an indexed list on associated bt boxes to list boxes B intersections
  *
  * The index and box_g_num arrays are allocated by this function,
  * and it is the caller's responsibility to free them.
@@ -3483,12 +3495,12 @@ PDM_box_tree_get_distrib(PDM_box_tree_t        *bt,
  * relative to boxes intersecting box i of the boxes set, while
  * box_g_num contains the global numbers associated with those boxes.
  *
- * parameters:
- *   bt        <-- pointer to box tree structure to query
- *   boxesB    <-- pointer boxes that intersect associated tree boxes
- *   box_index --> pointer to the index array on bounding boxes
- *   box_g_num --> pointer to the list of intersecting bounding boxesB
- *----------------------------------------------------------------------------*/
+ * \param [in]   bt          Pointer to box tree structure to query
+ * \param [in]   boxes       Pointer to boxes that intersect associated tree boxes
+ * \param [out]  box_index   Pointer to the index array on bounding boxes
+ * \param [out]  box_g_num   Pointer to the list of intersecting bounding boxes
+ *
+ */
 
 void
 PDM_box_tree_get_boxes_intersects(PDM_box_tree_t       *bt,
@@ -3583,8 +3595,10 @@ PDM_box_tree_get_boxes_intersects(PDM_box_tree_t       *bt,
 }
 
 
-/*----------------------------------------------------------------------------
- * Build an indexed list on boxes to list intersections.
+
+/**
+ *
+ * \brief Build an indexed list on boxes to list intersections
  *
  * The index and box_g_num arrays are allocated by this function,
  * and it is the caller's responsibility to free them.
@@ -3593,11 +3607,11 @@ PDM_box_tree_get_boxes_intersects(PDM_box_tree_t       *bt,
  * relative to boxes intersecting box i of the boxes set, while
  * box_g_num contains the global numbers associated with those boxes.
  *
- * parameters:
- *   bt        <-- pointer to box tree structure to query
- *   box_index --> pointer to the index array on bounding boxes
- *   box_g_num --> pointer to the list of intersecting bounding boxes
- *----------------------------------------------------------------------------*/
+ * \param [in]   bt          Pointer to box tree structure to query
+ * \param [out]  box_index   Pointer to the index array on bounding boxes
+ * \param [out]  box_g_num   Pointer to the list of intersecting bounding boxes
+ *
+ */
 
 void
 PDM_box_tree_get_intern_intersects(PDM_box_tree_t       *bt,
@@ -3647,8 +3661,11 @@ PDM_box_tree_get_intern_intersects(PDM_box_tree_t       *bt,
   *box_g_num = _g_num;
 }
 
-/*----------------------------------------------------------------------------
- * Get global box tree statistics.
+
+
+/**
+ *
+ * \brief Get global box tree statistics
  *
  * All fields returned are optional: if their argument is set to NULL,
  * the corresponding information will not be returned.
@@ -3663,29 +3680,28 @@ PDM_box_tree_get_intern_intersects(PDM_box_tree_t       *bt,
  * Note that the theoretical memory use includes that of the associated
  * box set.
  *
- * parameters:
- *   bt                 <-- pointer to box tree structure
- *   depth              --> tree depth (max level used)
- *   n_leaves           --> number of leaves in the tree
- *   n_boxes            --> number of boxes in the tree
- *   n_threshold_leaves --> number of leaves where n_boxes > threshold
- *   n_leaf_boxes       --> number of boxes for a leaf
- *   mem_used           --> theoretical used memory
- *   mem_allocated      --> theoretical allocated memory
+ * \param [in]  bt                  Pointer to box tree structure
+ * \param [in]  depth               Tree depth (max level used)
+ * \param [out] n_leaves            Number of leaves in the tree
+ * \param [out] n_boxes             Number of boxes in the tree
+ * \param [out] n_threshold_leaves  Number of leaves where n_boxes > threshold
+ * \param [out] n_leaf_boxes        Number of boxes for a leaf
+ * \param [out] mem_used            Theoretical used memory
+ * \param [out] mem_allocated       Theoretical allocated memory
  *
- * returns:
- *   the spatial dimension associated with the box tree layout (3, 2, or 1)
- *----------------------------------------------------------------------------*/
+ * \return The spatial dimension associated with the box tree layout (3, 2, or 1)
+ *
+ */
 
 int
-PDM_box_tree_get_stats(const PDM_box_tree_t  *bt,
-                       int                    depth[3],
-                       int              n_leaves[3],
-                       int              n_boxes[3],
-                       int              n_threshold_leaves[3],
-                       int              n_leaf_boxes[3],
-                       size_t                 mem_used[3],
-                       size_t                 mem_allocated[3])
+PDM_box_tree_get_stats(const PDM_box_tree_t *bt,
+                       int                   depth[3],
+                       int                   n_leaves[3],
+                       int                   n_boxes[3],
+                       int                   n_threshold_leaves[3],
+                       int                   n_leaf_boxes[3],
+                       size_t                mem_used[3],
+                       size_t                mem_allocated[3])
 {
   int i;
   uint64_t mem_per_node;
@@ -3838,12 +3854,15 @@ PDM_box_tree_get_stats(const PDM_box_tree_t  *bt,
   return dim;
 }
 
-/*----------------------------------------------------------------------------
- * Display local statistics about a PDM_box_tree_t structure.
+
+
+/**
  *
- * parameters:
- *   bt <-- pointer to box tree structure
- *----------------------------------------------------------------------------*/
+ * \brief Display local statistics about a \ref PDM_box_tree_t structure
+ *
+ * \param [in]  bt   Pointer to box tree structure
+ *
+ */
 
 void
 PDM_box_tree_dump_statistics(const PDM_box_tree_t  *bt)
@@ -3974,12 +3993,15 @@ PDM_box_tree_dump_statistics(const PDM_box_tree_t  *bt)
   }
 }
 
-/*----------------------------------------------------------------------------
- * Dump an PDM_box_tree_t structure.
+
+
+/**
  *
- * parameters:
- *   bt <-- pointer to box tree structure
- *----------------------------------------------------------------------------*/
+ * \brief Dump a \ref PDM_box_tree_t structure
+ *
+ * \param [in]  bt   Pointer to box tree structure
+ *
+ */
 
 void
 PDM_box_tree_dump(PDM_box_tree_t  *bt)
@@ -4028,14 +4050,19 @@ PDM_box_tree_dump(PDM_box_tree_t  *bt)
   _dump_node(bt, 0);
 }
 
-/*----------------------------------------------------------------------------
- * Get minimum of maximum distance of boxes
+
+
+/**
  *
- * parameters:
- *   bt           <-- pointer to box tree structure
- *   n_boxes      --> Number of boxes in the closest leaf
- *   box_g_num[]  --> Global number of boxes in the closest leaf
- *----------------------------------------------------------------------------*/
+ * \brief Get minimum of maximum distance of boxes
+ *
+ * \param [in]   bt             Pointer to box tree structure
+ * \param [in]   n_pts          Number of points
+ * \param [in]   pts            Point coordinates
+ * \param [out]  box_id         Leaf box with the minimum of maximum distance
+ * \param [out]  box_max_dist   Maximum distance to box_id
+ *
+ */
 
 void
 PDM_box_tree_min_dist_max_box
@@ -4195,17 +4222,20 @@ PDM_box_tree_min_dist_max_box
 }
 
 
-/*----------------------------------------------------------------------------
- * Get minimum of maximum distance of boxes
+
+/**
  *
- * parameters:
- *   bt                <-- pointer to box tree structure
- *   n_pts             <-- Number of points
- *   pts               <-- Point coordinates (size = 3 * n_pts)
- *   upper_bound_dist2 <-- Upper bound of the square of the distance (size = n_pts)
- *   i_boxes           --> Index of boxes (size = n_pts + 1)
- *   boxes             --> Boxes (size = i_boxes[n_pts])
- *----------------------------------------------------------------------------*/
+ * \brief Get an indexed list of all boxes within an upper bound distance
+ *
+ * \param [in]   bt                 Pointer to box tree structure
+ * \param [in]   n_pts              Number of points
+ * \param [in]   pts                Point coordinates
+ * \param [in]   upper_bound_dist2  Squared upper bound distance (size = \ref n_pts)
+ * \param [out]  i_boxes            Pointer to the index array on bounding boxes
+ * \param [out]  boxes              Pointer to the list of bounding boxes
+ *
+ */
+
 void
 PDM_box_tree_closest_upper_bound_dist_boxes_get
 (
@@ -4388,6 +4418,25 @@ PDM_box_tree_closest_upper_bound_dist_boxes_get
   free (visited_boxes);
 }
 
+
+
+/**
+ *
+ * \brief Get an indexed list of all boxes within an upper bound distance
+ *
+ * The search can be performed either in the local box tree (\ref i_rank < 0) or in
+ * any distant box tree copied locally from rank bt->copied_rank[\ref i_rank]
+ *
+ * \param [in]   bt                 Pointer to box tree structure
+ * \param [in]   i_rank             Copied rank
+ * \param [in]   n_pts              Number of points
+ * \param [in]   pts                Point coordinates
+ * \param [in]   upper_bound_dist2  Squared upper bound distance (size = \ref n_pts)
+ * \param [out]  i_boxes            Pointer to the index array on bounding boxes
+ * \param [out]  boxes              Pointer to the list of bounding boxes
+ * \param [in]   d_opt              Normalization vector (or NULL)
+ *
+ */
 
 void
 PDM_box_tree_closest_upper_bound_dist_boxes_get_v2
@@ -4592,10 +4641,17 @@ PDM_box_tree_closest_upper_bound_dist_boxes_get_v2
 
 
 
+/**
+ *
+ * \brief Copy the local box tree of some ranks on all other ranks
+ *
+ * \param [in]   bt                 Pointer to box tree structure
+ * \param [in]   n_copied_ranks     Number of copied ranks
+ * \param [in]   copied_ranks       List of copied ranks
+ * \param [out]  rank_copy_num      Transpose of list of copied ranks (-1 for non-copied ranks)
+ *
+ */
 
-/*----------------------------------------------------------------------------
- * Send copies of box tree data from selected ranks to all other ranks for better load balancing
- *---------------------------------------------------------------------------*/
 void
 PDM_box_tree_copy_to_ranks
 (
@@ -4756,7 +4812,19 @@ PDM_box_tree_copy_to_ranks
 
 
 
-
+/**
+ *
+ * \brief Get an indexed list of all points inside the boxes of a box tree
+ *
+ * \param [in]   bt                 Pointer to box tree structure
+ * \param [in]   n_pts              Number of points
+ * \param [in]   pts_g_num          Point global ids
+ * \param [in]   pts_coord          Point coordinates
+ * \param [out]  pts_in_box_idx     Pointer to the index array on boxes
+ * \param [out]  pts_in_box_g_num   Pointer to the list of global ids of points inside boxes
+ * \param [out]  pts_in_box_coord   Pointer to the list of coordinates of points inside boxes
+ *
+ */
 
 void
 PDM_box_tree_points_inside_boxes
@@ -4928,8 +4996,25 @@ PDM_box_tree_points_inside_boxes
 }
 
 
+
+/**
+ *
+ * \brief Get an indexed list of all boxes containing points
+ *
+ * The search can be performed either in the local box tree (\ref i_copied_rank < 0) or in
+ * any distant box tree copied locally from rank bt->copied_rank[\ref i_copied_rank]
+ *
+ * \param [in]   bt             Pointer to box tree structure
+ * \param [in]   i_copied_rank  Copied rank
+ * \param [in]   n_pts          Number of points
+ * \param [in]   pts_coord      Point coordinates
+ * \param [out]  box_idx        Pointer to the index array on points (size = \ref n_pts + 1)
+ * \param [out]  box_l_num      Pointer to the list boxes containing points (size = \ref box_idx[\ref n_pts])
+ *
+ */
+
 void
-PDM_box_tree_points_inside_boxes2
+PDM_box_tree_boxes_containing_points
 (
  PDM_box_tree_t *bt,
  const int       i_copied_rank,
@@ -5079,153 +5164,26 @@ PDM_box_tree_points_inside_boxes2
 
 
 
-
 /**
- * We assume boxes are mutually disjoint
- * For a point P,
- * if there is box that contain p, pick that box (it is unique)
- * else, pick the box with min max dist
- **/
-void
-PDM_box_tree_min_dist_max_box_disjoint
-(
- PDM_box_tree_t  *bt,
- const int        n_pts,
- double          *pts,
- int             *box_id,
- double          *box_max_dist
- )
-{
-  int s_stack = ((bt->n_children - 1) * (bt->max_level - 1) + bt->n_children);
-
-  int *stack       = malloc ((sizeof(int)) * s_stack);
-  int *inbox_stack = malloc ((sizeof(int)) * s_stack);
-  double *min_dist2_stack = malloc ((sizeof(double)) * s_stack);
-  int pos_stack = 0;
-
-  int dim = bt->boxes->dim;
-
-  int normalized = bt->boxes->normalized;
-  const double *d = bt->boxes->d;
-
-  double *_pts = pts;
-  _pts = malloc (sizeof(double) * 3 * n_pts);
-  /*for (int i = 0; i < n_pts; i++) {
-    const double *_pt_origin =  pts + 3 * i;
-    double *_pt        = _pts + 3 * i;
-    PDM_box_set_normalize ((PDM_box_set_t *) bt->boxes, _pt_origin, _pt);
-    }*/
-  PDM_box_set_normalize_robust ((PDM_box_set_t *) bt->boxes,
-                                n_pts,
-                                pts,
-                                _pts);
-
-  double extents2[2*dim];
-
-  for (int i = 0; i < n_pts; i++) {
-
-    const double *_pt = _pts + 3 * i;
-
-    int point_inside_box = 0;
-    box_id[i] = -1;
-    box_max_dist[i] = HUGE_VAL;
-
-    /* Push root in stack */
-    pos_stack = 0;
-    stack[pos_stack] = 0; /* push root in th stack */
-
-    _extents (dim, bt->local_data->nodes[0].morton_code, extents2);
-
-    inbox_stack[pos_stack] = _box_dist2_min (dim,
-                                             normalized,
-                                             d,
-                                             extents2,
-                                             _pt,
-                                             min_dist2_stack);
-
-    pos_stack++;
-
-    while (pos_stack > 0 && !point_inside_box) {
-      int id_curr_node = stack[--pos_stack];
-
-      _node_t *curr_node = &(bt->local_data->nodes[id_curr_node]);
-
-      if (curr_node->n_boxes == 0) continue;
-
-      _extents (dim, curr_node->morton_code, extents2);
-
-      double max_dist2;
-      _box_dist2_max (dim,
-                      normalized,
-                      d,
-                      extents2,
-                      _pt,
-                      &max_dist2);
-
-      if (max_dist2 <= box_max_dist[i]) {
-
-        /* Internal node */
-        if (!curr_node->is_leaf) {
-          _push_child_in_stack_v0 (bt,
-                                   dim,
-                                   normalized,
-                                   d,
-                                   id_curr_node,
-                                   box_max_dist[i],
-                                   _pt,
-                                   &pos_stack,
-                                   stack,
-                                   inbox_stack,
-                                   min_dist2_stack,
-                                   0,
-                                   1);
-        }
-
-        /* Leaf node */
-        else {
-
-          for (int j = 0; j < curr_node->n_boxes; j++) {
-
-            double box_max_dist2;
-
-            int   _box_id = bt->local_data->box_ids[curr_node->start_id + j];
-            const double *_box_extents =  bt->boxes->local_boxes->extents + _box_id*dim*2;
-
-            point_inside_box = _box_dist2_max (dim,
-                                               normalized,
-                                               d,
-                                               _box_extents,
-                                               _pt,
-                                               &box_max_dist2);
-
-            if (point_inside_box || box_max_dist2 < box_max_dist[i]) {
-              box_id[i] = _box_id;
-              box_max_dist[i] = box_max_dist2;
-            }
-
-            if (point_inside_box) break;
-          }
-
-        }
-      }
-    } // End while stack not empty
-
-  } // End of loop on points
-
-  free (stack);
-  free (inbox_stack);
-  free (min_dist2_stack);
-
-  if (_pts != pts) {
-    free (_pts);
-  }
-}
-
-
-
+ *
+ * \brief Get an indexed list of all ellipsoids containing points
+ *
+ * The boxes are treated as axis-aligned ellipsoids with same extents.
+ *
+ * The search can be performed either in the local box tree (\ref i_copied_rank < 0) or in
+ * any distant box tree copied locally from rank bt->copied_rank[\ref i_copied_rank]
+ *
+ * \param [in]   bt             Pointer to box tree structure
+ * \param [in]   i_copied_rank  Copied rank
+ * \param [in]   n_pts          Number of points
+ * \param [in]   pts_coord      Point coordinates
+ * \param [out]  box_idx        Pointer to the index array on points (size = \ref n_pts + 1)
+ * \param [out]  box_l_num      Pointer to the list of ellipsoids containing points (size = \ref box_idx[\ref n_pts])
+ *
+ */
 
 void
-PDM_box_tree_points_inside_ellipsoids
+PDM_box_tree_ellipsoids_containing_points
 (
  PDM_box_tree_t *bt,
  const int       i_copied_rank,
@@ -5375,11 +5333,21 @@ PDM_box_tree_points_inside_ellipsoids
 
 
 
-
-
-
-
-
+/**
+ *
+ * \brief Get an indexed list of all boxes intersecting lines
+ *
+ * The search can be performed either in the local box tree (\ref i_copied_rank < 0) or in
+ * any distant box tree copied locally from rank bt->copied_rank[\ref i_copied_rank]
+ *
+ * \param [in]   bt             Pointer to box tree structure
+ * \param [in]   i_copied_rank  Copied rank
+ * \param [in]   n_line         Number of lines
+ * \param [in]   line_coord     Lines coordinates (xa0, ya0, za0, xb0, yb0, zb0, xa1, ...)
+ * \param [out]  box_idx        Pointer to the index array on lines (size = \ref n_line + 1)
+ * \param [out]  box_l_num      Pointer to the list of boxes intersecting lines (size = \ref box_idx[\ref n_line])
+ *
+ */
 
 void
 PDM_box_tree_intersect_lines_boxes

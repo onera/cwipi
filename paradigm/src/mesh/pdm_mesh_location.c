@@ -3730,27 +3730,16 @@ PDM_mesh_location_t        *ml
     case PDM_MESH_LOCATION_DBBTREE:
       if (DEBUG) printf("[%d] n_pts_pcloud = %d, n_select_boxes = %d\n", my_rank, n_pts_pcloud, n_select_boxes);//
       // if (USE_OCTREE_COPIES) {
-        PDM_dbbtree_points_inside_boxes_with_copies (dbbt,
-                                                     n_pts_pcloud,
-                                                     pcloud_g_num,
-                                                     pcloud_coord,
-                                                     n_select_boxes,
-                                                     select_box_g_num,
-                                                     &pts_idx,
-                                                     &pts_g_num,
-                                                     &pts_coord,
-                                                     0);
-      // } else {
-      //   PDM_dbbtree_points_inside_boxes (dbbt,
-      //                                    n_pts_pcloud,
-      //                                    pcloud_g_num,
-      //                                    pcloud_coord,
-      //                                    n_select_boxes,
-      //                                    select_box_g_num,
-      //                                    &pts_idx,
-      //                                    &pts_g_num,
-      //                                    &pts_coord);
-      // }
+        PDM_dbbtree_points_inside_boxes (dbbt,
+                                         n_pts_pcloud,
+                                         pcloud_g_num,
+                                         pcloud_coord,
+                                         n_select_boxes,
+                                         select_box_g_num,
+                                         &pts_idx,
+                                         &pts_g_num,
+                                         &pts_coord,
+                                         0);
       break;
 
     default:

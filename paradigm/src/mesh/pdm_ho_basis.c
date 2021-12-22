@@ -1187,20 +1187,19 @@ _default_elt_basis
  * Public function definitions
  *============================================================================*/
 
-/*----------------------------------------------------------------------------
+/**
  *
- * High-order basis
+ * \brief Evaluate high-order basis functions
  *
- * parameters:
- *   type            <-- element type
- *   order           <-- order
- *   n_nodes         <-- number of nodes
- *   n_pts           <-- number of points
- *   uvw             <-- uvw
- *   uvw             <-- uvw (size = n_pts)
- *   weights         --> weights (size = n_nodes * n_pts)
  *
- *----------------------------------------------------------------------------*/
+ * \param [in]  type      Element type structure
+ * \param [in]  order     Element order
+ * \param [in]  n_nodes   Number of nodes
+ * \param [in]  n_pts     Number of points
+ * \param [in]  uvw       Parametric coordinates of the points (size = elt_dim * \ref n_pts)
+ * \param [out] weights   Weights (size = \ref n_pts * \ref n_nodes)
+ *
+ */
 
 void
 PDM_ho_basis
