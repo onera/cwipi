@@ -5862,6 +5862,8 @@ _prepare_copies
                                        sizeof(int) * (*n_copied_ranks));
 
     PDM_sort_int (*copied_ranks, NULL, *n_copied_ranks);
+  } else {
+    free (*copied_ranks);
   }
 }
 
