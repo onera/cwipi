@@ -292,7 +292,13 @@ namespace cwipi {
         interpolate (referenceField, _send_buffer[intId]);
       }
 
-      uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (MPI_TAG_UB - 1)) + 1;
+      MPI_Aint  *maxTagTmp;
+      int flag; 
+
+      MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &maxTagTmp, &flag);
+      int maxTag = (int) *maxTagTmp; 
+
+      uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (maxTag - 1)) + 1;
 
       if ((int) _send_adler.size() != 0) {
         int idx = PDM_binary_search_uint32t (mpi_tag,
@@ -300,7 +306,7 @@ namespace cwipi {
                                              (int) _send_adler.size());
 
         while (idx != -1) {
-          mpi_tag = (mpi_tag + 1) % (MPI_TAG_UB - 1) + 1;
+          mpi_tag = (mpi_tag + 1) % (maxTag - 1) + 1;
 
           idx = PDM_binary_search_uint32t(mpi_tag,
                                           &(_send_adler[0]),
@@ -369,7 +375,14 @@ namespace cwipi {
           interpolate (referenceField, _send_buffer[intId]);
         }
 
-        uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (MPI_TAG_UB - 1)) + 1;
+
+        MPI_Aint  *maxTagTmp;
+        int flag; 
+
+        MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &maxTagTmp, &flag);
+        int maxTag = (int) *maxTagTmp; 
+
+        uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (maxTag - 1)) + 1;
 
         if ((int) _send_adler.size() != 0) {
           int idx = PDM_binary_search_uint32t(mpi_tag,
@@ -378,7 +391,7 @@ namespace cwipi {
 
           while (idx != -1) {
 
-            mpi_tag = (mpi_tag + 1) % (MPI_TAG_UB - 1) + 1;
+            mpi_tag = (mpi_tag + 1) % (maxTag - 1) + 1;
 
             idx = PDM_binary_search_uint32t(mpi_tag,
                                             &(_send_adler[0]),
@@ -476,7 +489,6 @@ namespace cwipi {
       }
 
       if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-        printf("visu send field\n");
         _visu -> WriterField(referenceField, CWP_FIELD_MAP_SOURCE);
       }
     }
@@ -553,7 +565,13 @@ namespace cwipi {
         _recv_buffer[intId][i] = (double *) malloc(sizeof(double) * stride * gnum1_come_from_idx[i][n_ref_gnum2[i]]);
       }
 
-      uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (MPI_TAG_UB - 1)) + 1;
+      MPI_Aint  *maxTagTmp;
+      int flag; 
+
+      MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &maxTagTmp, &flag);
+      int maxTag = (int) *maxTagTmp; 
+
+      uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (maxTag - 1)) + 1;
 
       if ((int) _send_adler.size() != 0) {
         int idx = PDM_binary_search_uint32t(mpi_tag,
@@ -561,12 +579,12 @@ namespace cwipi {
                                             (int) _recv_adler.size());
 
         while (idx != -1) {
-          mpi_tag = (mpi_tag + 1) % (MPI_TAG_UB - 1) + 1;
+          mpi_tag = (mpi_tag + 1) % (maxTag - 1) + 1;
 
           idx = PDM_binary_search_uint32t(mpi_tag,
                                           &(_recv_adler[0]),
                                           (int) _recv_adler.size());
-          }
+        }
       }
 
       std::vector<uint32_t>::iterator it  = _recv_adler.begin();
@@ -629,7 +647,13 @@ namespace cwipi {
           _recv_buffer[intId][i] = (double *) malloc(sizeof(double) * stride * gnum1_come_from_idx[i][n_ref_gnum2[i]]);
         }
 
-        uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (MPI_TAG_UB - 1)) + 1;
+        MPI_Aint  *maxTagTmp;
+        int flag; 
+
+        MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &maxTagTmp, &flag);
+        int maxTag = (int) *maxTagTmp; 
+
+        uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (maxTag - 1)) + 1;
 
         int idx = PDM_binary_search_uint32t (mpi_tag,
                                              &(_recv_adler[0]),
@@ -637,7 +661,7 @@ namespace cwipi {
 
         while (idx != -1) {
 
-          mpi_tag = (mpi_tag + 1) % (MPI_TAG_UB - 1) + 1;
+          mpi_tag = (mpi_tag + 1) % (maxTag - 1) + 1;
 
           idx = PDM_binary_search_uint32t (mpi_tag,
                                          &(_recv_adler[0]),

@@ -158,8 +158,15 @@ namespace cwipi {
         }
 
         CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wdiv-by-zero")
-        if (MPI_TAG_UB > 0) {
-          _tag = _tag % MPI_TAG_UB;
+
+        MPI_Aint  *maxTagTmp;
+        int flag; 
+
+        MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &maxTagTmp, &flag);
+        int maxTag = (int) *maxTagTmp; 
+
+        if (maxTag > 0) {
+          _tag = _tag % maxTag;
         }
         CWP_GCC_SUPPRESS_WARNING_POP
 
