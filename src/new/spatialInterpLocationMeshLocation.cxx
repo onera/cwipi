@@ -35,24 +35,15 @@ namespace cwipi {
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
-      printf("localization_init - 1.1\n");
-      fflush(stdout);
-
       _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm);
 
       PDM_mesh_location_method_set(_id_pdm, _location_method);
       PDM_mesh_location_tolerance_set(_id_pdm, _tolerance);
   
-      printf("localization_init - 1.2\n");
-      fflush(stdout);
-
       if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
         PDM_mesh_location_mesh_global_data_set(_id_pdm, _cplNPart);
         PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _nPart);
-
-        printf("localization_init - 1.3\n");
-        fflush(stdout);
 
       }
 
@@ -60,9 +51,6 @@ namespace cwipi {
 
         PDM_mesh_location_mesh_global_data_set(_id_pdm, _nPart);
         PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _cplNPart);
-
-        printf("localization_init - 1.4\n");
-        fflush(stdout);
 
       }
 
@@ -131,10 +119,6 @@ namespace cwipi {
         }
       }
     }
-
-    printf("localization_init - end\n");
-    fflush(stdout);
-
   }
 
 
@@ -154,14 +138,10 @@ namespace cwipi {
   ) 
   {
 
-          printf("localization_points_cloud_setting - 1.0\n");
-          fflush(stdout);
-
     if (!_coupledCodeProperties->localCodeIs()) {
+
       if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
-          printf("localization_points_cloud_setting - 1.1\n");
-          fflush(stdout);
         for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
 
           const double *part_coord = NULL;
@@ -190,8 +170,6 @@ namespace cwipi {
       }
 
       else {
-          printf("localization_points_cloud_setting - 1.2\n");
-          fflush(stdout);
         for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
           PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, 0, NULL, NULL);
         }
@@ -276,14 +254,10 @@ namespace cwipi {
   (
   )
   {
-    printf("localization_surface_setting - 1.0\n");
-    fflush(stdout);
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-        printf("localization_surface_setting - 1.1\n");
-        fflush(stdout);
 
         for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
           int n_vtx = _mesh->getPartNVertex(i_part);
@@ -294,8 +268,6 @@ namespace cwipi {
           CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
 
           if (interf_dim == CWP_INTERFACE_SURFACE) {
-            printf("localization_surface_setting - 1.1.1\n");
-            fflush(stdout);
             int n_edge = _mesh->getNEdge(i_part);
             int *face_edge_idx = _mesh->getFaceEdgeIndex(i_part);
             int *face_edge = _mesh->getFaceEdge(i_part);
@@ -318,9 +290,6 @@ namespace cwipi {
           }
 
           else if (interf_dim == CWP_INTERFACE_VOLUME) {
-
-            printf("localization_surface_setting - 1.1.2\n");
-            fflush(stdout);
 
             int n_cell = _mesh->getNCell(i_part);
             int *cell_face_idx = _mesh->getCellFaceIndex(i_part);
@@ -346,8 +315,6 @@ namespace cwipi {
       }
 
       else {
-        printf("localization_surface_setting - 1.2\n");
-        fflush(stdout);
         CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
         for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
           if (interf_dim == CWP_INTERFACE_SURFACE) {
@@ -401,8 +368,6 @@ namespace cwipi {
             CWP_g_num_t *elt_gnum = _mesh->GNumEltsGet(i_part);
 
             if (interf_dim == CWP_INTERFACE_SURFACE) {
-              printf("localization_surface_setting - 1.1.1\n");
-              fflush(stdout);
               int n_edge = _mesh->getNEdge(i_part);
               int *face_edge_idx = _mesh->getFaceEdgeIndex(i_part);
               int *face_edge = _mesh->getFaceEdge(i_part);
@@ -425,9 +390,6 @@ namespace cwipi {
             }
 
             else if (interf_dim == CWP_INTERFACE_VOLUME) {
-
-              printf("localization_surface_setting - 1.1.2\n");
-              fflush(stdout);
 
               int n_cell = _mesh->getNCell(i_part);
               int *cell_face_idx = _mesh->getCellFaceIndex(i_part);
@@ -465,8 +427,6 @@ namespace cwipi {
             CWP_g_num_t *elt_gnum = cpl_mesh->GNumEltsGet(i_part);
 
             if (interf_dim == CWP_INTERFACE_SURFACE) {
-              printf("localization_surface_setting - 1.1.1\n");
-              fflush(stdout);
               int n_edge = cpl_mesh->getNEdge(i_part);
               int *face_edge_idx = cpl_mesh->getFaceEdgeIndex(i_part);
               int *face_edge = cpl_mesh->getFaceEdge(i_part);
@@ -488,8 +448,6 @@ namespace cwipi {
             }
 
             else if (interf_dim == CWP_INTERFACE_VOLUME) {
-              printf("localization_surface_setting - 1.1.2\n");
-              fflush(stdout);
               int n_cell = cpl_mesh->getNCell(i_part);
               int *cell_face_idx = cpl_mesh->getCellFaceIndex(i_part);
               int *cell_face = cpl_mesh->getCellFace(i_part);
@@ -521,16 +479,13 @@ namespace cwipi {
   (
   ) 
   {
-    printf("localization_compute - 1.0\n");
-    fflush(stdout);
 
     if (!_coupledCodeProperties->localCodeIs()) {
-      printf("localization_compute - 1.1\n");
-      fflush(stdout);
 
       PDM_mesh_location_compute(_id_pdm);
       PDM_mesh_location_dump_times(_id_pdm);
     }
+
     else { 
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
         printf("localization_compute - 1.2\n");

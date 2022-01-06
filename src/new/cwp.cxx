@@ -266,8 +266,15 @@ CWP_Init
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
-  //PDM_printf("\ncwipi " CWIPI_VERSION " initializing\n");
-  //PDM_printf("------------------------\n\n");
+  int my_rank;  
+  MPI_Comm_rank (global_comm, &my_rank);
+
+  if (my_rank == 0) {
+
+    PDM_printf("\ncwipi " CWIPI_VERSION " initializing\n");
+    PDM_printf("------------------------\n\n");
+
+  }
 
   /*
    * Builds application communicator

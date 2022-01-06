@@ -1046,6 +1046,7 @@ int main
                     CWP_INTERFACE_SURFACE,
                     CWP_COMM_PAR_WITH_PART,
 //                    CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF,
+//                    CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE,
                     CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
                     n_part,
                     CWP_DYNAMIC_MESH_STATIC,
@@ -1151,8 +1152,6 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
                              vtxCoord[0],
                              vtxLNToGN[0]);
 
-
-    printf("nFace, nVtx,  n_vtx_seg : %d %d %d\n", nFace[0],  nVtx[0], n_vtx_seg);
 
     CWP_Mesh_interf_from_faceedge_set (code_name[0],
                                        coupling_name,
@@ -1288,16 +1287,11 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
   t_start = PDM_timer_elapsed (timer);
   PDM_timer_resume (timer);
 
-  printf("avant locate\n");
-  fflush(stdout);
-
   if (version == CWP_VERSION_OLD) {
     cwipi_locate (coupling_name);
   }
 
   else {
-    printf("avant locate2\n");
-    fflush(stdout);
     CWP_Spatial_interp_weights_compute (code_name[0],
                                         coupling_name);
   }

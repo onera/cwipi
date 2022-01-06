@@ -233,7 +233,6 @@ namespace cwipi {
         MPI_Comm_group(globalComm, &globalGroup);
 
         if (_isCplRank) {
-          printf("I am coupled\n");
           MPI_Group_translate_ranks (globalGroup, 1, &localRootRank,
                                      _unionGroup, &_locCodeRootRankUnionComm);
 
