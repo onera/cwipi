@@ -318,7 +318,7 @@ PDM_global_reduce_field_compute
   free (block_field_stride);
 
 
-  double (*_reduce) (const double, const double);
+  double (*_reduce) (const double, const double) = NULL;
 
   switch (gre->operation) {
     case PDM_REDUCE_OP_MIN:

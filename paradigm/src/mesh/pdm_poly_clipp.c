@@ -424,8 +424,8 @@ double nA[3],
 double nB[3]
 )
 {
-  double *boundsA = PDM_bounds_get (n_vtxA, face_vtxCooA);
-  double *boundsB = PDM_bounds_get (n_vtxB, face_vtxCooB);
+  double *boundsA = PDM_polygon_bounds_get (n_vtxA, face_vtxCooA);
+  double *boundsB = PDM_polygon_bounds_get (n_vtxB, face_vtxCooB);
 
   _vertex_poly_t *vtx_currB = vtxpB;
   for (int i = 0; i < n_vtxB; i++) {

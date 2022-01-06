@@ -61,7 +61,7 @@ typedef enum {
 
 
 double *
-PDM_bounds_get
+PDM_polygon_bounds_get
 (
  const int     numPts,
  const double *pts
@@ -191,25 +191,6 @@ PDM_polygon_compute_barycenter
  const double *pts,
  double bary[3]
 );
-void
-PDM_polygon_orthonormal_basis
-(
- const int     n_vtx,
- const double *vtx_xyz,
- double        tangent_u[3],
- double        tangent_v[3],
- double        normal[3]
- );
-
-void PDM_polygon_compute_uv_coordinates
-(
- const int     n_pts,
- const double *xyz,
- const double *orig_xyz,
- const double *tangent_u,
- const double *tangent_v,
- double       *uv
- );
 
 
 /**
@@ -259,6 +240,28 @@ PDM_polygon_status_t PDM_polygon_point_in_3d
  double        bounds[6],
  double        normal[3]
  );
+
+
+/**
+ * \brief Compute parametric coordinates of a polygon's vertices
+ * and a set of point inside the polygon's median plane.
+ *
+ * The uv-coordinate system is defined as follows:
+ *   - origin at first polygon vertex ;
+ *   - u-axis oriented from first to second polygon vertex.
+ * Aspect-ratio and scale is preserved by the projection (no normalization).
+ *
+ * \param [in]  n_vtx    Number of polygon vertices
+ * \param [in]  vtx_xyz  xyz-coordinates of polygon vertices (size = 3 * \ref n_vtx)
+ * \param [out] vtx_uv   uv-coordinates of polygon vertices (size = 2 * \ref n_vtx)
+ * \param [in]  n_pts    Number of points
+ * \param [in]  pts_xyz  xyz-coordinates of points (size = 3 * \ref n_pts)
+ * \param [out] pts_uv   uv-coordinates of points (size = 2 * \ref n_pts)
+ * \param [in]  normal   Polygon's normal (size = 3 or NULL)
+ *
+ * \return      0 if the polygon is degenerate, 1 else.
+ *
+ */
 
 int PDM_polygon_3d_to_2d
 (

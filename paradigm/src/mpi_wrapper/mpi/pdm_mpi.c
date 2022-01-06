@@ -2148,9 +2148,10 @@ PDM_MPI_Comm_split_type_numa
   int i_rank_node;
   PDM_MPI_Comm_rank(comm_node, &i_rank_node);
 
-  int i_cpu, i_numa;
+  // int i_cpu;
+  int i_numa;
   //syscall(SYS_getcpu, &i_cpu, &i_numa, NULL);
-  printf("DM_MPI_Comm_split_type_numa : appel a SYS_getcpu commente car non portable : a reintroduire après tests dans CMake\n");
+  printf("PDM_MPI_Comm_split_type_numa : appel a SYS_getcpu commente car non portable : a reintroduire après tests dans CMake\n");
   abort();
 
   /* Sur le shared on split par numa */

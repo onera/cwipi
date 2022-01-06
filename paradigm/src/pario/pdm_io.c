@@ -761,7 +761,7 @@ void PDM_io_open
   /*  if ((acces == PDM_IO_ACCES_SEQ) && (nouveau_fichier->n_rangs > 1)) {*/
   if (suff_t == PDM_IO_SUFF_AUTO) {
     if (acces == PDM_IO_ACCES_SEQ) {
-      char format[9];
+      char format[30];
       int ncharint = 0;
       double _n_rangs = nouveau_fichier->n_rangs;
       while (_n_rangs >= 1.) {
@@ -819,7 +819,7 @@ void PDM_io_open
      En mode Ajout, ouverture dans un premier temps du fichier en mode lecture
      pour lecture de l'entete */
 
-  PDM_file_seq_mode_t _mode_seq;
+  PDM_file_seq_mode_t _mode_seq = FICHIER_SEQ_MODE_AJOUT;
   if (mode == PDM_IO_MODE_AJOUT)
     _mode_seq = FICHIER_SEQ_MODE_AJOUT;
   else if (mode == PDM_IO_MODE_LECTURE)
@@ -827,7 +827,7 @@ void PDM_io_open
   else if (mode == PDM_IO_MODE_ECRITURE)
     _mode_seq = FICHIER_SEQ_MODE_ECRITURE;
 
-  PDM_file_par_mode_t _mode_par;
+  PDM_file_par_mode_t _mode_par = FICHIER_PAR_MODE_AJOUT;
   if (mode == PDM_IO_MODE_AJOUT)
     _mode_par = FICHIER_PAR_MODE_AJOUT;
   else if (mode == PDM_IO_MODE_LECTURE)
@@ -835,7 +835,7 @@ void PDM_io_open
   else if (mode == PDM_IO_MODE_ECRITURE)
     _mode_par = FICHIER_PAR_MODE_ECRITURE;
 
-  PDM_file_par_acces_t _acces_par;
+  PDM_file_par_acces_t _acces_par = FICHIER_PAR_ACCES_EO;
   if (acces == PDM_IO_ACCES_MPIIO_EO)
     _acces_par = FICHIER_PAR_ACCES_EO;
   else if (acces == PDM_IO_ACCES_MPIIO_IP)
@@ -1038,7 +1038,7 @@ PDM_io_tell
 const PDM_l_num_t     unite
 )
 {
-  PDM_g_num_t offset;
+  PDM_g_num_t offset = 0;
   int err_code = 0;
   PDM_io_fichier_t *fichier = PDM_io_get_fichier(unite);
 
@@ -2732,7 +2732,7 @@ void PDM_io_ecr_par_entrelacee
 
       PDM_timer_resume(timer_distribution);
 
-      int            _n_donnees;
+      int            _n_donnees = 0;
       unsigned char* _donnees = (unsigned char*) donnees;
 
       /* Calcul de l'indice max */

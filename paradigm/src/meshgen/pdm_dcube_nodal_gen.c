@@ -679,8 +679,8 @@ _generate_ridges
   for (int ielt = 0; ielt < dn_elt; ielt++) {
 
     PDM_g_num_t g = dcube->distrib_bar[i_rank] + ielt;
-    PDM_g_num_t indi, indj, indk;
-    int dx, dy, dz;
+    PDM_g_num_t indi = 0, indj = 0, indk = 0;
+    int dx = 0, dy = 0, dz = 0;
 
     if (g < group_idx[1]) {
       indi = g;
@@ -900,7 +900,7 @@ _g_to_ijk_uv
     v[0] = 1; v[1] = 0; v[2] =  0;
     return 4;
   }
-  else if (g < group_idx[6]) {
+  else {//if (g < group_idx[6]) {
     h = g - group_idx[5];
     ind[0] = h / dcube->nz;
     ind[1] = dcube->ny;

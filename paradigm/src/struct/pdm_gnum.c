@@ -306,7 +306,7 @@ _gnum_from_coords_compute
 
   /* Merge double points */
 
-  PDM_points_merge_t* pts_merge;
+  PDM_points_merge_t* pts_merge = NULL;
 
   int n_entities = 0;
 

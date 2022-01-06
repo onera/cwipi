@@ -2544,7 +2544,7 @@ PDM_dbbtree_points_inside_boxes
     int n_max_copy = (int) (f_max_copy * n_rank);
     int *i_copied_rank = NULL;
     int *copied_count = NULL;
-    int mean_n_pts_recv;
+    int mean_n_pts_recv = 0;
     int *n_pts_recv_copied_ranks = NULL;
 
     if (n_max_copy > 0) {
@@ -3107,7 +3107,7 @@ PDM_dbbtree_boxes_containing_points
     int n_max_copy = (int) (f_max_copy * n_rank);
     int *i_copied_rank = NULL;
     int *copied_count = NULL;
-    int mean_n_pts_recv;
+    int mean_n_pts_recv = 0;
     int *n_pts_recv_copied_ranks = NULL;
 
     if (n_max_copy > 0) {
@@ -3688,7 +3688,7 @@ PDM_dbbtree_lines_intersect_boxes
     int n_max_copy = (int) (f_max_copy * n_rank);
     int *i_copied_rank = NULL;
     int *copied_count = NULL;
-    int mean_n_line_recv;
+    int mean_n_line_recv = 0;
     int *n_line_recv_copied_ranks = NULL;
 
     if (n_max_copy > 0) {

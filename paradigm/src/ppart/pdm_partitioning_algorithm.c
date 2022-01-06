@@ -1655,7 +1655,7 @@ PDM_part_generate_entity_graph_comm
    *                  We reexchange with block_to_part only the shared data
    * If priority is query an equilbrate choice is made up
    */
-  int* blk_priority_data;
+  int* blk_priority_data = NULL;
   if(setup_priority == 1){
     blk_priority_data = (int * ) malloc( n_entity_block * sizeof(int));
   }

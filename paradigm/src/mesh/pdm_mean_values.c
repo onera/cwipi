@@ -41,25 +41,65 @@ extern "C" {
  * Private function definition
  *============================================================================*/
 
+/**
+ * \brief Compute the determinant of a 3x3 matrix defined by its columns
+ * *
+ * \param [in]    a   First column of the matrix
+ * \param [in]    b   Second column of the matrix
+ * \param [in]    c   Third column of the matrix
+ *
+ * \return   Determinant |a b c|
+ */
+
+static inline double
+_determinant_3x3
+(
+ const double a[3],
+ const double b[3],
+ const double c[3]
+ )
+{
+  return a[0] * (b[1]*c[2] - b[2]*c[1])
+    +    a[1] * (b[2]*c[0] - b[0]*c[2])
+    +    a[2] * (b[0]*c[1] - b[1]*c[0]);
+}
+
+
+
+/**
+ * \brief Compute squared euclidean distance between two points in 3-space.
+ * *
+ * \param [in]    a   xyz-coordinates of first point
+ * \param [in]    b   xyz-coordinates of second point
+ *
+ * \return   Squared distance between points a and b
+ */
+
+static inline double _distance2(const double a[3], const double b[3]) {
+  return (a[0] - b[0]) * (a[0] - b[0])
+    +    (a[1] - b[1]) * (a[1] - b[1])
+    +    (a[2] - b[2]) * (a[2] - b[2]);
+}
+
 /*=============================================================================
  * Public function definition
  *============================================================================*/
 
 /**
- * \brief Compute mean values of a list of points in a polygon
+ * \brief Compute mean value coordinates of points in a polygon in 2d
  *
- * \param [in]    n_pts            Number of points to locate
- * \param [in]    pts              xyz-Coordinates of points locate
+ * See "Mean value coordinates for arbitrary planar polygons", Kai Hormann, and Michael S. Floater. (2006).
+ *
  * \param [in]    n_vtx            Number of polygon vertices
- * \param [in]    poly_vtx         Polygon connectivity
- * \param [in]    mesh_vtx_coords  Coordinates of mesh vertices
- * \param [inout] mesh_vtx_coords  Mean value coordinates of points to locate
- *
+ * \param [in]    vtx_coord        xyz-coordinates of polygon vertices (size = 2 * \ref n_vtx)
+ * \param [in]    n_pts            Number of points to locate
+ * \param [in]    pts_coord        xyz-coordinates of points to locate (size = 2 * \ref n_pts)
+ * \param [out]   mean_value_coord Mean value coordinates of points to locate (size = \ref n_vtx * \ref n_pts)
  *
  */
 
 void
-PDM_mean_value_coordinates_polygon_2d
+PDM_mean_values_polygon_2d
 (
  const int    n_vtx,
  const double vtx_coord[],
@@ -68,10 +108,6 @@ PDM_mean_value_coordinates_polygon_2d
  double       mean_value_coord[]
 )
 {
-  /*
-    See "Mean value coordinates for arbitrary planar polygons",
-    Kai Hormann, and Michael S. Floater. (2006)
-  */
   const double eps_base = 1e-12;
 
   int ipt, ivtx, jvtx, idim;
@@ -110,8 +146,8 @@ PDM_mean_value_coordinates_polygon_2d
                                      //                             char_length,
                                      bounds) != PDM_POLYGON_INSIDE) {
       double dist2_min = DBL_MAX;
-      int i_min;
-      double t_min;
+      int i_min = 0;
+      double t_min = 0.;
 
       for (ivtx = 0; ivtx < n_vtx; ivtx++) {
         jvtx = (ivtx + 1) % n_vtx;
@@ -230,10 +266,19 @@ PDM_mean_value_coordinates_polygon_2d
 }
 
 
-
+/**
+ * \brief Compute mean value coordinates of points in a polygon in 3d
+ *
+ * \param [in]    n_vtx            Number of polygon vertices
+ * \param [in]    vtx_coord        xyz-coordinates of polygon vertices (size = 3 * \ref n_vtx)
+ * \param [in]    n_pts            Number of points to locate
+ * \param [in]    pts_coord        xyz-coordinates of points to locate (size = 3 * \ref n_pts)
+ * \param [out]   mean_value_coord Mean value coordinates of points to locate (size = \ref n_vtx * \ref n_pts)
+ *
+ */
 
 void
-PDM_mean_value_coordinates_polygon_3d
+PDM_mean_values_polygon_3d
 (
  const int    n_vtx,
  const double vtx_coord[],
@@ -254,11 +299,11 @@ PDM_mean_value_coordinates_polygon_3d
                         pts_uv,
                         NULL);
 
-  PDM_mean_value_coordinates_polygon_2d (n_vtx,
-                                         vtx_uv,
-                                         n_pts,
-                                         pts_uv,
-                                         mean_value_coord);
+  PDM_mean_values_polygon_2d (n_vtx,
+                              vtx_uv,
+                              n_pts,
+                              pts_uv,
+                              mean_value_coord);
 
   free (vtx_uv);
   free (pts_uv);
@@ -266,308 +311,21 @@ PDM_mean_value_coordinates_polygon_3d
 
 
 
-
-
-static inline double
-_determinant_3x3
-(
- const double a[3],
- const double b[3],
- const double c[3]
- )
-{
-  return a[0] * (b[1]*c[2] - b[2]*c[1])
-    +    a[1] * (b[2]*c[0] - b[0]*c[2])
-    +    a[2] * (b[0]*c[1] - b[1]*c[0]);
-}
-
-
 /**
- * See "Mean value coordinates for closed triangular meshes", T. Ju et al. (2005)
+ * \brief Compute mean value coordinates of a point in a polyhedron
  *
- **/
-void
-PDM_mean_value_coordinates_polyhedron
-(
- const int         n_vtx,
- const double      vtx_coord[],
- const PDM_l_num_t n_face,
- const PDM_l_num_t face_vtx_idx[],
- const PDM_l_num_t face_vtx[],
- const int         face_orientation[],
- const double      pt_coord[],
- double            mean_value_coord[]
- )
-{
-  const int DEBUG = 0;//(pt_coord[0] < 0);
-  if (DEBUG) {
-    printf("\n\n-- PDM_mean_value_coordinates_polyhedron3 --\n");
-    printf("pt_coord = %f %f %f\n", pt_coord[0], pt_coord[1], pt_coord[2]);
-  }
-  const int LOCATE_ON_TRIANGLES = 1;
-
-  const double eps = 1.e-9;
-  const double eps2 = eps * eps;
-
-  double *u = malloc (sizeof(double) * n_vtx * 3);
-  double *d = malloc (sizeof(double) * n_vtx);
-
-  for (int ivtx = 0; ivtx < n_vtx; ivtx++) {
-    mean_value_coord[ivtx] = 0.;
-  }
-
-  /*
-   *  Offset vertices and project on unit sphere centered at point to locate
-   */
-  for (int ivtx = 0; ivtx < n_vtx; ivtx++) {
-    double *_u = u + 3*ivtx;
-    for (int idim = 0; idim < 3; idim++) {
-      _u[idim] = vtx_coord[3*ivtx + idim] - pt_coord[idim];
-    }
-    double uu = PDM_DOT_PRODUCT (_u, _u);
-
-    /* Point coincident with vertex */
-    if (uu < eps2) {
-      mean_value_coord[ivtx] = 1.;
-
-      free (u);
-      free (d);
-      return;
-    }
-
-    d[ivtx] = sqrt(uu);
-
-    for (int idim = 0; idim < 3; idim++) {
-      _u[idim] = _u[idim] / d[ivtx];
-    }
-  } // End of loop on vertices
-
-
-
-  /*
-   *  Prepare face triangulation
-   */
-  /* Count max nb of vertices per face */
-  PDM_l_num_t n_vtx_face, n_vtx_face_max = 0;
-  for (int iface = 0; iface < n_face; iface++) {
-    n_vtx_face = face_vtx_idx[iface+1] - face_vtx_idx[iface];
-    if (n_vtx_face > n_vtx_face_max) {
-      n_vtx_face_max = n_vtx_face;
-    }
-  }
-
-  /*
-   *  Loop on faces
-   */
-  PDM_l_num_t n_tri;
-  PDM_l_num_t _tri_vtx[3];
-  PDM_l_num_t *tri_vtx = malloc (sizeof(PDM_l_num_t) * (n_vtx_face_max - 2)*3);
-  PDM_triangulate_state_t *state = PDM_triangulate_state_create (n_vtx_face_max);
-
-  for (int iface = 0; iface < n_face; iface++) {
-
-    const PDM_l_num_t *_face_vtx = face_vtx + face_vtx_idx[iface];
-
-    /*
-     *  Triangulate current face
-     */
-    n_vtx_face = face_vtx_idx[iface+1] - face_vtx_idx[iface];
-
-    /* Triangular face */
-    if (n_vtx_face == 3) {
-      n_tri = 1;
-      for (int ivtx = 0; ivtx < 3; ivtx++) {
-        tri_vtx[ivtx] = _face_vtx[ivtx];
-      }
-    }
-
-    /* Quadrilateral face */
-    else if (n_vtx_face == 4) {
-      n_tri = PDM_triangulate_quadrangle (3,
-                                          vtx_coord,
-                                          NULL,
-                                          _face_vtx,
-                                          tri_vtx);
-    }
-
-    /* Polygonal face */
-    else {
-      n_tri = PDM_triangulate_polygon(3,
-                                      n_vtx_face,
-                                      vtx_coord,
-                                      NULL,
-                                      _face_vtx,
-                                      PDM_TRIANGULATE_MESH_DEF,
-                                      tri_vtx,
-                                      state);
-    }
-
-
-    /* Loop on triangles */
-    for (int itri = 0; itri < n_tri; itri++) {
-      for (int ivtx = 0; ivtx < 3; ivtx++) {
-        _tri_vtx[ivtx] = tri_vtx[3*itri + ivtx] - 1;
-      }
-
-      if (face_orientation[iface] < 0) {
-        PDM_l_num_t tmp = _tri_vtx[0];
-        _tri_vtx[0] = _tri_vtx[2];
-        _tri_vtx[2] = tmp;
-      }
-
-      double l[3] = {0., 0., 0.}, theta[3], sint[3], h = 0.;
-      for (int i = 0; i < 3; i++) {
-        int ip = (i+1)%3;
-        int im = (i+2)%3;
-        for (int idim = 0; idim < 3; idim++) {
-          double delta = u[3*_tri_vtx[ip] + idim] - u[3*_tri_vtx[im] + idim];
-          l[i] += delta * delta;
-        }
-        l[i] = sqrt(l[i]);
-
-        theta[i] = asin(0.5 * l[i]);
-        h += theta[i];
-        theta[i] *= 2.;
-        sint[i] = sin(theta[i]);
-      }
-
-      if (PDM_PI - h < eps) {
-        /*
-         *  point lies on current tirangle, use 2D barycentric coordinates
-         */
-
-        /* Triangular face */
-        if (n_tri == 1 || LOCATE_ON_TRIANGLES) {
-          for (int ivtx = 0; ivtx < n_vtx; ivtx++) {
-            mean_value_coord[ivtx] = 0.;
-          }
-
-          double sum_w = 0.;
-          for (int i = 0; i < 3; i++) {
-            int ivtx = _tri_vtx[i];
-            int ip = _tri_vtx[(i+1)%3];
-            int im = _tri_vtx[(i+2)%3];
-            double w = sint[i] * d[ip] * d[im];
-            sum_w += w;
-            mean_value_coord[ivtx] = w;
-          }
-
-          for (int i = 0; i < 3; i++) {
-            mean_value_coord[_tri_vtx[i]] /= sum_w;
-          }
-        }
-
-        /* Polygonal face */
-        else {
-          n_vtx_face = face_vtx_idx[iface+1] - face_vtx_idx[iface];
-          double *face_coord = malloc (sizeof(double) * n_vtx_face * 3);
-          double *mean_value_coord_face = malloc (sizeof(double) * n_vtx_face);
-
-          for (int j = 0; j < n_vtx_face; j++) {
-            int id_vtx = face_vtx[face_vtx_idx[iface] + j] - 1;
-            for (int idim = 0; idim < 3; idim++) {
-              face_coord[3*j + idim] = vtx_coord[3*id_vtx + idim];
-            }
-          }
-
-          PDM_mean_value_coordinates_polygon_3d (n_vtx_face,
-                                                 face_coord,
-                                                 1,
-                                                 pt_coord,
-                                                 mean_value_coord_face);
-
-          for (int j = 0; j < n_vtx; j++) {
-            mean_value_coord[j] = 0.;
-          }
-
-          for (int j = 0; j < n_vtx_face; j++) {
-            int id_vtx = face_vtx[face_vtx_idx[iface] + j] - 1;
-            mean_value_coord[id_vtx] = mean_value_coord_face[j];
-          }
-
-          free (face_coord);
-          free (mean_value_coord_face);
-        }
-
-        free (u);
-        free (d);
-        free (tri_vtx);
-
-        if (DEBUG) {
-          printf("point located on face %d (PDM_PI - h = %g)\n", iface, PDM_PI - h);
-        }
-        return;
-      }
-
-      double c[3], s[3];
-      double det = _determinant_3x3 ((u + 3*_tri_vtx[0]),
-                                     (u + 3*_tri_vtx[1]),
-                                     (u + 3*_tri_vtx[2]));
-      PDM_bool_t ignore_triangle = PDM_FALSE;
-      for (int i = 0; i < 3; i++) {
-        c[i] = 2. * sin(h) * sin(h - theta[i]) / (sint[(i+1)%3] * sint[(i+2)%3]) - 1.;
-        s[i] = sqrt(1. - c[i]*c[i]);
-
-        if (s[i] < eps) {
-          /* point lies outside current triangle on the same plane, ignore current triangle */
-          ignore_triangle = PDM_TRUE;
-          break;
-        }
-
-        if (det < 0.) {
-          s[i] = -s[i];
-        }
-      }
-
-      if (ignore_triangle == PDM_TRUE) {
-        if (DEBUG) {
-          printf("ignore triangle %d of face %d\n", itri, iface);
-        }
-        continue;
-      }
-
-      for (int i = 0; i < 3; i++) {
-        int ip = (i+1)%3;
-        int im = (i+2)%3;
-        double w = (theta[i] - c[ip]*theta[im] - c[im]*theta[ip]) / (sint[ip] * s[im]);
-
-        mean_value_coord[_tri_vtx[i]] += w;
-      }
-
-    } // End of loop on triangles
-
-  } // End of loop on faces
-
-  state = PDM_triangulate_state_destroy (state);
-
-  /* Normalize */
-  double sum = 0.;
-  for (int ivtx = 0; ivtx < n_vtx; ivtx++) {
-    mean_value_coord[ivtx] /= d[ivtx];
-    sum += mean_value_coord[ivtx];
-  }
-
-  if (fabs(sum) > 1.e-15) {
-    sum = 1. / sum;
-    for (int ivtx = 0; ivtx < n_vtx; ivtx++) {
-      mean_value_coord[ivtx] *= sum;
-    }
-  }
-
-  free (u);
-  free (d);
-  free (tri_vtx);
-}
-
-
-
-
-static inline double _distance2(const double a[3], const double b[3]) {
-  return (a[0] - b[0]) * (a[0] - b[0])
-    +    (a[1] - b[1]) * (a[1] - b[1])
-    +    (a[2] - b[2]) * (a[2] - b[2]);
-}
-
+ * See "Mean value coordinates for closed triangular meshes", T. Ju et al. (2005).
+ *
+ * \param [in]    n_vtx            Number of polyhedron vertices
+ * \param [in]    vtx_coord        xyz-coordinates of polyhedron vertices (size = 3 * \ref n_vtx)
+ * \param [in]    n_face           Number of polyhedron faces
+ * \param [in]    face_vtx_idx     Index for face-vertex connectivity (size = \ref n_face + 1)
+ * \param [in]    face_vtx         Face-vertex connectivity (size = \ref face_vtx_idx[\ref n_face])
+ * \param [in]    face_orientation Face orientation (size = \ref n_face)
+ * \param [in]    pt_coord         xyz-coordinates of point to locate (size = 3)
+ * \param [out]   weights          Mean value coordinates of point to locate (size = \ref n_vtx)
+ *
+ */
 
 void
 PDM_mean_values_polyhedron
@@ -840,6 +598,13 @@ PDM_mean_values_polyhedron
 }
 
 
+
+
+
+
+
+/*  UNUSED FUNCTIONS  */
+
 void
 PDM_mean_values_polygon
 (
@@ -982,7 +747,278 @@ PDM_mean_values_polygon
   free (tan_half_theta);
 }
 
+void
+PDM_mean_value_coordinates_polyhedron
+(
+ const int         n_vtx,
+ const double      vtx_coord[],
+ const PDM_l_num_t n_face,
+ const PDM_l_num_t face_vtx_idx[],
+ const PDM_l_num_t face_vtx[],
+ const int         face_orientation[],
+ const double      pt_coord[],
+ double            mean_value_coord[]
+ )
+{
+  const int DEBUG = 0;//(pt_coord[0] < 0);
+  if (DEBUG) {
+    printf("\n\n-- PDM_mean_value_coordinates_polyhedron3 --\n");
+    printf("pt_coord = %f %f %f\n", pt_coord[0], pt_coord[1], pt_coord[2]);
+  }
+  const int LOCATE_ON_TRIANGLES = 1;
 
+  const double eps = 1.e-9;
+  const double eps2 = eps * eps;
+
+  double *u = malloc (sizeof(double) * n_vtx * 3);
+  double *d = malloc (sizeof(double) * n_vtx);
+
+  for (int ivtx = 0; ivtx < n_vtx; ivtx++) {
+    mean_value_coord[ivtx] = 0.;
+  }
+
+  /*
+   *  Offset vertices and project on unit sphere centered at point to locate
+   */
+  for (int ivtx = 0; ivtx < n_vtx; ivtx++) {
+    double *_u = u + 3*ivtx;
+    for (int idim = 0; idim < 3; idim++) {
+      _u[idim] = vtx_coord[3*ivtx + idim] - pt_coord[idim];
+    }
+    double uu = PDM_DOT_PRODUCT (_u, _u);
+
+    /* Point coincident with vertex */
+    if (uu < eps2) {
+      mean_value_coord[ivtx] = 1.;
+
+      free (u);
+      free (d);
+      return;
+    }
+
+    d[ivtx] = sqrt(uu);
+
+    for (int idim = 0; idim < 3; idim++) {
+      _u[idim] = _u[idim] / d[ivtx];
+    }
+  } // End of loop on vertices
+
+
+
+  /*
+   *  Prepare face triangulation
+   */
+  /* Count max nb of vertices per face */
+  PDM_l_num_t n_vtx_face, n_vtx_face_max = 3;
+  for (int iface = 0; iface < n_face; iface++) {
+    n_vtx_face = face_vtx_idx[iface+1] - face_vtx_idx[iface];
+    if (n_vtx_face > n_vtx_face_max) {
+      n_vtx_face_max = n_vtx_face;
+    }
+  }
+
+  /*
+   *  Loop on faces
+   */
+  PDM_l_num_t n_tri;
+  PDM_l_num_t _tri_vtx[3];
+  PDM_l_num_t *tri_vtx = (PDM_l_num_t *) malloc (sizeof(PDM_l_num_t) * (n_vtx_face_max - 2)*3);
+  PDM_triangulate_state_t *state = PDM_triangulate_state_create (n_vtx_face_max);
+
+  for (int iface = 0; iface < n_face; iface++) {
+
+    const PDM_l_num_t *_face_vtx = face_vtx + face_vtx_idx[iface];
+
+    /*
+     *  Triangulate current face
+     */
+    n_vtx_face = face_vtx_idx[iface+1] - face_vtx_idx[iface];
+
+    /* Triangular face */
+    if (n_vtx_face == 3) {
+      n_tri = 1;
+      for (int ivtx = 0; ivtx < 3; ivtx++) {
+        tri_vtx[ivtx] = _face_vtx[ivtx];
+      }
+    }
+
+    /* Quadrilateral face */
+    else if (n_vtx_face == 4) {
+      n_tri = PDM_triangulate_quadrangle (3,
+                                          vtx_coord,
+                                          NULL,
+                                          _face_vtx,
+                                          tri_vtx);
+    }
+
+    /* Polygonal face */
+    else {
+      n_tri = PDM_triangulate_polygon(3,
+                                      n_vtx_face,
+                                      vtx_coord,
+                                      NULL,
+                                      _face_vtx,
+                                      PDM_TRIANGULATE_MESH_DEF,
+                                      tri_vtx,
+                                      state);
+    }
+
+
+    /* Loop on triangles */
+    for (int itri = 0; itri < n_tri; itri++) {
+      for (int ivtx = 0; ivtx < 3; ivtx++) {
+        _tri_vtx[ivtx] = tri_vtx[3*itri + ivtx] - 1;
+      }
+
+      if (face_orientation[iface] < 0) {
+        PDM_l_num_t tmp = _tri_vtx[0];
+        _tri_vtx[0] = _tri_vtx[2];
+        _tri_vtx[2] = tmp;
+      }
+
+      double l[3] = {0., 0., 0.}, theta[3], sint[3], h = 0.;
+      for (int i = 0; i < 3; i++) {
+        int ip = (i+1)%3;
+        int im = (i+2)%3;
+        for (int idim = 0; idim < 3; idim++) {
+          double delta = u[3*_tri_vtx[ip] + idim] - u[3*_tri_vtx[im] + idim];
+          l[i] += delta * delta;
+        }
+        l[i] = sqrt(l[i]);
+
+        theta[i] = asin(0.5 * l[i]);
+        h += theta[i];
+        theta[i] *= 2.;
+        sint[i] = sin(theta[i]);
+      }
+
+      if (PDM_PI - h < eps) {
+        /*
+         *  point lies on current tirangle, use 2D barycentric coordinates
+         */
+
+        /* Triangular face */
+        if (n_tri == 1 || LOCATE_ON_TRIANGLES) {
+          for (int ivtx = 0; ivtx < n_vtx; ivtx++) {
+            mean_value_coord[ivtx] = 0.;
+          }
+
+          double sum_w = 0.;
+          for (int i = 0; i < 3; i++) {
+            int ivtx = _tri_vtx[i];
+            int ip = _tri_vtx[(i+1)%3];
+            int im = _tri_vtx[(i+2)%3];
+            double w = sint[i] * d[ip] * d[im];
+            sum_w += w;
+            mean_value_coord[ivtx] = w;
+          }
+
+          for (int i = 0; i < 3; i++) {
+            mean_value_coord[_tri_vtx[i]] /= sum_w;
+          }
+        }
+
+        /* Polygonal face */
+        else {
+          n_vtx_face = face_vtx_idx[iface+1] - face_vtx_idx[iface];
+          double *face_coord = malloc (sizeof(double) * n_vtx_face * 3);
+          double *mean_value_coord_face = malloc (sizeof(double) * n_vtx_face);
+
+          for (int j = 0; j < n_vtx_face; j++) {
+            int id_vtx = face_vtx[face_vtx_idx[iface] + j] - 1;
+            for (int idim = 0; idim < 3; idim++) {
+              face_coord[3*j + idim] = vtx_coord[3*id_vtx + idim];
+            }
+          }
+
+          PDM_mean_values_polygon_3d (n_vtx_face,
+                                      face_coord,
+                                      1,
+                                      pt_coord,
+                                      mean_value_coord_face);
+
+          for (int j = 0; j < n_vtx; j++) {
+            mean_value_coord[j] = 0.;
+          }
+
+          for (int j = 0; j < n_vtx_face; j++) {
+            int id_vtx = face_vtx[face_vtx_idx[iface] + j] - 1;
+            mean_value_coord[id_vtx] = mean_value_coord_face[j];
+          }
+
+          free (face_coord);
+          free (mean_value_coord_face);
+        }
+
+        free (u);
+        free (d);
+        free (tri_vtx);
+
+        if (DEBUG) {
+          printf("point located on face %d (PDM_PI - h = %g)\n", iface, PDM_PI - h);
+        }
+        return;
+      }
+
+      double c[3], s[3];
+      double det = _determinant_3x3 ((u + 3*_tri_vtx[0]),
+                                     (u + 3*_tri_vtx[1]),
+                                     (u + 3*_tri_vtx[2]));
+      PDM_bool_t ignore_triangle = PDM_FALSE;
+      for (int i = 0; i < 3; i++) {
+        c[i] = 2. * sin(h) * sin(h - theta[i]) / (sint[(i+1)%3] * sint[(i+2)%3]) - 1.;
+        s[i] = sqrt(1. - c[i]*c[i]);
+
+        if (s[i] < eps) {
+          /* point lies outside current triangle on the same plane, ignore current triangle */
+          ignore_triangle = PDM_TRUE;
+          break;
+        }
+
+        if (det < 0.) {
+          s[i] = -s[i];
+        }
+      }
+
+      if (ignore_triangle == PDM_TRUE) {
+        if (DEBUG) {
+          printf("ignore triangle %d of face %d\n", itri, iface);
+        }
+        continue;
+      }
+
+      for (int i = 0; i < 3; i++) {
+        int ip = (i+1)%3;
+        int im = (i+2)%3;
+        double w = (theta[i] - c[ip]*theta[im] - c[im]*theta[ip]) / (sint[ip] * s[im]);
+
+        mean_value_coord[_tri_vtx[i]] += w;
+      }
+
+    } // End of loop on triangles
+
+  } // End of loop on faces
+
+  state = PDM_triangulate_state_destroy (state);
+
+  /* Normalize */
+  double sum = 0.;
+  for (int ivtx = 0; ivtx < n_vtx; ivtx++) {
+    mean_value_coord[ivtx] /= d[ivtx];
+    sum += mean_value_coord[ivtx];
+  }
+
+  if (fabs(sum) > 1.e-15) {
+    sum = 1. / sum;
+    for (int ivtx = 0; ivtx < n_vtx; ivtx++) {
+      mean_value_coord[ivtx] *= sum;
+    }
+  }
+
+  free (u);
+  free (d);
+  free (tri_vtx);
+}
 
 
 #ifdef __cplusplus

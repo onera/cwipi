@@ -5456,7 +5456,7 @@ _compute_overlay
    * Check if initial meshes are plane sufaces ou general surfaces
    */
 
-  double dist;
+  double dist = 0.;
   int isPlaneSurfaces = _is_same_plane (ol, &dist);
 
   PDM_MPI_Barrier (ol->comm);

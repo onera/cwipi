@@ -802,7 +802,7 @@ _connec_prism
       (quad_vtx[id2] == prism_vtx[2]))
     id2 =  (id1 / 4) * 4 + (id1 + 3) % 4;
 
-  int id_deb;
+  int id_deb = -1;
   for (int j = 0; j < 3; j++) {
     if (quad_vtx[id2] == prism_vtx[3+j]) {
       id_deb = j;
@@ -1079,7 +1079,7 @@ _connec_hexa
       (face_contact[id2] == hexa_vtx[k3]))
     id2 = (id1 + 3) % 4;
 
-  int id_deb;
+  int id_deb = -1;
   for (int j = 0; j < 4; j++) {
     if (face_contact[id2] == hexa_vtx[4+j]) {
       id_deb = (j - k1);

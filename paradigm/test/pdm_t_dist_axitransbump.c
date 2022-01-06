@@ -338,7 +338,7 @@ _gen_distributed_mesh
                                   0,
                                   0};
 
-  PDM_g_num_t i_serie, r_serie;
+  PDM_g_num_t i_serie = 0, r_serie = 0;
   for (int i = 0; i < 3; i++) {
     if (distrib_face[i_rank] >= distrib_serie[i] &&
         distrib_face[i_rank] <  distrib_serie[i+1]) {
@@ -1811,7 +1811,7 @@ int main(int argc, char *argv[])
         for (int itgt = 0; itgt < n_cell; itgt++) {
           double dist_min = HUGE_VAL;
           PDM_g_num_t arg_min = 0;
-          double proj_min[3];
+          double proj_min[3] = {0};
 
           for (int rank = 0; rank < n_rank; rank++) {
             for (int i = shift_face[rank]; i < shift_face[rank+1]; i++) {

@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
 
   int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (t_elt, order);
 
-  int elt_dim;
+  int elt_dim = 0;
   switch(t_elt) {
   case PDM_MESH_NODAL_BAR2:
     elt_dim = 1;

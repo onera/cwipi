@@ -612,11 +612,11 @@ _locate_on_quadrangle
   int ipt, ivtx, idim;
 
 
-  PDM_mean_value_coordinates_polygon_3d (4,
-                                         quad_coord,
-                                         n_pts,
-                                         pts_coord,
-                                         bar_coord);
+  PDM_mean_values_polygon_3d (4,
+                              quad_coord,
+                              n_pts,
+                              pts_coord,
+                              bar_coord);
 
 
   for (ipt = 0; ipt < n_pts; ipt++) {
@@ -1192,11 +1192,11 @@ _locate_in_cell_3d
         }
       }
 
-      PDM_mean_value_coordinates_polygon_3d (n_vtx_face,
-                                             face_coord,
-                                             1,
-                                             _cp,
-                                             bar_coord_face);
+      PDM_mean_values_polygon_3d (n_vtx_face,
+                                  face_coord,
+                                  1,
+                                  _cp,
+                                  bar_coord_face);
 
       for (int ivtx = 0; ivtx < n_vtx_face; ivtx++) {
         int _ivtx = face_vtx[face_vtx_idx[iface] + ivtx] - 1;
@@ -1257,11 +1257,11 @@ _locate_in_polygon
  )
 {
   /* Compute mean value coordinates of closest points on polygon */
-  PDM_mean_value_coordinates_polygon_3d (n_vtx,
-                                         vtx_coord,
-                                         n_pts,
-                                         pts_coord,
-                                         bar_coord);
+  PDM_mean_values_polygon_3d (n_vtx,
+                              vtx_coord,
+                              n_pts,
+                              pts_coord,
+                              bar_coord);
 
   /* Compute distances */
   for (int ipt = 0; ipt < n_pts; ipt++) {
@@ -1333,7 +1333,7 @@ _locate_in_polyhedron
   }
 
   /* Count max nb of vertices per face */
-  PDM_l_num_t n_vtx_face, n_vtx_face_max = 0;
+  PDM_l_num_t n_vtx_face, n_vtx_face_max = 3;
   for (int iface = 0; iface < n_face; iface++) {
     n_vtx_face = face_vtx_idx[iface+1] - face_vtx_idx[iface];
     if (n_vtx_face > n_vtx_face_max) {
@@ -1526,11 +1526,11 @@ _locate_in_polyhedron
         }
       }
 
-      PDM_mean_value_coordinates_polygon_3d (n_vtx_face,
-                                             face_coord,
-                                             1,
-                                             closest_point + 3*ipt,
-                                             bar_coord_face);
+      PDM_mean_values_polygon_3d (n_vtx_face,
+                                  face_coord,
+                                  1,
+                                  closest_point + 3*ipt,
+                                  bar_coord_face);
 
       for (int idim = 0; idim < 3; idim++) {
         _cp[idim] = 0.;

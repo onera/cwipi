@@ -55,7 +55,7 @@ static int _vtk_elt_type
 {
   //assert (order <= 2);
 
-  int vtk_elt_type;
+  int vtk_elt_type = -1;
   switch (elt_type) {
   case PDM_MESH_NODAL_POINT:
     vtk_elt_type = 1;

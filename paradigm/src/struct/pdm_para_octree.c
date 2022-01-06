@@ -7113,7 +7113,7 @@ PDM_para_octree_build
   const int init_s = 1;
   _neighbours_tmp_t parent_ngb;
 
-  size_t s_ngb_octree;
+  size_t s_ngb_octree = 0;
   if (NGB_ON_THE_FLY) {
 
     if (_octree->neighboursToBuild) {
@@ -7636,7 +7636,7 @@ PDM_para_octree_build
   //-->>
   if (_octree->explicit_nodes_to_build) {
     _build_explicit_nodes (_octree);
-    if (1 && rank == 0) printf("_build_explicit_nodes OK\n");
+    if (DEBUG && rank == 0) printf("_build_explicit_nodes OK\n");
 
     // if (0) {
     //   printf("[%d] %d explicit nodes\n", rank, _octree->n_explicit_nodes);
@@ -8059,7 +8059,7 @@ PDM_para_octree_closest_points
     }
 
     if (n_copied_ranks1 > 0) {
-      if (1 && i_rank == 0) {
+      if (DEBUG && i_rank == 0) {
         if (n_copied_ranks1 == 1) {
           printf("phase 1: 1 copied rank: %d\n", copied_ranks1[0]);
         }
@@ -8076,7 +8076,7 @@ PDM_para_octree_closest_points
                                   n_copied_ranks1,
                                   copied_ranks1);
     } else {
-      if (1 && i_rank == 0) printf("phase 1: 0 copied ranks\n");
+      if (DEBUG && i_rank == 0) printf("phase 1: 0 copied ranks\n");
     }
 
     int *i_copied_rank1 = PDM_array_const_int(n_rank, -1);
@@ -8619,7 +8619,7 @@ if (_octree->use_win_shared) {
                    &mean_n_recv_pts);
 
   if (n_copied_ranks2 > 0) {
-    if (1 && i_rank == 0) {
+    if (DEBUG && i_rank == 0) {
       if (n_copied_ranks2 == 1) {
         printf("phase 2: 1 copied rank: %d\n", copied_ranks2[0]);
       }
@@ -9142,7 +9142,7 @@ PDM_para_octree_single_closest_point
   }
 
   const int ntimer=15;
-  PDM_timer_t *timer; /*!< Timer */
+  PDM_timer_t *timer = NULL; /*!< Timer */
   if (DETAIL_TIMER) {
     timer = PDM_timer_create ();
     PDM_timer_init (timer);
@@ -9155,7 +9155,7 @@ PDM_para_octree_single_closest_point
 
   double times_cpu_s[ntimer];  /*!< System CPU time */
 
-  double b_t_elapsed;
+  double b_t_elapsed = 0.;
   double b_t_cpu;
   double b_t_cpu_u;
   double b_t_cpu_s;
@@ -9419,7 +9419,7 @@ PDM_para_octree_single_closest_point
     }
 
     if (n_copied_ranks1 > 0) {
-      if (1 && i_rank == 0) {
+      if (DEBUG && i_rank == 0) {
         if (n_copied_ranks1 == 1) {
           printf("phase 1: 1 copied rank: %d\n", copied_ranks1[0]);
           fflush(stdout);
@@ -9437,12 +9437,12 @@ PDM_para_octree_single_closest_point
       PDM_para_octree_copy_ranks (octree,
                                   n_copied_ranks1,
                                   copied_ranks1);
-      if (1 && i_rank == 0) {
+      if (DEBUG && i_rank == 0) {
         printf("PDM_para_octree_copy_ranks OK\n");
         fflush(stdout);
       }
     } else {
-      if (1 && i_rank == 0) {
+      if (DEBUG && i_rank == 0) {
         printf("phase 1: 0 copied ranks\n");
         fflush(stdout);
       }
@@ -10187,7 +10187,7 @@ if (_octree->use_win_shared) {
   }
 
   if (n_copied_ranks2 > 0) {
-    if (1 && i_rank == 0) {
+    if (DEBUG && i_rank == 0) {
       if (n_copied_ranks2 == 1) {
         printf("phase 2: 1 copied rank: %d\n", copied_ranks2[0]);
         fflush(stdout);
@@ -11988,7 +11988,7 @@ PDM_para_octree_copy_ranks
 
   PDM_timer_hang_on (_octree->timer);
   double e_t_elapsed = PDM_timer_elapsed (_octree->timer);
-  if (1 && i_rank == 0) {
+  if (DEBUG && i_rank == 0) {
     printf("PDM_para_octree_copy_ranks: elapsed = %12.5es\n", e_t_elapsed - b_t_elapsed);
   }
   PDM_timer_resume (_octree->timer);
@@ -12201,7 +12201,7 @@ PDM_para_octree_copy_ranks_win_shared
   PDM_mpi_win_shared_unlock_all (w_s_copied_data);
   PDM_MPI_Barrier (comm_node);//
 
-  if (i_rank == 0) {
+  if (DEBUG && i_rank == 0) {
     printf("n_copied_ranks_in_all_nodes : ");
     for (int i = 0; i < n_node; i++) {
       printf("%d ", n_copied_ranks_in_all_nodes[i]);
@@ -12524,7 +12524,7 @@ PDM_para_octree_copy_ranks_win_shared
   double time_max[NTIMER_COPY];
   PDM_MPI_Allreduce (time, time_max, NTIMER_COPY, PDM_MPI_DOUBLE, PDM_MPI_MAX, _octree->comm);
 
-  if (i_rank == 0) {
+  if (DEBUG && i_rank == 0) {
     printf("PDM_para_octree_copy_ranks : total                           : %12.5es\n", time_max[COPY_TOTAL]);
     printf("PDM_para_octree_copy_ranks : gather s_copied_data node       : %12.5es\n", time_max[COPY_GATHER_S_COPY_DATA_NODE]);
     printf("PDM_para_octree_copy_ranks : gather n_copied_ranks all nodes : %12.5es\n", time_max[COPY_GATHER_N_COPIED_RANKS_ALL_NODES]);

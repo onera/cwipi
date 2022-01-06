@@ -324,7 +324,7 @@ PDM_part_mesh_nodal_section_elt_type_get
     return dmne->sections_std[_id_section]->t_elt;
   }
   assert(0); // only useful for std elements
-  return -1;
+  return PDM_MESH_NODAL_N_ELEMENT_TYPES;
 }
 
 int

@@ -133,8 +133,8 @@ char *argv[]
    */
   int      n_cloud  = -1;
   int      n_points = 15;
-  double** coords;
-  double** char_lenght;
+  double** coords = NULL;
+  double** char_lenght = NULL;
   if(n_rank == 1){
     n_cloud = 2;
     coords      = (double **) malloc( n_cloud * sizeof(double *));
@@ -152,7 +152,7 @@ char *argv[]
     if(i_rank == 0){
       coords     [0] = xyz_j1;
       char_lenght[0] = cln_j1;
-    } else if (i_rank == 1){
+    } else {//if (i_rank == 1){
       coords     [0] = xyz_j2;
       char_lenght[0] = cln_j2;
     }

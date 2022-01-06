@@ -21,6 +21,7 @@
  *  Header for the current file
  *----------------------------------------------------------------------------*/
 
+#include "pdm_priv.h"
 #include "pdm_hilbert.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
@@ -852,7 +853,7 @@ _bucket_sampling(int                       dim,
   PDM_hilbert_code_t  *_sampling = *sampling;
 
   const int  sampling_factor = _sampling_factors[dim];
-  const int  n_samples = sampling_factor * n_ranks;
+  const int  n_samples = PDM_MAX(1, sampling_factor * n_ranks);
   const double  unit = 1/(double)n_samples;
 
   /* Compute the global number of elements and the optimal number of elements

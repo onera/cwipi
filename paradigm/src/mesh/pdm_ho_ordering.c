@@ -956,7 +956,7 @@ PDM_ho_ordering_user_to_ijk_add
 
   /* Compute ijk -> user */
   int *ijk_to_user = NULL;
-  int elt_dim;
+  int elt_dim = 0;
   switch(t_elt) {
   case PDM_MESH_NODAL_BAR2:
     ijk_to_user = _compute_ijk_to_user_bar(order, user_to_ijk);
