@@ -254,7 +254,11 @@ PDM_gnum_location_compute
   free (part_data);
   free (part_stride);
 
-  PDM_block_to_part_t *btp = PDM_block_to_part_create (block_distrib_index,
+  PDM_g_num_t* block_distrib_index_correct = PDM_part_to_block_adapt_partial_block_to_block(ptb,
+                                                                                            &block_stride,
+                                                                                            block_distrib_index[n_rank]);
+  // PDM_block_to_part_t *btp = PDM_block_to_part_create (block_distrib_index,
+  PDM_block_to_part_t *btp = PDM_block_to_part_create (block_distrib_index_correct,
                                                        gnum_loc->g_nums_out,
                                                        gnum_loc->n_elts_out,
                                                        gnum_loc->n_part_out,
@@ -278,6 +282,7 @@ PDM_gnum_location_compute
   }
   free (block_stride);
   free (block_data);
+  free (block_distrib_index_correct);
 
   for (int i = 0; i < gnum_loc->n_part_out; i++) {
     free (part_stride[i]);
