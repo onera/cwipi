@@ -6303,7 +6303,7 @@ PDM_para_octree_create
     octree->explicit_nodes_to_build = atoi(env_var);
   }
 
-  octree->use_win_shared = 1;
+  octree->use_win_shared = 0;
   env_var = getenv ("OCTREE_WIN_SHARED");
   if (env_var != NULL) {
     octree->use_win_shared = atoi(env_var);

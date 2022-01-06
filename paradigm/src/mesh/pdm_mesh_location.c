@@ -5146,8 +5146,6 @@ PDM_mesh_location_t        *ml
       }
     }
 
-    printf("elt_n_weight_max, elt_n_pts_max : %d %d\n", elt_n_weight_max, elt_n_pts_max);
-
     double *tmp_elt_coords           = malloc (sizeof(double     ) * 3 * elt_n_pts_max);
     double *tmp_elt_projected_coords = malloc (sizeof(double     ) * 3 * elt_n_pts_max);
     double *tmp_elt_dist2            = malloc (sizeof(double     ) *     elt_n_pts_max); 
