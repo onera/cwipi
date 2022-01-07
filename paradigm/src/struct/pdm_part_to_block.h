@@ -35,7 +35,7 @@ extern "C" {
  */
 
 typedef enum {
-
+ 
   PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC          = 0,  /*!< Distribute block on all processes */
   PDM_PART_TO_BLOCK_DISTRIB_ONE_PROC_PER_NODE = 1,  /*!< Distribute block on one processe pere node */
   PDM_PART_TO_BLOCK_DISTRIB_PART_OF_NODE      = 2   /*!< Distribute block on part of nodes */
@@ -88,6 +88,47 @@ typedef struct _pdm_part_to_block_t PDM_part_to_block_t;
  * Public function prototypes
  *============================================================================*/
 
+/**
+ *
+ * \brief Create a partitioning to block redistribution
+ *
+ * \param [in]   comm              MPI communicator
+ * \param [out]  min_elaps         Min elapsed time
+ * \param [out]  max_elaps         Max elapsed time
+ * \param [out]  min_cpu           Min cpu time
+ * \param [out]  max_cpu           Max cpu time
+ * \param [out]  min_elaps_create  Global min elapsed for create function
+ * \param [out]  max_elaps_create  Global max elapsed for create function
+ * \param [out]  min_cpu_create    Global min cpu for create function
+ * \param [out]  max_cpu_create    Global max cpu for create function
+ * \param [out]  min_elaps_create2 Global min elapsed for create2 function 
+ * \param [out]  max_elaps_create2 Global max elapsed for create2 function
+ * \param [out]  min_cpu_create2   Global min cpu for create2 function
+ * \param [out]  max_cpu_create2   Global max cpu for create2 function
+ * \param [out]  min_elaps_exch    Global min elapsed for exch function
+ * \param [out]  max_elaps_exch    Global max elapsed for exch function
+ * \param [out]  min_cpu_exch      Global min cpu for exch function
+ * \param [out]  max_cpu_exch      Global max cpu for exch function
+ * 
+ */
+
+void
+PDM_part_to_block_global_timer_get
+(
+ PDM_MPI_Comm comm,
+ double       *min_elaps_create,
+ double       *max_elaps_create,
+ double       *min_cpu_create,
+ double       *max_cpu_create,
+ double       *min_elaps_create2,
+ double       *max_elaps_create2,
+ double       *min_cpu_create2,
+ double       *max_cpu_create2,
+ double       *min_elaps_exch,
+ double       *max_elaps_exch,
+ double       *min_cpu_exch,
+ double       *max_cpu_exch
+);
 
 /**
  *

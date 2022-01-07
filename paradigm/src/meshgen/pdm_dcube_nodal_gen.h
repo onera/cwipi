@@ -35,9 +35,9 @@ PDM_dcube_nodal_t *
 PDM_dcube_nodal_gen_create
 (
  PDM_MPI_Comm          comm,
- const PDM_g_num_t     nx,
- const PDM_g_num_t     ny,
- const PDM_g_num_t     nz,
+ const PDM_g_num_t     n_vtx_x,
+ const PDM_g_num_t     n_vtx_y,
+ const PDM_g_num_t     n_vtx_z,
  const double          length,
  const double          zero_x,
  const double          zero_y,

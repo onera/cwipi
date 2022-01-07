@@ -26,6 +26,7 @@
 #include "pdm_sort.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm_logging.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -430,10 +431,12 @@ PDM_part1_to_selected_part2_create
   PDM_gnum_location_t *gl = PDM_gnum_location_create (n_part2, n_part1, comm);
 
   for (int i = 0; i < n_part2; i++) {
+    // PDM_log_trace_array_long(gnum_elt2[i], n_elt2[i]  , "gnum_elt2::");
     PDM_gnum_location_elements_set (gl, i, n_elt2[i], gnum_elt2[i]);
   }
 
   for (int i = 0; i < n_part1; i++) {
+    // PDM_log_trace_array_long(selected_part2[i], selected_part2_idx[i][n_elt1[i]]  , "selected_part2::");
     PDM_gnum_location_requested_elements_set (gl, i, selected_part2_idx[i][n_elt1[i]], selected_part2[i]);
   }
 
@@ -1427,6 +1430,13 @@ PDM_part1_to_selected_part2_irecv
   ptp->async_recv_s_data[_request]      = s_data;      
   ptp->async_recv_cst_stride[_request]  = cst_stride;      
   ptp->async_recv_tag[_request]         = tag;
+
+  // TODO : Copy ptr
+  // ptp->async_recv_part2_data[_request] = malloc(ptp->n_part2 * sizeof(void *))
+  // for(int i = 0; i < ptp->n_part2; i++) {
+  //   ptp->async_recv_part2_data[_request] = part2_data[i_part];
+  // }
+
   ptp->async_recv_part2_data[_request]  = part2_data;      
   ptp->async_recv_request[_request]     = malloc (sizeof (PDM_MPI_Request) * ptp->n_active_rank_recv);      
   ptp->async_n_recv_buffer[_request]    = malloc (sizeof(int) * ptp->n_rank);

@@ -1126,8 +1126,6 @@ _generate_faces_from_dmesh_nodal
 
   if(0 == 1) {
     PDM_log_trace_array_long(dm->dconnectivity[PDM_CONNECTIVITY_TYPE_CELL_FACE], dm->dconnectivity_idx[PDM_CONNECTIVITY_TYPE_CELL_FACE][dn_cell], "dcell_face :: ");
-    PDM_log_trace_array_int(dm->dconnectivity_idx[PDM_CONNECTIVITY_TYPE_FACE_CELL], dm->dn_face+1, "dface_cell_idx :: ");
-    PDM_log_trace_array_long(dm->dconnectivity[PDM_CONNECTIVITY_TYPE_FACE_CELL], dm->dconnectivity_idx[PDM_CONNECTIVITY_TYPE_FACE_CELL][dm->dn_face], "dface_cell :: ");
   }
 
   if (link->distrib_missing_surface[dmesh_nodal->n_rank] == 0 && post_treat_result == 1) {
@@ -1712,6 +1710,9 @@ _translate_element_group_to_faces
     dm->n_bnd                               = dmesh_nodal->surfacic->n_group_elmt; // TODO : TO REMOVE
     dm->n_group_bnd   [PDM_BOUND_TYPE_FACE] = dmesh_nodal->surfacic->n_group_elmt;
   }
+  else {
+    dm->dbound_idx    [PDM_BOUND_TYPE_FACE] = PDM_array_zeros_int(1);
+  }
 
   // Par recursion on peut avoir les group de vertex ou de edge
 
@@ -1746,6 +1747,9 @@ _translate_element_group_to_edges
     dm->dbound        [PDM_BOUND_TYPE_EDGE] = dedge_bound;
     dm->n_bnd                               = dmesh_nodal->ridge->n_group_elmt; // TODO : TO REMOVE
     dm->n_group_bnd   [PDM_BOUND_TYPE_EDGE] = dmesh_nodal->ridge->n_group_elmt;
+  }
+  else {
+    dm->dbound_idx    [PDM_BOUND_TYPE_EDGE] = PDM_array_zeros_int(1);
   }
 }
 

@@ -14,16 +14,11 @@ MPI_TEST_CASE("[1p] dcube_nodal_gen HEXA ",1) {
   PDM_MPI_Comm_size(pdm_comm, &n_rank);
 
   std::vector<std::vector<PDM_g_num_t>> connec_expected_vol = {
-    {1, 2, 11, 10, 4, 5, 14, 13, 2, 3, 12, 11, 5, 6, 15, 14, 4, 5, 14, 13, 7, 8, 17, 16, 5, 6, 15, 14, 8, 9, 18, 17, 10, 11, 20, 19, 13, 14, 23, 22, 11, 12, 21, 20, 14, 15, 24, 23, 13, 14, 23, 22, 16, 17, 26, 25, 14, 15, 24, 23, 17, 18, 27, 26} // HEXA
+    {1, 2, 5, 4, 10, 11, 14, 13, 2, 3, 6, 5, 11, 12, 15, 14, 4, 5, 8, 7, 13, 14, 17, 16, 5, 6, 9, 8, 14, 15, 18, 17, 10, 11, 14, 13, 19, 20, 23, 22, 11, 12, 15, 14, 20, 21, 24, 23, 13, 14, 17, 16, 22, 23, 26, 25, 14, 15, 18, 17, 23, 24, 27, 26} //HEXA
   };
 
   std::vector<std::vector<PDM_g_num_t>> connec_expected_surf = {
-    {1, 10, 13, 4, 4, 13, 16, 7, 10, 19, 22, 13, 13, 22, 25, 16},     // QUAD IMIN
-    {3, 12, 15, 6, 6, 15, 18, 9, 12, 21, 24, 15, 15, 24, 27, 18},     // QUAD IMAX
-    {1, 2, 11, 10, 2, 3, 12, 11, 10, 11, 20, 19, 11, 12, 21, 20},     // QUAD JMIN
-    {7, 8, 17, 16, 8, 9, 18, 17, 16, 17, 26, 25, 17, 18, 27, 26},     // QUAD JMAX
-    {1, 4, 5, 2, 2, 5, 6, 3, 4, 7, 8, 5, 5, 8, 9, 6},                 // QUAD KMIN
-    {19, 22, 23, 20, 20, 23, 24, 21, 22, 25, 26, 23, 23, 26, 27, 24}  // QUAD KMAX
+    {2, 1, 4, 5, 3, 2, 5, 6, 5, 4, 7, 8, 6, 5, 8, 9, 19, 20, 23, 22, 20, 21, 24, 23, 22, 23, 26, 25, 23, 24, 27, 26, 4, 1, 10, 13, 7, 4, 13, 16, 13, 10, 19, 22, 16, 13, 22, 25, 3, 6, 15, 12, 6, 9, 18, 15, 12, 15, 24, 21, 15, 18, 27, 24, 10, 1, 2, 11, 19, 10, 11, 20, 11, 2, 3, 12, 20, 11, 12, 21, 7, 16, 17, 8, 16, 25, 26, 17, 8, 17, 18, 9, 17, 26, 27, 18}
   };
 
   std::vector<std::vector<PDM_g_num_t>> distrib_expected_vol = {
@@ -31,12 +26,7 @@ MPI_TEST_CASE("[1p] dcube_nodal_gen HEXA ",1) {
   };
 
   std::vector<std::vector<PDM_g_num_t>> distrib_expected_surf = {
-    {0, 4}, // QUAD IMIN
-    {0, 4}, // QUAD IMAX
-    {0, 4}, // QUAD JMIN
-    {0, 4}, // QUAD JMAX
-    {0, 4}, // QUAD KMIN
-    {0, 4}  // QUAD KMAX
+    {0, 24}, // All QUAD are together
   };
 
   std::vector<PDM_Mesh_nodal_elt_t> section_types_expexted_vol = {PDM_MESH_NODAL_HEXA8};
@@ -112,7 +102,7 @@ MPI_TEST_CASE("[1p] dcube_nodal_gen HEXA ",1) {
 
   int n_section_surf = PDM_DMesh_nodal_n_section_get(dmesh_nodal, PDM_GEOMETRY_KIND_SURFACIC);
 
-  CHECK( n_section_surf == 6); // HEXA + 6 * QUAD
+  CHECK( n_section_surf == 1); // All QUAD are together
 
   int* sections_id_surf = PDM_DMesh_nodal_sections_id_get(dmesh_nodal, PDM_GEOMETRY_KIND_SURFACIC);
 
@@ -149,16 +139,12 @@ MPI_TEST_CASE("[1p] dcube_nodal_gen PRISM ",1) {
   PDM_MPI_Comm_size(pdm_comm, &n_rank);
 
   std::vector<std::vector<PDM_g_num_t>> connec_expected_vol = {
-    {1, 5, 4, 10, 14, 13, 1, 2, 5, 10, 11, 14, 2, 6, 5, 11, 15, 14, 2, 3, 6, 11, 12, 15, 4, 8, 7, 13, 17, 16, 4, 5, 8, 13, 14, 17, 5, 9, 8, 14, 18, 17, 5, 6, 9, 14, 15, 18, 10, 14, 13, 19, 23, 22, 10, 11, 14, 19, 20, 23, 11, 15, 14, 20, 24, 23, 11, 12, 15, 20, 21, 24, 13, 17, 16, 22, 26, 25, 13, 14, 17, 22, 23, 26, 14, 18, 17, 23, 27, 26, 14, 15, 18, 23, 24, 27} // HEXA
+    {1, 2, 4, 10, 11, 13, 5, 4, 2, 14, 13, 11, 2, 3, 5, 11, 12, 14, 6, 5, 3, 15, 14, 12, 4, 5, 7, 13, 14, 16, 8, 7, 5, 17, 16, 14, 5, 6, 8, 14, 15, 17, 9, 8, 6, 18, 17, 15, 10, 11, 13, 19, 20, 22, 14, 13, 11, 23, 22, 20, 11, 12, 14, 20, 21, 23, 15, 14, 12, 24, 23, 21, 13, 14, 16, 22, 23, 25, 17, 16, 14, 26, 25, 23, 14, 15, 17, 23, 24, 26, 18, 17, 15, 27, 26, 24}
   };
 
   std::vector<std::vector<PDM_g_num_t>> connec_expected_surf = {
-    {1, 10, 13, 4, 4, 13, 16, 7, 10, 19, 22, 13, 13, 22, 25, 16}, // QUAD IMIN
-    {3, 12, 15, 6, 6, 15, 18, 9, 12, 21, 24, 15, 15, 24, 27, 18}, // QUAD IMAX
-    {1, 2, 11, 10, 2, 3, 12, 11, 10, 11, 20, 19, 11, 12, 21, 20}, // QUAD JMIN
-    {7, 8, 17, 16, 8, 9, 18, 17, 16, 17, 26, 25, 17, 18, 27, 26}, // QUAD JMAX
-    {1, 4, 5, 1, 5, 2, 2, 5, 6, 2, 6, 3, 4, 7, 8, 4, 8, 5, 5, 8, 9, 5, 9, 6}, // TRI KMIN
-    {19, 22, 23, 19, 23, 20, 20, 23, 24, 20, 24, 21, 22, 25, 26, 22, 26, 23, 23, 26, 27, 23, 27, 24}  // TRI KMAX
+    {1, 4, 2, 5, 2, 4, 2, 5, 3, 6, 3, 5, 4, 7, 5, 8, 5, 7, 5, 8, 6, 9, 6, 8, 19, 20, 22, 23, 22, 20, 20, 21, 23, 24, 23, 21, 22, 23, 25, 26, 25, 23, 23, 24, 26, 27, 26, 24},
+    {4, 1, 10, 13, 7, 4, 13, 16, 13, 10, 19, 22, 16, 13, 22, 25, 3, 6, 15, 12, 6, 9, 18, 15, 12, 15, 24, 21, 15, 18, 27, 24, 10, 1, 2, 11, 19, 10, 11, 20, 11, 2, 3, 12, 20, 11, 12, 21, 7, 16, 17, 8, 16, 25, 26, 17, 8, 17, 18, 9, 17, 26, 27, 18},
   };
 
   std::vector<std::vector<PDM_g_num_t>> distrib_expected_vol = {
@@ -166,17 +152,11 @@ MPI_TEST_CASE("[1p] dcube_nodal_gen PRISM ",1) {
   };
 
   std::vector<std::vector<PDM_g_num_t>> distrib_expected_surf = {
-    {0,  4}, // QUAD IMIN
-    {0,  4}, // QUAD IMAX
-    {0,  4}, // QUAD JMIN
-    {0,  4}, // QUAD JMAX
-    {0,  8}, // TRI KMIN
-    {0,  8}  // TRI KMAX
+    {0, 16}, //All TRI
+    {0, 16}, //All QUAD
   };
   std::vector<PDM_Mesh_nodal_elt_t> section_types_expexted_vol = {PDM_MESH_NODAL_PRISM6};
-  std::vector<PDM_Mesh_nodal_elt_t> section_types_expexted_surf = {PDM_MESH_NODAL_QUAD4, PDM_MESH_NODAL_QUAD4,
-                                                                   PDM_MESH_NODAL_QUAD4, PDM_MESH_NODAL_QUAD4,
-                                                                   PDM_MESH_NODAL_TRIA3, PDM_MESH_NODAL_TRIA3};
+  std::vector<PDM_Mesh_nodal_elt_t> section_types_expexted_surf = {PDM_MESH_NODAL_TRIA3, PDM_MESH_NODAL_QUAD4};
 
   int n_vtx_seg = 3;
 
@@ -244,7 +224,7 @@ MPI_TEST_CASE("[1p] dcube_nodal_gen PRISM ",1) {
 
   int n_section_surf = PDM_DMesh_nodal_n_section_get(dmesh_nodal, PDM_GEOMETRY_KIND_SURFACIC);
 
-  CHECK( n_section_surf == 6); // HEXA + 6 * QUAD
+  CHECK( n_section_surf == 2); // QUAD + TRI
 
   int* sections_id_surf = PDM_DMesh_nodal_sections_id_get(dmesh_nodal, PDM_GEOMETRY_KIND_SURFACIC);
 
@@ -283,16 +263,11 @@ MPI_TEST_CASE("[1p] dcube_nodal_gen TETRA ",1) {
   PDM_MPI_Comm_size(pdm_comm, &n_rank);
 
   std::vector<std::vector<PDM_g_num_t>> connec_expected_vol = {
-    {1, 2, 4, 10, 2, 5, 4, 14, 4, 10, 14, 13, 2, 10, 11, 14, 2, 4, 10, 14, 2, 6, 5, 14, 2, 3, 6, 12, 6, 12, 15, 14, 12, 11, 14, 2, 12, 6, 2, 14, 4, 8, 7, 16, 4, 5, 8, 14, 8, 14, 17, 16, 14, 13, 16, 4, 14, 8, 4, 16, 5, 6, 8, 14, 6, 9, 8, 18, 8, 14, 18, 17, 6, 14, 15, 18, 6, 8, 14, 18, 10, 14, 13, 22, 10, 11, 14, 20, 14, 20, 23, 22, 20, 19, 22, 10, 20, 14, 10, 22, 11, 12, 14, 20, 12, 15, 14, 24, 14, 20, 24, 23, 12, 20, 21, 24, 12, 14, 20, 24, 13, 14, 16, 22, 14, 17, 16, 26, 16, 22, 26, 25, 14, 22, 23, 26, 14, 16, 22, 26, 14, 18, 17, 26, 14, 15, 18, 24, 18, 24, 27, 26, 24, 23, 26, 14, 24, 18, 14, 26}
+    {1, 2, 4, 10, 11, 10, 14, 2, 13, 14, 10, 4, 5, 4, 2, 14, 2, 14, 4, 10, 2, 3, 6, 12, 6, 15, 14, 12, 5, 2, 6, 14, 2, 12, 14, 11, 2, 12, 6, 14, 4, 5, 8, 14, 8, 17, 16, 14, 7, 4, 8, 16, 4, 14, 16, 13, 4, 14, 8, 16, 5, 6, 8, 14, 15, 14, 18, 6, 17, 18, 14, 8, 9, 8, 6, 18, 6, 18, 8, 14, 10, 11, 14, 20, 14, 23, 22, 20, 13, 10, 14, 22, 10, 20, 22, 19, 10, 20, 14, 22, 11, 12, 14, 20, 21, 20, 24, 12, 23, 24, 20, 14, 15, 14, 12, 24, 12, 24, 14, 20, 13, 14, 16, 22, 23, 22, 26, 14, 25, 26, 22, 16, 17, 16, 14, 26, 14, 26, 16, 22, 14, 15, 18, 24, 18, 27, 26, 24, 17, 14, 18, 26, 14, 24, 26, 23, 14, 24, 18, 26}
   };
 
   std::vector<std::vector<PDM_g_num_t>> connec_expected_surf = {
-    {1, 4, 10, 4, 13, 10, 4, 7, 16, 4, 16, 13, 10, 13, 22, 10, 22, 19, 13, 16, 22, 16, 25, 22}, // TRI IMIN
-    {3, 6, 12, 6, 15, 12, 6, 9, 18, 6, 18, 15, 12, 15, 24, 12, 24, 21, 15, 18, 24, 18, 27, 24}, // TRI IMAX
-    {1, 2, 10, 2, 11, 10, 2, 3, 12, 2, 12, 11, 10, 11, 20, 10, 20, 19, 11, 12, 20, 12, 21, 20}, // TRI JMIN
-    {7, 8, 16, 8, 17, 16, 8, 9, 18, 8, 18, 17, 16, 17, 26, 16, 26, 25, 17, 18, 26, 18, 27, 26}, // TRI JMAX
-    {1, 4, 2, 4, 5, 2, 2, 5, 6, 2, 6, 3, 4, 7, 8, 4, 8, 5, 5, 8, 6, 8, 9, 6}, // TRI KMIN
-    {19, 22, 20, 22, 23, 20, 20, 23, 24, 20, 24, 21, 22, 25, 26, 22, 26, 23, 23, 26, 24, 26, 27, 24}  // TRI KMAX
+    {1, 4, 2, 5, 2, 4, 3, 2, 6, 5, 6, 2, 5, 4, 8, 7, 8, 4, 5, 8, 6, 9, 6, 8, 19, 20, 22, 23, 22, 20, 21, 24, 20, 23, 20, 24, 23, 26, 22, 25, 22, 26, 23, 24, 26, 27, 26, 24, 1, 10, 4, 13, 4, 10, 7, 4, 16, 13, 16, 4, 13, 10, 22, 19, 22, 10, 13, 22, 16, 25, 16, 22, 3, 6, 12, 15, 12, 6, 9, 18, 6, 15, 6, 18, 15, 24, 12, 21, 12, 24, 15, 18, 24, 27, 24, 18, 1, 2, 10, 11, 10, 2, 19, 10, 20, 11, 20, 10, 11, 2, 12, 3, 12, 2, 11, 12, 20, 21, 20, 12, 7, 16, 8, 17, 8, 16, 25, 26, 16, 17, 16, 26, 17, 18, 8, 9, 8, 18, 17, 26, 18, 27, 18, 26}
   };
 
   std::vector<std::vector<PDM_g_num_t>> distrib_expected_vol = {
@@ -300,18 +275,11 @@ MPI_TEST_CASE("[1p] dcube_nodal_gen TETRA ",1) {
   };
 
   std::vector<std::vector<PDM_g_num_t>> distrib_expected_surf = {
-    {0,  8}, // QUAD IMIN
-    {0,  8}, // QUAD IMAX
-    {0,  8}, // QUAD JMIN
-    {0,  8}, // QUAD JMAX
-    {0,  8}, // TRI KMIN
-    {0,  8}  // TRI KMAX
+    {0,  48}, // All TRI
   };
   std::vector<PDM_Mesh_nodal_elt_t> section_types_expexted_vol = {PDM_MESH_NODAL_TETRA4};
 
-  std::vector<PDM_Mesh_nodal_elt_t> section_types_expexted_surf = {PDM_MESH_NODAL_TRIA3, PDM_MESH_NODAL_TRIA3,
-                                                                   PDM_MESH_NODAL_TRIA3, PDM_MESH_NODAL_TRIA3,
-                                                                   PDM_MESH_NODAL_TRIA3, PDM_MESH_NODAL_TRIA3};
+  std::vector<PDM_Mesh_nodal_elt_t> section_types_expexted_surf = {PDM_MESH_NODAL_TRIA3};
 
 
   int n_vtx_seg = 3;
@@ -381,7 +349,7 @@ MPI_TEST_CASE("[1p] dcube_nodal_gen TETRA ",1) {
 
   int n_section_surf = PDM_DMesh_nodal_n_section_get(dmesh_nodal, PDM_GEOMETRY_KIND_SURFACIC);
 
-  CHECK( n_section_surf == 6); // HEXA + 6 * QUAD
+  CHECK( n_section_surf == 1); // All TRI
 
   int* sections_id_surf = PDM_DMesh_nodal_sections_id_get(dmesh_nodal, PDM_GEOMETRY_KIND_SURFACIC);
 
@@ -420,14 +388,11 @@ MPI_TEST_CASE("[1p] dcube_nodal_gen QUAD ",1) {
   PDM_MPI_Comm_size(pdm_comm, &n_rank);
 
   std::vector<std::vector<PDM_g_num_t>> connec_expected_surf = {
-    {1,2,5,4,2,3,6,5,4,5,8,7,5,6,9,8}
+    {1, 2, 5, 4, 2, 3, 6, 5, 4, 5, 8, 7, 5, 6, 9, 8}
   };
 
   std::vector<std::vector<PDM_g_num_t>> connec_expected_ridge = {
-    {4,1,7,4}, // TRI IMIN
-    {6,3,9,6}, // TRI IMAX
-    {2,1,3,2}, // TRI JMIN
-    {8,7,9,8}, // TRI JMAX
+    {1, 2, 2, 3, 8, 7, 9, 8, 4, 1, 7, 4, 3, 6, 6, 9}
   };
 
   std::vector<std::vector<PDM_g_num_t>> distrib_expected_surf = {
@@ -435,15 +400,11 @@ MPI_TEST_CASE("[1p] dcube_nodal_gen QUAD ",1) {
   };
 
   std::vector<std::vector<PDM_g_num_t>> distrib_expected_ridge = {
-    {0, 2}, // BAR IMIN
-    {0, 2}, // BAR IMAX
-    {0, 2}, // BAR JMIN
-    {0, 2}, // BAR JMAX
+    {0, 8}, // All BAR
   };
 
   std::vector<PDM_Mesh_nodal_elt_t> section_types_expexted_surf  = {PDM_MESH_NODAL_QUAD4};
-  std::vector<PDM_Mesh_nodal_elt_t> section_types_expexted_ridge = {PDM_MESH_NODAL_BAR2, PDM_MESH_NODAL_BAR2,
-                                                                    PDM_MESH_NODAL_BAR2, PDM_MESH_NODAL_BAR2};
+  std::vector<PDM_Mesh_nodal_elt_t> section_types_expexted_ridge = {PDM_MESH_NODAL_BAR2};
 
 
   int n_vtx_seg = 3;
@@ -513,7 +474,7 @@ MPI_TEST_CASE("[1p] dcube_nodal_gen QUAD ",1) {
 
   int n_section_ridge = PDM_DMesh_nodal_n_section_get(dmesh_nodal, PDM_GEOMETRY_KIND_RIDGE);
 
-  CHECK( n_section_ridge == 4); // HEXA + 6 * QUAD
+  CHECK( n_section_ridge == 1); // All BAR
 
   int* sections_id_ridge = PDM_DMesh_nodal_sections_id_get(dmesh_nodal, PDM_GEOMETRY_KIND_RIDGE);
 
@@ -551,14 +512,11 @@ MPI_TEST_CASE("[1p] dcube_nodal_gen TRI ",1) {
   PDM_MPI_Comm_size(pdm_comm, &n_rank);
 
   std::vector<std::vector<PDM_g_num_t>> connec_expected_surf = {
-    {1, 2, 4, 2, 5, 4, 2, 3, 5, 3, 6, 5, 4, 5, 7, 5, 8, 7, 5, 6, 8, 6, 9, 8 }
+    {1, 2, 4, 5, 4, 2, 2, 3, 5, 6, 5, 3, 4, 5, 7, 8, 7, 5, 5, 6, 8, 9, 8, 6}
   };
 
   std::vector<std::vector<PDM_g_num_t>> connec_expected_ridge = {
-    {4,1,7,4}, // TRI IMIN
-    {6,3,9,6}, // TRI IMAX
-    {2,1,3,2}, // TRI JMIN
-    {8,7,9,8}, // TRI JMAX
+    {1, 2, 2, 3, 8, 7, 9, 8, 4, 1, 7, 4, 3, 6, 6, 9}
   };
 
   std::vector<std::vector<PDM_g_num_t>> distrib_expected_surf = {
@@ -566,14 +524,10 @@ MPI_TEST_CASE("[1p] dcube_nodal_gen TRI ",1) {
   };
 
   std::vector<std::vector<PDM_g_num_t>> distrib_expected_ridge = {
-    {0, 2}, // BAR IMIN
-    {0, 2}, // BAR IMAX
-    {0, 2}, // BAR JMIN
-    {0, 2}, // BAR JMAX
+    {0, 8}, // All BAR
   };
   std::vector<PDM_Mesh_nodal_elt_t> section_types_expexted_surf = {PDM_MESH_NODAL_TRIA3};
-  std::vector<PDM_Mesh_nodal_elt_t> section_types_expexted_ridge = {PDM_MESH_NODAL_BAR2, PDM_MESH_NODAL_BAR2,
-                                                                    PDM_MESH_NODAL_BAR2, PDM_MESH_NODAL_BAR2};
+  std::vector<PDM_Mesh_nodal_elt_t> section_types_expexted_ridge = {PDM_MESH_NODAL_BAR2};
 
 
   int n_vtx_seg = 3;
@@ -643,7 +597,7 @@ MPI_TEST_CASE("[1p] dcube_nodal_gen TRI ",1) {
 
   int n_section_ridge = PDM_DMesh_nodal_n_section_get(dmesh_nodal, PDM_GEOMETRY_KIND_RIDGE);
 
-  CHECK( n_section_ridge == 4); // HEXA + 6 * QUAD
+  CHECK( n_section_ridge == 1); // All BAR
 
   int* sections_id_ridge = PDM_DMesh_nodal_sections_id_get(dmesh_nodal, PDM_GEOMETRY_KIND_RIDGE);
 

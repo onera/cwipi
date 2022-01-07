@@ -816,7 +816,8 @@ PDM_dmesh_nodal_to_part_mesh_nodal_elmts
  int                          *pn_vtx,
  PDM_g_num_t                 **vtx_ln_to_gn,
  int                          *pn_elmt,
- PDM_g_num_t                 **elmt_ln_to_gn
+ PDM_g_num_t                 **elmt_ln_to_gn,
+ PDM_g_num_t                 **pparent_entitity_ln_to_gn
 );
 
 #ifdef __cplusplus

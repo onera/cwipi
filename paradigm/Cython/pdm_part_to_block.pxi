@@ -43,6 +43,7 @@ cdef extern from "pdm_part_to_block.h":
     int PDM_part_to_block_n_elt_block_get(PDM_part_to_block_t *ptb)
 
     PDM_g_num_t *PDM_part_to_block_block_gnum_get(PDM_part_to_block_t *ptb)
+    int         *PDM_part_to_block_block_gnum_count_get(PDM_part_to_block_t *ptb)
 
     int PDM_part_to_block_exch(PDM_part_to_block_t       *ptb,
                                size_t                     s_data,
@@ -373,6 +374,16 @@ cdef class PartToBlock:
 
       return NPY.copy(BlockGnumNPY)
 
+    # ------------------------------------------------------------------------
+    def getBlockGnumCountCopy(self):
+      """
+         Return a copy of the number of occurence of each element compute in library
+         Copy because remove of PTB object can made a core ...
+      """
+      cdef int* BlockGnumCount = PDM_part_to_block_block_gnum_count_get(self.PTB)
+      dim                      = <NPY.npy_intp> PDM_part_to_block_n_elt_block_get(self.PTB);
+      BlockGnumCountNPY = NPY.PyArray_SimpleNewFromData(1, &dim, NPY.NPY_INT32, <void *> BlockGnumCount)
+      return NPY.copy(BlockGnumCountNPY)
     # ------------------------------------------------------------------------
     def getDistributionCopy(self):
       """

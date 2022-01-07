@@ -143,10 +143,10 @@ PDM_part_mesh_nodal_create
     pmn->vtx[i]->owner      = PDM_OWNERSHIP_USER;
   }
 
-  pmn->n_vol    = (int *) malloc( n_part * sizeof(int));
-  pmn->n_surf   = (int *) malloc( n_part * sizeof(int));
-  pmn->n_ridge  = (int *) malloc( n_part * sizeof(int));
-  pmn->n_corner = (int *) malloc( n_part * sizeof(int));
+  pmn->n_vol    = PDM_array_zeros_int(n_part);
+  pmn->n_surf   = PDM_array_zeros_int(n_part);
+  pmn->n_ridge  = PDM_array_zeros_int(n_part);
+  pmn->n_corner = PDM_array_zeros_int(n_part);
 
   pmn->volumic  = NULL;
   pmn->surfacic = NULL;
@@ -364,12 +364,13 @@ const int                    n_elt,
 const int                   *connec,
 const PDM_g_num_t           *numabs,
 const int                   *parent_num,
+const PDM_g_num_t           *parent_entity_g_num,
       PDM_ownership_t        owner
 )
 {
   PDM_part_mesh_nodal_elmts_t* pmne = _get_from_geometry_kind(pmn, geom_kind);
   assert(pmne != NULL);
-  PDM_part_mesh_nodal_elmts_std_set(pmne, id_block, id_part, n_elt, connec, numabs, parent_num, owner);
+  PDM_part_mesh_nodal_elmts_std_set(pmne, id_block, id_part, n_elt, connec, numabs, parent_num, parent_entity_g_num, owner);
 }
 
 int
@@ -397,12 +398,13 @@ const int                     id_block,
 const int                     id_part,
       int                   **connec,
       PDM_g_num_t           **numabs,
-      int                   **parent_num
+      int                   **parent_num,
+      PDM_g_num_t           **parent_entity_g_num
 )
 {
   PDM_part_mesh_nodal_elmts_t* pmne = _get_from_geometry_kind(pmn, geom_kind);
   assert(pmne != NULL);
-  PDM_part_mesh_nodal_elmts_block_std_get(pmne, id_block, id_part, connec, numabs, parent_num);
+  PDM_part_mesh_nodal_elmts_block_std_get(pmne, id_block, id_part, connec, numabs, parent_num, parent_entity_g_num);
 }
 
 

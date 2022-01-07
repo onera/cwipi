@@ -5167,7 +5167,7 @@ PDM_mesh_location_t        *ml
           int elt_n_pts = _points_in_elements->pts_inside_idx[i_part][i+1] - elt_i_pt;
 
           for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
-            printf (" %ld", _points_in_elements->gnum[i_part][j]);
+            printf (" "PDM_FMT_G_NUM"", _points_in_elements->gnum[i_part][j]);
           }
           printf("\n");
     
@@ -5299,7 +5299,7 @@ PDM_mesh_location_t        *ml
           int elt_n_pts = _points_in_elements->pts_inside_idx[i_part][i+1] - elt_i_pt;
 
           for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
-            printf (" %ld", _points_in_elements->gnum[i_part][j]);
+            printf (" "PDM_FMT_G_NUM"", _points_in_elements->gnum[i_part][j]);
           }
           printf("\n");
     

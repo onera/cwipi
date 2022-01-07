@@ -29,6 +29,7 @@
 #include "pdm_mpi.h"
 #include "pdm_dmesh.h"
 #include "pdm_dmesh_nodal.h"
+#include "pdm_part_mesh_nodal.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -179,9 +180,11 @@ PDM_multipart_run_ppart
 );
 
 void
-PDM_multipart_compute_part_mesh_nodal
+PDM_multipart_get_part_mesh_nodal
 (
-const int   id
+const int   mpart_id,
+const int   i_zone,
+PDM_part_mesh_nodal_t **pmesh_nodal
 );
 /**
  *
@@ -294,6 +297,17 @@ const int                   i_zone,
 const int                   i_part,
       PDM_mesh_entities_t   entity_type,
       PDM_g_num_t         **entity_ln_to_gn,
+      PDM_ownership_t       ownership
+);
+
+int
+PDM_multipart_partition_color_get
+(
+const int                   mpart_id,
+const int                   i_zone,
+const int                   i_part,
+      PDM_mesh_entities_t   entity_type,
+      int                 **entity_color,
       PDM_ownership_t       ownership
 );
 

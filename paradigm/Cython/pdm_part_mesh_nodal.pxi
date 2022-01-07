@@ -58,6 +58,7 @@ cdef extern from "pdm_part_mesh_nodal.h":
                                              int                   *connec,
                                              PDM_g_num_t           *numabs,
                                              int                   *parent_num,
+                                             PDM_g_num_t           *parent_entity_g_num,
                                              PDM_ownership_t        owner)
 
     int PDM_part_mesh_nodal_block_n_elt_get(PDM_part_mesh_nodal_t  *pmn,
@@ -72,7 +73,8 @@ cdef extern from "pdm_part_mesh_nodal.h":
                                            int                     id_part,
                                            int                   **connec,
                                            PDM_g_num_t           **numabs,
-                                           int                   **parent_num)
+                                           int                   **parent_num,
+                                           PDM_g_num_t           **parent_entity_g_num)
 
     PDM_Mesh_nodal_elt_t PDM_part_mesh_nodal_block_type_get(PDM_part_mesh_nodal_t  *pmn,
                                                             PDM_geometry_kind_t     geom_kind,
@@ -142,7 +144,7 @@ cdef class PartMeshNodalCaspule:
   def part_mesh_nodal_get_sections(self, PDM_geometry_kind_t geom_kind, int i_part):
     """
     """
-    return part_mesh_nodal_get_sections(self, geom_kind)
+    return part_mesh_nodal_get_sections(self, geom_kind, i_part)
 
 
 
@@ -170,6 +172,7 @@ def part_mesh_nodal_get_sections(PMeshNodal pypmn, PDM_geometry_kind_t geom_kind
   cdef int                  *parent_num
   cdef int                  *connec
   cdef PDM_g_num_t          *numabs
+  cdef PDM_g_num_t          *parent_entity_g_num
   cdef double               *vtx_coord
   cdef PDM_Mesh_nodal_elt_t  t_elmt
   cdef NPY.npy_intp          dim
@@ -188,7 +191,7 @@ def part_mesh_nodal_get_sections(PMeshNodal pypmn, PDM_geometry_kind_t geom_kind
 
     n_elmt_in_section = PDM_part_mesh_nodal_block_n_elt_get(pypmn.pmn, geom_kind, id_section, i_part)
 
-    PDM_part_mesh_nodal_block_std_get(pypmn.pmn, geom_kind, id_section, i_part, &connec, &numabs, &parent_num)
+    PDM_part_mesh_nodal_block_std_get(pypmn.pmn, geom_kind, id_section, i_part, &connec, &numabs, &parent_num, &parent_entity_g_num)
 
     n_vtx_per_elmt = PDM_Mesh_nodal_n_vertices_element(t_elmt, 1)
 
@@ -213,9 +216,19 @@ def part_mesh_nodal_get_sections(PMeshNodal pypmn, PDM_geometry_kind_t geom_kind
                                      <void *> numabs)
     PyArray_ENABLEFLAGS(np_numabs, NPY.NPY_OWNDATA);
 
-    sections.append({"pdm_type"      : t_elmt,
-                     "np_connec"     : np_connec,
-                     "np_parent_num" : np_parent_num,
-                     "np_numabs"     : np_numabs})
+    dim = <NPY.npy_intp> n_elmt_in_section
+    np_parent_entity_g_num = None
+    if(parent_entity_g_num != NULL):
+      np_parent_entity_g_num = NPY.PyArray_SimpleNewFromData(1,
+                                                             &dim,
+                                                             PDM_G_NUM_NPY_INT,
+                                                             <void *> parent_entity_g_num)
+      PyArray_ENABLEFLAGS(np_parent_entity_g_num, NPY.NPY_OWNDATA);
 
-  return {"sections" : sections}
+    sections.append({"pdm_type"               : t_elmt,
+                     "np_connec"              : np_connec,
+                     "np_parent_num"          : np_parent_num,
+                     "np_numabs"              : np_numabs,
+                     "np_parent_entity_g_num" : np_parent_entity_g_num})
+
+  return sections

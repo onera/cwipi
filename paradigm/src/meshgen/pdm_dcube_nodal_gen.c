@@ -1596,9 +1596,9 @@ PDM_dcube_nodal_t *
 PDM_dcube_nodal_gen_create
 (
  PDM_MPI_Comm          comm,
- const PDM_g_num_t     nx,
- const PDM_g_num_t     ny,
- const PDM_g_num_t     nz,
+ const PDM_g_num_t     n_vtx_x,
+ const PDM_g_num_t     n_vtx_y,
+ const PDM_g_num_t     n_vtx_z,
  const double          length,
  const double          zero_x,
  const double          zero_y,
@@ -1617,9 +1617,9 @@ PDM_dcube_nodal_gen_create
   PDM_dcube_nodal_t *dcube = (PDM_dcube_nodal_t *) malloc(sizeof(PDM_dcube_nodal_t));
 
   dcube->comm   = comm;
-  dcube->nx     = nx;
-  dcube->ny     = ny;
-  dcube->nz     = nz;
+  dcube->nx     = n_vtx_x-1;
+  dcube->ny     = n_vtx_y-1;
+  dcube->nz     = n_vtx_z-1;
   dcube->length = length;
   dcube->zero_x = zero_x;
   dcube->zero_y = zero_y;

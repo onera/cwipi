@@ -93,6 +93,11 @@ cdef extern from "pdm_multipart.h":
                                     PDM_g_num_t  **face_join_ln_to_gn)
 
     # ------------------------------------------------------------------
+    void PDM_multipart_get_part_mesh_nodal(const int   mpart_id,
+                                           const int   i_zone,
+                                           PDM_part_mesh_nodal_t **pmesh_nodal)
+
+    # ------------------------------------------------------------------
     void PDM_multipart_part_graph_comm_vtx_dim_get(int   mpart_id,
                                                    int   i_zone,
                                                    int   i_part,
@@ -121,6 +126,29 @@ cdef extern from "pdm_multipart.h":
                                                  int            zone_gid,
                                                  int            ipart,
                                                  int          **vtx_ghost_information)
+
+    # ------------------------------------------------------------------
+    int PDM_multipart_part_connectivity_get(int                       mpart_id,
+                                            int                       i_zone,
+                                            int                       i_part,
+                                            PDM_connectivity_type_t   connectivity_type,
+                                            int                     **connect,
+                                            int                     **connect_idx,
+                                            PDM_ownership_t           ownership);
+    # ------------------------------------------------------------------
+    int PDM_multipart_part_ln_to_gn_get(int                   mpart_id,
+                                        int                   i_zone,
+                                        int                   i_part,
+                                        PDM_mesh_entities_t   entity_type,
+                                        PDM_g_num_t         **entity_ln_to_gn,
+                                        PDM_ownership_t       ownership);
+    # ------------------------------------------------------------------
+    int PDM_multipart_partition_color_get(int                   mpart_id,
+                                          int                   i_zone,
+                                          int                   i_part,
+                                          PDM_mesh_entities_t   entity_type,
+                                          int                 **entity_ln_to_gn,
+                                          PDM_ownership_t       ownership);
 
     # ------------------------------------------------------------------
     void PDM_multipart_time_get(int       mpart_id,
@@ -655,6 +683,16 @@ cdef class MultiPart:
 
 
     # ------------------------------------------------------------------
+    def multipart_part_mesh_nodal_get(self, int zone_gid):
+        cdef PDM_part_mesh_nodal_t *pmesh_nodal
+        PDM_multipart_get_part_mesh_nodal(self._mpart_id, zone_gid, &pmesh_nodal)
+        if pmesh_nodal == NULL:
+          return None
+        else:
+          #See pdm_part_mesh_nodal.pxi
+          py_caps = PyCapsule_New(pmesh_nodal, NULL, NULL);
+          return PartMeshNodalCaspule(py_caps)
+
     def multipart_graph_comm_vtx_dim_get(self, int ipart, int zone_gid):
         """
            Get partition dimensions
@@ -858,6 +896,115 @@ cdef class MultiPart:
             PyArray_ENABLEFLAGS(np_vtx_ghost_information, NPY.NPY_OWNDATA);
         return {'np_vtx_ghost_information' : np_vtx_ghost_information}
 
+    # ------------------------------------------------------------------
+    def multipart_connectivity_get(self, int ipart, int zone_gid, PDM_connectivity_type_t connectivity_type):
+        """
+           Get partition ghost information
+        """
+        # ************************************************************************
+        # > Declaration
+        cdef int          *entity1_entity2
+        cdef int          *entity1_entity2_idx
+        # ************************************************************************
+
+        # -> Call PPART to get info
+        n_entity1 = PDM_multipart_part_connectivity_get(self._mpart_id,
+                                                        zone_gid,
+                                                        ipart,
+                                                        connectivity_type,
+                                                        &entity1_entity2,
+                                                        &entity1_entity2_idx,
+                                                        PDM_OWNERSHIP_USER)
+        cdef NPY.npy_intp dim
+
+        if (entity1_entity2_idx == NULL):
+            np_entity1_entity2_idx = None
+            dim = <NPY.npy_intp> 2 * n_entity1
+            np_entity1_entity2 = NPY.PyArray_SimpleNewFromData(1,
+                                                               &dim,
+                                                               NPY.NPY_INT32,
+                                                      <void *> entity1_entity2)
+            PyArray_ENABLEFLAGS(np_entity1_entity2, NPY.NPY_OWNDATA);
+        else :
+            dim = <NPY.npy_intp> n_entity1+1
+            np_entity1_entity2_idx = NPY.PyArray_SimpleNewFromData(1,
+                                                                   &dim,
+                                                                   NPY.NPY_INT32,
+                                                                   <void *> entity1_entity2_idx)
+            PyArray_ENABLEFLAGS(np_entity1_entity2_idx, NPY.NPY_OWNDATA);
+
+            dim = <NPY.npy_intp> np_entity1_entity2_idx[n_entity1]
+            np_entity1_entity2 = NPY.PyArray_SimpleNewFromData(1,
+                                                               &dim,
+                                                               NPY.NPY_INT32,
+                                                      <void *> entity1_entity2)
+            PyArray_ENABLEFLAGS(np_entity1_entity2, NPY.NPY_OWNDATA);
+
+
+        return {'np_entity1_entity2'     : np_entity1_entity2,
+                'np_entity1_entity2_idx' : np_entity1_entity2_idx}
+
+
+    # ------------------------------------------------------------------
+    def multipart_ln_to_gn_get(self, int ipart, int zone_gid, PDM_mesh_entities_t entity_type):
+        """
+           Get partition ghost information
+        """
+        # ************************************************************************
+        # > Declaration
+        cdef PDM_g_num_t  *entity_ln_to_gn
+        # ************************************************************************
+
+        # -> Call PPART to get info
+        n_entity1 = PDM_multipart_part_ln_to_gn_get(self._mpart_id,
+                                                    zone_gid,
+                                                    ipart,
+                                                    entity_type,
+                                                    &entity_ln_to_gn,
+                                                    PDM_OWNERSHIP_USER)
+        cdef NPY.npy_intp dim
+        if (entity_ln_to_gn == NULL) :
+            np_entity_ln_to_gn = None
+        else :
+            dim = <NPY.npy_intp> n_entity1
+            np_entity_ln_to_gn   = NPY.PyArray_SimpleNewFromData(1,
+                                                                 &dim,
+                                                                 PDM_G_NUM_NPY_INT,
+                                                        <void *> entity_ln_to_gn)
+            PyArray_ENABLEFLAGS(np_entity_ln_to_gn, NPY.NPY_OWNDATA);
+
+        return {'np_entity_ln_to_gn'     : np_entity_ln_to_gn}
+
+
+    # ------------------------------------------------------------------
+    def multipart_part_color_get(self, int ipart, int zone_gid, PDM_mesh_entities_t entity_type):
+        """
+           Get partition ghost information
+        """
+        # ************************************************************************
+        # > Declaration
+        cdef int  *entity_color
+        # ************************************************************************
+
+        # -> Call PPART to get info
+        n_entity1 = PDM_multipart_partition_color_get(self._mpart_id,
+                                                      zone_gid,
+                                                      ipart,
+                                                      entity_type,
+                                                      &entity_color,
+                                                      PDM_OWNERSHIP_USER)
+        cdef NPY.npy_intp dim
+        if (entity_color == NULL) :
+            np_entity_color = None
+        else :
+            dim = <NPY.npy_intp> n_entity1
+            np_entity_color   = NPY.PyArray_SimpleNewFromData(1,
+                                                                 &dim,
+                                                                 NPY.NPY_INT32,
+                                                        <void *> entity_color)
+            PyArray_ENABLEFLAGS(np_entity_color, NPY.NPY_OWNDATA);
+
+        return {'np_entity_color'     : np_entity_color}
 
     # ------------------------------------------------------------------
     def multipart_time_get(self, int zone_gid):

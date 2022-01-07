@@ -78,6 +78,7 @@ MPI_TEST_CASE("[PDM_part_mesh_nodal_elmts_t] Constructor",1) {
                                     connec_tri_1,
                                     NULL,
                                     NULL,
+                                    NULL,
                                     PDM_OWNERSHIP_USER);
 
   PDM_part_mesh_nodal_elmts_std_set(pelmts_ridge,
@@ -85,6 +86,7 @@ MPI_TEST_CASE("[PDM_part_mesh_nodal_elmts_t] Constructor",1) {
                                     i_part,
                                     n_bar_section_1,
                                     connec_bar_1,
+                                    NULL,
                                     NULL,
                                     NULL,
                                     PDM_OWNERSHIP_USER);
