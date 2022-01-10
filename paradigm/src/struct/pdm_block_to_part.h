@@ -51,6 +51,40 @@ typedef struct _pdm_block_to_part_t PDM_block_to_part_t;
 
 /**
  *
+ * \brief Get global timer in block to part
+ *
+ * \param [in]   comm              MPI communicator
+ * \param [out]  min_elaps         Min elapsed time
+ * \param [out]  max_elaps         Max elapsed time
+ * \param [out]  min_cpu           Min cpu time
+ * \param [out]  max_cpu           Max cpu time
+ * \param [out]  min_elaps_create  Global min elapsed for create function
+ * \param [out]  max_elaps_create  Global max elapsed for create function
+ * \param [out]  min_cpu_create    Global min cpu for create function
+ * \param [out]  max_cpu_create    Global max cpu for create function
+ * \param [out]  min_elaps_exch    Global min elapsed for exch function
+ * \param [out]  max_elaps_exch    Global max elapsed for exch function
+ * \param [out]  min_cpu_exch      Global min cpu for exch function
+ * \param [out]  max_cpu_exch      Global max cpu for exch function
+ * 
+ */
+
+void
+PDM_block_to_part_global_timer_get
+(
+ PDM_MPI_Comm comm,
+ double       *min_elaps_create,
+ double       *max_elaps_create,
+ double       *min_cpu_create,
+ double       *max_cpu_create,
+ double       *min_elaps_exch,
+ double       *max_elaps_exch,
+ double       *min_cpu_exch,
+ double       *max_cpu_exch
+);
+
+/**
+ *
  * \brief Create a block to partitions redistribution
  *
  * \param [in]   block_distrib_idx Block distribution (size : \ref size of \ref comm + 1)

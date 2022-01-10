@@ -90,7 +90,7 @@ typedef struct _pdm_part_to_block_t PDM_part_to_block_t;
 
 /**
  *
- * \brief Create a partitioning to block redistribution
+ * \brief Get global timer in part to block
  *
  * \param [in]   comm              MPI communicator
  * \param [out]  min_elaps         Min elapsed time

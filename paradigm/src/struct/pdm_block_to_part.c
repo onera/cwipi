@@ -13,6 +13,7 @@
 #include "pdm_binary_search.h"
 #include "pdm_array.h"
 #include "pdm_priv.h"
+#include "pdm_timer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,6 +33,12 @@ extern "C" {
 /*=============================================================================
  * Static global variables
  *============================================================================*/
+
+static  double t_elaps[2] = {0., 0.};
+static  double t_cpu[2] = {0., 0.};
+static  PDM_timer_t *t_timer[2] = {NULL, NULL};
+
+int n_btp = 0;
 
 /*=============================================================================
  * Static function definitions
@@ -98,6 +105,69 @@ _comm_graph_statistics
 
 /**
  *
+ * \brief Get global timer in block to part
+ *
+ * \param [in]   comm              MPI communicator
+ * \param [out]  min_elaps         Min elapsed time
+ * \param [out]  max_elaps         Max elapsed time
+ * \param [out]  min_cpu           Min cpu time
+ * \param [out]  max_cpu           Max cpu time
+ * \param [out]  min_elaps_create  Global min elapsed for create function
+ * \param [out]  max_elaps_create  Global max elapsed for create function
+ * \param [out]  min_cpu_create    Global min cpu for create function
+ * \param [out]  max_cpu_create    Global max cpu for create function
+ * \param [out]  min_elaps_exch    Global min elapsed for exch function
+ * \param [out]  max_elaps_exch    Global max elapsed for exch function
+ * \param [out]  min_cpu_exch      Global min cpu for exch function
+ * \param [out]  max_cpu_exch      Global max cpu for exch function
+ * 
+ */
+
+void
+PDM_block_to_part_global_timer_get
+(
+ PDM_MPI_Comm comm,
+ double       *min_elaps_create,
+ double       *max_elaps_create,
+ double       *min_cpu_create,
+ double       *max_cpu_create,
+ double       *min_elaps_exch,
+ double       *max_elaps_exch,
+ double       *min_cpu_exch,
+ double       *max_cpu_exch
+)
+{
+
+  double min_elaps[2];
+  double max_elaps[2];
+  double min_cpu[2];
+  double max_cpu[2];
+
+  PDM_MPI_Allreduce (t_elaps, min_elaps, 2,
+                     PDM_MPI_DOUBLE, PDM_MPI_MIN, comm);
+  
+  PDM_MPI_Allreduce (t_elaps, max_elaps, 2,
+                     PDM_MPI_DOUBLE, PDM_MPI_MAX, comm);
+
+  PDM_MPI_Allreduce (t_cpu, min_cpu, 2,
+                     PDM_MPI_DOUBLE, PDM_MPI_MIN, comm);
+  
+  PDM_MPI_Allreduce (t_cpu, max_cpu, 2,
+                     PDM_MPI_DOUBLE, PDM_MPI_MAX, comm);
+
+  *min_elaps_create  = min_elaps[0];
+  *max_elaps_create  = max_elaps[0];
+  *min_cpu_create    = min_cpu[0];
+  *max_cpu_create    = max_cpu[0];
+  *min_elaps_exch    = min_elaps[1];
+  *max_elaps_exch    = max_elaps[1];
+  *min_cpu_exch      = min_cpu[1];
+  *max_cpu_exch      = max_cpu[1];
+
+}
+
+/**
+ *
  * \brief Create a block to partitions redistribution
  *
  * \param [in]   block_distrib_idx Block distribution (size : \ref size of \ref comm + 1)
@@ -138,6 +208,16 @@ PDM_block_to_part_create
  const PDM_MPI_Comm     comm
 )
 {
+
+  if (n_btp == 0) {
+    t_timer[0] = PDM_timer_create ();
+    t_timer[1] = PDM_timer_create ();
+  }
+  n_btp++;
+
+  double t1_elaps = PDM_timer_elapsed(t_timer[0]);
+  double t1_cpu = PDM_timer_cpu(t_timer[0]);
+  PDM_timer_resume(t_timer[0]);
 
   PDM_block_to_part_t *btp =
     (PDM_block_to_part_t *) malloc (sizeof(PDM_block_to_part_t));
@@ -263,6 +343,13 @@ PDM_block_to_part_create
 
   free (requested_data);
 
+  PDM_timer_hang_on(t_timer[0]);
+  double t2_elaps = PDM_timer_elapsed(t_timer[0] );
+  double t2_cpu = PDM_timer_cpu(t_timer[0]);
+
+  t_elaps[0] += (t2_elaps - t1_elaps);
+  t_cpu[0] += (t2_cpu - t1_cpu);
+
   return (PDM_block_to_part_t *) btp;
 
 }
@@ -295,6 +382,11 @@ PDM_block_to_part_exch
  void               **part_data
 )
 {
+
+  double t1_elaps = PDM_timer_elapsed(t_timer[1]);
+  double t1_cpu = PDM_timer_cpu(t_timer[1]);
+  PDM_timer_resume(t_timer[1]);
+
   unsigned char *_block_data = (unsigned char *) block_data;
   unsigned char **_part_data = (unsigned char **) part_data;
 
@@ -673,6 +765,13 @@ PDM_block_to_part_exch
     }
   }
 
+  PDM_timer_hang_on(t_timer[1]);
+  double t2_elaps = PDM_timer_elapsed(t_timer[1]);
+  double t2_cpu = PDM_timer_cpu(t_timer[1]);
+
+  t_elaps[1] += (t2_elaps - t1_elaps);
+  t_cpu[1] += (t2_cpu - t1_cpu);
+
   free(recv_buffer);
 
 }
@@ -1010,6 +1109,12 @@ PDM_block_to_part_free
   free (btp->requested_data_n);
 
   free (btp);
+
+  n_btp--;
+  if (n_btp == 0) {
+    PDM_timer_free(t_timer[0]);
+    PDM_timer_free(t_timer[1]);
+  }
 
   return NULL;
 }

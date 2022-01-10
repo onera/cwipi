@@ -932,7 +932,7 @@ _compute_global_weights
 
 /**
  *
- * \brief Create a partitioning to block redistribution
+ * \brief Get global timer in part to block
  *
  * \param [in]   comm              MPI communicator
  * \param [out]  min_elaps         Min elapsed time
