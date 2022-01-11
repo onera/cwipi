@@ -436,9 +436,11 @@ PDM_block_to_part_create
   int n_rank_send = 0;
 
   for (int i = 0; i < btp->n_rank; i++) {
-    if (btp->i_rank != i) {
-      n_rank_recv += btp->distributed_data_n[i];
-      n_rank_send += btp->requested_data_n[i];
+    if (btp->i_rank != i && btp->distributed_data_n[i] > 0) {
+      n_rank_recv += 1;
+    }
+    if (btp->i_rank != i && btp->requested_data_n[i] > 0) {
+      n_rank_send += 1;
     }
   }
 
