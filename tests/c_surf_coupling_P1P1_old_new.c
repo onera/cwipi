@@ -1344,30 +1344,65 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
                                         &max_elaps_exch_btp,
                                         &min_cpu_exch_btp,
                                         &max_cpu_exch_btp);
-    int *min_exch_rank_send
-<
-    PDM_part_to_block_global_statistic_get (PDM_MPI_COMM_WORLD,
-     int *min_exch_rank_send,
-     int *min_exch_rank_recv,
-     int *max_exch_rank_send,
-     int *max_exch_rank_recv,
-     int *min_exch_data_send,
-     int *min_exch_data_recv,
-     int *max_exch_data_send,
-     int *max_exch_data_recv
-    );
 
+    int min_exch_rank_send_ptb;
+    int min_exch_rank_recv_ptb;
+    int max_exch_rank_send_ptb;
+    int max_exch_rank_recv_ptb;
+    unsigned long long min_exch_data_send_ptb;
+    unsigned long long min_exch_data_recv_ptb;
+    unsigned long long max_exch_data_send_ptb;
+    unsigned long long max_exch_data_recv_ptb;
+
+    PDM_part_to_block_global_statistic_get (PDM_MPI_COMM_WORLD,
+                                            &min_exch_rank_send_ptb,
+                                            &min_exch_rank_recv_ptb,
+                                            &max_exch_rank_send_ptb,
+                                            &max_exch_rank_recv_ptb,
+                                            &min_exch_data_send_ptb,
+                                            &min_exch_data_recv_ptb,
+                                            &max_exch_data_send_ptb,
+                                            &max_exch_data_recv_ptb);
+
+    int min_exch_rank_send_btp;
+    int min_exch_rank_recv_btp;
+    int max_exch_rank_send_btp;
+    int max_exch_rank_recv_btp;
+    unsigned long long min_exch_data_send_btp;
+    unsigned long long min_exch_data_recv_btp;
+    unsigned long long max_exch_data_send_btp;
+    unsigned long long max_exch_data_recv_btp;
+
+    PDM_part_to_block_global_statistic_get (PDM_MPI_COMM_WORLD,
+                                            &min_exch_rank_send_btp,
+                                            &min_exch_rank_recv_btp,
+                                            &max_exch_rank_send_btp,
+                                            &max_exch_rank_recv_btp,
+                                            &min_exch_data_send_btp,
+                                            &min_exch_data_recv_btp,
+                                            &max_exch_data_send_btp,
+                                            &max_exch_data_recv_btp);
 
     if (rank == 0) {
       printf("Global time in PDM_part_to_block : \n");
       printf("   - ptb min max elaps create  : %12.5e %12.5e\n", min_elaps_create_ptb, max_elaps_create_ptb);
       printf("   - ptb min max elaps create2 : %12.5e %12.5e\n", min_elaps_create2_ptb, max_elaps_create2_ptb);
       printf("   - ptb min max elaps exch    : %12.5e %12.5e\n", min_elaps_exch_ptb, max_elaps_exch_ptb);
+
+      printf("   - ptb min max send rank     : %d %d\n", min_exch_rank_send_ptb, max_exch_rank_send_ptb);
+      printf("   - ptb min max recv rank     : %d %d\n", min_exch_rank_recv_ptb, max_exch_rank_recv_ptb);
+      printf("   - ptb min max send data     : %llu %llu\n", min_exch_data_send_ptb, max_exch_data_send_ptb);
+      printf("   - ptb min max recv data     : %llu %llu\n", min_exch_data_recv_ptb, max_exch_data_recv_ptb);
       fflush(stdout);
 
       printf("Global time in PDM_block_to_part : \n");
       printf("   - btp min max elaps create  : %12.5e %12.5e\n", min_elaps_create_btp, max_elaps_create_btp);
       printf("   - btp min max elaps exch    : %12.5e %12.5e\n", min_elaps_exch_btp, max_elaps_exch_btp);
+
+      printf("   - btp min max send rank     : %d %d\n", min_exch_rank_send_btp, max_exch_rank_send_btp);
+      printf("   - btp min max recv rank     : %d %d\n", min_exch_rank_recv_btp, max_exch_rank_recv_btp);
+      printf("   - btp min max send data     : %llu %llu\n", min_exch_data_send_btp, max_exch_data_send_btp);
+      printf("   - btp min max recv data     : %llu %llu\n", min_exch_data_recv_btp, max_exch_data_recv_btp);
       fflush(stdout);
     }
 
