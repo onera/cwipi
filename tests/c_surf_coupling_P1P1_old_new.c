@@ -1373,7 +1373,7 @@ if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
     unsigned long long max_exch_data_send_btp;
     unsigned long long max_exch_data_recv_btp;
 
-    PDM_part_to_block_global_statistic_get (PDM_MPI_COMM_WORLD,
+    PDM_block_to_part_global_statistic_get (PDM_MPI_COMM_WORLD,
                                             &min_exch_rank_send_btp,
                                             &min_exch_rank_recv_btp,
                                             &max_exch_rank_send_btp,
