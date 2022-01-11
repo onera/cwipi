@@ -1800,18 +1800,18 @@ PDM_part_to_block_exch
                       PDM_MPI_BYTE,
                       ptb->comm);
 
-  free(send_buffer);
-  free(n_send_buffer);
-  free(i_send_buffer);
-  free(n_recv_buffer);
-  free(i_recv_buffer);
-
   for (int i = 0; i < ptb->s_comm; i++) {
     if (ptb->i_rank != i) {
       exch_data[1] += n_recv_buffer[i];
       exch_data[0] += n_send_buffer[i];
     }
   }
+
+  free(send_buffer);
+  free(n_send_buffer);
+  free(i_send_buffer);
+  free(n_recv_buffer);
+  free(i_recv_buffer);
 
   unsigned char *_block_data = malloc(sizeof(unsigned char) * s_recv_buffer);
   assert(_block_data != NULL);
