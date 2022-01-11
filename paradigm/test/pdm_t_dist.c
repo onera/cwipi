@@ -800,6 +800,208 @@ int main(int argc, char *argv[])
     }
   }
 
+
+  if (post) {
+    /* Prepare writer */
+    int id_cs = PDM_writer_create ("Ensight",
+                                   PDM_WRITER_FMT_ASCII,
+                                   PDM_WRITER_TOPO_CONSTANTE,
+                                   PDM_WRITER_OFF,
+                                   "test_dist",
+                                   "dist",
+                                   PDM_MPI_COMM_WORLD,
+                                   PDM_IO_ACCES_MPI_SIMPLE,
+                                   1.,
+                                   NULL);
+
+    int id_geom = PDM_writer_geom_create (id_cs,
+                                          "mesh",
+                                          PDM_WRITER_OFF,
+                                          PDM_WRITER_OFF,
+                                          n_part);
+
+    int id_var_dist = PDM_writer_var_create (id_cs,
+                                             PDM_WRITER_OFF,
+                                             PDM_WRITER_VAR_SCALAIRE,
+                                             PDM_WRITER_VAR_ELEMENTS,
+                                             "wall_dist");
+
+    int id_var_closest = PDM_writer_var_create (id_cs,
+                                                PDM_WRITER_OFF,
+                                                PDM_WRITER_VAR_SCALAIRE,
+                                                PDM_WRITER_VAR_ELEMENTS,
+                                                "closest_bnd_face");
+
+    PDM_writer_step_beg (id_cs, 0.);
+
+    /* Write geometry */
+    int **face_vtx_n  = malloc (sizeof(int *) * n_part);
+    int **cell_face_n = malloc (sizeof(int *) * n_part);
+
+    PDM_real_t **val_dist    = (PDM_real_t **) malloc (sizeof(PDM_real_t *) * n_part);
+    PDM_real_t **val_closest = (PDM_real_t **) malloc (sizeof(PDM_real_t *) * n_part);
+
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      double      *distance;
+      double      *projected;
+      PDM_g_num_t *closest_elt_gnum;
+
+      PDM_dist_cloud_surf_get (dist,
+                               0,
+                               i_part,
+                               &distance,
+                               &projected,
+                               &closest_elt_gnum);
+
+      int n_cell;
+      int n_face;
+      int n_face_part_bound;
+      int n_vtx;
+      int n_proc;
+      int n_total_part;
+      int scell_face;
+      int sface_vtx;
+      int sface_group;
+      int nEdgeGroup2;
+
+      PDM_part_part_dim_get (ppart_id,
+                             i_part,
+                             &n_cell,
+                             &n_face,
+                             &n_face_part_bound,
+                             &n_vtx,
+                             &n_proc,
+                             &n_total_part,
+                             &scell_face,
+                             &sface_vtx,
+                             &sface_group,
+                             &nEdgeGroup2);
+
+      int         *cell_tag;
+      int         *cell_face_idx;
+      int         *cell_face;
+      PDM_g_num_t *cell_ln_to_gn;
+      int         *face_tag;
+      int         *face_cell;
+      int         *face_vtx_idx;
+      int         *face_vtx;
+      PDM_g_num_t *face_ln_to_gn;
+      int         *face_part_bound_proc_idx;
+      int         *face_part_bound_part_idx;
+      int         *face_part_bound;
+      int         *vtx_tag;
+      double      *vtx;
+      PDM_g_num_t *vtx_ln_to_gn;
+      int         *face_group_idx;
+      int         *face_group;
+      PDM_g_num_t *face_group_ln_to_gn;
+
+      PDM_part_part_val_get (ppart_id,
+                             i_part,
+                             &cell_tag,
+                             &cell_face_idx,
+                             &cell_face,
+                             &cell_ln_to_gn,
+                             &face_tag,
+                             &face_cell,
+                             &face_vtx_idx,
+                             &face_vtx,
+                             &face_ln_to_gn,
+                             &face_part_bound_proc_idx,
+                             &face_part_bound_part_idx,
+                             &face_part_bound,
+                             &vtx_tag,
+                             &vtx,
+                             &vtx_ln_to_gn,
+                             &face_group_idx,
+                             &face_group,
+                             &face_group_ln_to_gn);
+
+      PDM_writer_geom_coord_set (id_cs,
+                                 id_geom,
+                                 i_part,
+                                 n_vtx,
+                                 vtx,
+                                 vtx_ln_to_gn);
+
+      face_vtx_n[i_part] = malloc (sizeof(int) * n_face);
+      for (int i = 0; i < n_face; i++) {
+        face_vtx_n[i_part][i] = face_vtx_idx[i+1] - face_vtx_idx[i];
+      }
+
+      cell_face_n[i_part] = malloc (sizeof(int) * n_cell);
+      for (int i = 0; i < n_cell; i++) {
+        cell_face_n[i_part][i] = cell_face_idx[i+1] - cell_face_idx[i];
+      }
+
+      PDM_writer_geom_cell3d_cellface_add (id_cs,
+                                           id_geom,
+                                           i_part,
+                                           n_cell,
+                                           n_face,
+                                           face_vtx_idx,
+                                           face_vtx_n[i_part],
+                                           face_vtx,
+                                           cell_face_idx,
+                                           cell_face_n[i_part],
+                                           cell_face,
+                                           cell_ln_to_gn);
+
+      val_dist[i_part]    = (PDM_real_t *) malloc(sizeof(PDM_real_t) * n_cell);
+      val_closest[i_part] = (PDM_real_t *) malloc(sizeof(PDM_real_t) * n_cell);
+      for (int i = 0; i < n_cell; i++) {
+        val_dist[i_part][i]    = (PDM_real_t) sqrt(distance[i]);
+        val_closest[i_part][i] = (PDM_real_t) closest_elt_gnum[i];
+      }
+    }
+
+    PDM_writer_geom_write (id_cs,
+                           id_geom);
+
+    // write variables
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      PDM_writer_var_set (id_cs,
+                          id_var_dist,
+                          id_geom,
+                          i_part,
+                          val_dist[i_part]);
+
+      PDM_writer_var_set (id_cs,
+                          id_var_closest,
+                          id_geom,
+                          i_part,
+                          val_closest[i_part]);
+    }
+
+    PDM_writer_var_write (id_cs,
+                          id_var_dist);
+    PDM_writer_var_write (id_cs,
+                          id_var_closest);
+
+    PDM_writer_var_free (id_cs,
+                         id_var_dist);
+    PDM_writer_var_free (id_cs,
+                         id_var_closest);
+
+    PDM_writer_step_end (id_cs);
+
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      free (val_dist[i_part]);
+      free (val_closest[i_part]);
+      free (cell_face_n[i_part]);
+      free (face_vtx_n[i_part]);
+    }
+    free (val_dist);
+    free (val_closest);
+    free (cell_face_n);
+    free (face_vtx_n);
+
+    PDM_writer_geom_data_free (id_cs, id_geom);
+    PDM_writer_geom_free (id_cs, id_geom);
+    PDM_writer_free (id_cs);
+  }
+
+
   for (int i_part = 0; i_part < n_part; i_part++) {
     free (cell_center[i_part]);
     free (cell_volume[i_part]);

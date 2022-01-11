@@ -90,6 +90,50 @@ typedef struct _pdm_part_to_block_t PDM_part_to_block_t;
 
 /**
  *
+ * \brief Reset global statistic
+ *
+ */
+
+void
+PDM_part_to_block_global_statistic_reset
+(
+void
+);
+
+
+/**
+ *
+ * \brief Get global timer in part to block
+ *
+ * \param [in]   comm                 MPI communicator
+ * \param [out]  min_exch_rank_send   Global min part of ranks used to send 
+ * \param [out]  min_exch_rank_recv   Global min part of ranks used to receive 
+ * \param [out]  max_exch_rank_send   Global max part of ranks used to send 
+ * \param [out]  max_exch_rank_recv   Global max part of ranks used to receive
+ * \param [out]  min_exch_data_send   Global min sent data for a rank 
+ * \param [out]  min_exch_data_recv   Global min received data for a rank
+ * \param [out]  max_exch_data_send   Global max sent data for a rank
+ * \param [out]  max_exch_data_recv   Global max received data for a rank
+ * 
+ */
+
+void
+PDM_part_to_block_global_statistic_get
+(
+ PDM_MPI_Comm comm,
+ int *min_exch_rank_send,
+ int *min_exch_rank_recv,
+ int *max_exch_rank_send,
+ int *max_exch_rank_recv,
+ int *min_exch_data_send,
+ int *min_exch_data_recv,
+ int *max_exch_data_send,
+ int *max_exch_data_recv
+);
+
+
+/**
+ *
  * \brief Get global timer in part to block
  *
  * \param [in]   comm              MPI communicator

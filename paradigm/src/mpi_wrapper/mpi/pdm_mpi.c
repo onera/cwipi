@@ -167,7 +167,8 @@ static const MPI_Datatype mpi_datatype_cste[] = {
   MPI_UINT8_T,
   MPI_UINT16_T,
   MPI_UINT32_T,
-  MPI_UINT64_T
+  MPI_UINT64_T,
+  MPI_UNSIGNED_LONG_LONG
 };
 
 /*----------------------------------------------------------------------------
@@ -726,6 +727,8 @@ static PDM_MPI_Datatype _mpi_2_pdm_mpi_datatype(MPI_Datatype datatype)
     return  PDM_MPI_UNSIGNED_SHORT;
   else if (datatype == MPI_UNSIGNED_LONG)
     return  PDM_MPI_UNSIGNED_LONG;
+  else if (datatype == MPI_UNSIGNED_LONG_LONG)
+    return  PDM_MPI_UNSIGNED_LONG_LONG;
   else if (datatype == MPI_UNSIGNED)
     return PDM_MPI_UNSIGNED;
   else if (datatype == MPI_FLOAT_INT)

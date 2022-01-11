@@ -3,6 +3,7 @@
  *----------------------------------------------------------------------------*/
 
 #include <stdlib.h>
+#include <limits.h>
 
 /*----------------------------------------------------------------------------
  *  Header for the current file
@@ -37,6 +38,11 @@ extern "C" {
 static  double t_elaps[2] = {0., 0.};
 static  double t_cpu[2] = {0., 0.};
 static  PDM_timer_t *t_timer[2] = {NULL, NULL};
+
+static  int min_exch_rank[2] = {INT_MAX, INT_MAX};
+static  int max_exch_rank[2] = {-1, -1};
+
+static  unsigned long long exch_data[2] = {0, 0};
 
 int n_btp = 0;
 
@@ -101,6 +107,88 @@ _comm_graph_statistics
 /*=============================================================================
  * Public function definitions
  *============================================================================*/
+
+/**
+ *
+ * \brief Reset global statistic
+ *
+ */
+
+void
+PDM_block_to_part_global_statistic_reset
+(
+)
+{
+  for (int i = 0; i < 2; i++) {
+    t_elaps[i] = 0;
+    t_cpu[i] = 0;
+    min_exch_rank[i] = INT_MAX;
+    max_exch_rank[i] = -1;
+    exch_data[i] = 0;
+  }
+}
+
+
+/**
+ *
+ * \brief Get global timer in part to block
+ *
+ * \param [in]   comm                 MPI communicator
+ * \param [out]  min_exch_rank_send   Global min part of ranks used to send 
+ * \param [out]  min_exch_rank_recv   Global min part of ranks used to receive 
+ * \param [out]  max_exch_rank_send   Global max part of ranks used to send 
+ * \param [out]  max_exch_rank_recv   Global max part of ranks used to receive
+ * \param [out]  min_exch_data_send   Global min sent data for a rank 
+ * \param [out]  min_exch_data_recv   Global min received data for a rank
+ * \param [out]  max_exch_data_send   Global max sent data for a rank
+ * \param [out]  max_exch_data_recv   Global max received data for a rank
+ * 
+ */
+
+void
+PDM_block_to_part_global_statistic_get
+(
+ PDM_MPI_Comm comm,
+ int *min_exch_rank_send,
+ int *min_exch_rank_recv,
+ int *max_exch_rank_send,
+ int *max_exch_rank_recv,
+ int *min_exch_data_send,
+ int *min_exch_data_recv,
+ int *max_exch_data_send,
+ int *max_exch_data_recv
+)
+{
+  unsigned long long max_exch_data[2];
+  unsigned long long min_exch_data[2];
+
+  PDM_MPI_Allreduce (exch_data, min_exch_data, 2,
+                     PDM_MPI_UNSIGNED_LONG_LONG, PDM_MPI_MIN, comm);
+  
+  PDM_MPI_Allreduce (exch_data, max_exch_data, 2,
+                     PDM_MPI_UNSIGNED_LONG_LONG, PDM_MPI_MAX, comm);
+
+  *min_exch_data_send = min_exch_data[0];
+  *min_exch_data_recv = min_exch_data[1];
+  *max_exch_data_send = max_exch_data[0];
+  *max_exch_data_recv = max_exch_data[1];
+
+
+  int max_max_exch_rank[2];
+  int min_min_exch_rank[2];
+
+  PDM_MPI_Allreduce (min_exch_rank, min_min_exch_rank, 2,
+                     PDM_MPI_INT, PDM_MPI_MIN, comm);
+  
+  PDM_MPI_Allreduce (max_exch_rank, max_max_exch_rank, 2,
+                     PDM_MPI_INT, PDM_MPI_MAX, comm);
+
+  *min_exch_rank_send = min_min_exch_rank[0];
+  *min_exch_rank_recv = min_min_exch_rank[1]; 
+  *max_exch_rank_send = max_max_exch_rank[0]; 
+  *max_exch_rank_recv = max_max_exch_rank[1];
+
+}
 
 
 /**
@@ -342,6 +430,23 @@ PDM_block_to_part_create
   btp->pttopt_comm = tmp;
 
   free (requested_data);
+
+
+  int n_rank_recv = 0;
+  int n_rank_send = 0;
+
+  for (int i = 0; i < btp->n_rank; i++) {
+    if (btp->i_rank != i) {
+      n_rank_recv += btp->distributed_data_n[i];
+      n_rank_send += btp->requested_data_n[i];
+    }
+  }
+
+  max_exch_rank[0] = PDM_MAX(max_exch_rank[0], n_rank_send); 
+  max_exch_rank[1] = PDM_MAX(max_exch_rank[1], n_rank_recv); 
+  min_exch_rank[0] = PDM_MIN(min_exch_rank[0], n_rank_send); 
+  min_exch_rank[1] = PDM_MIN(min_exch_rank[1], n_rank_recv); 
+
 
   PDM_timer_hang_on(t_timer[0]);
   double t2_elaps = PDM_timer_elapsed(t_timer[0] );
@@ -650,6 +755,13 @@ PDM_block_to_part_exch
       }
     }
 
+    for (int i = 0; i < btp->n_rank; i++) {
+      if (btp->i_rank != i) {
+        exch_data[1] += n_recv_buffer[i];
+        exch_data[0] += n_send_buffer[i];
+      }
+    }
+
     free (s_request);
     free (r_request);
     free (active_rank);
@@ -691,6 +803,14 @@ PDM_block_to_part_exch
                         i_recv_buffer,
                         PDM_MPI_BYTE,
                         btp->comm);
+  
+    for (int i = 0; i < btp->n_rank; i++) {
+      if (btp->i_rank != i) {
+        exch_data[1] += n_recv_buffer[i];
+        exch_data[0] += n_send_buffer[i];
+      }
+    }
+
   }
 
   for (int i = 0; i < n_active_buffer; i++) {
