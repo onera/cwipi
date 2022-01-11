@@ -1421,10 +1421,13 @@ PDM_part_to_block_create2
   int n_rank_recv = 0;
   int n_rank_send = 0;
 
+
   for (int i = 0; i < ptb->s_comm; i++) {
-    if (ptb->i_rank != i) {
-      n_rank_recv += ptb->n_recv_data[i];
-      n_rank_send += ptb->n_send_data[i];
+    if (ptb->i_rank != i && ptb->n_recv_data[i] > 0) {
+      n_rank_recv += 1;
+    }
+    if (ptb->i_rank != i && ptb->n_send_data[i] > 0) {
+      n_rank_send += 1;
     }
   }
 
