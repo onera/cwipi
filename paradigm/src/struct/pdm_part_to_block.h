@@ -125,10 +125,10 @@ PDM_part_to_block_global_statistic_get
  int *min_exch_rank_recv,
  int *max_exch_rank_send,
  int *max_exch_rank_recv,
- int *min_exch_data_send,
- int *min_exch_data_recv,
- int *max_exch_data_send,
- int *max_exch_data_recv
+ unsigned long long *min_exch_data_send,
+ unsigned long long *min_exch_data_recv,
+ unsigned long long *max_exch_data_send,
+ unsigned long long *max_exch_data_recv
 );
 
 
