@@ -78,7 +78,9 @@ namespace cwipi {
 
   protected:
 
-    //
+    PDM_Mesh_nodal_t* _pdm_CplNodal;
+
+      //
     // Target properties
     
     double **_tgt_distance;                 // Distance to the closest source element surface by partition

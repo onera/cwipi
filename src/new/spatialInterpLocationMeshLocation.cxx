@@ -258,7 +258,7 @@ namespace cwipi {
     if (!_coupledCodeProperties->localCodeIs()) {
       if (_mesh->getNFace(0) == 0) {
         printf("No faces, using nodal\n");
-        PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, _mesh->getPdmNodalIndex());
+        PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, _pdm_CplNodal);
       }
       else {
         CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
@@ -363,11 +363,9 @@ namespace cwipi {
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
         if (_mesh->getNFace(0) == 0) {
           printf("No faces, using nodal\n");
-          PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, _mesh->getPdmNodalIndex());
+          PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, _pdm_CplNodal);
         }
         else {
-          cwipi::Coupling &cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-
           if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
 
             for (int i_part = 0 ; i_part < _nPart ; i_part++) {
@@ -425,7 +423,7 @@ namespace cwipi {
           }
 
           else {
-
+            cwipi::Coupling &cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
             cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
 
             for (int i_part = 0 ; i_part < _cplNPart ; i_part++) {

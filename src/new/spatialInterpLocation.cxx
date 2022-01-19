@@ -95,6 +95,333 @@ namespace cwipi {
 
     _interpolation_time = CWP_SPATIAL_INTERP_AT_SEND;
 
+
+    // Create nodal mesh
+    _pdm_CplNodal = PDM_Mesh_nodal_create (_nPart, _pdmCplComm);
+
+    if (!_coupledCodeProperties->localCodeIs()) {
+      if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+        for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+          PDM_Mesh_nodal_coord_set(_pdm_CplNodal,
+                                   i_part,
+                                   _mesh->getPartNVertex(i_part),
+                                   _mesh->getVertexCoords(i_part),
+                                   _mesh->getVertexGNum(i_part));
+        }
+
+        for (int i_block = 0 ; i_block < _mesh->nBlockGet() ; i_block++) {
+          int CWP_block_type = _mesh->blockTypeGet(i_block);
+          PDM_Mesh_nodal_elt_t pdm_block_type;
+          switch (CWP_block_type) {
+            case CWP_BLOCK_NODE: pdm_block_type = PDM_MESH_NODAL_POINT;
+              break;
+            case CWP_BLOCK_EDGE2: pdm_block_type = PDM_MESH_NODAL_BAR2;
+              break;
+            case CWP_BLOCK_FACE_TRIA3: pdm_block_type = PDM_MESH_NODAL_TRIA3;
+              break;
+            case CWP_BLOCK_FACE_QUAD4: pdm_block_type = PDM_MESH_NODAL_QUAD4;
+              break;
+            case CWP_BLOCK_CELL_TETRA4: pdm_block_type = PDM_MESH_NODAL_TETRA4;
+              break;
+            case CWP_BLOCK_FACE_POLY: pdm_block_type = PDM_MESH_NODAL_POLY_2D;
+              break;
+            case CWP_BLOCK_CELL_HEXA8: pdm_block_type = PDM_MESH_NODAL_HEXA8;
+              break;
+            case CWP_BLOCK_CELL_PYRAM5: pdm_block_type = PDM_MESH_NODAL_PYRAMID5;
+              break;
+            case CWP_BLOCK_CELL_PRISM6: pdm_block_type = PDM_MESH_NODAL_PRISM6;
+              break;
+            case CWP_BLOCK_CELL_POLY: pdm_block_type = PDM_MESH_NODAL_POLY_3D;
+              break;
+            default:pdm_block_type = PDM_MESH_NODAL_POINT;
+              PDM_error(__FILE__, __LINE__, 0, "No referenced CWP_Block_t.\n");
+          }
+
+          int _block_id_pdm = PDM_Mesh_nodal_block_add(_pdm_CplNodal,
+                                                       PDM_FALSE,
+                                                       pdm_block_type);
+
+          for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+            if (CWP_block_type == CWP_BLOCK_FACE_POLY) {
+              PDM_Mesh_nodal_block_poly2d_set(_pdm_CplNodal,
+                                              _block_id_pdm,
+                                              i_part,
+                                              _mesh->getPartNElts(i_part),
+                                              _mesh->getEltConnectivityIndex(i_block, i_part),
+                                              _mesh->getEltConnectivity(i_block, i_part),
+                                              _mesh->GNumEltsGet(i_part),
+                                              NULL);
+            }
+            else if (CWP_block_type == CWP_BLOCK_CELL_POLY) {
+//            PDM_Mesh_nodal_block_poly3d_set (_pdm_CplNodal,
+//                                             _block_id_pdm,
+//                                             i_part,
+//                                             _mesh->getPartNElts(i_part),
+//                                             _mesh->getPartNFaces(i_part),
+//                                             _mesh->getEltConnectivityIndex(i_block, i_part),
+//                                             _mesh->getEltConnectivity(i_block, i_part),
+//                                             _connec_cells_idx[i_part],
+//                                             _connec_cells[i_part],
+//                                             _global_num[i_part],
+//                                             NULL);
+            }
+            else {
+              PDM_Mesh_nodal_block_std_set(_pdm_CplNodal,
+                                           _block_id_pdm,
+                                           i_part,
+                                           _mesh->getPartNElts(i_part),
+                                           _mesh->getEltConnectivity(i_block, i_part),
+                                           _mesh->GNumEltsGet(i_part),
+                                           NULL);
+            }
+          }
+        }
+      }
+
+        // Receive
+      else {
+        for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+          PDM_Mesh_nodal_coord_set(_pdm_CplNodal,
+                                   i_part,
+                                   0,
+                                   NULL,
+                                   NULL);
+
+          for (int i_block = 0 ; i_block < _mesh->nBlockGet() ; i_block++) {
+            int CWP_block_type = _mesh->blockTypeGet(i_block);
+            PDM_Mesh_nodal_elt_t pdm_block_type;
+            switch (CWP_block_type) {
+              case CWP_BLOCK_NODE: pdm_block_type = PDM_MESH_NODAL_POINT;
+                break;
+              case CWP_BLOCK_EDGE2: pdm_block_type = PDM_MESH_NODAL_BAR2;
+                break;
+              case CWP_BLOCK_FACE_TRIA3: pdm_block_type = PDM_MESH_NODAL_TRIA3;
+                break;
+              case CWP_BLOCK_FACE_QUAD4: pdm_block_type = PDM_MESH_NODAL_QUAD4;
+                break;
+              case CWP_BLOCK_CELL_TETRA4: pdm_block_type = PDM_MESH_NODAL_TETRA4;
+                break;
+              case CWP_BLOCK_FACE_POLY: pdm_block_type = PDM_MESH_NODAL_POLY_2D;
+                break;
+              case CWP_BLOCK_CELL_HEXA8: pdm_block_type = PDM_MESH_NODAL_HEXA8;
+                break;
+              case CWP_BLOCK_CELL_PYRAM5: pdm_block_type = PDM_MESH_NODAL_PYRAMID5;
+                break;
+              case CWP_BLOCK_CELL_PRISM6: pdm_block_type = PDM_MESH_NODAL_PRISM6;
+                break;
+              case CWP_BLOCK_CELL_POLY: pdm_block_type = PDM_MESH_NODAL_POLY_3D;
+                break;
+              default:pdm_block_type = PDM_MESH_NODAL_POINT;
+                PDM_error(__FILE__, __LINE__, 0, "No referenced CWP_Block_t.\n");
+            }
+
+            int _block_id_pdm = PDM_Mesh_nodal_block_add(_pdm_CplNodal,
+                                                         PDM_FALSE,
+                                                         pdm_block_type);
+
+            for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+              if (CWP_block_type == CWP_BLOCK_FACE_POLY) {
+                PDM_Mesh_nodal_block_poly2d_set(_pdm_CplNodal,
+                                                _block_id_pdm,
+                                                i_part,
+                                                0,
+                                                fake_idx,
+                                                NULL,
+                                                NULL,
+                                                NULL);
+              }
+              else if (CWP_block_type == CWP_BLOCK_CELL_POLY) {
+//            PDM_Mesh_nodal_block_poly3d_set (_pdm_CplNodal,
+//                                             _block_id_pdm,
+//                                             i_part,
+//                                             0,
+//                                             0,
+//                                             fake_idx,
+//                                             NULL,
+//                                             fake_idx,
+//                                             NULL,
+//                                             NULL,
+//                                             NULL);
+              }
+              else {
+                PDM_Mesh_nodal_block_std_set(_pdm_CplNodal,
+                                             _block_id_pdm,
+                                             i_part,
+                                             0,
+                                             NULL,
+                                             NULL,
+                                             NULL);
+              }
+            }
+          }
+        }
+      }
+    }
+    else {
+      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+        if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+          // Comme au-dessus
+
+          for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+            PDM_Mesh_nodal_coord_set(_pdm_CplNodal,
+                                     i_part,
+                                     _mesh->getPartNVertex(i_part),
+                                     _mesh->getVertexCoords(i_part),
+                                     _mesh->getVertexGNum(i_part));
+          }
+
+          for (int i_block = 0 ; i_block < _mesh->nBlockGet() ; i_block++) {
+            int CWP_block_type = _mesh->blockTypeGet(i_block);
+            PDM_Mesh_nodal_elt_t pdm_block_type;
+            switch (CWP_block_type) {
+              case CWP_BLOCK_NODE: pdm_block_type = PDM_MESH_NODAL_POINT;
+                break;
+              case CWP_BLOCK_EDGE2: pdm_block_type = PDM_MESH_NODAL_BAR2;
+                break;
+              case CWP_BLOCK_FACE_TRIA3: pdm_block_type = PDM_MESH_NODAL_TRIA3;
+                break;
+              case CWP_BLOCK_FACE_QUAD4: pdm_block_type = PDM_MESH_NODAL_QUAD4;
+                break;
+              case CWP_BLOCK_CELL_TETRA4: pdm_block_type = PDM_MESH_NODAL_TETRA4;
+                break;
+              case CWP_BLOCK_FACE_POLY: pdm_block_type = PDM_MESH_NODAL_POLY_2D;
+                break;
+              case CWP_BLOCK_CELL_HEXA8: pdm_block_type = PDM_MESH_NODAL_HEXA8;
+                break;
+              case CWP_BLOCK_CELL_PYRAM5: pdm_block_type = PDM_MESH_NODAL_PYRAMID5;
+                break;
+              case CWP_BLOCK_CELL_PRISM6: pdm_block_type = PDM_MESH_NODAL_PRISM6;
+                break;
+              case CWP_BLOCK_CELL_POLY: pdm_block_type = PDM_MESH_NODAL_POLY_3D;
+                break;
+              default:pdm_block_type = PDM_MESH_NODAL_POINT;
+                PDM_error(__FILE__, __LINE__, 0, "No referenced CWP_Block_t.\n");
+            }
+
+            int _block_id_pdm = PDM_Mesh_nodal_block_add(_pdm_CplNodal,
+                                                         PDM_FALSE,
+                                                         pdm_block_type);
+
+            for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+              if (CWP_block_type == CWP_BLOCK_FACE_POLY) {
+                PDM_Mesh_nodal_block_poly2d_set(_pdm_CplNodal,
+                                                _block_id_pdm,
+                                                i_part,
+                                                _mesh->getPartNElts(i_part),
+                                                _mesh->getEltConnectivityIndex(i_block, i_part),
+                                                _mesh->getEltConnectivity(i_block, i_part),
+                                                _mesh->GNumEltsGet(i_part),
+                                                NULL);
+              }
+              else if (CWP_block_type == CWP_BLOCK_CELL_POLY) {
+//            PDM_Mesh_nodal_block_poly3d_set (_pdm_CplNodal,
+//                                             _block_id_pdm,
+//                                             i_part,
+//                                             _mesh->getPartNElts(i_part),
+//                                             _mesh->getPartNFaces(i_part),
+//                                             _mesh->getEltConnectivityIndex(i_block, i_part),
+//                                             _mesh->getEltConnectivity(i_block, i_part),
+//                                             _connec_cells_idx[i_part],
+//                                             _connec_cells[i_part],
+//                                             _global_num[i_part],
+//                                             NULL);
+              }
+              else {
+                PDM_Mesh_nodal_block_std_set(_pdm_CplNodal,
+                                             _block_id_pdm,
+                                             i_part,
+                                             _mesh->getPartNElts(i_part),
+                                             _mesh->getEltConnectivity(i_block, i_part),
+                                             _mesh->GNumEltsGet(i_part),
+                                             NULL);
+              }
+            }
+          }
+        }
+        else { // Recv
+          // Remplir avec les données du code couplé
+
+          cwipi::Coupling &cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+          cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
+
+          for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+            PDM_Mesh_nodal_coord_set(_pdm_CplNodal,
+                                     i_part,
+                                     cpl_mesh->getPartNVertex(i_part),
+                                     cpl_mesh->getVertexCoords(i_part),
+                                     cpl_mesh->getVertexGNum(i_part));
+          }
+
+          for (int i_block = 0 ; i_block < cpl_mesh->nBlockGet() ; i_block++) {
+            int CWP_block_type = cpl_mesh->blockTypeGet(i_block);
+            PDM_Mesh_nodal_elt_t pdm_block_type;
+            switch (CWP_block_type) {
+              case CWP_BLOCK_NODE: pdm_block_type = PDM_MESH_NODAL_POINT;
+                break;
+              case CWP_BLOCK_EDGE2: pdm_block_type = PDM_MESH_NODAL_BAR2;
+                break;
+              case CWP_BLOCK_FACE_TRIA3: pdm_block_type = PDM_MESH_NODAL_TRIA3;
+                break;
+              case CWP_BLOCK_FACE_QUAD4: pdm_block_type = PDM_MESH_NODAL_QUAD4;
+                break;
+              case CWP_BLOCK_CELL_TETRA4: pdm_block_type = PDM_MESH_NODAL_TETRA4;
+                break;
+              case CWP_BLOCK_FACE_POLY: pdm_block_type = PDM_MESH_NODAL_POLY_2D;
+                break;
+              case CWP_BLOCK_CELL_HEXA8: pdm_block_type = PDM_MESH_NODAL_HEXA8;
+                break;
+              case CWP_BLOCK_CELL_PYRAM5: pdm_block_type = PDM_MESH_NODAL_PYRAMID5;
+                break;
+              case CWP_BLOCK_CELL_PRISM6: pdm_block_type = PDM_MESH_NODAL_PRISM6;
+                break;
+              case CWP_BLOCK_CELL_POLY: pdm_block_type = PDM_MESH_NODAL_POLY_3D;
+                break;
+              default:pdm_block_type = PDM_MESH_NODAL_POINT;
+                PDM_error(__FILE__, __LINE__, 0, "No referenced CWP_Block_t.\n");
+            }
+
+            int _block_id_pdm = PDM_Mesh_nodal_block_add(_pdm_CplNodal,
+                                                         PDM_FALSE,
+                                                         pdm_block_type);
+
+            for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+              if (CWP_block_type == CWP_BLOCK_FACE_POLY) {
+                PDM_Mesh_nodal_block_poly2d_set(_pdm_CplNodal,
+                                                _block_id_pdm,
+                                                i_part,
+                                                cpl_mesh->getPartNElts(i_part),
+                                                cpl_mesh->getEltConnectivityIndex(i_block, i_part),
+                                                cpl_mesh->getEltConnectivity(i_block, i_part),
+                                                cpl_mesh->GNumEltsGet(i_part),
+                                                NULL);
+              }
+              else if (CWP_block_type == CWP_BLOCK_CELL_POLY) {
+//            PDM_Mesh_nodal_block_poly3d_set (_pdm_CplNodal,
+//                                             _block_id_pdm,
+//                                             i_part,
+//                                             cpl_mesh->getPartNElts(i_part),
+//                                             cpl_mesh->getPartNFaces(i_part),
+//                                             cpl_mesh->getEltConnectivityIndex(i_block, i_part),
+//                                             cpl_mesh->getEltConnectivity(i_block, i_part),
+//                                             _connec_cells_idx[i_part],
+//                                             _connec_cells[i_part],
+//                                             _global_num[i_part],
+//                                             NULL);
+              }
+              else {
+                PDM_Mesh_nodal_block_std_set(_pdm_CplNodal,
+                                             _block_id_pdm,
+                                             i_part,
+                                             cpl_mesh->getPartNElts(i_part),
+                                             cpl_mesh->getEltConnectivity(i_block, i_part),
+                                             cpl_mesh->GNumEltsGet(i_part),
+                                             NULL);
+              }
+            } // i_part
+          } // i_block
+        } // recv
+      } // _localCodeProperties->idGet() < _coupledCodeProperties->idGet()
+    }
     //
     // Data for PDM_part1_to_selected_part2_t
 
@@ -391,7 +718,7 @@ namespace cwipi {
         }
       }
       
-      else if (referenceFieldType == CWP_DOF_LOCATION_NODE) {
+      else if (referenceFieldType == CWP_DOF_LOCATION_NODE || referenceFieldType == CWP_DOF_LOCATION_USER) {
 
         for (int i_part = 0; i_part < _nPart; i_part++) {
           int         *part_elt_pts_inside_idx      = _elt_pts_inside_idx[i_part];
@@ -410,13 +737,17 @@ namespace cwipi {
           int ival = 0;
           for (int i = 0; i < part_n_elt; i++) {
             for (int j = part_elt_pts_inside_idx[i]; j < part_elt_pts_inside_idx[i+1]; j++) {
+//              if (connec_idx[i+1] - connec_idx[i] != part_weights_idx[j + 1] - part_weights_idx[j]) {
+//                printf("\ti, j, connecs, weights %d %d: %d %d %d / %d %d %d\n", i, j, connec_idx[i],       connec_idx[i + 1],       connec_idx[i + 1]       - connec_idx[i],
+//                                                                                      part_weights_idx[j], part_weights_idx[j + 1], part_weights_idx[j + 1] - part_weights_idx[j]);
+//              }
               for (int k1 = 0; k1 < nComponent; k1++) {
                 local_buffer[ival] = 0;
                 int k2 = connec_idx[i];
                 assert(connec_idx[i+1] - connec_idx[i] == part_weights_idx[j + 1] - part_weights_idx[j]);
                 for (int k = part_weights_idx[j]; k < part_weights_idx[j+1]; k++) {
                   int isom = connec[k2++] - 1;
-//                  printf("\ti, k, weights isom %d %d %f %d\n", i, k, part_weights[k], isom);
+//                  printf("\t\ti, k, weights isom %d %d %f %d\n", i, k, part_weights[k], isom);
                   local_buffer[ival] += part_weights[k] * referenceData[isom*nComponent+k1];
                 }
                 ival++;
