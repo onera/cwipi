@@ -64,7 +64,6 @@ int main(int argc, char *argv[]) {
   statuses[0] = CWP_STATUS_ON;
 
   CWP_Init(commcwipi, nb_codes, (const char **) code_names, statuses, time_init, cwp_comms);
-//    MPI_Comm commcodepcw = cwp_comms[0];
   printf("%d --- CWIPI initialised\n", rank);
 
   CWP_Cpl_create(code_name, coupling_name, code_coupled_name,
@@ -156,45 +155,23 @@ int main(int argc, char *argv[]) {
   CWP_Mesh_interf_finalize(code_name, coupling_name);
   printf("%d --- Geometry set\n", rank);
 
-  const char *code1_to_code2 = "code1_to_code2";
-  const char *code2_to_code1 = "code2_to_code1";
+  const char *send_field_name, *recv_field_name;
+  if (rank == 0) {
+    send_field_name = "code1_to_code2";
+    recv_field_name = "code2_to_code1";
+  }
+  else {
+    send_field_name = "code2_to_code1";
+    recv_field_name = "code1_to_code2";
+  }
 
-  if (code_id == 1) {
-    CWP_Field_create(code_name, coupling_name, code1_to_code2, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, stride,
-                     CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_SEND, CWP_STATUS_ON);
-    CWP_Field_data_set(code_name,
-                       coupling_name,
-                       code1_to_code2,
-                       0,
-                       CWP_FIELD_MAP_SOURCE,
-                       sfields);
-    CWP_Field_create(code_name, coupling_name, code2_to_code1, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, stride,
-                     CWP_DOF_LOCATION_USER, CWP_FIELD_EXCH_RECV, CWP_STATUS_ON);
-    CWP_Field_data_set(code_name,
-                       coupling_name,
-                       code2_to_code1,
-                       0,
-                       CWP_FIELD_MAP_TARGET,
-                       rfields);
-  }
-  else if (code_id == 2) {
-    CWP_Field_create(code_name, coupling_name, code2_to_code1, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, stride,
-                     CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_SEND, CWP_STATUS_ON);
-    CWP_Field_data_set(code_name,
-                       coupling_name,
-                       code2_to_code1,
-                       0,
-                       CWP_FIELD_MAP_SOURCE,
-                       sfields);
-    CWP_Field_create(code_name, coupling_name, code1_to_code2, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, stride,
-                     CWP_DOF_LOCATION_USER, CWP_FIELD_EXCH_RECV, CWP_STATUS_ON);
-    CWP_Field_data_set(code_name,
-                       coupling_name,
-                       code1_to_code2,
-                       0,
-                       CWP_FIELD_MAP_TARGET,
-                       rfields);
-  }
+  CWP_Field_create(code_name, coupling_name, send_field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, stride,
+                   CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_SEND, CWP_STATUS_ON);
+  CWP_Field_data_set(code_name, coupling_name, send_field_name, 0, CWP_FIELD_MAP_SOURCE, sfields);
+
+  CWP_Field_create(code_name, coupling_name, recv_field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, stride,
+                   CWP_DOF_LOCATION_USER, CWP_FIELD_EXCH_RECV, CWP_STATUS_ON);
+  CWP_Field_data_set(code_name, coupling_name, recv_field_name, 0, CWP_FIELD_MAP_TARGET, rfields);
 
   printf("%d --- Fields created\n", rank);
 
@@ -206,39 +183,25 @@ int main(int argc, char *argv[]) {
 
   int n_not_located_points;
   int n_located_points;
-  const int *located_points;
-  if (code_id == 1) {
-    n_not_located_points = CWP_N_uncomputed_tgts_get(code_name, coupling_name, code2_to_code1, 0);
-    n_located_points = CWP_N_computed_tgts_get(code_name, coupling_name, code2_to_code1, 0);
-    located_points = CWP_Computed_tgts_get(code_name, coupling_name, code2_to_code1, 0);
-  }
-  else if (code_id == 2) {
-    n_not_located_points = CWP_N_uncomputed_tgts_get(code_name, coupling_name, code1_to_code2, 0);
-    n_located_points = CWP_N_computed_tgts_get(code_name, coupling_name, code1_to_code2, 0);
-    located_points = CWP_Computed_tgts_get(code_name, coupling_name, code1_to_code2, 0);
-  }
+  const int *located_points, *not_located_points;
 
-  printf("n_not_located_points %d\n", n_not_located_points);
-  printf("n_located_points %d\n", n_located_points);
-  if (rank == 1) {
-    for (int i = 0 ; i < n_located_points ; ++i) {
-      printf("%d ", located_points[i]);
-    }
-    printf("\n");
-  }
+  n_not_located_points = CWP_N_uncomputed_tgts_get(code_name, coupling_name, recv_field_name, 0);
+  n_located_points = CWP_N_computed_tgts_get(code_name, coupling_name, recv_field_name, 0);
+  located_points = CWP_Computed_tgts_get(code_name, coupling_name, recv_field_name, 0);
+  not_located_points = CWP_Uncomputed_tgts_get(code_name, coupling_name, recv_field_name, 0);
 
-  if (code_id == 1) {
-    CWP_Field_issend(code_name, coupling_name, code1_to_code2);
-    CWP_Field_wait_issend(code_name, coupling_name, code1_to_code2);
-    CWP_Field_irecv(code_name, coupling_name, code2_to_code1);
-    CWP_Field_wait_irecv(code_name, coupling_name, code2_to_code1);
-  }
-  else if (code_id == 2) {
-    CWP_Field_irecv(code_name, coupling_name, code1_to_code2);
-    CWP_Field_wait_irecv(code_name, coupling_name, code1_to_code2);
-    CWP_Field_issend(code_name, coupling_name, code2_to_code1);
-    CWP_Field_wait_issend(code_name, coupling_name, code2_to_code1);
-  }
+  printf("%d --- n_not_located_points %d\n", rank, n_not_located_points);
+  printf("%d --- n_located_points %d\n", rank, n_located_points);
+  for (int i = 0 ; i < n_not_located_points ; ++i) printf("%d ", not_located_points[i]);
+  printf("\n");
+  for (int i = 0 ; i < n_located_points ; ++i) printf("%d ", located_points[i]);
+  printf("\n");
+
+  CWP_Field_irecv(code_name, coupling_name, recv_field_name);
+  CWP_Field_issend(code_name, coupling_name, send_field_name);
+  CWP_Field_wait_irecv(code_name, coupling_name, recv_field_name);
+  CWP_Field_wait_issend(code_name, coupling_name, send_field_name);
+
   printf("%d --- Exchanges completed\n", rank);
 
   sprintf(fn, "rfields_out_cnew_%d.out", rank);
