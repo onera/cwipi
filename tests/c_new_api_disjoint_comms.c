@@ -8,6 +8,148 @@
 #include <pdm_part.h>
 #include <cwp.h>
 #include <stdbool.h>
+#include "pdm_dcube_nodal_gen.h"
+#include "pdm_dmesh_nodal_to_dmesh.h"
+#include "pdm_logging.h"
+
+static void
+create_dcube_from_nodal
+(
+PDM_MPI_Comm pdm_comm, PDM_Mesh_nodal_elt_t element_type, PDM_g_num_t n_vtx_seg, double length, double xmin, double ymin, double zmin,
+int **n_vtx, int **n_faces, int **n_cells, double ***coord, int ***face_vtx_idx, int ***face_vtx, int ***cell_face_idx, int ***cell_face,
+PDM_g_num_t ***vtx_ln_to_gn, PDM_g_num_t ***cell_ln_to_gn
+) {
+  int n_part = 1;
+
+  PDM_dcube_nodal_t* dcube = PDM_dcube_nodal_gen_create(pdm_comm,
+                                                        n_vtx_seg,
+                                                        n_vtx_seg,
+                                                        n_vtx_seg,
+                                                        length,
+                                                        xmin,
+                                                        ymin,
+                                                        zmin,
+                                                        element_type,
+                                                        1,
+                                                        PDM_OWNERSHIP_KEEP);
+  PDM_dcube_nodal_gen_build (dcube);
+
+  PDM_dmesh_nodal_t* dmn = PDM_dcube_nodal_gen_dmesh_nodal_get(dcube);
+  PDM_dmesh_nodal_generate_distribution(dmn);
+
+  PDM_g_num_t *vertex_distrib = PDM_dmesh_nodal_vtx_distrib_get(dmn);
+  double      *d_vertex_coord  = PDM_DMesh_nodal_vtx_get(dmn);
+  int i_rank;
+  PDM_MPI_Comm_rank(pdm_comm, &i_rank);
+  int d_n_vertices = vertex_distrib[i_rank + 1] - vertex_distrib[i_rank];
+
+  PDM_dmesh_nodal_to_dmesh_t* dmntodm = PDM_dmesh_nodal_to_dmesh_create(1, pdm_comm, PDM_OWNERSHIP_KEEP);
+  PDM_dmesh_nodal_to_dmesh_add_dmesh_nodal(dmntodm, 0, dmn);
+  PDM_dmesh_nodal_to_dmesh_set_post_treat_result(dmntodm, 1);
+  PDM_dmesh_nodal_to_dmesh_compute(dmntodm,
+                                   PDM_DMESH_NODAL_TO_DMESH_TRANSFORM_TO_FACE,
+                                   PDM_DMESH_NODAL_TO_DMESH_TRANSLATE_GROUP_TO_FACE);
+
+  PDM_dmesh_t* dmesh = NULL;
+  PDM_dmesh_nodal_to_dmesh_get_dmesh(dmntodm, 0, &dmesh);
+
+  // Récupérer les connectivités : PDM_dmesh_connectivity_get
+  int         *d_face_vertex_idx, *d_cell_face_idx;
+  PDM_g_num_t *d_face_vertex, *d_cell_face;
+  int n_face_group = 0;
+  int d_face_group_idx[1] = {0};
+  PDM_g_num_t *d_face_group = NULL;
+  int d_n_face = PDM_dmesh_connectivity_get(dmesh, PDM_CONNECTIVITY_TYPE_FACE_VTX,
+                                              &d_face_vertex,
+                                              &d_face_vertex_idx,
+                                               PDM_OWNERSHIP_KEEP);
+
+  int d_n_cell = PDM_dmesh_connectivity_get(dmesh, PDM_CONNECTIVITY_TYPE_CELL_FACE,
+                                           &d_cell_face,
+                                           &d_cell_face_idx,
+                                            PDM_OWNERSHIP_KEEP);
+
+  // Partitionnement
+  int ppart_id = 0;
+  int *d_cell_part = (int *) malloc(sizeof(int) * d_n_cell);
+
+  PDM_part_split_t method = PDM_PART_SPLIT_PTSCOTCH;
+//PDM_part_create(&ppart_id, pdm_comm, method, renum_cell_method,          renum_face_method,
+  PDM_part_create(&ppart_id, pdm_comm, method, "PDM_PART_RENUM_CELL_NONE", "PDM_PART_RENUM_FACE_NONE",
+//                n_property_cell, renum_properties_cell, n_property_face, renum_properties_face, n_part,
+                  0,               NULL,                  0,               NULL,                  n_part,
+//                dn_cell,  dn_face,  dn_vtx,       n_face_group, dcell_faceIdx,   dcell_face,  dcell_tag, dcell_weight, have_dcell_part, dcell_part,
+                  d_n_cell, d_n_face, d_n_vertices, n_face_group, d_cell_face_idx, d_cell_face, NULL,      NULL,         0,               d_cell_part,
+//                dface_cell, dface_vtx_idx,     dface_vtx,     dface_tag, dvtx_coord,     dvtx_tag, dface_group_idx,  dface_group
+                  NULL,       d_face_vertex_idx, d_face_vertex, NULL,      d_vertex_coord, NULL,     d_face_group_idx, d_face_group);
+  free(d_face_vertex_idx);
+  free(d_face_vertex);
+  free(d_face_group);
+  free(d_vertex_coord);
+  free(d_cell_part);
+
+  // Get connectivity
+  // Cells
+  *n_cells = (int *) malloc(sizeof(int) * n_part);
+  *cell_face_idx = (int **) malloc(sizeof(int *) * n_part);
+  *cell_face = (int **) malloc(sizeof(int *) * n_part);
+  *cell_ln_to_gn = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
+
+  // Faces
+  *n_faces = (int *) malloc(sizeof(int) * n_part);
+  *face_vtx_idx = (int **) malloc(sizeof(int *) * n_part);
+  *face_vtx = (int **) malloc(sizeof(int *) * n_part);
+
+  // Vertices
+  *n_vtx = (int *) malloc(sizeof(int) * n_part);
+  *coord = (double **) malloc(sizeof(double *) * n_part);
+  *vtx_ln_to_gn = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
+
+  for (int i_part = 0 ; i_part < n_part ; i_part++) {
+    int _n_cells, _n_faces, _n_face_part_bound, _n_vtx, _n_proc, _n_total_part, _s_cell_face, _s_face_vtx, _s_face_group, _n_edge_group2;
+    PDM_part_part_dim_get(ppart_id, i_part, &_n_cells, &_n_faces, &_n_face_part_bound, &_n_vtx, &_n_proc, &_n_total_part,
+                          &_s_cell_face, &_s_face_vtx, &_s_face_group, &_n_edge_group2);
+
+    int *_cell_tag, *_cell_face_idx, *_cell_face, *_face_tag, *_face_cell, *_face_vtx_idx, *_face_vtx,
+            *_face_part_bound_proc_idx, *_face_part_bound_part_idx, *_face_part_bound, *_vtx_tag, *_face_group_idx, *_face_group;
+    double *_vtx_coords;
+    PDM_g_num_t *_cell_ln_to_gn, *_face_ln_to_gn, *_vtx_ln_to_gn, *_face_group_ln_to_gn;
+    PDM_part_part_val_get(ppart_id, i_part, &_cell_tag, &_cell_face_idx, &_cell_face, &_cell_ln_to_gn,
+                          &_face_tag, &_face_cell, &_face_vtx_idx, &_face_vtx, &_face_ln_to_gn,
+                          &_face_part_bound_proc_idx, &_face_part_bound_part_idx, &_face_part_bound, &_vtx_tag,
+                          &_vtx_coords, &_vtx_ln_to_gn, &_face_group_idx, &_face_group, &_face_group_ln_to_gn);
+
+    // Cells
+    *n_cells[i_part] = _n_cells;
+    *cell_face_idx[i_part] = (int *) malloc(sizeof(int) * (_n_cells + 1));
+    *cell_face[i_part] = (int *) malloc(sizeof(int) * _s_cell_face);
+    *cell_ln_to_gn[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * _n_cells);
+
+    memcpy(*cell_face_idx[i_part], _cell_face_idx, (_n_cells + 1) * sizeof(int));
+    memcpy(*cell_face[i_part], _cell_face, _s_cell_face * sizeof(int));
+    memcpy(*cell_ln_to_gn[i_part], _cell_ln_to_gn, _n_cells * sizeof(PDM_g_num_t));
+
+    PDM_log_trace_connectivity_int(*cell_face_idx[i_part], *cell_face[i_part], *n_cells[i_part], "final cell_face");
+
+    // Faces
+    *n_faces[i_part] = _n_faces;
+    *face_vtx_idx[i_part] = (int *) malloc(sizeof(int) * (_n_faces + 1));
+    *face_vtx[i_part] = (int *) malloc(sizeof(int) * _s_face_vtx);
+
+    memcpy(*face_vtx_idx[i_part], _face_vtx_idx, (_n_faces + 1) * sizeof(int));
+    memcpy(*face_vtx[i_part], _face_vtx, _s_face_vtx * sizeof(int));
+
+    PDM_log_trace_connectivity_int(*face_vtx_idx[i_part], *face_vtx[i_part], *n_faces[i_part], "final face_vertex");
+
+    // Vertices
+    *n_vtx[i_part] = _n_vtx;
+    *coord[i_part] = (double *) malloc(sizeof(double) * (3 * _n_vtx));
+    *vtx_ln_to_gn[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * _n_vtx);
+
+    memcpy(*coord[i_part], _vtx_coords, 3 * _n_vtx * sizeof(double));
+    memcpy(*vtx_ln_to_gn[i_part], _vtx_ln_to_gn, _n_vtx * sizeof(PDM_g_num_t));
+  }
+}
 
 static void
 create_dcube
@@ -31,16 +173,11 @@ create_dcube
 
     int ppart_id = 0;
     int *d_cell_part = (int *) malloc(sizeof(int) * d_n_cell);
-    int have_dcell_part = 0;
-    int *renum_properties_cell = NULL;
-    int *renum_properties_face = NULL;
-    int n_property_cell = 0;
-    int n_property_face = 0;
 
     PDM_part_split_t method = PDM_PART_SPLIT_PTSCOTCH;
     PDM_part_create(&ppart_id, pdm_comm, method, "PDM_PART_RENUM_CELL_NONE", "PDM_PART_RENUM_FACE_NONE",
-                    n_property_cell, renum_properties_cell, n_property_face, renum_properties_face, n_part,
-                    d_n_cell, d_n_face, d_n_vertices, n_face_group, NULL, NULL, NULL, NULL, have_dcell_part, d_cell_part,
+                    0, NULL, 0, NULL, n_part,
+                    d_n_cell, d_n_face, d_n_vertices, n_face_group, NULL, NULL, NULL, NULL, 0, d_cell_part,
                     d_face_cell, d_face_vertex_idx, d_face_vertex, NULL, d_vertex_coord, NULL, d_face_group_idx, d_face_group);
     free(d_face_vertex_idx);
     free(d_face_group_idx);
@@ -123,15 +260,18 @@ int main(int argc, char *argv[]) {
     assert(comm_world_size > 0);
 
     // Input
+    int n_part = 1;
     bool cond_code1 = rank % 2 == 0;
     bool cond_code2 = rank % 2 == 1;
 //    bool cond_code1 = rank == 0;
 //    bool cond_code2 = rank == 0 || rank == 1;
     bool cond_both = cond_code1 && cond_code2;
 
-    int n_vtx_seg_code1 = 3, n_vtx_seg_code2 = 4;
+    PDM_Mesh_nodal_elt_t element_type_code1 = PDM_MESH_NODAL_TETRA4, element_type_code2 = PDM_MESH_NODAL_TETRA4;
+    int n_vtx_seg_code1 = 30, n_vtx_seg_code2 = 20;
     double x_min_code1 = 0., x_min_code2 = 0.2;
     double y_min_code1 = 0., y_min_code2 = 0.8;
+    double z_min_code1 = 0., z_min_code2 = 0.3;
 
     // Define the number of codes per rank
     int n_code;
@@ -143,17 +283,16 @@ int main(int argc, char *argv[]) {
     const char **code_names = (const char **) malloc(n_code * sizeof(char *));
     const char **coupled_code_names = (const char **) malloc(n_code * sizeof(char *));
     double *time_init = (double *) malloc(n_code * sizeof(double));
+    PDM_Mesh_nodal_elt_t* element_type = (PDM_Mesh_nodal_elt_t *) malloc(n_code * sizeof(PDM_Mesh_nodal_elt_t));
     PDM_g_num_t *n_vtx_seg = (PDM_g_num_t *) malloc(n_code * sizeof(PDM_g_num_t));
     double *x_min = (double *) malloc(n_code * sizeof(double));
     double *y_min = (double *) malloc(n_code * sizeof(double));
+    double *z_min = (double *) malloc(n_code * sizeof(double));
     CWP_Status_t *is_active_rank = (CWP_Status_t *) malloc(n_code * sizeof(CWP_Status_t));
 
     MPI_Comm *intra_comms = (MPI_Comm *) malloc(n_code * sizeof(MPI_Comm));
 
     // Define which rank works for which code
-
-    //printf("rank cond_both conde_code2 conde_code2 : %d %d %d %d\n", rank,  cond_both, cond_code1, cond_code2); 
-
     if (cond_both) {
         code_id[0] = 1;
         code_id[1] = 2;
@@ -165,12 +304,16 @@ int main(int argc, char *argv[]) {
         time_init[1] = 0.;
         is_active_rank[0] = CWP_STATUS_ON;
         is_active_rank[1] = CWP_STATUS_ON;
+        element_type[0] = element_type_code1;
+        element_type[1] = element_type_code2;
         n_vtx_seg[0] = n_vtx_seg_code1;
         n_vtx_seg[1] = n_vtx_seg_code2;
         x_min[0] = x_min_code1;
         x_min[1] = x_min_code2;
         y_min[0] = y_min_code1;
         y_min[1] = y_min_code2;
+        z_min[0] = z_min_code1;
+        z_min[1] = z_min_code2;
     }
     else if (cond_code1) {
         code_id[0] = 1;
@@ -178,9 +321,11 @@ int main(int argc, char *argv[]) {
         coupled_code_names[0] = "code2";
         time_init[0] = 0.;
         is_active_rank[0] = CWP_STATUS_ON;
+        element_type[0] = element_type_code1;
         n_vtx_seg[0] = n_vtx_seg_code1;
         x_min[0] = x_min_code1;
         y_min[0] = y_min_code1;
+        z_min[0] = z_min_code1;
     }
     else if (cond_code2) {
         code_id[0] = 2;
@@ -188,9 +333,11 @@ int main(int argc, char *argv[]) {
         coupled_code_names[0] = "code1";
         time_init[0] = 0.;
         is_active_rank[0] = CWP_STATUS_ON;
+        element_type[0] = element_type_code2;
         n_vtx_seg[0] = n_vtx_seg_code2;
         x_min[0] = x_min_code2;
         y_min[0] = y_min_code2;
+        z_min[0] = z_min_code2;
     }
 
     // Init cwipi
@@ -267,10 +414,10 @@ int main(int argc, char *argv[]) {
 
     // Create coupling and visu
     const char *cpl_name = "c_new_api_disjoint_comms";
-    CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
+    CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE;
 
     for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-        CWP_Cpl_create(code_names[i_code], cpl_name, coupled_code_names[i_code], CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+        CWP_Cpl_create(code_names[i_code], cpl_name, coupled_code_names[i_code], CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITH_PART, interp_method, n_part, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
         printf("%d (%d, %s) --- Coupling created between %s and %s\n", rank, intra_comm_rank[i_code], code_names[i_code], code_names[i_code], coupled_code_names[i_code]);
     }
 
@@ -287,31 +434,84 @@ int main(int argc, char *argv[]) {
     }
 
     // Create geometry
-    int **n_vtx, **n_faces, **n_cells;
-    int ***face_vtx_idx, ***face_vtx;
-    int ***cell_face, ***cell_face_idx;
-    PDM_g_num_t ***vtx_ln_to_gn, ***cell_ln_to_gn;
-    double ***coord;
-    n_vtx = (int **) malloc(n_code * sizeof(int **));
-    n_faces = (int **) malloc(n_code * sizeof(int **));
-    n_cells = (int **) malloc(n_code * sizeof(int **));
-    face_vtx_idx = (int ***) malloc(n_code * sizeof(int ***));
-    face_vtx = (int ***) malloc(n_code * sizeof(int ***));
-    cell_face_idx = (int ***) malloc(n_code * sizeof(int ***));
-    cell_face = (int ***) malloc(n_code * sizeof(int ***));
-    coord = (double ***) malloc(n_code * sizeof(double ***));
-    vtx_ln_to_gn = (PDM_g_num_t ***) malloc(n_code * sizeof(PDM_g_num_t ***));
-    cell_ln_to_gn = (PDM_g_num_t ***) malloc(n_code * sizeof(PDM_g_num_t ***));
+    int **n_vtx                   = (int **)             malloc(n_code * sizeof(int **));
+    int **n_faces                 = (int **)             malloc(n_code * sizeof(int **));
+    int **n_cells                 = (int **)             malloc(n_code * sizeof(int **));
+    int *n_blocks                 = (int*)               malloc(n_code * sizeof(int *));
+
+    double ***coord               = (double ***)         malloc(n_code * sizeof(double ***));
+
+    int ***face_vtx_idx           = (int ***)            malloc(n_code * sizeof(int ***));
+    int ***face_vtx               = (int ***)            malloc(n_code * sizeof(int ***));
+    int ***cell_face_idx          = (int ***)            malloc(n_code * sizeof(int ***));
+    int ***cell_face              = (int ***)            malloc(n_code * sizeof(int ***));
+
+    PDM_l_num_t *** connec        = (PDM_l_num_t ***)    malloc(n_code * sizeof(PDM_l_num_t ***));
+
+    PDM_l_num_t ***face_vtx_nb    =                      malloc(n_code * sizeof(PDM_l_num_t***));
+    PDM_l_num_t ***cell_face_nb   =                      malloc(n_code * sizeof(PDM_l_num_t***));
+
+    PDM_g_num_t ***vtx_ln_to_gn   = (PDM_g_num_t ***)    malloc(n_code * sizeof(PDM_g_num_t ***));
+    PDM_g_num_t ***cell_ln_to_gn  = (PDM_g_num_t ***)    malloc(n_code * sizeof(PDM_g_num_t ***));
+
+    PDM_Mesh_nodal_t** mesh_nodal = (PDM_Mesh_nodal_t**) malloc(n_code * sizeof(PDM_Mesh_nodal_t**));
 
     for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-        create_dcube(pdm_intra_comms[i_code], n_vtx_seg[i_code], 1., x_min[i_code], y_min[i_code], 0., &(n_vtx[i_code]), &n_faces[i_code], &n_cells[i_code], &coord[i_code], &face_vtx_idx[i_code], &face_vtx[i_code], &cell_face_idx[i_code], &cell_face[i_code], &vtx_ln_to_gn[i_code], &cell_ln_to_gn[i_code]);
-        printf("%d (%d, %s) --- dcube created\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-    }
+      face_vtx_nb[i_code]  = (PDM_l_num_t**) malloc (sizeof(PDM_l_num_t**) * n_part);
+      cell_face_nb[i_code] = (PDM_l_num_t**) malloc (sizeof(PDM_l_num_t**) * n_part);
+      connec[i_code]       = (PDM_l_num_t**) malloc (sizeof(PDM_l_num_t**) * n_part);
 
-    // Set geometry
-    for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-        CWP_Mesh_interf_vtx_set(code_names[i_code], cpl_name, 0, n_vtx[i_code][0], coord[i_code][0], vtx_ln_to_gn[i_code][0]);
-        CWP_Mesh_interf_from_cellface_set(code_names[i_code], cpl_name, 0, n_cells[i_code][0], cell_face_idx[i_code][0], cell_face[i_code][0], n_faces[i_code][0], face_vtx_idx[i_code][0], face_vtx[i_code][0], cell_ln_to_gn[i_code][0]);
+      create_dcube_from_nodal(pdm_intra_comms[i_code], element_type[i_code], n_vtx_seg[i_code], 1., x_min[i_code], y_min[i_code], z_min[i_code], &(n_vtx[i_code]), &n_faces[i_code], &n_cells[i_code], &coord[i_code], &face_vtx_idx[i_code], &face_vtx[i_code], &cell_face_idx[i_code], &cell_face[i_code], &vtx_ln_to_gn[i_code], &cell_ln_to_gn[i_code]);
+      printf("%d (%d, %s) --- dcube created\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+
+      mesh_nodal[i_code] = PDM_Mesh_nodal_create(n_part, pdm_intra_comms[i_code]);
+
+      for (int i_part = 0 ; i_part < n_part ; ++i_part) {
+        face_vtx_nb[i_code][i_part]  = (PDM_l_num_t*) malloc (sizeof(PDM_l_num_t*) * n_faces[i_code][i_part]);
+        cell_face_nb[i_code][i_part] = (PDM_l_num_t*) malloc (sizeof(PDM_l_num_t*) * n_cells[i_code][i_part]);
+
+        for (int i = 0; i < n_faces[i_code][i_part]; i++) {
+          face_vtx_nb[i_code][i_part][i] = face_vtx_idx[i_code][i_part][i + 1] - face_vtx_idx[i_code][i_part][i];
+        }
+
+        for (int i = 0; i < n_cells[i_code][i_part]; i++) {
+          cell_face_nb[i_code][i_part][i] = cell_face_idx[i_code][i_part][i + 1] - cell_face_idx[i_code][i_part][i];
+        }
+
+        // Set coords
+        CWP_Mesh_interf_vtx_set(code_names[i_code], cpl_name, i_part, n_vtx[i_code][i_part], coord[i_code][i_part], vtx_ln_to_gn[i_code][i_part]);
+        printf("%d (%d, %s) --- Points set for part %d\n", rank, intra_comm_rank[i_code], code_names[i_code], i_part);
+
+        // 1 - Set connectivities from nodal
+//        CWP_Mesh_interf_from_cellface_set(code_names[i_code], cpl_name, i_part, n_cells[i_code][i_part], cell_face_idx[i_code][i_part], cell_face[i_code][i_part],
+//                                          n_faces[i_code][i_part], face_vtx_idx[i_code][i_part], face_vtx[i_code][i_part], cell_ln_to_gn[i_code][i_part]);
+
+        // 2 - Set connectivities by reverting to a standard block from nodal
+        PDM_Mesh_nodal_coord_set (mesh_nodal[i_code],
+                                  i_part,
+                                  n_vtx[i_code][i_part],
+                                  coord[i_code][i_part],
+                                  vtx_ln_to_gn[i_code][i_part]);
+        PDM_Mesh_nodal_cell3d_cellface_add(mesh_nodal[i_code], i_part, n_cells[i_code][i_part], n_faces[i_code][i_part], face_vtx_idx[i_code][i_part], face_vtx_nb[i_code][i_part],
+                                           face_vtx[i_code][i_part], cell_face_idx[i_code][i_part], cell_face_nb[i_code][i_part], cell_face[i_code][i_part], cell_ln_to_gn[i_code][i_part]);
+      }
+
+      n_blocks[i_code] = PDM_Mesh_nodal_n_blocks_get(mesh_nodal[i_code]);
+
+      for (int i_block = 0 ; i_block < n_blocks[i_code] ; ++i_block) {
+        PDM_Mesh_nodal_elt_t pdm_block_type = PDM_Mesh_nodal_block_type_get(mesh_nodal[i_code], i_block);
+        assert(pdm_block_type == PDM_MESH_NODAL_TETRA4);
+
+        for (int i_part = 0 ; i_part < n_part ; ++i_part) {
+          PDM_Mesh_nodal_block_std_get(mesh_nodal[i_code], i_block, i_part, &connec[i_code][i_part]);
+          PDM_Mesh_nodal_g_num_in_block_compute(mesh_nodal[i_code], i_block);
+          PDM_g_num_t *g_num = PDM_Mesh_nodal_block_g_num_get(mesh_nodal[i_code], i_block, i_part);
+
+          int block_id = CWP_Mesh_interf_block_add(code_names[i_code], cpl_name, CWP_BLOCK_CELL_TETRA4);
+          CWP_Mesh_interf_block_std_set(code_names[i_code], cpl_name, i_part, block_id, n_cells[i_code][i_part], connec[i_code][i_part], g_num);
+        }
+      }
+
         CWP_Mesh_interf_finalize(code_names[i_code], cpl_name);
         printf("%d (%d, %s) --- Geometry set\n", rank, intra_comm_rank[i_code], code_names[i_code]);
     }

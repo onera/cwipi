@@ -428,6 +428,18 @@ namespace cwipi {
           stdBlockSet(i_part, block_id, n_hexa, connec, gnum);
         }
       }
+       else if (t_block == PDM_MESH_NODAL_TETRA4) {
+         int block_id = blockAdd(CWP_BLOCK_CELL_TETRA4);
+         for (int i_part = 0 ; i_part < _npart ; i_part++) {
+           int n_tetra = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index, block_ids[i], i_part);
+           int *connec = NULL;
+           CWP_g_num_t *gnum;
+           PDM_Mesh_nodal_block_std_get(_pdmNodal_handle_index, block_ids[i], i_part, &connec);
+           gnum = PDM_Mesh_nodal_g_num_get(_pdmNodal_handle_index, block_ids[i], i_part);
+
+           stdBlockSet(i_part, block_id, n_tetra, connec, gnum);
+         }
+       }
       // Define all the other types
      }
    }
