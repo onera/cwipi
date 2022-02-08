@@ -1052,6 +1052,13 @@ int main
                     n_part,
                     CWP_DYNAMIC_MESH_STATIC,
                     CWP_TIME_EXCH_CPL_TIME_STEP);
+
+    // CWP_Visu_set (code_name[0],
+    //               coupling_name,
+    //               -1,
+    //               CWP_VISU_FORMAT_ENSIGHT,
+    //               "text");
+
   }
 
   if (verbose && rank == 0) printf("Create coupling OK\n");
