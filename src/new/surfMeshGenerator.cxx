@@ -468,7 +468,7 @@ void surfMeshGenerator::computeMesh() {
                        &dEdgeGroupIdx,
                        &dEdgeGroup);
 
-    int ppartId;
+    PDM_part_t *ppartId;
 #ifdef PDM_HAVE_PARMETIS
     PDM_part_split_t method  = PDM_PART_SPLIT_PARMETIS;
 #else
@@ -490,7 +490,7 @@ void surfMeshGenerator::computeMesh() {
       dEdgeVtxIdx[i+1] = dEdgeVtxIdx[i] + 2;
     }
 
-    PDM_part_create (&ppartId,
+    ppartId = PDM_part_create (
                      _interfComm,
                      method,
                      "PDM_PART_RENUM_CELL_NONE",

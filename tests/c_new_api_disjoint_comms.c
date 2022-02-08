@@ -70,12 +70,11 @@ PDM_g_num_t ***vtx_ln_to_gn, PDM_g_num_t ***cell_ln_to_gn
                                             PDM_OWNERSHIP_KEEP);
 
   // Partitionnement
-  int ppart_id = 0;
   int *d_cell_part = (int *) malloc(sizeof(int) * d_n_cell);
 
   PDM_part_split_t method = PDM_PART_SPLIT_PTSCOTCH;
 //PDM_part_create(&ppart_id, pdm_comm, method, renum_cell_method,          renum_face_method,
-  PDM_part_create(&ppart_id, pdm_comm, method, "PDM_PART_RENUM_CELL_NONE", "PDM_PART_RENUM_FACE_NONE",
+  PDM_part_t *ppart_id = PDM_part_create(pdm_comm, method, "PDM_PART_RENUM_CELL_NONE", "PDM_PART_RENUM_FACE_NONE",
 //                n_property_cell, renum_properties_cell, n_property_face, renum_properties_face, n_part,
                   0,               NULL,                  0,               NULL,                  n_part,
 //                dn_cell,  dn_face,  dn_vtx,       n_face_group, dcell_faceIdx,   dcell_face,  dcell_tag, dcell_weight, have_dcell_part, dcell_part,
@@ -171,11 +170,10 @@ create_dcube
     PDM_dcube_gen_dim_get(dcube, &n_face_group, &d_n_cell, &d_n_face, &d_n_vertices, &s_face_vtx, &s_face_group);
     PDM_dcube_gen_data_get(dcube, &d_face_cell, &d_face_vertex_idx, &d_face_vertex, &d_vertex_coord, &d_face_group_idx, &d_face_group);
 
-    int ppart_id = 0;
     int *d_cell_part = (int *) malloc(sizeof(int) * d_n_cell);
 
     PDM_part_split_t method = PDM_PART_SPLIT_PTSCOTCH;
-    PDM_part_create(&ppart_id, pdm_comm, method, "PDM_PART_RENUM_CELL_NONE", "PDM_PART_RENUM_FACE_NONE",
+    PDM_part_t *ppart_id = PDM_part_create(pdm_comm, method, "PDM_PART_RENUM_CELL_NONE", "PDM_PART_RENUM_FACE_NONE",
                     0, NULL, 0, NULL, n_part,
                     d_n_cell, d_n_face, d_n_vertices, n_face_group, NULL, NULL, NULL, NULL, 0, d_cell_part,
                     d_face_cell, d_face_vertex_idx, d_face_vertex, NULL, d_vertex_coord, NULL, d_face_group_idx, d_face_group);
@@ -203,6 +201,7 @@ create_dcube
     *n_vtx = (int *) malloc(sizeof(int) * n_part);
     *coord = (double **) malloc(sizeof(double *) * n_part);
     *vtx_ln_to_gn = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
+
 
     for (int i_part = 0 ; i_part < n_part ; i_part++) {
         int _n_cells, _n_faces, _n_face_part_bound, _n_vtx, _n_proc, _n_total_part, _s_cell_face, _s_face_vtx, _s_face_group, _n_edge_group2;

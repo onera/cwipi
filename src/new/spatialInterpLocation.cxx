@@ -423,7 +423,7 @@ namespace cwipi {
       } // _localCodeProperties->idGet() < _coupledCodeProperties->idGet()
     }
     //
-    // Data for PDM_part1_to_selected_part2_t
+    // Data for PDM_part_to_part_t
 
     if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
       for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
@@ -548,13 +548,13 @@ namespace cwipi {
 
     if (_ptsp != nullptr) {
       if (!_coupledCodeProperties->localCodeIs()) {
-        PDM_part1_to_selected_part2_free (_ptsp);
+        PDM_part_to_part_free (_ptsp);
         _ptsp = nullptr;
       }
       else {
 
         if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-          PDM_part1_to_selected_part2_free (_ptsp);
+          PDM_part_to_part_free (_ptsp);
           _ptsp = nullptr;
   
           SpatialInterpLocation *cpl_spatial_interp;
@@ -602,7 +602,7 @@ namespace cwipi {
 //      }
 //      printf("\n");
 //      fflush(stdout);
-      _ptsp = PDM_part1_to_selected_part2_create ((const PDM_g_num_t **)_src_gnum,
+      _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **)_src_gnum,
                                                   (const int *)_src_n_gnum,
                                                   _nPart,
                                                   (const PDM_g_num_t **)_tgt_gnum,
@@ -633,7 +633,7 @@ namespace cwipi {
         }
 
         if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-          _ptsp = PDM_part1_to_selected_part2_create ((const PDM_g_num_t **)_src_gnum,
+          _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **)_src_gnum,
                                                       (const int *)_src_n_gnum,
                                                       _nPart,
                                                       (const PDM_g_num_t **)cpl_spatial_interp->_tgt_gnum,
@@ -644,7 +644,7 @@ namespace cwipi {
                                                       _pdmCplComm);                         
         }
         else {
-          _ptsp = PDM_part1_to_selected_part2_create ((const PDM_g_num_t **)cpl_spatial_interp->_src_gnum,
+          _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **)cpl_spatial_interp->_src_gnum,
                                                       (const int *)cpl_spatial_interp->_src_n_gnum,
                                                       _cplNPart,
                                                       (const PDM_g_num_t **) _tgt_gnum,

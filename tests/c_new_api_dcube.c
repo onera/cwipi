@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
   PDM_dcube_gen_dim_get(dcube, &n_face_group, &d_n_cell, &d_n_face, &d_n_vertices, &s_face_vtx, &s_face_group);
   PDM_dcube_gen_data_get(dcube, &d_face_cell, &d_face_vertex_idx, &d_face_vertex, &d_vertex_coord, &d_face_group_idx, &d_face_group);
 
-  int ppart_id = 0;
+  PDM_part_t *ppart_id = 0;
   int *d_cell_part = (int *) malloc(sizeof(int) * d_n_cell);
   int have_dcell_part = 0;
   int *renum_properties_cell = NULL;
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
   int n_property_face = 0;
 
   PDM_part_split_t method = PDM_PART_SPLIT_PTSCOTCH;
-  PDM_part_create(&ppart_id, PDM_MPI_COMM_WORLD, method, "PDM_PART_RENUM_CELL_NONE", "PDM_PART_RENUM_FACE_NONE",
+  ppart_id = PDM_part_create( PDM_MPI_COMM_WORLD, method, "PDM_PART_RENUM_CELL_NONE", "PDM_PART_RENUM_FACE_NONE",
                   n_property_cell, renum_properties_cell, n_property_face, renum_properties_face, n_part,
                   d_n_cell, d_n_face, d_n_vertices, n_face_group, NULL, NULL, NULL, NULL, have_dcell_part, d_cell_part,
                   d_face_cell, d_face_vertex_idx, d_face_vertex, NULL, d_vertex_coord, NULL, d_face_group_idx, d_face_group);

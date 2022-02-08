@@ -55,7 +55,7 @@ namespace cwipi {
   SpatialInterp::~SpatialInterp()
   {
     if (_ptsp != nullptr) {
-      PDM_part1_to_selected_part2_free (_ptsp);
+      PDM_part_to_part_free (_ptsp);
       _ptsp = nullptr;
     }
 
@@ -272,7 +272,7 @@ namespace cwipi {
       int          **selected_part2_idx;
       PDM_g_num_t  **selected_part2;
 
-      PDM_part1_to_selected_part2_selected_part2_get (_ptsp,
+      PDM_part_to_part_part1_to_part2_get (_ptsp,
                                                       &n_elt1,
                                                       &selected_part2_idx,
                                                       &selected_part2);
@@ -329,17 +329,17 @@ namespace cwipi {
 
       // Fake reveceive
 
-      PDM_part1_to_selected_part2_irecv (_ptsp,
+      PDM_part_to_part_irecv (_ptsp,
                                           s_data,
                                           stride,
                                 (void **) _recv_buffer[intId],
                                           (int) mpi_tag,
                                          &(_recv_request[intId]));
 
-      PDM_part1_to_selected_part2_issend (_ptsp,
+      PDM_part_to_part_issend (_ptsp,
                                           s_data,
                                           stride,
-                                (void **) _send_buffer[intId],
+                          (const void **) _send_buffer[intId],
                                           (int) mpi_tag,
                                          &(_send_request[intId]));
 
@@ -360,7 +360,7 @@ namespace cwipi {
         int          **selected_part2_idx;
         PDM_g_num_t  **selected_part2;
 
-        PDM_part1_to_selected_part2_selected_part2_get (_ptsp,
+        PDM_part_to_part_part1_to_part2_get (_ptsp,
                                                         &n_elt1,
                                                         &selected_part2_idx,
                                                         &selected_part2);
@@ -424,14 +424,14 @@ namespace cwipi {
         int  *n_ref_gnum2;
         int **ref_gnum2;
 
-        PDM_part1_to_selected_part2_ref_gnum2_get (_ptsp,
+        PDM_part_to_part_ref_gnum2_get (_ptsp,
                                                    &n_ref_gnum2,
                                                    &ref_gnum2);
 
         int          **gnum1_come_from_idx;
         PDM_g_num_t  **gnum1_come_from;
        
-        PDM_part1_to_selected_part2_gnum1_come_from_get (_ptsp,
+        PDM_part_to_part_gnum1_come_from_get (_ptsp,
                                                          &gnum1_come_from_idx,
                                                          &gnum1_come_from);
 
@@ -439,17 +439,17 @@ namespace cwipi {
           cpl_spatial_interp->_recv_buffer[cpl_intId][i] = (double *) malloc(sizeof(double) * stride * gnum1_come_from_idx[i][n_ref_gnum2[i]]);
         }
 
-        PDM_part1_to_selected_part2_irecv (_ptsp,
+        PDM_part_to_part_irecv (_ptsp,
                                            s_data,
                                            stride,
                                  (void **) cpl_spatial_interp->_recv_buffer[cpl_intId],
                                      (int) mpi_tag,
                                           &(cpl_spatial_interp->_recv_request[cpl_intId]));
 
-        PDM_part1_to_selected_part2_issend (_ptsp,
+        PDM_part_to_part_issend (_ptsp,
                                             s_data,
                                             stride,
-                                  (void **) _send_buffer[intId],
+                            (const void **) _send_buffer[intId],
                                       (int) mpi_tag,
                                            &(_send_request[intId]));
       }
@@ -463,8 +463,8 @@ namespace cwipi {
 
       const int intId            = referenceField->fieldIDIntGet();
 
-      PDM_part1_to_selected_part2_irecv_wait (_ptsp, _recv_request[intId]);
-      PDM_part1_to_selected_part2_issend_wait (_ptsp, _send_request[intId]);
+      PDM_part_to_part_irecv_wait (_ptsp, _recv_request[intId]);
+      PDM_part_to_part_issend_wait (_ptsp, _send_request[intId]);
 
       if (_send_buffer[intId] != NULL) {
         for (int i = 0; i < _nPart; i++) {
@@ -506,8 +506,8 @@ namespace cwipi {
 
         const int cpl_intId = cpl_referenceField->fieldIDIntGet();
 
-        PDM_part1_to_selected_part2_irecv_wait (_ptsp, cpl_spatial_interp->_recv_request[cpl_intId]);
-        PDM_part1_to_selected_part2_issend_wait (_ptsp, _send_request[intId]);
+        PDM_part_to_part_irecv_wait (_ptsp, cpl_spatial_interp->_recv_request[cpl_intId]);
+        PDM_part_to_part_issend_wait (_ptsp, _send_request[intId]);
 
         for (int i = 0; i < _nPart; i++) {
           if (_send_buffer[intId] != NULL) {
@@ -546,14 +546,14 @@ namespace cwipi {
       int  *n_ref_gnum2;
       int **ref_gnum2;
 
-      PDM_part1_to_selected_part2_ref_gnum2_get (_ptsp,
+      PDM_part_to_part_ref_gnum2_get (_ptsp,
                                                  &n_ref_gnum2,
                                                  &ref_gnum2);
 
       int          **gnum1_come_from_idx;
       PDM_g_num_t  **gnum1_come_from;
      
-      PDM_part1_to_selected_part2_gnum1_come_from_get (_ptsp,
+      PDM_part_to_part_gnum1_come_from_get (_ptsp,
                                                        &gnum1_come_from_idx,
                                                        &gnum1_come_from);
 
@@ -602,17 +602,17 @@ namespace cwipi {
 
       // Fake reveceive
 
-      PDM_part1_to_selected_part2_irecv (_ptsp,
+      PDM_part_to_part_irecv (_ptsp,
                                           s_data,
                                           stride,
                                 (void **) _recv_buffer[intId],
                                           (int) mpi_tag,
                                          &(_recv_request[intId]));
 
-      PDM_part1_to_selected_part2_issend (_ptsp,
+      PDM_part_to_part_issend (_ptsp,
                                           s_data,
                                           stride,
-                                (void **) _send_buffer[intId],
+                          (const void **) _send_buffer[intId],
                                           (int) mpi_tag,
                                          &(_send_request[intId]));
     }
@@ -630,14 +630,14 @@ namespace cwipi {
         int  *n_ref_gnum2;
         int **ref_gnum2;
 
-        PDM_part1_to_selected_part2_ref_gnum2_get (_ptsp,
+        PDM_part_to_part_ref_gnum2_get (_ptsp,
                                                    &n_ref_gnum2,
                                                    &ref_gnum2);
 
         int          **gnum1_come_from_idx;
         PDM_g_num_t  **gnum1_come_from;
        
-        PDM_part1_to_selected_part2_gnum1_come_from_get (_ptsp,
+        PDM_part_to_part_gnum1_come_from_get (_ptsp,
                                                          &gnum1_come_from_idx,
                                                          &gnum1_come_from);
 
@@ -693,7 +693,7 @@ namespace cwipi {
         int          **cpl_selected_part2_idx;
         PDM_g_num_t  **cpl_selected_part2;
 
-        PDM_part1_to_selected_part2_selected_part2_get (_ptsp,
+        PDM_part_to_part_part1_to_part2_get (_ptsp,
                                                         &cpl_n_elt1,
                                                         &cpl_selected_part2_idx,
                                                         &cpl_selected_part2);
@@ -702,17 +702,17 @@ namespace cwipi {
           cpl_spatial_interp->_send_buffer[cpl_intId][i] = (double *) malloc(sizeof(double) * stride * cpl_selected_part2_idx[i][cpl_n_elt1[i]]);
         }
 
-        PDM_part1_to_selected_part2_irecv (_ptsp,
+        PDM_part_to_part_irecv (_ptsp,
                                            s_data,
                                            stride,
                                  (void **) _recv_buffer[cpl_intId],
                                      (int) mpi_tag,
                                           &(_recv_request[cpl_intId]));
 
-        PDM_part1_to_selected_part2_issend (_ptsp,
+        PDM_part_to_part_issend (_ptsp,
                                             s_data,
                                             stride,
-                                  (void **) cpl_spatial_interp->_send_buffer[intId],
+                            (const void **) cpl_spatial_interp->_send_buffer[intId],
                                       (int) mpi_tag,
                                           &(cpl_spatial_interp->_send_request[intId]));
 
@@ -726,8 +726,8 @@ namespace cwipi {
 
       const int intId = referenceField->fieldIDIntGet();
 
-      PDM_part1_to_selected_part2_irecv_wait (_ptsp, _recv_request[intId]);
-      PDM_part1_to_selected_part2_issend_wait (_ptsp, _send_request[intId]);
+      PDM_part_to_part_irecv_wait (_ptsp, _recv_request[intId]);
+      PDM_part_to_part_issend_wait (_ptsp, _send_request[intId]);
 
       if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
         interpolate (referenceField, _recv_buffer[intId]);
@@ -738,20 +738,20 @@ namespace cwipi {
 
         int  *ptp2_n_ref_gnum2;
         int **ptp2_ref_gnum2;
-        PDM_part1_to_selected_part2_ref_gnum2_get (_ptsp,
+        PDM_part_to_part_ref_gnum2_get (_ptsp,
                                                   &ptp2_n_ref_gnum2,
                                                   &ptp2_ref_gnum2);
 
         int  *ptp2_n_unref_gnum2;
         int **ptp2_unref_gnum2;
-        PDM_part1_to_selected_part2_unref_gnum2_get (_ptsp,
+        PDM_part_to_part_unref_gnum2_get (_ptsp,
                                                   &ptp2_n_unref_gnum2,
                                                   &ptp2_unref_gnum2);
 
 
         int         **ptp2_gnum1_come_from_idx;
         PDM_g_num_t **ptp2_gnum1_come_from;
-        PDM_part1_to_selected_part2_gnum1_come_from_get (_ptsp,
+        PDM_part_to_part_gnum1_come_from_get (_ptsp,
                                                         &ptp2_gnum1_come_from_idx,
                                                         &ptp2_gnum1_come_from);
 
@@ -807,8 +807,8 @@ namespace cwipi {
 
         const int cpl_intId = cpl_referenceField->fieldIDIntGet();
 
-        PDM_part1_to_selected_part2_irecv_wait (_ptsp, _recv_request[cpl_intId]);
-        PDM_part1_to_selected_part2_issend_wait (_ptsp, cpl_spatial_interp->_send_request[intId]);
+        PDM_part_to_part_irecv_wait (_ptsp, _recv_request[cpl_intId]);
+        PDM_part_to_part_issend_wait (_ptsp, cpl_spatial_interp->_send_request[intId]);
 
         if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
           interpolate (referenceField, _recv_buffer[intId]);

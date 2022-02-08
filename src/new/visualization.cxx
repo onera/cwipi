@@ -35,7 +35,7 @@
 namespace cwipi {
 
   Visu::Visu(const MPI_Comm &MPIComm,const CWP_Dynamic_mesh_t topology):
-                                      _visu_id(-1),_visu_mesh_id(-1),
+                                      _visu_id(nullptr),_visu_mesh_id(-1),
                                       //_freq(-1), 
                                       _output_dir(NULL),
                                       _output_name(NULL),

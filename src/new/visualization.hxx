@@ -269,7 +269,7 @@ namespace cwipi {
     inline bool isCreated();
 
   private:
-    int                  _visu_id;      /*!< Visualization identifier */
+    PDM_writer_t*        _visu_id;      /*!< Visualization identifier */
     int                  _visu_mesh_id; /*!< Visualization identifier */
     //int                  _freq;         /*!< Visualization frequency */
     char                *_output_dir;   /*!< Output directory */

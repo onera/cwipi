@@ -174,7 +174,7 @@ CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wunused-function")
 static void
 _compute_faceVtx
 (
- int            ppartId,
+ PDM_part_t * ppartId,
  int            n_part,
  int          **nFace,
  int         ***faceVtxIdx,
@@ -195,7 +195,7 @@ _compute_faceVtx
   *vtxCoord = (double **) malloc(sizeof(double *) * n_part);
   *vtxLNToGN = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
 
-  int id_ppart = ppartId;
+  PDM_part_t *id_ppart = ppartId;
 
   for (int ipart = 0; ipart < n_part; ipart++) {
 
@@ -368,7 +368,7 @@ CWP_GCC_SUPPRESS_WARNING_POP
 static void
 _get_connectivity
 (
- int            ppartId,
+ PDM_part_t     *ppartId,
  int            n_part,
  int          **nFace,
  int         ***faceEdgeIdx,
@@ -399,7 +399,7 @@ _get_connectivity
   *vtxCoord = (double **) malloc(sizeof(double *) * n_part);
   *vtxLNToGN = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
 
-   int id_ppart = ppartId;
+  PDM_part_t *id_ppart = ppartId;
 
   for (int ipart = 0; ipart < n_part; ipart++) {
 
@@ -728,14 +728,14 @@ _create_split_mesh
     /*
      *  Split mesh
      */
-    int ppartId;
+    PDM_part_t *ppartId;
 
     int nPropertyCell = 0;
     int *renum_properties_cell = NULL;
     int nPropertyFace = 0;
     int *renum_properties_face = NULL;
 
-    PDM_part_create (&ppartId,
+    ppartId =PDM_part_create (
                      pdm_mpi_comm,
                      method,
                      "PDM_PART_RENUM_CELL_NONE",

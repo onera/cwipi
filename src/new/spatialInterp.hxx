@@ -25,7 +25,7 @@
 #include "field.hxx"
 #include "codeProperties.hxx"
 #include "coupling.hxx"
-#include "pdm_part1_to_selected_part2.h"
+#include "pdm_part_to_part.h"
 
 /**
  * \cond
@@ -172,7 +172,7 @@ namespace cwipi {
 
     SpatialInterpExchDirection  _exchDirection;  /*!< Spatial interpolation (for both codes are local case) */
    
-    PDM_part1_to_selected_part2_t *_ptsp;  /*!< Exchange protocol between src and target */
+    PDM_part_to_part_t *_ptsp;  /*!< Exchange protocol between src and target */
     int* _src_n_gnum;                      /*!< Number of source element by part (used by _ptsp) */
     int* _tgt_n_gnum;                      /*!< Number of target element by part (used by _ptsp) */
     const PDM_g_num_t** _src_gnum;                /*!< Global number of source element (used by _ptsp) */
