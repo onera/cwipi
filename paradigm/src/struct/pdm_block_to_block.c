@@ -13,6 +13,7 @@
 #include "pdm_binary_search.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -179,7 +180,7 @@ PDM_block_to_block_exch
     n_recv_buffer[recv_rank] += 1 * s_data;
   }
 
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     PDM_error(__FILE__, __LINE__, 0, "Error : PDM_STRIDE_VAR is not yet available \n");
 
@@ -230,7 +231,7 @@ PDM_block_to_block_exch
 
   }
 
-  else if (t_stride == PDM_STRIDE_CST) {
+  else if (t_stride == PDM_STRIDE_CST_INTERLACED) {
 
     for(int i = 0; i < _btb->n_rank; i++){
       n_send_buffer[i] *= cst_stride;

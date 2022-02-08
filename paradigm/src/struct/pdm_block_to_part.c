@@ -534,7 +534,7 @@ PDM_block_to_part_exch
    */
 
   int *recv_stride = NULL;
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     int s_send_stride = btp->distributed_data_idx[btp->n_rank];
 
@@ -698,7 +698,7 @@ PDM_block_to_part_exch
           int s_distributed_active_rank = btp->distributed_data_idx[active_rank[i]] +
                                           btp->distributed_data_n [active_rank[i]];
 
-          if (t_stride == PDM_STRIDE_VAR) {
+          if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
             int idx1 = 0;
             for (int j = btp->distributed_data_idx[active_rank[i]];
                  j < s_distributed_active_rank; j++) {
@@ -772,7 +772,7 @@ PDM_block_to_part_exch
 
   else {
 
-    if (t_stride == PDM_STRIDE_VAR) {
+    if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
       int idx1 = 0;
       for (int i = 0; i < s_distributed_data; i++) {
         int ind =  block_stride_idx[btp->distributed_data[i]] * (int) s_data;
@@ -832,7 +832,7 @@ PDM_block_to_part_exch
    * Partitions filling
    */
 
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     int s_recv_elt = btp->requested_data_idx[n_rank1] +
       btp->requested_data_n[n_rank1];
@@ -868,7 +868,7 @@ PDM_block_to_part_exch
     free (recv_stride);
   }
 
-  else if (t_stride == PDM_STRIDE_CST) {
+  else if (t_stride == PDM_STRIDE_CST_INTERLACED) {
 
     const int cst_stride = *block_stride;
     const int s_block_unit = cst_stride * (int) s_data;
@@ -963,7 +963,7 @@ PDM_block_to_part_exch2
   int *recv_stride = NULL;
   int **_part_stride = NULL;
 
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     int s_send_stride = btp->distributed_data_idx[btp->n_rank];
 
@@ -1077,7 +1077,7 @@ PDM_block_to_part_exch2
 
   }
 
-  else if (t_stride == PDM_STRIDE_CST) {
+  else if (t_stride == PDM_STRIDE_CST_INTERLACED) {
 
     int cst_stride = *block_stride;
     int s_block_unit = cst_stride * (int) s_data;
@@ -1135,7 +1135,7 @@ PDM_block_to_part_exch2
   *part_data = malloc(sizeof(unsigned char *) * btp->n_part);
   _part_data = (*(unsigned char ***) part_data);
 
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     int s_recv_elt = btp->requested_data_idx[n_rank1] +
                      btp->requested_data_n[n_rank1];
@@ -1175,7 +1175,7 @@ PDM_block_to_part_exch2
     free (recv_stride);
   }
 
-  else if (t_stride == PDM_STRIDE_CST) {
+  else if (t_stride == PDM_STRIDE_CST_INTERLACED) {
 
     const int cst_stride = *block_stride;
     const int s_block_unit = cst_stride * (int) s_data;

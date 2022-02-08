@@ -126,7 +126,7 @@ _read_args
  *
  */
 
-static int
+static PDM_part_t *
 _create_split_mesh
 (
  int           imesh,
@@ -331,41 +331,40 @@ PDM_part_split_t           method,
    *  Split mesh i
    */
 
-  int ppart_id;
+  // int ppart_id;
 
   int n_property_cell = 0;
   int *renum_properties_cell = NULL;
   int n_property_face = 0;
   int *renum_properties_face = NULL;
 
-  PDM_part_create (&ppart_id,
-                   pdm_mpi_comm,
-                   method,
-                   "PDM_PART_RENUM_CELL_NONE",
-                   "PDM_PART_RENUM_FACE_NONE",
-                   n_property_cell,
-                   renum_properties_cell,
-                   n_property_face,
-                   renum_properties_face,
-                   n_part,
-                   dn_face,
-                   dnedge,
-                   dn_vtx,
-                   *nedge_group,
-                   NULL,
-                   NULL,
-                   NULL,
-                   NULL,
-                   have_dcell_part,
-                   dcell_part,
-                   dedge_face,
-                   dedge_vtxIdx,
-                   dedge_vtx,
-                   NULL,
-                   dvtx_coord,
-                   NULL,
-                   dedge_group_idx,
-                   dedge_group);
+  PDM_part_t *ppart = PDM_part_create (pdm_mpi_comm,
+                                       method,
+                                       "PDM_PART_RENUM_CELL_NONE",
+                                       "PDM_PART_RENUM_FACE_NONE",
+                                       n_property_cell,
+                                       renum_properties_cell,
+                                       n_property_face,
+                                       renum_properties_face,
+                                       n_part,
+                                       dn_face,
+                                       dnedge,
+                                       dn_vtx,
+                                       *nedge_group,
+                                       NULL,
+                                       NULL,
+                                       NULL,
+                                       NULL,
+                                       have_dcell_part,
+                                       dcell_part,
+                                       dedge_face,
+                                       dedge_vtxIdx,
+                                       dedge_vtx,
+                                       NULL,
+                                       dvtx_coord,
+                                       NULL,
+                                       dedge_group_idx,
+                                       dedge_group);
 
   free (dcell_part);
 
@@ -374,11 +373,11 @@ PDM_part_split_t           method,
   double  *cpu_user = NULL;
   double  *cpu_sys = NULL;
 
-  PDM_part_time_get (ppart_id,
-                  &elapsed,
-                  &cpu,
-                  &cpu_user,
-                  &cpu_sys);
+  PDM_part_time_get (ppart,
+                     &elapsed,
+                     &cpu,
+                     &cpu_user,
+                     &cpu_sys);
 
   if (i_rank == 0)
     PDM_printf("[%d] Temps dans ppart %d : %12.5e\n",
@@ -398,18 +397,18 @@ PDM_part_split_t           method,
   int    bound_part_faces_max;
   int    bound_part_faces_sum;
 
-  PDM_part_stat_get (ppart_id,
-                  &cells_average,
-                  &cells_median,
-                  &cells_std_deviation,
-                  &cells_min,
-                  &cells_max,
-                  &bound_part_faces_average,
-                  &bound_part_faces_median,
-                  &bound_part_faces_std_deviation,
-                  &bound_part_faces_min,
-                  &bound_part_faces_max,
-                  &bound_part_faces_sum);
+  PDM_part_stat_get (ppart,
+                     &cells_average,
+                     &cells_median,
+                     &cells_std_deviation,
+                     &cells_min,
+                     &cells_max,
+                     &bound_part_faces_average,
+                     &bound_part_faces_median,
+                     &bound_part_faces_std_deviation,
+                     &bound_part_faces_min,
+                     &bound_part_faces_max,
+                     &bound_part_faces_sum);
 
   /* if (i_rank == 0) { */
   /*   PDM_printf ("Statistics :\n"); */
@@ -450,7 +449,7 @@ PDM_part_split_t           method,
     int sEdgeGroup;
     int nedge_group2;
 
-    PDM_part_part_dim_get (ppart_id,
+    PDM_part_part_dim_get (ppart,
                            i_part,
                            &n_face,
                            &nEdge,
@@ -465,7 +464,7 @@ PDM_part_split_t           method,
 
   }
 
-  return ppart_id;
+  return ppart;
 }
 
 /**
@@ -526,18 +525,20 @@ char *argv[]
   int n_total_part;
   int nedge_group;
 
-  _create_split_mesh (imesh,
-                      PDM_MPI_COMM_WORLD,
-                      n_vtx_seg,
-                      length,
-                      n_part,
-                      method,
-                      have_random,
-                      &n_g_face,
-                      &n_g_vtx,
-                      &n_g_edge,
-                      &n_total_part,
-                      &nedge_group);
+  PDM_part_t* ppart = _create_split_mesh (imesh,
+                                          PDM_MPI_COMM_WORLD,
+                                          n_vtx_seg,
+                                          length,
+                                          n_part,
+                                          method,
+                                          have_random,
+                                          &n_g_face,
+                                          &n_g_vtx,
+                                          &n_g_edge,
+                                          &n_total_part,
+                                          &nedge_group);
+
+  PDM_part_free(ppart);
 
   PDM_MPI_Finalize ();
 

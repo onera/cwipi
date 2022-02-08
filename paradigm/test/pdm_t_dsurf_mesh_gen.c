@@ -201,7 +201,7 @@ _read_args
 static void
 _compute_face_vtx
 (
- int           ppartId,
+ PDM_part_t    *ppart,
  int            n_part,
  int          **n_face,
  int         ***face_vtx_idx,
@@ -222,7 +222,6 @@ _compute_face_vtx
   *vtx_coord = (double **) malloc(sizeof(double *) * n_part);
   *vtx_ln_to_gn = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
 
-  int id_ppart = ppartId;
 
   for (int ipart = 0; ipart < n_part; ipart++) {
 
@@ -237,7 +236,7 @@ _compute_face_vtx
     int _sEdgeGroup;
     int _nEdgeGroup2;
 
-    PDM_part_part_dim_get (id_ppart,
+    PDM_part_part_dim_get (ppart,
                            ipart,
                            &_n_face,
                            &_nEdge,
@@ -269,7 +268,7 @@ _compute_face_vtx
     int          *_edgeGroup;
     PDM_g_num_t  *_edgeGroupLNToGN;
 
-    PDM_part_part_val_get (id_ppart,
+    PDM_part_part_val_get (ppart,
                            ipart,
                            &_faceTag,
                            &_faceEdgeIdx,
@@ -415,16 +414,16 @@ _create_split_mesh
  PDM_g_num_t       n_vtxSeg,
  double            length,
  int               n_part,
- PDM_part_split_t   method,
+ PDM_part_split_t  method,
  int               haveRandom,
  int               initRandom,
  PDM_g_num_t      *nGFace,
  PDM_g_num_t      *nGVtx,
- int            **n_face,
+ int             **n_face,
  int            ***face_vtx_idx,
  int            ***face_vtx,
  PDM_g_num_t    ***face_ln_to_gn,
- int            **n_vtx,
+ int             **n_vtx,
  double         ***vtx_coord,
  PDM_g_num_t    ***vtx_ln_to_gn
 )
@@ -522,7 +521,7 @@ _create_split_mesh
      *  Split mesh i
      */
 
-    int ppartId;
+    // int ppartId;
 
     int nPropertyCell = 0;
     int *renum_properties_cell = NULL;
@@ -559,34 +558,33 @@ _create_split_mesh
     //                  dEdgeGroup);
 
     printf("dn_face = %i | dNEdge = %i | dn_vtx = %i \n", dn_face, dNEdge, dn_vtx);
-    PDM_part_create (&ppartId,
-                     pdm_mpi_comm,
-                     method,
-                     "PDM_PART_RENUM_CELL_NONE",
-                     "PDM_PART_RENUM_FACE_NONE",
-                     nPropertyCell,
-                     renum_properties_cell,
-                     nPropertyFace,
-                     renum_properties_face,
-                     n_part,
-                     dn_face,
-                     dNEdge,
-                     dn_vtx,
-                     nEdgeGroup,
-                     dface_vtx_idx,
-                     dFaceEdge,
-                     NULL,
-                     NULL,
-                     have_dCellPart,
-                     dCellPart,
-                     NULL,
-                     dEdgeVtxIdx,
-                     dEdgeVtx,
-                     NULL,
-                     dvtx_coord,
-                     NULL,
-                     dEdgeGroupIdx,
-                     dEdgeGroup);
+    PDM_part_t *ppart = PDM_part_create (pdm_mpi_comm,
+                                         method,
+                                         "PDM_PART_RENUM_CELL_NONE",
+                                         "PDM_PART_RENUM_FACE_NONE",
+                                         nPropertyCell,
+                                         renum_properties_cell,
+                                         nPropertyFace,
+                                         renum_properties_face,
+                                         n_part,
+                                         dn_face,
+                                         dNEdge,
+                                         dn_vtx,
+                                         nEdgeGroup,
+                                         dface_vtx_idx,
+                                         dFaceEdge,
+                                         NULL,
+                                         NULL,
+                                         have_dCellPart,
+                                         dCellPart,
+                                         NULL,
+                                         dEdgeVtxIdx,
+                                         dEdgeVtx,
+                                         NULL,
+                                         dvtx_coord,
+                                         NULL,
+                                         dEdgeGroupIdx,
+                                         dEdgeGroup);
     free (dCellPart);
 
     double  *elapsed = NULL;
@@ -594,7 +592,7 @@ _create_split_mesh
     double  *cpu_user = NULL;
     double  *cpu_sys = NULL;
 
-    PDM_part_time_get (ppartId,
+    PDM_part_time_get (ppart,
                        &elapsed,
                        &cpu,
                        &cpu_user,
@@ -618,7 +616,7 @@ _create_split_mesh
     int    bound_part_faces_max;
     int    bound_part_faces_sum;
 
-    PDM_part_stat_get (ppartId,
+    PDM_part_stat_get (ppart,
                        &cells_average,
                        &cells_median,
                        &cells_std_deviation,
@@ -658,17 +656,17 @@ _create_split_mesh
     free (dEdgeGroupIdx);
     free (dEdgeGroup);
 
-    _compute_face_vtx (ppartId,
-                      n_part,
-                      n_face,
-                      face_vtx_idx,
-                      face_vtx,
-                      face_ln_to_gn,
-                      n_vtx,
-                      vtx_coord,
-                      vtx_ln_to_gn);
+    _compute_face_vtx (ppart,
+                       n_part,
+                       n_face,
+                       face_vtx_idx,
+                       face_vtx,
+                       face_ln_to_gn,
+                       n_vtx,
+                       vtx_coord,
+                       vtx_ln_to_gn);
 
-    PDM_part_free (ppartId);
+    PDM_part_free (ppart);
 
   }
   else {
@@ -737,18 +735,16 @@ _export_ini_mesh
    *  Export Mesh to Ensight
    */
 
-  int id_cs;
-
-  id_cs = PDM_writer_create ("Ensight",
-                             PDM_WRITER_FMT_ASCII,
-                             PDM_WRITER_TOPO_CONSTANTE,
-                             PDM_WRITER_OFF,
-                             "test_2d_surf_ens",
-                             "mesh1",
-                             pdm_mpi_comm,
-                             PDM_IO_ACCES_MPI_SIMPLE,
-                             1.,
-                             NULL);
+  PDM_writer_t *id_cs = PDM_writer_create ("Ensight",
+                                           PDM_WRITER_FMT_ASCII,
+                                           PDM_WRITER_TOPO_CONSTANTE,
+                                           PDM_WRITER_OFF,
+                                           "test_2d_surf_ens",
+                                           "mesh1",
+                                           pdm_mpi_comm,
+                                           PDM_IO_ACCES_MPI_SIMPLE,
+                                           1.,
+                                           NULL);
 
   /*
    * Creation des variables
@@ -905,20 +901,20 @@ _export_ini_mesh
     PDM_writer_var_write (id_cs,
                           id_var_num_part);
 
-    PDM_writer_var_free (id_cs,
-                         id_var_num_part);
+    // PDM_writer_var_free (id_cs,
+    //                      id_var_num_part);
 
     PDM_writer_var_write (id_cs,
                           id_var_coo_x);
 
-    PDM_writer_var_free (id_cs,
-                         id_var_coo_x);
+    // PDM_writer_var_free (id_cs,
+    //                      id_var_coo_x);
 
     PDM_writer_var_write (id_cs,
                           id_var_coo_xyz);
 
-    PDM_writer_var_free (id_cs,
-                         id_var_coo_xyz);
+    // PDM_writer_var_free (id_cs,
+    //                      id_var_coo_xyz);
 
     for (int ipart = 0; ipart < n_part; ipart++) {
       free (val_num_part[ipart]);
@@ -932,11 +928,11 @@ _export_ini_mesh
     free (nsom_part);
 
     PDM_writer_step_end (id_cs);
-    PDM_writer_geom_data_free (id_cs,
-                               id_geom);
+    // PDM_writer_geom_data_free (id_cs,
+    //                            id_geom);
 
-    PDM_writer_geom_free (id_cs,
-                          id_geom);
+    // PDM_writer_geom_free (id_cs,
+    //                       id_geom);
     PDM_writer_free (id_cs);
 
     free (debPartProcs);

@@ -218,7 +218,7 @@ char *argv[]
   int** recv_entity_data = NULL;
   PDM_distant_neighbor_exch_int(dn,
                                 sizeof(int),
-                                PDM_STRIDE_CST,
+                                PDM_STRIDE_CST_INTERLACED,
                                 stride,
                                 NULL,
                                 send_entity_data,
@@ -264,7 +264,7 @@ char *argv[]
   // PDM_distant_neighbor_exch(dn,
   PDM_distant_neighbor_exch_int(dn,
                                 sizeof(int),
-                                PDM_STRIDE_VAR,
+                                PDM_STRIDE_VAR_INTERLACED,
                                 -1,
                                 send_entity_var_stri,
                                 send_entity_var_data,

@@ -532,7 +532,7 @@ PDM_elt_parent_find_from_distrib
 
   PDM_part_to_block_exch(          ptb,
                                    sizeof(PDM_g_num_t),
-                                   PDM_STRIDE_VAR,
+                                   PDM_STRIDE_VAR_INTERLACED,
                                   -1,
                                    &part_stri,
                          (void **) &part_data,
@@ -755,7 +755,7 @@ PDM_elt_parent_find_from_distrib
   /** Exchange connect  **/
   PDM_part_to_block_exch(          ptb2,
                                    sizeof(PDM_g_num_t),
-                                   PDM_STRIDE_CST,
+                                   PDM_STRIDE_CST_INTERLACED,
                                    1,
                                    NULL,
                          (void **) &connect,

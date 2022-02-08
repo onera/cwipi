@@ -83,7 +83,7 @@ static int _num_var_cedre_max = -1;
  * Unité du fichier
  *----------------------------------------------------------------------------*/
 
-static PDM_l_num_t  _unite = -1;
+static PDM_io_fichier_t *_unite = NULL;
 
 /*----------------------------------------------------------------------------
  * Type de rangement
@@ -108,27 +108,27 @@ static PDM_io_tab_t **PDM_io_tabs = NULL;
  * Definition des fonctions privees
  *============================================================================*/
 
-/*----------------------------------------------------------------------------
- * Ajoute une partie des donnees dans un tableau associés à une variable
+/**
+ * \brief Ajoute une partie des donnees dans un tableau associés à une variable
  * CEDRE
  *
- * arguments :
- *   num_var_cedre         <-- Numéro de variable CEDRE
- *   i_part                <-- indice de partition
- *   n_composantes         <-- Nombre de composantes pour chaque donnee
- *   n_donnees             <-- Nombre de donnees a lire
- *   indirection           <-- Indirection de redistribition des donnees
- *   donnees               <-- Donnees a écrire
+ * \param [in] num_var_cedre          Numéro de variable CEDRE
+ * \param [in] i_part                 indice de partition
+ * \param [in] n_composantes          Nombre de composantes pour chaque donnee
+ * \param [in] n_donnees              Nombre de donnees a lire
+ * \param [in] indirection            Indirection de redistribition des donnees
+ * \param [in] donnees                Donnees a écrire
  *
- *----------------------------------------------------------------------------*/
+ */
 
 static void _ajout_donnees
-(const PDM_l_num_t           num_var_cedre,
+(
+ const PDM_l_num_t           num_var_cedre,
  const PDM_l_num_t           i_part,
  const PDM_l_num_t          *n_composantes,
  const PDM_l_num_t           n_donnees,
- const PDM_g_num_t         *indirection,
- void                          *donnees
+ const PDM_g_num_t          *indirection,
+ void                       *donnees
  )
 {
   if (PDM_io_tabs == NULL) {
@@ -177,26 +177,24 @@ static void _ajout_donnees
   partition->donnees       = donnees;
 }
 
-/*----------------------------------------------------------------------------
- * Definition d'une variable
+/**
+ * \brief Definition d'une variable
  *
- *  arguments :
- *   num_var_cedre         <-- Numéro de variable CEDRE
- *   num_indirection_cedre <-- Numéro d'indirection CEDRE
- *   t_n_composantes       <-- Type de tailles composantes
- *                             (PDM_IO_N_COMPOSANTE_CONSTANT
- *                           ou PDM_IO_N_COMPOSANTE_VARIABLE)
- *   n_composantes         <-- Nombre de composantes pour chaque donnee
- *   taille_donnee         <-- Taille unitaire de la donnnee
+ * \param [in] num_var_cedre          Numéro de variable CEDRE
+ * \param [in] num_indirection_cedre  Numéro d'indirection CEDRE
+ * \param [in] t_n_composantes        Type de tailles composantes (PDM_IO_N_COMPOSANTE_CONSTANT ou PDM_IO_N_COMPOSANTE_VARIABLE)
+ * \param [in] n_composantes          Nombre de composantes pour chaque donnee
+ * \param [in] taille_donnee          Taille unitaire de la donnnee
  *
- *----------------------------------------------------------------------------*/
+ */
 
 static void _def_var
-(const PDM_l_num_t           num_var_cedre,
- const PDM_l_num_t           num_indirection_cedre,
+(
+ const PDM_l_num_t            num_var_cedre,
+ const PDM_l_num_t            num_indirection_cedre,
  const PDM_io_n_composantes_t t_n_composantes,
- const PDM_l_num_t           n_composantes,
- const PDM_l_num_t           taille_donnee
+ const PDM_l_num_t            n_composantes,
+ const PDM_l_num_t            taille_donnee
  )
 {
   if (PDM_io_tabs == NULL) {
@@ -230,53 +228,32 @@ static void _def_var
  * Definition des fonctions publiques
  *============================================================================*/
 
-/*----------------------------------------------------------------------------
- * Initialise une phase d'écriture parallèle de tableaux de données associées
- * aux numéros de variables CEDRE
+/**
+ * \brief Initialise une phase d'écriture parallèle de tableaux de données associées
+ * aux numéros de variables PDM
  * Chaque tableau a ses propres caractéristiques :
  *         - taille de données
  *         - nombre de donnée
  *         - indirection (numérotation absolue)
  *
- * arguments :
- *   unite             <-- Unite du fichier
- *   rangement         <-- Type de rangement
- *   num_var_cedre_max <-- Numéro max de variable CEDRE
- *   n_partition_local <-- Nombre de partitions locales
+ * \param [in] unite              Unite du fichier
+ * \param [in] t_rangement        Type de rangement
+ * \param [in] num_var_cedre_max  Numéro max de variable PDM
+ * \param [in] n_partition_local  Nombre de partitions locales
  *
- *----------------------------------------------------------------------------*/
+ */
 
-void PROCF (pdm_io_tab_ecr_debut, PDM_IO_TAB_ECR_DEBUT)
-(const PDM_l_num_t *unite,
- const int            *t_rangement,
- const PDM_l_num_t *num_var_cedre_max,
- const PDM_l_num_t *n_partition_local
-)
-{
-  PDM_io_rangement_t __t_rangement = PDM_IO_RANGEMENT_BLOC;
-
-  if (*t_rangement == 0)
-    __t_rangement = PDM_IO_RANGEMENT_BLOC;
-  else if (*t_rangement == 1)
-    __t_rangement = PDM_IO_RANGEMENT_ENTRELACE;
-
-  PDM_io_tab_ecr_debut(*unite,
-                         __t_rangement,
-                         *num_var_cedre_max,
-                         *n_partition_local);
-}
-
-void  PDM_io_tab_ecr_debut
-(const PDM_l_num_t       unite,
- const PDM_io_rangement_t t_rangement,
- const PDM_l_num_t       num_var_cedre_max,
- const PDM_l_num_t       n_partition_local
+void PDM_io_tab_ecr_debut
+(
+ PDM_io_fichier_t         *unite,
+ const PDM_io_rangement_t  t_rangement,
+ const PDM_l_num_t         num_var_cedre_max,
+ const PDM_l_num_t         n_partition_local
 )
 {
   if (PDM_io_tabs == NULL) {
     _num_var_cedre_max = num_var_cedre_max;
-    PDM_io_tabs = (PDM_io_tab_t **) malloc(_num_var_cedre_max *
-                                              sizeof(PDM_io_tab_t *));
+    PDM_io_tabs = (PDM_io_tab_t **) malloc(_num_var_cedre_max * sizeof(PDM_io_tab_t *));
 
     for (int i = 0; i < _num_var_cedre_max; i++)
       PDM_io_tabs[i] = NULL;
@@ -293,44 +270,27 @@ void  PDM_io_tab_ecr_debut
   }
 }
 
-/*----------------------------------------------------------------------------
- * Ajoute une partie des donnees dans un tableau associés à une variable
- * CEDRE
+/**
+ * \brief Ajoute une partie des donnees dans un tableau associés à une variable
+ * PDM
  *
- * arguments :
- *   num_var_cedre         <-- Numéro de variable CEDRE
- *   i_part                <-- indice de partition
- *   n_composantes         <-- Nombre de composantes pour chaque donnee
- *   n_donnees             <-- Nombre de donnees a lire
- *   indirection           <-- Indirection de redistribition des donnees
- *   donnees               <-- Donnees a écrire
+ * \param [in] num_var_cedre          Numéro de variable PDM
+ * \param [in] i_part                 indice de partition
+ * \param [in] n_composantes          Nombre de composantes pour chaque donnee
+ * \param [in] n_donnees              Nombre de donnees a lire
+ * \param [in] indirection            Indirection de redistribition des donnees
+ * \param [in] donnees                Donnees a écrire
  *
- *----------------------------------------------------------------------------*/
-
-void PROCF (pdm_io_tab_ecr_ajout_donnees, PDM_IO_TAB_ECR_AJOUT_DONNEES)
-(const PDM_l_num_t  *num_var_cedre,
- const PDM_l_num_t  *i_part,
- const PDM_l_num_t  *n_composantes,
- const PDM_l_num_t  *n_donnees,
- const PDM_g_num_t *indirection,
- void                  *donnees
- )
-{
-  PDM_io_tab_ecr_ajout_donnees(*num_var_cedre,
-                                 *i_part,
-                                 n_composantes,
-                                 *n_donnees,
-                                 indirection,
-                                 donnees);
-}
+ */
 
 void PDM_io_tab_ecr_ajout_donnees
-(const PDM_l_num_t            num_var_cedre,
+(
+ const PDM_l_num_t            num_var_cedre,
  const PDM_l_num_t            i_part,
  const PDM_l_num_t           *n_composantes,
  const PDM_l_num_t            n_donnees,
- const PDM_g_num_t          *indirection,
- void                           *donnees
+ const PDM_g_num_t           *indirection,
+ void                        *donnees
  )
 {
   _ajout_donnees(num_var_cedre,
@@ -341,46 +301,22 @@ void PDM_io_tab_ecr_ajout_donnees
                  donnees);
 }
 
-/*----------------------------------------------------------------------------
- * Definition d'une variable en ecriture
+/**
+ * \brief Definition d'une variable en ecriture
  *
- *  arguments :
- *   num_var_cedre         <-- Numéro de variable CEDRE
- *   num_indirection_cedre <-- Numéro d'indirection CEDRE
- *   t_n_composantes       <-- Type de tailles composantes
- *                             (PDM_IO_N_COMPOSANTE_CONSTANT
- *                           ou PDM_IO_N_COMPOSANTE_VARIABLE)
- *   n_composantes         <-- Nombre de composantes pour chaque donnee
- *   taille_donnee         <-- Taille unitaire de la donnnee
+ * \param [in] num_var_cedre          Numéro de variable PDM
+ * \param [in] num_indirection_cedre  Numéro d'indirection PDM
+ * \param [in] t_n_composantes        Type de tailles composantes (PDM_IO_N_COMPOSANTE_CONSTANT ou PDM_IO_N_COMPOSANTE_VARIABLE)
+ * \param [in] n_composantes          Nombre de composantes pour chaque donnee
+ * \param [in] taille_donnee          Taille unitaire de la donnnee
  *
- *----------------------------------------------------------------------------*/
-
-void PROCF (pdm_io_tab_ecr_def_var, PDM_IO_TAB_ECR_DEF_VAR)
-(const PDM_l_num_t  *num_var_cedre,
- const PDM_l_num_t  *num_indirection_cedre,
- const int             *t_n_composantes,
- const PDM_l_num_t  *n_composantes,
- const PDM_l_num_t  *taille_donnee
- )
-{
-  PDM_io_n_composantes_t _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
-
-  if (*t_n_composantes == 0)
-    _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
-  else if (*t_n_composantes == 1)
-    _t_n_composantes = PDM_IO_N_COMPOSANTE_VARIABLE;
-
-  PDM_io_tab_ecr_def_var(*num_var_cedre,
-                           *num_indirection_cedre,
-                           _t_n_composantes,
-                           *n_composantes,
-                           *taille_donnee);
-}
+ */
 
 void PDM_io_tab_ecr_def_var
-(const PDM_l_num_t            num_var_cedre,
+(
+ const PDM_l_num_t            num_var_cedre,
  const PDM_l_num_t            num_indirection_cedre,
- const PDM_io_n_composantes_t  t_n_composantes,
+ const PDM_io_n_composantes_t t_n_composantes,
  const PDM_l_num_t            n_composantes,
  const PDM_l_num_t            taille_donnee
  )
@@ -393,21 +329,17 @@ void PDM_io_tab_ecr_def_var
 }
 
 
-/*----------------------------------------------------------------------------
- * Finalise une phase d'écriture parallèle de tableaux de données associées
+/**
+ * \brief Finalise une phase d'écriture parallèle de tableaux de données associées
  * aux numéros de variables CEDRE. Cette fonction déclenche réellement
  * les écritures
  *
- *----------------------------------------------------------------------------*/
-
-void PROCF (pdm_io_tab_ecr_fin, PDM_IO_TAB_ECR_FIN)
-(void)
-{
-  PDM_io_tab_ecr_fin();
-}
+ */
 
 void PDM_io_tab_ecr_fin
-(void)
+(
+ void
+ )
 {
   if (PDM_io_tabs == NULL) {
     PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_tab_ecr_fin :"
@@ -689,47 +621,27 @@ void PDM_io_tab_ecr_fin
 }
 
 
-/*----------------------------------------------------------------------------
- * Initialise une phase de lecture parallèle de tableaux de données associées
- * aux numéros de variables CEDRE
+/**
+ * \brief Initialise une phase de lecture parallèle de tableaux de données associées
+ * aux numéros de variables PDM
  * Chaque tableau a ses propres caractéristiques :
  *         - taille de données
  *         - nombre de donnée
  *         - indirection (numérotation absolue)
  *
- * arguments :
- *   unite             <-- Unite du fichier
- *   t_rangement       <-- Type de rangement
- *   num_var_cedre_max <-- Numéro max de variable CEDRE
- *   n_partition_local <-- Nombre de partitions locales
+ * \param [in] unite              Unite du fichier
+ * \param [in] t_rangement        Type de rangement
+ * \param [in] num_var_cedre_max  Numéro max de variable PDM
+ * \param [in] n_partition_local  Nombre de partitions locales
  *
- *----------------------------------------------------------------------------*/
-
-void PROCF (pdm_io_tab_lec_debut, PDM_IO_TAB_LEC_DEBUT)
-(const PDM_l_num_t *unite,
- const int            *t_rangement,
- const PDM_l_num_t *num_var_cedre_max,
- const PDM_l_num_t *n_partition_local
-)
-{
-  PDM_io_rangement_t __t_rangement = PDM_IO_RANGEMENT_BLOC;
-
-  if (*t_rangement == 0)
-    __t_rangement = PDM_IO_RANGEMENT_BLOC;
-  else if (*t_rangement == 1)
-    __t_rangement = PDM_IO_RANGEMENT_ENTRELACE;
-
-  PDM_io_tab_lec_debut(*unite,
-                         __t_rangement,
-                         *num_var_cedre_max,
-                         *n_partition_local);
-}
+ */
 
 void PDM_io_tab_lec_debut
-(const PDM_l_num_t       unite,
- const PDM_io_rangement_t t_rangement,
- const PDM_l_num_t       num_var_cedre_max,
- const PDM_l_num_t       n_partition_local
+(
+ PDM_io_fichier_t         *unite,
+ const PDM_io_rangement_t  t_rangement,
+ const PDM_l_num_t         num_var_cedre_max,
+ const PDM_l_num_t         n_partition_local
 )
 {
   if (PDM_io_tabs == NULL) {
@@ -752,50 +664,26 @@ void PDM_io_tab_lec_debut
   }
 }
 
-/*----------------------------------------------------------------------------
- * Ajoute une partie des donnees dans un tableau associés à une variable
- * CEDRE
+/**
+ * \brief Ajoute une partie des donnees dans un tableau associés à une variable PDM
  *
- * arguments :
- *   num_var_cedre         <-- Numéro de variable CEDRE
- *   num_indirection_cedre <-- Numéro d'indirection CEDRE
- *   i_part                <-- indice de partition
- *   t_n_composantes       <-- Type de tailles composantes
- *                             (PDM_IO_N_COMPOSANTE_CONSTANT
- *                           ou PDM_IO_N_COMPOSANTE_VARIABLE)
- *   n_composantes         <-- Nombre de composantes pour chaque donnee
- *   taille_donnee         <-- Taille unitaire de la donnnee
- *   n_donnees             <-- Nombre de donnees a lire
- *   indirection           <-- Indirection de redistribition des donnees
- *   donnees               <-- Donnees a écrire
+ * \param [in] num_var_cedre          Numéro de variable PDM
+ * \param [in] i_part                 indice de partition
+ * \param [in] n_composantes          Nombre de composantes pour chaque donnee
+ * \param [in] n_donnees              Nombre de donnees a lire
+ * \param [in] indirection            Indirection de redistribition des donnees
+ * \param [in] donnees                Donnees a écrire
  *
- *----------------------------------------------------------------------------*/
-
-void PROCF (pdm_io_tab_lec_ajout_donnees, PDM_IO_TAB_LEC_AJOUT_DONNEES)
-(const PDM_l_num_t  *num_var_cedre,
- const PDM_l_num_t  *i_part,
- const PDM_l_num_t  *n_composantes,
- const PDM_l_num_t  *n_donnees,
- const PDM_g_num_t *indirection,
- void                  *donnees
- )
-{
-
-  PDM_io_tab_lec_ajout_donnees(*num_var_cedre,
-                                 *i_part,
-                                 n_composantes,
-                                 *n_donnees,
-                                 indirection,
-                                 donnees);
-}
+ */
 
 void PDM_io_tab_lec_ajout_donnees
-(const PDM_l_num_t            num_var_cedre,
+(
+ const PDM_l_num_t            num_var_cedre,
  const PDM_l_num_t            i_part,
  const PDM_l_num_t           *n_composantes,
  const PDM_l_num_t            n_donnees,
- const PDM_g_num_t          *indirection,
- void                           *donnees
+ const PDM_g_num_t           *indirection,
+ void                        *donnees
  )
 {
   _ajout_donnees(num_var_cedre,
@@ -806,46 +694,22 @@ void PDM_io_tab_lec_ajout_donnees
                  donnees);
 }
 
-/*----------------------------------------------------------------------------
- * Definition d'une variable en ecriture
+/**
+ * \brief Definition d'une variable en ecriture
  *
- *  arguments :
- *   num_var_cedre         <-- Numéro de variable CEDRE
- *   num_indirection_cedre <-- Numéro d'indirection CEDRE
- *   t_n_composantes       <-- Type de tailles composantes
- *                             (PDM_IO_N_COMPOSANTE_CONSTANT
- *                           ou PDM_IO_N_COMPOSANTE_VARIABLE)
- *   n_composantes         <-- Nombre de composantes pour chaque donnee
- *   taille_donnee         <-- Taille unitaire de la donnnee
+ * \param [in] num_var_cedre          Numéro de variable PDM
+ * \param [in] num_indirection_cedre  Numéro d'indirection PDM
+ * \param [in] t_n_composantes        Type de tailles composantes (PDM_IO_N_COMPOSANTE_CONSTANT ou PDM_IO_N_COMPOSANTE_VARIABLE)
+ * \param [in] n_composantes          Nombre de composantes pour chaque donnee
+ * \param [in] taille_donnee          Taille unitaire de la donnnee
  *
- *----------------------------------------------------------------------------*/
-
-void PROCF (pdm_io_tab_lec_def_var, PDM_IO_TAB_LEC_DEF_VAR)
-(const PDM_l_num_t  *num_var_cedre,
- const PDM_l_num_t  *num_indirection_cedre,
- const int             *t_n_composantes,
- const PDM_l_num_t  *n_composantes,
- const PDM_l_num_t  *taille_donnee
- )
-{
-  PDM_io_n_composantes_t _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
-
-  if (*t_n_composantes == 0)
-    _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
-  else if (*t_n_composantes == 1)
-    _t_n_composantes = PDM_IO_N_COMPOSANTE_VARIABLE;
-
-  PDM_io_tab_lec_def_var(*num_var_cedre,
-                           *num_indirection_cedre,
-                           _t_n_composantes,
-                           *n_composantes,
-                           *taille_donnee);
-}
+ */
 
 void PDM_io_tab_lec_def_var
-(const PDM_l_num_t            num_var_cedre,
+(
+ const PDM_l_num_t            num_var_cedre,
  const PDM_l_num_t            num_indirection_cedre,
- const PDM_io_n_composantes_t  t_n_composantes,
+ const PDM_io_n_composantes_t t_n_composantes,
  const PDM_l_num_t            n_composantes,
  const PDM_l_num_t            taille_donnee
  )
@@ -857,21 +721,17 @@ void PDM_io_tab_lec_def_var
            taille_donnee);
 }
 
-/*----------------------------------------------------------------------------
- * Finalise une phase de lecture parallèle de tableaux de données associées
+/**
+ * \brief Finalise une phase de lecture parallèle de tableaux de données associées
  * aux numéros de variables CEDRE. Cette fonction déclenche réellement
  * les écritures
  *
- *----------------------------------------------------------------------------*/
-
-void PROCF (pdm_io_tab_lec_fin, PDM_IO_TAB_LEC_FIN)
-(void)
-{
-  PDM_io_tab_lec_fin();
-}
+ */
 
 void PDM_io_tab_lec_fin
-(void)
+(
+ void
+ )
 {
   if (PDM_io_tabs == NULL) {
     PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_tab_lec_fin :"

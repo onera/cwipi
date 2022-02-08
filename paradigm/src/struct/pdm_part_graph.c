@@ -390,7 +390,7 @@ PDM_part_graph_compute_from_face_cell
   int           **cell_cellCompressed
 )
 {
-  int *cell_cellN = PDM_array_zeros_int(part_ini->n_cell);
+  int *cell_cell_n = PDM_array_zeros_int(part_ini->n_cell);
 
   int *cell_cell = PDM_array_const_int(part_ini->cell_face_idx[part_ini->n_cell], -1);
 
@@ -400,24 +400,25 @@ PDM_part_graph_compute_from_face_cell
   }
 
   for (int i = 0; i < part_ini->n_face; i++) {
-    int iCell1 = PDM_ABS (part_ini->face_cell[2*i    ]);
-    int iCell2 = PDM_ABS (part_ini->face_cell[2*i + 1]);
+    int i_cell1 = PDM_ABS (part_ini->face_cell[2*i    ]);
+    int i_cell2 = PDM_ABS (part_ini->face_cell[2*i + 1]);
     //Only the non-boundary faces are stored
-    if (iCell2 > 0) {
-      int idx1 = cell_cell_idx[iCell1-1] + cell_cellN[iCell1-1];
-      cell_cell[idx1] = iCell2;
-      cell_cellN[iCell1-1] += 1;
+    if (i_cell1 > 0 && i_cell2 > 0) {
+      int idx1 = cell_cell_idx[i_cell1-1] + cell_cell_n[i_cell1-1];
+      cell_cell[idx1] = i_cell2 ;
+      cell_cell_n[i_cell1-1] += 1;
 
-      int idx2 = cell_cell_idx[iCell2-1] + cell_cellN[iCell2-1];
-      cell_cell[idx2] = iCell1;
-      cell_cellN[iCell2-1] += 1;
+      int idx2 = cell_cell_idx[i_cell2-1] + cell_cell_n[i_cell2-1];
+      cell_cell[idx2] = i_cell1 ;
+      cell_cell_n[i_cell2-1] += 1;
     }
+
   }
 
   if (0 == 1) {
-    PDM_printf("Content of cell_cellN after looping over cell_face: ");
+    PDM_printf("Content of cell_cell_n after looping over cell_face: ");
     for(int i = 0; i < part_ini->n_cell; i++) {
-      PDM_printf(" %d ", cell_cellN[i]);
+      PDM_printf(" %d ", cell_cell_n[i]);
     }
     PDM_printf("\n");
 
@@ -430,7 +431,7 @@ PDM_part_graph_compute_from_face_cell
 
   //cell_cell_idx is rebuilt
   assert((*cell_cell_idxCompressed) == NULL);
-  *cell_cell_idxCompressed = PDM_array_new_idx_from_sizes_int(cell_cellN, part_ini->n_cell);
+  *cell_cell_idxCompressed = PDM_array_new_idx_from_sizes_int(cell_cell_n, part_ini->n_cell);
 
   //We compress the dual graph since cell_cell_idx was built from cell_face_idx
   //We have then n_face elements in cell_cell whereas it needs to be composed of n_cell elements
@@ -463,7 +464,7 @@ PDM_part_graph_compute_from_face_cell
 
   /* Free temporary arrays*/
 
-  free(cell_cellN);
+  free(cell_cell_n);
   free(cell_cell);
   free(cell_cell_idx);
 
@@ -543,7 +544,7 @@ PDM_part_graph_split_bis
 (
  int         method,
  int         n_part,
- int         graphSize,
+ int         graph_size,
  int        *cell_cell_idx,
  int        *cell_cell,
  int        *cell_weight,
@@ -551,7 +552,7 @@ PDM_part_graph_split_bis
  int       **cell_part
 )
 {
-  *cell_part = PDM_array_zeros_int(graphSize);
+  *cell_part = PDM_array_zeros_int(graph_size);
 
   switch(method) {
   case 1:
@@ -593,7 +594,7 @@ PDM_part_graph_split_bis
 
       if (n_part < 8) {
 
-        PDM_METIS_PartGraphRecursive (&(graphSize),
+        PDM_METIS_PartGraphRecursive (&(graph_size),
                                       &ncon,
                                       cell_cell_idx,
                                       cell_cell,
@@ -608,7 +609,7 @@ PDM_part_graph_split_bis
 
       else {
 
-        PDM_METIS_PartGraphKway (&(graphSize),
+        PDM_METIS_PartGraphKway (&(graph_size),
                                  &ncon,
                                  cell_cell_idx,
                                  cell_cell,
@@ -629,7 +630,7 @@ PDM_part_graph_split_bis
       // int time_limit = 0;
       // int seed  = 0;
       // int mode = 2;
-      // PDM_kaffpa(&(graphSize),
+      // PDM_kaffpa(&(graph_size),
       //            NULL,
       //            cell_cell_idx,
       //            NULL,
@@ -643,7 +644,7 @@ PDM_part_graph_split_bis
 
       if (0 == 1) {
         PDM_printf("\n Contenu de cell_part : \n");
-        for (int i = 0; i < graphSize; i++) {
+        for (int i = 0; i < graph_size; i++) {
           PDM_printf(" %d ", (*cell_part)[i]);
         }
         PDM_printf("\n");
@@ -671,7 +672,7 @@ PDM_part_graph_split_bis
 
       int check = 0;
 
-      PDM_SCOTCH_part (graphSize,
+      PDM_SCOTCH_part (graph_size,
                        cell_cell_idx,
                        cell_cell,
                        cell_weight,

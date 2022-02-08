@@ -401,7 +401,7 @@ static int _set_rank_has_mesh
 static void
 _get_connectivity
 (
- int            ppartId,
+ PDM_part_t    *ppart,
  int            n_part,
  int          **nFace,
  int         ***faceEdgeIdx,
@@ -432,7 +432,7 @@ _get_connectivity
   *vtxCoord = (double **) malloc(sizeof(double *) * n_part);
   *vtxLNToGN = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
 
-   int id_ppart = ppartId;
+   // int id_ppart = ppartId;
 
   for (int ipart = 0; ipart < n_part; ipart++) {
 
@@ -447,7 +447,7 @@ _get_connectivity
     int _sEdgeGroup;
     int _nEdgeGroup2;
 
-    PDM_part_part_dim_get (id_ppart,
+    PDM_part_part_dim_get (ppart,
                            ipart,
                            &_nFace,
                            &_nEdge,
@@ -479,7 +479,7 @@ _get_connectivity
     int         *_edgeGroup;
     PDM_g_num_t *_edgeGroupLNToGN;
 
-    PDM_part_part_val_get (id_ppart,
+    PDM_part_part_val_get (ppart,
                            ipart,
                            &_faceTag,
                            &_faceEdgeIdx,
@@ -729,41 +729,40 @@ _create_split_mesh
     /*
      *  Split mesh
      */
-    int ppartId;
+    // int ppartId;
 
     int nPropertyCell = 0;
     int *renum_properties_cell = NULL;
     int nPropertyFace = 0;
     int *renum_properties_face = NULL;
 
-    PDM_part_create (&ppartId,
-                     pdm_mpi_comm,
-                     method,
-                     "PDM_PART_RENUM_CELL_NONE",
-                     "PDM_PART_RENUM_FACE_NONE",
-                     nPropertyCell,
-                     renum_properties_cell,
-                     nPropertyFace,
-                     renum_properties_face,
-                     n_part,
-                     dNFace,
-                     dNEdge,
-                     dNVtx,
-                     nEdgeGroup,
-                     NULL,
-                     NULL,
-                     NULL,
-                     NULL,
-                     have_dCellPart,
-                     dCellPart,
-                     dEdgeFace,
-                     dEdgeVtxIdx,
-                     dEdgeVtx,
-                     NULL,
-                     dVtxCoord,
-                     NULL,
-                     dEdgeGroupIdx,
-                     dEdgeGroup);
+    PDM_part_t *ppart = PDM_part_create (pdm_mpi_comm,
+                                         method,
+                                         "PDM_PART_RENUM_CELL_NONE",
+                                         "PDM_PART_RENUM_FACE_NONE",
+                                         nPropertyCell,
+                                         renum_properties_cell,
+                                         nPropertyFace,
+                                         renum_properties_face,
+                                         n_part,
+                                         dNFace,
+                                         dNEdge,
+                                         dNVtx,
+                                         nEdgeGroup,
+                                         NULL,
+                                         NULL,
+                                         NULL,
+                                         NULL,
+                                         have_dCellPart,
+                                         dCellPart,
+                                         dEdgeFace,
+                                         dEdgeVtxIdx,
+                                         dEdgeVtx,
+                                         NULL,
+                                         dVtxCoord,
+                                         NULL,
+                                         dEdgeGroupIdx,
+                                         dEdgeGroup);
 
     free (dCellPart);
 
@@ -777,7 +776,7 @@ _create_split_mesh
     free (dEdgeGroupIdx);
     free (dEdgeGroup);
 
-    _get_connectivity (ppartId,
+    _get_connectivity (ppart,
                        n_part,
                        nFace,
                        faceEdgeIdx,
@@ -792,7 +791,7 @@ _create_split_mesh
                        vtxCoord,
                        vtxLNToGN);
 
-    PDM_part_free (ppartId);
+    PDM_part_free (ppart);
   }
 
   else {

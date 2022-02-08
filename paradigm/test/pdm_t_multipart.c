@@ -65,7 +65,7 @@ _read_args(int            argc,
            PDM_g_num_t  *n_vtx_seg,
            int           *n_part,
            int           *post,
-	         int           *method
+           int           *method
            )
 {
   int i = 1;
@@ -174,9 +174,9 @@ int main(int argc, char *argv[])
   for (int i_zone = 0; i_zone < n_zone; i_zone++){
     n_part_zones[i_zone] = n_part;
   }
-  int mpart_id = PDM_multipart_create(n_zone, n_part_zones, PDM_FALSE,
-                                      method, PDM_PART_SIZE_HOMOGENEOUS,
-                                      NULL, comm, PDM_OWNERSHIP_KEEP);
+  PDM_multipart_t *mpart_id = PDM_multipart_create(n_zone, n_part_zones, PDM_FALSE,
+						   method, PDM_PART_SIZE_HOMOGENEOUS,
+						   NULL, comm, PDM_OWNERSHIP_KEEP);
   PDM_multipart_set_reordering_options(mpart_id, -1, "PDM_PART_RENUM_CELL_CUTHILL", NULL, "PDM_PART_RENUM_FACE_LEXICOGRAPHIC");
   if (n_zone > 1)
     PDM_multipart_set_reordering_options(mpart_id,  1, "PDM_PART_RENUM_CELL_NONE", NULL, "PDM_PART_RENUM_FACE_NONE");
@@ -316,16 +316,16 @@ int main(int argc, char *argv[])
   {
     /* Prepare writer */
     int *geom_ids = (int *) malloc(n_zone * sizeof(int));
-    int id_cs = PDM_writer_create("Ensight",
-                                  PDM_WRITER_FMT_ASCII,
-                                  PDM_WRITER_TOPO_CONSTANTE,
-                                  PDM_WRITER_OFF,
-                                  "test_mpart_cube",
-                                  "mpart",
-                                  PDM_MPI_COMM_WORLD,
-                                  PDM_IO_ACCES_MPI_SIMPLE,
-                                  1.,
-                                  NULL);
+    PDM_writer_t *id_cs = PDM_writer_create("Ensight",
+                                            PDM_WRITER_FMT_ASCII,
+                                            PDM_WRITER_TOPO_CONSTANTE,
+                                            PDM_WRITER_OFF,
+                                            "test_mpart_cube",
+                                            "mpart",
+                                            PDM_MPI_COMM_WORLD,
+                                            PDM_IO_ACCES_MPI_SIMPLE,
+                                            1.,
+                                            NULL);
     for (int i_zone = 0; i_zone < n_zone; i_zone++){
       geom_ids[i_zone] = PDM_writer_geom_create(id_cs,
                                                 "mesh",
@@ -495,24 +495,24 @@ int main(int argc, char *argv[])
 
     if (i_rank==0) PDM_printf("Write variables\n");
     PDM_writer_var_write(id_cs, id_var_cell_id    );
-    PDM_writer_var_free (id_cs, id_var_cell_id    );
+    // PDM_writer_var_free (id_cs, id_var_cell_id    );
     PDM_writer_var_write(id_cs, id_var_gpart_id   );
-    PDM_writer_var_free (id_cs, id_var_gpart_id   );
+    // PDM_writer_var_free (id_cs, id_var_gpart_id   );
     PDM_writer_var_write(id_cs, id_var_lpart_id   );
-    PDM_writer_var_free (id_cs, id_var_lpart_id   );
+    // PDM_writer_var_free (id_cs, id_var_lpart_id   );
     PDM_writer_var_write(id_cs, id_var_proc_id    );
-    PDM_writer_var_free (id_cs, id_var_proc_id    );
+    // PDM_writer_var_free (id_cs, id_var_proc_id    );
     PDM_writer_var_write(id_cs, id_var_opp_proc_id);
-    PDM_writer_var_free (id_cs, id_var_opp_proc_id);
+    // PDM_writer_var_free (id_cs, id_var_opp_proc_id);
     PDM_writer_var_write(id_cs, id_var_opp_part_id);
-    PDM_writer_var_free (id_cs, id_var_opp_part_id);
+    // PDM_writer_var_free (id_cs, id_var_opp_part_id);
 
     PDM_writer_step_end(id_cs);
 
-    for (int i_zone = 0; i_zone < n_zone; i_zone++){
-      PDM_writer_geom_data_free(id_cs, geom_ids[i_zone]);
-      PDM_writer_geom_free(id_cs, geom_ids[i_zone]);
-    }
+    // for (int i_zone = 0; i_zone < n_zone; i_zone++){
+    //   PDM_writer_geom_data_free(id_cs, geom_ids[i_zone]);
+    //   PDM_writer_geom_free(id_cs, geom_ids[i_zone]);
+    // }
     free(geom_ids);
     PDM_writer_free(id_cs);
     for (int i_part = 0; i_part < tn_part_proc; i_part++){

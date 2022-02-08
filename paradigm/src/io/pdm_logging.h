@@ -142,6 +142,15 @@ PDM_log_trace_connectivity_int
  const char*        header
 );
 
+void
+PDM_log_trace_connectivity_int2
+(
+ const int         *array_idx,
+ const int         *array,
+ const PDM_g_num_t *g_num,
+ const int          larray,
+ const char*        header
+);
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

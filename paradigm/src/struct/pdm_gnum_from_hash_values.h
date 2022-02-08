@@ -44,6 +44,9 @@ extern "C" {
 /*============================================================================
  * Type definitions
  *============================================================================*/
+
+typedef struct _pdm_gnum_from_hv_t PDM_gnum_from_hv_t;
+
 typedef int (*gnum_from_hv_compare)(const void* a, const void* b, void* );
 typedef int (*gnum_from_hv_equal  )(const void* a, const void* b, void* );
 
@@ -64,9 +67,10 @@ typedef int (*gnum_from_hv_equal  )(const void* a, const void* b, void* );
  * \param [in]   tolerance    Geometric tolerance (used if merge double points is activated)
  * \param [in]   comm         PDM_MPI communicator
  *
- * \return     Identifier
+ * \return     Pointer to \ref PDM_gnum_from_hv_t object
  */
-int
+
+PDM_gnum_from_hv_t *
 PDM_gnum_from_hash_values_create
 (
  const int            n_part,
@@ -77,21 +81,12 @@ PDM_gnum_from_hash_values_create
  const PDM_MPI_Comm   comm
 );
 
-// void
-// PROCF (pdm_gnum_from_hash_values_create, PDM_GNUM_FROM_HVALUES_CREATE)
-// (
-//  const int          *n_part,
-//  const int          *equilibrate,
-//  const size_t       *s_data,
-//  const PDM_MPI_Fint *fcomm,
-//        int          *id
-// );
 
 /**
  *
  * \brief Set hash values for one partition
  *
- * \param [in]   id           Identifier
+ * \param [in]   gnum_from_hv Pointer to \ref PDM_gnum_from_hv_t object
  * \param [in]   i_part       Current partition
  * \param [in]   n_elts       Number of elements
  * \param [in]   part_hkey    For each elements the hash value associated
@@ -103,7 +98,7 @@ PDM_gnum_from_hash_values_create
 void
 PDM_gnum_set_hash_values
 (
- const int            id,
+ PDM_gnum_from_hv_t  *gnum_from_hv,
  const int            i_part,
  const int            n_elts,
  const size_t        *part_hkeys,
@@ -111,100 +106,70 @@ PDM_gnum_set_hash_values
  const unsigned char *part_hdata
 );
 
-void
-PROCF (pdm_gnum_set_hash_values, PDM_GNUM_SET_FROM_HASH_VALUES)
-(
- const int           *id,
- const int           *i_part,
- const int           *n_elts,
- const size_t        *part_hkeys,
- const int           *part_hstri,
- const unsigned char *part_hdata
-);
 
 /**
  *
  * \brief Compute
  *
- * \param [in]   id           Identifier
+ * \param [in]   gnum_from_hv Pointer to \ref PDM_gnum_from_hv_t object
  *
  */
 
 void
 PDM_gnum_from_hv_compute
 (
- const int id
-);
-
-
-void
-PROCF (PDM_gnum_from_hv_compute, PDM_GNUM_FROM_HV_COMPUTE)
-(
- const int *id
+ PDM_gnum_from_hv_t *gnum_from_hv
 );
 
 
 /**
  *
- * \brief Set from coordinates
+ * \brief Get the global ids for the current partition
  *
- * \param [in]   id           Identifier
+ * \param [in]   gnum_from_hv Pointer to \ref PDM_gnum_from_hv_t object
  * \param [in]   i_part       Current partition
- * \param [in]   n_elts       Number of elements
- * \param [in]   coords       Coordinates (size = 3 * \ref n_elts)
+ *
+ * \return  Array of global ids for the current partition
  *
  */
-
 
 PDM_g_num_t *
 PDM_gnum_from_hv_get
 (
- const int id,
- const int i_part
+ PDM_gnum_from_hv_t *gnum_from_hv,
+ const int           i_part
 );
 
-void
-PROCF (pdm_gnum_from_hv_get, PDM_GNUM_FROM_HV_GET)
-(
- const int *id,
- const int *i_part,
- PDM_g_num_t *gnum
-);
 
 /**
  *
  * \brief Dump elapsed an CPU time
  *
- * \param [in]   id           Identifier
+ * \param [in]   gnum_from_hv Pointer to \ref PDM_gnum_from_hv_t object
  *
  */
 
 void
 PDM_gnum_from_hv_dump_times
 (
- const int id
+ PDM_gnum_from_hv_t *gnum_from_hv
 );
+
 
 /**
  *
  * \brief Free
  *
- * \param [in]   id           Identifier
+ * \param [in]   gnum_from_hv Pointer to \ref PDM_gnum_from_hv_t object
+ * \param [in]   partial      1 to free partially, 0 else
  *
  */
 
 void
 PDM_gnum_from_hv_free
 (
- const int id,
- const int partial
-);
-
-void
-PROCF (pdm_gnum_from_hv_free, PDM_GNUM_FROM_HV_FREE)
-(
- const int *id,
- const int *partial
+ PDM_gnum_from_hv_t *gnum_from_hv,
+ const int           partial
 );
 
 

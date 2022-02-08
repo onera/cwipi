@@ -1385,7 +1385,7 @@ PDM_dmesh_nodal_transfer_to_new_dmesh_nodal
     PDM_g_num_t **tmp_delmt_vtx_new = NULL;
     PDM_block_to_part_exch2 (btp_update_elmts_vtx,
                              sizeof(PDM_g_num_t),
-                             PDM_STRIDE_CST,
+                             PDM_STRIDE_CST_INTERLACED,
                              &stride_one,
                     (void *) blk_parent_to_new_vtx_gnum,
                              NULL,
@@ -1456,7 +1456,7 @@ PDM_dmesh_nodal_transfer_to_new_dmesh_nodal_gen
     PDM_g_num_t **tmp_delmt_vtx_new = NULL;
     PDM_block_to_part_exch2 (btp_update_elmts_vtx,
                              sizeof(PDM_g_num_t),
-                             PDM_STRIDE_VAR,
+                             PDM_STRIDE_VAR_INTERLACED,
                              dvtx_old_to_n,
                     (void *) blk_parent_to_new_vtx_gnum,
                              &tmp_delmt_vtx_new_n,

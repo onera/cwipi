@@ -43,6 +43,9 @@
 
 cdef extern from "pdm_part_coarse_mesh.h":
 
+    ctypedef struct PDM_coarse_mesh_t:
+      pass
+
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     # > Wrapping of Ppart Structure
 
@@ -51,134 +54,133 @@ cdef extern from "pdm_part_coarse_mesh.h":
 
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     # > Wrapping of function
-    void PDM_part_coarse_mesh_create(int           *cmId,
-                                     PDM_MPI_Comm  comm,
-                                     char          *method,
-                                     char          *renum_cell_method,
-                                     char          *renum_face_method,
-                                     int           n_property_cell,
-                                     int           *renum_properties_cell,
-                                     int           n_property_face,
-                                     int           *renum_properties_face,
-                                     int           n_part,
-                                     int           nTPart,
-                                     int           n_face_group,
-                                     int           have_cellTag,
-                                     int           have_faceTag,
-                                     int           have_vtxTag,
-                                     int           have_cellWeight,
-                                     int           have_faceWeight,
-                                     int           have_faceGroup)
+    PDM_coarse_mesh_t * PDM_part_coarse_mesh_create(PDM_MPI_Comm  comm,
+                                                    char         *method,
+                                                    char         *renum_cell_method,
+                                                    char         *renum_face_method,
+                                                    int           n_property_cell,
+                                                    int          *renum_properties_cell,
+                                                    int           n_property_face,
+                                                    int          *renum_properties_face,
+                                                    int           n_part,
+                                                    int           nTPart,
+                                                    int           n_face_group,
+                                                    int           have_cellTag,
+                                                    int           have_faceTag,
+                                                    int           have_vtxTag,
+                                                    int           have_cellWeight,
+                                                    int           have_faceWeight,
+                                                    int           have_faceGroup)
 
-    void PDM_part_coarse_mesh_input(int           cmId,
-                                    int           iPart,
-                                    int           nCoarseCell,
-                                    int           nCell,
-                                    int           nFace,
-                                    int           nVertex,
-                                    int           n_face_group,
-                                    int           nFacePartBound,
-                                    int          *cellFaceIdx,
-                                    int          *cellFace,
-                                    int          *cellTag,
-                                    int          *cellWeight,
-                                    int          *faceWeight,
-                                    PDM_g_num_t  *cellLNToGN,
-                                    int          *faceCell,
-                                    int          *faceVtxIdx,
-                                    int          *faceVtx,
-                                    int          *faceTag,
-                                    PDM_g_num_t  *faceLNToGN,
-                                    double       *vtxCoord,
-                                    int          *vtxTag,
-                                    PDM_g_num_t  *vtxLNToGN,
-                                    int          *faceGroupIdx,
-                                    int          *faceGroup,
-                                    PDM_g_num_t  *faceGroupLNToGN,
-                                    int          *facePartBoundProcIdx,
-                                    int          *facePartBoundPartIdx,
-                                    int          *facePartBound)
+    void PDM_part_coarse_mesh_input(PDM_coarse_mesh_t *cm,
+                                    int                iPart,
+                                    int                nCoarseCell,
+                                    int                nCell,
+                                    int                nFace,
+                                    int                nVertex,
+                                    int                n_face_group,
+                                    int                nFacePartBound,
+                                    int               *cellFaceIdx,
+                                    int               *cellFace,
+                                    int               *cellTag,
+                                    int               *cellWeight,
+                                    int               *faceWeight,
+                                    PDM_g_num_t       *cellLNToGN,
+                                    int               *faceCell,
+                                    int               *faceVtxIdx,
+                                    int               *faceVtx,
+                                    int               *faceTag,
+                                    PDM_g_num_t       *faceLNToGN,
+                                    double            *vtxCoord,
+                                    int               *vtxTag,
+                                    PDM_g_num_t       *vtxLNToGN,
+                                    int               *faceGroupIdx,
+                                    int               *faceGroup,
+                                    PDM_g_num_t       *faceGroupLNToGN,
+                                    int               *facePartBoundProcIdx,
+                                    int               *facePartBoundPartIdx,
+                                    int               *facePartBound)
 
-    void PDM_part_coarse_mesh_compute(int cmId)
+    void PDM_part_coarse_mesh_compute(PDM_coarse_mesh_t *cm)
 
-    void PDM_part_coarse_mesh_part_dim_get(int  cmId,
-                                           int  iPart,
-                                           int *nCell,
-                                           int *nFace,
-                                           int *nFacePartBound,
-                                           int *nVertex,
-                                           int *nProc,
-                                           int *nTPart,
-                                           int *n_face_group,
-                                           int *sCellFace,
-                                           int *sFaceVtx,
-                                           int *sFaceGroup,
-                                           int *sCoarseCellToFineCell)
+    void PDM_part_coarse_mesh_part_dim_get(PDM_coarse_mesh_t *cm,
+                                           int                iPart,
+                                           int               *nCell,
+                                           int               *nFace,
+                                           int               *nFacePartBound,
+                                           int               *nVertex,
+                                           int               *nProc,
+                                           int               *nTPart,
+                                           int               *n_face_group,
+                                           int               *sCellFace,
+                                           int               *sFaceVtx,
+                                           int               *sFaceGroup,
+                                           int               *sCoarseCellToFineCell)
 
-    void PDM_part_coarse_mesh_part_get(int            cmId,
-                                       int            iPart,
-                                       int          **cellFaceIdx,
-                                       int          **cellFace,
-                                       int          **cellTag,
-                                       PDM_g_num_t  **cellLNToGN,
-                                       int          **cellInitCellIdx,
-                                       int          **cellInitCell,
-                                       int          **faceCell,
-                                       int          **faceVtxIdx,
-                                       int          **faceVtx,
-                                       int          **faceTag,
-                                       PDM_g_num_t  **faceLNToGN,
-                                       int          **faceGroupInitFaceGroup,
-                                       int          **faceInitFace,
-                                       double       **vtxCoord,
-                                       int          **vtxTag,
-                                       PDM_g_num_t **vtxLNToGN,
-                                       int          **vtxInitVtx,
-                                       int          **faceGroupIdx,
-                                       int          **faceGroup,
-                                       PDM_g_num_t  **faceGroupLNToGN,
-                                       int          **facePartBoundProcIdx,
-                                       int          **facePartBoundPartIdx,
-                                       int          **facePartBound)
-
-
-    void PDM_part_coarse_color_get(int   cmId,
-                                   int   iPart,
-                                   int          **cellColor,
-                                   int          **faceColor,
-                                   int          **threadColor,
-                                   int          **hyperPlaneColor)
+    void PDM_part_coarse_mesh_part_get(PDM_coarse_mesh_t *cm,
+                                       int                iPart,
+                                       int              **cellFaceIdx,
+                                       int              **cellFace,
+                                       int              **cellTag,
+                                       PDM_g_num_t      **cellLNToGN,
+                                       int              **cellInitCellIdx,
+                                       int              **cellInitCell,
+                                       int              **faceCell,
+                                       int              **faceVtxIdx,
+                                       int              **faceVtx,
+                                       int              **faceTag,
+                                       PDM_g_num_t      **faceLNToGN,
+                                       int              **faceGroupInitFaceGroup,
+                                       int              **faceInitFace,
+                                       double           **vtxCoord,
+                                       int              **vtxTag,
+                                       PDM_g_num_t      **vtxLNToGN,
+                                       int              **vtxInitVtx,
+                                       int              **faceGroupIdx,
+                                       int              **faceGroup,
+                                       PDM_g_num_t      **faceGroupLNToGN,
+                                       int              **facePartBoundProcIdx,
+                                       int              **facePartBoundPartIdx,
+                                       int              **facePartBound)
 
 
+    void PDM_part_coarse_color_get(PDM_coarse_mesh_t *cm,
+                                   int                iPart,
+                                   int              **cellColor,
+                                   int              **faceColor,
+                                   int              **threadColor,
+                                   int              **hyperPlaneColor)
 
-    void PDM_part_coarse_mesh_free(int cmId)
 
-    void PDM_part_coarse_mesh_time_get(int       cmId,
-                                       double  **elapsed,
-                                       double  **cpu,
-                                       double  **cpu_user,
-                                       double  **cpu_sys)
 
-    void PDM_part_coarse_mesh_display(int    cmId)
+    void PDM_part_coarse_mesh_free(PDM_coarse_mesh_t *cm)
+
+    void PDM_part_coarse_mesh_time_get(PDM_coarse_mesh_t  *cm,
+                                       double            **elapsed,
+                                       double            **cpu,
+                                       double            **cpu_user,
+                                       double            **cpu_sys)
+
+    void PDM_part_coarse_mesh_display(PDM_coarse_mesh_t *cm)
 
 @COMMENT_NOT_PDMA@
 @COMMENT_NOT_PDMA@cdef extern from "pdm_coarse_mesh_aniso_agglo.h":
-@COMMENT_NOT_PDMA@    void PDM_part_coarse_mesh_part_set_anisotropic_info(int   cmId,
-@COMMENT_NOT_PDMA@                                                        int   iPart,
-@COMMENT_NOT_PDMA@                                                        int  *agglomerationLines,
-@COMMENT_NOT_PDMA@                                                        int  *agglomerationLinesIdx,
-@COMMENT_NOT_PDMA@                                                        int   agglomerationLinesIdx_size,
-@COMMENT_NOT_PDMA@                                                        int  *isOnFineBnd)
+@COMMENT_NOT_PDMA@    void PDM_part_coarse_mesh_part_set_anisotropic_info(PDM_coarse_mesh_t *cm,
+@COMMENT_NOT_PDMA@                                                        int                iPart,
+@COMMENT_NOT_PDMA@                                                        int               *agglomerationLines,
+@COMMENT_NOT_PDMA@                                                        int               *agglomerationLinesIdx,
+@COMMENT_NOT_PDMA@                                                        int                agglomerationLinesIdx_size,
+@COMMENT_NOT_PDMA@                                                        int               *isOnFineBnd)
 @COMMENT_NOT_PDMA@
-@COMMENT_NOT_PDMA@    void PDM_part_coarse_mesh_part_get_anisotropic_info(int   cmId,
-@COMMENT_NOT_PDMA@                                                        int   iPart,
-@COMMENT_NOT_PDMA@                                                        int **agglomerationLines,
-@COMMENT_NOT_PDMA@                                                        int **agglomerationLinesIdx,
-@COMMENT_NOT_PDMA@                                                        int   *agglomerationLinesIdx_size,
-@COMMENT_NOT_PDMA@                                                        int **isOnFineBnd)
+@COMMENT_NOT_PDMA@    void PDM_part_coarse_mesh_part_get_anisotropic_info(PDM_coarse_mesh_t *cm,
+@COMMENT_NOT_PDMA@                                                        int                iPart,
+@COMMENT_NOT_PDMA@                                                        int              **agglomerationLines,
+@COMMENT_NOT_PDMA@                                                        int              **agglomerationLinesIdx,
+@COMMENT_NOT_PDMA@                                                        int               *agglomerationLinesIdx_size,
+@COMMENT_NOT_PDMA@                                                        int              **isOnFineBnd)
 @COMMENT_NOT_PDMA@
-@COMMENT_NOT_PDMA@    void PDM_part_coarse_mesh_add_option_anisotropic(int  cmId,
-@COMMENT_NOT_PDMA@                                                     int *anisotropicOption)
+@COMMENT_NOT_PDMA@    void PDM_part_coarse_mesh_add_option_anisotropic(PDM_coarse_mesh_t *cm,
+@COMMENT_NOT_PDMA@                                                     int               *anisotropicOption)
 @COMMENT_NOT_PDMA@
 
 
@@ -187,7 +189,7 @@ cdef class CoarseMesh:
     """
     Define a coarse mesh partitioning with PDM Library
     """
-    cdef int _cmId
+    cdef PDM_coarse_mesh_t *_cm
     cdef int _n_face_group
     # ------------------------------------------------------------------
     def __cinit__(self,
@@ -235,24 +237,23 @@ cdef class CoarseMesh:
           renum_properties_face_data = <int *> renum_properties_face.data
 
       # > Create
-      PDM_part_coarse_mesh_create(&self._cmId,
-                                  PDM_MPI_mpi_2_pdm_mpi_comm (<void *> &c_comm),
-                                  method,
-                                  renum_cell_method,
-                                  renum_face_method,
-                                  n_property_cell,
-                                  renum_properties_cell_data,
-                                  n_property_face,
-                                  renum_properties_face_data,
-                                  n_part,
-                                  nTPart,
-                                  self._n_face_group,
-                                  have_cellTag,
-                                  have_faceTag,
-                                  have_vtxTag,
-                                  have_cellWeight,
-                                  have_faceWeight,
-                                  have_faceGroup)
+      self._cm = PDM_part_coarse_mesh_create(PDM_MPI_mpi_2_pdm_mpi_comm (<void *> &c_comm),
+                                             method,
+                                             renum_cell_method,
+                                             renum_face_method,
+                                             n_property_cell,
+                                             renum_properties_cell_data,
+                                             n_property_face,
+                                             renum_properties_face_data,
+                                             n_part,
+                                             nTPart,
+                                             self._n_face_group,
+                                             have_cellTag,
+                                             have_faceTag,
+                                             have_vtxTag,
+                                             have_cellWeight,
+                                             have_faceWeight,
+                                             have_faceGroup)
 
 @COMMENT_NOT_PDMA@    # ------------------------------------------------------------------
 @COMMENT_NOT_PDMA@    def add_option_anisotropic(self,
@@ -270,7 +271,7 @@ cdef class CoarseMesh:
 @COMMENT_NOT_PDMA@
 @COMMENT_NOT_PDMA@        anisotropicOption_data = <int *> anisotropicOption.data
 @COMMENT_NOT_PDMA@
-@COMMENT_NOT_PDMA@        PDM_part_coarse_mesh_add_option_anisotropic(self._cmId,
+@COMMENT_NOT_PDMA@        PDM_part_coarse_mesh_add_option_anisotropic(self._cm,
 @COMMENT_NOT_PDMA@                                                    anisotropicOption_data)
 @COMMENT_NOT_PDMA@
     # ------------------------------------------------------------------
@@ -400,7 +401,7 @@ cdef class CoarseMesh:
 
         # :::::::::::::::::::::::::::::::::::::::::::::::::::::
         # > Fill input mesh
-        PDM_part_coarse_mesh_input(self._cmId,
+        PDM_part_coarse_mesh_input(self._cm,
                                    iPart,
                                    nCoarseCell,
                                    nCell,
@@ -476,7 +477,7 @@ cdef class CoarseMesh:
 @COMMENT_NOT_PDMA@
 @COMMENT_NOT_PDMA@        # :::::::::::::::::::::::::::::::::::::::::::::::::::::
 @COMMENT_NOT_PDMA@        # > Fill input mesh for anisotropic
-@COMMENT_NOT_PDMA@        PDM_part_coarse_mesh_part_set_anisotropic_info(self._cmId,
+@COMMENT_NOT_PDMA@        PDM_part_coarse_mesh_part_set_anisotropic_info(self._cm,
 @COMMENT_NOT_PDMA@                                                       iPart,
 @COMMENT_NOT_PDMA@                                                       agglomerationLinesInit_data,
 @COMMENT_NOT_PDMA@                                                       agglomerationLinesInitIdx_data,
@@ -489,14 +490,14 @@ cdef class CoarseMesh:
         """
         Effective compute
         """
-        PDM_part_coarse_mesh_compute(self._cmId)
+        PDM_part_coarse_mesh_compute(self._cm)
 
     # ------------------------------------------------------------------
     def __dealloc__(self):
         """
            Free memory in PTJ Lib and structure
         """
-        PDM_part_coarse_mesh_free(self._cmId)
+        PDM_part_coarse_mesh_free(self._cm)
 
     # ------------------------------------------------------------------
     def part_coarse_dim_get(self, int ipart):
@@ -518,7 +519,7 @@ cdef class CoarseMesh:
         cdef int sCoarseCellToFineCell
         # ************************************************************************
 
-        PDM_part_coarse_mesh_part_dim_get(self._cmId,
+        PDM_part_coarse_mesh_part_dim_get(self._cm,
                                           ipart,
                                           &nCell,
                                           &nFace,
@@ -587,7 +588,7 @@ cdef class CoarseMesh:
         dims = self.part_coarse_dim_get(ipart)
 
         # > Get array
-        PDM_part_coarse_mesh_part_get(self._cmId,
+        PDM_part_coarse_mesh_part_get(self._cm,
                                       ipart,
                                       &cellFaceIdx,
                                       &cellFace,
@@ -885,7 +886,7 @@ cdef class CoarseMesh:
 @COMMENT_NOT_PDMA@        dims = self.part_coarse_dim_get(ipart)
 @COMMENT_NOT_PDMA@
 @COMMENT_NOT_PDMA@        # > Get array
-@COMMENT_NOT_PDMA@        PDM_part_coarse_mesh_part_get_anisotropic_info(self._cmId,
+@COMMENT_NOT_PDMA@        PDM_part_coarse_mesh_part_get_anisotropic_info(self._cm,
 @COMMENT_NOT_PDMA@                                                       ipart,
 @COMMENT_NOT_PDMA@                                                       &agglomerationLines,
 @COMMENT_NOT_PDMA@                                                       &agglomerationLinesIdx,
@@ -946,7 +947,7 @@ cdef class CoarseMesh:
         dims = self.part_coarse_dim_get(ipart)
 
         # -> Call PPART to get info
-        PDM_part_coarse_color_get(self._cmId,
+        PDM_part_coarse_color_get(self._cm,
                                   ipart,
                                   &cellColor,
                                   &faceColor,

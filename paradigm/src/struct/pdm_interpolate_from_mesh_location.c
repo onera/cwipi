@@ -244,7 +244,7 @@ PDM_interpolate_from_mesh_location_exch
   double *block_data;
   int s_block_data = PDM_part_to_block_exch(ptb,
                                             sizeof(double),
-                                            PDM_STRIDE_VAR,
+                                            PDM_STRIDE_VAR_INTERLACED,
                                             stride_one,
                                             cloud_data_in_current_src_n,
                                   (void **) cloud_data_in_current_src,
@@ -278,7 +278,7 @@ PDM_interpolate_from_mesh_location_exch
   int** part_strid = NULL;
   PDM_block_to_part_exch2(btp,
                           sizeof(double),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           block_strid,
                           block_data,
                (int ***)  &part_strid,
@@ -392,7 +392,7 @@ PDM_interpolate_from_mesh_location_exch_inplace
   double *block_data;
   int s_block_data = PDM_part_to_block_exch(ptb,
                                             sizeof(double),
-                                            PDM_STRIDE_VAR,
+                                            PDM_STRIDE_VAR_INTERLACED,
                                             stride_one,
                                             cloud_data_in_current_src_n,
                                   (void **) cloud_data_in_current_src,
@@ -431,7 +431,7 @@ PDM_interpolate_from_mesh_location_exch_inplace
   double** tmp_cloud_data_out;
   PDM_block_to_part_exch2(btp,
                           sizeof(double),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           block_strid,
                           block_data,
                           &part_strid,

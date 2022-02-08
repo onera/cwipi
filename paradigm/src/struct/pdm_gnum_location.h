@@ -69,7 +69,7 @@ typedef struct _pdm_gnum_location_t PDM_gnum_location_t;
  * \param [in]   n_part_out     Number of local partitions for requested locations
  * \param [in]   comm           PDM_MPI communicator
  *
- * \return     Identifier
+ * \return     Pointer to \ref PDM_gnum_locaion object
  */
 
 PDM_gnum_location_t*
@@ -81,19 +81,11 @@ PDM_gnum_location_create
 );
 
 
-PDM_gnum_location_t*
-PDM_gnum_location_create_cf
-(
- const int          n_part_in,
- const int          n_part_out,
- const PDM_MPI_Fint comm
-);
-
 /**
  *
  * \brief Set global numbering
  *
- * \param [in]   id          Identifier
+ * \param [in]   gnum_loc    Pointer to \ref PDM_gnum_locaion object
  * \param [in]   i_part_in   Current partition
  * \param [in]   n_elts_in   Number of elements
  * \param [in]   gnum_in     Global numbering
@@ -114,7 +106,7 @@ PDM_gnum_location_elements_set
  *
  * \brief Set requested elements
  *
- * \param [in]   id           Identifier
+ * \param [in]   gnum_loc     Pointer to \ref PDM_gnum_locaion object
  * \param [in]   i_part_out   Current partition
  * \param [in]   n_elts_out   Number of elements
  * \param [in]   gnum_out     Global numbering
@@ -135,7 +127,7 @@ PDM_gnum_location_requested_elements_set
  *
  * \brief Compute the location (processus, partittion, local number in the partition)
  *
- * \param [in]   id           Identifier
+ * \param [in]   gnum_loc     Pointer to \ref PDM_gnum_locaion object
  *
  */
 
@@ -150,7 +142,7 @@ PDM_gnum_location_compute
  *
  * \brief Get localtion
  *
- * \param [in]    id             Identifier
+ * \param [in]    gnum_loc       Pointer to \ref PDM_gnum_locaion object
  * \param [in]    i_part_out     Current partition
  * \param [out]   location_idx   Index in the location arrays (size = 3 * \ref n_elts + 1)
  * \param [out]   location       Locations of each element
@@ -172,7 +164,7 @@ PDM_gnum_location_get
  *
  * \brief Free
  *
- * \param [in]   id            Identifier
+ * \param [in]   gnum_loc      Pointer to \ref PDM_gnum_locaion object
  * \param [in]   keep_results  Keep location results
  *
  */

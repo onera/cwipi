@@ -72,7 +72,7 @@ static int idebug = 0;
  * \param [in]   n_point_cloud  Number of point cloud
  * \param [in]   comm           MPI communicator
  *
- * \return     Identifier
+ * \return     Pointer to \ref PDM_dist_cloud_surf object
  */
 
 PDM_dist_cloud_surf_t*
@@ -119,26 +119,13 @@ PDM_dist_cloud_surf_create
   return dist;
 }
 
-PDM_dist_cloud_surf_t*
-PDM_dist_cloud_surf_create_cf
-(
- const PDM_mesh_nature_t  mesh_nature,
- const int                n_point_cloud,
- const PDM_MPI_Fint       comm,
- const PDM_ownership_t    owner
-)
-{
-  const PDM_MPI_Comm _comm        = PDM_MPI_Comm_f2c(comm);
-
-  return PDM_dist_cloud_surf_create (mesh_nature, n_point_cloud, _comm, owner);
-}
 
 
 /**
  *
  * \brief Set the number of partitions of a point cloud
  *
- * \param [in]   id              Identifier
+ * \param [in]   dist            Pointer to \ref PDM_dist_cloud_surf object
  * \param [in]   i_point_cloud   Index of point cloud
  * \param [in]   n_part          Number of partitions
  *
@@ -185,7 +172,7 @@ PDM_dist_cloud_surf_n_part_cloud_set
  *
  * \brief Set a point cloud
  *
- * \param [in]   id              Identifier
+ * \param [in]   dist            Pointer to \ref PDM_dist_cloud_surf object
  * \param [in]   i_point_cloud   Index of point cloud
  * \param [in]   i_part          Index of partition
  * \param [in]   n_points        Number of points
@@ -216,8 +203,8 @@ PDM_dist_cloud_surf_cloud_set
  *
  * \brief Set the mesh nodal
  *
- * \param [in]   id             Identifier
- * \param [in]   mesh_nodal_id  Mesh nodal identifier
+ * \param [in]   dist           Pointer to \ref PDM_dist_cloud_surf object
+ * \param [in]   mesh_nodal_id  Mesh nodal Pointer to \ref PDM_dist_cloud_surf object
  *
  */
 
@@ -238,7 +225,7 @@ PDM_dist_cloud_surf_nodal_mesh_set
  *
  * \brief Map a surface mesh
  *
- * \param [in]   id         Identifier
+ * \param [in]   dist       Pointer to \ref PDM_dist_cloud_surf object
  * \param [in]   surf_mesh  Surface mesh pointer
  *
  */
@@ -258,7 +245,7 @@ PDM_dist_cloud_surf_surf_mesh_map
  *
  * \brief Set global data of a surface mesh
  *
- * \param [in]   id             Identifier
+ * \param [in]   dist           Pointer to \ref PDM_dist_cloud_surf object
  * \param [in]   n_g_face       Global number of faces
  * \param [in]   n_g_vtx        Global number of vertices
  * \param [in]   n_part         Number of partition
@@ -285,7 +272,7 @@ PDM_dist_cloud_surf_surf_mesh_global_data_set
  *
  * \brief Set a part of a surface mesh
  *
- * \param [in]   id            Identifier
+ * \param [in]   dist          Pointer to \ref PDM_dist_cloud_surf object
  * \param [in]   i_part        Partition to define
  * \param [in]   n_face        Number of faces
  * \param [in]   face_vtx_idx  Index in the face -> vertex connectivity
@@ -335,7 +322,7 @@ typedef enum {
  *
  * \brief Compute distance
  *
- * \param [in]   id  Identifier
+ * \param [in]   dist  Pointer to \ref PDM_dist_cloud_surf object
  *
  */
 
@@ -432,20 +419,20 @@ PDM_dist_cloud_surf_compute
                 " PDM_dist_cloud_surf_surf_mesh_part_set\n");
     }
 
-    int octree_id;
-    PDM_para_octree_t *octree = NULL;
+    PDM_octree_t      *octree      = NULL;
+    PDM_para_octree_t *para_octree = NULL;
     if (octree_type == PDM_OCTREE_SERIAL) {
-      octree_id = PDM_octree_create (n_part_mesh,
-                                     depth_max,
-                                     points_in_leaf_max,
-                                     tolerance,
-                                     comm);
+      octree = PDM_octree_create (n_part_mesh,
+                                  depth_max,
+                                  points_in_leaf_max,
+                                  tolerance,
+                                  comm);
     } else {
-      octree = PDM_para_octree_create (n_part_mesh,
-                                       depth_max,
-                                       points_in_leaf_max,
-                                       0,
-                                       comm);
+      para_octree = PDM_para_octree_create (n_part_mesh,
+                                            depth_max,
+                                            points_in_leaf_max,
+                                            0,
+                                            comm);
     }
 
     for (int i_part = 0; i_part < n_part_mesh; i_part++) {
@@ -473,10 +460,10 @@ PDM_dist_cloud_surf_compute
       }
 
       if (octree_type == PDM_OCTREE_SERIAL) {
-        PDM_octree_point_cloud_set (octree_id, i_part, n_vertices,
+        PDM_octree_point_cloud_set (octree, i_part, n_vertices,
                                     vertices_coords, vertices_gnum);
       } else {
-        PDM_para_octree_point_cloud_set (octree, i_part, n_vertices,
+        PDM_para_octree_point_cloud_set (para_octree, i_part, n_vertices,
                                          vertices_coords, vertices_gnum);
       }
     }
@@ -532,10 +519,10 @@ PDM_dist_cloud_surf_compute
     }
 
     if (octree_type == PDM_OCTREE_SERIAL) {
-      PDM_octree_build (octree_id);
+      PDM_octree_build (octree);
     } else {
-      PDM_para_octree_build (octree, NULL);//global_extents);
-      PDM_para_octree_dump_times (octree);
+      PDM_para_octree_build (para_octree, NULL);//global_extents);
+      PDM_para_octree_dump_times (para_octree);
     }
 
     /*
@@ -572,7 +559,7 @@ PDM_dist_cloud_surf_compute
 
     if (octree_type == PDM_OCTREE_SERIAL) {
       // log_trace("PDM_OCTREE_SERIAL \n");
-      PDM_octree_closest_point (octree_id,
+      PDM_octree_closest_point (octree,
                                 n_pts_rank,
                                 pts_rank,
                                 pts_g_num_rank,
@@ -580,7 +567,7 @@ PDM_dist_cloud_surf_compute
                                 closest_vertices_dist2);
     } else {
       // log_trace("PDM_OCTREE_PARALLEL \n");
-      PDM_para_octree_single_closest_point (octree,
+      PDM_para_octree_single_closest_point (para_octree,
                                             n_pts_rank,
                                             pts_rank,
                                             pts_g_num_rank,
@@ -592,9 +579,9 @@ PDM_dist_cloud_surf_compute
     free (closest_vertices_gnum);
 
     if (octree_type == PDM_OCTREE_SERIAL) {
-      PDM_octree_free (octree_id);
+      PDM_octree_free (octree);
     } else {
-      PDM_para_octree_free (octree);
+      PDM_para_octree_free (para_octree);
     }
 
 
@@ -783,7 +770,7 @@ PDM_dist_cloud_surf_compute
     PDM_g_num_t *block_elt_pts_g_num = NULL;
     PDM_part_to_block_exch (ptb,
                             sizeof(PDM_g_num_t),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             &part_stride,
                             (void **) &part_pts_g_num,
@@ -800,7 +787,7 @@ PDM_dist_cloud_surf_compute
     double *block_elt_pts_coord = NULL;
     PDM_part_to_block_exch (ptb,
                             3*sizeof(double),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             &part_stride,
                             (void **) &part_pts_coord,
@@ -874,7 +861,7 @@ PDM_dist_cloud_surf_compute
     double *block_elt_vtx_coord = NULL;
     PDM_part_to_block_exch (ptb_elt,
                             3*sizeof(double),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             -1,
                             part_elt_vtx_n,
                             (void **) part_elt_vtx_coord,
@@ -1062,7 +1049,7 @@ PDM_dist_cloud_surf_compute
     PDM_g_num_t *tmp_block_pts_elt_g_num = NULL;
     PDM_part_to_block_exch (ptb2,
                             sizeof(PDM_g_num_t),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             &part_stride,
                             (void **) &part_block_elt_g_num,
@@ -1075,7 +1062,7 @@ PDM_dist_cloud_surf_compute
     double *tmp_block_pts_elt_dist2 = NULL;
     PDM_part_to_block_exch (ptb2,
                             sizeof(double),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             &part_stride,
                             (void **) &block_elt_pts_dist2,
@@ -1091,7 +1078,7 @@ PDM_dist_cloud_surf_compute
     int *block_pts_elt_n3 = NULL;
     PDM_part_to_block_exch (ptb2,
                             3*sizeof(double),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             &part_stride,
                             (void **) &block_elt_pts_proj,
@@ -1172,7 +1159,7 @@ PDM_dist_cloud_surf_compute
     int one = 1;
     PDM_block_to_part_exch (btp,
                             sizeof(double),
-                            PDM_STRIDE_CST,
+                            PDM_STRIDE_CST_INTERLACED,
                             &one,
                             block_pts_elt_dist2,
                             NULL,
@@ -1182,7 +1169,7 @@ PDM_dist_cloud_surf_compute
     int three = 3;
     PDM_block_to_part_exch (btp,
                             sizeof(double),
-                            PDM_STRIDE_CST,
+                            PDM_STRIDE_CST_INTERLACED,
                             &three,
                             block_pts_elt_proj,
                             NULL,
@@ -1191,7 +1178,7 @@ PDM_dist_cloud_surf_compute
 
     PDM_block_to_part_exch (btp,
                             sizeof(PDM_g_num_t),
-                            PDM_STRIDE_CST,
+                            PDM_STRIDE_CST_INTERLACED,
                             &one,
                             block_pts_elt_g_num,
                             NULL,
@@ -1235,7 +1222,7 @@ PDM_dist_cloud_surf_compute
  *
  * \brief Get mesh distance
  *
- * \param [in]   id                Identifier
+ * \param [in]   dist              Pointer to \ref PDM_dist_cloud_surf object
  * \param [in]   i_point_cloud     Current cloud
  * \param [in]   i_part            Index of partition of the cloud
  * \param [out]  distance          Distance
@@ -1268,7 +1255,7 @@ PDM_dist_cloud_surf_get
  *
  * \brief Free a distance mesh structure
  *
- * \param [in]  id       Identifier
+ * \param [in]  dist     Pointer to \ref PDM_dist_cloud_surf object
  * \param [in]  partial  if partial is equal to 0, all data are removed.
  *                       Otherwise, results are kept.
  *
@@ -1325,7 +1312,7 @@ PDM_dist_cloud_surf_free
  *
  * \brief  Dump elapsed an CPU time
  *
- * \param [in]  id       Identifier
+ * \param [in]  dist     Pointer to \ref PDM_dist_cloud_surf object
  *
  */
 
@@ -1394,6 +1381,33 @@ PDM_dist_cloud_surf_dump_times
                 t_cpu_max[RESULT_TRANSMISSION]);
     PDM_printf_flush();
   }
+}
+
+
+
+/**
+ *
+ * \brief Get the dimension of a point cloud
+ *
+ * \param [in]   dist            Pointer to \ref PDM_dist_cloud_surf object
+ * \param [in]   i_point_cloud   Index of point cloud
+ * \param [in]   i_part          Index of partition
+ * \param [out]  n_points        Number of points
+ *
+ */
+
+void
+PDM_dist_cloud_surf_cloud_dim_get
+(
+       PDM_dist_cloud_surf_t *dist,
+ const int                    i_point_cloud,
+ const int                    i_part,
+       int                   *n_points
+)
+{
+  assert(dist != NULL);
+
+  *n_points = dist->points_cloud[i_point_cloud].n_points[i_part];
 }
 
 

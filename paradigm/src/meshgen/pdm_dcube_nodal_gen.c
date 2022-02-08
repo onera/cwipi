@@ -1732,12 +1732,22 @@ PDM_dcube_nodal_gen_build
    * Create the dmesh_nodal that hold the resulting mesh
    */
   PDM_g_num_t gn_cell_abs = _get_n_cell_abs(gn_elt, dcube->t_elt);
-  dcube->dmesh_nodal = PDM_DMesh_nodal_create(dcube->comm,
-                                              dim,
-                                              gn_vtx,
-                                              gn_cell_abs,  /* n_cell */
-                                              -1,           /* n_face */
-                                              -1);          /* n_edge */
+  if (dim == 3) {
+    dcube->dmesh_nodal = PDM_DMesh_nodal_create(dcube->comm,
+                                                dim,
+                                                gn_vtx,
+                                                gn_cell_abs,  /* n_cell */
+                                                0,           /* n_face */
+                                                0);          /* n_edge */
+  } else {
+    dcube->dmesh_nodal = PDM_DMesh_nodal_create(dcube->comm,
+                                                dim,
+                                                gn_vtx,
+                                                0,  /* n_cell */
+                                                gn_cell_abs,           /* n_face */
+                                                0);          /* n_edge */
+
+  }
 
   PDM_g_num_t *distrib_vtx = PDM_compute_uniform_entity_distribution (dcube->comm, gn_vtx);
   int dn_vtx = (int) (distrib_vtx[i_rank+1] - distrib_vtx[i_rank]);

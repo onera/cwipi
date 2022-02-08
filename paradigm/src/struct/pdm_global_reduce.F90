@@ -25,6 +25,12 @@ module pdm_global_reduce
 
   implicit none
 
+  interface pdm_global_reduce_create ; module procedure &
+  pdm_global_reduce_create_
+  end interface
+
+  private :: pdm_global_reduce_create_
+
   interface
 
   !>
@@ -32,33 +38,32 @@ module pdm_global_reduce
   !! \brief Create a structure that computes a global reduction
   !!
   !! \param [in]   n_part       Number of local partitions
-  !! \param [in]   comm         PDM_MPI communicator
+  !! \param [in]   fcomm        PDM_MPI communicator
   !!
-  !! \return     Pointer to global reduction object
+  !! \return     Pointer to \ref PDM_global_reduce object
   !!
 
-  function PDM_global_reduce_create ( &
-    n_part,                           &
-    fComm)                            &
-  result (gre)                        &
-  bind (c, name = 'PDM_global_reduce_create_cf')
+  function PDM_global_reduce_create_cf (n_part, &
+                                        comm)   &
+  result (gre)                                  &
+  bind (c, name = 'PDM_global_reduce_create')
 
   use iso_c_binding
   implicit none
 
   integer(c_int), value :: n_part
-  integer(c_int), value :: fComm
+  integer(c_int), value :: comm
 
   type (c_ptr)          :: gre
 
-end function PDM_global_reduce_create
+end function PDM_global_reduce_create_cf
 
 
 !>
 !!
 !! \brief Free a global point reduce structure
 !!
-!! \param [in]   gre          Pointer to global reduction object
+!! \param [in]   gre          Pointer to \ref PDM_global_reduce object
 !!
 !!
 
@@ -77,7 +82,7 @@ end subroutine pdm_global_reduce_free
 !!
 !! \brief Set absolute number
 !!
-!! \param [in]   gre           Pointer to global reduction object
+!! \param [in]   gre           Pointer to \ref PDM_global_reduce object
 !! \param [in]   i_part        Current partition
 !! \param [in]   n_pts         Number of points in the partition
 !! \param [in]   pts_ln_to_gn  Global ids of points in the partition
@@ -106,8 +111,8 @@ end subroutine PDM_global_reduce_g_num_set
 !!
 !! \brief Set reduction operation
 !!
-!! \param [in]   gre                       Pointer to global reduction object
-!! \param [in]   operation                 Type of reduction operation
+!! \param [in]   gre          Pointer to \ref PDM_global_reduce object
+!! \param [in]   operation    Type of reduction operation
 !!
 
 subroutine PDM_global_reduce_operation_set ( &
@@ -128,7 +133,7 @@ end subroutine PDM_global_reduce_operation_set
 !!
 !! \brief Set local field
 !!
-!! \param [in]   gre                       Pointer to global reduction object
+!! \param [in]   gre                       Pointer to \ref PDM_global_reduce object
 !! \param [in]   i_part                    Current partition
 !! \param [in]   stride                    Stride of the field
 !! \param [in]   local_field               Local value of field
@@ -161,7 +166,7 @@ end subroutine PDM_global_reduce_field_set
 !!
 !! \brief Compute the global reduced field
 !!
-!! \param [in]   gre          Pointer to global reduction object
+!! \param [in]   gre     Pointer to \ref PDM_global_reduce object
 !!
 !!
 
@@ -176,5 +181,39 @@ subroutine PDM_global_reduce_field_compute (gre) &
 end subroutine PDM_global_reduce_field_compute
 
 end interface
+
+
+contains
+
+  !>
+  !!
+  !! \brief Create a structure that computes a global reduction
+  !!
+  !! \param [out]  gre      Pointer to \ref PDM_global_reduce object
+  !! \param [in]   n_part   Number of local partitions
+  !! \param [in]   f_comm   PDM_MPI communicator
+  !!
+
+  subroutine PDM_global_reduce_create_ (gre,    &
+                                        n_part, &
+                                        f_comm)
+
+  use iso_c_binding
+  implicit none
+
+  integer       :: n_part
+  integer       :: f_comm
+  type (c_ptr)  :: gre
+
+  integer(c_int) :: c_n_part
+  integer(c_int) :: c_comm
+
+  c_comm   = PDM_MPI_Comm_f2c(f_comm)
+  c_n_part = n_part
+
+  gre = pdm_global_reduce_create_cf(c_n_part, &
+                                    c_comm)
+
+end subroutine PDM_global_reduce_create_
 
 end module pdm_global_reduce

@@ -65,7 +65,7 @@ program testf
   integer(c_int), parameter :: fComm = MPI_COMM_WORLD
   type(c_ptr)              :: ptb
 
-  integer(c_int), parameter :: t_stride = PDM_STRIDE_CST
+  integer(c_int), parameter :: t_stride = PDM_STRIDE_CST_INTERLACED
   integer(c_int), parameter :: cst_stride = 1
 
   integer(c_int), pointer :: part_stride(:) ! Fortran array containing data for part 0

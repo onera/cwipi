@@ -134,7 +134,7 @@ _deduce_combine_connectivity_impl
   PDM_g_num_t** pentity1_entity3;
   PDM_block_to_part_exch2(btp,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           dentity2_entity3_n,
              (void *  )   dentity2_entity3,
              (int  ***)  &pentity1_entity3_n,
@@ -503,7 +503,7 @@ PDM_dconnectivity_transpose
 
   int blk_size = PDM_part_to_block_exch (ptb,
                                          sizeof(PDM_g_num_t),
-                                         PDM_STRIDE_VAR,
+                                         PDM_STRIDE_VAR_INTERLACED,
                                          1,
                                          &send_stri,
                                (void **) &gnum,
@@ -619,7 +619,7 @@ PDM_dorder_reverse
 
   PDM_part_to_block_exch (ptb,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           1,
                           NULL,
                 (void **) &gnum,
@@ -711,7 +711,7 @@ PDM_dgroup_entity_transpose
   int *tmp_dentity_group   = NULL;
   int s_block = PDM_part_to_block_exch (ptb,
                                         sizeof(int),
-                                        PDM_STRIDE_VAR,
+                                        PDM_STRIDE_VAR_INTERLACED,
                                         1,
                                         &pgroup_id_n,
                               (void **) &pgroup_id,
@@ -840,7 +840,7 @@ PDM_dconnectivity_to_extract_dconnectivity
   PDM_g_num_t** tmp_pextract_entity1_entity2;
   PDM_block_to_part_exch2(btp,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           dentity1_entity2_n,
              (void *  )   dentity1_entity2,
              (int  ***)  &tmp_pextract_entity1_entity2_n,
@@ -870,7 +870,7 @@ PDM_dconnectivity_to_extract_dconnectivity
   PDM_g_num_t* _dextract_entity1_entity2   = NULL;
   PDM_part_to_block_exch (ptb,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &pextract_entity1_entity2_n,
                 (void **) &pextract_entity1_entity2,
@@ -880,7 +880,7 @@ PDM_dconnectivity_to_extract_dconnectivity
   PDM_g_num_t* _dparent_entity1_g_num = NULL;
   PDM_part_to_block_exch (ptb,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           1,
                           NULL,
                 (void **) &select_entity1,
@@ -959,7 +959,7 @@ PDM_dconnectivity_to_extract_dconnectivity
   PDM_g_num_t* _dparent_entity2_g_num = NULL;
   PDM_part_to_block_exch (ptb_entity2,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           1,
                           NULL,
                 (void **) &_dextract_entity1_entity2,

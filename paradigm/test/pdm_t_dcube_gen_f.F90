@@ -35,58 +35,56 @@ program testf
   include "mpif.h"
 #endif  
 
-  integer :: code
-  integer :: i_rank
-  integer :: n_rank
+  !-----------------------------------------------------------
+  integer,              parameter       :: comm = MPI_COMM_WORLD
+  integer(pdm_g_num_s), parameter       :: n_vtx_seg = 10
+  double precision,     parameter       :: length = 5.
+  double precision,     parameter       :: zero_x = 1.
+  double precision,     parameter       :: zero_y = 1.
+  double precision,     parameter       :: zero_z = 1.
 
-  integer(c_int), parameter :: fComm = MPI_COMM_WORLD
+  type(c_ptr)                           :: dcube
 
-  type(c_ptr)              :: dcube
+  integer                               :: n_face_group
+  integer                               :: dn_cell
+  integer                               :: dn_face
+  integer                               :: dn_vtx
+  integer                               :: sface_vtx
+  integer                               :: sface_group
 
-  integer(pdm_g_num_s), parameter :: n_vtx_seg = 10
-  double precision, parameter     :: length = 5.
-  double precision, parameter     :: zero_x = 1.
-  double precision, parameter     :: zero_y = 1.
-  double precision, parameter     :: zero_z = 1.
+  integer (kind = pdm_g_num_s), pointer :: dface_cell(:)      => null()
+  integer (kind = pdm_l_num_s), pointer :: dface_vtx_idx(:)   => null()
+  integer (kind = pdm_g_num_s), pointer :: dface_vtx(:)       => null()
+  double precision,             pointer :: dvtx_coord(:)      => null()
+  integer (kind = pdm_l_num_s), pointer :: dface_group_idx(:) => null()
+  integer (kind = pdm_g_num_s), pointer :: dface_group(:)     => null()
 
-  integer (c_int) :: n_face_group
-  integer (c_int) :: dn_cell
-  integer (c_int) :: dn_face
-  integer (c_int) :: dn_vtx
-  integer (c_int) :: sface_vtx
-  integer (c_int) :: sface_group
-
-  type(c_ptr) :: cptr_dface_cell
-  type(c_ptr) :: cptr_dface_vtx_idx
-  type(c_ptr) :: cptr_dface_vtx
-  type(c_ptr) :: cptr_dvtx_coord
-  type(c_ptr) :: cptr_dface_group_idx
-  type(c_ptr) :: cptr_dface_group
-
-  integer (kind = pdm_g_num_s), pointer :: dface_cell(:)
-
-  integer (kind = pdm_l_num_s), pointer :: dface_vtx_idx(:)
-  integer (kind = pdm_g_num_s), pointer :: dface_vtx(:)
-
-  double precision, pointer :: dvtx_coord(:)
-
-  integer (kind = pdm_l_num_s), pointer :: dface_group_idx(:)
-  integer (kind = pdm_g_num_s), pointer :: dface_group(:)
+  integer                               :: code
+  integer                               :: i_rank
+  integer                               :: n_rank
+  !-----------------------------------------------------------
 
   n_face_group = -1
-  dn_cell = -1
-  dn_face = -1
-  dn_vtx = -1
-  sface_vtx = -1
-  sface_group = -1
+  dn_cell      = -1
+  dn_face      = -1
+  dn_vtx       = -1
+  sface_vtx    = -1
+  sface_group  = -1
 
   call mpi_init(code)
-  call mpi_comm_rank(mpi_comm_world, i_rank, code)
-  call mpi_comm_size(mpi_comm_world, n_rank, code)
+  call mpi_comm_rank(comm, i_rank, code)
+  call mpi_comm_size(comm, n_rank, code)
 
-  dcube = pdm_dcube_gen_init(fComm, n_vtx_seg, length, zero_x, zero_y, zero_z, PDM_OWNERSHIP_KEEP)
+  call pdm_dcube_gen_init(dcube,              &
+                          comm,               &
+                          n_vtx_seg,          &
+                          length,             &
+                          zero_x,             &
+                          zero_y,             &
+                          zero_z,             &
+                          PDM_OWNERSHIP_KEEP)
 
-  call PDM_dcube_gen_dim_get (dcube,           &
+  call pdm_dcube_gen_dim_get (dcube,           &
                               n_face_group,    &
                               dn_cell,         &
                               dn_face,         &
@@ -101,31 +99,35 @@ program testf
   write(*,*) "sface_vtx    = ", sface_vtx
   write(*,*) "sface_group  = ", sface_group
 
-  call PDM_dcube_gen_data_get (dcube,                &
-                               cptr_dface_cell,      &
-                               cptr_dface_vtx_idx,   &
-                               cptr_dface_vtx,       &
-                               cptr_dvtx_coord,      &
-                               cptr_dface_group_idx, &
-                               cptr_dface_group)
+  call pdm_dcube_gen_data_get (dcube,           &
+                               dface_cell,      &
+                               dface_vtx_idx,   &
+                               dface_vtx,       &
+                               dvtx_coord,      &
+                               dface_group_idx, &
+                               dface_group)
 
-  call c_f_pointer(cptr_dface_cell     , dface_cell     , [2*dn_face])
 
   write(*,*) dface_cell(1), dface_cell(2)
 
-  call c_f_pointer(cptr_dface_vtx_idx  , dface_vtx_idx  , [dn_face+1])
   write(*,*) dface_vtx_idx(1), dface_vtx_idx(2)
-  call c_f_pointer(cptr_dface_vtx      , dface_vtx      , [dface_vtx_idx(dn_face+1)])
   write(*,*) dface_vtx(1), dface_vtx(2)
-  call c_f_pointer(cptr_dvtx_coord     , dvtx_coord     , [3*dn_vtx])
   write(*,*) dvtx_coord(1), dvtx_coord(2)
 
-  call c_f_pointer(cptr_dface_group_idx, dface_group_idx, [n_face_group+1])
   write(*,*) "dface_group_idx(sface_group+1)  = ", dface_group_idx(n_face_group+1)
-  call c_f_pointer(cptr_dface_group    , dface_group    , [dface_group_idx(n_face_group+1)])
 
 
+  !  Free memory
   call pdm_dcube_gen_free(dcube)
+
+
+  !  If PDM_OWNERSHIP_USER
+  ! call pdm_fortran_free_c(c_loc(dface_cell))
+  ! call pdm_fortran_free_c(c_loc(dface_vtx_idx))
+  ! call pdm_fortran_free_c(c_loc(dface_vtx))
+  ! call pdm_fortran_free_c(c_loc(dvtx_coord))
+  ! call pdm_fortran_free_c(c_loc(dface_group_idx))
+  ! call pdm_fortran_free_c(c_loc(dface_group))
 
   call mpi_finalize(code)
 

@@ -18,113 +18,113 @@ MODULE pdm_mesh_nodal
 !> Create a Mesh nodal structure
 !!
 !! @param[in]   n_part   Number of partition on the current process
-!! @param[out]  idx      New nodal mesh handle
+!! @param[out]  mesh     Pointer to \ref PDM_Mesh_nodal object
 !!
 
-  subroutine pdm_mesh_nodal_create (n_part, idx)
+  subroutine pdm_mesh_nodal_create (n_part, mesh)
     use iso_c_binding
 
     implicit none
 
     integer, intent(in)  :: n_part
-    integer, intent(out) :: idx
+    type(c_ptr)          :: mesh
 
     interface
-      function pdm_mesh_nodal_create_c (n_part) result(idx) bind(c, name='PDM_Mesh_nodal_create')
+      function pdm_mesh_nodal_create_c (n_part) result(mesh) bind(c, name='PDM_Mesh_nodal_create')
         use iso_c_binding
         implicit none
         integer(c_int), intent (in), value :: n_part
-        integer(c_int)                     :: idx
+        type(c_ptr)                        :: mesh
       end function pdm_mesh_nodal_create_c
     end interface
 
-    idx = pdm_mesh_nodal_create_c (n_part)
+    mesh = pdm_mesh_nodal_create_c (n_part)
 
   end subroutine pdm_mesh_nodal_create
 
 
 !> \brief Free partially a nodal mesh structure
 !!
-!! @param[in]  idx      Nodal mesh handle
+!! @param[in]  mesh       Pointer to \ref PDM_Mesh_nodal object
 !!
 
-  subroutine pdm_mesh_nodal_partial_free (idx)
+  subroutine pdm_mesh_nodal_partial_free (mesh)
     use iso_c_binding
 
     implicit none
 
-    integer, intent(in) :: idx
+    type(c_ptr), value     :: mesh
 
     interface
-      subroutine pdm_mesh_nodal_partial_free_c (idx) &
+      subroutine pdm_mesh_nodal_partial_free_c (mesh) &
         bind(c, name='PDM_Mesh_nodal_partial_free')
 
         use iso_c_binding
 
         implicit none
 
-        integer(c_int), intent (in), value :: idx
+        type(c_ptr), value     :: mesh
       end subroutine pdm_mesh_nodal_partial_free_c
     end interface
 
-    call pdm_mesh_nodal_partial_free_c (idx)
+    call pdm_mesh_nodal_partial_free_c (mesh)
 
   end subroutine pdm_mesh_nodal_partial_free
 
 
 !> Free a nodal mesh structure
 !!
-!! @param[in]  idx      Nodal mesh handle
+!! @param[in]  mesh       Pointer to \ref PDM_Mesh_nodal object
 !!
 
-  subroutine pdm_mesh_nodal_free (idx)
+  subroutine pdm_mesh_nodal_free (mesh)
     use iso_c_binding
 
     implicit none
 
-    integer, intent(in), value :: idx
+    type(c_ptr), value :: mesh
 
     interface
-      subroutine pdm_mesh_nodal_free_c (idx) &
+      subroutine pdm_mesh_nodal_free_c (mesh) &
         bind(c, name='PDM_Mesh_nodal_free')
 
         use iso_c_binding
 
         implicit none
 
-        integer(c_int), intent (in), value :: idx
+        type(c_ptr), value :: mesh
       end subroutine pdm_mesh_nodal_free_c
     end interface
 
-    call pdm_mesh_nodal_free_c (idx)
+    call pdm_mesh_nodal_free_c (mesh)
 
   end subroutine pdm_mesh_nodal_free
 
 
 !> Define partition vertices
 !!
-!! @param[in]  idx      Nodal mesh handle
+!! @param[in]  mesh     Pointer to \ref PDM_Mesh_nodal object
 !! @param[in]  id_part  Partition identifier
 !! @param[in]  n_vtx    Number of vertices
 !! @param[in]  coords   Interlaced coordinates (size = 3 * \ref n_vtx)
 !! @param[in]  numabs   Global numbering
 !!
 
-  subroutine pdm_mesh_nodal_coord_set (idx, id_part, n_vtx, coords, numabs)
+  subroutine pdm_mesh_nodal_coord_set (mesh, id_part, n_vtx, coords, numabs)
     use iso_c_binding
 
     implicit none
 
-    integer, intent(in)                 :: idx
+    type(c_ptr), value                  :: mesh
     integer, intent(in)                 :: id_part
     integer, intent(in)                 :: n_vtx
-    double precision, pointer           :: coords
-    integer (pdm_g_num_s), pointer      :: numabs
-    type(c_ptr) :: c_coords
-    type(c_ptr) :: c_numabs
+    double precision, pointer           :: coords(:)
+    integer (pdm_g_num_s), pointer      :: numabs(:)
+    type(c_ptr) :: c_coords = C_NULL_PTR
+    type(c_ptr) :: c_numabs = C_NULL_PTR
 
     interface
-      subroutine pdm_mesh_nodal_coord_set_c(idx, id_part, n_vtx, coords, numabs) &
+      subroutine pdm_mesh_nodal_coord_set_c(mesh, id_part, n_vtx, coords, numabs) &
         bind(c, name='PDM_Mesh_nodal_coord_set')
 
         use iso_c_binding
@@ -132,22 +132,18 @@ MODULE pdm_mesh_nodal
 
         implicit none
 
-        integer (c_int), intent(in), value   :: idx
-        integer (c_int), intent(in), value   :: id_part
-        integer (c_int), intent(in), value   :: n_vtx
-
-        ! real (c_double)         :: coords(*)
-        ! integer (kind=pdm_g_num_s)   :: numabs(*)
-        type (c_ptr), value         :: coords
-        type (c_ptr), value         :: numabs
-        !integer (pdm_g_num_s)   :: numabs(*)
+        type(c_ptr),                 value :: mesh
+        integer (c_int), intent(in), value :: id_part
+        integer (c_int), intent(in), value :: n_vtx
+        type (c_ptr),                value :: coords
+        type (c_ptr),                value :: numabs
       end subroutine pdm_mesh_nodal_coord_set_c
     end interface
 
     c_coords = c_loc (coords)
     c_numabs = c_loc (numabs)
 
-    call  pdm_mesh_nodal_coord_set_c(idx, id_part, n_vtx, c_coords, c_numabs)
+    call  pdm_mesh_nodal_coord_set_c(mesh, id_part, n_vtx, c_coords, c_numabs)
 
   end subroutine
 

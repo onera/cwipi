@@ -33,7 +33,7 @@
  *
  * \brief Create a distributed cube
  *
- * \param [out]  id             dcube identifier
+ * \param [out]  dcube          Pointer to \ref PDM_dcube_t object
  * \param [in]   comm           Communicator
  * \param [in]   n_vtx_seg      Number of vertices in segments
  * \param [in]   length         Segment length
@@ -626,27 +626,12 @@ const double           zero_z,
 }
 
 
-PDM_dcube_t*
-PDM_dcube_gen_init_cf
-(
-const PDM_MPI_Fint     fcomm,
-const PDM_g_num_t      n_vtx_seg,
-const double           length,
-const double           zero_x,
-const double           zero_y,
-const double           zero_z,
-      PDM_ownership_t  owner
-)
-{
-  const PDM_MPI_Comm _comm        = PDM_MPI_Comm_f2c(fcomm);
-  return PDM_dcube_gen_init(_comm, n_vtx_seg, length, zero_x, zero_y, zero_z, owner);
-}
 
 /**
  *
  * \brief Return distributed cube size
  *
- * \param [in]   id            dcube identifier
+ * \param [in]   dcube         Pointer to \ref PDM_dcube_t object
  * \param [out]  n_face_group  Number of faces groups
  * \param [out]  dn_cell       Number of cells stored in this process
  * \param [out]  dn_face       Number of faces stored in this process
@@ -680,7 +665,7 @@ PDM_dcube_gen_dim_get
  *
  * \brief Return distributed cube data
  *
- * \param [in]  id              dcube identifier
+ * \param [in]  dcube           Pointer to \ref PDM_dcube_t object
  * \param [out] dface_cell      Faces from cells connectivity (size = 2 * dn_face)
  * \param [out] dface_vtx_idx    Faces from vertices connectivity index (size = dn_face + 1)
  * \param [out] dface_vtx       Faces from vertices connectivity (size = sface_vtx)
@@ -714,7 +699,7 @@ PDM_dcube_gen_data_get
  *
  * \brief Free a distributed cube
  *
- * \param [in]  id            dcube identifier
+ * \param [in]  dcube         Pointer to \ref PDM_dcube_t object
  *
  */
 

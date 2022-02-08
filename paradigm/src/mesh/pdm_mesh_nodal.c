@@ -1327,7 +1327,7 @@ PDM_Mesh_nodal_n_vtx_elt_get
  * \param [in]   n_part   Number of partition on the current process
  * \param [in]   comm     MPI communicator
  *
- * \return       New mesh nodal handle
+ * \return       Pointer to \ref PDM_Mesh_nodal object
  *
  */
 
@@ -1349,7 +1349,7 @@ PDM_Mesh_nodal_create
 /**
  * \brief  Return number of partitions
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh     Pointer to \ref PDM_Mesh_nodal object
  *
  * \return  Number of partitions
  *
@@ -1368,7 +1368,7 @@ PDM_Mesh_nodal_t *mesh
 /**
  * \brief Free partially a nodal mesh structure
  *
- * \param [in]  idx   Nodal mesh handle
+ * \param [in]  mesh     Pointer to \ref PDM_Mesh_nodal object
  *
  * \return      NULL
  *
@@ -1404,7 +1404,7 @@ PDM_Mesh_nodal_t *mesh
 /**
  * \brief Get the cell global numbering taking into account parent_num
  *
- * \param [in]  idx   Nodal mesh handle
+ * \param [in]  mesh     Pointer to \ref PDM_Mesh_nodal object
  *
  * \return      NULL
  *
@@ -1478,7 +1478,7 @@ const int i_part
 /**
  * \brief Free a nodal mesh structure
  *
- * \param [in]  idx   Nodal mesh handle
+ * \param [in]  mesh     Pointer to \ref PDM_Mesh_nodal object
  *
  * \return      NULL
  *
@@ -1569,7 +1569,7 @@ PDM_Mesh_nodal_t *mesh
 /**
  * \brief Define partition vertices
  *
- * \param [in]  idx       Nodal mesh handle
+ * \param [in]  mesh      Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_part   Partition identifier
  * \param [in]  n_vtx     Number of vertices
  * \param [in]  coords    Interlaced coordinates (size = 3 * \ref n_vtx)
@@ -1611,7 +1611,7 @@ PDM_Mesh_nodal_coord_set
 /**
  * \brief  Return number of vertices
  *
- * \param [in]  idx       Nodal mesh handle
+ * \param [in]  mesh      Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_part   Partition identifier
  *
  * \return  Number of vertices
@@ -1638,7 +1638,7 @@ PDM_Mesh_nodal_n_vertices_get
 /**
  * \brief  Return parent num of vertices
  *
- * \param [in]  mesh           Nodal mesh
+ * \param [in]  mesh     Pointer to \ref PDM_Mesh_nodal object
  *
  * \return  Parent of vertices
  *
@@ -1664,8 +1664,8 @@ PDM_Mesh_nodal_vertices_parent_get
 /**
  * \brief  Return cell centers
  *
- * \param [in]  idx       Nodal mesh handle
- * \param [in]  id_part   Partition identifier
+ * \param [in]  mesh       Pointer to \ref PDM_Mesh_nodal object
+ * \param [in]  id_part    Partition identifier
  * \param [in]  id_block   Block identifier
  *
  * \return  Return cell centers
@@ -1729,7 +1729,7 @@ PDM_Mesh_cell_centers_get
 /**
  * \brief  Return coordinates of vertices
  *
- * \param [in]  mesh           Nodal mesh
+ * \param [in]  mesh     Pointer to \ref PDM_Mesh_nodal object
  *
  * \return  Coordinates of vertices
  *
@@ -1759,7 +1759,7 @@ PDM_Mesh_nodal_vertices_get
 /**
  * \brief  Return global numbering of vertices
  *
- * \param [in]  idx       Nodal mesh handle
+ * \param [in]  mesh     Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_part   Partition identifier
  *
  * \return  Global numbering of vertices
@@ -1790,7 +1790,7 @@ PDM_Mesh_nodal_vertices_g_num_get
 /**
  * \brief Extract vertices from parent vertices
  *
- * \param [in]  mesh           Nodal mesh
+ * \param [in]  mesh     Pointer to \ref PDM_Mesh_nodal object
  *
  * \return true if the vertices are defined from parents
  */
@@ -1813,7 +1813,7 @@ PDM_Mesh_nodal_is_set_coord_from_parent
 /**
  * \brief Extract vertices from parent vertices
  *
- * \param [in]  mesh           Nodal mesh
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_part        Partition identifier
  * \param [in]  n_vtx          Number of vertices
  * \param [in]  n_vtx_parent   Number of parent vertices
@@ -1882,7 +1882,7 @@ PDM_Mesh_nodal_coord_from_parent_set
 /**
  * \brief  Return number of blocks
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh     Pointer to \ref PDM_Mesh_nodal object
  *
  * \return  Number of blocks
  *
@@ -1906,7 +1906,7 @@ PDM_Mesh_nodal_n_blocks_get
 /**
  * \brief  Return blocks identifier
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh     Pointer to \ref PDM_Mesh_nodal object
  *
  * \return  Blocks identifier
  *
@@ -1930,7 +1930,7 @@ PDM_Mesh_nodal_blocks_id_get
 /**
  * \brief  Return type of block
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh       Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_block   Block identifier
  *
  * \return  Type of block
@@ -1983,7 +1983,7 @@ const int               id_block
 /**
  * \brief  Add a new block to the current mesh
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  st_free_data   Status of Release of the memory
  *                             when the block is destroyed
  * \param [in]  id_block       Block identifier
@@ -2227,7 +2227,7 @@ const PDM_Mesh_nodal_elt_t  t_elt
  *     |/      |/
  *   1 x-------x 2
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_block       Block identifier
  * \param [in]  id_part        Partition identifier
  * \param [in]  n_elt          Number of elements
@@ -2362,12 +2362,12 @@ const PDM_l_num_t      *parent_num
  *     |/      |/
  *   1 x-------x 2
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_block       Block identifier
  * \param [in]  id_part        Partition identifier
- * \param [out]  n_elt          Number of elements
- * \param [out]  connect        Connectivity
- * \param [out]  numabs         Global numbering
+ * \param [out] n_elt          Number of elements
+ * \param [out] connect        Connectivity
+ * \param [out] numabs         Global numbering
  * \param [out] numabs_block   Global numbering in the block or NULL (if not computed)
  * \param [out] parent_num     Parent numbering or NULL
  *
@@ -2406,7 +2406,7 @@ const int                id_part,
 /**
  * \brief Get number of block elements
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_block       Block identifier
  * \param [in]  id_part        Partition identifier
  *
@@ -2486,7 +2486,7 @@ const int               id_part
 /**
  * \brief Get global element numbering of block elements inside the block
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_block       Block identifier
  * \param [in]  id_part        Partition identifier
  *
@@ -2565,7 +2565,7 @@ const int               id_part
 /**
  * \brief Get global element numbering of block elements
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_block       Block identifier
  * \param [in]  id_part        Partition identifier
  *
@@ -2654,7 +2654,7 @@ const int               id_part
 /**
  * \brief Get parent numbering of block elements
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_block       Block identifier
  * \param [in]  id_part        Partition identifier
  *
@@ -2743,7 +2743,7 @@ const int               id_part
 /**
  * \brief Define a polygon block
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_block       Block identifier
  * \param [in]  id_part        Partition identifier
  * \param [in]  n_elt          Number of elements
@@ -2814,7 +2814,7 @@ const PDM_l_num_t      *parent_num
 /**
  * \brief Return a polygon block description
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_block       Block identifier
  * \param [in]  id_part        Partition identifier
  * \param [out] connect_idx    Connectivity index (size = \ref n_elt + 1)
@@ -2986,7 +2986,7 @@ static void _compute_cell_vtx_connectivity
 /**
  * \brief Define a polyhedra block
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_block       Block identifier
  * \param [in]  id_part        Partition identifier
  * \param [in]  n_elt          Number of polyhedra
@@ -3075,14 +3075,14 @@ const PDM_l_num_t      *parent_num
 /**
  * \brief Define a polyhedra block
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_block       Block identifier
  * \param [in]  id_part        Partition identifier
- * \param [out]  n_face         Number of faces used to describe polyhedra
- * \param [out]  facvtx_idx     Index of face vertex connectivity
- * \param [out]  facvtx         Face vertex connectivity
- * \param [out]  cellfac_idx    Index of cell face connectivity
- * \param [out]  cellfac        Cell face connectivity
+ * \param [out] n_face         Number of faces used to describe polyhedra
+ * \param [out] facvtx_idx     Index of face vertex connectivity
+ * \param [out] facvtx         Face vertex connectivity
+ * \param [out] cellfac_idx    Index of cell face connectivity
+ * \param [out] cellfac        Cell face connectivity
  *
  */
 
@@ -3129,7 +3129,7 @@ const int                id_part,
 /**
  * \brief Get the cell-vertex connectivity of a polyhedra block
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_block       Block identifier
  * \param [in]  id_part        Partition identifier
  * \param [out] cellvtx_idx    Index of cell vertex connectivity
@@ -3178,7 +3178,7 @@ PDM_Mesh_nodal_block_poly3d_cell_vtx_connect_get
  * and stores it in the corresponding block. \ref ind_num gives the indirection
  * between old and new numbering.
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_part        Partition identifier
  * \param [in]  n_elt          Number of polyhedra
  * \param [in]  n_face         Number of faces used to describe polyhedra
@@ -3772,7 +3772,7 @@ const PDM_g_num_t      *numabs
  * and stores it in the corresponding block. \ref ind_num gives the indirection
  * between old and new numbering.
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_part        Partition identifier
  * \param [in]  n_elt          Number of polyhedra
  * \param [in]  n_edge         Number of edges used to describe polyhedra
@@ -4166,7 +4166,7 @@ const PDM_g_num_t      *numabs
  * and stores it in the corresponding block. \ref ind_num gives the indirection
  * between old and new numbering.
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_part        Partition identifier
  * \param [in]  n_face         Number of polygon
  * \param [in]  face_vtx_idx   Index of edge vertex connectivity
@@ -4485,7 +4485,7 @@ const PDM_g_num_t      *numabs
 /**
  * \brief  Compute a global numbering in a block
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_block       Block identifier
  *
  */
@@ -4626,9 +4626,9 @@ const int               id_block
 
 
 /**
- * \brief Compute cell centers of a block
+ * \brief Compute cell centers of a part of block
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_block       Block identifier
  * \param [in]  id_part        Partition identifier
  *
@@ -4913,7 +4913,7 @@ const int               i_part
 /**
  * \brief Get global inside numbering of block elements
  *
- * \param [in]  idx            Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_block       Block identifier
  * \param [in]  id_part        Partition identifier
  *
@@ -5001,7 +5001,7 @@ const int               id_part
 /**
  * \brief  Return parent cell number to local number
  *
- * \param [in]  idx       Nodal mesh handle
+ * \param [in]  mesh      Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_part   Partition identifier
  *
  * \return  Parent cell number to local number
@@ -5035,7 +5035,7 @@ const int               id_part
 /**
  * \brief  Return number elements of a partition
  *
- * \param [in]  idx       Nodal mesh handle
+ * \param [in]  mesh      Pointer to \ref PDM_Mesh_nodal object
  * \param [in]  id_part   Partition identifier
  *
  * \return  Return number elements of a partition
@@ -5066,7 +5066,7 @@ const int               id_part
 /**
  * \brief  Return parent  absolute number
  *
- * \param [in]  mesh           Nodal mesh
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  *
  * \return  Parent of vertices
  *
@@ -5097,7 +5097,7 @@ PDM_Mesh_nodal_vertices_g_num_parent_get
 /**
  * \brief Reset a nodal mesh structure
  *
- * \param [in]  idx   Nodal mesh handle
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
  *
  * \return      NULL
  *
@@ -5246,6 +5246,19 @@ PDM_Mesh_nodal_n_vertices_element
   return n_vtx;
 }
 
+
+
+/**
+ * \brief Compute cell extents of a part of block
+ *
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
+ * \param [in]  id_block       Block identifier
+ * \param [in]  id_part        Partition identifier
+ * \param [in]  tolerance      Expansion tolerance for bounding boxes
+ * \param [out] extents        Extents of mesh elements in current part of current block
+ *
+ */
+
 void
 PDM_Mesh_nodal_compute_cell_extents
 (
@@ -5380,7 +5393,21 @@ PDM_Mesh_nodal_compute_cell_extents
 }
 
 
-
+/**
+ * \brief Get the cell-vertex connectivity for a polyhedron described by its faces
+ *
+ * (NOT USED)
+ *
+ * \param [in]   icell         Cell local id
+ * \param [in]   face_vtx_idx  Face-vertex connectivity index
+ * \param [in]   face_vtx      Face-vertex connectivity
+ * \param [in]   cell_face_idx Cell-face connectivity index
+ * \param [in]   cell_face     Cell-face connectivity
+ * \param [out]  cell_vtx      Cell-vertex connectivity
+ *
+ * \return    Number of vertices in the cell
+ *
+ */
 
 PDM_l_num_t
 PDM_Mesh_nodal_poly3d_cell_vtx_get
@@ -5449,7 +5476,7 @@ PDM_Mesh_nodal_poly3d_cell_vtx_get
  * \param [in]   n_select_elt      Number of selected element for each partition of each nodal block
  * \param [in]   select_elt_l_num  Local numbers of selected elements (for each partition of each nodal block)
  *
- * \return       New mesh nodal
+ * \return       Pointer to new \ref PDM_Mesh_nodal object
  *
  */
 
@@ -5584,15 +5611,13 @@ g
 
 
 
-
-
-
-
-
-
-
-
-
+/**
+ * \brief Write a mesh nodal in Ensight Gold Format
+ *
+ * \param [in]   filename   Output file name
+ * \param [in]   mesh       Pointer to \ref PDM_Mesh_nodal object
+ *
+ */
 
 void
 PDM_Mesh_nodal_write
@@ -5604,32 +5629,32 @@ PDM_Mesh_nodal_write
   int i_rank;
   PDM_MPI_Comm_rank (mesh->pdm_mpi_comm, &i_rank);
 
-  int id_cs = PDM_writer_create("Ensight",
-                                PDM_WRITER_FMT_ASCII,
-                                PDM_WRITER_TOPO_CONSTANTE,
-                                PDM_WRITER_OFF,
-                                "test_3d_ens",
-                                filename,
-                                PDM_MPI_COMM_WORLD,
-                                PDM_IO_ACCES_MPI_SIMPLE,
-                                1.,
-                                NULL);
+  PDM_writer_t *cs = PDM_writer_create("Ensight",
+                                       PDM_WRITER_FMT_ASCII,
+                                       PDM_WRITER_TOPO_CONSTANTE,
+                                       PDM_WRITER_OFF,
+                                       "test_3d_ens",
+                                       filename,
+                                       PDM_MPI_COMM_WORLD,
+                                       PDM_IO_ACCES_MPI_SIMPLE,
+                                       1.,
+                                       NULL);
 
   /* Creation de la geometrie */
-  int id_geom = PDM_writer_geom_create_from_mesh_nodal (id_cs,
+  int id_geom = PDM_writer_geom_create_from_mesh_nodal (cs,
                                                         "test3d_geom",
                                                         PDM_WRITER_OFF,
                                                         PDM_WRITER_OFF,
                                                         mesh);
 
   /* Creation des variables */
-  int id_var_elt_part = PDM_writer_var_create(id_cs,
+  int id_var_elt_part = PDM_writer_var_create(cs,
                                               PDM_WRITER_OFF,
                                               PDM_WRITER_VAR_SCALAIRE,
                                               PDM_WRITER_VAR_ELEMENTS,
                                               "num_part");
 
-  int id_var_elt_gnum = PDM_writer_var_create(id_cs,
+  int id_var_elt_gnum = PDM_writer_var_create(cs,
                                               PDM_WRITER_OFF,
                                               PDM_WRITER_VAR_SCALAIRE,
                                               PDM_WRITER_VAR_ELEMENTS,
@@ -5670,37 +5695,37 @@ PDM_Mesh_nodal_write
 
 
   /* Ecriture des variables */
-  PDM_writer_step_beg(id_cs, 0.);
+  PDM_writer_step_beg(cs, 0.);
 
   for (int ipart = 0; ipart < mesh->n_part; ipart++) {
-    PDM_writer_var_set(id_cs,
+    PDM_writer_var_set(cs,
                        id_var_elt_part,
                        id_geom,
                        ipart,
                        val_elt_part[ipart]);
 
-    PDM_writer_var_set(id_cs,
+    PDM_writer_var_set(cs,
                        id_var_elt_gnum,
                        id_geom,
                        ipart,
                        val_elt_gnum[ipart]);
   }
 
-  PDM_writer_var_write(id_cs,
+  PDM_writer_var_write(cs,
                        id_var_elt_part);
-  PDM_writer_var_write(id_cs,
+  PDM_writer_var_write(cs,
                        id_var_elt_gnum);
 
-  PDM_writer_var_free(id_cs,
+  PDM_writer_var_free(cs,
                       id_var_elt_part);
-  PDM_writer_var_free(id_cs,
+  PDM_writer_var_free(cs,
                       id_var_elt_gnum);
 
 
-  PDM_writer_step_end(id_cs);
+  PDM_writer_step_end(cs);
 
 
-  PDM_writer_geom_write(id_cs,
+  PDM_writer_geom_write(cs,
                         id_geom);
 
   for (int ipart = 0; ipart < mesh->n_part; ipart++) {

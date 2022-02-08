@@ -66,7 +66,7 @@ extern "C" {
  * \param [in]   n_part       Number of local partitions
  * \param [in]   comm         PDM_MPI communicator
  *
- * \return     Identifier
+ * \return     Pointer to \ref PDM_global_mean object
  */
 
 PDM_global_point_mean_t*
@@ -107,23 +107,12 @@ PDM_global_mean_create
   return gmean;
 }
 
-PDM_global_point_mean_t*
-PDM_global_mean_create_cf
-(
- const int          n_part,
- const PDM_MPI_Comm comm
-)
-{
-  const PDM_MPI_Comm _comm        = PDM_MPI_Comm_f2c(comm);
-
-  return PDM_global_mean_create(n_part, _comm);
-}
 
 /**
  *
  * \brief Set absolute number
  *
- * \param [in]   id           Identifier
+ * \param [in]   gmean        Pointer to \ref PDM_global_mean object
  * \param [in]   i_part       Current partition
  * \param [in]   n_point      Number of points in the partition
  * \param [in]   numabs       Absolute number of points
@@ -148,9 +137,8 @@ PDM_global_mean_set
  *
  * \brief Free a global point mean structure
  *
- * \param [in]   id           Identifier
+ * \param [in]   gmean           Pointer to \ref PDM_global_mean object
  *
- * \return     Identifier
  */
 
 void
@@ -196,7 +184,7 @@ PDM_global_mean_free
  *
  * \brief Set local field and it associated weight
  *
- * \param [in]   id                    Identifier
+ * \param [in]   gmean                 Pointer to \ref PDM_global_mean object
  * \param [in]   i_part                Current partition
  * \param [in]   stride                Stride of the field
  * \param [in]   local_field           Local value of field
@@ -227,7 +215,7 @@ PDM_global_mean_field_set
  *
  * \brief Compute the global average field
  *
- * \param [in]   id           Identifier
+ * \param [in]   gmean        Pointer to \ref PDM_global_mean object
  *
  */
 
@@ -276,7 +264,7 @@ PDM_global_mean_field_compute
 
   PDM_part_to_block_exch (gmean->ptb,
                           sizeof(double),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                          gmean->strides,
                          (void **) gmean->local_field,
@@ -293,7 +281,7 @@ PDM_global_mean_field_compute
 
     PDM_part_to_block_exch (gmean->ptb,
                             sizeof(double),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             _stride_w,
                            (void **) gmean->local_weight,
@@ -349,7 +337,7 @@ PDM_global_mean_field_compute
 
   PDM_block_to_part_exch (gmean->btp,
                           sizeof(double),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           &gmean->stride,
                           block_field,
                           NULL,

@@ -171,7 +171,7 @@ PDM_part_assemble_partitions
   // C'est peut être un multiblock_to_part ???
   PDM_part_to_block_exch (ptb_partition,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &dentity_stri,
                 (void **) &dentity_ln_to_gn,
@@ -461,7 +461,7 @@ PDM_part_distgroup_to_partgroup
   PDM_g_num_t* blk_data = NULL;
   PDM_part_to_block_exch (ptb_group,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &part_stri,
                 (void **) &part_data,
@@ -530,7 +530,7 @@ PDM_part_distgroup_to_partgroup
   PDM_g_num_t** part_group_data;
   PDM_block_to_part_exch2(btp,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           blk_stri_full,
              (void *  )   blk_data,
              (int  ***)  &part_group_stri,
@@ -737,7 +737,7 @@ _dconnectivity_to_pconnectivity_abs
   int**         pstride;
   PDM_block_to_part_exch2(btp,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           blk_stri,
              (void *  )   dconnectivity,
              (int  ***)  &pstride,
@@ -1270,7 +1270,7 @@ PDM_part_dconnectivity_to_pconnectivity_hash
   PDM_g_num_t** pconnectivity_tmp; /* We keep it in double precision because it contains global numbering */
   PDM_block_to_part_exch2(btp,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           blk_stri,
              (void *  )   dconnectivity,
              (int  ***)  &pstride,
@@ -1581,7 +1581,7 @@ PDM_part_generate_entity_graph_comm
   int* blk_data = NULL;
   PDM_part_to_block_exch (ptb,
                           sizeof(int),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           part_stri,
                 (void **) part_data,
@@ -1602,7 +1602,7 @@ PDM_part_generate_entity_graph_comm
   int* proc_blk_data = NULL;
   PDM_part_to_block_exch (ptb,
                           sizeof(int),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           proc_part_stri,
                 (void **) proc_part_data,
@@ -1737,7 +1737,7 @@ PDM_part_generate_entity_graph_comm
   // PDM_MPI_Barrier(comm);
   PDM_block_to_part_exch2(btp,
                           sizeof(int),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           blk_stri,
              (void *  )   blk_data,
              (int  ***)  &part_stri,
@@ -1749,7 +1749,7 @@ PDM_part_generate_entity_graph_comm
     int stride_one = 1;
     PDM_block_to_part_exch2(btp,
                             sizeof(int),
-                            PDM_STRIDE_CST,
+                            PDM_STRIDE_CST_INTERLACED,
                             &stride_one,
                (void *  )   blk_priority_data,
                             NULL,
@@ -1972,7 +1972,7 @@ PDM_part_dcoordinates_to_pcoordinates
   int **pvtx_stride = NULL;
   PDM_block_to_part_exch2(btp,
                           sizeof(double),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           &cst_stride,
              (void *  )   dvtx_coord,
              (int  ***)  &pvtx_stride,
@@ -2019,7 +2019,7 @@ PDM_part_dfield_to_pfield
   int **pfield_stride = NULL;
   PDM_block_to_part_exch2(btp,
                           s_data,
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           &cst_stride,
              (void *  )   dfield,
              (int  ***)  &pfield_stride,
@@ -2108,7 +2108,7 @@ PDM_part_dentity_group_to_pentity_group
   PDM_part_dfield_to_pfield2(comm,
                              n_part,
                              sizeof(int),
-                             PDM_STRIDE_VAR,
+                             PDM_STRIDE_VAR_INTERLACED,
                              entity_distribution,
                              dentity_group_n,
          (unsigned char *  ) dentity_group,
@@ -2231,7 +2231,7 @@ PDM_extend_mesh
   PDM_g_num_t** part_dual_graph;
   PDM_block_to_part_exch2(btp,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           dual_graph_n,
              (void *  )   dual_graph,
              (int  ***)  &part_dual_graph_n,

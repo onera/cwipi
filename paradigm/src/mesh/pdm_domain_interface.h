@@ -73,6 +73,15 @@ PDM_domain_interface_get
  int                  ***interface_dom
 );
 
+int PDM_domain_interface_get_as_graph
+(
+ PDM_domain_interface_t *dom_intrf,
+ PDM_bound_type_t        interface_kind,
+ int                   **interface_graph_idx,
+ PDM_g_num_t           **interface_graph_ids,
+ int                   **interface_graph_dom
+);
+
 void
 PDM_domain_interface_translate_face2vtx
 (

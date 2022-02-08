@@ -133,9 +133,9 @@ cdef class DistantNeighbor:
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
         assert(len(l_send_entity_data) == self._n_part)
         assert(len(l_recv_entity_data) == 0           )
-        t_stride = PDM_STRIDE_CST
+        t_stride = PDM_STRIDE_CST_INTERLACED
         if(l_send_entity_stri is not None):
-          t_stride = PDM_STRIDE_VAR
+          t_stride = PDM_STRIDE_VAR_INTERLACED
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -215,4 +215,3 @@ cdef class DistantNeighbor:
       free(self._n_entity)
       free(self._neighbor_idx)
       free(self._neighbor_desc)
-

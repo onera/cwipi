@@ -138,12 +138,12 @@ char *argv[]
   PDM_bool_t equilibrate = PDM_FALSE;
 
 
-  int gnum_fhv_id = PDM_gnum_from_hash_values_create(n_part,
-                                                     equilibrate,
-                                                     sizeof(int),
-                                                     PDM_operator_compare_connectivity,
-                                                     PDM_operator_equal_connectivity,
-                                                     PDM_MPI_COMM_WORLD);
+  PDM_gnum_from_hv_t *gnum_fhv_id = PDM_gnum_from_hash_values_create(n_part,
+                                                                     equilibrate,
+                                                                     sizeof(int),
+                                                                     PDM_operator_compare_connectivity,
+                                                                     PDM_operator_equal_connectivity,
+                                                                     PDM_MPI_COMM_WORLD);
 
   for(int i_part = 0; i_part < n_part; ++i_part){
     PDM_gnum_set_hash_values(gnum_fhv_id,

@@ -441,7 +441,7 @@ PDM_dreorder_from_coords
   double *blk_hilbert_codes = NULL;
   PDM_part_to_block_exch (ptb,
                           sizeof(double),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           1,
                           NULL,
                 (void **) &hilbert_codes,
@@ -456,7 +456,7 @@ PDM_dreorder_from_coords
   PDM_g_num_t* blk_ln_to_gn;
   PDM_part_to_block_exch (ptb,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           1,
                           NULL,
                 (void **) &ln_to_gn,
@@ -495,7 +495,7 @@ PDM_dreorder_from_coords
   int stride_one = 1;
   PDM_block_to_part_exch(btp,
                          sizeof(PDM_g_num_t),
-                         PDM_STRIDE_CST,
+                         PDM_STRIDE_CST_INTERLACED,
                          &stride_one,
               (void *)   sorted_blk_ln_to_gn,
                          NULL,
@@ -598,7 +598,7 @@ PDM_dreorder_from_length
   double *blk_hilbert_codes = NULL;
   PDM_part_to_block_exch (ptb,
                           sizeof(double),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           1,
                           NULL,
                 (void **) &length,
@@ -613,7 +613,7 @@ PDM_dreorder_from_length
   PDM_g_num_t* blk_ln_to_gn;
   PDM_part_to_block_exch (ptb,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           1,
                           NULL,
                 (void **) &ln_to_gn,
@@ -652,7 +652,7 @@ PDM_dreorder_from_length
   int stride_one = 1;
   PDM_block_to_part_exch(btp,
                          sizeof(PDM_g_num_t),
-                         PDM_STRIDE_CST,
+                         PDM_STRIDE_CST_INTERLACED,
                          &stride_one,
               (void *)   sorted_blk_ln_to_gn,
                          NULL,

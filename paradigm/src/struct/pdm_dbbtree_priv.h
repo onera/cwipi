@@ -10,7 +10,6 @@
  *----------------------------------------------------------------------------*/
 
 #include "pdm_mpi.h"
-#include "pdm_writer.h"
 #include "pdm_box_tree.h"
 #include "pdm_box_tree.h"
 

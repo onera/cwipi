@@ -53,7 +53,13 @@ module pdm_overlay
   integer(c_int), parameter :: PDM_OL_MV_TRANSFORMATION  = 0 !< Moving with combination of geometric transformations
   integer(c_int), parameter :: PDM_OL_MV_UNKNOWN         = 1 !< Unknown moving type
 
-  !! No iso c binding interface : See PROCF in pdm_overlay.[ch] to find functions to call
+
+  interface PDM_ol_create ; module procedure &
+  pdm_ol_create_
+  end interface
+
+  private :: pdm_ol_create_
+
 
   interface
 
@@ -79,7 +85,7 @@ module pdm_overlay
   !! return                     Pointer to overlay object.
   !!
 
-  function PDM_ol_create ( &
+  function PDM_ol_create_cf ( &
     n_partMeshA,           &
     nGFaceMeshA,           &
     nGVtxMeshA,            &
@@ -87,9 +93,9 @@ module pdm_overlay
     nGFaceMeshB,           &
     nGVtxMeshB,            &
     projectCoeff,          &
-    fComm)                 &
+    comm)                  &
   result (ol)              &
-  bind (c, name = 'PDM_ol_create_cf')
+  bind (c, name = 'PDM_ol_create')
 
   use iso_c_binding
   implicit none
@@ -111,11 +117,11 @@ module pdm_overlay
   integer(c_int), value :: nGVtxMeshB
 #endif
   real(c_double), value :: projectCoeff
-  integer(c_int), value :: fComm
+  integer(c_int), value :: comm
 
   type(c_ptr)           :: ol
 
-end function PDM_ol_create
+end function PDM_ol_create_cf
 
 
 !>
@@ -505,5 +511,98 @@ end subroutine PDM_ol_dump_times
 
 
 end interface
+
+
+
+contains
+
+
+!>
+  !! \brief Build and initialize an overlaying object
+  !!
+  !! This function builds an initializes an overlaying surface meshes object
+  !!
+  !! \param [in]  n_partMeshA   Number of local partitions of the meshA input
+  !! \param [in]  nGFaceA       Number of global faces of the meshA input
+  !! \param [in]  nGVtxA        Number of global vertices of the meshA input
+  !! \param [in]  n_partMeshB   Number of local partitions of the meshB input
+  !! \param [in]  nGFaceB       Number of global faces of the meshB input
+  !! \param [in]  nGVtxB        Number of global vertices of the meshB input
+  !! \param [in]  projectCoeff  Projection coefficient to define the overlay surface
+  !!                            projection
+  !!                            If value == 0, the surface projection is MeshA
+  !!                            If value == 1, the surface projection is MeshB
+  !!                            If 0 < value < 1 , the projection surface is an
+  !!                            intermediate surface
+  !! \param [in]  fComm         MPI communicator.
+  !!
+  !! return                     Pointer to overlay object.
+  !!
+
+  subroutine PDM_ol_create_ ( &
+    ol,                       &
+    n_partMeshA,              &
+    nGFaceMeshA,              &
+    nGVtxMeshA,               &
+    n_partMeshB,              &
+    nGFaceMeshB,              &
+    nGVtxMeshB,               &
+    projectCoeff,             &
+    f_comm)
+
+  use iso_c_binding
+  implicit none
+
+  integer                      :: n_partMeshA
+  integer (kind = pdm_g_num_s) :: nGFaceMeshA
+  integer (kind = pdm_g_num_s) :: nGVtxMeshA
+  integer                      :: n_partMeshB
+  integer (kind = pdm_g_num_s) :: nGFaceMeshB
+  integer (kind = pdm_g_num_s) :: nGVtxMeshB
+  double precision             :: projectCoeff
+  integer                      :: f_comm
+
+  type(c_ptr)           :: ol
+
+
+  integer(c_int) :: c_n_partMeshA
+#ifdef PDM_LONG_G_NUM
+  integer(c_long) :: c_nGFaceMeshA
+  integer(c_long) :: c_nGVtxMeshA
+#else
+  integer(c_int) :: c_nGFaceMeshA
+  integer(c_int) :: c_nGVtxMeshA
+#endif
+  integer(c_int) :: c_n_partMeshB
+#ifdef PDM_LONG_G_NUM
+  integer(c_long) :: c_nGFaceMeshB
+  integer(c_long) :: c_nGVtxMeshB
+#else
+  integer(c_int) :: c_nGFaceMeshB
+  integer(c_int) :: c_nGVtxMeshB
+#endif
+  real(c_double) :: c_projectCoeff
+  integer(c_int) :: c_comm
+
+  c_comm = PDM_MPI_Comm_f2c(f_comm)
+
+  c_n_partMeshA  = n_partMeshA
+  c_nGFaceMeshA  = nGFaceMeshA
+  c_nGVtxMeshA   = nGVtxMeshA
+  c_n_partMeshB  = n_partMeshB
+  c_nGFaceMeshB  = nGFaceMeshB
+  c_nGVtxMeshB   = nGVtxMeshB
+  c_projectCoeff = projectCoeff
+
+  ol = PDM_ol_create_cf(c_n_partMeshA,  &
+                        c_nGFaceMeshA,  &
+                        c_nGVtxMeshA,   &
+                        c_n_partMeshB,  &
+                        c_nGFaceMeshB,  &
+                        c_nGVtxMeshB,   &
+                        c_projectCoeff, &
+                        c_comm)
+
+  end subroutine PDM_ol_create_
 
 end module pdm_overlay

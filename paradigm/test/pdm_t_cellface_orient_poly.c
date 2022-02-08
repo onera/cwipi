@@ -15,7 +15,6 @@
 #include "pdm_part.h"
 #include "pdm_cellface_orient.h"
 
-#include "pdm_writer.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
 

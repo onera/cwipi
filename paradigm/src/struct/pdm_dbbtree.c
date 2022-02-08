@@ -2907,7 +2907,7 @@ PDM_dbbtree_points_inside_boxes
   PDM_g_num_t *block_box_pts_g_num = NULL;
   PDM_part_to_block_exch (ptb,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &part_stride,
                           (void **) &part_pts_g_num,
@@ -2934,7 +2934,7 @@ PDM_dbbtree_points_inside_boxes
   double *block_box_pts_coord = NULL;
   PDM_part_to_block_exch (ptb,
                           3*sizeof(double),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &part_stride,
                           (void **) &part_pts_coord,
@@ -2957,7 +2957,7 @@ PDM_dbbtree_points_inside_boxes
   int one = 1;
   PDM_block_to_part_exch (btp,
                           sizeof(int),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           &one,
                           block_box_pts_n,
                           NULL,
@@ -2968,7 +2968,7 @@ PDM_dbbtree_points_inside_boxes
   *pts_in_box_g_num = malloc (sizeof(PDM_g_num_t) * (*pts_in_box_idx)[n_boxes]);
   PDM_block_to_part_exch (btp,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           block_box_pts_n,
                           block_box_pts_g_num,
                           &pts_in_box_n,
@@ -2978,7 +2978,7 @@ PDM_dbbtree_points_inside_boxes
   *pts_in_box_coord = malloc (sizeof(double) * (*pts_in_box_idx)[n_boxes] * 3);
   PDM_block_to_part_exch (btp,
                           3*sizeof(double),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           block_box_pts_n,
                           block_box_pts_coord,
                           &pts_in_box_n,
@@ -3472,7 +3472,7 @@ PDM_dbbtree_boxes_containing_points
   PDM_g_num_t *block_box_g_num = NULL;
   PDM_part_to_block_exch (ptb,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           part_stride,
                           (void **) pts_box_g_num,
@@ -3553,7 +3553,7 @@ PDM_dbbtree_boxes_containing_points
   int one = 1;
   PDM_block_to_part_exch (btp,
                           sizeof(int),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           &one,
                           block_box_n,
                           NULL,
@@ -3564,7 +3564,7 @@ PDM_dbbtree_boxes_containing_points
   *box_g_num = malloc (sizeof(PDM_g_num_t) * (*box_idx)[n_pts]);
   PDM_block_to_part_exch (btp,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           block_box_n,
                           block_box_g_num,
                           &box_n,
@@ -4024,7 +4024,7 @@ PDM_dbbtree_lines_intersect_boxes
   PDM_g_num_t *block_box_g_num = NULL;
   PDM_part_to_block_exch (ptb,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           part_stride,
                           (void **) line_box_g_num,
@@ -4105,7 +4105,7 @@ PDM_dbbtree_lines_intersect_boxes
   int one = 1;
   PDM_block_to_part_exch (btp,
                           sizeof(int),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           &one,
                           block_box_n,
                           NULL,
@@ -4116,7 +4116,7 @@ PDM_dbbtree_lines_intersect_boxes
   *box_g_num = malloc (sizeof(PDM_g_num_t) * (*box_idx)[n_line]);
   PDM_block_to_part_exch (btp,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           block_box_n,
                           block_box_g_num,
                           &box_n,

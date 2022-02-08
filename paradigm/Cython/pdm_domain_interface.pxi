@@ -24,6 +24,12 @@ cdef extern from "pdm_domain_interface.h":
                                 PDM_g_num_t          ***interface_ids,
                                 int                  ***interface_dom)
 
+  int PDM_domain_interface_get_as_graph(PDM_domain_interface_t *dom_intrf,
+                                        PDM_bound_type_t        interface_kind,
+                                        int                   **interface_graph_idx,
+                                        PDM_g_num_t           **interface_graph_ids,
+                                        int                   **interface_graph_dom)
+
   void PDM_domain_interface_translate_face2vtx(PDM_domain_interface_t  *dom_intrf,
                                                int                     *dn_vtx,
                                                int                     *dn_face,
@@ -33,10 +39,6 @@ cdef extern from "pdm_domain_interface.h":
   void PDM_domain_interface_free(PDM_domain_interface_t *dom_intrf)
 
 # ===================================================================================
-def assert_single_dim_np(tab, dtype, size=None):
-  assert isinstance(tab, NPY.ndarray) and tab.ndim == 1 and tab.dtype == dtype
-  if size is not None:
-    assert tab.size == size
 
 def interface_face_to_vertex(int       n_interface,
                              int       n_zone,
@@ -49,9 +51,6 @@ def interface_face_to_vertex(int       n_interface,
                              list      dface_vtx_idx,
                              list      dface_vtx,
                              MPI.Comm  comm):
-    # Generic declarations
-    cdef NPY.ndarray[NPY.int32_t,    ndim=1, mode='c'] numpy_int
-    cdef NPY.ndarray[npy_pdm_gnum_t, ndim=1, mode='c'] numpy_gnum
 
     #Some checks
     assert (len(interface_dn_face) == len(interface_ids_face) == n_interface)
@@ -68,33 +67,24 @@ def interface_face_to_vertex(int       n_interface,
     cdef MPI.MPI_Comm c_comm = comm.ob_mpi
     cdef PDM_MPI_Comm PDMC   = PDM_MPI_mpi_2_pdm_mpi_comm(&c_comm)
 
-    cdef int           *_interface_dn_face = <int          *> malloc(n_interface*sizeof(int));
-    cdef PDM_g_num_t **_interface_ids_face = <PDM_g_num_t **> malloc(n_interface*sizeof(PDM_g_num_t*));
-    cdef int         **_interface_dom_face = <int         **> malloc(n_interface*sizeof(int*));
-
-    for i in range(n_interface):
-      _interface_dn_face[i]  = <int> interface_dn_face[i]
-      numpy_gnum = interface_ids_face[i]
-      _interface_ids_face[i] = <PDM_g_num_t *> numpy_gnum.data
-      if multizone_interface:
-        numpy_int = interface_dom_face[i]
-        _interface_dom_face[i] = <int *> numpy_int.data
-      else:
+    # Interfaces data
+    cdef int           *_interface_dn_face = list_to_int_pointer(interface_dn_face)
+    cdef PDM_g_num_t **_interface_ids_face = np_list_to_gnum_pointers(interface_ids_face)
+    cdef int         **_interface_dom_face
+    if multizone_interface:
+      _interface_dom_face = np_list_to_int_pointers(interface_dom_face)
+    else:
+      _interface_dom_face = <int **> malloc(n_interface*sizeof(int*));
+      for i in range(n_interface):
         _interface_dom_face[i] = <int *> malloc(2*sizeof(int))
         _interface_dom_face[i][0] = interface_dom_face[i][0]
         _interface_dom_face[i][1] = interface_dom_face[i][1]
 
-    cdef int          *_dn_vtx        = <int         *>  malloc(n_zone * sizeof(int));
-    cdef int          *_dn_face       = <int         *>  malloc(n_zone * sizeof(int));
-    cdef int         **_dface_vtx_idx = <int         **> malloc(n_zone * sizeof(int*));
-    cdef PDM_g_num_t **_dface_vtx     = <PDM_g_num_t **> malloc(n_zone * sizeof(PDM_g_num_t*));
-    for i in range(n_zone):
-      _dn_vtx[i] = <int> dn_vtx[i]
-      _dn_face[i] = <int> dn_face[i]
-      numpy_int = dface_vtx_idx[i]
-      _dface_vtx_idx[i] =  <int *> numpy_int.data
-      numpy_gnum = dface_vtx[i]
-      _dface_vtx[i] =  <PDM_g_num_t *> numpy_gnum.data
+    # Zone data
+    cdef int          *_dn_vtx        = list_to_int_pointer(dn_vtx)
+    cdef int          *_dn_face       = list_to_int_pointer(dn_face)
+    cdef int         **_dface_vtx_idx = np_list_to_int_pointers(dface_vtx_idx)
+    cdef PDM_g_num_t **_dface_vtx     = np_list_to_gnum_pointers(dface_vtx)
 
     # Run function
     cdef PDM_domain_interface_t *dom_intrf;
@@ -160,3 +150,79 @@ def interface_face_to_vertex(int       n_interface,
 
     return vtx_interface
 
+def interface_to_graph(int       n_interface,
+                       bint      multizone_interface,
+                       list      interface_dn,
+                       list      interface_ids,
+                       list      interface_dom,
+                       MPI.Comm  comm):
+
+
+    #Some checks
+    assert (len(interface_dn) == len(interface_ids) == len(interface_dom) == n_interface)
+    for i in range(n_interface):
+      assert_single_dim_np(interface_ids[i], npy_pdm_gnum_dtype, 2*interface_dn[i])
+      if multizone_interface:
+        assert_single_dim_np(interface_dom[i], NPY.int32, 2*interface_dn[i])
+
+    #Convert input data
+    cdef MPI.MPI_Comm c_comm = comm.ob_mpi
+    cdef PDM_MPI_Comm PDMC   = PDM_MPI_mpi_2_pdm_mpi_comm(&c_comm)
+
+    cdef int           *_interface_dn = list_to_int_pointer(interface_dn)
+    cdef PDM_g_num_t **_interface_ids = np_list_to_gnum_pointers(interface_ids)
+    cdef int         **_interface_dom
+    if multizone_interface:
+      _interface_dom = np_list_to_int_pointers(interface_dom)
+    else:
+      _interface_dom = <int **> malloc(n_interface*sizeof(int*));
+      for i in range(n_interface):
+        _interface_dom[i] = <int *> malloc(2*sizeof(int))
+        _interface_dom[i][0] = interface_dom[i][0]
+        _interface_dom[i][1] = interface_dom[i][1]
+
+    # Run function
+    cdef PDM_domain_interface_t *dom_intrf;
+    cdef _multizone_interface = PDM_DOMAIN_INTERFACE_MULT_YES if multizone_interface else PDM_DOMAIN_INTERFACE_MULT_NO
+    dom_intrf = PDM_domain_interface_create(n_interface,
+                                            -1, #Not used
+                                            _multizone_interface,
+                                            PDM_OWNERSHIP_USER,
+                                            PDMC)
+    PDM_domain_interface_set(dom_intrf,
+                             PDM_BOUND_TYPE_VTX, #Type does not matter
+                             _interface_dn,
+                             _interface_ids,
+                             _interface_dom)
+
+    cdef int*         _interface_graph_idx
+    cdef PDM_g_num_t* _interface_graph_ids
+    cdef int*         _interface_graph_dom
+    
+    cdef int graph_dn = PDM_domain_interface_get_as_graph(dom_intrf,
+                                                          PDM_BOUND_TYPE_VTX,
+                                                         &_interface_graph_idx,
+                                                         &_interface_graph_ids,
+                                                         &_interface_graph_dom)
+
+
+    interface_graph_idx = create_numpy_i(_interface_graph_idx, graph_dn+1)
+    PyArray_ENABLEFLAGS(interface_graph_idx, NPY.NPY_OWNDATA)
+
+    interface_graph_ids = create_numpy_pdm_gnum(_interface_graph_ids, interface_graph_idx[graph_dn])
+    if interface_graph_ids is not None:
+      PyArray_ENABLEFLAGS(interface_graph_ids, NPY.NPY_OWNDATA)
+    interface_graph_dom = create_numpy_i(_interface_graph_dom, interface_graph_idx[graph_dn])
+    if interface_graph_dom is not None:
+      PyArray_ENABLEFLAGS(interface_graph_dom, NPY.NPY_OWNDATA)
+
+    # Free temporary objects and return
+    PDM_domain_interface_free(dom_intrf)
+    free(_interface_dn )
+    free(_interface_ids)
+    if not multizone_interface:
+      for i in range(n_interface):
+        free(_interface_dom[i])
+    free(_interface_dom)
+
+    return interface_graph_idx, interface_graph_ids, interface_graph_dom

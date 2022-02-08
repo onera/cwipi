@@ -48,7 +48,7 @@ struct _pdm_points_merge_t {
   int               max_n_points;            /*!< Maximum number of points in each cloud     */
   const double    **point_clouds;            /*!< points cloud                               */
   const double    **char_length;             /*!< Characteristic length of points (optionnal)*/
-  int               octree_id;               /*!< Octree identifier                          */
+  PDM_octree_t     *octree;                  /*!< Octree pointer                          */
   int             **candidates_idx;          /*!< Candidates indexes for each cloud          */
   int             **candidates_desc;         /*!< Candidates description for each cloud      */
 

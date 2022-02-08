@@ -42,7 +42,7 @@ typedef struct _pdm_global_point_mean_t PDM_global_point_mean_t;
  * \param [in]   n_part       Number of local partitions
  * \param [in]   comm         PDM_MPI communicator
  *
- * \return     Identifier
+ * \return     Pointer to \ref PDM_global_mean object
  */
 
 PDM_global_point_mean_t*
@@ -52,28 +52,12 @@ PDM_global_mean_create
  const PDM_MPI_Comm comm
 );
 
-/**
- *
- * \brief Create a structure that compute a global mean
- *
- * \param [in]   n_part       Number of local partitions
- * \param [in]   comm         PDM_MPI communicator
- *
- * \return     Identifier
- */
-
-PDM_global_point_mean_t*
-PDM_global_mean_create_cf
-(
- const int          n_part,
- const PDM_MPI_Fint comm
-);
 
 /**
  *
  * \brief Set absolute number
  *
- * \param [in]   id           Identifier
+ * \param [in]   gmean        Pointer to \ref PDM_global_mean object
  * \param [in]   i_part       Current partition
  * \param [in]   n_point      Number of points in the partition
  * \param [in]   numabs       Absolute number of points
@@ -89,13 +73,13 @@ PDM_global_mean_set
  const PDM_g_num_t             *numabs
 );
 
+
 /**
  *
  * \brief Free a global point mean structure
  *
- * \param [in]   id           Identifier
+ * \param [in]   gmean           Pointer to \ref PDM_global_mean object
  *
- * \return     Identifier
  */
 
 void
@@ -104,11 +88,12 @@ PDM_global_mean_free
  PDM_global_point_mean_t *gmean
 );
 
+
 /**
  *
  * \brief Set local field and it associated weight
  *
- * \param [in]   id                    Identifier
+ * \param [in]   gmean                 Pointer to \ref PDM_global_mean object
  * \param [in]   i_part                Current partition
  * \param [in]   stride                Stride of the field
  * \param [in]   local_field           Local value of field
@@ -128,11 +113,12 @@ PDM_global_mean_field_set
  double                   *global_mean_field_ptr
 );
 
+
 /**
  *
  * \brief Compute the global average field
  *
- * \param [in]   id           Identifier
+ * \param [in]   gmean         Pointer to \ref PDM_global_mean object
  *
  */
 

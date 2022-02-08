@@ -71,7 +71,7 @@ typedef void (*PDM_coarse_mesh_renum_fct_t) (_coarse_part_t  *part);
  *
  */
 
-typedef struct  {
+struct _coarse_mesh_t {
 
   /* Partitions */
 
@@ -140,7 +140,7 @@ typedef struct  {
 
 
 
-} _coarse_mesh_t;
+} ;
 
 
 /**
@@ -149,8 +149,7 @@ typedef struct  {
  * \brief  Function pointer used to define a coarse mesh method
  *
  */
-
-typedef void (*PDM_coarse_mesh_fct_t) (_coarse_mesh_t  *cm,
+typedef void (*PDM_coarse_mesh_fct_t) (struct _coarse_mesh_t  *cm,
                                        const int       i_part,
                                        int             *n_coarse_cell_computed,
                                        int             *cell_cell_idx,
@@ -240,14 +239,6 @@ PDM_coarse_mesh_method_add
  * \return Index (-1 if not found)
  */
 
-void
-PROCF (pdm_coarse_mesh_method_idx_get_cf, PDM_COARSE_MESH_METHOD_IDX_GET_CF)
-(
- char *name,
- int  *l_name,
- int  *idx
- );
-
 int
 PDM_coarse_mesh_method_idx_get
 (
@@ -265,11 +256,11 @@ const char *name
  */
 
 void
-PROCF (pdm_coarse_mesh_method_name_get_cf, PDM_COARSE_MESH_METHOD_NAME_GET_CF)
+PDM_coarse_mesh_method_name_get_cf
 (
- char *name,
- int  *l_name,
- int  *idx
+ const int  idx,
+ char      *name,
+ int       *l_name
  );
 
 char *
@@ -286,12 +277,6 @@ const int id
  * \return Number of methods
  *
  */
-
-void
-PROCF (pdm_coarse_mesh_method_n_get, PDM_COARSE_MESH_METHOD_N_GET)
-(
- int  *n_method
- );
 
 int
 PDM_coarse_mesh_method_n_get
@@ -334,11 +319,11 @@ void
  *
  */
 
-_coarse_mesh_t *
-PDM_part_coarse_mesh_get_from_id
-(
- int  cmId
- );
+// _coarse_mesh_t *
+// PDM_part_coarse_mesh_get_from_id
+// (
+//  int  cmId
+//  );
 
 
 #ifdef	__cplusplus

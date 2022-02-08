@@ -59,7 +59,7 @@ extern "C" {
  * If a vertex is not cited in the face->vtx connectivity, the function
  * removes it from the mesh to ensure contiguity
  *
- * /TODO : PDM_Mesh_check_unconnected_vertex complexity is n^2. This function must be optimized
+ * /TODO : PDM_mesh_check_unconnected_vertex complexity is n^2. This function must be optimized
  *
  * \param [in, out] n_vtx       Number of vertices
  * \param [in, out] l_face_vtx  Size of face->vtx connectivity
@@ -69,22 +69,13 @@ extern "C" {
  *
  */
 
-void PROCF (pdm_mesh_check_unconnected_vertex, PDM_MESH_CHECK_UNCONNECTED_VERTEX)
-(
-PDM_g_num_t *nb_vtx,
-PDM_g_num_t *l_face_vtx,
-PDM_g_num_t *face_vtx,
-double      *coords,
-int         *nb_holes
-);
-
-void PDM_Mesh_check_unconnected_vertex
+void PDM_mesh_check_unconnected_vertex
 (
 PDM_g_num_t* nb_vtx,
-PDM_g_num_t* face_vtx,
 PDM_g_num_t* l_face_vtx,
-double* coords,
-int* nb_holes
+PDM_g_num_t* face_vtx,
+double*      coords,
+int*         nb_holes
 );
 
 /*----------------------------------------------------------------------------*/

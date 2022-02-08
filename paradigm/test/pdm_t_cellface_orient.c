@@ -72,8 +72,8 @@ _read_args(int            argc,
            PDM_g_num_t  *n_vtx_seg,
            double        *length,
            int           *n_part,
-	   int           *post,
-	   int           *method)
+     int           *post,
+     int           *method)
 {
   int i = 1;
 
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
                        &dvtx_coord,
                        &dface_group_idx,
                        &dface_group);
-  int ppart_id = 0;
+  // int ppart_id = 0;
 
   gettimeofday(&t_elaps_debut, NULL);
 
@@ -238,34 +238,33 @@ int main(int argc, char *argv[])
 //                  "PDM_PART_RENUM_CELL_NONE",
 //                  "PDM_PART_RENUM_FACE_NONE",
 
-  PDM_part_create(&ppart_id,
-                  PDM_MPI_COMM_WORLD,
-                  method,
-                  "PDM_PART_RENUM_CELL_CUTHILL",
-                  "PDM_PART_RENUM_FACE_LEXICOGRAPHIC",
-                  n_property_cell,
-                  renum_properties_cell,
-                  n_property_face,
-                  renum_properties_face,
-                  n_part,
-                  dn_cell,
-                  dn_face,
-                  dn_vtx,
-                  n_face_group,
-                  NULL,
-                  NULL,
-                  NULL,
-                  NULL,
-                  have_dcell_part,
-                  dcell_part,
-                  dface_cell,
-                  dface_vtx_idx,
-                  dface_vtx,
-                  NULL,
-                  dvtx_coord,
-                  NULL,
-                  dface_group_idx,
-                  dface_group);
+  PDM_part_t *ppart = PDM_part_create(PDM_MPI_COMM_WORLD,
+                                      method,
+                                      "PDM_PART_RENUM_CELL_CUTHILL",
+                                      "PDM_PART_RENUM_FACE_LEXICOGRAPHIC",
+                                      n_property_cell,
+                                      renum_properties_cell,
+                                      n_property_face,
+                                      renum_properties_face,
+                                      n_part,
+                                      dn_cell,
+                                      dn_face,
+                                      dn_vtx,
+                                      n_face_group,
+                                      NULL,
+                                      NULL,
+                                      NULL,
+                                      NULL,
+                                      have_dcell_part,
+                                      dcell_part,
+                                      dface_cell,
+                                      dface_vtx_idx,
+                                      dface_vtx,
+                                      NULL,
+                                      dvtx_coord,
+                                      NULL,
+                                      dface_group_idx,
+                                      dface_group);
 
   free(dcell_part);
 
@@ -274,7 +273,7 @@ int main(int argc, char *argv[])
   double  *cpu_user = NULL;
   double  *cpu_sys = NULL;
 
-  PDM_part_time_get(ppart_id,
+  PDM_part_time_get(ppart,
                     &elapsed,
                     &cpu,
                     &cpu_user,
@@ -310,44 +309,44 @@ int main(int argc, char *argv[])
   double t_elapsed = (double) tranche_elapsed_max/1000000.;
   PDM_printf("[%i]   - TEMPS DANS PART_CUBE  : %12.5e\n", i_rank,  t_elapsed);
 
-  int id_cs = PDM_writer_create("Ensight",
-                                PDM_WRITER_FMT_ASCII,
-                                PDM_WRITER_TOPO_CONSTANTE,
-                                PDM_WRITER_OFF,
-                                "test_3d_ens",
-                                "chrd3d",
-                                PDM_MPI_COMM_WORLD,
-                                PDM_IO_ACCES_MPI_SIMPLE,
-                                1.,
-                                NULL);
+  PDM_writer_t *id_cs = PDM_writer_create("Ensight",
+                                          PDM_WRITER_FMT_ASCII,
+                                          PDM_WRITER_TOPO_CONSTANTE,
+                                          PDM_WRITER_OFF,
+                                          "test_3d_ens",
+                                          "chrd3d",
+                                          PDM_MPI_COMM_WORLD,
+                                          PDM_IO_ACCES_MPI_SIMPLE,
+                                          1.,
+                                          NULL);
 
   /* Creation de la geometrie */
 
   int id_geom = PDM_writer_geom_create(id_cs,
-                             "test3d_geom",
-                             PDM_WRITER_OFF,
-                             PDM_WRITER_OFF,
-                             n_part);
+                                       "test3d_geom",
+                                       PDM_WRITER_OFF,
+                                       PDM_WRITER_OFF,
+                                       n_part);
 
   /* Creation des variables */
 
   int id_var_num_part = PDM_writer_var_create(id_cs,
-                                    PDM_WRITER_OFF,
-                                    PDM_WRITER_VAR_SCALAIRE,
-                                    PDM_WRITER_VAR_ELEMENTS,
-                                    "num_part");
+                                              PDM_WRITER_OFF,
+                                              PDM_WRITER_VAR_SCALAIRE,
+                                              PDM_WRITER_VAR_ELEMENTS,
+                                              "num_part");
 
   int id_var_coo_x = PDM_writer_var_create(id_cs,
-                                 PDM_WRITER_ON,
-                                 PDM_WRITER_VAR_SCALAIRE,
-                                 PDM_WRITER_VAR_SOMMETS,
-                                 "coo_x");
+                                           PDM_WRITER_ON,
+                                           PDM_WRITER_VAR_SCALAIRE,
+                                           PDM_WRITER_VAR_SOMMETS,
+                                           "coo_x");
 
   int id_var_coo_xyz = PDM_writer_var_create(id_cs,
-                                   PDM_WRITER_ON,
-                                   PDM_WRITER_VAR_VECTEUR,
-                                   PDM_WRITER_VAR_SOMMETS,
-                                   "coo_xyz");
+                                             PDM_WRITER_ON,
+                                             PDM_WRITER_VAR_VECTEUR,
+                                             PDM_WRITER_VAR_SOMMETS,
+                                             "coo_xyz");
 
   /* Debut d'ecritures */
 
@@ -389,18 +388,18 @@ int main(int argc, char *argv[])
     int sface_group;
     int n_faceGroup2;
 
-    PDM_part_part_dim_get(ppart_id,
-                       i_part,
-                       &n_cell,
-                       &n_face,
-                       &n_face_part_bound,
-                       &n_vtx,
-                       &n_proc,
-                       &n_total_part,
-                       &scell_face,
-                       &sface_vtx,
-                       &sface_group,
-                       &n_faceGroup2);
+    PDM_part_part_dim_get(ppart,
+                          i_part,
+                          &n_cell,
+                          &n_face,
+                          &n_face_part_bound,
+                          &n_vtx,
+                          &n_proc,
+                          &n_total_part,
+                          &scell_face,
+                          &sface_vtx,
+                          &sface_group,
+                          &n_faceGroup2);
 
     int          *cell_tag;
     int          *cell_face_idx;
@@ -426,26 +425,26 @@ int main(int argc, char *argv[])
     face_vtxNb[i_part] = (int *) malloc(sizeof(int) * n_face);
     cell_faceNb[i_part] = (int *) malloc(sizeof(int) * n_cell);
 
-    PDM_part_part_val_get(ppart_id,
-                       i_part,
-                       &cell_tag,
-                       &cell_face_idx,
-                       &cell_face,
-                       &cell_ln_to_gn,
-                       &face_tag,
-                       &face_cell,
-                       &face_vtx_idx,
-                       &face_vtx,
-                       &face_ln_to_gn,
-                       &face_part_bound_proc_idx,
-                       &face_part_bound_part_idx,
-                       &face_part_bound,
-                       &vtx_tag,
-                       &vtx,
-                       &vtx_ln_to_gn,
-                       &face_group_idx,
-                       &face_group,
-                       &face_group_ln_to_gn);
+    PDM_part_part_val_get(ppart,
+                          i_part,
+                          &cell_tag,
+                          &cell_face_idx,
+                          &cell_face,
+                          &cell_ln_to_gn,
+                          &face_tag,
+                          &face_cell,
+                          &face_vtx_idx,
+                          &face_vtx,
+                          &face_ln_to_gn,
+                          &face_part_bound_proc_idx,
+                          &face_part_bound_part_idx,
+                          &face_part_bound,
+                          &vtx_tag,
+                          &vtx,
+                          &vtx_ln_to_gn,
+                          &face_group_idx,
+                          &face_group,
+                          &face_group_ln_to_gn);
 
     PDM_cellface_orient (n_cell,
                          n_face,
@@ -502,11 +501,11 @@ int main(int argc, char *argv[])
     }
 
     PDM_writer_geom_coord_set(id_cs,
-                      id_geom,
-                      i_part,
-                      n_vtx,
-                      vtx,
-                      vtx_ln_to_gn);
+                              id_geom,
+                              i_part,
+                              n_vtx,
+                              vtx,
+                              vtx_ln_to_gn);
 
     /* Construction de la connectivite pour sortie graphique */
 
@@ -528,7 +527,7 @@ int main(int argc, char *argv[])
   free(debPartProcs);
 
   PDM_writer_geom_write(id_cs,
-              id_geom);
+                        id_geom);
 
   /* Creation des variables :
       - numero de partition
@@ -540,17 +539,17 @@ int main(int argc, char *argv[])
   for (int i_part = 0; i_part < n_part; i_part++) {
 
     PDM_writer_var_set(id_cs,
-               id_var_num_part,
-               id_geom,
-               i_part,
-               val_num_part[i_part]);
+                       id_var_num_part,
+                       id_geom,
+                       i_part,
+                       val_num_part[i_part]);
   }
 
   PDM_writer_var_write(id_cs,
-             id_var_num_part);
+                       id_var_num_part);
 
-  PDM_writer_var_free(id_cs,
-             id_var_num_part);
+  // PDM_writer_var_free(id_cs,
+  //                     id_var_num_part);
 
   for (int i_part = 0; i_part < n_part; i_part++) {
     free(val_num_part[i_part]);
@@ -574,30 +573,30 @@ int main(int argc, char *argv[])
       }
 
       PDM_writer_var_set(id_cs,
-                 id_var_coo_x,
-                 id_geom,
-                 i_part,
-                 val_coo_x[i_part]);
+                         id_var_coo_x,
+                         id_geom,
+                         i_part,
+                         val_coo_x[i_part]);
 
       PDM_writer_var_set(id_cs,
-                 id_var_coo_xyz,
-                 id_geom,
-                 i_part,
-                 val_coo_xyz[i_part]);
+                         id_var_coo_xyz,
+                         id_geom,
+                         i_part,
+                         val_coo_xyz[i_part]);
 
     }
 
     PDM_writer_var_write(id_cs,
-               id_var_coo_x);
+                         id_var_coo_x);
 
     PDM_writer_var_write(id_cs,
-               id_var_coo_xyz);
+                         id_var_coo_xyz);
 
     PDM_writer_var_data_free(id_cs,
-                    id_var_coo_x);
+                             id_var_coo_x);
 
     PDM_writer_var_data_free(id_cs,
-                    id_var_coo_xyz);
+                             id_var_coo_xyz);
 
     PDM_writer_step_end(id_cs);
   }
@@ -614,19 +613,19 @@ int main(int argc, char *argv[])
   free(val_coo_xyz);
   free(nsom_part);
 
-  PDM_writer_var_free(id_cs,
-             id_var_coo_x);
+  // PDM_writer_var_free(id_cs,
+  //                     id_var_coo_x);
 
-  PDM_writer_var_free(id_cs,
-             id_var_coo_xyz);
+  // PDM_writer_var_free(id_cs,
+  //                     id_var_coo_xyz);
 
   /* Liberation memoire */
 
-  PDM_writer_geom_data_free(id_cs,
-                   id_geom);
+  // PDM_writer_geom_data_free(id_cs,
+  //                           id_geom);
 
-  PDM_writer_geom_free(id_cs,
-              id_geom);
+  // PDM_writer_geom_free(id_cs,
+  //                      id_geom);
 
   PDM_writer_free(id_cs);
 
@@ -644,18 +643,18 @@ int main(int argc, char *argv[])
   int    bound_part_faces_max;
   int    bound_part_faces_sum;
 
-  PDM_part_stat_get(ppart_id,
-                 &cells_average,
-                 &cells_median,
-                 &cells_std_deviation,
-                 &cells_min,
-                 &cells_max,
-                 &bound_part_faces_average,
-                 &bound_part_faces_median,
-                 &bound_part_faces_std_deviation,
-                 &bound_part_faces_min,
-                 &bound_part_faces_max,
-                 &bound_part_faces_sum);
+  PDM_part_stat_get(ppart,
+                    &cells_average,
+                    &cells_median,
+                    &cells_std_deviation,
+                    &cells_min,
+                    &cells_max,
+                    &bound_part_faces_average,
+                    &bound_part_faces_median,
+                    &bound_part_faces_std_deviation,
+                    &bound_part_faces_min,
+                    &bound_part_faces_max,
+                    &bound_part_faces_sum);
 
   if (i_rank == 0) {
     PDM_printf("Statistics :\n");
@@ -674,7 +673,7 @@ int main(int argc, char *argv[])
     PDM_printf("       * total              : %i\n", bound_part_faces_sum);
   }
 
-  PDM_part_free(ppart_id);
+  PDM_part_free(ppart);
 
   PDM_dcube_gen_free(dcube);
 

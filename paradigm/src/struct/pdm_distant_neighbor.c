@@ -494,7 +494,7 @@ PDM_distant_neighbor_exch
 
   int s_block_unit = -1;
 
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     int *send_stride = (int *) malloc (sizeof(int) *   s_distributed_data    );
     recv_stride      = (int *) malloc (sizeof(int) *   s_requested_data      );
@@ -625,7 +625,7 @@ PDM_distant_neighbor_exch
     free (stride_idx);
     free (send_stride);
 
-  } else if (t_stride == PDM_STRIDE_CST) {
+  } else if (t_stride == PDM_STRIDE_CST_INTERLACED) {
 
     s_block_unit = cst_stride * (int) s_data;
 
@@ -687,7 +687,7 @@ PDM_distant_neighbor_exch
   *recv_entity_data = malloc( dn->n_part * sizeof(unsigned char *) );
   unsigned char **_recv_entity_data = (*(unsigned char ***) recv_entity_data);
 
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     /*
      * Compute the recv stride index for each entity
@@ -753,7 +753,7 @@ PDM_distant_neighbor_exch
     }
     free(_recv_entity_stride_idx);
 
-  } else if (t_stride == PDM_STRIDE_CST) {
+  } else if (t_stride == PDM_STRIDE_CST_INTERLACED) {
 
     for(int i_part = 0; i_part < dn->n_part; i_part++){
       int *_part_neighbor_idx  = dn->neighbor_idx[i_part];
@@ -838,7 +838,7 @@ PDM_distant_neighbor_exch_int
 
   int *recv_stride = NULL;
   int *recv_stride_idx = NULL;
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     int *send_stride = (int *) malloc (sizeof(int) *   s_distributed_data    );
     recv_stride      = (int *) malloc (sizeof(int) *   s_requested_data      );
@@ -974,7 +974,7 @@ PDM_distant_neighbor_exch_int
     free (stride_idx);
     free (send_stride);
 
-  } else if (t_stride == PDM_STRIDE_CST) {
+  } else if (t_stride == PDM_STRIDE_CST_INTERLACED) {
 
     // int s_block_unit = cst_stride * (int) s_data;
 
@@ -1058,7 +1058,7 @@ PDM_distant_neighbor_exch_int
   *recv_entity_data = (int **) malloc( dn->n_part * sizeof(int *) );
   int **_recv_entity_data = (*(int ***) recv_entity_data);
 
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     /*
      * Compute the recv stride index for each entity
@@ -1128,7 +1128,7 @@ PDM_distant_neighbor_exch_int
     free(_recv_entity_stride_idx);
 
 
-  } else if (t_stride == PDM_STRIDE_CST) {
+  } else if (t_stride == PDM_STRIDE_CST_INTERLACED) {
 
     // Shift is not good because the buffer contains only one occurence of each elements !!!
     for(int i_part = 0; i_part < dn->n_part; i_part++){

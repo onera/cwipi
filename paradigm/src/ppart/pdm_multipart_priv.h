@@ -64,7 +64,8 @@ typedef struct  {
 
   PDM_dmesh_t **dmeshes;             // Ids of dmesh structure storing
                                      // distributed meshes (size = n_zone)
-  PDM_dmesh_nodal_t **dmeshes_nodal;
+  PDM_dmesh_nodal_t          **dmeshes_nodal;
+  PDM_dmesh_nodal_to_dmesh_t **dmn_to_dm;
 
   int           n_total_joins;       // Total number of joins between zones (each counts twice)
   const int    *join_to_opposite;    // For each global joinId, give the globalId of

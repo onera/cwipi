@@ -58,9 +58,10 @@ PDM_multi_block_merge_create
  const int            n_block,
        int           *n_selected,
        PDM_g_num_t  **selected_g_num,
-       int          **dmerge_idx,
-       int          **dmerge_block_id,
-       PDM_g_num_t  **dmerge_g_num,
+       int            graph_size,
+       int           *dmerge_idx,
+       int           *dmerge_block_id,
+       PDM_g_num_t   *dmerge_g_num,
        PDM_MPI_Comm   comm
 );
 
@@ -108,18 +109,16 @@ PDM_multi_block_merge_get_old_to_new
 );
 
 void
-PDM_multi_block_merge_exch_and_update_child_g_num
+PDM_multi_block_merge_exch_and_update
 (
- PDM_multi_block_merge_t  *mbm,
- PDM_g_num_t              *child_old_distrib,
- int                      *dchild_old_to_new_idx,
- PDM_g_num_t              *dchild_old_to_new,
+ PDM_multi_block_merge_t  *mbm_cur,
+ PDM_multi_block_merge_t  *mbm_for_update,
  PDM_stride_t              t_stride,
- int                       cst_stride,
  int                     **block_stride,
- void                    **block_data,
+ PDM_g_num_t             **block_data,
+ int                     **update_domain,
  int                     **merge_block_stride,
- void                    **merge_block_data
+ PDM_g_num_t             **merge_block_data
 );
 
 // void
@@ -169,23 +168,6 @@ PDM_multi_block_merge_free
 (
  PDM_multi_block_merge_t* mbm
 );
-
-// void
-// PDM_multi_block_merge_exch_and_update_child_g_num
-// (
-//  PDM_multi_block_merge_t  *mbm,
-//  PDM_g_num_t              *child_old_distrib,
-//  int                      *dchild_old_to_new_idx,
-//  PDM_g_num_t              *dchild_old_to_new,
-//  PDM_stride_t              t_stride,
-//  int                       cst_stride,
-//  int                      *blk_merge_stride,
-//  void                     *blk_merge_data,
-//  int                      *padd_stride,
-//  void                     *padd_data,
-//  int                     **block_strid_out,
-//  void                    **block_data_out
-// );
 
 #ifdef __cplusplus
 }

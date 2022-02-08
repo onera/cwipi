@@ -13,6 +13,7 @@
 #include <limits.h>
 #include <unistd.h>
 #include <assert.h>
+#include <sys/time.h>
 //#include <sys/syscall.h> //Non portable mettre un ifdef
 
 /*----------------------------------------------------------------------------
@@ -2290,6 +2291,33 @@ PDM_MPI_Comm PDM_MPI_get_group_of_master(PDM_MPI_Comm comm, PDM_MPI_Comm sub_com
   }
   assert(res == PDM_MPI_SUCCESS);
   return master_of_sub_comm;
+}
+
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_rand_tag_get
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Rand_tag (PDM_MPI_Comm comm)
+{
+  struct timeval t;
+  gettimeofday(&t, NULL);
+
+  long ltag = t.tv_usec + 1000000 * t.tv_sec;
+  long mtag;
+
+  MPI_Allreduce (&ltag, &mtag, 1, MPI_LONG, MPI_MAX, _pdm_mpi_2_mpi_comm(comm));
+
+  void  *max_tag_tmp;
+  int flag;
+
+  MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &max_tag_tmp, &flag);
+  long max_tag = (long) (*((int *) max_tag_tmp));
+
+  // printf("max_tag = %li | mtag = %li \n", max_tag, mtag);
+
+  return (int) (mtag % max_tag);
 }
 
 

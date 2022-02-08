@@ -37,6 +37,7 @@ struct _pdm_multi_block_merge_t {
   int                     i_rank;
 
   int                     n_block;
+  int                    *blocks_ini_dn;
   PDM_g_num_t            *multi_block_distrib;
   PDM_g_num_t            *distrib_merge;
 

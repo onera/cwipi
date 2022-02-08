@@ -30,7 +30,6 @@
 #include "pdm_error.h"
 #include "pdm_sort.h"
 #include "pdm_binary_search.h"
-#include "pdm_handles.h"
 
 #include "pdm_dmesh_partitioning.h"
 #include "pdm_para_graph_dual.h"
@@ -81,35 +80,9 @@ typedef struct {
  * Global variable
  *============================================================================*/
 
-static PDM_Handles_t *_dmps   = NULL;
-
 /*============================================================================
  * Private function definitions
  *============================================================================*/
-
-/**
- *
- * \brief Return _dmesh_partitioning_t object from it identifier
- *
- * \param [in]   dmpartitioning_id        ppart identifier
- *
- */
-static _dmesh_partitioning_t *
-_get_from_id
-(
- int  dmpartitioning_id
-)
-{
-  _dmesh_partitioning_t *dmesh_partitioning = (_dmesh_partitioning_t *) PDM_Handles_get (_dmps, dmpartitioning_id);
-
-  if (dmesh_partitioning == NULL) {
-    PDM_error (__FILE__, __LINE__, 0, "pdm_dmesh_partitioning error : Bad _dmesh_partitioning identifier\n");
-    exit(1);
-  }
-
-  return dmesh_partitioning;
-}
-
 
 /*=============================================================================
  * Public function definitions
@@ -117,12 +90,14 @@ _get_from_id
 
 /**
  *
- * \brief Return _dmesh_partitioning_t object from it identifier
+ * \brief Create a new \ref PDM_dmesh_partitioning_t object
  *
- * \param [in]   dmpartitioning_id        ppart identifier
+ * \param [in]   comm          MPI Communicator
+ * \param [in]   split_method  Graph splitting method
  *
+ * \return       Pointer to a new \ref PDM_dmesh_partitioning_t object
  */
-int
+PDM_dmesh_partitioning_t *
 PDM_dmesh_partitioning_create
 (
  const PDM_MPI_Comm              comm,
@@ -131,40 +106,35 @@ PDM_dmesh_partitioning_create
 {
   PDM_UNUSED(comm);
   PDM_UNUSED(split_method);
-  /*
-   * Search a gnum_from_hash_values free id
-   */
-  if (_dmps == NULL) {
-    _dmps = PDM_Handles_create (4);
-  }
 
   _dmesh_partitioning_t *_dmp = (_dmesh_partitioning_t *) malloc(sizeof(_dmesh_partitioning_t));
-  int id = PDM_Handles_store (_dmps, _dmp);
 
-  return id;
+  return (PDM_dmesh_partitioning_t *) _dmp;
 }
 
 
 /**
  *
- * \brief Return _dmesh_partitioning_t object from it identifier
+ * \brief Compute partitioning
  *
- * \param [in]   Comm         MPI Communicator
- * \return       dmpartitioning_id
+ * \param [in] dmp            Pointer to \ref PDM_dmesh_partitioning_t object
+ * \param [in] input_flags    ?
+ * \param [in] queries_flags  ?
+ *
  */
 void
 PDM_dmesh_partitioning_compute
 (
- const int  dmesh_partitioning_id,
- const int  input_flags,
- const int  queries_flags
+ PDM_dmesh_partitioning_t *dmp,
+ const int                 input_flags,
+ const int                 queries_flags
 )
 {
   PDM_UNUSED(queries_flags);
   PDM_UNUSED(input_flags);
-  PDM_UNUSED(dmesh_partitioning_id);
+  PDM_UNUSED(dmp);
 
-  printf("PDM_dmesh_partitioning_compute::dmesh_partitioning_id :: %d \n", dmesh_partitioning_id);
+  // printf("PDM_dmesh_partitioning_compute::dmesh_partitioning_id :: %d \n", dmesh_partitioning_id);
   printf("PDM_dmesh_partitioning_compute::input_flags   :: %d \n", input_flags);
   printf("PDM_dmesh_partitioning_compute::queries_flags :: %d \n", queries_flags);
 
@@ -241,19 +211,20 @@ PDM_dmesh_partitioning_compute
 
 /**
  *
- * \brief Return _dmesh_partitioning_t object from it identifier
+ * \brief Setup structure with a dmesh
  *
- * \param [in]   dmpartitioning_id        ppart identifier
+ * \param [in] dmp            Pointer to \ref PDM_dmesh_partitioning_t object
+ * \param [in] dmesh_id       Dmesh identifier
  *
  */
 void
 PDM_dmesh_partitioning_set_from_dmesh
 (
- const int dmesh_partitioning_id,
- const int dmesh_id
+ PDM_dmesh_partitioning_t *dmp,
+ const int                 dmesh_id
 )
 {
-  PDM_UNUSED(dmesh_partitioning_id);
+  PDM_UNUSED(dmp);
   PDM_UNUSED(dmesh_id);
   // _dmesh_partitioning_t* _dmp = _get_from_id(dmesh_partitioning_id);
   // ---> Depuis l'interface du dmesh
@@ -291,12 +262,12 @@ PDM_dmesh_partitioning_set_from_dmesh
 void
 PDM_dmesh_partitioning_get
 (
- const int     dmesh_partitioning_id,
- const int     input_field_key,
-       void ***field
+ PDM_dmesh_partitioning_t   *dmp,
+ const int                   input_field_key,
+       void               ***field
 )
 {
-  PDM_UNUSED(dmesh_partitioning_id);
+  PDM_UNUSED(dmp);
   PDM_UNUSED(field);
   int field_key  = input_field_key;
   //int owner      = PDM_HASFLAG  (field_key, PDM_PART_OWNDATA);
@@ -334,13 +305,13 @@ PDM_dmesh_partitioning_get
 void
 PDM_dmesh_partitioning_part_get
 (
- const int   dmesh_partitioning_id,
- const int   part_id,
- const int   input_field_key,
-      void **field
+ PDM_dmesh_partitioning_t  *dmp,
+ const int                  part_id,
+ const int                  input_field_key,
+      void                **field
 )
 {
-  PDM_UNUSED(dmesh_partitioning_id);
+  PDM_UNUSED(dmp);
   PDM_UNUSED(part_id);
   PDM_UNUSED(field);
   int field_key  = input_field_key;
@@ -379,20 +350,13 @@ PDM_dmesh_partitioning_part_get
 void
 PDM_dmesh_partitioning_free
 (
- const int id
+ PDM_dmesh_partitioning_t *dmp
 )
 {
-  _dmesh_partitioning_t* _dmp = _get_from_id(id);
+  _dmesh_partitioning_t* _dmp = (_dmesh_partitioning_t *) dmp;
 
   free (_dmp);
-
-  PDM_Handles_handle_free (_dmps, id, PDM_FALSE);
-
-  const int n_dmpartitioning = PDM_Handles_n_get (_dmps);
-
-  if (n_dmpartitioning == 0) {
-    _dmps = PDM_Handles_free (_dmps);
-  }
+  _dmp = NULL;
 }
 
 

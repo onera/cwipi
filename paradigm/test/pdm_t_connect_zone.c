@@ -82,7 +82,7 @@ _exchange_point_list
     PDM_g_num_t* sub_dface_join_opp = &_dface_join_opp[dface_join_idx[i_group_join]];
     PDM_block_to_part_exch(btp,
                            sizeof(PDM_g_num_t),
-                           PDM_STRIDE_CST,
+                           PDM_STRIDE_CST_INTERLACED,
                            &cst_stride,
                   (void *) blk_dface_join_opp,
                            NULL,

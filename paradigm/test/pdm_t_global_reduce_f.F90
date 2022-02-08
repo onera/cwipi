@@ -105,7 +105,7 @@ program testf
   !*
   !  Create global reduction object
   !*
-  gre = PDM_global_reduce_create(n_part, fComm)
+  call PDM_global_reduce_create(gre, n_part, fComm)
 
   call PDM_global_reduce_g_num_set(gre,            & !
                                    0,              & ! i_part

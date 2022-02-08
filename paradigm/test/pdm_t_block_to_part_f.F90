@@ -56,7 +56,7 @@ program testf
 
   integer(c_int), parameter :: n_elt_case = 5
 
-  integer(c_int), parameter :: t_stride = PDM_STRIDE_VAR
+  integer(c_int), parameter :: t_stride = PDM_STRIDE_VAR_INTERLACED
 
   integer(c_int), pointer :: block_stride(:)
   type(c_ptr)             :: cptr_block_stride !  c_ptr of C array containing block stride

@@ -340,7 +340,7 @@ int main(int argc, char *argv[])
     _rotate (dn_vtx,
              dvtx_coord);
   }
-  int ppart_id = 0;
+  // int ppart_id = 0;
 
   gettimeofday(&t_elaps_debut, NULL);
 
@@ -362,34 +362,33 @@ int main(int argc, char *argv[])
     fflush(stdout);
   }
 
-  PDM_part_create(&ppart_id,
-                  PDM_MPI_COMM_WORLD,
-                  part_method,
-                  "PDM_PART_RENUM_CELL_NONE",
-                  "PDM_PART_RENUM_FACE_NONE",
-                  n_property_cell,
-                  renum_properties_cell,
-                  n_property_face,
-                  renum_properties_face,
-                  n_part,
-                  dn_cell,
-                  dn_face,
-                  dn_vtx,
-                  n_face_group,
-                  NULL,
-                  NULL,
-                  NULL,
-                  NULL,
-                  have_dcell_part,
-                  dcell_part,
-                  dface_cell,
-                  dface_vtx_idx,
-                  dface_vtx,
-                  NULL,
-                  dvtx_coord,
-                  NULL,
-                  dface_group_idx,
-                  dface_group);
+  PDM_part_t *ppart = PDM_part_create(PDM_MPI_COMM_WORLD,
+                                      part_method,
+                                      "PDM_PART_RENUM_CELL_NONE",
+                                      "PDM_PART_RENUM_FACE_NONE",
+                                      n_property_cell,
+                                      renum_properties_cell,
+                                      n_property_face,
+                                      renum_properties_face,
+                                      n_part,
+                                      dn_cell,
+                                      dn_face,
+                                      dn_vtx,
+                                      n_face_group,
+                                      NULL,
+                                      NULL,
+                                      NULL,
+                                      NULL,
+                                      have_dcell_part,
+                                      dcell_part,
+                                      dface_cell,
+                                      dface_vtx_idx,
+                                      dface_vtx,
+                                      NULL,
+                                      dvtx_coord,
+                                      NULL,
+                                      dface_group_idx,
+                                      dface_group);
 
   free(dcell_part);
 
@@ -491,7 +490,7 @@ int main(int argc, char *argv[])
     int s_face_group;
     int n_edge_group2;
 
-    PDM_part_part_dim_get(ppart_id,
+    PDM_part_part_dim_get(ppart,
                           ipart,
                           &n_cell,
                           &n_face,
@@ -523,7 +522,7 @@ int main(int argc, char *argv[])
     int         *face_group;
     PDM_g_num_t *face_group_ln_to_gn;
 
-    PDM_part_part_val_get (ppart_id,
+    PDM_part_part_val_get (ppart,
                            ipart,
                            &cell_tag,
                            &cell_face_idx,
@@ -618,7 +617,7 @@ int main(int argc, char *argv[])
     int s_face_group;
     int n_edge_group2;
 
-    PDM_part_part_dim_get(ppart_id,
+    PDM_part_part_dim_get(ppart,
                           ipart,
                           &n_cell,
                           &n_face,
@@ -650,7 +649,7 @@ int main(int argc, char *argv[])
     int         *face_group;
     PDM_g_num_t *face_group_ln_to_gn;
 
-    PDM_part_part_val_get (ppart_id,
+    PDM_part_part_val_get (ppart,
                            ipart,
                            &cell_tag,
                            &cell_face_idx,
@@ -833,7 +832,7 @@ int main(int argc, char *argv[])
   PDM_mesh_location_free (mesh_loc,
                           0);
 
-  PDM_part_free (ppart_id);
+  PDM_part_free (ppart);
 
   free (pts_coords);
   free (pts_gnum);

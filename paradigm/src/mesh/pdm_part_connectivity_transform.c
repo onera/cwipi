@@ -271,10 +271,13 @@ const int   *n_entity1,
       if(entity1_entity2_in[i_part][2*i_entity + 1 ] == 0) {
         _entity1_entity2_idx[i_part][i_entity+1]++;
         _entity1_entity2[i_part][idx++] = entity1_entity2_in[i_part][2*i_entity];
+      } else if(entity1_entity2_in[i_part][2*i_entity] == 0) {
+        _entity1_entity2_idx[i_part][i_entity+1]++;
+        _entity1_entity2[i_part][idx++] = - entity1_entity2_in[i_part][2*i_entity+1];
       } else {
         _entity1_entity2_idx[i_part][i_entity+1] += 2;
-        _entity1_entity2[i_part][idx++] = entity1_entity2_in[i_part][2*i_entity  ];
-        _entity1_entity2[i_part][idx++] = entity1_entity2_in[i_part][2*i_entity+1];
+        _entity1_entity2[i_part][idx++] =   entity1_entity2_in[i_part][2*i_entity  ];
+        _entity1_entity2[i_part][idx++] = - entity1_entity2_in[i_part][2*i_entity+1];
       }
     }
 

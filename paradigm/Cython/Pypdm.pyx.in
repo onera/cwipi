@@ -42,8 +42,9 @@ cdef extern from "pdm.h":
         PDM_DOUBLE
 
     ctypedef enum PDM_stride_t:
-        PDM_STRIDE_CST
-        PDM_STRIDE_VAR
+        PDM_STRIDE_CST_INTERLACED
+        PDM_STRIDE_CST_BLOCK
+        PDM_STRIDE_VAR_INTERLACED
 
     ctypedef enum PDM_mesh_nature_t:
         PDM_MESH_NATURE_NODAL_SHARED
@@ -206,16 +207,46 @@ cdef extern from "numpy/arrayobject.h":
     void PyArray_ENABLEFLAGS(NPY.ndarray arr, int flags)
 
 # -----------------------------------------------------------------
+cdef assert_single_dim_np(NPY.ndarray tab, dtype, int size=-1):
+  assert isinstance(tab, NPY.ndarray) and tab.ndim == 1 and tab.dtype == dtype
+  if size >= 0:
+    assert tab.size == size
+
+cdef int* list_to_int_pointer(list data):
+  cdef int* array = <int *> malloc(len(data) * sizeof(int))
+  for i,d in enumerate(data):
+    array[i] = <int> d
+  return array
+
+cdef void** np_list_to_void_pointers(list datas):
+  cdef NPY.ndarray numpy_void
+  cdef void** array = <void **> malloc(len(datas) * sizeof(void*))
+  for i, numpy_void in enumerate(datas):
+    array[i] = <void *> numpy_void.data
+  return array
+
+cdef int** np_list_to_int_pointers(list datas):
+  cdef NPY.ndarray[NPY.int32_t, ndim=1, mode='c'] numpy_int
+  cdef int** array = <int **> malloc(len(datas) * sizeof(int*))
+  for i, numpy_int in enumerate(datas):
+    array[i] = <int *> numpy_int.data
+  return array
+
+cdef PDM_g_num_t** np_list_to_gnum_pointers(list datas):
+  cdef NPY.ndarray[npy_pdm_gnum_t, ndim=1, mode='c'] numpy_gnum
+  cdef PDM_g_num_t** array = <PDM_g_num_t **> malloc(len(datas) * sizeof(PDM_g_num_t*))
+  for i, numpy_gnum in enumerate(datas):
+    array[i] = <PDM_g_num_t *> numpy_gnum.data
+  return array
+
+
 cdef create_numpy_i(int* array, int size):
     cdef object nparray
     if (array == NULL):
         nparray = None
     else :
         dim = <NPY.npy_intp> size
-        nparray = NPY.PyArray_SimpleNewFromData(1,
-                                                &dim,
-                                                NPY.NPY_INT32,
-                                                <void *> array)
+        nparray = NPY.PyArray_SimpleNewFromData(1, &dim, NPY.NPY_INT32, <void *> array)
     return nparray
 
 cdef create_numpy_l(long int* array, int size):
@@ -224,10 +255,7 @@ cdef create_numpy_l(long int* array, int size):
         nparray = None
     else :
         dim = <NPY.npy_intp> size
-        nparray = NPY.PyArray_SimpleNewFromData(1,
-                                                &dim,
-                                                NPY.NPY_INT64,
-                                                <void *> array)
+        nparray = NPY.PyArray_SimpleNewFromData(1, &dim, NPY.NPY_INT64, <void *> array)
     return nparray
 
 cdef create_numpy_pdm_gnum(PDM_g_num_t* array, int size):
@@ -236,10 +264,7 @@ cdef create_numpy_pdm_gnum(PDM_g_num_t* array, int size):
         nparray = None
     else :
         dim = <NPY.npy_intp> size
-        nparray = NPY.PyArray_SimpleNewFromData(1,
-                                                &dim,
-                                                PDM_G_NUM_NPY_INT,
-                                                <void *> array)
+        nparray = NPY.PyArray_SimpleNewFromData(1, &dim, PDM_G_NUM_NPY_INT, <void *> array)
     return nparray
 
 cdef create_numpy_f(float* array, int size):
@@ -248,10 +273,7 @@ cdef create_numpy_f(float* array, int size):
         nparray = None
     else :
         dim = <NPY.npy_intp> size
-        nparray = NPY.PyArray_SimpleNewFromData(1,
-                                                &dim,
-                                                NPY.NPY_FLOAT,
-                                                <void *> array)
+        nparray = NPY.PyArray_SimpleNewFromData(1, &dim, NPY.NPY_FLOAT, <void *> array)
     return nparray
 
 cdef create_numpy_d(double* array, int size):
@@ -260,10 +282,7 @@ cdef create_numpy_d(double* array, int size):
         nparray = None
     else :
         dim = <NPY.npy_intp> size
-        nparray = NPY.PyArray_SimpleNewFromData(1,
-                                                &dim,
-                                                NPY.NPY_DOUBLE,
-                                                <void *> array)
+        nparray = NPY.PyArray_SimpleNewFromData(1, &dim, NPY.NPY_DOUBLE, <void *> array)
     return nparray
 
 # PDM_dmesh :
@@ -383,8 +402,8 @@ include "pdm_dconnectivity_transform.pxi"
 # --------------------
 include "pdm_domain_interface.pxi"
 
+include "pdm_domain_merge.pxi"
 
 
 
 # TODO: PDM_writer, ...
-

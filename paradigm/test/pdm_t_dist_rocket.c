@@ -277,7 +277,7 @@ _gen_cloud_grid
   PDM_part_split_t part_method  = PDM_PART_SPLIT_HILBERT;
 #endif
 #endif
-  int ppart_id = 0;
+  // int ppart_id = 0;
   int have_dcell_part = 0;
 
   int *dcell_part = (int *) malloc (sizeof(int) * dn_cell);
@@ -286,34 +286,33 @@ _gen_cloud_grid
   int *renum_properties_face = NULL;
   int n_property_cell = 0;
   int n_property_face = 0;
-  PDM_part_create (&ppart_id,
-                   PDM_MPI_COMM_WORLD,
-                   part_method,
-                   "PDM_PART_RENUM_CELL_NONE",
-                   "PDM_PART_RENUM_FACE_NONE",
-                   n_property_cell,
-                   renum_properties_cell,
-                   n_property_face,
-                   renum_properties_face,
-                   n_part,
-                   dn_cell,
-                   dn_face,
-                   dn_vtx,
-                   n_face_group,
-                   NULL,
-                   NULL,
-                   NULL,
-                   NULL,
-                   have_dcell_part,
-                   dcell_part,
-                   dface_cell,
-                   dface_vtx_idx,
-                   dface_vtx,
-                   NULL,
-                   dvtx_coord,
-                   NULL,
-                   dface_group_idx,
-                   dface_group);
+  PDM_part_t *ppart = PDM_part_create (PDM_MPI_COMM_WORLD,
+                                       part_method,
+                                       "PDM_PART_RENUM_CELL_NONE",
+                                       "PDM_PART_RENUM_FACE_NONE",
+                                       n_property_cell,
+                                       renum_properties_cell,
+                                       n_property_face,
+                                       renum_properties_face,
+                                       n_part,
+                                       dn_cell,
+                                       dn_face,
+                                       dn_vtx,
+                                       n_face_group,
+                                       NULL,
+                                       NULL,
+                                       NULL,
+                                       NULL,
+                                       have_dcell_part,
+                                       dcell_part,
+                                       dface_cell,
+                                       dface_vtx_idx,
+                                       dface_vtx,
+                                       NULL,
+                                       dvtx_coord,
+                                       NULL,
+                                       dface_group_idx,
+                                       dface_group);
 
   free(dcell_part);
 
@@ -334,7 +333,7 @@ _gen_cloud_grid
     int s_face_group;
     int n_edge_group2;
 
-    PDM_part_part_dim_get (ppart_id,
+    PDM_part_part_dim_get (ppart,
                            i_part,
                            &n_cell,
                            &n_face,
@@ -366,7 +365,7 @@ _gen_cloud_grid
     int         *face_group;
     PDM_g_num_t *face_group_ln_to_gn;
 
-    PDM_part_part_val_get (ppart_id,
+    PDM_part_part_val_get (ppart,
                            i_part,
                            &cell_tag,
                            &cell_face_idx,
@@ -413,7 +412,7 @@ _gen_cloud_grid
     free (cell_volume);
   }
 
-  PDM_part_free (ppart_id);
+  PDM_part_free (ppart);
 }
 
 
@@ -889,7 +888,7 @@ _gen_rocket
 static void
 _get_connectivity
 (
- int            ppartId,
+ PDM_part_t    *ppart,
  int            n_part,
  int          **nFace,
  int         ***faceEdgeIdx,
@@ -920,7 +919,6 @@ _get_connectivity
   *vtxCoord = (double **) malloc(sizeof(double *) * n_part);
   *vtxLNToGN = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
 
-  int id_ppart = ppartId;
 
   for (int ipart = 0; ipart < n_part; ipart++) {
 
@@ -935,7 +933,7 @@ _get_connectivity
     int _sEdgeGroup;
     int _nEdgeGroup2;
 
-    PDM_part_part_dim_get (id_ppart,
+    PDM_part_part_dim_get (ppart,
                            ipart,
                            &_nFace,
                            &_nEdge,
@@ -967,7 +965,7 @@ _get_connectivity
     int         *_edgeGroup;
     PDM_g_num_t *_edgeGroupLNToGN;
 
-    PDM_part_part_val_get (id_ppart,
+    PDM_part_part_val_get (ppart,
                            ipart,
                            &_faceTag,
                            &_faceEdgeIdx,
@@ -1202,8 +1200,6 @@ _gen_src_mesh
     /*
      *  Split mesh
      */
-    int ppart_id;
-
 #ifdef PDM_HAVE_PARMETIS
     PDM_part_split_t part_method  = PDM_PART_SPLIT_PARMETIS;
 #else
@@ -1220,34 +1216,33 @@ _gen_src_mesh
     int n_property_edge = 0;
     int *renum_properties_edge = NULL;
 
-    PDM_part_create (&ppart_id,
-                     comm,
-                     part_method,
-                     "PDM_PART_RENUM_CELL_NONE",
-                     "PDM_PART_RENUM_FACE_NONE",
-                     n_property_face,
-                     renum_properties_face,
-                     n_property_edge,
-                     renum_properties_edge,
-                     n_part,
-                     dn_face,
-                     dn_edge,
-                     dn_vtx,
-                     n_edge_group,
-                     NULL,
-                     NULL,
-                     NULL,
-                     NULL,
-                     have_dface_part,
-                     dface_part,
-                     dedge_face,
-                     dedge_vtx_idx,
-                     dedge_vtx,
-                     NULL,
-                     dvtx_coord,
-                     NULL,
-                     dedge_group_idx,
-                     dedge_group);
+    PDM_part_t *ppart = PDM_part_create (comm,
+                                         part_method,
+                                         "PDM_PART_RENUM_CELL_NONE",
+                                         "PDM_PART_RENUM_FACE_NONE",
+                                         n_property_face,
+                                         renum_properties_face,
+                                         n_property_edge,
+                                         renum_properties_edge,
+                                         n_part,
+                                         dn_face,
+                                         dn_edge,
+                                         dn_vtx,
+                                         n_edge_group,
+                                         NULL,
+                                         NULL,
+                                         NULL,
+                                         NULL,
+                                         have_dface_part,
+                                         dface_part,
+                                         dedge_face,
+                                         dedge_vtx_idx,
+                                         dedge_vtx,
+                                         NULL,
+                                         dvtx_coord,
+                                         NULL,
+                                         dedge_group_idx,
+                                         dedge_group);
 
     free (dface_part);
     free (dvtx_coord);
@@ -1266,7 +1261,7 @@ _gen_src_mesh
     int  *n_edge        = NULL;
     int **edge_vtx_idx  = NULL;
     int **edge_vtx      = NULL;
-    _get_connectivity (ppart_id,
+    _get_connectivity (ppart,
                        n_part,
                        n_face,
                        &face_edge_idx,
@@ -1293,7 +1288,7 @@ _gen_src_mesh
     free (edge_vtx_idx);
     free (edge_vtx);
 
-    PDM_part_free (ppart_id);
+    PDM_part_free (ppart);
   }
 
   else {

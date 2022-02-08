@@ -68,7 +68,7 @@ char *argv[]
 
   PDM_part_to_block_exch (ptb,
                           sizeof(double),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &stride,
                           (void **) &weights,

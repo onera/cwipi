@@ -112,7 +112,7 @@ const int  point_idx,
 const double *point_coords,
 const double *point_box,
 const int search_cloud,
-const int associated_octree_id,
+PDM_octree_seq_t *octree,
 const int associated_octree_node_id,
 const double *associated_coords,
 const double *associated_char_length,
@@ -120,16 +120,15 @@ const double tolerance
 )
 {
   int node_id = associated_octree_node_id;
-  int octree_id = associated_octree_id;
   const double *coords = associated_coords;
   const double *char_length = associated_char_length;
 
-  if (PDM_octree_seq_leaf_is (octree_id, node_id)) {
+  if (PDM_octree_seq_leaf_is (octree, node_id)) {
 
     int *points_clouds_id;
     int *point_indexes;
-    int n_candidates = PDM_octree_seq_n_points_get (octree_id, node_id);
-    PDM_octree_seq_points_get (octree_id, node_id,
+    int n_candidates = PDM_octree_seq_n_points_get (octree, node_id);
+    PDM_octree_seq_points_get (octree, node_id,
                                &points_clouds_id, &point_indexes);
 
     for (int i = 0; i < n_candidates; i++) {
@@ -194,16 +193,16 @@ const double tolerance
   else {
     for (int i = 0; i < 8; i++) {
       const int node_child =
-            PDM_octree_seq_children_get (octree_id, node_id,
+            PDM_octree_seq_children_get (octree, node_id,
                                          (PDM_octree_seq_child_t) i);
       if (node_child != -1) {
         if (point_box != NULL) {
-          if (_intersect_extents (PDM_octree_seq_node_extents_get (octree_id, node_child),
+          if (_intersect_extents (PDM_octree_seq_node_extents_get (octree, node_child),
                                   point_box)) {
 
             _search_local_couple (local_couple, n_couple, s_couple, point_cloud,
-                            point_idx, point_coords, point_box, search_cloud,
-                            octree_id, node_child, coords, char_length, tolerance);
+                                  point_idx, point_coords, point_box, search_cloud,
+                                  octree, node_child, coords, char_length, tolerance);
           }
         }
         else {
@@ -214,12 +213,12 @@ const double tolerance
                                 point_coords[1] + _default_eps,
                                 point_coords[2] + _default_eps};
 
-          if (_intersect_extents (PDM_octree_seq_node_extents_get (octree_id, node_child),
+          if (_intersect_extents (PDM_octree_seq_node_extents_get (octree, node_child),
                                   _extents)) {
 
             _search_local_couple (local_couple, n_couple, s_couple, point_cloud,
-                            point_idx, point_coords, point_box, search_cloud,
-                            octree_id, node_child, coords, char_length, tolerance);
+                                  point_idx, point_coords, point_box, search_cloud,
+                                  octree, node_child, coords, char_length, tolerance);
           }
         }
       }
@@ -248,7 +247,7 @@ const int      point_cloud,
 const int      point_idx,
 const double  *point_coords,
 const double  *point_box,
-const int      associated_octree_id,
+PDM_octree_t *octree,
 const int      associated_octree_node_id,
 const double **associated_coords,
 const double **associated_char_length,
@@ -257,16 +256,15 @@ const double   tolerance
 {
 
   int node_id = associated_octree_node_id;
-  int octree_id = associated_octree_id;
 
   assert(node_id != -1);
 
-  if (PDM_octree_leaf_is (octree_id, node_id)) {
+  if (PDM_octree_leaf_is (octree, node_id)) {
 
     int *points_clouds_id;
     int *point_indexes;
-    int n_candidates = PDM_octree_n_points_get (octree_id, node_id);
-    PDM_octree_points_get (octree_id, node_id,
+    int n_candidates = PDM_octree_n_points_get (octree, node_id);
+    PDM_octree_points_get (octree, node_id,
                                &points_clouds_id, &point_indexes);
 
     for (int i = 0; i < n_candidates; i++) {
@@ -352,18 +350,18 @@ const double   tolerance
   else {
     for (int i = 0; i < 8; i++) {
       const int node_child =
-            PDM_octree_children_get (octree_id, node_id,
-                                         (PDM_octree_child_t) i);
+            PDM_octree_children_get (octree, node_id,
+                                     (PDM_octree_child_t) i);
       if (node_child != -1) {
         if (point_box != NULL) {
-          if (_intersect_extents (PDM_octree_node_extents_get (octree_id, node_child),
+          if (_intersect_extents (PDM_octree_node_extents_get (octree, node_child),
                                   point_box)) {
 
             _search_distant_couple (n_fusion_from_proc,
                                     distant_couple, n_couple, s_couple,
                                     point_proc, point_cloud, point_idx,
                                     point_coords, point_box,
-                                    associated_octree_id,
+                                    octree,
                                     node_child,
                                     associated_coords,
                                     associated_char_length,
@@ -379,14 +377,14 @@ const double   tolerance
                                 point_coords[1] + _default_eps,
                                 point_coords[2] + _default_eps};
 
-          if (_intersect_extents (PDM_octree_node_extents_get (octree_id, node_child),
+          if (_intersect_extents (PDM_octree_node_extents_get (octree, node_child),
                                   _extents)) {
 
             _search_distant_couple (n_fusion_from_proc,
                                     distant_couple, n_couple, s_couple,
                                     point_proc, point_cloud, point_idx,
                                     point_coords, point_box,
-                                    associated_octree_id,
+                                    octree,
                                     node_child,
                                     associated_coords,
                                     associated_char_length,
@@ -410,11 +408,12 @@ const double   tolerance
  * \param [in]   n_point_cloud      Number of point cloud
  * \param [in]   tolerance          Relative geometric tolerance
  * \param [in]   comm               MPI communicator
+ * \param [in]   owner              Ownership
  *
- * \return     Identifier
+ * \return     Pointer to \ref PDM_points_merge object
  */
 
-PDM_points_merge_t*
+PDM_points_merge_t *
 PDM_points_merge_create
 (
  const int             n_point_cloud,
@@ -433,7 +432,7 @@ PDM_points_merge_create
   pm->n_points          = malloc (sizeof(int     ) * n_point_cloud);
   pm->point_clouds      = malloc (sizeof(double *) * n_point_cloud);
   pm->char_length       = malloc (sizeof(double *) * n_point_cloud);
-  pm->octree_id         = -1;
+  pm->octree            = NULL;
   pm->candidates_idx    = malloc (sizeof(int *) * n_point_cloud);
   pm->candidates_desc   = malloc (sizeof(int *) * n_point_cloud);
 
@@ -447,8 +446,8 @@ PDM_points_merge_create
   pm->depth_max = 1000;
   pm->points_in_leaf_max = 4;
 
-  pm->octree_id = PDM_octree_create (n_point_cloud, pm->depth_max,
-                                      pm->points_in_leaf_max, tolerance, comm);
+  pm->octree = PDM_octree_create (n_point_cloud, pm->depth_max,
+                                  pm->points_in_leaf_max, tolerance, comm);
 
   return pm;
 
@@ -457,9 +456,9 @@ PDM_points_merge_create
 
 /**
  *
- * \brief Free an octree structure   _search_local_couple
+ * \brief Free a \ref PDM_points_merge object
  *
- * \param [in]   id                 Identifier
+ * \param [in]   pm             Pointer to \ref PDM_points_merge object
  *
  */
 
@@ -496,7 +495,7 @@ PDM_points_merge_free
  *
  * \brief Set a point cloud
  *
- * \param [in]   id             Identifier
+ * \param [in]   pm             Pointer to \ref PDM_points_merge object
  * \param [in]   i_point_cloud  Index of point cloud
  * \param [in]   n_points       Number of points
  * \param [in]   coords         Point coordinates
@@ -519,7 +518,7 @@ PDM_points_merge_cloud_set
   pm->point_clouds[i_point_cloud] = coords;
   pm->n_points[i_point_cloud] = n_points;
 
-  PDM_octree_point_cloud_set (pm->octree_id, i_point_cloud, n_points, coords, NULL);
+  PDM_octree_point_cloud_set (pm->octree, i_point_cloud, n_points, coords, NULL);
 
 }
 
@@ -528,7 +527,7 @@ PDM_points_merge_cloud_set
  *
  * \brief Process merge points
  *
- * \param [in]   id                 Identifier
+ * \param [in]   pm             Pointer to \ref PDM_points_merge object
  *
  */
 
@@ -538,7 +537,7 @@ PDM_points_merge_process
  PDM_points_merge_t *pm
 )
 {
-  PDM_octree_build (pm->octree_id);
+  PDM_octree_build (pm->octree);
 
   int n_rank;
   PDM_MPI_Comm_size(pm->comm , &n_rank);
@@ -566,16 +565,16 @@ PDM_points_merge_process
     pm->max_n_points = PDM_MAX (pm->max_n_points, pm->n_points[i]);
   }
   for (int i = 0; i < pm->n_point_clouds; i++) {
-    const int octree_seq_id = PDM_octree_seq_create (1,
-                                                     pm->depth_max,
-                                                     pm->points_in_leaf_max,
-                                                     pm->tolerance);
+    PDM_octree_seq_t *octree_seq = PDM_octree_seq_create (1,
+                                                          pm->depth_max,
+                                                          pm->points_in_leaf_max,
+                                                          pm->tolerance);
 
-    PDM_octree_seq_point_cloud_set (octree_seq_id, 0,
+    PDM_octree_seq_point_cloud_set (octree_seq, 0,
                                     pm->n_points[i], pm->point_clouds[i]);
-    PDM_octree_seq_build (octree_seq_id);
+    PDM_octree_seq_build (octree_seq);
 
-    const int root_id = PDM_octree_seq_root_node_id_get (octree_seq_id);
+    const int root_id = PDM_octree_seq_root_node_id_get (octree_seq);
 
     const double *_char_length = NULL;
     if (pm->char_length != NULL) {
@@ -599,14 +598,14 @@ PDM_points_merge_process
         }
 
         _search_local_couple (&local_couple, &n_local_couple, &s_local_couple,
-                              j, k, _coord, point_box, i, octree_seq_id,
+                              j, k, _coord, point_box, i, octree_seq,
                               root_id, pm->point_clouds[i], _char_length,
                               pm->tolerance);
 
       }
     }
 
-    PDM_octree_seq_free (octree_seq_id);
+    PDM_octree_seq_free (octree_seq);
 
   }
 
@@ -620,7 +619,7 @@ PDM_points_merge_process
   double *extents_proc;
   int    *used_ranks;
 
-  const int n_used_ranks = PDM_octree_processes_extents_get (pm->octree_id,
+  const int n_used_ranks = PDM_octree_processes_extents_get (pm->octree,
                                                              &used_ranks, &extents_proc);
 
   int s_tmp_store = sizeof(int) * pm->max_n_points;
@@ -799,7 +798,7 @@ PDM_points_merge_process
       int distant_point = *((int *) _tmp_recv);
       _tmp_recv += 4;
 
-      int root_id = PDM_octree_root_node_id_get (pm->octree_id);
+      int root_id = PDM_octree_root_node_id_get (pm->octree);
 
       _search_distant_couple (n_fusion_from_proc,
                               &distant_couple,
@@ -810,7 +809,7 @@ PDM_points_merge_process
                               distant_point,
                               distant_coord,
                               point_box,
-                              pm->octree_id,
+                              pm->octree,
                               root_id,
                               pm->point_clouds,
                               pm->char_length,
@@ -955,7 +954,7 @@ PDM_points_merge_process
   free (distant_couple);
   free (local_couple);
 
-  PDM_octree_free (pm->octree_id);
+  PDM_octree_free (pm->octree);
 
 }
 
@@ -964,10 +963,10 @@ PDM_points_merge_process
  *
  * \brief Get candidates to merge for each point
  *
- * \param [in]   id             Identifier
- * \param [in]   i_point_cloud  Current cloud
- * \param [out]  candidates_idx Indexes of candidate for each current cloud point
- *                              (size = number of points in the current cloud + 1)
+ * \param [in]   pm              Pointer to \ref PDM_points_merge object
+ * \param [in]   i_point_cloud   Current cloud
+ * \param [out]  candidates_idx  Indexes of candidate for each current cloud point
+ *                               (size = number of points in the current cloud + 1)
  * \param [out]  candidates_desc Candidates description (process,
  *                                                       cloud in the process,
  *                                                       point in the cloud)
@@ -1014,7 +1013,7 @@ PDM_points_merge_candidates_get
  *
  * \brief Get size of the resulting array
  *
- * \param [in]   id                Identifier
+ * \param [in]   pm                Pointer to \ref PDM_points_merge object
  * \param [in]   i_point_cloud     Current cloud
  * \param [out]  n_point_cloud     Number of points in the current cloud
  * \param [out]  n_candidates_desc Size of candidates_desc = candidates_idx[n_point_cloud+1]

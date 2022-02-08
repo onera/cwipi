@@ -1853,7 +1853,7 @@ PDM_surf_mesh_is_plane_surface
 
     PDM_part_to_block_exch (ptb,
                             sizeof(double),
-                            PDM_STRIDE_CST,
+                            PDM_STRIDE_CST_INTERLACED,
                             3,
                             NULL,
                             (void **) _coords,

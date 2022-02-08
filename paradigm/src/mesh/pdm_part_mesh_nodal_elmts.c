@@ -23,8 +23,6 @@
 #include "pdm_geom_elem.h"
 #include "pdm_array.h"
 
-#include "pdm_writer.h"
-
 #ifdef __cplusplus
 extern "C" {
 #if 0

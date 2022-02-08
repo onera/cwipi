@@ -514,7 +514,7 @@ _create_cell_graph_comm
 
   PDM_distant_neighbor_exch(dn,
                             sizeof(int),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             -1,
                             part_ext->entity_cell_n,
                   (void **) part_ext->entity_cell,
@@ -734,7 +734,7 @@ _compute_dual_graph
    */
   PDM_distant_neighbor_exch(dn,
                             3 * sizeof(int),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             -1,
                             prev_cell_cell_extended_n,
                   (void **) prev_cell_cell_extended,
@@ -2086,7 +2086,7 @@ _rebuild_connectivity
   PDM_g_num_t **border_gentity1_entity2;
   PDM_distant_neighbor_exch(dn,
                             sizeof(PDM_g_num_t),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             -1,
                             entity1_entity2_n,
                  (void **)  gentity1_entity2,
@@ -2096,7 +2096,7 @@ _rebuild_connectivity
   int         **border_lentity1_entity2_n;
   PDM_distant_neighbor_exch(dn,
                             sizeof(int),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             -1,
                             entity1_entity2_n,
                  (void **)  entity1_entity2,
@@ -2107,7 +2107,7 @@ _rebuild_connectivity
   int         **border_lentity1_entity2_n_tmp;
   PDM_distant_neighbor_exch(dn,
                             2 * sizeof(int),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             -1,
                             entity1_entity2_n,
                  (void **)  part_and_proc_id,
@@ -2237,7 +2237,7 @@ _rebuild_connectivity_cell_face
   /* On fait le cell_ln_to_gn par la même occasion */
   PDM_distant_neighbor_exch(dn,
                             sizeof(PDM_g_num_t),
-                            PDM_STRIDE_CST,
+                            PDM_STRIDE_CST_INTERLACED,
                             1,
                             NULL,
                  (void **)  cell_ln_to_gn,
@@ -2559,7 +2559,7 @@ _rebuild_face_group
   int** border_face_group_idg;
   PDM_distant_neighbor_exch(dn,
                             sizeof(int),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             -1,
                             face_group_n,
                   (void **) face_group_idg,
@@ -2570,7 +2570,7 @@ _rebuild_face_group
   PDM_g_num_t **border_face_group_ln_to_gn;
   PDM_distant_neighbor_exch(dn,
                             sizeof(PDM_g_num_t),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             -1,
                             face_group_n,
                   (void **) face_group_ln_to_gn,
@@ -2581,7 +2581,7 @@ _rebuild_face_group
   PDM_g_num_t **border_face_ln_to_gn_check;
   PDM_distant_neighbor_exch(dn,
                             sizeof(PDM_g_num_t),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             -1,
                             face_group_n,
                   (void **) face_ln_to_gn_check,
@@ -3022,7 +3022,7 @@ PDM_part_extension_compute
 
   PDM_distant_neighbor_exch(dn_vtx,
                             sizeof(double),
-                            PDM_STRIDE_CST,
+                            PDM_STRIDE_CST_INTERLACED,
                             3,
                             NULL,
                  (void **)  vtx_coord,

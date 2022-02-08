@@ -1620,7 +1620,7 @@ PDM_part_to_block_exch
 
 
   if ((ptb->t_post == PDM_PART_TO_BLOCK_POST_MERGE) &&
-      (t_stride ==  PDM_STRIDE_CST)) {
+      (t_stride ==  PDM_STRIDE_CST_INTERLACED)) {
     PDM_error(__FILE__, __LINE__, 0,"PDM_part_to_block_exch : PDM_writer_STRIDE_CST is not compatible PDM_writer_POST_MERGE post\n");
     abort ();
   }
@@ -1636,7 +1636,7 @@ PDM_part_to_block_exch
    */
 
   int *recv_stride = NULL;
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     for (int i = 0; i < ptb->s_comm; i++) {
       n_send_buffer[i] = 0;
@@ -1709,7 +1709,7 @@ PDM_part_to_block_exch
 
   }
 
-  else if (t_stride == PDM_STRIDE_CST) {
+  else if (t_stride == PDM_STRIDE_CST_INTERLACED) {
 
     for (int i = 0; i < ptb->s_comm; i++) {
 
@@ -1746,7 +1746,7 @@ PDM_part_to_block_exch
   for (int i = 0; i < ptb->n_part; i++) {
 
     size_t *i_part = NULL;
-    if (t_stride == PDM_STRIDE_VAR) {
+    if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
       i_part = (size_t *) malloc (sizeof(size_t) * (ptb->n_elt[i] + 1));
       assert (i_part != NULL);
 
@@ -1768,12 +1768,12 @@ PDM_part_to_block_exch
       size_t s_octet_elt = 0;
       size_t i_part_elt = 0;
 
-      if (t_stride == PDM_STRIDE_CST) {
+      if (t_stride == PDM_STRIDE_CST_INTERLACED) {
         s_octet_elt = cst_stride * (int) s_data;
         i_part_elt  = cst_stride * (int) s_data * j;
       }
 
-      else if (t_stride == PDM_STRIDE_VAR) {
+      else if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
         s_octet_elt = i_part[j+1] - i_part[j];
         i_part_elt  = i_part[j];
       }
@@ -1821,7 +1821,7 @@ PDM_part_to_block_exch
   int *i_block_stride = NULL;
   int s_block_data = ((int) sizeof(unsigned char) * s_recv_buffer) / (int) s_data;
 
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
     *block_stride = NULL;
     int* _block_stride = NULL;
     if(ptb->tn_recv_data > 0){
@@ -2013,7 +2013,7 @@ PDM_part_to_block_async_exch
 {
 
   if ((ptb->t_post == PDM_PART_TO_BLOCK_POST_MERGE) &&
-      (t_stride ==  PDM_STRIDE_CST)) {
+      (t_stride ==  PDM_STRIDE_CST_INTERLACED)) {
     PDM_error(__FILE__, __LINE__, 0,"PDM_part_to_block_exch : PDM_writer_STRIDE_CST is not compatible PDM_writer_POST_MERGE post\n");
     abort ();
   }
@@ -2043,7 +2043,7 @@ PDM_part_to_block_async_exch
    * Exchange Stride and build buffer properties
    */
 
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     for (int i = 0; i < ptb->s_comm; i++) {
       n_send_buffer[i] = 0;
@@ -2116,7 +2116,7 @@ PDM_part_to_block_async_exch
 
   }
 
-  else if (t_stride == PDM_STRIDE_CST) {
+  else if (t_stride == PDM_STRIDE_CST_INTERLACED) {
 
     for (int i = 0; i < ptb->s_comm; i++) {
 
@@ -2153,7 +2153,7 @@ PDM_part_to_block_async_exch
   for (int i = 0; i < ptb->n_part; i++) {
 
     int *i_part = NULL;
-    if (t_stride == PDM_STRIDE_VAR) {
+    if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
       i_part = (int *) malloc (sizeof(int) * (ptb->n_elt[i] + 1));
 
       i_part[0] = 0;
@@ -2166,12 +2166,12 @@ PDM_part_to_block_async_exch
       int s_octet_elt = 0;
       int i_part_elt = 0;
 
-      if (t_stride == PDM_STRIDE_CST) {
+      if (t_stride == PDM_STRIDE_CST_INTERLACED) {
         s_octet_elt = cst_stride * (int) s_data;
         i_part_elt  = cst_stride * (int) s_data * j;
       }
 
-      else if (t_stride == PDM_STRIDE_VAR) {
+      else if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
         s_octet_elt = i_part[j+1] - i_part[j];
         i_part_elt  = i_part[j];
       }
@@ -2337,7 +2337,7 @@ PDM_part_to_block_asyn_post_treatment
   int *i_block_stride = NULL;
   int s_block_data = ((int) sizeof(unsigned char) * s_recv_buffer) / (int) s_data;
 
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
     int* _block_stride = NULL;
     if(ptb->tn_recv_data > 0){
       _block_stride = malloc(sizeof(int) * ptb->tn_recv_data);

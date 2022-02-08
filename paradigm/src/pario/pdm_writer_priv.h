@@ -12,7 +12,6 @@
 #include "pdm_mpi.h"
 #include "pdm_writer.h"
 #include "pdm_io.h"
-#include "pdm_handles.h"
 #include "pdm_mesh_nodal.h"
 
 #ifdef __cplusplus
@@ -46,17 +45,33 @@ struct _PDM_writer_geom_t {
 
 };
 
+typedef struct _PDM_writer_geom_tab_t {
+
+  int                 n_geom;
+  int                 s_geom;
+  PDM_writer_geom_t **geom;
+
+} _PDM_writer_geom_tab_t;
+
 /*----------------------------------------------------------------------------
  * Mapping des noms de variable
  *----------------------------------------------------------------------------*/
 
-typedef struct PDM_writer_name_t {
+typedef struct PDM_writer_name_map_t {
 
   char *public_name;         /* Nom public */
   char *private_name;        /* Nom privé */
 
 } PDM_writer_name_map_t;
 
+
+typedef struct _PDM_writer_name_map_tab_t {
+
+  int                     n_name_map;
+  int                     s_name_map;
+  PDM_writer_name_map_t **name_map;
+
+} _PDM_writer_name_map_tab_t;
 
 /*----------------------------------------------------------------------------
  * Description d'une option : couple nom/valeur
@@ -88,28 +103,37 @@ struct _PDM_writer_var_t{
 } ;
 
 
+typedef struct _PDM_writer_var_tab_t {
+
+  int                 n_var;
+  int                 s_var;
+  PDM_writer_var_t **var;
+
+} _PDM_writer_var_tab_t;
+
+
 /*----------------------------------------------------------------------------
  * Type Cedre sortie
  *----------------------------------------------------------------------------*/
 
 struct _PDM_writer_t {
 
-  int                    fmt_id;             /* Format de la sortie */
-  PDM_writer_fmt_fic_t   fmt_fic;            /* Format du fichier ascii ou binaire */
-  PDM_writer_topologie_t topologie;          /* Type de toplogie du maillage */
-  PDM_writer_statut_t    st_reprise;         /* Reprise d'une sortie existante */
-  char                  *rep_sortie;         /* Nom du repertoire de sortie */
-  char                  *nom_sortie;         /* Nom de la sortie */
-  PDM_MPI_Comm           pdm_mpi_comm;       /* Communicateur MPI */
-  void                  *sortie_fmt;         /* Description propre au format */
-  PDM_Handles_t         *var_tab;            /* Tableau des variables */
-  PDM_Handles_t         *geom_tab;           /* Tableau des geometries */
-  double                 physical_time;      /* Temps physique de la simulation */
-  PDM_io_acces_t         acces;              /* Type d'acces au fichier (MPIIIO,...) */
-  double                 prop_noeuds_actifs; /* Proportion des noeuds actifs */
-  PDM_Handles_t         *name_map;           /* Stockage du mapping des noms */
-  int                    n_options;          /* Nombre d'options */
-  PDM_writer_option_t   *options;            /* Options complementaire */
+  int                         fmt_id;             /* Format de la sortie */
+  PDM_writer_fmt_fic_t        fmt_fic;            /* Format du fichier ascii ou binaire */
+  PDM_writer_topologie_t      topologie;          /* Type de toplogie du maillage */
+  PDM_writer_statut_t         st_reprise;         /* Reprise d'une sortie existante */
+  char                       *rep_sortie;         /* Nom du repertoire de sortie */
+  char                       *nom_sortie;         /* Nom de la sortie */
+  PDM_MPI_Comm                pdm_mpi_comm;       /* Communicateur MPI */
+  void                       *sortie_fmt;         /* Description propre au format */
+  _PDM_writer_var_tab_t      *var_tab;            /* Tableau des variables */
+  _PDM_writer_geom_tab_t     *geom_tab;           /* Tableau des geometries */
+  double                      physical_time;      /* Temps physique de la simulation */
+  PDM_io_acces_t              acces;              /* Type d'acces au fichier (MPIIIO,...) */
+  double                      prop_noeuds_actifs; /* Proportion des noeuds actifs */
+  _PDM_writer_name_map_tab_t *name_map_tab;       /* Stockage du mapping des noms */
+  int                         n_options;          /* Nombre d'options */
+  PDM_writer_option_t        *options;            /* Options complementaire */
 
 };
 

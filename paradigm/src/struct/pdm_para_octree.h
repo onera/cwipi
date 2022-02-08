@@ -347,7 +347,12 @@ PDM_para_octree_free_copies
 
 
 
-
+void
+PDM_para_octree_export_vtk
+(
+ const PDM_para_octree_t *octree,
+ const char              *prefix
+ );
 
 #ifdef	__cplusplus
 }

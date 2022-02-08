@@ -10,7 +10,6 @@
  *----------------------------------------------------------------------------*/
 
 #include "pdm.h"
-#include <mpi.h>
 /*----------------------------------------------------------------------------
  *  Header for the current file
  *----------------------------------------------------------------------------*/
@@ -550,8 +549,8 @@ int PDM_MPI_Alltoall(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
  *----------------------------------------------------------------------------*/
 
 int PDM_MPI_Ialltoall(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
-                 void *recvbuf, int recvcount,
-                 PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm, PDM_MPI_Request *request);
+                      void *recvbuf, int recvcount,
+                      PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm, PDM_MPI_Request *request);
 
 /*----------------------------------------------------------------------------
  * PDM_MPI_Alltoallv (wrapping de la fonction MPI_Alltoallv)
@@ -654,6 +653,13 @@ PDM_MPI_Comm PDM_MPI_get_group_of_master(PDM_MPI_Comm comm, PDM_MPI_Comm sub_com
 int PDM_mpi_win_shared_lock_all(int assert, PDM_mpi_win_shared_t* win);
 int PDM_mpi_win_shared_unlock_all(PDM_mpi_win_shared_t* win);
 int PDM_mpi_win_shared_sync(PDM_mpi_win_shared_t* win);
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_rand_tag_get
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Rand_tag (PDM_MPI_Comm comm);
 
 #ifdef __cplusplus
 }

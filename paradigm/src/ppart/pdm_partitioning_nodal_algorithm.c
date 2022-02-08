@@ -190,7 +190,7 @@ PDM_dmesh_nodal_elmts_to_part_mesh_nodal_elmts
   PDM_g_num_t **pelmts_connec = NULL;
   PDM_multi_block_to_part_exch2(mbtp,
                                 sizeof(PDM_g_num_t),
-                                PDM_STRIDE_VAR,
+                                PDM_STRIDE_VAR_INTERLACED,
                                 block_elmts_n_vtx,
                      (void ** ) block_elmts_connec,
                      (int  ***) &pelmts_stride,
@@ -207,7 +207,7 @@ PDM_dmesh_nodal_elmts_to_part_mesh_nodal_elmts
   PDM_Mesh_nodal_elt_t **pelmts_types;
   PDM_multi_block_to_part_exch2(mbtp,
                                 sizeof(PDM_Mesh_nodal_elt_t),
-                                PDM_STRIDE_CST,
+                                PDM_STRIDE_CST_INTERLACED,
                                 stride_one,
                      (void ** ) block_elmts_types,
                                 NULL,
@@ -392,7 +392,7 @@ PDM_reverse_dparent_gnum
   PDM_g_num_t *blk_child_gnum   = NULL;
   PDM_part_to_block_exch(ptb,
                          sizeof(PDM_g_num_t),
-                         PDM_STRIDE_VAR,
+                         PDM_STRIDE_VAR_INTERLACED,
                          -1,
                         &pblk_child_n,
              (void **)  &pblk_child_gnum,
@@ -404,7 +404,7 @@ PDM_reverse_dparent_gnum
   if(dparent_sign != NULL) {
     PDM_part_to_block_exch(ptb,
                            sizeof(int),
-                           PDM_STRIDE_VAR,
+                           PDM_STRIDE_VAR_INTERLACED,
                            -1,
                            &pblk_child_n,
                 (void **)  &dparent_sign,
@@ -434,7 +434,7 @@ PDM_reverse_dparent_gnum
   PDM_g_num_t **_pchild_gnum = NULL;
   PDM_block_to_part_exch2(btp,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           blk_child_n,
                           blk_child_gnum,
                          &_pchild_n,
@@ -444,7 +444,7 @@ PDM_reverse_dparent_gnum
   PDM_g_num_t **_tmp_pchild_parent_gnum = NULL;
   PDM_block_to_part_exch2(btp,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           blk_child_n,
                           blk_dparent_gnum,
                          &_tmp_pchild_n,
@@ -458,7 +458,7 @@ PDM_reverse_dparent_gnum
     free(_tmp_pchild_n);
     PDM_block_to_part_exch2(btp,
                             sizeof(int),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             blk_child_n,
                             blk_dparent_sign,
                            &_tmp_pchild_n,
@@ -504,8 +504,8 @@ PDM_reverse_dparent_gnum
     _pchild_parent_gnum[i_part] = (PDM_g_num_t *) malloc( pn_child_tmp * sizeof(PDM_g_num_t));
     for(int i = 0; i < _pn_child[i_part]; ++i) {
       int idx_order = unique_order[i];
-      PDM_g_num_t gnum = _tmp_pchild_parent_gnum[i_part][idx_order];
-      _pchild_parent_gnum[i_part][i] = gnum;
+      PDM_g_num_t gnum = _tmp_pchild_parent_gnum[i_part][i];
+      _pchild_parent_gnum[i_part][idx_order] = gnum;
     }
 
     if(blk_dparent_sign != NULL) {

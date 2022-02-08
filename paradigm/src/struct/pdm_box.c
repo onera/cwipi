@@ -1286,7 +1286,7 @@ PDM_box_set_recv_data_from_origin_distrib
   int *curr_stride = NULL;
   int *orig_stride = NULL;
 
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     curr_stride = (int *) malloc (sizeof(int) * curr_shift[s_comm]);
     orig_stride = (int *) malloc (sizeof(int) * orig_shift[s_comm]);
@@ -1316,7 +1316,7 @@ PDM_box_set_recv_data_from_origin_distrib
    *   - Exhange <- origin : data
    *   - Sort curr_data to obtain current_distrib_data */
 
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     for (int i = 0; i < s_comm; i++) {
       curr_count[i] = 0;
@@ -1619,7 +1619,7 @@ PDM_box_set_send_data_to_origin_distrib
   int *curr_stride = NULL;
   int *orig_stride = NULL;
 
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     orig_stride = (int *) malloc (sizeof(int) * orig_shift[s_comm]);
     curr_stride = (int *) malloc (sizeof(int) * curr_shift[s_comm]);

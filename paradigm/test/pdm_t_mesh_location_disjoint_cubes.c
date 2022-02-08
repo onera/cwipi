@@ -233,7 +233,7 @@ static void _rotate (const int  n_pts,
   }
 }
 
-static int
+static PDM_part_t *
 _cube_mesh
 (
  const int              n_part,
@@ -299,7 +299,7 @@ _cube_mesh
   /*
    *  Create mesh partitiions
    */
-  int ppart_id = 0;
+  // int ppart_id = 0;
   int have_dcell_part = 0;
 
   int *dcell_part = (int *) malloc(dn_cell*sizeof(int));
@@ -309,40 +309,39 @@ _cube_mesh
   int n_property_cell = 0;
   int n_property_face = 0;
 
-  PDM_part_create (&ppart_id,
-                   PDM_MPI_COMM_WORLD,
-                   part_method,
-                   "PDM_PART_RENUM_CELL_NONE",
-                   "PDM_PART_RENUM_FACE_NONE",
-                   n_property_cell,
-                   renum_properties_cell,
-                   n_property_face,
-                   renum_properties_face,
-                   n_part,
-                   dn_cell,
-                   dn_face,
-                   dn_vtx,
-                   n_face_group,
-                   NULL,
-                   NULL,
-                   NULL,
-                   NULL,
-                   have_dcell_part,
-                   dcell_part,
-                   dface_cell,
-                   dface_vtx_idx,
-                   dface_vtx,
-                   NULL,
-                   dvtx_coord,
-                   NULL,
-                   dface_group_idx,
-                   dface_group);
+  PDM_part_t *ppart = PDM_part_create (PDM_MPI_COMM_WORLD,
+                                       part_method,
+                                       "PDM_PART_RENUM_CELL_NONE",
+                                       "PDM_PART_RENUM_FACE_NONE",
+                                       n_property_cell,
+                                       renum_properties_cell,
+                                       n_property_face,
+                                       renum_properties_face,
+                                       n_part,
+                                       dn_cell,
+                                       dn_face,
+                                       dn_vtx,
+                                       n_face_group,
+                                       NULL,
+                                       NULL,
+                                       NULL,
+                                       NULL,
+                                       have_dcell_part,
+                                       dcell_part,
+                                       dface_cell,
+                                       dface_vtx_idx,
+                                       dface_vtx,
+                                       NULL,
+                                       dvtx_coord,
+                                       NULL,
+                                       dface_group_idx,
+                                       dface_group);
 
   free(dcell_part);
 
   PDM_dcube_gen_free(dcube);
 
-  return ppart_id;
+  return ppart;
 }
 
 
@@ -487,33 +486,33 @@ int main(int argc, char *argv[])
   /*
    *  Source cube
    */
-  int ppart_src = _cube_mesh (n_part,
-                              part_method,
-                              n_vtx_seg,
-                              xmin,
-                              ymin,
-                              zmin,
-                              length,
+  PDM_part_t *ppart_src = _cube_mesh (n_part,
+                                      part_method,
+                                      n_vtx_seg,
+                                      xmin,
+                                      ymin,
+                                      zmin,
+                                      length,
                               0);//deform);
 
   /*
    *  Target cube
    */
-  int ppart_tgt = _cube_mesh (n_part,
-                              part_method,
-                              n_vtx_seg,
-                              xmin + separation_x*length,
-                              ymin + separation_y*length,
-                              zmin + separation_z*length,
-                              length,
-                              deform);
+  PDM_part_t *ppart_tgt = _cube_mesh (n_part,
+                                      part_method,
+                                      n_vtx_seg,
+                                      xmin + separation_x*length,
+                                      ymin + separation_y*length,
+                                      zmin + separation_z*length,
+                                      length,
+                                      deform);
 
   /*
    *  Mesh location structure initialization
    */
   PDM_mesh_location_t *mesh_loc = PDM_mesh_location_create (PDM_MESH_NATURE_MESH_SETTED,
-                                         1,
-                                         PDM_MPI_COMM_WORLD);
+                                                            1,
+                                                            PDM_MPI_COMM_WORLD);
 
 
   /* Set target point cloud */

@@ -24,6 +24,27 @@ module pdm_closest_points
   use pdm
   implicit none
 
+  interface PDM_closest_points_create ; module procedure &
+  pdm_closest_points_create_
+  end interface
+
+  interface PDM_closest_points_tgt_cloud_set ; module procedure &
+  pdm_closest_points_tgt_cloud_set_
+  end interface
+
+  interface PDM_closest_points_src_cloud_set ; module procedure &
+  pdm_closest_points_src_cloud_set_
+  end interface
+
+  interface PDM_closest_points_get ; module procedure &
+  pdm_closest_points_get_
+  end interface
+
+  private :: pdm_closest_points_create_
+  private :: pdm_closest_points_tgt_cloud_set_
+  private :: pdm_closest_points_src_cloud_set_
+  private :: pdm_closest_points_get_
+
   interface
 
     !>
@@ -35,33 +56,33 @@ module pdm_closest_points
     !! \param [in]   n_closest      Number of closest source points to find for each
     !!                              target point
     !!
-    !! \return     Identifier
+    !! \return     Pointer to \ref PDM_closest_points object
     !!
     !!
 
-    function PDM_closest_points_create (fcomm,     &
-                                        n_closest, &
-                                        owner)     &
-                                        result(cls) &
-      bind (c, name = 'PDM_closest_points_create_cf')
+    function PDM_closest_points_create_cf (comm,      &
+                                           n_closest, &
+                                           owner)     &
+    result(cls)                                       &
+    bind (c, name = 'PDM_closest_points_create')
 
       use iso_c_binding
 
       implicit none
 
-      integer(c_int), value :: fComm
+      integer(c_int), value :: comm
       integer(c_int), value :: n_closest
       integer(c_int), value :: owner
 
-      type(c_ptr)        :: cls
+      type(c_ptr)           :: cls
 
-    end function PDM_closest_points_create
+    end function PDM_closest_points_create_cf
 
     !>
     !!
     !! \brief Set the number of partitions of a point cloud
     !!
-    !! \param [in]   id                Identifier
+    !! \param [in]   cls               Pointer to \ref PDM_closest_points object
     !! \param [in]   n_part_cloud_src  Number of partitions of the source cloud
     !! \param [in]   n_part_cloud_tgt  Number of partitions od the target cloud
     !!
@@ -88,7 +109,7 @@ module pdm_closest_points
     !!
     !! \brief Set the target point cloud
     !!
-    !! \param [in]   id              Identifier
+    !! \param [in]   cls             Pointer to \ref PDM_closest_points object
     !! \param [in]   i_part          Index of partition
     !! \param [in]   n_points        Number of points
     !! \param [in]   coords          Point coordinates
@@ -96,11 +117,11 @@ module pdm_closest_points
     !!
     !!
 
-    subroutine PDM_closest_points_tgt_cloud_set (cls, &
-                                                 i_part, &
-                                                 n_points, &
-                                                 coords, &
-                                                 gnum) &
+    subroutine PDM_closest_points_tgt_cloud_set_cf (cls, &
+                                                    i_part, &
+                                                    n_points, &
+                                                    coords, &
+                                                    gnum) &
       bind (c, name = 'PDM_closest_points_tgt_cloud_set')
 
       use iso_c_binding
@@ -116,13 +137,13 @@ module pdm_closest_points
       type(c_ptr), value    :: gnum
 
 
-    end subroutine PDM_closest_points_tgt_cloud_set
+    end subroutine PDM_closest_points_tgt_cloud_set_cf
 
     !>
     !!
     !! \brief Set the source point cloud
     !!
-    !! \param [in]   id              Identifier
+    !! \param [in]   cls             Pointer to \ref PDM_closest_points object
     !! \param [in]   i_part          Index of partition
     !! \param [in]   n_points        Number of points
     !! \param [in]   coords          Point coordinates
@@ -130,11 +151,11 @@ module pdm_closest_points
     !!
     !!
 
-    subroutine PDM_closest_points_src_cloud_set (cls, &
-                                                 i_part, &
-                                                 n_points, &
-                                                 coords, &
-                                                 gnum) &
+    subroutine PDM_closest_points_src_cloud_set_cf (cls, &
+                                                    i_part, &
+                                                    n_points, &
+                                                    coords, &
+                                                    gnum) &
       bind (c, name = 'PDM_closest_points_src_cloud_set')
 
       use iso_c_binding
@@ -150,13 +171,13 @@ module pdm_closest_points
       type(c_ptr), value    :: gnum
 
 
-    end subroutine PDM_closest_points_src_cloud_set
+    end subroutine PDM_closest_points_src_cloud_set_cf
 
     !>
     !!
     !! \brief Look for closest points
     !!
-    !! \param [in]   id  Identifier
+    !! \param [in]   cls Pointer to \ref PDM_closest_points object
     !!
     !!
 
@@ -175,17 +196,17 @@ module pdm_closest_points
     !!
     !! \brief Get mesh distance
     !!
-    !! \param [in]   id                    Identifier
+    !! \param [in]   cls                   Pointer to \ref PDM_closest_points object
     !! \param [in]   i_part_tgt            Index of partition of the cloud
     !! \param [out]  closest_src_g_num     Global number of the closest element (size = n_closest * n_tgt_points)
     !! \param [out]  closest_src_distance  Distance (size = n_closest * n_tgt_points)
     !!
     !!
 
-    subroutine PDM_closest_points_get (cls, &
-                                       i_part_tgt, &
-                                       closest_src_gnum, &
-                                       closest_src_distance) &
+    subroutine PDM_closest_points_get_cf (cls, &
+                                          i_part_tgt, &
+                                          closest_src_gnum, &
+                                          closest_src_distance) &
       bind (c, name = 'PDM_closest_points_get')
 
       use iso_c_binding
@@ -200,13 +221,13 @@ module pdm_closest_points
       type(c_ptr)      :: closest_src_distance
 
 
-    end subroutine PDM_closest_points_get
+    end subroutine PDM_closest_points_get_cf
 
     !>
     !!
     !! \brief Free a distance mesh structure
     !!
-    !! \param [in]  id       Identifier
+    !! \param [in]  cls      Pointer to \ref PDM_closest_points object
     !! \param [in]  partial  if partial is equal to 0, all data are removed.
     !!                       Otherwise, results are kept.
     !!
@@ -227,7 +248,7 @@ module pdm_closest_points
     !!
     !! \brief  Dump elapsed an CPU time
     !!
-    !! \param [in]  id       Identifier
+    !! \param [in]  cls      Pointer to \ref PDM_closest_points object
     !!
     !!
 
@@ -242,6 +263,258 @@ module pdm_closest_points
 
     end subroutine PDM_closest_points_dump_times
 
+
+!>
+!!
+!! \brief  Get the number of target points in a partition
+!!
+!! \param [in]  cls     Pointer to \ref PDM_closest_points_t object
+!! \param [in]  i_part  Index of partition of the target cloud
+!!
+!! \return   Number of target point in the partition \ref i_part
+!!
+!!
+
+function PDM_closest_points_n_tgt_get (cls,     &
+                                       i_part)  &
+  result (n_tgt)                                &
+
+  bind (c, name='PDM_closest_points_n_tgt_get')
+
+  use iso_c_binding
+  implicit none
+
+  type(c_ptr),    value :: cls
+  integer(c_int), value :: i_part
+  integer(c_int)        :: n_tgt
+
+end function PDM_closest_points_n_tgt_get
+
+
+
+!>
+!!
+!! \brief  Get the number of closest points
+!!
+!! \param [in]  cls     Pointer to \ref PDM_closest_points_t object
+!!
+!! \return   Number of closest points
+!!
+!!
+
+function PDM_closest_points_n_closest_get (cls)  &
+  result (n_closest)                             &
+
+  bind (c, name='PDM_closest_points_n_closest_get')
+
+  use iso_c_binding
+  implicit none
+
+  type(c_ptr),    value :: cls
+  integer(c_int)        :: n_closest
+
+end function PDM_closest_points_n_closest_get
+
+
+
+
   end interface
+
+
+  contains
+
+
+  !>
+    !!
+    !! \brief Create a structure to look for the closest points of a point cloud
+    !! (target cloud) in an other point cloud (source cloud)
+    !!
+    !! \param [out]  cls         Pointer to \ref PDM_closest_points object
+    !! \param [in]   f_comm      MPI communicator
+    !! \param [in]   n_closest   Number of closest source points to find for each
+    !!                           target point
+    !!
+
+    subroutine PDM_closest_points_create_ (cls,       &
+                                           f_comm,    &
+                                           n_closest, &
+                                           owner)
+
+      use iso_c_binding
+
+      implicit none
+
+      integer        :: f_comm
+      integer        :: n_closest
+      integer        :: owner
+
+      type(c_ptr)    :: cls
+
+      integer(c_int) :: c_comm
+      integer(c_int) :: c_n_closest
+      integer(c_int) :: c_owner
+
+      c_comm      = PDM_MPI_Comm_f2c(f_comm)
+      c_n_closest = n_closest
+      c_owner     = owner
+
+      cls = PDM_closest_points_create_cf(c_comm,      &
+                                         c_n_closest, &
+                                         c_owner)
+
+    end subroutine PDM_closest_points_create_
+
+
+
+
+
+  !>
+  !!
+  !! \brief Set the target point cloud
+  !!
+  !! \param [in]   cls             Pointer to \ref PDM_closest_points object
+  !! \param [in]   i_part          Index of partition
+  !! \param [in]   n_points        Number of points
+  !! \param [in]   coords          Point coordinates
+  !! \param [in]   gnum            Point global number
+  !!
+  !!
+
+  subroutine PDM_closest_points_tgt_cloud_set_ (cls,      &
+                                                i_part,   &
+                                                n_points, &
+                                                coords,   &
+                                                gnum)
+
+    use iso_c_binding
+
+    implicit none
+
+    type(c_ptr), value                 :: cls
+    integer                            :: i_part
+    integer                            :: n_points
+    double precision,          pointer :: coords(:)
+    integer(kind=pdm_g_num_s), pointer :: gnum(:)
+
+    integer(c_int)                     :: c_i_part
+    integer(c_int)                     :: c_n_points
+    type(c_ptr)                        :: c_coords = C_NULL_PTR
+    type(c_ptr)                        :: c_gnum   = C_NULL_PTR
+
+    c_i_part   = i_part
+    c_n_points = n_points
+
+    c_coords = c_loc(coords)
+    c_gnum   = c_loc(gnum)
+
+    call PDM_closest_points_tgt_cloud_set_cf(cls,        &
+                                             c_i_part,   &
+                                             c_n_points, &
+                                             c_coords,   &
+                                             c_gnum)
+
+  end subroutine PDM_closest_points_tgt_cloud_set_
+
+
+
+  !>
+  !!
+  !! \brief Set the source point cloud
+  !!
+  !! \param [in]   cls             Pointer to \ref PDM_closest_points object
+  !! \param [in]   i_part          Index of partition
+  !! \param [in]   n_points        Number of points
+  !! \param [in]   coords          Point coordinates
+  !! \param [in]   gnum            Point global number
+  !!
+  !!
+
+  subroutine PDM_closest_points_src_cloud_set_ (cls, &
+                                                i_part, &
+                                                n_points, &
+                                                coords, &
+                                                gnum)
+
+    use iso_c_binding
+
+    type(c_ptr), value                 :: cls
+    integer                            :: i_part
+    integer                            :: n_points
+    double precision,          pointer :: coords(:)
+    integer(kind=pdm_g_num_s), pointer :: gnum(:)
+
+    integer(c_int)                     :: c_i_part
+    integer(c_int)                     :: c_n_points
+    type(c_ptr)                        :: c_coords = C_NULL_PTR
+    type(c_ptr)                        :: c_gnum   = C_NULL_PTR
+
+    c_i_part   = i_part
+    c_n_points = n_points
+
+    c_coords = c_loc(coords)
+    c_gnum   = c_loc(gnum)
+
+    call PDM_closest_points_src_cloud_set_cf(cls,        &
+                                             c_i_part,   &
+                                             c_n_points, &
+                                             c_coords,   &
+                                             c_gnum)
+
+
+  end subroutine PDM_closest_points_src_cloud_set_
+
+
+
+  !>
+  !!
+  !! \brief Get Get closest source points global ids and (squared) distance
+  !!
+  !! \param [in]   cls                   Pointer to \ref PDM_closest_points object
+  !! \param [in]   i_part_tgt            Index of partition of the cloud
+  !! \param [out]  closest_src_g_num     Global number of the closest element (size = n_closest * n_tgt_points)
+  !! \param [out]  closest_src_distance  Distance (size = n_closest * n_tgt_points)
+  !!
+  !!
+
+  subroutine PDM_closest_points_get_ (cls, &
+                                      i_part_tgt, &
+                                      closest_src_gnum, &
+                                      closest_src_distance)
+
+    use iso_c_binding
+
+    implicit none
+
+    type(c_ptr),                 value :: cls
+    integer                            :: i_part_tgt
+    integer(kind=pdm_g_num_s), pointer :: closest_src_gnum(:)
+    double precision,          pointer :: closest_src_distance(:)
+
+    integer(c_int)                     :: c_i_part_tgt
+    type(c_ptr)                        :: c_closest_src_gnum     = C_NULL_PTR
+    type(c_ptr)                        :: c_closest_src_distance = C_NULL_PTR
+    integer(c_int)                     :: n_tgt, n_closest
+
+    c_i_part_tgt = i_part_tgt
+
+    call PDM_closest_points_get_cf (cls,                    &
+                                    c_i_part_tgt,           &
+                                    c_closest_src_gnum,     &
+                                    c_closest_src_distance)
+
+    n_tgt = pdm_closest_points_n_tgt_get(cls,        &
+                                         i_part_tgt)
+
+    n_closest = pdm_closest_points_n_closest_get(cls)
+
+    call c_f_pointer(c_closest_src_gnum, &
+                     closest_src_gnum,   &
+                     [n_tgt*n_closest])
+
+    call c_f_pointer(c_closest_src_distance, &
+                     closest_src_distance,   &
+                     [n_tgt*n_closest])
+
+  end subroutine PDM_closest_points_get_
 
 end module pdm_closest_points

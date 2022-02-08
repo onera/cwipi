@@ -19,7 +19,7 @@
 #include "pdm_mesh_location.h"
 #include "pdm_geom_elem.h"
 #include "pdm_gnum.h"
-#include "pdm_part1_to_selected_part2.h"
+#include "pdm_part_to_part.h"
 
 #include "pdm_writer.h"
 #include "pdm_printf.h"
@@ -181,7 +181,7 @@ _read_args(int            argc,
 
 
 
-static int
+static PDM_part_t *
 _cube_mesh
 (
  const int              n_part,
@@ -234,7 +234,7 @@ _cube_mesh
   /*
    *  Create mesh partitiions
    */
-  int ppart_id = 0;
+  // int ppart_id = 0;
   int have_dcell_part = 0;
 
   int *dcell_part = (int *) malloc(dn_cell*sizeof(int));
@@ -244,40 +244,39 @@ _cube_mesh
   int n_property_cell = 0;
   int n_property_face = 0;
 
-  PDM_part_create (&ppart_id,
-                   PDM_MPI_COMM_WORLD,
-                   part_method,
-                   "PDM_PART_RENUM_CELL_NONE",
-                   "PDM_PART_RENUM_FACE_NONE",
-                   n_property_cell,
-                   renum_properties_cell,
-                   n_property_face,
-                   renum_properties_face,
-                   n_part,
-                   dn_cell,
-                   dn_face,
-                   dn_vtx,
-                   n_face_group,
-                   NULL,
-                   NULL,
-                   NULL,
-                   NULL,
-                   have_dcell_part,
-                   dcell_part,
-                   dface_cell,
-                   dface_vtx_idx,
-                   dface_vtx,
-                   NULL,
-                   dvtx_coord,
-                   NULL,
-                   dface_group_idx,
-                   dface_group);
+  PDM_part_t *ppart = PDM_part_create (PDM_MPI_COMM_WORLD,
+                                       part_method,
+                                       "PDM_PART_RENUM_CELL_NONE",
+                                       "PDM_PART_RENUM_FACE_NONE",
+                                       n_property_cell,
+                                       renum_properties_cell,
+                                       n_property_face,
+                                       renum_properties_face,
+                                       n_part,
+                                       dn_cell,
+                                       dn_face,
+                                       dn_vtx,
+                                       n_face_group,
+                                       NULL,
+                                       NULL,
+                                       NULL,
+                                       NULL,
+                                       have_dcell_part,
+                                       dcell_part,
+                                       dface_cell,
+                                       dface_vtx_idx,
+                                       dface_vtx,
+                                       NULL,
+                                       dvtx_coord,
+                                       NULL,
+                                       dface_group_idx,
+                                       dface_group);
 
   free(dcell_part);
 
   PDM_dcube_gen_free(dcube);
 
-  return ppart_id;
+  return ppart;
 }
 
 
@@ -369,25 +368,25 @@ int main(int argc, char *argv[])
   /*
    *  Source cube
    */
-  int ppart_src = _cube_mesh (n_part,
-                              part_method,
-                              n_vtx_seg,
-                              xmin,
-                              ymin,
-                              zmin,
-                              length);
+  PDM_part_t *ppart_src = _cube_mesh (n_part,
+                                      part_method,
+                                      n_vtx_seg,
+                                      xmin,
+                                      ymin,
+                                      zmin,
+                                      length);
 
   /*
    *  Target cube
    */
-  int ppart_tgt = _cube_mesh (n_part,
-                              part_method,
-                              2*n_vtx_seg,
+  PDM_part_t *ppart_tgt = _cube_mesh (n_part,
+                                      part_method,
+                                      2*n_vtx_seg,
  //                             n_vtx_seg,
-                              xmin2,
-                              ymin2,
-                              zmin2,
-                              length2);
+                                      xmin2,
+                                      ymin2,
+                                      zmin2,
+                                      length2);
 
   /*
    *  Mesh location structure initialization
@@ -1029,7 +1028,7 @@ int main(int argc, char *argv[])
   }
 
 
-  PDM_part1_to_selected_part2_t *ptp = PDM_part1_to_selected_part2_create ((const PDM_g_num_t**) gnum_elt1,
+  PDM_part_to_part_t *ptp = PDM_part_to_part_create ((const PDM_g_num_t**) gnum_elt1,
                                                                          n_elt1,
                                                                          n_part,
                                                                          (const PDM_g_num_t**) gnum_elt2,
@@ -1040,7 +1039,7 @@ int main(int argc, char *argv[])
                                                                          PDM_MPI_COMM_WORLD);
 
 
-  PDM_part1_to_selected_part2_t *ptp2 = PDM_part1_to_selected_part2_create ((const PDM_g_num_t**) gnum_elt2,
+  PDM_part_to_part_t *ptp2 = PDM_part_to_part_create ((const PDM_g_num_t**) gnum_elt2,
                                                                          n_elt2,
                                                                          n_part,
                                                                          (const PDM_g_num_t**) gnum_elt1,
@@ -1052,41 +1051,41 @@ int main(int argc, char *argv[])
 
   int  *n_ref_gnum2;
   int **ref_gnum2;
-  PDM_part1_to_selected_part2_ref_gnum2_get (ptp,
+  PDM_part_to_part_ref_gnum2_get (ptp,
                                             &n_ref_gnum2,
                                             &ref_gnum2);
 
 
   int  *n_unref_gnum2;
   int **unref_gnum2;
-  PDM_part1_to_selected_part2_unref_gnum2_get (ptp,
+  PDM_part_to_part_unref_gnum2_get (ptp,
                                             &n_unref_gnum2,
                                             &unref_gnum2);
 
 
   int         **gnum1_come_from_idx;
   PDM_g_num_t **gnum1_come_from;
-  PDM_part1_to_selected_part2_gnum1_come_from_get (ptp,
+  PDM_part_to_part_gnum1_come_from_get (ptp,
                                                   &gnum1_come_from_idx,
                                                   &gnum1_come_from);
 
 
   int  *ptp2_n_ref_gnum2;
   int **ptp2_ref_gnum2;
-  PDM_part1_to_selected_part2_ref_gnum2_get (ptp2,
+  PDM_part_to_part_ref_gnum2_get (ptp2,
                                             &ptp2_n_ref_gnum2,
                                             &ptp2_ref_gnum2);
 
   int  *ptp2_n_unref_gnum2;
   int **ptp2_unref_gnum2;
-  PDM_part1_to_selected_part2_unref_gnum2_get (ptp2,
+  PDM_part_to_part_unref_gnum2_get (ptp2,
                                             &ptp2_n_unref_gnum2,
                                             &ptp2_unref_gnum2);
 
 
   int         **ptp2_gnum1_come_from_idx;
   PDM_g_num_t **ptp2_gnum1_come_from;
-  PDM_part1_to_selected_part2_gnum1_come_from_get (ptp2,
+  PDM_part_to_part_gnum1_come_from_get (ptp2,
                                                   &ptp2_gnum1_come_from_idx,
                                                   &ptp2_gnum1_come_from);
 
@@ -1103,12 +1102,12 @@ int main(int argc, char *argv[])
     }
   }
 
-  PDM_part1_to_selected_part2_issend (ptp,
-                                     sizeof (PDM_g_num_t),
-                                     1,
-                                     (void **)  gnum1_gnum2_data,
-                                     100,
-                                     &send_request);
+  PDM_part_to_part_issend (ptp,
+                           sizeof (PDM_g_num_t),
+                           1,
+         (const void **)  gnum1_gnum2_data,
+                           100,
+                           &send_request);
 
 
 
@@ -1118,18 +1117,18 @@ int main(int argc, char *argv[])
     gnum_elt1_recv[i] = malloc (sizeof(PDM_g_num_t)  * gnum1_come_from_idx[i][n_ref_gnum2[i]]);
   }
 
-  PDM_part1_to_selected_part2_irecv (ptp,
-                                    sizeof (PDM_g_num_t),
-                                    1,
-                                    (void **) gnum_elt1_recv,
-                                    100,
-                                    &recv_request);
+  PDM_part_to_part_irecv (ptp,
+                          sizeof (PDM_g_num_t),
+                          1,
+                (void **) gnum_elt1_recv,
+                          100,
+                          &recv_request);
 
 
 
-  PDM_part1_to_selected_part2_issend_wait (ptp, send_request);
+  PDM_part_to_part_issend_wait (ptp, send_request);
 
-  PDM_part1_to_selected_part2_irecv_wait (ptp, recv_request);
+  PDM_part_to_part_irecv_wait (ptp, recv_request);
 
   for (int i = 0; i < n_part; i++) {
     free (gnum1_gnum2_data[i]);
@@ -1148,12 +1147,12 @@ int main(int argc, char *argv[])
   }
 
   send_request = -1;
-  PDM_part1_to_selected_part2_issend (ptp2,
-                                     sizeof (PDM_g_num_t),
-                                     1,
-                                     (void **) ptp2_s_data,
-                                     100,
-                                     &send_request);
+  PDM_part_to_part_issend (ptp2,
+                           sizeof (PDM_g_num_t),
+                           1,
+           (const void **) ptp2_s_data,
+                           100,
+                           &send_request);
 
   recv_request = -1;
   PDM_g_num_t **gnum_elt2_recv = malloc (sizeof(PDM_g_num_t*)  * n_part);
@@ -1161,18 +1160,18 @@ int main(int argc, char *argv[])
     gnum_elt2_recv[i] = malloc (sizeof(PDM_g_num_t)  * ptp2_gnum1_come_from_idx[i][ptp2_n_ref_gnum2[i]]);
   }
 
-  PDM_part1_to_selected_part2_irecv (ptp2,
-                                    sizeof (PDM_g_num_t),
-                                    1,
-                                    (void **) gnum_elt2_recv,
-                                    100,
-                                    &recv_request);
+  PDM_part_to_part_irecv (ptp2,
+                          sizeof (PDM_g_num_t),
+                          1,
+                (void **) gnum_elt2_recv,
+                          100,
+                          &recv_request);
 
 
 
-  PDM_part1_to_selected_part2_issend_wait (ptp2, send_request);
+  PDM_part_to_part_issend_wait (ptp2, send_request);
 
-  PDM_part1_to_selected_part2_irecv_wait (ptp2, recv_request);
+  PDM_part_to_part_irecv_wait (ptp2, recv_request);
 
   for (int i = 0; i < n_part; i++) {
     free (ptp2_s_data[i]);
@@ -1284,12 +1283,14 @@ int main(int argc, char *argv[])
       PDM_sort_long (points_gnum[i] + elt_pts_inside_idx[i][j], NULL, n_pts2);
     }
 
-    if (0==1) {
+    if (0 == 1) {
+ 
       printf ("location from location :\n");
       for (int j = 0; j < n_located; j++) {
         printf(""PDM_FMT_G_NUM" : "PDM_FMT_G_NUM"", gnum_elt2[i][located[j]-1], location[i][j]);
       printf ("\n");
       }
+ 
       printf ("location from exchange  :\n");
       for (int j = 0; j < n_ref_gnum2[i]; j++) {
         printf(""PDM_FMT_G_NUM" :", gnum_elt2[i][ref_gnum2[i][j]-1]);
@@ -1320,18 +1321,14 @@ int main(int argc, char *argv[])
         }  
         printf ("\n");
       }
-
-
     }
-
-    // Check Exchanges
 
     for (int j = 0; j < n_ref_gnum2[i]; j++) {
       for (int k = gnum1_come_from_idx[i][j] ; k < gnum1_come_from_idx[i][j+1]; k++) {
-       assert(gnum_elt1_recv[i][k] == location[i][j]);
+        assert(gnum_elt1_recv[i][k] == location[i][j]);
       }  
-
     }
+
     for (int j = 0; j < ptp2_n_ref_gnum2[i]; j++) {
       int ielt = ptp2_ref_gnum2[i][j]-1;
       int n1 = ptp2_gnum1_come_from_idx[i][j+1] - ptp2_gnum1_come_from_idx[i][j];
@@ -1343,7 +1340,6 @@ int main(int argc, char *argv[])
         assert( val1 == val2); 
       }  
     }
-
   }
 
   for (int i = 0; i < n_part; i++) {
@@ -1376,15 +1372,12 @@ int main(int argc, char *argv[])
   free (gnum_elt2);
   free (n_elt2);
 
-  PDM_mesh_location_free (id_loc1,
-                          0);
+  PDM_mesh_location_free (id_loc1, 0);
 
-  PDM_mesh_location_free (id_loc2,
-                          0);
+  PDM_mesh_location_free (id_loc2, 0);
 
-
-  PDM_part1_to_selected_part2_free (ptp);
-  PDM_part1_to_selected_part2_free (ptp2);
+  PDM_part_to_part_free (ptp);
+  PDM_part_to_part_free (ptp2);
 
   PDM_part_free (ppart_src);
   PDM_part_free (ppart_tgt);

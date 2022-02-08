@@ -1006,7 +1006,9 @@ PDM_dmesh_nodal_elmts_generate_distribution
 {
   /* Creation of element distribution among all sections */
   // printf("dmn_elts->n_section : %i \n", dmn_elts->n_section);
-  dmn_elts->section_distribution    = (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * (dmn_elts->n_section + 1));
+  if(dmn_elts->section_distribution == NULL) {
+    dmn_elts->section_distribution = (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * (dmn_elts->n_section + 1));
+  }
   dmn_elts->section_distribution[0] = 0;
 
   for(int i_section = 0; i_section < dmn_elts->n_section; ++i_section) {

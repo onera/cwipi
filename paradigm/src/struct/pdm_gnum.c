@@ -1184,7 +1184,7 @@ _gnum_from_parent_compute
  * \return     Pointer to PDM_gen_gnum object
  */
 
-PDM_gen_gnum_t*
+PDM_gen_gnum_t *
 PDM_gnum_create
 (
  const int             dim,
@@ -1221,22 +1221,6 @@ PDM_gnum_create
 
 }
 
-PDM_gen_gnum_t*
-PDM_gnum_create_cf
-(
- const int             dim,
- const int             n_part,
- const int             merge,
- const double          tolerance,
- const PDM_MPI_Fint    fcomm,
- const PDM_ownership_t owner
-)
-{
-  const PDM_MPI_Comm c_comm = PDM_MPI_Comm_f2c (fcomm);
-
-  return PDM_gnum_create (dim, n_part, (PDM_bool_t) merge, tolerance, c_comm, owner);
-}
-
 
 /**
  *
@@ -1247,7 +1231,7 @@ PDM_gnum_create_cf
  * In the case that 2 entities have a same Morton code, their global
  * number will be determined by lexicographical ordering of coordinates.
  *
- * \param [in]   gnum         Pointer to PDM_gen_gnum object
+ * \param [in]   gen_gnum     Pointer to \ref PDM_gen_gnum object
  * \param [in]   i_part       Current partition
  * \param [in]   n_elts       Number of elements
  * \param [in]   coords       Coordinates (size = 3 * \ref n_elts)
@@ -1288,11 +1272,12 @@ PDM_gnum_set_from_coords
 
 }
 
+
 /**
  *
  * \brief Set Parent global numbering
  *
- * \param [in]   gnum         Pointer to PDM_gen_gnum object
+ * \param [in]   gen_gnum     Pointer to \ref PDM_gen_gnum object
  * \param [in]   i_part       Current partition
  * \param [in]   n_elts       Number of elements
  * \param [in]   parent_gnum  Parent global numbering (size = \ref n_elts)
@@ -1322,14 +1307,16 @@ PDM_gnum_set_from_parents
 
 }
 
+
+
+
 /**
  *
  * \brief Compute
  *
- * \param [in]   gnum         Pointer to PDM_gen_gnum object
+ * \param [in]   gen_gnum         Pointer to \ref PDM_gen_gnum object
  *
  */
-
 
 void
 PDM_gnum_compute
@@ -1355,14 +1342,16 @@ PDM_gnum_compute
 
 }
 
+
+
 /**
  *
- * \brief Set from coordinates
+ * \brief Get global ids for a given partition
  *
- * \param [in]   gnum         Pointer to PDM_gen_gnum object
+ * \param [in]   gen_gnum     Pointer to \ref PDM_gen_gnum object
  * \param [in]   i_part       Current partition
- * \param [in]   n_elts       Number of elements
- * \param [in]   coords       Coordinates (size = 3 * \ref n_elts)
+ *
+ * \return     Array of global ids
  *
  */
 
@@ -1378,11 +1367,13 @@ PDM_gnum_get
   return gen_gnum->g_nums[i_part];
 }
 
+
+
 /**
  *
  * \brief Free
  *
- * \param [in]   gnum         Pointer to PDM_gen_gnum object
+ * \param [in]   gen_gnum         Pointer to \ref PDM_gen_gnum object
  *
  */
 
@@ -1417,6 +1408,32 @@ PDM_gen_gnum_t *gen_gnum
 
   free (gen_gnum);
 
+}
+
+
+
+/**
+ *
+ * \brief Get number of elements in a partition
+ *
+ * \param [in]   gen_gnum     Pointer to \ref PDM_gen_gnum object
+ * \param [in]   i_part       Current partition
+ *
+ * \return     Number of elements
+ *
+ */
+
+int
+PDM_gnum_n_elt_get
+(
+       PDM_gen_gnum_t *gen_gnum,
+ const int             i_part
+)
+{
+  assert(gen_gnum         != NULL);
+  assert(gen_gnum->n_elts != NULL);
+
+  return gen_gnum->n_elts[i_part];
 }
 
 /*----------------------------------------------------------------------------*/

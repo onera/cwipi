@@ -76,7 +76,7 @@ static inline double _sum_a_b (const double a, const double b) {
  * \param [in]   n_part       Number of local partitions
  * \param [in]   comm         PDM_MPI communicator
  *
- * \return     Pointer to global reduction object
+ * \return     Pointer to \ref PDM_global_reduce object
  */
 
 PDM_global_reduce_t *
@@ -118,32 +118,9 @@ PDM_global_reduce_create
 
 /**
  *
- * \brief Create a structure that computes a global reduction
- *
- * \param [in]   n_part       Number of local partitions
- * \param [in]   comm         PDM_MPI communicator
- *
- * \return     Pointer to global reduction object
- */
-
-PDM_global_reduce_t *
-PDM_global_reduce_create_cf
-(
- const int          n_part,
- const PDM_MPI_Fint comm
-)
-{
-  const PDM_MPI_Comm _comm = PDM_MPI_Comm_f2c(comm);
-
-  return PDM_global_reduce_create (n_part, _comm);
-}
-
-
-/**
- *
  * \brief Free a global point mean structure
  *
- * \param [in]   gre          Pointer to global reduction object
+ * \param [in]   gre          Pointer to \ref PDM_global_reduce object
  *
  */
 
@@ -184,7 +161,7 @@ PDM_global_reduce_free
  *
  * \brief Set global ids
  *
- * \param [in]   gre           Pointer to global reduction object
+ * \param [in]   gre           Pointer to \ref PDM_global_reduce object
  * \param [in]   i_part        Current partition
  * \param [in]   n_pts         Number of points in the partition
  * \param [in]   pts_ln_to_gn  Global ids of points in the partition
@@ -210,7 +187,7 @@ PDM_global_reduce_g_num_set
  *
  * \brief Set reduction operation
  *
- * \param [in]   gre                       Pointer to global reduction object
+ * \param [in]   gre                       Pointer to \ref PDM_global_reduce object
  * \param [in]   operation                 Type of reduction operation
  */
 
@@ -229,7 +206,7 @@ PDM_global_reduce_operation_set
  *
  * \brief Set local field
  *
- * \param [in]   gre                       Pointer to global reduction object
+ * \param [in]   gre                       Pointer to \ref PDM_global_reduce object
  * \param [in]   i_part                    Current partition
  * \param [in]   stride                    Stride of the field
  * \param [in]   local_field               Local value of field
@@ -258,7 +235,7 @@ PDM_global_reduce_field_set
  *
  * \brief Compute the global reduced field
  *
- * \param [in]   gre          Pointer to global reduction object
+ * \param [in]   gre          Pointer to \ref PDM_global_reduce object
  *
  */
 
@@ -300,7 +277,7 @@ PDM_global_reduce_field_compute
 
   PDM_part_to_block_exch (gre->ptb,
                           sizeof(double),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           gre->strides,
                           (void **) gre->local_field,
@@ -352,7 +329,7 @@ PDM_global_reduce_field_compute
 
   PDM_block_to_part_exch (gre->btp,
                           sizeof(double),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           &gre->stride,
                           block_field,
                           NULL,

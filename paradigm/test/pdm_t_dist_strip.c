@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
                        &dvtx_coord,
                        &dface_group_idx,
                        &dface_group);
-  int ppart_id = 0;
+  // int ppart_id = 0;
 
   gettimeofday(&t_elaps_debut, NULL);
 
@@ -271,34 +271,33 @@ int main(int argc, char *argv[])
     fflush(stdout);
   }
 
-  PDM_part_create(&ppart_id,
-                  PDM_MPI_COMM_WORLD,
-                  method,
-                  "PDM_PART_RENUM_CELL_NONE",
-                  "PDM_PART_RENUM_FACE_NONE",
-                  n_property_cell,
-                  renum_properties_cell,
-                  n_property_face,
-                  renum_properties_face,
-                  n_part,
-                  dn_cell,
-                  dn_face,
-                  dn_vtx,
-                  n_face_group,
-                  NULL,
-                  NULL,
-                  NULL,
-                  NULL,
-                  have_dcell_part,
-                  dcell_part,
-                  dface_cell,
-                  dface_vtx_idx,
-                  dface_vtx,
-                  NULL,
-                  dvtx_coord,
-                  NULL,
-                  dface_group_idx,
-                  dface_group);
+  PDM_part_t *ppart = PDM_part_create(PDM_MPI_COMM_WORLD,
+                                      method,
+                                      "PDM_PART_RENUM_CELL_NONE",
+                                      "PDM_PART_RENUM_FACE_NONE",
+                                      n_property_cell,
+                                      renum_properties_cell,
+                                      n_property_face,
+                                      renum_properties_face,
+                                      n_part,
+                                      dn_cell,
+                                      dn_face,
+                                      dn_vtx,
+                                      n_face_group,
+                                      NULL,
+                                      NULL,
+                                      NULL,
+                                      NULL,
+                                      have_dcell_part,
+                                      dcell_part,
+                                      dface_cell,
+                                      dface_vtx_idx,
+                                      dface_vtx,
+                                      NULL,
+                                      dvtx_coord,
+                                      NULL,
+                                      dface_group_idx,
+                                      dface_group);
 
   free(dcell_part);
 
@@ -438,7 +437,7 @@ int main(int argc, char *argv[])
     int sface_group;
     int nEdgeGroup2;
 
-    PDM_part_part_dim_get (ppart_id,
+    PDM_part_part_dim_get (ppart,
                            i_part,
                            &n_cell,
                            &n_face,
@@ -485,7 +484,7 @@ int main(int argc, char *argv[])
     int          *face_group;
     PDM_g_num_t *face_group_ln_to_gn;
 
-    PDM_part_part_val_get (ppart_id,
+    PDM_part_part_val_get (ppart,
                            i_part,
                            &cell_tag,
                            &cell_face_idx,
@@ -642,23 +641,23 @@ int main(int argc, char *argv[])
                      PDM_MPI_COMM_WORLD);
 
   PDM_dist_cloud_surf_surf_mesh_global_data_set (dist,
-                                           n_g_face,
-                                           n_g_vtx,
-                                           n_part);
+                                                 n_g_face,
+                                                 n_g_vtx,
+                                                 n_part);
 
   PDM_dist_cloud_surf_n_part_cloud_set (dist, 0, n_part);
 
   for (int i_part = 0; i_part < n_part; i_part++) {
 
     PDM_dist_cloud_surf_surf_mesh_part_set (dist,
-                                      i_part,
-                                      n_select_face[i_part],
-                                      surface_face_vtx_idx[i_part],
-                                      surface_face_vtx[i_part],
-                                      surface_face_gnum[i_part],
-                                      n_select_vtx[i_part],
-                                      surface_coords[i_part],
-                                      surface_vtx_gnum[i_part]);
+                                            i_part,
+                                            n_select_face[i_part],
+                                            surface_face_vtx_idx[i_part],
+                                            surface_face_vtx[i_part],
+                                            surface_face_gnum[i_part],
+                                            n_select_vtx[i_part],
+                                            surface_coords[i_part],
+                                            surface_vtx_gnum[i_part]);
 
     int n_cell;
     int n_face;
@@ -671,7 +670,7 @@ int main(int argc, char *argv[])
     int sface_group;
     int nEdgeGroup2;
 
-    PDM_part_part_dim_get (ppart_id,
+    PDM_part_part_dim_get (ppart,
                            i_part,
                            &n_cell,
                            &n_face,
@@ -703,7 +702,7 @@ int main(int argc, char *argv[])
     int          *face_group;
     PDM_g_num_t *face_group_ln_to_gn;
 
-    PDM_part_part_val_get (ppart_id,
+    PDM_part_part_val_get (ppart,
                            i_part,
                            &cell_tag,
                            &cell_face_idx,
@@ -734,11 +733,11 @@ int main(int argc, char *argv[])
     PDM_g_num_t *pts_gnum =  PDM_gnum_get (gen_gnum_pts, i_part);
 
     PDM_dist_cloud_surf_cloud_set (dist,
-                             0,
-                             i_part,
-                             n_pts,
-                             pts_coords[i_part],
-                             pts_gnum);
+                                   0,
+                                   i_part,
+                                   n_pts,
+                                   pts_coords[i_part],
+                                   pts_gnum);
 
   }
 
@@ -760,11 +759,11 @@ int main(int argc, char *argv[])
     PDM_g_num_t *closest_elt_gnum;
 
     PDM_dist_cloud_surf_get (dist,
-                       0,
-                       i_part,
-                       &distance,
-                       &projected,
-                       &closest_elt_gnum);
+                             0,
+                             i_part,
+                             &distance,
+                             &projected,
+                             &closest_elt_gnum);
 
     int n_cell;
     int n_face;
@@ -777,7 +776,7 @@ int main(int argc, char *argv[])
     int sface_group;
     int nEdgeGroup2;
 
-    PDM_part_part_dim_get (ppart_id,
+    PDM_part_part_dim_get (ppart,
                            i_part,
                            &n_cell,
                            &n_face,
@@ -809,7 +808,7 @@ int main(int argc, char *argv[])
     int          *face_group;
     PDM_g_num_t *face_group_ln_to_gn;
 
-    PDM_part_part_val_get (ppart_id,
+    PDM_part_part_val_get (ppart,
                            i_part,
                            &cell_tag,
                            &cell_face_idx,
@@ -860,7 +859,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  PDM_part_free(ppart_id);
+  PDM_part_free(ppart);
 
   PDM_dcube_gen_free(dcube);
   PDM_dist_cloud_surf_dump_times(dist);

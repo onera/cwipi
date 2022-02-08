@@ -25,21 +25,30 @@ module pdm_gnum_location
 
   implicit none
 
+  interface PDM_gnum_location_create ; module procedure &
+  pdm_gnum_location_create_
+  end interface
+
+  private :: pdm_gnum_location_create_
+
   interface
 
     !>
     !!
     !! \brief Build a global numbering location structure
     !!
-    !! \param [in]   n_part_in      Number of local partitions for elements
-    !! \param [in]   n_part_out     Number of local partitions for requested locations
-    !! \param [in]   comm           PDM_MPI communicator
-    !! \param [out]  id             Identifier
+    !! \param [in]   n_part_in    Number of local partitions for elements
+    !! \param [in]   n_part_out   Number of local partitions for requested locations
+    !! \param [in]   comm         PDM_MPI communicator
+    !!
+    !! \return  gloc      Pointer to \ref PDM_gnum_locaion object
     !!
 
-    function pdm_gnum_location_create (n_part_in, n_part_out, fComm) &
-         result(ptrC) &
-         bind (c, name = 'PDM_gnum_location_create_cf')
+    function pdm_gnum_location_create_cf (n_part_in,  &
+                                          n_part_out, &
+                                          comm)       &
+         result(gloc) &
+         bind (c, name = 'PDM_gnum_location_create')
 
       use iso_c_binding
 
@@ -47,32 +56,32 @@ module pdm_gnum_location
 
       integer(c_int), value :: n_part_in
       integer(c_int), value :: n_part_out
-      integer(c_int), value :: fComm
+      integer(c_int), value :: comm
 
-      type (c_ptr) :: ptrC
+      type (c_ptr)          :: gloc
 
 
-    end function pdm_gnum_location_create
+    end function pdm_gnum_location_create_cf
 
 
     !>
     !!
     !! \brief Set global numbering
     !!
-    !! \param [in]   id          Identifier
+    !! \param [in]   gloc        Pointer to \ref PDM_gnum_locaion object
     !! \param [in]   i_part_in   Current partition
     !! \param [in]   n_elts_in   Number of elements
     !! \param [in]   gnum_in     Global numbering
     !!
 
-    subroutine pdm_gnum_location_elements_set (ptrC, i_part_in, n_elts_in, gnum_in) &
+    subroutine pdm_gnum_location_elements_set (gloc, i_part_in, n_elts_in, gnum_in) &
          bind (c, name = 'PDM_gnum_location_elements_set')
 
       use iso_c_binding
 
       implicit none
 
-      type (c_ptr), value :: ptrC
+      type (c_ptr), value :: gloc
       integer(c_int), value :: i_part_in
       integer(c_int), value :: n_elts_in
 
@@ -85,21 +94,21 @@ module pdm_gnum_location
     !!
     !! \brief Set requested elements
     !!
-    !! \param [in]   id           Identifier
+    !! \param [in]   gloc         Pointer to \ref PDM_gnum_locaion object
     !! \param [in]   i_part_out   Current partition
     !! \param [in]   n_elts_out   Number of elements
     !! \param [in]   gnum_out     Global numbering
     !!
     !!
 
-    subroutine pdm_gnum_location_requested_elements_set (ptrC, i_part_out, n_elts_out, gnum_out) &
+    subroutine pdm_gnum_location_requested_elements_set (gloc, i_part_out, n_elts_out, gnum_out) &
          bind (c, name = 'PDM_gnum_location_requested_elements_set')
 
       use iso_c_binding
 
       implicit none
 
-      type (c_ptr), value :: ptrC
+      type (c_ptr), value :: gloc
       integer(c_int), value :: i_part_out
       integer(c_int), value :: n_elts_out
 
@@ -112,18 +121,18 @@ module pdm_gnum_location
     !!
     !! \brief Compute the location (processus, partittion, local number in the partition)
     !!
-    !! \param [in]   id           Identifier
+    !! \param [in]   gloc         Pointer to \ref PDM_gnum_locaion object
     !!
     !!
 
-    subroutine pdm_gnum_location_compute (ptrC) &
+    subroutine pdm_gnum_location_compute (gloc) &
       bind (c, name = 'PDM_gnum_location_compute')
 
       use iso_c_binding
 
       implicit none
 
-      type (c_ptr), value :: ptrC
+      type (c_ptr), value :: gloc
 
     end subroutine pdm_gnum_location_compute
 
@@ -132,21 +141,21 @@ module pdm_gnum_location
     !!
     !! \brief Get localtion
     !!
-    !! \param [in]    id             Identifier
+    !! \param [in]    gloc           Pointer to \ref PDM_gnum_locaion object
     !! \param [in]    i_part_out     Current partition
     !! \param [out]   location_idx   Index in the location arrays (size = 3 !! \ref n_elts + 1)
     !! \param [out]   location       Locations of each element
     !!                                (Three informations : process, partition, element)
     !!
 
-    subroutine pdm_gnum_location_get (ptrC, i_part_out, location_idx, location) &
+    subroutine pdm_gnum_location_get (gloc, i_part_out, location_idx, location) &
       bind (c, name = 'PDM_gnum_location_get')
 
       use iso_c_binding
 
       implicit none
 
-      type (c_ptr), value :: ptrC
+      type (c_ptr), value :: gloc
       integer(c_int), value :: i_part_out
 
       type(c_ptr)           :: location_idx
@@ -159,22 +168,65 @@ module pdm_gnum_location
     !!
     !! \brief Free
     !!
-    !! \param [in]   id           Identifier
+    !! \param [in]   gloc         Pointer to \ref PDM_gnum_locaion object
     !! \param [in]   partial      If partial = 1, location arrays are not freed
     !!
     !!/
 
-    subroutine pdm_gnum_location_free (ptrC, partial) &
+    subroutine pdm_gnum_location_free (gloc, partial) &
       bind (c, name = 'PDM_gnum_location_free')
 
       use iso_c_binding
 
       implicit none
 
-      type (c_ptr), value :: ptrC
+      type (c_ptr), value :: gloc
       integer(c_int), value :: partial
     end subroutine pdm_gnum_location_free
 
   end interface
+
+
+  contains
+
+
+  !>
+  !!
+  !! \brief Build a global numbering location structure
+  !!
+  !! \param [out]  gloc           Pointer to \ref PDM_gnum_locaion object
+  !! \param [in]   n_part_in      Number of local partitions for elements
+  !! \param [in]   n_part_out     Number of local partitions for requested locations
+  !! \param [in]   f_comm         PDM_MPI communicator
+  !!
+
+    subroutine pdm_gnum_location_create_ (gloc,       &
+                                          n_part_in,  &
+                                          n_part_out, &
+                                          f_comm)
+
+    use iso_c_binding
+
+    implicit none
+
+    integer        :: n_part_in
+    integer        :: n_part_out
+    integer        :: f_comm
+
+    type (c_ptr)   :: gloc
+
+    integer(c_int) :: c_n_part_in
+    integer(c_int) :: c_n_part_out
+    integer(c_int) :: c_comm
+
+    c_comm       = PDM_MPI_Comm_f2c(f_comm)
+    c_n_part_in  = n_part_in
+    c_n_part_out = n_part_out
+
+    gloc = pdm_gnum_location_create_cf(c_n_part_in,  &
+                                       c_n_part_out, &
+                                       c_comm)
+
+    end subroutine pdm_gnum_location_create_
 
 end module pdm_gnum_location

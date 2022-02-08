@@ -8,8 +8,9 @@
 
   integer, parameter :: pdm_max_char_length = 100
 
-  integer, parameter :: PDM_STRIDE_CST = 0
-  integer, parameter :: PDM_STRIDE_VAR = 1
+  integer, parameter :: PDM_STRIDE_CST_INTERLACED = 0
+  integer, parameter :: PDM_STRIDE_CST_BLOCK      = 1
+  integer, parameter :: PDM_STRIDE_VAR_INTERLACED = 2
 
   integer, parameter :: PDM_OWNERSHIP_KEEP                 = 0
   integer, parameter :: PDM_OWNERSHIP_USER                 = 1

@@ -307,7 +307,7 @@ PDM_multi_block_to_part_exch2
   int  *recv_stride  = NULL;
   int **_part_stride = NULL;
 
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     int s_send_stride = mbtp->distributed_data_idx[mbtp->n_rank];
     int s_recv_stride = mbtp->requested_data_idx  [mbtp->n_rank];
@@ -434,7 +434,7 @@ PDM_multi_block_to_part_exch2
     }
     free(block_stride_idx);
 
-  } else if (t_stride == PDM_STRIDE_CST) {
+  } else if (t_stride == PDM_STRIDE_CST_INTERLACED) {
 
     for (int i = 0; i < mbtp->n_rank; i++) {
       i_send_buffer[i+1] = i_send_buffer[i];
@@ -504,7 +504,7 @@ PDM_multi_block_to_part_exch2
   *part_data = malloc(sizeof(unsigned char *) * mbtp->n_part);
   _part_data = (*(unsigned char ***) part_data);
 
-  if (t_stride == PDM_STRIDE_VAR) {
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
 
     int s_recv_elt = mbtp->requested_data_idx[n_rank1] + mbtp->requested_data_n[n_rank1];
 
@@ -541,7 +541,7 @@ PDM_multi_block_to_part_exch2
     free(part_idx);
     free(recv_stride);
 
-  } else if (t_stride == PDM_STRIDE_CST) {
+  } else if (t_stride == PDM_STRIDE_CST_INTERLACED) {
 
     const int cst_stride = block_stride[0][0];
     for(int i_block = 0; i_block < mbtp->n_block; ++i_block) {

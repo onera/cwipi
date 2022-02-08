@@ -18,17 +18,6 @@
  *============================================================================*/
 
 /*----------------------------------------------------------------------------
- * Macro pour la manipulation des noms des fonctions entre C et Fortran pour
- * le link.
- *----------------------------------------------------------------------------*/
-
-#if !defined (__hpux) && !defined (_AIX)
-#define PROCF(x, y) x##_
-#else
-#define PROCF(x, y) x
-#endif
-
-/*----------------------------------------------------------------------------
  * Macro permettant de prendre en compte les arguments caches des longueurs
  * de chaine du Fortran (Evite les erreurs de compilation)
  *----------------------------------------------------------------------------*/
@@ -134,19 +123,6 @@ PDM_ol_create
  const PDM_g_num_t  nGVtxMeshB,
  const double       projectCoeff,
  const PDM_MPI_Comm comm
-);
-
-PDM_ol_t *
-PDM_ol_create_cf
-(
- const int          n_partMeshA,
- const PDM_g_num_t  nGFaceMeshA,
- const PDM_g_num_t  nGVtxMeshA,
- const int          n_partMeshB,
- const PDM_g_num_t  nGFaceMeshB,
- const PDM_g_num_t  nGVtxMeshB,
- const double       projectCoeff,
- const PDM_MPI_Fint fcomm
 );
 
 

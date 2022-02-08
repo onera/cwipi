@@ -43,11 +43,12 @@ typedef struct _pdm_points_merge_t PDM_points_merge_t;
  * \param [in]   n_point_cloud      Number of point cloud
  * \param [in]   tolerance          Relative geometric tolerance
  * \param [in]   comm               MPI communicator
+ * \param [in]   owner              Ownership
  *
- * \return     Identifier
+ * \return     Pointer to \ref PDM_points_merge object
  */
 
-PDM_points_merge_t*
+PDM_points_merge_t *
 PDM_points_merge_create
 (
  const int             n_point_cloud,
@@ -59,9 +60,9 @@ PDM_points_merge_create
 
 /**
  *
- * \brief Free an octree structure
+ * \brief Free a \ref PDM_points_merge object
  *
- * \param [in]   id                 Identifier
+ * \param [in]   pm             Pointer to \ref PDM_points_merge object
  *
  */
 
@@ -76,7 +77,7 @@ PDM_points_merge_free
  *
  * \brief Set a point cloud
  *
- * \param [in]   id             Identifier
+ * \param [in]   pm             Pointer to \ref PDM_points_merge object
  * \param [in]   i_point_cloud  Index of point cloud
  * \param [in]   n_points       Number of points
  * \param [in]   coords         Point coordinates
@@ -99,7 +100,7 @@ PDM_points_merge_cloud_set
  *
  * \brief Process merge points
  *
- * \param [in]   id                 Identifier
+ * \param [in]   pm             Pointer to \ref PDM_points_merge object
  *
  */
 
@@ -114,7 +115,7 @@ PDM_points_merge_process
  *
  * \brief Get candidates to merge for each point
  *
- * \param [in]   id              Identifier
+ * \param [in]   pm              Pointer to \ref PDM_points_merge object
  * \param [in]   i_point_cloud   Current cloud
  * \param [out]  candidates_idx  Indexes of candidate for each current cloud point
  *                               (size = number of points in the current cloud + 1)
@@ -137,7 +138,7 @@ PDM_points_merge_candidates_get
  *
  * \brief Get size of the resulting array
  *
- * \param [in]   id                Identifier
+ * \param [in]   pm                Pointer to \ref PDM_points_merge object
  * \param [in]   i_point_cloud     Current cloud
  * \param [out]  n_point_cloud     Number of points in the current cloud
  * \param [out]  n_candidates_desc Size of candidates_desc = candidates_idx[n_point_cloud+1]

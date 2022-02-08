@@ -251,14 +251,15 @@ program testf
   !   The MPI communicator and the number of point cloud are setted
   !
 
-  c_ol = PDM_ol_create (n_partMeshA,  &
-                        nGFaceMeshA,  &
-                        nGVtxMeshA,   &
-                        n_partMeshB,  &
-                        nGFaceMeshB,  &
-                        nGVtxMeshB,   &
-                        projectCoeff, &
-                        fComm)
+  call PDM_ol_create (c_ol,         &
+                      n_partMeshA,  &
+                      nGFaceMeshA,  &
+                      nGVtxMeshA,   &
+                      n_partMeshB,  &
+                      nGFaceMeshB,  &
+                      nGVtxMeshB,   &
+                      projectCoeff, &
+                      fComm)
 
   call PDM_ol_parameter_set (c_ol,                  &
                              PDM_OL_CAR_LENGTH_TOL, &

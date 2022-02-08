@@ -9,6 +9,8 @@
  * Macro definitions
  *============================================================================*/
 
+typedef struct _dmesh_partitioning_t PDM_dmesh_partitioning_t;
+
 #ifdef __cplusplus
 extern "C" {
 #if 0
@@ -75,12 +77,14 @@ typedef enum {
 
 /**
  *
- * \brief Return _dmesh_partitioning_t object from it identifier
+ * \brief Create a new \ref PDM_dmesh_partitioning_t object
  *
- * \param [in]   Comm         MPI Communicator
- * \return       dmpartitioning_id
+ * \param [in]   comm          MPI Communicator
+ * \param [in]   split_method  Graph splitting method
+ *
+ * \return       Pointer to a new \ref PDM_dmesh_partitioning_t object
  */
-int
+PDM_dmesh_partitioning_t *
 PDM_dmesh_partitioning_create
 (
  const PDM_MPI_Comm              comm,
@@ -89,31 +93,34 @@ PDM_dmesh_partitioning_create
 
 /**
  *
- * \brief Return _dmesh_partitioning_t object from it identifier
+ * \brief Compute partitioning
  *
- * \param [in]   Comm         MPI Communicator
- * \return       dmpartitioning_id
+ * \param [in] dmp            Pointer to \ref PDM_dmesh_partitioning_t object
+ * \param [in] input_flags    ?
+ * \param [in] queries_flags  ?
+ *
  */
 void
 PDM_dmesh_partitioning_compute
 (
- const int  dmesh_partitioning_id,
- const int  input_flags,
- const int  queries_flags
+ PDM_dmesh_partitioning_t *dmp,
+ const int                 input_flags,
+ const int                 queries_flags
 );
 
 /**
  *
  * \brief Setup structure with a dmesh
  *
- * \param [in]   dmpartitioning_id        ppart identifier
+ * \param [in] dmp            Pointer to \ref PDM_dmesh_partitioning_t object
+ * \param [in] dmesh_id       Dmesh identifier
  *
  */
 void
 PDM_dmesh_partitioning_set_from_dmesh
 (
- const int dmesh_partitioning_id,
- const int dmesh_id
+ PDM_dmesh_partitioning_t *dmp,
+ const int                 dmesh_id
 );
 
 /**
@@ -155,10 +162,10 @@ PDM_dmesh_partitioning_set_from_dmesh
 void
 PDM_dmesh_partitioning_part_get
 (
- const int   dmesh_partitioning_id,
- const int   part_id,
- const int   input_field_key,
-      void **field
+ PDM_dmesh_partitioning_t  *dmp,
+ const int                  part_id,
+ const int                  input_field_key,
+      void                **field
 );
 
 
@@ -189,9 +196,9 @@ PDM_dmesh_partitioning_part_get
 void
 PDM_dmesh_partitioning_get
 (
- const int     dmesh_partitioning_id,
- const int     input_field_key,
-       void ***field
+ PDM_dmesh_partitioning_t   *dmp,
+ const int                   input_field_key,
+       void               ***field
 );
 /**
  *
@@ -203,7 +210,7 @@ PDM_dmesh_partitioning_get
 void
 PDM_dmesh_partitioning_free
 (
- const int id
+ PDM_dmesh_partitioning_t *dmp
 );
 
 #ifdef __cplusplus

@@ -125,10 +125,31 @@ typedef enum {
 
 typedef enum {
 
-  PDM_STRIDE_CST = 0,  /*!< Constant stride element */
-  PDM_STRIDE_VAR = 1   /*!< Variable stride element */
+  PDM_STRIDE_CST_INTERLACED = 0, /*!< Constant stride interlaced */
+  PDM_STRIDE_CST_INTERLEAVED= 1, /*!< Constant stride interleaved */
+  PDM_STRIDE_VAR_INTERLACED = 2  /*!< Variable stride interlaced */
 
 } PDM_stride_t;
+
+
+/**
+ * \enum PDM_mpi_comm_t
+ * \brief Framework used for MPI communications
+ *
+ */
+
+typedef enum {
+
+  PDM_MPI_COMM_KIND_P2P                                = 0, /*!< Peer ro peer (MPI_issend/MPI_irecv) */
+  PDM_MPI_COMM_KIND_COLLECTIVE                         = 1, /*!< Collective communications (MPI_Ialltoall, ...) */
+  PDM_MPI_COMM_KIND_NEIGHBOR_COLLECTIVE                = 2, /*!< Neighborhood communcations (MPI_I_neighbor_alltoall, ...) */
+  PDM_MPI_COMM_KIND_WIN_SHARED_AND_P2P                 = 3, /*!< Shared windows (MPI_Put, MPI_GET, ...) */
+  PDM_MPI_COMM_KIND_WIN_SHARED_AND_COLLECTIVE          = 4, /*!< Shared windows (MPI_Put, MPI_GET, ...) */
+  PDM_MPI_COMM_KIND_WIN_SHARED_AND_NEIGHBOR_COLLECTIVE = 5, /*!< Shared windows (MPI_Put, MPI_GET, ...) */
+  PDM_MPI_COMM_KIND_WIN_RMA                            = 6  /*!< RMA windows (MPI_Put, MPI_GET, ...) */
+  
+} PDM_mpi_comm_kind_t;
+
 
 /**
  * \enum PDM_bool_t

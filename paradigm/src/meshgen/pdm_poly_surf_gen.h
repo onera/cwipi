@@ -27,12 +27,6 @@
  * lowercase or uppercase) between C and Fortran, for link resolution.
  *----------------------------------------------------------------------------*/
 
-//#define PROCF(x, y) x
-#if !defined (__hpux) && !defined (_AIX)
-#define PROCF(x, y) x##_
-#else
-#define PROCF(x, y) x
-#endif
 
 #ifdef __cplusplus
 extern "C" {

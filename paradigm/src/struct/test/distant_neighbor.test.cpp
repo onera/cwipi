@@ -53,7 +53,7 @@ MPI_TEST_CASE("[1p] distant neighbor ",1) {
     int** exch_fields = NULL;
     PDM_distant_neighbor_exch(dn,
                               sizeof(int),
-                              PDM_STRIDE_CST,
+                              PDM_STRIDE_CST_INTERLACED,
                               1,
                               NULL,
                    (void **)  fields.data(),
@@ -96,7 +96,7 @@ MPI_TEST_CASE("[1p] distant neighbor ",1) {
     int** exch_fields   = NULL;
     PDM_distant_neighbor_exch(dn,
                               sizeof(int),
-                              PDM_STRIDE_VAR,
+                              PDM_STRIDE_VAR_INTERLACED,
                               -1,
                               fields_n.data(),
                    (void **)  fields.data(),
@@ -185,7 +185,7 @@ MPI_TEST_CASE("[1p] distant neighbor (unsorted) ",1) {
   int** exch_fields = NULL;
   PDM_distant_neighbor_exch(dn,
                             sizeof(int),
-                            PDM_STRIDE_CST,
+                            PDM_STRIDE_CST_INTERLACED,
                             1,
                             NULL,
                  (void **)  fields.data(),
@@ -261,7 +261,7 @@ MPI_TEST_CASE("[1p] distant neighbor (multiple unsorted) ",1) {
   int** exch_fields = NULL;
   PDM_distant_neighbor_exch_int(dn,
                             sizeof(int),
-                            PDM_STRIDE_CST,
+                            PDM_STRIDE_CST_INTERLACED,
                             1,
                             NULL,
                             fields.data(),
@@ -381,7 +381,7 @@ MPI_TEST_CASE("[1p] distant neighbor (multiple unsorted) 3part ",1) {
   int** exch_stri   = NULL;
   PDM_distant_neighbor_exch(dn,
                             sizeof(int),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             -1,
                             strid.data(),
             (void**)        fields.data(),

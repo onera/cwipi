@@ -343,7 +343,7 @@ const int              compute_dnode_to_arc,
    */
   int req_id_dual = PDM_part_to_block_async_exch(ptb_dual,
                                                  sizeof(PDM_g_num_t),
-                                                 PDM_STRIDE_VAR,
+                                                 PDM_STRIDE_VAR_INTERLACED,
                                                  1,
                                                  &node_strid,
                                        (void **) &dopposite_node);
@@ -355,7 +355,7 @@ const int              compute_dnode_to_arc,
 
     req_id_node_arc = PDM_part_to_block_async_exch(ptb_dual,
                                                    sizeof(PDM_g_num_t),
-                                                   PDM_STRIDE_VAR,
+                                                   PDM_STRIDE_VAR_INTERLACED,
                                                    1,
                                                    &arc_strid,
                                          (void **) &darc_g);
@@ -648,7 +648,7 @@ const PDM_g_num_t     *dnode_arc,
 
   PDM_part_to_block_exch (ptb,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &send_stride,
                 (void **) &node_g,

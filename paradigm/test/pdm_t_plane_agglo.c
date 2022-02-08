@@ -172,21 +172,21 @@ _read_args
  *
  */
 
-static int
+static PDM_part_t *
 _create_split_mesh
 (
- int           imesh,
- PDM_MPI_Comm  pdm_mpi_comm,
- PDM_g_num_t  n_vtx_seg,
- double        length,
- int           n_part,
- PDM_part_split_t   method,
- int           haveRandom,
- PDM_g_num_t   *nGFace,
- PDM_g_num_t   *nGVtx,
- PDM_g_num_t   *nGEdge,
- int           *n_total_part,
- int           *nEdgeGroup
+ int               imesh,
+ PDM_MPI_Comm      pdm_mpi_comm,
+ PDM_g_num_t       n_vtx_seg,
+ double            length,
+ int               n_part,
+ PDM_part_split_t  method,
+ int               haveRandom,
+ PDM_g_num_t      *nGFace,
+ PDM_g_num_t      *nGVtx,
+ PDM_g_num_t      *nGEdge,
+ int              *n_total_part,
+ int              *nEdgeGroup
 )
 {
   struct timeval t_elaps_debut;
@@ -197,25 +197,25 @@ _create_split_mesh
   PDM_MPI_Comm_rank (pdm_mpi_comm, &i_rank);
   PDM_MPI_Comm_size (pdm_mpi_comm, &numProcs);
 
-  double        xmin = 0.;
-  double        xmax = length;
-  double        ymin = 0.;
-  double        ymax = length;
-  PDM_g_num_t  nx = n_vtx_seg;
-  PDM_g_num_t  ny = n_vtx_seg;
-  int           dn_face;
-  int           dn_vtx;
-  int           dNEdge;
-  int          *dface_vtx_idx;
+  double       xmin = 0.;
+  double       xmax = length;
+  double       ymin = 0.;
+  double       ymax = length;
+  PDM_g_num_t  nx   = n_vtx_seg;
+  PDM_g_num_t  ny   = n_vtx_seg;
+  int          dn_face;
+  int          dn_vtx;
+  int          dNEdge;
+  int         *dface_vtx_idx;
   PDM_g_num_t *dface_vtx;
-  double       *dvtx_coord;
+  double      *dvtx_coord;
   PDM_g_num_t *dFaceEdge;
   PDM_g_num_t *dEdgeVtx;
   PDM_g_num_t *dEdgeFace;
-  int          *dEdgeGroupIdx;
-  PDM_g_num_t   *dEdgeGroup;
+  int         *dEdgeGroupIdx;
+  PDM_g_num_t *dEdgeGroup;
 
-  int           initRandom = 0;
+  int          initRandom = 0;
 
   /*
    *  Create mesh i
@@ -324,53 +324,51 @@ _create_split_mesh
    *  Split mesh i
    */
 
-  int ppart_id;
   int *renum_properties_cell = NULL;
   int *renum_properties_face = NULL;
   int n_property_cell = 0;
   int n_property_face = 0;
 
-  PDM_part_create (&ppart_id,
-                   pdm_mpi_comm,
-                   method,
-                   "PDM_PART_RENUM_CELL_NONE",
-                   "PDM_PART_RENUM_FACE_NONE",
-                   n_property_cell,
-                   renum_properties_cell,
-                   n_property_face,
-                   renum_properties_face,
-                   n_part,
-                   dn_face,
-                   dNEdge,
-                   dn_vtx,
-                   *nEdgeGroup,
-                   NULL,
-                   NULL,
-                   NULL,
-                   NULL,
-                   have_dcell_part,
-                   dcell_part,
-                   dEdgeFace,
-                   dEdgeVtxIdx,
-                   dEdgeVtx,
-                   NULL,
-                   dvtx_coord,
-                   NULL,
-                   dEdgeGroupIdx,
-                   dEdgeGroup);
+  PDM_part_t *ppart = PDM_part_create (pdm_mpi_comm,
+                                       method,
+                                       "PDM_PART_RENUM_CELL_NONE",
+                                       "PDM_PART_RENUM_FACE_NONE",
+                                       n_property_cell,
+                                       renum_properties_cell,
+                                       n_property_face,
+                                       renum_properties_face,
+                                       n_part,
+                                       dn_face,
+                                       dNEdge,
+                                       dn_vtx,
+                                       *nEdgeGroup,
+                                       NULL,
+                                       NULL,
+                                       NULL,
+                                       NULL,
+                                       have_dcell_part,
+                                       dcell_part,
+                                       dEdgeFace,
+                                       dEdgeVtxIdx,
+                                       dEdgeVtx,
+                                       NULL,
+                                       dvtx_coord,
+                                       NULL,
+                                       dEdgeGroupIdx,
+                                       dEdgeGroup);
 
   free (dcell_part);
 
-  double  *elapsed = NULL;
-  double  *cpu = NULL;
-  double  *cpu_user = NULL;
-  double  *cpu_sys = NULL;
+  double *elapsed  = NULL;
+  double *cpu      = NULL;
+  double *cpu_user = NULL;
+  double *cpu_sys  = NULL;
 
-  PDM_part_time_get (ppart_id,
-                  &elapsed,
-                  &cpu,
-                  &cpu_user,
-                  &cpu_sys);
+  PDM_part_time_get (ppart,
+                     &elapsed,
+                     &cpu,
+                     &cpu_user,
+                     &cpu_sys);
 
   if (i_rank == 0)
     PDM_printf("[%d] Temps dans ppart %d : %12.5e\n",
@@ -390,18 +388,18 @@ _create_split_mesh
   int    bound_part_faces_max;
   int    bound_part_faces_sum;
 
-  PDM_part_stat_get (ppart_id,
-                  &cells_average,
-                  &cells_median,
-                  &cells_std_deviation,
-                  &cells_min,
-                  &cells_max,
-                  &bound_part_faces_average,
-                  &bound_part_faces_median,
-                  &bound_part_faces_std_deviation,
-                  &bound_part_faces_min,
-                  &bound_part_faces_max,
-                  &bound_part_faces_sum);
+  PDM_part_stat_get (ppart,
+                     &cells_average,
+                     &cells_median,
+                     &cells_std_deviation,
+                     &cells_min,
+                     &cells_max,
+                     &bound_part_faces_average,
+                     &bound_part_faces_median,
+                     &bound_part_faces_std_deviation,
+                     &bound_part_faces_min,
+                     &bound_part_faces_max,
+                     &bound_part_faces_sum);
 
   /* if (i_rank == 0) { */
   /*   PDM_printf ("Statistics :\n"); */
@@ -442,7 +440,7 @@ _create_split_mesh
     int sEdgeGroup;
     int nEdgeGroup2;
 
-    PDM_part_part_dim_get (ppart_id,
+    PDM_part_part_dim_get (ppart,
                            i_part,
                            &n_face,
                            &nEdge,
@@ -457,7 +455,7 @@ _create_split_mesh
 
   }
 
-  return ppart_id;
+  return ppart;
 }
 
 
@@ -474,9 +472,9 @@ _create_split_mesh
 static void
 _export_ini_mesh
 (
- const PDM_MPI_Comm pdm_mpi_comm,
- int            ppart_id,
- const int      n_part
+ const PDM_MPI_Comm  pdm_mpi_comm,
+ PDM_part_t         *ppart,
+ const int           n_part
 )
 {
 
@@ -490,18 +488,16 @@ _export_ini_mesh
    *  Export Mesh to Ensight
    */
 
-  int id_cs;
-
-  id_cs = PDM_writer_create ("Ensight",
-                              PDM_WRITER_FMT_ASCII,
-                              PDM_WRITER_TOPO_CONSTANTE,
-                              PDM_WRITER_OFF,
-                              "pdm_t_plane_agglo_ens",
-                              "fine_mesh",
-                              pdm_mpi_comm,
-                              PDM_IO_ACCES_MPI_SIMPLE,
-                              1.,
-                              NULL );
+  PDM_writer_t *id_cs = PDM_writer_create ("Ensight",
+                                           PDM_WRITER_FMT_ASCII,
+                                           PDM_WRITER_TOPO_CONSTANTE,
+                                           PDM_WRITER_OFF,
+                                           "pdm_t_plane_agglo_ens",
+                                           "fine_mesh",
+                                           pdm_mpi_comm,
+                                           PDM_IO_ACCES_MPI_SIMPLE,
+                                           1.,
+                                           NULL );
 
   /*
    * Creation des variables
@@ -514,22 +510,22 @@ _export_ini_mesh
 
 
   id_var_num_part = PDM_writer_var_create (id_cs,
-                                          PDM_WRITER_OFF,
-                                          PDM_WRITER_VAR_SCALAIRE,
-                                          PDM_WRITER_VAR_ELEMENTS,
-                                          "num_part");
+                                           PDM_WRITER_OFF,
+                                           PDM_WRITER_VAR_SCALAIRE,
+                                           PDM_WRITER_VAR_ELEMENTS,
+                                           "num_part");
 
   id_var_coo_x = PDM_writer_var_create (id_cs,
-                                       PDM_WRITER_ON,
-                                       PDM_WRITER_VAR_SCALAIRE,
-                                       PDM_WRITER_VAR_SOMMETS,
-                                       "coo_x");
+                                        PDM_WRITER_ON,
+                                        PDM_WRITER_VAR_SCALAIRE,
+                                        PDM_WRITER_VAR_SOMMETS,
+                                        "coo_x");
 
   id_var_coo_xyz = PDM_writer_var_create (id_cs,
-                                         PDM_WRITER_ON,
-                                         PDM_WRITER_VAR_VECTEUR,
-                                         PDM_WRITER_VAR_SOMMETS,
-                                         "coo_xyz");
+                                          PDM_WRITER_ON,
+                                          PDM_WRITER_VAR_VECTEUR,
+                                          PDM_WRITER_VAR_SOMMETS,
+                                          "coo_xyz");
 
     /*
      * Creation de la geometrie
@@ -538,10 +534,10 @@ _export_ini_mesh
   char nom_geom[] = "mesh1";
 
   id_geom = PDM_writer_geom_create (id_cs,
-                                 nom_geom,
-                                 PDM_WRITER_OFF,
-                                 PDM_WRITER_OFF,
-                                 n_part);
+                                    nom_geom,
+                                    PDM_WRITER_OFF,
+                                    PDM_WRITER_OFF,
+                                    n_part);
   /*
    * Debut des ecritures
    */
@@ -583,18 +579,18 @@ _export_ini_mesh
     int sEdgeGroup;
     int nEdgeGroup2;
 
-    PDM_part_part_dim_get (ppart_id,
-                        i_part,
-                        &n_face,
-                        &nEdge,
-                        &nEdgePartBound,
-                        &n_vtx,
-                        &n_proc,
-                        &n_total_part,
-                        &sFaceEdge,
-                        &sEdgeVtx,
-                        &sEdgeGroup,
-                        &nEdgeGroup2);
+    PDM_part_part_dim_get (ppart,
+                           i_part,
+                           &n_face,
+                           &nEdge,
+                           &nEdgePartBound,
+                           &n_vtx,
+                           &n_proc,
+                           &n_total_part,
+                           &sFaceEdge,
+                           &sEdgeVtx,
+                           &sEdgeGroup,
+                           &nEdgeGroup2);
 
     int          *face_tag;
     int          *faceEdgeIdx;
@@ -617,26 +613,26 @@ _export_ini_mesh
 
     assert (sizeof(PDM_g_num_t) == sizeof(PDM_g_num_t));
 
-    PDM_part_part_val_get (ppart_id,
-                        i_part,
-                        &face_tag,
-                        &faceEdgeIdx,
-                        &faceEdge,
-                        &face_ln_to_gn,
-                        &edgeTag,
-                        &edgeFace,
-                        &edgeVtxIdx,
-                        &edgeVtx,
-                        &edgeLNToGN,
-                        &edgePartBoundProcIdx,
-                        &edgePartBoundPartIdx,
-                        &edgePartBound,
-                        &vtx_tag,
-                        &vtx,
-                        &vtx_ln_to_gn,
-                        &edgeGroupIdx,
-                        &edgeGroup,
-                        &edgeGroupLNToGN);
+    PDM_part_part_val_get (ppart,
+                           i_part,
+                           &face_tag,
+                           &faceEdgeIdx,
+                           &faceEdge,
+                           &face_ln_to_gn,
+                           &edgeTag,
+                           &edgeFace,
+                           &edgeVtxIdx,
+                           &edgeVtx,
+                           &edgeLNToGN,
+                           &edgePartBoundProcIdx,
+                           &edgePartBoundPartIdx,
+                           &edgePartBound,
+                           &vtx_tag,
+                           &vtx,
+                           &vtx_ln_to_gn,
+                           &edgeGroupIdx,
+                           &edgeGroup,
+                           &edgeGroupLNToGN);
 
     edgeVtxIdx1[i_part]  = (PDM_l_num_t *) malloc (sizeof(PDM_l_num_t) * nEdge);
     edgeVtxNB1[i_part]   = (PDM_l_num_t *) malloc (sizeof(PDM_l_num_t) * nEdge);
@@ -654,11 +650,11 @@ _export_ini_mesh
     }
 
     PDM_writer_geom_coord_set (id_cs,
-                       id_geom,
-                       i_part,
-                       n_vtx,
-                       vtx,
-                       vtx_ln_to_gn);
+                               id_geom,
+                               i_part,
+                               n_vtx,
+                               vtx,
+                               vtx_ln_to_gn);
 
     PDM_writer_geom_cell2d_cellface_add (id_cs,
                                          id_geom,
@@ -675,7 +671,7 @@ _export_ini_mesh
   }
 
   PDM_writer_geom_write(id_cs,
-              id_geom);
+                        id_geom);
 
   for (int i_part = 0; i_part < n_part; i_part++) {
     free (edgeVtxIdx1[i_part]);
@@ -713,18 +709,18 @@ _export_ini_mesh
     int sEdgeGroup;
     int nEdgeGroup2;
 
-    PDM_part_part_dim_get (ppart_id,
-                        i_part,
-                        &n_face,
-                        &nEdge,
-                        &nEdgePartBound,
-                        &n_vtx,
-                        &n_proc,
-                        &n_total_part,
-                        &sFaceEdge,
-                        &sEdgeVtx,
-                        &sEdgeGroup,
-                        &nEdgeGroup2);
+    PDM_part_part_dim_get (ppart,
+                           i_part,
+                           &n_face,
+                           &nEdge,
+                           &nEdgePartBound,
+                           &n_vtx,
+                           &n_proc,
+                           &n_total_part,
+                           &sFaceEdge,
+                           &sEdgeVtx,
+                           &sEdgeGroup,
+                           &nEdgeGroup2);
 
     int          *face_tag;
     int          *faceEdgeIdx;
@@ -747,26 +743,26 @@ _export_ini_mesh
 
     assert (sizeof(PDM_g_num_t) == sizeof(PDM_g_num_t));
 
-    PDM_part_part_val_get (ppart_id,
-                        i_part,
-                        &face_tag,
-                        &faceEdgeIdx,
-                        &faceEdge,
-                        &face_ln_to_gn,
-                        &edgeTag,
-                        &edgeFace,
-                        &edgeVtxIdx,
-                        &edgeVtx,
-                        &edgeLNToGN,
-                        &edgePartBoundProcIdx,
-                        &edgePartBoundPartIdx,
-                        &edgePartBound,
-                        &vtx_tag,
-                        &vtx,
-                        &vtx_ln_to_gn,
-                        &edgeGroupIdx,
-                        &edgeGroup,
-                        &edgeGroupLNToGN);
+    PDM_part_part_val_get (ppart,
+                           i_part,
+                           &face_tag,
+                           &faceEdgeIdx,
+                           &faceEdge,
+                           &face_ln_to_gn,
+                           &edgeTag,
+                           &edgeFace,
+                           &edgeVtxIdx,
+                           &edgeVtx,
+                           &edgeLNToGN,
+                           &edgePartBoundProcIdx,
+                           &edgePartBoundPartIdx,
+                           &edgePartBound,
+                           &vtx_tag,
+                           &vtx,
+                           &vtx_ln_to_gn,
+                           &edgeGroupIdx,
+                           &edgeGroup,
+                           &edgeGroupLNToGN);
 
     val_num_part[i_part] = (PDM_real_t *) malloc (sizeof(PDM_real_t) * n_face);
     val_coo_x[i_part]    = (PDM_real_t *) malloc (sizeof(PDM_real_t) * n_vtx);
@@ -785,42 +781,42 @@ _export_ini_mesh
     }
 
     PDM_writer_var_set (id_cs,
-                id_var_num_part,
-                id_geom,
-                i_part,
-                val_num_part[i_part]);
+                        id_var_num_part,
+                        id_geom,
+                        i_part,
+                        val_num_part[i_part]);
 
     PDM_writer_var_set (id_cs,
-                id_var_coo_x,
-                id_geom,
-                i_part,
-                val_coo_x[i_part]);
+                        id_var_coo_x,
+                        id_geom,
+                        i_part,
+                        val_coo_x[i_part]);
 
     PDM_writer_var_set (id_cs,
-                id_var_coo_xyz,
-                id_geom,
-                i_part,
-                val_coo_xyz[i_part]);
+                        id_var_coo_xyz,
+                        id_geom,
+                        i_part,
+                        val_coo_xyz[i_part]);
 
   }
 
   PDM_writer_var_write (id_cs,
-              id_var_num_part);
+                        id_var_num_part);
 
-  PDM_writer_var_free (id_cs,
-              id_var_num_part);
-
-  PDM_writer_var_write (id_cs,
-              id_var_coo_x);
-
-  PDM_writer_var_free (id_cs,
-              id_var_coo_x);
+  // PDM_writer_var_free (id_cs,
+  //                      id_var_num_part);
 
   PDM_writer_var_write (id_cs,
-              id_var_coo_xyz);
+                        id_var_coo_x);
 
-  PDM_writer_var_free (id_cs,
-              id_var_coo_xyz);
+  // PDM_writer_var_free (id_cs,
+  //                      id_var_coo_x);
+
+  PDM_writer_var_write (id_cs,
+                        id_var_coo_xyz);
+
+  // PDM_writer_var_free (id_cs,
+  //                      id_var_coo_xyz);
 
   for (int i_part = 0; i_part < n_part; i_part++) {
     free (val_num_part[i_part]);
@@ -834,11 +830,11 @@ _export_ini_mesh
   free (nsom_part);
 
   PDM_writer_step_end (id_cs);
-  PDM_writer_geom_data_free (id_cs,
-                    id_geom);
+  // PDM_writer_geom_data_free (id_cs,
+  //                            id_geom);
 
-  PDM_writer_geom_free (id_cs,
-               id_geom);
+  // PDM_writer_geom_free (id_cs,
+  //                       id_geom);
   PDM_writer_free (id_cs);
 
   free (debPartProcs);
@@ -858,394 +854,394 @@ _export_ini_mesh
  *
  */
 
-static void
-_export_coarse_mesh
-(
- const PDM_MPI_Comm pdm_mpi_comm,
- int            cmId,
- const int      n_part
-)
-{
-
-  int i_rank;
-  int numProcs;
-
-  PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &i_rank);
-  PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &numProcs);
-
-  /*
-   *  Export Mesh to Ensight
-   */
-
-  int id_cs;
-
-
-  id_cs = PDM_writer_create ("Ensight",
-                              PDM_WRITER_FMT_ASCII,
-                              PDM_WRITER_TOPO_CONSTANTE,
-                              PDM_WRITER_OFF,
-                              "pdm_t_plane_agglo_ens",
-                              "coarse_mesh",
-                              pdm_mpi_comm,
-                              PDM_IO_ACCES_MPI_SIMPLE,
-                              1.,
-                              NULL);
-
-  /*
-   * Creation des variables
-   */
-
-  int id_var_num_part;
-  int id_var_coo_x;
-  int id_var_coo_xyz;
-  int id_geom;
-
-  id_var_num_part = PDM_writer_var_create (id_cs,
-                                          PDM_WRITER_OFF,
-                                          PDM_WRITER_VAR_SCALAIRE,
-                                          PDM_WRITER_VAR_ELEMENTS,
-                                          "num_part");
-
-  id_var_coo_x = PDM_writer_var_create (id_cs,
-                                       PDM_WRITER_ON,
-                                       PDM_WRITER_VAR_SCALAIRE,
-                                       PDM_WRITER_VAR_SOMMETS,
-                                       "coo_x");
-
-  id_var_coo_xyz = PDM_writer_var_create (id_cs,
-                                         PDM_WRITER_ON,
-                                         PDM_WRITER_VAR_VECTEUR,
-                                         PDM_WRITER_VAR_SOMMETS,
-                                         "coo_xyz");
-
-    /*
-     * Creation de la geometrie
-     */
-
-  char nom_geom[] = "mesh1";
-
-  id_geom = PDM_writer_geom_create (id_cs,
-                                 nom_geom,
-                                 PDM_WRITER_OFF,
-                                 PDM_WRITER_OFF,
-                                 n_part);
-  /*
-   * Debut des ecritures
-   */
-
-  int       **edgeVtxIdx1  = (PDM_l_num_t **) malloc (sizeof(PDM_l_num_t *) * n_part);
-  int       **edgeVtxNB1   = (PDM_l_num_t **) malloc (sizeof(PDM_l_num_t *) * n_part);
-  int       **faceEdgeIdx1 = (PDM_l_num_t **) malloc (sizeof(PDM_l_num_t *) * n_part);
-  int       **faceEdgeNB1  = (PDM_l_num_t **) malloc (sizeof(PDM_l_num_t *) * n_part);
-
-  int *nsom_part  = (int *) malloc(sizeof(int) * n_part);
-
-  int *n_partProcs = (int *) malloc(sizeof(int) * numProcs);
-
-  PDM_MPI_Allgather ((void *) &n_part,      1, PDM_MPI_INT,
-                 (void *) n_partProcs, 1, PDM_MPI_INT,
-                 PDM_MPI_COMM_WORLD);
-
-  int *debPartProcs = (int *) malloc(sizeof(int) * (numProcs + 1));
-
-  debPartProcs[0] = 0;
-  for (int i = 0; i < numProcs; i++) {
-    debPartProcs[i+1] = debPartProcs[i] + n_partProcs[i];
-  }
-
-  free(n_partProcs);
-
-  PDM_writer_step_beg (id_cs, 0.);
-
-  for (int i_part = 0; i_part < n_part; i_part++) {
-
-    int n_face;
-    int nEdge;
-    int nEdgeGroup;
-
-    int nEdgePartBound;
-    int n_vtx;
-    int n_proc;
-    int n_total_part;
-    int sFaceEdge;
-    int sEdgeVtx;
-    int sEdgeGroup;
-    int scoarse_face_to_fine_face;
-
-
-    PDM_part_coarse_mesh_part_dim_get(cmId,
-                                      i_part,
-                                      &n_face,
-                                      &nEdge,
-                                      &nEdgePartBound,
-                                      &n_vtx,
-                                      &n_proc,
-                                      &n_total_part,
-                                      &nEdgeGroup,
-                                      &sFaceEdge,
-                                      &sEdgeVtx,
-                                      &sEdgeGroup,
-                                      &scoarse_face_to_fine_face);
-
-    int          *face_tag;
-    int          *faceEdgeIdx;
-    int          *faceEdge;
-    PDM_g_num_t *face_ln_to_gn;
-    int          *edgeTag;
-    int          *edgeFace;
-    int          *edgeVtxIdx;
-    int          *edgeVtx;
-    PDM_g_num_t *edgeLNToGN;
-    int          *edgePartBoundProcIdx;
-    int          *edgePartBoundPartIdx;
-    int          *edgePartBound;
-    int          *vtx_tag;
-    double       *vtx;
-    PDM_g_num_t *vtx_ln_to_gn;
-    int          *edgeGroupIdx;
-    int          *edgeGroup;
-    PDM_g_num_t *edgeGroupLNToGN;
-    int         *faceInitFaceIdx;
-    int         *faceInitFace;
-    int         *edgeInitEdge;
-    int         *vtxInitVtx;
-    int         *edgeGroupInitEdgeGroup;
-
-    assert (sizeof(PDM_g_num_t) == sizeof(PDM_g_num_t));
-
-    PDM_part_coarse_mesh_part_get (cmId,
-                                   i_part,
-                                  &faceEdgeIdx,
-                                  &faceEdge,
-                                  &face_tag,
-                                  &face_ln_to_gn,
-                                  &faceInitFaceIdx,
-                                  &faceInitFace,
-                                  &edgeFace,
-                                  &edgeVtxIdx,
-                                  &edgeVtx,
-                                  &edgeTag,
-                                  &edgeLNToGN,
-                                  &edgeGroupInitEdgeGroup,
-                                  &edgeInitEdge,
-                                  &vtx,
-                                  &vtx_tag,
-                                  &vtx_ln_to_gn,
-                                  &vtxInitVtx,
-                                  &edgeGroupIdx,
-                                  &edgeGroup,
-                                  &edgeGroupLNToGN,
-                                  &edgePartBoundProcIdx,
-                                  &edgePartBoundPartIdx,
-                                  &edgePartBound);
-
-    edgeVtxIdx1[i_part]  = (PDM_l_num_t *) malloc (sizeof(PDM_l_num_t) * nEdge);
-    edgeVtxNB1[i_part]   = (PDM_l_num_t *) malloc (sizeof(PDM_l_num_t) * nEdge);
-    faceEdgeIdx1[i_part] = (PDM_l_num_t *) malloc (sizeof(PDM_l_num_t) * n_face);
-    faceEdgeNB1[i_part]  = (PDM_l_num_t *) malloc (sizeof(PDM_l_num_t) * n_face);
-
-    for (int i = 0; i < n_face; i++) {
-      faceEdgeNB1[i_part][i] = faceEdgeIdx[i+1] - faceEdgeIdx[i];
-      faceEdgeIdx1[i_part][i] = faceEdgeIdx[i] + 1;
-    }
-
-    for (int i = 0; i < nEdge; i++) {
-      edgeVtxNB1[i_part][i] = edgeVtxIdx[i+1] - edgeVtxIdx[i];
-      edgeVtxIdx1[i_part][i] = edgeVtxIdx[i] + 1;
-    }
-
-    PDM_writer_geom_coord_set (id_cs,
-                       id_geom,
-                       i_part,
-                       n_vtx,
-                       vtx,
-                       vtx_ln_to_gn);
-
-    PDM_writer_geom_cell2d_cellface_add (id_cs,
-                                         id_geom,
-                                         i_part,
-                                         n_face,
-                                         nEdge,
-                                         edgeVtxIdx1[i_part],
-                                         edgeVtxNB1[i_part],
-                                         edgeVtx,
-                                         faceEdgeIdx1[i_part],
-                                         faceEdgeNB1[i_part],
-                                         faceEdge,
-                                         face_ln_to_gn);
-  }
-
-  PDM_writer_geom_write(id_cs,
-              id_geom);
-
-  for (int i_part = 0; i_part < n_part; i_part++) {
-    free (edgeVtxIdx1[i_part]);
-    free (edgeVtxNB1[i_part]);
-    free (faceEdgeIdx1[i_part]);
-    free (faceEdgeNB1[i_part]);
-  }
-
-  free (edgeVtxIdx1);
-  free (edgeVtxNB1);
-  free (faceEdgeIdx1);
-  free (faceEdgeNB1);
-
-  /* Creation des variables :
-     - numero de partition
-     - scalaire
-     - vecteur
-     - tenseur
-  */
-
-  PDM_real_t **val_num_part = (PDM_real_t **) malloc (sizeof(PDM_real_t *) * n_part);
-  PDM_real_t **val_coo_x    = (PDM_real_t **) malloc (sizeof(PDM_real_t *) * n_part);
-  PDM_real_t **val_coo_xyz  = (PDM_real_t **) malloc (sizeof(PDM_real_t *) * n_part);
-
-  for (int i_part = 0; i_part < n_part; i_part++) {
-
-    int n_face;
-    int nEdge;
-    int nEdgePartBound;
-    int n_vtx;
-    int n_proc;
-    int n_total_part;
-    int sFaceEdge;
-    int sEdgeVtx;
-    int sEdgeGroup;
-    int nEdgeGroup2;
-
-    PDM_part_part_dim_get (cmId,
-                        i_part,
-                        &n_face,
-                        &nEdge,
-                        &nEdgePartBound,
-                        &n_vtx,
-                        &n_proc,
-                        &n_total_part,
-                        &sFaceEdge,
-                        &sEdgeVtx,
-                        &sEdgeGroup,
-                        &nEdgeGroup2);
-
-    int          *face_tag;
-    int          *faceEdgeIdx;
-    int          *faceEdge;
-    PDM_g_num_t *face_ln_to_gn;
-    int          *edgeTag;
-    int          *edgeFace;
-    int          *edgeVtxIdx;
-    int          *edgeVtx;
-    PDM_g_num_t *edgeLNToGN;
-    int          *edgePartBoundProcIdx;
-    int          *edgePartBoundPartIdx;
-    int          *edgePartBound;
-    int          *vtx_tag;
-    double       *vtx;
-    PDM_g_num_t *vtx_ln_to_gn;
-    int          *edgeGroupIdx;
-    int          *edgeGroup;
-    PDM_g_num_t *edgeGroupLNToGN;
-
-    assert (sizeof(PDM_g_num_t) == sizeof(PDM_g_num_t));
-
-    PDM_part_part_val_get (cmId,
-                        i_part,
-                        &face_tag,
-                        &faceEdgeIdx,
-                        &faceEdge,
-                        &face_ln_to_gn,
-                        &edgeTag,
-                        &edgeFace,
-                        &edgeVtxIdx,
-                        &edgeVtx,
-                        &edgeLNToGN,
-                        &edgePartBoundProcIdx,
-                        &edgePartBoundPartIdx,
-                        &edgePartBound,
-                        &vtx_tag,
-                        &vtx,
-                        &vtx_ln_to_gn,
-                        &edgeGroupIdx,
-                        &edgeGroup,
-                        &edgeGroupLNToGN);
-
-    val_num_part[i_part] = (PDM_real_t *) malloc (sizeof(PDM_real_t) * n_face);
-    val_coo_x[i_part]    = (PDM_real_t *) malloc (sizeof(PDM_real_t) * n_vtx);
-    val_coo_xyz[i_part]  = (PDM_real_t *) malloc (sizeof(PDM_real_t) * 3 * n_vtx);
-    nsom_part[i_part]    = n_vtx;
-
-    for (int i = 0; i < n_face; i++) {
-      val_num_part[i_part][i] = i_part + 1 + debPartProcs[i_rank];
-    }
-
-    for (int i = 0; i < n_vtx; i++) {
-      val_coo_x[i_part][i]       = vtx[3*i];
-      val_coo_xyz[i_part][3*i  ] = vtx[3*i  ];
-      val_coo_xyz[i_part][3*i+1] = vtx[3*i+1];
-      val_coo_xyz[i_part][3*i+2] = vtx[3*i+2];
-    }
-
-    PDM_writer_var_set (id_cs,
-                id_var_num_part,
-                id_geom,
-                i_part,
-                val_num_part[i_part]);
-
-    PDM_writer_var_set (id_cs,
-                id_var_coo_x,
-                id_geom,
-                i_part,
-                val_coo_x[i_part]);
-
-    PDM_writer_var_set (id_cs,
-                id_var_coo_xyz,
-                id_geom,
-                i_part,
-                val_coo_xyz[i_part]);
-
-  }
-
-  PDM_writer_var_write (id_cs,
-              id_var_num_part);
-
-  PDM_writer_var_free (id_cs,
-              id_var_num_part);
-
-  PDM_writer_var_write (id_cs,
-              id_var_coo_x);
-
-  PDM_writer_var_free (id_cs,
-              id_var_coo_x);
-
-  PDM_writer_var_write (id_cs,
-              id_var_coo_xyz);
-
-  PDM_writer_var_free (id_cs,
-              id_var_coo_xyz);
-
-  for (int i_part = 0; i_part < n_part; i_part++) {
-    free (val_num_part[i_part]);
-    free (val_coo_x[i_part]);
-    free (val_coo_xyz[i_part]);
-  }
-
-  free (val_num_part);
-  free (val_coo_x);
-  free (val_coo_xyz);
-  free (nsom_part);
-
-  PDM_writer_step_end (id_cs);
-  PDM_writer_geom_data_free (id_cs,
-                    id_geom);
-
-  PDM_writer_geom_free (id_cs,
-               id_geom);
-  PDM_writer_free (id_cs);
-
-  free (debPartProcs);
-
-
-}
+// static void
+// _export_coarse_mesh
+// (
+//  const PDM_MPI_Comm pdm_mpi_comm,
+//  int            cmId,
+//  const int      n_part
+// )
+// {
+
+//   int i_rank;
+//   int numProcs;
+
+//   PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &i_rank);
+//   PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &numProcs);
+
+//   /*
+//    *  Export Mesh to Ensight
+//    */
+
+//   int id_cs;
+
+
+//   id_cs = PDM_writer_create ("Ensight",
+//                               PDM_WRITER_FMT_ASCII,
+//                               PDM_WRITER_TOPO_CONSTANTE,
+//                               PDM_WRITER_OFF,
+//                               "pdm_t_plane_agglo_ens",
+//                               "coarse_mesh",
+//                               pdm_mpi_comm,
+//                               PDM_IO_ACCES_MPI_SIMPLE,
+//                               1.,
+//                               NULL);
+
+//   /*
+//    * Creation des variables
+//    */
+
+//   int id_var_num_part;
+//   int id_var_coo_x;
+//   int id_var_coo_xyz;
+//   int id_geom;
+
+//   id_var_num_part = PDM_writer_var_create (id_cs,
+//                                           PDM_WRITER_OFF,
+//                                           PDM_WRITER_VAR_SCALAIRE,
+//                                           PDM_WRITER_VAR_ELEMENTS,
+//                                           "num_part");
+
+//   id_var_coo_x = PDM_writer_var_create (id_cs,
+//                                        PDM_WRITER_ON,
+//                                        PDM_WRITER_VAR_SCALAIRE,
+//                                        PDM_WRITER_VAR_SOMMETS,
+//                                        "coo_x");
+
+//   id_var_coo_xyz = PDM_writer_var_create (id_cs,
+//                                          PDM_WRITER_ON,
+//                                          PDM_WRITER_VAR_VECTEUR,
+//                                          PDM_WRITER_VAR_SOMMETS,
+//                                          "coo_xyz");
+
+//     /*
+//      * Creation de la geometrie
+//      */
+
+//   char nom_geom[] = "mesh1";
+
+//   id_geom = PDM_writer_geom_create (id_cs,
+//                                  nom_geom,
+//                                  PDM_WRITER_OFF,
+//                                  PDM_WRITER_OFF,
+//                                  n_part);
+//   /*
+//    * Debut des ecritures
+//    */
+
+//   int       **edgeVtxIdx1  = (PDM_l_num_t **) malloc (sizeof(PDM_l_num_t *) * n_part);
+//   int       **edgeVtxNB1   = (PDM_l_num_t **) malloc (sizeof(PDM_l_num_t *) * n_part);
+//   int       **faceEdgeIdx1 = (PDM_l_num_t **) malloc (sizeof(PDM_l_num_t *) * n_part);
+//   int       **faceEdgeNB1  = (PDM_l_num_t **) malloc (sizeof(PDM_l_num_t *) * n_part);
+
+//   int *nsom_part  = (int *) malloc(sizeof(int) * n_part);
+
+//   int *n_partProcs = (int *) malloc(sizeof(int) * numProcs);
+
+//   PDM_MPI_Allgather ((void *) &n_part,      1, PDM_MPI_INT,
+//                  (void *) n_partProcs, 1, PDM_MPI_INT,
+//                  PDM_MPI_COMM_WORLD);
+
+//   int *debPartProcs = (int *) malloc(sizeof(int) * (numProcs + 1));
+
+//   debPartProcs[0] = 0;
+//   for (int i = 0; i < numProcs; i++) {
+//     debPartProcs[i+1] = debPartProcs[i] + n_partProcs[i];
+//   }
+
+//   free(n_partProcs);
+
+//   PDM_writer_step_beg (id_cs, 0.);
+
+//   for (int i_part = 0; i_part < n_part; i_part++) {
+
+//     int n_face;
+//     int nEdge;
+//     int nEdgeGroup;
+
+//     int nEdgePartBound;
+//     int n_vtx;
+//     int n_proc;
+//     int n_total_part;
+//     int sFaceEdge;
+//     int sEdgeVtx;
+//     int sEdgeGroup;
+//     int scoarse_face_to_fine_face;
+
+
+//     PDM_part_coarse_mesh_part_dim_get(cmId,
+//                                       i_part,
+//                                       &n_face,
+//                                       &nEdge,
+//                                       &nEdgePartBound,
+//                                       &n_vtx,
+//                                       &n_proc,
+//                                       &n_total_part,
+//                                       &nEdgeGroup,
+//                                       &sFaceEdge,
+//                                       &sEdgeVtx,
+//                                       &sEdgeGroup,
+//                                       &scoarse_face_to_fine_face);
+
+//     int          *face_tag;
+//     int          *faceEdgeIdx;
+//     int          *faceEdge;
+//     PDM_g_num_t *face_ln_to_gn;
+//     int          *edgeTag;
+//     int          *edgeFace;
+//     int          *edgeVtxIdx;
+//     int          *edgeVtx;
+//     PDM_g_num_t *edgeLNToGN;
+//     int          *edgePartBoundProcIdx;
+//     int          *edgePartBoundPartIdx;
+//     int          *edgePartBound;
+//     int          *vtx_tag;
+//     double       *vtx;
+//     PDM_g_num_t *vtx_ln_to_gn;
+//     int          *edgeGroupIdx;
+//     int          *edgeGroup;
+//     PDM_g_num_t *edgeGroupLNToGN;
+//     int         *faceInitFaceIdx;
+//     int         *faceInitFace;
+//     int         *edgeInitEdge;
+//     int         *vtxInitVtx;
+//     int         *edgeGroupInitEdgeGroup;
+
+//     assert (sizeof(PDM_g_num_t) == sizeof(PDM_g_num_t));
+
+//     PDM_part_coarse_mesh_part_get (cmId,
+//                                    i_part,
+//                                   &faceEdgeIdx,
+//                                   &faceEdge,
+//                                   &face_tag,
+//                                   &face_ln_to_gn,
+//                                   &faceInitFaceIdx,
+//                                   &faceInitFace,
+//                                   &edgeFace,
+//                                   &edgeVtxIdx,
+//                                   &edgeVtx,
+//                                   &edgeTag,
+//                                   &edgeLNToGN,
+//                                   &edgeGroupInitEdgeGroup,
+//                                   &edgeInitEdge,
+//                                   &vtx,
+//                                   &vtx_tag,
+//                                   &vtx_ln_to_gn,
+//                                   &vtxInitVtx,
+//                                   &edgeGroupIdx,
+//                                   &edgeGroup,
+//                                   &edgeGroupLNToGN,
+//                                   &edgePartBoundProcIdx,
+//                                   &edgePartBoundPartIdx,
+//                                   &edgePartBound);
+
+//     edgeVtxIdx1[i_part]  = (PDM_l_num_t *) malloc (sizeof(PDM_l_num_t) * nEdge);
+//     edgeVtxNB1[i_part]   = (PDM_l_num_t *) malloc (sizeof(PDM_l_num_t) * nEdge);
+//     faceEdgeIdx1[i_part] = (PDM_l_num_t *) malloc (sizeof(PDM_l_num_t) * n_face);
+//     faceEdgeNB1[i_part]  = (PDM_l_num_t *) malloc (sizeof(PDM_l_num_t) * n_face);
+
+//     for (int i = 0; i < n_face; i++) {
+//       faceEdgeNB1[i_part][i] = faceEdgeIdx[i+1] - faceEdgeIdx[i];
+//       faceEdgeIdx1[i_part][i] = faceEdgeIdx[i] + 1;
+//     }
+
+//     for (int i = 0; i < nEdge; i++) {
+//       edgeVtxNB1[i_part][i] = edgeVtxIdx[i+1] - edgeVtxIdx[i];
+//       edgeVtxIdx1[i_part][i] = edgeVtxIdx[i] + 1;
+//     }
+
+//     PDM_writer_geom_coord_set (id_cs,
+//                        id_geom,
+//                        i_part,
+//                        n_vtx,
+//                        vtx,
+//                        vtx_ln_to_gn);
+
+//     PDM_writer_geom_cell2d_cellface_add (id_cs,
+//                                          id_geom,
+//                                          i_part,
+//                                          n_face,
+//                                          nEdge,
+//                                          edgeVtxIdx1[i_part],
+//                                          edgeVtxNB1[i_part],
+//                                          edgeVtx,
+//                                          faceEdgeIdx1[i_part],
+//                                          faceEdgeNB1[i_part],
+//                                          faceEdge,
+//                                          face_ln_to_gn);
+//   }
+
+//   PDM_writer_geom_write(id_cs,
+//               id_geom);
+
+//   for (int i_part = 0; i_part < n_part; i_part++) {
+//     free (edgeVtxIdx1[i_part]);
+//     free (edgeVtxNB1[i_part]);
+//     free (faceEdgeIdx1[i_part]);
+//     free (faceEdgeNB1[i_part]);
+//   }
+
+//   free (edgeVtxIdx1);
+//   free (edgeVtxNB1);
+//   free (faceEdgeIdx1);
+//   free (faceEdgeNB1);
+
+//   /* Creation des variables :
+//      - numero de partition
+//      - scalaire
+//      - vecteur
+//      - tenseur
+//   */
+
+//   PDM_real_t **val_num_part = (PDM_real_t **) malloc (sizeof(PDM_real_t *) * n_part);
+//   PDM_real_t **val_coo_x    = (PDM_real_t **) malloc (sizeof(PDM_real_t *) * n_part);
+//   PDM_real_t **val_coo_xyz  = (PDM_real_t **) malloc (sizeof(PDM_real_t *) * n_part);
+
+//   for (int i_part = 0; i_part < n_part; i_part++) {
+
+//     int n_face;
+//     int nEdge;
+//     int nEdgePartBound;
+//     int n_vtx;
+//     int n_proc;
+//     int n_total_part;
+//     int sFaceEdge;
+//     int sEdgeVtx;
+//     int sEdgeGroup;
+//     int nEdgeGroup2;
+
+//     PDM_part_part_dim_get (cmId,
+//                         i_part,
+//                         &n_face,
+//                         &nEdge,
+//                         &nEdgePartBound,
+//                         &n_vtx,
+//                         &n_proc,
+//                         &n_total_part,
+//                         &sFaceEdge,
+//                         &sEdgeVtx,
+//                         &sEdgeGroup,
+//                         &nEdgeGroup2);
+
+//     int          *face_tag;
+//     int          *faceEdgeIdx;
+//     int          *faceEdge;
+//     PDM_g_num_t *face_ln_to_gn;
+//     int          *edgeTag;
+//     int          *edgeFace;
+//     int          *edgeVtxIdx;
+//     int          *edgeVtx;
+//     PDM_g_num_t *edgeLNToGN;
+//     int          *edgePartBoundProcIdx;
+//     int          *edgePartBoundPartIdx;
+//     int          *edgePartBound;
+//     int          *vtx_tag;
+//     double       *vtx;
+//     PDM_g_num_t *vtx_ln_to_gn;
+//     int          *edgeGroupIdx;
+//     int          *edgeGroup;
+//     PDM_g_num_t *edgeGroupLNToGN;
+
+//     assert (sizeof(PDM_g_num_t) == sizeof(PDM_g_num_t));
+
+//     PDM_part_part_val_get (cmId,
+//                         i_part,
+//                         &face_tag,
+//                         &faceEdgeIdx,
+//                         &faceEdge,
+//                         &face_ln_to_gn,
+//                         &edgeTag,
+//                         &edgeFace,
+//                         &edgeVtxIdx,
+//                         &edgeVtx,
+//                         &edgeLNToGN,
+//                         &edgePartBoundProcIdx,
+//                         &edgePartBoundPartIdx,
+//                         &edgePartBound,
+//                         &vtx_tag,
+//                         &vtx,
+//                         &vtx_ln_to_gn,
+//                         &edgeGroupIdx,
+//                         &edgeGroup,
+//                         &edgeGroupLNToGN);
+
+//     val_num_part[i_part] = (PDM_real_t *) malloc (sizeof(PDM_real_t) * n_face);
+//     val_coo_x[i_part]    = (PDM_real_t *) malloc (sizeof(PDM_real_t) * n_vtx);
+//     val_coo_xyz[i_part]  = (PDM_real_t *) malloc (sizeof(PDM_real_t) * 3 * n_vtx);
+//     nsom_part[i_part]    = n_vtx;
+
+//     for (int i = 0; i < n_face; i++) {
+//       val_num_part[i_part][i] = i_part + 1 + debPartProcs[i_rank];
+//     }
+
+//     for (int i = 0; i < n_vtx; i++) {
+//       val_coo_x[i_part][i]       = vtx[3*i];
+//       val_coo_xyz[i_part][3*i  ] = vtx[3*i  ];
+//       val_coo_xyz[i_part][3*i+1] = vtx[3*i+1];
+//       val_coo_xyz[i_part][3*i+2] = vtx[3*i+2];
+//     }
+
+//     PDM_writer_var_set (id_cs,
+//                 id_var_num_part,
+//                 id_geom,
+//                 i_part,
+//                 val_num_part[i_part]);
+
+//     PDM_writer_var_set (id_cs,
+//                 id_var_coo_x,
+//                 id_geom,
+//                 i_part,
+//                 val_coo_x[i_part]);
+
+//     PDM_writer_var_set (id_cs,
+//                 id_var_coo_xyz,
+//                 id_geom,
+//                 i_part,
+//                 val_coo_xyz[i_part]);
+
+//   }
+
+//   PDM_writer_var_write (id_cs,
+//               id_var_num_part);
+
+//   PDM_writer_var_free (id_cs,
+//               id_var_num_part);
+
+//   PDM_writer_var_write (id_cs,
+//               id_var_coo_x);
+
+//   PDM_writer_var_free (id_cs,
+//               id_var_coo_x);
+
+//   PDM_writer_var_write (id_cs,
+//               id_var_coo_xyz);
+
+//   PDM_writer_var_free (id_cs,
+//               id_var_coo_xyz);
+
+//   for (int i_part = 0; i_part < n_part; i_part++) {
+//     free (val_num_part[i_part]);
+//     free (val_coo_x[i_part]);
+//     free (val_coo_xyz[i_part]);
+//   }
+
+//   free (val_num_part);
+//   free (val_coo_x);
+//   free (val_coo_xyz);
+//   free (nsom_part);
+
+//   PDM_writer_step_end (id_cs);
+//   PDM_writer_geom_data_free (id_cs,
+//                     id_geom);
+
+//   PDM_writer_geom_free (id_cs,
+//                id_geom);
+//   PDM_writer_free (id_cs);
+
+//   free (debPartProcs);
+
+
+// }
 
 
 /**
@@ -1321,28 +1317,28 @@ char *argv[]
   int n_total_part;
   int nEdgeGroup;
 
-  int id_ppart = _create_split_mesh (imesh,
-                                     PDM_MPI_COMM_WORLD,
-                                     n_vtx_seg,
-                                     length,
-                                     n_part,
-                                     method,
-                                     haveRandom,
-                                     &nGFace,
-                                     &nGVtx,
-                                     &nGEdge,
-                                     &n_total_part,
-                                     &nEdgeGroup);
+  PDM_part_t *ppart = _create_split_mesh (imesh,
+                                          PDM_MPI_COMM_WORLD,
+                                          n_vtx_seg,
+                                          length,
+                                          n_part,
+                                          method,
+                                          haveRandom,
+                                          &nGFace,
+                                          &nGVtx,
+                                          &nGEdge,
+                                          &n_total_part,
+                                          &nEdgeGroup);
 
   _export_ini_mesh (PDM_MPI_COMM_WORLD,
-                    id_ppart,
+                    ppart,
                     n_part);
 
   /*
    *  Appel des fonctions d'agglo
    */
 
-  int cmId;
+  // int cmId;
   const int  have_cell_tag = 0;
   const int  have_face_tag = 0;
   const int  have_vtx_tag = 0;
@@ -1355,24 +1351,23 @@ char *argv[]
   int n_property_cell = 0;
   int n_property_face = 0;
 
-  PDM_part_coarse_mesh_create (&cmId,
-                               PDM_MPI_COMM_WORLD,
-                               agglo_method,
-                               "PDM_PART_RENUM_CELL_NONE",
-                               "PDM_PART_RENUM_FACE_NONE",
-                               n_property_cell,
-                               renum_properties_cell,
-                               n_property_face,
-                               renum_properties_face,
-                               n_part,
-                               n_total_part,
-                               nEdgeGroup,
-                               have_cell_tag,
-                               have_face_tag,
-                               have_vtx_tag,
-                               have_cell_weight,
-                               have_face_weight,
-                               have_face_group);
+  PDM_coarse_mesh_t *cm = PDM_part_coarse_mesh_create (PDM_MPI_COMM_WORLD,
+                                                       agglo_method,
+                                                       "PDM_PART_RENUM_CELL_NONE",
+                                                       "PDM_PART_RENUM_FACE_NONE",
+                                                       n_property_cell,
+                                                       renum_properties_cell,
+                                                       n_property_face,
+                                                       renum_properties_face,
+                                                       n_part,
+                                                       n_total_part,
+                                                       nEdgeGroup,
+                                                       have_cell_tag,
+                                                       have_face_tag,
+                                                       have_vtx_tag,
+                                                       have_cell_weight,
+                                                       have_face_weight,
+                                                       have_face_group);
 
   if (_agglo_method != NULL) {
     free (_agglo_method);
@@ -1391,7 +1386,7 @@ char *argv[]
     int sEdgeGroup;
     int nEdgeGroup2;
 
-    PDM_part_part_dim_get (id_ppart,
+    PDM_part_part_dim_get (ppart,
                            i_part,
                            &n_face,
                            &nEdge,
@@ -1404,26 +1399,26 @@ char *argv[]
                            &sEdgeGroup,
                            &nEdgeGroup2);
 
-    int          *face_tag;
-    int          *faceEdgeIdx;
-    int          *faceEdge;
+    int         *face_tag;
+    int         *faceEdgeIdx;
+    int         *faceEdge;
     PDM_g_num_t *face_ln_to_gn;
-    int          *edgeTag;
-    int          *edgeFace;
-    int          *edgeVtxIdx;
-    int          *edgeVtx;
+    int         *edgeTag;
+    int         *edgeFace;
+    int         *edgeVtxIdx;
+    int         *edgeVtx;
     PDM_g_num_t *edgeLNToGN;
-    int          *edgePartBoundProcIdx;
-    int          *edgePartBoundPartIdx;
-    int          *edgePartBound;
-    int          *vtx_tag;
-    double       *vtx;
+    int         *edgePartBoundProcIdx;
+    int         *edgePartBoundPartIdx;
+    int         *edgePartBound;
+    int         *vtx_tag;
+    double      *vtx;
     PDM_g_num_t *vtx_ln_to_gn;
-    int          *edgeGroupIdx;
-    int          *edgeGroup;
+    int         *edgeGroupIdx;
+    int         *edgeGroup;
     PDM_g_num_t *edgeGroupLNToGN;
 
-    PDM_part_part_val_get (id_ppart,
+    PDM_part_part_val_get (ppart,
                            i_part,
                            &face_tag,
                            &faceEdgeIdx,
@@ -1448,7 +1443,7 @@ char *argv[]
     int nc = PDM_MAX (_nc, 1);
 
     int _nEdgeGroup = 0;
-    PDM_part_coarse_mesh_input (cmId,
+    PDM_part_coarse_mesh_input (cm,
                                 i_part,
                                 nc,
                                 n_face,
@@ -1479,15 +1474,17 @@ char *argv[]
 
   }
 
-  PDM_part_coarse_mesh_compute ( cmId);
+  PDM_part_coarse_mesh_compute (cm);
 
-  _export_coarse_mesh (PDM_MPI_COMM_WORLD,
-                       cmId,
-                       n_part);
+  // _export_coarse_mesh (PDM_MPI_COMM_WORLD,
+  //                      cmId,
+  //                      n_part);
 
 /*
  *  Free meshes
  */
+  PDM_part_free(ppart);
+  PDM_part_coarse_mesh_free(cm);
 
  /* for (int imesh = 0; imesh < 2; imesh++) { */
  /*   for (int i_part = 0; i_part < n_part; i_part++) { */

@@ -549,7 +549,7 @@ _redistribute_elementary_location
   PDM_g_num_t *block_pts_g_num = NULL;
   PDM_part_to_block_exch (ptb,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &n_pts_per_elt,
                           (void **) &pts_g_num,
@@ -566,7 +566,7 @@ _redistribute_elementary_location
   double *block_pts_coord = NULL;
   PDM_part_to_block_exch (ptb,
                           3*sizeof(double),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &n_pts_per_elt,
                           (void **) &pts_coord,
@@ -586,7 +586,7 @@ _redistribute_elementary_location
   PDM_Mesh_nodal_elt_t *block_elt_type = NULL;
   PDM_part_to_block_exch (ptb,
                           sizeof(PDM_Mesh_nodal_elt_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &part_stride,
                           (void **) &elt_type,
@@ -608,7 +608,7 @@ _redistribute_elementary_location
   double *block_vtx_coord = NULL;
   PDM_part_to_block_exch (ptb,
                           3*sizeof(double),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &n_vtx_per_elt,
                           (void **) &vtx_coord,
@@ -641,7 +641,7 @@ _redistribute_elementary_location
   int *r_n_face_per_elt = NULL;
   PDM_part_to_block_exch (ptb_poly3d,
                           sizeof(int),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &part_stride,
                           (void **) &n_face_per_elt,
@@ -662,7 +662,7 @@ _redistribute_elementary_location
   /* Face orientation */
   PDM_part_to_block_exch (ptb_poly3d,
                           sizeof(int),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &n_face_per_elt,
                           (void **) &face_orientation,
@@ -679,7 +679,7 @@ _redistribute_elementary_location
   int *r_n_vtx_per_face = NULL;
   PDM_part_to_block_exch (ptb_poly3d,
                           sizeof(int),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &n_face_per_elt,
                           (void **) &n_vtx_per_face,
@@ -709,7 +709,7 @@ _redistribute_elementary_location
 
   PDM_part_to_block_exch (ptb_poly3d,
                           sizeof(PDM_l_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &n_vtx_per_elt,
                           (void **) &local_face_vtx,
@@ -1231,7 +1231,7 @@ _extract_selected_mesh_elements
   PDM_g_num_t *block_pts_g_num = NULL;
   PDM_part_to_block_exch (ptb,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &n_pts_per_elt,
                           (void **) &pts_g_num,
@@ -1248,7 +1248,7 @@ _extract_selected_mesh_elements
   double *block_pts_coord = NULL;
   PDM_part_to_block_exch (ptb,
                           3*sizeof(double),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &n_pts_per_elt,
                           (void **) &pts_coord,
@@ -1268,7 +1268,7 @@ _extract_selected_mesh_elements
   PDM_Mesh_nodal_elt_t *block_elt_type = NULL;
   PDM_part_to_block_exch (ptb,
                           sizeof(PDM_Mesh_nodal_elt_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &part_stride,
                           (void **) &elt_type,
@@ -1281,7 +1281,7 @@ _extract_selected_mesh_elements
   PDM_g_num_t *block_elt_parent_g_num = NULL;
   PDM_part_to_block_exch (ptb,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &part_stride,
                           (void **) &select_elt_parent_g_num,
@@ -1302,7 +1302,7 @@ _extract_selected_mesh_elements
   double *block_vtx_coord = NULL;
   PDM_part_to_block_exch (ptb,
                           3*sizeof(double),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &n_vtx_per_elt,
                           (void **) &vtx_coord,
@@ -1335,7 +1335,7 @@ _extract_selected_mesh_elements
   int *r_n_face_per_elt = NULL;
   PDM_part_to_block_exch (ptb_poly3d,
                           sizeof(int),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &part_stride,
                           (void **) &n_face_per_elt,
@@ -1356,7 +1356,7 @@ _extract_selected_mesh_elements
   /* Face orientation */
   PDM_part_to_block_exch (ptb_poly3d,
                           sizeof(int),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &n_face_per_elt,
                           (void **) &face_orientation,
@@ -1373,7 +1373,7 @@ _extract_selected_mesh_elements
   int *r_n_vtx_per_face = NULL;
   PDM_part_to_block_exch (ptb_poly3d,
                           sizeof(int),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &n_face_per_elt,
                           (void **) &n_vtx_per_face,
@@ -1403,7 +1403,7 @@ _extract_selected_mesh_elements
 
   PDM_part_to_block_exch (ptb_poly3d,
                           sizeof(PDM_l_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           1,
                           &n_vtx_per_elt,
                           (void **) &local_face_vtx,
@@ -1525,7 +1525,7 @@ _extract_selected_mesh_elements
  * \param [in]   n_point_cloud  Number of point cloud
  * \param [in]   comm           MPI communicator
  *
- * \return     Identifier
+ * \return     Pointer to \ref PDM_mesh_location object
  *
  */
 
@@ -1589,26 +1589,13 @@ PDM_mesh_location_create
 
 }
 
-PDM_mesh_location_t*
-PDM_mesh_location_create_cf
-(
- const PDM_mesh_nature_t mesh_nature,
- const int               n_point_cloud,
- const PDM_MPI_Fint      comm
-)
-{
-  const PDM_MPI_Comm _comm        = PDM_MPI_Comm_f2c(comm);
-
-  return PDM_mesh_location_create (mesh_nature, n_point_cloud, _comm);
-
-}
 
 
 /**
  *
  * \brief Get the number of located points
  *
- * \param [in]   id              Identifier
+ * \param [in]   id              Pointer to \ref PDM_mesh_location object
  * \param [in]   i_point_cloud   Index of point cloud
  * \param [in]   i_part          Index of partition
  *
@@ -1639,7 +1626,7 @@ PDM_mesh_location_n_located_get
  *
  * \brief Get the number of unlocated points
  *
- * \param [in]   id              Identifier
+ * \param [in]   id              Pointer to \ref PDM_mesh_location object
  * \param [in]   i_point_cloud   Index of point cloud
  * \param [in]   i_part          Index of partition
  *
@@ -1669,7 +1656,7 @@ PDM_mesh_location_n_unlocated_get
  *
  * \brief Get the list of unlocated points
  *
- * \param [in]   id              Identifier
+ * \param [in]   id              Pointer to \ref PDM_mesh_location object
  * \param [in]   i_point_cloud   Index of point cloud
  * \param [in]   i_part          Index of partition
  *
@@ -1699,7 +1686,7 @@ PDM_mesh_location_unlocated_get
  *
  * \brief Get the list of located points
  *
- * \param [in]   id              Identifier
+ * \param [in]   id              Pointer to \ref PDM_mesh_location object
  * \param [in]   i_point_cloud   Index of point cloud
  * \param [in]   i_part          Index of partition
  *
@@ -1728,7 +1715,7 @@ PDM_mesh_location_located_get
  *
  * \brief Set the number of partitions of a point cloud
  *
- * \param [in]   id              Identifier
+ * \param [in]   id              Pointer to \ref PDM_mesh_location object
  * \param [in]   i_point_cloud   Index of point cloud
  * \param [in]   n_part          Number of partitions
  *
@@ -1766,7 +1753,7 @@ PDM_mesh_location_n_part_cloud_set
  *
  * \brief Set a point cloud
  *
- * \param [in]   id              Identifier
+ * \param [in]   id              Pointer to \ref PDM_mesh_location object
  * \param [in]   i_point_cloud   Index of point cloud
  * \param [in]   i_part          Index of partition
  * \param [in]   n_points        Number of points
@@ -1797,12 +1784,12 @@ PDM_mesh_location_cloud_set
  *
  * \brief Get a point cloud
  *
- * \param [in]   id              Identifier
+ * \param [in]   id              Pointer to \ref PDM_mesh_location object
  * \param [in]   i_point_cloud   Index of point cloud
  * \param [in]   i_part          Index of partition
- * \param [out]   n_points        Number of points
- * \param [out]   coords          Point coordinates
- * \param [out]   gnum            Point global number
+ * \param [out]  n_points        Number of points
+ * \param [out]  coords          Point coordinates
+ * \param [out]  gnum            Point global number
  *
  */
 void
@@ -1835,8 +1822,8 @@ PDM_mesh_location_cloud_get
  *
  * \brief Set the mesh nodal
  *
- * \param [in]   id             Identifier
- * \param [in]   mesh_nodal  Mesh nodal identifier
+ * \param [in]   id             Pointer to \ref PDM_mesh_location object
+ * \param [in]   mesh_nodal  Mesh nodal Pointer to \ref PDM_mesh_location object
  *
  */
 void
@@ -1856,7 +1843,7 @@ PDM_mesh_location_shared_nodal_mesh_set
  *
  * \brief Set global data of a mesh
  *
- * \param [in]   id             Identifier
+ * \param [in]   id             Pointer to \ref PDM_mesh_location object
  * \param [in]   n_part         Number of partition
  *
  */
@@ -1903,7 +1890,7 @@ PDM_mesh_location_mesh_global_data_set
  *
  * \brief Set a part of a mesh
  *
- * \param [in]   id            Identifier
+ * \param [in]   id            Pointer to \ref PDM_mesh_location object
  * \param [in]   i_part        Partition to define
  * \param [in]   n_cell        Number of cells
  * \param [in]   cell_face_idx Index in the cell -> face connectivity
@@ -1981,7 +1968,7 @@ PDM_mesh_location_part_set
  *
  * \brief Set a part of a mesh (2d version)
  *
- * \param [in]   id            Identifier
+ * \param [in]   id            Pointer to \ref PDM_mesh_location object
  * \param [in]   i_part        Partition to define
  * \param [in]   n_cell        Number of cells
  * \param [in]   cell_edge_idx Index in the cell -> edge connectivity
@@ -2064,7 +2051,7 @@ PDM_mesh_location_part_set_2d
  *
  * \brief Set the tolerance for bounding boxes
  *
- * \param [in]   id              Identifier
+ * \param [in]   id              Pointer to \ref PDM_mesh_location object
  * \param [in]   tol             Tolerance
  *
  */
@@ -2084,7 +2071,7 @@ PDM_mesh_location_tolerance_set
  *
  * \brief Set the method for computing location
  *
- * \param [in]   id              Identifier
+ * \param [in]   id              Pointer to \ref PDM_mesh_location object
  * \param [in]   method          Method
  *
  */
@@ -2104,7 +2091,7 @@ PDM_mesh_location_method_set
  *
  * \brief Get point location
  *
- * \param [in]   id                    Identifier
+ * \param [in]   id                    Pointer to \ref PDM_mesh_location object
  * \param [in]   i_point_cloud         Current cloud
  * \param [in]   i_part                Index of partition of the cloud
  * \param [out]  n_points              Number of points in point cloud
@@ -2146,7 +2133,7 @@ PDM_mesh_location_point_location_get
  *
  * \brief get cell vertex connectivity
  *
- * \param [in]   id                    Identifier
+ * \param [in]   id                    Pointer to \ref PDM_mesh_location object
  * \param [in]   i_part                Index of partition of the cloud
  * \param [out]  cell_vtx_idx          Index in (size = n_elt + 1)
  * \param [out]  cell_vtx              Cell vertex connectivity
@@ -2175,7 +2162,7 @@ PDM_mesh_location_cell_vertex_get
  *
  * \brief Get point list located in elements
  *
- * \param [in]   id                      Identifier
+ * \param [in]   id                      Pointer to \ref PDM_mesh_location object
  * \param [in]   i_part                  Index of partition of the mesh
  * \param [in]   i_point_cloud           Index of cloud
  * \param [out]  elt_pts_inside_idx      Points index (size = n_elt + 1)
@@ -2230,9 +2217,9 @@ PDM_mesh_location_points_in_elt_get
 
 /**
  *
- * \brief Free a locationd mesh structure
+ * \brief Free a mesh location structure
  *
- * \param [in]  id       Identifier
+ * \param [in]  id       Pointer to \ref PDM_mesh_location object
  * \param [in]  partial  if partial is equal to 0, all data are removed.
  *                       Otherwise, results are kept.
  *
@@ -2446,7 +2433,7 @@ PDM_mesh_location_free
  *
  * \brief  Dump elapsed an CPU time
  *
- * \param [in]  id       Identifier
+ * \param [in]  id       Pointer to \ref PDM_mesh_location object
  *
  */
 void
@@ -2724,7 +2711,7 @@ _point_cloud_extract_selection
  *
  * \brief Compute point location
  *
- * \param [in]   id  Identifier
+ * \param [in]   id  Pointer to \ref PDM_mesh_location object
  *
  */
 
@@ -3996,7 +3983,7 @@ PDM_mesh_location_t        *ml
       PDM_g_num_t *block_pcloud_parent_gnum = NULL;
       PDM_part_to_block_exch (ptb_parent,
                               sizeof(PDM_g_num_t),
-                              PDM_STRIDE_CST,
+                              PDM_STRIDE_CST_INTERLACED,
                               1,
                               NULL,
                               (void **) &pcloud_parent_g_num,
@@ -4024,7 +4011,7 @@ PDM_mesh_location_t        *ml
       redistrib_pts_parent_g_num = malloc (sizeof(PDM_g_num_t) * n_pts);
       PDM_block_to_part_exch (btp_parent,
                               sizeof(PDM_g_num_t),
-                              PDM_STRIDE_CST,
+                              PDM_STRIDE_CST_INTERLACED,
                               &_one,
                               (void *) block_pcloud_parent_gnum,
                               NULL,
@@ -4195,7 +4182,7 @@ PDM_mesh_location_t        *ml
     PDM_g_num_t *block_location1 = NULL;
     PDM_part_to_block_exch (ptb1,
                             sizeof(PDM_g_num_t),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             &part_stride,
                             (void **) &redistrib_pts_location,
@@ -4208,7 +4195,7 @@ PDM_mesh_location_t        *ml
     PDM_Mesh_nodal_elt_t *block_elt_type = NULL;
     PDM_part_to_block_exch (ptb1,
                             sizeof(PDM_Mesh_nodal_elt_t),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             &part_stride,
                             (void **) &redistrib_pts_elt_type,
@@ -4221,7 +4208,7 @@ PDM_mesh_location_t        *ml
     double *block_distance = NULL;
     PDM_part_to_block_exch (ptb1,
                             sizeof(double),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             &part_stride,
                             (void **) &distance,
@@ -4241,7 +4228,7 @@ PDM_mesh_location_t        *ml
     double *block_weights1 = NULL;
     PDM_part_to_block_exch (ptb1,
                             sizeof(double),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             &weights_stride,
                             (void **) &weights,
@@ -4255,7 +4242,7 @@ PDM_mesh_location_t        *ml
     int *block_n_candidates = NULL;
     PDM_part_to_block_exch (ptb1,
                             sizeof(int),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             &part_stride,
                             (void **) &weights_stride,
@@ -4270,7 +4257,7 @@ PDM_mesh_location_t        *ml
     double *block_proj_coord1 = NULL;
     PDM_part_to_block_exch (ptb1,
                             3*sizeof(double),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             &part_stride,
                             (void **) &projected_coord,
@@ -4523,7 +4510,7 @@ PDM_mesh_location_t        *ml
     /* Exchange location */
     PDM_block_to_part_exch (btp,
                             sizeof(PDM_g_num_t),
-                            PDM_STRIDE_CST,
+                            PDM_STRIDE_CST_INTERLACED,
                             &one,
                             block_location2,
                             NULL,
@@ -4533,7 +4520,7 @@ PDM_mesh_location_t        *ml
     /* Exchange distance */
     PDM_block_to_part_exch (btp,
                             sizeof(double),
-                            PDM_STRIDE_CST,
+                            PDM_STRIDE_CST_INTERLACED,
                             &one,
                             block_dist2,
                             NULL,
@@ -4543,7 +4530,7 @@ PDM_mesh_location_t        *ml
     /* Exchange projected coords */
     PDM_block_to_part_exch (btp,
                             sizeof(double),
-                            PDM_STRIDE_CST,
+                            PDM_STRIDE_CST_INTERLACED,
                             &three,
                             block_proj_coord2,
                             NULL,
@@ -4557,7 +4544,7 @@ PDM_mesh_location_t        *ml
     }
     PDM_block_to_part_exch (btp,
                             sizeof(int),
-                            PDM_STRIDE_CST,
+                            PDM_STRIDE_CST_INTERLACED,
                             &one,
                             (void *) block_weights_stride2,
                             NULL,
@@ -4574,7 +4561,7 @@ PDM_mesh_location_t        *ml
     /* Exchange weights */
     PDM_block_to_part_exch (btp,
                             sizeof(double),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             block_weights_stride2,
                             (void *) block_weights2,
                             _weights_stride,
@@ -4741,7 +4728,7 @@ PDM_mesh_location_t        *ml
     PDM_g_num_t *block_pts_g_num = NULL;
     PDM_part_to_block_exch (ptb,
                             sizeof(PDM_g_num_t),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             ptb_stride,
                             (void **) _gnum_points,
@@ -4778,7 +4765,7 @@ PDM_mesh_location_t        *ml
     int *block_pts_weights_stride = NULL;
     PDM_part_to_block_exch (ptb,
                             sizeof(int),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             ptb_stride,
                             (void **) weight_stride,
@@ -4793,7 +4780,7 @@ PDM_mesh_location_t        *ml
     double *block_pts_dist2 = NULL;
     PDM_part_to_block_exch (ptb,
                             sizeof(double),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             ptb_stride,
                             (void **) pcloud->dist2,
@@ -4815,7 +4802,7 @@ PDM_mesh_location_t        *ml
     double *block_pts_coords = NULL;
     PDM_part_to_block_exch (ptb,
                             3*sizeof(double),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             ptb_stride,
                             (void **) _coords_points,
@@ -4830,7 +4817,7 @@ PDM_mesh_location_t        *ml
     double *block_pts_proj = NULL;
     PDM_part_to_block_exch (ptb,
                             3*sizeof(double),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             ptb_stride,
                             (void **) pcloud->projected_coords,
@@ -4845,7 +4832,7 @@ PDM_mesh_location_t        *ml
     double *block_pts_weights = NULL;
     PDM_part_to_block_exch (ptb,
                             sizeof(double),
-                            PDM_STRIDE_VAR,
+                            PDM_STRIDE_VAR_INTERLACED,
                             1,
                             weight_stride,
                             (void **) pcloud->weights,
@@ -5003,7 +4990,7 @@ PDM_mesh_location_t        *ml
     int **pts_in_elt_n;
     PDM_block_to_part_exch2 (btp,
                              sizeof(PDM_g_num_t),
-                             PDM_STRIDE_VAR,
+                             PDM_STRIDE_VAR_INTERLACED,
                              block_pts_per_elt_n,
                              (void *) block_pts_g_num,
                              &pts_in_elt_n,
@@ -5039,7 +5026,7 @@ PDM_mesh_location_t        *ml
     int **pts_weights_stride;
     PDM_block_to_part_exch2 (btp,
                              sizeof(int),
-                             PDM_STRIDE_VAR,
+                             PDM_STRIDE_VAR_INTERLACED,
                              block_pts_per_elt_n,
                              (void *) block_pts_weights_stride,
                              &pts_in_elt_n,
@@ -5065,7 +5052,7 @@ PDM_mesh_location_t        *ml
 
     PDM_block_to_part_exch2 (btp,
                              sizeof(double),
-                             PDM_STRIDE_VAR,
+                             PDM_STRIDE_VAR_INTERLACED,
                              block_pts_per_elt_n,
                              (void *) block_pts_dist2,
                              &pts_in_elt_n,
@@ -5087,7 +5074,7 @@ PDM_mesh_location_t        *ml
     // PDM_log_trace_array_int(block_pts_per_elt_n2, block_n_elt, "block_pts_per_elt_n2 AFTER :: ");
     PDM_block_to_part_exch2 (btp,
                              3*sizeof(double),
-                             PDM_STRIDE_VAR,
+                             PDM_STRIDE_VAR_INTERLACED,
                              block_pts_per_elt_n,
                              (void *) block_pts_coords,
                              &pts_in_elt_n,
@@ -5103,7 +5090,7 @@ PDM_mesh_location_t        *ml
 
     PDM_block_to_part_exch2 (btp,
                              3*sizeof(double),
-                             PDM_STRIDE_VAR,
+                             PDM_STRIDE_VAR_INTERLACED,
                              block_pts_per_elt_n,
                              (void *) block_pts_proj,
                              &pts_in_elt_n,
@@ -5119,7 +5106,7 @@ PDM_mesh_location_t        *ml
 
     PDM_block_to_part_exch2 (btp,
                              sizeof(double),
-                             PDM_STRIDE_VAR,
+                             PDM_STRIDE_VAR_INTERLACED,
                              block_pts_per_elt_n2,
                              (void *) block_pts_weights,
                              &pts_in_elt_n,
@@ -5593,7 +5580,7 @@ PDM_mesh_location_t        *ml
  *
  * \brief Get the number of cells
  *
- * \param [in]  id       Identifier
+ * \param [in]  id       Pointer to \ref PDM_mesh_location object
  * \param [in]  i_part   Index of partition of the mesh
  *
  * \return Number of cells

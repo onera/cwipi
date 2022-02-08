@@ -20,6 +20,7 @@
 #include "pdm_sort.h"
 #include "pdm_unique.h"
 #include "pdm_distrib.h"
+#include "pdm_binary_search.h"
 #include "pdm_part_to_block.h"
 #include "pdm_block_to_block.h"
 #include "pdm_block_to_part.h"
@@ -126,6 +127,364 @@ static PDM_g_num_t* _per_block_offset(int n_block, int *sizes, PDM_MPI_Comm comm
   return per_block_offset;
 }
 
+// Translate interfaces list to a graph representation
+static int _interface_to_graph
+(
+  const int                    n_interface,
+  PDM_domain_interface_mult_t  multizone_intrf,
+  int                         *interface_dn,
+  PDM_g_num_t                **interface_ids,
+  int                        **interface_dom,
+  int                        **graph_idx,
+  PDM_g_num_t                **graph_ids,
+  int                        **graph_dom,
+  PDM_MPI_Comm                 comm
+)
+{
+  int n_rank;
+  PDM_MPI_Comm_size (comm, &n_rank);
+
+  // Step 0 : retrieve some data. We need (to offset gnums)
+  //   - the number of involved blocks
+  //   - the max id occuring in each block
+  int n_zone = -1;
+  if (multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_YES) {
+    int max_zone_loc = 0;
+    for (int itrf = 0; itrf < n_interface; itrf++) {
+      for (int k = 0; k < 2*interface_dn[itrf]; k++) {
+        max_zone_loc = PDM_MAX(max_zone_loc, interface_dom[itrf][k]);
+      }
+    }
+    PDM_MPI_Allreduce(&max_zone_loc, &n_zone, 1, PDM_MPI_INT, PDM_MPI_MAX, comm);
+  }
+  else {
+    for (int itrf = 0; itrf < n_interface; itrf++) {
+      n_zone = PDM_MAX(n_zone, interface_dom[itrf][0]);
+      n_zone = PDM_MAX(n_zone, interface_dom[itrf][1]);
+    }
+  }
+  n_zone++; //Because zone numbering start at 0
+
+  PDM_g_num_t *max_per_zone_loc = PDM_array_const_gnum(n_zone, 0);
+  PDM_g_num_t *max_per_zone     = (PDM_g_num_t *) malloc((n_zone+1) * sizeof(PDM_g_num_t));
+  for (int itrf = 0; itrf < n_interface; itrf++) {
+    int dom, domopp;
+    if (multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_NO) {
+      dom    = interface_dom[itrf][0];
+      domopp = interface_dom[itrf][1];
+    }
+    for (int k = 0; k < interface_dn[itrf]; k++) {
+      if (multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_YES) {
+        dom    = interface_dom[itrf][2*k];
+        domopp = interface_dom[itrf][2*k+1];
+      }
+      max_per_zone_loc[dom] = PDM_MAX(max_per_zone_loc[dom], interface_ids[itrf][2*k]);
+      max_per_zone_loc[domopp] = PDM_MAX(max_per_zone_loc[domopp], interface_ids[itrf][2*k+1]);
+    }
+  }
+  max_per_zone[0] = 0;
+  PDM_MPI_Allreduce(max_per_zone_loc, &max_per_zone[1], n_zone, PDM__PDM_MPI_G_NUM, PDM_MPI_MAX, comm);
+  PDM_array_accumulate_gnum(max_per_zone, n_zone+1);
+  if (0 == 1)
+    PDM_log_trace_array_long(max_per_zone, n_zone+1, "max per zone");
+  free(max_per_zone_loc);
+  
+  // Prepare first PtB with multiple partitions.
+  // Use (shifted) ids as gnum and send tuple (shited) id, opp_id
+  PDM_g_num_t **interface_ids_shifted = (PDM_g_num_t **) malloc(n_interface * sizeof(PDM_g_num_t*));
+  PDM_g_num_t **send_data             = (PDM_g_num_t **) malloc(n_interface * sizeof(PDM_g_num_t*));
+  double      **weight                = (double      **) malloc(n_interface * sizeof(double*     ));
+  int         **stride_one            = (int         **) malloc(n_interface * sizeof(int*        ));
+  int          *interface_dn_twice    = (int          *) malloc(n_interface * sizeof(int         ));
+  for (int itrf = 0; itrf < n_interface; itrf++) {
+    stride_one[itrf]            = (int         *) malloc(2*interface_dn[itrf]*sizeof(int        ));
+    interface_ids_shifted[itrf] = (PDM_g_num_t *) malloc(2*interface_dn[itrf]*sizeof(PDM_g_num_t));
+    send_data[itrf]             = (PDM_g_num_t *) malloc(2*interface_dn[itrf]*sizeof(PDM_g_num_t));
+    weight[itrf]                = (double      *) malloc(2*interface_dn[itrf]*sizeof(double     ));
+    interface_dn_twice[itrf]    = 2*interface_dn[itrf];
+    int dom, domopp;
+    if (multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_NO) {
+      dom    = interface_dom[itrf][0];
+      domopp = interface_dom[itrf][1];
+    }
+    for (int k = 0; k < interface_dn[itrf]; k++) {
+      if (multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_YES) {
+        dom    = interface_dom[itrf][2*k];
+        domopp = interface_dom[itrf][2*k+1];
+      }
+      interface_ids_shifted[itrf][2*k]   = interface_ids[itrf][2*k] + max_per_zone[dom];
+      interface_ids_shifted[itrf][2*k+1] = interface_ids[itrf][2*k+1] + max_per_zone[domopp];
+      send_data[itrf][2*k]   = interface_ids[itrf][2*k+1] + max_per_zone[domopp];
+      send_data[itrf][2*k+1] = interface_ids[itrf][2*k] + max_per_zone[dom];
+      weight[itrf][2*k]   = 1.;
+      weight[itrf][2*k+1] = 1.;
+      stride_one[itrf][2*k]   = 1;
+      stride_one[itrf][2*k+1] = 1;
+    }
+    if (0 == 1) {
+      log_trace("Interface %d\n", itrf);
+      PDM_log_trace_array_long(interface_ids_shifted[itrf], 2*interface_dn[itrf], "  shifted gnum");
+      PDM_log_trace_array_long(send_data[itrf], 2*interface_dn[itrf], "  send");
+    }
+  }
+  
+  PDM_part_to_block_t *ptb = PDM_part_to_block_create(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+                                                      PDM_PART_TO_BLOCK_POST_MERGE,
+                                                      1.,
+                                                      interface_ids_shifted,
+                                                      weight,
+                                                      interface_dn_twice,
+                                                      n_interface,
+                                                      comm);
+  // Save distribution & gnum from first PtB. We will use it for following PtBs
+  int n_gnum = PDM_part_to_block_n_elt_block_get(ptb);
+  PDM_g_num_t *distri = (PDM_g_num_t *) malloc((n_rank+1) * sizeof(PDM_g_num_t));
+  PDM_g_num_t *gnum   = (PDM_g_num_t *) malloc(n_gnum    * sizeof(PDM_g_num_t));
+  memcpy(gnum,   PDM_part_to_block_block_gnum_get(ptb),        n_gnum*sizeof(PDM_g_num_t));
+  memcpy(distri, PDM_part_to_block_distrib_index_get(ptb), (n_rank+1)*sizeof(PDM_g_num_t));
+
+  int         *recv_stride = NULL;
+  PDM_g_num_t *recv_data   = NULL;
+  int n_connected_l = PDM_part_to_block_exch(ptb,
+                                             sizeof(PDM_g_num_t),
+                                             PDM_STRIDE_VAR_INTERLACED,
+                                             -1,
+                                             stride_one,
+                                   (void **) send_data,
+                                             &recv_stride,
+                                   (void **) &recv_data);
+  if (0 == 1) {
+    PDM_log_trace_array_long(PDM_part_to_block_block_gnum_get(ptb), n_gnum, "gnum");
+    PDM_log_trace_array_int(recv_stride, n_gnum, "recv stride");
+    PDM_log_trace_array_long(recv_data, n_connected_l, "recv data");
+  }
+
+  PDM_part_to_block_free(ptb);
+  for (int itrf = 0; itrf < n_interface; itrf++) {
+    free(stride_one           [itrf]);
+    free(send_data            [itrf]);
+    free(weight               [itrf]);
+    free(interface_ids_shifted[itrf]);
+  }
+  free(stride_one);
+  free(weight);
+  free(send_data);
+  free(interface_dn_twice);
+  free(interface_ids_shifted);
+
+  int n_connected;
+  PDM_MPI_Allreduce(&n_connected_l, &n_connected, 1, PDM_MPI_INT, PDM_MPI_SUM, comm);
+  // log_trace("Initial size of graph : %d \n", n_connected);
+
+
+  /* After first exchange, we received for each gnum a list (usually of size one) of connected
+   * gnum. The idea is to consider this received list as a partition, and to send to each
+   * entity of this partition : the neighbors in the received list (if stride was > 1) + the original gnum.
+   *
+   * After some iterations this will group the related ids together
+  */
+
+  int n_connected_prev = 0;
+  while(n_connected_prev != n_connected) {
+    // log_trace("\nSize of graph : %d (prev %d), start new it\n", n_connected, n_connected_prev);
+    n_connected_prev = n_connected;
+
+    ptb = PDM_part_to_block_create2(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+                                    PDM_PART_TO_BLOCK_POST_MERGE,
+                                    1.,
+                                   &recv_data,
+                                    distri,
+                                   &n_connected_l,
+                                    1,
+                                    comm);
+
+    
+    int *send_stride = (int *) malloc(n_connected_l*sizeof(int));
+    int w_idx = 0;
+    int n_data = 0;
+    for (int k = 0; k < n_gnum; k++) {
+      for (int j = 0; j < recv_stride[k]; j++) {
+        send_stride[w_idx++] = recv_stride[k];
+        n_data += recv_stride[k];
+      }
+    }
+    assert (w_idx == n_connected_l);
+    PDM_g_num_t *send_data2 = (PDM_g_num_t *) malloc(n_data*sizeof(PDM_g_num_t));
+    w_idx = 0;
+    int r_idx = 0;
+    for (int k = 0; k < n_gnum; k++) {
+      for (int j = 0; j < recv_stride[k]; j++) {
+        //Add gnum
+        send_data2[w_idx++] = gnum[k];
+        //Add others
+        for (int i = 0; i < j; i++)
+          send_data2[w_idx++] = recv_data[r_idx + i];
+        for (int i = j+1; i < recv_stride[k]; i++)
+          send_data2[w_idx++] = recv_data[r_idx + i];
+      }
+      r_idx += recv_stride[k];
+    }
+    assert (r_idx == n_connected_l);
+    assert (w_idx == n_data);
+    if (0 == 1) {
+      PDM_log_trace_array_int(send_stride, n_connected_l, "  send stride");
+      PDM_log_trace_array_long(send_data2, n_data, "  send_data2");
+    }
+
+    int         *recv_stride_next = NULL;
+    PDM_g_num_t *recv_data_next   = NULL;
+    PDM_part_to_block_exch(ptb,
+                           sizeof(PDM_g_num_t),
+                           PDM_STRIDE_VAR_INTERLACED,
+                           -1,
+                           &send_stride,
+                 (void **) &send_data2,
+                           &recv_stride_next,
+                 (void **) &recv_data_next);
+
+    free(send_stride);
+    free(send_data2);
+    PDM_part_to_block_free(ptb);
+    
+    // Post treat recv data to remove duplicated per gnum and count size of graph
+    int start = 0;
+    n_connected_l = 0;
+    for (int i = 0; i < n_gnum; i ++) {
+      int n_unique = PDM_inplace_unique_long(recv_data_next, NULL, start, start+recv_stride_next[i]-1);
+      //Compress array at the same time (let meanless data at the end of array)
+      memcpy(&recv_data_next[n_connected_l], &recv_data_next[start], n_unique*sizeof(PDM_g_num_t));
+      start += recv_stride_next[i];
+      recv_stride_next[i] = n_unique;
+      n_connected_l += n_unique;
+    }
+
+    PDM_MPI_Allreduce(&n_connected_l, &n_connected, 1, PDM_MPI_INT, PDM_MPI_SUM, comm);
+    if (0 == 1) {
+      PDM_log_trace_array_long(gnum, n_gnum, "  gnum");
+      PDM_log_trace_array_int(recv_stride_next, n_gnum, "  recv stride");
+      PDM_log_trace_array_long(recv_data_next, n_connected_l, "  recv data");
+      log_trace("  Total size of graph : %d \n", n_connected);
+    }
+
+    free(recv_stride);
+    free(recv_data); // To free after PTB because it was used as lngn
+    recv_data = recv_data_next;
+    recv_stride = recv_stride_next;
+  }
+  
+  // When iteration are completed, all the connections are known by every id.
+  // Last step is to compress the graph and to redistribute it
+  // To do that we take for each group of related id the min of it as lngn
+  int n_keys = 0;
+  n_connected_l = 0;
+  int r_idx = 0;
+  /* is_key_gr : -1 if gnum is not a key (only min of group is the key),
+   *              1 if gnum is a key and gnum is not included in received ids
+   *              0 otherwise */
+  int *is_key_gr = PDM_array_const_int(n_gnum, 1);
+  for (int k = 0; k < n_gnum; k++) {
+    for (int j = 0; j < recv_stride[k]; j++) {
+      if (recv_data[r_idx+j] == gnum[k]) {
+        is_key_gr[k] = 0;
+      }
+      else if (recv_data[r_idx+j] < gnum[k]) {
+        is_key_gr[k] = -1;
+        break;
+      }
+    }
+    if (is_key_gr[k] != -1) {
+      n_keys++;
+      n_connected_l += recv_stride[k] + is_key_gr[k];
+    }
+    r_idx  += recv_stride[k];
+  }
+
+  PDM_g_num_t *lngn_gr        = (PDM_g_num_t *) malloc(n_keys*sizeof(PDM_g_num_t));
+  int         *send_stride_gr = (int         *) malloc(n_keys*sizeof(int        ));
+  double      *weight_gr      = (double      *) malloc(n_keys*sizeof(double     ));
+  PDM_g_num_t *send_data_gr   = (PDM_g_num_t *) malloc(n_connected_l *sizeof(PDM_g_num_t));
+  int w_idx = 0;
+  int w_idx2 = 0;
+  r_idx = 0;
+  for (int k = 0; k < n_gnum; k++) {
+    if (is_key_gr[k] != -1) {
+      lngn_gr[w_idx]        = gnum[k];
+      send_stride_gr[w_idx] = recv_stride[k] + is_key_gr[k]; //Include gnum in send data (if needed) so we have directly graph
+      weight_gr[w_idx]      = (double) (recv_stride[k] + is_key_gr[k]);
+      w_idx++;
+      if (is_key_gr[k] == 1) {
+        send_data_gr[w_idx2++] = gnum[k];
+      }
+      memcpy(&send_data_gr[w_idx2], &recv_data[r_idx], recv_stride[k]*sizeof(PDM_g_num_t));
+      w_idx2 += recv_stride[k];
+    }
+    r_idx += recv_stride[k];
+  }
+  if (0 == 1) {
+    log_trace("Build graph\n");
+    PDM_log_trace_array_long(lngn_gr, n_keys, "  keys graph");
+    PDM_log_trace_array_int(send_stride_gr, n_keys, "  send stride");
+    PDM_log_trace_array_long(send_data_gr, n_connected_l, "  send data");
+  }
+  
+  // Data of previous iteration is not usefull anymore
+  free(gnum);
+  free(distri);
+  free(recv_stride);
+  free(recv_data);
+  
+  //TODO In fact we just want to do a block to block, but PTB + weights compute distribution for us
+  //and we are lazy
+  ptb = PDM_part_to_block_create(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+                                 PDM_PART_TO_BLOCK_POST_MERGE,
+                                 1.,
+                                &lngn_gr,
+                                &weight_gr,
+                                &n_keys,
+                                 1,
+                                 comm);
+  int graph_dn = PDM_part_to_block_n_elt_block_get(ptb);
+
+  int         *graph_size = NULL;
+  PDM_g_num_t *graph_gnum = NULL;
+  PDM_part_to_block_exch(ptb,
+                         sizeof(PDM_g_num_t),
+                         PDM_STRIDE_VAR_INTERLACED,
+                         -1,
+                         &send_stride_gr,
+               (void **) &send_data_gr,
+                         &graph_size,
+               (void **) &graph_gnum);
+
+  PDM_part_to_block_free(ptb);
+  free(send_stride_gr);
+  free(send_data_gr);
+  free(weight_gr);
+  free(lngn_gr);
+  free(is_key_gr);
+
+  int* _graph_idx = PDM_array_new_idx_from_sizes_int(graph_size, graph_dn);
+  int *_graph_dom = (int *) malloc(_graph_idx[graph_dn]*sizeof(int));
+
+  if (0 == 1) {
+    PDM_log_trace_array_int(graph_size, graph_dn, "  recv stride");
+    PDM_log_trace_array_long(graph_gnum, _graph_idx[graph_dn], "  recv data");
+  }
+
+  // Retrieve domain and local gnum in domain
+  for (int i = 0; i < _graph_idx[graph_dn]; i++) {
+    _graph_dom[i] = PDM_binary_search_gap_long(graph_gnum[i]-1, max_per_zone, n_zone+1);
+    graph_gnum[i] -= max_per_zone[_graph_dom[i]];
+  }
+  free(graph_size);
+  free(max_per_zone);
+
+  *graph_idx = _graph_idx;
+  *graph_ids =  graph_gnum;
+  *graph_dom = _graph_dom;
+  return graph_dn;
+}
+
 static int _extract_and_shift_jn_faces
 (
  int           n_zone,
@@ -158,10 +517,10 @@ static int _extract_and_shift_jn_faces
     n_face_join += 2*interfaces_size[i_interface];
   }
 
-  PDM_g_num_t *_dextract_face_id_tmp       = malloc(n_face_join * sizeof(PDM_g_num_t));
+  PDM_g_num_t *_dextract_face_id_tmp       = (PDM_g_num_t *) malloc(n_face_join * sizeof(PDM_g_num_t));
   // Also transport some data to the extracted faces
-  int         *_dextract_face_group_id_tmp = malloc(n_face_join*sizeof(int));
-  int         *_dextract_face_dom_id_tmp   = malloc(n_face_join*sizeof(int));
+  int         *_dextract_face_group_id_tmp = (int *) malloc(n_face_join*sizeof(int));
+  int         *_dextract_face_dom_id_tmp   = (int *) malloc(n_face_join*sizeof(int));
 
   int idx = 0;
   for (int i_interface = 0; i_interface < n_interface; i_interface++) {
@@ -192,7 +551,7 @@ static int _extract_and_shift_jn_faces
   //to build the hash table later so return it
   PDM_block_to_block_exch(btb,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           2,
                           NULL,
                           _dextract_face_id_tmp,
@@ -200,7 +559,7 @@ static int _extract_and_shift_jn_faces
               (void **)   dextract_face_id);
   PDM_block_to_block_exch(btb,
                           sizeof(int),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           2,
                           NULL,
                           _dextract_face_group_id_tmp,
@@ -208,7 +567,7 @@ static int _extract_and_shift_jn_faces
               (void **)  dextract_face_group_id);
   PDM_block_to_block_exch(btb,
                           sizeof(int),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                           2,
                           NULL,
                           _dextract_face_dom_id_tmp,
@@ -231,7 +590,7 @@ static int _extract_and_shift_jn_faces
     PDM_log_trace_array_long(*dextract_face_id, n_face_join, "dextract_face_id :: ");
   }
 
-  PDM_g_num_t **all_face_distribution = malloc(n_zone * sizeof(PDM_g_num_t*));
+  PDM_g_num_t **all_face_distribution = (PDM_g_num_t **) malloc(n_zone * sizeof(PDM_g_num_t*));
   for (int i_zone = 0; i_zone < n_zone; i_zone++) {
     all_face_distribution[i_zone] = PDM_compute_entity_distribution(comm, dn_face[i_zone]);
   }
@@ -244,11 +603,11 @@ static int _extract_and_shift_jn_faces
                                                                    1,
                                                                    comm);
   //Prepare data to send : face -> vtx connectivity 
-  int         **face_vtx_n       = malloc(n_zone * sizeof(int*));
-  PDM_g_num_t **face_vtx_shifted = malloc(n_zone * sizeof(PDM_g_num_t*));
+  int         **face_vtx_n       = (int         **) malloc(n_zone * sizeof(int*));
+  PDM_g_num_t **face_vtx_shifted = (PDM_g_num_t **) malloc(n_zone * sizeof(PDM_g_num_t*));
   for (int i_zone = 0; i_zone < n_zone; i_zone++) {
-    face_vtx_n[i_zone]       = malloc(dn_face[i_zone] * sizeof(int));
-    face_vtx_shifted[i_zone] = malloc(dface_vtx_idx[i_zone][dn_face[i_zone]] * sizeof(PDM_g_num_t));
+    face_vtx_n[i_zone]       = (int         *) malloc(dn_face[i_zone] * sizeof(int));
+    face_vtx_shifted[i_zone] = (PDM_g_num_t *) malloc(dface_vtx_idx[i_zone][dn_face[i_zone]] * sizeof(PDM_g_num_t));
 
     for (int i_face = 0; i_face < dn_face[i_zone]; i_face++) {
       face_vtx_n[i_zone][i_face] = dface_vtx_idx[i_zone][i_face+1] - dface_vtx_idx[i_zone][i_face];
@@ -262,7 +621,7 @@ static int _extract_and_shift_jn_faces
   PDM_g_num_t **part_data   = NULL;
   PDM_multi_block_to_part_exch2(mptb,
                                 sizeof(PDM_g_num_t),
-                                PDM_STRIDE_VAR,
+                                PDM_STRIDE_VAR_INTERLACED,
                                 face_vtx_n,
                  (void **)      face_vtx_shifted,
                                &part_stride,
@@ -400,17 +759,17 @@ static int _match_internal_edges
   }
 
   // 1. Build hash keys
-  PDM_g_num_t *key_ln_to_gn = malloc(dn_internal_edge * sizeof(PDM_g_num_t)); 
-  int         *stride_one   = malloc(dn_internal_edge * sizeof(int        ));
-  int         *stride_two   = malloc(dn_internal_edge * sizeof(int        ));
-  int         *stride_four  = malloc(dn_internal_edge * sizeof(int        ));
-  double      *weight       = malloc(dn_internal_edge * sizeof(double     ));
+  PDM_g_num_t *key_ln_to_gn = (PDM_g_num_t *) malloc(dn_internal_edge * sizeof(PDM_g_num_t)); 
+  int         *stride_one   = (int         *) malloc(dn_internal_edge * sizeof(int        ));
+  int         *stride_two   = (int         *) malloc(dn_internal_edge * sizeof(int        ));
+  int         *stride_four  = (int         *) malloc(dn_internal_edge * sizeof(int        ));
+  double      *weight       = (double      *) malloc(dn_internal_edge * sizeof(double     ));
 
-  PDM_g_num_t *data_send_connect    = malloc(4*dn_internal_edge * sizeof(PDM_g_num_t));
-  PDM_g_num_t *data_send_edge_g_num = malloc(  dn_internal_edge * sizeof(PDM_g_num_t));
-  PDM_g_num_t *data_send_group      = malloc(4*dn_internal_edge * sizeof(PDM_g_num_t));
-  PDM_g_num_t *data_send_sens       = malloc(2*dn_internal_edge * sizeof(PDM_g_num_t));
-  PDM_g_num_t *data_send_face_g_num = malloc(2*dn_internal_edge * sizeof(PDM_g_num_t));
+  PDM_g_num_t *data_send_connect    = (PDM_g_num_t *) malloc(4*dn_internal_edge * sizeof(PDM_g_num_t));
+  PDM_g_num_t *data_send_edge_g_num = (PDM_g_num_t *) malloc(  dn_internal_edge * sizeof(PDM_g_num_t));
+  PDM_g_num_t *data_send_group      = (PDM_g_num_t *) malloc(4*dn_internal_edge * sizeof(PDM_g_num_t));
+  PDM_g_num_t *data_send_sens       = (PDM_g_num_t *) malloc(2*dn_internal_edge * sizeof(PDM_g_num_t));
+  PDM_g_num_t *data_send_face_g_num = (PDM_g_num_t *) malloc(2*dn_internal_edge * sizeof(PDM_g_num_t));
 
   int i_int_edge = 0;
   int idx_write2 = 0;
@@ -474,7 +833,7 @@ static int _match_internal_edges
   PDM_g_num_t *blk_edge_g_num     = NULL;
   int exch_size = PDM_part_to_block_exch(ptb,
                                      sizeof(PDM_g_num_t),
-                                     PDM_STRIDE_VAR,
+                                     PDM_STRIDE_VAR_INTERLACED,
                                      -1,
                            (int **)  &stride_one,
                            (void **) &data_send_edge_g_num,
@@ -487,7 +846,7 @@ static int _match_internal_edges
   PDM_g_num_t* blk_data_sens   = NULL;
   exch_size = PDM_part_to_block_exch(ptb,
                                      sizeof(int),
-                                     PDM_STRIDE_VAR,
+                                     PDM_STRIDE_VAR_INTERLACED,
                                      -1,
                            (int **)  &stride_two,
                            (void **) &data_send_sens,
@@ -501,7 +860,7 @@ static int _match_internal_edges
   PDM_g_num_t* blk_data_face_g_num   = NULL;
   exch_size = PDM_part_to_block_exch(ptb,
                                      sizeof(PDM_g_num_t),
-                                     PDM_STRIDE_VAR,
+                                     PDM_STRIDE_VAR_INTERLACED,
                                      -1,
                            (int **)  &stride_two,
                            (void **) &data_send_face_g_num,
@@ -514,7 +873,7 @@ static int _match_internal_edges
   PDM_g_num_t *blk_data_connect = NULL;
   exch_size = PDM_part_to_block_exch(ptb,
                                      sizeof(PDM_g_num_t),
-                                     PDM_STRIDE_VAR,
+                                     PDM_STRIDE_VAR_INTERLACED,
                                      -1,
                           (int **)  &stride_four,
                           (void **) &data_send_connect,
@@ -547,8 +906,8 @@ static int _match_internal_edges
 
 
   // 3. Post treatemement : resolve conflicting keys
-  PDM_g_num_t *results_edge     = malloc(gnum_n_occurences_tot * sizeof(PDM_g_num_t));
-  PDM_g_num_t *results_edge_opp = malloc(gnum_n_occurences_tot * sizeof(PDM_g_num_t));
+  PDM_g_num_t *results_edge     = (PDM_g_num_t *) malloc(gnum_n_occurences_tot * sizeof(PDM_g_num_t));
+  PDM_g_num_t *results_edge_opp = (PDM_g_num_t *) malloc(gnum_n_occurences_tot * sizeof(PDM_g_num_t));
 
   int n_max_entity_per_key = 0;
   for(int i = 0; i < blk_size; ++i) {
@@ -636,8 +995,8 @@ static int _match_internal_edges
   // Some pairs can be still unresolved, eg if a edge is internal from one interface point of view but
   // external for the other
   int rsvd_gnum_n_occurences_tot = idx_w;
-  results_edge     = realloc(results_edge,     rsvd_gnum_n_occurences_tot*sizeof(PDM_g_num_t));
-  results_edge_opp = realloc(results_edge_opp, rsvd_gnum_n_occurences_tot*sizeof(PDM_g_num_t));
+  results_edge     = (PDM_g_num_t *) realloc(results_edge,     rsvd_gnum_n_occurences_tot*sizeof(PDM_g_num_t));
+  results_edge_opp = (PDM_g_num_t *) realloc(results_edge_opp, rsvd_gnum_n_occurences_tot*sizeof(PDM_g_num_t));
 
 
   free(blk_edge_g_num);
@@ -663,14 +1022,14 @@ static int _match_internal_edges
                                                        comm);
 
   int resolved_dn_internal_edge = PDM_part_to_block_n_elt_block_get(ptb);
-  *dedge_gnum = malloc(resolved_dn_internal_edge * sizeof(PDM_g_num_t));
+  *dedge_gnum = (PDM_g_num_t *) malloc(resolved_dn_internal_edge * sizeof(PDM_g_num_t));
 
   PDM_g_num_t *dedge_gnum_tmp = PDM_part_to_block_block_gnum_get(ptb);
   memcpy(*dedge_gnum, dedge_gnum_tmp, resolved_dn_internal_edge*sizeof(PDM_g_num_t));
 
   PDM_part_to_block_exch(ptb,
                         sizeof(PDM_g_num_t),
-                        PDM_STRIDE_CST,
+                        PDM_STRIDE_CST_INTERLACED,
                         1,
                         NULL,
              (void **) &(results_edge_opp),
@@ -700,10 +1059,10 @@ static void _match_all_edges_from_faces
   for (int i_face = 0; i_face < dn_face/2; i_face++) {
     max_face_len = PDM_MAX(max_face_len, face_edge_idx[2*i_face+1] - face_edge_idx[2*i_face]);
   }
-  PDM_g_num_t *ordered_edge     = malloc(max_face_len * sizeof(PDM_g_num_t));
-  PDM_g_num_t *ordered_edge_opp = malloc(max_face_len * sizeof(PDM_g_num_t));
-  PDM_g_num_t *ordered_vtx      = malloc(max_face_len * sizeof(PDM_g_num_t));
-  PDM_g_num_t *ordered_vtx_opp  = malloc(max_face_len * sizeof(PDM_g_num_t));
+  PDM_g_num_t *ordered_edge     = (PDM_g_num_t *) malloc(max_face_len * sizeof(PDM_g_num_t));
+  PDM_g_num_t *ordered_edge_opp = (PDM_g_num_t *) malloc(max_face_len * sizeof(PDM_g_num_t));
+  PDM_g_num_t *ordered_vtx      = (PDM_g_num_t *) malloc(max_face_len * sizeof(PDM_g_num_t));
+  PDM_g_num_t *ordered_vtx_opp  = (PDM_g_num_t *) malloc(max_face_len * sizeof(PDM_g_num_t));
 
   // Avec la construction des faces de bord, on a des paires faces / face opp
   assert (dn_face%2 == 0);
@@ -868,7 +1227,7 @@ PDM_MPI_Comm   comm
   PDM_g_num_t *dall_vtx_opp     = NULL;
   int exch_size = PDM_part_to_block_exch(ptb,
                                      sizeof(PDM_g_num_t),
-                                     PDM_STRIDE_VAR,
+                                     PDM_STRIDE_VAR_INTERLACED,
                                      -1,
                            (int  **) &stride_one,
                            (void **) &p_all_vtx_opp,
@@ -878,7 +1237,7 @@ PDM_MPI_Comm   comm
   int *unused_recv_stride = NULL;
   exch_size = PDM_part_to_block_exch(ptb,
                                      sizeof(int),
-                                     PDM_STRIDE_VAR,
+                                     PDM_STRIDE_VAR_INTERLACED,
                                      -1,
                            (int  **) &stride_one,
                            (void **) &p_all_vtx_group,
@@ -888,7 +1247,7 @@ PDM_MPI_Comm   comm
 
   exch_size = PDM_part_to_block_exch(ptb,
                                      sizeof(int),
-                                     PDM_STRIDE_VAR,
+                                     PDM_STRIDE_VAR_INTERLACED,
                                      -1,
                            (int  **) &stride_one,
                            (void **) &p_all_vtx_dom_id,
@@ -898,7 +1257,7 @@ PDM_MPI_Comm   comm
 
   exch_size = PDM_part_to_block_exch(ptb,
                                      sizeof(int),
-                                     PDM_STRIDE_VAR,
+                                     PDM_STRIDE_VAR_INTERLACED,
                                      -1,
                            (int  **) &stride_one,
                            (void **) &p_all_vtx_domopp_id,
@@ -925,8 +1284,8 @@ PDM_MPI_Comm   comm
     start_vtx += n_recv;
   }
   for (int i_interface = 0; i_interface < n_interface; i_interface++) {
-    interface_vtx_ids[i_interface]     = malloc(2*vtx_interface_size[i_interface]*sizeof(PDM_g_num_t));
-    interface_vtx_dom_ids[i_interface] = malloc(2*vtx_interface_size[i_interface]*sizeof(int));
+    interface_vtx_ids[i_interface]     = (PDM_g_num_t *) malloc(2*vtx_interface_size[i_interface]*sizeof(PDM_g_num_t));
+    interface_vtx_dom_ids[i_interface] = (int         *) malloc(2*vtx_interface_size[i_interface]*sizeof(int));
   }
   PDM_array_reset_int(vtx_interface_size, n_interface, 0);
   start_vtx = 0;
@@ -953,8 +1312,8 @@ PDM_MPI_Comm   comm
 
     //Update
     vtx_interface_size[i_interface] = n_pairs_u;
-    interface_vtx_ids[i_interface] = realloc(interface_vtx_ids[i_interface], 2*n_pairs_u*sizeof(PDM_g_num_t));
-    interface_vtx_dom_ids[i_interface] = realloc(interface_vtx_dom_ids[i_interface], 2*n_pairs_u*sizeof(int));
+    interface_vtx_ids[i_interface] = (PDM_g_num_t *) realloc(interface_vtx_ids[i_interface], 2*n_pairs_u*sizeof(PDM_g_num_t));
+    interface_vtx_dom_ids[i_interface] = (int *) realloc(interface_vtx_dom_ids[i_interface], 2*n_pairs_u*sizeof(int));
   }
 
   PDM_part_to_block_free(ptb);
@@ -1013,7 +1372,7 @@ static void _connect_additional_edges
   PDM_g_num_t *vtx_face_ids = NULL;
   int n_recv = PDM_part_to_block_exch(ptb_vtx,
                                       sizeof(PDM_g_num_t),
-                                      PDM_STRIDE_VAR,
+                                      PDM_STRIDE_VAR_INTERLACED,
                                       -1,
                             (int **)  &stride_two,
                            (void **)  &send_data,
@@ -1066,7 +1425,7 @@ static void _connect_additional_edges
   // n_key_vtx is the number of vertices involved in keys (counted multiple times) managed by this proc
   int n_key_vtx =  PDM_part_to_block_exch(ptb_key,
                                      sizeof(PDM_g_num_t),
-                                     PDM_STRIDE_VAR,
+                                     PDM_STRIDE_VAR_INTERLACED,
                                      -1,
                            (int **)  &stride_one,
                            (void **) &vtx_gnum,
@@ -1076,7 +1435,7 @@ static void _connect_additional_edges
   int *key_recv_face_n = NULL; // For each key (unmerged), number of face related to key
   PDM_part_to_block_exch(ptb_key,
                          sizeof(int),
-                         PDM_STRIDE_VAR,
+                         PDM_STRIDE_VAR_INTERLACED,
                          -1,
                (int **)  &stride_one,
                (void **) &vtx_face_n,
@@ -1088,7 +1447,7 @@ static void _connect_additional_edges
   PDM_g_num_t *key_recv_data = NULL; //For each key (unmerged), tuples (face/face_opp)  * nb of face related to key
   PDM_part_to_block_exch(ptb_key,
                          sizeof(PDM_g_num_t),
-                         PDM_STRIDE_VAR,
+                         PDM_STRIDE_VAR_INTERLACED,
                          -1,
                (int **)  &vtx_stride_two,
                (void **) &vtx_face_ids,
@@ -1178,7 +1537,7 @@ static void _connect_additional_edges
   PDM_g_num_t *matched_gnum_opp = NULL;
   PDM_part_to_block_exch(ptb_vtx2,
                          sizeof(PDM_g_num_t),
-                         PDM_STRIDE_CST,
+                         PDM_STRIDE_CST_INTERLACED,
                          1,
                          NULL,
                (void **) &key_vtx_gnum_opp,
@@ -1219,7 +1578,7 @@ static void _connect_additional_edges
   PDM_g_num_t **recv_data;
   PDM_block_to_part_exch2(btp,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           blk_stride,
                           matched_gnum_opp, 
                          &recv_stride,
@@ -1349,7 +1708,7 @@ static void _domain_interface_face_to_vertex
   PDM_g_num_t *extracted_face_distri = PDM_compute_entity_distribution(comm, n_extr_face);
 
   //Duplicate this data for easier send to edges
-  PDM_g_num_t *dextract_face_join_opp   = malloc(n_extr_face*sizeof(PDM_g_num_t));
+  PDM_g_num_t *dextract_face_join_opp   = (PDM_g_num_t *) malloc(n_extr_face*sizeof(PDM_g_num_t));
   for (int i = 0; i < n_extr_face/2; i++) {
     dextract_face_join_opp[2*i]     = dextract_face_join[2*i+1];
     dextract_face_join_opp[2*i+1]   = dextract_face_join[2*i];
@@ -1399,8 +1758,8 @@ static void _domain_interface_face_to_vertex
   }
 
 
-  PDM_g_num_t *dedge_face_join         = malloc(dedge_face_idx[dn_edge] * sizeof(PDM_g_num_t));
-  PDM_g_num_t *dedge_face_join_opp     = malloc(dedge_face_idx[dn_edge] * sizeof(PDM_g_num_t));
+  PDM_g_num_t *dedge_face_join         = (PDM_g_num_t *) malloc(dedge_face_idx[dn_edge] * sizeof(PDM_g_num_t));
+  PDM_g_num_t *dedge_face_join_opp     = (PDM_g_num_t *) malloc(dedge_face_idx[dn_edge] * sizeof(PDM_g_num_t));
   PDM_block_to_part_t *btp = PDM_block_to_part_create(extracted_face_distri,
                                (const PDM_g_num_t **) &dedge_face_abs,
                                                       &dedge_face_idx[dn_edge],
@@ -1409,7 +1768,7 @@ static void _domain_interface_face_to_vertex
   int cst_stride = 1;
   PDM_block_to_part_exch(btp,
                          sizeof(PDM_g_num_t),
-                         PDM_STRIDE_CST,
+                         PDM_STRIDE_CST_INTERLACED,
                          &cst_stride,
                 (void *) dextract_face_join,
                          NULL,
@@ -1417,7 +1776,7 @@ static void _domain_interface_face_to_vertex
 
   PDM_block_to_part_exch(btp,
                          sizeof(PDM_g_num_t),
-                         PDM_STRIDE_CST,
+                         PDM_STRIDE_CST_INTERLACED,
                          &cst_stride,
                 (void *) dextract_face_join_opp,
                          NULL,
@@ -1503,7 +1862,7 @@ static void _domain_interface_face_to_vertex
   PDM_g_num_t **recv_data_tmp   = NULL;
   PDM_block_to_part_exch2(btp,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR,
+                          PDM_STRIDE_VAR_INTERLACED,
                           dedge_gnum_n,
                           dedge_gnum_opp,
                          &recv_stride_tmp,
@@ -1516,7 +1875,7 @@ static void _domain_interface_face_to_vertex
   int stride2 = 2;
   PDM_block_to_part_exch2(btp,
                           sizeof(PDM_g_num_t),
-                          PDM_STRIDE_CST,
+                          PDM_STRIDE_CST_INTERLACED,
                          &stride2,
                           dedge_vtx,
                           NULL,
@@ -1528,7 +1887,7 @@ static void _domain_interface_face_to_vertex
 
 
   //Attention, on devrait pouvoir travailler sur face externes uniquement (filtre le dface_edge_abs)
-  PDM_g_num_t *face_edge_wopp = malloc(dface_edge_idx[n_extr_face]*sizeof(PDM_g_num_t));
+  PDM_g_num_t *face_edge_wopp = (PDM_g_num_t *) malloc(dface_edge_idx[n_extr_face]*sizeof(PDM_g_num_t));
   idx = 0;
   for (int i = 0; i < dface_edge_idx[n_extr_face]; i++) {
     if (pedge_gnum_n[i] == 1)
@@ -1579,8 +1938,8 @@ static void _domain_interface_face_to_vertex
   //Match external edges
   assert (dface_edge_idx[n_extr_face] % 2 == 0);
   int n_vtx_interface_tot = dface_edge_idx[n_extr_face] / 2;
-  PDM_g_num_t *p_all_vtx      = malloc(n_vtx_interface_tot * sizeof(PDM_g_num_t));
-  PDM_g_num_t *p_all_vtx_opp  = malloc(n_vtx_interface_tot * sizeof(PDM_g_num_t));
+  PDM_g_num_t *p_all_vtx      = (PDM_g_num_t *) malloc(n_vtx_interface_tot * sizeof(PDM_g_num_t));
+  PDM_g_num_t *p_all_vtx_opp  = (PDM_g_num_t *) malloc(n_vtx_interface_tot * sizeof(PDM_g_num_t));
   /*PDM_g_num_t *p_all_edge_gnum     = malloc(dface_edge_idx[n_extr_face] * sizeof(PDM_g_num_t));*/
   /*PDM_g_num_t *p_all_edge_gnum_opp = malloc(dface_edge_idx[n_extr_face] * sizeof(PDM_g_num_t));*/
   _match_all_edges_from_faces(n_extr_face,
@@ -1592,9 +1951,9 @@ static void _domain_interface_face_to_vertex
                               p_all_vtx_opp);
 
   //Copy group from face to vertices
-  int *p_all_vtx_group     = malloc(n_vtx_interface_tot * sizeof(int));
-  int *p_all_vtx_dom_id    = malloc(n_vtx_interface_tot * sizeof(int));
-  int *p_all_vtx_domopp_id = malloc(n_vtx_interface_tot * sizeof(int));
+  int *p_all_vtx_group     = (int *) malloc(n_vtx_interface_tot * sizeof(int));
+  int *p_all_vtx_dom_id    = (int *) malloc(n_vtx_interface_tot * sizeof(int));
+  int *p_all_vtx_domopp_id = (int *) malloc(n_vtx_interface_tot * sizeof(int));
   int glob_idx = 0;
   for (int i_face = 0; i_face < n_extr_face/2; i_face++) {
     int face_len = dface_edge_idx[2*i_face+1] - dface_edge_idx[2*i_face];
@@ -1697,7 +2056,7 @@ PDM_ownership_t             ownership,
 PDM_MPI_Comm                comm
 )
 {
-  PDM_domain_interface_t *dom_intrf = malloc (sizeof(PDM_domain_interface_t));
+  PDM_domain_interface_t *dom_intrf = (PDM_domain_interface_t *) malloc (sizeof(PDM_domain_interface_t));
   dom_intrf->n_interface       = n_interface;
   dom_intrf->n_zone            = n_zone;
   dom_intrf->multizone_intrf   = multizone_interface;
@@ -1727,13 +2086,18 @@ void PDM_domain_interface_set
 )
 {
   assert (dom_intrf != NULL);
-  if (interface_kind != PDM_BOUND_TYPE_FACE) {
-    PDM_error(__FILE__, __LINE__, 0, "Only face domain connectivity is currently supported\n");
+  if (interface_kind == PDM_BOUND_TYPE_VTX) {
+    dom_intrf->interface_dn_vtx  = interface_dn;
+    dom_intrf->interface_ids_vtx = interface_ids;
+    dom_intrf->interface_dom_vtx = interface_dom;
   }
-  else {
+  else if (interface_kind == PDM_BOUND_TYPE_FACE) {
     dom_intrf->interface_dn_face  = interface_dn;
     dom_intrf->interface_ids_face = interface_ids;
     dom_intrf->interface_dom_face = interface_dom;
+  }
+  else {
+    PDM_error(__FILE__, __LINE__, 0, "Kind of interface not supported\n");
   }
 
 }
@@ -1827,6 +2191,47 @@ void PDM_domain_interface_get
   else  {
     PDM_error(__FILE__, __LINE__, 0, "This kind of entity is not yet supported\n");
   }
+}
+
+int PDM_domain_interface_get_as_graph
+(
+ PDM_domain_interface_t *dom_intrf,
+ PDM_bound_type_t        interface_kind,
+ int                   **interface_graph_idx,
+ PDM_g_num_t           **interface_graph_ids,
+ int                   **interface_graph_dom
+)
+{
+  assert (dom_intrf != NULL);
+  int          *interface_dn = NULL;
+  PDM_g_num_t **interface_ids = NULL;
+  int         **interface_dom = NULL;
+  if (interface_kind == PDM_BOUND_TYPE_FACE) {
+    assert (dom_intrf->interface_dn_face != NULL);
+    interface_dn  = dom_intrf->interface_dn_face;
+    interface_ids = dom_intrf->interface_ids_face;
+    interface_dom = dom_intrf->interface_dom_face;
+  }
+  else if (interface_kind == PDM_BOUND_TYPE_VTX) {
+    assert (dom_intrf->interface_dn_vtx != NULL);
+    interface_dn  = dom_intrf->interface_dn_vtx;
+    interface_ids = dom_intrf->interface_ids_vtx;
+    interface_dom = dom_intrf->interface_dom_vtx;
+  }
+  else  {
+    PDM_error(__FILE__, __LINE__, 0, "This kind of entity is not yet supported\n");
+  }
+
+  int graph_dn = _interface_to_graph(dom_intrf->n_interface,
+                                     dom_intrf->multizone_intrf,
+                                     interface_dn,
+                                     interface_ids,
+                                     interface_dom,
+                                     interface_graph_idx,
+                                     interface_graph_ids,
+                                     interface_graph_dom,
+                                     dom_intrf->comm);
+  return graph_dn;
 }
 
 void PDM_domain_interface_free
