@@ -178,7 +178,7 @@ namespace cwipi {
         }
       }
 
-        // Receive
+      // Receive
       else {
         for (int i_part = 0 ; i_part < _nPart ; i_part++) {
           PDM_Mesh_nodal_coord_set(_pdm_CplNodal,
@@ -186,41 +186,42 @@ namespace cwipi {
                                    0,
                                    NULL,
                                    NULL);
+        }
 
-          for (int i_block = 0 ; i_block < _mesh->nBlockGet() ; i_block++) {
-            int CWP_block_type = _mesh->blockTypeGet(i_block);
-            PDM_Mesh_nodal_elt_t pdm_block_type;
-            switch (CWP_block_type) {
-              case CWP_BLOCK_NODE: pdm_block_type = PDM_MESH_NODAL_POINT;
-                break;
-              case CWP_BLOCK_EDGE2: pdm_block_type = PDM_MESH_NODAL_BAR2;
-                break;
-              case CWP_BLOCK_FACE_TRIA3: pdm_block_type = PDM_MESH_NODAL_TRIA3;
-                break;
-              case CWP_BLOCK_FACE_QUAD4: pdm_block_type = PDM_MESH_NODAL_QUAD4;
-                break;
-              case CWP_BLOCK_CELL_TETRA4: pdm_block_type = PDM_MESH_NODAL_TETRA4;
-                break;
-              case CWP_BLOCK_FACE_POLY: pdm_block_type = PDM_MESH_NODAL_POLY_2D;
-                break;
-              case CWP_BLOCK_CELL_HEXA8: pdm_block_type = PDM_MESH_NODAL_HEXA8;
-                break;
-              case CWP_BLOCK_CELL_PYRAM5: pdm_block_type = PDM_MESH_NODAL_PYRAMID5;
-                break;
-              case CWP_BLOCK_CELL_PRISM6: pdm_block_type = PDM_MESH_NODAL_PRISM6;
-                break;
-              case CWP_BLOCK_CELL_POLY: pdm_block_type = PDM_MESH_NODAL_POLY_3D;
-                break;
-              default:pdm_block_type = PDM_MESH_NODAL_POINT;
-                PDM_error(__FILE__, __LINE__, 0, "No referenced CWP_Block_t.\n");
-            }
+        for (int i_block = 0 ; i_block < _mesh->nBlockGet() ; i_block++) {
+          int CWP_block_type = _mesh->blockTypeGet(i_block);
+          PDM_Mesh_nodal_elt_t pdm_block_type;
+          switch (CWP_block_type) {
+            case CWP_BLOCK_NODE: pdm_block_type = PDM_MESH_NODAL_POINT;
+              break;
+            case CWP_BLOCK_EDGE2: pdm_block_type = PDM_MESH_NODAL_BAR2;
+              break;
+            case CWP_BLOCK_FACE_TRIA3: pdm_block_type = PDM_MESH_NODAL_TRIA3;
+              break;
+            case CWP_BLOCK_FACE_QUAD4: pdm_block_type = PDM_MESH_NODAL_QUAD4;
+              break;
+            case CWP_BLOCK_CELL_TETRA4: pdm_block_type = PDM_MESH_NODAL_TETRA4;
+              break;
+            case CWP_BLOCK_FACE_POLY: pdm_block_type = PDM_MESH_NODAL_POLY_2D;
+              break;
+            case CWP_BLOCK_CELL_HEXA8: pdm_block_type = PDM_MESH_NODAL_HEXA8;
+              break;
+            case CWP_BLOCK_CELL_PYRAM5: pdm_block_type = PDM_MESH_NODAL_PYRAMID5;
+              break;
+            case CWP_BLOCK_CELL_PRISM6: pdm_block_type = PDM_MESH_NODAL_PRISM6;
+              break;
+            case CWP_BLOCK_CELL_POLY: pdm_block_type = PDM_MESH_NODAL_POLY_3D;
+              break;
+            default:pdm_block_type = PDM_MESH_NODAL_POINT;
+              PDM_error(__FILE__, __LINE__, 0, "No referenced CWP_Block_t.\n");
+          }
 
-            int _block_id_pdm = PDM_Mesh_nodal_block_add(_pdm_CplNodal,
-                                                         PDM_FALSE,
-                                                         pdm_block_type);
+          int _block_id_pdm = PDM_Mesh_nodal_block_add(_pdm_CplNodal,
+                                                       PDM_FALSE,
+                                                       pdm_block_type);
 
-            for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-              if (CWP_block_type == CWP_BLOCK_FACE_POLY) {
+          for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+            if (CWP_block_type == CWP_BLOCK_FACE_POLY) {
                 PDM_Mesh_nodal_block_poly2d_set(_pdm_CplNodal,
                                                 _block_id_pdm,
                                                 i_part,
@@ -251,7 +252,6 @@ namespace cwipi {
                                              NULL,
                                              NULL,
                                              NULL);
-              }
             }
           }
         }
