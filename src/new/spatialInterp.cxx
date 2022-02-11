@@ -298,7 +298,8 @@ namespace cwipi {
       MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &maxTagTmp, &flag);
       int maxTag = (int) *maxTagTmp; 
 
-      uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (maxTag - 1)) + 1;
+      uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), 
+        referenceField->fieldIDGet().size()) % (maxTag - 1)) + 1;
 
       if ((int) _send_adler.size() != 0) {
         int idx = PDM_binary_search_uint32t (mpi_tag,
@@ -571,9 +572,10 @@ namespace cwipi {
       MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &maxTagTmp, &flag);
       int maxTag = (int) *maxTagTmp; 
 
-      uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), referenceField->fieldIDGet().size()) % (maxTag - 1)) + 1;
+      uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), 
+        referenceField->fieldIDGet().size()) % (maxTag - 1)) + 1;
 
-      if ((int) _send_adler.size() != 0) {
+      if ((int) _recv_adler.size() != 0) {
         int idx = PDM_binary_search_uint32t(mpi_tag,
                                             &(_recv_adler[0]),
                                             (int) _recv_adler.size());

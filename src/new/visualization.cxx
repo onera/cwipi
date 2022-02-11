@@ -397,7 +397,7 @@ namespace cwipi {
     //   fieldDataSet(field, map_type, i_part);
     //}
     PDM_writer_var_write(_visu_id, id_var);
-    PDM_writer_var_data_free(_visu_id, id_var);
+    //PDM_writer_var_data_free(_visu_id, id_var);
 
   }
 

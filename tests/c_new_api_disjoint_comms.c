@@ -32,7 +32,9 @@ PDM_g_num_t ***vtx_ln_to_gn, PDM_g_num_t ***cell_ln_to_gn
                                                         element_type,
                                                         1,
                                                         PDM_OWNERSHIP_KEEP);
+  PDM_dcube_nodal_gen_ordering_set (dcube, "PDM_HO_ORDERING_CGNS");
   PDM_dcube_nodal_gen_build (dcube);
+
 
   PDM_dmesh_nodal_t* dmn = PDM_dcube_nodal_gen_dmesh_nodal_get(dcube);
   PDM_dmesh_nodal_generate_distribution(dmn);
@@ -81,6 +83,11 @@ PDM_g_num_t ***vtx_ln_to_gn, PDM_g_num_t ***cell_ln_to_gn
                   d_n_cell, d_n_face, d_n_vertices, n_face_group, d_cell_face_idx, d_cell_face, NULL,      NULL,         0,               d_cell_part,
 //                dface_cell, dface_vtx_idx,     dface_vtx,     dface_tag, dvtx_coord,     dvtx_tag, dface_group_idx,  dface_group
                   NULL,       d_face_vertex_idx, d_face_vertex, NULL,      d_vertex_coord, NULL,     d_face_group_idx, d_face_group);
+ 
+ PDM_log_trace_connectivity_long (d_cell_face_idx, d_cell_face, d_n_cell, "d_cell_face : ");
+ PDM_log_trace_connectivity_long (d_face_vertex_idx, d_face_vertex, d_n_face, "d_face_vertex : ");
+ PDM_log_trace_array_double (d_vertex_coord, 3 * d_n_vertices, "d_coords : ");
+
   free(d_face_vertex_idx);
   free(d_face_vertex);
   free(d_face_group);
@@ -93,6 +100,8 @@ PDM_g_num_t ***vtx_ln_to_gn, PDM_g_num_t ***cell_ln_to_gn
   *cell_face_idx = (int **) malloc(sizeof(int *) * n_part);
   *cell_face = (int **) malloc(sizeof(int *) * n_part);
   *cell_ln_to_gn = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
+
+
 
   // Faces
   *n_faces = (int *) malloc(sizeof(int) * n_part);
@@ -266,11 +275,16 @@ int main(int argc, char *argv[]) {
 //    bool cond_code2 = rank == 0 || rank == 1;
     bool cond_both = cond_code1 && cond_code2;
 
-    PDM_Mesh_nodal_elt_t element_type_code1 = PDM_MESH_NODAL_TETRA4, element_type_code2 = PDM_MESH_NODAL_TETRA4;
-    int n_vtx_seg_code1 = 30, n_vtx_seg_code2 = 20;
-    double x_min_code1 = 0., x_min_code2 = 0.2;
-    double y_min_code1 = 0., y_min_code2 = 0.8;
-    double z_min_code1 = 0., z_min_code2 = 0.3;
+    PDM_Mesh_nodal_elt_t element_type_code1 = PDM_MESH_NODAL_HEXA8;
+    PDM_Mesh_nodal_elt_t element_type_code2 = PDM_MESH_NODAL_HEXA8;
+
+    CWP_Block_t element_type_code1_cwp = CWP_BLOCK_CELL_HEXA8;
+    CWP_Block_t element_type_code2_cwp = CWP_BLOCK_CELL_HEXA8;
+
+    int n_vtx_seg_code1 = 4, n_vtx_seg_code2 = 3;
+    double x_min_code1 = 0., x_min_code2 = 0.;
+    double y_min_code1 = 0., y_min_code2 = 0.;
+    double z_min_code1 = 0., z_min_code2 = 0.;
 
     // Define the number of codes per rank
     int n_code;
@@ -282,7 +296,10 @@ int main(int argc, char *argv[]) {
     const char **code_names = (const char **) malloc(n_code * sizeof(char *));
     const char **coupled_code_names = (const char **) malloc(n_code * sizeof(char *));
     double *time_init = (double *) malloc(n_code * sizeof(double));
+
     PDM_Mesh_nodal_elt_t* element_type = (PDM_Mesh_nodal_elt_t *) malloc(n_code * sizeof(PDM_Mesh_nodal_elt_t));
+    CWP_Block_t* element_type_cwp = (CWP_Block_t *) malloc(n_code * sizeof(CWP_Block_t));
+
     PDM_g_num_t *n_vtx_seg = (PDM_g_num_t *) malloc(n_code * sizeof(PDM_g_num_t));
     double *x_min = (double *) malloc(n_code * sizeof(double));
     double *y_min = (double *) malloc(n_code * sizeof(double));
@@ -305,6 +322,8 @@ int main(int argc, char *argv[]) {
         is_active_rank[1] = CWP_STATUS_ON;
         element_type[0] = element_type_code1;
         element_type[1] = element_type_code2;
+        element_type_cwp[0] = element_type_code1_cwp;
+        element_type_cwp[1] = element_type_code2_cwp;
         n_vtx_seg[0] = n_vtx_seg_code1;
         n_vtx_seg[1] = n_vtx_seg_code2;
         x_min[0] = x_min_code1;
@@ -321,6 +340,7 @@ int main(int argc, char *argv[]) {
         time_init[0] = 0.;
         is_active_rank[0] = CWP_STATUS_ON;
         element_type[0] = element_type_code1;
+        element_type_cwp[0] = element_type_code1_cwp;
         n_vtx_seg[0] = n_vtx_seg_code1;
         x_min[0] = x_min_code1;
         y_min[0] = y_min_code1;
@@ -333,6 +353,7 @@ int main(int argc, char *argv[]) {
         time_init[0] = 0.;
         is_active_rank[0] = CWP_STATUS_ON;
         element_type[0] = element_type_code2;
+        element_type_cwp[0] = element_type_code2_cwp;
         n_vtx_seg[0] = n_vtx_seg_code2;
         x_min[0] = x_min_code2;
         y_min[0] = y_min_code2;
@@ -499,14 +520,14 @@ int main(int argc, char *argv[]) {
 
       for (int i_block = 0 ; i_block < n_blocks[i_code] ; ++i_block) {
         PDM_Mesh_nodal_elt_t pdm_block_type = PDM_Mesh_nodal_block_type_get(mesh_nodal[i_code], i_block);
-        assert(pdm_block_type == PDM_MESH_NODAL_TETRA4);
+        //assert(pdm_block_type == PDM_MESH_NODAL_TETRA4);
 
         for (int i_part = 0 ; i_part < n_part ; ++i_part) {
           PDM_Mesh_nodal_block_std_get(mesh_nodal[i_code], i_block, i_part, &connec[i_code][i_part]);
           PDM_Mesh_nodal_g_num_in_block_compute(mesh_nodal[i_code], i_block);
           PDM_g_num_t *g_num = PDM_Mesh_nodal_block_g_num_get(mesh_nodal[i_code], i_block, i_part);
 
-          int block_id = CWP_Mesh_interf_block_add(code_names[i_code], cpl_name, CWP_BLOCK_CELL_TETRA4);
+          int block_id = CWP_Mesh_interf_block_add(code_names[i_code], cpl_name, element_type_cwp[i_code]);
           CWP_Mesh_interf_block_std_set(code_names[i_code], cpl_name, i_part, block_id, n_cells[i_code][i_part], connec[i_code][i_part], g_num);
         }
       }
@@ -558,6 +579,7 @@ int main(int argc, char *argv[]) {
     int n_computed_tgts = 0, n_uncomputed_tgts = 0;
     const int *computed_tgts = NULL, *uncomputed_tgts = NULL;
     if (cond_code2) {
+
         n_computed_tgts = CWP_N_computed_tgts_get("code2", cpl_name, field_name, 0);
         n_uncomputed_tgts = CWP_N_uncomputed_tgts_get("code2", cpl_name, field_name, 0);
         computed_tgts = (int *) malloc(n_computed_tgts * sizeof(int));
@@ -610,6 +632,28 @@ int main(int argc, char *argv[]) {
       }
     }
 
+    for (int i_code = 0 ; i_code < n_code ; i_code++) {
+        if (code_id[i_code] == 2) {
+            CWP_Field_irecv(code_names[i_code], cpl_name, field_name);
+            printf("%d (%d, %s) --- Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+        }
+        if (code_id[i_code] == 1) {
+            CWP_Field_issend(code_names[i_code], cpl_name, field_name);
+            printf("%d (%d, %s) --- Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+        }
+    }
+
+    for (int i_code = 0 ; i_code < n_code ; i_code++) {
+        if (code_id[i_code] == 1) {
+            CWP_Field_wait_issend(code_names[i_code], cpl_name, field_name);
+            printf("%d (%d, %s) --- Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+        }
+        if (code_id[i_code] == 2) {
+            CWP_Field_wait_irecv(code_names[i_code], cpl_name, field_name);
+            printf("%d (%d, %s) --- Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+        }
+    }
+
   // Delete interf
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
         CWP_Mesh_interf_del(code_names[i_code], cpl_name);
@@ -622,6 +666,8 @@ int main(int argc, char *argv[]) {
         printf("%d (%d, %s) --- Coupling deleted\n", rank, intra_comm_rank[i_code], code_names[i_code]);
     }
 
+    free (element_type);
+    free (element_type_cwp);
 
     //Finalize cwipi
     CWP_Finalize();

@@ -182,35 +182,36 @@ namespace cwipi
 
     PDM_printf ("  - %d integer control parameters \n", _winGlobData[1]);
 
-    int sParamMax = -1;
+    unsigned int sParamMax = -1;
     for (int i = 0; i < _winGlobData[1]; i++) {
-      int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
+      unsigned int sParam = (unsigned int) (_winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i]);
       sParamMax = max(sParam, sParamMax);
     }
     for (int i = 0; i < _winGlobData[2]; i++) {
-      int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
+      unsigned int sParam = (unsigned int) (_winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i]);
       sParamMax = max(sParam, sParamMax);
     }
 
-    int sValueMax = -1;
+    unsigned int sValueMax = -1;
     for (int i = 0; i < _winGlobData[3]; i++) {
-      int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
+      unsigned int sParam = (unsigned int) (_winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i]);
       sParamMax = max(sParam, sParamMax);
-      int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
+      unsigned int sValue = (unsigned int) (_winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i]);
       sValueMax = max(sValue, sValueMax);
     }
 
 
     if (sParamMax > 80) sParamMax = 80;
+    if (sValueMax > 80) sValueMax = 80;
 
     char fmtIntName[22];
-    sprintf(fmtIntName, "     * %%%d.%ds : %%d\n",sParamMax, sParamMax);
+    sprintf(fmtIntName, "     * %%%u.%us : %%d\n",sParamMax, sParamMax);
 
     char fmtDoubleName[26];
-    sprintf(fmtDoubleName, "     * %%%d.%ds : %%12.5e\n",sParamMax, sParamMax);
+    sprintf(fmtDoubleName, "     * %%%u.%us : %%12.5e\n",sParamMax, sParamMax);
 
     char fmtStrName[27];
-    sprintf(fmtStrName, "     * %%%d.%ds : %%%d.%ds\n",
+    sprintf(fmtStrName, "     * %%%u.%us : %%%u.%us\n",
             sParamMax, sParamMax,
             sValueMax, sValueMax);
 
@@ -221,7 +222,7 @@ namespace cwipi
       int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
       strncpy (tmpName,
                _winIntParamNameData + _winIntParamIdxNameData[i],
-               min (sParam, sParamMax));
+               min (sParam, (int) sParamMax));
       tmpName[sParam] = '\0';
 
       PDM_printf (fmtIntName, tmpName, _winIntParamValueData[i]);
@@ -234,7 +235,7 @@ namespace cwipi
       int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
       strncpy (tmpName,
                _winDoubleParamNameData + _winDoubleParamIdxNameData[i],
-               min (sParam, sParamMax));
+               min (sParam, (int) sParamMax));
       tmpName[sParam] = '\0';
 
       PDM_printf (fmtDoubleName, tmpName, _winDoubleParamValueData[i]);
@@ -247,13 +248,13 @@ namespace cwipi
       int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
       strncpy (tmpName,
                _winStrParamNameData + _winStrParamIdxNameData[i],
-               min (sParam, sParamMax));
+               min (sParam, (int) sParamMax));
       tmpName[sParam] = '\0';
 
       int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
       strncpy (tmpValue,
                _winStrParamValueData + _winStrParamIdxValueData[i],
-               min (sValue, sValueMax));
+               min (sValue, (int) sValueMax));
 
       PDM_printf (fmtStrName, tmpName, tmpValue);
 
