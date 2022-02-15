@@ -582,8 +582,6 @@ int main(int argc, char *argv[]) {
 
         n_computed_tgts = CWP_N_computed_tgts_get("code2", cpl_name, field_name, 0);
         n_uncomputed_tgts = CWP_N_uncomputed_tgts_get("code2", cpl_name, field_name, 0);
-        computed_tgts = (int *) malloc(n_computed_tgts * sizeof(int));
-        uncomputed_tgts = (int *) malloc(n_uncomputed_tgts * sizeof(int));
         computed_tgts = CWP_Computed_tgts_get("code2", cpl_name, field_name, 0);
         uncomputed_tgts = CWP_Uncomputed_tgts_get("code2", cpl_name, field_name, 0);
         printf("%d (%d, %s) --- n computed targets: %d\n", rank, intra_comm_rank[0], code_names[0], n_computed_tgts);
