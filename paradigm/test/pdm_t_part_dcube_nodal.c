@@ -374,7 +374,6 @@ int main(int argc, char *argv[])
                                                            PDM_MESH_NODAL_TETRA4,
                                                            1,
                                                            PDM_OWNERSHIP_KEEP);
-  PDM_dcube_nodal_gen_ordering_set (dcube, "PDM_HO_ORDERING_CGNS");
   PDM_dcube_nodal_gen_build (dcube);
 
 

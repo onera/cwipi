@@ -17,17 +17,6 @@
  * Macro definitions
  *============================================================================*/
 
-/*----------------------------------------------------------------------------
- * Macro permettant de prendre en compte les arguments caches des longueurs
- * de chaine du Fortran (Evite les erreurs de compilation)
- *----------------------------------------------------------------------------*/
-
-#if defined (__uxpv__)
-#define ARGF_SUPP_CHAINE
-#else
-#define ARGF_SUPP_CHAINE , ...
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #if 0

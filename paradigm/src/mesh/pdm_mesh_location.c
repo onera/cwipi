@@ -1524,6 +1524,7 @@ _extract_selected_mesh_elements
  * \param [in]   mesh_nature    Nature of the mesh
  * \param [in]   n_point_cloud  Number of point cloud
  * \param [in]   comm           MPI communicator
+ * \param [in]   owner          OwnerShip
  *
  * \return     Pointer to \ref PDM_mesh_location object
  *
@@ -1533,8 +1534,9 @@ PDM_mesh_location_t*
 PDM_mesh_location_create
 (
  const PDM_mesh_nature_t mesh_nature,
- const int n_point_cloud,
- const PDM_MPI_Comm comm
+ const int               n_point_cloud,
+ const PDM_MPI_Comm      comm,
+ const PDM_ownership_t   owner
 )
 {
 
@@ -1584,6 +1586,13 @@ PDM_mesh_location_create
   }
 
   ml->uvw_to_compute = 1;
+
+  ml->owner = owner;
+
+  ml->tag_unlocated_get = 0;
+  ml->tag_located_get = 0;
+  ml->tag_point_location_get = 0;
+  ml->tag_points_in_elt_get = 0;
 
   return ml;
 
@@ -1678,6 +1687,7 @@ PDM_mesh_location_unlocated_get
   _point_cloud_t *pcloud = ml->point_clouds + i_point_cloud;
 
   assert (i_part < pcloud->n_part);
+  ml->tag_unlocated_get = 1;
   return pcloud->un_located[i_part];
 }
 
@@ -1708,6 +1718,7 @@ PDM_mesh_location_located_get
   _point_cloud_t *pcloud = ml->point_clouds + i_point_cloud;
 
   assert (i_part < pcloud->n_part);
+  ml->tag_located_get = 1;
   return pcloud->located[i_part];
 }
 
@@ -2126,6 +2137,8 @@ PDM_mesh_location_point_location_get
   // *weights         = pcloud->weights[i_part];
   *projected_coord = pcloud->projected_coords[i_part];
   *dist2           = pcloud->dist2[i_part];
+
+  ml->tag_point_location_get = 1;
 }
 
 
@@ -2212,6 +2225,8 @@ PDM_mesh_location_points_in_elt_get
   *points_dist2            = _points_in_elements->dist2[i_part];
   *points_projected_coords = _points_in_elements->projected_coords[i_part];
 
+  ml->tag_points_in_elt_get = 1;
+
 }
 
 
@@ -2227,8 +2242,7 @@ PDM_mesh_location_points_in_elt_get
 void
 PDM_mesh_location_free
 (
-       PDM_mesh_location_t  *ml,
- const int                   partial
+ PDM_mesh_location_t  *ml
 )
 {
 
@@ -2240,7 +2254,8 @@ PDM_mesh_location_free
 
       if (ml->points_in_elements != NULL) {
         _points_in_element_t *_points_in_elements = ml->points_in_elements + icloud;
-        if (!partial) {
+        if(( ml->owner == PDM_OWNERSHIP_KEEP ) ||
+           ( ml->owner == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE && !ml->tag_points_in_elt_get)) {
           for (int i_part = 0; i_part < _points_in_elements->n_part; ++i_part) {
             free (_points_in_elements->pts_inside_idx[i_part]);
             free (_points_in_elements->gnum[i_part]);
@@ -2281,27 +2296,32 @@ PDM_mesh_location_free
       }
 
       if (pcloud->location != NULL) {
-        for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
-          if (!partial) {
+        if(( ml->owner == PDM_OWNERSHIP_KEEP ) ||
+           ( ml->owner == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE && !ml->tag_point_location_get)) {
+          for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
             if (pcloud->location[ipart] != NULL) {
               free (pcloud->location[ipart]);
             }
             if (pcloud->dist2[ipart] != NULL) {
               free (pcloud->dist2[ipart]);
             }
+            if (pcloud->projected_coords[ipart] != NULL) {
+              free (pcloud->projected_coords[ipart]);
+            }
           }
         }
         free (pcloud->location);
         free (pcloud->dist2);
+        free (pcloud->projected_coords);
       }
 
       if (pcloud->uvw != NULL) {
         for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
-          if (!partial) {
+//          if (!partial) {
             if (pcloud->uvw[ipart] != NULL) {
               free (pcloud->uvw[ipart]);
             }
-          }
+//          }
         }
         free (pcloud->uvw);
       }
@@ -2328,16 +2348,6 @@ PDM_mesh_location_free
         free (pcloud->weights);
       }
 
-      if (pcloud->projected_coords != NULL) {
-        for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
-          if (!partial) {
-            if (pcloud->projected_coords[ipart] != NULL) {
-              free (pcloud->projected_coords[ipart]);
-            }
-          }
-        }
-        free (pcloud->projected_coords);
-      }
 
       if (pcloud->n_located != NULL) {
         free (pcloud->n_located);
@@ -2348,25 +2358,29 @@ PDM_mesh_location_free
       }
 
       if (pcloud->located != NULL) {
-        for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
-          if (!partial) {
+
+        if(( ml->owner == PDM_OWNERSHIP_KEEP ) ||
+           ( ml->owner == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE && !ml->tag_located_get)) {
+          for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
             if (pcloud->located[ipart] != NULL) {
               free (pcloud->located[ipart]);
             }
           }
         }
-        free (pcloud->located);
+        pcloud->located = NULL;
       }
 
       if (pcloud->un_located != NULL) {
-        for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
-          if (!partial) {
+        if(( ml->owner == PDM_OWNERSHIP_KEEP ) ||
+           ( ml->owner == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE && !ml->tag_unlocated_get)) {
+          for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
             if (pcloud->un_located[ipart] != NULL) {
               free (pcloud->un_located[ipart]);
             }
           }
         }
         free (pcloud->un_located);
+        pcloud->un_located = NULL;
       }
 
     }
@@ -5393,7 +5407,7 @@ PDM_mesh_location_t        *ml
           for (int i = 0; i < n_elt_block; i++) {
             int order_ijk = 0;
             for (int k = 0; k < n_vtx; k++) {
-              int ivtx = connec[k] - 1;
+              int ivtx = connec[i*n_vtx + k] - 1;
               for (int j = 0; j < 3; j++) {
                 _cell_coords[3*k+j] = coords_vtx[3*ivtx+j];
               }
@@ -5442,7 +5456,7 @@ PDM_mesh_location_t        *ml
                       t_elt == PDM_MESH_NODAL_TETRA4 ||
                       t_elt == PDM_MESH_NODAL_TRIA3  ||
                       t_elt == PDM_MESH_NODAL_BAR2) {
-                    _cell_coords_ijk = _cell_coords;
+                    memcpy(_cell_coords_ijk, _cell_coords, sizeof(double) * n_vtx);
                   } else {
                     _cell_coords_ijk[ 0] = _cell_coords[ 0];
                     _cell_coords_ijk[ 1] = _cell_coords[ 1];
@@ -5492,13 +5506,20 @@ PDM_mesh_location_t        *ml
                                  _point_uvw);
                 //&(_points_in_elements->uvw[ipart][3 * (idx_pts_elts + k1)]));
               }
+
+              // Check uvw
+              if (1) {//_points_in_elements->dist2[ipart][ipt] <= 0.) {
+                assert(_point_uvw[0] > -newton_tol && _point_uvw[0] < 1+newton_tol &&
+                       _point_uvw[1] > -newton_tol && _point_uvw[1] < 1+newton_tol &&
+                       _point_uvw[2] > -newton_tol && _point_uvw[2] < 1+newton_tol);
+              }
             }
           }
         }
         ielt += 1;
       }
 
-      if (_cell_coords_ijk != _cell_coords) free (_cell_coords_ijk);
+      free (_cell_coords_ijk);
       free (_cell_coords);
     }
 

@@ -512,7 +512,8 @@ int main(int argc, char *argv[])
    */
   PDM_mesh_location_t *mesh_loc = PDM_mesh_location_create (PDM_MESH_NATURE_MESH_SETTED,
                                                             1,
-                                                            PDM_MPI_COMM_WORLD);
+                                                            PDM_MPI_COMM_WORLD,
+                                                            PDM_OWNERSHIP_KEEP);
 
 
   /* Set target point cloud */
@@ -779,6 +780,7 @@ int main(int argc, char *argv[])
                                                       ipart);
 
     printf("[%d] part %d, n_located = %d, n_unlocated = %d\n", i_rank, ipart, n_located, n_unlocated);
+    assert(n_located + n_unlocated == n_tgt[ipart]);
 
     tgt_location[ipart] = PDM_array_const_gnum (n_tgt[ipart], 0);
     tgt_proj_coord[ipart] = malloc (sizeof(double) * n_tgt[ipart] * 3);
@@ -1001,8 +1003,8 @@ int main(int argc, char *argv[])
   free (tgt_proj_coord);
   free (src_g_num);
 
-  PDM_mesh_location_free (mesh_loc,
-                          0);
+  PDM_mesh_location_free (mesh_loc);
+                          
 
   PDM_part_free (ppart_src);
   PDM_part_free (ppart_tgt);

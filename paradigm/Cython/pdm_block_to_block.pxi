@@ -1,3 +1,4 @@
+import warnings
 
 cdef extern from "pdm_block_to_block.h":
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -32,8 +33,9 @@ cdef class BlockToBlock:
     """
     # ************************************************************************
     # > Class attributes
-    cdef PDM_block_to_block_t *BTB
-    # cdef int  *BlkDistribIdx
+    cdef PDM_block_to_block_t* BTB
+    cdef int                   dn_elt_ini
+    cdef MPI.Comm              py_comm
     # ************************************************************************
     # ------------------------------------------------------------------------
     def __cinit__(self, NPY.ndarray[npy_pdm_gnum_t, ndim=1, mode='c'] DistribIni,
@@ -47,116 +49,90 @@ cdef class BlockToBlock:
             :param DistribEnd:  Distribution of distribute array in finale frame (Size = nRank+1)
 
         """
-        # ************************************************************************
-        # > Declaration
-        # ************************************************************************
+        # > Some checks
+        assert_single_dim_np(DistribIni, npy_pdm_gnum_dtype, comm.Get_size()+1)
+        assert_single_dim_np(DistribEnd, npy_pdm_gnum_dtype, comm.Get_size()+1)
 
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Some verification
-        assert(DistribIni.shape[0] == DistribEnd.shape[0])
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
+        # > Store class parameters
+        self.dn_elt_ini  = DistribIni[comm.Get_rank() + 1] - DistribIni[comm.Get_rank()]
+        self.py_comm = comm
 
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Mpi size
-        Size = comm.Get_size()
-        assert(DistribIni.shape[0] == Size+1)
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Convert mpi4py -> PDM_MPI
+        # > Convert input data
         cdef MPI.MPI_Comm c_comm = comm.ob_mpi
         cdef PDM_MPI_Comm PDMC   = PDM_MPI_mpi_2_pdm_mpi_comm(&c_comm)
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Create
-        # self.btb = PDM_block_to_block_create(self.BlkDistribIdx, self.LNToGN,
+        # > Create PDM structure
         self.BTB = PDM_block_to_block_create(<PDM_g_num_t *> DistribIni.data,
                                              <PDM_g_num_t *> DistribEnd.data,
                                              PDMC)
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
     # ------------------------------------------------------------------
-    def BlockToBlock_Exchange(self, dict         dFieldIni,
-                                    dict         dFieldEnd,
-                                    PDM_stride_t t_stride = <PDM_stride_t> 0):
-        """
-           TODOUX : 1) Exchange of variables types array
-                    2) Assertion of type and accross MPI of the same field
-                    3) Stride variable !!
-        """
-        # ************************************************************************
-        # > Declaration
-        cdef NPY.ndarray dArrayIni
-        cdef NPY.ndarray dArrayEnd
+    def exchange_field(self, NPY.ndarray block_data, block_stride=1, bint interlaced_str=True):
+      """
+      Wrapping for PDM_block_to_block_exch: transfert a distributed data from the initial distribution
+      to the destination distribution
 
-        # > Specific to PDM
-        cdef size_t      s_data
-        cdef int         cst_stride
-        cdef int        *block_stride_ini
-        cdef int        *block_stride_end
-        cdef void       *block_data_ini
-        cdef void       *block_data_end
-        cdef NPY.ndarray tmpData
-        # ************************************************************************
+      :param self:         BlockToPart object
+      :param block_data:   Distributed data array, 1 dimensional and with same datatype for each rank
+      :param block_stride: Stride for distributed array. Can be either an array of size dn_elt (variable
+                           stride will be used) or an integer (cst stride will be used)
+      :param interlaced_str: indicate if data are interlaced (True) or interleaved 
+      """
 
-        # > Understand how to interface
-        block_stride_ini = <int *> malloc( 1 * sizeof(int *))
-        block_stride_end = <int *> malloc( 1 * sizeof(int *))
+      cdef NPY.ndarray[NPY.int32_t, ndim=1, mode='c'] numpy_int
+      cdef int   _block_stride_cst = 0
+      cdef int*  _block_stride = NULL
+      if isinstance(block_stride, int):
+        _stride_t = PDM_STRIDE_CST_INTERLACED if interlaced_str else PDM_STRIDE_CST_INTERLEAVED
+        _block_stride_cst = block_stride
+        assert_single_dim_np(block_data, block_data.dtype, block_stride*self.dn_elt_ini)
+      elif isinstance(block_stride, NPY.ndarray):
+        raise NotImplementedError("Variable stride for BTB not implemented")
+        _stride_t = PDM_STRIDE_VAR_INTERLACED
+        assert_single_dim_np(block_stride, NPY.int32, self.dn_elt_ini)
+        assert_single_dim_np(block_data, block_data.dtype, block_stride.sum())
+        numpy_int = block_stride
+        _block_stride = <int *> numpy_int.data
+      else:
+        raise ValueError("Invalid stride in BtP exchange")
 
-        cst_stride = 1
+      cdef size_t s_data = block_data.dtype.itemsize #Should be the same for all procs
+      assert self.py_comm.allreduce(s_data, op=MPI.MIN) == self.py_comm.allreduce(s_data, op=MPI.MAX) == s_data
 
-        # > Init
-        block_stride_ini[0] = 1 # No entrelacing data
-        block_stride_end[0] = 1 # No entrelacing data
+      cdef int*  _block_stride_end = NULL
+      cdef void* _block_data_end   = NULL
+      c_size = PDM_block_to_block_exch(self.BTB,
+                                       s_data,
+                                       _stride_t,
+                                       _block_stride_cst,
+                                       _block_stride,
+                              <void *> block_data.data,
+                                       _block_stride_end,
+                                      &_block_data_end)
 
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Loop over all field and fill buffer
-        #   En MPI il y a un risque que les dictionnaires ne soit pas les meme ?
-        #   Ordered Dict ??
-        # mpi.gather puis si vrai 0 et assert sur la somme ?
-        for field in dFieldIni.keys():
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          # > Get field and assign ptr
-          dArrayIni      = dFieldIni[field]
-          block_data_ini = <void *> dArrayIni.data
-          block_data_end = NULL
-          s_data         = dArrayIni.dtype.itemsize
-          dtype_data     = dArrayIni.dtype.num
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
+      dim_np = <NPY.npy_intp> c_size
+      block_data_end = NPY.PyArray_SimpleNewFromData(1, &dim_np, block_data.dtype.num, _block_data_end)
+      PyArray_ENABLEFLAGS(block_data_end, NPY.NPY_OWNDATA);
 
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          # > Compute
-          c_size = PDM_block_to_block_exch(self.BTB,
-                                           s_data,
-                                           t_stride,
-                                           cst_stride,
-                                           block_stride_ini,
-                                           <void *> block_data_ini,
-                                           block_stride_end,
-                                           <void **> &block_data_end)
+      return block_data_end
 
-          dim = <NPY.npy_intp> c_size
-          # print "c_size : ", c_size
-          if(c_size == 0):
-            # dFieldEnd[field] = None
-            dFieldEnd[field] = NPY.empty((0), dtype=dArrayIni.dtype)
-          else:
-            tmpData = NPY.PyArray_SimpleNewFromData(1, &dim, dtype_data, <void *> block_data_end)
-            PyArray_ENABLEFLAGS(tmpData, NPY.NPY_OWNDATA);
-            dFieldEnd[field] = tmpData
-            # print dFieldEnd[field]
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
+    # ------------------------------------------------------------------
+    def BlockToBlock_Exchange(self, dict dFieldIni, 
+                                    dict dFieldEnd,
+                                    PDM_stride_t t_stride = <PDM_stride_t> -1,
+                                    blkStrid=1,
+                                    bint interlaced_str=True):
+      """ Shortcut to exchange multiple fieds stored in dict """
+      if t_stride != -1:
+        warnings.warn("Parameter t_stride is deprecated and will be removed in further release",
+          DeprecationWarning, stacklevel=2)
+      for field_name, field in dFieldIni.items():
+        block_data_end = self.exchange_field(field, blkStrid, interlaced_str)
+        dFieldEnd[field_name] = block_data_end
 
     # ------------------------------------------------------------------
     def __dealloc__(self):
-      """
-         Deallocate all the array
-      """
-      # ************************************************************************
-      # > Declaration
-      cdef PDM_block_to_block_t *a
-      # ************************************************************************
-      # > Free PDM Structure
-      a = PDM_block_to_block_free(self.BTB)
+      """ Free structure """
+      cdef PDM_block_to_block_t* none = PDM_block_to_block_free(self.BTB)
+      assert none == NULL
 

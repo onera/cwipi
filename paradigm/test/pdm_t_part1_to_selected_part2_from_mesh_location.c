@@ -393,11 +393,13 @@ int main(int argc, char *argv[])
    */
   PDM_mesh_location_t *id_loc1 = PDM_mesh_location_create (PDM_MESH_NATURE_MESH_SETTED,
                                                           1,
-                                                          PDM_MPI_COMM_WORLD);
+                                                          PDM_MPI_COMM_WORLD,
+                                                          PDM_OWNERSHIP_KEEP);
 
   PDM_mesh_location_t *id_loc2 = PDM_mesh_location_create (PDM_MESH_NATURE_MESH_SETTED,
                                                           1,
-                                                          PDM_MPI_COMM_WORLD);
+                                                          PDM_MPI_COMM_WORLD,
+                                                          PDM_OWNERSHIP_KEEP);
 
   /* Set target point cloud */
   PDM_mesh_location_n_part_cloud_set (id_loc1,
@@ -1372,9 +1374,9 @@ int main(int argc, char *argv[])
   free (gnum_elt2);
   free (n_elt2);
 
-  PDM_mesh_location_free (id_loc1, 0);
+  PDM_mesh_location_free (id_loc1);
 
-  PDM_mesh_location_free (id_loc2, 0);
+  PDM_mesh_location_free (id_loc2);
 
   PDM_part_to_part_free (ptp);
   PDM_part_to_part_free (ptp2);

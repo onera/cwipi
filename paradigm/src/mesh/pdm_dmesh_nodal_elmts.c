@@ -433,11 +433,12 @@ const PDM_Mesh_nodal_elt_t     t_elt
     if(dmn_elts->mesh_dimension != 0){
       PDM_error (__FILE__, __LINE__, 0, "Bad mesh_dimension in PDM_DMesh_nodal_elmts_section_add = expected = %i and given = %i \n", dmn_elts->mesh_dimension, 0);
     }
-  } else if(t_elt == PDM_MESH_NODAL_BAR2) {
+  } else if(t_elt == PDM_MESH_NODAL_BAR2 || t_elt == PDM_MESH_NODAL_BARHO) {
     if(dmn_elts->mesh_dimension != 1){
       PDM_error (__FILE__, __LINE__, 0, "Bad mesh_dimension in PDM_DMesh_nodal_elmts_section_add = expected = %i and given = %i \n", dmn_elts->mesh_dimension, 1);
     }
-  } else if(t_elt == PDM_MESH_NODAL_TRIA3 || t_elt == PDM_MESH_NODAL_QUAD4 || t_elt == PDM_MESH_NODAL_POLY_2D) {
+  } else if(t_elt == PDM_MESH_NODAL_TRIA3 || t_elt == PDM_MESH_NODAL_QUAD4 || t_elt == PDM_MESH_NODAL_POLY_2D ||
+            t_elt == PDM_MESH_NODAL_TRIAHO || t_elt == PDM_MESH_NODAL_QUADHO) {
     if(dmn_elts->mesh_dimension != 2){
       PDM_error (__FILE__, __LINE__, 0, "Bad mesh_dimension in PDM_DMesh_nodal_elmts_section_add = expected = %i and given = %i \n", dmn_elts->mesh_dimension, 2);
     }
@@ -457,6 +458,13 @@ const PDM_Mesh_nodal_elt_t     t_elt
   case PDM_MESH_NODAL_PYRAMID5 :
   case PDM_MESH_NODAL_PRISM6   :
   case PDM_MESH_NODAL_HEXA8    :
+  case PDM_MESH_NODAL_BARHO    :
+  case PDM_MESH_NODAL_TRIAHO   :
+  case PDM_MESH_NODAL_QUADHO   :
+  case PDM_MESH_NODAL_TETRAHO  :
+  case PDM_MESH_NODAL_PYRAMIDHO:
+  case PDM_MESH_NODAL_PRISMHO  :
+  case PDM_MESH_NODAL_HEXAHO   :
     {
       id_block = dmn_elts->n_section_std++;
 

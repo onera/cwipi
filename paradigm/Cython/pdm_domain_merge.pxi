@@ -124,7 +124,7 @@ cdef class MultiBlockMerge:
     Return the distribution of the merged block
     """
     cdef PDM_g_num_t* _merged_distri = PDM_multi_block_merge_get_distrib(self.m_block_merge)
-    merged_distri = create_numpy_pdm_gnum(_merged_distri, self.n_rank+1)
+    merged_distri = create_numpy_pdm_gnum(_merged_distri, self.n_rank+1, flag_owndata=False)
     return NPY.copy(merged_distri)
 
   def get_blocks_distri(self):
@@ -132,7 +132,7 @@ cdef class MultiBlockMerge:
     Return the (shifted) number of entiy in each original block
     """
     cdef PDM_g_num_t* _blocks_distri = PDM_multi_block_merge_get_multi_distrib(self.m_block_merge)
-    blocks_distri = create_numpy_pdm_gnum(_blocks_distri, self.n_zone+1)
+    blocks_distri = create_numpy_pdm_gnum(_blocks_distri, self.n_zone+1, flag_owndata=False)
     return NPY.copy(blocks_distri)
 
   def get_old_to_new(self):
@@ -148,10 +148,10 @@ cdef class MultiBlockMerge:
                                          &_old_distrib,
                                          &_old_to_new_idx,
                                          &_old_to_new)
-    old_distrib    = create_numpy_pdm_gnum(_old_distrib, self.n_rank+1)
+    old_distrib    = create_numpy_pdm_gnum(_old_distrib, self.n_rank+1, flag_owndata=False)
     cdef int dn_olds = _old_distrib[self.i_rank+1] - _old_distrib[self.i_rank]
-    old_to_new_idx = create_numpy_i(_old_to_new_idx, dn_olds+1)
-    old_to_new     = create_numpy_pdm_gnum(_old_to_new, _old_to_new_idx[dn_olds])
+    old_to_new_idx = create_numpy_i(_old_to_new_idx, dn_olds+1, flag_owndata=False)
+    old_to_new     = create_numpy_pdm_gnum(_old_to_new, _old_to_new_idx[dn_olds], flag_owndata=False)
     return NPY.copy(old_distrib), NPY.copy(old_to_new_idx), NPY.copy(old_to_new)
 
   def merge_field(self, list block_data, list block_stride=None):
@@ -191,11 +191,7 @@ cdef class MultiBlockMerge:
     cdef int dn_merged = PDM_multi_block_merge_get_n_block(self.m_block_merge)
     if var_stride:
       merged_block_stride = create_numpy_i(_merged_block_stride, dn_merged)
-      if merged_block_stride is not None:
-        PyArray_ENABLEFLAGS(merged_block_stride, NPY.NPY_OWNDATA)
-        dim_np = <NPY.npy_intp> merged_block_stride.sum()
-      else:
-        dim_np = 0
+      dim_np = <NPY.npy_intp> merged_block_stride.sum()
     else:
       assert _merged_block_stride == NULL
       dim_np = <NPY.npy_intp> dn_merged
@@ -272,11 +268,7 @@ cdef class MultiBlockMerge:
     cdef int dn_merged = PDM_multi_block_merge_get_n_block(self.m_block_merge)
     if var_stride:
       merged_block_stride = create_numpy_i(_merged_block_stride, dn_merged)
-      if merged_block_stride is not None:
-        PyArray_ENABLEFLAGS(merged_block_stride, NPY.NPY_OWNDATA)
-        dim_np = <NPY.npy_intp> merged_block_stride.sum()
-      else:
-        dim_np = 0
+      dim_np = <NPY.npy_intp> merged_block_stride.sum()
     else:
       #assert _merged_block_stride == NULL #TODO use it to compute new size (manage suppression)
       dim_np = <NPY.npy_intp> dn_merged

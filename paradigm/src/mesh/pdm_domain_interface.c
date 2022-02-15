@@ -131,7 +131,7 @@ static PDM_g_num_t* _per_block_offset(int n_block, int *sizes, PDM_MPI_Comm comm
 static int _interface_to_graph
 (
   const int                    n_interface,
-  PDM_domain_interface_mult_t  multizone_intrf,
+  PDM_domain_interface_mult_t  multidomain_intrf,
   int                         *interface_dn,
   PDM_g_num_t                **interface_ids,
   int                        **interface_dom,
@@ -147,47 +147,47 @@ static int _interface_to_graph
   // Step 0 : retrieve some data. We need (to offset gnums)
   //   - the number of involved blocks
   //   - the max id occuring in each block
-  int n_zone = -1;
-  if (multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_YES) {
-    int max_zone_loc = 0;
+  int n_domain = -1;
+  if (multidomain_intrf == PDM_DOMAIN_INTERFACE_MULT_YES) {
+    int max_domain_loc = 0;
     for (int itrf = 0; itrf < n_interface; itrf++) {
       for (int k = 0; k < 2*interface_dn[itrf]; k++) {
-        max_zone_loc = PDM_MAX(max_zone_loc, interface_dom[itrf][k]);
+        max_domain_loc = PDM_MAX(max_domain_loc, interface_dom[itrf][k]);
       }
     }
-    PDM_MPI_Allreduce(&max_zone_loc, &n_zone, 1, PDM_MPI_INT, PDM_MPI_MAX, comm);
+    PDM_MPI_Allreduce(&max_domain_loc, &n_domain, 1, PDM_MPI_INT, PDM_MPI_MAX, comm);
   }
   else {
     for (int itrf = 0; itrf < n_interface; itrf++) {
-      n_zone = PDM_MAX(n_zone, interface_dom[itrf][0]);
-      n_zone = PDM_MAX(n_zone, interface_dom[itrf][1]);
+      n_domain = PDM_MAX(n_domain, interface_dom[itrf][0]);
+      n_domain = PDM_MAX(n_domain, interface_dom[itrf][1]);
     }
   }
-  n_zone++; //Because zone numbering start at 0
+  n_domain++; //Because domain numbering start at 0
 
-  PDM_g_num_t *max_per_zone_loc = PDM_array_const_gnum(n_zone, 0);
-  PDM_g_num_t *max_per_zone     = (PDM_g_num_t *) malloc((n_zone+1) * sizeof(PDM_g_num_t));
+  PDM_g_num_t *max_per_domain_loc = PDM_array_const_gnum(n_domain, 0);
+  PDM_g_num_t *max_per_domain     = (PDM_g_num_t *) malloc((n_domain+1) * sizeof(PDM_g_num_t));
   for (int itrf = 0; itrf < n_interface; itrf++) {
     int dom, domopp;
-    if (multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_NO) {
+    if (multidomain_intrf == PDM_DOMAIN_INTERFACE_MULT_NO) {
       dom    = interface_dom[itrf][0];
       domopp = interface_dom[itrf][1];
     }
     for (int k = 0; k < interface_dn[itrf]; k++) {
-      if (multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_YES) {
+      if (multidomain_intrf == PDM_DOMAIN_INTERFACE_MULT_YES) {
         dom    = interface_dom[itrf][2*k];
         domopp = interface_dom[itrf][2*k+1];
       }
-      max_per_zone_loc[dom] = PDM_MAX(max_per_zone_loc[dom], interface_ids[itrf][2*k]);
-      max_per_zone_loc[domopp] = PDM_MAX(max_per_zone_loc[domopp], interface_ids[itrf][2*k+1]);
+      max_per_domain_loc[dom] = PDM_MAX(max_per_domain_loc[dom], interface_ids[itrf][2*k]);
+      max_per_domain_loc[domopp] = PDM_MAX(max_per_domain_loc[domopp], interface_ids[itrf][2*k+1]);
     }
   }
-  max_per_zone[0] = 0;
-  PDM_MPI_Allreduce(max_per_zone_loc, &max_per_zone[1], n_zone, PDM__PDM_MPI_G_NUM, PDM_MPI_MAX, comm);
-  PDM_array_accumulate_gnum(max_per_zone, n_zone+1);
+  max_per_domain[0] = 0;
+  PDM_MPI_Allreduce(max_per_domain_loc, &max_per_domain[1], n_domain, PDM__PDM_MPI_G_NUM, PDM_MPI_MAX, comm);
+  PDM_array_accumulate_gnum(max_per_domain, n_domain+1);
   if (0 == 1)
-    PDM_log_trace_array_long(max_per_zone, n_zone+1, "max per zone");
-  free(max_per_zone_loc);
+    PDM_log_trace_array_long(max_per_domain, n_domain+1, "max per domain");
+  free(max_per_domain_loc);
   
   // Prepare first PtB with multiple partitions.
   // Use (shifted) ids as gnum and send tuple (shited) id, opp_id
@@ -203,19 +203,19 @@ static int _interface_to_graph
     weight[itrf]                = (double      *) malloc(2*interface_dn[itrf]*sizeof(double     ));
     interface_dn_twice[itrf]    = 2*interface_dn[itrf];
     int dom, domopp;
-    if (multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_NO) {
+    if (multidomain_intrf == PDM_DOMAIN_INTERFACE_MULT_NO) {
       dom    = interface_dom[itrf][0];
       domopp = interface_dom[itrf][1];
     }
     for (int k = 0; k < interface_dn[itrf]; k++) {
-      if (multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_YES) {
+      if (multidomain_intrf == PDM_DOMAIN_INTERFACE_MULT_YES) {
         dom    = interface_dom[itrf][2*k];
         domopp = interface_dom[itrf][2*k+1];
       }
-      interface_ids_shifted[itrf][2*k]   = interface_ids[itrf][2*k] + max_per_zone[dom];
-      interface_ids_shifted[itrf][2*k+1] = interface_ids[itrf][2*k+1] + max_per_zone[domopp];
-      send_data[itrf][2*k]   = interface_ids[itrf][2*k+1] + max_per_zone[domopp];
-      send_data[itrf][2*k+1] = interface_ids[itrf][2*k] + max_per_zone[dom];
+      interface_ids_shifted[itrf][2*k]   = interface_ids[itrf][2*k] + max_per_domain[dom];
+      interface_ids_shifted[itrf][2*k+1] = interface_ids[itrf][2*k+1] + max_per_domain[domopp];
+      send_data[itrf][2*k]   = interface_ids[itrf][2*k+1] + max_per_domain[domopp];
+      send_data[itrf][2*k+1] = interface_ids[itrf][2*k] + max_per_domain[dom];
       weight[itrf][2*k]   = 1.;
       weight[itrf][2*k+1] = 1.;
       stride_one[itrf][2*k]   = 1;
@@ -473,11 +473,11 @@ static int _interface_to_graph
 
   // Retrieve domain and local gnum in domain
   for (int i = 0; i < _graph_idx[graph_dn]; i++) {
-    _graph_dom[i] = PDM_binary_search_gap_long(graph_gnum[i]-1, max_per_zone, n_zone+1);
-    graph_gnum[i] -= max_per_zone[_graph_dom[i]];
+    _graph_dom[i] = PDM_binary_search_gap_long(graph_gnum[i]-1, max_per_domain, n_domain+1);
+    graph_gnum[i] -= max_per_domain[_graph_dom[i]];
   }
   free(graph_size);
-  free(max_per_zone);
+  free(max_per_domain);
 
   *graph_idx = _graph_idx;
   *graph_ids =  graph_gnum;
@@ -487,7 +487,7 @@ static int _interface_to_graph
 
 static int _extract_and_shift_jn_faces
 (
- int           n_zone,
+ int           n_domain,
  int          *dn_face,
  int          *dn_vtx,
  int           n_interface,
@@ -509,8 +509,8 @@ static int _extract_and_shift_jn_faces
   PDM_MPI_Comm_size(comm, &n_rank);
   PDM_MPI_Comm_rank(comm, &i_rank);
 
-  PDM_g_num_t *face_per_block_offset = _per_block_offset(n_zone, dn_face, comm);
-  PDM_g_num_t *vtx_per_block_offset  = _per_block_offset(n_zone, dn_vtx,  comm);
+  PDM_g_num_t *face_per_block_offset = _per_block_offset(n_domain, dn_face, comm);
+  PDM_g_num_t *vtx_per_block_offset  = _per_block_offset(n_domain, dn_vtx,  comm);
   
   int n_face_join = 0; // Each interface comes with a pair of faces
   for (int i_interface = 0; i_interface < n_interface; i_interface++) {
@@ -528,15 +528,15 @@ static int _extract_and_shift_jn_faces
     PDM_g_num_t *_interface_ids = interface_face_ids[i_interface]; //Shortcuts
     int         *_interface_dom = interface_domains_ids[i_interface];
     for (int i_pair = 0; i_pair < interfaces_size[i_interface]; i_pair++) {
-      int i_zone_cur = _interface_dom[2*i_pair];
-      int i_zone_opp = _interface_dom[2*i_pair+1];
+      int i_domain_cur = _interface_dom[2*i_pair];
+      int i_domain_opp = _interface_dom[2*i_pair+1];
 
-      _dextract_face_id_tmp[idx]         = _interface_ids[2*i_pair] + face_per_block_offset[i_zone_cur];
-      _dextract_face_dom_id_tmp  [idx]   = i_zone_cur;
+      _dextract_face_id_tmp[idx]         = _interface_ids[2*i_pair] + face_per_block_offset[i_domain_cur];
+      _dextract_face_dom_id_tmp  [idx]   = i_domain_cur;
       _dextract_face_group_id_tmp[idx++] = i_interface;
 
-      _dextract_face_id_tmp[idx]         = _interface_ids[2*i_pair+1] + face_per_block_offset[i_zone_opp];
-      _dextract_face_dom_id_tmp  [idx]   = i_zone_opp;
+      _dextract_face_id_tmp[idx]         = _interface_ids[2*i_pair+1] + face_per_block_offset[i_domain_opp];
+      _dextract_face_dom_id_tmp  [idx]   = i_domain_opp;
       _dextract_face_group_id_tmp[idx++] = i_interface;
     }
   }
@@ -585,34 +585,34 @@ static int _extract_and_shift_jn_faces
   free(_dextract_face_dom_id_tmp);
 
   if (0 == 1) {
-    PDM_log_trace_array_long(face_per_block_offset, n_zone+1, "face_per_block_offset :: ");
-    PDM_log_trace_array_long(vtx_per_block_offset,  n_zone+1, "vtx_per_block_offset :: ");
+    PDM_log_trace_array_long(face_per_block_offset, n_domain+1, "face_per_block_offset :: ");
+    PDM_log_trace_array_long(vtx_per_block_offset,  n_domain+1, "vtx_per_block_offset :: ");
     PDM_log_trace_array_long(*dextract_face_id, n_face_join, "dextract_face_id :: ");
   }
 
-  PDM_g_num_t **all_face_distribution = (PDM_g_num_t **) malloc(n_zone * sizeof(PDM_g_num_t*));
-  for (int i_zone = 0; i_zone < n_zone; i_zone++) {
-    all_face_distribution[i_zone] = PDM_compute_entity_distribution(comm, dn_face[i_zone]);
+  PDM_g_num_t **all_face_distribution = (PDM_g_num_t **) malloc(n_domain * sizeof(PDM_g_num_t*));
+  for (int i_domain = 0; i_domain < n_domain; i_domain++) {
+    all_face_distribution[i_domain] = PDM_compute_entity_distribution(comm, dn_face[i_domain]);
   }
 
   PDM_multi_block_to_part_t *mptb = PDM_multi_block_to_part_create(face_per_block_offset,
-                                                                   n_zone,
+                                                                   n_domain,
                                             (const PDM_g_num_t **) all_face_distribution,
                                             (const PDM_g_num_t **) dextract_face_id,
                                                                   &n_face_join,
                                                                    1,
                                                                    comm);
   //Prepare data to send : face -> vtx connectivity 
-  int         **face_vtx_n       = (int         **) malloc(n_zone * sizeof(int*));
-  PDM_g_num_t **face_vtx_shifted = (PDM_g_num_t **) malloc(n_zone * sizeof(PDM_g_num_t*));
-  for (int i_zone = 0; i_zone < n_zone; i_zone++) {
-    face_vtx_n[i_zone]       = (int         *) malloc(dn_face[i_zone] * sizeof(int));
-    face_vtx_shifted[i_zone] = (PDM_g_num_t *) malloc(dface_vtx_idx[i_zone][dn_face[i_zone]] * sizeof(PDM_g_num_t));
+  int         **face_vtx_n       = (int         **) malloc(n_domain * sizeof(int*));
+  PDM_g_num_t **face_vtx_shifted = (PDM_g_num_t **) malloc(n_domain * sizeof(PDM_g_num_t*));
+  for (int i_domain = 0; i_domain < n_domain; i_domain++) {
+    face_vtx_n[i_domain]       = (int         *) malloc(dn_face[i_domain] * sizeof(int));
+    face_vtx_shifted[i_domain] = (PDM_g_num_t *) malloc(dface_vtx_idx[i_domain][dn_face[i_domain]] * sizeof(PDM_g_num_t));
 
-    for (int i_face = 0; i_face < dn_face[i_zone]; i_face++) {
-      face_vtx_n[i_zone][i_face] = dface_vtx_idx[i_zone][i_face+1] - dface_vtx_idx[i_zone][i_face];
-      for (int j = dface_vtx_idx[i_zone][i_face]; j < dface_vtx_idx[i_zone][i_face+1]; j++) {
-        face_vtx_shifted[i_zone][j] = dface_vtx[i_zone][j] + vtx_per_block_offset[i_zone];
+    for (int i_face = 0; i_face < dn_face[i_domain]; i_face++) {
+      face_vtx_n[i_domain][i_face] = dface_vtx_idx[i_domain][i_face+1] - dface_vtx_idx[i_domain][i_face];
+      for (int j = dface_vtx_idx[i_domain][i_face]; j < dface_vtx_idx[i_domain][i_face+1]; j++) {
+        face_vtx_shifted[i_domain][j] = dface_vtx[i_domain][j] + vtx_per_block_offset[i_domain];
       }
     }
   }
@@ -636,10 +636,10 @@ static int _extract_and_shift_jn_faces
 
   PDM_multi_block_to_part_free(mptb);
 
-  for (int i_zone = 0; i_zone < n_zone; i_zone++) {
-    free(all_face_distribution[i_zone]);
-    free(face_vtx_n[i_zone]);
-    free(face_vtx_shifted[i_zone]);
+  for (int i_domain = 0; i_domain < n_domain; i_domain++) {
+    free(all_face_distribution[i_domain]);
+    free(face_vtx_n[i_domain]);
+    free(face_vtx_shifted[i_domain]);
   }
   free(all_face_distribution);
   free(face_vtx_n);
@@ -786,7 +786,7 @@ static int _match_internal_edges
     stride_two [i_int_edge] = 2;
     stride_four[i_int_edge] = 4;
     weight[i_int_edge] = 1.;
-    //Retrive zone id using group id of any of two faces
+    //Retrive domain id using group id of any of two faces
     data_send_edge_g_num[i_int_edge] = dedge_distrib[i_rank] + i_edge + 1;
 
     int key = 0;
@@ -1665,9 +1665,9 @@ static void _domain_interface_face_to_vertex
  int           *interfaces_size,         /* Number of face pairs in each interface */
  PDM_g_num_t  **interface_face_ids,      /* For each interface, list of pairs face,face_opp */
  int          **interface_domains_ids,   /* For each interface, list of domains dom,dom_opp */
- int            n_zone,                  /* Number of zones */
- int           *dn_vtx,                  /* Number of vertex in each zone (distributed) */
- int           *dn_face,                 /* Number of face in each zone (distributed) */
+ int            n_domain,                  /* Number of domains */
+ int           *dn_vtx,                  /* Number of vertex in each domain (distributed) */
+ int           *dn_face,                 /* Number of face in each domain (distributed) */
  int          **dface_vtx_idx,           /* Face->vertex connectivity for each domain */
  PDM_g_num_t  **dface_vtx,
  int           *vtx_interface_size,      /* [OUT] Number of vtx pairs in each interface */
@@ -1681,15 +1681,15 @@ static void _domain_interface_face_to_vertex
   PDM_MPI_Comm_size(comm, &n_rank);
   PDM_MPI_Comm_rank(comm, &i_rank);
 
-  PDM_g_num_t *face_per_block_offset = _per_block_offset(n_zone, dn_face, comm);
-  PDM_g_num_t *vtx_per_block_offset  = _per_block_offset(n_zone, dn_vtx,  comm);
+  PDM_g_num_t *face_per_block_offset = _per_block_offset(n_domain, dn_face, comm);
+  PDM_g_num_t *vtx_per_block_offset  = _per_block_offset(n_domain, dn_vtx,  comm);
 
   int         *face_vtx_both_idx = NULL;
   PDM_g_num_t *face_vtx_both     = NULL;
   int         *dextract_face_dom_id   = NULL;
   int         *dextract_face_group_id = NULL;
   PDM_g_num_t *dextract_face_join     = NULL;
-  int n_extr_face = _extract_and_shift_jn_faces(n_zone,
+  int n_extr_face = _extract_and_shift_jn_faces(n_domain,
                                                 dn_face,
                                                 dn_vtx,
                                                 n_interface,
@@ -1989,8 +1989,8 @@ static void _domain_interface_face_to_vertex
                    comm);
 
 
-  //Ultimate step : go back to original vtx numbering. All we have to do is retrieve zone
-  // and substract zone offset
+  //Ultimate step : go back to original vtx numbering. All we have to do is retrieve domain
+  // and substract domain offset
   for (int i_interface = 0; i_interface < n_interface; i_interface++) {
     for (int i_vtx = 0; i_vtx < 2*vtx_interface_size[i_interface]; i_vtx++) {
       interface_vtx_ids[i_interface][i_vtx] -= vtx_per_block_offset[interface_vtx_dom_ids[i_interface][i_vtx]];
@@ -2050,16 +2050,16 @@ static void _domain_interface_face_to_vertex
 PDM_domain_interface_t* PDM_domain_interface_create
 (
 const int                   n_interface,
-const int                   n_zone,
-PDM_domain_interface_mult_t multizone_interface,
+const int                   n_domain,
+PDM_domain_interface_mult_t multidomain_interface,
 PDM_ownership_t             ownership,
 PDM_MPI_Comm                comm
 )
 {
   PDM_domain_interface_t *dom_intrf = (PDM_domain_interface_t *) malloc (sizeof(PDM_domain_interface_t));
   dom_intrf->n_interface       = n_interface;
-  dom_intrf->n_zone            = n_zone;
-  dom_intrf->multizone_intrf   = multizone_interface;
+  dom_intrf->n_domain            = n_domain;
+  dom_intrf->multidomain_intrf   = multidomain_interface;
   dom_intrf->ownership         = ownership;
   dom_intrf->comm              = comm;
 
@@ -2120,7 +2120,7 @@ void PDM_domain_interface_translate_face2vtx
 
   // Simple case is not yet managed, copy to go back to full case
   int **_interface_dom_face = NULL;
-  if (dom_intrf->multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_NO) {
+  if (dom_intrf->multidomain_intrf == PDM_DOMAIN_INTERFACE_MULT_NO) {
     _interface_dom_face = (int **) malloc(dom_intrf->n_interface*sizeof(int*));
     for (int i_intrf = 0; i_intrf < dom_intrf->n_interface; i_intrf++) {
       _interface_dom_face[i_intrf] = (int *) malloc(2*dom_intrf->interface_dn_face[i_intrf]*sizeof(int));
@@ -2138,7 +2138,7 @@ void PDM_domain_interface_translate_face2vtx
                                    dom_intrf->interface_dn_face,
                                    dom_intrf->interface_ids_face,
                                    _interface_dom_face,
-                                   dom_intrf->n_zone,
+                                   dom_intrf->n_domain,
                                    dn_vtx,
                                    dn_face,
                                    dface_vtx_idx,
@@ -2151,7 +2151,7 @@ void PDM_domain_interface_translate_face2vtx
   dom_intrf->is_result[PDM_BOUND_TYPE_VTX] = 1;
 
   // Simple case is not yet managed, free working arrays
-  if (dom_intrf->multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_NO) {
+  if (dom_intrf->multidomain_intrf == PDM_DOMAIN_INTERFACE_MULT_NO) {
     for (int i_intrf = 0; i_intrf < dom_intrf->n_interface; i_intrf++) {
       for (int j = 0; j < dom_intrf->interface_dn_vtx[i_intrf]; j++) {
         assert(dom_intrf->interface_dom_vtx[i_intrf][2*j]   == dom_intrf->interface_dom_face[i_intrf][0]);
@@ -2223,7 +2223,7 @@ int PDM_domain_interface_get_as_graph
   }
 
   int graph_dn = _interface_to_graph(dom_intrf->n_interface,
-                                     dom_intrf->multizone_intrf,
+                                     dom_intrf->multidomain_intrf,
                                      interface_dn,
                                      interface_ids,
                                      interface_dom,
@@ -2244,23 +2244,23 @@ void PDM_domain_interface_free
     if (dom_intrf->is_result[PDM_BOUND_TYPE_VTX]) {
       for (int i_interface = 0; i_interface < dom_intrf->n_interface; i_interface++) {
         free(dom_intrf->interface_ids_vtx[i_interface]);
-        if (dom_intrf->multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_YES)
+        if (dom_intrf->multidomain_intrf == PDM_DOMAIN_INTERFACE_MULT_YES)
           free(dom_intrf->interface_dom_vtx[i_interface]);
       }
       free(dom_intrf->interface_dn_vtx);
       free(dom_intrf->interface_ids_vtx);
-      if (dom_intrf->multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_YES)
+      if (dom_intrf->multidomain_intrf == PDM_DOMAIN_INTERFACE_MULT_YES)
         free(dom_intrf->interface_dom_vtx);
     }
     if (dom_intrf->is_result[PDM_BOUND_TYPE_FACE]) {
       for (int i_interface = 0; i_interface < dom_intrf->n_interface; i_interface++) {
         free(dom_intrf->interface_ids_face[i_interface]);
-        if (dom_intrf->multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_YES)
+        if (dom_intrf->multidomain_intrf == PDM_DOMAIN_INTERFACE_MULT_YES)
           free(dom_intrf->interface_dom_face[i_interface]);
       }
       free(dom_intrf->interface_dn_face);
       free(dom_intrf->interface_ids_face);
-      if (dom_intrf->multizone_intrf == PDM_DOMAIN_INTERFACE_MULT_YES)
+      if (dom_intrf->multidomain_intrf == PDM_DOMAIN_INTERFACE_MULT_YES)
         free(dom_intrf->interface_dom_face);
     }
   }
@@ -2268,6 +2268,26 @@ void PDM_domain_interface_free
   free(dom_intrf);
 }
 
+
+// Dans partitionning algorithm
+void
+PDM_ddomain_interface_to_pdomain_interface
+(
+  PDM_domain_interface_t  *ddi,
+  int                      n_part,
+  int                     *pn_entity,
+  PDM_g_num_t            **entity_ln_to_gn
+)
+{
+  PDM_UNUSED(ddi);
+  PDM_UNUSED(n_part);
+  PDM_UNUSED(pn_entity);
+  PDM_UNUSED(entity_ln_to_gn);
+
+  // PDM_part_domain_interface* PDM_part_domain_interface_create();
+  // le part domain doit contenir égalment la notion de n_part ...
+
+}
 
 #ifdef __cplusplus
 }

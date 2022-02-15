@@ -125,7 +125,21 @@ int main(int argc, char *argv[])
    *  Set default values
    */
   int order = 1;
-  PDM_Mesh_nodal_elt_t t_elt = PDM_MESH_NODAL_TRIA3;
+  PDM_Mesh_nodal_elt_t t_elt = PDM_MESH_NODAL_TRIAHO;
+  //  1 -> bar
+  //  2 -> tria
+  //  3 -> quad
+  //  5 -> tetra
+  //  6 -> pyramid
+  //  7 -> prism
+  //  8 -> hexa
+  // 10 -> bar_ho
+  // 11 -> tria_ho
+  // 12 -> quad_ho
+  // 13 -> tetra_ho
+  // 14 -> pyramid_ho
+  // 15 -> prism_ho
+  // 16 -> hexa_ho
 
   /*
    *  Read args
@@ -138,24 +152,7 @@ int main(int argc, char *argv[])
 
   int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (t_elt, order);
 
-  int elt_dim = 0;
-  switch(t_elt) {
-  case PDM_MESH_NODAL_BAR2:
-    elt_dim = 1;
-    break;
-  case PDM_MESH_NODAL_TRIA3:
-  case PDM_MESH_NODAL_QUAD4:
-    elt_dim = 2;
-    break;
-  case PDM_MESH_NODAL_TETRA4:
-  case PDM_MESH_NODAL_PYRAMID5:
-  case PDM_MESH_NODAL_PRISM6:
-  case PDM_MESH_NODAL_HEXA8:
-    elt_dim = 3;
-    break;
-  default:
-    PDM_error(__FILE__, __LINE__, 0, "Invalid t_elt %d\n", (int) t_elt);
-  }
+  int elt_dim = PDM_Mesh_nodal_elt_dim_get(t_elt);
 
   int *ijk_to_ijk  = malloc (sizeof(int) * n_nodes * elt_dim);
   int *user_to_ijk = malloc (sizeof(int) * n_nodes * elt_dim);
@@ -163,12 +160,14 @@ int main(int argc, char *argv[])
 
   switch(t_elt) {
   case PDM_MESH_NODAL_BAR2:
+  case PDM_MESH_NODAL_BARHO:
     for (int i = 0; i <= order; i++) {
       ijk_to_ijk[idx++] = i;
     }
     break;
 
   case PDM_MESH_NODAL_TRIA3:
+  case PDM_MESH_NODAL_TRIAHO:
     for (int j = 0; j <= order; j++) {
       for (int i = 0; i <= order-j; i++) {
         ijk_to_ijk[idx++] = i;
@@ -178,6 +177,7 @@ int main(int argc, char *argv[])
     break;
 
   case PDM_MESH_NODAL_QUAD4:
+  case PDM_MESH_NODAL_QUADHO:
     for (int j = 0; j <= order; j++) {
       for (int i = 0; i <= order; i++) {
         ijk_to_ijk[idx++] = i;
@@ -187,6 +187,7 @@ int main(int argc, char *argv[])
     break;
 
   case PDM_MESH_NODAL_TETRA4:
+  case PDM_MESH_NODAL_TETRAHO:
     for (int k = 0; k <= order; k++) {
       for (int j = 0; j <= order-k; j++) {
         for (int i = 0; i <= order-j-k; i++) {
@@ -199,6 +200,7 @@ int main(int argc, char *argv[])
     break;
 
   case PDM_MESH_NODAL_PYRAMID5:
+  case PDM_MESH_NODAL_PYRAMIDHO:
     for (int k = 0; k <= order; k++) {
       for (int j = 0; j <= order-k; j++) {
         for (int i = 0; i <= order-k; i++) {
@@ -211,6 +213,7 @@ int main(int argc, char *argv[])
     break;
 
   case PDM_MESH_NODAL_PRISM6:
+  case PDM_MESH_NODAL_PRISMHO:
     for (int k = 0; k <= order; k++) {
       for (int j = 0; j <= order; j++) {
         for (int i = 0; i <= order-j; i++) {
@@ -223,6 +226,7 @@ int main(int argc, char *argv[])
     break;
 
   case PDM_MESH_NODAL_HEXA8:
+  case PDM_MESH_NODAL_HEXAHO:
     for (int k = 0; k <= order; k++) {
       for (int j = 0; j <= order; j++) {
         for (int i = 0; i <= order; i++) {

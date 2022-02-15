@@ -1706,7 +1706,7 @@ PDM_part_to_part_create
 
   /* 1 - gnum_location in 2 1D array part1_to_part2_rank part1_to_part2_part   part1_to_part2_part elt*/
 
-  PDM_gnum_location_t *gl = PDM_gnum_location_create (n_part2, n_part1, comm);
+  PDM_gnum_location_t *gl = PDM_gnum_location_create (n_part2, n_part1, comm, PDM_OWNERSHIP_KEEP);
 
   for (int i = 0; i < n_part2; i++) {
     // PDM_log_trace_array_long(gnum_elt2[i], n_elt2[i]  , "gnum_elt2::");
@@ -1779,7 +1779,7 @@ PDM_part_to_part_create
     }
   }
 
-  PDM_gnum_location_free (gl, 0);
+  PDM_gnum_location_free (gl);
 
   for (int i = 0; i < n_rank; i++) {
     idx_part1_to_part2_rank[i+1] = n_part1_to_part2_rank[i] + 

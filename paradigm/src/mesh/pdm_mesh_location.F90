@@ -90,9 +90,10 @@ module pdm_mesh_location
     !!
     !!
 
-    function PDM_mesh_location_create_cf (mesh_nature, &
+    function PDM_mesh_location_create_cf (mesh_nature,   &
                                           n_point_cloud, &
-                                          comm) &
+                                          comm,          & 
+                                          owner ) &
                                           result(mloc) &
       bind (c, name = 'PDM_mesh_location_create')
 
@@ -103,6 +104,7 @@ module pdm_mesh_location
       integer(c_int), value :: mesh_nature
       integer(c_int), value :: n_point_cloud
       integer(c_int), value :: comm
+      integer(c_int), value :: owner  
 
       type(c_ptr)           :: mloc
 
@@ -703,8 +705,7 @@ module pdm_mesh_location
     !!
     !!
 
-    subroutine PDM_mesh_location_free (mloc, &
-                                       partial) &
+    subroutine PDM_mesh_location_free (mloc)&
      bind (c, name = 'PDM_mesh_location_free')
 
       use iso_c_binding
@@ -713,7 +714,6 @@ module pdm_mesh_location
 
 
       type (c_ptr), value :: mloc
-      integer(c_int), value :: partial
 
     end subroutine PDM_mesh_location_free
 
@@ -774,7 +774,8 @@ module pdm_mesh_location
   subroutine PDM_mesh_location_create_ (mloc,          &
                                         mesh_nature,   &
                                         n_point_cloud, &
-                                        f_comm)
+                                        f_comm,        &
+                                        owner)
 
   use iso_c_binding
 
@@ -783,21 +784,25 @@ module pdm_mesh_location
   integer        :: mesh_nature
   integer        :: n_point_cloud
   integer        :: f_comm
+  integer        :: owner
 
   type(c_ptr)    :: mloc
 
   integer(c_int) :: c_mesh_nature
   integer(c_int) :: c_n_point_cloud
   integer(c_int) :: c_comm
+  integer(c_int) :: c_owner
 
   c_comm = PDM_MPI_Comm_f2c(f_comm)
 
   c_mesh_nature   = mesh_nature
   c_n_point_cloud = n_point_cloud
+  c_owner         = owner
 
   mloc = PDM_mesh_location_create_cf(c_mesh_nature,   &
                                      c_n_point_cloud, &
-                                     c_comm)
+                                     c_comm,          &
+                                     c_owner)
 
   end subroutine PDM_mesh_location_create_
 

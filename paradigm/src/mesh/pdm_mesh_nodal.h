@@ -52,6 +52,13 @@ typedef enum {
   PDM_MESH_NODAL_PRISM6,
   PDM_MESH_NODAL_HEXA8,
   PDM_MESH_NODAL_POLY_3D,
+  PDM_MESH_NODAL_BARHO,
+  PDM_MESH_NODAL_TRIAHO,
+  PDM_MESH_NODAL_QUADHO,
+  PDM_MESH_NODAL_TETRAHO,
+  PDM_MESH_NODAL_PYRAMIDHO,
+  PDM_MESH_NODAL_PRISMHO,
+  PDM_MESH_NODAL_HEXAHO,
   PDM_MESH_NODAL_N_ELEMENT_TYPES
 
 } PDM_Mesh_nodal_elt_t;
@@ -67,6 +74,21 @@ typedef struct _PDM_Mesh_nodal_t PDM_Mesh_nodal_t;
  * Public function interfaces
  *============================================================================*/
 
+/**
+ *
+ * \brief Get the dimension of an element
+ *
+ * \param[in]  type    Element type
+ *
+ * \return     Dimension of the element
+ *
+ */
+
+int
+PDM_Mesh_nodal_elt_dim_get
+(
+ PDM_Mesh_nodal_elt_t type
+ );
 
 int
 PDM_Mesh_nodal_is_2D_element
@@ -95,7 +117,7 @@ int
 PDM_Mesh_nodal_n_vtx_elt_get
 (
   PDM_Mesh_nodal_elt_t type,
-  const int order
+  const int            order
 );
 
 /**

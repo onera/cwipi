@@ -34,6 +34,7 @@ typedef struct _pdm_mesh_location_t PDM_mesh_location_t;
  * \param [in]   mesh_nature    Nature of the mesh
  * \param [in]   n_point_cloud  Number of point cloud
  * \param [in]   comm           MPI communicator
+ * \param [in]   owner          Ownership
  *
  * \return     Pointer to \ref PDM_mesh_location object
  *
@@ -43,8 +44,9 @@ PDM_mesh_location_t*
 PDM_mesh_location_create
 (
  const PDM_mesh_nature_t mesh_nature,
- const int n_point_cloud,
- const PDM_MPI_Comm comm
+ const int               n_point_cloud,
+ const PDM_MPI_Comm      comm,
+ const PDM_ownership_t   owner
 );
 
 
@@ -451,17 +453,14 @@ PDM_mesh_location_points_in_elt_get
  *
  * \brief Free a mesh location structure
  *
- * \param [in]  id       Pointer to \ref PDM_mesh_location object
- * \param [in]  partial  if partial is equal to 0, all data are removed.
- *                       Otherwise, results are kept.
+ * \param [in]  ml       Pointer to \ref PDM_mesh_location object
  *
  */
 
 void
 PDM_mesh_location_free
 (
-       PDM_mesh_location_t  *ml,
- const int                   partial
+ PDM_mesh_location_t  *ml
 );
 
 

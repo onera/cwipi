@@ -143,7 +143,8 @@ char *argv[]
                                                                      sizeof(int),
                                                                      PDM_operator_compare_connectivity,
                                                                      PDM_operator_equal_connectivity,
-                                                                     PDM_MPI_COMM_WORLD);
+                                                                     PDM_MPI_COMM_WORLD,
+                                                                     PDM_OWNERSHIP_KEEP);
 
   for(int i_part = 0; i_part < n_part; ++i_part){
     PDM_gnum_set_hash_values(gnum_fhv_id,
@@ -192,7 +193,7 @@ char *argv[]
   /*
    * Free
    */
-  PDM_gnum_from_hv_free(gnum_fhv_id, 0);
+  PDM_gnum_from_hv_free(gnum_fhv_id);
   free(part_stri);
   free(part_data);
   free(n_elmts);

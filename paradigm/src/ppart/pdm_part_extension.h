@@ -72,6 +72,58 @@ PDM_part_extension_compute
   PDM_part_extension_t *part_ext
 );
 
+
+
+// void
+// PDM_part_extension_set_part_part_bound
+// (
+//   PDM_part_extension_t *part_ext,
+//   int                   i_domain,
+//   int                   i_part,
+//   PDM_bound_type_t      bound_type,
+//   int                  *bound_proc_idx,
+//   int                  *bound_part_idx,
+//   int                  *bound
+// )
+// {
+//   // Caratère optionelle sympa, si l'utilisateur
+
+// }
+
+// void
+// PDM_part_extension_set_part
+// (
+//   PDM_part_extension_t *part_ext,
+//   int                   i_domain,
+//   int                   i_part,
+//   int                   n_cell,
+//   int                   n_face,
+//   int                   n_face_part_bound,
+//   int                   n_face_group,
+//   int                   n_edge,
+//   int                   n_vtx,
+//   int                  *cell_face_idx,
+//   int                  *cell_face,
+//   int                  *face_edge_idx,
+//   int                  *face_edge,
+//   int                  *face_vtx_idx,
+//   int                  *face_vtx,
+//   int                  *edge_vtx,
+//   int                  *face_bound_idx,
+//   int                  *face_bound,
+//   int                  *edge_bound_idx,
+//   int                  *edge_bound,
+//   int                  *vtx_bound_idx,
+//   int                  *vtx_bound,
+//   PDM_g_num_t          *cell_ln_to_gn,
+//   PDM_g_num_t          *face_ln_to_gn,
+//   PDM_g_num_t          *edge_ln_to_gn,
+//   PDM_g_num_t          *vtx_ln_to_gn,
+//   PDM_g_num_t          *face_group_ln_to_gn,
+//   double               *vtx_coord
+// );
+
+
 void
 PDM_part_extension_set_part
 (
@@ -109,6 +161,52 @@ PDM_part_extension_set_part
   PDM_g_num_t          *face_group_ln_to_gn,
   double               *vtx_coord
 );
+
+
+// void
+// PDM_part_extension_part_domain_interface_shared_set
+// (
+//   PDM_part_extension_t      *part_ext,
+//   PDM_part_domain_interface *pdi
+// );
+
+// void
+// PDM_part_extension_n_domain_interface_set
+// (
+//   PDM_part_extension_t         *part_ext,
+//   const int                     n_interface,
+//   PDM_domain_interface_mult_t   multidomain_interface
+// );
+
+// void
+// PDM_part_extension_domain_interface_set
+// (
+//   PDM_part_extension_t         *part_ext,
+//   int                           i_interface,
+//   PDM_bound_type_t              interface_kind,
+//   int                           n_pair,
+//   PDM_g_num_t                  *interface_ids,
+//   int                          *interface_dom
+// );
+
+// void
+// PDM_part_extension_domain_interface_translation_set
+// (
+//         PDM_part_extension_t *part_ext,
+//         int                   i_interface,
+//   const double               *vect
+// );
+
+// void
+// PDM_part_extension_domain_interface_rotation_set
+// (
+//         PDM_part_extension_t    *part_ext,
+//   const int                      i_interface,
+//   const double                  *direction,
+//   const double                  *center,
+//   const double                   angle
+// );
+
 
 void
 PDM_part_extension_free

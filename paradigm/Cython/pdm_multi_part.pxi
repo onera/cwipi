@@ -6,129 +6,131 @@ cdef extern from "pdm_multipart.h":
     ctypedef enum PDM_part_size_t:
         PDM_PART_SIZE_HOMONEGEOUS   = 1
         PDM_PART_SIZE_HETEROGENEOUS = 2
+    ctypedef struct PDM_multipart_t:
+        pass
 
     # -> PPART bases functions
     # ------------------------------------------------------------------
     # MPI_Comm      comm,
-    int PDM_multipart_create(int              n_zone,
-                             int*             n_part,
-                             PDM_bool_t       merge_blocks,
-                             PDM_split_dual_t split_method,
-                             PDM_part_size_t  part_size_method,
-                             double*          part_fraction,
-                             PDM_MPI_Comm     comm,
-                             PDM_ownership_t  owner)
+    PDM_multipart_t* PDM_multipart_create(int              n_zone,
+                                          int*             n_part,
+                                          PDM_bool_t       merge_blocks,
+                                          PDM_split_dual_t split_method,
+                                          PDM_part_size_t  part_size_method,
+                                          double*          part_fraction,
+                                          PDM_MPI_Comm     comm,
+                                          PDM_ownership_t  owner)
 
     # ------------------------------------------------------------------
-    void PDM_multipart_register_block(int          mpart_id,
-                                      int          zone_gid,
-                                      PDM_dmesh_t *dmesh)
+    void PDM_multipart_register_block(PDM_multipart_t *mtp,
+                                      int              zone_gid,
+                                      PDM_dmesh_t     *dmesh)
 
     # ------------------------------------------------------------------
-    void PDM_multipart_register_dmesh_nodal(int          mpart_id,
-                                            int          zone_gid,
+    void PDM_multipart_register_dmesh_nodal(PDM_multipart_t   *mtp,
+                                            int                zone_gid,
                                             PDM_dmesh_nodal_t *dmesh)
 
     # ------------------------------------------------------------------
-    void PDM_multipart_register_joins(int        mpart_id,
-                                      int        n_total_joins,
-                                      int*       matching_join_array)
+    void PDM_multipart_register_joins(PDM_multipart_t *mtp,
+                                      int              n_total_joins,
+                                      int*             matching_join_array)
 
     # ------------------------------------------------------------------
-    void PDM_multipart_set_reordering_options(const int   mpart_id,
-                                              const int   i_zone,
-                                              const char *renum_cell_method,
-                                              const int  *renum_cell_properties,
-                                              const char *renum_face_method)
+    void PDM_multipart_set_reordering_options(      PDM_multipart_t *mtp,
+                                              const int              i_zone,
+                                              const char            *renum_cell_method,
+                                              const int             *renum_cell_properties,
+                                              const char            *renum_face_method)
 
     # ------------------------------------------------------------------
-    void PDM_multipart_run_ppart(int id)
+    void PDM_multipart_run_ppart(PDM_multipart_t *mtp)
 
     # ------------------------------------------------------------------
-    void PDM_multipart_part_dim_get(int   mpart_id,
-                                    int   zone_gid,
-                                    int   ipart,
-                                    int  *n_section,
-                                    int **n_elt,
-                                    int  *n_cell,
-                                    int  *n_face,
-                                    int  *n_face_part_bound,
-                                    int  *nVtx,
-                                    int  *n_proc,
-                                    int  *nt_part,
-                                    int  *scell_face,
-                                    int  *sface_vtx,
-                                    int  *s_face_bound,
-                                    int  *n_face_bound,
-                                    int  *s_face_join,
-                                    int  *n_face_join)
+    void PDM_multipart_part_dim_get(PDM_multipart_t  *mtp,
+                                    int               zone_gid,
+                                    int               ipart,
+                                    int              *n_section,
+                                    int             **n_elt,
+                                    int              *n_cell,
+                                    int              *n_face,
+                                    int              *n_face_part_bound,
+                                    int              *nVtx,
+                                    int              *n_proc,
+                                    int              *nt_part,
+                                    int              *scell_face,
+                                    int              *sface_vtx,
+                                    int              *s_face_bound,
+                                    int              *n_face_bound,
+                                    int              *s_face_join,
+                                    int              *n_face_join)
 
     # ------------------------------------------------------------------
-    void PDM_multipart_part_val_get(int            mpart_id,
-                                    int            zone_gid,
-                                    int            ipart,
-                                    int         ***elt_vtx_idx,
-                                    int         ***elt_vtx,
-                                    PDM_g_num_t ***elt_section_ln_to_gn,
-                                    int          **cell_tag,
-                                    int          **cell_face_idx,
-                                    int          **cell_face,
-                                    PDM_g_num_t  **cell_ln_to_gn,
-                                    int          **face_tag,
-                                    int          **face_cell,
-                                    int          **face_vtx_idx,
-                                    int          **face_vtx,
-                                    PDM_g_num_t  **face_ln_to_gn,
-                                    int          **face_part_bound_proc_idx,
-                                    int          **face_part_bound_part_idx,
-                                    int          **face_part_bound,
-                                    int          **vtx_tag,
-                                    double       **vtx,
-                                    PDM_g_num_t  **vtx_ln_to_gn,
-                                    int          **face_bound_idx,
-                                    int          **face_bound,
-                                    PDM_g_num_t  **face_bound_ln_to_gn,
-                                    int          **face_join_idx,
-                                    int          **face_join,
-                                    PDM_g_num_t  **face_join_ln_to_gn)
+    void PDM_multipart_part_val_get(PDM_multipart_t   *mtp,
+                                    int                zone_gid,
+                                    int                ipart,
+                                    int             ***elt_vtx_idx,
+                                    int             ***elt_vtx,
+                                    PDM_g_num_t     ***elt_section_ln_to_gn,
+                                    int              **cell_tag,
+                                    int              **cell_face_idx,
+                                    int              **cell_face,
+                                    PDM_g_num_t      **cell_ln_to_gn,
+                                    int              **face_tag,
+                                    int              **face_cell,
+                                    int              **face_vtx_idx,
+                                    int              **face_vtx,
+                                    PDM_g_num_t      **face_ln_to_gn,
+                                    int              **face_part_bound_proc_idx,
+                                    int              **face_part_bound_part_idx,
+                                    int              **face_part_bound,
+                                    int              **vtx_tag,
+                                    double           **vtx,
+                                    PDM_g_num_t      **vtx_ln_to_gn,
+                                    int              **face_bound_idx,
+                                    int              **face_bound,
+                                    PDM_g_num_t      **face_bound_ln_to_gn,
+                                    int              **face_join_idx,
+                                    int              **face_join,
+                                    PDM_g_num_t      **face_join_ln_to_gn)
 
     # ------------------------------------------------------------------
-    void PDM_multipart_get_part_mesh_nodal(const int   mpart_id,
+    void PDM_multipart_get_part_mesh_nodal(PDM_multipart_t   *mtp,
                                            const int   i_zone,
                                            PDM_part_mesh_nodal_t **pmesh_nodal)
 
     # ------------------------------------------------------------------
-    void PDM_multipart_part_graph_comm_vtx_dim_get(int   mpart_id,
-                                                   int   i_zone,
-                                                   int   i_part,
-                                                   int  *n_vtx_part_bound)
+    void PDM_multipart_part_graph_comm_vtx_dim_get(PDM_multipart_t   *mtp,
+                                                   int                i_zone,
+                                                   int                i_part,
+                                                   int               *n_vtx_part_bound)
 
     # ------------------------------------------------------------------
-    void PDM_multipart_part_graph_comm_vtx_data_get(int            mpart_id,
-                                                    int            i_zone,
-                                                    int            i_part,
-                                                    int          **vtx_part_bound_proc_idx,
-                                                    int          **vtx_part_bound_part_idx,
-                                                    int          **vtx_part_bound)
+    void PDM_multipart_part_graph_comm_vtx_data_get(PDM_multipart_t   *mtp,
+                                                    int                i_zone,
+                                                    int                i_part,
+                                                    int              **vtx_part_bound_proc_idx,
+                                                    int              **vtx_part_bound_part_idx,
+                                                    int              **vtx_part_bound)
 
     # ------------------------------------------------------------------
-    void PDM_multipart_part_color_get(int            mpart_id,
-                                      int            zone_gid,
-                                      int            ipart,
-                                      int          **cell_color,
-                                      int          **face_color,
-                                      int          **face_hp_color,
-                                      int          **thread_color,
-                                      int          **hyper_plane_color)
+    void PDM_multipart_part_color_get(PDM_multipart_t   *mtp,
+                                      int                zone_gid,
+                                      int                ipart,
+                                      int              **cell_color,
+                                      int              **face_color,
+                                      int              **face_hp_color,
+                                      int              **thread_color,
+                                      int              **hyper_plane_color)
 
     # ------------------------------------------------------------------
-    void PDM_multipart_part_ghost_infomation_get(int            mpart_id,
-                                                 int            zone_gid,
-                                                 int            ipart,
-                                                 int          **vtx_ghost_information)
+    void PDM_multipart_part_ghost_infomation_get(PDM_multipart_t *mtp,
+                                                 int              zone_gid,
+                                                 int              ipart,
+                                                 int             **vtx_ghost_information)
 
     # ------------------------------------------------------------------
-    int PDM_multipart_part_connectivity_get(int                       mpart_id,
+    int PDM_multipart_part_connectivity_get(PDM_multipart_t          *mtp,
                                             int                       i_zone,
                                             int                       i_part,
                                             PDM_connectivity_type_t   connectivity_type,
@@ -136,14 +138,14 @@ cdef extern from "pdm_multipart.h":
                                             int                     **connect_idx,
                                             PDM_ownership_t           ownership);
     # ------------------------------------------------------------------
-    int PDM_multipart_part_ln_to_gn_get(int                   mpart_id,
+    int PDM_multipart_part_ln_to_gn_get(PDM_multipart_t      *mtp,
                                         int                   i_zone,
                                         int                   i_part,
                                         PDM_mesh_entities_t   entity_type,
                                         PDM_g_num_t         **entity_ln_to_gn,
                                         PDM_ownership_t       ownership);
     # ------------------------------------------------------------------
-    int PDM_multipart_partition_color_get(int                   mpart_id,
+    int PDM_multipart_partition_color_get(PDM_multipart_t      *mtp,
                                           int                   i_zone,
                                           int                   i_part,
                                           PDM_mesh_entities_t   entity_type,
@@ -151,14 +153,14 @@ cdef extern from "pdm_multipart.h":
                                           PDM_ownership_t       ownership);
 
     # ------------------------------------------------------------------
-    void PDM_multipart_time_get(int       mpart_id,
-                                int       zone_gid,
-                                double  **elapsed,
-                                double  **cpu,
-                                double  **cpu_user,
-                                double  **cpu_sys)
+    void PDM_multipart_time_get(PDM_multipart_t      *mtp,
+                                int                   zone_gid,
+                                double              **elapsed,
+                                double              **cpu,
+                                double              **cpu_user,
+                                double              **cpu_sys)
     # ------------------------------------------------------------------
-    void PDM_multipart_free(int id)
+    void PDM_multipart_free(PDM_multipart_t      *mtp)
 
 # ------------------------------------------------------------------
 cdef class MultiPart:
@@ -166,7 +168,7 @@ cdef class MultiPart:
        MultiPpart
     """
     # > For Ppart
-    cdef int _mpart_id
+    cdef PDM_multipart_t* _mtp
     # ------------------------------------------------------------------
     def __cinit__(self,
                   int                                           n_zone,
@@ -194,7 +196,7 @@ cdef class MultiPart:
           part_fraction_data = <double *> part_fraction.data
 
         # -> Create PPART
-        self._mpart_id = PDM_multipart_create(n_zone,
+        self._mtp = PDM_multipart_create(n_zone,
                                               <int*> n_part.data,
                                               <PDM_bool_t> merge_blocks,
                                               split_method,
@@ -205,14 +207,14 @@ cdef class MultiPart:
 
     # ------------------------------------------------------------------
     def __dealloc__(self):
-        PDM_multipart_free(self._mpart_id)
+        PDM_multipart_free(self._mtp)
 
     # ------------------------------------------------------------------
     def multipart_register_block(self, int zone_gid,
                                        DMesh dm): # DMesh = DistributedMeshCaspule or DistributedMesh
         """
         """
-        PDM_multipart_register_block(self._mpart_id,
+        PDM_multipart_register_block(self._mtp,
                                      zone_gid,
                                      dm._dm)
 
@@ -221,7 +223,7 @@ cdef class MultiPart:
                                        DistributedMeshNodal dmn): # DMesh = DistributedMeshCaspule or DistributedMesh
         """
         """
-        PDM_multipart_register_dmesh_nodal(self._mpart_id,
+        PDM_multipart_register_dmesh_nodal(self._mtp,
                                            zone_gid,
                                            dmn.dmn)
 
@@ -230,7 +232,7 @@ cdef class MultiPart:
                                  NPY.ndarray[NPY.int32_t, mode='c', ndim=1] matching_join):
         """
         """
-        PDM_multipart_register_joins(       self._mpart_id,
+        PDM_multipart_register_joins(       self._mtp,
                                             n_total_joins,
                                      <int*> matching_join.data)
     # ------------------------------------------------------------------
@@ -245,7 +247,7 @@ cdef class MultiPart:
         renum_properties_cell_data = NULL
       else:
         renum_properties_cell_data = <int *> renum_properties_cell.data
-      PDM_multipart_set_reordering_options(self._mpart_id,
+      PDM_multipart_set_reordering_options(self._mtp,
                                            i_zone,
                                            renum_cell_method,
                                            renum_properties_cell_data,
@@ -254,7 +256,7 @@ cdef class MultiPart:
     def multipart_run_ppart(self):
         """
         """
-        PDM_multipart_run_ppart(self._mpart_id)
+        PDM_multipart_run_ppart(self._mtp)
 
     # ------------------------------------------------------------------
     def multipart_dim_get(self, int ipart, int zone_gid):
@@ -280,7 +282,7 @@ cdef class MultiPart:
         cdef int n_section
         # ************************************************************************
 
-        PDM_multipart_part_dim_get(self._mpart_id,
+        PDM_multipart_part_dim_get(self._mtp,
                                    zone_gid,
                                    ipart,
                                    &n_section,
@@ -358,11 +360,11 @@ cdef class MultiPart:
         cdef PDM_g_num_t **elt_section_ln_to_gn
         # ************************************************************************
 
-        # dims = self.part_dim_get(self._mpart_id, ipart)
+        # dims = self.part_dim_get(self._mtp, ipart)
         dims = self.multipart_dim_get(ipart, zone_gid)
 
         # -> Call PPART to get info
-        PDM_multipart_part_val_get(self._mpart_id,
+        PDM_multipart_part_val_get(self._mtp,
                                    zone_gid,
                                    ipart,
                                    &elt_vtx_idx,
@@ -685,7 +687,7 @@ cdef class MultiPart:
     # ------------------------------------------------------------------
     def multipart_part_mesh_nodal_get(self, int zone_gid):
         cdef PDM_part_mesh_nodal_t *pmesh_nodal
-        PDM_multipart_get_part_mesh_nodal(self._mpart_id, zone_gid, &pmesh_nodal)
+        PDM_multipart_get_part_mesh_nodal(self._mtp, zone_gid, &pmesh_nodal)
         if pmesh_nodal == NULL:
           return None
         else:
@@ -702,7 +704,7 @@ cdef class MultiPart:
         cdef int n_vtx_part_bound
         # ************************************************************************
 
-        PDM_multipart_part_graph_comm_vtx_dim_get(self._mpart_id,
+        PDM_multipart_part_graph_comm_vtx_dim_get(self._mtp,
                                                   zone_gid,
                                                   ipart,
                                                   &n_vtx_part_bound)
@@ -721,12 +723,12 @@ cdef class MultiPart:
         cdef int          *vtx_part_bound_part_idx
         # ************************************************************************
 
-        # dims = self.part_dim_get(self._mpart_id, ipart)
+        # dims = self.part_dim_get(self._mtp, ipart)
         dims    = self.multipart_dim_get(ipart, zone_gid)
         dims_gc = self.multipart_graph_comm_vtx_dim_get(ipart, zone_gid)
 
         # -> Call PPART to get info
-        PDM_multipart_part_graph_comm_vtx_data_get(self._mpart_id,
+        PDM_multipart_part_graph_comm_vtx_data_get(self._mtp,
                                                    zone_gid,
                                                    ipart,
                                                    &vtx_part_bound_proc_idx,
@@ -786,11 +788,11 @@ cdef class MultiPart:
         cdef int          *hyper_plane_color
         # ************************************************************************
 
-        # dims = self.part_dim_get(self._mpart_id, ipart)
+        # dims = self.part_dim_get(self._mtp, ipart)
         dims = self.multipart_dim_get(ipart, zone_gid)
 
         # -> Call PPART to get info
-        PDM_multipart_part_color_get(self._mpart_id,
+        PDM_multipart_part_color_get(self._mtp,
                                      zone_gid,
                                      ipart,
                                      &cell_color,
@@ -873,11 +875,11 @@ cdef class MultiPart:
         cdef int          *vtx_ghost_information
         # ************************************************************************
 
-        # dims = self.part_dim_get(self._mpart_id, ipart)
+        # dims = self.part_dim_get(self._mtp, ipart)
         dims = self.multipart_dim_get(ipart, zone_gid)
 
         # -> Call PPART to get info
-        PDM_multipart_part_ghost_infomation_get(self._mpart_id,
+        PDM_multipart_part_ghost_infomation_get(self._mtp,
                                                 zone_gid,
                                                 ipart,
                                                 &vtx_ghost_information)
@@ -908,7 +910,7 @@ cdef class MultiPart:
         # ************************************************************************
 
         # -> Call PPART to get info
-        n_entity1 = PDM_multipart_part_connectivity_get(self._mpart_id,
+        n_entity1 = PDM_multipart_part_connectivity_get(self._mtp,
                                                         zone_gid,
                                                         ipart,
                                                         connectivity_type,
@@ -956,7 +958,7 @@ cdef class MultiPart:
         # ************************************************************************
 
         # -> Call PPART to get info
-        n_entity1 = PDM_multipart_part_ln_to_gn_get(self._mpart_id,
+        n_entity1 = PDM_multipart_part_ln_to_gn_get(self._mtp,
                                                     zone_gid,
                                                     ipart,
                                                     entity_type,
@@ -987,7 +989,7 @@ cdef class MultiPart:
         # ************************************************************************
 
         # -> Call PPART to get info
-        n_entity1 = PDM_multipart_partition_color_get(self._mpart_id,
+        n_entity1 = PDM_multipart_partition_color_get(self._mtp,
                                                       zone_gid,
                                                       ipart,
                                                       entity_type,
@@ -1019,7 +1021,7 @@ cdef class MultiPart:
         cdef double *cpu_sys
         # ************************************************************************
 
-        PDM_multipart_time_get(self._mpart_id, zone_gid, &elapsed, &cpu, &cpu_user, &cpu_sys)
+        PDM_multipart_time_get(self._mtp, zone_gid, &elapsed, &cpu, &cpu_user, &cpu_sys)
 
         d_elapsed = {'total'              : elapsed[0],
                      'building graph'     : elapsed[1],
@@ -1064,7 +1066,7 @@ cdef class MultiPart:
     #     cdef int      bound_part_faces_sum
     #     # ************************************************************************
 
-    #     PDM_multipart_stat_get(self._mpart_id,
+    #     PDM_multipart_stat_get(self._mtp,
     #                            zone_gid,
     #                            &cells_average,
     #                            &cells_median,

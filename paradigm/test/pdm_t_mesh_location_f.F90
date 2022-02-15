@@ -310,7 +310,8 @@ program testf
   call PDM_mesh_location_create (ml, &
                                  PDM_MESH_NATURE_MESH_SETTED, &
                                  n_point_cloud, &
-                                 MPI_COMM_WORLD)
+                                 MPI_COMM_WORLD, &
+                                 PDM_OWNERSHIP_KEEP)
 
   !
   ! Set the local number partition for any point cloud
@@ -410,7 +411,7 @@ program testf
 
   call PDM_mesh_location_dump_times (ml)
 
-  call PDM_mesh_location_free (ml, 0)
+  call PDM_mesh_location_free (ml)
 
   deallocate(coords_cloud)
   deallocate(gnum_cloud)

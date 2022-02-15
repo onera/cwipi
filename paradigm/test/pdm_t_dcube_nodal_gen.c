@@ -325,19 +325,32 @@ _dmesh_nodal_dump_vtk
      */
     char filename[999];
     sprintf(filename, "%s_section_%2.2d_%2.2d.vtk", filename_patter, i_section, i_rank);
-    PDM_vtk_write_std_elements_ho(filename,
-                                  order,
-                                  pn_vtx,
-                                  pvtx_coord_out,
-                                  pvtx_ln_to_gn,
-                                  t_elt,
-                                  n_elt,
-                                  pcell_vtx,
-                                  delmt_ln_to_gn,
-                                  n_field,
-                (const char   **) &field_name,
-                (const double **) field);
-
+    if (order == 1) {
+      PDM_vtk_write_std_elements_double(filename,
+                                        pn_vtx,
+                                        pvtx_coord_out,
+                                        pvtx_ln_to_gn,
+                                        t_elt,
+                                        n_elt,
+                                        pcell_vtx,
+                                        delmt_ln_to_gn,
+                                        n_field,
+                                        (const char   **) &field_name,
+                                        (const double **) field);
+    } else {
+      PDM_vtk_write_std_elements_ho(filename,
+                                    order,
+                                    pn_vtx,
+                                    pvtx_coord_out,
+                                    pvtx_ln_to_gn,
+                                    t_elt,
+                                    n_elt,
+                                    pcell_vtx,
+                                    delmt_ln_to_gn,
+                                    n_field,
+                                    (const char   **) &field_name,
+                                    (const double **) field);
+    }
     free(tmp_pvtx_coord);
     free(pvtx_ln_to_gn);
     free(pcell_vtx_idx);
@@ -510,7 +523,7 @@ _bezier_matrix_bar
  const int order
  )
 {
-  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_BAR2, order);
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_BARHO, order);
 
   double **b = malloc (sizeof(double *) * n_nodes);
   for (int i = 0; i < n_nodes; i++) {
@@ -554,6 +567,39 @@ _bezier_matrix_bar
 }
 
 
+static double **
+_bezier_matrix_quad
+(
+ const int order
+ )
+{
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_QUADHO, order);
+
+  double **A = _bezier_matrix_bar(order);
+
+  double **B = malloc (sizeof(double *) * n_nodes);
+  for (int i = 0; i < n_nodes; i++) {
+    B[i] = malloc (sizeof(double) * n_nodes);
+  }
+
+  for (int i = 0; i <= order; i++) {
+    for (int j = 0; j <= order; j++) {
+      int k = i + (order+1)*j;
+      for (int ii = 0; ii <= order; ii++) {
+        for (int jj = 0; jj <= order; jj++) {
+          int l = ii + (order+1)*jj;
+          B[k][l] = A[i][ii] * A[j][jj];
+        }
+      }
+    }
+  }
+  for (int i = 0; i <= order; i++) {
+    free (A[i]);
+  }
+  free (A);
+  return B;
+}
+
 
 static double **
 _bezier_matrix_tria
@@ -562,7 +608,7 @@ _bezier_matrix_tria
  )
 {
 #define ij2idx(i, j) ((i) + (j)*(order + 1 - (j)))
-  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_TRIA3, order);
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_TRIAHO, order);
 
   double **b = malloc (sizeof(double *) * n_nodes);
   for (int i = 0; i < n_nodes; i++) {
@@ -634,7 +680,7 @@ _lagrange_to_bezier_bar
  double    *bez
  )
 {
-  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_BAR2, order);
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_BARHO, order);
 
   if (order == 1) {
     memcpy (bez, lag, sizeof(double) * n_nodes * 3);
@@ -723,7 +769,7 @@ _lagrange_to_bezier_tria
  double    *bez
  )
 {
-  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_TRIA3, order);
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_TRIAHO, order);
 
   if (order == 1) {
     memcpy (bez, lag, sizeof(double) * n_nodes * 3);
@@ -847,7 +893,7 @@ _lagrange_to_bezier_quad
  double    *bez
  )
 {
-  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_QUAD4, order);
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_QUADHO, order);
 
   if (order == 1) {
     memcpy (bez, lag, sizeof(double) * n_nodes * 3);
@@ -965,28 +1011,7 @@ _lagrange_to_bezier_quad
   }
 
   else {
-    double **A = _bezier_matrix_bar(order);
-
-    double **B = malloc (sizeof(double *) * n_nodes);
-    for (int i = 0; i < n_nodes; i++) {
-      B[i] = malloc (sizeof(double) * n_nodes);
-    }
-
-    for (int i = 0; i <= order; i++) {
-      for (int j = 0; j <= order; j++) {
-        int k = i + (order+1)*j;
-        for (int ii = 0; ii <= order; ii++) {
-          for (int jj = 0; jj <= order; jj++) {
-            int l = ii + (order+1)*jj;
-            B[k][l] = A[i][ii] * A[j][jj];
-          }
-        }
-      }
-    }
-    for (int i = 0; i <= order; i++) {
-      free (A[i]);
-    }
-    free (A);
+    double **B = _bezier_matrix_quad(order);
 
     _gauss_elim (B, lag, bez, n_nodes, 3, 0);
 
@@ -997,6 +1022,627 @@ _lagrange_to_bezier_quad
   }
 }
 
+
+
+static void _check_tetra_face
+(
+ const char   *filename,
+ const int     order,
+ const double *coord
+ )
+{
+  #define ij2idx(i, j) (i) + (order+1)*(j) - ((j)-1)*(j)/2
+
+  int n_node = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_TRIAHO, order);
+
+  FILE *f = fopen(filename, "w");
+
+  fprintf(f, "# vtk DataFile Version 2.0\n");
+  fprintf(f, "mesh\n");
+  fprintf(f, "ASCII\n");
+  fprintf(f, "DATASET POLYDATA\n");
+
+  fprintf(f, "POINTS %d double\n", n_node);
+  for (int i = 0; i < n_node; i++) {
+    for (int j = 0; j < 3; j++) {
+      fprintf(f, "%.20lf ", coord[3*i+j]);
+    }
+    fprintf(f, "\n");
+  }
+
+  int n_tri = order*order;
+  fprintf(f, "POLYGONS %d %d\n", n_tri, 4*n_tri);
+  for (int j = 0; j < order; j++) {
+    for (int i = 0; i < order-j; i++) {
+      fprintf(f, "3 %d %d %d\n", ij2idx(i,j), ij2idx(i+1,j), ij2idx(i,j+1));
+    }
+  }
+
+  for (int j = 0; j < order-1; j++) {
+    for (int i = 0; i < order-j-1; i++) {
+      fprintf(f, "3 %d %d %d\n", ij2idx(i,j+1), ij2idx(i+1,j), ij2idx(i+1,j+1));
+    }
+  }
+
+  fclose(f);
+
+  #undef ij2idx
+}
+
+static void
+_lagrange_to_bezier_tetra
+(
+ const int  order,
+ double    *lag,
+ double    *bez
+ )
+{
+  #define ijk2idx(i, j, k) ((i) + (j)*(order + 1 - (k)) - (j)*((j)-1)/2 + ((k)*((k)*((k) - 3*order - 6) + 3*order*(order + 4) + 11)) / 6)
+
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_TETRAHO, order);
+
+  if (order == 1) {
+    memcpy (bez, lag, sizeof(double) * n_nodes * 3);
+  }
+
+  else {
+    int n_nodes_tria = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_TRIAHO, order);
+
+    double *tria_lag = (double *) malloc(sizeof(double) * n_nodes_tria * 3);
+    double *tria_bez = (double *) malloc(sizeof(double) * n_nodes_tria * 3);
+
+    double **B = _bezier_matrix_tria(order);
+
+    int idx;
+
+
+    // hack for internal nodes
+    memcpy (bez, lag, sizeof(double) * n_nodes * 3);
+
+    // face w = 0
+    // idx = 0;
+    // for (int j = 0; j <= order; j++) {
+    //   for (int i = 0; i <= order - j; i++) {
+    //     int idx2 = ijk2idx(i,j,0);
+    //     for (int l = 0; l < 3; l++) {
+    //       tria_lag[idx++] = lag[3*idx2+l];
+    //     }
+    //   }
+    // }
+
+    // _check_tetra_face("face_w0.vtk", order, tria_lag);
+
+    _gauss_elim (B, lag, bez, n_nodes_tria, 3, 0);
+    // _gauss_elim (B, tria_lag, tria_bez, n_nodes_tria, 3, 0);
+
+    // idx = 0;
+    // for (int j = 0; j <= order; j++) {
+    //   for (int i = 0; i <= order - j; i++) {
+    //     int idx2 = ijk2idx(i,j,0);
+    //     for (int l = 0; l < 3; l++) {
+    //       bez[3*idx2+l] = tria_bez[idx++];
+    //     }
+    //   }
+    // }
+
+    // face u = 0
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int j = 0; j <= order - k; j++) {
+        int idx2 = ijk2idx(0,j,k);
+        for (int l = 0; l < 3; l++) {
+          tria_lag[idx++] = lag[3*idx2+l];
+        }
+      }
+    }
+
+    _gauss_elim (B, tria_lag, tria_bez, n_nodes_tria, 3, 0);
+
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int j = 0; j <= order - k; j++) {
+        int idx2 = ijk2idx(0,j,k);
+        for (int l = 0; l < 3; l++) {
+          bez[3*idx2+l] = tria_bez[idx++];
+        }
+      }
+    }
+
+
+    // face v = 0
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int i = 0; i <= order - k; i++) {
+        int idx2 = ijk2idx(i,0,k);
+        for (int l = 0; l < 3; l++) {
+          tria_lag[idx++] = lag[3*idx2+l];
+        }
+      }
+    }
+
+    _gauss_elim (B, tria_lag, tria_bez, n_nodes_tria, 3, 0);
+
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int i = 0; i <= order - k; i++) {
+        int idx2 = ijk2idx(i,0,k);
+        for (int l = 0; l < 3; l++) {
+          bez[3*idx2+l] = tria_bez[idx++];
+        }
+      }
+    }
+
+    // face u+v+w = 1
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int j = 0; j <= order - k; j++) {
+        int i = order - j - k;
+        int idx2 = ijk2idx(i,j,k);
+        for (int l = 0; l < 3; l++) {
+          tria_lag[idx++] = lag[3*idx2+l];
+        }
+      }
+    }
+
+    _gauss_elim (B, tria_lag, tria_bez, n_nodes_tria, 3, 0);
+
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int j = 0; j <= order - k; j++) {
+        int i = order - j - k;
+        int idx2 = ijk2idx(i,j,k);
+        for (int l = 0; l < 3; l++) {
+          bez[3*idx2+l] = tria_bez[idx++];
+        }
+      }
+    }
+
+    for (int i = 0; i < n_nodes_tria; i++) {
+      free (B[i]);
+    }
+    free (B);
+    free (tria_lag);
+    free (tria_bez);
+  }
+  #undef ijk2idx
+}
+
+
+static void
+_lagrange_to_bezier_pyramid
+(
+ const int  order,
+ double    *lag,
+ double    *bez
+ )
+{
+  #define ijk2idx(i, j, k) ((i) + (j)*(order+1-(k)) + ((k)*((k)*(2*(k) - 6*order - 9) + 6*order*(order + 3) + 13)) / 6)
+
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_PYRAMIDHO, order);
+
+  if (order == 1) {
+    memcpy (bez, lag, sizeof(double) * n_nodes * 3);
+  }
+
+  else {
+
+    int n_nodes_tria = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_TRIAHO, order);
+    int n_nodes_quad = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_QUADHO, order);
+
+    double *tria_lag = (double *) malloc(sizeof(double) * n_nodes_tria * 3);
+    double *tria_bez = (double *) malloc(sizeof(double) * n_nodes_tria * 3);
+    double *quad_lag = (double *) malloc(sizeof(double) * n_nodes_quad * 3);
+    double *quad_bez = (double *) malloc(sizeof(double) * n_nodes_quad * 3);
+
+    double **B_tria = _bezier_matrix_tria(order);
+    double **B_quad = _bezier_matrix_quad(order);
+
+    int idx;
+
+
+    // hack for internal nodes
+    memcpy (bez, lag, sizeof(double) * n_nodes * 3);
+
+
+    // face w = 0
+    _gauss_elim (B_quad, lag, bez, n_nodes_quad, 3, 0);
+
+
+    // face u = 0
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int j = 0; j <= order-k; j++) {
+        int idx2 = ijk2idx(0,j,k);
+        for (int l = 0; l < 3; l++) {
+          tria_lag[idx++] = lag[3*idx2+l];
+        }
+      }
+    }
+
+    _gauss_elim (B_tria, tria_lag, tria_bez, n_nodes_tria, 3, 0);
+
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int j = 0; j <= order-k; j++) {
+        int idx2 = ijk2idx(0,j,k);
+        for (int l = 0; l < 3; l++) {
+          bez[3*idx2+l] = tria_bez[idx++];
+        }
+      }
+    }
+
+
+    // face u = 1-w
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int j = 0; j <= order-k; j++) {
+        int idx2 = ijk2idx(order-k,j,k);
+        for (int l = 0; l < 3; l++) {
+          tria_lag[idx++] = lag[3*idx2+l];
+        }
+      }
+    }
+
+    _gauss_elim (B_tria, tria_lag, tria_bez, n_nodes_tria, 3, 0);
+
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int j = 0; j <= order-k; j++) {
+        int idx2 = ijk2idx(order-k,j,k);
+        for (int l = 0; l < 3; l++) {
+          bez[3*idx2+l] = tria_bez[idx++];
+        }
+      }
+    }
+
+
+    // face v = 0
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int i = 0; i <= order-k; i++) {
+        int idx2 = ijk2idx(i,0,k);
+        for (int l = 0; l < 3; l++) {
+          tria_lag[idx++] = lag[3*idx2+l];
+        }
+      }
+    }
+
+    _gauss_elim (B_tria, tria_lag, tria_bez, n_nodes_tria, 3, 0);
+
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int i = 0; i <= order-k; i++) {
+        int idx2 = ijk2idx(i,0,k);
+        for (int l = 0; l < 3; l++) {
+          bez[3*idx2+l] = tria_bez[idx++];
+        }
+      }
+    }
+
+
+    // face v = 1-w
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int i = 0; i <= order-k; i++) {
+        int idx2 = ijk2idx(i,order-k,k);
+        for (int l = 0; l < 3; l++) {
+          tria_lag[idx++] = lag[3*idx2+l];
+        }
+      }
+    }
+
+    _gauss_elim (B_tria, tria_lag, tria_bez, n_nodes_tria, 3, 0);
+
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int i = 0; i <= order-k; i++) {
+        int idx2 = ijk2idx(i,order-k,k);
+        for (int l = 0; l < 3; l++) {
+          bez[3*idx2+l] = tria_bez[idx++];
+        }
+      }
+    }
+
+
+
+    for (int i = 0; i < n_nodes_tria; i++) {
+      free (B_tria[i]);
+    }
+    free (B_tria);
+    free (tria_lag);
+    free (tria_bez);
+
+    for (int i = 0; i < n_nodes_quad; i++) {
+      free (B_quad[i]);
+    }
+    free (B_quad);
+    free (quad_lag);
+    free (quad_bez);
+  }
+
+  #undef ijk2idx
+}
+
+
+
+static void
+_lagrange_to_bezier_prism
+(
+ const int  order,
+ double    *lag,
+ double    *bez
+ )
+{
+  #define ijk2idx(i, j, k) ((i) + (j)*(order+1) - (j)*((j)-1)/2 + (k)*(order+1)*(order+2)/2)
+
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_PRISMHO, order);
+
+  if (order == 1) {
+    memcpy (bez, lag, sizeof(double) * n_nodes * 3);
+  }
+
+  else {
+
+    int n_nodes_tria = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_TRIAHO, order);
+    int n_nodes_quad = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_QUADHO, order);
+
+    double *tria_lag = (double *) malloc(sizeof(double) * n_nodes_tria * 3);
+    double *tria_bez = (double *) malloc(sizeof(double) * n_nodes_tria * 3);
+    double *quad_lag = (double *) malloc(sizeof(double) * n_nodes_quad * 3);
+    double *quad_bez = (double *) malloc(sizeof(double) * n_nodes_quad * 3);
+
+    double **B_tria = _bezier_matrix_tria(order);
+    double **B_quad = _bezier_matrix_quad(order);
+
+    int idx;
+
+    // hack for internal nodes
+    memcpy (bez, lag, sizeof(double) * n_nodes * 3);
+
+    // face w = 0
+    _gauss_elim (B_tria, lag, bez, n_nodes_tria, 3, 0);
+
+    // face w = 1
+    _gauss_elim (B_tria, &lag[order*n_nodes_tria], &bez[order*n_nodes_tria], n_nodes_tria, 3, 0);
+
+
+    // face u = 0
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int j = 0; j <= order; j++) {
+        int idx2 = ijk2idx(0,j,k);
+        for (int l = 0; l < 3; l++) {
+          quad_lag[idx++] = lag[3*idx2+l];
+        }
+      }
+    }
+
+    _gauss_elim (B_quad, quad_lag, quad_bez, n_nodes_quad, 3, 0);
+
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int j = 0; j <= order; j++) {
+        int idx2 = ijk2idx(0,j,k);
+        for (int l = 0; l < 3; l++) {
+          bez[3*idx2+l] = quad_bez[idx++];
+        }
+      }
+    }
+
+
+    // face v = 0
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int i = 0; i <= order; i++) {
+        int idx2 = ijk2idx(i,0,k);
+        for (int l = 0; l < 3; l++) {
+          quad_lag[idx++] = lag[3*idx2+l];
+        }
+      }
+    }
+
+    _gauss_elim (B_quad, quad_lag, quad_bez, n_nodes_quad, 3, 0);
+
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int i = 0; i <= order; i++) {
+        int idx2 = ijk2idx(i,0,k);
+        for (int l = 0; l < 3; l++) {
+          bez[3*idx2+l] = quad_bez[idx++];
+        }
+      }
+    }
+
+
+    // face u+v = 1
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int i = 0; i <= order; i++) {
+        int idx2 = ijk2idx(i,order-i,k);
+        for (int l = 0; l < 3; l++) {
+          quad_lag[idx++] = lag[3*idx2+l];
+        }
+      }
+    }
+
+    _gauss_elim (B_quad, quad_lag, quad_bez, n_nodes_quad, 3, 0);
+
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int i = 0; i <= order; i++) {
+        int idx2 = ijk2idx(i,order-i,k);
+        for (int l = 0; l < 3; l++) {
+          bez[3*idx2+l] = quad_bez[idx++];
+        }
+      }
+    }
+
+
+    for (int i = 0; i < n_nodes_tria; i++) {
+      free (B_tria[i]);
+    }
+    free (B_tria);
+    free (tria_lag);
+    free (tria_bez);
+
+    for (int i = 0; i < n_nodes_quad; i++) {
+      free (B_quad[i]);
+    }
+    free (B_quad);
+    free (quad_lag);
+    free (quad_bez);
+
+  }
+
+  #undef ijk2idx
+}
+
+
+
+
+static void
+_lagrange_to_bezier_hexa
+(
+ const int  order,
+ double    *lag,
+ double    *bez
+ )
+{
+  #define ijk2idx(i, j, k) ((i) + (order+1)*((j) + (order+1)*(k)))
+
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_HEXAHO, order);
+
+  if (order == 1) {
+    memcpy (bez, lag, sizeof(double) * n_nodes * 3);
+  }
+
+  else {
+    int n_nodes_quad = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_QUADHO, order);
+
+    double *quad_lag = (double *) malloc(sizeof(double) * n_nodes_quad * 3);
+    double *quad_bez = (double *) malloc(sizeof(double) * n_nodes_quad * 3);
+
+    double **B = _bezier_matrix_quad(order);
+
+    int idx;
+
+
+    // hack for internal nodes
+    memcpy (bez, lag, sizeof(double) * n_nodes * 3);
+
+    // face w = 0
+    _gauss_elim (B, lag, bez, n_nodes_quad, 3, 0);
+
+    // face w = 1
+    _gauss_elim (B, &lag[order*n_nodes_quad], &bez[order*n_nodes_quad], n_nodes_quad, 3, 0);
+
+
+    // face u = 0
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int j = 0; j <= order; j++) {
+        int idx2 = ijk2idx(0,j,k);
+        for (int l = 0; l < 3; l++) {
+          quad_lag[idx++] = lag[3*idx2+l];
+        }
+      }
+    }
+
+    _gauss_elim (B, quad_lag, quad_bez, n_nodes_quad, 3, 0);
+
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int j = 0; j <= order; j++) {
+        int idx2 = ijk2idx(0,j,k);
+        for (int l = 0; l < 3; l++) {
+          bez[3*idx2+l] = quad_bez[idx++];
+        }
+      }
+    }
+
+
+    // face u = 1
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int j = 0; j <= order; j++) {
+        int idx2 = ijk2idx(order,j,k);
+        for (int l = 0; l < 3; l++) {
+          quad_lag[idx++] = lag[3*idx2+l];
+        }
+      }
+    }
+
+    _gauss_elim (B, quad_lag, quad_bez, n_nodes_quad, 3, 0);
+
+    idx = 0;
+    for (int k = 0; k <= order; k++) {
+      for (int j = 0; j <= order; j++) {
+        int idx2 = ijk2idx(order,j,k);
+        for (int l = 0; l < 3; l++) {
+          bez[3*idx2+l] = quad_bez[idx++];
+        }
+      }
+    }
+
+
+    // face v = 0
+    idx = 0;
+    for (int i = 0; i <= order; i++) {
+      for (int k = 0; k <= order; k++) {
+        int idx2 = ijk2idx(i,0,k);
+        for (int l = 0; l < 3; l++) {
+          quad_lag[idx++] = lag[3*idx2+l];
+        }
+      }
+    }
+
+    _gauss_elim (B, quad_lag, quad_bez, n_nodes_quad, 3, 0);
+
+    idx = 0;
+    for (int i = 0; i <= order; i++) {
+      for (int k = 0; k <= order; k++) {
+        int idx2 = ijk2idx(i,0,k);
+        for (int l = 0; l < 3; l++) {
+          bez[3*idx2+l] = quad_bez[idx++];
+        }
+      }
+    }
+
+
+    // face v = 1
+    idx = 0;
+    for (int i = 0; i <= order; i++) {
+      for (int k = 0; k <= order; k++) {
+        int idx2 = ijk2idx(i,order,k);
+        for (int l = 0; l < 3; l++) {
+          quad_lag[idx++] = lag[3*idx2+l];
+        }
+      }
+    }
+
+    _gauss_elim (B, quad_lag, quad_bez, n_nodes_quad, 3, 0);
+
+    idx = 0;
+    for (int i = 0; i <= order; i++) {
+      for (int k = 0; k <= order; k++) {
+        int idx2 = ijk2idx(i,order,k);
+        for (int l = 0; l < 3; l++) {
+          bez[3*idx2+l] = quad_bez[idx++];
+        }
+      }
+    }
+
+    for (int i = 0; i < n_nodes_quad; i++) {
+      free (B[i]);
+    }
+    free (B);
+    free (quad_lag);
+    free (quad_bez);
+
+  }
+
+  #undef ijk2idx
+}
 
 
 static void
@@ -1025,9 +1671,20 @@ _bezier_bounding_boxes
     PDM_g_num_t          *dconnec            = PDM_DMesh_nodal_section_std_get    (dmn, geom_kind, id_section);
     PDM_Mesh_nodal_elt_t  t_elt              = PDM_DMesh_nodal_section_type_get   (dmn, geom_kind, id_section);
 
-    if (t_elt != PDM_MESH_NODAL_BAR2  &&
-        t_elt != PDM_MESH_NODAL_TRIA3 &&
-        t_elt != PDM_MESH_NODAL_QUAD4) continue;
+    if (t_elt != PDM_MESH_NODAL_BAR2      &&
+        t_elt != PDM_MESH_NODAL_TRIA3     &&
+        t_elt != PDM_MESH_NODAL_QUAD4     &&
+        t_elt != PDM_MESH_NODAL_BARHO     &&
+        t_elt != PDM_MESH_NODAL_TRIAHO    &&
+        t_elt != PDM_MESH_NODAL_QUADHO    &&
+        t_elt != PDM_MESH_NODAL_TETRA4    &&
+        t_elt != PDM_MESH_NODAL_TETRAHO   &&
+        t_elt != PDM_MESH_NODAL_PYRAMID5  &&
+        t_elt != PDM_MESH_NODAL_PYRAMIDHO &&
+        t_elt != PDM_MESH_NODAL_PRISM6    &&
+        t_elt != PDM_MESH_NODAL_PRISMHO   &&
+        t_elt != PDM_MESH_NODAL_HEXA8     &&
+        t_elt != PDM_MESH_NODAL_HEXAHO) continue;
 
     int         *dconnec_idx    = (int         * ) malloc( (n_elt+1) * sizeof(int        ));
     PDM_g_num_t *delmt_ln_to_gn = (PDM_g_num_t * ) malloc( (n_elt  ) * sizeof(PDM_g_num_t));
@@ -1102,13 +1759,33 @@ _bezier_bounding_boxes
         }
       }
 
-      if (t_elt == PDM_MESH_NODAL_BAR2) {
+      if (t_elt == PDM_MESH_NODAL_BAR2 ||
+          t_elt == PDM_MESH_NODAL_BARHO) {
         _lagrange_to_bezier_bar (order, lagrange_coord, bezier_coord);
       }
-      else if (t_elt == PDM_MESH_NODAL_TRIA3) {
+      else if (t_elt == PDM_MESH_NODAL_TRIA3 ||
+               t_elt == PDM_MESH_NODAL_TRIAHO) {
         _lagrange_to_bezier_tria (order, lagrange_coord, bezier_coord);
-      } else if (t_elt == PDM_MESH_NODAL_QUAD4) {
+      }
+      else if (t_elt == PDM_MESH_NODAL_QUAD4 ||
+               t_elt == PDM_MESH_NODAL_QUADHO) {
         _lagrange_to_bezier_quad (order, lagrange_coord, bezier_coord);
+      }
+      else if (t_elt == PDM_MESH_NODAL_TETRA4 ||
+               t_elt == PDM_MESH_NODAL_TETRAHO) {
+        _lagrange_to_bezier_tetra (order, lagrange_coord, bezier_coord);
+      }
+      else if (t_elt == PDM_MESH_NODAL_PYRAMID5 ||
+               t_elt == PDM_MESH_NODAL_PYRAMIDHO) {
+        _lagrange_to_bezier_pyramid (order, lagrange_coord, bezier_coord);
+      }
+      else if (t_elt == PDM_MESH_NODAL_PRISM6 ||
+               t_elt == PDM_MESH_NODAL_PRISMHO) {
+        _lagrange_to_bezier_prism (order, lagrange_coord, bezier_coord);
+      }
+      else if (t_elt == PDM_MESH_NODAL_HEXA8 ||
+               t_elt == PDM_MESH_NODAL_HEXAHO) {
+        _lagrange_to_bezier_hexa (order, lagrange_coord, bezier_coord);
       }
 
       for (int k = 0; k < n_nodes; k++) {
@@ -1190,14 +1867,20 @@ int main(int argc, char *argv[])
   int                  n_part = 1;
   int                  post   = 0;
   PDM_Mesh_nodal_elt_t t_elt  = PDM_MESH_NODAL_TRIA3;
-  // 2 -> tria
-  // 3 -> quad
-  // 5 -> tetra
-  // 6 -> pyramid
-  // 7 -> prism
-  // 8 -> hexa
+  //  2 -> tria
+  //  3 -> quad
+  //  5 -> tetra
+  //  6 -> pyramid
+  //  7 -> prism
+  //  8 -> hexa
+  // 11 -> tria_ho
+  // 12 -> quad_ho
+  // 13 -> tetra_ho
+  // 14 -> pyramid_ho
+  // 15 -> prism_ho
+  // 16 -> hexa_ho
 
-  #ifdef PDM_HAVE_PARMETIS
+#ifdef PDM_HAVE_PARMETIS
   PDM_part_split_t method  = PDM_PART_SPLIT_PARMETIS;
 #else
 #ifdef PDM_HAVE_PTSCOTCH
@@ -1205,7 +1888,7 @@ int main(int argc, char *argv[])
 #endif
 #endif
 
-/*
+  /*
    *  Read args
    */
 
@@ -1221,6 +1904,17 @@ int main(int argc, char *argv[])
              &post,
              (int *) &method);
 
+  if (t_elt == PDM_MESH_NODAL_TRIA3    ||
+      t_elt == PDM_MESH_NODAL_QUAD4    ||
+      t_elt == PDM_MESH_NODAL_TETRA4   ||
+      t_elt == PDM_MESH_NODAL_PYRAMID5 ||
+      t_elt == PDM_MESH_NODAL_PRISM6   ||
+      t_elt == PDM_MESH_NODAL_HEXA8) {
+    if (order != 1) {
+      PDM_error(__FILE__, __LINE__, 0, "Invalid order %d for linear element type %d\n", order, (int) t_elt);
+    }
+  }
+
   /*
    *  Init
    */
@@ -1235,19 +1929,21 @@ int main(int argc, char *argv[])
   PDM_MPI_Comm_size(comm, &n_rank);
 
   int dim = 3;
-  if (t_elt == PDM_MESH_NODAL_TRIA3 || t_elt == PDM_MESH_NODAL_QUAD4 ) {
+  if (t_elt == PDM_MESH_NODAL_TRIA3  ||
+      t_elt == PDM_MESH_NODAL_QUAD4  ||
+      t_elt == PDM_MESH_NODAL_TRIAHO ||
+      t_elt == PDM_MESH_NODAL_QUADHO) {
     dim = 2;
   }
 
   if (order > 3) {
     int *ijk = NULL;
 
-    for (PDM_Mesh_nodal_elt_t type = PDM_MESH_NODAL_BAR2;
-         type <= PDM_MESH_NODAL_HEXA8;
+    for (PDM_Mesh_nodal_elt_t type = PDM_MESH_NODAL_BARHO;
+         type <= PDM_MESH_NODAL_HEXAHO;
          type++) {
 
-      if (type == PDM_MESH_NODAL_POLY_2D ||
-          type == PDM_MESH_NODAL_PYRAMID5) continue;
+      if (type == PDM_MESH_NODAL_PYRAMIDHO) continue;
 
       ijk = PDM_vtk_lagrange_to_ijk(type, order);
       PDM_ho_ordering_user_to_ijk_add ("PDM_HO_ORDERING_VTK",
@@ -1292,7 +1988,7 @@ int main(int argc, char *argv[])
   PDM_g_num_t *vtx_distrib = PDM_dmesh_nodal_vtx_distrib_get(dmn);
   int dn_vtx = vtx_distrib[i_rank+1] - vtx_distrib[i_rank];
   double *dvtx_coord  = PDM_DMesh_nodal_vtx_get(dmn);
-  double amplitude = 0.2;
+  double amplitude = 0.1;//0.07;
   double frequence = 4.;
 
   if (1) {
@@ -1326,15 +2022,19 @@ int main(int argc, char *argv[])
     }
   }
 
-  /* Bounding boxes */
-  _bezier_bounding_boxes(dmn, order, PDM_GEOMETRY_KIND_SURFACIC, "out_surfacic");
-  _bezier_bounding_boxes(dmn, order, PDM_GEOMETRY_KIND_RIDGE,    "out_ridge");
+  if (t_elt > PDM_MESH_NODAL_HEXA8) {
+    /* Bounding boxes */
+    if (dim == 3) {
+      _bezier_bounding_boxes(dmn, order, PDM_GEOMETRY_KIND_VOLUMIC, "out_volumic");
+    }
+    _bezier_bounding_boxes(dmn, order, PDM_GEOMETRY_KIND_SURFACIC, "out_surfacic");
+    _bezier_bounding_boxes(dmn, order, PDM_GEOMETRY_KIND_RIDGE,    "out_ridge");
 
-
-  /* Reorder */
-  PDM_dmesh_nodal_reorder (dmn,
-                           "PDM_HO_ORDERING_VTK",
-                           order);
+    /* Reorder */
+    PDM_dmesh_nodal_reorder (dmn,
+                             "PDM_HO_ORDERING_VTK",
+                             order);
+  }
 
   if (dim == 3) {
     _dmesh_nodal_dump_vtk(dmn, order, PDM_GEOMETRY_KIND_VOLUMIC, "out_volumic");

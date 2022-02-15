@@ -1,4 +1,4 @@
-from mpi4py.libmpi cimport MPI_Allreduce, MPI_MAX, MPI_INT
+import warnings
 
 cdef extern from "pdm_part_to_block.h":
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -69,387 +69,199 @@ cdef class PartToBlock:
     """
     # ************************************************************************
     # > Class attributes
-    cdef PDM_part_to_block_t *PTB
-    cdef int                  partN
-    cdef int                  Size
-    cdef int                  Rank
-    cdef MPI.MPI_Comm         c_comm
-
-    cdef int                 *NbElmts
-    cdef PDM_g_num_t        **LNToGN
-    cdef double              **weight
-
-    cdef PDM_part_to_block_distrib_t t_distrib
-    cdef PDM_part_to_block_post_t    t_post
-    cdef PDM_stride_t                t_stride
-
-# ************************************************************************
+    cdef PDM_part_to_block_t* PTB
+    cdef int                  n_part
+    cdef int*                 pn_elt
+    cdef MPI.Comm             py_comm
+    # ************************************************************************
     # ------------------------------------------------------------------------
     def __cinit__(self, MPI.Comm comm, list pLNToGN, list pWeight, int partN,
                         PDM_part_to_block_distrib_t t_distrib = <PDM_part_to_block_distrib_t> (0),
                         PDM_part_to_block_post_t    t_post    = <PDM_part_to_block_post_t   > (0),
-                        PDM_stride_t                t_stride  = <PDM_stride_t   > (0),
+                        PDM_stride_t                t_stride  = <PDM_stride_t   > (-1), #Trick to print warning if setted
                         double partActiveNode = 1.,
                         NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] userDistribution=None):
         """
-        TODOUX
+        Constructor of PartToBlock object : Python wrapping of PDM library (E. Quémerais)
         """
-        # ************************************************************************
-        # > Declaration
-        cdef int      nElts
-        cdef int      idx
-        # > Numpy array
-        cdef NPY.ndarray[npy_pdm_gnum_t, ndim=1, mode='fortran'] partLNToGN
-        cdef NPY.ndarray[double, ndim=1, mode='fortran'] partWeight
-        # ************************************************************************
-
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Some verification
+        # > Warning
+        if t_stride != -1:
+          warnings.warn("Parameter t_stride is deprecated and will be removed in further release",
+            DeprecationWarning, stacklevel=2)
+        # > Some checks
         assert(len(pLNToGN) == partN)
+        for i in range(partN):
+          assert_single_dim_np(pLNToGN[i], npy_pdm_gnum_dtype)
         if (pWeight is not None):
           assert(len(pWeight) == partN)
+          for i in range(partN):
+            assert_single_dim_np(pWeight[i], NPY.double, pLNToGN[i].size)
         if (userDistribution is not None):
-          assert(userDistribution.shape[0]==comm.Get_size()+1)
+          assert_single_dim_np(userDistribution, npy_pdm_gnum_dtype, comm.Get_size()+1)
 
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
+        # > Store class parameters
+        self.n_part  = partN
+        self.pn_elt  = list_to_int_pointer([array.size for array in pLNToGN])
+        self.py_comm = comm
 
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Store partN and parameter
-        self.partN     = partN
-        self.t_distrib = t_distrib
-        self.t_post    = t_post
-        self.t_stride  = t_stride
-
-        self.c_comm = comm.ob_mpi
-        self.Rank = comm.Get_rank()
-        self.Size = comm.Get_size()
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Convert mpi4py -> PDM_MPI
+        # > Convert input data
         cdef MPI.MPI_Comm c_comm = comm.ob_mpi
         cdef PDM_MPI_Comm PDMC   = PDM_MPI_mpi_2_pdm_mpi_comm(&c_comm)
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Allocate
-        self.LNToGN   = <PDM_g_num_t **> malloc(sizeof(PDM_g_num_t *) * self.partN )
-        self.weight   = NULL
-
+        cdef PDM_g_num_t** _ln_to_gn = np_list_to_gnum_pointers(pLNToGN)
+        cdef double** _weight = NULL
         if (pWeight is not None):
-          self.weight   = <double **> malloc(sizeof(double *) * self.partN )
+          _weight = np_list_to_double_pointers(pWeight)
 
-
-        self.NbElmts  = <int * > malloc(sizeof(int  ) * self.partN )
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Prepare
-        for idx, partLNToGN in enumerate(pLNToGN):
-
-          # ------------------------------------------------
-          # > Get shape of array
-          nElts = partLNToGN.shape[0]
-          self.NbElmts[idx] = <int> nElts
-          # ------------------------------------------------
-
-          # ------------------------------------------------
-          # > Assign array
-          self.LNToGN[idx] = <PDM_g_num_t *> partLNToGN.data
-          # ------------------------------------------------
-          # print "nElts, partLNToGN",nElts, partLNToGN
-
-        idx = 0
-        if (pWeight is not None):
-          for idx, partWeight in enumerate(pWeight):
-            self.weight[idx] = <double *> partWeight.data
-
-
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Create
+        # > Create PDM structure
         if userDistribution is None:
           self.PTB = PDM_part_to_block_create(t_distrib,
                                               t_post,
                                               partActiveNode,
-                                              self.LNToGN,
-                                              self.weight,
-                                              self.NbElmts,
-                                              self.partN,
+                                              _ln_to_gn,
+                                              _weight,
+                                              self.pn_elt,
+                                              self.n_part,
                                               PDMC)
         else:
           self.PTB = PDM_part_to_block_create2(t_distrib,
                                                t_post,
                                                partActiveNode,
-                                               self.LNToGN,
-                                               <PDM_g_num_t *> userDistribution.data,
-                                               self.NbElmts,
-                                               self.partN,
+                                               _ln_to_gn,
+                               <PDM_g_num_t *> userDistribution.data,
+                                               self.pn_elt,
+                                               self.n_part,
                                                PDMC)
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
+        # Free working arrays
+        free(_ln_to_gn)
+        if _weight != NULL:
+          free(_weight)
 
     # ------------------------------------------------------------------------
-    def PartToBlock_Exchange(self, dict dField, dict pField, list pStrid = None):
-        """
-           TODOUX : 1) Exchange of variables types array
-                    2) Assertion of type and accross MPI of the same field
-        """
-        # ************************************************************************
-        # > Declaration
-        cdef NPY.ndarray   dArray
-        cdef NPY.ndarray   pArray
-        cdef NPY.ndarray   partStrid
-        cdef int           idx
-        cdef int           blk_size
-        cdef NPY.npy_intp *ArrayDim
+    def exchange_field(self, list part_data, part_stride=1, bint interlaced_str=True):
+      """
+      Wrapping for PDM_part_to_block_exch : transfert partioned data fields to the
+      distribution, allocate and return the distributed array.
 
-        # > For PDM
-        cdef size_t   s_data
-        cdef int      dtype_data
-        cdef int      dtype_data_max
-        cdef int      strideOne
-        cdef int    **part_stride
-        cdef int     *block_stride
-        cdef void    *block_data
-        cdef void   **part_data
-        cdef int      ndim
-        cdef int      npyflags=-1
-        cdef NPY.ndarray tmpData
-        # ************************************************************************
+      :param self:        PartToBlock object
+      :param part_data:   List of partitioned data arrays, each beeing 1 dimensional and with same datatype
+      :param part_stride: Stride for partitioned arrays. Can be either a list of n_part array, each element beeing of size
+                          pn_elt[i_part] (variable stride will be used) or an integer (cst stride will be used)
+      :param interlaced_str: indicate if data are interlaced (True) or interleaved 
+      """
+      cdef PDM_stride_t _stride_t
+      
+      cdef int   _part_stride_cst = 0
+      cdef int** _part_stride = NULL
+      if isinstance(part_stride, int):
+        _stride_t = PDM_STRIDE_CST_INTERLACED if interlaced_str else PDM_STRIDE_CST_INTERLEAVED
+        _part_stride_cst = part_stride
+      elif isinstance(part_stride, list):
+        _stride_t = PDM_STRIDE_VAR_INTERLACED
+        assert len(part_stride) == self.n_part
+        for i_part in range(self.n_part):
+          assert_single_dim_np(part_stride[i_part], NPY.int32, self.pn_elt[i_part])
+        _part_stride = np_list_to_int_pointers(part_stride)
+      else:
+        raise ValueError("Invalid stride in PtB exchange")
 
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Allocate
-        part_data = <void **> malloc(self.partN * sizeof(void **))
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
+      assert len(part_data) == self.n_part
+      for i_part, p_data in enumerate(part_data):
+        expt_size = part_stride[i_part].sum() if _stride_t == PDM_STRIDE_VAR_INTERLACED else part_stride*self.pn_elt[i_part]
+        assert_single_dim_np(p_data, part_data[0].dtype, expt_size) #Dtype must be the same for all parts
 
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Prepare stride
-        if(self.t_stride == 0): # Cst Stride
-           strideOne     = 1
-           part_stride   = NULL
-        else:
-           strideOne     = 0
-           part_stride   = <int **> malloc(self.partN * sizeof(int *))
-           assert(pStrid is not None)
-           assert(len(pStrid) == self.partN)
-           # for idx in xrange(self.partN):
-           for idx, partStrid in enumerate(pStrid):
-              part_stride[idx] = <int *> partStrid.data
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        ndim = -1
+      cdef void** _part_data   = np_list_to_void_pointers(part_data)
 
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Loop on all field to build
-        for field, partList in pField.iteritems():
+      # Retrieve size of data if proc holds no partition
+      cdef int dtype_data_num_l = -1
+      if self.n_part > 0:
+        dtype_data_num_l = part_data[0].dtype.num
+      dtype_data_num = self.py_comm.allreduce(dtype_data_num_l, op=MPI.MAX)
+      assert dtype_data_num_l == -1 or dtype_data_num_l == dtype_data_num
 
-          # print field, partList
+      #Dont know how to recover s_data so we create a fake array ;)
+      zero       = <NPY.npy_intp> 0
+      tpm_array = NPY.PyArray_EMPTY(1, &zero, dtype_data_num, 0)
+      cdef size_t s_data    = tpm_array.itemsize
 
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          # > Prepare part_data
-          dtype_data = -1
-          for idx, pArray in enumerate(partList):
-            # ------------------------------------------------
-            # > Get flow solution
-            if(pArray.ndim == 2):
-              if (self.partN > 0):
-                assert(pArray.shape[1] == self.NbElmts[idx])
-              ndim = 2
-            else:
-              if(self.t_stride == <PDM_stride_t   >(0)):
-                if (self.partN > 0):
-                  assert(pArray.shape[0] == self.NbElmts[idx])
-              ndim = 1
-            if (self.partN > 0):
-              part_data[idx] = <void *> pArray.data
-            # ------------------------------------------------
 
-            # ------------------------------------------------
-            # > Fill s_data - How to check if array is different ?
-            s_data     = pArray.dtype.itemsize
-            dtype_data = pArray.dtype.num
-            dtypep     = pArray.dtype
-            # ------------------------------------------------
+      cdef int*  _block_stride  = NULL
+      cdef void* _block_data    = NULL
+      c_size = PDM_part_to_block_exch(self.PTB,
+                                      s_data,
+                                      _stride_t,
+                                      _part_stride_cst,
+                                      _part_stride,
+                                      _part_data,
+                                     &_block_stride,
+                                     &_block_data)
 
-          MPI_Allreduce(&dtype_data, &dtype_data_max, 1, MPI_INT, MPI_MAX, self.c_comm)
-          if dtype_data == -1:
-            dtype_data = dtype_data_max
-            #Dont know how to get dtype_size from dtype_id, create a fake array ;)
-            zero       = <NPY.npy_intp> 0
-            tpm_array = NPY.PyArray_EMPTY(1, &zero, dtype_data, 0)
-            s_data    = tpm_array.itemsize
-          assert (dtype_data == dtype_data_max)
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          # > Prepare block_data
-          block_stride  = NULL
-          block_data    = NULL
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
+      dim_np = <NPY.npy_intp> c_size
+      block_data = NPY.PyArray_SimpleNewFromData(1, &dim_np, dtype_data_num, <void *> _block_data)
+      PyArray_ENABLEFLAGS(block_data, NPY.NPY_OWNDATA);
 
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          # > Exchange
-          # print "PDM_part_to_block_exch "
-          c_size = PDM_part_to_block_exch(self.PTB,
-                                          s_data,
-                                          self.t_stride,
-                                          strideOne,
-                                          part_stride,
-                                          part_data,
-                                          &block_stride,
-                                          <void **> &block_data)
-          # print "PDM_part_to_block_exch end "
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
+      if(_stride_t == PDM_STRIDE_VAR_INTERLACED):
+        block_stride = create_numpy_i(_block_stride, PDM_part_to_block_n_elt_block_get(self.PTB))
+      else:
+        block_stride = None
 
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          blk_size = PDM_part_to_block_n_elt_block_get(self.PTB);
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
+      if _stride_t == PDM_STRIDE_VAR_INTERLACED:
+        free(_part_stride)
+      free(_part_data)
 
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          # > Put in dict
-          dim           = <NPY.npy_intp> c_size
-          if(c_size == 0):
-            # dField[field] = None # Attention faire une caspule vide serait mieux non ?
-            #dField[field] = NPY.empty((0), dtype=dtypep)
-            dField[field] = NPY.PyArray_EMPTY(1, &dim, dtype_data, 0)
-            # print 'Attention in PDM_part_to_block'
-          else:
-            if(ndim == 2):
-              ArrayDim    = <NPY.npy_intp *> malloc(2 * sizeof(NPY.npy_intp *))
-              ArrayDim[0] = <NPY.npy_intp> 1
-              ArrayDim[1] = <NPY.npy_intp> c_size
-
-              # > Put in dField
-              tmpData = NPY.PyArray_SimpleNewFromData(ndim, ArrayDim, dtype_data, <void *> block_data)
-              PyArray_ENABLEFLAGS(tmpData, NPY.NPY_OWNDATA);
-              dField[field] = tmpData
-              # > Free
-              free(ArrayDim)
-            else:
-              # dField[field] = NPY.PyArray_SimpleNewFromData(1, &dim, dtype_data,
-              #                                               <void *> block_data)
-              tmpData = NPY.PyArray_SimpleNewFromData(1, &dim, dtype_data,
-                                                         <void *> block_data)
-              PyArray_ENABLEFLAGS(tmpData, NPY.NPY_OWNDATA);
-              dField[field] = tmpData
-              # print(dField[field].flags)
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          # > Stride management
-          if(self.t_stride == 1 ):
-            dimStri = <NPY.npy_intp> blk_size
-            # dField[field+'#Stride'] = NPY.PyArray_SimpleNewFromData(1, &dimStri, NPY.NPY_INT32, <void *> block_stride)
-            tmpData = NPY.PyArray_SimpleNewFromData(1, &dimStri, NPY.NPY_INT32, <void *> block_stride)
-            PyArray_ENABLEFLAGS(tmpData, NPY.NPY_OWNDATA);
-            dField[field+'#Stride'] = tmpData
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Deallocate
-        free(part_data)
-        if(self.t_stride != 0): # Var Stride
-          free(part_stride)
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
+      return block_stride, block_data
+    # ------------------------------------------------------------------------
+    def PartToBlock_Exchange(self, dict dField, dict pField, pStrid=1, bint interlaced_str=True):
+      """ Shortcut to exchange multiple fieds stored in dict """
+      for field_name, part_data in pField.items():
+        block_stride, block_data = self.exchange_field(part_data, pStrid, interlaced_str)
+        dField[field_name] = block_data
+        if block_stride is not None:
+          dField[field_name + "#Stride"] = block_stride
+          dField[field_name + "#PDM_Stride"] = block_stride
+          warnings.warn("Stride is now know as #PDM_Stride instead of #Stride. Old key will be removed in further release",
+            DeprecationWarning, stacklevel=2)
 
     # ------------------------------------------------------------------------
     def getBlockGnumCopy(self):
-      """
-         Return a copy of the global numbers, of element in the current process,
-         array compute in library
-         Copy because remove of PTB object can made a core ...
-      """
-      # ************************************************************************
-      # > Declaration
-      cdef PDM_g_num_t* BlockGnum
-      cdef int          blkSize
-      # ************************************************************************
-
-      # ::::::::::::::::::::::::::::::::::::::::::::::::::
-      # > Get
-      BlockGnum = PDM_part_to_block_block_gnum_get(self.PTB)
-      # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-      # ::::::::::::::::::::::::::::::::::::::::::::::::::
-      blkSize      = PDM_part_to_block_n_elt_block_get(self.PTB);
-      dim          = <NPY.npy_intp> blkSize
-      BlockGnumNPY = NPY.PyArray_SimpleNewFromData(1, &dim, PDM_G_NUM_NPY_INT, <void *> BlockGnum)
-      # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
+      """ Return a copy of the global numbers """
+      BlockGnumNPY = create_numpy_pdm_gnum(PDM_part_to_block_block_gnum_get(self.PTB),
+                                           PDM_part_to_block_n_elt_block_get(self.PTB),
+                                           flag_owndata=False)
       return NPY.copy(BlockGnumNPY)
 
     # ------------------------------------------------------------------------
     def getBlockGnumCountCopy(self):
-      """
-         Return a copy of the number of occurence of each element compute in library
-         Copy because remove of PTB object can made a core ...
-      """
-      cdef int* BlockGnumCount = PDM_part_to_block_block_gnum_count_get(self.PTB)
-      dim                      = <NPY.npy_intp> PDM_part_to_block_n_elt_block_get(self.PTB);
-      BlockGnumCountNPY = NPY.PyArray_SimpleNewFromData(1, &dim, NPY.NPY_INT32, <void *> BlockGnumCount)
+      """ Return a copy of the number of occurence of each element """
+      BlockGnumCountNPY = create_numpy_i(PDM_part_to_block_block_gnum_count_get(self.PTB),
+                                         PDM_part_to_block_n_elt_block_get(self.PTB),
+                                         flag_owndata=False)
       return NPY.copy(BlockGnumCountNPY)
     # ------------------------------------------------------------------------
     def getDistributionCopy(self):
-      """
-         Return a copy of the distrisbution array compute in library
-         Copy because remove of PTB object can made a core ...
-      """
-      # ************************************************************************
-      # > Declaration
-      cdef PDM_g_num_t* Distrib
-      # ************************************************************************
-
-      # ::::::::::::::::::::::::::::::::::::::::::::::::::
-      # > Get
-      Distrib = PDM_part_to_block_distrib_index_get(self.PTB)
-      # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-      # ::::::::::::::::::::::::::::::::::::::::::::::::::
-      dim        = <NPY.npy_intp> (self.Size+1)
-      DistribNPY = NPY.PyArray_SimpleNewFromData(1, &dim, PDM_G_NUM_NPY_INT, <void *> Distrib)
-      # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
+      """ Return a copy of the distribution array """
+      DistribNPY = create_numpy_pdm_gnum(PDM_part_to_block_distrib_index_get(self.PTB),
+                                         self.py_comm.Get_size()+1,
+                                         flag_owndata=False)
       return NPY.copy(DistribNPY)
 
     # ------------------------------------------------------------------------
     def getBeginNbEntryAndGlob(self):
-      """
-         Return a copy of the distrisbution array compute in library
-         Copy because remove of PTB object can made a core ...
-      """
-      # ************************************************************************
-      # > Declaration
-      cdef PDM_g_num_t* Distrib
-      # ************************************************************************
+      """ Short cut to get the bounds and size of distribution """
+      cdef PDM_g_num_t* Distrib = PDM_part_to_block_distrib_index_get(self.PTB)
 
-      # ::::::::::::::::::::::::::::::::::::::::::::::::::
-      # > Get
-      Distrib = PDM_part_to_block_distrib_index_get(self.PTB)
-      # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-      # ::::::::::::::::::::::::::::::::::::::::::::::::::
-      dim        = <NPY.npy_intp> (self.Size+1)
-      DistribNPY = NPY.PyArray_SimpleNewFromData(1, &dim, PDM_G_NUM_NPY_INT, <void *> Distrib)
-      # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-      Beg = DistribNPY[self.Rank]
-      NbE = DistribNPY[self.Rank+1]-DistribNPY[self.Rank]
-      GlB = DistribNPY[self.Size]
+      Beg = Distrib[self.py_comm.Get_rank()]
+      NbE = Distrib[self.py_comm.Get_rank()+1]-Distrib[self.py_comm.Get_rank()]
+      GlB = Distrib[self.py_comm.Get_size()]
 
       return (Beg, NbE, GlB)
 
     # ------------------------------------------------------------------------
     def __dealloc__(self):
-      """
-         Use the free method of PDM Lib
-      """
-      # ************************************************************************
-      # > Declaration
-      cdef PDM_part_to_block_t *a
-      # ************************************************************************
-
+      """ Free structure """
       # > Free Ppart Structure
-      a = PDM_part_to_block_free(self.PTB)
-
+      cdef PDM_part_to_block_t* none = PDM_part_to_block_free(self.PTB)
+      assert none == NULL
       # > Free allocated array
-      free(self.LNToGN)
-      if (self.weight != NULL):
-        free(self.weight)
-      free(self.NbElmts)
+      free(self.pn_elt)
 

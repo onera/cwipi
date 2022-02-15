@@ -5651,26 +5651,7 @@ PDM_ho_location
 {
   PDM_ho_location_user_elt_t **user_elt = _get_user_elt (type);
 
-  int entities_dim = 0;
-  switch(type) {
-  case PDM_MESH_NODAL_BAR2:
-    entities_dim = 1;
-    break;
-  case PDM_MESH_NODAL_TRIA3:     /* Triangle */
-  case PDM_MESH_NODAL_QUAD4:     /* Quadrangle */
-    entities_dim = 2;
-    break;
-  case PDM_MESH_NODAL_TETRA4:    /* Tetrahedron */
-  case PDM_MESH_NODAL_PYRAMID5:  /* Pyramid */
-  case PDM_MESH_NODAL_PRISM6:    /* Prism (pentahedron) */
-  case PDM_MESH_NODAL_HEXA8:     /* Hexahedron (brick) */
-    entities_dim = 3;
-    break;
-  default:
-    PDM_error(__FILE__, __LINE__, 0,
-              "%d is not high order element type\n", type);
-
-  }
+  int entities_dim = PDM_Mesh_nodal_elt_dim_get(type);
 
   if (*user_elt != NULL) {
     if ((*user_elt)->location_in_elt != NULL) {

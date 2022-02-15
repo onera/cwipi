@@ -36,36 +36,42 @@ _get_n_sub_elt
 {
   switch (t_elmt) {
     case PDM_MESH_NODAL_TRIA3:
+    case PDM_MESH_NODAL_TRIAHO:
     {
       return 2;
     }
     break;
 
     case PDM_MESH_NODAL_QUAD4:
+    case PDM_MESH_NODAL_QUADHO:
     {
       return 1;
     }
     break;
 
     case PDM_MESH_NODAL_TETRA4:
+    case PDM_MESH_NODAL_TETRAHO:
     {
       return 5;
     }
     break;
 
     case PDM_MESH_NODAL_PYRAMID5:
+    case PDM_MESH_NODAL_PYRAMIDHO:
     {
       return 3;
     }
     break;
 
     case PDM_MESH_NODAL_PRISM6:
+    case PDM_MESH_NODAL_PRISMHO:
     {
       return 2;
     }
     break;
 
     case PDM_MESH_NODAL_HEXA8:
+    case PDM_MESH_NODAL_HEXAHO:
     {
       return 1;
     }
@@ -123,7 +129,7 @@ _generate_tria_surf
 
   int order = dcube->order;
 
-  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_TRIA3, order);
+  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(dcube->t_elt, order);
 
   int dn_elt = 2 * dcube->dn_quad;
 
@@ -152,7 +158,8 @@ _generate_tria_surf
 
   dmesh_nodal->surfacic->n_g_elmts = 2*dcube->distrib_quad[n_rank];
 
-  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic, PDM_MESH_NODAL_TRIA3);
+  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic,
+                                                     dcube->t_elt);
   PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->surfacic,
                                         id_section,
                                         dn_elt,
@@ -175,7 +182,7 @@ _generate_quad_surf
 
   int order = dcube->order;
 
-  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_QUAD4, order);
+  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(dcube->t_elt, order);
 
   int dn_elt = dcube->dn_quad;
 
@@ -197,7 +204,8 @@ _generate_quad_surf
 
   dmesh_nodal->surfacic->n_g_elmts = dcube->distrib_quad[n_rank];
 
-  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic, PDM_MESH_NODAL_QUAD4);
+  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic,
+                                                     dcube->t_elt);
   PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->surfacic,
                                         id_section,
                                         dn_elt,
@@ -221,7 +229,7 @@ _generate_tetra_vol
 
   int order = dcube->order;
 
-  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_TETRA4, order);
+  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(dcube->t_elt, order);
 
   int dn_elt = 5 * dcube->dn_hexa;
 
@@ -324,7 +332,8 @@ _generate_tetra_vol
 
   dmesh_nodal->volumic->n_g_elmts = 5*dcube->distrib_hexa[n_rank];
 
-  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->volumic, PDM_MESH_NODAL_TETRA4);
+  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->volumic,
+                                                     dcube->t_elt);
   PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->volumic,
                                         id_section,
                                         dn_elt,
@@ -347,7 +356,7 @@ _generate_pyramid_vol
 
   int order = dcube->order;
 
-  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_PYRAMID5, order);
+  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(dcube->t_elt, order);
 
   int dn_elt = 3 * dcube->dn_hexa;
 
@@ -417,11 +426,6 @@ _generate_pyramid_vol
       }
     }
 
-    /*log_trace("indi,j,k = "PDM_FMT_G_NUM", "PDM_FMT_G_NUM", "PDM_FMT_G_NUM"\n", indi, indj, indk);
-    log_trace(" u = (%d %d %d),  v = (%d %d %d),  w = (%d %d %d)\n",
-              u[0], u[1], u[2],
-              v[0], v[1], v[2],
-              w[0], w[1], w[2]);*/
 
     // 1st sub-pyramid
     for (int k = 0; k <= dcube->order; k++) {
@@ -437,7 +441,6 @@ _generate_pyramid_vol
         }
       }
     }
-    //PDM_log_trace_array_long(delt_vtx + idx - n_vtx_elt, n_vtx_elt, "  1st pyra: ");
 
     // 2nd sub-pyramid
     for (int k = 0; k <= dcube->order; k++) {
@@ -453,7 +456,6 @@ _generate_pyramid_vol
         }
       }
     }
-    //PDM_log_trace_array_long(delt_vtx + idx - n_vtx_elt, n_vtx_elt, "  2nd pyra: ");
 
     // 3rd sub-pyramid
     for (int k = 0; k <= dcube->order; k++) {
@@ -469,12 +471,12 @@ _generate_pyramid_vol
         }
       }
     }
-    //PDM_log_trace_array_long(delt_vtx + idx - n_vtx_elt, n_vtx_elt, "  3rd pyra: ");
   }
 
   dmesh_nodal->volumic->n_g_elmts = 3*dcube->distrib_hexa[n_rank];
 
-  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->volumic, PDM_MESH_NODAL_PYRAMID5);
+  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->volumic,
+                                                     dcube->t_elt);
   PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->volumic,
                                         id_section,
                                         dn_elt,
@@ -497,7 +499,7 @@ _generate_prism_vol
 
   int order = dcube->order;
 
-  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_PRISM6, order);
+  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(dcube->t_elt, order);
 
   int dn_elt = 2 * dcube->dn_hexa;
 
@@ -531,7 +533,8 @@ _generate_prism_vol
 
   dmesh_nodal->volumic->n_g_elmts = 2*dcube->distrib_hexa[n_rank];
 
-  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->volumic, PDM_MESH_NODAL_PRISM6);
+  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->volumic,
+                                                     dcube->t_elt);
   PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->volumic,
                                         id_section,
                                         dn_elt,
@@ -554,7 +557,7 @@ _generate_hexa_vol
 
   int order = dcube->order;
 
-  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_HEXA8, order);
+  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(dcube->t_elt, order);
 
   int dn_elt = dcube->dn_hexa;
 
@@ -580,7 +583,8 @@ _generate_hexa_vol
 
   dmesh_nodal->volumic->n_g_elmts = dcube->distrib_hexa[n_rank];
 
-  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->volumic, PDM_MESH_NODAL_HEXA8);
+  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->volumic,
+                                                     dcube->t_elt);
   PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->volumic,
                                         id_section,
                                         dn_elt,
@@ -624,7 +628,8 @@ _generate_corners
 
   dmesh_nodal->corner->n_g_elmts = gn_corner;
 
-  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->corner, PDM_MESH_NODAL_POINT);
+  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->corner,
+                                                     PDM_MESH_NODAL_POINT);
   PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->corner,
                                         id_section,
                                         dn_corner,
@@ -647,7 +652,29 @@ _generate_ridges
 
   int order = dcube->order;
 
-  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_BAR2, order);
+  PDM_Mesh_nodal_elt_t t_ridge;
+  switch (dcube->t_elt) {
+    case PDM_MESH_NODAL_TRIA3:
+    case PDM_MESH_NODAL_QUAD4:
+    case PDM_MESH_NODAL_TETRA4:
+    case PDM_MESH_NODAL_PYRAMID5:
+    case PDM_MESH_NODAL_PRISM6:
+    case PDM_MESH_NODAL_HEXA8:
+      t_ridge = PDM_MESH_NODAL_BAR2;
+      break;
+    case PDM_MESH_NODAL_TRIAHO:
+    case PDM_MESH_NODAL_QUADHO:
+    case PDM_MESH_NODAL_TETRAHO:
+    case PDM_MESH_NODAL_PYRAMIDHO:
+    case PDM_MESH_NODAL_PRISMHO:
+    case PDM_MESH_NODAL_HEXAHO:
+      t_ridge = PDM_MESH_NODAL_BARHO;
+      break;
+    default:
+      PDM_error(__FILE__, __LINE__, 0, "Invalid t_elt\n");
+  }
+
+  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(t_ridge, order);
 
   int dn_elt = dcube->dn_bar;
   PDM_g_num_t gn_ridge = dcube->distrib_bar[n_rank];
@@ -765,7 +792,8 @@ _generate_ridges
   dmesh_nodal->ridge->n_g_elmts = gn_ridge;
 
 
-  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->ridge, PDM_MESH_NODAL_BAR2);
+  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->ridge,
+                                                     t_ridge);
   PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->ridge,
                                         id_section,
                                         dn_elt,
@@ -997,7 +1025,19 @@ _generate_tetra_surf
 
   int order = dcube->order;
 
-  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_TRIA3, order);
+  PDM_Mesh_nodal_elt_t t_tria;
+  if (dcube->t_elt == PDM_MESH_NODAL_TETRA4) {
+    assert(order == 1);
+    t_tria = PDM_MESH_NODAL_TRIA3;
+  }
+  else if (dcube->t_elt == PDM_MESH_NODAL_TETRAHO) {
+    t_tria = PDM_MESH_NODAL_TRIAHO;
+  }
+  else {
+    PDM_error(__FILE__, __LINE__, 0, "Invalid t_elt\n");
+  }
+
+  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(t_tria, order);
 
   dmesh_nodal->surfacic->n_g_elmts = 2*dcube->distrib_quad[n_rank];
   int dn_elt = 2 * dcube->dn_quad;
@@ -1067,7 +1107,7 @@ _generate_tetra_surf
   }
 
 
-  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic, PDM_MESH_NODAL_TRIA3);
+  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic, t_tria);
   PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->surfacic,
                                         id_section,
                                         dn_elt,
@@ -1075,9 +1115,9 @@ _generate_tetra_surf
                                         PDM_OWNERSHIP_KEEP);
 
   /* Groups */
-  PDM_Mesh_nodal_elt_t t_elt_face[3] = {PDM_MESH_NODAL_TRIA3,
-                                        PDM_MESH_NODAL_TRIA3,
-                                        PDM_MESH_NODAL_TRIA3};
+  PDM_Mesh_nodal_elt_t t_elt_face[3] = {t_tria,
+                                        t_tria,
+                                        t_tria};
   _set_surf_groups (dcube,
                     dmesh_nodal,
                     n_group,
@@ -1100,8 +1140,23 @@ _generate_pyramid_surf
 
   int order = dcube->order;
 
-  int n_vtx_tria = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_TRIA3, order);
-  int n_vtx_quad = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_QUAD4, order);
+  PDM_Mesh_nodal_elt_t t_tria;
+  PDM_Mesh_nodal_elt_t t_quad;
+  if (dcube->t_elt == PDM_MESH_NODAL_PYRAMID5) {
+    assert(order == 1);
+    t_tria = PDM_MESH_NODAL_TRIA3;
+    t_quad = PDM_MESH_NODAL_QUAD4;
+  }
+  else if (dcube->t_elt == PDM_MESH_NODAL_PYRAMIDHO) {
+    t_tria = PDM_MESH_NODAL_TRIAHO;
+    t_quad = PDM_MESH_NODAL_QUADHO;
+  }
+  else {
+    PDM_error(__FILE__, __LINE__, 0, "Invalid t_elt\n");
+  }
+
+  int n_vtx_tria = PDM_Mesh_nodal_n_vtx_elt_get(t_tria, order);
+  int n_vtx_quad = PDM_Mesh_nodal_n_vtx_elt_get(t_quad, order);
 
   PDM_g_num_t gn_tria = 2*(dcube->nx*dcube->ny + dcube->ny*dcube->nz + dcube->nz*dcube->nx);
   PDM_g_num_t gn_quad = 0;
@@ -1219,7 +1274,7 @@ _generate_pyramid_surf
     }
   }
 
-  int id_tria = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic, PDM_MESH_NODAL_TRIA3);
+  int id_tria = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic, t_tria);
   PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->surfacic,
                                         id_tria,
                                         dn_tria,
@@ -1261,7 +1316,7 @@ _generate_pyramid_surf
 
   }
 
-  int id_quad = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic, PDM_MESH_NODAL_QUAD4);
+  int id_quad = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic, t_quad);
   PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->surfacic,
                                         id_quad,
                                         dn_quad,
@@ -1361,8 +1416,23 @@ _generate_prism_surf
 
   int order = dcube->order;
 
-  int n_vtx_tria = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_TRIA3, order);
-  int n_vtx_quad = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_QUAD4, order);
+  PDM_Mesh_nodal_elt_t t_tria;
+  PDM_Mesh_nodal_elt_t t_quad;
+  if (dcube->t_elt == PDM_MESH_NODAL_PRISM6) {
+    assert(order == 1);
+    t_tria = PDM_MESH_NODAL_TRIA3;
+    t_quad = PDM_MESH_NODAL_QUAD4;
+  }
+  else if (dcube->t_elt == PDM_MESH_NODAL_PRISMHO) {
+    t_tria = PDM_MESH_NODAL_TRIAHO;
+    t_quad = PDM_MESH_NODAL_QUADHO;
+  }
+  else {
+    PDM_error(__FILE__, __LINE__, 0, "Invalid t_elt\n");
+  }
+
+  int n_vtx_tria = PDM_Mesh_nodal_n_vtx_elt_get(t_tria, order);
+  int n_vtx_quad = PDM_Mesh_nodal_n_vtx_elt_get(t_quad, order);
 
   PDM_g_num_t gn_tria = 4*dcube->nx*dcube->ny;
   PDM_g_num_t gn_quad = 2*(dcube->ny*dcube->nz + dcube->nz*dcube->nx);
@@ -1435,7 +1505,7 @@ _generate_prism_surf
     }
   }
 
-  int id_tria = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic, PDM_MESH_NODAL_TRIA3);
+  int id_tria = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic, t_tria);
   PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->surfacic,
                                         id_tria,
                                         dn_tria,
@@ -1463,7 +1533,7 @@ _generate_prism_surf
 
   }
 
-  int id_quad = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic, PDM_MESH_NODAL_QUAD4);
+  int id_quad = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic, t_quad);
   PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->surfacic,
                                         id_quad,
                                         dn_quad,
@@ -1474,9 +1544,9 @@ _generate_prism_surf
   free (distrib_quad);
 
   /* Groups */
-  PDM_Mesh_nodal_elt_t t_elt_face[3] = {PDM_MESH_NODAL_TRIA3,
-                                        PDM_MESH_NODAL_QUAD4,
-                                        PDM_MESH_NODAL_QUAD4};
+  PDM_Mesh_nodal_elt_t t_elt_face[3] = {t_tria,
+                                        t_quad,
+                                        t_quad};
   _set_surf_groups (dcube,
                     dmesh_nodal,
                     n_group,
@@ -1501,7 +1571,19 @@ _generate_hexa_surf
 
   int order = dcube->order;
 
-  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(PDM_MESH_NODAL_QUAD4, order);
+  PDM_Mesh_nodal_elt_t t_quad;
+  if (dcube->t_elt == PDM_MESH_NODAL_HEXA8) {
+    assert(order == 1);
+    t_quad = PDM_MESH_NODAL_QUAD4;
+  }
+  else if (dcube->t_elt == PDM_MESH_NODAL_HEXAHO) {
+    t_quad = PDM_MESH_NODAL_QUADHO;
+  }
+  else {
+    PDM_error(__FILE__, __LINE__, 0, "Invalid t_elt\n");
+  }
+
+  int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(t_quad, order);
 
   dmesh_nodal->surfacic->n_g_elmts = dcube->distrib_quad[n_rank];
   int dn_elt = dcube->dn_quad;
@@ -1539,7 +1621,7 @@ _generate_hexa_surf
 
 
 
-  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic, PDM_MESH_NODAL_QUAD4);
+  int id_section = PDM_DMesh_nodal_elmts_section_add(dmesh_nodal->surfacic, t_quad);
   PDM_DMesh_nodal_elmts_section_std_set(dmesh_nodal->surfacic,
                                         id_section,
                                         dn_elt,
@@ -1547,9 +1629,9 @@ _generate_hexa_surf
                                         PDM_OWNERSHIP_KEEP);
 
   /* Groups */
-  PDM_Mesh_nodal_elt_t t_elt_face[3] = {PDM_MESH_NODAL_QUAD4,
-                                        PDM_MESH_NODAL_QUAD4,
-                                        PDM_MESH_NODAL_QUAD4};
+  PDM_Mesh_nodal_elt_t t_elt_face[3] = {t_quad,
+                                        t_quad,
+                                        t_quad};
   _set_surf_groups (dcube,
                     dmesh_nodal,
                     n_group,
@@ -1564,18 +1646,13 @@ _generate_hexa_surf
 
 /**
  *
- * \brief Create a distributed cube
+ * \brief Get the \ref PDM_dmesh_nodal_t associated to a \ref PDM_dcube_nodal_t
  *
- * \param [out]  id             dcube identifier
- * \param [in]   comm           Communicator
- * \param [in]   n_vtx_seg      Number of vertices in segments
- * \param [in]   length         Segment length
- * \param [in]   zero_x         Coordinates of the origin
- * \param [in]   zero_y         Coordinates of the origin
- * \param [in]   zero_z         Coordinates of the origin
+ * \param [in]  dcube      Pointer to \ref PDM_dcube_nodal_t object
+ *
+ * \return   Pointer to the associated \ref PDM_dmesh_nodal_t object
  *
  */
-
 
 PDM_dmesh_nodal_t *
 PDM_dcube_nodal_gen_dmesh_nodal_get
@@ -1588,9 +1665,25 @@ PDM_dcube_nodal_gen_dmesh_nodal_get
 
 
 
-
-
-
+/**
+ *
+ * \brief Initialize a \ref PDM_dcube_nodal_t structure
+ *
+ * \param [in]   comm           MPI communicator
+ * \param [in]   n_vtx_x        Number of vertices on segments in x-direction
+ * \param [in]   n_vtx_y        Number of vertices on segments in y-direction
+ * \param [in]   n_vtx_z        Number of vertices on segments in z-direction
+ * \param [in]   length         Segment length
+ * \param [in]   zero_x         X-coordinate of the origin
+ * \param [in]   zero_y         Y-coordinate of the origin
+ * \param [in]   zero_z         Z-coordinate of the origin
+ * \param [in]   t_elt          Element type
+ * \param [in]   order          Element order
+ * \param [in]   owner          Ownership
+ *
+ * \return   Pointer to new \ref PDM_dcube_nodal_t object
+ *
+ */
 
 PDM_dcube_nodal_t *
 PDM_dcube_nodal_gen_create
@@ -1628,8 +1721,8 @@ PDM_dcube_nodal_gen_create
   dcube->order  = order;
   dcube->owner  = owner;
 
-  dcube->dmesh_nodal = NULL;
-  dcube->ordering = NULL;
+  dcube->dmesh_nodal  = NULL;
+  dcube->ordering     = NULL;
   dcube->distrib_bar  = NULL;
   dcube->distrib_quad = NULL;
   dcube->distrib_hexa = NULL;
@@ -1638,11 +1731,12 @@ PDM_dcube_nodal_gen_create
 }
 
 
+
 /**
  *
- * \brief Free a distributed cube
+ * \brief Free a \ref PDM_dcube_nodal_t structure
  *
- * \param [in]  id            dcube identifier
+ * \param [in]  dcube      Pointer to \ref PDM_dcube_nodal_t object
  *
  */
 
@@ -1669,6 +1763,16 @@ PDM_dcube_nodal_gen_free
 }
 
 
+
+/**
+ *
+ * \brief Set the HO-ordering for a \ref PDM_dcube_nodal_t structure
+ *
+ * \param [in]  dcube      Pointer to \ref PDM_dcube_nodal_t object
+ * \param [in]  ordering   Name of the HO-ordering
+ *
+ */
+
 void PDM_dcube_nodal_gen_ordering_set
 (
  PDM_dcube_nodal_t *dcube,
@@ -1678,6 +1782,17 @@ void PDM_dcube_nodal_gen_ordering_set
   dcube->ordering = (char *) ordering;
 }
 
+
+
+/**
+ *
+ * \brief Build a \ref PDM_dcube_nodal_t structure
+ *
+ * \param [in]  dcube      Pointer to \ref PDM_dcube_nodal_t object
+ *
+ * \return   Pointer to the associated \ref PDM_dmesh_nodal_t object
+ *
+ */
 
 PDM_dmesh_nodal_t *
 PDM_dcube_nodal_gen_build
@@ -1694,10 +1809,13 @@ PDM_dcube_nodal_gen_build
   PDM_MPI_Comm_rank(dcube->comm, &i_rank);
 
   int dim = 3;
-  if(dcube->t_elt == PDM_MESH_NODAL_TRIA3 || dcube->t_elt == PDM_MESH_NODAL_QUAD4 ) {
+  if (dcube->t_elt == PDM_MESH_NODAL_TRIA3  ||
+      dcube->t_elt == PDM_MESH_NODAL_QUAD4  ||
+      dcube->t_elt == PDM_MESH_NODAL_TRIAHO ||
+      dcube->t_elt == PDM_MESH_NODAL_QUADHO) {
     dim = 2;
   }
-  if(dcube->t_elt == PDM_MESH_NODAL_POINT || dcube->t_elt == PDM_MESH_NODAL_BAR2){
+  if (dcube->t_elt == PDM_MESH_NODAL_POINT || dcube->t_elt == PDM_MESH_NODAL_BAR2){
     PDM_error(__FILE__, __LINE__, 0, "Invalid t_elt for PDM_dcube_nodal_gen_init\n");
   }
 
@@ -1811,18 +1929,21 @@ PDM_dcube_nodal_gen_build
 
   switch (dcube->t_elt) {
   case PDM_MESH_NODAL_TRIA3:
+  case PDM_MESH_NODAL_TRIAHO:
     {
       _generate_tria_surf (dcube, dcube->dmesh_nodal);
     }
     break;
 
   case PDM_MESH_NODAL_QUAD4:
+  case PDM_MESH_NODAL_QUADHO:
     {
       _generate_quad_surf (dcube, dcube->dmesh_nodal);
     }
     break;
 
   case PDM_MESH_NODAL_TETRA4:
+  case PDM_MESH_NODAL_TETRAHO:
     {
       _generate_tetra_vol (dcube, dcube->dmesh_nodal);
       _generate_tetra_surf(dcube, dcube->dmesh_nodal);
@@ -1830,6 +1951,7 @@ PDM_dcube_nodal_gen_build
     break;
 
   case PDM_MESH_NODAL_PYRAMID5:
+  case PDM_MESH_NODAL_PYRAMIDHO:
     {
       _generate_pyramid_vol (dcube, dcube->dmesh_nodal);
       _generate_pyramid_surf(dcube, dcube->dmesh_nodal);
@@ -1837,6 +1959,7 @@ PDM_dcube_nodal_gen_build
     break;
 
   case PDM_MESH_NODAL_PRISM6:
+  case PDM_MESH_NODAL_PRISMHO:
     {
       _generate_prism_vol (dcube, dcube->dmesh_nodal);
       _generate_prism_surf(dcube, dcube->dmesh_nodal);
@@ -1844,6 +1967,7 @@ PDM_dcube_nodal_gen_build
     break;
 
   case PDM_MESH_NODAL_HEXA8:
+  case PDM_MESH_NODAL_HEXAHO:
     {
       _generate_hexa_vol (dcube, dcube->dmesh_nodal);
       _generate_hexa_surf(dcube, dcube->dmesh_nodal);
@@ -1865,6 +1989,17 @@ PDM_dcube_nodal_gen_build
     PDM_dmesh_nodal_reorder (dcube->dmesh_nodal,
                              dcube->ordering,
                              dcube->order);
+  } else {
+    if (dcube->t_elt == PDM_MESH_NODAL_TRIA3    ||
+        dcube->t_elt == PDM_MESH_NODAL_QUAD4    ||
+        dcube->t_elt == PDM_MESH_NODAL_TETRA4   ||
+        dcube->t_elt == PDM_MESH_NODAL_PYRAMID5 ||
+        dcube->t_elt == PDM_MESH_NODAL_PRISM6   ||
+        dcube->t_elt == PDM_MESH_NODAL_HEXA8) {
+      PDM_dmesh_nodal_reorder (dcube->dmesh_nodal,
+                               "PDM_HO_ORDERING_CGNS",
+                               dcube->order);
+    }
   }
 
 

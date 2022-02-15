@@ -96,20 +96,18 @@ static PDM_ho_basis_user_elt_t *_user_pyra = NULL;
  * Private function definitions
  *============================================================================*/
 
-/*----------------------------------------------------------------------------
+/**
  *
- * Monomonial product
+ * \brief Monomonial product
  * Procedure utilisee pour calculer (rapidement) les fonctions de base des simplex
  * dont les noeuds d'interpolation sont equidistants.
  *
- * parameters:
- *   order           <-- order
- *   n_pts           <-- number of points
- *   u               <-- u (size =  n_pts)
- *   fn              --> fn (size =  n_pts)
+ * \param [in]  order           Order
+ * \param [in]  n_pts           Number of points
+ * \param [in]  u               u (size = \ref n_pts)
+ * \param [out] fn              fn (size = \ref n_pts)
  *
- *
- *----------------------------------------------------------------------------*/
+ */
 
 static void
 _monomial_product
@@ -139,18 +137,16 @@ _monomial_product
 }
 
 
-/*----------------------------------------------------------------------------
+/**
  *
- * Edge Pn basis
+ * \brief Edge Pn basis
  *
- * parameters:
- *   order           <-- order
- *   n_pts           <-- number of points
- *   u              <-- u (size = n_pts)
- *   weights         --> weights (size = n_nodes * n_pts)
+ * \param [in]  order           Order
+ * \param [in]  n_pts           Number of points
+ * \param [in]  u               Parametric coordinates (size = \ref n_pts)
+ * \param [out] weights         Weights (size = n_nodes * \ref n_pts)
  *
- *
- *----------------------------------------------------------------------------*/
+ */
 
 static void
 _basis_edge_pn
@@ -246,18 +242,16 @@ _basis_edge_pn
 }
 
 
-/*----------------------------------------------------------------------------
+/**
  *
- * Triangle Pn basis
+ * \brief Triangle Pn basis
  *
- * parameters:
- *   order           <-- order
- *   n_pts           <-- number of points
- *   uv              <-- u (size = 2 * n_pts)
- *   weights         --> weights (size = n_nodes * n_pts)
+ * \param [in]  order           Order
+ * \param [in]  n_pts           Number of points
+ * \param [in]  uv              Parametric coordinates (size = 2 * \ref n_pts)
+ * \param [out] weights         Weights (size = n_nodes * \ref n_pts)
  *
- *
- *----------------------------------------------------------------------------*/
+ */
 
 static void
 _basis_tria_pn
@@ -379,18 +373,14 @@ _basis_tria_pn
 }
 
 
-/*----------------------------------------------------------------------------
+/**
  *
- * Compte uv of edge nodes
+ * \brief Compte uv of edge nodes
  *
- * parameters:
- *   order           <-- order
- *   n_pts           <-- number of points
- *   u               <-- u (size = n_pts)
- *   weights         --> weights (size = (order + 1) * n_pts)
+ * \param [in]  order           Order
+ * \param [out] xi              Coordinates (size = \ref order + 1)
  *
- *
- *----------------------------------------------------------------------------*/
+ */
 
 static void
 _u_nodes_edges
@@ -407,18 +397,16 @@ _u_nodes_edges
 }
 
 
-/*----------------------------------------------------------------------------
+/**
  *
- * Edge basis
+ * \brief Edge basis
  *
- * parameters:
- *   order           <-- order
- *   n_pts           <-- number of points
- *   u               <-- u (size = n_pts)
- *   weights         --> weights (size = (order + 1) * n_pts)
+ * \param [in]  order           Order
+ * \param [in]  n_pts           Number of points
+ * \param [in]  u               Parametric coordinates (size = \ref n_pts)
+ * \param [out] weights         Weights (size = (\ref order + 1) * \ref n_pts)
  *
- *
- *----------------------------------------------------------------------------*/
+ */
 
 static void
 _set_L2_basis_equi
@@ -459,18 +447,49 @@ _set_L2_basis_equi
 }
 
 
-/*----------------------------------------------------------------------------
+
+/**
  *
- * Quadrangle Qn basis
+ * \brief Quadrangle Q1 basis
  *
- * parameters:
- *   order           <-- order
- *   n_pts           <-- number of points
- *   uv              <-- u (size = 2 * n_pts)
- *   weights         --> weights (size = n_nodes * n_pts)
+ * \param [in]  n_pts           Number of points
+ * \param [in]  uv              Parametric coordinates (size = 2 * \ref n_pts)
+ * \param [out] weights         Weights (size = n_nodes * \ref n_pts)
  *
+ */
+
+static void
+_basis_quad_q1
+(
+ const int              n_pts,
+ const double *restrict uv,
+ double       *restrict weights
+)
+{
+  for (int i = 0; i < n_pts; i++) {
+    double u = uv[2*i];
+    double v = uv[2*i+1];
+    double u1 = (1 - u);
+    double v1 = (1 - v);
+
+    weights[4*i+0] = u1 * v1;
+    weights[4*i+1] = u  * v1;
+    weights[4*i+2] = u  * v;
+    weights[4*i+3] = u1 * v;
+  }
+}
+
+
+/**
  *
- *----------------------------------------------------------------------------*/
+ * \brief Quadrangle Qn basis
+ *
+ * \param [in]  order           Order
+ * \param [in]  n_pts           Number of points
+ * \param [in]  uv              Parametric coordinates (size = 2 * \ref n_pts)
+ * \param [out] weights         Weights (size = n_nodes * \ref n_pts)
+ *
+ */
 
 static void
 _basis_quad_qn
@@ -572,18 +591,16 @@ _basis_quad_qn
 }
 
 
-/*----------------------------------------------------------------------------
+/**
  *
- * Tetrahedron Pn basis
+ * \brief Tetrahedron Pn basis
  *
- * parameters:
- *   order           <-- order
- *   n_pts           <-- number of points
- *   uvw             <-- u (size = 3 * n_pts)
- *   weights         --> weights (size = n_nodes * n_pts)
+ * \param [in]  order           Order
+ * \param [in]  n_pts           Number of points
+ * \param [in]  uvw             Parametric coordinates (size = 3 * \ref n_pts)
+ * \param [out] weights         Weights (size = n_nodes * \ref n_pts)
  *
- *
- *----------------------------------------------------------------------------*/
+ */
 
 static void
 _basis_tetra_pn
@@ -694,18 +711,55 @@ _basis_tetra_pn
 }
 
 
-/*----------------------------------------------------------------------------
+/**
  *
- * Pyramid Pn basis
+ * \brief Pyramid P1 basis
  *
- * parameters:
- *   order           <-- order
- *   n_pts           <-- number of points
- *   uvw             <-- u (size = 3 * n_pts)
- *   weights         --> weights (size = n_nodes * n_pts)
+ * \param [in]  n_pts           Number of points
+ * \param [in]  uvw             Parametric coordinates (size = 3 * \ref n_pts)
+ * \param [out] weights         Weights (size = n_nodes * \ref n_pts)
  *
+ */
+
+static void
+_basis_pyra_p1
+(
+ const int              n_pts,
+ const double *restrict uvw,
+ double       *restrict weights
+ )
+{
+
+  for (int i = 0; i < n_pts; i++) {
+
+    double u = uvw[3*i];
+    double v = uvw[3*i+1];
+    double w = uvw[3*i+2];
+
+    double w1 = 1. - w;
+    if (fabs(w1) > 1.e-6) {
+      w1 = 1. / w1;
+    }
+
+    weights[5*i+0] = (1. - u - w) * (1. - v - w) * w1;
+    weights[5*i+1] =            u * (1. - v - w) * w1;
+    weights[5*i+2] =            u *            v * w1;
+    weights[5*i+3] = (1. - u - w) *            v * w1;
+    weights[5*i+4] = w;
+  }
+}
+
+
+/**
  *
- *----------------------------------------------------------------------------*/
+ * \brief Pyramid Pn basis
+ *
+ * \param [in]  order           Order
+ * \param [in]  n_pts           Number of points
+ * \param [in]  uvw             Parametric coordinates (size = 3 * \ref n_pts)
+ * \param [out] weights         Weights (size = n_nodes * \ref n_pts)
+ *
+ */
 
 static void
 _basis_pyra_pn
@@ -777,18 +831,16 @@ _basis_pyra_pn
 }
 
 
-/*----------------------------------------------------------------------------
+/**
  *
- * Prism Pn basis
+ * \brief Prism Pn basis
  *
- * parameters:
- *   order           <-- order
- *   n_pts           <-- number of points
- *   uvw             <-- u (size = 3 * n_pts)
- *   weights         --> weights (size = n_nodes * n_pts)
+ * \param [in]  order           Order
+ * \param [in]  n_pts           Number of points
+ * \param [in]  uvw             Parametric coordinates (size = 3 * \ref n_pts)
+ * \param [out] weights         Weights (size = n_nodes * \ref n_pts)
  *
- *
- *----------------------------------------------------------------------------*/
+ */
 
 static void
 _basis_prism_pn
@@ -917,18 +969,55 @@ _basis_prism_pn
 }
 
 
-/*----------------------------------------------------------------------------
+/**
  *
- * Hexahedron Pn basis
+ * \brief Hexahedron P1 basis
  *
- * parameters:
- *   order           <-- order
- *   n_pts           <-- number of points
- *   uvw             <-- u (size = 3 * n_pts)
- *   weights         --> weights (size = n_nodes * n_pts)
+ * \param [in]  n_pts           Number of points
+ * \param [in]  uvw             Parametric coordinates (size = 3 * \ref n_pts)
+ * \param [out] weights         Weights (size = n_nodes * \ref n_pts)
  *
+ */
+
+static void
+_basis_hexa_p1
+(
+ const int              n_pts,
+ const double *restrict uvw,
+ double       *restrict weights
+ )
+{
+  for (int i = 0; i < n_pts; i++) {
+
+    double u = uvw[3*i];
+    double v = uvw[3*i+1];
+    double w = uvw[3*i+2];
+    double u1 = (1. - u);
+    double v1 = (1. - v);
+    double w1 = (1. - w);
+
+    weights[8*i+0] = u1 * v1 * w1;
+    weights[8*i+1] = u  * v1 * w1;
+    weights[8*i+2] = u  * v  * w1;
+    weights[8*i+3] = u1 * v  * w1;
+    weights[8*i+4] = u1 * v1 * w;
+    weights[8*i+5] = u  * v1 * w;
+    weights[8*i+6] = u  * v  * w;
+    weights[8*i+7] = u1 * v  * w;
+  }
+}
+
+
+/**
  *
- *----------------------------------------------------------------------------*/
+ * \brief Hexahedron Pn basis
+ *
+ * \param [in]  order           Order
+ * \param [in]  n_pts           Number of points
+ * \param [in]  uvw             Parametric coordinates (size = 3 * \ref n_pts)
+ * \param [out] weights         Weights (size = n_nodes * \ref n_pts)
+ *
+ */
 
 static void
 _basis_hexa_pn
@@ -1067,16 +1156,15 @@ _basis_hexa_pn
 }
 
 
-/*----------------------------------------------------------------------------
+/**
  *
- * high order basis
+ * \brief Get a user-defined high-order basis function
  *
- * parameters:
- *   type            <-- element type
+ * \param [in] elt_type            Element type
  *
- * return:
+ * return  Pointer to the user-defined function
  *
- *----------------------------------------------------------------------------*/
+ */
 
 static PDM_ho_basis_user_elt_t **
 _get_user_elt (PDM_Mesh_nodal_elt_t elt_type)
@@ -1084,37 +1172,48 @@ _get_user_elt (PDM_Mesh_nodal_elt_t elt_type)
 
   switch(elt_type) {
 
-  case PDM_MESH_NODAL_BAR2:
+  case PDM_MESH_NODAL_BARHO:
     return &_user_edge;
     break;
 
-  case PDM_MESH_NODAL_TRIA3:
+  case PDM_MESH_NODAL_TRIAHO:
     return &_user_tria;
     break;
 
-  case PDM_MESH_NODAL_QUAD4:
+  case PDM_MESH_NODAL_QUADHO:
     return &_user_quad;
     break;
 
-  case PDM_MESH_NODAL_TETRA4:
+  case PDM_MESH_NODAL_TETRAHO:
     return &_user_tetra;
     break;
 
-  case PDM_MESH_NODAL_PYRAMID5:
+  case PDM_MESH_NODAL_PYRAMIDHO:
     return &_user_pyra;
     break;
 
-  case PDM_MESH_NODAL_PRISM6:
+  case PDM_MESH_NODAL_PRISMHO:
     return &_user_prism;
     break;
 
-  case PDM_MESH_NODAL_HEXA8:
+  case PDM_MESH_NODAL_HEXAHO:
     return &_user_hexa;
+    break;
+
+  case PDM_MESH_NODAL_POINT:
+  case PDM_MESH_NODAL_BAR2:
+  case PDM_MESH_NODAL_TRIA3:
+  case PDM_MESH_NODAL_QUAD4:
+  case PDM_MESH_NODAL_TETRA4:
+  case PDM_MESH_NODAL_PYRAMID5:
+  case PDM_MESH_NODAL_PRISM6:
+  case PDM_MESH_NODAL_HEXA8:
+    return NULL;
     break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0,
-              "PDM_ho_user_elt_unset : Unvailable element type\n");
+              "Unvailable element type %d\n", (int) elt_type);
   }
 
   return NULL;
@@ -1122,18 +1221,17 @@ _get_user_elt (PDM_Mesh_nodal_elt_t elt_type)
 }
 
 
-/*----------------------------------------------------------------------------
+/**
  *
- * default high order basis
+ * \brief Evaluate the default high-order basis function
  *
- * parameters:
- *   type            <-- element type
- *   order           <-- order
- *   n_pts           <-- number of points
- *   uvw             <-- uvw (size = elt_dim * n_pts)
- *   weights         --> weights (size = n_nodes * n_pts)
+ * \param [in]  type            Element type
+ * \param [in]  order           Order
+ * \param [in]  n_pts           Number of points
+ * \param [in]  uvw             Parametric coordinates (size = elt_dim * \ref n_pts)
+ * \param [out] weights         Weights (size = n_nodes * \ref n_pts)
  *
- *----------------------------------------------------------------------------*/
+ */
 
 static void
 _default_elt_basis
@@ -1148,30 +1246,46 @@ _default_elt_basis
   switch (type) {
 
   case PDM_MESH_NODAL_BAR2:
+  case PDM_MESH_NODAL_BARHO:
     _basis_edge_pn (order, n_pts, uvw, weights);
     break;
 
   case PDM_MESH_NODAL_TRIA3:
+  case PDM_MESH_NODAL_TRIAHO:
     _basis_tria_pn (order, n_pts, uvw, weights);
     break;
 
   case PDM_MESH_NODAL_QUAD4:
+    assert(order == 1);
+    _basis_quad_q1 (n_pts, uvw, weights);
+    break;
+  case PDM_MESH_NODAL_QUADHO:
     _basis_quad_qn (order, n_pts, uvw, weights);
     break;
 
   case PDM_MESH_NODAL_TETRA4:
+  case PDM_MESH_NODAL_TETRAHO:
     _basis_tetra_pn (order, n_pts, uvw, weights);
     break;
 
   case PDM_MESH_NODAL_PYRAMID5:
+    assert(order == 1);
+    _basis_pyra_p1 (n_pts, uvw, weights);
+    break;
+  case PDM_MESH_NODAL_PYRAMIDHO:
     _basis_pyra_pn (order, n_pts, uvw, weights);
     break;
 
   case PDM_MESH_NODAL_PRISM6:
+  case PDM_MESH_NODAL_PRISMHO:
     _basis_prism_pn (order, n_pts, uvw, weights);
     break;
 
   case PDM_MESH_NODAL_HEXA8:
+    assert(order == 1);
+    _basis_hexa_p1 (n_pts, uvw, weights);
+    break;
+  case PDM_MESH_NODAL_HEXAHO:
     _basis_hexa_pn (order, n_pts, uvw, weights);
     break;
 
@@ -1212,28 +1326,13 @@ PDM_ho_basis
  double                     *weights
 )
 {
-  PDM_ho_basis_user_elt_t *user_elt = *(_get_user_elt (type));
-
-  int entities_dim = 0;
-  switch(type) {
-  case PDM_MESH_NODAL_BAR2:
-    entities_dim = 1;
-    break;
-  case PDM_MESH_NODAL_TRIA3:          /* Triangle */
-  case PDM_MESH_NODAL_QUAD4:          /* Quadrangle */
-    entities_dim = 2;
-    break;
-  case PDM_MESH_NODAL_TETRA4:         /* Tetrahedron */
-  case PDM_MESH_NODAL_PYRAMID5:       /* Pyramid */
-  case PDM_MESH_NODAL_PRISM6:         /* Prism (pentahedron) */
-  case PDM_MESH_NODAL_HEXA8:          /* Hexahedron (brick) */
-    entities_dim = 3;
-    break;
-  default:
-    PDM_error(__FILE__, __LINE__, 0,
-              "%d is not high order element type\n", type);
-
+  // PDM_ho_basis_user_elt_t *user_elt = *(_get_user_elt (type));
+  PDM_ho_basis_user_elt_t *user_elt = NULL;
+  if (type > PDM_MESH_NODAL_HEXA8) {
+    user_elt = *(_get_user_elt (type));
   }
+
+  int entities_dim = PDM_Mesh_nodal_elt_dim_get(type);
 
   if (user_elt != NULL) {
     if (user_elt->elt_basis != NULL) {

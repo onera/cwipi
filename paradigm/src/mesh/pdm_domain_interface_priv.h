@@ -38,8 +38,8 @@ extern "C" {
 struct _pdm_domain_interface_t{
 
   int                           n_interface;
-  int                           n_zone;
-  PDM_domain_interface_mult_t   multizone_intrf;
+  int                           n_domain;
+  PDM_domain_interface_mult_t   multidomain_intrf;
   int                          *interface_dn_face;
   PDM_g_num_t                 **interface_ids_face;
   int                         **interface_dom_face;

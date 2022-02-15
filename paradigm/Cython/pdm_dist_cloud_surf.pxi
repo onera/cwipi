@@ -238,9 +238,10 @@ cdef class DistCloudSurf:
                                         &closest_elt_gnum)
 
                 # Encapsulate C array into a numpy array
-                np_closest_elt_distance  = create_numpy_d(closest_elt_distance, self._nb_pts[i_point_cloud][i_part_cloud])
-                np_closest_elt_projected = create_numpy_d(closest_elt_projected, 3 * self._nb_pts[i_point_cloud][i_part_cloud])
-                np_closest_elt_gnum      = create_numpy_pdm_gnum(closest_elt_gnum, self._nb_pts[i_point_cloud][i_part_cloud])
+                n_pts = self._nb_pts[i_point_cloud][i_part_cloud]
+                np_closest_elt_distance  = create_numpy_d(closest_elt_distance, n_pts, flag_owndata=False)
+                np_closest_elt_projected = create_numpy_d(closest_elt_projected, 3 * n_pts, flag_owndata=False)
+                np_closest_elt_gnum      = create_numpy_pdm_gnum(closest_elt_gnum, n_pts, flag_owndata=False)
 
                 dresults = {'ClosestEltDistance'    : np_closest_elt_distance,
                             'ClosestEltProjected'   : np_closest_elt_projected,

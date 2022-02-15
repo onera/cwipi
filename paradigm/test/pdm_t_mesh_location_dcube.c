@@ -450,7 +450,8 @@ int main(int argc, char *argv[])
 
   PDM_mesh_location_t* mesh_loc = PDM_mesh_location_create (PDM_MESH_NATURE_MESH_SETTED,//???
                                          1,//const int n_point_cloud,
-                                         PDM_MPI_COMM_WORLD);
+                                         PDM_MPI_COMM_WORLD,
+                                         PDM_OWNERSHIP_KEEP);
 
   /* Set point cloud(s) */
   if (i_rank == 0) {
@@ -829,8 +830,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  PDM_mesh_location_free (mesh_loc,
-                          0);
+  PDM_mesh_location_free (mesh_loc);
 
   PDM_part_free (ppart);
 

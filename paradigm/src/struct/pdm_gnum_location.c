@@ -83,6 +83,7 @@ extern "C" {
  * \param [in]   n_part_in      Number of local partitions for elements
  * \param [in]   n_part_out     Number of local partitions for requested locations
  * \param [in]   comm           PDM_MPI communicator
+ * \param [in]   owner          Owner
  *
  * \return     Pointer to \ref PDM_gnum_locaion object
  */
@@ -92,7 +93,8 @@ PDM_gnum_location_create
 (
  const int          n_part_in,
  const int          n_part_out,
- const PDM_MPI_Comm comm
+ const PDM_MPI_Comm comm,
+ const PDM_ownership_t owner
 )
 {
 
@@ -115,6 +117,8 @@ PDM_gnum_location_create
   gnum_loc->location_idx = NULL;
   gnum_loc->location     = NULL;
   gnum_loc->comm         = comm;
+  gnum_loc->tag_results_get = 0;
+  gnum_loc->owner           = owner;
 
   return gnum_loc;
 }
@@ -307,6 +311,7 @@ PDM_gnum_location_get
 {
   *location_idx = gnum_loc->location_idx[i_part_out];
   *location     = gnum_loc->location    [i_part_out];
+  gnum_loc->tag_results_get = 1;
 }
 
 
@@ -315,15 +320,13 @@ PDM_gnum_location_get
  * \brief Free
  *
  * \param [in]   gnum_loc      Pointer to \ref PDM_gnum_locaion object
- * \param [in]   keep_results  Keep location results
  *
  */
 
 void
 PDM_gnum_location_free
 (
-       PDM_gnum_location_t *gnum_loc,
- const int                  keep_results
+  PDM_gnum_location_t *gnum_loc
 )
 {
 
@@ -333,7 +336,8 @@ PDM_gnum_location_free
   free (gnum_loc->n_elts_out);
   free (gnum_loc->g_nums_out);
 
-  if (keep_results != 1) {//if (partial != 1) {
+  if(( gnum_loc->owner == PDM_OWNERSHIP_KEEP ) ||
+     ( gnum_loc->owner == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE && !gnum_loc->tag_results_get)) {
     for (int i = 0; i < gnum_loc->n_part_out; i++) {
       free (gnum_loc->location_idx[i]);
     }

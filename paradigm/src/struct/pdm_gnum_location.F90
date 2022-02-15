@@ -46,7 +46,8 @@ module pdm_gnum_location
 
     function pdm_gnum_location_create_cf (n_part_in,  &
                                           n_part_out, &
-                                          comm)       &
+                                          comm, &
+                                          owner) &
          result(gloc) &
          bind (c, name = 'PDM_gnum_location_create')
 
@@ -57,6 +58,7 @@ module pdm_gnum_location
       integer(c_int), value :: n_part_in
       integer(c_int), value :: n_part_out
       integer(c_int), value :: comm
+      integer(c_int), value :: owner  
 
       type (c_ptr)          :: gloc
 
@@ -198,12 +200,14 @@ module pdm_gnum_location
   !! \param [in]   n_part_in      Number of local partitions for elements
   !! \param [in]   n_part_out     Number of local partitions for requested locations
   !! \param [in]   f_comm         PDM_MPI communicator
+  !! \param [in]   owner          Ownership
   !!
 
     subroutine pdm_gnum_location_create_ (gloc,       &
                                           n_part_in,  &
                                           n_part_out, &
-                                          f_comm)
+                                          f_comm, &
+                                          owner)
 
     use iso_c_binding
 
@@ -212,12 +216,14 @@ module pdm_gnum_location
     integer        :: n_part_in
     integer        :: n_part_out
     integer        :: f_comm
+    integer        :: owner
 
     type (c_ptr)   :: gloc
 
     integer(c_int) :: c_n_part_in
     integer(c_int) :: c_n_part_out
     integer(c_int) :: c_comm
+    integer(c_int) :: c_owner
 
     c_comm       = PDM_MPI_Comm_f2c(f_comm)
     c_n_part_in  = n_part_in
@@ -225,7 +231,8 @@ module pdm_gnum_location
 
     gloc = pdm_gnum_location_create_cf(c_n_part_in,  &
                                        c_n_part_out, &
-                                       c_comm)
+                                       c_comm,       &
+                                       c_owner)
 
     end subroutine pdm_gnum_location_create_
 

@@ -16,7 +16,8 @@ cdef extern from "pdm_mesh_location.h":
   # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   PDM_mesh_location_t* PDM_mesh_location_create(PDM_mesh_nature_t mesh_nature,
                                int               _n_point_cloud,
-                               PDM_MPI_Comm      comm)
+                               PDM_MPI_Comm      comm,
+                               PDM_ownership_t owner)
   # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -128,7 +129,7 @@ cdef extern from "pdm_mesh_location.h":
                                             double              **points_projected_coords)
 
   # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-  void PDM_mesh_location_free(PDM_mesh_location_t  *ml, int partial)
+  void PDM_mesh_location_free(PDM_mesh_location_t  *ml)
   # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -179,7 +180,7 @@ cdef class MeshLocation:
     # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
     # ::::::::::::::::::::::::::::::::::::::::::::::::::
-    self._ml = PDM_mesh_location_create(mesh_nature, n_point_cloud, PDMC)
+    self._ml = PDM_mesh_location_create(mesh_nature, n_point_cloud, PDMC, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE)
     # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
   # ------------------------------------------------------------------------
@@ -595,4 +596,4 @@ cdef class MeshLocation:
     # ************************************************************************
     # > Declaration
     # ************************************************************************
-    PDM_mesh_location_free(self._ml, 1)
+    PDM_mesh_location_free(self._ml)

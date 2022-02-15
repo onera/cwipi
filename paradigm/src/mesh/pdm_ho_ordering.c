@@ -228,11 +228,11 @@ static const int _prism_o3_def_to_ijk[n_default_orderings][120] = {
    0, 0, 3,  3, 0, 3,  0, 3, 3,
 
    1, 0, 0,  2, 0, 0,
-   1, 2, 0,  2, 1, 0,
+   2, 1, 0,  1, 2, 0,
    0, 2, 0,  0, 1, 0,
 
    1, 0, 3,  2, 0, 3,
-   1, 2, 3,  2, 1, 3,
+   2, 1, 3,  1, 2, 3,
    0, 2, 3,  0, 1, 3,
 
    0, 0, 1,  0, 0, 2,
@@ -243,7 +243,7 @@ static const int _prism_o3_def_to_ijk[n_default_orderings][120] = {
    1, 1, 3,
    1, 0, 1,  2, 0, 1,  1, 0, 2,  2, 0, 2,
    2, 1, 1,  1, 2, 1,  2, 1, 2,  1, 2, 2,
-   0, 2, 1,  0, 1, 1,  0, 2, 2,  0, 1, 2,
+   0, 1, 1,  0, 2, 1,  0, 1, 2,  0, 2, 2,
    1, 1, 1,
    1, 1, 2}, // VTK LAGRANGE_WEDGE 73
 
@@ -394,7 +394,7 @@ static int _check_ijk_to_user (const int n_nodes, const int *ijk_to_user)
 
 static int *_compute_ijk_to_user_bar(const int order, const int *user_to_ijk)
 {
-  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_BAR2, order);
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_BARHO, order);
 
   int *ijk_to_user = PDM_array_const_int (n_nodes, -1);
 
@@ -409,7 +409,7 @@ static int *_compute_ijk_to_user_bar(const int order, const int *user_to_ijk)
 
 static int *_compute_ijk_to_user_tria(const int order, const int *user_to_ijk)
 {
-  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_TRIA3, order);
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_TRIAHO, order);
 
   int *ijk_to_user = PDM_array_const_int (2 * n_nodes, -1);
 
@@ -426,7 +426,7 @@ static int *_compute_ijk_to_user_tria(const int order, const int *user_to_ijk)
 
 static int *_compute_ijk_to_user_quad(const int order, const int *user_to_ijk)
 {
-  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_QUAD4, order);
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_QUADHO, order);
 
   int *ijk_to_user = PDM_array_const_int (2 * n_nodes, -1);
 
@@ -444,7 +444,7 @@ static int *_compute_ijk_to_user_quad(const int order, const int *user_to_ijk)
 
 static int *_compute_ijk_to_user_tetra(const int order, const int *user_to_ijk)
 {
-  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_TETRA4, order);
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_TETRAHO, order);
 
   int *ijk_to_user = PDM_array_const_int (3 * n_nodes, -1);
 
@@ -465,7 +465,7 @@ static int *_compute_ijk_to_user_tetra(const int order, const int *user_to_ijk)
 
 static int *_compute_ijk_to_user_pyramid(const int order, const int *user_to_ijk)
 {
-  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_PYRAMID5, order);
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_PYRAMIDHO, order);
 
   int *ijk_to_user = PDM_array_const_int (3 * n_nodes, -1);
 
@@ -486,11 +486,11 @@ static int *_compute_ijk_to_user_pyramid(const int order, const int *user_to_ijk
 
 static int *_compute_ijk_to_user_prism(const int order, const int *user_to_ijk)
 {
-  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_PRISM6, order);
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_PRISMHO, order);
 
   int *ijk_to_user = PDM_array_const_int (3 * n_nodes, -1);
 
-  int n_nodes_iso_k = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_TRIA3, order);
+  int n_nodes_iso_k = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_TRIAHO, order);
 
   for (int i_user = 0; i_user < n_nodes; i_user++) {
     int i = user_to_ijk[3*i_user    ];
@@ -506,7 +506,7 @@ static int *_compute_ijk_to_user_prism(const int order, const int *user_to_ijk)
 
 static int *_compute_ijk_to_user_hexa(const int order, const int *user_to_ijk)
 {
-  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_HEXA8, order);
+  int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_HEXAHO, order);
 
   int *ijk_to_user = PDM_array_const_int (3 * n_nodes, -1);
 
@@ -651,7 +651,7 @@ void
 
     for (int idef = 0; idef < n_default_orderings; idef++) {
 
-      t_elt = PDM_MESH_NODAL_BAR2;
+      t_elt = PDM_MESH_NODAL_BARHO;
 
       order = 1;
       n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (t_elt, order);
@@ -679,7 +679,7 @@ void
 
 
 
-      t_elt = PDM_MESH_NODAL_TRIA3;
+      t_elt = PDM_MESH_NODAL_TRIAHO;
 
       order = 1;
       n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (t_elt, order);
@@ -707,7 +707,7 @@ void
 
 
 
-      t_elt = PDM_MESH_NODAL_QUAD4;
+      t_elt = PDM_MESH_NODAL_QUADHO;
 
       order = 1;
       n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (t_elt, order);
@@ -735,7 +735,7 @@ void
 
 
 
-      t_elt = PDM_MESH_NODAL_TETRA4;
+      t_elt = PDM_MESH_NODAL_TETRAHO;
 
       order = 1;
       n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (t_elt, order);
@@ -762,7 +762,7 @@ void
                                        _tetra_o3_def_to_ijk[idef]);
 
 
-      t_elt = PDM_MESH_NODAL_PYRAMID5;
+      t_elt = PDM_MESH_NODAL_PYRAMIDHO;
 
       order = 1;
       n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (t_elt, order);
@@ -789,7 +789,7 @@ void
                                        _pyramid_o3_def_to_ijk[idef]);
 
 
-      t_elt = PDM_MESH_NODAL_PRISM6;
+      t_elt = PDM_MESH_NODAL_PRISMHO;
 
       order = 1;
       n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (t_elt, order);
@@ -816,7 +816,7 @@ void
                                        _prism_o3_def_to_ijk[idef]);
 
 
-      t_elt = PDM_MESH_NODAL_HEXA8;
+      t_elt = PDM_MESH_NODAL_HEXAHO;
 
       order = 1;
       n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (t_elt, order);
@@ -842,29 +842,6 @@ void
                                        n_nodes,
                                        _hexa_o3_def_to_ijk[idef]);
     }
-
-
-
-    /*for (PDM_Mesh_nodal_elt_t type = PDM_MESH_NODAL_POINT;
-      type < PDM_MESH_NODAL_N_ELEMENT_TYPES;
-      type++) {
-      for (int order = 0; order < 3; order++) {
-
-      int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get (type, order);
-
-      PDM_ho_ordering_user_to_ijk_add ("PDM_HO_ORDERING_VTK",
-      type,
-      order,
-      n_nodes,
-      );
-
-      PDM_ho_ordering_user_to_ijk_add ("PDM_HO_ORDERING_CGNS",
-      type,
-      order,
-      n_nodes,
-      _cgns_to_ijk[][]);
-      }
-      }*/
 
     atexit (PDM_ho_ordering_free);
   }
@@ -958,31 +935,31 @@ PDM_ho_ordering_user_to_ijk_add
   int *ijk_to_user = NULL;
   int elt_dim = 0;
   switch(t_elt) {
-  case PDM_MESH_NODAL_BAR2:
+  case PDM_MESH_NODAL_BARHO:
     ijk_to_user = _compute_ijk_to_user_bar(order, user_to_ijk);
     elt_dim = 1;
     break;
-  case PDM_MESH_NODAL_TRIA3:
+  case PDM_MESH_NODAL_TRIAHO:
     ijk_to_user = _compute_ijk_to_user_tria(order, user_to_ijk);
     elt_dim = 2;
     break;
-  case PDM_MESH_NODAL_QUAD4:
+  case PDM_MESH_NODAL_QUADHO:
     ijk_to_user = _compute_ijk_to_user_quad(order, user_to_ijk);
     elt_dim = 2;
     break;
-  case PDM_MESH_NODAL_TETRA4:
+  case PDM_MESH_NODAL_TETRAHO:
     ijk_to_user = _compute_ijk_to_user_tetra(order, user_to_ijk);
     elt_dim = 3;
     break;
-  case PDM_MESH_NODAL_PYRAMID5:
+  case PDM_MESH_NODAL_PYRAMIDHO:
     ijk_to_user = _compute_ijk_to_user_pyramid(order, user_to_ijk);
     elt_dim = 3;
     break;
-  case PDM_MESH_NODAL_PRISM6:
+  case PDM_MESH_NODAL_PRISMHO:
     ijk_to_user = _compute_ijk_to_user_prism(order, user_to_ijk);
     elt_dim = 3;
     break;
-  case PDM_MESH_NODAL_HEXA8:
+  case PDM_MESH_NODAL_HEXAHO:
     ijk_to_user = _compute_ijk_to_user_hexa(order, user_to_ijk);
     elt_dim = 3;
     break;
@@ -1143,25 +1120,25 @@ PDM_ho_ordering_compute_ijk_to_user
 {
   int *ijk_to_user = NULL;
   switch(t_elt) {
-  case PDM_MESH_NODAL_BAR2:
+  case PDM_MESH_NODAL_BARHO:
     ijk_to_user = _compute_ijk_to_user_bar(order, user_to_ijk);
     break;
-  case PDM_MESH_NODAL_TRIA3:
+  case PDM_MESH_NODAL_TRIAHO:
     ijk_to_user = _compute_ijk_to_user_tria(order, user_to_ijk);
     break;
-  case PDM_MESH_NODAL_QUAD4:
+  case PDM_MESH_NODAL_QUADHO:
     ijk_to_user = _compute_ijk_to_user_quad(order, user_to_ijk);
     break;
-  case PDM_MESH_NODAL_TETRA4:
+  case PDM_MESH_NODAL_TETRAHO:
     ijk_to_user = _compute_ijk_to_user_tetra(order, user_to_ijk);
     break;
-  case PDM_MESH_NODAL_PYRAMID5:
+  case PDM_MESH_NODAL_PYRAMIDHO:
     ijk_to_user = _compute_ijk_to_user_pyramid(order, user_to_ijk);
     break;
-  case PDM_MESH_NODAL_PRISM6:
+  case PDM_MESH_NODAL_PRISMHO:
     ijk_to_user = _compute_ijk_to_user_prism(order, user_to_ijk);
     break;
-  case PDM_MESH_NODAL_HEXA8:
+  case PDM_MESH_NODAL_HEXAHO:
     ijk_to_user = _compute_ijk_to_user_hexa(order, user_to_ijk);
     break;
   default:

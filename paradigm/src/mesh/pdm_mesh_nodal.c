@@ -1234,11 +1234,63 @@ _type_cell_3D
 
 /**
  *
- * \brief Free vtx structure
+ * \brief Get the dimension of an element
  *
- * \param[inout]  vtx    Vertices
+ * \param[in]  type    Element type
  *
- * \return        NULL
+ * \return     Dimension of the element
+ *
+ */
+
+int
+PDM_Mesh_nodal_elt_dim_get
+(
+ PDM_Mesh_nodal_elt_t type
+ )
+{
+  int elt_dim = -1;
+
+  switch(type) {
+    case PDM_MESH_NODAL_POINT:
+      elt_dim = 0;
+      break;
+    case PDM_MESH_NODAL_BAR2:
+    case PDM_MESH_NODAL_BARHO:
+      elt_dim = 1;
+      break;
+    case PDM_MESH_NODAL_TRIA3:
+    case PDM_MESH_NODAL_QUAD4:
+    case PDM_MESH_NODAL_POLY_2D:
+    case PDM_MESH_NODAL_TRIAHO:
+    case PDM_MESH_NODAL_QUADHO:
+      elt_dim = 2;
+      break;
+    case PDM_MESH_NODAL_TETRA4:
+    case PDM_MESH_NODAL_PYRAMID5:
+    case PDM_MESH_NODAL_PRISM6:
+    case PDM_MESH_NODAL_HEXA8:
+    case PDM_MESH_NODAL_POLY_3D:
+    case PDM_MESH_NODAL_TETRAHO:
+    case PDM_MESH_NODAL_PYRAMIDHO:
+    case PDM_MESH_NODAL_PRISMHO:
+    case PDM_MESH_NODAL_HEXAHO:
+      elt_dim = 3;
+      break;
+    default:
+      PDM_error(__FILE__, __LINE__, 0, "Invalid t_elt %d\n", (int) type);
+  }
+
+  return elt_dim;
+}
+
+
+/**
+ *
+ * \brief Check if an element is two-dimensional
+ *
+ * \param [in]  type     Element type
+ *
+ * \return    1 if the element is 2D, 0 else
  *
  */
 
@@ -1248,10 +1300,19 @@ PDM_Mesh_nodal_is_2D_element
   PDM_Mesh_nodal_elt_t type
 )
 {
-  return type==PDM_MESH_NODAL_TRIA3
-      || type==PDM_MESH_NODAL_QUAD4
-      || type==PDM_MESH_NODAL_POLY_2D;
+  return (PDM_Mesh_nodal_elt_dim_get(type) == 2);
 }
+
+
+/**
+ *
+ * \brief Check if an element is three-dimensional
+ *
+ * \param [in]  type     Element type
+ *
+ * \return    1 if the element is 3D, 0 else
+ *
+ */
 
 int
 PDM_Mesh_nodal_is_3D_element
@@ -1259,11 +1320,7 @@ PDM_Mesh_nodal_is_3D_element
   PDM_Mesh_nodal_elt_t type
 )
 {
-  return type==PDM_MESH_NODAL_TETRA4
-      || type==PDM_MESH_NODAL_PYRAMID5
-      || type==PDM_MESH_NODAL_PRISM6
-      || type==PDM_MESH_NODAL_HEXA8
-      || type==PDM_MESH_NODAL_POLY_3D;
+  return (PDM_Mesh_nodal_elt_dim_get(type) == 3);
 }
 
 
@@ -1271,7 +1328,7 @@ PDM_Mesh_nodal_is_3D_element
  * \brief Get the number of vertices of an element type
  *
  * \param [in]   type     Element type
- * \param [in]   comm     Element order
+ * \param [in]   order    Element order
  *
  * \return       Number of vertices
  *
@@ -1281,7 +1338,7 @@ int
 PDM_Mesh_nodal_n_vtx_elt_get
 (
   PDM_Mesh_nodal_elt_t type,
-  const int order
+  const int            order
 )
 {
   switch (type) {
@@ -1289,32 +1346,50 @@ PDM_Mesh_nodal_n_vtx_elt_get
     return 1;
     break;
   case PDM_MESH_NODAL_BAR2 :
-    return order + 1;
+    return 2;
     break;
   case PDM_MESH_NODAL_TRIA3 :
-    return (order + 1) * (order + 2) / 2;
+    return 3;
     break;
   case PDM_MESH_NODAL_QUAD4 :
-    return (order + 1) * (order + 1);
+    return 4;
     break;
   case PDM_MESH_NODAL_TETRA4 :
-    return (order + 1) * (order + 2) * (order + 3) / 6;
+    return 4;
     break;
   case PDM_MESH_NODAL_PYRAMID5 :
-    /*if (order != 1) {
-      PDM_error (__FILE__, __LINE__, 0, "Pyramid not implemented yet for order > 1\n");
-    }
-    return 5;*/
-    return (order + 1) * (order + 2) * (2*order + 3) / 6;
+    return 5;
     break;
   case PDM_MESH_NODAL_PRISM6 :
-    return (order + 1) * (order + 1) * (order + 2) / 2;
+    return 6;
     break;
   case PDM_MESH_NODAL_HEXA8 :
+    return 8;
+    break;
+
+  case PDM_MESH_NODAL_BARHO :
+    return order + 1;
+    break;
+  case PDM_MESH_NODAL_TRIAHO :
+    return (order + 1) * (order + 2) / 2;
+    break;
+  case PDM_MESH_NODAL_QUADHO :
+    return (order + 1) * (order + 1);
+    break;
+  case PDM_MESH_NODAL_TETRAHO :
+    return (order + 1) * (order + 2) * (order + 3) / 6;
+    break;
+  case PDM_MESH_NODAL_PYRAMIDHO :
+    return (order + 1) * (order + 2) * (2*order + 3) / 6;
+    break;
+  case PDM_MESH_NODAL_PRISMHO :
+    return (order + 1) * (order + 1) * (order + 2) / 2;
+    break;
+  case PDM_MESH_NODAL_HEXAHO :
     return (order + 1) * (order + 1) * (order + 1);
     break;
   default :
-    PDM_error (__FILE__, __LINE__, 0, "Unknown for order Poly2D and Polyu3D\n");
+    PDM_error (__FILE__, __LINE__, 0, "Unknown for order Poly2D and Poly3D\n");
   }
   return -1;
 }

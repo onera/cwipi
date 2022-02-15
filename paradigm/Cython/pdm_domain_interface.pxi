@@ -120,13 +120,9 @@ def interface_face_to_vertex(int       n_interface,
     vtx_interface = list()
     for i in range(n_interface):
       interface_ids_vtx = create_numpy_pdm_gnum(_interface_ids_vtx[i], 2*_interface_dn_vtx[i])
-      if interface_ids_vtx is not None:
-        PyArray_ENABLEFLAGS(interface_ids_vtx, NPY.NPY_OWNDATA)
       interface_results = {'interface_dn_vtx' : _interface_dn_vtx[i], 'np_interface_ids_vtx' : interface_ids_vtx}
       if multizone_interface: #Return domains only if we had complex interfaces
         interface_dom_vtx = create_numpy_i(_interface_dom_vtx[i], 2*_interface_dn_vtx[i])
-        if interface_dom_vtx is not None:
-          PyArray_ENABLEFLAGS(interface_dom_vtx, NPY.NPY_OWNDATA)
         interface_results['np_interface_dom_vtx'] = interface_dom_vtx
       vtx_interface.append(interface_results)
 
@@ -207,14 +203,9 @@ def interface_to_graph(int       n_interface,
 
 
     interface_graph_idx = create_numpy_i(_interface_graph_idx, graph_dn+1)
-    PyArray_ENABLEFLAGS(interface_graph_idx, NPY.NPY_OWNDATA)
 
     interface_graph_ids = create_numpy_pdm_gnum(_interface_graph_ids, interface_graph_idx[graph_dn])
-    if interface_graph_ids is not None:
-      PyArray_ENABLEFLAGS(interface_graph_ids, NPY.NPY_OWNDATA)
     interface_graph_dom = create_numpy_i(_interface_graph_dom, interface_graph_idx[graph_dn])
-    if interface_graph_dom is not None:
-      PyArray_ENABLEFLAGS(interface_graph_dom, NPY.NPY_OWNDATA)
 
     # Free temporary objects and return
     PDM_domain_interface_free(dom_intrf)

@@ -42,6 +42,10 @@ struct _pdm_gnum_location_t {
   const PDM_g_num_t **g_nums_out;   /*!< Global numbering of elements requesting location */
   int               **location_idx; /*!< Location index of elements requesting location */
   int               **location;     /*!< Location of elements requesting location */
+
+  PDM_ownership_t owner;       /*!< Ownership */
+  int  tag_results_get ;       /*!< Tag call to PDM_dist_cellcenter_surf_get function */ 
+
 } ;
 
 

@@ -1591,7 +1591,7 @@ PDM_dmesh_nodal_reorder
  const int          order
  )
 {
-  int n_nodes_max = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_HEXA8, order);
+  int n_nodes_max = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_HEXAHO, order);
 
   PDM_g_num_t *delt_vtx_ijk = malloc (sizeof(PDM_g_num_t) * n_nodes_max);
 
@@ -1614,7 +1614,26 @@ PDM_dmesh_nodal_reorder
       PDM_Mesh_nodal_elt_t t_elt = PDM_DMesh_nodal_section_type_get(dmesh_nodal,
                                                                     geom_kind,
                                                                     id_section);
+
       if (t_elt == PDM_MESH_NODAL_POINT) continue;
+
+      // -->> quick & dirty fix
+      if (t_elt == PDM_MESH_NODAL_BAR2) {
+        t_elt = PDM_MESH_NODAL_BARHO;
+      } else if (t_elt == PDM_MESH_NODAL_TRIA3) {
+        t_elt = PDM_MESH_NODAL_TRIAHO;
+      } else if (t_elt == PDM_MESH_NODAL_QUAD4) {
+        t_elt = PDM_MESH_NODAL_QUADHO;
+      } else if (t_elt == PDM_MESH_NODAL_TETRA4) {
+        t_elt = PDM_MESH_NODAL_TETRAHO;
+      } else if (t_elt == PDM_MESH_NODAL_PYRAMID5) {
+        t_elt = PDM_MESH_NODAL_PYRAMIDHO;
+      } else if (t_elt == PDM_MESH_NODAL_PRISM6) {
+        t_elt = PDM_MESH_NODAL_PRISMHO;
+      } else if (t_elt == PDM_MESH_NODAL_HEXA8) {
+        t_elt = PDM_MESH_NODAL_HEXAHO;
+      }
+      // <<--
 
       int *ijk_to_user = PDM_ho_ordering_ijk_to_user_get(ordering_name,
                                                          t_elt,

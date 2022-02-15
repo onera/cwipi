@@ -533,7 +533,8 @@ int main(int argc, char *argv[])
                                                                      sizeof(int),
                                                                      PDM_operator_compare_connectivity,
                                                                      PDM_operator_equal_connectivity,
-                                                                     PDM_MPI_COMM_WORLD);
+                                                                     PDM_MPI_COMM_WORLD,
+                                                                     PDM_OWNERSHIP_KEEP);
 
   for (int i_part = 0; i_part < n_part; i_part++) {
 
@@ -664,7 +665,7 @@ int main(int argc, char *argv[])
   PDM_gnum_from_hv_dump_times(gnum_fhv_id);
 
 
-  PDM_gnum_from_hv_free(gnum_fhv_id, 0);
+  PDM_gnum_from_hv_free(gnum_fhv_id);
 
 
   for (int i_part = 0; i_part < n_part; i_part++) {

@@ -233,7 +233,7 @@ PDM_part_split_t           method,
                                                      dvtx_coord[3*j+2]);
   }
 
-  PDM_gnum_location_t* gnum_loc = PDM_gnum_location_create (1, 1, pdm_mpi_comm);
+  PDM_gnum_location_t* gnum_loc = PDM_gnum_location_create (1, 1, pdm_mpi_comm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE );
 
   PDM_gnum_location_elements_set (gnum_loc, 0, dn_vtx, _numabs);
 
@@ -255,7 +255,7 @@ PDM_part_split_t           method,
   free(location_idx);
   free(location);
 
-  PDM_gnum_location_free (gnum_loc, 1);
+  PDM_gnum_location_free (gnum_loc);
 
   free (_numabs2);
   free (char_size);

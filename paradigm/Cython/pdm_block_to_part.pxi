@@ -1,3 +1,4 @@
+import warnings
 
 cdef extern from "pdm_block_to_part.h":
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -41,12 +42,11 @@ cdef class BlockToPart:
     """
     # ************************************************************************
     # > Class attributes
-    cdef PDM_block_to_part_t *BTP
-    cdef int                  partN
-    # > Assertion and debug (To be removed )
-    cdef int          *NbElmts
-    cdef PDM_g_num_t **LNToGN
-    # cdef int  *BlkDistribIdx
+    cdef PDM_block_to_part_t* BTP
+    cdef int                  n_part
+    cdef int                  dn_elt
+    cdef int*                 pn_elt
+    cdef MPI.Comm             py_comm
     # ************************************************************************
     # ------------------------------------------------------------------------
     def __cinit__(self, NPY.ndarray[npy_pdm_gnum_t, ndim=1, mode='c'] Distrib,
@@ -59,265 +59,214 @@ cdef class BlockToPart:
             :param comm:     MPI Communicator (Caution MPI Comm is a mpi4py object )
             :param Distrib:  Distribution of distribute array (Size = nRank+1)
             :param pLNToGN:  Part list containaing numpy on LNToGN for each partition (len = partN)
-            :param partN:    Number of partition
+            :param partN:    Number of partitions
 
         """
-        # ************************************************************************
-        # > Declaration
-        cdef int      nElts
-        cdef int      idx
-        # > Numpy array
-        cdef NPY.ndarray[npy_pdm_gnum_t, ndim=1, mode='fortran'] partLNToGN
-        # ************************************************************************
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Some verification
+        # > Some checks
         assert(len(pLNToGN) == partN)
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
+        for i in range(partN):
+          assert_single_dim_np(pLNToGN[i], npy_pdm_gnum_dtype)
+        assert Distrib.size == comm.Get_size() + 1
 
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Store partN
-        self.partN = partN
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
+        # > Store class parameters
+        self.n_part  = partN
+        self.dn_elt  = Distrib[comm.Get_rank() + 1] - Distrib[comm.Get_rank()]
+        self.pn_elt = list_to_int_pointer([array.size for array in pLNToGN])
+        self.py_comm = comm
 
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Mpi size
-        Size = comm.Get_size()
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Convert mpi4py -> PDM_MPI
+        # > Convert input data
         cdef MPI.MPI_Comm c_comm = comm.ob_mpi
         cdef PDM_MPI_Comm PDMC   = PDM_MPI_mpi_2_pdm_mpi_comm(&c_comm)
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Allocate
-        self.LNToGN        = <PDM_g_num_t **> malloc(sizeof(PDM_g_num_t **) * partN )
-        self.NbElmts       = <int *         > malloc(sizeof(int *         ) * partN )
-        # self.BlkDistribIdx = <int * > malloc(sizeof(int * ) * Size+1)
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
+        cdef PDM_g_num_t*  _distrib  = <PDM_g_num_t *> Distrib.data
+        cdef PDM_g_num_t** _ln_to_gn = np_list_to_gnum_pointers(pLNToGN)
 
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Assign
-        # self.BlkDistribIdx = <int *>  Distrib.data
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Prepare
-        for idx, partLNToGN in enumerate(pLNToGN):
-
-          # ------------------------------------------------
-          # > Get shape of array
-          nElts = partLNToGN.shape[0]
-          self.NbElmts[idx] = <int> nElts
-          # ------------------------------------------------
-
-          # ------------------------------------------------
-          # > Assign array
-          self.LNToGN[idx] = <PDM_g_num_t *> partLNToGN.data
-          # ------------------------------------------------
-          # print "nElts, partLNToGN",nElts, partLNToGN
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Create
-        # self.BTP = PDM_block_to_part_create(self.BlkDistribIdx, self.LNToGN,
-        self.BTP = PDM_block_to_part_create(<PDM_g_num_t *> Distrib.data,
-                     <const PDM_g_num_t **> self.LNToGN,
-                                            self.NbElmts,
-                                            self.partN,
+        # > Create PDM structure
+        self.BTP = PDM_block_to_part_create(_distrib,
+                     <const PDM_g_num_t **> _ln_to_gn,
+                                            self.pn_elt,
+                                            self.n_part,
                                             PDMC)
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
+        # Free working arrays
+        free(_ln_to_gn)
+
+    # ------------------------------------------------------------------
+    def exchange_field(self, NPY.ndarray block_data, block_stride=1, bint interlaced_str=True):
+      """
+      Wrapping for PDM_block_to_part_exch2 : transfert a distributed data field to the
+      partitions, allocate and return the partitionned array list.
+
+      :param self:         BlockToPart object
+      :param block_data:   Distributed data array, 1 dimensional and with same datatype for each rank
+      :param block_stride: Stride for distributed array. Can be either an array of size dn_elt (variable
+                           stride will be used) or an integer (cst stride will be used)
+      :param interlaced_str: indicate if data are interlaced (True) or interleaved 
+      """
+
+      cdef NPY.ndarray[NPY.int32_t, ndim=1, mode='c'] numpy_int
+      cdef PDM_stride_t _stride_t
+      cdef int*         _block_stride
+
+      if isinstance(block_stride, int):
+        _stride_t = PDM_STRIDE_CST_INTERLACED if interlaced_str else PDM_STRIDE_CST_INTERLEAVED
+        _block_stride = <int *> malloc(1 * sizeof(int *))
+        _block_stride[0] = block_stride
+        assert_single_dim_np(block_data, block_data.dtype, block_stride*self.dn_elt)
+      elif isinstance(block_stride, NPY.ndarray):
+        _stride_t = PDM_STRIDE_VAR_INTERLACED
+        assert_single_dim_np(block_stride, NPY.int32, self.dn_elt)
+        assert_single_dim_np(block_data, block_data.dtype, block_stride.sum())
+        numpy_int = block_stride
+        _block_stride = <int *> numpy_int.data
+      else:
+        raise ValueError("Invalid stride in BtP exchange")
+
+      cdef size_t s_data = block_data.dtype.itemsize #Should be the same for all procs
+      assert self.py_comm.allreduce(s_data, op=MPI.MIN) == self.py_comm.allreduce(s_data, op=MPI.MAX) == s_data
+
+      cdef int**  _part_stride = NULL
+      cdef void** _part_data   = NULL
+      PDM_block_to_part_exch2(self.BTP,
+                              s_data,
+                              _stride_t,
+                             _block_stride,
+                     <void *> block_data.data,
+                              &_part_stride,
+                              &_part_data)
+
+
+      part_stride = []
+      part_data   = []
+      cdef NPY.npy_intp dim_np
+
+      for i_part in range(self.n_part):
+
+        if _stride_t == PDM_STRIDE_VAR_INTERLACED:
+          stride = create_numpy_i(_part_stride[i_part], self.pn_elt[i_part])
+          part_stride.append(stride)
+          dim_np = <NPY.npy_intp> stride.sum()
+        else:
+          dim_np = <NPY.npy_intp> _block_stride[0] * self.pn_elt[i_part]
+
+        data = NPY.PyArray_SimpleNewFromData(1, &dim_np, block_data.dtype.num, <void *> _part_data[i_part])
+        PyArray_ENABLEFLAGS(data, NPY.NPY_OWNDATA)
+        part_data.append(data)
+
+      if _stride_t == PDM_STRIDE_VAR_INTERLACED:
+        free(_part_stride)
+      else:
+        free(_block_stride)
+        part_stride = None
+      free(_part_data)
+
+      return part_stride, part_data
+
+    # ------------------------------------------------------------------
+    def exchange_field_inplace(self, NPY.ndarray block_data, list part_data, 
+      block_stride=1, list part_stride=None, bint interlaced_str=True):
+      """
+      Wrapping for PDM_block_to_part_exch : transfert a distributed data field to the
+      partitions. Fill the pre-allocated partitionned arrays
+
+      :param self:         BlockToPart object
+      :param block_data:   Distributed data array, 1 dimensional and with same datatype for each rank
+      :param part_data:    List of the partN pre allocated partitionned data array, each one beeing 1 dimensional 
+                           and with same datatype than block_data
+      :param block_stride: Stride for distributed array. Can be either an array of size dn_elt (variable
+                           stride will be used) or an integer (cst stride will be used)
+      :param part_stride:  List of the partN pre allocated parititioned data strides
+      :param interlaced_str: indicate if data are interlaced (True) or interleaved 
+      """
+      cdef NPY.ndarray[NPY.int32_t, ndim=1, mode='c'] numpy_int
+      cdef PDM_stride_t _stride_t
+      cdef int*         _block_stride
+      cdef int**        _part_stride = NULL
+
+      assert len(part_data) == self.n_part
+      if isinstance(block_stride, int):
+        _stride_t = PDM_STRIDE_CST_INTERLACED if interlaced_str else PDM_STRIDE_CST_INTERLEAVED
+        _block_stride = <int *> malloc(1 * sizeof(int *))
+        _block_stride[0] = block_stride
+        assert_single_dim_np(block_data, block_data.dtype, block_stride*self.dn_elt)
+      elif isinstance(block_stride, NPY.ndarray):
+        _stride_t = PDM_STRIDE_VAR_INTERLACED
+        assert_single_dim_np(block_stride, NPY.int32, self.dn_elt)
+        assert_single_dim_np(block_data, block_data.dtype, block_stride.sum())
+        numpy_int = block_stride
+        _block_stride = <int *> numpy_int.data
+        assert len(part_stride) == self.n_part
+        for i_part in range(self.n_part):
+          assert_single_dim_np(part_stride[i_part], NPY.int32, self.pn_elt[i_part])
+        _part_stride = np_list_to_int_pointers(part_stride)
+      else:
+        raise ValueError("Invalid stride in BtP exchange")
+
+      cdef size_t s_data = block_data.dtype.itemsize #Should be the same for all procs
+      assert self.py_comm.allreduce(s_data, op=MPI.MIN) == self.py_comm.allreduce(s_data, op=MPI.MAX) == s_data
+
+      for i_part in range(self.n_part):
+        expt_size = part_stride[i_part].sum() if _stride_t == PDM_STRIDE_VAR_INTERLACED else block_stride*self.pn_elt[i_part]
+        assert_single_dim_np(part_data[i_part], block_data.dtype, expt_size)
+
+      cdef void** _part_data   = np_list_to_void_pointers(part_data)
+      PDM_block_to_part_exch(self.BTP,
+                             s_data,
+                             _stride_t,
+                            _block_stride,
+                    <void *> block_data.data,
+                             _part_stride,
+                             _part_data)
+      if _stride_t != PDM_STRIDE_VAR_INTERLACED:
+        free(_block_stride)
+      free(_part_data)
 
     # ------------------------------------------------------------------
     def BlockToPart_Exchange(self, dict         dField,
                                    dict         pField,
-                                   PDM_stride_t t_stride = <PDM_stride_t> 0,
-                                   NPY.ndarray[NPY.int32_t, ndim=1, mode='c'] BlkStride = None):
-        """
-           TODOUX : 1) Exchange of variables types array
-                    2) Assertion of type and accross MPI of the same field
-        """
-        # ************************************************************************
-        # > Declaration
-        cdef NPY.ndarray dArray
-        cdef NPY.ndarray pArray
-
-        # > Specific to PDM
-        cdef size_t      s_data
-        cdef int        *block_stride
-        cdef int       **part_stride
-        cdef void      **part_data
-        cdef void       *block_data
-        # ************************************************************************
-
-        # > Understand how to interface
-        if(BlkStride is None):
-          block_stride = <int *> malloc( 1 * sizeof(int *))
-          part_stride  = NULL
-          part_data    = <void **> malloc(self.partN * sizeof(void **))
-
-          # > Init
-          block_stride[0] = 1 # No entrelacing data
-        else:
-          block_stride = <int *> BlkStride.data
-          part_stride  = <int **>  malloc(self.partN * sizeof(void **))
-          part_data    = <void **> malloc(self.partN * sizeof(void **))
-          # part_stride  = NULL
-          # part_data    = NULL
-
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Loop over all field and fill buffer
-        #   En MPI il y a un risque que les dictionnaires ne soit pas les meme ?
-        #   Ordered Dict ??
-        # mpi.gather puis si vrai 0 et assert sur la somme ?
-        for field in dField.keys():
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          # > Get field and assign ptr
-          dArray     = dField[field]
-          block_data = <void *> dArray.data
-          s_data     = dArray.dtype.itemsize
-
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          # > Get part list and Loop over all part
-          partList = pField[field]
-          for idx, pArray in enumerate(partList):
-            # if(pArray.ndim == 2):
-            #   assert(pArray.shape[1] == self.NbElmts[idx])
-            # else:
-            #   assert(pArray.shape[0] == self.NbElmts[idx])
-            part_data[idx] = <void *> pArray.data
-
-          if(BlkStride is not None):
-            partStrideList = pField[field+'#PDM_Stride']
-            for idx, pArray in enumerate(partStrideList):
-              part_stride[idx] = <int *> pArray.data
-
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          # > Compute
-          PDM_block_to_part_exch(self.BTP,
-                                 s_data,
-                                 t_stride,
-                                 block_stride,
-                                 block_data,
-                                 part_stride,
-                                 part_data)
-          # > Verbose
-          # print field
-          # for idx, pArray in enumerate(partList):
-          #   print pArray
-
-        # > Deallocate - On dessaloue uniquement les pointeurs de partition
-        #   Le coté pointeur de pointeur est assuré par la list python
-        if(BlkStride is None):
-          free(block_stride)
-          free(part_data)
-        else:
-          free(block_stride)
-          free(part_data)
-          free(part_stride)
-
+                                   PDM_stride_t t_stride = <PDM_stride_t> -1,
+                                   BlkStride = 1,
+                                   bint interlaced_str=True):
+      """ Shortcut to exchange multiple fieds stored in dict """
+      if t_stride != -1:
+        warnings.warn("Parameter t_stride is deprecated and will be removed in further release",
+          DeprecationWarning, stacklevel=2)
+      dField = {key:data for key,data in dField.items() \
+        if not (key.endswith("#PDM_Stride") or key.endswith("#Stride"))} #To remove when PtB output always #PDM_Stride
+      for field_name in dField:
+        PartStride = None
+        if field_name + '#PDM_Stride' in pField:
+          PartStride = pField[field_name + '#PDM_Stride']
+        self.exchange_field_inplace(dField[field_name], pField[field_name], BlkStride, PartStride, interlaced_str)
 
     # ------------------------------------------------------------------
     def BlockToPart_Exchange2(self, dict         dField,
                                     dict         pField,
-                                    PDM_stride_t t_stride = <PDM_stride_t> 0,
-                                    NPY.ndarray[NPY.int32_t, ndim=1, mode='c'] BlkStride = None):
-        """
-           TODOUX : 1) Exchange of variables types array
-                    2) Assertion of type and accross MPI of the same field
-        """
-        # ************************************************************************
-        # > Declaration
-        cdef NPY.ndarray dArray
-        cdef NPY.ndarray pArray
+                                    PDM_stride_t t_stride = <PDM_stride_t> -1,
+                                    BlkStride = 1,
+                                    bint interlaced_str=True):
 
-        # > Specific to PDM
-        cdef int         ii, sizeData
-        cdef size_t      s_data
-        cdef int        *block_stride
-        cdef int       **part_stride
-        cdef void      **part_data
-        cdef void       *block_data
-        cdef NPY.ndarray tmpData
-        cdef NPY.ndarray tmpStride
-        # ************************************************************************
+      """ Shortcut to exchange multiple fieds stored in dict """
+      if t_stride != -1:
+        warnings.warn("Parameter t_stride is deprecated and will be removed in further release",
+          DeprecationWarning, stacklevel=2)
+      dField = {key:data for key,data in dField.items() \
+        if not (key.endswith("#PDM_Stride") or key.endswith("#Stride"))}  #To remove when PtB output always #PDM_Stride
+      for field_name, field in dField.items():
+        part_stride, part_data = self.exchange_field(field, BlkStride, interlaced_str)
+        pField[field_name] = part_data
+        if part_stride is not None:
+          pField[field_name + "#PDM_Stride"] = part_stride
 
-        # ::::::::::::::::::::::::::::::::::::::::::::::::::
-        for field in dField.keys():
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          # > Get field and assign ptr
-          dArray     = dField[field]
-          block_data = <void *> dArray.data
-          s_data     = dArray.dtype.itemsize
-
-          # > Understand how to interface
-          if(BlkStride is None):
-            block_stride = <int *> malloc( 1 * sizeof(int *))
-            part_stride  = NULL
-            part_data    = NULL
-            # > Init
-            block_stride[0] = 1 # No entrelacing data
-          else:
-            block_stride = <int *> BlkStride.data
-            part_stride  = NULL
-            part_data    = NULL
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          # > Compute
-          PDM_block_to_part_exch2(self.BTP,
-                                  s_data,
-                                  t_stride,
-                                  block_stride,
-                                  block_data,
-                                  &part_stride,
-                                  &part_data)
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          if(BlkStride is not None):
-            pField[field] = list()
-            pField[field+"#PDM_Stride"] = list()
-            for idx in xrange(self.partN):
-              sizeData = 0
-              for ii in xrange(self.NbElmts[idx]):
-                sizeData += part_stride[idx][ii]
-
-              # print("sizeData[{0}] = {1}".format(idx, sizeData))
-              dimData = <NPY.npy_intp> sizeData
-              # Memory leak block_data will be never desalocated ...
-              tmpData = NPY.PyArray_SimpleNewFromData(1, &dimData, dArray.dtype.num, <void *> part_data[idx])
-              PyArray_ENABLEFLAGS(tmpData, NPY.NPY_OWNDATA);
-              pField[field].append(tmpData)
-
-              dimStri = <NPY.npy_intp> self.NbElmts[idx]
-              # print("dimStri : ", dimStri)
-              tmpStride = NPY.PyArray_SimpleNewFromData(1, &dimStri, NPY.NPY_INT32, <void *> part_stride[idx])
-              PyArray_ENABLEFLAGS(tmpStride, NPY.NPY_OWNDATA);
-              pField[field+"#PDM_Stride"].append(tmpStride)
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          free(part_data)
-          free(part_stride)
-          # ::::::::::::::::::::::::::::::::::::::::::::::::::
-          # free(part_stride) # Les tableaux en eux meme sont detenu par le python
 
     # ------------------------------------------------------------------
     def __dealloc__(self):
       """
-         Deallocate all the array
+      Deallocate all the array
       """
-      # ************************************************************************
-      # > Declaration
-      cdef PDM_block_to_part_t *a
-      # ************************************************************************
       # > Free PDM Structure
-      a = PDM_block_to_part_free(self.BTP)
+      cdef PDM_block_to_part_t *none = PDM_block_to_part_free(self.BTP)
+      assert none == NULL
 
       # > Free allocated array
-      free(self.NbElmts)
-      free(self.LNToGN)
-      # free(self.BlkDistribIdx)s
+      free(self.pn_elt)
 

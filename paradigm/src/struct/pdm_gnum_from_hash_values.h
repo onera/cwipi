@@ -66,6 +66,7 @@ typedef int (*gnum_from_hv_equal  )(const void* a, const void* b, void* );
  * \param [in]   equilibrate  Use algorithm to equilibrate the block treatment (hash value is not a priori equi-reparti)
  * \param [in]   tolerance    Geometric tolerance (used if merge double points is activated)
  * \param [in]   comm         PDM_MPI communicator
+ * \param [in]   owner        Owner
  *
  * \return     Pointer to \ref PDM_gnum_from_hv_t object
  */
@@ -78,7 +79,8 @@ PDM_gnum_from_hash_values_create
  const size_t         s_data,
  gnum_from_hv_compare fcompare,
  gnum_from_hv_equal   fequal,
- const PDM_MPI_Comm   comm
+ const PDM_MPI_Comm   comm,
+ const PDM_ownership_t owner
 );
 
 
@@ -168,8 +170,7 @@ PDM_gnum_from_hv_dump_times
 void
 PDM_gnum_from_hv_free
 (
- PDM_gnum_from_hv_t *gnum_from_hv,
- const int           partial
+ PDM_gnum_from_hv_t *gnum_from_hv
 );
 
 

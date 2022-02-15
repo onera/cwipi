@@ -7,7 +7,8 @@ cdef extern from "pdm_gnum_location.h":
 
     PDM_gnum_location_t* PDM_gnum_location_create(const int          n_part_in,
                                                   const int          n_part_out,
-                                                  const PDM_MPI_Comm comm)
+                                                  const PDM_MPI_Comm comm,
+                                                  PDM_ownership_t owner)
 
     void           PDM_gnum_location_elements_set(      PDM_gnum_location_t *gnum_loc,
                                                   const int                  i_part_in,
@@ -26,8 +27,8 @@ cdef extern from "pdm_gnum_location.h":
                                                         int                 **location_idx,
                                                         int                 **location)
 
-    void                   PDM_gnum_location_free(      PDM_gnum_location_t *gnum_loc,
-                                                  const int                  partial)
+    void                   PDM_gnum_location_free(      PDM_gnum_location_t *gnum_loc)
+
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -61,7 +62,8 @@ cdef class GlobalNumberingLocation:
     # > PDM call
     self._gnum_loc = PDM_gnum_location_create(n_part_in,
                                               n_part_out,
-                                              PDM_MPI_mpi_2_pdm_mpi_comm (<void *> &c_comm))
+                                              PDM_MPI_mpi_2_pdm_mpi_comm (<void *> &c_comm),
+                                              PDM_OWNERSHIP_UNGET_RESULT_IS_FREE)
     # ************************************************************************
 
   # --------------------------------------------------------------------------
@@ -181,7 +183,7 @@ cdef class GlobalNumberingLocation:
     # ************************************************************************
     # > PDM call
     # Todo : tenir compte du partial ?
-    PDM_gnum_location_free(self._gnum_loc, 1)
+    PDM_gnum_location_free(self._gnum_loc)
     # ************************************************************************
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

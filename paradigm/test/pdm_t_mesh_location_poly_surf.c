@@ -1105,7 +1105,8 @@ int main(int argc, char *argv[])
 
   PDM_mesh_location_t* mesh_loc = PDM_mesh_location_create (PDM_MESH_NATURE_MESH_SETTED,//???
                                          1,//const int n_point_cloud,
-                                         PDM_MPI_COMM_WORLD);
+                                         PDM_MPI_COMM_WORLD,
+                                         PDM_OWNERSHIP_KEEP);
 
   /* Set point cloud(s) */
   PDM_mesh_location_n_part_cloud_set (mesh_loc,
@@ -1290,8 +1291,8 @@ int main(int argc, char *argv[])
   /*
    * Finalize
    */
-  PDM_mesh_location_free (mesh_loc,
-                          0);
+  PDM_mesh_location_free (mesh_loc);
+                          
 
   for (int ipart = 0; ipart < n_part; ipart++) {
     free(faceEdgeIdx[ipart]);

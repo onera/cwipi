@@ -158,7 +158,6 @@ int main(int argc, char *argv[])
                                                         1,
                                                         PDM_OWNERSHIP_KEEP);
 
-  PDM_dcube_nodal_gen_ordering_set (dcube1, "PDM_HO_ORDERING_CGNS");
   PDM_dcube_nodal_gen_build (dcube1);
 
   PDM_dmesh_nodal_t*  dmn1 = PDM_dcube_nodal_gen_dmesh_nodal_get(dcube1);
@@ -182,7 +181,6 @@ int main(int argc, char *argv[])
                                                          1,
                                                          PDM_OWNERSHIP_KEEP);
 
-  PDM_dcube_nodal_gen_ordering_set (dcube2, "PDM_HO_ORDERING_CGNS");
   PDM_dcube_nodal_gen_build (dcube2);
 
   PDM_dmesh_nodal_t*  dmn2 = PDM_dcube_nodal_gen_dmesh_nodal_get(dcube2);

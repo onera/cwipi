@@ -68,6 +68,7 @@ typedef struct _pdm_gnum_location_t PDM_gnum_location_t;
  * \param [in]   n_part_in      Number of local partitions for elements
  * \param [in]   n_part_out     Number of local partitions for requested locations
  * \param [in]   comm           PDM_MPI communicator
+ * \param [in]   owner          Owner
  *
  * \return     Pointer to \ref PDM_gnum_locaion object
  */
@@ -75,9 +76,10 @@ typedef struct _pdm_gnum_location_t PDM_gnum_location_t;
 PDM_gnum_location_t*
 PDM_gnum_location_create
 (
- const int          n_part_in,
- const int          n_part_out,
- const PDM_MPI_Comm comm
+ const int             n_part_in,
+ const int             n_part_out,
+ const PDM_MPI_Comm    comm,
+ const PDM_ownership_t owner
 );
 
 
@@ -165,15 +167,13 @@ PDM_gnum_location_get
  * \brief Free
  *
  * \param [in]   gnum_loc      Pointer to \ref PDM_gnum_locaion object
- * \param [in]   keep_results  Keep location results
  *
  */
 
 void
 PDM_gnum_location_free
 (
-       PDM_gnum_location_t *gnum_loc,
- const int                  keep_results
+  PDM_gnum_location_t *gnum_loc
 );
 
 

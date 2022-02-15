@@ -126,6 +126,9 @@ typedef struct {
 
   double times_cpu_s[NTIMER_HASH_VALUES];    /*!< System CPU time */
 
+  PDM_ownership_t owner;       /*!< Ownership */
+  int  tag_results_get ;       /*!< Tag call to PDM_dist_cellcenter_surf_get function */ 
+
 } _pdm_gnum_from_hv_t;
 
 /*============================================================================
@@ -842,6 +845,7 @@ _gnum_from_hv_compute
  * \param [in]   equilibrate  Use algorithm to equilibrate the block treatment (hash value is not a priori equi-reparti)
  * \param [in]   tolerance    Geometric tolerance (used if merge double points is activated)
  * \param [in]   comm         PDM_MPI communicator
+ * \param [in]   owner        Owner
  *
  * \return     Pointer to \ref PDM_gnum_from_hv_t object
  */
@@ -854,7 +858,8 @@ PDM_gnum_from_hash_values_create
  const size_t         s_data,
  gnum_from_hv_compare fcompare,
  gnum_from_hv_equal   fequal,
- const PDM_MPI_Comm   comm
+ const PDM_MPI_Comm   comm,
+ const PDM_ownership_t owner
 )
 {
   int i_rank;
@@ -899,6 +904,9 @@ PDM_gnum_from_hash_values_create
     _gnum_from_hv->times_cpu_u[i] = 0.;
     _gnum_from_hv->times_cpu_s[i] = 0.;
   }
+
+  _gnum_from_hv->owner = owner;
+  _gnum_from_hv->tag_results_get = 0;
 
   return (PDM_gnum_from_hv_t *) _gnum_from_hv;
 }
@@ -1007,6 +1015,7 @@ PDM_gnum_from_hv_get
 {
   _pdm_gnum_from_hv_t *_gnum_from_hv = (_pdm_gnum_from_hv_t *) gnum_from_hv;
 
+  _gnum_from_hv->tag_results_get = 1;
   return _gnum_from_hv->g_nums[i_part];
 }
 
@@ -1094,13 +1103,13 @@ PDM_gnum_from_hv_dump_times
 void
 PDM_gnum_from_hv_free
 (
- PDM_gnum_from_hv_t *gnum_from_hv,
- const int           partial
+ PDM_gnum_from_hv_t *gnum_from_hv
 )
 {
   _pdm_gnum_from_hv_t *_gnum_from_hv = (_pdm_gnum_from_hv_t *) gnum_from_hv;
 
-  if (partial != 1) {
+  if(( _gnum_from_hv->owner == PDM_OWNERSHIP_KEEP ) ||
+     ( _gnum_from_hv->owner == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE && !_gnum_from_hv->tag_results_get)) {
     for (int i = 0; i < _gnum_from_hv->n_part; i++) {
       free (_gnum_from_hv->g_nums[i]);
     }
