@@ -20,6 +20,7 @@
 #include "spatialInterpLocationMeshLocation.hxx"
 #include "coupling.hxx"
 #include "coupling_i.hxx"
+#include "pdm_logging.h"
 
 /**
  * \cond
@@ -35,7 +36,7 @@ namespace cwipi {
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
-      _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm);
+      _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
       PDM_mesh_location_method_set(_id_pdm, _location_method);
       PDM_mesh_location_tolerance_set(_id_pdm, _tolerance);
@@ -67,7 +68,7 @@ namespace cwipi {
         printf("localization_init - 2.1\n");
         fflush(stdout);
 
-        _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm);
+        _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
         SpatialInterpLocationMeshLocation *cpl_spatial_interp;
 
@@ -319,7 +320,7 @@ namespace cwipi {
         }
 
         else {
-          CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
+//          CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
           for (int i_part = 0 ; i_part < _nPart ; i_part++) {
             if (interf_dim == CWP_INTERFACE_SURFACE) {
               PDM_mesh_location_part_set_2d(_id_pdm,
@@ -738,7 +739,7 @@ namespace cwipi {
   void SpatialInterpLocationMeshLocation::localization_free() {
 
     if (!_coupledCodeProperties->localCodeIs()) {
-      PDM_mesh_location_free(_id_pdm, 1);
+      PDM_mesh_location_free(_id_pdm);
       _id_pdm = nullptr;
     }
 
@@ -746,7 +747,7 @@ namespace cwipi {
 
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
 
-        PDM_mesh_location_free(_id_pdm, 1);
+        PDM_mesh_location_free(_id_pdm);
         _id_pdm = nullptr;
 
         cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
