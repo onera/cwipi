@@ -5754,6 +5754,12 @@ PDM_Mesh_nodal_write
 
   int ielt = 0;
   for (int iblock = 0; iblock < mesh->n_blocks; iblock++) {
+
+    if (1) {
+      PDM_Mesh_nodal_g_num_in_block_compute (mesh,
+                                             mesh->blocks_id[iblock]);
+    }
+
     for (int ipart = 0; ipart < mesh->n_part; ipart++) {
       int n_elt = PDM_Mesh_nodal_block_n_elt_get (mesh,
                                                   mesh->blocks_id[iblock],
@@ -5791,10 +5797,10 @@ PDM_Mesh_nodal_write
   PDM_writer_var_write(cs,
                        id_var_elt_gnum);
 
-  PDM_writer_var_free(cs,
-                      id_var_elt_part);
-  PDM_writer_var_free(cs,
-                      id_var_elt_gnum);
+  // PDM_writer_var_free(cs,
+  //                     id_var_elt_part);
+  // PDM_writer_var_free(cs,
+  //                     id_var_elt_gnum);
 
 
   PDM_writer_step_end(cs);
@@ -5811,6 +5817,8 @@ PDM_Mesh_nodal_write
   free(val_elt_gnum);
 
   // Free...
+  // !!! Do not free geometry!
+  // PDM_writer_free(cs);
 }
 
 

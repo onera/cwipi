@@ -2367,6 +2367,7 @@ PDM_mesh_location_free
             }
           }
         }
+        free (pcloud->located);
         pcloud->located = NULL;
       }
 
@@ -5371,7 +5372,7 @@ PDM_mesh_location_t        *ml
       double *_cell_coords = malloc (sizeof(double) * 8 * 3);
       double *_cell_coords_ijk = malloc (sizeof(double) * 8 * 3);
       for (int ipart = 0; ipart < n_part_nodal; ipart++) {
-        int ielt = 0;
+        int ielt = -1;
         const double *coords_vtx = PDM_Mesh_nodal_vertices_get (ml->mesh_nodal,
                                                                 ipart);
         for (int iblock = 0; iblock < n_blocks; iblock++) {
@@ -5415,7 +5416,7 @@ PDM_mesh_location_t        *ml
 
             double _projected_coords[3]; // Ignored in this case
 
-            int ielt_parent = ielt;
+            int ielt_parent = ++ielt;
             if (parent_num != NULL) {
               ielt_parent = parent_num[i];
             }
@@ -5497,7 +5498,41 @@ PDM_mesh_location_t        *ml
                   }
                 }
 
-                PDM_ho_location (t_elt,
+                PDM_Mesh_nodal_elt_t t_elt_ho;
+                switch (t_elt) {
+                  case PDM_MESH_NODAL_BAR2:
+                    t_elt_ho = PDM_MESH_NODAL_BARHO;
+                    break;
+
+                  case PDM_MESH_NODAL_TRIA3:
+                    t_elt_ho = PDM_MESH_NODAL_TRIAHO;
+                    break;
+
+                  case PDM_MESH_NODAL_QUAD4:
+                    t_elt_ho = PDM_MESH_NODAL_QUADHO;
+                    break;
+
+                  case PDM_MESH_NODAL_TETRA4:
+                    t_elt_ho = PDM_MESH_NODAL_TETRAHO;
+                    break;
+
+                  case PDM_MESH_NODAL_PYRAMID5:
+                    t_elt_ho = PDM_MESH_NODAL_PYRAMIDHO;
+                    break;
+
+                  case PDM_MESH_NODAL_PRISM6:
+                    t_elt_ho = PDM_MESH_NODAL_PRISMHO;
+                    break;
+
+                  case PDM_MESH_NODAL_HEXA8:
+                    t_elt_ho = PDM_MESH_NODAL_HEXAHO;
+                    break;
+
+                  default:
+                    t_elt_ho = t_elt;
+                }
+
+                PDM_ho_location (t_elt_ho,
                                  1,
                                  n_vtx,
                                  _cell_coords_ijk,
@@ -5516,7 +5551,6 @@ PDM_mesh_location_t        *ml
             }
           }
         }
-        ielt += 1;
       }
 
       free (_cell_coords_ijk);

@@ -1111,7 +1111,7 @@ _compute_dist2_from_closest_edge_subdivision
 
     /* Compute projected from current P1 edge */
     double weightsP1[2];
-    PDM_ho_basis (PDM_MESH_NODAL_BAR2,
+    PDM_ho_basis (PDM_MESH_NODAL_BARHO,
                   1,
                   2,
                   1,
@@ -1277,7 +1277,7 @@ _compute_dist2_from_uniform_edge_subdivision
 
     /* Compute projected from current P1 edge */
     double weightsP1[2];
-    PDM_ho_basis (PDM_MESH_NODAL_BAR2,
+    PDM_ho_basis (PDM_MESH_NODAL_BARHO,
                   1,
                   2,
                   1,
@@ -2361,7 +2361,7 @@ _compute_dist2_from_closest_tria_subdivision
 
     /* Compute projected from current P1 triangle */
     double weightsP1[3];
-    PDM_ho_basis (PDM_MESH_NODAL_TRIA3,
+    PDM_ho_basis (PDM_MESH_NODAL_TRIAHO,
                   1,
                   3,
                   1,
@@ -2527,7 +2527,7 @@ _compute_dist2_from_uniform_tria_subdivision
 
     /* Compute projected from current P1 triangle */
     double weightsP1[3];
-    PDM_ho_basis (PDM_MESH_NODAL_TRIA3,
+    PDM_ho_basis (PDM_MESH_NODAL_TRIAHO,
                   1,
                   3,
                   1,
@@ -4765,7 +4765,7 @@ _compute_dist2_from_closest_tetra_subdivision
 
     /* Compute projected from current P1 tetrahedron */
     double weightsP1[4];
-    PDM_ho_basis (PDM_MESH_NODAL_TETRA4,
+    PDM_ho_basis (PDM_MESH_NODAL_TETRAHO,
                   1,
                   4,
                   1,
@@ -4930,7 +4930,7 @@ _compute_dist2_from_uniform_tetra_subdivision
 
     /* Compute projected from current P1 tetrahedron */
     double weightsP1[4];
-    PDM_ho_basis (PDM_MESH_NODAL_TETRA4,
+    PDM_ho_basis (PDM_MESH_NODAL_TETRAHO,
                   1,
                   4,
                   1,
@@ -5269,7 +5269,7 @@ _default_location
 
   switch (_type) {
 
-  case PDM_MESH_NODAL_BAR2: {
+  case PDM_MESH_NODAL_BARHO: {
 
     int v1 = 0;
     int v2 = order;
@@ -5299,7 +5299,7 @@ _default_location
   }
 
 
-  case PDM_MESH_NODAL_TRIA3: {
+  case PDM_MESH_NODAL_TRIAHO: {
 
     int v1 = 0;
     int v2 = order;
@@ -5326,7 +5326,7 @@ _default_location
   }
 
 
-  case PDM_MESH_NODAL_QUAD4: {
+  case PDM_MESH_NODAL_QUADHO: {
 
     const int order1 = order + 1;
 
@@ -5372,7 +5372,7 @@ _default_location
   }
 
 
-  case PDM_MESH_NODAL_TETRA4: {
+  case PDM_MESH_NODAL_TETRAHO: {
 
     int v1 = 0;
     int v2 = order;
@@ -5402,7 +5402,7 @@ _default_location
   }
 
 
-  case PDM_MESH_NODAL_PYRAMID5: {
+  case PDM_MESH_NODAL_PYRAMIDHO: {
 
     const int pyra_vertices[5] = {1,
                                   order + 1,
@@ -5450,7 +5450,7 @@ _default_location
   }
 
 
-  case PDM_MESH_NODAL_PRISM6: {
+  case PDM_MESH_NODAL_PRISMHO: {
 
     const int prism_vertices[6] = {1,
                                    order + 1,
@@ -5499,7 +5499,7 @@ _default_location
   }
 
 
-  case PDM_MESH_NODAL_HEXA8: {
+  case PDM_MESH_NODAL_HEXAHO: {
 
     const int hexa_vertices[8] = {1,
                                   order + 1,
@@ -5581,37 +5581,48 @@ _get_user_elt (PDM_Mesh_nodal_elt_t elt_type)
 
   switch(elt_type) {
 
-  case PDM_MESH_NODAL_BAR2:
+  case PDM_MESH_NODAL_BARHO:
     return &_user_edge;
     break;
 
-  case PDM_MESH_NODAL_TRIA3:
+  case PDM_MESH_NODAL_TRIAHO:
     return &_user_tria;
     break;
 
-  case PDM_MESH_NODAL_QUAD4:
+  case PDM_MESH_NODAL_QUADHO:
     return &_user_quad;
     break;
 
-  case PDM_MESH_NODAL_TETRA4:
+  case PDM_MESH_NODAL_TETRAHO:
     return &_user_tetra;
     break;
 
-  case PDM_MESH_NODAL_PYRAMID5:
+  case PDM_MESH_NODAL_PYRAMIDHO:
     return &_user_pyra;
     break;
 
-  case PDM_MESH_NODAL_PRISM6:
+  case PDM_MESH_NODAL_PRISMHO:
     return &_user_prism;
     break;
 
-  case PDM_MESH_NODAL_HEXA8:
+  case PDM_MESH_NODAL_HEXAHO:
     return &_user_hexa;
+    break;
+
+  case PDM_MESH_NODAL_POINT:
+  case PDM_MESH_NODAL_BAR2:
+  case PDM_MESH_NODAL_TRIA3:
+  case PDM_MESH_NODAL_QUAD4:
+  case PDM_MESH_NODAL_TETRA4:
+  case PDM_MESH_NODAL_PYRAMID5:
+  case PDM_MESH_NODAL_PRISM6:
+  case PDM_MESH_NODAL_HEXA8:
+    return NULL;
     break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0,
-              "_get_user_elt : Unvailable element type\n");
+              "Unvailable element type %d\n", (int) elt_type);
   }
 
   return NULL;
@@ -5649,13 +5660,17 @@ PDM_ho_location
  double                     *uvw
  )
 {
-  PDM_ho_location_user_elt_t **user_elt = _get_user_elt (type);
+  // PDM_ho_location_user_elt_t *user_elt = *(_get_user_elt (type));
+  PDM_ho_location_user_elt_t *user_elt = NULL;
+  if (type > PDM_MESH_NODAL_HEXA8) {
+    user_elt = *(_get_user_elt (type));
+  }
 
   int entities_dim = PDM_Mesh_nodal_elt_dim_get(type);
 
-  if (*user_elt != NULL) {
-    if ((*user_elt)->location_in_elt != NULL) {
-      return ((*user_elt)->location_in_elt ) (entities_dim,
+  if (user_elt != NULL) {
+    if (user_elt->location_in_elt != NULL) {
+      return (user_elt->location_in_elt ) (entities_dim,
                                               order,
                                               n_nodes,
                                               nodes_coords,
