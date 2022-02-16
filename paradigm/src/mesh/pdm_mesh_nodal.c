@@ -1636,7 +1636,7 @@ PDM_Mesh_nodal_t *mesh
     }
 
     free(mesh);
-
+    mesh = NULL;
   }
 }
 
@@ -5778,6 +5778,9 @@ PDM_Mesh_nodal_write
   /* Ecriture des variables */
   PDM_writer_step_beg(cs, 0.);
 
+  PDM_writer_geom_write(cs,
+                        id_geom);
+
   for (int ipart = 0; ipart < mesh->n_part; ipart++) {
     PDM_writer_var_set(cs,
                        id_var_elt_part,
@@ -5806,8 +5809,8 @@ PDM_Mesh_nodal_write
   PDM_writer_step_end(cs);
 
 
-  PDM_writer_geom_write(cs,
-                        id_geom);
+  // PDM_writer_geom_data_free(cs,
+  //                           id_geom);
 
   for (int ipart = 0; ipart < mesh->n_part; ipart++) {
     free(val_elt_part[ipart]);

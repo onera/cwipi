@@ -2867,8 +2867,8 @@ PDM_mesh_location_t        *ml
     _export_boxes (filename, n_boxes, box_extents, box_g_num);
 
 
-    /*PDM_Mesh_nodal_write ("mesh_nodal",
-      ml->mesh_nodal);*/
+    PDM_Mesh_nodal_write ("mesh_nodal",
+                          ml->mesh_nodal);
   }
 
 
