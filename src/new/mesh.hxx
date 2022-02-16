@@ -49,13 +49,12 @@ namespace cwipi {
    *  This class defines the interface mesh objects.
    *
    */
+
   class Coupling;
   class Visu;
   class Mesh {
 
   public:
-
-
 
     /**
      * \brief Mesh constructor
@@ -68,11 +67,14 @@ namespace cwipi {
      *
      */
 
-    Mesh(const MPI_Comm &localComm,
-              Visu* visu,
-              int npart,
-              CWP_Dynamic_mesh_t displacement,
-              Coupling           *cpl);
+    Mesh
+    (
+      const MPI_Comm    &localComm,
+      Visu              *visu,
+      int                npart,
+      CWP_Dynamic_mesh_t displacement,
+      Coupling           *cpl
+    );
 
 
     /**
@@ -82,31 +84,37 @@ namespace cwipi {
      *
      */
 
-     virtual ~Mesh();
+    virtual ~Mesh();
 
-     /**
+    /**
      * \brief Set the mesh coordinates
      *
      * \param [in] i_part       Index of the mesh partition
      * \param [in] n_pts        Number of partition vertices
      * \param [in] coords       Array containing the verticies coordinates
-     * \param [in] global_num   Global numbering of the vertices
+     * \param [in] global_num   Global numbering of the vertices or NULL
      *
      */
 
-     void nodal_coord_set(const int   i_part,
-                          const int   n_pts,
-                          double      coords[],
-                          CWP_g_num_t global_num[]);
+    void 
+    coordSet 
+    (
+      const int   i_part,
+      const int   n_pts,
+      double      coords[],
+      CWP_g_num_t global_num[]
+    );
+
 
     /**
      * \brief Mesh deletion and free memory
      *
      */
 
-     void meshDel();
+    void 
+    meshDel();
 
-     /**
+    /**
      * \brief Addition of a block (set of cells) to the mesh partition
      *
      * This function add a block to the geometric mesh.
@@ -116,10 +124,14 @@ namespace cwipi {
      * \return block_id  Block Identifier
      */
 
-     int blockAdd(const CWP_Block_t  block_type);
+    int 
+    blockAdd 
+    (
+      const CWP_Block_t  block_type
+    );
 
 
-     /**
+    /**
      * \brief Set a standard block to the interface mesh
      *
      * \param [in] i_part      Partition identifier
@@ -130,14 +142,17 @@ namespace cwipi {
      *
      */
 
-     void stdBlockSet( const int              i_part,
-                       const int              block_id,
-                       const int              n_elts,
-                       int                    connec[],
-                       CWP_g_num_t            global_num[]
-                     );
+    void 
+    stdBlockSet 
+    ( 
+      const int    i_part,
+      const int    block_id,
+      const int    n_elts,
+      int          connec[],
+      CWP_g_num_t  global_num[]
+    );
 
-     /**
+    /**
      * \brief Set a face polygon block to the interface mesh
      *
      * \param [in] i_part      Partition identifier
@@ -149,16 +164,19 @@ namespace cwipi {
      *
      */
 
-     void poly2DBlockSet( const int              i_part,
-                          const int              block_id,
-                          const int              n_elts,
-                          int                    connec_idx[],
-                          int                    connec[],
-                          CWP_g_num_t            global_num[]
-                        );
+    void 
+    poly2DBlockSet
+    ( 
+      const int    i_part,
+      const int    block_id,
+      const int    n_elts,
+      int          connec_idx[],
+      int          connec[],
+      CWP_g_num_t  global_num[]
+    );
 
 
-     /**
+    /**
      * \brief Set a face polhedron block to the interface mesh
      *
      * \param [in] i_part            Partition identifier
@@ -173,29 +191,20 @@ namespace cwipi {
      *
      */
 
-     void poly3DBlockSet( const int              i_part,
-                          const int              block_id,
-                          const int              n_elts,
-                          const int              n_faces,
-                          int                    connec_faces_idx[],
-                          int                    connec_faces[],
-                          int                    connec_cells_idx[],
-                          int                    connec_cells[],
-                          CWP_g_num_t            global_num[]
-                        );
+    void 
+    poly3DBlockSet
+    ( 
+      const int   i_part,
+      const int   block_id,
+      const int   n_elts,
+      const int   n_faces,
+      int         connec_faces_idx[],
+      int         connec_faces[],
+      int         connec_cells_idx[],
+      int         connec_cells[],
+      CWP_g_num_t global_num[]
+    );
 
-     /**
-     * \brief Get the Mesh Block Type
-     *
-     * This function gets the mesh block type.
-     *
-     * \param [in] id_block    Block identifier
-     * \return CWP_Block_t Mesh  Block Type
-     *
-     */
-
-     CWP_Block_t Mesh_nodal_block_type_get(const int   id_block
-                                          );
 
     /**
      * \brief Adding a polyhedron block to the geometric mesh from
@@ -512,35 +521,40 @@ namespace cwipi {
     int _Mesh_nodal_block_std_type_size_get(CWP_Block_t type);
 
     const MPI_Comm                          &_localComm;              /*!< Communicator */
+
+    int                                     _npart;                  /*!< Number of partition  */
     int                                     _nBlocks;                /*!< Number of blocks of the mesh */
     int*                                    _blocks_id;              /*!< List of block identifiers */
+    std::vector<cwipi::Block*>              _blockDB;                /*!< Blocks database  */
+
     std::vector<int>                        _nVertex;                /*!< Number of vertices for each partition  */
-    std::vector<int>                        _nElts;                  /*!< Number of elements for each partition  */
     std::vector<double*>                    _coords;                 /*!< Vertices coordinate for each partition  */
-    std::vector<int*>                       _connec_idx;
-    std::vector<int*>                       _connec;
+
+    std::vector<int>                        _nElts;                  /*!< Number of elements for each partition  */
     std::vector<CWP_g_num_t*>               _gnum_elt;
     std::vector<double*>                    _elt_centers;
 
     std::vector <CWP_g_num_t*>              _global_num_vtx;             /*!< Global vertices numbering for each partition  */
     std::vector <CWP_g_num_t*>              _global_num_elt;             /*!< Global elements numbering for each partition  */
-    int                                     _npart;                  /*!< Number of partition  */
-    PDM_Mesh_nodal_t                       *_pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
-    std::vector<cwipi::Block*>               _blockDB;                /*!< Blocks database  */
+
+    std::vector<int*>                       _connec_idx;
+    std::vector<int*>                       _connec;
+
     Visu                                   *_visu;                   /*!< Pointer to the Visu object */
     std::map<int,int>                       _id_visu;                /*!< Map of the PDM_Writer block identifier */
     CWP_Dynamic_mesh_t                      _displacement;          /*!< Type of mesh displacement */
     Coupling                               *_cpl;
 
-
-    std::vector<int>                        _nCells;
+    std::vector<int>                        _nCells;        
     std::vector<int*>                       _cellFaceIdx;
     std::vector<int*>                       _cellFace;
+
     std::vector<int>                        _nFace;
     std::vector<int*>                       _faceEdgeIdx;
     std::vector<int*>                       _faceEdge;
     std::vector<int*>                       _faceVtxIdx;
     std::vector<int*>                       _faceVtx;
+
     std::vector<int>                        _nEdge;
     std::vector<int*>                       _edgeVtxIdx;
     std::vector<int*>                       _edgeVtx;
@@ -554,6 +568,8 @@ namespace cwipi {
 
     int                                     _faceEdgeMethod;
     int                                     _cellFaceMethod;
+
+    PDM_Mesh_nodal_t                       *_pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
 
   //   Mesh &operator=(const Mesh &other);  /*!< Assigment operator not available */
   //   Mesh (const Mesh& other);            /*!< Copy constructor not available */

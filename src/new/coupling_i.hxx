@@ -148,10 +148,10 @@ namespace cwipi {
     CWP_g_num_t        global_num[]
   )
   {
-    _mesh.nodal_coord_set(i_part,
-                          n_pts,
-                          coords,
-                          global_num);
+    _mesh.coordSet(i_part,
+                   n_pts,
+                   coords,
+                   global_num);
   }
 
 

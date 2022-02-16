@@ -259,7 +259,10 @@ namespace cwipi {
     if (!_coupledCodeProperties->localCodeIs()) {
       if (_mesh->getNFace(0) == 0) {
         printf("No faces, using nodal\n");
+
         PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, _pdm_CplNodal);
+
+//        PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, _pdm_CplNodal);
       }
       else {
         CWP_Interface_t interf_dim = _cpl->entitiesDimGet();

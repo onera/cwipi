@@ -32,12 +32,9 @@
 #include "coupling.hxx"
 #include "coupling_i.hxx"
 
-
-
 /**
  * \cond
  */
-
 
 namespace cwipi {
 
@@ -343,10 +340,10 @@ namespace cwipi {
 
 
 
-   void Mesh::nodal_coord_set(const int   i_part       ,
-                              const int   n_vtx        ,
-                              double      coords    [] ,
-                              CWP_g_num_t global_num[] )
+   void Mesh::coordSet(const int   i_part       ,
+                       const int   n_vtx        ,
+                       double      coords    [] ,
+                       CWP_g_num_t global_num[] )
    {
       _coords[i_part] = coords;
       _nVertex[i_part]  = n_vtx;

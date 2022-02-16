@@ -56,12 +56,12 @@ namespace cwipi {
      _isSet              .resize(_n_part);
 
      PDM_MPI_Comm pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(_localComm);
-     _pdmGNum_handle_index  = PDM_gnum_create (3,
-                                               _n_part,
-                                               PDM_FALSE,
-                                               1e-3,
-                                               pdm_localComm,
-                                               PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+     // _pdmGNum_handle_index  = PDM_gnum_create (3,
+     //                                           _n_part,
+     //                                           PDM_FALSE,
+     //                                           1e-3,
+     //                                           pdm_localComm,
+     //                                           PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
   }
 
@@ -121,7 +121,8 @@ namespace cwipi {
      PDM_Mesh_nodal_elt_t block_type;
      switch (CWP_block_type) {
 
-       case CWP_BLOCK_NODE: block_type = PDM_MESH_NODAL_POINT;
+       case CWP_BLOCK_NODE: 
+       block_type = PDM_MESH_NODAL_POINT;
        break;
 
        case CWP_BLOCK_EDGE2: block_type = PDM_MESH_NODAL_BAR2;
