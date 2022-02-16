@@ -151,10 +151,15 @@ _redistribute_elementary_location
 {
   const int order = 1;
 
-  int n_blocks   = PDM_Mesh_nodal_n_blocks_get (ml->mesh_nodal);
-  int n_parts    = PDM_Mesh_nodal_n_part_get   (ml->mesh_nodal);
-  int *blocks_id = PDM_Mesh_nodal_blocks_id_get(ml->mesh_nodal);
+  int n_blocks   = 0;
+  int n_parts    = 0;
+  int *blocks_id = NULL;
 
+  if (ml->mesh_nodal != NULL) {
+    n_blocks   = PDM_Mesh_nodal_n_blocks_get (ml->mesh_nodal);
+    n_parts    = PDM_Mesh_nodal_n_part_get   (ml->mesh_nodal);
+    blocks_id = PDM_Mesh_nodal_blocks_id_get(ml->mesh_nodal);
+  }
 
   int my_rank, n_ranks;
   PDM_MPI_Comm_rank (ml->comm, &my_rank);
@@ -845,9 +850,15 @@ _extract_selected_mesh_elements
 {
   const int order = 1;
 
-  int  n_block  = PDM_Mesh_nodal_n_blocks_get (ml->mesh_nodal);
-  int  n_part   = PDM_Mesh_nodal_n_part_get (ml->mesh_nodal);
-  int *block_id = PDM_Mesh_nodal_blocks_id_get (ml->mesh_nodal);
+  int n_block   = 0;
+  int n_part    = 0;
+  int *block_id = NULL;
+
+  if (ml->mesh_nodal != NULL) {
+    n_block   = PDM_Mesh_nodal_n_blocks_get (ml->mesh_nodal);
+    n_part    = PDM_Mesh_nodal_n_part_get   (ml->mesh_nodal);
+    block_id = PDM_Mesh_nodal_blocks_id_get(ml->mesh_nodal);
+  }
 
   int i_rank, n_rank;
   PDM_MPI_Comm_rank (ml->comm, &i_rank);
@@ -1837,6 +1848,7 @@ PDM_mesh_location_cloud_get
  * \param [in]   mesh_nodal  Mesh nodal Pointer to \ref PDM_mesh_location object
  *
  */
+
 void
 PDM_mesh_location_shared_nodal_mesh_set
 (
@@ -1844,7 +1856,6 @@ PDM_mesh_location_shared_nodal_mesh_set
  PDM_Mesh_nodal_t    *mesh_nodal
 )
 {
-
   ml->mesh_nodal = mesh_nodal;
   ml->shared_nodal = 1;
 }
@@ -2809,17 +2820,22 @@ PDM_mesh_location_t        *ml
   /*
    * Build the bounding boxes of mesh elements
    */
-  int n_blocks = PDM_Mesh_nodal_n_blocks_get (ml->mesh_nodal);
-  int n_parts  = PDM_Mesh_nodal_n_part_get (ml->mesh_nodal);
-  int *blocks_id = PDM_Mesh_nodal_blocks_id_get (ml->mesh_nodal);
+
+  int n_blocks = 0;
+  int n_parts  = 0;
+  int *blocks_id = NULL;
+
+  if (ml->mesh_nodal != NULL) {
+    n_blocks = PDM_Mesh_nodal_n_blocks_get (ml->mesh_nodal);
+    n_parts  = PDM_Mesh_nodal_n_part_get (ml->mesh_nodal);
+    blocks_id = PDM_Mesh_nodal_blocks_id_get (ml->mesh_nodal);
+  }
 
   int n_boxes = 0;
   for (int ipart = 0; ipart < n_parts; ipart++) {
     n_boxes += PDM_Mesh_nodal_n_cell_get (ml->mesh_nodal,
                                           ipart);
   }
-
-
 
   PDM_g_num_t *box_g_num   = malloc (sizeof(PDM_g_num_t) * n_boxes);
   double      *box_extents = malloc (sizeof(double)      * n_boxes * 6);
@@ -2867,8 +2883,8 @@ PDM_mesh_location_t        *ml
     _export_boxes (filename, n_boxes, box_extents, box_g_num);
 
 
-    PDM_Mesh_nodal_write ("mesh_nodal",
-                          ml->mesh_nodal);
+    /*PDM_Mesh_nodal_write ("mesh_nodal",
+      ml->mesh_nodal);*/
   }
 
 
@@ -4970,7 +4986,10 @@ PDM_mesh_location_t        *ml
 
     PDM_part_to_block_free (ptb);
 
-    int n_part_nodal = PDM_Mesh_nodal_n_part_get (ml->mesh_nodal);
+    int n_part_nodal = 0;
+    if (ml->mesh_nodal != NULL) {
+      n_part_nodal =PDM_Mesh_nodal_n_part_get (ml->mesh_nodal);
+    }
     PDM_g_num_t **numabs_nodal = malloc (sizeof(PDM_g_num_t *) * n_part_nodal);
     int *n_elt_nodal = malloc (sizeof(int) * n_part_nodal);
 
