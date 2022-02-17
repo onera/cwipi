@@ -126,6 +126,7 @@ struct _pdm_mesh_location_t {
   int  tag_located_get;        /*!< Tag call to located_get function */ 
   int  tag_point_location_get; /*!< Tag call to point_location_get function */ 
   int  tag_points_in_elt_get;  /*!< Tag call to points_in_elt_get function */ 
+  int  tag_cell_vtx_get;       /*!< Tag call to cell_vtx_get function */ 
 
 } ;
 

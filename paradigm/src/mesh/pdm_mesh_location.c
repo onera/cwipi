@@ -1604,6 +1604,7 @@ PDM_mesh_location_create
   ml->tag_located_get = 0;
   ml->tag_point_location_get = 0;
   ml->tag_points_in_elt_get = 0;
+  ml->tag_cell_vtx_get = 0;
 
   return ml;
 
@@ -2179,6 +2180,8 @@ PDM_mesh_location_cell_vertex_get
   *cell_vtx_idx = ml->cell_vtx_idx[i_part];
   *cell_vtx     = ml->cell_vtx[i_part];
 
+  ml->tag_cell_vtx_get = 1;
+
 }
 
 
@@ -2328,32 +2331,26 @@ PDM_mesh_location_free
 
       if (pcloud->uvw != NULL) {
         for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
-//          if (!partial) {
-            if (pcloud->uvw[ipart] != NULL) {
-              free (pcloud->uvw[ipart]);
-            }
-//          }
+          if (pcloud->uvw[ipart] != NULL) {
+            free (pcloud->uvw[ipart]);
+          }
         }
         free (pcloud->uvw);
       }
 
       if (pcloud->weights_idx != NULL) {
         for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
-          // if (!partial) { // Bcause get no hook this one
-            if (pcloud->weights_idx[ipart] != NULL) {
-              free (pcloud->weights_idx[ipart]);
-            }
-          // }
+          if (pcloud->weights_idx[ipart] != NULL) {
+            free (pcloud->weights_idx[ipart]);
+          }
         }
         free (pcloud->weights_idx);
       }
 
       if (pcloud->weights != NULL) {
         for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
-          // if (!partial) { // Bcause get no hook this one
-            if (pcloud->weights[ipart] != NULL) {
-              free (pcloud->weights[ipart]);
-            // }
+          if (pcloud->weights[ipart] != NULL) {
+            free (pcloud->weights[ipart]);
           }
         }
         free (pcloud->weights);
@@ -2412,17 +2409,19 @@ PDM_mesh_location_free
     int _n_part = PDM_Mesh_nodal_n_part_get(ml->mesh_nodal);
 
     if (ml->cell_vtx_idx != NULL) {
-      for (int i = 0; i< _n_part; i++)
-        if(ml->cell_vtx_idx[i] != NULL)
-          free(ml->cell_vtx_idx[i]);
+      for (int i = 0; i< _n_part; i++) {
+        if(( ml->owner == PDM_OWNERSHIP_KEEP ) ||
+           ( ml->owner == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE && !ml->tag_cell_vtx_get)) {
+          if(ml->cell_vtx_idx[i] != NULL) {
+            free(ml->cell_vtx[i]);
+            free(ml->cell_vtx_idx[i]);
+          }
+        }
+      }
+      free(ml->cell_vtx);
       free(ml->cell_vtx_idx);
     }
-    if (ml->cell_vtx_idx != NULL) {
-      for (int i = 0; i< _n_part; i++)
-        if(ml->cell_vtx[i] != NULL)
-          free(ml->cell_vtx[i]);
-      free(ml->cell_vtx);
-    }
+
     ml->cell_vtx_idx = NULL;
     ml->cell_vtx = NULL;
 
