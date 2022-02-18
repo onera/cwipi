@@ -461,6 +461,26 @@ module pdm_mesh_location
 
     !>
     !!
+    !! \brief Compute point location
+    !!
+    !! \param [in]   mlocPointer to \ref PDM_mesh_location object
+    !!
+    !!
+
+    subroutine PDM_mesh_location_reverse_results_enable (mloc) &
+      bind (c, name = 'PDM_mesh_location_reverse_results_enable')
+
+      use iso_c_binding
+
+      implicit none
+
+
+      type (c_ptr), value :: mloc
+
+    end subroutine PDM_mesh_location_reverse_results_enable
+
+    !>
+    !!
     !! \brief Get the number of located points
     !!
     !! \param [in]   mloc            Pointer to \ref PDM_mesh_location object

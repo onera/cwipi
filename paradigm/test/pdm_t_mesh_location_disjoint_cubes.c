@@ -515,6 +515,7 @@ int main(int argc, char *argv[])
                                                             PDM_MPI_COMM_WORLD,
                                                             PDM_OWNERSHIP_KEEP);
 
+  PDM_mesh_location_reverse_results_enable(mesh_loc);
 
   /* Set target point cloud */
   PDM_mesh_location_n_part_cloud_set (mesh_loc,
@@ -732,10 +733,6 @@ int main(int argc, char *argv[])
 
   PDM_mesh_location_method_set (mesh_loc,
                                 loc_method);
-
-  if (disable_uvw) {
-    PDM_mesh_location_disable_uvw_computation (mesh_loc);
-  }
 
   /*
    *  Compute location

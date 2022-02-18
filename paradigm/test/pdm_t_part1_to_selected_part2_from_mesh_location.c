@@ -395,11 +395,13 @@ int main(int argc, char *argv[])
                                                           1,
                                                           PDM_MPI_COMM_WORLD,
                                                           PDM_OWNERSHIP_KEEP);
+  PDM_mesh_location_reverse_results_enable(id_loc1);
 
   PDM_mesh_location_t *id_loc2 = PDM_mesh_location_create (PDM_MESH_NATURE_MESH_SETTED,
                                                           1,
                                                           PDM_MPI_COMM_WORLD,
                                                           PDM_OWNERSHIP_KEEP);
+  PDM_mesh_location_reverse_results_enable(id_loc2);
 
   /* Set target point cloud */
   PDM_mesh_location_n_part_cloud_set (id_loc1,

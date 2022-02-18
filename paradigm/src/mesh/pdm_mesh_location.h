@@ -504,10 +504,11 @@ PDM_mesh_location_t *ml
 
 
 /**
-  * Disable uvw computation after reverse location data
-  */
+ * Enable reverse results computation (To call PDM_mesh_location_points_in_elt_get)
+ */
+
 void
-PDM_mesh_location_disable_uvw_computation
+PDM_mesh_location_reverse_results_enable
 (
 PDM_mesh_location_t *ml
 );

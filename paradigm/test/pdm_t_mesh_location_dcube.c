@@ -454,6 +454,8 @@ int main(int argc, char *argv[])
                                          PDM_OWNERSHIP_KEEP);
 
   /* Set point cloud(s) */
+  PDM_mesh_location_reverse_results_enable(mesh_loc);
+
   if (i_rank == 0) {
     printf("-- Mesh location_cloud_set\n");
     fflush(stdout);

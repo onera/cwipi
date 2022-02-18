@@ -313,6 +313,8 @@ program testf
                                  MPI_COMM_WORLD, &
                                  PDM_OWNERSHIP_KEEP)
 
+  call PDM_mesh_location_reverse_results_enable (ml)
+
   !
   ! Set the local number partition for any point cloud
   !
