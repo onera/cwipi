@@ -498,6 +498,8 @@ namespace cwipi {
                                                                  NULL);
 
       int sir_s = (int) _spatial_interp_recv.size();
+
+      printf("sis_r sir_s         %d %d\n", sis_r, sir_s);
       assert(sis_r == sir_s);
 
       vector<CWP_Dof_location_t> sir_loc;
@@ -521,6 +523,7 @@ namespace cwipi {
                                                                  -1,
                                                                  NULL);
 
+      printf("sis_s sir_r         %d %d\n", sis_s, sir_r);
       assert(sir_r == sis_s);
 
       vector<CWP_Dof_location_t> cpl_sis_loc;
@@ -924,6 +927,13 @@ namespace cwipi {
                                                                  (void *) &sir_r,
                                                                  1,
                                                                  (void *) &cpl_sir_r);
+      printf("cpl_sis_s cpl_sir_r %d %d\n", cpl_sis_s, cpl_sir_r);
+      printf("cpl_sir_s cpl_sis_r %d %d\n", cpl_sir_s, cpl_sis_r);
+
+      printf("sis_s sir_r         %d %d\n", sis_s, sir_r);
+      printf("sis_r sir_s         %d %d\n", sis_r, sir_s);
+
+      fflush(stdout);
 
       vector<CWP_Dof_location_t> sir_loc_r;
       sir_loc_r.reserve(2*sir_r);
