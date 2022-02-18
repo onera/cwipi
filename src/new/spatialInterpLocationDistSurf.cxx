@@ -38,11 +38,11 @@ namespace cwipi {
             _id_pdm = PDM_dist_cloud_surf_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
             if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-                PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, 0, 0, _cplNPart); // TODO What should be in args 2 and 3 ?
+                PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, _cplNPart); // TODO What should be in args 2 and 3 ?
                 PDM_dist_cloud_surf_n_part_cloud_set(_id_pdm, 0, _nPart);
             }
             else {
-                PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, 0, 0, _nPart); // TODO What should be in args 2 and 3 ?
+                PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, _nPart); // TODO What should be in args 2 and 3 ?
                 PDM_dist_cloud_surf_n_part_cloud_set(_id_pdm, 0, _cplNPart);
             }
         }
@@ -70,11 +70,11 @@ namespace cwipi {
                 cpl_spatial_interp->_id_pdm = _id_pdm;
 
                 if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-                    PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, 0, 0, _cplNPart); // TODO What should be in args 2 and 3 ?
+                    PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, _cplNPart); // TODO What should be in args 2 and 3 ?
                     PDM_dist_cloud_surf_n_part_cloud_set(_id_pdm, 0, _nPart);
                 }
                 else {
-                    PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, 0, 0, _nPart); // TODO What should be in args 2 and 3 ?
+                    PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, _nPart); // TODO What should be in args 2 and 3 ?
                     PDM_dist_cloud_surf_n_part_cloud_set(_id_pdm, 0, _cplNPart);
                 }
             }
