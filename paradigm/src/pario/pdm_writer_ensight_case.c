@@ -782,9 +782,14 @@ const PDM_writer_topologie_t                time_dependency
 
    /* Free time sets */
 
-   if (this_case->time_set->time_value != NULL)
-     free(this_case->time_set->time_value);
-   free(this_case->time_set);
+   if (this_case->time_set != NULL) {
+     if (this_case->time_set->time_value != NULL) {
+       free(this_case->time_set->time_value);
+       this_case->time_set->time_value = NULL;
+     }
+     free(this_case->time_set);
+     this_case->time_set = NULL;
+   }
 
   /* Free structure and return */
 
