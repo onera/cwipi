@@ -246,11 +246,11 @@ namespace cwipi {
       delete _iteration;
     }
 
-//    delete &_visu;
+    delete &_visu;
 
     delete &_communication;
 
-//    delete &_mesh;
+    delete &_mesh;
 
     if (_userTargetN != nullptr) {
       if (_localUserTargetGnum != nullptr) {

@@ -57,9 +57,10 @@ namespace cwipi {
       free(_blocking_field_data[i_part]);
     }
 
-    PDM_writer_var_data_free(_visu_id, _id_partitioning_field);
-    PDM_writer_var_data_free(_visu_id, _id_ranking_field);
-    PDM_writer_var_data_free(_visu_id, _id_blocking_field);
+    // PDM_writer_var_data_free(_visu_id, _id_partitioning_field);
+    // PDM_writer_var_data_free(_visu_id, _id_ranking_field);
+    // PDM_writer_var_data_free(_visu_id, _id_blocking_field);
+    PDM_writer_step_end(_visu_id);
     PDM_writer_free(_visu_id);
   }
 
