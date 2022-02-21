@@ -811,6 +811,37 @@ CWP_Computed_tgts_get
   return cpl.computedTargetsGet(field_name_str, i_part);
 }
 
+int
+CWP_N_distant_computed_tgts_get
+(
+  const char *local_code_name,
+  const char *cpl_id,
+  const char *field_id,
+  const int   i_part
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  const string &field_name_str = field_id;
+  return cpl.nDistantComputedTargetsGet(field_name_str, i_part);
+}
+
+const int *
+CWP_Distant_computed_tgts_get
+(
+  const char *local_code_name,
+  const char *cpl_id,
+  const char *field_id,
+  const int   i_part
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  const string &field_name_str = field_id;
+  return cpl.distantComputedTargetsGet(field_name_str, i_part);
+}
+
+
 /**
  * \brief Return distance from each target to the source interface. <b>(Not implemented yet)</b>
  *

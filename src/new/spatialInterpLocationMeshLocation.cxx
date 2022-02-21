@@ -581,6 +581,16 @@ namespace cwipi {
                                                 &(_tgt_closest_elt_gnum[i_part]),
                                                 &(_tgt_distance[i_part]),
                                                 &(_tgt_projected[i_part]));
+
+          _n_distant_computed_tgt[i_part] = 81;
+//          _distant_computed_tgt[i_part] = (int*) _tgt_closest_elt_gnum[i_part];
+          _distant_computed_tgt[i_part] = (int*) malloc(sizeof(int) * _n_distant_computed_tgt[i_part]);
+
+          for (int i = 0 ; i < 81 ; ++i) {
+          _distant_computed_tgt[i_part][i] = (int) _tgt_closest_elt_gnum[i_part][i];
+//            printf("%ld, %d\n", _tgt_closest_elt_gnum[i_part][i], _distant_computed_tgt[i_part][i]);
+          }
+
           // For pdm_part1_to_selected_part2
 
           _elt_pts_inside_idx[i_part] = (int*) malloc (sizeof(int)); // Use malloc not new [] !
@@ -667,6 +677,9 @@ namespace cwipi {
                                                   &(cpl_spatial_interp->_tgt_closest_elt_gnum[i_part]),
                                                   &(cpl_spatial_interp->_tgt_distance[i_part]),
                                                   &(cpl_spatial_interp->_tgt_projected[i_part]));
+            cpl_spatial_interp->_n_distant_computed_tgt[i_part] = 81;
+            cpl_spatial_interp->_distant_computed_tgt[i_part] = (int*) cpl_spatial_interp->_tgt_closest_elt_gnum[i_part];
+
             // For pdm_part1_to_selected_part2
 
             cpl_spatial_interp->_elt_pts_inside_idx[i_part] = (int*) malloc (sizeof(int)); // Use malloc not new [] !
@@ -702,6 +715,8 @@ namespace cwipi {
                                                   &(_tgt_closest_elt_gnum[i_part]),
                                                   &(_tgt_distance[i_part]),
                                                   &(_tgt_projected[i_part]));
+            _n_distant_computed_tgt[i_part] = 81;
+            _distant_computed_tgt[i_part] = (int*) _tgt_closest_elt_gnum[i_part];
             // For pdm_part1_to_selected_part2
 
             _elt_pts_inside_idx[i_part] = (int*)  malloc(sizeof(int)); // Use malloc not new [] !

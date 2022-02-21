@@ -211,6 +211,25 @@ module cwp
         integer(kind = c_int) :: n_computed_tgts
       end function CWP_N_computed_tgts_get_cf
 
+      function CWP_N_distant_computed_tgts_get_cf(local_code_name,   &
+              l_local_code_name, &
+              cpl_id,            &
+              l_cpl_id,          &
+              field_id,          &
+              l_field_id,        &
+              i_part)            &
+              result (n_distant_computed_tgts) &
+                      bind(c, name = 'CWP_N_distant_computed_tgts_get_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id
+        character(kind = c_char, len = 1) :: field_id
+        integer(kind = c_int), value :: l_field_id
+        integer(c_int), value :: i_part
+        integer(kind = c_int) :: n_distant_computed_tgts
+      end function CWP_N_distant_computed_tgts_get_cf
+
       function CWP_Computed_tgts_get_cf(local_code_name,   &
                                         l_local_code_name, &
                                         cpl_id,            &
@@ -249,6 +268,25 @@ module cwp
         integer(c_int), value :: i_part
         type(c_ptr) :: uncomputed_tgts
       end function CWP_Uncomputed_tgts_get_cf
+
+      function CWP_Distant_computed_tgts_get_cf(local_code_name,   &
+              l_local_code_name, &
+              cpl_id,            &
+              l_cpl_id,          &
+              field_id,          &
+              l_field_id,        &
+              i_part)            &
+              result (distant_computed_tgts) &
+                      bind(c, name = 'CWP_Distant_computed_tgts_get_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id
+        character(kind = c_char, len = 1) :: field_id
+        integer(kind = c_int), value :: l_field_id
+        integer(c_int), value :: i_part
+        type(c_ptr) :: distant_computed_tgts
+      end function CWP_Distant_computed_tgts_get_cf
 
       function CWP_Computed_tgts_dist_to_spatial_interp_get_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id) &
             result (dists) &
@@ -828,6 +866,88 @@ contains
                       shape= [n_computed_tgts])  
 
   end function CWP_Computed_tgts_get
+
+
+  function CWP_N_distant_computed_tgts_get (local_code_name, &
+          cpl_id,          &
+          field_id,        &
+          i_part)          &
+          result (n_distant_computed_tgts)
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name
+    character(kind = c_char, len = *) :: cpl_id
+    character(kind = c_char, len = *) :: field_id
+    integer(c_int) :: i_part
+
+    integer(c_int) :: n_distant_computed_tgts
+
+    integer(c_int) :: l_local_code_name, l_cpl_id, l_field_id
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+    l_field_id = len(field_id)
+
+    n_distant_computed_tgts = CWP_N_distant_computed_tgts_get_cf (local_code_name,   &
+            l_local_code_name, &
+            cpl_id,            &
+            l_cpl_id,          &
+            field_id,          &
+            l_field_id,        &
+            i_part)
+
+  end function CWP_N_distant_computed_tgts_get
+
+
+  function CWP_Distant_computed_tgts_get (local_code_name, &
+          cpl_id,          &
+          field_id,        &
+          i_part)          &
+          result (distant_computed_tgts)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+
+    character(kind = c_char, len = *) :: local_code_name
+    character(kind = c_char, len = *) :: cpl_id
+    character(kind = c_char, len = *) :: field_id
+    integer(c_int) :: i_part
+
+    integer(c_int), dimension(:), pointer :: distant_computed_tgts
+
+    type(c_ptr) :: cptr_distant_computed_tgts
+    integer(c_int) :: n_distant_computed_tgts
+    integer(c_int) :: l_local_code_name, l_cpl_id, l_field_id
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+    l_field_id = len(field_id)
+
+
+    n_distant_computed_tgts = CWP_N_distant_computed_tgts_get_cf (local_code_name,   &
+            l_local_code_name, &
+            cpl_id,            &
+            l_cpl_id,          &
+            field_id,          &
+            l_field_id,        &
+            i_part)
+
+    cptr_distant_computed_tgts = CWP_Distant_computed_tgts_get_cf(local_code_name,   &
+            l_local_code_name, &
+            cpl_id,            &
+            l_cpl_id,          &
+            field_id,          &
+            l_field_id,        &
+            i_part)
+
+
+    call c_f_pointer (cptr = cptr_distant_computed_tgts, &
+            fptr = distant_computed_tgts  ,    &
+            shape= [n_distant_computed_tgts])
+
+  end function CWP_Distant_computed_tgts_get
 
 
   !>

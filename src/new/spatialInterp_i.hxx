@@ -80,6 +80,17 @@ namespace cwipi {
     return _computed_tgt[i_part];
   }
 
+  int
+  SpatialInterp::nDistantComputedTargetsGet(int i_part) const
+  {
+    return _n_distant_computed_tgt[i_part];
+  }
+
+  const int *
+  SpatialInterp::distantComputedTargetsGet(int i_part) const
+  {
+    return _distant_computed_tgt[i_part];
+  }
 
 }
 

@@ -895,6 +895,24 @@ CWP_Computed_tgts_get
  const int   i_part
 );
 
+int
+CWP_N_distant_computed_tgts_get
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id,
+ const int   i_part
+);
+
+const int *
+CWP_Distant_computed_tgts_get
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id,
+ const int   i_part
+);
+
 /**
  * \brief Return distance from each target to the source interface. <b>(Not implemented yet)</b>
  *

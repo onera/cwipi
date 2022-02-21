@@ -827,6 +827,18 @@ namespace cwipi {
       const int  i_part
     ) const;
 
+    inline int
+    nDistantComputedTargetsGet (
+      const string &field_id,
+      const int  i_part
+    ) const;
+
+    inline const int *
+    distantComputedTargetsGet (
+      const string &field_id,
+      const int  i_part
+    ) const;
+
     /*----------------------------------------------------------------------------*
      * methods about user interpolation                                           *
      *----------------------------------------------------------------------------*/

@@ -472,6 +472,54 @@ CWP_Computed_tgts_get_cf (
   return res;
 }
 
+int
+CWP_N_distant_computed_tgts_get_cf (
+        const char *f_local_code_name,
+        const int l_local_code_name,
+        const char *f_cpl_id,
+        const int l_cpl_id,
+        const char *f_field_id,
+        const int l_field_id,
+        int i_part
+                           )
+{
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
+
+  int res = CWP_N_distant_computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
+
+  delete [] c_local_code_name;
+  delete [] c_cpl_id;
+  delete [] c_field_id;
+
+  return res;
+}
+
+const int *
+CWP_Distant_computed_tgts_get_cf (
+        const char *f_local_code_name,
+        const int l_local_code_name,
+        const char *f_cpl_id,
+        const int l_cpl_id,
+        const char *f_field_id,
+        const int l_field_id,
+        int i_part
+                         )
+{
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
+
+  const int *res = CWP_Distant_computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
+
+  delete [] c_local_code_name;
+  delete [] c_cpl_id;
+  delete [] c_field_id;
+
+  return res;
+}
+
 /**
  * \brief Return distance from each target to the source interface. <b>(Not implemented yet)</b>
  *
