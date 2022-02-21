@@ -45,14 +45,12 @@ namespace cwipi {
   
       if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
-        PDM_mesh_location_mesh_global_data_set(_id_pdm, _cplNPart);
         PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _nPart);
 
       }
 
       else {
 
-        PDM_mesh_location_mesh_global_data_set(_id_pdm, _nPart);
         PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _cplNPart);
 
       }
@@ -103,7 +101,7 @@ namespace cwipi {
 
         if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
-          PDM_mesh_location_mesh_global_data_set(_id_pdm, _cplNPart);
+//          PDM_mesh_location_mesh_global_data_set(_id_pdm, _cplNPart);
           PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _nPart);
 
           printf("localization_init - 2.4\n");
@@ -113,7 +111,7 @@ namespace cwipi {
 
         else {
 
-          PDM_mesh_location_mesh_global_data_set(_id_pdm, _nPart);
+//          PDM_mesh_location_mesh_global_data_set(_id_pdm, _nPart);
           PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _cplNPart);
 
           printf("localization_init - 2.5\n");
@@ -523,6 +521,12 @@ namespace cwipi {
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
 
         for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+
+
+          PDM_mesh_location_cell_vertex_get (_id_pdm,
+                                             i_part,
+                                             &(_cell_vtx_idx[i_part]),
+                                             &(_cell_vtx[i_part]));
 
           PDM_mesh_location_points_in_elt_get (_id_pdm,
                                                i_part,

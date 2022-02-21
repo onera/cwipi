@@ -488,8 +488,6 @@ namespace cwipi {
    int* connecIdxGet(int i_part);
    int* connecGet(int i_part);
 
-   int GNVerticeGet(int i_part);
-   int GNEltGet(int i_part);
    CWP_g_num_t* GNumEltsGet(int i_part);
    double* eltCentersGet(int i_part);
    void eltCentersCompute(int i_part);

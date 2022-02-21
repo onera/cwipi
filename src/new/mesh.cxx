@@ -287,41 +287,6 @@ namespace cwipi {
  }
 
 
-
-
- int Mesh::GNVerticeGet(int i_part){
-     int n_vert = getPartNVertex(i_part);
-
-     //PDM_MPI_Comm pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(_localComm);
-
-     int n_vert_global=0;
-
-     //FIXME: C'est faux : faut faire un allreduce max et pas la somme des sommets (sommets en double)
-
-     PDM_MPI_Allreduce(&n_vert,&n_vert_global,1,PDM_MPI_INT, PDM_MPI_SUM,_pdm_localComm);
-
-     return n_vert_global;
- }
-
-
-   // PDM_MPI_Allreduce(elts, som_elts, 5, PDM_MPI_INT, PDM_MPI_SUM, mesh->pdm_mpi_comm);
-
-
- int Mesh::GNEltGet(int i_part){
-     int n_elt = getPartNElts(i_part);
-
-     //PDM_MPI_Comm pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm((void*)_localComm));
-
-     int n_elt_global=0;
-
-     PDM_MPI_Allreduce(&n_elt,  &n_elt_global, 1,  PDM_MPI_INT, PDM_MPI_SUM,_pdm_localComm);
-
-     return n_elt_global;
- }
-
-
-
-
   int* Mesh::connecIdxGet(int i_part) {
     if(_connec_idx[i_part]==NULL) {
       connecCompute(i_part);

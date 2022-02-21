@@ -269,10 +269,10 @@ int main(int argc, char *argv[]) {
 
     // Input
     int n_part = 1;
-//    bool cond_code1 = rank % 2 == 0;
-//    bool cond_code2 = rank % 2 == 1;
-    bool cond_code1 = rank == 0;
-    bool cond_code2 = rank == 0 || rank == 1;
+    bool cond_code1 = rank % 2 == 0;
+    bool cond_code2 = rank % 2 == 1;
+//    bool cond_code1 = rank == 0;
+//    bool cond_code2 = rank == 0 || rank == 1;
     bool cond_both = cond_code1 && cond_code2;
 
     PDM_Mesh_nodal_elt_t element_type_code1 = PDM_MESH_NODAL_HEXA8;

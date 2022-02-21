@@ -56,10 +56,19 @@ namespace cwipi {
         free (_points_projected_coords[i]);
       }
 
+      if (_cell_vtx[i] != NULL) {
+        free (_cell_vtx[i]);
+        free (_cell_vtx_idx[i]);
+      }
+
       if (_points_uvw[i] != NULL) {
         free (_points_uvw[i]);
       }      
     }
+
+    delete[] _cell_vtx;
+    delete[] _cell_vtx_idx;
+
     delete[] _tgt_distance;
     delete[] _tgt_projected;
     delete[] _tgt_closest_elt_gnum;
@@ -100,8 +109,6 @@ namespace cwipi {
 
     //
     // Map nodal mesh
-
-    _pdm_CplNodal = PDM_Mesh_nodal_create (_nPart, _pdmCplComm);
 
     if (!_coupledCodeProperties->localCodeIs()) {
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
@@ -170,6 +177,8 @@ namespace cwipi {
     _points_uvw = new double* [_nPart];
     _points_dist2 = new double* [_nPart];
     _points_projected_coords = new double* [_nPart];
+    _cell_vtx_idx = new int* [_nPart];
+    _cell_vtx = new int* [_nPart];
 
     for (int i_part = 0; i_part < _nPart; i_part++) {
       _tgt_distance[i_part] = NULL;
@@ -181,6 +190,8 @@ namespace cwipi {
       _points_uvw[i_part] = NULL;
       _points_dist2[i_part] = NULL;
       _points_projected_coords[i_part] = NULL;
+      _cell_vtx_idx[i_part] = NULL;
+      _cell_vtx[i_part] = NULL;
     }
 
   }
@@ -201,6 +212,11 @@ namespace cwipi {
         free (_points_uvw[i_part]);
         free (_points_dist2[i_part]);
         free (_points_projected_coords[i_part]);
+      }
+
+      if (_cell_vtx[i_part] != NULL) {
+        free (_cell_vtx[i_part]);
+        free (_cell_vtx_idx[i_part]);
       }
 
       if (_weights_idx[i_part] != NULL) {
@@ -235,6 +251,8 @@ namespace cwipi {
       _points_uvw[i_part] = NULL;
       _points_dist2[i_part] = NULL;
       _points_projected_coords[i_part] = NULL;
+      _cell_vtx[i_part] = NULL;
+      _cell_vtx_idx[i_part] = NULL;
 
     }
 
@@ -435,9 +453,15 @@ namespace cwipi {
 
           int          part_n_elt                   = _mesh->getPartNElts(i_part);
 
-          int         *connec_idx                   = _mesh->connecIdxGet(i_part);
-          int         *connec                       = _mesh->connecGet(i_part);
+          int         *connec_idx2                   = _cell_vtx_idx[i_part];
+          int         *connec2                       = _cell_vtx[i_part];
 
+          int         *connec_idx1                   = _mesh->connecIdxGet(i_part);
+          int         *connec1                       = _mesh->connecGet(i_part);
+
+          int         *connec_idx = connec_idx2; 
+          int         *connec = connec2;
+          
           double *local_buffer = (double *) *buffer;
 
           int ival = 0;
