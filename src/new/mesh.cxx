@@ -118,7 +118,15 @@ namespace cwipi {
 #if defined(DEBUG) && 0
     cout << "destroying mesh of partition  : TODO" << endl;
 #endif
+    for (int i = 0; i < _npart; i++) {
+      free (_connec_idx[i]);
+      free (_connec[i]);
+      free (_gnum_elt[i]);
+    }
 
+    for (int i = 0; i < (int) _blockDB.size(); i++) {
+      delete _blockDB[i];
+    }
 
   }
 

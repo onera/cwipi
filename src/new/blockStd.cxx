@@ -44,7 +44,8 @@ namespace cwipi {
 
   BlockStd::~BlockStd()
   {
-
+    _connec.clear();
+    _connec_idx.clear();
   }
 
   void BlockStd::FromPDMBlock(int pdm_id_block, void* mesh){

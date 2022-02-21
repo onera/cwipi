@@ -88,11 +88,14 @@ PDM_g_num_t ***vtx_ln_to_gn, PDM_g_num_t ***cell_ln_to_gn
  PDM_log_trace_connectivity_long (d_face_vertex_idx, d_face_vertex, d_n_face, "d_face_vertex : ");
  PDM_log_trace_array_double (d_vertex_coord, 3 * d_n_vertices, "d_coords : ");
 
-  free(d_face_vertex_idx);
-  free(d_face_vertex);
-  free(d_face_group);
-  free(d_vertex_coord);
+  // free(d_face_vertex_idx);
+  // free(d_face_vertex);
+  // free(d_face_group);
+  // free(d_vertex_coord);
+  
   free(d_cell_part);
+
+  PDM_dmesh_nodal_to_dmesh_free(dmntodm);
 
   // Get connectivity
   // Cells
@@ -157,6 +160,8 @@ PDM_g_num_t ***vtx_ln_to_gn, PDM_g_num_t ***cell_ln_to_gn
     memcpy(*coord[i_part], _vtx_coords, 3 * _n_vtx * sizeof(double));
     memcpy(*vtx_ln_to_gn[i_part], _vtx_ln_to_gn, _n_vtx * sizeof(PDM_g_num_t));
   }
+  PDM_part_free (ppart_id);
+  PDM_dcube_nodal_gen_free (dcube);
 }
 
 static void

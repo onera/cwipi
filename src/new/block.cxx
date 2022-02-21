@@ -52,7 +52,7 @@ namespace cwipi {
      _global_num_computed.resize(_n_part,NULL);
      _global_num_block   .resize(_n_part,NULL);
      _n_elt              .resize(_n_part);
-     _cells_center       .resize(_n_part);
+     _cells_center       .resize(_n_part, NULL);
      _isSet              .resize(_n_part);
 
      PDM_MPI_Comm pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(_localComm);
@@ -60,6 +60,12 @@ namespace cwipi {
 
 
   Block::~Block(){
+   for (int i = 0; i < _n_part; i++) {
+      if (_cells_center[i] != NULL) {
+        free (_cells_center[i]);
+      }
+    }
+
   }
 
 
