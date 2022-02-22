@@ -232,6 +232,10 @@ namespace cwipi {
         free (_uncomputed_tgt[i_part]);   
       }
 
+      if (_distant_computed_tgt[i_part] != NULL) {
+        free (_distant_computed_tgt[i_part]);
+      }
+
       _n_elt_weights[i_part] = 0;
       _weights_idx[i_part] = NULL;
       _weights[i_part] = NULL;
@@ -241,6 +245,9 @@ namespace cwipi {
 
       _n_uncomputed_tgt[i_part] = 0;
       _uncomputed_tgt[i_part] = NULL;
+
+      _n_distant_computed_tgt[i_part] = 0;
+      _distant_computed_tgt[i_part] = NULL;
 
       _tgt_distance[i_part] = NULL;
       _tgt_projected[i_part] = NULL;
