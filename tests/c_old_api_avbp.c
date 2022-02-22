@@ -1,6 +1,6 @@
 #include <mpi.h>
 
-#include "cwp.h"
+#include "cwipi.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,15 +37,12 @@ int main(int argc, char *argv[]) {
   const char *coupling_name = "cpl12";
 
   const char *code_name, *code_coupled_name;
-  int code_id;
   if (rank == 0) {
     code_name = "avbp1";
-    code_id = 1;
     code_coupled_name = "avbp2";
   }
   else if (rank == 1) {
     code_name = "avbp2";
-    code_id = 2;
     code_coupled_name = "avbp1";
   }
   else {
@@ -56,19 +53,15 @@ int main(int argc, char *argv[]) {
   int nb_codes = 1;
   const char **code_names = (const char **) malloc(sizeof(char *) * nb_codes);
   double *time_init = (double *) malloc(sizeof(double) * nb_codes);
-  CWP_Status_t *statuses = (CWP_Status_t *) malloc(sizeof(CWP_Status_t) * nb_codes);
   MPI_Comm *cwp_comms = (MPI_Comm *) malloc(sizeof(MPI_Comm) * nb_codes);
 
   code_names[0] = code_name;
   time_init[0] = 0.;
-  statuses[0] = CWP_STATUS_ON;
 
-  CWP_Init(commcwipi, nb_codes, (const char **) code_names, statuses, time_init, cwp_comms);
+  cwipi_init(MPI_COMM_WORLD, code_name, cwp_comms);
   printf("%d --- CWIPI initialised\n", rank);
 
-  CWP_Cpl_create(code_name, coupling_name, code_coupled_name,
-                 CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITH_PART, CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
-                 1, CWP_DYNAMIC_MESH_VARIABLE, CWP_TIME_EXCH_CPL_TIME_STEP);
+  cwipi_create_coupling(coupling_name, CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, code_coupled_name, 2, 0.01, CWIPI_STATIC_MESH, CWIPI_SOLVER_CELL_VERTEX, 1, "EnSight Gold", "text");
   printf("%d --- Coupling created\n", rank);
 
   int nnode_cpl_s, ncell_cpl_s, nnode_cpl_d;
@@ -149,52 +142,28 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  CWP_Mesh_interf_vtx_set(code_name, coupling_name, 0, nnode_cpl_s, xyz_s, NULL);
-  int block_id = CWP_Mesh_interf_block_add(code_name, coupling_name, CWP_BLOCK_FACE_QUAD4);
-  CWP_Mesh_interf_block_std_set(code_name, coupling_name, 0, block_id, ncell_cpl_s, elems_s, NULL);
-  CWP_Mesh_interf_finalize(code_name, coupling_name);
+  cwipi_define_mesh(coupling_name, nnode_cpl_s, ncell_cpl_s, xyz_s, connind_s, elems_s);
   printf("%d --- Geometry set\n", rank);
 
-  const char *send_field_name, *recv_field_name;
-  if (rank == 0) {
-    send_field_name = "code1_to_code2";
-    recv_field_name = "code2_to_code1";
-  }
-  else {
-    send_field_name = "code2_to_code1";
-    recv_field_name = "code1_to_code2";
-  }
-
-  CWP_Field_create(code_name, coupling_name, send_field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, stride,
-                   CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_SEND, CWP_STATUS_ON);
-  CWP_Field_data_set(code_name, coupling_name, send_field_name, 0, CWP_FIELD_MAP_SOURCE, sfields);
-
-  CWP_Field_create(code_name, coupling_name, recv_field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, stride,
-                   CWP_DOF_LOCATION_USER, CWP_FIELD_EXCH_RECV, CWP_STATUS_ON);
-  CWP_Field_data_set(code_name, coupling_name, recv_field_name, 0, CWP_FIELD_MAP_TARGET, rfields);
-
-  printf("%d --- Fields created\n", rank);
-
-  CWP_User_tgt_pts_set(code_name, coupling_name, 0, nnode_cpl_d, xyz_dest, NULL);
+  cwipi_set_points_to_locate(coupling_name, nnode_cpl_d, xyz_dest);
   printf("%d --- Points to locate set\n", rank);
 
-  CWP_Spatial_interp_weights_compute(code_name, coupling_name);
+  cwipi_locate(coupling_name);
   printf("%d --- Localisation done\n", rank);
 
   int n_not_located_points;
   int n_located_points;
   int n_distant_located_points;
-  const int *located_points;
-  const int *not_located_points;
+  const int *located_points, *not_located_points;
   const int *distant_located_points;
 
-  n_not_located_points = CWP_N_uncomputed_tgts_get          (code_name, coupling_name, recv_field_name, 0);
-  n_located_points = CWP_N_computed_tgts_get                (code_name, coupling_name, recv_field_name, 0);
-  n_distant_located_points = CWP_N_distant_computed_tgts_get(code_name, coupling_name, recv_field_name, 0);
+  n_not_located_points = cwipi_get_n_not_located_points(coupling_name);
+  n_located_points = cwipi_get_n_located_points(coupling_name);
+  n_distant_located_points = cwipi_get_n_distant_points(coupling_name);
+  located_points = cwipi_get_located_points(coupling_name);
+  not_located_points = cwipi_get_not_located_points(coupling_name);
 
-  located_points = CWP_Computed_tgts_get(code_name, coupling_name, recv_field_name, 0);
-  not_located_points = CWP_Uncomputed_tgts_get(code_name, coupling_name, recv_field_name, 0);
-  distant_located_points = CWP_Distant_computed_tgts_get(code_name, coupling_name, recv_field_name, 0);
+  distant_located_points = cwipi_get_distant_location(coupling_name);
 
   printf("%d --- n_not_located_points %d\n", rank, n_not_located_points);
   printf("%d --- n_located_points %d\n", rank, n_located_points);
@@ -203,26 +172,18 @@ int main(int argc, char *argv[]) {
   for (int i = 0 ; i < n_not_located_points ; ++i) printf("%d ", not_located_points[i]);
   printf("\nlocated_points: ");
   for (int i = 0 ; i < n_located_points ; ++i) printf("%d ", located_points[i]);
-  printf("\n"); //  printf("\ndistant_located_points: ");
+  printf("\ndistant_located_points: ");
   for (int i = 0 ; i < n_distant_located_points ; ++i) printf("%d ", distant_located_points[i]);
   printf("\n");
 
-  CWP_Field_irecv(code_name, coupling_name, recv_field_name);
-  CWP_Field_issend(code_name, coupling_name, send_field_name);
-  CWP_Field_wait_irecv(code_name, coupling_name, recv_field_name);
-  CWP_Field_wait_issend(code_name, coupling_name, send_field_name);
+  cwipi_delete_coupling(coupling_name);
+  printf("%d --- Coupling deleted\n", rank);
 
-  printf("%d --- Exchanges completed\n", rank);
-
-  CWP_Cpl_del(code_name, coupling_name);
-  printf("%d --- Coupling deleted completed\n", rank);
-
-  CWP_Finalize();
+  cwipi_finalize();
   printf("%d --- CWIPI finalized\n", rank);
 
   free(code_names);
   free(time_init);
-  free(statuses);
   free(cwp_comms);
   free(xyz_s);
   free(connind_s);
