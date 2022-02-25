@@ -248,14 +248,7 @@ namespace cwipi {
 
     delete &_visu;
 
-    if (!_coupledCodeProperties.localCodeIs()) {
-      delete &_communication;
-    }
-    else {
-      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
-        delete &_communication;
-      }   
-    }
+    delete &_communication;
 
     delete &_mesh;
 

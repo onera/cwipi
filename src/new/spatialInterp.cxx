@@ -448,6 +448,7 @@ namespace cwipi {
 
         for (int i = 0; i < _cplNPart; i++) {
           cpl_spatial_interp->_recv_buffer[cpl_intId][i] = (double *) malloc(sizeof(double) * stride * gnum1_come_from_idx[i][n_ref_gnum2[i]]);
+          cpl_spatial_interp->_send_buffer[cpl_intId][i] = nullptr;
         }
 
         PDM_part_to_part_irecv (_ptsp,
@@ -529,7 +530,25 @@ namespace cwipi {
             free (_send_buffer[intId]);
             _send_buffer[intId] = NULL;
           }
+          if (_recv_buffer[intId] != NULL) {
+            if (_recv_buffer[intId][i] != NULL) {
+              free (_recv_buffer[intId][i]);
+              _recv_buffer[intId][i] = NULL;
+            }
+            free (_recv_buffer[intId]);
+            _recv_buffer[intId] = NULL;
+          }
+        }
 
+        for (int i = 0; i < _cplNPart; i++) {
+          if (cpl_spatial_interp->_send_buffer[intId] != NULL) {
+            if (cpl_spatial_interp->_send_buffer[intId][i] != NULL) {
+              free (cpl_spatial_interp->_send_buffer[intId][i]);
+              cpl_spatial_interp->_send_buffer[intId][i] = NULL;
+            }
+            free (cpl_spatial_interp->_send_buffer[intId]);
+            cpl_spatial_interp->_send_buffer[intId] = NULL;
+          }
           if (cpl_spatial_interp->_recv_buffer[intId] != NULL) {
             if (cpl_spatial_interp->_recv_buffer[intId][i] != NULL) {
               free (cpl_spatial_interp->_recv_buffer[intId][i]);
@@ -870,7 +889,7 @@ namespace cwipi {
           interpolate (referenceField, _recv_buffer[intId]);
         }
 
-        for (int i = 0; i < _nPart; i++) {
+        for (int i = 0; i < _cplNPart; i++) {
           if (cpl_spatial_interp->_send_buffer[intId] != NULL) {
             if (cpl_spatial_interp->_send_buffer[intId][i] != NULL) {
               free (cpl_spatial_interp->_send_buffer[intId][i]);
@@ -879,7 +898,25 @@ namespace cwipi {
             free (cpl_spatial_interp->_send_buffer[intId]);
             cpl_spatial_interp->_send_buffer[intId] = NULL;
           }
+          if (cpl_spatial_interp->_recv_buffer[intId] != NULL) {
+            if (cpl_spatial_interp->_recv_buffer[intId][i] != NULL) {
+              free (cpl_spatial_interp->_recv_buffer[intId][i]);
+              cpl_spatial_interp->_recv_buffer[intId][i] = NULL;
+            }
+            free (cpl_spatial_interp->_send_buffer[intId]);
+            cpl_spatial_interp->_send_buffer[intId] = NULL;
+          }
+        }
 
+        for (int i = 0; i < _nPart; i++) {
+          if (_send_buffer[intId] != NULL) {
+            if (_send_buffer[intId][i] != NULL) {
+              free (_send_buffer[intId][i]);
+              _send_buffer[intId][i] = NULL;
+            }
+            free (_send_buffer[intId]);
+            _send_buffer[intId] = NULL;
+          }
           if (_recv_buffer[intId] != NULL) {
             if (_recv_buffer[intId][i] != NULL) {
               free (_recv_buffer[intId][i]);

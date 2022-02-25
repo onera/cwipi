@@ -76,10 +76,19 @@ namespace cwipi {
         MPI_Comm_free(&_unionComm);
       }
     }
+
     else {
-      if (_cplComm != MPI_COMM_NULL) {
-        MPI_Comm_free(&_cplComm);
-        _cplComm = MPI_COMM_NULL;
+      if (!_localCodeProperties->isActiveRank()) {
+        if (_cplComm != MPI_COMM_NULL) {
+          MPI_Comm_free(&_cplComm);
+          _cplComm = MPI_COMM_NULL;
+        }
+      }
+      else {
+        if (_localCodeProperties->idGet() < _cplCodeProperties->idGet()) {
+          MPI_Comm_free(&_cplComm);
+          _cplComm = MPI_COMM_NULL;
+        }       
       }
     }
     

@@ -279,7 +279,7 @@ namespace cwipi {
           PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, _pdm_CplNodal);
         }
         else {
-          PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, NULL);
+//          PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, NULL);
         }
 
       }
