@@ -64,6 +64,7 @@ module cwp
     ! CWP_Dof_location_t
     enum, bind(c)
         enumerator :: &
+                CWP_DOF_LOCATION_UNDEF, &
                 CWP_DOF_LOCATION_CELL_CENTER, &
                 CWP_DOF_LOCATION_NODE, &
                 CWP_DOF_LOCATION_USER
@@ -437,7 +438,7 @@ module cwp
       end subroutine CWP_Field_data_set_cf
 
       subroutine CWP_Field_issend_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, src_field_id, l_src_field_id) &
-            bind(c, name = 'CWP_Field_irecv_cf')
+            bind(c, name = 'CWP_Field_issend_cf')
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
@@ -453,7 +454,7 @@ module cwp
       end subroutine CWP_Field_irecv_cf
 
       subroutine CWP_Field_wait_issend_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, src_field_id, l_src_field_id) &
-            bind(c, name = 'CWP_Field_wait_irecv_cf')
+            bind(c, name = 'CWP_Field_wait_issend_cf')
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
