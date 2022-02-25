@@ -199,61 +199,214 @@ namespace cwipi {
 
   void SpatialInterpLocation::weightsCompute() 
   {
-    for (int i_part = 0; i_part < _nPart; i_part++) {
-      if (_tgt_distance[i_part] != NULL) {
-        free (_tgt_distance[i_part]);
-        free (_tgt_projected[i_part]);
-        free (_tgt_closest_elt_gnum[i_part]);
+    if (!_coupledCodeProperties->localCodeIs()) {
+
+      for (int i_part = 0; i_part < _nPart; i_part++) {
+        if (_tgt_distance[i_part] != NULL) {
+          free (_tgt_distance[i_part]);
+          free (_tgt_projected[i_part]);
+          free (_tgt_closest_elt_gnum[i_part]);
+        }
+        if (_elt_pts_inside_idx[i_part] != NULL) {
+          free (_elt_pts_inside_idx[i_part]);
+          free (_points_gnum[i_part]);
+          free (_points_coords[i_part]);
+          free (_points_uvw[i_part]);
+          free (_points_dist2[i_part]);
+          free (_points_projected_coords[i_part]);
+        }
+
+        if (_cell_vtx[i_part] != NULL) {
+          free (_cell_vtx[i_part]);
+          free (_cell_vtx_idx[i_part]);
+        }
+
+        if (_weights_idx[i_part] != NULL) {
+          free (_weights_idx[i_part]);
+          free (_weights[i_part]);
+        }
+
+        if (_computed_tgt[i_part] != NULL) {
+          free (_computed_tgt[i_part]);   
+        }
+
+        if (_uncomputed_tgt[i_part] != NULL) {
+          free (_uncomputed_tgt[i_part]);   
+        }
+
+        _n_elt_weights[i_part] = 0;
+        _weights_idx[i_part] = NULL;
+        _weights[i_part] = NULL;
+
+        _n_computed_tgt[i_part] = 0;
+        _computed_tgt[i_part] = NULL;
+
+        printf("weightsCompute() reinit _n_uncomputed_tgt 0 : %lu\n", this);
+        _n_uncomputed_tgt[i_part] = 0;
+        _uncomputed_tgt[i_part] = NULL;
+
+        _tgt_distance[i_part] = NULL;
+        _tgt_projected[i_part] = NULL;
+        _tgt_closest_elt_gnum[i_part] = NULL;
+        _elt_pts_inside_idx[i_part] = NULL;
+        _points_gnum[i_part] = NULL;
+        _points_coords[i_part] = NULL;
+        _points_uvw[i_part] = NULL;
+        _points_dist2[i_part] = NULL;
+        _points_projected_coords[i_part] = NULL;
+        _cell_vtx[i_part] = NULL;
+        _cell_vtx_idx[i_part] = NULL;
+
       }
-      if (_elt_pts_inside_idx[i_part] != NULL) {
-        free (_elt_pts_inside_idx[i_part]);
-        free (_points_gnum[i_part]);
-        free (_points_coords[i_part]);
-        free (_points_uvw[i_part]);
-        free (_points_dist2[i_part]);
-        free (_points_projected_coords[i_part]);
+    }
+
+    else {
+      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+          if (_tgt_distance[i_part] != NULL) {
+            free (_tgt_distance[i_part]);
+            free (_tgt_projected[i_part]);
+            free (_tgt_closest_elt_gnum[i_part]);
+          }
+          if (_elt_pts_inside_idx[i_part] != NULL) {
+            free (_elt_pts_inside_idx[i_part]);
+            free (_points_gnum[i_part]);
+            free (_points_coords[i_part]);
+            free (_points_uvw[i_part]);
+            free (_points_dist2[i_part]);
+            free (_points_projected_coords[i_part]);
+          }
+
+          if (_cell_vtx[i_part] != NULL) {
+            free (_cell_vtx[i_part]);
+            free (_cell_vtx_idx[i_part]);
+          }
+
+          if (_weights_idx[i_part] != NULL) {
+            free (_weights_idx[i_part]);
+            free (_weights[i_part]);
+          }
+
+          if (_computed_tgt[i_part] != NULL) {
+            free (_computed_tgt[i_part]);   
+          }
+
+          if (_uncomputed_tgt[i_part] != NULL) {
+            free (_uncomputed_tgt[i_part]);   
+          }
+
+          _n_elt_weights[i_part] = 0;
+          _weights_idx[i_part] = NULL;
+          _weights[i_part] = NULL;
+
+          _n_computed_tgt[i_part] = 0;
+          _computed_tgt[i_part] = NULL;
+
+          printf("weightsCompute() reinit _n_uncomputed_tgt 0 : %lu\n", this);
+          _n_uncomputed_tgt[i_part] = 0;
+          _uncomputed_tgt[i_part] = NULL;
+
+          _tgt_distance[i_part] = NULL;
+          _tgt_projected[i_part] = NULL;
+          _tgt_closest_elt_gnum[i_part] = NULL;
+          _elt_pts_inside_idx[i_part] = NULL;
+          _points_gnum[i_part] = NULL;
+          _points_coords[i_part] = NULL;
+          _points_uvw[i_part] = NULL;
+          _points_dist2[i_part] = NULL;
+          _points_projected_coords[i_part] = NULL;
+          _cell_vtx[i_part] = NULL;
+          _cell_vtx_idx[i_part] = NULL;
+
+        }
+
+
+        SpatialInterpLocation *cpl_spatial_interp;
+
+        cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+
+        if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+
+          printf("localization_init - 2.2\n");
+          fflush(stdout);
+
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
+
+          cpl_spatial_interp = 
+            dynamic_cast <SpatialInterpLocation *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+
+        }
+
+        else {
+
+          printf("localization_init - 2.3\n");
+          fflush(stdout);
+
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
+
+          cpl_spatial_interp = 
+            dynamic_cast <SpatialInterpLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+        }
+
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+          if (cpl_spatial_interp->_tgt_distance[i_part] != NULL) {
+            free (cpl_spatial_interp->_tgt_distance[i_part]);
+            free (cpl_spatial_interp->_tgt_projected[i_part]);
+            free (cpl_spatial_interp->_tgt_closest_elt_gnum[i_part]);
+          }
+          if (cpl_spatial_interp->_elt_pts_inside_idx[i_part] != NULL) {
+            free (cpl_spatial_interp->_elt_pts_inside_idx[i_part]);
+            free (cpl_spatial_interp->_points_gnum[i_part]);
+            free (cpl_spatial_interp->_points_coords[i_part]);
+            free (cpl_spatial_interp->_points_uvw[i_part]);
+            free (cpl_spatial_interp->_points_dist2[i_part]);
+            free (cpl_spatial_interp->_points_projected_coords[i_part]);
+          }
+
+          if (cpl_spatial_interp->_cell_vtx[i_part] != NULL) {
+            free (cpl_spatial_interp->_cell_vtx[i_part]);
+            free (cpl_spatial_interp->_cell_vtx_idx[i_part]);
+          }
+
+          if (cpl_spatial_interp->_weights_idx[i_part] != NULL) {
+            free (cpl_spatial_interp->_weights_idx[i_part]);
+            free (cpl_spatial_interp->_weights[i_part]);
+          }
+
+          if (cpl_spatial_interp->_computed_tgt[i_part] != NULL) {
+            free (cpl_spatial_interp->_computed_tgt[i_part]);   
+          }
+
+          if (cpl_spatial_interp->_uncomputed_tgt[i_part] != NULL) {
+            free (cpl_spatial_interp->_uncomputed_tgt[i_part]);   
+          }
+
+          cpl_spatial_interp->_n_elt_weights[i_part] = 0;
+          cpl_spatial_interp->_weights_idx[i_part] = NULL;
+          cpl_spatial_interp->_weights[i_part] = NULL;
+
+          cpl_spatial_interp->_n_computed_tgt[i_part] = 0;
+          cpl_spatial_interp->_computed_tgt[i_part] = NULL;
+
+          printf("weightsCompute() reinit _n_uncomputed_tgt 0 : %lu\n", this);
+          cpl_spatial_interp->_n_uncomputed_tgt[i_part] = 0;
+          cpl_spatial_interp->_uncomputed_tgt[i_part] = NULL;
+
+          cpl_spatial_interp->_tgt_distance[i_part] = NULL;
+          cpl_spatial_interp->_tgt_projected[i_part] = NULL;
+          cpl_spatial_interp->_tgt_closest_elt_gnum[i_part] = NULL;
+          cpl_spatial_interp->_elt_pts_inside_idx[i_part] = NULL;
+          cpl_spatial_interp->_points_gnum[i_part] = NULL;
+          cpl_spatial_interp->_points_coords[i_part] = NULL;
+          cpl_spatial_interp->_points_uvw[i_part] = NULL;
+          cpl_spatial_interp->_points_dist2[i_part] = NULL;
+          cpl_spatial_interp->_points_projected_coords[i_part] = NULL;
+          cpl_spatial_interp->_cell_vtx[i_part] = NULL;
+          cpl_spatial_interp->_cell_vtx_idx[i_part] = NULL;
+
+        }
       }
-
-      if (_cell_vtx[i_part] != NULL) {
-        free (_cell_vtx[i_part]);
-        free (_cell_vtx_idx[i_part]);
-      }
-
-      if (_weights_idx[i_part] != NULL) {
-        free (_weights_idx[i_part]);
-        free (_weights[i_part]);
-      }
-
-      if (_computed_tgt[i_part] != NULL) {
-        free (_computed_tgt[i_part]);   
-      }
-
-      if (_uncomputed_tgt[i_part] != NULL) {
-        free (_uncomputed_tgt[i_part]);   
-      }
-
-      _n_elt_weights[i_part] = 0;
-      _weights_idx[i_part] = NULL;
-      _weights[i_part] = NULL;
-
-      _n_computed_tgt[i_part] = 0;
-      _computed_tgt[i_part] = NULL;
-
-      _n_uncomputed_tgt[i_part] = 0;
-      _uncomputed_tgt[i_part] = NULL;
-
-      _tgt_distance[i_part] = NULL;
-      _tgt_projected[i_part] = NULL;
-      _tgt_closest_elt_gnum[i_part] = NULL;
-      _elt_pts_inside_idx[i_part] = NULL;
-      _points_gnum[i_part] = NULL;
-      _points_coords[i_part] = NULL;
-      _points_uvw[i_part] = NULL;
-      _points_dist2[i_part] = NULL;
-      _points_projected_coords[i_part] = NULL;
-      _cell_vtx[i_part] = NULL;
-      _cell_vtx_idx[i_part] = NULL;
-
     }
 
     localization_init();

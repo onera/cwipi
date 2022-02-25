@@ -274,10 +274,10 @@ int main(int argc, char *argv[]) {
 
     // Input
     int n_part = 1;
-    bool cond_code1 = rank % 2 == 0;
-    bool cond_code2 = rank % 2 == 1;
-//    bool cond_code1 = rank == 0;
-//    bool cond_code2 = rank == 0 || rank == 1;
+     // bool cond_code1 = rank % 2 == 0;
+     // bool cond_code2 = rank % 2 == 1;
+   bool cond_code1 = rank == 0;
+   bool cond_code2 = rank == 0 || rank == 1;
     bool cond_both = cond_code1 && cond_code2;
 
     PDM_Mesh_nodal_elt_t element_type_code1 = PDM_MESH_NODAL_HEXA8;
@@ -505,7 +505,7 @@ int main(int argc, char *argv[]) {
 
         // Set coords
         CWP_Mesh_interf_vtx_set(code_names[i_code], cpl_name, i_part, n_vtx[i_code][i_part], coord[i_code][i_part], vtx_ln_to_gn[i_code][i_part]);
-        printf("%d (%d, %s) --- Points set for part %d\n", rank, intra_comm_rank[i_code], code_names[i_code], i_part);
+        printf("%d (%d, %s) --- Points set for part %d %d\n", rank, intra_comm_rank[i_code], code_names[i_code], i_part, n_vtx[i_code][i_part]);
 
         // 1 - Set connectivities from nodal
 //        CWP_Mesh_interf_from_cellface_set(code_names[i_code], cpl_name, i_part, n_cells[i_code][i_part], cell_face_idx[i_code][i_part], cell_face[i_code][i_part],
@@ -577,8 +577,9 @@ int main(int argc, char *argv[]) {
 
     // Compute weights
     for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-        CWP_Spatial_interp_weights_compute(code_names[i_code], cpl_name);
         printf("%d (%d, %s) --- Weights computed\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+        fflush(stdout);
+        CWP_Spatial_interp_weights_compute(code_names[i_code], cpl_name);
     }
 
     int n_computed_tgts = 0, n_uncomputed_tgts = 0;
@@ -618,11 +619,11 @@ int main(int argc, char *argv[]) {
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
         if (code_id[i_code] == 2) {
             CWP_Field_wait_irecv(code_names[i_code], cpl_name, field_name);
-            printf("%d (%d, %s) --- Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+            printf("%d (%d, %s) --- wait Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
         }
         if (code_id[i_code] == 1) {
             CWP_Field_wait_issend(code_names[i_code], cpl_name, field_name);
-            printf("%d (%d, %s) --- Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+            printf("%d (%d, %s) --- wait Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
         }
     }
 
@@ -635,27 +636,27 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    for (int i_code = 0 ; i_code < n_code ; i_code++) {
-        if (code_id[i_code] == 2) {
-            CWP_Field_irecv(code_names[i_code], cpl_name, field_name);
-            printf("%d (%d, %s) --- Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-        }
-        if (code_id[i_code] == 1) {
-            CWP_Field_issend(code_names[i_code], cpl_name, field_name);
-            printf("%d (%d, %s) --- Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-        }
-    }
+    // for (int i_code = 0 ; i_code < n_code ; i_code++) {
+    //     if (code_id[i_code] == 2) {
+    //         CWP_Field_irecv(code_names[i_code], cpl_name, field_name);
+    //         printf("%d (%d, %s) --- Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+    //     }
+    //     if (code_id[i_code] == 1) {
+    //         CWP_Field_issend(code_names[i_code], cpl_name, field_name);
+    //         printf("%d (%d, %s) --- Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+    //     }
+    // }
 
-    for (int i_code = 0 ; i_code < n_code ; i_code++) {
-        if (code_id[i_code] == 1) {
-            CWP_Field_wait_issend(code_names[i_code], cpl_name, field_name);
-            printf("%d (%d, %s) --- Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-        }
-        if (code_id[i_code] == 2) {
-            CWP_Field_wait_irecv(code_names[i_code], cpl_name, field_name);
-            printf("%d (%d, %s) --- Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-        }
-    }
+    // for (int i_code = 0 ; i_code < n_code ; i_code++) {
+    //     if (code_id[i_code] == 1) {
+    //         CWP_Field_wait_issend(code_names[i_code], cpl_name, field_name);
+    //         printf("%d (%d, %s) --- Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+    //     }
+    //     if (code_id[i_code] == 2) {
+    //         CWP_Field_wait_irecv(code_names[i_code], cpl_name, field_name);
+    //         printf("%d (%d, %s) --- Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+    //     }
+    // }
 
   // Delete interf
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
