@@ -435,7 +435,7 @@ namespace cwipi {
         int  *n_ref_gnum2;
         int **ref_gnum2;
 
-        PDM_part_to_part_ref_gnum2_get (_ptsp,
+        PDM_part_to_part_ref_lnum2_get (_ptsp,
                                                    &n_ref_gnum2,
                                                    &ref_gnum2);
 
@@ -584,7 +584,7 @@ namespace cwipi {
       printf("irecv 1\n");
       fflush(stdout);
 
-      PDM_part_to_part_ref_gnum2_get (_ptsp,
+      PDM_part_to_part_ref_lnum2_get (_ptsp,
                                                  &n_ref_gnum2,
                                                  &ref_gnum2);
 
@@ -690,7 +690,7 @@ namespace cwipi {
         int  *n_ref_gnum2;
         int **ref_gnum2;
 
-        PDM_part_to_part_ref_gnum2_get (_ptsp,
+        PDM_part_to_part_ref_lnum2_get (_ptsp,
                                                    &n_ref_gnum2,
                                                    &ref_gnum2);
 
@@ -807,13 +807,13 @@ namespace cwipi {
 
         int  *ptp2_n_ref_gnum2;
         int **ptp2_ref_gnum2;
-        PDM_part_to_part_ref_gnum2_get (_ptsp,
+        PDM_part_to_part_ref_lnum2_get (_ptsp,
                                                   &ptp2_n_ref_gnum2,
                                                   &ptp2_ref_gnum2);
 
         int  *ptp2_n_unref_gnum2;
         int **ptp2_unref_gnum2;
-        PDM_part_to_part_unref_gnum2_get (_ptsp,
+        PDM_part_to_part_unref_lnum2_get (_ptsp,
                                                   &ptp2_n_unref_gnum2,
                                                   &ptp2_unref_gnum2);
 
