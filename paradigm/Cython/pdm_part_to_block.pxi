@@ -25,7 +25,7 @@ cdef extern from "pdm_part_to_block.h":
                                                   int                           n_part,
                                                   PDM_MPI_Comm                  comm)
 
-    PDM_part_to_block_t *PDM_part_to_block_create2(PDM_part_to_block_distrib_t   t_distrib,
+    PDM_part_to_block_t *PDM_part_to_block_create_from_distrib(PDM_part_to_block_distrib_t   t_distrib,
                                                    PDM_part_to_block_post_t      t_post,
                                                    double                        partActiveNode,
                                                    PDM_g_num_t                 **gnum_elt,
@@ -124,7 +124,7 @@ cdef class PartToBlock:
                                               self.n_part,
                                               PDMC)
         else:
-          self.PTB = PDM_part_to_block_create2(t_distrib,
+          self.PTB = PDM_part_to_block_create_from_distrib(t_distrib,
                                                t_post,
                                                partActiveNode,
                                                _ln_to_gn,

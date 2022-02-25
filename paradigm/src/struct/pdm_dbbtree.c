@@ -2955,7 +2955,7 @@ PDM_dbbtree_points_inside_boxes
 
   int *pts_in_box_n = malloc (sizeof(int) * n_boxes);
   int one = 1;
-  PDM_block_to_part_exch (btp,
+  PDM_block_to_part_exch_in_place (btp,
                           sizeof(int),
                           PDM_STRIDE_CST_INTERLACED,
                           &one,
@@ -2966,7 +2966,7 @@ PDM_dbbtree_points_inside_boxes
   *pts_in_box_idx = PDM_array_new_idx_from_sizes_int (pts_in_box_n, n_boxes);
 
   *pts_in_box_g_num = malloc (sizeof(PDM_g_num_t) * (*pts_in_box_idx)[n_boxes]);
-  PDM_block_to_part_exch (btp,
+  PDM_block_to_part_exch_in_place (btp,
                           sizeof(PDM_g_num_t),
                           PDM_STRIDE_VAR_INTERLACED,
                           block_box_pts_n,
@@ -2976,7 +2976,7 @@ PDM_dbbtree_points_inside_boxes
   free (block_box_pts_g_num);
 
   *pts_in_box_coord = malloc (sizeof(double) * (*pts_in_box_idx)[n_boxes] * 3);
-  PDM_block_to_part_exch (btp,
+  PDM_block_to_part_exch_in_place (btp,
                           3*sizeof(double),
                           PDM_STRIDE_VAR_INTERLACED,
                           block_box_pts_n,
@@ -3551,7 +3551,7 @@ PDM_dbbtree_boxes_containing_points
 
   int *box_n = malloc (sizeof(int) * n_pts);
   int one = 1;
-  PDM_block_to_part_exch (btp,
+  PDM_block_to_part_exch_in_place (btp,
                           sizeof(int),
                           PDM_STRIDE_CST_INTERLACED,
                           &one,
@@ -3562,7 +3562,7 @@ PDM_dbbtree_boxes_containing_points
   *box_idx = PDM_array_new_idx_from_sizes_int (box_n, n_pts);
 
   *box_g_num = malloc (sizeof(PDM_g_num_t) * (*box_idx)[n_pts]);
-  PDM_block_to_part_exch (btp,
+  PDM_block_to_part_exch_in_place (btp,
                           sizeof(PDM_g_num_t),
                           PDM_STRIDE_VAR_INTERLACED,
                           block_box_n,
@@ -4103,7 +4103,7 @@ PDM_dbbtree_lines_intersect_boxes
 
   int *box_n = malloc (sizeof(int) * n_line);
   int one = 1;
-  PDM_block_to_part_exch (btp,
+  PDM_block_to_part_exch_in_place (btp,
                           sizeof(int),
                           PDM_STRIDE_CST_INTERLACED,
                           &one,
@@ -4114,7 +4114,7 @@ PDM_dbbtree_lines_intersect_boxes
   *box_idx = PDM_array_new_idx_from_sizes_int (box_n, n_line);
 
   *box_g_num = malloc (sizeof(PDM_g_num_t) * (*box_idx)[n_line]);
-  PDM_block_to_part_exch (btp,
+  PDM_block_to_part_exch_in_place (btp,
                           sizeof(PDM_g_num_t),
                           PDM_STRIDE_VAR_INTERLACED,
                           block_box_n,

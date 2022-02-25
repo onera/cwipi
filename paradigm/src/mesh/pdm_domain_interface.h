@@ -93,9 +93,35 @@ PDM_domain_interface_translate_face2vtx
 );
 
 void
+PDM_domain_interface_translate_vtx2face
+(
+ PDM_domain_interface_t  *dom_intrf,
+ int                     *dn_vtx,
+ int                     *dn_face,
+ int                    **dface_vtx_idx,
+ PDM_g_num_t            **dface_vtx
+);
+
+void
 PDM_domain_interface_free
 (
  PDM_domain_interface_t *dom_intrf
+);
+
+
+void
+PDM_domain_interface_translate_entity1_entity2
+(
+ int                      n_domain,
+ int                      n_interface,
+ int                     *dn_entity1,
+ int                     *dn_entity2,
+ int                     *dn_interface,
+ int                    **interface_dom,
+ PDM_g_num_t            **interface_ids,
+ int                    **dentity2_entity1_idx,
+ PDM_g_num_t            **dentity2_entity1,
+ PDM_MPI_Comm             comm
 );
 
 #ifdef __cplusplus

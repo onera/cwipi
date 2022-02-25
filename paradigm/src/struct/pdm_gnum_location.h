@@ -177,6 +177,24 @@ PDM_gnum_location_free
 );
 
 
+/**
+ *
+ * \brief Get the number of requested elements in a given partition
+ *
+ * \param [in]  gnum_loc      Pointer to \ref PDM_gnum_locaion object
+ * \param [in]  i_part_out    Id of current partition
+ *
+ * \return  Number of requested elements in the current partition
+ *
+ */
+
+int
+PDM_gnum_location_n_requested_elt_get
+(
+       PDM_gnum_location_t *gnum_loc,
+ const int                  i_part_out
+ );
+
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

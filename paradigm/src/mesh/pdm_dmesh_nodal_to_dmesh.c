@@ -1055,7 +1055,7 @@ _generate_faces_from_dmesh_nodal
 
     int** tmp_pface_flip;
     int stride_one = 1;
-    PDM_block_to_part_exch2(btp,
+    PDM_block_to_part_exch(btp,
                             sizeof(int),
                             PDM_STRIDE_CST_INTERLACED,
                             &stride_one,
@@ -1524,7 +1524,7 @@ _generate_edges_from_dmesh_nodal
 
     int** tmp_pedge_flip;
     int stride_one = 1;
-    PDM_block_to_part_exch2(btp,
+    PDM_block_to_part_exch(btp,
                             sizeof(int),
                             PDM_STRIDE_CST_INTERLACED,
                             &stride_one,
@@ -1651,7 +1651,7 @@ _translate_element_group_to_entity
   }
   int **part_stride = NULL;
 
-  PDM_block_to_part_exch2(btp,
+  PDM_block_to_part_exch(btp,
                           sizeof(PDM_g_num_t),
                           PDM_STRIDE_VAR_INTERLACED,
                           block_stride,
@@ -2122,7 +2122,7 @@ PDM_dmesh_nodal_to_dmesh_compute
 
 //   int**         part_group_stri;
 //   PDM_g_num_t** part_group_data;
-//   PDM_block_to_part_exch2(btp,
+//   PDM_block_to_part_exch(btp,
 //                           sizeof(PDM_g_num_t),
 //                           PDM_STRIDE_VAR,
 //                           delmt_entity_n,

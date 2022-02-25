@@ -59,6 +59,10 @@ struct _pdm_block_to_part_t {
   int           *distributed_data;    /*!< Distributed data for each process
                                        * (size : requestd_data_idx[n_rank - 1]
                                              +requestd_data_n[n_rank - 1] ) */
+  int            n_elt_partial_block;
+  int           *idx_partial;         /*!< In case of partial block - contains index of non void idx or -1 if no data in current block
+                                       * (size : requestd_data_idx[n_rank - 1]
+                                             +requestd_data_n[n_rank - 1] ) */
   int           pttopt_comm;          /*!< Use point to point communication if pttopt_comm == 1 */
 
 } ;

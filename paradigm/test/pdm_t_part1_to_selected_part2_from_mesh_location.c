@@ -1053,45 +1053,45 @@ int main(int argc, char *argv[])
                                                                          (const PDM_g_num_t **) location,
                                                                          PDM_MPI_COMM_WORLD);
 
-  int  *n_ref_gnum2;
-  int **ref_gnum2;
-  PDM_part_to_part_ref_gnum2_get (ptp,
-                                            &n_ref_gnum2,
-                                            &ref_gnum2);
+  int  *n_ref_lnum2;
+  int **ref_lnum2;
+  PDM_part_to_part_ref_lnum2_get (ptp,
+                                  &n_ref_lnum2,
+                                  &ref_lnum2);
 
 
-  int  *n_unref_gnum2;
-  int **unref_gnum2;
-  PDM_part_to_part_unref_gnum2_get (ptp,
-                                            &n_unref_gnum2,
-                                            &unref_gnum2);
+  int  *n_unref_lnum2;
+  int **unref_lnum2;
+  PDM_part_to_part_unref_lnum2_get (ptp,
+                                    &n_unref_lnum2,
+                                    &unref_lnum2);
 
 
   int         **gnum1_come_from_idx;
   PDM_g_num_t **gnum1_come_from;
   PDM_part_to_part_gnum1_come_from_get (ptp,
-                                                  &gnum1_come_from_idx,
-                                                  &gnum1_come_from);
+                                        &gnum1_come_from_idx,
+                                        &gnum1_come_from);
 
 
-  int  *ptp2_n_ref_gnum2;
-  int **ptp2_ref_gnum2;
-  PDM_part_to_part_ref_gnum2_get (ptp2,
-                                            &ptp2_n_ref_gnum2,
-                                            &ptp2_ref_gnum2);
+  int  *ptp2_n_ref_lnum2;
+  int **ptp2_ref_lnum2;
+  PDM_part_to_part_ref_lnum2_get (ptp2,
+                                  &ptp2_n_ref_lnum2,
+                                  &ptp2_ref_lnum2);
 
-  int  *ptp2_n_unref_gnum2;
-  int **ptp2_unref_gnum2;
-  PDM_part_to_part_unref_gnum2_get (ptp2,
-                                            &ptp2_n_unref_gnum2,
-                                            &ptp2_unref_gnum2);
+  int  *ptp2_n_unref_lnum2;
+  int **ptp2_unref_lnum2;
+  PDM_part_to_part_unref_lnum2_get (ptp2,
+                                    &ptp2_n_unref_lnum2,
+                                    &ptp2_unref_lnum2);
 
 
   int         **ptp2_gnum1_come_from_idx;
   PDM_g_num_t **ptp2_gnum1_come_from;
   PDM_part_to_part_gnum1_come_from_get (ptp2,
-                                                  &ptp2_gnum1_come_from_idx,
-                                                  &ptp2_gnum1_come_from);
+                                        &ptp2_gnum1_come_from_idx,
+                                        &ptp2_gnum1_come_from);
 
 
   int send_request = -1;
@@ -1118,7 +1118,7 @@ int main(int argc, char *argv[])
   int recv_request = -1;
   PDM_g_num_t **gnum_elt1_recv = malloc (sizeof(PDM_g_num_t*)  * n_part);
   for (int i = 0; i < n_part; i++) {
-    gnum_elt1_recv[i] = malloc (sizeof(PDM_g_num_t)  * gnum1_come_from_idx[i][n_ref_gnum2[i]]);
+    gnum_elt1_recv[i] = malloc (sizeof(PDM_g_num_t)  * gnum1_come_from_idx[i][n_ref_lnum2[i]]);
   }
 
   PDM_part_to_part_irecv (ptp,
@@ -1161,7 +1161,7 @@ int main(int argc, char *argv[])
   recv_request = -1;
   PDM_g_num_t **gnum_elt2_recv = malloc (sizeof(PDM_g_num_t*)  * n_part);
   for (int i = 0; i < n_part; i++) {
-    gnum_elt2_recv[i] = malloc (sizeof(PDM_g_num_t)  * ptp2_gnum1_come_from_idx[i][ptp2_n_ref_gnum2[i]]);
+    gnum_elt2_recv[i] = malloc (sizeof(PDM_g_num_t)  * ptp2_gnum1_come_from_idx[i][ptp2_n_ref_lnum2[i]]);
   }
 
   PDM_part_to_part_irecv (ptp2,
@@ -1191,7 +1191,7 @@ int main(int argc, char *argv[])
     int *located = PDM_mesh_location_located_get (id_loc1,
                                                   0,//i_point_cloud,
                                                   i);
-    assert (n_located == n_ref_gnum2[i]);
+    assert (n_located == n_ref_lnum2[i]);
 
     if (1 == 0) {
       printf ("located :");
@@ -1200,8 +1200,8 @@ int main(int argc, char *argv[])
       }
       printf ("\n");
 
-      printf ("ref_gnum2 :");
-      for (int j = 0; j < n_ref_gnum2[i]; j++) {
+      printf ("ref_lnum2 :");
+      for (int j = 0; j < n_ref_lnum2[i]; j++) {
         for (int k = gnum1_come_from_idx[i][j] ; k < gnum1_come_from_idx[i][j+1]; k++) {
           printf(" "PDM_FMT_G_NUM"", gnum1_come_from[i][k]);
         }
@@ -1296,8 +1296,8 @@ int main(int argc, char *argv[])
       }
  
       printf ("location from exchange  :\n");
-      for (int j = 0; j < n_ref_gnum2[i]; j++) {
-        printf(""PDM_FMT_G_NUM" :", gnum_elt2[i][ref_gnum2[i][j]-1]);
+      for (int j = 0; j < n_ref_lnum2[i]; j++) {
+        printf(""PDM_FMT_G_NUM" :", gnum_elt2[i][ref_lnum2[i][j]-1]);
         for (int k = gnum1_come_from_idx[i][j] ; k < gnum1_come_from_idx[i][j+1]; k++) {
           printf(" "PDM_FMT_G_NUM"", gnum_elt1_recv[i][k]);
         }  
@@ -1318,8 +1318,8 @@ int main(int argc, char *argv[])
       printf("\n");
 
       printf ("elt_pts_inside from exchange :\n");
-      for (int j = 0; j < ptp2_n_ref_gnum2[i]; j++) {
-        printf(""PDM_FMT_G_NUM" :", gnum_elt1[i][ptp2_ref_gnum2[i][j]-1]);
+      for (int j = 0; j < ptp2_n_ref_lnum2[i]; j++) {
+        printf(""PDM_FMT_G_NUM" :", gnum_elt1[i][ptp2_ref_lnum2[i][j]-1]);
         for (int k = ptp2_gnum1_come_from_idx[i][j] ; k < ptp2_gnum1_come_from_idx[i][j+1]; k++) {
           printf(" "PDM_FMT_G_NUM"", gnum_elt2_recv[i][k]);
         }  
@@ -1327,14 +1327,14 @@ int main(int argc, char *argv[])
       }
     }
 
-    for (int j = 0; j < n_ref_gnum2[i]; j++) {
+    for (int j = 0; j < n_ref_lnum2[i]; j++) {
       for (int k = gnum1_come_from_idx[i][j] ; k < gnum1_come_from_idx[i][j+1]; k++) {
         assert(gnum_elt1_recv[i][k] == location[i][j]);
       }  
     }
 
-    for (int j = 0; j < ptp2_n_ref_gnum2[i]; j++) {
-      int ielt = ptp2_ref_gnum2[i][j]-1;
+    for (int j = 0; j < ptp2_n_ref_lnum2[i]; j++) {
+      int ielt = ptp2_ref_lnum2[i][j]-1;
       int n1 = ptp2_gnum1_come_from_idx[i][j+1] - ptp2_gnum1_come_from_idx[i][j];
       int n2 = elt_pts_inside_idx[i][ielt+1] - elt_pts_inside_idx[i][ielt];  
       assert(n1 == n2);

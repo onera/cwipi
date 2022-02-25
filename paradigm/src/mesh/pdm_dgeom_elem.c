@@ -79,7 +79,7 @@ PDM_compute_center_from_descending_connectivity
 
   int strid_one = 1;
   double **tmp_entity1_entity2_coord;
-  PDM_block_to_part_exch2 (btp_entity1_coord,
+  PDM_block_to_part_exch (btp_entity1_coord,
                            3 * sizeof(double),
                            PDM_STRIDE_CST_INTERLACED,
                            &strid_one,
@@ -139,7 +139,7 @@ PDM_compute_dface_normal
 
   int strid_one = 1;
   double **tmp_face_vtx_coord;
-  PDM_block_to_part_exch2 (btp_entity1_coord,
+  PDM_block_to_part_exch (btp_entity1_coord,
                            3 * sizeof(double),
                            PDM_STRIDE_CST_INTERLACED,
                            &strid_one,

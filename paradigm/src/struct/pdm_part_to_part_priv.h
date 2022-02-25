@@ -66,15 +66,15 @@ struct _pdm_part_to_part_t {
   int                *default_n_recv_buffer;        /*!< Default number of points in the received buffer */
   int                *default_i_recv_buffer;        /*!< Default index in the received buffer */
 
-  int                *n_ref_gnum2;                  /*!< Numbers of referenced gnum2 (size = \ref n_part2) */
-  int               **ref_gnum2;                    /*!< Lists of referenced gnum2 (size = \ref n_part2) */
+  int                *n_ref_lnum2;                  /*!< Numbers of referenced gnum2 (size = \ref n_part2) */
+  int               **ref_lnum2;                    /*!< Lists of referenced gnum2 (size = \ref n_part2) */
 
-  int                *n_unref_gnum2;                /*!< Numbers of unreferenced gnum2 (size = \ref n_part2) */
-  int               **unref_gnum2;                  /*!< Lists of unreferenced gnum2 (size = \ref n_part2) */
+  int                *n_unref_lnum2;                /*!< Numbers of unreferenced gnum2 (size = \ref n_part2) */
+  int               **unref_lnum2;                  /*!< Lists of unreferenced gnum2 (size = \ref n_part2) */
     
   int               **gnum1_come_from_idx;          /*!< Index for gnum1_come_from array (size = \ref n_part2) */
   PDM_g_num_t       **gnum1_come_from;              /*!< Gnum come from gnum1 for each referenced gnum2 */
-  int               **recv_buffer_to_ref_gnum2;     /*!< Indirection to store ref gnum2 data from receive buffer */
+  int               **recv_buffer_to_ref_lnum2;     /*!< Indirection to store ref gnum2 data from receive buffer */
   int               **recv_buffer_to_duplicate_idx; /*!< Index for store duplicate gnum1 for a part2 element (size = \ref n_part2) */
   int               **recv_buffer_to_duplicate;     /*!< Index in receiv buffer of the duplicate gnum1 (Used for revers irecv) */
 

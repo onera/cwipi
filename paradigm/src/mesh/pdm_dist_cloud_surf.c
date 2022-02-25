@@ -822,7 +822,7 @@ PDM_dist_cloud_surf_compute
       _block_elt_distrib_idx[n_rank] = g_max_elt_g_num;
     }
 
-    PDM_part_to_block_t *ptb_elt = PDM_part_to_block_create2 (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+    PDM_part_to_block_t *ptb_elt = PDM_part_to_block_create_from_distrib (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                                               PDM_PART_TO_BLOCK_POST_MERGE,
                                                               1.,
                                                               (PDM_g_num_t **) part_elt_g_num,
@@ -1020,7 +1020,7 @@ PDM_dist_cloud_surf_compute
     PDM_g_num_t *block_pts_distrib_idx = PDM_part_to_block_distrib_index_get (ptb_pts);
 
     /* Exchange results from elements to points */
-    PDM_part_to_block_t *ptb2 = PDM_part_to_block_create2 (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+    PDM_part_to_block_t *ptb2 = PDM_part_to_block_create_from_distrib (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                                            PDM_PART_TO_BLOCK_POST_MERGE,
                                                            1.,
                                                            (PDM_g_num_t **) &block_elt_pts_g_num,
@@ -1155,7 +1155,7 @@ PDM_dist_cloud_surf_compute
     }
 
     int one = 1;
-    PDM_block_to_part_exch (btp,
+    PDM_block_to_part_exch_in_place (btp,
                             sizeof(double),
                             PDM_STRIDE_CST_INTERLACED,
                             &one,
@@ -1165,7 +1165,7 @@ PDM_dist_cloud_surf_compute
     free (block_pts_elt_dist2);
 
     int three = 3;
-    PDM_block_to_part_exch (btp,
+    PDM_block_to_part_exch_in_place (btp,
                             sizeof(double),
                             PDM_STRIDE_CST_INTERLACED,
                             &three,
@@ -1174,7 +1174,7 @@ PDM_dist_cloud_surf_compute
                             (void **) pt_cloud->proj);
     free (block_pts_elt_proj);
 
-    PDM_block_to_part_exch (btp,
+    PDM_block_to_part_exch_in_place (btp,
                             sizeof(PDM_g_num_t),
                             PDM_STRIDE_CST_INTERLACED,
                             &one,

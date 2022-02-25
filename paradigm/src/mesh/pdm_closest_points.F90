@@ -324,7 +324,7 @@ end function PDM_closest_points_n_closest_get
   contains
 
 
-  !>
+    !>
     !!
     !! \brief Create a structure to look for the closest points of a point cloud
     !! (target cloud) in an other point cloud (source cloud)
@@ -344,9 +344,9 @@ end function PDM_closest_points_n_closest_get
 
       implicit none
 
-      integer        :: f_comm
-      integer        :: n_closest
-      integer        :: owner
+      integer, intent(in) :: f_comm
+      integer, intent(in) :: n_closest
+      integer, intent(in) :: owner
 
       type(c_ptr)    :: cls
 
@@ -391,8 +391,8 @@ end function PDM_closest_points_n_closest_get
     implicit none
 
     type(c_ptr), value                 :: cls
-    integer                            :: i_part
-    integer                            :: n_points
+    integer, intent(in)                :: i_part
+    integer, intent(in)                :: n_points
     double precision,          pointer :: coords(:)
     integer(kind=pdm_g_num_s), pointer :: gnum(:)
 
@@ -438,8 +438,8 @@ end function PDM_closest_points_n_closest_get
     use iso_c_binding
 
     type(c_ptr), value                 :: cls
-    integer                            :: i_part
-    integer                            :: n_points
+    integer, intent(in)                :: i_part
+    integer, intent(in)                :: n_points
     double precision,          pointer :: coords(:)
     integer(kind=pdm_g_num_s), pointer :: gnum(:)
 
@@ -486,7 +486,7 @@ end function PDM_closest_points_n_closest_get
     implicit none
 
     type(c_ptr),                 value :: cls
-    integer                            :: i_part_tgt
+    integer, intent(in)                :: i_part_tgt
     integer(kind=pdm_g_num_s), pointer :: closest_src_gnum(:)
     double precision,          pointer :: closest_src_distance(:)
 

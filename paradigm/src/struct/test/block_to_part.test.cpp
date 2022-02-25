@@ -39,7 +39,7 @@ MPI_TEST_CASE("[1p] block_to_part",1) {
 
     // Exchange
     int stride_one = 1;
-    PDM_block_to_part_exch(btp, sizeof(PDM_g_num_t), PDM_STRIDE_CST_INTERLACED,
+    PDM_block_to_part_exch_in_place(btp, sizeof(PDM_g_num_t), PDM_STRIDE_CST_INTERLACED,
                            &stride_one,
                    (void*) darray,
                            NULL,
@@ -93,7 +93,7 @@ MPI_TEST_CASE("[1p] block_to_part",1) {
 
     // Exchange
     int stride_one = 1;
-    PDM_block_to_part_exch(btp, sizeof(PDM_g_num_t), PDM_STRIDE_CST_INTERLACED,
+    PDM_block_to_part_exch_in_place(btp, sizeof(PDM_g_num_t), PDM_STRIDE_CST_INTERLACED,
                            &stride_one,
                    (void*) darray,
                            NULL,
@@ -165,7 +165,7 @@ MPI_TEST_CASE("[2p] block_to_part",2) {
 
   // Exchange
   int stride_one = 1;
-  PDM_block_to_part_exch(btp, sizeof(PDM_g_num_t), PDM_STRIDE_CST_INTERLACED,
+  PDM_block_to_part_exch_in_place(btp, sizeof(PDM_g_num_t), PDM_STRIDE_CST_INTERLACED,
                          &stride_one,
                  (void*) darray,
                          NULL,

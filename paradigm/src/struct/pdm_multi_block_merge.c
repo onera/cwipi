@@ -348,7 +348,7 @@ static void _dist_data_update
                                                                       comm);
 
   int *recv_stride = (int *) malloc(n_to_update*sizeof(int));
-  PDM_block_to_part_exch (btp_update,
+  PDM_block_to_part_exch_in_place (btp_update,
                           sizeof(PDM_g_num_t),
                           PDM_STRIDE_VAR_INTERLACED,
                           dold_to_new_n,

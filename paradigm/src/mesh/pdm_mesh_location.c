@@ -629,7 +629,7 @@ _redistribute_elementary_location
    * Polyhedra
    */
 
-  PDM_part_to_block_t *ptb_poly3d = PDM_part_to_block_create2 (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+  PDM_part_to_block_t *ptb_poly3d = PDM_part_to_block_create_from_distrib (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                                                PDM_PART_TO_BLOCK_POST_MERGE,
                                                                1.,
                                                                &poly3d_g_num,
@@ -1329,7 +1329,7 @@ _extract_selected_mesh_elements
    * Polyhedra
    */
 
-  PDM_part_to_block_t *ptb_poly3d = PDM_part_to_block_create2 (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+  PDM_part_to_block_t *ptb_poly3d = PDM_part_to_block_create_from_distrib (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                                                PDM_PART_TO_BLOCK_POST_MERGE,
                                                                1.,
                                                                &poly3d_g_num,
@@ -4063,7 +4063,7 @@ PDM_mesh_location_t        *ml
 
       int _one = 1;
       redistrib_pts_parent_g_num = malloc (sizeof(PDM_g_num_t) * n_pts);
-      PDM_block_to_part_exch (btp_parent,
+      PDM_block_to_part_exch_in_place (btp_parent,
                               sizeof(PDM_g_num_t),
                               PDM_STRIDE_CST_INTERLACED,
                               &_one,
@@ -4214,7 +4214,7 @@ PDM_mesh_location_t        *ml
                                                               pcloud->n_points,
                                                               (const PDM_g_num_t **) pcloud->gnum);
 
-    PDM_part_to_block_t *ptb1 = PDM_part_to_block_create2 (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+    PDM_part_to_block_t *ptb1 = PDM_part_to_block_create_from_distrib (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                                            PDM_PART_TO_BLOCK_POST_MERGE,
                                                            1.,
                                                            &redistrib_pts_parent_g_num,
@@ -4562,7 +4562,7 @@ PDM_mesh_location_t        *ml
     }
 
     /* Exchange location */
-    PDM_block_to_part_exch (btp,
+    PDM_block_to_part_exch_in_place (btp,
                             sizeof(PDM_g_num_t),
                             PDM_STRIDE_CST_INTERLACED,
                             &one,
@@ -4572,7 +4572,7 @@ PDM_mesh_location_t        *ml
     free (block_location2);
 
     /* Exchange distance */
-    PDM_block_to_part_exch (btp,
+    PDM_block_to_part_exch_in_place (btp,
                             sizeof(double),
                             PDM_STRIDE_CST_INTERLACED,
                             &one,
@@ -4582,7 +4582,7 @@ PDM_mesh_location_t        *ml
     free (block_dist2);
 
     /* Exchange projected coords */
-    PDM_block_to_part_exch (btp,
+    PDM_block_to_part_exch_in_place (btp,
                             sizeof(double),
                             PDM_STRIDE_CST_INTERLACED,
                             &three,
@@ -4596,7 +4596,7 @@ PDM_mesh_location_t        *ml
     for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
       _weights_stride[ipart] = malloc (sizeof(int) * pcloud->n_points[ipart]);
     }
-    PDM_block_to_part_exch (btp,
+    PDM_block_to_part_exch_in_place (btp,
                             sizeof(int),
                             PDM_STRIDE_CST_INTERLACED,
                             &one,
@@ -4613,7 +4613,7 @@ PDM_mesh_location_t        *ml
     }
 
     /* Exchange weights */
-    PDM_block_to_part_exch (btp,
+    PDM_block_to_part_exch_in_place (btp,
                             sizeof(double),
                             PDM_STRIDE_VAR_INTERLACED,
                             block_weights_stride2,
@@ -5047,7 +5047,7 @@ PDM_mesh_location_t        *ml
       /* _gnum_points  _points_in_elements->gnum */
 
       int **pts_in_elt_n;
-      PDM_block_to_part_exch2 (btp,
+      PDM_block_to_part_exch (btp,
                                sizeof(PDM_g_num_t),
                                PDM_STRIDE_VAR_INTERLACED,
                                block_pts_per_elt_n,
@@ -5083,7 +5083,7 @@ PDM_mesh_location_t        *ml
       /* _weight_stride block_pts_weights_stride*/
 
       int **pts_weights_stride;
-      PDM_block_to_part_exch2 (btp,
+      PDM_block_to_part_exch (btp,
                                sizeof(int),
                                PDM_STRIDE_VAR_INTERLACED,
                                block_pts_per_elt_n,
@@ -5109,7 +5109,7 @@ PDM_mesh_location_t        *ml
 
       /* dist2 block_pts_dist2 */
 
-      PDM_block_to_part_exch2 (btp,
+      PDM_block_to_part_exch (btp,
                                sizeof(double),
                                PDM_STRIDE_VAR_INTERLACED,
                                block_pts_per_elt_n,
@@ -5131,7 +5131,7 @@ PDM_mesh_location_t        *ml
 
       // PDM_log_trace_array_int(block_pts_per_elt_n , block_n_elt, "block_pts_per_elt_n  AFTER :: ");
       // PDM_log_trace_array_int(block_pts_per_elt_n2, block_n_elt, "block_pts_per_elt_n2 AFTER :: ");
-      PDM_block_to_part_exch2 (btp,
+      PDM_block_to_part_exch (btp,
                                3*sizeof(double),
                                PDM_STRIDE_VAR_INTERLACED,
                                block_pts_per_elt_n,
@@ -5147,7 +5147,7 @@ PDM_mesh_location_t        *ml
 
       /* _proj */
 
-      PDM_block_to_part_exch2 (btp,
+      PDM_block_to_part_exch (btp,
                                3*sizeof(double),
                                PDM_STRIDE_VAR_INTERLACED,
                                block_pts_per_elt_n,
@@ -5163,7 +5163,7 @@ PDM_mesh_location_t        *ml
 
       /* _weight */
 
-      PDM_block_to_part_exch2 (btp,
+      PDM_block_to_part_exch (btp,
                                sizeof(double),
                                PDM_STRIDE_VAR_INTERLACED,
                                block_pts_per_elt_n2,

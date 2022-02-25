@@ -1781,16 +1781,14 @@ _generate_extended_partition_connectivity
       border_lentity1_entity2[idx++] = sgn * ( pos + n_entity2 + 1 ); // Car on shift
       i_entity2_extented++;
     } else {
-      /* La face existe deja dans la partition donc soit le numero
-       *   - Comment on fait car la face peut être dans les 2 sens
-       *   -
-       */
-      // int pos_interior = PDM_binary_search_long(g_entity2, _sorted_entity2_ln_to_gn, n_entity2);
+
+      int pos_interior2 = PDM_binary_search_long(g_entity2, _sorted_entity2_ln_to_gn, n_entity2);
       int pos_interior = PDM_binary_search_long(g_entity2, gentity1_entity2, entity1_entity2_idx[n_entity1]);
       // printf(" Border face comming from interior %i - %i \n", pos_interior, idx);
-      assert(pos_interior != -1);
+      assert(pos_interior  != -1);
+      assert(pos_interior2 != -1);
 
-      int old_order_entity1_entity2 = order_entity1_entity2[pos_interior];
+      // int old_order_entity1_entity2 = order_entity1_entity2[pos_interior];
 
       // Keep it to check
       // int sgn       = PDM_SIGN(gentity1_entity2[old_order_entity1_entity2]);
@@ -1805,8 +1803,17 @@ _generate_extended_partition_connectivity
       // border_lentity1_entity2[idx++] = sgn * ( order[pos_interior] + 1 ); // Car le tableau est trié pas comme la partition
       // ON MET FORCEMENT L'OPPOSE
       // printf(" Rebuild from interior [%i] with gnum = "PDM_FMT_G_NUM" and pos : %i \n ", i, g_entity2, pos_interior);
+      // OLD -> FOnctionne pas pour le edge_vtx
+      // border_lentity1_entity2[idx++] = - entity1_entity2[old_order_entity1_entity2]; // Car le tableau est trié pas comme la partition
 
-      border_lentity1_entity2[idx++] = - entity1_entity2[old_order_entity1_entity2]; // Car le tableau est trié pas comme la partition
+      int sgn    = PDM_SIGN(border_lentity1_entity2[i]); // A aller cherche dans le cell_face de depart
+      int old_pos = order[pos_interior2];
+      border_lentity1_entity2[idx++] = sgn * ( old_pos + 1 );
+
+      // PDM_g_num_t old_g_num = _sorted_entity2_ln_to_gn[pos_interior2];
+      // printf("Cas 1 : border_lentity1_entity2 [%i] | Cas 2  : %i \n", - entity1_entity2[old_order_entity1_entity2], sgn * ( old_pos + 1 ));
+      // printf("Cas 1 : border_lentity1_entity2 [%i] \n", sgn * old_g_num);
+
     }
   }
   // exit(1);
@@ -2452,6 +2459,22 @@ _rebuild_connectivity_edge_vtx
   for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
     for(int i_part = 0; i_part < part_ext->n_part[i_domain]; ++i_part) {
       free(edge_vtx_idx  [i_part+shift_part]);
+
+      /* Generic algorithm setup a sign on edge_vtx - We remove it by swap */
+      // int pn_edge = part_ext->parts[i_domain][i_part].n_edge;
+      // int pn_edge_extented = part_ext->edge_edge_extended_idx[shift_part+i_part][pn_edge];
+      // for(int i_edge = 0; i_edge < pn_edge_extented; ++i_edge) {
+      //   int i_vtx1 = part_ext->border_edge_vtx[i_part+shift_part][2*i_edge  ];
+      //   int i_vtx2 = part_ext->border_edge_vtx[i_part+shift_part][2*i_edge+1];
+      //   if(i_vtx1 < 0) {
+      //     part_ext->border_edge_vtx[i_part+shift_part][2*i_edge  ] = PDM_ABS(i_vtx2);
+      //     part_ext->border_edge_vtx[i_part+shift_part][2*i_edge+1] = PDM_ABS(i_vtx1);
+      //   } else {
+      //     part_ext->border_edge_vtx[i_part+shift_part][2*i_edge  ] = PDM_ABS(i_vtx1);
+      //     part_ext->border_edge_vtx[i_part+shift_part][2*i_edge+1] = PDM_ABS(i_vtx2);
+      //   }
+      // }
+
     }
     shift_part += part_ext->n_part[i_domain];
   }

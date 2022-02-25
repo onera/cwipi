@@ -327,7 +327,7 @@ PDM_global_reduce_field_compute
   free (stride_idx);
 
 
-  PDM_block_to_part_exch (gre->btp,
+  PDM_block_to_part_exch_in_place (gre->btp,
                           sizeof(double),
                           PDM_STRIDE_CST_INTERLACED,
                           &gre->stride,

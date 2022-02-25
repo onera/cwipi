@@ -212,7 +212,7 @@ _closest_points_reverse_results
 
 
   int** tgt_in_src_n;
-  PDM_block_to_part_exch2(btp,
+  PDM_block_to_part_exch(btp,
                           sizeof(PDM_g_num_t),
                           PDM_STRIDE_VAR_INTERLACED,
                           block_tgt_in_src_n,
@@ -809,7 +809,7 @@ PDM_transform_to_parent_gnum
                                                       comm);
 
   int stride_one = 1;
-  PDM_block_to_part_exch(btp,
+  PDM_block_to_part_exch_in_place(btp,
                          sizeof(PDM_g_num_t),
                          PDM_STRIDE_CST_INTERLACED,
                         &stride_one,

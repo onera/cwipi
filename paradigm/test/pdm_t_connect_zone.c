@@ -80,7 +80,7 @@ _exchange_point_list
 
     int cst_stride = 1;
     PDM_g_num_t* sub_dface_join_opp = &_dface_join_opp[dface_join_idx[i_group_join]];
-    PDM_block_to_part_exch(btp,
+    PDM_block_to_part_exch_in_place(btp,
                            sizeof(PDM_g_num_t),
                            PDM_STRIDE_CST_INTERLACED,
                            &cst_stride,

@@ -256,7 +256,7 @@ PDM_gnum_location_compute
                                                        gnum_loc->n_part_out,
                                                        gnum_loc->comm);
 
-  PDM_block_to_part_exch2 (btp,
+  PDM_block_to_part_exch (btp,
                           s_data,
                           PDM_STRIDE_VAR_INTERLACED,
                           block_stride,
@@ -354,6 +354,31 @@ PDM_gnum_location_free
 
   free (gnum_loc);
 
+}
+
+
+/**
+ *
+ * \brief Get the number of requested elements in a given partition
+ *
+ * \param [in]  gnum_loc      Pointer to \ref PDM_gnum_locaion object
+ * \param [in]  i_part_out    Id of current partition
+ *
+ * \return  Number of requested elements in the current partition
+ *
+ */
+
+int
+PDM_gnum_location_n_requested_elt_get
+(
+       PDM_gnum_location_t *gnum_loc,
+ const int                  i_part_out
+ )
+{
+  assert (gnum_loc != NULL);
+  assert (i_part_out < gnum_loc->n_part_out);
+
+  return gnum_loc->n_elts_out[i_part_out];
 }
 
 

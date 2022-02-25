@@ -424,7 +424,7 @@ PDM_dreorder_from_coords
    * Each proc get all the entities affected to its partitions
    */
   PDM_part_to_block_t *ptb =
-   PDM_part_to_block_create2(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+   PDM_part_to_block_create_from_distrib(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                              PDM_PART_TO_BLOCK_POST_NOTHING,
                              1.,
                              &ln_to_gn,
@@ -493,7 +493,7 @@ PDM_dreorder_from_coords
                                                       comm);
 
   int stride_one = 1;
-  PDM_block_to_part_exch(btp,
+  PDM_block_to_part_exch_in_place(btp,
                          sizeof(PDM_g_num_t),
                          PDM_STRIDE_CST_INTERLACED,
                          &stride_one,
@@ -581,7 +581,7 @@ PDM_dreorder_from_length
    * Each proc get all the entities affected to its partitions
    */
   PDM_part_to_block_t *ptb =
-   PDM_part_to_block_create2(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+   PDM_part_to_block_create_from_distrib(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                              PDM_PART_TO_BLOCK_POST_NOTHING,
                              1.,
                              &ln_to_gn,
@@ -650,7 +650,7 @@ PDM_dreorder_from_length
                                                       comm);
 
   int stride_one = 1;
-  PDM_block_to_part_exch(btp,
+  PDM_block_to_part_exch_in_place(btp,
                          sizeof(PDM_g_num_t),
                          PDM_STRIDE_CST_INTERLACED,
                          &stride_one,

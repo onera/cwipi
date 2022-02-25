@@ -36,10 +36,6 @@ extern "C" {
  * Macro definitions
  *============================================================================*/
 
-#define _MIN(a,b)   ((a) < (b) ?  (a) : (b))  /* Minimum of a et b */
-
-#define _MAX(a,b)   ((a) > (b) ?  (a) : (b))  /* Maximum of a et b */
-
 /*============================================================================
  * Type
  *============================================================================*/
@@ -108,9 +104,9 @@ _evaluate_distribution(int          n_ranges,
   for (i = 0; i < n_ranges; i++) {
 
     if (distribution[i] > optim)
-      d_up = _MAX(d_up, distribution[i] - optim);
+      d_up = PDM_MAX(d_up, distribution[i] - optim);
     else
-      d_low = _MAX(d_low, optim - distribution[i]);
+      d_low = PDM_MAX(d_low, optim - distribution[i]);
 
   }
 
@@ -171,7 +167,7 @@ _define_rank_distrib( PDM_part_to_block_t *ptb,
 
     for (int j = 0; j < ptb->n_elt[i]; j++) {
 
-      PDM_g_num_t _gnum_elt = ptb->gnum_elt[i][j] - 1;
+      PDM_g_num_t _gnum_elt = PDM_ABS(ptb->gnum_elt[i][j]) - 1;
 
       int iSample = PDM_binary_search_gap_long (_gnum_elt,
                                                 sampling,
@@ -418,10 +414,10 @@ _active_ranks
       }
 
       int n_node = ptb->n_active_ranks;
-      double part_active_node = _MIN (1, ptb->part_active_node);
-      part_active_node = _MAX (0, part_active_node);
+      double part_active_node = PDM_MIN (1, ptb->part_active_node);
+      part_active_node = PDM_MAX (0, part_active_node);
       ptb->n_active_ranks = (int) floor (n_node * part_active_node);
-      ptb->n_active_ranks = _MAX (1, ptb->n_active_ranks);
+      ptb->n_active_ranks = PDM_MAX (1, ptb->n_active_ranks);
 
       n_active_ranks = 0;
       int coeff = n_node / ptb->n_active_ranks;
@@ -493,7 +489,8 @@ _distrib_data
     ptb->n_elt_proc+= ptb->n_elt[i];
     if(user_distrib == 0) {
       for (int j = 0; j < ptb->n_elt[i]; j++) {
-        _id_max = _MAX (_id_max, ptb->gnum_elt[i][j]);
+        PDM_g_num_t gnum = PDM_ABS(ptb->gnum_elt[i][j]);
+        _id_max = PDM_MAX (_id_max, gnum);
       }
     }
   }
@@ -715,7 +712,7 @@ _distrib_data
 
     for (int j = 0; j < ptb->n_elt[i]; j++) {
 
-      PDM_g_num_t _gnum_elt = ptb->gnum_elt[i][j] - 1;
+      PDM_g_num_t _gnum_elt = PDM_ABS(ptb->gnum_elt[i][j]) - 1;
 
       int iproc = PDM_binary_search_gap_long (_gnum_elt,
                                               ptb->data_distrib_index,
@@ -758,7 +755,7 @@ _distrib_data
     for (int j = 0; j < ptb->n_elt[i]; j++) {
       int iproc = ptb->dest_proc[idx];
       send_gnum[ptb->i_send_data[iproc] +
-                ptb->n_send_data[iproc]] = ptb->gnum_elt[i][j];
+                ptb->n_send_data[iproc]] = PDM_ABS(ptb->gnum_elt[i][j]);
       idx++;
       ptb->n_send_data[iproc] += 1;
     }
@@ -1115,24 +1112,6 @@ PDM_part_to_block_global_timer_get
  */
 
 PDM_part_to_block_t *
-PDM_part_to_block_create_cf
-(
- PDM_part_to_block_distrib_t   t_distrib,
- PDM_part_to_block_post_t      t_post,
- double                        part_active_node,
- PDM_g_num_t                 **gnum_elt,
- double                      **weight,
- int                          *n_elt,
- int                           n_part,
- PDM_MPI_Fint                  fcomm
-)
-{
-  const PDM_MPI_Comm _comm        = PDM_MPI_Comm_f2c(fcomm);
-  return PDM_part_to_block_create (t_distrib, t_post, part_active_node,
-                                   gnum_elt, weight, n_elt, n_part, _comm);
-}
-
-PDM_part_to_block_t *
 PDM_part_to_block_create
 (
  PDM_part_to_block_distrib_t   t_distrib,
@@ -1293,26 +1272,7 @@ PDM_part_to_block_create
  */
 
 PDM_part_to_block_t *
-PDM_part_to_block_create2_cf
-(
- PDM_part_to_block_distrib_t   t_distrib,
- PDM_part_to_block_post_t      t_post,
- double                        part_active_node,
- PDM_g_num_t                 **gnum_elt,
- PDM_g_num_t                  *data_distrib_index,
- int                          *n_elt,
- int                           n_part,
- PDM_MPI_Fint                  fcomm
-)
-{
-  const PDM_MPI_Comm _comm        = PDM_MPI_Comm_f2c(fcomm);
-  return PDM_part_to_block_create2 (t_distrib, t_post, part_active_node,
-                                    gnum_elt, data_distrib_index,
-                                    n_elt, n_part, _comm);
-}
-
-PDM_part_to_block_t *
-PDM_part_to_block_create2
+PDM_part_to_block_create_from_distrib
 (
  PDM_part_to_block_distrib_t   t_distrib,
  PDM_part_to_block_post_t      t_post,
@@ -2725,6 +2685,47 @@ PDM_part_to_block_global_weight_get
 {
   return ptb->weight_g;
 }
+
+
+
+/**
+ *
+ * \brief Get number of MPI ranks
+ *
+ * \param [in]   ptb          Part to block structure
+ *
+ * \return  Number of MPI ranks
+ *
+ */
+
+int
+PDM_part_to_block_n_ranks_get
+(
+ PDM_part_to_block_t *ptb
+)
+{
+  return ptb->s_comm;
+}
+
+
+/**
+ *
+ * \brief Return total number of element in the current process (summed over all partitions)
+ *
+ * \param [in]   ptb          Part to block structure
+ *
+ * \return Total number of element in the current process
+ *
+ */
+
+int
+PDM_part_to_block_n_elt_proc_get
+(
+ PDM_part_to_block_t *ptb
+ )
+ {
+  return ptb->n_elt_proc;
+ }
 
 #undef _MIN
 #undef _MAX

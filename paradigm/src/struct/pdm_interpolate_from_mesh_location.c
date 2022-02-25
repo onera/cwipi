@@ -276,7 +276,7 @@ PDM_interpolate_from_mesh_location_exch
                                                       interp_from_ml->comm);
 
   int** part_strid = NULL;
-  PDM_block_to_part_exch2(btp,
+  PDM_block_to_part_exch(btp,
                           sizeof(double),
                           PDM_STRIDE_VAR_INTERLACED,
                           block_strid,
@@ -429,7 +429,7 @@ PDM_interpolate_from_mesh_location_exch_inplace
 
   int** part_strid;
   double** tmp_cloud_data_out;
-  PDM_block_to_part_exch2(btp,
+  PDM_block_to_part_exch(btp,
                           sizeof(double),
                           PDM_STRIDE_VAR_INTERLACED,
                           block_strid,

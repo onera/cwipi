@@ -474,28 +474,28 @@ subroutine PDM_io_open (nom,                &
   use iso_c_binding
   implicit none
 
-  character (len=*) :: nom
-  integer           :: fmt
-  integer           :: suff_t
-  character (len=*) :: suff_u
-  integer           :: s_backup
-  integer           :: acces
-  integer           :: mode
-  integer           :: endian
-  integer           :: comm
-  double precision  :: prop_noeuds_actifs
-  type(c_ptr)       :: unite
-  integer           :: ierr
+  character (len=*)             :: nom
+  integer,          intent(in)  :: fmt
+  integer,          intent(in)  :: suff_t
+  character (len=*)             :: suff_u
+  integer,          intent(in)  :: s_backup
+  integer,          intent(in)  :: acces
+  integer,          intent(in)  :: mode
+  integer,          intent(in)  :: endian
+  integer,          intent(in)  :: comm
+  double precision, intent(in)  :: prop_noeuds_actifs
+  type(c_ptr)                   :: unite
+  integer,          intent(out) :: ierr
 
-  integer(c_int)    :: c_fmt
-  integer(c_int)    :: c_suff_t
-  integer(c_int)    :: c_s_backup
-  integer(c_int)    :: c_acces
-  integer(c_int)    :: c_mode
-  integer(c_int)    :: c_endian
-  integer(c_int)    :: c_comm
-  real(c_double)    :: c_prop_noeuds_actifs
-  integer(c_int)    :: c_ierr
+  integer(c_int)                :: c_fmt
+  integer(c_int)                :: c_suff_t
+  integer(c_int)                :: c_s_backup
+  integer(c_int)                :: c_acces
+  integer(c_int)                :: c_mode
+  integer(c_int)                :: c_endian
+  integer(c_int)                :: c_comm
+  real(c_double)                :: c_prop_noeuds_actifs
+  integer(c_int)                :: c_ierr
 
   interface
     subroutine PDM_io_open_c (nom,                &
@@ -621,19 +621,19 @@ subroutine PDM_io_lec_par_entrelacee (fichier,         &
   use iso_c_binding
   implicit none
 
-  type(c_ptr), value            :: fichier
-  integer(pdm_l_num_s)          :: t_n_composantes
-  integer(pdm_l_num_s), pointer :: n_composantes(:)
-  integer(pdm_l_num_s)          :: taille_donnee
-  integer(pdm_l_num_s)          :: n_donnees
-  integer(pdm_g_num_s), pointer :: indirection(:)
-  type(c_ptr)                   :: donnees
+  type(c_ptr), value               :: fichier
+  integer(pdm_l_num_s), intent(in) :: t_n_composantes
+  integer(pdm_l_num_s), pointer    :: n_composantes(:)
+  integer(pdm_l_num_s), intent(in) :: taille_donnee
+  integer(pdm_l_num_s), intent(in) :: n_donnees
+  integer(pdm_g_num_s), pointer    :: indirection(:)
+  type(c_ptr)                      :: donnees
 
-  integer(c_int)                :: c_t_n_composantes
-  integer(c_int)                :: c_taille_donnee
-  integer(c_int)                :: c_n_donnees
-  type(c_ptr)                   :: c_n_composantes = C_NULL_PTR
-  type(c_ptr)                   :: c_indirection   = C_NULL_PTR
+  integer(c_int)                   :: c_t_n_composantes
+  integer(c_int)                   :: c_taille_donnee
+  integer(c_int)                   :: c_n_donnees
+  type(c_ptr)                      :: c_n_composantes = C_NULL_PTR
+  type(c_ptr)                      :: c_indirection   = C_NULL_PTR
 
   interface
     subroutine PDM_io_lec_par_entrelacee_c (fichier,         &
@@ -647,13 +647,13 @@ subroutine PDM_io_lec_par_entrelacee (fichier,         &
       use iso_c_binding
       implicit none
 
-      type(c_ptr), value :: fichier
-      integer(c_int)     :: t_n_composantes
-      type(c_ptr), value :: n_composantes
-      integer(c_int)     :: taille_donnee
-      integer(c_int)     :: n_donnees
-      type(c_ptr), value :: indirection
-      type(c_ptr)        :: donnees
+      type(c_ptr),    value :: fichier
+      integer(c_int), value :: t_n_composantes
+      type(c_ptr),    value :: n_composantes
+      integer(c_int), value :: taille_donnee
+      integer(c_int), value :: n_donnees
+      type(c_ptr),    value :: indirection
+      type(c_ptr),    value :: donnees
 
     end subroutine PDM_io_lec_par_entrelacee_c
   end interface
@@ -701,22 +701,22 @@ subroutine PDM_io_lec_par_bloc (fichier,         &
   use iso_c_binding
   implicit none
 
-  type(c_ptr), value            :: fichier
-  integer(pdm_l_num_s)          :: t_n_composantes
-  integer(pdm_l_num_s), pointer :: n_composantes(:)
-  integer(pdm_l_num_s)          :: taille_donnee
-  integer(pdm_l_num_s)          :: n_donnees
-  integer(pdm_g_num_s)          :: debut_bloc
-  type(c_ptr)                   :: donnees
+  type(c_ptr), value               :: fichier
+  integer(pdm_l_num_s), intent(in) :: t_n_composantes
+  integer(pdm_l_num_s), pointer    :: n_composantes(:)
+  integer(pdm_l_num_s), intent(in) :: taille_donnee
+  integer(pdm_l_num_s), intent(in) :: n_donnees
+  integer(pdm_g_num_s), intent(in) :: debut_bloc
+  type(c_ptr)                      :: donnees
 
-  integer(c_int)                :: c_t_n_composantes
-  integer(c_int)                :: c_taille_donnee
-  integer(c_int)                :: c_n_donnees
-  type(c_ptr)                   :: c_n_composantes = C_NULL_PTR
+  integer(c_int)                   :: c_t_n_composantes
+  integer(c_int)                   :: c_taille_donnee
+  integer(c_int)                   :: c_n_donnees
+  type(c_ptr)                      :: c_n_composantes = C_NULL_PTR
 #ifdef PDM_LONG_G_NUM
-  integer(c_long)               :: c_debut_bloc
+  integer(c_long)                  :: c_debut_bloc
 #else
-  integer(c_int)                :: c_debut_bloc
+  integer(c_int)                   :: c_debut_bloc
 #endif
 
   interface
@@ -732,16 +732,16 @@ subroutine PDM_io_lec_par_bloc (fichier,         &
       implicit none
 
       type(c_ptr),     value :: fichier
-      integer(c_int)         :: t_n_composantes
+      integer(c_int),  value :: t_n_composantes
       type(c_ptr),     value :: n_composantes
-      integer(c_int)         :: taille_donnee
-      integer(c_int)         :: n_donnees
+      integer(c_int),  value :: taille_donnee
+      integer(c_int),  value :: n_donnees
 #ifdef PDM_LONG_G_NUM
       integer(c_long), value :: debut_bloc
 #else
       integer(c_int),  value :: debut_bloc
 #endif
-      type(c_ptr)            :: donnees
+      type(c_ptr),     value :: donnees
 
     end subroutine PDM_io_lec_par_bloc_c
   end interface
@@ -788,19 +788,19 @@ subroutine PDM_io_ecr_par_entrelacee (fichier,         &
   use iso_c_binding
   implicit none
 
-  type(c_ptr), value            :: fichier
-  integer(pdm_l_num_s)          :: t_n_composantes
-  integer(pdm_l_num_s), pointer :: n_composantes(:)
-  integer(pdm_l_num_s)          :: taille_donnee
-  integer(pdm_l_num_s)          :: n_donnees
-  integer(pdm_g_num_s), pointer :: indirection(:)
-  type(c_ptr)                   :: donnees
+  type(c_ptr), value               :: fichier
+  integer(pdm_l_num_s), intent(in) :: t_n_composantes
+  integer(pdm_l_num_s), pointer    :: n_composantes(:)
+  integer(pdm_l_num_s), intent(in) :: taille_donnee
+  integer(pdm_l_num_s), intent(in) :: n_donnees
+  integer(pdm_g_num_s), pointer    :: indirection(:)
+  type(c_ptr)                      :: donnees
 
-  integer(c_int)                :: c_t_n_composantes
-  integer(c_int)                :: c_taille_donnee
-  integer(c_int)                :: c_n_donnees
-  type(c_ptr)                   :: c_n_composantes = C_NULL_PTR
-  type(c_ptr)                   :: c_indirection   = C_NULL_PTR
+  integer(c_int)                   :: c_t_n_composantes
+  integer(c_int)                   :: c_taille_donnee
+  integer(c_int)                   :: c_n_donnees
+  type(c_ptr)                      :: c_n_composantes = C_NULL_PTR
+  type(c_ptr)                      :: c_indirection   = C_NULL_PTR
 
   interface
     subroutine PDM_io_ecr_par_entrelacee_c (fichier,         &
@@ -814,13 +814,13 @@ subroutine PDM_io_ecr_par_entrelacee (fichier,         &
       use iso_c_binding
       implicit none
 
-      type(c_ptr), value :: fichier
-      integer(c_int)     :: t_n_composantes
-      type(c_ptr), value :: n_composantes
-      integer(c_int)     :: taille_donnee
-      integer(c_int)     :: n_donnees
-      type(c_ptr), value :: indirection
-      type(c_ptr)        :: donnees
+      type(c_ptr),    value :: fichier
+      integer(c_int), value :: t_n_composantes
+      type(c_ptr),    value :: n_composantes
+      integer(c_int), value :: taille_donnee
+      integer(c_int), value :: n_donnees
+      type(c_ptr),    value :: indirection
+      type(c_ptr),    value :: donnees
 
     end subroutine PDM_io_ecr_par_entrelacee_c
   end interface
@@ -868,22 +868,22 @@ subroutine PDM_io_ecr_par_bloc (fichier,         &
   use iso_c_binding
   implicit none
 
-  type(c_ptr), value            :: fichier
-  integer(pdm_l_num_s)          :: t_n_composantes
-  integer(pdm_l_num_s), pointer :: n_composantes(:)
-  integer(pdm_l_num_s)          :: taille_donnee
-  integer(pdm_l_num_s)          :: n_donnees
-  integer(pdm_g_num_s)          :: debut_bloc
-  type(c_ptr)                   :: donnees
+  type(c_ptr), value               :: fichier
+  integer(pdm_l_num_s), intent(in) :: t_n_composantes
+  integer(pdm_l_num_s), pointer    :: n_composantes(:)
+  integer(pdm_l_num_s), intent(in) :: taille_donnee
+  integer(pdm_l_num_s), intent(in) :: n_donnees
+  integer(pdm_g_num_s), intent(in) :: debut_bloc
+  type(c_ptr)                      :: donnees
 
-  integer(c_int)                :: c_t_n_composantes
-  integer(c_int)                :: c_taille_donnee
-  integer(c_int)                :: c_n_donnees
-  type(c_ptr)                   :: c_n_composantes = C_NULL_PTR
+  integer(c_int)                   :: c_t_n_composantes
+  integer(c_int)                   :: c_taille_donnee
+  integer(c_int)                   :: c_n_donnees
+  type(c_ptr)                      :: c_n_composantes = C_NULL_PTR
 #ifdef PDM_LONG_G_NUM
-  integer(c_long)               :: c_debut_bloc
+  integer(c_long)                  :: c_debut_bloc
 #else
-  integer(c_int)                :: c_debut_bloc
+  integer(c_int)                   :: c_debut_bloc
 #endif
 
   interface
@@ -899,16 +899,16 @@ subroutine PDM_io_ecr_par_bloc (fichier,         &
       implicit none
 
       type(c_ptr),     value :: fichier
-      integer(c_int)         :: t_n_composantes
+      integer(c_int),  value :: t_n_composantes
       type(c_ptr),     value :: n_composantes
-      integer(c_int)         :: taille_donnee
-      integer(c_int)         :: n_donnees
+      integer(c_int),  value :: taille_donnee
+      integer(c_int),  value :: n_donnees
 #ifdef PDM_LONG_G_NUM
       integer(c_long), value :: debut_bloc
 #else
       integer(c_int),  value :: debut_bloc
 #endif
-      type(c_ptr)            :: donnees
+      type(c_ptr),     value :: donnees
 
     end subroutine PDM_io_ecr_par_bloc_c
   end interface
@@ -1150,7 +1150,7 @@ subroutine PDM_io_swap_endian (taille_donnee, &
   integer, intent(in) :: taille_donnee
   integer, intent(in) :: n_donnees
   type(c_ptr), value  :: donnees
-  type(c_ptr)         :: resultats
+  type(c_ptr), value  :: resultats
 
   integer(c_size_t)   :: c_taille_donnee
   integer(c_size_t)   :: c_n_donnees
@@ -1200,13 +1200,13 @@ subroutine PDM_io_fmt_donnee_set (fichier,    &
   use iso_c_binding
   implicit none
 
-  type(c_ptr), value :: fichier
-  integer            :: n_char_fmt
-  integer            :: data_type
-  character(len=*)   :: fmt
+  type(c_ptr), value  :: fichier
+  integer, intent(in) :: n_char_fmt
+  integer, intent(in) :: data_type
+  character(len=*)    :: fmt
 
-  integer(c_int)     :: c_n_char_fmt
-  integer(c_int)     :: c_data_type
+  integer(c_int)      :: c_n_char_fmt
+  integer(c_int)      :: c_data_type
 
   interface
     subroutine PDM_io_fmt_donnee_set_c (fichier,    &
@@ -1293,21 +1293,21 @@ subroutine PDM_io_n_donnees_get (fichier,         &
   use iso_c_binding
   implicit none
 
-  type(c_ptr), value            :: fichier
-  integer                       :: t_n_composantes
-  integer(pdm_l_num_s), pointer :: n_composantes(:)
-  integer(pdm_l_num_s)          :: n_donnees
-  integer(pdm_g_num_s), pointer :: indirection(:)
-  integer(pdm_g_num_s)          :: taille
+  type(c_ptr), value                :: fichier
+  integer, intent(in)               :: t_n_composantes
+  integer(pdm_l_num_s), pointer     :: n_composantes(:)
+  integer(pdm_l_num_s), intent(in)  :: n_donnees
+  integer(pdm_g_num_s), pointer     :: indirection(:)
+  integer(pdm_g_num_s), intent(out) :: taille
 
-  integer(c_int)                :: c_t_n_composantes
-  type(c_ptr)                   :: c_n_composantes = C_NULL_PTR
-  integer(c_int)                :: c_n_donnees
-  type(c_ptr)                   :: c_indirection   = C_NULL_PTR
+  integer(c_int)                    :: c_t_n_composantes
+  type(c_ptr)                       :: c_n_composantes = C_NULL_PTR
+  integer(c_int)                    :: c_n_donnees
+  type(c_ptr)                       :: c_indirection   = C_NULL_PTR
 #ifdef PDM_LONG_G_NUM
-  integer(c_long)               :: c_taille
+  integer(c_long)                   :: c_taille
 #else
-  integer(c_int)                :: c_taille
+  integer(c_int)                    :: c_taille
 #endif
 
   interface
@@ -1374,15 +1374,15 @@ subroutine PDM_io_tab_ecr_ajout_donnees (num_var_cedre, &
   use iso_c_binding
   implicit none
 
-  integer(pdm_l_num_s)          :: num_var_cedre
-  integer(pdm_l_num_s)          :: i_part
-  integer(pdm_l_num_s), pointer :: n_composantes(:)
-  integer(pdm_l_num_s)          :: n_donnees
-  integer(pdm_g_num_s), pointer :: indirection(:)
-  type(c_ptr), value            :: donnees
+  integer(pdm_l_num_s), intent(in) :: num_var_cedre
+  integer(pdm_l_num_s), intent(in) :: i_part
+  integer(pdm_l_num_s), pointer    :: n_composantes(:)
+  integer(pdm_l_num_s), intent(in) :: n_donnees
+  integer(pdm_g_num_s), pointer    :: indirection(:)
+  type(c_ptr), value               :: donnees
 
-  type(c_ptr)                   :: c_n_composantes = C_NULL_PTR
-  type(c_ptr)                   :: c_indirection   = C_NULL_PTR
+  type(c_ptr)                      :: c_n_composantes = C_NULL_PTR
+  type(c_ptr)                      :: c_indirection   = C_NULL_PTR
 
   interface
     subroutine PDM_io_tab_ecr_ajout_donnees_c (num_var_cedre, &
@@ -1439,15 +1439,15 @@ subroutine PDM_io_tab_lec_ajout_donnees (num_var_cedre, &
   use iso_c_binding
   implicit none
 
-  integer(pdm_l_num_s)          :: num_var_cedre
-  integer(pdm_l_num_s)          :: i_part
-  integer(pdm_l_num_s), pointer :: n_composantes(:)
-  integer(pdm_l_num_s)          :: n_donnees
-  integer(pdm_g_num_s), pointer :: indirection(:)
-  type(c_ptr), value            :: donnees
+  integer(pdm_l_num_s), intent(in) :: num_var_cedre
+  integer(pdm_l_num_s), intent(in) :: i_part
+  integer(pdm_l_num_s), pointer    :: n_composantes(:)
+  integer(pdm_l_num_s), intent(in) :: n_donnees
+  integer(pdm_g_num_s), pointer    :: indirection(:)
+  type(c_ptr), value               :: donnees
 
-  type(c_ptr)                   :: c_n_composantes = C_NULL_PTR
-  type(c_ptr)                   :: c_indirection   = C_NULL_PTR
+  type(c_ptr)                      :: c_n_composantes = C_NULL_PTR
+  type(c_ptr)                      :: c_indirection   = C_NULL_PTR
 
   interface
     subroutine PDM_io_tab_lec_ajout_donnees_c (num_var_cedre, &

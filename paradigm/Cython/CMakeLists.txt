@@ -42,6 +42,9 @@ file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "
 if (PDM_ENABLE_EXTENSION_PDMA)
   file ( COPY ${PDM_SOURCE_DIR}/extensions/paradigma/Cython/ DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.pxi")
   file ( COPY ${PDM_SOURCE_DIR}/extensions/paradigma/Cython/ DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.py")
+  set(PYX_PDM_HAS_PDMA True)
+else ()
+  set(PYX_PDM_HAS_PDMA False)
 endif()
 
 set (include_dirs "")

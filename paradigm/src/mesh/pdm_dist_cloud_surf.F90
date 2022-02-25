@@ -338,10 +338,10 @@ module pdm_dist_cloud_surf
 
     implicit none
 
-    integer :: mesh_nature
-    integer :: n_point_cloud
-    integer :: f_comm
-    integer :: owner
+    integer, intent(in) :: mesh_nature
+    integer, intent(in) :: n_point_cloud
+    integer, intent(in) :: f_comm
+    integer, intent(in) :: owner
 
     type (c_ptr) :: dcs
 
@@ -387,8 +387,8 @@ module pdm_dist_cloud_surf
     implicit none
 
     type (c_ptr), value                  :: dcs
-    integer                              :: i_point_cloud
-    integer                              :: i_part
+    integer, intent(in)                  :: i_point_cloud
+    integer, intent(in)                  :: i_part
     double precision,            pointer :: closest_elt_distance(:)
     double precision,            pointer :: closest_elt_projected(:,:)
     integer(kind = pdm_g_num_s), pointer :: closest_elt_gnum(:)
@@ -454,9 +454,9 @@ module pdm_dist_cloud_surf
     implicit none
 
     type (c_ptr), value                :: dcs
-    integer                            :: i_point_cloud
-    integer                            :: i_part
-    integer                            :: n_points
+    integer, intent(in)                :: i_point_cloud
+    integer, intent(in)                :: i_part
+    integer, intent(in)                :: n_points
     double precision,          pointer :: coords(:)
     integer(kind=pdm_g_num_s), pointer :: gnum(:)
 
@@ -513,12 +513,12 @@ module pdm_dist_cloud_surf
     implicit none
 
     type (c_ptr)                       :: dcs
-    integer                            :: i_part
-    integer                            :: n_face
+    integer, intent(in)                :: i_part
+    integer, intent(in)                :: n_face
     integer,                   pointer :: face_vtx_idx(:)
     integer,                   pointer :: face_vtx(:)
     integer(kind=pdm_g_num_s), pointer :: face_ln_to_gn(:)
-    integer                            :: n_vtx
+    integer, intent(in)                :: n_vtx
     double precision,          pointer :: coords(:)
     integer(kind=pdm_g_num_s), pointer :: vtx_ln_to_gn(:)
 

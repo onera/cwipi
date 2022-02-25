@@ -335,7 +335,7 @@ PDM_global_mean_field_compute
     }
   }
 
-  PDM_block_to_part_exch (gmean->btp,
+  PDM_block_to_part_exch_in_place (gmean->btp,
                           sizeof(double),
                           PDM_STRIDE_CST_INTERLACED,
                           &gmean->stride,

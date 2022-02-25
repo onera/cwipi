@@ -801,10 +801,10 @@ module pdm_mesh_location
 
   implicit none
 
-  integer        :: mesh_nature
-  integer        :: n_point_cloud
-  integer        :: f_comm
-  integer        :: owner
+  integer, intent(in) :: mesh_nature
+  integer, intent(in) :: n_point_cloud
+  integer, intent(in) :: f_comm
+  integer, intent(in) :: owner
 
   type(c_ptr)    :: mloc
 
@@ -854,9 +854,9 @@ module pdm_mesh_location
 
 
     type (c_ptr), value                :: mloc
-    integer                            :: i_point_cloud
-    integer                            :: i_part
-    integer                            :: n_points
+    integer, intent(in)                :: i_point_cloud
+    integer, intent(in)                :: i_part
+    integer, intent(in)                :: n_points
     double precision,          pointer :: coords(:)
     integer(kind=pdm_g_num_s), pointer :: gnum(:)
 
@@ -923,16 +923,16 @@ module pdm_mesh_location
 
 
     type (c_ptr), value                :: mloc
-    integer                            :: i_part
-    integer                            :: n_cell
+    integer, intent(in)                :: i_part
+    integer, intent(in)                :: n_cell
     integer(kind=pdm_l_num_s), pointer :: cell_face_idx(:)
     integer(kind=pdm_l_num_s), pointer :: cell_face(:)
     integer(kind=pdm_g_num_s), pointer :: cell_ln_to_gn(:)
-    integer                            :: n_face
+    integer, intent(in)                :: n_face
     integer(kind=pdm_l_num_s), pointer :: face_vtx_idx(:)
     integer(kind=pdm_l_num_s), pointer :: face_vtx(:)
     integer(kind=pdm_g_num_s), pointer :: face_ln_to_gn(:)
-    integer                            :: n_vtx
+    integer, intent(in)                :: n_vtx
     double precision,          pointer :: coords(:)
     integer(kind=pdm_g_num_s), pointer :: vtx_ln_to_gn(:)
 
@@ -1020,16 +1020,16 @@ module pdm_mesh_location
 
 
     type (c_ptr), value                :: mloc
-    integer                            :: i_part
-    integer                            :: n_face
+    integer, intent(in)                :: i_part
+    integer, intent(in)                :: n_face
     integer(kind=pdm_l_num_s), pointer :: face_edge_idx(:)
     integer(kind=pdm_l_num_s), pointer :: face_edge(:)
     integer(kind=pdm_g_num_s), pointer :: face_ln_to_gn(:)
-    integer                            :: n_edge
+    integer, intent(in)                :: n_edge
     integer(kind=pdm_l_num_s), pointer :: edge_vtx_idx(:)
     integer(kind=pdm_l_num_s), pointer :: edge_vtx(:)
     integer(kind=pdm_g_num_s), pointer :: edge_ln_to_gn(:)
-    integer                            :: n_vtx
+    integer, intent(in)                :: n_vtx
     double precision,          pointer :: coords(:)
     integer(kind=pdm_g_num_s), pointer :: vtx_ln_to_gn(:)
 
@@ -1099,8 +1099,8 @@ module pdm_mesh_location
     implicit none
 
     type (c_ptr), value :: mloc
-    integer             :: i_point_cloud
-    integer             :: i_part
+    integer, intent(in) :: i_point_cloud
+    integer, intent(in) :: i_part
     integer, pointer    :: located(:)
 
     integer(c_int)      :: c_i_point_cloud
@@ -1148,8 +1148,8 @@ module pdm_mesh_location
     implicit none
 
     type (c_ptr), value :: mloc
-    integer             :: i_point_cloud
-    integer             :: i_part
+    integer, intent(in) :: i_point_cloud
+    integer, intent(in) :: i_part
     integer, pointer    :: unlocated(:)
 
     integer(c_int)      :: c_i_point_cloud
@@ -1204,8 +1204,8 @@ module pdm_mesh_location
 
 
     type (c_ptr), value                :: mloc
-    integer                            :: i_point_cloud
-    integer                            :: i_part
+    integer, intent(in)                :: i_point_cloud
+    integer, intent(in)                :: i_part
     integer(kind=pdm_g_num_s), pointer :: location(:)
     double precision,          pointer :: dist2(:)
     double precision,          pointer :: projected_coords(:,:)
@@ -1282,8 +1282,8 @@ module pdm_mesh_location
 
 
     type (c_ptr), value                :: mloc
-    integer                            :: i_part
-    integer                            :: i_point_cloud
+    integer, intent(in)                :: i_part
+    integer, intent(in)                :: i_point_cloud
     integer(kind=pdm_l_num_s), pointer :: elt_pts_inside_idx(:)
     integer(kind=pdm_g_num_s), pointer :: points_gnum(:)
     double precision,          pointer :: points_coords(:,:)

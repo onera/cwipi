@@ -210,21 +210,15 @@ end subroutine PDM_dcube_gen_data_get_cf
       use iso_c_binding
       implicit none
 
-
-      integer                      :: f_comm
-      integer                      :: owner
-
-
-      integer (kind = pdm_g_num_s) :: n_vtx_seg
-      double precision             :: length
-      double precision             :: zero_x, zero_y, zero_z
-
-      type (c_ptr)                 :: dcube
-
+      integer,              intent(in) :: f_comm
+      integer,              intent(in) :: owner
+      integer(pdm_g_num_s), intent(in) :: n_vtx_seg
+      double precision,     intent(in) :: length
+      double precision,     intent(in) :: zero_x, zero_y, zero_z
+      type (c_ptr)                     :: dcube
 
       integer(c_int)               :: c_comm
       integer(c_int)               :: c_owner
-
 #ifdef PDM_LONG_G_NUM
       integer (c_long)             :: c_n_vtx_seg
 #else
@@ -280,21 +274,21 @@ subroutine PDM_dcube_gen_dim_get_ (dcube,        &
   use iso_c_binding
   implicit none
 
-  type(c_ptr), value :: dcube
+  type(c_ptr), value   :: dcube
 
-  integer            :: n_face_group
-  integer            :: dn_cell
-  integer            :: dn_face
-  integer            :: dn_vtx
-  integer            :: sface_vtx
-  integer            :: sface_group
+  integer, intent(out) :: n_face_group
+  integer, intent(out) :: dn_cell
+  integer, intent(out) :: dn_face
+  integer, intent(out) :: dn_vtx
+  integer, intent(out) :: sface_vtx
+  integer, intent(out) :: sface_group
 
-  integer(c_int)     :: c_n_face_group
-  integer(c_int)     :: c_dn_cell
-  integer(c_int)     :: c_dn_face
-  integer(c_int)     :: c_dn_vtx
-  integer(c_int)     :: c_sface_vtx
-  integer(c_int)     :: c_sface_group
+  integer(c_int)       :: c_n_face_group
+  integer(c_int)       :: c_dn_cell
+  integer(c_int)       :: c_dn_face
+  integer(c_int)       :: c_dn_vtx
+  integer(c_int)       :: c_sface_vtx
+  integer(c_int)       :: c_sface_group
 
   call PDM_dcube_gen_dim_get_cf(dcube,          &
                                 c_n_face_group, &
