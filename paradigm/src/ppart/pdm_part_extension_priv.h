@@ -11,6 +11,7 @@
 
 // #include "pdm_multipart.h"
 #include "pdm_part_priv.h"
+#include "pdm_part_domain_interface.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,6 +48,7 @@ struct _pdm_part_extension_t {
   int            *n_part_idx;
 
   _part_t  **parts;
+  PDM_part_domain_interface_t  *pdi;
 
   /* Store for each depth / each domain / each part */
   int **neighbor_idx;

@@ -11,6 +11,7 @@
 
 #include "pdm_mpi.h"
 #include "pdm.h"
+#include "pdm_part_domain_interface.h"
 
 /*=============================================================================
  * Macro definitions
@@ -163,12 +164,12 @@ PDM_part_extension_set_part
 );
 
 
-// void
-// PDM_part_extension_part_domain_interface_shared_set
-// (
-//   PDM_part_extension_t      *part_ext,
-//   PDM_part_domain_interface *pdi
-// );
+void
+PDM_part_extension_part_domain_interface_shared_set
+(
+  PDM_part_extension_t        *part_ext,
+  PDM_part_domain_interface_t *pdi
+);
 
 // void
 // PDM_part_extension_n_domain_interface_set

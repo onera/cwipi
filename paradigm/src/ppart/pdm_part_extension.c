@@ -2813,6 +2813,8 @@ PDM_part_extension_create
   part_ext->border_vtx_ln_to_gn           = NULL;
   part_ext->border_face_group_ln_to_gn    = NULL;
 
+  part_ext->pdi = NULL;
+
   return part_ext;
 }
 
@@ -2899,6 +2901,17 @@ PDM_part_extension_set_part
   part_ext->parts[i_domain][i_part].vtx = vtx_coord;
 }
 
+
+
+void
+PDM_part_extension_part_domain_interface_shared_set
+(
+  PDM_part_extension_t        *part_ext,
+  PDM_part_domain_interface_t *pdi
+)
+{
+  part_ext->pdi = pdi;
+}
 
 /**
  *
