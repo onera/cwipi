@@ -124,6 +124,18 @@ PDM_MPI_Comm                 comm
     dom_intrf->is_result[i] = 0;
   }
 
+  dom_intrf->translation_vect   = (double **) malloc(n_interface * sizeof(double *));
+  dom_intrf->rotation_direction = (double **) malloc(n_interface * sizeof(double *));
+  dom_intrf->rotation_center    = (double **) malloc(n_interface * sizeof(double *));
+  dom_intrf->rotation_angle     = (double  *) malloc(n_interface * sizeof(double  ));
+
+  for(int i_interface = 0; i_interface < n_interface; ++i_interface) {
+    dom_intrf->translation_vect  [i_interface] = NULL;
+    dom_intrf->rotation_direction[i_interface] = NULL;
+    dom_intrf->rotation_center   [i_interface] = NULL;
+    dom_intrf->rotation_angle    [i_interface] = 0.;
+  }
+
   return dom_intrf;
 }
 
@@ -272,6 +284,126 @@ PDM_part_domain_interface_free
   free(dom_intrf->interface_ids_face_idx );
   free(dom_intrf->interface_dom_face     );
 
+  for(int i_interface = 0; i_interface < dom_intrf->n_interface; ++i_interface) {
+    if(dom_intrf->translation_vect[i_interface]   != NULL) {
+      free(dom_intrf->translation_vect[i_interface]);
+      dom_intrf->translation_vect[i_interface] = NULL;
+    }
+    if(dom_intrf->rotation_direction[i_interface]   != NULL) {
+      free(dom_intrf->rotation_direction[i_interface]);
+      dom_intrf->rotation_direction[i_interface] = NULL;
+    }
+    if(dom_intrf->rotation_center[i_interface]   != NULL) {
+      free(dom_intrf->rotation_center[i_interface]);
+      dom_intrf->rotation_center[i_interface] = NULL;
+    }
+  }
+
+  free(dom_intrf->translation_vect  );
+  free(dom_intrf->rotation_direction);
+  free(dom_intrf->rotation_center   );
+  free(dom_intrf->rotation_angle    );
 
   free(dom_intrf);
+}
+
+
+
+
+void
+PDM_part_domain_interface_translation_set
+(
+        PDM_part_domain_interface_t  *dom_intrf,
+        int                           i_interface,
+  const double                       *vect
+)
+{
+  assert(i_interface < dom_intrf->n_interface);
+  assert(dom_intrf->translation_vect[i_interface] == NULL);
+
+  dom_intrf->translation_vect[i_interface] = (double *) malloc( 3 * sizeof(double));
+
+  for(int i = 0; i < 3; ++i) {
+    dom_intrf->translation_vect[i_interface][i] = vect[i];
+  }
+
+}
+
+void
+PDM_part_domain_interface_rotation_set
+(
+        PDM_part_domain_interface_t  *dom_intrf,
+  const int                           i_interface,
+  const double                       *direction,
+  const double                       *center,
+  const double                        angle
+)
+{
+  assert(i_interface < dom_intrf->n_interface);
+  assert(dom_intrf->rotation_direction[i_interface] == NULL);
+  assert(dom_intrf->rotation_center   [i_interface] == NULL);
+
+  dom_intrf->rotation_direction[i_interface] = (double *) malloc( 3 * sizeof(double));
+  dom_intrf->rotation_center   [i_interface] = (double *) malloc( 3 * sizeof(double));
+
+  for(int i = 0; i < 3; ++i) {
+    dom_intrf->rotation_direction[i_interface][i] = direction[i];
+    dom_intrf->rotation_center   [i_interface][i] = center   [i];
+  }
+  dom_intrf->rotation_angle[i_interface] = angle;
+}
+
+
+
+void
+PDM_part_domain_interface_translation_get
+(
+        PDM_part_domain_interface_t  *dom_intrf,
+        int                           i_interface,
+        double                      **vect
+)
+{
+  assert(i_interface < dom_intrf->n_interface);
+  if(dom_intrf->translation_vect[i_interface] != NULL){
+
+    *vect = (double *) malloc( 3 * sizeof(double));
+    double* _vect = *vect;
+
+    for(int i = 0; i < 3; ++i) {
+      _vect[i] = dom_intrf->translation_vect[i_interface][i];
+    }
+  } else {
+    *vect = NULL;
+  }
+}
+
+void
+PDM_part_domain_interface_rotation_get
+(
+        PDM_part_domain_interface_t  *dom_intrf,
+  const int                           i_interface,
+        double                      **direction,
+        double                      **center,
+        double                       *angle
+)
+{
+  assert(i_interface < dom_intrf->n_interface);
+  if(dom_intrf->rotation_direction[i_interface] != NULL) {
+    assert(dom_intrf->rotation_center   [i_interface] != NULL);
+
+    *direction = (double *) malloc( 3 * sizeof(double));
+    *center    = (double *) malloc( 3 * sizeof(double));
+    double *_direction = *direction;
+    double *_center    = *center   ;
+
+    for(int i = 0; i < 3; ++i) {
+      _direction[i] = dom_intrf->rotation_direction[i_interface][i];
+      _center   [i] = dom_intrf->rotation_center   [i_interface][i];
+    }
+    *angle = dom_intrf->rotation_angle[i_interface];
+  } else {
+    *direction = NULL;
+    *center    = NULL;
+    *angle     = 0;
+  }
 }

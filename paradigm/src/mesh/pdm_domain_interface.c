@@ -2058,19 +2058,20 @@ static void _domain_interface_face_to_vertex
  * Public function definitions
  *============================================================================*/
 
-PDM_domain_interface_t* PDM_domain_interface_create
+PDM_domain_interface_t*
+PDM_domain_interface_create
 (
-const int                   n_interface,
-const int                   n_domain,
-PDM_domain_interface_mult_t multidomain_interface,
-PDM_ownership_t             ownership,
-PDM_MPI_Comm                comm
+const int                         n_interface,
+const int                         n_domain,
+      PDM_domain_interface_mult_t multidomain_interface,
+      PDM_ownership_t             ownership,
+      PDM_MPI_Comm                comm
 )
 {
   PDM_domain_interface_t *dom_intrf = (PDM_domain_interface_t *) malloc (sizeof(PDM_domain_interface_t));
   dom_intrf->n_interface       = n_interface;
-  dom_intrf->n_domain            = n_domain;
-  dom_intrf->multidomain_intrf   = multidomain_interface;
+  dom_intrf->n_domain          = n_domain;
+  dom_intrf->multidomain_intrf = multidomain_interface;
   dom_intrf->ownership         = ownership;
   dom_intrf->comm              = comm;
 
@@ -2081,8 +2082,21 @@ PDM_MPI_Comm                comm
   dom_intrf->interface_ids_vtx   = NULL;
   dom_intrf->interface_dom_vtx   = NULL;
 
-  for (int i = 0; i < PDM_BOUND_TYPE_MAX; i++)
+  for (int i = 0; i < PDM_BOUND_TYPE_MAX; i++) {
     dom_intrf->is_result[i] = 0;
+  }
+
+  dom_intrf->translation_vect   = (double **) malloc(n_interface * sizeof(double *));
+  dom_intrf->rotation_direction = (double **) malloc(n_interface * sizeof(double *));
+  dom_intrf->rotation_center    = (double **) malloc(n_interface * sizeof(double *));
+  dom_intrf->rotation_angle     = (double  *) malloc(n_interface * sizeof(double  ));
+
+  for(int i_interface = 0; i_interface < n_interface; ++i_interface) {
+    dom_intrf->translation_vect  [i_interface] = NULL;
+    dom_intrf->rotation_direction[i_interface] = NULL;
+    dom_intrf->rotation_center   [i_interface] = NULL;
+    dom_intrf->rotation_angle    [i_interface] = 0.;
+  }
 
   return dom_intrf;
 }
@@ -2670,7 +2684,8 @@ PDM_domain_interface_translate_vtx2face
 
 }
 
-void PDM_domain_interface_get
+void
+PDM_domain_interface_get
 (
  PDM_domain_interface_t *dom_intrf,
  PDM_bound_type_t        interface_kind,
@@ -2697,7 +2712,8 @@ void PDM_domain_interface_get
   }
 }
 
-int PDM_domain_interface_get_as_graph
+int
+PDM_domain_interface_get_as_graph
 (
  PDM_domain_interface_t *dom_intrf,
  PDM_bound_type_t        interface_kind,
@@ -2772,6 +2788,27 @@ void PDM_domain_interface_free
       }
     }
   }
+
+  for(int i_interface = 0; i_interface < dom_intrf->n_interface; ++i_interface) {
+    if(dom_intrf->translation_vect[i_interface]   != NULL) {
+      free(dom_intrf->translation_vect[i_interface]);
+      dom_intrf->translation_vect[i_interface] = NULL;
+    }
+    if(dom_intrf->rotation_direction[i_interface]   != NULL) {
+      free(dom_intrf->rotation_direction[i_interface]);
+      dom_intrf->rotation_direction[i_interface] = NULL;
+    }
+    if(dom_intrf->rotation_center[i_interface]   != NULL) {
+      free(dom_intrf->rotation_center[i_interface]);
+      dom_intrf->rotation_center[i_interface] = NULL;
+    }
+  }
+
+  free(dom_intrf->translation_vect  );
+  free(dom_intrf->rotation_direction);
+  free(dom_intrf->rotation_center   );
+  free(dom_intrf->rotation_angle    );
+
 
   free(dom_intrf);
 }
@@ -3573,11 +3610,125 @@ PDM_domain_interface_to_part_domain_interface
 
   }
 
+  /* Copy information of translation/rotation */
+  for(int i_interface = 0; i_interface < dom_intrf->n_interface; ++i_interface) {
+    double* translation_vect   = NULL;
+    double* rotation_direction = NULL;
+    double* rotation_center    = NULL;
+    double  rotation_angle     = 0;
+    PDM_domain_interface_translation_get(dom_intrf, i_interface, &translation_vect);
+    PDM_domain_interface_rotation_get   (dom_intrf, i_interface, &rotation_direction, &rotation_center, &rotation_angle);
 
-
+    if(translation_vect != NULL) {
+      PDM_part_domain_interface_translation_set(pditrf, i_interface, translation_vect);
+      free(translation_vect);
+    }
+    if(rotation_direction != NULL){
+      PDM_part_domain_interface_rotation_set(pditrf, i_interface, rotation_direction, rotation_center, rotation_angle);
+      free(rotation_direction);
+      free(rotation_center);
+    }
+  }
 
   return pditrf;
 }
+
+
+
+void
+PDM_domain_interface_translation_set
+(
+        PDM_domain_interface_t  *dom_intrf,
+        int                      i_interface,
+  const double                  *vect
+)
+{
+  assert(i_interface < dom_intrf->n_interface);
+  assert(dom_intrf->translation_vect[i_interface] == NULL);
+
+  dom_intrf->translation_vect[i_interface] = (double *) malloc( 3 * sizeof(double));
+
+  for(int i = 0; i < 3; ++i) {
+    dom_intrf->translation_vect[i_interface][i] = vect[i];
+  }
+
+}
+
+void
+PDM_domain_interface_rotation_set
+(
+        PDM_domain_interface_t  *dom_intrf,
+  const int                      i_interface,
+  const double                  *direction,
+  const double                  *center,
+  const double                   angle
+)
+{
+  assert(i_interface < dom_intrf->n_interface);
+  assert(dom_intrf->rotation_direction[i_interface] == NULL);
+  assert(dom_intrf->rotation_center   [i_interface] == NULL);
+
+  for(int i = 0; i < 3; ++i) {
+    dom_intrf->rotation_direction[i_interface][i] = direction[i];
+    dom_intrf->rotation_center   [i_interface][i] = center   [i];
+  }
+  dom_intrf->rotation_angle[i_interface] = angle;
+}
+
+
+void
+PDM_domain_interface_translation_get
+(
+        PDM_domain_interface_t       *dom_intrf,
+        int                           i_interface,
+        double                      **vect
+)
+{
+  assert(i_interface < dom_intrf->n_interface);
+  if(dom_intrf->translation_vect[i_interface] != NULL){
+
+    *vect = (double *) malloc( 3 * sizeof(double));
+    double* _vect = *vect;
+
+    for(int i = 0; i < 3; ++i) {
+      _vect[i] = dom_intrf->translation_vect[i_interface][i];
+    }
+  } else {
+    *vect = NULL;
+  }
+}
+
+void
+PDM_domain_interface_rotation_get
+(
+        PDM_domain_interface_t       *dom_intrf,
+  const int                           i_interface,
+        double                      **direction,
+        double                      **center,
+        double                       *angle
+)
+{
+  assert(i_interface < dom_intrf->n_interface);
+  if(dom_intrf->rotation_direction[i_interface] != NULL) {
+    assert(dom_intrf->rotation_center   [i_interface] != NULL);
+
+    *direction = (double *) malloc( 3 * sizeof(double));
+    *center    = (double *) malloc( 3 * sizeof(double));
+    double *_direction = *direction;
+    double *_center    = *center   ;
+
+    for(int i = 0; i < 3; ++i) {
+      _direction[i] = dom_intrf->rotation_direction[i_interface][i];
+      _center   [i] = dom_intrf->rotation_center   [i_interface][i];
+    }
+    *angle = dom_intrf->rotation_angle[i_interface];
+  } else {
+    *direction = NULL;
+    *center    = NULL;
+    *angle     = 0;
+  }
+}
+
 
 #ifdef __cplusplus
 }

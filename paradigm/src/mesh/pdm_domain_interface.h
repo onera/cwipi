@@ -134,6 +134,41 @@ PDM_domain_interface_to_part_domain_interface
 );
 
 
+void
+PDM_domain_interface_translation_set
+(
+        PDM_domain_interface_t  *dom_intrf,
+        int                      i_interface,
+  const double                  *vect
+);
+
+void
+PDM_domain_interface_rotation_set
+(
+        PDM_domain_interface_t  *dom_intrf,
+  const int                      i_interface,
+  const double                  *direction,
+  const double                  *center,
+  const double                   angle
+);
+
+void
+PDM_domain_interface_translation_get
+(
+        PDM_domain_interface_t       *dom_intrf,
+        int                           i_interface,
+        double                      **vect
+);
+
+void
+PDM_domain_interface_rotation_get
+(
+        PDM_domain_interface_t       *dom_intrf,
+  const int                           i_interface,
+        double                      **direction,
+        double                      **center,
+        double                       *angle
+);
 
 #ifdef __cplusplus
 }

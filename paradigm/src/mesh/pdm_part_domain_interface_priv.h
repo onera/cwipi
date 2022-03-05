@@ -56,6 +56,11 @@ struct _pdm_part_domain_interface_t {
   int                         ****interface_ids_vtx_idx; // Size = interface_pn_vtx
   int                         ****interface_dom_vtx;     // (i_dom_cur, i_dom_opp)
 
+  double                      **translation_vect;
+  double                      **rotation_direction;
+  double                      **rotation_center;
+  double                       *rotation_angle;
+
   PDM_ownership_t ownership;
   int is_result[PDM_BOUND_TYPE_MAX];
 
