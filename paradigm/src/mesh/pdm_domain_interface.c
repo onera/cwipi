@@ -2659,6 +2659,7 @@ PDM_domain_interface_translate_vtx2face
                                                  dface_vtx_idx,
                                                  dface_vtx,
                                                  dom_intrf->comm);
+  abort(); // A finir PDM_domain_interface_translate_entity1_entity2
 
   // dom_intrf->is_result[PDM_BOUND_TYPE_FACE] = 1;
 

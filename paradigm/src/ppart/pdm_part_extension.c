@@ -398,8 +398,8 @@ _create_cell_graph_comm
   PDM_MPI_Comm_size(part_ext->comm, &n_rank);
 
   assert(part_ext->n_domain == 1);
-  /* Si multidomain on fait un shift et tt roule */
 
+  /* Si multidomain on fait un shift et tt roule */
   int n_tot_all_domain = 0;
   int n_part_loc_all_domain = 0;
   for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
@@ -475,6 +475,38 @@ _create_cell_graph_comm
       }
 
       /* Ici il faut faire les raccords entre domaine ---> Count */
+      printf(" Begin part_extension with domain \n");
+      PDM_bound_type_t interface_kind = PDM_BOUND_TYPE_MAX;
+      if(part_ext->extend_type == PDM_EXTEND_FROM_FACE) {
+        interface_kind = PDM_BOUND_TYPE_FACE;
+      } else if (part_ext->extend_type == PDM_EXTEND_FROM_VTX){
+        interface_kind = PDM_BOUND_TYPE_VTX;
+      } else {
+        PDM_error(__FILE__, __LINE__, 0, "PDM_part_extension_compute wrong extend_type \n");
+      }
+
+      int            n_interface        = 0;
+      int           *interface_pn       = NULL;
+      PDM_g_num_t  **interface_ln_to_gn = NULL;
+      int          **interface_ids      = NULL;
+      int          **interface_ids_idx  = NULL;
+      int          **interface_dom      = NULL;
+      if(part_ext->pdi != NULL) {
+        PDM_part_domain_interface_get(part_ext->pdi,
+                                      interface_kind,
+                                      i_domain,
+                                      i_part,
+                                      &interface_pn,
+                                      &interface_ln_to_gn,
+                                      &interface_ids,
+                                      &interface_ids_idx,
+                                      &interface_dom);
+        n_interface = PDM_part_domain_interface_n_interface_get(part_ext->pdi);
+      }
+
+      printf("n_interface  = %i\n", n_interface);
+
+
       part_ext->neighbor_desc[i_part+shift_part] = (int *) malloc( 3 * _neighbor_idx[part_ext->n_entity_bound[i_part+shift_part]] * sizeof(int) );
       int* _neighbor_desc = part_ext->neighbor_desc[i_part+shift_part];
 

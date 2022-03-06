@@ -502,6 +502,7 @@ int main
                                                              n_depth,
                                                              comm,
                                                              PDM_OWNERSHIP_KEEP);
+  PDM_part_extension_part_domain_interface_shared_set(part_ext, pdi);
   int shift_part = 0;
   for (int i_dom = 0; i_dom < n_domain; i_dom++) {
     for (int i_part = 0; i_part < pn_n_part[i_dom]; i_part++){

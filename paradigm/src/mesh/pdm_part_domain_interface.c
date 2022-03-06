@@ -175,7 +175,50 @@ PDM_part_domain_interface_set
   }
 }
 
+void
+PDM_part_domain_interface_get
+(
+ PDM_part_domain_interface_t   *dom_intrf,
+ PDM_bound_type_t               interface_kind,
+ int                            i_domain,
+ int                            i_part,
+ int                          **interface_pn,
+ PDM_g_num_t                 ***interface_ln_to_gn,
+ int                         ***interface_ids,
+ int                         ***interface_ids_idx,
+ int                         ***interface_dom
+)
+{
+  assert(i_part < dom_intrf->n_part[i_domain]);
 
+  assert (dom_intrf != NULL);
+  if (interface_kind == PDM_BOUND_TYPE_VTX) {
+    *interface_pn       = dom_intrf->interface_pn_vtx      [i_domain][i_part];
+    *interface_ln_to_gn = dom_intrf->interface_vtx_ln_to_gn[i_domain][i_part];
+    *interface_ids      = dom_intrf->interface_ids_vtx     [i_domain][i_part];
+    *interface_ids_idx  = dom_intrf->interface_ids_vtx_idx [i_domain][i_part];
+    *interface_dom      = dom_intrf->interface_dom_vtx     [i_domain][i_part];
+  }
+  else if (interface_kind == PDM_BOUND_TYPE_FACE) {
+    *interface_pn       = dom_intrf->interface_pn_face      [i_domain][i_part];
+    *interface_ln_to_gn = dom_intrf->interface_face_ln_to_gn[i_domain][i_part];
+    *interface_ids      = dom_intrf->interface_ids_face     [i_domain][i_part];
+    *interface_ids_idx  = dom_intrf->interface_ids_face_idx [i_domain][i_part];
+    *interface_dom      = dom_intrf->interface_dom_face     [i_domain][i_part];
+  }
+  else {
+    PDM_error(__FILE__, __LINE__, 0, "Kind of interface not supported\n");
+  }
+}
+
+int
+PDM_part_domain_interface_n_interface_get
+(
+ PDM_part_domain_interface_t   *dom_intrf
+)
+{
+  return dom_intrf->n_interface;
+}
 
 void
 PDM_part_domain_interface_free
