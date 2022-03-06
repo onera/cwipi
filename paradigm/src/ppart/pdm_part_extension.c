@@ -467,14 +467,7 @@ _create_cell_graph_comm
         _neighbor_n[i_entity] += 1;
       }
 
-      /* Compute index */
-      _neighbor_idx[0] = 0;
-      for(int i_entity = 0; i_entity < part_ext->n_entity_bound[i_part+shift_part]; ++i_entity) {
-        _neighbor_idx[i_entity+1] = _neighbor_idx[i_entity] + _neighbor_n[i_entity];
-        _neighbor_n[i_entity] = 0;
-      }
-
-      /* Ici il faut faire les raccords entre domaine ---> Count */
+      /* Join between domain */
       printf(" Begin part_extension with domain \n");
       PDM_bound_type_t interface_kind = PDM_BOUND_TYPE_MAX;
       if(part_ext->extend_type == PDM_EXTEND_FROM_FACE) {
@@ -503,6 +496,65 @@ _create_cell_graph_comm
                                       &interface_dom);
         n_interface = PDM_part_domain_interface_n_interface_get(part_ext->pdi);
       }
+
+      for(int i_interface = 0; i_interface < n_interface; ++i_interface) {
+        log_trace("-------------------------------- i_interface = %i  -------------------------------- \n", i_interface);
+        for(int idx_entity = 0; idx_entity < interface_pn[i_interface]; ++idx_entity) {
+
+          // Search the first in list that is in current part/proc
+          int i_proc_cur   = -1;
+          int i_part_cur   = -1;
+          int i_entity_cur = -1;
+          int found        = 0;
+          int idx_current  = -1;
+          for(int j = interface_ids_idx[i_interface][idx_entity]; j < interface_ids_idx[i_interface][idx_entity+1]; ++j) {
+            int i_proc_opp   = interface_ids[i_interface][3*j  ];
+            int i_part_opp   = interface_ids[i_interface][3*j+1];
+            int i_entity_opp = interface_ids[i_interface][3*j+2];
+
+            if(i_proc_opp == i_rank && i_part_opp == i_part) {
+              i_proc_cur   = i_proc_opp;
+              i_part_cur   = i_part_opp;
+              i_entity_cur = i_entity_opp;
+              idx_current  = j;
+              assert(found == 0);
+              found = 1;
+              break;
+            }
+          }
+
+          if(!found) {
+            continue;
+          }
+
+          assert(found == 1);
+
+          log_trace("i_proc_cur = %i | i_part_cur = %i | i_entity_cur = %i \n", i_proc_cur, i_part_cur, i_entity_cur);
+
+          // Only add the oppoite part of the graph
+          for(int j = interface_ids_idx[i_interface][idx_entity]; j < interface_ids_idx[i_interface][idx_entity+1]; ++j) {
+            int i_proc_opp   = interface_ids[i_interface][3*j  ];
+            int i_part_opp   = interface_ids[i_interface][3*j+1];
+            int i_entity_opp = interface_ids[i_interface][3*j+2];
+
+            if(idx_current != j) {
+
+
+              log_trace("\t i_proc_opp = %i | i_part_opp = %i | i_entity_opp = %i \n", i_proc_opp, i_part_opp, i_entity_opp);
+            }
+
+          }
+        }
+      }
+
+
+      /* Compute index */
+      _neighbor_idx[0] = 0;
+      for(int i_entity = 0; i_entity < part_ext->n_entity_bound[i_part+shift_part]; ++i_entity) {
+        _neighbor_idx[i_entity+1] = _neighbor_idx[i_entity] + _neighbor_n[i_entity];
+        _neighbor_n[i_entity] = 0;
+      }
+
 
       printf("n_interface  = %i\n", n_interface);
 
