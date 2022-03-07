@@ -527,6 +527,8 @@ _create_cell_graph_comm
             continue;
           }
 
+          // Il manque une notion de direction sinon on sait pas dans quelle sens va le raccord
+
           assert(found == 1);
 
           log_trace("i_proc_cur = %i | i_part_cur = %i | i_entity_cur = %i \n", i_proc_cur, i_part_cur, i_entity_cur);
