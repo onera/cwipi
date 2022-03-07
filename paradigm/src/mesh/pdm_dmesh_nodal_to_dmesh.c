@@ -26,6 +26,7 @@
 #include "pdm_block_to_part.h"
 #include "pdm_logging.h"
 #include "pdm_dmesh.h"
+#include "pdm_gnum.h"
 #include "pdm_distrib.h"
 #include "pdm_quick_sort.h"
 #include "pdm_para_graph_dual.h"
@@ -691,6 +692,8 @@ PDM_g_num_t  **dmissing_child_parent_g_num
 {
   assert(n_part == 2); // On peux généraliser, et on aura le lien entre tous les niveaux
 
+  PDM_gen_gnum_t* gnum_gen = PDM_gnum_create(3, n_part, PDM_FALSE, 1.e-6, comm, PDM_OWNERSHIP_USER);
+
   PDM_g_num_t **ln_to_gn           = (PDM_g_num_t **) malloc( n_part * sizeof(PDM_g_num_t *));
   int         **part_id            = (int         **) malloc( n_part * sizeof(int         *));
   double      **weight             = (double      **) malloc( n_part * sizeof(double      *));
@@ -717,7 +720,21 @@ PDM_g_num_t  **dmissing_child_parent_g_num
       delmt_entity_vtx_n[i_part][i] = delmt_entity_vtx_idx[i_part][i+1] - delmt_entity_vtx_idx[i_part][i];
     }
     free(delmt_entity_vtx_idx[i_part]);
+
+    PDM_gnum_set_from_parents(gnum_gen, i_part, n_entity_elt_tot[i_part], ln_to_gn[i_part]);
   }
+
+  /*
+   * Compute an extract gnum
+   */
+  PDM_gnum_compute(gnum_gen);
+
+  for(int i_part = 0; i_part < n_part; ++i_part) {
+    free(ln_to_gn[i_part]);
+    ln_to_gn[i_part] = PDM_gnum_get(gnum_gen, i_part);
+    // free(PDM_gnum_get(gnum_gen, i_part));
+  }
+  PDM_gnum_free(gnum_gen);
 
   /*
    * Setup part_to_block to filter all keys

@@ -556,6 +556,10 @@ PDM_boxes_destroy(PDM_boxes_t  *boxes)
   free(boxes->extents);
   free(boxes->origin);
   free(boxes->n_boxes_orig);
+  boxes->g_num = NULL;
+  boxes->extents = NULL;
+  boxes->origin = NULL;
+  boxes->n_boxes_orig = NULL;
 }
 
 
@@ -654,15 +658,11 @@ PDM_box_set_destroy(PDM_box_set_t  **boxes)
 
 
     //Free copied rank boxes
-    free(_boxes->copied_ranks);
-    if ( _boxes->rank_boxes != NULL ) {
-      for (int i = 0; i < _boxes->n_copied_ranks; i++) {
-        PDM_boxes_destroy(&(_boxes->rank_boxes[i]));
-      }
-      free(_boxes->rank_boxes);
-    }
+    PDM_box_set_free_copies(boxes);
+
 
     free(_boxes);
+    _boxes = NULL;
   }
 }
 
@@ -1960,6 +1960,33 @@ PDM_box_copy_boxes_to_ranks
     free(origin);
   }
 
+}
+  
+void
+PDM_box_set_free_copies(PDM_box_set_t  **boxes)
+{
+  if (boxes != NULL) {
+    PDM_box_set_t  *_boxes = *boxes;
+
+    if (_boxes == NULL) {
+      return;
+    }
+
+    if (_boxes->copied_ranks != NULL) {
+      free (_boxes->copied_ranks);
+      _boxes->copied_ranks = NULL;
+    }
+
+    if ( _boxes->rank_boxes != NULL ) {
+      for (int i = 0; i < _boxes->n_copied_ranks; i++) {
+        PDM_boxes_destroy(&(_boxes->rank_boxes[i]));
+      }
+      free(_boxes->rank_boxes);
+      _boxes->rank_boxes = NULL;
+    }
+
+    _boxes->n_copied_ranks = 0;
+  }
 }
 
 

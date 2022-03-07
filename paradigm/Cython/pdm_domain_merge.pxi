@@ -281,6 +281,8 @@ cdef class MultiBlockMerge:
     if not var_stride:
       for i in range(self.n_zone):
         free(_blocks_stride[i])
+    if block_domain is not None:
+      free(_blocks_domain)
     free(_blocks_stride)
     free(_blocks_data)
 

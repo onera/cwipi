@@ -28,7 +28,11 @@ module pdm_pointer_array
   implicit none
 
   integer, parameter :: PDM_TYPE_INT    = 0
+#ifdef PDM_LONG_G_NUM
   integer, parameter :: PDM_TYPE_G_NUM  = 1
+#else
+  integer, parameter :: PDM_TYPE_G_NUM  = 0
+#endif
   integer, parameter :: PDM_TYPE_DOUBLE = 2
 
 
@@ -191,7 +195,7 @@ module pdm_pointer_array
   !! \param [in]  i_part     Id of partition
   !! \param [in]  pointer_f  Pointer to a g_num array
   !!
-
+#ifdef PDM_LONG_G_NUM
   subroutine PDM_pointer_array_part_set_g_num (pa,        &
                                                i_part,    &
                                                pointer_f)
@@ -216,7 +220,7 @@ module pdm_pointer_array
     pa%length(i_part+1) = size(pointer_f)
 
   end subroutine PDM_pointer_array_part_set_g_num
-
+#endif
 
   !>
   !! \brief Set a partition from a Fortran pointer
@@ -381,7 +385,7 @@ module pdm_pointer_array
     integer, intent(in)                :: i_part
     double precision,          pointer :: pointer_f(:)
 
-    if (pa%type .ne. PDM_TYPE_double) then
+    if (pa%type .ne. PDM_TYPE_DOUBLE) then
       print *, "PDM_pointer_array_part_set_double : wrong type"
       stop
     end if

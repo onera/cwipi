@@ -4,6 +4,7 @@
 #include "pdm_distant_neighbor.h"
 #include "pdm_logging.h"
 #include <iostream>
+#include <vector>
 
 
 //  Parenthesis is fields

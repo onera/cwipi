@@ -3178,15 +3178,7 @@ PDM_box_tree_destroy(PDM_box_tree_t  **bt)
   free(_bt->local_data);
 
   // Free copied ranks tree data
-  free(_bt->copied_ranks);
-
-  if ( _bt->rank_data != NULL ) {
-    for (int i = 0; i < _bt->n_copied_ranks; i++) {
-      PDM_box_tree_data_destroy(&(_bt->rank_data[i]));
-    }
-    free(_bt->rank_data);
-  }
-  _bt->n_copied_ranks = 0;
+  // PDM_box_tree_free_copies(_bt);
 
   free(_bt);
   *bt = _bt;
@@ -4810,6 +4802,30 @@ PDM_box_tree_copy_to_ranks
   *n_copied_ranks = bt->n_copied_ranks;
 }
 
+
+void
+PDM_box_tree_free_copies
+(
+ PDM_box_tree_t *bt
+ )
+ {
+  PDM_box_set_free_copies(&bt->boxes);
+
+  if (bt->copied_ranks != NULL) {
+    free (bt->copied_ranks);
+    bt->copied_ranks = NULL;
+  }
+
+  if (bt->rank_data != NULL) {
+    for (int i = 0; i < bt->n_copied_ranks; i++) {
+      PDM_box_tree_data_destroy(&(bt->rank_data[i]));
+    }
+    free(bt->rank_data);
+    bt->rank_data = NULL;
+  }
+
+  bt->n_copied_ranks = 0;
+ }
 
 
 /**

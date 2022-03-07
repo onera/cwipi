@@ -8,9 +8,12 @@
 #include "pdm_dmesh_nodal_priv.h"
 #include "pdm_dcube_nodal_gen.h"
 #include "pdm_dcube_nodal_gen_priv.h"
+#include "pdm_domain_interface.h"
+#include "pdm_domain_interface_priv.h"
 #include "pdm_ho_ordering.h"
 #include "pdm_mpi.h"
 #include "pdm_distrib.h"
+#include "pdm_array.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_priv.h"
@@ -2030,4 +2033,220 @@ PDM_dcube_nodal_gen_build
 
 
   return dcube->dmesh_nodal;
+}
+
+
+void
+PDM_dcube_nodal_cart_topo
+(
+       PDM_MPI_Comm              comm,
+       int                       n_dom_i,
+       int                       n_dom_j,
+       int                       n_dom_k,
+       int                       periodic_i,
+       int                       periodic_j,
+       int                       periodic_k,
+ const PDM_g_num_t               n_vtx_x_in,
+ const PDM_g_num_t               n_vtx_y_in,
+ const PDM_g_num_t               n_vtx_z_in,
+ const double                    length,
+ const double                    zero_x,
+ const double                    zero_y,
+ const double                    zero_z,
+       PDM_Mesh_nodal_elt_t      t_elt,
+ const int                       order,
+       PDM_dcube_nodal_t      ***dcube,
+       PDM_domain_interface_t  **dom_intrf,
+       PDM_ownership_t           owner
+)
+{
+  int dim = PDM_Mesh_nodal_elt_dim_get(t_elt);
+  int n_vtx_x = n_vtx_x_in;
+  int n_vtx_y = n_vtx_y_in;
+  int n_vtx_z = n_vtx_z_in;
+  if (dim == 2) {
+    n_dom_k    = 1;
+    n_vtx_z    = 1;
+    periodic_k = 0;
+  }
+
+  int i_rank;
+  PDM_MPI_Comm_rank(comm, &i_rank);
+
+  int n_interface = n_dom_j*n_dom_k*(n_dom_i - 1 + periodic_i) +
+                    n_dom_k*n_dom_i*(n_dom_j - 1 + periodic_j) +
+                    n_dom_i*n_dom_j*(n_dom_k - 1 + periodic_k);
+
+  int n_domain = n_dom_i * n_dom_j * n_dom_k;
+
+  *dcube = (PDM_dcube_nodal_t **) malloc(sizeof(PDM_dcube_nodal_t *) * n_domain);
+  PDM_dcube_nodal_t** _dcube = *dcube;
+
+  int i_domain = 0;
+
+  for (int k = 0; k < n_dom_k; k++) {
+    for (int j = 0; j < n_dom_j; j++) {
+      for (int i = 0; i < n_dom_i; i++) {
+        _dcube[i_domain] = PDM_dcube_nodal_gen_create(comm,
+                                                      n_vtx_x,
+                                                      n_vtx_y,
+                                                      n_vtx_z,
+                                                      length,
+                                                      zero_x + length*i,
+                                                      zero_y + length*j,
+                                                      zero_z + length*k,
+                                                      t_elt,
+                                                      order,
+                                                      owner);
+        PDM_dcube_nodal_gen_build (_dcube[i_domain]);
+        i_domain++;
+      }
+    }
+  }
+
+
+  *dom_intrf = PDM_domain_interface_create(n_interface,
+                                           n_domain,
+                                           PDM_DOMAIN_INTERFACE_MULT_NO,
+                                           owner,
+                                           comm);
+  PDM_domain_interface_t* _dom_intrf = *dom_intrf;
+
+  /*
+   *  Interfaces
+   */
+  int          *interface_dn  = (int          *) malloc(sizeof(int          ) * n_interface);
+  PDM_g_num_t **interface_ids = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_interface);
+  int         **interface_dom = (int         **) malloc(sizeof(int         *) * n_interface);
+
+  int *i_period = PDM_array_zeros_int(n_interface);
+
+  int i_interface = 0;
+
+  /* i-direction */
+  PDM_g_num_t *distrib_i = PDM_compute_uniform_entity_distribution(comm,
+                                                                   n_vtx_y * n_vtx_z);
+
+  for (int k = 0; k < n_dom_k; k++) {
+    for (int j = 0; j < n_dom_j; j++) {
+      for (int i = 0; i < n_dom_i - 1 + periodic_i; i++) {
+
+        int i_domain1 = i + n_dom_i*(j + n_dom_j*k);// +1?
+        int i_domain2 = (i+1)%n_dom_i + n_dom_i*(j + n_dom_j*k);// +1?
+
+        interface_dn[i_interface] = (int) (distrib_i[i_rank+1] - distrib_i[i_rank]);
+
+        interface_dom[i_interface] = (int *) malloc(sizeof(int) * 2);
+        interface_dom[i_interface][0] = i_domain1;
+        interface_dom[i_interface][1] = i_domain2;
+
+        interface_ids[i_interface] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * 2 * interface_dn[i_interface]);
+
+        for (int idx = 0; idx < interface_dn[i_interface]; idx++) {
+          PDM_g_num_t g = distrib_i[i_rank] + idx;
+
+          PDM_g_num_t jj = g % n_vtx_y;
+          PDM_g_num_t kk = g / n_vtx_y;
+
+          interface_ids[i_interface][2*idx  ] = 1 + n_vtx_x-1 + n_vtx_x*(jj + n_vtx_y*kk);
+          interface_ids[i_interface][2*idx+1] = 1 +             n_vtx_x*(jj + n_vtx_y*kk);
+        }
+
+        if (i == n_dom_i-1) {
+          i_period[i_interface] = 1;
+        }
+
+        i_interface++;
+      }
+    }
+  }
+  free(distrib_i);
+
+  /* j-direction */
+  PDM_g_num_t *distrib_j = PDM_compute_uniform_entity_distribution(comm,
+                                                                   n_vtx_x * n_vtx_z);
+
+  for (int k = 0; k < n_dom_k; k++) {
+    for (int j = 0; j < n_dom_j - 1 + periodic_j; j++) {
+      for (int i = 0; i < n_dom_i; i++) {
+
+        int i_domain1 = i + n_dom_i*(j + n_dom_j*k);// +1?
+        int i_domain2 = i + n_dom_i*((j+1)%n_dom_j + n_dom_j*k);// +1?
+
+        interface_dn[i_interface] = (int) (distrib_j[i_rank+1] - distrib_j[i_rank]);
+
+        interface_dom[i_interface] = (int *) malloc(sizeof(int) * 2);
+        interface_dom[i_interface][0] = i_domain1;
+        interface_dom[i_interface][1] = i_domain2;
+
+        interface_ids[i_interface] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * 2 * interface_dn[i_interface]);
+
+        for (int idx = 0; idx < interface_dn[i_interface]; idx++) {
+          PDM_g_num_t g = distrib_j[i_rank] + idx;
+
+          PDM_g_num_t kk = g % n_vtx_z;
+          PDM_g_num_t ii = g / n_vtx_z;
+
+          interface_ids[i_interface][2*idx  ] = 1 + ii + n_vtx_x*(n_vtx_y-1 + n_vtx_y*kk);
+          interface_ids[i_interface][2*idx+1] = 1 + ii + n_vtx_x*(            n_vtx_y*kk);
+        }
+
+        if (j == n_dom_j-1) {
+          i_period[i_interface] = 2;
+        }
+
+        i_interface++;
+      }
+    }
+  }
+  free(distrib_j);
+
+  /* k-direction */
+  PDM_g_num_t *distrib_k = PDM_compute_uniform_entity_distribution(comm,
+                                                                   n_vtx_x * n_vtx_y);
+
+  for (int k = 0; k < n_dom_k - 1 + periodic_k; k++) {
+    for (int j = 0; j < n_dom_j; j++) {
+      for (int i = 0; i < n_dom_i; i++) {
+
+        int i_domain1 = i + n_dom_i*(j + n_dom_j*k);// +1?
+        int i_domain2 = i + n_dom_i*(j + n_dom_j*((k+1)%n_dom_k));// +1?
+
+        interface_dn[i_interface] = (int) (distrib_k[i_rank+1] - distrib_k[i_rank]);
+
+        interface_dom[i_interface] = (int *) malloc(sizeof(int) * 2);
+        interface_dom[i_interface][0] = i_domain1;
+        interface_dom[i_interface][1] = i_domain2;
+
+        interface_ids[i_interface] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * 2 * interface_dn[i_interface]);
+
+        for (int idx = 0; idx < interface_dn[i_interface]; idx++) {
+          PDM_g_num_t g = distrib_k[i_rank] + idx;
+
+          PDM_g_num_t ii = g % n_vtx_x;
+          PDM_g_num_t jj = g / n_vtx_x;
+
+          interface_ids[i_interface][2*idx  ] = 1 + ii + n_vtx_x*(jj + n_vtx_y*(n_vtx_z-1));
+          interface_ids[i_interface][2*idx+1] = 1 + ii + n_vtx_x*(jj                      );
+        }
+
+        if (k == n_dom_k-1) {
+          i_period[i_interface] = 3;
+        }
+
+        i_interface++;
+      }
+    }
+  }
+  free(distrib_k);
+  free(i_period);
+
+  printf("i_interface = %d / %d\n", i_interface, n_interface);
+  PDM_domain_interface_set(_dom_intrf,
+                           PDM_BOUND_TYPE_VTX,
+                           interface_dn,
+                           interface_ids,
+                           interface_dom);
+  _dom_intrf->is_result[PDM_BOUND_TYPE_VTX] = 1;
+
 }

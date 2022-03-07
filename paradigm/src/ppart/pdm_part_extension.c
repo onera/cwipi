@@ -2039,10 +2039,10 @@ _rebuild_connectivity
     n_part_loc_all_domain += part_ext->n_part[i_domain];
   }
 
-  *entity2_entity2_extended_idx = (int         ** ) malloc( n_part_loc_all_domain * sizeof(int         **));
-  *entity2_entity2_extended     = (int         ** ) malloc( n_part_loc_all_domain * sizeof(int         **));
-  *border_entity2_ln_to_gn      = (PDM_g_num_t ** ) malloc( n_part_loc_all_domain * sizeof(PDM_g_num_t **));
-  *border_lentity1_entity2_idx  = (int         ** ) malloc( n_part_loc_all_domain * sizeof(int         **));
+  *entity2_entity2_extended_idx = (int         ** ) malloc( n_part_loc_all_domain * sizeof(int         *));
+  *entity2_entity2_extended     = (int         ** ) malloc( n_part_loc_all_domain * sizeof(int         *));
+  *border_entity2_ln_to_gn      = (PDM_g_num_t ** ) malloc( n_part_loc_all_domain * sizeof(PDM_g_num_t *));
+  *border_lentity1_entity2_idx  = (int         ** ) malloc( n_part_loc_all_domain * sizeof(int         *));
 
   PDM_distant_neighbor_t* dn = PDM_distant_neighbor_create(part_ext->comm,
                                                            n_part_loc_all_domain,
@@ -3012,6 +3012,8 @@ PDM_part_extension_compute
   if(part_ext->extend_type == PDM_EXTEND_FROM_FACE) {
     _rebuild_connectivity_cell_face(part_ext);
     _rebuild_connectivity_face_vtx(part_ext);
+    // _rebuild_connectivity_face_edge(part_ext);
+    // _rebuild_connectivity_edge_vtx (part_ext);
   } else if (part_ext->extend_type == PDM_EXTEND_FROM_VTX) {
     _rebuild_connectivity_cell_face(part_ext);
     _rebuild_connectivity_face_edge(part_ext);

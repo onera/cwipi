@@ -394,7 +394,6 @@ PDM_dbbtree_free
   if (dbbt != NULL) {
     _PDM_dbbtree_t *_dbbt = (_PDM_dbbtree_t *) dbbt;
 
-    PDM_box_set_destroy (&_dbbt->rankBoxes);
     //PDM_box_set_destroy (&_dbbt->boxes);
 
     if (_dbbt->global_extents != NULL) {
@@ -408,6 +407,7 @@ PDM_dbbtree_free
 
     PDM_box_tree_destroy (&_dbbt->btShared);
     PDM_box_tree_destroy (&_dbbt->btLoc);
+    PDM_box_set_destroy (&_dbbt->rankBoxes);
 
     free (_dbbt);
   }
@@ -1643,6 +1643,7 @@ PDM_dbbtree_closest_upper_bound_dist_boxes_get
     free(rank_copy_num);
   }
 
+  PDM_box_tree_free_copies(_dbbt->btLoc);
 }
 
 
@@ -2349,6 +2350,7 @@ PDM_dbbtree_closest_upper_bound_dist_boxes_get_async
     free(rank_copy_num);
   }
 
+  PDM_box_tree_free_copies(_dbbt->btLoc);
 }
 
 
@@ -2999,6 +3001,8 @@ PDM_dbbtree_points_inside_boxes
     }
   }
   //<<--
+
+  PDM_box_tree_free_copies(_dbbt->btLoc);
 }
 
 
@@ -3580,6 +3584,8 @@ PDM_dbbtree_boxes_containing_points
 
   free (part_pts_g_num);
   if (pts_g_num1 != pts_g_num) free (pts_g_num1);
+
+  PDM_box_tree_free_copies(_dbbt->btLoc);
 }
 
 
@@ -4132,6 +4138,8 @@ PDM_dbbtree_lines_intersect_boxes
 
   free (part_line_g_num);
   if (line_g_num1 != line_g_num) free (line_g_num1);
+
+  PDM_box_tree_free_copies(_dbbt->btLoc);
 }
 
 

@@ -74,6 +74,48 @@ int n_ptb = 0;
  * Static function definitions
  *============================================================================*/
 
+static
+void
+_counting_sort_long
+(
+ PDM_part_to_block_t *ptb
+)
+{
+  // On a un pb si la distrib est géant
+  int n_elt_block_tot = ptb->data_distrib_index[ptb->i_rank+1] - ptb->data_distrib_index[ptb->i_rank];
+  int* block_n = (int *) malloc(n_elt_block_tot * sizeof(int));
+
+  PDM_g_num_t* block_gnum = malloc (sizeof(PDM_g_num_t) * ptb->tn_recv_data);
+
+  for(int i = 0; i < n_elt_block_tot; ++i) {
+    block_n[i] = 0;
+  }
+
+  for(int i = 0; i < ptb->tn_recv_data; ++i) {
+    int lid = ptb->sorted_recv_gnum[i] - ptb->data_distrib_index[ptb->i_rank] - 1;
+    block_n[lid] += 1;
+    block_gnum[i] = ptb->sorted_recv_gnum[i];
+  }
+
+  int* block_idx = (int *) malloc( (n_elt_block_tot+1) * sizeof(int));
+  block_idx[0] = 0;
+  for(int i = 0; i < n_elt_block_tot; ++i) {
+    block_idx[i+1] = block_idx[i] + block_n[i];
+    block_n[i] = 0;
+  }
+
+  for(int i = 0; i < ptb->tn_recv_data; ++i) {
+    int lid = block_gnum[i] - ptb->data_distrib_index[ptb->i_rank] - 1;
+    int idx_write = block_idx[lid] + block_n[lid]++;
+    ptb->sorted_recv_gnum[idx_write] = block_gnum[i];
+    ptb->order[idx_write] = i;
+  }
+
+  free(block_n);
+  free(block_idx);
+  free(block_gnum);
+
+}
 
 /**
  * \brief   Evaluate a distribution array.
@@ -781,14 +823,35 @@ _distrib_data
    */
   if( ptb->t_post != PDM_PART_TO_BLOCK_POST_MERGE_UNIFORM)
   {
-     ptb->order = malloc (sizeof(int) * ptb->tn_recv_data);
-     for (int i = 0; i < ptb->tn_recv_data; i++) {
-       ptb->order[i] = i;
-     }
+    ptb->order = malloc (sizeof(int) * ptb->tn_recv_data);
 
-     PDM_sort_long (ptb->sorted_recv_gnum,
-                    ptb->order,
-                    ptb->tn_recv_data);
+    char *env_var = NULL;
+    int counting_sort = 0;
+    env_var = getenv ("PDM_PTB_COUNTING_SORT");
+    if (env_var != NULL) {
+      counting_sort = atoi(env_var);
+    }
+
+    if(counting_sort == 0) {
+      for (int i = 0; i < ptb->tn_recv_data; i++) {
+        ptb->order[i] = i;
+      }
+
+      PDM_sort_long (ptb->sorted_recv_gnum,
+                     ptb->order,
+                     ptb->tn_recv_data);
+    } else {
+      if(ptb->i_rank == 0) {
+        printf("_counting_sort_long \n");
+      }
+      _counting_sort_long(ptb);
+    }
+
+    // if(0 == 1) {
+    //   PDM_log_trace_array_long(ptb->sorted_recv_gnum, ptb->tn_recv_data, "sorted_recv_gnum");
+    //   PDM_log_trace_array_int (ptb->order           , ptb->tn_recv_data, "order");
+    // }
+
   }
 
   ptb->n_elt_block = ptb->tn_recv_data;

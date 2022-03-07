@@ -373,31 +373,17 @@ cdef class MeshLocation:
 
   def __cell_vertex_get (self, int i_part):
 
-    cdef int  n_elts
     cdef int *cell_vtx_idx
     cdef int *cell_vtx
 
-    n_elts =  PDM_mesh_location_n_cell_get(self._ml, i_part)
-
+    cdef int n_elts = PDM_mesh_location_n_cell_get(self._ml, i_part)
 
     PDM_mesh_location_cell_vertex_get(self._ml,
                                       i_part,
                                       &cell_vtx_idx,
                                       &cell_vtx)
-
-    cdef NPY.npy_intp dim
-    # > Build numpy capsule
-    dim = <NPY.npy_intp> n_elts + 1
-    np_cell_vtx_idx = NPY.PyArray_SimpleNewFromData(1,
-                                                    &dim,
-                                                    NPY.NPY_INT32,
-                                                    <void *> cell_vtx_idx)
-
-    dim = <NPY.npy_intp> cell_vtx_idx[n_elts]
-    np_cell_vtx = NPY.PyArray_SimpleNewFromData(1,
-                                                &dim,
-                                                NPY.NPY_INT32,
-                                                <void *> cell_vtx)
+    np_cell_vtx_idx = create_numpy_i(cell_vtx_idx, n_elts+1)
+    np_cell_vtx     = create_numpy_i(cell_vtx, cell_vtx_idx[n_elts])
 
     return {'cell_vtx_idx'      : np_cell_vtx_idx,
             'cell_vtx'          : np_cell_vtx}

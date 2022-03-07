@@ -5500,7 +5500,7 @@ PDM_mesh_location_t        *ml
                       t_elt == PDM_MESH_NODAL_TETRA4 ||
                       t_elt == PDM_MESH_NODAL_TRIA3  ||
                       t_elt == PDM_MESH_NODAL_BAR2) {
-                    memcpy(_cell_coords_ijk, _cell_coords, sizeof(double) * n_vtx);
+                    memcpy(_cell_coords_ijk, _cell_coords, sizeof(double) * n_vtx * 3);
                   } else {
                     _cell_coords_ijk[ 0] = _cell_coords[ 0];
                     _cell_coords_ijk[ 1] = _cell_coords[ 1];
@@ -5594,10 +5594,9 @@ PDM_mesh_location_t        *ml
             }
           }
         }
-
-        free (_cell_coords_ijk);
-        free (_cell_coords);
       }
+      free (_cell_coords_ijk);
+      free (_cell_coords);
 
       free (pts_in_elt_n);
       free (block_pts_weights);

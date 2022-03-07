@@ -1,5 +1,6 @@
 #include "doctest/extensions/doctest_mpi.h"
 #include <limits>
+#include <vector>
 #include "pdm.h"
 #include "pdm_priv.h"
 #include "pdm_doctest.h"

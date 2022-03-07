@@ -1,3 +1,4 @@
+#include <vector>
 #include "doctest/extensions/doctest_mpi.h"
 #include "pdm.h"
 #include "pdm_doctest.h"

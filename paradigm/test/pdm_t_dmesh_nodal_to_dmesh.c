@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
                                                            0.,
                                                            0.,
                                                            0.,
-                                                           PDM_MESH_NODAL_TETRA4,
+                                                           PDM_MESH_NODAL_HEXA8,
                                                            1,
                                                            PDM_OWNERSHIP_KEEP);
   PDM_dcube_nodal_gen_build (dcube);
@@ -229,6 +229,41 @@ int main(int argc, char *argv[])
 
   PDM_dmesh_nodal_to_dmesh_free(dmntodm);
   PDM_dcube_nodal_gen_free(dcube);
+
+  double min_elaps_create;
+  double max_elaps_create;
+  double min_cpu_create;
+  double max_cpu_create;
+  double min_elaps_create2;
+  double max_elaps_create2;
+  double min_cpu_create2;
+  double max_cpu_create2;
+  double min_elaps_exch;
+  double max_elaps_exch;
+  double min_cpu_exch;
+  double max_cpu_exch;
+
+  PDM_part_to_block_global_timer_get (PDM_MPI_COMM_WORLD,
+                                      &min_elaps_create,
+                                      &max_elaps_create,
+                                      &min_cpu_create,
+                                      &max_cpu_create,
+                                      &min_elaps_create2,
+                                      &max_elaps_create2,
+                                      &min_cpu_create2,
+                                      &max_cpu_create2,
+                                      &min_elaps_exch,
+                                      &max_elaps_exch,
+                                      &min_cpu_exch,
+                                      &max_cpu_exch);
+
+  if (i_rank == 0) {
+    printf("Global time in PDM_part_to_block : \n");
+    printf("   - min max elaps create  : %12.5e %12.5e\n", min_elaps_create, max_elaps_create);
+    printf("   - min max elaps create2 : %12.5e %12.5e\n", min_elaps_create2, max_elaps_create2);
+    printf("   - min max elaps exch    : %12.5e %12.5e\n", min_elaps_exch, max_elaps_exch);
+    fflush(stdout);
+  }
 
   PDM_MPI_Finalize();
 
