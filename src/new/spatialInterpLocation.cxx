@@ -630,9 +630,10 @@ namespace cwipi {
                 assert(connec_idx[i+1] - connec_idx[i] == part_weights_idx[j + 1] - part_weights_idx[j]);
                 for (int k = part_weights_idx[j]; k < part_weights_idx[j+1]; k++) {
                   int isom = connec[k2++] - 1;
-//                  printf("\t\ti, k, weights isom %d %d %f %d\n", i, k, part_weights[k], isom);
+                  printf("\t\ti, k, weights isom %d %d %12.5e %12.5e %d\n", i, k, part_weights[k], referenceData[isom*nComponent+k1], isom);
                   local_buffer[ival] += part_weights[k] * referenceData[isom*nComponent+k1];
                 }
+                printf("local_buffer : %12.5e\n", local_buffer[ival]);
                 ival++;
               }
 

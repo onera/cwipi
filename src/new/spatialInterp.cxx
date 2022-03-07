@@ -452,18 +452,18 @@ namespace cwipi {
         }
 
         PDM_part_to_part_irecv (_ptsp,
-                                           s_data,
-                                           stride,
-                                 (void **) cpl_spatial_interp->_recv_buffer[cpl_intId],
-                                     (int) mpi_tag,
-                                          &(cpl_spatial_interp->_recv_request[cpl_intId]));
+                                s_data,
+                                stride,
+                      (void **) cpl_spatial_interp->_recv_buffer[cpl_intId],
+                          (int) mpi_tag,
+                               &(cpl_spatial_interp->_recv_request[cpl_intId]));
 
         PDM_part_to_part_issend (_ptsp,
-                                            s_data,
-                                            stride,
-                            (const void **) _send_buffer[intId],
-                                      (int) mpi_tag,
-                                           &(_send_request[intId]));
+                                 s_data,
+                                 stride,
+                 (const void **) _send_buffer[intId],
+                           (int) mpi_tag,
+                                &(_send_request[intId]));
       }
     }
   }
@@ -540,22 +540,55 @@ namespace cwipi {
           }
         }
 
+
+        int nComponent                        = cpl_referenceField->nComponentGet();
+        int dataTypeSize                      = cpl_referenceField->dataTypeSizeGet();
+
+        int  *ptp2_n_ref_gnum2;
+        int **ptp2_ref_gnum2;
+        PDM_part_to_part_ref_lnum2_get (_ptsp,
+                                       &ptp2_n_ref_gnum2,
+                                       &ptp2_ref_gnum2);
+
+        int  *ptp2_n_unref_gnum2;
+        int **ptp2_unref_gnum2;
+        PDM_part_to_part_unref_lnum2_get (_ptsp,
+                                         &ptp2_n_unref_gnum2,
+                                         &ptp2_unref_gnum2);
+
+
+        int         **ptp2_gnum1_come_from_idx;
+        PDM_g_num_t **ptp2_gnum1_come_from;
+        PDM_part_to_part_gnum1_come_from_get (_ptsp,
+                                             &ptp2_gnum1_come_from_idx,
+                                             &ptp2_gnum1_come_from);
+
+
         for (int i = 0; i < _cplNPart; i++) {
-          if (cpl_spatial_interp->_send_buffer[intId] != NULL) {
-            if (cpl_spatial_interp->_send_buffer[intId][i] != NULL) {
-              free (cpl_spatial_interp->_send_buffer[intId][i]);
-              cpl_spatial_interp->_send_buffer[intId][i] = NULL;
-            }
-            free (cpl_spatial_interp->_send_buffer[intId]);
-            cpl_spatial_interp->_send_buffer[intId] = NULL;
+          double *referenceData  = (double *) cpl_referenceField->dataGet(i, CWP_FIELD_MAP_TARGET);
+          for (int j = 0; j < ptp2_n_ref_gnum2[i]; j++) {
+            assert ((ptp2_gnum1_come_from_idx[i][j+1] - ptp2_gnum1_come_from_idx[i][j]) == 1);
           }
-          if (cpl_spatial_interp->_recv_buffer[intId] != NULL) {
-            if (cpl_spatial_interp->_recv_buffer[intId][i] != NULL) {
-              free (cpl_spatial_interp->_recv_buffer[intId][i]);
-              cpl_spatial_interp->_recv_buffer[intId][i] = NULL;
+          memcpy(referenceData, cpl_spatial_interp->_recv_buffer[cpl_intId][i], dataTypeSize * nComponent * ptp2_n_ref_gnum2[i]);
+        }
+
+
+        for (int i = 0; i < _cplNPart; i++) {
+          if (cpl_spatial_interp->_send_buffer[cpl_intId] != NULL) {
+            if (cpl_spatial_interp->_send_buffer[cpl_intId][i] != NULL) {
+              free (cpl_spatial_interp->_send_buffer[cpl_intId][i]);
+              cpl_spatial_interp->_send_buffer[cpl_intId][i] = NULL;
             }
-            free (cpl_spatial_interp->_recv_buffer[intId]);
-            cpl_spatial_interp->_recv_buffer[intId] = NULL;
+            free (cpl_spatial_interp->_send_buffer[cpl_intId]);
+            cpl_spatial_interp->_send_buffer[cpl_intId] = NULL;
+          }
+          if (cpl_spatial_interp->_recv_buffer[cpl_intId] != NULL) {
+            if (cpl_spatial_interp->_recv_buffer[cpl_intId][i] != NULL) {
+              free (cpl_spatial_interp->_recv_buffer[cpl_intId][i]);
+              cpl_spatial_interp->_recv_buffer[cpl_intId][i] = NULL;
+            }
+            free (cpl_spatial_interp->_recv_buffer[cpl_intId]);
+            cpl_spatial_interp->_recv_buffer[cpl_intId] = NULL;
           }
 
           if(cpl_spatial_interp->_visu -> isCreated() && cpl_referenceField -> visuStatusGet() == CWP_STATUS_ON) {
@@ -808,29 +841,27 @@ namespace cwipi {
         int  *ptp2_n_ref_gnum2;
         int **ptp2_ref_gnum2;
         PDM_part_to_part_ref_lnum2_get (_ptsp,
-                                                  &ptp2_n_ref_gnum2,
-                                                  &ptp2_ref_gnum2);
+                                       &ptp2_n_ref_gnum2,
+                                       &ptp2_ref_gnum2);
 
         int  *ptp2_n_unref_gnum2;
         int **ptp2_unref_gnum2;
         PDM_part_to_part_unref_lnum2_get (_ptsp,
-                                                  &ptp2_n_unref_gnum2,
-                                                  &ptp2_unref_gnum2);
+                                         &ptp2_n_unref_gnum2,
+                                         &ptp2_unref_gnum2);
 
 
         int         **ptp2_gnum1_come_from_idx;
         PDM_g_num_t **ptp2_gnum1_come_from;
         PDM_part_to_part_gnum1_come_from_get (_ptsp,
-                                                        &ptp2_gnum1_come_from_idx,
-                                                        &ptp2_gnum1_come_from);
+                                             &ptp2_gnum1_come_from_idx,
+                                             &ptp2_gnum1_come_from);
 
 
         for (int i = 0; i < _nPart; i++) {
           double *referenceData  = (double *) referenceField->dataGet(i, CWP_FIELD_MAP_TARGET);
           for (int j = 0; j < ptp2_n_ref_gnum2[i]; j++) {
             assert ((ptp2_gnum1_come_from_idx[i][j+1] - ptp2_gnum1_come_from_idx[i][j]) == 1);
-            // for (int k = ptp2_gnum1_come_from_idx[i][j] ; k < ptp2_gnum1_come_from_idx[i][j+1]; k++) {
-            // }  
           }
           memcpy(referenceData, _recv_buffer[intId][i], dataTypeSize * nComponent * ptp2_n_ref_gnum2[i]);
         }
