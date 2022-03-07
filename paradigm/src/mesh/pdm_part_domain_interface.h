@@ -58,6 +58,7 @@ PDM_part_domain_interface_set
  int                           i_part,
  int                          *interface_pn,
  PDM_g_num_t                 **interface_ln_to_gn,
+ int                         **interface_sgn,
  int                         **interface_ids,
  int                         **interface_ids_idx,
  int                         **interface_dom
@@ -73,6 +74,7 @@ PDM_part_domain_interface_get
  int                            i_part,
  int                          **interface_pn,
  PDM_g_num_t                 ***interface_ln_to_gn,
+ int                         ***interface_sgn,
  int                         ***interface_ids,
  int                         ***interface_ids_idx,
  int                         ***interface_dom

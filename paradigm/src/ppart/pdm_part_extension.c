@@ -481,6 +481,7 @@ _create_cell_graph_comm
       int            n_interface        = 0;
       int           *interface_pn       = NULL;
       PDM_g_num_t  **interface_ln_to_gn = NULL;
+      int          **interface_sgn      = NULL;
       int          **interface_ids      = NULL;
       int          **interface_ids_idx  = NULL;
       int          **interface_dom      = NULL;
@@ -491,14 +492,19 @@ _create_cell_graph_comm
                                       i_part,
                                       &interface_pn,
                                       &interface_ln_to_gn,
+                                      &interface_sgn,
                                       &interface_ids,
                                       &interface_ids_idx,
                                       &interface_dom);
         n_interface = PDM_part_domain_interface_n_interface_get(part_ext->pdi);
       }
 
+
       for(int i_interface = 0; i_interface < n_interface; ++i_interface) {
         log_trace("-------------------------------- i_interface = %i  -------------------------------- \n", i_interface);
+
+        PDM_log_trace_array_int(interface_sgn[i_interface], interface_pn[i_interface], "interface_sgn :: ");
+
         for(int idx_entity = 0; idx_entity < interface_pn[i_interface]; ++idx_entity) {
 
           // Search the first in list that is in current part/proc
