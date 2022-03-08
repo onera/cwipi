@@ -3133,6 +3133,9 @@ PDM_part_extension_free
  PDM_part_extension_t *part_ext
 )
 {
+  if (part_ext == NULL) {
+    return;
+  }
 
   if(part_ext->n_tot_part_by_domain != NULL) {
     free(part_ext->n_tot_part_by_domain);
