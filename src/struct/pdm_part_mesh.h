@@ -82,6 +82,87 @@ PDM_part_mesh_free
 );
 
 
+void
+PDM_part_mesh_n_entity_set
+(
+ PDM_part_mesh_t          *pmesh,
+ PDM_mesh_entities_t       entity_type,
+ int                      *pn_entity
+);
+
+
+void
+PDM_part_mesh_n_entity_get
+(
+ PDM_part_mesh_t          *pmesh,
+ PDM_mesh_entities_t       entity_type,
+ int                     **pn_entity
+);
+
+void
+PDM_part_mesh_connectivity_set
+(
+ PDM_part_mesh_t          *pmesh,
+ PDM_connectivity_type_t   connectivity_type,
+ int                     **connect,
+ int                     **connect_idx,
+ PDM_ownership_t           ownership
+);
+
+void
+PDM_part_mesh_connectivity_get
+(
+ PDM_part_mesh_t           *pmesh,
+ PDM_connectivity_type_t    connectivity_type,
+ int                     ***connect,
+ int                     ***connect_idx,
+ PDM_ownership_t           ownership
+);
+
+
+void
+PDM_part_mesh_bound_set
+(
+ PDM_part_mesh_t          *pmesh,
+ PDM_bound_type_t          bound_type,
+ int                       n_bound,
+ int                     **connect,
+ int                     **connect_idx,
+ PDM_ownership_t           ownership
+);
+
+void
+PDM_part_mesh_bound_get
+(
+ PDM_part_mesh_t           *pmesh,
+ PDM_bound_type_t           bound_type,
+ int                       *n_bound,
+ int                     ***connect,
+ int                     ***connect_idx,
+ PDM_ownership_t           ownership
+);
+
+
+void
+PDM_part_mesh_bound_ln_to_gn_set
+(
+ PDM_part_mesh_t          *pmesh,
+ PDM_bound_type_t          bound_type,
+ PDM_g_num_t             **bound_ln_to_gn,
+ PDM_ownership_t           ownership
+);
+
+
+void
+PDM_part_mesh_bound_ln_to_gn_get
+(
+ PDM_part_mesh_t           *pmesh,
+ PDM_bound_type_t           bound_type,
+ PDM_g_num_t            ***bound_ln_to_gn,
+ PDM_ownership_t           ownership
+);
+
+
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

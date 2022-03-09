@@ -56,21 +56,23 @@ struct _pdm_part_mesh_t
   int                  n_part;
   PDM_MPI_Comm         comm;
 
-  int         **pconnectivity;                   /* Array of connectivty (size = PDM_CONNECTIVITY_TYPE_MAX)            */
-  int         **pconnectivity_idx;               /* Array of connectivty_idx if any (size = PDM_CONNECTIVITY_TYPE_MAX) */
+  int                **pn_entity;                       /* Size for each entity (size = PDM_MESH_ENTITY_MAX)            */
 
-  PDM_g_num_t **pentity_ln_to_gn;                /* Array of connectivty (size = PDM_CONNECTIVITY_TYPE_MAX)            */
+  int               ***pconnectivity;                   /* Array of connectivty (size = PDM_CONNECTIVITY_TYPE_MAX)            */
+  int               ***pconnectivity_idx;               /* Array of connectivty_idx if any (size = PDM_CONNECTIVITY_TYPE_MAX) */
 
-  PDM_bool_t   *is_owner_connectivity;
-  PDM_bool_t   *is_owner_ln_to_gn;
+  PDM_g_num_t       ***pentity_ln_to_gn;                /* Array of connectivty (size = PDM_MESH_ENTITY_MAX)            */
 
-  int           n_group_bnd[PDM_BOUND_TYPE_MAX]; /*!< Number of group by elememnt type                                 */
-  PDM_g_num_t **pbound_ln_to_gn;                  /* Array of connectivty (size = PDM_CONNECTIVITY_TYPE_MAX)           */
-  int         **pbound;                          /* Array of connectivty (size = PDM_CONNECTIVITY_TYPE_MAX)            */
-  int         **pbound_idx;                      /* Array of connectivty_idx if any (size = PDM_CONNECTIVITY_TYPE_MAX) */
+  PDM_bool_t         *is_owner_connectivity;
+  PDM_bool_t         *is_owner_ln_to_gn;
 
-  PDM_bool_t   *is_owner_bound;
-  PDM_bool_t   *is_owner_bound_ln_to_gn;
+  int                  n_group_bnd[PDM_BOUND_TYPE_MAX]; /*!< Number of group by elememnt type                                 */
+  PDM_g_num_t       ***pbound_ln_to_gn;                 /* Array of connectivty (size = PDM_CONNECTIVITY_TYPE_MAX)           */
+  int               ***pbound;                          /* Array of connectivty (size = PDM_CONNECTIVITY_TYPE_MAX)            */
+  int               ***pbound_idx;                      /* Array of connectivty_idx if any (size = PDM_CONNECTIVITY_TYPE_MAX) */
+
+  PDM_bool_t         *is_owner_bound;
+  PDM_bool_t         *is_owner_bound_ln_to_gn;
 
 
 };
