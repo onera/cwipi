@@ -147,12 +147,24 @@ namespace cwipi {
      //In case where the both codes are on the same MPI process.
     if (coupledCodeProperties.localCodeIs()) {
       if (cplDB.couplingIs(coupledCodeProperties, cplId) ) {
-        //Communication initialization, MPI communicator creation ...
-        _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
+        const int localRootRank = localCodeProperties.rootRankGet();
+        const int cplRootRank = coupledCodeProperties.rootRankGet();
 
-        //Get distant coupling object
+        const MPI_Comm& globalComm = localCodeProperties.globalCommGet();
+
+        int globalRank;
+        MPI_Comm_rank(globalComm, &globalRank);
+
         Coupling &distCpl = cplDB.couplingGet(coupledCodeProperties, cplId);
-        distCpl._communication.init(_communication);
+
+        if ((cplRootRank == globalRank) && (cplRootRank != localRootRank)) {
+          distCpl._communication.init(_coupledCodeProperties, _localCodeProperties, cplId, cplDB);
+          _communication.init(distCpl._communication);
+        }
+        else {
+          _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
+          distCpl._communication.init(_communication);
+        }
 
         Visu* visu_cpl = distCpl.visuGet();
         Mesh* mesh_cpl = distCpl.meshGet();
@@ -188,7 +200,7 @@ namespace cwipi {
         MPI_Comm_create(_localCodeProperties.connectableCommGet(), visuGroup, &visuComm);
 
         if(unionRank == _communication.unionCommLocCodeRootRanksGet()){
-           _visu = *new Visu(visuComm,displacement);
+          _visu = *new Visu(visuComm,displacement);
         }
       }
 
