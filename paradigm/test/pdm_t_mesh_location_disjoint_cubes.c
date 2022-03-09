@@ -102,7 +102,8 @@ _read_args(int                          argc,
            int                         *disable_uvw,
            int                         *use_tgt_nodes,
            int                         *extension_depth_tgt,
-           int                         *extension_depth_src)
+           int                         *extension_depth_src,
+           PDM_Mesh_nodal_elt_t        *elt_type)
 {
   int i = 1;
 
@@ -242,6 +243,14 @@ _read_args(int                          argc,
         *extension_depth_src = atoi(argv[i]);
       }
     }
+    else if (strcmp(argv[i], "-elt_type") == 0) {
+      i++;
+      if (i >= argc)
+        _usage(EXIT_FAILURE);
+      else {
+        *elt_type = atoi(argv[i]);
+      }
+    }
     else
       _usage(EXIT_FAILURE);
     i++;
@@ -270,27 +279,28 @@ static void _rotate (const int  n_pts,
 static void
 _cube_mesh
 (
- const PDM_MPI_Comm        comm,
- const int                 n_part,
- const PDM_split_dual_t    part_method,
- const PDM_g_num_t         n_vtx_seg,
- const double              xmin,
- const double              ymin,
- const double              zmin,
- const double              length,
- const int                 deform,
- const int                 part_extension_depth,
- int                     **pn_cell,
- int                     **pn_face,
- int                     **pn_vtx,
- int                    ***pcell_face_idx,
- int                    ***pcell_face,
- int                    ***pface_vtx_idx,
- int                    ***pface_vtx,
- double                 ***pvtx_coord,
- PDM_g_num_t            ***pcell_ln_to_gn,
- PDM_g_num_t            ***pface_ln_to_gn,
- PDM_g_num_t            ***pvtx_ln_to_gn
+ const PDM_MPI_Comm            comm,
+ const int                     n_part,
+ const PDM_split_dual_t        part_method,
+ const PDM_g_num_t             n_vtx_seg,
+ const double                  xmin,
+ const double                  ymin,
+ const double                  zmin,
+ const double                  length,
+ const int                     deform,
+ const int                     part_extension_depth,
+ const PDM_Mesh_nodal_elt_t    elt_type,
+ int                         **pn_cell,
+ int                         **pn_face,
+ int                         **pn_vtx,
+ int                        ***pcell_face_idx,
+ int                        ***pcell_face,
+ int                        ***pface_vtx_idx,
+ int                        ***pface_vtx,
+ double                     ***pvtx_coord,
+ PDM_g_num_t                ***pcell_ln_to_gn,
+ PDM_g_num_t                ***pface_ln_to_gn,
+ PDM_g_num_t                ***pvtx_ln_to_gn
  )
 {
   int i_rank;
@@ -304,7 +314,7 @@ _cube_mesh
                                                          xmin,
                                                          ymin,
                                                          zmin,
-                                                         PDM_MESH_NODAL_HEXA8,
+                                                         elt_type,
                                                          1,
                                                          PDM_OWNERSHIP_KEEP);
   PDM_dcube_nodal_gen_build (dcube);
@@ -318,7 +328,7 @@ _cube_mesh
   int dn_vtx = vtx_distrib[i_rank+1] - vtx_distrib[i_rank];
 
 
-  PDM_dmesh_nodal_to_dmesh_t* dmntodm = PDM_dmesh_nodal_to_dmesh_create(1, comm, PDM_OWNERSHIP_KEEP);
+  PDM_dmesh_nodal_to_dmesh_t *dmntodm = PDM_dmesh_nodal_to_dmesh_create(1, comm, PDM_OWNERSHIP_KEEP);
 
   PDM_dmesh_nodal_to_dmesh_add_dmesh_nodal(dmntodm, 0, dmn);
 
@@ -328,39 +338,44 @@ _cube_mesh
                                    PDM_DMESH_NODAL_TO_DMESH_TRANSFORM_TO_FACE,
                                    PDM_DMESH_NODAL_TO_DMESH_TRANSLATE_GROUP_TO_FACE);
 
-  PDM_dmesh_t*dmesh2 = NULL;
+  PDM_dmesh_t *dmesh2 = NULL;
   PDM_dmesh_nodal_to_dmesh_get_dmesh(dmntodm, 0, &dmesh2);
 
-  int         *dface_vtx_idx;
-  PDM_g_num_t *dface_vtx;
-  int dn_face = PDM_dmesh_connectivity_get(dmesh2, PDM_CONNECTIVITY_TYPE_FACE_VTX,
-                                           &dface_vtx,
-                                           &dface_vtx_idx,
-                                           PDM_OWNERSHIP_KEEP);
+  int dn_cell = 0;
+  int dn_face = 0;
+  int dn_edge = -1;
+  int n_face_group = 0;
 
-  int         *dface_cell_idx = NULL;
-  PDM_g_num_t *dface_cell = NULL;
-  dn_face = PDM_dmesh_connectivity_get(dmesh2, PDM_CONNECTIVITY_TYPE_FACE_CELL,
-                                       &dface_cell,
-                                       &dface_cell_idx,
-                                       PDM_OWNERSHIP_KEEP);
-  assert(dface_cell_idx == NULL);
-
-  int         *dcell_face_idx;
-  PDM_g_num_t *dcell_face;
-  int dn_cell = PDM_dmesh_connectivity_get(dmesh2, PDM_CONNECTIVITY_TYPE_CELL_FACE,
-                                           &dcell_face,
-                                           &dcell_face_idx,
-                                           PDM_OWNERSHIP_KEEP);
-
+  int         *dcell_face_idx  = NULL;
+  PDM_g_num_t *dcell_face      = NULL;
+  int         *dface_vtx_idx   = NULL;
+  PDM_g_num_t *dface_vtx       = NULL;
+  int         *dface_cell_idx  = NULL;
+  PDM_g_num_t *dface_cell      = NULL;
   PDM_g_num_t *dface_group     = NULL;
   int         *dface_group_idx = NULL;
-  int n_face_group = PDM_dmesh_bound_get(dmesh2,
-                                         PDM_BOUND_TYPE_FACE,
-                                         &dface_group,
-                                         &dface_group_idx,
-                                         PDM_OWNERSHIP_KEEP);
 
+  dn_face = PDM_dmesh_connectivity_get(dmesh2, PDM_CONNECTIVITY_TYPE_FACE_VTX,
+                                       &dface_vtx,
+                                       &dface_vtx_idx,
+                                       PDM_OWNERSHIP_KEEP);
+
+  PDM_dmesh_connectivity_get(dmesh2, PDM_CONNECTIVITY_TYPE_FACE_CELL,
+                             &dface_cell,
+                             &dface_cell_idx,
+                             PDM_OWNERSHIP_KEEP);
+  assert(dface_cell_idx == NULL);
+
+  dn_cell = PDM_dmesh_connectivity_get(dmesh2, PDM_CONNECTIVITY_TYPE_CELL_FACE,
+                                       &dcell_face,
+                                       &dcell_face_idx,
+                                       PDM_OWNERSHIP_KEEP);
+
+  n_face_group = PDM_dmesh_bound_get(dmesh2,
+                                     PDM_BOUND_TYPE_FACE,
+                                     &dface_group,
+                                     &dface_group_idx,
+                                     PDM_OWNERSHIP_KEEP);
 
 
 
@@ -396,7 +411,7 @@ _cube_mesh
   PDM_dmesh_t *dmesh = PDM_dmesh_create (PDM_OWNERSHIP_KEEP,
                                          dn_cell,
                                          dn_face,
-                                         -1, // dn_edge
+                                         dn_edge,
                                          dn_vtx,
                                          n_face_group,
                                          n_join,
@@ -911,6 +926,20 @@ int main(int argc, char *argv[])
   int disable_uvw = 0;
   int use_tgt_nodes = 0;
 
+  PDM_Mesh_nodal_elt_t elt_type = PDM_MESH_NODAL_HEXA8;
+  //  2 -> tria
+  //  3 -> quad
+  //  5 -> tetra
+  //  6 -> pyramid
+  //  7 -> prism
+  //  8 -> hexa
+  // 11 -> tria_ho
+  // 12 -> quad_ho
+  // 13 -> tetra_ho
+  // 14 -> pyramid_ho
+  // 15 -> prism_ho
+  // 16 -> hexa_ho
+
   /*
    *  Read args
    */
@@ -933,7 +962,17 @@ int main(int argc, char *argv[])
               &disable_uvw,
               &use_tgt_nodes,
               &extension_depth_tgt,
-              &extension_depth_src);
+              &extension_depth_src,
+              &elt_type);
+
+
+  assert(//elt_type == PDM_MESH_NODAL_BAR2     ||
+         //elt_type == PDM_MESH_NODAL_TRIA3    ||
+         //elt_type == PDM_MESH_NODAL_QUAD4    ||
+         elt_type == PDM_MESH_NODAL_TETRA4   ||
+         elt_type == PDM_MESH_NODAL_PYRAMID5 ||
+         elt_type == PDM_MESH_NODAL_PRISM6   ||
+         elt_type == PDM_MESH_NODAL_HEXA8);
 
 
   /*
@@ -975,6 +1014,7 @@ int main(int argc, char *argv[])
               length,
               0,//deform
               extension_depth_src,
+              elt_type,
               &src_n_cell,
               &src_n_face,
               &src_n_vtx,
@@ -1012,6 +1052,7 @@ int main(int argc, char *argv[])
               length,
               deform,
               extension_depth_tgt,
+              PDM_MESH_NODAL_HEXA8,
               &tgt_n_cell,
               &tgt_n_face,
               &tgt_n_vtx,
@@ -1187,7 +1228,7 @@ int main(int argc, char *argv[])
     }
 
 
-    if (1) {//!deform) {
+    if (elt_type == PDM_MESH_NODAL_HEXA8) {//!deform) {
 
       for (int k1 = 0; k1 < n_located; k1++) {
         int ipt = located[k1] - 1;
@@ -1243,7 +1284,7 @@ int main(int argc, char *argv[])
 
   int g_n_wrong;
   PDM_MPI_Allreduce (&n_wrong, &g_n_wrong, 1, PDM_MPI_INT, PDM_MPI_SUM, comm);
-  if (i_rank == 0) {
+  if ((i_rank == 0) && (elt_type == PDM_MESH_NODAL_HEXA8)) {
     printf("Viewed from target: g_n_wrong = %d / "PDM_FMT_G_NUM"\n", g_n_wrong, (n_vtx_seg-1)*(n_vtx_seg-1)*(n_vtx_seg-1));
   }
 
@@ -1258,7 +1299,7 @@ int main(int argc, char *argv[])
   /*
    *  Check result from source PoV
    */
-  if (1) {//!deform) {
+  if (elt_type == PDM_MESH_NODAL_HEXA8) {//!deform) {
 
     n_wrong = 0;
 
