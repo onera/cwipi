@@ -769,11 +769,11 @@ namespace cwipi {
 
     Field* field = it->second;
 
-    if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
-      PDM_error(__FILE__, __LINE__, 0, "Error nDistantComputedTargetsGet : '%s' does not receive data\n", field_id.c_str());
+    if (field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV) {
+      PDM_error(__FILE__, __LINE__, 0, "Error nDistantComputedTargetsGet : '%s' does not send data\n", field_id.c_str());
     }
 
-    return _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->nDistantComputedTargetsGet(i_part);
+    return _spatial_interp_send[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->nDistantComputedTargetsGet(i_part);
   }
 
   const int *
@@ -790,11 +790,11 @@ namespace cwipi {
 
     Field* field = it->second;
 
-    if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
-      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : '%s' does not receive data\n", field_id.c_str());
+    if (field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV) {
+      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : '%s' does not send data\n", field_id.c_str());
     }
 
-    return _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->distantComputedTargetsGet(i_part);
+    return _spatial_interp_send[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->distantComputedTargetsGet(i_part);
   }
 
   /*----------------------------------------------------------------------------*

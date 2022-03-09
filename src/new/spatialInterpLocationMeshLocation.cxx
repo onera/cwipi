@@ -540,6 +540,18 @@ namespace cwipi {
                                                &(_points_dist2[i_part]),
                                                &(_points_projected_coords[i_part]));
 
+          _n_distant_computed_tgt[i_part] = _elt_pts_inside_idx[i_part][_src_n_gnum[i_part]];
+          _distant_computed_tgt[i_part] = (int*) malloc(sizeof(int) * _n_distant_computed_tgt[i_part]);
+          int buf = 0;
+          for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
+            if (_elt_pts_inside_idx[i_part][i] != buf) {
+              for (int j = 0 ; j < _elt_pts_inside_idx[i_part][i] - buf ; ++j) {
+                _distant_computed_tgt[i_part][buf + j] = i;
+              }
+            }
+            buf = _elt_pts_inside_idx[i_part][i];
+          }
+
           int n_elt = 0;
           CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
 
@@ -581,12 +593,6 @@ namespace cwipi {
                                                 &(_tgt_closest_elt_gnum[i_part]),
                                                 &(_tgt_distance[i_part]),
                                                 &(_tgt_projected[i_part]));
-
-          _n_distant_computed_tgt[i_part] = 81;
-          _distant_computed_tgt[i_part] = (int*) malloc(sizeof(int) * _n_distant_computed_tgt[i_part]);
-          for (int i = 0 ; i < _n_distant_computed_tgt[i_part] ; ++i) {
-          _distant_computed_tgt[i_part][i] = (int) _tgt_closest_elt_gnum[i_part][i];
-          }
 
           // For pdm_part1_to_selected_part2
           _elt_pts_inside_idx[i_part] = (int*) malloc (sizeof(int)); // Use malloc not new [] !
@@ -635,6 +641,18 @@ namespace cwipi {
                                                  &(_points_dist2[i_part]),
                                                  &(_points_projected_coords[i_part]));
 
+            _n_distant_computed_tgt[i_part] = _elt_pts_inside_idx[i_part][_src_n_gnum[i_part]];
+            _distant_computed_tgt[i_part] = (int*) malloc(sizeof(int) * _n_distant_computed_tgt[i_part]);
+            int buf = 0;
+            for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
+              if (_elt_pts_inside_idx[i_part][i] != buf) {
+                for (int j = 0 ; j < _elt_pts_inside_idx[i_part][i] - buf ; ++j) {
+                  _distant_computed_tgt[i_part][buf + j] = i;
+                }
+              }
+              buf = _elt_pts_inside_idx[i_part][i];
+            }
+
             int n_elt = 0;
             CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
 
@@ -673,11 +691,6 @@ namespace cwipi {
                                                   &(cpl_spatial_interp->_tgt_closest_elt_gnum[i_part]),
                                                   &(cpl_spatial_interp->_tgt_distance[i_part]),
                                                   &(cpl_spatial_interp->_tgt_projected[i_part]));
-            cpl_spatial_interp->_n_distant_computed_tgt[i_part] = 81;
-            cpl_spatial_interp->_distant_computed_tgt[i_part] = (int*) malloc(sizeof(int) * cpl_spatial_interp->_n_distant_computed_tgt[i_part]);
-            for (int i = 0 ; i < cpl_spatial_interp->_n_distant_computed_tgt[i_part] ; ++i) {
-              cpl_spatial_interp->_distant_computed_tgt[i_part][i] = (int) cpl_spatial_interp->_tgt_closest_elt_gnum[i_part][i];
-            }
 
             // For pdm_part1_to_selected_part2
             cpl_spatial_interp->_elt_pts_inside_idx[i_part] = (int*) malloc (sizeof(int)); // Use malloc not new [] !
@@ -713,11 +726,6 @@ namespace cwipi {
                                                   &(_tgt_closest_elt_gnum[i_part]),
                                                   &(_tgt_distance[i_part]),
                                                   &(_tgt_projected[i_part]));
-            _n_distant_computed_tgt[i_part] = 81;
-            _distant_computed_tgt[i_part] = (int*) malloc(sizeof(int) * _n_distant_computed_tgt[i_part]);
-            for (int i = 0 ; i < _n_distant_computed_tgt[i_part] ; ++i) {
-              _distant_computed_tgt[i_part][i] = (int) _tgt_closest_elt_gnum[i_part][i];
-            }
 
             // For pdm_part1_to_selected_part2
             _elt_pts_inside_idx[i_part] = (int*)  malloc(sizeof(int)); // Use malloc not new [] !
@@ -739,6 +747,18 @@ namespace cwipi {
                                                  &(cpl_spatial_interp->_weights[i_part]),
                                                  &(cpl_spatial_interp->_points_dist2[i_part]),
                                                  &(cpl_spatial_interp->_points_projected_coords[i_part]));
+
+            cpl_spatial_interp->_n_distant_computed_tgt[i_part] = cpl_spatial_interp->_elt_pts_inside_idx[i_part][cpl_spatial_interp->_src_n_gnum[i_part]];
+            cpl_spatial_interp->_distant_computed_tgt[i_part] = (int*) malloc(sizeof(int) * cpl_spatial_interp->_n_distant_computed_tgt[i_part]);
+            int buf = 0;
+            for (int i = 0 ; i < cpl_spatial_interp->_src_n_gnum[i_part] ; ++i) {
+              if (cpl_spatial_interp->_elt_pts_inside_idx[i_part][i] != buf) {
+                for (int j = 0 ; j < cpl_spatial_interp->_elt_pts_inside_idx[i_part][i] - buf ; ++j) {
+                  cpl_spatial_interp->_distant_computed_tgt[i_part][buf + j] = i;
+                }
+              }
+              buf = cpl_spatial_interp->_elt_pts_inside_idx[i_part][i];
+            }
 
             int n_elt = 0;
             CWP_Interface_t interf_dim = cpl_cpl.entitiesDimGet();
