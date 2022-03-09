@@ -121,6 +121,24 @@ PDM_part_mesh_connectivity_get
 
 
 void
+PDM_part_mesh_entity_ln_to_gn_set
+(
+ PDM_part_mesh_t          *pmesh,
+ PDM_mesh_entities_t       entity_type,
+ PDM_g_num_t             **pentity_ln_to_gn,
+ PDM_ownership_t           ownership
+);
+
+void
+PDM_part_mesh_entity_ln_to_gn_get
+(
+ PDM_part_mesh_t          *pmesh,
+ PDM_mesh_entities_t       entity_type,
+ PDM_g_num_t            ***pentity_ln_to_gn,
+ PDM_ownership_t           ownership
+);
+
+void
 PDM_part_mesh_bound_set
 (
  PDM_part_mesh_t          *pmesh,

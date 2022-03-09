@@ -160,6 +160,36 @@ PDM_part_mesh_n_entity_get
   *pn_entity = pmesh->pn_entity[entity_type];
 }
 
+
+void
+PDM_part_mesh_entity_ln_to_gn_set
+(
+ PDM_part_mesh_t          *pmesh,
+ PDM_mesh_entities_t       entity_type,
+ PDM_g_num_t             **pentity_ln_to_gn,
+ PDM_ownership_t           ownership
+)
+{
+  pmesh->pentity_ln_to_gn [entity_type] = pentity_ln_to_gn;
+  pmesh->is_owner_ln_to_gn[entity_type] = ownership;
+}
+
+
+void
+PDM_part_mesh_entity_ln_to_gn_get
+(
+ PDM_part_mesh_t          *pmesh,
+ PDM_mesh_entities_t       entity_type,
+ PDM_g_num_t            ***pentity_ln_to_gn,
+ PDM_ownership_t           ownership
+)
+{
+  *pentity_ln_to_gn = pmesh->pentity_ln_to_gn[entity_type];
+  pmesh->is_owner_ln_to_gn[entity_type] = ownership;
+}
+
+
+
 void
 PDM_part_mesh_connectivity_set
 (
