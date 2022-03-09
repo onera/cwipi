@@ -25,39 +25,7 @@ module pdm_global_reduce
 
   implicit none
 
-  interface pdm_global_reduce_create ; module procedure &
-  pdm_global_reduce_create_
-  end interface
-
-  private :: pdm_global_reduce_create_
-
   interface
-
-  !>
-  !!
-  !! \brief Create a structure that computes a global reduction
-  !!
-  !! \param [in]   n_part       Number of local partitions
-  !! \param [in]   fcomm        PDM_MPI communicator
-  !!
-  !! \return     Pointer to \ref PDM_global_reduce object
-  !!
-
-  function PDM_global_reduce_create_cf (n_part, &
-                                        comm)   &
-  result (gre)                                  &
-  bind (c, name = 'PDM_global_reduce_create')
-
-  use iso_c_binding
-  implicit none
-
-  integer(c_int), value :: n_part
-  integer(c_int), value :: comm
-
-  type (c_ptr)          :: gre
-
-end function PDM_global_reduce_create_cf
-
 
 !>
 !!
@@ -76,35 +44,6 @@ subroutine PDM_global_reduce_free (gre) &
   type (c_ptr), value   :: gre
 
 end subroutine pdm_global_reduce_free
-
-
-!>
-!!
-!! \brief Set absolute number
-!!
-!! \param [in]   gre           Pointer to \ref PDM_global_reduce object
-!! \param [in]   i_part        Current partition
-!! \param [in]   n_pts         Number of points in the partition
-!! \param [in]   pts_ln_to_gn  Global ids of points in the partition
-!!
-!!
-
-subroutine PDM_global_reduce_g_num_set ( &
-  gre,                                   &
-  i_part,                                &
-  n_pts,                                 &
-  pts_ln_to_gn)                          &
-bind (c, name = 'PDM_global_reduce_g_num_set')
-
-use iso_c_binding
-implicit none
-
-type (c_ptr),   value :: gre
-integer(c_int), value :: i_part
-integer(c_int), value :: n_pts
-type (c_ptr),   value :: pts_ln_to_gn
-
-end subroutine PDM_global_reduce_g_num_set
 
 
 !>
@@ -131,39 +70,6 @@ end subroutine PDM_global_reduce_operation_set
 
 !>
 !!
-!! \brief Set local field
-!!
-!! \param [in]   gre                       Pointer to \ref PDM_global_reduce object
-!! \param [in]   i_part                    Current partition
-!! \param [in]   stride                    Stride of the field
-!! \param [in]   local_field               Local value of field
-!!                                         (can be NULL for any other reduction operation)
-!! \param [in]   global_reduced_field_ptr  Pointer where global reduced field
-!!                                         will be stored after computing
-!!
-
-subroutine PDM_global_reduce_field_set ( &
-  gre,                                   &
-  i_part,                                &
-  stride,                                &
-  local_field,                           &
-  global_reduced_field_ptr)              &
-bind (c, name = 'PDM_global_reduce_field_set')
-
-use iso_c_binding
-implicit none
-
-type (c_ptr),   value :: gre
-integer(c_int), value :: i_part
-integer(c_int), value :: stride
-type (c_ptr),   value :: local_field
-type (c_ptr),   value :: global_reduced_field_ptr
-
-end subroutine PDM_global_reduce_field_set
-
-
-!>
-!!
 !! \brief Compute the global reduced field
 !!
 !! \param [in]   gre     Pointer to \ref PDM_global_reduce object
@@ -183,6 +89,7 @@ end subroutine PDM_global_reduce_field_compute
 end interface
 
 
+
 contains
 
   !>
@@ -194,26 +101,146 @@ contains
   !! \param [in]   f_comm   PDM_MPI communicator
   !!
 
-  subroutine PDM_global_reduce_create_ (gre,    &
-                                        n_part, &
-                                        f_comm)
+  subroutine PDM_global_reduce_create (gre,    &
+                                       n_part, &
+                                       f_comm)
 
   use iso_c_binding
   implicit none
 
-  integer       :: n_part
-  integer       :: f_comm
-  type (c_ptr)  :: gre
+  integer, intent(in) :: n_part
+  integer, intent(in) :: f_comm
+  type (c_ptr)        :: gre
 
-  integer(c_int) :: c_n_part
-  integer(c_int) :: c_comm
+  integer(c_int)      :: c_comm
 
-  c_comm   = PDM_MPI_Comm_f2c(f_comm)
-  c_n_part = n_part
+  interface
+    function PDM_global_reduce_create_c (n_part, &
+                                         comm)   &
+    result (gre)                                 &
+    bind (c, name = 'PDM_global_reduce_create')
 
-  gre = pdm_global_reduce_create_cf(c_n_part, &
+      use iso_c_binding
+      implicit none
+
+      integer(c_int), value :: n_part
+      integer(c_int), value :: comm
+
+      type (c_ptr)          :: gre
+
+    end function PDM_global_reduce_create_c
+  end interface
+
+  c_comm = PDM_MPI_Comm_f2c(f_comm)
+
+  gre = pdm_global_reduce_create_c (n_part, &
                                     c_comm)
 
-end subroutine PDM_global_reduce_create_
+end subroutine PDM_global_reduce_create
+
+
+!>
+!!
+!! \brief Set absolute number
+!!
+!! \param [in]   gre           Pointer to \ref PDM_global_reduce object
+!! \param [in]   i_part        Current partition
+!! \param [in]   n_pts         Number of points in the partition
+!! \param [in]   pts_ln_to_gn  Global ids of points in the partition
+!!
+!!
+
+subroutine PDM_global_reduce_g_num_set (gre,          &
+                                        i_part,       &
+                                        n_pts,        &
+                                        pts_ln_to_gn)
+  use iso_c_binding
+  implicit none
+
+  type(c_ptr), value            :: gre
+  integer, intent(in)           :: i_part
+  integer, intent(in)           :: n_pts
+  integer(pdm_g_num_s), pointer :: pts_ln_to_gn(:)
+
+  interface
+    subroutine PDM_global_reduce_g_num_set_c (gre,          &
+                                              i_part,       &
+                                              n_pts,        &
+                                              pts_ln_to_gn) &
+    bind (c, name = 'PDM_global_reduce_g_num_set')
+
+    use iso_c_binding
+    implicit none
+
+    type (c_ptr),   value :: gre
+    integer(c_int), value :: i_part
+    integer(c_int), value :: n_pts
+    type (c_ptr),   value :: pts_ln_to_gn
+
+    end subroutine PDM_global_reduce_g_num_set_c
+  end interface
+
+  call PDM_global_reduce_g_num_set_c (gre,                 &
+                                      i_part,              &
+                                      n_pts,               &
+                                      c_loc(pts_ln_to_gn))
+
+end subroutine PDM_global_reduce_g_num_set
+
+
+!>
+!!
+!! \brief Set local field
+!!
+!! \param [in]   gre                   Pointer to \ref PDM_global_reduce object
+!! \param [in]   i_part                Current partition
+!! \param [in]   stride                Stride of the field
+!! \param [in]   local_field           Local value of field
+!! \param [in]   global_reduced_field  Pointer where global reduced field
+!!                                     will be stored after computing
+
+subroutine PDM_global_reduce_field_set (gre,           &
+                                        i_part,        &
+                                        stride,        &
+                                        local_field,   &
+                                        reduced_field)
+  use iso_c_binding
+  implicit none
+
+  type(c_ptr), value        :: gre
+  integer, intent(in)       :: i_part
+  integer, intent(in)       :: stride
+  double precision, pointer :: local_field(:)
+  double precision, pointer :: reduced_field(:)
+
+  interface
+    subroutine PDM_global_reduce_field_set_c (gre,           &
+                                              i_part,        &
+                                              stride,        &
+                                              local_field,   &
+                                              reduced_field) &
+    bind (c, name='PDM_global_reduce_field_set')
+      use iso_c_binding
+      implicit none
+
+      type(c_ptr),    value :: gre
+      integer(c_int), value :: i_part
+      integer(c_int), value :: stride
+      type(c_ptr),    value :: local_field
+      type(c_ptr),    value :: reduced_field
+
+    end subroutine PDM_global_reduce_field_set_c
+  end interface
+
+  call PDM_global_reduce_field_set_c (gre,                  &
+                                      i_part,               &
+                                      stride,               &
+                                      c_loc(local_field),   &
+                                      c_loc(reduced_field))
+
+end subroutine PDM_global_reduce_field_set
+
+
+
 
 end module pdm_global_reduce

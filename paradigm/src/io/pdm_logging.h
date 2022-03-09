@@ -133,6 +133,26 @@ PDM_log_trace_connectivity_long
  const char*        header
 );
 
+/**
+ *
+ * \brief Pretty print of array in trace_log
+ *
+ * \param [inout] array        Array to print
+ * \param [in]    lArray       Array length
+ * \param [inout] header       First line of log
+ *
+ */
+void
+PDM_log_trace_part_connectivity_gnum
+(
+ const int         *entitiy1_entity2_idx,
+ const int         *entitiy1_entity2,
+ const PDM_g_num_t *entitiy1_ln_to_gn,
+ const PDM_g_num_t *entitiy2_ln_to_gn,
+ const int          n_entity1,
+ const char*        header
+);
+
 void
 PDM_log_trace_connectivity_int
 (

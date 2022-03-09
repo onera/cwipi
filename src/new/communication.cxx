@@ -76,10 +76,19 @@ namespace cwipi {
         MPI_Comm_free(&_unionComm);
       }
     }
+
     else {
-      if (_cplComm != MPI_COMM_NULL) {
-        MPI_Comm_free(&_cplComm);
-        _cplComm = MPI_COMM_NULL;
+      if (!_localCodeProperties->isActiveRank()) {
+        if (_cplComm != MPI_COMM_NULL) {
+          MPI_Comm_free(&_cplComm);
+          _cplComm = MPI_COMM_NULL;
+        }
+      }
+      else {
+        if (_localCodeProperties->idGet() < _cplCodeProperties->idGet()) {
+          MPI_Comm_free(&_cplComm);
+          _cplComm = MPI_COMM_NULL;
+        }       
       }
     }
     
@@ -225,8 +234,10 @@ namespace cwipi {
                   localCodeProperties.connectableCommGet(), &request1);
         MPI_Wait(&request1, MPI_STATUS_IGNORE);
 
+
         if (cplCodeProperties.localCodeIs()) {
           CWP_Comm_t &cplcommType2 = commType;
+
           MPI_Ibcast(&cplcommType2, 1, MPI_INT, 0,
                     cplCodeProperties.connectableCommGet(), & request2);
           MPI_Wait(&request2, MPI_STATUS_IGNORE);
@@ -420,12 +431,14 @@ namespace cwipi {
 
     int unionCommRank;
     MPI_Status status;
-    MPI_Request request1;
-    MPI_Request request2;
 
     if (_cplCodeProperties->localCodeIs()) {
-      assert(send_data_cpl != NULL);
-      assert(recv_data_cpl != NULL);
+      if (n_send_data_cpl > 0) {
+        assert(send_data_cpl != NULL);
+      }
+      if (n_recv_data_cpl > 0) {
+        assert(recv_data_cpl != NULL);
+      }
     }
     else {
       assert(send_data_cpl == NULL);
@@ -499,75 +512,68 @@ namespace cwipi {
                       &status);
       }
     }
-  
-    // if (_cplCodeProperties->localCodeIs()) {
-    //   if (unionCommRank ==  _cplCodeRootRankUnionComm) {
-    //     if (_locCodeRootRankUnionComm == _cplCodeRootRankUnionComm) {
-    //       if (debug) {
-    //         printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 3.1\n");
-    //         fflush(stdout);
-    //       }
-    //       assert (n_send_data_cpl == n_recv_data);
-    //       memcpy (recv_data    , send_data_cpl, s_data * n_send_data_cpl);
-    //     }
-    //     else {
-    //       if (debug) {
-    //         printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 3.2\n");
-    //         fflush(stdout);
-    //       }
-    //       MPI_Sendrecv (send_data_cpl,
-    //                     (int) s_data * n_send_data_cpl,
-    //                     MPI_UNSIGNED_CHAR,
-    //                     _cplCodeRootRankUnionComm,
-    //                     _tag,
-    //                     recv_data_cpl,
-    //                     (int) s_data * n_recv_data_cpl,
-    //                     MPI_UNSIGNED_CHAR,
-    //                     _cplCodeRootRankUnionComm,
-    //                     _tag,
-    //                     _unionComm,
-    //                     &status);
-    //     }
-    //   }
-    // }
 
     if (debug) {
       printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 4.1\n");
       fflush(stdout);
     }
 
-    MPI_Ibcast (recv_data,
-               (int) s_data * n_recv_data,
-               MPI_UNSIGNED_CHAR,
-               0,
-               _localCodeProperties->connectableCommGet(),
-               &request1);
+    if (!_cplCodeProperties->localCodeIs()) {
 
-    if (_cplCodeProperties->localCodeIs()) {
-
-      if (debug) {
-        printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 4.2\n");
-        fflush(stdout);
-      }
-      MPI_Ibcast (recv_data_cpl,
-                 (int) s_data * n_recv_data_cpl,
+      MPI_Bcast (recv_data,
+                 (int) s_data * n_recv_data,
                  MPI_UNSIGNED_CHAR,
                  0,
-                 _cplCodeProperties->connectableCommGet(),
-                 &request2);
+                 _localCodeProperties->connectableCommGet());
+      int rank1;
+      MPI_Comm_rank(_localCodeProperties->connectableCommGet(), &rank1);
+      int s1;
+      MPI_Comm_size(_localCodeProperties->connectableCommGet(), &s1);
     }
 
-    MPI_Wait (&request1, &status);
-    if (debug) {
-      printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 5.1\n");
-      fflush(stdout);
-    }
+    else {
 
-    if (_cplCodeProperties->localCodeIs()) {
-      MPI_Wait (&request2, &status);
-      if (debug) {
-        printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 5.2\n");
-        fflush(stdout);
+      if (codeID < cplCodeID) {
+        MPI_Bcast (recv_data,
+                   (int) s_data * n_recv_data,
+                   MPI_UNSIGNED_CHAR,
+                   0,
+                   _localCodeProperties->connectableCommGet());
+        int rank1;
+        MPI_Comm_rank(_localCodeProperties->connectableCommGet(), &rank1);
+        int s1;
+        MPI_Comm_size(_localCodeProperties->connectableCommGet(), &s1);
+
+        if (debug) {
+          printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 4.2\n");
+          fflush(stdout);
+        }
+
+        MPI_Bcast (recv_data_cpl,
+                   (int) s_data * n_recv_data_cpl,
+                   MPI_UNSIGNED_CHAR,
+                   0,
+                   _cplCodeProperties->connectableCommGet());
+        int rank2;
+        int s2;
+        MPI_Comm_rank(_cplCodeProperties->connectableCommGet(), &rank2);
+        MPI_Comm_size(_cplCodeProperties->connectableCommGet(), &s2);
+      }
+      else {
+        if (debug) {
+          printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 4.2\n");
+          fflush(stdout);
+        }
+
+        MPI_Bcast (recv_data_cpl,
+                   (int) s_data * n_recv_data_cpl,
+                   MPI_UNSIGNED_CHAR,
+                   0,
+                   _cplCodeProperties->connectableCommGet());
+        int rank2;
+        int s2;
+        MPI_Comm_rank(_cplCodeProperties->connectableCommGet(), &rank2);
+        MPI_Comm_size(_cplCodeProperties->connectableCommGet(), &s2);
       }
     }
   }

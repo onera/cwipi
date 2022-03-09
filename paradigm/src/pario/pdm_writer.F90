@@ -302,24 +302,24 @@ module pdm_writer
     use iso_c_binding
     implicit none
 
-    type(c_ptr)        :: cs
-    character(len = *) :: fmt
-    integer            :: fmt_fic
-    integer            :: topologie
-    integer            :: st_reprise
-    character(len = *) :: rep_sortie
-    character(len = *) :: nom_sortie
-    integer            :: f_comm
-    integer            :: acces
-    double precision   :: prop_noeuds_actifs
-    character(len = *) :: options
+    type(c_ptr)                  :: cs
+    character(len = *)           :: fmt
+    integer,          intent(in) :: fmt_fic
+    integer,          intent(in) :: topologie
+    integer,          intent(in) :: st_reprise
+    character(len = *)           :: rep_sortie
+    character(len = *)           :: nom_sortie
+    integer,          intent(in) :: f_comm
+    integer,          intent(in) :: acces
+    double precision, intent(in) :: prop_noeuds_actifs
+    character(len = *)           :: options
 
-    integer(c_int)     :: c_fmt_fic
-    integer(c_int)     :: c_topologie
-    integer(c_int)     :: c_st_reprise
-    integer(c_int)     :: c_comm
-    integer(c_int)     :: c_acces
-    real(c_double)     :: c_prop_noeuds_actifs
+    integer(c_int)               :: c_fmt_fic
+    integer(c_int)               :: c_topologie
+    integer(c_int)               :: c_st_reprise
+    integer(c_int)               :: c_comm
+    integer(c_int)               :: c_acces
+    real(c_double)               :: c_prop_noeuds_actifs
 
     interface
       function PDM_writer_create_c (fmt,                &
@@ -386,10 +386,10 @@ module pdm_writer
     use iso_c_binding
     implicit none
 
-    type(c_ptr), value :: cs
-    double precision   :: physical_time
+    type(c_ptr), value           :: cs
+    double precision, intent(in) :: physical_time
 
-    real(c_double)     :: c_physical_time
+    real(c_double)               :: c_physical_time
 
     interface
       subroutine PDM_writer_step_beg_c (cs,            &
@@ -505,9 +505,9 @@ module pdm_writer
     implicit none
 
     type(c_ptr), value            :: cs
-    integer                       :: id_geom
-    integer                       :: id_part
-    integer                       :: n_som
+    integer, intent(in)           :: id_geom
+    integer, intent(in)           :: id_part
+    integer, intent(in)           :: n_som
     double precision,     pointer :: coords(:)
     integer(pdm_g_num_s), pointer :: numabs(:)
 
@@ -586,10 +586,10 @@ module pdm_writer
     implicit none
 
     type(c_ptr), value            :: cs
-    integer                       :: id_geom
-    integer                       :: id_part
-    integer                       :: n_som
-    integer                       :: n_som_parent
+    integer, intent(in)           :: id_geom
+    integer, intent(in)           :: id_part
+    integer, intent(in)           :: n_som
+    integer, intent(in)           :: n_som_parent
     integer(pdm_g_num_s), pointer :: numabs(:)
     integer(pdm_l_num_s), pointer :: num_parent(:)
     double precision,     pointer :: coords_parent(:)
@@ -674,9 +674,9 @@ module pdm_writer
     implicit none
 
     type(c_ptr), value            :: cs
-    integer                       :: id_geom
-    integer                       :: st_free_data
-    integer                       :: t_elt
+    integer, intent(in)           :: id_geom
+    integer, intent(in)           :: st_free_data
+    integer, intent(in)           :: t_elt
 
     integer(c_int)                :: c_id_geom
     integer(c_int)                :: c_st_free_data
@@ -805,10 +805,10 @@ module pdm_writer
     implicit none
 
     type(c_ptr), value            :: cs
-    integer                       :: id_geom
-    integer                       :: id_bloc
-    integer                       :: id_part
-    integer                       :: n_elt
+    integer, intent(in)           :: id_geom
+    integer, intent(in)           :: id_bloc
+    integer, intent(in)           :: id_part
+    integer, intent(in)           :: n_elt
     integer(pdm_l_num_s), pointer :: connec(:)
     integer(pdm_g_num_s), pointer :: numabs(:)
 
@@ -887,10 +887,10 @@ module pdm_writer
     implicit none
 
     type(c_ptr), value            :: cs
-    integer                       :: id_geom
-    integer                       :: id_bloc
-    integer                       :: id_part
-    integer                       :: n_elt
+    integer, intent(in)           :: id_geom
+    integer, intent(in)           :: id_bloc
+    integer, intent(in)           :: id_part
+    integer, intent(in)           :: n_elt
     integer(pdm_l_num_s), pointer :: connec_idx(:)
     integer(pdm_l_num_s), pointer :: connec(:)
     integer(pdm_g_num_s), pointer :: numabs(:)
@@ -981,11 +981,11 @@ module pdm_writer
     implicit none
 
     type(c_ptr), value            :: cs
-    integer                       :: id_geom
-    integer                       :: id_bloc
-    integer                       :: id_part
-    integer                       :: n_elt
-    integer                       :: n_face
+    integer, intent(in)           :: id_geom
+    integer, intent(in)           :: id_bloc
+    integer, intent(in)           :: id_part
+    integer, intent(in)           :: n_elt
+    integer, intent(in)           :: n_face
     integer(pdm_l_num_s), pointer :: facsom_idx(:)
     integer(pdm_l_num_s), pointer :: facsom(:)
     integer(pdm_l_num_s), pointer :: cellfac_idx(:)
@@ -1100,10 +1100,10 @@ module pdm_writer
     implicit none
 
     type(c_ptr), value            :: cs
-    integer                       :: id_geom
-    integer                       :: id_part
-    integer                       :: n_cell
-    integer                       :: n_face
+    integer, intent(in)           :: id_geom
+    integer, intent(in)           :: id_part
+    integer, intent(in)           :: n_cell
+    integer, intent(in)           :: n_face
     integer(pdm_l_num_s), pointer :: face_som_idx(:)
     integer(pdm_l_num_s), pointer :: face_som_nb(:)
     integer(pdm_l_num_s), pointer :: face_som(:)
@@ -1223,10 +1223,10 @@ module pdm_writer
     implicit none
 
     type(c_ptr), value            :: cs
-    integer                       :: id_geom
-    integer                       :: id_part
-    integer                       :: n_cell
-    integer                       :: n_face
+    integer, intent(in)           :: id_geom
+    integer, intent(in)           :: id_part
+    integer, intent(in)           :: n_cell
+    integer, intent(in)           :: n_face
     integer(pdm_l_num_s), pointer :: face_som_idx(:)
     integer(pdm_l_num_s), pointer :: face_som_nb(:)
     integer(pdm_l_num_s), pointer :: face_som(:)
@@ -1340,9 +1340,9 @@ module pdm_writer
     implicit none
 
     type(c_ptr), value            :: cs
-    integer                       :: id_geom
-    integer                       :: id_part
-    integer                       :: n_face
+    integer, intent(in)           :: id_geom
+    integer, intent(in)           :: id_part
+    integer, intent(in)           :: n_face
     integer(pdm_l_num_s), pointer :: face_som_idx(:)
     integer(pdm_l_num_s), pointer :: face_som_nb(:)
     integer(pdm_l_num_s), pointer :: face_som(:)
@@ -1425,16 +1425,16 @@ module pdm_writer
     use iso_c_binding
     implicit none
 
-    type(c_ptr), value :: cs
-    integer            :: id_var
-    integer            :: st_dep_tps
-    integer            :: dim
-    integer            :: loc
-    character (len=*)  :: nom_var
+    type(c_ptr), value   :: cs
+    integer, intent(out) :: id_var
+    integer, intent(in)  :: st_dep_tps
+    integer, intent(in)  :: dim
+    integer, intent(in)  :: loc
+    character (len=*)    :: nom_var
 
-    integer(c_int)     :: c_st_dep_tps
-    integer(c_int)     :: c_dim
-    integer(c_int)     :: c_dof_loc
+    integer(c_int)       :: c_st_dep_tps
+    integer(c_int)       :: c_dim
+    integer(c_int)       :: c_dof_loc
 
     interface
       function PDM_writer_var_create_c (cs,         &
@@ -1535,9 +1535,9 @@ module pdm_writer
     implicit none
 
     type(c_ptr), value        :: cs
-    integer                   :: id_var
-    integer                   :: id_geom
-    integer                   :: id_part
+    integer, intent(in)       :: id_var
+    integer, intent(in)       :: id_geom
+    integer, intent(in)       :: id_part
     double precision, pointer :: val(:)
 
     integer(c_int)            :: c_id_var

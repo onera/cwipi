@@ -1046,24 +1046,24 @@ contains
     implicit none
 
     type(c_ptr)                        :: ppart
-    integer                            :: f_comm
-    integer                            :: split_method
+    integer, intent(in)                :: f_comm
+    integer, intent(in)                :: split_method
     character (len=*)                  :: renum_cell_method
     character (len=*)                  :: renum_face_method
-    integer                            :: nPropertyCell
+    integer, intent(in)                :: nPropertyCell
     integer(kind=PDM_l_num_s), pointer :: renum_properties_cell(:)
-    integer                            :: nPropertyFace
+    integer, intent(in)                :: nPropertyFace
     integer(kind=PDM_l_num_s), pointer :: renum_properties_face(:)
-    integer                            :: nPart
-    integer                            :: dNCell
-    integer                            :: dNFace
-    integer                            :: dNVtx
-    integer                            :: nFaceGroup
+    integer, intent(in)                :: nPart
+    integer, intent(in)                :: dNCell
+    integer, intent(in)                :: dNFace
+    integer, intent(in)                :: dNVtx
+    integer, intent(in)                :: nFaceGroup
     integer(kind=PDM_l_num_s), pointer :: dCellFaceIdx(:)
     integer(kind=PDM_g_num_s), pointer :: dCellFace(:)
     integer(kind=PDM_l_num_s), pointer :: dCellTag(:)
     integer(kind=PDM_l_num_s), pointer :: dCellWeight(:)
-    logical                            :: have_dCellPart
+    logical, intent(in)                :: have_dCellPart
     integer(kind=PDM_l_num_s), pointer :: dCellPart(:)
     integer(kind=PDM_g_num_s), pointer :: dFaceCell(:)
     integer(kind=PDM_l_num_s), pointer :: dFaceVtxIdx(:)
@@ -1217,45 +1217,45 @@ contains
 
     implicit none
 
-    type(c_ptr), value :: ppart
-    integer            :: i_part
-    integer            :: n_cell
-    integer            :: n_face
-    integer            :: n_face_part_bound
-    integer            :: n_vtx
-    integer            :: n_proc
-    integer            :: n_total_part
-    integer            :: scell_face
-    integer            :: sface_vtx
-    integer            :: sface_group
-    integer            :: n_face_group
+    type(c_ptr), value   :: ppart
+    integer, intent(in)  :: i_part
+    integer, intent(out) :: n_cell
+    integer, intent(out) :: n_face
+    integer, intent(out) :: n_face_part_bound
+    integer, intent(out) :: n_vtx
+    integer, intent(out) :: n_proc
+    integer, intent(out) :: n_total_part
+    integer, intent(out) :: scell_face
+    integer, intent(out) :: sface_vtx
+    integer, intent(out) :: sface_group
+    integer, intent(out) :: n_face_group
 
-    integer(c_int)     :: c_i_part
-    integer(c_int)     :: c_n_cell
-    integer(c_int)     :: c_n_face
-    integer(c_int)     :: c_n_face_part_bound
-    integer(c_int)     :: c_n_vtx
-    integer(c_int)     :: c_n_proc
-    integer(c_int)     :: c_n_total_part
-    integer(c_int)     :: c_scell_face
-    integer(c_int)     :: c_sface_vtx
-    integer(c_int)     :: c_sface_group
-    integer(c_int)     :: c_n_face_group
+    integer(c_int)       :: c_i_part
+    integer(c_int)       :: c_n_cell
+    integer(c_int)       :: c_n_face
+    integer(c_int)       :: c_n_face_part_bound
+    integer(c_int)       :: c_n_vtx
+    integer(c_int)       :: c_n_proc
+    integer(c_int)       :: c_n_total_part
+    integer(c_int)       :: c_scell_face
+    integer(c_int)       :: c_sface_vtx
+    integer(c_int)       :: c_sface_group
+    integer(c_int)       :: c_n_face_group
 
     c_i_part = i_part
 
     call PDM_part_part_dim_get_c(ppart, &
-                                  c_i_part, &
-                                  c_n_cell, &
-                                  c_n_face, &
-                                  c_n_face_part_bound, &
-                                  c_n_vtx, &
-                                  c_n_proc, &
-                                  c_n_total_part, &
-                                  c_scell_face, &
-                                  c_sface_vtx, &
-                                  c_sface_group, &
-                                  c_n_face_group)
+                                 c_i_part, &
+                                 c_n_cell, &
+                                 c_n_face, &
+                                 c_n_face_part_bound, &
+                                 c_n_vtx, &
+                                 c_n_proc, &
+                                 c_n_total_part, &
+                                 c_scell_face, &
+                                 c_sface_vtx, &
+                                 c_sface_group, &
+                                 c_n_face_group)
 
     n_cell            = c_n_cell
     n_face            = c_n_face
@@ -1335,7 +1335,7 @@ contains
     implicit none
 
     type (c_ptr), value                   :: ppart
-    integer                               :: i_part
+    integer, intent(in)                   :: i_part
     integer (kind = PDM_l_num_s), pointer :: cell_tag(:)
     integer (kind = PDM_l_num_s), pointer :: cell_face_idx(:)
     integer (kind = PDM_l_num_s), pointer :: cell_face(:)
@@ -1388,38 +1388,38 @@ contains
     c_i_part = i_part
 
     call PDM_part_part_dim_get_c(ppart,             &
-                                  c_i_part,          &
-                                  n_cell,            &
-                                  n_face,            &
-                                  n_face_part_bound, &
-                                  n_vtx,             &
-                                  n_proc,            &
-                                  n_total_part,      &
-                                  scell_face,        &
-                                  sface_vtx,         &
-                                  sface_group,       &
-                                  n_face_group)
+                                 c_i_part,          &
+                                 n_cell,            &
+                                 n_face,            &
+                                 n_face_part_bound, &
+                                 n_vtx,             &
+                                 n_proc,            &
+                                 n_total_part,      &
+                                 scell_face,        &
+                                 sface_vtx,         &
+                                 sface_group,       &
+                                 n_face_group)
 
     call PDM_part_part_val_get_c(ppart,                     &
-                                  c_i_part,                   &
-                                  c_cell_tag,                 &
-                                  c_cell_face_idx,            &
-                                  c_cell_face,                &
-                                  c_cell_ln_to_gn,            &
-                                  c_face_tag,                 &
-                                  c_face_cell,                &
-                                  c_face_vtx_idx,             &
-                                  c_face_vtx,                 &
-                                  c_face_ln_to_gn,            &
-                                  c_face_part_bound_proc_idx, &
-                                  c_face_part_bound_part_idx, &
-                                  c_face_part_bound,          &
-                                  c_vtx_tag,                  &
-                                  c_vtx,                      &
-                                  c_vtx_ln_to_gn,             &
-                                  c_face_group_idx,           &
-                                  c_face_group,               &
-                                  c_face_group_ln_to_gn)
+                                 c_i_part,                   &
+                                 c_cell_tag,                 &
+                                 c_cell_face_idx,            &
+                                 c_cell_face,                &
+                                 c_cell_ln_to_gn,            &
+                                 c_face_tag,                 &
+                                 c_face_cell,                &
+                                 c_face_vtx_idx,             &
+                                 c_face_vtx,                 &
+                                 c_face_ln_to_gn,            &
+                                 c_face_part_bound_proc_idx, &
+                                 c_face_part_bound_part_idx, &
+                                 c_face_part_bound,          &
+                                 c_vtx_tag,                  &
+                                 c_vtx,                      &
+                                 c_vtx_ln_to_gn,             &
+                                 c_face_group_idx,           &
+                                 c_face_group,               &
+                                 c_face_group_ln_to_gn)
 
     call c_f_pointer(c_cell_tag, &
                      cell_tag,   &
@@ -1518,24 +1518,24 @@ contains
     use iso_c_binding
     implicit none
 
-    type(c_ptr), value :: ppart
-    double precision   :: elapsed(4)
-    double precision   :: cpu(4)
-    double precision   :: cpu_user(4)
-    double precision   :: cpu_sys(4)
+    type(c_ptr), value            :: ppart
+    double precision, intent(out) :: elapsed(4)
+    double precision, intent(out) :: cpu(4)
+    double precision, intent(out) :: cpu_user(4)
+    double precision, intent(out) :: cpu_sys(4)
 
-    type(c_ptr)               :: c_elapsed  = C_NULL_PTR
-    type(c_ptr)               :: c_cpu      = C_NULL_PTR
-    type(c_ptr)               :: c_cpu_user = C_NULL_PTR
-    type(c_ptr)               :: c_cpu_sys  = C_NULL_PTR
-    double precision, pointer :: ptr(:)     => null()
+    type(c_ptr)                   :: c_elapsed  = C_NULL_PTR
+    type(c_ptr)                   :: c_cpu      = C_NULL_PTR
+    type(c_ptr)                   :: c_cpu_user = C_NULL_PTR
+    type(c_ptr)                   :: c_cpu_sys  = C_NULL_PTR
+    double precision, pointer     :: ptr(:)     => null()
 
 
     call PDM_part_time_get_c (ppart,      &
-                               c_elapsed,  &
-                               c_cpu,      &
-                               c_cpu_user, &
-                               c_cpu_sys)
+                              c_elapsed,  &
+                              c_cpu,      &
+                              c_cpu_user, &
+                              c_cpu_sys)
 
     call c_f_pointer(c_elapsed, &
                      ptr,       &
@@ -1596,44 +1596,44 @@ contains
     use iso_c_binding
     implicit none
 
-    type(c_ptr), value        :: ppart
-    integer(kind=PDM_l_num_s) :: cells_average
-    integer(kind=PDM_l_num_s) :: cells_median
-    double precision          :: cells_std_deviation
-    integer(kind=PDM_l_num_s) :: cells_min
-    integer(kind=PDM_l_num_s) :: cells_max
-    integer(kind=PDM_l_num_s) :: bound_part_faces_average
-    integer(kind=PDM_l_num_s) :: bound_part_faces_median
-    double precision          :: bound_part_faces_std_deviation
-    integer(kind=PDM_l_num_s) :: bound_part_faces_min
-    integer(kind=PDM_l_num_s) :: bound_part_faces_max
-    integer(kind=PDM_l_num_s) :: bound_part_faces_sum
+    type(c_ptr), value                :: ppart
+    integer(pdm_l_num_s), intent(out) :: cells_average
+    integer(pdm_l_num_s), intent(out) :: cells_median
+    double precision,     intent(out) :: cells_std_deviation
+    integer(pdm_l_num_s), intent(out) :: cells_min
+    integer(pdm_l_num_s), intent(out) :: cells_max
+    integer(pdm_l_num_s), intent(out) :: bound_part_faces_average
+    integer(pdm_l_num_s), intent(out) :: bound_part_faces_median
+    double precision,     intent(out) :: bound_part_faces_std_deviation
+    integer(pdm_l_num_s), intent(out) :: bound_part_faces_min
+    integer(pdm_l_num_s), intent(out) :: bound_part_faces_max
+    integer(pdm_l_num_s), intent(out) :: bound_part_faces_sum
 
-    integer(c_int)            :: c_cells_average
-    integer(c_int)            :: c_cells_median
-    real(c_double)            :: c_cells_std_deviation
-    integer(c_int)            :: c_cells_min
-    integer(c_int)            :: c_cells_max
-    integer(c_int)            :: c_bound_part_faces_average
-    integer(c_int)            :: c_bound_part_faces_median
-    real(c_double)            :: c_bound_part_faces_std_deviation
-    integer(c_int)            :: c_bound_part_faces_min
-    integer(c_int)            :: c_bound_part_faces_max
-    integer(c_int)            :: c_bound_part_faces_sum
+    integer(c_int)                    :: c_cells_average
+    integer(c_int)                    :: c_cells_median
+    real(c_double)                    :: c_cells_std_deviation
+    integer(c_int)                    :: c_cells_min
+    integer(c_int)                    :: c_cells_max
+    integer(c_int)                    :: c_bound_part_faces_average
+    integer(c_int)                    :: c_bound_part_faces_median
+    real(c_double)                    :: c_bound_part_faces_std_deviation
+    integer(c_int)                    :: c_bound_part_faces_min
+    integer(c_int)                    :: c_bound_part_faces_max
+    integer(c_int)                    :: c_bound_part_faces_sum
 
 
     call PDM_part_stat_get_c(ppart,                            &
-                              c_cells_average,                  &
-                              c_cells_median,                   &
-                              c_cells_std_deviation,            &
-                              c_cells_min,                      &
-                              c_cells_max,                      &
-                              c_bound_part_faces_average,       &
-                              c_bound_part_faces_median,        &
-                              c_bound_part_faces_std_deviation, &
-                              c_bound_part_faces_min,           &
-                              c_bound_part_faces_max,           &
-                              c_bound_part_faces_sum)
+                             c_cells_average,                  &
+                             c_cells_median,                   &
+                             c_cells_std_deviation,            &
+                             c_cells_min,                      &
+                             c_cells_max,                      &
+                             c_bound_part_faces_average,       &
+                             c_bound_part_faces_median,        &
+                             c_bound_part_faces_std_deviation, &
+                             c_bound_part_faces_min,           &
+                             c_bound_part_faces_max,           &
+                             c_bound_part_faces_sum)
 
     cells_average                  = c_cells_average
     cells_median                   = c_cells_median
@@ -1675,7 +1675,7 @@ contains
     implicit none
 
     type(c_ptr), value                 :: ppart
-    integer                            :: i_part
+    integer, intent(in)                :: i_part
     integer(kind=PDM_l_num_s), pointer :: cell_color(:)
     integer(kind=PDM_l_num_s), pointer :: face_color(:)
     integer(kind=PDM_l_num_s), pointer :: thread_color(:)
@@ -1701,24 +1701,24 @@ contains
     c_i_part = i_part
 
     call PDM_part_part_dim_get_c(ppart,             &
-                                  c_i_part,          &
-                                  n_cell,            &
-                                  n_face,            &
-                                  n_face_part_bound, &
-                                  n_vtx,             &
-                                  n_proc,            &
-                                  n_total_part,      &
-                                  scell_face,        &
-                                  sface_vtx,         &
-                                  sface_group,       &
-                                  n_face_group)
+                                 c_i_part,          &
+                                 n_cell,            &
+                                 n_face,            &
+                                 n_face_part_bound, &
+                                 n_vtx,             &
+                                 n_proc,            &
+                                 n_total_part,      &
+                                 scell_face,        &
+                                 sface_vtx,         &
+                                 sface_group,       &
+                                 n_face_group)
 
     call PDM_part_part_color_get_c(ppart,              &
-                                    c_i_part,           &
-                                    c_cell_color,       &
-                                    c_face_color,       &
-                                    c_thread_color,     &
-                                    c_hyperplane_color)
+                                   c_i_part,           &
+                                   c_cell_color,       &
+                                   c_face_color,       &
+                                   c_thread_color,     &
+                                   c_hyperplane_color)
 
     call c_f_pointer(c_cell_color, &
                      cell_color,   &
@@ -1786,23 +1786,23 @@ contains
     implicit none
 
     type(c_ptr)                        :: cm
-    integer                            :: f_comm
+    integer, intent(in)                :: f_comm
     character(len = *)                 :: method
     character(len = *)                 :: renum_cell_method
     character(len = *)                 :: renum_face_method
-    integer                            :: n_property_cell
+    integer, intent(in)                :: n_property_cell
     integer(kind=PDM_l_num_s), pointer :: renum_properties_cell(:)
-    integer                            :: n_property_face
+    integer, intent(in)                :: n_property_face
     integer(kind=PDM_l_num_s), pointer :: renum_properties_face(:)
-    integer                            :: n_part
-    integer                            :: n_total_part
-    integer                            :: n_face_group
-    logical                            :: have_cell_tag
-    logical                            :: have_face_tag
-    logical                            :: have_vtx_tag
-    logical                            :: have_cell_weight
-    logical                            :: have_face_weight
-    logical                            :: have_face_group
+    integer, intent(in)                :: n_part
+    integer, intent(in)                :: n_total_part
+    integer, intent(in)                :: n_face_group
+    logical, intent(in)                :: have_cell_tag
+    logical, intent(in)                :: have_face_tag
+    logical, intent(in)                :: have_vtx_tag
+    logical, intent(in)                :: have_cell_weight
+    logical, intent(in)                :: have_face_weight
+    logical, intent(in)                :: have_face_group
 
     integer(c_int)                     :: c_comm
     integer(c_int)                     :: c_n_property_cell
@@ -1868,22 +1868,22 @@ contains
     endif
 
     cm = PDM_part_coarse_mesh_create_c (c_comm,                         &
-                                         method//C_NULL_CHAR,            &
-                                         renum_cell_method//C_NULL_CHAR, &
-                                         renum_face_method//C_NULL_CHAR, &
-                                         c_n_property_cell,              &
-                                         c_renum_properties_cell,        &
-                                         c_n_property_face,              &
-                                         c_renum_properties_face,        &
-                                         c_n_part,                       &
-                                         c_n_total_part,                 &
-                                         c_n_face_group,                 &
-                                         c_have_cell_tag,                &
-                                         c_have_face_tag,                &
-                                         c_have_vtx_tag,                 &
-                                         c_have_cell_weight,             &
-                                         c_have_face_weight,             &
-                                         c_have_face_group)
+                                        method//C_NULL_CHAR,            &
+                                        renum_cell_method//C_NULL_CHAR, &
+                                        renum_face_method//C_NULL_CHAR, &
+                                        c_n_property_cell,              &
+                                        c_renum_properties_cell,        &
+                                        c_n_property_face,              &
+                                        c_renum_properties_face,        &
+                                        c_n_part,                       &
+                                        c_n_total_part,                 &
+                                        c_n_face_group,                 &
+                                        c_have_cell_tag,                &
+                                        c_have_face_tag,                &
+                                        c_have_vtx_tag,                 &
+                                        c_have_cell_weight,             &
+                                        c_have_face_weight,             &
+                                        c_have_face_group)
 
   end subroutine PDM_part_coarse_mesh_create_
 
@@ -1965,13 +1965,13 @@ contains
     implicit none
 
     type(c_ptr), value                 :: cm
-    integer                            :: i_part
-    integer                            :: n_coarse_cell
-    integer                            :: n_cell
-    integer                            :: n_face
-    integer                            :: n_vtx
-    integer                            :: n_face_group
-    integer                            :: n_face_part_bound
+    integer, intent(in)                :: i_part
+    integer, intent(in)                :: n_coarse_cell
+    integer, intent(in)                :: n_cell
+    integer, intent(in)                :: n_face
+    integer, intent(in)                :: n_vtx
+    integer, intent(in)                :: n_face_group
+    integer, intent(in)                :: n_face_part_bound
     integer(kind=PDM_l_num_s), pointer :: cell_face_idx(:)
     integer(kind=PDM_l_num_s), pointer :: cell_face(:)
     integer(kind=PDM_l_num_s), pointer :: cell_tag(:)
@@ -2052,33 +2052,33 @@ contains
     c_face_part_bound          = c_loc(face_part_bound         )
 
     call PDM_part_coarse_mesh_input_c (cm,                         &
-                                        c_i_part,                   &
-                                        c_n_coarse_cell,            &
-                                        c_n_cell,                   &
-                                        c_n_face,                   &
-                                        c_n_vtx,                    &
-                                        c_n_face_group,             &
-                                        c_n_face_part_bound,        &
-                                        c_cell_face_idx,            &
-                                        c_cell_face,                &
-                                        c_cell_tag,                 &
-                                        c_cell_weight,              &
-                                        c_face_weight,              &
-                                        c_cell_ln_to_gn,            &
-                                        c_face_cell,                &
-                                        c_face_vtx_idx,             &
-                                        c_face_vtx,                 &
-                                        c_face_tag,                 &
-                                        c_face_ln_to_gn,            &
-                                        c_vtxCoord,                 &
-                                        c_vtx_tag,                  &
-                                        c_vtx_ln_to_gn,             &
-                                        c_face_group_idx,           &
-                                        c_face_group,               &
-                                        c_face_group_ln_to_gn,      &
-                                        c_face_part_bound_proc_idx, &
-                                        c_face_part_bound_part_idx, &
-                                        c_face_part_bound)
+                                       c_i_part,                   &
+                                       c_n_coarse_cell,            &
+                                       c_n_cell,                   &
+                                       c_n_face,                   &
+                                       c_n_vtx,                    &
+                                       c_n_face_group,             &
+                                       c_n_face_part_bound,        &
+                                       c_cell_face_idx,            &
+                                       c_cell_face,                &
+                                       c_cell_tag,                 &
+                                       c_cell_weight,              &
+                                       c_face_weight,              &
+                                       c_cell_ln_to_gn,            &
+                                       c_face_cell,                &
+                                       c_face_vtx_idx,             &
+                                       c_face_vtx,                 &
+                                       c_face_tag,                 &
+                                       c_face_ln_to_gn,            &
+                                       c_vtxCoord,                 &
+                                       c_vtx_tag,                  &
+                                       c_vtx_ln_to_gn,             &
+                                       c_face_group_idx,           &
+                                       c_face_group,               &
+                                       c_face_group_ln_to_gn,      &
+                                       c_face_part_bound_proc_idx, &
+                                       c_face_part_bound_part_idx, &
+                                       c_face_part_bound)
 
   end subroutine PDM_part_coarse_mesh_input_
 
@@ -2120,48 +2120,48 @@ contains
     use iso_c_binding
     implicit none
 
-    type (c_ptr), value :: cm
-    integer             :: i_part
-    integer             :: n_cell
-    integer             :: n_face
-    integer             :: n_face_part_bound
-    integer             :: n_vtx
-    integer             :: n_proc
-    integer             :: n_total_part
-    integer             :: n_face_group
-    integer             :: scell_face
-    integer             :: sface_vtx
-    integer             :: sface_group
-    integer             :: sCoarseCellToFineCell
+    type (c_ptr), value  :: cm
+    integer, intent(in)  :: i_part
+    integer, intent(out) :: n_cell
+    integer, intent(out) :: n_face
+    integer, intent(out) :: n_face_part_bound
+    integer, intent(out) :: n_vtx
+    integer, intent(out) :: n_proc
+    integer, intent(out) :: n_total_part
+    integer, intent(out) :: n_face_group
+    integer, intent(out) :: scell_face
+    integer, intent(out) :: sface_vtx
+    integer, intent(out) :: sface_group
+    integer, intent(out) :: sCoarseCellToFineCell
 
-    integer(c_int)      :: c_i_part
-    integer(c_int)      :: c_n_cell
-    integer(c_int)      :: c_n_face
-    integer(c_int)      :: c_n_face_part_bound
-    integer(c_int)      :: c_n_vtx
-    integer(c_int)      :: c_n_proc
-    integer(c_int)      :: c_n_total_part
-    integer(c_int)      :: c_n_face_group
-    integer(c_int)      :: c_scell_face
-    integer(c_int)      :: c_sface_vtx
-    integer(c_int)      :: c_sface_group
-    integer(c_int)      :: c_sCoarseCellToFineCell
+    integer(c_int)       :: c_i_part
+    integer(c_int)       :: c_n_cell
+    integer(c_int)       :: c_n_face
+    integer(c_int)       :: c_n_face_part_bound
+    integer(c_int)       :: c_n_vtx
+    integer(c_int)       :: c_n_proc
+    integer(c_int)       :: c_n_total_part
+    integer(c_int)       :: c_n_face_group
+    integer(c_int)       :: c_scell_face
+    integer(c_int)       :: c_sface_vtx
+    integer(c_int)       :: c_sface_group
+    integer(c_int)       :: c_sCoarseCellToFineCell
 
     c_i_part = i_part
 
     call PDM_part_coarse_mesh_part_dim_get_c (cm,                      &
-                                               c_i_part,                &
-                                               c_n_cell,                &
-                                               c_n_face,                &
-                                               c_n_face_part_bound,     &
-                                               c_n_vtx,                 &
-                                               c_n_proc,                &
-                                               c_n_total_part,          &
-                                               c_n_face_group,          &
-                                               c_scell_face,            &
-                                               c_sface_vtx,             &
-                                               c_sface_group,           &
-                                               c_sCoarseCellToFineCell)
+                                              c_i_part,                &
+                                              c_n_cell,                &
+                                              c_n_face,                &
+                                              c_n_face_part_bound,     &
+                                              c_n_vtx,                 &
+                                              c_n_proc,                &
+                                              c_n_total_part,          &
+                                              c_n_face_group,          &
+                                              c_scell_face,            &
+                                              c_sface_vtx,             &
+                                              c_sface_group,           &
+                                              c_sCoarseCellToFineCell)
 
     n_cell                = c_n_cell
     n_face                = c_n_face
@@ -2248,7 +2248,7 @@ contains
     implicit none
 
     type(c_ptr), value                 :: cm
-    integer(c_int)                     :: i_part
+    integer, intent(in)                :: i_part
     integer(kind=PDM_l_num_s), pointer :: cell_face_idx(:)
     integer(kind=PDM_l_num_s), pointer :: cell_face(:)
     integer(kind=PDM_l_num_s), pointer :: cell_tag(:)
@@ -2312,44 +2312,44 @@ contains
     c_i_part = i_part
 
     call PDM_part_coarse_mesh_part_dim_get_c (cm,                    &
-                                               i_part,                &
-                                               n_cell,                &
-                                               n_face,                &
-                                               n_face_part_bound,     &
-                                               n_vtx,                 &
-                                               n_proc,                &
-                                               n_total_part,          &
-                                               n_face_group,          &
-                                               scell_face,            &
-                                               sface_vtx,             &
-                                               sface_group,           &
-                                               sCoarseCellToFineCell)
+                                              i_part,                &
+                                              n_cell,                &
+                                              n_face,                &
+                                              n_face_part_bound,     &
+                                              n_vtx,                 &
+                                              n_proc,                &
+                                              n_total_part,          &
+                                              n_face_group,          &
+                                              scell_face,            &
+                                              sface_vtx,             &
+                                              sface_group,           &
+                                              sCoarseCellToFineCell)
 
     call PDM_part_coarse_mesh_part_get_c (cm,                         &
-                                           c_i_part,                   &
-                                           c_cell_face_idx,            &
-                                           c_cell_face,                &
-                                           c_cell_tag,                 &
-                                           c_cell_ln_to_gn,            &
-                                           c_cellInitCellIdx,          &
-                                           c_cellInitCell,             &
-                                           c_face_cell,                &
-                                           c_face_vtx_idx,             &
-                                           c_face_vtx,                 &
-                                           c_face_tag,                 &
-                                           c_face_ln_to_gn,            &
-                                           c_faceGroupInitFaceGroup,   &
-                                           c_faceInitFace,             &
-                                           c_vtxCoord,                 &
-                                           c_vtx_tag,                  &
-                                           c_vtx_ln_to_gn,             &
-                                           c_vtxInitVtx,               &
-                                           c_face_group_idx,           &
-                                           c_face_group,               &
-                                           c_face_group_ln_to_gn,      &
-                                           c_face_part_bound_proc_idx, &
-                                           c_face_part_bound_part_idx, &
-                                           c_face_part_bound)
+                                          c_i_part,                   &
+                                          c_cell_face_idx,            &
+                                          c_cell_face,                &
+                                          c_cell_tag,                 &
+                                          c_cell_ln_to_gn,            &
+                                          c_cellInitCellIdx,          &
+                                          c_cellInitCell,             &
+                                          c_face_cell,                &
+                                          c_face_vtx_idx,             &
+                                          c_face_vtx,                 &
+                                          c_face_tag,                 &
+                                          c_face_ln_to_gn,            &
+                                          c_faceGroupInitFaceGroup,   &
+                                          c_faceInitFace,             &
+                                          c_vtxCoord,                 &
+                                          c_vtx_tag,                  &
+                                          c_vtx_ln_to_gn,             &
+                                          c_vtxInitVtx,               &
+                                          c_face_group_idx,           &
+                                          c_face_group,               &
+                                          c_face_group_ln_to_gn,      &
+                                          c_face_part_bound_proc_idx, &
+                                          c_face_part_bound_part_idx, &
+                                          c_face_part_bound)
 
     call c_f_pointer(c_cell_face_idx, &
                      cell_face_idx,   &
@@ -2471,7 +2471,7 @@ contains
     implicit none
 
     type(c_ptr), value                 :: cm
-    integer                            :: i_part
+    integer, intent(in)                :: i_part
     integer(kind=PDM_l_num_s), pointer :: cell_color(:)
     integer(kind=PDM_l_num_s), pointer :: face_color(:)
     integer(kind=PDM_l_num_s), pointer :: thread_color(:)
@@ -2497,26 +2497,26 @@ contains
     c_i_part = i_part
 
     call PDM_part_coarse_mesh_part_dim_get_c (cm,                    &
-                                               i_part,                &
-                                               n_cell,                &
-                                               n_face,                &
-                                               n_face_part_bound,     &
-                                               n_vtx,                 &
-                                               n_proc,                &
-                                               n_total_part,          &
-                                               n_face_group,          &
-                                               scell_face,            &
-                                               sface_vtx,             &
-                                               sface_group,           &
-                                               sCoarseCellToFineCell)
+                                              i_part,                &
+                                              n_cell,                &
+                                              n_face,                &
+                                              n_face_part_bound,     &
+                                              n_vtx,                 &
+                                              n_proc,                &
+                                              n_total_part,          &
+                                              n_face_group,          &
+                                              scell_face,            &
+                                              sface_vtx,             &
+                                              sface_group,           &
+                                              sCoarseCellToFineCell)
 
 
     call PDM_part_coarse_color_get_c(cm,                 &
-                                      c_i_part,           &
-                                      c_cell_color,       &
-                                      c_face_color,       &
-                                      c_thread_color,     &
-                                      c_hyperplane_color)
+                                     c_i_part,           &
+                                     c_cell_color,       &
+                                     c_face_color,       &
+                                     c_thread_color,     &
+                                     c_hyperplane_color)
 
     call c_f_pointer(c_cell_color, &
                      cell_color,   &
@@ -2559,24 +2559,24 @@ contains
     use iso_c_binding
     implicit none
 
-    type(c_ptr), value :: cm
-    double precision   :: elapsed(18)
-    double precision   :: cpu(18)
-    double precision   :: cpu_user(18)
-    double precision   :: cpu_sys(18)
+    type(c_ptr), value            :: cm
+    double precision, intent(out) :: elapsed(18)
+    double precision, intent(out) :: cpu(18)
+    double precision, intent(out) :: cpu_user(18)
+    double precision, intent(out) :: cpu_sys(18)
 
-    type(c_ptr)               :: c_elapsed  = C_NULL_PTR
-    type(c_ptr)               :: c_cpu      = C_NULL_PTR
-    type(c_ptr)               :: c_cpu_user = C_NULL_PTR
-    type(c_ptr)               :: c_cpu_sys  = C_NULL_PTR
-    double precision, pointer :: ptr(:)     => null()
+    type(c_ptr)                   :: c_elapsed  = C_NULL_PTR
+    type(c_ptr)                   :: c_cpu      = C_NULL_PTR
+    type(c_ptr)                   :: c_cpu_user = C_NULL_PTR
+    type(c_ptr)                   :: c_cpu_sys  = C_NULL_PTR
+    double precision, pointer     :: ptr(:)     => null()
 
 
     call PDM_part_coarse_mesh_time_get_c (cm,         &
-                                           c_elapsed,  &
-                                           c_cpu,      &
-                                           c_cpu_user, &
-                                           c_cpu_sys)
+                                          c_elapsed,  &
+                                          c_cpu,      &
+                                          c_cpu_user, &
+                                          c_cpu_sys)
 
     call c_f_pointer(c_elapsed, &
                      ptr,       &

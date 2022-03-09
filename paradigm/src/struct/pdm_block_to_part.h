@@ -143,11 +143,36 @@ PDM_block_to_part_global_timer_get
 PDM_block_to_part_t *
 PDM_block_to_part_create
 (
- const PDM_g_num_t    *block_distrib_idx,
+ const PDM_g_num_t   *block_distrib_idx,
+ const PDM_g_num_t  **gnum_elt,
+ const int           *n_elt,
+ const int            n_part,
+ const PDM_MPI_Comm   comm
+);
+
+/**
+ *
+ * \brief Create a block to partitions with sparse representation
+ *
+ * \param [in]   delt_gnum             Sorted list of gnum that represent the partial block, should be betwenn [1, N]
+ * \param [in]   dn_elt                Number of element in the partial block
+ * \param [in]   gnum_elt              Element global number (size : \ref n_part)
+ * \param [in]   n_elt                 Local number of elements (size : \ref n_part)
+ * \param [in]   n_part                Number of partition
+ * \param [in]   comm                  MPI communicator
+ *
+ * \return   Initialized \ref PDM_block_to_part instance
+ *
+ */
+PDM_block_to_part_t *
+PDM_block_to_part_create_from_sparse_block
+(
+ const PDM_g_num_t     *delt_gnum,
+ const int              dn_elt,
  const PDM_g_num_t    **gnum_elt,
- const int            *n_elt,
- const int             n_part,
- const PDM_MPI_Comm        comm
+ const int             *n_elt,
+ const int              n_part,
+ const PDM_MPI_Comm     comm
 );
 
 
@@ -178,7 +203,7 @@ PDM_block_to_part_create_cf
  */
 
 void
-PDM_block_to_part_exch
+PDM_block_to_part_exch_in_place
 (
  PDM_block_to_part_t *btp,
  size_t               s_data,
@@ -207,7 +232,7 @@ PDM_block_to_part_exch
  */
 
 void
-PDM_block_to_part_exch2
+PDM_block_to_part_exch
 (
  PDM_block_to_part_t *btp,
  size_t               s_data,
@@ -251,6 +276,40 @@ PDM_block_to_part_gnum_idx_get
  PDM_block_to_part_t *btp,
  PDM_g_num_t gNum
 );
+
+
+/**
+ *
+ * \brief Get the number of partitions
+ *
+ * \param [in] btp         Block to part structure
+ *
+ * \return  Number of partitions
+ */
+
+int
+PDM_block_to_part_n_part_get
+(
+ PDM_block_to_part_t *btp
+ );
+
+
+/**
+ *
+ * \brief Get the number of elements in a given partition
+ *
+ * \param [in] btp         Block to part structure
+ * \param [in] i_part      Id of current partition
+ *
+ * \return  Number of element in the current partition
+ */
+
+int
+PDM_block_to_part_n_elt_get
+(
+ PDM_block_to_part_t *btp,
+ const int            i_part
+ );
 
 #ifdef	__cplusplus
 }

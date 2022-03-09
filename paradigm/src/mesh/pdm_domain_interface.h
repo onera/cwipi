@@ -10,6 +10,7 @@
  *----------------------------------------------------------------------------*/
 
 #include "pdm.h"
+#include "pdm_part_domain_interface.h"
 
 /*=============================================================================
  * Macro definitions
@@ -26,14 +27,8 @@ extern "C" {
  * Type
  *============================================================================*/
 
-typedef enum {
-
-  PDM_DOMAIN_INTERFACE_MULT_NO  = 0,  /*!< Each interface involves only 2 domains */
-  PDM_DOMAIN_INTERFACE_MULT_YES = 1,  /*!< Each interface involves several domains */
-
-} PDM_domain_interface_mult_t;
-
 typedef struct _pdm_domain_interface_t PDM_domain_interface_t;
+// typedef struct _pdm_part_domain_interface_t PDM_part_domain_interface_t;
 
 /*=============================================================================
  * Static global variables
@@ -93,10 +88,52 @@ PDM_domain_interface_translate_face2vtx
 );
 
 void
+PDM_domain_interface_translate_vtx2face
+(
+ PDM_domain_interface_t  *dom_intrf,
+ int                     *dn_vtx,
+ int                     *dn_face,
+ int                    **dface_vtx_idx,
+ PDM_g_num_t            **dface_vtx
+);
+
+void
 PDM_domain_interface_free
 (
  PDM_domain_interface_t *dom_intrf
 );
+
+
+void
+PDM_domain_interface_translate_entity1_entity2
+(
+ int                      n_domain,
+ int                      n_interface,
+ int                     *dn_entity1,
+ int                     *dn_entity2,
+ int                     *dn_interface,
+ int                    **interface_dom,
+ PDM_g_num_t            **interface_ids,
+ int                    **dentity2_entity1_idx,
+ PDM_g_num_t            **dentity2_entity1,
+ PDM_MPI_Comm             comm
+);
+
+
+PDM_part_domain_interface_t*
+PDM_domain_interface_to_part_domain_interface
+(
+ PDM_domain_interface_t  *dom_intrf,
+ int                     *n_part,
+ int                    **pn_face,
+ int                    **pn_edge,
+ int                    **pn_vtx,
+ PDM_g_num_t           ***face_ln_to_gn,
+ PDM_g_num_t           ***edge_ln_to_gn,
+ PDM_g_num_t           ***vtx_ln_to_gn
+);
+
+
 
 #ifdef __cplusplus
 }

@@ -267,6 +267,26 @@ typedef enum {
   // PDM_REDUCE_OP_MEAN
 } PDM_reduce_op_t;
 
+
+typedef enum {
+
+  PDM_DOMAIN_INTERFACE_MULT_NO  = 0,  /*!< Each interface involves only 2 domains */
+  PDM_DOMAIN_INTERFACE_MULT_YES = 1,  /*!< Each interface involves several domains */
+
+} PDM_domain_interface_mult_t;
+
+
+/**
+ * \enum PDM_part_split_t
+ * \brief Split method
+ *
+ */
+
+typedef enum {
+  PDM_SPLIT_DUAL_WITH_PARMETIS = 1,
+  PDM_SPLIT_DUAL_WITH_PTSCOTCH = 2
+} PDM_split_dual_t;
+
 /*=============================================================================
  * Public function prototypes
  *============================================================================*/

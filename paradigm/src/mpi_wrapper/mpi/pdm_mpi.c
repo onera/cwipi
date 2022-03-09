@@ -1598,6 +1598,13 @@ int PDM_MPI_Wait(PDM_MPI_Request *request)
   n_mpi_request += -1;
   *request = PDM_MPI_COMM_NULL;
 
+  if (n_mpi_request == 0) {
+    free(mpi_request);
+    mpi_request = NULL;
+
+    l_mpi_datatype = 0;
+  }
+
   return _mpi_2_pdm_mpi_err(code);
 }
 

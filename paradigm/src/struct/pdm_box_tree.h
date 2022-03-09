@@ -396,6 +396,12 @@ PDM_box_tree_copy_to_ranks
  );
 
 
+void
+PDM_box_tree_free_copies
+(
+  PDM_box_tree_t *bt
+);
+
 /**
  *
  * \brief Get an indexed list of all points inside the boxes of a box tree

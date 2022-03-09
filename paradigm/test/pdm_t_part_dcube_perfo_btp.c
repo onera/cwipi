@@ -365,7 +365,7 @@ int main(int argc, char *argv[])
 
     PDM_g_num_t **tmp_pface_cell;
     int stride_one = 1;
-    PDM_block_to_part_exch2 (btp_update_face_cell,
+    PDM_block_to_part_exch (btp_update_face_cell,
                              sizeof(PDM_g_num_t),
                              PDM_STRIDE_CST_INTERLACED,
                              &stride_one,
@@ -425,7 +425,7 @@ int main(int argc, char *argv[])
                                                                          comm);
     PDM_g_num_t **tmp_pface_vtx;
     int stride_one = 1;
-    PDM_block_to_part_exch2 (btp_update_face_vtx,
+    PDM_block_to_part_exch (btp_update_face_vtx,
                              sizeof(PDM_g_num_t),
                              PDM_STRIDE_CST_INTERLACED,
                              &stride_one,
@@ -450,7 +450,7 @@ int main(int argc, char *argv[])
                                                                          1,
                                                                          comm);
     double **tmp_pvtx_coord;
-    PDM_block_to_part_exch2 (btp_update_vtx,
+    PDM_block_to_part_exch (btp_update_vtx,
                              3 * sizeof(double),
                              PDM_STRIDE_CST_INTERLACED,
                              &stride_one,
@@ -736,7 +736,7 @@ int main(int argc, char *argv[])
 
   double **pcell_field;
   // int stride_one = n_field;
-  PDM_block_to_part_exch2 (btp_cell,
+  PDM_block_to_part_exch (btp_cell,
                            sizeof(double),
                            PDM_STRIDE_CST_INTERLACED,
                            &n_field,

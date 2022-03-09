@@ -326,7 +326,7 @@ const int              compute_dnode_to_arc,
    *           --> Semble necessaire pour parMetis mais pas scotch
    */
   PDM_part_to_block_t *ptb_dual =
-   PDM_part_to_block_create2(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+   PDM_part_to_block_create_from_distrib(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                              PDM_PART_TO_BLOCK_POST_MERGE_UNIFORM,
                              1.,
                              &dnode_ln_to_gn,
@@ -631,7 +631,7 @@ const PDM_g_num_t     *dnode_arc,
   }
 
   PDM_part_to_block_t *ptb =
-   PDM_part_to_block_create2(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+   PDM_part_to_block_create_from_distrib(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                              PDM_PART_TO_BLOCK_POST_MERGE,
                              1.,
                             &arc_ln_to_gn,

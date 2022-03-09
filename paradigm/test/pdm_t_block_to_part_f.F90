@@ -25,6 +25,7 @@ program testf
 #ifdef PDM_HAVE_FORTRAN_MPI_MODULE  
   use mpi
 #endif  
+  use pdm_pointer_array
   use pdm_block_to_part
   use iso_c_binding
   use pdm_fortran
@@ -35,57 +36,37 @@ program testf
   include "mpif.h"
 #endif  
 
-  integer :: code
-  integer :: i_rank
-  integer :: n_rank
+  !-----------------------------------------------------------
+  logical, parameter                    :: exch_in_place = .true.
+  integer, parameter                    :: comm = MPI_COMM_WORLD
 
-  integer (kind = pdm_g_num_s), pointer :: block_distrib_index(:)
-  type(c_ptr)                           :: cptr_block_distrib_index
-  integer (kind = pdm_g_num_s), pointer :: gnum_elt(:)
-  type(c_ptr), pointer                  :: cptr_gnum_elt(:)
-  type(c_ptr)                           :: cptr_cptr_gnum_elt
+  type(c_ptr)                           :: btp = C_NULL_PTR
 
-  integer(c_int), parameter :: fComm = MPI_COMM_WORLD
+  integer(pdm_g_num_s), pointer         :: block_distrib_idx(:) => null()
+  integer                               :: n_part
+  type(PDM_pointer_array_t)             :: gnum_elt
+  integer(pdm_l_num_s), pointer         :: n_elt(:)        => null()
+  integer(pdm_g_num_s), pointer         :: elt_ln_to_gn(:) => null()
 
-  type(c_ptr)              :: btp
+  integer(pdm_l_num_s), pointer         :: block_stride(:) => null()
+  double precision,     pointer         :: block_data(:)   => null()
 
-  integer(c_int), pointer   :: n_elt(:)
-  type(c_ptr)              :: cptr_n_elt
+  type(PDM_pointer_array_t)             :: part_stride
+  type(PDM_pointer_array_t)             :: part_data
 
-  integer(c_int), parameter :: n_part = 1
+  integer(pdm_l_num_s), pointer         :: stride(:) => null()
+  double precision,     pointer         :: data(:)   => null()
 
-  integer(c_int), parameter :: n_elt_case = 5
 
-  integer(c_int), parameter :: t_stride = PDM_STRIDE_VAR_INTERLACED
+  integer                               :: code
+  integer                               :: i_rank
+  integer                               :: n_rank
+  !-----------------------------------------------------------
 
-  integer(c_int), pointer :: block_stride(:)
-  type(c_ptr)             :: cptr_block_stride !  c_ptr of C array containing block stride
-                                            ! (NULL for this case)
-  double precision, pointer :: block_data(:)
-  type(c_ptr)               :: cptr_block_data  ! c_ptr of C array containing block data
-
-  integer(c_int), pointer :: part_stride(:) ! Fortran array containing data for part 0
-                                            ! (Unused for this case with a constant stride)
-  type(c_ptr), pointer :: cptr_part_stride(:) ! Fortran array of c_ptr containing c_loc (part_stride)
-                                              ! for each partition (for this case n_part = 1)
-                                              ! (Unused for this case with a constant stride)
-  type(c_ptr)          :: cptr_cptr_part_stride ! c_loc about cptr_part_stride
-
-  integer(c_size_t), parameter :: s_data = 8 ! size of type of the exchanged data
-                                             ! (for this case exchange data are 'real*8')
-
-  double precision, pointer :: part_data(:) ! Fortran array containing data for part 0
-  type(c_ptr), pointer  :: cptr_part_data(:) ! Fortran array of c_ptr containing c_loc (part_data)
-                                            ! for each partition (for this case n_part = 1)
-  type(c_ptr)          :: cptr_cptr_part_data ! c_loc about cptr_part_data
-
-  !
-  ! Init
-  !
 
   call mpi_init(code)
-  call mpi_comm_rank(mpi_comm_world, i_rank, code)
-  call mpi_comm_size(mpi_comm_world, n_rank, code)
+  call mpi_comm_rank(comm, i_rank, code)
+  call mpi_comm_size(comm, n_rank, code)
 
   if (n_rank .ne. 1) then
     print *,'Error : 1 MPI processes are mandatory'
@@ -93,84 +74,114 @@ program testf
     stop
   end if
 
-  allocate(block_distrib_index(2))
-  block_distrib_index(1) = 0
-  block_distrib_index(2) = 5
 
-  cptr_block_distrib_index = c_loc(block_distrib_index)
+  !  Define partitions and block distribution
+  allocate(block_distrib_idx(2))
+  block_distrib_idx(1) = 0
+  block_distrib_idx(2) = 5
 
-  allocate(cptr_gnum_elt(n_part))
-  allocate(gnum_elt(n_elt_case))
-  gnum_elt(1) = 3
-  gnum_elt(2) = 5
-  gnum_elt(3) = 2
-  gnum_elt(4) = 4
-  gnum_elt(5) = 1
-
-  cptr_gnum_elt(1) = c_loc(gnum_elt)
-  cptr_cptr_gnum_elt = c_loc(cptr_gnum_elt)
-
+  n_part = 1
   allocate(n_elt(n_part))
-  n_elt(1) = n_elt_case
-  cptr_n_elt = c_loc(n_elt)
+  n_elt(1) = 5
+  call PDM_pointer_array_create (gnum_elt,       &
+                                 n_part,         &
+                                 PDM_TYPE_G_NUM)
 
-  btp = PDM_block_to_part_create (cptr_block_distrib_index, &
-                                  cptr_cptr_gnum_elt, &
-                                  cptr_n_elt, &
-                                  n_part, &
-                                  fcomm)
+  allocate(elt_ln_to_gn(n_elt(1)))
+  elt_ln_to_gn = [3, 5, 2, 4, 1]
 
-  allocate(block_stride(n_elt_case))
-  block_stride(1) = 1
-  block_stride(2) = 1
-  block_stride(3) = 1
-  block_stride(4) = 1
-  block_stride(5) = 1
+  call PDM_pointer_array_part_set (gnum_elt,     &
+                                   0,            &
+                                   elt_ln_to_gn)
 
-  cptr_block_stride = c_loc(block_stride)
+  !  Create Block-to-part object
+  call PDM_block_to_part_create (btp,               &
+                                 block_distrib_idx, &
+                                 gnum_elt,          &
+                                 n_elt,             &
+                                 n_part,            &
+                                 comm)
 
-  allocate(block_data(n_elt_case))
 
-  block_data(1) = 10.d0
-  block_data(2) = 20.d0
-  block_data(3) = 30.d0
-  block_data(4) = 40.d0
-  block_data(5) = 50.d0
 
-  cptr_block_data = c_loc(block_data)
+  allocate(block_stride(n_elt(1)))
+  block_stride(:) = 1
 
-  call PDM_block_to_part_exch2 (btp, &
-                                s_data, &
-                                t_stride, &
-                                cptr_block_stride, &
-                                cptr_block_data, &
-                                cptr_cptr_part_stride, &
-                                cptr_cptr_part_data)
+  allocate(block_data(n_elt(1)))
+  block_data = [10.d0, 20.d0, 30.d0, 40.d0, 50.d0]
 
-  call c_f_pointer(cptr_cptr_part_stride, cptr_part_stride, [n_part])
-  call c_f_pointer(cptr_cptr_part_data, cptr_part_data, [n_part])
+  if (exch_in_place) then
+    call PDM_pointer_array_create (part_stride,  &
+                                   n_part,       &
+                                   PDM_TYPE_INT)
+    allocate(stride(n_elt(1)))
+    call PDM_pointer_array_part_set (part_stride, &
+                                     0,           &
+                                     stride)
 
-  call c_f_pointer(cptr_part_stride(1), part_stride, [n_elt_case])
-  call c_f_pointer(cptr_part_data(1), part_data, [n_elt_case])
+    call PDM_pointer_array_create (part_data,       &
+                                   n_part,          &
+                                   PDM_TYPE_DOUBLE)
+    allocate(data(n_elt(1)))
+    call PDM_pointer_array_part_set (part_data, &
+                                     0,         &
+                                     data)
 
-  btp = PDM_block_to_part_free (btp)
+    call PDM_block_to_part_exch_in_place (btp,                       &
+                                          8,                         & ! s_data
+                                          PDM_STRIDE_VAR_INTERLACED, & ! t_stride
+                                          block_stride,              &
+                                          block_data,                &
+                                          part_stride,               &
+                                          part_data)
+  else
+    call PDM_block_to_part_exch (btp,                       &
+                                 8,                         & ! s_data
+                                 PDM_STRIDE_VAR_INTERLACED, & ! t_stride
+                                 block_stride,              &
+                                 block_data,                &
+                                 part_stride,               &
+                                 part_data)
+  end if
 
-  print*, "part_stride", part_stride(1), part_stride(2), part_stride(3), part_stride(4), part_stride(5)
-  print*, "part_data", part_data(1), part_data(2), part_data(3), part_data(4), part_data(5)
+  call PDM_block_to_part_free (btp)
 
+
+  !  Check part data
+  if (.not.exch_in_place) then
+    call PDM_pointer_array_part_get (part_stride, &
+                                     0,           &
+                                     stride)
+
+    call PDM_pointer_array_part_get (part_data,   &
+                                     0,           &
+                                     data)
+  end if
+
+  print *, "part_stride :", stride
+  print *, "part_data   :", data
+
+
+  !  Free memory
+  deallocate(block_distrib_idx)
   deallocate(n_elt)
-  deallocate(gnum_elt)
-  deallocate(cptr_gnum_elt)
-
-  deallocate(block_data)
+  deallocate(elt_ln_to_gn)
   deallocate(block_stride)
-  deallocate(block_distrib_index)
+  deallocate(block_data)
+  call PDM_pointer_array_free (gnum_elt)
 
-  call pdm_fortran_free_c (cptr_part_data(1))
-  call pdm_fortran_free_c (cptr_cptr_part_data)
+  if (exch_in_place) then
+    deallocate(stride, data)
+    call PDM_pointer_array_free(part_data)
+    call PDM_pointer_array_free(part_stride)
+  else
+    call PDM_pointer_array_free_from_c(part_data)
+    call PDM_pointer_array_free_from_c(part_stride)
+  end if
 
-  call pdm_fortran_free_c (cptr_part_stride(1))
-  call pdm_fortran_free_c (cptr_cptr_part_stride)
+  if (i_rank .eq. 0) then
+    write(*, *) "-- End"
+  end if
 
   call mpi_finalize(code)
 

@@ -314,7 +314,7 @@ _search_matching_joins
   }
   int cst_stride = 6;
 
-  PDM_block_to_part_exch(btp,
+  PDM_block_to_part_exch_in_place(btp,
                          sizeof(int),
                          PDM_STRIDE_CST_INTERLACED,
                          &cst_stride,
@@ -892,7 +892,7 @@ _compute_part_mesh_nodal_3d
 
 // int         **psurf_n    = NULL;
 // PDM_g_num_t **psurf_gnum = NULL;
-// PDM_block_to_part_exch2(btp,
+// PDM_block_to_part_exch(btp,
 //                         sizeof(PDM_g_num_t),
 //                         PDM_STRIDE_VAR,
 //                         blk_surf_n,
@@ -1512,6 +1512,8 @@ PDM_MPI_Comm       comm
                              &dface_edge_idx,
                              PDM_OWNERSHIP_KEEP);
 
+  // PDM_log_trace_connectivity_long(dface_edge_idx, dface_edge, dmesh->dn_face, "dface_edge ::");
+
   int          *pn_edge        = NULL;
   PDM_g_num_t **pedge_ln_to_gn = NULL;
 
@@ -1539,6 +1541,14 @@ PDM_MPI_Comm       comm
     // PDM_log_trace_array_long(pface_ln_to_gn[ipart], pn_face       [ipart]             , "(in part ) face_ln_to_gn ::");
     // PDM_log_trace_array_int (pface_edge_idx[ipart], pn_face[ipart]+1             , "(in part ) face_edge_idx ::");
     // PDM_log_trace_array_int (pface_edge    [ipart], pface_edge_idx[ipart][pn_face[ipart]], "(in part ) face_edge ::");
+
+    // PDM_log_trace_part_connectivity_gnum(pmeshes->parts[ipart]->face_edge_idx,
+    //                                      pmeshes->parts[ipart]->face_edge,
+    //                                      pface_ln_to_gn[ipart],
+    //                                      pedge_ln_to_gn[ipart],
+    //                                      pn_face[ipart],
+    //                                      "face_edge_gnum");
+
   }
 
   // edge_vtx
@@ -1552,6 +1562,8 @@ PDM_MPI_Comm       comm
                              &dedge_vtx,
                              &dedge_vtx_idx,
                              PDM_OWNERSHIP_KEEP);
+
+  // PDM_log_trace_connectivity_long(dedge_vtx_idx, dedge_vtx, dmesh->dn_face, "dedge_vtx ::");
 
   int          *pn_vtx        = NULL;
   PDM_g_num_t **pvtx_ln_to_gn = NULL;
@@ -2338,7 +2350,7 @@ PDM_MPI_Comm      comm
 //   int stride_one = 1;
 //   int* block_data1 = elt_part;
 //   int** neighbor_part;
-//   PDM_block_to_part_exch2(btp,sizeof(int),PDM_STRIDE_CST,&stride_one,block_data1,NULL,(void***)&neighbor_part);
+//   PDM_block_to_part_exch(btp,sizeof(int),PDM_STRIDE_CST,&stride_one,block_data1,NULL,(void***)&neighbor_part);
 
 //   int* block_idx2 = malloc(dn_elt * sizeof(int));
 //   for (int i=0; i<dn_elt; ++i) {
@@ -2347,7 +2359,7 @@ PDM_MPI_Comm      comm
 //   PDM_g_num_t* block_data2 = delt_vtx;
 //   int** neighbor_vtx_stri;
 //   PDM_g_num_t** neighbor_vtx;
-//   PDM_block_to_part_exch2(btp,sizeof(PDM_g_num_t),PDM_STRIDE_VAR,block_idx2,block_data2,&neighbor_vtx_stri,(void***)&neighbor_vtx);
+//   PDM_block_to_part_exch(btp,sizeof(PDM_g_num_t),PDM_STRIDE_VAR,block_idx2,block_data2,&neighbor_vtx_stri,(void***)&neighbor_vtx);
 
 //   int pos2 = 0;
 //   int neighbor_vtx_cur_idx = 0;

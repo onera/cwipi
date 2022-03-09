@@ -266,21 +266,20 @@ module pdm_gnum
   use iso_c_binding
   implicit none
 
-  integer          :: dim
-  integer          :: n_part
-  integer          :: merge
-  double precision :: tolerance
-  integer          :: f_comm
-  integer          :: owner
+  integer,          intent(in) :: dim
+  integer,          intent(in) :: n_part
+  integer,          intent(in) :: merge
+  double precision, intent(in) :: tolerance
+  integer,          intent(in) :: f_comm
+  integer,          intent(in) :: owner
+  type (c_ptr)                 :: gen_gnum
 
-  type (c_ptr) :: gen_gnum
-
-  integer(c_int) :: c_dim
-  integer(c_int) :: c_n_part
-  integer(c_int) :: c_merge
-  real(c_double) :: c_tolerance
-  integer(c_int) :: c_comm
-  integer(c_int) :: c_owner
+  integer(c_int)               :: c_dim
+  integer(c_int)               :: c_n_part
+  integer(c_int)               :: c_merge
+  real(c_double)               :: c_tolerance
+  integer(c_int)               :: c_comm
+  integer(c_int)               :: c_owner
 
 
   c_comm = PDM_MPI_Comm_f2c(f_comm)
@@ -325,10 +324,9 @@ module pdm_gnum
     use iso_c_binding
     implicit none
 
-    type(c_ptr), value :: gen_gnum
-
-    integer                   :: i_part
-    integer                   :: n_elts
+    type(c_ptr), value        :: gen_gnum
+    integer, intent(in)       :: i_part
+    integer, intent(in)       :: n_elts
     double precision, pointer :: coords(:)
     double precision, pointer :: char_length(:)
 
@@ -372,10 +370,9 @@ module pdm_gnum
     use iso_c_binding
     implicit none
 
-    type(c_ptr), value :: gen_gnum
-
-    integer                            :: i_part
-    integer                            :: n_elts
+    type(c_ptr), value                 :: gen_gnum
+    integer, intent(in)                :: i_part
+    integer, intent(in)                :: n_elts
     integer(kind=pdm_g_num_s), pointer :: parent_gnum(:)
 
     integer(c_int)                     :: c_i_part
@@ -414,7 +411,7 @@ module pdm_gnum
     implicit none
 
     type(c_ptr), value                 :: gen_gnum
-    integer                            :: i_part
+    integer, intent(in)                :: i_part
     integer(kind=pdm_g_num_s), pointer :: g_nums(:)
 
     integer(c_int)                     :: c_i_part

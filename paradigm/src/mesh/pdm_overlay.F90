@@ -527,10 +527,10 @@ contains
   use iso_c_binding
   implicit none
 
-  integer                      :: n_partMeshA
-  integer                      :: n_partMeshB
-  double precision             :: projectCoeff
-  integer                      :: f_comm
+  integer,          intent(in) :: n_partMeshA
+  integer,          intent(in) :: n_partMeshB
+  double precision, intent(in) :: projectCoeff
+  integer,          intent(in) :: f_comm
 
   type(c_ptr)           :: ol
 

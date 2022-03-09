@@ -29,6 +29,7 @@ ctypedef @PYX_NPY_L_NUM@ npy_pdm_lnum_t
 npy_pdm_gnum_dtype = @PYX_NPY_G_NUM_DTYPE@
 pdm_has_parmetis   = @PYX_PDM_HAS_PARMETIS@
 pdm_has_ptscotch   = @PYX_PDM_HAS_PTSCOTCH@
+pdm_has_pdma       = @PYX_PDM_HAS_PDMA@
 ctypedef @PYX_G_NUM@ PDM_g_num_t
 ctypedef @PYX_L_NUM@ PDM_l_num_t
 
@@ -291,11 +292,11 @@ include "pdm_dmesh.pxi"
 # ----------------
 include "pdm_dmesh_nodal.pxi"
 
-# PDM_dmesh_nodal :
+# PDM_part_dmesh_nodal :
 # ----------------
 include "pdm_part_mesh_nodal.pxi"
 
-# PDM_dmesh_nodal :
+# PDM_dmesh_nodal_to_dmesh :
 # ----------------
 include "pdm_dmesh_nodal_to_dmesh.pxi"
 
@@ -315,7 +316,7 @@ include "pdm_part_coarse.pxi"
 # ------------------
 include "pdm_part_to_block.pxi"
 
-# PDM_part_to_block :
+# PDM_block_to_part :
 # ------------------
 include "pdm_block_to_part.pxi"
 
@@ -331,13 +332,16 @@ include "pdm_cellface_orient.pxi"
 # --------------------
 include "pdm_dist_cloud_surf.pxi"
 
-# PDM_dist_cloud_surf :
+# PDM_dist_cellcenter_surf :
 # --------------------
 @COMMENT_NOT_PDMA@include "pdm_dist_cellcenter_surf.pxi"
 
 # PDM_delaunay :
 # --------------------
 @COMMENT_NOT_PDMA@include "pdm_delaunay.pxi"
+
+# PDM_remesh :
+# --------------------
 @COMMENT_NOT_PDMA@include "pdm_remesh.pxi"
 
 # PDM_points_merge :
@@ -364,7 +368,7 @@ include "pdm_mesh_location.pxi"
 # --------------------
 include "pdm_interpolate_from_mesh_location.pxi"
 
-# PDM_mesh_location :
+# PDM_closest_points :
 # --------------------
 include "pdm_closest_points.pxi"
 
@@ -384,7 +388,7 @@ include "pdm_dcube_nodal_gen.pxi"
 # --------------------
 include "pdm_poly_mesh_surf.pxi"
 
-# PDM_poly_mesh_surf :
+# PDM_partitioning_algorithm :
 # --------------------
 include "pdm_partitioning_algorithm.pxi"
 
@@ -400,7 +404,14 @@ include "pdm_dconnectivity_transform.pxi"
 # --------------------
 include "pdm_domain_interface.pxi"
 
+# PDM_domain_merge:
+# --------------------
 include "pdm_domain_merge.pxi"
+
+# PDM_connectivities :
+# --------------------
+include "pdm_connectivities.pxi"
 
 
 # TODO: PDM_writer, ...
+

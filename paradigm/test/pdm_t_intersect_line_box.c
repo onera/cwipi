@@ -408,8 +408,8 @@ main
     recv_shift[i+1] *= 6;
   }
 
-  PDM_MPI_Allgatherv (box_extents, 6*n_box, PDM__PDM_MPI_G_NUM,
-                      all_box_extents, all_n_box, recv_shift, PDM__PDM_MPI_G_NUM,
+  PDM_MPI_Allgatherv (box_extents, 6*n_box, PDM_MPI_DOUBLE,
+                      all_box_extents, all_n_box, recv_shift, PDM_MPI_DOUBLE,
                       comm);
   free (recv_shift);
 

@@ -95,21 +95,6 @@ PDM_part_to_part_create
 );
 
 
-PDM_part_to_part_t *
-PDM_part_to_part_create_cf
-(
- const PDM_g_num_t    **gnum_elt1,
- const int            *n_elt1,
- const int             n_part1,
- const PDM_g_num_t    **gnum_elt2,
- const int            *n_elt2,
- const int             n_part2,
- const int           **part1_to_part2_idx,
- const PDM_g_num_t   **part1_to_part2,
- const PDM_MPI_Fint    fcomm
-);
-
-
 /**
  *
  * \brief Initialize an exchange based on MPI_ialltoall
@@ -142,7 +127,7 @@ PDM_part_to_part_t *ptp,
  * \param [in]   ptp                     Block to part structure
  * \param [in]   s_data                  Data size
  * \param [in]   cst_stride              Constant stride
- * \param [in]   ref_part2_to_part1_data Data in ref_gnum2 order
+ * \param [in]   ref_part2_to_part1_data Data in ref_lnum2 order
  * \param [out]  part1_part2_data        Data in part1_to_part2 order
  * \param [out]  request                 Request
  *
@@ -264,17 +249,17 @@ PDM_part_to_part_part1_to_part2_get
  * \brief Get referenced gnum2 elements
  *
  * \param [in]   ptp           Block to part structure
- * \param [out]  n_ref_gnum2   Number of referenced gnum2
- * \param [out]  ref_gnum2     Referenced gnum2
+ * \param [out]  n_ref_lnum2   Number of referenced gnum2
+ * \param [out]  ref_lnum2     Referenced gnum2
  *
  */
 
 void
-PDM_part_to_part_ref_gnum2_get
+PDM_part_to_part_ref_lnum2_get
 (
  PDM_part_to_part_t *ptp,
- int               **n_ref_gnum2,
- int              ***ref_gnum2
+ int               **n_ref_lnum2,
+ int              ***ref_lnum2
 );
 
 
@@ -283,17 +268,17 @@ PDM_part_to_part_ref_gnum2_get
  * \brief Get unreferenced gnum2 elements
  *
  * \param [in]   ptp           Block to part structure
- * \param [out]  n_unref_gnum2   Number of referenced gnum2
- * \param [out]  unref_gnum2     Referenced gnum2
+ * \param [out]  n_unref_lnum2   Number of referenced gnum2
+ * \param [out]  unref_lnum2     Referenced gnum2
  *
  */
 
 void
-PDM_part_to_part_unref_gnum2_get
+PDM_part_to_part_unref_lnum2_get
 (
  PDM_part_to_part_t *ptp,
- int               **n_unref_gnum2,
- int               ***unref_gnum2
+ int               **n_unref_lnum2,
+ int               ***unref_lnum2
 );
 
 
@@ -366,7 +351,7 @@ PDM_part_to_part_issend_wait
  * \param [in]   ptp                 Block to part structure
  * \param [in]   s_data              Data size
  * \param [in]   cst_stride          Constant stride
- * \param [in]   part2_to_part1_data Data (order given by gnum1_come_from and ref_gnum2 arrays)  
+ * \param [in]   part2_to_part1_data Data (order given by gnum1_come_from and ref_lnum2 arrays)
  * \param [in]   tag                 Tag of the exchange 
  * \param [out]  request             Request
  *
@@ -409,7 +394,7 @@ PDM_part_to_part_reverse_issend_wait
  * \param [in]  ptp           Part to part structure
  * \param [in]  s_data        Data size
  * \param [in]  cst_stride    Constant stride
- * \param [in]  part2_data    Partition 2 data (order given by gnum1_come_from and ref_gnum2 arrays) 
+ * \param [in]  part2_data    Partition 2 data (order given by gnum1_come_from and ref_lnum2 arrays)
  * \param [in]  tag           Tag of the exchange 
  * \param [out] request       Request
  *
@@ -493,15 +478,15 @@ PDM_part_to_part_reverse_irecv_wait
  * \brief Initialize a partial asynchronus exchange
  *
  * \param [in]   ptp              Part to part structure
- * \param [in]   k_commm          Kind of MPI communication
+ * \param [in]   k_comm           Kind of MPI communication
  * \param [in]   t_stride         Kind of stride
  * \param [in]   t_part1_data_def Kind of part1 data definition
  * \param [in]   cst_stride       Constant stride
  * \param [in]   s_data           Data size
  * \param [in]   part1_stride     Stride of partition 1 data 
  * \param [in]   part1_data       Partition 1 data 
- * \param [out]  part2_stride     Stride of partition 2 data (order given by gnum1_come_from and ref_gnum2 arrays)
- * \param [out]  part2_data       Partition 2 data (order given by gnum1_come_from and ref_gnum2 arrays)
+ * \param [out]  part2_stride     Stride of partition 2 data (order given by gnum1_come_from and ref_lnum2 arrays)
+ * \param [out]  part2_data       Partition 2 data (order given by gnum1_come_from and ref_lnum2 arrays)
  * \param [out]  request          Request
  *
  */
@@ -545,7 +530,7 @@ PDM_part_to_part_iexch_wait
  * \brief Initialize a partial reverse asynchronus exchange
  *
  * \param [in]   ptp              Part to part structure
- * \param [in]   k_commm          Kind of MPI communication
+ * \param [in]   k_comm           Kind of MPI communication
  * \param [in]   t_stride         Kind of stride
  * \param [in]   t_part2_data_def Kind of part2 data definition
  * \param [in]   cst_stride       Constant stride
@@ -605,6 +590,112 @@ PDM_part_to_part_t *
 PDM_part_to_part_free
 (
  PDM_part_to_part_t *ptp
+);
+
+
+/**
+ *
+ * \brief Get number of partitions
+ *
+ * \param [in]  ptp       Pointer to \ref PDM_part_to_part_t object
+ * \param [out] n_part1   Number of partitions on side 1
+ * \param [out] n_part2   Number of partitions on side 2
+ *
+ */
+
+void
+PDM_part_to_part_n_part_get
+(
+ PDM_part_to_part_t *ptp,
+ int                *n_part1,
+ int                *n_part2
+ );
+
+
+/**
+ *
+ * \brief Get referenced gnum2 elements
+ *
+ * \param [in]   ptp           Block to part structure
+ * \param [in]   i_part        Id of partition
+ * \param [out]  n_ref_lnum2   Number of referenced gnum2
+ * \param [out]  ref_lnum2     Referenced gnum2
+ *
+ */
+
+void
+PDM_part_to_part_ref_lnum2_single_part_get
+(
+       PDM_part_to_part_t  *ptp,
+ const int                  i_part,
+       int                 *n_ref_lnum2,
+       int                **ref_lnum2
+);
+
+
+/**
+ *
+ * \brief Get unreferenced gnum2 elements
+ *
+ * \param [in]   ptp           Block to part structure
+ * \param [in]   i_part        Id of partition
+ * \param [out]  n_unref_lnum2 Number of unreferenced gnum2
+ * \param [out]  unref_lnum2   Unreferenced gnum2
+ *
+ */
+
+void
+PDM_part_to_part_unref_lnum2_single_part_get
+(
+       PDM_part_to_part_t  *ptp,
+ const int                  i_part,
+       int                 *n_unref_lnum2,
+       int                **unref_lnum2
+);
+
+
+/**
+ *
+ * \brief Get gnum come from gnum1 for each referenced gnum2
+ *
+ * \param [in]   ptp                 Block to part structure
+ * \param [in]   i_part              Id of partition
+ * \param [out]  gnum1_come_from_idx Index for gnum1_come_from array
+ * \param [out]  gnum1_come_from     Gnum come from gnum1 for each referenced gnum2
+ *
+ */
+
+void
+PDM_part_to_part_gnum1_come_from_single_part_get
+(
+       PDM_part_to_part_t  *ptp,
+ const int                  i_part,
+       int                **gnum1_come_from_idx,
+       PDM_g_num_t        **gnum1_come_from
+);
+
+
+/**
+ *
+ * \brief Get selected numbers of part2
+ *
+ * \param [in]   ptp                 Block to part structure
+ * \param [in]   i_part              Id of partition
+ * \param [out]  n_elt1              Number of gnum1 element
+ * \param [out]  part1_to_part2_idx  Index of data to send to gnum2 from gnum1
+ *                                  (for each part size : \ref n_elt1+1)
+ * \param [out]  part1_to_part2      Data to send to gnum2 from gnum1 for each part
+ *
+ */
+
+void
+PDM_part_to_part_part1_to_part2_single_part_get
+(
+       PDM_part_to_part_t  *ptp,
+ const int                  i_part,
+       int                 *n_elt1,
+       int                **part1_to_part2_idx,
+       PDM_g_num_t        **part1_to_part2
 );
 
 #ifdef	__cplusplus

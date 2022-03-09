@@ -1977,7 +1977,7 @@ PDM_surf_mesh_compute_faceExtentsMesh
     const int *face_vtx_idx = part->face_vtx_idx;
     const double *coords = part->coords;
 
-    part->extents = (double *) malloc (sizeof(double) * 3 * 3 * n_face);
+    part->extents = (double *) malloc (sizeof(double) * 6 * n_face);
 
     /*
      * TODO : Optimization : Split this boucle by blocks (vectorization)

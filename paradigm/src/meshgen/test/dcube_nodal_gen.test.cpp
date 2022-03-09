@@ -1,5 +1,6 @@
 #include "doctest/extensions/doctest_mpi.h"
 #include <array>
+#include <vector>
 #include "pdm.h"
 #include "pdm_doctest.h"
 #include "pdm_logging.h"

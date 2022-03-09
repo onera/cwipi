@@ -51,9 +51,6 @@ program testf
   double precision,            pointer :: pts_reduced_field(:) => null()
 
   type(c_ptr) :: gre
-  type(c_ptr) :: c_pts_ln_to_gn
-  type(c_ptr) :: c_pts_local_field
-  type(c_ptr) :: c_pts_reduced_field
 
   integer(kind = pdm_g_num_s) :: i, j, k
   integer                     :: n_error
@@ -98,25 +95,22 @@ program testf
 
   write(*, *) "rank #", i_rank, "local :", pts_local_field(:)
 
-  c_pts_ln_to_gn      = c_loc(pts_ln_to_gn)
-  c_pts_local_field   = c_loc(pts_local_field)
-  c_pts_reduced_field = c_loc(pts_reduced_field)
 
   !*
   !  Create global reduction object
   !*
   call PDM_global_reduce_create(gre, n_part, fComm)
 
-  call PDM_global_reduce_g_num_set(gre,            & !
-                                   0,              & ! i_part
-                                   n_pts,          & !
-                                   c_pts_ln_to_gn)   !
+  call PDM_global_reduce_g_num_set(gre,          & !
+                                   0,            & ! i_part
+                                   n_pts,        & !
+                                   pts_ln_to_gn)
 
-  call PDM_global_reduce_field_set(gre,                & !
-                                   0,                  & ! i_part
-                                   2,                  & ! stride
-                                   c_pts_local_field,  & !
-                                   c_pts_reduced_field)  !
+  call PDM_global_reduce_field_set(gre,              & !
+                                   0,                & ! i_part
+                                   2,                & ! stride
+                                   pts_local_field,  & !
+                                   pts_reduced_field)
 
   ! 0: MIN
   ! 1: MAX

@@ -405,6 +405,11 @@ PDM_box_copy_boxes_to_ranks
  int            *copied_ranks
 );
 
+void
+PDM_box_set_free_copies
+(
+ PDM_box_set_t  **boxes
+);
 
 
 /**

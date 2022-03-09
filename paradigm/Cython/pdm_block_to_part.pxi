@@ -15,7 +15,7 @@ cdef extern from "pdm_block_to_part.h":
                                                   int            n_part,
                                                   PDM_MPI_Comm   comm)
 
-    void PDM_block_to_part_exch(PDM_block_to_part_t  *btp,
+    void PDM_block_to_part_exch_in_place(PDM_block_to_part_t  *btp,
                                 size_t                s_data,
                                 PDM_stride_t          t_stride,
                                 int                  *block_stride,
@@ -23,7 +23,7 @@ cdef extern from "pdm_block_to_part.h":
                                 int                 **part_stride,
                                 void                **part_data)
 
-    void PDM_block_to_part_exch2(PDM_block_to_part_t  *btp,
+    void PDM_block_to_part_exch(PDM_block_to_part_t  *btp,
                                 size_t                s_data,
                                 PDM_stride_t          t_stride,
                                 int                  *block_stride,
@@ -93,7 +93,7 @@ cdef class BlockToPart:
     # ------------------------------------------------------------------
     def exchange_field(self, NPY.ndarray block_data, block_stride=1, bint interlaced_str=True):
       """
-      Wrapping for PDM_block_to_part_exch2 : transfert a distributed data field to the
+      Wrapping for PDM_block_to_part_exch : transfert a distributed data field to the
       partitions, allocate and return the partitionned array list.
 
       :param self:         BlockToPart object
@@ -126,7 +126,7 @@ cdef class BlockToPart:
 
       cdef int**  _part_stride = NULL
       cdef void** _part_data   = NULL
-      PDM_block_to_part_exch2(self.BTP,
+      PDM_block_to_part_exch(self.BTP,
                               s_data,
                               _stride_t,
                              _block_stride,
@@ -165,7 +165,7 @@ cdef class BlockToPart:
     def exchange_field_inplace(self, NPY.ndarray block_data, list part_data, 
       block_stride=1, list part_stride=None, bint interlaced_str=True):
       """
-      Wrapping for PDM_block_to_part_exch : transfert a distributed data field to the
+      Wrapping for PDM_block_to_part_exch_in_place : transfert a distributed data field to the
       partitions. Fill the pre-allocated partitionned arrays
 
       :param self:         BlockToPart object
@@ -209,7 +209,7 @@ cdef class BlockToPart:
         assert_single_dim_np(part_data[i_part], block_data.dtype, expt_size)
 
       cdef void** _part_data   = np_list_to_void_pointers(part_data)
-      PDM_block_to_part_exch(self.BTP,
+      PDM_block_to_part_exch_in_place(self.BTP,
                              s_data,
                              _stride_t,
                             _block_stride,

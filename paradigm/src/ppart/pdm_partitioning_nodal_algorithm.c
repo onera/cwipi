@@ -432,7 +432,7 @@ PDM_reverse_dparent_gnum
 
   int         **_pchild_n    = NULL;
   PDM_g_num_t **_pchild_gnum = NULL;
-  PDM_block_to_part_exch2(btp,
+  PDM_block_to_part_exch(btp,
                           sizeof(PDM_g_num_t),
                           PDM_STRIDE_VAR_INTERLACED,
                           blk_child_n,
@@ -442,7 +442,7 @@ PDM_reverse_dparent_gnum
 
   int         **_tmp_pchild_n    = NULL;
   PDM_g_num_t **_tmp_pchild_parent_gnum = NULL;
-  PDM_block_to_part_exch2(btp,
+  PDM_block_to_part_exch(btp,
                           sizeof(PDM_g_num_t),
                           PDM_STRIDE_VAR_INTERLACED,
                           blk_child_n,
@@ -456,7 +456,7 @@ PDM_reverse_dparent_gnum
       free(_tmp_pchild_n[i_part]);
     }
     free(_tmp_pchild_n);
-    PDM_block_to_part_exch2(btp,
+    PDM_block_to_part_exch(btp,
                             sizeof(int),
                             PDM_STRIDE_VAR_INTERLACED,
                             blk_child_n,

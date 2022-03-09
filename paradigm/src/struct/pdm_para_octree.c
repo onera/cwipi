@@ -8407,7 +8407,7 @@ if (_octree->use_win_shared) {
                                                             &n_pts,
                                                             (const PDM_g_num_t **) &pts_g_num);
 
-  PDM_part_to_block_t *ptb1 = PDM_part_to_block_create2 (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+  PDM_part_to_block_t *ptb1 = PDM_part_to_block_create_from_distrib (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                                          PDM_PART_TO_BLOCK_POST_MERGE,
                                                          1.,
                                                          &pts_g_num1,
@@ -8975,7 +8975,7 @@ if (_octree->use_win_shared) {
    *  Back to original partitioning
    */
   /* 1) Part-to-block */
-  ptb1 = PDM_part_to_block_create2 (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+  ptb1 = PDM_part_to_block_create_from_distrib (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                     PDM_PART_TO_BLOCK_POST_MERGE,
                                     1.,
                                     &pts_g_num2,
@@ -9043,7 +9043,7 @@ if (_octree->use_win_shared) {
                                                        1,
                                                        _octree->comm);
   int stride = n_closest_points;
-  PDM_block_to_part_exch (btp,
+  PDM_block_to_part_exch_in_place (btp,
                           sizeof(double),
                           PDM_STRIDE_CST_INTERLACED,
                           &stride,
@@ -9052,7 +9052,7 @@ if (_octree->use_win_shared) {
                           (void **) &closest_octree_pts_dist2);
   free (block_closest_pts_dist2);
 
-  PDM_block_to_part_exch (btp,
+  PDM_block_to_part_exch_in_place (btp,
                           sizeof(PDM_g_num_t),
                           PDM_STRIDE_CST_INTERLACED,
                           &stride,
@@ -9928,7 +9928,7 @@ if (_octree->use_win_shared) {
                                                             &n_pts,
                                                             (const PDM_g_num_t **) &pts_g_num);
 
-  PDM_part_to_block_t *ptb1 = PDM_part_to_block_create2 (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+  PDM_part_to_block_t *ptb1 = PDM_part_to_block_create_from_distrib (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                                          PDM_PART_TO_BLOCK_POST_MERGE,
                                                          1.,
                                                          &pts_g_num1,
@@ -10639,7 +10639,7 @@ if (_octree->use_win_shared) {
    *  End of phase 2 -- Back to original partitioning
    */
   /* 1) Part-to-block */
-  ptb1 = PDM_part_to_block_create2 (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+  ptb1 = PDM_part_to_block_create_from_distrib (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                     PDM_PART_TO_BLOCK_POST_MERGE,
                                     1.,
                                     &pts_g_num2,
@@ -10703,7 +10703,7 @@ if (_octree->use_win_shared) {
                                                        1,
                                                        _octree->comm);
   int stride = 1;
-  PDM_block_to_part_exch (btp,
+  PDM_block_to_part_exch_in_place (btp,
                           sizeof(double),
                           PDM_STRIDE_CST_INTERLACED,
                           &stride,
@@ -10712,7 +10712,7 @@ if (_octree->use_win_shared) {
                           (void **) &closest_octree_pt_dist2);
   free (block_closest_pt_dist2);
 
-  PDM_block_to_part_exch (btp,
+  PDM_block_to_part_exch_in_place (btp,
                           sizeof(PDM_g_num_t),
                           PDM_STRIDE_CST_INTERLACED,
                           &stride,
@@ -11664,7 +11664,7 @@ PDM_para_octree_points_inside_boxes
 
     int *pts_in_box_n = malloc (sizeof(int) * n_boxes);
     int one = 1;
-    PDM_block_to_part_exch (btp,
+    PDM_block_to_part_exch_in_place (btp,
                             sizeof(int),
                             PDM_STRIDE_CST_INTERLACED,
                             &one,
@@ -11675,7 +11675,7 @@ PDM_para_octree_points_inside_boxes
     *pts_in_box_idx = PDM_array_new_idx_from_sizes_int(pts_in_box_n, n_boxes);
     *pts_in_box_g_num = malloc (sizeof(PDM_g_num_t) * (*pts_in_box_idx)[n_boxes]);
 
-    PDM_block_to_part_exch (btp,
+    PDM_block_to_part_exch_in_place (btp,
                             sizeof(PDM_g_num_t),
                             PDM_STRIDE_VAR_INTERLACED,
                             block_pts_in_box_n,
@@ -11695,7 +11695,7 @@ PDM_para_octree_points_inside_boxes
 
     *pts_in_box_coord = malloc (sizeof(double) * (*pts_in_box_idx)[n_boxes] * dim);
 
-    PDM_block_to_part_exch (btp,
+    PDM_block_to_part_exch_in_place (btp,
                             dim*sizeof(double),
                             PDM_STRIDE_VAR_INTERLACED,
                             block_pts_in_box_n,

@@ -179,7 +179,7 @@ PDM_pconnectivity_to_pconnectivity
    */
   int          *n_ref_entity1     = NULL;
   int         **ref_l_num_entity1 = NULL;
-  PDM_part_to_part_ref_gnum2_get(ptp, &n_ref_entity1, &ref_l_num_entity1);
+  PDM_part_to_part_ref_lnum2_get(ptp, &n_ref_entity1, &ref_l_num_entity1);
 
   int         **gnum1_come_from_idx = NULL;
   PDM_g_num_t **gnum1_come_from     = NULL;
@@ -955,7 +955,7 @@ int main(int argc, char *argv[])
 
   int          *n_ref_face     = NULL;
   int         **ref_l_num_face = NULL;
-  PDM_part_to_part_ref_gnum2_get(ptp_face, &n_ref_face, &ref_l_num_face);
+  PDM_part_to_part_ref_lnum2_get(ptp_face, &n_ref_face, &ref_l_num_face);
 
   int         **gnum1_come_from_idx = NULL;
   PDM_g_num_t **gnum1_come_from     = NULL;
@@ -1006,7 +1006,7 @@ int main(int argc, char *argv[])
   PDM_part_to_part_reverse_irecv(ptp_face,
                                  sizeof(PDM_g_num_t),
                                  4, // Hack here because HEXA
-                      (void **)  &equi_extract_face_vtx,  // order given by gnum1_come_from and ref_gnum2 arrays
+                      (void **)  &equi_extract_face_vtx,  // order given by gnum1_come_from and ref_lnum2 arrays
                                  100,
                                  &recv_request);
 
@@ -1053,7 +1053,7 @@ int main(int argc, char *argv[])
   // PDM_part_to_part_reverse_irecv(ptp_face,
   //                                sizeof(PDM_g_num_t),
   //                                1, // Hack here because HEXA
-  //                     (void **)  &equi_extract_face_vtx,  // order given by gnum1_come_from and ref_gnum2 arrays
+  //                     (void **)  &equi_extract_face_vtx,  // order given by gnum1_come_from and ref_lnum2 arrays
   //                                100,
   //                                &recv_request);
 
@@ -1159,7 +1159,7 @@ int main(int argc, char *argv[])
 
   int          *n_ref_vtx     = NULL;
   int         **ref_l_num_vtx = NULL;
-  PDM_part_to_part_ref_gnum2_get(ptp_vtx, &n_ref_vtx, &ref_l_num_vtx);
+  PDM_part_to_part_ref_lnum2_get(ptp_vtx, &n_ref_vtx, &ref_l_num_vtx);
 
   int         **gnum1_come_from_vtx_idx = NULL;
   PDM_g_num_t **gnum1_come_from_vtx     = NULL;
@@ -1212,7 +1212,7 @@ int main(int argc, char *argv[])
     PDM_part_to_part_reverse_irecv(ptp_vtx,
                                    sizeof(double),
                                    3,
-                        (void **)  &equi_extract_vtx_coord,  // order given by gnum1_come_from and ref_gnum2 arrays
+                        (void **)  &equi_extract_vtx_coord,  // order given by gnum1_come_from and ref_lnum2 arrays
                                    100,
                                    &recv_request);
 

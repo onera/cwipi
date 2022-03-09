@@ -43,6 +43,7 @@
 
 #include "pdm_logging.h"
 #include "pdm_mpi.h"
+#include "pdm_priv.h"
 
 /*-----------------------------------------------------------------------------*/
 
@@ -338,6 +339,27 @@ PDM_log_trace_connectivity_int
 }
 
 
+void
+PDM_log_trace_part_connectivity_gnum
+(
+ const int         *entitiy1_entity2_idx,
+ const int         *entitiy1_entity2,
+ const PDM_g_num_t *entitiy1_ln_to_gn,
+ const PDM_g_num_t *entitiy2_ln_to_gn,
+ const int          n_entity1,
+ const char*        header
+)
+{
+  for(int i = 0; i < n_entity1; ++i) {
+    log_trace("%s[%i](g_num = "PDM_FMT_G_NUM") -> ", header, i, entitiy1_ln_to_gn[i]);
+    for(int j = entitiy1_entity2_idx[i]; j < entitiy1_entity2_idx[i+1]; ++j) {
+      int i_entity2 = PDM_ABS (entitiy1_entity2[j]) - 1;
+      int sgn       = PDM_SIGN(entitiy1_entity2[j]);
+      log_trace(PDM_FMT_G_NUM" ", sgn * entitiy2_ln_to_gn[i_entity2]);
+    }
+    log_trace("\n");
+  }
+}
 
 void
 PDM_log_trace_connectivity_int2
