@@ -328,7 +328,7 @@ PDM_block_to_part_create_from_sparse_block
     _block_distrib_idx[i+1] = PDM_MAX(_block_distrib_idx[i+1], _block_distrib_idx[i]);
   }
 
-  PDM_log_trace_array_long(_block_distrib_idx, n_rank+1, "_block_distrib_idx : ");
+  // PDM_log_trace_array_long(_block_distrib_idx, n_rank+1, "_block_distrib_idx : ");
   PDM_block_to_part_t* btp = PDM_block_to_part_create(_block_distrib_idx,
                                                       gnum_elt,
                                                       n_elt,
