@@ -13,6 +13,7 @@
 #include "pdm_mpi.h"
 #include "pdm_dcube_nodal_gen.h"
 #include "pdm_dmesh_nodal_to_dmesh.h"
+#include "pdm_part_to_block.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_priv.h"

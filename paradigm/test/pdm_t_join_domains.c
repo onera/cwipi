@@ -290,10 +290,10 @@ int main
     periodic_k = 0;
   }
 
-  int n_interface =
-  n_dom_j*n_dom_k*(n_dom_i - 1 + periodic_i) +
-  n_dom_k*n_dom_i*(n_dom_j - 1 + periodic_j) +
-  n_dom_i*n_dom_j*(n_dom_k - 1 + periodic_k);
+  // int n_interface =
+  // n_dom_j*n_dom_k*(n_dom_i - 1 + periodic_i) +
+  // n_dom_k*n_dom_i*(n_dom_j - 1 + periodic_j) +
+  // n_dom_i*n_dom_j*(n_dom_k - 1 + periodic_k);
 
   int n_domain = n_dom_i * n_dom_j * n_dom_k;
 
@@ -303,8 +303,6 @@ int main
   PDM_domain_interface_t *dom_intrf = NULL;
 
   const int order = 1;
-
-  int i_domain = 0;
 
   PDM_dcube_nodal_cart_topo(comm,
                             n_dom_i,
