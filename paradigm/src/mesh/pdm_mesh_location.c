@@ -922,10 +922,6 @@ _extract_selected_mesh_elements
 
   double **elt_g_weight = PDM_part_to_block_global_weight_get (ptb);
   double *_elt_g_weight = elt_g_weight[0];
-  // double *_elt_g_weight = malloc(sizeof(double) * n_elt);
-  // for (ielt = 0; ielt < n_elt; ielt++) {
-  //   _elt_g_weight[ielt] = 1.;
-  // }
 
   /*
    * Get number of vertices per element and face connectivity for polyhedra
