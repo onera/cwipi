@@ -1264,6 +1264,37 @@ namespace cwipi {
     return _userTargetN[iPart];   
   }
 
+  /**
+   * \brief Return number of partition 
+   *  
+   * 
+   * \return Number of partition
+   *
+   */
+  
+  int
+  Coupling::nPartGet (
+  ) const
+  {
+    return _nPart;
+  }
+
+
+  /**
+   * \brief Return number of partition of coupled code
+   *  
+   * 
+   * \return Number of partition
+   *
+   */
+  
+  int
+  Coupling::cplNPartGet (
+  )
+  {
+    return _cplNPart;
+  }
+
 
 } // name space cwipi
 

@@ -1168,6 +1168,31 @@ namespace cwipi {
     );
 
 
+    /**
+     * \brief Return number of partition 
+     *  
+     * 
+     * \return Number of partition
+     *
+     */
+
+    inline int
+    nPartGet (
+    ) const;
+
+
+    /**
+     * \brief Return number of partition of coupled code
+     *  
+     * 
+     * \return Number of partition
+     *
+     */
+
+    inline int
+    cplNPartGet (
+    );
+
   public:
 
     // A supprimer 
@@ -1214,6 +1239,7 @@ namespace cwipi {
           CWP_Dynamic_mesh_t                _displacement;          /*!< Type of mesh displacement */ 
     const CWP_Spatial_interp_t              _spatialInterpAlgo;     /*!< Spatial intepolation algorithm */
     const int                               _nPart;                 /*!< Number of partitions */  
+          int                               _cplNPart;              /*!< Number of partitions of coupled code */  
 
           int                              *_userTargetN;           /*!< Number of user targets on by partition (size number partitions of the mesh) */
     const CWP_g_num_t                     **_userTargetGnum;        /*!< Target global numbering by partition (size number partitions of the mesh) */

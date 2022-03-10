@@ -133,6 +133,7 @@ namespace cwipi {
    _displacement(displacement),
    _spatialInterpAlgo(spatialInterpAlgo),
    _nPart(nPart),
+   _cplNPart(-1),
    _userTargetN(nullptr),
    _userTargetGnum(nullptr),
    _localUserTargetGnum(nullptr),
@@ -361,6 +362,15 @@ namespace cwipi {
         it++;
       }
 
+      _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                 1,
+                                                                 (void *) &_nPart,
+                                                                 -1,
+                                                                 NULL,
+                                                                 1,
+                                                                 (void *) &_cplNPart,
+                                                                 -1,
+                                                                 NULL);
       // - Exchange number of fields
 
       int nSendData   = 1;
@@ -404,7 +414,6 @@ namespace cwipi {
 
       localFieldsNameIdx.clear();
 
-      printf("solo %d, %d, %ld '%s' '%s'\n", nSendData, nRecvData, cplFieldName.size(), localFieldsName.c_str(), cplFieldName.c_str());
 
       _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(char),
                                                                  nSendData,
@@ -416,6 +425,7 @@ namespace cwipi {
                                                                  -1,
                                                                  NULL);
 
+      printf("solo %d, %d, %ld '%s' '%s'\n", nSendData, nRecvData, cplFieldName.size(), localFieldsName.c_str(), cplFieldName.c_str());
       printf("comm ok - solo 0\n");
       fflush(stdout);
       MPI_Barrier(_communication.cplCommGet());
@@ -432,6 +442,9 @@ namespace cwipi {
                                                                  (void *) &(cplFieldExch[0]),
                                                                  -1,
                                                                  NULL);
+      printf("barr 1\n");
+      fflush(stdout);
+      MPI_Barrier(_communication.cplCommGet());
       localFieldsExch.clear();
 
       nSendData   = localNbField;
@@ -445,6 +458,9 @@ namespace cwipi {
                                                                  (void *) &(cplFieldLocationV[0]),
                                                                  -1,
                                                                  NULL);
+      printf("barr 2\n");
+      fflush(stdout);
+      MPI_Barrier(_communication.cplCommGet());
       localFieldLocationV.clear();
 
       // Create spatial interpolation objects
@@ -481,8 +497,12 @@ namespace cwipi {
                 if (_spatial_interp_recv.find(newKey) == _spatial_interp_recv.end()) {
 
                   _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
+      printf("init solo recv  0\n");
+      fflush(stdout);
 
                   _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldLocationV[j], SPATIAL_INTERP_EXCH_RECV);
+      printf("init solo recv 1\n");
+      fflush(stdout);
                 }
               }
             }
@@ -507,6 +527,9 @@ namespace cwipi {
       }
 
       int sis_r;
+      printf("barr 31\n");
+      fflush(stdout);
+      MPI_Barrier(_communication.cplCommGet());
       _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
                                                                  1,
                                                                  (void *) &sis_s,
@@ -517,6 +540,9 @@ namespace cwipi {
                                                                  -1,
                                                                  NULL);
 
+      printf("barr 3\n");
+      fflush(stdout);
+      MPI_Barrier(_communication.cplCommGet());
       int sir_s = (int) _spatial_interp_recv.size();
 
       vector<CWP_Dof_location_t> sir_loc;
@@ -540,6 +566,9 @@ namespace cwipi {
                                                                  (void *) &sir_r,
                                                                  -1,
                                                                  NULL);
+      printf("barr 4\n");
+      fflush(stdout);
+      MPI_Barrier(_communication.cplCommGet());
 
       printf("sir_r : %d\n", sir_r);
       printf("sis_r : %d\n", sis_r);
@@ -683,6 +712,16 @@ namespace cwipi {
           it++;
         }
 
+        _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
+                                                                   1,
+                                                                   (void *) &_nPart,
+                                                                   1,
+                                                                   (void *) &cpl_cpl._nPart,
+                                                                   1,
+                                                                   (void *) &_cplNPart,
+                                                                   1,
+                                                                   (void *) &cpl_cpl._cplNPart);
+
         // - Exchange number of fields
 
         int nSendData       = 1;
@@ -745,8 +784,6 @@ namespace cwipi {
         localFieldsNameIdx.clear();
         cpl_localFieldsNameIdx.clear();
 
-      printf("shared 0 %d, %d %d '%s' '%s'\n", nSendData, nRecvData,  cplFieldsName.size(), localFieldsName.c_str(), cplFieldsName.c_str());
-      printf("shared 1 %d, %d %ld '%s' '%s'\n", cpl_nSendData, cpl_nRecvData,  cpl_cplFieldsName.size(), cpl_localFieldsName.c_str(), cpl_cplFieldsName.c_str());
 
         _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(char),
                                                                    nSendData,
@@ -758,6 +795,8 @@ namespace cwipi {
                                                                    cpl_nRecvData,
                                                                    (void *) cpl_cplFieldsName.c_str());
 
+      printf("shared 0 %d, %d %d '%s' '%s'\n", nSendData, nRecvData,  cplFieldsName.size(), localFieldsName.c_str(), cplFieldsName.c_str());
+      printf("shared 1 %d, %d %ld '%s' '%s'\n", cpl_nSendData, cpl_nRecvData,  cpl_cplFieldsName.size(), cpl_localFieldsName.c_str(), cpl_cplFieldsName.c_str());
         printf("comm ok - shared 0\n");
         fflush(stdout);
         MPI_Barrier(_communication.cplCommGet());
@@ -783,6 +822,9 @@ namespace cwipi {
         localFieldsExch.clear();
         cpl_localFieldsExch.clear();
 
+      printf("barr 1 shared\n");
+      fflush(stdout);
+      MPI_Barrier(_communication.cplCommGet());
 
         nSendData   = localNbField;
         nRecvData   = cplNbField;
@@ -800,6 +842,9 @@ namespace cwipi {
                                                                    cpl_nRecvData,
                                                                    (void *) &(cpl_cplFieldsLocationV[0]));
 
+      printf("barr 2 shared\n");
+      fflush(stdout);
+      MPI_Barrier(_communication.cplCommGet());
         localFieldLocationV.clear();
         cpl_localFieldLocationV.clear();
 
@@ -854,8 +899,14 @@ namespace cwipi {
                     _spatial_interp_recv.insert(make_pair(newKey, FG::getInstance().CreateObject(_spatialInterpAlgo)));
                     cpl_cpl._spatial_interp_send.insert(make_pair(cpl_newKey, FG::getInstance().CreateObject(cpl_cpl._spatialInterpAlgo)));
 
+      printf("init shared recv 0\n");
+      fflush(stdout);
+      printf("init shared recv 1\n");
+      fflush(stdout);
                     _spatial_interp_recv[newKey]->init(this, localFieldLocation, cplFieldsLocationV[j], SPATIAL_INTERP_EXCH_RECV);
                     cpl_cpl._spatial_interp_send[cpl_newKey]->init(&cpl_cpl, cplFieldsLocationV[j], localFieldLocation, SPATIAL_INTERP_EXCH_SEND);
+      printf("init shared recv 2\n");
+      fflush(stdout);
                   }
                 }
               }
@@ -892,6 +943,9 @@ namespace cwipi {
 
         int sis_r;
         int cpl_sis_r;
+      printf("barr 31 shared\n");
+      fflush(stdout);
+      MPI_Barrier(_communication.cplCommGet());
         _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(int),
                                                                    1,
                                                                    (void *) &sis_s,
@@ -901,6 +955,9 @@ namespace cwipi {
                                                                    (void *) &sis_r,
                                                                    1,
                                                                    (void *) &cpl_sis_r);
+      printf("barr 3 shared\n");
+      fflush(stdout);
+      MPI_Barrier(_communication.cplCommGet());
         int sir_s = (int) _spatial_interp_recv.size();
   
         vector<CWP_Dof_location_t> sir_loc;
@@ -941,6 +998,9 @@ namespace cwipi {
                                                                    1,
                                                                    (void *) &cpl_sir_r);
 
+      printf("barr 4\n");
+      fflush(stdout);
+      MPI_Barrier(_communication.cplCommGet());
         printf("sir_r : %d\n", sir_r);
         printf("sis_r : %d\n", sis_r);
         printf("cpl_sir_r : %d\n", cpl_sir_r);
