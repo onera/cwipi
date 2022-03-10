@@ -422,7 +422,7 @@ namespace cwipi {
    void        *recv_data_cpl
   )
   {
-    int debug = 0;
+    int debug = 1;
 
     if (debug) {
       printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 1\n");
@@ -454,6 +454,19 @@ namespace cwipi {
 
     int codeID    = _localCodeProperties->idGet();
     int cplCodeID = _cplCodeProperties->idGet();
+    const int localRootRank = _localCodeProperties->rootRankGet();
+
+    const MPI_Comm& globalComm = _localCodeProperties->globalCommGet();
+
+    int currentRank;
+    MPI_Comm_rank(globalComm, &currentRank);
+
+    printf("%s - unionCommRank _locCodeRootRankUnionComm _locCodeRootRankCplComm rankglobalcomm localRootRank %d %d %d %d %d\n", _localCodeProperties->nameGet().c_str(),
+     unionCommRank, 
+     _locCodeRootRankUnionComm,
+     _locCodeRootRankCplComm,
+     currentRank,
+     localRootRank);
 
     if (unionCommRank ==  _locCodeRootRankUnionComm) {
       if (_cplCodeProperties->localCodeIs()) {
@@ -482,7 +495,7 @@ namespace cwipi {
           MPI_Sendrecv (send_data,
                         (int) s_data * n_send_data,
                         MPI_UNSIGNED_CHAR,
-                        _locCodeRootRankUnionComm,
+                        _cplCodeRootRankUnionComm,
                         _tag,
                         recv_data,
                         (int) s_data * n_recv_data,
@@ -511,6 +524,34 @@ namespace cwipi {
                       _unionComm,
                       &status);
       }
+    }
+    else {
+      if (_cplCodeProperties->localCodeIs()) {
+
+        if (unionCommRank == _cplCodeRootRankUnionComm) {
+          if (debug) {
+            printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 2.7\n");
+            fflush(stdout);
+          }
+
+          if (codeID < cplCodeID) {
+
+            MPI_Sendrecv (send_data_cpl,
+                          (int) s_data * n_send_data_cpl,
+                          MPI_UNSIGNED_CHAR,
+                          _locCodeRootRankUnionComm,
+                          _tag,
+                          recv_data_cpl,
+                          (int) s_data * n_recv_data_cpl,
+                          MPI_UNSIGNED_CHAR,
+                          _locCodeRootRankUnionComm,
+                          _tag,
+                          _unionComm,
+                          &status);
+          }
+        }
+      }
+
     }
 
     if (debug) {
