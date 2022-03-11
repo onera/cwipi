@@ -654,7 +654,7 @@ namespace cwipi {
                   printf("\t\ti, k, weights isom %d %d %12.5e %12.5e %d\n", i, k, part_weights[k], referenceData[isom*nComponent+k1], isom);
                   local_buffer[ival] += part_weights[k] * referenceData[isom*nComponent+k1];
                 }
-                printf("local_buffer : %12.5e\n", local_buffer[ival]);
+                printf("local_buffer : %d %12.5e\n", ival, local_buffer[ival]);
                 ival++;
               }
 

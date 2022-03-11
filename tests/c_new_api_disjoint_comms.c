@@ -277,11 +277,11 @@ int main(int argc, char *argv[]) {
      // bool cond_code1 = rank % 2 == 0;
      // bool cond_code2 = rank % 2 == 1;
    
-    // bool cond_code1 = rank == 1;
-    // bool cond_code2 = rank == 0 || rank == 1;
+    bool cond_code1 = rank == 1;
+    bool cond_code2 = rank == 0 || rank == 1;
 
-    bool cond_code1 = rank == 0 || rank == 1;
-    bool cond_code2 = rank == 1;
+    // bool cond_code1 = rank == 0 || rank == 1;
+    // bool cond_code2 = rank == 1;
 
     bool cond_both = cond_code1 && cond_code2;
 
