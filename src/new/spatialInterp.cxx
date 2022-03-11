@@ -975,6 +975,10 @@ namespace cwipi {
           _visu -> WriterField(referenceField, CWP_FIELD_MAP_TARGET);
         }
 
+        if(cpl_spatial_interp->_visu -> isCreated() && cpl_referenceField -> visuStatusGet() == CWP_STATUS_ON) {
+          cpl_spatial_interp->_visu -> WriterField(cpl_referenceField, CWP_FIELD_MAP_SOURCE);
+        }
+
       }
     }
   }
