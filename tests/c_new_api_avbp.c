@@ -183,28 +183,28 @@ int main(int argc, char *argv[]) {
 
   int n_not_located_points;
   int n_located_points;
-  int n_distant_located_points;
+  int n_involved_srcs;
   const int *located_points;
   const int *not_located_points;
-  const int *distant_located_points;
+  const int *involved_srcs;
 
-  n_not_located_points = CWP_N_uncomputed_tgts_get          (code_name, coupling_name, recv_field_name, 0);
-  n_located_points = CWP_N_computed_tgts_get                (code_name, coupling_name, recv_field_name, 0);
-  n_distant_located_points = CWP_N_distant_computed_tgts_get(code_name, coupling_name, recv_field_name, 0);
+  n_not_located_points = CWP_N_uncomputed_tgts_get(code_name, coupling_name, recv_field_name, 0);
+  n_located_points     = CWP_N_computed_tgts_get  (code_name, coupling_name, recv_field_name, 0);
+  n_involved_srcs      = CWP_N_involved_srcs_get  (code_name, coupling_name, recv_field_name, 0);
 
-  located_points = CWP_Computed_tgts_get(code_name, coupling_name, recv_field_name, 0);
+  located_points     = CWP_Computed_tgts_get  (code_name, coupling_name, recv_field_name, 0);
   not_located_points = CWP_Uncomputed_tgts_get(code_name, coupling_name, recv_field_name, 0);
-  distant_located_points = CWP_Distant_computed_tgts_get(code_name, coupling_name, recv_field_name, 0);
+  involved_srcs      = CWP_Involved_srcs_get  (code_name, coupling_name, recv_field_name, 0);
 
   printf("%d --- n_not_located_points %d\n", rank, n_not_located_points);
   printf("%d --- n_located_points %d\n", rank, n_located_points);
-  printf("%d --- n_distant_located_points %d\n", rank, n_distant_located_points);
+  printf("%d --- n_distant_located_points %d\n", rank, n_involved_srcs);
   printf("not_located_points :");
   for (int i = 0 ; i < n_not_located_points ; ++i) printf("%d ", not_located_points[i]);
   printf("\nlocated_points: ");
   for (int i = 0 ; i < n_located_points ; ++i) printf("%d ", located_points[i]);
   printf("\n"); //  printf("\ndistant_located_points: ");
-  for (int i = 0 ; i < n_distant_located_points ; ++i) printf("%d ", distant_located_points[i]);
+  for (int i = 0 ; i < n_involved_srcs ; ++i) printf("%d ", involved_srcs[i]);
   printf("\n");
 
   CWP_Field_irecv(code_name, coupling_name, recv_field_name);
