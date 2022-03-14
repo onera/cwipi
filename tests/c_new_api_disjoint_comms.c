@@ -1025,8 +1025,8 @@ main
 
   }
 
-  int n_computed_tgts = 0, n_uncomputed_tgts = 0;
-  const int *computed_tgts = NULL, *uncomputed_tgts = NULL;
+  int n_computed_tgts = 0, n_uncomputed_tgts = 0, n_involved_srcs = 0;
+  const int *computed_tgts = NULL, *uncomputed_tgts = NULL, *involved_srcs = NULL;
 
   if (exchDirection[0] == CWP_FIELD_EXCH_SEND) {
     if (cond_code2) {
@@ -1048,7 +1048,22 @@ main
       if (n_uncomputed_tgts != 0) {
         printf("%d (%d, %s) --- uncomputed targets: ", rank, intra_comm_rank[i_code], code_names[i_code]);
         for (int i = 0 ; i < n_uncomputed_tgts ; ++i) printf("%d ", uncomputed_tgts[i]);
-          printf("\n");
+        printf("\n");
+      }
+    }
+
+    if (cond_code1) {
+
+      n_involved_srcs   = CWP_N_involved_srcs_get("code1", cpl_name, field_name, 0);
+      involved_srcs     = CWP_Involved_srcs_get("code1", cpl_name, field_name, 0);
+
+      int i_code = n_code == 2 ? 1 : 0;
+
+      printf("%d (%d, %s) --- n involved sources: %d\n", rank, intra_comm_rank[i_code], code_names[i_code], n_involved_srcs);
+      if (n_involved_srcs != 0) {
+        printf("%d (%d, %s) --- involved sources: ", rank, intra_comm_rank[i_code], code_names[i_code]);
+        for (int i = 0 ; i < n_involved_srcs ; ++i) printf("%d ", involved_srcs[i]);
+        printf("\n");
       }
     }
   }
@@ -1071,6 +1086,21 @@ main
         printf("%d (%d, %s) --- uncomputed targets: ", rank, intra_comm_rank[0], code_names[0]);
         for (int i = 0 ; i < n_uncomputed_tgts ; ++i) printf("%d ", uncomputed_tgts[i]);
           printf("\n");
+      }
+    }
+
+    if (cond_code2) {
+
+      n_involved_srcs   = CWP_N_involved_srcs_get("code2", cpl_name, field_name, 0);
+      involved_srcs     = CWP_Involved_srcs_get("code2", cpl_name, field_name, 0);
+
+      int i_code = n_code == 2 ? 1 : 0;
+
+      printf("%d (%d, %s) --- n involved sources: %d\n", rank, intra_comm_rank[i_code], code_names[i_code], n_involved_srcs);
+      if (n_involved_srcs != 0) {
+        printf("%d (%d, %s) --- involved sources: ", rank, intra_comm_rank[i_code], code_names[i_code]);
+        for (int i = 0 ; i < n_involved_srcs ; ++i) printf("%d ", involved_srcs[i]);
+        printf("\n");
       }
     }
   }
@@ -1140,20 +1170,18 @@ main
     }
   }
 
-  for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-    if (code_id[i_code] == 2 && (exchDirection[1] == CWP_FIELD_EXCH_RECV)) {
-      printf("toto 1\n");
-      for (int i = 0 ; i < n_computed_tgts ; i++) {
-        printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
-      }
-    }
-    if (code_id[i_code] == 1 && (exchDirection[0] == CWP_FIELD_EXCH_RECV)) {
-      printf("toto 2\n");
-      for (int i = 0 ; i < n_computed_tgts ; i++) {
-        printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
-      }
-    }
-  }
+//  for (int i_code = 0 ; i_code < n_code ; ++i_code) {
+//    if (code_id[i_code] == 2 && (exchDirection[1] == CWP_FIELD_EXCH_RECV)) {
+//      for (int i = 0 ; i < n_computed_tgts ; i++) {
+//        printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
+//      }
+//    }
+//    if (code_id[i_code] == 1 && (exchDirection[0] == CWP_FIELD_EXCH_RECV)) {
+//      for (int i = 0 ; i < n_computed_tgts ; i++) {
+//        printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
+//      }
+//    }
+//  }
 
     // for (int i_code = 0 ; i_code < n_code ; i_code++) {
     //     if (code_id[i_code] == 2) {

@@ -81,16 +81,30 @@ namespace cwipi {
     return _computed_tgt[i_part];
   }
 
+  /**
+   *
+   * \brief Return the number of involved source elements
+   *
+   * \return                Number of source elements
+   */
+
   int
-  SpatialInterp::nDistantComputedTargetsGet(int i_part) const
+  SpatialInterp::nInvolvedSourcesGet(int i_part) const
   {
-    return _n_distant_computed_tgt[i_part];
+    return _n_involved_sources_tgt[i_part];
   }
 
+  /**
+   *
+   * \brief Return involved source elements
+   *
+   * \return                Source elements
+   */
+
   const int *
-  SpatialInterp::distantComputedTargetsGet(int i_part) const
+  SpatialInterp::involvedSourcesGet(int i_part) const
   {
-    return _distant_computed_tgt[i_part];
+    return _involved_sources_tgt[i_part];
   }
 
 }

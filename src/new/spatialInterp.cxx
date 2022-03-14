@@ -70,7 +70,7 @@ namespace cwipi {
     delete[] _n_elt_weights;
     delete[] _n_computed_tgt;
     delete[] _n_uncomputed_tgt;
-    delete[] _n_distant_computed_tgt;
+    delete[] _n_involved_sources_tgt;
     delete[] _src_n_gnum;
     delete[] _tgt_n_gnum;
 
@@ -84,8 +84,8 @@ namespace cwipi {
       if (_computed_tgt[i] != NULL) {
         free (_computed_tgt[i]);
       }
-      if (_distant_computed_tgt[i] != NULL) {
-        free (_distant_computed_tgt[i]);
+      if (_involved_sources_tgt[i] != NULL) {
+        free(_involved_sources_tgt[i]);
       }
       if (_uncomputed_tgt[i] != NULL) {
         free (_uncomputed_tgt[i]);
@@ -95,7 +95,7 @@ namespace cwipi {
     delete[] _weights;
 
     delete[] _computed_tgt;
-    delete[] _distant_computed_tgt;
+    delete[] _involved_sources_tgt;
 
     delete[] _uncomputed_tgt;
 
@@ -208,8 +208,8 @@ namespace cwipi {
     _n_computed_tgt = new int [_nPart];
     _computed_tgt = new int* [_nPart];
 
-    _n_distant_computed_tgt = new int [_nPart];
-    _distant_computed_tgt = new int* [_nPart];
+    _n_involved_sources_tgt = new int [_nPart];
+    _involved_sources_tgt = new int* [_nPart];
 
     _n_uncomputed_tgt = new int [_nPart];
     _uncomputed_tgt = new int* [_nPart];
@@ -219,11 +219,11 @@ namespace cwipi {
       _weights[i] = NULL;
       _computed_tgt[i] = NULL;
       _uncomputed_tgt[i] = NULL;
-      _distant_computed_tgt[i] = NULL;
+      _involved_sources_tgt[i] = NULL;
 
       _n_uncomputed_tgt[i] = 0;
       _n_computed_tgt[i] = 0;
-      _n_distant_computed_tgt[i] = 0;
+      _n_involved_sources_tgt[i] = 0;
       _n_elt_weights[i] = 0;
     }
 

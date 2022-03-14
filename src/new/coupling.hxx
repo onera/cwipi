@@ -828,13 +828,13 @@ namespace cwipi {
     ) const;
 
     inline int
-    nDistantComputedTargetsGet (
+    nInvolvedSourcesGet(
       const string &field_id,
       const int  i_part
     ) const;
 
     inline const int *
-    distantComputedTargetsGet (
+    involvedSourcesGet(
       const string &field_id,
       const int  i_part
     ) const;

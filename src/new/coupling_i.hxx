@@ -756,7 +756,7 @@ namespace cwipi {
 
 
   int
-  Coupling::nDistantComputedTargetsGet (
+  Coupling::nInvolvedSourcesGet(
     const string &field_id,
     const int  i_part
   ) const
@@ -764,20 +764,20 @@ namespace cwipi {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
     if (it == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error nDistantComputedTargetsGet : '%s' not existing field\n", field_id.c_str());
+      PDM_error(__FILE__, __LINE__, 0, "Error nInvolvedSourcesGet : '%s' not existing field\n", field_id.c_str());
     }
 
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV) {
-      PDM_error(__FILE__, __LINE__, 0, "Error nDistantComputedTargetsGet : '%s' does not send data\n", field_id.c_str());
+      PDM_error(__FILE__, __LINE__, 0, "Error nInvolvedSourcesGet : '%s' does not send data\n", field_id.c_str());
     }
 
-    return _spatial_interp_send[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->nDistantComputedTargetsGet(i_part);
+    return _spatial_interp_send[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->nInvolvedSourcesGet(i_part);
   }
 
   const int *
-  Coupling::distantComputedTargetsGet (
+  Coupling::involvedSourcesGet(
     const string &field_id,
     const int  i_part
   ) const
@@ -794,7 +794,7 @@ namespace cwipi {
       PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : '%s' does not send data\n", field_id.c_str());
     }
 
-    return _spatial_interp_send[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->distantComputedTargetsGet(i_part);
+    return _spatial_interp_send[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->involvedSourcesGet(i_part);
   }
 
   /*----------------------------------------------------------------------------*

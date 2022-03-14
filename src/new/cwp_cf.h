@@ -296,7 +296,7 @@ CWP_Computed_tgts_get_cf (
 );
 
 int
-CWP_N_distant_computed_tgts_get_cf (
+CWP_N_involved_srcs_get_cf(
         const char *f_local_code_name,
         const int l_local_code_name,
         const char *f_cpl_id,
@@ -307,7 +307,7 @@ CWP_N_distant_computed_tgts_get_cf (
 );
 
 const int *
-CWP_Distant_computed_tgts_get_cf (
+CWP_Involved_srcs_get_cf(
         const char *f_local_code_name,
         const int l_local_code_name,
         const char *f_cpl_id,

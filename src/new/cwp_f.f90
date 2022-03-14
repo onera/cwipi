@@ -212,15 +212,15 @@ module cwp
         integer(kind = c_int) :: n_computed_tgts
       end function CWP_N_computed_tgts_get_cf
 
-      function CWP_N_distant_computed_tgts_get_cf(local_code_name,   &
+      function CWP_N_involved_srcs_get_cf(local_code_name,   &
               l_local_code_name, &
               cpl_id,            &
               l_cpl_id,          &
               field_id,          &
               l_field_id,        &
               i_part)            &
-              result (n_distant_computed_tgts) &
-                      bind(c, name = 'CWP_N_distant_computed_tgts_get_cf')
+              result (n_involved_srcs) &
+                      bind(c, name = 'CWP_N_involved_srcs_get_cf')
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id
@@ -228,8 +228,8 @@ module cwp
         character(kind = c_char, len = 1) :: field_id
         integer(kind = c_int), value :: l_field_id
         integer(c_int), value :: i_part
-        integer(kind = c_int) :: n_distant_computed_tgts
-      end function CWP_N_distant_computed_tgts_get_cf
+        integer(kind = c_int) :: n_involved_srcs
+      end function CWP_N_involved_srcs_get_cf
 
       function CWP_Computed_tgts_get_cf(local_code_name,   &
                                         l_local_code_name, &
@@ -270,15 +270,15 @@ module cwp
         type(c_ptr) :: uncomputed_tgts
       end function CWP_Uncomputed_tgts_get_cf
 
-      function CWP_Distant_computed_tgts_get_cf(local_code_name,   &
+      function CWP_Involved_srcs_get_cf(local_code_name,   &
               l_local_code_name, &
               cpl_id,            &
               l_cpl_id,          &
               field_id,          &
               l_field_id,        &
               i_part)            &
-              result (distant_computed_tgts) &
-                      bind(c, name = 'CWP_Distant_computed_tgts_get_cf')
+              result (involved_srcs) &
+                      bind(c, name = 'CWP_Involved_srcs_get_cf')
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id
@@ -286,8 +286,8 @@ module cwp
         character(kind = c_char, len = 1) :: field_id
         integer(kind = c_int), value :: l_field_id
         integer(c_int), value :: i_part
-        type(c_ptr) :: distant_computed_tgts
-      end function CWP_Distant_computed_tgts_get_cf
+        type(c_ptr) :: involved_srcs
+      end function CWP_Involved_srcs_get_cf
 
       function CWP_Computed_tgts_dist_to_spatial_interp_get_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id) &
             result (dists) &
@@ -765,7 +765,7 @@ contains
 
   !>
   !!
-  !! \brief Return the number of computed targets. <b>(Not implemented yet)</b>
+  !! \brief Return the number of computed targets.
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
@@ -809,7 +809,7 @@ contains
 
   !>
   !!
-  !! \brief Return computed targets. <b>(Not implemented yet)</b>
+  !! \brief Return computed targets.
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
@@ -869,11 +869,23 @@ contains
   end function CWP_Computed_tgts_get
 
 
-  function CWP_N_distant_computed_tgts_get (local_code_name, &
+  !>
+  !!
+  !! \brief Return the number of involved sources.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] field_id         Field identifier
+  !! \param [in] i_part           Current partition
+  !!
+  !! \return                Number of involved sources
+  !!
+
+  function CWP_N_involved_srcs_get (local_code_name, &
           cpl_id,          &
           field_id,        &
           i_part)          &
-          result (n_distant_computed_tgts)
+          result (n_involved_srcs)
     use, intrinsic :: iso_c_binding
     implicit none
 
@@ -882,7 +894,7 @@ contains
     character(kind = c_char, len = *) :: field_id
     integer(c_int) :: i_part
 
-    integer(c_int) :: n_distant_computed_tgts
+    integer(c_int) :: n_involved_srcs
 
     integer(c_int) :: l_local_code_name, l_cpl_id, l_field_id
 
@@ -890,7 +902,7 @@ contains
     l_cpl_id = len(cpl_id)
     l_field_id = len(field_id)
 
-    n_distant_computed_tgts = CWP_N_distant_computed_tgts_get_cf (local_code_name,   &
+    n_involved_srcs = CWP_N_involved_srcs_get_cf (local_code_name,   &
             l_local_code_name, &
             cpl_id,            &
             l_cpl_id,          &
@@ -898,14 +910,26 @@ contains
             l_field_id,        &
             i_part)
 
-  end function CWP_N_distant_computed_tgts_get
+  end function CWP_N_involved_srcs_get
 
 
-  function CWP_Distant_computed_tgts_get (local_code_name, &
+  !>
+  !!
+  !! \brief Return involved sources.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] field_id         Field identifier
+  !! \param [in] i_part           Current partition
+  !!
+  !! \return                Involved sources
+  !!
+
+  function CWP_Involved_srcs_get (local_code_name, &
           cpl_id,          &
           field_id,        &
           i_part)          &
-          result (distant_computed_tgts)
+          result (involved_srcs)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -916,10 +940,10 @@ contains
     character(kind = c_char, len = *) :: field_id
     integer(c_int) :: i_part
 
-    integer(c_int), dimension(:), pointer :: distant_computed_tgts
+    integer(c_int), dimension(:), pointer :: involved_srcs
 
-    type(c_ptr) :: cptr_distant_computed_tgts
-    integer(c_int) :: n_distant_computed_tgts
+    type(c_ptr) :: cptr_involved_srcs
+    integer(c_int) :: n_involved_srcs
     integer(c_int) :: l_local_code_name, l_cpl_id, l_field_id
 
     l_local_code_name = len(local_code_name)
@@ -927,7 +951,7 @@ contains
     l_field_id = len(field_id)
 
 
-    n_distant_computed_tgts = CWP_N_distant_computed_tgts_get_cf (local_code_name,   &
+    n_involved_srcs = CWP_N_involved_srcs_get_cf (local_code_name,   &
             l_local_code_name, &
             cpl_id,            &
             l_cpl_id,          &
@@ -935,7 +959,7 @@ contains
             l_field_id,        &
             i_part)
 
-    cptr_distant_computed_tgts = CWP_Distant_computed_tgts_get_cf(local_code_name,   &
+    cptr_involved_srcs = CWP_Involved_srcs_get_cf(local_code_name,   &
             l_local_code_name, &
             cpl_id,            &
             l_cpl_id,          &
@@ -944,11 +968,11 @@ contains
             i_part)
 
 
-    call c_f_pointer (cptr = cptr_distant_computed_tgts, &
-            fptr = distant_computed_tgts  ,    &
-            shape= [n_distant_computed_tgts])
+    call c_f_pointer (cptr = cptr_involved_srcs, &
+            fptr = involved_srcs  ,    &
+            shape= [n_involved_srcs])
 
-  end function CWP_Distant_computed_tgts_get
+  end function CWP_Involved_srcs_get
 
 
   !>

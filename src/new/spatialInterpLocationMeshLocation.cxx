@@ -546,13 +546,13 @@ namespace cwipi {
                                                &(_points_dist2[i_part]),
                                                &(_points_projected_coords[i_part]));
 
-          _n_distant_computed_tgt[i_part] = _elt_pts_inside_idx[i_part][_src_n_gnum[i_part]];
-          _distant_computed_tgt[i_part] = (int*) malloc(sizeof(int) * _n_distant_computed_tgt[i_part]);
+          _n_involved_sources_tgt[i_part] = _elt_pts_inside_idx[i_part][_src_n_gnum[i_part]];
+          _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
           int buf = 0;
           for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
             if (_elt_pts_inside_idx[i_part][i] != buf) {
               for (int j = 0 ; j < _elt_pts_inside_idx[i_part][i] - buf ; ++j) {
-                _distant_computed_tgt[i_part][buf + j] = i;
+                _involved_sources_tgt[i_part][buf + j] = i;
               }
             }
             buf = _elt_pts_inside_idx[i_part][i];
@@ -652,13 +652,13 @@ namespace cwipi {
                                                  &(_points_dist2[i_part]),
                                                  &(_points_projected_coords[i_part]));
 
-            _n_distant_computed_tgt[i_part] = _elt_pts_inside_idx[i_part][_src_n_gnum[i_part]];
-            _distant_computed_tgt[i_part] = (int*) malloc(sizeof(int) * _n_distant_computed_tgt[i_part]);
+            _n_involved_sources_tgt[i_part] = _elt_pts_inside_idx[i_part][_src_n_gnum[i_part]];
+            _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
             int buf = 0;
             for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
               if (_elt_pts_inside_idx[i_part][i] != buf) {
                 for (int j = 0 ; j < _elt_pts_inside_idx[i_part][i] - buf ; ++j) {
-                  _distant_computed_tgt[i_part][buf + j] = i;
+                  _involved_sources_tgt[i_part][buf + j] = i;
                 }
               }
               buf = _elt_pts_inside_idx[i_part][i];
@@ -765,13 +765,13 @@ namespace cwipi {
                                                  &(cpl_spatial_interp->_points_dist2[i_part]),
                                                  &(cpl_spatial_interp->_points_projected_coords[i_part]));
 
-            cpl_spatial_interp->_n_distant_computed_tgt[i_part] = cpl_spatial_interp->_elt_pts_inside_idx[i_part][cpl_spatial_interp->_src_n_gnum[i_part]];
-            cpl_spatial_interp->_distant_computed_tgt[i_part] = (int*) malloc(sizeof(int) * cpl_spatial_interp->_n_distant_computed_tgt[i_part]);
+            cpl_spatial_interp->_n_involved_sources_tgt[i_part] = cpl_spatial_interp->_elt_pts_inside_idx[i_part][cpl_spatial_interp->_src_n_gnum[i_part]];
+            cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * cpl_spatial_interp->_n_involved_sources_tgt[i_part]);
             int buf = 0;
             for (int i = 0 ; i < cpl_spatial_interp->_src_n_gnum[i_part] ; ++i) {
               if (cpl_spatial_interp->_elt_pts_inside_idx[i_part][i] != buf) {
                 for (int j = 0 ; j < cpl_spatial_interp->_elt_pts_inside_idx[i_part][i] - buf ; ++j) {
-                  cpl_spatial_interp->_distant_computed_tgt[i_part][buf + j] = i;
+                  cpl_spatial_interp->_involved_sources_tgt[i_part][buf + j] = i;
                 }
               }
               buf = cpl_spatial_interp->_elt_pts_inside_idx[i_part][i];

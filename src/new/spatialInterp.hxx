@@ -158,10 +158,10 @@ namespace cwipi {
     computedTargetsGet(int i_part) const;
 
     int
-    nDistantComputedTargetsGet(int i_part) const;
+    nInvolvedSourcesGet(int i_part) const;
 
     const int *
-    distantComputedTargetsGet(int i_part) const;
+    involvedSourcesGet(int i_part) const;
 
   protected:
 
@@ -211,8 +211,8 @@ namespace cwipi {
     int *_n_uncomputed_tgt;
     int **_uncomputed_tgt;
 
-    int *_n_distant_computed_tgt;
-    int **_distant_computed_tgt;
+    int *_n_involved_sources_tgt;
+    int **_involved_sources_tgt;
 
     std::vector <double **> _send_buffer;   /*!< Send buffer (size = n_field) */
     std::vector <double **> _recv_buffer;   /*!< Recv buffer (size = n_field) */

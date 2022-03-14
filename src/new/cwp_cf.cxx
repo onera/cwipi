@@ -396,7 +396,7 @@ CWP_Uncomputed_tgts_get_cf (
 
 /**
  *
- * \brief Return the number of computed targets. <b>(Not implemented yet)</b>
+ * \brief Return the number of computed targets.
  *
  * \param [in]  f_local_code_name   Fortran local code name
  * \param [in]  l_local_code_name   Length of Fortran local code name
@@ -435,7 +435,7 @@ CWP_N_computed_tgts_get_cf (
 
 /**
  *
- * \brief Return computed targets. <b>(Not implemented yet)</b>
+ * \brief Return computed targets.
  *
  * \param [in]  f_local_code_name   Fortran local code name
  * \param [in]  l_local_code_name   Length of Fortran local code name
@@ -472,8 +472,23 @@ CWP_Computed_tgts_get_cf (
   return res;
 }
 
+/**
+ *
+ * \brief Return the number of involved sources</b>
+ *
+ * \param [in]  f_local_code_name   Fortran local code name
+ * \param [in]  l_local_code_name   Length of Fortran local code name
+ * \param [in]  f_cpl_id            Fortran Coupling identifier
+ * \param [in]  l_cpl_id            Length of Fortran coupling identifier
+ * \param [in]  f_field_id          Fortran Field identifier
+ * \param [in]  l_field_id          Length of Fortran Field identifier
+ * \param [in]   i_part             Current partition
+ *
+ * \return                Number of involved sources
+ */
+
 int
-CWP_N_distant_computed_tgts_get_cf (
+CWP_N_involved_srcs_get_cf (
         const char *f_local_code_name,
         const int l_local_code_name,
         const char *f_cpl_id,
@@ -487,7 +502,7 @@ CWP_N_distant_computed_tgts_get_cf (
   char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  int res = CWP_N_distant_computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
+  int res = CWP_N_involved_srcs_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -496,8 +511,23 @@ CWP_N_distant_computed_tgts_get_cf (
   return res;
 }
 
+/**
+ *
+ * \brief Return involved sources</b>
+ *
+ * \param [in]  f_local_code_name   Fortran local code name
+ * \param [in]  l_local_code_name   Length of Fortran local code name
+ * \param [in]  f_cpl_id            Fortran Coupling identifier
+ * \param [in]  l_cpl_id            Length of Fortran coupling identifier
+ * \param [in]  f_field_id          Fortran Field identifier
+ * \param [in]  l_field_id          Length of Fortran Field identifier
+ * \param [in]   i_part             Current partition
+ *
+ * \return                Involved sources
+ */
+
 const int *
-CWP_Distant_computed_tgts_get_cf (
+CWP_Involved_srcs_get_cf (
         const char *f_local_code_name,
         const int l_local_code_name,
         const char *f_cpl_id,
@@ -511,7 +541,7 @@ CWP_Distant_computed_tgts_get_cf (
   char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  const int *res = CWP_Distant_computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
+  const int *res = CWP_Involved_srcs_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;

@@ -855,7 +855,7 @@ CWP_Uncomputed_tgts_get
 
 /**
  *
- * \brief Return the number of computed targets. <b>(Not implemented yet)</b>
+ * \brief Return the number of computed targets.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -876,7 +876,7 @@ CWP_N_computed_tgts_get
 
 /**
  *
- * \brief Return computed targets. <b>(Not implemented yet)</b>
+ * \brief Return computed targets.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -896,7 +896,7 @@ CWP_Computed_tgts_get
 );
 
 int
-CWP_N_distant_computed_tgts_get
+CWP_N_involved_srcs_get
 (
  const char *local_code_name,
  const char *cpl_id,
@@ -905,7 +905,7 @@ CWP_N_distant_computed_tgts_get
 );
 
 const int *
-CWP_Distant_computed_tgts_get
+CWP_Involved_srcs_get
 (
  const char *local_code_name,
  const char *cpl_id,
