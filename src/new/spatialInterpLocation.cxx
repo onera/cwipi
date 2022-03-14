@@ -245,7 +245,6 @@ namespace cwipi {
         _n_computed_tgt[i_part] = 0;
         _computed_tgt[i_part] = NULL;
 
-        printf("weightsCompute() reinit _n_uncomputed_tgt 0 : %lu\n", this);
         _n_uncomputed_tgt[i_part] = 0;
         _uncomputed_tgt[i_part] = NULL;
 
@@ -314,7 +313,6 @@ namespace cwipi {
           _n_computed_tgt[i_part] = 0;
           _computed_tgt[i_part] = NULL;
 
-          printf("weightsCompute() reinit _n_uncomputed_tgt 0 : %lu\n", this);
           _n_uncomputed_tgt[i_part] = 0;
           _uncomputed_tgt[i_part] = NULL;
 
@@ -342,9 +340,6 @@ namespace cwipi {
 
         if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
-          printf("localization_init - 2.2\n");
-          fflush(stdout);
-
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
 
           cpl_spatial_interp = 
@@ -353,9 +348,6 @@ namespace cwipi {
         }
 
         else {
-
-          printf("localization_init - 2.3\n");
-          fflush(stdout);
 
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
 
@@ -407,7 +399,6 @@ namespace cwipi {
           cpl_spatial_interp->_n_computed_tgt[i_part] = 0;
           cpl_spatial_interp->_computed_tgt[i_part] = NULL;
 
-          printf("weightsCompute() reinit _n_uncomputed_tgt 0 : %lu\n", this);
           cpl_spatial_interp->_n_uncomputed_tgt[i_part] = 0;
           cpl_spatial_interp->_uncomputed_tgt[i_part] = NULL;
 
@@ -630,8 +621,8 @@ namespace cwipi {
           int         *connec_idx2                   = _cell_vtx_idx[i_part];
           int         *connec2                       = _cell_vtx[i_part];
 
-          int         *connec_idx1                   = _mesh->connecIdxGet(i_part);
-          int         *connec1                       = _mesh->connecGet(i_part);
+          // int         *connec_idx1                   = _mesh->connecIdxGet(i_part);
+          // int         *connec1                       = _mesh->connecGet(i_part);
 
           int         *connec_idx = connec_idx2; 
           int         *connec = connec2;

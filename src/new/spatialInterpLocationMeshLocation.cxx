@@ -65,9 +65,6 @@ namespace cwipi {
 
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
 
-        printf("localization_init - 2.1\n");
-        fflush(stdout);
-
         _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
         PDM_mesh_location_reverse_results_enable (_id_pdm);
@@ -81,9 +78,6 @@ namespace cwipi {
 
         if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
-          printf("localization_init - 2.2\n");
-          fflush(stdout);
-
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
 
           cpl_spatial_interp = 
@@ -92,9 +86,6 @@ namespace cwipi {
         }
 
         else {
-
-          printf("localization_init - 2.3\n");
-          fflush(stdout);
 
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
 
@@ -106,21 +97,13 @@ namespace cwipi {
 
         if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
-//          PDM_mesh_location_mesh_global_data_set(_id_pdm, _cplNPart);
           PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _nPart);
-
-          printf("localization_init - 2.4\n");
-          fflush(stdout);
 
         }
 
         else {
 
-//          PDM_mesh_location_mesh_global_data_set(_id_pdm, _nPart);
           PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _cplNPart);
-
-          printf("localization_init - 2.5\n");
-          fflush(stdout);
 
         }
       }
@@ -173,8 +156,6 @@ namespace cwipi {
 
           PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, part_n, (double *) part_coord, (PDM_g_num_t*) part_gnum);
 
-          printf("localization_points_cloud_setting : %d\n", part_n);
-          fflush(stdout);
         }
       }
 
@@ -192,9 +173,6 @@ namespace cwipi {
         cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
 
         if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-
-          printf("localization_points_cloud_setting : 1.1\n");
-          fflush(stdout);
 
           for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
 
@@ -229,9 +207,6 @@ namespace cwipi {
   
           cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
 
-          printf("localization_points_cloud_setting : 2.1\n");
-          fflush(stdout);
-
           for (int i_part = 0 ; i_part < _cplNPart ; i_part++) { 
 
             const double *part_coord = NULL;
@@ -255,8 +230,6 @@ namespace cwipi {
               part_n = cpl_cpl.userTargetNGet (i_part);
             }
 
-          printf("localization_points_cloud_setting : %d \n", part_n);
-          fflush(stdout);
             PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, part_n, (double *) part_coord, (PDM_g_num_t*) part_gnum);
           }
         }
@@ -529,17 +502,12 @@ namespace cwipi {
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
-      printf("localization_compute - 1.1\n");
-      fflush(stdout);
-
       PDM_mesh_location_compute(_id_pdm);
       PDM_mesh_location_dump_times(_id_pdm);
     }
 
     else { 
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-        printf("localization_compute - 1.2\n");
-        fflush(stdout);
 
         PDM_mesh_location_compute(_id_pdm);
         PDM_mesh_location_dump_times(_id_pdm);
@@ -712,15 +680,11 @@ namespace cwipi {
 
           for (int i_part = 0; i_part < _cplNPart; i_part++) {
 
-            printf("localization_get cpl recv\n");
-            fflush(stdout);
-
             cpl_spatial_interp->_n_computed_tgt[i_part] = PDM_mesh_location_n_located_get (_id_pdm,
                                                                                            0, 
                                                                                            i_part);
 
-            printf("localization_get cpl recv : %d %lu %lu\n", cpl_spatial_interp->_n_computed_tgt[i_part], cpl_spatial_interp, this);
-            fflush(stdout);
+
             cpl_spatial_interp->_n_uncomputed_tgt[i_part] = PDM_mesh_location_n_unlocated_get (_id_pdm,
                                                                                                0, 
                                                                                                i_part);

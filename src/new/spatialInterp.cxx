@@ -220,7 +220,6 @@ namespace cwipi {
       _computed_tgt[i] = NULL;
       _uncomputed_tgt[i] = NULL;
       _distant_computed_tgt[i] = NULL;
-      printf("constructeur reinit _n_uncomputed_tgt 0 : %lu\n", this);
 
       _n_uncomputed_tgt[i] = 0;
       _n_computed_tgt[i] = 0;
@@ -467,7 +466,7 @@ namespace cwipi {
       }
 
       if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-        _visu -> WriterField(referenceField, CWP_FIELD_MAP_SOURCE);
+        _visu -> WriterField(referenceField);
       }
     }
 
@@ -507,7 +506,7 @@ namespace cwipi {
         }
 
         if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-          _visu -> WriterField(referenceField, CWP_FIELD_MAP_SOURCE);
+          _visu -> WriterField(referenceField);
         }
 
 
@@ -562,7 +561,7 @@ namespace cwipi {
           }
 
           if(cpl_spatial_interp->_visu -> isCreated() && cpl_referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-            cpl_spatial_interp->_visu -> WriterField(cpl_referenceField, CWP_FIELD_MAP_TARGET);
+            cpl_spatial_interp->_visu -> WriterField(cpl_referenceField);
           }
 
         }
@@ -584,15 +583,9 @@ namespace cwipi {
       int  *n_ref_gnum2;
       int **ref_gnum2;
 
-      printf("irecv 1\n");
-      fflush(stdout);
-
       PDM_part_to_part_ref_lnum2_get (_ptsp,
                                                  &n_ref_gnum2,
                                                  &ref_gnum2);
-
-      printf("irecv 2\n");
-      fflush(stdout);
 
       int          **gnum1_come_from_idx;
       PDM_g_num_t  **gnum1_come_from;
@@ -600,9 +593,6 @@ namespace cwipi {
       PDM_part_to_part_gnum1_come_from_get (_ptsp,
                                                        &gnum1_come_from_idx,
                                                        &gnum1_come_from);
-
-      printf("irecv 3\n");
-      fflush(stdout);
 
       _send_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
       _recv_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
@@ -621,9 +611,6 @@ namespace cwipi {
       uint32_t mpi_tag = (_adler32 (referenceField->fieldIDGet().c_str(), 
         referenceField->fieldIDGet().size()) % (maxTag - 1)) + 1;
 
-      printf("irecv 4\n");
-      fflush(stdout);
-
       if ((int) _recv_adler.size() != 0) {
         int idx = PDM_binary_search_uint32t(mpi_tag,
                                             &(_recv_adler[0]),
@@ -637,9 +624,6 @@ namespace cwipi {
                                           (int) _recv_adler.size());
         }
       }
-
-      printf("irecv 5\n");
-      fflush(stdout);
 
       std::vector<uint32_t>::iterator it  = _recv_adler.begin();
       std::vector<uint32_t>::iterator it2 = _recv_adler.end();
@@ -656,9 +640,6 @@ namespace cwipi {
 
       // Fake reveceive
 
-      printf("irecv 6\n");
-      fflush(stdout);
-
       PDM_part_to_part_irecv (_ptsp,
                                           s_data,
                                           stride,
@@ -666,18 +647,12 @@ namespace cwipi {
                                           (int) mpi_tag,
                                          &(_recv_request[intId]));
 
-      printf("irecv 7\n");
-      fflush(stdout);
-
       PDM_part_to_part_issend (_ptsp,
                                           s_data,
                                           stride,
                           (const void **) _send_buffer[intId],
                                           (int) mpi_tag,
                                          &(_send_request[intId]));
-      printf("irecv 8\n");
-      fflush(stdout);
-
     }
 
     else {
@@ -787,9 +762,6 @@ namespace cwipi {
                                       (int) mpi_tag,
                                           &(cpl_spatial_interp->_send_request[cpl_intId]));
 
-        printf("cpl_spatial_interp->_send_request[intId] : irecv %d\n", cpl_spatial_interp->_send_request[intId]);
-        fflush(stdout);
-
       }
     }
   }
@@ -800,18 +772,10 @@ namespace cwipi {
 
       const int intId = referenceField->fieldIDIntGet();
 
-      printf("wait irecv 1\n");
-      fflush(stdout);
-
       PDM_part_to_part_irecv_wait (_ptsp, _recv_request[intId]);
-
-      printf("wait irecv 2\n");
-      fflush(stdout);
 
       PDM_part_to_part_issend_wait (_ptsp, _send_request[intId]);
 
-      printf("wait irecv 3\n");
-      fflush(stdout);
       if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
         interpolate (referenceField, _recv_buffer[intId]);
       }
@@ -848,9 +812,6 @@ namespace cwipi {
         }
       }
 
-      printf("wait irecv 4\n");
-      fflush(stdout);
-
       if (_send_buffer[intId] != NULL) {
         for (int i = 0; i < _nPart; i++) {
           if (_send_buffer[intId][i] != NULL) {
@@ -874,11 +835,9 @@ namespace cwipi {
       }
 
       if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-        _visu -> WriterField(referenceField, CWP_FIELD_MAP_TARGET);
+        _visu -> WriterField(referenceField);
       }
 
-      printf("wait irecv 5\n");
-      fflush(stdout);
     }
 
     else {
@@ -972,11 +931,11 @@ namespace cwipi {
         }
 
         if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-          _visu -> WriterField(referenceField, CWP_FIELD_MAP_TARGET);
+          _visu -> WriterField(referenceField);
         }
 
         if(cpl_spatial_interp->_visu -> isCreated() && cpl_referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-          cpl_spatial_interp->_visu -> WriterField(cpl_referenceField, CWP_FIELD_MAP_SOURCE);
+          cpl_spatial_interp->_visu -> WriterField(cpl_referenceField);
         }
 
       }

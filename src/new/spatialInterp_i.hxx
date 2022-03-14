@@ -36,7 +36,6 @@ namespace cwipi {
   SpatialInterp::nUncomputedTargetsGet(int i_part) const
 
   {
-    printf("spatial inter nUncomputedTargetsGet : %d %lu\n", _n_uncomputed_tgt[i_part], this);
     return _n_uncomputed_tgt[i_part];
   }
 

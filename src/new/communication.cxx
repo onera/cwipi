@@ -422,7 +422,7 @@ namespace cwipi {
    void        *recv_data_cpl
   )
   {
-    int debug = 1;
+    int debug = 0;
 
     if (debug) {
       printf("Communication::iexchGlobalDataBetweenCodesThroughUnionCom - 1\n");
@@ -461,12 +461,14 @@ namespace cwipi {
     int currentRank;
     MPI_Comm_rank(globalComm, &currentRank);
 
-    printf("%s - unionCommRank _locCodeRootRankUnionComm _locCodeRootRankCplComm rankglobalcomm localRootRank %d %d %d %d %d\n", _localCodeProperties->nameGet().c_str(),
-     unionCommRank, 
-     _locCodeRootRankUnionComm,
-     _locCodeRootRankCplComm,
-     currentRank,
-     localRootRank);
+    if (debug) {
+      printf("%s - unionCommRank _locCodeRootRankUnionComm _locCodeRootRankCplComm rankglobalcomm localRootRank %d %d %d %d %d\n", _localCodeProperties->nameGet().c_str(),
+       unionCommRank, 
+       _locCodeRootRankUnionComm,
+       _locCodeRootRankCplComm,
+       currentRank,
+       localRootRank);
+    }
 
     if (unionCommRank ==  _locCodeRootRankUnionComm) {
       if (_cplCodeProperties->localCodeIs()) {

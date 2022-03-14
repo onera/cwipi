@@ -1036,15 +1036,17 @@ main
       computed_tgts     = CWP_Computed_tgts_get("code2", cpl_name, field_name, 0);
       uncomputed_tgts   = CWP_Uncomputed_tgts_get("code2", cpl_name, field_name, 0);
 
-      printf("%d (%d, %s) --- n computed targets: %d\n", rank, intra_comm_rank[1], code_names[1], n_computed_tgts);
-      printf("%d (%d, %s) --- n uncomputed targets: %d\n", rank, intra_comm_rank[1], code_names[1], n_uncomputed_tgts);
+      int i_code = n_code == 2 ? 1 : 0;
+
+      printf("%d (%d, %s) --- n computed targets: %d\n", rank, intra_comm_rank[i_code], code_names[i_code], n_computed_tgts);
+      printf("%d (%d, %s) --- n uncomputed targets: %d\n", rank, intra_comm_rank[i_code], code_names[i_code], n_uncomputed_tgts);
       if (n_computed_tgts != 0) {
-        printf("%d (%d, %s) --- computed targets: ", rank, intra_comm_rank[1], code_names[1]);
+        printf("%d (%d, %s) --- computed targets: ", rank, intra_comm_rank[i_code], code_names[i_code]);
         for (int i = 0 ; i < n_computed_tgts ; ++i) printf("%d ", computed_tgts[i]);
           printf("\n");
       }
       if (n_uncomputed_tgts != 0) {
-        printf("%d (%d, %s) --- uncomputed targets: ", rank, intra_comm_rank[1], code_names[1]);
+        printf("%d (%d, %s) --- uncomputed targets: ", rank, intra_comm_rank[i_code], code_names[i_code]);
         for (int i = 0 ; i < n_uncomputed_tgts ; ++i) printf("%d ", uncomputed_tgts[i]);
           printf("\n");
       }
@@ -1069,19 +1071,6 @@ main
         printf("%d (%d, %s) --- uncomputed targets: ", rank, intra_comm_rank[0], code_names[0]);
         for (int i = 0 ; i < n_uncomputed_tgts ; ++i) printf("%d ", uncomputed_tgts[i]);
           printf("\n");
-      }
-    }
-  }
-
-  for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-    if (code_id[i_code] == 2 && (exchDirection[1] == CWP_FIELD_EXCH_RECV)) {
-      for (int i = 0 ; i < n_computed_tgts ; i++) {
-        printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
-      }
-    }
-    if (code_id[i_code] == 1 && (exchDirection[0] == CWP_FIELD_EXCH_RECV)) {
-      for (int i = 0 ; i < n_computed_tgts ; i++) {
-        printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
       }
     }
   }

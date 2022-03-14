@@ -68,13 +68,15 @@ namespace cwipi {
              Coupling *cpl)
              : _localComm(localComm),
                _nBlocks(0),
-               _pdmNodal_handle_index(),
                 //_hoOrdering (NULL),
                _visu(visu),
                _displacement(displacement),
                _cpl(cpl),
                _faceEdgeMethod(0),
-               _cellFaceMethod(0){
+               _cellFaceMethod(0),
+              _pdmNodal_handle_index()
+
+  {
 
     _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&localComm));
     // pdm_nodal building

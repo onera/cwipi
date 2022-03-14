@@ -55,7 +55,6 @@ namespace cwipi {
      _cells_center       .resize(_n_part, NULL);
      _isSet              .resize(_n_part);
 
-     PDM_MPI_Comm pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(_localComm);
   }
 
 
