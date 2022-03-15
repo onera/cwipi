@@ -308,10 +308,11 @@ PDM_block_to_part_create_from_sparse_block
     max_g_num = delt_gnum[dn_elt-1];
   }
 
+  PDM_g_num_t max_part_g_num = 0;
   for(int i_part = 0; i_part < n_part; ++i_part) {
     for(int i = 0; i < n_elt[i_part]; ++i) {
       PDM_g_num_t g_num = PDM_ABS(gnum_elt[i_part][i]);
-      max_g_num = PDM_MAX(max_g_num, g_num);
+      max_part_g_num = PDM_MAX(max_part_g_num, g_num);
     }
   }
 
@@ -328,7 +329,11 @@ PDM_block_to_part_create_from_sparse_block
     _block_distrib_idx[i+1] = PDM_MAX(_block_distrib_idx[i+1], _block_distrib_idx[i]);
   }
 
-  // PDM_log_trace_array_long(_block_distrib_idx, n_rank+1, "_block_distrib_idx : ");
+  PDM_g_num_t gmax_part_g_num = 0;
+  PDM_MPI_Allreduce(&max_part_g_num, &gmax_part_g_num, 1,
+                    PDM__PDM_MPI_G_NUM, PDM_MPI_MAX, comm);
+  _block_distrib_idx[n_rank] = PDM_MAX(_block_distrib_idx[n_rank], gmax_part_g_num+1);
+
   PDM_block_to_part_t* btp = PDM_block_to_part_create(_block_distrib_idx,
                                                       gnum_elt,
                                                       n_elt,
