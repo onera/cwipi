@@ -548,15 +548,17 @@ namespace cwipi {
 
           _n_involved_sources_tgt[i_part] = _elt_pts_inside_idx[i_part][_src_n_gnum[i_part]];
           _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
-          int buf = 0;
-          for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
-            if (_elt_pts_inside_idx[i_part][i] != buf) {
-              for (int j = 0 ; j < _elt_pts_inside_idx[i_part][i] - buf ; ++j) {
-                _involved_sources_tgt[i_part][buf + j] = i;
+
+          int count = 0;
+          for (int i = 0 ; i < _src_n_gnum[i_part] + 1 ; ++i) {
+            if (_elt_pts_inside_idx[i_part][i] != _elt_pts_inside_idx[i_part][i - 1]) {
+              for (int j = 0 ; j < _elt_pts_inside_idx[i_part][i] - _elt_pts_inside_idx[i_part][i - 1] ; ++j) {
+                _involved_sources_tgt[i_part][count] = i;
+                ++count;
               }
             }
-            buf = _elt_pts_inside_idx[i_part][i];
           }
+          assert(count == _n_involved_sources_tgt[i_part]);
 
           int n_elt = 0;
           CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
@@ -654,15 +656,17 @@ namespace cwipi {
 
             _n_involved_sources_tgt[i_part] = _elt_pts_inside_idx[i_part][_src_n_gnum[i_part]];
             _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
-            int buf = 0;
-            for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
-              if (_elt_pts_inside_idx[i_part][i] != buf) {
-                for (int j = 0 ; j < _elt_pts_inside_idx[i_part][i] - buf ; ++j) {
-                  _involved_sources_tgt[i_part][buf + j] = i;
+
+            int count = 0;
+            for (int i = 0 ; i < _src_n_gnum[i_part] + 1 ; ++i) {
+              if (_elt_pts_inside_idx[i_part][i] != _elt_pts_inside_idx[i_part][i - 1]) {
+                for (int j = 0 ; j < _elt_pts_inside_idx[i_part][i] - _elt_pts_inside_idx[i_part][i - 1] ; ++j) {
+                  _involved_sources_tgt[i_part][count] = i;
+                  ++count;
                 }
               }
-              buf = _elt_pts_inside_idx[i_part][i];
             }
+            assert(count == _n_involved_sources_tgt[i_part]);
 
             int n_elt = 0;
             CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
@@ -767,15 +771,17 @@ namespace cwipi {
 
             cpl_spatial_interp->_n_involved_sources_tgt[i_part] = cpl_spatial_interp->_elt_pts_inside_idx[i_part][cpl_spatial_interp->_src_n_gnum[i_part]];
             cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * cpl_spatial_interp->_n_involved_sources_tgt[i_part]);
-            int buf = 0;
-            for (int i = 0 ; i < cpl_spatial_interp->_src_n_gnum[i_part] ; ++i) {
-              if (cpl_spatial_interp->_elt_pts_inside_idx[i_part][i] != buf) {
-                for (int j = 0 ; j < cpl_spatial_interp->_elt_pts_inside_idx[i_part][i] - buf ; ++j) {
-                  cpl_spatial_interp->_involved_sources_tgt[i_part][buf + j] = i;
+
+            int count = 0;
+            for (int i = 0 ; i < cpl_spatial_interp->_src_n_gnum[i_part] + 1 ; ++i) {
+              if (cpl_spatial_interp->_elt_pts_inside_idx[i_part][i] != cpl_spatial_interp->_elt_pts_inside_idx[i_part][i - 1]) {
+                for (int j = 0 ; j < cpl_spatial_interp->_elt_pts_inside_idx[i_part][i] - cpl_spatial_interp->_elt_pts_inside_idx[i_part][i - 1] ; ++j) {
+                  cpl_spatial_interp->_involved_sources_tgt[i_part][count] = i;
+                  ++count;
                 }
               }
-              buf = cpl_spatial_interp->_elt_pts_inside_idx[i_part][i];
             }
+            assert(count == _n_involved_sources_tgt[i_part]);
 
             int n_elt = 0;
             CWP_Interface_t interf_dim = cpl_cpl.entitiesDimGet();

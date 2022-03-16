@@ -685,7 +685,6 @@ main
         }
       }
     }
-  
   }
 
     // Print the number and ranks for each code
@@ -861,7 +860,6 @@ main
 //                                          n_faces[i_code][i_part], face_vtx_idx[i_code][i_part], face_vtx[i_code][i_part], cell_ln_to_gn[i_code][i_part]);
 
         // 2 - Set connectivities by reverting to a standard block from nodal
-
       PDM_Mesh_nodal_coord_set (mesh_nodal[i_code],
                                 i_part,
                                 n_vtx[i_code][i_part],
@@ -1025,7 +1023,7 @@ main
 
   }
 
-  int n_computed_tgts = 0, n_uncomputed_tgts = 0, n_involved_srcs = 0;
+  int n_computed_tgts, n_uncomputed_tgts, n_involved_srcs;
   const int *computed_tgts = NULL, *uncomputed_tgts = NULL, *involved_srcs = NULL;
 
   if (exchDirection[0] == CWP_FIELD_EXCH_SEND) {
