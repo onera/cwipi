@@ -550,10 +550,10 @@ namespace cwipi {
           _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
 
           int count = 0;
-          for (int i = 0 ; i < _src_n_gnum[i_part] + 1 ; ++i) {
-            if (_elt_pts_inside_idx[i_part][i] != _elt_pts_inside_idx[i_part][i - 1]) {
-              for (int j = 0 ; j < _elt_pts_inside_idx[i_part][i] - _elt_pts_inside_idx[i_part][i - 1] ; ++j) {
-                _involved_sources_tgt[i_part][count] = i;
+          for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
+            if (_elt_pts_inside_idx[i_part][i + 1] != _elt_pts_inside_idx[i_part][i]) {
+              for (int j = 0 ; j < _elt_pts_inside_idx[i_part][i + 1] - _elt_pts_inside_idx[i_part][i] ; ++j) {
+                _involved_sources_tgt[i_part][count] = i + 1;
                 ++count;
               }
             }
@@ -658,10 +658,10 @@ namespace cwipi {
             _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
 
             int count = 0;
-            for (int i = 0 ; i < _src_n_gnum[i_part] + 1 ; ++i) {
-              if (_elt_pts_inside_idx[i_part][i] != _elt_pts_inside_idx[i_part][i - 1]) {
-                for (int j = 0 ; j < _elt_pts_inside_idx[i_part][i] - _elt_pts_inside_idx[i_part][i - 1] ; ++j) {
-                  _involved_sources_tgt[i_part][count] = i;
+            for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
+              if (_elt_pts_inside_idx[i_part][i + 1] != _elt_pts_inside_idx[i_part][i]) {
+                for (int j = 0 ; j < _elt_pts_inside_idx[i_part][i + 1] - _elt_pts_inside_idx[i_part][i] ; ++j) {
+                  _involved_sources_tgt[i_part][count] = i + 1;
                   ++count;
                 }
               }
@@ -773,10 +773,10 @@ namespace cwipi {
             cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * cpl_spatial_interp->_n_involved_sources_tgt[i_part]);
 
             int count = 0;
-            for (int i = 0 ; i < cpl_spatial_interp->_src_n_gnum[i_part] + 1 ; ++i) {
-              if (cpl_spatial_interp->_elt_pts_inside_idx[i_part][i] != cpl_spatial_interp->_elt_pts_inside_idx[i_part][i - 1]) {
-                for (int j = 0 ; j < cpl_spatial_interp->_elt_pts_inside_idx[i_part][i] - cpl_spatial_interp->_elt_pts_inside_idx[i_part][i - 1] ; ++j) {
-                  cpl_spatial_interp->_involved_sources_tgt[i_part][count] = i;
+            for (int i = 0 ; i < cpl_spatial_interp->_src_n_gnum[i_part] ; ++i) {
+              if (cpl_spatial_interp->_elt_pts_inside_idx[i_part][i + 1] != cpl_spatial_interp->_elt_pts_inside_idx[i_part][i]) {
+                for (int j = 0 ; j < cpl_spatial_interp->_elt_pts_inside_idx[i_part][i + 1] - cpl_spatial_interp->_elt_pts_inside_idx[i_part][i] ; ++j) {
+                  cpl_spatial_interp->_involved_sources_tgt[i_part][count] = i + 1;
                   ++count;
                 }
               }
