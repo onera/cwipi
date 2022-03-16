@@ -404,6 +404,9 @@ PDM_dmesh_distrib_get
    case PDM_MESH_ENTITY_VERTEX:
      *distrib = dmesh->vtx_distrib;
      break;
+   default:
+    PDM_error(__FILE__, __LINE__, 0, "PDM_dmesh_distrib_get invalid entity_type %d\n", entity_type);
+    break;
    }
    int n_rank;
    PDM_MPI_Comm_size(dmesh->comm, &n_rank);

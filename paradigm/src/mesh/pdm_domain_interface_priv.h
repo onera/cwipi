@@ -46,6 +46,12 @@ struct _pdm_domain_interface_t{
   int                          *interface_dn_vtx;
   PDM_g_num_t                 **interface_ids_vtx;
   int                         **interface_dom_vtx;
+
+  double                      **translation_vect;
+  double                      **rotation_direction;
+  double                      **rotation_center;
+  double                       *rotation_angle;
+
   
   PDM_ownership_t ownership;
   int is_result[PDM_BOUND_TYPE_MAX];

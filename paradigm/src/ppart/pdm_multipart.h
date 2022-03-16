@@ -30,6 +30,7 @@
 #include "pdm_dmesh.h"
 #include "pdm_dmesh_nodal.h"
 #include "pdm_part_mesh_nodal.h"
+#include "pdm_domain_interface.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -194,9 +195,91 @@ PDM_multipart_run_ppart
 void
 PDM_multipart_get_part_mesh_nodal
 (
-PDM_multipart_t        *multipart,
-const int               i_zone,
-PDM_part_mesh_nodal_t **pmesh_nodal
+       PDM_multipart_t        *multipart,
+ const int                     i_zone,
+       PDM_part_mesh_nodal_t **pmesh_nodal
+);
+
+/**
+ * \brief Set number of element in the block entity
+ *
+ * \param [in]  multipart             Pointer to \ref PDM_multipart_t object
+ * \param [in]  i_zone                Id of zone
+ * \param [in]  entity_type           Type of entity (can be cell/face/edge/vtx)
+ * \param [in]  dn_entity             Distributed number of entity in current process
+ *
+ */
+void
+PDM_multipart_dn_entity_set
+(
+       PDM_multipart_t     *multipart,
+ const int                  i_zone,
+       PDM_mesh_entities_t  entity_type,
+       int                  dn_entity
+);
+
+/**
+ * \brief Set number connectivity for current block
+ *
+ * \param [in]  multipart             Pointer to \ref PDM_multipart_t object
+ * \param [in]  i_zone                Id of zone
+ * \param [in]  connectivity_type     Type of connectivity
+ * \param [in]  connect               connectivity (size = connect_idx[dn_entity] )
+ * \param [in]  connect_idx           Index of connectivity or NULL if face_cell for example  (size = dn_entity )
+ *
+ */
+void
+PDM_multipart_dconnectivity_set
+(
+       PDM_multipart_t         *multipart,
+ const int                      i_zone,
+       PDM_connectivity_type_t  connectivity_type,
+       PDM_g_num_t             *dconnect,
+       int                     *dconnect_idx
+);
+
+/**
+ * \brief Set group connectivity by kind
+ *
+ * \param [in]  multipart             Pointer to \ref PDM_multipart_t object
+ * \param [in]  i_zone                Id of zone
+ * \param [in]  bound_type            Type of bound
+ * \param [in]  connect               connectivity (size = connect_idx[dn_entity] )
+ * \param [in]  connect_idx           Index of connectivity or NULL if face_cell for example  (size = dn_entity )
+ *
+ */
+void
+PDM_multipart_dgroup_set
+(
+       PDM_multipart_t          *multipart,
+ const int                       i_zone,
+       PDM_bound_type_t          bound_type,
+       PDM_g_num_t              *dconnect,
+       int                      *dconnect_idx
+);
+
+
+/**
+ * \brief Set group connectivity by kind
+ *
+ * \param [in]  multipart             Pointer to \ref PDM_multipart_t object
+ * \param [in]  i_zone                Id of zone
+ * \param [in]  dvtx_coord            Mesh coordinates (size = 3 * dn_vtx)
+ */
+void
+PDM_multipart_dvtx_coord_set
+(
+       PDM_multipart_t *multipart,
+ const int              i_zone,
+ const double          *dvtx_coord
+);
+
+
+void
+PDM_multipart_domain_interface_shared_set
+(
+  PDM_multipart_t        *multipart,
+  PDM_domain_interface_t *ditrf
 );
 
 

@@ -2238,6 +2238,27 @@ PDM_dcube_nodal_cart_topo
       }
     }
   }
+
+
+  for(int i_itrf = 0; i_itrf < n_interface; ++i_itrf) {
+    if(i_period[i_itrf] == 1) {
+      double translation_vect[3] = {length*n_dom_i, 0.,             0.};
+      PDM_domain_interface_translation_set(_dom_intrf,
+                                           i_itrf,
+                                           translation_vect);
+    } else if(i_period[i_itrf] == 2) {
+      double translation_vect[3] = {0,              length*n_dom_j, 0.};
+      PDM_domain_interface_translation_set(_dom_intrf,
+                                           i_itrf,
+                                           translation_vect);
+    } else {
+      double translation_vect[3] = {0.,             0.,             length*n_dom_k};
+      PDM_domain_interface_translation_set(_dom_intrf,
+                                           i_itrf,
+                                           translation_vect);
+    }
+  }
+
   free(distrib_k);
   free(i_period);
 

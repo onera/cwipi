@@ -1202,9 +1202,9 @@ PDM_part_to_block_create
   PDM_part_to_block_t *ptb =
     (PDM_part_to_block_t *) malloc (sizeof(PDM_part_to_block_t));
 
-  if ((t_post != PDM_PART_TO_BLOCK_POST_MERGE) && (weight != NULL)) {
-    PDM_error(__FILE__, __LINE__, 0,"PDM_part_to_block_create : weights are available only if PDM_PART_TO_BLOCK_POST_MERGE is selected\n");
-  }
+  // if ((t_post != PDM_PART_TO_BLOCK_POST_MERGE) && (weight != NULL)) {
+  //   PDM_error(__FILE__, __LINE__, 0,"PDM_part_to_block_create : weights are available only if PDM_PART_TO_BLOCK_POST_MERGE is selected\n");
+  // }
 
   ptb->t_distrib         = t_distrib;    /*!< Distribution type */
   ptb->t_post            = t_post;       /*!< Post processing type */
@@ -1285,7 +1285,7 @@ PDM_part_to_block_create
   /*
    * Compute global weight for each element
    */
-  if (ptb->weight != NULL && ptb->t_post == PDM_PART_TO_BLOCK_POST_MERGE) {
+  if (ptb->weight != NULL) {// && ptb->t_post == PDM_PART_TO_BLOCK_POST_MERGE) {
     _compute_global_weights (ptb);
   }
 

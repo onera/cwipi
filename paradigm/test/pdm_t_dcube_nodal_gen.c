@@ -1109,9 +1109,9 @@ _lagrange_to_bezier_tetra
     //     }
     //   }
     // }
-
-    // _check_tetra_face("face_w0.vtk", order, tria_lag);
-
+    if(0 == 1) {
+      _check_tetra_face("face_w0.vtk", order, tria_lag);
+    }
     _gauss_elim (B, lag, bez, n_nodes_tria, 3, 0);
     // _gauss_elim (B, tria_lag, tria_bez, n_nodes_tria, 3, 0);
 

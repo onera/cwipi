@@ -398,8 +398,8 @@ _create_cell_graph_comm
   PDM_MPI_Comm_size(part_ext->comm, &n_rank);
 
   assert(part_ext->n_domain == 1);
-  /* Si multidomain on fait un shift et tt roule */
 
+  /* Si multidomain on fait un shift et tt roule */
   int n_tot_all_domain = 0;
   int n_part_loc_all_domain = 0;
   for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
@@ -467,6 +467,95 @@ _create_cell_graph_comm
         _neighbor_n[i_entity] += 1;
       }
 
+      /* Join between domain */
+      printf(" Begin part_extension with domain \n");
+      PDM_bound_type_t interface_kind = PDM_BOUND_TYPE_MAX;
+      if(part_ext->extend_type == PDM_EXTEND_FROM_FACE) {
+        interface_kind = PDM_BOUND_TYPE_FACE;
+      } else if (part_ext->extend_type == PDM_EXTEND_FROM_VTX){
+        interface_kind = PDM_BOUND_TYPE_VTX;
+      } else {
+        PDM_error(__FILE__, __LINE__, 0, "PDM_part_extension_compute wrong extend_type \n");
+      }
+
+      int            n_interface        = 0;
+      int           *interface_pn       = NULL;
+      PDM_g_num_t  **interface_ln_to_gn = NULL;
+      int          **interface_sgn      = NULL;
+      int          **interface_ids      = NULL;
+      int          **interface_ids_idx  = NULL;
+      int          **interface_dom      = NULL;
+      if(part_ext->pdi != NULL) {
+        PDM_part_domain_interface_get(part_ext->pdi,
+                                      interface_kind,
+                                      i_domain,
+                                      i_part,
+                                      &interface_pn,
+                                      &interface_ln_to_gn,
+                                      &interface_sgn,
+                                      &interface_ids,
+                                      &interface_ids_idx,
+                                      &interface_dom);
+        n_interface = PDM_part_domain_interface_n_interface_get(part_ext->pdi);
+      }
+
+
+      for(int i_interface = 0; i_interface < n_interface; ++i_interface) {
+        log_trace("-------------------------------- i_interface = %i  -------------------------------- \n", i_interface);
+
+        PDM_log_trace_array_int(interface_sgn[i_interface], interface_pn[i_interface], "interface_sgn :: ");
+
+        for(int idx_entity = 0; idx_entity < interface_pn[i_interface]; ++idx_entity) {
+
+          // Search the first in list that is in current part/proc
+          int i_proc_cur   = -1;
+          int i_part_cur   = -1;
+          int i_entity_cur = -1;
+          int found        = 0;
+          int idx_current  = -1;
+          for(int j = interface_ids_idx[i_interface][idx_entity]; j < interface_ids_idx[i_interface][idx_entity+1]; ++j) {
+            int i_proc_opp   = interface_ids[i_interface][3*j  ];
+            int i_part_opp   = interface_ids[i_interface][3*j+1];
+            int i_entity_opp = interface_ids[i_interface][3*j+2];
+
+            if(i_proc_opp == i_rank && i_part_opp == i_part) {
+              i_proc_cur   = i_proc_opp;
+              i_part_cur   = i_part_opp;
+              i_entity_cur = i_entity_opp;
+              idx_current  = j;
+              assert(found == 0);
+              found = 1;
+              break;
+            }
+          }
+
+          if(!found) {
+            continue;
+          }
+
+          // Il manque une notion de direction sinon on sait pas dans quelle sens va le raccord
+
+          assert(found == 1);
+
+          log_trace("i_proc_cur = %i | i_part_cur = %i | i_entity_cur = %i \n", i_proc_cur, i_part_cur, i_entity_cur);
+
+          // Only add the oppoite part of the graph
+          for(int j = interface_ids_idx[i_interface][idx_entity]; j < interface_ids_idx[i_interface][idx_entity+1]; ++j) {
+            int i_proc_opp   = interface_ids[i_interface][3*j  ];
+            int i_part_opp   = interface_ids[i_interface][3*j+1];
+            int i_entity_opp = interface_ids[i_interface][3*j+2];
+
+            if(idx_current != j) {
+
+
+              log_trace("\t i_proc_opp = %i | i_part_opp = %i | i_entity_opp = %i \n", i_proc_opp, i_part_opp, i_entity_opp);
+            }
+
+          }
+        }
+      }
+
+
       /* Compute index */
       _neighbor_idx[0] = 0;
       for(int i_entity = 0; i_entity < part_ext->n_entity_bound[i_part+shift_part]; ++i_entity) {
@@ -474,7 +563,10 @@ _create_cell_graph_comm
         _neighbor_n[i_entity] = 0;
       }
 
-      /* Ici il faut faire les raccords entre domaine ---> Count */
+
+      printf("n_interface  = %i\n", n_interface);
+
+
       part_ext->neighbor_desc[i_part+shift_part] = (int *) malloc( 3 * _neighbor_idx[part_ext->n_entity_bound[i_part+shift_part]] * sizeof(int) );
       int* _neighbor_desc = part_ext->neighbor_desc[i_part+shift_part];
 
@@ -2813,6 +2905,8 @@ PDM_part_extension_create
   part_ext->border_vtx_ln_to_gn           = NULL;
   part_ext->border_face_group_ln_to_gn    = NULL;
 
+  part_ext->pdi = NULL;
+
   return part_ext;
 }
 
@@ -2899,6 +2993,17 @@ PDM_part_extension_set_part
   part_ext->parts[i_domain][i_part].vtx = vtx_coord;
 }
 
+
+
+void
+PDM_part_extension_part_domain_interface_shared_set
+(
+  PDM_part_extension_t        *part_ext,
+  PDM_part_domain_interface_t *pdi
+)
+{
+  part_ext->pdi = pdi;
+}
 
 /**
  *
@@ -3133,6 +3238,9 @@ PDM_part_extension_free
  PDM_part_extension_t *part_ext
 )
 {
+  if (part_ext == NULL) {
+    return;
+  }
 
   if(part_ext->n_tot_part_by_domain != NULL) {
     free(part_ext->n_tot_part_by_domain);
@@ -3392,6 +3500,21 @@ PDM_part_extension_free
 }
 
 
+/**
+ *
+ * \brief Get connectivity
+ *
+ * \param [in]  part_ext     Pointer to \ref PDM_part_extension_t object
+ * \param [in]  i_domain     Id of current domain
+ * \param [in]  i_part       Id of current partition
+ * \param [in]  mesh_entity  Type of mesh entity
+ * \param [out] connect      Entity->group graph (size = \ref connect_idx[\ref n_elt])
+ * \param [out] connect_idx  Index for entity->group graph (size = \ref n_elt + 1)
+ *
+ * \return  n_elt  Number of elements
+ *
+ */
+
 int
 PDM_part_extension_connectivity_get
 (
@@ -3453,6 +3576,20 @@ PDM_part_extension_connectivity_get
 }
 
 
+/**
+ *
+ * \brief Get global ids
+ *
+ * \param [in]  part_ext     Pointer to \ref PDM_part_extension_t object
+ * \param [in]  i_domain     Id of current domain
+ * \param [in]  i_part       Id of current partition
+ * \param [in]  mesh_entity  Type of mesh entity
+ * \param [out] ln_to_gn     Global ids (size = \ref n_elt)
+ *
+ * \return  n_elt  Number of elements
+ *
+ */
+
 int
 PDM_part_extension_ln_to_gn_get
 (
@@ -3508,6 +3645,23 @@ PDM_part_extension_ln_to_gn_get
   return n_entity;
 }
 
+
+/**
+ *
+ * \brief Get groups
+ *
+ * \param [in]  part_ext     Pointer to \ref PDM_part_extension_t object
+ * \param [in]  i_domain     Id of current domain
+ * \param [in]  i_part       Id of current partition
+ * \param [in]  mesh_entity  Type of mesh entity
+ * \param [out] connect      Entity->group graph (size = \ref connect_idx[\ref n_elt])
+ * \param [out] connect_idx  Index for entity->group graph (size = \ref n_elt + 1)
+ * \param [out] ln_to_gn     Global ids (size = \ref connect_idx[\ref n_elt])
+ *
+ * \return  n_elt  Number of elements
+ *
+ */
+
 int
 PDM_part_extension_group_get
 (
@@ -3560,6 +3714,20 @@ PDM_part_extension_group_get
 
   return n_entity;
 }
+
+
+/**
+ *
+ * \brief Get vertex coordinates
+ *
+ * \param [in]  part_ext     Pointer to \ref PDM_part_extension_t object
+ * \param [in]  i_domain     Id of current domain
+ * \param [in]  i_part       Id of current partition
+ * \param [out] vtx_coord    Vertex coordinates (size = \ref n_vtx * 3)
+ *
+ * \return  n_vtx  Number of vertices
+ *
+ */
 
 int
 PDM_part_extension_coord_get

@@ -164,7 +164,8 @@ typedef enum {
   PDM_MESH_ENTITY_CELL    = 0,  /*!< Cell entity  */
   PDM_MESH_ENTITY_FACE    = 1,  /*!< Face entity  */
   PDM_MESH_ENTITY_EDGE    = 2,  /*!< Edge entity  */
-  PDM_MESH_ENTITY_VERTEX  = 3   /*!< Vertex entity  */
+  PDM_MESH_ENTITY_VERTEX  = 3,  /*!< Vertex entity  */
+  PDM_MESH_ENTITY_MAX     = 4   /*!<  */
 
 } PDM_mesh_entities_t;
 
