@@ -344,7 +344,7 @@ CWP_N_uncomputed_tgts_get_cf (
   char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  int res = CWP_N_uncomputed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
+  int res = CWP_N_uncomputed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -385,7 +385,7 @@ CWP_Uncomputed_tgts_get_cf (
   char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  const int* res = CWP_Uncomputed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
+  const int* res = CWP_Uncomputed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -424,7 +424,7 @@ CWP_N_computed_tgts_get_cf (
   char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  int res = CWP_N_computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
+  int res = CWP_N_computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -463,7 +463,7 @@ CWP_Computed_tgts_get_cf (
   char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  const int *res = CWP_Computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
+  const int *res = CWP_Computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -502,7 +502,7 @@ CWP_N_involved_srcs_get_cf (
   char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  int res = CWP_N_involved_srcs_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
+  int res = CWP_N_involved_srcs_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -541,7 +541,7 @@ CWP_Involved_srcs_get_cf (
   char *c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   char *c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  const int *res = CWP_Involved_srcs_get(c_local_code_name, c_cpl_id, c_field_id, i_part - 1);
+  const int *res = CWP_Involved_srcs_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -693,7 +693,7 @@ void CWP_User_tgt_pts_set_cf (
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
-  CWP_User_tgt_pts_set(c_local_code_name, c_cpl_id, i_part - 1, n_pts, coord, global_num);
+  CWP_User_tgt_pts_set(c_local_code_name, c_cpl_id, i_part, n_pts, coord, global_num);
 }
 
 
@@ -760,7 +760,7 @@ CWP_Mesh_interf_vtx_set_cf(
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
-  CWP_Mesh_interf_vtx_set(c_local_code_name, c_cpl_id, i_part - 1, n_pts, coord, global_num);
+  CWP_Mesh_interf_vtx_set(c_local_code_name, c_cpl_id, i_part, n_pts, coord, global_num);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -917,7 +917,7 @@ CWP_Mesh_interf_block_std_set_cf (
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
-  CWP_Mesh_interf_block_std_set(c_local_code_name, c_cpl_id, i_part - 1, block_id, n_elts, connec, global_num);
+  CWP_Mesh_interf_block_std_set(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, connec, global_num);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -960,7 +960,7 @@ CWP_Mesh_interf_f_poly_block_set_cf (
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
-  CWP_Mesh_interf_f_poly_block_set(c_local_code_name, c_cpl_id, i_part - 1, block_id, n_elts, connec_idx, connec, global_num);
+  CWP_Mesh_interf_f_poly_block_set(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, connec_idx, connec, global_num);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -1014,7 +1014,7 @@ CWP_Mesh_interf_c_poly_block_set_cf (
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
-  CWP_Mesh_interf_c_poly_block_set(c_local_code_name, c_cpl_id, i_part - 1, block_id, n_elts, n_faces, connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num);
+  CWP_Mesh_interf_c_poly_block_set(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, n_faces, connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -1066,7 +1066,7 @@ CWP_Mesh_interf_from_cellface_set_cf (
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
-  CWP_Mesh_interf_from_cellface_set(c_local_code_name, c_cpl_id, i_part - 1, n_cells, cell_face_idx, cell_face, n_faces, face_vtx_idx, face_vtx, parent_num);
+  CWP_Mesh_interf_from_cellface_set(c_local_code_name, c_cpl_id, i_part, n_cells, cell_face_idx, cell_face, n_faces, face_vtx_idx, face_vtx, parent_num);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -1120,7 +1120,7 @@ CWP_Mesh_interf_from_faceedge_set_cf (
 
   CWP_Mesh_interf_from_faceedge_set(c_local_code_name, 
                                     c_cpl_id, 
-                                    i_part - 1,
+                                    i_part,
                                     n_faces, 
                                     face_edge_idx, 
                                     face_edge, 
@@ -1229,7 +1229,7 @@ CWP_Field_data_set_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_field_id = _fortran_to_c_string(f_field_id, l_field_id);
 
-  CWP_Field_data_set(c_local_code_name, c_cpl_id, c_field_id, i_part - 1, (CWP_Field_map_t) map_type, data);
+  CWP_Field_data_set(c_local_code_name, c_cpl_id, c_field_id, i_part, (CWP_Field_map_t) map_type, data);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
