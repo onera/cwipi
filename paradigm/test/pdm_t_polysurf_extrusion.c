@@ -421,50 +421,48 @@ int main(int argc, char *argv[])
     /* Prepare writer */
     PDM_writer_t *id_cs = PDM_writer_create ("Ensight",
                                    PDM_WRITER_FMT_ASCII,
-                                   PDM_WRITER_TOPO_CONSTANTE,
+                                   PDM_WRITER_TOPO_CST,
                                    PDM_WRITER_OFF,
                                    "test_polyvol",
                                    "polyvol",
                                    PDM_MPI_COMM_WORLD,
-                                   PDM_IO_ACCES_MPI_SIMPLE,
+                                   PDM_IO_KIND_MPI_SIMPLE,
                                    1.,
                                    NULL);
 
     int id_geom = PDM_writer_geom_create (id_cs,
                                           "mesh",
-                                          PDM_WRITER_OFF,
-                                          PDM_WRITER_OFF,
                                           n_part);
 
     // Cell local id
     int id_var_cell_g_num = PDM_writer_var_create (id_cs,
                                                    PDM_WRITER_OFF,
-                                                   PDM_WRITER_VAR_SCALAIRE,
+                                                   PDM_WRITER_VAR_SCALAR,
                                                    PDM_WRITER_VAR_ELEMENTS,
                                                    "cell_g_num");
 
     int id_var_num_part = PDM_writer_var_create (id_cs,
                                                  PDM_WRITER_OFF,
-                                                 PDM_WRITER_VAR_SCALAIRE,
+                                                 PDM_WRITER_VAR_SCALAR,
                                                  PDM_WRITER_VAR_ELEMENTS,
                                                  "num_part");
 
     int id_var_vtx_g_num = PDM_writer_var_create (id_cs,
                                                   PDM_WRITER_OFF,
-                                                  PDM_WRITER_VAR_SCALAIRE,
-                                                  PDM_WRITER_VAR_SOMMETS,
+                                                  PDM_WRITER_VAR_SCALAR,
+                                                  PDM_WRITER_VAR_VERTICES,
                                                   "vtx_g_num");
 
     int id_var_coo_x = PDM_writer_var_create (id_cs,
                                               PDM_WRITER_ON,
-                                              PDM_WRITER_VAR_SCALAIRE,
-                                              PDM_WRITER_VAR_SOMMETS,
+                                              PDM_WRITER_VAR_SCALAR,
+                                              PDM_WRITER_VAR_VERTICES,
                                               "coo_x");
 
     int id_var_coo_xyz = PDM_writer_var_create (id_cs,
                                                 PDM_WRITER_ON,
-                                                PDM_WRITER_VAR_VECTEUR,
-                                                PDM_WRITER_VAR_SOMMETS,
+                                                PDM_WRITER_VAR_VECTOR,
+                                                PDM_WRITER_VAR_VERTICES,
                                                 "coo_xyz");
 
     PDM_writer_step_beg (id_cs, 0.);

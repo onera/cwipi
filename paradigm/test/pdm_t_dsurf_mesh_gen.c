@@ -737,12 +737,12 @@ _export_ini_mesh
 
   PDM_writer_t *id_cs = PDM_writer_create ("Ensight",
                                            PDM_WRITER_FMT_ASCII,
-                                           PDM_WRITER_TOPO_CONSTANTE,
+                                           PDM_WRITER_TOPO_CST,
                                            PDM_WRITER_OFF,
                                            "test_2d_surf_ens",
                                            "mesh1",
                                            pdm_mpi_comm,
-                                           PDM_IO_ACCES_MPI_SIMPLE,
+                                           PDM_IO_KIND_MPI_SIMPLE,
                                            1.,
                                            NULL);
 
@@ -757,20 +757,20 @@ _export_ini_mesh
 
   id_var_num_part = PDM_writer_var_create (id_cs,
                                            PDM_WRITER_OFF,
-                                           PDM_WRITER_VAR_SCALAIRE,
+                                           PDM_WRITER_VAR_SCALAR,
                                            PDM_WRITER_VAR_ELEMENTS,
                                            "num_part");
 
   id_var_coo_x = PDM_writer_var_create (id_cs,
                                         PDM_WRITER_ON,
-                                        PDM_WRITER_VAR_SCALAIRE,
-                                        PDM_WRITER_VAR_SOMMETS,
+                                        PDM_WRITER_VAR_SCALAR,
+                                        PDM_WRITER_VAR_VERTICES,
                                         "coo_x");
 
   id_var_coo_xyz = PDM_writer_var_create (id_cs,
                                           PDM_WRITER_ON,
-                                          PDM_WRITER_VAR_VECTEUR,
-                                          PDM_WRITER_VAR_SOMMETS,
+                                          PDM_WRITER_VAR_VECTOR,
+                                          PDM_WRITER_VAR_VERTICES,
                                           "coo_xyz");
 
     /*
@@ -782,8 +782,6 @@ _export_ini_mesh
 
     id_geom = PDM_writer_geom_create (id_cs,
                                              nom_geom,
-                                             PDM_WRITER_OFF,
-                                             PDM_WRITER_OFF,
                                              n_part);
     /*
      * Debut des ecritures

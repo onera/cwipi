@@ -51,7 +51,7 @@ extern "C" {
 typedef struct {
 
   PDM_writer_ensight_case_t *ensight_case; /* Gestion du fichier case */
-  PDM_io_fichier_t          *f_unit_geom;  /* Unite du fichier de géométrie */
+  PDM_io_file_t          *f_unit_geom;  /* Unite du fichier de géométrie */
   int                        n_time_step;  /* Nombre de pas de temps */
   int                        n_part_ecr;   /* Nombre de parts ensight
                                               écrites dans le fichier chr.geo */
@@ -77,7 +77,7 @@ typedef struct {
 typedef struct {
 
   // int f_unit; /* Unite du fichier associe à la variable */
-  PDM_io_fichier_t *f_unit; /* Unite du fichier associe à la variable */
+  PDM_io_file_t *f_unit; /* Unite du fichier associe à la variable */
 
 } PDM_writer_var_ensight_t;
 
@@ -156,7 +156,7 @@ static void
 _ecr_string
 (
  PDM_writer_t     *cs,
- PDM_io_fichier_t *f_unit_geom,
+ PDM_io_file_t *f_unit_geom,
  const char       *s
  )
 {
@@ -167,12 +167,12 @@ _ecr_string
     strncpy(buf, s, 80);
     buf[80] = '\0';
     buf[81] = '\n';
-    PDM_io_fmt_donnee_set(f_unit_geom,
+    PDM_io_fmt_data_set(f_unit_geom,
                           1,
                           PDM_IO_T_CHAR,
                           "%c");
     size_t s_buf =  strlen(buf);
-    PDM_io_ecriture_globale(f_unit_geom,
+    PDM_io_global_write(f_unit_geom,
                             (PDM_l_num_t) sizeof(char),
                             (PDM_l_num_t) s_buf,
                             buf);
@@ -183,7 +183,7 @@ _ecr_string
     buf[80] = '\0';
     for (i = strlen(buf); i < 80; i++)
       buf[i] = ' ';
-    PDM_io_ecriture_globale(f_unit_geom, sizeof(char), 80, buf);
+    PDM_io_global_write(f_unit_geom, sizeof(char), 80, buf);
   }
 }
 
@@ -200,14 +200,14 @@ inline static void
 _ecr_int
 (
  PDM_writer_t     *cs,
- PDM_io_fichier_t *f_unit_geom,
+ PDM_io_file_t *f_unit_geom,
  int32_t           n
  )
 {
   if (cs->fmt_fic == PDM_WRITER_FMT_ASCII) {
-    PDM_io_fmt_donnee_set(f_unit_geom, 10, PDM_IO_T_INT, "%10d");
+    PDM_io_fmt_data_set(f_unit_geom, 10, PDM_IO_T_INT, "%10d");
   }
-  PDM_io_ecriture_globale(f_unit_geom, sizeof(int32_t), 1, &n);
+  PDM_io_global_write(f_unit_geom, sizeof(int32_t), 1, &n);
 }
 
 /*----------------------------------------------------------------------------
@@ -224,9 +224,9 @@ static void
 _ecr_entrelace_float
 (
  PDM_writer_t                 *cs,
- const PDM_writer_statut_t     s_ecr_n_valeur,
- PDM_io_fichier_t             *f_unit_geom,
- const PDM_io_n_composantes_t  t_comp,
+ const PDM_writer_status_t     s_ecr_n_valeur,
+ PDM_io_file_t             *f_unit_geom,
+ const PDM_stride_t  t_comp,
  const PDM_l_num_t            *n_comp,
  const PDM_l_num_t             n_valeur,
  const PDM_g_num_t            *indirection,
@@ -250,20 +250,20 @@ _ecr_entrelace_float
     if (cs->fmt_fic == PDM_WRITER_FMT_ASCII) {
       char  buf[12];
       int n_val = sprintf(buf, "%10d", n_val_abs_32_t);
-      PDM_io_fmt_donnee_set(f_unit_geom, 1, PDM_IO_T_CHAR, "%c");
-      PDM_io_ecriture_globale(f_unit_geom, sizeof(char), n_val, buf);
+      PDM_io_fmt_data_set(f_unit_geom, 1, PDM_IO_T_CHAR, "%c");
+      PDM_io_global_write(f_unit_geom, sizeof(char), n_val, buf);
     }
 
     else if (cs->fmt_fic == PDM_WRITER_FMT_BIN) {
-      PDM_io_ecriture_globale(f_unit_geom, sizeof(int32_t), 1, &n_val_abs_32_t);
+      PDM_io_global_write(f_unit_geom, sizeof(int32_t), 1, &n_val_abs_32_t);
     }
   }
 
-  PDM_io_fmt_donnee_set(f_unit_geom,
+  PDM_io_fmt_data_set(f_unit_geom,
                           12,
                           PDM_IO_T_FLOAT,
                           "%12.5e");
-  PDM_io_ecr_par_entrelacee(f_unit_geom,
+  PDM_io_par_interlaced_write(f_unit_geom,
                               t_comp,
                               n_comp,
                               sizeof(float),
@@ -287,9 +287,9 @@ static void
 _ecr_entrelace_int
 (
  PDM_writer_t                 *cs,
- const PDM_writer_statut_t     s_ecr_n_valeur,
- PDM_io_fichier_t             *f_unit_geom,
- const PDM_io_n_composantes_t  t_comp,
+ const PDM_writer_status_t     s_ecr_n_valeur,
+ PDM_io_file_t             *f_unit_geom,
+ const PDM_stride_t  t_comp,
  const PDM_l_num_t            *n_comp,
  const PDM_l_num_t             n_valeur,
  const PDM_g_num_t            *indirection,
@@ -312,21 +312,21 @@ _ecr_entrelace_int
     if (cs->fmt_fic == PDM_WRITER_FMT_ASCII) {
       char  buf[12];
       int n_val = sprintf(buf, "%10d", n_val_abs_32_t);
-      PDM_io_fmt_donnee_set(f_unit_geom, 1, PDM_IO_T_CHAR, "%c");
-      PDM_io_ecriture_globale(f_unit_geom, sizeof(char), n_val, buf);
+      PDM_io_fmt_data_set(f_unit_geom, 1, PDM_IO_T_CHAR, "%c");
+      PDM_io_global_write(f_unit_geom, sizeof(char), n_val, buf);
     }
 
     else if (cs->fmt_fic == PDM_WRITER_FMT_BIN) {
-      PDM_io_ecriture_globale(f_unit_geom, sizeof(int32_t), 1, &n_val_abs_32_t);
+      PDM_io_global_write(f_unit_geom, sizeof(int32_t), 1, &n_val_abs_32_t);
     }
   }
 
-  PDM_io_fmt_donnee_set(f_unit_geom,
+  PDM_io_fmt_data_set(f_unit_geom,
                           10,
                           PDM_IO_T_INT,
                           "%10d");
 
-  PDM_io_ecr_par_entrelacee(f_unit_geom,
+  PDM_io_par_interlaced_write(f_unit_geom,
                               t_comp,
                               n_comp,
                               sizeof(int32_t),
@@ -347,7 +347,7 @@ static void
 _geom_entete_ecr
 (
  PDM_writer_t     *cs,
- PDM_io_fichier_t *f_unit_geom
+ PDM_io_file_t *f_unit_geom
  )
 {
   if (cs->fmt_fic == PDM_WRITER_FMT_BIN)
@@ -713,15 +713,15 @@ _geom_close(PDM_writer_t *cs)
     PDM_io_close(PDM_writer_ensight->f_unit_geom);
     double t_cpu;
     double t_elapsed;
-    PDM_io_get_timer_total(PDM_writer_ensight->f_unit_geom, &t_cpu, &t_elapsed);
-    const char * nom_fichier = PDM_io_get_nom_fichier(PDM_writer_ensight->f_unit_geom);
+    PDM_io_timer_total_get(PDM_writer_ensight->f_unit_geom, &t_cpu, &t_elapsed);
+    const char * nom_fichier = PDM_io_file_name_get(PDM_writer_ensight->f_unit_geom);
     if (1 == 0) {
       if (rank == 0) {
         PDM_printf("Temps elapsed d'ecriture du fichier '%s' : %12.5e s\n", nom_fichier, t_elapsed);
         PDM_printf("Temps cpu d'ecriture du fichier '%s' : %12.5e s\n", nom_fichier, t_cpu);
       }
     }
-    PDM_io_detruit(PDM_writer_ensight->f_unit_geom);
+    PDM_io_free(PDM_writer_ensight->f_unit_geom);
   }
   PDM_writer_ensight->f_unit_geom = NULL;
 }
@@ -741,15 +741,15 @@ _var_close(PDM_writer_var_ensight_t *var, const int rank)
     PDM_io_close(var->f_unit);
     double t_cpu;
     double t_elapsed;
-    PDM_io_get_timer_total(var->f_unit, &t_cpu, &t_elapsed);
-    const char * nom_fichier = PDM_io_get_nom_fichier(var->f_unit);
+    PDM_io_timer_total_get(var->f_unit, &t_cpu, &t_elapsed);
+    const char * nom_fichier = PDM_io_file_name_get(var->f_unit);
     if (1 == 0) {
       if (rank == 0) {
         PDM_printf("Temps elapsed d'ecriture du fichier '%s' : %12.5e s\n", nom_fichier, t_elapsed);
         PDM_printf("Temps cpu d'ecriture du fichier '%s' : %12.5e s\n", nom_fichier, t_cpu);
       }
     }
-    PDM_io_detruit(var->f_unit);
+    PDM_io_free(var->f_unit);
     var->f_unit = NULL;
   }
 }
@@ -947,14 +947,14 @@ PDM_writer_ensight_geom_write
 {
   PDM_writer_t* _cs = (PDM_writer_t*) geom->_cs;
   PDM_writer_ensight_t *PDM_writer_ensight = (PDM_writer_ensight_t *) _cs->sortie_fmt;
-  PDM_io_fichier_t *f_unit_geom = PDM_writer_ensight->f_unit_geom;
+  PDM_io_file_t *f_unit_geom = PDM_writer_ensight->f_unit_geom;
   /* Premier passage : Ouverture du fichier + Ecriture entête */
 
   if (f_unit_geom == NULL) {
 
     const char* geom_file_name = PDM_writer_ensight_case_geo_file_name_get(PDM_writer_ensight->ensight_case);
 
-    PDM_io_fichier_t *unite = NULL;
+    PDM_io_file_t *unite = NULL;
     PDM_l_num_t              ierr;
     PDM_io_fmt_t              PDM_io_fmt;
 
@@ -972,7 +972,7 @@ PDM_writer_ensight_geom_write
                 "",
                 PDM_IO_BACKUP_OFF,
                 _cs->acces,
-                PDM_IO_MODE_ECRITURE,
+                PDM_IO_MOD_WRITE,
                 PDM_IO_NATIVE,
                 _cs->pdm_mpi_comm,
                 _cs->prop_noeuds_actifs,
@@ -1019,7 +1019,7 @@ PDM_writer_ensight_geom_write
   float *coord_tmp = (float *) malloc(n_som_proc * sizeof(float));
   PDM_g_num_t *numabs_tmp =
     (PDM_g_num_t *) malloc(n_som_proc * sizeof(PDM_g_num_t));
-  PDM_writer_statut_t s_ecr_n_val;
+  PDM_writer_status_t s_ecr_n_val;
   for (int idim = 0; idim < 3; idim++) {
     if (idim == 0)
       s_ecr_n_val = PDM_WRITER_ON;
@@ -1046,7 +1046,7 @@ PDM_writer_ensight_geom_write
     _ecr_entrelace_float(_cs,
                          s_ecr_n_val,
                          f_unit_geom,
-                         PDM_IO_N_COMPOSANTE_CONSTANT,
+                         PDM_STRIDE_CST_INTERLACED,
                          &n_comp,
                          n_som_proc,
                          numabs_tmp,
@@ -1167,7 +1167,7 @@ PDM_writer_ensight_geom_write
       _ecr_entrelace_int(_cs,
                          PDM_WRITER_ON,
                          f_unit_geom,
-                         PDM_IO_N_COMPOSANTE_CONSTANT,
+                         PDM_STRIDE_CST_INTERLACED,
                          &n_comp,
                          n_elt_proc,
                          numabs_tmp,
@@ -1268,7 +1268,7 @@ PDM_writer_ensight_geom_write
       _ecr_entrelace_int(_cs,
                          PDM_WRITER_OFF,
                          f_unit_geom,
-                         PDM_IO_N_COMPOSANTE_CONSTANT,
+                         PDM_STRIDE_CST_INTERLACED,
                          &n_comp_cste,
                          n_elt_proc,
                          numabs_tmp,
@@ -1288,7 +1288,7 @@ PDM_writer_ensight_geom_write
       _ecr_entrelace_int(_cs,
                          PDM_WRITER_OFF,
                          f_unit_geom,
-                         PDM_IO_N_COMPOSANTE_VARIABLE,
+                         PDM_STRIDE_VAR_INTERLACED,
                          n_comp_tmp2,
                          n_elt_proc,
                          numabs_tmp,
@@ -1391,7 +1391,7 @@ PDM_writer_ensight_geom_write
       _ecr_entrelace_int(_cs,
                          PDM_WRITER_OFF,
                          f_unit_geom,
-                         PDM_IO_N_COMPOSANTE_CONSTANT,
+                         PDM_STRIDE_CST_INTERLACED,
                          &n_comp_cste,
                          n_elt_proc,
                          numabs,
@@ -1454,7 +1454,7 @@ PDM_writer_ensight_geom_write
       _ecr_entrelace_int(_cs,
                          PDM_WRITER_OFF,
                          f_unit_geom,
-                         PDM_IO_N_COMPOSANTE_CONSTANT,
+                         PDM_STRIDE_CST_INTERLACED,
                          &n_comp_cste,
                          n_face_proc,
                          numabs,
@@ -1505,7 +1505,7 @@ PDM_writer_ensight_geom_write
       _ecr_entrelace_int(_cs,
                          PDM_WRITER_OFF,
                          f_unit_geom,
-                         PDM_IO_N_COMPOSANTE_VARIABLE,
+                         PDM_STRIDE_VAR_INTERLACED,
                          n_comp_tmp,
                          n_face_proc,
                          numabs,
@@ -1568,7 +1568,7 @@ PDM_writer_ensight_var_write
   const char* file_name = PDM_writer_ensight_case_var_file_name_get(PDM_writer_ensight->ensight_case,
                                                             var->nom_var);
 
-  PDM_io_fichier_t *unite = NULL;
+  PDM_io_file_t *unite = NULL;
   PDM_l_num_t ierr;
   PDM_io_fmt_t PDM_io_fmt;
 
@@ -1586,7 +1586,7 @@ PDM_writer_ensight_var_write
               "",
               PDM_IO_BACKUP_OFF,
               cs->acces,
-              PDM_IO_MODE_ECRITURE,
+              PDM_IO_MOD_WRITE,
               PDM_IO_NATIVE,
               cs->pdm_mpi_comm,
               cs->prop_noeuds_actifs,
@@ -1635,7 +1635,7 @@ PDM_writer_ensight_var_write
       _ecr_string(cs, unite, "part");
       _ecr_int(cs, unite, num_part);
 
-      if (var->loc == PDM_WRITER_VAR_SOMMETS) {
+      if (var->loc == PDM_WRITER_VAR_VERTICES) {
 
         /* Ecriture des valeurs du mot "coordinates" */
 
@@ -1661,7 +1661,7 @@ PDM_writer_ensight_var_write
           }
         }
 
-        PDM_writer_statut_t s_ecr_n_val = PDM_WRITER_OFF ;
+        PDM_writer_status_t s_ecr_n_val = PDM_WRITER_OFF ;
         for (int k = 0; k < (int) var->dim; k++) {
           s_ecr_n_val = PDM_WRITER_OFF;
           n_som_proc = 0;
@@ -1682,7 +1682,7 @@ PDM_writer_ensight_var_write
           _ecr_entrelace_float(cs,
                                s_ecr_n_val,
                                unite,
-                               PDM_IO_N_COMPOSANTE_CONSTANT,
+                               PDM_STRIDE_CST_INTERLACED,
                                &un,
                                n_som_proc,
                                numabs,
@@ -1757,7 +1757,7 @@ PDM_writer_ensight_var_write
             }
           }
 
-          PDM_writer_statut_t s_ecr_n_val = PDM_WRITER_OFF;
+          PDM_writer_status_t s_ecr_n_val = PDM_WRITER_OFF;
 
           for (int k = 0; k < (int) var->dim; k++) {
             n_val_buff = 0;
@@ -1780,7 +1780,7 @@ PDM_writer_ensight_var_write
             _ecr_entrelace_float(cs,
                                  s_ecr_n_val,
                                  unite,
-                                 PDM_IO_N_COMPOSANTE_CONSTANT,
+                                 PDM_STRIDE_CST_INTERLACED,
                                  &un,
                                  n_val_buff,
                                  numabs,
@@ -1802,7 +1802,7 @@ PDM_writer_ensight_var_write
 
       }
 
-      else if (var->loc == PDM_WRITER_VAR_PARTICULES) {
+      else if (var->loc == PDM_WRITER_VAR_PARTICLES) {
 
         /* Ecriture des valeurs aux particules */
 

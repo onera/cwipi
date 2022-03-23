@@ -13,7 +13,7 @@ module pdm_writer
   !
   ! Type de topologie
 
-  integer, parameter :: PDM_WRITER_TOPO_CONSTANTE  = 0
+  integer, parameter :: PDM_WRITER_TOPO_CST  = 0
   integer, parameter :: PDM_WRITER_TOPO_DEFORMABLE = 1
   integer, parameter :: PDM_WRITER_TOPO_VARIABLE   = 2
 
@@ -53,14 +53,14 @@ module pdm_writer
 
   integer, parameter ::  PDM_WRITER_VAR_CSTE         = 0
   integer, parameter ::  PDM_WRITER_VAR_SCALAIRE     = 1
-  integer, parameter ::  PDM_WRITER_VAR_VECTEUR      = 3
+  integer, parameter ::  PDM_WRITER_VAR_VECTOR      = 3
   integer, parameter ::  PDM_WRITER_VAR_TENSEUR_SYM  = 6
   integer, parameter ::  PDM_WRITER_VAR_TENSEUR_ASYM = 9
 
   !
   ! Localisation des variables
 
-  integer, parameter ::  PDM_WRITER_VAR_SOMMETS      = 0
+  integer, parameter ::  PDM_WRITER_VAR_VERTICES      = 0
   integer, parameter ::  PDM_WRITER_VAR_ELEMENTS     = 1
   integer, parameter ::  PDM_WRITER_VAR_PARTICULES   = 2
 
@@ -420,16 +420,12 @@ module pdm_writer
   !! \param [in]  cs                Pointer to \ref PDM_writer object
   !! \param [out] id_geom           Identificateur de l'objet geom dans cs
   !! \param [in]  nom_geom          Nom de l'objet geometrique
-  !! \param [in]  st_decoup_poly2d  Active le decoupage des polygones
-  !! \param [in]  st_decoup_poly3d  Active le decoupage des polyedres
   !!
   !!
 
   subroutine PDM_writer_geom_create (cs,               &
                                      id_geom,          &
                                      nom_geom,         &
-                                     st_decoup_poly2d, &
-                                     st_decoup_poly3d, &
                                      n_part)
     use iso_c_binding
     implicit none
@@ -437,20 +433,14 @@ module pdm_writer
     type(c_ptr), value           :: cs
     integer, intent(out)         :: id_geom
     character(len=*), intent(in) :: nom_geom
-    integer, intent(in)          :: st_decoup_poly2d
-    integer, intent(in)          :: st_decoup_poly3d
     integer, intent(in)          :: n_part
 
     integer(c_int)               :: c_id_geom
-    integer(c_int)               :: c_st_decoup_poly2d
-    integer(c_int)               :: c_st_decoup_poly3d
     integer(c_int)               :: c_n_part
 
     interface
       function PDM_writer_geom_create_c (cs,               &
                                          nom_geom,         &
-                                         st_decoup_poly2d, &
-                                         st_decoup_poly3d, &
                                          n_part)           &
       result (id_geom)                                     &
       bind (c, name='PDM_writer_geom_create')
@@ -460,21 +450,15 @@ module pdm_writer
         type(c_ptr),    value :: cs
         integer(c_int)        :: id_geom
         character(c_char)     :: nom_geom(*)
-        integer(c_int), value :: st_decoup_poly2d
-        integer(c_int), value :: st_decoup_poly3d
         integer(c_int), value :: n_part
 
       end function PDM_writer_geom_create_c
     end interface
 
-    c_st_decoup_poly2d = st_decoup_poly2d
-    c_st_decoup_poly3d = st_decoup_poly3d
     c_n_part           = n_part
 
     c_id_geom = PDM_writer_geom_create_c (cs,                    &
                                           nom_geom//C_NULL_CHAR, &
-                                          c_st_decoup_poly2d,    &
-                                          c_st_decoup_poly3d,    &
                                           c_n_part)
 
     id_geom = c_id_geom

@@ -52,7 +52,7 @@ typedef struct {
 
   char         *name;            /* Variable name */
   char         *case_line;       /* Line in case file */
-  PDM_writer_statut_t   time_dep;        /* time dependant */
+  PDM_writer_status_t   time_dep;        /* time dependant */
   char         *file_name_base;  /* file name base */
   char         *file_name;       /* file name base */
 
@@ -85,7 +85,7 @@ struct _PDM_writer_ensight_case_t {
   int                      n_vars;       /* Number of variables */
   PDM_writer_ensight_case_var_t   **var;          /* Variable entries */
 
-  PDM_writer_topologie_t   time_dependency;    /* Mesh time dependency */
+  PDM_writer_topology_t   time_dependency;    /* Mesh time dependency */
 
 } _PDM_writer_ensight_case_t;
 
@@ -149,7 +149,7 @@ static void
 _add_var(PDM_writer_ensight_case_t       *const this_case,
          const char              *const name,
          const int                      dimension,
-         const PDM_writer_statut_t              time_dep,
+         const PDM_writer_status_t              time_dep,
          const PDM_writer_var_loc_t             location)
 {
   char line[1024], description[50];
@@ -230,13 +230,13 @@ _add_var(PDM_writer_ensight_case_t       *const this_case,
 
   if (var->dim > 0) {
     switch(var->loc) {
-    case PDM_WRITER_VAR_SOMMETS:
+    case PDM_WRITER_VAR_VERTICES:
       strcat(line, "node:    ");
       break;
     case PDM_WRITER_VAR_ELEMENTS:
       strcat(line, "element: ");
       break;
-    case PDM_WRITER_VAR_PARTICULES:
+    case PDM_WRITER_VAR_PARTICLES:
       strcat(line, "measured node: ");
       break;
     }
@@ -382,7 +382,7 @@ PDM_writer_ensight_case_cree
 const char                   *const name,
 const int                           restart,
 const char                   *const dir_prefix,
-const PDM_writer_topologie_t                time_dependency
+const PDM_writer_topology_t                time_dependency
 )
 {
   size_t  i, name_len, prefix_len;
@@ -552,8 +552,8 @@ const PDM_writer_topologie_t                time_dependency
         }
       }
 
-      if (((time_dependency != PDM_WRITER_TOPO_CONSTANTE) && (geom_timeset == -1)) ||
-          ((time_dependency == PDM_WRITER_TOPO_CONSTANTE) && (geom_timeset != -1))) {
+      if (((time_dependency != PDM_WRITER_TOPO_CST) && (geom_timeset == -1)) ||
+          ((time_dependency == PDM_WRITER_TOPO_CST) && (geom_timeset != -1))) {
         PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : Inconsistency geom time dependency between "
                 "The \"%s\" case and the function argument\n",
                 __FILE__, __LINE__,
@@ -589,23 +589,23 @@ const PDM_writer_topologie_t                time_dependency
 
             if (strncmp(ligne, "constant per case file:", strlen("constant per case file:")) == 0) {
               index_loc = strlen("constant per case file:");
-              var_dim = PDM_WRITER_VAR_CSTE;
+              var_dim = PDM_WRITER_VAR_CST;
             }
             else if (strncmp(ligne, "scalar per ", strlen("scalar per ")) == 0) {
               index_loc = strlen("scalar per ");
-              var_dim = PDM_WRITER_VAR_SCALAIRE;
+              var_dim = PDM_WRITER_VAR_SCALAR;
             }
             else if (strncmp(ligne, "vector per ", strlen("vector per ")) == 0) {
               index_loc = strlen("vector per ");
-              var_dim = PDM_WRITER_VAR_VECTEUR;
+              var_dim = PDM_WRITER_VAR_VECTOR;
             }
             else if (strncmp(ligne, "tensor symm per ", strlen("tensor symm per ")) == 0) {
               index_loc = strlen("tensor symm per ");
-              var_dim = PDM_WRITER_VAR_TENSEUR_SYM;
+              var_dim = PDM_WRITER_VAR_TENSOR_SYM;
             }
             else if (strncmp(ligne, "tensor asymm per ", strlen("tensor asymm per ")) == 0) {
               index_loc = strlen("tensor asymm per ");
-              var_dim = PDM_WRITER_VAR_TENSEUR_ASYM;
+              var_dim = PDM_WRITER_VAR_TENSOR_ASYM;
             }
             else {
               PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : "
@@ -621,7 +621,7 @@ const PDM_writer_topologie_t                time_dependency
 
             if (strncmp(ligne_ss_dim, "node:    ", strlen("node:    ")) == 0) {
               index_dim = strlen("node:    ");
-              var_loc = PDM_WRITER_VAR_SOMMETS;
+              var_loc = PDM_WRITER_VAR_VERTICES;
             }
             else if (strncmp(ligne_ss_dim, "element: ", strlen("element: ")) == 0) {
               index_dim = strlen("element: ");
@@ -629,7 +629,7 @@ const PDM_writer_topologie_t                time_dependency
             }
             else if (strncmp(ligne_ss_dim, "measured node: ", strlen("measured node: ")) == 0) {
               index_dim = strlen("measured node: ");
-              var_loc = PDM_WRITER_VAR_PARTICULES;
+              var_loc = PDM_WRITER_VAR_PARTICLES;
             }
             else {
               PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : "
@@ -655,7 +655,7 @@ const PDM_writer_topologie_t                time_dependency
               }
             }
 
-            PDM_writer_statut_t time_dep = PDM_WRITER_OFF;
+            PDM_writer_status_t time_dep = PDM_WRITER_OFF;
 
             if (var_time_set == 1)
               time_dep = PDM_WRITER_ON;
@@ -808,7 +808,7 @@ const PDM_writer_topologie_t                time_dependency
  *   time dependency status
  *----------------------------------------------------------------------------*/
 
-PDM_writer_topologie_t
+PDM_writer_topology_t
 PDM_writer_ensight_case_geo_time_dep_get(PDM_writer_ensight_case_t  *this_case)
 {
   return  this_case->time_dependency;
@@ -825,7 +825,7 @@ PDM_writer_ensight_case_geo_time_dep_get(PDM_writer_ensight_case_t  *this_case)
  *   time dependency status
  *----------------------------------------------------------------------------*/
 
-PDM_writer_statut_t
+PDM_writer_status_t
 PDM_writer_ensight_case_var_time_dep_get
 (
  PDM_writer_ensight_case_t  *this_case,
@@ -910,7 +910,7 @@ PDM_writer_ensight_case_t  *this_case
 )
 {
   char *name;
-  if (this_case->time_dependency != PDM_WRITER_TOPO_CONSTANTE) {
+  if (this_case->time_dependency != PDM_WRITER_TOPO_CST) {
     name = this_case->geom_file_name;
   }
   else {
@@ -937,7 +937,7 @@ PDM_writer_ensight_case_var_cree
 PDM_writer_ensight_case_t  *this_case,
 const char         *const name,
 const PDM_writer_var_dim_t  dimension,
-const PDM_writer_statut_t   time_dep,
+const PDM_writer_status_t   time_dep,
 const PDM_writer_var_loc_t  location
 )
 {
@@ -973,7 +973,7 @@ const double time_value
 
   _add_time(this_case->time_set,
             time_value);
-  if (this_case->time_dependency != PDM_WRITER_TOPO_CONSTANTE) {
+  if (this_case->time_dependency != PDM_WRITER_TOPO_CST) {
 
     if (this_case->geom_file_name == NULL) {
       this_case->geom_file_name = (char *) malloc(sizeof(char) * strlen(this_case->geom_file_name_base) + 7);
@@ -1052,7 +1052,7 @@ PDM_writer_ensight_case_write(PDM_writer_ensight_case_t  *const this_case,
           "\n"
           "GEOMETRY\n");
 
-  if (this_case->time_dependency == PDM_WRITER_TOPO_CONSTANTE)
+  if (this_case->time_dependency == PDM_WRITER_TOPO_CST)
     fprintf(f, "model: %s.geo\n",
             this_case->file_name_prefix + this_case->dir_name_length);
 

@@ -318,33 +318,31 @@ int main(int argc, char *argv[])
     int *geom_ids = (int *) malloc(n_zone * sizeof(int));
     PDM_writer_t *id_cs = PDM_writer_create("Ensight",
                                             PDM_WRITER_FMT_ASCII,
-                                            PDM_WRITER_TOPO_CONSTANTE,
+                                            PDM_WRITER_TOPO_CST,
                                             PDM_WRITER_OFF,
                                             "test_mpart_cube",
                                             "mpart",
                                             PDM_MPI_COMM_WORLD,
-                                            PDM_IO_ACCES_MPI_SIMPLE,
+                                            PDM_IO_KIND_MPI_SIMPLE,
                                             1.,
                                             NULL);
     for (int i_zone = 0; i_zone < n_zone; i_zone++){
       geom_ids[i_zone] = PDM_writer_geom_create(id_cs,
                                                 "mesh",
-                                                PDM_WRITER_OFF,
-                                                PDM_WRITER_OFF,
                                                 n_part_zones[i_zone]); //total nb of part for this proc/zone
     }
     // Cell local id
-    int id_var_cell_id = PDM_writer_var_create(id_cs, PDM_WRITER_OFF, PDM_WRITER_VAR_SCALAIRE, PDM_WRITER_VAR_ELEMENTS, "cell_id");
+    int id_var_cell_id = PDM_writer_var_create(id_cs, PDM_WRITER_OFF, PDM_WRITER_VAR_SCALAR, PDM_WRITER_VAR_ELEMENTS, "cell_id");
     // Global partition Id (ordred by proc / zone), staring at 1
-    int id_var_gpart_id = PDM_writer_var_create(id_cs, PDM_WRITER_OFF, PDM_WRITER_VAR_SCALAIRE, PDM_WRITER_VAR_ELEMENTS, "gpart_id");
+    int id_var_gpart_id = PDM_writer_var_create(id_cs, PDM_WRITER_OFF, PDM_WRITER_VAR_SCALAR, PDM_WRITER_VAR_ELEMENTS, "gpart_id");
     // Local partition Id on the proc / zone, starting at 0
-    int id_var_lpart_id = PDM_writer_var_create(id_cs, PDM_WRITER_OFF, PDM_WRITER_VAR_SCALAIRE, PDM_WRITER_VAR_ELEMENTS, "lpart_id");
+    int id_var_lpart_id = PDM_writer_var_create(id_cs, PDM_WRITER_OFF, PDM_WRITER_VAR_SCALAR, PDM_WRITER_VAR_ELEMENTS, "lpart_id");
     // Proc Id
-    int id_var_proc_id = PDM_writer_var_create(id_cs, PDM_WRITER_OFF, PDM_WRITER_VAR_SCALAIRE, PDM_WRITER_VAR_ELEMENTS, "iproc");
+    int id_var_proc_id = PDM_writer_var_create(id_cs, PDM_WRITER_OFF, PDM_WRITER_VAR_SCALAR, PDM_WRITER_VAR_ELEMENTS, "iproc");
     // Id of opposite proc
-    int id_var_opp_proc_id = PDM_writer_var_create(id_cs, PDM_WRITER_OFF, PDM_WRITER_VAR_SCALAIRE, PDM_WRITER_VAR_SOMMETS, "oppProc");
+    int id_var_opp_proc_id = PDM_writer_var_create(id_cs, PDM_WRITER_OFF, PDM_WRITER_VAR_SCALAR, PDM_WRITER_VAR_VERTICES, "oppProc");
     // Id of opposite part (in the local numerotation of the opposite proc)
-    int id_var_opp_part_id = PDM_writer_var_create(id_cs, PDM_WRITER_OFF, PDM_WRITER_VAR_SCALAIRE, PDM_WRITER_VAR_SOMMETS, "oppPart");
+    int id_var_opp_part_id = PDM_writer_var_create(id_cs, PDM_WRITER_OFF, PDM_WRITER_VAR_SCALAR, PDM_WRITER_VAR_VERTICES, "oppPart");
     PDM_writer_step_beg(id_cs, 0.);
 
     /* Alloc for part meshes */

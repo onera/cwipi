@@ -32,6 +32,7 @@ pdm_has_ptscotch   = @PYX_PDM_HAS_PTSCOTCH@
 pdm_has_pdma       = @PYX_PDM_HAS_PDMA@
 ctypedef @PYX_G_NUM@ PDM_g_num_t
 ctypedef @PYX_L_NUM@ PDM_l_num_t
+ctypedef double PDM_real_t 
 
 ctypedef enum PDM_g_num_npy_t:
   PDM_G_NUM_NPY_INT = @PDM_G_NUM_NPY_INT@
@@ -43,6 +44,7 @@ cdef extern from "pdm.h":
         PDM_INT
         PDM_DOUBLE
 
+   
     ctypedef enum PDM_stride_t:
         PDM_STRIDE_CST_INTERLACED
         PDM_STRIDE_CST_INTERLEAVED
@@ -412,6 +414,8 @@ include "pdm_domain_merge.pxi"
 # --------------------
 include "pdm_connectivities.pxi"
 
+# PDM_writer :
+# --------------------
+include "pdm_writer.pxi"
 
-# TODO: PDM_writer, ...
 

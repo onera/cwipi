@@ -225,20 +225,18 @@ program testf
   call PDM_writer_create (cs,                        &
                           "Ensight",                 &
                           PDM_WRITER_FMT_ASCII,      &
-                          PDM_WRITER_TOPO_CONSTANTE, &
+                          PDM_WRITER_TOPO_CST, &
                           PDM_WRITER_OFF,            &
                           "test_writer",             &
                           "writer",                  &
                           comm,                      &
-                          PDM_IO_ACCES_MPI_SIMPLE,   &
+                          PDM_IO_KIND_MPI_SIMPLE,   &
                           1.d0,                      &
                           "")
 
   call PDM_writer_geom_create (cs,             &
                                id_geom,        &
                                "mesh",         &
-                               PDM_WRITER_OFF, &
-                               PDM_WRITER_OFF, &
                                n_part)
 
   call PDM_writer_var_create (cs,                      &
