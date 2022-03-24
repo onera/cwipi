@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 int main(int argc, char *argv[]) {
   int mode;
@@ -70,6 +71,8 @@ int main(int argc, char *argv[]) {
                  CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITH_PART, CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
                  1, CWP_DYNAMIC_MESH_VARIABLE, CWP_TIME_EXCH_CPL_TIME_STEP);
   printf("%d --- Coupling created\n", rank);
+
+  CWP_Visu_set(code_name, coupling_name, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
 
   int nnode_cpl_s, ncell_cpl_s, nnode_cpl_d;
   int n_vtx_per_cell = 8;
@@ -148,12 +151,70 @@ int main(int argc, char *argv[]) {
       sfields[i] = 2. * (i + 1);
     }
   }
+  printf("%d --- Data read\n", rank);
 
   CWP_Mesh_interf_vtx_set(code_name, coupling_name, 0, nnode_cpl_s, xyz_s, NULL);
-  int block_id = CWP_Mesh_interf_block_add(code_name, coupling_name, CWP_BLOCK_FACE_QUAD4);
-  CWP_Mesh_interf_block_std_set(code_name, coupling_name, 0, block_id, ncell_cpl_s, elems_s, NULL);
+
+//  int block_id = CWP_Mesh_interf_block_add(code_name, coupling_name, CWP_BLOCK_FACE_QUAD4);
+//  CWP_Mesh_interf_block_std_set(code_name, coupling_name, 0, block_id, ncell_cpl_s, elems_s, NULL);
+
+  int n_tetra = 0, n_prism = 0;
+  int n_pts_per_elt;
+  for (int i = 0 ; i < ncell_cpl_s ; ++i) {
+    n_pts_per_elt = connind_s[i + 1] - connind_s[i];
+    switch (n_pts_per_elt) {
+      case 4:n_tetra++;
+        break;
+      case 6:n_prism++;
+        break;
+      default: printf("Invalid n_pts_per_elt (count) = %d\n", n_pts_per_elt);
+    }
+  }
+
+  printf("\tn_tetra: %d\n", n_tetra);
+  printf("\tn_prism: %d\n", n_prism);
+  printf("\tn_elts: %d\n", n_tetra + n_prism);
+
+  int *elems_tetra = (int *) malloc(4 * n_tetra * sizeof(int));
+  int *elems_prism = (int *) malloc(6 * n_prism * sizeof(int));
+
+  int tetra_counter = 0, prism_counter = 0, elt_counter = 0;
+  for (int i = 0 ; i < ncell_cpl_s ; ++i) {
+    n_pts_per_elt = connind_s[i + 1] - connind_s[i];
+    switch (n_pts_per_elt) {
+      case 4:elems_tetra[tetra_counter + 0] = elems_s[elt_counter + 0];
+        elems_tetra[tetra_counter + 1] = elems_s[elt_counter + 1];
+        elems_tetra[tetra_counter + 2] = elems_s[elt_counter + 2];
+        elems_tetra[tetra_counter + 3] = elems_s[elt_counter + 3];
+        tetra_counter += n_pts_per_elt;
+        break;
+      case 6:elems_prism[prism_counter + 0] = elems_s[elt_counter + 0];
+        elems_prism[prism_counter + 1] = elems_s[elt_counter + 1];
+        elems_prism[prism_counter + 2] = elems_s[elt_counter + 2];
+        elems_prism[prism_counter + 3] = elems_s[elt_counter + 3];
+        elems_prism[prism_counter + 4] = elems_s[elt_counter + 4];
+        elems_prism[prism_counter + 5] = elems_s[elt_counter + 5];
+        prism_counter += n_pts_per_elt;
+        break;
+      default: printf("Invalid n_pts_per_elt (fill) = %d\n", n_pts_per_elt);
+    }
+    elt_counter += n_pts_per_elt;
+  }
+
+  printf("Fill done\n");
+
+  int block_tetra = CWP_Mesh_interf_block_add(code_name, coupling_name, CWP_BLOCK_CELL_TETRA4);
+  int block_prism = CWP_Mesh_interf_block_add(code_name, coupling_name, CWP_BLOCK_CELL_PRISM6);
+  CWP_Mesh_interf_block_std_set(code_name, coupling_name, 0, block_tetra, n_tetra, elems_tetra, NULL);
+  CWP_Mesh_interf_block_std_set(code_name, coupling_name, 0, block_prism, n_prism, elems_prism, NULL);
+
   CWP_Mesh_interf_finalize(code_name, coupling_name);
   printf("%d --- Geometry set\n", rank);
+
+  CWP_Cpl_del(code_name, coupling_name);
+  CWP_Finalize();
+  MPI_Finalize();
+  exit(0);
 
   const char *send_field_name, *recv_field_name;
   if (rank == 0) {
@@ -189,12 +250,12 @@ int main(int argc, char *argv[]) {
   const int *involved_srcs;
 
   n_not_located_points = CWP_N_uncomputed_tgts_get(code_name, coupling_name, recv_field_name, 0);
-  n_located_points     = CWP_N_computed_tgts_get  (code_name, coupling_name, recv_field_name, 0);
-  n_involved_srcs      = CWP_N_involved_srcs_get  (code_name, coupling_name, recv_field_name, 0);
+  n_located_points = CWP_N_computed_tgts_get(code_name, coupling_name, recv_field_name, 0);
+  n_involved_srcs = CWP_N_involved_srcs_get(code_name, coupling_name, recv_field_name, 0);
 
-  located_points     = CWP_Computed_tgts_get  (code_name, coupling_name, recv_field_name, 0);
+  located_points = CWP_Computed_tgts_get(code_name, coupling_name, recv_field_name, 0);
   not_located_points = CWP_Uncomputed_tgts_get(code_name, coupling_name, recv_field_name, 0);
-  involved_srcs      = CWP_Involved_srcs_get  (code_name, coupling_name, recv_field_name, 0);
+  involved_srcs = CWP_Involved_srcs_get(code_name, coupling_name, recv_field_name, 0);
 
   printf("%d --- n_not_located_points %d\n", rank, n_not_located_points);
   printf("%d --- n_located_points %d\n", rank, n_located_points);
@@ -230,6 +291,4 @@ int main(int argc, char *argv[]) {
   free(xyz_dest);
   free(sfields);
   free(rfields);
-
-  MPI_Finalize();
 }
