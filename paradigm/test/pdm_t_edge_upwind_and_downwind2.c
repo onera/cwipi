@@ -27,7 +27,6 @@
 #include "pdm_vtk.h"
 #include "pdm_logging.h"
 #include "pdm_priv.h"
-#include "pdm_plugin.h"
 #include "pdm_part_connectivity_transform.h"
 #include "pdm_polygon.h"
 #include "pdm_array.h"
