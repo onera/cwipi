@@ -41,7 +41,7 @@ program testf
   integer,                   parameter :: n_pts  = 10
 
   type(c_ptr)                          :: gen_gnum = C_NULL_PTR
-  double precision,          pointer   :: pts_coord(:)    => null()
+  double precision,          pointer   :: pts_coord(:,:)  => null()
   integer(kind=pdm_g_num_s), pointer   :: pts_ln_to_gn(:) => null()
   double precision,          pointer   :: char_length(:)  => null()
 
@@ -58,7 +58,7 @@ program testf
 
 
   !  Generate random point cloud
-  allocate(pts_coord(3*n_pts))
+  allocate(pts_coord(3,n_pts))
   allocate(char_length(n_pts))
 
   call random_seed()

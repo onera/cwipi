@@ -43,8 +43,8 @@ program testf
   integer, parameter :: i_point_cloud = 0
   integer, parameter :: n_points_into_cloud = 2
 
-  double precision,            pointer :: coords_cloud(:) => null()
-  integer(kind = pdm_g_num_s), pointer :: gnum_cloud(:)   => null()
+  double precision,            pointer :: coords_cloud(:,:) => null()
+  integer(kind = pdm_g_num_s), pointer :: gnum_cloud(:)     => null()
 
   !
   ! About mesh
@@ -65,8 +65,8 @@ program testf
 
 
   integer, parameter :: n_vtx = 12
-  double precision,            pointer :: coords_vtx(:) => null()
-  integer(kind = pdm_g_num_s), pointer :: gnum_vtx(:)   => null()
+  double precision,            pointer :: coords_vtx(:,:) => null()
+  integer(kind = pdm_g_num_s), pointer :: gnum_vtx(:)     => null()
 
   integer :: i
   integer, parameter :: i_part_cloud = 0
@@ -120,16 +120,16 @@ program testf
   ! Set point cloud : 2 points
   !
 
-  allocate(coords_cloud(3*n_points_into_cloud))
+  allocate(coords_cloud(3,n_points_into_cloud))
   allocate(gnum_cloud(n_points_into_cloud))
 
-  coords_cloud(1) = 0.5
-  coords_cloud(2) = 0.5
-  coords_cloud(3) = 0.5
+  coords_cloud(1,1) = 0.5
+  coords_cloud(2,1) = 0.5
+  coords_cloud(3,1) = 0.5
 
-  coords_cloud(4) = 1.5
-  coords_cloud(5) = 0.5
-  coords_cloud(6) = 0.5
+  coords_cloud(1,2) = 1.5
+  coords_cloud(2,2) = 0.5
+  coords_cloud(3,2) = 0.5
 
   do i = 1, n_points_into_cloud
     gnum_cloud(i) = i
@@ -141,57 +141,57 @@ program testf
   ! Set mesh : 2 hexa
   !
 
-  allocate(coords_vtx(3*n_vtx))
+  allocate(coords_vtx(3,n_vtx))
 
-  coords_vtx(1) = 0.d0
-  coords_vtx(2) = 0.d0
-  coords_vtx(3) = 0.d0
+  coords_vtx(1,1) = 0.d0
+  coords_vtx(2,1) = 0.d0
+  coords_vtx(3,1) = 0.d0
 
-  coords_vtx(4) = 1.d0
-  coords_vtx(5) = 0.d0
-  coords_vtx(6) = 0.d0
+  coords_vtx(1,2) = 1.d0
+  coords_vtx(2,2) = 0.d0
+  coords_vtx(3,2) = 0.d0
 
-  coords_vtx(7) = 1.d0
-  coords_vtx(8) = 1.d0
-  coords_vtx(9) = 0.d0
+  coords_vtx(1,3) = 1.d0
+  coords_vtx(2,3) = 1.d0
+  coords_vtx(3,3) = 0.d0
 
-  coords_vtx(10) = 0.d0
-  coords_vtx(11) = 1.d0
-  coords_vtx(12) = 0.d0
+  coords_vtx(1,4) = 0.d0
+  coords_vtx(2,4) = 1.d0
+  coords_vtx(3,4) = 0.d0
 
-  coords_vtx(13) = 0.d0
-  coords_vtx(14) = 0.d0
-  coords_vtx(15) = 1.d0
+  coords_vtx(1,5) = 0.d0
+  coords_vtx(2,5) = 0.d0
+  coords_vtx(3,5) = 1.d0
 
-  coords_vtx(16) = 1.d0
-  coords_vtx(17) = 0.d0
-  coords_vtx(18) = 1.d0
+  coords_vtx(1,6) = 1.d0
+  coords_vtx(2,6) = 0.d0
+  coords_vtx(3,6) = 1.d0
 
-  coords_vtx(19) = 1.d0
-  coords_vtx(20) = 1.d0
-  coords_vtx(21) = 1.d0
+  coords_vtx(1,7) = 1.d0
+  coords_vtx(2,7) = 1.d0
+  coords_vtx(3,7) = 1.d0
 
-  coords_vtx(22) = 0.d0
-  coords_vtx(23) = 1.d0
-  coords_vtx(24) = 1.d0
+  coords_vtx(1,8) = 0.d0
+  coords_vtx(2,8) = 1.d0
+  coords_vtx(3,8) = 1.d0
 
-  coords_vtx(25) = 2.d0
-  coords_vtx(26) = 0.d0
-  coords_vtx(27) = 0.d0
+  coords_vtx(1,9) = 2.d0
+  coords_vtx(2,9) = 0.d0
+  coords_vtx(3,9) = 0.d0
 
-  coords_vtx(28) = 2.d0
-  coords_vtx(29) = 1.d0
-  coords_vtx(30) = 0.d0
+  coords_vtx(1,10) = 2.d0
+  coords_vtx(2,10) = 1.d0
+  coords_vtx(3,10) = 0.d0
 
-  coords_vtx(31) = 2.d0
-  coords_vtx(32) = 0.d0
-  coords_vtx(33) = 1.d0
+  coords_vtx(1,11) = 2.d0
+  coords_vtx(2,11) = 0.d0
+  coords_vtx(3,11) = 1.d0
 
-  coords_vtx(34) = 2.d0
-  coords_vtx(35) = 1.d0
-  coords_vtx(36) = 1.d0
+  coords_vtx(1,12) = 2.d0
+  coords_vtx(2,12) = 1.d0
+  coords_vtx(3,12) = 1.d0
 
-  allocate(gnum_vtx(3*n_vtx))
+  allocate(gnum_vtx(n_vtx))
 
   do i = 1, n_vtx
     gnum_vtx(i) = i

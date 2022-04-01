@@ -78,6 +78,18 @@ const int   *n_entity1,
       int ***entity1_entity2
 );
 
+void
+PDM_compute_face_vtx_from_face_and_edge
+(
+ int   n_face,
+ int  *face_edge_idx,
+ int  *face_edge,
+ int  *edge_vtx,
+ int **face_vtx
+);
+
+
+
 #ifdef  __cplusplus
 }
 #endif

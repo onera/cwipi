@@ -78,7 +78,7 @@ typedef struct  {
   PDM_bool_t       merge_blocks;     // Merge before partitionning or not
   PDM_split_dual_t split_method;     // Partitioning method (Metis or Scotch)
   PDM_part_size_t  part_size_method; // Procude homogeneous or heterogeneous partitions
-  const int       *n_part;           // Number of wanted partitions per proc
+  int             *n_part;           // Number of wanted partitions per proc
                                      // in each zone (size = n_zone)
   const double    *part_fraction;    // Weight (in %) of each partition, in each zone
                                      //   (size = sum n_part[i]), if heterogeneous

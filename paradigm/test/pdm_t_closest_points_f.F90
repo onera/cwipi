@@ -46,8 +46,8 @@ program testf
 
   integer, parameter :: n_closest = 2
 
-  double precision, pointer :: coords_src(:) ! pointer or allocatble, target
-  double precision, pointer :: coords_tgt(:) ! pointer or allocatble, target
+  double precision, pointer :: coords_src(:,:) ! pointer or allocatble, target
+  double precision, pointer :: coords_tgt(:,:) ! pointer or allocatble, target
 
   integer :: code
   integer :: i_rank
@@ -73,50 +73,50 @@ program testf
     stop
   end if
 
-  allocate (coords_src(3*n_local_points_src))
-  allocate (coords_tgt(3*n_local_points_tgt))
+  allocate (coords_src(3,n_local_points_src))
+  allocate (coords_tgt(3,n_local_points_tgt))
   allocate (gnum_src(n_local_points_src))
   allocate (gnum_tgt(n_local_points_tgt))
 
   if (i_rank .eq. 0) then
     do i = 1, n_local_points_src
-      coords_src(3*(i-1)+1) = 0. + i - 1
-      coords_src(3*(i-1)+2) = 0. + i - 1
-      coords_src(3*(i-1)+3) = 0. + i - 1
+      coords_src(1,i) = 0. + i - 1
+      coords_src(2,i) = 0. + i - 1
+      coords_src(3,i) = 0. + i - 1
       gnum_src(i) = 2*(i-1) + 1
     end do
     do i = 1, n_local_points_tgt
-      coords_tgt(3*(i-1)+1) = n_local_points_tgt + i - 1
-      coords_tgt(3*(i-1)+2) = n_local_points_tgt + i - 1
-      coords_tgt(3*(i-1)+3) = n_local_points_tgt + i - 1
+      coords_tgt(1,i) = n_local_points_tgt + i - 1
+      coords_tgt(2,i) = n_local_points_tgt + i - 1
+      coords_tgt(3,i) = n_local_points_tgt + i - 1
       gnum_tgt(i) = 2*(i-1) + 2
     end do
   else
     do i = 1, n_local_points_src
-      coords_src(3*(i-1)+1) = n_local_points_tgt + i - 1
-      coords_src(3*(i-1)+2) = n_local_points_tgt + i - 1
-      coords_src(3*(i-1)+3) = n_local_points_tgt + i - 1
+      coords_src(1,i) = n_local_points_tgt + i - 1
+      coords_src(2,i) = n_local_points_tgt + i - 1
+      coords_src(3,i) = n_local_points_tgt + i - 1
       gnum_src(i) = 2*(i-1) + 2
     end do
     do i = 1, n_local_points_tgt
-      coords_tgt(3*(i-1)+1) = 0. + i - 1
-      coords_tgt(3*(i-1)+2) = 0. + i - 1
-      coords_tgt(3*(i-1)+3) = 0. + i - 1
+      coords_tgt(1,i) = 0. + i - 1
+      coords_tgt(2,i) = 0. + i - 1
+      coords_tgt(3,i) = 0. + i - 1
       gnum_tgt(i) = 2*(i-1) + 1
     end do
   endif
 
 
   do i = 1, n_local_points_tgt
-    coords_tgt(3*(i-1)+1) = coords_tgt(3*(i-1)+1) / 10.
-    coords_tgt(3*(i-1)+2) = coords_tgt(3*(i-1)+2) / 10.
-    coords_tgt(3*(i-1)+3) = coords_tgt(3*(i-1)+3) / 10.
+    coords_tgt(1,i) = coords_tgt(1,i) / 10.
+    coords_tgt(2,i) = coords_tgt(2,i) / 10.
+    coords_tgt(3,i) = coords_tgt(3,i) / 10.
   enddo
 
   do i = 1, n_local_points_src
-    coords_src(3*(i-1)+1) = coords_src(3*(i-1)+1) / 10.
-    coords_src(3*(i-1)+2) = coords_src(3*(i-1)+2) / 10.
-    coords_src(3*(i-1)+3) = coords_src(3*(i-1)+3) / 10.
+    coords_src(1,i) = coords_src(1,i) / 10.
+    coords_src(2,i) = coords_src(2,i) / 10.
+    coords_src(3,i) = coords_src(3,i) / 10.
   enddo
 
   !

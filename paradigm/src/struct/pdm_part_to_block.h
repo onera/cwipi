@@ -12,6 +12,7 @@
 
 #include "pdm.h"
 #include "pdm_mpi.h"
+#include "pdm_part_geom.h"
 
 /*=============================================================================
  * Macro definitions
@@ -235,6 +236,20 @@ PDM_part_to_block_create_from_distrib
  PDM_MPI_Comm                  comm
 );
 
+PDM_part_to_block_t *
+PDM_part_to_block_geom_create
+(
+ PDM_part_to_block_distrib_t   t_distrib,
+ PDM_part_to_block_post_t      t_post,
+ double                        part_active_node,
+ PDM_part_geom_t               geom_kind,
+ double                      **pvtx_coords,
+ PDM_g_num_t                 **gnum_elt,
+ int                         **weight,
+ int                          *n_elt,
+ int                           n_part,
+ PDM_MPI_Comm                  comm
+);
 
 /**
  *

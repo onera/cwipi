@@ -1268,6 +1268,7 @@ PDM_writer_geom_cell3d_cellface_add
   PDM_Mesh_nodal_cell3d_cellface_add (geom->mesh_nodal,
                                       id_part,
                                       n_cell,
+                                      
                                       n_face,
                                       face_som_idx,
                                       face_som_nb,
@@ -1533,7 +1534,7 @@ PDM_writer_geom_free
     }
 
     free(geom);
-    geom = NULL;
+    cs->geom_tab->geom[id_geom] = NULL;
   }
 }
 
@@ -1883,7 +1884,8 @@ PDM_writer_var_data_free
         PDM_writer_geom_t *geom = cs->geom_tab->geom[idx];
 
         if (geom == NULL) {
-          PDM_error(__FILE__, __LINE__, 0, "Bad geom identifier\n");
+          PDM_error(__FILE__, __LINE__, 0, 
+            "PDM_writer_var_data_free - Bad geom identifier : An associated geom of var '%s' is free before the var\n", var->nom_var);
           abort();
         }
 
@@ -1917,6 +1919,7 @@ PDM_writer_var_free
  const int     id_var
  )
 {
+
   if (cs == NULL) {
     PDM_error (__FILE__, __LINE__, 0, "Bad writer identifier\n");
   }
@@ -1961,7 +1964,8 @@ PDM_writer_var_free
       }
 
       free (var);
-      var = NULL;
+      cs->var_tab->var[id_var] = NULL;
+
     }
   }
 }

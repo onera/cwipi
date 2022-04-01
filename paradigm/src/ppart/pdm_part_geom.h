@@ -34,6 +34,7 @@ extern "C" {
 
 typedef enum {
   PDM_PART_GEOM_HILBERT = 1,
+  PDM_PART_GEOM_MORTON  = 2,
 } PDM_part_geom_t;
 
 

@@ -476,8 +476,9 @@ PDM_dmesh_free
       if(dmesh->is_owner_bound[i] == PDM_TRUE) {
 
         //printf(" dmesh_free :: %i \n", i);
-        assert(dmesh->dbound[i] != NULL);
-        free(dmesh->dbound[i]);
+        if(dmesh->dbound[i] != NULL) {
+          free(dmesh->dbound[i]);
+        }
         if(dmesh->dbound_idx[i] != NULL){
           free(dmesh->dbound_idx[i]);
         }

@@ -207,9 +207,10 @@ _block_std_free_partial
   if (_block_std->_connec != NULL) {
     if (_block_std->st_free_data == PDM_TRUE) {
       for (int i = 0; i < _block_std->n_part; i++) {
-        if (_block_std->_connec[i] != NULL)
+        if (_block_std->_connec[i] != NULL) {
           free(_block_std->_connec[i]);
-        _block_std->_connec[i] = NULL;
+          _block_std->_connec[i] = NULL;
+        }
       }
     }
     free(_block_std->_connec);
@@ -219,9 +220,10 @@ _block_std_free_partial
   if (_block_std->_numabs != NULL) {
     if (_block_std->st_free_data == PDM_TRUE) {
       for (int i = 0; i < _block_std->n_part; i++) {
-        if (_block_std->_numabs[i] != NULL)
+        if (_block_std->_numabs[i] != NULL) {
           free(_block_std->_numabs[i]);
-        _block_std->_numabs[i] = NULL;
+          _block_std->_numabs[i] = NULL;
+        }
       }
     }
     free(_block_std->_numabs);
@@ -231,9 +233,10 @@ _block_std_free_partial
   if (_block_std->_num_part != NULL) {
     if (_block_std->st_free_data == PDM_TRUE) {
       for (int i = 0; i < _block_std->n_part; i++) {
-        if (_block_std->_num_part[i] != NULL)
+        if (_block_std->_num_part[i] != NULL) {
           free(_block_std->_num_part[i]);
-        _block_std->_num_part[i] = NULL;
+          _block_std->_num_part[i] = NULL;
+        }
       }
     }
     free(_block_std->_num_part);

@@ -655,7 +655,7 @@ _generate_ridges
 
   int order = dcube->order;
 
-  PDM_Mesh_nodal_elt_t t_ridge;
+  PDM_Mesh_nodal_elt_t t_ridge = PDM_MESH_NODAL_BAR2;
   switch (dcube->t_elt) {
     case PDM_MESH_NODAL_TRIA3:
     case PDM_MESH_NODAL_QUAD4:
@@ -1028,7 +1028,7 @@ _generate_tetra_surf
 
   int order = dcube->order;
 
-  PDM_Mesh_nodal_elt_t t_tria;
+  PDM_Mesh_nodal_elt_t t_tria = PDM_MESH_NODAL_TRIA3;
   if (dcube->t_elt == PDM_MESH_NODAL_TETRA4) {
     assert(order == 1);
     t_tria = PDM_MESH_NODAL_TRIA3;
@@ -1143,8 +1143,8 @@ _generate_pyramid_surf
 
   int order = dcube->order;
 
-  PDM_Mesh_nodal_elt_t t_tria;
-  PDM_Mesh_nodal_elt_t t_quad;
+  PDM_Mesh_nodal_elt_t t_tria = PDM_MESH_NODAL_TRIA3;
+  PDM_Mesh_nodal_elt_t t_quad = PDM_MESH_NODAL_QUAD4;
   if (dcube->t_elt == PDM_MESH_NODAL_PYRAMID5) {
     assert(order == 1);
     t_tria = PDM_MESH_NODAL_TRIA3;
@@ -1419,8 +1419,8 @@ _generate_prism_surf
 
   int order = dcube->order;
 
-  PDM_Mesh_nodal_elt_t t_tria;
-  PDM_Mesh_nodal_elt_t t_quad;
+  PDM_Mesh_nodal_elt_t t_tria = PDM_MESH_NODAL_TRIA3;
+  PDM_Mesh_nodal_elt_t t_quad = PDM_MESH_NODAL_QUAD4;
   if (dcube->t_elt == PDM_MESH_NODAL_PRISM6) {
     assert(order == 1);
     t_tria = PDM_MESH_NODAL_TRIA3;
@@ -1574,7 +1574,7 @@ _generate_hexa_surf
 
   int order = dcube->order;
 
-  PDM_Mesh_nodal_elt_t t_quad;
+  PDM_Mesh_nodal_elt_t t_quad = PDM_MESH_NODAL_QUAD4;
   if (dcube->t_elt == PDM_MESH_NODAL_HEXA8) {
     assert(order == 1);
     t_quad = PDM_MESH_NODAL_QUAD4;

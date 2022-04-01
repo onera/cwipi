@@ -56,7 +56,7 @@ program testf
   integer (kind = pdm_g_num_s), pointer :: dface_cell(:)      => null()
   integer (kind = pdm_l_num_s), pointer :: dface_vtx_idx(:)   => null()
   integer (kind = pdm_g_num_s), pointer :: dface_vtx(:)       => null()
-  double precision,             pointer :: dvtx_coord(:)      => null()
+  double precision,             pointer :: dvtx_coord(:,:)    => null()
   integer (kind = pdm_l_num_s), pointer :: dface_group_idx(:) => null()
   integer (kind = pdm_g_num_s), pointer :: dface_group(:)     => null()
 

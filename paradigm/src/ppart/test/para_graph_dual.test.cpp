@@ -114,7 +114,7 @@ MPI_TEST_CASE("[3p] dual from arc2node", 3) {
         1, 0, 3, 0, 5, 0, 7, 0, 1, 2, 3, 4, 5, 6, 7, 8, 2, 0, 4, 0, 6, 0, 8, 0};
     static PDM_g_num_t dface_cell_p2[2*12] = {
         1, 0, 5, 0, 2, 0, 6, 0, 1, 3, 5, 7, 2, 4, 6, 8, 3, 0, 7, 0, 4, 0, 8, 0};
-    PDM_g_num_t* dface_cell;
+    PDM_g_num_t* dface_cell = NULL;
     // static PDM_g_num_t dface_cell[2*12]
     if (test_rank == 0) {
         dface_cell = dface_cell_p0;
@@ -344,7 +344,7 @@ MPI_TEST_CASE("[3p] Split graph with PARMetis", 3) {
     static PDM_g_num_t graph_idx_p2[2+1] = {0, 3, 6};
     static PDM_g_num_t graph_p2[6] = {2, 4, 7, 3, 5, 6};
 
-    int dn_cell;
+    int dn_cell = -1;
     PDM_g_num_t *graph_idx = NULL;
     PDM_g_num_t *graph     = NULL;
 

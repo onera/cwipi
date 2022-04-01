@@ -338,7 +338,7 @@ end subroutine PDM_dcube_gen_dim_get_
     integer(kind=pdm_g_num_s), pointer :: dface_cell(:)
     integer(kind=pdm_l_num_s), pointer :: dface_vtx_idx(:)
     integer(kind=pdm_g_num_s), pointer :: dface_vtx(:)
-    double precision,          pointer :: dvtx_coord(:)
+    double precision,          pointer :: dvtx_coord(:,:)
     integer(kind=pdm_l_num_s), pointer :: dface_group_idx(:)
     integer(kind=pdm_g_num_s), pointer :: dface_group(:)
 
@@ -387,7 +387,7 @@ end subroutine PDM_dcube_gen_dim_get_
 
     call c_f_pointer(c_dvtx_coord, &
                      dvtx_coord,   &
-                     [3*dn_vtx])
+                     [3,dn_vtx])
 
     call c_f_pointer(c_dface_group_idx, &
                      dface_group_idx,   &

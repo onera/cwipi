@@ -393,7 +393,7 @@ end function PDM_closest_points_n_closest_get
     type(c_ptr), value                 :: cls
     integer, intent(in)                :: i_part
     integer, intent(in)                :: n_points
-    double precision,          pointer :: coords(:)
+    double precision,          pointer :: coords(:,:)
     integer(kind=pdm_g_num_s), pointer :: gnum(:)
 
     integer(c_int)                     :: c_i_part
@@ -440,7 +440,7 @@ end function PDM_closest_points_n_closest_get
     type(c_ptr), value                 :: cls
     integer, intent(in)                :: i_part
     integer, intent(in)                :: n_points
-    double precision,          pointer :: coords(:)
+    double precision,          pointer :: coords(:,:)
     integer(kind=pdm_g_num_s), pointer :: gnum(:)
 
     integer(c_int)                     :: c_i_part

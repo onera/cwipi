@@ -89,6 +89,18 @@ PDM_inplace_unique_long2
  int r
 );
 
+
+int
+PDM_unique_long_with_distrib
+(
+  PDM_MPI_Comm   comm,
+  PDM_g_num_t   *dentity1_entity2_gnum,
+  PDM_g_num_t   *distrib_entity2,
+  int            array_size,
+  int          **unique_order,
+  PDM_g_num_t  **unique_dentity1_entity2_gnum
+);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

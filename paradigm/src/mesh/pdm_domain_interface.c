@@ -179,7 +179,8 @@ static int _interface_to_graph
   PDM_g_num_t *max_per_domain_loc = PDM_array_const_gnum(n_domain, 0);
   PDM_g_num_t *max_per_domain     = (PDM_g_num_t *) malloc((n_domain+1) * sizeof(PDM_g_num_t));
   for (int itrf = 0; itrf < n_interface; itrf++) {
-    int dom, domopp;
+    int dom    = -1;
+    int domopp = -1;
     if (multidomain_intrf == PDM_DOMAIN_INTERFACE_MULT_NO) {
       dom    = interface_dom[itrf][0];
       domopp = interface_dom[itrf][1];
@@ -189,7 +190,7 @@ static int _interface_to_graph
         dom    = interface_dom[itrf][2*k];
         domopp = interface_dom[itrf][2*k+1];
       }
-      max_per_domain_loc[dom] = PDM_MAX(max_per_domain_loc[dom], interface_ids[itrf][2*k]);
+      max_per_domain_loc[dom   ] = PDM_MAX(max_per_domain_loc[dom   ], interface_ids[itrf][2*k  ]);
       max_per_domain_loc[domopp] = PDM_MAX(max_per_domain_loc[domopp], interface_ids[itrf][2*k+1]);
     }
   }
@@ -213,7 +214,8 @@ static int _interface_to_graph
     send_data[itrf]             = (PDM_g_num_t *) malloc(2*interface_dn[itrf]*sizeof(PDM_g_num_t));
     weight[itrf]                = (double      *) malloc(2*interface_dn[itrf]*sizeof(double     ));
     interface_dn_twice[itrf]    = 2*interface_dn[itrf];
-    int dom, domopp;
+    int dom    = -1;
+    int domopp = -1;
     if (multidomain_intrf == PDM_DOMAIN_INTERFACE_MULT_NO) {
       dom    = interface_dom[itrf][0];
       domopp = interface_dom[itrf][1];
@@ -2874,7 +2876,8 @@ PDM_ddomain_interface_to_pdomain_interface
   PDM_g_num_t *max_per_domain_loc = PDM_array_const_gnum(n_domain, 0);
   PDM_g_num_t *max_per_domain     = (PDM_g_num_t *) malloc((n_domain+1) * sizeof(PDM_g_num_t));
   for(int itrf = 0; itrf < n_interface; ++itrf) {
-    int dom, domopp;
+    int dom    = -1;
+    int domopp = -1;
     if (multidomain_intrf == PDM_DOMAIN_INTERFACE_MULT_NO) {
       dom    = interface_dom[itrf][0];
       domopp = interface_dom[itrf][1];
@@ -2941,7 +2944,8 @@ PDM_ddomain_interface_to_pdomain_interface
     distrib_itrf[itrf] = PDM_compute_entity_distribution(comm, dn_interface[itrf]);
 
     dn_interface_twice   [itrf] = 2*dn_interface[itrf];
-    int dom, domopp;
+    int dom    = -1;
+    int domopp = -1;
     if (multidomain_intrf == PDM_DOMAIN_INTERFACE_MULT_NO) {
       dom    = interface_dom[itrf][0];
       domopp = interface_dom[itrf][1];
@@ -3515,7 +3519,7 @@ PDM_ddomain_interface_to_pdomain_interface
           PDM_log_trace_array_long(_pentity_ln_to_gn           ,     _ln_interface[s_i_part], "_pentity_ln_to_gn ::");
           PDM_log_trace_array_int (precv_entity_desc[s_i_part] , 3 * n_data                 , "precv_entity_desc ::");
           PDM_log_trace_array_int (precv_dom        [s_i_part] , 2 * n_data_dom             , "precv_dom         ::");
-          PDM_log_trace_array_int (precv_gnum       [s_i_part] , 2 * n_data_dom             , "precv_gnum        ::");
+          PDM_log_trace_array_long(precv_gnum       [s_i_part] , 2 * n_data_dom             , "precv_gnum        ::");
           PDM_log_trace_array_int (precv_stride_gnum[s_i_part] , _ln_interface[s_i_part]    , "precv_stride_gnum ::");
           PDM_log_trace_array_int (pinterface_triplet[s_i_part], _ln_interface[s_i_part]    , "pinterface_triplet ::");
         }

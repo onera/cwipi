@@ -492,7 +492,7 @@ module pdm_writer
     integer, intent(in)           :: id_geom
     integer, intent(in)           :: id_part
     integer, intent(in)           :: n_som
-    double precision,     pointer :: coords(:)
+    double precision,     pointer :: coords(:,:)
     integer(pdm_g_num_s), pointer :: numabs(:)
 
     integer(c_int)                :: c_id_geom
@@ -576,7 +576,7 @@ module pdm_writer
     integer, intent(in)           :: n_som_parent
     integer(pdm_g_num_s), pointer :: numabs(:)
     integer(pdm_l_num_s), pointer :: num_parent(:)
-    double precision,     pointer :: coords_parent(:)
+    double precision,     pointer :: coords_parent(:,:)
     integer(pdm_g_num_s), pointer :: numabs_parent(:)
 
     integer(c_int)                :: c_id_geom

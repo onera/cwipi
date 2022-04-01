@@ -297,17 +297,45 @@ cdef class Writer:
                                int id_part,
                                int n_cell,
                                int n_face,
-                               NPY.ndarray[NPY.int_t  , mode='c', ndim=1] face_som_idx,
-                               NPY.ndarray[NPY.int_t  , mode='c', ndim=1] face_som_nb,
-                               NPY.ndarray[NPY.int_t  , mode='c', ndim=1] face_som,
-                               NPY.ndarray[NPY.int_t  , mode='c', ndim=1] cell_face_idx,
-                               NPY.ndarray[NPY.int_t  , mode='c', ndim=1] cell_face_nb,
-                               NPY.ndarray[NPY.int_t  , mode='c', ndim=1] cell_face,
+                               NPY.ndarray[NPY.int32_t  , mode='c', ndim=1] face_som_idx,
+                               NPY.ndarray[NPY.int32_t  , mode='c', ndim=1] face_som_nb,
+                               NPY.ndarray[NPY.int32_t  , mode='c', ndim=1] face_som,
+                               NPY.ndarray[NPY.int32_t  , mode='c', ndim=1] cell_face_idx,
+                               NPY.ndarray[NPY.int32_t  , mode='c', ndim=1] cell_face_nb,
+                               NPY.ndarray[NPY.int32_t  , mode='c', ndim=1] cell_face,
                                NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] numabs):
       """
       """
 
       PDM_writer_geom_cell2d_cellface_add(self._wt,
+                                          id_geom,
+                                          id_part,
+                                          n_cell,
+                                          n_face,
+                                          <int *> face_som_idx.data,
+                                          <int *> face_som_nb.data,
+                                          <int *> face_som.data,
+                                          <int *> cell_face_idx.data,
+                                          <int *> cell_face_nb.data,
+                                          <int *> cell_face.data,
+                                          <PDM_g_num_t*> numabs.data)
+
+  def geom_cell3d_cellface_add(self,
+                               int id_geom,
+                               int id_part,
+                               int n_cell,
+                               int n_face,
+                               NPY.ndarray[NPY.int32_t  , mode='c', ndim=1] face_som_idx,
+                               NPY.ndarray[NPY.int32_t  , mode='c', ndim=1] face_som_nb,
+                               NPY.ndarray[NPY.int32_t  , mode='c', ndim=1] face_som,
+                               NPY.ndarray[NPY.int32_t  , mode='c', ndim=1] cell_face_idx,
+                               NPY.ndarray[NPY.int32_t  , mode='c', ndim=1] cell_face_nb,
+                               NPY.ndarray[NPY.int32_t  , mode='c', ndim=1] cell_face,
+                               NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] numabs):
+      """
+      """
+
+      PDM_writer_geom_cell3d_cellface_add(self._wt,
                                           id_geom,
                                           id_part,
                                           n_cell,
@@ -436,6 +464,12 @@ cdef class Writer:
       """
 
       PDM_writer_var_free(self._wt, id_var)
+
+  def step_beg(self, double t):
+    PDM_writer_step_beg(self._wt, t)
+
+  def step_end(self):
+    PDM_writer_step_end(self._wt);
 
   # ------------------------------------------------------------------------
 

@@ -1437,17 +1437,18 @@ PDM_part_dconnectivity_to_pconnectivity_hash
 static int
 min_sub_index
 (
-  int* array,
-  int* sub_indices,
-  int n_sub_indices,
-  int i_rank
+        int         *array,
+  const PDM_g_num_t *part_distribution,
+        int         *sub_indices,
+        int         *sub_indices_part,
+        int          n_sub_indices
 )
 {
-  PDM_UNUSED(i_rank);
-  int min_idx = sub_indices[0];
-  for (int i=1; i<n_sub_indices; ++i) {
-    if (array[sub_indices[i]] < array[min_idx]) {
-      min_idx = sub_indices[i];
+  int min_idx = part_distribution[sub_indices[0]];
+  for (int i = 1; i < n_sub_indices; ++i) {
+    int idx_part = part_distribution[sub_indices[i]] + sub_indices_part[i];
+    if (array[idx_part] < array[min_idx]) {
+      min_idx = idx_part;
     }
   }
   return min_idx;
@@ -1563,16 +1564,37 @@ PDM_part_generate_entity_graph_comm
   /*
    * Setup protocol exchange
    */
-  PDM_part_to_block_t *ptb =
-   PDM_part_to_block_create_from_distrib(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
-                             PDM_PART_TO_BLOCK_POST_MERGE,
-                             1.,
-            (PDM_g_num_t **) pentity_ln_to_gn,
-                             entity_distribution,
-                             (int *) pn_entity,
-                             n_part,
-                             comm);
-   const int n_entity_block = PDM_part_to_block_n_elt_block_get(ptb);
+  PDM_part_to_block_t *ptb = NULL;
+  PDM_g_num_t *_entity_distribution = NULL;
+  if(entity_distribution != NULL) {
+    ptb = PDM_part_to_block_create_from_distrib(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+                                                PDM_PART_TO_BLOCK_POST_MERGE,
+                                                1.,
+                               (PDM_g_num_t **) pentity_ln_to_gn,
+                                                entity_distribution,
+                                                (int *) pn_entity,
+                                                n_part,
+                                                comm);
+    _entity_distribution = (PDM_g_num_t *) entity_distribution;
+  } else {
+    ptb = PDM_part_to_block_create(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+                                   PDM_PART_TO_BLOCK_POST_MERGE,
+                                   1.,
+                  (PDM_g_num_t **) pentity_ln_to_gn,
+                                   NULL,
+                           (int *) pn_entity,
+                                   n_part,
+                                   comm);
+
+    PDM_g_num_t* ptb_entity_distribution = PDM_part_to_block_distrib_index_get(ptb);
+    _entity_distribution = malloc((n_rank+1) * sizeof(PDM_g_num_t));
+
+    for(int i = 0; i < n_rank+1; ++i) {
+      _entity_distribution[i] = ptb_entity_distribution[i];
+    }
+
+  }
+  const int n_entity_block = PDM_part_to_block_n_elt_block_get(ptb);
 
    /*
     * Exchange
@@ -1590,12 +1612,15 @@ PDM_part_generate_entity_graph_comm
   // get the procs from which the data comes from
   int** proc_part_stri = (int ** ) malloc( n_part * sizeof(int *));
   int** proc_part_data = (int ** ) malloc( n_part * sizeof(int *));
+  int** part_part_data = (int ** ) malloc( n_part * sizeof(int *));
   for(int i_part = 0; i_part < n_part; ++i_part) {
     proc_part_stri[i_part] = (int *) malloc( pn_entity[i_part] * sizeof(int));
     proc_part_data[i_part] = (int *) malloc( pn_entity[i_part] * sizeof(int));
+    part_part_data[i_part] = (int *) malloc( pn_entity[i_part] * sizeof(int));
     for (int i=0; i<pn_entity[i_part]; ++i) {
       proc_part_stri[i_part][i] = 1;
       proc_part_data[i_part][i] = i_rank;
+      part_part_data[i_part][i] = i_part;
     }
   }
   int* proc_blk_stri = NULL;
@@ -1608,10 +1633,21 @@ PDM_part_generate_entity_graph_comm
                 (void **) proc_part_data,
                           &proc_blk_stri,
                 (void **) &proc_blk_data);
+  free(proc_blk_stri);
 
-  PDM_g_num_t* new_distrib = PDM_part_to_block_adapt_partial_block_to_block(ptb, &blk_stri, entity_distribution[n_rank]);
+  int* part_blk_data = NULL;
+  PDM_part_to_block_exch (ptb,
+                          sizeof(int),
+                          PDM_STRIDE_VAR_INTERLACED,
+                          1,
+                          proc_part_stri,
+                (void **) part_part_data,
+                          &proc_blk_stri,
+                (void **) &part_blk_data);
+
+  PDM_g_num_t* new_distrib = PDM_part_to_block_adapt_partial_block_to_block(ptb, &blk_stri, _entity_distribution[n_rank]);
   free(new_distrib);
-  new_distrib = PDM_part_to_block_adapt_partial_block_to_block(ptb, &proc_blk_stri, entity_distribution[n_rank]);
+  new_distrib = PDM_part_to_block_adapt_partial_block_to_block(ptb, &proc_blk_stri, _entity_distribution[n_rank]);
   // int dn_check = new_distrib[i_rank+1] - new_distrib[i_rank];
   // int dn_entity = entity_distribution[i_rank+1] - entity_distribution[i_rank];
   free(new_distrib);
@@ -1625,9 +1661,11 @@ PDM_part_generate_entity_graph_comm
     free(part_data[i_part]);
     free(proc_part_stri[i_part]);
     free(proc_part_data[i_part]);
+    free(part_part_data[i_part]);
   }
   free(proc_part_stri);
   free(proc_part_data);
+  free(part_part_data);
   free(part_stri);
   free(part_data);
 
@@ -1643,7 +1681,6 @@ PDM_part_generate_entity_graph_comm
       }
       printf("\n");
     }
-
   }
 
   // printf(" PDM_part_assemble_partitions PDM_part_generate_entity_graph_comm flag 3 \n");
@@ -1663,8 +1700,9 @@ PDM_part_generate_entity_graph_comm
   int idx_comp = 0;     /* Compressed index use to fill the buffer */
   int idx_data = 0;     /* Index in the block to post-treat        */
 
-  int* n_owner_entity_by_rank = PDM_array_zeros_int(n_rank);
+  int* n_owner_entity_by_rank = PDM_array_zeros_int(part_distribution[n_rank]);
   int* proc_data_current = proc_blk_data;
+  int* part_data_current = part_blk_data;
 
   for(int i_block = 0; i_block < n_entity_block; ++i_block){
 
@@ -1682,13 +1720,18 @@ PDM_part_generate_entity_graph_comm
       }
       /* Fill up entity priority */
       if(setup_priority == 1){
-        int selected_owner_rank = min_sub_index(n_owner_entity_by_rank,proc_data_current,proc_blk_stri[i_block],i_rank);
+        int selected_owner_rank = min_sub_index(n_owner_entity_by_rank,
+                                                part_distribution,
+                                                proc_data_current,
+                                                part_data_current,
+                                                proc_blk_stri[i_block]);
         ++n_owner_entity_by_rank[selected_owner_rank];
 
         blk_priority_data[i_block] = selected_owner_rank;
       }
     }
     proc_data_current += proc_blk_stri[i_block];
+    part_data_current += proc_blk_stri[i_block];
   }
   free(n_owner_entity_by_rank);
 
@@ -1727,7 +1770,7 @@ PDM_part_generate_entity_graph_comm
   /*
    * All data is now sort we cen resend to partition
    */
-  PDM_block_to_part_t* btp = PDM_block_to_part_create(entity_distribution,
+  PDM_block_to_part_t* btp = PDM_block_to_part_create(_entity_distribution,
                                (const PDM_g_num_t **) pentity_ln_to_gn,
                                                       pn_entity,
                                                       n_part,
@@ -1765,6 +1808,7 @@ PDM_part_generate_entity_graph_comm
   free(blk_data);
   free(blk_stri);
   free(proc_blk_data);
+  free(part_blk_data);
   free(proc_blk_stri);
 
   /*
@@ -1923,6 +1967,9 @@ PDM_part_generate_entity_graph_comm
 
   }
 
+  if(entity_distribution == NULL) {
+    free(_entity_distribution);
+  }
   /*
    * Free
    */

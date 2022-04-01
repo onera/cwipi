@@ -327,7 +327,7 @@ module pdm_gnum
     type(c_ptr), value        :: gen_gnum
     integer, intent(in)       :: i_part
     integer, intent(in)       :: n_elts
-    double precision, pointer :: coords(:)
+    double precision, pointer :: coords(:,:)
     double precision, pointer :: char_length(:)
 
     integer(c_int)            :: c_i_part

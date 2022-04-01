@@ -518,6 +518,53 @@ PDM_geom_elem_polyhedra_properties
  int         *isDegenerated
 );
 
+/**
+ *  \brief Compute downwind and updind elemt of all edges (or -1 if not found )
+ *
+ *  @param [in]  n_cell              Number of cells
+ *  @param [in]  n_face              Number of faces
+ *  @param [in]  n_edge              Number of edges
+ *  @param [in]  n_vtx               Number of vtx
+ *  @param [in]  cell_face_idx       Connectivity
+ *  @param [in]  cell_face           Connectivity
+ *  @param [in]  face_vtx_idx        Connectivity
+ *  @param [in]  face_vtx            Connectivity
+ *  @param [in]  vtx_cell_idx        Connectivity
+ *  @param [in]  vtx_cell            Connectivity
+ *  @param [in]  vtx_coord           Number of vertices
+ *  @param [out] upwind_cell_out     Cell number corresponding of upwind cell (or -1)   (size = 3*n_edge)
+ *  @param [out] downwind_cell_out   Cell number corresponding of downwind cell (or -1) (size = 3*n_edge)
+ *  @param [out] upwind_face_out     face number corresponding of upwind face (or -1)   (size = 3*n_edge)
+ *  @param [out] downwind_face_out   face number corresponding of downwind face (or -1) (size = 3*n_edge)
+ *  @param [out] upwind_point_out     point cooridinates of upwind point (or -1)        (size = 3*n_edge)
+ *  @param [out] downwind_point_out   point cooridinates of downwind point (or -1)      (size = 3*n_edge)
+ *
+ */
+
+void
+PDM_geom_elem_edge_upwind_and_downwind
+(
+ int      n_cell,
+ int      n_face,
+ int      n_edge,
+ int      n_vtx,
+ int     *cell_face_idx,
+ int     *cell_face,
+ int     *face_vtx_idx,
+ int     *face_vtx,
+ int     *vtx_cell_idx,
+ int     *vtx_cell,
+ int     *edge_vtx,
+ double  *vtx_coord,
+ int    **upwind_cell_out,
+ int    **downwind_cell_out,
+ int    **upwind_face_out,
+ int    **downwind_face_out,
+ double **upwind_point_out,
+ double **downwind_point_out
+);
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

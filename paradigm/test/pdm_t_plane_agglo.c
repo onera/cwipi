@@ -801,20 +801,20 @@ _export_ini_mesh
   PDM_writer_var_write (id_cs,
                         id_var_num_part);
 
-  // PDM_writer_var_free (id_cs,
-  //                      id_var_num_part);
+  PDM_writer_var_free (id_cs,
+                       id_var_num_part);
 
   PDM_writer_var_write (id_cs,
                         id_var_coo_x);
 
-  // PDM_writer_var_free (id_cs,
-  //                      id_var_coo_x);
+  PDM_writer_var_free (id_cs,
+                       id_var_coo_x);
 
   PDM_writer_var_write (id_cs,
                         id_var_coo_xyz);
 
-  // PDM_writer_var_free (id_cs,
-  //                      id_var_coo_xyz);
+  PDM_writer_var_free (id_cs,
+                       id_var_coo_xyz);
 
   for (int i_part = 0; i_part < n_part; i_part++) {
     free (val_num_part[i_part]);
@@ -828,11 +828,11 @@ _export_ini_mesh
   free (nsom_part);
 
   PDM_writer_step_end (id_cs);
-  // PDM_writer_geom_data_free (id_cs,
-  //                            id_geom);
+  PDM_writer_geom_data_free (id_cs,
+                             id_geom);
 
-  // PDM_writer_geom_free (id_cs,
-  //                       id_geom);
+  PDM_writer_geom_free (id_cs,
+                        id_geom);
   PDM_writer_free (id_cs);
 
   free (debPartProcs);
