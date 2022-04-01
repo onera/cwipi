@@ -275,8 +275,8 @@ namespace cwipi {
     char                *_output_dir;   /*!< Output directory */
     char                *_output_name;  /*!< Output Name */
     PDM_MPI_Comm         _pdmComm;      /*!< Paradigm communicator */
-    PDM_writer_statut_t  _divide_polygons;   /*!< Option to divide polygons */
-    PDM_writer_statut_t  _divide_polyhedra;  /*!< Option to divide polyhedra */
+    PDM_writer_status_t  _divide_polygons;   /*!< Option to divide polygons */
+    PDM_writer_status_t  _divide_polyhedra;  /*!< Option to divide polyhedra */
     bool                 _visuCreated;       /*!< True if the creation has be done */
     double               _physical_time;     /*!< Physical time for visualization */
     int                  _n_part;            /*!< Number of mesh partition */

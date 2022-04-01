@@ -76,15 +76,15 @@ namespace cwipi {
 
     PDM_writer_fmt_fic_t fmt_fic      = PDM_WRITER_FMT_BIN;
     const char* fmt                   = "Ensight";
-    PDM_writer_statut_t st_reprise    = PDM_WRITER_OFF;
+    PDM_writer_status_t st_reprise    = PDM_WRITER_OFF;
     const char *options_comp          = "";
     //Proportion of working node for file acess
     int working_node = 1;
-    PDM_io_acces_t acess_type =   PDM_IO_ACCES_MPI_SIMPLE;
+    PDM_io_kind_t acess_type =   PDM_IO_KIND_MPI_SIMPLE;
 
-    PDM_writer_topologie_t pdm_topology = PDM_WRITER_TOPO_CONSTANTE;
+    PDM_writer_topology_t pdm_topology = PDM_WRITER_TOPO_CST;
 
-    if(_topology == CWP_DYNAMIC_MESH_STATIC)          pdm_topology  = PDM_WRITER_TOPO_CONSTANTE;
+    if(_topology == CWP_DYNAMIC_MESH_STATIC)          pdm_topology  = PDM_WRITER_TOPO_CST;
     else if(_topology == CWP_DYNAMIC_MESH_DEFORMABLE) pdm_topology  = PDM_WRITER_TOPO_DEFORMABLE;
     else if(_topology == CWP_DYNAMIC_MESH_VARIABLE  ) pdm_topology  = PDM_WRITER_TOPO_VARIABLE;
 
@@ -135,8 +135,6 @@ namespace cwipi {
      _n_part = n_part;
      _visu_mesh_id = PDM_writer_geom_create(_visu_id,
                                             "geom",
-                                             _divide_polygons,
-                                             _divide_polyhedra,
                                              n_part);
      _visuCreated = true;
   }
@@ -174,7 +172,7 @@ namespace cwipi {
 
     PDM_writer_var_loc_t PDMfieldType = PDM_WRITER_VAR_ELEMENTS   ;
 
-    PDM_writer_var_dim_t PDMfieldComp = PDM_WRITER_VAR_SCALAIRE;
+    PDM_writer_var_dim_t PDMfieldComp = PDM_WRITER_VAR_SCALAR;
 
     int id_partitioning_field = PDM_writer_var_create(_visu_id,
                                                        PDM_WRITER_OFF,
@@ -333,13 +331,13 @@ namespace cwipi {
       PDM_writer_var_loc_t PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
 
       if     (CWPfielType == CWP_DOF_LOCATION_CELL_CENTER)   PDMfieldType = PDM_WRITER_VAR_ELEMENTS   ;
-      else if(CWPfielType == CWP_DOF_LOCATION_NODE)         PDMfieldType = PDM_WRITER_VAR_SOMMETS    ;
-      else if(CWPfielType == CWP_DOF_LOCATION_USER)         PDMfieldType = PDM_WRITER_VAR_PARTICULES ;
+      else if(CWPfielType == CWP_DOF_LOCATION_NODE)         PDMfieldType = PDM_WRITER_VAR_VERTICES   ;
+      else if(CWPfielType == CWP_DOF_LOCATION_USER)         PDMfieldType = PDM_WRITER_VAR_PARTICLES ;
 
 
-      PDM_writer_var_dim_t PDMfieldComp = PDM_WRITER_VAR_SCALAIRE;
-      if( nComponent == 1) PDMfieldComp = PDM_WRITER_VAR_SCALAIRE;
-      else if( nComponent == 3) PDMfieldComp = PDM_WRITER_VAR_VECTEUR;
+      PDM_writer_var_dim_t PDMfieldComp = PDM_WRITER_VAR_SCALAR;
+      if( nComponent == 1) PDMfieldComp = PDM_WRITER_VAR_SCALAR;
+      else if( nComponent == 3) PDMfieldComp = PDM_WRITER_VAR_VECTOR;
       else if (nComponent !=0)
         PDM_error(__FILE__, __LINE__, 0, "This field have a number of components which cannot be visualized.\n");
 
