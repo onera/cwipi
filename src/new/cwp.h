@@ -895,6 +895,19 @@ CWP_Computed_tgts_get
  const int   i_part
 );
 
+
+/**
+ *
+ * \brief Return number of invelved sources.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ * \param [in] i_part           Current partition
+ *
+ * \return               Number of involved sources
+ */
+
 int
 CWP_N_involved_srcs_get
 (
@@ -903,6 +916,19 @@ CWP_N_involved_srcs_get
  const char *field_id,
  const int   i_part
 );
+
+
+/**
+ *
+ * \brief Return involved sources
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ * \param [in] i_part           Current partition
+ *
+ * \return              Involved sources
+ */
 
 const int *
 CWP_Involved_srcs_get
