@@ -114,8 +114,9 @@ PDM_part_mesh_create
   }
 
   for(int i = 0; i < PDM_MESH_ENTITY_MAX; ++i) {
-    pmesh->pentity_ln_to_gn[i] = NULL;
-    pmesh->pn_entity       [i] = NULL;
+    pmesh->is_owner_ln_to_gn[i] = PDM_FALSE;
+    pmesh->pentity_ln_to_gn [i] = NULL;
+    pmesh->pn_entity        [i] = NULL;
   }
 
   pmesh->pbound          = malloc( PDM_BOUND_TYPE_MAX * sizeof(PDM_g_num_t *) );
@@ -127,9 +128,10 @@ PDM_part_mesh_create
   }
 
   for(int i = 0; i < PDM_BOUND_TYPE_MAX; ++i) {
-    pmesh->is_owner_bound[i] = PDM_FALSE;
-    pmesh->pbound        [i] = NULL;
-    pmesh->pbound_idx    [i] = NULL;
+    pmesh->is_owner_bound         [i] = PDM_FALSE;
+    pmesh->is_owner_bound_ln_to_gn[i] = PDM_FALSE;
+    pmesh->pbound                 [i] = NULL;
+    pmesh->pbound_idx             [i] = NULL;
   }
 
 
@@ -171,7 +173,11 @@ PDM_part_mesh_entity_ln_to_gn_set
 )
 {
   pmesh->pentity_ln_to_gn [entity_type] = pentity_ln_to_gn;
-  pmesh->is_owner_ln_to_gn[entity_type] = ownership;
+  if(ownership == PDM_OWNERSHIP_USER || ownership == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE) {
+    pmesh->is_owner_ln_to_gn[entity_type] = PDM_FALSE;
+  } else {
+    pmesh->is_owner_ln_to_gn[entity_type] = PDM_TRUE;
+  }
 }
 
 
@@ -185,7 +191,11 @@ PDM_part_mesh_entity_ln_to_gn_get
 )
 {
   *pentity_ln_to_gn = pmesh->pentity_ln_to_gn[entity_type];
-  pmesh->is_owner_ln_to_gn[entity_type] = ownership;
+  if(ownership == PDM_OWNERSHIP_USER || ownership == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE) {
+    pmesh->is_owner_ln_to_gn[entity_type] = PDM_FALSE;
+  } else {
+    pmesh->is_owner_ln_to_gn[entity_type] = PDM_TRUE;
+  }
 }
 
 
@@ -202,7 +212,12 @@ PDM_part_mesh_connectivity_set
 {
   pmesh->pconnectivity        [connectivity_type] = connect;
   pmesh->pconnectivity_idx    [connectivity_type] = connect_idx;
-  pmesh->is_owner_connectivity[connectivity_type] = ownership;
+
+  if(ownership == PDM_OWNERSHIP_USER || ownership == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE) {
+    pmesh->is_owner_connectivity[connectivity_type] = PDM_FALSE;
+  } else {
+    pmesh->is_owner_connectivity[connectivity_type] = PDM_TRUE;
+  }
 }
 
 
@@ -219,7 +234,11 @@ PDM_part_mesh_connectivity_get
   *connect     = pmesh->pconnectivity    [connectivity_type];
   *connect_idx = pmesh->pconnectivity_idx[connectivity_type];
 
-  pmesh->is_owner_connectivity[connectivity_type] = ownership;
+  if(ownership == PDM_OWNERSHIP_USER || ownership == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE) {
+    pmesh->is_owner_connectivity[connectivity_type] = PDM_FALSE;
+  } else {
+    pmesh->is_owner_connectivity[connectivity_type] = PDM_TRUE;
+  }
 }
 
 
@@ -237,7 +256,12 @@ PDM_part_mesh_bound_set
   pmesh->n_group_bnd   [bound_type] = n_bound;
   pmesh->pbound        [bound_type] = connect;
   pmesh->pbound_idx    [bound_type] = connect_idx;
-  pmesh->is_owner_bound[bound_type] = ownership;
+
+  if(ownership == PDM_OWNERSHIP_USER || ownership == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE) {
+    pmesh->is_owner_bound[bound_type] = PDM_FALSE;
+  } else {
+    pmesh->is_owner_bound[bound_type] = PDM_TRUE;
+  }
 }
 
 
@@ -256,7 +280,11 @@ PDM_part_mesh_bound_get
   *connect     = pmesh->pbound     [bound_type];
   *connect_idx = pmesh->pbound_idx [bound_type];
 
-  pmesh->is_owner_bound[bound_type] = ownership;
+  if(ownership == PDM_OWNERSHIP_USER || ownership == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE) {
+    pmesh->is_owner_bound[bound_type] = PDM_FALSE;
+  } else {
+    pmesh->is_owner_bound[bound_type] = PDM_TRUE;
+  }
 }
 
 
@@ -271,7 +299,12 @@ PDM_part_mesh_bound_ln_to_gn_set
 )
 {
   pmesh->pbound_ln_to_gn        [bound_type] = bound_ln_to_gn;
-  pmesh->is_owner_bound_ln_to_gn[bound_type] = ownership;
+  if(ownership == PDM_OWNERSHIP_USER || ownership == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE) {
+    pmesh->is_owner_bound_ln_to_gn[bound_type] = PDM_FALSE;
+  } else {
+    pmesh->is_owner_bound_ln_to_gn[bound_type] = PDM_TRUE;
+
+  }
 }
 
 
@@ -286,7 +319,11 @@ PDM_part_mesh_bound_ln_to_gn_get
 {
   *bound_ln_to_gn = pmesh->pbound_ln_to_gn[bound_type];
 
-  pmesh->is_owner_bound_ln_to_gn[bound_type] = ownership;
+  if(ownership == PDM_OWNERSHIP_USER || ownership == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE) {
+    pmesh->is_owner_bound_ln_to_gn[bound_type] = PDM_FALSE;
+  } else {
+    pmesh->is_owner_bound_ln_to_gn[bound_type] = PDM_TRUE;
+  }
 }
 
 
@@ -324,7 +361,7 @@ PDM_part_mesh_free
   }
 
   /* Free ln_to_gn */
-  for(int i = 0; i < PDM_CONNECTIVITY_TYPE_MAX; ++i) {
+  for(int i = 0; i < PDM_MESH_ENTITY_MAX; ++i) {
     if(pmesh->is_owner_ln_to_gn[i] == PDM_TRUE) {
       for(int i_part = 0; i_part < pmesh->n_part; ++i_part) {
         if(pmesh->pentity_ln_to_gn[i][i_part] != NULL) {

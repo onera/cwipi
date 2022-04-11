@@ -781,7 +781,7 @@ namespace cwipi {
                 }
               }
             }
-            assert(count == _n_involved_sources_tgt[i_part]);
+            assert(count == cpl_spatial_interp->_n_involved_sources_tgt[i_part]);
 
             int n_elt = 0;
             CWP_Interface_t interf_dim = cpl_cpl.entitiesDimGet();

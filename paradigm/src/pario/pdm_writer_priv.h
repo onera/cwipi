@@ -36,8 +36,6 @@ extern "C" {
 struct _PDM_writer_geom_t {
 
   char                     *nom_geom;           /* Nom de la geometrie */
-  PDM_writer_statut_t       st_decoup_poly2d;   /* Decoupage des polygones */
-  PDM_writer_statut_t       st_decoup_poly3d;   /* Decoupage des polyedres */
   void                     *geom_fmt;           /* Description propre au format fmt */
   PDM_writer_t             *_cs;                /* Pointeur sur la structure cs parente */
   PDM_MPI_Comm              pdm_mpi_comm;       /* Communicateur MPI */
@@ -91,7 +89,7 @@ typedef struct {
 struct _PDM_writer_var_t{
 
   char                  *nom_var;        /* Nom de la geometrie */
-  PDM_writer_statut_t    st_dep_tps;     /* Variable en temps */
+  PDM_writer_status_t    st_dep_tps;     /* Variable en temps */
   PDM_writer_var_dim_t   dim;            /* Dimension de la variable */
   PDM_writer_var_loc_t   loc;            /* Localisation de la variable */
   double              ***_val;           /* Valeurs de la variable
@@ -120,8 +118,8 @@ struct _PDM_writer_t {
 
   int                         fmt_id;             /* Format de la sortie */
   PDM_writer_fmt_fic_t        fmt_fic;            /* Format du fichier ascii ou binaire */
-  PDM_writer_topologie_t      topologie;          /* Type de toplogie du maillage */
-  PDM_writer_statut_t         st_reprise;         /* Reprise d'une sortie existante */
+  PDM_writer_topology_t      topologie;          /* Type de toplogie du maillage */
+  PDM_writer_status_t         st_reprise;         /* Reprise d'une sortie existante */
   char                       *rep_sortie;         /* Nom du repertoire de sortie */
   char                       *nom_sortie;         /* Nom de la sortie */
   PDM_MPI_Comm                pdm_mpi_comm;       /* Communicateur MPI */
@@ -129,7 +127,7 @@ struct _PDM_writer_t {
   _PDM_writer_var_tab_t      *var_tab;            /* Tableau des variables */
   _PDM_writer_geom_tab_t     *geom_tab;           /* Tableau des geometries */
   double                      physical_time;      /* Temps physique de la simulation */
-  PDM_io_acces_t              acces;              /* Type d'acces au fichier (MPIIIO,...) */
+  PDM_io_kind_t              acces;              /* Type d'acces au fichier (MPIIIO,...) */
   double                      prop_noeuds_actifs; /* Proportion des noeuds actifs */
   _PDM_writer_name_map_tab_t *name_map_tab;       /* Stockage du mapping des noms */
   int                         n_options;          /* Nombre d'options */

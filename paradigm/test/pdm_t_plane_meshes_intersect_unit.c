@@ -70,23 +70,23 @@ _export_ol_mesh
 
   id_cs[0] = PDM_writer_create ("Ensight",
                                 PDM_WRITER_FMT_ASCII,
-                                PDM_WRITER_TOPO_CONSTANTE,
+                                PDM_WRITER_TOPO_CST,
                                 PDM_WRITER_OFF,
                                 "test_2d_unit_ens",
                                 "olmesh1",
                                 pdm_mpi_comm,
-                                PDM_IO_ACCES_MPI_SIMPLE,
+                                PDM_IO_KIND_MPI_SIMPLE,
                                 1.,
                                 NULL);
 
   id_cs[1] = PDM_writer_create ("Ensight",
                                 PDM_WRITER_FMT_ASCII,
-                                PDM_WRITER_TOPO_CONSTANTE,
+                                PDM_WRITER_TOPO_CST,
                                 PDM_WRITER_OFF,
                                 "test_2d_unit_ens",
                                 "olmesh2",
                                 pdm_mpi_comm,
-                                PDM_IO_ACCES_MPI_SIMPLE,
+                                PDM_IO_KIND_MPI_SIMPLE,
                                 1,
                                 NULL);
 
@@ -106,7 +106,7 @@ _export_ol_mesh
     if (imesh == 0) {
       id_var_field[imesh] = PDM_writer_var_create (id_cs[imesh],
                                                    PDM_WRITER_OFF,
-                                                   PDM_WRITER_VAR_SCALAIRE,
+                                                   PDM_WRITER_VAR_SCALAR,
                                                    PDM_WRITER_VAR_ELEMENTS,
                                                    "sOlField");
     }
@@ -114,32 +114,32 @@ _export_ol_mesh
 
       id_var_field[imesh] = PDM_writer_var_create (id_cs[imesh],
                                                    PDM_WRITER_OFF,
-                                                   PDM_WRITER_VAR_SCALAIRE,
+                                                   PDM_WRITER_VAR_SCALAR,
                                                    PDM_WRITER_VAR_ELEMENTS,
                                                    "rOlField");
     }
 
     id_var_num_part[imesh] = PDM_writer_var_create (id_cs[imesh],
                                                     PDM_WRITER_OFF,
-                                                    PDM_WRITER_VAR_SCALAIRE,
+                                                    PDM_WRITER_VAR_SCALAR,
                                                     PDM_WRITER_VAR_ELEMENTS,
                                                     "num_part");
 
     id_var_match[imesh] = PDM_writer_var_create (id_cs[imesh],
                                                  PDM_WRITER_OFF,
-                                                 PDM_WRITER_VAR_SCALAIRE,
+                                                 PDM_WRITER_VAR_SCALAR,
                                                  PDM_WRITER_VAR_ELEMENTS,
                                                  "matching");
 
     id_var_cell_match[imesh] = PDM_writer_var_create (id_cs[imesh],
                                                       PDM_WRITER_OFF,
-                                                      PDM_WRITER_VAR_SCALAIRE,
+                                                      PDM_WRITER_VAR_SCALAR,
                                                       PDM_WRITER_VAR_ELEMENTS,
                                                       "cell_matching");
 
     id_var_origin[imesh] = PDM_writer_var_create (id_cs[imesh],
                                                   PDM_WRITER_OFF,
-                                                  PDM_WRITER_VAR_SCALAIRE,
+                                                  PDM_WRITER_VAR_SCALAR,
                                                   PDM_WRITER_VAR_ELEMENTS,
                                                   "origin");
 
@@ -162,8 +162,6 @@ _export_ol_mesh
 
     id_geom[imesh] = PDM_writer_geom_create (id_cs[imesh],
                                              nom_geom,
-                                             PDM_WRITER_OFF,
-                                             PDM_WRITER_OFF,
                                              n_part);
     int *n_part_procs = (int *) malloc(sizeof(int) * numProcs);
 
@@ -359,20 +357,20 @@ _export_ol_mesh
     PDM_writer_var_write (id_cs[imesh],
                           id_var_field[imesh]);
 
-    // PDM_writer_var_free (id_cs[imesh],
-    //                      id_var_num_part[imesh]);
+    PDM_writer_var_free (id_cs[imesh],
+                         id_var_num_part[imesh]);
 
-    // PDM_writer_var_free (id_cs[imesh],
-    //                      id_var_match[imesh]);
+    PDM_writer_var_free (id_cs[imesh],
+                         id_var_match[imesh]);
 
-    // PDM_writer_var_free (id_cs[imesh],
-    //                      id_var_cell_match[imesh]);
+    PDM_writer_var_free (id_cs[imesh],
+                         id_var_cell_match[imesh]);
 
-    // PDM_writer_var_free (id_cs[imesh],
-    //                      id_var_origin[imesh]);
+    PDM_writer_var_free (id_cs[imesh],
+                         id_var_origin[imesh]);
 
-    // PDM_writer_var_free (id_cs[imesh],
-    //                      id_var_field[imesh]);
+    PDM_writer_var_free (id_cs[imesh],
+                         id_var_field[imesh]);
 
     for (int ipart = 0; ipart < n_part; ipart++) {
       free (val_num_part[ipart]);
@@ -387,11 +385,11 @@ _export_ol_mesh
     free (val_origin);
 
     PDM_writer_step_end (id_cs[imesh]);
-    // PDM_writer_geom_data_free (id_cs[imesh],
-    //                            id_geom[imesh]);
+    PDM_writer_geom_data_free (id_cs[imesh],
+                               id_geom[imesh]);
 
-    // PDM_writer_geom_free (id_cs[imesh],
-    //                       id_geom[imesh]);
+    PDM_writer_geom_free (id_cs[imesh],
+                          id_geom[imesh]);
     PDM_writer_free (id_cs[imesh]);
 
     free (_olface_nb);
@@ -1294,24 +1292,22 @@ main
 
   PDM_writer_t *ens_meshA = PDM_writer_create ("Ensight",
                                                PDM_WRITER_FMT_ASCII,
-                                               PDM_WRITER_TOPO_CONSTANTE,
+                                               PDM_WRITER_TOPO_CST,
                                                PDM_WRITER_OFF,
                                                "test_2d_unit_ens",
                                                "meshA",
                                                PDM_MPI_COMM_WORLD,
-                                               PDM_IO_ACCES_MPI_SIMPLE,
+                                               PDM_IO_KIND_MPI_SIMPLE,
                                                1.,
                                                NULL);
 
   int id_var_fieldA = PDM_writer_var_create (ens_meshA,
                                              PDM_WRITER_OFF,
-                                             PDM_WRITER_VAR_SCALAIRE,
+                                             PDM_WRITER_VAR_SCALAR,
                                              PDM_WRITER_VAR_ELEMENTS,
                                              "sfieldA");
   int ens_geoA_merge = PDM_writer_geom_create (ens_meshA,
                                          "meshA_merge",
-                                         PDM_WRITER_OFF,
-                                         PDM_WRITER_OFF,
                                          1);
   PDM_writer_step_beg (ens_meshA, 0.);
 
@@ -1343,8 +1339,6 @@ main
 
   int ens_geoA = PDM_writer_geom_create (ens_meshA,
                                          "meshA",
-                                         PDM_WRITER_OFF,
-                                         PDM_WRITER_OFF,
                                          1);
   PDM_writer_geom_coord_set (ens_meshA,
                              ens_geoA,
@@ -1386,22 +1380,22 @@ main
   PDM_writer_var_write (ens_meshA,
                         id_var_fieldA);
 
-  // PDM_writer_var_free (ens_meshA,
-  //                      id_var_fieldA);
+  PDM_writer_var_free (ens_meshA,
+                       id_var_fieldA);
 
 
   PDM_writer_step_end (ens_meshA);
-  // PDM_writer_geom_data_free (ens_meshA,
-  //                            ens_geoA);
+  PDM_writer_geom_data_free (ens_meshA,
+                             ens_geoA);
 
-  // PDM_writer_geom_free (ens_meshA,
-  //                       ens_geoA);
+  PDM_writer_geom_free (ens_meshA,
+                        ens_geoA);
 
-  // PDM_writer_geom_data_free (ens_meshA,
-  //                            ens_geoA_merge);
+  PDM_writer_geom_data_free (ens_meshA,
+                             ens_geoA_merge);
 
-  // PDM_writer_geom_free (ens_meshA,
-  //                       ens_geoA_merge);
+  PDM_writer_geom_free (ens_meshA,
+                        ens_geoA_merge);
 
   PDM_writer_free (ens_meshA);
   free (faceVtxNA);
@@ -1410,25 +1404,23 @@ main
 
   PDM_writer_t *ens_meshB = PDM_writer_create ("Ensight",
                                                PDM_WRITER_FMT_ASCII,
-                                               PDM_WRITER_TOPO_CONSTANTE,
+                                               PDM_WRITER_TOPO_CST,
                                                PDM_WRITER_OFF,
                                                "test_2d_unit_ens",
                                                "meshB",
                                                PDM_MPI_COMM_WORLD,
-                                               PDM_IO_ACCES_MPI_SIMPLE,
+                                               PDM_IO_KIND_MPI_SIMPLE,
                                                1.,
                                                NULL);
 
   int id_var_fieldB = PDM_writer_var_create (ens_meshB,
                                              PDM_WRITER_OFF,
-                                             PDM_WRITER_VAR_SCALAIRE,
+                                             PDM_WRITER_VAR_SCALAR,
                                              PDM_WRITER_VAR_ELEMENTS,
                                              "rfieldB");
 
   int ens_geoB = PDM_writer_geom_create (ens_meshB,
                                          "meshB",
-                                         PDM_WRITER_OFF,
-                                         PDM_WRITER_OFF,
                                          1);
   PDM_writer_step_beg (ens_meshB, 0.);
 
@@ -1467,15 +1459,15 @@ main
   PDM_writer_var_write (ens_meshB,
                         id_var_fieldB);
 
-  // PDM_writer_var_free (ens_meshB,
-  //                      id_var_fieldB);
+  PDM_writer_var_free (ens_meshB,
+                       id_var_fieldB);
 
   PDM_writer_step_end (ens_meshB);
-  // PDM_writer_geom_data_free (ens_meshB,
-  //                            ens_geoB);
+  PDM_writer_geom_data_free (ens_meshB,
+                             ens_geoB);
 
-  // PDM_writer_geom_free (ens_meshB,
-  //                       ens_geoB);
+  PDM_writer_geom_free (ens_meshB,
+                        ens_geoB);
 
   PDM_writer_free (ens_meshB);
   free (faceVtxNB);

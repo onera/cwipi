@@ -52,7 +52,6 @@ program testf
   double precision,             pointer :: cell_val(:)    => null()
   integer (kind = pdm_l_num_s), pointer :: face_vtx_n(:)  => null()
   integer (kind = pdm_l_num_s), pointer :: cell_face_n(:) => null()
-  double precision,             pointer :: vtx_coord(:)   => null()
 
   type(c_ptr)                           :: dcube = C_NULL_PTR
 
@@ -66,7 +65,7 @@ program testf
   integer (kind = pdm_g_num_s), pointer :: dface_cell(:)      => null()
   integer (kind = pdm_l_num_s), pointer :: dface_vtx_idx(:)   => null()
   integer (kind = pdm_g_num_s), pointer :: dface_vtx(:)       => null()
-  double precision,             pointer :: dvtx_coord(:)      => null()
+  double precision,             pointer :: dvtx_coord(:,:)    => null()
   integer (kind = pdm_l_num_s), pointer :: dface_group_idx(:) => null()
   integer (kind = pdm_g_num_s), pointer :: dface_group(:)     => null()
 
@@ -120,7 +119,6 @@ program testf
   integer                               :: code
   integer                               :: i_rank
   integer                               :: n_rank
-  integer                               :: i
   !-----------------------------------------------------------
 
   call mpi_init(code)
@@ -225,20 +223,18 @@ program testf
   call PDM_writer_create (cs,                        &
                           "Ensight",                 &
                           PDM_WRITER_FMT_ASCII,      &
-                          PDM_WRITER_TOPO_CONSTANTE, &
+                          PDM_WRITER_TOPO_CST, &
                           PDM_WRITER_OFF,            &
                           "test_writer",             &
                           "writer",                  &
                           comm,                      &
-                          PDM_IO_ACCES_MPI_SIMPLE,   &
+                          PDM_IO_KIND_MPI_SIMPLE,   &
                           1.d0,                      &
                           "")
 
   call PDM_writer_geom_create (cs,             &
                                id_geom,        &
                                "mesh",         &
-                               PDM_WRITER_OFF, &
-                               PDM_WRITER_OFF, &
                                n_part)
 
   call PDM_writer_var_create (cs,                      &
@@ -287,16 +283,12 @@ program testf
                                 face_group,               &
                                 face_group_ln_to_gn)
 
-    allocate(vtx_coord(3*n_vtx))
-    do i = 1, n_vtx
-      vtx_coord(3*i-2:3*i) = vtx(1:3,i)
-    end do
 
     call PDM_writer_geom_coord_set (cs,           &
                                     id_geom,      &
                                     i_part-1,     &
                                     n_vtx,        &
-                                    vtx_coord,    &
+                                    vtx,          &
                                     vtx_ln_to_gn)
 
     allocate(cell_val(n_cell))
@@ -351,7 +343,6 @@ program testf
 
   call PDM_writer_free (cs)
 
-  deallocate(vtx_coord)
   deallocate(cell_val)
   deallocate(cell_face_n)
   deallocate(face_vtx_n)

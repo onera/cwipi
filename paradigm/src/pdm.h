@@ -9,6 +9,12 @@
  * Macro definitions
  *============================================================================*/
 
+#if defined (__uxpv__)
+#define ARGF_SUPP_CHAINE
+#else
+#define ARGF_SUPP_CHAINE , ...
+#endif
+
 #ifdef PDM_LONG_G_NUM
 #define PDM_FMT_G_NUM "%ld"
 #else
@@ -285,8 +291,26 @@ typedef enum {
 
 typedef enum {
   PDM_SPLIT_DUAL_WITH_PARMETIS = 1,
-  PDM_SPLIT_DUAL_WITH_PTSCOTCH = 2
+  PDM_SPLIT_DUAL_WITH_PTSCOTCH = 2,
+  PDM_SPLIT_DUAL_WITH_HILBERT  = 3
 } PDM_split_dual_t;
+
+
+/**
+ * \enum PDM_iso_surface_kind_t
+ * \brief Type of iso surface
+ *
+ */
+typedef enum {
+
+  PDM_ISO_SURFACE_KIND_PLANE  = 0,
+  PDM_ISO_SURFACE_KIND_SPHERE = 1,
+  PDM_ISO_SURFACE_KIND_FIELD  = 2,
+
+} PDM_iso_surface_kind_t;
+
+
+
 
 /*=============================================================================
  * Public function prototypes

@@ -1,5 +1,5 @@
-#ifndef __PDM_PART_MESH_H__
-#define __PDM_PART_MESH_H__
+#ifndef __PDM_EXTRACT_PART_H__
+#define __PDM_EXTRACT_PART_H__
 
 /*
   This file is part of the ParaDiGM library.
@@ -45,7 +45,8 @@ extern "C" {
  * Type definitions
  *============================================================================*/
 
-typedef struct _pdm_part_mesh_t PDM_part_mesh_t;
+typedef struct _pdm_extract_part_t PDM_extract_part_t;
+
 
 /*=============================================================================
  * Static global variables
@@ -57,62 +58,77 @@ typedef struct _pdm_part_mesh_t PDM_part_mesh_t;
 
 /**
  *
- * \brief Build a distributed mesh structure
+ * \brief Build an iso surface struct
  *
- * \param [in]   dn_cell             Number of distributed cells
- * \param [in]   dn_face             Number of distributed faces
- * \param [in]   dn_vtx              Number of distributed vertices
- * \param [in]   dn_bnd              Number of boundaries
- * \param [in]   n_join              Number of interfaces with other zones
  *
  * \return     Identifier
  */
-
-PDM_part_mesh_t*
-PDM_part_mesh_create
+PDM_extract_part_t*
+PDM_extract_part_create
 (
- const int             n_part,
-       PDM_MPI_Comm    comm
-);
-
-void
-PDM_part_mesh_free
-(
- PDM_part_mesh_t        *dmesh
+ const int                    dim,
+ const int                    n_part_in,
+ const int                    n_part_out,
+       PDM_split_dual_t       split_dual_method,
+       PDM_ownership_t        ownership,
+       PDM_MPI_Comm           comm
 );
 
 
 void
-PDM_part_mesh_n_entity_set
+PDM_extract_part_compute
 (
- PDM_part_mesh_t          *pmesh,
- PDM_mesh_entities_t       entity_type,
- int                      *pn_entity
+  PDM_extract_part_t        *extrp
 );
 
 
 void
-PDM_part_mesh_n_entity_get
+PDM_extract_part_selected_lnum_set
 (
- PDM_part_mesh_t          *pmesh,
+  PDM_extract_part_t       *extrp,
+  int                       i_part,
+  int                       n_extract,
+  int                      *extract_lnum
+);
+
+void
+PDM_extract_part_part_set
+(
+  PDM_extract_part_t        *extrp,
+  int                       i_part,
+  int                       n_cell,
+  int                       n_face,
+  int                       n_edge,
+  int                       n_vtx,
+  int                      *cell_face_idx,
+  int                      *cell_face,
+  int                      *face_edge_idx,
+  int                      *face_edge,
+  int                      *edge_vtx,
+  int                      *face_vtx_idx,
+  int                      *face_vtx,
+  PDM_g_num_t              *cell_ln_to_gn,
+  PDM_g_num_t              *face_ln_to_gn,
+  PDM_g_num_t              *edge_ln_to_gn,
+  PDM_g_num_t              *vtx_ln_to_gn,
+  double                   *vtx_coord
+);
+
+
+
+void
+PDM_extract_part_n_entity_get
+(
+ PDM_extract_part_t       *extrp,
  PDM_mesh_entities_t       entity_type,
  int                     **pn_entity
 );
 
-void
-PDM_part_mesh_connectivity_set
-(
- PDM_part_mesh_t          *pmesh,
- PDM_connectivity_type_t   connectivity_type,
- int                     **connect,
- int                     **connect_idx,
- PDM_ownership_t           ownership
-);
 
 void
-PDM_part_mesh_connectivity_get
+PDM_extract_part_connectivity_get
 (
- PDM_part_mesh_t           *pmesh,
+ PDM_extract_part_t        *extrp,
  PDM_connectivity_type_t    connectivity_type,
  int                     ***connect,
  int                     ***connect_idx,
@@ -121,65 +137,37 @@ PDM_part_mesh_connectivity_get
 
 
 void
-PDM_part_mesh_entity_ln_to_gn_set
+PDM_extract_part_ln_to_gn_get
 (
- PDM_part_mesh_t          *pmesh,
- PDM_mesh_entities_t       entity_type,
- PDM_g_num_t             **pentity_ln_to_gn,
- PDM_ownership_t           ownership
-);
-
-void
-PDM_part_mesh_entity_ln_to_gn_get
-(
- PDM_part_mesh_t          *pmesh,
+ PDM_extract_part_t        *extrp,
  PDM_mesh_entities_t       entity_type,
  PDM_g_num_t            ***pentity_ln_to_gn,
  PDM_ownership_t           ownership
 );
 
+
 void
-PDM_part_mesh_bound_set
+PDM_extract_part_parent_ln_to_gn_get
 (
- PDM_part_mesh_t          *pmesh,
- PDM_bound_type_t          bound_type,
- int                       n_bound,
- int                     **connect,
- int                     **connect_idx,
+ PDM_extract_part_t        *extrp,
+ PDM_mesh_entities_t       entity_type,
+ PDM_g_num_t            ***pentity_parent_ln_to_gn,
  PDM_ownership_t           ownership
 );
 
 void
-PDM_part_mesh_bound_get
+PDM_extract_part_vtx_coord_get
 (
- PDM_part_mesh_t           *pmesh,
- PDM_bound_type_t           bound_type,
- int                       *n_bound,
- int                     ***connect,
- int                     ***connect_idx,
+ PDM_extract_part_t         *extrp,
+ double                   ***pvtx_coord,
  PDM_ownership_t           ownership
 );
-
 
 void
-PDM_part_mesh_bound_ln_to_gn_set
+PDM_extract_part_free
 (
- PDM_part_mesh_t          *pmesh,
- PDM_bound_type_t          bound_type,
- PDM_g_num_t             **bound_ln_to_gn,
- PDM_ownership_t           ownership
+  PDM_extract_part_t  *extrp
 );
-
-
-void
-PDM_part_mesh_bound_ln_to_gn_get
-(
- PDM_part_mesh_t           *pmesh,
- PDM_bound_type_t           bound_type,
- PDM_g_num_t            ***bound_ln_to_gn,
- PDM_ownership_t           ownership
-);
-
 
 /*----------------------------------------------------------------------------*/
 
@@ -187,4 +175,4 @@ PDM_part_mesh_bound_ln_to_gn_get
 }
 #endif /* __cplusplus */
 
-#endif /* __PDM_PART_MESH_H__ */
+#endif /* __PDM_EXTRACT_PART_H__ */

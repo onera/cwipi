@@ -46,8 +46,8 @@ program testf
   integer(kind=pdm_g_num_s), parameter :: gn_face = 24
 
   type(c_ptr)                          :: dist = C_NULL_PTR
-  double precision,          pointer   :: pts_coord(:)     => null()
-  double precision,          pointer   :: vtx_coord(:)     => null()
+  double precision,          pointer   :: pts_coord(:,:)   => null()
+  double precision,          pointer   :: vtx_coord(:,:)   => null()
   integer(kind=pdm_g_num_s), pointer   :: pts_ln_to_gn(:)  => null()
   integer(kind=pdm_g_num_s), pointer   :: vtx_ln_to_gn(:)  => null()
   integer(kind=pdm_g_num_s), pointer   :: face_ln_to_gn(:) => null()
@@ -95,7 +95,7 @@ program testf
     write(*, *) "-- Set point cloud"
   end if
   allocate(pts_ln_to_gn(n_pts))
-  allocate(pts_coord(n_pts*3))
+  allocate(pts_coord(3,n_pts))
   if (i_rank == 0) then
     offset_gnum = 0
     offset_y    = 0.d0
@@ -104,13 +104,13 @@ program testf
     offset_y    = 1.d0
   endif
 
-  k = 0
+  k = 1
   do j = 1,2
     do i = 1,2
-      pts_ln_to_gn(k+1) = offset_gnum + k + 1
-      pts_coord(3*k+1)  = i-1 + 0.5
-      pts_coord(3*k+2)  = offset_y + 0.5
-      pts_coord(3*k+3)  = j-1 + 0.5
+      pts_ln_to_gn(k) = offset_gnum + k
+      pts_coord(1,k)  = i-1 + 0.5
+      pts_coord(2,k)  = offset_y + 0.5
+      pts_coord(3,k)  = j-1 + 0.5
       k = k+1
     enddo
   enddo
@@ -149,30 +149,30 @@ program testf
   enddo
 
   allocate(vtx_ln_to_gn(n_vtx))
-  allocate(vtx_coord(3*n_vtx))
+  allocate(vtx_coord(3,n_vtx))
   if (i_rank == 0) then
 
     do i = 1, n_vtx
       vtx_ln_to_gn(i) = i
     enddo
 
-    vtx_coord( 1) = 0.d0; vtx_coord( 2) = 0.d0; vtx_coord( 3) = 0.d0
-    vtx_coord( 4) = 1.d0; vtx_coord( 5) = 0.d0; vtx_coord( 6) = 0.d0
-    vtx_coord( 7) = 2.d0; vtx_coord( 8) = 0.d0; vtx_coord( 9) = 0.d0
-    vtx_coord(10) = 0.d0; vtx_coord(11) = 1.d0; vtx_coord(12) = 0.d0
-    vtx_coord(13) = 1.d0; vtx_coord(14) = 1.d0; vtx_coord(15) = 0.d0
-    vtx_coord(16) = 2.d0; vtx_coord(17) = 1.d0; vtx_coord(18) = 0.d0
-    vtx_coord(19) = 0.d0; vtx_coord(20) = 2.d0; vtx_coord(21) = 0.d0
-    vtx_coord(22) = 1.d0; vtx_coord(23) = 2.d0; vtx_coord(24) = 0.d0
-    vtx_coord(25) = 2.d0; vtx_coord(26) = 2.d0; vtx_coord(27) = 0.d0
-    vtx_coord(28) = 0.d0; vtx_coord(29) = 0.d0; vtx_coord(30) = 1.d0
-    vtx_coord(31) = 1.d0; vtx_coord(32) = 0.d0; vtx_coord(33) = 1.d0
-    vtx_coord(34) = 2.d0; vtx_coord(35) = 0.d0; vtx_coord(36) = 1.d0
-    vtx_coord(37) = 0.d0; vtx_coord(38) = 1.d0; vtx_coord(39) = 1.d0
-    vtx_coord(40) = 2.d0; vtx_coord(41) = 1.d0; vtx_coord(42) = 1.d0
-    vtx_coord(43) = 0.d0; vtx_coord(44) = 2.d0; vtx_coord(45) = 1.d0
-    vtx_coord(46) = 1.d0; vtx_coord(47) = 2.d0; vtx_coord(48) = 1.d0
-    vtx_coord(49) = 2.d0; vtx_coord(50) = 2.d0; vtx_coord(51) = 1.d0
+    vtx_coord(1, 1) = 0.d0; vtx_coord(2, 1) = 0.d0; vtx_coord(3, 1) = 0.d0
+    vtx_coord(1, 2) = 1.d0; vtx_coord(2, 2) = 0.d0; vtx_coord(3, 2) = 0.d0
+    vtx_coord(1, 3) = 2.d0; vtx_coord(2, 3) = 0.d0; vtx_coord(3, 3) = 0.d0
+    vtx_coord(1, 4) = 0.d0; vtx_coord(2, 4) = 1.d0; vtx_coord(3, 4) = 0.d0
+    vtx_coord(1, 5) = 1.d0; vtx_coord(2, 5) = 1.d0; vtx_coord(3, 5) = 0.d0
+    vtx_coord(1, 6) = 2.d0; vtx_coord(2, 6) = 1.d0; vtx_coord(3, 6) = 0.d0
+    vtx_coord(1, 7) = 0.d0; vtx_coord(2, 7) = 2.d0; vtx_coord(3, 7) = 0.d0
+    vtx_coord(1, 8) = 1.d0; vtx_coord(2, 8) = 2.d0; vtx_coord(3, 8) = 0.d0
+    vtx_coord(1, 9) = 2.d0; vtx_coord(2, 9) = 2.d0; vtx_coord(3, 9) = 0.d0
+    vtx_coord(1,10) = 0.d0; vtx_coord(2,10) = 0.d0; vtx_coord(3,10) = 1.d0
+    vtx_coord(1,11) = 1.d0; vtx_coord(2,11) = 0.d0; vtx_coord(3,11) = 1.d0
+    vtx_coord(1,12) = 2.d0; vtx_coord(2,12) = 0.d0; vtx_coord(3,12) = 1.d0
+    vtx_coord(1,13) = 0.d0; vtx_coord(2,13) = 1.d0; vtx_coord(3,13) = 1.d0
+    vtx_coord(1,14) = 2.d0; vtx_coord(2,14) = 1.d0; vtx_coord(3,14) = 1.d0
+    vtx_coord(1,15) = 0.d0; vtx_coord(2,15) = 2.d0; vtx_coord(3,15) = 1.d0
+    vtx_coord(1,16) = 1.d0; vtx_coord(2,16) = 2.d0; vtx_coord(3,16) = 1.d0
+    vtx_coord(1,17) = 2.d0; vtx_coord(2,17) = 2.d0; vtx_coord(3,17) = 1.d0
 
     face_vtx( 1) =  1; face_vtx( 2) =  2; face_vtx( 3) = 11; face_vtx( 4) = 10;
     face_vtx( 5) =  2; face_vtx( 6) =  3; face_vtx( 7) = 12; face_vtx( 8) = 11;
@@ -194,23 +194,23 @@ program testf
       vtx_ln_to_gn(i) = i + 9
     enddo
 
-    vtx_coord( 1) = 0.d0; vtx_coord( 2) = 0.d0; vtx_coord( 3) = 1.d0
-    vtx_coord( 4) = 1.d0; vtx_coord( 5) = 0.d0; vtx_coord( 6) = 1.d0
-    vtx_coord( 7) = 2.d0; vtx_coord( 8) = 0.d0; vtx_coord( 9) = 1.d0
-    vtx_coord(10) = 0.d0; vtx_coord(11) = 1.d0; vtx_coord(12) = 1.d0
-    vtx_coord(13) = 2.d0; vtx_coord(14) = 1.d0; vtx_coord(15) = 1.d0
-    vtx_coord(16) = 0.d0; vtx_coord(17) = 2.d0; vtx_coord(18) = 1.d0
-    vtx_coord(19) = 1.d0; vtx_coord(20) = 2.d0; vtx_coord(21) = 1.d0
-    vtx_coord(22) = 2.d0; vtx_coord(23) = 2.d0; vtx_coord(24) = 1.d0
-    vtx_coord(25) = 0.d0; vtx_coord(26) = 0.d0; vtx_coord(27) = 2.d0
-    vtx_coord(28) = 1.d0; vtx_coord(29) = 0.d0; vtx_coord(30) = 2.d0
-    vtx_coord(31) = 2.d0; vtx_coord(32) = 0.d0; vtx_coord(33) = 2.d0
-    vtx_coord(34) = 0.d0; vtx_coord(35) = 1.d0; vtx_coord(36) = 2.d0
-    vtx_coord(37) = 1.d0; vtx_coord(38) = 1.d0; vtx_coord(39) = 2.d0
-    vtx_coord(40) = 2.d0; vtx_coord(41) = 1.d0; vtx_coord(42) = 2.d0
-    vtx_coord(43) = 0.d0; vtx_coord(44) = 2.d0; vtx_coord(45) = 2.d0
-    vtx_coord(46) = 1.d0; vtx_coord(47) = 2.d0; vtx_coord(48) = 2.d0
-    vtx_coord(49) = 2.d0; vtx_coord(50) = 2.d0; vtx_coord(51) = 2.d0
+    vtx_coord(1, 1) = 0.d0; vtx_coord(2, 1) = 0.d0; vtx_coord(3, 1) = 1.d0
+    vtx_coord(1, 2) = 1.d0; vtx_coord(2, 2) = 0.d0; vtx_coord(3, 2) = 1.d0
+    vtx_coord(1, 3) = 2.d0; vtx_coord(2, 3) = 0.d0; vtx_coord(3, 3) = 1.d0
+    vtx_coord(1, 4) = 0.d0; vtx_coord(2, 4) = 1.d0; vtx_coord(3, 4) = 1.d0
+    vtx_coord(1, 5) = 2.d0; vtx_coord(2, 5) = 1.d0; vtx_coord(3, 5) = 1.d0
+    vtx_coord(1, 6) = 0.d0; vtx_coord(2, 6) = 2.d0; vtx_coord(3, 6) = 1.d0
+    vtx_coord(1, 7) = 1.d0; vtx_coord(2, 7) = 2.d0; vtx_coord(3, 7) = 1.d0
+    vtx_coord(1, 8) = 2.d0; vtx_coord(2, 8) = 2.d0; vtx_coord(3, 8) = 1.d0
+    vtx_coord(1, 9) = 0.d0; vtx_coord(2, 9) = 0.d0; vtx_coord(3, 9) = 2.d0
+    vtx_coord(1,10) = 1.d0; vtx_coord(2,10) = 0.d0; vtx_coord(3,10) = 2.d0
+    vtx_coord(1,11) = 2.d0; vtx_coord(2,11) = 0.d0; vtx_coord(3,11) = 2.d0
+    vtx_coord(1,12) = 0.d0; vtx_coord(2,12) = 1.d0; vtx_coord(3,12) = 2.d0
+    vtx_coord(1,13) = 1.d0; vtx_coord(2,13) = 1.d0; vtx_coord(3,13) = 2.d0
+    vtx_coord(1,14) = 2.d0; vtx_coord(2,14) = 1.d0; vtx_coord(3,14) = 2.d0
+    vtx_coord(1,15) = 0.d0; vtx_coord(2,15) = 2.d0; vtx_coord(3,15) = 2.d0
+    vtx_coord(1,16) = 1.d0; vtx_coord(2,16) = 2.d0; vtx_coord(3,16) = 2.d0
+    vtx_coord(1,17) = 2.d0; vtx_coord(2,17) = 2.d0; vtx_coord(3,17) = 2.d0
 
     face_vtx( 1) =  1; face_vtx( 2) =  2; face_vtx( 3) = 10; face_vtx( 4) =  9;
     face_vtx( 5) =  2; face_vtx( 6) =  3; face_vtx( 7) = 11; face_vtx( 8) = 10;
@@ -228,7 +228,7 @@ program testf
   endif
 
   ! do i = 1, n_vtx
-  !   print *, i_rank, i, vtx_ln_to_gn(i), vtx_coord(3*i-2), vtx_coord(3*i-1), vtx_coord(3*i)
+  !   print *, i_rank, i, vtx_ln_to_gn(i), vtx_coord(1,i), vtx_coord(2,i)), vtx_coord(3,i)
   ! enddo
 
 
@@ -244,7 +244,7 @@ program testf
     write(fid,'(a)') "DATASET UNSTRUCTURED_GRID"
     write(fid,'(a7,i0,a7)') "POINTS ", n_pts, " double"
     do i = 1, n_pts
-      write(fid, *) pts_coord(3*i-2), pts_coord(3*i-1), pts_coord(3*i)
+      write(fid, *) pts_coord(1,i), pts_coord(2,i), pts_coord(3,i)
     enddo
     write(fid,'(a5,1x,i0,1x,i0)') "CELLS", n_pts, 2*n_pts
     do i = 1, n_pts
@@ -270,7 +270,7 @@ program testf
     write(fid,'(a)') "DATASET POLYDATA"
     write(fid,'(a7,i0,a7)') "POINTS ", n_vtx, " double"
     do i = 1, n_vtx
-      write(fid, *) vtx_coord(3*i-2), vtx_coord(3*i-1), vtx_coord(3*i)
+      write(fid, *) vtx_coord(1,i), vtx_coord(2,i), vtx_coord(3,i)
     enddo
     write(fid,'(a8,1x,i0,1x,i0)') "POLYGONS", n_face, n_face+face_vtx_idx(n_face+1)
     do i = 1, n_face

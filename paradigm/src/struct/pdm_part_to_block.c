@@ -23,7 +23,11 @@
 #include "pdm_sort.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm_hilbert.h"
 #include "pdm_array.h"
+#include "pdm_order.h"
+#include "pdm_logging.h"
+#include "pdm_distrib.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -909,6 +913,263 @@ _distrib_data
   }
 }
 
+static
+void
+_distrib_data_hilbert
+(
+  PDM_part_to_block_t   *ptb,
+  double               **pvtx_coords,
+  int                  **weight
+)
+{
+  ptb->n_elt_proc = 0;
+  int *part_idx = malloc( (ptb->n_part + 1) * sizeof(int));
+  part_idx[0] = 0;
+  for(int i_part = 0; i_part < ptb->n_part; ++i_part) {
+    ptb->n_elt_proc += ptb->n_elt[i_part];
+    part_idx[i_part+1] = part_idx[i_part] + ptb->n_elt[i_part];
+  }
+
+  double *concat_vtx_coord = NULL;
+  int    *concat_weight    = NULL;
+  if(ptb->n_part == 1 ) {
+    concat_vtx_coord = pvtx_coords[0];
+    concat_weight    = weight     [0];
+  } else {
+    concat_vtx_coord = malloc( 3 * ptb->n_elt_proc * sizeof(double));
+
+    int shift = 0;
+    for(int i_part = 0; i_part < ptb->n_part; ++i_part) {
+      for(int i_elt = 0; i_elt < ptb->n_elt[i_part]; ++i_elt) {
+        concat_vtx_coord[3*shift + 3 * i_elt    ] = pvtx_coords[i_part][3 * i_elt    ];
+        concat_vtx_coord[3*shift + 3 * i_elt + 1] = pvtx_coords[i_part][3 * i_elt + 1];
+        concat_vtx_coord[3*shift + 3 * i_elt + 2] = pvtx_coords[i_part][3 * i_elt + 2];
+      }
+      for(int i_elt = 0; i_elt < ptb->n_elt[i_part]; ++i_elt) {
+        concat_weight[shift+i_elt] = weight[i_part][i_elt];
+      }
+      shift += ptb->n_elt[i_part];
+    }
+  }
+
+  /** Initialisation **/
+  int dim = 3;
+  double extents[2*dim]; /** DIM x 2**/
+
+  /** Get EXTENTS **/
+  PDM_hilbert_get_coord_extents_par(dim, ptb->n_elt_proc, concat_vtx_coord, extents, ptb->comm);
+
+  /** Hilbert Coordinates Computation **/
+  PDM_hilbert_code_t *hilbert_codes     = (PDM_hilbert_code_t *) malloc (ptb->n_elt_proc * sizeof(PDM_hilbert_code_t));
+
+  PDM_hilbert_encode_coords(dim, PDM_HILBERT_CS, extents, ptb->n_elt_proc, concat_vtx_coord, hilbert_codes);
+
+  int* hilbert_order = (int * ) malloc(ptb->n_elt_proc * sizeof(int));
+  for(int i = 0; i < ptb->n_elt_proc; ++i) {
+    hilbert_order    [i] = i;
+  }
+
+  PDM_hilbert_local_order(ptb->n_elt_proc, hilbert_codes, hilbert_order); // Just deduce order hilbert_codes is unchanged
+
+  if(ptb->n_part > 1 ) {
+    free(concat_vtx_coord);
+  }
+
+  PDM_hilbert_code_t *hilbert_codes_idx = (PDM_hilbert_code_t *) malloc ((ptb->s_comm+1) * sizeof(PDM_hilbert_code_t));
+
+  PDM_hilbert_build_rank_index(3,
+                               ptb->s_comm,  // Number of chunk
+                               ptb->n_elt_proc,
+                               hilbert_codes,
+                               concat_weight,
+                               hilbert_order,
+                               hilbert_codes_idx, // Is the distrib
+                               ptb->comm);
+
+  if(0 == 1) {
+    PDM_log_trace_array_double(hilbert_codes, ptb->n_elt_proc, "hilbert_codes :: ");
+    PDM_log_trace_array_double(hilbert_codes_idx, ptb->s_comm+1, "hilbert_codes_idx :: ");
+  }
+
+  if(ptb->n_part > 1 ) {
+    free(concat_weight);
+  }
+
+  ptb->n_send_data = (int *) malloc (sizeof(int) * ptb->s_comm);
+  ptb->n_recv_data = (int *) malloc (sizeof(int) * ptb->s_comm);
+
+  /* Pour chaque donnee le proc ou elle va etre envoyee */
+  ptb->dest_proc = (int *) malloc (sizeof(int) * ptb->n_elt_proc);
+
+  /* Calcul du nombre de donnees a envoyer a chaque procesus */
+  for (int i = 0; i < ptb->s_comm; i++) {
+    ptb->n_send_data[i] = 0;
+  }
+
+  /*
+   * Caution :  We need to send in the ordering of partition !!!!
+   */
+  int idx = 0;
+  for (int i_part = 0; i_part < ptb->n_part; i_part++) {
+    for (int j = 0; j < ptb->n_elt[i_part]; j++) {
+      int i_concat_elt   = j + part_idx[i_part];
+      // int old_concat_elt = hilbert_order[i_concat_elt]; // Donc dans la frame de depart
+
+      size_t t_rank = PDM_hilbert_quantile_search(ptb->s_comm,
+                                                  hilbert_codes[i_concat_elt],
+                                                  hilbert_codes_idx);
+      ptb->dest_proc  [idx++ ]  = t_rank;
+      ptb->n_send_data[t_rank] += 1;
+    }
+  }
+
+  free(hilbert_codes_idx);
+  PDM_MPI_Alltoall (ptb->n_send_data, 1, PDM_MPI_INT,
+                    ptb->n_recv_data, 1, PDM_MPI_INT,
+                    ptb->comm);
+
+  ptb->i_send_data = (int *) malloc(sizeof(int) * ptb->s_comm);
+  ptb->i_recv_data = (int *) malloc(sizeof(int) * ptb->s_comm);
+
+  ptb->i_send_data[0] = 0;
+  ptb->i_recv_data[0] = 0;
+  for (int i = 1; i < ptb->s_comm; i++) {
+    ptb->i_send_data[i] = ptb->i_send_data[i-1] + ptb->n_send_data[i-1];
+    ptb->i_recv_data[i] = ptb->i_recv_data[i-1] + ptb->n_recv_data[i-1];
+  }
+
+  ptb->tn_recv_data = ptb->i_recv_data[ptb->s_comm - 1] +
+                      ptb->n_recv_data[ptb->s_comm - 1];
+
+  ptb->tn_send_data = ptb->i_send_data[ptb->s_comm - 1] +
+                      ptb->n_send_data[ptb->s_comm - 1];
+
+  PDM_g_num_t        *send_gnum  = (PDM_g_num_t        *) malloc (sizeof(PDM_g_num_t       ) * ptb->tn_send_data);
+  PDM_hilbert_code_t *send_codes = (PDM_hilbert_code_t *) malloc (sizeof(PDM_hilbert_code_t) * ptb->tn_send_data);
+
+  for (int i = 0; i < ptb->s_comm; i++) {
+    ptb->n_send_data[i] = 0;
+  }
+
+  // Dans le cas géométrique on doit envoyer le gnum + le codes
+  idx = 0;
+  for (int i_part = 0; i_part < ptb->n_part; i_part++) {
+    for (int j = 0; j < ptb->n_elt[i_part]; j++) {
+
+      int t_rank         = ptb->dest_proc[idx++];
+      int i_concat_elt   = j + part_idx[i_part];
+      // int old_concat_elt = hilbert_order[i_concat_elt]; // Donc dans la frame de depart
+
+      send_gnum [ptb->i_send_data[t_rank] + ptb->n_send_data[t_rank]] = PDM_ABS(ptb->gnum_elt[i_part][j]);
+      send_codes[ptb->i_send_data[t_rank] + ptb->n_send_data[t_rank]] = hilbert_codes[i_concat_elt]; // Not sure
+      ptb->n_send_data[t_rank] += 1;
+    }
+  }
+  free(hilbert_order);
+  free(hilbert_codes);
+
+  ptb->sorted_recv_gnum                 = (PDM_g_num_t        *) malloc(sizeof(PDM_g_num_t       ) * ptb->tn_recv_data);
+  PDM_hilbert_code_t *sorted_recv_codes = (PDM_hilbert_code_t *) malloc(sizeof(PDM_hilbert_code_t) * ptb->tn_recv_data);
+
+  PDM_MPI_Alltoallv(send_gnum,
+                    ptb->n_send_data,
+                    ptb->i_send_data,
+                    PDM__PDM_MPI_G_NUM,
+                    ptb->sorted_recv_gnum,
+                    ptb->n_recv_data,
+                    ptb->i_recv_data,
+                    PDM__PDM_MPI_G_NUM,
+                    ptb->comm);
+
+  PDM_MPI_Alltoallv(send_codes,
+                    ptb->n_send_data,
+                    ptb->i_send_data,
+                    PDM_MPI_DOUBLE,
+                    sorted_recv_codes,
+                    ptb->n_recv_data,
+                    ptb->i_recv_data,
+                    PDM_MPI_DOUBLE,
+                    ptb->comm);
+
+  free(send_gnum);
+  free(send_codes);
+  free(part_idx);
+
+  if(0 == 1) {
+    PDM_log_trace_array_long  (ptb->sorted_recv_gnum, ptb->tn_recv_data, "ptb->sorted_recv_gnum :: ");
+    PDM_log_trace_array_double(sorted_recv_codes    , ptb->tn_recv_data, "sorted_recv_codes :: ");
+  }
+
+  /*
+   * Sort
+   */
+  if( ptb->t_post != PDM_PART_TO_BLOCK_POST_MERGE_UNIFORM)
+  {
+    ptb->order = malloc (sizeof(int) * ptb->tn_recv_data);
+
+    for (int i = 0; i < ptb->tn_recv_data; i++) {
+      ptb->order[i] = i;
+    }
+
+    PDM_sort_double(sorted_recv_codes, ptb->order, ptb->tn_recv_data);
+    PDM_order_array(ptb->tn_recv_data, sizeof(PDM_g_num_t), ptb->order, ptb->sorted_recv_gnum);
+
+    if(0 == 1) {
+      PDM_log_trace_array_long(ptb->sorted_recv_gnum, ptb->tn_recv_data, "sorted_recv_gnum");
+      PDM_log_trace_array_int (ptb->order           , ptb->tn_recv_data, "order");
+    }
+
+  }
+
+  ptb->n_elt_block = ptb->tn_recv_data;
+
+  if( ptb->t_post == PDM_PART_TO_BLOCK_POST_MERGE_UNIFORM) {
+    PDM_error(__FILE__, __LINE__, 0,"Error PDM_PART_TO_BLOCK_POST_MERGE_UNIFORM : not implemented \n");
+  }
+
+  /*
+   * Cleanup
+   */
+  if ( (ptb->t_post != PDM_PART_TO_BLOCK_POST_NOTHING) &&
+       (ptb->t_post != PDM_PART_TO_BLOCK_POST_MERGE_UNIFORM) ) {
+
+    int n_elt_block = 0;
+
+    ptb->block_gnum = malloc (sizeof(PDM_g_num_t) * ptb->tn_recv_data);
+
+    for (int i = 0; i < ptb->tn_recv_data; i++) {
+      if (i == 0) {
+        ptb->block_gnum[n_elt_block++] = ptb->sorted_recv_gnum[i];
+      } else if (ptb->block_gnum[n_elt_block-1] != ptb->sorted_recv_gnum[i]) {
+        ptb->block_gnum[n_elt_block++] = ptb->sorted_recv_gnum[i];
+      }
+    }
+    ptb->n_elt_block = n_elt_block;
+    ptb->block_gnum = realloc (ptb->block_gnum, sizeof(PDM_g_num_t) * ptb->n_elt_block);
+
+    ptb->block_gnum_count = malloc (sizeof(int) * ptb->n_elt_block);
+    n_elt_block = 0;
+    if (ptb->tn_recv_data > 0)
+      ptb->block_gnum_count[0] = 1;
+    for (int i = 1; i < ptb->tn_recv_data; i++) {
+      //If same than previous, juste increase stride counter
+      if (ptb->sorted_recv_gnum[i-1] == ptb->sorted_recv_gnum[i]) {
+        ptb->block_gnum_count[n_elt_block]++;
+      }
+      else { //Otherwise, count next
+        ptb->block_gnum_count[++n_elt_block] = 1;
+      }
+    }
+  } else {
+    ptb->block_gnum       = ptb->sorted_recv_gnum;
+    ptb->block_gnum_count = PDM_array_const_int(ptb->tn_recv_data, 1);
+  }
+
+  // Generate distribution
+  PDM_distrib_compute(ptb->n_elt_block, ptb->data_distrib_index, -1, ptb->comm);
+
+  free(sorted_recv_codes);
+}
 
 
 static void
@@ -990,6 +1251,112 @@ _compute_global_weights
   free (send_count);
   free (part_weight);
 }
+
+/**
+ *
+ * \brief  Define active ranks
+ *
+ * \param [inout]   ptb          Part to block structure
+ *
+ */
+
+static
+PDM_part_to_block_t *
+_ptb_create
+(
+ PDM_part_to_block_distrib_t   t_distrib,
+ PDM_part_to_block_post_t      t_post,
+ double                        part_active_node,
+ PDM_g_num_t                 **gnum_elt,
+ double                      **weight,
+ int                          *n_elt,
+ int                           n_part,
+ PDM_MPI_Comm                  comm
+)
+{
+  if (n_ptb == 0) {
+    t_timer[0] = PDM_timer_create ();
+    t_timer[1] = PDM_timer_create ();
+    t_timer[2] = PDM_timer_create ();
+  }
+  n_ptb++;
+
+  PDM_part_to_block_t *ptb = (PDM_part_to_block_t *) malloc (sizeof(PDM_part_to_block_t));
+
+  ptb->t_distrib         = t_distrib;    /*!< Distribution type */
+  ptb->t_post            = t_post;       /*!< Post processing type */
+  ptb->n_active_ranks    = 0;            /*!< Number of active ranks */
+  ptb->active_ranks      = NULL;         /*!< List of active ranks */
+  ptb->comm              = comm;         /*!< MSG communicator */
+  PDM_MPI_Comm_size (comm, &(ptb->s_comm));
+  PDM_MPI_Comm_rank (comm, &(ptb->i_rank));
+  ptb->is_my_rank_active   = 0;              /*!< Is active current rank */
+  ptb->part_active_node    = part_active_node; /*!< Part of active nodes */
+
+  ptb->n_part             = n_part;       /*!< Number of parts */
+  ptb->n_elt              = n_elt;        /*!< Number of elements for any part */
+  ptb->n_elt_proc         = 0;            /*!< Number of elements on the current rank */
+  ptb->gnum_elt           = gnum_elt;     /*!< Global numbering of elements for any part */
+  ptb->weight             = weight;
+  ptb->dest_proc          = NULL;
+  ptb->data_distrib_index = (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * (ptb->s_comm + 1));   /*!< Data distribution on ranks */
+
+  ptb->s_block_min   = INT_MAX;
+  ptb->s_block_max   = 0;
+
+  ptb->i_send_data   = NULL;  /*!< Data to send to other processes index (size = s_comm) */
+  ptb->i_recv_data   = NULL;  /*!< Received Data from other processes index (size = s_comm) */
+  ptb->n_send_data   = NULL;  /*!< Number of data to send to other processes (size = s_comm) */
+  ptb->n_recv_data   = NULL;  /*!< Number of received Data from other processes (size = s_comm) */
+
+  ptb->tn_send_data      = 0;     /*!< Total number of sended data */
+  ptb->tn_recv_data      = 0;     /*!< Total number of received data */
+  ptb->sorted_recv_gnum  = NULL;  /*!< Sorted recv global num */
+  ptb->order             = NULL;  /*!< Order */
+  ptb->n_elt_block       = 0;
+  ptb->block_gnum        = NULL;  /*!< Global number of reveived data (size = tn_recv_data) */
+  ptb->block_gnum_count  = NULL;  /*!< Number of occurence of reveived data (size = tn_recv_data) */
+
+  ptb->weight_g          = NULL; /*!< Global weights of elements for any part */
+
+  /* Asynchone */
+  ptb->max_exch_request = 10;
+  ptb->next_request     = 0;
+  ptb->s_data           = (size_t          * ) malloc ( ptb->max_exch_request * sizeof(size_t           ) );
+  ptb->t_stride         = (PDM_stride_t    * ) malloc ( ptb->max_exch_request * sizeof(PDM_stride_t     ) );
+  ptb->cst_stride       = (int             * ) malloc ( ptb->max_exch_request * sizeof(int              ) );
+  ptb->wait_status      = (int             * ) malloc ( ptb->max_exch_request * sizeof(int              ) );
+  ptb->request_mpi      = (PDM_MPI_Request * ) malloc ( ptb->max_exch_request * sizeof(PDM_MPI_Request  ) );
+
+  ptb->send_buffer      = (unsigned char  ** ) malloc ( ptb->max_exch_request * sizeof(unsigned char   *) );
+  ptb->recv_buffer      = (unsigned char  ** ) malloc ( ptb->max_exch_request * sizeof(unsigned char   *) );
+  ptb->recv_stride      = (int            ** ) malloc ( ptb->max_exch_request * sizeof(int             *) );
+  ptb->n_send_buffer    = (int            ** ) malloc ( ptb->max_exch_request * sizeof(int             *) );
+  ptb->i_send_buffer    = (int            ** ) malloc ( ptb->max_exch_request * sizeof(int             *) );
+  ptb->n_recv_buffer    = (int            ** ) malloc ( ptb->max_exch_request * sizeof(int             *) );
+  ptb->i_recv_buffer    = (int            ** ) malloc ( ptb->max_exch_request * sizeof(int             *) );
+
+  for(int i_req = 0; i_req < ptb->max_exch_request; ++i_req) {
+    ptb->send_buffer  [i_req] = NULL;
+    ptb->recv_buffer  [i_req] = NULL;
+    ptb->recv_stride  [i_req] = NULL;
+    ptb->n_send_buffer[i_req] = NULL;
+    ptb->i_send_buffer[i_req] = NULL;
+    ptb->n_recv_buffer[i_req] = NULL;
+    ptb->i_recv_buffer[i_req] = NULL;
+  }
+
+  /*
+   * Active ranks definition
+   */
+  _active_ranks (ptb);
+
+  return ptb;
+}
+
+
+
+
 /*=============================================================================
  * Public function definitions
  *============================================================================*/
@@ -1469,6 +1836,102 @@ PDM_part_to_block_create_from_distrib
   return (PDM_part_to_block_t *) ptb;
 }
 
+
+/**
+ *
+ * \brief Create a partitioning to block redistribution
+ *
+ * \param [in]   t_distrib       Distribution type
+ * \param [in]   t_post          Post processing type
+ * \param [in]   part_active_node  Part of active nodes (\ref PDM_writer_BLOCK_DISTRIB_PART_OF_NODE mode)
+ * \param [in]   gnum_elt        Element global number
+ * \param [in]   weight          Weight of elements (or NULL)
+ * \param [in]   n_elt           Local number of elements
+ * \param [in]   n_part          Number of partition
+ * \param [in]   comm            MPI communicator
+ *
+ * \return   Initialized PDM_part_to_block_t
+ *
+ */
+
+PDM_part_to_block_t *
+PDM_part_to_block_geom_create
+(
+ PDM_part_to_block_distrib_t   t_distrib,
+ PDM_part_to_block_post_t      t_post,
+ double                        part_active_node,
+ PDM_part_geom_t               geom_kind,
+ double                      **pvtx_coords,
+ PDM_g_num_t                 **gnum_elt,
+ int                         **weight,
+ int                          *n_elt,
+ int                           n_part,
+ PDM_MPI_Comm                  comm
+)
+{
+  /*
+   * Common creation
+   */
+  PDM_part_to_block_t* ptb = _ptb_create(t_distrib,
+                                         t_post,
+                                         part_active_node,
+                                         gnum_elt,
+                                         NULL,
+                                         n_elt,
+                                         n_part,
+                                         comm);
+
+  double t1_elaps = PDM_timer_elapsed(t_timer[0]);
+  double t1_cpu = PDM_timer_cpu(t_timer[0]);
+  PDM_timer_resume(t_timer[0]);
+
+  if(geom_kind == PDM_PART_GEOM_HILBERT ) {
+    _distrib_data_hilbert(ptb, pvtx_coords, weight);
+  } else if (geom_kind == PDM_PART_GEOM_MORTON ){
+    abort();
+  }
+
+
+  /*
+   * Data distribution definition
+   */
+
+  // _distrib_data (ptb, 0);
+
+
+  /*
+   * Compute global weight for each element
+   */
+  if (ptb->weight != NULL) {// && ptb->t_post == PDM_PART_TO_BLOCK_POST_MERGE) {
+    _compute_global_weights (ptb);
+  }
+
+  int n_rank_recv = 0;
+  int n_rank_send = 0;
+
+  for (int i = 0; i < ptb->s_comm; i++) {
+    if (ptb->i_rank != i && ptb->n_recv_data[i] > 0) {
+      n_rank_recv += 1;
+    }
+    if (ptb->i_rank != i && ptb->n_send_data[i] > 0) {
+      n_rank_send += 1;
+    }
+  }
+
+  max_exch_rank[0] = PDM_MAX(max_exch_rank[0], n_rank_send);
+  max_exch_rank[1] = PDM_MAX(max_exch_rank[1], n_rank_recv);
+  min_exch_rank[0] = PDM_MIN(min_exch_rank[0], n_rank_send);
+  min_exch_rank[1] = PDM_MIN(min_exch_rank[1], n_rank_recv);
+
+  PDM_timer_hang_on(t_timer[0]);
+  double t2_elaps = PDM_timer_elapsed(t_timer[0] );
+  double t2_cpu = PDM_timer_cpu(t_timer[0]);
+
+  t_elaps[0] += (t2_elaps - t1_elaps);
+  t_cpu[0] += (t2_cpu - t1_cpu);
+
+  return (PDM_part_to_block_t *) ptb;
+}
 
 /**
  *

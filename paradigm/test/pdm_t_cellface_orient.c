@@ -311,12 +311,12 @@ int main(int argc, char *argv[])
 
   PDM_writer_t *id_cs = PDM_writer_create("Ensight",
                                           PDM_WRITER_FMT_ASCII,
-                                          PDM_WRITER_TOPO_CONSTANTE,
+                                          PDM_WRITER_TOPO_CST,
                                           PDM_WRITER_OFF,
                                           "test_3d_ens",
                                           "chrd3d",
                                           PDM_MPI_COMM_WORLD,
-                                          PDM_IO_ACCES_MPI_SIMPLE,
+                                          PDM_IO_KIND_MPI_SIMPLE,
                                           1.,
                                           NULL);
 
@@ -324,28 +324,26 @@ int main(int argc, char *argv[])
 
   int id_geom = PDM_writer_geom_create(id_cs,
                                        "test3d_geom",
-                                       PDM_WRITER_OFF,
-                                       PDM_WRITER_OFF,
                                        n_part);
 
   /* Creation des variables */
 
   int id_var_num_part = PDM_writer_var_create(id_cs,
                                               PDM_WRITER_OFF,
-                                              PDM_WRITER_VAR_SCALAIRE,
+                                              PDM_WRITER_VAR_SCALAR,
                                               PDM_WRITER_VAR_ELEMENTS,
                                               "num_part");
 
   int id_var_coo_x = PDM_writer_var_create(id_cs,
                                            PDM_WRITER_ON,
-                                           PDM_WRITER_VAR_SCALAIRE,
-                                           PDM_WRITER_VAR_SOMMETS,
+                                           PDM_WRITER_VAR_SCALAR,
+                                           PDM_WRITER_VAR_VERTICES,
                                            "coo_x");
 
   int id_var_coo_xyz = PDM_writer_var_create(id_cs,
                                              PDM_WRITER_ON,
-                                             PDM_WRITER_VAR_VECTEUR,
-                                             PDM_WRITER_VAR_SOMMETS,
+                                             PDM_WRITER_VAR_VECTOR,
+                                             PDM_WRITER_VAR_VERTICES,
                                              "coo_xyz");
 
   /* Debut d'ecritures */
@@ -548,8 +546,8 @@ int main(int argc, char *argv[])
   PDM_writer_var_write(id_cs,
                        id_var_num_part);
 
-  // PDM_writer_var_free(id_cs,
-  //                     id_var_num_part);
+  PDM_writer_var_free(id_cs,
+                      id_var_num_part);
 
   for (int i_part = 0; i_part < n_part; i_part++) {
     free(val_num_part[i_part]);
@@ -613,19 +611,19 @@ int main(int argc, char *argv[])
   free(val_coo_xyz);
   free(nsom_part);
 
-  // PDM_writer_var_free(id_cs,
-  //                     id_var_coo_x);
+  PDM_writer_var_free(id_cs,
+                      id_var_coo_x);
 
-  // PDM_writer_var_free(id_cs,
-  //                     id_var_coo_xyz);
+  PDM_writer_var_free(id_cs,
+                      id_var_coo_xyz);
 
   /* Liberation memoire */
 
-  // PDM_writer_geom_data_free(id_cs,
-  //                           id_geom);
+  PDM_writer_geom_data_free(id_cs,
+                            id_geom);
 
-  // PDM_writer_geom_free(id_cs,
-  //                      id_geom);
+  PDM_writer_geom_free(id_cs,
+                       id_geom);
 
   PDM_writer_free(id_cs);
 

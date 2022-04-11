@@ -238,7 +238,8 @@ int main
   double               length     = 1.;
   int                  n_part     = 1;
   int                  post       = 0;
-  PDM_Mesh_nodal_elt_t t_elt      = PDM_MESH_NODAL_TRIA3;
+  // PDM_Mesh_nodal_elt_t t_elt      = PDM_MESH_NODAL_TRIA3;
+  PDM_Mesh_nodal_elt_t t_elt      = PDM_MESH_NODAL_HEXA8;
   // 2 -> tria
   // 3 -> quad
   // 5 -> tetra
@@ -628,6 +629,7 @@ int main
        *  Mini-Bricoloage
        */
       if(1 == 1) {
+        printf("Flag 3 \n");
         PDM_part_mesh_nodal_elmts_t* pmne_vol = PDM_dmesh_nodal_to_part_mesh_nodal_elmts(dmn[shift_part+i_part],
                                                                                          PDM_GEOMETRY_KIND_VOLUMIC,
                                                                                          1, // n_part
@@ -668,6 +670,7 @@ int main
         free(cell_num);
 
         PDM_part_mesh_nodal_elmts_free(pmne_vol);
+        printf("Flag 4 \n");
       }
     }
     shift_part += pn_n_part[i_dom];
@@ -840,6 +843,7 @@ int main
       // PDM_log_trace_array_long(concat_vtx_ln_to_gn , n_vtx_tot , "concat_vtx_ln_to_gn :: ");
       // PDM_log_trace_array_long(concat_cell_ln_to_gn, n_cell_tot, "concat_cell_ln_to_gn :: ");
 
+      printf("Flag 6 \n");
       PDM_part_mesh_nodal_elmts_t* pmne_vol = PDM_dmesh_nodal_to_part_mesh_nodal_elmts(dmn[shift_part+i_part],
                                                                                        PDM_GEOMETRY_KIND_VOLUMIC,
                                                                                        1, // n_part

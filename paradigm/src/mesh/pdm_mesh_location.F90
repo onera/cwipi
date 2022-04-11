@@ -857,7 +857,7 @@ module pdm_mesh_location
     integer, intent(in)                :: i_point_cloud
     integer, intent(in)                :: i_part
     integer, intent(in)                :: n_points
-    double precision,          pointer :: coords(:)
+    double precision,          pointer :: coords(:,:)
     integer(kind=pdm_g_num_s), pointer :: gnum(:)
 
     integer(c_int)                     :: c_i_point_cloud
@@ -933,7 +933,7 @@ module pdm_mesh_location
     integer(kind=pdm_l_num_s), pointer :: face_vtx(:)
     integer(kind=pdm_g_num_s), pointer :: face_ln_to_gn(:)
     integer, intent(in)                :: n_vtx
-    double precision,          pointer :: coords(:)
+    double precision,          pointer :: coords(:,:)
     integer(kind=pdm_g_num_s), pointer :: vtx_ln_to_gn(:)
 
     integer(c_int)                     :: c_i_part
@@ -1030,7 +1030,7 @@ module pdm_mesh_location
     integer(kind=pdm_l_num_s), pointer :: edge_vtx(:)
     integer(kind=pdm_g_num_s), pointer :: edge_ln_to_gn(:)
     integer, intent(in)                :: n_vtx
-    double precision,          pointer :: coords(:)
+    double precision,          pointer :: coords(:,:)
     integer(kind=pdm_g_num_s), pointer :: vtx_ln_to_gn(:)
 
     integer(c_int)                     :: c_i_part

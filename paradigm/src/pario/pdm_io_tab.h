@@ -31,7 +31,7 @@ extern "C" {
  * Types decrivant un tableau
  *----------------------------------------------------------------------------*/
 
-typedef struct _PDM_io_tab_t PDM_io_tab_t;
+typedef struct _PDM_io_array_t PDM_io_array_t;
 
 /*=============================================================================
  * Variables globales
@@ -58,10 +58,10 @@ typedef struct _PDM_io_tab_t PDM_io_tab_t;
  *
  */
 
-void PDM_io_tab_ecr_debut
+void PDM_io_array_write_beg
 (
- PDM_io_fichier_t         *unite,
- const PDM_io_rangement_t  t_rangement,
+ PDM_io_file_t         *unite,
+ const PDM_stride_t  t_rangement,
  const PDM_l_num_t         num_var_cedre_max,
  const PDM_l_num_t         n_partition_local
 );
@@ -81,7 +81,7 @@ void PDM_io_tab_ecr_debut
  */
 
 
-void PDM_io_tab_ecr_ajout_donnees
+void PDM_io_array_write_data_append
 (
  const PDM_l_num_t            num_var_cedre,
  const PDM_l_num_t            i_part,
@@ -96,17 +96,17 @@ void PDM_io_tab_ecr_ajout_donnees
  *
  * \param [in] num_var_cedre          Numéro de variable PDM
  * \param [in] num_indirection_cedre  Numéro d'indirection PDM
- * \param [in] t_n_composantes        Type de tailles composantes (PDM_IO_N_COMPOSANTE_CONSTANT ou PDM_IO_N_COMPOSANTE_VARIABLE)
+ * \param [in] t_n_composantes        Type de tailles composantes (PDM_STRIDE_CST_INTERLACED ou PDM_STRIDE_VAR_INTERLACED)
  * \param [in] n_composantes          Nombre de composantes pour chaque donnee
  * \param [in] taille_donnee          Taille unitaire de la donnnee
  *
  */
 
-void PDM_io_tab_ecr_def_var
+void PDM_io_array_write_var_def
 (
  const PDM_l_num_t            num_var_cedre,
  const PDM_l_num_t            num_indirection_cedre,
- const PDM_io_n_composantes_t t_n_composantes,
+ const PDM_stride_t t_n_composantes,
  const PDM_l_num_t            n_composantes,
  const PDM_l_num_t            taille_donnee
  );
@@ -118,7 +118,7 @@ void PDM_io_tab_ecr_def_var
  *
  */
 
-void PDM_io_tab_ecr_fin
+void PDM_io_array_write_end
 (void);
 
 
@@ -137,10 +137,10 @@ void PDM_io_tab_ecr_fin
  *
  */
 
-void PDM_io_tab_lec_debut
+void PDM_io_array_read_beg
 (
- PDM_io_fichier_t         *unite,
- const PDM_io_rangement_t  t_rangement,
+ PDM_io_file_t         *unite,
+ const PDM_stride_t  t_rangement,
  const PDM_l_num_t         num_var_cedre_max,
  const PDM_l_num_t         n_partition_local
 );
@@ -158,7 +158,7 @@ void PDM_io_tab_lec_debut
  *
  */
 
-void PDM_io_tab_lec_ajout_donnees
+void PDM_io_array_read_data_append
 (
  const PDM_l_num_t            num_var_cedre,
  const PDM_l_num_t            i_part,
@@ -173,17 +173,17 @@ void PDM_io_tab_lec_ajout_donnees
  *
  * \param [in] num_var_cedre          Numéro de variable PDM
  * \param [in] num_indirection_cedre  Numéro d'indirection PDM
- * \param [in] t_n_composantes        Type de tailles composantes (PDM_IO_N_COMPOSANTE_CONSTANT ou PDM_IO_N_COMPOSANTE_VARIABLE)
+ * \param [in] t_n_composantes        Type de tailles composantes (PDM_STRIDE_CST_INTERLACED ou PDM_STRIDE_VAR_INTERLACED)
  * \param [in] n_composantes          Nombre de composantes pour chaque donnee
  * \param [in] taille_donnee          Taille unitaire de la donnnee
  *
  */
 
-void PDM_io_tab_lec_def_var
+void PDM_io_array_read_var_def
 (
  const PDM_l_num_t            num_var_cedre,
  const PDM_l_num_t            num_indirection_cedre,
- const PDM_io_n_composantes_t t_n_composantes,
+ const PDM_stride_t t_n_composantes,
  const PDM_l_num_t            n_composantes,
  const PDM_l_num_t            taille_donnee
  );
@@ -195,7 +195,7 @@ void PDM_io_tab_lec_def_var
  *
  */
 
-void PDM_io_tab_lec_fin
+void PDM_io_array_read_end
 (void);
 
 #ifdef __cplusplus

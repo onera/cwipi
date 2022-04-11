@@ -118,7 +118,7 @@ MODULE pdm_mesh_nodal
     type(c_ptr), value                  :: mesh
     integer, intent(in)                 :: id_part
     integer, intent(in)                 :: n_vtx
-    double precision, pointer           :: coords(:)
+    double precision, pointer           :: coords(:,:)
     integer (pdm_g_num_s), pointer      :: numabs(:)
     type(c_ptr) :: c_coords = C_NULL_PTR
     type(c_ptr) :: c_numabs = C_NULL_PTR

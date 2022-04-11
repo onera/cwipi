@@ -482,6 +482,17 @@ PDM_multipart_free
 );
 
 
+int
+PDM_multipart_part_vtx_coord_get
+(
+PDM_multipart_t                *multipart,
+const int                       i_zone,
+const int                       i_part,
+      double                  **vtx_coord,
+      PDM_ownership_t           ownership
+);
+
+
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

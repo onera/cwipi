@@ -802,30 +802,28 @@ int main(int argc, char *argv[])
     /* Prepare writer */
     PDM_writer_t *id_cs = PDM_writer_create ("Ensight",
                                              PDM_WRITER_FMT_ASCII,
-                                             PDM_WRITER_TOPO_CONSTANTE,
+                                             PDM_WRITER_TOPO_CST,
                                              PDM_WRITER_OFF,
                                              "test_dist",
                                              "dist",
                                              PDM_MPI_COMM_WORLD,
-                                             PDM_IO_ACCES_MPI_SIMPLE,
+                                             PDM_IO_KIND_MPI_SIMPLE,
                                              1.,
                                              NULL);
 
     int id_geom = PDM_writer_geom_create (id_cs,
                                           "mesh",
-                                          PDM_WRITER_OFF,
-                                          PDM_WRITER_OFF,
                                           n_part);
 
     int id_var_dist = PDM_writer_var_create (id_cs,
                                              PDM_WRITER_OFF,
-                                             PDM_WRITER_VAR_SCALAIRE,
+                                             PDM_WRITER_VAR_SCALAR,
                                              PDM_WRITER_VAR_ELEMENTS,
                                              "wall_dist");
 
     int id_var_closest = PDM_writer_var_create (id_cs,
                                                 PDM_WRITER_OFF,
-                                                PDM_WRITER_VAR_SCALAIRE,
+                                                PDM_WRITER_VAR_SCALAR,
                                                 PDM_WRITER_VAR_ELEMENTS,
                                                 "closest_bnd_face");
 
@@ -975,10 +973,10 @@ int main(int argc, char *argv[])
     PDM_writer_var_write (id_cs,
                           id_var_closest);
 
-    // PDM_writer_var_free (id_cs,
-    //                      id_var_dist);
-    // PDM_writer_var_free (id_cs,
-    //                      id_var_closest);
+    PDM_writer_var_free (id_cs,
+                         id_var_dist);
+    PDM_writer_var_free (id_cs,
+                         id_var_closest);
 
     PDM_writer_step_end (id_cs);
 
@@ -993,8 +991,8 @@ int main(int argc, char *argv[])
     free (cell_face_n);
     free (face_vtx_n);
 
-    // PDM_writer_geom_data_free (id_cs, id_geom);
-    // PDM_writer_geom_free (id_cs, id_geom);
+    PDM_writer_geom_data_free (id_cs, id_geom);
+    PDM_writer_geom_free (id_cs, id_geom);
     PDM_writer_free (id_cs);
   }
 

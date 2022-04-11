@@ -2475,6 +2475,9 @@ PDM_surf_mesh_n_g_face_get
 )
 {
   assert (mesh != NULL);
+
+  _n_g_enttities_compute(mesh);
+
   return mesh->nGFace;
 }
 

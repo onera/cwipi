@@ -31,6 +31,7 @@ PDM_g_num_t* PDM_array_const_gnum(const int size, const PDM_g_num_t value);
 // Create an index array from a size array
 int*         PDM_array_new_idx_from_sizes_int (const int *size_array, const int size);
 PDM_g_num_t* PDM_array_new_idx_from_sizes_gnum(const int *size_array, const int size);
+int*         PDM_array_new_idx_from_const_stride_int(const int stride, const int size);
 
 /* Utils functions compararing arrays */
 

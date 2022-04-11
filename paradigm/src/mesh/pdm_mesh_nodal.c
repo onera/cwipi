@@ -207,9 +207,10 @@ _block_std_free_partial
   if (_block_std->_connec != NULL) {
     if (_block_std->st_free_data == PDM_TRUE) {
       for (int i = 0; i < _block_std->n_part; i++) {
-        if (_block_std->_connec[i] != NULL)
+        if (_block_std->_connec[i] != NULL) {
           free(_block_std->_connec[i]);
-        _block_std->_connec[i] = NULL;
+          _block_std->_connec[i] = NULL;
+        }
       }
     }
     free(_block_std->_connec);
@@ -219,9 +220,10 @@ _block_std_free_partial
   if (_block_std->_numabs != NULL) {
     if (_block_std->st_free_data == PDM_TRUE) {
       for (int i = 0; i < _block_std->n_part; i++) {
-        if (_block_std->_numabs[i] != NULL)
+        if (_block_std->_numabs[i] != NULL) {
           free(_block_std->_numabs[i]);
-        _block_std->_numabs[i] = NULL;
+          _block_std->_numabs[i] = NULL;
+        }
       }
     }
     free(_block_std->_numabs);
@@ -231,9 +233,10 @@ _block_std_free_partial
   if (_block_std->_num_part != NULL) {
     if (_block_std->st_free_data == PDM_TRUE) {
       for (int i = 0; i < _block_std->n_part; i++) {
-        if (_block_std->_num_part[i] != NULL)
+        if (_block_std->_num_part[i] != NULL) {
           free(_block_std->_num_part[i]);
-        _block_std->_num_part[i] = NULL;
+          _block_std->_num_part[i] = NULL;
+        }
       }
     }
     free(_block_std->_num_part);
@@ -5706,32 +5709,30 @@ PDM_Mesh_nodal_write
 
   PDM_writer_t *cs = PDM_writer_create("Ensight",
                                        PDM_WRITER_FMT_ASCII,
-                                       PDM_WRITER_TOPO_CONSTANTE,
+                                       PDM_WRITER_TOPO_CST,
                                        PDM_WRITER_OFF,
                                        "test_3d_ens",
                                        filename,
                                        PDM_MPI_COMM_WORLD,
-                                       PDM_IO_ACCES_MPI_SIMPLE,
+                                       PDM_IO_KIND_MPI_SIMPLE,
                                        1.,
                                        NULL);
 
   /* Creation de la geometrie */
   int id_geom = PDM_writer_geom_create_from_mesh_nodal (cs,
                                                         "test3d_geom",
-                                                        PDM_WRITER_OFF,
-                                                        PDM_WRITER_OFF,
                                                         mesh);
 
   /* Creation des variables */
   int id_var_elt_part = PDM_writer_var_create(cs,
                                               PDM_WRITER_OFF,
-                                              PDM_WRITER_VAR_SCALAIRE,
+                                              PDM_WRITER_VAR_SCALAR,
                                               PDM_WRITER_VAR_ELEMENTS,
                                               "num_part");
 
   int id_var_elt_gnum = PDM_writer_var_create(cs,
                                               PDM_WRITER_OFF,
-                                              PDM_WRITER_VAR_SCALAIRE,
+                                              PDM_WRITER_VAR_SCALAR,
                                               PDM_WRITER_VAR_ELEMENTS,
                                               "elt_gnum");
 

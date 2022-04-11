@@ -38,7 +38,7 @@ typedef enum {
   PDM_WRITER_OFF,
   PDM_WRITER_ON
 
-} PDM_writer_statut_t;
+} PDM_writer_status_t;
 
 /*----------------------------------------------------------------------------
  * Type de topologie
@@ -46,11 +46,11 @@ typedef enum {
 
 typedef enum {
 
-  PDM_WRITER_TOPO_CONSTANTE ,
+  PDM_WRITER_TOPO_CST ,
   PDM_WRITER_TOPO_DEFORMABLE,
   PDM_WRITER_TOPO_VARIABLE
 
-} PDM_writer_topologie_t;
+} PDM_writer_topology_t;
 
 /*----------------------------------------------------------------------------
  * Type d'elements géometriques (It's the same than the type defined into PDM_Mesh_nodal)
@@ -127,11 +127,11 @@ typedef enum {
 
 typedef enum {
 
-  PDM_WRITER_VAR_CSTE           = 0,
-  PDM_WRITER_VAR_SCALAIRE       = 1,
-  PDM_WRITER_VAR_VECTEUR        = 3,
-  PDM_WRITER_VAR_TENSEUR_SYM    = 6,
-  PDM_WRITER_VAR_TENSEUR_ASYM   = 9
+  PDM_WRITER_VAR_CST           = 0,
+  PDM_WRITER_VAR_SCALAR        = 1,
+  PDM_WRITER_VAR_VECTOR        = 3,
+  PDM_WRITER_VAR_TENSOR_SYM    = 6,
+  PDM_WRITER_VAR_TENSOR_ASYM   = 9
 
 } PDM_writer_var_dim_t;
 
@@ -141,9 +141,9 @@ typedef enum {
 
 typedef enum {
 
-  PDM_WRITER_VAR_SOMMETS,
+  PDM_WRITER_VAR_VERTICES,
   PDM_WRITER_VAR_ELEMENTS,
-  PDM_WRITER_VAR_PARTICULES
+  PDM_WRITER_VAR_PARTICLES
 
 } PDM_writer_var_loc_t;
 
@@ -184,12 +184,12 @@ PDM_writer_create
 (
 const char                   *fmt,
 const PDM_writer_fmt_fic_t    fmt_fic,
-const PDM_writer_topologie_t  topologie,
-const PDM_writer_statut_t     st_reprise,
+const PDM_writer_topology_t  topologie,
+const PDM_writer_status_t     st_reprise,
 const char                   *rep_sortie,
 const char                   *nom_sortie,
 const PDM_MPI_Comm            pdm_mpi_comm,
-const PDM_io_acces_t          acces,
+const PDM_io_kind_t          acces,
 const double                  prop_noeuds_actifs,
 const char                   *options
 );
@@ -243,8 +243,6 @@ PDM_writer_step_end
  *
  * \param [in]  cs                Pointer to \ref PDM_writer object
  * \param [in]  nom_geom          Nom de l'objet geometrique
- * \param [in]  st_decoup_poly2d  Active le decoupage des polygones
- * \param [in]  st_decoup_poly3d  Active le decoupage des polyedres
  *
  * \return   Identificateur de l'objet geom dans cs
  *
@@ -255,8 +253,6 @@ PDM_writer_geom_create
 (
  PDM_writer_t               *cs,
  const char                 *nom_geom,
- const PDM_writer_statut_t   st_decoup_poly2d,
- const PDM_writer_statut_t   st_decoup_poly3d,
  const int                   n_part
 );
 
@@ -265,8 +261,6 @@ PDM_writer_geom_create_from_mesh_nodal
 (
  PDM_writer_t              *cs,
  const char                *nom_geom,
- const PDM_writer_statut_t  st_decoup_poly2d,
- const PDM_writer_statut_t  st_decoup_poly3d,
  PDM_Mesh_nodal_t          *mesh
  );
 
@@ -343,7 +337,7 @@ PDM_writer_geom_bloc_add
 (
  PDM_writer_t                *cs,
  const int                    id_geom,
- PDM_writer_statut_t          st_free_data,
+ PDM_writer_status_t          st_free_data,
  const PDM_writer_elt_geom_t  t_elt
 );
 
@@ -679,7 +673,7 @@ int
 PDM_writer_var_create
 (
  PDM_writer_t               *cs,
- const PDM_writer_statut_t   st_dep_tps,
+ const PDM_writer_status_t   st_dep_tps,
  const PDM_writer_var_dim_t  dim,
  const PDM_writer_var_loc_t  loc,
  const char                 *nom_var

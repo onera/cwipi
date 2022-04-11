@@ -1,5 +1,5 @@
-#ifndef __PDM_DMESH_PRIV_H__
-#define __PDM_DMESH_PRIV_H__
+#ifndef __PDM_PART_MESH_PRIV_H__
+#define __PDM_PART_MESH_PRIV_H__
 
 /*
   This file is part of the ParaDiGM library.

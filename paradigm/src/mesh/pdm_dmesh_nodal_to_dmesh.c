@@ -1729,7 +1729,11 @@ _translate_element_group_to_faces
     dm->n_group_bnd   [PDM_BOUND_TYPE_FACE] = dmesh_nodal->surfacic->n_group_elmt;
   }
   else {
+    dm->is_owner_bound[PDM_BOUND_TYPE_FACE] = PDM_TRUE;
     dm->dbound_idx    [PDM_BOUND_TYPE_FACE] = PDM_array_zeros_int(1);
+    dm->dbound        [PDM_BOUND_TYPE_FACE] = NULL;
+    dm->n_bnd                               = 0;
+    dm->n_group_bnd   [PDM_BOUND_TYPE_FACE] = 0;
   }
 
   // Par recursion on peut avoir les group de vertex ou de edge
@@ -1767,7 +1771,11 @@ _translate_element_group_to_edges
     dm->n_group_bnd   [PDM_BOUND_TYPE_EDGE] = dmesh_nodal->ridge->n_group_elmt;
   }
   else {
+    dm->is_owner_bound[PDM_BOUND_TYPE_EDGE] = PDM_TRUE;
     dm->dbound_idx    [PDM_BOUND_TYPE_EDGE] = PDM_array_zeros_int(1);
+    dm->dbound        [PDM_BOUND_TYPE_EDGE] = NULL;
+    dm->n_bnd                               = 0;
+    dm->n_group_bnd   [PDM_BOUND_TYPE_EDGE] = 0;
   }
 }
 

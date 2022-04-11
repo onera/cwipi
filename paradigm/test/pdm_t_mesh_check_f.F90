@@ -39,7 +39,7 @@ program testf
   integer(pdm_g_num_s)          :: n_vtx
   integer(pdm_g_num_s)          :: l_face_vtx
   integer(pdm_g_num_s), pointer :: face_vtx(:) => null()
-  double precision,     pointer :: coords(:)   => null()
+  double precision,     pointer :: coords(:,:) => null()
   integer(pdm_l_num_s)          :: n_holes
 
   integer                       :: i, j, k
@@ -67,15 +67,15 @@ program testf
   face_vtx(7) = 8
   face_vtx(8) = 7
 
-  allocate(coords(n_vtx*3))
+  allocate(coords(3,n_vtx))
   k = 1
   outer_loop : do j = 1, 3
     do i = 1, 3
-      coords(k)   = i
-      coords(k+1) = j
-      coords(k+2) = 0.d0
-      k = k+3
-      if (k >= 3*n_vtx) then
+      coords(1,k) = i
+      coords(2,k) = j
+      coords(3,k) = 0.d0
+      k = k+1
+      if (k >= n_vtx) then
         exit outer_loop
       endif
     enddo

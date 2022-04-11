@@ -16,6 +16,7 @@
 #include "pdm_priv.h"
 #include "pdm_mpi.h"
 #include "pdm_vtk.h"
+#include "pdm_error.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -996,6 +997,211 @@ PDM_vtk_write_polydata
   fclose(f);
 }
 
+void
+PDM_vtk_write_polydata_with_field
+(
+ const char        *filename,
+ const int          n_vtx,
+ const double       vtx_coord[],
+ const PDM_g_num_t  vtx_g_num[],
+ const int          n_face,
+ const int          face_vtx_idx[],
+ const int          face_vtx[],
+ const PDM_g_num_t  face_g_num[],
+ const int          face_color[],
+ const int          n_elt_ifield,
+ const char        *elt_ifield_name[],
+ const int         *elt_ifield[]
+)
+{
+  FILE *f = fopen(filename, "w");
+
+  fprintf(f, "# vtk DataFile Version 2.0\n");
+  fprintf(f, "mesh\n");
+  fprintf(f, "ASCII\n");
+  fprintf(f, "DATASET POLYDATA\n");
+
+  fprintf(f, "POINTS %d double\n", n_vtx);
+  for (int i = 0; i < n_vtx; i++) {
+    for (int j = 0; j < 3; j++) {
+      fprintf(f, "%.20lf ", vtx_coord[3*i+j]);
+    }
+    fprintf(f, "\n");
+  }
+
+  fprintf(f, "POLYGONS %d %d\n", n_face, n_face + face_vtx_idx[n_face]);
+  for (int i = 0; i < n_face; i++) {
+    fprintf(f, "%d", face_vtx_idx[i+1] - face_vtx_idx[i]);
+    for (int j = face_vtx_idx[i]; j < face_vtx_idx[i+1]; j++) {
+      fprintf(f, " %d", face_vtx[j] - 1);
+    }
+    fprintf(f, "\n");
+  }
+
+
+  if (vtx_g_num != NULL) {
+    fprintf(f, "POINT_DATA %d\n", n_vtx);
+    fprintf(f, "SCALARS vtx_gnum long 1\n");
+    fprintf(f, "LOOKUP_TABLE default\n");
+    for (int i = 0; i < n_vtx; i++) {
+      fprintf(f, PDM_FMT_G_NUM"\n", vtx_g_num[i]);
+    }
+  }
+
+  if (face_g_num != NULL && face_color == NULL) {
+    fprintf(f, "CELL_DATA %d\n", n_face);
+    fprintf(f, "SCALARS face_gnum long 1\n");
+    fprintf(f, "LOOKUP_TABLE default\n");
+    for (int i = 0; i < n_face; i++) {
+      fprintf(f, PDM_FMT_G_NUM"\n", face_g_num[i]);
+     }
+  } else if (face_color != NULL && face_g_num == NULL) {
+    fprintf(f, "CELL_DATA %d\n", n_face);
+    fprintf(f, "SCALARS face_color int 1\n");
+    fprintf(f, "LOOKUP_TABLE default\n");
+    for (int i = 0; i < n_face; i++) {
+      fprintf(f, "%d\n", face_color[i]);
+    }
+  } else if (face_g_num != NULL && face_color != NULL) {
+    fprintf(f, "CELL_DATA %d\n", n_face);
+    fprintf(f, "FIELD field 2\n");
+    fprintf(f, "face_gnum 1 %d long\n", n_face);
+    for (int i = 0; i < n_face; i++) {
+      fprintf(f, PDM_FMT_G_NUM" ", face_g_num[i]);
+    }
+    fprintf(f, "\nface_color 1 %d int\n", n_face);
+    for (int i = 0; i < n_face; i++) {
+      fprintf(f, "%d ", face_color[i]);
+    }
+  }
+
+  if (n_elt_ifield > 0) {
+    assert (elt_ifield != NULL);
+
+    if (face_g_num == NULL && face_color == NULL) {
+      fprintf(f, "CELL_DATA %d\n", n_face);
+    }
+
+    fprintf(f, "FIELD elt_field %d\n", n_elt_ifield);
+    for (int i = 0; i < n_elt_ifield; i++) {
+      assert (elt_ifield[i] != NULL);
+      assert (elt_ifield_name[i] != NULL);
+
+      fprintf(f, "%s 1 %d int\n", elt_ifield_name[i], n_face);
+      for (int j = 0; j < n_face; j++) {
+        fprintf(f, "%d ", elt_ifield[i][j]);
+      }
+      fprintf(f, "\n");
+    }
+
+  }
+
+  fclose(f);
+}
+
+
+
+void
+PDM_vtk_write_polydata_field
+(
+ const char        *filename,
+ const int          n_vtx,
+ const double       vtx_coord[],
+ const PDM_g_num_t  vtx_g_num[],
+ const int          n_face,
+ const int          face_vtx_idx[],
+ const int          face_vtx[],
+ const PDM_g_num_t  face_g_num[],
+ const char         face_field_name[],
+ const double       face_field[],
+ const char         vtx_field_name[],
+ const double       vtx_field[]
+ )
+{
+  FILE *f = fopen(filename, "w");
+
+  fprintf(f, "# vtk DataFile Version 2.0\n");
+  fprintf(f, "mesh\n");
+  fprintf(f, "ASCII\n");
+  fprintf(f, "DATASET POLYDATA\n");
+
+  fprintf(f, "POINTS %d double\n", n_vtx);
+  for (int i = 0; i < n_vtx; i++) {
+    for (int j = 0; j < 3; j++) {
+      fprintf(f, "%.20lf ", vtx_coord[3*i+j]);
+    }
+    fprintf(f, "\n");
+  }
+
+  fprintf(f, "POLYGONS %d %d\n", n_face, n_face + face_vtx_idx[n_face]);
+  for (int i = 0; i < n_face; i++) {
+    fprintf(f, "%d", face_vtx_idx[i+1] - face_vtx_idx[i]);
+    for (int j = face_vtx_idx[i]; j < face_vtx_idx[i+1]; j++) {
+      fprintf(f, " %d", face_vtx[j] - 1);
+    }
+    fprintf(f, "\n");
+  }
+
+
+  if (vtx_g_num != NULL && vtx_field == NULL) {
+    fprintf(f, "POINT_DATA %d\n", n_vtx);
+    fprintf(f, "SCALARS vtx_gnum long 1\n");
+    fprintf(f, "LOOKUP_TABLE default\n");
+    for (int i = 0; i < n_vtx; i++) {
+      fprintf(f, PDM_FMT_G_NUM"\n", vtx_g_num[i]);
+     }
+  } else if (vtx_field != NULL && vtx_g_num == NULL) {
+    fprintf(f, "POINT_DATA %d\n", n_vtx);
+    fprintf(f, "SCALARS %s double 1\n", vtx_field_name);
+    fprintf(f, "LOOKUP_TABLE default\n");
+    for (int i = 0; i < n_vtx; i++) {
+      fprintf(f, "%f\n", vtx_field[i]);
+    }
+  } else if (vtx_g_num != NULL && vtx_field != NULL) {
+    fprintf(f, "POINT_DATA %d\n", n_vtx);
+    fprintf(f, "FIELD field 2\n");
+    fprintf(f, "vtx_gnum 1 %d long\n", n_vtx);
+    for (int i = 0; i < n_vtx; i++) {
+      fprintf(f, PDM_FMT_G_NUM" ", vtx_g_num[i]);
+    }
+    fprintf(f, "\n%s 1 %d double\n", vtx_field_name, n_vtx);
+    for (int i = 0; i < n_vtx; i++) {
+      fprintf(f, "%f ", vtx_field[i]);
+    }
+  }
+
+  if (face_g_num != NULL && face_field == NULL) {
+    fprintf(f, "CELL_DATA %d\n", n_face);
+    fprintf(f, "SCALARS face_gnum long 1\n");
+    fprintf(f, "LOOKUP_TABLE default\n");
+    for (int i = 0; i < n_face; i++) {
+      fprintf(f, PDM_FMT_G_NUM"\n", face_g_num[i]);
+     }
+  } else if (face_field != NULL && face_g_num == NULL) {
+    fprintf(f, "CELL_DATA %d\n", n_face);
+    fprintf(f, "SCALARS %s double 1\n", face_field_name);
+    fprintf(f, "LOOKUP_TABLE default\n");
+    for (int i = 0; i < n_face; i++) {
+      fprintf(f, "%f\n", face_field[i]);
+    }
+  } else if (face_g_num != NULL && face_field != NULL) {
+    fprintf(f, "CELL_DATA %d\n", n_face);
+    fprintf(f, "FIELD field 2\n");
+    fprintf(f, "face_gnum 1 %d long\n", n_face);
+    for (int i = 0; i < n_face; i++) {
+      fprintf(f, PDM_FMT_G_NUM" ", face_g_num[i]);
+    }
+    fprintf(f, "\n%s 1 %d double\n", face_field_name, n_face);
+    for (int i = 0; i < n_face; i++) {
+      fprintf(f, "%f ", face_field[i]);
+    }
+  }
+
+
+
+
+  fclose(f);
+}
 
 
 /**

@@ -58,11 +58,11 @@ extern "C" {
  * Type decrivant un fichier de type parallele io
  *----------------------------------------------------------------------------*/
 
-struct _PDM_io_fichier_t {
+struct _PDM_io_file_t {
 
   char            *nom;                /* Nom du fichier */
-  PDM_io_mode_t    mode;               /* Mode du fichier */
-  PDM_io_acces_t   acces;              /* Type d'entrees/sorties */
+  PDM_io_mod_t    mode;               /* Mode du fichier */
+  PDM_io_kind_t   acces;              /* Type d'entrees/sorties */
 
   int              swap_endian;        /* Active le swap little/big endian */
 
@@ -173,7 +173,7 @@ const char* path
 
 static void _rangs_actifs
 (
-PDM_io_fichier_t  *fichier
+PDM_io_file_t  *fichier
 )
 {
 
@@ -320,7 +320,7 @@ PDM_io_fichier_t  *fichier
 
 static void _n_donnees_rang
 (
- PDM_io_fichier_t  *fichier,
+ PDM_io_file_t  *fichier,
  const PDM_g_num_t  n_donnees_total,
  PDM_g_num_t       *n_donnees_rangs,
  int               *n_donnees_rang_min,
@@ -373,7 +373,7 @@ static void _n_donnees_rang
  * et lectures par blocs
  *
  * \param [in]  fichier                Fichier traite
- * \param [in]  t_n_composantes        Type de tailles composantes (PDM_IO_N_COMPOSANTE_CONSTANT ou PDM_IO_N_COMPOSANTE_VARIABLE)
+ * \param [in]  t_n_composantes        Type de tailles composantes (PDM_STRIDE_CST_INTERLACED ou PDM_STRIDE_VAR_INTERLACED)
  * \param [in]  n_composantes          Nombre de composantes pour chaque donnee
  * \param [in]  debut_bloc             Adresse de debut de bloc dans la numerotation absolue
  * \param [in]  n_donnees             Nombre de donnees a traiter pour ce rang
@@ -388,8 +388,8 @@ static void _n_donnees_rang
 
 static void _calcul_parametres_distribution_bloc
 (
- PDM_io_fichier_t             *fichier,
- const PDM_io_n_composantes_t  t_n_composantes,
+ PDM_io_file_t             *fichier,
+ const PDM_stride_t  t_n_composantes,
  const PDM_l_num_t            *n_composantes,
  const PDM_g_num_t             debut_bloc,
  const PDM_l_num_t             n_donnees,
@@ -510,7 +510,7 @@ static void _calcul_parametres_distribution_bloc
    * Prise en compte du nombre de composantes
    *------------------------------------------------------------ */
 
-  if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+  if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
 
     int *n_composantes_recues =
       (int *) malloc(sizeof(int) * n_absolue_max - n_absolue_min + 1);
@@ -576,15 +576,15 @@ static void _calcul_parametres_distribution_bloc
 /**
  * \brief Return the file name (or NULL if no file)
  *
- * \param [in]  fichier   Pointer to \ref PDM_io_fichier_t object
+ * \param [in]  fichier   Pointer to \ref PDM_io_file_t object
  *
  * \return   Name of the file
  *
  */
 
-const char* PDM_io_get_nom_fichier
+const char* PDM_io_file_name_get
 (
- PDM_io_fichier_t *fichier
+ PDM_io_file_t *fichier
  )
 {
   char *nom = NULL;
@@ -619,20 +619,20 @@ void PDM_io_open
  const PDM_io_suff_t     suff_t,
  const char             *suff_u,
  const PDM_io_backup_t   s_backup,
- const PDM_io_acces_t    acces,
- const PDM_io_mode_t     mode,
+ const PDM_io_kind_t    acces,
+ const PDM_io_mod_t     mode,
  const PDM_io_endian_t   endian,
  PDM_MPI_Comm            comm,
  double                  prop_noeuds_actifs,
- PDM_io_fichier_t      **unite,
+ PDM_io_file_t      **unite,
  PDM_l_num_t            *ierr
 )
 {
   *ierr = 0;
 
-  /* Initialisation de la structure PDM_io_fichier_t */
-  *unite = (PDM_io_fichier_t*) malloc(sizeof(PDM_io_fichier_t));
-  PDM_io_fichier_t *nouveau_fichier = *unite;
+  /* Initialisation de la structure PDM_io_file_t */
+  *unite = (PDM_io_file_t*) malloc(sizeof(PDM_io_file_t));
+  PDM_io_file_t *nouveau_fichier = *unite;
 
   /* Initialisation des timer */
 
@@ -662,9 +662,9 @@ void PDM_io_open
 
   /* Definition des attributs acces, mode */
 
-  /*  if ((acces == PDM_IO_ACCES_SEQ) && (nouveau_fichier->n_rangs > 1)) {*/
+  /*  if ((acces == PDM_IO_KIND_SEQ) && (nouveau_fichier->n_rangs > 1)) {*/
   if (suff_t == PDM_IO_SUFF_AUTO) {
-    if (acces == PDM_IO_ACCES_SEQ) {
+    if (acces == PDM_IO_KIND_SEQ) {
       char format[30];
       int ncharint = 0;
       double _n_rangs = nouveau_fichier->n_rangs;
@@ -704,7 +704,7 @@ void PDM_io_open
 
   /* Test d'existence du fichier en lecture */
 
-  if (mode == PDM_IO_MODE_LECTURE) {
+  if (mode == PDM_IO_MOD_READ) {
     FILE *testf2 = fopen (nouveau_fichier->nom, "r");
     if (testf2 == NULL) {
       *ierr = 1;
@@ -724,34 +724,34 @@ void PDM_io_open
      pour lecture de l'entete */
 
   PDM_file_seq_mode_t _mode_seq = FICHIER_SEQ_MODE_AJOUT;
-  if (mode == PDM_IO_MODE_AJOUT)
+  if (mode == PDM_IO_MOD_APPEND)
     _mode_seq = FICHIER_SEQ_MODE_AJOUT;
-  else if (mode == PDM_IO_MODE_LECTURE)
+  else if (mode == PDM_IO_MOD_READ)
     _mode_seq = FICHIER_SEQ_MODE_LECTURE;
-  else if (mode == PDM_IO_MODE_ECRITURE)
+  else if (mode == PDM_IO_MOD_WRITE)
     _mode_seq = FICHIER_SEQ_MODE_ECRITURE;
 
   PDM_file_par_mode_t _mode_par = FICHIER_PAR_MODE_AJOUT;
-  if (mode == PDM_IO_MODE_AJOUT)
+  if (mode == PDM_IO_MOD_APPEND)
     _mode_par = FICHIER_PAR_MODE_AJOUT;
-  else if (mode == PDM_IO_MODE_LECTURE)
+  else if (mode == PDM_IO_MOD_READ)
     _mode_par = FICHIER_PAR_MODE_LECTURE;
-  else if (mode == PDM_IO_MODE_ECRITURE)
+  else if (mode == PDM_IO_MOD_WRITE)
     _mode_par = FICHIER_PAR_MODE_ECRITURE;
 
   PDM_file_par_acces_t _acces_par = FICHIER_PAR_ACCES_EO;
-  if (acces == PDM_IO_ACCES_MPIIO_EO)
+  if (acces == PDM_IO_KIND_MPIIO_EO)
     _acces_par = FICHIER_PAR_ACCES_EO;
-  else if (acces == PDM_IO_ACCES_MPIIO_IP)
+  else if (acces == PDM_IO_KIND_MPIIO_IP)
     _acces_par = FICHIER_PAR_ACCES_IP;
 
   /* Backup d'un fichier preexistant en mode ecriture */
 
   nouveau_fichier->backup = PDM_IO_BACKUP_OFF;
-  if ((s_backup == PDM_IO_BACKUP_ON) && (mode == PDM_IO_MODE_ECRITURE)) {
+  if ((s_backup == PDM_IO_BACKUP_ON) && (mode == PDM_IO_MOD_WRITE)) {
 
     int proc_actif = 0;
-    if (acces != PDM_IO_ACCES_SEQ) {
+    if (acces != PDM_IO_KIND_SEQ) {
       if (nouveau_fichier->rang == 0) {
         proc_actif = 1;
       }
@@ -797,8 +797,8 @@ void PDM_io_open
   }
 
   switch(acces) {
-  case PDM_IO_ACCES_MPIIO_EO:
-  case PDM_IO_ACCES_MPIIO_IP:
+  case PDM_IO_KIND_MPIIO_EO:
+  case PDM_IO_KIND_MPIIO_IP:
     if (nouveau_fichier->n_rangs == 1) {
       nouveau_fichier->PDM_file_seq = PDM_file_seq_open(nouveau_fichier->nom,
                                                         _mode_seq);
@@ -816,13 +816,13 @@ void PDM_io_open
     }
     break;
 
-  case PDM_IO_ACCES_SEQ:
+  case PDM_IO_KIND_SEQ:
     nouveau_fichier->PDM_file_seq = PDM_file_seq_open(nouveau_fichier->nom,
                                                     _mode_seq);
     nouveau_fichier->PDM_file_par = NULL;
     break;
 
-  case PDM_IO_ACCES_MPI_SIMPLE:
+  case PDM_IO_KIND_MPI_SIMPLE:
     if (nouveau_fichier->rang == 0)
       nouveau_fichier->PDM_file_seq = PDM_file_seq_open(nouveau_fichier->nom,
                                                       _mode_seq);
@@ -857,7 +857,7 @@ void PDM_io_open
 /**
  * \brief Set the file position indicator
  *
- * \param [in] fichier         Pointer to \ref PDM_io_fichier_t object
+ * \param [in] fichier         Pointer to \ref PDM_io_file_t object
  * \param [in] offset          Adress
  * \param [in] seek            Origin type
  *
@@ -865,7 +865,7 @@ void PDM_io_open
 
 void PDM_io_seek
 (
- PDM_io_fichier_t    *fichier,
+ PDM_io_file_t    *fichier,
  const PDM_g_num_t    offset,
  const PDM_io_seek_t  seek
 )
@@ -902,7 +902,7 @@ void PDM_io_seek
 /**
  * \brief Return the current file position
  *
- * \param [in] fichier         Pointer to \ref PDM_io_fichier_t object
+ * \param [in] fichier         Pointer to \ref PDM_io_file_t object
  *
  * \return   Current position in file
  *
@@ -911,7 +911,7 @@ void PDM_io_seek
 PDM_g_num_t
 PDM_io_tell
 (
- PDM_io_fichier_t   *fichier
+ PDM_io_file_t   *fichier
 )
 {
   PDM_g_num_t offset = 0;
@@ -945,16 +945,16 @@ PDM_io_tell
  * \brief Lecture globale : Le processus maitre accede seul au fichier et redistribue
  * l'information a l'ensemble des processus du communicateur
  *
- * \param [in]  fichier         Pointer to \ref PDM_io_fichier_t object
+ * \param [in]  fichier         Pointer to \ref PDM_io_file_t object
  * \param [in]  taille_donnee   Taille unitaire de la donnee
  * \param [in]  n_donnees       Nombre de donnees a lire
  * \param [out] donnees         Donnees lues
  *
  */
 
-void PDM_io_lecture_globale
+void PDM_io_global_read
 (
- PDM_io_fichier_t  *fichier,
+ PDM_io_file_t  *fichier,
  const PDM_l_num_t  taille_donnee,
  const PDM_g_num_t  n_donnees,
  void              *donnees
@@ -965,7 +965,7 @@ void PDM_io_lecture_globale
   if (fichier != NULL) {
 
     if (fichier->fmt_t == PDM_IO_FMT_TXT) {
-      PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_lecture_globale :\n"
+      PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_global_read :\n"
               "Format text non traite\n");
       abort();
     }
@@ -991,17 +991,17 @@ void PDM_io_lecture_globale
       /* Traitement de l'erreur de lecture */
 
       if (n_donnees_lues_gnum != n_donnees) {
-	PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lecture_globale :"
+	PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_global_read :"
 		  " Erreur de lecture dans le fichier '%s' \n", fichier->nom);
 	abort();
       }
 
-      if (((fichier->acces == PDM_IO_ACCES_MPI_SIMPLE) &&
+      if (((fichier->acces == PDM_IO_KIND_MPI_SIMPLE) &&
          fichier->n_rangs > 1) || (fichier->n_rangs_inactifs > 0)
 	  || fichier->swap_endian) {
 	n_donnees_lues = (int) n_donnees_lues_gnum ;
 	if (n_donnees_lues_gnum > 2147483647) {
-	  PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lecture_globale :"
+	  PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_global_read :"
 		    " Erreur : n_donnees dépasse la taille maximale autorisée (2147483647) dans le fichier '%s' \n", fichier->nom);
 	  abort() ;
 	}
@@ -1011,7 +1011,7 @@ void PDM_io_lecture_globale
       if (fichier->rang_actif) {
 	/* Vérification de non dépassement de la taille maximale pour n_donnees */
 	if (n_donnees > 2147483647) {
-	  PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lecture_globale :"
+	  PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_global_read :"
 		  " Erreur : n_donnees dépasse la taille maximale autorisée en parallèle (2147483647) dans le fichier '%s' \n", fichier->nom);
 	  abort() ;
 	}
@@ -1023,7 +1023,7 @@ void PDM_io_lecture_globale
 	/* Traitement de l'erreur de lecture */
 
 	if (n_donnees_lues != n_donnees_shortint) {
-	  PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lecture_globale :"
+	  PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_global_read :"
 		    " Erreur de lecture dans le fichier '%s' \n", fichier->nom);
 	  abort();
 	}
@@ -1032,7 +1032,7 @@ void PDM_io_lecture_globale
 
     /* Communication des valeurs autres processus si necessaire */
 
-    if (((fichier->acces == PDM_IO_ACCES_MPI_SIMPLE) &&
+    if (((fichier->acces == PDM_IO_KIND_MPI_SIMPLE) &&
          fichier->n_rangs > 1) || (fichier->n_rangs_inactifs > 0)) {
       PDM_MPI_Bcast(&n_donnees_lues, 1, PDM_MPI_INT, 0, fichier->comm);
       PDM_MPI_Bcast(donnees, n_donnees_lues * taille_donnee,
@@ -1059,7 +1059,7 @@ void PDM_io_lecture_globale
     err_code = 1;
 
   if (err_code){
-    PDM_error(__FILE__, __LINE__, 0,"PDM_io_lecture_globale: invalid file\n");
+    PDM_error(__FILE__, __LINE__, 0,"PDM_io_global_read: invalid file\n");
     abort();
   }
 }
@@ -1068,16 +1068,16 @@ void PDM_io_lecture_globale
 /**
  * \brief Ecriture globale : Le processus maitre accede seul au fichier
  *
- * \param [in]  fichier         Pointer to \ref PDM_io_fichier_t object
+ * \param [in]  fichier         Pointer to \ref PDM_io_file_t object
  * \param [in]  taille_donnee   Taille unitaire de la donnee
  * \param [in]  n_donnees       Nombre de donnees a ecrire
  * \param [in]  donnees         Donnees ecrites
  *
  */
 
-void PDM_io_ecriture_globale
+void PDM_io_global_write
 (
- PDM_io_fichier_t  *fichier,
+ PDM_io_file_t  *fichier,
  const PDM_l_num_t  taille_donnee,
  const PDM_g_num_t  n_donnees,
  const void        *donnees
@@ -1139,16 +1139,16 @@ void PDM_io_ecriture_globale
 	/* Traitement de l'erreur de lecture */
 
 	if (n_donnees_ecrites_gnum !=  l_string_donnee - 1) {
-	  PDM_error(__FILE__, __LINE__, 0,"[%d] Erreur PDM_io_ecriture_globale :"
+	  PDM_error(__FILE__, __LINE__, 0,"[%d] Erreur PDM_io_global_write :"
 		    " Erreur d'ecriture dans le fichier '%s'\n", fichier->rang, fichier->nom);
 	  abort();
 	  PDM_file_seq_close(fichier->PDM_file_seq);
 	}
-	if (fichier->acces != PDM_IO_ACCES_SEQ) {
-	  if ((fichier->acces == PDM_IO_ACCES_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) {
+	if (fichier->acces != PDM_IO_KIND_SEQ) {
+	  if ((fichier->acces == PDM_IO_KIND_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) {
 	    n_donnees_ecrites = (int) n_donnees_ecrites_gnum ;
 	    if (n_donnees_ecrites_gnum > 2147483647) {
-	      PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_ecriture_globale :"
+	      PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_global_write :"
 			" Erreur : l_string_donnee dépasse la taille maximale autorisée en parallèle (2147483647) dans le fichier '%s' \n", fichier->nom);
 	      abort() ;
 	    }
@@ -1159,7 +1159,7 @@ void PDM_io_ecriture_globale
         if (fichier->rang_actif) {
 	  /* Vérification de non dépassement de la taille maximale pour l_string_donnee */
 	  if (l_string_donnee > 2147483647) {
-	    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_ecriture_globale :"
+	    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_global_write :"
 		      " Erreur : l_string_donnee dépasse la taille maximale autorisée en parallèle (2147483647) dans le fichier '%s' \n", fichier->nom);
 	    abort() ;
 	  }
@@ -1172,7 +1172,7 @@ void PDM_io_ecriture_globale
 	  /* Traitement de l'erreur de lecture */
 
 	  if (n_donnees_ecrites !=  l_string_donnee_shortint - 1) {
-	    PDM_error(__FILE__, __LINE__, 0,"[%d] Erreur PDM_io_ecriture_globale :"
+	    PDM_error(__FILE__, __LINE__, 0,"[%d] Erreur PDM_io_global_write :"
 		      " Erreur d'ecriture dans le fichier '%s'\n", fichier->rang, fichier->nom);
 	    abort();
 	    PDM_file_seq_close(fichier->PDM_file_seq);
@@ -1180,8 +1180,8 @@ void PDM_io_ecriture_globale
         }
       }
 
-      if (fichier->acces != PDM_IO_ACCES_SEQ) {
-        if ((fichier->acces == PDM_IO_ACCES_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) {
+      if (fichier->acces != PDM_IO_KIND_SEQ) {
+        if ((fichier->acces == PDM_IO_KIND_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) {
           PDM_MPI_Bcast(&n_donnees_ecrites, 1, PDM_MPI_INT, 0, fichier->comm);
         }
       }
@@ -1197,15 +1197,15 @@ void PDM_io_ecriture_globale
 	/* Traitement de l'erreur de lecture */
 
 	if (n_donnees_ecrites_gnum != n_donnees) {
-	  PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_ecriture_globale :"
+	  PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_global_write :"
 		    " Erreur d'ecriture dans le fichier '%s' \n", fichier->nom);
 	  abort();
 	}
-	if (fichier->acces != PDM_IO_ACCES_SEQ) {
-	  if ((fichier->acces == PDM_IO_ACCES_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) {
+	if (fichier->acces != PDM_IO_KIND_SEQ) {
+	  if ((fichier->acces == PDM_IO_KIND_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) {
 	    n_donnees_ecrites = (int) n_donnees_ecrites_gnum ;
 	    if (n_donnees_ecrites_gnum > 2147483647) {
-	      PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_ecriture_globale :"
+	      PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_global_write :"
 			" Erreur : l_string_donnee dépasse la taille maximale autorisée en parallèle (2147483647) dans le fichier '%s' \n", fichier->nom);
 	      abort() ;
 	    }
@@ -1216,7 +1216,7 @@ void PDM_io_ecriture_globale
         if (fichier->rang_actif) {
 	  /* Vérification de non dépassement de la taille maximale pour n_donnees */
 	  if (n_donnees > 2147483647) {
-	    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lecture_globale :"
+	    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_global_read :"
 		      " Erreur : n_donnees dépasse la taille maximale autorisée en parallèle (2147483647) dans le fichier '%s' \n", fichier->nom);
 	    abort() ;
 	  }
@@ -1229,15 +1229,15 @@ void PDM_io_ecriture_globale
 	  /* Traitement de l'erreur de lecture */
 
 	  if (n_donnees_ecrites != n_donnees_shortint) {
-	    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_ecriture_globale :"
+	    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_global_write :"
 		      " Erreur d'ecriture dans le fichier '%s' \n", fichier->nom);
 	    abort();
 	  }
         }
       }
 
-      if (fichier->acces != PDM_IO_ACCES_SEQ) {
-        if ((fichier->acces == PDM_IO_ACCES_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) {
+      if (fichier->acces != PDM_IO_KIND_SEQ) {
+        if ((fichier->acces == PDM_IO_KIND_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) {
           PDM_MPI_Bcast(&n_donnees_ecrites, 1, PDM_MPI_INT, 0, fichier->comm);
         }
       }
@@ -1249,7 +1249,7 @@ void PDM_io_ecriture_globale
     err_code = 1;
 
   if (err_code){
-    PDM_error(__FILE__, __LINE__, 0,"PDM_io_ecriture_globale: invalid file\n");
+    PDM_error(__FILE__, __LINE__, 0,"PDM_io_global_write: invalid file\n");
     abort();
   }
 }
@@ -1259,8 +1259,8 @@ void PDM_io_ecriture_globale
  * \brief Lecture parallele de blocs de donnees suivie d'une redistribution des
  * des donnees suivant l'indirection
  *
- * \param [in]  fichier          Pointer to \ref PDM_io_fichier_t object
- * \param [in]  t_n_composantes  Type de tailles composantes (PDM_IO_N_COMPOSANTE_CONSTANT ou PDM_IO_N_COMPOSANTE_VARIABLE)
+ * \param [in]  fichier          Pointer to \ref PDM_io_file_t object
+ * \param [in]  t_n_composantes  Type de tailles composantes (PDM_STRIDE_CST_INTERLACED ou PDM_STRIDE_VAR_INTERLACED)
  * \param [in]  n_composantes    Nombre de composantes pour chaque donnee
  * \param [in]  taille_donnee    Taille unitaire de la donnee
  * \param [in]  n_donnees        Nombre de donnees a lire
@@ -1269,10 +1269,10 @@ void PDM_io_ecriture_globale
  *
  */
 
-void PDM_io_lec_par_entrelacee
+void PDM_io_par_interlaced_read
 (
- PDM_io_fichier_t             *fichier,
- const PDM_io_n_composantes_t  t_n_composantes,
+ PDM_io_file_t             *fichier,
+ const PDM_stride_t  t_n_composantes,
  const PDM_l_num_t            *n_composantes,
  const PDM_l_num_t             taille_donnee,
  const PDM_l_num_t             n_donnees,
@@ -1293,7 +1293,7 @@ void PDM_io_lec_par_entrelacee
     PDM_timer_t *timer_fichier = fichier->timer_fichier;
 
     if (fichier->fmt_t == PDM_IO_FMT_TXT) {
-      PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_lec_par_entrelacee :\n"
+      PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_par_interlaced_read :\n"
               "Format text non traite\n");
       abort();
     }
@@ -1302,9 +1302,9 @@ void PDM_io_lec_par_entrelacee
 
     /* Acces sequentiel : sortie en erreur */
 
-    /* if (fichier->acces == PDM_IO_ACCES_SEQ) { */
+    /* if (fichier->acces == PDM_IO_KIND_SEQ) { */
 
-    /*   PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lec_par_entrelacee :" */
+    /*   PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_par_interlaced_read :" */
     /*           " Fonction indisponible en mode sequentiel\n"); */
     /*   abort(); */
 
@@ -1327,7 +1327,7 @@ void PDM_io_lec_par_entrelacee
         _id_max = PDM_IO_MAX(_id_max, indirection[i]);
       }
 
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+      if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
 
         index = PDM_array_const_gnum(n_donnees + 1, 0);
 
@@ -1347,7 +1347,7 @@ void PDM_io_lec_par_entrelacee
 
       }
 
-      else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
+      else if (t_n_composantes == PDM_STRIDE_CST_INTERLACED) {
         PDM_g_num_t __n_donnees_buff =  _id_max * n_composantes[0];
         _n_donnees_buff = (int) __n_donnees_buff;
         n_octet = taille_donnee * n_composantes[0];
@@ -1357,14 +1357,14 @@ void PDM_io_lec_par_entrelacee
       }
 
 			else {
-				PDM_error(__FILE__, __LINE__, 0,"PDM_io_lec_par_entrelacee Error : unknown PDM_io_n_composantes_t \n");
+				PDM_error(__FILE__, __LINE__, 0,"PDM_io_par_interlaced_read Error : unknown PDM_stride_t \n");
 				abort();
 			}
 
       PDM_timer_hang_on(timer_distribution);
       PDM_timer_hang_on(timer_total);
 
-      PDM_io_lecture_globale(fichier,
+      PDM_io_global_read(fichier,
                                taille_donnee,
                                _n_donnees_buff,
                                buffer);
@@ -1372,7 +1372,7 @@ void PDM_io_lec_par_entrelacee
       PDM_timer_resume(timer_total);
       PDM_timer_resume(timer_distribution);
 
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+      if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
         int k = 0;
         for (int i = 0; i < n_donnees; i++){
           for (int j = 0; j < n_composantes[i] * taille_donnee; j++){
@@ -1384,7 +1384,7 @@ void PDM_io_lec_par_entrelacee
         free(index);
       }
 
-      else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
+      else if (t_n_composantes == PDM_STRIDE_CST_INTERLACED) {
         for (int i = 0; i < n_donnees; i++){
           for (int j = 0; j < n_octet; j++){
             _donnees[i * n_octet +j] = buffer[(indirection[i] - 1) * n_octet + j];
@@ -1551,7 +1551,7 @@ void PDM_io_lec_par_entrelacee
       int  n_donnees_bloc = 0;
       int *n_composantes_recues = NULL;
 
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+      if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
 
         /* Envoi/Reception des composantes */
 
@@ -1611,7 +1611,7 @@ void PDM_io_lec_par_entrelacee
 
       }
 
-      else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
+      else if (t_n_composantes == PDM_STRIDE_CST_INTERLACED) {
         int _n_composantes = *n_composantes;
         for (int i = 0; i < fichier->n_rangs; i++) {
           PDM_g_num_t _n_donnees_rangs = n_donnees_rangs[i + 1] - n_donnees_rangs[i];
@@ -1648,8 +1648,8 @@ void PDM_io_lec_par_entrelacee
 
         /* Lecture en parallele des blocs */
 
-      case PDM_IO_ACCES_MPIIO_EO:
-      case PDM_IO_ACCES_MPIIO_IP:
+      case PDM_IO_KIND_MPIIO_EO:
+      case PDM_IO_KIND_MPIIO_IP:
         {
           PDM_g_num_t debut_bloc = 0;
           for (int i = 0; i < fichier->rang; i++)
@@ -1664,7 +1664,7 @@ void PDM_io_lec_par_entrelacee
                                              debut_bloc);
 
             if (n_donnees_lues != n_donnees_bloc) {
-              PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lec_par_entrelacee :"
+              PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_par_interlaced_read :"
                       " Erreur de lecture du fichier '%s' \n", fichier->nom);
               abort();
             }
@@ -1675,7 +1675,7 @@ void PDM_io_lec_par_entrelacee
         /* Lecture sequentielle des blocs puis envoie
            au rangs actifs cibles */
 
-      case PDM_IO_ACCES_MPI_SIMPLE:
+      case PDM_IO_KIND_MPI_SIMPLE:
         {
           int etat_lecture = 1; /* Indicateur permettant de determiner
                                    une erreur de lecture */
@@ -1725,7 +1725,7 @@ void PDM_io_lec_par_entrelacee
           PDM_MPI_Bcast(&etat_lecture, 1, PDM_MPI_INT, 0, fichier->comm);
 
           if (etat_lecture == 0) {
-            PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lec_par_entrelacee :"
+            PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_par_interlaced_read :"
                     " Erreur de lecture du fichier '%s' \n", fichier->nom);
             abort();
           }
@@ -1755,7 +1755,7 @@ void PDM_io_lec_par_entrelacee
 
       int n_donnees_rang = (int) _n_donnees_rang1;
 
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+      if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
 
         int *n_composantes_ordonnees = NULL;
 
@@ -1878,7 +1878,7 @@ void PDM_io_lec_par_entrelacee
 
       }
 
-      else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
+      else if (t_n_composantes == PDM_STRIDE_CST_INTERLACED) {
         const int _n_octet_composantes = *n_composantes * taille_donnee;
 
         buffer_ordonne = (unsigned char*) malloc(sizeof(unsigned char) *
@@ -1949,12 +1949,12 @@ void PDM_io_lec_par_entrelacee
 
         PDM_timer_resume(timer_swap_endian);
         PDM_g_num_t l_donnees = 0;
-        if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+        if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
           l_donnees = 0;
           for (int i = 0; i < n_donnees; i++)
             l_donnees += n_composantes[i];
         }
-        else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
+        else if (t_n_composantes == PDM_STRIDE_CST_INTERLACED) {
           const int _n_composantes = *n_composantes;
           l_donnees = _n_composantes * n_donnees;
         }
@@ -1983,7 +1983,7 @@ void PDM_io_lec_par_entrelacee
 
       /* free(rangs_actifs);          /\* n_rangs_actifs *\/ */
 
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+      if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
         free(n_composantes_recues);
       }
 
@@ -1996,7 +1996,7 @@ void PDM_io_lec_par_entrelacee
     err_code = 1;
 
   if (err_code){
-    PDM_error(__FILE__, __LINE__, 0,"PDM_io_lec_par_entrelacee: invalid file\n");
+    PDM_error(__FILE__, __LINE__, 0,"PDM_io_par_interlaced_read: invalid file\n");
     abort();
   }
 }
@@ -2007,8 +2007,8 @@ void PDM_io_lec_par_entrelacee
  * Les blocs doivent etre ranges par ordre croissant suivant la numerotation
  * des processus
  *
- * \param [in]  fichier          Pointer to \ref PDM_io_fichier_t object
- * \param [in]  t_n_composantes  Type de tailles composantes (PDM_IO_N_COMPOSANTE_CONSTANT ou PDM_IO_N_COMPOSANTE_VARIABLE)
+ * \param [in]  fichier          Pointer to \ref PDM_io_file_t object
+ * \param [in]  t_n_composantes  Type de tailles composantes (PDM_STRIDE_CST_INTERLACED ou PDM_STRIDE_VAR_INTERLACED)
  * \param [in]  n_composantes    Nombre de composantes pour chaque donnee
  * \param [in]  taille_donnee    Taille unitaire de la donnee
  * \param [in]  n_donnees        Nombre de donnees a lire
@@ -2017,10 +2017,10 @@ void PDM_io_lec_par_entrelacee
  *
  */
 
-void PDM_io_lec_par_bloc
+void PDM_io_par_block_read
 (
- PDM_io_fichier_t             *fichier,
- const PDM_io_n_composantes_t  t_n_composantes,
+ PDM_io_file_t             *fichier,
+ const PDM_stride_t  t_n_composantes,
  const PDM_l_num_t            *n_composantes,
  const PDM_l_num_t             taille_donnee,
  const PDM_l_num_t             n_donnees,
@@ -2035,7 +2035,7 @@ void PDM_io_lec_par_bloc
   if (fichier != NULL) {
 
     if (fichier->fmt_t == PDM_IO_FMT_TXT) {
-      PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_lec_par_bloc :\n"
+      PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_par_block_read :\n"
               "Format text non traite\n");
       abort();
     }
@@ -2049,10 +2049,10 @@ void PDM_io_lec_par_bloc
 
     /* En acces purement sequentiel sortie en erreur */
 
-    /* if (fichier->acces == PDM_IO_ACCES_SEQ) { */
+    /* if (fichier->acces == PDM_IO_KIND_SEQ) { */
 
-    /*   PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lec_par_bloc :" */
-    /*           " Fonction indisponible en acces sequentiel (PDM_IO_ACCES_SEQ) \n"); */
+    /*   PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_par_block_read :" */
+    /*           " Fonction indisponible en acces sequentiel (PDM_IO_KIND_SEQ) \n"); */
     /*   abort(); */
 
     /* } */
@@ -2060,19 +2060,19 @@ void PDM_io_lec_par_bloc
     if (fichier->n_rangs == 1) {
 
       int l_donnees = 0;
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+      if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
         l_donnees = 0;
         for (int i = 0; i < n_donnees; i++)
           l_donnees += n_composantes[i];
       }
-      else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
+      else if (t_n_composantes == PDM_STRIDE_CST_INTERLACED) {
         const int _n_composantes = *n_composantes;
         l_donnees = _n_composantes * n_donnees;
       }
 
       PDM_timer_hang_on(timer_total);
 
-      PDM_io_lecture_globale(fichier,
+      PDM_io_global_read(fichier,
                                taille_donnee,
                                l_donnees,
                                donnees);
@@ -2227,7 +2227,7 @@ void PDM_io_lec_par_bloc
 
         buffer = (unsigned char *) donnees;
 
-        if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+        if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
           n_donnees_bloc_actif = 0;
           for (int i = 0; i < n_donnees; i++) {
             n_donnees_bloc_actif += n_composantes[i];
@@ -2269,8 +2269,8 @@ void PDM_io_lec_par_bloc
 
         /* Ecriture parallele des blocs */
 
-      case PDM_IO_ACCES_MPIIO_EO:
-      case PDM_IO_ACCES_MPIIO_IP:
+      case PDM_IO_KIND_MPIIO_EO:
+      case PDM_IO_KIND_MPIIO_IP:
         if (fichier->rang_actif) {
           PDM_file_par_lecture_parallele(fichier->PDM_file_par,
                                          taille_donnee,
@@ -2283,7 +2283,7 @@ void PDM_io_lec_par_bloc
         /* Lecture sequentielle des blocs puis envoi
            au rangs actifs cibles */
 
-      case PDM_IO_ACCES_MPI_SIMPLE:
+      case PDM_IO_KIND_MPI_SIMPLE:
         {
 
           int *n_donnees_blocs_actifs =
@@ -2354,7 +2354,7 @@ void PDM_io_lec_par_bloc
           PDM_MPI_Bcast(&etat_lecture, 1, PDM_MPI_INT, 0, fichier->comm);
 
           if (etat_lecture == 0) {
-            PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lec_par_bloc :"
+            PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_par_block_read :"
                     " Erreur de lecture du fichier '%s' \n", fichier->nom);
             abort();
           }
@@ -2409,12 +2409,12 @@ void PDM_io_lec_par_bloc
 
       PDM_timer_resume(timer_swap_endian);
       PDM_g_num_t l_donnees = 0;
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+      if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
         l_donnees = 0;
         for (int i = 0; i < n_donnees; i++)
           l_donnees += n_composantes[i];
       }
-      else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
+      else if (t_n_composantes == PDM_STRIDE_CST_INTERLACED) {
         const int _n_composantes = *n_composantes;
         l_donnees = _n_composantes * n_donnees;
       }
@@ -2434,7 +2434,7 @@ void PDM_io_lec_par_bloc
     err_code = 1;
 
   if (err_code){
-    PDM_error(__FILE__, __LINE__, 0,"PDM_io_lec_par_bloc: invalid file\n");
+    PDM_error(__FILE__, __LINE__, 0,"PDM_io_par_block_read: invalid file\n");
     abort();
   }
 }
@@ -2444,8 +2444,8 @@ void PDM_io_lec_par_bloc
  * \brief Tri des donnees suivant l'indirection puis ecriture parallele des blocs de
  * donnees
  *
- * \param [in]  fichier          Pointer to \ref PDM_io_fichier_t object
- * \param [in] t_n_composantes   Type de tailles composantes (PDM_IO_N_COMPOSANTE_CONSTANT ou PDM_IO_N_COMPOSANTE_VARIABLE)
+ * \param [in]  fichier          Pointer to \ref PDM_io_file_t object
+ * \param [in] t_n_composantes   Type de tailles composantes (PDM_STRIDE_CST_INTERLACED ou PDM_STRIDE_VAR_INTERLACED)
  * \param [in] n_composantes     Nombre de composantes pour chaque donnee
  * \param [in] taille_donnee     Taille unitaire de la donnee
  * \param [in] n_donnees         Nombre de donnees a ecrire
@@ -2454,10 +2454,10 @@ void PDM_io_lec_par_bloc
  *
  */
 
-void PDM_io_ecr_par_entrelacee
+void PDM_io_par_interlaced_write
 (
- PDM_io_fichier_t             *fichier,
- const PDM_io_n_composantes_t  t_n_composantes,
+ PDM_io_file_t             *fichier,
+ const PDM_stride_t  t_n_composantes,
  const PDM_l_num_t            *n_composantes,
  const PDM_l_num_t             taille_donnee,
  const PDM_l_num_t             n_donnees,
@@ -2501,7 +2501,7 @@ void PDM_io_ecr_par_entrelacee
         _id_max = PDM_IO_MAX(_id_max, indirection[i]);
       }
 
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+      if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
 
         PDM_g_num_t *index = PDM_array_const_gnum(n_donnees + 1, 0);
 
@@ -2537,7 +2537,7 @@ void PDM_io_ecr_par_entrelacee
         free(index);
       }
 
-      else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
+      else if (t_n_composantes == PDM_STRIDE_CST_INTERLACED) {
         _n_donnees = (int) _id_max * n_composantes[0];
         int n_octet = taille_donnee * n_composantes[0];
         buffer = (unsigned char*) malloc(sizeof(unsigned char) *
@@ -2556,7 +2556,7 @@ void PDM_io_ecr_par_entrelacee
       if (fichier->fmt_t == PDM_IO_FMT_TXT) {
 
         int l_string_donnee = 0;
-        if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+        if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
           for (int i = 0; i < _id_max; i++) {
             l_string_donnee += n_composante_trie[i] * fichier->n_char_fmt + 1; /* +1 pour '\n' */
           }
@@ -2574,7 +2574,7 @@ void PDM_io_ecr_par_entrelacee
         char *s_tmp = string_donnee;
         unsigned char *t_buffer = buffer;
         for (int i = 0; i < _id_max; i++) {
-          if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+          if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
             for (int j = 0; j < n_composante_trie[i]; j++) {
               switch (fichier->data_type) {
               case PDM_IO_T_INT :
@@ -2654,14 +2654,14 @@ void PDM_io_ecr_par_entrelacee
           free(n_composante_trie);
         }
 
-        if (fichier->acces != PDM_IO_ACCES_SEQ) {
-          if ((fichier->acces == PDM_IO_ACCES_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) {
+        if (fichier->acces != PDM_IO_KIND_SEQ) {
+          if ((fichier->acces == PDM_IO_KIND_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) {
             PDM_MPI_Bcast(&n_donnees_ecrites, 1, PDM_MPI_INT, 0, fichier->comm);
           }
         }
 
         if (n_donnees_ecrites != l_string_donnee - 1) {
-          PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_ecriture_globale :"
+          PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_global_write :"
                   " Erreur d'ecriture dans le fichier '%s' \n", fichier->nom);
           abort();
         }
@@ -2670,7 +2670,7 @@ void PDM_io_ecr_par_entrelacee
       /* Ecriture binaire */
 
       else {
-        PDM_io_ecriture_globale(fichier,
+        PDM_io_global_write(fichier,
                                 taille_donnee,
                                 _n_donnees,
                                 buffer);
@@ -2824,7 +2824,7 @@ void PDM_io_ecr_par_entrelacee
 
       int l_blocs_alltoall;
 
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+      if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
 
         /*------------------------------------------------------------
          * Envoi/reception du nombre de composantes
@@ -2943,7 +2943,7 @@ void PDM_io_ecr_par_entrelacee
 
       }
 
-      else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
+      else if (t_n_composantes == PDM_STRIDE_CST_INTERLACED) {
 
         /*----------------------------------------------------------
          *  Preparation des arguments pour l'echange croise des
@@ -3026,8 +3026,8 @@ void PDM_io_ecr_par_entrelacee
 
       size_t l_s_buffer = 0;
 
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE &&
-          fichier->acces == PDM_IO_ACCES_MPI_SIMPLE) {
+      if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED &&
+          fichier->acces == PDM_IO_KIND_MPI_SIMPLE) {
 
         int max_l_blocs_alltoall;
         PDM_MPI_Allreduce(&l_blocs_alltoall, &max_l_blocs_alltoall, 1,
@@ -3066,7 +3066,7 @@ void PDM_io_ecr_par_entrelacee
 
       n_donnees_bloc = 0;
 
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+      if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
 
         const PDM_g_num_t __n_donnees_rang =
           (n_donnees_rangs[fichier->rang + 1] -
@@ -3158,7 +3158,7 @@ void PDM_io_ecr_par_entrelacee
         free(tag);
       }
 
-      else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
+      else if (t_n_composantes == PDM_STRIDE_CST_INTERLACED) {
         const int _n_octet_composantes = n_composantes[0] * taille_donnee;
         const PDM_g_num_t __n_donnees_rang =
           (n_donnees_rangs[fichier->rang + 1] -
@@ -3244,8 +3244,8 @@ void PDM_io_ecr_par_entrelacee
 
         /* Ecriture parallele des blocs */
 
-      case PDM_IO_ACCES_MPIIO_EO:
-      case PDM_IO_ACCES_MPIIO_IP:
+      case PDM_IO_KIND_MPIIO_EO:
+      case PDM_IO_KIND_MPIIO_IP:
         {
           PDM_g_num_t debut_bloc = 0;
           for (int i = 0; i < fichier->rang; i++)
@@ -3264,7 +3264,7 @@ void PDM_io_ecr_par_entrelacee
         /* Ecriture sequentielle des blocs puis envoi
            au rangs actifs cibles */
 
-      case PDM_IO_ACCES_MPI_SIMPLE:
+      case PDM_IO_KIND_MPI_SIMPLE:
         {
           int etat_ecriture = 1;
 
@@ -3313,7 +3313,7 @@ void PDM_io_ecr_par_entrelacee
           PDM_MPI_Bcast(&etat_ecriture, 1, PDM_MPI_INT, 0, fichier->comm);
 
           if (etat_ecriture == 0) {
-            PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_ecr_par_entrelacee :"
+            PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_par_interlaced_write :"
                     " Erreur d'ecriture du fichier '%s' \n", fichier->nom);
             abort();
           }
@@ -3346,7 +3346,7 @@ void PDM_io_ecr_par_entrelacee
     err_code = 1;
 
   if (err_code){
-    PDM_error(__FILE__, __LINE__, 0,"PDM_io_ecr_par_entrelacee: invalid file\n");
+    PDM_error(__FILE__, __LINE__, 0,"PDM_io_par_interlaced_write: invalid file\n");
     abort();
   }
 }
@@ -3357,8 +3357,8 @@ void PDM_io_ecr_par_entrelacee
  * Les blocs doivent etre rangés par ordre croissant suivant la numérotation
  * des processus
  *
- * \param [in] fichier           Pointer to \ref PDM_io_fichier_t object
- * \param [in] t_n_composantes   Type de tailles composantes (PDM_IO_N_COMPOSANTE_CONSTANT ou PDM_IO_N_COMPOSANTE_VARIABLE)
+ * \param [in] fichier           Pointer to \ref PDM_io_file_t object
+ * \param [in] t_n_composantes   Type de tailles composantes (PDM_STRIDE_CST_INTERLACED ou PDM_STRIDE_VAR_INTERLACED)
  * \param [in] n_composantes     Nombre de composantes pour chaque donnee
  * \param [in] taille_donnee     Taille unitaire de la donnee
  * \param [in] debut_bloc        Adresse relative du debut de bloc
@@ -3367,10 +3367,10 @@ void PDM_io_ecr_par_entrelacee
  *
  */
 
-void PDM_io_ecr_par_bloc
+void PDM_io_par_block_write
 (
- PDM_io_fichier_t             *fichier,
- const PDM_io_n_composantes_t  t_n_composantes,
+ PDM_io_file_t             *fichier,
+ const PDM_stride_t  t_n_composantes,
  const PDM_l_num_t            *n_composantes,
  const PDM_l_num_t             taille_donnee,
  const PDM_l_num_t             n_donnees,
@@ -3385,7 +3385,7 @@ void PDM_io_ecr_par_bloc
   if (fichier != NULL) {
 
     if (fichier->fmt_t == PDM_IO_FMT_TXT) {
-      PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_ecr_par_bloc :\n"
+      PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_par_block_write :\n"
               "Format text non traite\n");
       abort();
     }
@@ -3399,19 +3399,19 @@ void PDM_io_ecr_par_bloc
     if (fichier->n_rangs == 1) {
 
       int l_donnees = 0;
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+      if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
         l_donnees = 0;
         for (int i = 0; i < n_donnees; i++)
           l_donnees += n_composantes[i];
       }
-      else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
+      else if (t_n_composantes == PDM_STRIDE_CST_INTERLACED) {
         const int _n_composantes = *n_composantes;
         l_donnees = _n_composantes * n_donnees;
       }
 
       PDM_timer_hang_on(timer_total);
 
-      PDM_io_ecriture_globale(fichier,
+      PDM_io_global_write(fichier,
                                 taille_donnee,
                                 l_donnees,
                                 donnees);
@@ -3578,7 +3578,7 @@ void PDM_io_ecr_par_bloc
 
         buffer = (unsigned char *) donnees;
 
-        if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+        if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
           n_donnees_bloc_actif = 0;
           for (int i = 0; i < n_donnees; i++) {
             n_donnees_bloc_actif += n_composantes[i];
@@ -3622,8 +3622,8 @@ void PDM_io_ecr_par_bloc
 
         /* Ecriture parallele des blocs */
 
-      case PDM_IO_ACCES_MPIIO_EO:
-      case PDM_IO_ACCES_MPIIO_IP:
+      case PDM_IO_KIND_MPIIO_EO:
+      case PDM_IO_KIND_MPIIO_IP:
         if (fichier->rang_actif) {
 
           PDM_file_par_ecriture_parallele(fichier->PDM_file_par,
@@ -3636,7 +3636,7 @@ void PDM_io_ecr_par_bloc
 
         /* Ecriture sequentielle des blocs provenant des rangs actifs */
 
-      case PDM_IO_ACCES_MPI_SIMPLE:
+      case PDM_IO_KIND_MPI_SIMPLE:
         {
 
           int *n_donnees_blocs_actifs =
@@ -3706,7 +3706,7 @@ void PDM_io_ecr_par_bloc
           PDM_MPI_Bcast(&etat_ecriture, 1, PDM_MPI_INT, 0, fichier->comm);
 
           if (etat_ecriture == 0) {
-            PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_ecr_par_bloc :"
+            PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_par_block_write :"
                     " Erreur d'ecriture du fichier '%s' \n", fichier->nom);
             abort();
           }
@@ -3738,7 +3738,7 @@ void PDM_io_ecr_par_bloc
     err_code = 1;
 
   if (err_code){
-    PDM_error(__FILE__, __LINE__, 0,"PDM_io_ecr_par_bloc: invalid file\n");
+    PDM_error(__FILE__, __LINE__, 0,"PDM_io_par_block_write: invalid file\n");
     abort();
   }
 }
@@ -3747,13 +3747,13 @@ void PDM_io_ecr_par_bloc
  * \brief Fermeture du fichier sans destruction de la structure PDM_io associee a
  * l'unite
  *
- * \param [in] fichier           Pointer to \ref PDM_io_fichier_t object
+ * \param [in] fichier           Pointer to \ref PDM_io_file_t object
  *
  */
 
 void PDM_io_close
 (
- PDM_io_fichier_t   *fichier
+ PDM_io_file_t   *fichier
 )
 {
   int err_code = 0;
@@ -3788,7 +3788,7 @@ void PDM_io_close
     if (fichier->backup == PDM_IO_BACKUP_ON) {
 
       int proc_actif = 0;
-      if (fichier->acces != PDM_IO_ACCES_SEQ) {
+      if (fichier->acces != PDM_IO_KIND_SEQ) {
         if (fichier->rang == 0) {
           proc_actif = 1;
         }
@@ -3833,14 +3833,14 @@ void PDM_io_close
 /**
  * \brief Destruction de la structure PDM_io associee a l'unite
  *
- * \param [in] fichier           Pointer to \ref PDM_io_fichier_t object
+ * \param [in] fichier           Pointer to \ref PDM_io_file_t object
  *
  */
 
 
-void PDM_io_detruit
+void PDM_io_free
 (
- PDM_io_fichier_t   *fichier
+ PDM_io_file_t   *fichier
 )
 {
   /* Fermeture du fichier */
@@ -3885,7 +3885,7 @@ void PDM_io_detruit
   }
 
   if (err_code){
-    PDM_error(__FILE__, __LINE__, 0,"PDM_io_detruit: invalid file\n");
+    PDM_error(__FILE__, __LINE__, 0,"PDM_io_free: invalid file\n");
     abort();
   }
 }
@@ -3894,7 +3894,7 @@ void PDM_io_detruit
 /**
  * \brief Retourne le temps cumule d'acces aux fichiers
  *
- * \param [in]  fichier           Pointer to \ref PDM_io_fichier_t object
+ * \param [in]  fichier           Pointer to \ref PDM_io_file_t object
  * \param [out] t_cpu             Temps CPU
  * \param [out] t_elapsed         Temps elapsed
  *
@@ -3902,7 +3902,7 @@ void PDM_io_detruit
 
 void PDM_io_get_timer_fichier
 (
- PDM_io_fichier_t *fichier,
+ PDM_io_file_t *fichier,
  double           *t_cpu,
  double           *t_elapsed
 )
@@ -3928,15 +3928,15 @@ void PDM_io_get_timer_fichier
 /**
  * \brief Retourne le temps cumule pour la distribution des donnees
  *
- * \param [in]  fichier           Pointer to \ref PDM_io_fichier_t object
+ * \param [in]  fichier           Pointer to \ref PDM_io_file_t object
  * \param [out] t_cpu             Temps CPU
  * \param [out] t_elapsed         Temps elapsed
  *
  */
 
-void PDM_io_get_timer_distrib
+void PDM_io_timer_distrib_get
 (
- PDM_io_fichier_t *fichier,
+ PDM_io_file_t *fichier,
  double           *t_cpu,
  double           *t_elapsed
 )
@@ -3954,7 +3954,7 @@ void PDM_io_get_timer_distrib
     err_code = 1;
 
   if (err_code){
-    PDM_error(__FILE__, __LINE__, 0,"PDM_io_get_timer_distrib: invalid file\n");
+    PDM_error(__FILE__, __LINE__, 0,"PDM_io_timer_distrib_get: invalid file\n");
     abort();
   }
 }
@@ -3963,15 +3963,15 @@ void PDM_io_get_timer_distrib
 /**
  * \brief Retourne le temps cumule pour le swap des donnees
  *
- * \param [in]  fichier           Pointer to \ref PDM_io_fichier_t object
+ * \param [in]  fichier           Pointer to \ref PDM_io_file_t object
  * \param [out] t_cpu             Temps CPU
  * \param [out] t_elapsed         Temps elapsed
  *
  */
 
-void PDM_io_get_timer_swap_endian
+void PDM_io_timer_swap_endian_get
 (
- PDM_io_fichier_t *fichier,
+ PDM_io_file_t *fichier,
  double           *t_cpu,
  double           *t_elapsed
 )
@@ -3989,7 +3989,7 @@ void PDM_io_get_timer_swap_endian
     err_code = 1;
 
   if (err_code){
-    PDM_error(__FILE__, __LINE__, 0,"PDM_io_get_timer_swap_endian: invalid file\n");
+    PDM_error(__FILE__, __LINE__, 0,"PDM_io_timer_swap_endian_get: invalid file\n");
     abort();
   }
 }
@@ -3998,15 +3998,15 @@ void PDM_io_get_timer_swap_endian
 /**
  * \brief Retourne le temps cumule total
  *
- * \param [in]  fichier           Pointer to \ref PDM_io_fichier_t object
+ * \param [in]  fichier           Pointer to \ref PDM_io_file_t object
  * \param [out] t_cpu             Temps CPU
  * \param [out] t_elapsed         Temps elapsed
  *
  */
 
-void PDM_io_get_timer_total
+void PDM_io_timer_total_get
 (
- PDM_io_fichier_t *fichier,
+ PDM_io_file_t *fichier,
  double           *t_cpu,
  double           *t_elapsed
 )
@@ -4024,7 +4024,7 @@ void PDM_io_get_timer_total
     err_code = 1;
 
   if (err_code){
-    PDM_error(__FILE__, __LINE__, 0,"PDM_io_get_timer_total: invalid file\n");
+    PDM_error(__FILE__, __LINE__, 0,"PDM_io_timer_total_get: invalid file\n");
     abort();
   }
 }
@@ -4033,13 +4033,13 @@ void PDM_io_get_timer_total
 /**
  * \brief Affiche les informations sur le fichier
  *
- * \param [in]  fichier           Pointer to \ref PDM_io_fichier_t object
+ * \param [in]  fichier           Pointer to \ref PDM_io_file_t object
  *
  */
 
 void PDM_io_dump
 (
- PDM_io_fichier_t   *fichier
+ PDM_io_file_t   *fichier
 )
 {
   int err_code = 0;
@@ -4048,20 +4048,20 @@ void PDM_io_dump
     // PDM_printf("Propriete du fichier d'unite '%i'\n", unite);
     PDM_printf("   - nom                           : %s\n", fichier->nom);
     PDM_printf("   - mode                          : ");
-    if (fichier->mode == PDM_IO_MODE_LECTURE)
+    if (fichier->mode == PDM_IO_MOD_READ)
       PDM_printf("PDM_io_mode_lecture\n");
-    else if (fichier->mode == PDM_IO_MODE_ECRITURE)
+    else if (fichier->mode == PDM_IO_MOD_WRITE)
       PDM_printf("PDM_io_mode_ecriture\n");
-    else if (fichier->mode == PDM_IO_MODE_AJOUT)
+    else if (fichier->mode == PDM_IO_MOD_APPEND)
       PDM_printf("PDM_io_mode_ajout\n");
     PDM_printf("   - acces                         : ");
-    if (fichier->acces == PDM_IO_ACCES_MPIIO_EO)
+    if (fichier->acces == PDM_IO_KIND_MPIIO_EO)
       PDM_printf("PDM_io_acces_mpiio_eo\n");
-    else if (fichier->acces == PDM_IO_ACCES_MPIIO_IP)
+    else if (fichier->acces == PDM_IO_KIND_MPIIO_IP)
       PDM_printf("PDM_io_acces_mpiio_ip\n");
-    else if (fichier->acces == PDM_IO_ACCES_MPI_SIMPLE)
+    else if (fichier->acces == PDM_IO_KIND_MPI_SIMPLE)
       PDM_printf("PDM_io_acces_mpi_simple\n");
-    else if (fichier->acces == PDM_IO_ACCES_SEQ)
+    else if (fichier->acces == PDM_IO_KIND_SEQ)
       PDM_printf("PDM_io_acces_seq\n");
 
     PDM_printf("   - swap_endian                   : ");
@@ -4083,14 +4083,14 @@ void PDM_io_dump
 /**
  * \brief Retourne le communicateur du fichier
  *
- * \param [in]  fichier           Pointer to \ref PDM_io_fichier_t object
+ * \param [in]  fichier           Pointer to \ref PDM_io_file_t object
  * \param [out] pdm_mpi_comm      Communicateur MPI
  *
  */
 
-void PDM_io_get_comm
+void PDM_io_comm_get
 (
- PDM_io_fichier_t *fichier,
+ PDM_io_file_t *fichier,
  PDM_MPI_Comm     *pdm_mpi_comm
 )
 {
@@ -4102,7 +4102,7 @@ void PDM_io_get_comm
     err_code = 1;
 
   if (err_code){
-    PDM_error(__FILE__, __LINE__, 0,"PDM_io_get_comm: invalid file\n");
+    PDM_error(__FILE__, __LINE__, 0,"PDM_io_comm_get: invalid file\n");
     abort();
   }
 }
@@ -4111,13 +4111,13 @@ void PDM_io_get_comm
 /**
  * \brief Active le swap endian
  *
- * \param [in]  fichier           Pointer to \ref PDM_io_fichier_t object
+ * \param [in]  fichier           Pointer to \ref PDM_io_file_t object
  *
  */
 
 void PDM_io_swap_endian_on
 (
- PDM_io_fichier_t   *fichier
+ PDM_io_file_t   *fichier
 )
 {
   int err_code = 0;
@@ -4137,13 +4137,13 @@ void PDM_io_swap_endian_on
 /**
  * \brief Désactive le swap endian
  *
- * \param [in]  fichier           Pointer to \ref PDM_io_fichier_t object
+ * \param [in]  fichier           Pointer to \ref PDM_io_file_t object
  *
  */
 
 void PDM_io_swap_endian_off
 (
- PDM_io_fichier_t   *fichier
+ PDM_io_file_t   *fichier
 )
 {
   int err_code = 0;
@@ -4254,16 +4254,16 @@ void PDM_io_swap_endian
 /**
  * \brief Définit le format de la donnée indviduelle pour la sortie text
  *
- * \param [in]  fichier           Pointer to \ref PDM_io_fichier_t object
+ * \param [in]  fichier           Pointer to \ref PDM_io_file_t object
  * \param [in]  n_char_fmt        Nombre de caractères du format
  * \param [in]  data_type         Type de donnees
  * \param [in]  fmt               Format
  *
  */
 
-void PDM_io_fmt_donnee_set
+void PDM_io_fmt_data_set
 (
- PDM_io_fichier_t    *fichier,
+ PDM_io_file_t    *fichier,
  const PDM_l_num_t    n_char_fmt,
  const PDM_io_type_t  data_type,
  const char          *fmt
@@ -4284,7 +4284,7 @@ void PDM_io_fmt_donnee_set
     err_code = 1;
 
   if (err_code){
-    PDM_error(__FILE__, __LINE__, 0,"PDM_io_fmt_donnee_set: invalid file\n");
+    PDM_error(__FILE__, __LINE__, 0,"PDM_io_fmt_data_set: invalid file\n");
     abort();
   }
 }
@@ -4341,8 +4341,8 @@ int PDM_io_mkdir
 /**
  * \brief Calcul de la taille totale d'un champ de donnees
  *
- * \param [in]  fichier          Pointer to \ref PDM_io_fichier_t object
- * \param [in]  t_n_composantes  Type de tailles composantes (PDM_IO_N_COMPOSANTE_CONSTANT ou PDM_IO_N_COMPOSANTE_VARIABLE)
+ * \param [in]  fichier          Pointer to \ref PDM_io_file_t object
+ * \param [in]  t_n_composantes  Type de tailles composantes (PDM_STRIDE_CST_INTERLACED ou PDM_STRIDE_VAR_INTERLACED)
  * \param [in]  n_composantes    Nombre de composantes pour chaque donnee
  * \param [in]  n_donnees        Nombre de donnees
  * \param [in]  indirection      Indirection de redistribition des donnees
@@ -4352,10 +4352,10 @@ int PDM_io_mkdir
  */
 
 PDM_g_num_t
-PDM_io_n_donnees_get
+PDM_io_n_data_get
 (
- PDM_io_fichier_t             *fichier,
- const PDM_io_n_composantes_t  t_n_composantes,
+ PDM_io_file_t             *fichier,
+ const PDM_stride_t  t_n_composantes,
  const PDM_l_num_t            *n_composantes,
  const PDM_l_num_t             n_donnees,
  const PDM_g_num_t            *indirection
@@ -4380,7 +4380,7 @@ PDM_io_n_donnees_get
 
       int _n_donnees = 0;
 
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+      if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
 
         for (int i = 0; i < n_donnees; i++) {
           _n_donnees += n_composantes[i];
@@ -4388,7 +4388,7 @@ PDM_io_n_donnees_get
 
       }
 
-      else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
+      else if (t_n_composantes == PDM_STRIDE_CST_INTERLACED) {
         _n_donnees = n_donnees * n_composantes[0];
       }
 
@@ -4427,7 +4427,7 @@ PDM_io_n_donnees_get
                     PDM_MPI_MAX,
                     fichier->comm);
 
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+      if (t_n_composantes == PDM_STRIDE_VAR_INTERLACED) {
 
         _n_donnees_rang(fichier,
                         _id_max_max,
@@ -4606,7 +4606,7 @@ PDM_io_n_donnees_get
 
       }
 
-      else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
+      else if (t_n_composantes == PDM_STRIDE_CST_INTERLACED) {
 
         const int _n_composantes = n_composantes[0];
 
@@ -4630,7 +4630,7 @@ PDM_io_n_donnees_get
   }
 
   if (err_code){
-    PDM_error(__FILE__, __LINE__, 0,"PDM_io_n_donnees_get: invalid file\n");
+    PDM_error(__FILE__, __LINE__, 0,"PDM_io_n_data_get: invalid file\n");
     abort();
   }
 
