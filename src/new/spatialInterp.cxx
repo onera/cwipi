@@ -466,7 +466,7 @@ namespace cwipi {
       }
 
       if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-        _visu -> WriterField(referenceField);
+        _visu -> WriterField(referenceField, CWP_FIELD_MAP_SOURCE);
       }
     }
 
@@ -506,7 +506,7 @@ namespace cwipi {
         }
 
         if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-          _visu -> WriterField(referenceField);
+          _visu -> WriterField(referenceField, CWP_FIELD_MAP_SOURCE);
         }
 
 
@@ -561,7 +561,7 @@ namespace cwipi {
           }
 
           if(cpl_spatial_interp->_visu -> isCreated() && cpl_referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-            cpl_spatial_interp->_visu -> WriterField(cpl_referenceField);
+            cpl_spatial_interp->_visu -> WriterField(cpl_referenceField, CWP_FIELD_MAP_TARGET);
           }
 
         }
@@ -835,7 +835,7 @@ namespace cwipi {
       }
 
       if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-        _visu -> WriterField(referenceField);
+        _visu -> WriterField(referenceField, CWP_FIELD_MAP_TARGET);
       }
 
     }
@@ -931,11 +931,11 @@ namespace cwipi {
         }
 
         if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-          _visu -> WriterField(referenceField);
+          _visu -> WriterField(referenceField, CWP_FIELD_MAP_TARGET);
         }
 
         if(cpl_spatial_interp->_visu -> isCreated() && cpl_referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-          cpl_spatial_interp->_visu -> WriterField(cpl_referenceField);
+          cpl_spatial_interp->_visu -> WriterField(cpl_referenceField, CWP_FIELD_MAP_SOURCE);
         }
 
       }
