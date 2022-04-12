@@ -371,8 +371,8 @@ namespace cwipi {
                         gnum   );
 
          }
-      }
-      else if(t_block == PDM_MESH_NODAL_POLY_2D){
+       }
+       else if(t_block == PDM_MESH_NODAL_POLY_2D){
          int block_id = blockAdd(CWP_BLOCK_FACE_POLY);
          for(int i_part =0;i_part<_npart;i_part++){
            int n_poly = PDM_Mesh_nodal_block_n_elt_get (_pdmNodal_handle_index, block_ids[i], i_part);
@@ -387,20 +387,8 @@ namespace cwipi {
                            connec_idx,
                            connec ,
                            gnum   );
-        }
-      }
-      else if (t_block == PDM_MESH_NODAL_HEXA8) {
-        int block_id = blockAdd(CWP_BLOCK_CELL_HEXA8);
-        for (int i_part = 0 ; i_part < _npart ; i_part++) {
-          int n_hexa = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index, block_ids[i], i_part);
-          int *connec = NULL;
-          CWP_g_num_t *gnum;
-          PDM_Mesh_nodal_block_std_get(_pdmNodal_handle_index, block_ids[i], i_part, &connec);
-          gnum = PDM_Mesh_nodal_g_num_get(_pdmNodal_handle_index, block_ids[i], i_part);
-
-          stdBlockSet(i_part, block_id, n_hexa, connec, gnum);
-        }
-      }
+         }
+       }
        else if (t_block == PDM_MESH_NODAL_TETRA4) {
          int block_id = blockAdd(CWP_BLOCK_CELL_TETRA4);
          for (int i_part = 0 ; i_part < _npart ; i_part++) {
@@ -413,7 +401,42 @@ namespace cwipi {
            stdBlockSet(i_part, block_id, n_tetra, connec, gnum);
          }
        }
-      // Define all the other types
+       else if (t_block == PDM_MESH_NODAL_PYRAMID5) {
+         int block_id = blockAdd(CWP_BLOCK_CELL_PYRAM5);
+         for (int i_part = 0 ; i_part < _npart ; i_part++) {
+           int n_pyramid = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index, block_ids[i], i_part);
+           int *connec = NULL;
+           CWP_g_num_t *gnum;
+           PDM_Mesh_nodal_block_std_get(_pdmNodal_handle_index, block_ids[i], i_part, &connec);
+           gnum = PDM_Mesh_nodal_g_num_get(_pdmNodal_handle_index, block_ids[i], i_part);
+
+           stdBlockSet(i_part, block_id, n_pyramid, connec, gnum);
+         }
+       }
+       else if (t_block == PDM_MESH_NODAL_PRISM6) {
+         int block_id = blockAdd(CWP_BLOCK_CELL_PRISM6);
+         for (int i_part = 0 ; i_part < _npart ; i_part++) {
+           int n_prism = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index, block_ids[i], i_part);
+           int *connec = NULL;
+           CWP_g_num_t *gnum;
+           PDM_Mesh_nodal_block_std_get(_pdmNodal_handle_index, block_ids[i], i_part, &connec);
+           gnum = PDM_Mesh_nodal_g_num_get(_pdmNodal_handle_index, block_ids[i], i_part);
+
+           stdBlockSet(i_part, block_id, n_prism, connec, gnum);
+         }
+       }
+       else if (t_block == PDM_MESH_NODAL_HEXA8) {
+         int block_id = blockAdd(CWP_BLOCK_CELL_HEXA8);
+         for (int i_part = 0 ; i_part < _npart ; i_part++) {
+           int n_hexa = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index, block_ids[i], i_part);
+           int *connec = NULL;
+           CWP_g_num_t *gnum;
+           PDM_Mesh_nodal_block_std_get(_pdmNodal_handle_index, block_ids[i], i_part, &connec);
+           gnum = PDM_Mesh_nodal_g_num_get(_pdmNodal_handle_index, block_ids[i], i_part);
+
+           stdBlockSet(i_part, block_id, n_hexa, connec, gnum);
+         }
+       }
      }
    }
 
