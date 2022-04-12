@@ -1168,18 +1168,18 @@ main
     }
   }
 
-//  for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-//    if (code_id[i_code] == 2 && (exchDirection[1] == CWP_FIELD_EXCH_RECV)) {
-//      for (int i = 0 ; i < n_computed_tgts ; i++) {
-//        printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
-//      }
-//    }
-//    if (code_id[i_code] == 1 && (exchDirection[0] == CWP_FIELD_EXCH_RECV)) {
-//      for (int i = 0 ; i < n_computed_tgts ; i++) {
-//        printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
-//      }
-//    }
-//  }
+ for (int i_code = 0 ; i_code < n_code ; ++i_code) {
+   if (code_id[i_code] == 2 && (exchDirection[1] == CWP_FIELD_EXCH_RECV)) {
+     for (int i = 0 ; i < n_computed_tgts ; i++) {
+       printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
+     }
+   }
+   if (code_id[i_code] == 1 && (exchDirection[0] == CWP_FIELD_EXCH_RECV)) {
+     for (int i = 0 ; i < n_computed_tgts ; i++) {
+       printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
+     }
+   }
+ }
 
     // for (int i_code = 0 ; i_code < n_code ; i_code++) {
     //     if (code_id[i_code] == 2) {

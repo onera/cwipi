@@ -320,7 +320,7 @@ namespace cwipi {
 
   void Visu::GeomFree() {
     PDM_writer_geom_data_free(_visu_id,_visu_mesh_id);
-  //   PDM_writer_geom_free(_visu_id,_visu_mesh_id);
+//    PDM_writer_geom_free(_visu_id,_visu_mesh_id);
   }
 
 
@@ -392,7 +392,6 @@ namespace cwipi {
     id_var = field -> visuIdGet();
 
     PDM_writer_var_write(_visu_id, id_var);
-    //PDM_writer_var_data_free(_visu_id, id_var);
 
   }
 
