@@ -249,7 +249,7 @@ namespace cwipi {
 
     inline double physicalTimeGet();
 
-    void WriterField(Field* field);
+    void WriterField(Field* field, const CWP_Field_map_t map_type);
 
    /**
     * \brief Convert a CWIPI block type CWP_Block_t to a PDM_writer block type

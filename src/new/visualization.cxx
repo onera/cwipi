@@ -320,7 +320,7 @@ namespace cwipi {
 
   void Visu::GeomFree() {
     PDM_writer_geom_data_free(_visu_id,_visu_mesh_id);
-  //   PDM_writer_geom_free(_visu_id,_visu_mesh_id);
+//    PDM_writer_geom_free(_visu_id,_visu_mesh_id);
   }
 
 
@@ -386,13 +386,17 @@ namespace cwipi {
 
 /********************************************************/
 
-  void Visu::WriterField(Field* field) {
+  void Visu::WriterField(Field* field, const CWP_Field_map_t  map_type) {
     int id_var = -1;
 
     id_var = field -> visuIdGet();
+    //TODO: CHange double for multitype
+
+    for (int i = 0; i < _n_part; i++) {
+      PDM_writer_var_set(_visu_id, id_var, _visu_mesh_id, i, (double*) field->dataGet(i, map_type));
+    }
 
     PDM_writer_var_write(_visu_id, id_var);
-    //PDM_writer_var_data_free(_visu_id, id_var);
 
   }
 
