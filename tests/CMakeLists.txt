@@ -142,10 +142,15 @@ if (CWP_ENABLE_NEW_API)
     test_c_create (c_new_api 10)
   endif ()
 
-    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_disjoint_comms.c")
+  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_disjoint_comms.c")
       set(MPIEXEC_PREFLAGS "--oversubscribe")
       test_c_create (c_new_api_disjoint_comms 10)
-    endif ()
+  endif ()
+
+  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_multiblock2.c")
+      set(MPIEXEC_PREFLAGS "--oversubscribe")
+      test_c_create (c_new_api_multiblock2 2)
+  endif ()
 
   if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_avbp.c")
       test_c_create (c_new_api_avbp 2)

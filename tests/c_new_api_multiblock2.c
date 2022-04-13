@@ -1,3 +1,4 @@
+#include <math.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -273,10 +274,10 @@ main
 
   // Cas traites :
 
-  // bool cond_code1 = rank % 2 == 0;
-  // bool cond_code2 = rank % 2 == 1;
-  // exchDirection[0] = CWP_FIELD_EXCH_SEND;
-  // exchDirection[1] = CWP_FIELD_EXCH_RECV;
+   bool cond_code1 = rank % 2 == 0;
+   bool cond_code2 = rank % 2 == 1;
+   exchDirection[0] = CWP_FIELD_EXCH_SEND;
+   exchDirection[1] = CWP_FIELD_EXCH_RECV;
 
   // bool cond_code1 = rank == 0 || rank == 1;
   // bool cond_code2 = rank == 1;
@@ -298,10 +299,10 @@ main
   // exchDirection[0] = CWP_FIELD_EXCH_SEND;
   // exchDirection[1] = CWP_FIELD_EXCH_RECV;
 
-  bool cond_code1 = rank == 1 || rank == 2;
-  bool cond_code2 = rank == 0 || rank == 2;
-  exchDirection[0] = CWP_FIELD_EXCH_SEND;
-  exchDirection[1] = CWP_FIELD_EXCH_RECV;
+//  bool cond_code1 = rank == 1 || rank == 2;
+//  bool cond_code2 = rank == 0 || rank == 2;
+//  exchDirection[0] = CWP_FIELD_EXCH_SEND;
+//  exchDirection[1] = CWP_FIELD_EXCH_RECV;
 
   // bool cond_code1 = rank == 1 || rank == 2;
   // bool cond_code2 = rank == 0 || rank == 2;
@@ -325,6 +326,9 @@ main
 
   CWP_Block_t element_type_code1_cwp = CWP_BLOCK_CELL_HEXA8;
   CWP_Block_t element_type_code2_cwp = CWP_BLOCK_CELL_HEXA8;
+
+  int n_pts_per_elt_code1 = 8;
+  int n_pts_per_elt_code2 = 8;
 
   int n_vtx_seg_code1 = 4, n_vtx_seg_code2 = 3;
   double x_min_code1 = 0., x_min_code2 = 0.;
@@ -665,16 +669,42 @@ main
         PDM_Mesh_nodal_g_num_in_block_compute(mesh_nodal[i_code], i_block);
         PDM_g_num_t *g_num = PDM_Mesh_nodal_block_g_num_get(mesh_nodal[i_code], i_block, i_part);
 
-        int block_id = CWP_Mesh_interf_block_add (code_names[i_code],
-                                                  cpl_name,
-                                                  element_type_cwp[i_code]);
+        int n_cells_block1 = n_cells[i_code][i_part] / 3;
+        int n_cells_block2 = n_cells[i_code][i_part] - n_cells_block1;
 
-        CWP_Mesh_interf_block_std_set(code_names[i_code], 
-                                      cpl_name, 
-                                      i_part, 
-                                      block_id, 
-                                      n_cells[i_code][i_part], 
-                                      connec[i_code][i_part], 
+        int* connec_block1 = (int*) malloc(sizeof(int) * n_cells_block1 * n_pts_per_elt_code1);
+        int* connec_block2 = (int*) malloc(sizeof(int) * n_cells_block2 * n_pts_per_elt_code2);
+
+        for (int i = 0 ; i < n_pts_per_elt_code1 * n_cells_block1 ; ++i) {
+          connec_block1[i] = connec[i_code][i_part][i];
+        }
+        for (int i = 0 ; i < n_pts_per_elt_code2 * n_cells_block2 ; ++i) {
+          connec_block2[i] = connec[i_code][i_part][n_pts_per_elt_code1 * n_cells_block1 + i];
+        }
+
+        printf("n_cells block1 %d\n", n_cells_block1);
+        printf("n_cells block2 %d\n", n_cells_block2);
+
+        int block_id1 = CWP_Mesh_interf_block_add (code_names[i_code],
+                                                   cpl_name,
+                                                   element_type_cwp[i_code]);
+        int block_id2 = CWP_Mesh_interf_block_add (code_names[i_code],
+                                                   cpl_name,
+                                                   element_type_cwp[i_code]);
+
+        CWP_Mesh_interf_block_std_set(code_names[i_code],
+                                      cpl_name,
+                                      i_part,
+                                      block_id1,
+                                      n_cells_block1,
+                                      connec_block1,
+                                      g_num);
+        CWP_Mesh_interf_block_std_set(code_names[i_code],
+                                      cpl_name,
+                                      i_part,
+                                      block_id2,
+                                      n_cells_block2,
+                                      connec_block2,
                                       g_num);
       }
     }
