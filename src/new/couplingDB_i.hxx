@@ -21,7 +21,7 @@
 
 #include <cassert>
 
-#include <bftc_error.h>
+#include <pdm_error.h>
 
 #include "codeProperties.hxx"
 
@@ -48,14 +48,14 @@ namespace cwipi {
     Iterator p = _couplingDB.find(&localCodeProperties);
     Iterator2 p1;
     if (p == _couplingDB.end()) {
-      bftc_error(__FILE__, __LINE__, 0, 
+      PDM_error(__FILE__, __LINE__, 0, 
                 "'%s' coupling not found for '%s' code\n", cplId.c_str(), 
                 localCodeProperties.nameGet().c_str());
     }
     else {
       p1 = p->second.find(cplId);
       if (p1 == p->second.end()) {
-        bftc_error(__FILE__, __LINE__, 0, 
+        PDM_error(__FILE__, __LINE__, 0, 
                     "'%s' coupling not found '%s' code\n", cplId.c_str(),
                    localCodeProperties.nameGet().c_str());
       }

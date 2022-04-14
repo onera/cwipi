@@ -25,7 +25,7 @@
 #include <mpi.h>
 
 #include <pdm_mesh_nodal.h>
-#include <bftc_error.h>
+#include <pdm_printf.h>
 #include "pdm_error.h"
 #include "pdm_gnum.h"
 #include "block.hxx"

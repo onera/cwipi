@@ -23,8 +23,6 @@
 #include "cwp.h"
 #include <pdm_mesh_nodal.h>
 #include <pdm_gnum.h>
-#include <bftc_error.h>
-#include <bftc_printf.h>
 #include <map>
 #include <vector>
 #include <mesh.hxx>

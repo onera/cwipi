@@ -110,7 +110,7 @@ namespace cwipi {
       else if (option == "binary")           fmt_fic = PDM_WRITER_FMT_BIN;
       else if (option == "divide_polygons")  _divide_polygons = PDM_WRITER_ON;
       else if (option == "divide_polyhedra") _divide_polyhedra = PDM_WRITER_ON;
-      else if (option != "")                 bftc_error(__FILE__, __LINE__, 0,
+      else if (option != "")                 PDM_error(__FILE__, __LINE__, 0,
                                                         "Not a valid visualization option.\n");
 
     }

@@ -31,8 +31,8 @@
 #include "pdm_timer.h"
 #include "pdm_gnum_location.h"
 #include "pdm_binary_search.h"
-#include "bftc_error.h"
-#include "bftc_printf.h"
+#include "pdm_error.h"
+#include "pdm_printf.h"
 #include "cwp.h"
 #include "cwp_priv.h"
 #include <limits>
