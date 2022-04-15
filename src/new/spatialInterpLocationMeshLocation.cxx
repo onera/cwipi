@@ -238,7 +238,6 @@ namespace cwipi {
   }
 
 
-
   void 
   SpatialInterpLocationMeshLocation::localization_surface_setting
   (
@@ -246,249 +245,35 @@ namespace cwipi {
   {
 
     if (!_coupledCodeProperties->localCodeIs()) {
-      if (_mesh->getNFace(0) == 0) {
 
-        if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-          PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, _pdm_CplNodal);
-        }
-        else {
-//          PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, NULL);
-        }
+      printf("Shared Nodal\n");
+      if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
 
+        PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, _pdm_CplNodal);
       }
 
-      else {
-        CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
-        if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-
-          for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
-            int n_vtx = _mesh->getPartNVertex(i_part);
-            int n_face = _mesh->getNFace(i_part);
-            double *coords = _mesh->getVertexCoords(i_part);
-            CWP_g_num_t *vtx_gnum = _mesh->getVertexGNum(i_part);
-            CWP_g_num_t *elt_gnum = _mesh->GNumEltsGet(i_part);
-
-            if (interf_dim == CWP_INTERFACE_SURFACE) {
-              int n_edge = _mesh->getNEdge(i_part);
-              int *face_edge_idx = _mesh->getFaceEdgeIndex(i_part);
-              int *face_edge = _mesh->getFaceEdge(i_part);
-              int *edge_vtx_idx = _mesh->getEdgeVtxIndex(i_part);
-              int *edge_vtx = _mesh->getEdgeVtx(i_part);
-
-              PDM_mesh_location_part_set_2d (_id_pdm, 
-                                             i_part, 
-                                             n_face, 
-                                             face_edge_idx,
-                                             face_edge, 
-                                             elt_gnum, 
-                                             n_edge, 
-                                             edge_vtx_idx, 
-                                             edge_vtx, 
-                                             NULL, 
-                                             n_vtx, 
-                                             coords, 
-                                             vtx_gnum);
-            }
-
-            else if (interf_dim == CWP_INTERFACE_VOLUME) {
-
-              int n_cell = _mesh->getNCell(i_part);
-              int *cell_face_idx = _mesh->getCellFaceIndex(i_part);
-              int *cell_face = _mesh->getCellFace(i_part);
-              int *face_vtx_idx = _mesh->getFaceVtxIndex(i_part);
-              int *face_vtx = _mesh->getFaceVtx(i_part);
-
-              PDM_mesh_location_part_set (_id_pdm, 
-                                          i_part, 
-                                          n_cell, 
-                                          cell_face_idx, 
-                                          cell_face, 
-                                          elt_gnum, 
-                                          n_face, 
-                                          face_vtx_idx, 
-                                          face_vtx, 
-                                          NULL, 
-                                          n_vtx, 
-                                          coords, 
-                                          vtx_gnum);
-            }
-          }
-        }
-
-        else {
-//          CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
-          for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-            if (interf_dim == CWP_INTERFACE_SURFACE) {
-              PDM_mesh_location_part_set_2d(_id_pdm,
-                                            i_part,
-                                            0,
-                                            fake_idx,
-                                            NULL,
-                                            NULL,
-                                            0,
-                                            fake_idx,
-                                            NULL,
-                                            NULL,
-                                            0,
-                                            NULL,
-                                            NULL);
-            }
-
-            else if (interf_dim == CWP_INTERFACE_VOLUME) {
-              PDM_mesh_location_part_set(_id_pdm,
-                                         i_part,
-                                         0,
-                                         fake_idx,
-                                         NULL,
-                                         NULL,
-                                         0,
-                                         fake_idx,
-                                         NULL,
-                                         NULL,
-                                         0,
-                                         NULL,
-                                         NULL);
-            }
-          }
-        }
-      }
     }
+
 
     else {
       CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
 
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
 
-        if (_mesh->getNFace(0) == 0) {
+        if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
 
-          if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-
-            PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, _pdm_CplNodal);
-          }
-
-          else {
-            cwipi::Coupling &cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-            cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
-
-            PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, cpl_mesh->getPdmNodalIndex());
-
-          }
-
+          printf("Shared Nodal 1\n");
+          PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, _pdm_CplNodal);
         }
 
         else {
-          if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+          cwipi::Coupling &cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+          cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
 
-            for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-              int n_vtx = _mesh->getPartNVertex(i_part);
-              int n_face = _mesh->getNFace(i_part);
-              double *coords = _mesh->getVertexCoords(i_part);
-              CWP_g_num_t *vtx_gnum = _mesh->getVertexGNum(i_part);
-              CWP_g_num_t *elt_gnum = _mesh->GNumEltsGet(i_part);
-
-              if (interf_dim == CWP_INTERFACE_SURFACE) {
-                int n_edge = _mesh->getNEdge(i_part);
-                int *face_edge_idx = _mesh->getFaceEdgeIndex(i_part);
-                int *face_edge = _mesh->getFaceEdge(i_part);
-                int *edge_vtx_idx = _mesh->getEdgeVtxIndex(i_part);
-                int *edge_vtx = _mesh->getEdgeVtx(i_part);
-
-                PDM_mesh_location_part_set_2d(_id_pdm,
-                                              i_part,
-                                              n_face,
-                                              face_edge_idx,
-                                              face_edge,
-                                              elt_gnum,
-                                              n_edge,
-                                              edge_vtx_idx,
-                                              edge_vtx,
-                                              NULL,
-                                              n_vtx,
-                                              coords,
-                                              vtx_gnum);
-              }
-
-              else if (interf_dim == CWP_INTERFACE_VOLUME) {
-
-                int n_cell = _mesh->getNCell(i_part);
-                int *cell_face_idx = _mesh->getCellFaceIndex(i_part);
-                int *cell_face = _mesh->getCellFace(i_part);
-                int *face_vtx_idx = _mesh->getFaceVtxIndex(i_part);
-                int *face_vtx = _mesh->getFaceVtx(i_part);
-
-                PDM_mesh_location_part_set(_id_pdm,
-                                           i_part,
-                                           n_cell,
-                                           cell_face_idx,
-                                           cell_face,
-                                           elt_gnum,
-                                           n_face,
-                                           face_vtx_idx,
-                                           face_vtx,
-                                           NULL,
-                                           n_vtx,
-                                           coords,
-                                           vtx_gnum);
-              }
-            }
-          }
-
-          else {
-            cwipi::Coupling &cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-            cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
-
-            for (int i_part = 0 ; i_part < _cplNPart ; i_part++) {
-
-              int n_vtx = cpl_mesh->getPartNVertex(i_part);
-              int n_face = cpl_mesh->getNFace(i_part);
-              double *coords = cpl_mesh->getVertexCoords(i_part);
-              CWP_g_num_t *vtx_gnum = cpl_mesh->getVertexGNum(i_part);
-              CWP_g_num_t *elt_gnum = cpl_mesh->GNumEltsGet(i_part);
-
-              if (interf_dim == CWP_INTERFACE_SURFACE) {
-                int n_edge = cpl_mesh->getNEdge(i_part);
-                int *face_edge_idx = cpl_mesh->getFaceEdgeIndex(i_part);
-                int *face_edge = cpl_mesh->getFaceEdge(i_part);
-                int *edge_vtx_idx = cpl_mesh->getEdgeVtxIndex(i_part);
-                int *edge_vtx = cpl_mesh->getEdgeVtx(i_part);
-                PDM_mesh_location_part_set_2d(_id_pdm,
-                                              i_part,
-                                              n_face,
-                                              face_edge_idx,
-                                              face_edge,
-                                              elt_gnum,
-                                              n_edge,
-                                              edge_vtx_idx,
-                                              edge_vtx,
-                                              NULL,
-                                              n_vtx,
-                                              coords,
-                                              vtx_gnum);
-              }
-
-              else if (interf_dim == CWP_INTERFACE_VOLUME) {
-                int n_cell = cpl_mesh->getNCell(i_part);
-                int *cell_face_idx = cpl_mesh->getCellFaceIndex(i_part);
-                int *cell_face = cpl_mesh->getCellFace(i_part);
-                int *face_vtx_idx = cpl_mesh->getFaceVtxIndex(i_part);
-                int *face_vtx = cpl_mesh->getFaceVtx(i_part);
-                PDM_mesh_location_part_set(_id_pdm,
-                                           i_part,
-                                           n_cell,
-                                           cell_face_idx,
-                                           cell_face,
-                                           elt_gnum,
-                                           n_face,
-                                           face_vtx_idx,
-                                           face_vtx,
-                                           NULL,
-                                           n_vtx,
-                                           coords,
-                                           vtx_gnum);
-              }
-            }
-          }
+          PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, cpl_mesh->getPdmNodalIndex());
+  
         }
+
       }
     }
   }
