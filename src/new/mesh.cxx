@@ -389,14 +389,15 @@ namespace cwipi {
           PDM_Mesh_nodal_block_std_get (_pdmNodal_handle_index, block_ids[i], i_part, &connec);
           gnum = PDM_Mesh_nodal_g_num_get (_pdmNodal_handle_index, block_ids[i], i_part);
  
-          stdBlockSet( i_part  ,
-           block_id,
-           n_tri  ,
-           connec ,
-           gnum   );
+          stdBlockSet (i_part  ,
+                       block_id,
+                       n_tri  ,
+                       connec ,
+                       gnum);
  
         }
       }
+
       else if (t_block == PDM_MESH_NODAL_QUAD4) {
         int block_id = blockAdd(CWP_BLOCK_FACE_QUAD4);
         for (int i_part =0;i_part<_npart;i_part++){
@@ -406,14 +407,15 @@ namespace cwipi {
           PDM_Mesh_nodal_block_std_get (_pdmNodal_handle_index, block_ids[i], i_part, &connec);
           gnum = PDM_Mesh_nodal_g_num_get (_pdmNodal_handle_index, block_ids[i], i_part);
  
-          stdBlockSet( i_part  ,
-           block_id,
-           n_quad  ,
-           connec ,
-           gnum   );
+          stdBlockSet (i_part  ,
+                       block_id,
+                       n_quad  ,
+                       connec ,
+                       gnum   );
  
         }
       }
+
       else if(t_block == PDM_MESH_NODAL_POLY_2D){
         int block_id = blockAdd(CWP_BLOCK_FACE_POLY);
         for(int i_part =0;i_part<_npart;i_part++){
@@ -423,14 +425,16 @@ namespace cwipi {
           CWP_g_num_t* gnum = NULL;
           PDM_Mesh_nodal_block_poly2d_get (_pdmNodal_handle_index, block_ids[i], i_part, &connec_idx , &connec );
           gnum = PDM_Mesh_nodal_g_num_get (_pdmNodal_handle_index, block_ids[i], i_part);
-          poly2DBlockSet( i_part  ,
-            block_id,
-            n_poly  ,
-            connec_idx,
-            connec ,
-            gnum   );
+
+          poly2DBlockSet (i_part  ,
+                          block_id,
+                          n_poly  ,
+                          connec_idx,
+                          connec ,
+                          gnum   );
         }
       }
+
       else if (t_block == PDM_MESH_NODAL_PYRAMID5) {
         int block_id = blockAdd(CWP_BLOCK_CELL_PYRAM5);
         for (int i_part = 0 ; i_part < _npart ; i_part++) {
@@ -443,6 +447,7 @@ namespace cwipi {
           stdBlockSet(i_part, block_id, n_pyramid, connec, gnum);
         }
       }
+
       else if (t_block == PDM_MESH_NODAL_PRISM6) {
         int block_id = blockAdd(CWP_BLOCK_CELL_PRISM6);
         for (int i_part = 0 ; i_part < _npart ; i_part++) {
@@ -455,6 +460,7 @@ namespace cwipi {
           stdBlockSet(i_part, block_id, n_prism, connec, gnum);
         }
       }
+
       else if (t_block == PDM_MESH_NODAL_HEXA8) {
         int block_id = blockAdd(CWP_BLOCK_CELL_HEXA8);
         for (int i_part = 0 ; i_part < _npart ; i_part++) {
@@ -467,6 +473,7 @@ namespace cwipi {
           stdBlockSet(i_part, block_id, n_hexa, connec, gnum);
         }
       }
+
       else if (t_block == PDM_MESH_NODAL_TETRA4) {
         int block_id = blockAdd(CWP_BLOCK_CELL_TETRA4);
         for (int i_part = 0 ; i_part < _npart ; i_part++) {
@@ -480,6 +487,32 @@ namespace cwipi {
         }
       }
        // Define all the other types
+      else if(t_block == PDM_MESH_NODAL_POLY_3D){
+        int block_id = blockAdd(CWP_BLOCK_CELL_POLY);
+        for(int i_part =0;i_part<_npart;i_part++){
+          int n_poly = PDM_Mesh_nodal_block_n_elt_get (_pdmNodal_handle_index, block_ids[i], i_part);
+          PDM_l_num_t       n_face;
+          PDM_l_num_t      *facvtx_idx;
+          PDM_l_num_t      *facvtx;
+          PDM_l_num_t      *cellfac_idx;
+          PDM_l_num_t      *cellfa;
+          CWP_g_num_t* gnum = NULL;
+
+          PDM_Mesh_nodal_block_poly3d_get (_pdmNodal_handle_index, block_ids[i], i_part, &n_face, &facvtx_idx, &facvtx, &cellfac_idx, &cellfa); 
+
+          gnum = PDM_Mesh_nodal_g_num_get (_pdmNodal_handle_index, block_ids[i], i_part);
+
+          poly3DBlockSet (i_part,
+                          block_id,
+                          n_poly,
+                          n_face,
+                          facvtx_idx,
+                          facvtx,
+                          cellfac_idx,
+                          cellfa,
+                          gnum);
+        }
+      }
     }
   }
 
@@ -518,8 +551,9 @@ namespace cwipi {
         }
 
         PDM_gnum_compute (pdmGNum_handle_index);
-        for(int i_part=0;i_part<_npart;i_part++)
+        for(int i_part=0;i_part<_npart;i_part++) {
           _global_num_vtx[i_part] =const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
+        }
       }
 
       for(int i_part=0;i_part<_npart;i_part++) {
@@ -542,7 +576,39 @@ namespace cwipi {
     }//endif coordsDefined() and global_num==NULL
 
     if (_faceEdgeMethod == 1) {
-      for (int i_part=0; i_part < _npart; i_part++){
+    
+      if (global_num == NULL) {
+        PDM_gen_gnum_t *pdmGNum_local_recalculation = PDM_gnum_create(2, 1, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+        PDM_gnum_set_from_coords(pdmGNum_local_recalculation, i_part, n_faces, _coords[i_part], NULL); // TODO Idem for faces
+        PDM_gnum_compute(pdmGNum_local_recalculation);
+        _faceLNToGN[i_part] = PDM_gnum_get(pdmGNum_local_recalculation, i_part);
+      }
+    
+      for (int i_part=0; i_part < _npart; i_part++) {
+
+        // if(gnumVtxRequired () ){
+
+        //   PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+
+        //   if(   _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART
+        //    || (_cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && unionRank == _cpl->communicationGet()->unionCommLocCodeRootRanksGet() ) ) {
+        //     PDM_gnum_set_from_coords (pdmGNum_handle_index, i_part, _nVertex[i_part], _coords[i_part], NULL);
+        //   }
+
+        //   else {
+        //     double* coords_null = (double*)malloc(3*0*sizeof(double));
+        //     PDM_gnum_set_from_coords (pdmGNum_handle_index, i_part, 0, coords_null, NULL);
+        //   }
+    // if (global_num == NULL) {
+    //   PDM_gen_gnum_t *pdmGNum_local_recalculation = PDM_gnum_create(2, 1, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+    //   PDM_gnum_set_from_coords(pdmGNum_local_recalculation, i_part, n_faces, _coords[i_part], NULL); // TODO Idem for faces
+    //   PDM_gnum_compute(pdmGNum_local_recalculation);
+    //   _faceLNToGN[i_part] = PDM_gnum_get(pdmGNum_local_recalculation, i_part);
+    // }
+   
+    // else {
+    // }
+
         PDM_Mesh_nodal_cell2d_celledge_add (_pdmNodal_handle_index,
                                             i_part,
                                             _nFace[i_part],
@@ -853,17 +919,8 @@ namespace cwipi {
   ) 
   {
     _faceEdgeMethod = 1;
-    if (global_num == NULL) {
-      PDM_gen_gnum_t *pdmGNum_local_recalculation = PDM_gnum_create(2, 1, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
-      PDM_gnum_set_from_coords(pdmGNum_local_recalculation, i_part, n_faces, _coords[i_part], NULL); // TODO Idem for faces
-      PDM_gnum_compute(pdmGNum_local_recalculation);
-      _faceLNToGN[i_part] = PDM_gnum_get(pdmGNum_local_recalculation, i_part);
-    }
-   
-    else {
-      _faceLNToGN[i_part] = global_num;
-    }
 
+    _faceLNToGN[i_part] = global_num;
     _edgeVtxIdx[i_part] = edge_vtx_idx;
     _faceEdgeIdx[i_part] = face_edge_idx;
     _edgeVtx[i_part] = edge_vtx;
