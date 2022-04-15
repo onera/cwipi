@@ -128,7 +128,7 @@ namespace cwipi {
     _unionComm              = _cpl->communicationGet()->unionCommGet();
     _pdmUnionComm           = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_unionComm));
 
-    _nPart                  = _mesh -> getNPart();
+    _nPart                  = _mesh->getNPart();
 
     _rootRankUnionComm      = _cpl->communicationGet()->unionCommLocCodeRootRanksGet();
     _cplRootRankUnionComm   = _cpl->communicationGet()->unionCommCplCodeRootRanksGet();
@@ -138,11 +138,11 @@ namespace cwipi {
 
     _exchDirection          = exchDirection;
 
-    //_connectableRanks_cpl = _cpl -> communicationGet() -> cplCommCplRanksGet();
-    //_connectableRanks     = _cpl -> communicationGet() -> cplCommLocRanksGet();
+    //_connectableRanks_cpl = _cpl->communicationGet()->cplCommCplRanksGet();
+    //_connectableRanks     = _cpl->communicationGet()->cplCommLocRanksGet();
 
-    //_id     = _localCodeProperties   -> idGet();
-    //_id_cpl = _coupledCodeProperties -> idGet();
+    //_id     = _localCodeProperties  ->idGet();
+    //_id_cpl = _coupledCodeProperties->idGet();
 
     _send_buffer.resize(_cpl->fieldsGet()->size());  /*!< Send buffer (size = n_field) */
     _recv_buffer.resize(_cpl->fieldsGet()->size());  /*!< Recv buffer (size = n_field) */
@@ -465,8 +465,8 @@ namespace cwipi {
         _recv_buffer[intId] = NULL;
       }
 
-      if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-        _visu -> WriterField(referenceField, CWP_FIELD_MAP_SOURCE);
+      if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
+        _visu->WriterField(referenceField, CWP_FIELD_MAP_SOURCE);
       }
     }
 
@@ -505,8 +505,8 @@ namespace cwipi {
           }
         }
 
-        if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-          _visu -> WriterField(referenceField, CWP_FIELD_MAP_SOURCE);
+        if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
+          _visu->WriterField(referenceField, CWP_FIELD_MAP_SOURCE);
         }
 
 
@@ -560,8 +560,8 @@ namespace cwipi {
             cpl_spatial_interp->_recv_buffer[cpl_intId] = NULL;
           }
 
-          if(cpl_spatial_interp->_visu -> isCreated() && cpl_referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-            cpl_spatial_interp->_visu -> WriterField(cpl_referenceField, CWP_FIELD_MAP_TARGET);
+          if(cpl_spatial_interp->_visu->isCreated() && cpl_referenceField->visuStatusGet() == CWP_STATUS_ON) {
+            cpl_spatial_interp->_visu->WriterField(cpl_referenceField, CWP_FIELD_MAP_TARGET);
           }
 
         }
@@ -834,8 +834,8 @@ namespace cwipi {
         _recv_buffer[intId] = NULL;
       }
 
-      if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-        _visu -> WriterField(referenceField, CWP_FIELD_MAP_TARGET);
+      if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
+        _visu->WriterField(referenceField, CWP_FIELD_MAP_TARGET);
       }
 
     }
@@ -930,12 +930,12 @@ namespace cwipi {
           }
         }
 
-        if(_visu -> isCreated() && referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-          _visu -> WriterField(referenceField, CWP_FIELD_MAP_TARGET);
+        if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
+          _visu->WriterField(referenceField, CWP_FIELD_MAP_TARGET);
         }
 
-        if(cpl_spatial_interp->_visu -> isCreated() && cpl_referenceField -> visuStatusGet() == CWP_STATUS_ON) {
-          cpl_spatial_interp->_visu -> WriterField(cpl_referenceField, CWP_FIELD_MAP_SOURCE);
+        if(cpl_spatial_interp->_visu->isCreated() && cpl_referenceField->visuStatusGet() == CWP_STATUS_ON) {
+          cpl_spatial_interp->_visu->WriterField(cpl_referenceField, CWP_FIELD_MAP_SOURCE);
         }
 
       }

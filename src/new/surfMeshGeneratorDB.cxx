@@ -60,7 +60,7 @@ void surfMeshGeneratorDB::destroyMember(string genName)
 
   std::map<string,surfMeshGenerator*>::iterator itr = _dataBase.begin();
   while (itr != _dataBase.end()) {
-    if ( itr -> first == genName) {
+    if ( itr->first == genName) {
        std::map<string,surfMeshGenerator*>::iterator toErase = itr;
        ++itr;
        _dataBase.erase(toErase);
@@ -77,7 +77,7 @@ surfMeshGenerator* surfMeshGeneratorDB::memberGet(string genName)
 {
   std::map<string,surfMeshGenerator*>::iterator itr = _dataBase.begin();
   while (itr != _dataBase.end()) {
-    if ( itr -> first == genName) {
+    if ( itr->first == genName) {
        return itr-> second;
        ++itr;
     } else {

@@ -43,8 +43,8 @@ namespace cwipi {
 
   void BlockCP::FromPDMBlock(int pdm_id_block, void* mesh){
      _mesh     = mesh;
-     _pdmNodal_handle_index = static_cast<Mesh*>(mesh) -> getPdmNodalIndex();
-     _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh) -> getMPICommP());
+     _pdmNodal_handle_index = static_cast<Mesh*>(mesh)->getPdmNodalIndex();
+     _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh)->getMPICommP());
     
      PDM_Mesh_nodal_elt_t PDM_block_type = PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,pdm_id_block);
      _blockType = CwpBlockTypeFromPdmBlockType (PDM_block_type); 
@@ -88,7 +88,7 @@ namespace cwipi {
      CWP_UNUSED(global_num );
      double* _cells_center_part = (double*)malloc (sizeof(double) * 3 * n_elts);
      double* faces_center_part = (double*)malloc (sizeof(double) * 3 * n_faces);
-     double* coords = static_cast<Mesh*>(_mesh) -> getCoordinates(i_part);
+     double* coords = static_cast<Mesh*>(_mesh)->getCoordinates(i_part);
 
      int n_vtx=-1;
 
@@ -139,7 +139,7 @@ namespace cwipi {
 
     void BlockCP::geomFinalize(int already_in_pdm){
 
-      _pdmNodal_handle_index = static_cast<Mesh*>(_mesh) -> getPdmNodalIndex();
+      _pdmNodal_handle_index = static_cast<Mesh*>(_mesh)->getPdmNodalIndex();
 
       if(already_in_pdm ==0)
         _block_id_pdm = PDM_Mesh_nodal_block_add(_pdmNodal_handle_index,
@@ -162,9 +162,9 @@ namespace cwipi {
                                            _global_num[i_part],
                                            NULL);
 
-        Visu* visu = ((Mesh*)_mesh) -> getVisu();
-        if(visu -> isCreated() && ((Mesh*)_mesh) -> getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
-          visu -> GeomBlockPoly3D( ((Mesh*)_mesh) -> getIdVisu( _block_id_cwipi ),
+        Visu* visu = ((Mesh*)_mesh)->getVisu();
+        if(visu->isCreated() && ((Mesh*)_mesh)->getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
+          visu->GeomBlockPoly3D( ((Mesh*)_mesh)->getIdVisu( _block_id_cwipi ),
                                     i_part,
                                     _n_elt[i_part] ,
                                     _n_faces[i_part],

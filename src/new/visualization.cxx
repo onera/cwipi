@@ -192,31 +192,31 @@ namespace cwipi {
                                                   PDMfieldType,
                                                   "blocking");
 
-    _partitioning_field_data.resize(mesh -> getNPart() );
-    _ranking_field_data.resize(mesh -> getNPart() );
-    _blocking_field_data.resize(mesh -> getNPart() );
+    _partitioning_field_data.resize(mesh->getNPart() );
+    _ranking_field_data.resize(mesh->getNPart() );
+    _blocking_field_data.resize(mesh->getNPart() );
 
     int worldRank;
     MPI_Comm_rank(MPI_COMM_WORLD,&worldRank);
 
-//    int* blockDB = mesh -> blockDBGet();
+//    int* blockDB = mesh->blockDBGet();
 
-    int nBlock = mesh -> nBlockGet();
+    int nBlock = mesh->nBlockGet();
     for(int i_part=0;i_part<_n_part;i_part++){
-      _partitioning_field_data[i_part] = (double*) malloc( mesh -> getPartNElts(i_part) * sizeof(double) );
-      _ranking_field_data[i_part] = (double*) malloc( mesh -> getPartNElts(i_part) * sizeof(double) );
-      _blocking_field_data[i_part] = (double*) malloc( mesh -> getPartNElts(i_part) * sizeof(double) );
+      _partitioning_field_data[i_part] = (double*) malloc( mesh->getPartNElts(i_part) * sizeof(double) );
+      _ranking_field_data[i_part] = (double*) malloc( mesh->getPartNElts(i_part) * sizeof(double) );
+      _blocking_field_data[i_part] = (double*) malloc( mesh->getPartNElts(i_part) * sizeof(double) );
       int idx=0;
       for(int i_block=0;i_block < nBlock; i_block++){
  //       int id_block = blockDB[i_block];
-        for(int i_elt=0; i_elt< mesh -> getBlockNElts(i_block,i_part); i_elt++){
+        for(int i_elt=0; i_elt< mesh->getBlockNElts(i_block,i_part); i_elt++){
           _blocking_field_data[i_part][idx++] = (double)i_block;
         }
 
       }
 
 
-      for(int i_elt=0; i_elt<mesh -> getPartNElts(i_part); i_elt++){
+      for(int i_elt=0; i_elt<mesh->getPartNElts(i_part); i_elt++){
         _partitioning_field_data[i_part][i_elt] = (double)i_part;
         _ranking_field_data[i_part][i_elt] = (double)worldRank;
       }
@@ -326,8 +326,8 @@ namespace cwipi {
 
   void Visu::WriterFieldCreate(Field* field) {
 
-      CWP_Dof_location_t CWPfielType = field -> locationGet();
-      int nComponent = field -> nComponentGet();
+      CWP_Dof_location_t CWPfielType = field->locationGet();
+      int nComponent = field->nComponentGet();
       PDM_writer_var_loc_t PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
 
       if     (CWPfielType == CWP_DOF_LOCATION_CELL_CENTER)   PDMfieldType = PDM_WRITER_VAR_ELEMENTS   ;
@@ -342,9 +342,9 @@ namespace cwipi {
         PDM_error(__FILE__, __LINE__, 0, "This field have a number of components which cannot be visualized.\n");
 
       std::string prefix;
-      if(field -> exchangeTypeGet() == CWP_FIELD_EXCH_SEND)
+      if(field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND)
        prefix = "s";
-      else if(field -> exchangeTypeGet() == CWP_FIELD_EXCH_RECV)
+      else if(field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV)
        prefix = "r";
       else
         PDM_error(__FILE__, __LINE__, 0, "You have to choose between CWP_FIELD_EXCH_RECV or CWP_FIELD_EXCH_SEND for field writing type.\n");
@@ -356,7 +356,7 @@ namespace cwipi {
                                          PDMfieldComp,
                                          PDMfieldType,
                                          fieldName.c_str());
-      field -> visuIdSet(id_var);
+      field->visuIdSet(id_var);
   }
 
 
@@ -366,8 +366,8 @@ namespace cwipi {
 
     int id_var = -1;
 
-    id_var = field -> visuIdGet();
-    void* data = field -> dataGet(i_part, storage_type);
+    id_var = field->visuIdGet();
+    void* data = field->dataGet(i_part, storage_type);
     //TODO: CHange double for multitype
 
     PDM_writer_var_set(_visu_id, id_var, _visu_mesh_id, i_part,(double*)data);
@@ -377,7 +377,7 @@ namespace cwipi {
 
     int id_var = -1;
 
-    id_var = field -> visuIdGet();
+    id_var = field->visuIdGet();
 
     PDM_writer_var_data_free(_visu_id, id_var);
 
@@ -389,7 +389,7 @@ namespace cwipi {
   void Visu::WriterField(Field* field, const CWP_Field_map_t  map_type) {
     int id_var = -1;
 
-    id_var = field -> visuIdGet();
+    id_var = field->visuIdGet();
     //TODO: CHange double for multitype
 
     for (int i = 0; i < _n_part; i++) {
@@ -407,9 +407,9 @@ namespace cwipi {
     _physical_time = physical_time;
     if(_topology != CWP_DYNAMIC_MESH_STATIC){
       for(int i_part=0;i_part<_n_part;i_part++) {
-        int nVertex = mesh -> getPartNVertex(i_part);
-        double* coords = mesh -> getVertexCoords(i_part);
-        CWP_g_num_t* gnum = mesh -> getVertexGNum(i_part);
+        int nVertex = mesh->getPartNVertex(i_part);
+        double* coords = mesh->getVertexCoords(i_part);
+        CWP_g_num_t* gnum = mesh->getVertexGNum(i_part);
 
         GeomCoordSet(i_part,
                         nVertex,
@@ -417,19 +417,19 @@ namespace cwipi {
                         gnum);
       }//loop i_part
 
-      int* blockIDs = mesh -> blockDBGet();
-      int  nBlock   = mesh -> nBlockGet();
+      int* blockIDs = mesh->blockDBGet();
+      int  nBlock   = mesh->nBlockGet();
 
       for(int i_block=0;i_block<nBlock;i_block++){
         int id_block = blockIDs[i_block];
-        CWP_Block_t type = mesh -> blockTypeGet(id_block);
+        CWP_Block_t type = mesh->blockTypeGet(id_block);
         int idBlockVisu = GeomBlockAdd(type);
 
         for(int i_part=0;i_part<_n_part;i_part++) {
-          int n_elts = mesh -> getBlockNElts(id_block,i_part);
-          int* connec = mesh -> getEltConnectivity(id_block,i_part);
+          int n_elts = mesh->getBlockNElts(id_block,i_part);
+          int* connec = mesh->getEltConnectivity(id_block,i_part);
           if(type != CWP_BLOCK_FACE_POLY && type != CWP_BLOCK_CELL_POLY) {
-            CWP_g_num_t* gnum = mesh -> gnumInsideBlockGet(id_block,i_part);
+            CWP_g_num_t* gnum = mesh->gnumInsideBlockGet(id_block,i_part);
             GeomBlockStdSet(idBlockVisu,
                             i_part,
                             n_elts,
@@ -438,8 +438,8 @@ namespace cwipi {
                            );
           }
           else if (type == CWP_BLOCK_FACE_POLY){
-            CWP_g_num_t* gnum = mesh -> gnumInsideBlockGet(id_block,i_part);
-            int* connecIdx = mesh -> getEltConnectivityIndex(id_block,i_part);
+            CWP_g_num_t* gnum = mesh->gnumInsideBlockGet(id_block,i_part);
+            int* connecIdx = mesh->getEltConnectivityIndex(id_block,i_part);
             GeomBlockPoly2D(idBlockVisu,
                             i_part,
                             n_elts,

@@ -43,10 +43,10 @@ namespace cwipi {
   void Block::BlockAdd(CWP_Block_t blockType,void* mesh)
   {
      _mesh     = mesh;
-     _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh) -> getMPICommP());
+     _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh)->getMPICommP());
 
      _blockType             = blockType;
-     _n_part                = static_cast<Mesh*>(mesh) -> getNPart();
+     _n_part                = static_cast<Mesh*>(mesh)->getNPart();
 
      _global_num         .resize(_n_part,NULL);
      _global_num_computed.resize(_n_part,NULL);
@@ -78,7 +78,7 @@ namespace cwipi {
        PDM_geom_elem_polygon_properties(_n_elt[i_part]            ,
                                         connecIDXBlock            ,
                                         connecBlock               ,
-                                        static_cast<Mesh*>(_mesh) -> getCoordinates(i_part),
+                                        static_cast<Mesh*>(_mesh)->getCoordinates(i_part),
                                         surfaceVectorBlock             ,
                                         _cells_center[i_part]          ,
                                         characteristicLengthBlock      ,

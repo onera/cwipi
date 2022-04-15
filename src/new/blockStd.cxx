@@ -51,8 +51,8 @@ namespace cwipi {
   void BlockStd::FromPDMBlock(int pdm_id_block, void* mesh){
 
      _mesh     = mesh;
-     _pdmNodal_handle_index = static_cast<Mesh*>(mesh) -> getPdmNodalIndex();
-     _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh) -> getMPICommP());
+     _pdmNodal_handle_index = static_cast<Mesh*>(mesh)->getPdmNodalIndex();
+     _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh)->getMPICommP());
      PDM_Mesh_nodal_elt_t PDM_block_type = PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,pdm_id_block);
      _blockType = CwpBlockTypeFromPdmBlockType (PDM_block_type);
      BlockAdd(_blockType, mesh);
@@ -90,7 +90,7 @@ namespace cwipi {
 
 
   void BlockStd::geomFinalize(int already_in_pdm){
-     _pdmNodal_handle_index = static_cast<Mesh*>(_mesh) -> getPdmNodalIndex();
+     _pdmNodal_handle_index = static_cast<Mesh*>(_mesh)->getPdmNodalIndex();
 
      if(already_in_pdm ==0)
       _block_id_pdm = PDM_Mesh_nodal_block_add(_pdmNodal_handle_index,
@@ -108,9 +108,9 @@ namespace cwipi {
                                      _global_num [i_part],
                                       NULL);
 
-      Visu* visu = ((Mesh*)_mesh) -> getVisu();
-      if(visu -> isCreated() && ((Mesh*)_mesh) -> getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
-        visu -> GeomBlockStdSet ( ((Mesh*)_mesh) -> getIdVisu( _block_id_cwipi ),
+      Visu* visu = ((Mesh*)_mesh)->getVisu();
+      if(visu->isCreated() && ((Mesh*)_mesh)->getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
+        visu->GeomBlockStdSet ( ((Mesh*)_mesh)->getIdVisu( _block_id_cwipi ),
                                   i_part,
                                   _n_elt[i_part] ,
                                   _connec[i_part],

@@ -37,8 +37,8 @@ namespace cwipi {
    _iteration      (iteration)
 
     {
-      _mesh = cpl -> meshGet();
-      _n_part = _mesh -> getNPart();
+      _mesh = cpl->meshGet();
+      _n_part = _mesh->getNPart();
       _data_tgt.resize(_n_part,NULL);
       _data_src.resize(_n_part,NULL);
       _sendBuffer = NULL;

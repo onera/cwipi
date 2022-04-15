@@ -228,7 +228,7 @@ namespace cwipi {
 
     std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*>::iterator it = _spatial_interp_send.begin();
     while (it != _spatial_interp_send.end()) {
-        delete it -> second;
+        delete it->second;
         it++;
     }
 
@@ -236,7 +236,7 @@ namespace cwipi {
 
     it = _spatial_interp_recv.begin();
     while (it != _spatial_interp_recv.end()) {
-       delete it -> second;
+       delete it->second;
         it++;
     }
 
@@ -245,9 +245,9 @@ namespace cwipi {
 
     std::map < string, Field * >::iterator itf = _fields.begin();
     while (itf != _fields.end()) {
-      if(_visu.isCreated() && itf -> second -> visuStatusGet() == CWP_STATUS_ON )
-        _visu.fieldDataFree(itf -> second);
-      delete itf -> second;
+      if(_visu.isCreated() && itf->second->visuStatusGet() == CWP_STATUS_ON )
+        _visu.fieldDataFree(itf->second);
+      delete itf->second;
       itf++;
     }
 
@@ -352,7 +352,7 @@ namespace cwipi {
       std::map <std::string, cwipi::Field *>::iterator it = _fields.begin();
 
       while(it != _fields.end()){
-        cwipi::Field* field = it -> second;
+        cwipi::Field* field = it->second;
 
         localFieldsName += it->first;
         localFieldsNameIdx.push_back((int) (localFieldsNameIdx[localFieldsNameIdx.size()-1]+it->first.size()));
@@ -457,8 +457,8 @@ namespace cwipi {
 
       it = _fields.begin();
       while(it != _fields.end()) {
-        cwipi::Field* field = it -> second;
-        string localFieldName = it -> first;
+        cwipi::Field* field = it->second;
+        string localFieldName = it->first;
         CWP_Field_exch_t   localFieldExch     = field->exchangeTypeGet();
         CWP_Dof_location_t localFieldLocation = field->locationGet();
 
@@ -642,7 +642,7 @@ namespace cwipi {
         std::map <std::string, cwipi::Field *>::iterator it = _fields.begin();
 
         while(it != _fields.end()){
-          cwipi::Field* field = it -> second;
+          cwipi::Field* field = it->second;
 
           localFieldsName += it->first;
           localFieldsNameIdx.push_back((int) (localFieldsNameIdx[localFieldsNameIdx.size()-1]+it->first.size()));
@@ -669,7 +669,7 @@ namespace cwipi {
         it = cpl_cpl._fields.begin();
 
         while(it != cpl_cpl._fields.end()){
-          cwipi::Field* field = it -> second;
+          cwipi::Field* field = it->second;
 
           cpl_localFieldsName += it->first;
           cpl_localFieldsNameIdx.push_back((int) (cpl_localFieldsNameIdx[cpl_localFieldsNameIdx.size()-1]+it->first.size()));
@@ -807,8 +807,8 @@ namespace cwipi {
 
         it = _fields.begin();
         while(it != _fields.end()) {
-          cwipi::Field* field = it -> second;
-          string localFieldName = it -> first;
+          cwipi::Field* field = it->second;
+          string localFieldName = it->first;
           CWP_Field_exch_t   localFieldExch     = field->exchangeTypeGet();
           CWP_Dof_location_t localFieldLocation = field->locationGet();
 
@@ -1158,7 +1158,7 @@ namespace cwipi {
     pair<string, Field* > newPair(string(field_id), newField);
     string localName = _localCodeProperties.nameGet();
     _fields.insert(newPair);
-    if (_visu.isCreated() && newField -> visuStatusGet() == CWP_STATUS_ON) {
+    if (_visu.isCreated() && newField->visuStatusGet() == CWP_STATUS_ON) {
       _visu.WriterFieldCreate(newField);
     }
   }
@@ -1210,7 +1210,7 @@ namespace cwipi {
     }
     else {
       It->second->dataSet(i_part, map_type, data);
-      if (_visu.isCreated() && It -> second -> visuStatusGet() == CWP_STATUS_ON) {
+      if (_visu.isCreated() && It->second->visuStatusGet() == CWP_STATUS_ON) {
         _visu.fieldDataSet(It->second,map_type, i_part);
       }
     }
@@ -1245,8 +1245,8 @@ namespace cwipi {
    *           If \f$ n\_uncomputed\_tgt \ne n\_tgt\_pts \f$,
    *           user himself must set values for uncomputed target points.
    *
-   * \param [in]  src_field_id              Source field (NULL -> no sending)
-   * \param [in]  tgt_field_id              Target field (NULL -> no receiving)
+   * \param [in]  src_field_id              Source field (NULL->no sending)
+   * \param [in]  tgt_field_id              Target field (NULL->no receiving)
    * \param [in]  ptFortranInterpolationFct Fortran user interpolation (or NULL)
    * \param [out] n_uncomputed_tgt          Number of uncomputed target
    *
