@@ -121,7 +121,6 @@ namespace cwipi {
        } //i_elt
      } //i_dim
           
-     PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, n_elts, _cells_center_part, NULL);
      
      _isSet[i_part] = true;
      _n_elt[i_part] = n_elts;
@@ -133,27 +132,10 @@ namespace cwipi {
      _connec_faces_idx.insert( std::pair < int, int* >         (i_part,connec_faces_idx) );  
      _connec_faces.insert    ( std::pair < int, int* >         (i_part,connec_faces)     );
 
-    
-     if( isSet() ) {
-       PDM_gnum_compute (_pdmGNum_handle_index);
-       for (int i = 0;i<_n_part;i++) {
-
-         _global_num[i] = const_cast<CWP_g_num_t*> (PDM_gnum_get (_pdmGNum_handle_index, i));
-       } //i
-
-       PDM_Mesh_nodal_g_num_in_block_compute(_pdmNodal_handle_index,_block_id_pdm);
-       
-       for (int i = 0;i<_n_part;i++) {
-          _global_num_block[i] = PDM_Mesh_nodal_block_g_num_get (_pdmNodal_handle_index,
-                                                                 _block_id_pdm,
-                                                                 i );
-       } // i
-       
-       _isGNumSet = true;
-       
-     }//isSet()
-
+  
   }
+
+
 
     void BlockCP::geomFinalize(int already_in_pdm){
 

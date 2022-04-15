@@ -431,7 +431,6 @@ namespace cwipi {
     std::vector <int>          _part_id;                /*!< Partition where the block is defined  */
     int                        _block_id_pdm;           /*!< Block identifier */
     int                        _block_id_cwipi;         /*!< Block identifier */
-    PDM_gen_gnum_t            *_pdmGNum_handle_index;   /*!< Index used by the paradigm global numbering object */
     std::vector <CWP_g_num_t*> _global_num;             /*!< Global numbering in the Mesh  */
     std::vector <CWP_g_num_t*> _global_num_computed;    /*!< Global numbering computed in the Mesh  */
     std::vector <CWP_g_num_t*> _global_num_block;       /*!< Global numbering in the Block */
