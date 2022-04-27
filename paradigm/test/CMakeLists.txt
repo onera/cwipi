@@ -16,6 +16,30 @@ endif()
 
 unset(LINK_LIBRARIES)
 
+if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
+  if (PDM_ENABLE_STATIC)
+    if (PDM_ENABLE_EXTENSION_PDMA)
+      list(APPEND LINK_LIBRARIES
+         pdmaf_static)
+    endif()
+    list(APPEND LINK_LIBRARIES pdmf_static)
+    if (PDM_ENABLE_EXTENSION_PDMA)
+      list(APPEND LINK_LIBRARIES
+         pdmaf_static)
+    endif()
+  else ()
+    if (PDM_ENABLE_EXTENSION_PDMA)
+      list(APPEND LINK_LIBRARIES
+         pdmaf_shared)
+    endif()
+    list(APPEND LINK_LIBRARIES pdmf_shared)
+    if (PDM_ENABLE_EXTENSION_PDMA)
+      list(APPEND LINK_LIBRARIES
+         pdmaf_shared)
+    endif()
+  endif()
+endif()
+
 if (PDM_ENABLE_STATIC)
  if (PDM_ENABLE_EXTENSION_PDMA)
   list(APPEND LINK_LIBRARIES
@@ -115,11 +139,6 @@ test_c_create (pdm_t_mesh_extract 1)
 test_c_create (pdm_t_connect_zone 1)
 test_c_create (pdm_t_part_to_block_geom 1)
 if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
-  if (PDM_ENABLE_STATIC)
-  list(APPEND LINK_LIBRARIES pdmf_static)
-  else ()
-    list(APPEND LINK_LIBRARIES pdmf_shared)
-  endif()
   test_fortran_create (pdm_t_closest_points_f 2)
   test_fortran_create (pdm_t_mesh_location_f 1)
   test_fortran_create (pdm_t_part_to_block_f 1)

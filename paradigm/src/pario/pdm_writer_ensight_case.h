@@ -10,6 +10,7 @@
  *----------------------------------------------------------------------------*/
 
 #include "pdm_writer.h"
+#include "pdm_writer_priv.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,7 +54,9 @@ PDM_writer_ensight_case_cree
 const char                   *const name,
 const int                           restart,
 const char                   *const dir_prefix,
-const PDM_writer_topology_t                time_dependency
+const PDM_writer_topology_t         time_dependency,
+_PDM_writer_cst_global_var_tab_t *cst_global_var,
+const int append
 );
 
 /*----------------------------------------------------------------------------

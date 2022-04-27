@@ -527,10 +527,10 @@ subroutine PDM_io_open (nom,                &
 
   c_prop_noeuds_actifs = prop_noeuds_actifs
 
-  call PDM_io_open_c (nom//C_NULL_CHAR,      &
+  call PDM_io_open_c (trim(nom)//C_NULL_CHAR,      &
                       c_fmt,                 &
                       c_suff_t,              &
-                      suff_u//C_NULL_CHAR,   &
+                      trim(suff_u)//C_NULL_CHAR,   &
                       c_s_backup,            &
                       c_acces,               &
                       c_mode,                &
@@ -1217,7 +1217,7 @@ subroutine PDM_io_fmt_data_set (fichier,    &
   call PDM_io_fmt_data_set_c (fichier,          &
                                 c_n_char_fmt,     &
                                 c_data_type,      &
-                                fmt//C_NULL_CHAR)
+                                trim(fmt)//C_NULL_CHAR)
 
 end subroutine PDM_io_fmt_data_set
 
@@ -1252,7 +1252,7 @@ subroutine PDM_io_mkdir (path, &
     end function PDM_io_mkdir_c
   end interface
 
-  code = PDM_io_mkdir_c (path//C_NULL_CHAR)
+  code = PDM_io_mkdir_c (trim(path)//C_NULL_CHAR)
 
 end subroutine PDM_io_mkdir
 

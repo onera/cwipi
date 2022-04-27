@@ -54,8 +54,9 @@ typedef struct {
   PDM_io_file_t          *f_unit_geom;  /* Unite du fichier de géométrie */
   int                        n_time_step;  /* Nombre de pas de temps */
   int                        n_part_ecr;   /* Nombre de parts ensight
-                                              écrites dans le fichier chr.geo */
-
+                                                écrites dans le fichier chr.geo */
+  int                      append;  /* 1 == 1 seul fichier par viraible et 
+                                          par geometrie sinon 1 pour chaque instant*/
 } PDM_writer_ensight_t;
 
 
@@ -347,11 +348,22 @@ static void
 _geom_entete_ecr
 (
  PDM_writer_t     *cs,
- PDM_io_file_t *f_unit_geom
+ PDM_io_file_t *f_unit_geom,
+ PDM_writer_ensight_t *PDM_writer_ensight
  )
 {
   if (cs->fmt_fic == PDM_WRITER_FMT_BIN)
     _ecr_string(cs, f_unit_geom, "C Binary");
+
+  if (PDM_writer_ensight->append) {
+//  if ((PDM_writer_ensight->append) && (cs->topologie != PDM_WRITER_TOPO_CST)) {
+    char buff_append[81];
+    strncpy(buff_append, "BEGIN TIME STEP", 80);
+    buff_append[80] = '\0';  
+    _ecr_string(cs,
+               f_unit_geom,
+               buff_append);
+  }
 
   /* 1st description line */
   {
@@ -362,7 +374,7 @@ _geom_entete_ecr
     _ecr_string(cs, f_unit_geom, buf);
   }
   /* 2nd description line */
-  _ecr_string(cs, f_unit_geom, "Sortie par CEDRE (V ?.?.?.?)");
+  _ecr_string(cs, f_unit_geom, "Nothing");
   _ecr_string(cs, f_unit_geom, "node id assign");
   _ecr_string(cs, f_unit_geom, "element id assign");
 }
@@ -806,11 +818,22 @@ PDM_writer_t *cs
   PDM_writer_ensight_t *_PDM_writer_ensight = (PDM_writer_ensight_t *) cs->sortie_fmt;
   _PDM_writer_ensight->f_unit_geom = NULL;
   const int restart = (int) cs->st_reprise;
+  _PDM_writer_ensight->append = 0;
+
+  for (int i = 0; i < cs->n_options; i++) {
+    if(!strcmp(cs->options[i].nom, "append")) {
+      if(!strcmp(cs->options[i].val, "1")) {
+        _PDM_writer_ensight->append = 1;
+      }
+    }
+  }
 
   _PDM_writer_ensight->ensight_case = PDM_writer_ensight_case_cree(cs->nom_sortie,
                                                                    restart,
                                                                    cs->rep_sortie,
-                                                                   cs->topologie);
+                                                                   cs->topologie,
+                                                                   &(cs->cst_global_var_tab),
+                                                                   _PDM_writer_ensight->append);
   _PDM_writer_ensight->n_time_step = 0;
 
 }
@@ -952,7 +975,8 @@ PDM_writer_ensight_geom_write
 
   if (f_unit_geom == NULL) {
 
-    const char* geom_file_name = PDM_writer_ensight_case_geo_file_name_get(PDM_writer_ensight->ensight_case);
+    const char* geom_file_name = 
+    PDM_writer_ensight_case_geo_file_name_get(PDM_writer_ensight->ensight_case);
 
     PDM_io_file_t *unite = NULL;
     PDM_l_num_t              ierr;
@@ -966,13 +990,19 @@ PDM_writer_ensight_geom_write
       PDM_io_fmt = PDM_IO_FMT_TXT;
     }
 
+    PDM_io_mod_t io_mod = PDM_IO_MOD_WRITE;
+
+    if (PDM_writer_ensight->append) {
+      io_mod = PDM_IO_MOD_APPEND;      
+    }
+
     PDM_io_open(geom_file_name,
                 PDM_io_fmt,
                 PDM_IO_SUFF_MAN,
                 "",
                 PDM_IO_BACKUP_OFF,
                 _cs->acces,
-                PDM_IO_MOD_WRITE,
+                io_mod,
                 PDM_IO_NATIVE,
                 _cs->pdm_mpi_comm,
                 _cs->prop_noeuds_actifs,
@@ -980,7 +1010,8 @@ PDM_writer_ensight_geom_write
                 &ierr);
 
     _geom_entete_ecr(_cs,
-                     unite);
+                     unite,
+                     PDM_writer_ensight);
 
 
     PDM_writer_ensight->f_unit_geom = unite;
@@ -1521,6 +1552,16 @@ PDM_writer_ensight_geom_write
 
   }
 
+//  if ((PDM_writer_ensight->append) && (_cs->topologie != PDM_WRITER_TOPO_CST)) {
+  if (PDM_writer_ensight->append) {
+    char buff_append[81];
+    strncpy(buff_append, "END TIME STEP", 80);
+    buff_append[80] = '\0';  
+    _ecr_string(_cs,
+                f_unit_geom,
+                buff_append);
+  }
+
 }
 
 
@@ -1580,13 +1621,21 @@ PDM_writer_ensight_var_write
     PDM_io_fmt = PDM_IO_FMT_TXT;
   }
 
+
+  PDM_io_mod_t io_mod = PDM_IO_MOD_WRITE;
+
+  if (PDM_writer_ensight->append) {
+    io_mod = PDM_IO_MOD_APPEND;      
+  }
+
+
   PDM_io_open(file_name,
               PDM_io_fmt,
               PDM_IO_SUFF_MAN,
               "",
               PDM_IO_BACKUP_OFF,
               cs->acces,
-              PDM_IO_MOD_WRITE,
+              io_mod,
               PDM_IO_NATIVE,
               cs->pdm_mpi_comm,
               cs->prop_noeuds_actifs,
@@ -1596,6 +1645,17 @@ PDM_writer_ensight_var_write
   _var_ensight->f_unit = unite;
 
   /* Ecriture de l'entête */
+
+  if (PDM_writer_ensight->append) {
+//  if (PDM_writer_ensight->append && (var->st_dep_tps == PDM_WRITER_ON)) {
+
+    char buff_append[81];
+    strncpy(buff_append, "BEGIN TIME STEP", 80);
+    buff_append[80] = '\0';  
+    _ecr_string(cs,
+                unite,
+                buff_append);
+  }
 
   char buff_entete[81];
 
@@ -1812,6 +1872,17 @@ PDM_writer_ensight_var_write
       }
     }
   }
+
+  if (PDM_writer_ensight->append) {
+//  if (PDM_writer_ensight->append && (var->st_dep_tps == PDM_WRITER_ON)) {
+    char buff_append[81];
+    strncpy(buff_append, "END TIME STEP", 80);
+    buff_append[80] = '\0';  
+    _ecr_string(cs,
+               unite,
+               buff_append);
+  }
+
   int rank = 0;
   PDM_MPI_Comm_rank(cs->pdm_mpi_comm,
                 &rank);

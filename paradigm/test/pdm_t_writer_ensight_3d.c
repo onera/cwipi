@@ -312,7 +312,18 @@ int main(int argc, char *argv[])
                                           PDM_MPI_COMM_WORLD,
                                           PDM_IO_KIND_MPI_SIMPLE,
                                           1.,
-                                          NULL);
+                                          "append = 1");
+
+  // PDM_writer_t *id_cs = PDM_writer_create("Ensight",
+  //                                         PDM_WRITER_FMT_ASCII,
+  //                                         PDM_WRITER_TOPO_CST,
+  //                                         PDM_WRITER_OFF,
+  //                                         "test_3d_ens",
+  //                                         "chrd3d",
+  //                                         PDM_MPI_COMM_WORLD,
+  //                                         PDM_IO_KIND_MPI_SIMPLE,
+  //                                         1.,
+  //                                         NULL);
 
   /* Creation de la geometrie */
 
@@ -467,7 +478,8 @@ int main(int argc, char *argv[])
                               i_part,
                               n_vtx,
                               vtx,
-                              vtx_ln_to_gn);
+                              vtx_ln_to_gn,
+                              PDM_OWNERSHIP_USER);
 
 
 

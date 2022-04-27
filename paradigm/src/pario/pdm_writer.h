@@ -78,6 +78,7 @@ typedef struct _PDM_writer_geom_t PDM_writer_geom_t;
 
 typedef struct _PDM_writer_var_t PDM_writer_var_t;
 
+typedef struct _PDM_writer_cst_global_var_t PDM_writer_cst_global_var_t;
 
 
 /**
@@ -285,7 +286,8 @@ PDM_writer_geom_coord_set
  const int          id_part,
  const int          n_som,
  const PDM_real_t  *coords,
- const PDM_g_num_t *numabs
+ const PDM_g_num_t *numabs,
+ const PDM_ownership_t ownership
 );
 
 
@@ -317,7 +319,8 @@ PDM_writer_geom_coord_from_parent_set
  const PDM_g_num_t *numabs,
  const int         *num_parent,
  const PDM_real_t  *coords_parent,
- const PDM_g_num_t *numabs_parent
+ const PDM_g_num_t *numabs_parent,
+ const PDM_ownership_t ownership
 );
 
 
@@ -337,8 +340,8 @@ PDM_writer_geom_bloc_add
 (
  PDM_writer_t                *cs,
  const int                    id_geom,
- PDM_writer_status_t          st_free_data,
- const PDM_writer_elt_geom_t  t_elt
+ const PDM_writer_elt_geom_t  t_elt,
+ const PDM_ownership_t        owner
 );
 
 
@@ -653,6 +656,47 @@ PDM_writer_geom_free
  PDM_writer_t *cs,
  const int     id_geom
 );
+
+
+/**
+ * \brief Create a global constant variable
+ *
+ * \param [in] cs              Pointer to \ref PDM_writer object
+ * \param [in] nom_var         Nom de la variable
+ * \param [in] val_var         Valeur de la variable
+ *
+ * \return  Identificateur de l'objet variable
+ *
+ */
+
+int
+PDM_writer_cst_global_var_create
+(
+ PDM_writer_t               *cs,
+ const char                 *nom_var,
+ const double                val_var
+);
+
+
+/**
+ * \brief Create a global constant variable
+ *
+ * \param [in] cs              Pointer to \ref PDM_writer object
+ * \param [in] id_var          Variable id
+ * \param [in] val_var         Valeur de la variable
+ *
+ * \return  Identificateur de l'objet variable
+ *
+ */
+
+void
+PDM_writer_cst_global_var_set
+(
+ PDM_writer_t               *cs,
+ const int                   id_var,
+ const double                val_var
+);
+
 
 
 /**

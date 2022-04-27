@@ -816,7 +816,8 @@ _export_ini_mesh
                                  ipart,
                                  n_vtx[ipart],
                                  vtx_coord[ipart],
-                                 vtx_ln_to_gn[ipart]);
+                                 vtx_ln_to_gn[ipart],
+                                 PDM_OWNERSHIP_USER);
 
       _face_nb[ipart] = malloc(sizeof(int) * n_face[ipart]);
       _face_idx[ipart] = malloc(sizeof(int) * n_face[ipart]);

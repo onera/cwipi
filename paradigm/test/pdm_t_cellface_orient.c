@@ -503,7 +503,8 @@ int main(int argc, char *argv[])
                               i_part,
                               n_vtx,
                               vtx,
-                              vtx_ln_to_gn);
+                              vtx_ln_to_gn,
+                                PDM_OWNERSHIP_USER);
 
     /* Construction de la connectivite pour sortie graphique */
 

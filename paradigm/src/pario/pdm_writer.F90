@@ -359,16 +359,16 @@ module pdm_writer
     c_acces              = acces
     c_prop_noeuds_actifs = prop_noeuds_actifs
 
-    cs = PDM_writer_create_c (fmt//C_NULL_CHAR,        &
+    cs = PDM_writer_create_c (trim(fmt)//C_NULL_CHAR,        &
                               c_fmt_fic,               &
                               c_topologie,             &
                               c_st_reprise,            &
-                              rep_sortie//C_NULL_CHAR, &
-                              nom_sortie//C_NULL_CHAR, &
+                              trim(rep_sortie)//C_NULL_CHAR, &
+                              trim(nom_sortie)//C_NULL_CHAR, &
                               c_comm,                  &
                               c_acces,                 &
                               c_prop_noeuds_actifs,    &
-                              options//C_NULL_CHAR)
+                              trim(options)//C_NULL_CHAR)
 
   end subroutine PDM_writer_create
 
@@ -458,7 +458,7 @@ module pdm_writer
     c_n_part           = n_part
 
     c_id_geom = PDM_writer_geom_create_c (cs,                    &
-                                          nom_geom//C_NULL_CHAR, &
+                                          trim(nom_geom)//C_NULL_CHAR, &
                                           c_n_part)
 
     id_geom = c_id_geom
@@ -484,7 +484,8 @@ module pdm_writer
                                         id_part, &
                                         n_som,   &
                                         coords,  &
-                                        numabs)
+                                        numabs,  &
+                                        owner)
     use iso_c_binding
     implicit none
 
@@ -492,8 +493,11 @@ module pdm_writer
     integer, intent(in)           :: id_geom
     integer, intent(in)           :: id_part
     integer, intent(in)           :: n_som
+    integer, intent(in)           :: owner
     double precision,     pointer :: coords(:,:)
     integer(pdm_g_num_s), pointer :: numabs(:)
+
+    integer(c_int)                :: c_owner
 
     integer(c_int)                :: c_id_geom
     integer(c_int)                :: c_id_part
@@ -507,7 +511,8 @@ module pdm_writer
                                               id_part, &
                                               n_som,   &
                                               coords,  &
-                                              numabs)  &
+                                              numabs,  &
+                                              owner)   &
       bind (c, name='PDM_writer_geom_coord_set')
         use iso_c_binding
         implicit none
@@ -516,6 +521,7 @@ module pdm_writer
         integer(c_int), value :: id_geom
         integer(c_int), value :: id_part
         integer(c_int), value :: n_som
+        integer(c_int), value :: owner
         type(c_ptr),    value :: coords
         type(c_ptr),    value :: numabs
 
@@ -525,6 +531,7 @@ module pdm_writer
     c_id_geom = id_geom
     c_id_part = id_part
     c_n_som   = n_som
+    c_owner   = owner
 
     c_coords = c_loc(coords)
     c_numabs = c_loc(numabs)
@@ -534,7 +541,8 @@ module pdm_writer
                                       c_id_part, &
                                       c_n_som,   &
                                       c_coords,  &
-                                      c_numabs)
+                                      c_numabs,  &
+                                      c_owner)
 
   end subroutine PDM_writer_geom_coord_set
 
@@ -564,7 +572,8 @@ module pdm_writer
                                                     numabs,        &
                                                     num_parent,    &
                                                     coords_parent, &
-                                                    numabs_parent)
+                                                    numabs_parent, &
+                                                    owner)
 
     use iso_c_binding
     implicit none
@@ -574,6 +583,7 @@ module pdm_writer
     integer, intent(in)           :: id_part
     integer, intent(in)           :: n_som
     integer, intent(in)           :: n_som_parent
+    integer, intent(in)           :: owner
     integer(pdm_g_num_s), pointer :: numabs(:)
     integer(pdm_l_num_s), pointer :: num_parent(:)
     double precision,     pointer :: coords_parent(:,:)
@@ -583,6 +593,7 @@ module pdm_writer
     integer(c_int)                :: c_id_part
     integer(c_int)                :: c_n_som
     integer(c_int)                :: c_n_som_parent
+    integer(c_int)                :: c_owner
     type(c_ptr)                   :: c_numabs        = C_NULL_PTR
     type(c_ptr)                   :: c_num_parent    = C_NULL_PTR
     type(c_ptr)                   :: c_coords_parent = C_NULL_PTR
@@ -597,7 +608,8 @@ module pdm_writer
                                                           numabs,        &
                                                           num_parent,    &
                                                           coords_parent, &
-                                                          numabs_parent) &
+                                                          numabs_parent, &
+                                                          owner) &
       bind (c, name='PDM_writer_geom_coord_from_parent_set')
         use iso_c_binding
         implicit none
@@ -607,6 +619,7 @@ module pdm_writer
         integer(c_int), value :: id_part
         integer(c_int), value :: n_som
         integer(c_int), value :: n_som_parent
+        integer(c_int), value :: owner
         type(c_ptr),    value :: numabs
         type(c_ptr),    value :: num_parent
         type(c_ptr),    value :: coords_parent
@@ -619,6 +632,7 @@ module pdm_writer
     c_id_part      = id_part
     c_n_som        = n_som
     c_n_som_parent = n_som_parent
+    c_owner        = owner
 
     c_numabs        = c_loc(numabs)
     c_num_parent    = c_loc(num_parent)
@@ -633,7 +647,8 @@ module pdm_writer
                                                   c_numabs,        &
                                                   c_num_parent,    &
                                                   c_coords_parent, &
-                                                  c_numabs_parent)
+                                                  c_numabs_parent, &
+                                                  c_owner)
 
   end subroutine PDM_writer_geom_coord_from_parent_set
 
@@ -652,45 +667,50 @@ module pdm_writer
 
   subroutine PDM_writer_geom_bloc_add (cs,           &
                                        id_geom,      &
-                                       st_free_data, &
-                                       t_elt)
+                                       t_elt,        &
+                                       owner,        &
+                                       id_bloc)
     use iso_c_binding
     implicit none
 
     type(c_ptr), value            :: cs
     integer, intent(in)           :: id_geom
-    integer, intent(in)           :: st_free_data
     integer, intent(in)           :: t_elt
+    integer, intent(in)           :: owner
+    integer, intent(out)          :: id_bloc
 
     integer(c_int)                :: c_id_geom
-    integer(c_int)                :: c_st_free_data
     integer(c_int)                :: c_t_elt
+    integer(c_int)                :: c_owner
+    integer(c_int)                :: c_id_bloc
 
     interface
-      subroutine PDM_writer_geom_bloc_add_c (cs,           &
+      function PDM_writer_geom_bloc_add_c (cs,             &
                                              id_geom,      &
-                                             st_free_data, &
-                                             t_elt)        &
+                                             t_elt,        & 
+                                             owner)        &
+      result (id_bloc)                                     &
       bind (c, name='PDM_writer_geom_bloc_add')
         use iso_c_binding
         implicit none
 
         type(c_ptr),    value :: cs
         integer(c_int), value :: id_geom
-        integer(c_int), value :: st_free_data
         integer(c_int), value :: t_elt
+        integer(c_int), value :: owner
+        integer(c_int)        :: id_bloc
 
-      end subroutine PDM_writer_geom_bloc_add_c
+      end function PDM_writer_geom_bloc_add_c
     end interface
 
     c_id_geom      = id_geom
-    c_st_free_data = st_free_data
     c_t_elt        = t_elt
+    c_owner        = owner
 
-    call PDM_writer_geom_bloc_add_c (cs,             &
+    id_bloc = PDM_writer_geom_bloc_add_c (cs,        &
                                      c_id_geom,      &
-                                     c_st_free_data, &
-                                     c_t_elt)
+                                     c_t_elt,        &
+                                     c_owner)
 
   end subroutine PDM_writer_geom_bloc_add
 
@@ -1449,10 +1469,107 @@ module pdm_writer
                                       c_st_dep_tps,         &
                                       c_dim,                &
                                       c_dof_loc,            &
-                                      nom_var//C_NULL_CHAR)
+                                      trim(nom_var)//C_NULL_CHAR)
 
   end subroutine PDM_writer_var_create
 
+
+  !>
+  !! \brief Creation d'une variable globale constante
+  !!
+  !! \param [in]  cs              Pointer to \ref PDM_writer object
+  !! \param [out] id_var          Identificateur de l'objet variable
+  !! \param [in]  nom_var         Nom de la variable
+  !! \param [in]  val_var         Valeur
+  !!
+  !!
+
+  subroutine PDM_writer_cst_global_var_create (cs,      &
+                                               id_var,  &
+                                               nom_var, &
+                                               val_var)
+    use iso_c_binding
+    implicit none
+
+    type(c_ptr), value   :: cs
+    integer, intent(out) :: id_var
+    character (len=*)    :: nom_var
+    double precision     :: val_var
+
+    real(c_double)       :: c_var_val
+
+    interface
+      function PDM_writer_cst_global_var_create_c (cs,         &
+                                                   nom_var,    &
+                                                   var_val)    &
+      result (id_var)                                          &
+      bind (c, name='PDM_writer_cst_global_var_create')
+        use iso_c_binding
+        implicit none
+
+        type(c_ptr),    value :: cs
+        integer(c_int)        :: id_var
+        character(c_char)     :: nom_var(*)
+        real(c_double)        :: var_val
+
+      end function PDM_writer_cst_global_var_create_c
+    end interface
+
+    c_var_val    = val_var
+
+    id_var = PDM_writer_cst_global_var_create_c (cs,                   &
+                                                 nom_var//C_NULL_CHAR, &
+                                                 c_var_val)
+
+  end subroutine PDM_writer_cst_global_var_create
+
+
+  !>
+  !! \brief Creation d'une variable globale constante
+  !!
+  !! \param [in]  cs              Pointer to \ref PDM_writer object
+  !! \param [out] id_var          Identificateur de l'objet variable
+  !! \param [in]  nom_var         Nom de la variable
+  !! \param [in]  val_var         Valeur
+  !!
+  !!
+
+  subroutine PDM_writer_cst_global_var_set (cs,      &
+                                               id_var,  &
+                                               val_var)
+    use iso_c_binding
+    implicit none
+
+    type(c_ptr), value          :: cs
+    integer                     :: id_var
+    double precision            :: val_var
+
+    real(c_double)       :: c_var_val
+    integer(c_int)       :: c_id_var
+
+    interface
+      subroutine PDM_writer_cst_global_var_set_c (cs,         &
+                                                   id_var,    &
+                                                   var_val)    &
+      bind (c, name='PDM_writer_cst_global_var_set')
+        use iso_c_binding
+        implicit none
+
+        type(c_ptr),    value :: cs
+        integer(c_int)        :: id_var
+        real(c_double)        :: var_val
+
+      end subroutine PDM_writer_cst_global_var_set_c
+    end interface
+
+    c_var_val    = val_var
+    c_id_var     = id_var
+
+    call PDM_writer_cst_global_var_set_c (cs,                   &
+                                          c_id_var,             &
+                                          c_var_val)
+
+  end subroutine PDM_writer_cst_global_var_set
 
 
   !>
@@ -1490,8 +1607,8 @@ module pdm_writer
     end interface
 
     call PDM_writer_name_map_add_c (cs,                        &
-                                    public_name//C_NULL_CHAR,  &
-                                    private_name//C_NULL_CHAR)
+                                    trim(public_name)//C_NULL_CHAR,  &
+                                    trim(private_name)//C_NULL_CHAR)
 
   end subroutine PDM_writer_name_map_add
 
@@ -1663,7 +1780,7 @@ module pdm_writer
     c_var_write_fct   = c_funloc(var_write_fct)
     c_var_free_fct    = c_funloc(var_free_fct)
 
-    call PDM_writer_fmt_add_c (name//C_NULL_CHAR, &
+    call PDM_writer_fmt_add_c (trim(name)//C_NULL_CHAR, &
                                c_create_fct,      &
                                c_free_fct,        &
                                c_beg_step_fct,    &

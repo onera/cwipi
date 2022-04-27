@@ -54,7 +54,7 @@ module pdm_mesh_check
     integer(pdm_g_num_s), intent(inout)          :: n_vtx
     integer(pdm_g_num_s), intent(inout)          :: l_face_vtx
     integer(pdm_g_num_s), intent(inout), pointer :: face_vtx(:)
-    double precision,     intent(inout), pointer :: coords(:,:)
+    double precision,     intent(inout), pointer :: coords(:)
     integer(pdm_l_num_s), intent(inout)          :: n_holes
 
     type(c_ptr)                                  :: c_face_vtx

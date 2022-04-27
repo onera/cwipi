@@ -110,7 +110,7 @@ MODULE pdm_mesh_nodal
 !! @param[in]  numabs   Global numbering
 !!
 
-  subroutine pdm_mesh_nodal_coord_set (mesh, id_part, n_vtx, coords, numabs)
+  subroutine pdm_mesh_nodal_coord_set (mesh, id_part, n_vtx, coords, numabs, owner)
     use iso_c_binding
 
     implicit none
@@ -118,13 +118,14 @@ MODULE pdm_mesh_nodal
     type(c_ptr), value                  :: mesh
     integer, intent(in)                 :: id_part
     integer, intent(in)                 :: n_vtx
+    integer, intent(in)                 :: owner
     double precision, pointer           :: coords(:,:)
     integer (pdm_g_num_s), pointer      :: numabs(:)
     type(c_ptr) :: c_coords = C_NULL_PTR
     type(c_ptr) :: c_numabs = C_NULL_PTR
 
     interface
-      subroutine pdm_mesh_nodal_coord_set_c(mesh, id_part, n_vtx, coords, numabs) &
+      subroutine pdm_mesh_nodal_coord_set_c(mesh, id_part, n_vtx, coords, numabs, owner) &
         bind(c, name='PDM_Mesh_nodal_coord_set')
 
         use iso_c_binding
@@ -135,6 +136,7 @@ MODULE pdm_mesh_nodal
         type(c_ptr),                 value :: mesh
         integer (c_int), intent(in), value :: id_part
         integer (c_int), intent(in), value :: n_vtx
+        integer (c_int), intent(in), value :: owner
         type (c_ptr),                value :: coords
         type (c_ptr),                value :: numabs
       end subroutine pdm_mesh_nodal_coord_set_c
@@ -143,7 +145,7 @@ MODULE pdm_mesh_nodal
     c_coords = c_loc (coords)
     c_numabs = c_loc (numabs)
 
-    call  pdm_mesh_nodal_coord_set_c(mesh, id_part, n_vtx, c_coords, c_numabs)
+    call  pdm_mesh_nodal_coord_set_c(mesh, id_part, n_vtx, c_coords, c_numabs, owner)
 
   end subroutine
 

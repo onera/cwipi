@@ -35,11 +35,12 @@ extern "C" {
 
 struct _PDM_writer_geom_t {
 
-  char                     *nom_geom;           /* Nom de la geometrie */
-  void                     *geom_fmt;           /* Description propre au format fmt */
-  PDM_writer_t             *_cs;                /* Pointeur sur la structure cs parente */
-  PDM_MPI_Comm              pdm_mpi_comm;       /* Communicateur MPI */
-  PDM_Mesh_nodal_t         *mesh_nodal;         /* Mesh handle */
+  char                      *nom_geom;           /* Nom de la geometrie */
+  void                      *geom_fmt;           /* Description propre au format fmt */
+  PDM_writer_t              *_cs;                /* Pointeur sur la structure cs parente */
+  PDM_MPI_Comm               pdm_mpi_comm;       /* Communicateur MPI */
+  PDM_Mesh_nodal_t          *mesh_nodal;         /* Mesh handle */
+  PDM_Mesh_nodal_t          *_mesh_nodal;        /* Local allocated mesh handle */
 
 };
 
@@ -100,7 +101,6 @@ struct _PDM_writer_var_t{
 
 } ;
 
-
 typedef struct _PDM_writer_var_tab_t {
 
   int                 n_var;
@@ -108,6 +108,24 @@ typedef struct _PDM_writer_var_tab_t {
   PDM_writer_var_t **var;
 
 } _PDM_writer_var_tab_t;
+
+
+
+struct _PDM_writer_cst_global_var_t{
+
+  char                  *nom_var;        /* Nom de la geometrie */
+  double                 _val;           /* Valeurs de la variable */
+
+};
+
+
+typedef struct _PDM_writer_cst_global_var_tab_t {
+
+  int                 n_var;
+  int                 s_var;
+  PDM_writer_cst_global_var_t **var;
+
+} _PDM_writer_cst_global_var_tab_t;
 
 
 /*----------------------------------------------------------------------------
@@ -132,7 +150,7 @@ struct _PDM_writer_t {
   _PDM_writer_name_map_tab_t *name_map_tab;       /* Stockage du mapping des noms */
   int                         n_options;          /* Nombre d'options */
   PDM_writer_option_t        *options;            /* Options complementaire */
-
+  _PDM_writer_cst_global_var_tab_t cst_global_var_tab;
 };
 
 

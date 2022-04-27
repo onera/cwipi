@@ -607,7 +607,8 @@ int main(int argc, char *argv[])
                                  i_part,
                                  n_vtx,
                                  vtx,
-                                 vtx_ln_to_gn);
+                                 vtx_ln_to_gn,
+                                 PDM_OWNERSHIP_USER);
 
       face_vtx_n[i_part] = malloc (sizeof(int) * n_face);
       for (int i = 0; i < n_face; i++) {

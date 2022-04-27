@@ -140,9 +140,9 @@ int main(int argc, char *argv[])
    */
 
   PDM_g_num_t  n_vtx_seg = 10;
-  double        length  = 1.;
+  double        length   = 1.;
   int           n_part   = 1;
-  int           post    = 0;
+  int           post     = 0;
 #ifdef PDM_HAVE_PARMETIS
   PDM_part_split_t method  = PDM_PART_SPLIT_PARMETIS;
 #else
@@ -312,7 +312,20 @@ int main(int argc, char *argv[])
                                           PDM_MPI_COMM_WORLD,
                                           PDM_IO_KIND_MPI_SIMPLE,
                                           1.,
-                                          NULL);
+                                          "append = 1");
+
+  // PDM_writer_t *id_cs = PDM_writer_create("Ensight",
+  //                                         PDM_WRITER_FMT_ASCII,
+  //                                         PDM_WRITER_TOPO_VARIABLE,
+  //                                         PDM_WRITER_OFF,
+  //                                         "test_3d_ens_mv_mesh",
+  //                                         "chrd3d",
+  //                                         PDM_MPI_COMM_WORLD,
+  //                                         PDM_IO_KIND_MPI_SIMPLE,
+  //                                         1.,
+  //                                         NULL);
+
+  int id_var = PDM_writer_cst_global_var_create (id_cs, "test_var_constante", -1.2345);
 
   /* Creation de la geometrie */
 
@@ -408,6 +421,9 @@ int main(int argc, char *argv[])
     double tstep = nstep * 0.01;
 
     PDM_writer_step_beg(id_cs, tstep);
+
+
+    PDM_writer_cst_global_var_set (id_cs, id_var, tstep);
 
     for (int i_part = 0; i_part < n_part; i_part++) {
 
@@ -506,7 +522,8 @@ int main(int argc, char *argv[])
                                 i_part,
                                 n_vtx,
                                 vtx,
-                                vtx_ln_to_gn);
+                                vtx_ln_to_gn,
+                                PDM_OWNERSHIP_USER);
 
 
 

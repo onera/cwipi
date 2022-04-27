@@ -1127,6 +1127,14 @@ contains
       c_dvtx_tag = c_loc(dVtxTag)
     endif
 
+    if (associated(dCellWeight)) then
+      c_dcell_weight = c_loc(dCellWeight)
+    endif
+
+    if (associated(renum_properties_face)) then
+      c_renum_properties_face = c_loc(renum_properties_face)
+    endif
+
     c_split_method    = split_method
     c_n_property_cell = nPropertyCell
     c_n_property_face = nPropertyFace
@@ -1137,10 +1145,8 @@ contains
     c_n_face_group    = nFaceGroup
 
     c_renum_properties_cell = c_loc(renum_properties_cell)
-    c_renum_properties_face = c_loc(renum_properties_face)
     c_dcell_faceIdx         = c_loc(dCellFaceIdx         )
     c_dcell_face            = c_loc(dCellFace            )
-    c_dcell_weight          = c_loc(dCellWeight          )
     c_dface_vtx_idx         = c_loc(dFaceVtxIdx          )
     c_dface_vtx             = c_loc(dFaceVtx             )
     c_dvtx_coord            = c_loc(dVtxCoord            )
@@ -1151,8 +1157,8 @@ contains
 
     ppart = PDM_part_create_c (c_comm, &
                                 c_split_method, &
-                                renum_cell_method//C_NULL_CHAR, &
-                                renum_face_method//C_NULL_CHAR, &
+                                trim(renum_cell_method)//C_NULL_CHAR, &
+                                trim(renum_face_method)//C_NULL_CHAR, &
                                 c_n_property_cell, &
                                 c_renum_properties_cell, &
                                 c_n_property_face, &
@@ -1867,22 +1873,22 @@ contains
       c_have_face_group = 0
     endif
 
-    cm = PDM_part_coarse_mesh_create_c (c_comm,                         &
-                                        method//C_NULL_CHAR,            &
-                                        renum_cell_method//C_NULL_CHAR, &
-                                        renum_face_method//C_NULL_CHAR, &
-                                        c_n_property_cell,              &
-                                        c_renum_properties_cell,        &
-                                        c_n_property_face,              &
-                                        c_renum_properties_face,        &
-                                        c_n_part,                       &
-                                        c_n_total_part,                 &
-                                        c_n_face_group,                 &
-                                        c_have_cell_tag,                &
-                                        c_have_face_tag,                &
-                                        c_have_vtx_tag,                 &
-                                        c_have_cell_weight,             &
-                                        c_have_face_weight,             &
+    cm = PDM_part_coarse_mesh_create_c (c_comm,                               &
+                                        trim(method)//C_NULL_CHAR,             &
+                                        trim(renum_cell_method)//C_NULL_CHAR, &
+                                        trim(renum_face_method)//C_NULL_CHAR, &
+                                        c_n_property_cell,                    &
+                                        c_renum_properties_cell,              &
+                                        c_n_property_face,                    &
+                                        c_renum_properties_face,              &
+                                        c_n_part,                             &
+                                        c_n_total_part,                       &
+                                        c_n_face_group,                       &
+                                        c_have_cell_tag,                      &
+                                        c_have_face_tag,                      &
+                                        c_have_vtx_tag,                       &
+                                        c_have_cell_weight,                   &
+                                        c_have_face_weight,                   &
                                         c_have_face_group)
 
   end subroutine PDM_part_coarse_mesh_create_
@@ -2032,24 +2038,43 @@ contains
 
     c_cell_face_idx            = c_loc(cell_face_idx           )
     c_cell_face                = c_loc(cell_face               )
-    c_cell_tag                 = c_loc(cell_tag                )
-    c_cell_weight              = c_loc(cell_weight             )
-    c_face_weight              = c_loc(face_weight             )
     c_cell_ln_to_gn            = c_loc(cell_ln_to_gn           )
     c_face_cell                = c_loc(face_cell               )
     c_face_vtx_idx             = c_loc(face_vtx_idx            )
     c_face_vtx                 = c_loc(face_vtx                )
-    c_face_tag                 = c_loc(face_tag                )
     c_face_ln_to_gn            = c_loc(face_ln_to_gn           )
     c_vtxCoord                 = c_loc(vtxCoord                )
-    c_vtx_tag                  = c_loc(vtx_tag                 )
     c_vtx_ln_to_gn             = c_loc(vtx_ln_to_gn            )
     c_face_group_idx           = c_loc(face_group_idx          )
     c_face_group               = c_loc(face_group              )
     c_face_group_ln_to_gn      = c_loc(face_group_ln_to_gn     )
     c_face_part_bound_proc_idx = c_loc(face_part_bound_proc_idx)
     c_face_part_bound_part_idx = c_loc(face_part_bound_part_idx)
-    c_face_part_bound          = c_loc(face_part_bound         )
+    
+
+    if (associated(vtx_tag)) then
+      c_vtx_tag  = c_loc(vtx_tag)
+    endif
+
+    if (associated(face_tag)) then
+      c_face_tag = c_loc(face_tag)
+    endif
+
+    if (associated(cell_tag)) then
+      c_cell_tag = c_loc(cell_tag)
+    endif
+
+    if (associated(cell_weight)) then
+      c_cell_weight = c_loc(cell_weight)
+    endif
+
+    if (associated(face_weight)) then
+       c_face_weight = c_loc(face_weight)
+    endif
+
+    if (associated(face_part_bound)) then
+       c_face_part_bound = c_loc(face_part_bound)
+    endif
 
     call PDM_part_coarse_mesh_input_c (cm,                         &
                                        c_i_part,                   &
@@ -2631,7 +2656,7 @@ contains
       end subroutine PDM_coarse_mesh_method_idx_get_c
     end interface
 
-    call PDM_coarse_mesh_method_idx_get_c (name//C_NULL_CHAR, &
+    call PDM_coarse_mesh_method_idx_get_c (trim(name)//C_NULL_CHAR, &
                                            idx)
 
   end subroutine PDM_coarse_mesh_method_idx_get
@@ -2740,7 +2765,7 @@ contains
       end subroutine PDM_part_renum_method_face_idx_get_c
     end interface
 
-    call PDM_part_renum_method_face_idx_get_c (name//C_NULL_CHAR, &
+    call PDM_part_renum_method_face_idx_get_c (trim(name)//C_NULL_CHAR, &
                                                idx)
 
   end subroutine PDM_part_renum_method_face_idx_get
@@ -2776,7 +2801,7 @@ contains
        end subroutine PDM_part_renum_method_cell_idx_get_c
      end interface
 
-     call PDM_part_renum_method_cell_idx_get_c (name//C_NULL_CHAR, &
+     call PDM_part_renum_method_cell_idx_get_c (trim(name)//C_NULL_CHAR, &
                                                 idx)
 
   end subroutine PDM_part_renum_method_cell_idx_get
@@ -2812,7 +2837,7 @@ contains
        end subroutine PDM_part_renum_method_edge_idx_get_c
      end interface
 
-     call PDM_part_renum_method_edge_idx_get_c (name//C_NULL_CHAR, &
+     call PDM_part_renum_method_edge_idx_get_c (trim(name)//C_NULL_CHAR, &
                                                 idx)
 
   end subroutine PDM_part_renum_method_edge_idx_get
@@ -2848,7 +2873,7 @@ contains
        end subroutine PDM_part_renum_method_vtx_idx_get_c
      end interface
 
-     call PDM_part_renum_method_vtx_idx_get_c (name//C_NULL_CHAR, &
+     call PDM_part_renum_method_vtx_idx_get_c (trim(name)//C_NULL_CHAR, &
                                                 idx)
 
   end subroutine PDM_part_renum_method_vtx_idx_get
@@ -2997,5 +3022,205 @@ contains
                                                 l_name)
 
   end subroutine PDM_part_renum_method_cell_name_get
+
+
+  !>
+  !!
+  !! \brief Add option for anisotropic mesh agglomeration
+  !!
+  !! \param [out]  cm                         Pointer to \ref PDM_coarse_mesh_t object
+  !! \param [in]   anisotropic_option
+  !!
+
+#ifdef PDM_HAVE_ANISO_AGGLO
+
+  subroutine PDM_part_coarse_mesh_add_option_anisotropic (cm,                 &
+                                                          anisotropic_option)
+    use iso_c_binding
+    implicit none
+
+    type(c_ptr), value            :: cm
+    integer(pdm_l_num_s), pointer :: anisotropic_option(:)
+
+    interface
+      subroutine PDM_part_coarse_mesh_add_option_anisotropic_f (cm,                 &
+                                                                anisotropic_option) &
+      bind (c, name='PDM_part_coarse_mesh_add_option_anisotropic')
+        use iso_c_binding
+        implicit none
+
+        type(c_ptr), value  :: cm
+        type(c_ptr), value  :: anisotropic_option
+
+      end subroutine PDM_part_coarse_mesh_add_option_anisotropic_f
+    end interface
+
+    call PDM_part_coarse_mesh_add_option_anisotropic_f (cm, c_loc(anisotropic_option))
+
+  end subroutine PDM_part_coarse_mesh_add_option_anisotropic
+
+  !>
+  !!
+  !! \brief Add isotropic array to current coarse mesh
+  !!
+  !! \param [in]   cm                           Pointer to \ref PDM_coarse_mesh_t object
+  !! \param [in]   i_part                       Current partition
+  !! \param [out]  agglomeration_lines_init
+  !! \param [out]  agglomeration_lines_init_idx
+  !! \param [out]  is_on_fine_bnd_init
+  !!
+
+  subroutine PDM_part_coarse_mesh_part_set_anisotropic_info (cm,                                &
+                                                             i_part,                            &
+                                                             agglomeration_lines_init,          &
+                                                             agglomeration_lines_init_idx,      &
+                                                             agglomeration_lines_init_idx_size, &
+                                                             is_on_fine_bnd_init)
+    use iso_c_binding
+    implicit none
+
+    type(c_ptr), value            :: cm
+    integer, intent(in)           :: i_part
+    integer(pdm_l_num_s), pointer :: agglomeration_lines_init(:)
+    integer(pdm_l_num_s), pointer :: agglomeration_lines_init_idx(:)
+    integer, intent(in)           :: agglomeration_lines_init_idx_size
+    integer(pdm_l_num_s), pointer :: is_on_fine_bnd_init(:)
+
+    interface
+      subroutine PDM_part_coarse_mesh_part_set_anisotropic_info_f (cm,                                &
+                                                                   i_part,                            &
+                                                                   agglomeration_lines_init,          &
+                                                                   agglomeration_lines_init_idx,      &
+                                                                   agglomeration_lines_init_idx_size, &
+                                                                   is_on_fine_bnd_init)               &
+      bind (c, name='PDM_part_coarse_mesh_part_set_anisotropic_info')
+
+        use iso_c_binding
+        implicit none
+
+        type(c_ptr),    value  :: cm
+        integer(c_int), value  :: i_part
+        type(c_ptr),    value  :: agglomeration_lines_init
+        type(c_ptr),    value  :: agglomeration_lines_init_idx
+        integer(c_int), value  :: agglomeration_lines_init_idx_size
+        type(c_ptr),    value  :: is_on_fine_bnd_init
+
+      end subroutine PDM_part_coarse_mesh_part_set_anisotropic_info_f
+    end interface
+
+    call PDM_part_coarse_mesh_part_set_anisotropic_info_f (cm,                                  &
+                                                           i_part,                              &
+                                                           c_loc(agglomeration_lines_init),     &
+                                                           c_loc(agglomeration_lines_init_idx), &
+                                                           agglomeration_lines_init_idx_size,   &
+                                                           c_loc(is_on_fine_bnd_init))
+
+  end subroutine PDM_part_coarse_mesh_part_set_anisotropic_info
+
+
+  !>
+  !!
+  !! \brief Return a mesh partition
+  !!
+  !! \param [in]   cm                         Pointer to \ref PDM_coarse_mesh_t object
+  !! \param [in]   i_part                     Current partition
+  !! \param [out]  agglomeration_lines
+  !! \param [out]  agglomeration_lines_idx
+  !! \param [out]  is_on_fine_bnd
+  !!
+
+  subroutine PDM_part_coarse_mesh_part_get_anisotropic_info (cm,                           &
+                                                             i_part,                       &
+                                                             agglomeration_lines,          &
+                                                             agglomeration_lines_idx,      &
+                                                             agglomeration_lines_idx_size, &
+                                                             is_on_fine_bnd)
+    use iso_c_binding
+    implicit none
+
+    type(c_ptr), value            :: cm
+    integer, intent(in)           :: i_part
+    integer(pdm_l_num_s), pointer :: agglomeration_lines(:)
+    integer(pdm_l_num_s), pointer :: agglomeration_lines_idx(:)
+    integer, intent(out)          :: agglomeration_lines_idx_size
+    integer(pdm_l_num_s), pointer :: is_on_fine_bnd(:)
+
+    type(c_ptr)                   :: c_agglomeration_lines          = C_NULL_PTR
+    type(c_ptr)                   :: c_agglomeration_lines_idx      = C_NULL_PTR
+    integer(c_int)                :: c_agglomeration_lines_idx_size
+    type(c_ptr)                   :: c_is_on_fine_bnd               = C_NULL_PTR
+    integer                       :: n_cell
+    integer                       :: n_face
+    integer                       :: n_face_part_bound
+    integer                       :: n_vtx
+    integer                       :: n_proc
+    integer                       :: n_total_part
+    integer                       :: n_face_group
+    integer                       :: scell_face
+    integer                       :: sface_vtx
+    integer                       :: sface_group
+    integer                       :: sCoarseCellToFineCell
+
+    interface
+      subroutine PDM_part_coarse_mesh_part_get_anisotropic_info_f (cm,                           &
+                                                                   i_part,                       &
+                                                                   agglomeration_lines,          &
+                                                                   agglomeration_lines_idx,      &
+                                                                   agglomeration_lines_idx_size, &
+                                                                   is_on_fine_bnd)               &
+      bind (c, name='PDM_part_coarse_mesh_part_get_anisotropic_info')
+
+        use iso_c_binding
+        implicit none
+
+        type(c_ptr),    value  :: cm
+        integer(c_int), value  :: i_part
+        type(c_ptr)            :: agglomeration_lines
+        type(c_ptr)            :: agglomeration_lines_idx
+        integer(c_int)         :: agglomeration_lines_idx_size
+        type(c_ptr)            :: is_on_fine_bnd
+
+      end subroutine PDM_part_coarse_mesh_part_get_anisotropic_info_f
+    end interface
+
+    call PDM_part_coarse_mesh_part_get_anisotropic_info_f (cm,                             &
+                                                           i_part,                         &
+                                                           c_agglomeration_lines,          &
+                                                           c_agglomeration_lines_idx,      &
+                                                           c_agglomeration_lines_idx_size, &
+                                                           c_is_on_fine_bnd)
+
+    agglomeration_lines_idx_size = c_agglomeration_lines_idx_size
+
+    call c_f_pointer(c_agglomeration_lines_idx,        &
+                     agglomeration_lines_idx,          &
+                     [c_agglomeration_lines_idx_size])
+
+    call c_f_pointer(c_agglomeration_lines,                                     &
+                     agglomeration_lines,                                       &
+                     [agglomeration_lines_idx(c_agglomeration_lines_idx_size)])
+
+
+    call PDM_part_coarse_mesh_part_dim_get_ (cm,                    &
+                                             i_part,                &
+                                             n_cell,                &
+                                             n_face,                &
+                                             n_face_part_bound,     &
+                                             n_vtx,                 &
+                                             n_proc,                &
+                                             n_total_part,          &
+                                             n_face_group,          &
+                                             scell_face,            &
+                                             sface_vtx,             &
+                                             sface_group,           &
+                                             sCoarseCellToFineCell)
+
+    call c_f_pointer(c_is_on_fine_bnd, &
+                     is_on_fine_bnd,   &
+                     [n_cell])
+
+  end subroutine PDM_part_coarse_mesh_part_get_anisotropic_info
+
+#endif
 
 end module pdm_part

@@ -918,7 +918,8 @@ _export_ini_mesh
                                  ipart,
                                  nVtx[imesh][ipart],
                                  vtxCoord[imesh][ipart],
-                                 vtxLNToGN[imesh][ipart]);
+                                 vtxLNToGN[imesh][ipart],
+                                PDM_OWNERSHIP_USER);
 
       _face_nb[ipart] = malloc(sizeof(int) * nFace[imesh][ipart]);
       _face_idx[ipart] = malloc(sizeof(int) * nFace[imesh][ipart]);
@@ -1281,7 +1282,8 @@ _export_ol_mesh
                                  ipart,
                                  nOlVtx,
                                  olCoords,
-                                 olvtx_ln_to_gn);
+                                 olvtx_ln_to_gn,
+                                PDM_OWNERSHIP_USER);
 
       _olface_nb[ipart] = malloc(sizeof(int) * nOlFace);
       _olface_idx[ipart] = malloc(sizeof(int) * nOlFace);

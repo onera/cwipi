@@ -429,7 +429,9 @@ int main(int argc, char *argv[])
                                   i_part,
                                   n_vtx,
                                   vtx,
-                                  vtx_ln_to_gn);
+                                  vtx_ln_to_gn,
+                                  PDM_OWNERSHIP_USER);
+        
         PDM_writer_geom_cell3d_cellface_add(id_cs,
                                             geom_ids[i_zone],
                                             i_part,

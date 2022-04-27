@@ -185,8 +185,8 @@ PDM_part_mesh_nodal_coord_set
 
   /* Mapping memoire */
   vtx->n_vtx   = n_vtx;
-  vtx->_coords = coords;
-  vtx->_numabs = numabs;
+  vtx->_coords = (double *) coords;
+  vtx->_numabs = (PDM_g_num_t*) numabs;
   vtx->owner   = owner;
 
 }

@@ -343,7 +343,8 @@ program testf
                                     i_part-1,     &
                                     n_vtx,        &
                                     vtx,          &
-                                    vtx_ln_to_gn)
+                                    vtx_ln_to_gn, &
+                                    PDM_OWNERSHIP_USER)
 
     allocate(cell_val(n_cell))
     cell_val(1:n_cell) = i_rank

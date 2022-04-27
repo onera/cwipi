@@ -304,7 +304,8 @@ const PDM_MPI_Comm  comm
 {
   geom->nom_geom = NULL;
 
-  geom->mesh_nodal = PDM_Mesh_nodal_create (n_part, comm);
+  geom->_mesh_nodal = PDM_Mesh_nodal_create (n_part, comm);
+  geom->mesh_nodal = geom->_mesh_nodal; 
 
   geom->geom_fmt       = NULL;
   geom->_cs            = NULL;
@@ -538,6 +539,10 @@ const char                   *options
     _parse_options (options, &(cs->n_options), &(cs->options));
   }
 
+  cs->cst_global_var_tab.var = NULL;
+  cs->cst_global_var_tab.n_var = 0;
+  cs->cst_global_var_tab.s_var = 0;
+
   size_t l_nom_sortie = strlen(nom_sortie);
   cs->nom_sortie = (char *) malloc(sizeof(char) * (l_nom_sortie + 1));
   strcpy(cs->nom_sortie, nom_sortie);  /* Nom de la sortie */
@@ -611,6 +616,23 @@ PDM_writer_free
     free(cs->var_tab);
     cs->var_tab = NULL;
   }
+
+  if (cs->cst_global_var_tab.var != NULL) {
+    for (int i = 0; i < cs->cst_global_var_tab.s_var; i++) {
+      if (cs->cst_global_var_tab.var[i] != NULL) {
+        if (cs->cst_global_var_tab.var[i]->nom_var != NULL) {
+          free (cs->cst_global_var_tab.var[i]->nom_var);
+          cs->cst_global_var_tab.var[i]->nom_var = NULL;
+        } 
+        free (cs->cst_global_var_tab.var[i]);
+        cs->cst_global_var_tab.var[i] = NULL;
+      }
+    }
+
+    free(cs->cst_global_var_tab.var);
+    cs->cst_global_var_tab.var = NULL;
+  }
+
 
   if (cs->options != NULL) {
     for (int i = 0; i < cs->n_options; i++) {
@@ -817,9 +839,10 @@ PDM_writer_geom_create_from_mesh_nodal
   /* Initialisation de la structure PDM_writer_geom_t */
 
   //_geom_init(geom, n_part, cs->pdm_mpi_comm);
-  geom->nom_geom = NULL;
-  geom->mesh_nodal = mesh;
-  geom->geom_fmt       = NULL;
+  geom->nom_geom    = NULL;
+  geom->_mesh_nodal = NULL;
+  geom->mesh_nodal  = mesh;
+  geom->geom_fmt    = NULL;
 
   geom->_cs = cs;
   geom->pdm_mpi_comm = cs->pdm_mpi_comm;
@@ -860,7 +883,8 @@ PDM_writer_geom_coord_set
  const int          id_part,
  const int          n_som,
  const PDM_real_t  *coords,
- const PDM_g_num_t *numabs
+ const PDM_g_num_t *numabs,
+ const PDM_ownership_t owner
 )
 {
   if (cs == NULL) {
@@ -878,7 +902,7 @@ PDM_writer_geom_coord_set
     abort();
   }
 
-  PDM_Mesh_nodal_coord_set (geom->mesh_nodal, id_part, n_som, coords, numabs);
+  PDM_Mesh_nodal_coord_set (geom->_mesh_nodal, id_part, n_som, coords, numabs, owner);
 
   if (0 == 1) {
     printf("n_vtx : %d\n", n_som);
@@ -919,7 +943,8 @@ PDM_writer_geom_coord_from_parent_set
  const PDM_g_num_t *numabs,
  const int         *num_parent,
  const PDM_real_t  *coords_parent,
- const PDM_g_num_t *numabs_parent
+ const PDM_g_num_t *numabs_parent,
+ const PDM_ownership_t ownership
 )
 {
   if (cs == NULL) {
@@ -936,14 +961,15 @@ PDM_writer_geom_coord_from_parent_set
     PDM_error(__FILE__, __LINE__, 0, "Bad geom identifier\n");
   }
 
-  PDM_Mesh_nodal_coord_from_parent_set (geom->mesh_nodal,
+  PDM_Mesh_nodal_coord_from_parent_set (geom->_mesh_nodal,
                                         id_part,
                                         n_som,
                                         n_som_parent,
                                         numabs,
                                         num_parent,
                                         coords_parent,
-                                        numabs_parent);
+                                        numabs_parent,
+                                        ownership);
 }
 
 /**
@@ -962,8 +988,8 @@ PDM_writer_geom_bloc_add
 (
  PDM_writer_t                *cs,
  const int                    id_geom,
- PDM_writer_status_t          st_free_data,
- const PDM_writer_elt_geom_t  t_elt
+ const PDM_writer_elt_geom_t  t_elt,
+ const PDM_ownership_t        owner
 )
 {
   if (cs == NULL) {
@@ -981,9 +1007,8 @@ PDM_writer_geom_bloc_add
     abort();
   }
 
-  int id_block = PDM_Mesh_nodal_block_add (geom->mesh_nodal, (PDM_bool_t) st_free_data,
-                                           (PDM_Mesh_nodal_elt_t) t_elt);
-
+  int id_block = PDM_Mesh_nodal_block_add (geom->_mesh_nodal, 
+                                           (PDM_Mesh_nodal_elt_t) t_elt, owner);
 
   return id_block;
 
@@ -1099,7 +1124,7 @@ PDM_writer_geom_bloc_std_set
     abort();
   }
 
-  PDM_Mesh_nodal_block_std_set (geom->mesh_nodal, id_bloc, id_part,
+  PDM_Mesh_nodal_block_std_set (geom->_mesh_nodal, id_bloc, id_part,
                                 n_elt, connec, numabs, NULL);
 
 }
@@ -1146,7 +1171,7 @@ const PDM_l_num_t    n_elt,
     abort();
   }
 
-  PDM_Mesh_nodal_block_poly2d_set (geom->mesh_nodal, id_bloc, id_part,
+  PDM_Mesh_nodal_block_poly2d_set (geom->_mesh_nodal, id_bloc, id_part,
                                 n_elt, connec_idx, connec, numabs, NULL);
 
 }
@@ -1199,7 +1224,7 @@ const PDM_l_num_t    n_face,
     abort();
   }
 
-  PDM_Mesh_nodal_block_poly3d_set (geom->mesh_nodal,
+  PDM_Mesh_nodal_block_poly3d_set (geom->_mesh_nodal,
                                    id_bloc,
                                    id_part,
                                    n_elt,
@@ -1265,7 +1290,7 @@ PDM_writer_geom_cell3d_cellface_add
     abort();
   }
 
-  PDM_Mesh_nodal_cell3d_cellface_add (geom->mesh_nodal,
+  PDM_Mesh_nodal_cell3d_cellface_add (geom->_mesh_nodal,
                                       id_part,
                                       n_cell,
                                       
@@ -1276,7 +1301,8 @@ PDM_writer_geom_cell3d_cellface_add
                                       cell_face_idx,
                                       cell_face_nb,
                                       cell_face,
-                                      numabs);
+                                      numabs,
+                                      PDM_OWNERSHIP_KEEP);
   if (0 == 1) {
     printf("n_cell : %d\n", n_cell);
     for (int i = 0; i < n_cell; i++) {
@@ -1352,7 +1378,7 @@ PDM_writer_geom_cell2d_cellface_add
     abort();
   }
 
-  PDM_Mesh_nodal_cell2d_celledge_add (geom->mesh_nodal,
+  PDM_Mesh_nodal_cell2d_celledge_add (geom->_mesh_nodal,
                                       id_part,
                                       n_cell,
                                       n_face,
@@ -1362,7 +1388,8 @@ PDM_writer_geom_cell2d_cellface_add
                                       cell_face_idx,
                                       cell_face_nb,
                                       cell_face,
-                                      numabs);
+                                      numabs,
+                                      PDM_OWNERSHIP_KEEP);
 }
 
 
@@ -1412,13 +1439,14 @@ PDM_writer_geom_faces_facesom_add
     abort();
   }
 
-  PDM_Mesh_nodal_faces_facevtx_add (geom->mesh_nodal,
+  PDM_Mesh_nodal_faces_facevtx_add (geom->_mesh_nodal,
                                     id_part,
                                     n_face,
                                     face_som_idx,
                                     face_som_nb,
                                     face_som,
-                                    numabs);
+                                    numabs,
+                                    PDM_OWNERSHIP_KEEP);
 }
 
 /**
@@ -1463,7 +1491,8 @@ PDM_writer_geom_write
   const int *blocks_id = PDM_Mesh_nodal_blocks_id_get (geom->mesh_nodal);
 
   for (int i = 0; i < n_blocks; i++) {
-    PDM_Mesh_nodal_g_num_in_block_compute (geom->mesh_nodal, blocks_id[i]);
+    PDM_Mesh_nodal_g_num_in_block_compute (geom->mesh_nodal, blocks_id[i],
+                                      PDM_OWNERSHIP_KEEP);
   }
 
   /* Ecriture au format */
@@ -1517,7 +1546,11 @@ PDM_writer_geom_free
 
   if (geom != NULL) {
 
-    PDM_Mesh_nodal_free (geom->mesh_nodal);
+    if (geom->_mesh_nodal != NULL) {
+      PDM_Mesh_nodal_free (geom->_mesh_nodal);
+      geom->_mesh_nodal = NULL;
+      geom->mesh_nodal = NULL;      
+    }
     if (geom->nom_geom != NULL) {
       free(geom->nom_geom);
       geom->nom_geom = NULL;
@@ -1621,6 +1654,107 @@ PDM_writer_name_map_add
   strcpy(name_map->private_name, private_name);
 
 }
+
+
+/**
+ * \brief Create a global constant variable
+ *
+ * \param [in] cs              Pointer to \ref PDM_writer object
+ * \param [in] nom_var         Nom de la variable
+ * \param [in] val_var         Valeur de la variable
+ *
+ * \return  Identificateur de l'objet variable
+ *
+ */
+
+int
+PDM_writer_cst_global_var_create
+(
+ PDM_writer_t               *cs,
+ const char                 *nom_var,
+ const double                val_var
+)
+{
+ 
+  if (cs == NULL) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad writer identifier\n");
+  }
+
+  /* Mise a jour du tableau de stockage */
+
+  if (cs->cst_global_var_tab.s_var == 0) {
+
+    cs->cst_global_var_tab.n_var = 0;
+    cs->cst_global_var_tab.s_var = 4;
+
+    cs->cst_global_var_tab.var = (PDM_writer_cst_global_var_t **) malloc(sizeof(PDM_writer_cst_global_var_t *) * cs->cst_global_var_tab.s_var);
+    for (int i = 0; i < cs->cst_global_var_tab.s_var; i++) {
+      cs->cst_global_var_tab.var[i] = NULL;
+    }
+  }
+
+  /* Allocation de la structure PDM_writer_var_t */
+
+  PDM_writer_cst_global_var_t *var = (PDM_writer_cst_global_var_t *) malloc(sizeof(PDM_writer_cst_global_var_t));
+
+  var->nom_var = malloc(sizeof(char) * (1 + strlen (nom_var)));
+  strcpy (var->nom_var, nom_var);
+
+  var->_val = val_var;  
+
+  if (cs->cst_global_var_tab.n_var >= cs->cst_global_var_tab.s_var) {
+    cs->cst_global_var_tab.s_var = PDM_MAX(2*cs->cst_global_var_tab.s_var, cs->cst_global_var_tab.n_var+1);
+    cs->cst_global_var_tab.var = 
+    (PDM_writer_cst_global_var_t **) realloc(cs->cst_global_var_tab.var, sizeof(PDM_writer_cst_global_var_t *) * cs->cst_global_var_tab.s_var);
+
+    for (int i = cs->cst_global_var_tab.n_var+1; i < cs->cst_global_var_tab.s_var; i++) {
+      cs->cst_global_var_tab.var[i] = NULL;
+    }
+  }
+
+  int id_var = cs->cst_global_var_tab.n_var;
+  cs->cst_global_var_tab.n_var++;
+
+  cs->cst_global_var_tab.var[id_var] = var;
+
+  return id_var;
+
+}
+
+
+
+
+/**
+ * \brief Set a global constant variable
+ *
+ * \param [in] cs              Pointer to \ref PDM_writer object
+ * \param [in] id_var          Variable id
+ * \param [in] val_var         Valeur de la variable
+ *
+ * \return  Identificateur de l'objet variable
+ *
+ */
+
+void
+PDM_writer_cst_global_var_set
+(
+ PDM_writer_t               *cs,
+ const int                   id_var,
+ const double                val_var
+)
+{
+  if (cs == NULL) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad writer identifier\n");
+  }
+
+  assert (id_var < cs->cst_global_var_tab.s_var);
+  assert (cs->cst_global_var_tab.var[id_var] != NULL);
+
+  cs->cst_global_var_tab.var[id_var]->_val = val_var;
+
+}
+
+
 
 /**
  * \brief Creation d'une variable

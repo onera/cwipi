@@ -255,7 +255,8 @@ _export_ol_mesh
                                  ipart,
                                  nOlVtx,
                                  olCoords,
-                                 olvtx_ln_to_gn);
+                                 olvtx_ln_to_gn,
+                                 PDM_OWNERSHIP_USER);
 
       _olface_nb[ipart] = malloc(sizeof(int) * nOlFace);
       _olface_idx[ipart] = malloc(sizeof(int) * nOlFace);
@@ -1316,7 +1317,8 @@ main
                              0,
                              nVtxA_merge,
                              vtxCoordA_merge,
-                             vtxLNToGNA_merge);
+                             vtxLNToGNA_merge,
+                             PDM_OWNERSHIP_USER);
 
   int *faceVtxNA_merge =  malloc(sizeof(int) * nFaceA_merge);
   for (int j = 0; j < nFaceA_merge; j++) {
@@ -1345,7 +1347,8 @@ main
                              0,
                              nVtxA,
                              vtxCoordA,
-                             vtxLNToGNA);
+                             vtxLNToGNA,
+                             PDM_OWNERSHIP_USER);
 
   int *faceVtxNA =  malloc(sizeof(int) * nFaceA);
   for (int j = 0; j < nFaceA; j++) {
@@ -1429,7 +1432,8 @@ main
                              0,
                              nVtxB,
                              vtxCoordB,
-                             vtxLNToGNB);
+                             vtxLNToGNB,
+                             PDM_OWNERSHIP_USER);
 
   int *faceVtxNB =  malloc(sizeof(int) * nFaceB);
   for (int j = 0; j < nFaceB; j++) {
