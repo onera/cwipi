@@ -150,7 +150,8 @@ namespace cwipi {
                               id_part,
                               n_pts,
                               coords,
-                              global_num);
+                              global_num,
+                              PDM_OWNERSHIP_USER);
    }
 
 /*****************************************/
@@ -159,8 +160,8 @@ namespace cwipi {
 
      int id_block = PDM_writer_geom_bloc_add(_visu_id,
                                _visu_mesh_id,
-                               PDM_WRITER_ON,
-                               PdmWriterBlockTypeFromCwpBlockType(blockType)
+                               PdmWriterBlockTypeFromCwpBlockType(blockType),
+                               PDM_OWNERSHIP_KEEP
                               );
     return id_block;
   }

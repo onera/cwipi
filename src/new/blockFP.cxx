@@ -99,8 +99,8 @@ namespace cwipi {
 
      if(already_in_pdm ==0)
       _block_id_pdm = PDM_Mesh_nodal_block_add(_pdmNodal_handle_index,
-                                                PDM_FALSE,
-                                                PdmBlockTypeFromCwpBlockType(_blockType));
+                                                PdmBlockTypeFromCwpBlockType(_blockType),
+                                                PDM_OWNERSHIP_USER);
 
     for(int i_part = 0; i_part<_n_part; i_part++){
 

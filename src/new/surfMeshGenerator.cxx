@@ -608,7 +608,8 @@ void surfMeshGenerator::computeMesh() {
                                i_part,
                                nVtx1,
                                _coords[i_part],
-                               _vtxGnum[i_part]);
+                               _vtxGnum[i_part],
+                               PDM_OWNERSHIP_USER);
 
 
       PDM_Mesh_nodal_cell2d_celledge_add (id_mn,
@@ -621,7 +622,8 @@ void surfMeshGenerator::computeMesh() {
                                         _faceEdgeIdx[i_part],
                                         faceEdgeN,
                                         _faceEdge[i_part],
-                                        _faceLNToGN[i_part]);
+                                        _faceLNToGN[i_part],
+                                        PDM_OWNERSHIP_USER);
 
       _nElts[i_part] = _nFace[i_part];
     }

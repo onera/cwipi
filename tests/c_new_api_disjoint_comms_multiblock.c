@@ -655,7 +655,8 @@ int main(int argc, char *argv[]) {
                                i_part,
                                n_vtx[i_code][i_part],
                                coord[i_code][i_part],
-                               vtx_ln_to_gn[i_code][i_part]);
+                               vtx_ln_to_gn[i_code][i_part],
+                               PDM_OWNERSHIP_USER);
 
       PDM_Mesh_nodal_cell3d_cellface_add(mesh_nodal[i_code],
                                          i_part,
@@ -667,7 +668,8 @@ int main(int argc, char *argv[]) {
                                          cell_face_idx[i_code][i_part],
                                          cell_face_nb[i_code][i_part],
                                          cell_face[i_code][i_part],
-                                         cell_ln_to_gn[i_code][i_part]);
+                                         cell_ln_to_gn[i_code][i_part],
+                                         PDM_OWNERSHIP_USER);
     }
 
     n_blocks[i_code] = PDM_Mesh_nodal_n_blocks_get(mesh_nodal[i_code]);
@@ -675,7 +677,7 @@ int main(int argc, char *argv[]) {
     for (int i_block = 0 ; i_block < n_blocks[i_code] ; ++i_block) {
       for (int i_part = 0 ; i_part < n_part ; ++i_part) {
         PDM_Mesh_nodal_block_std_get(mesh_nodal[i_code], i_block, i_part, &connec[i_code][i_part]);
-        PDM_Mesh_nodal_g_num_in_block_compute(mesh_nodal[i_code], i_block);
+        PDM_Mesh_nodal_g_num_in_block_compute(mesh_nodal[i_code], i_block, PDM_OWNERSHIP_USER);
         PDM_g_num_t *g_num = PDM_Mesh_nodal_block_g_num_get(mesh_nodal[i_code], i_block, i_part);
 
         int n_cells_block1 = n_cells[i_code][i_part] / 3;

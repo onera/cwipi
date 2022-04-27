@@ -562,7 +562,8 @@ namespace cwipi {
                                  i_part                 ,
                                  _nVertex       [i_part],
                                  _coords        [i_part],
-                                 _global_num_vtx[i_part]);
+                                 _global_num_vtx[i_part],
+                                 PDM_OWNERSHIP_USER);
 
         if(_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC) {
           _visu->GeomCoordSet(i_part,
@@ -577,12 +578,12 @@ namespace cwipi {
 
     if (_faceEdgeMethod == 1) {
     
-      if (global_num == NULL) {
-        PDM_gen_gnum_t *pdmGNum_local_recalculation = PDM_gnum_create(2, 1, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
-        PDM_gnum_set_from_coords(pdmGNum_local_recalculation, i_part, n_faces, _coords[i_part], NULL); // TODO Idem for faces
-        PDM_gnum_compute(pdmGNum_local_recalculation);
-        _faceLNToGN[i_part] = PDM_gnum_get(pdmGNum_local_recalculation, i_part);
-      }
+      // if (global_num == NULL) {
+      //   PDM_gen_gnum_t *pdmGNum_local_recalculation = PDM_gnum_create(2, 1, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+      //   PDM_gnum_set_from_coords(pdmGNum_local_recalculation, i_part, n_faces, _coords[i_part], NULL, PDM_OWNERSHIP_USER); // TODO Idem for faces
+      //   PDM_gnum_compute(pdmGNum_local_recalculation);
+      //   _faceLNToGN[i_part] = PDM_gnum_get(pdmGNum_local_recalculation, i_part);
+      // }
     
       for (int i_part=0; i_part < _npart; i_part++) {
 
@@ -619,7 +620,8 @@ namespace cwipi {
                                             _faceEdgeIdx[i_part],
                                             _faceEdgeNb[i_part] , //Number of edges for each faces
                                             _faceEdge[i_part]   ,
-                                            _faceLNToGN[i_part]);
+                                            _faceLNToGN[i_part],
+                                            PDM_OWNERSHIP_USER);
 
       }//end i_part loop
 
@@ -639,7 +641,8 @@ namespace cwipi {
                                            _cellFaceIdx[i_part],
                                            _cellFaceNb[i_part],
                                            _cellFace[i_part],
-                                           _cellLNToGN[i_part]);
+                                           _cellLNToGN[i_part],
+                                           PDM_OWNERSHIP_USER);
 
 
       }//end i_part loop
