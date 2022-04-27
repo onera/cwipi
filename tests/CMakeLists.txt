@@ -130,80 +130,29 @@ endif()
 
 include(TestCreate)
 
-set (_MPIEXEC_MAX_NUMPROCS 2)
+set (_MPIEXEC_MAX_NUMPROCS 10)
 
 if (CWP_ENABLE_NEW_API)
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_dcube.c")
-    set(MPIEXEC_PREFLAGS "--oversubscribe")
-    test_c_create(c_new_api_dcube 6)
-  endif()
+    set("MPIEXEC_PREFLAGS" "--oversubscribe")
 
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api.c")
     test_c_create (c_new_api 10)
-  endif ()
+    test_c_create (c_new_api_avbp 2)
+    test_c_create (c_new_api_c_poly_block 2)
+    test_c_create(c_new_api_cellface_set_block 2)
+    test_c_create(c_new_api_dcube 6)
+    test_c_create (c_new_api_disjoint_comms 10)
+    test_c_create (c_new_api_disjoint_comms_multiblock 2)
+    test_c_create (c_new_api_multiblock 4)
+    test_c_create (c_new_api_surf_P1P0_P0P1 2)
+    test_c_create (c_new_api_surf_P1P0_P0P1_dynamic 6)
+    test_c_create (c_new_api_surf_P1P0_P0P1_part 2)
+    test_c_create (c_new_api_surf_P1P0_P0P1_part2 2)
+    test_c_create (c_new_api_surf_P1P0_P0P1_without_part 2)
+    test_fortran_create(fortran_new_api 10)
 
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_disjoint_comms.c")
-      set(MPIEXEC_PREFLAGS "--oversubscribe")
-      test_c_create (c_new_api_disjoint_comms 10)
-  endif ()
-
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_multiblock2.c")
-      set(MPIEXEC_PREFLAGS "--oversubscribe")
-      test_c_create (c_new_api_multiblock2 2)
-  endif ()
-
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_avbp.c")
-      test_c_create (c_new_api_avbp 2)
-  endif ()
-
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_old_api_avbp.c")
-      test_c_create (c_old_api_avbp 2)
-  endif ()
-
-  #if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_cellface_set_block.c")
-  #  test_c_create(c_new_api_cellface_set_block 2)
-  #endif()
-
-  #if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_multiblock.c")
-  #  test_c_create (c_new_api_multiblock 2)
-  #endif ()
-
-  #if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_surf_coupling_P1P0_P0P1.c")
-  #  test_c_create (c_new_api_surf_coupling_P1P0_P0P1 2)
-  #endif ()
-
-  #if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_surf_coupling_P1P0_P0P1_dynamic.c")
-  #  test_c_create (c_new_api_surf_coupling_P1P0_P0P1_dynamic 2)
-  #endif ()
-
-  #if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_surf_coupling_P1P0_P0P1_part_withOutPart.c")
-  #  test_c_create (c_new_api_surf_coupling_P1P0_P0P1_part_withOutPart 2)
-  #endif ()
-
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_surf_coupling_P1P0_P0P1_part.c")
-    test_c_create (c_new_api_surf_coupling_P1P0_P0P1_part 2)
-  endif ()
-
-  #if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_surf_coupling_poly_P1P0_P0P1.c" AND NOT CWP_NEW_TO_OLD_API)
-  #  test_c_create (c_new_api_surf_coupling_poly_P1P0_P0P1 2)
-  #endif ()
-
-  #if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_surf_coupling_P1P0_P0P1_part2.c" AND NOT CWP_NEW_TO_OLD_API)
-  #  test_c_create (c_new_api_surf_coupling_P1P0_P0P1_part2 2)
-  #endif ()
-
-
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_to_old_api.c")
     test_c_create (c_new_to_old_api 2)
-  endif ()
-
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_surf_coupling_P1P1_old_new.c")
-    test_c_create (c_surf_coupling_P1P1_old_new 2)
-  endif ()
-
-  #if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_surf_coupling_P1P0_P0P1_curv.c")
-  #  test_c_create (c_new_api_surf_coupling_P1P0_P0P1_curv 2)
-  #endif ()
+    test_c_create (c_new_to_old_api_surf_P1P1 2)
+    test_c_create (c_new_to_old_api_surf_P1P0_P0P1_poly 2)
 endif()
 
 if (NOT CWP_NEW_TO_OLD_API)
@@ -238,6 +187,7 @@ if (NOT CWP_NEW_TO_OLD_API)
   test_c_create (c_vol_coupling_polyhedra_P1P1 2)
   test_c_create (c_vol_coupling_polyhedra_P1P1_with_external_points 2)
 
+  test_c_create (c_old_api_avbp 2)
 endif()
 
 if (CWP_ENABLE_Fortran AND NOT CWP_NEW_TO_OLD_API)
@@ -258,7 +208,6 @@ if (CWP_ENABLE_Fortran AND NOT CWP_NEW_TO_OLD_API)
 #    test_fortran_create  (fortran_surf_TriaP2_PiPj   ${_MPIEXEC_MAX_NUMPROCS})
 #    target_link_libraries(fortran_surf_TriaP2_PiPj   spaceBasis)
 #    add_dependencies(fortran_surf_TriaP2_PiPj   spaceBasis)
-    test_fortran_create(fortran_new_api 10)
 
 endif()
 

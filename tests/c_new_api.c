@@ -19,14 +19,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stddef.h>
 #include <string.h>
 #include <assert.h>
 
-#include <mpi.h>
-
 #include "cwp.h"
-#include "../src/new/cwp.h"
 
 /*----------------------------------------------------------------------
  *
@@ -165,8 +161,6 @@ int main(int argc, char *argv[]) {
 
   times_init = malloc(sizeof(double) * n_code_name);
 
-  //CWP_Output_file_set (outputFile);
-
   for (int i = 0 ; i < n_code_name ; i++) times_init[i] = 0;
 
   MPI_Comm *localComm = malloc(sizeof(MPI_Comm) * n_code_name);
@@ -202,8 +196,6 @@ int main(int argc, char *argv[]) {
   free(titi2);
   assert(titi == 111);
 
-//    CWP_Properties_dump();
-
   char cpl_id1[] = "cpl1_code1_code2";
   char cpl_id2[] = "cpl2_code1_code3";
   char cpl_id3[] = "cpl3_code2_code3";
@@ -211,16 +203,16 @@ int main(int argc, char *argv[]) {
   char cpl_id5[] = "cpl5_code1_code4";
   char cpl_id6[] = "cpl6_code2_code4";
 
-  CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF;
+  CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
 
   // cpl1
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
     int v = -1;
     if (rank == 0) {
-      v = 11; 
+      v = 11;
     }
     MPI_Bcast(&v, 1, MPI_INT, 0, localComm[0]);
-    printf ("code 1 v : %d\n", v);
+    printf("code 1 v : %d\n", v);
     fflush(stdout);
     CWP_Cpl_create("code1", cpl_id1, "code2", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
   }
@@ -228,47 +220,44 @@ int main(int argc, char *argv[]) {
     CWP_Cpl_create("code2", cpl_id1, "code1", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
     int v = -2;
     if (rank == 0) {
-      v = 21; 
+      v = 21;
     }
     MPI_Comm intraComm;
     if (rank == 0 || rank == 2 || rank == 2 || rank == 7) {
-      intraComm = localComm[1]; 
+      intraComm = localComm[1];
     }
     else if (rank == 6 || rank == 9) {
-      intraComm = localComm[0]; 
+      intraComm = localComm[0];
     }
     MPI_Bcast(&v, 1, MPI_INT, 0, intraComm);
-    printf ("code 2 v : %d\n", v);
+    printf("code 2 v : %d\n", v);
     fflush(stdout);
   }
-  //CWP_Visu_set("code1", cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
-
-  printf ("Fin premier couplage\n");
+  printf("Fin premier couplage\n");
   MPI_Barrier(MPI_COMM_WORLD);
-  abort();
 
   // cpl2
-  if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) { 
+  if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
     CWP_Cpl_create("code1", cpl_id2, "code3", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
   }
   if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7 || rank == 9) {
     CWP_Cpl_create("code3", cpl_id2, "code1", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
     int v = -2;
     if (rank == 2) {
-      v = 31; 
+      v = 31;
     }
     MPI_Comm intraComm;
     if (rank == 2 || rank == 7) {
-      intraComm = localComm[2]; 
+      intraComm = localComm[2];
     }
     else if (rank == 3 || rank == 4) {
-      intraComm = localComm[0]; 
+      intraComm = localComm[0];
     }
     else if (rank == 5 || rank == 9) {
-      intraComm = localComm[1]; 
+      intraComm = localComm[1];
     }
     MPI_Bcast(&v, 1, MPI_INT, 0, intraComm);
-    printf ("code 3 v : %d\n", v);
+    printf("code 3 v : %d\n", v);
     fflush(stdout);
   }
 
@@ -285,20 +274,20 @@ int main(int argc, char *argv[]) {
     CWP_Cpl_create("code4", cpl_id4, "code3", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
     int v = -2;
     if (rank == 2) {
-      v = 41; 
+      v = 41;
     }
     MPI_Comm intraComm;
     if (rank == 2) {
-      intraComm = localComm[3]; 
+      intraComm = localComm[3];
     }
     else if (rank == 4) {
-      intraComm = localComm[1]; 
+      intraComm = localComm[1];
     }
     else if (rank == 8) {
-      intraComm = localComm[0]; 
+      intraComm = localComm[0];
     }
     MPI_Bcast(&v, 1, MPI_INT, 0, intraComm);
-    printf ("code 4 v : %d\n", v);
+    printf("code 4 v : %d\n", v);
     fflush(stdout);
   }
 
@@ -321,9 +310,6 @@ int main(int argc, char *argv[]) {
   if (rank == 2 || rank == 4 || rank == 8) {
     CWP_Cpl_create("code4", cpl_id6, "code2", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
   }
-
-  //double coord[3] = {9., 4., 2.};
-  //CWP_Mesh_interf_vtx_set("code1", cpl_id1, 0, 1, coord, NULL);
 
   printf("All done for rank %d\n", rank);
 

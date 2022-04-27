@@ -1,10 +1,29 @@
+/*
+  This file is part of the CWIPI library.
+
+  Copyright (C) 2017  ONERA
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 3 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <cwp.h>
-#include <pdm_dcube_gen.h>
-#include <pdm_part.h>
+#include "src/new/cwp.h"
+#include "paradigm/src/meshgen/pdm_dcube_gen.h"
+#include "paradigm/src/ppart/pdm_part.h"
 #include "pdm_priv.h"
 
 
@@ -31,7 +50,7 @@ static void fix_connectivity
 }
 
 static int
-_binary_search
+binary_search
         (
                 const PDM_l_num_t elem,
                 const PDM_l_num_t array[],
@@ -99,10 +118,10 @@ static void compute_cell_vtx_connectivity
       for (ivtx = face_vtx_idx[id_face] ; ivtx < face_vtx_idx[id_face + 1] ; ivtx++) {
         id_vtx = face_vtx[ivtx];
 
-        pos = _binary_search(id_vtx,
-                             _cell_vtx,
-                             n_vtx_cell,
-                             &already_in_cell);
+        pos = binary_search(id_vtx,
+                            _cell_vtx,
+                            n_vtx_cell,
+                            &already_in_cell);
         if (already_in_cell == PDM_TRUE) continue;
 
         if (n_vtx_cell + _cell_vtx_idx[icell] >= (int) s_cell_vtx) {
@@ -165,7 +184,7 @@ int main(int argc, char *argv[]) {
   CWP_Visu_set(code_name[0], coupling_name, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
 
   // Create PDM cube mesh
-  PDM_g_num_t n_vtx_seg = 3;
+  PDM_g_num_t n_vtx_seg = 4;
   double length = 1.;
   const double xmin = 0, ymin = 0., zmin = 0.;
 
@@ -191,10 +210,10 @@ int main(int argc, char *argv[]) {
   int n_property_face = 0;
 
   PDM_part_split_t method = PDM_PART_SPLIT_PTSCOTCH;
-  ppart_id = PDM_part_create( PDM_MPI_COMM_WORLD, method, "PDM_PART_RENUM_CELL_NONE", "PDM_PART_RENUM_FACE_NONE",
-                  n_property_cell, renum_properties_cell, n_property_face, renum_properties_face, n_part,
-                  d_n_cell, d_n_face, d_n_vertices, n_face_group, NULL, NULL, NULL, NULL, have_dcell_part, d_cell_part,
-                  d_face_cell, d_face_vertex_idx, d_face_vertex, NULL, d_vertex_coord, NULL, d_face_group_idx, d_face_group);
+  ppart_id = PDM_part_create(PDM_MPI_COMM_WORLD, method, "PDM_PART_RENUM_CELL_NONE", "PDM_PART_RENUM_FACE_NONE",
+                             n_property_cell, renum_properties_cell, n_property_face, renum_properties_face, n_part,
+                             d_n_cell, d_n_face, d_n_vertices, n_face_group, NULL, NULL, NULL, NULL, have_dcell_part, d_cell_part,
+                             d_face_cell, d_face_vertex_idx, d_face_vertex, NULL, d_vertex_coord, NULL, d_face_group_idx, d_face_group);
   free(d_face_vertex_idx);
   free(d_face_group_idx);
   free(d_face_cell);
@@ -298,7 +317,7 @@ int main(int argc, char *argv[]) {
   }
   else recv_val = (double *) malloc(sizeof(double) * n_vtx[0]);
 
-  CWP_Status_t visu_status = CWP_STATUS_OFF;
+  CWP_Status_t visu_status = CWP_STATUS_ON;
   MPI_Barrier(MPI_COMM_WORLD);
 
   if (strcmp(code_name[0], "code1") != 0) {
@@ -323,6 +342,17 @@ int main(int argc, char *argv[]) {
     printf("%s is receiving data\n", code_name[0]);
     CWP_Field_irecv(code_name[0], coupling_name, field_name);
     CWP_Field_wait_irecv(code_name[0], coupling_name, field_name);
+
+//    int n_computed_tgts = CWP_N_computed_tgts_get(code_name[0], coupling_name, field_name, 0);
+//    int n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name, 0);
+//    const int* computed_tgts = CWP_Computed_tgts_get(code_name[0], coupling_name, field_name, 0);
+//
+//    printf("n_computed_tgts = %d\n", n_computed_tgts);
+//    printf("n_uncomputed_tgts = %d\n", n_uncomputed_tgts);
+//
+//    for (int i = 0 ; i < n_computed_tgts ; i++) {
+//      printf("%12.5e %12.5e\n", recv_val[3 * i], vtx_coord[0][3 * (computed_tgts[i] - 1)]);
+//    }
   }
 
   // Finalize

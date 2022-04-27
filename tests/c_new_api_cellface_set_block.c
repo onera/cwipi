@@ -16,16 +16,13 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <stddef.h>
 #include <string.h>
-#include <assert.h>
-#include "grid_mesh.h"
-#include <mpi.h>
 #include <math.h>
+
 #include "cwp.h"
-#include "cwp_priv.h"
 
 /*----------------------------------------------------------------------
  *
@@ -39,15 +36,13 @@
  *   nConnecVertex       --> size of connectivity
  *---------------------------------------------------------------------*/
 
-static int _read_mesh_dim(FILE *f,
-                          int *dimension,
-                          int *nVertex,
-                          int *nFace,
-                          int *nElt,
-                          int *lFaceConnec,
-                          int *lCellConnec)
-
-{
+static int read_mesh_dim(FILE *f,
+                         int *dimension,
+                         int *nVertex,
+                         int *nFace,
+                         int *nElt,
+                         int *lFaceConnec,
+                         int *lCellConnec) {
   int r;
   r = fscanf(f, "%d %d %d %d %d %d",
              dimension,
@@ -77,24 +72,23 @@ static int _read_mesh_dim(FILE *f,
  *   connec              --> connectivity
  *---------------------------------------------------------------------*/
 
-static int _read_mesh(FILE *f,
-                      int dimension,
-                      int nVertex,
-                      int nFace,
-                      int nElt,
-                      int lFaceConnec,
-                      int lCellConnec,
-                      double *coords,
-                      int *faceVertexIdx,
-                      int *faceVertex,
-                      int *cellFaceIdx,
-                      int *cellFace)
-{
+static int read_mesh(FILE *f,
+                     int dimension,
+                     int nVertex,
+                     int nFace,
+                     int nElt,
+                     int lFaceConnec,
+                     int lCellConnec,
+                     double *coords,
+                     int *faceVertexIdx,
+                     int *faceVertex,
+                     int *cellFaceIdx,
+                     int *cellFace) {
   int i, j, r;
 
   // Read coordinates
-  for (i = 0; i < nVertex; i++) {
-    for (j = 0; j < dimension; j++) {
+  for (i = 0 ; i < nVertex ; i++) {
+    for (j = 0 ; j < dimension ; j++) {
       r = fscanf(f, "%lf", coords + i * dimension + j);
       if (r == EOF)
         return EXIT_FAILURE;
@@ -102,28 +96,28 @@ static int _read_mesh(FILE *f,
   }
 
   // Read face -> vertex connectivity index
-  for (i = 0; i < nFace + 1; i++ ) {
+  for (i = 0 ; i < nFace + 1 ; i++) {
     r = fscanf(f, "%d", faceVertexIdx + i);
     if (r == EOF)
       return EXIT_FAILURE;
   }
 
   // Read face -> vertex connectivity
-  for (i = 0; i < lFaceConnec; i++ ) {
+  for (i = 0 ; i < lFaceConnec ; i++) {
     r = fscanf(f, "%d", faceVertex + i);
     if (r == EOF)
       return EXIT_FAILURE;
   }
 
   // Read cell -> face connectivity index
-  for (i = 0; i < nElt + 1; i++ ) {
+  for (i = 0 ; i < nElt + 1 ; i++) {
     r = fscanf(f, "%d", cellFaceIdx + i);
     if (r == EOF)
       return EXIT_FAILURE;
   }
 
   // Read cell -> face connectivity
-  for (i = 0; i < lCellConnec; i++ ) {
+  for (i = 0 ; i < lCellConnec ; i++) {
     r = fscanf(f, "%d", cellFace + i);
     //if(cellFace[i]<0) printf("cellFace[%i] %i\n",i,cellFace[i]);
     if (r == EOF)
@@ -134,26 +128,19 @@ static int _read_mesh(FILE *f,
 }
 
 
-
 /*----------------------------------------------------------------------
  *
  * Main : linear coupling test
  *
  *---------------------------------------------------------------------*/
 
-int main
-(
- int    argc,    /* Nombre d'arguments dans la ligne de commandes */
- char  *argv[]   /* Tableau des arguments de la ligne de commandes */
-)
-{
-
+int main(int argc, char *argv[]) {
   MPI_Init(&argc, &argv);
 
   int rank;
   int comm_world_size;
 
-  FILE* meshFile;
+  FILE *meshFile;
   meshFile = fopen("meshes/mesh_poly_d1", "r");
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -162,7 +149,7 @@ int main
 
   int n_partition = 0;
   const int two = 2;
-  while(two * pow(n_partition, two) < comm_world_size) n_partition++;
+  while (two * pow(n_partition, two) < comm_world_size) n_partition++;
 
   int n2 = (int) (two * pow(n_partition, two));
 
@@ -176,7 +163,7 @@ int main
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
 
-  char *srcName = (char *) malloc (sizeof(char) * (strlen(__FILE__) + 1));
+  char *srcName = (char *) malloc(sizeof(char) * (strlen(__FILE__) + 1));
   strcpy(srcName, __FILE__);
   char *srcBaseName = NULL;
   srcBaseName = strrchr(srcName, '.');
@@ -201,18 +188,18 @@ int main
   double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
 
-  if (rank == 0 ) {
+  if (rank == 0) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
-    codeNames[0] ="code1_cell_faces";
+    codeNames[0] = "code1_cell_faces";
     is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
     is_coupled_rank[0] = CWP_STATUS_ON;
   }
 
-  if (rank == 1 ) {
+  if (rank == 1) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
-    codeNames[0] ="code2";
+    codeNames[0] = "code2";
     is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
     is_coupled_rank[0] = CWP_STATUS_ON;
   }
@@ -220,13 +207,13 @@ int main
 
   times_init = malloc(sizeof(double) * n_code_name);
 
-  for (int i = 0; i < n_code_name; i++) {
+  for (int i = 0 ; i < n_code_name ; i++) {
     times_init[i] = 0;
   }
 
-  MPI_Comm *localComm = malloc(sizeof(MPI_Comm)*n_code_name);
+  MPI_Comm *localComm = malloc(sizeof(MPI_Comm) * n_code_name);
 
-  printf("CWIPI Initialization rank %i\n",rank);
+  printf("CWIPI Initialization rank %i\n", rank);
   CWP_Init(MPI_COMM_WORLD,
            n_code_name,
            (const char **) codeNames,
@@ -241,10 +228,10 @@ int main
   int currentRank;
   int localCommSize;
 
-  for (int i = 0; i < n_code_name; i++ ) {
+  for (int i = 0 ; i < n_code_name ; i++) {
     MPI_Comm_rank(localComm[i], &currentRank);
     MPI_Comm_size(localComm[i], &localCommSize);
-    printf("Size of localComm[%i]=%i et rang du proc=%i.\n",i,localCommSize,currentRank );
+    printf("Size of localComm[%i]=%i et rang du proc=%i.\n", i, localCommSize, currentRank);
   }
 
   /* Finalize
@@ -254,89 +241,86 @@ int main
 
   printf("Coupling creation\n");
 
-  if ( rank == 0 ) {
-    CWP_Cpl_create ("code1_cell_faces", cpl_id1, "code2", CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE, 1,
-                    CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
+  if (rank == 0) {
+    CWP_Cpl_create("code1_cell_faces", cpl_id1, "code2", CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITHOUT_PART,
+                   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE, 1,
+                   CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
   }
 
-  if ( rank==1 ) {
-    CWP_Cpl_create ("code2", cpl_id1, "code1_cell_faces", CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE, 1,
-                    CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
+  if (rank == 1) {
+    CWP_Cpl_create("code2", cpl_id1, "code1_cell_faces", CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITHOUT_PART,
+                   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE, 1,
+                   CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
   }
-  printf("Coupling created %i\n",currentRank);
+  printf("Coupling created %i\n", currentRank);
+
+  /* Building of the local mesh */
+
+  int dimension = 0;             // Dimension of the space
+  int nVertex = 0;               // Number of points in the mesh
+  int nFace = 0;                 // Number of face
+  int nElements = 0;             // Number of cells
+  int lFaceConnec = 0;
+  int lCellConnec = 0;
+
+  double *coords = NULL;         // Coordinates of the points
+  int *faceVertexIdx = NULL;
+  int *faceVertex = NULL;
+  int *cellFaceIdx = NULL;
+  int *cellFace = NULL;
+
+  if (rank == 0)
+    printf("        Read mesh\n");
+
+  read_mesh_dim(meshFile, &dimension, &nVertex, &nFace, &nElements, &lFaceConnec, &lCellConnec);
+
+  coords = (double *) malloc(dimension * nVertex * sizeof(double));
+  faceVertexIdx = (int *) malloc((nFace + 1) * sizeof(int));
+  faceVertex = (int *) malloc(lFaceConnec * sizeof(int));
+  cellFaceIdx = (int *) malloc((nElements + 1) * sizeof(int));
+  cellFace = (int *) malloc(lCellConnec * sizeof(int));
+
+  read_mesh(meshFile,
+            dimension,
+            nVertex,
+            nFace,
+            nElements,
+            lFaceConnec,
+            lCellConnec,
+            coords,
+            faceVertexIdx,
+            faceVertex,
+            cellFaceIdx,
+            cellFace);
+
+  fclose(meshFile);
+
+  if (rank == 0) {
+
+    printf("Visu Setting\n");
+    CWP_Visu_set("code1_cell_faces", cpl_id1, 1.0, CWP_VISU_FORMAT_ENSIGHT, "binary");
+    printf("Visu Set\n");
+
+    printf("vtx_set\n");
+    CWP_Mesh_interf_vtx_set("code1_cell_faces", cpl_id1, 0, nVertex, coords, NULL);
+
+    printf("CellFace Add and Setting\n");
+    CWP_Mesh_interf_from_cellface_set("code1_cell_faces",
+                                      cpl_id1,
+                                      0,
+                                      nElements,
+                                      cellFaceIdx,
+                                      cellFace,
+                                      nFace,
+                                      faceVertexIdx,
+                                      faceVertex,
+                                      NULL);
 
 
-
-    /* Building of the local mesh */
-
-    int dimension = 0;             // Dimension of the space
-    int nVertex = 0;               // Number of points in the mesh
-    int nFace = 0;                 // Number of face
-    int nElements = 0;             // Number of cells
-    int lFaceConnec = 0;
-    int lCellConnec = 0;
-
-    double* coords = NULL;         // Coordinates of the points
-    int *faceVertexIdx = NULL;
-    int *faceVertex    = NULL;
-    int *cellFaceIdx   = NULL;
-    int *cellFace      = NULL;
-
-    if  (rank == 0)
-      printf("        Read mesh\n");
-
-
-    _read_mesh_dim (meshFile, &dimension, &nVertex, &nFace, &nElements, &lFaceConnec, &lCellConnec);
-
-    coords        = (double *) malloc(dimension * nVertex * sizeof(double));
-    faceVertexIdx = (int *) malloc((nFace + 1) * sizeof(int));
-    faceVertex    = (int *) malloc(lFaceConnec * sizeof(int));
-    cellFaceIdx   = (int *) malloc((nElements + 1) * sizeof(int));
-    cellFace      = (int *) malloc(lCellConnec * sizeof(int));
-
-    _read_mesh (meshFile,
-                dimension,
-                nVertex,
-                nFace,
-                nElements,
-                lFaceConnec,
-                lCellConnec,
-                coords,
-                faceVertexIdx,
-                faceVertex,
-                cellFaceIdx,
-                cellFace);
-
-    fclose(meshFile);
-
-    if(rank == 0) {
-
-     printf("Visu Setting\n");
-     CWP_Visu_set("code1_cell_faces", cpl_id1,1.0,CWP_VISU_FORMAT_ENSIGHT,"binary");
-     printf("Visu Set\n");
-
-      printf("vtx_set\n");
-      CWP_Mesh_interf_vtx_set("code1_cell_faces", cpl_id1,0,nVertex,coords,NULL);
-
-      printf("CellFace Add and Setting\n");
-      CWP_Mesh_interf_from_cellface_set("code1_cell_faces",
-                                        cpl_id1,
-                                        0,
-                                        nElements,
-                                        cellFaceIdx,
-                                        cellFace,
-                                        nFace,
-                                        faceVertexIdx,
-                                        faceVertex,
-                                        NULL);
-
-
-      printf("Interface Mesh deletion\n");
-      CWP_Mesh_interf_del("code1_cell_faces", cpl_id1);
-      printf("Interface Mesh deleted\n");
-    }
+    printf("Interface Mesh deletion\n");
+    CWP_Mesh_interf_del("code1_cell_faces", cpl_id1);
+    printf("Interface Mesh deleted\n");
+  }
 
 
   fflush(stdout);
@@ -345,11 +329,11 @@ int main
 
   MPI_Finalize();
 
-  free (srcName);
-  free (localComm);
-  free (codeNames);
-  free (is_coupled_rank);
-  free (times_init);
+  free(srcName);
+  free(localComm);
+  free(codeNames);
+  free(is_coupled_rank);
+  free(times_init);
 
   return 0;
 }
