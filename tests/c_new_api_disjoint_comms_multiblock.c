@@ -683,8 +683,20 @@ int main(int argc, char *argv[]) {
         int n_cells_block1 = n_cells[i_code][i_part] / 3;
         int n_cells_block2 = n_cells[i_code][i_part] - n_cells_block1;
 
+
+        PDM_g_num_t *gnum1 = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_cells_block1 );
+        PDM_g_num_t *gnum2 = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_cells_block2 );
+
         int *connec_block1 = (int *) malloc(sizeof(int) * n_cells_block1 * n_pts_per_elt_code1);
         int *connec_block2 = (int *) malloc(sizeof(int) * n_cells_block2 * n_pts_per_elt_code2);
+
+        for (int i = 0 ; i < n_cells_block1; ++i) {
+          gnum1[i] = g_num[i];
+        }
+
+        for (int i = 0 ; i < n_cells_block2; ++i) {
+          gnum2[i] = g_num[n_cells_block1 + i];
+        }
 
         for (int i = 0 ; i < n_pts_per_elt_code1 * n_cells_block1 ; ++i) {
           connec_block1[i] = connec[i_code][i_part][i];
@@ -709,14 +721,15 @@ int main(int argc, char *argv[]) {
                                       block_id1,
                                       n_cells_block1,
                                       connec_block1,
-                                      g_num);
+                                      gnum1);
+
         CWP_Mesh_interf_block_std_set(code_names[i_code],
                                       cpl_name,
                                       i_part,
                                       block_id2,
                                       n_cells_block2,
                                       connec_block2,
-                                      g_num);
+                                      gnum2);
       }
     }
 
