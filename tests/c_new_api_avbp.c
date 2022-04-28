@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
   int n_vtx_per_cell = 8;
 
   char fn[100];
-  sprintf(fn, "avbp/avbp_dimensions_%d.out", rank);
+  sprintf(fn, "avbp/periodic/avbp_dimensions_%d.out", rank);
   FILE *fil = fopen(fn, "r");
   fscanf(fil, "%d", &nnode_cpl_s);
   fscanf(fil, "%d", &ncell_cpl_s);
@@ -123,28 +123,28 @@ int main(int argc, char *argv[]) {
   double *rfields = (double *) malloc(sizeof(double) * (n_var * nnode_cpl_d));
 
   // xyz_s
-  sprintf(fn, "avbp/avbp_xyz_s_%d.out", rank);
+  sprintf(fn, "avbp/periodic/avbp_xyz_s_%d.out", rank);
   fil = fopen(fn, "r");
   for (int i = 0 ; i < 3 * nnode_cpl_s ; i++) {
     fscanf(fil, "%lf", &xyz_s[i]);
   }
   fclose(fil);
   // connind_s
-  sprintf(fn, "avbp/avbp_connind_s_%d.out", rank);
+  sprintf(fn, "avbp/periodic/avbp_connind_s_%d.out", rank);
   fil = fopen(fn, "r");
   for (int i = 0 ; i < 3 * ncell_cpl_s + 1 ; i++) {
     fscanf(fil, "%d", &connind_s[i]);
   }
   fclose(fil);
   // elems_s
-  sprintf(fn, "avbp/avbp_elems_s_%d.out", rank);
+  sprintf(fn, "avbp/periodic/avbp_elems_s_%d.out", rank);
   fil = fopen(fn, "r");
   for (int i = 0 ; i < 3 * n_vtx_per_cell * ncell_cpl_s ; i++) {
     fscanf(fil, "%d", &elems_s[i]);
   }
   fclose(fil);
   // xyz_dest
-  sprintf(fn, "avbp/avbp_xyz_dest_%d.out", rank);
+  sprintf(fn, "avbp/periodic/avbp_xyz_dest_%d.out", rank);
   fil = fopen(fn, "r");
   for (int i = 0 ; i < 3 * nnode_cpl_d ; i++) {
     fscanf(fil, "%lf", &xyz_dest[i]);
@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
   }
   if (mode == 0) {
     // avbp_sfields
-    sprintf(fn, "avbp/avbp_sfields_%d.out", rank);
+    sprintf(fn, "avbp/periodic/avbp_sfields_%d.out", rank);
     fil = fopen(fn, "r");
     for (int i = 0 ; i < n_var * nnode_cpl_s ; i++) {
       fscanf(fil, "%lf", &sfields[i]);
@@ -214,8 +214,8 @@ int main(int argc, char *argv[]) {
   int *tetra_order1 = tetra_order_avbp;
   int *prism_order1 = prism_order_avbp;
 
-  int *tetra_order2 = tetra_order_cwp;
-  int *prism_order2 = prism_order_cwp;
+  int *tetra_order2 = tetra_order_avbp;
+  int *prism_order2 = prism_order_avbp;
 
   int tetra_counter = 0, prism_counter = 0, elt_counter = 0;
   for (int i = 0 ; i < ncell_cpl_s ; ++i) {
@@ -242,8 +242,8 @@ int main(int argc, char *argv[]) {
 
   int block_tetra = CWP_Mesh_interf_block_add(code_name, coupling_name, CWP_BLOCK_CELL_TETRA4);
   CWP_Mesh_interf_block_std_set(code_name, coupling_name, 0, block_tetra, n_tetra, elems_tetra, NULL);
-  int block_prism = CWP_Mesh_interf_block_add(code_name, coupling_name, CWP_BLOCK_CELL_PRISM6);
-  CWP_Mesh_interf_block_std_set(code_name, coupling_name, 0, block_prism, n_prism, elems_prism, NULL);
+//  int block_prism = CWP_Mesh_interf_block_add(code_name, coupling_name, CWP_BLOCK_CELL_PRISM6);
+//  CWP_Mesh_interf_block_std_set(code_name, coupling_name, 0, block_prism, n_prism, elems_prism, NULL);
 
   CWP_Mesh_interf_finalize(code_name, coupling_name);
   printf("%d --- Geometry set\n", rank);
@@ -274,31 +274,40 @@ int main(int argc, char *argv[]) {
   CWP_Spatial_interp_weights_compute(code_name, coupling_name);
   printf("%d --- Localisation done\n", rank);
 
-//  int n_not_located_points;
-//  int n_located_points;
-//  int n_involved_srcs;
+  int n_not_located_points;
+  int n_located_points;
+  int n_involved_srcs;
 //  const int *located_points;
-//  const int *not_located_points;
+  const int *not_located_points;
 //  const int *involved_srcs;
 
-//  n_not_located_points = CWP_N_uncomputed_tgts_get(code_name, coupling_name, recv_field_name, 0);
-//  n_located_points = CWP_N_computed_tgts_get(code_name, coupling_name, recv_field_name, 0);
-//  n_involved_srcs = CWP_N_involved_srcs_get(code_name, coupling_name, send_field_name, 0);
-//
+  n_not_located_points = CWP_N_uncomputed_tgts_get(code_name, coupling_name, recv_field_name, 0);
+  n_located_points = CWP_N_computed_tgts_get(code_name, coupling_name, recv_field_name, 0);
+  n_involved_srcs = CWP_N_involved_srcs_get(code_name, coupling_name, send_field_name, 0);
+
 //  located_points = CWP_Computed_tgts_get(code_name, coupling_name, recv_field_name, 0);
-//  not_located_points = CWP_Uncomputed_tgts_get(code_name, coupling_name, recv_field_name, 0);
+  not_located_points = CWP_Uncomputed_tgts_get(code_name, coupling_name, recv_field_name, 0);
 //  involved_srcs = CWP_Involved_srcs_get(code_name, coupling_name, send_field_name, 0);
 
-//  printf("%d --- n_not_located_points %d\n", rank, n_not_located_points);
-//  printf("%d --- n_located_points %d\n", rank, n_located_points);
-//  printf("%d --- n_distant_located_points %d\n", rank, n_involved_srcs);
-//  printf("not_located_points :");
-//  for (int i = 0 ; i < n_not_located_points ; ++i) printf("%d ", not_located_points[i]);
-//  printf("\nlocated_points: ");
+  printf("%d --- n_not_located_points %d\n", rank, n_not_located_points);
+  printf("%d --- n_located_points %d\n", rank, n_located_points);
+  printf("%d --- n_distant_located_points %d\n", rank, n_involved_srcs);
+  printf("not located points :");
+  for (int i = 0 ; i < n_not_located_points ; ++i) printf("%d ", not_located_points[i]);
+//  printf("\nlocated points: ");
 //  for (int i = 0 ; i < n_located_points ; ++i) printf("%d ", located_points[i]);
-//  printf("\ndistant_located_points: ");
+//  printf("\ninvolved source points");
 //  for (int i = 0 ; i < n_involved_srcs ; ++i) printf("%d ", involved_srcs[i]);
-//  printf("\n");
+  printf("\n");
+
+  // Coordinates of not located points
+  if (n_not_located_points != 0) {
+    printf("%d --- not located points coordinates:\n", rank);
+    for (int i = 0 ; i < n_not_located_points ; ++i) {
+      printf("\t%f %f %f\n", xyz_dest[3 * not_located_points[i]], xyz_dest[3 * not_located_points[i] + 1], xyz_dest[3 * not_located_points[i] + 2]);
+    }
+    printf("\n");
+  }
 
   CWP_Field_irecv(code_name, coupling_name, recv_field_name);
   CWP_Field_issend(code_name, coupling_name, send_field_name);
