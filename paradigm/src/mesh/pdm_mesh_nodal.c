@@ -2145,8 +2145,6 @@ const PDM_ownership_t       ownership
         mesh->blocks_std[id_block]->_connec[i]   = NULL;
         mesh->blocks_std[id_block]->_numabs[i]   = NULL;
       }
-
-      mesh->blocks_std[id_block]->owner = PDM_OWNERSHIP_USER;
       
       id_block += PDM_BLOCK_ID_BLOCK_STD;
       if (id_block >= PDM_BLOCK_ID_BLOCK_POLY2D) {
@@ -2192,8 +2190,6 @@ const PDM_ownership_t       ownership
         mesh->blocks_poly2d[id_block]->_numabs[i]     = NULL;
       }
 
-      mesh->blocks_std[id_block]->owner = PDM_OWNERSHIP_USER;
-
       id_block += PDM_BLOCK_ID_BLOCK_POLY2D;
       if (id_block >= PDM_BLOCK_ID_BLOCK_POLY3D) {
         PDM_error(__FILE__, __LINE__, 0, "The number of polygon blocks must be less than %d\n",
@@ -2215,7 +2211,7 @@ const PDM_ownership_t       ownership
 
       mesh->blocks_poly3d[id_block] = malloc( sizeof(PDM_Mesh_nodal_block_poly3d_t) );
       mesh->blocks_poly3d[id_block]->n_part       = mesh->n_part;
-      mesh->blocks_poly2d[id_block]->owner        = ownership;
+      mesh->blocks_poly3d[id_block]->owner        = ownership;
 
       mesh->blocks_poly3d[id_block]->n_elt        = (PDM_l_num_t * ) malloc(sizeof(PDM_l_num_t  ) * mesh->blocks_poly3d[id_block]->n_part);
       mesh->blocks_poly3d[id_block]->n_face       = (PDM_l_num_t * ) malloc(sizeof(PDM_l_num_t  ) * mesh->blocks_poly3d[id_block]->n_part);
@@ -2245,8 +2241,6 @@ const PDM_ownership_t       ownership
         mesh->blocks_poly3d[id_block]->_cellvtx[i]     = NULL;
         mesh->blocks_poly3d[id_block]->_numabs[i]      = NULL;
       }
-
-      mesh->blocks_std[id_block]->owner = PDM_OWNERSHIP_USER;
 
       id_block += PDM_BLOCK_ID_BLOCK_POLY3D;
 
@@ -3507,55 +3501,36 @@ const PDM_ownership_t  ownership
     if (som_elts[0] > 0) {
       id_bloc_tetra4 = PDM_Mesh_nodal_block_add(mesh,
                                                 PDM_MESH_NODAL_TETRA4,
-                                                PDM_OWNERSHIP_KEEP);
-
-      int _id_block = id_bloc_tetra4 - PDM_BLOCK_ID_BLOCK_STD;
-
-      mesh->blocks_std[_id_block]->owner = ownership; 
+                                                ownership);
 
     }
 
     if (som_elts[1] > 0) {
       id_bloc_hexa8 = PDM_Mesh_nodal_block_add(mesh,
                                                PDM_MESH_NODAL_HEXA8,
-                                                PDM_OWNERSHIP_KEEP);
-
-      int _id_block = id_bloc_hexa8 - PDM_BLOCK_ID_BLOCK_STD;
-
-      mesh->blocks_std[_id_block]->owner = ownership; 
+                                                ownership);
 
     }
 
     if (som_elts[2] > 0) {
       id_bloc_prism6 = PDM_Mesh_nodal_block_add(mesh,
                                                 PDM_MESH_NODAL_PRISM6,
-                                                PDM_OWNERSHIP_KEEP);
-
-      int _id_block = id_bloc_prism6 - PDM_BLOCK_ID_BLOCK_STD;
-
-      mesh->blocks_std[_id_block]->owner = ownership; 
+                                                ownership);
 
     }
 
     if (som_elts[3] > 0) {
       id_bloc_pyramid5 = PDM_Mesh_nodal_block_add(mesh,
                                                   PDM_MESH_NODAL_PYRAMID5,
-                                                PDM_OWNERSHIP_KEEP);
-
-      int _id_block = id_bloc_pyramid5 - PDM_BLOCK_ID_BLOCK_STD;
-
-      mesh->blocks_std[_id_block]->owner = ownership; 
+                                                  ownership);
 
     }
 
     if (som_elts[4] > 0) {
       id_bloc_poly_3d = PDM_Mesh_nodal_block_add(mesh,
                                                  PDM_MESH_NODAL_POLY_3D,
-                                                PDM_OWNERSHIP_KEEP);
+                                                 ownership);
 
-      int _id_block = id_bloc_poly_3d - PDM_BLOCK_ID_BLOCK_POLY3D;
-
-      mesh->blocks_poly3d[_id_block]->owner = ownership; 
 
     }
 
@@ -4078,31 +4053,21 @@ const PDM_ownership_t  ownership
     if (som_elts[0] > 0) {
       id_bloc_tria3 = PDM_Mesh_nodal_block_add (mesh,
                                                 PDM_MESH_NODAL_TRIA3,
-                                                PDM_OWNERSHIP_KEEP);
-      int _id_block = id_bloc_tria3 - PDM_BLOCK_ID_BLOCK_STD;
-
-      mesh->blocks_std[_id_block]->owner = ownership; 
+                                                ownership);
 
     }
 
     if (som_elts[1] > 0) {
       id_bloc_quad4 = PDM_Mesh_nodal_block_add (mesh,
                                                 PDM_MESH_NODAL_QUAD4,
-                                                PDM_OWNERSHIP_KEEP);
-      int _id_block = id_bloc_quad4 - PDM_BLOCK_ID_BLOCK_STD;
-
-      mesh->blocks_std[_id_block]->owner = ownership; 
+                                                ownership);
 
     }
 
     if (som_elts[2] > 0) {
       id_bloc_poly_2d = PDM_Mesh_nodal_block_add (mesh,
                                                   PDM_MESH_NODAL_POLY_2D,
-                                                  PDM_OWNERSHIP_KEEP);
-      int _id_block = id_bloc_poly_2d - PDM_BLOCK_ID_BLOCK_POLY2D;
-
-      mesh->blocks_std[_id_block]->owner = ownership; 
-
+                                                  ownership);
     }
 
     /* Determination de la connectivite de chaque element */
@@ -4474,30 +4439,20 @@ const PDM_ownership_t  ownership
     if (som_elts[0] > 0) {
       id_bloc_tria3 = PDM_Mesh_nodal_block_add (mesh,
                                                 PDM_MESH_NODAL_TRIA3,
-                                                PDM_OWNERSHIP_KEEP);
-
-      int _id_block = id_bloc_tria3 - PDM_BLOCK_ID_BLOCK_STD;
-
-      mesh->blocks_std[_id_block]->owner = ownership; 
+                                                ownership);
 
     }
 
     if (som_elts[1] > 0) {
       id_bloc_quad4 = PDM_Mesh_nodal_block_add (mesh,
                                                 PDM_MESH_NODAL_QUAD4,
-                                                PDM_OWNERSHIP_KEEP);
-      int _id_block = id_bloc_quad4 - PDM_BLOCK_ID_BLOCK_STD;
-
-      mesh->blocks_std[_id_block]->owner = ownership; 
+                                                ownership);
     }
 
     if (som_elts[2] > 0) {
       id_bloc_poly_2d = PDM_Mesh_nodal_block_add (mesh,
                                                   PDM_MESH_NODAL_POLY_2D,
-                                                  PDM_OWNERSHIP_KEEP);
-      int _id_block = id_bloc_poly_2d - PDM_BLOCK_ID_BLOCK_POLY2D;
-
-      mesh->blocks_std[_id_block]->owner = ownership; 
+                                                  ownership);
     }
 
     /* Determination de la connectivite de chaque element */
@@ -5942,7 +5897,7 @@ PDM_Mesh_nodal_write
 
   // Free...
   // !!! Do not free geometry!
-  // PDM_writer_free(cs);
+  PDM_writer_free(cs);
 }
 
 
