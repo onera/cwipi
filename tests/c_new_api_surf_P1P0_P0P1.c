@@ -61,16 +61,16 @@ _read_args(int argc, char **argv, int *nVertex, double *randLevel) {
   int i = 1;
 
   while (i < argc) {
-    if (strcmp(argv[i], "-h") == 0) _display_usage(EXIT_SUCCESS);
+    if (strcmp(argv[i], "-h") == 0) {_display_usage(EXIT_SUCCESS);}
     else if (strcmp(argv[i], "-n") == 0) {
       i++;
-      if (i >= argc) _display_usage(EXIT_FAILURE);
-      else *nVertex = atoi(argv[i]);
+      if (i >= argc) {_display_usage(EXIT_FAILURE);}
+      else {*nVertex = atoi(argv[i]);}
     }
     else if (strcmp(argv[i], "-rand") == 0) {
       i++;
-      if (i >= argc) _display_usage(EXIT_FAILURE);
-      else *randLevel = atof(argv[i]);
+      if (i >= argc) {_display_usage(EXIT_FAILURE);}
+      else {*randLevel = atof(argv[i]);}
     }
     i++;
   }
@@ -83,7 +83,8 @@ _read_args(int argc, char **argv, int *nVertex, double *randLevel) {
  *
  *---------------------------------------------------------------------*/
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
   MPI_Init(&argc, &argv);
 
   int rank;
@@ -181,7 +182,7 @@ int main(int argc, char *argv[]) {
 
   srand(time(NULL));
 
-  if (strcmp(code_name[0], "code1") == 0)
+  if (strcmp(code_name[0], "code1") == 0) {
     grid_mesh(xmin,
               xmax,
               ymin,
@@ -193,9 +194,10 @@ int main(int argc, char *argv[]) {
               eltsConnecPointer[0],
               eltsConnec[0],
               connectableLocalComm[0]);
+  }
 
   randLevel = 0.2;
-  if (strcmp(code_name[0], "code2") == 0)
+  if (strcmp(code_name[0], "code2") == 0) {
     grid_mesh(xmin,
               xmax,
               ymin,
@@ -207,20 +209,14 @@ int main(int argc, char *argv[]) {
               eltsConnecPointer[0],
               eltsConnec[0],
               connectableLocalComm[0]);
+  }
 
   printf("%d - Number of vertex   : %d\n", rank, nVertex);
   printf("%d - Number of elements : %d\n", rank, nElts);
 
-  CWP_Mesh_interf_vtx_set(code_name[0],
-                          cpl_name,
-                          0,
-                          nVertex,
-                          coords[0],
-                          NULL);
+  CWP_Mesh_interf_vtx_set(code_name[0], cpl_name, 0, nVertex, coords[0], NULL);
 
-  int block_id = CWP_Mesh_interf_block_add(code_name[0],
-                                           cpl_name,
-                                           CWP_BLOCK_FACE_POLY);
+  int block_id = CWP_Mesh_interf_block_add(code_name[0], cpl_name, CWP_BLOCK_FACE_POLY);
 
   CWP_Mesh_interf_f_poly_block_set(code_name[0],
                                    cpl_name,
@@ -256,8 +252,8 @@ int main(int argc, char *argv[]) {
   // Exchange
   // field1: code1 -> code2
   // field2: code2 -> code1
-  char *field_name1 = "cooX";
-  char *field_name2 = "rank";
+  const char *field_name1 = "cooX";
+  const char *field_name2 = "rank";
 
   CWP_Status_t visu_status = CWP_STATUS_ON;
   printf("%d - Defining fields\n", rank);

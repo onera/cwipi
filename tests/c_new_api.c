@@ -24,13 +24,15 @@
 
 #include "cwp.h"
 
+
 /*----------------------------------------------------------------------
  *
  * Main : linear coupling test
  *
  *---------------------------------------------------------------------*/
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
   FILE *outputFile;
 
   MPI_Init(&argc, &argv);
@@ -43,13 +45,13 @@ int main(int argc, char *argv[]) {
   strcpy(srcName, __FILE__);
   char *srcBaseName = NULL;
   srcBaseName = strrchr(srcName, '.');
-  if (srcBaseName != NULL) *srcBaseName = '\0';
+  if (srcBaseName != NULL) {*srcBaseName = '\0';}
   srcBaseName = NULL;
   srcBaseName = strrchr(srcName, '/');
-  if (srcBaseName != NULL) srcBaseName += 1;
-  else srcBaseName = srcName;
+  if (srcBaseName != NULL) {srcBaseName += 1;}
+  else {srcBaseName = srcName;}
 
-  if (rank == 0) printf("\nSTART: %s\n", srcBaseName);
+  if (rank == 0) {printf("\nSTART: %s\n", srcBaseName);}
 
   // Initialization
   int n_code_name = 0;
@@ -147,24 +149,29 @@ int main(int argc, char *argv[]) {
   }
 
   const char *fileName = NULL;
-  if (rank == 0) fileName = "c_new_api_0000.txt";
-  else if (rank == 1) fileName = "c_new_api_0001.txt";
-  else if (rank == 2) fileName = "c_new_api_0002.txt";
-  else if (rank == 3) fileName = "c_new_api_0003.txt";
-  else if (rank == 4) fileName = "c_new_api_0004.txt";
-  else if (rank == 5) fileName = "c_new_api_0005.txt";
-  else if (rank == 6) fileName = "c_new_api_0006.txt";
-  else if (rank == 7) fileName = "c_new_api_0007.txt";
-  else if (rank == 8) fileName = "c_new_api_0008.txt";
-  else if (rank == 9) fileName = "c_new_api_0009.txt";
+  if (rank == 0) {fileName = "c_new_api_0000.txt";}
+  else if (rank == 1) {fileName = "c_new_api_0001.txt";}
+  else if (rank == 2) {fileName = "c_new_api_0002.txt";}
+  else if (rank == 3) {fileName = "c_new_api_0003.txt";}
+  else if (rank == 4) {fileName = "c_new_api_0004.txt";}
+  else if (rank == 5) {fileName = "c_new_api_0005.txt";}
+  else if (rank == 6) {fileName = "c_new_api_0006.txt";}
+  else if (rank == 7) {fileName = "c_new_api_0007.txt";}
+  else if (rank == 8) {fileName = "c_new_api_0008.txt";}
+  else if (rank == 9) {fileName = "c_new_api_0009.txt";}
   outputFile = fopen(fileName, "w");
 
   times_init = malloc(sizeof(double) * n_code_name);
 
-  for (int i = 0 ; i < n_code_name ; i++) times_init[i] = 0;
+  for (int i = 0 ; i < n_code_name ; i++) {times_init[i] = 0;}
 
   MPI_Comm *localComm = malloc(sizeof(MPI_Comm) * n_code_name);
-  CWP_Init(MPI_COMM_WORLD, n_code_name, (const char **) codeNames, is_coupled_rank, times_init, localComm);
+  CWP_Init(MPI_COMM_WORLD,
+           n_code_name,
+           (const char **) codeNames,
+           is_coupled_rank,
+           times_init,
+           localComm);
 
   // Output redirection
   int currentRank;
@@ -214,10 +221,26 @@ int main(int argc, char *argv[]) {
     MPI_Bcast(&v, 1, MPI_INT, 0, localComm[0]);
     printf("code 1 v : %d\n", v);
     fflush(stdout);
-    CWP_Cpl_create("code1", cpl_id1, "code2", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+    CWP_Cpl_create("code1",
+                   cpl_id1,
+                   "code2",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_EACH_TIME_STEP);
   }
   if (rank == 0 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
-    CWP_Cpl_create("code2", cpl_id1, "code1", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+    CWP_Cpl_create("code2",
+                   cpl_id1,
+                   "code1",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_EACH_TIME_STEP);
     int v = -2;
     if (rank == 0) {
       v = 21;
@@ -229,6 +252,10 @@ int main(int argc, char *argv[]) {
     else if (rank == 6 || rank == 9) {
       intraComm = localComm[0];
     }
+    else {
+      intraComm = MPI_COMM_NULL;
+    }
+
     MPI_Bcast(&v, 1, MPI_INT, 0, intraComm);
     printf("code 2 v : %d\n", v);
     fflush(stdout);
@@ -238,10 +265,26 @@ int main(int argc, char *argv[]) {
 
   // cpl2
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
-    CWP_Cpl_create("code1", cpl_id2, "code3", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+    CWP_Cpl_create("code1",
+                   cpl_id2,
+                   "code3",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_EACH_TIME_STEP);
   }
   if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7 || rank == 9) {
-    CWP_Cpl_create("code3", cpl_id2, "code1", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+    CWP_Cpl_create("code3",
+                   cpl_id2,
+                   "code1",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_EACH_TIME_STEP);
     int v = -2;
     if (rank == 2) {
       v = 31;
@@ -256,6 +299,10 @@ int main(int argc, char *argv[]) {
     else if (rank == 5 || rank == 9) {
       intraComm = localComm[1];
     }
+    else {
+      intraComm = MPI_COMM_NULL;
+    }
+
     MPI_Bcast(&v, 1, MPI_INT, 0, intraComm);
     printf("code 3 v : %d\n", v);
     fflush(stdout);
@@ -263,15 +310,39 @@ int main(int argc, char *argv[]) {
 
   // cpl3
   if (rank == 0 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
-    CWP_Cpl_create("code2", cpl_id3, "code3", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+    CWP_Cpl_create("code2",
+                   cpl_id3,
+                   "code3",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_EACH_TIME_STEP);
   }
   if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7 || rank == 9) {
-    CWP_Cpl_create("code3", cpl_id3, "code2", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+    CWP_Cpl_create("code3",
+                   cpl_id3,
+                   "code2",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_EACH_TIME_STEP);
   }
 
   // cpl4
   if (rank == 2 || rank == 4 || rank == 8) {
-    CWP_Cpl_create("code4", cpl_id4, "code3", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+    CWP_Cpl_create("code4",
+                   cpl_id4,
+                   "code3",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_EACH_TIME_STEP);
     int v = -2;
     if (rank == 2) {
       v = 41;
@@ -286,29 +357,73 @@ int main(int argc, char *argv[]) {
     else if (rank == 8) {
       intraComm = localComm[0];
     }
+    else {
+      intraComm = MPI_COMM_NULL;
+    }
+
     MPI_Bcast(&v, 1, MPI_INT, 0, intraComm);
     printf("code 4 v : %d\n", v);
     fflush(stdout);
   }
 
   if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7 || rank == 9) {
-    CWP_Cpl_create("code3", cpl_id4, "code4", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+    CWP_Cpl_create("code3",
+                   cpl_id4,
+                   "code4",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_EACH_TIME_STEP);
   }
 
   // cpl5
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
-    CWP_Cpl_create("code1", cpl_id5, "code4", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+    CWP_Cpl_create("code1",
+                   cpl_id5,
+                   "code4",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_EACH_TIME_STEP);
   }
   if (rank == 2 || rank == 4 || rank == 8) {
-    CWP_Cpl_create("code4", cpl_id5, "code1", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+    CWP_Cpl_create("code4",
+                   cpl_id5,
+                   "code1",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_EACH_TIME_STEP);
   }
 
   // cpl6
   if (rank == 0 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
-    CWP_Cpl_create("code2", cpl_id6, "code4", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+    CWP_Cpl_create("code2",
+                   cpl_id6,
+                   "code4",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_EACH_TIME_STEP);
   }
   if (rank == 2 || rank == 4 || rank == 8) {
-    CWP_Cpl_create("code4", cpl_id6, "code2", CWP_INTERFACE_SURFACE, CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+    CWP_Cpl_create("code4",
+                   cpl_id6,
+                   "code2",
+                   CWP_INTERFACE_SURFACE,
+                   CWP_COMM_PAR_WITH_PART,
+                   interp_method,
+                   1,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_EACH_TIME_STEP);
   }
 
   printf("All done for rank %d\n", rank);

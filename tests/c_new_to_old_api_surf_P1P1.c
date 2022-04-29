@@ -42,6 +42,7 @@ typedef enum {
     CWP_VERSION_NEW
 } CWP_Version_t;
 
+
 /*----------------------------------------------------------------------
  *
  * Display usage
@@ -73,28 +74,27 @@ _usage(int exit_code) {
  *---------------------------------------------------------------------*/
 
 static void
-_read_args(int argc,
-           char **argv,
-           CWP_Version_t *version,
-           int *n_vtx_seg1,
-           int *n_vtx_seg2,
-           double *width,
-           double *depth,
-           int *rotation,
-           int *randomize,
-           int *nProcData,
-           int *part_method,
-           int *verbose) {
+_read_args(int argc, char **argv, CWP_Version_t *version, int *n_vtx_seg1, int *n_vtx_seg2,
+           double *width, double *depth, int *rotation, int *randomize, int *nProcData,
+           int *part_method, int *verbose) {
   int i = 1;
 
   // Parse and check command line
   while (i < argc) {
-    if (strcmp(argv[i], "-h") == 0) _usage(EXIT_SUCCESS);
-    else if (strcmp(argv[i], "-new") == 0) *version = CWP_VERSION_NEW;
-    else if (strcmp(argv[i], "-old") == 0) *version = CWP_VERSION_OLD;
+    if (strcmp(argv[i], "-h") == 0) {
+      _usage(EXIT_SUCCESS);
+    }
+    else if (strcmp(argv[i], "-new") == 0) {
+      *version = CWP_VERSION_NEW;
+    }
+    else if (strcmp(argv[i], "-old") == 0) {
+      *version = CWP_VERSION_OLD;
+    }
     else if (strcmp(argv[i], "-n") == 0) {
       i++;
-      if (i >= argc) _usage(EXIT_FAILURE);
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
       else {
         *n_vtx_seg1 = atoi(argv[i]);
         *n_vtx_seg2 = atoi(argv[i]);
@@ -102,35 +102,67 @@ _read_args(int argc,
     }
     else if (strcmp(argv[i], "-n1") == 0) {
       i++;
-      if (i >= argc) _usage(EXIT_FAILURE);
-      else *n_vtx_seg1 = atoi(argv[i]);
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *n_vtx_seg1 = atoi(argv[i]);
+      }
     }
     else if (strcmp(argv[i], "-n2") == 0) {
       i++;
-      if (i >= argc) _usage(EXIT_FAILURE);
-      else *n_vtx_seg2 = atoi(argv[i]);
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *n_vtx_seg2 = atoi(argv[i]);
+      }
     }
     else if (strcmp(argv[i], "-width") == 0) {
       i++;
-      if (i >= argc) _usage(EXIT_FAILURE);
-      else *width = atof(argv[i]);
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *width = atof(argv[i]);
+      }
     }
     else if (strcmp(argv[i], "-depth") == 0) {
       i++;
-      if (i >= argc) _usage(EXIT_FAILURE);
-      else *depth = atof(argv[i]);
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *depth = atof(argv[i]);
+      }
     }
-    else if (strcmp(argv[i], "-rot") == 0) *rotation = 1;
-    else if (strcmp(argv[i], "-no_random") == 0) *randomize = 0;
+    else if (strcmp(argv[i], "-rot") == 0) {
+      *rotation = 1;
+    }
+    else if (strcmp(argv[i], "-no_random") == 0) {
+      *randomize = 0;
+    }
     else if (strcmp(argv[i], "-n_proc_data") == 0) {
       i++;
-      if (i >= argc) _usage(EXIT_FAILURE);
-      else *nProcData = atoi(argv[i]);
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *nProcData = atoi(argv[i]);
+      }
     }
-    else if (strcmp(argv[i], "-pt-scotch") == 0) *part_method = PDM_PART_SPLIT_PTSCOTCH;
-    else if (strcmp(argv[i], "-parmetis") == 0) *part_method = PDM_PART_SPLIT_PARMETIS;
-    else if (strcmp(argv[i], "-hilbert") == 0) *part_method = PDM_PART_SPLIT_HILBERT;
-    else if (strcmp(argv[i], "-v") == 0) *verbose = 1;
+    else if (strcmp(argv[i], "-pt-scotch") == 0) {
+      *part_method = PDM_PART_SPLIT_PTSCOTCH;
+    }
+    else if (strcmp(argv[i], "-parmetis") == 0) {
+      *part_method = PDM_PART_SPLIT_PARMETIS;
+    }
+    else if (strcmp(argv[i], "-hilbert") == 0) {
+      *part_method = PDM_PART_SPLIT_HILBERT;
+    }
+    else if (strcmp(argv[i], "-v") == 0) {
+      *verbose = 1;
+    }
 
     i++;
   }
@@ -147,217 +179,190 @@ _read_args(int argc,
  * \return          faceVtx connectivity for each partition of each mesh
  */
 
-CWP_GCC_SUPPRESS_WARNING_WITH_PUSH("-Wunused-function")
+//static void
+//_compute_faceVtx(PDM_part_t *ppartId, int n_part, int **nFace, int ***faceVtxIdx, int ***faceVtx,
+//                 PDM_g_num_t ***faceLNToGN, int **nVtx, double ***vtxCoord,
+//                 PDM_g_num_t ***vtxLNToGN) {
+//
+//  *nFace = (int *) malloc(sizeof(int) * n_part);
+//  *faceVtxIdx = (int **) malloc(sizeof(int *) * n_part);
+//  *faceVtx = (int **) malloc(sizeof(int *) * n_part);
+//  *faceLNToGN = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
+//
+//  *nVtx = (int *) malloc(sizeof(int) * n_part);
+//  *vtxCoord = (double **) malloc(sizeof(double *) * n_part);
+//  *vtxLNToGN = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
+//
+//  PDM_part_t *id_ppart = ppartId;
+//
+//  for (int ipart = 0 ; ipart < n_part ; ipart++) {
+//    int _nFace;
+//    int _nEdge;
+//    int _nEdgePartBound;
+//    int _nVtx;
+//    int _nProc;
+//    int _nTPart;
+//    int _sFaceEdge;
+//    int _sEdgeVtx;
+//    int _sEdgeGroup;
+//    int _nEdgeGroup2;
+//
+//    PDM_part_part_dim_get(id_ppart,
+//                          ipart,
+//                          &_nFace,
+//                          &_nEdge,
+//                          &_nEdgePartBound,
+//                          &_nVtx,
+//                          &_nProc,
+//                          &_nTPart,
+//                          &_sFaceEdge,
+//                          &_sEdgeVtx,
+//                          &_sEdgeGroup,
+//                          &_nEdgeGroup2);
+//
+//    int *_faceTag;
+//    int *_faceEdgeIdx;
+//    int *_faceEdge;
+//    PDM_g_num_t *_faceLNToGN;
+//    int *_edgeTag;
+//    int *_edgeFace;
+//    int *_edgeVtxIdx;
+//    int *_edgeVtx;
+//    PDM_g_num_t *_edgeLNToGN;
+//    int *_edgePartBoundProcIdx;
+//    int *_edgePartBoundPartIdx;
+//    int *_edgePartBound;
+//    int *_vtxTag;
+//    double *_vtx;
+//    PDM_g_num_t *_vtxLNToGN;
+//    int *_edgeGroupIdx;
+//    int *_edgeGroup;
+//    PDM_g_num_t *_edgeGroupLNToGN;
+//
+//    PDM_part_part_val_get(id_ppart,
+//                          ipart,
+//                          &_faceTag,
+//                          &_faceEdgeIdx,
+//                          &_faceEdge,
+//                          &_faceLNToGN,
+//                          &_edgeTag,
+//                          &_edgeFace,
+//                          &_edgeVtxIdx,
+//                          &_edgeVtx,
+//                          &_edgeLNToGN,
+//                          &_edgePartBoundProcIdx,
+//                          &_edgePartBoundPartIdx,
+//                          &_edgePartBound,
+//                          &_vtxTag,
+//                          &_vtx,
+//                          &_vtxLNToGN,
+//                          &_edgeGroupIdx,
+//                          &_edgeGroup,
+//                          &_edgeGroupLNToGN);
+//
+//    (*nFace)[ipart] = _nFace;
+//    (*faceVtxIdx)[ipart] = (int *) malloc(sizeof(int) * (_nFace + 1));
+//    (*faceVtx)[ipart] = (int *) malloc(sizeof(int) * _sFaceEdge);
+//    (*faceLNToGN)[ipart] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * _nFace);
+//
+//    memcpy ((*faceVtxIdx)[ipart], _faceEdgeIdx, (_nFace + 1) * sizeof(int));
+//    memcpy ((*faceLNToGN)[ipart], _faceLNToGN, _nFace * sizeof(PDM_g_num_t));
+//
+//    (*nVtx)[ipart] = _nVtx;
+//    (*vtxCoord)[ipart] = (double *) malloc(sizeof(double) * (3 * _nVtx));
+//    (*vtxLNToGN)[ipart] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * _nVtx);
+//
+//    memcpy ((*vtxCoord)[ipart], _vtx, 3 * _nVtx * sizeof(double));
+//    memcpy ((*vtxLNToGN)[ipart], _vtxLNToGN, _nVtx * sizeof(PDM_g_num_t));
+//
+//    int *_faceVtx = (*faceVtx)[ipart];
+//    int *vtxEdgeIdx = (int *) malloc(sizeof(int) * (_nVtx + 1));
+//
+//    for (int i = 0 ; i < _nVtx + 1 ; i++) {
+//      vtxEdgeIdx[i] = 0;
+//    }
+//
+//    for (int i = 0 ; i < _nEdge ; i++) {
+//      int ivtx1 = _edgeVtx[2 * i];
+//      int ivtx2 = _edgeVtx[2 * i + 1];
+//
+//      vtxEdgeIdx[ivtx1] += 1;
+//      vtxEdgeIdx[ivtx2] += 1;
+//    }
+//
+//    for (int i = 1 ; i < _nVtx + 1 ; i++) {
+//      vtxEdgeIdx[i] = vtxEdgeIdx[i] + vtxEdgeIdx[i - 1];
+//    }
+//
+//    int *vtxEdge = (int *) malloc(sizeof(int) * vtxEdgeIdx[_nVtx]);
+//    int *vtxEdgeN = (int *) malloc(sizeof(int) * _nVtx);
+//    for (int i = 0 ; i < _nVtx ; i++) {
+//      vtxEdgeN[i] = 0;
+//    }
+//
+//    for (int i = 0 ; i < _nEdge ; i++) {
+//      int ivtx1 = _edgeVtx[2 * i] - 1;
+//      int ivtx2 = _edgeVtx[2 * i + 1] - 1;
+//      int iedge = i + 1;
+//
+//      vtxEdge[vtxEdgeIdx[ivtx1] + vtxEdgeN[ivtx1]] = iedge;
+//      vtxEdge[vtxEdgeIdx[ivtx2] + vtxEdgeN[ivtx2]] = iedge;
+//      vtxEdgeN[ivtx1] += 1;
+//      vtxEdgeN[ivtx2] += 1;
+//    }
+//    free(vtxEdgeN);
+//
+//    for (int i = 0 ; i < _nFace ; i++) {
+//      int idx = _faceEdgeIdx[i];
+//      int _nEdge2 = _faceEdgeIdx[i + 1] - idx;
+//      int *_edges = _faceEdge + idx;
+//      int *_vertices = _faceVtx + idx;
+//
+//      int edge_cur = _edges[0];
+//      int vtx_deb = _edgeVtx[2 * (edge_cur - 1)];
+//      _vertices[0] = vtx_deb;
+//      int vtx_cur = _edgeVtx[2 * (edge_cur - 1) + 1];
+//      int idxVtx = 0;
+//
+//      while (vtx_deb != vtx_cur) {
+//        _vertices[++idxVtx] = vtx_cur;
+//        int find_vtx = 0;
+//
+//        for (int j = vtxEdgeIdx[vtx_cur - 1] ; j < vtxEdgeIdx[vtx_cur] ; j++) {
+//          for (int k = 0 ; k < _nEdge2 ; k++) {
+//            if ((_edges[k] == vtxEdge[j]) && (_edges[k] != edge_cur)) {
+//              edge_cur = _edges[k];
+//              if (_edgeVtx[2 * (_edges[k] - 1)] == vtx_cur) {
+//                vtx_cur = _edgeVtx[2 * (_edges[k] - 1) + 1];
+//              }
+//              else {
+//                vtx_cur = _edgeVtx[2 * (_edges[k] - 1)];
+//              }
+//              find_vtx = 1;
+//              break;
+//            }
+//          }
+//          if (find_vtx) {
+//            break;
+//          }
+//        }
+//        if (!find_vtx) {
+//          PDM_error(__FILE__, __LINE__, 0, "Error to compute vtxedge !!!!\n");
+//          abort();
+//        }
+//      }
+//    }
+//
+//    free(vtxEdge);
+//    free(vtxEdgeIdx);
+//  }
+//}
 
 static void
-_compute_faceVtx
-        (
-                PDM_part_t *ppartId,
-                int n_part,
-                int **nFace,
-                int ***faceVtxIdx,
-                int ***faceVtx,
-                PDM_g_num_t ***faceLNToGN,
-                int **nVtx,
-                double ***vtxCoord,
-                PDM_g_num_t ***vtxLNToGN
-        ) {
-
-  *nFace = (int *) malloc(sizeof(int) * n_part);
-  *faceVtxIdx = (int **) malloc(sizeof(int *) * n_part);
-  *faceVtx = (int **) malloc(sizeof(int *) * n_part);
-  *faceLNToGN = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
-
-  *nVtx = (int *) malloc(sizeof(int) * n_part);
-  *vtxCoord = (double **) malloc(sizeof(double *) * n_part);
-  *vtxLNToGN = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
-
-  PDM_part_t *id_ppart = ppartId;
-
-  for (int ipart = 0 ; ipart < n_part ; ipart++) {
-
-    int _nFace;
-    int _nEdge;
-    int _nEdgePartBound;
-    int _nVtx;
-    int _nProc;
-    int _nTPart;
-    int _sFaceEdge;
-    int _sEdgeVtx;
-    int _sEdgeGroup;
-    int _nEdgeGroup2;
-
-    PDM_part_part_dim_get(id_ppart,
-                          ipart,
-                          &_nFace,
-                          &_nEdge,
-                          &_nEdgePartBound,
-                          &_nVtx,
-                          &_nProc,
-                          &_nTPart,
-                          &_sFaceEdge,
-                          &_sEdgeVtx,
-                          &_sEdgeGroup,
-                          &_nEdgeGroup2);
-
-    int *_faceTag;
-    int *_faceEdgeIdx;
-    int *_faceEdge;
-    PDM_g_num_t *_faceLNToGN;
-    int *_edgeTag;
-    int *_edgeFace;
-    int *_edgeVtxIdx;
-    int *_edgeVtx;
-    PDM_g_num_t *_edgeLNToGN;
-    int *_edgePartBoundProcIdx;
-    int *_edgePartBoundPartIdx;
-    int *_edgePartBound;
-    int *_vtxTag;
-    double *_vtx;
-    PDM_g_num_t *_vtxLNToGN;
-    int *_edgeGroupIdx;
-    int *_edgeGroup;
-    PDM_g_num_t *_edgeGroupLNToGN;
-
-    PDM_part_part_val_get(id_ppart,
-                          ipart,
-                          &_faceTag,
-                          &_faceEdgeIdx,
-                          &_faceEdge,
-                          &_faceLNToGN,
-                          &_edgeTag,
-                          &_edgeFace,
-                          &_edgeVtxIdx,
-                          &_edgeVtx,
-                          &_edgeLNToGN,
-                          &_edgePartBoundProcIdx,
-                          &_edgePartBoundPartIdx,
-                          &_edgePartBound,
-                          &_vtxTag,
-                          &_vtx,
-                          &_vtxLNToGN,
-                          &_edgeGroupIdx,
-                          &_edgeGroup,
-                          &_edgeGroupLNToGN);
-
-    (*nFace)[ipart] = _nFace;
-    (*faceVtxIdx)[ipart] = (int *) malloc(sizeof(int) * (_nFace + 1));
-    (*faceVtx)[ipart] = (int *) malloc(sizeof(int) * _sFaceEdge);
-    (*faceLNToGN)[ipart] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * _nFace);
-
-    memcpy ((*faceVtxIdx)[ipart], _faceEdgeIdx, (_nFace + 1) * sizeof(int));
-    memcpy ((*faceLNToGN)[ipart], _faceLNToGN, _nFace * sizeof(PDM_g_num_t));
-
-    (*nVtx)[ipart] = _nVtx;
-    (*vtxCoord)[ipart] = (double *) malloc(sizeof(double) * (3 * _nVtx));
-    (*vtxLNToGN)[ipart] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * _nVtx);
-
-    memcpy ((*vtxCoord)[ipart], _vtx, 3 * _nVtx * sizeof(double));
-    memcpy ((*vtxLNToGN)[ipart], _vtxLNToGN, _nVtx * sizeof(PDM_g_num_t));
-
-    int *_faceVtx = (*faceVtx)[ipart];
-    int *vtxEdgeIdx = (int *) malloc(sizeof(int) * (_nVtx + 1));
-
-    for (int i = 0 ; i < _nVtx + 1 ; i++) {
-      vtxEdgeIdx[i] = 0;
-    }
-
-    for (int i = 0 ; i < _nEdge ; i++) {
-      int ivtx1 = _edgeVtx[2 * i];
-      int ivtx2 = _edgeVtx[2 * i + 1];
-
-      vtxEdgeIdx[ivtx1] += 1;
-      vtxEdgeIdx[ivtx2] += 1;
-    }
-
-    for (int i = 1 ; i < _nVtx + 1 ; i++) {
-      vtxEdgeIdx[i] = vtxEdgeIdx[i] + vtxEdgeIdx[i - 1];
-    }
-
-    int *vtxEdge = (int *) malloc(sizeof(int) * vtxEdgeIdx[_nVtx]);
-    int *vtxEdgeN = (int *) malloc(sizeof(int) * _nVtx);
-    for (int i = 0 ; i < _nVtx ; i++) {
-      vtxEdgeN[i] = 0;
-    }
-
-    for (int i = 0 ; i < _nEdge ; i++) {
-      int ivtx1 = _edgeVtx[2 * i] - 1;
-      int ivtx2 = _edgeVtx[2 * i + 1] - 1;
-      int iedge = i + 1;
-
-      vtxEdge[vtxEdgeIdx[ivtx1] + vtxEdgeN[ivtx1]] = iedge;
-      vtxEdge[vtxEdgeIdx[ivtx2] + vtxEdgeN[ivtx2]] = iedge;
-      vtxEdgeN[ivtx1] += 1;
-      vtxEdgeN[ivtx2] += 1;
-    }
-    free(vtxEdgeN);
-
-    for (int i = 0 ; i < _nFace ; i++) {
-      int idx = _faceEdgeIdx[i];
-      int _nEdge = _faceEdgeIdx[i + 1] - idx;
-      int *_edges = _faceEdge + idx;
-      int *_vertices = _faceVtx + idx;
-
-      int edge_cur = _edges[0];
-      int vtx_deb = _edgeVtx[2 * (edge_cur - 1)];
-      _vertices[0] = vtx_deb;
-      int vtx_cur = _edgeVtx[2 * (edge_cur - 1) + 1];
-      int idxVtx = 0;
-
-      while (vtx_deb != vtx_cur) {
-        _vertices[++idxVtx] = vtx_cur;
-        int find_vtx = 0;
-
-        for (int j = vtxEdgeIdx[vtx_cur - 1] ; j < vtxEdgeIdx[vtx_cur] ; j++) {
-          for (int k = 0 ; k < _nEdge ; k++) {
-            if ((_edges[k] == vtxEdge[j]) && (_edges[k] != edge_cur)) {
-              edge_cur = _edges[k];
-              if (_edgeVtx[2 * (_edges[k] - 1)] == vtx_cur) {
-                vtx_cur = _edgeVtx[2 * (_edges[k] - 1) + 1];
-              }
-              else {
-                vtx_cur = _edgeVtx[2 * (_edges[k] - 1)];
-              }
-              find_vtx = 1;
-              break;
-            }
-          }
-          if (find_vtx)
-            break;
-        }
-        if (!find_vtx) {
-          PDM_error(__FILE__, __LINE__, 0, "Error to compute vtxedge !!!!\n");
-          abort();
-        }
-      }
-    }
-
-    free(vtxEdge);
-    free(vtxEdgeIdx);
-  }
-}
-
-CWP_GCC_SUPPRESS_WARNING_POP
-
-
-static void
-_get_connectivity
-        (
-                PDM_part_t *ppartId,
-                int n_part,
-                int **nFace,
-                int ***faceEdgeIdx,
-                int ***faceEdge,
-                int ***faceVtxIdx,
-                int ***faceVtx,
-                PDM_g_num_t ***faceLNToGN,
-                int **nEdge,
-                int ***edgeVtxIdx,
-                int ***edgeVtx,
-                int **nVtx,
-                double ***vtxCoord,
-                PDM_g_num_t ***vtxLNToGN
-        ) {
+_get_connectivity(PDM_part_t *ppartId, int n_part, int **nFace, int ***faceEdgeIdx, int ***faceEdge,
+                  int ***faceVtxIdx, int ***faceVtx, PDM_g_num_t ***faceLNToGN, int **nEdge,
+                  int ***edgeVtxIdx, int ***edgeVtx, int **nVtx, double ***vtxCoord,
+                  PDM_g_num_t ***vtxLNToGN) {
   *nFace = (int *) malloc(sizeof(int) * n_part);
   *faceEdgeIdx = (int **) malloc(sizeof(int *) * n_part);
   *faceEdge = (int **) malloc(sizeof(int *) * n_part);
@@ -527,13 +532,19 @@ _get_connectivity
           for (int k = 0 ; k < __nEdge ; k++) {
             if ((_edges[k] == vtxEdge[j]) && (_edges[k] != edge_cur)) {
               edge_cur = _edges[k];
-              if (_edgeVtx[2 * (_edges[k] - 1)] == vtx_cur) vtx_cur = _edgeVtx[2 * (_edges[k] - 1) + 1];
-              else vtx_cur = _edgeVtx[2 * (_edges[k] - 1)];
+              if (_edgeVtx[2 * (_edges[k] - 1)] == vtx_cur) {
+                vtx_cur = _edgeVtx[2 * (_edges[k] - 1) + 1];
+              }
+              else {
+                vtx_cur = _edgeVtx[2 * (_edges[k] - 1)];
+              }
               find_vtx = 1;
               break;
             }
           }
-          if (find_vtx) break;
+          if (find_vtx) {
+            break;
+          }
         }
         if (!find_vtx) {
           PDM_error(__FILE__, __LINE__, 0, "Error to compute vtxedge !!!!\n");
@@ -549,10 +560,7 @@ _get_connectivity
 
 
 static void
-_add_depth(const int n_pts,
-           const double width,
-           const double depth,
-           double *coord) {
+_add_depth(const int n_pts, const double width, const double depth, double *coord) {
   for (int i = 0 ; i < n_pts ; i++) {
     double x = 2. * coord[3 * i] / width;
     double y = 2. * coord[3 * i + 1] / width;
@@ -580,35 +588,13 @@ _rotate(const int n_pts, double *coord) {
 
 
 static void
-_create_split_mesh
-        (
-                int activeRank,
-                PDM_MPI_Comm pdm_mpi_comm,
-                double xmin,
-                double ymin,
-                PDM_g_num_t nVtxSeg,
-                double length,
-                double depth,
-                int rotation,
-                int n_part,
-                PDM_part_split_t method,
-                int haveRandom,
-                int initRandom,
-                PDM_g_num_t *nGFace,
-                PDM_g_num_t *nGVtx,
-                int **nFace,
-                int ***faceEdgeIdx,
-                int ***faceEdge,
-                int ***faceVtxIdx,
-                int ***faceVtx,
-                PDM_g_num_t ***faceLNToGN,
-                int **nEdge,
-                int ***edgeVtxIdx,
-                int ***edgeVtx,
-                int **nVtx,
-                double ***vtxCoord,
-                PDM_g_num_t ***vtxLNToGN
-        ) {
+_create_split_mesh(int activeRank, PDM_MPI_Comm pdm_mpi_comm, double xmin, double ymin,
+                   PDM_g_num_t nVtxSeg, double length, double depth, int rotation, int n_part,
+                   PDM_part_split_t method, int haveRandom, int initRandom, PDM_g_num_t *nGFace,
+                   PDM_g_num_t *nGVtx, int **nFace, int ***faceEdgeIdx, int ***faceEdge,
+                   int ***faceVtxIdx, int ***faceVtx, PDM_g_num_t ***faceLNToGN, int **nEdge,
+                   int ***edgeVtxIdx, int ***edgeVtx, int **nVtx, double ***vtxCoord,
+                   PDM_g_num_t ***vtxLNToGN) {
   int i_rank;
   int numProcs;
 
@@ -664,8 +650,9 @@ _create_split_mesh
 
     _add_depth(dNVtx, length, depth, dVtxCoord);
 
-    if (rotation) _rotate(dNVtx, dVtxCoord);
-
+    if (rotation) {
+      _rotate(dNVtx, dVtxCoord);
+    }
     // Create mesh partitions
     int have_dCellPart = 0;
 
@@ -685,34 +672,33 @@ _create_split_mesh
     int nPropertyFace = 0;
     int *renum_properties_face = NULL;
 
-    ppartId = PDM_part_create(
-            pdm_mpi_comm,
-            method,
-            "PDM_PART_RENUM_CELL_NONE",
-            "PDM_PART_RENUM_FACE_NONE",
-            nPropertyCell,
-            renum_properties_cell,
-            nPropertyFace,
-            renum_properties_face,
-            n_part,
-            dNFace,
-            dNEdge,
-            dNVtx,
-            nEdgeGroup,
-            NULL,
-            NULL,
-            NULL,
-            NULL,
-            have_dCellPart,
-            dCellPart,
-            dEdgeFace,
-            dEdgeVtxIdx,
-            dEdgeVtx,
-            NULL,
-            dVtxCoord,
-            NULL,
-            dEdgeGroupIdx,
-            dEdgeGroup);
+    ppartId = PDM_part_create(pdm_mpi_comm,
+                              method,
+                              "PDM_PART_RENUM_CELL_NONE",
+                              "PDM_PART_RENUM_FACE_NONE",
+                              nPropertyCell,
+                              renum_properties_cell,
+                              nPropertyFace,
+                              renum_properties_face,
+                              n_part,
+                              dNFace,
+                              dNEdge,
+                              dNVtx,
+                              nEdgeGroup,
+                              NULL,
+                              NULL,
+                              NULL,
+                              NULL,
+                              have_dCellPart,
+                              dCellPart,
+                              dEdgeFace,
+                              dEdgeVtxIdx,
+                              dEdgeVtx,
+                              NULL,
+                              dVtxCoord,
+                              NULL,
+                              dEdgeGroupIdx,
+                              dEdgeGroup);
 
     free(dCellPart);
 
@@ -791,12 +777,7 @@ _create_split_mesh
 
 
 static int
-_set_rank_has_mesh
-        (
-                const MPI_Comm comm,
-                const int nProcData,
-                PDM_MPI_Comm *meshComm
-        ) {
+_set_rank_has_mesh(const MPI_Comm comm, const int nProcData, PDM_MPI_Comm *meshComm) {
   int current_rank_has_mesh = 1;
   int rank;
   int commSize;
@@ -821,21 +802,26 @@ _set_rank_has_mesh
     current_rank_has_mesh = 0;
 
     for (int i = 0 ; i < rank ; i++) {
-      if (rankInNodes[i] == 0) iNode += 1;
+      if (rankInNodes[i] == 0) {
+        iNode += 1;
+      }
     }
 
     if (nProcData <= nNode) {
-      if (iNode < nProcData && masterRank) current_rank_has_mesh = 1;
+      if (iNode < nProcData && masterRank) {
+        current_rank_has_mesh = 1;
+      }
     }
     else {
-      if (rankInNode < (nProcData / nNode)) current_rank_has_mesh = 1;
-      if ((rankInNode == (nProcData / nNode)) && (iNode < (nProcData % nNode))) current_rank_has_mesh = 1;
+      if (rankInNode < (nProcData / nNode)) {
+        current_rank_has_mesh = 1;
+      }
+      if ((rankInNode == (nProcData / nNode)) && (iNode < (nProcData % nNode))) {
+        current_rank_has_mesh = 1;
+      }
     }
 
-    PDM_MPI_Comm_split(_comm,
-                       current_rank_has_mesh,
-                       rank,
-                       meshComm);
+    PDM_MPI_Comm_split(_comm, current_rank_has_mesh, rank, meshComm);
     free(rankInNodes);
   }
 
@@ -849,7 +835,8 @@ _set_rank_has_mesh
  *
  *---------------------------------------------------------------------*/
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
   // Read args from command line
   CWP_Version_t version = CWP_VERSION_NEW;
   int n_vtx_seg1 = 4;
@@ -884,9 +871,7 @@ int main(int argc, char *argv[]) {
              (int *) &part_method,
              &verbose);
 
-  /*
-   *  Initialize MPI
-   */
+  // Initialize MPI
   MPI_Init(&argc, &argv);
 
   int rank;
@@ -901,9 +886,7 @@ int main(int argc, char *argv[]) {
     n_proc_data = 2;
   }
 
-  /*
-   *  Initialize CWIPI
-   */
+  // Initialize CWIPI
   int n_part = 1;
   int n_code = 1;
   int code_id;
@@ -928,9 +911,7 @@ int main(int argc, char *argv[]) {
 
   MPI_Comm *intra_comm = malloc(sizeof(MPI_Comm) * n_code);
   if (version == CWP_VERSION_OLD) {
-    cwipi_init(MPI_COMM_WORLD,
-               code_name[0],
-               intra_comm);
+    cwipi_init(MPI_COMM_WORLD, code_name[0], intra_comm);
   }
 
   else {
@@ -945,11 +926,11 @@ int main(int argc, char *argv[]) {
              intra_comm);
   }
 
-  if (verbose && rank == 0) printf("CWIPI Init OK\n");
+  if (verbose && rank == 0) {
+    printf("CWIPI Init OK\n");
+  }
 
-  /*
-   *  Create coupling
-   */
+  // Create coupling
   const char *coupling_name = "c_surf_cpl_P1P1";
 
   if (version == CWP_VERSION_OLD) {
@@ -970,8 +951,8 @@ int main(int argc, char *argv[]) {
                    coupled_code_name[0],
                    CWP_INTERFACE_SURFACE,
                    CWP_COMM_PAR_WITH_PART,
-//                    CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF,
-//                    CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE,
+            //                    CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF,
+            //                    CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE,
                    CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
                    n_part,
                    CWP_DYNAMIC_MESH_STATIC,
@@ -985,11 +966,11 @@ int main(int argc, char *argv[]) {
 
   }
 
-  if (verbose && rank == 0) printf("Create coupling OK\n");
+  if (verbose && rank == 0) {
+    printf("Create coupling OK\n");
+  }
 
-  /*
-   *  Define mesh
-   */
+  // Define mesh
   PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) intra_comm);
 
   int _n_proc_data = n_proc_data;
@@ -1001,17 +982,17 @@ int main(int argc, char *argv[]) {
       _n_proc_data -= n_proc_data / 2;
     }
   }
-  int current_rank_has_mesh = _set_rank_has_mesh(intra_comm[0],
-                                                 _n_proc_data,
-                                                 &mesh_comm);
+  int current_rank_has_mesh = _set_rank_has_mesh(intra_comm[0], _n_proc_data, &mesh_comm);
 
   int true_n_proc_data;
   MPI_Reduce(&current_rank_has_mesh, &true_n_proc_data, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-  if (rank == 0) printf("nb procs with mesh data = %d\n", true_n_proc_data);
+  if (rank == 0) {
+    printf("nb procs with mesh data = %d\n", true_n_proc_data);
+  }
 
   const double xmin = -0.5 * width;
   const double ymin = -0.5 * width;
-  int init_random = time(NULL);
+  int init_random = (int) time(NULL);
 
   PDM_g_num_t nGFace;
   PDM_g_num_t nGVtx;
@@ -1031,8 +1012,9 @@ int main(int argc, char *argv[]) {
   PDM_MPI_Comm code_mesh_comm;
   PDM_MPI_Comm_split(mesh_comm, code_id, rank, &code_mesh_comm);
 
-  if (code_id == 2) init_random++;
-
+  if (code_id == 2) {
+    init_random++;
+  }
   _create_split_mesh(current_rank_has_mesh,
                      code_mesh_comm,
                      xmin,
@@ -1062,20 +1044,10 @@ int main(int argc, char *argv[]) {
 
   // Set interface mesh
   if (version == CWP_VERSION_OLD) {
-    cwipi_define_mesh(coupling_name,
-                      nVtx[0],
-                      nFace[0],
-                      vtxCoord[0],
-                      faceVtxIdx[0],
-                      faceVtx[0]);
+    cwipi_define_mesh(coupling_name, nVtx[0], nFace[0], vtxCoord[0], faceVtxIdx[0], faceVtx[0]);
   }
   else {
-    CWP_Mesh_interf_vtx_set(code_name[0],
-                            coupling_name,
-                            0,
-                            nVtx[0],
-                            vtxCoord[0],
-                            vtxLNToGN[0]);
+    CWP_Mesh_interf_vtx_set(code_name[0], coupling_name, 0, nVtx[0], vtxCoord[0], vtxLNToGN[0]);
 
     CWP_Mesh_interf_from_faceedge_set(code_name[0],
                                       coupling_name,
@@ -1091,7 +1063,9 @@ int main(int argc, char *argv[]) {
     CWP_Mesh_interf_finalize(code_name[0], coupling_name);
   }
 
-  if (verbose && rank == 0) printf("Set mesh OK\n");
+  if (verbose && rank == 0) {
+    printf("Set mesh OK\n");
+  }
 
   // Create and set fields
   double *send_val = NULL;
@@ -1107,7 +1081,9 @@ int main(int argc, char *argv[]) {
       send_val[i] = vtxCoord[0][3 * i];
     }
   }
-  else recv_val = (double *) malloc(sizeof(double) * nVtx[0]);
+  else {
+    recv_val = (double *) malloc(sizeof(double) * nVtx[0]);
+  }
 
   if (version == CWP_VERSION_NEW) {
     CWP_Status_t visu_status = CWP_STATUS_OFF;
@@ -1179,7 +1155,9 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  if (verbose && rank == 0) printf("Fields OK\n");
+  if (verbose && rank == 0) {
+    printf("Fields OK\n");
+  }
 
   // Perform geometric algorithm
   PDM_timer_t *timer = PDM_timer_create();
@@ -1191,7 +1169,9 @@ int main(int argc, char *argv[]) {
   t_start = PDM_timer_elapsed(timer);
   PDM_timer_resume(timer);
 
-  if (version == CWP_VERSION_OLD) cwipi_locate(coupling_name);
+  if (version == CWP_VERSION_OLD) {
+    cwipi_locate(coupling_name);
+  }
   else {
     PDM_part_to_block_global_statistic_reset();
     PDM_block_to_part_global_statistic_reset();
@@ -1284,24 +1264,50 @@ int main(int argc, char *argv[]) {
 
     if (rank == 0) {
       printf("Global time in PDM_part_to_block : \n");
-      printf("   - ptb min max elaps create  : %12.5e %12.5e\n", min_elaps_create_ptb, max_elaps_create_ptb);
-      printf("   - ptb min max elaps create2 : %12.5e %12.5e\n", min_elaps_create2_ptb, max_elaps_create2_ptb);
-      printf("   - ptb min max elaps exch    : %12.5e %12.5e\n", min_elaps_exch_ptb, max_elaps_exch_ptb);
+      printf("   - ptb min max elaps create  : %12.5e %12.5e\n",
+             min_elaps_create_ptb,
+             max_elaps_create_ptb);
+      printf("   - ptb min max elaps create2 : %12.5e %12.5e\n",
+             min_elaps_create2_ptb,
+             max_elaps_create2_ptb);
+      printf("   - ptb min max elaps exch    : %12.5e %12.5e\n",
+             min_elaps_exch_ptb,
+             max_elaps_exch_ptb);
 
-      printf("   - ptb min max send rank     : %d %d\n", min_exch_rank_send_ptb, max_exch_rank_send_ptb);
-      printf("   - ptb min max recv rank     : %d %d\n", min_exch_rank_recv_ptb, max_exch_rank_recv_ptb);
-      printf("   - ptb min max send data     : %llu %llu\n", min_exch_data_send_ptb, max_exch_data_send_ptb);
-      printf("   - ptb min max recv data     : %llu %llu\n", min_exch_data_recv_ptb, max_exch_data_recv_ptb);
+      printf("   - ptb min max send rank     : %d %d\n",
+             min_exch_rank_send_ptb,
+             max_exch_rank_send_ptb);
+      printf("   - ptb min max recv rank     : %d %d\n",
+             min_exch_rank_recv_ptb,
+             max_exch_rank_recv_ptb);
+      printf("   - ptb min max send data     : %llu %llu\n",
+             min_exch_data_send_ptb,
+             max_exch_data_send_ptb);
+      printf("   - ptb min max recv data     : %llu %llu\n",
+             min_exch_data_recv_ptb,
+             max_exch_data_recv_ptb);
       fflush(stdout);
 
       printf("Global time in PDM_block_to_part : \n");
-      printf("   - btp min max elaps create  : %12.5e %12.5e\n", min_elaps_create_btp, max_elaps_create_btp);
-      printf("   - btp min max elaps exch    : %12.5e %12.5e\n", min_elaps_exch_btp, max_elaps_exch_btp);
+      printf("   - btp min max elaps create  : %12.5e %12.5e\n",
+             min_elaps_create_btp,
+             max_elaps_create_btp);
+      printf("   - btp min max elaps exch    : %12.5e %12.5e\n",
+             min_elaps_exch_btp,
+             max_elaps_exch_btp);
 
-      printf("   - btp min max send rank     : %d %d\n", min_exch_rank_send_btp, max_exch_rank_send_btp);
-      printf("   - btp min max recv rank     : %d %d\n", min_exch_rank_recv_btp, max_exch_rank_recv_btp);
-      printf("   - btp min max send data     : %llu %llu\n", min_exch_data_send_btp, max_exch_data_send_btp);
-      printf("   - btp min max recv data     : %llu %llu\n", min_exch_data_recv_btp, max_exch_data_recv_btp);
+      printf("   - btp min max send rank     : %d %d\n",
+             min_exch_rank_send_btp,
+             max_exch_rank_send_btp);
+      printf("   - btp min max recv rank     : %d %d\n",
+             min_exch_rank_recv_btp,
+             max_exch_rank_recv_btp);
+      printf("   - btp min max send data     : %llu %llu\n",
+             min_exch_data_send_btp,
+             max_exch_data_send_btp);
+      printf("   - btp min max recv data     : %llu %llu\n",
+             min_exch_data_recv_btp,
+             max_exch_data_recv_btp);
       fflush(stdout);
     }
   }
@@ -1313,9 +1319,12 @@ int main(int argc, char *argv[]) {
   double max_geom_time;
   MPI_Reduce(&geom_time, &max_geom_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
-  if (rank == 0) printf("\n\nGeometric algorithm :%12.5es\n", max_geom_time);
-  if (verbose && rank == 0) printf("Geometric algorithm OK\n");
-
+  if (rank == 0) {
+    printf("\n\nGeometric algorithm :%12.5es\n", max_geom_time);
+  }
+  if (verbose && rank == 0) {
+    printf("Geometric algorithm OK\n");
+  }
   //  Exchange interpolated fields 1
   MPI_Barrier(MPI_COMM_WORLD);
 
@@ -1325,34 +1334,21 @@ int main(int argc, char *argv[]) {
 
   int request;
   if (version == CWP_VERSION_OLD) {
-
     if (code_id == 1) {
-      cwipi_issend(coupling_name,
-                   "ech",
-                   0,
-                   1,
-                   1,
-                   0.1,
-                   field_name,
-                   send_val,
-                   &request);
+      cwipi_issend(coupling_name, "ech", 0, 1, 1, 0.1, field_name, send_val, &request);
     }
     else {
-      cwipi_irecv(coupling_name,
-                  "ech",
-                  0,
-                  1,
-                  1,
-                  0.1,
-                  field_name,
-                  recv_val,
-                  &request);
+      cwipi_irecv(coupling_name, "ech", 0, 1, 1, 0.1, field_name, recv_val, &request);
     }
   }
 
   else {
-    if (code_id == 1) CWP_Field_issend(code_name[0], coupling_name, field_name);
-    else CWP_Field_irecv(code_name[0], coupling_name, field_name);
+    if (code_id == 1) {
+      CWP_Field_issend(code_name[0], coupling_name, field_name);
+    }
+    else {
+      CWP_Field_irecv(code_name[0], coupling_name, field_name);
+    }
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -1365,12 +1361,20 @@ int main(int argc, char *argv[]) {
   PDM_timer_resume(timer);
 
   if (version == CWP_VERSION_OLD) {
-    if (code_id == 1) cwipi_wait_issend(coupling_name, request);
-    else cwipi_wait_irecv(coupling_name, request);
+    if (code_id == 1) {
+      cwipi_wait_issend(coupling_name, request);
+    }
+    else {
+      cwipi_wait_irecv(coupling_name, request);
+    }
   }
   else {
-    if (code_id == 1) CWP_Field_wait_issend(code_name[0], coupling_name, field_name);
-    else CWP_Field_wait_irecv(code_name[0], coupling_name, field_name);
+    if (code_id == 1) {
+      CWP_Field_wait_issend(code_name[0], coupling_name, field_name);
+    }
+    else {
+      CWP_Field_wait_irecv(code_name[0], coupling_name, field_name);
+    }
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -1399,32 +1403,20 @@ int main(int argc, char *argv[]) {
 
   if (version == CWP_VERSION_OLD) {
     if (code_id == 1) {
-      cwipi_issend(coupling_name,
-                   "ech",
-                   0,
-                   1,
-                   1,
-                   0.1,
-                   field_name2,
-                   send_val,
-                   &request);
+      cwipi_issend(coupling_name, "ech", 0, 1, 1, 0.1, field_name2, send_val, &request);
     }
     else {
-      cwipi_irecv(coupling_name,
-                  "ech",
-                  0,
-                  1,
-                  1,
-                  0.1,
-                  field_name2,
-                  recv_val,
-                  &request);
+      cwipi_irecv(coupling_name, "ech", 0, 1, 1, 0.1, field_name2, recv_val, &request);
     }
   }
 
   else {
-    if (code_id == 1) CWP_Field_issend(code_name[0], coupling_name, field_name2);
-    else CWP_Field_irecv(code_name[0], coupling_name, field_name2);
+    if (code_id == 1) {
+      CWP_Field_issend(code_name[0], coupling_name, field_name2);
+    }
+    else {
+      CWP_Field_irecv(code_name[0], coupling_name, field_name2);
+    }
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -1439,12 +1431,20 @@ int main(int argc, char *argv[]) {
   redondance_geom += -max_exch_time1;
 
   if (version == CWP_VERSION_OLD) {
-    if (code_id == 1) cwipi_wait_issend(coupling_name, request);
-    else cwipi_wait_irecv(coupling_name, request);
+    if (code_id == 1) {
+      cwipi_wait_issend(coupling_name, request);
+    }
+    else {
+      cwipi_wait_irecv(coupling_name, request);
+    }
   }
   else {
-    if (code_id == 1) CWP_Field_wait_issend(code_name[0], coupling_name, field_name2);
-    else CWP_Field_wait_irecv(code_name[0], coupling_name, field_name2);
+    if (code_id == 1) {
+      CWP_Field_wait_issend(code_name[0], coupling_name, field_name2);
+    }
+    else {
+      CWP_Field_wait_irecv(code_name[0], coupling_name, field_name2);
+    }
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -1462,8 +1462,10 @@ int main(int argc, char *argv[]) {
 
   if (rank == 0) {
     printf("\n\nTemps geometrie                            : %12.5es\n", max_geom_time);
-    printf("Temps geometrie escompte (sans redondance) : %12.5es\n", max_geom_time - redondance_geom);
-    printf("Temps un Echange aux noeuds                : %12.5es\n", max_exch_time1 + max_exch_time);
+    printf("Temps geometrie escompte (sans redondance) : %12.5es\n",
+           max_geom_time - redondance_geom);
+    printf("Temps un Echange aux noeuds                : %12.5es\n",
+           max_exch_time1 + max_exch_time);
   }
 
   //  Check
@@ -1476,22 +1478,30 @@ int main(int argc, char *argv[]) {
           printf("[%d] !! vtx %i err = %g (x = %f, recv = %f)\n",
           rank, i, err, vtxCoord[0][3*i], recv_val[i]);
           }*/
-        if (err > max_err) max_err = err;
+        if (err > max_err) {
+          max_err = err;
+        }
       }
     }
 
     double global_max_err;
     MPI_Reduce(&max_err, &global_max_err, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    if (rank == 0) printf("Max error = %g\n", global_max_err);
+    if (rank == 0) {
+      printf("Max error = %g\n", global_max_err);
+    }
   }
 
   //  Delete interface mesh
-  if (version == CWP_VERSION_NEW) CWP_Mesh_interf_del(code_name[0], coupling_name);
-
+  if (version == CWP_VERSION_NEW) {
+    CWP_Mesh_interf_del(code_name[0], coupling_name);
+  }
   //  Delete coupling
-  if (version == CWP_VERSION_OLD) cwipi_delete_coupling(coupling_name);
-  else CWP_Cpl_del(code_name[0], coupling_name);
-
+  if (version == CWP_VERSION_OLD) {
+    cwipi_delete_coupling(coupling_name);
+  }
+  else {
+    CWP_Cpl_del(code_name[0], coupling_name);
+  }
   // Free memory
   free(code_name);
   free(coupled_code_name);
@@ -1522,15 +1532,21 @@ int main(int argc, char *argv[]) {
   free(vtxCoord);
   free(vtxLNToGN);
 
-  if (code_id == 1) free(send_val);
-  else free(recv_val);
-
+  if (code_id == 1) {
+    free(send_val);
+  }
+  else {
+    free(recv_val);
+  }
   PDM_timer_free(timer);
 
   //  Finalize CWIPI
-  if (version == CWP_VERSION_OLD) cwipi_finalize();
-  else CWP_Finalize();
-
+  if (version == CWP_VERSION_OLD) {
+    cwipi_finalize();
+  }
+  else {
+    CWP_Finalize();
+  }
   double min_elaps_create_ptb;
   double max_elaps_create_ptb;
   double min_cpu_create_ptb;
@@ -1579,14 +1595,24 @@ int main(int argc, char *argv[]) {
 
   if (rank == 0) {
     printf("Global time in PDM_part_to_block : \n");
-    printf("   - ptb min max elaps create  : %12.5e %12.5e\n", min_elaps_create_ptb, max_elaps_create_ptb);
-    printf("   - ptb min max elaps create2 : %12.5e %12.5e\n", min_elaps_create2_ptb, max_elaps_create2_ptb);
-    printf("   - ptb min max elaps exch    : %12.5e %12.5e\n", min_elaps_exch_ptb, max_elaps_exch_ptb);
+    printf("   - ptb min max elaps create  : %12.5e %12.5e\n",
+           min_elaps_create_ptb,
+           max_elaps_create_ptb);
+    printf("   - ptb min max elaps create2 : %12.5e %12.5e\n",
+           min_elaps_create2_ptb,
+           max_elaps_create2_ptb);
+    printf("   - ptb min max elaps exch    : %12.5e %12.5e\n",
+           min_elaps_exch_ptb,
+           max_elaps_exch_ptb);
     fflush(stdout);
 
     printf("Global time in PDM_block_to_part : \n");
-    printf("   - btp min max elaps create  : %12.5e %12.5e\n", min_elaps_create_btp, max_elaps_create_btp);
-    printf("   - btp min max elaps exch    : %12.5e %12.5e\n", min_elaps_exch_btp, max_elaps_exch_btp);
+    printf("   - btp min max elaps create  : %12.5e %12.5e\n",
+           min_elaps_create_btp,
+           max_elaps_create_btp);
+    printf("   - btp min max elaps exch    : %12.5e %12.5e\n",
+           min_elaps_exch_btp,
+           max_elaps_exch_btp);
     fflush(stdout);
   }
 

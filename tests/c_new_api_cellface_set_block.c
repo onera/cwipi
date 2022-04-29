@@ -183,40 +183,40 @@ int main(int argc, char *argv[]) {
   /* Initialization
    * -------------- */
 
-  int n_code_name = 0;
-  char **codeNames = NULL;
+  int n_code = 0;
+  const char **codeNames = NULL;
   double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
 
   if (rank == 0) {
-    n_code_name = 1;
-    codeNames = malloc(sizeof(char *) * n_code_name);
+    n_code = 1;
+    codeNames = malloc(sizeof(char *) * n_code);
     codeNames[0] = "code1_cell_faces";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
     is_coupled_rank[0] = CWP_STATUS_ON;
   }
 
   if (rank == 1) {
-    n_code_name = 1;
-    codeNames = malloc(sizeof(char *) * n_code_name);
+    n_code = 1;
+    codeNames = malloc(sizeof(char *) * n_code);
     codeNames[0] = "code2";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
     is_coupled_rank[0] = CWP_STATUS_ON;
   }
 
 
-  times_init = malloc(sizeof(double) * n_code_name);
+  times_init = malloc(sizeof(double) * n_code);
 
-  for (int i = 0 ; i < n_code_name ; i++) {
+  for (int i = 0 ; i < n_code ; i++) {
     times_init[i] = 0;
   }
 
-  MPI_Comm *localComm = malloc(sizeof(MPI_Comm) * n_code_name);
+  MPI_Comm *localComm = malloc(sizeof(MPI_Comm) * n_code);
 
   printf("CWIPI Initialization rank %i\n", rank);
   CWP_Init(MPI_COMM_WORLD,
-           n_code_name,
-           (const char **) codeNames,
+           n_code,
+           codeNames,
            is_coupled_rank,
            times_init,
            localComm);
@@ -228,7 +228,7 @@ int main(int argc, char *argv[]) {
   int currentRank;
   int localCommSize;
 
-  for (int i = 0 ; i < n_code_name ; i++) {
+  for (int i = 0 ; i < n_code ; i++) {
     MPI_Comm_rank(localComm[i], &currentRank);
     MPI_Comm_size(localComm[i], &localCommSize);
     printf("Size of localComm[%i]=%i et rang du proc=%i.\n", i, localCommSize, currentRank);

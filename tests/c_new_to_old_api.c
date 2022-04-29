@@ -60,34 +60,48 @@ _display_usage(int exit_code) {
  *---------------------------------------------------------------------*/
 
 static void
-_read_args(int argc,
-           char **argv,
-           int *nVertex,
-           double *randLevel,
-           int *randFromClock,
-           int *postFreq,
-           int *t_com,
-           int *tostdout) {
+_read_args(int argc, char **argv, int *nVertex, double *randLevel, int *randFromClock,
+           int *postFreq, int *t_com, int *tostdout) {
   int i = 1;
 
   // Parse and check command line
   while (i < argc) {
-    if (strcmp(argv[i], "-h") == 0) _display_usage(EXIT_SUCCESS);
+    if (strcmp(argv[i], "-h") == 0) {
+      _display_usage(EXIT_SUCCESS);
+    }
     else if (strcmp(argv[i], "-n") == 0) {
       i++;
-      if (i >= argc) _display_usage(EXIT_FAILURE);
-      else *nVertex = atoi(argv[i]);
+      if (i >= argc) {
+        _display_usage(EXIT_FAILURE);
+      }
+      else {
+        *nVertex = atoi(argv[i]);
+      }
     }
     else if (strcmp(argv[i], "-rand") == 0) {
       i++;
-      if (i >= argc) _display_usage(EXIT_FAILURE);
-      else *randLevel = atof(argv[i]);
+      if (i >= argc) {
+        _display_usage(EXIT_FAILURE);
+      }
+      else {
+        *randLevel = atof(argv[i]);
+      }
     }
-    else if (strcmp(argv[i], "-randFromClock") == 0) *randFromClock = 1;
-    else if (strcmp(argv[i], "-a") == 0) *t_com = 1;
-    else if (strcmp(argv[i], "-visu") == 0) *postFreq = 1;
-    else if (strcmp(argv[i], "-stdout") == 0) *tostdout = 1;
-    else _display_usage(EXIT_FAILURE);
+    else if (strcmp(argv[i], "-randFromClock") == 0) {
+      *randFromClock = 1;
+    }
+    else if (strcmp(argv[i], "-a") == 0) {
+      *t_com = 1;
+    }
+    else if (strcmp(argv[i], "-visu") == 0) {
+      *postFreq = 1;
+    }
+    else if (strcmp(argv[i], "-stdout") == 0) {
+      *tostdout = 1;
+    }
+    else {
+      _display_usage(EXIT_FAILURE);
+    }
     i++;
   }
 }
@@ -99,7 +113,8 @@ _read_args(int argc,
  *
  *---------------------------------------------------------------------*/
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
   FILE *outputFile;
 
   MPI_Init(&argc, &argv);
@@ -114,13 +129,16 @@ int main(int argc, char *argv[]) {
 
   int n_partition = 0;
   const int two = 2;
-  while (two * pow(n_partition, two) < commWorldSize) n_partition++;
+  while (two * pow(n_partition, two) < commWorldSize) {
+    n_partition++;
+  }
 
   int n2 = (int) (two * pow(n_partition, two));
 
   if (n2 != commWorldSize) {
-    if (rank == 0)
+    if (rank == 0) {
       printf("      Not executed : only available if the number of processus in the form of '2 * n^2' \n");
+    }
     MPI_Finalize();
     return EXIT_SUCCESS;
   }
@@ -135,8 +153,12 @@ int main(int argc, char *argv[]) {
 
   _read_args(argc, argv, &nVertexSeg, &randLevel, &randFromClock, &postFreq, &t_com, &tostdout);
 
-  if (randFromClock == 1) srand(rank + time(0));
-  else srand(rank + 1);
+  if (randFromClock == 1) {
+    srand(rank + time(0));
+  }
+  else {
+    srand(rank + 1);
+  }
 
   // Initialization
   const char *codeName;
@@ -154,19 +176,19 @@ int main(int argc, char *argv[]) {
   char *fileName = (char *) malloc(sizeof(char) * 30);
   sprintf(fileName, "c_surf_coupling_P1P1_%4.4d.txt", rank);
 
-  if (tostdout)
+  if (tostdout) {
     outputFile = stdout;
-  else
+  }
+  else {
     outputFile = fopen(fileName, "w");
+  }
 
   free(fileName);
 
   cwipi_set_output_listing(outputFile);
 
   MPI_Comm localComm;
-  cwipi_init(MPI_COMM_WORLD,
-             codeName,
-             &localComm);
+  cwipi_init(MPI_COMM_WORLD, codeName, &localComm);
 
   // Output redirection
   int currentRank;
@@ -183,8 +205,9 @@ int main(int argc, char *argv[]) {
 
   cwipi_dump_application_properties();
 
-  if (rank == 0)
+  if (rank == 0) {
     printf("        Create coupling\n");
+  }
 
   cwipi_solver_type_t solver_type = CWIPI_SOLVER_CELL_VERTEX;
 
@@ -201,12 +224,13 @@ int main(int argc, char *argv[]) {
                         "text");                                   // Postprocessing option
 
   // Mesh definition
-  if (rank == 0)
+  if (rank == 0) {
     printf("        Create mesh\n");
+  }
 
-  int nVertex = 0;               // Number of vertex
+  int nVertex;                   // Number of vertex
   double *coords = NULL;         // Vertex coordinates
-  int nElts = 0;                 // Number of elements
+  int nElts;                     // Number of elements
   int *eltsConnecPointer = NULL; // Connectivity index
   int *eltsConnec = NULL;        // Connectivity
 
@@ -238,16 +262,12 @@ int main(int argc, char *argv[]) {
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
 
-  cwipi_define_mesh("c_surf_cpl_P1P1",
-                    nVertex,
-                    nElts,
-                    coords,
-                    eltsConnecPointer,
-                    eltsConnec);
+  cwipi_define_mesh("c_surf_cpl_P1P1", nVertex, nElts, coords, eltsConnecPointer, eltsConnec);
 
   // Fields exchange
-  if (rank == 0)
+  if (rank == 0) {
     printf("        Exchange Code1 <-> Code2\n");
+  }
 
   //double *sendValues = NULL;
   //double *recvValues = NULL;
@@ -257,8 +277,9 @@ int main(int argc, char *argv[]) {
 
   MPI_Finalize();
 
-  if (!tostdout)
+  if (!tostdout) {
     fclose(outputFile);
+  }
 
   return EXIT_SUCCESS;
 }

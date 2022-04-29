@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
    * -------------- */
 
   int n_code_name = 0;
-  char **codeNames = NULL;
+  const char **codeNames = NULL;
   double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
 
@@ -215,7 +215,7 @@ int main(int argc, char *argv[]) {
 
   CWP_Init(MPI_COMM_WORLD,
            n_code_name,
-           (const char **) codeNames,
+           codeNames,
            is_coupled_rank,
            times_init,
            localComm);

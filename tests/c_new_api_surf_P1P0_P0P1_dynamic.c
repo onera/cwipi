@@ -26,6 +26,7 @@
 #include "cwp.h"
 #include "grid_mesh.h"
 
+
 /*----------------------------------------------------------------------
  *
  * Display usage
@@ -56,23 +57,30 @@ _display_usage(int exit_code) {
  *---------------------------------------------------------------------*/
 
 static void
-_read_args(int argc,
-           char **argv,
-           int *nVertex,
-           double *randLevel) {
+_read_args(int argc, char **argv, int *nVertex, double *randLevel) {
   int i = 1;
 
   while (i < argc) {
-    if (strcmp(argv[i], "-h") == 0) _display_usage(EXIT_SUCCESS);
+    if (strcmp(argv[i], "-h") == 0) {
+      _display_usage(EXIT_SUCCESS);
+    }
     else if (strcmp(argv[i], "-n") == 0) {
       i++;
-      if (i >= argc) _display_usage(EXIT_FAILURE);
-      else *nVertex = atoi(argv[i]);
+      if (i >= argc) {
+        _display_usage(EXIT_FAILURE);
+      }
+      else {
+        *nVertex = atoi(argv[i]);
+      }
     }
     else if (strcmp(argv[i], "-rand") == 0) {
       i++;
-      if (i >= argc) _display_usage(EXIT_FAILURE);
-      else *randLevel = atof(argv[i]);
+      if (i >= argc) {
+        _display_usage(EXIT_FAILURE);
+      }
+      else {
+        *randLevel = atof(argv[i]);
+      }
     }
     i++;
   }
@@ -85,7 +93,8 @@ _read_args(int argc,
  *
  *---------------------------------------------------------------------*/
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
   MPI_Init(&argc, &argv);
 
   int rank;
@@ -97,12 +106,15 @@ int main(int argc, char *argv[]) {
   srand(rank + time(0));
 
   int n_partition = 0;
-  while (1.5 * (double) pow(n_partition, 2) < commWorldSize) n_partition++;
+  while (1.5 * (double) pow(n_partition, 2) < commWorldSize) {
+    n_partition++;
+  }
   int n2 = (int) (1.5 * pow(n_partition, 2));
 
   if (n2 != commWorldSize) {
-    if (rank == 0)
+    if (rank == 0) {
       printf("Not executed : only available if the number of processus in the form of '1.5 * n^2' \n");
+    }
     MPI_Finalize();
     return EXIT_SUCCESS;
   }
@@ -114,31 +126,28 @@ int main(int argc, char *argv[]) {
 
   // Initialization
   int n_code = 0;
-  char **code_name = NULL;
+  const char **code_name = NULL;
   double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
-  char **coupled_code_name = NULL;
+  const char **coupled_code_name = NULL;
 
   int rankCode1[commWorldSize];
   int rankCode2[commWorldSize];
 
   // Random distribution of codes on processes.
-  int nsize = commWorldSize;
-  int nranks[nsize];
-
   if (rank == 0) {
     time_t t;
     // Intializes random number generator
     srand((unsigned) time(&t));
-    int size_code1_domain = (double) commWorldSize * (2.0 / 3.0);
-    int size_code2_domain = (double) commWorldSize * (2.0 / 3.0);
+    int size_code1_domain = (int) (commWorldSize * 2.0 / 3.0);
+    int size_code2_domain = (int) (commWorldSize * 2.0 / 3.0);
 
-    if (sqrt(size_code1_domain) != (int) sqrt(size_code1_domain)) {
-      size_code1_domain = pow((int) sqrt(size_code1_domain), 2.0);
+    if ((int) sqrt(size_code1_domain) != (int) sqrt(size_code1_domain)) {
+      size_code1_domain = (int) pow(sqrt(size_code1_domain), 2.0);
     }
 
-    if (sqrt(size_code2_domain) != (int) sqrt(size_code2_domain)) {
-      size_code2_domain = pow((int) sqrt(size_code2_domain), 2.0);
+    if ((int) sqrt(size_code2_domain) != (int) sqrt(size_code2_domain)) {
+      size_code2_domain = (int) pow((int) sqrt(size_code2_domain), 2.0);
     }
 
     for (int i = 0 ; i < commWorldSize ; i++) {
@@ -164,7 +173,7 @@ int main(int argc, char *argv[]) {
     int ind = 0;
     for (int i = 0 ; i < commWorldSize ; i++) {
       if (rankCode2[i] || rankCode1[i]) {
-        nranks[ind] = i;
+//        nranks[ind] = i;
         ind++;
       }
     }
@@ -173,24 +182,9 @@ int main(int argc, char *argv[]) {
   int rankCode1Rcv = -1;
   int rankCode2Rcv = -1;
 
-  MPI_Scatter(&rankCode1, 1, MPI_INT,
-              &rankCode1Rcv, 1, MPI_INT,
-              0,
-              MPI_COMM_WORLD
-             );
-
-  MPI_Scatter(&rankCode2, 1, MPI_INT,
-              &rankCode2Rcv, 1, MPI_INT,
-              0,
-              MPI_COMM_WORLD
-             );
-
-  MPI_Scatter(&rankCode2, 1, MPI_INT,
-              &rankCode2Rcv, 1, MPI_INT,
-              0,
-              MPI_COMM_WORLD
-             );
-
+  MPI_Scatter(&rankCode1, 1, MPI_INT, &rankCode1Rcv, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Scatter(&rankCode2, 1, MPI_INT, &rankCode2Rcv, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Scatter(&rankCode2, 1, MPI_INT, &rankCode2Rcv, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
   if (rankCode1Rcv && rankCode2Rcv) {
     printf("%d - Working for code1 and code2\n", rank);
@@ -245,7 +239,7 @@ int main(int argc, char *argv[]) {
   MPI_Comm *localComm = malloc(sizeof(MPI_Comm) * n_code);
   CWP_Init(MPI_COMM_WORLD,
            n_code,
-           (const char **) code_name,
+           code_name,
            is_coupled_rank,
            times_init,
            localComm);
@@ -255,8 +249,12 @@ int main(int argc, char *argv[]) {
   int localCommSize[n_code];
 
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    if (localComm[i_code] != MPI_COMM_NULL) MPI_Comm_rank(localComm[i_code], &currentRank[i_code]);
-    if (localComm[i_code] != MPI_COMM_NULL) MPI_Comm_size(localComm[i_code], &localCommSize[i_code]);
+    if (localComm[i_code] != MPI_COMM_NULL) {
+      MPI_Comm_rank(localComm[i_code], &currentRank[i_code]);
+    }
+    if (localComm[i_code] != MPI_COMM_NULL) {
+      MPI_Comm_size(localComm[i_code], &localCommSize[i_code]);
+    }
   }
 
   // Coupling creation
@@ -318,31 +316,19 @@ int main(int argc, char *argv[]) {
               ymax,
               randLevel,
               nVertexSeg,
-              sqrt(localCommSize[i_code]),
+              (int) sqrt(localCommSize[i_code]),
               coords[i_code],
               eltsConnecPointer[i_code],
               eltsConnec[i_code],
               localComm[i_code]);
 
-    carre2rond(xmin,
-               xmax,
-               ymin,
-               ymax,
-               coords[i_code],
-               nVertex);
+    carre2rond(xmin, xmax, ymin, ymax, coords[i_code], nVertex);
   }
 
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    CWP_Mesh_interf_vtx_set(code_name[i_code],
-                            cpl_name,
-                            0,
-                            nVertex,
-                            coords[i_code],
-                            NULL);
+    CWP_Mesh_interf_vtx_set(code_name[i_code], cpl_name, 0, nVertex, coords[i_code], NULL);
 
-    int block_id = CWP_Mesh_interf_block_add(code_name[i_code],
-                                             cpl_name,
-                                             CWP_BLOCK_FACE_POLY);
+    int block_id = CWP_Mesh_interf_block_add(code_name[i_code], cpl_name, CWP_BLOCK_FACE_POLY);
 
     CWP_Mesh_interf_f_poly_block_set(code_name[i_code],
                                      cpl_name,
@@ -352,9 +338,7 @@ int main(int argc, char *argv[]) {
                                      eltsConnecPointer[i_code],
                                      eltsConnec[i_code],
                                      NULL);
-
   }
-
 
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
     CWP_Mesh_interf_finalize(code_name[i_code], cpl_name);
@@ -386,8 +370,8 @@ int main(int argc, char *argv[]) {
   // Exchange
   // field1: code1 -> code2
   // field2: code2 -> code1
-  char *fieldName1 = "cooX_t0";;
-  char *fieldName2 = "code2_elt_rank";;
+  const char *fieldName1 = "cooX_t0";;
+  const char *fieldName2 = "code2_elt_rank";;
 
   CWP_Status_t visu_status = CWP_STATUS_ON;
 
@@ -413,8 +397,18 @@ int main(int argc, char *argv[]) {
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
 
-      CWP_Field_data_set(code_name[i_code], cpl_name, fieldName1, 0, CWP_FIELD_MAP_SOURCE, sendValues[i_code]);
-      CWP_Field_data_set(code_name[i_code], cpl_name, fieldName2, 0, CWP_FIELD_MAP_TARGET, recvValues[i_code]);
+      CWP_Field_data_set(code_name[i_code],
+                         cpl_name,
+                         fieldName1,
+                         0,
+                         CWP_FIELD_MAP_SOURCE,
+                         sendValues[i_code]);
+      CWP_Field_data_set(code_name[i_code],
+                         cpl_name,
+                         fieldName2,
+                         0,
+                         CWP_FIELD_MAP_TARGET,
+                         recvValues[i_code]);
     }
     else {
       CWP_Field_create(code_name[i_code],
@@ -435,8 +429,18 @@ int main(int argc, char *argv[]) {
                        CWP_DOF_LOCATION_CELL_CENTER,
                        CWP_FIELD_EXCH_SEND,
                        visu_status);
-      CWP_Field_data_set(code_name[i_code], cpl_name, fieldName2, 0, CWP_FIELD_MAP_TARGET, sendValues[i_code]);
-      CWP_Field_data_set(code_name[i_code], cpl_name, fieldName1, 0, CWP_FIELD_MAP_SOURCE, recvValues[i_code]);
+      CWP_Field_data_set(code_name[i_code],
+                         cpl_name,
+                         fieldName2,
+                         0,
+                         CWP_FIELD_MAP_TARGET,
+                         sendValues[i_code]);
+      CWP_Field_data_set(code_name[i_code],
+                         cpl_name,
+                         fieldName1,
+                         0,
+                         CWP_FIELD_MAP_SOURCE,
+                         recvValues[i_code]);
     }
   }
 
@@ -447,8 +451,12 @@ int main(int argc, char *argv[]) {
 
     // Mesh rotation and new localisation
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
-      if (strcmp(code_name[i_code], "code2") == 0) mesh_rotate(coords[i_code], nVertex, 3 * recv_time);
-      if (strcmp(code_name[i_code], "code1") == 0) mesh_rotate(coords[i_code], nVertex, recv_time);
+      if (strcmp(code_name[i_code], "code2") == 0) {
+        mesh_rotate(coords[i_code], nVertex, 3 * recv_time);
+      }
+      if (strcmp(code_name[i_code], "code1") == 0) {
+        mesh_rotate(coords[i_code], nVertex, recv_time);
+      }
 
       CWP_Spatial_interp_weights_compute(code_name[i_code], cpl_name);
     }
@@ -478,12 +486,14 @@ int main(int argc, char *argv[]) {
   }
 
   printf("%d - Delete mesh\n", rank);
-  for (int i_code = 0 ; i_code < n_code ; i_code++)
+  for (int i_code = 0 ; i_code < n_code ; i_code++) {
     CWP_Mesh_interf_del(code_name[i_code], cpl_name);
+  }
 
   printf("%d - Delete coupling\n", rank);
-  for (int i_code = 0 ; i_code < n_code ; i_code++)
+  for (int i_code = 0 ; i_code < n_code ; i_code++) {
     CWP_Cpl_del(code_name[i_code], cpl_name);
+  }
 
   // Freeing memory
   free(coords);

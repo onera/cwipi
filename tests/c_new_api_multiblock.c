@@ -27,33 +27,44 @@
 typedef struct elType elType;
 struct elType {
     int nNodes;
-    char *descri;
+    const char *descri;
 };
 
-int
-_goto(FILE *f, char *word) {
+
+static int
+_goto(FILE *f, const char *word) {
   char test[1000];
   int r;
   while (strcmp(test, word) != 0) {
     r = fscanf(f, "%s", test);
-    if (r == EOF)
+    if (r == EOF) {
       return EXIT_FAILURE;
+    }
   }
+
+  return 0;
 }
 
 
-void
+static void
 _generate_gmsh_mesh(char *geofile, int localCommSize, int order) {
   char s[1000];
-  int len = 0;
-  len = strlen(geofile);
+  int len;
+  len = (int) strlen(geofile);
 
   char filename[len - 4];
-  for (int i = 0 ; i < len - 4 ; i++) filename[i] = geofile[i];
+  for (int i = 0 ; i < len - 4 ; i++) {
+    filename[i] = geofile[i];
+  }
 
   printf("UUU %i\n", len);
   if (localCommSize > 1)
-    sprintf(s, "gmsh %s -2 -format msh -order %i  -part %i -part_split -o %s.msh", geofile, order, localCommSize, filename);
+    sprintf(s,
+            "gmsh %s -2 -format msh -order %i  -part %i -part_split -o %s.msh",
+            geofile,
+            order,
+            localCommSize,
+            filename);
   else
     sprintf(s, "gmsh %s -2 -format msh -order %i  -o %s.msh", geofile, order, filename);
 
@@ -77,12 +88,7 @@ _generate_gmsh_mesh(char *geofile, int localCommSize, int order) {
  *   connec              --> connectivity
  *---------------------------------------------------------------------*/
 static int
-_read_mesh_dim(FILE *f,
-               int *nVtx,
-               int *nb_Elts,
-               int *nBlock,
-               int **nElBlock,
-               int **typeBlock) {
+_read_mesh_dim(FILE *f, int *nVtx, int *nb_Elts, int *nBlock, int **nElBlock, int **typeBlock) {
 
   elType elementType[100];// = (elType*)malloc(sizeof(elType*)*100);
 
@@ -93,32 +99,57 @@ _read_mesh_dim(FILE *f,
   elementType[5] = (elType) {8, "hexahedron"};
   elementType[6] = (elType) {6, "prism"};
   elementType[7] = (elType) {5, "pyramid"};
-  elementType[8] = (elType) {3, "second order line (2 nodes associated with the vertices and 1 with the edge)"};
-  elementType[9] = (elType) {6, "second order triangle (3 nodes associated with the vertices and 3 with the edges)"};
-  elementType[10] = (elType) {9, "second order quadrangle (4 nodes associated with the vertices, 4 with the edges and 1 with the face)"};
-  elementType[11] = (elType) {10, "second order tetrahedron (4 nodes associated with the vertices and 6 with the edges)"};
-  elementType[12] = (elType) {27, "second order hexahedron (8 nodes associated with the vertices, 12 with the edges 6 with the faces and 1 with the volume)"};
-  elementType[13] = (elType) {18, "second order prism (6 nodes associated with the vertices], 9 with the edges and 3 with the quadrangular faces)"};
-  elementType[14] = (elType) {14, "second order pyramid (5 nodes associated with the vertices, 8 with the edges and 1 with the quadrangular face)"};
+  elementType[8] = (elType) {3,
+                             "second order line (2 nodes associated with the vertices and 1 with the edge)"};
+  elementType[9] = (elType) {6,
+                             "second order triangle (3 nodes associated with the vertices and 3 with the edges)"};
+  elementType[10] = (elType) {9,
+                              "second order quadrangle (4 nodes associated with the vertices, 4 with the edges and 1 with the face)"};
+  elementType[11] = (elType) {10,
+                              "second order tetrahedron (4 nodes associated with the vertices and 6 with the edges)"};
+  elementType[12] = (elType) {27,
+                              "second order hexahedron (8 nodes associated with the vertices, 12 with the edges 6 with the faces and 1 with the volume)"};
+  elementType[13] = (elType) {18,
+                              "second order prism (6 nodes associated with the vertices], 9 with the edges and 3 with the quadrangular faces)"};
+  elementType[14] = (elType) {14,
+                              "second order pyramid (5 nodes associated with the vertices, 8 with the edges and 1 with the quadrangular face)"};
   elementType[15] = (elType) {1, "point"};
-  elementType[16] = (elType) {8, "second order quadrangle (4 nodes associated with the vertices and 4 with the edges)"};
-  elementType[17] = (elType) {20, "second order hexahedron (8 nodes associated with the vertices and 12 with the edges)"};
-  elementType[18] = (elType) {15, "second order prism (6 nodes associated with the vertices and 9 with the edges)"};
-  elementType[19] = (elType) {13, "second order pyramid (5 nodes associated with the vertices and 8 with the edges)"};
-  elementType[20] = (elType) {9, "third order incomplete triangle (3 nodes associated with the vertices, 6 with the edges)"};
-  elementType[21] = (elType) {10, "third order triangle (3 nodes associated with the vertices, 6 with the edges, 1 with the face)"};
-  elementType[22] = (elType) {12, "fourth order incomplete triangle (3 nodes associated with the vertices, 9 with the edges)"};
-  elementType[23] = (elType) {15, "fourth order triangle (3 nodes associated with the vertices, 9 with the edges 3 with the face)"};
-  elementType[24] = (elType) {15, "fifth order incomplete triangle (3 nodes associated with the vertices, 12 with the edges)"};
-  elementType[25] = (elType) {21, "fifth order complete triangle (3 nodes associated with the vertices, 12 with the edges 6 with the face)"};
-  elementType[26] = (elType) {4, "third order edge (2 nodes associated with the vertices 2 internal to the edge)"};
-  elementType[27] = (elType) {5, "fourth order edge (2 nodes associated with the vertices 3 internal to the edge)"};
-  elementType[28] = (elType) {6, "fifth order edge (2 nodes associated with the vertices 4 internal to the edge)"};
-  elementType[29] = (elType) {20, "third order tetrahedron (4 nodes associated with the vertices 12 with the edges 4 with the faces)"};
-  elementType[30] = (elType) {35, "fourth order tetrahedron (4 nodes associated with the vertices 18 with the edges 12 with the faces 1 in the volume)"};
-  elementType[31] = (elType) {56, "fifth order tetrahedron (4 nodes associated with the vertices 24 with the edges 24 with the faces 4 in the volume)"};
-  elementType[92] = (elType) {64, "third order hexahedron (8 nodes associated with the vertices 24 with the edges 24 with the faces 8 in the volume)"};
-  elementType[93] = (elType) {125, "fourth order hexahedron (8 nodes associated with the vertices 36 with the edges 54 with the faces 27 in the volume)"};
+  elementType[16] = (elType) {8,
+                              "second order quadrangle (4 nodes associated with the vertices and 4 with the edges)"};
+  elementType[17] = (elType) {20,
+                              "second order hexahedron (8 nodes associated with the vertices and 12 with the edges)"};
+  elementType[18] = (elType) {15,
+                              "second order prism (6 nodes associated with the vertices and 9 with the edges)"};
+  elementType[19] = (elType) {13,
+                              "second order pyramid (5 nodes associated with the vertices and 8 with the edges)"};
+  elementType[20] = (elType) {9,
+                              "third order incomplete triangle (3 nodes associated with the vertices, 6 with the edges)"};
+  elementType[21] = (elType) {10,
+                              "third order triangle (3 nodes associated with the vertices, 6 with the edges, 1 with the face)"};
+  elementType[22] = (elType) {12,
+                              "fourth order incomplete triangle (3 nodes associated with the vertices, 9 with the edges)"};
+  elementType[23] = (elType) {15,
+                              "fourth order triangle (3 nodes associated with the vertices, 9 with the edges 3 with the face)"};
+  elementType[24] = (elType) {15,
+                              "fifth order incomplete triangle (3 nodes associated with the vertices, 12 with the edges)"};
+  elementType[25] = (elType) {21,
+                              "fifth order complete triangle (3 nodes associated with the vertices, 12 with the edges 6 with the face)"};
+  elementType[26] = (elType) {4,
+                              "third order edge (2 nodes associated with the vertices 2 internal to the edge)"};
+  elementType[27] = (elType) {5,
+                              "fourth order edge (2 nodes associated with the vertices 3 internal to the edge)"};
+  elementType[28] = (elType) {6,
+                              "fifth order edge (2 nodes associated with the vertices 4 internal to the edge)"};
+  elementType[29] = (elType) {20,
+                              "third order tetrahedron (4 nodes associated with the vertices 12 with the edges 4 with the faces)"};
+  elementType[30] = (elType) {35,
+                              "fourth order tetrahedron (4 nodes associated with the vertices 18 with the edges 12 with the faces 1 in the volume)"};
+  elementType[31] = (elType) {56,
+                              "fifth order tetrahedron (4 nodes associated with the vertices 24 with the edges 24 with the faces 4 in the volume)"};
+  elementType[92] = (elType) {64,
+                              "third order hexahedron (8 nodes associated with the vertices 24 with the edges 24 with the faces 8 in the volume)"};
+  elementType[93] = (elType) {125,
+                              "fourth order hexahedron (8 nodes associated with the vertices 36 with the edges 54 with the faces 27 in the volume)"};
 
   int r;
 
@@ -143,8 +174,9 @@ _read_mesh_dim(FILE *f,
       r = fscanf(f, "%lf", &poubd);
       r = fscanf(f, "%lf", &poubd);
 
-      if (r == EOF)
+      if (r == EOF) {
         return EXIT_FAILURE;
+      }
     }
   }
 
@@ -168,7 +200,7 @@ _read_mesh_dim(FILE *f,
 
     //To use with Paraview
     if (IelType == 1 || IelType == 15) {
-      nb_Elts = *nb_Elts - nv;
+      nb_Elts = nb_Elts - nv;
       for (int s = 0 ; s < nv * (1 + elementType[IelType].nNodes) ; s++) {
         r = fscanf(f, "%i", &poub);
       }
@@ -186,7 +218,9 @@ _read_mesh_dim(FILE *f,
           r = fscanf(f, "%i", &poub);
         }
 
-        if (r == EOF) return EXIT_FAILURE;
+        if (r == EOF) {
+          return EXIT_FAILURE;
+        }
       }
       block1++;
     }
@@ -197,11 +231,10 @@ _read_mesh_dim(FILE *f,
 }
 
 
-int
+static int
 _tabSearch2(int value, int **gnum, int gnum_size) {
   int POS;           // position de la valeur
-  int I;             // indice courant
-  int INF, MIL, SUP; // limites du champ de recherche
+  int INF, SUP;      // limites du champ de recherche
 
   /* Initialisation des limites du domaine de recherche */
   INF = 0;
@@ -210,68 +243,76 @@ _tabSearch2(int value, int **gnum, int gnum_size) {
   // Recherche de la position de la valeur
   POS = INF;
   while (POS < SUP) {
-    if (value == (*gnum)[POS]) break;
+    if (value == (*gnum)[POS]) {
+      break;
+    }
     POS++;
   }
-  if (POS == SUP + 1) POS = -1;
+  if (POS == SUP + 1) {
+    POS = -1;
+  }
   return POS;
 }
 
 
-int
-_tabSearch(int value, int **gnum, int gnum_size) {
-  int POS;           // position de la valeur
-  int I;             // indice courant
-  int INF, MIL, SUP; // limites du champ de recherche
+//static int
+//_tabSearch(int value, int **gnum, int gnum_size) {
+//  int POS;           // position de la valeur
+//  int INF, MIL, SUP; // limites du champ de recherche
+//
+//  // Initialisation des limites du domaine de recherche
+//  INF = 0;
+//  SUP = gnum_size - 1;
+//
+//  // Recherche de la position de la valeur
+//  POS = -1;
+//  while ((INF <= SUP) && (POS == -1)) {
+//    MIL = (SUP + INF) / 2;
+//    //printf("value %i size %i MIL %i\n",value,MIL,gnum_size);
+//    if (value < (*gnum)[MIL]) {
+//      SUP = MIL - 1;
+//    }
+//    else if (value > (*gnum)[MIL]) {
+//      INF = MIL + 1;
+//    }
+//    else {
+//      POS = MIL;
+//    }
+//  }
+//
+//  // Edition du résultat
+//  if (POS == -1) {
+//    printf("La valueeur recherchée ne se trouve pas dans le tableau. %i %i\n", value, gnum_size);
+//    return -1;
+//  }
+//  else {
+//    return POS;
+//  }
+//}
 
-  // Initialisation des limites du domaine de recherche
-  INF = 0;
-  SUP = gnum_size - 1;
 
-  // Recherche de la position de la valeur
-  POS = -1;
-  while ((INF <= SUP) && (POS == -1)) {
-    MIL = (SUP + INF) / 2;
-    //printf("value %i size %i MIL %i\n",value,MIL,gnum_size);
-    if (value < (*gnum)[MIL])
-      SUP = MIL - 1;
-    else if (value > (*gnum)[MIL])
-      INF = MIL + 1;
-    else
-      POS = MIL;
-  }
-
-  // Edition du résultat
-  if (POS == -1) {
-    printf("La valueeur recherchée ne se trouve pas dans le tableau. %i %i\n", value, gnum_size);
-    return -1;
-  }
-  else return POS;
-}
-
-
-void
-_tricroissant(int *a, int b) {
-  int ind_min = 0;
-  int x;
-
-  for (int i = ind_min ; i < b ; i++) {
-    for (int j = ind_min + 1 ; j < b ; j++) {
-      if (a[i] < a[j]) {
-        x = a[i];
-        a[i] = a[j];
-        a[j] = x;
-        j--;
-      }
-    }
-  }
-
-  x = a[ind_min];
-  for (int i = ind_min ; i < b ; i++) {
-    a[i] = a[i + 1];
-  }
-  a[b - 1] = x;
-}
+//static void
+//_tricroissant(int *a, int b) {
+//  int ind_min = 0;
+//  int x;
+//
+//  for (int i = ind_min ; i < b ; i++) {
+//    for (int j = ind_min + 1 ; j < b ; j++) {
+//      if (a[i] < a[j]) {
+//        x = a[i];
+//        a[i] = a[j];
+//        a[j] = x;
+//        j--;
+//      }
+//    }
+//  }
+//
+//  x = a[ind_min];
+//  for (int i = ind_min ; i < b ; i++) {
+//    a[i] = a[i + 1];
+//  }
+//  a[b - 1] = x;
+//}
 
 
 /*----------------------------------------------------------------------
@@ -290,15 +331,8 @@ _tricroissant(int *a, int b) {
  *---------------------------------------------------------------------*/
 
 static int
-_read_mesh(FILE *f,
-           int *nVtx,
-           int *nb_Elts,
-           int *nBlock,
-           int **nElBlock,
-           int **typeBlock,
-           int **connec,
-           double *coords,
-           int *gnum_coords) {
+_read_mesh(FILE *f, int *nVtx, int *nb_Elts, int *nBlock, int **nElBlock, int **typeBlock,
+           int **connec, double *coords, int *gnum_coords) {
 
   elType elementType[100];
 
@@ -309,32 +343,57 @@ _read_mesh(FILE *f,
   elementType[5] = (elType) {8, "hexahedron"};
   elementType[6] = (elType) {6, "prism"};
   elementType[7] = (elType) {5, "pyramid"};
-  elementType[8] = (elType) {3, "second order line (2 nodes associated with the vertices and 1 with the edge)"};
-  elementType[9] = (elType) {6, "second order triangle (3 nodes associated with the vertices and 3 with the edges)"};
-  elementType[10] = (elType) {9, "second order quadrangle (4 nodes associated with the vertices, 4 with the edges and 1 with the face)"};
-  elementType[11] = (elType) {10, "second order tetrahedron (4 nodes associated with the vertices and 6 with the edges)"};
-  elementType[12] = (elType) {27, "second order hexahedron (8 nodes associated with the vertices, 12 with the edges 6 with the faces and 1 with the volume)"};
-  elementType[13] = (elType) {18, "second order prism (6 nodes associated with the vertices], 9 with the edges and 3 with the quadrangular faces)"};
-  elementType[14] = (elType) {14, "second order pyramid (5 nodes associated with the vertices, 8 with the edges and 1 with the quadrangular face)"};
+  elementType[8] = (elType) {3,
+                             "second order line (2 nodes associated with the vertices and 1 with the edge)"};
+  elementType[9] = (elType) {6,
+                             "second order triangle (3 nodes associated with the vertices and 3 with the edges)"};
+  elementType[10] = (elType) {9,
+                              "second order quadrangle (4 nodes associated with the vertices, 4 with the edges and 1 with the face)"};
+  elementType[11] = (elType) {10,
+                              "second order tetrahedron (4 nodes associated with the vertices and 6 with the edges)"};
+  elementType[12] = (elType) {27,
+                              "second order hexahedron (8 nodes associated with the vertices, 12 with the edges 6 with the faces and 1 with the volume)"};
+  elementType[13] = (elType) {18,
+                              "second order prism (6 nodes associated with the vertices], 9 with the edges and 3 with the quadrangular faces)"};
+  elementType[14] = (elType) {14,
+                              "second order pyramid (5 nodes associated with the vertices, 8 with the edges and 1 with the quadrangular face)"};
   elementType[15] = (elType) {1, "point"};
-  elementType[16] = (elType) {8, "second order quadrangle (4 nodes associated with the vertices and 4 with the edges)"};
-  elementType[17] = (elType) {20, "second order hexahedron (8 nodes associated with the vertices and 12 with the edges)"};
-  elementType[18] = (elType) {15, "second order prism (6 nodes associated with the vertices and 9 with the edges)"};
-  elementType[19] = (elType) {13, "second order pyramid (5 nodes associated with the vertices and 8 with the edges)"};
-  elementType[20] = (elType) {9, "third order incomplete triangle (3 nodes associated with the vertices, 6 with the edges)"};
-  elementType[21] = (elType) {10, "third order triangle (3 nodes associated with the vertices, 6 with the edges, 1 with the face)"};
-  elementType[22] = (elType) {12, "fourth order incomplete triangle (3 nodes associated with the vertices, 9 with the edges)"};
-  elementType[23] = (elType) {15, "fourth order triangle (3 nodes associated with the vertices, 9 with the edges 3 with the face)"};
-  elementType[24] = (elType) {15, "fifth order incomplete triangle (3 nodes associated with the vertices, 12 with the edges)"};
-  elementType[25] = (elType) {21, "fifth order complete triangle (3 nodes associated with the vertices, 12 with the edges 6 with the face)"};
-  elementType[26] = (elType) {4, "third order edge (2 nodes associated with the vertices 2 internal to the edge)"};
-  elementType[27] = (elType) {5, "fourth order edge (2 nodes associated with the vertices 3 internal to the edge)"};
-  elementType[28] = (elType) {6, "fifth order edge (2 nodes associated with the vertices 4 internal to the edge)"};
-  elementType[29] = (elType) {20, "third order tetrahedron (4 nodes associated with the vertices 12 with the edges 4 with the faces)"};
-  elementType[30] = (elType) {35, "fourth order tetrahedron (4 nodes associated with the vertices 18 with the edges 12 with the faces 1 in the volume)"};
-  elementType[31] = (elType) {56, "fifth order tetrahedron (4 nodes associated with the vertices 24 with the edges 24 with the faces 4 in the volume)"};
-  elementType[92] = (elType) {64, "third order hexahedron (8 nodes associated with the vertices 24 with the edges 24 with the faces 8 in the volume)"};
-  elementType[93] = (elType) {125, "fourth order hexahedron (8 nodes associated with the vertices 36 with the edges 54 with the faces 27 in the volume)"};
+  elementType[16] = (elType) {8,
+                              "second order quadrangle (4 nodes associated with the vertices and 4 with the edges)"};
+  elementType[17] = (elType) {20,
+                              "second order hexahedron (8 nodes associated with the vertices and 12 with the edges)"};
+  elementType[18] = (elType) {15,
+                              "second order prism (6 nodes associated with the vertices and 9 with the edges)"};
+  elementType[19] = (elType) {13,
+                              "second order pyramid (5 nodes associated with the vertices and 8 with the edges)"};
+  elementType[20] = (elType) {9,
+                              "third order incomplete triangle (3 nodes associated with the vertices, 6 with the edges)"};
+  elementType[21] = (elType) {10,
+                              "third order triangle (3 nodes associated with the vertices, 6 with the edges, 1 with the face)"};
+  elementType[22] = (elType) {12,
+                              "fourth order incomplete triangle (3 nodes associated with the vertices, 9 with the edges)"};
+  elementType[23] = (elType) {15,
+                              "fourth order triangle (3 nodes associated with the vertices, 9 with the edges 3 with the face)"};
+  elementType[24] = (elType) {15,
+                              "fifth order incomplete triangle (3 nodes associated with the vertices, 12 with the edges)"};
+  elementType[25] = (elType) {21,
+                              "fifth order complete triangle (3 nodes associated with the vertices, 12 with the edges 6 with the face)"};
+  elementType[26] = (elType) {4,
+                              "third order edge (2 nodes associated with the vertices 2 internal to the edge)"};
+  elementType[27] = (elType) {5,
+                              "fourth order edge (2 nodes associated with the vertices 3 internal to the edge)"};
+  elementType[28] = (elType) {6,
+                              "fifth order edge (2 nodes associated with the vertices 4 internal to the edge)"};
+  elementType[29] = (elType) {20,
+                              "third order tetrahedron (4 nodes associated with the vertices 12 with the edges 4 with the faces)"};
+  elementType[30] = (elType) {35,
+                              "fourth order tetrahedron (4 nodes associated with the vertices 18 with the edges 12 with the faces 1 in the volume)"};
+  elementType[31] = (elType) {56,
+                              "fifth order tetrahedron (4 nodes associated with the vertices 24 with the edges 24 with the faces 4 in the volume)"};
+  elementType[92] = (elType) {64,
+                              "third order hexahedron (8 nodes associated with the vertices 24 with the edges 24 with the faces 8 in the volume)"};
+  elementType[93] = (elType) {125,
+                              "fourth order hexahedron (8 nodes associated with the vertices 36 with the edges 54 with the faces 27 in the volume)"};
 
   int r;
 
@@ -357,9 +416,15 @@ _read_mesh(FILE *f,
       r = fscanf(f, "%lf", coords + 3 * i_el + 1);
       r = fscanf(f, "%lf", coords + 3 * i_el + 2);
       printf("gnum_coords %i block %i nv %i x %f y %f z %f\n",
-             gnum_coords[i_el], block, nv, coords[3 * i_el], coords[3 * i_el + 1], coords[3 * i_el + 2]);
-      if (r == EOF)
+             gnum_coords[i_el],
+             block,
+             nv,
+             coords[3 * i_el],
+             coords[3 * i_el + 1],
+             coords[3 * i_el + 2]);
+      if (r == EOF) {
         return EXIT_FAILURE;
+      }
       i_el++;
     }
   }
@@ -369,8 +434,6 @@ _read_mesh(FILE *f,
   _goto(f, "$Elements");
   r = fscanf(f, "%i", nBlock);
   r = fscanf(f, "%i", nb_Elts);
-
-  int **toto = *connec;
 
   int block1 = 0;
 
@@ -392,7 +455,9 @@ _read_mesh(FILE *f,
       (*typeBlock)[block1] = IelType;
 
       int size_el;
-      if (IelType != 2 && IelType != 3) printf("IelType %i nv %i\n", IelType, nv);
+      if (IelType != 2 && IelType != 3) {
+        printf("IelType %i nv %i\n", IelType, nv);
+      }
       size_el = elementType[IelType].nNodes;
       // printf("IelType %i nv %i size_el %i block %i block1 %i nBlock %i\n",IelType,nv,size_el,block,block1,*nBlock);
       for (int i = 0 ; i < nv ; i++) {
@@ -400,14 +465,19 @@ _read_mesh(FILE *f,
         for (int jv = 0 ; jv < size_el ; jv++) {
           r = fscanf(f, "%i", connec[block1] + size_el * i + jv);
 
-          connec[block1][size_el * i + jv] = 1 + _tabSearch2(connec[block1][size_el * i + jv], &gnum_coords, *nVtx);
-          if (connec[block1][size_el * i + jv] < -1 || connec[block1][size_el * i + jv] > 100000)
+          connec[block1][size_el * i + jv] = 1 + _tabSearch2(connec[block1][size_el * i + jv],
+                                                             &gnum_coords,
+                                                             *nVtx);
+          if (connec[block1][size_el * i + jv] < -1 || connec[block1][size_el * i + jv] > 100000) {
             printf("Alerte wrong connectivity\n");
+          }
           //printf("connect %i \n",connec[block1][size_el*i+jv]);
           //printf("%i nEl2 %i block %i nv %i connec %i %i %i size_el %i IelType %i\n",
           //*nb_Elts,nEl2,block,nv,i,jv,connec[block1][size_el*i+jv],size_el,IelType);
         }
-        if (r == EOF) return EXIT_FAILURE;
+        if (r == EOF) {
+          return EXIT_FAILURE;
+        }
       }
       block1++;
     }
@@ -417,7 +487,7 @@ _read_mesh(FILE *f,
 }
 
 
-int
+static int
 _sizeForType(int type) {
   switch (type) {
     case 1 :
@@ -440,7 +510,8 @@ _sizeForType(int type) {
  *
  *---------------------------------------------------------------------*/
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
   MPI_Init(&argc, &argv);
   int rank;
   int comm_world_size;
@@ -449,13 +520,13 @@ int main(int argc, char *argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
 
   int n_partition = 0;
-  while (2 * pow(n_partition, 2) < comm_world_size) n_partition++;
+  while (2 * pow(n_partition, 2) < comm_world_size) {
+    n_partition++;
+  }
 
-  /* Initialization
-   * -------------- */
-
+  // Initialization
   int n_code = 0;
-  char **codeNames = NULL;
+  const char **codeNames = NULL;
   double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
 
@@ -485,7 +556,7 @@ int main(int argc, char *argv[]) {
     is_coupled_rank[1] = CWP_STATUS_ON;
   }
 
-  char *code_name = (char *) malloc(sizeof(char) * 5);
+  const char *code_name;
   times_init = malloc(sizeof(double) * n_code);
 
   for (int i = 0 ; i < n_code ; i++) {
@@ -496,7 +567,7 @@ int main(int argc, char *argv[]) {
 
   CWP_Init(MPI_COMM_WORLD,
            n_code,
-           (const char **) codeNames,
+           codeNames,
            is_coupled_rank,
            times_init,
            localComm);
@@ -509,7 +580,7 @@ int main(int argc, char *argv[]) {
     MPI_Comm_size(localComm[i], &localCommSize[i]);
   }
 
-  char cpl_id1[] = "cpl_code1_code2";
+  const char cpl_id1[] = "cpl_code1_code2";
 
   int nb_part = 10;
 
@@ -551,17 +622,29 @@ int main(int argc, char *argv[]) {
     printf("%i rank %i localCommSize %i code_name %s\n", i, currentRank, localComm_size, code_name);
 
     if (strcmp(code_name, "code1") == 0) {
-      char *codeCpl = "code2";
-      CWP_Cpl_create(code_name, cpl_id1, codeCpl, CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITH_PART,
-                     CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, nb_part,
-                     CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
+      const char *codeCpl = "code2";
+      CWP_Cpl_create(code_name,
+                     cpl_id1,
+                     codeCpl,
+                     CWP_INTERFACE_VOLUME,
+                     CWP_COMM_PAR_WITH_PART,
+                     CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                     nb_part,
+                     CWP_DYNAMIC_MESH_STATIC,
+                     CWP_TIME_EXCH_CPL_TIME_STEP);
     }
 
     if (strcmp(code_name, "code2") == 0) {
-      char *codeCpl = "code1";
-      CWP_Cpl_create(code_name, cpl_id1, codeCpl, CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITH_PART,
-                     CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, nb_part,
-                     CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
+      const char *codeCpl = "code1";
+      CWP_Cpl_create(code_name,
+                     cpl_id1,
+                     codeCpl,
+                     CWP_INTERFACE_VOLUME,
+                     CWP_COMM_PAR_WITH_PART,
+                     CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                     nb_part,
+                     CWP_DYNAMIC_MESH_STATIC,
+                     CWP_TIME_EXCH_CPL_TIME_STEP);
     }
   }
 
@@ -574,14 +657,13 @@ int main(int argc, char *argv[]) {
 
     CWP_Visu_set(code_name, cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
 
-    char *geoModelfile;
-    if (code_name == "code1") {
-      char *geoModelfile2 = "meshes/sphere01";
+    const char *geoModelfile;
+    if (strcmp(code_name, "code1") == 0) {
+      const char *geoModelfile2 = "meshes/sphere01";
       geoModelfile = geoModelfile2;
     }
-
-    if (code_name == "code2") {
-      char *geoModelfile2 = "meshes/sphere02";
+    else {
+      const char *geoModelfile2 = "meshes/sphere02";
       geoModelfile = geoModelfile2;
     }
 
@@ -612,15 +694,23 @@ int main(int argc, char *argv[]) {
     int currentRank = currentRankA[i];
 
     for (int i_part = 0 ; i_part < nb_part ; i_part++) {
-      int len = 0;
-      for (len = 0 ; geofile[i][i_part][len] != '\0' ; ++len);
+      int len;
+      for (len = 0 ; geofile[i][i_part][len] != '\0' ; ++len) {}
 
       int lenfile;
 
-      if ((1 + currentRankA[i]) >= 1000 && (1 + currentRankA[i]) < 10000) lenfile = len + 5;
-      else if ((1 + currentRankA[i]) >= 100) lenfile = len + 4;
-      else if ((1 + currentRankA[i]) >= 10) lenfile = len + 3;
-      else lenfile = len + 2;
+      if ((1 + currentRankA[i]) >= 1000 && (1 + currentRankA[i]) < 10000) {
+        lenfile = len + 5;
+      }
+      else if ((1 + currentRankA[i]) >= 100) {
+        lenfile = len + 4;
+      }
+      else if ((1 + currentRankA[i]) >= 10) {
+        lenfile = len + 3;
+      }
+      else {
+        lenfile = len + 2;
+      }
 
       if (localCommSize[i] == 1) {
         lenfile = len;
@@ -664,7 +754,12 @@ int main(int argc, char *argv[]) {
       eltsConnec[i][i_part] = (int **) malloc(nBlock[i][i_part] * sizeof(int *));
 
       printf("currentRank %i nVtx[i][i_part] %i nElts[i][i_part] %i nBlock[i][i_part] %i nElBlock[i][i_part][0] %i typeBlock[i][i_part][0] %i\n",
-             currentRankA[i], nVtx[i][i_part], nElts[i][i_part], nBlock[i][i_part], nElBlock[i][i_part][0], typeBlock[i][i_part][0]);
+             currentRankA[i],
+             nVtx[i][i_part],
+             nElts[i][i_part],
+             nBlock[i][i_part],
+             nElBlock[i][i_part][0],
+             typeBlock[i][i_part][0]);
       nBlockOld[i_part] = nBlock[i][i_part];
       for (int b = 0 ; b < nBlock[i][i_part] ; b++) {
         eltsConnec[i][i_part][b] = (int *) malloc(_sizeForType(typeBlock[i][i_part][b]) * nElBlock[i][i_part][b] * sizeof(int));
@@ -673,9 +768,13 @@ int main(int argc, char *argv[]) {
       fclose(meshFile);
       meshFile = fopen(filename, "r");
 
-      int **connec_p = eltsConnec[i][i_part];
-
-      printf("filenamePP %s %i %i %i %i %i\n", filename, rank, nElts[i][i_part], nBlock[i][i_part], typeBlock[i][i_part][0], nVtx[i][i_part]);
+      printf("filenamePP %s %i %i %i %i %i\n",
+             filename,
+             rank,
+             nElts[i][i_part],
+             nBlock[i][i_part],
+             typeBlock[i][i_part][0],
+             nVtx[i][i_part]);
 
       _read_mesh(meshFile,
                  &nVtx[i][i_part],
@@ -694,12 +793,23 @@ int main(int argc, char *argv[]) {
 
       for (int b = 0 ; b < nBlock[i][i_part] ; b++) {
         for (int j = 0 ; j < nElBlock[i][i_part][b] ; j++) {
-          printf("eltsConnec[%i][%i][%i][%i] rank %i %i\n", i, i_part, b, j, currentRank, eltsConnec[i][i_part][b][j]);
+          printf("eltsConnec[%i][%i][%i][%i] rank %i %i\n",
+                 i,
+                 i_part,
+                 b,
+                 j,
+                 currentRank,
+                 eltsConnec[i][i_part][b][j]);
         }
       }
 
       printf("CWP_Mesh_interf_vtx_set %i\n", nVtx[i][i_part]);
-      CWP_Mesh_interf_vtx_set(codeNames[i], cpl_id1, i_part, nVtx[i][i_part], coords[i][i_part], NULL);
+      CWP_Mesh_interf_vtx_set(codeNames[i],
+                              cpl_id1,
+                              i_part,
+                              nVtx[i][i_part],
+                              coords[i][i_part],
+                              NULL);
       printf("After CWP_Mesh_interf_vtx_set %i %i\n", i_part, rank);
     }
 
@@ -711,16 +821,25 @@ int main(int argc, char *argv[]) {
     for (int i_part = 0 ; i_part < nb_part ; i_part++) {
       nb_block_type[i_part] = (int *) malloc(nb_elt_type * sizeof(int));
       nb_block_type_max[i_part] = (int *) malloc(nb_elt_type * sizeof(int));
-      for (int l = 0 ; l < nb_elt_type ; l++) nb_block_type[i_part][l] = 0;
+      for (int l = 0 ; l < nb_elt_type ; l++) {
+        nb_block_type[i_part][l] = 0;
+      }
 
       for (int i_block = 0 ; i_block < nBlock[i][i_part] ; i_block++) {
         nb_block_type[i_part][typeBlock[i][i_part][i_block]]++;
       }
 
-      MPI_Allreduce(nb_block_type[i_part], nb_block_type_max[i_part], nb_elt_type, MPI_INT, MPI_MAX, localComm[i]);
+      MPI_Allreduce(nb_block_type[i_part],
+                    nb_block_type_max[i_part],
+                    nb_elt_type,
+                    MPI_INT,
+                    MPI_MAX,
+                    localComm[i]);
 
       int nBlock_correct = 0;
-      for (int l = 0 ; l < nb_elt_type ; l++) nBlock_correct += nb_block_type_max[i_part][l];
+      for (int l = 0 ; l < nb_elt_type ; l++) {
+        nBlock_correct += nb_block_type_max[i_part][l];
+      }
 
       int nBlock_old = nBlock[i][i_part];
       nBlock[i][i_part] = nBlock_correct;
@@ -734,7 +853,9 @@ int main(int argc, char *argv[]) {
       int ind_block = 0;
       int *ibblock = (int *) malloc(nb_elt_type * sizeof(int));
 
-      for (int bb = 0 ; bb < nb_elt_type ; bb++) ibblock[bb] = 0;
+      for (int bb = 0 ; bb < nb_elt_type ; bb++) {
+        ibblock[bb] = 0;
+      }
 
       for (int l = 0 ; l < nb_elt_type ; l++) {
         for (int l2 = 0 ; l2 < nb_block_type_max[i_part][l] ; l2++) {
@@ -759,14 +880,13 @@ int main(int argc, char *argv[]) {
         }
       }
 
-      realloc(nElBlock[i][i_part], 0);
-
+//      realloc(nElBlock[i][i_part], 0);
       nElBlock[i][i_part] = nElBlockNew;
 
-      realloc(typeBlock[i][i_part], 0);
+//      realloc(typeBlock[i][i_part], 0);
       typeBlock[i][i_part] = typeBlockNew;
 
-      realloc(eltsConnec[i][i_part], 0);
+//      realloc(eltsConnec[i][i_part], 0);
       eltsConnec[i][i_part] = eltsConnecNew;
     }
 
@@ -779,21 +899,42 @@ int main(int argc, char *argv[]) {
       for (int i_block = 0 ; i_block < nBlock[i][i_part] ; i_block++) {
         GNUM[i_part][i_block] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * nElBlock[i][i_part][i_block]);
         printf("Standard Block Add\n");
+
         CWP_Block_t cwp_block_t;
-        if (typeBlock[i][i_part][i_block] == 1) cwp_block_t = CWP_BLOCK_EDGE2;
-        if (typeBlock[i][i_part][i_block] == 2) cwp_block_t = CWP_BLOCK_FACE_TRIA3;
-        if (typeBlock[i][i_part][i_block] == 3) cwp_block_t = CWP_BLOCK_FACE_QUAD4;
-        if (typeBlock[i][i_part][i_block] == 15) cwp_block_t = CWP_BLOCK_NODE;
+        if (typeBlock[i][i_part][i_block] == 1) {
+          cwp_block_t = CWP_BLOCK_EDGE2;
+        }
+        else if (typeBlock[i][i_part][i_block] == 2) {
+          cwp_block_t = CWP_BLOCK_FACE_TRIA3;
+        }
+        else if (typeBlock[i][i_part][i_block] == 3) {
+          cwp_block_t = CWP_BLOCK_FACE_QUAD4;
+        }
+        else if (typeBlock[i][i_part][i_block] == 15) {
+          cwp_block_t = CWP_BLOCK_NODE;
+        }
+        else {
+          cwp_block_t = CWP_BLOCK_NODE;
+        }
 
         int block_id = CWP_Mesh_interf_block_add(code_name, cpl_id1, cwp_block_t);
 
         printf("Standard block set %i\n", i_block);
         printf("\n");
         for (int g = 0 ; g < nElBlock[i][i_part][i_block] ; g++) {
-          if (eltsConnec[i][i_part][i_block][g] < 0 || eltsConnec[i][i_part][i_block][g] > 1000) printf("YYYY %i %i %i %i\n", i_part, i_block, g, eltsConnec[i][i_part][i_block][g]);
+          if (eltsConnec[i][i_part][i_block][g] < 0 || eltsConnec[i][i_part][i_block][g] > 1000) {
+            printf("YYYY %i %i %i %i\n", i_part, i_block, g, eltsConnec[i][i_part][i_block][g]);
+          }
           GNUM[i_part][i_block][g] = -456;
         }
-        CWP_Mesh_interf_block_std_set(code_name, cpl_id1, i_part, block_id, nElBlock[i][i_part][i_block], eltsConnec[i][i_part][i_block], NULL/*GNUM[i_part][i_block]*/);
+
+        CWP_Mesh_interf_block_std_set(code_name,
+                                      cpl_id1,
+                                      i_part,
+                                      block_id,
+                                      nElBlock[i][i_part][i_block],
+                                      eltsConnec[i][i_part][i_block],
+                                      NULL/*GNUM[i_part][i_block]*/);
         nElts[i][i_part] += nElBlock[i][i_part][i_block];
       }
     }
@@ -811,24 +952,44 @@ int main(int argc, char *argv[]) {
     CWP_Status_t visu_status = CWP_STATUS_OFF;
     CWP_Field_map_t map_type;
 
-    if (strcmp(code_name, "code1")) {
+    if (strcmp(code_name, "code1") == 0) {
       map_type = CWP_FIELD_MAP_SOURCE;
-      CWP_Field_create(code_name, cpl_id1, "rank", CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, 1,
+      CWP_Field_create(code_name,
+                       cpl_id1,
+                       "rank",
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_BLOCK,
+                       1,
                        CWP_DOF_LOCATION_CELL_CENTER,
                        CWP_FIELD_EXCH_SEND,
                        visu_status);
-      CWP_Field_create(code_name, cpl_id1, "rank_vtx", CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, 1,
+      CWP_Field_create(code_name,
+                       cpl_id1,
+                       "rank_vtx",
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_BLOCK,
+                       1,
                        CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_SEND,
                        visu_status);
     }
     else {
       map_type = CWP_FIELD_MAP_TARGET;
-      CWP_Field_create(code_name, cpl_id1, "rank", CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, 1,
+      CWP_Field_create(code_name,
+                       cpl_id1,
+                       "rank",
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_BLOCK,
+                       1,
                        CWP_DOF_LOCATION_CELL_CENTER,
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
-      CWP_Field_create(code_name, cpl_id1, "rank_vtx", CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, 1,
+      CWP_Field_create(code_name,
+                       cpl_id1,
+                       "rank_vtx",
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_BLOCK,
+                       1,
                        CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
@@ -841,7 +1002,12 @@ int main(int argc, char *argv[]) {
       rank_data[i][i_part] = (double *) malloc(sizeof(double) * nElts[i][i_part]);
       rank_data_vtx[i][i_part] = (double *) malloc(sizeof(double) * nVtx[i][i_part]);
       CWP_Field_data_set(code_name, cpl_id1, "rank", i_part, map_type, rank_data[i][i_part]);
-      CWP_Field_data_set(code_name, cpl_id1, "rank_vtx", i_part, map_type, rank_data_vtx[i][i_part]);
+      CWP_Field_data_set(code_name,
+                         cpl_id1,
+                         "rank_vtx",
+                         i_part,
+                         map_type,
+                         rank_data_vtx[i][i_part]);
     }
 
     printf("After data set\n");
@@ -859,14 +1025,18 @@ int main(int argc, char *argv[]) {
   }
 
   for (int i = 0 ; i < n_code ; i++) {
-    int *n_uncomputed_tgt;
     code_name = codeNames[i];
 
     if (strcmp(code_name, "code2") == 0) {
       for (int i_part = 0 ; i_part < nb_part ; i_part++) {
         int n_uncomputed_node = CWP_N_uncomputed_tgts_get(code_name, cpl_id1, "rank_vtx", i_part);
         int n_uncomputed_cell_value = CWP_N_uncomputed_tgts_get(code_name, cpl_id1, "rank", i_part);
-        printf("  %i  vertices and   %i  cell centers have not been found on code %s proc %i partition %i\n", n_uncomputed_node, n_uncomputed_cell_value, code_name, rank, i_part);
+        printf("  %i  vertices and   %i  cell centers have not been found on code %s proc %i partition %i\n",
+               n_uncomputed_node,
+               n_uncomputed_cell_value,
+               code_name,
+               rank,
+               i_part);
       }
     }
   }
@@ -876,9 +1046,7 @@ int main(int argc, char *argv[]) {
   double recv_time = 0.150;
   for (int i_time = 0 ; i_time < 1 ; i_time++) {
     for (int i = 0 ; i < n_code ; i++) {
-      int localComm_size = localCommSize[i];
       code_name = codeNames[i];
-      int currentRank = currentRankA[i];
 
       printf("Before CWP_next_recv_time_set\n");
       CWP_next_recv_time_set(code_name, cpl_id1, recv_time);
@@ -891,8 +1059,9 @@ int main(int argc, char *argv[]) {
             rank_data[i][i_part][j] = rank;
           }
 
-          for (int j = 0 ; j < nVtx[i][i_part] ; j++)
+          for (int j = 0 ; j < nVtx[i][i_part] ; j++) {
             rank_data_vtx[i][i_part][j] = coords[i][i_part][3 * j];
+          }
         }
 
         printf("CWP_Field_issend at %f\n", recv_time);
@@ -907,11 +1076,9 @@ int main(int argc, char *argv[]) {
     }
 
     for (int i = 0 ; i < n_code ; i++) {
-      int localComm_size = localCommSize[i];
       code_name = codeNames[i];
-      int currentRank = currentRankA[i];
 
-      if (code_name == "code1") {
+      if (strcmp(code_name, "code1") == 0) {
         CWP_Field_wait_issend(code_name, cpl_id1, "rank");
         CWP_Field_wait_issend(code_name, cpl_id1, "rank_vtx");
       }
@@ -925,9 +1092,7 @@ int main(int argc, char *argv[]) {
   }
 
   for (int i = 0 ; i < n_code ; i++) {
-    int localComm_size = localCommSize[i];
     code_name = codeNames[i];
-    int currentRank = currentRankA[i];
 
     CWP_Mesh_interf_del(code_name, cpl_id1);
     CWP_Cpl_del(code_name, cpl_id1);

@@ -852,7 +852,7 @@ int main(int argc, char *argv[]) {
 
   }
 
-  int n_computed_tgts, n_uncomputed_tgts, n_involved_srcs;
+  int n_computed_tgts = 0, n_uncomputed_tgts = 0, n_involved_srcs = 0;
   const int *computed_tgts = NULL, *uncomputed_tgts = NULL, *involved_srcs = NULL;
 
   if (exchDirection[0] == CWP_FIELD_EXCH_SEND) {

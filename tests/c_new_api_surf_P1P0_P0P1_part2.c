@@ -28,6 +28,7 @@
 #include "cwp_priv.h"
 #include "pdm_timer.h"
 
+
 /*----------------------------------------------------------------------
  *
  * Display usage
@@ -60,44 +61,38 @@ _display_usage(int exit_code) {
  *---------------------------------------------------------------------*/
 
 static void
-_read_args(
-        int argc,
-        char **argv,
-        CWP_g_num_t *nx,
-        double *part,
-        double *s,
-        int *n_compute) {
+_read_args(int argc, char **argv, CWP_g_num_t *nx, double *part, double *s, int *n_compute) {
   int i = 1;
 
   while (i < argc) {
-    if (strcmp(argv[i], "-h") == 0) _display_usage(EXIT_SUCCESS);
+    if (strcmp(argv[i], "-h") == 0) {_display_usage(EXIT_SUCCESS);}
     else if (strcmp(argv[i], "-nx") == 0) {
       i++;
-      if (i >= argc + 1) _display_usage(EXIT_FAILURE);
-      else *nx = atoi(argv[i]);
+      if (i >= argc + 1) {_display_usage(EXIT_FAILURE);}
+      else {*nx = atoi(argv[i]);}
     }
     else if (strcmp(argv[i], "-part") == 0) {
       i++;
-      if (i >= argc) _display_usage(EXIT_FAILURE);
-      else *part = atof(argv[i]);
+      if (i >= argc) {_display_usage(EXIT_FAILURE);}
+      else {*part = atof(argv[i]);}
     }
     else if (strcmp(argv[i], "-s") == 0) {
       i++;
-      if (i >= argc) _display_usage(EXIT_FAILURE);
-      else *s = atof(argv[i]);
+      if (i >= argc) {_display_usage(EXIT_FAILURE);}
+      else {*s = atof(argv[i]);}
     }
     else if (strcmp(argv[i], "-nc") == 0) {
       i++;
-      if (i >= argc) _display_usage(EXIT_FAILURE);
-      else *n_compute = atoi(argv[i]);
+      if (i >= argc) {_display_usage(EXIT_FAILURE);}
+      else {*n_compute = atoi(argv[i]);}
     }
     i++;
   }
 }
 
 
-int
-_random_global_int() {
+static int
+_random_global_int(void) {
   int rank;
   int size;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -136,7 +131,8 @@ _random_global_int() {
  *
  *---------------------------------------------------------------------*/
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
   MPI_Init(&argc, &argv);
 
   int rank;
@@ -183,14 +179,14 @@ int main(int argc, char *argv[]) {
 
   int randomGlobalInt = _random_global_int();
 
-  if (randomGlobalInt < (double) commWorldSize * prop1) n_code = 1;
-  else if (randomGlobalInt < (double) commWorldSize * (prop1 + prop12)) n_code = 2;
-  else n_code = 1;
+  if (randomGlobalInt < (double) commWorldSize * prop1) {n_code = 1;}
+  else if (randomGlobalInt < (double) commWorldSize * (prop1 + prop12)) {n_code = 2;}
+  else {n_code = 1;}
 
   CWP_g_num_t *nxCode = (CWP_g_num_t *) malloc(n_code * sizeof(CWP_g_num_t));
 
-  char **codeName = (char **) malloc(sizeof(char *) * n_code);
-  char **codeCoupledName = (char **) malloc(sizeof(char *) * n_code);
+  const char **codeName = (const char **) malloc(sizeof(const char *) * n_code);
+  const char **codeCoupledName = (const char **) malloc(sizeof(const char *) * n_code);
   int *codeId = (int *) malloc(sizeof(int) * n_code);
   MPI_Comm *localComm = malloc(sizeof(MPI_Comm) * n_code);
   int *localRank = (int *) malloc(sizeof(int) * n_code);
@@ -203,8 +199,8 @@ int main(int argc, char *argv[]) {
     codeId[0] = 1;
     codeCoupledName[0] = "code2";
 
-    if (randomGlobalInt < (double) commWorldSize * prop1 * cpl_frac[0]) is_coupled_rank[0] = CWP_STATUS_ON;
-    else is_coupled_rank[0] = CWP_STATUS_OFF;
+    if (randomGlobalInt < (double) commWorldSize * prop1 * cpl_frac[0]) {is_coupled_rank[0] = CWP_STATUS_ON;}
+    else {is_coupled_rank[0] = CWP_STATUS_OFF;}
 
     time_init[0] = 0.0;
     nxCode[0] = nx;
@@ -215,8 +211,8 @@ int main(int argc, char *argv[]) {
     codeId[0] = 1;
     codeCoupledName[0] = "code2";
 
-    if (randomGlobalInt < (double) commWorldSize * (prop1 + cpl_frac[0] * prop12)) is_coupled_rank[0] = CWP_STATUS_ON;
-    else is_coupled_rank[0] = CWP_STATUS_OFF;
+    if (randomGlobalInt < (double) commWorldSize * (prop1 + cpl_frac[0] * prop12)) {is_coupled_rank[0] = CWP_STATUS_ON;}
+    else {is_coupled_rank[0] = CWP_STATUS_OFF;}
 
     time_init[0] = 0.0;
     nxCode[0] = nx;
@@ -225,8 +221,8 @@ int main(int argc, char *argv[]) {
     codeName[1] = "code2";
     codeId[1] = 2;
     codeCoupledName[1] = "code1";
-    if (randomGlobalInt < (double) commWorldSize * (prop1 + cpl_frac[1] * prop12)) is_coupled_rank[1] = CWP_STATUS_ON;
-    else is_coupled_rank[1] = CWP_STATUS_OFF;
+    if (randomGlobalInt < (double) commWorldSize * (prop1 + cpl_frac[1] * prop12)) {is_coupled_rank[1] = CWP_STATUS_ON;}
+    else {is_coupled_rank[1] = CWP_STATUS_OFF;}
 
     time_init[1] = 0.0;
     nxCode[1] = (CWP_g_num_t) (2.0 * (double) nx);
@@ -237,20 +233,15 @@ int main(int argc, char *argv[]) {
     codeId[0] = 2;
     codeCoupledName[0] = "code1";
 
-    if (randomGlobalInt < (double) commWorldSize * (prop1 + prop12 + cpl_frac[1] * prop2)) is_coupled_rank[0] = CWP_STATUS_ON;
-    else is_coupled_rank[0] = CWP_STATUS_OFF;
+    if (randomGlobalInt < (double) commWorldSize * (prop1 + prop12 + cpl_frac[1] * prop2)) {is_coupled_rank[0] = CWP_STATUS_ON;}
+    else {is_coupled_rank[0] = CWP_STATUS_OFF;}
 
     time_init[0] = 0.0;
     nxCode[0] = (CWP_g_num_t) (2.0 * (double) nx);
     nb_part[0] = 4;
   }
 
-  CWP_Init(MPI_COMM_WORLD,
-           n_code,
-           (const char **) codeName,
-           is_coupled_rank,
-           time_init,
-           localComm);
+  CWP_Init(MPI_COMM_WORLD, n_code, codeName, is_coupled_rank, time_init, localComm);
 
   printf("%d - Create coupling\n", rank);
   const char *cpl_name = "c_new_api_surf_P1P0_P0P1_part2";
@@ -275,8 +266,6 @@ int main(int argc, char *argv[]) {
   PDM_timer_t *timer2 = PDM_timer_create();
   PDM_timer_init(timer);
 
-  double time[3];
-
   int n_int = 1;
   double compute_time[n_compute];
   double compute_exch_time[n_int];
@@ -294,15 +283,24 @@ int main(int argc, char *argv[]) {
                    1,                       // Postprocessing frequency
                    CWP_VISU_FORMAT_ENSIGHT, // Postprocessing format
                    "text");                 // Postprocessing option
-      MPI_Comm connectableComm = CWP_Connectable_comm_get(codeName[i_code]);
+      MPI_Comm connectableComm = CWP_Connectable_comm_get((char*) codeName[i_code]);
 
-      CWP_surf_gen_init(codeName[i_code], nxCode[i_code], nxCode[i_code], nb_part[i_code], &connectableComm, non_null_mesh_frac[i_code], s, (double) codeId[i_code]);
+      CWP_surf_gen_init((char*) codeName[i_code],
+                        (int) nxCode[i_code],
+                        (int) nxCode[i_code],
+                        nb_part[i_code],
+                        &connectableComm,
+                        non_null_mesh_frac[i_code],
+                        s,
+                        (double) codeId[i_code]);
     }
   }
 
-  for (int i_code = 0 ; i_code < n_code ; i_code++)
-    if (is_coupled_rank[i_code] == CWP_STATUS_ON)
-      CWP_surf_gen_compute(codeName[i_code]);
+  for (int i_code = 0 ; i_code < n_code ; i_code++) {
+    if (is_coupled_rank[i_code] == CWP_STATUS_ON) {
+      CWP_surf_gen_compute((char*) codeName[i_code]);
+    }
+  }
 
   int **eltsConnecPolyIndex = NULL;
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
@@ -361,18 +359,35 @@ int main(int argc, char *argv[]) {
         eltsConnecPoly[i_part] = NULL;
         eltsGnumPoly[i_part] = NULL;
 
-        CWP_surf_gen_by_block_get(codeName[i_code], i_part,
-                                  &nVtx[i_part], &coords[i_part], &vtxGnum[i_part], &nElts,
-                                  &n_tri[i_part], &eltsConnecTri[i_part], &eltsGnumTri[i_part],
-                                  &n_quad[i_part], &eltsConnecQuad[i_part], &eltsGnumQuad[i_part],
-                                  &n_poly2d[i_part], &eltsConnecPolyIndex[i_part], &eltsConnecPoly[i_part], &eltsGnumPoly[i_part]);
+        CWP_surf_gen_by_block_get((char*) codeName[i_code],
+                                  i_part,
+                                  &nVtx[i_part],
+                                  &coords[i_part],
+                                  &vtxGnum[i_part],
+                                  &nElts,
+                                  &n_tri[i_part],
+                                  &eltsConnecTri[i_part],
+                                  &eltsGnumTri[i_part],
+                                  &n_quad[i_part],
+                                  &eltsConnecQuad[i_part],
+                                  &eltsGnumQuad[i_part],
+                                  &n_poly2d[i_part],
+                                  &eltsConnecPolyIndex[i_part],
+                                  &eltsConnecPoly[i_part],
+                                  &eltsGnumPoly[i_part]);
 
         if (face_edge == 1) {
-          CWP_surf_face_edge_get(codeName[i_code], i_part,
-                                 &nVtx[i_part], &coords[i_part], &vtxGnum[i_part],
+          CWP_surf_face_edge_get((char*) codeName[i_code],
+                                 i_part,
+                                 &nVtx[i_part],
+                                 &coords[i_part],
+                                 &vtxGnum[i_part],
                                  &n_faces[i_part],
-                                 &faceEdgeIdx[i_part], &faceEdge[i_part],
-                                 &n_edges[i_part], &edgeVtxIdx[i_part], &edgeVtx[i_part],
+                                 &faceEdgeIdx[i_part],
+                                 &faceEdge[i_part],
+                                 &n_edges[i_part],
+                                 &edgeVtxIdx[i_part],
+                                 &edgeVtx[i_part],
                                  &faceLNToGN[i_part]);
         }
 
@@ -395,9 +410,11 @@ int main(int argc, char *argv[]) {
                                             cpl_name,
                                             i_part,
                                             n_faces[i_part],
-                                            faceEdgeIdx[i_part], faceEdge[i_part],
+                                            faceEdgeIdx[i_part],
+                                            faceEdge[i_part],
                                             n_edges[i_part],
-                                            edgeVtxIdx[i_part], edgeVtx[i_part],
+                                            edgeVtxIdx[i_part],
+                                            edgeVtx[i_part],
                                             faceLNToGN[i_part]);
         }
         else {
@@ -423,8 +440,7 @@ int main(int argc, char *argv[]) {
                                         block_id_quad,
                                         n_quad[i_part],
                                         eltsConnecQuad[i_part],
-                                        eltsGnumQuad[i_part]
-                                       );
+                                        eltsGnumQuad[i_part]);
 
           int block_id_poly = CWP_Mesh_interf_block_add(codeName[i_code],
                                                         cpl_name,
@@ -451,9 +467,9 @@ int main(int argc, char *argv[]) {
           double *field_tri;
           double *field_quad;
           double *field_poly2d;
-          CWP_surf_gen_tri_field_get(codeName[i_code], i_part, &field_tri);
-          CWP_surf_gen_quad_field_get(codeName[i_code], i_part, &field_quad);
-          CWP_surf_gen_poly_field_get(codeName[i_code], i_part, &field_poly2d);
+          CWP_surf_gen_tri_field_get((char*) codeName[i_code], i_part, &field_tri);
+          CWP_surf_gen_quad_field_get((char*) codeName[i_code], i_part, &field_quad);
+          CWP_surf_gen_poly_field_get((char*) codeName[i_code], i_part, &field_poly2d);
           sendValues[i_code][i_part] = (double *) malloc(sizeof(double) * nElts);
           recvValues[i_code][i_part] = (double *) malloc(sizeof(double) * nVtx[i_part]);
 
@@ -488,13 +504,13 @@ int main(int argc, char *argv[]) {
   // Exchange
   // field1: code1 -> code2
   // field2: code2 -> code1
-  char *fieldName1 = "cooX";
-  char *fieldName2 = "rank";
+  const char *fieldName1 = "cooX";
+  const char *fieldName2 = "rank";
 
   CWP_Status_t visu_status = CWP_STATUS_ON;
   printf("%d - Defining fields\n", rank);
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    if (codeName[i_code] == "code1" && is_coupled_rank[i_code] == CWP_STATUS_ON) {
+    if (strcmp(codeName[i_code], "code1") == 0 && is_coupled_rank[i_code] == CWP_STATUS_ON) {
       CWP_Field_create(codeName[i_code],
                        cpl_name,
                        fieldName1,
@@ -529,7 +545,7 @@ int main(int argc, char *argv[]) {
                            recvValues[i_code][i_part]);
       }
     }
-    else if (codeName[i_code] == "code2" && is_coupled_rank[i_code] == CWP_STATUS_ON) {
+    else if (strcmp(codeName[i_code], "code2") == 0 && is_coupled_rank[i_code] == CWP_STATUS_ON) {
       CWP_Field_create(codeName[i_code],
                        cpl_name,
                        fieldName1,
@@ -583,8 +599,9 @@ int main(int argc, char *argv[]) {
     PDM_timer_init(timer2);
     PDM_timer_resume(timer2);
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
-      if (is_coupled_rank[i_code] == CWP_STATUS_ON)
+      if (is_coupled_rank[i_code] == CWP_STATUS_ON) {
         CWP_Spatial_interp_weights_compute(codeName[i_code], cpl_name);
+      }
     }
 
     PDM_timer_hang_on(timer2);
@@ -595,8 +612,9 @@ int main(int argc, char *argv[]) {
     mean2 = mean2 / ((double) (i + 1) * (double) commWorldSize);
 
     std_dev = 0.0;
-    for (int h = 0 ; h <= i ; h++)
+    for (int h = 0 ; h <= i ; h++) {
       std_dev += pow((compute_time[h] - mean2) / mean2, 2);
+    }
     std_dev = sqrt(std_dev) / (double) (i + 1);
 
     double std2;
@@ -604,19 +622,24 @@ int main(int argc, char *argv[]) {
     std_dev = std2 / (double) commWorldSize;
 
     n_it = i;
-    if (i > 3 && std_dev < dev_limit)
+    if (i > 3 && std_dev < dev_limit) {
       i = n_compute + 1;
+    }
 
-    if (localRank[0] == 0) printf("Survey exchange %i %5.4e\n", i, std_dev);
+    if (localRank[0] == 0) {printf("Survey exchange %i %5.4e\n", i, std_dev);}
   }
 
   PDM_timer_hang_on(timer);
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  if (localRank[0] == 0)
-    printf("New localization time %5.4e codeName[0] %s deviation %5.4e nb_it %i \n", mean2, codeName[0], std_dev, n_it);
-  double recv_time = 0.150;
+  if (localRank[0] == 0) {
+    printf("New localization time %5.4e codeName[0] %s deviation %5.4e nb_it %i \n",
+           mean2,
+           codeName[0],
+           std_dev,
+           n_it);
+  }
 
   PDM_timer_init(timer);
   PDM_timer_resume(timer);
@@ -633,15 +656,13 @@ int main(int argc, char *argv[]) {
 
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
       if (is_coupled_rank[i_code] == CWP_STATUS_ON) {
-        recv_time *= 0.01;
-
-        if (codeName[i_code] == "code1") {
+        if (strcmp(codeName[i_code], "code1") == 0) {
           CWP_Field_issend(codeName[i_code], cpl_name, fieldName1);
           CWP_Field_wait_issend(codeName[i_code], cpl_name, fieldName1);
           CWP_Field_irecv(codeName[i_code], cpl_name, fieldName2);
           CWP_Field_wait_irecv(codeName[i_code], cpl_name, fieldName2);
         }
-        else if (codeName[i_code] == "code2") {
+        else if (strcmp(codeName[i_code], "code2") == 0) {
           CWP_Field_irecv(codeName[i_code], cpl_name, fieldName1);
           CWP_Field_wait_irecv(codeName[i_code], cpl_name, fieldName1);
           CWP_Field_issend(codeName[i_code], cpl_name, fieldName2);
@@ -658,8 +679,9 @@ int main(int argc, char *argv[]) {
     mean2 = mean2 / ((double) (i + 1) * (double) commWorldSize);
 
     std_dev = 0.0;
-    for (int h = 0 ; h <= i ; h++)
+    for (int h = 0 ; h <= i ; h++) {
       std_dev += pow((compute_exch_time[h] - mean2) / mean2, 2);
+    }
     std_dev = sqrt(std_dev) / (double) (i + 1);
 
     double std2;
@@ -669,14 +691,19 @@ int main(int argc, char *argv[]) {
     if (i > 3 && std_dev < dev_limit) {
       i = n_int + 1;
     }
-    if (localRank[0] == 0) printf("Survey exchange %i %5.4e\n", i, std_dev);
+    if (localRank[0] == 0) {printf("Survey exchange %i %5.4e\n", i, std_dev);}
     MPI_Barrier(MPI_COMM_WORLD);
   }
 
   PDM_timer_hang_on(timer);
 
-  if (localRank[0] == 0)
-    printf("New exchange time for %i iterations %5.4e s codeName[0] %s deviation %5.4e\n", n_int, mean2, codeName[0], std_dev);
+  if (localRank[0] == 0) {
+    printf("New exchange time for %i iterations %5.4e s codeName[0] %s deviation %5.4e\n",
+           n_int,
+           mean2,
+           codeName[0],
+           std_dev);
+  }
 
 
   MPI_Barrier(MPI_COMM_WORLD);

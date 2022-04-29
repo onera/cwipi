@@ -204,12 +204,12 @@ int main(int argc, char *argv[]) {
   int *elems_prism = (int *) malloc(6 * n_prism * sizeof(int));
 
   int tetra_order_avbp[4] = {0, 1, 2, 3};
-  int tetra_order_cwp[4] = {0, 1, 3, 2};
-  int tetra_order_grid[4] = {0, 2, 1, 3};
+//  int tetra_order_cwp[4] = {0, 1, 3, 2};
+//  int tetra_order_grid[4] = {0, 2, 1, 3};
 
   int prism_order_avbp[6] = {0, 1, 2, 3, 4, 5};
-  int prism_order_cwp[6] = {0, 3, 4, 1, 5, 2};
-  int prism_order_grid[6] = {5, 0, 3, 4, 1, 2};
+//  int prism_order_cwp[6] = {0, 3, 4, 1, 5, 2};
+//  int prism_order_grid[6] = {5, 0, 3, 4, 1, 2};
 
   int *tetra_order1 = tetra_order_avbp;
   int *prism_order1 = prism_order_avbp;
