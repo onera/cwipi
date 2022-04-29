@@ -136,7 +136,6 @@ if (CWP_ENABLE_NEW_API)
     set("MPIEXEC_PREFLAGS" "--oversubscribe")
 
     test_c_create (c_new_api 10)
-    test_c_create (c_new_api_avbp 2)
     test_c_create (c_new_api_c_poly_block 2)
     test_c_create(c_new_api_cellface_set_block 2)
     test_c_create(c_new_api_dcube 6)
@@ -186,8 +185,6 @@ if (NOT CWP_NEW_TO_OLD_API)
   test_c_create (c_vol_coupling_micro_polyhedra_P1P1 2)
   test_c_create (c_vol_coupling_polyhedra_P1P1 2)
   test_c_create (c_vol_coupling_polyhedra_P1P1_with_external_points 2)
-
-  test_c_create (c_old_api_avbp 2)
 endif()
 
 if (CWP_ENABLE_Fortran AND NOT CWP_NEW_TO_OLD_API)
