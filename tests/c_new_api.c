@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #include "cwp.h"
 
@@ -41,134 +42,119 @@ main(int argc, char *argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
 
-  char *srcName = (char *) malloc(sizeof(char) * (strlen(__FILE__) + 1));
-  strcpy(srcName, __FILE__);
-  char *srcBaseName = NULL;
-  srcBaseName = strrchr(srcName, '.');
-  if (srcBaseName != NULL) {*srcBaseName = '\0';}
-  srcBaseName = NULL;
-  srcBaseName = strrchr(srcName, '/');
-  if (srcBaseName != NULL) {srcBaseName += 1;}
-  else {srcBaseName = srcName;}
-
-  if (rank == 0) {printf("\nSTART: %s\n", srcBaseName);}
+  bool cond_code1 = rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7;
+  bool cond_code2 = rank == 0 || rank == 2 || rank == 6 || rank == 7 || rank == 9;
+  bool cond_code3 = rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7 || rank == 9;
+  bool cond_code4 = rank == 2 || rank == 4 || rank == 8;
 
   // Initialization
-  int n_code_name = 0;
-  const char **codeNames = NULL;
+  int n_code = 0;
+  const char **code_names = NULL;
   double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
 
   if (rank == 0) {
-    n_code_name = 2;
-    codeNames = malloc(sizeof(char *) * n_code_name);
-    codeNames[0] = "code1";
-    codeNames[1] = "code2";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    n_code = 2;
+    code_names = malloc(sizeof(char *) * n_code);
+    code_names[0] = "code1";
+    code_names[1] = "code2";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
     is_coupled_rank[0] = CWP_STATUS_ON;
     is_coupled_rank[1] = CWP_STATUS_ON;
   }
   else if (rank == 1) {
-    n_code_name = 1;
-    codeNames = malloc(sizeof(char *) * n_code_name);
-    codeNames[0] = "code1";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    n_code = 1;
+    code_names = malloc(sizeof(char *) * n_code);
+    code_names[0] = "code1";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
     is_coupled_rank[0] = CWP_STATUS_ON;
   }
   else if (rank == 2) {
-    n_code_name = 4;
-    codeNames = malloc(sizeof(char *) * n_code_name);
-    codeNames[0] = "code1";
-    codeNames[1] = "code2";
-    codeNames[2] = "code3";
-    codeNames[3] = "code4";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    n_code = 4;
+    code_names = malloc(sizeof(char *) * n_code);
+    code_names[0] = "code1";
+    code_names[1] = "code2";
+    code_names[2] = "code3";
+    code_names[3] = "code4";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
     is_coupled_rank[0] = CWP_STATUS_ON;
     is_coupled_rank[1] = CWP_STATUS_ON;
     is_coupled_rank[2] = CWP_STATUS_ON;
     is_coupled_rank[3] = CWP_STATUS_ON;
   }
   else if (rank == 3) {
-    n_code_name = 1;
-    codeNames = malloc(sizeof(char *) * n_code_name);
-    codeNames[0] = "code3";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    n_code = 1;
+    code_names = malloc(sizeof(char *) * n_code);
+    code_names[0] = "code3";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
     is_coupled_rank[0] = CWP_STATUS_ON;
   }
   else if (rank == 4) {
-    n_code_name = 2;
-    codeNames = malloc(sizeof(char *) * n_code_name);
-    codeNames[0] = "code3";
-    codeNames[1] = "code4";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    n_code = 2;
+    code_names = malloc(sizeof(char *) * n_code);
+    code_names[0] = "code3";
+    code_names[1] = "code4";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
     is_coupled_rank[0] = CWP_STATUS_ON;
     is_coupled_rank[1] = CWP_STATUS_ON;
   }
   else if (rank == 5) {
-    n_code_name = 2;
-    codeNames = malloc(sizeof(char *) * n_code_name);
-    codeNames[0] = "code1";
-    codeNames[1] = "code3";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    n_code = 2;
+    code_names = malloc(sizeof(char *) * n_code);
+    code_names[0] = "code1";
+    code_names[1] = "code3";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
     is_coupled_rank[0] = CWP_STATUS_ON;
     is_coupled_rank[1] = CWP_STATUS_ON;
   }
   else if (rank == 6) {
-    n_code_name = 1;
-    codeNames = malloc(sizeof(char *) * n_code_name);
-    codeNames[0] = "code2";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    n_code = 1;
+    code_names = malloc(sizeof(char *) * n_code);
+    code_names[0] = "code2";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
     is_coupled_rank[0] = CWP_STATUS_ON;
   }
   else if (rank == 7) {
-    n_code_name = 3;
-    codeNames = malloc(sizeof(char *) * n_code_name);
-    codeNames[0] = "code1";
-    codeNames[1] = "code2";
-    codeNames[2] = "code3";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    n_code = 3;
+    code_names = malloc(sizeof(char *) * n_code);
+    code_names[0] = "code1";
+    code_names[1] = "code2";
+    code_names[2] = "code3";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
     is_coupled_rank[0] = CWP_STATUS_ON;
     is_coupled_rank[1] = CWP_STATUS_ON;
     is_coupled_rank[2] = CWP_STATUS_ON;
   }
   else if (rank == 8) {
-    n_code_name = 1;
-    codeNames = malloc(sizeof(char *) * n_code_name);
-    codeNames[0] = "code4";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    n_code = 1;
+    code_names = malloc(sizeof(char *) * n_code);
+    code_names[0] = "code4";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
     is_coupled_rank[0] = CWP_STATUS_ON;
   }
   else if (rank == 9) {
-    n_code_name = 2;
-    codeNames = malloc(sizeof(char *) * n_code_name);
-    codeNames[0] = "code2";
-    codeNames[1] = "code3";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    n_code = 2;
+    code_names = malloc(sizeof(char *) * n_code);
+    code_names[0] = "code2";
+    code_names[1] = "code3";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
     is_coupled_rank[0] = CWP_STATUS_ON;
     is_coupled_rank[1] = CWP_STATUS_ON;
   }
 
-  const char *fileName = NULL;
-  if (rank == 0) {fileName = "c_new_api_0000.txt";}
-  else if (rank == 1) {fileName = "c_new_api_0001.txt";}
-  else if (rank == 2) {fileName = "c_new_api_0002.txt";}
-  else if (rank == 3) {fileName = "c_new_api_0003.txt";}
-  else if (rank == 4) {fileName = "c_new_api_0004.txt";}
-  else if (rank == 5) {fileName = "c_new_api_0005.txt";}
-  else if (rank == 6) {fileName = "c_new_api_0006.txt";}
-  else if (rank == 7) {fileName = "c_new_api_0007.txt";}
-  else if (rank == 8) {fileName = "c_new_api_0008.txt";}
-  else if (rank == 9) {fileName = "c_new_api_0009.txt";}
+  char fileName[19];
+  sprintf(fileName, "c_new_api_000%d.txt", rank);
   outputFile = fopen(fileName, "w");
 
-  times_init = malloc(sizeof(double) * n_code_name);
+  times_init = malloc(sizeof(double) * n_code);
+  for (int i = 0 ; i < n_code ; i++) {
+    times_init[i] = 0;
+  }
 
-  for (int i = 0 ; i < n_code_name ; i++) {times_init[i] = 0;}
-
-  MPI_Comm *localComm = malloc(sizeof(MPI_Comm) * n_code_name);
+  MPI_Comm *localComm = malloc(sizeof(MPI_Comm) * n_code);
   CWP_Init(MPI_COMM_WORLD,
-           n_code_name,
-           (const char **) codeNames,
+           n_code,
+           (const char **) code_names,
            is_coupled_rank,
            times_init,
            localComm);
@@ -177,16 +163,15 @@ main(int argc, char *argv[]) {
   int currentRank;
   int localCommSize;
 
-  for (int i = 0 ; i < n_code_name ; i++) {
+  for (int i = 0 ; i < n_code ; i++) {
     MPI_Comm_rank(localComm[i], &currentRank);
     MPI_Comm_size(localComm[i], &localCommSize);
   }
 
   // Finalize
-  if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
+  if (cond_code1) {
     int toto = 111;
     CWP_Param_lock("code1");
-    //  MPI_Barrier (MPI_COMM_WORLD);
     CWP_Param_add("code1", "toto", CWP_INT, &toto);
     const char *A = "Bonjour !";
     CWP_Param_add("code1", "toto2", CWP_CHAR, &A);
@@ -212,8 +197,8 @@ main(int argc, char *argv[]) {
 
   CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
 
-  // cpl1
-  if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
+  // cpl1: code1 (0, 1, 2, 5, 7) <-> code2 (0, 2, 6, 7, 9)
+  if (cond_code1) {
     int v = -1;
     if (rank == 0) {
       v = 11;
@@ -224,18 +209,18 @@ main(int argc, char *argv[]) {
     CWP_Cpl_create("code1",
                    cpl_id1,
                    "code2",
-                   CWP_INTERFACE_SURFACE,
+                   CWP_INTERFACE_VOLUME,
                    CWP_COMM_PAR_WITH_PART,
                    interp_method,
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_EACH_TIME_STEP);
   }
-  if (rank == 0 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
+  if (cond_code2) {
     CWP_Cpl_create("code2",
                    cpl_id1,
                    "code1",
-                   CWP_INTERFACE_SURFACE,
+                   CWP_INTERFACE_VOLUME,
                    CWP_COMM_PAR_WITH_PART,
                    interp_method,
                    1,
@@ -246,7 +231,7 @@ main(int argc, char *argv[]) {
       v = 21;
     }
     MPI_Comm intraComm;
-    if (rank == 0 || rank == 2 || rank == 2 || rank == 7) {
+    if (rank == 0 || rank == 2 || rank == 7) {
       intraComm = localComm[1];
     }
     else if (rank == 6 || rank == 9) {
@@ -260,11 +245,11 @@ main(int argc, char *argv[]) {
     printf("code 2 v : %d\n", v);
     fflush(stdout);
   }
-  printf("Fin premier couplage\n");
+
   MPI_Barrier(MPI_COMM_WORLD);
 
-  // cpl2
-  if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
+  // cpl2: code1 (0, 1, 2, 5, 7) <-> code3 (2, 3, 4, 5, 7, 9)
+  if (cond_code1) {
     CWP_Cpl_create("code1",
                    cpl_id2,
                    "code3",
@@ -275,7 +260,7 @@ main(int argc, char *argv[]) {
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_EACH_TIME_STEP);
   }
-  if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7 || rank == 9) {
+  if (cond_code3) {
     CWP_Cpl_create("code3",
                    cpl_id2,
                    "code1",
@@ -308,8 +293,8 @@ main(int argc, char *argv[]) {
     fflush(stdout);
   }
 
-  // cpl3
-  if (rank == 0 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
+  // cpl3: code2 (0, 2, 6, 7, 9) <-> code3 (2, 3, 4, 5, 7, 9)
+  if (cond_code2) {
     CWP_Cpl_create("code2",
                    cpl_id3,
                    "code3",
@@ -320,7 +305,7 @@ main(int argc, char *argv[]) {
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_EACH_TIME_STEP);
   }
-  if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7 || rank == 9) {
+  if (cond_code3) {
     CWP_Cpl_create("code3",
                    cpl_id3,
                    "code2",
@@ -332,8 +317,8 @@ main(int argc, char *argv[]) {
                    CWP_TIME_EXCH_EACH_TIME_STEP);
   }
 
-  // cpl4
-  if (rank == 2 || rank == 4 || rank == 8) {
+  // cpl4: code4 (2, 4, 8) <-> code3 (2, 3, 4, 5, 7, 9)
+  if (cond_code4) {
     CWP_Cpl_create("code4",
                    cpl_id4,
                    "code3",
@@ -362,11 +347,11 @@ main(int argc, char *argv[]) {
     }
 
     MPI_Bcast(&v, 1, MPI_INT, 0, intraComm);
-    printf("code 4 v : %d\n", v);
-    fflush(stdout);
+    //    printf("code 4 v : %d\n", v);
+    //    fflush(stdout);
   }
 
-  if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7 || rank == 9) {
+  if (cond_code3) {
     CWP_Cpl_create("code3",
                    cpl_id4,
                    "code4",
@@ -378,8 +363,8 @@ main(int argc, char *argv[]) {
                    CWP_TIME_EXCH_EACH_TIME_STEP);
   }
 
-  // cpl5
-  if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
+  // cpl5: code1 (0, 1, 2, 5, 7) <-> code4 (2, 4, 8)
+  if (cond_code1) {
     CWP_Cpl_create("code1",
                    cpl_id5,
                    "code4",
@@ -390,7 +375,7 @@ main(int argc, char *argv[]) {
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_EACH_TIME_STEP);
   }
-  if (rank == 2 || rank == 4 || rank == 8) {
+  if (cond_code4) {
     CWP_Cpl_create("code4",
                    cpl_id5,
                    "code1",
@@ -402,8 +387,8 @@ main(int argc, char *argv[]) {
                    CWP_TIME_EXCH_EACH_TIME_STEP);
   }
 
-  // cpl6
-  if (rank == 0 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
+  // cpl6: code2 (0, 2, 6, 7, 9) <-> code4 (2, 4, 8)
+  if (cond_code2) {
     CWP_Cpl_create("code2",
                    cpl_id6,
                    "code4",
@@ -414,7 +399,7 @@ main(int argc, char *argv[]) {
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_EACH_TIME_STEP);
   }
-  if (rank == 2 || rank == 4 || rank == 8) {
+  if (cond_code4) {
     CWP_Cpl_create("code4",
                    cpl_id6,
                    "code2",
@@ -426,14 +411,100 @@ main(int argc, char *argv[]) {
                    CWP_TIME_EXCH_EACH_TIME_STEP);
   }
 
+  // Create Visu
+  if (cond_code1) {
+    CWP_Visu_set("code1", cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+  }
+  if (cond_code2) {
+    CWP_Visu_set("code2", cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+  }
+
+  if (cond_code1) {
+    CWP_Visu_set("code1", cpl_id2, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+  }
+  if (cond_code3) {
+    CWP_Visu_set("code3", cpl_id2, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+  }
+
+  if (cond_code2) {
+    CWP_Visu_set("code2", cpl_id3, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+  }
+  if (cond_code3) {
+    CWP_Visu_set("code3", cpl_id3, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+  }
+
+  if (cond_code3) {
+    CWP_Visu_set("code3", cpl_id4, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+  }
+  if (cond_code4) {
+    CWP_Visu_set("code4", cpl_id4, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+  }
+
+  if (cond_code1) {
+    CWP_Visu_set("code1", cpl_id5, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+  }
+  if (cond_code4) {
+    CWP_Visu_set("code4", cpl_id5, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+  }
+
+  if (cond_code2) {
+    CWP_Visu_set("code2", cpl_id6, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+  }
+  if (cond_code4) {
+    CWP_Visu_set("code4", cpl_id6, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+  }
+
+  // Delete coupling
+  if (cond_code1) {
+    CWP_Cpl_del("code1", cpl_id1);
+  }
+  if (cond_code2) {
+    CWP_Cpl_del("code2", cpl_id1);
+  }
+
+  if (cond_code1) {
+    CWP_Cpl_del("code1", cpl_id2);
+  }
+  if (cond_code3) {
+    CWP_Cpl_del("code3", cpl_id2);
+  }
+
+  if (cond_code2) {
+    CWP_Cpl_del("code2", cpl_id3);
+  }
+  if (cond_code3) {
+    CWP_Cpl_del("code3", cpl_id3);
+  }
+
+  if (cond_code3) {
+    CWP_Cpl_del("code3", cpl_id4);
+  }
+  if (cond_code4) {
+    CWP_Cpl_del("code4", cpl_id4);
+  }
+
+  if (cond_code1) {
+    CWP_Cpl_del("code1", cpl_id5);
+  }
+  if (cond_code4) {
+    CWP_Cpl_del("code4", cpl_id5);
+  }
+
+  if (cond_code2) {
+    CWP_Cpl_del("code2", cpl_id6);
+  }
+  if (cond_code4) {
+    CWP_Cpl_del("code4", cpl_id6);
+  }
+
   printf("All done for rank %d\n", rank);
 
   CWP_Finalize();
+
   MPI_Finalize();
 
-  free(srcName);
   free(localComm);
-  free(codeNames);
+  free(code_names);
   free(is_coupled_rank);
   free(times_init);
   fclose(outputFile);
