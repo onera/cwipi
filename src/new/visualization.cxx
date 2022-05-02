@@ -50,18 +50,32 @@ namespace cwipi {
   }
 
   Visu::~Visu() {
-
-    for(int i_part=0;i_part<_n_part;i_part++){
-      free(_partitioning_field_data[i_part]);
-      free(_ranking_field_data[i_part]);
-      free(_blocking_field_data[i_part]);
+    // Check if these structures have been filled (ie geometry declared)
+    if (!_partitioning_field_data.empty()) {
+      for(int i_part=0;i_part<_n_part;i_part++) {
+        free(_partitioning_field_data[i_part]);
+      }
+    }
+    if (!_ranking_field_data.empty()) {
+      for(int i_part=0;i_part<_n_part;i_part++) {
+        free(_ranking_field_data[i_part]);
+      }
+    }
+    if (!_blocking_field_data.empty()) {
+      for(int i_part=0;i_part<_n_part;i_part++) {
+        free(_blocking_field_data[i_part]);
+      }
     }
 
     // PDM_writer_var_data_free(_visu_id, _id_partitioning_field);
     // PDM_writer_var_data_free(_visu_id, _id_ranking_field);
     // PDM_writer_var_data_free(_visu_id, _id_blocking_field);
-    PDM_writer_step_end(_visu_id);
-    PDM_writer_free(_visu_id);
+
+
+    if (_visu_id != nullptr) {
+      PDM_writer_step_end(_visu_id);
+      PDM_writer_free(_visu_id);
+    }
   }
 
 
