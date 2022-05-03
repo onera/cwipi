@@ -673,6 +673,22 @@ CWP_Mesh_interf_c_poly_block_set_cf (
 );
 
 
+/**
+ * \brief Delete interface mesh.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ *
+ */
+
+void
+CWP_Mesh_interf_del_cf (
+  const char *f_local_code_name,
+  const int l_local_code_name,
+  const char *f_cpl_id,
+  const int l_cpl_id
+);
+
 
 /**
  * \brief Define the interface mesh from a cell to face connectivity.

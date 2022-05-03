@@ -392,6 +392,14 @@ module cwp
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id
       end subroutine CWP_Mesh_interf_c_poly_block_set_cf
 
+      subroutine CWP_Mesh_interf_del_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id) &
+              bind(c, name = 'CWP_Mesh_interf_del_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id
+      end subroutine CWP_Mesh_interf_del_cf
+
       subroutine CWP_Mesh_interf_from_cellface_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, i_part, n_cells, &
             cell_face_idx, cell_face, n_faces, face_vtx_idx, face_vtx, parent_num) &
             bind(c, name = 'CWP_Mesh_interf_from_cellface_set_cf')
@@ -1424,6 +1432,30 @@ contains
                                               c_loc(connec_cells),     &
                                               c_loc(global_num))
   end subroutine CWP_Mesh_interf_c_poly_block_set
+
+
+  !>
+  !! \brief Delete interface mesh.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !!
+  !!
+
+  subroutine CWP_Mesh_interf_del (local_code_name, &
+                                  cpl_id)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id
+    integer(c_int) :: l_local_code_name, l_cpl_id
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+
+    call CWP_Mesh_interf_del_cf (local_code_name, l_local_code_name, cpl_id, l_cpl_id)
+  end subroutine CWP_Mesh_interf_del
 
 
   !>
