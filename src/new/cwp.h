@@ -1347,6 +1347,7 @@ CWP_Mesh_interf_f_poly_block_set
  CWP_g_num_t             global_num[]
 );
 
+
 /**
  * \brief Adding a polyhedron connectivity block to the interface mesh.
  *
@@ -1386,6 +1387,7 @@ CWP_Mesh_interf_c_poly_block_set
  CWP_g_num_t           global_num[]
 );
 
+
 /**
  * \brief Delete interface mesh.
  *
@@ -1412,6 +1414,7 @@ CWP_Mesh_interf_del
  *
  */
 
+
 void
 CWP_Mesh_interf_shared_fvm_nodal
 (
@@ -1420,6 +1423,7 @@ CWP_Mesh_interf_shared_fvm_nodal
  const int     i_part,
  void         *pdm_nodal
 );
+
 
 /**
  * \brief Define the interface mesh from a cell to face connectivity.

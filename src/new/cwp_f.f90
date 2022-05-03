@@ -163,7 +163,7 @@ module cwp
         integer(kind = c_int), value :: displacement
         integer(kind = c_int), value :: freq
       end subroutine CWP_Cpl_Create_cf
-  
+
       subroutine CWP_Cpl_del_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id) &
         bind(c, name = 'CWP_Cpl_del_cf')
         use, intrinsic :: iso_c_binding
@@ -178,7 +178,7 @@ module cwp
                                              l_cpl_id,          &
                                              field_id,          &
                                              l_field_id,        &
-                                             i_part)            & 
+                                             i_part)            &
                                              result (n_uncomputed_tgts) &
         bind(c, name = 'CWP_N_uncomputed_tgts_get_cf')
         use, intrinsic :: iso_c_binding
@@ -190,7 +190,6 @@ module cwp
         integer(kind = c_int), value :: l_field_id
         integer(c_int), value :: i_part
         integer(kind = c_int) :: n_uncomputed_tgts
-
       end function CWP_N_uncomputed_tgts_get_cf
 
       function CWP_N_computed_tgts_get_cf(local_code_name,   &
@@ -199,7 +198,7 @@ module cwp
                                           l_cpl_id,          &
                                           field_id,          &
                                           l_field_id,        &
-                                          i_part)            & 
+                                          i_part)            &
                                           result (n_computed_tgts) &
             bind(c, name = 'CWP_N_computed_tgts_get_cf')
         use, intrinsic :: iso_c_binding
@@ -237,7 +236,7 @@ module cwp
                                         l_cpl_id,          &
                                         field_id,          &
                                         l_field_id,        &
-                                        i_part)            & 
+                                        i_part)            &
                                         result (computed_tgts) &
             bind(c, name = 'CWP_Computed_tgts_get_cf')
         use, intrinsic :: iso_c_binding
@@ -257,7 +256,7 @@ module cwp
                                           l_cpl_id,          &
                                           field_id,          &
                                           l_field_id,        &
-                                          i_part)            & 
+                                          i_part)            &
                                           result (uncomputed_tgts) &
         bind(c, name = 'CWP_Uncomputed_tgts_get_cf')
         use, intrinsic :: iso_c_binding
@@ -548,7 +547,7 @@ contains
                        n_code,         &
                        code_names,     &
                        is_active_rank, &
-                       time_init,      & 
+                       time_init,      &
                        intra_comms)
 
     use, intrinsic :: iso_c_binding
@@ -573,7 +572,6 @@ contains
                     is_active_rank,     &
                     time_init,          &
                     c_loc(intra_comms))
-
   end subroutine CWP_Init
 
 
@@ -629,7 +627,6 @@ contains
                             n_part,             &
                             displacement,       &
                             freq)
-  
   end subroutine CWP_Cpl_Create
 
 
@@ -655,7 +652,6 @@ contains
     l_cpl_id          = len(cpl_id)
 
     call CWP_Cpl_del_cf (local_code_name, l_local_code_name, cpl_id, l_cpl_id)
-  
   end subroutine CWP_Cpl_Del
 
 
@@ -676,7 +672,7 @@ contains
                                       field_id,        &
                                       i_part)          &
                                       result (n_uncomputed_tgts)
-  
+
     use, intrinsic :: iso_c_binding
     implicit none
 
@@ -720,7 +716,7 @@ contains
                                     field_id,        &
                                     i_part)          &
                                     result (uncomputed_tgts)
-      
+
     use, intrinsic :: iso_c_binding
     implicit none
 
@@ -734,7 +730,7 @@ contains
     type(c_ptr) :: cptr_uncomputed_tgts
     integer(c_int) :: n_uncomputed_tgts
     integer(c_int) :: l_local_code_name, l_cpl_id, l_field_id
-   
+
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
     l_field_id = len(field_id)
@@ -758,8 +754,7 @@ contains
 
     call c_f_pointer (cptr = cptr_uncomputed_tgts, &
                       fptr = uncomputed_tgts  ,    &
-                      shape= [ n_uncomputed_tgts])  
-  
+                      shape= [ n_uncomputed_tgts])
   end function CWP_Uncomputed_tgts_get
 
 
@@ -803,7 +798,6 @@ contains
                                                   field_id,          &
                                                   l_field_id,        &
                                                   i_part)
-  
   end function CWP_N_computed_tgts_get
 
 
@@ -839,7 +833,7 @@ contains
     type(c_ptr) :: cptr_computed_tgts
     integer(c_int) :: n_computed_tgts
     integer(c_int) :: l_local_code_name, l_cpl_id, l_field_id
-   
+
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
     l_field_id = len(field_id)
@@ -864,8 +858,7 @@ contains
 
     call c_f_pointer (cptr = cptr_computed_tgts, &
                       fptr = computed_tgts  ,    &
-                      shape= [n_computed_tgts])  
-
+                      shape= [n_computed_tgts])
   end function CWP_Computed_tgts_get
 
 
@@ -909,7 +902,6 @@ contains
             field_id,          &
             l_field_id,        &
             i_part)
-
   end function CWP_N_involved_srcs_get
 
 
@@ -971,7 +963,6 @@ contains
     call c_f_pointer (cptr = cptr_involved_srcs, &
             fptr = involved_srcs  ,    &
             shape= [n_involved_srcs])
-
   end function CWP_Involved_srcs_get
 
 
@@ -988,7 +979,7 @@ contains
   function CWP_Computed_tgts_dist_to_spatial_interp_get (local_code_name, &
                                                          cpl_id)          &
                                                          result (dists)
-    
+
     use, intrinsic :: iso_c_binding
     implicit none
 
@@ -1006,7 +997,6 @@ contains
     print *, "CWP_Computed_tgts_dist_to_spatial_interp_get not implemented"
     allocate(dists(1))
     dists = (/0./)
-
   end function CWP_Computed_tgts_dist_to_spatial_interp_get
 
 
@@ -1019,7 +1009,7 @@ contains
 
   subroutine CWP_Spatial_interp_weights_compute (local_code_name, &
                                                  cpl_id)
-      
+
     use, intrinsic :: iso_c_binding
     implicit none
 
@@ -1030,7 +1020,6 @@ contains
     l_cpl_id = len(cpl_id)
 
     call CWP_Spatial_interp_weights_compute_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id)
-  
   end subroutine CWP_Spatial_interp_weights_compute
 
 
@@ -1067,7 +1056,6 @@ contains
     l_format_option = len(format_option)
 
     call CWP_Visu_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, freq, format, format_option, l_format_option)
-  
   end subroutine
 
 
@@ -1107,6 +1095,7 @@ contains
             c_loc(coord), c_loc(global_num))
   end subroutine CWP_User_tgt_pts_set
 
+
   !>
   !! \brief Finalize interface mesh.
   !!
@@ -1119,7 +1108,7 @@ contains
 
   subroutine CWP_Mesh_interf_finalize (local_code_name, &
                                        cpl_id)
-  
+
     use, intrinsic :: iso_c_binding
     implicit none
 
@@ -1130,7 +1119,6 @@ contains
     l_cpl_id = len(cpl_id)
 
     call CWP_Mesh_interf_finalize_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id)
-  
   end subroutine CWP_Mesh_interf_finalize
 
 
@@ -1144,10 +1132,10 @@ contains
   !! \param [in]  coord            Coordinates (size = 3    !! \p n_pts)
   !! \param [in]  global_num       Pointer to parent element number (or NULL)
   !!
-  
+
   subroutine CWP_Mesh_interf_vtx_set (local_code_name, &
                                       cpl_id,          &
-                                      i_part,          & 
+                                      i_part,          &
                                       n_pts,           &
                                       coord,           &
                                       global_num)
@@ -1164,7 +1152,7 @@ contains
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
 
-    call CWP_Mesh_interf_vtx_set_cf (local_code_name,   & 
+    call CWP_Mesh_interf_vtx_set_cf (local_code_name,   &
                                      l_local_code_name, &
                                      cpl_id,            &
                                      l_cpl_id,          &
@@ -1172,7 +1160,6 @@ contains
                                      n_pts,             &
                                      c_loc(coord),      &
                                      c_loc(global_num))
-
   end subroutine CWP_Mesh_interf_vtx_set
 
 
@@ -1202,7 +1189,6 @@ contains
     l_cpl_id = len(cpl_id)
 
     block_id = CWP_Mesh_interf_block_add_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, block_type)
-
   end function CWP_Mesh_interf_block_add
 
 
@@ -1300,13 +1286,13 @@ contains
   !!
 
   subroutine CWP_Mesh_interf_block_std_set (local_code_name, &
-                                            cpl_id,          & 
+                                            cpl_id,          &
                                             i_part,          &
                                             block_id,        &
                                             n_elts,          &
                                             connec,          &
                                             global_num)
-      
+
     use, intrinsic :: iso_c_binding
     implicit none
 
@@ -1328,7 +1314,6 @@ contains
                                            n_elts,            &
                                            c_loc(connec),     &
                                            c_loc(global_num))
-
   end subroutine CWP_Mesh_interf_block_std_set
 
 
@@ -1354,7 +1339,7 @@ contains
                                                connec_idx,      &
                                                connec,          &
                                                global_num)
-  
+
     use, intrinsic :: iso_c_binding
     implicit none
 
@@ -1377,8 +1362,9 @@ contains
                                               c_loc(connec_idx), &
                                               c_loc(connec),     &
                                               c_loc(global_num))
-
   end subroutine CWP_Mesh_interf_f_poly_block_set
+
+
   !>
   !! \brief Adding a polyhedron connectivity block to the interface mesh.
   !!
@@ -1400,7 +1386,7 @@ contains
   !!                                (size = \p face_vertex_idx[\p n_elts])
   !! \param [in]  global_num        Pointer to global element number (or NULL)
   !!
-  
+
   subroutine CWP_Mesh_interf_c_poly_block_set (local_code_name, &
                                                cpl_id,          &
                                                i_part,          &
@@ -1432,12 +1418,11 @@ contains
                                               block_id,                &
                                               n_elts,                  &
                                               n_faces,                 &
-                                              c_loc(connec_faces_idx), &  
+                                              c_loc(connec_faces_idx), &
                                               c_loc(connec_faces),     &
                                               c_loc(connec_cells_idx), &
                                               c_loc(connec_cells),     &
                                               c_loc(global_num))
-
   end subroutine CWP_Mesh_interf_c_poly_block_set
 
 
@@ -1470,7 +1455,7 @@ contains
                                                 cell_face,       &
                                                 n_faces,         &
                                                 face_vtx_idx,    &
-                                                face_vtx,        &         
+                                                face_vtx,        &
                                                 parent_num)
 
     use, intrinsic :: iso_c_binding
@@ -1496,8 +1481,8 @@ contains
                                                c_loc(face_vtx_idx),  &
                                                c_loc(face_vtx),      &
                                                c_loc(parent_num))
-
   end subroutine CWP_Mesh_interf_from_cellface_set
+
 
   !>
   !! \brief Define the surface interface mesh from a face to edge connectivity.
@@ -1519,7 +1504,7 @@ contains
   !!                                (size = \p edge_vtx_idx[\p n_edges])
   !! \param [in]  parent_num        Pointer to parent element number (or NULL)
   !!
-  
+
   subroutine CWP_Mesh_interf_from_faceedge_set (local_code_name, &
                                                 cpl_id,          &
                                                 i_part,          &
@@ -1554,7 +1539,6 @@ contains
                                                c_loc(edge_vtx_idx), &
                                                c_loc(edge_vtx),     &
                                                c_loc(parent_num))
-
   end subroutine CWP_Mesh_interf_from_faceedge_set
 
 
@@ -1606,8 +1590,8 @@ contains
                               target_location,    &
                               exch_type,          &
                               visu_status)
-
   end subroutine CWP_Field_create
+
 
   !>
   !!
@@ -1620,7 +1604,7 @@ contains
   !! \param [in] data_type         Choice if data is setted for the source or the target
   !! \param [in] data              Storage array (Mapping)
   !!
-  
+
   subroutine CWP_Field_data_set (local_code_name, &
                                  cpl_id,          &
                                  field_id,        &
@@ -1630,17 +1614,17 @@ contains
 
     use, intrinsic :: iso_c_binding
     implicit none
- 
+
     character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
-    integer(c_int) :: i_part  
+    integer(c_int) :: i_part
     integer(c_int) :: map_type
     double precision, dimension(:), pointer :: data
     integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
- 
+
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
     l_field_id = len(field_id)
- 
+
     call CWP_Field_data_set_cf (local_code_name,   &
                                 l_local_code_name, &
                                 cpl_id,            &
@@ -1650,7 +1634,6 @@ contains
                                 i_part,            &
                                 map_type,          &
                                 c_loc(data))
-  
   end subroutine CWP_Field_data_set
 
 
@@ -1684,9 +1667,8 @@ contains
                               l_local_code_name,  &
                               cpl_id,             &
                               l_cpl_id,           &
-                              src_field_id,       &      
+                              src_field_id,       &
                               l_src_field_id)
- 
   end subroutine CWP_Field_issend
 
 
@@ -1702,7 +1684,7 @@ contains
   !! \param [in]  cpl_id          Coupling identifier
   !! \param [in]  tgt_field_id    Target field id
   !!
-  
+
   subroutine CWP_Field_irecv (local_code_name, &
                               cpl_id,          &
                               tgt_field_id)
@@ -1723,7 +1705,6 @@ contains
                             l_cpl_id,           &
                             tgt_field_id,       &
                             l_tgt_field_id)
-  
   end subroutine CWP_Field_irecv
 
 
@@ -1735,9 +1716,9 @@ contains
   !! \param [in] cpl_id           Coupling identifier
   !! \param [in] src_field_id     Source field id
   !!
-  
+
   subroutine CWP_Field_wait_issend (local_code_name, &
-                                    cpl_id,          & 
+                                    cpl_id,          &
                                     src_field_id)
     use, intrinsic :: iso_c_binding
     implicit none
@@ -1755,7 +1736,6 @@ contains
                                    l_cpl_id,           &
                                    src_field_id,       &
                                    l_src_field_id)
-  
   end subroutine CWP_Field_wait_issend
 
 
@@ -1791,8 +1771,8 @@ contains
                                  l_cpl_id,            &
                                  tgt_field_id,        &
                                  l_tgt_field_id)
-  
   end subroutine CWP_Field_wait_irecv
+
 
   !>
   !!
