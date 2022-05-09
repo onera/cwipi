@@ -407,6 +407,8 @@ namespace cwipi {
     id_var = field->visuIdGet();
     //TODO: CHange double for multitype
 
+    PDM_writer_var_data_free(_visu_id, id_var);
+
     for (int i = 0; i < _n_part; i++) {
       PDM_writer_var_set(_visu_id, id_var, _visu_mesh_id, i, (double*) field->dataGet(i, map_type));
     }
