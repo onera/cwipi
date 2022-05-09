@@ -312,7 +312,8 @@ int main(int argc, char *argv[])
                                           PDM_MPI_COMM_WORLD,
                                           PDM_IO_KIND_MPI_SIMPLE,
                                           1.,
-                                          "append = 1");
+                                          NULL);
+//                                          "append = 1");
 
   // PDM_writer_t *id_cs = PDM_writer_create("Ensight",
   //                                         PDM_WRITER_FMT_ASCII,

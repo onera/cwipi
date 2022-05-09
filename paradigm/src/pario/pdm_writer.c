@@ -1609,7 +1609,9 @@ PDM_writer_geom_data_free
 
   if (geom != NULL) {
 
-    PDM_Mesh_nodal_partial_free (geom->mesh_nodal);
+    if (geom->_mesh_nodal != NULL) {
+      PDM_Mesh_nodal_partial_free (geom->_mesh_nodal);
+    }
 
   }
 }
@@ -2232,7 +2234,9 @@ PDM_writer_geom_data_reset
 
   if (geom != NULL) {
 
-    PDM_Mesh_nodal_reset (geom->mesh_nodal);
+    if (geom->_mesh_nodal != NULL) {
+      PDM_Mesh_nodal_reset (geom->_mesh_nodal);
+    }
 
   }
 }
