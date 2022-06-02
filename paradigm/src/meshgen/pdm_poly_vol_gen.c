@@ -202,7 +202,9 @@ PDM_poly_vol_gen
   *dn_cell = (int) (distrib_cell[i_rank+1] - distrib_cell[i_rank]);
   int dn_face_lim = (int) (distrib_face_lim[i_rank+1] - distrib_face_lim[i_rank]);
 
-  printf("[%d] dn_cell = %d, dn_face = %d, dn_vtx = %d\n", i_rank, *dn_cell, *dn_face, *dn_vtx);
+  if (0) {
+    printf("[%d] dn_cell = %d, dn_face = %d, dn_vtx = %d\n", i_rank, *dn_cell, *dn_face, *dn_vtx);
+  }
 
   /*
    *  Vertices

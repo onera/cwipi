@@ -1158,22 +1158,6 @@ PDM_Mesh_nodal_extract_selection
  );
 
 
-/**
- * \brief Write a mesh nodal in Ensight Gold Format
- *
- * \param [in]   filename   Output file name
- * \param [in]   mesh       Pointer to \ref PDM_Mesh_nodal object
- *
- */
-
-void
-PDM_Mesh_nodal_write
-(
- const char       *filename,
- PDM_Mesh_nodal_t *mesh
-);
-
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -47,6 +47,7 @@ int argc,
 char *argv[]
 )
 {
+  int verbose = 0;
 
   PDM_MPI_Init (&argc, &argv);
 
@@ -163,7 +164,9 @@ char *argv[]
   PDM_g_num_t** ln_to_gn = (PDM_g_num_t **) malloc(n_part * sizeof(PDM_g_num_t *));
   for(int i_part = 0; i_part < n_part; ++i_part){
     ln_to_gn[i_part] = PDM_gnum_from_hv_get(gnum_fhv_id, i_part);
-    PDM_log_trace_array_long(ln_to_gn[i_part], n_elmts[i_part], "ln_to_gn::");
+    if (verbose) {
+      PDM_log_trace_array_long(ln_to_gn[i_part], n_elmts[i_part], "ln_to_gn::");
+    }
   }
 
   // Check results : independant of the parallelisme
@@ -203,9 +206,10 @@ char *argv[]
   free(part_key);
   free(ln_to_gn);
 
+  if (i_rank == 0) {
+    PDM_printf ("-- End\n");
+  }
   PDM_MPI_Finalize ();
-
-  PDM_printf ("\nfin Test\n");
 
   return 0;
 

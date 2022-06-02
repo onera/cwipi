@@ -1,8 +1,4 @@
-cdef extern from "pdm_para_graph_dual.h":
-    ctypedef enum PDM_split_dual_t:
-        PDM_SPLIT_DUAL_WITH_PARMETIS = 1
-        PDM_SPLIT_DUAL_WITH_PTSCOTCH = 2
-        PDM_SPLIT_DUAL_WITH_HILBERT  = 3
+
 cdef extern from "pdm_multipart.h":
     ctypedef enum PDM_part_size_t:
         PDM_PART_SIZE_HOMONEGEOUS   = 1

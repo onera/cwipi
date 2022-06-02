@@ -430,6 +430,12 @@ PDM_box_distrib_create(int          n_boxes,
                        PDM_MPI_Comm comm);
 
 
+PDM_box_distrib_t *
+PDM_box_distrib_shared_create(int          n_boxes,
+                              PDM_g_num_t  n_g_boxes,
+                              int          gmax_level,
+                              PDM_MPI_Comm comm);
+
 /**
  * \brief Destroy a \ref PDM_box_distrib_t structure.
  *

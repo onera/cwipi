@@ -62,6 +62,9 @@ PDM_inplace_unique
 )
 {
   int array_size = r - l + 1;
+  if (array_size == 0) {
+    return 0;
+  }
   PDM_sort_int(&a[l], NULL, array_size);
 
   int new_size  = 1;

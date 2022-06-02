@@ -3282,7 +3282,7 @@ const  int      i_part,
     mesh_part  = _ppart->mesh_parts[i_part];
 
   if (mesh_part == NULL) {
-    PDM_printf("PDM_part_part_val_get error : unknown partition\n");
+    PDM_printf("PDM_part_part_color_get error : unknown partition\n");
     exit(1);
   }
 

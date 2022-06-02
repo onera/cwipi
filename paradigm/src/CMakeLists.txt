@@ -20,6 +20,7 @@ file(GLOB_RECURSE SOURCES
      io/pdm_logging.[hc]
      io/pdm_vtk.[hc]
      pdm.h
+     pdm.c
      pdm_priv.h)
 
 file(GLOB_RECURSE SOURCESF

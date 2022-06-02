@@ -834,19 +834,6 @@ static void _export_vtk_surface
 
 
 
-/*static void _export_vtk_surface_parts
-(
- const char         *filename,
- int                 nFace,
- int                *faceVtxIdx,
- int                *faceVtx,
- int                *face_data,
- int                 nVtx,
- double             *vtxCoord
- )
-{
-*/
-
 
 /**
  *
@@ -913,7 +900,7 @@ int main(int argc, char *argv[])
   PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &i_rank);
   PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &n_rank);
 
-  if (i_rank == 0) printf("nr = "PDM_FMT_G_NUM", nt = "PDM_FMT_G_NUM", nz = "PDM_FMT_G_NUM"\n", n_r_seg, n_t_seg, n_z_seg);
+  // if (i_rank == 0) printf("nr = "PDM_FMT_G_NUM", nt = "PDM_FMT_G_NUM", nz = "PDM_FMT_G_NUM"\n", n_r_seg, n_t_seg, n_z_seg);
 
   int           dn_cell;
   int           dn_face;
@@ -1711,7 +1698,7 @@ int main(int argc, char *argv[])
       gface_vtx_idx[i+1] = gface_vtx_idx[i] + 4;
     }
 
-    if (1) {
+    if (post) {
       int *gface_data = malloc (sizeof(int) * gn_face);
       for (int i = 0; i < gn_face; i++) {
         gface_data[i] = (int) gface_g_num[i];

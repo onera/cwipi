@@ -2027,7 +2027,7 @@ PDM_dcube_nodal_gen_build
                      PDM_MPI_MIN,
                      dcube->comm);
 
-  if(i_rank == 0) {
+  if(0 && i_rank == 0) {
     printf("[%i] PDM_dcube_nodal : duration min/max -> %12.5e %12.5e \n", n_rank, delta_min, delta_max);
   }
 

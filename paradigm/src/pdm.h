@@ -316,6 +316,15 @@ typedef enum {
  * Public function prototypes
  *============================================================================*/
 
+/**
+ * \brief Helper to get entity type according to a connectivity
+ *
+ */
+PDM_mesh_entities_t
+PDM_connectivity_type_to_entity_type
+(
+ PDM_connectivity_type_t   connectivity_type
+);
 
 /**
  * \brief Finalize PDM

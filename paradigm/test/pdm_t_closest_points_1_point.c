@@ -76,7 +76,8 @@ _read_args
  char         **argv,
  PDM_g_num_t   *gn_pts,
  double        *length,
- int           *n_closest_pts
+ int           *n_closest_pts,
+ int           *post
 )
 {
   int i = 1;
@@ -117,6 +118,10 @@ _read_args
       else {
         *n_closest_pts = atoi(argv[i]);
       }
+    }
+
+    else if (strcmp(argv[i], "-post") == 0) {
+      *post = 1;
     }
 
     else {
@@ -196,12 +201,14 @@ main (int argc, char *argv[])
   PDM_g_num_t gn_pts           = 10;
   double      length           = 3.14;
   int         n_closest_points = 1;
+  int         post             = 0;
 
   _read_args (argc,
               argv,
               &gn_pts,
               &length,
-              &n_closest_points);
+              &n_closest_points,
+              &post);
 
 
 
@@ -218,7 +225,7 @@ main (int argc, char *argv[])
                &tgt_g_num,
                &tgt_coord);
 
-  if (1) {
+  if (post) {
     for (int i = 0; i < n_tgt; i++) {
       log_trace("tgt "PDM_FMT_G_NUM" coord = %f %f %f\n",
                 tgt_g_num[i],
@@ -285,10 +292,12 @@ main (int argc, char *argv[])
   for (int i = 0; i <= n_tgt; i++) {
     closest_src_idx[i] = n_closest_points * i;
   }
-  PDM_log_trace_connectivity_long (closest_src_idx,
-                                   closest_src_gnum,
-                                   n_tgt,
-                                   "closest_src_gnum : ");
+  if (post) {
+    PDM_log_trace_connectivity_long (closest_src_idx,
+                                     closest_src_gnum,
+                                     n_tgt,
+                                     "closest_src_gnum : ");
+  }
 
   for (int i = 0; i < closest_src_idx[n_tgt]; i++) {
     //assert(closest_src_gnum[i] == 1);

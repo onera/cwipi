@@ -206,7 +206,7 @@ PDM_gnum_location_compute
                                                        gnum_loc->n_part_in,
                                                        gnum_loc->comm);
 
-  PDM_g_num_t *block_distrib_index = PDM_part_to_block_distrib_index_get (ptb);
+  // PDM_g_num_t *block_distrib_index = PDM_part_to_block_distrib_index_get (ptb);
 
   const int s_data = sizeof(int);
   const PDM_stride_t t_stride = PDM_STRIDE_VAR_INTERLACED;
@@ -246,15 +246,24 @@ PDM_gnum_location_compute
   free (part_data);
   free (part_stride);
 
-  PDM_g_num_t* block_distrib_index_correct = PDM_part_to_block_adapt_partial_block_to_block(ptb,
-                                                                                            &block_stride,
-                                                                                            block_distrib_index[n_rank]);
-  // PDM_block_to_part_t *btp = PDM_block_to_part_create (block_distrib_index,
-  PDM_block_to_part_t *btp = PDM_block_to_part_create (block_distrib_index_correct,
-                                                       gnum_loc->g_nums_out,
-                                                       gnum_loc->n_elts_out,
-                                                       gnum_loc->n_part_out,
-                                                       gnum_loc->comm);
+  // PDM_g_num_t* block_distrib_index_correct = PDM_part_to_block_adapt_partial_block_to_block(ptb,
+  //                                                                                           &block_stride,
+  //                                                                                           block_distrib_index[n_rank]);
+  // // PDM_block_to_part_t *btp = PDM_block_to_part_create (block_distrib_index,
+  // PDM_block_to_part_t *btp = PDM_block_to_part_create (block_distrib_index_correct,
+  //                                                      gnum_loc->g_nums_out,
+  //                                                      gnum_loc->n_elts_out,
+  //                                                      gnum_loc->n_part_out,
+  //                                                      gnum_loc->comm);
+
+  PDM_g_num_t* block_g_num = PDM_part_to_block_block_gnum_get (ptb);
+  int          dn_block    = PDM_part_to_block_n_elt_block_get(ptb);
+  PDM_block_to_part_t *btp = PDM_block_to_part_create_from_sparse_block(block_g_num,
+                                                                        dn_block,
+                                                                        gnum_loc->g_nums_out,
+                                                                        gnum_loc->n_elts_out,
+                                                                        gnum_loc->n_part_out,
+                                                                        gnum_loc->comm);
 
   PDM_block_to_part_exch (btp,
                           s_data,
@@ -274,7 +283,7 @@ PDM_gnum_location_compute
   }
   free (block_stride);
   free (block_data);
-  free (block_distrib_index_correct);
+  // free (block_distrib_index_correct);
 
   for (int i = 0; i < gnum_loc->n_part_out; i++) {
     free (part_stride[i]);

@@ -411,6 +411,51 @@ PDM_part_to_block_async_exch
 
 /**
  *
+ * \brief Initialize a asynchronous data exchange
+ *
+ * \param [in]   ptb          Part to block structure
+ * \param [in]   s_data       Data size
+ * \param [in]   t_stride     Stride type
+ * \param [in]   cst_stride   Stride only for \ref PDM_writer_STRIDE_CST
+ * \param [in]   part_stride  Variable stride (size = n_part) only for \ref PDM_writer_STRIDE_VAR
+ * \param [in]   part_data    partitioned data
+ *
+ *
+ */
+void
+PDM_part_to_block_iexch
+(
+       PDM_part_to_block_t  *ptb,
+ const PDM_mpi_comm_kind_t   k_comm,
+       size_t                s_data,
+       PDM_stride_t          t_stride,
+       int                   cst_stride,
+       int                 **part_stride,
+       void                **part_data,
+       int                 **block_stride,
+       void                **block_data,
+       int                  *request
+);
+
+/**
+ *
+ * \brief Finalize and post-treated a asynchronous data exchange
+ *
+ * \param [in]   ptb          Part to block structure
+ * \param [in]   request_id   id of request to wait / post
+ *
+ * \return       Size of highest block
+ *
+ */
+int
+PDM_part_to_block_iexch_wait
+(
+ PDM_part_to_block_t *ptb,
+ int                  request_id
+);
+
+/**
+ *
  * \brief Wait for an exchange
  *
  * \param [in]   ptb          Part to block structure
@@ -453,7 +498,7 @@ PDM_part_to_block_asyn_get_raw
  * \param [out]  block_data   Block data
  *
  */
-void
+int
 PDM_part_to_block_asyn_post_treatment
 (
  PDM_part_to_block_t *ptb,

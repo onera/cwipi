@@ -1493,9 +1493,13 @@ char *argv[]
  /* } */
 
  /* free (face_vtx); */
+ if (i_rank == 0) {
+   PDM_printf ("-- End\n");
+ }
+
+
  PDM_MPI_Finalize ();
 
- PDM_printf ("\nfin Test\n");
 
  return 0;
 

@@ -128,6 +128,8 @@ struct _pdm_dmesh_t
   PDM_bool_t   *is_owner_bound;
 
 
+  PDM_bool_t   is_computed_g_extents;
+  double       g_extents[6];
 };
 
 

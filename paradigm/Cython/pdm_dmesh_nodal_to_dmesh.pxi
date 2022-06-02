@@ -59,6 +59,7 @@ cdef class DMeshNodalToDMesh:
   # ************************************************************************
   # > Class attributes
   cdef PDM_dmesh_nodal_to_dmesh_t* dmn_to_dm
+  keep_alive = list()
   # ************************************************************************
   # ------------------------------------------------------------------------
   def __cinit__(self, n_mesh,
@@ -79,6 +80,7 @@ cdef class DMeshNodalToDMesh:
   def add_dmesh_nodal(self, int i_mesh, DistributedMeshNodal dmn):
     """
     """
+    self.keep_alive.append(dmn)
     PDM_dmesh_nodal_to_dmesh_add_dmesh_nodal(self.dmn_to_dm,
                                              i_mesh,
                                              dmn.dmn)

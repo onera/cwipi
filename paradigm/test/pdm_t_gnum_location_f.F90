@@ -66,6 +66,7 @@ program testf
   integer                               :: n_rank
   integer                               :: i, j
   character                             :: strnum
+  integer                                ::debug = 0
   integer                               :: fid = 13
   !-----------------------------------------------------------
 
@@ -79,16 +80,17 @@ program testf
     stop
   end if
 
-  write (strnum, '(i1)') i_rank
-  open(unit=fid, file="gnum_location_"//strnum//".log", action='write')
-
+  if (1 .eq. debug) then
+    write (strnum, '(i1)') i_rank
+    open(unit=fid, file="gnum_location_"//strnum//".log", action='write')
+  end if   
 
   !  Define partitions
   n_part1 = 3
   n_part2 = 3
 
   allocate(my_part1(n_part1), my_part2(n_part2))
-  if (i_rank .eq. 0) then
+  if (i_rank .eq. debug) then
 
     !! Part 1
     my_part1(1)%n_requested = 0
@@ -158,18 +160,22 @@ program testf
 
 
   !  Set elements
-  write (fid, *) "---- Elements ----"
+  if (1 .eq. debug) then
+    write (fid, *) "---- Elements ----"
+  endif
   do i = 1, n_part2
     call pdm_gnum_location_elements_set (gloc,                 &
                                          i-1,                  &
                                          my_part2(i)%n_elt,    &
                                          my_part2(i)%elt_gnum)
 
-    write (fid, *) "part", i-1
-    write (fid, *) "lnum -> gnum :"
-    do j = 1, my_part2(i)%n_elt
-      write (fid, *) j, " ->", my_part2(i)%elt_gnum(j)
-    end do
+    if (1 .eq. debug) then
+      write (fid, *) "part", i-1
+      write (fid, *) "lnum -> gnum :"
+      do j = 1, my_part2(i)%n_elt
+        write (fid, *) j, " ->", my_part2(i)%elt_gnum(j)
+      end do
+    endif
   end do
 
 
@@ -187,9 +193,11 @@ program testf
 
 
   !  Get location
-  write (fid, *) ""
-  write (fid, *) ""
-  write (fid, *) "---- Location ----"
+  if (1 .eq. debug) then
+    write (fid, *) ""
+    write (fid, *) ""
+    write (fid, *) "---- Location ----"
+  endif
   do i = 1, n_part1
 
     call pdm_gnum_location_get (gloc,         &
@@ -197,12 +205,14 @@ program testf
                                 location_idx, &
                                 location)
 
-    write (fid, *) "part", i-1
-    write (fid, *) "location_idx :", location_idx
-    write (fid, *) "requested gnum -> location (rank, part, lnum) :"
-    do j = 1, my_part1(i)%n_requested
-      write (fid, *) my_part1(i)%requested_gnum(j), " ->", location(location_idx(j)+1:location_idx(j+1))
-    end do
+    if (1 .eq. debug) then
+      write (fid, *) "part", i-1
+      write (fid, *) "location_idx :", location_idx
+      write (fid, *) "requested gnum -> location (rank, part, lnum) :"
+      do j = 1, my_part1(i)%n_requested
+       write (fid, *) my_part1(i)%requested_gnum(j), " ->", location(location_idx(j)+1:location_idx(j+1))
+      end do
+    endif
 
   end do
 
@@ -222,10 +232,12 @@ program testf
   deallocate(my_part2)
 
 
-  close(fid)
+  if (1 .eq. debug) then
+   close(fid)
+  endif
 
 
-  if (i_rank .eq. 0) then
+  if (i_rank .eq. debug) then
     write(*, *) "-- End"
   end if
 

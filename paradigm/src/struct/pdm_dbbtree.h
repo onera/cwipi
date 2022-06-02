@@ -113,6 +113,17 @@ PDM_dbbtree_boxes_set
  const PDM_g_num_t **gNum
  );
 
+PDM_box_set_t *
+PDM_dbbtree_boxes_set_for_intersect_line
+(
+ PDM_dbbtree_t      *dbbt,
+ const int           n_part,
+ const int          *nElts,
+ const double      **extents,
+ const PDM_g_num_t **gNum,
+ const int           n_line,
+ double             *line_coord
+);
 
 /**
  * \brief Assign boxes to intersect to the tree.
@@ -308,6 +319,45 @@ PDM_dbbtree_points_debug
  double             *pts_coord,
  PDM_g_num_t        *pts_g_num
 );
+
+
+/**
+ *
+ * \brief Get an indexed list of all lines intersecting boxes
+ * /!\ Results conform to the dbbtree's box partitionning
+ *
+ *   \param [in]  dbbt             Pointer to distributed box tree structure
+ *   \param [in]  n_line           Number of points
+ *   \param [in]  line_g_num       Line global ids (size = \ref n_line)
+ *   \param [in]  line_coord       Line coordinates (size = 6 * \ref n_line)
+ *   \param [out] box_line_idx     Index of lines (size = \ref n_box + 1, allocated inside function)
+ *   \param [out] box_line_g_num   Global ids of lines (size = \ref box_idx[\ref n_box], allocated inside function)
+ *
+ */
+
+void
+PDM_dbbtree_lines_intersect_boxes2
+(
+ PDM_dbbtree_t  *dbbt,
+ const int       n_line,
+ PDM_g_num_t    *line_g_num,
+ double         *line_coord,
+ int            *n_part,
+ int           **redistrib_n_box,
+ PDM_g_num_t  ***redistrib_box_ln_to_gn,
+ int          ***box_line_idx,
+ PDM_g_num_t  ***box_line_g_num
+ );
+
+
+void
+PDM_dbbtree_box_tree_write_vtk
+(
+ const char    *filename,
+ PDM_dbbtree_t *dbbt,
+ const int      i_copied_rank,
+ const int      normalized
+ );
 
 #ifdef __cplusplus
 }

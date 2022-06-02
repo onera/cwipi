@@ -809,12 +809,14 @@ char *argv[]
                                          &n_total_part,
                                          &n_edge_group);
 
-  PDM_part_free(ppart);
+ PDM_part_free(ppart);
 
+ if (i_rank == 0) {
+   PDM_printf ("-- End\n");
+ }
 
  PDM_MPI_Finalize ();
 
- PDM_printf ("\nfin Test\n");
 
  return 0;
 

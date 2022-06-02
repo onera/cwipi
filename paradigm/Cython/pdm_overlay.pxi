@@ -1,5 +1,7 @@
 
 cdef extern from "pdm_overlay.h":
+  ctypedef struct PDM_ol_t:
+      pass
 
   # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   # > Wrapping of enum
@@ -19,47 +21,47 @@ cdef extern from "pdm_overlay.h":
 
   # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   # > Wrapping of function
-  int PDM_ol_create(int          n_partMeshA,
+  PDM_ol_t* PDM_ol_create(int          n_partMeshA,
                     int          n_partMeshB,
                     double       projectCoeff,
                     PDM_MPI_Comm comm)
 
-  void PDM_ol_parameter_set(int                id,
+  void PDM_ol_parameter_set(PDM_ol_t*          ol,
                             PDM_ol_parameter_t parameter,
                             double             value)
 
-  void PDM_ol_input_mesh_set(int           id,
-                             PDM_ol_mesh_t mesh,
-                             int           i_part,
-                             int           n_face,
-                             int          *face_vtx_idx,
-                             int          *face_vtx,
-                             PDM_g_num_t  *face_ln_to_gn,
-                             int           n_vtx,
-                             double       *coords,
-                             PDM_g_num_t  *vtx_ln_to_gn)
+  void PDM_ol_input_mesh_set(PDM_ol_t*          ol,
+                             PDM_ol_mesh_t      mesh,
+                             int                i_part,
+                             int                n_face,
+                             int               *face_vtx_idx,
+                             int               *face_vtx,
+                             PDM_g_num_t       *face_ln_to_gn,
+                             int                n_vtx,
+                             double            *coords,
+                             PDM_g_num_t       *vtx_ln_to_gn)
 
-  void PDM_ol_moving_type_set(int           id,
+  void PDM_ol_moving_type_set(PDM_ol_t*     ol,
                               PDM_ol_mesh_t mesh,
                               PDM_ol_mv_t   mv)
 
-  void PDM_ol_translation_set(int           id,
+  void PDM_ol_translation_set(PDM_ol_t*     ol,
                               double       *vect,
                               double       *center)
 
-  void PDM_ol_rotation_set(int      id,
+  void PDM_ol_rotation_set(PDM_ol_t*     ol,
                            double  *direction,
                            double  *center,
                            double   angle)
 
-  void PDM_ol_compute(int          id)
+  void PDM_ol_compute(PDM_ol_t*     ol)
 
-  void PDM_ol_mesh_dim_get(int             id,
+  void PDM_ol_mesh_dim_get(PDM_ol_t*     ol,
                            PDM_ol_mesh_t   mesh,
                            PDM_g_num_t    *nGOlFace,
                            PDM_g_num_t    *nGOlVtx)
 
-  void PDM_ol_part_mesh_dim_get(int            id,
+  void PDM_ol_part_mesh_dim_get(PDM_ol_t*     ol,
                                 PDM_ol_mesh_t  mesh,
                                 int            i_part,
                                 int           *nOlFace,
@@ -69,7 +71,7 @@ cdef extern from "pdm_overlay.h":
                                 int           *sOlface_vtx,
                                 int           *sInit_to_ol_face)
 
-  void PDM_ol_mesh_entities_get(int              id,
+  void PDM_ol_mesh_entities_get(PDM_ol_t*        ol,
                                 PDM_ol_mesh_t    mesh,
                                 int              i_part,
                                 int            **olFaceIniVtxIdx,
@@ -84,9 +86,9 @@ cdef extern from "pdm_overlay.h":
                                 int            **init_to_ol_face_idx,
                                 int            **init_to_ol_face)
 
-  void PDM_ol_del(int     id)
+  void PDM_ol_del(PDM_ol_t*     ol)
 
-  void PDM_ol_dump_times(int     id)
+  void PDM_ol_dump_times(PDM_ol_t*     ol)
   # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 # ------------------------------------------------------------------
@@ -95,10 +97,10 @@ cdef class Overlay:
   """
   # ************************************************************************
   # > Class attributes
-  cdef int _id
-  cdef int _size
-  cdef int _rank
-  cdef int _init_face[2] # Store the init_face for mesh_a / mesh_b
+  cdef PDM_ol_t *_ol
+  cdef int       _size
+  cdef int       _rank
+  cdef int       _init_face[2] # Store the init_face for mesh_a / mesh_b
   # ************************************************************************
 
   # ------------------------------------------------------------------------
@@ -120,7 +122,7 @@ cdef class Overlay:
     cdef PDM_MPI_Comm PDMC   = PDM_MPI_mpi_2_pdm_mpi_comm(<void *> &c_comm)
     # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
-    self._id = PDM_ol_create(n_partMeshA,
+    self._ol = PDM_ol_create(n_partMeshA,
                              n_partMeshB,
                              projectCoeff,
                              PDMC)
@@ -130,7 +132,7 @@ cdef class Overlay:
                           double             value):
     """
     """
-    PDM_ol_parameter_set(self._id, parameter, value)
+    PDM_ol_parameter_set(self._ol, parameter, value)
 
   # ------------------------------------------------------------------------
   def input_mesh_set(self, PDM_ol_mesh_t                                 mesh,
@@ -145,7 +147,7 @@ cdef class Overlay:
     """
     """
     self._init_face[<int>mesh] = n_face
-    PDM_ol_input_mesh_set(self._id, mesh,
+    PDM_ol_input_mesh_set(self._ol, mesh,
                           i_part,
                           n_face,
            <int*>         face_vtx_idx.data,
@@ -160,14 +162,14 @@ cdef class Overlay:
                             PDM_ol_mv_t   mv):
     """
     """
-    PDM_ol_moving_type_set(self._id, mesh, mv)
+    PDM_ol_moving_type_set(self._ol, mesh, mv)
 
   # ------------------------------------------------------------------------
   def translation_set(self, NPY.ndarray[NPY.double_t  , mode='c', ndim=1] vect,
                             NPY.ndarray[NPY.double_t  , mode='c', ndim=1] center):
     """
     """
-    PDM_ol_translation_set(self._id,
+    PDM_ol_translation_set(self._ol,
                  <double*> vect.data,
                  <double*> center.data)
 
@@ -177,7 +179,7 @@ cdef class Overlay:
                          double angle):
     """
     """
-    PDM_ol_rotation_set(self._id,
+    PDM_ol_rotation_set(self._ol,
               <double*> direction.data,
               <double*> center.data,
                         angle)
@@ -186,7 +188,7 @@ cdef class Overlay:
   def compute(self):
     """
     """
-    PDM_ol_compute(self._id)
+    PDM_ol_compute(self._ol)
 
   # ------------------------------------------------------------------------
   def mesh_dim_get(self, PDM_ol_mesh_t mesh):
@@ -198,7 +200,7 @@ cdef class Overlay:
     cdef PDM_g_num_t nGOlVtx
     # ************************************************************************
 
-    PDM_ol_mesh_dim_get(self._id, mesh, &nGOlFace, &nGOlVtx)
+    PDM_ol_mesh_dim_get(self._ol, mesh, &nGOlFace, &nGOlVtx)
 
     return {'nGOlFace' : nGOlFace,
             'nGOlVtx'  : nGOlVtx
@@ -219,7 +221,7 @@ cdef class Overlay:
     cdef int sInit_to_ol_face
     # ************************************************************************
 
-    PDM_ol_part_mesh_dim_get(self._id, mesh, i_part,
+    PDM_ol_part_mesh_dim_get(self._ol, mesh, i_part,
                              &nOlFace,
                              &nOlLinkedFace,
                              &nOlVtx,
@@ -262,7 +264,7 @@ cdef class Overlay:
     # ************************************************************************
 
     # > Get dims first
-    PDM_ol_part_mesh_dim_get(self._id, mesh, i_part,
+    PDM_ol_part_mesh_dim_get(self._ol, mesh, i_part,
                              &nOlFace,
                              &nOlLinkedFace,
                              &nOlVtx,
@@ -270,7 +272,7 @@ cdef class Overlay:
                              &sOlface_vtx,
                              &sInit_to_ol_face)
 
-    PDM_ol_mesh_entities_get(self._id, mesh, i_part,
+    PDM_ol_mesh_entities_get(self._ol, mesh, i_part,
                              &olFaceIniVtxIdx,
                              &olFaceIniVtx,
                              &olface_vtx_idx,
@@ -372,4 +374,4 @@ cdef class Overlay:
     # ************************************************************************
     # > Declaration
     # ************************************************************************
-    PDM_ol_del(self._id)
+    PDM_ol_del(self._ol)

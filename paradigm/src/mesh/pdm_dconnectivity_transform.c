@@ -94,17 +94,6 @@ _deduce_combine_connectivity_impl
     dentity2_entity3_n[i] = dentity2_entity3_idx[i+1] - dentity2_entity3_idx[i];
   }
 
-  PDM_g_num_t* dentity1_entity2_cur = NULL;
-
-  if(is_signed) {
-    dentity1_entity2_cur = (PDM_g_num_t* ) malloc( dentity1_entity2_idx[dn_entity1] * sizeof(PDM_g_num_t));
-    for(int i = 0; i < dentity1_entity2_idx[dn_entity1]; ++i) {
-      dentity1_entity2_cur[i] = PDM_ABS(dentity1_entity2[i]);
-    }
-  } else {
-    dentity1_entity2_cur = (PDM_g_num_t *) dentity1_entity2;
-  }
-
   // PDM_log_trace_array_int(dentity1_entity2_idx, dn_entity1+1, "dentity1_entity2_idx::");
   // PDM_log_trace_array_long(dentity1_entity2_cur, dentity1_entity2_idx[dn_entity1], "dentity1_entity2::");
 
@@ -115,17 +104,10 @@ _deduce_combine_connectivity_impl
    * So, for each entity2 describe by dentity1_entity2, we receive all vtx
    */
   PDM_block_to_part_t* btp = PDM_block_to_part_create(entity2_distrib,
-                               (const PDM_g_num_t **) &dentity1_entity2_cur,
+                               (const PDM_g_num_t **) &dentity1_entity2,
                                                       &dentity1_entity2_idx[dn_entity1],
                                                       1,
                                                       comm);
-
-  /*
-   * Free
-   */
-  if(is_signed) {
-    free(dentity1_entity2_cur);
-  }
 
   /*
    * Exchange
@@ -439,19 +421,16 @@ PDM_dconnectivity_transpose
   int dn_entity1  = entity1_distrib[i_rank+1] - entity1_distrib[i_rank];
   // int dn_entity2  = entity2_distrib[i_rank+1] - entity2_distrib[i_rank];
 
-  PDM_g_num_t* ln_to_gn = NULL;
-  PDM_g_num_t* gnum = (PDM_g_num_t * ) malloc( dentity1_entity2_idx[dn_entity1] * sizeof(PDM_g_num_t));
+  PDM_g_num_t* ln_to_gn = (PDM_g_num_t * ) dentity1_entity2;
+  PDM_g_num_t* gnum     = (PDM_g_num_t * ) malloc( dentity1_entity2_idx[dn_entity1] * sizeof(PDM_g_num_t));
 
   PDM_g_num_t shift_g = 1 + entity1_distrib[i_rank]; // Entre 1 et N
 
   if(is_signed) {
-    ln_to_gn = (PDM_g_num_t * ) malloc( dentity1_entity2_idx[dn_entity1] * sizeof(PDM_g_num_t));
-
     for(int i_entity = 0; i_entity < dn_entity1; ++i_entity) {
       for(int j = dentity1_entity2_idx[i_entity]; j < dentity1_entity2_idx[i_entity+1]; ++j) {
         int g_sign = PDM_SIGN(dentity1_entity2[j]);
         gnum[j] = g_sign * (i_entity + shift_g);
-        ln_to_gn[j] = PDM_ABS(dentity1_entity2[j]);
       }
     }
   } else {
@@ -493,10 +472,6 @@ PDM_dconnectivity_transpose
   }
 
   int* send_stri = PDM_array_const_int(dentity1_entity2_idx[dn_entity1], 1);
-
-  if(is_signed) {
-    free(ln_to_gn);
-  }
 
   int         *dentity2_entity1_n = NULL;
   PDM_g_num_t *recv_data          = NULL;
@@ -551,9 +526,9 @@ PDM_dconnectivity_transpose
   // PDM_log_trace_array_long(recv_data, blk_size, "Before : recv_data::");
 
   PDM_para_graph_compress_connectivity(dn_entity2_recv,
-                                        _dentity2_entity1_idx,
-                                        dentity2_entity1_n,
-                                        recv_data);
+                                       _dentity2_entity1_idx,
+                                       dentity2_entity1_n,
+                                       recv_data);
   // printf("*dentity2_entity1_idx[dn_entity2_recv]       ::%i\n", _dentity2_entity1_idx[dn_entity2_recv]       );
 
   // *dentity2_entity1 = recv_data;
@@ -562,11 +537,6 @@ PDM_dconnectivity_transpose
    * Realloc
    */
   *dentity2_entity1 = realloc(recv_data, _dentity2_entity1_idx[dn_entity2_recv] * sizeof(PDM_g_num_t));
-  // PDM_g_num_t* _dentity2_entity1 = *dentity2_entity1;
-
-  // PDM_log_trace_array_int (_dentity2_entity1_idx, dn_entity2_recv+1         , "_dentity2_entity1_idx::");
-  // PDM_log_trace_array_long(*dentity2_entity1, _dentity2_entity1_idx[dn_entity2_recv], "recv_data::");
-
   free(dentity2_entity1_n);
 }
 
@@ -761,6 +731,112 @@ PDM_dgroup_entity_transpose
   }
 
   *dentity_group = realloc(*dentity_group, _dentity_group_idx[dn_entity] * sizeof(int));
+}
+
+
+
+void
+PDM_dentity_group_transpose
+(
+ int            n_group,
+ int           *dentity_group_idx,
+ int           *dentity_group,
+ PDM_g_num_t   *distrib_entity,
+ int          **dgroup_entity_idx,
+ PDM_g_num_t  **dgroup_entity,
+ PDM_MPI_Comm   comm
+)
+{
+  int i_rank;
+  int n_rank;
+
+  PDM_MPI_Comm_rank(comm, &i_rank);
+  PDM_MPI_Comm_size(comm, &n_rank);
+
+  int dn_entity = distrib_entity[i_rank+1] - distrib_entity[i_rank];
+
+  int          *select_entity_n = malloc(n_group * sizeof(int          ));
+  PDM_g_num_t **select_entity   = malloc(n_group * sizeof(PDM_g_num_t *));
+  for(int i_group = 0; i_group < n_group; ++i_group) {
+    select_entity_n[i_group] = 0;
+  }
+
+  for(int idx_entity = 0; idx_entity < dentity_group_idx[dn_entity]; ++idx_entity) {
+    select_entity_n[dentity_group[idx_entity]]++;
+  }
+
+  if(0 == 1) {
+    PDM_log_trace_array_int(select_entity_n, n_group, " select_entity_n : ");
+  }
+
+  for(int i_group = 0; i_group < n_group; ++i_group) {
+    select_entity  [i_group] = malloc( select_entity_n[i_group] * sizeof(PDM_g_num_t));
+    select_entity_n[i_group] = 0;
+  }
+
+
+  for(int i_entity = 0; i_entity < dn_entity; ++i_entity) {
+    for(int idx_entity = dentity_group_idx[i_entity]; idx_entity <  dentity_group_idx[i_entity+1]; ++idx_entity) {
+      int i_group   = dentity_group[idx_entity];
+      int idx_write = select_entity_n[i_group]++;
+      select_entity[i_group][idx_write] = distrib_entity[i_rank] + i_entity + 1;
+    }
+  }
+
+  if(0 == 1) {
+    for(int i_group = 0; i_group < n_group; ++i_group) {
+      PDM_log_trace_array_long(select_entity[i_group], select_entity_n[i_group], " select_entity : ");
+    }
+  }
+
+  /*
+   *  For each group we repart all information by block
+   */
+  PDM_part_to_block_t **ptb = malloc(n_group * sizeof(PDM_part_to_block_t *));
+
+  int *_dgroup_entity_idx = (int * ) malloc( (n_group+1) * sizeof(int));
+  _dgroup_entity_idx[0] = 0;
+  for(int i_group = 0; i_group < n_group; ++i_group) {
+
+    _dgroup_entity_idx[i_group+1] = _dgroup_entity_idx[i_group];
+    ptb[i_group] = PDM_part_to_block_create(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+                                            PDM_PART_TO_BLOCK_POST_CLEANUP,
+                                            1.,
+                                            &select_entity[i_group],
+                                            NULL,
+                                            &select_entity_n[i_group],
+                                            1,
+                                            comm);
+    _dgroup_entity_idx[i_group+1] += PDM_part_to_block_n_elt_block_get(ptb[i_group]);
+  }
+
+  // PDM_log_trace_array_long(_dgroup_entity_idx, n_group+1, " _dgroup_entity_idx : ");
+  PDM_g_num_t *_dgroup_entity = malloc(_dgroup_entity_idx[n_group] * sizeof(PDM_g_num_t));
+  for(int i_group = 0; i_group < n_group; ++i_group) {
+    PDM_g_num_t* blk_gnum = PDM_part_to_block_block_gnum_get(ptb[i_group]);
+
+
+    // PDM_log_trace_array_long(blk_gnum, PDM_part_to_block_n_elt_block_get(ptb[i_group]), " blk_gnum : ");
+
+    for(int i = _dgroup_entity_idx[i_group]; i < _dgroup_entity_idx[i_group+1]; ++i) {
+      int j = i - _dgroup_entity_idx[i_group];
+      _dgroup_entity[i] = blk_gnum[j];
+    }
+  }
+
+
+
+  for(int i_group = 0; i_group < n_group; ++i_group) {
+    free(select_entity[i_group]);
+    PDM_part_to_block_free(ptb[i_group]);
+  }
+  free(ptb);
+  free(select_entity_n);
+  free(select_entity  );
+
+  *dgroup_entity_idx = _dgroup_entity_idx;
+  *dgroup_entity     = _dgroup_entity;
+
 }
 
 

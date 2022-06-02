@@ -141,8 +141,9 @@ _usage(int exit_code)
 static void
 _read_args(int            argc,
            char         **argv,
-           PDM_g_num_t  *n_vtx_seg,
-           double        *length)
+           PDM_g_num_t   *n_vtx_seg,
+           double        *length,
+           int           *verbose)
 {
   int i = 1;
 
@@ -169,6 +170,9 @@ _read_args(int            argc,
       else
         *length = atof(argv[i]);
     }
+    else if (strcmp(argv[i], "-v") == 0) {
+      *verbose = 1;
+    }
     else
       _usage(EXIT_FAILURE);
     i++;
@@ -187,12 +191,14 @@ int main(int argc, char *argv[])
   PDM_g_num_t        n_vtx_seg = 10;
   double             length    = 1.;
   int                n_zone    = 2;
+  int                verbose   = 0;
 
 
   _read_args(argc,
              argv,
              &n_vtx_seg,
-             &length);
+             &length,
+             &verbose);
 
   int i_rank;
   int n_rank;
@@ -386,13 +392,15 @@ int main(int argc, char *argv[])
   }
   assert (i_interface == n_interface);
 
-  log_trace("Number of interfaces : %d\n", n_interface);
-  PDM_log_trace_array_int(interface_dn_f, n_interface, "interface_dn_f ::");
-  for (i_interface = 0; i_interface < n_interface; i_interface ++) {
-    log_trace("Interface %d\n", i_interface);
-    PDM_log_trace_array_long(interface_ids_f[i_interface], 2*interface_dn_f[i_interface], "  face ids ::");
-    PDM_log_trace_array_int (interface_dom_f[i_interface], 2*interface_dn_f[i_interface], "  face dom ::");
-  } 
+  if (verbose) {
+    log_trace("Number of interfaces : %d\n", n_interface);
+    PDM_log_trace_array_int(interface_dn_f, n_interface, "interface_dn_f ::");
+    for (i_interface = 0; i_interface < n_interface; i_interface ++) {
+      log_trace("Interface %d\n", i_interface);
+      PDM_log_trace_array_long(interface_ids_f[i_interface], 2*interface_dn_f[i_interface], "  face ids ::");
+      PDM_log_trace_array_int (interface_dom_f[i_interface], 2*interface_dn_f[i_interface], "  face dom ::");
+    }
+  }
   
   // New version begins
   PDM_domain_interface_t *dom_intrf = PDM_domain_interface_create(n_interface, n_zone,
@@ -405,12 +413,14 @@ int main(int argc, char *argv[])
   PDM_domain_interface_translate_face2vtx(dom_intrf, dn_vtx, dn_face, dface_vtx_idx, dface_vtx);
   PDM_domain_interface_get(dom_intrf, PDM_BOUND_TYPE_VTX, &interface_dn_v, &interface_ids_v, &interface_dom_v);
 
-  PDM_log_trace_array_int(interface_dn_v, n_interface, "interface_dn_v ::");
-  for (i_interface = 0; i_interface < n_interface; i_interface ++) {
-    log_trace("Interface %d\n", i_interface);
-    PDM_log_trace_array_long(interface_ids_v[i_interface], 2*interface_dn_v[i_interface], "  vtx ids ::");
-    PDM_log_trace_array_int (interface_dom_v[i_interface], 2*interface_dn_v[i_interface], "  vtx dom ::");
-  } 
+  if (verbose) {
+    PDM_log_trace_array_int(interface_dn_v, n_interface, "interface_dn_v ::");
+    for (i_interface = 0; i_interface < n_interface; i_interface ++) {
+      log_trace("Interface %d\n", i_interface);
+      PDM_log_trace_array_long(interface_ids_v[i_interface], 2*interface_dn_v[i_interface], "  vtx ids ::");
+      PDM_log_trace_array_int (interface_dom_v[i_interface], 2*interface_dn_v[i_interface], "  vtx dom ::");
+    }
+  }
 
 
   PDM_domain_interface_free(dom_intrf);

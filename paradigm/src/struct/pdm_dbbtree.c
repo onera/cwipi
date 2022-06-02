@@ -32,6 +32,8 @@
 #include "pdm_part_to_block.h"
 #include "pdm_block_to_part.h"
 #include "pdm_timer.h"
+#include "pdm_logging.h"
+#include "pdm_binary_search.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -197,6 +199,16 @@ _redistribute_boxes
     PDM_printf ("-- fin dump\n");
   }
 
+  if(0 == 1) {
+    char filename[999];
+    int i_rank;
+    PDM_MPI_Comm_rank (dbbt->comm, &i_rank);
+    sprintf(filename, "dbbt_coarse_tree_%3.3d.vtk",i_rank);
+    PDM_vtk_write_boxes (filename,
+                         dbbt->boxes->local_boxes->n_boxes,
+                         dbbt->boxes->local_boxes->extents,
+                         dbbt->boxes->local_boxes->g_num);
+  }
   /*
    * Compute an index based on Morton encoding to ensure a good distribution
    * of bounding boxes among the ranks.
@@ -233,6 +245,660 @@ _redistribute_boxes
 
 }
 
+
+
+static
+void
+_adapt_tree_weight_for_intersect_line
+(
+ _PDM_dbbtree_t      *dbbt,
+ PDM_box_tree_t      *coarse_tree,
+ int                  n_line,
+ double              *line_coord
+)
+{
+  int debug = 0;
+  int n_rank;
+  int i_rank;
+  PDM_MPI_Comm_size (dbbt->comm, &n_rank);
+  PDM_MPI_Comm_rank (dbbt->comm, &i_rank);
+  const int sExtents = dbbt->dim * 2;
+
+  /*
+   * Compute an index based on Morton encoding to ensure a good distribution
+   * of bounding boxes among the ranks.
+   */
+  int     normalized       = 0;
+  // int     n_depth_max      = 0;
+  // int     n_extract_boxes  = 0;
+  // double *extract_extents  = NULL;
+  // int     n_extract_child  = 0;
+  // int    *extract_child_id = NULL;
+  // PDM_box_tree_extract_extents(coarse_tree,
+  //                              normalized,
+  //                              n_depth_max,
+  //                              &n_extract_boxes,
+  //                              &extract_extents,
+  //                              &n_extract_child,
+  //                              &extract_child_id);
+  // PDM_log_trace_array_int(extract_child_id, n_extract_child, "extract_child_id ::");
+  /*
+   *  Normalize coordinates
+   */
+  if(0 == 1) {
+    double *_line_coord = malloc (sizeof(double) * n_line * 6);
+    for (int i = 0; i < 2*n_line; i++) {
+      _normalize (dbbt, line_coord  + 3*i, _line_coord + 3*i);
+    }
+
+    if(debug) {
+      char filename[999];
+      sprintf(filename, "ray_normalize_%i.vtk", i_rank);
+      PDM_vtk_write_lines(filename,
+                          n_line,
+                          _line_coord,
+                          NULL,
+                          NULL);
+    }
+    free(_line_coord);
+  }
+
+  PDM_g_num_t _n_g_line = n_line;
+  PDM_g_num_t  n_g_line = 0;
+  PDM_MPI_Allreduce(&_n_g_line, &n_g_line, 1,
+                     PDM__PDM_MPI_G_NUM, PDM_MPI_SUM, dbbt->comm);
+
+  double bucket_size_min = 0.2 * n_g_line / (n_rank);
+  if (debug) {
+    log_trace("bucket_size_min : %12.5e \n", bucket_size_min);
+  }
+
+  int n_max_it = 6;
+
+  int  n_child_to_extract   = 1;
+  int *child_ids_to_extract = malloc(n_child_to_extract * sizeof(int));
+
+  int  n_all_child_ids = 0;
+  int *all_child_ids                 = malloc(n_all_child_ids * sizeof(int));
+  int *all_g_count_by_sampling_boxes = malloc(n_all_child_ids * sizeof(int));
+
+  /* Init algo by root extract */
+  child_ids_to_extract[0] = 0;
+
+  for(int it = 0; it < n_max_it; ++it) {
+
+    int     n_extract_boxes       = 0;
+    double *extract_extents       = NULL;
+    int     n_extract_child       = 0;
+    int    *extract_child_id      = NULL;
+    int    *extract_child_is_leaf = NULL;
+
+    PDM_box_tree_extract_extents_by_child_ids(coarse_tree,
+                                              normalized,
+                                              n_child_to_extract,
+                                              child_ids_to_extract,
+                                              &n_extract_boxes,
+                                              &extract_extents,
+                                              &n_extract_child,
+                                              &extract_child_id,
+                                              &extract_child_is_leaf);
+
+    if (debug) {
+      PDM_log_trace_array_int(extract_child_id     , n_extract_child, "extract_child_id :");
+      PDM_log_trace_array_int(extract_child_is_leaf, n_extract_child, "extract_child_is_leaf :");
+    }
+
+    if(debug) {
+      char filename[999];
+      sprintf(filename, "dbbt_extract_coarse_tree_it=%3.3d_%3.3d.vtk",it,i_rank);
+      PDM_vtk_write_boxes (filename,
+                           n_extract_boxes,
+                           extract_extents,
+                           NULL);
+    }
+
+    int *n_g_extract_boxes = (int *) malloc (sizeof(int) * n_rank);
+    PDM_MPI_Allgather (&n_extract_boxes , 1, PDM_MPI_INT,
+                       n_g_extract_boxes, 1, PDM_MPI_INT, dbbt->comm);
+
+    /*
+     *  Compute idx
+     */
+    int *g_extract_boxes_idx = (int *) malloc (sizeof(int) * (n_rank+1));
+    g_extract_boxes_idx[0] = 0;
+    for(int i = 0; i < n_rank; ++i) {
+      g_extract_boxes_idx[i+1] = g_extract_boxes_idx[i] + n_g_extract_boxes[i];
+    }
+
+    if(0 == 1) {
+      PDM_log_trace_array_int(g_extract_boxes_idx, n_rank+1, "g_extract_boxes_idx ::");
+    }
+
+    int n_g_extract_boxes_all = g_extract_boxes_idx[n_rank];
+    PDM_g_num_t *g_num_sampling = (PDM_g_num_t * ) malloc( n_g_extract_boxes_all * sizeof(PDM_g_num_t));
+    for(int i = 0; i < n_rank; ++i) {
+      for(int j = g_extract_boxes_idx[i]; j < g_extract_boxes_idx[i+1]; ++j) {
+        g_num_sampling[j] = i;
+      }
+    }
+
+    double *g_sampling_extent = (double *) malloc (sizeof(double) * sExtents * n_g_extract_boxes_all);
+    for(int i = 0; i < n_rank; ++i) {
+      g_extract_boxes_idx[i] *= sExtents;
+      n_g_extract_boxes  [i] *= sExtents;
+    }
+
+    PDM_MPI_Allgatherv(extract_extents  , n_extract_boxes   * sExtents , PDM__PDM_MPI_REAL,
+                       g_sampling_extent, n_g_extract_boxes,
+                       g_extract_boxes_idx,
+                       PDM__PDM_MPI_REAL, dbbt->comm);
+    for(int i = 0; i < n_rank; ++i) {
+      g_extract_boxes_idx[i] /= sExtents;
+      n_g_extract_boxes  [i] /= sExtents;
+    }
+
+    // PDM_log_trace_array_double(g_sampling_extent, n_g_extract_boxes_all * sExtents, "g_sampling_extent ::");
+
+    int *init_location_proc = PDM_array_zeros_int(3 * n_g_extract_boxes_all);
+    PDM_box_set_t* rank_boxes = PDM_box_set_create(3,
+                                                   0,  // No normalization to preserve initial extents
+                                                   0,  // No projection to preserve initial extents
+                                                   n_g_extract_boxes_all,
+                                                   g_num_sampling,
+                                                   g_sampling_extent,
+                                                   1,
+                                                   &n_g_extract_boxes_all,
+                                                   init_location_proc,
+                                                   dbbt->comm);
+    memcpy (rank_boxes->d, dbbt->d, sizeof(double) * 3);
+    memcpy (rank_boxes->s, dbbt->s, sizeof(double) * 3);
+    free   (init_location_proc);
+
+    /*
+     *  Build a shared box_tree to evaluate distribution
+     *
+     */
+    PDM_box_tree_t* shared_box_tree = PDM_box_tree_create (dbbt->maxTreeDepthShared,
+                                                           dbbt->maxBoxesLeafShared,
+                                                           dbbt->maxBoxRatioShared);
+
+
+    /* Build a tree and associate boxes */
+    PDM_box_tree_set_boxes (shared_box_tree,
+                            rank_boxes,
+                            PDM_BOX_TREE_ASYNC_LEVEL);
+
+    if(debug && i_rank == 0) {
+      const char* filename = "dbbt_sampling_shared_tree.vtk";
+      PDM_vtk_write_boxes (filename,
+                           rank_boxes->local_boxes->n_boxes,
+                           rank_boxes->local_boxes->extents,
+                           rank_boxes->local_boxes->g_num);
+    }
+
+    /*
+     * Compute for each line the number of intersection with bt shared
+     *
+     */
+    int *line_rank_idx = NULL;
+    int *line_rank     = NULL;
+    PDM_box_tree_intersect_lines_boxes (shared_box_tree,
+                                        -1,
+                                        n_line,
+                                        line_coord,
+                                        &line_rank_idx,
+                                        &line_rank);
+
+    /* Count points to send to each rank */
+    int* send_count_by_sampling_boxes = PDM_array_zeros_int (n_g_extract_boxes_all);
+    for (int i = 0; i < line_rank_idx[n_line]; i++) {
+      send_count_by_sampling_boxes[line_rank[i]]++;
+    }
+
+    if(0 == 1) {
+      PDM_log_trace_array_int(send_count_by_sampling_boxes, n_g_extract_boxes_all, "send_count_by_sampling_boxes ::");
+    }
+
+    /*
+     * For each extract_child_id associate a extra_weight
+     */
+    int* g_count_by_sampling_boxes = malloc(n_g_extract_boxes[i_rank] * sizeof(int));
+    PDM_MPI_Reduce_scatter(send_count_by_sampling_boxes, g_count_by_sampling_boxes, n_g_extract_boxes, PDM_MPI_INT, PDM_MPI_SUM, dbbt->comm);
+
+    if(debug) {
+      PDM_log_trace_array_int(g_count_by_sampling_boxes, n_g_extract_boxes[i_rank], "g_count_by_sampling_boxes ::");
+    }
+
+    /*
+     * Pour l'algo adaptatif il faut qu'on garde le lien extract_child_id + proc
+     * A chaque passage on ne cherche une profondeur de plus uniquement sur le child id qui a trop de point
+     *  Du coup on rafine l'arbre uniquement ou on a besoin
+     */
+
+    n_child_to_extract = 0;
+    child_ids_to_extract          = realloc(child_ids_to_extract         ,                    n_g_extract_boxes[i_rank]  * sizeof(int));
+    all_child_ids                 = realloc(all_child_ids                , (n_all_child_ids + n_g_extract_boxes[i_rank]) * sizeof(int));
+    all_g_count_by_sampling_boxes = realloc(all_g_count_by_sampling_boxes, (n_all_child_ids + n_g_extract_boxes[i_rank]) * sizeof(int));
+
+    for(int i = 0; i < n_g_extract_boxes[i_rank]; ++i) {
+      // if(g_count_by_sampling_boxes[i] > 0) {
+      if(g_count_by_sampling_boxes[i] > bucket_size_min) {
+        child_ids_to_extract     [n_child_to_extract] = extract_child_id[i];
+        g_count_by_sampling_boxes[n_child_to_extract] = g_count_by_sampling_boxes[i];
+        n_child_to_extract++;
+
+        // Keep all for global extraction
+        if(extract_child_is_leaf[i] == 1 || it == n_max_it-1) {
+          all_child_ids                [n_all_child_ids] = extract_child_id[i];
+          all_g_count_by_sampling_boxes[n_all_child_ids] = g_count_by_sampling_boxes[i];
+          n_all_child_ids++;
+        }
+      }
+    }
+
+    /*
+     * On garde toutes les feuilles
+     */
+    // PDM_log_trace_array_int(g_count_by_sampling_boxes, n_child_to_extract, "slect_g_count_by_sampling_boxes ::");
+
+    PDM_box_tree_assign_weight(coarse_tree,
+                               n_child_to_extract,
+                               extract_child_id,
+                               g_count_by_sampling_boxes);
+
+    PDM_box_tree_destroy(&shared_box_tree);
+    PDM_box_set_destroy (&rank_boxes);
+    free(n_g_extract_boxes);
+    free(send_count_by_sampling_boxes);
+    free(g_count_by_sampling_boxes);
+    free(g_extract_boxes_idx);
+    free(g_sampling_extent);
+    free(g_num_sampling);
+
+    free(extract_extents);
+    free(extract_child_id);
+    free(extract_child_is_leaf);
+    free(line_rank_idx);
+    free(line_rank);
+
+  }
+  free(child_ids_to_extract);
+
+
+  /*
+   * Setup implicit child_ln_to_gn
+   */
+  PDM_g_num_t *child_ln_to_gn = malloc(n_all_child_ids * sizeof(PDM_g_num_t));
+  double      *child_weight   = malloc(n_all_child_ids * sizeof(double     ));
+
+  PDM_g_num_t _n_all_child_ids = n_all_child_ids;
+  PDM_g_num_t beg_num_abs;
+  PDM_MPI_Scan(&_n_all_child_ids, &beg_num_abs, 1, PDM__PDM_MPI_G_NUM, PDM_MPI_SUM, dbbt->comm);
+  beg_num_abs -= _n_all_child_ids;
+
+  for(int i = 0; i < n_all_child_ids; ++i) {
+    child_ln_to_gn[i] = beg_num_abs + i + 1;
+    child_weight  [i] = (double) all_g_count_by_sampling_boxes[i];
+  }
+
+  // log_trace("beg_num_abs = "PDM_FMT_G_NUM" \n", beg_num_abs);
+
+  int sampling_factor = 2;
+  int n_iter_max      = 5;
+  double tol = 0.10;
+  PDM_g_num_t* equi_child_distrib = NULL;
+  PDM_distrib_weight(sampling_factor,
+                     n_rank,
+                     1,
+                     &n_all_child_ids,
+  (const PDM_g_num_t **)  &child_ln_to_gn,
+  (const double      **)  &child_weight,
+                     n_iter_max,
+                     tol,
+                     dbbt->comm,
+                     &equi_child_distrib);
+  free(child_weight);
+
+  PDM_g_num_t* raw_child_distrib = PDM_compute_entity_distribution(dbbt->comm, n_all_child_ids);
+  if (debug) {
+    PDM_log_trace_array_long(raw_child_distrib, n_rank+1, "raw_child_distrib ::");
+    PDM_log_trace_array_long(equi_child_distrib, n_rank+1, "equi_child_distrib ::");
+  }
+
+  /*
+   *  Extraction des boîtes --> Il faudra faire un  is_visited_box[box_id] + visited_box = box_id
+   */
+  if (debug) {
+    // PDM_log_trace_array_int(all_child_ids, n_all_child_ids, "all_child_ids ::");
+    PDM_log_trace_array_int(all_g_count_by_sampling_boxes, n_all_child_ids, "all_g_count_by_sampling_boxes ::");
+  }
+
+  /*
+   * Equilibrate :
+   *   - Get all boxes id for each required boxes
+   *   - Send gnum / origin / extents
+   */
+  int* send_n = malloc((n_rank) * sizeof(int));
+  int* recv_n = malloc((n_rank) * sizeof(int));
+  for(int i = 0; i < n_rank; ++i) {
+    send_n[i] = 0;
+  }
+
+  PDM_boxes_t *_local_boxes = dbbt->boxes->local_boxes;
+
+  // int n_boxes = _local_boxes->n_boxes;
+
+  // int* is_visited = malloc(n_boxes * sizeof(int));
+  // for(int i = 0; i < n_boxes; ++i) {
+  //   is_visited[i] = 0;
+  // }
+
+  int  *n_child_box_ids = (int  *) malloc(n_all_child_ids * sizeof(int  ));
+  int **child_box_ids   = (int **) malloc(n_all_child_ids * sizeof(int *));
+
+  for(int i = 0; i < n_all_child_ids; ++i) {
+    PDM_g_num_t child_gnum = child_ln_to_gn[i];
+    int t_rank = PDM_binary_search_gap_long(child_gnum-1, equi_child_distrib, n_rank+1);
+
+    /* Get number of box in child box_tree */
+    int i_child = all_child_ids[i];
+
+    n_child_box_ids[i] = PDM_box_tree_get_box_ids(coarse_tree,
+                                                  i_child,
+                                                  &child_box_ids[i]);
+
+    /* Reset is_visited */
+    // for(int i = 0; i < n_boxes; ++i) {
+    //   is_visited[i] = 0;
+    // }
+
+    // send_n[t_rank] += PDM_box_tree_get_node_n_boxes(coarse_tree, i_child);
+    send_n[t_rank] += n_child_box_ids[i];
+
+    // PDM_log_trace_array_int(child_box_ids[i],n_child_box_ids[i], "n_child_box_ids ::");
+
+  }
+
+  /*
+   * TO MANAGE --> On peut envoyer plusieurs fois la même boite au même rang !!!
+   */
+
+  /*
+   * Exchange size
+   */
+  PDM_MPI_Alltoall(send_n, 1, PDM_MPI_INT,
+                   recv_n, 1, PDM_MPI_INT, dbbt->comm);
+
+  if(debug) {
+    PDM_log_trace_array_int(send_n, n_rank, "send_n ::");
+    PDM_log_trace_array_int(recv_n, n_rank, "recv_n ::");
+  }
+
+  int* send_idx = malloc((n_rank+1) * sizeof(int));
+  int* recv_idx = malloc((n_rank+1) * sizeof(int));
+  send_idx[0] = 0;
+  recv_idx[0] = 0;
+  for(int i = 0; i < n_rank; ++i) {
+    send_idx[i+1] = send_idx[i] + send_n[i];
+    recv_idx[i+1] = recv_idx[i] + recv_n[i];
+    send_n  [i  ] = 0;
+  }
+
+  /*
+   * TODO :  Asynchrone
+   */
+  const int stride = dbbt->dim * 2;
+  const int stride_origin= 3;
+
+  /* Allocate */
+  PDM_g_num_t *send_g_num   = malloc(send_idx[n_rank] *                 sizeof(PDM_g_num_t));
+  double      *send_extents = malloc(send_idx[n_rank] * stride *        sizeof(double     ));
+  int         *send_origin  = malloc(send_idx[n_rank] * stride_origin * sizeof(int        ));
+
+  /* To be allocated before modification of recv_n / recv_idx */
+  PDM_g_num_t *recv_g_num   = malloc(recv_idx[n_rank] *                 sizeof(PDM_g_num_t));
+  double      *recv_extents = malloc(recv_idx[n_rank] * stride *        sizeof(double     ));
+  int         *recv_origin  = malloc(recv_idx[n_rank] * stride_origin * sizeof(int        ));
+
+  int n_recv_boxes = recv_idx[n_rank];
+
+  for(int i = 0; i < n_all_child_ids; ++i) {
+    PDM_g_num_t child_gnum = child_ln_to_gn[i];
+    int t_rank = PDM_binary_search_gap_long(child_gnum-1, equi_child_distrib, n_rank+1);
+
+    /*
+     * Copy gnum
+     */
+    for(int j = 0; j < n_child_box_ids[i]; ++j) {
+
+      int shift  = send_idx[t_rank] + send_n[t_rank];
+      int box_id = child_box_ids[i][j];
+
+      send_g_num[shift] = _local_boxes->g_num[box_id];
+
+      for (int k = 0; k < stride; k++) {
+        send_extents[shift*stride + k] = _local_boxes->extents[box_id*stride + k];
+      }
+
+      for (int k = 0; k < stride_origin; k++) {
+        send_origin[shift*stride_origin + k] = _local_boxes->origin[box_id*stride_origin + k];
+      }
+
+      send_n[t_rank]++;
+    }
+
+  }
+
+  /* Exchange boxes between processes */
+  PDM_MPI_Alltoallv(send_g_num, send_n, send_idx, PDM__PDM_MPI_G_NUM,
+                    recv_g_num, recv_n, recv_idx, PDM__PDM_MPI_G_NUM,
+                    dbbt->comm);
+  free(send_g_num);
+
+  // PDM_log_trace_array_long(recv_g_num, recv_idx[n_rank], "recv_g_num :");
+
+  /*  */
+  for (int i = 0; i < n_rank; i++) {
+    send_n  [i] *= stride;
+    send_idx[i] *= stride;
+    recv_n  [i] *= stride;
+    recv_idx[i] *= stride;
+  }
+
+  /* Exchange extents */
+  PDM_MPI_Alltoallv(send_extents, send_n, send_idx, PDM_MPI_DOUBLE,
+                    recv_extents, recv_n, recv_idx, PDM_MPI_DOUBLE,
+                    dbbt->comm);
+  free(send_extents);
+
+  for (int i = 0; i < n_rank; i++) {
+    send_n  [i] = send_n  [i]/stride * stride_origin;
+    send_idx[i] = send_idx[i]/stride * stride_origin;
+    recv_n  [i] = recv_n  [i]/stride * stride_origin;
+    recv_idx[i] = recv_idx[i]/stride * stride_origin;
+  }
+
+  PDM_MPI_Alltoallv(send_origin, send_n, send_idx, PDM_MPI_INT,
+                    recv_origin, recv_n, recv_idx, PDM_MPI_INT,
+                    dbbt->comm);
+  free(send_origin);
+
+  if(0 == 1) {
+    char filename[999];
+    sprintf(filename, "dbbt_experimental_tree_%3.3d.vtk",i_rank);
+    PDM_vtk_write_boxes (filename,
+                         n_recv_boxes,
+                         recv_extents,
+                         recv_g_num);
+  }
+
+
+  /*
+   * Re-setup boxes
+   */
+  if (debug) {
+    log_trace("Avant :  _local_boxes->n_boxes = %i --> %i \n",  _local_boxes->n_boxes, n_recv_boxes);
+  }
+  _local_boxes->n_boxes = n_recv_boxes;
+  free(_local_boxes->g_num);
+  free(_local_boxes->extents);
+  free(_local_boxes->origin);
+
+  _local_boxes->g_num   = recv_g_num  ;
+  _local_boxes->extents = recv_extents;
+  _local_boxes->origin  = recv_origin ;
+
+  // free(recv_g_num  );
+  // free(recv_extents);
+  // free(recv_origin );
+
+  free(send_idx);
+  free(recv_idx);
+
+  free(send_n);
+  free(recv_n);
+
+  for(int i = 0; i < n_all_child_ids; ++i) {
+    free(child_box_ids[i]);
+  }
+  free(child_box_ids);
+  free(n_child_box_ids);
+
+  free(raw_child_distrib);
+  free(equi_child_distrib);
+  free(all_child_ids);
+  free(child_ln_to_gn);
+  free(all_g_count_by_sampling_boxes);
+
+
+}
+
+
+static void
+_redistribute_boxes_for_intersect_line
+(
+ _PDM_dbbtree_t      *dbbt,
+ int                  n_line,
+ double              *line_coord
+ )
+{
+
+  /* Sanity checks */
+
+  assert (dbbt != NULL);
+
+  PDM_box_tree_t  *coarse_tree = PDM_box_tree_create (dbbt->maxTreeDepthCoarse,
+                                                      dbbt->maxBoxesLeafCoarse,
+                                                      dbbt->maxBoxRatioCoarse);
+
+  /* Build a tree and associate boxes */
+
+  PDM_box_tree_set_boxes (coarse_tree,
+                          dbbt->boxes,
+                          PDM_BOX_TREE_ASYNC_LEVEL);
+
+  _update_bt_statistics(&(dbbt->btsCoarse), coarse_tree);
+
+  if (1 == 0) {
+    PDM_printf ("-- dump stats\n");
+
+    PDM_box_tree_dump_statistics(coarse_tree);
+
+    PDM_printf ("-- fin dump stats\n");
+
+    PDM_printf ("-- dump \n");
+
+    PDM_box_tree_dump(coarse_tree);
+
+    PDM_printf ("-- fin dump\n");
+  }
+
+  if(0 == 1) {
+    char filename[999];
+    int i_rank;
+    PDM_MPI_Comm_rank (dbbt->comm, &i_rank);
+    sprintf(filename, "dbbt_coarse_tree_%3.3d.vtk",i_rank);
+    PDM_vtk_write_boxes (filename,
+                         dbbt->boxes->local_boxes->n_boxes,
+                         dbbt->boxes->local_boxes->extents,
+                         dbbt->boxes->local_boxes->g_num);
+  }
+
+  // _adapt_tree_weight_for_intersect_line(dbbt, coarse_tree, n_line, line_coord);
+
+  PDM_box_distrib_t  *distrib = PDM_box_tree_get_distrib (coarse_tree, dbbt->boxes);
+
+  PDM_box_tree_destroy (&coarse_tree);
+
+  if (0 == 1) {
+    PDM_box_distrib_dump_statistics (distrib, dbbt->comm);
+  }
+
+  /* Define a new distribution of boxes according to the Morton
+     encoding index */
+
+  if (1 == 0) {
+    PDM_printf("affichage 1\n");
+    PDM_box_set_dump( dbbt->boxes,1);
+    PDM_printf("fin affichage 1\n");
+  }
+
+  PDM_box_set_redistribute (distrib, dbbt->boxes);
+
+  /*
+   * Rebuild coarse tree but with new distrib
+   */
+  coarse_tree = PDM_box_tree_create (dbbt->maxTreeDepthCoarse,
+                                     dbbt->maxBoxesLeafCoarse,
+                                     dbbt->maxBoxRatioCoarse);
+
+  PDM_box_tree_set_boxes (coarse_tree,
+                          dbbt->boxes,
+                          PDM_BOX_TREE_ASYNC_LEVEL);
+
+  _update_bt_statistics(&(dbbt->btsCoarse), coarse_tree);
+  _adapt_tree_weight_for_intersect_line(dbbt, coarse_tree, n_line, line_coord);
+
+  PDM_box_tree_destroy (&coarse_tree);
+
+  /*
+   * Rebuild coarse tree but with new distrib
+   */
+  coarse_tree = PDM_box_tree_create (dbbt->maxTreeDepthCoarse,
+                                     dbbt->maxBoxesLeafCoarse,
+                                     dbbt->maxBoxRatioCoarse);
+
+  PDM_box_tree_set_boxes (coarse_tree,
+                          dbbt->boxes,
+                          PDM_BOX_TREE_ASYNC_LEVEL);
+
+  _update_bt_statistics(&(dbbt->btsCoarse), coarse_tree);
+  _adapt_tree_weight_for_intersect_line(dbbt, coarse_tree, n_line, line_coord);
+
+  PDM_box_tree_destroy (&coarse_tree);
+
+  if(0 == 1) {
+    char filename[999];
+    int i_rank;
+    PDM_MPI_Comm_rank (dbbt->comm, &i_rank);
+    sprintf(filename, "dbbt_redistribute_coarse_tree_%3.3d.vtk",i_rank);
+    PDM_vtk_write_boxes (filename,
+                         dbbt->boxes->local_boxes->n_boxes,
+                         dbbt->boxes->local_boxes->extents,
+                         dbbt->boxes->local_boxes->g_num);
+  }
+
+  if (0 == 1) {
+    PDM_printf("affichage 2\n");
+    PDM_box_set_dump( dbbt->boxes,1);
+    PDM_printf("fin affichage 2\n");
+  }
+
+  /* Delete intermediate structures */
+
+  PDM_box_distrib_destroy (&distrib);
+
+}
 
 
 static void _export_point_cloud
@@ -656,6 +1322,14 @@ PDM_dbbtree_boxes_set
 
     _update_bt_statistics(&(_dbbt->btsShared), _dbbt->btShared);
 
+    if(0 == 1 && myRank == 0) {
+      const char* filename = "dbbt_shared_tree.vtk";
+      PDM_vtk_write_boxes (filename,
+                           _dbbt->rankBoxes->local_boxes->n_boxes,
+                           _dbbt->rankBoxes->local_boxes->extents,
+                           _dbbt->rankBoxes->local_boxes->g_num);
+    }
+
     free (allGExtents);
     free (gNumProc);
     free (initLocation_proc);
@@ -683,6 +1357,281 @@ PDM_dbbtree_boxes_set
 }
 
 
+/**
+ * \brief Assign a set of boxes to an empty \ref PDM_dbbtree_t structure.
+ *
+ * This function assigns a set of boxes to an empty \ref PDM_dbbtree_t structure.
+ *
+ * \param [in]  dbbt     Pointer to a distributed bounding box tree
+ * \param [in]  n_part    Number of partitions
+ * \param [in]  nElts    Number of elements of each partition
+ * \param [in]  extents  Extents of each element of each partition
+ * \param [in]  gNum     Global number of each element of each partition
+ *
+ * \return associated \ref PDM_box_set_t structure distributed according to
+ * the tree location
+ *
+ */
+
+PDM_box_set_t *
+PDM_dbbtree_boxes_set_for_intersect_line
+(
+ PDM_dbbtree_t      *dbbt,
+ const int           n_part,
+ const int          *nElts,
+ const double      **extents,
+ const PDM_g_num_t **gNum,
+ const int           n_line,
+ double             *line_coord
+)
+{
+  assert (dbbt != NULL);
+  _PDM_dbbtree_t *_dbbt = (_PDM_dbbtree_t *) dbbt;
+
+  int myRank;
+  PDM_MPI_Comm_rank (_dbbt->comm, &myRank);
+  int lComm;
+  PDM_MPI_Comm_size (_dbbt->comm, &lComm);
+
+  const int nInfoLocation = 3;
+  const int sExtents = _dbbt->dim * 2;
+
+  int nEltsProc = 0;
+  for (int i = 0; i < n_part; i++) {
+    nEltsProc += nElts[i];
+  }
+
+  PDM_g_num_t *_boxGnum = (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * nEltsProc);
+  double *_extents      = (double *) malloc (sizeof(double) * nEltsProc * sExtents);
+  int *_initLocation   = (int *) malloc (sizeof(int) * nEltsProc * nInfoLocation);
+
+  int idx = 0;
+  int idx1 = 0;
+  int idx2 = 0;
+
+  for (int i = 0; i < n_part; i++) {
+
+    for (int j = 0; j < nElts[i]; j++) {
+      _boxGnum[idx++] = gNum[i][j];
+
+      for (int k = 0; k < sExtents; k++) {
+        _extents[idx1++] = extents[i][sExtents*j+k];
+      }
+
+      _initLocation[idx2++] = myRank;
+      _initLocation[idx2++] = i;
+      _initLocation[idx2++] = j;
+    }
+  }
+
+  /*
+   * Redistribute boxes of mesh A
+   */
+
+  if (0 == 1) {
+
+    PDM_printf ("nEltsProc : %d\n", nEltsProc);
+
+    PDM_printf ("_boxGnum :");
+    for (int i = 0; i < nEltsProc; i++) {
+      PDM_printf (" "PDM_FMT_G_NUM, _boxGnum[i]);
+    }
+    PDM_printf ("\n");
+
+    PDM_printf ("_extents m2 :\n");
+    idx1 = 0;
+    for (int i = 0; i < nEltsProc; i++) {
+      PDM_printf (" "PDM_FMT_G_NUM":", _boxGnum[i]);
+      PDM_printf (" %12.5e", _extents[idx1++]);
+      PDM_printf (" %12.5e", _extents[idx1++]);
+      PDM_printf (" %12.5e", _extents[idx1++]);
+      PDM_printf (" %12.5e", _extents[idx1++]);
+      PDM_printf (" %12.5e", _extents[idx1++]);
+      PDM_printf (" %12.5e", _extents[idx1++]);
+      PDM_printf ("\n");
+    }
+    PDM_printf ("\n");
+
+    PDM_printf ("_initLocation :");
+    idx1 = 0;
+    for (int i = 0; i < nEltsProc; i++) {
+      PDM_printf (" %d", _initLocation[idx1++]);
+      PDM_printf (" %d", _initLocation[idx1++]);
+      PDM_printf (" %d", _initLocation[idx1++]);
+      PDM_printf ("\n");
+    }
+    PDM_printf ("\n");
+  }
+
+  int ind_norm = 1;
+  if (_dbbt->global_extents != NULL) {
+    ind_norm = 0;
+    for (int i = 0; i < nEltsProc; i++) {
+      _normalize (_dbbt,
+                  _extents+2*i*_dbbt->dim,
+                  _extents+2*i*_dbbt->dim);
+      _normalize (_dbbt,
+                  _extents+(2*i+1)*_dbbt->dim,
+                  _extents+(2*i+1)*_dbbt->dim);
+    }
+  }
+
+  _dbbt->boxes = PDM_box_set_create(3,
+                                    ind_norm,  // No normalization to preserve initial extents
+                                    0,  // No projection to preserve initial extents
+                                    nEltsProc,
+                                    _boxGnum,
+                                    _extents,
+                                    n_part,
+                                    nElts,
+                                    _initLocation,
+                                    _dbbt->comm);
+
+  if (_dbbt->global_extents == NULL) {
+    memcpy (_dbbt->d, _dbbt->boxes->d, sizeof(double) * 3);
+    memcpy (_dbbt->s, _dbbt->boxes->s, sizeof(double) * 3);
+  }
+
+  free (_boxGnum);
+  free (_extents);
+  free (_initLocation);
+
+  if (lComm > 1) {
+    _redistribute_boxes_for_intersect_line(_dbbt, n_line, line_coord);
+
+    /*
+     * Compute processus extents
+     */
+
+    int nBoxes = PDM_box_set_get_size (_dbbt->boxes);
+    const double *extents2 = PDM_box_set_get_extents (_dbbt->boxes);
+
+    double gExtents[sExtents];
+    for (int i = 0; i < _dbbt->dim; i++) {
+      gExtents[i]   =  DBL_MAX;
+      gExtents[_dbbt->dim+i] = -DBL_MAX;
+    }
+
+
+    for (int i = 0; i < nBoxes; i++) {
+      for (int k1 = 0; k1 < _dbbt->dim; k1++) {
+        gExtents[k1]   = _MIN (gExtents[k1], extents2[sExtents * i + k1]);
+        gExtents[_dbbt->dim+k1] = _MAX (gExtents[_dbbt->dim+k1], extents2[sExtents * i
+                                                                          + _dbbt->dim + k1]);
+      }
+    }
+
+    /*
+     * Exchange extents to build shared boxes
+     */
+
+    int *allNBoxes = (int *) malloc (sizeof(int) * lComm);
+    PDM_MPI_Allgather (&nBoxes, 1, PDM_MPI_INT,
+                       allNBoxes, 1, PDM_MPI_INT,
+                       _dbbt->comm);
+
+    int nUsedRank = 0;
+    for (int i = 0; i < lComm; i++) {
+      if (allNBoxes[i] > 0) {
+        nUsedRank += 1;
+      }
+    }
+
+
+    double *allGExtents = (double *) malloc (sizeof(double) * sExtents * lComm);
+    PDM_MPI_Allgather (gExtents, sExtents, PDM__PDM_MPI_REAL,
+                       allGExtents, sExtents, PDM__PDM_MPI_REAL,
+                       _dbbt->comm);
+
+    int *numProc = (int *) malloc (sizeof(int *) * nUsedRank);
+
+    _dbbt->usedRank = numProc;
+    _dbbt->nUsedRank = nUsedRank;
+
+    PDM_g_num_t *gNumProc = (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * nUsedRank);
+
+    idx = 0;
+    for (int i = 0; i < lComm; i++) {
+      if (allNBoxes[i] > 0) {
+        gNumProc[idx] = idx;
+        numProc[idx] = i;
+        for (int j = 0; j < sExtents; j++) {
+          allGExtents[idx*sExtents + j] = allGExtents[i*sExtents + j];
+        }
+        idx += 1;
+      }
+    }
+
+    free (allNBoxes);
+
+    allGExtents = (double *) realloc (allGExtents, sizeof(double) * sExtents * nUsedRank);
+
+    int *initLocation_proc = PDM_array_zeros_int(3 * nUsedRank);
+
+    //TODO: Faire un PDM_box_set et PDM_box_tree_create sequentiel ! Le comm split a u n 1 proc ici : pas terrible
+
+    PDM_MPI_Comm_split(_dbbt->comm, myRank, 0, &(_dbbt->rankComm));
+
+    _dbbt->rankBoxes = PDM_box_set_create(3,
+                                          0,  // No normalization to preserve initial extents
+                                          0,  // No projection to preserve initial extents
+                                          nUsedRank,
+                                          gNumProc,
+                                          allGExtents,
+                                          1,
+                                          &nUsedRank,
+                                          initLocation_proc,
+                                          _dbbt->rankComm);
+
+    memcpy (_dbbt->rankBoxes->d, _dbbt->d, sizeof(double) * 3);
+    memcpy (_dbbt->rankBoxes->s, _dbbt->s, sizeof(double) * 3);
+
+    _dbbt->btShared = PDM_box_tree_create (_dbbt->maxTreeDepthShared,
+                                           _dbbt->maxBoxesLeafShared,
+                                           _dbbt->maxBoxRatioShared);
+
+    /* Build a tree and associate boxes */
+
+    PDM_box_tree_set_boxes (_dbbt->btShared,
+                            _dbbt->rankBoxes,
+                            PDM_BOX_TREE_ASYNC_LEVEL);
+
+    _update_bt_statistics(&(_dbbt->btsShared), _dbbt->btShared);
+
+    if(0 == 1 && myRank == 0) {
+      const char* filename = "dbbt_shared_tree.vtk";
+      PDM_vtk_write_boxes (filename,
+                           _dbbt->rankBoxes->local_boxes->n_boxes,
+                           _dbbt->rankBoxes->local_boxes->extents,
+                           _dbbt->rankBoxes->local_boxes->g_num);
+    }
+
+    free (allGExtents);
+    free (gNumProc);
+    free (initLocation_proc);
+
+  }
+
+  /*
+   * Build local bt
+   */
+
+  _dbbt->btLoc = PDM_box_tree_create (_dbbt->maxTreeDepth,
+                                      _dbbt->maxBoxesLeaf,
+                                      _dbbt->maxBoxRatio);
+
+  /* Build a tree and associate boxes */
+
+  PDM_box_tree_set_boxes (_dbbt->btLoc,
+                          _dbbt->boxes,
+                          PDM_BOX_TREE_ASYNC_LEVEL);
+
+  _update_bt_statistics(&(_dbbt->btsLoc), _dbbt->btLoc);
+  // PDM_box_tree_dump(_dbbt->btLoc);
+
+  return _dbbt->boxes;
+
+}
 
 /**
  * \brief Assign boxes to intersect to the tree.
@@ -873,10 +1822,10 @@ PDM_dbbtree_intersect_boxes_set
     }
 
     PDM_box_distrib_t  *distrib = NULL;
-    distrib = PDM_box_distrib_create (boxes->local_boxes->n_boxes,//*
-                                      boxes->n_g_boxes,
-                                      1, // Don't use in this case
-                                      boxes->comm);
+    distrib = PDM_box_distrib_shared_create (boxes->local_boxes->n_boxes,//*
+                                             boxes->n_g_boxes,
+                                             1, // Don't use in this case
+                                             boxes->comm);
 
     PDM_array_reset_int(distrib->index, lComm + 1, 0);
 
@@ -1840,7 +2789,7 @@ PDM_dbbtree_closest_upper_bound_dist_boxes_get_async
     free(n_requests);
 
     //------------->>>
-    if ( myRank == 0 ) {
+    if ( idebug && myRank == 0 ) {
       if ( n_copied_ranks == 0 ) {
         printf("n_copied_ranks = 0\n");
       } else {
@@ -2468,6 +3417,8 @@ PDM_dbbtree_points_inside_boxes
  const int           ellipsoids
  )
 {
+  int idebug = 0;
+
   const float f_threshold = 1.1;  // factor of the mean nb of requests
   const float f_max_copy  = 0.1;  // factor of the total nb of processes
 
@@ -2599,7 +3550,7 @@ PDM_dbbtree_points_inside_boxes
       }
     }
 
-    if (i_rank == 0) {
+    if (idebug && i_rank == 0) {
       if (n_copied_ranks > 0) {
         if (n_copied_ranks == 1) {
           printf("1 copied rank: %d\n", copied_ranks[0]);
@@ -2676,7 +3627,9 @@ PDM_dbbtree_points_inside_boxes
 
     n_pts_recv = recv_shift[n_rank];
     n_pts1 = n_pts_local + n_pts_recv + n_pts_copied;
-    printf("[%d] n_pts1 = %d (without copies : %d)\n", i_rank, n_pts1, n_pts_recv_no_copies);
+    if (idebug) {
+      printf("[%d] n_pts1 = %d (without copies : %d)\n", i_rank, n_pts1, n_pts_recv_no_copies);
+    }
 
     pts_g_num1 = malloc (sizeof(PDM_g_num_t) * n_pts1);
     pts_coord1 = malloc (sizeof(double)      * n_pts1 * 3);
@@ -3033,6 +3986,8 @@ PDM_dbbtree_boxes_containing_points
  const int           ellipsoids
  )
 {
+  int idebug = 0;
+
   const float f_threshold = 1.1;  // factor of the mean nb of requests
   const float f_max_copy  = 0.1;  // factor of the total nb of processes
 
@@ -3164,7 +4119,7 @@ PDM_dbbtree_boxes_containing_points
       }
     }
 
-    if (i_rank == 0) {
+    if (idebug && i_rank == 0) {
       if (n_copied_ranks > 0) {
         if (n_copied_ranks == 1) {
           printf("1 copied rank: %d\n", copied_ranks[0]);
@@ -3241,7 +4196,9 @@ PDM_dbbtree_boxes_containing_points
 
     n_pts_recv = recv_shift[n_rank];
     n_pts1 = n_pts_local + n_pts_recv + n_pts_copied;
-    printf("[%d] n_pts1 = %d (without copies : %d)\n", i_rank, n_pts1, n_pts_recv_no_copies);
+    if (idebug) {
+      printf("[%d] n_pts1 = %d (without copies : %d)\n", i_rank, n_pts1, n_pts_recv_no_copies);
+    }
 
     pts_g_num1 = malloc (sizeof(PDM_g_num_t) * n_pts1);
     pts_coord1 = malloc (sizeof(double)      * n_pts1 * 3);
@@ -3590,6 +4547,402 @@ PDM_dbbtree_boxes_containing_points
 
 
 
+
+
+
+
+
+
+
+
+
+static void
+_lines_intersect_shared_box_tree
+(
+ PDM_dbbtree_t   *dbbt,
+ const int        n_line,
+ PDM_g_num_t     *line_g_num,
+ double          *line_coord,
+ float            f_threshold,
+ float            f_max_copy,
+ int            **redistrib_n_line,
+ PDM_g_num_t   ***redistrib_line_g_num,
+ double        ***redistrib_line_coord,
+ int             *n_copied_ranks
+ )
+{
+  int idebug = 0;
+
+  assert (dbbt != NULL);
+  _PDM_dbbtree_t *_dbbt = (_PDM_dbbtree_t *) dbbt;
+
+  int i_rank, n_rank;
+  PDM_MPI_Comm_rank (_dbbt->comm, &i_rank);
+  PDM_MPI_Comm_size (_dbbt->comm, &n_rank);
+
+  /*
+   *  Normalize coordinates
+   */
+  double *_line_coord = malloc (sizeof(double) * n_line * 6);
+  for (int i = 0; i < 2*n_line; i++) {
+    _normalize (_dbbt,
+                line_coord  + 3*i,
+                _line_coord + 3*i);
+  }
+
+
+  /*
+   *  For each line, find all ranks that might have boxes intersecting that line
+   */
+  int *send_count = NULL;
+  int *send_shift = NULL;
+  int *recv_count = NULL;
+  int *recv_shift = NULL;
+  PDM_g_num_t *send_g_num = NULL;
+  PDM_g_num_t *recv_g_num = NULL;
+  double      *send_coord = NULL;
+  double      *recv_coord = NULL;
+
+  *n_copied_ranks = 0;
+  int *copied_ranks = NULL;
+  int n_line_local  = 0;
+  int n_line_recv   = 0;
+  int n_line_copied = 0;
+  int n_line1;
+
+  int *copied_shift = NULL;
+
+  // PDM_g_num_t *line_g_num1 = NULL;
+  // double      *line_coord1 = NULL;
+
+  if (_dbbt->btShared != NULL) {
+    int *line_rank_idx = NULL;
+    int *line_rank     = NULL;
+    PDM_box_tree_intersect_lines_boxes (_dbbt->btShared,
+                                        -1,
+                                        n_line,
+                                        line_coord,
+                                        &line_rank_idx,
+                                        &line_rank);
+
+    /* Count points to send to each rank */
+    send_count = PDM_array_zeros_int (n_rank);
+
+    for (int i = 0; i < line_rank_idx[n_line]; i++) {
+      int rank = _dbbt->usedRank[line_rank[i]];
+      line_rank[i] = rank;
+      send_count[rank]++;
+    }
+
+    // PDM_log_trace_array_int(send_count, _dbbt->nUsedRank, "send_count ::");
+
+    recv_count = malloc (sizeof(int) * n_rank);
+    PDM_MPI_Alltoall (send_count, 1, PDM_MPI_INT,
+                      recv_count, 1, PDM_MPI_INT,
+                      _dbbt->comm);
+
+    n_line_recv = 0;
+    for (int i = 0; i < n_rank; i++) {
+      n_line_recv += recv_count[i];
+    }
+    int n_line_recv_no_copies = n_line_recv;
+
+    /* Prepare copies */
+    int n_max_copy = (int) (f_max_copy * n_rank);
+    int *i_copied_rank = NULL;
+    int *copied_count = NULL;
+    int mean_n_line_recv = 0;
+    int *n_line_recv_copied_ranks = NULL;
+
+    if (n_max_copy > 0) {
+      int *all_n_line_recv = malloc (sizeof(int) * n_rank);
+      PDM_MPI_Allgather (&n_line_recv,    1, PDM_MPI_INT,
+                         all_n_line_recv, 1, PDM_MPI_INT,
+                         _dbbt->comm);
+
+      // Mean number of line_recvs
+      long l_mean_n_line_recv = 0;
+      for (int i = 0; i < n_rank; i++) {
+        l_mean_n_line_recv += all_n_line_recv[i];
+      }
+      mean_n_line_recv = (int) (l_mean_n_line_recv / n_rank);
+
+      float n_threshold = f_threshold * mean_n_line_recv;
+
+      // Sort ranks
+      int *order = malloc (sizeof(int) * n_rank);
+      for (int i = 0; i < n_rank; i++) {
+        order[i] = i;
+      }
+
+      PDM_sort_int (all_n_line_recv,
+                    order,
+                    n_rank);
+
+      // Identify ranks to copy
+      copied_ranks = malloc (sizeof(int) * n_max_copy);
+      n_line_recv_copied_ranks = malloc (sizeof(int) * n_max_copy);
+      for (int i = 0; i < n_max_copy; i++) {
+        int j = n_rank - i - 1;
+
+        if (all_n_line_recv[j] > n_threshold) {
+          copied_ranks[*n_copied_ranks] = order[j];
+          n_line_recv_copied_ranks[*n_copied_ranks] = all_n_line_recv[j];
+          (*n_copied_ranks)++;
+        }
+        else {
+          break;
+        }
+      }
+      free (all_n_line_recv);
+      free (order);
+
+      if (*n_copied_ranks > 0) {
+        copied_ranks = realloc (copied_ranks, sizeof(int) * (*n_copied_ranks));
+        n_line_recv_copied_ranks = realloc (n_line_recv_copied_ranks,
+                                           sizeof(int) * (*n_copied_ranks));
+      }
+    }
+
+    if (idebug && i_rank == 0) {
+      if (*n_copied_ranks > 0) {
+        if (*n_copied_ranks == 1) {
+          printf("1 copied rank: %d\n", copied_ranks[0]);
+        }
+        else {
+          printf("%d copied ranks:", *n_copied_ranks);
+          for (int i = 0; i < *n_copied_ranks; i++) {
+            printf(" %d", copied_ranks[i]);
+          }
+          printf("\n");
+        }
+      }
+      else {
+        printf("0 copied ranks\n");
+      }
+    }
+
+    /*
+     * Copy the data of selected ranks
+     */
+    i_copied_rank = malloc (sizeof(int) * n_rank);
+    PDM_box_tree_copy_to_ranks (_dbbt->btLoc,
+                                n_copied_ranks,
+                                copied_ranks,
+                                i_copied_rank);
+
+    /* Re-compute send/recv counts */
+    copied_count = PDM_array_zeros_int (*n_copied_ranks);
+    n_line_local = 0;
+    for (int i = 0; i < *n_copied_ranks; i++) {
+      int rank = copied_ranks[i];
+      if (rank != i_rank) {
+        int si = send_count[rank];
+
+        si = PDM_MIN (si, PDM_MAX (0, (n_line_recv_copied_ranks[i] - n_line_recv)/2));
+        if (i_copied_rank[i_rank] < 0) {
+          si = PDM_MIN (si, PDM_MAX (0, mean_n_line_recv - n_line_recv));
+        }
+
+        copied_count[i] = si;
+        n_line_recv += si;
+      }
+    }
+    if (copied_ranks != NULL) {
+      free (copied_ranks);
+    }
+
+    if (n_line_recv_copied_ranks != NULL) {
+      free (n_line_recv_copied_ranks);
+    }
+
+    for (int i = 0; i < n_rank; i++) {
+      if (i == i_rank) {
+        n_line_local += send_count[i];
+        send_count[i] = 0;
+      }
+      else if (i_copied_rank[i] >= 0) {
+        send_count[i] -= copied_count[i_copied_rank[i]];
+      }
+    }
+
+    copied_shift = PDM_array_new_idx_from_sizes_int (copied_count, *n_copied_ranks);
+    int *copied_count_tmp = PDM_array_zeros_int (*n_copied_ranks);
+    n_line_copied = copied_shift[*n_copied_ranks];
+
+    /* Exchange new send/recv counts */
+    PDM_MPI_Alltoall (send_count, 1, PDM_MPI_INT,
+                      recv_count, 1, PDM_MPI_INT,
+                      _dbbt->comm);
+
+    send_shift = PDM_array_new_idx_from_sizes_int (send_count, n_rank);
+    recv_shift = PDM_array_new_idx_from_sizes_int (recv_count, n_rank);
+    PDM_array_reset_int (send_count, n_rank, 0);
+
+    n_line_recv = recv_shift[n_rank];
+    n_line1 = n_line_local + n_line_recv + n_line_copied;
+    if (idebug) {
+      printf("[%d] n_line1 = %d (without copies : %d)\n", i_rank, n_line1, n_line_recv_no_copies);
+    }
+
+    // line_g_num1 = malloc (sizeof(PDM_g_num_t) * n_line1);
+    // line_coord1 = malloc (sizeof(double)      * n_line1 * 6);
+
+    int n_part = 1 + (*n_copied_ranks);
+    *redistrib_n_line     = (int          *) malloc(sizeof(int          ) * n_part);
+    *redistrib_line_g_num = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
+    *redistrib_line_coord = (double      **) malloc(sizeof(double      *) * n_part);
+
+    (*redistrib_n_line)    [0] = n_line_local + n_line_recv;
+    (*redistrib_line_g_num)[0] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (n_line_local + n_line_recv));
+    (*redistrib_line_coord)[0] = (double      *) malloc(sizeof(double     ) * (n_line_local + n_line_recv)*6);
+    for (int i = 0; i < (*n_copied_ranks); i++) {
+      int n = copied_shift[i+1] - copied_shift[i];
+      (*redistrib_n_line)    [i+1] = n;
+      (*redistrib_line_g_num)[i+1] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n);
+      (*redistrib_line_coord)[i+1] = (double      *) malloc(sizeof(double     ) * n*6);
+    }
+
+
+    /* Fill send buffers */
+    send_g_num = malloc (sizeof(PDM_g_num_t) * send_shift[n_rank]);
+    send_coord = malloc (sizeof(double)      * send_shift[n_rank] * 6);
+
+    // int idx_copied = n_line_local + n_line_recv;
+    // PDM_g_num_t *copied_g_num = line_g_num1 + idx_copied;
+    // double      *copied_coord = line_coord1 + idx_copied * 6;
+    n_line_local = 0;
+    for (int iline = 0; iline < n_line; iline++) {
+      for (int i = line_rank_idx[iline]; i < line_rank_idx[iline+1]; i++) {
+        int rank = line_rank[i];
+
+        if (rank == i_rank) {
+          // line_g_num1[n_line_local] = line_g_num[iline];
+          (*redistrib_line_g_num)[0][n_line_local] = line_g_num[iline];
+          for (int j = 0; j < 6; j++) {
+            // line_coord1[6*n_line_local + j] = _line_coord[6*iline + j];
+            (*redistrib_line_coord)[0][6*n_line_local + j] = _line_coord[6*iline + j];
+          }
+          n_line_local++;
+        }
+
+        else if (i_copied_rank[rank] >= 0) {
+          int _rank = i_copied_rank[rank];
+
+          if (copied_count_tmp[_rank] < copied_count[_rank]) {
+            // int k = copied_shift[_rank] + copied_count_tmp[_rank];
+            // copied_g_num[k] = line_g_num[iline];
+            int k = copied_count_tmp[_rank];
+            (*redistrib_line_g_num)[_rank+1][k] = line_g_num[iline];
+
+            for (int j = 0; j < 6; j++) {
+              // copied_coord[6*k + j] = _line_coord[6*iline + j];
+              (*redistrib_line_coord)[_rank+1][6*k + j] = _line_coord[6*iline + j];
+            }
+            copied_count_tmp[_rank]++;
+          }
+          else {
+            int k = send_shift[rank] + send_count[rank];
+            send_g_num[k] = line_g_num[iline];
+            for (int j = 0; j < 6; j++) {
+              send_coord[6*k + j] = _line_coord[6*iline + j];
+            }
+            send_count[rank]++;
+          }
+        }
+
+        else {
+          int k = send_shift[rank] + send_count[rank];
+          send_g_num[k] = line_g_num[iline];
+          for (int j = 0; j < 6; j++) {
+            send_coord[6*k + j] = _line_coord[6*iline + j];
+          }
+          send_count[rank]++;
+        }
+      }
+    }
+    free (_line_coord);
+    if (copied_count != NULL) {
+      free (copied_count);
+    }
+    if (copied_count_tmp != NULL) {
+      free (copied_count_tmp);
+    }
+    if (i_copied_rank != NULL) {
+      free (i_copied_rank);
+    }
+    if (copied_shift != NULL) {
+      free(copied_shift);
+    }
+    free (line_rank);
+    free (line_rank_idx);
+
+
+    /* Exchange points */
+    // recv_g_num = line_g_num1 + n_line_local;
+    // recv_g_num = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * recv_shift[n_rank]);
+    recv_g_num = (*redistrib_line_g_num)[0] + n_line_local;
+    PDM_MPI_Alltoallv (send_g_num, send_count, send_shift, PDM__PDM_MPI_G_NUM,
+                       recv_g_num, recv_count, recv_shift, PDM__PDM_MPI_G_NUM,
+                       _dbbt->comm);
+
+    free (send_g_num);
+
+    for (int i = 0; i < n_rank; i++) {
+      send_count[i]   *= 6;
+      recv_count[i]   *= 6;
+      send_shift[i+1] *= 6;
+      recv_shift[i+1] *= 6;
+    }
+
+    // recv_coord = line_coord1 + 6*n_line_local;
+    // recv_coord = (double *) malloc(sizeof(double) * recv_shift[n_rank]);
+    recv_coord = (*redistrib_line_coord)[0] + 6*n_line_local;
+    PDM_MPI_Alltoallv (send_coord, send_count, send_shift, PDM_MPI_DOUBLE,
+                       recv_coord, recv_count, recv_shift, PDM_MPI_DOUBLE,
+                       _dbbt->comm);
+
+    free (send_coord);
+    free (send_count);
+    free (send_shift);
+    free (recv_count);
+    free (recv_shift);
+  }
+
+  else {
+    // n_line_local  = n_line;
+    // n_line_recv   = 0;
+    // n_line_copied = 0;
+
+    // n_line1 = n_line;
+
+    // line_g_num1 = (PDM_g_num_t *) line_g_num;
+    // line_coord1 = _line_coord;
+    *redistrib_n_line = (int *) malloc(sizeof(int) * 1);
+    (*redistrib_n_line)[0] = n_line;
+
+    *redistrib_line_g_num = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * 1);
+    (*redistrib_line_g_num)[0] = line_g_num;
+    // malloc((*redistrib_line_g_num)[0], sizeof(PDM_g_num_t) * n_line);
+    // memcpy((*redistrib_line_g_num)[0], line_g_num, sizeof(PDM_g_num_t) * n_line);
+
+    *redistrib_line_coord = (double **) malloc(sizeof(double *) * 1);
+    (*redistrib_line_coord)[0] = _line_coord;
+    // malloc((*redistrib_line_coord)[0], sizeof(double) * n_line * 6);
+    // memcpy((*redistrib_line_coord)[0], line_coord, sizeof(double) * n_line * 6);
+  }
+
+  // *redistrib_n_line_local = n_line_local + n_line_recv;
+  // *redistrib_n_line_copy  = n_line_copied;
+  // *redistrib_line_g_num   = line_g_num1;
+  // *redistrib_line_coord   = line_coord1;
+}
+
+
+
+
+
+
 /**
  *
  * \brief Get an indexed list of all boxes intersecting lines
@@ -3599,7 +4952,7 @@ PDM_dbbtree_boxes_containing_points
  *   \param [in]  line_g_num  Line global ids (size = \ref n_line)
  *   \param [in]  line_coord  Line coordinates (size = 6 * \ref n_line)
  *   \param [out] box_idx     Index of boxes (size = \ref n_line + 1, allocated inside function)
- *   \param [out] box_g_num   Global ids of boxes (size = \ref box_idx[\ref n_line], allocated inside function)
+ *   \param [out] box_g_num   Global ids of boxes (size = \ref box_line_idx[\ref n_line], allocated inside function)
  *
  */
 
@@ -3614,6 +4967,8 @@ PDM_dbbtree_lines_intersect_boxes
  PDM_g_num_t   **box_g_num
  )
 {
+  int idebug = 0;
+
   const float f_threshold = 1.1;  // factor of the mean nb of requests
   const float f_max_copy  = 0.1;  // factor of the total nb of processes
 
@@ -3747,7 +5102,7 @@ PDM_dbbtree_lines_intersect_boxes
       }
     }
 
-    if (i_rank == 0) {
+    if (idebug && i_rank == 0) {
       if (n_copied_ranks > 0) {
         if (n_copied_ranks == 1) {
           printf("1 copied rank: %d\n", copied_ranks[0]);
@@ -3824,7 +5179,9 @@ PDM_dbbtree_lines_intersect_boxes
 
     n_line_recv = recv_shift[n_rank];
     n_line1 = n_line_local + n_line_recv + n_line_copied;
-    printf("[%d] n_line1 = %d (without copies : %d)\n", i_rank, n_line1, n_line_recv_no_copies);
+    if (idebug) {
+      printf("[%d] n_line1 = %d (without copies : %d)\n", i_rank, n_line1, n_line_recv_no_copies);
+    }
 
     line_g_num1 = malloc (sizeof(PDM_g_num_t) * n_line1);
     line_coord1 = malloc (sizeof(double)      * n_line1 * 6);
@@ -4144,8 +5501,156 @@ PDM_dbbtree_lines_intersect_boxes
 
 
 
+/**
+ *
+ * \brief Get an indexed list of all lines intersecting boxes
+ * /!\ Results conform to the dbbtree's box partitionning
+ *
+ *   \param [in]  dbbt             Pointer to distributed box tree structure
+ *   \param [in]  n_line           Number of points
+ *   \param [in]  line_g_num       Line global ids (size = \ref n_line)
+ *   \param [in]  line_coord       Line coordinates (size = 6 * \ref n_line)
+ *   \param [out] box_line_idx     Index of lines (size = \ref n_box + 1, allocated inside function)
+ *   \param [out] box_line_g_num   Global ids of lines (size = \ref box_idx[\ref n_box], allocated inside function)
+ *
+ */
+
+void
+PDM_dbbtree_lines_intersect_boxes2
+(
+ PDM_dbbtree_t  *dbbt,
+ const int       n_line,
+ PDM_g_num_t    *line_g_num,
+ double         *line_coord,
+ int            *n_part,
+ int           **redistrib_n_box,
+ PDM_g_num_t  ***redistrib_box_ln_to_gn,
+ int          ***box_line_idx,
+ PDM_g_num_t  ***box_line_g_num
+ )
+{
+  assert (dbbt != NULL);
+  _PDM_dbbtree_t *_dbbt = (_PDM_dbbtree_t *) dbbt;
+
+  const float f_threshold = 1.1;  // factor of the mean nb of requests
+  const float f_max_copy  = 0.1;  // factor of the total nb of processes
+
+  /*
+   *  Redistribute lines (with potential box-tree copies for load balancing)
+   */
+  int          *redistrib_n_line     = NULL;
+  PDM_g_num_t **redistrib_line_g_num = NULL;
+  double      **redistrib_line_coord = NULL;
+  int           n_copied_ranks       = 0;
+  _lines_intersect_shared_box_tree(dbbt,
+                                   n_line,
+                                   line_g_num,
+                                   line_coord,
+                                   f_threshold,
+                                   f_max_copy,
+                                   &redistrib_n_line,
+                                   &redistrib_line_g_num,
+                                   &redistrib_line_coord,
+                                   &n_copied_ranks);
+
+  /*
+   *  Get lines intersecting boxes
+   */
+  *n_part = 1 + n_copied_ranks;
+  int _n_part = *n_part;
+
+  *redistrib_n_box        = (int          *) malloc(sizeof(int          ) * _n_part);
+  *redistrib_box_ln_to_gn = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * _n_part);
+  (*redistrib_n_box)[0]   = _dbbt->boxes->local_boxes->n_boxes;
+  // (*redistrib_box_ln_to_gn)[0] = _dbbt->boxes->local_boxes->g_num;
+  (*redistrib_box_ln_to_gn)[0] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (*redistrib_n_box)[0]);
+  memcpy((*redistrib_box_ln_to_gn)[0],
+         _dbbt->boxes->local_boxes->g_num,
+         sizeof(PDM_g_num_t) * (*redistrib_n_box)[0]);
+
+  for (int i = 0; i < n_copied_ranks; i++) {
+    (*redistrib_n_box)[i+1] = _dbbt->boxes->rank_boxes[i].n_boxes;
+    // (*redistrib_box_ln_to_gn)[i+1] = _dbbt->boxes->rank_boxes[i].g_num;
+    (*redistrib_box_ln_to_gn)[i+1] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (*redistrib_n_box)[i+1]);
+    memcpy((*redistrib_box_ln_to_gn)[i+1],
+           _dbbt->boxes->rank_boxes[i].g_num,
+           sizeof(PDM_g_num_t) * (*redistrib_n_box)[i+1]);
+  }
+
+  *box_line_idx   = malloc (sizeof(int *)         * _n_part);
+  *box_line_g_num = malloc (sizeof(PDM_g_num_t *) * _n_part);
+
+  /* Search in local box tree */
+  int *box_line_l_num = NULL;
+  PDM_box_tree_intersect_lines_boxes2(_dbbt->btLoc,
+                                      -1,
+                                      redistrib_n_line[0],
+                                      redistrib_line_coord[0],
+                                      &((*box_line_idx)[0]),
+                                      &box_line_l_num);
+  free(redistrib_line_coord[0]);
 
 
+  int _n_line = (*box_line_idx)[0][(*redistrib_n_box)[0]];
+  (*box_line_g_num)[0] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * _n_line);
+  for (int i = 0; i < _n_line; i++) {
+    (*box_line_g_num)[0][i] = redistrib_line_g_num[0][box_line_l_num[i]];
+  }
+  if (redistrib_line_g_num[0] != line_g_num) {
+    free(redistrib_line_g_num[0]);
+  }
+  free(box_line_l_num);
+
+
+  /* Search in copied box trees */
+  for (int i = 0; i < n_copied_ranks; i++) {
+    PDM_box_tree_intersect_lines_boxes2(_dbbt->btLoc,
+                                        i,
+                                        redistrib_n_line[i+1],
+                                        redistrib_line_coord[i+1],
+                                        &((*box_line_idx)[i+1]),
+                                        &box_line_l_num);
+    free(redistrib_line_coord[i+1]);
+
+    _n_line = (*box_line_idx)[i+1][(*redistrib_n_box)[i+1]];
+    (*box_line_g_num)[i+1] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * _n_line);
+    for (int j = 0; j < _n_line; j++) {
+      (*box_line_g_num)[i+1][j] = redistrib_line_g_num[i+1][box_line_l_num[j]];
+    }
+    free(box_line_l_num);
+    free(redistrib_line_g_num[i+1]);
+  }
+  free(redistrib_n_line);
+  free(redistrib_line_coord);
+  free(redistrib_line_g_num);
+
+
+
+  /*
+   *  Free memory
+   */
+  PDM_box_tree_free_copies(_dbbt->btLoc);
+}
+
+
+
+void
+PDM_dbbtree_box_tree_write_vtk
+(
+ const char    *filename,
+ PDM_dbbtree_t *dbbt,
+ const int      i_copied_rank,
+ const int      normalized
+ )
+{
+  assert (dbbt != NULL);
+  _PDM_dbbtree_t *_dbbt = (_PDM_dbbtree_t *) dbbt;
+
+  PDM_box_tree_write_vtk(filename,
+                         _dbbt->btLoc,
+                         i_copied_rank,
+                         normalized);
+}
 
 #undef _MIN
 #undef _MAX

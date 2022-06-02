@@ -73,6 +73,10 @@ endif()
 
 get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
 
+file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/meshes DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+if (PDM_ENABLE_EXTENSION_PDMA)
+  file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/meshes DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/../extensions/paradigma/test/")
+endif()
 
 # Test pdm_t_part_cube
 # --------------
@@ -118,9 +122,13 @@ if (PDM_HAVE_PARMETIS OR PDM_HAVE_PTSCOTCH)
   test_c_create (pdm_t_polysurf_extrusion 2)
   test_c_create (pdm_t_dcube_nodal_gen 2)
   test_c_create (pdm_t_extract_part_from_part 1)
+  test_c_create (pdm_t_compute_part_edges 1)
   test_c_create (pdm_t_extract_part 1)
+  test_c_create (pdm_t_extract_part_nodal 1)
+  test_c_create (pdm_t_extract_part_from_target 1)
   test_c_create (pdm_t_extract_surf_part 1)
   test_c_create (pdm_t_edge_upwind_and_downwind 1)
+  test_c_create (pdm_t_overlay_from_vol_mesh 1)
 endif()
 test_c_create (pdm_t_cellface_orient_poly 1)
 test_c_create (pdm_t_mesh_adapt 1)
@@ -162,7 +170,9 @@ test_c_create (pdm_t_dist_ridge 1)
 # test_c_create (pdm_t_multi_block_merge 1)
 
 test_c_create (pdm_t_ho_ordering 1)
-test_c_create (pdm_t_win_shared 1)
+
+#TODO: Not fully implemented 
+#test_c_create (pdm_t_win_shared 1)
 
 #test_c_create (test_mpi_morton 2)
 
@@ -170,4 +180,5 @@ test_c_create (pdm_t_point_in_polygon 1)
 test_c_create (pdm_t_line_intersection 1)
 test_c_create (pdm_t_mesh_check 1)
 test_c_create (pdm_t_join_domains 2)
-test_c_create (pdm_t_edge_upwind_and_downwind2 1)
+
+add_subdirectory(tutorial)

@@ -497,7 +497,9 @@ PDM_dist_cloud_surf_compute
     PDM_octree_build (octree);
   } else {
     PDM_para_octree_build (para_octree, NULL);//global_extents);
-    PDM_para_octree_dump_times (para_octree);
+    if (0) {
+      PDM_para_octree_dump_times (para_octree);
+    }
   }
 
 

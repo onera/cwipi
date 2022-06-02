@@ -76,6 +76,8 @@ struct _pdm_dmesh_nodal_t {
   PDM_dmesh_nodal_elmts_t* ridge;
   PDM_dmesh_nodal_elmts_t* corner;
 
+  PDM_bool_t   is_computed_g_extents;
+  double       g_extents[6];
 };
 
 

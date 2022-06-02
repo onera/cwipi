@@ -207,7 +207,7 @@ main
     PDM_log_trace_array_long(blk_check_gnum, n_parent, "blk_check_gnum :: ");
   }
 
-  if(1 == 1) {
+  if(0 == 1) {
     char filename[999];
     sprintf(filename, "origin_pvtx_coord_%2.2d.vtk", i_rank);
 

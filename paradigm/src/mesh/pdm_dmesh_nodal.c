@@ -214,6 +214,8 @@ const PDM_MPI_Comm comm,
 
   _mesh_init (mesh, comm, mesh_dimension, n_vtx, n_cell, n_face, n_edge);
 
+  mesh->is_computed_g_extents = PDM_FALSE;
+
   return mesh;
 }
 
@@ -1848,6 +1850,34 @@ PDM_dmesh_nodal_to_part_mesh_nodal_elmts
 
 // }
 
+
+const double *
+PDM_dmesh_nodal_global_extents_get
+(
+ PDM_dmesh_nodal_t         *dmn
+ )
+{
+  if (dmn->is_computed_g_extents == PDM_FALSE) {
+
+    double l_min[3] = { HUGE_VAL};
+    double l_max[3] = {-HUGE_VAL};
+
+    for (int i = 0; i < dmn->vtx->n_vtx; i++) {
+      for (int j = 0; j < 3; j++) {
+        double x = dmn->vtx->_coords[3*i + j];
+        l_min[j] = PDM_MIN(l_min[j], x);
+        l_max[j] = PDM_MAX(l_max[j], x);
+      }
+    }
+
+    PDM_MPI_Allreduce(l_min, dmn->g_extents,   3, PDM_MPI_DOUBLE, PDM_MPI_MIN, dmn->comm);
+    PDM_MPI_Allreduce(l_max, dmn->g_extents+3, 3, PDM_MPI_DOUBLE, PDM_MPI_MAX, dmn->comm);
+
+    dmn->is_computed_g_extents = PDM_TRUE;
+  }
+
+  return dmn->g_extents;
+}
 
 #ifdef __cplusplus
 }
