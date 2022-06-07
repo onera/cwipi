@@ -68,8 +68,9 @@ _usage(int exit_code)
 static void
 _read_args(int            argc,
            char         **argv,
-           PDM_g_num_t  *n_vtx_seg,
-           double        *length)
+           PDM_g_num_t   *n_vtx_seg,
+           double        *length,
+           int           *post)
 {
   int i = 1;
 
@@ -96,6 +97,9 @@ _read_args(int            argc,
       else
         *length = atof(argv[i]);
     }
+    else if (strcmp(argv[i], "-post") == 0) {
+      *post = 1;
+    }
     else
       _usage(EXIT_FAILURE);
     i++;
@@ -114,11 +118,13 @@ int main(int argc, char *argv[])
 
   PDM_g_num_t        n_vtx_seg = 10;
   double             length    = 1.;
+  int                post      = 0;
 
   _read_args(argc,
              argv,
              &n_vtx_seg,
-             &length);
+             &length,
+             &post);
 
   int i_rank;
   int n_rank;
@@ -224,7 +230,7 @@ int main(int argc, char *argv[])
 
 
 
-  if(1 == 1) {
+  if(post) {
     PDM_log_trace_array_long(extract_face_distribution, n_rank+1, "extract_face_distribution:: ");
     PDM_log_trace_array_long(extract_vtx_distribution , n_rank+1, "extract_vtx_distribution::  ");
 
@@ -296,18 +302,19 @@ int main(int argc, char *argv[])
   double* pextract_vtx_coord = tmp_pextract_vtx_coord[0];
   free(tmp_pextract_vtx_coord);
 
-  char filename[999];
-  sprintf(filename, "export_face_%i.vtk", i_rank);
-  PDM_vtk_write_polydata(filename,
-                         pn_extract_vtx,
-                         pextract_vtx_coord,
-                         pextract_vtx_ln_to_gn,
-                         dn_extract_face,
-                         pextract_face_vtx_idx,
-                         pextract_face_vtx,
-                         extract_face_ln_to_gn,
-                         pextract_face_tag);
-
+  if (post) {
+    char filename[999];
+    sprintf(filename, "export_face_%i.vtk", i_rank);
+    PDM_vtk_write_polydata(filename,
+                           pn_extract_vtx,
+                           pextract_vtx_coord,
+                           pextract_vtx_ln_to_gn,
+                           dn_extract_face,
+                           pextract_face_vtx_idx,
+                           pextract_face_vtx,
+                           extract_face_ln_to_gn,
+                           pextract_face_tag);
+  }
 
   free(dface_group_tag);
   free(dextract_face_tag);

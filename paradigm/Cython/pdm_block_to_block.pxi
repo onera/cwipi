@@ -88,11 +88,11 @@ cdef class BlockToBlock:
         assert_single_dim_np(block_data, block_data.dtype, block_stride*self.dn_elt_ini)
       elif isinstance(block_stride, NPY.ndarray):
         raise NotImplementedError("Variable stride for BTB not implemented")
-        _stride_t = PDM_STRIDE_VAR_INTERLACED
-        assert_single_dim_np(block_stride, NPY.int32, self.dn_elt_ini)
-        assert_single_dim_np(block_data, block_data.dtype, block_stride.sum())
-        numpy_int = block_stride
-        _block_stride = <int *> numpy_int.data
+#        _stride_t = PDM_STRIDE_VAR_INTERLACED
+#        assert_single_dim_np(block_stride, NPY.int32, self.dn_elt_ini)
+#        assert_single_dim_np(block_data, block_data.dtype, block_stride.sum())
+#        numpy_int = block_stride
+#        _block_stride = <int *> numpy_int.data
       else:
         raise ValueError("Invalid stride in BtP exchange")
 

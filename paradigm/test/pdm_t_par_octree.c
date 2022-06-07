@@ -213,10 +213,10 @@ char *argv[]
   free (gnum);
 
   if (i_rank == 0) {
-
-    PDM_printf ("\nfin Test\n");
-
+    PDM_printf ("-- End\n");
+    fflush(stdout);
   }
+
 
   PDM_MPI_Barrier (PDM_MPI_COMM_WORLD);
 

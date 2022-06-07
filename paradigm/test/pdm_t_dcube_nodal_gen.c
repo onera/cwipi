@@ -2022,28 +2022,31 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (t_elt > PDM_MESH_NODAL_HEXA8) {
-    /* Bounding boxes */
-    if (dim == 3) {
-      _bezier_bounding_boxes(dmn, order, PDM_GEOMETRY_KIND_VOLUMIC, "out_volumic");
+  if (post) {
+    if (t_elt > PDM_MESH_NODAL_HEXA8) {
+      /* Bounding boxes */
+      if (dim == 3) {
+        _bezier_bounding_boxes(dmn, order, PDM_GEOMETRY_KIND_VOLUMIC, "out_volumic");
+      }
+      _bezier_bounding_boxes(dmn, order, PDM_GEOMETRY_KIND_SURFACIC, "out_surfacic");
+      _bezier_bounding_boxes(dmn, order, PDM_GEOMETRY_KIND_RIDGE,    "out_ridge");
+
+      /* Reorder */
+      PDM_dmesh_nodal_reorder (dmn,
+                               "PDM_HO_ORDERING_VTK",
+                               order);
     }
-    _bezier_bounding_boxes(dmn, order, PDM_GEOMETRY_KIND_SURFACIC, "out_surfacic");
-    _bezier_bounding_boxes(dmn, order, PDM_GEOMETRY_KIND_RIDGE,    "out_ridge");
 
-    /* Reorder */
-    PDM_dmesh_nodal_reorder (dmn,
-                             "PDM_HO_ORDERING_VTK",
-                             order);
-  }
 
-  if (dim == 3) {
-    _dmesh_nodal_dump_vtk(dmn, order, PDM_GEOMETRY_KIND_VOLUMIC, "out_volumic");
+    if (dim == 3) {
+      _dmesh_nodal_dump_vtk(dmn, order, PDM_GEOMETRY_KIND_VOLUMIC, "out_volumic");
+    }
+    //PDM_dmesh_nodal_dump_vtk(dmn, PDM_GEOMETRY_KIND_VOLUMIC , "out_volumic");
+    //PDM_dmesh_nodal_dump_vtk(dmn, PDM_GEOMETRY_KIND_SURFACIC, "out_surfacic");
+    _dmesh_nodal_dump_vtk(dmn, order, PDM_GEOMETRY_KIND_SURFACIC, "out_surfacic");
+    _dmesh_nodal_dump_vtk(dmn, order, PDM_GEOMETRY_KIND_RIDGE,    "out_ridge");
+    _dmesh_nodal_dump_vtk(dmn, order, PDM_GEOMETRY_KIND_CORNER,   "out_corner");
   }
-  //PDM_dmesh_nodal_dump_vtk(dmn, PDM_GEOMETRY_KIND_VOLUMIC , "out_volumic");
-  //PDM_dmesh_nodal_dump_vtk(dmn, PDM_GEOMETRY_KIND_SURFACIC, "out_surfacic");
-  _dmesh_nodal_dump_vtk(dmn, order, PDM_GEOMETRY_KIND_SURFACIC, "out_surfacic");
-  _dmesh_nodal_dump_vtk(dmn, order, PDM_GEOMETRY_KIND_RIDGE,    "out_ridge");
-  _dmesh_nodal_dump_vtk(dmn, order, PDM_GEOMETRY_KIND_CORNER,   "out_corner");
 
 
   //PDM_dmesh_nodal_to_dmesh_free(dmntodm);

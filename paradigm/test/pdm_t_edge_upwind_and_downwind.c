@@ -285,6 +285,7 @@ _setup_edge_upwind_and_downwind
  double *vtx_coord
 )
 {
+  int debug = 0;
   PDM_Mesh_nodal_elt_t elt_type;
   int vtk_type_cell;
   int n_face_cell = cell_face_idx[1] - cell_face_idx[0];
@@ -299,7 +300,7 @@ _setup_edge_upwind_and_downwind
     abort();
   }
 
-  if (1) {
+  if (debug) {
     PDM_vtk_write_polydata("check_faces.vtk",
                            n_vtx,
                            vtx_coord,
@@ -384,7 +385,9 @@ _setup_edge_upwind_and_downwind
     }
   }
 
-  PDM_log_trace_connectivity_int(cell_face_idx, cell_face, n_cell, "cell_face : ");
+  if (debug) {
+    PDM_log_trace_connectivity_int(cell_face_idx, cell_face, n_cell, "cell_face : ");
+  }
 
 
   int *is_visited_face = PDM_array_zeros_int(n_face);
@@ -396,7 +399,9 @@ _setup_edge_upwind_and_downwind
   const double epsilon = 1.e-12;
   for (int iedge = 0; iedge < n_edge; iedge++) {
 
-    log_trace("iedge = %d/%d\n", iedge, n_edge);
+    if (debug) {
+      log_trace("iedge = %d/%d\n", iedge, n_edge);
+    }
 
     int ivtx1 = edge_vtx[2*iedge  ] - 1;
     int ivtx2 = edge_vtx[2*iedge+1] - 1;
@@ -418,17 +423,23 @@ _setup_edge_upwind_and_downwind
     for (int jvtx = 0; jvtx < 2; jvtx++) {
 
       int ivtx = edge_vtx[2*iedge + jvtx] - 1;
-      log_trace("    ivtx = %d/%d\n", ivtx, n_vtx);
+      if (debug) {
+        log_trace("    ivtx = %d/%d\n", ivtx, n_vtx);
+      }
 
       for (int idx_cell = vtx_cell_idx[ivtx]; idx_cell < vtx_cell_idx[ivtx+1]; idx_cell++) {
 
         int icell = PDM_ABS(vtx_cell[idx_cell]) - 1;
-        log_trace("    icell = %d/%d\n", icell, n_cell);
+        if (debug) {
+          log_trace("    icell = %d/%d\n", icell, n_cell);
+        }
 
         for (int idx_face = cell_face_idx[icell]; idx_face < cell_face_idx[icell+1]; idx_face++) {
 
           int iface = PDM_ABS(cell_face[idx_face]) - 1;
-          log_trace("      idx_face = %d, iface = %d/%d\n", idx_face, iface, n_face);
+          if (debug) {
+            log_trace("      idx_face = %d, iface = %d/%d\n", idx_face, iface, n_face);
+          }
 
           if (is_visited_face[iface]) {
             continue;
@@ -541,7 +552,9 @@ _setup_edge_upwind_and_downwind
 
       sgn = -sgn;
       // assert(found[jvtx]);
-      log_trace("found[%d] = %d\n", jvtx, found[jvtx]);
+      if (debug) {
+        log_trace("found[%d] = %d\n", jvtx, found[jvtx]);
+      }
 
     } // end of loop on current edge's vtx
 
@@ -554,15 +567,16 @@ _setup_edge_upwind_and_downwind
   free(visited_faces  );
   free(poly_coord);
 
-
-  for (int iedge = 0; iedge < n_edge; iedge++) {
-    log_trace("edge %d (%d %d), up : c %d, f %d, p (%f %f %f), down : c %d, f %d, p (%f %f %f)\n",
-              iedge,
-              edge_vtx[2*iedge]-1, edge_vtx[2*iedge+1]-1,
-              upwind_cell[iedge], upwind_face[iedge],
-              upwind_point[3*iedge], upwind_point[3*iedge+1], upwind_point[3*iedge+2],
-              downwind_cell[iedge], downwind_face[iedge],
-              downwind_point[3*iedge], downwind_point[3*iedge+1], downwind_point[3*iedge+2]);
+  if (debug) {
+    for (int iedge = 0; iedge < n_edge; iedge++) {
+      log_trace("edge %d (%d %d), up : c %d, f %d, p (%f %f %f), down : c %d, f %d, p (%f %f %f)\n",
+                iedge,
+                edge_vtx[2*iedge]-1, edge_vtx[2*iedge+1]-1,
+                upwind_cell[iedge], upwind_face[iedge],
+                upwind_point[3*iedge], upwind_point[3*iedge+1], upwind_point[3*iedge+2],
+                downwind_cell[iedge], downwind_face[iedge],
+                downwind_point[3*iedge], downwind_point[3*iedge+1], downwind_point[3*iedge+2]);
+    }
   }
 
 
@@ -588,11 +602,12 @@ _setup_edge_upwind_and_downwind
     memcpy(line_coord + 6*i + 3, downwind_point + 3*i, sizeof(double) * 3);
   }
 
-  PDM_vtk_write_lines("edges_up_down.vtk",
-                      n_edge,
-                      line_coord,
-                      NULL,
-                      NULL);
+  if (debug) {
+    PDM_vtk_write_lines("edges_up_down.vtk",
+                        n_edge,
+                        line_coord,
+                        NULL,
+                        NULL);
 
   // PDM_vtk_write_point_cloud("upwind_points.vtk",
   //                           n_edge,
@@ -607,45 +622,45 @@ _setup_edge_upwind_and_downwind
   //                           NULL);
 
 
-  const char* field_name[] = {"iface", "icell", 0};
+    const char* field_name[] = {"iface", "icell", 0};
 
-  int *field[2];
+    int *field[2];
 
-  int *connec = (int *) malloc(sizeof(int) * n_edge);
-  for (int i = 0; i < n_edge; i++) {
-    connec[i] = i+1;
+    int *connec = (int *) malloc(sizeof(int) * n_edge);
+    for (int i = 0; i < n_edge; i++) {
+      connec[i] = i+1;
+    }
+
+    field[0] = upwind_face;
+    field[1] = upwind_cell;
+    PDM_vtk_write_std_elements("upwind_points.vtk",
+                               n_edge,
+                               upwind_point,
+                               NULL,
+                               PDM_MESH_NODAL_POINT,
+                               n_edge,
+                               connec,
+                               NULL,
+                               2,
+                               field_name,
+                               (const int **) field);
+
+    field[0] = downwind_face;
+    field[1] = downwind_cell;
+    PDM_vtk_write_std_elements("downwind_points.vtk",
+                               n_edge,
+                               downwind_point,
+                               NULL,
+                               PDM_MESH_NODAL_POINT,
+                               n_edge,
+                               connec,
+                               NULL,
+                               2,
+                               field_name,
+                               (const int **) field);
+
+    free(connec);
   }
-
-  field[0] = upwind_face;
-  field[1] = upwind_cell;
-  PDM_vtk_write_std_elements("upwind_points.vtk",
-                             n_edge,
-                             upwind_point,
-                             NULL,
-                             PDM_MESH_NODAL_POINT,
-                             n_edge,
-                             connec,
-                             NULL,
-                             2,
-                             field_name,
-              (const int **) field);
-
-  field[0] = downwind_face;
-  field[1] = downwind_cell;
-  PDM_vtk_write_std_elements("downwind_points.vtk",
-                             n_edge,
-                             downwind_point,
-                             NULL,
-                             PDM_MESH_NODAL_POINT,
-                             n_edge,
-                             connec,
-                             NULL,
-                             2,
-                             field_name,
-              (const int **) field);
-
-  free(connec);
-
 
 
 
@@ -691,7 +706,9 @@ _setup_edge_upwind_and_downwind
   // <<--
 
   int *cell_vtx_idx = PDM_array_new_idx_from_const_stride_int(n_vtx_cell, n_cell);
-  PDM_log_trace_connectivity_int(cell_vtx_idx, cell_vtx, n_cell, "cell_vtx : ");
+  if (debug) {
+    PDM_log_trace_connectivity_int(cell_vtx_idx, cell_vtx, n_cell, "cell_vtx : ");
+  }
 
   int n_elt = 0;
   int l_elt_vtx = 0;
@@ -714,81 +731,81 @@ _setup_edge_upwind_and_downwind
     }
   }
 
+  if (debug) {
+    printf("n_vtx = %d\n", n_vtx);
+    FILE *f = fopen("visu_V4.vtk", "w");
 
-  printf("n_vtx = %d\n", n_vtx);
-  FILE *f = fopen("visu_V4.vtk", "w");
+    fprintf(f, "# vtk DataFile Version 2.0\n");
+    fprintf(f, "circles\n");
+    fprintf(f, "ASCII\n");
+    fprintf(f, "DATASET UNSTRUCTURED_GRID\n");
 
-  fprintf(f, "# vtk DataFile Version 2.0\n");
-  fprintf(f, "circles\n");
-  fprintf(f, "ASCII\n");
-  fprintf(f, "DATASET UNSTRUCTURED_GRID\n");
-
-  fprintf(f, "POINTS %d double\n", n_vtx + 2*n_edge);
-  for (int i = 0; i < n_vtx; i++) {
-    for (int j = 0; j < 3; j++) {
-      fprintf(f, "%.20lf ", vtx_coord[3*i+j]);
-    }
-    fprintf(f, "\n");
-  }
-  for (int iedge = 0; iedge < n_edge; iedge++) {
-    for (int j = 0; j < 3; j++) {
-      fprintf(f, "%.20lf ", upwind_point[3*iedge+j]);
-    }
-    fprintf(f, "\n");
-  }
-  for (int iedge = 0; iedge < n_edge; iedge++) {
-    for (int j = 0; j < 3; j++) {
-      fprintf(f, "%.20lf ", downwind_point[3*iedge+j]);
-    }
-    fprintf(f, "\n");
-  }
-
-  fprintf(f, "CELLS %d %d\n", n_elt, n_elt + l_elt_vtx);
-  for (int iedge = 0; iedge < n_edge; iedge++) {
-    fprintf(f, "2 %d %d\n", edge_vtx[2*iedge]-1, edge_vtx[2*iedge+1]-1);
-
-    if (upwind_cell[iedge] >= 0) {
-      fprintf(f, "1 %d\n", n_vtx + iedge);
-
-      int iface = upwind_face[iedge];
-      fprintf(f, "%d ", face_vtx_idx[iface+1] - face_vtx_idx[iface]);
-      for (int j = face_vtx_idx[iface]; j < face_vtx_idx[iface+1]; j++) {
-        fprintf(f, "%d ", face_vtx[j]-1);
+    fprintf(f, "POINTS %d double\n", n_vtx + 2*n_edge);
+    for (int i = 0; i < n_vtx; i++) {
+      for (int j = 0; j < 3; j++) {
+        fprintf(f, "%.20lf ", vtx_coord[3*i+j]);
       }
       fprintf(f, "\n");
-
-      int icell = upwind_cell[iedge];
-      fprintf(f, "%d ", cell_vtx_idx[icell+1] - cell_vtx_idx[icell]);
-      for (int j = cell_vtx_idx[icell]; j < cell_vtx_idx[icell+1]; j++) {
-        fprintf(f, "%d ", cell_vtx[j]-1);
+    }
+    for (int iedge = 0; iedge < n_edge; iedge++) {
+      for (int j = 0; j < 3; j++) {
+        fprintf(f, "%.20lf ", upwind_point[3*iedge+j]);
       }
       fprintf(f, "\n");
-
+    }
+    for (int iedge = 0; iedge < n_edge; iedge++) {
+      for (int j = 0; j < 3; j++) {
+        fprintf(f, "%.20lf ", downwind_point[3*iedge+j]);
+      }
+      fprintf(f, "\n");
     }
 
-    if (downwind_cell[iedge] >= 0) {
-      fprintf(f, "1 %d\n", n_vtx + n_edge + iedge);
+    fprintf(f, "CELLS %d %d\n", n_elt, n_elt + l_elt_vtx);
+    for (int iedge = 0; iedge < n_edge; iedge++) {
+      fprintf(f, "2 %d %d\n", edge_vtx[2*iedge]-1, edge_vtx[2*iedge+1]-1);
 
-      int iface = downwind_face[iedge];
-      fprintf(f, "%d ", face_vtx_idx[iface+1] - face_vtx_idx[iface]);
-      for (int j = face_vtx_idx[iface]; j < face_vtx_idx[iface+1]; j++) {
-        fprintf(f, "%d ", face_vtx[j]-1);
+      if (upwind_cell[iedge] >= 0) {
+        fprintf(f, "1 %d\n", n_vtx + iedge);
+
+        int iface = upwind_face[iedge];
+        fprintf(f, "%d ", face_vtx_idx[iface+1] - face_vtx_idx[iface]);
+        for (int j = face_vtx_idx[iface]; j < face_vtx_idx[iface+1]; j++) {
+          fprintf(f, "%d ", face_vtx[j]-1);
+        }
+        fprintf(f, "\n");
+
+        int icell = upwind_cell[iedge];
+        fprintf(f, "%d ", cell_vtx_idx[icell+1] - cell_vtx_idx[icell]);
+        for (int j = cell_vtx_idx[icell]; j < cell_vtx_idx[icell+1]; j++) {
+          fprintf(f, "%d ", cell_vtx[j]-1);
+        }
+        fprintf(f, "\n");
+
       }
-      fprintf(f, "\n");
 
-      int icell = downwind_cell[iedge];
-      fprintf(f, "%d ", cell_vtx_idx[icell+1] - cell_vtx_idx[icell]);
-      for (int j = cell_vtx_idx[icell]; j < cell_vtx_idx[icell+1]; j++) {
-        fprintf(f, "%d ", cell_vtx[j]-1);
+      if (downwind_cell[iedge] >= 0) {
+        fprintf(f, "1 %d\n", n_vtx + n_edge + iedge);
+
+        int iface = downwind_face[iedge];
+        fprintf(f, "%d ", face_vtx_idx[iface+1] - face_vtx_idx[iface]);
+        for (int j = face_vtx_idx[iface]; j < face_vtx_idx[iface+1]; j++) {
+          fprintf(f, "%d ", face_vtx[j]-1);
+        }
+        fprintf(f, "\n");
+
+        int icell = downwind_cell[iedge];
+        fprintf(f, "%d ", cell_vtx_idx[icell+1] - cell_vtx_idx[icell]);
+        for (int j = cell_vtx_idx[icell]; j < cell_vtx_idx[icell+1]; j++) {
+          fprintf(f, "%d ", cell_vtx[j]-1);
+        }
+        fprintf(f, "\n");
+
       }
-      fprintf(f, "\n");
-
     }
-  }
 
 
-  fprintf(f, "CELL_TYPES %d\n", n_elt);
-  for (int iedge = 0; iedge < n_edge; iedge++) {
+    fprintf(f, "CELL_TYPES %d\n", n_elt);
+    for (int iedge = 0; iedge < n_edge; iedge++) {
     fprintf(f, "3\n"); // line
 
     if (upwind_cell[iedge] >= 0) {
@@ -856,6 +873,7 @@ _setup_edge_upwind_and_downwind
   }
 
   fclose(f);
+}
 
   free(cell_vtx);
   free(cell_vtx_idx);
@@ -1013,7 +1031,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  if(1 == 1) {
+  if(post) {
     PDM_dmesh_nodal_dump_vtk(dmn, PDM_GEOMETRY_KIND_VOLUMIC , "out_volumic");
     PDM_dmesh_nodal_dump_vtk(dmn, PDM_GEOMETRY_KIND_SURFACIC, "out_surfacic");
   }

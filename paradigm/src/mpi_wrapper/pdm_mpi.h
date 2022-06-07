@@ -29,6 +29,7 @@ extern "C" {
  *============================================================================*/
 
 typedef int PDM_MPI_Request;
+typedef int PDM_MPI_Win;
 typedef int PDM_MPI_Comm;
 typedef int PDM_MPI_Datatype;
 typedef int PDM_MPI_File;
@@ -123,6 +124,8 @@ typedef enum {
   PDM_MPI_MAX,
   PDM_MPI_MIN,
   PDM_MPI_SUM,
+  PDM_MPI_MINLOC,
+  PDM_MPI_MAXLOC,
   PDM_MPI_OP_NULL
 
 } PDM_MPI_Op;
@@ -174,6 +177,10 @@ enum {
 
 enum {
   PDM_MPI_REQUEST_NULL  = -1
+};
+
+enum {
+  PDM_MPI_WIN_NULL  = -1
 };
 
 enum {
@@ -411,6 +418,12 @@ int PDM_MPI_Issend(const void *buf, int count, PDM_MPI_Datatype datatype, int de
 int PDM_MPI_Wait(PDM_MPI_Request *request);
 
 /*----------------------------------------------------------------------------
+ * PDM_MPI_Test (wrapping de la fonction MPI_Test)
+ *
+ *----------------------------------------------------------------------------*/
+int PDM_MPI_Test(PDM_MPI_Request *request, int *flag);
+
+/*----------------------------------------------------------------------------
  * PDM_MPI_Type_hindexed (wrapping de la fonction MPI_Type_hindexed)
  *
  *----------------------------------------------------------------------------*/
@@ -514,6 +527,14 @@ int PDM_MPI_Reduce(void *sendbuf, void *recvbuf, int count,
 		   int root, PDM_MPI_Comm comm);
 
 /*----------------------------------------------------------------------------
+ * PDM_MPI_Reduce_scatter (wrapping de la fonction MPI_Reduce_scatter)
+ *
+ *----------------------------------------------------------------------------*/
+int PDM_MPI_Reduce_scatter(void *sendbuf, void *recvbuf, int *counts,
+                           PDM_MPI_Datatype datatype, PDM_MPI_Op op,
+                           PDM_MPI_Comm comm);
+
+/*----------------------------------------------------------------------------
  * PDM_MPI_Allreduce (wrapping de la fonction MPI_Allreduce)
  *
  *----------------------------------------------------------------------------*/
@@ -574,6 +595,48 @@ int PDM_MPI_Ialltoallv(void *sendbuf, int *sendcounts, int *sdispls,
                   PDM_MPI_Datatype sendtype, void *recvbuf, int *recvcounts,
                   int *rdispls, PDM_MPI_Datatype recvtype,
                   PDM_MPI_Comm comm, PDM_MPI_Request *request);
+
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Get_ialltoallv (Implemtation of alltoall like with window )
+ *
+ *----------------------------------------------------------------------------*/
+int PDM_MPI_Get_ialltoallv(PDM_MPI_Win       win_send,
+                           PDM_MPI_Win       win_recv,
+                           void             *sendbuf,
+                           int              *sendcounts,
+                           int              *sdispls,
+                           PDM_MPI_Datatype  sendtype,
+                           void             *recvbuf,
+                           int              *recvcounts,
+                           int              *rdispls,
+                           PDM_MPI_Datatype  recvtype,
+                           PDM_MPI_Comm      comm);
+
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Win_allocate (wrapping de la fonction MPI_Win_allocate)
+ *
+ *----------------------------------------------------------------------------*/
+int PDM_MPI_Win_allocate(PDM_MPI_Aint  size,
+                         int           disp_unit,
+                         PDM_MPI_Comm  comm,
+                         void         *baseptr,
+                         PDM_MPI_Win  *win);
+
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Win_free (wrapping de la fonction MPI_Win_free)
+ *
+ *----------------------------------------------------------------------------*/
+int PDM_MPI_Win_free(PDM_MPI_Win  *win);
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Win_fence (wrapping de la fonction MPI_Win_fence)
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Win_fence(int assert, PDM_MPI_Win win);
 
 /*----------------------------------------------------------------------------
  * PDM_MPI_Error_string (wrapping de la fonction MPI_Error_string)
@@ -659,7 +722,8 @@ int PDM_mpi_win_shared_sync(PDM_mpi_win_shared_t* win);
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_MPI_Rand_tag (PDM_MPI_Comm comm);
+int PDM_MPI_Comm_get_attr_tag_ub(PDM_MPI_Comm comm, void *attribute_val, int *flag);
+int PDM_MPI_Rand_tag            (PDM_MPI_Comm comm);
 
 #ifdef __cplusplus
 }

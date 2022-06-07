@@ -39,13 +39,13 @@ struct _pdm_part_to_part_t {
 
         int           n_part1;                      /*!< Number of parts for gnum1 */    
   const PDM_g_num_t **gnum_elt1;                    /*!< gnum of elements in the partition for gnum1 */
-  const int          *n_elt1;                       /*!< Number of elements in the partition for gnum1 */
+        int          *n_elt1;                       /*!< Number of elements in the partition for gnum1 */
   
         int           n_part2;                      /*!< Number of parts for gnum2 */
   const PDM_g_num_t **gnum_elt2;                    /*!< gnum of elements in the partition for gnum2 */
-  const int          *n_elt2;                       /*!< Number of elements in the partition for gnum2 */
+        int          *n_elt2;                       /*!< Number of elements in the partition for gnum2 */
 
-  const int         **part1_to_part2_idx;           /*!< gnum1 to send to gnum2 index */
+        int         **part1_to_part2_idx;           /*!< gnum1 to send to gnum2 index */
   const PDM_g_num_t **part1_to_part2;               /*!< gnum1 to send to gnum2 */
         PDM_MPI_Comm  comm;                         /*!< MPI communicator */  
 
@@ -116,6 +116,11 @@ struct _pdm_part_to_part_t {
   int               **async_exch_recv_n;            /*!< Number of received data (stride is taking into acount) */
   int               **async_exch_recv_idx;          /*!< Index to find received data */ 
   int              ***async_exch_part2_stride;      /*!< Stride of part2 data */ 
+
+  long                max_tag;
+  int                 seed_tag;
+  int                 next_tag;
+
 
 };
 

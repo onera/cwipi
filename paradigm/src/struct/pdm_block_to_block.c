@@ -169,7 +169,7 @@ PDM_block_to_block_exch
     int send_rank = PDM_binary_search_gap_long (i,
                                                _btb->block_distrib_end_idx,
                                                _btb->n_rank + 1);
-    n_send_buffer[send_rank] += 1 * s_data;
+    n_send_buffer[send_rank] += 1;
   }
 
   for (PDM_g_num_t i = _btb->block_distrib_end_idx[_btb->i_rank]; i < _btb->block_distrib_end_idx[_btb->i_rank+1]; i++) {
@@ -177,12 +177,10 @@ PDM_block_to_block_exch
     int recv_rank = PDM_binary_search_gap_long (i,
                                                _btb->block_distrib_ini_idx,
                                                _btb->n_rank + 1);
-    n_recv_buffer[recv_rank] += 1 * s_data;
+    n_recv_buffer[recv_rank] += 1;
   }
 
   if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
-
-    PDM_error(__FILE__, __LINE__, 0, "Error : PDM_STRIDE_VAR is not yet available \n");
 
     for(int i = 1; i < _btb->n_rank; i++){
       i_send_buffer[i] = i_send_buffer[i-1] + n_send_buffer[i-1];
@@ -234,8 +232,8 @@ PDM_block_to_block_exch
   else if (t_stride == PDM_STRIDE_CST_INTERLACED) {
 
     for(int i = 0; i < _btb->n_rank; i++){
-      n_send_buffer[i] *= cst_stride;
-      n_recv_buffer[i] *= cst_stride;
+      n_send_buffer[i] *= cst_stride * s_data;
+      n_recv_buffer[i] *= cst_stride * s_data;
     }
     for(int i = 1; i < _btb->n_rank; i++){
       // i_send_buffer[i] = i_send_buffer[i-1] + n_send_buffer[i-1] * s_data * cst_stride;

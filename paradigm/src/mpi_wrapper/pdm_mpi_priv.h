@@ -31,6 +31,12 @@ struct _pdm_mpi_win_shared_t {
   void    *ptr;
 };
 
+struct _pdm_mpi_win_t {
+  MPI_Win  win;
+  void    *ptr;
+};
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

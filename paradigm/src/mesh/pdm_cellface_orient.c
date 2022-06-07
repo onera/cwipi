@@ -614,7 +614,7 @@ const int     *face_vtx
   double et1 = PDM_timer_elapsed (t1);
   PDM_timer_free (t1);
 
-  if (1 == 1) {
+  if (0 == 1) {
     printf("elapsed time cell_face_orient : %12.5e\n", et1);
   }
 }

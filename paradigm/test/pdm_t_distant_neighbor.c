@@ -32,6 +32,8 @@ int argc,
 char *argv[]
 )
 {
+  int verbose = 0;
+
   int i_rank;
   int n_rank;
 
@@ -196,7 +198,7 @@ char *argv[]
     n_entity[i_cloud] = n_cloud_points;
 
     assert(n_desc == candidates_idx[i_cloud][n_cloud_points]);
-    if(1 == 1){
+    if(verbose){
       printf("-- n_desc:: %d \n ", n_desc);
       printf("-- candidates_idx[i_cloud][n_cloud_points+1]:: %d \n ", candidates_idx[i_cloud][n_cloud_points]);
       for(int i = 0; i < n_cloud_points; i++){
@@ -283,8 +285,8 @@ char *argv[]
                  (int***) &recv_entity_var_stri,
                 (void***) &recv_entity_var_data);
 
-  log_trace(" Variable strid exchange results ---- \n");
-  if(1 == 1){
+  if(verbose){
+    log_trace(" Variable strid exchange results ---- \n");
     for(int i_part = 0; i_part < n_cloud; i_part++){
       int *_part_neighbor_idx  = candidates_idx[i_part];
       log_trace(" ---> recv_entity_data[%d]::", i_part);
@@ -320,10 +322,12 @@ char *argv[]
   free(recv_entity_data);
   free(recv_entity_var_stri);
   free(recv_entity_var_data);
+
+  if (i_rank == 0) {
+    PDM_printf ("-- End\n");
+  }
+
   PDM_MPI_Finalize();
-
-  PDM_printf ("\nfin Test\n");
-
 
   return 0;
 }

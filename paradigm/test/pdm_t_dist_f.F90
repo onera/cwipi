@@ -42,8 +42,6 @@ program testf
   integer,                   parameter :: n_pts   = 4
   integer,                   parameter :: n_vtx   = 17
   integer,                   parameter :: n_face  = 12
-  integer(kind=pdm_g_num_s), parameter :: gn_vtx  = 26
-  integer(kind=pdm_g_num_s), parameter :: gn_face = 24
 
   type(c_ptr)                          :: dist = C_NULL_PTR
   double precision,          pointer   :: pts_coord(:,:)   => null()

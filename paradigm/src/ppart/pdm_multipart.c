@@ -1035,6 +1035,8 @@ const double            *part_fraction,
       int              **node_part
 )
 {
+  int verbose = 0;
+
   int i_rank;
   int n_rank;
   PDM_MPI_Comm_rank(comm, &i_rank);
@@ -1047,7 +1049,7 @@ const double            *part_fraction,
   int dn_cell, dn_face, dn_vtx, dn_edge, n_bnd, n_join;
   PDM_dmesh_dims_get(dmesh, &dn_cell, &dn_face, &dn_edge, &dn_vtx, &n_bnd, &n_join);
 
-  if(i_rank == 0) {
+  if(verbose && i_rank == 0) {
     printf(" dn_cell = %i \n", dn_cell);
     printf(" dn_face = %i \n", dn_face);
     printf(" dn_edge = %i \n", dn_edge);
@@ -1858,7 +1860,7 @@ PDM_MPI_Comm       comm
                                            &dface_bound_idx,
                                            PDM_OWNERSHIP_KEEP);
 
-    assert(n_face_group == pmeshes->n_bounds);
+    // assert(n_face_group == pmeshes->n_bounds);
 
     int         **pface_bound_idx               = NULL;
     int         **pface_bound                   = NULL;
@@ -1869,7 +1871,7 @@ PDM_MPI_Comm       comm
     PDM_g_num_t **pface_bound_ln_to_gn          = NULL;
     PDM_part_distgroup_to_partgroup(comm,
                                     face_distri,
-                                    n_bnd,
+                                    n_face_group,
                                     dface_bound_idx,
                                     dface_bound,
                                     n_part,
@@ -1940,7 +1942,7 @@ PDM_MPI_Comm       comm
     PDM_g_num_t **pedge_bound_ln_to_gn          = NULL;
     PDM_part_distgroup_to_partgroup(comm,
                                     edge_distrib,
-                                    n_bnd,
+                                    n_edge_group,
                                     dedge_bound_idx,
                                     dedge_bound,
                                     n_part,
@@ -2059,6 +2061,8 @@ const double*     part_fraction,
 PDM_MPI_Comm      comm
 )
 {
+  int verbose = 0;
+
   int i_rank;
   int n_rank;
   PDM_MPI_Comm_rank(comm, &i_rank);
@@ -2079,11 +2083,13 @@ PDM_MPI_Comm      comm
   PDM_dmesh_data_get(dmesh, &dvtx_coord, &dface_vtx_idx, &dface_vtx, &dface_cell,
                      &dface_bound_idx, &dface_bound, &joins_ids, &dface_join_idx, &dface_join);
 
-  printf(" dn_cell = %i \n", dn_cell);
-  printf(" dn_face = %i \n", dn_face);
-  printf(" dn_edge = %i \n", dn_edge);
-  printf(" dn_vtx  = %i \n", dn_vtx );
-  printf(" n_bnd   = %i \n", n_bnd  );
+  if (verbose) {
+    printf(" dn_cell = %i \n", dn_cell);
+    printf(" dn_face = %i \n", dn_face);
+    printf(" dn_edge = %i \n", dn_edge);
+    printf(" dn_vtx  = %i \n", dn_vtx );
+    printf(" n_bnd   = %i \n", n_bnd  );
+  }
 
   // This will store all the partitions created by this proc on this zone
   // Copy number of bounds and joins (global data) in the part structure
@@ -3046,7 +3052,7 @@ PDM_multipart_run_ppart
         PDM_dmesh_nodal_generate_distribution(dmesh_nodal);
         PDM_dmesh_nodal_to_dmesh_add_dmesh_nodal(dmn_to_dm, 0, dmesh_nodal);
 
-        printf("dmesh_nodal->n_cell_abs = "PDM_FMT_G_NUM" \n", dmesh_nodal->n_cell_abs );
+        // printf("dmesh_nodal->n_cell_abs = "PDM_FMT_G_NUM" \n", dmesh_nodal->n_cell_abs );
         if(dmesh_nodal->n_cell_abs != 0) {
           PDM_dmesh_nodal_to_dmesh_compute(dmn_to_dm,
                                            PDM_DMESH_NODAL_TO_DMESH_TRANSFORM_TO_FACE,
@@ -3080,12 +3086,12 @@ PDM_multipart_run_ppart
         int n_part = _multipart->n_part[i_zone];
 
 
-        if (i_rank == 0)
+        if (0 && i_rank == 0)
           PDM_printf("Running partitioning for block %i...\n", i_zone+1);
         PDM_timer_resume(timer);
         _run_ppart_zone(_dmeshes, _pmeshes, n_part, split_method, part_size_method, part_fraction, comm);
         PDM_timer_hang_on(timer);
-        if (i_rank == 0)
+        if (0 && i_rank == 0)
           PDM_printf("...completed (elapsed time : %f)\n", PDM_timer_elapsed(timer) - cum_elapsed_time);
         cum_elapsed_time = PDM_timer_elapsed(timer);
       }
@@ -3303,9 +3309,16 @@ const int            i_part,
   *face_part_bound_part_idx = _pmeshes.parts[i_part]->face_part_bound_part_idx;
   *face_part_bound          = _pmeshes.parts[i_part]->face_part_bound;
 
-  *face_bound_idx       = _pmeshes.parts[i_part]->face_bound_idx;
-  *face_bound           = _pmeshes.parts[i_part]->face_bound;
-  *face_bound_ln_to_gn  = _pmeshes.parts[i_part]->face_bound_ln_to_gn;
+
+  if (_pmeshes.parts[i_part]->n_cell > 0) {
+    *face_bound_idx       = _pmeshes.parts[i_part]->face_bound_idx;
+    *face_bound           = _pmeshes.parts[i_part]->face_bound;
+    *face_bound_ln_to_gn  = _pmeshes.parts[i_part]->face_bound_ln_to_gn;
+  } else {
+    *face_bound_idx       = _pmeshes.parts[i_part]->edge_bound_idx;
+    *face_bound           = _pmeshes.parts[i_part]->edge_bound;
+    *face_bound_ln_to_gn  = _pmeshes.parts[i_part]->edge_bound_ln_to_gn;
+  }
   *face_join_idx        = _pmeshes.parts[i_part]->face_join_idx;
   *face_join            = _pmeshes.parts[i_part]->face_join;
   *face_join_ln_to_gn   = _pmeshes.parts[i_part]->face_join_ln_to_gn;
@@ -3683,6 +3696,46 @@ const int                       i_part,
   return _pmeshes.parts[i_part]->n_vtx;
 }
 
+
+void PDM_multipart_bound_get
+(
+ PDM_multipart_t   *multipart,
+ const int          i_zone,
+ const int          i_part,
+ PDM_bound_type_t   bound_type,
+ int               *n_bound,
+ int              **bound_idx,
+ int              **bound,
+ PDM_g_num_t      **bound_ln_to_gn
+ )
+{
+  _pdm_multipart_t *_multipart = (_pdm_multipart_t *) multipart;
+
+  assert(i_zone < _multipart->n_zone && i_part < _multipart->n_part[i_zone]);
+  _part_mesh_t _pmeshes = _multipart->pmeshes[i_zone];
+
+  *n_bound = _pmeshes.n_bounds;
+
+  switch (bound_type) {
+    case PDM_BOUND_TYPE_EDGE:
+    *n_bound        = _pmeshes.parts[i_part]->n_edge_group;
+    *bound_idx      = _pmeshes.parts[i_part]->edge_bound_idx;
+    *bound          = _pmeshes.parts[i_part]->edge_bound;
+    *bound_ln_to_gn = _pmeshes.parts[i_part]->edge_bound_ln_to_gn;
+    break;
+
+    case PDM_BOUND_TYPE_FACE:
+    *n_bound        = _pmeshes.parts[i_part]->n_face_group;
+    *bound_idx      = _pmeshes.parts[i_part]->face_bound_idx;
+    *bound          = _pmeshes.parts[i_part]->face_bound;
+    *bound_ln_to_gn = _pmeshes.parts[i_part]->face_bound_ln_to_gn;
+    break;
+
+    default:
+    PDM_error(__FILE__, __LINE__, 0,
+              "PDM_multipart_bound_get : Wrong bound_type %d\n", (int) bound_type);
+  }
+}
 
 /*----------------------------------------------------------------------------*/
 

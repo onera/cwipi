@@ -501,10 +501,31 @@ char *argv[]
                                           &n_g_edge,
                                           &n_total_part,
                                           &n_edge_group);
-  PDM_part_free(ppart);
-  PDM_MPI_Finalize ();
 
-  PDM_printf ("\nfin Test\n");
+
+  // PDM_memory_stats_t* ms = PDM_memory_stats_create(3, comm);
+  // PDM_memory_stats_add(ms, 0, "Start  : ");
+
+  // int size = 2000000000;
+  // double* test = malloc(size * sizeof(double));
+  // for(int i = 0; i < size; ++i) {
+  //   test[i] = 1.;
+  // }
+  // PDM_memory_stats_add(ms, 1, "Step 1 : ");
+
+
+  // free(test);
+  // PDM_memory_stats_add(ms, 2, "End    : ");
+
+  // PDM_memory_stats_log(ms);
+  // PDM_memory_stats_free(ms);
+
+  PDM_part_free(ppart);
+
+  if (i_rank == 0) {
+    PDM_printf ("-- End\n");
+  }
+  PDM_MPI_Finalize ();
 
   return 0;
 

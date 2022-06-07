@@ -67,7 +67,8 @@ configure_file(pdm_part_coarse.pxi.in pdm_part_coarse.pxi)
 
 include(UseCython)
 set(_pyx_file "${CMAKE_CURRENT_BINARY_DIR}/Pypdm.pyx")
-set_source_files_properties(${_pyx_file} PROPERTIES CYTHON_IS_CXX FALSE)
+# set_source_files_properties(${_pyx_file} PROPERTIES CYTHON_IS_CXX FALSE)
+set_source_files_properties(${_pyx_file} PROPERTIES CYTHON_IS_CXX TRUE)
 
 if (PDM_ENABLE_EXTENSION_PDMA)
   cython_add_module (Pypdm
@@ -142,6 +143,11 @@ install(CODE
   --prefix=${CMAKE_PDM_INSTALL_PYTHON_DIR}
   --install-data=${SITE_PACKAGES_PDM} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   ")
+# useful Bundle for Topaze install
+install(CODE
+  "execute_process(COMMAND chrpath --delete ${SITE_PACKAGES_PDM}/Pypdm.so)
+  ")
+
 #install(TARGETS Pypdm
 #        LIBRARY DESTINATION "${SITE_PACKAGES_PDM}")
 #install(FILES       "${CMAKE_CURRENT_SOURCE_DIR}/Pypdm/__init__.py"

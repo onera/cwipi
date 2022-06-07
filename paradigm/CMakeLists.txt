@@ -7,6 +7,7 @@
 cmake_minimum_required(VERSION 3.16)
 cmake_policy(VERSION 3.16)
 
+
 #------------------------------------------------------------------------------
 # Internal CMake module (shared with ParaDiGMA or CWIPI)
 #------------------------------------------------------------------------------
@@ -28,6 +29,12 @@ set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
 
 include(CTest)
 enable_testing ()
+
+# ----------------------------------------------------------------------
+# RPATH protection
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 #------------------------------------------------------------------------------
 # User option Definition
@@ -362,7 +369,7 @@ else ()
 
   endif()
 
-  #find_package(mmg CONFIG)
+  # find_package(mmg CONFIG)
 
   # Check OpenMP (TODO : check MPI wrapper function check )
   # -------------------------------------------------------

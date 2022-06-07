@@ -27,6 +27,7 @@
 
 #include "pdm.h"
 #include "pdm_mpi.h"
+#include "pdm_part_mesh_nodal_elmts.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -53,6 +54,7 @@ extern "C" {
 
 struct _pdm_extract_part_t
 {
+  PDM_bool_t             equilibrate;
   int                    dim;
   int                    n_part_in;
   int                    n_part_out;
@@ -81,9 +83,17 @@ struct _pdm_extract_part_t
 
   double             **pvtx_coord;
 
+  /* If partition is described by elements */
+  PDM_part_mesh_nodal_elmts_t *pmne;
+
   /* Which cell or face is selected */
   int                 *n_extract;
   int                **extract_lnum;
+
+  /* Each rank specify the target AND order they want */
+  int                  from_target;
+  int                 *n_target;
+  PDM_g_num_t        **target_gnum;
 
   /* Extracted part (Intermediate distributed result) */
   int                   dn_equi_cell;
@@ -112,12 +122,14 @@ struct _pdm_extract_part_t
   PDM_part_to_block_t  *ptb_equi_vtx;
 
 
+
   /* Extrated part */
   double             **pextract_vtx_coord;
 
   PDM_bool_t         *is_owner_connectivity;
   PDM_bool_t         *is_owner_ln_to_gn;
   PDM_bool_t         *is_owner_parent_ln_to_gn;
+  PDM_bool_t         *is_owner_parent_lnum;
   PDM_bool_t          is_owner_vtx_coord;
 
   /* Only for mapping and clear API */
@@ -126,7 +138,11 @@ struct _pdm_extract_part_t
   int               **pextract_connectivity_idx      [PDM_CONNECTIVITY_TYPE_MAX];
   PDM_g_num_t       **pextract_entity_ln_to_gn       [PDM_MESH_ENTITY_MAX];
   PDM_g_num_t       **pextract_entity_parent_ln_to_gn[PDM_MESH_ENTITY_MAX];
+  int               **pextract_entity_parent_lnum    [PDM_MESH_ENTITY_MAX];
 
+  /* If partition is described by elements */
+  PDM_bool_t                   is_owner_extract_pmne;
+  PDM_part_mesh_nodal_elmts_t *extract_pmne;
 
 };
 

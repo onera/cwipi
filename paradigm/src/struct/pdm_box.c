@@ -2042,6 +2042,54 @@ PDM_box_distrib_create(int          n_boxes,
 }
 
 
+/**
+ * \brief Create a \ref PDM_box_distrib_t structure.
+ *
+ * \param [in] n_boxes    Number of boxes
+ * \param [in] n_g_boxes  Global number of boxes
+ * \param [in] max_level  Max level reached locally in the related tree
+ * \param [in] comm       MPI communicator. on which the distribution takes place
+ *
+ * \return  A pointer to a new allocated \ref PDM_box_distrib_t structure.
+ */
+
+PDM_box_distrib_t *
+PDM_box_distrib_shared_create(int          n_boxes,
+                              PDM_g_num_t  n_g_boxes,
+                              int          gmax_level,
+                              PDM_MPI_Comm comm)
+{
+  // Same as PDM_box_distrib_create but without all reduce
+  int  n_ranks;
+
+  PDM_box_distrib_t  *new_distrib = NULL;
+
+  if (n_g_boxes == 0)
+    return NULL;
+
+  new_distrib = (PDM_box_distrib_t *) malloc(sizeof(PDM_box_distrib_t));
+
+  /* Parallel parameters */
+
+  PDM_MPI_Comm_size(comm, &n_ranks);
+
+  new_distrib->n_ranks = n_ranks;
+
+  new_distrib->n_boxes = n_boxes;
+
+  // assert(n_ranks > 1);
+
+  new_distrib->morton_index = (PDM_morton_code_t *) malloc((n_ranks + 1) * sizeof(PDM_morton_code_t));
+
+  new_distrib->max_level = gmax_level;
+  new_distrib->fit = 999.0;
+
+  new_distrib->index = PDM_array_zeros_int(n_ranks + 1);
+
+  new_distrib->list = NULL;
+
+  return  new_distrib;
+}
 
 /**
  * \brief Destroy a \ref PDM_box_distrib_t structure.

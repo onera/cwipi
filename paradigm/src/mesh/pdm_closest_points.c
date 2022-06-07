@@ -463,7 +463,9 @@ PDM_closest_point_t *cls
     }*/
 
   //PDM_para_octree_dump (octree);
-  PDM_para_octree_dump_times (octree);
+  if (0) {
+    PDM_para_octree_dump_times (octree);
+  }
   //<--
 
 

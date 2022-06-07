@@ -46,7 +46,7 @@ static  int max_exch_rank[2] = {-1, -1};
 
 static  unsigned long long exch_data[2] = {0, 0};
 
-int n_btp = 0;
+static int n_btp = 0;
 
 /*=============================================================================
  * Static function definitions

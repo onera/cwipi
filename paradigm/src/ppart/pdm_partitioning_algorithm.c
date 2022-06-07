@@ -36,6 +36,11 @@
 #include "pdm_partitioning_algorithm.h"
 #include "pdm_distrib.h"
 #include "pdm_order.h"
+#include "pdm_dmesh_nodal_to_dmesh.h"
+#include "pdm_dmesh_nodal_elements_utils.h"
+#include "pdm_dconnectivity_transform.h"
+#include "pdm_part_to_part.h"
+#include "pdm_gnum.h"
 // #include "pdm_para_graph_dual.h"
 #include "pdm_logging.h"
 
@@ -2391,6 +2396,491 @@ PDM_setup_connectivity_idx
   *dentity1_dentity2_idx = _dentity1_dentity2_idx;
   *dentity1_dentity2_new = _dentity1_dentity2_new;
 }
+
+void
+PDM_compute_face_edge_from_face_vtx
+(
+  PDM_MPI_Comm    comm,
+  int             n_part,
+  int            *pn_face,
+  int            *pn_vtx,
+  int           **pface_vtx_idx,
+  int           **pface_vtx,
+  PDM_g_num_t   **pface_ln_to_gn,
+  PDM_g_num_t   **pvtx_ln_to_gn,
+  int          ***pface_edge_idx,
+  int          ***pface_edge,
+  int           **pn_edge,
+  int          ***pedge_vtx,
+  PDM_g_num_t  ***pedge_ln_to_gn
+)
+{
+  int i_rank;
+  int n_rank;
+
+  PDM_MPI_Comm_rank(comm, &i_rank);
+  PDM_MPI_Comm_size(comm, &n_rank);
+
+  PDM_g_num_t _max_vtx_gnum = 0;
+  PDM_g_num_t **pface_vtx_g_num  = (PDM_g_num_t **) malloc(n_part * sizeof(PDM_g_num_t *));
+  int         **pface_vtx_n      = (int         **) malloc(n_part * sizeof(int         *));
+
+  for(int i_part = 0; i_part < n_part; ++i_part) {
+    for(int i_vtx = 0; i_vtx < pn_vtx[i_part]; ++i_vtx) {
+      _max_vtx_gnum = PDM_MAX(pvtx_ln_to_gn[i_part][i_vtx], _max_vtx_gnum);
+    }
+
+    pface_vtx_n     [i_part] = (int         *) malloc(                       pn_face[i_part]  * sizeof(int        ));
+    pface_vtx_g_num [i_part] = (PDM_g_num_t *) malloc( pface_vtx_idx[i_part][pn_face[i_part]] * sizeof(PDM_g_num_t));
+    for(int i_face = 0; i_face < pn_face[i_part]; ++i_face) {
+
+      pface_vtx_n[i_part][i_face] = pface_vtx_idx[i_part][i_face+1] - pface_vtx_idx[i_part][i_face];
+
+      for(int idx_vtx = pface_vtx_idx[i_part][i_face]; idx_vtx < pface_vtx_idx[i_part][i_face+1]; ++idx_vtx) {
+        int i_vtx = PDM_ABS(pface_vtx[i_part][idx_vtx])-1;
+        pface_vtx_g_num [i_part][idx_vtx] = pvtx_ln_to_gn [i_part][i_vtx];
+      }
+    }
+  }
+
+  PDM_g_num_t gmax_part_g_num = 0;
+  PDM_MPI_Allreduce(&_max_vtx_gnum, &gmax_part_g_num, 1,
+                    PDM__PDM_MPI_G_NUM, PDM_MPI_MAX, comm);
+
+  /*
+   * Reconstruct dface_vtx
+   */
+  PDM_part_to_block_t *ptb = PDM_part_to_block_create(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+                                                      PDM_PART_TO_BLOCK_POST_CLEANUP,
+                                                      1.,
+                                                      pface_ln_to_gn,
+                                                      NULL,
+                                                      pn_face,
+                                                      n_part,
+                                                      comm);
+
+  int*         dface_vtx_n = NULL;
+  PDM_g_num_t* dface_vtx   = NULL;
+
+  PDM_part_to_block_exch(ptb,
+                         sizeof(PDM_g_num_t),
+                         PDM_STRIDE_VAR_INTERLACED,
+                         -1,
+                         pface_vtx_n,
+               (void **) pface_vtx_g_num,
+                         &dface_vtx_n,
+               (void **) &dface_vtx);
+
+  int dn_face = PDM_part_to_block_n_elt_block_get(ptb);
+
+  int *dface_vtx_idx = malloc( (dn_face+1) * sizeof(int));
+  dface_vtx_idx[0] = 0;
+  for(int i = 0; i < dn_face; ++i) {
+    dface_vtx_idx[i+1] = dface_vtx_idx[i] + dface_vtx_n[i];
+  }
+
+  for(int i_part = 0; i_part < n_part; ++i_part) {
+    free(pface_vtx_n     [i_part]);
+    free(pface_vtx_g_num [i_part]);
+  }
+  free(pface_vtx_n     );
+  free(pface_vtx_g_num );
+
+
+  PDM_g_num_t* face_distribution = PDM_part_to_block_distrib_index_get(ptb);
+
+  int n_edge_elt_tot = dface_vtx_idx[dn_face];
+  PDM_g_num_t* tmp_dface_edge         = (PDM_g_num_t *) malloc(     n_edge_elt_tot    * sizeof(PDM_g_num_t) );
+  int*         tmp_parent_elmt_pos    = (int         *) malloc(     n_edge_elt_tot    * sizeof(int        ) );
+  int*         tmp_dface_edge_vtx_idx = (int         *) malloc( ( n_edge_elt_tot + 1) * sizeof(int        ) );
+  PDM_g_num_t* tmp_dface_edge_vtx     = (PDM_g_num_t *) malloc( 2 * n_edge_elt_tot    * sizeof(PDM_g_num_t) );
+
+  int n_elmt_current = 0;
+  int n_edge_current = 0;
+  tmp_dface_edge_vtx_idx[0] = 0;
+  PDM_poly2d_decomposes_edges(dn_face,
+                              &n_elmt_current,
+                              &n_edge_current,
+                              face_distribution[i_rank],
+                              -1,
+                              dface_vtx,
+                              dface_vtx_idx,
+                              tmp_dface_edge_vtx_idx,
+                              tmp_dface_edge_vtx,
+                              tmp_dface_edge,
+                              NULL,
+                              NULL,
+                              tmp_parent_elmt_pos);
+  assert(n_edge_current == n_edge_elt_tot);
+  free(tmp_parent_elmt_pos);
+  free(dface_vtx);
+  free(dface_vtx_idx);
+  free(dface_vtx_n);
+
+  int dn_edge = 0;
+  PDM_g_num_t  *edge_distrib   = NULL;
+  int          *dedge_vtx_idx  = NULL;
+  PDM_g_num_t  *dedge_vtx      = NULL;
+  int          *dedge_face_idx = NULL;
+  PDM_g_num_t  *dedge_face     = NULL;
+  PDM_generate_entitiy_connectivity_raw(comm,
+                                        gmax_part_g_num,
+                                        n_edge_elt_tot,
+                                        tmp_dface_edge,
+                                        tmp_dface_edge_vtx_idx,
+                                        tmp_dface_edge_vtx,
+                                        &dn_edge,
+                                        &edge_distrib,
+                                        &dedge_vtx_idx,
+                                        &dedge_vtx,
+                                        &dedge_face_idx,
+                                        &dedge_face);
+
+  if(0 == 1) {
+    PDM_log_trace_array_long(edge_distrib, n_rank+1               , "edge_distrib::");
+    PDM_log_trace_array_long(dedge_vtx   , dedge_vtx_idx [dn_edge], "dedge_vtx::"   );
+    PDM_log_trace_array_long(dedge_face  , dedge_face_idx[dn_edge], "dedge_face::"  );
+  }
+
+  int          *dface_edge_idx = NULL;
+  PDM_g_num_t  *dface_edge     = NULL;
+  PDM_dconnectivity_transpose(comm,
+                              edge_distrib,
+                              face_distribution,
+                              dedge_face_idx,
+                              dedge_face,
+                              1,
+                              &dface_edge_idx,
+                              &dface_edge);
+  free(dedge_face_idx);
+  free(dedge_face    );
+
+  int          *_pn_edge        = NULL;
+  PDM_g_num_t **_pedge_ln_to_gn = NULL;
+  int         **_pface_edge_idx = NULL;
+  int         **_pface_edge     = NULL;
+  PDM_part_dconnectivity_to_pconnectivity_sort(comm,
+                                               face_distribution,
+                                               dface_edge_idx,
+                                               dface_edge,
+                                               n_part,
+                                               pn_face,
+                        (const PDM_g_num_t **) pface_ln_to_gn,
+                                              &_pn_edge,
+                                              &_pedge_ln_to_gn,
+                                              &_pface_edge_idx,
+                                              &_pface_edge);
+  free(dface_edge_idx);
+  free(dface_edge);
+
+  int          *_ptmp_n_vtx        = NULL;
+  PDM_g_num_t **_ptmp_vtx_ln_to_gn = NULL;
+  int         **_pedge_vtx_idx     = NULL;
+  int         **_pedge_vtx         = NULL;
+  PDM_part_dconnectivity_to_pconnectivity_sort(comm,
+                                               edge_distrib,
+                                               dedge_vtx_idx,
+                                               dedge_vtx,
+                                               n_part,
+                                               _pn_edge,
+                        (const PDM_g_num_t **) _pedge_ln_to_gn,
+                                              &_ptmp_n_vtx,
+                                              &_ptmp_vtx_ln_to_gn,
+                                              &_pedge_vtx_idx,
+                                              &_pedge_vtx);
+
+  /*
+   * Not in same frame - Translate to new frame
+   */
+  for(int i_part = 0; i_part < n_part; ++i_part) {
+
+    int* order = malloc(pn_vtx[i_part] * sizeof(int));
+
+    assert(pn_vtx[i_part] == _ptmp_n_vtx[i_part]);
+    assert(_pedge_vtx_idx[i_part][_pn_edge[i_part]] == 2 * _pn_edge[i_part]);
+
+    for(int i_vtx = 0; i_vtx < pn_vtx[i_part]; ++i_vtx) {
+      PDM_g_num_t g_vtx = pvtx_ln_to_gn[i_part][i_vtx];
+      int pos = PDM_binary_search_long(g_vtx, _ptmp_vtx_ln_to_gn[i_part], pn_vtx[i_part]);
+      order[pos] = i_vtx;
+    }
+
+    for(int idx_vtx = 0; idx_vtx < _pedge_vtx_idx[i_part][_pn_edge[i_part]]; ++idx_vtx) {
+      int old_vtx = _pedge_vtx[i_part][idx_vtx]-1;
+      _pedge_vtx[i_part][idx_vtx] = order[old_vtx]+1;
+    }
+
+    free(order);
+    free(_ptmp_vtx_ln_to_gn[i_part]);
+    free(_pedge_vtx_idx    [i_part]);
+
+  }
+
+  free(edge_distrib  );
+  free(dedge_vtx_idx );
+  free(dedge_vtx     );
+  free(_ptmp_vtx_ln_to_gn);
+  free(_pedge_vtx_idx);
+  free(_ptmp_n_vtx);
+
+  PDM_part_to_block_free(ptb);
+
+  *pface_edge_idx = _pface_edge_idx;
+  *pface_edge     = _pface_edge;
+  *pn_edge        = _pn_edge;
+  *pedge_vtx      = _pedge_vtx;
+  *pedge_ln_to_gn = _pedge_ln_to_gn;
+}
+
+
+void
+PDM_pconnectivity_to_pconnectivity_keep
+(
+  const PDM_MPI_Comm          comm,
+  const int                   n_part1,
+  const int                  *n_part1_entity1,
+  const int                 **part1_entity1_entity2_idx,
+  const int                 **part1_entity1_entity2,
+  const PDM_g_num_t         **part1_entity1_ln_to_gn,
+  const PDM_g_num_t         **part1_entity2_ln_to_gn,
+  const int                   n_part2,
+  const int                  *n_part2_entity1,
+  const PDM_g_num_t         **part2_entity1_ln_to_gn,
+  const int                 **part2_entity1_to_part1_entity1_idx,
+  const PDM_g_num_t         **part2_entity1_to_part1_entity1,
+        int                 **n_part2_entity2,
+        int                ***part2_entity1_entity2_idx,
+        int                ***part2_entity1_entity2,
+        PDM_g_num_t        ***part2_entity2_ln_to_gn,
+        PDM_g_num_t        ***part2_entity2_child_ln_to_gn,
+        PDM_part_to_part_t  **ptp_out
+)
+{
+  PDM_UNUSED(n_part2_entity2);
+  PDM_UNUSED(part2_entity1_entity2_idx);
+  PDM_UNUSED(part2_entity1_entity2);
+  PDM_UNUSED(part2_entity2_ln_to_gn);
+
+  if(0 == 1) {
+    for(int i_part = 0; i_part < n_part1; ++i_part) {
+      PDM_log_trace_array_long(part2_entity1_ln_to_gn[i_part], n_part2_entity1[i_part], "part2_entity1_ln_to_gn : ");
+    }
+  }
+
+  PDM_part_to_part_t* ptp = PDM_part_to_part_create(part2_entity1_ln_to_gn,
+                                                    n_part2_entity1,
+                                                    n_part2,
+                                                    part1_entity1_ln_to_gn,
+                                                    n_part1_entity1,
+                                                    n_part1,
+                                                    part2_entity1_to_part1_entity1_idx,
+                                                    part2_entity1_to_part1_entity1,
+                                                    comm);
+  *ptp_out = ptp;
+
+  /*
+   * Protocol are created then we can extract information in part1 to reverse send it to part2
+   */
+  int          *n_ref_entity1     = NULL;
+  int         **ref_l_num_entity1 = NULL;
+  PDM_part_to_part_ref_lnum2_get(ptp, &n_ref_entity1, &ref_l_num_entity1);
+
+  int         **gnum1_come_from_idx = NULL;
+  PDM_g_num_t **gnum1_come_from     = NULL;
+  PDM_part_to_part_gnum1_come_from_get(ptp, &gnum1_come_from_idx, &gnum1_come_from);
+
+  /* Create buffer */
+  int         **send_entity1_entity2_n = malloc(n_part1 * sizeof(int         *));
+  PDM_g_num_t **send_entity1_entity2   = malloc(n_part1 * sizeof(PDM_g_num_t *));
+  for(int i_part = 0; i_part < n_part1; ++i_part) {
+
+    /*
+     * Compute stride size
+     */
+    send_entity1_entity2_n[i_part] = malloc( gnum1_come_from_idx[i_part][n_ref_entity1[i_part]] * sizeof(int));
+
+    int n_tot_send = 0;
+    for(int j = 0; j < n_ref_entity1[i_part]; ++j) {
+      int l_entity1     = ref_l_num_entity1[i_part][j]-1;
+      for(int k = gnum1_come_from_idx[i_part][j]; k < gnum1_come_from_idx[i_part][j+1]; ++k) {
+        int n_loc_entity2 = part1_entity1_entity2_idx[i_part][l_entity1+1] - part1_entity1_entity2_idx[i_part][l_entity1];
+        send_entity1_entity2_n[i_part][k] = n_loc_entity2;
+        n_tot_send += n_loc_entity2;
+      }
+    }
+
+    // int* send_entity1_entity2_idx = malloc( (gnum1_come_from_idx[i_part][n_ref_entity1[i_part]] + 1) * sizeof(int));
+    // send_entity1_entity2_idx[0] = 0;
+    // for(int i = 0; i < gnum1_come_from_idx[i_part][n_ref_entity1[i_part]]; ++i) {
+    //   send_entity1_entity2_idx[i+1] = send_entity1_entity2_idx[i] + send_entity1_entity2_n[i_part][i];
+    // }
+
+    send_entity1_entity2[i_part] = malloc( n_tot_send * sizeof(PDM_g_num_t));
+    int idx_write = 0;
+    for(int j = 0; j < n_ref_entity1[i_part]; ++j) {
+      for(int k = gnum1_come_from_idx[i_part][j]; k < gnum1_come_from_idx[i_part][j+1]; ++k) {
+        int i_entity1 = ref_l_num_entity1[i_part][k]-1;
+        for(int l = part1_entity1_entity2_idx[i_part][i_entity1]; l < part1_entity1_entity2_idx[i_part][i_entity1+1]; ++l) {
+          int i_entity2 = PDM_ABS(part1_entity1_entity2[i_part][l])-1;
+          send_entity1_entity2[i_part][idx_write++] = part1_entity2_ln_to_gn[i_part][i_entity2];
+        }
+      }
+    }
+
+    // printf("idx_write = %i | 4 * n_extract_face = %i \n", idx_write, 4 * n_extract_face);
+    // PDM_log_trace_array_long(send_face_vtx[i_part], 4 * gnum1_come_from_idx[i_part][n_ref_face[i_part]], "send_face_vtx      : ");
+  }
+
+  int         **recv_entity1_entity2_n = NULL;
+  PDM_g_num_t **recv_entity1_entity2   = NULL;
+  int           exch_request = -1;
+  PDM_part_to_part_reverse_iexch(ptp,
+                                 PDM_MPI_COMM_KIND_P2P,
+                                 PDM_STRIDE_VAR_INTERLACED,
+                                 PDM_PART_TO_PART_DATA_DEF_ORDER_GNUM1_COME_FROM,
+                                 -1,
+                                 sizeof(PDM_g_num_t),
+                (const int  **)  send_entity1_entity2_n,
+                (const void **)  send_entity1_entity2,
+                                 &recv_entity1_entity2_n,
+                    (void ***)   &recv_entity1_entity2,
+                                 &exch_request);
+
+  PDM_part_to_part_reverse_iexch_wait(ptp, exch_request);
+
+  for(int i_part = 0; i_part < n_part1; ++i_part) {
+    free(send_entity1_entity2_n[i_part]);
+    free(send_entity1_entity2  [i_part]);
+  }
+  free(send_entity1_entity2_n);
+  free(send_entity1_entity2  );
+
+  /*
+   * Post-treatment
+   */
+  int          *_n_part2_entity2           = malloc(n_part2 * sizeof(int          ));
+  int         **_part2_entity1_entity2_idx = malloc(n_part2 * sizeof(int         *));
+  int         **_part2_entity1_entity2     = malloc(n_part2 * sizeof(int         *));
+  PDM_g_num_t **_part2_entity2_ln_to_gn    = malloc(n_part2 * sizeof(PDM_g_num_t *));
+  for(int i_part = 0; i_part < n_part2; ++i_part) {
+
+    _part2_entity1_entity2_idx[i_part] = malloc( (n_part2_entity1[i_part] + 1) * sizeof(int));
+
+    /* Compute recv stride */
+    _part2_entity1_entity2_idx[i_part][0] = 0;
+    for(int i_entity1 = 0; i_entity1 < n_part2_entity1[i_part]; ++i_entity1) {
+      _part2_entity1_entity2_idx[i_part][i_entity1+1] = _part2_entity1_entity2_idx[i_part][i_entity1] + recv_entity1_entity2_n[i_part][i_entity1];
+    }
+    int n_recv_entity1_entity2 = _part2_entity1_entity2_idx[i_part][n_part2_entity1[i_part]];
+
+    _part2_entity2_ln_to_gn[i_part] = malloc( n_recv_entity1_entity2      * sizeof(PDM_g_num_t));
+
+    int *unique_order_entity2     = (int         * ) malloc(n_recv_entity1_entity2 * sizeof(int        ));
+    for(int i = 0; i < n_recv_entity1_entity2; ++i) {
+      _part2_entity2_ln_to_gn[i_part][i] = PDM_ABS(recv_entity1_entity2[i_part][i]);
+    }
+
+    int n_extract_entity2 = PDM_inplace_unique_long2(_part2_entity2_ln_to_gn[i_part], unique_order_entity2, 0, n_recv_entity1_entity2-1);
+
+    _n_part2_entity2[i_part] = n_extract_entity2;
+    _part2_entity2_ln_to_gn[i_part] = realloc(_part2_entity2_ln_to_gn[i_part],  n_extract_entity2      * sizeof(PDM_g_num_t));
+
+    /* Recompute local numbering */
+    _part2_entity1_entity2 [i_part] = malloc( n_recv_entity1_entity2 * sizeof(int        ));
+
+    for(int idx = 0; idx < n_recv_entity1_entity2; ++idx) {
+      int g_sgn  = PDM_SIGN(recv_entity1_entity2[i_part][idx]);
+      int l_elmt = unique_order_entity2[idx];
+      _part2_entity1_entity2[i_part][idx] = (l_elmt + 1) * g_sgn;
+    }
+    free(unique_order_entity2);
+  }
+
+  for(int i_part = 0; i_part < n_part2; ++i_part) {
+    free(recv_entity1_entity2_n[i_part]);
+    free(recv_entity1_entity2  [i_part]);
+  }
+  free(recv_entity1_entity2_n);
+  free(recv_entity1_entity2  );
+
+
+  *n_part2_entity2           = _n_part2_entity2;
+  *part2_entity1_entity2_idx = _part2_entity1_entity2_idx;
+  *part2_entity1_entity2     = _part2_entity1_entity2;
+  *part2_entity2_ln_to_gn    = _part2_entity2_ln_to_gn;
+
+  /*
+   * Compute child global numebring
+   */
+  PDM_gen_gnum_t* gnum_extract = PDM_gnum_create(3, n_part2, PDM_FALSE,
+                                                 1.e-6,
+                                                 comm,
+                                                 PDM_OWNERSHIP_USER);
+  for(int i_part = 0; i_part < n_part2; ++i_part) {
+    PDM_gnum_set_from_parents (gnum_extract, i_part, _n_part2_entity2[i_part], _part2_entity2_ln_to_gn[i_part]);
+  }
+  PDM_g_num_t **_part2_entity2_child_ln_to_gn = (PDM_g_num_t **) malloc( n_part2 * sizeof(PDM_g_num_t *));
+  PDM_gnum_compute(gnum_extract);
+
+  for (int i_part = 0; i_part < n_part2; i_part++){
+    _part2_entity2_child_ln_to_gn[i_part] = PDM_gnum_get(gnum_extract, i_part);
+  }
+  PDM_gnum_free(gnum_extract);
+
+  *part2_entity2_child_ln_to_gn    = _part2_entity2_child_ln_to_gn;
+
+}
+
+void
+PDM_pconnectivity_to_pconnectivity
+(
+  const PDM_MPI_Comm    comm,
+  const int             n_part1,
+  const int            *n_part1_entity1,
+  const int           **part1_entity1_entity2_idx,
+  const int           **part1_entity1_entity2,
+  const PDM_g_num_t   **part1_entity1_ln_to_gn,
+  const PDM_g_num_t   **part1_entity2_ln_to_gn,
+  const int             n_part2,
+  const int            *n_part2_entity1,
+  const PDM_g_num_t   **part2_entity1_ln_to_gn,
+  const int           **part2_entity1_to_part1_entity1_idx,
+  const PDM_g_num_t   **part2_entity1_to_part1_entity1,
+        int           **n_part2_entity2,
+        int          ***part2_entity1_entity2_idx,
+        int          ***part2_entity1_entity2,
+        PDM_g_num_t  ***part2_entity2_ln_to_gn,
+        PDM_g_num_t  ***part2_entity2_child_ln_to_gn
+)
+{
+
+  PDM_part_to_part_t* ptp = NULL;
+
+  PDM_pconnectivity_to_pconnectivity_keep(comm,
+                                          n_part1,
+                                          n_part1_entity1,
+                                          part1_entity1_entity2_idx,
+                                          part1_entity1_entity2,
+                                          part1_entity1_ln_to_gn,
+                                          part1_entity2_ln_to_gn,
+                                          n_part2,
+                                          n_part2_entity1,
+                                          part2_entity1_ln_to_gn,
+                                          part2_entity1_to_part1_entity1_idx,
+                                          part2_entity1_to_part1_entity1,
+                                          n_part2_entity2,
+                                          part2_entity1_entity2_idx,
+                                          part2_entity1_entity2,
+                                          part2_entity2_ln_to_gn,
+                                          part2_entity2_child_ln_to_gn,
+                                          &ptp);
+
+  PDM_part_to_part_free(ptp);
+}
+
+
+
+
 
 
 

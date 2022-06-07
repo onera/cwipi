@@ -134,6 +134,7 @@ int            **dedge_group_idx,
 PDM_g_num_t    **dedge_group
 )
 {
+  int verbose = 0;
 
   int n_rank;
   PDM_MPI_Comm_size(pdm_comm, &n_rank);
@@ -914,7 +915,7 @@ PDM_g_num_t    **dedge_group
   *ng_edge = dn_edge_abs;
   *ng_face = dn_face_abs;
 
-  if (local_rank == 0) printf("gn_vtx = "PDM_FMT_G_NUM"\ngn_elt = "PDM_FMT_G_NUM"\n", *ng_vtx, *ng_face);
+  if (verbose && local_rank == 0) printf("gn_vtx = "PDM_FMT_G_NUM"\ngn_elt = "PDM_FMT_G_NUM"\n", *ng_vtx, *ng_face);
 
   /* Definition des limites */
   /* ---------------------- */
@@ -1004,8 +1005,7 @@ PDM_g_num_t    **dedge_group
     ++dn_edgeGroupAbs;
   }
 
-  int vb = 0;
-  if (vb==1){
+  if (verbose){
     PDM_printf ("- dface_vtx_idx : \n");
     for (int i=0; i<(*dn_face)+1; i++)
       PDM_printf ("%d->%d  ", i+1, (*dface_vtx_idx)[i]);

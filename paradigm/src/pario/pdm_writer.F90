@@ -682,7 +682,6 @@ module pdm_writer
     integer(c_int)                :: c_id_geom
     integer(c_int)                :: c_t_elt
     integer(c_int)                :: c_owner
-    integer(c_int)                :: c_id_bloc
 
     interface
       function PDM_writer_geom_bloc_add_c (cs,             &

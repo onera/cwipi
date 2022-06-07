@@ -474,12 +474,12 @@ interface
     use iso_c_binding
     implicit none
 
-    type(c_ptr), value :: ppart
-    integer(c_int)     :: i_part
-    type(c_ptr)        :: cell_color
-    type(c_ptr)        :: face_color
-    type(c_ptr)        :: thread_color
-    type(c_ptr)        :: hyperplane_color
+    type(c_ptr), value    :: ppart
+    integer(c_int),value  :: i_part
+    type(c_ptr)           :: cell_color
+    type(c_ptr)           :: face_color
+    type(c_ptr)           :: thread_color
+    type(c_ptr)           :: hyperplane_color
 
   end subroutine PDM_part_part_color_get_c
 

@@ -187,8 +187,8 @@ cdef class DistributedMeshNodal:
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
         for i_elmt, connect in enumerate(elmt_list):
           id_section = PDM_DMesh_nodal_section_add(self.dmn,
-                                                                      geom_kind,
-                                                                      <PDM_Mesh_nodal_elt_t> elmts_type[i_elmt])
+                                                   geom_kind,
+                            <PDM_Mesh_nodal_elt_t> elmts_type[i_elmt])
           PDM_DMesh_nodal_section_std_set(self.dmn,
                                           geom_kind,
                                           id_section,

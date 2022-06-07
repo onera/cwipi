@@ -389,6 +389,38 @@ PDM_part_to_part_reverse_issend_wait
 
 /**
  *
+ * \brief Wait an asynchronus reverse issend (part2 to part1)
+ *
+ * \param [in]  ptp           part to part structure
+ * \param [in]  request       Request
+ *
+ */
+
+int
+PDM_part_to_part_reverse_issend_test
+(
+ PDM_part_to_part_t *ptp,
+ const int           request
+);
+
+/**
+ *
+ * \brief Wait an asynchronus reverse issend (part2 to part1)
+ *
+ * \param [in]  ptp           part to part structure
+ * \param [in]  request       Request
+ *
+ */
+
+void
+PDM_part_to_part_reverse_issend_post
+(
+ PDM_part_to_part_t *ptp,
+ const int           request
+);
+
+/**
+ *
  * \brief Initialize a asynchronus irecv (from part1)
  *
  * \param [in]  ptp           Part to part structure
@@ -430,6 +462,71 @@ PDM_part_to_part_irecv_wait
 );
 
 
+
+/**
+ *
+ * \brief Test an asynchronus issend (part2 to part1)
+ *
+ * \param [in]  ptp           part to part structure
+ * \param [in]  tag           Tag of the exchange
+ * \param [in]  request       Request
+ *
+ */
+
+int
+PDM_part_to_part_issend_test
+(
+ PDM_part_to_part_t *ptp,
+ const int           request
+);
+
+
+/**
+ *
+ * \brief Test an asynchronus irecv (part2 to part1)
+ *
+ * \param [in]  ptp           part to part structure
+ * \param [in]  request       Request
+ *
+ */
+
+int
+PDM_part_to_part_irecv_test
+(
+ PDM_part_to_part_t *ptp,
+ const int           request
+);
+
+/**
+ *
+ * \brief Post an asynchronus issend (After test completion is OK )
+ *
+ * \param [in]  ptp           part to part structure
+ * \param [in]  request       Request
+ *
+ */
+void
+PDM_part_to_part_issend_post
+(
+ PDM_part_to_part_t *ptp,
+ const int           request
+);
+
+/**
+ *
+ * \brief Post an asynchronus irecv (After test completion is OK )
+ *
+ * \param [in]  ptp           part to part structure
+ * \param [in]  request       Request
+ *
+ */
+void
+PDM_part_to_part_irecv_post
+(
+ PDM_part_to_part_t *ptp,
+ const int           request
+);
+
 /**
  *
  * \brief Initialize a asynchronus reverse irecv (from part2)
@@ -467,6 +564,37 @@ PDM_part_to_part_reverse_irecv
 
 void
 PDM_part_to_part_reverse_irecv_wait
+(
+ PDM_part_to_part_t *ptp,
+ const int           request
+);
+
+/**
+ *
+ * \brief Test a partial asynchronus exchange
+ *
+ * \param [in]  ptp           Part to part structure
+ * \param [in]  request       Request
+ *
+ */
+
+int
+PDM_part_to_part_reverse_irecv_test
+(
+ PDM_part_to_part_t *ptp,
+ const int           request
+);
+
+/**
+ *
+ * \brief Post a partial asynchronus exchange (after test completion)
+ *
+ * \param [in]  ptp           Part to part structure
+ * \param [in]  request       Request
+ *
+ */
+void
+PDM_part_to_part_reverse_irecv_post
 (
  PDM_part_to_part_t *ptp,
  const int           request

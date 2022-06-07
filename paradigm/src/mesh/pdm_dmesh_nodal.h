@@ -820,6 +820,13 @@ PDM_dmesh_nodal_to_part_mesh_nodal_elmts
  PDM_g_num_t                 **pparent_entitity_ln_to_gn
 );
 
+
+const double *
+PDM_dmesh_nodal_global_extents_get
+(
+ PDM_dmesh_nodal_t         *dmn
+ );
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

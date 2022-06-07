@@ -514,6 +514,89 @@ PDM_box_tree_intersect_lines_boxes
  int            **box_l_num
  );
 
+/**
+ *
+ * \brief Get an indexed list of all lines intersecting boxes
+ *
+ * The search can be performed either in the local box tree (\ref i_copied_rank < 0) or in
+ * any distant box tree copied locally from rank bt->copied_rank[\ref i_copied_rank]
+ *
+ * \param [in]   bt             Pointer to box tree structure
+ * \param [in]   i_copied_rank  Copied rank
+ * \param [in]   n_line         Number of lines
+ * \param [in]   line_coord     Lines coordinates (xa0, ya0, za0, xb0, yb0, zb0, xa1, ...)
+ * \param [out]  box_line_idx   Pointer to the index array on boxes (size = \ref n_box + 1)
+ * \param [out]  box_line_l_num Pointer to the list of lines intersecting boxes (size = \ref box_line_idx[\ref n_box])
+ *
+ */
+
+void
+PDM_box_tree_intersect_lines_boxes2
+(
+ PDM_box_tree_t *bt,
+ const int       i_copied_rank,
+ const int       n_line,
+ const double   *line_coord,
+ int           **box_line_idx,
+ int           **box_line_l_num
+ );
+
+
+
+void
+PDM_box_tree_write_vtk
+(
+ const char     *filename,
+ PDM_box_tree_t *bt,
+ const int       i_copied_rank,
+ const int       normalized
+ );
+
+void
+PDM_box_tree_extract_extents
+(
+ PDM_box_tree_t  *bt,
+ const int        normalized,
+ const int        depth_max,
+       int       *n_extract_boxes,
+       double   **extract_extents,
+       int       *n_extract_child,
+       int      **extract_child_id
+);
+
+
+void
+PDM_box_tree_extract_extents_by_child_ids
+(
+       PDM_box_tree_t  *bt,
+ const int              normalized,
+ const int              n_child_to_extract,
+ const int             *child_ids_to_extract,
+       int             *n_extract_boxes,
+       double         **extract_extents,
+       int             *n_extract_child,
+       int            **extract_child_id,
+       int            **extract_is_leaf
+);
+
+void
+PDM_box_tree_assign_weight
+(
+ PDM_box_tree_t  *bt,
+ const int        n_node,
+ const int       *nodes_id,
+       int       *weight
+);
+
+
+int
+PDM_box_tree_get_box_ids
+(
+ PDM_box_tree_t  *bt,
+ int              node_id,
+ int            **box_ids
+);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -540,9 +540,11 @@ char *argv[]
 
   PDM_part_free(ppart);
 
-  PDM_MPI_Finalize ();
+  if (i_rank == 0) {
+    PDM_printf ("-- End\n");
+  }
 
-  PDM_printf ("\nfin Test\n");
+  PDM_MPI_Finalize ();
 
   return 0;
 

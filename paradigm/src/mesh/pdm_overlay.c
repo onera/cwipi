@@ -1335,7 +1335,7 @@ _compute_overlay_planes
                       &polyClippConnecB,
                       &polyClippCoordsB);
 
-      if (0) {//vb) {
+      if (vb) {
         printf(" ---> poly_clipp gnumEltA gnumEltB : "PDM_FMT_G_NUM" "PDM_FMT_G_NUM" fin\n", gnum_boxA, gnum_boxB);
       }
       if (nPolyClippA != nPolyClippB) {
@@ -3287,7 +3287,7 @@ _compute_overlay_planes
 
 
     if (nOneRef < 2) {
-      if (nOneRef == 1) {
+      if (vb == 1 && nOneRef == 1) {
         printf("[%6d] Warning : nOneRef = 1\n", i_rank);
       }
       facesToSubFacesBIdx[i+1] = facesToSubFacesBIdx[i]

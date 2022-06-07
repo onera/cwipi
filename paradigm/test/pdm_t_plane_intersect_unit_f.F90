@@ -43,11 +43,7 @@ program testf
   type (c_ptr) :: c_ol
 
   integer (c_int), parameter ::  n_partMeshA = 1
-  integer (kind = pdm_g_num_s), parameter ::  nGFaceMeshA = 1
-  integer (kind = pdm_g_num_s), parameter ::  nGVtxMeshA = 3
   integer (c_int), parameter ::  n_partMeshB = 1
-  integer (kind = pdm_g_num_s), parameter ::  nGFaceMeshB = 1
-  integer (kind = pdm_g_num_s), parameter ::  nGVtxMeshB = 3
   double precision, parameter :: projectCoeff = 0.d0
 
 

@@ -193,7 +193,9 @@ int main(int argc, char *argv[])
 
   PDM_dmesh_nodal_t* dmn = PDM_dcube_nodal_gen_dmesh_nodal_get(dcube);
 
-  PDM_dmesh_nodal_dump_vtk(dmn, PDM_GEOMETRY_KIND_SURFACIC, "out_surfacic");
+  if (post) {
+    PDM_dmesh_nodal_dump_vtk(dmn, PDM_GEOMETRY_KIND_SURFACIC, "out_surfacic");
+  }
   /*
    *  Warm up dmesh from dmesh_nodal
    */
@@ -208,9 +210,9 @@ int main(int argc, char *argv[])
   // PDM_dmesh_t* dm = NULL;
   // PDM_dmesh_nodal_to_dmesh_get_dmesh(dmn_to_dm, 0, &dm);
 
-  /*
-   * Test tranpose
-   */
+  // /*
+  //  * Test tranpose
+  //  */
   // PDM_g_num_t *dedge_distrib;
   // PDM_dmesh_distrib_get(dm, PDM_MESH_ENTITY_EDGE, &dedge_distrib);
   // int         *dedge_group_idx;
@@ -231,11 +233,31 @@ int main(int argc, char *argv[])
   //                             comm);
 
   // int dn_edge = dedge_distrib[i_rank+1] - dedge_distrib[i_rank];
-  // if(1 == 1) {
+  // if(0 == 1) {
   //   PDM_log_trace_array_int (dedge_group_idx, n_group+1, "dedge_group_idx ::");
   //   PDM_log_trace_array_long(dedge_group, dedge_group_idx[n_group], "dedge_group ::");
   //   PDM_log_trace_connectivity_int(dedge_to_group_idx, dedge_to_group, dn_edge, "dedge_to_group ::");
   // }
+
+  // /* Reverse */
+
+  // int         *dgroup_edge_check_idx;
+  // PDM_g_num_t *dgroup_edge_check;
+  // PDM_dentity_group_transpose(n_group,
+  //                             dedge_to_group_idx,
+  //                             dedge_to_group,
+  //                             dedge_distrib,
+  //                             &dgroup_edge_check_idx,
+  //                             &dgroup_edge_check,
+  //                             comm);
+  // if(1 == 1) {
+  //   PDM_log_trace_array_int (dedge_group_idx, n_group+1               , "dedge_group_idx ::");
+  //   PDM_log_trace_array_long(dedge_group    , dedge_group_idx[n_group], "dedge_group     ::");
+  //   PDM_log_trace_array_int (dgroup_edge_check_idx, n_group+1                     , "dgroup_edge_check_idx ::");
+  //   PDM_log_trace_array_long(dgroup_edge_check    , dgroup_edge_check_idx[n_group], "dgroup_edge_check     ::");
+  // }
+  // free(dgroup_edge_check_idx);
+  // free(dgroup_edge_check);
   // free(dedge_to_group);
   // free(dedge_to_group_idx);
 
@@ -275,8 +297,8 @@ int main(int argc, char *argv[])
   //           Et également en part_mesh et part_mesh_nodal
 
 
-  // PDM_dmesh_nodal_to_dmesh_free(dmn_to_dm);
   PDM_dcube_nodal_gen_free(dcube);
+  // PDM_dmesh_nodal_to_dmesh_free(dmn_to_dm);
 
   PDM_MPI_Finalize();
 

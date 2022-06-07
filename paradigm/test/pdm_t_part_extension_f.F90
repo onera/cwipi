@@ -149,6 +149,7 @@ program testf
   integer                         :: i_rank
   integer                         :: n_rank
   character                       :: strnum
+  integer                         :: debug = 0
   integer                         :: fid = 13
   !-----------------------------------------------------------
 
@@ -156,9 +157,10 @@ program testf
   call mpi_comm_rank(comm, i_rank, code)
   call mpi_comm_size(comm, n_rank, code)
 
-  write (strnum, '(i1)') i_rank
-  open(unit=fid, file="part_extension_"//strnum//".log", action='write')
-
+  if (debug  .eq. 1) then
+    write (strnum, '(i1)') i_rank
+    open(unit=fid, file="part_extension_"//strnum//".log", action='write')
+  endif  
 
   !  Generate a distributed mesh
   if (i_rank .eq. 0) then
@@ -478,10 +480,11 @@ program testf
                                               n_face_ext,                      &
                                               face_vtx_ext,                    &
                                               face_vtx_ext_idx)
-
-    write (fid, *) "part #", i_part-1
-    write (fid, *) "  n_cell_ext =", n_cell_ext
-    write (fid, *) "  cell_ln_to_gn_ext :", cell_ln_to_gn_ext
+    if (debug .eq. 1) then
+      write (fid, *) "part #", i_part-1
+      write (fid, *) "  n_cell_ext =", n_cell_ext
+      write (fid, *) "  cell_ln_to_gn_ext :", cell_ln_to_gn_ext
+    endif  
   end do
 
 
@@ -490,8 +493,9 @@ program testf
   call pdm_dcube_gen_free (dcube)
   call PDM_part_extension_free (part_ext)
 
-
-  close(fid)
+  if (debug .eq. 1) then
+    close(fid)
+  endif  
 
   if (i_rank .eq. 0) then
   write(*, *) "-- End"

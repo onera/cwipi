@@ -48,6 +48,291 @@ extern "C" {
  * Static function definitions
  *============================================================================*/
 
+static
+PDM_g_num_t*
+_compute_offset_ln_to_gn_by_domain
+(
+  int              n_domain,
+  int             *n_part,
+  int            **pn_entity,
+  PDM_g_num_t   ***pentity_ln_to_gn,
+  PDM_MPI_Comm     comm
+)
+{
+
+  PDM_g_num_t *shift_by_domain_loc = PDM_array_const_gnum(n_domain, 0);
+  PDM_g_num_t *shift_by_domain     = (PDM_g_num_t *) malloc((n_domain+1) * sizeof(PDM_g_num_t));
+
+  for(int i_domain = 0; i_domain < n_domain; ++i_domain) {
+    for(int i_part = 0; i_part < n_part[i_domain]; ++i_part) {
+
+      int          _pn_entity        = pn_entity       [i_domain][i_part];
+      PDM_g_num_t *_pentity_ln_to_gn = pentity_ln_to_gn[i_domain][i_part];
+      for(int i = 0; i < _pn_entity; ++i) {
+        shift_by_domain_loc[i_domain] = PDM_MAX(shift_by_domain_loc[i_domain], _pentity_ln_to_gn[i]);
+      }
+    }
+  }
+
+  shift_by_domain[0] = 0;
+  PDM_MPI_Allreduce(shift_by_domain_loc, &shift_by_domain[1], n_domain, PDM__PDM_MPI_G_NUM, PDM_MPI_MAX, comm);
+  PDM_array_accumulate_gnum(shift_by_domain, n_domain+1);
+
+  free(shift_by_domain_loc);
+
+  return shift_by_domain;
+}
+
+
+static
+void
+_offset_ln_to_gn_by_domain
+(
+  int              n_domain,
+  int             *n_part,
+  int            **pn_entity,
+  PDM_g_num_t   ***pentity_ln_to_gn,
+  PDM_g_num_t     *shift_by_domain,
+  int              sens
+)
+{
+  for(int i_domain = 0; i_domain < n_domain; ++i_domain) {
+    for(int i_part = 0; i_part < n_part[i_domain]; ++i_part) {
+      int          _pn_entity        = pn_entity       [i_domain][i_part];
+      PDM_g_num_t *_pentity_ln_to_gn = pentity_ln_to_gn[i_domain][i_part];
+      for(int i = 0; i < _pn_entity; ++i) {
+        _pentity_ln_to_gn[i] = _pentity_ln_to_gn[i] + sens * shift_by_domain[i_domain];
+      }
+    }
+  }
+}
+
+static
+void
+_offset_parts_by_domain
+(
+  PDM_part_extension_t *part_ext,
+  int                   sens
+)
+{
+  int **pn_cell       = malloc(part_ext->n_domain * sizeof(int *));
+  int **pn_face       = malloc(part_ext->n_domain * sizeof(int *));
+  int **pn_edge       = malloc(part_ext->n_domain * sizeof(int *));
+  int **pn_vtx        = malloc(part_ext->n_domain * sizeof(int *));
+  int **pn_face_group = malloc(part_ext->n_domain * sizeof(int *));
+
+  PDM_g_num_t ***cell_ln_to_gn       = malloc(part_ext->n_domain * sizeof(PDM_g_num_t **));
+  PDM_g_num_t ***face_ln_to_gn       = malloc(part_ext->n_domain * sizeof(PDM_g_num_t **));
+  PDM_g_num_t ***edge_ln_to_gn       = malloc(part_ext->n_domain * sizeof(PDM_g_num_t **));
+  PDM_g_num_t ***vtx_ln_to_gn        = malloc(part_ext->n_domain * sizeof(PDM_g_num_t **));
+  PDM_g_num_t ***face_group_ln_to_gn = malloc(part_ext->n_domain * sizeof(PDM_g_num_t **));
+
+  for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
+    pn_cell      [i_domain] = malloc(part_ext->n_part[i_domain] * sizeof(int *));
+    pn_face      [i_domain] = malloc(part_ext->n_part[i_domain] * sizeof(int *));
+    pn_edge      [i_domain] = malloc(part_ext->n_part[i_domain] * sizeof(int *));
+    pn_vtx       [i_domain] = malloc(part_ext->n_part[i_domain] * sizeof(int *));
+    pn_face_group[i_domain] = malloc(part_ext->n_part[i_domain] * sizeof(int *));
+
+    cell_ln_to_gn      [i_domain] = malloc(part_ext->n_part[i_domain] * sizeof(PDM_g_num_t *));
+    face_ln_to_gn      [i_domain] = malloc(part_ext->n_part[i_domain] * sizeof(PDM_g_num_t *));
+    edge_ln_to_gn      [i_domain] = malloc(part_ext->n_part[i_domain] * sizeof(PDM_g_num_t *));
+    vtx_ln_to_gn       [i_domain] = malloc(part_ext->n_part[i_domain] * sizeof(PDM_g_num_t *));
+    face_group_ln_to_gn[i_domain] = malloc(part_ext->n_part[i_domain] * sizeof(PDM_g_num_t *));
+
+    for(int i_part = 0; i_part < part_ext->n_part[i_domain]; ++i_part) {
+
+      pn_cell            [i_domain][i_part] = part_ext->parts[i_domain][i_part].n_cell;
+      pn_face            [i_domain][i_part] = part_ext->parts[i_domain][i_part].n_face;
+      pn_edge            [i_domain][i_part] = part_ext->parts[i_domain][i_part].n_edge;
+      pn_vtx             [i_domain][i_part] = part_ext->parts[i_domain][i_part].n_vtx;
+      pn_face_group      [i_domain][i_part] = part_ext->parts[i_domain][i_part].n_face_group;
+
+      cell_ln_to_gn      [i_domain][i_part] = part_ext->parts[i_domain][i_part].cell_ln_to_gn;
+      face_ln_to_gn      [i_domain][i_part] = part_ext->parts[i_domain][i_part].face_ln_to_gn;
+      edge_ln_to_gn      [i_domain][i_part] = part_ext->parts[i_domain][i_part].edge_ln_to_gn;
+      vtx_ln_to_gn       [i_domain][i_part] = part_ext->parts[i_domain][i_part].vtx_ln_to_gn;
+      face_group_ln_to_gn[i_domain][i_part] = part_ext->parts[i_domain][i_part].face_group_ln_to_gn;
+
+    }
+  }
+
+  // Here we go
+  if(sens == 1) {
+    assert(part_ext->shift_by_domain_cell == NULL);
+    part_ext->shift_by_domain_cell = _compute_offset_ln_to_gn_by_domain(part_ext->n_domain,
+                                                                        part_ext->n_part,
+                                                                        pn_cell,
+                                                                        cell_ln_to_gn,
+                                                                        part_ext->comm);
+
+    assert(part_ext->shift_by_domain_face == NULL);
+    part_ext->shift_by_domain_face = _compute_offset_ln_to_gn_by_domain(part_ext->n_domain,
+                                                                        part_ext->n_part,
+                                                                        pn_face,
+                                                                        face_ln_to_gn,
+                                                                        part_ext->comm);
+
+    assert(part_ext->shift_by_domain_edge == NULL);
+    part_ext->shift_by_domain_edge = _compute_offset_ln_to_gn_by_domain(part_ext->n_domain,
+                                                                        part_ext->n_part,
+                                                                        pn_edge,
+                                                                        edge_ln_to_gn,
+                                                                        part_ext->comm);
+
+    assert(part_ext->shift_by_domain_vtx == NULL);
+    part_ext->shift_by_domain_vtx = _compute_offset_ln_to_gn_by_domain(part_ext->n_domain,
+                                                                       part_ext->n_part,
+                                                                       pn_vtx,
+                                                                       vtx_ln_to_gn,
+                                                                       part_ext->comm);
+
+    assert(part_ext->shift_by_domain_face_group == NULL);
+    part_ext->shift_by_domain_face_group = _compute_offset_ln_to_gn_by_domain(part_ext->n_domain,
+                                                                       part_ext->n_part,
+                                                                       pn_face_group,
+                                                                       face_group_ln_to_gn,
+                                                                       part_ext->comm);
+  }
+
+
+  _offset_ln_to_gn_by_domain(part_ext->n_domain,
+                             part_ext->n_part,
+                             pn_cell,
+                             cell_ln_to_gn,
+                             part_ext->shift_by_domain_cell,
+                             sens);
+
+
+  _offset_ln_to_gn_by_domain(part_ext->n_domain,
+                             part_ext->n_part,
+                             pn_face,
+                             face_ln_to_gn,
+                             part_ext->shift_by_domain_face,
+                             sens);
+
+  _offset_ln_to_gn_by_domain(part_ext->n_domain,
+                             part_ext->n_part,
+                             pn_edge,
+                             edge_ln_to_gn,
+                             part_ext->shift_by_domain_edge,
+                             sens);
+
+  _offset_ln_to_gn_by_domain(part_ext->n_domain,
+                             part_ext->n_part,
+                             pn_vtx,
+                             vtx_ln_to_gn,
+                             part_ext->shift_by_domain_vtx,
+                             sens);
+
+  _offset_ln_to_gn_by_domain(part_ext->n_domain,
+                             part_ext->n_part,
+                             pn_face_group,
+                             face_group_ln_to_gn,
+                             part_ext->shift_by_domain_face_group,
+                             sens);
+
+
+  // Attention il faut shifter tout les border_ln_to_gn aussi et deduire le border_i_domain
+  // (Recherche dicotomique dans le shift by domain)
+
+
+  if(part_ext->pdi != NULL) {
+    abort();
+  }
+
+
+  for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
+    free(pn_cell      [i_domain]);
+    free(pn_face      [i_domain]);
+    free(pn_edge      [i_domain]);
+    free(pn_vtx       [i_domain]);
+    free(pn_face_group[i_domain]);
+
+    free(cell_ln_to_gn      [i_domain]);
+    free(face_ln_to_gn      [i_domain]);
+    free(edge_ln_to_gn      [i_domain]);
+    free(vtx_ln_to_gn       [i_domain]);
+    free(face_group_ln_to_gn[i_domain]);
+  }
+
+  free(pn_cell      );
+  free(pn_face      );
+  free(pn_edge      );
+  free(pn_vtx       );
+  free(pn_face_group);
+
+  free(cell_ln_to_gn      );
+  free(face_ln_to_gn      );
+  free(edge_ln_to_gn      );
+  free(vtx_ln_to_gn       );
+  free(face_group_ln_to_gn);
+}
+
+static
+void
+_shift_ln_to_gn
+(
+  int          n_entity,
+  PDM_g_num_t *entity_ln_to_gn,
+  PDM_g_num_t  shift,
+  int          sens
+)
+{
+  for(int i = 0; i < n_entity; ++i) {
+    entity_ln_to_gn[i] = entity_ln_to_gn[i] + sens * shift;
+  }
+}
+
+
+static
+void
+_offset_results_by_domain
+(
+  PDM_part_extension_t *part_ext
+)
+{
+  PDM_UNUSED(part_ext);
+  // You need to shift border_* and fill the array border_dom_id
+
+  int shift_part = 0;
+  for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
+    for(int i_part = 0; i_part < part_ext->n_part[i_domain]; ++i_part) {
+
+      int n_cell        = part_ext->parts[i_domain][i_part].n_cell;
+      int n_border_cell = part_ext->cell_cell_extended_pruned_idx[shift_part+i_part][n_cell];
+      PDM_g_num_t *cell_ln_to_gn = part_ext->border_cell_ln_to_gn[shift_part+i_part];
+      _shift_ln_to_gn(n_border_cell, cell_ln_to_gn, part_ext->shift_by_domain_cell[i_domain], -1);
+
+      int n_face        = part_ext->parts[i_domain][i_part].n_face;
+      int n_border_face = part_ext->face_face_extended_idx[shift_part+i_part][n_face];
+      PDM_g_num_t *face_ln_to_gn = part_ext->border_face_ln_to_gn[shift_part+i_part];
+      _shift_ln_to_gn(n_border_face, face_ln_to_gn, part_ext->shift_by_domain_face[i_domain], -1);
+
+      int n_edge        = part_ext->parts[i_domain][i_part].n_edge;
+      if(n_edge > 0) {
+        int n_border_edge = part_ext->edge_edge_extended_idx[shift_part+i_part][n_edge];
+        PDM_g_num_t *edge_ln_to_gn = part_ext->border_edge_ln_to_gn[shift_part+i_part];
+        _shift_ln_to_gn(n_border_edge, edge_ln_to_gn, part_ext->shift_by_domain_edge[i_domain], -1);
+      }
+
+      int n_vtx        = part_ext->parts[i_domain][i_part].n_vtx;
+      int n_border_vtx = part_ext->vtx_vtx_extended_idx[shift_part+i_part][n_vtx];
+      PDM_g_num_t *vtx_ln_to_gn = part_ext->border_vtx_ln_to_gn[shift_part+i_part];
+      _shift_ln_to_gn(n_border_vtx, vtx_ln_to_gn, part_ext->shift_by_domain_vtx[i_domain], -1);
+
+      int n_border_face_group          = part_ext->parts[i_domain][i_part].n_face_group;
+      PDM_g_num_t *face_group_ln_to_gn = part_ext->border_face_group_ln_to_gn[shift_part+i_part];
+      int n_connect_face_group         = part_ext->border_face_group_idx     [shift_part+i_part][n_border_face_group];
+      _shift_ln_to_gn(n_connect_face_group, face_group_ln_to_gn, part_ext->shift_by_domain_face_group[i_domain], -1);
+
+    }
+    shift_part += part_ext->n_part[i_domain];
+  }
+
+}
+
+
 static inline
 int
 _is_same_triplet
@@ -197,8 +482,13 @@ _create_cell_cell_graph
 {
   // assert(extend_type == PDM_EXTEND_FROM_FACE);
 
-  part_ext->cell_cell_idx = malloc( part_ext->n_domain * sizeof(int ***));
-  part_ext->cell_cell     = malloc( part_ext->n_domain * sizeof(int ***));
+  int n_part_loc_all_domain = 0;
+  for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
+    n_part_loc_all_domain += part_ext->n_part[i_domain];
+  }
+
+  part_ext->cell_cell_idx = (int **) malloc( n_part_loc_all_domain * sizeof(int *));
+  part_ext->cell_cell     = (int **) malloc( n_part_loc_all_domain * sizeof(int *));
 
   if(extend_type == PDM_EXTEND_FROM_FACE ){
 
@@ -229,8 +519,6 @@ _create_cell_cell_graph
                                               &face_cell_idx[i_domain],
                                               &face_cell[i_domain]);
 
-      part_ext->cell_cell_idx[i_domain] = (int **) malloc( part_ext->n_part[i_domain] * sizeof(int *));
-      part_ext->cell_cell    [i_domain] = (int **) malloc( part_ext->n_part[i_domain] * sizeof(int *));
 
       for(int i_part = 0; i_part < part_ext->n_part[i_domain]; ++i_part) {
 
@@ -252,12 +540,12 @@ _create_cell_cell_graph
                                  pcell_face[i_part],
                                  face_cell_idx[i_domain][i_part],
                                  face_cell[i_domain][i_part],
-                                 &part_ext->cell_cell_idx[i_domain][i_part],
-                                 &part_ext->cell_cell[i_domain][i_part]);
+                                 &part_ext->cell_cell_idx[i_part+shift_part],
+                                 &part_ext->cell_cell[i_part+shift_part]);
 
         // Remove sign for cell_cell
-        for(int i = 0; i < part_ext->cell_cell_idx[i_domain][i_part][pn_cell[i_part]]; ++i) {
-          part_ext->cell_cell[i_domain][i_part][i] = PDM_ABS(part_ext->cell_cell[i_domain][i_part][i]);
+        for(int i = 0; i < part_ext->cell_cell_idx[i_part+shift_part][pn_cell[i_part]]; ++i) {
+          part_ext->cell_cell[i_part+shift_part][i] = PDM_ABS(part_ext->cell_cell[i_part+shift_part][i]);
         }
 
         /*
@@ -294,9 +582,6 @@ _create_cell_cell_graph
 
     int shift_part = 0;
     for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
-
-      part_ext->cell_cell_idx[i_domain] = (int **) malloc( part_ext->n_part[i_domain] * sizeof(int *));
-      part_ext->cell_cell    [i_domain] = (int **) malloc( part_ext->n_part[i_domain] * sizeof(int *));
 
       for(int i_part = 0; i_part < part_ext->n_part[i_domain]; ++i_part) {
         int pn_cell = part_ext->parts[i_domain][i_part].n_cell;
@@ -348,12 +633,12 @@ _create_cell_cell_graph
                                  cell_vtx,
                                  vtx_cell_idx,
                                  vtx_cell,
-                                 &part_ext->cell_cell_idx[i_domain][i_part],
-                                 &part_ext->cell_cell[i_domain][i_part]);
+                                 &part_ext->cell_cell_idx[i_part+shift_part],
+                                 &part_ext->cell_cell[i_part+shift_part]);
 
         // Remove sign for cell_cell
-        for(int i = 0; i < part_ext->cell_cell_idx[i_domain][i_part][pn_cell]; ++i) {
-          part_ext->cell_cell[i_domain][i_part][i] = PDM_ABS(part_ext->cell_cell[i_domain][i_part][i]);
+        for(int i = 0; i < part_ext->cell_cell_idx[i_part+shift_part][pn_cell]; ++i) {
+          part_ext->cell_cell[i_part+shift_part][i] = PDM_ABS(part_ext->cell_cell[i_part+shift_part][i]);
         }
         free(cell_vtx_idx);
         free(cell_vtx);
@@ -386,6 +671,7 @@ _create_cell_graph_comm
   PDM_part_extension_t *part_ext
 )
 {
+  int debug = 0;
   /*
    * The idea is to use the first communicator graph to exchange directly the entity_cell
    *     -> We deduced first from this graph the data necessary for distant_neigbor
@@ -397,7 +683,7 @@ _create_cell_graph_comm
   PDM_MPI_Comm_rank(part_ext->comm, &i_rank);
   PDM_MPI_Comm_size(part_ext->comm, &n_rank);
 
-  assert(part_ext->n_domain == 1);
+  // assert(part_ext->n_domain == 1);
 
   /* Si multidomain on fait un shift et tt roule */
   int n_tot_all_domain = 0;
@@ -427,7 +713,8 @@ _create_cell_graph_comm
   part_ext->n_unique_order_dist_neighbor_cell = (int  *) malloc( n_part_loc_all_domain * sizeof(int  ) );
 
   // Begin with exchange by the connectivity the cell opposite number
-  int shift_part = 0;
+  int shift_part   = 0;
+  int shift_part_g = 0;
   for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
 
     int n_part_total = part_ext->n_tot_part_by_domain[i_domain];
@@ -468,7 +755,9 @@ _create_cell_graph_comm
       }
 
       /* Join between domain */
-      printf(" Begin part_extension with domain \n");
+      if (debug) {
+        printf(" Begin part_extension with domain \n");
+      }
       PDM_bound_type_t interface_kind = PDM_BOUND_TYPE_MAX;
       if(part_ext->extend_type == PDM_EXTEND_FROM_FACE) {
         interface_kind = PDM_BOUND_TYPE_FACE;
@@ -564,7 +853,9 @@ _create_cell_graph_comm
       }
 
 
-      printf("n_interface  = %i\n", n_interface);
+      if (debug) {
+        printf("n_interface  = %i\n", n_interface);
+      }
 
 
       part_ext->neighbor_desc[i_part+shift_part] = (int *) malloc( 3 * _neighbor_idx[part_ext->n_entity_bound[i_part+shift_part]] * sizeof(int) );
@@ -575,9 +866,9 @@ _create_cell_graph_comm
       for(int idx_entity = 0; idx_entity < n_part_entity_bound_tot; ++idx_entity) {
         int i_entity = _entity_part_bound[4*idx_entity]-1;
         int idx_write = _neighbor_idx[i_entity] + _neighbor_n[i_entity]++;
-        _neighbor_desc[3*idx_write  ] = _entity_part_bound[4*idx_entity+1];   // i_proc_opp;
-        _neighbor_desc[3*idx_write+1] = _entity_part_bound[4*idx_entity+2]-1; // i_part_opp
-        _neighbor_desc[3*idx_write+2] = _entity_part_bound[4*idx_entity+3]-1; // i_entity_opp
+        _neighbor_desc[3*idx_write  ] = _entity_part_bound[4*idx_entity+1];                // i_proc_opp;
+        _neighbor_desc[3*idx_write+1] = _entity_part_bound[4*idx_entity+2]+shift_part_g-1; // i_part_opp
+        _neighbor_desc[3*idx_write+2] = _entity_part_bound[4*idx_entity+3]-1;              // i_entity_opp
       }
 
       free(_neighbor_n);
@@ -589,7 +880,8 @@ _create_cell_graph_comm
 
     }
 
-    shift_part += part_ext->n_part[i_domain];
+    shift_part   += part_ext->n_part              [i_domain];
+    shift_part_g += part_ext->n_tot_part_by_domain[i_domain];
   }
 
 
@@ -958,9 +1250,8 @@ _compute_dual_graph
       int* _cell_cell_extended_idx = part_ext->cell_cell_extended_idx[i_depth][i_part+shift_part];
       int* _cell_cell_extended_n   = part_ext->cell_cell_extended_n  [i_depth][i_part+shift_part];
 
-      int i_depth_cur = 0;
-      int* _cell_cell_idx = part_ext->cell_cell_idx[i_depth_cur][i_part+shift_part];
-      int* _cell_cell     = part_ext->cell_cell    [i_depth_cur][i_part+shift_part];
+      int* _cell_cell_idx = part_ext->cell_cell_idx[i_part+shift_part];
+      int* _cell_cell     = part_ext->cell_cell    [i_part+shift_part];
 
       for(int i_cell = 0; i_cell < n_cell; ++i_cell) {
         _cell_cell_extended_idx[i_cell] = 0;
@@ -1414,9 +1705,9 @@ _compute_first_extended_cell_graph
   PDM_MPI_Comm_rank(part_ext->comm, &i_rank);
   PDM_MPI_Comm_size(part_ext->comm, &n_rank);
 
+  int shift_part   = 0;
+  int shift_part_g = 0;
   int i_depth_cur = 0;
-
-  int shift_part = 0;
   for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
     for(int i_part = 0; i_part < part_ext->n_part[i_domain]; ++i_part) {
 
@@ -1435,8 +1726,8 @@ _compute_first_extended_cell_graph
       int* _cell_cell_extended_idx = part_ext->cell_cell_extended_idx[i_depth_cur][i_part+shift_part];
       int* _cell_cell_extended_n   = part_ext->cell_cell_extended_n  [i_depth_cur][i_part+shift_part];
 
-      int* _cell_cell_idx = part_ext->cell_cell_idx[i_depth_cur][i_part+shift_part];
-      int* _cell_cell     = part_ext->cell_cell    [i_depth_cur][i_part+shift_part];
+      int* _cell_cell_idx = part_ext->cell_cell_idx[i_part+shift_part];
+      int* _cell_cell     = part_ext->cell_cell    [i_part+shift_part];
 
       for(int i_cell = 0; i_cell < n_cell; ++i_cell) {
         _cell_cell_extended_idx[i_cell] = 0;
@@ -1477,7 +1768,7 @@ _compute_first_extended_cell_graph
           int i_cell_neight = _cell_cell[idx_neight];
           int idx_write =  _cell_cell_extended_idx[i_cell] + _cell_cell_extended_n[i_cell]++;
           _cell_cell_extended[3*idx_write  ] = i_rank;
-          _cell_cell_extended[3*idx_write+1] = i_part;
+          _cell_cell_extended[3*idx_write+1] = i_part+shift_part_g;
           _cell_cell_extended[3*idx_write+2] = i_cell_neight-1;
         }
 
@@ -1538,7 +1829,8 @@ _compute_first_extended_cell_graph
       }
 
     }
-    shift_part += part_ext->n_part[i_domain];
+    shift_part   += part_ext->n_part              [i_domain];
+    shift_part_g += part_ext->n_tot_part_by_domain[i_domain];
   }
 }
 
@@ -1567,7 +1859,7 @@ _prune_cell_cell_extented
       int n_cell      = part_ext->parts[i_domain][i_part].n_cell;
       int s_tot       = _cell_cell_extended_idx[n_cell];
 
-      if( 1 == 0) {
+      if( 0 == 1) {
         PDM_log_trace_array_int(_cell_cell_extended_idx, n_cell+1, "_cell_cell_extended_idx::");
         PDM_log_trace_array_int(_cell_cell_extended    , 3 * _cell_cell_extended_idx[n_cell], "_cell_cell_extended::");
       }
@@ -2707,7 +2999,11 @@ _rebuild_face_group
 
   /* Post treatment */
   // TODO MANAGEMENT of multiple domain
-  assert(part_ext->n_domain == 1);
+  // assert(part_ext->n_domain == 1);
+
+  if(part_ext->n_domain > 1) {
+    printf("WARNING : _rebuild_face_group is not managed with n_domain > 1 --> n_domain = %i \n", part_ext->n_domain);
+  }
 
   part_ext->border_face_group_idx      = malloc( n_part_loc_all_domain * sizeof(int         *));
   part_ext->border_face_group          = malloc( n_part_loc_all_domain * sizeof(int         *));
@@ -2907,6 +3203,12 @@ PDM_part_extension_create
 
   part_ext->pdi = NULL;
 
+  part_ext->shift_by_domain_cell       = NULL;
+  part_ext->shift_by_domain_face       = NULL;
+  part_ext->shift_by_domain_edge       = NULL;
+  part_ext->shift_by_domain_vtx        = NULL;
+  part_ext->shift_by_domain_face_group = NULL;
+
   return part_ext;
 }
 
@@ -3039,6 +3341,11 @@ PDM_part_extension_compute
 
     n_part_loc_all_domain += part_ext->n_part[i_domain];
   }
+
+  if(1 == 1) {
+    _offset_parts_by_domain(part_ext, 1);
+  }
+
 
   part_ext->entity_cell_n    = (int **) malloc( n_part_loc_all_domain * sizeof(int *));
   part_ext->entity_cell_idx  = (int **) malloc( n_part_loc_all_domain * sizeof(int *));
@@ -3222,6 +3529,14 @@ PDM_part_extension_compute
   /* Condition limite - Face uniquement pour l'instant */
   _rebuild_face_group(part_ext);
 
+
+
+  if(1 == 1) {
+    _offset_parts_by_domain(part_ext, -1);
+    _offset_results_by_domain(part_ext);
+  }
+
+
 }
 
 
@@ -3348,12 +3663,10 @@ PDM_part_extension_free
 
         }
 
-        free(part_ext->cell_cell_idx[i_domain][i_part]);
-        free(part_ext->cell_cell    [i_domain][i_part]);
+        free(part_ext->cell_cell_idx[i_part+shift_part]);
+        free(part_ext->cell_cell    [i_part+shift_part]);
 
       }
-      free(part_ext->cell_cell_idx[i_domain]);
-      free(part_ext->cell_cell    [i_domain]);
 
       shift_part += part_ext->n_part[i_domain];
     }
@@ -3495,6 +3808,22 @@ PDM_part_extension_free
   }
   free(part_ext->parts);
 
+  if(part_ext->shift_by_domain_cell != NULL){
+    free(part_ext->shift_by_domain_cell);
+  }
+  if(part_ext->shift_by_domain_face != NULL){
+    free(part_ext->shift_by_domain_face);
+  }
+  if(part_ext->shift_by_domain_edge != NULL){
+    free(part_ext->shift_by_domain_edge);
+  }
+  if(part_ext->shift_by_domain_vtx != NULL){
+    free(part_ext->shift_by_domain_vtx);
+  }
+
+  if(part_ext->shift_by_domain_face_group != NULL){
+    free(part_ext->shift_by_domain_face_group);
+  }
 
   free(part_ext);
 }

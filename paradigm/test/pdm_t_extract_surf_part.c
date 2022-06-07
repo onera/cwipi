@@ -401,10 +401,12 @@ int main(int argc, char *argv[])
    * Extract
    */
   int n_part_out = 1;
+  PDM_bool_t equilibrate = PDM_FALSE;
+  // PDM_bool_t equilibrate = PDM_TRUE;
   PDM_extract_part_t* extrp = PDM_extract_part_create(2,
                                                       n_part,
                                                       n_part_out,
-                                                      // PDM_SPLIT_DUAL_WITH_HILBERT,
+                                                      equilibrate,
                                                       PDM_SPLIT_DUAL_WITH_PTSCOTCH,
                                                       PDM_OWNERSHIP_KEEP,
                                                       comm);
@@ -442,39 +444,49 @@ int main(int argc, char *argv[])
 
   PDM_extract_part_compute(extrp);
 
-  int *pn_extract_face     = NULL;
-  PDM_extract_part_n_entity_get(extrp,
-                                PDM_MESH_ENTITY_FACE,
-                                &pn_extract_face);
-  int *pn_extract_vtx     = NULL;
-  PDM_extract_part_n_entity_get(extrp,
-                                PDM_MESH_ENTITY_VERTEX,
-                                &pn_extract_vtx);
+  int          *pn_extract_face        = malloc(n_part_out * sizeof(int          ));
+  int          *pn_extract_vtx         = malloc(n_part_out * sizeof(int          ));
+  int         **pextract_face_vtx      = malloc(n_part_out * sizeof(int         *));
+  int         **pextract_face_vtx_idx  = malloc(n_part_out * sizeof(int         *));
+  double      **pextract_vtx           = malloc(n_part_out * sizeof(double      *));
+  PDM_g_num_t **pextract_face_ln_to_gn = malloc(n_part_out * sizeof(PDM_g_num_t *));
+  PDM_g_num_t **pextract_vtx_ln_to_gn  = malloc(n_part_out * sizeof(PDM_g_num_t *));
 
-  int **pextract_face_vtx     = NULL;
-  int **pextract_face_vtx_idx = NULL;
-  PDM_extract_part_connectivity_get(extrp,
-                                    PDM_CONNECTIVITY_TYPE_FACE_VTX,
-                                    &pextract_face_vtx,
-                                    &pextract_face_vtx_idx,
-                                    PDM_OWNERSHIP_KEEP);
 
-  double **pextract_vtx = NULL;
-  PDM_extract_part_vtx_coord_get(extrp,
-                                 &pextract_vtx,
-                                 PDM_OWNERSHIP_KEEP);
+  for(int i_part = 0; i_part < n_part_out; ++i_part) {
 
-  PDM_g_num_t** pextract_face_ln_to_gn = NULL;
-  PDM_extract_part_ln_to_gn_get(extrp,
-                                PDM_MESH_ENTITY_FACE,
-                                &pextract_face_ln_to_gn,
-                                PDM_OWNERSHIP_KEEP);
+    pn_extract_face[i_part] = PDM_extract_part_n_entity_get(extrp,
+                                                            i_part,
+                                                            PDM_MESH_ENTITY_FACE);
 
-  PDM_g_num_t** pextract_vtx_ln_to_gn = NULL;
-  PDM_extract_part_ln_to_gn_get(extrp,
-                                PDM_MESH_ENTITY_VERTEX,
-                                &pextract_vtx_ln_to_gn,
-                                PDM_OWNERSHIP_KEEP);
+    pn_extract_vtx[i_part] = PDM_extract_part_n_entity_get(extrp,
+                                                           i_part,
+                                                           PDM_MESH_ENTITY_VERTEX);
+
+    PDM_extract_part_connectivity_get(extrp,
+                                      i_part,
+                                      PDM_CONNECTIVITY_TYPE_FACE_VTX,
+                                      &pextract_face_vtx[i_part],
+                                      &pextract_face_vtx_idx[i_part],
+                                      PDM_OWNERSHIP_KEEP);
+
+    PDM_extract_part_vtx_coord_get(extrp,
+                                   i_part,
+                                   &pextract_vtx[i_part],
+                                   PDM_OWNERSHIP_KEEP);
+
+    PDM_extract_part_ln_to_gn_get(extrp,
+                                  i_part,
+                                  PDM_MESH_ENTITY_FACE,
+                                  &pextract_face_ln_to_gn[i_part],
+                                  PDM_OWNERSHIP_KEEP);
+
+    PDM_extract_part_ln_to_gn_get(extrp,
+                                  i_part,
+                                  PDM_MESH_ENTITY_VERTEX,
+                                  &pextract_vtx_ln_to_gn[i_part],
+                                  PDM_OWNERSHIP_KEEP);
+  }
 
   /*
    * Export vtk en légende
@@ -502,9 +514,6 @@ int main(int argc, char *argv[])
     }
   }
 
-  free(pn_extract_face);
-  free(pn_extract_vtx);
-
   PDM_extract_part_free(extrp);
 
   for (int i_part = 0; i_part < n_part_zones; i_part++){
@@ -525,14 +534,25 @@ int main(int argc, char *argv[])
   free(pface_vtx_idx );
   free(pvtx_coord    );
 
+  free(pn_extract_face       );
+  free(pn_extract_vtx        );
+  free(pextract_face_vtx     );
+  free(pextract_face_vtx_idx );
+  free(pextract_vtx          );
+  free(pextract_face_ln_to_gn);
+  free(pextract_vtx_ln_to_gn );
+
   PDM_multipart_free(mpart_id);
   PDM_dcube_gen_free(dcube);
   PDM_dmesh_free(dm);
 
-  PDM_MPI_Finalize();
 
-  printf("-- Fin test\n");
-  fflush(stdout);
+  if (i_rank == 0) {
+    PDM_printf ("-- End\n");
+    fflush(stdout);
+  }
+
+  PDM_MPI_Finalize();
 
   return 0;
 }

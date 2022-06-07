@@ -64,8 +64,8 @@ struct _pdm_part_extension_t {
   int **unique_order_dist_neighbor_cell;
   int  *n_unique_order_dist_neighbor_cell;
 
-  int ***cell_cell_idx;
-  int ***cell_cell;
+  int **cell_cell_idx;
+  int **cell_cell;
 
   /* This one is only on the border and contains only border cells */
   int ***cell_cell_extended_idx;
@@ -123,6 +123,13 @@ struct _pdm_part_extension_t {
   PDM_g_num_t **border_face_group_ln_to_gn;
 
   double **border_vtx;
+
+  /* Shift by domain for all entities */
+  PDM_g_num_t *shift_by_domain_cell;
+  PDM_g_num_t *shift_by_domain_face;
+  PDM_g_num_t *shift_by_domain_edge;
+  PDM_g_num_t *shift_by_domain_vtx;
+  PDM_g_num_t *shift_by_domain_face_group;
 
 
 };

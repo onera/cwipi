@@ -749,14 +749,15 @@ int main(int argc, char *argv[])
   /* Make ascending connectivity */
   int          *dface_edge_idx;
   PDM_g_num_t  *dface_edge;
-  PDM_log_trace_array_long(face_distribution, n_rank+1, "face_distribution::");
-  PDM_log_trace_array_long(dedge_distrib, n_rank+1, "dedge_distrib::");
-  PDM_log_trace_array_int(dedge_vtx_idx, dn_edge+1, "dedge_vtx_idx::");
-  PDM_log_trace_array_long(dedge_vtx, dedge_vtx_idx[dn_edge], "dedge_vtx::");
-  PDM_log_trace_array_int(dedge_face_idx, dn_edge, "dedge_face_idx::");
-  PDM_log_trace_array_long(dedge_face, dedge_face_idx[dn_edge], "dedge_face::");
+  if (post) {
+    PDM_log_trace_array_long(face_distribution, n_rank+1, "face_distribution::");
+    PDM_log_trace_array_long(dedge_distrib, n_rank+1, "dedge_distrib::");
+    PDM_log_trace_array_int(dedge_vtx_idx, dn_edge+1, "dedge_vtx_idx::");
+    PDM_log_trace_array_long(dedge_vtx, dedge_vtx_idx[dn_edge], "dedge_vtx::");
+    PDM_log_trace_array_int(dedge_face_idx, dn_edge, "dedge_face_idx::");
+    PDM_log_trace_array_long(dedge_face, dedge_face_idx[dn_edge], "dedge_face::");
+  }
 
-  printf(" PDM_dconnectivity_transpose\n");
   PDM_dconnectivity_transpose(comm,
                               dedge_distrib,
                               face_distribution,
@@ -765,11 +766,12 @@ int main(int argc, char *argv[])
                               1,
                               &dface_edge_idx,
                               &dface_edge);
-  printf(" PDM_dconnectivity_transpose end m\n");
 
-  printf("dn_edge = %i \n", dn_edge);
-  PDM_log_trace_array_int(dface_edge_idx, dn_face, "dface_edge_idx::");
-  PDM_log_trace_array_long(dface_edge, dface_edge_idx[dn_face], "dface_edge::");
+  if (post) {
+    printf("dn_edge = %i \n", dn_edge);
+    PDM_log_trace_array_int(dface_edge_idx, dn_face, "dface_edge_idx::");
+    PDM_log_trace_array_long(dface_edge, dface_edge_idx[dn_face], "dface_edge::");
+  }
 
   // int flags = PDM_PART_FACE_CELL|PDM_PART_CELL_FACE;
   // printf("PDM_HASFLAG(flags, PDM_PART_FACE_CELL) :: %d\n", PDM_HASFLAG(flags, PDM_PART_FACE_CELL) );
@@ -835,8 +837,10 @@ int main(int argc, char *argv[])
                       (PDM_g_num_t**) &dual_graph);
   }
 
-  PDM_log_trace_array_long(dual_graph_idx, dn_cell+1              , "pdm_t_partitioning_dcube::dual_graph_idx::");
-  PDM_log_trace_array_long(dual_graph    , dual_graph_idx[dn_cell], "pdm_t_partitioning_dcube::dual_graph::");
+  if (post) {
+    PDM_log_trace_array_long(dual_graph_idx, dn_cell+1              , "pdm_t_partitioning_dcube::dual_graph_idx::");
+    PDM_log_trace_array_long(dual_graph    , dual_graph_idx[dn_cell], "pdm_t_partitioning_dcube::dual_graph::");
+  }
 
   // free(dual_graph_idx);
   // free(dual_graph);
@@ -955,8 +959,10 @@ int main(int argc, char *argv[])
    *  We can do by the relationship of each varibles (connectivity)
    *  For example face_ln_to_gn can be deduce with cell_face connectivity if we have cell_ln_to_gn
    */
-  printf(" pn_cell[0] : %i \n", pn_cell[0]);
-  PDM_log_trace_array_long(pcell_ln_to_gn[0]    ,  pn_cell[0]    , "pcell_ln_to_gn::");
+  if (post) {
+    printf(" pn_cell[0] : %i \n", pn_cell[0]);
+    PDM_log_trace_array_long(pcell_ln_to_gn[0]    ,  pn_cell[0]    , "pcell_ln_to_gn::");
+  }
   int** pcell_face_idx;
   int** pcell_face;
   int*  pn_faces;

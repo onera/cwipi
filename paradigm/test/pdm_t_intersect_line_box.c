@@ -78,7 +78,8 @@ _read_args
  int            argc,
  char         **argv,
  PDM_g_num_t   *gn_box,
- PDM_g_num_t   *gn_line
+ PDM_g_num_t   *gn_line,
+ int           *post
  )
 {
   int i = 1;
@@ -110,6 +111,10 @@ _read_args
         long n = atol(argv[i]);
         *gn_line = (PDM_g_num_t) n;
       }
+    }
+
+    else if (strcmp(argv[i], "-post") == 0) {
+      *post = 1;
     }
 
     else {
@@ -201,14 +206,15 @@ main
   PDM_MPI_Comm_rank (comm, &i_rank);
   PDM_MPI_Comm_size (comm, &n_rank);
 
-
   PDM_g_num_t gn_box  = 10;
   PDM_g_num_t gn_line = 10;
+  int         post    = 0;
 
   _read_args (argc,
               argv,
               &gn_box,
-              &gn_line);
+              &gn_line,
+              &post);
 
 
   char filename[999];
@@ -311,7 +317,7 @@ main
 
 
 
-  if (1) {
+  if (post) {
     sprintf(filename, "boxes_%2.2d.vtk", i_rank);
     PDM_vtk_write_boxes (filename,
                          n_box,
@@ -376,7 +382,7 @@ main
                                      &intersecting_box_idx,
                                      &intersecting_box_g_num);
 
-  if (1) {
+  if (post) {
     for (int i = 0; i < n_line; i++) {
       log_trace("line "PDM_FMT_G_NUM": ", line_ln_to_gn[i]);
       for (int j = intersecting_box_idx[i]; j < intersecting_box_idx[i+1]; j++) {

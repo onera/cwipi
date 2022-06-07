@@ -493,6 +493,20 @@ const int                       i_part,
 );
 
 
+
+void PDM_multipart_bound_get
+(
+ PDM_multipart_t   *multipart,
+ const int          i_zone,
+ const int          i_part,
+ PDM_bound_type_t   bound_type,
+ int               *n_bound,
+ int              **bound_idx,
+ int              **bound,
+ PDM_g_num_t      **bound_ln_to_gn
+ );
+
+
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

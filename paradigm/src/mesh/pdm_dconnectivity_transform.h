@@ -112,6 +112,17 @@ PDM_dgroup_entity_transpose
  PDM_MPI_Comm   comm
 );
 
+void
+PDM_dentity_group_transpose
+(
+ int            n_group,
+ int           *dentity_group_idx,
+ int           *dentity_group,
+ PDM_g_num_t   *distrib_entity,
+ int          **dgroup_entity_idx,
+ PDM_g_num_t  **dgroup_entity,
+ PDM_MPI_Comm   comm
+);
 
 void
 PDM_dconnectivity_to_extract_dconnectivity

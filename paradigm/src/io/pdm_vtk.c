@@ -807,10 +807,12 @@ PDM_vtk_write_boxes
     fprintf(f, "12\n");
   }
 
-  fprintf(f, "CELL_DATA %d\n", n_box);
-  fprintf(f, "SCALARS gnum int\n LOOKUP_TABLE default\n");
-  for (int i = 0; i < n_box; i++) {
-    fprintf(f, ""PDM_FMT_G_NUM"\n", box_g_num[i]);
+  if (box_g_num != NULL) {
+    fprintf(f, "CELL_DATA %d\n", n_box);
+    fprintf(f, "SCALARS gnum int\n LOOKUP_TABLE default\n");
+    for (int i = 0; i < n_box; i++) {
+      fprintf(f, ""PDM_FMT_G_NUM"\n", box_g_num[i]);
+    }
   }
 
   fclose(f);
@@ -1084,7 +1086,7 @@ PDM_vtk_write_polydata_with_field
 
     fprintf(f, "FIELD elt_field %d\n", n_elt_ifield);
     for (int i = 0; i < n_elt_ifield; i++) {
-      assert (elt_ifield[i] != NULL);
+      // assert (elt_ifield[i] != NULL);
       assert (elt_ifield_name[i] != NULL);
 
       fprintf(f, "%s 1 %d int\n", elt_ifield_name[i], n_face);
@@ -1328,10 +1330,12 @@ PDM_vtk_write_lines
     }
   }
 
-  else if (color != NULL) {
-    fprintf(f, "CELL_DATA %d\n", n_line);
-    fprintf(f, "SCALARS color long 1\n");
-    fprintf(f, "LOOKUP_TABLE default\n");
+  if (color != NULL) {
+    if (g_num == NULL) {
+      fprintf(f, "CELL_DATA %d\n", n_line);
+    }
+    fprintf(f, "FIELD line_field 1\n");
+    fprintf(f, "color 1 %d int\n", n_line);
     for (int i = 0; i < n_line; i++) {
       fprintf(f, "%d\n", color[i]);
     }
@@ -1396,14 +1400,20 @@ PDM_vtk_write_std_elements
   int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get (elt_type, 1);
 
   fprintf(f, "CELLS %d %d\n", n_elt, n_elt * (1 + n_vtx_elt));
-  for (int i = 0; i < n_elt; i++) {
-    fprintf(f, "%d", n_vtx_elt);
-    for (int j = 0; j < n_vtx_elt; j++) {
-      fprintf(f, " %d", elt_vtx[n_vtx_elt*i + j] - 1);
+  if (elt_type == PDM_MESH_NODAL_POINT) {
+    for (int i = 0; i < n_elt; i++) {
+      fprintf(f, "1 %d\n", i);
     }
-    fprintf(f, "\n");
   }
-
+  else {
+    for (int i = 0; i < n_elt; i++) {
+      fprintf(f, "%d", n_vtx_elt);
+      for (int j = 0; j < n_vtx_elt; j++) {
+        fprintf(f, " %d", elt_vtx[n_vtx_elt*i + j] - 1);
+      }
+      fprintf(f, "\n");
+    }
+  }
 
   int vtk_elt_type = _vtk_elt_type (elt_type, 1);
   fprintf(f, "CELL_TYPES %d\n", n_elt);
@@ -1439,7 +1449,7 @@ PDM_vtk_write_std_elements
 
     fprintf(f, "FIELD elt_field %d\n", n_elt_ifield);
     for (int i = 0; i < n_elt_ifield; i++) {
-      assert (elt_ifield[i] != NULL);
+      // assert (elt_ifield[i] != NULL);
       assert (elt_ifield_name[i] != NULL);
 
       fprintf(f, "%s 1 %d int\n", elt_ifield_name[i], n_elt);
@@ -1509,12 +1519,19 @@ PDM_vtk_write_std_elements_double
   int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get (elt_type, 1);
 
   fprintf(f, "CELLS %d %d\n", n_elt, n_elt * (1 + n_vtx_elt));
-  for (int i = 0; i < n_elt; i++) {
-    fprintf(f, "%d", n_vtx_elt);
-    for (int j = 0; j < n_vtx_elt; j++) {
-      fprintf(f, " %d", elt_vtx[n_vtx_elt*i + j] - 1);
+  if (elt_type == PDM_MESH_NODAL_POINT) {
+    for (int i = 0; i < n_elt; i++) {
+      fprintf(f, "1 %d\n", i);
     }
-    fprintf(f, "\n");
+  }
+  else {
+    for (int i = 0; i < n_elt; i++) {
+      fprintf(f, "%d", n_vtx_elt);
+      for (int j = 0; j < n_vtx_elt; j++) {
+        fprintf(f, " %d", elt_vtx[n_vtx_elt*i + j] - 1);
+      }
+      fprintf(f, "\n");
+    }
   }
 
 
@@ -1552,7 +1569,7 @@ PDM_vtk_write_std_elements_double
 
     fprintf(f, "FIELD elt_field %d\n", n_elt_field);
     for (int i = 0; i < n_elt_field; i++) {
-      assert (elt_field[i] != NULL);
+      // assert (elt_field[i] != NULL);
       assert (elt_field_name[i] != NULL);
 
       fprintf(f, "%s 1 %d double\n", elt_field_name[i], n_elt);
@@ -1630,13 +1647,20 @@ PDM_vtk_write_std_elements_ho
   }
 
   fprintf(f, "CELLS %d %d\n", n_elt, n_elt * (1 + n_vtx_elt));
-  for (int i = 0; i < n_elt; i++) {
-    fprintf(f, "%d", n_vtx_elt);
-    for (int j = 0; j < n_vtx_elt; j++) {
-      //fprintf(f, " %d", elt_vtx[n_vtx_elt*i + vtk_idx[j]] - 1);
-      fprintf(f, " %d", elt_vtx[n_vtx_elt*i + j] - 1);
+  if (elt_type == PDM_MESH_NODAL_POINT) {
+    for (int i = 0; i < n_elt; i++) {
+      fprintf(f, "1 %d\n", i);
     }
-    fprintf(f, "\n");
+  }
+  else {
+    for (int i = 0; i < n_elt; i++) {
+      fprintf(f, "%d", n_vtx_elt);
+      for (int j = 0; j < n_vtx_elt; j++) {
+      //fprintf(f, " %d", elt_vtx[n_vtx_elt*i + vtk_idx[j]] - 1);
+        fprintf(f, " %d", elt_vtx[n_vtx_elt*i + j] - 1);
+      }
+      fprintf(f, "\n");
+    }
   }
 
 
@@ -1674,7 +1698,7 @@ PDM_vtk_write_std_elements_ho
 
     fprintf(f, "FIELD elt_field %d\n", n_elt_field);
     for (int i = 0; i < n_elt_field; i++) {
-      assert (elt_field[i] != NULL);
+      // assert (elt_field[i] != NULL);
       assert (elt_field_name[i] != NULL);
 
       fprintf(f, "%s 1 %d double\n", elt_field_name[i], n_elt);
