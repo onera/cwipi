@@ -40,6 +40,7 @@
 #include "pdm_timer.h"
 #include "pdm_partitioning_algorithm.h"
 #include "pdm_para_graph_dual.h"
+#include "pdm_part_geom.h"
 #include "pdm_part_renum.h"
 #include "pdm_dmesh.h"
 #include "pdm_dmesh_nodal.h"
@@ -2161,15 +2162,32 @@ PDM_MPI_Comm      comm
     free(displ);
   }
   int *cell_part = (int *) malloc(dn_cell * sizeof(int));
-  PDM_para_graph_split (split_method,
-                        cell_distri,
-                        dual_graph_idx,
-                        dual_graph,
-                        NULL, NULL,
-                        tn_part,
-                        part_fractions,
-                        cell_part,
-                        comm);
+  if (split_method == PDM_SPLIT_DUAL_WITH_HILBERT) {
+    PDM_part_geom (PDM_PART_GEOM_HILBERT,
+                   n_part,
+                   comm,
+                   dn_cell,
+                   dcell_face_idx,
+                   dcell_face,
+                   NULL, //cell_weight
+                   dface_vtx_idx,
+                   dface_vtx,
+                   face_distri,
+                   dvtx_coord,
+                   vtx_distri,
+                   cell_part);
+  }
+  else {
+    PDM_para_graph_split (split_method,
+                          cell_distri,
+                          dual_graph_idx,
+                          dual_graph,
+                          NULL, NULL,
+                          tn_part,
+                          part_fractions,
+                          cell_part,
+                          comm);
+  }
 
   // free(dual_graph_idx);
   // free(dual_graph);

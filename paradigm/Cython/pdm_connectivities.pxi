@@ -9,6 +9,19 @@ cdef extern from "pdm_dconnectivity_transform.h":
                                            int            **dentity2_entity1_idx,
                                            PDM_g_num_t    **dentity2_entity1)
 
+    void PDM_dfacecell_to_dcellface(const PDM_g_num_t* face_distri,
+                                    const PDM_g_num_t* cell_distri,
+                                    const PDM_g_num_t* dface_cell,
+                                    int**              dcell_face_idx,
+                                    PDM_g_num_t**      dcell_face,
+                                    PDM_MPI_Comm       comm)
+    void PDM_dcellface_to_dfacecell(const PDM_g_num_t* face_distri,
+                                    const PDM_g_num_t* cell_distri,
+                                    const int*         dcell_face_idx,
+                                    const PDM_g_num_t* dcell_face,
+                                    PDM_g_num_t**      dface_cell,
+                                    PDM_MPI_Comm       comm)
+
 cdef extern from "pdm_part_connectivity_transform.h":
     # ------------------------------------------------------------------
     void PDM_combine_connectivity(int   n_entity1,
@@ -86,6 +99,79 @@ def dconnectivity_transpose(MPI.Comm comm,
     np_dentity2_entity1 = create_numpy_pdm_gnum(_dentity2_entity1, np_dentity2_entity1_idx[dn_entity2])
 
     return np_dentity2_entity1_idx, np_dentity2_entity1
+
+# ------------------------------------------------------------------------
+def dfacecell_to_dcellface(MPI.Comm comm,
+                           NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] face_distri,
+                           NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] cell_distri,
+                           NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] dface_cell):
+
+    i_rank = comm.Get_rank()
+    n_rank = comm.Get_size()
+
+    # > Some checks
+    assert face_distri.size == cell_distri.size == n_rank+1
+    dn_face = face_distri[i_rank+1] - face_distri[i_rank]
+    assert dface_cell.size == 2*dn_face
+
+    cdef MPI.MPI_Comm c_comm = comm.ob_mpi
+    cdef PDM_MPI_Comm PDMC   = PDM_MPI_mpi_2_pdm_mpi_comm(&c_comm)
+
+    cdef PDM_g_num_t* _face_distri = <PDM_g_num_t*> face_distri.data
+    cdef PDM_g_num_t* _cell_distri = <PDM_g_num_t*> cell_distri.data
+    cdef PDM_g_num_t* _dface_cell  = <PDM_g_num_t*> dface_cell.data
+
+    cdef int*         _dcell_face_idx = NULL
+    cdef PDM_g_num_t* _dcell_face     = NULL
+
+
+    PDM_dfacecell_to_dcellface(_face_distri,
+                               _cell_distri,
+                               _dface_cell,
+                               &_dcell_face_idx,
+                               &_dcell_face,
+                               PDMC)
+
+    dn_cell = cell_distri[i_rank+1] - cell_distri[i_rank]
+    np_dcell_face_idx = create_numpy_i(_dcell_face_idx, dn_cell + 1)
+    np_dcell_face     = create_numpy_pdm_gnum(_dcell_face, np_dcell_face_idx[dn_cell])
+
+    return np_dcell_face_idx, np_dcell_face
+
+# ------------------------------------------------------------------------
+def dcellface_to_dfacecell(MPI.Comm comm,
+                           NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] face_distri,
+                           NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] cell_distri,
+                           NPY.ndarray[NPY.int32_t,    mode='c', ndim=1] dcell_face_idx,
+                           NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] dcell_face):
+    i_rank = comm.Get_rank()
+    n_rank = comm.Get_size()
+
+    # > Some checks
+    assert face_distri.size == cell_distri.size == n_rank+1
+    dn_face = face_distri[i_rank+1] - face_distri[i_rank]
+    dn_cell = cell_distri[i_rank+1] - cell_distri[i_rank]
+    assert dcell_face_idx.size == dn_cell + 1
+    assert dcell_face.size == dcell_face_idx[dn_cell]
+
+    cdef MPI.MPI_Comm c_comm = comm.ob_mpi
+    cdef PDM_MPI_Comm PDMC   = PDM_MPI_mpi_2_pdm_mpi_comm(&c_comm)
+
+    cdef PDM_g_num_t* _face_distri     = <PDM_g_num_t*> face_distri.data
+    cdef PDM_g_num_t* _cell_distri     = <PDM_g_num_t*> cell_distri.data
+    cdef int*         _dcell_face_idx  = <int*        > dcell_face_idx.data
+    cdef PDM_g_num_t* _dcell_face      = <PDM_g_num_t*> dcell_face.data
+
+    cdef PDM_g_num_t* _dface_cell     = NULL
+    PDM_dcellface_to_dfacecell(_face_distri,
+                               _cell_distri,
+                               _dcell_face_idx,
+                               _dcell_face,
+                               &_dface_cell,
+                               PDMC)
+
+    np_dface_cell = create_numpy_pdm_gnum(_dface_cell, 2*dn_face)
+    return np_dface_cell
 
 # ------------------------------------------------------------------------
 def combine_connectivity(NPY.ndarray[int, mode='c', ndim=1]    entity1_entity2_idx,

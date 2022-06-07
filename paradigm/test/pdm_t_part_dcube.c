@@ -40,7 +40,8 @@ _usage(int exit_code)
      "  -n_part <level>  Number of partitions par process.\n\n"
      "  -post            Ensight outputs (only if n_part == 1). \n\n"
      "  -parmetis        Call ParMETIS.\n\n"
-     "  -pt-scocth       Call PT-Scotch.\n\n"
+     "  -pt-scotch       Call PT-Scotch.\n\n"
+     "  -hilbert         Call Hilbert.\n\n"
      "  -h               This message.\n\n");
 
   exit(exit_code);
@@ -105,6 +106,9 @@ _read_args(int            argc,
     }
     else if (strcmp(argv[i], "-post") == 0) {
       *post = 1;
+    }
+    else if (strcmp(argv[i], "-hilbert") == 0) {
+      *method = 3;
     }
     else if (strcmp(argv[i], "-pt-scotch") == 0) {
       *method = 2;

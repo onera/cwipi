@@ -791,6 +791,10 @@ _split
   case PDM_PART_SPLIT_HILBERT:
     {
 
+      for (int i = 0; i < n_rank + 1; ++i) {
+        ppart->dface_proc[i] -= 1;
+        ppart->dvtx_proc[i]  -= 1;
+      }
       PDM_part_geom (PDM_PART_GEOM_HILBERT,
                      ppart->n_part,
                      ppart->comm,
@@ -804,6 +808,10 @@ _split
                      ppart->_dvtx_coord,
                      ppart->dvtx_proc,
                      cell_part);
+      for (int i = 0; i < n_rank + 1; ++i) {
+        ppart->dface_proc[i] += 1;
+        ppart->dvtx_proc[i]  += 1;
+      }
       break;
     }
   default:

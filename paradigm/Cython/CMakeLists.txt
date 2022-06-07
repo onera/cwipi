@@ -1,4 +1,3 @@
-
 if (MPI_C_COMPILER)
   set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
 endif()
@@ -10,6 +9,7 @@ endif()
 if (MPI_Fortran_COMPILER)
   set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
 endif(MPI_Fortran_COMPILER)
+
 
 if (PDM_ENABLE_LONG_G_NUM)
    set(PYX_NPY_G_NUM NPY.int64_t)
@@ -74,14 +74,12 @@ if (PDM_ENABLE_EXTENSION_PDMA)
   cython_add_module (Pypdm
                      PYX_SOURCES "${_pyx_file}"
                      OTHER_SOURCES $<TARGET_OBJECTS:pdm> $<TARGET_OBJECTS:pdma>
-                     INCLUDE_DIRECTORIES ${include_dirs}
-                     LINK_LIBRARIES ${LINK_LIBRARIES} pdm_mpi_shared Python::NumPy)
+                     INCLUDE_DIRECTORIES ${include_dirs})
 else ()
   cython_add_module (Pypdm
                      PYX_SOURCES "${_pyx_file}"
                      OTHER_SOURCES $<TARGET_OBJECTS:pdm>
-                     INCLUDE_DIRECTORIES ${include_dirs}
-                     LINK_LIBRARIES ${LINK_LIBRARIES} pdm_mpi_shared Python::NumPy)
+                     INCLUDE_DIRECTORIES ${include_dirs})
 endif()
 
 set_target_properties(Pypdm PROPERTIES PREFIX "") # do not prefix by lib
@@ -103,7 +101,8 @@ if (PDM_ENABLE_EXTENSION_PDMA)
   list(APPEND LINK_LIBRARIES pdma_shared)
 endif()
 
-target_link_libraries(Pypdm ${LINK_LIBRARIES} pdm_mpi_shared Python::NumPy)
+find_package(MPI REQUIRED COMPONENTS CXX)
+target_link_libraries(Pypdm ${LINK_LIBRARIES} pdm_mpi_shared Python::NumPy MPI::MPI_CXX)
 
 get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
 target_include_directories(Pypdm PUBLIC ${PDM_INC})
