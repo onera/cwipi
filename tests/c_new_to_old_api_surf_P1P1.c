@@ -76,7 +76,7 @@ _usage(int exit_code) {
 static void
 _read_args(int argc, char **argv, CWP_Version_t *version, int *n_vtx_seg1, int *n_vtx_seg2,
            double *width, double *depth, int *rotation, int *randomize, int *nProcData,
-           int *part_method, int *verbose) {
+           int *part_method, char** output_filename, int *verbose) {
   int i = 1;
 
   // Parse and check command line
@@ -134,6 +134,15 @@ _read_args(int argc, char **argv, CWP_Version_t *version, int *n_vtx_seg1, int *
       }
       else {
         *depth = atof(argv[i]);
+      }
+    }
+    else if (strcmp(argv[i], "-output") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *output_filename = argv[i];
       }
     }
     else if (strcmp(argv[i], "-rot") == 0) {
@@ -858,6 +867,8 @@ main(int argc, char *argv[]) {
   double depth = 1.;
   int rotation = 0;
 
+  char* output_filename;
+
   _read_args(argc,
              argv,
              &version,
@@ -869,6 +880,7 @@ main(int argc, char *argv[]) {
              &randomize,
              &n_proc_data,
              (int *) &part_method,
+             &output_filename,
              &verbose);
 
   // Initialize MPI
@@ -951,9 +963,9 @@ main(int argc, char *argv[]) {
                    coupled_code_name[0],
                    CWP_INTERFACE_SURFACE,
                    CWP_COMM_PAR_WITH_PART,
-            //                    CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF,
-            //                    CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE,
-                   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+            //                   CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF,
+                   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE,
+            //                   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
                    n_part,
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_CPL_TIME_STEP);
@@ -1385,10 +1397,19 @@ main(int argc, char *argv[]) {
   MPI_Reduce(&exch_time, &max_exch_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
   if (rank == 0) {
-    printf("Exchange 1 fields issend/irecv        :%12.5es\n", max_exch_time1);
-    printf("Exchange 1 fields wait        :%12.5es\n", max_exch_time);
-    printf("Total Exchange 1             :%12.5es\n", max_exch_time1 + max_exch_time);
+    printf("Exchange 1 fields issend/irecv: %12.5es\n", max_exch_time1);
+    printf("Exchange 1 fields wait        : %12.5es\n", max_exch_time);
+    printf("Total Exchange 1              : %12.5es\n", max_exch_time1 + max_exch_time);
   }
+
+  FILE *output;
+  if (rank == 0) {
+    output = fopen(output_filename, "w");
+    fprintf(output, "%d %12.5e %12.5e ", comm_world_size,
+                                          max_geom_time,
+                                          max_exch_time + max_exch_time1);
+  }
+
 
   double redondance_geom = max_exch_time1;
   max_geom_time += max_exch_time1;
@@ -1455,9 +1476,14 @@ main(int argc, char *argv[]) {
   MPI_Reduce(&exch_time, &max_exch_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
   if (rank == 0) {
-    printf("Exchange 2 fields issend/irecv        :%12.5es\n", max_exch_time1);
+    printf("Exchange 2 fields issend/irecv :%12.5es\n", max_exch_time1);
     printf("Exchange 2  fields wait        :%12.5es\n", max_exch_time);
-    printf("Total exchange 2                  :%12.5es\n", max_exch_time1 + max_exch_time);
+    printf("Total exchange 2               :%12.5es\n", max_exch_time1 + max_exch_time);
+  }
+
+  if (rank == 0) {
+    fprintf(output, "%12.5e\n", max_exch_time + max_exch_time1);
+    fclose(output);
   }
 
   if (rank == 0) {
