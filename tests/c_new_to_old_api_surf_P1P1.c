@@ -1615,73 +1615,75 @@ main(int argc, char *argv[]) {
     CWP_Finalize();
   }
 
-  double min_elaps_create_ptb;
-  double max_elaps_create_ptb;
-  double min_cpu_create_ptb;
-  double max_cpu_create_ptb;
-  double min_elaps_create2_ptb;
-  double max_elaps_create2_ptb;
-  double min_cpu_create2_ptb;
-  double max_cpu_create2_ptb;
-  double min_elaps_exch_ptb;
-  double max_elaps_exch_ptb;
-  double min_cpu_exch_ptb;
-  double max_cpu_exch_ptb;
+  if (version == CWP_VERSION_NEW) {
+    double min_elaps_create_ptb;
+    double max_elaps_create_ptb;
+    double min_cpu_create_ptb;
+    double max_cpu_create_ptb;
+    double min_elaps_create2_ptb;
+    double max_elaps_create2_ptb;
+    double min_cpu_create2_ptb;
+    double max_cpu_create2_ptb;
+    double min_elaps_exch_ptb;
+    double max_elaps_exch_ptb;
+    double min_cpu_exch_ptb;
+    double max_cpu_exch_ptb;
 
-  PDM_part_to_block_global_timer_get(PDM_MPI_COMM_WORLD,
-                                     &min_elaps_create_ptb,
-                                     &max_elaps_create_ptb,
-                                     &min_cpu_create_ptb,
-                                     &max_cpu_create_ptb,
-                                     &min_elaps_create2_ptb,
-                                     &max_elaps_create2_ptb,
-                                     &min_cpu_create2_ptb,
-                                     &max_cpu_create2_ptb,
-                                     &min_elaps_exch_ptb,
-                                     &max_elaps_exch_ptb,
-                                     &min_cpu_exch_ptb,
-                                     &max_cpu_exch_ptb);
+    PDM_part_to_block_global_timer_get(PDM_MPI_COMM_WORLD,
+                                       &min_elaps_create_ptb,
+                                       &max_elaps_create_ptb,
+                                       &min_cpu_create_ptb,
+                                       &max_cpu_create_ptb,
+                                       &min_elaps_create2_ptb,
+                                       &max_elaps_create2_ptb,
+                                       &min_cpu_create2_ptb,
+                                       &max_cpu_create2_ptb,
+                                       &min_elaps_exch_ptb,
+                                       &max_elaps_exch_ptb,
+                                       &min_cpu_exch_ptb,
+                                       &max_cpu_exch_ptb);
 
-  double min_elaps_create_btp;
-  double max_elaps_create_btp;
-  double min_cpu_create_btp;
-  double max_cpu_create_btp;
-  double min_elaps_exch_btp;
-  double max_elaps_exch_btp;
-  double min_cpu_exch_btp;
-  double max_cpu_exch_btp;
+    double min_elaps_create_btp;
+    double max_elaps_create_btp;
+    double min_cpu_create_btp;
+    double max_cpu_create_btp;
+    double min_elaps_exch_btp;
+    double max_elaps_exch_btp;
+    double min_cpu_exch_btp;
+    double max_cpu_exch_btp;
 
-  PDM_block_to_part_global_timer_get(PDM_MPI_COMM_WORLD,
-                                     &min_elaps_create_btp,
-                                     &max_elaps_create_btp,
-                                     &min_cpu_create_btp,
-                                     &max_cpu_create_btp,
-                                     &min_elaps_exch_btp,
-                                     &max_elaps_exch_btp,
-                                     &min_cpu_exch_btp,
-                                     &max_cpu_exch_btp);
+    PDM_block_to_part_global_timer_get(PDM_MPI_COMM_WORLD,
+                                       &min_elaps_create_btp,
+                                       &max_elaps_create_btp,
+                                       &min_cpu_create_btp,
+                                       &max_cpu_create_btp,
+                                       &min_elaps_exch_btp,
+                                       &max_elaps_exch_btp,
+                                       &min_cpu_exch_btp,
+                                       &max_cpu_exch_btp);
 
-  if (rank == 0) {
-    printf("Global time in PDM_part_to_block : \n");
-    printf("   - ptb min max elaps create  : %12.5e %12.5e\n",
-           min_elaps_create_ptb,
-           max_elaps_create_ptb);
-    printf("   - ptb min max elaps create2 : %12.5e %12.5e\n",
-           min_elaps_create2_ptb,
-           max_elaps_create2_ptb);
-    printf("   - ptb min max elaps exch    : %12.5e %12.5e\n",
-           min_elaps_exch_ptb,
-           max_elaps_exch_ptb);
-    fflush(stdout);
+    if (rank == 0) {
+      printf("Global time in PDM_part_to_block : \n");
+      printf("   - ptb min max elaps create  : %12.5e %12.5e\n",
+             min_elaps_create_ptb,
+             max_elaps_create_ptb);
+      printf("   - ptb min max elaps create2 : %12.5e %12.5e\n",
+             min_elaps_create2_ptb,
+             max_elaps_create2_ptb);
+      printf("   - ptb min max elaps exch    : %12.5e %12.5e\n",
+             min_elaps_exch_ptb,
+             max_elaps_exch_ptb);
+      fflush(stdout);
 
-    printf("Global time in PDM_block_to_part : \n");
-    printf("   - btp min max elaps create  : %12.5e %12.5e\n",
-           min_elaps_create_btp,
-           max_elaps_create_btp);
-    printf("   - btp min max elaps exch    : %12.5e %12.5e\n",
-           min_elaps_exch_btp,
-           max_elaps_exch_btp);
-    fflush(stdout);
+      printf("Global time in PDM_block_to_part : \n");
+      printf("   - btp min max elaps create  : %12.5e %12.5e\n",
+             min_elaps_create_btp,
+             max_elaps_create_btp);
+      printf("   - btp min max elaps exch    : %12.5e %12.5e\n",
+             min_elaps_exch_btp,
+             max_elaps_exch_btp);
+      fflush(stdout);
+    }
   }
 
   // Finalize MPI
