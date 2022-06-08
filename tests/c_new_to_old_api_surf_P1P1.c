@@ -1321,6 +1321,51 @@ main(int argc, char *argv[]) {
              min_exch_data_recv_btp,
              max_exch_data_recv_btp);
       fflush(stdout);
+
+      char output_filename_details[50];
+      sprintf(output_filename_details, "details_%s", output_filename);
+      FILE* output_details = fopen(output_filename_details, "w");
+
+      fprintf(output_details,
+              "%d %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e ",
+              comm_world_size,
+              min_elaps_create_ptb,
+              max_elaps_create_ptb,
+              min_elaps_create2_ptb,
+              max_elaps_create2_ptb,
+              min_elaps_exch_ptb,
+              max_elaps_exch_ptb);
+
+//      fprintf(output_details,
+//              "%d %d %d %d %llu %llu %llu %llu ",
+//              min_exch_rank_send_ptb,
+//              max_exch_rank_send_ptb,
+//              min_exch_rank_recv_ptb,
+//              max_exch_rank_recv_ptb,
+//              min_exch_data_send_ptb,
+//              max_exch_data_send_ptb,
+//              min_exch_data_recv_ptb,
+//              max_exch_data_recv_ptb);
+
+      fprintf(output_details,
+              "%12.5e %12.5e %12.5e %12.5e\n",
+              min_elaps_create_btp,
+              max_elaps_create_btp,
+              min_elaps_exch_btp,
+              max_elaps_exch_btp);
+
+//      fprintf(output_details,
+//              "%d %d %d %d %llu %llu %llu %llu ",
+//              min_exch_rank_send_btp,
+//              max_exch_rank_send_btp,
+//              min_exch_rank_recv_btp,
+//              max_exch_rank_recv_btp,
+//              min_exch_data_send_btp,
+//              max_exch_data_send_btp,
+//              min_exch_data_recv_btp,
+//              max_exch_data_recv_btp);
+
+      fclose(output_details);
     }
   }
 
@@ -1331,12 +1376,19 @@ main(int argc, char *argv[]) {
   double max_geom_time;
   MPI_Reduce(&geom_time, &max_geom_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
+  FILE *output = fopen(output_filename, "w");
+
   if (rank == 0) {
     printf("\n\nGeometric algorithm :%12.5es\n", max_geom_time);
+
+    fprintf(output, "%d %12.5e ", comm_world_size, max_geom_time);
   }
+
   if (verbose && rank == 0) {
     printf("Geometric algorithm OK\n");
+
   }
+
   //  Exchange interpolated fields 1
   MPI_Barrier(MPI_COMM_WORLD);
 
@@ -1400,16 +1452,9 @@ main(int argc, char *argv[]) {
     printf("Exchange 1 fields issend/irecv: %12.5es\n", max_exch_time1);
     printf("Exchange 1 fields wait        : %12.5es\n", max_exch_time);
     printf("Total Exchange 1              : %12.5es\n", max_exch_time1 + max_exch_time);
-  }
 
-  FILE *output;
-  if (rank == 0) {
-    output = fopen(output_filename, "w");
-    fprintf(output, "%d %12.5e %12.5e ", comm_world_size,
-                                          max_geom_time,
-                                          max_exch_time + max_exch_time1);
+    fprintf(output, "%12.5e ", max_exch_time1 + max_exch_time);
   }
-
 
   double redondance_geom = max_exch_time1;
   max_geom_time += max_exch_time1;
@@ -1479,19 +1524,15 @@ main(int argc, char *argv[]) {
     printf("Exchange 2 fields issend/irecv :%12.5es\n", max_exch_time1);
     printf("Exchange 2  fields wait        :%12.5es\n", max_exch_time);
     printf("Total exchange 2               :%12.5es\n", max_exch_time1 + max_exch_time);
-  }
 
-  if (rank == 0) {
-    fprintf(output, "%12.5e\n", max_exch_time + max_exch_time1);
-    fclose(output);
-  }
-
-  if (rank == 0) {
     printf("\n\nTemps geometrie                            : %12.5es\n", max_geom_time);
     printf("Temps geometrie escompte (sans redondance) : %12.5es\n",
            max_geom_time - redondance_geom);
     printf("Temps un Echange aux noeuds                : %12.5es\n",
            max_exch_time1 + max_exch_time);
+
+    fprintf(output, "%12.5e\n", max_exch_time1 + max_exch_time);
+    fclose(output);
   }
 
   //  Check
@@ -1573,6 +1614,7 @@ main(int argc, char *argv[]) {
   else {
     CWP_Finalize();
   }
+
   double min_elaps_create_ptb;
   double max_elaps_create_ptb;
   double min_cpu_create_ptb;
