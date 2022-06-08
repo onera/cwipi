@@ -340,7 +340,7 @@ PDM_mean_values_polyhedron
  double            weights[]
  )
 {
-  const int DEBUG = 0;
+  const int dbg_enabled = 0;
   /*printf("\n\n\nPDM_mean_values_polyhedron for pt %f %f %f\n",
     pt_coord[0], pt_coord[1], pt_coord[2]);*/
   // Begin by initializing weights.
@@ -489,7 +489,7 @@ PDM_mean_values_polyhedron
     }
 
     if (outlier == PDM_TRUE) {
-      if (DEBUG) {
+      if (dbg_enabled) {
         printf("Outlier, iface = %d\n", iface);
       }
       continue;
@@ -513,7 +513,7 @@ PDM_mean_values_polyhedron
         weights[ivtx] = 0.;
       }
 
-      if (DEBUG) {
+      if (dbg_enabled) {
         printf("Point lies on polygon\n");
       }
 
@@ -760,8 +760,8 @@ PDM_mean_value_coordinates_polyhedron
  double            mean_value_coord[]
  )
 {
-  const int DEBUG = 0;//(pt_coord[0] < 0);
-  if (DEBUG) {
+  const int dbg_enabled = 0;//(pt_coord[0] < 0);
+  if (dbg_enabled) {
     printf("\n\n-- PDM_mean_value_coordinates_polyhedron3 --\n");
     printf("pt_coord = %f %f %f\n", pt_coord[0], pt_coord[1], pt_coord[2]);
   }
@@ -954,7 +954,7 @@ PDM_mean_value_coordinates_polyhedron
         free (d);
         free (tri_vtx);
 
-        if (DEBUG) {
+        if (dbg_enabled) {
           printf("point located on face %d (PDM_PI - h = %g)\n", iface, PDM_PI - h);
         }
         return;
@@ -981,7 +981,7 @@ PDM_mean_value_coordinates_polyhedron
       }
 
       if (ignore_triangle == PDM_TRUE) {
-        if (DEBUG) {
+        if (dbg_enabled) {
           printf("ignore triangle %d of face %d\n", itri, iface);
         }
         continue;
