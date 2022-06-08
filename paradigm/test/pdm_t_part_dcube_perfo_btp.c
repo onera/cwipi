@@ -283,10 +283,6 @@ int main(int argc, char *argv[])
                                 &dcell_face_idx,
                                 &dcell_face);
 
-    for(int i = 0; i < n_rank+1; ++i) {
-      dface_distrib[i] += 1;
-      dvtx_distrib [i] += 1;
-    }
     double *center_cell_coord = (double * ) malloc( 3 * dn_cell * sizeof(double));
     PDM_dcompute_cell_center(comm,
                              dn_cell,
@@ -298,11 +294,6 @@ int main(int argc, char *argv[])
                              dvtx_coord,
                              dvtx_distrib,
                              center_cell_coord);
-
-    for(int i = 0; i < n_rank+1; ++i) {
-      dface_distrib[i] -= 1;
-      dvtx_distrib [i] -= 1;
-    }
 
     PDM_dreorder_from_coords(PDM_PART_GEOM_HILBERT,
                              3,

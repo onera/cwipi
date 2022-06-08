@@ -540,6 +540,145 @@ PDM_dconnectivity_transpose
   free(dentity2_entity1_n);
 }
 
+/**
+ *
+ * \brief Shortcut to PDM_dconnectivity_transpose for facecell like connectivity
+ *
+ * \param [in]   face_distri           distribution of faces over the procs (size=n_rank+1)
+ * \param [in]   cell_distri           distribution of cells over the procs (size=n_rank+1)
+ * \param [in]   dface_cell            Facecell array, including zeros (size=2*dn_face)
+ * \param [out]  dcell_face_idx        Output cell_face_idx. Will be allocated (size=dn_cell+1)
+ * \param [out]  dcell_face            Ouput cell_face. Will be allocated (size=cell_face_idx[dn_cell])
+ * \param [in]   comm                  PDM_MPI communicator
+ */
+void PDM_dfacecell_to_dcellface
+(
+  const PDM_g_num_t* face_distri,
+  const PDM_g_num_t* cell_distri,
+  const PDM_g_num_t* dface_cell,
+  int**              dcell_face_idx,
+  PDM_g_num_t**      dcell_face,
+  PDM_MPI_Comm       comm
+)
+{
+  int i_rank;
+  PDM_MPI_Comm_rank(comm, &i_rank);
+
+  int dn_face = face_distri[i_rank+1] - face_distri[i_rank];
+
+  int*         _dface_cell_idx = (int *)         malloc((dn_face+1) * sizeof(int));
+  PDM_g_num_t* _dface_cell     = (PDM_g_num_t *) malloc(2*dn_face   * sizeof(PDM_g_num_t));
+  int w_idx = 0;
+  _dface_cell_idx[0] = 0;
+  for (int i_face = 0; i_face < dn_face; i_face++) {
+    _dface_cell_idx[i_face+1] = _dface_cell_idx[i_face];
+    if (dface_cell[2*i_face] != 0) {
+      _dface_cell_idx[i_face+1]++;
+      _dface_cell[w_idx++] = dface_cell[2*i_face];
+    }
+    if (dface_cell[2*i_face+1] != 0) {
+      _dface_cell_idx[i_face+1]++;
+      _dface_cell[w_idx++] = -dface_cell[2*i_face+1];
+    }
+  }
+
+  /*for (int i_face = 0; i_face < dn_face; i_face++)*/
+    /*log_trace("%d %d\n", dface_cell[2*i_face], dface_cell[2*i_face+1]);*/
+
+  /*PDM_log_trace_array_int(_dface_cell_idx, dn_face+1, "dface_cell_idx");*/
+  /*PDM_log_trace_array_long(_dface_cell, 2*dn_face, "dface_cell");*/
+  
+  PDM_dconnectivity_transpose(comm,
+                              face_distri,
+         (PDM_g_num_t *)      cell_distri,
+                              _dface_cell_idx,
+                              _dface_cell,
+                              1,
+                              dcell_face_idx,
+                              dcell_face);
+  /*int dn_cell = cell_distri[i_rank+1] - cell_distri[i_rank];*/
+  /*PDM_log_trace_connectivity_long(dcell_face_idx[0], dcell_face[0], dn_cell, "dcell_face");*/
+
+  free(_dface_cell_idx);
+  free(_dface_cell);
+}
+
+/**
+ *
+ * \brief Shortcut to PDM_dconnectivity_transpose to obtain facecell like connectivity
+ *
+ * \param [in]   face_distri           distribution of faces over the procs (size=n_rank+1)
+ * \param [in]   cell_distri           distribution of cells over the procs (size=n_rank+1)
+ * \param [in]   dcell_face_idx        cell_face idx array (size = dn_cell)
+ * \param [in]   dcell_face            cell_face array (size = cell_face_idx[dn_cell])
+ * \param [out]  dface_cell            Output face_cell. Will be allocated (size = 2*dn_face)
+ * \param [in]   comm                  PDM_MPI communicator
+ */
+void PDM_dcellface_to_dfacecell
+(
+  const PDM_g_num_t* face_distri,
+  const PDM_g_num_t* cell_distri,
+  const int*         dcell_face_idx,
+  const PDM_g_num_t* dcell_face,
+  PDM_g_num_t**      dface_cell,
+  PDM_MPI_Comm       comm
+)
+{
+  int i_rank;
+  PDM_MPI_Comm_rank(comm, &i_rank);
+  int dn_face = (int) face_distri[i_rank+1] - face_distri[i_rank];
+
+  int*         _dface_cell_idx = NULL;
+  PDM_g_num_t* _dface_cell     = NULL;
+  PDM_dconnectivity_transpose(comm,
+                              cell_distri,
+         (PDM_g_num_t *)      face_distri,
+                              dcell_face_idx,
+                              dcell_face,
+                              1,
+                             &_dface_cell_idx,
+                             &_dface_cell);
+
+  /*PDM_log_trace_connectivity_long(_dface_cell_idx, _dface_cell, dn_face, "dface_cell");*/
+
+  *dface_cell = (PDM_g_num_t*) malloc(2*dn_face*sizeof(PDM_g_num_t));
+
+  int r_idx = 0;
+  for (int i = 0; i < dn_face; i++) {
+    int n_conn = _dface_cell_idx[i+1] - _dface_cell_idx[i];
+    if (n_conn == 2) { //Interior faces
+      assert (PDM_SIGN(_dface_cell[r_idx]) * PDM_SIGN(_dface_cell[r_idx+1]) == -1);
+      if (_dface_cell[r_idx] < 0) {
+        (*dface_cell)[2*i]   = _dface_cell[r_idx+1];
+        (*dface_cell)[2*i+1] = PDM_ABS(_dface_cell[r_idx]);
+      }
+      else {
+        (*dface_cell)[2*i]   = _dface_cell[r_idx];
+        (*dface_cell)[2*i+1] = PDM_ABS(_dface_cell[r_idx+1]);
+      }
+      r_idx += 2;
+    }
+    else { //Bnd faces
+      assert (n_conn == 1);
+      int sign = PDM_SIGN(_dface_cell[r_idx]);
+      PDM_g_num_t val = PDM_ABS(_dface_cell[r_idx]);
+      if (sign > 0) {
+        (*dface_cell)[2*i]   = _dface_cell[r_idx];
+        (*dface_cell)[2*i+1] = 0;
+      }
+      else {
+        (*dface_cell)[2*i]   = 0;
+        (*dface_cell)[2*i+1] = _dface_cell[r_idx];
+      }
+      r_idx++;
+    }
+  }
+
+  /*PDM_log_trace_array_long(*dface_cell, 2*dn_face, "dface_cell");*/
+  free(_dface_cell_idx);
+  free(_dface_cell);
+}
+
 
 /**
  *

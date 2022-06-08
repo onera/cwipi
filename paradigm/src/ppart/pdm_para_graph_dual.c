@@ -255,7 +255,7 @@ const int              compute_dnode_to_arc,
     darc_g = (PDM_g_num_t *) malloc( 2 * dn_arc * sizeof(PDM_g_num_t));
   }
 
-  int shift_arc_g   = graph_arc_distrib[i_rank]+1; // Entre 1 et N
+  PDM_g_num_t shift_arc_g   = graph_arc_distrib[i_rank]+1; // Entre 1 et N
   // printf(" shift_arc_g = %i \n", shift_arc_g);
   int dn_arc_int    = 0;
   int idx_data_arc  = 0;

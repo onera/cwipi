@@ -39,6 +39,7 @@ _usage(int exit_code)
      "  -n_part <level>  Number of partitions par process.\n\n"
      "  -parmetis        Call ParMETIS.\n\n"
      "  -pt-scotch       Call PT-Scotch.\n\n"
+     "  -hilbert         Call PT-Hilbert.\n\n"
      "  -post            Write output in Ensight format.\n\n"
      "  -h               This message.\n\n");
 
@@ -54,7 +55,7 @@ _usage(int exit_code)
  * \param [in]      argv     Arguments
  * \param [inout]   n_vtx_seg  Number of vertices on the cube side
  * \param [inout]   n_part   Number of partitions par process
- * \param [inout]   method   Partitioner (1 ParMETIS, 2 Pt-Scotch)
+ * \param [inout]   method   Partitioner (1 ParMETIS, 2 Pt-Scotch, 3 Hilbert)
  * \param [inout]   post     Write output or not
  *
  */
@@ -96,6 +97,9 @@ _read_args(int            argc,
     }
     else if (strcmp(argv[i], "-post") == 0) {
       *post = 1;
+    }
+    else if (strcmp(argv[i], "-hilbert") == 0) {
+      *method = 3;
     }
     else if (strcmp(argv[i], "-pt-scotch") == 0) {
       *method = 2;

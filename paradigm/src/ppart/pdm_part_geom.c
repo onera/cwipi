@@ -58,9 +58,9 @@ extern "C" {
  * \param [in]  dcell_face    cell face connectivity in the current process
  * \param [in]  dface_vtx_idx  Index of face_vtx
  * \param [in]  dface_vtx     face vertex connectivity in the current process
- * \param [in]  dface_proc    face distribution
+ * \param [in]  distrib_face    face distribution
  * \param [in]  dvtx_coord    coordinates of vertices
- * \param [in]  dvtx_proc     Vertex distribution
+ * \param [in]  distrib_vtx     Vertex distribution
  *
  * \param [out] cell_center   Cell centers
  *
@@ -75,9 +75,9 @@ PDM_dcompute_cell_center
   const PDM_g_num_t  *dcell_face,
   const int          *dface_vtx_idx,
   const PDM_g_num_t  *dface_vtx,
-  const PDM_g_num_t  *dface_proc,
+  const PDM_g_num_t  *distrib_face,
   const double       *dvtx_coord,
-  const PDM_g_num_t  *dvtx_proc,
+  const PDM_g_num_t  *distrib_vtx,
   double             *cell_center
 )
 {
@@ -85,21 +85,14 @@ PDM_dcompute_cell_center
   PDM_MPI_Comm_rank (comm, &i_rank);
   PDM_MPI_Comm_size (comm, &n_rank);
 
-  PDM_g_num_t *distrib_face = malloc (sizeof(PDM_g_num_t) * (n_rank + 1));
-  PDM_g_num_t *distrib_vtx  = malloc (sizeof(PDM_g_num_t) * (n_rank + 1));
-  for (int i = 0; i <= n_rank; i++) {
-    distrib_face[i] = dface_proc[i] - 1;
-    distrib_vtx[i]  = dvtx_proc[i]  - 1;
-  }
-
   /*PDM_log_trace_array_long (distrib_face, n_rank+1, "distrib_face : ");
     PDM_log_trace_array_long (distrib_vtx,  n_rank+1, "distrib_vtx  : ");*/
 
-  int dn_face = (int) (dface_proc[i_rank+1] - dface_proc[i_rank]);
+  int dn_face = (int) (distrib_face[i_rank+1] - distrib_face[i_rank]);
 
   PDM_g_num_t *dface_ln_to_gn = malloc (sizeof(PDM_g_num_t) * dn_face);
   for (int i = 0; i < dn_face; i++) {
-    dface_ln_to_gn[i] = dface_proc[i_rank] + i;
+    dface_ln_to_gn[i] = distrib_face[i_rank] + i + 1;
   }
 
   PDM_g_num_t *pvtx_ln_to_gn;
@@ -135,7 +128,6 @@ PDM_dcompute_cell_center
   double *pvtx_coord = tmp_pvtx_coord[0];
   free(tmp_pvtx_coord);
   free (pvtx_ln_to_gn);
-  free (distrib_vtx);
 
 
   /* Compute face centers */
@@ -171,7 +163,6 @@ PDM_dcompute_cell_center
                                                    dface_center,
                                                    comm);
   free (dface_center);
-  free (distrib_face);
 }
 /*=============================================================================
  * Public function definitions
@@ -216,9 +207,9 @@ PDM_part_geom
  const int          *dcell_weight,
  const int          *dface_vtx_idx,
  const PDM_g_num_t  *dface_vtx,
- const PDM_g_num_t  *dface_proc,
+ const PDM_g_num_t  *distrib_face,
  const double       *dvtx_coord,
- const PDM_g_num_t  *dvtx_proc,
+ const PDM_g_num_t  *distrib_vtx,
  int                *dcell_part
 )
 {
@@ -241,9 +232,9 @@ PDM_part_geom
                             dcell_face,
                             dface_vtx_idx,
                             dface_vtx,
-                            dface_proc,
+                            distrib_face,
                             dvtx_coord,
-                            dvtx_proc,
+                            distrib_vtx,
                             barycenter_coords);
 
 

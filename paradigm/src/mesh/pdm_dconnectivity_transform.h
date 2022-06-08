@@ -74,6 +74,25 @@ PDM_dconnectivity_transpose
        PDM_g_num_t    **dentity2_entity1
 );
 
+void PDM_dfacecell_to_dcellface
+(
+  const PDM_g_num_t* face_distri,
+  const PDM_g_num_t* cell_distri,
+  const PDM_g_num_t* dface_cell,
+  int**              dcell_face_idx,
+  PDM_g_num_t**      dcell_face,
+  PDM_MPI_Comm       comm
+);
+void PDM_dcellface_to_dfacecell
+(
+  const PDM_g_num_t* face_distri,
+  const PDM_g_num_t* cell_distri,
+  const int*         dcell_face_idx,
+  const PDM_g_num_t* dcell_face,
+  PDM_g_num_t**      dface_cell,
+  PDM_MPI_Comm       comm
+);
+
 void
 PDM_deduce_combine_connectivity_dual
 (
