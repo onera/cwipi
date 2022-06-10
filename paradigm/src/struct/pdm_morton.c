@@ -546,7 +546,7 @@ _evaluate_distribution(int          n_ranges,
 
   fit = (d_up + d_low) / optim;
 
-#if 0 && defined(DEBUG) && !defined(NDEBUG)
+#if 0 && defined(dbg_enabled) && !defined(Ndbg_enabled)
   /* if (cs_glob_rank_id <= 0) */
   /*   PDM_printf("<DISTRIBUTION EVALUATION> optim: %g, fit: %g\n", */
   /*              optim, fit); */
@@ -648,7 +648,7 @@ _define_rank_distrib(int                      dim,
     cfreq[id+1] = cfreq[id] + (double)g_distrib[id]/(double)gsum_weight;
   cfreq[n_samples] = 1.0;
 
-#if 0 && defined(DEBUG) && !defined(DEBUG) /* For debugging purpose only */
+#if 0 && defined(dbg_enabled) && !defined(dbg_enabled) /* For dbg_enabledging purpose only */
 
   /* if (cs_glob_rank_id <= 0) { */
 
@@ -680,7 +680,7 @@ _define_rank_distrib(int                      dim,
 
   /* } */
 
-#endif /* debugging output */
+#endif /* dbg_enabledging output */
 
   /* Convert global distribution from n_samples to n_ranks */
 
@@ -695,7 +695,7 @@ _define_rank_distrib(int                      dim,
 
   } /* End of loop on ranks */
 
-#if 0 && defined(DEBUG) && !defined(NDEBUG) /* Sanity check in debug */
+#if 0 && defined(dbg_enabled) && !defined(Ndbg_enabled) /* Sanity check in dbg_enabled */
   {
     PDM_g_num_t   sum = 0;
     for (rank_id = 0; rank_id < n_ranks; rank_id++)
@@ -777,7 +777,7 @@ _update_sampling(int      dim,
     else /* f_high = f_low */
       new_sampling[i+1] = s_low + 0.5 * (s_low + s_high);
 
-#if 0 && defined(DEBUG) && !defined(NDEBUG)
+#if 0 && defined(dbg_enabled) && !defined(Ndbg_enabled)
     /* PDM_printf(" <_update_distrib> (rank: %d) delta: %g, target: %g," */
     /*            " next_id: %d, f_low: %g, f_high: %g, s_low: %g, s_high: %g\n" */
     /*            "\t => new_sampling: %g\n", */
@@ -920,7 +920,7 @@ _bucket_sampling(int                      dim,
 
   } /* End of while */
 
-#if 0 && defined(DEBUG) && !defined(NDEBUG)
+#if 0 && defined(dbg_enabled) && !defined(Ndbg_enabled)
   /* if (cs_glob_rank_id <= 0) */
   /*   PDM_printf("\n  <_bucket_sampling> n_iter: %d, opt: %g, best_fit: %g\n", */
   /*              n_iters, optim, best_fit); */
@@ -950,11 +950,11 @@ _intersect_node_box
  int                     *inside
  )
 {
-  const int DEBUG = 0;
+  const int dbg_enabled = 0;
   *inside = 1;
 
   assert (box_min.L >= node.L);
-  if (DEBUG) {
+  if (dbg_enabled) {
     printf("node: L = %u, X = %u %u %u\n", node.L, node.X[0], node.X[1], node.X[2]);
   }
 
@@ -967,7 +967,7 @@ _intersect_node_box
     PDM_morton_int_t xmax = xmin + side;
 
     if (xmin > box_max.X[i]+1 || xmax < box_min.X[i]) {
-      if (DEBUG) {
+      if (dbg_enabled) {
         //printf("\t not intersecting (dim %d, xmin = %u, box_max = %u, box_min = %u, xmax = %u\n", i, xmin, box_max.X[i]+1, box_min.X[i], xmax);
         double s = 1. / pow(2., box_min.L);
         printf("\t not intersecting (dim %d, xmin = %f, box_max = %f, box_min = %f, xmax = %f\n", i, xmin*s, (box_max.X[i]+1)*s, box_min.X[i]*s, xmax*s);
@@ -978,7 +978,7 @@ _intersect_node_box
     };
   }
 
-  if (DEBUG) {
+  if (dbg_enabled) {
     printf("\t intersecting\n");
   }
 
@@ -1329,7 +1329,7 @@ PDM_morton_local_order(int                     n_codes,
 
   }
 
-#if 0 && defined(DEBUG) && !defined(NDEBUG)   /* Check ordering */
+#if 0 && defined(dbg_enabled) && !defined(Ndbg_enabled)   /* Check ordering */
   for (i = 1; i < n_codes; i++) {
     if (_a_gt_b(morton_codes[order[i-1]], morton_codes[order[i]])) {
       PDM_error(__FILE__, __LINE__, 0,
@@ -1375,7 +1375,7 @@ PDM_morton_local_sort(int               n_codes,
 
   }
 
-#if 0 && defined(DEBUG) && !defined(NDEBUG)   /* Check good ordering */
+#if 0 && defined(dbg_enabled) && !defined(Ndbg_enabled)   /* Check good ordering */
   for (i = 1; i < n_codes; i++) {
     if (_a_gt_b(dim, morton_codes[i - 1], morton_codes[i])) {
       PDM_error(__FILE__, __LINE__, 0,
@@ -2195,7 +2195,7 @@ PDM_morton_build_rank_index(int                     dim,
 
   }
 
-#if 0 && defined(DEBUG) && !defined(NDEBUG)
+#if 0 && defined(dbg_enabled) && !defined(Ndbg_enabled)
   { /* Dump Morton index and associated sampling on rank 0 */
     PDM_printf("\nMorton rank index:\n\n");
     for (rank_id = 0; rank_id < n_ranks + 1; rank_id++) {
@@ -2326,10 +2326,10 @@ PDM_morton_intersect_box
  int                     *intersect
  )
 {
-  int DEBUG = 0;
+  int dbg_enabled = 0;
   int inside;
 
-  if (DEBUG) {
+  if (dbg_enabled) {
     printf("node: L = %u, X = %u %u %u, start = %zu, end = %zu\n",
            node.L, node.X[0], node.X[1], node.X[2], start, end);
   }
@@ -2401,7 +2401,7 @@ PDM_morton_intersect_box
         size_t new_start, new_end;
         size_t prev_end = start;
         for (size_t ichild = 0; ichild < n_children; ichild++) {
-          if (DEBUG) {
+          if (dbg_enabled) {
             printf("  child: L = %u, X = %u %u %u\n",
                    children[ichild].L,
                    children[ichild].X[0], children[ichild].X[1], children[ichild].X[2]);
@@ -2422,7 +2422,7 @@ PDM_morton_intersect_box
             new_start++;
           }
 
-          if (DEBUG) {
+          if (dbg_enabled) {
             printf("   new_start = %zu\n", new_start);
           }
 
@@ -2445,7 +2445,7 @@ PDM_morton_intersect_box
           }
 
           prev_end = new_end;
-          if (DEBUG) {
+          if (dbg_enabled) {
             printf("   new_end   = %zu\n", new_end);
           }
 

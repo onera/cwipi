@@ -3026,7 +3026,7 @@ static void _compute_cell_vtx_connectivity
 {
   PDM_UNUSED(n_face);
 
-  const int DEBUG = 0;
+  const int dbg_enabled = 0;
 
   *cell_vtx_idx = malloc (sizeof(int) * (n_cell + 1));
   PDM_l_num_t *_cell_vtx_idx = *cell_vtx_idx;
@@ -3082,7 +3082,7 @@ static void _compute_cell_vtx_connectivity
 
     _cell_vtx_idx[icell+1] = _cell_vtx_idx[icell] + n_vtx_cell;
 
-    if (DEBUG) {
+    if (dbg_enabled) {
       printf("cell #%d vtx =", icell);
       for (int j = _cell_vtx_idx[icell]; j < _cell_vtx_idx[icell+1]; j++) {
         printf(" %d", (*cell_vtx)[j]);
