@@ -3230,6 +3230,7 @@ PDM_mesh_location_t        *ml
   }
 
 
+  PDM_MPI_Barrier (ml->comm);
   PDM_timer_hang_on(ml->timer);
   e_t_elapsed = PDM_timer_elapsed(ml->timer);
   e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -3608,22 +3609,23 @@ PDM_mesh_location_t        *ml
                                      (const double **) &select_box_extents,
                                      (const PDM_g_num_t **) &select_box_g_num);
 
-    PDM_timer_hang_on(ml->timer);
-    e_t_elapsed = PDM_timer_elapsed(ml->timer);
-    e_t_cpu     = PDM_timer_cpu(ml->timer);
-    e_t_cpu_u   = PDM_timer_cpu_user(ml->timer);
-    e_t_cpu_s   = PDM_timer_cpu_sys(ml->timer);
+    // PDM_MPI_Barrier (ml->comm);
+    // PDM_timer_hang_on(ml->timer);
+    // e_t_elapsed = PDM_timer_elapsed(ml->timer);
+    // e_t_cpu     = PDM_timer_cpu(ml->timer);
+    // e_t_cpu_u   = PDM_timer_cpu_user(ml->timer);
+    // e_t_cpu_s   = PDM_timer_cpu_sys(ml->timer);
 
-    ml->times_elapsed[SEARCH_CANDIDATES] += e_t_elapsed - b_t_elapsed;
-    ml->times_cpu[SEARCH_CANDIDATES]     += e_t_cpu - b_t_cpu;
-    ml->times_cpu_u[SEARCH_CANDIDATES]   += e_t_cpu_u - b_t_cpu_u;
-    ml->times_cpu_s[SEARCH_CANDIDATES]   += e_t_cpu_s - b_t_cpu_s;
+    // ml->times_elapsed[SEARCH_CANDIDATES] += e_t_elapsed - b_t_elapsed;
+    // ml->times_cpu[SEARCH_CANDIDATES]     += e_t_cpu - b_t_cpu;
+    // ml->times_cpu_u[SEARCH_CANDIDATES]   += e_t_cpu_u - b_t_cpu_u;
+    // ml->times_cpu_s[SEARCH_CANDIDATES]   += e_t_cpu_s - b_t_cpu_s;
 
-    b_t_elapsed = e_t_elapsed;
-    b_t_cpu     = e_t_cpu;
-    b_t_cpu_u   = e_t_cpu_u;
-    b_t_cpu_s   = e_t_cpu_s;
-    PDM_timer_resume(ml->timer);
+    // b_t_elapsed = e_t_elapsed;
+    // b_t_cpu     = e_t_cpu;
+    // b_t_cpu_u   = e_t_cpu_u;
+    // b_t_cpu_s   = e_t_cpu_s;
+    // PDM_timer_resume(ml->timer);
   }
 
   /*
@@ -3640,6 +3642,7 @@ PDM_mesh_location_t        *ml
 
   for (int icloud = 0; icloud < ml->n_point_cloud; icloud++) {
 
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     b_t_elapsed = PDM_timer_elapsed(ml->timer);
     b_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -3838,6 +3841,7 @@ PDM_mesh_location_t        *ml
       }
     }
 
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4102,6 +4106,7 @@ PDM_mesh_location_t        *ml
       redistrib_pts_parent_g_num = redistrib_pts_g_num;
     }
 
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4212,6 +4217,7 @@ PDM_mesh_location_t        *ml
       free (redistrib_elt_parent_g_num);
     }
 
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4444,6 +4450,7 @@ PDM_mesh_location_t        *ml
     // PDM_part_to_block_asyn_post_treatment(ptb1, id6, &block_stride, (void **) &block_proj_coord1);
     // free (block_stride);
 
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4547,6 +4554,7 @@ PDM_mesh_location_t        *ml
     free (block_weights1);
     free (block_proj_coord1);
 
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4658,7 +4666,7 @@ PDM_mesh_location_t        *ml
     PDM_part_to_block_free (ptb1);
     PDM_block_to_part_free (btp);
 
-
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4732,6 +4740,7 @@ PDM_mesh_location_t        *ml
 
     }
 
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -5550,6 +5559,7 @@ PDM_mesh_location_t        *ml
       free (tmp_elt_weights_idx);
       free (tmp_elt_weights);
 
+      PDM_MPI_Barrier (ml->comm);
       PDM_timer_hang_on(ml->timer);
       e_t_elapsed = PDM_timer_elapsed(ml->timer);
       e_t_cpu     = PDM_timer_cpu(ml->timer);
