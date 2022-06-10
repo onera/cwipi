@@ -76,7 +76,7 @@ _usage(int exit_code) {
 static void
 _read_args(int argc, char **argv, CWP_Version_t *version, int *n_vtx_seg1, int *n_vtx_seg2,
            double *width, double *depth, int *rotation, int *randomize, int *nProcData,
-           int *part_method, char** output_filename, int *verbose) {
+           int *part_method, CWP_Spatial_interp_t* loc_method, char** output_filename, int *verbose) {
   int i = 1;
 
   // Parse and check command line
@@ -159,6 +159,12 @@ _read_args(int argc, char **argv, CWP_Version_t *version, int *n_vtx_seg1, int *
       else {
         *nProcData = atoi(argv[i]);
       }
+    }
+    else if (strcmp(argv[i], "-octree") == 0) {
+      *loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
+    }
+    else if (strcmp(argv[i], "-dbbtree") == 0) {
+      *loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE;
     }
     else if (strcmp(argv[i], "-pt-scotch") == 0) {
       *part_method = PDM_PART_SPLIT_PTSCOTCH;
@@ -852,6 +858,7 @@ main(int argc, char *argv[]) {
   int n_vtx_seg2 = 4;
   int randomize = 1;
   int n_proc_data = -1;
+  CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
 #ifdef PDM_HAVE_PARMETIS
   PDM_part_split_t part_method = PDM_PART_SPLIT_PARMETIS;
 #else
@@ -880,6 +887,7 @@ main(int argc, char *argv[]) {
              &randomize,
              &n_proc_data,
              (int *) &part_method,
+             &loc_method,
              &output_filename,
              &verbose);
 
@@ -963,9 +971,7 @@ main(int argc, char *argv[]) {
                    coupled_code_name[0],
                    CWP_INTERFACE_SURFACE,
                    CWP_COMM_PAR_WITH_PART,
-            //                   CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF,
-                   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE,
-            //                   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                   loc_method,
                    n_part,
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_CPL_TIME_STEP);
@@ -1322,11 +1328,11 @@ main(int argc, char *argv[]) {
              max_exch_data_recv_btp);
       fflush(stdout);
 
-      char output_filename_details[50];
-      sprintf(output_filename_details, "details_%s", output_filename);
-      FILE* output_details = fopen(output_filename_details, "w");
+      char output_filename_ptbbtp[50];
+      sprintf(output_filename_ptbbtp, "ptbbtp_%s", output_filename);
+      FILE* output_ptbbtp = fopen(output_filename_ptbbtp, "w");
 
-      fprintf(output_details,
+      fprintf(output_ptbbtp,
               "%d %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e ",
               comm_world_size,
               min_elaps_create_ptb,
@@ -1336,7 +1342,7 @@ main(int argc, char *argv[]) {
               min_elaps_exch_ptb,
               max_elaps_exch_ptb);
 
-//      fprintf(output_details,
+//      fprintf(output_ptbbtp,
 //              "%d %d %d %d %llu %llu %llu %llu ",
 //              min_exch_rank_send_ptb,
 //              max_exch_rank_send_ptb,
@@ -1347,14 +1353,14 @@ main(int argc, char *argv[]) {
 //              min_exch_data_recv_ptb,
 //              max_exch_data_recv_ptb);
 
-      fprintf(output_details,
+      fprintf(output_ptbbtp,
               "%12.5e %12.5e %12.5e %12.5e\n",
               min_elaps_create_btp,
               max_elaps_create_btp,
               min_elaps_exch_btp,
               max_elaps_exch_btp);
 
-//      fprintf(output_details,
+//      fprintf(output_ptbbtp,
 //              "%d %d %d %d %llu %llu %llu %llu ",
 //              min_exch_rank_send_btp,
 //              max_exch_rank_send_btp,
@@ -1365,7 +1371,7 @@ main(int argc, char *argv[]) {
 //              min_exch_data_recv_btp,
 //              max_exch_data_recv_btp);
 
-      fclose(output_details);
+      fclose(output_ptbbtp);
     }
   }
 
