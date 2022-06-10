@@ -49,7 +49,7 @@ extern "C" {
  * Macro definitions
  *============================================================================*/
 
-#define NTIMER_MESH_LOCATION 14
+#define NTIMER_MESH_LOCATION 15
 
 /*============================================================================
  * Type definitions
@@ -64,18 +64,19 @@ typedef enum {
 
   BEGIN                        = 0,
   BUILD_BOUNDING_BOXES         = 1,
-  SEARCH_CANDIDATES            = 2,
-  LOAD_BALANCING               = 3,
-  COMPUTE_ELEMENTARY_LOCATIONS = 4,
-  MERGE_LOCATION_DATA_STEP1    = 5,
-  MERGE_LOCATION_DATA_STEP2    = 6,
-  MERGE_LOCATION_DATA_STEP3    = 7,
-  COMPRESS_LOCATION_DATA       = 8,
-  REVERSE_LOCATION_DATA        = 9,
-  REVERSE_LOCATION_DATA_PTB    = 10,
-  REVERSE_LOCATION_DATA_BTP    = 11,
-  REVERSE_LOCATION_DATA_UVW    = 12,
-  END                          = 13
+  STORE_CONNECTIVITY           = 2,
+  SEARCH_CANDIDATES            = 3,
+  LOAD_BALANCING               = 4,
+  COMPUTE_ELEMENTARY_LOCATIONS = 5,
+  MERGE_LOCATION_DATA_STEP1    = 6,
+  MERGE_LOCATION_DATA_STEP2    = 7,
+  MERGE_LOCATION_DATA_STEP3    = 8,
+  COMPRESS_LOCATION_DATA       = 9,
+  REVERSE_LOCATION_DATA        = 10,
+  REVERSE_LOCATION_DATA_PTB    = 11,
+  REVERSE_LOCATION_DATA_BTP    = 12,
+  REVERSE_LOCATION_DATA_UVW    = 13,
+  END                          = 14
 
 } _ol_timer_step_t;
 
@@ -2512,10 +2513,15 @@ PDM_mesh_location_t *ml
                 " %12.5es %12.5es\n",
                 t1max, t2max);
 
-    PDM_printf( "mesh_location timer : build bounding boxes (elapsed and cpu) :                  "
+    PDM_printf( "mesh_location timer : build bounding boxes + extract mesh (elapsed and cpu) :                  "
                 " %12.5es %12.5es\n",
                 t_elaps_max[BUILD_BOUNDING_BOXES],
                 t_cpu_max[BUILD_BOUNDING_BOXES]);
+
+    PDM_printf( "mesh_location timer : Store connectivity (elapsed and cpu) :                  "
+                " %12.5es %12.5es\n",
+                t_elaps_max[STORE_CONNECTIVITY],
+                t_cpu_max[STORE_CONNECTIVITY]);
 
     PDM_printf( "mesh_location timer : build aux. struct + search candidates (elapsed and cpu) : "
                 " %12.5es %12.5es\n",
@@ -3566,6 +3572,25 @@ PDM_mesh_location_t        *ml
     free (n_vtx_per_elt[ipart]);
   }
   free (n_vtx_per_elt);
+
+
+  PDM_MPI_Barrier (ml->comm);
+  PDM_timer_hang_on(ml->timer);
+  e_t_elapsed = PDM_timer_elapsed(ml->timer);
+  e_t_cpu     = PDM_timer_cpu(ml->timer);
+  e_t_cpu_u   = PDM_timer_cpu_user(ml->timer);
+  e_t_cpu_s   = PDM_timer_cpu_sys(ml->timer);
+
+  ml->times_elapsed[BUILD_BOUNDING_BOXES] += e_t_elapsed - b_t_elapsed;
+  ml->times_cpu[BUILD_BOUNDING_BOXES]     += e_t_cpu - b_t_cpu;
+  ml->times_cpu_u[BUILD_BOUNDING_BOXES]   += e_t_cpu_u - b_t_cpu_u;
+  ml->times_cpu_s[BUILD_BOUNDING_BOXES]   += e_t_cpu_s - b_t_cpu_s;
+
+  b_t_elapsed = e_t_elapsed;
+  b_t_cpu     = e_t_cpu;
+  b_t_cpu_u   = e_t_cpu_u;
+  b_t_cpu_s   = e_t_cpu_s;
+  PDM_timer_resume(ml->timer);
 
   /*
    *  Location
