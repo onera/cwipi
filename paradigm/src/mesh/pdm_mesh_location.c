@@ -2510,12 +2510,12 @@ PDM_mesh_location_t *ml
                 " %12.5es %12.5es\n",
                 t1max, t2max);
 
-    PDM_printf( "mesh_location timer : build bounding boxes + extract mesh (elapsed and cpu) :                  "
+    PDM_printf( "mesh_location timer : build bounding boxes + extract mesh (elapsed and cpu) :   "
                 " %12.5es %12.5es\n",
                 t_elaps_max[BUILD_BOUNDING_BOXES],
                 t_cpu_max[BUILD_BOUNDING_BOXES]);
 
-    PDM_printf( "mesh_location timer : Store connectivity (elapsed and cpu) :                  "
+    PDM_printf( "mesh_location timer : Store connectivity (elapsed and cpu) :                    "
                 " %12.5es %12.5es\n",
                 t_elaps_max[STORE_CONNECTIVITY],
                 t_cpu_max[STORE_CONNECTIVITY]);
@@ -2555,10 +2555,10 @@ PDM_mesh_location_t *ml
                 t_elaps_max[COMPRESS_LOCATION_DATA],
                 t_cpu_max[COMPRESS_LOCATION_DATA]);
 
-    PDM_printf( "mesh_location timer : reverse location data (elapsed and cpu) :                 "
-                " %12.5es %12.5es\n",
-                t_elaps_max[REVERSE_LOCATION_DATA],
-                t_cpu_max[REVERSE_LOCATION_DATA]);
+    // PDM_printf( "mesh_location timer : reverse location data (elapsed and cpu) :                 "
+    //             " %12.5es %12.5es\n",
+    //             t_elaps_max[REVERSE_LOCATION_DATA],
+    //             t_cpu_max[REVERSE_LOCATION_DATA]);
 
     PDM_printf( "mesh_location timer : reverse location data - ptb (elapsed and cpu) :           "
                 " %12.5es %12.5es\n",

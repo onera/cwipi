@@ -966,6 +966,8 @@ int main(int argc, char *argv[])
               &elt_type);
 
 
+  printf("separation_x : %12.5e\n", separation_x);
+
   assert(//elt_type == PDM_MESH_NODAL_BAR2     ||
          //elt_type == PDM_MESH_NODAL_TRIA3    ||
          //elt_type == PDM_MESH_NODAL_QUAD4    ||
