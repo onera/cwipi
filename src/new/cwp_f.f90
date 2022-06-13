@@ -1876,7 +1876,7 @@ contains
     l_cpl_id = len(cpl_id)
     l_src_field_id = len(src_field_id)
 
-    call CWP_Interp_from_location_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
-            & src_field_id, l_src_field_id, ptInterpolationFct)
+    ! call CWP_Interp_from_location_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+    !         & src_field_id, l_src_field_id, ptInterpolationFct)
   end subroutine CWP_Interp_from_location_set
 end module cwp
