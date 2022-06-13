@@ -74,9 +74,11 @@ typedef enum {
   COMPRESS_LOCATION_DATA       = 9,
   REVERSE_LOCATION_DATA        = 10,
   REVERSE_LOCATION_DATA_PTB    = 11,
-  REVERSE_LOCATION_DATA_BTP    = 12,
-  REVERSE_LOCATION_DATA_UVW    = 13,
-  END                          = 14
+  REVERSE_LOCATION_DATA_BTP1   = 12,
+  REVERSE_LOCATION_DATA_BTP2   = 13,
+  REVERSE_LOCATION_DATA_BTP3   = 14,
+  REVERSE_LOCATION_DATA_UVW    = 15,
+  END                          = 16
 
 } _ol_timer_step_t;
 
@@ -2565,10 +2567,20 @@ PDM_mesh_location_t *ml
                 t_elaps_max[REVERSE_LOCATION_DATA_PTB],
                 t_cpu_max[REVERSE_LOCATION_DATA_PTB]);
 
-    PDM_printf( "mesh_location timer : reverse location data - btp (elapsed and cpu) :           "
+    PDM_printf( "mesh_location timer : reverse location data - btp step 1 (elapsed and cpu) :    "
                 " %12.5es %12.5es\n",
-                t_elaps_max[REVERSE_LOCATION_DATA_BTP],
-                t_cpu_max[REVERSE_LOCATION_DATA_BTP]);
+                t_elaps_max[REVERSE_LOCATION_DATA_BTP1],
+                t_cpu_max[REVERSE_LOCATION_DATA_BTP1]);
+
+    PDM_printf( "mesh_location timer : reverse location data - btp step 2 (elapsed and cpu) :    "
+                " %12.5es %12.5es\n",
+                t_elaps_max[REVERSE_LOCATION_DATA_BTP2],
+                t_cpu_max[REVERSE_LOCATION_DATA_BTP2]);
+
+    PDM_printf( "mesh_location timer : reverse location data - btp step 3 (elapsed and cpu) :    "
+                " %12.5es %12.5es\n",
+                t_elaps_max[REVERSE_LOCATION_DATA_BTP3],
+                t_cpu_max[REVERSE_LOCATION_DATA_BTP3]);
 
     PDM_printf( "mesh_location timer : reverse location data - uvw (elapsed and cpu) :           "
                 " %12.5es %12.5es\n",
@@ -5009,6 +5021,25 @@ PDM_mesh_location_t        *ml
                                                         n_elt_nodal,
                                                         n_part_nodal,
                                                         ml->comm);
+
+      PDM_MPI_Barrier (ml->comm);
+      PDM_timer_hang_on(ml->timer);
+      e_t_elapsed = PDM_timer_elapsed(ml->timer);
+      e_t_cpu     = PDM_timer_cpu(ml->timer);
+      e_t_cpu_u   = PDM_timer_cpu_user(ml->timer);
+      e_t_cpu_s   = PDM_timer_cpu_sys(ml->timer);
+
+      ml->times_elapsed[REVERSE_LOCATION_DATA_BTP1] += e_t_elapsed - b_t_elapsed;
+      ml->times_cpu[REVERSE_LOCATION_DATA_BTP1]     += e_t_cpu - b_t_cpu;
+      ml->times_cpu_u[REVERSE_LOCATION_DATA_BTP1]   += e_t_cpu_u - b_t_cpu_u;
+      ml->times_cpu_s[REVERSE_LOCATION_DATA_BTP1]   += e_t_cpu_s - b_t_cpu_s;
+
+      b_t_elapsed = e_t_elapsed;
+      b_t_cpu     = e_t_cpu;
+      b_t_cpu_u   = e_t_cpu_u;
+      b_t_cpu_s   = e_t_cpu_s;
+      PDM_timer_resume(ml->timer);
+
       PDM_part_to_block_free (ptb);
 
       // PDM_log_trace_array_long(numabs_nodal[0], n_elt_nodal[0], "numabs_nodal :: ");
@@ -5217,6 +5248,24 @@ PDM_mesh_location_t        *ml
         }
       }
 
+      PDM_MPI_Barrier (ml->comm);
+      PDM_timer_hang_on(ml->timer);
+      e_t_elapsed = PDM_timer_elapsed(ml->timer);
+      e_t_cpu     = PDM_timer_cpu(ml->timer);
+      e_t_cpu_u   = PDM_timer_cpu_user(ml->timer);
+      e_t_cpu_s   = PDM_timer_cpu_sys(ml->timer);
+
+      ml->times_elapsed[REVERSE_LOCATION_DATA_BTP2] += e_t_elapsed - b_t_elapsed;
+      ml->times_cpu[REVERSE_LOCATION_DATA_BTP2]     += e_t_cpu - b_t_cpu;
+      ml->times_cpu_u[REVERSE_LOCATION_DATA_BTP2]   += e_t_cpu_u - b_t_cpu_u;
+      ml->times_cpu_s[REVERSE_LOCATION_DATA_BTP2]   += e_t_cpu_s - b_t_cpu_s;
+
+      b_t_elapsed = e_t_elapsed;
+      b_t_cpu     = e_t_cpu;
+      b_t_cpu_u   = e_t_cpu_u;
+      b_t_cpu_s   = e_t_cpu_s;
+      PDM_timer_resume(ml->timer);
+
       for (int i_part = 0; i_part < n_part_nodal; i_part++) {
 
         int idx1       = 0;
@@ -5358,10 +5407,10 @@ PDM_mesh_location_t        *ml
       e_t_cpu_u   = PDM_timer_cpu_user(ml->timer);
       e_t_cpu_s   = PDM_timer_cpu_sys(ml->timer);
 
-      ml->times_elapsed[REVERSE_LOCATION_DATA_BTP] += e_t_elapsed - b_t_elapsed;
-      ml->times_cpu[REVERSE_LOCATION_DATA_BTP]     += e_t_cpu - b_t_cpu;
-      ml->times_cpu_u[REVERSE_LOCATION_DATA_BTP]   += e_t_cpu_u - b_t_cpu_u;
-      ml->times_cpu_s[REVERSE_LOCATION_DATA_BTP]   += e_t_cpu_s - b_t_cpu_s;
+      ml->times_elapsed[REVERSE_LOCATION_DATA_BTP3] += e_t_elapsed - b_t_elapsed;
+      ml->times_cpu[REVERSE_LOCATION_DATA_BTP3]     += e_t_cpu - b_t_cpu;
+      ml->times_cpu_u[REVERSE_LOCATION_DATA_BTP3]   += e_t_cpu_u - b_t_cpu_u;
+      ml->times_cpu_s[REVERSE_LOCATION_DATA_BTP3]   += e_t_cpu_s - b_t_cpu_s;
 
       b_t_elapsed = e_t_elapsed;
       b_t_cpu     = e_t_cpu;
@@ -5596,10 +5645,26 @@ PDM_mesh_location_t        *ml
       ml->times_cpu[REVERSE_LOCATION_DATA_UVW]     += e_t_cpu - b_t_cpu;
       ml->times_cpu_u[REVERSE_LOCATION_DATA_UVW]   += e_t_cpu_u - b_t_cpu_u;
       ml->times_cpu_s[REVERSE_LOCATION_DATA_UVW]   += e_t_cpu_s - b_t_cpu_s;
-      ml->times_elapsed[REVERSE_LOCATION_DATA] = ml->times_elapsed[REVERSE_LOCATION_DATA_PTB] + ml->times_elapsed[REVERSE_LOCATION_DATA_BTP] + ml->times_elapsed[REVERSE_LOCATION_DATA_UVW];
-      ml->times_cpu[REVERSE_LOCATION_DATA] = ml->times_cpu[REVERSE_LOCATION_DATA_PTB] + ml->times_cpu[REVERSE_LOCATION_DATA_BTP] + ml->times_cpu[REVERSE_LOCATION_DATA_UVW];
-      ml->times_cpu_u[REVERSE_LOCATION_DATA] = ml->times_cpu_u[REVERSE_LOCATION_DATA_PTB] + ml->times_cpu_u[REVERSE_LOCATION_DATA_BTP] + ml->times_cpu_u[REVERSE_LOCATION_DATA_UVW];
-      ml->times_cpu_s[REVERSE_LOCATION_DATA] = ml->times_cpu_s[REVERSE_LOCATION_DATA_PTB] + ml->times_cpu_s[REVERSE_LOCATION_DATA_BTP] + ml->times_cpu_s[REVERSE_LOCATION_DATA_UVW];
+      ml->times_elapsed[REVERSE_LOCATION_DATA] = ml->times_elapsed[REVERSE_LOCATION_DATA_PTB] + 
+                                                 ml->times_elapsed[REVERSE_LOCATION_DATA_BTP1] + 
+                                                 ml->times_elapsed[REVERSE_LOCATION_DATA_BTP2] + 
+                                                 ml->times_elapsed[REVERSE_LOCATION_DATA_BTP3] + 
+                                                 ml->times_elapsed[REVERSE_LOCATION_DATA_UVW];
+      ml->times_cpu[REVERSE_LOCATION_DATA] = ml->times_cpu[REVERSE_LOCATION_DATA_PTB] +
+                                             ml->times_cpu[REVERSE_LOCATION_DATA_BTP1] + 
+                                             ml->times_cpu[REVERSE_LOCATION_DATA_BTP2] + 
+                                             ml->times_cpu[REVERSE_LOCATION_DATA_BTP3] + 
+                                             ml->times_cpu[REVERSE_LOCATION_DATA_UVW];
+      ml->times_cpu_u[REVERSE_LOCATION_DATA] = ml->times_cpu_u[REVERSE_LOCATION_DATA_PTB] + 
+                                               ml->times_cpu_u[REVERSE_LOCATION_DATA_BTP1] + 
+                                               ml->times_cpu_u[REVERSE_LOCATION_DATA_BTP2] + 
+                                               ml->times_cpu_u[REVERSE_LOCATION_DATA_BTP3] + 
+                                               ml->times_cpu_u[REVERSE_LOCATION_DATA_UVW];
+      ml->times_cpu_s[REVERSE_LOCATION_DATA] = ml->times_cpu_s[REVERSE_LOCATION_DATA_PTB] + 
+                                               ml->times_cpu_s[REVERSE_LOCATION_DATA_BTP1] + 
+                                               ml->times_cpu_s[REVERSE_LOCATION_DATA_BTP2] + 
+                                               ml->times_cpu_s[REVERSE_LOCATION_DATA_BTP3] + 
+                                               ml->times_cpu_s[REVERSE_LOCATION_DATA_UVW];
 
       b_t_elapsed = e_t_elapsed;
       b_t_cpu     = e_t_cpu;
