@@ -23,8 +23,8 @@
 #include "pdm_dbbtree.h"
 #include "pdm_part_to_block.h"
 #include "pdm_block_to_part.h"
-#include "pdm_mesh_location_priv.h"
 #include "pdm_mesh_location.h"
+#include "pdm_mesh_location_priv.h"
 #include "pdm_point_location.h"
 #include "pdm_ho_location.h"
 #include "pdm_array.h"
@@ -49,7 +49,7 @@ extern "C" {
  * Macro definitions
  *============================================================================*/
 
-#define NTIMER_MESH_LOCATION 15
+//#define NTIMER_MESH_LOCATION 15
 
 /*============================================================================
  * Type definitions
@@ -3233,17 +3233,17 @@ PDM_mesh_location_t        *ml
   }
 
 
-  // PDM_MPI_Barrier (ml->comm);
+  PDM_MPI_Barrier (ml->comm);
   PDM_timer_hang_on(ml->timer);
   e_t_elapsed = PDM_timer_elapsed(ml->timer);
   e_t_cpu     = PDM_timer_cpu(ml->timer);
   e_t_cpu_u   = PDM_timer_cpu_user(ml->timer);
   e_t_cpu_s   = PDM_timer_cpu_sys(ml->timer);
 
-  ml->times_elapsed[BUILD_BOUNDING_BOXES] += e_t_elapsed - b_t_elapsed;
-  ml->times_cpu[BUILD_BOUNDING_BOXES]     += e_t_cpu - b_t_cpu;
-  ml->times_cpu_u[BUILD_BOUNDING_BOXES]   += e_t_cpu_u - b_t_cpu_u;
-  ml->times_cpu_s[BUILD_BOUNDING_BOXES]   += e_t_cpu_s - b_t_cpu_s;
+  ml->times_elapsed[STORE_CONNECTIVITY] += e_t_elapsed - b_t_elapsed;
+  ml->times_cpu[STORE_CONNECTIVITY]     += e_t_cpu - b_t_cpu;
+  ml->times_cpu_u[STORE_CONNECTIVITY]   += e_t_cpu_u - b_t_cpu_u;
+  ml->times_cpu_s[STORE_CONNECTIVITY]   += e_t_cpu_s - b_t_cpu_s;
 
   b_t_elapsed = e_t_elapsed;
   b_t_cpu     = e_t_cpu;
@@ -3571,7 +3571,7 @@ PDM_mesh_location_t        *ml
   free (n_vtx_per_elt);
 
 
-  // PDM_MPI_Barrier (ml->comm);
+  PDM_MPI_Barrier (ml->comm);
   PDM_timer_hang_on(ml->timer);
   e_t_elapsed = PDM_timer_elapsed(ml->timer);
   e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -3664,7 +3664,7 @@ PDM_mesh_location_t        *ml
 
   for (int icloud = 0; icloud < ml->n_point_cloud; icloud++) {
 
-    // PDM_MPI_Barrier (ml->comm);
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     b_t_elapsed = PDM_timer_elapsed(ml->timer);
     b_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -3792,7 +3792,7 @@ PDM_mesh_location_t        *ml
       // }
 
       /* Locate points inside boxes */
-      PDM_MPI_Barrier(ml->comm);
+      PDM_MPI_Barrier (ml->comm);
       t1 = PDM_MPI_Wtime();
       PDM_para_octree_points_inside_boxes (octree,
                                            n_select_boxes,
@@ -3863,7 +3863,7 @@ PDM_mesh_location_t        *ml
       }
     }
 
-    // PDM_MPI_Barrier (ml->comm);
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4128,7 +4128,7 @@ PDM_mesh_location_t        *ml
       redistrib_pts_parent_g_num = redistrib_pts_g_num;
     }
 
-    // PDM_MPI_Barrier (ml->comm);
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4239,7 +4239,7 @@ PDM_mesh_location_t        *ml
       free (redistrib_elt_parent_g_num);
     }
 
-    // PDM_MPI_Barrier (ml->comm);
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4472,7 +4472,7 @@ PDM_mesh_location_t        *ml
     // PDM_part_to_block_asyn_post_treatment(ptb1, id6, &block_stride, (void **) &block_proj_coord1);
     // free (block_stride);
 
-    // PDM_MPI_Barrier (ml->comm);
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4576,7 +4576,7 @@ PDM_mesh_location_t        *ml
     free (block_weights1);
     free (block_proj_coord1);
 
-    // PDM_MPI_Barrier (ml->comm);
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4688,7 +4688,7 @@ PDM_mesh_location_t        *ml
     PDM_part_to_block_free (ptb1);
     PDM_block_to_part_free (btp);
 
-    // PDM_MPI_Barrier (ml->comm);
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4762,7 +4762,7 @@ PDM_mesh_location_t        *ml
 
     }
 
-    // PDM_MPI_Barrier (ml->comm);
+    PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4959,7 +4959,7 @@ PDM_mesh_location_t        *ml
       free (_gnum_points);
       free (_coords_points);
 
-      // PDM_MPI_Barrier (ml->comm);
+      PDM_MPI_Barrier (ml->comm);
       PDM_timer_hang_on(ml->timer);
       e_t_elapsed = PDM_timer_elapsed(ml->timer);
       e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4985,7 +4985,7 @@ PDM_mesh_location_t        *ml
       PDM_g_num_t **numabs_nodal = malloc (sizeof(PDM_g_num_t *) * n_part_nodal);
       int *n_elt_nodal = malloc (sizeof(int) * n_part_nodal);
 
-      // printf("n_part_nodal : %d\n",n_part_nodal);
+      printf("n_part_nodal : %d\n",n_part_nodal);
 
       for (int i_part = 0; i_part < n_part_nodal; i_part++) {
         n_elt_nodal[i_part]= PDM_Mesh_nodal_n_cell_get (ml->mesh_nodal,
@@ -5351,7 +5351,7 @@ PDM_mesh_location_t        *ml
 
 
 
-      // PDM_MPI_Barrier (ml->comm);
+      PDM_MPI_Barrier (ml->comm);
       PDM_timer_hang_on(ml->timer);
       e_t_elapsed = PDM_timer_elapsed(ml->timer);
       e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -5581,7 +5581,7 @@ PDM_mesh_location_t        *ml
       free (tmp_elt_weights_idx);
       free (tmp_elt_weights);
 
-      // PDM_MPI_Barrier (ml->comm);
+      PDM_MPI_Barrier (ml->comm);
       PDM_timer_hang_on(ml->timer);
       e_t_elapsed = PDM_timer_elapsed(ml->timer);
       e_t_cpu     = PDM_timer_cpu(ml->timer);
