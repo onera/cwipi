@@ -26,7 +26,7 @@ extern "C" {
  * Type
  *============================================================================*/
 
-#define NTIMER_MESH_LOCATION 14
+#define NTIMER_MESH_LOCATION 15
 
 /**
  * \struct _PDM_Dist_t
@@ -133,7 +133,6 @@ struct _pdm_mesh_location_t {
 /*=============================================================================
  * Static global variables
  *============================================================================*/
-#undef NTIMER_MESH_LOCATION
 #ifdef  __cplusplus
 }
 #endif
