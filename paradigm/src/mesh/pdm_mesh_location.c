@@ -2186,9 +2186,6 @@ PDM_mesh_location_cell_vertex_get
       "call PDM_mesh_location_reverse_results_enable to enable its\n");
   }
 
-  assert (ml->points_in_elements != NULL);
-  assert (i_part < ml->points_in_elements->n_part);
-
   *cell_vtx_idx = ml->cell_vtx_idx[i_part];
   *cell_vtx     = ml->cell_vtx[i_part];
 
@@ -3236,7 +3233,7 @@ PDM_mesh_location_t        *ml
   }
 
 
-  PDM_MPI_Barrier (ml->comm);
+  // PDM_MPI_Barrier (ml->comm);
   PDM_timer_hang_on(ml->timer);
   e_t_elapsed = PDM_timer_elapsed(ml->timer);
   e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -3574,7 +3571,7 @@ PDM_mesh_location_t        *ml
   free (n_vtx_per_elt);
 
 
-  PDM_MPI_Barrier (ml->comm);
+  // PDM_MPI_Barrier (ml->comm);
   PDM_timer_hang_on(ml->timer);
   e_t_elapsed = PDM_timer_elapsed(ml->timer);
   e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -3667,7 +3664,7 @@ PDM_mesh_location_t        *ml
 
   for (int icloud = 0; icloud < ml->n_point_cloud; icloud++) {
 
-    PDM_MPI_Barrier (ml->comm);
+    // PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     b_t_elapsed = PDM_timer_elapsed(ml->timer);
     b_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -3866,7 +3863,7 @@ PDM_mesh_location_t        *ml
       }
     }
 
-    PDM_MPI_Barrier (ml->comm);
+    // PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4131,7 +4128,7 @@ PDM_mesh_location_t        *ml
       redistrib_pts_parent_g_num = redistrib_pts_g_num;
     }
 
-    PDM_MPI_Barrier (ml->comm);
+    // PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4242,7 +4239,7 @@ PDM_mesh_location_t        *ml
       free (redistrib_elt_parent_g_num);
     }
 
-    PDM_MPI_Barrier (ml->comm);
+    // PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4475,7 +4472,7 @@ PDM_mesh_location_t        *ml
     // PDM_part_to_block_asyn_post_treatment(ptb1, id6, &block_stride, (void **) &block_proj_coord1);
     // free (block_stride);
 
-    PDM_MPI_Barrier (ml->comm);
+    // PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4579,7 +4576,7 @@ PDM_mesh_location_t        *ml
     free (block_weights1);
     free (block_proj_coord1);
 
-    PDM_MPI_Barrier (ml->comm);
+    // PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4691,7 +4688,7 @@ PDM_mesh_location_t        *ml
     PDM_part_to_block_free (ptb1);
     PDM_block_to_part_free (btp);
 
-    PDM_MPI_Barrier (ml->comm);
+    // PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4765,7 +4762,7 @@ PDM_mesh_location_t        *ml
 
     }
 
-    PDM_MPI_Barrier (ml->comm);
+    // PDM_MPI_Barrier (ml->comm);
     PDM_timer_hang_on(ml->timer);
     e_t_elapsed = PDM_timer_elapsed(ml->timer);
     e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -4962,7 +4959,7 @@ PDM_mesh_location_t        *ml
       free (_gnum_points);
       free (_coords_points);
 
-      PDM_MPI_Barrier (ml->comm);
+      // PDM_MPI_Barrier (ml->comm);
       PDM_timer_hang_on(ml->timer);
       e_t_elapsed = PDM_timer_elapsed(ml->timer);
       e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -5354,7 +5351,7 @@ PDM_mesh_location_t        *ml
 
 
 
-      PDM_MPI_Barrier (ml->comm);
+      // PDM_MPI_Barrier (ml->comm);
       PDM_timer_hang_on(ml->timer);
       e_t_elapsed = PDM_timer_elapsed(ml->timer);
       e_t_cpu     = PDM_timer_cpu(ml->timer);
@@ -5584,7 +5581,7 @@ PDM_mesh_location_t        *ml
       free (tmp_elt_weights_idx);
       free (tmp_elt_weights);
 
-      PDM_MPI_Barrier (ml->comm);
+      // PDM_MPI_Barrier (ml->comm);
       PDM_timer_hang_on(ml->timer);
       e_t_elapsed = PDM_timer_elapsed(ml->timer);
       e_t_cpu     = PDM_timer_cpu(ml->timer);
