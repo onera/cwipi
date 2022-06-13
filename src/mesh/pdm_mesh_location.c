@@ -2831,6 +2831,7 @@ PDM_mesh_location_t        *ml
   double e_t_cpu_u;
   double e_t_cpu_s;
 
+  PDM_MPI_Barrier (ml->comm);
   ml->times_elapsed[BEGIN] = PDM_timer_elapsed(ml->timer);
   ml->times_cpu[BEGIN]     = PDM_timer_cpu(ml->timer);
   ml->times_cpu_u[BEGIN]   = PDM_timer_cpu_user(ml->timer);
@@ -3643,24 +3644,27 @@ PDM_mesh_location_t        *ml
                                      (const double **) &select_box_extents,
                                      (const PDM_g_num_t **) &select_box_g_num);
 
-    // PDM_MPI_Barrier (ml->comm);
-    // PDM_timer_hang_on(ml->timer);
-    // e_t_elapsed = PDM_timer_elapsed(ml->timer);
-    // e_t_cpu     = PDM_timer_cpu(ml->timer);
-    // e_t_cpu_u   = PDM_timer_cpu_user(ml->timer);
-    // e_t_cpu_s   = PDM_timer_cpu_sys(ml->timer);
-
-    // ml->times_elapsed[SEARCH_CANDIDATES] += e_t_elapsed - b_t_elapsed;
-    // ml->times_cpu[SEARCH_CANDIDATES]     += e_t_cpu - b_t_cpu;
-    // ml->times_cpu_u[SEARCH_CANDIDATES]   += e_t_cpu_u - b_t_cpu_u;
-    // ml->times_cpu_s[SEARCH_CANDIDATES]   += e_t_cpu_s - b_t_cpu_s;
-
-    // b_t_elapsed = e_t_elapsed;
-    // b_t_cpu     = e_t_cpu;
-    // b_t_cpu_u   = e_t_cpu_u;
-    // b_t_cpu_s   = e_t_cpu_s;
-    // PDM_timer_resume(ml->timer);
   }
+
+
+    PDM_MPI_Barrier (ml->comm);
+    PDM_timer_hang_on(ml->timer);
+    e_t_elapsed = PDM_timer_elapsed(ml->timer);
+    e_t_cpu     = PDM_timer_cpu(ml->timer);
+    e_t_cpu_u   = PDM_timer_cpu_user(ml->timer);
+    e_t_cpu_s   = PDM_timer_cpu_sys(ml->timer);
+
+    ml->times_elapsed[SEARCH_CANDIDATES] += e_t_elapsed - b_t_elapsed;
+    ml->times_cpu[SEARCH_CANDIDATES]     += e_t_cpu - b_t_cpu;
+    ml->times_cpu_u[SEARCH_CANDIDATES]   += e_t_cpu_u - b_t_cpu_u;
+    ml->times_cpu_s[SEARCH_CANDIDATES]   += e_t_cpu_s - b_t_cpu_s;
+
+    b_t_elapsed = e_t_elapsed;
+    b_t_cpu     = e_t_cpu;
+    b_t_cpu_u   = e_t_cpu_u;
+    b_t_cpu_s   = e_t_cpu_s;
+    PDM_timer_resume(ml->timer);
+
 
   /*
    * Locate points
