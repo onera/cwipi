@@ -874,7 +874,8 @@ main(int argc, char *argv[]) {
   double depth = 1.;
   int rotation = 0;
 
-  char* output_filename;
+  char* output_filename = NULL;
+  int filedump = 0;
 
   _read_args(argc,
              argv,
@@ -890,6 +891,10 @@ main(int argc, char *argv[]) {
              &loc_method,
              &output_filename,
              &verbose);
+
+  if (output_filename !=NULL) {
+    filedump = 1;    
+  }
 
   // Initialize MPI
   MPI_Init(&argc, &argv);
@@ -1329,18 +1334,22 @@ main(int argc, char *argv[]) {
       fflush(stdout);
 
       char output_filename_ptbbtp[50];
-      sprintf(output_filename_ptbbtp, "ptbbtp_%s", output_filename);
-      FILE* output_ptbbtp = fopen(output_filename_ptbbtp, "w");
+      FILE* output_ptbbtp = NULL;
 
-      fprintf(output_ptbbtp,
-              "%d %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e ",
-              comm_world_size,
-              min_elaps_create_ptb,
-              max_elaps_create_ptb,
-              min_elaps_create2_ptb,
-              max_elaps_create2_ptb,
-              min_elaps_exch_ptb,
-              max_elaps_exch_ptb);
+      if (filedump) {
+        sprintf(output_filename_ptbbtp, "ptbbtp_%s", output_filename);
+        output_ptbbtp = fopen(output_filename_ptbbtp, "w");
+
+        fprintf(output_ptbbtp,
+                "%d %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e ",
+                comm_world_size,
+                min_elaps_create_ptb,
+                max_elaps_create_ptb,
+                min_elaps_create2_ptb,
+                max_elaps_create2_ptb,
+                min_elaps_exch_ptb,
+                max_elaps_exch_ptb);
+
 
 //      fprintf(output_ptbbtp,
 //              "%d %d %d %d %llu %llu %llu %llu ",
@@ -1371,7 +1380,8 @@ main(int argc, char *argv[]) {
 //              min_exch_data_recv_btp,
 //              max_exch_data_recv_btp);
 
-      fclose(output_ptbbtp);
+        fclose(output_ptbbtp);
+      }
     }
   }
 
@@ -1382,12 +1392,17 @@ main(int argc, char *argv[]) {
   double max_geom_time;
   MPI_Reduce(&geom_time, &max_geom_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
-  FILE *output = fopen(output_filename, "w");
+  FILE *output;
+  if (filedump) {
+    output = fopen(output_filename, "w");
+  } 
 
   if (rank == 0) {
     printf("\n\nGeometric algorithm :%12.5es\n", max_geom_time);
 
-    fprintf(output, "%d %12.5e ", comm_world_size, max_geom_time);
+    if (filedump) {
+      fprintf(output, "%d %12.5e ", comm_world_size, max_geom_time);
+    }
   }
 
   if (verbose && rank == 0) {
@@ -1459,7 +1474,9 @@ main(int argc, char *argv[]) {
     printf("Exchange 1 fields wait        : %12.5es\n", max_exch_time);
     printf("Total Exchange 1              : %12.5es\n", max_exch_time1 + max_exch_time);
 
-    fprintf(output, "%12.5e ", max_exch_time1 + max_exch_time);
+    if (filedump) {
+      fprintf(output, "%12.5e ", max_exch_time1 + max_exch_time);
+    }
   }
 
   double redondance_geom = max_exch_time1;
@@ -1537,8 +1554,10 @@ main(int argc, char *argv[]) {
     printf("Temps un Echange aux noeuds                : %12.5es\n",
            max_exch_time1 + max_exch_time);
 
-    fprintf(output, "%12.5e\n", max_exch_time1 + max_exch_time);
-    fclose(output);
+    if (filedump) {
+      fprintf(output, "%12.5e\n", max_exch_time1 + max_exch_time);
+      fclose(output);
+    }
   }
 
   //  Check
