@@ -58,8 +58,8 @@ struct Edge {
         if (p.y == a.y || p.y == b.y) return operator()({ p.x, p.y + epsilon });
         if (p.y > b.y || p.y < a.y || p.x > max(a.x, b.x)) return false;
         if (p.x < min(a.x, b.x)) return true;
-        auto blue = abs(a.x - p.x) > MIN ? (p.y - a.y) / (p.x - a.x) : MAX;
-        auto red = abs(a.x - b.x) > MIN ? (b.y - a.y) / (b.x - a.x) : MAX;
+        auto blue = abs((long) (a.x - p.x)) > MIN ? (p.y - a.y) / (p.x - a.x) : MAX;
+        auto red = abs((long) (a.x - b.x)) > MIN ? (b.y - a.y) / (b.x - a.x) : MAX;
         return blue >= red;
     }
     CWP_GCC_SUPPRESS_WARNING_POP
