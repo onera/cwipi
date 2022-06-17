@@ -732,6 +732,19 @@ _renum_cells_hilbert
 
     PDM_hilbert_get_coord_extents_seq(3, part->n_cell, cell_center, extents);
 
+    double length_max = -1;
+
+    for (int i = 0; i < 3; i++) {
+      length_max = PDM_MAX( length_max, extents[3+i] - extents[i]);      
+    }
+
+    double eps = 1.e-3 * length_max;
+
+    for (int i = 0; i < 3; i++) {
+      extents[i]   += -eps;      
+      extents[3+i] +=  eps;      
+    }
+
     /** Hilbert Coordinates Computation **/
 
     PDM_hilbert_encode_coords(3, PDM_HILBERT_CS, extents, part->n_cell, cell_center, hilbert_codes);
