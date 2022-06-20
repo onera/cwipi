@@ -246,7 +246,6 @@ namespace cwipi {
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
-      printf("Shared Nodal\n");
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
 
         PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, _pdm_CplNodal);
@@ -262,7 +261,6 @@ namespace cwipi {
 
         if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
 
-          printf("Shared Nodal 1\n");
           PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, _pdm_CplNodal);
         }
 

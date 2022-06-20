@@ -193,8 +193,7 @@ namespace cwipi {
         return _data_tgt[i_part];
       }
       else {
-        printf("Field::dataGet Error : unknoown data type");
-        abort();
+        PDM_error(__FILE__, __LINE__, 0, "Field::dataSet Error : unknoown data type.\n");
       }
     }
 
