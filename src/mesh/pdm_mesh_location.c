@@ -4749,8 +4749,13 @@ PDM_mesh_location_t        *ml
             pcloud->projected_coords[ipart][3*idx2+k] = pcloud->projected_coords[ipart][3*j+k];
           }
 
-          pcloud->weights_idx[ipart][idx2] = pcloud->weights_idx[ipart][j];
-          //double      **weights; /*!< Barycentric coordinates */
+          int n_weights =  pcloud->weights_idx[ipart][j+1] - pcloud->weights_idx[ipart][j];
+
+          for (int k = 0; k < n_weights; k++) {
+            pcloud->weights[ipart][pcloud->weights_idx[ipart][idx2] +k] = pcloud->weights[ipart][pcloud->weights_idx[ipart][j] +k];   
+          }
+
+          pcloud->weights_idx[ipart][idx2+1] = pcloud->weights_idx[ipart][idx2] + n_weights; 
 
           pcloud->located[ipart][idx2] = j+1;
           pcloud->n_located[ipart]++;
@@ -4770,10 +4775,13 @@ PDM_mesh_location_t        *ml
       pcloud->dist2[ipart]      = realloc (pcloud->dist2[ipart],
                                           sizeof(double) * pcloud->n_located[ipart]);
 
-      pcloud->weights_idx[ipart][pcloud->n_located[ipart]]    = pcloud->weights_idx[ipart][pcloud->n_points[ipart]];
-      pcloud->weights_idx[ipart]      = realloc (pcloud->weights_idx[ipart],
-                                          sizeof(int) * (pcloud->n_located[ipart]+1));
-      pcloud->projected_coords[ipart]      = realloc (pcloud->projected_coords[ipart],
+      pcloud->weights_idx[ipart] = realloc (pcloud->weights_idx[ipart],
+                                           sizeof(int) * (pcloud->n_located[ipart]+1));
+
+      pcloud->weights[ipart]     = realloc (pcloud->weights[ipart],
+                                            sizeof(double) * pcloud->weights_idx[ipart][pcloud->n_located[ipart]]);
+
+      pcloud->projected_coords[ipart] = realloc (pcloud->projected_coords[ipart],
                                           sizeof(double) * 3 * pcloud->n_located[ipart]);
 
     }
@@ -5001,22 +5009,13 @@ PDM_mesh_location_t        *ml
       PDM_g_num_t **numabs_nodal = malloc (sizeof(PDM_g_num_t *) * n_part_nodal);
       int *n_elt_nodal = malloc (sizeof(int) * n_part_nodal);
 
-      printf("n_part_nodal : %d\n",n_part_nodal);
-
       for (int i_part = 0; i_part < n_part_nodal; i_part++) {
         n_elt_nodal[i_part]= PDM_Mesh_nodal_n_cell_get (ml->mesh_nodal,
                                                         i_part);
         numabs_nodal[i_part] =  PDM_Mesh_nodal_g_num_get_from_part (ml->mesh_nodal,
                                                                     i_part);
-        // printf("n_elt_nodal[i_part] %d :", n_elt_nodal[i_part]);
-        // printf("numabs_nodal %d :", i_part);
-        // for (int i = 0; i< n_elt_nodal[i_part]; i++) {
-        //   printf(PDM_FMT_G_NUM" ", numabs_nodal[i_part][i]);
-        // }
-        // printf("\n");
       }
 
-      // _points_in_element_t *_points_in_elements = &ml->points_in_elements[icloud];
       _points_in_element_t *_points_in_elements = ml->points_in_elements + icloud;
 
       btp = PDM_block_to_part_create_from_sparse_block (block_g_num_location,
@@ -5062,20 +5061,12 @@ PDM_mesh_location_t        *ml
       _points_in_elements->n_elts = malloc (sizeof(int) * n_part_nodal);
       _points_in_elements->pts_inside_idx = malloc(sizeof(int *) * n_part_nodal);
       for (int i_part = 0; i_part < n_part_nodal; i_part++) {
-        // printf("n_elt_nodal[i_part] = %i \n", n_elt_nodal[i_part]);
         _points_in_elements->pts_inside_idx[i_part] = malloc(sizeof(int) * (n_elt_nodal[i_part]+1));
         _points_in_elements->pts_inside_idx[i_part][0] = 0;
         for (int i = 0; i < n_elt_nodal[i_part]; i++) {
           _points_in_elements->pts_inside_idx[i_part][i+1] = _points_in_elements->pts_inside_idx[i_part][i] +
                                                              pts_in_elt_n[i_part][i];
         }
-
-        // for (int i = 0; i < n_elt_nodal[i_part]; i++) {
-        //   printf(" [%i] --> %i %i \n", i, _points_in_elements->pts_inside_idx[i_part][i], _points_in_elements->pts_inside_idx[i_part][i+1]);
-        //   for(int j = _points_in_elements->pts_inside_idx[i_part][i]; j < _points_in_elements->pts_inside_idx[i_part][i+1]; ++j){
-        //     printf("        %i -> g_num = %i \n", j, (int)_points_in_elements->gnum[i_part][j]);
-        //   }
-        // }
 
         _points_in_elements->n_elts[i_part] = n_elt_nodal[i_part]; // Not sure See with Eric
         free (pts_in_elt_n[i_part]);
@@ -5107,7 +5098,6 @@ PDM_mesh_location_t        *ml
         free (pts_weights_stride[i_part]);
       }
       free (pts_in_elt_n);
-      free (block_pts_weights_stride);
       free (pts_weights_stride);
 
       /* dist2 block_pts_dist2 */
@@ -5166,13 +5156,24 @@ PDM_mesh_location_t        *ml
 
       /* _weight */
 
+      int k5 = 0;
+      int *block_pts_weights_stride_sum = malloc (sizeof(int) * block_n_elt);
+      for (int k1 = 0; k1 < block_n_elt; k1++) {
+        block_pts_weights_stride_sum[k1] = 0;
+        for (int k4 = 0; k4 < block_pts_per_elt_n[k1]; k4++) {
+          block_pts_weights_stride_sum[k1] += block_pts_weights_stride[k5++];
+        }
+      }
+
       PDM_block_to_part_exch (btp,
                                sizeof(double),
                                PDM_STRIDE_VAR_INTERLACED,
-                               block_pts_per_elt_n2,
+                               block_pts_weights_stride_sum,
                                (void *) block_pts_weights,
                                &pts_in_elt_n,
                                (void ***) &(_points_in_elements->weights));
+      free (block_pts_weights_stride);
+      free (block_pts_weights_stride_sum);
 
       int elt_n_pts_max    = 0;
       int elt_n_weight_max = 0;
@@ -5203,13 +5204,12 @@ PDM_mesh_location_t        *ml
 
       int    *order                    = malloc (sizeof(int        ) *     elt_n_pts_max);
 
-
       if (1 == 0) {
 
         for (int i_part = 0; i_part < n_part_nodal; i_part++) {
 
           for (int i = 0; i < n_elt_nodal[i_part]; i++) {
-            printf("elt : %d\n", i); 
+            printf("elt 0: %d\n", i); 
 
             int elt_i_pt = _points_in_elements->pts_inside_idx[i_part][i];
 
@@ -5359,7 +5359,7 @@ PDM_mesh_location_t        *ml
         for (int i_part = 0; i_part < n_part_nodal; i_part++) {
 
           for (int i = 0; i < n_elt_nodal[i_part]; i++) {
-            printf("elt : %d\n", i); 
+            printf("elt 2 : %d\n", i); 
 
             int elt_i_pt = _points_in_elements->pts_inside_idx[i_part][i];
 
