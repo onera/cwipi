@@ -222,7 +222,7 @@ main(int argc, char *argv[]) {
                           CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                           codeCoupledName,                           // Coupled application id
                           2,                                         // Geometric entities dimension
-                          0.001,                                     // Geometric tolerance
+                          0.01,                                      // Geometric tolerance
                           CWIPI_STATIC_MESH,                         // Mesh type
                           solver_type,                               // Solver type
                           1,                                         // Postprocessing frequency

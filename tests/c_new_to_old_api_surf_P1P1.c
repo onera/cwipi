@@ -1015,7 +1015,8 @@ main(int argc, char *argv[]) {
 
   const double xmin = -0.5 * width;
   const double ymin = -0.5 * width;
-  int init_random = (int) time(NULL);
+//  int init_random = (int) time(NULL);
+  int init_random = 5;
 
   PDM_g_num_t nGFace;
   PDM_g_num_t nGVtx;
@@ -1192,14 +1193,24 @@ main(int argc, char *argv[]) {
   t_start = PDM_timer_elapsed(timer);
   PDM_timer_resume(timer);
 
+  int n_unlocated = 0;
   if (version == CWP_VERSION_OLD) {
     cwipi_locate(coupling_name);
+
+    if (code_id != 1) {
+      n_unlocated = cwipi_get_n_not_located_points(coupling_name);
+    }
+
   }
   else {
     PDM_part_to_block_global_statistic_reset();
     PDM_block_to_part_global_statistic_reset();
 
     CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
+  
+    if (code_id != 1) {
+      n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name2, 0);
+    }
 
     double min_elaps_create_ptb;
     double max_elaps_create_ptb;
@@ -1561,15 +1572,18 @@ main(int argc, char *argv[]) {
   }
 
   //  Check
+
+  printf("n_unlocated : %d\n", n_unlocated);
+
   if (1) {
     double max_err = 0.;
     if (code_id == 2) {
       for (int i = 0 ; i < nVtx[0] ; i++) {
         double err = ABS (recv_val[i] - vtxCoord[0][3 * i]);
-        // if (err > 1.e-5) {
+        if (err > 1.e-5) {
           printf("[%d] !! vtx %ld err = %g (x = %f, recv = %f)\n",
           rank, vtxLNToGN[0][i], err, vtxCoord[0][3*i], recv_val[i]);
-          // }
+        }
         if (err > max_err) {
           max_err = err;
         }
