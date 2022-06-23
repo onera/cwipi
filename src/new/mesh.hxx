@@ -345,7 +345,7 @@ namespace cwipi {
     *
     */
 
-    inline int getPartNElts(int id_part) const;
+    int getPartNElts(int id_part) const;
 
     /**
     * \brief Get the number of polyhedra in a partition
@@ -650,11 +650,6 @@ namespace cwipi {
   int Mesh::getBlockNElts(int id_block,int i_part)
   {
     return _blockDB[id_block] -> NEltsGet()[i_part];
-  }
-
-  int Mesh::getPartNElts(int id_part) const
-  {
-    return _nElts[id_part];
   }
 
   /*int Mesh::getPartNPolyhedra(int i_part) const

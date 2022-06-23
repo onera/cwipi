@@ -963,7 +963,7 @@ main(int argc, char *argv[]) {
                           CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                           coupled_code_name[0],                      // Coupled application id
                           2,                                         // Geometric entities dimension
-                          0.1,                                       // Geometric tolerance
+                          0.01,                                       // Geometric tolerance
                           CWIPI_STATIC_MESH,                         // Mesh type
                           CWIPI_SOLVER_CELL_VERTEX,                  // Solver type
                           -1,                                        // Postprocessing frequency
@@ -1501,10 +1501,10 @@ main(int argc, char *argv[]) {
 
   else {
     if (code_id == 1) {
-      CWP_Field_issend(code_name[0], coupling_name, field_name2);
+//      CWP_Field_issend(code_name[0], coupling_name, field_name2);
     }
     else {
-      CWP_Field_irecv(code_name[0], coupling_name, field_name2);
+//      CWP_Field_irecv(code_name[0], coupling_name, field_name2);
     }
   }
 
@@ -1529,10 +1529,10 @@ main(int argc, char *argv[]) {
   }
   else {
     if (code_id == 1) {
-      CWP_Field_wait_issend(code_name[0], coupling_name, field_name2);
+//      CWP_Field_wait_issend(code_name[0], coupling_name, field_name2);
     }
     else {
-      CWP_Field_wait_irecv(code_name[0], coupling_name, field_name2);
+//      CWP_Field_wait_irecv(code_name[0], coupling_name, field_name2);
     }
   }
 
@@ -1566,17 +1566,17 @@ main(int argc, char *argv[]) {
     if (code_id == 2) {
       for (int i = 0 ; i < nVtx[0] ; i++) {
         double err = ABS (recv_val[i] - vtxCoord[0][3 * i]);
-        /*if (err > 1.e-5) {
-          printf("[%d] !! vtx %i err = %g (x = %f, recv = %f)\n",
-          rank, i, err, vtxCoord[0][3*i], recv_val[i]);
-          }*/
+        // if (err > 1.e-5) {
+          printf("[%d] !! vtx %ld err = %g (x = %f, recv = %f)\n",
+          rank, vtxLNToGN[0][i], err, vtxCoord[0][3*i], recv_val[i]);
+          // }
         if (err > max_err) {
           max_err = err;
         }
       }
     }
 
-    double global_max_err;
+    double global_max_err = 0.;
     MPI_Reduce(&max_err, &global_max_err, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
     if (rank == 0) {
       printf("Max error = %g\n", global_max_err);

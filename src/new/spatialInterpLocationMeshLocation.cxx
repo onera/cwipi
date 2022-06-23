@@ -341,6 +341,7 @@ namespace cwipi {
               }
             }
           }
+
           assert(count == _n_involved_sources_tgt[i_part]);
 
           int n_elt = 0;
@@ -352,6 +353,30 @@ namespace cwipi {
           else if (interf_dim == CWP_INTERFACE_VOLUME) {
             n_elt = _mesh->getNCell(i_part);
           }
+
+
+          // for (int i = 0; i < n_elt; i++) {
+
+          //   printf ("elt cwp %d :", i+1);
+          //   for (int j = _cell_vtx_idx[i_part][i]; j < _cell_vtx_idx[i_part][i+1]; j++) {
+          //     printf(" %d", _cell_vtx[i_part][j]);
+          //   }
+          //   printf("\n");
+
+          //   for (int j = _elt_pts_inside_idx[i_part][i]; j < _elt_pts_inside_idx[i_part][i+1]; j++) {
+          //     printf("pts inside :");
+          //     for (int k = 0; k < 3; k++) {
+          //       printf (" %12.5e", _points_coords[i_part][3*j+k]);
+          //     }
+          //     printf("\n");
+          //     printf("weights :");
+          //     for (int k = _weights_idx[i_part][j]; k < _weights_idx[i_part][j+1]; k++) {
+          //       printf(" %12.5e", _weights[i_part][k]);
+          //     }
+          //     printf("\n");
+          //   }
+          // }
+
 
           _n_elt_weights[i_part] = _elt_pts_inside_idx[i_part][n_elt];
 

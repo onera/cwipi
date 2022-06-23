@@ -806,7 +806,7 @@ namespace cwipi {
         for (int i = 0; i < _nPart; i++) {
           double *referenceData  = (double *) referenceField->dataGet(i, CWP_FIELD_MAP_TARGET);
           for (int j = 0; j < ptp2_n_ref_gnum2[i]; j++) {
-            assert ((ptp2_gnum1_come_from_idx[i][j+1] - ptp2_gnum1_come_from_idx[i][j]) == 1);
+            assert ((ptp2_gnum1_come_from_idx[i][j+1] - ptp2_gnum1_come_from_idx[i][j]) <= 1);
           }
           memcpy(referenceData, _recv_buffer[intId][i], dataTypeSize * nComponent * ptp2_n_ref_gnum2[i]);
         }

@@ -309,7 +309,7 @@ namespace cwipi {
       connecCompute(i_part);
     }//end if NULL
 
-    return _gnum_elt[i_part];
+    return PDM_Mesh_nodal_g_num_get_from_part (_pdmNodal_handle_index, i_part);
   }
 
 
@@ -942,6 +942,24 @@ namespace cwipi {
 
     _nEdge[i_part] = n_edges;
     _nFace[i_part] = n_faces;
+  }
+
+
+  int Mesh::getPartNElts(int id_part) const
+  {
+    CWP_Interface_t ed = _cpl->entitiesDimGet();
+
+    if (ed == CWP_INTERFACE_SURFACE) {
+      return _nFace[id_part];
+    }
+    else if (ed == CWP_INTERFACE_VOLUME) {
+      return _nCells[id_part];
+    }
+    else {
+      PDM_error(__FILE__, __LINE__, 0, "getPartNElts : Element type is no taking account.\n");      
+    }
+
+    return -1;
   }
 
 }
