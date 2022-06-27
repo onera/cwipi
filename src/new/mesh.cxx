@@ -29,6 +29,9 @@
 #include "cwp.h"
 #include "factory.hpp"
 #include "block.hxx"
+#include "blockStd.hxx"
+#include "blockCP.hxx"
+#include "blockFP.hxx"
 #include "coupling.hxx"
 #include "coupling_i.hxx"
 
@@ -651,6 +654,110 @@ namespace cwipi {
 
       updateBlockDB();
 
+    }
+
+    else {
+
+      for(int i_block=0;i_block<_nBlocks;i_block++){
+        CWP_Block_t block_type = _blockDB[i_block]->blockTypeGet();
+        PDM_Mesh_nodal_elt_t pdm_block_type;
+
+        if (block_type == CWP_BLOCK_FACE_POLY) {
+          pdm_block_type = PDM_MESH_NODAL_POLY_2D;
+        }
+        else if (block_type == CWP_BLOCK_CELL_POLY) {
+          pdm_block_type = PDM_MESH_NODAL_POLY_3D;
+
+        }
+        else if (block_type == CWP_BLOCK_CELL_TETRA4) {
+          pdm_block_type = PDM_MESH_NODAL_TETRA4;
+
+        }
+        else if (block_type == CWP_BLOCK_CELL_HEXA8) {
+          pdm_block_type = PDM_MESH_NODAL_HEXA8;
+
+        }
+        else if (block_type == CWP_BLOCK_CELL_PRISM6) {
+          pdm_block_type = PDM_MESH_NODAL_PRISM6;
+
+        }
+        else if (block_type == CWP_BLOCK_CELL_PYRAM5) {
+          pdm_block_type = PDM_MESH_NODAL_PYRAMID5;
+
+        }
+        else if (block_type == CWP_BLOCK_FACE_QUAD4) {
+          pdm_block_type = PDM_MESH_NODAL_QUAD4;
+
+        }
+        else if (block_type == CWP_BLOCK_FACE_TRIA3) {
+          pdm_block_type = PDM_MESH_NODAL_TRIA3;
+
+        }
+        else if (block_type == CWP_BLOCK_EDGE2) {
+          pdm_block_type = PDM_MESH_NODAL_BAR2;
+
+        }
+        else {
+          PDM_error (__FILE__, __LINE__, 0, "unknown block type\n");
+        }
+
+        _blockDB[i_block]->blockIDPDMSet(PDM_Mesh_nodal_block_add (_pdmNodal_handle_index, pdm_block_type, PDM_OWNERSHIP_USER));
+
+      } //end loop on block
+
+      for(int i_part=0;i_part<_npart;i_part++){
+
+        for(int i_block=0;i_block<_nBlocks;i_block++){
+          int n_elt = _blockDB[i_block]->NEltsGet(i_part);
+
+          CWP_Block_t block_type = _blockDB[i_block]->blockTypeGet();
+
+          int pdm_id_block = _blockDB[i_block]->blockIDPDMGet();
+
+          if (block_type == CWP_BLOCK_FACE_POLY) {
+            BlockFP *block = dynamic_cast<BlockFP *>(_blockDB[i_block]);
+
+            PDM_Mesh_nodal_block_poly2d_set (_pdmNodal_handle_index,
+                                             pdm_id_block, 
+                                             i_part,
+                                             n_elt,
+                                             block->ConnecIDXGet()[i_part],
+                                             block->ConnecGet()[i_part],
+                                             _blockDB[i_block]->GNumMeshGet(i_part),
+                                             NULL);
+
+          }
+
+          else if (block_type == CWP_BLOCK_CELL_POLY) {
+            BlockCP *block = dynamic_cast<BlockCP *>(_blockDB[i_block]);
+
+            PDM_Mesh_nodal_block_poly3d_set (_pdmNodal_handle_index,
+                                             pdm_id_block, 
+                                             i_part,
+                                             n_elt,
+                                             block->NFacesGet()[i_part],
+                                             block->ConnecFacesIDXGet()[i_part],
+                                             block->ConnecFacesGet()[i_part],
+                                             block->ConnecIDXGet()[i_part],
+                                             block->ConnecGet()[i_part],
+                                             block->GNumMeshGet(i_part),
+                                             NULL);
+
+          }
+
+          else {
+            BlockStd *block = dynamic_cast<BlockStd *>(_blockDB[i_block]);
+
+            PDM_Mesh_nodal_block_std_set (_pdmNodal_handle_index,
+                                          pdm_id_block, 
+                                          i_part,
+                                          n_elt,
+                                          block->ConnecGet()[i_part],
+                                          block->GNumMeshGet(i_part),
+                                          NULL);
+          }
+        }
+      }   //end loop on block
     }
 
     int g_num_computation_required = 0;

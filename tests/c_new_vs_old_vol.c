@@ -338,6 +338,9 @@ _cube_mesh
   //          pdm_partitioning_nodal_algorith
 
 
+  printf("xmin, ymin, zmin : %12.5e %12.5e %12.5e\n", xmin, ymin, zmin);
+
+
   PDM_dcube_nodal_t *dcube = PDM_dcube_nodal_gen_create (comm,
                                                          n_vtx_seg,
                                                          n_vtx_seg,
@@ -907,7 +910,7 @@ _cube_mesh
     PDM_Mesh_nodal_block_std_get (nodal,
                                   0,
                                   i_part,
-                                  &((*pcell_face_idx)[i_part]));
+                                  &((*pcell_vtx)[i_part]));
   }
 
   PDM_Mesh_nodal_free(nodal);
@@ -1160,9 +1163,9 @@ main(int argc, char *argv[]) {
     printf("nb procs with mesh data = %d\n", true_n_proc_data);
   }
 
-  const double xmin = -0.5 * length;
-  const double ymin = -0.5 * length;
-  const double zmin = -0.5 * length;
+  double xmin = -0.5 * length;
+  double ymin = -0.5 * length;
+  double zmin = -0.5 * length;
 //  int init_random = (int) time(NULL);
   int init_random = 5;
 
@@ -1171,6 +1174,9 @@ main(int argc, char *argv[]) {
 
   if (code_id == 2) {
     init_random++;
+    xmin += separation_x;
+    ymin += separation_y;
+    zmin += separation_z;
   }
 
   int                         *pn_cell;
@@ -1255,6 +1261,7 @@ main(int argc, char *argv[]) {
                                               coupling_name,
                                               block_type);  
 
+
     CWP_Mesh_interf_block_std_set (code_name[0],
                                    coupling_name,
                                    0,
@@ -1263,7 +1270,6 @@ main(int argc, char *argv[]) {
                                    pcell_vtx[0],
                                    pcell_ln_to_gn[0]); 
 
-    printf("pn_cell[0] : %d\n",pn_cell[0]);  
 
     CWP_Mesh_interf_finalize(code_name[0], coupling_name);
   }
@@ -1375,11 +1381,15 @@ main(int argc, char *argv[]) {
   PDM_timer_resume(timer);
 
   int n_unlocated = 0;
+  int n_located = 0;
+  const int *located = NULL;
   if (version == CWP_VERSION_OLD) {
     cwipi_locate(coupling_name);
 
     if (code_id != 1) {
       n_unlocated = cwipi_get_n_not_located_points(coupling_name);
+      n_located = cwipi_get_n_located_points(coupling_name);
+      located = cwipi_get_located_points(coupling_name);
     }
 
   }
@@ -1391,6 +1401,8 @@ main(int argc, char *argv[]) {
   
     if (code_id != 1) {
       n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name2, 0);
+      n_located = CWP_N_computed_tgts_get(code_name[0], coupling_name, field_name2, 0);
+      located =  CWP_Computed_tgts_get(code_name[0], coupling_name, field_name2, 0);
     }
 
     double min_elaps_create_ptb;
@@ -1694,10 +1706,10 @@ main(int argc, char *argv[]) {
 
   else {
     if (code_id == 1) {
-//      CWP_Field_issend(code_name[0], coupling_name, field_name2);
+     CWP_Field_issend(code_name[0], coupling_name, field_name2);
     }
     else {
-//      CWP_Field_irecv(code_name[0], coupling_name, field_name2);
+     CWP_Field_irecv(code_name[0], coupling_name, field_name2);
     }
   }
 
@@ -1760,12 +1772,12 @@ main(int argc, char *argv[]) {
   if (1) {
     double max_err = 0.;
     if (code_id == 2) {
-      for (int i = 0 ; i < pn_vtx[0] ; i++) {
-        double err = ABS (recv_val[i] - pvtx_coord[0][3 * i]);
-        if (err > 1.e-5) {
-          printf("[%d] !! vtx %ld err = %g (x = %f, recv = %f)\n",
-          rank, pvtx_ln_to_gn[0][i], err, pvtx_coord[0][3*i], recv_val[i]);
-        }
+      for (int i = 0 ; i < n_located ; i++) {
+        double err = ABS (recv_val[i] - pvtx_coord[0][3 * (located[i] -1)]);
+//        if (err > 1.e-5) {
+          printf("[%d] !! vtx %ld %d err = %g (x = %f, recv = %f)\n",
+          rank, pvtx_ln_to_gn[0][i], located[i], err, pvtx_coord[0][3*(located[i]-1)], recv_val[i]);
+//        }
         if (err > max_err) {
           max_err = err;
         }
@@ -1821,10 +1833,8 @@ main(int argc, char *argv[]) {
   free(pcell_vtx);
   free(pface_vtx_idx);
   free(pface_vtx);
-  free(pvtx_coord);
   free(pcell_ln_to_gn);
   free(pface_ln_to_gn);
-  free(pvtx_ln_to_gn);
 
   if (code_id == 1) {
     free(send_val);

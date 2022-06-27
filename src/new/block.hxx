@@ -219,6 +219,8 @@ namespace cwipi {
 
     inline void blockIDPDMSet(int block_id);
 
+
+    inline int blockIDPDMGet();
     /**
      *
      * \brief return the number of element for each partition
@@ -438,6 +440,7 @@ namespace cwipi {
     std::vector<bool>          _isSet;                  /*!< Set or not for each partition */
     bool                       _isGNumSet;              /*!< Global Numbering set or not for each partition */
     bool                       _inPDMDB;                /*!< Indicate the Block is already in the Paradigm database */
+
   };
 
   bool
@@ -507,6 +510,10 @@ namespace cwipi {
     _block_id_pdm = block_id;
   }
 
+  int 
+  Block::blockIDPDMGet(){
+    return _block_id_pdm;
+  }
 
 }
 #endif //__BLOCK_H__
