@@ -249,6 +249,8 @@ namespace cwipi {
     _connec[i_part] = (int*)malloc(sizeof(int)* connec_size);
     _gnum_elt[i_part] = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)* n_elt_part);
 
+    printf("n_elt_part : %d\n", n_elt_part);
+
     int ind_idx=0;
     _connec_idx[i_part][0]=0;
     for(int i=0;i<_nBlocks;i++){
@@ -305,9 +307,9 @@ namespace cwipi {
     int i_part
   )
   {
-    if (_connec_idx[i_part]==NULL) {
-      connecCompute(i_part);
-    }//end if NULL
+    // if (_connec_idx[i_part]==NULL) {
+    //   connecCompute(i_part);
+    // }//end if NULL
 
     return PDM_Mesh_nodal_g_num_get_from_part (_pdmNodal_handle_index, i_part);
   }
@@ -950,10 +952,10 @@ namespace cwipi {
     CWP_Interface_t ed = _cpl->entitiesDimGet();
 
     if (ed == CWP_INTERFACE_SURFACE) {
-      return _nFace[id_part];
+      return PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index, id_part);
     }
     else if (ed == CWP_INTERFACE_VOLUME) {
-      return _nCells[id_part];
+      return PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index, id_part);
     }
     else {
       PDM_error(__FILE__, __LINE__, 0, "getPartNElts : Element type is no taking account.\n");      
