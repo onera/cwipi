@@ -1774,10 +1774,10 @@ main(int argc, char *argv[]) {
     if (code_id == 2) {
       for (int i = 0 ; i < n_located ; i++) {
         double err = ABS (recv_val[i] - pvtx_coord[0][3 * (located[i] -1)]);
-//        if (err > 1.e-5) {
+        if (err > 1.e-4) {
           printf("[%d] !! vtx %ld %d err = %g (x = %f, recv = %f)\n",
           rank, pvtx_ln_to_gn[0][i], located[i], err, pvtx_coord[0][3*(located[i]-1)], recv_val[i]);
-//        }
+        }
         if (err > max_err) {
           max_err = err;
         }
