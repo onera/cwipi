@@ -338,9 +338,6 @@ _cube_mesh
   //          pdm_partitioning_nodal_algorith
 
 
-  printf("xmin, ymin, zmin : %12.5e %12.5e %12.5e\n", xmin, ymin, zmin);
-
-
   PDM_dcube_nodal_t *dcube = PDM_dcube_nodal_gen_create (comm,
                                                          n_vtx_seg,
                                                          n_vtx_seg,
@@ -1544,15 +1541,15 @@ main(int argc, char *argv[]) {
         output_ptbbtp = fopen(output_filename_ptbbtp, "w");
       }
 
-      fprintf(output_ptbbtp,
-              "%d %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e ",
-              comm_world_size,
-              min_elaps_create_ptb,
-              max_elaps_create_ptb,
-              min_elaps_create2_ptb,
-              max_elaps_create2_ptb,
-              min_elaps_exch_ptb,
-              max_elaps_exch_ptb);
+      // fprintf(output_ptbbtp,
+      //         "%d %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e ",
+      //         comm_world_size,
+      //         min_elaps_create_ptb,
+      //         max_elaps_create_ptb,
+      //         min_elaps_create2_ptb,
+      //         max_elaps_create2_ptb,
+      //         min_elaps_exch_ptb,
+      //         max_elaps_exch_ptb);
 
 
 //      fprintf(output_ptbbtp,
@@ -1566,12 +1563,12 @@ main(int argc, char *argv[]) {
 //              min_exch_data_recv_ptb,
 //              max_exch_data_recv_ptb);
 
-      fprintf(output_ptbbtp,
-            "%12.5e %12.5e %12.5e %12.5e\n",
-            min_elaps_create_btp,
-            max_elaps_create_btp,
-            min_elaps_exch_btp,
-            max_elaps_exch_btp);
+      // fprintf(output_ptbbtp,
+      //       "%12.5e %12.5e %12.5e %12.5e\n",
+      //       min_elaps_create_btp,
+      //       max_elaps_create_btp,
+      //       min_elaps_exch_btp,
+      //       max_elaps_exch_btp);
 
 //      fprintf(output_ptbbtp,
 //              "%d %d %d %d %llu %llu %llu %llu ",
@@ -1767,8 +1764,6 @@ main(int argc, char *argv[]) {
 
   //  Check
 
-  printf("n_unlocated : %d\n", n_unlocated);
-
   if (1) {
     double max_err = 0.;
     if (code_id == 2) {
@@ -1776,7 +1771,7 @@ main(int argc, char *argv[]) {
         double err = ABS (recv_val[i] - pvtx_coord[0][3 * (located[i] -1)]);
         if (err > 1.e-4) {
           printf("[%d] !! vtx %ld %d err = %g (x = %f, recv = %f)\n",
-          rank, pvtx_ln_to_gn[0][i], located[i], err, pvtx_coord[0][3*(located[i]-1)], recv_val[i]);
+          rank, pvtx_ln_to_gn[0][(located[i] - 1)], located[i], err, pvtx_coord[0][3*(located[i]-1)], recv_val[i]);
         }
         if (err > max_err) {
           max_err = err;

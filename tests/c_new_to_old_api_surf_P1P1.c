@@ -1194,11 +1194,15 @@ main(int argc, char *argv[]) {
   PDM_timer_resume(timer);
 
   int n_unlocated = 0;
+  int n_located = 0;
+  const int *located = NULL;
   if (version == CWP_VERSION_OLD) {
     cwipi_locate(coupling_name);
 
     if (code_id != 1) {
       n_unlocated = cwipi_get_n_not_located_points(coupling_name);
+      n_located = cwipi_get_n_located_points(coupling_name);
+      located = cwipi_get_located_points(coupling_name);
     }
 
   }
@@ -1210,6 +1214,8 @@ main(int argc, char *argv[]) {
   
     if (code_id != 1) {
       n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name2, 0);
+      n_located = CWP_N_computed_tgts_get(code_name[0], coupling_name, field_name2, 0);
+      located =  CWP_Computed_tgts_get(code_name[0], coupling_name, field_name2, 0);
     }
 
     double min_elaps_create_ptb;
@@ -1573,16 +1579,14 @@ main(int argc, char *argv[]) {
 
   //  Check
 
-  printf("n_unlocated : %d\n", n_unlocated);
-
   if (1) {
     double max_err = 0.;
     if (code_id == 2) {
-      for (int i = 0 ; i < nVtx[0] ; i++) {
-        double err = ABS (recv_val[i] - vtxCoord[0][3 * i]);
+      for (int i = 0 ; i < n_located ; i++) {
+        double err = ABS (recv_val[i] - vtxCoord[0][3 * (located[i] - 1)]);
         if (err > 1.e-5) {
-          printf("[%d] !! vtx %ld err = %g (x = %f, recv = %f)\n",
-          rank, vtxLNToGN[0][i], err, vtxCoord[0][3*i], recv_val[i]);
+          printf("[%d] !! vtx %ld %d err = %g (x = %f, recv = %f)\n",
+          rank, vtxLNToGN[0][(located[i] - 1)], located[i], err, vtxCoord[0][3*(located[i] - 1)], recv_val[i]);
         }
         if (err > max_err) {
           max_err = err;
