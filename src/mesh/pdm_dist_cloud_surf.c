@@ -366,7 +366,7 @@ PDM_dist_cloud_surf_compute
       octree_type = PDM_OCTREE_PARALLEL;
     }
   }
-  if (rank == 0) printf("octree_type = %d\n", octree_type);
+  if (rank == 0 && idebug) printf("octree_type = %d\n", octree_type);
   //<<<---
 
   double b_t_elapsed;

@@ -1110,8 +1110,8 @@ PDM_dbbtree_closest_upper_bound_dist_boxes_get
     free(n_requests);
 
     //------------->>>
-    if ( myRank == 0 ) {
-      if ( n_copied_ranks == 0 ) {
+    if (myRank == 0 && idebug) {
+      if (n_copied_ranks == 0) {
         printf("n_copied_ranks = 0\n");
       } else {
         printf("copied rank(s) = ");
@@ -1753,8 +1753,8 @@ PDM_dbbtree_closest_upper_bound_dist_boxes_get_async
     free(n_requests);
 
     //------------->>>
-    if ( myRank == 0 ) {
-      if ( n_copied_ranks == 0 ) {
+    if (myRank == 0 && idebug) {
+      if (n_copied_ranks == 0) {
         printf("n_copied_ranks = 0\n");
       } else {
         printf("copied rank(s) = ");
@@ -2401,6 +2401,7 @@ PDM_dbbtree_points_inside_boxes
  double            **pts_in_box_coord
  )
 {
+  const int idebug = 0;
   assert (dbbt != NULL);
   _PDM_dbbtree_t *_dbbt = (_PDM_dbbtree_t *) dbbt;
 
@@ -2416,10 +2417,10 @@ PDM_dbbtree_points_inside_boxes
   const int *used_ranks   = _dbbt->usedRank;
   const int  n_used_ranks = _dbbt->nUsedRank;
 
-  if (my_rank == 0) printf("dbbt->nUsedRank = %d\n", _dbbt->nUsedRank);
+  if (my_rank == 0 && idebug) printf("dbbt->nUsedRank = %d\n", _dbbt->nUsedRank);
 
   //-->>
-  if (my_rank == 0) {
+  if (my_rank == 0 && idebug) {
     for (int i = 0; i < n_used_ranks; i++) {
       double vol_n = 1., vol = 1.;
       double *e = _dbbt->rankBoxes->local_boxes->extents + 6*i;
@@ -2460,11 +2461,11 @@ PDM_dbbtree_points_inside_boxes
   //<<--
   PDM_timer_hang_on (timer);
   t_end = PDM_timer_elapsed (timer);
-  printf("[%d] normalization : %12.5es\n", my_rank, t_end - t_begin);
+  if (idebug) printf("[%d] normalization : %12.5es\n", my_rank, t_end - t_begin);
   t_begin = t_end;
   PDM_timer_resume (timer);
 
-  if (1) {
+  if (idebug) {
     char filename[999];
 
     sprintf(filename, "dbbt_pts_n_%3.3d.vtk", my_rank);
@@ -2576,11 +2577,11 @@ PDM_dbbtree_points_inside_boxes
 
   PDM_timer_hang_on (timer);
   t_end = PDM_timer_elapsed (timer);
-  printf("[%d] redistribution : %12.5es\n", my_rank, t_end - t_begin);
+  if (idebug) printf("[%d] redistribution : %12.5es\n", my_rank, t_end - t_begin);
   t_begin = t_end;
   PDM_timer_resume (timer);
 
-  printf("[%d] dbbt->n_boxes = %d, n_pts = %d, n_recv_pts = %d\n",
+  if (idebug) printf("[%d] dbbt->n_boxes = %d, n_pts = %d, n_recv_pts = %d\n",
          my_rank, _dbbt->boxes->local_boxes->n_boxes, n_pts, n_recv_pts);
 
 
@@ -2600,7 +2601,7 @@ PDM_dbbtree_points_inside_boxes
 
   PDM_timer_hang_on (timer);
   t_end = PDM_timer_elapsed (timer);
-  printf("[%d] box_tree : %12.5es\n", my_rank, t_end - t_begin);
+  if (idebug) printf("[%d] box_tree : %12.5es\n", my_rank, t_end - t_begin);
   t_begin = t_end;
   PDM_timer_resume (timer);
 
@@ -2747,7 +2748,7 @@ PDM_dbbtree_points_inside_boxes
 
   PDM_timer_hang_on (timer);
   t_end = PDM_timer_elapsed (timer);
-  printf("[%d] part_to_part : %12.5es\n", my_rank, t_end - t_begin);
+  if (idebug) printf("[%d] part_to_part : %12.5es\n", my_rank, t_end - t_begin);
   t_begin = t_end;
   PDM_timer_resume (timer);
 
@@ -2761,7 +2762,7 @@ PDM_dbbtree_points_inside_boxes
 
   PDM_timer_hang_on (timer);
   t_end = PDM_timer_elapsed (timer);
-  printf("[%d] de-normalization : %12.5es\n", my_rank, t_end - t_begin);
+  if (idebug) printf("[%d] de-normalization : %12.5es\n", my_rank, t_end - t_begin);
   t_begin = t_end;
   PDM_timer_free (timer);
 }
@@ -2787,6 +2788,7 @@ PDM_dbbtree_points_inside_boxes_with_copies
  double            **pts_in_box_coord
  )
 {
+  const int idebug = 0;
   const float f_threshold = 1.1;  // factor of the mean nb of requests
   const float f_max_copy  = 0.1;  // factor of the total nb of processes
 
@@ -2918,7 +2920,7 @@ PDM_dbbtree_points_inside_boxes_with_copies
       }
     }
 
-    if (i_rank == 0) {
+    if (i_rank == 0 && idebug) {
       if (n_copied_ranks > 0) {
         if (n_copied_ranks == 1) {
           printf("1 copied rank: %d\n", copied_ranks[0]);
@@ -2995,7 +2997,7 @@ PDM_dbbtree_points_inside_boxes_with_copies
 
     n_pts_recv = recv_shift[n_rank];
     n_pts1 = n_pts_local + n_pts_recv + n_pts_copied;
-    printf("[%d] n_pts1 = %d (without copies : %d)\n", i_rank, n_pts1, n_pts_recv_no_copies);
+    if (idebug) printf("[%d] n_pts1 = %d (without copies : %d)\n", i_rank, n_pts1, n_pts_recv_no_copies);
 
     pts_g_num1 = malloc (sizeof(PDM_g_num_t) * n_pts1);
     pts_coord1 = malloc (sizeof(double)      * n_pts1 * 3);
