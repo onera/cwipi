@@ -1225,28 +1225,28 @@ main(int argc, char *argv[]) {
   if (elt_type == PDM_MESH_NODAL_TETRA4) {
     block_type = CWP_BLOCK_CELL_TETRA4;
     for (int i = 0; i < pn_cell[0]; i++) {
-      cellVtxIdx[i+1] += 4;  
+      cellVtxIdx[i+1] = 4 + cellVtxIdx[i];  
     }
   }
 
   else if (elt_type == PDM_MESH_NODAL_HEXA8) {
     block_type = CWP_BLOCK_CELL_HEXA8;
     for (int i = 0; i < pn_cell[0]; i++) {
-      cellVtxIdx[i+1] += 8;  
+      cellVtxIdx[i+1] = 8 + cellVtxIdx[i];  
     }
   }
 
   else if (elt_type == PDM_MESH_NODAL_PYRAMID5) {
     block_type = CWP_BLOCK_CELL_PYRAM5;
     for (int i = 0; i < pn_cell[0]; i++) {
-      cellVtxIdx[i+1] += 5;  
+      cellVtxIdx[i+1] = 5 + cellVtxIdx[i];  
     }
   }
 
   else if (elt_type == PDM_MESH_NODAL_PRISM6) {
     block_type = CWP_BLOCK_CELL_PRISM6;
     for (int i = 0; i < pn_cell[0]; i++) {
-      cellVtxIdx[i+1] += 6;  
+      cellVtxIdx[i+1] = 6 + cellVtxIdx[i];  
     }
   }
 
