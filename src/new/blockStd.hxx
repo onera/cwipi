@@ -72,17 +72,6 @@ namespace cwipi {
 
        void blockSet(int i_part,int n_elts,int* connec,CWP_g_num_t* global_num);
 
-      /**
-       * \brief Add and Set the CWIPI block from a Paradigm block
-       *
-       * \param [in] pdm_id_block A block identifier from Paradigm
-       * \param [in] mesh         Pointer to the Mesh object owning the block.
-       *
-       *
-       */
-
-       void FromPDMBlock(int pdm_id_block, void* mesh);
-
        /**
         *
         * \brief return the element connectivity (Standard or Face_Poly_2D CWP_Block_t) or cells-faces connectiviy (Cells_POLY_3D)

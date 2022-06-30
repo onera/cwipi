@@ -48,32 +48,6 @@ namespace cwipi {
     _connec_idx.clear();
   }
 
-  void BlockStd::FromPDMBlock(int pdm_id_block, void* mesh){
-
-     _mesh     = mesh;
-     _pdmNodal_handle_index = static_cast<Mesh*>(mesh)->getPdmNodalIndex();
-     _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh)->getMPICommP());
-     PDM_Mesh_nodal_elt_t PDM_block_type = PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,pdm_id_block);
-     _blockType = CwpBlockTypeFromPdmBlockType (PDM_block_type);
-     BlockAdd(_blockType, mesh);
-
-     for(int id_part=0;id_part < _n_part;id_part++){
-        int nElts = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index,
-                                                   pdm_id_block,
-                                                   id_part );
-        _block_id_pdm=pdm_id_block;
-        int* connec = NULL;
-
-        PDM_Mesh_nodal_block_std_get (_pdmNodal_handle_index,
-                                      _block_id_pdm,
-                                      id_part,
-                                      &connec);
-
-         blockSet(id_part,nElts,connec,NULL);
-       }
-  }
-
-
   void BlockStd::blockSet(int i_part,int n_elt,int* connec,CWP_g_num_t* mesh_global_num){
 
      double* _cells_center_part = (double*)malloc (sizeof(double) * 3 * n_elt);

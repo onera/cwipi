@@ -133,6 +133,11 @@ namespace cwipi {
       }
     }
 
+    if (_pdm_CplNodal != NULL) {
+      printf("SpatialInterpLocation::init Mesh_nodal_n_blocks :%d\n", PDM_Mesh_nodal_n_blocks_get(_pdm_CplNodal));
+      fflush(stdout);
+    }
+
     //
     // Data for PDM_part_to_part_t
 

@@ -41,42 +41,6 @@ namespace cwipi {
   
   }
 
-  void BlockCP::FromPDMBlock(int pdm_id_block, void* mesh){
-     _mesh     = mesh;
-     _pdmNodal_handle_index = static_cast<Mesh*>(mesh)->getPdmNodalIndex();
-     _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh)->getMPICommP());
-    
-     PDM_Mesh_nodal_elt_t PDM_block_type = PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,pdm_id_block);
-     _blockType = CwpBlockTypeFromPdmBlockType (PDM_block_type); 
-     BlockAdd(_blockType, mesh);
-
-     for(int id_part=0;id_part < _n_part;id_part++){
-        int nElts = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index,
-                                                   pdm_id_block,
-                                                   id_part );
-        _block_id_pdm = pdm_id_block;         
-        int* connec_faces     = NULL;       
-        int* connec_faces_idx = NULL;        
-        int* connec_cells     = NULL;       
-        int* connec_cells_idx = NULL;     
-        int  n_faces = 0;      
-                     
-        PDM_Mesh_nodal_block_poly3d_get  (_pdmNodal_handle_index,
-                                          _block_id_pdm,
-                                          id_part,
-                                          &n_faces,
-                                          &connec_faces_idx,
-                                          &connec_faces,
-                                          &connec_cells_idx,
-                                          &connec_cells);
-
-         blockSet(id_part,nElts,n_faces, connec_faces_idx, 
-                  connec_faces,connec_cells_idx,connec_cells,
-                  NULL);
-           
-       }
-  }
-
 
   void BlockCP::blockSet(int i_part,int n_elts,int n_faces,
                         int* connec_faces_idx, 

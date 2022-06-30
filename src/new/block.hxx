@@ -94,22 +94,6 @@ namespace cwipi {
 
 
     /**
-     * \brief Add and Set the CWIPI block from a Paradigm block
-     *
-     * \param [in] pdm_id_block A block identifier from Paradigm
-     * \param [in] mesh         Pointer to the Mesh object owning the block.
-     *
-     *
-     */
-
-    virtual void FromPDMBlock(int pdm_id_block, void* mesh)
-    {
-      CWP_UNUSED(pdm_id_block  );
-      CWP_UNUSED(mesh );
-      PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
-    }
-
-    /**
      * \brief Set a CWIPI block in a partition
      *
      * \param [in]  i_part          Partition identifier

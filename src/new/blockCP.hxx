@@ -76,16 +76,6 @@ namespace cwipi {
                              int* connec_cells,
                              CWP_g_num_t* global_num);
 
-      /**
-       * \brief Add and Set the CWIPI block from a Paradigm block 
-       * 
-       * \param [in] pdm_id_block A block identifier from Paradigm
-       * \param [in] mesh         Pointer to the Mesh object owning the block.
-       *
-       *
-       */    
-       
-       virtual void FromPDMBlock(int pdm_id_block, void* mesh);
 
        /**
         *
