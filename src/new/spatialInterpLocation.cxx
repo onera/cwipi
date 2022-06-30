@@ -626,9 +626,6 @@ namespace cwipi {
           int         *connec_idx2                   = _cell_vtx_idx[i_part];
           int         *connec2                       = _cell_vtx[i_part];
 
-          // int         *connec_idx1                   = _mesh->connecIdxGet(i_part);
-          // int         *connec1                       = _mesh->connecGet(i_part);
-
           int         *connec_idx = connec_idx2; 
           int         *connec = connec2;
           

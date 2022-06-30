@@ -208,101 +208,6 @@ namespace cwipi {
     }//end loop on block
   }
 
-
-  void 
-  Mesh::connecCompute
-  (
-   int i_part
-   )
-  {
-    int n_elt_part = getPartNElts(i_part);
-
-    int connec_size=0;
-    for(int i=0;i<_nBlocks;i++){
-      CWP_Block_t  block_type = _blockDB[i]->blockTypeGet();
-
-      if(block_type!=CWP_BLOCK_CELL_POLY and block_type!=CWP_BLOCK_FACE_POLY){
-        int block_type_size = _Mesh_nodal_block_std_type_size_get(block_type);
-        int n_elt = _blockDB[i]->NEltsGet()[i_part];
-        connec_size+=n_elt*block_type_size;
-      }
-      if(block_type == CWP_BLOCK_FACE_POLY){
-        int n_elt = _blockDB[i]->NEltsGet(i_part);
-        int* connec_idx = _blockDB[i]->ConnecIDXGet()[i_part];
-            /*
-            for(int i=0;i<n_elt+1;i++)
-              printf("connec_idx[%i][%i] %i n_elt %i blockDB[%i]\n",i_part,i,connec_idx[i],n_elt,i);
-            while(1==1){}
-            */
-            //-->> Tmp fix for n_proc_data < n_proc
-        if (connec_idx == NULL && n_elt == 0) {
-          connec_idx = (int *) malloc (sizeof(int));
-          connec_idx[0] = 0;
-        }
-            //<<--
-        connec_size+=connec_idx[n_elt];
-
-      }
-
-    }//end loop on block
-
-
-
-    _connec_idx[i_part] = (int*)malloc(sizeof(int)* (n_elt_part+1));
-    _connec[i_part] = (int*)malloc(sizeof(int)* connec_size);
-    _gnum_elt[i_part] = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)* n_elt_part);
-
-    printf("n_elt_part : %d\n", n_elt_part);
-
-    int ind_idx=0;
-    _connec_idx[i_part][0]=0;
-    for(int i=0;i<_nBlocks;i++){
-      CWP_Block_t  block_type = _blockDB[i]->blockTypeGet();
-      int n_elt = _blockDB[i]->NEltsGet()[i_part];
-
-
-      if(block_type!=CWP_BLOCK_CELL_POLY and block_type!=CWP_BLOCK_FACE_POLY){
-        int block_type_size = _Mesh_nodal_block_std_type_size_get(block_type);
-
-        std::map<int,int*> connect = _blockDB[i]->ConnecGet();
-        int* partconnect = connect[i_part];
-        CWP_g_num_t* gnum_block = _blockDB[i]->GNumMeshGet(i_part);
-
-        for(int j=0;j<n_elt;j++){
-          _connec_idx[i_part][ind_idx+1]=_connec_idx[i_part][ind_idx]+block_type_size;
-          _gnum_elt[i_part][ind_idx]=gnum_block[j];
-
-          for(int k=0;k<block_type_size;k++){
-            _connec[i_part][ _connec_idx[i_part][ind_idx] +k] = partconnect[ j*block_type_size + k ];
-          }
-          ind_idx++;
-        }//end loop j
-      }
-
-      if( block_type==CWP_BLOCK_FACE_POLY){
-  
-        std::map<int,int*> connectIdx = _blockDB[i]->ConnecIDXGet();
-        std::map<int,int*> connect    = _blockDB[i]->ConnecGet();
-        int* partconnect    = connect   [i_part];
-        int* partconnectIdx = connectIdx[i_part];
-        CWP_g_num_t* gnum_block = _blockDB[i]->GNumMeshGet(i_part);
-  
-        for(int j=0; j<n_elt; j++){
-          _connec_idx[i_part][ind_idx+1]=_connec_idx[i_part][ind_idx]+ (partconnectIdx[j+1]-partconnectIdx[j]);
-          _gnum_elt[i_part][ind_idx] = gnum_block[j];
-  
-          for(int k = _connec_idx[i_part][ind_idx]; k<_connec_idx[i_part][ind_idx+1]; k++){
-            _connec[i_part][k] = partconnect[ partconnectIdx[j] + k - _connec_idx[i_part][ind_idx] ];
-          }
-          ind_idx++;
-        }//end loop j
-      }
-  
-    }//end loop on block
-
-  }
-
-
   
   CWP_g_num_t* 
   Mesh::GNumEltsGet
@@ -331,32 +236,6 @@ namespace cwipi {
     return _elt_centers[i_part];
   }
 
-
-  int* 
-  Mesh::connecIdxGet
-  (
-    int i_part
-  ) 
-  {
-    if(_connec_idx[i_part]==NULL) {
-      connecCompute(i_part);
-    }//end if NULL
-
-    return _connec_idx[i_part];
-  }
-
-  int* 
-  Mesh::connecGet
-  (
-    int i_part
-  ) 
-  {
-    if(_connec[i_part]==NULL) {
-      connecCompute(i_part);
-    }//end if NULL
-
-    return _connec[i_part];
-  }
 
   void 
   Mesh::coordSet

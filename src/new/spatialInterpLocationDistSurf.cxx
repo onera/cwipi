@@ -214,6 +214,8 @@ namespace cwipi {
     (
     )
     {
+        // Ne fonctionne pas. Il faudra reconstruire connec et connecIdx (_cell_vtx et cell_vtx_id) commme pour la localisation (PDM_Mesh_location) 
+
         if (!_coupledCodeProperties->localCodeIs()) {
             if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
                 for (int i_part = 0 ; i_part < _nPart ; i_part++) {
@@ -222,8 +224,10 @@ namespace cwipi {
                     double *coords = _mesh->getVertexCoords(i_part);
                     CWP_g_num_t *vtx_gnum = _mesh->getVertexGNum(i_part);
                     CWP_g_num_t *elt_gnum = _mesh->GNumEltsGet(i_part);
-                    int *connecIdx = _mesh->connecIdxGet(i_part);
-                    int *connec = _mesh->connecGet(i_part);
+                    int *connecIdx = NULL;
+                    int *connec = NULL;
+                    // int *connecIdx = _mesh->connecIdxGet(i_part);
+                    // int *connec = _mesh->connecGet(i_part);
 
                     PDM_dist_cloud_surf_surf_mesh_part_set(_id_pdm, i_part, n_elts, connecIdx, connec, elt_gnum, n_vtx, coords, vtx_gnum);
                 }
@@ -243,8 +247,10 @@ namespace cwipi {
                         double *coords = _mesh->getVertexCoords(i_part);
                         CWP_g_num_t *vtx_gnum = _mesh->getVertexGNum(i_part);
                         CWP_g_num_t *elt_gnum = _mesh->GNumEltsGet(i_part);
-                        int *connecIdx = _mesh->connecIdxGet(i_part);
-                        int *connec = _mesh->connecGet(i_part);
+                        int *connecIdx = NULL;
+                        int *connec = NULL;
+                        // int *connecIdx = _mesh->connecIdxGet(i_part);
+                        // int *connec = _mesh->connecGet(i_part);
 
                         PDM_dist_cloud_surf_surf_mesh_part_set(_id_pdm, i_part, n_elts, connecIdx, connec, elt_gnum, n_vtx, coords, vtx_gnum);
                     }
@@ -260,8 +266,10 @@ namespace cwipi {
                         double *coords = cpl_mesh->getVertexCoords(i_part);
                         CWP_g_num_t *vtx_gnum = cpl_mesh->getVertexGNum(i_part);
                         CWP_g_num_t *elt_gnum = cpl_mesh->GNumEltsGet(i_part);
-                        int *connecIdx = cpl_mesh->connecIdxGet(i_part);
-                        int *connec = cpl_mesh->connecGet(i_part);
+                        int *connecIdx = NULL;
+                        int *connec = NULL;
+                        // int *connecIdx = cpl_mesh->connecIdxGet(i_part);
+                        // int *connec = cpl_mesh->connecGet(i_part);
 
                         PDM_dist_cloud_surf_surf_mesh_part_set(_id_pdm, i_part, n_elts, connecIdx, connec, elt_gnum, n_vtx, coords, vtx_gnum);
                     }

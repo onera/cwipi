@@ -484,9 +484,6 @@ namespace cwipi {
 
    inline Visu* getVisu();
 
-   void connecCompute(int i_part);
-   int* connecIdxGet(int i_part);
-   int* connecGet(int i_part);
 
    CWP_g_num_t* GNumEltsGet(int i_part);
    double* eltCentersGet(int i_part);
