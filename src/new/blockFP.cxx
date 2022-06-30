@@ -64,27 +64,9 @@ namespace cwipi {
 
   }
 
-  void BlockFP::geomFinalize(int already_in_pdm){
-
-     _pdmNodal_handle_index = static_cast<Mesh*>(_mesh)->getPdmNodalIndex();
-
-     if(already_in_pdm ==0)
-      _block_id_pdm = PDM_Mesh_nodal_block_add(_pdmNodal_handle_index,
-                                                PdmBlockTypeFromCwpBlockType(_blockType),
-                                                PDM_OWNERSHIP_USER);
+  void BlockFP::geomFinalize(){
 
     for(int i_part = 0; i_part<_n_part; i_part++){
-
-
-       if(already_in_pdm ==0)
-         PDM_Mesh_nodal_block_poly2d_set (_pdmNodal_handle_index,
-                                          _block_id_pdm,
-                                          i_part,
-                                          _n_elt     [i_part],
-                                          _connec_idx[i_part],
-                                          _connec    [i_part],
-                                          _global_num[i_part],
-                                          NULL);
 
       Visu* visu = ((Mesh*)_mesh)->getVisu();
       if(visu->isCreated() && ((Mesh*)_mesh)->getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
@@ -98,8 +80,6 @@ namespace cwipi {
 
      }
     } //end i_part
-
-
   }
 }
 

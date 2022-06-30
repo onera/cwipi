@@ -128,7 +128,7 @@ namespace cwipi {
      
         inline virtual std::map<int,int >  NFacesGet();
 
-        void geomFinalize(int already_in_pdm);
+        void geomFinalize();
 
     private:
       std::map<int,int >          _n_faces;             /*!< Number of faces for each partition */

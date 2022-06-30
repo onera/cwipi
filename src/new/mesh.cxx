@@ -658,7 +658,7 @@ namespace cwipi {
 
     }
     
-    if(_cellFaceMethod == 1){
+    else if(_cellFaceMethod == 1){
     
       int compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
@@ -855,81 +855,16 @@ namespace cwipi {
       }   //end loop on block
     }
 
-    int g_num_computation_required = 0;
-    
-    for(int i_block = 0; i_block<_nBlocks;i_block++) {
-    
-      for(int i_part =0;i_part<_npart;i_part++) {
-        CWP_g_num_t* global_num = _blockDB[i_block]->GNumMeshGet(i_part);
-        int nEltsBlock = _blockDB[i_block]->NEltsGet(i_part);
-        if(global_num == NULL && nEltsBlock != 0) g_num_computation_required = 1;
-        if(g_num_computation_required == 1) break;
-      }
-    
-      if(g_num_computation_required == 1) break;
-   
-    }
+   for (int i_block = 0 ; i_block < _nBlocks ; i_block++) {
+      _blockDB[i_block]->geomFinalize();
+    } //Loop on blockDB
 
-    if(g_num_computation_required == 1 ) {
-      
-      PDM_gen_gnum_t *pdmGNum_handle_index_elt = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
-    
-      for(int i_part=0;i_part<_npart;i_part++) {
-        if(   _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART
-           || (_cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && unionRank == _cpl->communicationGet()->unionCommLocCodeRootRanksGet() ) ) {
-          PDM_gnum_set_from_coords (pdmGNum_handle_index_elt, i_part, _nElts[i_part], eltCentersGet(i_part), NULL);
-        }
-        else {
-          double* coords_null = (double*)malloc(3*0*sizeof(double));
-          PDM_gnum_set_from_coords (pdmGNum_handle_index_elt, i_part, 0, coords_null, NULL);
-        }
-      }
-
-      PDM_gnum_compute (pdmGNum_handle_index_elt);
-
-      for (int i_part=0; i_part<_npart; i_part++) {
-       _global_num_elt[i_part] =const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index_elt, i_part));
-      }
-
-      for(int i_part=0;i_part<_npart;i_part++){
-    
-        int ind_idx=0;
-    
-        for(int i_block=0;i_block<_nBlocks;i_block++){
-          int n_elt = _blockDB[i_block]->NEltsGet(i_part);
-          _blockDB[i_block]->GNumMeshSet(i_part, &(_global_num_elt[i_part][ind_idx]) );
-          ind_idx+= n_elt;
-        } //end loop on block
-    
-      } //end loop on part
-    
-    }
-
-    if (_faceEdgeMethod) {
-     for (int i_block = 0 ; i_block < _nBlocks ; i_block++) {
-        _blockDB[i_block]->geomFinalize(_faceEdgeMethod);
-      } //Loop on blockDB
-    }
-    
-    if (_cellFaceMethod) {
-      for (int i_block = 0 ; i_block < _nBlocks ; i_block++) {
-        _blockDB[i_block]->geomFinalize(_cellFaceMethod);
-       } //Loop on blockDB
-    }
-     
-     // For the case where the blocks were created with blockAdd
-    if (!_faceEdgeMethod && !_cellFaceMethod) {
-      for (int i_block = 0 ; i_block < _nBlocks ; i_block++) {
-        _blockDB[i_block]->geomFinalize(0);
-      } //Loop on blockDB
-    }
-   
     _nBlocks     = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
     _blocks_id   = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
 
     if(_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC ) {
       _visu->GeomWrite(this);
-    }
+    } 
 
   } 
 
