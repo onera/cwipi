@@ -37,6 +37,8 @@
 
 namespace cwipi {
 
+  class Mesh;
+
   /**
    * \class Block block.hxx "block.hxx"
    * \brief Mesh mother Block definition
@@ -178,7 +180,7 @@ namespace cwipi {
      * \param [in] mesh                   The Mesh object owning the block
      */
 
-    void BlockAdd(CWP_Block_t blockType, void* mesh);
+    void BlockAdd(CWP_Block_t blockType, Mesh* mesh);
 
     /**
      *
@@ -419,7 +421,7 @@ namespace cwipi {
     std::vector <CWP_g_num_t*> _global_num;             /*!< Global numbering in the Mesh  */
     std::vector <CWP_g_num_t*> _global_num_computed;    /*!< Global numbering computed in the Mesh  */
     std::vector <CWP_g_num_t*> _global_num_block;       /*!< Global numbering in the Block */
-    void                      *_mesh;                   /*!< Pointer to the mesh object owning the block */
+    Mesh                      *_mesh;                   /*!< Pointer to the mesh object owning the block */
     std::vector<bool>          _isSet;                  /*!< Set or not for each partition */
     bool                       _isGNumSet;              /*!< Global Numbering set or not for each partition */
     bool                       _inPDMDB;                /*!< Indicate the Block is already in the Paradigm database */

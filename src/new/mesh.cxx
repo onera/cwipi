@@ -734,10 +734,11 @@ namespace cwipi {
       }   //end loop on block
     }
 
-   for (int i_block = 0 ; i_block < _nBlocks ; i_block++) {
+    for (int i_block = 0 ; i_block < _nBlocks ; i_block++) {
       _blockDB[i_block]->geomFinalize();
     } //Loop on blockDB
 
+ 
     _nBlocks     = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
     _blocks_id   = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
 

@@ -321,7 +321,7 @@ namespace cwipi {
     *
     */
 
-    inline PDM_Mesh_nodal_t& getPdmNodal() const;
+    inline PDM_Mesh_nodal_t& getPdmNodal();
 
     /**
     * \brief Get the number of elements of the id_block block.

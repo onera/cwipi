@@ -40,7 +40,7 @@ namespace cwipi {
   }
 
 
-  void Block::BlockAdd(CWP_Block_t blockType,void* mesh)
+  void Block::BlockAdd(CWP_Block_t blockType, Mesh* mesh)
   {
      _mesh     = mesh;
      _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh)->getMPICommP());
@@ -68,26 +68,9 @@ namespace cwipi {
   }
 
 
-  const double* Block::eltCentersGet(int i_part){
-       int* connecBlock = ConnecGet(i_part);
-       int* connecIDXBlock = ConnecIDXGet(i_part);
-       double* surfaceVectorBlock = (double*)malloc(sizeof(double)*_n_elt[i_part]*3);
-       double* characteristicLengthBlock = (double*)malloc(sizeof(double)*_n_elt[i_part]);
-       _cells_center[i_part] = (double*)malloc(sizeof(double)*_n_elt[i_part]*3);
-       int* isDegeneratedBlock = (int*)malloc(sizeof(int)*_n_elt[i_part]);
-       PDM_geom_elem_polygon_properties(_n_elt[i_part]            ,
-                                        connecIDXBlock            ,
-                                        connecBlock               ,
-                                        static_cast<Mesh*>(_mesh)->getCoordinates(i_part),
-                                        surfaceVectorBlock             ,
-                                        _cells_center[i_part]          ,
-                                        characteristicLengthBlock      ,
-                                        isDegeneratedBlock
-                                       );
-      return _cells_center[i_part];
- }
-
-
+  const double* Block::eltCentersGet(int i_part) {
+    return PDM_Mesh_cell_centers_get (_mesh->getPdmNodalIndex(), _block_id_pdm, i_part);
+  }
 
   CWP_g_num_t*
   Block::GNumMeshGet(int i_part) {
@@ -101,6 +84,10 @@ namespace cwipi {
 
   CWP_g_num_t*
   Block::GNumBlockGet(int i_part) {
+
+    if (_global_num_block[i_part] == NULL) {
+      PDM_Mesh_nodal_cell_centers_compute (_pdmNodal_handle_index, _block_id_pdm, i_part, PDM_OWNERSHIP_USER);
+    }
 
     _global_num_block[i_part] = PDM_Mesh_nodal_block_inside_g_num_get (_pdmNodal_handle_index,
                                                                        _block_id_pdm,
