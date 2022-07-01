@@ -1193,6 +1193,45 @@ namespace cwipi {
     cplNPartGet (
     );
 
+
+    /**
+     * \brief Return the number of user spatial interpolation properties
+     *  
+     * 
+     * \return Number of partition
+     *
+     */
+
+    inline int
+    NSpatialInterpPropertiesGet (
+    );
+
+
+    /**
+     * \brief Return the values of user spatial interpolation properties
+     *  
+     * 
+     * \return Number of partition
+     *
+     */
+
+    inline std::vector <double> &
+    SpatialInterpPropertiesValuesGet (
+    );
+
+
+    /**
+     * \brief Return the names of user spatial interpolation properties
+     *  
+     * 
+     * \return Number of partition
+     *
+     */
+
+    inline std::vector <char *> &
+    SpatialInterpPropertiesNamesGet (
+    );
+
   public:
 
     // A supprimer 

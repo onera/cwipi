@@ -32,14 +32,6 @@ namespace cwipi {
         virtual ~SpatialInterpLocationMeshLocation();
 
     protected:
-        static double _get_location_tolerance() {
-            double tolerance = CWP_MESH_LOCATION_BBOX_TOLERANCE;
-            char *env_location_tolerance;
-            env_location_tolerance = getenv("CWP_LOCATION_TOLERANCE");
-
-            if (env_location_tolerance != NULL) tolerance = atof(env_location_tolerance);
-            return tolerance;
-        }
 
         void localization_init() override;
 
@@ -56,7 +48,7 @@ namespace cwipi {
         PDM_mesh_location_t *_id_pdm;
 
         PDM_mesh_location_method_t _location_method;
-        double _tolerance = _get_location_tolerance();
+
     };
 
     class SpatialInterpLocationMeshLocationOctree : public SpatialInterpLocationMeshLocation {

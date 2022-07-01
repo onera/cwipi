@@ -17,6 +17,10 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
+
 #include "spatialInterpLocationMeshLocation.hxx"
 #include "coupling.hxx"
 #include "coupling_i.hxx"
@@ -27,6 +31,7 @@
  */
 
 namespace cwipi {
+
 
   void 
   SpatialInterpLocationMeshLocation::localization_init
@@ -41,7 +46,22 @@ namespace cwipi {
       PDM_mesh_location_reverse_results_enable (_id_pdm);
 
       PDM_mesh_location_method_set(_id_pdm, _location_method);
-      PDM_mesh_location_tolerance_set(_id_pdm, _tolerance);
+
+      _cpl->NSpatialInterpPropertiesGet ();
+
+      double tolerance = CWP_MESH_LOCATION_BBOX_TOLERANCE;
+      int nProp = _cpl->NSpatialInterpPropertiesGet();
+      std::vector <char *> &propName = _cpl->SpatialInterpPropertiesNamesGet();
+      std::vector <double> &propValue = _cpl->SpatialInterpPropertiesValuesGet();
+
+      for (int i = 0; i < nProp; i++) {
+        if (!strcmp("tolerance", propName[i])) {
+          tolerance = propValue[i];
+          break;
+        }
+      }
+
+      PDM_mesh_location_tolerance_set(_id_pdm, tolerance);
   
       if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
@@ -70,7 +90,20 @@ namespace cwipi {
         PDM_mesh_location_reverse_results_enable (_id_pdm);
 
         PDM_mesh_location_method_set(_id_pdm, _location_method);
-        PDM_mesh_location_tolerance_set(_id_pdm, _tolerance);
+
+        double tolerance = CWP_MESH_LOCATION_BBOX_TOLERANCE;
+        int nProp = _cpl->NSpatialInterpPropertiesGet();
+        std::vector <char *> &propName = _cpl->SpatialInterpPropertiesNamesGet();
+        std::vector <double> &propValue = _cpl->SpatialInterpPropertiesValuesGet();
+
+        for (int i = 0; i < nProp; i++) {
+          if (!strcmp("tolerance", propName[i])) {
+            tolerance = propValue[i];
+            break;
+          }
+        }
+
+        PDM_mesh_location_tolerance_set(_id_pdm, tolerance);
 
         SpatialInterpLocationMeshLocation *cpl_spatial_interp;
 

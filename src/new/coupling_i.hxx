@@ -1272,6 +1272,53 @@ namespace cwipi {
   }
 
 
+  /**
+   * \brief Return the number of user spatial interpolation properties
+   *  
+   * 
+   * \return Number of partition
+   *
+   */
+
+  int
+  Coupling::NSpatialInterpPropertiesGet (
+  )
+  {
+    return _n_spatial_interp_properties;    
+  }
+
+
+  /**
+   * \brief Return the values of user spatial interpolation properties
+   *  
+   * 
+   * \return Number of partition
+   *
+   */
+
+  std::vector <double> &
+  Coupling::SpatialInterpPropertiesValuesGet (
+  )
+  {
+    return _spatial_interp_properties_value;    
+  }
+
+
+  /**
+   * \brief Return the names of user spatial interpolation properties
+   *  
+   * 
+   * \return Number of partition
+   *
+   */
+
+  std::vector <char *> &
+  Coupling::SpatialInterpPropertiesNamesGet (
+  )
+  {
+    return _spatial_interp_properties_name;    
+  }
+
 } // name space cwipi
 
 
