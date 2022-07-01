@@ -23,6 +23,7 @@
 
 #include <cstring>
 #include <cstdlib>
+#include <cstdarg>
 
 /*----------------------------------------------------------------------------
  * BFT library headers
@@ -960,6 +961,55 @@ CWP_Spatial_interp_weights_compute
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
   cpl.spatialInterpWeightsCompute ();
+
+}
+
+
+/**
+ * \brief Set the properties of the spatial interpolation algorithm. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  fmt              Format with the syntax : "prop1, prop2, ..."
+ * \param       ...              Values of each properties
+ *
+ */
+
+void
+CWP_Spatial_interp_properties_set
+(
+ const char     *local_code_name,
+ const char     *cpl_id,
+ const char     *fmt,
+ ...
+)
+{
+
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  va_list ap;
+
+  char delim[] = ",";
+
+  char *fmt_cp = (char *) malloc (sizeof(char) * (1+strlen(fmt)));
+  strcpy(fmt_cp, fmt);
+
+  char *ptr = strtok(fmt_cp, delim);
+
+  int counter = 0;
+  while(ptr != NULL) {
+
+    counter++;  
+
+    ptr = strtok(NULL, delim);
+  }
+
+  free (fmt_cp);
+
+  /* Initialize the va_list structure */
+  va_start(ap, fmt);
+
+  cpl.spatialInterpPropertiesSet (fmt, &ap);
 
 }
 
@@ -2392,8 +2442,6 @@ CWP_surf_gen_compute(char* genName)
     surfMesh->computeMesh();
   }
 }
-
-
 
 void
 CWP_surf_gen_by_block_get

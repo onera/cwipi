@@ -156,7 +156,7 @@ namespace cwipi {
      *
      */
 
-    inline void
+    void
     spatialInterpPropertiesSet (
       const char *fmt,
       va_list    *pa
@@ -1250,6 +1250,11 @@ namespace cwipi {
                                                                                                                   to associate with receive distant spatial interpolatiol */
     std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &_spatial_interp_recv; /*!< local receive Spatial interpolation objects 
                                                                                                                   to associate with sent distant spatial interpolatiol */
+
+    int                                     _n_spatial_interp_properties;      /*!< Number of spatial interpolation properties */
+    std::vector<double>                    &_spatial_interp_properties_value;  /*!< Values of spatial interpolation properties */
+    std::vector<char *>                    &_spatial_interp_properties_name;   /*!< Names of spatial interpolation properties */
+
   };
 }
 

@@ -80,30 +80,6 @@ namespace cwipi {
   }
 
 
-  /*----------------------------------------------------------------------------*
-   * Methods about spatial interpolation                                        *
-   *----------------------------------------------------------------------------*/
-
-
-  /**
-   * \brief Set the spatial interpolation properties.
-   *
-   *
-   * \param [in]       fmt       Format with the syntax : "prop1, prop2, ..."
-   * \param [in,out]   pa        List of properties values
-   *
-   */
-
-  void
-  Coupling::spatialInterpPropertiesSet (
-    const char *fmt,
-    va_list    *pa
-  )
-  { 
-    PDM_UNUSED (fmt);
-    PDM_UNUSED (pa);
-    PDM_error(__FILE__, __LINE__, 0, "spatialInterpPropertiesSet is not implemented yet\n"); 
-  }
 
 
   /*----------------------------------------------------------------------------*

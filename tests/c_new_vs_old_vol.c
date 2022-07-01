@@ -1431,6 +1431,7 @@ main(int argc, char *argv[]) {
     PDM_part_to_block_global_statistic_reset();
     PDM_block_to_part_global_statistic_reset();
 
+    CWP_Spatial_interp_properties_set(code_name[0], coupling_name, "tol", 5e-2);
     CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
   
     if (code_id != 1) {
