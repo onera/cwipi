@@ -334,11 +334,9 @@ namespace cwipi {
 
           int count = 0;
           for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
-            if (_elt_pts_inside_idx[i_part][i + 1] != _elt_pts_inside_idx[i_part][i]) {
-              for (int j = 0 ; j < _elt_pts_inside_idx[i_part][i + 1] - _elt_pts_inside_idx[i_part][i] ; ++j) {
-                _involved_sources_tgt[i_part][count] = i + 1;
-                ++count;
-              }
+            if (_elt_pts_inside_idx[i_part][i + 1] > _elt_pts_inside_idx[i_part][i]) {
+              _involved_sources_tgt[i_part][count] = i + 1;
+              ++count;
             }
           }
 
@@ -467,11 +465,9 @@ namespace cwipi {
 
             int count = 0;
             for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
-              if (_elt_pts_inside_idx[i_part][i + 1] != _elt_pts_inside_idx[i_part][i]) {
-                for (int j = 0 ; j < _elt_pts_inside_idx[i_part][i + 1] - _elt_pts_inside_idx[i_part][i] ; ++j) {
-                  _involved_sources_tgt[i_part][count] = i + 1;
-                  ++count;
-                }
+              if (_elt_pts_inside_idx[i_part][i + 1] > _elt_pts_inside_idx[i_part][i]) {
+                _involved_sources_tgt[i_part][count] = i + 1;
+                ++count;
               }
             }
             assert(count == _n_involved_sources_tgt[i_part]);
@@ -582,13 +578,12 @@ namespace cwipi {
 
             int count = 0;
             for (int i = 0 ; i < cpl_spatial_interp->_src_n_gnum[i_part] ; ++i) {
-              if (cpl_spatial_interp->_elt_pts_inside_idx[i_part][i + 1] != cpl_spatial_interp->_elt_pts_inside_idx[i_part][i]) {
-                for (int j = 0 ; j < cpl_spatial_interp->_elt_pts_inside_idx[i_part][i + 1] - cpl_spatial_interp->_elt_pts_inside_idx[i_part][i] ; ++j) {
-                  cpl_spatial_interp->_involved_sources_tgt[i_part][count] = i + 1;
-                  ++count;
-                }
+              if (cpl_spatial_interp->_elt_pts_inside_idx[i_part][i + 1] > cpl_spatial_interp->_elt_pts_inside_idx[i_part][i]) {
+                cpl_spatial_interp->_involved_sources_tgt[i_part][count] = i + 1;
+                ++count;
               }
             }
+      
             assert(count == cpl_spatial_interp->_n_involved_sources_tgt[i_part]);
 
             int n_elt = 0;
