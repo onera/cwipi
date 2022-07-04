@@ -273,7 +273,7 @@ main(int argc, char *argv[]) {
                      CWP_DOUBLE,
                      CWP_FIELD_STORAGE_BLOCK,
                      1,
-                     CWP_DOF_LOCATION_NODE,
+                     CWP_DOF_LOCATION_CELL_CENTER,
                      CWP_FIELD_EXCH_RECV,
                      visu_status);
 
@@ -296,7 +296,7 @@ main(int argc, char *argv[]) {
                      CWP_DOUBLE,
                      CWP_FIELD_STORAGE_BLOCK,
                      1,
-                     CWP_DOF_LOCATION_NODE,
+                     CWP_DOF_LOCATION_CELL_CENTER,
                      CWP_FIELD_EXCH_SEND,
                      visu_status);
 

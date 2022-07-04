@@ -288,7 +288,7 @@ namespace cwipi {
 
 
     else {
-      CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
+      // CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
 
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
 

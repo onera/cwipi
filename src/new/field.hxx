@@ -194,6 +194,7 @@ namespace cwipi {
       }
       else {
         PDM_error(__FILE__, __LINE__, 0, "Field::dataSet Error : unknoown data type.\n");
+        return nullptr;
       }
     }
 

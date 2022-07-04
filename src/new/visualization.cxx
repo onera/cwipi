@@ -267,27 +267,6 @@ namespace cwipi {
                                    global_num);
 
   }
-/*****************************************/
-
-  void Visu::GeomBlockGNumMeshSet (int id_block,
-                                   int id_part,
-                                   CWP_g_num_t *global_num) {
-    CWP_UNUSED(id_block);
-    CWP_UNUSED(id_part);
-    CWP_UNUSED(global_num);
-
-    printf("Visu::GeomBlockGNumMeshSet : not implemented yet \n");
-    exit(1);
-
-                                  /*                              
-      PDM_writer_geom_bloc_g_num_mesh_set(_visu_id,
-                                          _visu_mesh_id,
-                                          id_block,
-                                          id_part,
-                                          global_num);
-
-      */
-  }
 
 /*****************************************/
 
@@ -444,19 +423,18 @@ namespace cwipi {
 
         for(int i_part=0;i_part<_n_part;i_part++) {
           int n_elts = mesh->getBlockNElts(id_block,i_part);
-          int* connec = mesh->getEltConnectivity(id_block,i_part);
+          CWP_g_num_t* gnum = mesh->globalNumGet(id_block,i_part);
           if(type != CWP_BLOCK_FACE_POLY && type != CWP_BLOCK_CELL_POLY) {
-            CWP_g_num_t* gnum = mesh->gnumInsideBlockGet(id_block,i_part);
+            int* connec = mesh->getStdConnectivity(id_block,i_part);
             GeomBlockStdSet(idBlockVisu,
                             i_part,
                             n_elts,
                             connec,
-                            gnum
-                           );
+                            gnum);
           }
-          else if (type == CWP_BLOCK_FACE_POLY){
-            CWP_g_num_t* gnum = mesh->gnumInsideBlockGet(id_block,i_part);
-            int* connecIdx = mesh->getEltConnectivityIndex(id_block,i_part);
+          else if (type == CWP_BLOCK_FACE_POLY) {
+            int* connecIdx = mesh->getPoly2DConnectivityIndex(id_block,i_part);
+            int* connec = mesh->getPoly2DConnectivity(id_block,i_part);
             GeomBlockPoly2D(idBlockVisu,
                             i_part,
                             n_elts,
@@ -464,6 +442,22 @@ namespace cwipi {
                             connec,
                             gnum);
           }
+          // else if (type == CWP_BLOCK_CELL_POLY) {
+          //   int  n_faces =;
+          //   int* connec_faces_idx =;
+          //   int* connec_faces =;
+          //   int* connec_cells_idx =; 
+          //   int* connec_cells = ;
+          //   GeomBlockPoly3D(idBlockVisu,
+          //                   i_part,
+          //                   n_elts,
+          //                   n_faces,
+          //                   connec_faces_idx,
+          //                   connec_faces,
+          //                   connec_cells_idx,
+          //                   connec_cells,
+          //                   gnum);
+          // }
         }//loop on i_part
       } //end loop on block
       GeomWrite(mesh);

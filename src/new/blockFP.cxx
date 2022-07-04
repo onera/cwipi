@@ -50,15 +50,12 @@ namespace cwipi {
                          int* connec,
                          CWP_g_num_t* mesh_global_num){
 
-     double* _cells_center_part = (double*)malloc (sizeof(double) * 3 * n_elt);
-
      _global_num [i_part] = mesh_global_num;
 
      _isSet[i_part] = true;
      _n_elt[i_part] = n_elt;
      _part_id.push_back(i_part);
      _n_part_def++;
-     _cells_center[i_part] = _cells_center_part;
      _connec     .insert    ( std::pair < int, int* > (i_part,connec));
      _connec_idx.insert     ( std::pair < int, int* > (i_part,connec_idx));
 

@@ -767,7 +767,8 @@ namespace cwipi {
       }
     }
 
-    _blockDB [block_id]->blockSet(i_part,n_elts,connec,global_num);
+    BlockStd *block = dynamic_cast <BlockStd *> (_blockDB [block_id]);
+    block->blockSet(i_part,n_elts,connec,global_num);
 
     _nElts[i_part]  += n_elts;
 
@@ -799,11 +800,13 @@ namespace cwipi {
         }
       }
 
-      _blockDB [block_id]->blockSet(i_part,
-                                      n_elts,
-                                      connec_idx,
-                                      connec,
-                                      global_num);
+      BlockFP *block = dynamic_cast <BlockFP *> (_blockDB [block_id]);
+
+      block->blockSet(i_part,
+                      n_elts,
+                      connec_idx,
+                      connec,
+                      global_num);
       _nElts[i_part]  += n_elts;
 
     }
@@ -833,13 +836,14 @@ namespace cwipi {
       "Set the partition coordinates vertices before finalizing.\n");
     }
      
-    _blockDB [block_id]->blockSet(i_part,n_elts,
-                                    n_faces,
-                                    connec_faces_idx,
-                                    connec_faces,
-                                    connec_cells_idx,
-                                    connec_cells,
-                                    global_num);
+    BlockCP *block = dynamic_cast <BlockCP *> (_blockDB [block_id]);
+    block->blockSet(i_part,n_elts,
+                    n_faces,
+                    connec_faces_idx,
+                    connec_faces,
+                    connec_cells_idx,
+                    connec_cells,
+                    global_num);
 
     if (_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC) {
       _visu->GeomBlockPoly3D (_id_visu[block_id],
