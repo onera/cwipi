@@ -69,6 +69,10 @@ namespace cwipi {
 
 
   const double* Block::eltCentersGet(int i_part) {
+
+    if (_global_num_block[i_part] == NULL) {
+      PDM_Mesh_nodal_cell_centers_compute (_mesh->getPdmNodalIndex(), _block_id_pdm, i_part, PDM_OWNERSHIP_KEEP);
+    }
     return PDM_Mesh_cell_centers_get (_mesh->getPdmNodalIndex(), _block_id_pdm, i_part);
   }
 
@@ -81,22 +85,6 @@ namespace cwipi {
   Block::GNumMeshSet(int i_part,CWP_g_num_t* gnum) {
     _global_num[i_part] = gnum;
   }
-
-  CWP_g_num_t*
-  Block::GNumBlockGet(int i_part) {
-
-    if (_global_num_block[i_part] == NULL) {
-      PDM_Mesh_nodal_cell_centers_compute (_pdmNodal_handle_index, _block_id_pdm, i_part, PDM_OWNERSHIP_USER);
-    }
-
-    _global_num_block[i_part] = PDM_Mesh_nodal_block_inside_g_num_get (_pdmNodal_handle_index,
-                                                                       _block_id_pdm,
-                                                                       i_part );
-    return _global_num_block[i_part];
-  }
-
-
-
 
 
   PDM_Mesh_nodal_elt_t Block::PdmBlockTypeFromCwpBlockType(

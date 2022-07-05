@@ -273,7 +273,7 @@ main(int argc, char *argv[]) {
                      CWP_DOUBLE,
                      CWP_FIELD_STORAGE_BLOCK,
                      1,
-                     CWP_DOF_LOCATION_NODE,
+                     CWP_DOF_LOCATION_CELL_CENTER,
                      CWP_FIELD_EXCH_RECV,
                      visu_status);
 
@@ -296,7 +296,7 @@ main(int argc, char *argv[]) {
                      CWP_DOUBLE,
                      CWP_FIELD_STORAGE_BLOCK,
                      1,
-                     CWP_DOF_LOCATION_NODE,
+                     CWP_DOF_LOCATION_CELL_CENTER,
                      CWP_FIELD_EXCH_SEND,
                      visu_status);
 
@@ -306,7 +306,18 @@ main(int argc, char *argv[]) {
 
   printf("%d - Before compute\n", rank);
   CWP_Spatial_interp_weights_compute(code_name[0], cpl_name);
-  printf("%d - After compute\n", rank);
+
+  int n_uncomputed = 0;
+
+  if (strcmp(code_name[0], "code1") == 0) {
+    n_uncomputed = CWP_N_uncomputed_tgts_get (code_name[0], cpl_name, field_name2, 0);
+  }
+
+  else if (strcmp(code_name[0], "code2") == 0) {
+    n_uncomputed = CWP_N_uncomputed_tgts_get (code_name[0], cpl_name, field_name1, 0);
+  }
+
+  printf("%d - After compute %d\n", rank, n_uncomputed);
 
   if (strcmp(code_name[0], "code1") == 0) {
     CWP_Field_issend(code_name[0], cpl_name, field_name1);

@@ -34,7 +34,8 @@ namespace cwipi {
    _fieldID        (field_id)    ,
    _fieldIDInt     (fieldIDInt),
    _physTime       (physTime)    ,
-   _iteration      (iteration)
+   _iteration      (iteration),
+   _cpl(cpl)
 
     {
       _mesh = cpl->meshGet();

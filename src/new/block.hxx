@@ -94,82 +94,6 @@ namespace cwipi {
 
     PDM_Mesh_nodal_elt_t PdmBlockTypeFromCwpBlockType (CWP_Block_t CWP_block_type);
 
-
-    /**
-     * \brief Set a CWIPI block in a partition
-     *
-     * \param [in]  i_part          Partition identifier
-     * \param [in]  n_elts          Number of elements of the block in the partition.
-     * \param [in]  connec          Elements connectivity.
-     * \param [in]  mesh_global_num Mesh global numbering of the block
-     *
-     */
-
-    virtual void blockSet(int i_part,int n_elts,int* connec,CWP_g_num_t* mesh_global_num)
-    {
-      CWP_UNUSED(i_part          );
-      CWP_UNUSED(n_elts          );
-      CWP_UNUSED(connec          );
-      CWP_UNUSED(mesh_global_num      );
-      PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
-    }
-
-    /**
-     * \brief Set a CWIPI block in a partition
-     *
-     * \param [in]  i_part     Partition identifier
-     * \param [in]  n_elts     Number of elements of the block in the partition.
-     * \param [in]  connec_idx Elements connectivity index
-     * \param [in]  connec     Elements connectivity
-     * \param [in]  global_num Mesh global numbering of the block
-     *
-     */
-
-    virtual void blockSet(int i_part,int n_elts,
-                          int* connec_idx,
-                          int* connec,
-                          CWP_g_num_t* global_num)
-    {
-      CWP_UNUSED(i_part          );
-      CWP_UNUSED(n_elts          );
-      CWP_UNUSED(connec_idx      );
-      CWP_UNUSED(connec          );
-      CWP_UNUSED(global_num      );
-      PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
-    }
-
-    /**
-     * \brief Set a CWIPI block in a partition
-     *
-     * \param [in]  i_part     Partition identifier
-     * \param [in]  n_elts     Number of elements of the block in the partition
-     * \param [in]  n_faces    Number of faces of the block in the partition
-     * \param [in]  connec_faces_idx Vertices to faces connectivity index
-     * \param [in]  connec_faces     Vertices to faces connectivity
-     * \param [in]  connec_cells_idx Faces to cells connectivity index
-     * \param [in]  connec_cells     Faces to cells connectivity
-     * \param [in]  global_num Mesh  Global numbering of the block
-     *
-     */
-
-    virtual void blockSet(int i_part,int n_elts,int n_faces,
-                          int* connec_faces_idx,
-                          int* connec_faces,
-                          int* connec_cells_idx,
-                          int* connec_cells,
-                          CWP_g_num_t* global_num)
-    {
-      CWP_UNUSED(i_part          );
-      CWP_UNUSED(n_elts          );
-      CWP_UNUSED(n_faces         );
-      CWP_UNUSED(connec_faces_idx);
-      CWP_UNUSED(connec_faces    );
-      CWP_UNUSED(connec_cells_idx);
-      CWP_UNUSED(connec_cells    );
-      CWP_UNUSED(global_num      );
-      PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
-    }
-
     /**
      *
      * \brief Block addition
@@ -198,8 +122,8 @@ namespace cwipi {
      *
      */
 
-    inline int         blockIDGet();
-    inline int         blockIDCWIPIGet();
+    inline int blockIDGet();
+    inline int blockIDCWIPIGet();
 
     inline void blockIDCWIPISet(int block_id);
 
@@ -227,9 +151,9 @@ namespace cwipi {
 
     CWP_g_num_t* GNumMeshGet(int i_part);
 
+
     void GNumMeshSet(int i_part, CWP_g_num_t* gnum);
 
-    CWP_g_num_t* GNumBlockGet(int i_part);
 
     const double* eltCentersGet(int i_part);
 

@@ -194,6 +194,7 @@ namespace cwipi {
       }
       else {
         PDM_error(__FILE__, __LINE__, 0, "Field::dataSet Error : unknoown data type.\n");
+        return nullptr;
       }
     }
 
@@ -296,6 +297,13 @@ namespace cwipi {
     return _linkedFieldLocation;
   }
 
+  Coupling *couplingGet(){
+    return _cpl;
+  }
+
+  Mesh *meshGet(){
+    return _mesh;
+  }
 
   private:
 
@@ -314,6 +322,7 @@ namespace cwipi {
     void                                    *_recvBuffer;
     double*                                  _physTime;
     int*                                     _iteration;
+    Coupling                                *_cpl;
     Mesh                                    *_mesh;
     int                                      _n_part;
     int                                      _visu_id;

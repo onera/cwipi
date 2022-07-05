@@ -29,6 +29,9 @@
 #include "pdm_error.h"
 #include "pdm_gnum.h"
 #include "block.hxx"
+#include "blockFP.hxx"
+#include "blockCP.hxx"
+#include "blockStd.hxx"
 #include "cwp.h"
 #include "visualization.hxx"
 
@@ -369,7 +372,7 @@ namespace cwipi {
     *
     */
 
-    inline int* getEltConnectivityIndex(int id_block,int i_part);
+    inline int* getPoly2DConnectivityIndex(int id_block,int i_part);
 
     /**
     * \brief Get a block element connectivity
@@ -381,7 +384,20 @@ namespace cwipi {
     *
     */
 
-    inline int* getEltConnectivity     (int id_block,int i_part);
+    inline int* getPoly2DConnectivity     (int id_block,int i_part);
+
+
+    /**
+    * \brief Get a block element connectivity
+    *
+    * This function gets the element connectivity of the id_block block.
+    *
+    * \param [in] id_block Block identifier
+    * \return              Element connectivity of the id_block block
+    *
+    */
+
+    inline int* getStdConnectivity     (int id_block,int i_part);
 
     /**
     * \brief True if coordinates are defined on all partitions False otherwise.
@@ -505,12 +521,7 @@ namespace cwipi {
      return _blockDB[id_block] -> GNumMeshGet(i_part);
    }
 
-
-   CWP_g_num_t* gnumInsideBlockGet(int id_block,int i_part) {
-     return _blockDB[id_block] -> GNumBlockGet(i_part);
-   }
-
-      PDM_MPI_Comm _pdm_localComm;
+   PDM_MPI_Comm _pdm_localComm;
   private:
 
     int _Mesh_nodal_block_std_type_size_get(CWP_Block_t type);
@@ -655,14 +666,22 @@ namespace cwipi {
   }
   */
 
-  int* Mesh::getEltConnectivityIndex(int id_block,int i_part)
+  int* Mesh::getPoly2DConnectivityIndex(int id_block,int i_part)
   {
-    return _blockDB[id_block] -> ConnecIDXGet()[i_part];
+    BlockFP * block = dynamic_cast <BlockFP *> (_blockDB[id_block]);
+    return block-> ConnecIDXGet()[i_part];
   }
 
-  int* Mesh::getEltConnectivity(int id_block,int i_part)
+  int* Mesh::getPoly2DConnectivity(int id_block,int i_part)
   {
-    return _blockDB[id_block] -> ConnecGet()[i_part];
+    BlockFP * block = dynamic_cast <BlockFP *> (_blockDB[id_block]);
+    return block -> ConnecGet()[i_part];
+  }
+
+  int* Mesh::getStdConnectivity(int id_block,int i_part)
+  {
+    BlockStd * block = dynamic_cast <BlockStd *> (_blockDB[id_block]);
+    return block-> ConnecGet()[i_part];
   }
 
   //-->>
