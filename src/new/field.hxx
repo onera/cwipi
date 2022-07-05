@@ -297,6 +297,13 @@ namespace cwipi {
     return _linkedFieldLocation;
   }
 
+  Coupling *couplingGet(){
+    return _cpl;
+  }
+
+  Mesh *meshGet(){
+    return _mesh;
+  }
 
   private:
 
@@ -315,6 +322,7 @@ namespace cwipi {
     void                                    *_recvBuffer;
     double*                                  _physTime;
     int*                                     _iteration;
+    Coupling                                *_cpl;
     Mesh                                    *_mesh;
     int                                      _n_part;
     int                                      _visu_id;

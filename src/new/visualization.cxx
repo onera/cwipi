@@ -27,6 +27,9 @@
 #include "field.hxx"
 #include "cwp.h"
 #include "cwp_priv.h"
+#include "coupling.hxx"
+#include "coupling_i.hxx"
+
 
 /**
  * \cond
@@ -380,19 +383,76 @@ namespace cwipi {
 
 /********************************************************/
 
-  void Visu::WriterField(Field* field, const CWP_Field_map_t  map_type) {
+  void Visu::WriterField(Field* field, int* n_ref_values, int **ref_values,  const CWP_Field_map_t  map_type) {
     int id_var = -1;
 
+    double default_val = 1e15;
+
     id_var = field->visuIdGet();
-    //TODO: CHange double for multitype
 
     PDM_writer_var_data_free(_visu_id, id_var);
 
-    for (int i = 0; i < _n_part; i++) {
-      PDM_writer_var_set(_visu_id, id_var, _visu_mesh_id, i, (double*) field->dataGet(i, map_type));
+    double **cp_field_data = NULL;
+
+    if (n_ref_values == NULL) {
+
+      for (int i = 0; i < _n_part; i++) {
+        PDM_writer_var_set(_visu_id, id_var, _visu_mesh_id, i, (double*) field->dataGet(i, map_type));
+      }
+    }
+
+    else {
+      cp_field_data = (double **) malloc (sizeof (void *) * _n_part);
+
+      for (int i = 0; i < _n_part; i++) {
+        int n_elt_part;
+
+        if (field->locationGet() == CWP_DOF_LOCATION_NODE) {
+          n_elt_part = field->meshGet()->getPartNVertex(i);
+        }
+
+        else if (field->locationGet() == CWP_DOF_LOCATION_CELL_CENTER) {
+          n_elt_part = field->meshGet()->getPartNElts(i);
+        }
+
+        else if (field->locationGet() == CWP_DOF_LOCATION_USER) {
+          n_elt_part = field->couplingGet()->userTargetNGet(i);
+        }
+
+        else {
+          PDM_error (__FILE__, __LINE__, 0, "Visu::WriterField : Field location is undefined\n");
+        }
+
+        cp_field_data[i] = (double *) malloc (sizeof (double) * field->nComponentGet() * n_elt_part);
+
+        for (int j = 0; j < n_elt_part; j++) {
+          cp_field_data[i][j] = default_val;
+        }
+
+        double* data = (double*) field->dataGet(i, map_type);
+        for (int j = 0; j < n_ref_values[i]; j++) {
+          for (int k = 0; k < field->nComponentGet(); k++) {
+            cp_field_data[i][field->nComponentGet() * (ref_values[i][j]-1) + k] = data[field->nComponentGet() * j + k];
+          } 
+        }
+
+        PDM_writer_var_set(_visu_id, id_var, _visu_mesh_id, i, (double *) cp_field_data[i]);
+      }
+
     }
 
     PDM_writer_var_write(_visu_id, id_var);
+
+    if (n_ref_values != NULL) {
+
+      for (int i = 0; i < _n_part; i++) {
+
+        free (cp_field_data[i]);
+      }
+
+      free (cp_field_data);
+
+    }
 
   }
 

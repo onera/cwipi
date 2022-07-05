@@ -278,14 +278,10 @@ namespace cwipi {
   {
 
     if (!_coupledCodeProperties->localCodeIs()) {
-
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-
         PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, _pdm_CplNodal);
       }
-
     }
-
 
     else {
       // CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
@@ -304,7 +300,6 @@ namespace cwipi {
           PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, cpl_mesh->getPdmNodalIndex());
   
         }
-
       }
     }
   }

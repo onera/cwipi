@@ -42,7 +42,9 @@ namespace cwipi {
   }
 
 
-  void BlockCP::blockSet(int i_part,int n_elts,int n_faces,
+  void BlockCP::blockSet(int i_part,
+                         int n_elts,
+                         int n_faces,
                         int* connec_faces_idx, 
                         int* connec_faces,
                         int* connec_cells_idx,
@@ -54,6 +56,7 @@ namespace cwipi {
 
     _isSet[i_part] = true;
     _n_elt[i_part] = n_elts;
+    _n_faces[i_part] = n_faces;
     _part_id.push_back(i_part);
     _n_part_def=_n_part_def+1;
     _connec_cells_idx.insert( std::pair < int, int* >         (i_part,connec_cells_idx) );  

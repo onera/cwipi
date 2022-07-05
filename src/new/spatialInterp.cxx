@@ -466,7 +466,7 @@ namespace cwipi {
       }
 
       if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
-        _visu->WriterField(referenceField, CWP_FIELD_MAP_SOURCE);
+        _visu->WriterField(referenceField, nullptr, nullptr, CWP_FIELD_MAP_SOURCE);
       }
     }
 
@@ -506,7 +506,7 @@ namespace cwipi {
         }
 
         if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
-          _visu->WriterField(referenceField, CWP_FIELD_MAP_SOURCE);
+          _visu->WriterField(referenceField, nullptr, nullptr, CWP_FIELD_MAP_SOURCE);
         }
 
 
@@ -561,7 +561,7 @@ namespace cwipi {
           }
 
           if(cpl_spatial_interp->_visu->isCreated() && cpl_referenceField->visuStatusGet() == CWP_STATUS_ON) {
-            cpl_spatial_interp->_visu->WriterField(cpl_referenceField, CWP_FIELD_MAP_TARGET);
+            cpl_spatial_interp->_visu->WriterField(cpl_referenceField, ptp2_n_ref_gnum2, ptp2_ref_gnum2, CWP_FIELD_MAP_TARGET);
           }
 
         }
@@ -835,7 +835,15 @@ namespace cwipi {
       }
 
       if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
-        _visu->WriterField(referenceField, CWP_FIELD_MAP_TARGET);
+
+        int  *ptp2_n_ref_gnum2;
+        int **ptp2_ref_gnum2;
+        PDM_part_to_part_ref_lnum2_get (_ptsp,
+                                       &ptp2_n_ref_gnum2,
+                                       &ptp2_ref_gnum2);
+
+        _visu->WriterField(referenceField, ptp2_n_ref_gnum2, ptp2_ref_gnum2, CWP_FIELD_MAP_TARGET);
+
       }
 
     }
@@ -931,11 +939,16 @@ namespace cwipi {
         }
 
         if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
-          _visu->WriterField(referenceField, CWP_FIELD_MAP_TARGET);
+
+          int  *ptp2_n_ref_gnum2;
+          int **ptp2_ref_gnum2;
+          PDM_part_to_part_ref_lnum2_get (_ptsp,
+                                         &ptp2_n_ref_gnum2,
+                                         &ptp2_ref_gnum2);          _visu->WriterField(referenceField, ptp2_n_ref_gnum2, ptp2_ref_gnum2, CWP_FIELD_MAP_TARGET);
         }
 
         if(cpl_spatial_interp->_visu->isCreated() && cpl_referenceField->visuStatusGet() == CWP_STATUS_ON) {
-          cpl_spatial_interp->_visu->WriterField(cpl_referenceField, CWP_FIELD_MAP_SOURCE);
+          cpl_spatial_interp->_visu->WriterField(cpl_referenceField, nullptr, nullptr, CWP_FIELD_MAP_SOURCE);
         }
 
       }
