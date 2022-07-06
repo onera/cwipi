@@ -180,5 +180,6 @@ test_c_create (pdm_t_point_in_polygon 1)
 test_c_create (pdm_t_line_intersection 1)
 test_c_create (pdm_t_mesh_check 1)
 test_c_create (pdm_t_join_domains 2)
+test_c_create (pdm_t_part_to_part 2)
 
 add_subdirectory(tutorial)

@@ -3420,21 +3420,21 @@ PDM_part_to_part_iexch
       }
 
       for (int i1 = 0; i1 < ptp->n_part2; i1++) {
-        ___part2_data[i1] = ((unsigned char *) _part2_data[i1]) + s_data * i * ptp->gnum1_come_from_idx[i][ptp->n_ref_lnum2[i]];
+        ___part2_data[i1] = ((unsigned char *) _part2_data[i1]) + s_data * i * ptp->gnum1_come_from_idx[i1][ptp->n_ref_lnum2[i1]];
       }
 
       if (k_comm == PDM_MPI_COMM_KIND_P2P) {
 
         PDM_part_to_part_issend (ptp,
                                  s_data,
-                                 cst_stride,
+                                 1,
                   (const void **)_part1_to_part2_data,
                                  tag,
                                  &(ptp->async_exch_subrequest[_request][2*i]));
 
         PDM_part_to_part_irecv (ptp,
                                 s_data,
-                                cst_stride,
+                                1,
                         (void **)___part2_data,
                                 tag,
                                 &(ptp->async_exch_subrequest[_request][2*i+1]));
@@ -3445,7 +3445,7 @@ PDM_part_to_part_iexch
 
         PDM_part_to_part_ialltoall (ptp,
                                     s_data,
-                                    cst_stride,
+                                    1,
                                     _part1_to_part2_data,
                             (void **)___part2_data,
                                     &(ptp->async_exch_subrequest[_request][2*i]));                                  
@@ -3498,6 +3498,9 @@ PDM_part_to_part_iexch
       }
 
     }
+
+    free(__part1_to_part2_data);
+    free(___part2_data);
 
   } 
 
