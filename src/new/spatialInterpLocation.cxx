@@ -559,12 +559,9 @@ namespace cwipi {
   {
     int nComponent = referenceField->nComponentGet();
     CWP_Dof_location_t referenceFieldType = referenceField->locationGet();
-    int dataTypeSize = referenceField->dataTypeSizeGet();
     CWP_Interpolation_t interpolationType = referenceField->interpolationTypeGet();
 
-
     // int  _nPart; !< Mesh partition number                                                    
-
 
     if (interpolationType == CWP_INTERPOLATION_USER) {
     // for (int i_part = 0 ; i_part < _nPart ; i_part++) {
@@ -594,19 +591,19 @@ namespace cwipi {
 
         for (int i_part = 0; i_part < _nPart; i_part++) {
           int         *part_elt_pts_inside_idx      = _elt_pts_inside_idx[i_part];
-          void        *referenceData                = referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE);
+          double       *referenceData                = (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE);
 
           int          part_n_elt                   = _mesh->getPartNElts(i_part);
 
-          char *p_local_buffer = (char *) buffer;
-          char *p_referenceData = (char *) referenceData;
+          double *local_buffer = (double *) *buffer;
 
+          int ival = 0;
           for (int i = 0; i < part_n_elt; i++) {
             for (int j = part_elt_pts_inside_idx[i]; j < part_elt_pts_inside_idx[i+1]; j++) {
-              memcpy((char *) p_local_buffer, p_referenceData, nComponent * dataTypeSize);
-              p_local_buffer += (part_elt_pts_inside_idx[j+1] - part_elt_pts_inside_idx[j]) * nComponent * dataTypeSize;
+              for (int k1 = 0; k1 < nComponent; k1++) {
+                local_buffer[nComponent * ival + k1] = referenceData[i*nComponent +k1];
+              }
             } 
-            p_referenceData += nComponent * dataTypeSize;        
           }
 
         }
@@ -632,74 +629,19 @@ namespace cwipi {
           double *local_buffer = (double *) *buffer;
 
           int ival = 0;
-          // for (int i = 0; i < part_n_elt; i++) {
-          //   printf("elt cwipi: %d\n", i); 
-
-          //   int elt_i_pt = part_elt_pts_inside_idx[i];
-
-          //   int elt_n_pts = part_elt_pts_inside_idx[i+1] - elt_i_pt;
-
-          //   for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
-          //     printf (" "PDM_FMT_G_NUM"", _points_gnum[i_part][j]);
-          //   }
-          //   printf("\n");
-      
-          //   for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
-          //     printf (" %12.5e  %12.5e  %12.5e /", _points_coords[i_part][3 * j], _points_coords[i_part][3 * j + 1], _points_coords[i_part][3 * j + 2]);
-          //   }
-          //   printf("\n");
-
-          //   for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
-          //     printf (" %12.5e  %12.5e  %12.5e /", _points_projected_coords[i_part][3 * j], _points_projected_coords[i_part][3 * j + 1], _points_projected_coords[i_part][3 * j + 2]);
-          //   }
-          //   printf("\n");
-
-          //   for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
-          //     printf (" %12.5e", _points_dist2[i_part][j]);
-          //   }
-          //   printf("\n");
-
-          //   for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
-          //     printf (" %d", part_weights_idx[j]);
-          //   }
-          //   printf("\n");
-      
-          //   for (int j = elt_i_pt; j < elt_i_pt + elt_n_pts; j++) {
-          //     for (int k = part_weights_idx[j]; k < part_weights_idx[j+1]; k++) {
-          //       printf (" %12.5e", part_weights[k]);
-          //     }
-          //     printf("/");
-          //   }
-          //   printf("\n");
-
-          // }
           for (int i = 0; i < part_n_elt; i++) {
             for (int j = part_elt_pts_inside_idx[i]; j < part_elt_pts_inside_idx[i+1]; j++) {
-//              if (connec_idx[i+1] - connec_idx[i] != part_weights_idx[j + 1] - part_weights_idx[j]) {
-//                printf("\ti, j, connecs, weights %d %d: %d %d %d / %d %d %d\n", i, j, connec_idx[i],       connec_idx[i + 1],       connec_idx[i + 1]       - connec_idx[i],
-//                                                                                      part_weights_idx[j], part_weights_idx[j + 1], part_weights_idx[j + 1] - part_weights_idx[j]);
-//              }
               for (int k1 = 0; k1 < nComponent; k1++) {
                 local_buffer[ival] = 0;
                 int k2 = connec_idx[i];
                 assert(connec_idx[i+1] - connec_idx[i] == part_weights_idx[j + 1] - part_weights_idx[j]);
                 for (int k = part_weights_idx[j]; k < part_weights_idx[j+1]; k++) {
                   int isom = connec[k2++] - 1;
-//                  printf("\t\ti, k, weights isom %d %d %12.5e %12.5e %d\n", i, k, part_weights[k], referenceData[isom*nComponent+k1], isom);
                   local_buffer[ival] += part_weights[k] * referenceData[isom*nComponent+k1];
 
                 }
                 ival++;
               }
-
-              // printf("coords dist projected_x gnum weight_idx local_buffer %d %f %f %f %f %f %ld %d %f\n", i,
-              //   _points_coords[i_part][3 * j], 
-              //   _points_coords[i_part][3 * j + 1], 
-              //   _points_coords[i_part][3 * j + 2], 
-              //   _points_dist2[i_part][j], 
-              //   _points_projected_coords[i_part][3 * j], 
-              //   _points_gnum[i_part][j], 
-              //   part_weights_idx[j], local_buffer[ival - 1]);
             }
           }
         }
