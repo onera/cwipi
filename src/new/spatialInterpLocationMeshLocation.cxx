@@ -372,7 +372,8 @@ namespace cwipi {
             }
           }
 
-          assert(count == _n_involved_sources_tgt[i_part]);
+          _n_involved_sources_tgt[i_part] = count;
+          _involved_sources_tgt[i_part] = (int*) realloc(_involved_sources_tgt[i_part], sizeof(int) * count);
 
           int n_elt = 0;
           CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
@@ -502,7 +503,9 @@ namespace cwipi {
                 ++count;
               }
             }
-            assert(count == _n_involved_sources_tgt[i_part]);
+
+            _n_involved_sources_tgt[i_part] = count;
+            _involved_sources_tgt[i_part] = (int*) realloc(_involved_sources_tgt[i_part], sizeof(int) * count);
 
             int n_elt = 0;
             CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
@@ -616,7 +619,8 @@ namespace cwipi {
               }
             }
       
-            assert(count == cpl_spatial_interp->_n_involved_sources_tgt[i_part]);
+            cpl_spatial_interp->_n_involved_sources_tgt[i_part] = count;
+            cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) realloc(cpl_spatial_interp->_involved_sources_tgt[i_part], sizeof(int) * count);
 
             int n_elt = 0;
             CWP_Interface_t interf_dim = cpl_cpl.entitiesDimGet();

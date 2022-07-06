@@ -232,12 +232,8 @@ namespace cwipi {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
      }
 
-
-     virtual void GNumBlockSet(int i_part, CWP_g_num_t* global_num)
-     {
-       CWP_UNUSED (i_part);
-       CWP_UNUSED (global_num);
-       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+     void GNumBlockSet(int i_part, CWP_g_num_t* global_num){
+        _global_num [i_part] = global_num;
      }
 
     /**
@@ -343,8 +339,6 @@ namespace cwipi {
     int                        _block_id_pdm;           /*!< Block identifier */
     int                        _block_id_cwipi;         /*!< Block identifier */
     std::vector <CWP_g_num_t*> _global_num;             /*!< Global numbering in the Mesh  */
-    std::vector <CWP_g_num_t*> _global_num_computed;    /*!< Global numbering computed in the Mesh  */
-    std::vector <CWP_g_num_t*> _global_num_block;       /*!< Global numbering in the Block */
     Mesh                      *_mesh;                   /*!< Pointer to the mesh object owning the block */
     std::vector<bool>          _isSet;                  /*!< Set or not for each partition */
     bool                       _isGNumSet;              /*!< Global Numbering set or not for each partition */

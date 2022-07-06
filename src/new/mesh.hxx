@@ -577,6 +577,9 @@ namespace cwipi {
 
     PDM_Mesh_nodal_t                       *_pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
 
+    bool                                    _isVtxGnumComputed;
+    bool                                    _isEltGnumComputed;
+
   //   Mesh &operator=(const Mesh &other);  /*!< Assigment operator not available */
   //   Mesh (const Mesh& other);            /*!< Copy constructor not available */
 

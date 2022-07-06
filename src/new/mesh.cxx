@@ -81,8 +81,9 @@ namespace cwipi {
     _cpl(cpl),
     _faceEdgeMethod(0),
     _cellFaceMethod(0),
-    _pdmNodal_handle_index()
-
+    _pdmNodal_handle_index(),
+    _isVtxGnumComputed(false),
+    _isEltGnumComputed(false)
   {
 
     _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&localComm));
@@ -419,6 +420,8 @@ namespace cwipi {
     _pdmNodal_handle_index = PDM_Mesh_nodal_create (_npart,_pdm_localComm);
 
     if(gnumVtxRequired () ){
+      _isVtxGnumComputed = true;
+
       PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
       for(int i_part=0;i_part<_npart;i_part++) {
@@ -464,6 +467,8 @@ namespace cwipi {
       }
 
       if(compute_gnum) {
+        _isEltGnumComputed = true;
+
         PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
         double ** face_center = new double* [_npart];
@@ -546,6 +551,8 @@ namespace cwipi {
       }
 
       if(compute_gnum) {
+
+        _isEltGnumComputed = true;
 
         PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
@@ -692,6 +699,8 @@ namespace cwipi {
 
       if (compute_gnum) {
 
+        _isEltGnumComputed = true;
+
         PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_KEEP);
 
         double **cell_center = new double* [_npart];
@@ -827,15 +836,19 @@ namespace cwipi {
 
         for (int i_part = 0; i_part < _npart; i_part++) {
 
-          PDM_g_num_t *gnum =  const_cast<PDM_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
+          PDM_g_num_t *gnum = const_cast<PDM_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
 
           for(int i_block = 0; i_block < _nBlocks; i_block++){
 
             int n_elt = _blockDB[i_block]->NEltsGet(i_part);
+            CWP_g_num_t *block_gnum = (CWP_g_num_t *) malloc (sizeof(CWP_g_num_t) * n_elt);
+
+            memcpy(block_gnum, gnum, n_elt * sizeof(CWP_g_num_t));
+
+            _blockDB[i_block]->GNumBlockSet(i_part, block_gnum);
 
           }
 
-          _cellLNToGN[i_part] = const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
 
         }
 
@@ -848,7 +861,6 @@ namespace cwipi {
         delete[] cell_center;
 
       }
-
 
       for(int i_part = 0; i_part < _npart; i_part++){
 

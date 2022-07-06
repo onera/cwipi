@@ -49,8 +49,6 @@ namespace cwipi {
      _n_part                = static_cast<Mesh*>(mesh)->getNPart();
 
      _global_num         .resize(_n_part,NULL);
-     _global_num_computed.resize(_n_part,NULL);
-     _global_num_block   .resize(_n_part,NULL);
      _n_elt              .resize(_n_part);
      _cells_center       .resize(_n_part, NULL);
      _isSet              .resize(_n_part);
@@ -70,7 +68,7 @@ namespace cwipi {
 
   const double* Block::eltCentersGet(int i_part) {
 
-    if (_global_num_block[i_part] == NULL) {
+    if (_cells_center[i_part] == NULL) {
       PDM_Mesh_nodal_cell_centers_compute (_mesh->getPdmNodalIndex(), _block_id_pdm, i_part, PDM_OWNERSHIP_KEEP);
     }
     return PDM_Mesh_cell_centers_get (_mesh->getPdmNodalIndex(), _block_id_pdm, i_part);

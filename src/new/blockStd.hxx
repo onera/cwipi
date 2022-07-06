@@ -95,11 +95,6 @@ namespace cwipi {
            return false;
         }
 
-
-        void GNumBlockSet(int i_part, CWP_g_num_t* global_num){
-           _global_num [i_part] = global_num;
-        }
-
         void geomFinalize();
 
     private:
