@@ -120,7 +120,6 @@ module cwp
     ! CWP_Interface_t
     enum, bind(c)
         enumerator :: &
-                CWP_TEST, &
                 CWP_INTERFACE_POINT, &
                 CWP_INTERFACE_LINEAR, &
                 CWP_INTERFACE_SURFACE, &
