@@ -760,7 +760,7 @@ namespace cwipi {
   ) 
   {
 
-    if(_cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && global_num == NULL) {
+    if(global_num == NULL) {
       global_num=(CWP_g_num_t*) malloc(n_elts*sizeof(CWP_g_num_t));
       for(int i=0;i<n_elts;i++) {
         global_num[i] = i+1;
