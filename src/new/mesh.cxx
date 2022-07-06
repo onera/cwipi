@@ -696,7 +696,6 @@ namespace cwipi {
 
         double **cell_center = new double* [_npart];
 
-        int ielt = 0;
         for(int i_part = 0; i_part < _npart; i_part++){
           cell_center[i_part] = new double[3*_nElts[i_part]];
 
@@ -704,6 +703,7 @@ namespace cwipi {
             cell_center[i_part][i] = 0.;
           }
 
+          int ielt = 0;
           for(int i_block = 0; i_block < _nBlocks; i_block++){
 
             int n_elt = _blockDB[i_block]->NEltsGet(i_part);
@@ -799,6 +799,19 @@ namespace cwipi {
 
               for (int j = 0; j < n_elt; j++) {
 
+                for (int k = 0; k < n_vtx_elt; k++) {
+
+                  int i_vtx = block->ConnecGet()[i_part][j*n_vtx_elt + k] - 1;
+
+                  for (int k2 = 0; k2 < 3; k2++) {
+                    cell_center[i_part][3*ielt+k2] += _coords[i_part][3*i_vtx+k2];
+                  }  
+                }
+
+                for (int k2 = 0; k2 < 3; k2++) {
+                  cell_center[i_part][3*ielt+k2] /= n_vtx_elt;
+                }
+                ielt++;
               }
 
               block->ConnecGet()[i_part];
@@ -810,26 +823,29 @@ namespace cwipi {
 
         }
 
-        // PDM_gnum_compute (pdmGNum_handle_index);
+        PDM_gnum_compute (pdmGNum_handle_index);
 
-        // for (int i_part = 0; i_part < _npart; i_part++) {
-        //   for(int i_block = 0; i_block < _nBlocks; i_block++){
+        for (int i_part = 0; i_part < _npart; i_part++) {
 
-        //     int n_elt = _blockDB[i_block]->NEltsGet(i_part);
+          PDM_g_num_t *gnum =  const_cast<PDM_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
 
-        //   }
+          for(int i_block = 0; i_block < _nBlocks; i_block++){
 
-        //   _cellLNToGN[i_part] = const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
+            int n_elt = _blockDB[i_block]->NEltsGet(i_part);
 
-        // }
+          }
 
-        // PDM_gnum_free (pdmGNum_handle_index);
+          _cellLNToGN[i_part] = const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
 
-        // for (int i_part = 0; i_part < _npart; i_part++) {
-        //   delete[] cell_center[i_part];
-        // }
+        }
 
-        // delete[] cell_center;
+        PDM_gnum_free (pdmGNum_handle_index);
+
+        for (int i_part = 0; i_part < _npart; i_part++) {
+          delete[] cell_center[i_part];
+        }
+
+        delete[] cell_center;
 
       }
 
