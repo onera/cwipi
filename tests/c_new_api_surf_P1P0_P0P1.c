@@ -280,6 +280,7 @@ main(int argc, char *argv[]) {
     CWP_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_SOURCE, sendValues[0]);
     CWP_Field_data_set(code_name[0], cpl_name, field_name2, 0, CWP_FIELD_MAP_TARGET, recvValues[0]);
   }
+  
   else if (strcmp(code_name[0], "code2") == 0) {
     CWP_Field_create(code_name[0],
                      cpl_name,

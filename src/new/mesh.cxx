@@ -72,7 +72,7 @@ namespace cwipi {
     const CWP_Dynamic_mesh_t displacement,
     Coupling *cpl
   )
-  : 
+  :
     _localComm(localComm),
     _nBlocks(0),
                   //_hoOrdering (NULL),
@@ -141,46 +141,46 @@ namespace cwipi {
 
 
 
-  int 
+  int
   Mesh::_Mesh_nodal_block_std_type_size_get
   (
     CWP_Block_t type
-  ) 
+  )
   {
 
     switch (type) {
 
       case CWP_BLOCK_NODE: return 1;
       break;
- 
+
       case CWP_BLOCK_EDGE2: return 2;
       break;
- 
+
       case CWP_BLOCK_FACE_TRIA3: return 3;
       break;
- 
+
       case CWP_BLOCK_FACE_QUAD4: return 4;
       break;
- 
+
       case CWP_BLOCK_CELL_TETRA4: return 4;
       break;
- 
+
       case CWP_BLOCK_CELL_HEXA8: return 8;
       break;
- 
+
       case CWP_BLOCK_CELL_PYRAM5: return 5;
       break;
- 
+
       case CWP_BLOCK_CELL_PRISM6: return 6;
       break;
- 
+
       default: return -1;
       PDM_error(__FILE__, __LINE__, 0, "This CWP_Block_t is not available as function argument.\n");
 
     }
   }
 
-  void 
+  void
   Mesh::eltCentersCompute
   (
     int i_part
@@ -188,17 +188,17 @@ namespace cwipi {
   {
 
     int n_elt_part = getPartNElts(i_part);
- 
+
     if(_elt_centers[i_part] == NULL)
       _elt_centers[i_part] = (double*)malloc(sizeof(double)*3* n_elt_part);
- 
- 
+
+
     int ind_idx=0;
     for(int i=0;i<_nBlocks;i++){
       int n_elt = _blockDB[i]->NEltsGet()[i_part];
- 
+
       const double* elt_centers_block = _blockDB[i]->eltCentersGet(i_part);
- 
+
       for(int j=0;j<n_elt;j++){
         for(int k=0;k<3;k++){
           _elt_centers[i_part][3*ind_idx+k]=elt_centers_block[3*j+k];
@@ -208,8 +208,8 @@ namespace cwipi {
     }//end loop on block
   }
 
-  
-  CWP_g_num_t* 
+
+  CWP_g_num_t*
   Mesh::GNumEltsGet
   (
     int i_part
@@ -223,7 +223,7 @@ namespace cwipi {
   }
 
 
-  double* 
+  double*
   Mesh::eltCentersGet
   (
     int i_part
@@ -237,13 +237,13 @@ namespace cwipi {
   }
 
 
-  void 
+  void
   Mesh::coordSet
   (
     const int   i_part,
     const int   n_vtx,
     double      coords[],
-    CWP_g_num_t global_num[] 
+    CWP_g_num_t global_num[]
   )
   {
     _coords[i_part] = coords;
@@ -256,14 +256,14 @@ namespace cwipi {
   /**************************************************************/
 
 
-  void 
+  void
   Mesh::updateBlockDB()
   {
     int n_block = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
     int *block_ids = PDM_Mesh_nodal_blocks_id_get (_pdmNodal_handle_index);
     for (int i = 0; i < n_block; i++) {
       PDM_Mesh_nodal_elt_t t_block = PDM_Mesh_nodal_block_type_get (_pdmNodal_handle_index, block_ids[i]);
- 
+
       if (t_block == PDM_MESH_NODAL_TRIA3){
         int block_id = blockAdd(CWP_BLOCK_FACE_TRIA3);
         for(int i_part =0;i_part<_npart;i_part++){
@@ -272,13 +272,13 @@ namespace cwipi {
           CWP_g_num_t* gnum = NULL;
           PDM_Mesh_nodal_block_std_get (_pdmNodal_handle_index, block_ids[i], i_part, &connec);
           gnum = PDM_Mesh_nodal_g_num_get (_pdmNodal_handle_index, block_ids[i], i_part);
- 
+
           stdBlockSet (i_part  ,
                        block_id,
                        n_tri  ,
                        connec ,
                        gnum);
- 
+
         }
       }
 
@@ -290,13 +290,13 @@ namespace cwipi {
           CWP_g_num_t* gnum = NULL;
           PDM_Mesh_nodal_block_std_get (_pdmNodal_handle_index, block_ids[i], i_part, &connec);
           gnum = PDM_Mesh_nodal_g_num_get (_pdmNodal_handle_index, block_ids[i], i_part);
- 
+
           stdBlockSet (i_part  ,
                        block_id,
                        n_quad  ,
                        connec ,
                        gnum   );
- 
+
         }
       }
 
@@ -353,7 +353,7 @@ namespace cwipi {
           CWP_g_num_t *gnum;
           PDM_Mesh_nodal_block_std_get(_pdmNodal_handle_index, block_ids[i], i_part, &connec);
           gnum = PDM_Mesh_nodal_g_num_get(_pdmNodal_handle_index, block_ids[i], i_part);
- 
+
           stdBlockSet(i_part, block_id, n_hexa, connec, gnum);
         }
       }
@@ -366,7 +366,7 @@ namespace cwipi {
           CWP_g_num_t *gnum;
           PDM_Mesh_nodal_block_std_get(_pdmNodal_handle_index, block_ids[i], i_part, &connec);
           gnum = PDM_Mesh_nodal_g_num_get(_pdmNodal_handle_index, block_ids[i], i_part);
- 
+
           stdBlockSet(i_part, block_id, n_tetra, connec, gnum);
         }
       }
@@ -382,7 +382,7 @@ namespace cwipi {
           PDM_l_num_t      *cellfa;
           CWP_g_num_t* gnum = NULL;
 
-          PDM_Mesh_nodal_block_poly3d_get (_pdmNodal_handle_index, block_ids[i], i_part, &n_face, &facvtx_idx, &facvtx, &cellfac_idx, &cellfa); 
+          PDM_Mesh_nodal_block_poly3d_get (_pdmNodal_handle_index, block_ids[i], i_part, &n_face, &facvtx_idx, &facvtx, &cellfac_idx, &cellfa);
 
           gnum = PDM_Mesh_nodal_g_num_get (_pdmNodal_handle_index, block_ids[i], i_part);
 
@@ -404,10 +404,10 @@ namespace cwipi {
 
   /**********************************************************************/
 
-  void 
+  void
   Mesh::geomFinalize
   (
-  ) 
+  )
   {
 
     int unionRank;
@@ -418,45 +418,43 @@ namespace cwipi {
 
     _pdmNodal_handle_index = PDM_Mesh_nodal_create (_npart,_pdm_localComm);
 
-    if(coordsDefined()){
-      if(gnumVtxRequired () ){
-        PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
-
-        for(int i_part=0;i_part<_npart;i_part++) {
-          PDM_gnum_set_from_coords (pdmGNum_handle_index, i_part, _nVertex[i_part], _coords[i_part], NULL);
-        }
-
-        PDM_gnum_compute (pdmGNum_handle_index);
-  
-        for(int i_part=0;i_part<_npart;i_part++) {
-          _global_num_vtx[i_part] =const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
-        }
-
-        PDM_gnum_free (pdmGNum_handle_index);
-      }
+    if(gnumVtxRequired () ){
+      PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
       for(int i_part=0;i_part<_npart;i_part++) {
+        PDM_gnum_set_from_coords (pdmGNum_handle_index, i_part, _nVertex[i_part], _coords[i_part], NULL);
+      }
 
-        PDM_Mesh_nodal_coord_set(_pdmNodal_handle_index  ,
-                                 i_part                 ,
-                                 _nVertex       [i_part],
-                                 _coords        [i_part],
-                                 _global_num_vtx[i_part],
-                                 PDM_OWNERSHIP_USER);
+      PDM_gnum_compute (pdmGNum_handle_index);
 
-        if(_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC) {
-          _visu->GeomCoordSet(i_part,
-          _nVertex       [i_part],
-          _coords        [i_part],
-          _global_num_vtx[i_part]);
-        }
+      for(int i_part=0;i_part<_npart;i_part++) {
+        _global_num_vtx[i_part] =const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
+      }
 
-      }//loop i_part
-   
-    }//endif coordsDefined() and global_num==NULL
+      PDM_gnum_free (pdmGNum_handle_index);
+    }
+
+    for(int i_part=0;i_part<_npart;i_part++) {
+
+      PDM_Mesh_nodal_coord_set(_pdmNodal_handle_index  ,
+                               i_part                 ,
+                               _nVertex       [i_part],
+                               _coords        [i_part],
+                               _global_num_vtx[i_part],
+                               PDM_OWNERSHIP_USER);
+
+      if(_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC) {
+        _visu->GeomCoordSet(i_part,
+        _nVertex       [i_part],
+        _coords        [i_part],
+        _global_num_vtx[i_part]);
+      }
+
+    }//loop i_part
+
 
     if (_faceEdgeMethod == 1) {
-    
+
       int compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
         if (_faceLNToGN[i_part] != NULL) {
@@ -469,7 +467,7 @@ namespace cwipi {
         PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
         double ** face_center = new double* [_npart];
-  
+
         for (int i_part = 0; i_part < _npart; i_part++) {
           face_center[i_part] = new double[3*_nFace[i_part]];
           for (int j = 0; j < 3*_nFace[i_part]; j++) {
@@ -481,18 +479,18 @@ namespace cwipi {
             int nb = _faceEdgeNb[i_part][j];
 
             for (int k = idx; k < idx + nb; k++) {
-              int iEdge = _faceEdge[i_part][k] - 1; 
+              int iEdge = _faceEdge[i_part][k] - 1;
               for (int k1 = 0; k1 < 2; k1++) {
-                int ivtx = _edgeVtx[i_part][2*iEdge + k1] - 1;   
+                int ivtx = _edgeVtx[i_part][2*iEdge + k1] - 1;
                 for (int k2 = 0; k2 < 3; k2++) {
                   face_center[i_part][3*j+k2] += _coords[i_part][3*ivtx+k2];
-                }  
-              }  
+                }
+              }
             }
 
             for (int k2 = 0; k2 < 3; k2++) {
               face_center[i_part][3*j+k2] /= 2*nb;
-            }  
+            }
           }
         }
 
@@ -501,7 +499,7 @@ namespace cwipi {
         }
 
         PDM_gnum_compute (pdmGNum_handle_index);
- 
+
         for(int i_part=0;i_part<_npart;i_part++) {
           _faceLNToGN[i_part] = const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
         }
@@ -515,7 +513,7 @@ namespace cwipi {
         delete[] face_center;
 
       }
-    
+
       for (int i_part=0; i_part < _npart; i_part++) {
 
         PDM_Mesh_nodal_cell2d_celledge_add (_pdmNodal_handle_index,
@@ -536,9 +534,9 @@ namespace cwipi {
       updateBlockDB();
 
     }
-    
+
     else if(_cellFaceMethod == 1){
-    
+
       int compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
         if (_faceLNToGN[i_part] != NULL) {
@@ -552,7 +550,7 @@ namespace cwipi {
         PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
         double ** cell_center = new double* [_npart];
-  
+
         for (int i_part = 0; i_part < _npart; i_part++) {
           cell_center[i_part] = new double[3*_nCells[i_part]];
           for (int j = 0; j < 3*_nCells[i_part]; j++) {
@@ -560,7 +558,7 @@ namespace cwipi {
           }
 
           for (int j = 0; j < _nCells[i_part]; j++) {
- 
+
             int weights = 0;
             int idx_face = _cellFaceIdx[i_part][j];
             int nb_face = _cellFaceNb[i_part][j];
@@ -578,14 +576,14 @@ namespace cwipi {
 
                 for (int k2 = 0; k2 < 3; k2++) {
                   cell_center[i_part][3*j+k2] += _coords[i_part][3*i_vtx+k2];
-                }  
+                }
                 weights++;
               }
             }
 
             for (int k2 = 0; k2 < 3; k2++) {
               cell_center[i_part][3*j+k2] /= weights;
-            }  
+            }
           }
         }
 
@@ -594,7 +592,7 @@ namespace cwipi {
         }
 
         PDM_gnum_compute (pdmGNum_handle_index);
- 
+
         for(int i_part=0;i_part<_npart;i_part++) {
           _cellLNToGN[i_part] = const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
         }
@@ -679,9 +677,166 @@ namespace cwipi {
 
       } //end loop on block
 
-      for(int i_part=0;i_part<_npart;i_part++){
+      int compute_gnum = 0;
 
-        for(int i_block=0;i_block<_nBlocks;i_block++){
+      for(int i_part = 0; i_part < _npart; i_part++){
+
+        for(int i_block = 0; i_block < _nBlocks; i_block++){
+
+          if (_blockDB[i_block]->GNumMeshGet(i_part) == NULL) {
+            compute_gnum = 1;
+            break;
+          }
+        }
+      }
+
+      if (compute_gnum) {
+
+        PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_KEEP);
+
+        double **cell_center = new double* [_npart];
+
+        int ielt = 0;
+        for(int i_part = 0; i_part < _npart; i_part++){
+          cell_center[i_part] = new double[3*_nElts[i_part]];
+
+          for(int i = 0; i < 3*_nElts[i_part]; i++){
+            cell_center[i_part][i] = 0.;
+          }
+
+          for(int i_block = 0; i_block < _nBlocks; i_block++){
+
+            int n_elt = _blockDB[i_block]->NEltsGet(i_part);
+
+            CWP_Block_t block_type = _blockDB[i_block]->blockTypeGet();
+
+            if (block_type == CWP_BLOCK_FACE_POLY) {
+              BlockFP *block = dynamic_cast<BlockFP *>(_blockDB[i_block]);
+
+              for (int j = 0; j < n_elt; j++) {
+                int idx = block->ConnecIDXGet()[i_part][j];
+                int nb  = block->ConnecIDXGet()[i_part][j+1] - block->ConnecIDXGet()[i_part][j];
+
+                for (int k = idx; k < idx + nb; k++) {
+                  int ivtx = block->ConnecGet()[i_part][k] - 1;
+                  for (int k2 = 0; k2 < 3; k2++) {
+                    cell_center[i_part][3*ielt+k2] += _coords[i_part][3*ivtx+k2];
+                  }
+                }
+
+                for (int k2 = 0; k2 < 3; k2++) {
+                  cell_center[i_part][3*ielt+k2] /= nb;
+                }
+
+                ielt++;
+              }
+
+            }
+
+            else if (block_type == CWP_BLOCK_CELL_POLY) {
+              BlockCP *block = dynamic_cast<BlockCP *>(_blockDB[i_block]);
+
+              for (int j = 0; j < n_elt; j++) {
+
+                int weights = 0;
+                int idx_face = block->ConnecFacesIDXGet()[i_part][j];
+                int nb_face = block->ConnecFacesIDXGet()[i_part][j+1] - idx_face;
+
+                for (int j1 = idx_face; j1 < idx_face + nb_face; j1++) {
+
+                  int i_face = block->ConnecFacesGet()[i_part][j1] - 1;
+
+                  int idx = block->ConnecIDXGet()[i_part][i_face];
+                  int nb = block->ConnecIDXGet()[i_part][i_face+1] - block->ConnecIDXGet()[i_part][i_face];
+
+                  for (int k = idx; k < idx + nb; k++) {
+
+                    int i_vtx = block->ConnecGet()[i_part][k] - 1;
+
+                    for (int k2 = 0; k2 < 3; k2++) {
+                      cell_center[i_part][3*ielt+k2] += _coords[i_part][3*i_vtx+k2];
+                    }
+                    weights++;
+                  }
+                }
+
+                for (int k2 = 0; k2 < 3; k2++) {
+                  cell_center[i_part][3*ielt+k2] /= weights;
+                }
+
+                ielt++;
+              }
+            }
+
+            else {
+              BlockStd *block = dynamic_cast<BlockStd *>(_blockDB[i_block]);
+              int n_vtx_elt = 0;
+
+              if (block_type == CWP_BLOCK_CELL_TETRA4) {
+                n_vtx_elt = 4;
+              }
+              else if (block_type == CWP_BLOCK_CELL_HEXA8) {
+                n_vtx_elt = 8;
+              }
+              else if (block_type == CWP_BLOCK_CELL_PRISM6) {
+                n_vtx_elt = 6;
+              }
+              else if (block_type == CWP_BLOCK_CELL_PYRAM5) {
+                n_vtx_elt = 5;
+              }
+              else if (block_type == CWP_BLOCK_FACE_QUAD4) {
+                n_vtx_elt = 4;
+              }
+              else if (block_type == CWP_BLOCK_FACE_TRIA3) {
+                n_vtx_elt = 3;
+              }
+              else if (block_type == CWP_BLOCK_EDGE2) {
+                n_vtx_elt = 2;
+              }
+              else {
+                PDM_error (__FILE__, __LINE__, 0, "unknown block type\n");
+              }
+
+              for (int j = 0; j < n_elt; j++) {
+
+              }
+
+              block->ConnecGet()[i_part];
+
+            }
+          }
+
+          PDM_gnum_set_from_coords (pdmGNum_handle_index, i_part, _nElts[i_part], cell_center[i_part], NULL);
+
+        }
+
+        // PDM_gnum_compute (pdmGNum_handle_index);
+
+        // for (int i_part = 0; i_part < _npart; i_part++) {
+        //   for(int i_block = 0; i_block < _nBlocks; i_block++){
+
+        //     int n_elt = _blockDB[i_block]->NEltsGet(i_part);
+
+        //   }
+
+        //   _cellLNToGN[i_part] = const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
+
+        // }
+
+        // PDM_gnum_free (pdmGNum_handle_index);
+
+        // for (int i_part = 0; i_part < _npart; i_part++) {
+        //   delete[] cell_center[i_part];
+        // }
+
+        // delete[] cell_center;
+
+      }
+
+
+      for(int i_part = 0; i_part < _npart; i_part++){
+
+        for(int i_block = 0; i_block < _nBlocks; i_block++){
           int n_elt = _blockDB[i_block]->NEltsGet(i_part);
 
           CWP_Block_t block_type = _blockDB[i_block]->blockTypeGet();
@@ -692,7 +847,7 @@ namespace cwipi {
             BlockFP *block = dynamic_cast<BlockFP *>(_blockDB[i_block]);
 
             PDM_Mesh_nodal_block_poly2d_set (_pdmNodal_handle_index,
-                                             pdm_id_block, 
+                                             pdm_id_block,
                                              i_part,
                                              n_elt,
                                              block->ConnecIDXGet()[i_part],
@@ -706,7 +861,7 @@ namespace cwipi {
             BlockCP *block = dynamic_cast<BlockCP *>(_blockDB[i_block]);
 
             PDM_Mesh_nodal_block_poly3d_set (_pdmNodal_handle_index,
-                                             pdm_id_block, 
+                                             pdm_id_block,
                                              i_part,
                                              n_elt,
                                              block->NFacesGet()[i_part],
@@ -723,7 +878,7 @@ namespace cwipi {
             BlockStd *block = dynamic_cast<BlockStd *>(_blockDB[i_block]);
 
             PDM_Mesh_nodal_block_std_set (_pdmNodal_handle_index,
-                                          pdm_id_block, 
+                                          pdm_id_block,
                                           i_part,
                                           n_elt,
                                           block->ConnecGet()[i_part],
@@ -738,34 +893,29 @@ namespace cwipi {
       _blockDB[i_block]->geomFinalize();
     } //Loop on blockDB
 
- 
+
     _nBlocks     = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
     _blocks_id   = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
 
+    printf("n elts : %d\n ", PDM_Mesh_nodal_n_cell_get (_pdmNodal_handle_index, 0));
+
     if(_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC ) {
       _visu->GeomWrite(this);
-    } 
+    }
 
-  } 
+  }
 
 
-  void 
+  void
   Mesh::stdBlockSet
-  ( 
+  (
     const int              i_part,
     const int              block_id,
     const int              n_elts,
     int                    connec[],
     CWP_g_num_t            global_num[]
-  ) 
+  )
   {
-
-    if(global_num == NULL) {
-      global_num=(CWP_g_num_t*) malloc(n_elts*sizeof(CWP_g_num_t));
-      for(int i=0;i<n_elts;i++) {
-        global_num[i] = i+1;
-      }
-    }
 
     BlockStd *block = dynamic_cast <BlockStd *> (_blockDB [block_id]);
     block->blockSet(i_part,n_elts,connec,global_num);
@@ -773,12 +923,12 @@ namespace cwipi {
     _nElts[i_part]  += n_elts;
 
   }
-    
+
   /*************************************************/
 
-  void 
+  void
   Mesh::poly2DBlockSet
-  ( 
+  (
     const int              i_part,
     const int              block_id,
     const int              n_elts,
@@ -787,37 +937,24 @@ namespace cwipi {
     CWP_g_num_t            global_num[]
   )
   {
-    if (_coords[i_part]==NULL) {
-      
-      PDM_error(__FILE__, __LINE__, 0,
-        "Set the partition coordinates vertices before finalizing.\n");
 
+    BlockFP *block = dynamic_cast <BlockFP *> (_blockDB [block_id]);
 
-      if(_cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && global_num == NULL) {
-        global_num=(CWP_g_num_t*) malloc(n_elts*sizeof(CWP_g_num_t));
-        for(int i=0;i<n_elts;i++) {
-          global_num[i] = i+1;
-        }
-      }
+    block->blockSet(i_part,
+                    n_elts,
+                    connec_idx,
+                    connec,
+                    global_num);
+    _nElts[i_part]  += n_elts;
 
-      BlockFP *block = dynamic_cast <BlockFP *> (_blockDB [block_id]);
-
-      block->blockSet(i_part,
-                      n_elts,
-                      connec_idx,
-                      connec,
-                      global_num);
-      _nElts[i_part]  += n_elts;
-
-    }
   }
 
   /**********************************************************************/
 
 
-  void 
+  void
   Mesh::poly3DBlockSet
-  ( 
+  (
     const int              i_part,
     const int              block_id,
     const int              n_elts,
@@ -827,15 +964,9 @@ namespace cwipi {
     int                    connec_cells_idx[],
     int                    connec_cells[],
     CWP_g_num_t            global_num[]
-  ) 
+  )
   {
-    CWP_UNUSED(global_num);
-   
-    if (_coords[i_part]==NULL) {
-      PDM_error(__FILE__, __LINE__, 0,
-      "Set the partition coordinates vertices before finalizing.\n");
-    }
-     
+
     BlockCP *block = dynamic_cast <BlockCP *> (_blockDB [block_id]);
     block->blockSet(i_part,n_elts,
                     n_faces,
@@ -857,21 +988,19 @@ namespace cwipi {
                                 global_num);
     }
 
+    _nElts[i_part]  +=  n_elts;
 
-    for(int i=0;i<_npart;i++){
-      _nElts[i]  +=  n_elts;
-    }
   }
 
 
-  void 
+  void
   Mesh::meshDel()
   {
     PDM_Mesh_nodal_free(_pdmNodal_handle_index);
   }
 
 
-  int 
+  int
   Mesh::blockAdd
   (
     const CWP_Block_t      block_type
@@ -894,7 +1023,7 @@ namespace cwipi {
 
   }
 
-  void 
+  void
   Mesh::fromCellFaceSet
   (
     const int   i_part,
@@ -905,7 +1034,7 @@ namespace cwipi {
     int         face_vtx_idx[],
     int         face_vtx[],
     CWP_g_num_t global_num[]
-  ) 
+  )
   {
     _cellFaceMethod = 1;
     _cellLNToGN[i_part] = global_num;
@@ -931,7 +1060,7 @@ namespace cwipi {
   }
 
 
-  void 
+  void
   Mesh::fromFacesEdgeSet
   (
     const int   i_part,
@@ -942,7 +1071,7 @@ namespace cwipi {
     int         edge_vtx_idx[],
     int         edge_vtx[],
     CWP_g_num_t global_num[]
-  ) 
+  )
   {
     _faceEdgeMethod = 1;
 
@@ -958,7 +1087,7 @@ namespace cwipi {
     }
 
     _faceEdgeNb[i_part] = (int *) malloc(sizeof(int) * n_faces);
-    
+
     for (int i = 0; i < n_faces; i++) {
       _faceEdgeNb[i_part][i] = face_edge_idx[i + 1] - face_edge_idx[i];
     }
@@ -979,7 +1108,7 @@ namespace cwipi {
       return PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index, id_part);
     }
     else {
-      PDM_error(__FILE__, __LINE__, 0, "getPartNElts : Element type is no taking account.\n");      
+      PDM_error(__FILE__, __LINE__, 0, "getPartNElts : Element type is no taking account.\n");
     }
 
     return -1;
