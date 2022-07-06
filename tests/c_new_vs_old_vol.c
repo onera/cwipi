@@ -113,7 +113,9 @@ _read_args
   int                  *verbose,
   int                  *extension_depth_tgt,
   int                  *extension_depth_src,
-  PDM_Mesh_nodal_elt_t *elt_type
+  PDM_Mesh_nodal_elt_t *elt_type,
+  int                  *use_gnum,
+  int                  *interlaced_field
 ) 
 {
   int i = 1;
@@ -276,6 +278,12 @@ _read_args
       else {
         *elt_type = atoi(argv[i]);
       }
+    }
+    else if (strcmp(argv[i], "-no_gnum") == 0) {
+      *use_gnum = 0;
+    }
+    else if (strcmp(argv[i], "-interlaced") == 0) {
+      *interlaced_field = 1;
     }
     else
       _usage(EXIT_FAILURE);
@@ -1052,6 +1060,8 @@ main(int argc, char *argv[]) {
 
   int         extension_depth_tgt = 0;
   int         extension_depth_src = 0;
+  int         use_gnum            = 1;
+  int         interlaced_field    = 0;
 
   PDM_Mesh_nodal_elt_t elt_type = PDM_MESH_NODAL_TETRA4;
 
@@ -1074,11 +1084,19 @@ main(int argc, char *argv[]) {
              &verbose,
              &extension_depth_tgt,
              &extension_depth_src,
-             &elt_type);
+             &elt_type,
+             &use_gnum,
+             &interlaced_field);
 
   if (output_filename !=NULL) {
     filedump = 1;    
   }
+
+  CWP_Field_storage_t field_storage = CWP_FIELD_STORAGE_BLOCK;
+  if (interlaced_field) {
+    field_storage = CWP_FIELD_STORAGE_INTERLACED;
+  }
+
 
   // Initialize MPI
   MPI_Init(&argc, &argv);
@@ -1289,7 +1307,13 @@ main(int argc, char *argv[]) {
     cwipi_define_mesh(coupling_name, pn_vtx[0], pn_cell[0], pvtx_coord[0], cellVtxIdx, pcell_vtx[0]);
   }
   else {
-    CWP_Mesh_interf_vtx_set(code_name[0], coupling_name, 0, pn_vtx[0], pvtx_coord[0], pvtx_ln_to_gn[0]);
+    PDM_g_num_t *_pvtx_ln_to_gn  = NULL;
+    PDM_g_num_t *_pcell_ln_to_gn = NULL;
+    if (use_gnum) {
+      _pvtx_ln_to_gn  = pvtx_ln_to_gn[0];
+      _pcell_ln_to_gn = pcell_ln_to_gn[0];
+    }
+    CWP_Mesh_interf_vtx_set(code_name[0], coupling_name, 0, pn_vtx[0], pvtx_coord[0], _pvtx_ln_to_gn);
 
     int block_id = CWP_Mesh_interf_block_add (code_name[0],
                                               coupling_name,
@@ -1302,7 +1326,7 @@ main(int argc, char *argv[]) {
                                    block_id,
                                    pn_cell[0],
                                    pcell_vtx[0],
-                                   pcell_ln_to_gn[0]); 
+                                   _pcell_ln_to_gn);
 
 
     CWP_Mesh_interf_finalize(code_name[0], coupling_name);
@@ -1316,18 +1340,42 @@ main(int argc, char *argv[]) {
   double *send_val = NULL;
   double *recv_val = NULL;
 
-  const char *field_name  = "cooX";
+  const char *field_name  = "coo";
   const char *field_name2 = "coocooY";
 
   if (code_id == 1) {
-    send_val = (double *) malloc(sizeof(double) * pn_vtx[0]);
+    send_val = (double *) malloc(sizeof(double) * pn_vtx[0] * 3);
 
-    for (int i = 0 ; i < pn_vtx[0] ; i++) {
-      send_val[i] = pvtx_coord[0][3 * i];
+    if (interlaced_field && version == CWP_VERSION_NEW) {
+      for (int i = 0 ; i < 3*pn_vtx[0]; i++) {
+        send_val[i] = pvtx_coord[0][i];
+      }
+    } else {
+      for (int i = 0 ; i < pn_vtx[0]; i++) {
+        for (int j = 0; j < 3; j++) {
+          send_val[pn_vtx[0]*j + i] = pvtx_coord[0][3*i + j];
+        }
+      }
+    }
+
+    if (1) {
+      log_trace("send_val = \n");
+      if (interlaced_field && version == CWP_VERSION_NEW) {
+        for (int i = 0 ; i < pn_vtx[0]; i++) {
+          log_trace("%f %f %f\n", send_val[3*i], send_val[3*i+1], send_val[3*i+2]);
+        }
+      } else {
+        for (int j = 0; j < 3; j++) {
+          for (int i = 0 ; i < pn_vtx[0]; i++) {
+            log_trace("%f ", send_val[pn_vtx[0]*j + i]);
+          }
+          log_trace("\n");
+        }
+      }
     }
   }
   else {
-    recv_val = (double *) malloc(sizeof(double) * pn_vtx[0]);
+    recv_val = (double *) malloc(sizeof(double) * pn_vtx[0] * 3);
   }
 
   if (version == CWP_VERSION_NEW) {
@@ -1339,8 +1387,8 @@ main(int argc, char *argv[]) {
                        coupling_name,
                        field_name,
                        CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_BLOCK,
-                       1,
+                       field_storage,
+                       3,
                        CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_SEND,
                        visu_status);
@@ -1354,7 +1402,7 @@ main(int argc, char *argv[]) {
                        coupling_name,
                        field_name2,
                        CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_BLOCK,
+                       field_storage,
                        1,
                        CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_SEND,
@@ -1371,8 +1419,8 @@ main(int argc, char *argv[]) {
                        coupling_name,
                        field_name,
                        CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_BLOCK,
-                       1,
+                       field_storage,
+                       3,
                        CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
@@ -1386,7 +1434,7 @@ main(int argc, char *argv[]) {
                        coupling_name,
                        field_name2,
                        CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_BLOCK,
+                       field_storage,
                        1,
                        CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_RECV,
@@ -1660,10 +1708,10 @@ main(int argc, char *argv[]) {
   int request;
   if (version == CWP_VERSION_OLD) {
     if (code_id == 1) {
-      cwipi_issend(coupling_name, "ech", 0, 1, 1, 0.1, field_name, send_val, &request);
+      cwipi_issend(coupling_name, "ech", 0, 3, 1, 0.1, field_name, send_val, &request);
     }
     else {
-      cwipi_irecv(coupling_name, "ech", 0, 1, 1, 0.1, field_name, recv_val, &request);
+      cwipi_irecv(coupling_name, "ech", 0, 3, 1, 0.1, field_name, recv_val, &request);
     }
   }
 
@@ -1805,11 +1853,40 @@ main(int argc, char *argv[]) {
   if (1) {
     double max_err = 0.;
     if (code_id == 2) {
+
+      if (1) {
+        log_trace("recv_val / coord = \n");
+        if (interlaced_field && version == CWP_VERSION_NEW) {
+          for (int i = 0 ; i < n_located; i++) {
+            int ivtx = located[i] - 1;
+            log_trace("%d: %f %f %f / %f %f %f\n",
+                      located[i],
+                      recv_val[3*i], recv_val[3*i+1], recv_val[3*i+2],
+                      pvtx_coord[0][3*ivtx], pvtx_coord[0][3*ivtx+1], pvtx_coord[0][3*ivtx+2]);
+          }
+        } else {
+          for (int j = 0; j < 3; j++) {
+            for (int i = 0 ; i < n_located; i++) {
+              log_trace("%f ", recv_val[n_located*j + i]);
+            }
+            log_trace("\n");
+          }
+        }
+      }
+
+
       for (int i = 0 ; i < n_located ; i++) {
-        double err = ABS (recv_val[i] - pvtx_coord[0][3 * (located[i] -1)]);
+        double _recv_val;
+        if (interlaced_field && version == CWP_VERSION_NEW) {
+          _recv_val = recv_val[3*i];
+        } else {
+          _recv_val = recv_val[i];
+        }
+
+        double err = ABS (_recv_val - pvtx_coord[0][3 * (located[i] -1)]);
         if (err > 1.e-4) {
           printf("[%d] !! vtx %ld %d err = %g (x = %f, recv = %f)\n",
-          rank, pvtx_ln_to_gn[0][(located[i] - 1)], located[i], err, pvtx_coord[0][3*(located[i]-1)], recv_val[i]);
+          rank, pvtx_ln_to_gn[0][(located[i] - 1)], located[i], err, pvtx_coord[0][3*(located[i]-1)], _recv_val);
         }
         if (err > max_err) {
           max_err = err;
