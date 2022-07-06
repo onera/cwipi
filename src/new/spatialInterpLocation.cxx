@@ -560,6 +560,7 @@ namespace cwipi {
     int nComponent = referenceField->nComponentGet();
     CWP_Dof_location_t referenceFieldType = referenceField->locationGet();
     CWP_Interpolation_t interpolationType = referenceField->interpolationTypeGet();
+    const CWP_Field_storage_t storage = referenceField->storageTypeGet();
 
     // int  _nPart; !< Mesh partition number                                                    
 
@@ -619,6 +620,7 @@ namespace cwipi {
           double      *part_weights                 = _weights[i_part];
 
           int          part_n_elt                   = _mesh->getPartNElts(i_part);
+          int          part_n_vtx                   = _mesh->getPartNVertex(i_part);
 
           int         *connec_idx2                   = _cell_vtx_idx[i_part];
           int         *connec2                       = _cell_vtx[i_part];
@@ -629,18 +631,36 @@ namespace cwipi {
           double *local_buffer = (double *) *buffer;
 
           int ival = 0;
-          for (int i = 0; i < part_n_elt; i++) {
-            for (int j = part_elt_pts_inside_idx[i]; j < part_elt_pts_inside_idx[i+1]; j++) {
-              for (int k1 = 0; k1 < nComponent; k1++) {
-                local_buffer[ival] = 0;
-                int k2 = connec_idx[i];
-                assert(connec_idx[i+1] - connec_idx[i] == part_weights_idx[j + 1] - part_weights_idx[j]);
-                for (int k = part_weights_idx[j]; k < part_weights_idx[j+1]; k++) {
-                  int isom = connec[k2++] - 1;
-                  local_buffer[ival] += part_weights[k] * referenceData[isom*nComponent+k1];
 
+          if (storage == CWP_FIELD_STORAGE_BLOCK) {
+            for (int i = 0; i < part_n_elt; i++) {
+              for (int j = part_elt_pts_inside_idx[i]; j < part_elt_pts_inside_idx[i+1]; j++) {
+                for (int k1 = 0; k1 < nComponent; k1++) {
+                  ival = k1*part_elt_pts_inside_idx[part_n_elt] + j;
+                  local_buffer[ival] = 0;
+                  int k2 = connec_idx[i];
+                  assert(connec_idx[i+1] - connec_idx[i] == part_weights_idx[j + 1] - part_weights_idx[j]);
+                  for (int k = part_weights_idx[j]; k < part_weights_idx[j+1]; k++) {
+                    int isom = connec[k2++] - 1;
+                    local_buffer[ival] += part_weights[k] * referenceData[part_n_vtx*k1 + isom];
+                  }
                 }
-                ival++;
+              }
+            }
+          }
+          else { // if (storage == CWP_FIELD_STORAGE_INTERLACED) {
+            for (int i = 0; i < part_n_elt; i++) {
+              for (int j = part_elt_pts_inside_idx[i]; j < part_elt_pts_inside_idx[i+1]; j++) {
+                for (int k1 = 0; k1 < nComponent; k1++) {
+                  local_buffer[ival] = 0;
+                  int k2 = connec_idx[i];
+                  assert(connec_idx[i+1] - connec_idx[i] == part_weights_idx[j + 1] - part_weights_idx[j]);
+                  for (int k = part_weights_idx[j]; k < part_weights_idx[j+1]; k++) {
+                    int isom = connec[k2++] - 1;
+                    local_buffer[ival] += part_weights[k] * referenceData[isom*nComponent+k1];
+                  }
+                  ival++;
+                }
               }
             }
           }

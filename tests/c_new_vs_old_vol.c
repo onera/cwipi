@@ -1337,14 +1337,21 @@ main(int argc, char *argv[]) {
   }
 
   // Create and set fields
-  double *send_val = NULL;
-  double *recv_val = NULL;
+  double *send_val  = NULL;
+  double *send_val2 = NULL;
+  double *recv_val  = NULL;
+  double *recv_val2 = NULL;
 
   const char *field_name  = "coo";
   const char *field_name2 = "coocooY";
 
   if (code_id == 1) {
-    send_val = (double *) malloc(sizeof(double) * pn_vtx[0] * 3);
+    send_val  = (double *) malloc(sizeof(double) * pn_vtx[0] * 3);
+    send_val2 = (double *) malloc(sizeof(double) * pn_vtx[0]);
+
+    for (int i = 0 ; i < pn_vtx[0]; i++) {
+      send_val2[i] = pvtx_coord[0][3*i+1];
+    }
 
     if (interlaced_field && version == CWP_VERSION_NEW) {
       for (int i = 0 ; i < 3*pn_vtx[0]; i++) {
@@ -1358,7 +1365,7 @@ main(int argc, char *argv[]) {
       }
     }
 
-    if (1) {
+    if (0) {
       log_trace("send_val = \n");
       if (interlaced_field && version == CWP_VERSION_NEW) {
         for (int i = 0 ; i < pn_vtx[0]; i++) {
@@ -1375,7 +1382,8 @@ main(int argc, char *argv[]) {
     }
   }
   else {
-    recv_val = (double *) malloc(sizeof(double) * pn_vtx[0] * 3);
+    recv_val  = (double *) malloc(sizeof(double) * pn_vtx[0] * 3);
+    recv_val2 = (double *) malloc(sizeof(double) * pn_vtx[0]);
   }
 
   if (version == CWP_VERSION_NEW) {
@@ -1412,7 +1420,7 @@ main(int argc, char *argv[]) {
                          field_name2,
                          0,
                          CWP_FIELD_MAP_SOURCE,
-                         send_val);
+                         send_val2);
     }
     else {
       CWP_Field_create(code_name[0],
@@ -1444,7 +1452,7 @@ main(int argc, char *argv[]) {
                          field_name2,
                          0,
                          CWP_FIELD_MAP_TARGET,
-                         recv_val);
+                         recv_val2);
     }
   }
 
@@ -1854,20 +1862,31 @@ main(int argc, char *argv[]) {
     double max_err = 0.;
     if (code_id == 2) {
 
-      if (1) {
+      if (0) {
+        log_trace("recv_val : %p\n", (void *) recv_val);
+        // PDM_log_trace_array_double(recv_val, 3 * n_located, "recv_val     : ");
         log_trace("recv_val / coord = \n");
         if (interlaced_field && version == CWP_VERSION_NEW) {
           for (int i = 0 ; i < n_located; i++) {
             int ivtx = located[i] - 1;
-            log_trace("%d: %f %f %f / %f %f %f\n",
+            log_trace("%d ("PDM_FMT_G_NUM"): %3.3f %3.3f %3.3f / %3.3f %3.3f %3.3f\n",
                       located[i],
+                      pvtx_ln_to_gn[0][located[i]-1],
                       recv_val[3*i], recv_val[3*i+1], recv_val[3*i+2],
                       pvtx_coord[0][3*ivtx], pvtx_coord[0][3*ivtx+1], pvtx_coord[0][3*ivtx+2]);
           }
         } else {
           for (int j = 0; j < 3; j++) {
             for (int i = 0 ; i < n_located; i++) {
-              log_trace("%f ", recv_val[n_located*j + i]);
+              log_trace("%3.3f ", recv_val[n_located*j + i]);
+            }
+            log_trace("\n");
+          }
+
+          log_trace("/\n");
+          for (int j = 0; j < 3; j++) {
+            for (int i = 0 ; i < n_located; i++) {
+              log_trace("%3.3f ", pvtx_coord[0][3*(located[i] - 1) + j]);
             }
             log_trace("\n");
           }
@@ -1877,19 +1896,22 @@ main(int argc, char *argv[]) {
 
       for (int i = 0 ; i < n_located ; i++) {
         double _recv_val;
-        if (interlaced_field && version == CWP_VERSION_NEW) {
-          _recv_val = recv_val[3*i];
-        } else {
-          _recv_val = recv_val[i];
-        }
 
-        double err = ABS (_recv_val - pvtx_coord[0][3 * (located[i] -1)]);
-        if (err > 1.e-4) {
-          printf("[%d] !! vtx %ld %d err = %g (x = %f, recv = %f)\n",
-          rank, pvtx_ln_to_gn[0][(located[i] - 1)], located[i], err, pvtx_coord[0][3*(located[i]-1)], _recv_val);
-        }
-        if (err > max_err) {
-          max_err = err;
+        for (int j = 0; j < 3; j++) {
+          if (interlaced_field && version == CWP_VERSION_NEW) {
+            _recv_val = recv_val[3*i + j];
+          } else {
+            _recv_val = recv_val[n_located*j + i];
+          }
+
+          double err = ABS (_recv_val - pvtx_coord[0][3 * (located[i] -1) + j]);
+          if (err > 1.e-4) {
+            printf("[%d] !! vtx "PDM_FMT_G_NUM" %d err = %g (coord#%d = %f, recv = %f)\n",
+                   rank, pvtx_ln_to_gn[0][(located[i] - 1)], located[i], err, j, pvtx_coord[0][3*(located[i]-1) + j], _recv_val);
+          }
+          if (err > max_err) {
+            max_err = err;
+          }
         }
       }
     }
@@ -1948,9 +1970,11 @@ main(int argc, char *argv[]) {
 
   if (code_id == 1) {
     free(send_val);
+    free(send_val2);
   }
   else {
     free(recv_val);
+    free(recv_val2);
   }
   PDM_timer_free(timer);
 

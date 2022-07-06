@@ -328,13 +328,13 @@ namespace cwipi {
       PDM_part_to_part_iexch(_ptsp,
                              PDM_MPI_COMM_KIND_P2P,
                              pdm_storage,
-                             PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,//t_part1_data_def?
+                             PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,
                              stride,
                              s_data,
-                             NULL,//part1_stride
+                             NULL,
              (const void **) _send_buffer[intId],
-                             NULL,//part2_stride
-                  (void ***) &_recv_buffer[intId],//(void **) _recv_buffer[intId],
+                             NULL,
+                  (void ***) &_recv_buffer[intId],
                              &(_send_request[intId]));
       _recv_request[intId] = _send_request[intId];
 
@@ -458,13 +458,13 @@ namespace cwipi {
         PDM_part_to_part_iexch(_ptsp,
                                PDM_MPI_COMM_KIND_P2P,
                                pdm_storage,
-                               PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,//PDM_PART_TO_PART_DATA_DEF_ORDER_PART1,//t_part1_data_def?
+                               PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,
                                stride,
                                s_data,
-                               NULL,//part1_stride
+                               NULL,
                (const void **) _send_buffer[intId],
-                               NULL,//part2_stride
-                    (void ***) &cpl_spatial_interp->_recv_buffer[cpl_intId],//(void **) cpl_spatial_interp->_recv_buffer[cpl_intId],
+                               NULL,
+                    (void ***) &cpl_spatial_interp->_recv_buffer[cpl_intId],
                                &(_send_request[intId]));
         cpl_spatial_interp->_recv_request[cpl_intId] = _send_request[intId];
       }
@@ -703,13 +703,13 @@ namespace cwipi {
       PDM_part_to_part_iexch(_ptsp,
                              PDM_MPI_COMM_KIND_P2P,
                              pdm_storage,
-                             PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,//PDM_PART_TO_PART_DATA_DEF_ORDER_PART1,//t_part1_data_def?
+                             PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,
                              stride,
                              s_data,
-                             NULL,//part1_stride
+                             NULL,
              (const void **) _send_buffer[intId],
-                             NULL,//part2_stride
-                  (void ***) &_recv_buffer[intId],//(void **) _recv_buffer[intId],
+                             NULL,
+                  (void ***) &_recv_buffer[intId],
                              &(_send_request[intId]));
       _recv_request[intId] = _send_request[intId];
     }
@@ -830,13 +830,13 @@ namespace cwipi {
         PDM_part_to_part_iexch(_ptsp,
                                PDM_MPI_COMM_KIND_P2P,
                                pdm_storage,
-                               PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,//PDM_PART_TO_PART_DATA_DEF_ORDER_PART1,//t_part1_data_def?
+                               PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,
                                stride,
                                s_data,
-                               NULL,//part1_stride
+                               NULL,
                (const void **) cpl_spatial_interp->_send_buffer[cpl_intId],
-                               NULL,//part2_stride
-                    (void ***) &_recv_buffer[intId],//(void **) _recv_buffer[intId],
+                               NULL,
+                    (void ***) &_recv_buffer[intId],
                                &(cpl_spatial_interp->_send_request[cpl_intId]));
         _recv_request[intId] = cpl_spatial_interp->_send_request[cpl_intId];
       }
