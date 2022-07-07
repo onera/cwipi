@@ -1024,7 +1024,9 @@ namespace cwipi {
   void
   Mesh::meshDel()
   {
-    PDM_Mesh_nodal_free(_pdmNodal_handle_index);
+    if (_pdmNodal_handle_index != NULL) {
+      PDM_Mesh_nodal_free(_pdmNodal_handle_index);
+    }
   }
 
 

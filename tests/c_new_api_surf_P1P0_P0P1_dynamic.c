@@ -446,7 +446,7 @@ main(int argc, char *argv[]) {
 
   MPI_Barrier(MPI_COMM_WORLD);
   double recv_time = 0.;
-  for (int il_nb_ite = 0 ; il_nb_ite < 10 ; il_nb_ite++) {
+  for (int il_nb_ite = 0 ; il_nb_ite < 1 ; il_nb_ite++) {
     recv_time += 1.0;
 
     // Mesh rotation and new localisation
