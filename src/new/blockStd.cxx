@@ -45,8 +45,15 @@ namespace cwipi {
   BlockStd::~BlockStd()
   {
     _connec.clear();
-    _connec_idx.clear();
   }
+
+
+  void BlockStd::BlockAdd(CWP_Block_t blockType, Mesh* mesh)
+  {
+    Block::BlockAdd(blockType, mesh);
+    _connec.resize(_n_part, NULL); 
+  }
+
 
   void BlockStd::blockSet(int i_part,int n_elt,int* connec,CWP_g_num_t* mesh_global_num){
 
@@ -57,7 +64,7 @@ namespace cwipi {
      _n_elt[i_part] = n_elt;
      _part_id.push_back(i_part);
      _n_part_def=_n_part_def+1;
-     _connec.insert    ( std::pair < int, int* > (i_part,connec));
+     _connec[i_part] = connec;
   }
 
 

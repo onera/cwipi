@@ -104,7 +104,7 @@ namespace cwipi {
      * \param [in] mesh                   The Mesh object owning the block
      */
 
-    void BlockAdd(CWP_Block_t blockType, Mesh* mesh);
+    virtual void BlockAdd(CWP_Block_t blockType, Mesh* mesh);
 
     /**
      *
@@ -204,107 +204,12 @@ namespace cwipi {
 
     inline void SetinPDMDB();
 
-    /**
-     *
-     * \brief return the element connectivity (Standard or Face_Poly_2D CWP_Block_t) or cells-faces connectivity (Cells_POLY_3D)
-     * for each partition.
-     *
-     *
-     */
 
-     virtual std::map<int,int*>  ConnecGet()
-     {
-       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
-       std::map<int,int*> null;
-       return null;
-     }
+    inline void GNumBlockSet(int i_part, CWP_g_num_t* global_num){
+      _global_num [i_part] = global_num;
+    }
 
-     virtual int*  ConnecGet(int i_part)
-     {
-       CWP_UNUSED (i_part);
-       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
-       return NULL;
-     }
-
-
-     virtual void geomFinalize()
-     {
-       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
-     }
-
-     void GNumBlockSet(int i_part, CWP_g_num_t* global_num){
-        _global_num [i_part] = global_num;
-     }
-
-    /**
-     *
-     * \brief return the element connectivity index (Face_Poly_2D CWP_Block_t) or cells-faces connectivity index (Cells_POLY_3D)
-     * for each partition.
-     *
-     *
-     */
-
-     virtual std::map<int,int*>  ConnecIDXGet()
-     {
-       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
-       std::map<int,int*> null;
-       return null;
-     }
-
-     virtual int*  ConnecIDXGet(int i_part)
-     {
-       CWP_UNUSED (i_part);
-       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
-       return NULL;
-     }
-
-
-    /**
-     *
-     * \brief return the element faces connectivity (Cells_POLY_3D)
-     * for each partition.
-     *
-     *
-     */
-
-     virtual std::map<int,int*>  ConnecFacesGet()
-     {
-       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
-       std::map<int,int*> null;
-       return null;
-     }
-
-    /**
-     *
-     * \brief return the element faces connectivity index (Cells_POLY_3D)
-     * for each partition.
-     *
-     *
-     */
-
-     virtual std::map<int,int*>  ConnecFacesIDXGet()
-     {
-       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
-       std::map<int,int*> null;
-       return null;
-     }
-
-
-
-    /**
-     *
-     * \brief return the number of faces for each partition (Cells_POLY_3D)
-     *
-     *
-     */
-
-     virtual std::map <int,int>  NFacesGet()
-     {
-       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
-       std::map<int,int> null;
-       return null;
-     }
-
+    virtual void geomFinalize() = 0;
 
   private :
 

@@ -60,6 +60,18 @@ namespace cwipi {
 
       ~BlockStd();
 
+     /**
+       *
+       * \brief Block addition
+       *
+       * Add a block to the mesh.
+       *
+       * \param [in] blockType              Type of the block
+       * \param [in] mesh                   The Mesh object owning the block
+       */
+
+      virtual void BlockAdd(CWP_Block_t blockType, Mesh* mesh);
+
       /**
        * \brief Set a CWIPI block in a partition
        *
@@ -80,11 +92,9 @@ namespace cwipi {
         *
         */
 
-        inline std::map<int,int*>  ConnecGet();
+        inline std::vector <int*>  ConnecGet();
 
         inline int*  ConnecGet(int i_part);
-
-        inline int*  ConnecIDXGet(int i_part);
 
         bool  gnumRequired(){
            for(int i_part = 0; i_part<_n_part; i_part++){
@@ -99,8 +109,7 @@ namespace cwipi {
 
     private:
 
-      std::map<int,int*>          _connec;              /*!< Connectivity for each partition */
-      std::map<int,int*>          _connec_idx;           /*!< Connectivity index for each partition */
+      std::vector<int*>          _connec;              /*!< Connectivity for each partition */
 
   };
 
@@ -112,33 +121,7 @@ namespace cwipi {
   }
 
 
-  int*  BlockStd::ConnecIDXGet(int i_part) {
-     int n_vtx_per_cell = 0;
-     if (_blockType == CWP_BLOCK_FACE_TRIA3)
-       n_vtx_per_cell = 3;
-     else if (_blockType == CWP_BLOCK_FACE_QUAD4)
-       n_vtx_per_cell = 4;
-     else if (_blockType == CWP_BLOCK_CELL_TETRA4)
-       n_vtx_per_cell = 4;
-     else if (_blockType == CWP_BLOCK_CELL_PYRAM5)
-       n_vtx_per_cell = 5;
-     else if (_blockType == CWP_BLOCK_CELL_PRISM6)
-       n_vtx_per_cell = 6;
-     else if (_blockType == CWP_BLOCK_CELL_HEXA8)
-       n_vtx_per_cell = 8;
-     else{
-       PDM_error(__FILE__, __LINE__, 0, "Unknown block type in BlockStd::ConnecIDXGet.\n");
-     }
-
-     _connec_idx[i_part] = (int*)malloc(sizeof(int)*(1 + _n_elt[i_part]));
-     for (int i=0; i<_n_elt[i_part]+1; i++)
-        _connec_idx[i_part][i] = n_vtx_per_cell * i;
-
-     return _connec_idx[i_part];
-  }
-
-
-  std::map<int,int*>  BlockStd::ConnecGet() {
+  std::vector<int*>  BlockStd::ConnecGet() {
 
     return _connec;
   }

@@ -32,7 +32,6 @@ namespace cwipi {
   BlockCP::BlockCP()
      :Block::Block()
   {
-  
   }
 
 
@@ -41,6 +40,15 @@ namespace cwipi {
   
   }
 
+
+  void BlockCP::BlockAdd(CWP_Block_t blockType, Mesh* mesh)
+  {
+    Block::BlockAdd(blockType, mesh);
+    _connec_cells_idx.resize(_n_part,NULL);
+    _connec_cells.resize(_n_part,NULL);
+    _connec_faces_idx.resize(_n_part,NULL);
+    _connec_faces.resize(_n_part,NULL);
+  }
 
   void BlockCP::blockSet(int i_part,
                          int n_elts,
@@ -59,10 +67,10 @@ namespace cwipi {
     _n_faces[i_part] = n_faces;
     _part_id.push_back(i_part);
     _n_part_def=_n_part_def+1;
-    _connec_cells_idx.insert( std::pair < int, int* >         (i_part,connec_cells_idx) );  
-    _connec_cells.insert    ( std::pair < int, int* >         (i_part,connec_cells)     );   
-    _connec_faces_idx.insert( std::pair < int, int* >         (i_part,connec_faces_idx) );  
-    _connec_faces.insert    ( std::pair < int, int* >         (i_part,connec_faces)     );
+    _connec_cells_idx[i_part] = connec_cells_idx;  
+    _connec_cells[i_part]     = connec_cells;   
+    _connec_faces_idx[i_part] = connec_faces_idx;  
+    _connec_faces[i_part]     = connec_faces;
   
   }
 

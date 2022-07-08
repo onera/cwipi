@@ -61,6 +61,18 @@ namespace cwipi {
 
       virtual ~BlockFP();
 
+     /**
+       *
+       * \brief Block addition
+       *
+       * Add a block to the mesh.
+       *
+       * \param [in] blockType              Type of the block
+       * \param [in] mesh                   The Mesh object owning the block
+       */
+
+      virtual void BlockAdd(CWP_Block_t blockType, Mesh* mesh);
+
       /**
        * \brief Set a CWIPI block in a partition
        *
@@ -72,10 +84,10 @@ namespace cwipi {
        *
        */
 
-       virtual void blockSet(int i_part,int n_elts,
-                             int* connec_idx,
-                             int* connec,
-                             CWP_g_num_t* mesh_global_num);
+      virtual void blockSet(int i_part,int n_elts,
+                            int* connec_idx,
+                            int* connec,
+                            CWP_g_num_t* mesh_global_num);
 
        /**
         *
@@ -85,7 +97,7 @@ namespace cwipi {
         *
         */
 
-        inline virtual std::map<int,int*>  ConnecGet();
+        inline virtual std::vector<int*>  ConnecGet();
 
        /**
         *
@@ -95,7 +107,7 @@ namespace cwipi {
         *
         */
 
-        inline virtual std::map<int,int*>  ConnecIDXGet();
+        inline virtual std::vector<int*>  ConnecIDXGet();
         inline virtual int* ConnecIDXGet(int i_part);
 
         inline int*  ConnecGet(int i_part);
@@ -119,18 +131,18 @@ namespace cwipi {
 
 
     private:
-      std::map<int,int*>          _connec_idx;          /*!< Connectivity Index for each partition */
-      std::map<int,int*>          _connec;              /*!< Connectivity for each partition */
+      std::vector<int*>          _connec_idx;          /*!< Connectivity Index for each partition */
+      std::vector<int*>          _connec;              /*!< Connectivity for each partition */
 
   };
 
 
-  std::map<int,int*>  BlockFP::ConnecGet() {
+  std::vector<int*>  BlockFP::ConnecGet() {
 
     return _connec;
   }
 
-  std::map<int,int*>  BlockFP::ConnecIDXGet() {
+  std::vector<int*>  BlockFP::ConnecIDXGet() {
     return _connec_idx;
   }
 

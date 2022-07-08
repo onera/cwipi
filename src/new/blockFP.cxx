@@ -33,7 +33,7 @@
 
 namespace cwipi {
   BlockFP::BlockFP()
-     :Block::Block()
+      :Block::Block()
   {
 
   }
@@ -42,6 +42,13 @@ namespace cwipi {
   BlockFP::~BlockFP()
   {
 
+  }
+
+  void BlockFP::BlockAdd(CWP_Block_t blockType, Mesh* mesh)
+  {
+    Block::BlockAdd(blockType, mesh);
+    _connec_idx.resize(_n_part, NULL); 
+    _connec.resize(_n_part, NULL); 
   }
 
   void BlockFP::blockSet(int i_part,
@@ -56,8 +63,8 @@ namespace cwipi {
      _n_elt[i_part] = n_elt;
      _part_id.push_back(i_part);
      _n_part_def++;
-     _connec     .insert    ( std::pair < int, int* > (i_part,connec));
-     _connec_idx.insert     ( std::pair < int, int* > (i_part,connec_idx));
+     _connec[i_part] = connec;
+     _connec_idx[i_part] = connec_idx;
 
   }
 
