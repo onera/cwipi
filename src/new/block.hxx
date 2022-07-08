@@ -152,7 +152,7 @@ namespace cwipi {
     CWP_g_num_t* GNumMeshGet(int i_part);
 
 
-    void GNumMeshSet(int i_part, CWP_g_num_t* gnum);
+    void GNumMeshSet(int i_part, CWP_g_num_t* gnum, PDM_ownership_t owner);
 
 
     const double* eltCentersGet(int i_part);
@@ -179,16 +179,6 @@ namespace cwipi {
 
     /**
      *
-     * \brief return true is the Block is set on all the partition (ready for global numbering computation).
-     *
-     * It returns true if the block is set on all the partition (ready for global numbering computation).
-     *
-     */
-
-    inline bool isSet();
-
-    /**
-     *
      * \brief Return true if the Block is already in Paradigm block database and false otherwise.
      *
      */
@@ -205,9 +195,6 @@ namespace cwipi {
     inline void SetinPDMDB();
 
 
-    inline void GNumBlockSet(int i_part, CWP_g_num_t* global_num){
-      _global_num [i_part] = global_num;
-    }
 
     virtual void geomFinalize() = 0;
 
@@ -237,24 +224,15 @@ namespace cwipi {
     PDM_Mesh_nodal_t          *_pdmNodal_handle_index;  /*!< PDM Nodal Index */
     MPI_Comm                  *_localComm;              /*!< Communicator */
     int                        _n_part;                 /*!< Number of partitions */
-    int                        _n_part_def;             /*!< Number of partitions where the block is defined */
     std::vector <int>          _n_elt;                  /*!< Number of elements for each partition */
-    std::vector <double*>      _cells_center;     /*!< Cell centers */
-    std::vector <int>          _part_id;                /*!< Partition where the block is defined  */
+    std::vector <double*>      _cells_center;           /*!< Cell centers */
     int                        _block_id_pdm;           /*!< Block identifier */
     int                        _block_id_cwipi;         /*!< Block identifier */
     std::vector <CWP_g_num_t*> _global_num;             /*!< Global numbering in the Mesh  */
     Mesh                      *_mesh;                   /*!< Pointer to the mesh object owning the block */
-    std::vector<bool>          _isSet;                  /*!< Set or not for each partition */
-    bool                       _isGNumSet;              /*!< Global Numbering set or not for each partition */
-    bool                       _inPDMDB;                /*!< Indicate the Block is already in the Paradigm database */
+    PDM_ownership_t            _owner_gnum;             /*!< Owner of global numbers */                
 
   };
-
-  bool
-  Block::globNumDefined() {
-    return _isGNumSet;
-  }
 
   std::vector <int>
   Block::NEltsGet() {
@@ -270,26 +248,6 @@ namespace cwipi {
   int
   Block::NPartGet() {
     return _n_part;
-  }
-
-
-
-  bool Block::inPDMDB() {
-    return _inPDMDB;
-  }
-
-  void Block::SetinPDMDB() {
-    _inPDMDB=true;
-  }
-
-
-  bool
-  Block:: isSet() {
-    for(int i=0;i<_n_part;i++) {
-      if(_isSet[i] == false)
-        return false;
-    }
-    return true;
   }
 
   CWP_Block_t

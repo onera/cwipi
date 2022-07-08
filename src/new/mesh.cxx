@@ -845,7 +845,7 @@ namespace cwipi {
 
             memcpy(block_gnum, gnum, n_elt * sizeof(CWP_g_num_t));
 
-            _blockDB[i_block]->GNumBlockSet(i_part, block_gnum);
+            _blockDB[i_block]->GNumMeshSet(i_part, block_gnum, PDM_OWNERSHIP_KEEP);
 
           }
 

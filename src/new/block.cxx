@@ -17,6 +17,7 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "pdm.h"
 #include "pdm_mesh_nodal.h"
 #include "pdm_gnum.h"
 #include "block.hxx"
@@ -33,8 +34,7 @@ using namespace std;
 namespace cwipi {
 
   Block::Block()
-         :_isGNumSet(false),
-          _inPDMDB(false)
+         :_owner_gnum(PDM_OWNERSHIP_USER)
   {
 
   }
@@ -51,16 +51,16 @@ namespace cwipi {
      _global_num         .resize(_n_part,NULL);
      _n_elt              .resize(_n_part);
      _cells_center       .resize(_n_part, NULL);
-     _isSet              .resize(_n_part);
 
   }
 
 
   Block::~Block(){
    for (int i = 0; i < _n_part; i++) {
-      if (_cells_center[i] != NULL) {
-        free (_cells_center[i]);
+      if (_owner_gnum == PDM_OWNERSHIP_KEEP && _global_num[i] != NULL) {
+        free (_global_num[i]);
       }
+
     }
 
   }
@@ -80,8 +80,10 @@ namespace cwipi {
   }
 
   void
-  Block::GNumMeshSet(int i_part,CWP_g_num_t* gnum) {
+  Block::GNumMeshSet(int i_part,CWP_g_num_t* gnum, PDM_ownership_t owner) {
     _global_num[i_part] = gnum;
+
+    _owner_gnum = owner;
   }
 
 

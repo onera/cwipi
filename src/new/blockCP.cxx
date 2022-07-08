@@ -62,11 +62,8 @@ namespace cwipi {
 
     _global_num[i_part] = global_num;
 
-    _isSet[i_part] = true;
     _n_elt[i_part] = n_elts;
     _n_faces[i_part] = n_faces;
-    _part_id.push_back(i_part);
-    _n_part_def=_n_part_def+1;
     _connec_cells_idx[i_part] = connec_cells_idx;  
     _connec_cells[i_part]     = connec_cells;   
     _connec_faces_idx[i_part] = connec_faces_idx;  

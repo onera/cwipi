@@ -57,14 +57,11 @@ namespace cwipi {
                          int* connec,
                          CWP_g_num_t* mesh_global_num){
 
-     _global_num [i_part] = mesh_global_num;
-
-     _isSet[i_part] = true;
-     _n_elt[i_part] = n_elt;
-     _part_id.push_back(i_part);
-     _n_part_def++;
-     _connec[i_part] = connec;
-     _connec_idx[i_part] = connec_idx;
+    _global_num [i_part] = mesh_global_num;
+    
+    _n_elt[i_part] = n_elt;
+    _connec[i_part] = connec;
+    _connec_idx[i_part] = connec_idx;
 
   }
 

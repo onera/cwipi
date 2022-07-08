@@ -178,7 +178,7 @@ namespace cwipi {
      int id_block = PDM_writer_geom_bloc_add(_visu_id,
                                _visu_mesh_id,
                                PdmWriterBlockTypeFromCwpBlockType(blockType),
-                               PDM_OWNERSHIP_KEEP
+                               PDM_OWNERSHIP_USER
                               );
     return id_block;
   }

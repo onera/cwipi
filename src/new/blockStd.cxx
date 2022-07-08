@@ -60,10 +60,7 @@ namespace cwipi {
 
      _global_num [i_part] = mesh_global_num;
 
-     _isSet[i_part] = true;
      _n_elt[i_part] = n_elt;
-     _part_id.push_back(i_part);
-     _n_part_def=_n_part_def+1;
      _connec[i_part] = connec;
   }
 
