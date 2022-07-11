@@ -781,21 +781,16 @@ int main(int argc, char *argv[])
                           pvtx_coord[0],
                           _pvtx_ln_to_gn);
 
-  int block_id = CWP_Mesh_interf_block_add(code_name[0],
-                                           coupling_name,
-                                           CWP_BLOCK_CELL_POLY);
-
-  CWP_Mesh_interf_c_poly_block_set(code_name[0],
-                                   coupling_name,
-                                   0,
-                                   block_id,
-                                   pn_cell[0],
-                                   pn_face[0],
-                                   pface_vtx_idx[0],
-                                   pface_vtx[0],
-                                   pcell_face_idx[0],
-                                   pcell_face[0],
-                                   _pcell_ln_to_gn);
+  CWP_Mesh_interf_from_cellface_set(code_name[0],
+                                    coupling_name,
+                                    0,
+                                    pn_cell[0],
+                                    pcell_face_idx[0],
+                                    pcell_face[0],
+                                    pn_face[0],
+                                    pface_vtx_idx[0],
+                                    pface_vtx[0],
+                                    _pcell_ln_to_gn);
 
   CWP_Mesh_interf_finalize(code_name[0],
                            coupling_name);

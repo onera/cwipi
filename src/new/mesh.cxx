@@ -461,7 +461,7 @@ namespace cwipi {
 
       int compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
-        if (_faceLNToGN[i_part] != NULL) {
+        if (_faceLNToGN[i_part] == NULL) {
           compute_gnum = 1;
           break;
         }
@@ -545,7 +545,7 @@ namespace cwipi {
 
       int compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
-        if (_faceLNToGN[i_part] != NULL) {
+        if (_cellLNToGN[i_part] == NULL) {
           compute_gnum = 1;
           break;
         }
@@ -573,7 +573,7 @@ namespace cwipi {
 
             for (int j1 = idx_face; j1 < idx_face + nb_face; j1++) {
 
-              int i_face = _cellFace[i_part][j1] - 1;
+              int i_face = std::abs(_cellFace[i_part][j1]) - 1;
 
               int idx = _faceVtxIdx[i_part][i_face];
               int nb = _faceVtxNb[i_part][i_face];
