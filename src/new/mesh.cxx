@@ -21,6 +21,7 @@
 #include <map>
 #include <mesh.hxx>
 #include <mpi.h>
+#include <cstdlib>
 
 #include <pdm_mesh_nodal.h>
 #include <pdm_gnum.h>
@@ -724,7 +725,7 @@ namespace cwipi {
 
               for (int j = 0; j < n_elt; j++) {
                 int idx = block->ConnecIDXGet()[i_part][j];
-                int nb  = block->ConnecIDXGet()[i_part][j+1] - block->ConnecIDXGet()[i_part][j];
+                int nb  = block->ConnecIDXGet()[i_part][j+1] - idx;
 
                 for (int k = idx; k < idx + nb; k++) {
                   int ivtx = block->ConnecGet()[i_part][k] - 1;
@@ -748,19 +749,19 @@ namespace cwipi {
               for (int j = 0; j < n_elt; j++) {
 
                 int weights = 0;
-                int idx_face = block->ConnecFacesIDXGet()[i_part][j];
-                int nb_face = block->ConnecFacesIDXGet()[i_part][j+1] - idx_face;
+                int idx_face = block->ConnecIDXGet()[i_part][j];
+                int nb_face = block->ConnecIDXGet()[i_part][j+1] - idx_face;
 
                 for (int j1 = idx_face; j1 < idx_face + nb_face; j1++) {
 
-                  int i_face = block->ConnecFacesGet()[i_part][j1] - 1;
+                  int i_face = std::abs(block->ConnecGet()[i_part][j1]) - 1;
 
-                  int idx = block->ConnecIDXGet()[i_part][i_face];
-                  int nb = block->ConnecIDXGet()[i_part][i_face+1] - block->ConnecIDXGet()[i_part][i_face];
+                  int idx = block->ConnecFacesIDXGet()[i_part][i_face];
+                  int nb  = block->ConnecFacesIDXGet()[i_part][i_face+1] - idx;
 
                   for (int k = idx; k < idx + nb; k++) {
 
-                    int i_vtx = block->ConnecGet()[i_part][k] - 1;
+                    int i_vtx = block->ConnecFacesGet()[i_part][k] - 1;
 
                     for (int k2 = 0; k2 < 3; k2++) {
                       cell_center[i_part][3*ielt+k2] += _coords[i_part][3*i_vtx+k2];

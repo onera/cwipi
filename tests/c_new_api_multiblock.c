@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library.
 
-  Copyright (C) 2017  ONERA
+  Copyright (C) 2011  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -19,1096 +19,981 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <string.h>
-#include <math.h>
+#include <time.h>
 
+#include "cwipi.h"
 #include "cwp.h"
+#include "cwp_priv.h"
 
-typedef struct elType elType;
-struct elType {
-    int nNodes;
-    const char *descri;
-};
+#include "pdm_poly_surf_gen.h"
+#include "pdm_part.h"
+#include "pdm_mpi_node_first_rank.h"
+#include "pdm_error.h"
+#include "pdm_timer.h"
+#include "pdm_part_to_block.h"
+#include "pdm_block_to_part.h"
+
+#include "pdm_multipart.h"
+#include "pdm_dcube_gen.h"
+#include "pdm_geom_elem.h"
+#include "pdm_gnum.h"
+
+#include "pdm_array.h"
+#include "pdm_writer.h"
+#include "pdm_printf.h"
+#include "pdm_logging.h"
+#include "pdm_error.h"
+
+#include "pdm_part_extension.h"
+#include "pdm_vtk.h"
+
+#include "pdm_dcube_nodal_gen.h"
+#include "pdm_poly_vol_gen.h"
 
 
-static int
-_goto(FILE *f, const char *word) {
-  char test[1000];
-  int r;
-  while (strcmp(test, word) != 0) {
-    r = fscanf(f, "%s", test);
-    if (r == EOF) {
-      return EXIT_FAILURE;
+#define ABS(a) ((a) <  0  ? -(a) : (a))
+
+/*----------------------------------------------------------------------
+ *
+ * Display usage
+ *
+ * parameters:
+ *   exit code           <-- Exit code
+ *---------------------------------------------------------------------*/
+
+static void
+_usage(int exit_code) {
+  printf("\n"
+         "  Usage: \n\n"
+         "  -n           <> Number of vertices in band length.\n\n"
+         "  -no_random      Disable mesh randomization\n\n"
+         "  -n_proc_data <> Number of processes where there are data \n\n"
+         "  -h              this message.\n\n");
+
+  exit(exit_code);
+}
+
+
+/*----------------------------------------------------------------------
+ *
+ * Read args from the command line
+ *
+ * parameters:
+ *   nVertex             <-- Number of vertices in bandwidth
+ *   randLevel           <-- Random level
+ *---------------------------------------------------------------------*/
+
+static void
+_read_args
+(
+  int                    argc,
+  char                 **argv,
+  int                   *n_vtx_seg1,
+  int                   *n_vtx_seg2,
+  double                *length,
+  double                *separation_x,
+  double                *separation_y,
+  double                *separation_z,
+  int                   *deform,
+  double                *tolerance,
+  int                   *randomize,
+  int                   *nProcData,
+  PDM_split_dual_t      *part_method,
+  char                 **output_filename,
+  int                   *verbose,
+  int                   *use_gnum
+)
+{
+  int i = 1;
+
+  // Parse and check command line
+  while (i < argc) {
+    if (strcmp(argv[i], "-h") == 0) {
+      _usage(EXIT_SUCCESS);
     }
-  }
+    else if (strcmp(argv[i], "-n") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *n_vtx_seg1 = atoi(argv[i]);
+        *n_vtx_seg2 = atoi(argv[i]);
+      }
+    }
+    else if (strcmp(argv[i], "-n1") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *n_vtx_seg1 = atoi(argv[i]);
+      }
+    }
+    else if (strcmp(argv[i], "-n2") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *n_vtx_seg2 = atoi(argv[i]);
+      }
+    }
+    else if (strcmp(argv[i], "-length") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *length = atof(argv[i]);
+      }
+    }
+    else if (strcmp(argv[i], "-sep") == 0) {
+      i++;
+      if (i >= argc)
+        _usage(EXIT_FAILURE);
+      else
+        *separation_x = atof(argv[i]);
+    }
+    else if (strcmp(argv[i], "-sepx") == 0) {
+      i++;
+      if (i >= argc)
+        _usage(EXIT_FAILURE);
+      else
+        *separation_x = atof(argv[i]);
+    }
+    else if (strcmp(argv[i], "-sepy") == 0) {
+      i++;
+      if (i >= argc)
+        _usage(EXIT_FAILURE);
+      else
+        *separation_y = atof(argv[i]);
+    }
+    else if (strcmp(argv[i], "-sepz") == 0) {
+      i++;
+      if (i >= argc)
+        _usage(EXIT_FAILURE);
+      else
+        *separation_z = atof(argv[i]);
+    }
 
-  return 0;
+    else if (strcmp(argv[i], "-output") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *output_filename = argv[i];
+      }
+    }
+    else if (strcmp(argv[i], "-def") == 0) {
+      *deform = 1;
+    }
+    else if (strcmp(argv[i], "-no_random") == 0) {
+      *randomize = 0;
+    }
+    else if (strcmp(argv[i], "-n_proc_data") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *nProcData = atoi(argv[i]);
+      }
+    }
+    else if (strcmp(argv[i], "-t") == 0) {
+      i++;
+      if (i >= argc)
+        _usage(EXIT_FAILURE);
+      else
+        *tolerance = atof(argv[i]);
+    }
+    else if (strcmp(argv[i], "-pt-scotch") == 0) {
+      *part_method = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
+    }
+    else if (strcmp(argv[i], "-parmetis") == 0) {
+      *part_method = PDM_SPLIT_DUAL_WITH_PARMETIS;
+    }
+    else if (strcmp(argv[i], "-hilbert") == 0) {
+      *part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
+    }
+    else if (strcmp(argv[i], "-v") == 0) {
+      *verbose = 1;
+    }
+    else if (strcmp(argv[i], "-no_gnum") == 0) {
+      *use_gnum = 0;
+    }
+    else
+      _usage(EXIT_FAILURE);
+    i++;
+  }
 }
 
 
 static void
-_generate_gmsh_mesh(char *geofile, int localCommSize, int order) {
-  char s[1000];
-  int len;
-  len = (int) strlen(geofile);
+_gen_mesh
+(
+ const int                 active_rank,
+ const PDM_MPI_Comm        comm,
+ const int                 n_part,
+ const PDM_split_dual_t    part_method,
+ const PDM_g_num_t         n,
+ const double              xmin,
+ const double              ymin,
+ const double              zmin,
+ const double              length,
+ const int                 randomize,
+ const int                 random_seed,
+ int                     **pn_cell,
+ int                     **pn_face,
+ int                     **pn_vtx,
+ int                    ***pcell_face_idx,
+ int                    ***pcell_face,
+ int                    ***pface_vtx_idx,
+ int                    ***pface_vtx,
+ double                 ***pvtx_coord,
+ PDM_g_num_t            ***pcell_ln_to_gn,
+ PDM_g_num_t            ***pface_ln_to_gn,
+ PDM_g_num_t            ***pvtx_ln_to_gn
+ )
+{
+  PDM_multipart_t *mpart = NULL;
+  PDM_dmesh_t     *dmesh = NULL;
 
-  char filename[len - 4];
-  for (int i = 0 ; i < len - 4 ; i++) {
-    filename[i] = geofile[i];
+  PDM_g_num_t  ng_cell;
+  PDM_g_num_t  ng_face;
+  PDM_g_num_t  ng_vtx;
+  int          n_face_group;
+  int          dn_cell;
+  int          dn_face;
+  int          dn_vtx;
+  int         *dcell_face_idx  = NULL;
+  PDM_g_num_t *dcell_face      = NULL;
+  PDM_g_num_t *dface_cell      = NULL;
+  int         *dface_vtx_idx   = NULL;
+  PDM_g_num_t *dface_vtx       = NULL;
+  double      *dvtx_coord      = NULL;
+  int         *dface_group_idx = NULL;
+  PDM_g_num_t *dface_group     = NULL;
+
+  if (active_rank) {
+
+    PDM_poly_vol_gen(comm,
+                     xmin,
+                     ymin,
+                     zmin,
+                     length,
+                     length,
+                     length,
+                     n,
+                     n,
+                     n,
+                     randomize,
+                     random_seed,
+                     &ng_cell,
+                     &ng_face,
+                     &ng_vtx,
+                     &n_face_group,
+                     &dn_cell,
+                     &dn_face,
+                     &dn_vtx,
+                     &dcell_face_idx,
+                     &dcell_face,
+                     &dface_cell,
+                     &dface_vtx_idx,
+                     &dface_vtx,
+                     &dvtx_coord,
+                     &dface_group_idx,
+                     &dface_group);
+
+
+    mpart = PDM_multipart_create(1,
+                                 &n_part,
+                                 PDM_FALSE,
+                                 part_method,
+                                 PDM_PART_SIZE_HOMOGENEOUS,
+                                 NULL,
+                                 comm,
+                                 PDM_OWNERSHIP_KEEP);
+
+    /* Generate dmesh */
+    int n_join = 0;
+    dmesh = PDM_dmesh_create(PDM_OWNERSHIP_KEEP,
+                             dn_cell,
+                             dn_face,
+                             -1, // dn_edge
+                             dn_vtx,
+                             n_face_group,
+                             n_join,
+                             comm);
+
+    int *djoins_ids = malloc (sizeof(int) * n_join);
+    int *dface_join_idx = malloc (sizeof(int) * (n_join + 1));
+    dface_join_idx[0] = 0;
+    PDM_g_num_t *dface_join = malloc (sizeof(PDM_g_num_t) * dface_join_idx[n_join]);
+
+    PDM_dmesh_set(dmesh,
+                  dvtx_coord,
+                  dface_vtx_idx,
+                  dface_vtx,
+                  dface_cell,
+                  dface_group_idx,
+                  dface_group,
+                  djoins_ids,
+                  dface_join_idx,
+                  dface_join);
+
+    PDM_multipart_register_block(mpart, 0, dmesh);
+
+    /* Connection between zones */
+    int n_total_joins = 0;
+    int *join_to_opposite = malloc(sizeof(int) * n_total_joins);
+    PDM_multipart_register_joins(mpart, n_total_joins, join_to_opposite);
+
+    /* Run */
+    PDM_multipart_run_ppart(mpart);
+
+    free(djoins_ids);
+    free(dface_join_idx);
+    free(dface_join);
+    free(join_to_opposite);
+  } // end if (active_rank)
+
+
+  *pn_cell        = (int *)          malloc(sizeof(int *)          * n_part);
+  *pn_face        = (int *)          malloc(sizeof(int *)          * n_part);
+  *pn_vtx         = (int *)          malloc(sizeof(int *)          * n_part);
+  *pcell_face_idx = (int **)         malloc(sizeof(int **)         * n_part);
+  *pcell_face     = (int **)         malloc(sizeof(int **)         * n_part);
+  *pface_vtx_idx  = (int **)         malloc(sizeof(int **)         * n_part);
+  *pface_vtx      = (int **)         malloc(sizeof(int **)         * n_part);
+  *pcell_ln_to_gn = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t **) * n_part);
+  *pface_ln_to_gn = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t **) * n_part);
+  *pvtx_ln_to_gn  = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t **) * n_part);
+  *pvtx_coord     = (double **)      malloc(sizeof(double **)      * n_part);
+
+  if (active_rank) {
+
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      int n_cell;
+      int n_face;
+      int n_face_part_bound;
+      int n_vtx;
+      int n_proc;
+      int n_t_part;
+      int s_cell_face;
+      int s_face_vtx;
+      int s_face_join;
+      int s_face_group;
+
+      int n_groups, n_joins;
+      int n_section;
+      int *n_elt;
+
+      int         *cell_tag;
+      int         *cell_face_idx;
+      int         *cell_face;
+      PDM_g_num_t *cell_ln_to_gn;
+      int         *face_tag;
+      int         *face_cell;
+      int         *face_vtx_idx;
+      int         *face_vtx;
+      PDM_g_num_t *face_ln_to_gn;
+      int         *face_part_bound_proc_idx;
+      int         *face_part_bound_part_idx;
+      int         *face_part_bound;
+      int         *vtx_tag;
+      double      *vtx;
+      PDM_g_num_t *vtx_ln_to_gn;
+      int         *face_group_idx;
+      int         *face_group;
+      PDM_g_num_t *face_group_ln_to_gn;
+      PDM_g_num_t *face_join_ln_to_gn;
+      int         *face_join_idx, *face_join;
+      int         **elt_vtx_idx;
+      int         **elt_vtx;
+      PDM_g_num_t **elt_section_ln_to_gn;
+
+      PDM_multipart_part_dim_get(mpart,
+                                 0,
+                                 i_part,
+                                 &n_section,
+                                 &n_elt,
+                                 &n_cell,
+                                 &n_face,
+                                 &n_face_part_bound,
+                                 &n_vtx,
+                                 &n_proc,
+                                 &n_t_part,
+                                 &s_cell_face,
+                                 &s_face_vtx,
+                                 &s_face_group,
+                                 &n_groups,
+                                 &s_face_join,
+                                 &n_joins);
+
+      PDM_multipart_part_val_get(mpart,
+                                 0,
+                                 i_part,
+                                 &elt_vtx_idx,
+                                 &elt_vtx,
+                                 &elt_section_ln_to_gn,
+                                 &cell_tag,
+                                 &cell_face_idx,
+                                 &cell_face,
+                                 &cell_ln_to_gn,
+                                 &face_tag,
+                                 &face_cell,
+                                 &face_vtx_idx,
+                                 &face_vtx,
+                                 &face_ln_to_gn,
+                                 &face_part_bound_proc_idx,
+                                 &face_part_bound_part_idx,
+                                 &face_part_bound,
+                                 &vtx_tag,
+                                 &vtx,
+                                 &vtx_ln_to_gn,
+                                 &face_group_idx,
+                                 &face_group,
+                                 &face_group_ln_to_gn,
+                                 &face_join_idx,
+                                 &face_join,
+                                 &face_join_ln_to_gn);
+
+      *(pn_cell)[i_part] = n_cell;
+      *(pn_face)[i_part] = n_face;
+      *(pn_vtx)[i_part]  = n_vtx;
+
+      /* Vertices */
+      (*pvtx_coord)[i_part] = (double *) malloc(sizeof(double) * 3 * n_vtx);
+      memcpy((*pvtx_coord)[i_part], vtx, sizeof(double) * 3 * n_vtx);
+
+      (*pvtx_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_vtx);
+      memcpy((*pvtx_ln_to_gn)[i_part], vtx_ln_to_gn, sizeof(PDM_g_num_t) * n_vtx);
+
+
+      /* Cells */
+      (*pcell_face_idx)[i_part] = (int *) malloc(sizeof(int) * (n_cell + 1));
+      memcpy((*pcell_face_idx)[i_part], cell_face_idx, sizeof(int) * (n_cell + 1));
+
+      s_cell_face = cell_face_idx[n_cell];
+      (*pcell_face)[i_part] = (int *) malloc(sizeof(int) * s_cell_face);
+      memcpy((*pcell_face)[i_part], cell_face, sizeof(int) * cell_face_idx[n_cell]);
+
+      (*pcell_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_cell);
+      memcpy((*pcell_ln_to_gn)[i_part], cell_ln_to_gn, sizeof(PDM_g_num_t) * n_cell);
+
+
+      /* Faces */
+      (*pface_vtx_idx)[i_part] = (int *) malloc(sizeof(int) * (n_face + 1));
+      memcpy((*pface_vtx_idx)[i_part], face_vtx_idx, sizeof(int) * (n_face + 1));
+
+      s_face_vtx = face_vtx_idx[n_face];
+      (*pface_vtx)[i_part] = (int *) malloc(sizeof(int) * s_face_vtx);
+      memcpy((*pface_vtx)[i_part], face_vtx, sizeof(int) * face_vtx_idx[n_face]);
+
+      (*pface_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_face);
+      memcpy((*pface_ln_to_gn)[i_part], face_ln_to_gn, sizeof(PDM_g_num_t) * n_face);
+    }
+
+    PDM_multipart_free(mpart);
+    PDM_dmesh_free(dmesh);
+
+    free(dcell_face_idx);
+    free(dcell_face);
+    free(dface_cell);
+    free(dface_vtx_idx);
+    free(dface_vtx);
+    free(dvtx_coord);
+    free(dface_group_idx);
+    free(dface_group);
   }
 
-  printf("UUU %i\n", len);
-  if (localCommSize > 1)
-    sprintf(s,
-            "gmsh %s -2 -format msh -order %i  -part %i -part_split -o %s.msh",
-            geofile,
-            order,
-            localCommSize,
-            filename);
-  else
-    sprintf(s, "gmsh %s -2 -format msh -order %i  -o %s.msh", geofile, order, filename);
+  else {
 
-  printf("sssss %s\n", s);
-  system(s);
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      int n_cell = 0;
+      int n_face = 0;
+      int n_vtx  = 0;
+
+      *(pn_cell)[i_part] = n_cell;
+      *(pn_face)[i_part] = n_face;
+      *(pn_vtx)[i_part]  = n_vtx;
+
+      /* Vertices */
+      (*pvtx_coord)[i_part] = (double *) malloc(sizeof(double) * 3 * n_vtx);
+
+      (*pvtx_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_vtx);
+
+
+      /* Cells */
+      (*pcell_face_idx)[i_part] = (int *) malloc(sizeof(int) * (n_cell + 1));
+      (*pcell_face_idx)[i_part][0] = 0;
+
+      int s_cell_face = (*pcell_face_idx)[i_part][n_cell];
+      (*pcell_face)[i_part] = (int *) malloc(sizeof(int) * s_cell_face);
+
+      (*pcell_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_cell);
+
+
+      /* Faces */
+      (*pface_vtx_idx)[i_part] = (int *) malloc(sizeof(int) * (n_face + 1));
+      (*pface_vtx_idx)[i_part][0] = 0;
+
+      int s_face_vtx = (*pface_vtx_idx)[i_part][n_face];
+      (*pface_vtx)[i_part] = (int *) malloc(sizeof(int) * s_face_vtx);
+
+      (*pface_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_face);
+    }
+
+  }
+
+
 }
+
 
 
 /*----------------------------------------------------------------------
  *
- * Read mesh dimension
- *
- * parameters:
- *   f                   <-- Mesh file
- *   dimension           --> Dimension
- *   nVtx             <-- number of vertices
- *   nElements           <-- number of elements
- *   nConnecVertex       <-- size of connectivity
- *   coords              --> vertices coordinates
- *   connecPointer       --> connectivity index
- *   connec              --> connectivity
- *---------------------------------------------------------------------*/
-static int
-_read_mesh_dim(FILE *f, int *nVtx, int *nb_Elts, int *nBlock, int **nElBlock, int **typeBlock) {
-
-  elType elementType[100];// = (elType*)malloc(sizeof(elType*)*100);
-
-  elementType[1] = (elType) {2, "line"};
-  elementType[2] = (elType) {3, "triangle"};
-  elementType[3] = (elType) {4, "quadrangle"};
-  elementType[4] = (elType) {4, "tetrahedron"};
-  elementType[5] = (elType) {8, "hexahedron"};
-  elementType[6] = (elType) {6, "prism"};
-  elementType[7] = (elType) {5, "pyramid"};
-  elementType[8] = (elType) {3,
-                             "second order line (2 nodes associated with the vertices and 1 with the edge)"};
-  elementType[9] = (elType) {6,
-                             "second order triangle (3 nodes associated with the vertices and 3 with the edges)"};
-  elementType[10] = (elType) {9,
-                              "second order quadrangle (4 nodes associated with the vertices, 4 with the edges and 1 with the face)"};
-  elementType[11] = (elType) {10,
-                              "second order tetrahedron (4 nodes associated with the vertices and 6 with the edges)"};
-  elementType[12] = (elType) {27,
-                              "second order hexahedron (8 nodes associated with the vertices, 12 with the edges 6 with the faces and 1 with the volume)"};
-  elementType[13] = (elType) {18,
-                              "second order prism (6 nodes associated with the vertices], 9 with the edges and 3 with the quadrangular faces)"};
-  elementType[14] = (elType) {14,
-                              "second order pyramid (5 nodes associated with the vertices, 8 with the edges and 1 with the quadrangular face)"};
-  elementType[15] = (elType) {1, "point"};
-  elementType[16] = (elType) {8,
-                              "second order quadrangle (4 nodes associated with the vertices and 4 with the edges)"};
-  elementType[17] = (elType) {20,
-                              "second order hexahedron (8 nodes associated with the vertices and 12 with the edges)"};
-  elementType[18] = (elType) {15,
-                              "second order prism (6 nodes associated with the vertices and 9 with the edges)"};
-  elementType[19] = (elType) {13,
-                              "second order pyramid (5 nodes associated with the vertices and 8 with the edges)"};
-  elementType[20] = (elType) {9,
-                              "third order incomplete triangle (3 nodes associated with the vertices, 6 with the edges)"};
-  elementType[21] = (elType) {10,
-                              "third order triangle (3 nodes associated with the vertices, 6 with the edges, 1 with the face)"};
-  elementType[22] = (elType) {12,
-                              "fourth order incomplete triangle (3 nodes associated with the vertices, 9 with the edges)"};
-  elementType[23] = (elType) {15,
-                              "fourth order triangle (3 nodes associated with the vertices, 9 with the edges 3 with the face)"};
-  elementType[24] = (elType) {15,
-                              "fifth order incomplete triangle (3 nodes associated with the vertices, 12 with the edges)"};
-  elementType[25] = (elType) {21,
-                              "fifth order complete triangle (3 nodes associated with the vertices, 12 with the edges 6 with the face)"};
-  elementType[26] = (elType) {4,
-                              "third order edge (2 nodes associated with the vertices 2 internal to the edge)"};
-  elementType[27] = (elType) {5,
-                              "fourth order edge (2 nodes associated with the vertices 3 internal to the edge)"};
-  elementType[28] = (elType) {6,
-                              "fifth order edge (2 nodes associated with the vertices 4 internal to the edge)"};
-  elementType[29] = (elType) {20,
-                              "third order tetrahedron (4 nodes associated with the vertices 12 with the edges 4 with the faces)"};
-  elementType[30] = (elType) {35,
-                              "fourth order tetrahedron (4 nodes associated with the vertices 18 with the edges 12 with the faces 1 in the volume)"};
-  elementType[31] = (elType) {56,
-                              "fifth order tetrahedron (4 nodes associated with the vertices 24 with the edges 24 with the faces 4 in the volume)"};
-  elementType[92] = (elType) {64,
-                              "third order hexahedron (8 nodes associated with the vertices 24 with the edges 24 with the faces 8 in the volume)"};
-  elementType[93] = (elType) {125,
-                              "fourth order hexahedron (8 nodes associated with the vertices 36 with the edges 54 with the faces 27 in the volume)"};
-
-  int r;
-
-  _goto(f, "$Nodes");
-  int nv, nEl;
-  double poubd;
-  r = fscanf(f, "%i", nBlock);
-  r = fscanf(f, "%i", nVtx);
-
-  printf("nVtx %i\n", *nVtx);
-
-  for (int block = 1 ; block < (*nBlock) + 1 ; block++) {
-    r = fscanf(f, "%i", &nv);
-    r = fscanf(f, "%i", &nv);
-    r = fscanf(f, "%i", &nv);
-    r = fscanf(f, "%i", &nv);
-
-    for (int i = 0 ; i < nv ; i++) {
-      r = fscanf(f, "%i", &nEl);
-      nEl = nEl - 1;
-      r = fscanf(f, "%lf", &poubd);
-      r = fscanf(f, "%lf", &poubd);
-      r = fscanf(f, "%lf", &poubd);
-
-      if (r == EOF) {
-        return EXIT_FAILURE;
-      }
-    }
-  }
-
-  int IelType, nEl2, poub;
-
-  _goto(f, "$Elements");
-  r = fscanf(f, "%i", nBlock);
-  r = fscanf(f, "%i", nb_Elts);
-  printf("nb_Elts %i\n", *nb_Elts);
-  printf("nBlock %i\n", *nBlock);
-
-  *nElBlock = (int *) malloc(sizeof(int) * (*nBlock));
-  *typeBlock = (int *) malloc(sizeof(int) * (*nBlock));
-
-  int block1 = 0;
-  for (int block = 0 ; block < (*nBlock) ; block++) {
-    r = fscanf(f, "%i", &nv);
-    r = fscanf(f, "%i", &nv);
-    r = fscanf(f, "%i", &IelType);
-    r = fscanf(f, "%i", &nv);
-
-    //To use with Paraview
-    if (IelType == 1 || IelType == 15) {
-      nb_Elts = nb_Elts - nv;
-      for (int s = 0 ; s < nv * (1 + elementType[IelType].nNodes) ; s++) {
-        r = fscanf(f, "%i", &poub);
-      }
-    }
-    else {
-      (*nElBlock)[block1] = nv;
-      (*typeBlock)[block1] = IelType;
-
-      int size_el;
-      size_el = elementType[IelType].nNodes;
-
-      for (int i = 0 ; i < nv ; i++) {
-        r = fscanf(f, "%i", &nEl2);
-        for (int jv = 0 ; jv < size_el ; jv++) {
-          r = fscanf(f, "%i", &poub);
-        }
-
-        if (r == EOF) {
-          return EXIT_FAILURE;
-        }
-      }
-      block1++;
-    }
-  }
-  *nBlock = block1;
-  printf("nb_Elts %i\n", *nb_Elts);
-  return EXIT_SUCCESS;
-}
-
-
-static int
-_tabSearch2(int value, int **gnum, int gnum_size) {
-  int POS;           // position de la valeur
-  int INF, SUP;      // limites du champ de recherche
-
-  /* Initialisation des limites du domaine de recherche */
-  INF = 0;
-  SUP = gnum_size - 1;
-
-  // Recherche de la position de la valeur
-  POS = INF;
-  while (POS < SUP) {
-    if (value == (*gnum)[POS]) {
-      break;
-    }
-    POS++;
-  }
-  if (POS == SUP + 1) {
-    POS = -1;
-  }
-  return POS;
-}
-
-
-//static int
-//_tabSearch(int value, int **gnum, int gnum_size) {
-//  int POS;           // position de la valeur
-//  int INF, MIL, SUP; // limites du champ de recherche
-//
-//  // Initialisation des limites du domaine de recherche
-//  INF = 0;
-//  SUP = gnum_size - 1;
-//
-//  // Recherche de la position de la valeur
-//  POS = -1;
-//  while ((INF <= SUP) && (POS == -1)) {
-//    MIL = (SUP + INF) / 2;
-//    //printf("value %i size %i MIL %i\n",value,MIL,gnum_size);
-//    if (value < (*gnum)[MIL]) {
-//      SUP = MIL - 1;
-//    }
-//    else if (value > (*gnum)[MIL]) {
-//      INF = MIL + 1;
-//    }
-//    else {
-//      POS = MIL;
-//    }
-//  }
-//
-//  // Edition du résultat
-//  if (POS == -1) {
-//    printf("La valueeur recherchée ne se trouve pas dans le tableau. %i %i\n", value, gnum_size);
-//    return -1;
-//  }
-//  else {
-//    return POS;
-//  }
-//}
-
-
-//static void
-//_tricroissant(int *a, int b) {
-//  int ind_min = 0;
-//  int x;
-//
-//  for (int i = ind_min ; i < b ; i++) {
-//    for (int j = ind_min + 1 ; j < b ; j++) {
-//      if (a[i] < a[j]) {
-//        x = a[i];
-//        a[i] = a[j];
-//        a[j] = x;
-//        j--;
-//      }
-//    }
-//  }
-//
-//  x = a[ind_min];
-//  for (int i = ind_min ; i < b ; i++) {
-//    a[i] = a[i + 1];
-//  }
-//  a[b - 1] = x;
-//}
-
-
-/*----------------------------------------------------------------------
- *
- * Read mesh dimension
- *
- * parameters:
- *   f                   <-- Mesh file
- *   dimension           --> Dimension
- *   nVtx             <-- number of vertices
- *   nElements           <-- number of elements
- *   nConnecVertex       <-- size of connectivity
- *   coords              --> vertices coordinates
- *   connecPointer       --> connectivity index
- *   connec              --> connectivity
- *---------------------------------------------------------------------*/
-
-static int
-_read_mesh(FILE *f, int *nVtx, int *nb_Elts, int *nBlock, int **nElBlock, int **typeBlock,
-           int **connec, double *coords, int *gnum_coords) {
-
-  elType elementType[100];
-
-  elementType[1] = (elType) {2, "line"};
-  elementType[2] = (elType) {3, "triangle"};
-  elementType[3] = (elType) {4, "quadrangle"};
-  elementType[4] = (elType) {4, "tetrahedron"};
-  elementType[5] = (elType) {8, "hexahedron"};
-  elementType[6] = (elType) {6, "prism"};
-  elementType[7] = (elType) {5, "pyramid"};
-  elementType[8] = (elType) {3,
-                             "second order line (2 nodes associated with the vertices and 1 with the edge)"};
-  elementType[9] = (elType) {6,
-                             "second order triangle (3 nodes associated with the vertices and 3 with the edges)"};
-  elementType[10] = (elType) {9,
-                              "second order quadrangle (4 nodes associated with the vertices, 4 with the edges and 1 with the face)"};
-  elementType[11] = (elType) {10,
-                              "second order tetrahedron (4 nodes associated with the vertices and 6 with the edges)"};
-  elementType[12] = (elType) {27,
-                              "second order hexahedron (8 nodes associated with the vertices, 12 with the edges 6 with the faces and 1 with the volume)"};
-  elementType[13] = (elType) {18,
-                              "second order prism (6 nodes associated with the vertices], 9 with the edges and 3 with the quadrangular faces)"};
-  elementType[14] = (elType) {14,
-                              "second order pyramid (5 nodes associated with the vertices, 8 with the edges and 1 with the quadrangular face)"};
-  elementType[15] = (elType) {1, "point"};
-  elementType[16] = (elType) {8,
-                              "second order quadrangle (4 nodes associated with the vertices and 4 with the edges)"};
-  elementType[17] = (elType) {20,
-                              "second order hexahedron (8 nodes associated with the vertices and 12 with the edges)"};
-  elementType[18] = (elType) {15,
-                              "second order prism (6 nodes associated with the vertices and 9 with the edges)"};
-  elementType[19] = (elType) {13,
-                              "second order pyramid (5 nodes associated with the vertices and 8 with the edges)"};
-  elementType[20] = (elType) {9,
-                              "third order incomplete triangle (3 nodes associated with the vertices, 6 with the edges)"};
-  elementType[21] = (elType) {10,
-                              "third order triangle (3 nodes associated with the vertices, 6 with the edges, 1 with the face)"};
-  elementType[22] = (elType) {12,
-                              "fourth order incomplete triangle (3 nodes associated with the vertices, 9 with the edges)"};
-  elementType[23] = (elType) {15,
-                              "fourth order triangle (3 nodes associated with the vertices, 9 with the edges 3 with the face)"};
-  elementType[24] = (elType) {15,
-                              "fifth order incomplete triangle (3 nodes associated with the vertices, 12 with the edges)"};
-  elementType[25] = (elType) {21,
-                              "fifth order complete triangle (3 nodes associated with the vertices, 12 with the edges 6 with the face)"};
-  elementType[26] = (elType) {4,
-                              "third order edge (2 nodes associated with the vertices 2 internal to the edge)"};
-  elementType[27] = (elType) {5,
-                              "fourth order edge (2 nodes associated with the vertices 3 internal to the edge)"};
-  elementType[28] = (elType) {6,
-                              "fifth order edge (2 nodes associated with the vertices 4 internal to the edge)"};
-  elementType[29] = (elType) {20,
-                              "third order tetrahedron (4 nodes associated with the vertices 12 with the edges 4 with the faces)"};
-  elementType[30] = (elType) {35,
-                              "fourth order tetrahedron (4 nodes associated with the vertices 18 with the edges 12 with the faces 1 in the volume)"};
-  elementType[31] = (elType) {56,
-                              "fifth order tetrahedron (4 nodes associated with the vertices 24 with the edges 24 with the faces 4 in the volume)"};
-  elementType[92] = (elType) {64,
-                              "third order hexahedron (8 nodes associated with the vertices 24 with the edges 24 with the faces 8 in the volume)"};
-  elementType[93] = (elType) {125,
-                              "fourth order hexahedron (8 nodes associated with the vertices 36 with the edges 54 with the faces 27 in the volume)"};
-
-  int r;
-
-  _goto(f, "$Nodes");
-  int nv;
-  r = fscanf(f, "%i", nBlock);
-  r = fscanf(f, "%i", nVtx);
-  printf("nVtx1 %i\n", *nVtx);
-
-  int i_el = 0;
-  for (int block = 1 ; block < (*nBlock) + 1 ; block++) {
-    r = fscanf(f, "%i", &nv);
-    r = fscanf(f, "%i", &nv);
-    r = fscanf(f, "%i", &nv);
-    r = fscanf(f, "%i", &nv);
-
-    for (int i = 0 ; i < nv ; i++) {
-      r = fscanf(f, "%i", gnum_coords + i_el);
-      r = fscanf(f, "%lf", coords + 3 * i_el);
-      r = fscanf(f, "%lf", coords + 3 * i_el + 1);
-      r = fscanf(f, "%lf", coords + 3 * i_el + 2);
-      printf("gnum_coords %i block %i nv %i x %f y %f z %f\n",
-             gnum_coords[i_el],
-             block,
-             nv,
-             coords[3 * i_el],
-             coords[3 * i_el + 1],
-             coords[3 * i_el + 2]);
-      if (r == EOF) {
-        return EXIT_FAILURE;
-      }
-      i_el++;
-    }
-  }
-
-  int IelType, nEl2, poub;
-
-  _goto(f, "$Elements");
-  r = fscanf(f, "%i", nBlock);
-  r = fscanf(f, "%i", nb_Elts);
-
-  int block1 = 0;
-
-  for (int block = 0 ; block < (*nBlock) ; block++) {
-    r = fscanf(f, "%i", &nv);
-    r = fscanf(f, "%i", &nv);
-    r = fscanf(f, "%i", &IelType);
-    r = fscanf(f, "%i", &nv);
-
-    //To use with Paraview
-    if (IelType != 2 && IelType != 3) {
-      *nb_Elts = *nb_Elts - nv;
-      for (int s = 0 ; s < nv * (1 + elementType[IelType].nNodes) ; s++) {
-        r = fscanf(f, "%i", &poub);
-      }
-    }
-    else {
-      (*nElBlock)[block1] = nv;
-      (*typeBlock)[block1] = IelType;
-
-      int size_el;
-      if (IelType != 2 && IelType != 3) {
-        printf("IelType %i nv %i\n", IelType, nv);
-      }
-      size_el = elementType[IelType].nNodes;
-      // printf("IelType %i nv %i size_el %i block %i block1 %i nBlock %i\n",IelType,nv,size_el,block,block1,*nBlock);
-      for (int i = 0 ; i < nv ; i++) {
-        r = fscanf(f, "%i", &nEl2);
-        for (int jv = 0 ; jv < size_el ; jv++) {
-          r = fscanf(f, "%i", connec[block1] + size_el * i + jv);
-
-          connec[block1][size_el * i + jv] = 1 + _tabSearch2(connec[block1][size_el * i + jv],
-                                                             &gnum_coords,
-                                                             *nVtx);
-          if (connec[block1][size_el * i + jv] < -1 || connec[block1][size_el * i + jv] > 100000) {
-            printf("Alerte wrong connectivity\n");
-          }
-          //printf("connect %i \n",connec[block1][size_el*i+jv]);
-          //printf("%i nEl2 %i block %i nv %i connec %i %i %i size_el %i IelType %i\n",
-          //*nb_Elts,nEl2,block,nv,i,jv,connec[block1][size_el*i+jv],size_el,IelType);
-        }
-        if (r == EOF) {
-          return EXIT_FAILURE;
-        }
-      }
-      block1++;
-    }
-  }
-  *nBlock = block1;
-  return EXIT_SUCCESS;
-}
-
-
-static int
-_sizeForType(int type) {
-  switch (type) {
-    case 1 :
-      return 2;
-    case 2 :
-      return 3;
-    case 3 :
-      return 4;
-    case 15:
-      return 1;
-    default:
-      return 0;
-  }
-}
-
-
-/*----------------------------------------------------------------------
- *
- * Main : linear coupling test
+ * Main : surface coupling test : P1P0_P0P1
  *
  *---------------------------------------------------------------------*/
 
-int
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
+  // Read args from command line
+  int n_vtx_seg1                  = 4;
+  int n_vtx_seg2                  = 4;
+  int randomize                   = 1;
+  int n_proc_data                 = -1;
+
+#ifdef PDM_HAVE_PARMETIS
+  PDM_split_dual_t part_method    = PDM_SPLIT_DUAL_WITH_PARMETIS;
+#else
+#ifdef PDM_HAVE_PTSCOTCH
+  PDM_split_dual_t part_method    = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
+#else
+  PDM_split_dual_t part_method    = PDM_SPLIT_DUAL_WITH_HILBERT;
+#endif
+#endif
+  int verbose                     = 0;
+
+  double length                   = 20.;
+  int    deform                   = 0;
+
+  double      separation_x        = 2.;
+  double      separation_y        = 0.;
+  double      separation_z        = 0.;
+
+  double      tolerance           = 1e-2;
+
+  char* output_filename           = NULL;
+  int filedump                    = 0;
+
+  int         use_gnum            = 1;
+
+  _read_args(argc,
+             argv,
+             &n_vtx_seg1,
+             &n_vtx_seg2,
+             &length,
+             &separation_x,
+             &separation_y,
+             &separation_z,
+             &deform,
+             &tolerance,
+             &randomize,
+             &n_proc_data,
+             &part_method,
+             &output_filename,
+             &verbose,
+             &use_gnum);
+
+  if (output_filename !=NULL) {
+    filedump = 1;
+  }
+
+  // Initialize MPI
   MPI_Init(&argc, &argv);
+
   int rank;
   int comm_world_size;
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
 
-  int n_partition = 0;
-  while (2 * pow(n_partition, 2) < comm_world_size) {
-    n_partition++;
+  assert (comm_world_size > 1);
+
+  if (n_proc_data == 1) {
+    n_proc_data = 2;
   }
 
-  // Initialization
-  int n_code = 0;
-  const char **codeNames = NULL;
-  double *times_init = NULL;
-  CWP_Status_t *is_coupled_rank = NULL;
 
-  if (rank < 3) {
-    n_code = 1;
-    codeNames = malloc(sizeof(char *) * n_code);
-    codeNames[0] = "code1";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * 1);
-    is_coupled_rank[0] = CWP_STATUS_ON;
+
+
+  // Initialize CWIPI
+  int n_part = 1;
+  int n_code = 1;
+  int code_id;
+  const char **code_name = malloc(sizeof(char *) * n_code);
+  const char **coupled_code_name = malloc(sizeof(char *) * n_code);
+  CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
+  double *time_init = malloc(sizeof(double) * n_code);
+
+  int n_vtx_seg;
+  if (rank < comm_world_size / 2) {
+    code_id = 1;
+    code_name[0] = "code1";
+    coupled_code_name[0] = "code2";
+    n_vtx_seg = n_vtx_seg1;
+  }
+  else {
+    code_id = 2;
+    code_name[0] = "code2";
+    coupled_code_name[0] = "code1";
+    n_vtx_seg = n_vtx_seg2;
   }
 
-  if (rank > 4) {
-    n_code = 1;
-    codeNames = malloc(sizeof(char *) * n_code);
-    codeNames[0] = "code2";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * 1);
-    is_coupled_rank[0] = CWP_STATUS_ON;
-  }
 
-  if (rank >= 3 && rank <= 4) {
-    n_code = 2;
-    codeNames = malloc(sizeof(char *) * n_code);
-    codeNames[0] = "code1";
-    codeNames[1] = "code2";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    is_coupled_rank[0] = CWP_STATUS_ON;
-    is_coupled_rank[1] = CWP_STATUS_ON;
-  }
 
-  const char *code_name;
-  times_init = malloc(sizeof(double) * n_code);
-
-  for (int i = 0 ; i < n_code ; i++) {
-    times_init[i] = 0;
-  }
-
-  MPI_Comm *localComm = malloc(sizeof(MPI_Comm) * n_code);
+  MPI_Comm *intra_comm = malloc(sizeof(MPI_Comm) * n_code);
+  is_active_rank[0] = CWP_STATUS_ON;
+  time_init[0] = 0.;
 
   CWP_Init(MPI_COMM_WORLD,
            n_code,
-           codeNames,
-           is_coupled_rank,
-           times_init,
-           localComm);
+           (const char **) code_name,
+           is_active_rank,
+           time_init,
+           intra_comm);
 
-  int currentRankA[n_code];
-  int localCommSize[n_code];
 
-  for (int i = 0 ; i < n_code ; i++) {
-    MPI_Comm_rank(localComm[i], &currentRankA[i]);
-    MPI_Comm_size(localComm[i], &localCommSize[i]);
+  if (verbose && rank == 0) {
+    printf("CWIPI Init OK\n");
   }
 
-  const char cpl_id1[] = "cpl_code1_code2";
 
-  int nb_part = 10;
+  // Create coupling
+  const char *coupling_name = "c_surf_cpl_P1P1";
 
-  int **nElts;
-  int **nBlock;
-  int *nBlockOld;
-  int ***typeBlock;
-  int **nVtx;
-  int ****eltsConnec;
-  double ***coords;
-  int **gnum_coord;
-  int ***nElBlock;
+  CWP_Cpl_create(code_name[0],
+                 coupling_name,
+                 coupled_code_name[0],
+                 CWP_INTERFACE_VOLUME,
+                 CWP_COMM_PAR_WITH_PART,
+                 CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                 n_part,
+                 CWP_DYNAMIC_MESH_STATIC,
+                 CWP_TIME_EXCH_CPL_TIME_STEP);
 
-  char ***geofile = (char ***) malloc(sizeof(char **) * n_code);
-
-  nElts = (int **) malloc(sizeof(int *) * n_code);
-  nVtx = (int **) malloc(sizeof(int *) * n_code);
-  eltsConnec = (int ****) malloc(sizeof(int ***) * n_code);
-  nBlock = (int **) malloc(sizeof(int *) * n_code);
-  nBlockOld = (int *) malloc(sizeof(int) * nb_part);
-  typeBlock = (int ***) malloc(sizeof(int **) * n_code);
-
-  coords = (double ***) malloc(sizeof(double **) * n_code);
-  gnum_coord = (int **) malloc(sizeof(int *) * nb_part);
-  nElBlock = (int ***) malloc(sizeof(int **) * n_code);
-
-  for (int i = 0 ; i < n_code ; i++) {
-    int localComm_size = localCommSize[i];
-    code_name = codeNames[i];
-    int currentRank = currentRankA[i];
-
-    nElts[i] = (int *) malloc(sizeof(int) * nb_part);
-    nVtx[i] = (int *) malloc(sizeof(int) * nb_part);
-    eltsConnec[i] = (int ***) malloc(sizeof(int **) * nb_part);
-    coords[i] = (double **) malloc(sizeof(double *) * nb_part);
-    nElBlock[i] = (int **) malloc(sizeof(int *) * nb_part);
-    nBlock[i] = (int *) malloc(sizeof(int) * nb_part);
-    typeBlock[i] = (int **) malloc(sizeof(int *) * nb_part);
-    printf("%i rank %i localCommSize %i code_name %s\n", i, currentRank, localComm_size, code_name);
-
-    if (strcmp(code_name, "code1") == 0) {
-      const char *codeCpl = "code2";
-      CWP_Cpl_create(code_name,
-                     cpl_id1,
-                     codeCpl,
-                     CWP_INTERFACE_VOLUME,
-                     CWP_COMM_PAR_WITH_PART,
-                     CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
-                     nb_part,
-                     CWP_DYNAMIC_MESH_STATIC,
-                     CWP_TIME_EXCH_CPL_TIME_STEP);
-    }
-
-    if (strcmp(code_name, "code2") == 0) {
-      const char *codeCpl = "code1";
-      CWP_Cpl_create(code_name,
-                     cpl_id1,
-                     codeCpl,
-                     CWP_INTERFACE_VOLUME,
-                     CWP_COMM_PAR_WITH_PART,
-                     CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
-                     nb_part,
-                     CWP_DYNAMIC_MESH_STATIC,
-                     CWP_TIME_EXCH_CPL_TIME_STEP);
-    }
+  if (verbose && rank == 0) {
+    printf("Create coupling OK\n");
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
+  // Define mesh
+  PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) intra_comm);
 
-  for (int i = 0 ; i < n_code ; i++) {
-    int localComm_size = localCommSize[i];
-    code_name = codeNames[i];
-    int currentRank = currentRankA[i];
-
-    CWP_Visu_set(code_name, cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
-
-    const char *geoModelfile;
-    if (strcmp(code_name, "code1") == 0) {
-      const char *geoModelfile2 = "meshes/sphere01";
-      geoModelfile = geoModelfile2;
+  int _n_proc_data = n_proc_data;
+  if (n_proc_data > 0) {
+    if (code_id == 1) {
+      _n_proc_data /= 2;
     }
     else {
-      const char *geoModelfile2 = "meshes/sphere02";
-      geoModelfile = geoModelfile2;
+      _n_proc_data -= n_proc_data / 2;
     }
+  }
+  int current_rank_has_mesh = 1;//_set_rank_has_mesh(intra_comm[0], _n_proc_data, &mesh_comm);
 
-    if (currentRank == 0) {
-      char *s = (char *) malloc(sizeof(char) * 500);
-      sprintf(s, "python meshes/gmsh_mesh.py %i %s", nb_part, geoModelfile);
-      system(s);
-      system("cp meshes/sphere01Model.geo meshes/sphere02Model.geo");
-    }
+  // int true_n_proc_data;
+  // MPI_Reduce(&current_rank_has_mesh, &true_n_proc_data, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+  // if (rank == 0) {
+  //   printf("nb procs with mesh data = %d\n", true_n_proc_data);
+  // }
 
-    geofile[i] = (char **) malloc(sizeof(char *) * nb_part);
 
-    for (int i_part = 0 ; i_part < nb_part ; i_part++) {
-      geofile[i][i_part] = (char *) malloc(sizeof(char) * 550);
-      sprintf(geofile[i][i_part], "%s_part%i.geo", geoModelfile, i_part);
-      printf("geofile %s %i\n", geofile[i][i_part], localCommSize[i]);
-      if (currentRank == 0 /*&& code_name=="code1"*/) {
-        _generate_gmsh_mesh(geofile[i][i_part], localComm_size, 1);
-      }
-    }
-    printf("codename %s currentRank %i i %i rank %i\n", code_name, currentRank, i, rank);
+  double xmin = -0.5 * length;
+  double ymin = -0.5 * length;
+  double zmin = -0.5 * length;
+  //  int init_random = (int) time(NULL);
+  int init_random = 5;
+
+  PDM_MPI_Comm code_mesh_comm;
+  PDM_MPI_Comm_split(mesh_comm, code_id, rank, &code_mesh_comm);
+
+  if (code_id == 2) {
+    init_random++;
+    xmin += separation_x;
+    ymin += separation_y;
+    zmin += separation_z;
   }
 
+
+  int          *pn_cell        = NULL;
+  int          *pn_face        = NULL;
+  int          *pn_vtx         = NULL;
+  int         **pcell_face_idx = NULL;
+  int         **pcell_face     = NULL;
+  int         **pface_vtx_idx  = NULL;
+  int         **pface_vtx      = NULL;
+  double      **pvtx_coord     = NULL;
+  PDM_g_num_t **pcell_ln_to_gn = NULL;
+  PDM_g_num_t **pface_ln_to_gn = NULL;
+  PDM_g_num_t **pvtx_ln_to_gn  = NULL;
+
+  _gen_mesh(current_rank_has_mesh,
+            code_mesh_comm,
+            n_part,
+            part_method,
+            n_vtx_seg,
+            xmin,
+            ymin,
+            zmin,
+            length,
+            randomize,
+            init_random,
+            &pn_cell,
+            &pn_face,
+            &pn_vtx,
+            &pcell_face_idx,
+            &pcell_face,
+            &pface_vtx_idx,
+            &pface_vtx,
+            &pvtx_coord,
+            &pcell_ln_to_gn,
+            &pface_ln_to_gn,
+            &pvtx_ln_to_gn);
+
+
+  // Set interface mesh
+  PDM_g_num_t *_pvtx_ln_to_gn  = NULL;
+  PDM_g_num_t *_pcell_ln_to_gn = NULL;
+  if (use_gnum) {
+    _pvtx_ln_to_gn  = pvtx_ln_to_gn[0];
+    _pcell_ln_to_gn = pcell_ln_to_gn[0];
+  }
+
+  CWP_Mesh_interf_vtx_set(code_name[0],
+                          coupling_name,
+                          0,
+                          pn_vtx[0],
+                          pvtx_coord[0],
+                          _pvtx_ln_to_gn);
+
+  int block_id = CWP_Mesh_interf_block_add(code_name[0],
+                                           coupling_name,
+                                           CWP_BLOCK_CELL_POLY);
+
+  CWP_Mesh_interf_c_poly_block_set(code_name[0],
+                                   coupling_name,
+                                   0,
+                                   block_id,
+                                   pn_cell[0],
+                                   pn_face[0],
+                                   pface_vtx_idx[0],
+                                   pface_vtx[0],
+                                   pcell_face_idx[0],
+                                   pcell_face[0],
+                                   _pcell_ln_to_gn);
+
+  CWP_Mesh_interf_finalize(code_name[0],
+                           coupling_name);
+
+  if (verbose && rank == 0) {
+    printf("Set mesh OK\n");
+  }
+
+
+  // Create and set fields
+  double *send_val = NULL;
+  double *recv_val = NULL;
+
+  const char *field_name  = "coo";
+
+  if (code_id == 1) {
+    send_val = (double *) malloc(sizeof(double) * pn_vtx[0] * 3);
+    memcpy(send_val, pvtx_coord[0], sizeof(double) * pn_vtx[0] * 3);
+  } else {
+    recv_val = (double *) malloc(sizeof(double) * pn_vtx[0] * 3);
+  }
+
+  CWP_Status_t visu_status = CWP_STATUS_OFF;
   MPI_Barrier(MPI_COMM_WORLD);
 
-  for (int i = 0 ; i < n_code ; i++) {
-    code_name = codeNames[i];
-    int currentRank = currentRankA[i];
+  if (code_id == 1) {
+    CWP_Field_create(code_name[0],
+                     coupling_name,
+                     field_name,
+                     CWP_DOUBLE,
+                     CWP_FIELD_STORAGE_INTERLACED,
+                     3,
+                     CWP_DOF_LOCATION_NODE,
+                     CWP_FIELD_EXCH_SEND,
+                     visu_status);
+    CWP_Field_data_set(code_name[0],
+                       coupling_name,
+                       field_name,
+                       0,
+                       CWP_FIELD_MAP_SOURCE,
+                       send_val);
+  } else {
+    CWP_Field_create(code_name[0],
+                     coupling_name,
+                     field_name,
+                     CWP_DOUBLE,
+                     CWP_FIELD_STORAGE_INTERLACED,
+                     3,
+                     CWP_DOF_LOCATION_NODE,
+                     CWP_FIELD_EXCH_RECV,
+                     visu_status);
+    CWP_Field_data_set(code_name[0],
+                       coupling_name,
+                       field_name,
+                       0,
+                       CWP_FIELD_MAP_TARGET,
+                       recv_val);
+  }
 
-    for (int i_part = 0 ; i_part < nb_part ; i_part++) {
-      int len;
-      for (len = 0 ; geofile[i][i_part][len] != '\0' ; ++len) {}
+  if (verbose && rank == 0) {
+    printf("Fields OK\n");
+  }
 
-      int lenfile;
+  // Perform geometric algorithm
+  CWP_Spatial_interp_properties_set(code_name[0], coupling_name, "tolerance", 1e-2);
+  CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
 
-      if ((1 + currentRankA[i]) >= 1000 && (1 + currentRankA[i]) < 10000) {
-        lenfile = len + 5;
+  int n_unlocated = 0;
+  int n_located = 0;
+  const int *located = NULL;
+  if (code_id != 1) {
+    n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name, 0);
+    n_located   = CWP_N_computed_tgts_get  (code_name[0], coupling_name, field_name, 0);
+    located     = CWP_Computed_tgts_get    (code_name[0], coupling_name, field_name, 0);
+  }
+
+
+  //  Exchange interpolated fields
+  if (code_id == 1) {
+    CWP_Field_issend(code_name[0], coupling_name, field_name);
+  }
+  else {
+    CWP_Field_irecv(code_name[0], coupling_name, field_name);
+  }
+
+
+
+  if (code_id == 1) {
+    CWP_Field_wait_issend(code_name[0], coupling_name, field_name);
+  }
+  else {
+    CWP_Field_wait_irecv(code_name[0], coupling_name, field_name);
+  }
+
+  //  Check
+  double max_err = 0.;
+  int    n_err   = 0;
+  if (code_id == 2) {
+
+    if (1) {
+      log_trace("recv_val / coord = \n");
+      for (int i = 0 ; i < n_located; i++) {
+        int ivtx = located[i] - 1;
+        log_trace("%d ("PDM_FMT_G_NUM"): %f %f %f / %f %f %f\n",
+                  located[i],
+                  pvtx_ln_to_gn[0][located[i]-1],
+                  recv_val[3*i], recv_val[3*i+1], recv_val[3*i+2],
+                  pvtx_coord[0][3*ivtx], pvtx_coord[0][3*ivtx+1], pvtx_coord[0][3*ivtx+2]);
       }
-      else if ((1 + currentRankA[i]) >= 100) {
-        lenfile = len + 4;
-      }
-      else if ((1 + currentRankA[i]) >= 10) {
-        lenfile = len + 3;
-      }
-      else {
-        lenfile = len + 2;
-      }
-
-      if (localCommSize[i] == 1) {
-        lenfile = len;
-      }
-
-      char *root = (char *) malloc(sizeof(char) * (len - 4));
-
-      printf("filename %s %i\n", geofile[i][i_part], len);
-
-      for (int j = 0 ; j < len - 4 ; j++) {
-        root[j] = geofile[i][i_part][j];
-      }
-
-      char *filename = (char *) malloc(sizeof(char) * (lenfile));
-      char *filename2 = (char *) malloc(sizeof(char) * (10 + 2 * lenfile));
-
-      if (localCommSize[i] != 1) sprintf(filename, "%s_%i.msh", root, 1 + currentRank);
-      else
-        sprintf(filename, "%s.msh", root);
-
-      printf("filename %s %i\n", filename, currentRankA[i]);
-
-      FILE *meshFile;
-      meshFile = fopen(filename, "r");
-
-      eltsConnec[i][i_part] = NULL;
-      coords[i][i_part] = NULL;
-      nElBlock[i][i_part] = NULL;
-      typeBlock[i][i_part] = NULL;
-
-      _read_mesh_dim(meshFile,
-                     &(nVtx[i][i_part]),
-                     &(nElts[i][i_part]),
-                     &(nBlock[i][i_part]),
-                     &(nElBlock[i][i_part]),
-                     &(typeBlock[i][i_part]));
-
-
-      coords[i][i_part] = (double *) malloc(3 * nVtx[i][i_part] * sizeof(double));
-      gnum_coord[i_part] = (int *) malloc(nVtx[i][i_part] * sizeof(int));
-      eltsConnec[i][i_part] = (int **) malloc(nBlock[i][i_part] * sizeof(int *));
-
-      printf("currentRank %i nVtx[i][i_part] %i nElts[i][i_part] %i nBlock[i][i_part] %i nElBlock[i][i_part][0] %i typeBlock[i][i_part][0] %i\n",
-             currentRankA[i],
-             nVtx[i][i_part],
-             nElts[i][i_part],
-             nBlock[i][i_part],
-             nElBlock[i][i_part][0],
-             typeBlock[i][i_part][0]);
-      nBlockOld[i_part] = nBlock[i][i_part];
-      for (int b = 0 ; b < nBlock[i][i_part] ; b++) {
-        eltsConnec[i][i_part][b] = (int *) malloc(_sizeForType(typeBlock[i][i_part][b]) * nElBlock[i][i_part][b] * sizeof(int));
-      }
-
-      fclose(meshFile);
-      meshFile = fopen(filename, "r");
-
-      printf("filenamePP %s %i %i %i %i %i\n",
-             filename,
-             rank,
-             nElts[i][i_part],
-             nBlock[i][i_part],
-             typeBlock[i][i_part][0],
-             nVtx[i][i_part]);
-
-      _read_mesh(meshFile,
-                 &nVtx[i][i_part],
-                 &nElts[i][i_part],
-                 &nBlock[i][i_part],
-                 &(nElBlock[i][i_part]),
-                 &(typeBlock[i][i_part]),
-                 eltsConnec[i][i_part],
-                 coords[i][i_part],
-                 gnum_coord[i_part]);
-
-      fclose(meshFile);
-      free(filename);
-      free(filename2);
-      free(root);
-
-      for (int b = 0 ; b < nBlock[i][i_part] ; b++) {
-        for (int j = 0 ; j < nElBlock[i][i_part][b] ; j++) {
-          printf("eltsConnec[%i][%i][%i][%i] rank %i %i\n",
-                 i,
-                 i_part,
-                 b,
-                 j,
-                 currentRank,
-                 eltsConnec[i][i_part][b][j]);
-        }
-      }
-
-      printf("CWP_Mesh_interf_vtx_set %i\n", nVtx[i][i_part]);
-      CWP_Mesh_interf_vtx_set(codeNames[i],
-                              cpl_id1,
-                              i_part,
-                              nVtx[i][i_part],
-                              coords[i][i_part],
-                              NULL);
-      printf("After CWP_Mesh_interf_vtx_set %i %i\n", i_part, rank);
     }
 
-    int nb_elt_type = 100;
 
-    int **nb_block_type = (int **) malloc(nb_part * sizeof(int *));
-    int **nb_block_type_max = (int **) malloc(nb_part * sizeof(int *));
+    for (int i = 0 ; i < n_located ; i++) {
+      int wrong = 0;
 
-    for (int i_part = 0 ; i_part < nb_part ; i_part++) {
-      nb_block_type[i_part] = (int *) malloc(nb_elt_type * sizeof(int));
-      nb_block_type_max[i_part] = (int *) malloc(nb_elt_type * sizeof(int));
-      for (int l = 0 ; l < nb_elt_type ; l++) {
-        nb_block_type[i_part][l] = 0;
-      }
-
-      for (int i_block = 0 ; i_block < nBlock[i][i_part] ; i_block++) {
-        nb_block_type[i_part][typeBlock[i][i_part][i_block]]++;
-      }
-
-      MPI_Allreduce(nb_block_type[i_part],
-                    nb_block_type_max[i_part],
-                    nb_elt_type,
-                    MPI_INT,
-                    MPI_MAX,
-                    localComm[i]);
-
-      int nBlock_correct = 0;
-      for (int l = 0 ; l < nb_elt_type ; l++) {
-        nBlock_correct += nb_block_type_max[i_part][l];
-      }
-
-      int nBlock_old = nBlock[i][i_part];
-      nBlock[i][i_part] = nBlock_correct;
-
-      printf("nBlock_old %i %i\n", nBlock_old, nBlock_correct);
-
-      int *nElBlockNew = (int *) malloc(nBlock[i][i_part] * sizeof(int));
-      int *typeBlockNew = (int *) malloc(nBlock[i][i_part] * sizeof(int));
-      int **eltsConnecNew = (int **) malloc(nBlock[i][i_part] * sizeof(int *));
-
-      int ind_block = 0;
-      int *ibblock = (int *) malloc(nb_elt_type * sizeof(int));
-
-      for (int bb = 0 ; bb < nb_elt_type ; bb++) {
-        ibblock[bb] = 0;
-      }
-
-      for (int l = 0 ; l < nb_elt_type ; l++) {
-        for (int l2 = 0 ; l2 < nb_block_type_max[i_part][l] ; l2++) {
-          printf("ind_block %i %i \n", ind_block, i_part);
-          if (l2 < nb_block_type[i_part][l]) {
-            while (typeBlock[i][i_part][ibblock[l]] != l) {
-              ibblock[l]++;
-            }
-
-            nElBlockNew[ind_block] = nElBlock[i][i_part][ibblock[l]];
-            typeBlockNew[ind_block] = typeBlock[i][i_part][ibblock[l]];
-            eltsConnecNew[ind_block] = eltsConnec[i][i_part][ibblock[l]];
-            ibblock[l]++;
-          }
-          else {
-            nElBlockNew[ind_block] = 0;
-            typeBlockNew[ind_block] = l;
-            eltsConnecNew[ind_block] = (int *) malloc(_sizeForType(typeBlockNew[ind_block]) * nElBlockNew[ind_block] * sizeof(int));
-          }
-
-          ind_block++;
+      for (int j = 0; j < 3; j++) {
+        double err = ABS (recv_val[3*i + j] - pvtx_coord[0][3 * (located[i] -1) + j]);
+        if (err > 1.e-4) {
+          wrong = 1;
+          printf("[%d] !! vtx "PDM_FMT_G_NUM" %d err = %g (coord#%d = %f, recv = %f)\n",
+                 rank, pvtx_ln_to_gn[0][(located[i] - 1)], located[i], err, j, pvtx_coord[0][3*(located[i]-1) + j], recv_val[3*i + j]);
+        }
+        if (err > max_err) {
+          max_err = err;
         }
       }
 
-//      realloc(nElBlock[i][i_part], 0);
-      nElBlock[i][i_part] = nElBlockNew;
-
-//      realloc(typeBlock[i][i_part], 0);
-      typeBlock[i][i_part] = typeBlockNew;
-
-//      realloc(eltsConnec[i][i_part], 0);
-      eltsConnec[i][i_part] = eltsConnecNew;
+      if (wrong) {
+        n_err++;
+      }
     }
 
-    CWP_g_num_t ***GNUM = (CWP_g_num_t ***) malloc(sizeof(CWP_g_num_t **) * nb_part);
+  }
 
-    for (int i_part = 0 ; i_part < nb_part ; i_part++) {
-      nElts[i][i_part] = 0;
-      GNUM[i_part] = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * nBlock[i][i_part]);
+  double global_max_err = 0.;
+  MPI_Reduce(&max_err, &global_max_err, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+  if (rank == 0) {
+    printf("Max error = %g\n", global_max_err);
+  }
 
-      for (int i_block = 0 ; i_block < nBlock[i][i_part] ; i_block++) {
-        GNUM[i_part][i_block] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * nElBlock[i][i_part][i_block]);
-        printf("Standard Block Add\n");
+  int global_n_err = 0.;
+  MPI_Reduce(&n_err, &global_n_err, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+  if (rank == 0) {
+    printf("N error = %d\n", global_n_err);
+  }
 
-        CWP_Block_t cwp_block_t;
-        if (typeBlock[i][i_part][i_block] == 1) {
-          cwp_block_t = CWP_BLOCK_EDGE2;
-        }
-        else if (typeBlock[i][i_part][i_block] == 2) {
-          cwp_block_t = CWP_BLOCK_FACE_TRIA3;
-        }
-        else if (typeBlock[i][i_part][i_block] == 3) {
-          cwp_block_t = CWP_BLOCK_FACE_QUAD4;
-        }
-        else if (typeBlock[i][i_part][i_block] == 15) {
-          cwp_block_t = CWP_BLOCK_NODE;
-        }
-        else {
-          cwp_block_t = CWP_BLOCK_NODE;
-        }
 
-        int block_id = CWP_Mesh_interf_block_add(code_name, cpl_id1, cwp_block_t);
 
-        printf("Standard block set %i\n", i_block);
-        printf("\n");
-        for (int g = 0 ; g < nElBlock[i][i_part][i_block] ; g++) {
-          if (eltsConnec[i][i_part][i_block][g] < 0 || eltsConnec[i][i_part][i_block][g] > 1000) {
-            printf("YYYY %i %i %i %i\n", i_part, i_block, g, eltsConnec[i][i_part][i_block][g]);
-          }
-          GNUM[i_part][i_block][g] = -456;
-        }
+  //  Delete interface mesh
+  CWP_Mesh_interf_del(code_name[0], coupling_name);
 
-        CWP_Mesh_interf_block_std_set(code_name,
-                                      cpl_id1,
-                                      i_part,
-                                      block_id,
-                                      nElBlock[i][i_part][i_block],
-                                      eltsConnec[i][i_part][i_block],
-                                      NULL/*GNUM[i_part][i_block]*/);
-        nElts[i][i_part] += nElBlock[i][i_part][i_block];
-      }
+  //  Delete coupling
+  CWP_Cpl_del(code_name[0], coupling_name);
+
+  // Free memory
+  free(code_name);
+  free(coupled_code_name);
+  free(is_active_rank);
+  // free(time_init);
+  free(intra_comm);
+
+  if (current_rank_has_mesh) {
+    for (int ipart = 0; ipart < n_part; ipart++) {
+      free(pcell_face_idx[ipart]);
+      free(pcell_face[ipart]);
+      free(pface_vtx_idx[ipart]);
+      free(pface_vtx[ipart]);
+      free(pvtx_coord[ipart]);
+      free(pcell_ln_to_gn[ipart]);
+      free(pface_ln_to_gn[ipart]);
+      free(pvtx_ln_to_gn[ipart]);
     }
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
+  free(pn_vtx);
+  free(pn_cell);
+  free(pn_face);
+  free(pvtx_coord);
+  free(pvtx_ln_to_gn);
+  free(pcell_face_idx);
+  free(pcell_face);
+  free(pface_vtx_idx);
+  free(pface_vtx);
+  free(pcell_ln_to_gn);
+  free(pface_ln_to_gn);
 
-  double ***rank_data = (double ***) malloc(sizeof(double **) * n_code);
-  double ***rank_data_vtx = (double ***) malloc(sizeof(double **) * n_code);
-
-  for (int i = 0 ; i < n_code ; i++) {
-    code_name = codeNames[i];
-
-    CWP_Mesh_interf_finalize(code_name, cpl_id1);
-    CWP_Status_t visu_status = CWP_STATUS_OFF;
-    CWP_Field_map_t map_type;
-
-    if (strcmp(code_name, "code1") == 0) {
-      map_type = CWP_FIELD_MAP_SOURCE;
-      CWP_Field_create(code_name,
-                       cpl_id1,
-                       "rank",
-                       CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_BLOCK,
-                       1,
-                       CWP_DOF_LOCATION_CELL_CENTER,
-                       CWP_FIELD_EXCH_SEND,
-                       visu_status);
-      CWP_Field_create(code_name,
-                       cpl_id1,
-                       "rank_vtx",
-                       CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_BLOCK,
-                       1,
-                       CWP_DOF_LOCATION_NODE,
-                       CWP_FIELD_EXCH_SEND,
-                       visu_status);
-    }
-    else {
-      map_type = CWP_FIELD_MAP_TARGET;
-      CWP_Field_create(code_name,
-                       cpl_id1,
-                       "rank",
-                       CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_BLOCK,
-                       1,
-                       CWP_DOF_LOCATION_CELL_CENTER,
-                       CWP_FIELD_EXCH_RECV,
-                       visu_status);
-      CWP_Field_create(code_name,
-                       cpl_id1,
-                       "rank_vtx",
-                       CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_BLOCK,
-                       1,
-                       CWP_DOF_LOCATION_NODE,
-                       CWP_FIELD_EXCH_RECV,
-                       visu_status);
-    }
-
-    rank_data_vtx[i] = (double **) malloc(sizeof(double *) * nb_part);
-    rank_data[i] = (double **) malloc(sizeof(double *) * nb_part);
-
-    for (int i_part = 0 ; i_part < nb_part ; i_part++) {
-      rank_data[i][i_part] = (double *) malloc(sizeof(double) * nElts[i][i_part]);
-      rank_data_vtx[i][i_part] = (double *) malloc(sizeof(double) * nVtx[i][i_part]);
-      CWP_Field_data_set(code_name, cpl_id1, "rank", i_part, map_type, rank_data[i][i_part]);
-      CWP_Field_data_set(code_name,
-                         cpl_id1,
-                         "rank_vtx",
-                         i_part,
-                         map_type,
-                         rank_data_vtx[i][i_part]);
-    }
-
-    printf("After data set\n");
+  if (code_id == 1) {
+    free(send_val);
+  }
+  else {
+    free(recv_val);
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  printf("Before CWP_Spatial_interp_weights_compute\n");
-
-  for (int i = 0 ; i < n_code ; i++) {
-    //TODO: Calcul géom piloté par la nature des champs
-    //Erreur si on crée un champ après le calcul
-    code_name = codeNames[i];
-    CWP_Spatial_interp_weights_compute(code_name, cpl_id1);
-  }
-
-  for (int i = 0 ; i < n_code ; i++) {
-    code_name = codeNames[i];
-
-    if (strcmp(code_name, "code2") == 0) {
-      for (int i_part = 0 ; i_part < nb_part ; i_part++) {
-        int n_uncomputed_node = CWP_N_uncomputed_tgts_get(code_name, cpl_id1, "rank_vtx", i_part);
-        int n_uncomputed_cell_value = CWP_N_uncomputed_tgts_get(code_name, cpl_id1, "rank", i_part);
-        printf("  %i  vertices and   %i  cell centers have not been found on code %s proc %i partition %i\n",
-               n_uncomputed_node,
-               n_uncomputed_cell_value,
-               code_name,
-               rank,
-               i_part);
-      }
-    }
-  }
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  double recv_time = 0.150;
-  for (int i_time = 0 ; i_time < 1 ; i_time++) {
-    for (int i = 0 ; i < n_code ; i++) {
-      code_name = codeNames[i];
-
-      printf("Before CWP_next_recv_time_set\n");
-      CWP_next_recv_time_set(code_name, cpl_id1, recv_time);
-      printf("After CWP_next_recv_time_set\n");
-
-      if (strcmp(code_name, "code1") == 0) {
-        printf("TEST %i %s %s\n", rank, code_name, codeNames[i]);
-        for (int i_part = 0 ; i_part < nb_part ; i_part++) {
-          for (int j = 0 ; j < nElts[i][i_part] ; j++) {
-            rank_data[i][i_part][j] = rank;
-          }
-
-          for (int j = 0 ; j < nVtx[i][i_part] ; j++) {
-            rank_data_vtx[i][i_part][j] = coords[i][i_part][3 * j];
-          }
-        }
-
-        printf("CWP_Field_issend at %f\n", recv_time);
-        CWP_Field_issend(code_name, cpl_id1, "rank");
-        CWP_Field_issend(code_name, cpl_id1, "rank_vtx");
-
-      }
-      else {
-        CWP_Field_irecv(code_name, cpl_id1, "rank");
-        CWP_Field_irecv(code_name, cpl_id1, "rank_vtx");
-      }
-    }
-
-    for (int i = 0 ; i < n_code ; i++) {
-      code_name = codeNames[i];
-
-      if (strcmp(code_name, "code1") == 0) {
-        CWP_Field_wait_issend(code_name, cpl_id1, "rank");
-        CWP_Field_wait_issend(code_name, cpl_id1, "rank_vtx");
-      }
-      else {
-        CWP_Field_wait_irecv(code_name, cpl_id1, "rank");
-        CWP_Field_wait_irecv(code_name, cpl_id1, "rank_vtx");
-      }
-    }
-
-    recv_time += 0.1;
-  }
-
-  for (int i = 0 ; i < n_code ; i++) {
-    code_name = codeNames[i];
-
-    CWP_Mesh_interf_del(code_name, cpl_id1);
-    CWP_Cpl_del(code_name, cpl_id1);
-  }
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  fflush(stdout);
-
+  //  Finalize CWIPI
   CWP_Finalize();
+
+  // Finalize MPI
   MPI_Finalize();
 
-  free(localComm);
-  free(codeNames);
-  free(is_coupled_rank);
-  free(times_init);
-
-  return 0;
+  return EXIT_SUCCESS;
 }
