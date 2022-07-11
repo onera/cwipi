@@ -266,8 +266,10 @@ namespace cwipi {
     for (int i = 0; i < n_block; i++) {
       PDM_Mesh_nodal_elt_t t_block = PDM_Mesh_nodal_block_type_get (_pdmNodal_handle_index, block_ids[i]);
 
+      int block_id;
+
       if (t_block == PDM_MESH_NODAL_TRIA3){
-        int block_id = blockAdd(CWP_BLOCK_FACE_TRIA3);
+        block_id = blockAdd(CWP_BLOCK_FACE_TRIA3);
         for(int i_part =0;i_part<_npart;i_part++){
           int n_tri = PDM_Mesh_nodal_block_n_elt_get (_pdmNodal_handle_index,  block_ids[i], i_part);
           int* connec = NULL;
@@ -285,7 +287,7 @@ namespace cwipi {
       }
 
       else if (t_block == PDM_MESH_NODAL_QUAD4) {
-        int block_id = blockAdd(CWP_BLOCK_FACE_QUAD4);
+        block_id = blockAdd(CWP_BLOCK_FACE_QUAD4);
         for (int i_part =0;i_part<_npart;i_part++){
           int n_quad = PDM_Mesh_nodal_block_n_elt_get (_pdmNodal_handle_index, block_ids[i], i_part);
           int* connec = NULL;
@@ -303,7 +305,7 @@ namespace cwipi {
       }
 
       else if(t_block == PDM_MESH_NODAL_POLY_2D){
-        int block_id = blockAdd(CWP_BLOCK_FACE_POLY);
+        block_id = blockAdd(CWP_BLOCK_FACE_POLY);
         for(int i_part =0;i_part<_npart;i_part++){
           int n_poly = PDM_Mesh_nodal_block_n_elt_get (_pdmNodal_handle_index, block_ids[i], i_part);
           int* connec = NULL;
@@ -322,7 +324,7 @@ namespace cwipi {
       }
 
       else if (t_block == PDM_MESH_NODAL_PYRAMID5) {
-        int block_id = blockAdd(CWP_BLOCK_CELL_PYRAM5);
+        block_id = blockAdd(CWP_BLOCK_CELL_PYRAM5);
         for (int i_part = 0 ; i_part < _npart ; i_part++) {
           int n_pyramid = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index, block_ids[i], i_part);
           int *connec = NULL;
@@ -335,7 +337,7 @@ namespace cwipi {
       }
 
       else if (t_block == PDM_MESH_NODAL_PRISM6) {
-        int block_id = blockAdd(CWP_BLOCK_CELL_PRISM6);
+        block_id = blockAdd(CWP_BLOCK_CELL_PRISM6);
         for (int i_part = 0 ; i_part < _npart ; i_part++) {
           int n_prism = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index, block_ids[i], i_part);
           int *connec = NULL;
@@ -348,7 +350,7 @@ namespace cwipi {
       }
 
       else if (t_block == PDM_MESH_NODAL_HEXA8) {
-        int block_id = blockAdd(CWP_BLOCK_CELL_HEXA8);
+        block_id = blockAdd(CWP_BLOCK_CELL_HEXA8);
         for (int i_part = 0 ; i_part < _npart ; i_part++) {
           int n_hexa = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index, block_ids[i], i_part);
           int *connec = NULL;
@@ -361,7 +363,7 @@ namespace cwipi {
       }
 
       else if (t_block == PDM_MESH_NODAL_TETRA4) {
-        int block_id = blockAdd(CWP_BLOCK_CELL_TETRA4);
+        block_id = blockAdd(CWP_BLOCK_CELL_TETRA4);
         for (int i_part = 0 ; i_part < _npart ; i_part++) {
           int n_tetra = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index, block_ids[i], i_part);
           int *connec = NULL;
@@ -374,7 +376,7 @@ namespace cwipi {
       }
        // Define all the other types
       else if(t_block == PDM_MESH_NODAL_POLY_3D){
-        int block_id = blockAdd(CWP_BLOCK_CELL_POLY);
+        block_id = blockAdd(CWP_BLOCK_CELL_POLY);
         for(int i_part =0;i_part<_npart;i_part++){
           int n_poly = PDM_Mesh_nodal_block_n_elt_get (_pdmNodal_handle_index, block_ids[i], i_part);
           PDM_l_num_t       n_face;
@@ -399,6 +401,8 @@ namespace cwipi {
                           gnum);
         }
       }
+
+      _blockDB[block_id]->blockIDPDMSet(block_ids[i]);
     }
   }
 

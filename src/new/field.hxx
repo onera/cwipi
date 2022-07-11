@@ -203,6 +203,11 @@ namespace cwipi {
       _visu_id = visu_id;
     }
 
+    void visuIdComputedSet(int visu_id_computed)
+    {
+      _visu_id_computed = visu_id_computed;
+    }
+
     void interpFromLocationSet(CWP_Interp_from_location_t fct)
     {
       _interpolationType     = CWP_INTERPOLATION_USER ;
@@ -221,6 +226,11 @@ namespace cwipi {
     int visuIdGet() const
     {
       return _visu_id;
+    }
+
+    int visuIdComputedGet() const
+    {
+      return _visu_id_computed;
     }
 
 
@@ -326,6 +336,7 @@ namespace cwipi {
     Mesh                                    *_mesh;
     int                                      _n_part;
     int                                      _visu_id;
+    int                                      _visu_id_computed;
     std::map <int,MPI_Request>               _last_request;
     std::map <int,std::vector<MPI_Request>>  _last_request_p2p;
     int                                      _dataTypeSize;

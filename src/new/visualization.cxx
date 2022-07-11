@@ -327,7 +327,7 @@ namespace cwipi {
       int nComponent = field->nComponentGet();
       PDM_writer_var_loc_t PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
 
-      if     (CWPfielType == CWP_DOF_LOCATION_CELL_CENTER)   PDMfieldType = PDM_WRITER_VAR_ELEMENTS   ;
+      if     (CWPfielType == CWP_DOF_LOCATION_CELL_CENTER)  PDMfieldType = PDM_WRITER_VAR_ELEMENTS   ;
       else if(CWPfielType == CWP_DOF_LOCATION_NODE)         PDMfieldType = PDM_WRITER_VAR_VERTICES   ;
       else if(CWPfielType == CWP_DOF_LOCATION_USER)         PDMfieldType = PDM_WRITER_VAR_PARTICLES ;
 
@@ -347,13 +347,28 @@ namespace cwipi {
         PDM_error(__FILE__, __LINE__, 0, "You have to choose between CWP_FIELD_EXCH_RECV or CWP_FIELD_EXCH_SEND for field writing type.\n");
 
       std::string fieldName = prefix + "_" + field ->fieldIDGet();
+      std::string fieldComputedName = fieldName + "_is_computed";
 
       int id_var = PDM_writer_var_create(_visu_id,
-                                         PDM_WRITER_OFF,
+                                         PDM_WRITER_OFF,// !!! may be time dependent
                                          PDMfieldComp,
                                          PDMfieldType,
                                          fieldName.c_str());
+
+      // !! the coupled mesh may be dynamic even if the local one is not !!
+      PDM_writer_status_t time_dependent = PDM_WRITER_ON;
+      if (_topology == CWP_DYNAMIC_MESH_STATIC) {
+        time_dependent = PDM_WRITER_OFF;
+      }
+
+      int id_var_computed = PDM_writer_var_create(_visu_id,
+                                                  time_dependent,
+                                                  PDM_WRITER_VAR_SCALAR,
+                                                  PDMfieldType,
+                                                  fieldComputedName.c_str());
+
       field->visuIdSet(id_var);
+      field->visuIdComputedSet(id_var_computed);
   }
 
 
@@ -384,25 +399,57 @@ namespace cwipi {
 /********************************************************/
 
   void Visu::WriterField(Field* field, int* n_ref_values, int **ref_values,  const CWP_Field_map_t  map_type) {
-    int id_var = -1;
+    int id_var          = -1;
+    int id_var_computed = -1;
 
-    double default_val = 1e15;
+    double default_val = 0;//1e15;
 
-    id_var = field->visuIdGet();
+    id_var          = field->visuIdGet();
+    id_var_computed = field->visuIdComputedGet();
 
     PDM_writer_var_data_free(_visu_id, id_var);
+    PDM_writer_var_data_free(_visu_id, id_var_computed);
 
-    double **cp_field_data = NULL;
+    double **cp_field_data        = NULL;
+    double **cp_field_is_computed = NULL;
 
     if (n_ref_values == NULL) {
 
+      cp_field_is_computed = (double **) malloc (sizeof (void *) * _n_part);
+
       for (int i = 0; i < _n_part; i++) {
         PDM_writer_var_set(_visu_id, id_var, _visu_mesh_id, i, (double*) field->dataGet(i, map_type));
+
+        int n_elt_part;
+
+        if (field->locationGet() == CWP_DOF_LOCATION_NODE) {
+          n_elt_part = field->meshGet()->getPartNVertex(i);
+        }
+
+        else if (field->locationGet() == CWP_DOF_LOCATION_CELL_CENTER) {
+          n_elt_part = field->meshGet()->getPartNElts(i);
+        }
+
+        else if (field->locationGet() == CWP_DOF_LOCATION_USER) {
+          n_elt_part = field->couplingGet()->userTargetNGet(i);
+        }
+
+        else {
+          PDM_error (__FILE__, __LINE__, 0, "Visu::WriterField : Field location is undefined\n");
+        }
+
+        cp_field_is_computed[i] = (double *) malloc (sizeof (double) * n_elt_part);
+        for (int j = 0; j < n_elt_part; j++) {
+          cp_field_is_computed[i][j] = 1.;
+        }
+
+        PDM_writer_var_set(_visu_id, id_var_computed, _visu_mesh_id, i, (double *) cp_field_is_computed[i]);
       }
     }
 
     else {
-      cp_field_data = (double **) malloc (sizeof (void *) * _n_part);
+      cp_field_data        = (double **) malloc (sizeof (void *) * _n_part);
+      cp_field_is_computed = (double **) malloc (sizeof (void *) * _n_part);
 
       for (int i = 0; i < _n_part; i++) {
         int n_elt_part;
@@ -424,9 +471,10 @@ namespace cwipi {
         }
 
         cp_field_data[i] = (double *) malloc (sizeof (double) * field->nComponentGet() * n_elt_part);
-
+        cp_field_is_computed[i] = (double *) malloc (sizeof (double) * n_elt_part);
         for (int j = 0; j < n_elt_part; j++) {
           cp_field_data[i][j] = default_val;
+          cp_field_is_computed[i][j] = 0.;
         }
 
         double* data = (double*) field->dataGet(i, map_type);
@@ -434,25 +482,35 @@ namespace cwipi {
           for (int k = 0; k < field->nComponentGet(); k++) {
             cp_field_data[i][field->nComponentGet() * (ref_values[i][j]-1) + k] = data[field->nComponentGet() * j + k];
           } 
+          cp_field_is_computed[i][ref_values[i][j]-1] = 1.;
         }
 
         PDM_writer_var_set(_visu_id, id_var, _visu_mesh_id, i, (double *) cp_field_data[i]);
+        PDM_writer_var_set(_visu_id, id_var_computed, _visu_mesh_id, i, (double *) cp_field_is_computed[i]);
       }
 
     }
 
     PDM_writer_var_write(_visu_id, id_var);
+    PDM_writer_var_write(_visu_id, id_var_computed);
 
     if (n_ref_values != NULL) {
+      // PDM_writer_var_write(_visu_id, id_var_computed);
 
       for (int i = 0; i < _n_part; i++) {
 
         free (cp_field_data[i]);
+        // free (cp_field_is_computed[i]);
       }
 
       free (cp_field_data);
-
+      // free (cp_field_is_computed);
     }
+
+    for (int i = 0; i < _n_part; i++) {
+      free (cp_field_is_computed[i]);
+    }
+    free (cp_field_is_computed);
 
   }
 

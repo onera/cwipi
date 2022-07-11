@@ -688,6 +688,8 @@ int main(int argc, char *argv[])
                  CWP_DYNAMIC_MESH_STATIC,
                  CWP_TIME_EXCH_USER_CONTROLLED);
 
+  CWP_Visu_set(code_name[0], coupling_name, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
+
   if (verbose && rank == 0) {
     printf("Create coupling OK\n");
   }
@@ -813,7 +815,7 @@ int main(int argc, char *argv[])
     recv_val = (double *) malloc(sizeof(double) * pn_vtx[0] * 3);
   }
 
-  CWP_Status_t visu_status = CWP_STATUS_OFF;
+  CWP_Status_t visu_status = CWP_STATUS_ON;
   MPI_Barrier(MPI_COMM_WORLD);
 
   if (code_id == 1) {
