@@ -632,7 +632,7 @@ namespace cwipi {
 
           int ival = 0;
 
-          if (storage == CWP_FIELD_STORAGE_BLOCK) {
+          if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
             for (int i = 0; i < part_n_elt; i++) {
               for (int j = part_elt_pts_inside_idx[i]; j < part_elt_pts_inside_idx[i+1]; j++) {
                 for (int k1 = 0; k1 < nComponent; k1++) {

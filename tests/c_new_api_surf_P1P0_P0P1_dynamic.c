@@ -270,7 +270,7 @@ main(int argc, char *argv[]) {
                    CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, // Solver type
                    nb_part,                                               // Partition number
                    CWP_DYNAMIC_MESH_DEFORMABLE,                           // Mesh displacement type
-                   CWP_TIME_EXCH_CPL_TIME_STEP);                          // Postprocessing frequency
+                   CWP_TIME_EXCH_USER_CONTROLLED);                          // Postprocessing frequency
   }
 
   printf("%d - Set visu\n", rank);
@@ -382,7 +382,7 @@ main(int argc, char *argv[]) {
                        cpl_name,
                        fieldName1,
                        CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_BLOCK,
+                       CWP_FIELD_STORAGE_INTERLEAVED,
                        3,
                        CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_SEND,
@@ -391,7 +391,7 @@ main(int argc, char *argv[]) {
                        cpl_name,
                        fieldName2,
                        CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_BLOCK,
+                       CWP_FIELD_STORAGE_INTERLEAVED,
                        1,
                        CWP_DOF_LOCATION_CELL_CENTER,
                        CWP_FIELD_EXCH_RECV,
@@ -415,7 +415,7 @@ main(int argc, char *argv[]) {
                        cpl_name,
                        fieldName1,
                        CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_BLOCK,
+                       CWP_FIELD_STORAGE_INTERLEAVED,
                        3,
                        CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_RECV,
@@ -424,7 +424,7 @@ main(int argc, char *argv[]) {
                        cpl_name,
                        fieldName2,
                        CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_BLOCK,
+                       CWP_FIELD_STORAGE_INTERLEAVED,
                        1,
                        CWP_DOF_LOCATION_CELL_CENTER,
                        CWP_FIELD_EXCH_SEND,

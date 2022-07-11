@@ -364,7 +364,7 @@ main(int argc, char *argv[]) {
                    CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, // Solver type
                    nbPart[i_code],                                        // Partition number
                    CWP_DYNAMIC_MESH_STATIC,                               // Mesh type
-                   CWP_TIME_EXCH_ASYNCHRONOUS);                           // frequency
+                   CWP_TIME_EXCH_USER_CONTROLLED);                           // frequency
     printf("   After     Create coupling %i code %i\n", rank, i_code);
   }
 
@@ -607,7 +607,7 @@ main(int argc, char *argv[]) {
                          cpl_name,
                          fieldName1,
                          CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_BLOCK,
+                         CWP_FIELD_STORAGE_INTERLEAVED,
                          1,
                          CWP_DOF_LOCATION_NODE,
                          CWP_FIELD_EXCH_SEND,
@@ -618,7 +618,7 @@ main(int argc, char *argv[]) {
                          cpl_name,
                          fieldName2,
                          CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_BLOCK,
+                         CWP_FIELD_STORAGE_INTERLEAVED,
                          1,
                          CWP_DOF_LOCATION_CELL_CENTER,
                          CWP_FIELD_EXCH_RECV,
@@ -629,7 +629,7 @@ main(int argc, char *argv[]) {
                          cpl_name,
                          fieldName3,
                          CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_BLOCK,
+                         CWP_FIELD_STORAGE_INTERLEAVED,
                          1,
                          CWP_DOF_LOCATION_NODE,
                          CWP_FIELD_EXCH_SEND,
@@ -640,7 +640,7 @@ main(int argc, char *argv[]) {
                          cpl_name,
                          fieldName4,
                          CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_BLOCK,
+                         CWP_FIELD_STORAGE_INTERLEAVED,
                          1,
                          CWP_DOF_LOCATION_NODE,
                          CWP_FIELD_EXCH_SEND,
@@ -651,7 +651,7 @@ main(int argc, char *argv[]) {
                          cpl_name,
                          fieldName5,
                          CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_BLOCK,
+                         CWP_FIELD_STORAGE_INTERLEAVED,
                          1,
                          CWP_DOF_LOCATION_NODE,
                          CWP_FIELD_EXCH_RECV,
@@ -711,7 +711,7 @@ main(int argc, char *argv[]) {
                          cpl_name,
                          fieldName1,
                          CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_BLOCK,
+                         CWP_FIELD_STORAGE_INTERLEAVED,
                          1,
                          CWP_DOF_LOCATION_NODE,
                          CWP_FIELD_EXCH_RECV,
@@ -722,7 +722,7 @@ main(int argc, char *argv[]) {
                          cpl_name,
                          fieldName2,
                          CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_BLOCK,
+                         CWP_FIELD_STORAGE_INTERLEAVED,
                          1,
                          CWP_DOF_LOCATION_CELL_CENTER,
                          CWP_FIELD_EXCH_SEND,
@@ -733,7 +733,7 @@ main(int argc, char *argv[]) {
                          cpl_name,
                          fieldName3,
                          CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_BLOCK,
+                         CWP_FIELD_STORAGE_INTERLEAVED,
                          1,
                          CWP_DOF_LOCATION_USER,
                          CWP_FIELD_EXCH_RECV,
@@ -744,7 +744,7 @@ main(int argc, char *argv[]) {
                          cpl_name,
                          fieldName4,
                          CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_BLOCK,
+                         CWP_FIELD_STORAGE_INTERLEAVED,
                          1,
                          CWP_DOF_LOCATION_NODE,
                          CWP_FIELD_EXCH_RECV,
@@ -755,7 +755,7 @@ main(int argc, char *argv[]) {
                          cpl_name,
                          fieldName5,
                          CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_BLOCK,
+                         CWP_FIELD_STORAGE_INTERLEAVED,
                          1,
                          CWP_DOF_LOCATION_NODE,
                          CWP_FIELD_EXCH_SEND,

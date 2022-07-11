@@ -236,13 +236,13 @@ int main(int argc, char *argv[]) {
   if (rank == 0) {
     CWP_Cpl_create("cpoly", cpl_id1, "code2", CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITHOUT_PART,
                    CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, 1,
-                   CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
+                   CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
   }
 
   if (rank == 1) {
     CWP_Cpl_create("code2", cpl_id1, "cpoly", CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITHOUT_PART,
                    CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, 1,
-                   CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_CPL_TIME_STEP);
+                   CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
   }
   printf("Coupling created %i\n", currentRank);
 

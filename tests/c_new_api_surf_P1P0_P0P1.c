@@ -141,7 +141,7 @@ main(int argc, char *argv[]) {
                  CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, // Solver type
                  nb_part,                                               // Number of partitions
                  CWP_DYNAMIC_MESH_STATIC,                               // Mesh type
-                 CWP_TIME_EXCH_CPL_TIME_STEP);                          // Postprocessing frequency
+                 CWP_TIME_EXCH_USER_CONTROLLED);                        // Postprocessing frequency
 
   printf("%d - Set visu\n", rank);
   CWP_Visu_set(code_name[0],            // Code name
@@ -262,7 +262,7 @@ main(int argc, char *argv[]) {
                      cpl_name,
                      field_name1,
                      CWP_DOUBLE,
-                     CWP_FIELD_STORAGE_BLOCK,
+                     CWP_FIELD_STORAGE_INTERLEAVED,
                      1,
                      CWP_DOF_LOCATION_NODE,
                      CWP_FIELD_EXCH_SEND,
@@ -271,7 +271,7 @@ main(int argc, char *argv[]) {
                      cpl_name,
                      field_name2,
                      CWP_DOUBLE,
-                     CWP_FIELD_STORAGE_BLOCK,
+                     CWP_FIELD_STORAGE_INTERLEAVED,
                      1,
                      CWP_DOF_LOCATION_CELL_CENTER,
                      CWP_FIELD_EXCH_RECV,
@@ -286,7 +286,7 @@ main(int argc, char *argv[]) {
                      cpl_name,
                      field_name1,
                      CWP_DOUBLE,
-                     CWP_FIELD_STORAGE_BLOCK,
+                     CWP_FIELD_STORAGE_INTERLEAVED,
                      1,
                      CWP_DOF_LOCATION_NODE,
                      CWP_FIELD_EXCH_RECV,
@@ -295,7 +295,7 @@ main(int argc, char *argv[]) {
                      cpl_name,
                      field_name2,
                      CWP_DOUBLE,
-                     CWP_FIELD_STORAGE_BLOCK,
+                     CWP_FIELD_STORAGE_INTERLEAVED,
                      1,
                      CWP_DOF_LOCATION_CELL_CENTER,
                      CWP_FIELD_EXCH_SEND,

@@ -686,7 +686,7 @@ int main(int argc, char *argv[])
                  CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
                  n_part,
                  CWP_DYNAMIC_MESH_STATIC,
-                 CWP_TIME_EXCH_CPL_TIME_STEP);
+                 CWP_TIME_EXCH_USER_CONTROLLED);
 
   if (verbose && rank == 0) {
     printf("Create coupling OK\n");

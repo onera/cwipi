@@ -547,7 +547,7 @@ int main(int argc, char *argv[]) {
                    interp_method,
                    n_part,
                    CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_EACH_TIME_STEP);
+                   CWP_TIME_EXCH_USER_CONTROLLED);
 
     printf("%d (%d, %s) --- Coupling created between %s and %s\n", rank, intra_comm_rank[i_code], code_names[i_code], code_names[i_code], coupled_code_names[i_code]);
   }
@@ -777,7 +777,7 @@ int main(int argc, char *argv[]) {
                        cpl_name,
                        field_name,
                        CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_BLOCK,
+                       CWP_FIELD_STORAGE_INTERLEAVED,
                        3,
                        CWP_DOF_LOCATION_NODE,
                        exchDirection[0],
@@ -812,7 +812,7 @@ int main(int argc, char *argv[]) {
                        cpl_name,
                        field_name,
                        CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_BLOCK,
+                       CWP_FIELD_STORAGE_INTERLEAVED,
                        3,
                        CWP_DOF_LOCATION_NODE,
                        exchDirection[1],

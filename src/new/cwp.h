@@ -114,10 +114,10 @@ typedef enum {
   CWP_COMM_PAR_WITHOUT_PART, /*!< Parallel communication
                                   on unpartitioned source mesh defined on
                                   all processes */
-  CWP_COMM_SEQ,              /*!< Parallel communication
+  CWP_COMM_SEQ              /*!< Parallel communication
                                   on unpartitioned source mesh defined on
                                   master processes */
-  CWP_COMM_INTERNAL         /*!< Internal communication within a process */
+//  CWP_COMM_INTERNAL         /*!< Internal communication within a process */
 
 } CWP_Comm_t;
 
@@ -130,12 +130,13 @@ typedef enum {
 
 typedef enum {
 
-  CWP_TIME_EXCH_EACH_TIME_STEP,      /*!< Exchange at each time step */
-  CWP_TIME_EXCH_N_TIME_STEP,         /*!< Exchange every <EM> n </EM> time steps  */
-  CWP_TIME_EXCH_CPL_TIME_STEP,       /*!< Coupling time step        */
-  CWP_TIME_EXCH_ASYNCHRONOUS,        /*!< Exchanges are asynchronous with temporal interpolation */
-  CWP_TIME_EXCH_SLAVE,               /*!< Give a converged state    */
-  CWP_TIME_EXCH_MASTER               /*!< Request a converged state */
+  CWP_TIME_EXCH_USER_CONTROLLED      /*!< Exchanges are used controlled */
+  // CWP_TIME_EXCH_EACH_TIME_STEP,      /*!< Exchange at each time step */
+  // CWP_TIME_EXCH_N_TIME_STEP,         /*!< Exchange every <EM> n </EM> time steps  */
+  // CWP_TIME_EXCH_CPL_TIME_STEP,       /*!< Coupling time step        */
+  // CWP_TIME_EXCH_ASYNCHRONOUS,        /*!< Exchanges are asynchronous with temporal interpolation */
+  // CWP_TIME_EXCH_SLAVE,               /*!< Give a converged state    */
+  // CWP_TIME_EXCH_MASTER               /*!< Request a converged state */
 } CWP_Time_exch_t;
 
 
@@ -187,8 +188,8 @@ typedef enum {
 
 typedef enum {
 
-  CWP_FIELD_STORAGE_INTERLACED,  /*!< Interlaced storage */
-  CWP_FIELD_STORAGE_BLOCK        /*!< Block storage */
+  CWP_FIELD_STORAGE_INTERLACED,  /*!< Interlaced storage (x1, y1, z1, ... , xn, yn, zn) */
+  CWP_FIELD_STORAGE_INTERLEAVED  /*!< Interleaved storage (x1, ... xn, y1, ..., yn, z1, ...zn) */
 
 } CWP_Field_storage_t ;
 
@@ -981,7 +982,7 @@ CWP_Recv_freq_set
 );
 
 /**
- * \brief Set the next receiving time.
+ * \brief Set the next receiving time. <b>(Not implemented yet)</b>
  *
  * It must be used when the type of receiving frequency is
  * \ref CWP_TIME_EXCH_ASYNCHRONOUS

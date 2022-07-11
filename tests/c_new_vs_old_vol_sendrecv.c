@@ -1158,7 +1158,7 @@ main(int argc, char *argv[]) {
                    loc_method,
                    n_part,
                    CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_CPL_TIME_STEP);
+                   CWP_TIME_EXCH_USER_CONTROLLED);
 
     // CWP_Visu_set (code_name[0],
     //               coupling_name,
@@ -1332,7 +1332,7 @@ main(int argc, char *argv[]) {
                        coupling_name,
                        field_name,
                        CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_BLOCK,
+                       CWP_FIELD_STORAGE_INTERLEAVED,
                        1,
                        CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_SENDRECV,

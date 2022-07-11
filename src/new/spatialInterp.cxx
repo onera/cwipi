@@ -244,7 +244,7 @@ namespace cwipi {
       const int stride           = referenceField->nComponentGet();
       const CWP_Field_storage_t storage = referenceField->storageTypeGet();
       PDM_stride_t pdm_storage;
-      if (storage == CWP_FIELD_STORAGE_BLOCK) {
+      if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
         pdm_storage = PDM_STRIDE_CST_INTERLEAVED;
       } else {
         pdm_storage = PDM_STRIDE_CST_INTERLACED;
@@ -352,7 +352,7 @@ namespace cwipi {
         const int stride           = referenceField->nComponentGet();
         const CWP_Field_storage_t storage = referenceField->storageTypeGet();
         PDM_stride_t pdm_storage;
-        if (storage == CWP_FIELD_STORAGE_BLOCK) {
+        if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
           pdm_storage = PDM_STRIDE_CST_INTERLEAVED;
         } else {
           pdm_storage = PDM_STRIDE_CST_INTERLACED;
@@ -621,7 +621,7 @@ namespace cwipi {
       const int stride           = referenceField->nComponentGet();
       const CWP_Field_storage_t storage = referenceField->storageTypeGet();
       PDM_stride_t pdm_storage;
-      if (storage == CWP_FIELD_STORAGE_BLOCK) {
+      if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
         pdm_storage = PDM_STRIDE_CST_INTERLEAVED;
       } else {
         pdm_storage = PDM_STRIDE_CST_INTERLACED;
@@ -725,7 +725,7 @@ namespace cwipi {
         const int stride           = referenceField->nComponentGet();
         const CWP_Field_storage_t storage = referenceField->storageTypeGet();
         PDM_stride_t pdm_storage;
-        if (storage == CWP_FIELD_STORAGE_BLOCK) {
+        if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
           pdm_storage = PDM_STRIDE_CST_INTERLEAVED;
         } else {
           pdm_storage = PDM_STRIDE_CST_INTERLACED;

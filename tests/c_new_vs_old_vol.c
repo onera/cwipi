@@ -1092,7 +1092,7 @@ main(int argc, char *argv[]) {
     filedump = 1;    
   }
 
-  CWP_Field_storage_t field_storage = CWP_FIELD_STORAGE_BLOCK;
+  CWP_Field_storage_t field_storage = CWP_FIELD_STORAGE_INTERLEAVED;
   if (interlaced_field) {
     field_storage = CWP_FIELD_STORAGE_INTERLACED;
   }
@@ -1181,7 +1181,7 @@ main(int argc, char *argv[]) {
                    loc_method,
                    n_part,
                    CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_CPL_TIME_STEP);
+                   CWP_TIME_EXCH_USER_CONTROLLED);
 
     // CWP_Visu_set (code_name[0],
     //               coupling_name,

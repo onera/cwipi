@@ -178,7 +178,7 @@ int main(int argc, char *argv[]) {
   int n_part = 1;
   const char *coupling_name = "c_new_api_dcube";
   CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
-  CWP_Cpl_create(code_name[0], coupling_name, coupled_code_name[0], CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITH_PART, interp_method, n_part, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+  CWP_Cpl_create(code_name[0], coupling_name, coupled_code_name[0], CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITH_PART, interp_method, n_part, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
 
   // Setup visualisation
   CWP_Visu_set(code_name[0], coupling_name, 1, CWP_VISU_FORMAT_ENSIGHT, "text");
@@ -322,11 +322,11 @@ int main(int argc, char *argv[]) {
 
   if (strcmp(code_name[0], "code1") != 0) {
     printf("%s is sending data\n", code_name[0]);
-    CWP_Field_create(code_name[0], coupling_name, field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, 1, CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_SEND, visu_status);
+    CWP_Field_create(code_name[0], coupling_name, field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_INTERLEAVED, 1, CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_SEND, visu_status);
     CWP_Field_data_set(code_name[0], coupling_name, field_name, 0, CWP_FIELD_MAP_SOURCE, send_val);
   }
   else {
-    CWP_Field_create(code_name[0], coupling_name, field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_BLOCK, 1, CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_RECV, visu_status);
+    CWP_Field_create(code_name[0], coupling_name, field_name, CWP_DOUBLE, CWP_FIELD_STORAGE_INTERLEAVED, 1, CWP_DOF_LOCATION_NODE, CWP_FIELD_EXCH_RECV, visu_status);
     CWP_Field_data_set(code_name[0], coupling_name, field_name, 0, CWP_FIELD_MAP_TARGET, recv_val);
   }
 

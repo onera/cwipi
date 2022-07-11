@@ -214,7 +214,7 @@ main(int argc, char *argv[]) {
                    interp_method,
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_EACH_TIME_STEP);
+                   CWP_TIME_EXCH_USER_CONTROLLED);
   }
   if (cond_code2) {
     CWP_Cpl_create("code2",
@@ -225,7 +225,7 @@ main(int argc, char *argv[]) {
                    interp_method,
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_EACH_TIME_STEP);
+                   CWP_TIME_EXCH_USER_CONTROLLED);
     int v = -2;
     if (rank == 0) {
       v = 21;
@@ -258,7 +258,7 @@ main(int argc, char *argv[]) {
                    interp_method,
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_EACH_TIME_STEP);
+                   CWP_TIME_EXCH_USER_CONTROLLED);
   }
   if (cond_code3) {
     CWP_Cpl_create("code3",
@@ -269,7 +269,7 @@ main(int argc, char *argv[]) {
                    interp_method,
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_EACH_TIME_STEP);
+                   CWP_TIME_EXCH_USER_CONTROLLED);
     int v = -2;
     if (rank == 2) {
       v = 31;
@@ -303,7 +303,7 @@ main(int argc, char *argv[]) {
                    interp_method,
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_EACH_TIME_STEP);
+                   CWP_TIME_EXCH_USER_CONTROLLED);
   }
   if (cond_code3) {
     CWP_Cpl_create("code3",
@@ -314,7 +314,7 @@ main(int argc, char *argv[]) {
                    interp_method,
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_EACH_TIME_STEP);
+                   CWP_TIME_EXCH_USER_CONTROLLED);
   }
 
   // cpl4: code4 (2, 4, 8) <-> code3 (2, 3, 4, 5, 7, 9)
@@ -327,7 +327,7 @@ main(int argc, char *argv[]) {
                    interp_method,
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_EACH_TIME_STEP);
+                   CWP_TIME_EXCH_USER_CONTROLLED);
     int v = -2;
     if (rank == 2) {
       v = 41;
@@ -360,7 +360,7 @@ main(int argc, char *argv[]) {
                    interp_method,
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_EACH_TIME_STEP);
+                   CWP_TIME_EXCH_USER_CONTROLLED);
   }
 
   // cpl5: code1 (0, 1, 2, 5, 7) <-> code4 (2, 4, 8)
@@ -373,7 +373,7 @@ main(int argc, char *argv[]) {
                    interp_method,
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_EACH_TIME_STEP);
+                   CWP_TIME_EXCH_USER_CONTROLLED);
   }
   if (cond_code4) {
     CWP_Cpl_create("code4",
@@ -384,7 +384,7 @@ main(int argc, char *argv[]) {
                    interp_method,
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_EACH_TIME_STEP);
+                   CWP_TIME_EXCH_USER_CONTROLLED);
   }
 
   // cpl6: code2 (0, 2, 6, 7, 9) <-> code4 (2, 4, 8)
@@ -397,7 +397,7 @@ main(int argc, char *argv[]) {
                    interp_method,
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_EACH_TIME_STEP);
+                   CWP_TIME_EXCH_USER_CONTROLLED);
   }
   if (cond_code4) {
     CWP_Cpl_create("code4",
@@ -408,7 +408,7 @@ main(int argc, char *argv[]) {
                    interp_method,
                    1,
                    CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_EACH_TIME_STEP);
+                   CWP_TIME_EXCH_USER_CONTROLLED);
   }
 
   // Create Visu
