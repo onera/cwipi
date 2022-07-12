@@ -327,48 +327,46 @@ typedef enum {
  * the function.
  *
  * \param [in]  interface_type              Interface type
- * \param [in]  n_src_vtcs                  Number of source mesh vertices
- * \param [in]  n_src_std_elts              Number of source mesh standard elements
- * \param [in]  n_src_poly                  Number of source mesh polyhedra
- * \param [in]  n_tgt_pts                   Number of target points
- * \param [in]  src_vts_coords              Source Mesh vertices coordinates
- * \param [in]  src_parent_elts_num         Pointer to parent element number
- *                                          (or NULL)
- * \param [in]  src_parent_vtcs_num         Pointer to parent vertex number
- *                                          (or NULL)
- * \param [in]  src_connec_idx              Element to vertex index
- *                                          (src_connec_idx[0] = 0 and
- *                                          size = n_src_std_element + 1)
- * \param [in]  src_connec                  Element to vertex connectivity.
- *                                          (size = src_connec_idx[n_src_std_element])
- * \param [in]  src_poly_cell_face_idx      Polyhedron to face index
- *                                          (src_poly_cell_face_idx[0] = 0 and
- *                                          size = n_src_polyhedron + 1)
- * \param [in]  src_poly_cell_face_connec   Polyhedron to face connectivity
- *                                          (size = src_poly_cell_face_idx[n_src_polyhedron])
- * \param [in]  src_poly_face_vtx_idx       Polyhedron face to vertex index
- *                                          (src_poly_face_vertex_idx[0] = 0 and
- *                                          size_idx = max(src_poly_cell_face_connec) + 1)
- * \param [in]  src_poly_face_vtx_connec    Polyhedron face to vertex connectivity
- *                                          (size = src_poly_face_vertex_idx[size_iudx - 1])
+ * \param [in]  code_name                   Name of code
+ * \param [in]  src_n_block                 Number of blocks
+ * \param [in]  src_block_type              Block types (size = n_block)
+ * \param [in]  src_i_part                  Part id
+ * \param [in]  src_n_vtx                   Number of vertices
+ * \param [in]  src_vtx_coords              Coordinates of vertices (size = 3 * src_n_vtx)
+ * \param [in]  src_vtx_global_num          Global number of vertices (size = src_n_vtx)
+ * \param [in]  src_n_elts                  Number of elements
+ * \param [in]  src_i_block                 block id of the element
+ *                                          (size = src_n_elts)
+ * \param [in]  src_elt_in_block            Element number of the elements into it block
+ *                                          (size = src_n_elts)
+ * \param [in]  src_elt_vtx_idx              Element to vertex index
+ *                                          (src_elt_vtx_idx[0] = 0 and
+ *                                          size = src_n_elts + 1)
+ * \param [in]  src_elt_vtx                  Element to vertex connectivity.
+ *                                          (size = src_elt_vtx_idx[src_n_elts])
+ * \param [in]  src_elts_global_num         Global number of elements (size = src_n_elts)
+ * \param [in]  tgt_n_pts                   Number of target points
+ * \param [in]  tgt_pts_elt_idx             The list of target points located in each element 
+ *                                          (size = src_n_elts + 1)
  * \param [in]  tgt_pts_coords              Target points coordinates
- *                                          (size = 3 * n_tgt_pts)
- * \param [in]  tgt_pts_target_location            target points location
- *                                          (size = n_tgt_pts)
+ *                                          (size = 3 * tgt_n_pts)
  * \param [in]  tgt_pts_dist                target points distance to location element
- *                                          (size = n_tgt_pts)
- * \param [in]  tgt_pts_bary_coords_idx     Index of Barycentric coordinates target points
+ *                                          (size = tgt_n_pts)
+ * \param [in]  tgt_pts_uvw                 Parametric coordinates of target points in the elements
+ *                                          ( 0 <= u <= 1, 0 <= v <= 1, -1 : for polydra and polygons)
+ *                                          (size = dim_interface * tgt_n_pts)
+ * \param [in]  tgt_pts_weights_idx         Index of Barycentric coordinates target points
  *                                          in location element
  *                                          (tgt_pts_bary_coords_idx[0] = 0 and
  *                                          size = n_tgt_pts + 1)
- * \param [in]  tgt_pts_bary_coords         Barycentric coordinates target points
+ * \param [in]  tgt_pts_weights             Barycentric coordinates target points
  *                                          in location element
- *                                          (size = tgt_pts_bary_coords_idx[n_tgt_pts])
+ *                                          (size = tgt_pts_weights_idx[n_tgt_pts])
  * \param [in]  stride                      Number of field components
- * \param [in]  src_field_target_location          source field location
+ * \param [in]  src_field_dof_location      source field location
  * \param [in]  src_field                   source field
  *                                          (size depends on field type and stride)
- * \param [in]  src_field_target_location          target field location
+ * \param [in]  tgt_field_dof_location      target field location
  * \param [out] tgt_field                   target field
  *                                          (size = stride * n_tgt_pts)
  */
@@ -376,31 +374,34 @@ typedef enum {
 
 typedef void (*CWP_Interp_from_location_t)
 (
- const int                   interface_type,
- const int                   n_src_vtcs,
- const int                   n_src_std_elts,
- const int                  n_src_poly,
- const int                   n_tgt_pts,
- const double                src_vtcs_coords[],
- const CWP_g_num_t          src_global_elts_num[],
- const CWP_g_num_t         src_global_vtcs_num[],
- const int                   src_connec_idx[],
- const int                   src_connec[],
- const int                 src_poly_cell_face_idx[],
- const int                 src_poly_cell_face_connec[],
- const int                 src_poly_face_vtx_idx[],
- const int                  src_poly_face_vtx_connec[],
- const double                tgt_pts_coords[],
- const int                   tgt_pts_target_location[],
- const double                tgt_pts_dist[],
- const int                   tgt_pts_bary_coords_idx[],
- const double                tgt_pts_bary_coords[],
- const int                   stride,
- const CWP_Dof_location_t     src_field_location,
- const void                 *src_field,
- const CWP_Dof_location_t     tgt_field_location,
- void                       *tgt_field
+  const int                  interface_type,
+  const char                *code_name,
+  const int                  src_n_block,
+  const CWP_Block_t          src_blocks_type[],
+  const int                  src_i_part,
+  const int                  src_n_vtx,
+  const double               src_vtx_coords[],
+  const CWP_g_num_t          src_vtx_global_num[],
+  const int                  src_n_elts,
+  const int                  src_i_block[],
+  const int                  src_elt_in_block[],
+  const int                  src_elt_vtx_idx[],
+  const int                  src_elt_vtx[],
+  const CWP_g_num_t          src_elts_global_num[],
+  const int                  tgt_n_pts,
+  const double               tgt_pts_elt_idx[],
+  const double               tgt_pts_coords[],
+  const double               tgt_pts_dist[],
+  const double               tgt_pts_uvw[],
+  const int                  tgt_pts_weights_idx[],
+  const double               tgt_pts_weights[],
+  const int                  stride,
+  const CWP_Dof_location_t   src_field_dof_location,
+  const void                *src_field,
+  const CWP_Dof_location_t   tgt_field_dof_location,
+  void                      *tgt_field
 );
+
 
 /**
  * \typedef void (*CWP_Interp_from_intersect_t)
