@@ -591,20 +591,32 @@ namespace cwipi {
       if (referenceFieldType == CWP_DOF_LOCATION_CELL_CENTER) {
 
         for (int i_part = 0; i_part < _nPart; i_part++) {
-          int         *part_elt_pts_inside_idx      = _elt_pts_inside_idx[i_part];
-          double       *referenceData                = (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE);
+          int    *part_elt_pts_inside_idx = _elt_pts_inside_idx[i_part];
+          double *referenceData           = (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE);
 
-          int          part_n_elt                   = _mesh->getPartNElts(i_part);
+          int    part_n_elt               = _mesh->getPartNElts(i_part);
 
           double *local_buffer = (double *) *buffer;
 
           int ival = 0;
-          for (int i = 0; i < part_n_elt; i++) {
-            for (int j = part_elt_pts_inside_idx[i]; j < part_elt_pts_inside_idx[i+1]; j++) {
-              for (int k1 = 0; k1 < nComponent; k1++) {
-                local_buffer[nComponent * ival + k1] = referenceData[i*nComponent +k1];
+          if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
+            for (int i = 0; i < part_n_elt; i++) {
+              for (int j = part_elt_pts_inside_idx[i]; j < part_elt_pts_inside_idx[i+1]; j++) {
+                for (int k1 = 0; k1 < nComponent; k1++) {
+                  ival = k1*part_elt_pts_inside_idx[part_n_elt] + j;
+                  local_buffer[ival] = referenceData[part_n_elt*k1 + i];
+                }
               }
-            } 
+            }
+          }
+          else { // if (storage == CWP_FIELD_STORAGE_INTERLACED) {
+            for (int i = 0; i < part_n_elt; i++) {
+              for (int j = part_elt_pts_inside_idx[i]; j < part_elt_pts_inside_idx[i+1]; j++) {
+                for (int k1 = 0; k1 < nComponent; k1++) {
+                  local_buffer[ival++] = referenceData[i*nComponent + k1];
+                }
+              }
+            }
           }
 
         }
@@ -613,17 +625,17 @@ namespace cwipi {
       else if (referenceFieldType == CWP_DOF_LOCATION_NODE || referenceFieldType == CWP_DOF_LOCATION_USER) {
 
         for (int i_part = 0; i_part < _nPart; i_part++) {
-          int         *part_elt_pts_inside_idx      = _elt_pts_inside_idx[i_part];
-          double      *referenceData                = (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE);
+          int         *part_elt_pts_inside_idx = _elt_pts_inside_idx[i_part];
+          double      *referenceData           = (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE);
 
-          int         *part_weights_idx             = _weights_idx[i_part];
-          double      *part_weights                 = _weights[i_part];
+          int         *part_weights_idx        = _weights_idx[i_part];
+          double      *part_weights            = _weights[i_part];
 
-          int          part_n_elt                   = _mesh->getPartNElts(i_part);
-          int          part_n_vtx                   = _mesh->getPartNVertex(i_part);
+          int          part_n_elt              = _mesh->getPartNElts(i_part);
+          int          part_n_vtx              = _mesh->getPartNVertex(i_part);
 
-          int         *connec_idx2                   = _cell_vtx_idx[i_part];
-          int         *connec2                       = _cell_vtx[i_part];
+          int         *connec_idx2             = _cell_vtx_idx[i_part];
+          int         *connec2                 = _cell_vtx[i_part];
 
           int         *connec_idx = connec_idx2; 
           int         *connec = connec2;

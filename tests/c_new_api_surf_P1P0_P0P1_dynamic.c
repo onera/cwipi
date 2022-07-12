@@ -220,6 +220,7 @@ _gen_mesh
                                                 NULL,
                                                 comm,
                                                 PDM_OWNERSHIP_KEEP);
+  free(n_part_zones);
 
   int n_join = 0;
   PDM_dmesh_t *dmesh = PDM_dmesh_create(PDM_OWNERSHIP_KEEP,
@@ -381,28 +382,22 @@ _gen_mesh
                                             face_edge,
                                             edge_vtx,
                                             *pface_vtx + i_part);
-    // s_face_vtx = face_edge_idx[n_face];
-    // (*pface_edge)[i_part] = (int *) malloc(sizeof(int) * s_face_edge);
-    // memcpy((*pface_edge)[i_part], face_edge, sizeof(int) * face_edge_idx[n_face]);
 
     (*pface_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_face);
     memcpy((*pface_ln_to_gn)[i_part], face_ln_to_gn, sizeof(PDM_g_num_t) * n_face);
-
-
-    // /* edges */
-    // (*pedge_vtx_idx)[i_part] = (int *) malloc(sizeof(int) * (n_edge + 1));
-    // memcpy((*pedge_vtx_idx)[i_part], edge_vtx_idx, sizeof(int) * (n_edge + 1));
-
-    // s_edge_vtx = edge_vtx_idx[n_edge];
-    // (*pedge_vtx)[i_part] = (int *) malloc(sizeof(int) * s_edge_vtx);
-    // memcpy((*pedge_vtx)[i_part], edge_vtx, sizeof(int) * edge_vtx_idx[n_edge]);
-
-    // (*pedge_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_edge);
-    // memcpy((*pedge_ln_to_gn)[i_part], edge_ln_to_gn, sizeof(PDM_g_num_t) * n_edge);
   }
   PDM_multipart_free(mpart);
   PDM_dmesh_free(dmesh);
 
+  free(dvtx_coord);
+  free(dface_vtx_idx);
+  free(dface_vtx);
+  free(dface_edge);
+  free(dedge_vtx_idx);
+  free(dedge_vtx);
+  free(dedge_face);
+  free(dedge_group_idx);
+  free(dedge_group);
 }
 
 
@@ -683,7 +678,7 @@ int main(int argc, char *argv[])
 
   double recv_time = 0.;
 
-  for (int step = 0; step < 10; step++) {
+  for (int step = 0; step < 2; step++) {
 
     recv_time += 1.;
 
@@ -692,6 +687,8 @@ int main(int argc, char *argv[])
     if (rank == 0) {
       printf("  Step %d\n", step);
     }
+
+    log_trace("step %d\n", step);
 
     // Mesh rotation and new localisation
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
@@ -783,6 +780,11 @@ int main(int argc, char *argv[])
   free(recv_val);
 
 
+  free(coupled_code_name);
+  free(code_name);
+  free(is_active_rank);
+  free(intra_comm);
+  free(time_init);
 
   //  Finalize CWIPI
   CWP_Finalize();

@@ -260,14 +260,12 @@ namespace cwipi {
                                            &selected_part2);
 
       _send_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
-      // _recv_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
 
       // A n_elt1
 
       for (int i = 0; i < _nPart; i++) {
         _send_buffer[intId][i] = 
           (double *) malloc(sizeof(double) * stride * selected_part2_idx[i][n_elt1[i]]);
-        // _recv_buffer[intId][i] = nullptr;
       }
 
       if (_interpolation_time == CWP_SPATIAL_INTERP_AT_SEND) {
@@ -312,19 +310,6 @@ namespace cwipi {
 
       // Fake reveceive
 
-      // PDM_part_to_part_irecv (_ptsp,
-      //                         s_data,
-      //                         stride,
-      //                         (void **) _recv_buffer[intId],
-      //                         (int) mpi_tag,
-      //                         &(_recv_request[intId]));
-
-      // PDM_part_to_part_issend (_ptsp,
-      //                          s_data,
-      //                          stride,
-      //                          (const void **) _send_buffer[intId],
-      //                          (int) mpi_tag,
-      //                          &(_send_request[intId]));
       PDM_part_to_part_iexch(_ptsp,
                              PDM_MPI_COMM_KIND_P2P,
                              pdm_storage,
@@ -438,23 +423,9 @@ namespace cwipi {
                                               &gnum1_come_from);
 
         for (int i = 0; i < _cplNPart; i++) {
-          // cpl_spatial_interp->_recv_buffer[cpl_intId][i] = (double *) malloc(sizeof(double) * stride * gnum1_come_from_idx[i][n_ref_gnum2[i]]);
           cpl_spatial_interp->_send_buffer[cpl_intId][i] = nullptr;
         }
 
-        // PDM_part_to_part_irecv (_ptsp,
-        //                         s_data,
-        //                         stride,
-        //               (void **) cpl_spatial_interp->_recv_buffer[cpl_intId],
-        //                   (int) mpi_tag,
-        //                        &(cpl_spatial_interp->_recv_request[cpl_intId]));
-
-        // PDM_part_to_part_issend (_ptsp,
-        //                          s_data,
-        //                          stride,
-        //          (const void **) _send_buffer[intId],
-        //                    (int) mpi_tag,
-        //                         &(_send_request[intId]));
         PDM_part_to_part_iexch(_ptsp,
                                PDM_MPI_COMM_KIND_P2P,
                                pdm_storage,
@@ -478,8 +449,6 @@ namespace cwipi {
 
       const int intId            = referenceField->fieldIDIntGet();
 
-      // PDM_part_to_part_irecv_wait (_ptsp, _recv_request[intId]);
-      // PDM_part_to_part_issend_wait (_ptsp, _send_request[intId]);
       PDM_part_to_part_iexch_wait (_ptsp, _send_request[intId]);
 
       if (_send_buffer[intId] != NULL) {
@@ -522,8 +491,6 @@ namespace cwipi {
 
         const int cpl_intId = cpl_referenceField->fieldIDIntGet();
 
-        // PDM_part_to_part_irecv_wait (_ptsp, cpl_spatial_interp->_recv_request[cpl_intId]);
-        // PDM_part_to_part_issend_wait (_ptsp, _send_request[intId]);
         PDM_part_to_part_iexch_wait(_ptsp, cpl_spatial_interp->_recv_request[cpl_intId]);
 
         for (int i = 0; i < _nPart; i++) {
@@ -642,11 +609,9 @@ namespace cwipi {
                                             &gnum1_come_from);
 
       _send_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
-      // _recv_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
 
       for (int i = 0; i < _nPart; i++) {
         _send_buffer[intId][i] = nullptr;
-        // _recv_buffer[intId][i] = (double *) malloc(sizeof(double) * stride * gnum1_come_from_idx[i][n_ref_gnum2[i]]);
       }
 
       MPI_Aint  *maxTagTmp;
@@ -687,19 +652,6 @@ namespace cwipi {
 
       // Fake reveceive
 
-      // PDM_part_to_part_irecv (_ptsp,
-      //                                     s_data,
-      //                                     stride,
-      //                           (void **) _recv_buffer[intId],
-      //                                     (int) mpi_tag,
-      //                                    &(_recv_request[intId]));
-
-      // PDM_part_to_part_issend (_ptsp,
-      //                                     s_data,
-      //                                     stride,
-      //                     (const void **) _send_buffer[intId],
-      //                                     (int) mpi_tag,
-      //                                    &(_send_request[intId]));
       PDM_part_to_part_iexch(_ptsp,
                              PDM_MPI_COMM_KIND_P2P,
                              pdm_storage,
@@ -744,12 +696,6 @@ namespace cwipi {
         PDM_part_to_part_gnum1_come_from_get (_ptsp,
                                               &gnum1_come_from_idx,
                                               &gnum1_come_from);
-
-        // _recv_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
-
-        // for (int i = 0; i < _nPart; i++) {
-        //   _recv_buffer[intId][i] = (double *) malloc(sizeof(double) * stride * gnum1_come_from_idx[i][n_ref_gnum2[i]]);
-        // }
 
 
         MPI_Aint  *maxTagTmp;
@@ -814,19 +760,6 @@ namespace cwipi {
         }
 
 
-        // PDM_part_to_part_irecv (_ptsp,
-        //                         s_data,
-        //                         stride,
-        //               (void **) _recv_buffer[intId],
-        //                   (int) mpi_tag,
-        //                        &(_recv_request[intId]));
-
-        // PDM_part_to_part_issend (_ptsp,
-        //                                     s_data,
-        //                                     stride,
-        //                     (const void **) cpl_spatial_interp->_send_buffer[cpl_intId],
-        //                               (int) mpi_tag,
-        //                                   &(cpl_spatial_interp->_send_request[cpl_intId]));
         PDM_part_to_part_iexch(_ptsp,
                                PDM_MPI_COMM_KIND_P2P,
                                pdm_storage,
@@ -849,9 +782,7 @@ namespace cwipi {
 
       const int intId = referenceField->fieldIDIntGet();
 
-      // PDM_part_to_part_irecv_wait (_ptsp, _recv_request[intId]);
 
-      // PDM_part_to_part_issend_wait (_ptsp, _send_request[intId]);
       PDM_part_to_part_iexch_wait (_ptsp, _send_request[intId]);
 
       if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
@@ -939,8 +870,6 @@ namespace cwipi {
 
         const int cpl_intId = cpl_referenceField->fieldIDIntGet();
 
-        // PDM_part_to_part_irecv_wait (_ptsp, _recv_request[intId]);
-        // PDM_part_to_part_issend_wait (_ptsp, cpl_spatial_interp->_send_request[cpl_intId]);
         PDM_part_to_part_iexch_wait (_ptsp, cpl_spatial_interp->_send_request[cpl_intId]);
 
         if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {

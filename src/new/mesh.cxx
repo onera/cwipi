@@ -133,6 +133,7 @@ namespace cwipi {
       free (_connec_idx[i]);
       free (_connec[i]);
       free (_gnum_elt[i]);
+      free (_elt_centers[i]);
     }
 
     for (int i = 0; i < (int) _blockDB.size(); i++) {
@@ -191,14 +192,18 @@ namespace cwipi {
 
     int n_elt_part = getPartNElts(i_part);
 
-    if(_elt_centers[i_part] == NULL)
+    if (_elt_centers[i_part] == NULL) {
       _elt_centers[i_part] = (double*)malloc(sizeof(double)*3* n_elt_part);
+    }
 
 
     int ind_idx=0;
     for(int i=0;i<_nBlocks;i++){
       int n_elt = _blockDB[i]->NEltsGet()[i_part];
 
+      PDM_Mesh_nodal_cell_centers_reset(_pdmNodal_handle_index,
+                                        _blockDB[i]->blockIDPDMGet(),
+                                        i_part);
       const double* elt_centers_block = _blockDB[i]->eltCentersGet(i_part);
 
       for(int j=0;j<n_elt;j++){

@@ -223,8 +223,8 @@ namespace cwipi {
     int nBlock = mesh->nBlockGet();
     for(int i_part=0;i_part<_n_part;i_part++){
       _partitioning_field_data[i_part] = (double*) malloc( mesh->getPartNElts(i_part) * sizeof(double) );
-      _ranking_field_data[i_part] = (double*) malloc( mesh->getPartNElts(i_part) * sizeof(double) );
-      _blocking_field_data[i_part] = (double*) malloc( mesh->getPartNElts(i_part) * sizeof(double) );
+      _ranking_field_data     [i_part] = (double*) malloc( mesh->getPartNElts(i_part) * sizeof(double) );
+      _blocking_field_data    [i_part] = (double*) malloc( mesh->getPartNElts(i_part) * sizeof(double) );
       int idx=0;
       for(int i_block=0;i_block < nBlock; i_block++){
  //       int id_block = blockDB[i_block];
@@ -358,7 +358,6 @@ namespace cwipi {
                                          PDMfieldType,
                                          fieldName.c_str());
 
-      // !! the coupled mesh may be dynamic even if the local one is not !!
       PDM_writer_status_t time_dependent = PDM_WRITER_ON;
       if (_topology == CWP_DYNAMIC_MESH_STATIC) {
         time_dependent = PDM_WRITER_OFF;
