@@ -91,65 +91,92 @@ _read_args(int argc, char **argv, int *nVertex, double *randLevel) {
 
 
 static void
-_userInterpolation(const int interface_type, const int n_src_vtcs, const int n_src_std_elts,
-                   const int n_src_poly, const int n_tgt_pts, const double src_vtcs_coords[],
-                   const CWP_g_num_t src_global_elts_num[], const CWP_g_num_t src_global_vtcs_num[],
-                   const int src_connec_idx[], const int src_connec[],
-                   const int src_poly_cell_face_idx[], const int src_poly_cell_face_connec[],
-                   const int src_poly_face_vtx_idx[], const int src_poly_face_vtx_connec[],
-                   const double tgt_pts_coords[], const int tgt_pts_target_location[],
-                   const double tgt_pts_dist[], const int tgt_pts_bary_coords_idx[],
-                   const double tgt_pts_bary_coords[], const int stride,
-                   const CWP_Dof_location_t src_field_location, const void *src_field,
-                   const CWP_Dof_location_t tgt_field_location, void *tgt_field) {
+_userInterpolation
+(
+  const int                  interface_type,
+  const char                *code_name,
+  const int                  src_n_block,
+  const CWP_Block_t          src_blocks_type[],
+  const int                  src_i_part,
+  const int                  src_n_vtx,
+  const double               src_vtx_coords[],
+  const CWP_g_num_t          src_vtx_global_num[],
+  const int                  src_n_elts,
+  const int                  src_i_block[],
+  const int                  src_elt_in_block[],
+  const int                  src_elt_vtx_idx[],
+  const int                  src_elt_vtx[],
+  const CWP_g_num_t          src_elts_global_num[],
+  const int                  tgt_n_pts,
+  const double               tgt_pts_elt_idx[],
+  const double               tgt_pts_coords[],
+  const double               tgt_pts_dist[],
+  const double               tgt_pts_uvw[],
+  const int                  tgt_pts_weights_idx[],
+  const double               tgt_pts_weights[],
+  const int                  stride,
+  const CWP_Dof_location_t   src_field_dof_location,
+  const void                *src_field,
+  const CWP_Dof_location_t   tgt_field_dof_location,
+  void                      *tgt_field
+)
+{
+
   CWP_UNUSED (interface_type);
-  CWP_UNUSED (n_src_vtcs);
-  CWP_UNUSED (n_src_std_elts);
-  CWP_UNUSED (n_src_poly);
-  CWP_UNUSED (src_vtcs_coords);
-  CWP_UNUSED (src_global_elts_num);
-  CWP_UNUSED (src_global_vtcs_num);
-  CWP_UNUSED (src_connec_idx);
-  CWP_UNUSED (src_connec);
-  CWP_UNUSED(src_poly_cell_face_idx);
-  CWP_UNUSED(src_poly_cell_face_connec);
-  CWP_UNUSED(src_poly_face_vtx_idx);
-  CWP_UNUSED(src_poly_face_vtx_connec);
+  CWP_UNUSED (code_name);
+  CWP_UNUSED (src_n_block);
+  CWP_UNUSED (src_blocks_type);
+  CWP_UNUSED (src_i_part);
+  CWP_UNUSED (src_n_vtx);
+  CWP_UNUSED (src_vtx_coords);
+  CWP_UNUSED (src_vtx_global_num);
+  CWP_UNUSED (src_n_elts);
+  CWP_UNUSED (src_i_block);
+  CWP_UNUSED (src_elt_in_block);
+  CWP_UNUSED (src_elt_vtx_idx);
+  CWP_UNUSED (src_elt_vtx);
+  CWP_UNUSED (src_elts_global_num);
+  CWP_UNUSED (tgt_n_pts);
+  CWP_UNUSED (tgt_pts_elt_idx);
   CWP_UNUSED (tgt_pts_coords);
-  CWP_UNUSED (tgt_pts_target_location);
   CWP_UNUSED (tgt_pts_dist);
-  CWP_UNUSED (tgt_pts_bary_coords_idx);
-  CWP_UNUSED (tgt_pts_bary_coords);
+  CWP_UNUSED (tgt_pts_uvw);
+  CWP_UNUSED (tgt_pts_weights_idx);
+  CWP_UNUSED (tgt_pts_weights);
   CWP_UNUSED (stride);
-  CWP_UNUSED (tgt_field_location);
+  CWP_UNUSED (src_field_dof_location);
+  CWP_UNUSED (src_field);
+  CWP_UNUSED (tgt_field_dof_location);
+  CWP_UNUSED (tgt_field);
 
-  if (src_field_location == CWP_DOF_LOCATION_NODE) {
-    for (int i = 0 ; i < n_tgt_pts ; i++) {
 
-//      int ielt = tgt_pts_target_location[i];
+//   if (src_field_location == CWP_DOF_LOCATION_NODE) {
+//     for (int i = 0 ; i < n_tgt_pts ; i++) {
 
-      //      int ivertex[4];
-      //      ivertex[0] = src_connec[src_connec_idx[ielt]];
-      //      ivertex[1] = src_connec[src_connec_idx[ielt] + 1];
-      //      ivertex[2] = src_connec[src_connec_idx[ielt] + 2];
-      //      ivertex[3] = src_connec[src_connec_idx[ielt] + 3];
+// //      int ielt = tgt_pts_target_location[i];
 
-//      double *shapef = (double *) malloc(4 * n_src_std_elts * sizeof(double));
-//      double *shapef_elt = shapef + 4 * ielt;
+//       //      int ivertex[4];
+//       //      ivertex[0] = src_connec[src_connec_idx[ielt]];
+//       //      ivertex[1] = src_connec[src_connec_idx[ielt] + 1];
+//       //      ivertex[2] = src_connec[src_connec_idx[ielt] + 2];
+//       //      ivertex[3] = src_connec[src_connec_idx[ielt] + 3];
 
-      //  printf("n_tgt_pts USER_INTERP %i\n",n_tgt_pts);
-      ((double *) tgt_field)[i] = 0.0;
-      for (int k = 0 ; k < 4 ; k++) {
-        ((double *) tgt_field)[i] = ((double *) src_field)[0];//ivertex[k]];
-      }
+// //      double *shapef = (double *) malloc(4 * n_src_std_elts * sizeof(double));
+// //      double *shapef_elt = shapef + 4 * ielt;
 
-//      free(shapef);
-    }
-  }
-  else {
-    printf("Error in userInterpolation : bad solver_type\n");
-    exit(EXIT_FAILURE);
-  }
+//       //  printf("n_tgt_pts USER_INTERP %i\n",n_tgt_pts);
+//       ((double *) tgt_field)[i] = 0.0;
+//       for (int k = 0 ; k < 4 ; k++) {
+//         ((double *) tgt_field)[i] = ((double *) src_field)[0];//ivertex[k]];
+//       }
+
+// //      free(shapef);
+//     }
+//   }
+//   else {
+//     printf("Error in userInterpolation : bad solver_type\n");
+//     exit(EXIT_FAILURE);
+//   }
 }
 
 
