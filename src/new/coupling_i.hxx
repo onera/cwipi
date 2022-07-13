@@ -71,6 +71,14 @@ namespace cwipi {
        _visu.WriterStepEnd();
     }
 
+    // currentStepWasExchangedReset() for all fields
+    std::map < string, Field * >::iterator itf = _fields.begin();
+    while (itf != _fields.end()) {
+      itf->second->currentStepWasExchangedReset();
+      itf++;
+    }
+
+
     _recvNextTime = next_time;
 
     if(_visu.isCreated()) {

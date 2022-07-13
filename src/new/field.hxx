@@ -251,6 +251,16 @@ namespace cwipi {
       return _physTime;
     }
 
+    void currentStepWasExchangedReset()
+    {
+      _current_step_was_exchanged = 0;
+    }
+
+    int currentStepWasExchangedGet() const
+    {
+      return _current_step_was_exchanged;
+    }
+
 
     void ReceptionBufferCreation(int TotLocatedTargets) {
         std::ostringstream strs;
@@ -345,6 +355,8 @@ namespace cwipi {
 
     Field &operator=(const Field &other);       /*!< Assigment operator not available */
     Field (const Field& other);                 /*!< Copy constructor not available */
+
+    int                                      _current_step_was_exchanged;
   };
 
 

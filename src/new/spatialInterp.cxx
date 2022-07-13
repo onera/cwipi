@@ -235,6 +235,12 @@ namespace cwipi {
 
   void SpatialInterp::issend(Field* referenceField) {
 
+    if (referenceField->currentStepWasExchangedGet()) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "The field has already been exchanged for the current time step "
+                "(CWP_next_recv_time_set must be called before the exchange)\n");
+    }
+
     if (!_coupledCodeProperties->localCodeIs()) {
 
       const int intId            = referenceField->fieldIDIntGet();
@@ -578,6 +584,12 @@ namespace cwipi {
 
 
   void SpatialInterp::irecv(Field *referenceField) {
+
+    if (referenceField->currentStepWasExchangedGet()) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "The field has already been exchanged for the current time step "
+                "(CWP_next_recv_time_set must be called before the exchange)\n");
+    }
 
     if (!_coupledCodeProperties->localCodeIs()) {
 

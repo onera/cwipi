@@ -32,10 +32,11 @@ namespace cwipi {
    _visuStatus     (visuStatus)  ,
    _dataType       (dataType)    ,
    _fieldID        (field_id)    ,
-   _fieldIDInt     (fieldIDInt),
+   _fieldIDInt     (fieldIDInt)  ,
    _physTime       (physTime)    ,
-   _iteration      (iteration),
-   _cpl(cpl)
+   _iteration      (iteration)   ,
+   _cpl            (cpl)         ,
+   _current_step_was_exchanged(1)
 
     {
       _mesh = cpl->meshGet();

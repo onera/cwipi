@@ -688,7 +688,6 @@ int main(int argc, char *argv[])
       printf("  Step %d\n", step);
     }
 
-    log_trace("step %d\n", step);
 
     // Mesh rotation and new localisation
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
