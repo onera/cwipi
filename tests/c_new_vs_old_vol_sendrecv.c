@@ -1021,8 +1021,8 @@ int
 main(int argc, char *argv[]) {
   // Read args from command line
   CWP_Version_t version           = CWP_VERSION_NEW;
-  int n_vtx_seg1                  = 40;
-  int n_vtx_seg2                  = 40;
+  int n_vtx_seg1                  = 10;
+  int n_vtx_seg2                  = 10;
   int randomize                   = 1;
   int n_proc_data                 = -1;
 
@@ -1160,11 +1160,11 @@ main(int argc, char *argv[]) {
                    CWP_DYNAMIC_MESH_STATIC,
                    CWP_TIME_EXCH_USER_CONTROLLED);
 
-    // CWP_Visu_set (code_name[0],
-    //               coupling_name,
-    //               -1,
-    //               CWP_VISU_FORMAT_ENSIGHT,
-    //               "text");
+    CWP_Visu_set (code_name[0],
+                  coupling_name,
+                  1,
+                  CWP_VISU_FORMAT_ENSIGHT,
+                  "text");
 
   }
 
@@ -1308,31 +1308,24 @@ main(int argc, char *argv[]) {
   }
 
   // Create and set fields
-  double *send_val = NULL;
-  double *recv_val = NULL;
+  double *send_val = (double *) malloc(sizeof(double) * pn_vtx[0]);
+  double *recv_val = (double *) malloc(sizeof(double) * pn_vtx[0]);
 
   const char *field_name  = "cooX";
 
-  if (code_id == 1) {
-    send_val = (double *) malloc(sizeof(double) * pn_vtx[0]);
-
-    for (int i = 0 ; i < pn_vtx[0] ; i++) {
-      send_val[i] = pvtx_coord[0][3 * i];
-    }
-  }
-  else {
-    recv_val = (double *) malloc(sizeof(double) * pn_vtx[0]);
+  for (int i = 0 ; i < pn_vtx[0] ; i++) {
+    send_val[i] = pvtx_coord[0][3 * i];
   }
 
   if (version == CWP_VERSION_NEW) {
-    CWP_Status_t visu_status = CWP_STATUS_OFF;
+    CWP_Status_t visu_status = CWP_STATUS_ON;
     MPI_Barrier(MPI_COMM_WORLD);
 
       CWP_Field_create(code_name[0],
                        coupling_name,
                        field_name,
                        CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_INTERLEAVED,
+                       CWP_FIELD_STORAGE_INTERLACED,
                        1,
                        CWP_DOF_LOCATION_NODE,
                        CWP_FIELD_EXCH_SENDRECV,
@@ -1369,6 +1362,10 @@ main(int argc, char *argv[]) {
   else {
     PDM_part_to_block_global_statistic_reset();
     PDM_block_to_part_global_statistic_reset();
+
+    CWP_next_recv_time_set(code_name[0],
+                           coupling_name,
+                           0.);
 
     CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
   
@@ -1414,6 +1411,14 @@ main(int argc, char *argv[]) {
                          CWP_FIELD_MAP_SOURCE,
                          send_val);
       CWP_Field_issend(code_name[0], coupling_name, field_name);
+
+      CWP_Field_data_set(code_name[0],
+                         coupling_name,
+                         field_name,
+                         0,
+                         CWP_FIELD_MAP_TARGET,
+                         recv_val);
+      CWP_Field_irecv(code_name[0], coupling_name, field_name);
     }
     else {
       CWP_Field_data_set(code_name[0],
@@ -1423,6 +1428,14 @@ main(int argc, char *argv[]) {
                          CWP_FIELD_MAP_TARGET,
                          recv_val);
       CWP_Field_irecv(code_name[0], coupling_name, field_name);
+
+      CWP_Field_data_set(code_name[0],
+                         coupling_name,
+                         field_name,
+                         0,
+                         CWP_FIELD_MAP_SOURCE,
+                         send_val);
+      CWP_Field_issend(code_name[0], coupling_name, field_name);
     }
   }
 
@@ -1446,9 +1459,11 @@ main(int argc, char *argv[]) {
   else {
     if (code_id == 1) {
       CWP_Field_wait_issend(code_name[0], coupling_name, field_name);
+      CWP_Field_wait_irecv(code_name[0], coupling_name, field_name);
     }
     else {
       CWP_Field_wait_irecv(code_name[0], coupling_name, field_name);
+      CWP_Field_wait_issend(code_name[0], coupling_name, field_name);
     }
   }
 

@@ -339,41 +339,88 @@ namespace cwipi {
       else if (nComponent !=0)
         PDM_error(__FILE__, __LINE__, 0, "This field have a number of components which cannot be visualized.\n");
 
-      std::string prefix;
-      if(field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
-        prefix = "s";
-      } else if(field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV) {
-        prefix = "r";
-      } else {
-        // TODO: if send_recv write 2 files s_ + r_
-        PDM_error(__FILE__, __LINE__, 0, "You have to choose between CWP_FIELD_EXCH_RECV or CWP_FIELD_EXCH_SEND for field writing type.\n");
+      // std::string prefix;
+      // if(field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
+      //   prefix = "s";
+      // } else if(field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV) {
+      //   prefix = "r";
+      // } else {
+      //   // TODO: if send_recv write 2 files s_ + r_
+      //   PDM_error(__FILE__, __LINE__, 0, "You have to choose between CWP_FIELD_EXCH_RECV or CWP_FIELD_EXCH_SEND for field writing type.\n");
+      // }
+
+      // std::string fieldName = prefix + "_" + field ->fieldIDGet();
+      // std::string fieldComputedName = fieldName + "_is_computed";
+
+      // int id_var = PDM_writer_var_create(_visu_id,
+      //                                    PDM_WRITER_ON,
+      //                                    PDMfieldComp,
+      //                                    PDMfieldType,
+      //                                    fieldName.c_str());
+
+      // PDM_writer_status_t time_dependent = PDM_WRITER_ON;
+      // if (_topology == CWP_DYNAMIC_MESH_STATIC) {
+      //   time_dependent = PDM_WRITER_OFF;
+      // }
+
+      // int id_var_computed = -1;
+      // if (field->exchangeTypeGet() != CWP_FIELD_EXCH_SEND) {
+      //   id_var_computed = PDM_writer_var_create(_visu_id,
+      //                                           time_dependent,
+      //                                           PDM_WRITER_VAR_SCALAR,
+      //                                           PDMfieldType,
+      //                                           fieldComputedName.c_str());
+      // }
+
+      // field->visuIdSet(id_var);
+      // field->visuIdComputedSet(id_var_computed);
+
+
+      int id_var_send          = -1;
+      int id_var_recv          = -1;
+      int id_var_recv_computed = -1;
+
+      if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND ||
+          field->exchangeTypeGet() == CWP_FIELD_EXCH_SENDRECV) {
+        std::string prefix = "s";
+        std::string fieldName = prefix + "_" + field ->fieldIDGet();
+
+        id_var_send = PDM_writer_var_create(_visu_id,
+                                           PDM_WRITER_ON,
+                                           PDMfieldComp,
+                                           PDMfieldType,
+                                           fieldName.c_str());
       }
 
-      std::string fieldName = prefix + "_" + field ->fieldIDGet();
-      std::string fieldComputedName = fieldName + "_is_computed";
 
-      int id_var = PDM_writer_var_create(_visu_id,
-                                         PDM_WRITER_ON,
-                                         PDMfieldComp,
-                                         PDMfieldType,
-                                         fieldName.c_str());
+      if (field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV ||
+          field->exchangeTypeGet() == CWP_FIELD_EXCH_SENDRECV) {
+        std::string prefix = "r";
+        std::string fieldName = prefix + "_" + field ->fieldIDGet();
+        std::string fieldComputedName = fieldName + "_is_computed";
 
-      PDM_writer_status_t time_dependent = PDM_WRITER_ON;
-      if (_topology == CWP_DYNAMIC_MESH_STATIC) {
-        time_dependent = PDM_WRITER_OFF;
+        id_var_recv = PDM_writer_var_create(_visu_id,
+                                            PDM_WRITER_ON,
+                                            PDMfieldComp,
+                                            PDMfieldType,
+                                            fieldName.c_str());
+
+        PDM_writer_status_t time_dependent = PDM_WRITER_ON;
+        if (_topology == CWP_DYNAMIC_MESH_STATIC) {
+          time_dependent = PDM_WRITER_OFF;
+        }
+
+        id_var_recv_computed = PDM_writer_var_create(_visu_id,
+                                                     time_dependent,
+                                                     PDM_WRITER_VAR_SCALAR,
+                                                     PDMfieldType,
+                                                     fieldComputedName.c_str());
       }
 
-      int id_var_computed = -1;
-      if (field->exchangeTypeGet() != CWP_FIELD_EXCH_SEND) {
-        id_var_computed = PDM_writer_var_create(_visu_id,
-                                                time_dependent,
-                                                PDM_WRITER_VAR_SCALAR,
-                                                PDMfieldType,
-                                                fieldComputedName.c_str());
-      }
 
-      field->visuIdSet(id_var);
-      field->visuIdComputedSet(id_var_computed);
+      field->idVarSendSet(id_var_send);
+      field->idVarRecvSet(id_var_recv);
+      field->idVarRecvComputedSet(id_var_recv_computed);
   }
 
 
@@ -383,7 +430,12 @@ namespace cwipi {
 
     int id_var = -1;
 
-    id_var = field->visuIdGet();
+    if (storage_type == CWP_FIELD_MAP_SOURCE) {
+      id_var = field->idVarSendGet();
+    } else {
+      id_var = field->idVarRecvGet();
+    }
+
     void* data = field->dataGet(i_part, storage_type);
     //TODO: CHange double for multitype
 
@@ -392,11 +444,16 @@ namespace cwipi {
 
   void Visu::fieldDataFree(Field* field) {
 
-    int id_var = -1;
+    if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND ||
+        field->exchangeTypeGet() == CWP_FIELD_EXCH_SENDRECV) {
+      PDM_writer_var_data_free(_visu_id, field->idVarSendGet());
+    }
 
-    id_var = field->visuIdGet();
-
-    PDM_writer_var_data_free(_visu_id, id_var);
+    if (field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV ||
+        field->exchangeTypeGet() == CWP_FIELD_EXCH_SENDRECV) {
+      PDM_writer_var_data_free(_visu_id, field->idVarRecvGet());
+      PDM_writer_var_data_free(_visu_id, field->idVarRecvComputedGet());
+    }
 
   }
 
@@ -409,11 +466,15 @@ namespace cwipi {
 
     double default_val = 0;//1e15;
 
-    id_var          = field->visuIdGet();
-    id_var_computed = field->visuIdComputedGet();
+    if (map_type == CWP_FIELD_MAP_SOURCE) {
+      id_var          = field->idVarSendGet();
+    } else {
+      id_var          = field->idVarRecvGet();
+      id_var_computed = field->idVarRecvComputedGet();
+    }
 
     PDM_writer_var_data_free(_visu_id, id_var);
-    if (field->exchangeTypeGet() != CWP_FIELD_EXCH_SEND) {
+    if (map_type == CWP_FIELD_MAP_TARGET) {
       PDM_writer_var_data_free(_visu_id, id_var_computed);
     }
 
@@ -422,7 +483,7 @@ namespace cwipi {
 
     if (n_ref_values == NULL) {
 
-      if (field->exchangeTypeGet() != CWP_FIELD_EXCH_SEND) {
+      if (map_type == CWP_FIELD_MAP_TARGET) {
         cp_field_is_computed = (double **) malloc (sizeof (void *) * _n_part);
       }
 
@@ -447,7 +508,7 @@ namespace cwipi {
           PDM_error (__FILE__, __LINE__, 0, "Visu::WriterField : Field location is undefined\n");
         }
 
-        if (field->exchangeTypeGet() != CWP_FIELD_EXCH_SEND) {
+        if (map_type == CWP_FIELD_MAP_TARGET) {
           cp_field_is_computed[i] = (double *) malloc (sizeof (double) * n_elt_part);
           for (int j = 0; j < n_elt_part; j++) {
             cp_field_is_computed[i][j] = 1.;
@@ -503,21 +564,18 @@ namespace cwipi {
     }
 
     PDM_writer_var_write(_visu_id, id_var);
-    if (field->exchangeTypeGet() != CWP_FIELD_EXCH_SEND) {
+    if (map_type == CWP_FIELD_MAP_TARGET) {
       PDM_writer_var_write(_visu_id, id_var_computed);
     }
 
     if (n_ref_values != NULL) {
-
       for (int i = 0; i < _n_part; i++) {
-
         free (cp_field_data[i]);
       }
-
       free (cp_field_data);
     }
 
-    if (field->exchangeTypeGet() != CWP_FIELD_EXCH_SEND) {
+    if (map_type == CWP_FIELD_MAP_TARGET) {
       for (int i = 0; i < _n_part; i++) {
         free (cp_field_is_computed[i]);
       }

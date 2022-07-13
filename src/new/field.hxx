@@ -198,14 +198,19 @@ namespace cwipi {
       }
     }
 
-    void visuIdSet(int visu_id)
+    void idVarSendSet(int id_var)
     {
-      _visu_id = visu_id;
+      _id_var_send = id_var;
     }
 
-    void visuIdComputedSet(int visu_id_computed)
+    void idVarRecvSet(int id_var)
     {
-      _visu_id_computed = visu_id_computed;
+      _id_var_recv = id_var;
+    }
+
+    void idVarRecvComputedSet(int id_var)
+    {
+      _id_var_recv_computed = id_var;
     }
 
     void interpFromLocationSet(CWP_Interp_from_location_t fct)
@@ -223,14 +228,19 @@ namespace cwipi {
       return _interpolationType;
     }
 
-    int visuIdGet() const
+    int idVarSendGet() const
     {
-      return _visu_id;
+      return _id_var_send;
     }
 
-    int visuIdComputedGet() const
+    int idVarRecvGet() const
     {
-      return _visu_id_computed;
+      return _id_var_recv;
+    }
+
+    int idVarRecvComputedGet() const
+    {
+      return _id_var_recv_computed;
     }
 
 
@@ -345,8 +355,9 @@ namespace cwipi {
     Coupling                                *_cpl;
     Mesh                                    *_mesh;
     int                                      _n_part;
-    int                                      _visu_id;
-    int                                      _visu_id_computed;
+    int                                      _id_var_send;
+    int                                      _id_var_recv;
+    int                                      _id_var_recv_computed;
     std::map <int,MPI_Request>               _last_request;
     std::map <int,std::vector<MPI_Request>>  _last_request_p2p;
     int                                      _dataTypeSize;
