@@ -512,10 +512,24 @@ namespace cwipi {
      */
 
     inline void
-    isLocalSet
-    (
-    bool status
-    );
+    isLocalSet (bool status);
+
+   /**
+     * \brief Set the user structure
+     *
+     */
+
+    inline void
+    userStructureSet (void *userStruct);
+
+
+   /**
+     * \brief Get the user structure
+     *
+     */
+
+    inline void * 
+    userStructureGet();
 
 
   private:
@@ -576,6 +590,8 @@ namespace cwipi {
     MPI_Comm  _globalComm;    /*!< MPI global communicator */
     MPI_Comm  _intraComm;     /*!< MPI intra communicator */
     bool      _isActiveRank;  /*!< Is a coupled rank */
+
+    void     *_userStruct;    /*!< Generic pointer about a user structure associated to the code */
 
     MPI_Group _intraGroup;     /*!< MPI group in the global communicator */
     vector <int> *_intraRanks;  /*!< Code ranks in global communicator */
@@ -644,6 +660,36 @@ namespace cwipi {
   {
     _isLocal = status;
   }
+
+
+ /**
+   * \brief Set the user structure
+   *
+   */
+
+  void
+  CodeProperties::userStructureSet
+  (
+  void *userStruct
+  )
+  {
+    _userStruct = userStruct;
+  }
+
+
+ /**
+   * \brief Get the user structure
+   *
+   */
+
+  void * 
+  CodeProperties::userStructureGet
+  (
+  )
+  {
+    return _userStruct;
+  }
+
 
   /**
    * \brief Lock access to the control parameters

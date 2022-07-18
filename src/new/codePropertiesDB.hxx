@@ -115,6 +115,31 @@ namespace cwipi {
      const string & localCodeName
     ) const;
 
+
+   /**
+     * \brief Set the user structure
+     *
+     */
+
+    inline void
+    userStructureSet 
+    (
+      const string & localCodeName,
+      void *userStruct
+    );
+
+
+   /**
+     * \brief Get the user structure
+     *
+     */
+
+    inline void * 
+    userStructureGet
+    (
+       const string & localCodeName
+    ) const;
+
      
     /**
      * \brief Return MPI communicator containing all processes of all codes.

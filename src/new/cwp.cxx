@@ -534,6 +534,51 @@ CWP_Time_update
 }
 
 
+
+/**
+ * \brief Define a user structure associated to a code
+ * 
+ * This structure can be called into a callback 
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] user_structure   User structure
+ *
+ */
+
+void
+CWP_User_structure_set
+(
+ const char* local_code_name,
+       void* user_structure
+)
+{
+  cwipi::CodePropertiesDB & properties =
+  cwipi::CodePropertiesDB::getInstance();
+}
+
+/**
+ * \brief Return the user structure associated 
+ * 
+ * This structure can be called into a callback 
+ *
+ * \param [in] local_code_name  Local code name
+ * 
+ * \return  User structure
+ *
+ */
+
+void *
+CWP_User_structure_get
+(
+ const char* local_code_name
+)
+{
+  cwipi::CodePropertiesDB & properties =
+  cwipi::CodePropertiesDB::getInstance();
+
+}
+
+
 /**
  * \brief Define output file.
  *

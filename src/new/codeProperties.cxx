@@ -61,6 +61,7 @@ namespace cwipi
      _rootRankInGlobalComm(rootRank),
      _globalComm(globalComm),
      _isActiveRank(false),
+     _userStruct(NULL),
      _winIntParamIdxName(MPI_WIN_NULL),
      _winIntParamName(MPI_WIN_NULL),
      _winIntParamValue(MPI_WIN_NULL),
@@ -89,7 +90,7 @@ namespace cwipi
     _intraConnectableComm = MPI_COMM_NULL;
     _intraGroup        = MPI_GROUP_NULL;
     _intraRanks        = NULL;
-    _connectableRanks      = NULL;
+    _connectableRanks  = NULL;
 
     _winGlobData[0] = 0; // Unlock parameters access
     _winGlobData[1] = 0; // 0 int param
