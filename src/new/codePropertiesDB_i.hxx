@@ -64,6 +64,37 @@ namespace cwipi {
     return _locCodePropertiesDB[localCodeName]->intraCommGet();
   }
 
+ /**
+   * \brief Set the user structure
+   *
+   */
+
+  void
+  CodePropertiesDB::userStructureSet 
+  (
+    const string & localCodeName,
+    void *userStruct
+  )
+  {
+    _locCodePropertiesDB[localCodeName]->userStructureSet(userStruct);
+  }
+
+
+ /**
+   * \brief Get the user structure
+   *
+   */
+
+  void * 
+  CodePropertiesDB::userStructureGet
+  (
+     const string & localCodeName
+  ) const
+  {
+    return _locCodePropertiesDB[localCodeName]->userStructureGet();
+  }
+
+
   /**
    * \brief Return MPI communicator containing all processes of all codes.
    *

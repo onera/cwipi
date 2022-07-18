@@ -55,7 +55,8 @@ namespace cwipi {
                          int n_elt,
                          int* connec_idx,
                          int* connec,
-                         CWP_g_num_t* mesh_global_num){
+                         CWP_g_num_t* mesh_global_num)
+  {
 
     _global_num [i_part] = mesh_global_num;
     
@@ -64,6 +65,32 @@ namespace cwipi {
     _connec_idx[i_part] = connec_idx;
 
   }
+
+  /**
+   * \brief Get a CWIPI block in a partition
+   *
+   * \param [in]  i_part     Partition identifier
+   * \param [in]  n_elts     Number of elements of the block in the partition.
+   * \param [in]  connec_idx Elements connectivity index
+   * \param [in]  connec     Elements connectivity
+   * \param [in]  global_num Mesh global numbering of the block
+   *
+   */
+
+  void BlockFP::blockGet(int          i_part,
+                         int         *n_elts,
+                         int         **connec_idx,
+                         int         **connec,
+                         CWP_g_num_t **mesh_global_num)
+  {
+
+    *mesh_global_num = _global_num [i_part];  
+    *n_elts          = _n_elt[i_part];       
+    *connec          = _connec[i_part];      
+    *connec_idx      = _connec_idx[i_part];  
+
+  }
+
 
   void BlockFP::geomFinalize(){
 

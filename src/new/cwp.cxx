@@ -562,6 +562,7 @@ CWP_User_structure_set
 {
   cwipi::CodePropertiesDB & properties =
   cwipi::CodePropertiesDB::getInstance();
+  properties.userStructureSet(string(local_code_name), user_structure);  
 }
 
 /**
@@ -583,6 +584,7 @@ CWP_User_structure_get
 {
   cwipi::CodePropertiesDB & properties =
   cwipi::CodePropertiesDB::getInstance();
+  return properties.userStructureGet(string(local_code_name));  
 
 }
 
@@ -1437,15 +1439,54 @@ CWP_Mesh_interf_f_poly_block_set
 )
 {
 
-   if(_is_active_rank(local_code_name)){
-     cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-     cpl.meshFPolyBlockSet(i_part,
-                           block_id,
-                           n_elts,
-                           connec_idx,
-                           connec,
-                           global_num);
+  if(_is_active_rank(local_code_name)){
+    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+    cpl.meshFPolyBlockSet(i_part,
+                          block_id,
+                          n_elts,
+                          connec_idx,
+                          connec,
+                          global_num);
   }
+}
+
+
+/**
+ * \brief Get the properties of a polygon block of the interface mesh partition.
+ *
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  i_part           Current partition
+ * \param [in]  block_id         Block identifier
+ * \param [out]  n_elts           Number of elements
+ * \param [out]  connec_idx       Connectivity index (\p connec_id[0] = 0 and
+ *                               size = \p n_elts + 1)
+ * \param [out]  connec           Connectivity (size = \p connec_idx[\p n_elts])
+ * \param [out]  global_num       Pointer to global element number (or NULL)
+ *
+ */
+
+void
+CWP_Mesh_interf_f_poly_block_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const int               i_part,
+ const int               block_id,
+ int                    *n_elts,
+ int                   **connec_idx,
+ int                   **connec,
+ CWP_g_num_t           **global_num
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.meshFPolyBlockGet(i_part,
+                        block_id,
+                        n_elts,
+                        connec_idx,
+                        connec,
+                        global_num);
+  
 }
 
 
@@ -1488,8 +1529,60 @@ CWP_Mesh_interf_c_poly_block_set
  CWP_g_num_t           global_num[]
 )
 {
-   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-   cpl.meshCPolyBlockSet(i_part,
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.meshCPolyBlockSet(i_part,
+                       block_id,
+                       n_elts,
+                       n_faces,
+                       connec_faces_idx,
+                       connec_faces    ,
+                       connec_cells_idx,
+                       connec_cells    ,
+                       global_num);
+}
+
+
+/**
+ * \brief Get the properties of a polyhedron block of the interface mesh partition..
+ *
+ * \param [in]  local_code_name   Local code name
+ * \param [in]  cpl_id            Coupling identifier
+ * \param [in]  i_part            Current partition
+ * \param [in]  block_id          Block identifier
+ * \param [out]  n_elts            Number of elements
+ * \param [out]  connec_cells_idx  Polyhedron to face index
+ *                                (\p src_poly_cell_face_idx[0] = 0 and
+ *                                 size = \p n_elts + 1)
+ * \param [out]  connec_cells      Polyhedron to face connectivity
+ *                                (size = \p cell_face_idx[\p n_elts])
+ * \param [out]  n_faces           Number of faces
+ * \param [out]  connec_faces_idx  Polyhedron face to vertex index
+ *                                (\p face_vertex_idx[0] = 0 and
+ *                                 size = max(\p cell_face_connec) + 1)
+ * \param [out]  connec_faces      Polyhedron face to vertex connectivity
+ *                                (size = \p face_vertex_idx[\p n_elts])
+ * \param [out]  global_num        Pointer to global element number (or NULL)
+ *
+ */
+
+void
+CWP_Mesh_interf_c_poly_block_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const int             i_part,
+ const int             block_id,
+ int                  *n_elts,
+ int                  *n_faces,
+ int                 **connec_faces_idx,
+ int                 **connec_faces,
+ int                 **connec_cells_idx,
+ int                 **connec_cells,
+ CWP_g_num_t         **global_num
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.meshCPolyBlockGet(i_part,
                          block_id,
                          n_elts,
                          n_faces,
@@ -1498,6 +1591,7 @@ CWP_Mesh_interf_c_poly_block_set
                          connec_cells_idx,
                          connec_cells    ,
                          global_num);
+
 }
 
 

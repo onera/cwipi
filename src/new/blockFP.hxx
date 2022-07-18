@@ -89,6 +89,23 @@ namespace cwipi {
                             int* connec,
                             CWP_g_num_t* mesh_global_num);
 
+      /**
+       * \brief Get a CWIPI block in a partition
+       *
+       * \param [in]  i_part     Partition identifier
+       * \param [in]  n_elts     Number of elements of the block in the partition.
+       * \param [in]  connec_idx Elements connectivity index
+       * \param [in]  connec     Elements connectivity
+       * \param [in]  global_num Mesh global numbering of the block
+       *
+       */
+
+      virtual void blockGet(int          i_part,
+                            int         *n_elts,
+                            int         **connec_idx,
+                            int         **connec,
+                            CWP_g_num_t **mesh_global_num);
+
        /**
         *
         * \brief return the element connectivity (Standard or Face_Poly_2D CWP_Block_t) or cells-faces connectiviy (Cells_POLY_3D)

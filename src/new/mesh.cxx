@@ -987,6 +987,30 @@ namespace cwipi {
 
   }
 
+  /*************************************************/
+
+  void
+  Mesh::poly2DBlockGet
+  (
+    const int              i_part,
+    const int              block_id,
+    int                   *n_elts,
+    int                  **connec_idx,
+    int                  **connec,
+    CWP_g_num_t          **global_num
+  )
+  {
+
+    BlockFP *block = dynamic_cast <BlockFP *> (_blockDB [block_id]);
+
+    block->blockGet(i_part,
+                    n_elts,
+                    connec_idx,
+                    connec,
+                    global_num);
+  
+  }
+
   /**********************************************************************/
 
 
@@ -1006,7 +1030,8 @@ namespace cwipi {
   {
 
     BlockCP *block = dynamic_cast <BlockCP *> (_blockDB [block_id]);
-    block->blockSet(i_part,n_elts,
+    block->blockSet(i_part,
+                    n_elts,
                     n_faces,
                     connec_faces_idx,
                     connec_faces,
@@ -1014,22 +1039,35 @@ namespace cwipi {
                     connec_cells,
                     global_num);
 
-    if (_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC) {
-      _visu->GeomBlockPoly3D (_id_visu[block_id],
-                                i_part,
-                                n_elts,
-                                n_faces,
-                                connec_faces_idx,
-                                connec_faces,
-                                connec_cells_idx,
-                                connec_cells,
-                                global_num);
-    }
-
     _nElts[i_part]  +=  n_elts;
 
   }
 
+
+  void 
+  Mesh::poly3DBlockGet
+  ( 
+    const int    i_part,
+    const int    block_id,
+    int         *n_elts,
+    int         *n_faces,
+    int         **connec_faces_idx,
+    int         **connec_faces,
+    int         **connec_cells_idx,
+    int         **connec_cells,
+    CWP_g_num_t **global_num
+  )
+  {
+    BlockCP *block = dynamic_cast <BlockCP *> (_blockDB [block_id]);
+    block->blockGet(i_part,
+                    n_elts,
+                    n_faces,
+                    connec_faces_idx,
+                    connec_faces,
+                    connec_cells_idx,
+                    connec_cells,
+                    global_num);
+  }
 
   void
   Mesh::meshDel()

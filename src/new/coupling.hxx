@@ -392,6 +392,32 @@ namespace cwipi {
       CWP_g_num_t          global_num[]
     );
 
+
+    /**
+     * \brief Set the connectivity of a polygon block in a mesh interface partition.
+     *
+     *
+     * \param [in]   i_part      Current partition
+     * \param [in]   block_id    Block identifier
+     * \param [out]  n_elts      Number of elements
+     * \param [out]  connec_idx  Connectivity index (connec_id[0] = 0 and
+     *                          size = n_elts + 1)
+     * \param [out]  connec      Connectivity (size = connec_id[n_elts] * n_elts)
+     * \param [out]  global_num  Pointer to global element number (or NULL)
+     *
+     */
+
+    inline void
+    meshFPolyBlockGet (
+      const int            i_part,
+      const int            block_id,
+      int                 *n_elts,
+      int                **connec_idx,
+      int                **connec,
+      CWP_g_num_t        **global_num
+    );
+
+
     /**
      * \brief Set the connectivity of a polyhedron block in a mesh interface partition.
      *
@@ -426,6 +452,43 @@ namespace cwipi {
       int                 connec_cells_idx[],
       int                 connec_cells[],
       CWP_g_num_t         global_num[]
+    );
+
+
+    /**
+     * \brief Set the connectivity of a polyhedron block in a mesh interface partition.
+     *
+     * Definition of element connectivity is :
+     *
+     * \param [in]  i_part            Current partition
+     * \param [in]  block_id          Block identifier
+     * \param [out]  n_elts            Number of elements
+     * \param [out]  connec_cells_idx  Polyhedron to face index
+     *                                (src_poly_cell_face_idx[0] = 0 and
+     *                                 size = n_elts + 1)
+     * \param [out]  connec_cells      Polyhedron to face connectivity
+     *                                (size = cell_face_idx[n_elts])
+     * \param [out]  n_faces           Number of faces
+     * \param [out]  connec_faces_idx  Polyhedron face to vertex index
+     *                                (face_vertex_idx[0] = 0 and
+     *                                size_idx = max(cell_face_connec) + 1)
+     * \param [out]  connec_faces      Polyhedron face to vertex connectivity
+     *                                (size = face_vertex_idx[size_idx - 1])
+     * \param [out]  global_num        Pointer to global element number (or NULL)
+     *
+     */
+
+    inline void
+    meshCPolyBlockGet (
+      const int           i_part,
+      const int           block_id,
+      int                *n_elts,
+      int                *n_faces,
+      int               **connec_faces_idx,
+      int               **connec_faces,
+      int               **connec_cells_idx,
+      int               **connec_cells,
+      CWP_g_num_t       **global_num
     );
 
 

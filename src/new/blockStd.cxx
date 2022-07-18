@@ -65,6 +65,13 @@ namespace cwipi {
   }
 
 
+  void BlockStd::blockGet(int i_part,int *n_elts,int** connec,CWP_g_num_t** global_num){
+    *global_num      = _global_num [i_part];
+    *n_elts          = _n_elt[i_part];
+    *connec          = _connec[i_part];
+  }
+
+
   void BlockStd::geomFinalize(){
 
     for(int i_part = 0; i_part<_n_part; i_part++){

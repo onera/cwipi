@@ -58,7 +58,8 @@ namespace cwipi {
                          int*         connec_faces,
                          int*         connec_cells_idx,
                          int*         connec_cells,
-                         CWP_g_num_t* global_num) {
+                         CWP_g_num_t* global_num) 
+  {
 
 
     _global_num[i_part] = global_num;
@@ -71,6 +72,43 @@ namespace cwipi {
     _connec_faces[i_part]     = connec_faces;
   
   }
+
+
+
+   /**
+   * \brief Get a CWIPI block in a partition
+   * 
+   * \param [in]  i_part     Partition identifier
+   * \param [out]  n_elts     Number of elements of the block in the partition
+   * \param [out]  n_faces    Number of faces of the block in the partition
+   * \param [out]  connec_faces_idx Vertices to faces connectivity index
+   * \param [out]  connec_faces     Vertices to faces connectivity
+   * \param [out]  connec_cells_idx Faces to cells connectivity index
+   * \param [out]  connec_cells     Faces to cells connectivity
+   * \param [out]  global_num Mesh  Global numbering of the block
+   *
+   */ 
+         
+   void BlockCP::blockGet(int         i_part,
+                         int         *n_elts,
+                         int         *n_faces,
+                         int         **connec_faces_idx, 
+                         int         **connec_faces,
+                         int         **connec_cells_idx,
+                         int         **connec_cells,
+                         CWP_g_num_t **global_num)
+   {
+
+    *global_num       = _global_num[i_part];
+    *n_elts           = _n_elt[i_part];
+    *n_faces          = _n_faces[i_part];
+    *connec_cells_idx = _connec_cells_idx[i_part];  
+    *connec_cells     = _connec_cells[i_part];   
+    *connec_faces_idx = _connec_faces_idx[i_part];  
+    *connec_faces     = _connec_faces[i_part];
+  
+   }
+
 
 
   void BlockCP::geomFinalize(){
