@@ -83,6 +83,8 @@ program new_api
 
     call CWP_Init(MPI_comm_world, n_code, code_names, is_coupled_rank, time_init, intra_comms)
 
+    print *, rank, " CWP_Init OK"
+
     do i = 1, n_code
         call MPI_Comm_rank(intra_comms(i), local_comm_rank, ierr);
         call MPI_Comm_size(intra_comms(i), local_comm_size, ierr);
@@ -161,10 +163,12 @@ program new_api
 
     allocate(coord(3))
     coord = (/9., 4., 2./)
-    call CWP_Mesh_interf_vtx_set("code1", cpl_id1, 1, 1, coord, global_num)
+    call CWP_Mesh_interf_vtx_set("code1", cpl_id1, 0, 1, coord, global_num)
     block_id = CWP_Mesh_interf_block_add("code1", cpl_id1, CWP_BLOCK_FACE_QUAD4)
 
     print *, "All done for rank", rank
+
+    deallocate(code_names, is_coupled_rank, time_init, intra_comms, coord)
 
     call CWP_Finalize()
     call MPI_Finalize(ierr)

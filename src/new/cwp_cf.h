@@ -66,7 +66,7 @@ void
 CWP_Init_cf (
   MPI_Fint f_global_comm, 
   const int n_code, 
-  const char **f_code_names, 
+  const char *f_code_names,
   const int *l_code_names, 
   const int *is_active_rank, 
   const double *time_init, 

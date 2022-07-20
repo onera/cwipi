@@ -139,13 +139,13 @@ module cwp
               bind(c, name = 'CWP_Init_cf')
         use, intrinsic :: iso_c_binding
         implicit none
-        integer(c_int), value :: fcomm
-        integer(c_int), value :: n_code
-        type(c_ptr) :: code_names
-        integer(c_int), dimension(n_code) :: l_code_names
+        integer(c_int), value             :: fcomm
+        integer(c_int), value             :: n_code
+        type(c_ptr),    value             :: code_names
+        type(c_ptr),    value             :: l_code_names
         integer(c_int), dimension(n_code) :: is_active_rank
         real(c_double), dimension(n_code) :: time_init
-        type(c_ptr), value :: intra_comms
+        type(c_ptr),    value             :: intra_comms
       end subroutine CWP_Init_cf
 
       subroutine CWP_Cpl_create_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, coupled_code_name, l_coupled_code_name, &
@@ -561,24 +561,24 @@ contains
     implicit none
 
     integer(c_int) :: fcomm
-    integer(c_int) :: n_code
-    character(kind = c_char, len = *), dimension(:), pointer :: code_names
+    integer(c_int), intent(in) :: n_code
+    character(kind = c_char, len = *), dimension(n_code), target :: code_names
     integer(c_int), dimension(n_code) :: is_active_rank
     real(c_double), dimension(n_code) :: time_init
     integer(c_int), dimension(:), pointer :: intra_comms
-    integer, dimension(n_code) :: l_code_names
+    integer, dimension(n_code), target :: l_code_names
     integer :: i
 
     do i = 1, n_code
       l_code_names(i) = len(code_names(i))
     end do
 
-    call CWP_Init_cf(fcomm, n_code,     &
-                     c_loc(code_names), &
-                    l_code_names,       &
-                    is_active_rank,     &
-                    time_init,          &
-                    c_loc(intra_comms))
+    call CWP_Init_cf(fcomm, n_code,       &
+                     c_loc(code_names),   &
+                     c_loc(l_code_names), &
+                     is_active_rank,      &
+                     time_init,           &
+                     c_loc(intra_comms))
   end subroutine CWP_Init
 
 

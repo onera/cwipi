@@ -697,9 +697,11 @@ int main(int argc, char *argv[])
         mesh_rotate(pvtx_coord[i_code][0], pn_vtx[i_code][0], 3 * recv_time);
       }
 
-      CWP_next_recv_time_set(code_name[i_code],
-                             cpl_name,
-                             recv_time);
+      // CWP_next_recv_time_set(code_name[i_code],
+      //                        cpl_name,
+      //                        recv_time);
+      CWP_Time_update(code_name[i_code],
+                      recv_time);
 
       CWP_Spatial_interp_weights_compute(code_name[i_code], cpl_name);
     }

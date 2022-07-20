@@ -51,43 +51,6 @@ namespace cwipi {
     PDM_error(__FILE__, __LINE__, 0, "recvFreqSet not implemented yet\n");
   }
 
-  /**
-   * \brief Setting the next receiving time.
-   *
-   * This function set the next receiving time. It must be used when
-   * the type of receiving frequency is \ref CWP_TIME_EXCH_ASYNCHRONOUS
-   *
-   * \param [in]  next_time     Next receiving time
-   *
-   */
-
-  void
-  Coupling::recvNextTimeSet (
-    double next_time
-  )
-  {
-
-    if(_visu.isCreated() and _visu.physicalTimeGet() > -1.0) {
-       _visu.WriterStepEnd();
-    }
-
-    // currentStepWasExchangedReset() for all fields
-    std::map < string, Field * >::iterator itf = _fields.begin();
-    while (itf != _fields.end()) {
-      itf->second->currentStepWasExchangedReset();
-      itf++;
-    }
-
-
-    _recvNextTime = next_time;
-
-    if(_visu.isCreated()) {
-       _visu.WriterStepBegin(_recvNextTime,&_mesh);
-    }
-
-  }
-
-
 
 
   /*----------------------------------------------------------------------------*

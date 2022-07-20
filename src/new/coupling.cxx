@@ -142,7 +142,8 @@ namespace cwipi {
    _spatial_interp_recv(*new std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*>()),
    _n_spatial_interp_properties(0),
    _spatial_interp_properties_value(*new std::vector<double>),
-   _spatial_interp_properties_name(*new std::vector<char *>)  {
+   _spatial_interp_properties_name(*new std::vector<char *>),
+   _is_up_to_date(0)  {
 
 /*    int rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
@@ -296,26 +297,6 @@ namespace cwipi {
    *----------------------------------------------------------------------------*/
 
 
-
-
-  /**
-   * \brief Setting the next receiving time.
-   *
-   * This function set the next receiving time. It must be used when
-   * the type of receiving frequency is \ref CWP_TIME_EXCH_ASYNCHRONOUS
-   *
-   * \param [in]  next_time     Next receiving time
-   *
-   */
-
-  // void
-  // Coupling::recvNextTimeSet (
-  //   double next_time
-  // )
-  // {
-  //   PDM_UNUSED (next_time);
-  //   PDM_error(__FILE__, __LINE__, 0, "\nrecvNextTimeSet not implemented yet\n");
-  // }
 
 
   /*----------------------------------------------------------------------------*
@@ -1807,6 +1788,52 @@ namespace cwipi {
   Coupling::globalNumGet(int id_block,int i_part)
   {
     return _mesh.globalNumGet(id_block,i_part);
+  }
+
+
+
+
+  /**
+   * \brief Update time.
+   *
+   * \param [in]  current_time     Current time
+   *
+   */
+
+  void
+  Coupling::timeUpdate (
+    double current_time
+  )
+  {
+
+    if(_visu.isCreated() and _visu.physicalTimeGet() > -1.0) {
+       _visu.WriterStepEnd();
+    }
+
+    // currentStepWasExchangedReset() for all fields
+    std::map < string, Field * >::iterator itf = _fields.begin();
+    while (itf != _fields.end()) {
+      itf->second->currentStepWasExchangedReset();
+      itf++;
+    }
+
+    if(_visu.isCreated()) {
+       _visu.WriterStepBegin(current_time, &_mesh);
+    }
+
+  }
+
+
+  int
+  Coupling::isUpToDateGet ()
+  {
+    return _is_up_to_date;
+  }
+
+  void
+  Coupling::isUpToDateSet ()
+  {
+    _is_up_to_date = 1;
   }
 
 

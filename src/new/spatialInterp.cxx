@@ -238,7 +238,7 @@ namespace cwipi {
     if (referenceField->currentStepWasExchangedGet()) {
       PDM_error(__FILE__, __LINE__, 0,
                 "The field has already been exchanged for the current time step "
-                "(CWP_next_recv_time_set must be called before the exchange)\n");
+                "(CWP_Time_update must be called before the exchange)\n");
     }
 
     if (!_coupledCodeProperties->localCodeIs()) {
@@ -588,7 +588,7 @@ namespace cwipi {
     if (referenceField->currentStepWasExchangedGet()) {
       PDM_error(__FILE__, __LINE__, 0,
                 "The field has already been exchanged for the current time step "
-                "(CWP_next_recv_time_set must be called before the exchange)\n");
+                "(CWP_Time_update must be called before the exchange)\n");
     }
 
     if (!_coupledCodeProperties->localCodeIs()) {

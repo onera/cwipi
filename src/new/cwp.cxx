@@ -62,6 +62,7 @@
 #include "pdm.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm_logging.h"
 #include "surfMeshGenerator.hxx"
 #include "surfMeshGeneratorDB.hxx"
 #include "spatialInterpClosestPoint.hxx"
@@ -531,6 +532,13 @@ CWP_Time_update
   cwipi::CodePropertiesDB & properties =
   cwipi::CodePropertiesDB::getInstance();
   properties.ctrlParamSet<double>(string(local_code_name),"time", current_time);
+
+  // call timeUpdate() for all couplings
+  cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
+  couplingDB.timeUpdate(properties.codePropertiesGet(local_code_name),
+                        current_time);
+
+
 }
 
 
@@ -980,7 +988,9 @@ CWP_Computed_tgts_dist_to_spatial_interp_get
  )
  {
    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-   cpl.recvNextTimeSet(next_time);
+   // cpl.recvNextTimeSet(next_time);//TO REMOVE
+   CWP_UNUSED(cpl);
+   CWP_UNUSED(next_time);
  }
 
 /*----------------------------------------------------------------------------*
@@ -1004,6 +1014,15 @@ CWP_Spatial_interp_weights_compute
 {
 
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  if (!cpl.isUpToDateGet()) {
+
+    cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
+    double current_time = properties.ctrlParamGet<double>(string(local_code_name),"time");
+
+    cpl.timeUpdate(current_time);
+    cpl.isUpToDateSet();
+  }
 
   cpl.spatialInterpWeightsCompute ();
 

@@ -116,20 +116,6 @@ namespace cwipi {
       int n_step
     );
 
-    /**
-     * \brief Setting the next receiving time.
-     *
-     * This function set the next receiving time. It must be used when
-     * the type of receiving frequency is \ref CWP_TIME_EXCH_ASYNCHRONOUS
-     *
-     * \param [in]  next_time     Next receiving time
-     *
-     */
-
-    inline void
-    recvNextTimeSet (
-      double next_time
-    );
 
     /*----------------------------------------------------------------------------*
      * Methods about spatial interpolation                                        *
@@ -1239,6 +1225,25 @@ namespace cwipi {
     CWP_g_num_t*
     globalNumGet(int id_block,int i_part);
 
+
+    /**
+     * \brief Update time.
+     *
+     * \param [in]  current_time     Current time
+     *
+     */
+
+    void
+    timeUpdate (double current_time);
+
+
+    int
+    isUpToDateGet ();
+
+
+    void
+    isUpToDateSet ();
+
   private:
 
 
@@ -1293,6 +1298,8 @@ namespace cwipi {
     int                                     _n_spatial_interp_properties;      /*!< Number of spatial interpolation properties */
     std::vector<double>                    &_spatial_interp_properties_value;  /*!< Values of spatial interpolation properties */
     std::vector<char *>                    &_spatial_interp_properties_name;   /*!< Names of spatial interpolation properties */
+
+    int                                     _is_up_to_date;
 
   };
 }

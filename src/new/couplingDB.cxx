@@ -86,10 +86,10 @@ namespace cwipi {
    const CodeProperties        &coupledCodeProperties,
    const CWP_Interface_t       entities_dim,
    const CWP_Comm_t            commType,
-   const CWP_Spatial_interp_t            spatialInterpAlgo,
+   const CWP_Spatial_interp_t  spatialInterpAlgo,
    const int                   nPart,
    const CWP_Dynamic_mesh_t    movingStatus,
-   const CWP_Time_exch_t            recvFreqType
+   const CWP_Time_exch_t       recvFreqType
   )
   {
 
@@ -156,6 +156,26 @@ namespace cwipi {
 
       p->second.erase(p1);
 
+    }
+  }
+
+
+
+
+  void
+  CouplingDB::timeUpdate
+  (
+   const CodeProperties &localCodeProperties,
+   double                current_time
+   )
+  {
+    typedef const map < const cwipi::CodeProperties *, map <string, Coupling * > > ::iterator Iterator;
+    Iterator p = _couplingDB.find(&localCodeProperties);
+
+    map < string, Coupling * > :: iterator itc = p->second.begin();
+    while (itc != p->second.end()) {
+      itc->second->timeUpdate(current_time);
+      itc++;
     }
   }
 }

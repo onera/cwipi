@@ -36,7 +36,7 @@ namespace cwipi {
    _physTime       (physTime)    ,
    _iteration      (iteration)   ,
    _cpl            (cpl)         ,
-   _current_step_was_exchanged(1)
+   _current_step_was_exchanged(0)
 
     {
       _mesh = cpl->meshGet();

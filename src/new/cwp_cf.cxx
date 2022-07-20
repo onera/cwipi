@@ -12,7 +12,7 @@
  *  Header for the current file
  *----------------------------------------------------------------------------*/
 
-
+#include "pdm_logging.h"
 #include "cwp.h"
 #include "cwp_cf.h"
 
@@ -65,11 +65,13 @@ _fortran_to_c_string (
 
   if ((imax == l_application_name_f) || (imin == l_application_name_f)) {
     application_name_c = new char[1];
+    // application_name_c = (char *) malloc(sizeof(char) * 1);
     application_name_c[0] = '\0';
   }
   else {
     int size = imax - imin + 2;
     application_name_c = new char[size];
+    // application_name_c = (char *) malloc(sizeof(char) * size);
     int index = 0;
     for (int k = imin ; k <= imax ; k++) {
       application_name_c[index++] = application_name_f[k];
@@ -106,7 +108,7 @@ void
 CWP_Init_cf (
   MPI_Fint f_global_comm, 
   const int n_code, 
-  const char **f_code_names, 
+  const char *f_code_names,
   const int *l_code_names, 
   const int *is_active_rank, 
   const double *time_init, 
@@ -115,9 +117,12 @@ CWP_Init_cf (
 {
   // Convert code names dealing with different size characters
   char **c_code_names = (char **) malloc(n_code * sizeof(char *));
+  int idx = 0;
   for (int i = 0 ; i < n_code ; i++) {
-    c_code_names[i] = (char *) malloc((l_code_names[i] - 1) * sizeof(char));
-    memcpy(c_code_names[i], *f_code_names + i * l_code_names[i], l_code_names[i]); // TODO This is not perfectly right for the length of the f_code_name which could vary
+    // c_code_names[i] = (char *) malloc((l_code_names[i] - 1) * sizeof(char));
+    // memcpy(c_code_names[i], *f_code_names + i * l_code_names[i], l_code_names[i]); // TODO This is not perfectly right for the length of the f_code_name which could vary
+    c_code_names[i] = _fortran_to_c_string(f_code_names + idx, l_code_names[i]);
+    idx += l_code_names[i];
   }
 
   // Convert global MPI communicator
@@ -131,10 +136,14 @@ CWP_Init_cf (
   // Convert local communicators to Fortran
   for (int i = 0 ; i < n_code ; i++) {
     f_intra_comms[i] = MPI_Comm_c2f(c_intra_comms[i]);
+
+    delete [] c_code_names[i];
   }
 
-  delete [] c_code_names;
-  delete [] c_intra_comms;
+  // delete [] c_code_names;
+  free(c_code_names);
+  // delete [] c_intra_comms;
+  free(c_intra_comms);
 }
 
 
