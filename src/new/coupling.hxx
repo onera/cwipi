@@ -1362,6 +1362,9 @@ namespace cwipi {
     std::vector<double>                    &_spatial_interp_properties_value;  /*!< Values of spatial interpolation properties */
     std::vector<char *>                    &_spatial_interp_properties_name;   /*!< Names of spatial interpolation properties */
 
+    std::map<char *, double>               &_spatial_interp_properties_double;
+    std::map<char *, int>                  &_spatial_interp_properties_int;
+
     int                                     _is_up_to_date;
 
   };

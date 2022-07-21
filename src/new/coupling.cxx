@@ -380,6 +380,19 @@ namespace cwipi {
 
   }
 
+
+ void
+  Coupling::spatialInterpPropertyDoubleAdd
+  (
+    char   *name,
+    double  value
+  )
+{
+  pair<char *, double> newPair(name, value);
+  _spatial_interp_properties_double.insert(newPair);
+}
+
+
   /**
    * \brief Computation spatial interpolation weights
    *
