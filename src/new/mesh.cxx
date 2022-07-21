@@ -129,18 +129,27 @@ namespace cwipi {
 
   Mesh::~Mesh()
   {
-#if defined(DEBUG) && 0
-    cout << "destroying mesh of partition  : TODO" << endl;
-#endif
     for (int i = 0; i < _npart; i++) {
       free (_connec_idx[i]);
       free (_connec[i]);
       free (_gnum_elt[i]);
-      free (_elt_centers[i]);
+      if (_elt_centers[i] != NULL) {
+        free (_elt_centers[i]);
+      }
+      if (_elt_id_block[i] != NULL) {
+        free (_elt_id_block[i]);
+      }
+      if (_elt_in_block[i] != NULL) {
+        free (_elt_in_block[i]);
+      }
     }
 
     for (int i = 0; i < (int) _blockDB.size(); i++) {
       delete _blockDB[i];
+    }
+
+    if (_blocksType != NULL) {
+      delete [] _blocksType;
     }
 
   }
@@ -930,15 +939,37 @@ namespace cwipi {
       }   //end loop on block
     }
 
+ 
+    _blocksType = new CWP_Block_t[_nBlocks];
+
     for (int i_block = 0 ; i_block < _nBlocks ; i_block++) {
       _blockDB[i_block]->geomFinalize();
+      _blocksType[i_block] = _blockDB[i_block]->blockTypeGet(); 
     } //Loop on blockDB
 
+    for (int i_part = 0; i_part < _npart; i_part++) {
+
+      _elt_id_block[i_part] = (int *) malloc (sizeof(int) * _nElts[i_part]);
+      _elt_in_block[i_part] = (int *) malloc (sizeof(int) * _nElts[i_part]);
+
+      for(int i_block = 0; i_block < _nBlocks; i_block++){
+        int n_elt = _blockDB[i_block]->NEltsGet(i_part);
+
+        int pdm_id_block = _blockDB[i_block]->blockIDPDMGet();
+
+        int *parent_num = PDM_Mesh_nodal_block_parent_num_get(_pdmNodal_handle_index, pdm_id_block, i_part);
+
+        for(int i_elt = 0; i_elt < n_elt; i_elt++){
+          _elt_id_block[i_part][parent_num[i_elt] - 1] = i_block;
+          _elt_in_block[i_part][parent_num[i_elt] - 1] = i_elt + 1;
+        }
+
+      }
+
+    }
 
     _nBlocks     = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
     _blocks_id   = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
-
-    printf("n elts : %d\n ", PDM_Mesh_nodal_n_cell_get (_pdmNodal_handle_index, 0));
 
     if(_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC ) {
       _visu->GeomWrite(this);
