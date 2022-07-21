@@ -22,6 +22,7 @@
 #include "pdm_gnum.h"
 #include "pdm_geom_elem.h"
 #include "pdm_array.h"
+#include "pdm_logging.h"
 
 #include "pdm_writer.h"
 
@@ -302,6 +303,11 @@ _block_std_free
     _block_std->cell_centers = NULL;
   }
 
+  if (_block_std->cell_centers_to_compute != NULL) {
+    free(_block_std->cell_centers_to_compute);
+    _block_std->cell_centers_to_compute = NULL;
+  }
+
   if (_block_std->_parent_num != NULL) {
     if (_block_std->is_parent_num_get == 0 || _block_std->owner == PDM_OWNERSHIP_KEEP) { 
       for (int i = 0; i < _block_std->n_part; i++) {
@@ -433,6 +439,11 @@ _block_poly2d_free
     }
     free(_block_poly2d->cell_centers);
     _block_poly2d->cell_centers = NULL;
+  }
+
+  if (_block_poly2d->cell_centers_to_compute != NULL) {
+    free(_block_poly2d->cell_centers_to_compute);
+    _block_poly2d->cell_centers_to_compute = NULL;
   }
 
   if (_block_poly2d->_parent_num != NULL) {
@@ -606,6 +617,11 @@ _block_poly3d_free
     }
     free(_block_poly3d->cell_centers);
     _block_poly3d->cell_centers = NULL;
+  }
+
+  if (_block_poly3d->cell_centers_to_compute != NULL) {
+    free(_block_poly3d->cell_centers_to_compute);
+    _block_poly3d->cell_centers_to_compute = NULL;
   }
 
   if (_block_poly3d->_parent_num != NULL) {
@@ -2139,6 +2155,7 @@ const PDM_ownership_t       ownership
       mesh->blocks_std[id_block]->is_numabs_int_get = 0;
       mesh->blocks_std[id_block]->is_cell_centers_get = 0;
       mesh->blocks_std[id_block]->cell_centers         = NULL;
+      mesh->blocks_std[id_block]->cell_centers_to_compute = NULL;
 
       for (int i = 0; i < mesh->blocks_std[id_block]->n_part; i++) {
         mesh->blocks_std[id_block]->n_elt[i]     = 0;
@@ -2177,6 +2194,7 @@ const PDM_ownership_t       ownership
       mesh->blocks_poly2d[id_block]->_numabs     = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * mesh->blocks_poly2d[id_block]->n_part);
       mesh->blocks_poly2d[id_block]->numabs_int = NULL;
       mesh->blocks_poly2d[id_block]->cell_centers = NULL;
+      mesh->blocks_poly2d[id_block]->cell_centers_to_compute = NULL;
       mesh->blocks_poly2d[id_block]->_parent_num = NULL;
       mesh->blocks_poly2d[id_block]->is_parent_num_get    = 0;
       mesh->blocks_poly2d[id_block]->is_parent_entity_g_num_get = 0;
@@ -2224,6 +2242,7 @@ const PDM_ownership_t       ownership
       mesh->blocks_poly3d[id_block]->_numabs      = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * mesh->blocks_poly3d[id_block]->n_part);
       mesh->blocks_poly3d[id_block]->numabs_int   = NULL;
       mesh->blocks_poly3d[id_block]->cell_centers = NULL;
+      mesh->blocks_poly3d[id_block]->cell_centers_to_compute = NULL;
       mesh->blocks_poly3d[id_block]->_parent_num  = NULL;
       mesh->blocks_poly3d[id_block]->is_parent_num_get    = 0;
       mesh->blocks_poly3d[id_block]->is_parent_entity_g_num_get = 0;
@@ -2252,6 +2271,10 @@ const PDM_ownership_t       ownership
     PDM_error(__FILE__, __LINE__, 0, "Unknown element type\n");
     break;
 
+  }
+
+  for (int i = 0; i < mesh->n_part; i++) {
+    PDM_Mesh_nodal_cell_centers_reset(mesh, id_block, i);
   }
 
   _update_blocks_id (mesh);
@@ -4793,9 +4816,6 @@ const PDM_ownership_t  ownership
     PDM_error (__FILE__, __LINE__, 0, "Bad mesh nodal identifier\n");
   }
 
-  double**  characteristicLength = (double**)malloc(sizeof(double*)*mesh->n_part);
-  int**     isDegenerated        = (int**)malloc(sizeof(int*)*mesh->n_part);
-
   if (id_block >= PDM_BLOCK_ID_BLOCK_POLY3D) {
 
     int _id_block = id_block - PDM_BLOCK_ID_BLOCK_POLY3D;
@@ -4809,10 +4829,7 @@ const PDM_ownership_t  ownership
 
     block->cell_centers_owner = ownership;
 
-    double**  volume  = (double**)malloc(sizeof(double*)*mesh->n_part);
-
     double* coords = (double *) PDM_Mesh_nodal_vertices_get(mesh,i_part);
-    volume[i_part] = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
 
     if (block->cell_centers == NULL) {
       block->cell_centers = (double **) malloc (sizeof(double *) * mesh->n_part);
@@ -4820,7 +4837,7 @@ const PDM_ownership_t  ownership
         block->cell_centers[i] = NULL;
       }
     }
-    else {
+    else if (!block->cell_centers_to_compute[i_part]) {
       return;
     }
 
@@ -4828,8 +4845,9 @@ const PDM_ownership_t  ownership
       block->cell_centers[i_part] = (double*) malloc(sizeof(double)*3*block->n_elt[i_part]);
     }
 
-    characteristicLength[i_part] = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
-    isDegenerated[i_part] = (int*)malloc(sizeof(int)*block->n_elt[i_part]);
+    double *volume = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
+    double *characteristicLength = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
+    int    *isDegenerated = (int*)malloc(sizeof(int)*block->n_elt[i_part]);
 
     PDM_geom_elem_polyhedra_properties(0,
                                        block->n_elt[i_part],
@@ -4840,15 +4858,10 @@ const PDM_ownership_t  ownership
                                        block->_cellfac[i_part],
                                        mesh ->vtx[i_part]->n_vtx,
                                        coords,
-                                       volume[i_part],
+                                       volume,
                                        block->cell_centers[i_part],
-                                       characteristicLength[i_part],
-                                       isDegenerated[i_part] );
-
-    free(volume[i_part]);
-    free(characteristicLength[i_part]);
-    free(isDegenerated[i_part]);
-
+                                       characteristicLength,
+                                       isDegenerated);
     free(volume);
     free(characteristicLength);
     free(isDegenerated);
@@ -4867,9 +4880,6 @@ const PDM_ownership_t  ownership
 
     block->cell_centers_owner = ownership;
 
-    double**  surface_vector  = (double**)malloc(sizeof(double*)*mesh->n_part);
-    double* coords = (double *) PDM_Mesh_nodal_vertices_get(mesh,i_part);
-    surface_vector[i_part] = (double*)malloc(sizeof(double)*3*block->n_elt[i_part]);
 
     if (block->cell_centers == NULL) {
       block->cell_centers = (double **) malloc (sizeof(double *) * mesh->n_part);
@@ -4877,30 +4887,29 @@ const PDM_ownership_t  ownership
         block->cell_centers[i] = NULL;
       }
     }
-    else {
+    else if (!block->cell_centers_to_compute[i_part]) {
       return;
     }
+
+    block->cell_centers_to_compute[i_part] = 0;
 
     if (block->cell_centers[i_part]==NULL) {
       block->cell_centers[i_part] = (double*)malloc(sizeof(double)*3*block->n_elt[i_part]);
     }
 
-    characteristicLength[i_part] = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
-    isDegenerated[i_part] = (int*)malloc(sizeof(int)*block->n_elt[i_part]);
+    double* coords = (double *) PDM_Mesh_nodal_vertices_get(mesh,i_part);
+    double *surface_vector = (double*)malloc(sizeof(double)*3*block->n_elt[i_part]);
+    double *characteristicLength = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
+    int    *isDegenerated = (int*)malloc(sizeof(int)*block->n_elt[i_part]);
 
     PDM_geom_elem_polygon_properties(block->n_elt[i_part],
                                      block->_connec_idx[i_part],
                                      block->_connec[i_part],
                                      coords,
-                                     surface_vector[i_part],
+                                     surface_vector,
                                      block->cell_centers[i_part],
-                                     characteristicLength[i_part],
-                                     isDegenerated[i_part] );
-
-    free(surface_vector[i_part]);
-    free(characteristicLength[i_part]);
-    free(isDegenerated[i_part]);
-
+                                     characteristicLength,
+                                     isDegenerated);
     free(surface_vector);
     free(characteristicLength);
     free(isDegenerated);
@@ -4918,9 +4927,6 @@ const PDM_ownership_t  ownership
     
     block->cell_centers_owner = ownership;
 
-    double**  surface_vector  = (double**)malloc(sizeof(double*)*mesh->n_part);
-    double**  volume         = (double**)malloc(sizeof(double*)*mesh->n_part);
-    double**  length         = (double**)malloc(sizeof(double*)*mesh->n_part);
 
     double* coords = (double *) PDM_Mesh_nodal_vertices_get(mesh,i_part);
 
@@ -4930,7 +4936,7 @@ const PDM_ownership_t  ownership
         block->cell_centers[i] = NULL;
       }
     }
-    else {
+    else if (!block->cell_centers_to_compute[i_part]) {
       return;
     }
 
@@ -4938,8 +4944,8 @@ const PDM_ownership_t  ownership
       block->cell_centers[i_part] = (double*)malloc(sizeof(double)*3*block->n_elt[i_part]);
     }
 
-    characteristicLength[i_part] = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
-    isDegenerated[i_part] = (int*)malloc(sizeof(int)*block->n_elt[i_part]);
+    double *characteristicLength = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
+    int    *isDegenerated = (int*)malloc(sizeof(int)*block->n_elt[i_part]);
 
     switch (block->t_elt) {
     case PDM_MESH_NODAL_POINT:
@@ -4949,85 +4955,104 @@ const PDM_ownership_t  ownership
       break;
 
     case PDM_MESH_NODAL_BAR2:
-      length[i_part] = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
+    {
+      double *length = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
       PDM_geom_elem_edges_properties(block->n_elt[i_part],
                                      block->_connec[i_part],
                                      coords,
-                                     length[i_part],
+                                     length,
                                      block->cell_centers[i_part],
-                                     characteristicLength[i_part],
-                                     isDegenerated[i_part]);
+                                     characteristicLength,
+                                     isDegenerated);
+      free(length);
       break;
+    }
 
     case PDM_MESH_NODAL_TRIA3:
-      surface_vector[i_part] = (double*)malloc(sizeof(double)*3*block->n_elt[i_part]);
+    {
+      double *surface_vector = (double*)malloc(sizeof(double)*3*block->n_elt[i_part]);
       PDM_geom_elem_tria_properties(block->n_elt[i_part],
                                     block->_connec[i_part],
                                     coords,
-                                    surface_vector[i_part],
+                                    surface_vector,
                                     block->cell_centers[i_part],
-                                    characteristicLength[i_part],
-                                    isDegenerated[i_part]);
-
-
+                                    characteristicLength,
+                                    isDegenerated);
+      free(surface_vector);
       break;
-
+    }
     case PDM_MESH_NODAL_QUAD4:
-      surface_vector[i_part] = (double*)malloc(sizeof(double)*3*block->n_elt[i_part]);
+    {
+      double *surface_vector = (double*)malloc(sizeof(double)*3*block->n_elt[i_part]);
       PDM_geom_elem_quad_properties(block->n_elt[i_part],
                                     block->_connec[i_part],
                                     coords,
-                                    surface_vector[i_part],
+                                    surface_vector,
                                     block->cell_centers[i_part],
-                                    characteristicLength[i_part],
-                                    isDegenerated[i_part]);
+                                    characteristicLength,
+                                    isDegenerated);
+      free(surface_vector);
       break;
+    }
 
     case  PDM_MESH_NODAL_TETRA4:
-      volume[i_part] = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
+    {
+      double *volume = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
       PDM_geom_elem_tetra_properties(block->n_elt[i_part],
                                      block->_connec[i_part],
                                      coords,
-                                     volume[i_part],
+                                     volume,
                                      block->cell_centers[i_part],
-                                     characteristicLength[i_part],
-                                     isDegenerated[i_part]);
+                                     characteristicLength,
+                                     isDegenerated);
+      free(volume);
       break;
+    }
 
     case PDM_MESH_NODAL_PYRAMID5:
-      volume[i_part] = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
+    {
+      double *volume = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
       PDM_geom_elem_pyramid_properties(block->n_elt[i_part],
                                        block->_connec[i_part],
                                        mesh->vtx[i_part]->n_vtx,
                                        coords,
-                                       volume[i_part],
+                                       volume,
                                        block->cell_centers[i_part],
-                                       characteristicLength[i_part],
-                                       isDegenerated[i_part]);
+                                       characteristicLength,
+                                       isDegenerated);
+      free(volume);
       break;
+    }
 
     case PDM_MESH_NODAL_PRISM6:
-      volume[i_part] = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
+    {
+      double *volume = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
       PDM_geom_elem_prism_properties(block->n_elt[i_part],
                                      block->_connec[i_part],
                                      mesh->vtx[i_part]->n_vtx,
                                      coords,
-                                     volume[i_part],
+                                     volume,
                                      block->cell_centers[i_part],
-                                     characteristicLength[i_part],
-                                     isDegenerated[i_part]);
+                                     characteristicLength,
+                                     isDegenerated);
+      free(volume);
       break;
+    }
+
     case PDM_MESH_NODAL_HEXA8:
-      volume[i_part] = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
+    {
+      double *volume = (double*)malloc(sizeof(double)*block->n_elt[i_part]);
       PDM_geom_elem_hexa_properties(block->n_elt[i_part],
                                     block->_connec[i_part],
                                     mesh->vtx[i_part]->n_vtx,
                                     coords,
-                                    volume[i_part],
+                                    volume,
                                     block->cell_centers[i_part],
-                                    characteristicLength[i_part],
-                                    isDegenerated[i_part]);
+                                    characteristicLength,
+                                    isDegenerated);
+      free(volume);
       break;
+    }
     case PDM_MESH_NODAL_POLY_2D:
     case PDM_MESH_NODAL_POLY_3D:
       break;
@@ -5035,28 +5060,9 @@ const PDM_ownership_t  ownership
       break;
     }//end switch t_elt
 
-    if ((block->t_elt ==  PDM_MESH_NODAL_TRIA3) ||
-        (block->t_elt == PDM_MESH_NODAL_QUAD4)) {
-      free(surface_vector[i_part]);
-    }
-    else if (block->t_elt == PDM_MESH_NODAL_BAR2) {
-      free(length[i_part]);
-    }
-    else if ((block->t_elt == PDM_MESH_NODAL_TETRA4) ||
-             (block->t_elt == PDM_MESH_NODAL_PYRAMID5) ||
-             (block->t_elt == PDM_MESH_NODAL_PRISM6) ||
-             (block->t_elt == PDM_MESH_NODAL_HEXA8)) {
-      free(volume[i_part]);
-    }
-
-    free(characteristicLength[i_part]);
-    free(isDegenerated[i_part]);
 
     free(characteristicLength);
     free(isDegenerated);
-    free(surface_vector);
-    free(length);
-    free(volume);
 
   } // if id_block
 
@@ -5758,6 +5764,95 @@ g
 
 #endif
   return child_mesh;
+}
+
+
+
+/**
+ * \brief Reset cell center computation
+ *
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
+ * \param [in]  id_block       Block identifier
+ * \param [in]  id_part        Partition identifier
+ *
+ */
+
+void
+PDM_Mesh_nodal_cell_centers_reset
+(
+      PDM_Mesh_nodal_t *mesh,
+const int               id_block,
+const int               i_part
+)
+{
+  if (mesh == NULL) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad mesh nodal identifier\n");
+  }
+
+  if (id_block >= PDM_BLOCK_ID_BLOCK_POLY3D) {
+    int _id_block = id_block - PDM_BLOCK_ID_BLOCK_POLY3D;
+
+    PDM_Mesh_nodal_block_poly3d_t *block = mesh->blocks_poly3d[_id_block];
+
+    if (block == NULL) {
+      PDM_error (__FILE__, __LINE__, 0, "Bad standard block identifier\n");
+    }
+
+    if (block->cell_centers_to_compute == NULL) {
+      block->cell_centers_to_compute = (int *) malloc (sizeof(int) * mesh->n_part);
+      for (int i = 0; i < block->n_part; i++) {
+        block->cell_centers_to_compute[i] = 1;
+      }
+    }
+    else {
+      block->cell_centers_to_compute[i_part] = 1;
+    }
+
+  }
+
+  else if (id_block >= PDM_BLOCK_ID_BLOCK_POLY2D) {
+    int _id_block = id_block - PDM_BLOCK_ID_BLOCK_POLY2D;
+
+    PDM_Mesh_nodal_block_poly2d_t *block = mesh->blocks_poly2d[_id_block];
+
+    if (block == NULL) {
+      PDM_error (__FILE__, __LINE__, 0, "Bad standard block identifier\n");
+    }
+
+    if (block->cell_centers_to_compute == NULL) {
+      block->cell_centers_to_compute = (int *) malloc (sizeof(int) * mesh->n_part);
+      for (int i = 0; i < block->n_part; i++) {
+        block->cell_centers_to_compute[i] = 1;
+      }
+    }
+    else {
+      block->cell_centers_to_compute[i_part] = 1;
+    }
+
+  }
+
+  else {
+
+    int _id_block = id_block;
+
+    PDM_Mesh_nodal_block_std_t *block = mesh->blocks_std[_id_block];
+
+    if (block == NULL) {
+      PDM_error (__FILE__, __LINE__, 0, "Bad standard block identifier\n");
+    }
+
+
+    if (block->cell_centers_to_compute == NULL) {
+      block->cell_centers_to_compute = (int *) malloc (sizeof(int) * mesh->n_part);
+      for (int i = 0; i < block->n_part; i++) {
+        block->cell_centers_to_compute[i] = 1;
+      }
+    }
+    else {
+      block->cell_centers_to_compute[i_part] = 1;
+    }
+
+  }
 }
 
 

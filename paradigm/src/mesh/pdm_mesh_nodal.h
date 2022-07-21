@@ -1158,6 +1158,24 @@ PDM_Mesh_nodal_extract_selection
  );
 
 
+
+/**
+ * \brief Reset cell center computation
+ *
+ * \param [in]  mesh           Pointer to \ref PDM_Mesh_nodal object
+ * \param [in]  id_block       Block identifier
+ * \param [in]  id_part        Partition identifier
+ *
+ */
+
+void
+PDM_Mesh_nodal_cell_centers_reset
+(
+      PDM_Mesh_nodal_t *mesh,
+const int               id_block,
+const int               i_part
+);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
