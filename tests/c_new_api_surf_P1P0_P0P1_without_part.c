@@ -108,7 +108,7 @@ _userInterpolation
   const int                  src_elt_vtx[],
   const CWP_g_num_t          src_elts_global_num[],
   const int                  tgt_n_pts,
-  const double               tgt_pts_elt_idx[],
+  const int                  tgt_pts_elt_idx[],
   const double               tgt_pts_coords[],
   const double               tgt_pts_dist[],
   const double               tgt_pts_uvw[],
@@ -117,7 +117,6 @@ _userInterpolation
   const int                  stride,
   const CWP_Dof_location_t   src_field_dof_location,
   const void                *src_field,
-  const CWP_Dof_location_t   tgt_field_dof_location,
   void                      *tgt_field
 )
 {
@@ -146,7 +145,6 @@ _userInterpolation
   CWP_UNUSED (stride);
   CWP_UNUSED (src_field_dof_location);
   CWP_UNUSED (src_field);
-  CWP_UNUSED (tgt_field_dof_location);
   CWP_UNUSED (tgt_field);
 
 

@@ -69,7 +69,7 @@ namespace cwipi {
    *
    */
 
-  void
+   void
   CodePropertiesDB::userStructureSet 
   (
     const string & localCodeName,

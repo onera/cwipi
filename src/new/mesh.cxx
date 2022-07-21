@@ -76,6 +76,7 @@ namespace cwipi {
   :
     _localComm(localComm),
     _nBlocks(0),
+    _blocksType(nullptr),  
                   //_hoOrdering (NULL),
     _visu(visu),
     _displacement(displacement),
@@ -97,6 +98,8 @@ namespace cwipi {
     _connec    .resize(npart,NULL);
     _gnum_elt  .resize(npart,NULL);
     _elt_centers  .resize(npart,NULL);
+    _elt_id_block  .resize(npart,NULL);
+    _elt_in_block  .resize(npart,NULL);
 
     _coords .resize(npart,NULL);
     _global_num_vtx .resize(npart,NULL);

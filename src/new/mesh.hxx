@@ -570,6 +570,21 @@ namespace cwipi {
      return _blockDB[id_block] -> blockTypeGet();
    }
 
+   CWP_Block_t* blocksTypeGet() {
+     return _blocksType;
+   }
+
+
+   int* eltIdBlockGet(int i_part) {
+     return _elt_id_block[i_part];
+   }
+
+
+   int* eltInBlockGet(int i_part) {
+     return _elt_in_block[i_part];
+   }
+
+
    CWP_g_num_t* gnumMeshBlockGet(int id_block,int i_part) {
      return _blockDB[id_block] -> GNumMeshGet(i_part);
    }
@@ -584,6 +599,7 @@ namespace cwipi {
     int                                     _npart;                  /*!< Number of partition  */
     int                                     _nBlocks;                /*!< Number of blocks of the mesh */
     int*                                    _blocks_id;              /*!< List of block identifiers */
+    CWP_Block_t*                            _blocksType;              /*!< Blocks type  */
     std::vector<cwipi::Block*>              _blockDB;                /*!< Blocks database  */
 
     std::vector<int>                        _nVertex;                /*!< Number of vertices for each partition  */
@@ -592,16 +608,18 @@ namespace cwipi {
     std::vector<int>                        _nElts;                  /*!< Number of elements for each partition  */
     std::vector<CWP_g_num_t*>               _gnum_elt;
     std::vector<double*>                    _elt_centers;
+    std::vector<int*>                       _elt_id_block;            /*!< Number of elements for each partition  */
+    std::vector<int*>                       _elt_in_block;           /*!< Number of elements for each partition  */
 
-    std::vector <CWP_g_num_t*>              _global_num_vtx;             /*!< Global vertices numbering for each partition  */
-    std::vector <CWP_g_num_t*>              _global_num_elt;             /*!< Global elements numbering for each partition  */
+    std::vector <CWP_g_num_t*>              _global_num_vtx;         /*!< Global vertices numbering for each partition  */
+    std::vector <CWP_g_num_t*>              _global_num_elt;         /*!< Global elements numbering for each partition  */
 
     std::vector<int*>                       _connec_idx;
     std::vector<int*>                       _connec;
 
     Visu                                   *_visu;                   /*!< Pointer to the Visu object */
     std::map<int,int>                       _id_visu;                /*!< Map of the PDM_Writer block identifier */
-    CWP_Dynamic_mesh_t                      _displacement;          /*!< Type of mesh displacement */
+    CWP_Dynamic_mesh_t                      _displacement;           /*!< Type of mesh displacement */
     Coupling                               *_cpl;
 
     std::vector<int>                        _nCells;        
@@ -632,6 +650,8 @@ namespace cwipi {
 
     bool                                    _isVtxGnumComputed;
     bool                                    _isEltGnumComputed;
+
+
 
   //   Mesh &operator=(const Mesh &other);  /*!< Assigment operator not available */
   //   Mesh (const Mesh& other);            /*!< Copy constructor not available */

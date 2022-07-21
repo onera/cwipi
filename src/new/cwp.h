@@ -335,7 +335,7 @@ typedef enum {
  * \param [in]  src_vtx_coords              Coordinates of vertices (size = 3 * src_n_vtx)
  * \param [in]  src_vtx_global_num          Global number of vertices (size = src_n_vtx)
  * \param [in]  src_n_elts                  Number of elements
- * \param [in]  src_i_block                 block id of the element
+ * \param [in]  src_id_block                 block id of the element
  *                                          (size = src_n_elts)
  * \param [in]  src_elt_in_block            Element number of the elements into it block
  *                                          (size = src_n_elts)
@@ -366,7 +366,6 @@ typedef enum {
  * \param [in]  src_field_dof_location      source field location
  * \param [in]  src_field                   source field
  *                                          (size depends on field type and stride)
- * \param [in]  tgt_field_dof_location      target field location
  * \param [out] tgt_field                   target field
  *                                          (size = stride * n_tgt_pts)
  */
@@ -383,13 +382,13 @@ typedef void (*CWP_Interp_from_location_t)
   const double               src_vtx_coords[],
   const CWP_g_num_t          src_vtx_global_num[],
   const int                  src_n_elts,
-  const int                  src_i_block[],
+  const int                  src_id_block[],
   const int                  src_elt_in_block[],
   const int                  src_elt_vtx_idx[],
   const int                  src_elt_vtx[],
   const CWP_g_num_t          src_elts_global_num[],
   const int                  tgt_n_pts,
-  const double               tgt_pts_elt_idx[],
+  const int                  tgt_pts_elt_idx[],
   const double               tgt_pts_coords[],
   const double               tgt_pts_dist[],
   const double               tgt_pts_uvw[],
@@ -398,7 +397,6 @@ typedef void (*CWP_Interp_from_location_t)
   const int                  stride,
   const CWP_Dof_location_t   src_field_dof_location,
   const void                *src_field,
-  const CWP_Dof_location_t   tgt_field_dof_location,
   void                      *tgt_field
 );
 
