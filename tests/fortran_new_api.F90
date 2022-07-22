@@ -2,15 +2,17 @@ program new_api
     use mpi
     use cwp
 
+    implicit none
+
     integer :: n_code
     integer :: ierr
-    integer :: rank, comm_world_size
+    integer :: rank, comm_world_size, local_comm_rank, local_comm_size
     integer, dimension(:), pointer :: is_coupled_rank
     character(len = 5), dimension(:), pointer :: code_names
     character(len = 16) :: cpl_id1, cpl_id2, cpl_id3, cpl_id4, cpl_id5, cpl_id6
     real(8), dimension(:), pointer :: time_init, coord
     integer, dimension(:), pointer :: intra_comms
-    integer :: interp_method, block_id
+    integer :: interp_method, block_id, i
 
     INTEGER(8), POINTER, DIMENSION(:) :: global_num => NULL()
 
@@ -102,61 +104,61 @@ program new_api
     ! cpl1
     if (rank == 0 .OR. rank == 1 .OR. rank == 2 .OR. rank == 5 .OR. rank == 7) then
         call CWP_Cpl_create("code1", cpl_id1, "code2", CWP_INTERFACE_SURFACE, &
-                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP)
+                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED)
     end if
     if (rank == 1 .OR. rank == 2 .OR. rank == 6 .OR. rank == 7 .OR. rank == 9) then
         call CWP_Cpl_create("code2", cpl_id1, "code1", CWP_INTERFACE_SURFACE, &
-                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP)
+                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED)
     end if
 
     ! cpl2
     if (rank == 0 .OR. rank == 1 .OR. rank == 2 .OR. rank == 5 .OR. rank == 7) then
         call CWP_Cpl_create("code1", cpl_id2, "code3", CWP_INTERFACE_SURFACE, &
-        CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP)
+        CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED)
     end if
     if (rank == 2 .OR. rank == 3 .OR. rank == 4 .OR. rank == 5 .OR. rank == 7 .OR. rank == 9) then
         call CWP_Cpl_create("code3", cpl_id2, "code1", CWP_INTERFACE_SURFACE, &
-                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
     end if
 
     ! cpl3
     if (rank == 1 .OR. rank == 2 .OR. rank == 6 .OR. rank == 7 .OR. rank == 9) then
         call CWP_Cpl_create("code2", cpl_id3, "code3", CWP_INTERFACE_SURFACE, &
-                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
     end if
     if (rank == 2 .OR. rank == 3 .OR. rank == 4 .OR. rank == 5 .OR. rank == 7 .OR. rank == 9) then
         call CWP_Cpl_create("code3", cpl_id3, "code2", CWP_INTERFACE_SURFACE, &
-                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
     end if
 
     ! cpl4
     if (rank == 2 .OR. rank == 4 .OR. rank == 8) then
         call CWP_Cpl_create("code4", cpl_id4, "code3", CWP_INTERFACE_SURFACE, &
-                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
     end if
     if (rank == 2 .OR. rank == 3 .OR. rank == 4 .OR. rank == 5 .OR. rank == 7 .OR. rank == 9) then
         call CWP_Cpl_create("code3", cpl_id4, "code4", CWP_INTERFACE_SURFACE, &
-                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
     end if
 
     ! cpl5
     if (rank == 0 .OR. rank == 1 .OR. rank == 2 .OR. rank == 5 .OR. rank == 7) then
         call CWP_Cpl_create("code1", cpl_id5, "code4", CWP_INTERFACE_SURFACE, &
-                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
     end if
     if (rank == 2 .OR. rank == 4 .OR. rank == 8) then
         call CWP_Cpl_create("code4", cpl_id5, "code1", CWP_INTERFACE_SURFACE, &
-                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
     end if
 
     ! cpl6
     if (rank == 1 .OR. rank == 2 .OR. rank == 6 .OR. rank == 7 .OR. rank == 9) then
         call CWP_Cpl_create("code2", cpl_id6, "code4", CWP_INTERFACE_SURFACE, &
-                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
     end if
     if (rank == 2 .OR. rank == 4 .OR. rank == 8) then
         call CWP_Cpl_create("code4", cpl_id6, "code2", CWP_INTERFACE_SURFACE, &
-                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_EACH_TIME_STEP);
+                CWP_COMM_PAR_WITH_PART, interp_method, 1, CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
     end if
 
     CALL CWP_Visu_set("code1", cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "text")

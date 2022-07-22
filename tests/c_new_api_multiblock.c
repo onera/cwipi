@@ -676,7 +676,7 @@ int main(int argc, char *argv[])
 
 
   // Create coupling
-  const char *coupling_name = "c_surf_cpl_P1P1";
+  const char *coupling_name = "c_multiblock";
 
   CWP_Cpl_create(code_name[0],
                  coupling_name,
@@ -866,6 +866,7 @@ int main(int argc, char *argv[])
   if (code_id != 1) {
     n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name, 0);
     n_located   = CWP_N_computed_tgts_get  (code_name[0], coupling_name, field_name, 0);
+    printf("n_located = %d\n", n_located);
     located     = CWP_Computed_tgts_get    (code_name[0], coupling_name, field_name, 0);
   }
 

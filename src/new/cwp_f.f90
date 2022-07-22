@@ -53,12 +53,13 @@ module cwp
     ! CWP_Time_exch_t
     enum, bind(c)
         enumerator :: &
-            CWP_TIME_EXCH_EACH_TIME_STEP, &
-            CWP_TIME_EXCH_N_TIME_STEP, &
-            CWP_TIME_EXCH_CPL_TIME_STEP, &
-            CWP_TIME_EXCH_ASYNCHRONOUS, &
-            CWP_TIME_EXCH_SLAVE, &
-            CWP_TIME_EXCH_MASTER
+            CWP_TIME_EXCH_USER_CONTROLLED
+            ! CWP_TIME_EXCH_EACH_TIME_STEP, &
+            ! CWP_TIME_EXCH_N_TIME_STEP, &
+            ! CWP_TIME_EXCH_CPL_TIME_STEP, &
+            ! CWP_TIME_EXCH_ASYNCHRONOUS, &
+            ! CWP_TIME_EXCH_SLAVE, &
+            ! CWP_TIME_EXCH_MASTER
     end enum
 
     ! CWP_Dof_location_t
