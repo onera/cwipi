@@ -1099,8 +1099,8 @@ CWP_Spatial_interp_property_add
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *propery_name,
- const char     *propery_type,
+ const char     *property_name,
+ const char     *property_type,
  const char     *property_value
 );
 

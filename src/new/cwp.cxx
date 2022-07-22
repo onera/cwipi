@@ -1085,12 +1085,26 @@ CWP_Spatial_interp_property_add
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *propery_name,
- const char     *propery_type,
+ const char     *property_name,
+ const char     *property_type,
  const char     *property_value
 )
 {
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
+  if (strcmp(property_type, "double") == 0) {
+    cpl.spatialInterpPropertyDoubleAdd(string(property_name),
+                                       atof(property_value));
+  }
+
+  else if (strcmp(property_type, "int") == 0) {
+    cpl.spatialInterpPropertyIntAdd(string(property_name),
+                                    atoi(property_value));
+  }
+
+  else {
+    printf("Warning: invalid property type '%s'\n", property_type);
+  }
 }
 
 

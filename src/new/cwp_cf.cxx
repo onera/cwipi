@@ -1467,6 +1467,40 @@ CWP_Interp_from_location_set_cf (
   free(c_src_field_id);
 }
 
+
+
+void
+CWP_Spatial_interp_property_add_cf
+(
+ const char     *f_local_code_name,
+       int       l_local_code_name,
+ const char     *f_cpl_id,
+       int       l_cpl_id,
+ const char     *f_property_name,
+       int       l_property_name,
+ const char     *f_property_type,
+       int       l_property_type,
+ const char     *f_property_value,
+       int       l_property_value
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_property_name, *c_property_type, *c_property_value;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id,          l_cpl_id);
+  c_property_name   = _fortran_to_c_string(f_property_name,   l_property_name);
+  c_property_type   = _fortran_to_c_string(f_property_type,   l_property_type);
+  c_property_value  = _fortran_to_c_string(f_property_value,  l_property_value);
+
+  CWP_Spatial_interp_property_add(c_local_code_name,
+                                  c_cpl_id,
+                                  c_property_name,
+                                  c_property_type,
+                                  c_property_value);
+}
+
+
+
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

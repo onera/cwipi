@@ -1355,6 +1355,20 @@ namespace cwipi {
     return _spatial_interp_properties_value;    
   }
 
+  std::map <std::string, double> &
+  Coupling::SpatialInterpPropertiesDoubleGet (
+  )
+  {
+    return _spatial_interp_properties_double;
+  }
+
+  std::map <std::string, int> &
+  Coupling::SpatialInterpPropertiesIntGet (
+  )
+  {
+    return _spatial_interp_properties_int;
+  }
+
 
   /**
    * \brief Return the names of user spatial interpolation properties

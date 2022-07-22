@@ -143,6 +143,8 @@ namespace cwipi {
    _n_spatial_interp_properties(0),
    _spatial_interp_properties_value(*new std::vector<double>),
    _spatial_interp_properties_name(*new std::vector<char *>),
+   _spatial_interp_properties_double(*new std::map<std::string, double>),
+   _spatial_interp_properties_int(*new std::map<std::string, int>),
    _is_up_to_date(0)  {
 
 /*    int rank;
@@ -231,6 +233,9 @@ namespace cwipi {
 
     delete  &_spatial_interp_properties_value;
     delete  &_spatial_interp_properties_name;
+
+    delete &_spatial_interp_properties_double;
+    delete &_spatial_interp_properties_int;
 
     if(_visu.isCreated()) {
        _visu.WriterStepEnd();
@@ -382,14 +387,37 @@ namespace cwipi {
 
 
  void
-  Coupling::spatialInterpPropertyDoubleAdd
-  (
-    char   *name,
-    double  value
+  Coupling::spatialInterpPropertyDoubleAdd (
+    std::string name,
+    double      value
   )
 {
-  pair<char *, double> newPair(name, value);
-  _spatial_interp_properties_double.insert(newPair);
+  std::map<std::string, double>::iterator it;
+  it = _spatial_interp_properties_double.find(name);
+
+  if (it == _spatial_interp_properties_double.end()) {
+    pair<string, double> newPair(name, value);
+    _spatial_interp_properties_double.insert(newPair);
+  } else {
+    it->second = value;
+  }
+}
+
+ void
+  Coupling::spatialInterpPropertyIntAdd (
+    std::string name,
+    int         value
+  )
+{
+  std::map<std::string, int>::iterator it;
+  it = _spatial_interp_properties_int.find(name);
+
+  if (it == _spatial_interp_properties_int.end()) {
+    pair<string, int> newPair(name, value);
+    _spatial_interp_properties_int.insert(newPair);
+  } else {
+    it->second = value;
+  }
 }
 
 
