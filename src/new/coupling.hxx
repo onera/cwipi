@@ -149,13 +149,13 @@ namespace cwipi {
     );
 
     void
-    spatialInterpPropertyDoubleAdd (
+    spatialInterpPropertyDoubleSet (
       std::string name,
       double      value
     );
 
     void
-    spatialInterpPropertyIntAdd (
+    spatialInterpPropertyIntSet (
       std::string name,
       int         value
     );
@@ -1263,9 +1263,9 @@ namespace cwipi {
      *
      */
 
-    inline int
-    NSpatialInterpPropertiesGet (
-    );
+    // inline int
+    // NSpatialInterpPropertiesGet (
+    // );
 
 
     /**
@@ -1276,14 +1276,26 @@ namespace cwipi {
      *
      */
 
-    inline std::vector <double> &
-    SpatialInterpPropertiesValuesGet (
-    );
+    // inline std::vector <double> &
+    // SpatialInterpPropertiesValuesGet (
+    // );
 
+    /**
+     * \brief Return the user spatial interpolation properties of type double
+     *
+     * \return Map storing the user spatial interpolation properties of type double
+     *
+     */
     inline std::map <std::string, double> &
     SpatialInterpPropertiesDoubleGet (
     );
 
+    /**
+     * \brief Return the user spatial interpolation properties of type int
+     *
+     * \return Map storing the user spatial interpolation properties of type int
+     *
+     */
     inline std::map <std::string, int> &
     SpatialInterpPropertiesIntGet (
     );
@@ -1378,12 +1390,8 @@ namespace cwipi {
     std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &_spatial_interp_recv; /*!< local receive Spatial interpolation objects 
                                                                                                                   to associate with sent distant spatial interpolatiol */
 
-    int                                     _n_spatial_interp_properties;      /*!< Number of spatial interpolation properties */
-    std::vector<double>                    &_spatial_interp_properties_value;  /*!< Values of spatial interpolation properties */
-    std::vector<char *>                    &_spatial_interp_properties_name;   /*!< Names of spatial interpolation properties */
-
-    std::map<std::string, double>          &_spatial_interp_properties_double;
-    std::map<std::string, int>             &_spatial_interp_properties_int;
+    std::map<std::string, double>          &_spatial_interp_properties_double; /*!< Spatial interpolation properties of type double */
+    std::map<std::string, int>             &_spatial_interp_properties_int;    /*!< Spatial interpolation properties of type int */
 
     int                                     _is_up_to_date;
 

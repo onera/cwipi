@@ -47,10 +47,7 @@ namespace cwipi {
 
       PDM_mesh_location_method_set(_id_pdm, _location_method);
 
-      _cpl->NSpatialInterpPropertiesGet ();
-
       double tolerance = CWP_MESH_LOCATION_BBOX_TOLERANCE;
-      // if (1) {
       std::map<std::string, double> prop = _cpl->SpatialInterpPropertiesDoubleGet();
       std::map<std::string, double>::iterator it;
 
@@ -58,21 +55,6 @@ namespace cwipi {
       if (it != prop.end()) {
         tolerance = it->second;
       }
-      // }
-      // else {
-      //   int nProp = _cpl->NSpatialInterpPropertiesGet();
-      //   std::vector <char *> &propName = _cpl->SpatialInterpPropertiesNamesGet();
-      //   std::vector <double> &propValue = _cpl->SpatialInterpPropertiesValuesGet();
-
-      //   for (int i = 0; i < nProp; i++) {
-      //     if (!strcmp("tolerance", propName[i])) {
-      //       tolerance = propValue[i];
-      //       break;
-      //     }
-      //   }
-      // }
-
-      log_trace("tolerance = %f\n", tolerance);
 
       PDM_mesh_location_tolerance_set(_id_pdm, tolerance);
   
@@ -105,15 +87,12 @@ namespace cwipi {
         PDM_mesh_location_method_set(_id_pdm, _location_method);
 
         double tolerance = CWP_MESH_LOCATION_BBOX_TOLERANCE;
-        int nProp = _cpl->NSpatialInterpPropertiesGet();
-        std::vector <char *> &propName = _cpl->SpatialInterpPropertiesNamesGet();
-        std::vector <double> &propValue = _cpl->SpatialInterpPropertiesValuesGet();
+        std::map<std::string, double> prop = _cpl->SpatialInterpPropertiesDoubleGet();
+        std::map<std::string, double>::iterator it;
 
-        for (int i = 0; i < nProp; i++) {
-          if (!strcmp("tolerance", propName[i])) {
-            tolerance = propValue[i];
-            break;
-          }
+        it = prop.find("tolerance");
+        if (it != prop.end()) {
+          tolerance = it->second;
         }
 
         PDM_mesh_location_tolerance_set(_id_pdm, tolerance);

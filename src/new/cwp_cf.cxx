@@ -1470,7 +1470,7 @@ CWP_Interp_from_location_set_cf (
 
 
 void
-CWP_Spatial_interp_property_add_cf
+CWP_Spatial_interp_property_set_cf
 (
  const char     *f_local_code_name,
        int       l_local_code_name,
@@ -1492,7 +1492,7 @@ CWP_Spatial_interp_property_add_cf
   c_property_type   = _fortran_to_c_string(f_property_type,   l_property_type);
   c_property_value  = _fortran_to_c_string(f_property_value,  l_property_value);
 
-  CWP_Spatial_interp_property_add(c_local_code_name,
+  CWP_Spatial_interp_property_set(c_local_code_name,
                                   c_cpl_id,
                                   c_property_name,
                                   c_property_type,

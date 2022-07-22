@@ -140,9 +140,6 @@ namespace cwipi {
    _userTargetCoord(nullptr),
    _spatial_interp_send(*new std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*>()),
    _spatial_interp_recv(*new std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*>()),
-   _n_spatial_interp_properties(0),
-   _spatial_interp_properties_value(*new std::vector<double>),
-   _spatial_interp_properties_name(*new std::vector<char *>),
    _spatial_interp_properties_double(*new std::map<std::string, double>),
    _spatial_interp_properties_int(*new std::map<std::string, int>),
    _is_up_to_date(0)  {
@@ -226,14 +223,6 @@ namespace cwipi {
 
   Coupling::~Coupling()
   {
-
-    for (int i = 0; i < _n_spatial_interp_properties; i++) {
-      free (_spatial_interp_properties_name[i]);
-    }
-
-    delete  &_spatial_interp_properties_value;
-    delete  &_spatial_interp_properties_name;
-
     delete &_spatial_interp_properties_double;
     delete &_spatial_interp_properties_int;
 
@@ -309,85 +298,15 @@ namespace cwipi {
    *----------------------------------------------------------------------------*/
 
 
-  /**
-   * \brief Set the spatial interpolation properties.
-   *
-   *
-   * \param [in]       fmt       Format with the syntax : "prop1, prop2, ..."
-   * \param [in,out]   pa        List of properties values
-   *
-   */
-
-  void
-  Coupling::spatialInterpPropertiesSet (
-    const char *fmt,
-    va_list    *ap
-  )
-  { 
-
-    va_list ap1;
-    va_copy(ap1, *ap);
-     
-    char delim[] = ",";
-
-    char *fmt_cp = (char *) malloc (sizeof(char) * (1+strlen(fmt)));
-    strcpy(fmt_cp, fmt);
-
-    char *ptr = strtok(fmt_cp, delim);
-
-    while(ptr != NULL) {
-
-      char *prop_name = (char *) malloc(sizeof(char) * (strlen(ptr) + 1));
-
-      strcpy(prop_name, ptr);
-
-      int i = 0, j = 0;
-      while (prop_name[i])
-      {
-        if (prop_name[i] != ' ')
-              prop_name[j++] = prop_name[i];
-        i++;
-      }
-      prop_name[j] = '\0';
-
-      prop_name = (char *) realloc(prop_name, sizeof(char) * (strlen(prop_name) + 1));      
-
-      _spatial_interp_properties_name.push_back(prop_name);
-      
-      ptr = strtok(NULL, delim);
-    }
-
-    free (fmt_cp);
-
-    _n_spatial_interp_properties = _spatial_interp_properties_name.size();
-
-    int counter = _spatial_interp_properties_name.size();
-  
-
-    /* for all unnamed integer, do an addition */
-    while( counter > 0 ) {
-
-        /* Extraction of the next integer */
-        _spatial_interp_properties_value.push_back((double) va_arg(ap1, double ));
-
-        counter --;
-    }
-
-    /* Release va_list resources */
-    va_end(ap1);
-
-    if (0) {
-      printf ("spatial interp propertties : ");
-      for (int i = 0; i < (int) _spatial_interp_properties_name.size(); i++) {
-        printf(" %s : %12.5e\n", _spatial_interp_properties_name[i], _spatial_interp_properties_value[i]);
-      }
-    }
-
-  }
-
-
+ /**
+  * \brief Set a spatial interpolation property of type double.
+  *
+  * \param [in]   name       Name of the property
+  * \param [in]   value      Value of the property
+  *
+  */
  void
-  Coupling::spatialInterpPropertyDoubleAdd (
+  Coupling::spatialInterpPropertyDoubleSet (
     std::string name,
     double      value
   )
@@ -403,8 +322,16 @@ namespace cwipi {
   }
 }
 
+
+/**
+  * \brief Set a spatial interpolation property of type int.
+  *
+  * \param [in]   name       Name of the property
+  * \param [in]   value      Value of the property
+  *
+  */
  void
-  Coupling::spatialInterpPropertyIntAdd (
+  Coupling::spatialInterpPropertyIntSet (
     std::string name,
     int         value
   )

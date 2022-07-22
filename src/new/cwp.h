@@ -1075,27 +1075,20 @@ CWP_Spatial_interp_weights_compute
  const char        *cpl_id
 );
 
+
 /**
- * \brief Set the properties of the spatial interpolation algorithm. <b>(Not implemented yet)</b>
+ * \brief Set a property of the spatial interpolation algorithm.
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
- * \param [in]  fmt              Format with the syntax : "prop1, prop2, ..."
- * \param       ...              Values of each properties
+ * \param [in]  property_name    Name of the property
+ * \param [in]  property_type    Type of the property ("double" or "int")
+ * \param [in]  property_value   Value of the property
  *
  */
 
 void
-CWP_Spatial_interp_properties_set
-(
- const char     *local_code_name,
- const char     *cpl_id,
- const char     *fmt,
- ...
-);
-
-void
-CWP_Spatial_interp_property_add
+CWP_Spatial_interp_property_set
 (
  const char     *local_code_name,
  const char     *cpl_id,

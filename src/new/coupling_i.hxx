@@ -1325,36 +1325,11 @@ namespace cwipi {
 
 
   /**
-   * \brief Return the number of user spatial interpolation properties
-   *  
-   * 
-   * \return Number of partition
+   * \brief Return the user spatial interpolation properties of type double
+   *
+   * \return Map storing the user spatial interpolation properties of type double
    *
    */
-
-  int
-  Coupling::NSpatialInterpPropertiesGet (
-  )
-  {
-    return _n_spatial_interp_properties;    
-  }
-
-
-  /**
-   * \brief Return the values of user spatial interpolation properties
-   *  
-   * 
-   * \return Number of partition
-   *
-   */
-
-  std::vector <double> &
-  Coupling::SpatialInterpPropertiesValuesGet (
-  )
-  {
-    return _spatial_interp_properties_value;    
-  }
-
   std::map <std::string, double> &
   Coupling::SpatialInterpPropertiesDoubleGet (
   )
@@ -1362,27 +1337,17 @@ namespace cwipi {
     return _spatial_interp_properties_double;
   }
 
+  /**
+   * \brief Return the user spatial interpolation properties of type int
+   *
+   * \return Map storing the user spatial interpolation properties of type int
+   *
+   */
   std::map <std::string, int> &
   Coupling::SpatialInterpPropertiesIntGet (
   )
   {
     return _spatial_interp_properties_int;
-  }
-
-
-  /**
-   * \brief Return the names of user spatial interpolation properties
-   *  
-   * 
-   * \return Number of partition
-   *
-   */
-
-  std::vector <char *> &
-  Coupling::SpatialInterpPropertiesNamesGet (
-  )
-  {
-    return _spatial_interp_properties_name;    
   }
 
 } // name space cwipi

@@ -531,7 +531,7 @@ module cwp
       end subroutine CWP_Finalize
 
 
-      subroutine CWP_Spatial_interp_property_add_cf(local_code_name,   &
+      subroutine CWP_Spatial_interp_property_set_cf(local_code_name,   &
                                                     l_local_code_name, &
                                                     cpl_id,            &
                                                     l_cpl_id,          &
@@ -541,11 +541,11 @@ module cwp
                                                     l_property_type,   &
                                                     property_value,    &
                                                     l_property_value)  &
-      bind(c, name = 'CWP_Spatial_interp_property_add_cf')
+      bind(c, name = 'CWP_Spatial_interp_property_set_cf')
         use, intrinsic :: iso_c_binding
         character(kind = c_char, len = 1) :: local_code_name, cpl_id, property_name, property_type, property_value
         integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_property_name, l_property_type, l_property_value
-      end subroutine CWP_Spatial_interp_property_add_cf
+      end subroutine CWP_Spatial_interp_property_set_cf
   end interface
 
 contains
@@ -1897,8 +1897,17 @@ contains
   end subroutine CWP_Interp_from_location_set
 
 
+  !>
+  !! \brief Set a property of the spatial interpolation algorithm.
+  !!
+  !! \param [in]  local_code_name  Local code name
+  !! \param [in]  cpl_id           Coupling identifier
+  !! \param [in]  property_name    Name of the property
+  !! \param [in]  property_type    Type of the property ("double" or "int")
+  !! \param [in]  property_value   Value of the property
+  !!
 
-  subroutine CWP_Spatial_interp_property_add(local_code_name, &
+  subroutine CWP_Spatial_interp_property_set(local_code_name, &
                                              cpl_id,          &
                                              property_name,   &
                                              property_type,   &
@@ -1912,7 +1921,7 @@ contains
     character(kind = c_char, len = *) :: property_type
     character(kind = c_char, len = *) :: property_value
 
-    call CWP_Spatial_interp_property_add_cf(local_code_name,      &
+    call CWP_Spatial_interp_property_set_cf(local_code_name,      &
                                             len(local_code_name), &
                                             cpl_id,               &
                                             len(cpl_id),          &
@@ -1923,7 +1932,7 @@ contains
                                             property_value,       &
                                             len(property_value))
 
-  end subroutine CWP_Spatial_interp_property_add
+  end subroutine CWP_Spatial_interp_property_set
 
 
 end module cwp
