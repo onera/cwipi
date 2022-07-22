@@ -959,18 +959,18 @@ namespace cwipi {
 
         int *parent_num = PDM_Mesh_nodal_block_parent_num_get(_pdmNodal_handle_index, pdm_id_block, i_part);
 
-        // if (parent_num != NULL) {
-        //   for(int i_elt = 0; i_elt < n_elt; i_elt++){
-        //     _elt_id_block[i_part][parent_num[i_elt] - 1] = i_block;
-        //     _elt_in_block[i_part][parent_num[i_elt] - 1] = i_elt + 1;
-        //   }
-        // }
-        // else {
-        //   for(int i_elt = 0; i_elt < n_elt; i_elt++){
-        //     _elt_id_block[i_part][i_elt] = i_block;
-        //     _elt_in_block[i_part][i_elt] = i_elt + 1;
-        //   }        
-        // }
+        if (parent_num != NULL) {
+          for(int i_elt = 0; i_elt < n_elt; i_elt++){
+            (_elt_id_block[i_part])[parent_num[i_elt]] = i_block;
+            (_elt_in_block[i_part])[parent_num[i_elt]] = i_elt + 1;
+          }
+        }
+        else {
+          for(int i_elt = 0; i_elt < n_elt; i_elt++){
+            _elt_id_block[i_part][i_elt] = i_block;
+            _elt_in_block[i_part][i_elt] = i_elt + 1;
+          }        
+        }
 
       }
 
