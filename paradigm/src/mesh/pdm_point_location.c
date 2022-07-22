@@ -16,6 +16,7 @@
 #include "pdm.h"
 #include "pdm_priv.h"
 #include "pdm_printf.h"
+#include "pdm_logging.h"
 #include "pdm_error.h"
 #include "pdm_plane.h"
 #include "pdm_line.h"
@@ -1357,6 +1358,39 @@ _locate_in_polyhedron
   const double eps_distance2 = 1e-10;
   const double eps2 = 1e-20;
 
+  // Visu for debugging
+  if (0) {
+    log_trace("# vtk DataFile Version 2.0\n");
+    log_trace("mesh\n");
+    log_trace("ASCII\n");
+    log_trace("DATASET POLYDATA\n");
+
+    log_trace("POINTS %d double\n", n_vtx);
+    for (int i = 0; i < n_vtx; i++) {
+      for (int j = 0; j < 3; j++) {
+        log_trace("%.20lf ", vtx_coord[3*i+j]);
+      }
+      log_trace("\n");
+    }
+
+
+    log_trace("POLYGONS %d %d\n", n_face, n_face + face_vtx_idx[n_face] - face_vtx_idx[0]);
+    for (int i = 0; i < n_face; i++) {
+      log_trace("%d", face_vtx_idx[i+1] - face_vtx_idx[i]);
+      if (face_orientation[i] < 0) {
+        for (int j = face_vtx_idx[i+1]-1; j >= face_vtx_idx[i]; j--) {
+          log_trace(" %d", face_vtx[j] - 1);
+        }
+      } else {
+        for (int j = face_vtx_idx[i]; j < face_vtx_idx[i+1]; j++) {
+          log_trace(" %d", face_vtx[j] - 1);
+        }
+      }
+      log_trace("\n");
+    }
+    log_trace("-------\n");
+  }
+
   /*
    * Identify points inside/outside polyhedron
    */
@@ -1594,6 +1628,23 @@ _locate_in_polyhedron
 
       for (int idim = 0; idim < 3; idim++) {
         _cp[idim] = _pt[idim];
+      }
+
+      // check
+      if (1) {
+        double p[3] = {-_pt[0], -_pt[1], -_pt[2]};
+        for (int ivtx = 0; ivtx < n_vtx; ivtx++) {
+          for (int idim = 0; idim < 3; idim++) {
+            p[idim] += _bc[ivtx] * vtx_coord[3*ivtx + idim];
+          }
+        }
+
+        double err = PDM_MODULE(p);
+        if (err > 1e-6) {
+          log_trace("!!! _pt %20.16f %20.16f %20.16f\n",
+                    _pt[0], _pt[1], _pt[2]);
+          log_trace("!!! error = %e\n", err);
+        }
       }
 
       distance[ipt] = -distance[ipt];

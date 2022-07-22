@@ -5512,7 +5512,14 @@ PDM_mesh_location_t        *ml
                                                                 _point_uvw);
               //&(_points_in_elements->uvw[ipart][3 * (idx_pts_elts + k1)]));
 
-              if (!stat) {
+              int uvw_ok = 0;
+              if (stat) {
+                uvw_ok = (_point_uvw[0] > -newton_tol && _point_uvw[0] < 1+newton_tol &&
+                          _point_uvw[1] > -newton_tol && _point_uvw[1] < 1+newton_tol &&
+                          _point_uvw[2] > -newton_tol && _point_uvw[2] < 1+newton_tol);
+              }
+
+              if (!uvw_ok) {
                 /* Newton failed, try subdivision method */
                 if (!order_ijk) {
                   /* Get cell coord in ijk order */
@@ -5607,11 +5614,23 @@ PDM_mesh_location_t        *ml
               }
 
               // Check uvw
-              if (1) {//_points_in_elements->dist2[ipart][ipt] <= 0.) {
-                assert(_point_uvw[0] > -newton_tol && _point_uvw[0] < 1+newton_tol &&
-                       _point_uvw[1] > -newton_tol && _point_uvw[1] < 1+newton_tol &&
-                       _point_uvw[2] > -newton_tol && _point_uvw[2] < 1+newton_tol);
+              if (!(_point_uvw[0] > -newton_tol && _point_uvw[0] < 1+newton_tol &&
+                    _point_uvw[1] > -newton_tol && _point_uvw[1] < 1+newton_tol &&
+                    _point_uvw[2] > -newton_tol && _point_uvw[2] < 1+newton_tol)) {//_points_in_elements->dist2[ipart][ipt] <= 0.) {
+                log_trace("\n\nt_elt = %d\n", (int) t_elt);
+                log_trace("_point_coords = %20.16f %20.16f %20.16f\n",
+                          _point_coords[0], _point_coords[1], _point_coords[2]);
+                log_trace("_cell_coords =\n");
+                for (int k = 0; k < n_vtx; k++) {
+                  log_trace("%20.16f %20.16f %20.16f\n",
+                            _cell_coords[3*k+0], _cell_coords[3*k+1], _cell_coords[3*k+2]);
+                }
+                log_trace("_point_uvw = %20.16f %20.16f %20.16f\n",
+                          _point_uvw[0], _point_uvw[1], _point_uvw[2]);
               }
+              assert(_point_uvw[0] > -newton_tol && _point_uvw[0] < 1+newton_tol &&
+                     _point_uvw[1] > -newton_tol && _point_uvw[1] < 1+newton_tol &&
+                     _point_uvw[2] > -newton_tol && _point_uvw[2] < 1+newton_tol);
             }
           }
         }

@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
+#include <string.h>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -1296,6 +1297,25 @@ PDM_poly_vol_gen
 
   }
   *dcell_face = realloc (*dcell_face, sizeof(PDM_g_num_t) * _dcell_face_idx[*dn_cell]);
+
+
+  /* TOUT DUR: switch orientation of all faces -> normals pointing outwards */
+  if (1) {
+    PDM_g_num_t tmp[8];
+    for (int i = 0; i < *dn_face; i++) {
+
+      PDM_g_num_t *dfv = *dface_vtx + (*dface_vtx_idx)[i];
+      int n = (*dface_vtx_idx)[i+1] - (*dface_vtx_idx)[i];
+      memcpy(tmp,
+             dfv,
+             sizeof(PDM_g_num_t) * n);
+
+      for (int j = n-1; j >= 0; j--) {
+        dfv[j] = tmp[n-j-1];
+      }
+
+    }
+  }
 
 
   free (distrib_vtx);
