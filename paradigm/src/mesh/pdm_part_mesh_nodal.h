@@ -191,6 +191,14 @@ PDM_part_mesh_nodal_free
  PDM_part_mesh_nodal_t* pmn
 );
 
+void
+PDM_part_mesh_nodal_dump_vtk
+(
+ PDM_part_mesh_nodal_t *pmn,
+ PDM_geometry_kind_t    geom_kind,
+ const char            *filename_patter
+);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

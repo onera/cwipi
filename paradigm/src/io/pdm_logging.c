@@ -338,6 +338,33 @@ PDM_log_trace_connectivity_int
   }
 }
 
+void
+PDM_log_trace_graph_nuplet_int
+(
+ const int         *array_idx,
+ const int         *array_desc,
+ const int          strid,
+ const int          larray,
+ const char*        header
+)
+{
+  // log_trace(header);
+  for(int i = 0; i < larray; ++i) {
+    log_trace("%s[%i] -> ", header, i);
+    for(int j = array_idx[i]; j < array_idx[i+1]; ++j) {
+      log_trace("( ");
+      for(int k = 0; k < strid; ++k) {
+        if(k == strid-1) {
+          log_trace("%i ) ", array_desc[strid*j+k]);
+        } else {
+          log_trace("%i, ", array_desc[strid*j+k]);
+        }
+      }
+    }
+    log_trace("\n");
+  }
+}
+
 
 void
 PDM_log_trace_part_connectivity_gnum

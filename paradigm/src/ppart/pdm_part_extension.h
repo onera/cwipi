@@ -267,6 +267,15 @@ PDM_part_extension_ln_to_gn_get
  PDM_g_num_t             **ln_to_gn
 );
 
+int
+PDM_part_extension_interface_get
+(
+ PDM_part_extension_t     *part_ext,
+ int                       i_domain,
+ int                       i_part,
+ PDM_mesh_entities_t       mesh_entity,
+ int                     **interface_no
+);
 
 /**
  *
@@ -317,6 +326,16 @@ PDM_part_extension_coord_get
  int                       i_domain,
  int                       i_part,
  double                  **vtx_coord
+);
+
+
+int
+PDM_part_extension_composed_interface_get
+(
+ PDM_part_extension_t     *part_ext,
+ int                     **composed_interface_idx,
+ int                     **composed_interface,
+ PDM_g_num_t             **composed_ln_to_gn_sorted
 );
 
 #ifdef __cplusplus

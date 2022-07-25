@@ -171,15 +171,15 @@ PDM_inplace_unique_long2
   PDM_sort_long(&a[l], order, array_size);
 
 
-  int first = a[l];
-  for(int i = 1; i < array_size; ++i ) {
-    if(a[i] < first){
-      printf("The list is not sorted : a[%d] = %d > a[%d] = "PDM_FMT_G_NUM" \n", i-1, first, i, a[i]);
-      // printf("Problem with list size : %d\n", itest);
-      abort();
-    }
-    first = a[i];
-  }
+  // int first = a[l];
+  // for(int i = 1; i < array_size; ++i ) {
+  //   if(a[i] < first){
+  //     printf("The list is not sorted : a[%d] = %d > a[%d] = "PDM_FMT_G_NUM" \n", i-1, first, i, a[i]);
+  //     // printf("Problem with list size : %d\n", itest);
+  //     abort();
+  //   }
+  //   first = a[i];
+  // }
 
   // for(int i = 0; i < array_size; ++i){
   //   order[i] = i;

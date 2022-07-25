@@ -107,6 +107,8 @@ void
 PDM_tetra_decomposes_faces
 (
        int          n_elt,
+       int          order,
+       int         *parent_node,
        int         *n_elt_current,
        int         *n_face_current,
        PDM_g_num_t  beg_gnum_elt_current,
@@ -128,6 +130,8 @@ void
 PDM_tetra_decomposes_edges
 (
        int          n_elt,
+       int          order,
+       int         *parent_node,
        int         *n_elt_current,
        int         *n_edge_current,
        PDM_g_num_t  beg_gnum_elt_current,
@@ -149,6 +153,8 @@ void
 PDM_pyra_decomposes_faces
 (
        int          n_elt,
+       int          order,
+       int         *parent_node,
        int         *n_elt_current,
        int         *n_face_current,
        PDM_g_num_t  beg_gnum_elt_current,
@@ -170,6 +176,8 @@ void
 PDM_pyra_decomposes_edges
 (
        int          n_elt,
+       int          order,
+       int         *parent_node,
        int         *n_elt_current,
        int         *n_edge_current,
        PDM_g_num_t  beg_gnum_elt_current,
@@ -191,6 +199,8 @@ void
 PDM_prism_decomposes_faces
 (
        int          n_elt,
+       int          order,
+       int         *parent_node,
        int         *n_elt_current,
        int         *n_face_current,
        PDM_g_num_t  beg_gnum_elt_current,
@@ -212,6 +222,8 @@ void
 PDM_prism_decomposes_edges
 (
        int          n_elt,
+       int          order,
+       int         *parent_node,
        int         *n_elt_current,
        int         *n_edge_current,
        PDM_g_num_t  beg_gnum_elt_current,
@@ -233,6 +245,8 @@ void
 PDM_hexa_decomposes_faces
 (
        int          n_elt,
+       int          order,
+       int         *parent_node,
        int         *n_elt_current,
        int         *n_face_current,
        PDM_g_num_t  beg_gnum_elt_current,
@@ -254,6 +268,8 @@ void
 PDM_hexa_decomposes_edges
 (
        int          n_elt,
+       int          order,
+       int         *parent_node,
        int         *n_elt_current,
        int         *n_edge_current,
        PDM_g_num_t  beg_gnum_elt_current,
@@ -271,6 +287,8 @@ void
 PDM_bar_decomposes_edges
 (
        int          n_elt,
+       int          order,
+       int         *parent_node,
        int         *n_elt_current,
        int         *n_edge_current,
        PDM_g_num_t  beg_gnum_elt_current,
@@ -292,6 +310,8 @@ void
 PDM_tri_decomposes_edges
 (
        int          n_elt,
+       int          order,
+       int         *parent_node,
        int         *n_elt_current,
        int         *n_edge_current,
        PDM_g_num_t  beg_gnum_elt_current,
@@ -313,6 +333,8 @@ void
 PDM_quad_decomposes_edges
 (
        int          n_elt,
+       int          order,
+       int         *parent_node,
        int         *n_elt_current,
        int         *n_edge_current,
        PDM_g_num_t  beg_gnum_elt_current,
@@ -334,6 +356,8 @@ void
 PDM_tri_decomposes_faces
 (
        int          n_elt,
+       int          order,
+       int         *parent_node,
        int         *n_elt_current,
        int         *n_face_current,
        PDM_g_num_t  beg_gnum_elt_current,
@@ -355,6 +379,8 @@ void
 PDM_quad_decomposes_faces
 (
        int          n_elt,
+       int          order,
+       int         *parent_node,
        int         *n_elt_current,
        int         *n_face_current,
        PDM_g_num_t  beg_gnum_elt_current,
@@ -454,7 +480,7 @@ PDM_sections_decompose_faces
   PDM_g_num_t             *elmt_face_cell,
   int                     *elmt_cell_face_idx,
   PDM_g_num_t             *elmt_cell_face,
-       int         *parent_elmt_position
+  int                     *parent_elmt_position
 );
 
 void
@@ -492,6 +518,8 @@ void
 PDM_std_decomposes_faces
 (
        PDM_Mesh_nodal_elt_t  t_elt,
+       int                   order,
+       int                  *parent_node,
        int                   n_elt,
        int                  *n_elt_current,
        int                  *n_dface_current,
@@ -510,6 +538,8 @@ void
 PDM_std_decomposes_edges
 (
        PDM_Mesh_nodal_elt_t  t_elt,
+       int                   order,
+       int                  *parent_node,
        int                   n_elt,
        int                  *n_elt_current,
        int                  *n_dedge_current,

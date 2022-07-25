@@ -46,6 +46,7 @@
 #include "pdm_gnum_location.h"
 #include "pdm_gnum_location_priv.h"
 #include "pdm_priv.h"
+#include "pdm_logging.h"
 
 /*----------------------------------------------------------------------------*/
 

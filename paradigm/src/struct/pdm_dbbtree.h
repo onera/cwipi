@@ -349,6 +349,34 @@ PDM_dbbtree_lines_intersect_boxes2
  PDM_g_num_t  ***box_line_g_num
  );
 
+/**
+ *
+ * \brief Get an indexed list of all boxes intersecting volumes
+ *
+ * \param [in]   dbbt                  Pointer to distributed box tree structure
+ * \param [in]   n_volumes             Number of volumes
+ * \param [in]   volume_g_num          Global number of volumes
+ * \param [in]   volume_plane_idx      Index of the number of planes per volume
+ * \param [in]   plane_normal          Oriented normal vector for a given plane (oriented toward the interior of the volume)
+ * \param [in]   plane_pt_coord        Point on plane coordinates (xa0, ya0, za0, xb0, yb0, zb0, xa1, ...)
+ * \param [out]  volume_box_idx        Index of boxes (size = \ref n_line + 1, allocated inside function)
+ * \param [out]  volume_box_g_num      Global ids of boxes (size = \ref box_line_idx[\ref n_line], allocated inside function)
+ *
+ */
+
+void
+PDM_dbbtree_volumes_intersect_boxes
+(
+ PDM_dbbtree_t  *dbbt,
+ const int       n_volumes,
+ PDM_g_num_t    *volume_g_num,
+ int            *volume_plane_idx,
+ double         *plane_normal,
+ double         *plane_pt_coord,
+ int           **volume_box_idx,
+ PDM_g_num_t   **out_volume_box_g_num
+);
+
 
 void
 PDM_dbbtree_box_tree_write_vtk

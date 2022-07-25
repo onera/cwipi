@@ -41,7 +41,12 @@ struct _pdm_part_domain_interface_t {
   int                            n_domain;
   int                           *n_part;
 
+  int                            interface_describe_by_face;
+  int                            interface_describe_by_edge;
+  int                            interface_describe_by_vtx;
+
   PDM_domain_interface_mult_t     multidomain_intrf;
+
   int                          ***interface_pn_face;
   PDM_g_num_t                 ****interface_face_ln_to_gn;
   int                         ****interface_sgn_face;
@@ -49,6 +54,12 @@ struct _pdm_part_domain_interface_t {
   int                         ****interface_ids_face_idx;  // Size = interface_pn_face
   int                         ****interface_dom_face;      // (i_dom_cur, i_dom_opp)
 
+  int                          ***interface_pn_edge;
+  PDM_g_num_t                 ****interface_edge_ln_to_gn;
+  int                         ****interface_sgn_edge;
+  int                         ****interface_ids_edge;      // (i_proc, i_part, i_edge)
+  int                         ****interface_ids_edge_idx;  // Size = interface_pn_edge
+  int                         ****interface_dom_edge;      // (i_dom_cur, i_dom_opp)
   // ptr is = (i_domain, i_part, i_interface)
 
   int                          ***interface_pn_vtx;

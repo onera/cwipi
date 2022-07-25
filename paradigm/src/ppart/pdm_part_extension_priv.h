@@ -46,13 +46,16 @@ struct _pdm_part_extension_t {
   int             n_domain;
   int            *n_part;
   int            *n_part_idx;
+  int            *n_part_g_idx;
 
   _part_t  **parts;
   PDM_part_domain_interface_t  *pdi;
+  int                           n_interface;
 
   /* Store for each depth / each domain / each part */
   int **neighbor_idx;
   int **neighbor_desc;
+  int **neighbor_interface;
   int  *n_entity_bound;
   int  *n_cell;
   int  *n_cell_border;
@@ -61,22 +64,36 @@ struct _pdm_part_extension_t {
   int **dist_neighbor_cell_n;
   int **dist_neighbor_cell_idx;
   int **dist_neighbor_cell_desc;
+  int **dist_neighbor_cell_interface;
   int **unique_order_dist_neighbor_cell;
   int  *n_unique_order_dist_neighbor_cell;
 
   int **cell_cell_idx;
   int **cell_cell;
 
+  /* Management of interface */
+  PDM_g_num_t **opp_interface_and_gnum_face; /* For each entity in border contains the opposite gnum and interface */
+  PDM_g_num_t **opp_interface_and_gnum_edge;
+  PDM_g_num_t **opp_interface_and_gnum_vtx;
+  int         **cur_interface_face;          /* Works with opp_interface_and_gnum_*, sort in the smae way and give the local number     */
+  int         **cur_interface_edge;
+  int         **cur_interface_vtx;
+  int          *n_cur_interface_face;
+  int          *n_cur_interface_edge;
+  int          *n_cur_interface_vtx;
+
   /* This one is only on the border and contains only border cells */
   int ***cell_cell_extended_idx;
   int ***cell_cell_extended_n;
   int ***cell_cell_extended;
+  int ***cell_cell_interface;
   int ***unique_order_cell_cell_extended;
   int  **n_unique_order_cell_cell_extended;
   int  **border_cell_list;
 
   int  **cell_cell_extended_pruned_idx;
   int  **cell_cell_extended_pruned;
+  int  **cell_cell_interface_pruned;
 
   int  *n_tot_part_by_domain;
 
@@ -91,12 +108,15 @@ struct _pdm_part_extension_t {
   /* Internal results */
   int **face_face_extended_idx;
   int **face_face_extended;
+  int **face_face_interface;
 
   int **edge_edge_extended_idx;
   int **edge_edge_extended;
+  int **edge_edge_interface;
 
   int **vtx_vtx_extended_idx;
   int **vtx_vtx_extended;
+  int **vtx_vtx_interface;
 
   /* Results */
   int **border_cell_face_idx;
@@ -131,6 +151,14 @@ struct _pdm_part_extension_t {
   PDM_g_num_t *shift_by_domain_vtx;
   PDM_g_num_t *shift_by_domain_face_group;
 
+  /* Composed interface */
+  int  n_composed_interface;
+  int *composed_interface_idx;
+  int *composed_interface;
+  PDM_g_num_t *composed_ln_to_gn_sorted;
+
+  int **pdi_neighbor_idx;
+  int **pdi_neighbor;
 
 };
 

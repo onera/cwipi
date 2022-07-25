@@ -169,6 +169,12 @@ void PDM_multipart_set_reordering_options
  const int       *renum_cell_properties,
  const char      *renum_face_method
 );
+void PDM_multipart_set_reordering_options_vtx
+(
+ PDM_multipart_t *multipart,
+ const int        i_zone,
+ const char      *renum_vtx_method
+);
 
 
 /**
@@ -197,7 +203,8 @@ PDM_multipart_get_part_mesh_nodal
 (
        PDM_multipart_t        *multipart,
  const int                     i_zone,
-       PDM_part_mesh_nodal_t **pmesh_nodal
+       PDM_part_mesh_nodal_t **pmesh_nodal,
+       PDM_ownership_t         ownership
 );
 
 /**

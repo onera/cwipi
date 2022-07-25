@@ -217,3 +217,64 @@ def interface_to_graph(int       n_interface,
     free(_interface_dom)
 
     return interface_graph_idx, interface_graph_ids, interface_graph_dom
+
+
+
+
+cdef class DomInterface:
+  """
+  """
+  # ************************************************************************
+  # > Class attributes
+  cdef PDM_domain_interface_t *dom_intrf
+  # ************************************************************************
+
+  # ------------------------------------------------------------------------
+  def __cinit__(self,
+                MPI.Comm                    comm,
+                int                         n_interface,
+                int                         n_domain,
+                PDM_domain_interface_mult_t multidomain_interface):
+    """
+    """
+    cdef MPI.MPI_Comm c_comm = comm.ob_mpi
+    cdef PDM_MPI_Comm PDMC   = PDM_MPI_mpi_2_pdm_mpi_comm(<void *> &c_comm)
+
+    self.dom_intrf = PDM_domain_interface_create(n_interface,
+                                                 n_domain,
+                                                 multidomain_interface,
+                                                 PDM_OWNERSHIP_USER,
+                                                 PDMC)
+
+  # ------------------------------------------------------------------------
+  def __dealloc__(self):
+    """
+    """
+    PDM_domain_interface_free(self.dom_intrf)
+
+
+cdef class DomInterfaceCapsule:
+  """
+  """
+  # ************************************************************************
+  # > Class attributes
+  cdef PDM_domain_interface_t *dom_intrf
+  # ************************************************************************
+  def __cinit__(self, object caps):
+    """
+    """
+    cdef PDM_domain_interface_t* casp_dom_intrf = <PDM_domain_interface_t *> PyCapsule_GetPointer(caps, NULL)
+    self.dom_intrf = casp_dom_intrf;
+
+  # ------------------------------------------------------------------------
+  def __dealloc__(self):
+    """
+       Use the free method of PDM Lib
+    """
+    # print("DistributedMeshNodalCaspule::__dealloc__")
+    PDM_domain_interface_free(self.dom_intrf)
+
+
+ctypedef fused DomainInterface:
+  DomInterface
+  DomInterfaceCapsule

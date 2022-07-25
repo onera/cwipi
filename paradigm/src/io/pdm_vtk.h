@@ -59,6 +59,31 @@ PDM_vtk_write_boxes
  const PDM_g_num_t *box_g_num
 );
 
+/**
+ * \brief Export a set of boxes to ASCII VTK format (unstructured grid of hexahedra)
+ *
+ * \param [in]  filename     Output file name
+ * \param [in]  n_box        Number of boxes
+ * \param [in]  box_extents  Extents of the boxes (size = 6 * \ref n_box)
+ *                           (xmin0, ymin0, zmin0, xmax0, ymax0, zmax0, xmin1, ...)
+ * \param [in]  box_g_num    Global ids of the boxes (or NULL)
+ * \param [in]  n_box_field           Number of box fields
+ * \param [in]  box_field_name        Name of those box fields
+ * \param [in]  box_field             Box fields
+ */
+
+void
+PDM_vtk_write_boxes_with_field
+(
+ const char        *filename,
+ const int          n_box,
+ const double      *box_extents,
+ const PDM_g_num_t *box_g_num,
+ const int          n_box_field,
+ const char        *box_field_name[],
+ const double      *box_field[]
+);
+
 
 /**
  * \brief Export a set of circles to ASCII VTK format (unstructured grid of line segments)
@@ -139,6 +164,46 @@ PDM_vtk_write_point_cloud
  const PDM_g_num_t  vtx_g_num[],
  const int          color[]
  );
+
+/**
+ * \brief Export a point cloud to ASCII VTK format (unstructured grid of points)
+ *
+ * \param [in]  filename              Output file name
+ * \param [in]  n_vtx                 Number of points
+ * \param [in]  vtx_coord             Coordinates of the points (size = 3 * \ref n_vtx)
+ *                                    (x0, y0, z0, x1, ...)
+ * \param [in]  vtx_g_num             Global ids of the points (or NULL)
+ * \param [in]  color                 Integer color of the points (or NULL)
+ * \param [in]  n_vtx_field           Number of vertex fields
+ * \param [in]  vtx_field_name        Name of those vertex fields
+ * \param [in]  vtx_field             Vertex fields
+ * \param [in]  n_vtx_vector_field    Number of vertex vector fields
+ * \param [in]  vtx_vector_field_name Name of those vertex vector fields
+ * \param [in]  vtx_vector_field      Vertex vector fields
+ * \param [in]  n_vtx_normal_field    Number of vertex normal fields
+ * \param [in]  vtx_normal_field_name Name of those vertex normal fields
+ * \param [in]  vtx_normal_field      Vertex normal fields
+ *
+ */
+
+void
+PDM_vtk_write_point_cloud_with_field
+(
+ const char        *filename,
+ const int          n_vtx,
+ const double       vtx_coord[],
+ const PDM_g_num_t  vtx_g_num[],
+ const int          color[],
+ const int          n_vtx_field,
+ const char        *vtx_field_name[],
+ const double      *vtx_field[],
+ const int          n_vtx_vector_field,
+ const char        *vtx_vector_field_name[],
+ const double      *vtx_vector_field[],
+ const int          n_vtx_normal_field,
+ const char        *vtx_normal_field_name[],
+ const double      *vtx_normal_field[]
+);
 
 
 /**
@@ -254,7 +319,6 @@ PDM_vtk_write_std_elements_double
  const double               *elt_field[]
  );
 
-
 /**
  * \brief Export a block of elements of arbitray order to ASCII VTK format (unstructured grid)
  *
@@ -357,6 +421,27 @@ PDM_vtk_write_polydata_field
  const double       face_field[],
  const char         vtx_field_name[],
  const double       vtx_field[]
+ );
+
+
+void
+PDM_vtk_write_std_elements_ho_with_vtx_field
+(
+ const char                 *filename,
+ const int                   order,
+ const int                   n_vtx,
+ const double                vtx_coord[],
+ const PDM_g_num_t           vtx_g_num[],
+ const PDM_Mesh_nodal_elt_t  elt_type,
+ const int                   n_elt,
+ const int                   elt_vtx[],
+ const PDM_g_num_t           elt_g_num[],
+ const int                   n_elt_field,
+ const char                 *elt_field_name[],
+ const double               *elt_field[],
+ const int                   n_vtx_field,
+ const char                 *vtx_field_name[],
+ const double               *vtx_field[]
  );
 
 #ifdef __cplusplus

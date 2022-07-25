@@ -541,7 +541,36 @@ PDM_box_tree_intersect_lines_boxes2
  int           **box_line_l_num
  );
 
+/**
+ *
+ * \brief Get an indexed list of all boxes inside given volumes
+ *
+ * The search can be performed either in the local box tree (\ref i_copied_rank < 0) or in
+ * any distant box tree copied locally from rank bt->copied_rank[\ref i_copied_rank]
+ *
+ * \param [in]   bt                    Pointer to box tree structure
+ * \param [in]   i_copied_rank         Copied rank
+ * \param [in]   n_volumes             Number of volumes
+ * \param [in]   n_planes_per_volume   Index of the number of planes per volume
+ * \param [in]   plane_normal          Oriented normal vector for a given plane (oriented toward the interior of the volume)
+ * \param [in]   plane_pt_coord        Point on plane coordinates (xa0, ya0, za0, xb0, yb0, zb0, xa1, ...)
+ * \param [out]  volume_box_idx        Pointer to the index array on lines (size = \ref n_line + 1)
+ * \param [out]  volume_box_l_num      Pointer to the list of boxes intersecting lines (size = \ref box_idx[\ref n_line])
+ *
+ */
 
+void
+PDM_box_tree_intersect_volume_boxes
+(
+ PDM_box_tree_t *bt,
+ const int       i_copied_rank,
+ const int       n_volumes,
+ const int      *volume_plane_idx,
+ double         *plane_normal,
+ double         *plane_pt_coord,
+ int           **volume_box_idx,
+ int           **volume_box_l_num
+ );
 
 void
 PDM_box_tree_write_vtk
@@ -596,6 +625,14 @@ PDM_box_tree_get_box_ids
  int              node_id,
  int            **box_ids
 );
+
+int
+PDM_box_tree_box_extents_get
+(
+ PDM_box_tree_t  *bt,
+ const int        i_copied_rank,
+ double         **extents
+ );
 
 #ifdef __cplusplus
 }

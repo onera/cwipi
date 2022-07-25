@@ -185,6 +185,7 @@ int main(int argc, char *argv[])
   free(distrib_init_elmt);
   free(pfield);
   free(ppair_ln_to_gn);
+  free(pln_to_to_gn_child);
 
 
   PDM_MPI_Finalize ();

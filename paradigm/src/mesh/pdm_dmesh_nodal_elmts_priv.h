@@ -30,11 +30,13 @@ extern "C" {
 
 typedef struct PDM_DMesh_nodal_section_std_t {
 
-  PDM_Mesh_nodal_elt_t    t_elt;   /*!< Element type */
-  PDM_l_num_t             n_elt;   /*!< Number elements */
-  PDM_g_num_t            *_connec; /*!< Connectivity (Memory mapping)
-                                    *   (size = Number of vertices per element * \ref n_elt)  */
-  PDM_g_num_t            *distrib; /*!< Distribution on the processes (size = \ref n_rank + 1) */
+  PDM_Mesh_nodal_elt_t    t_elt;       /*!< Element type */
+  PDM_l_num_t             n_elt;       /*!< Number elements */
+  PDM_g_num_t            *_connec;     /*!< Connectivity (Memory mapping)
+                                        *   (size = Number of vertices per element * \ref n_elt)  */
+  PDM_g_num_t            *distrib;     /*!< Distribution on the processes (size = \ref n_rank + 1) */
+  int                     order;       /*!< Element order */
+  const char             *ho_ordering; /*!< HO node ordering */
   PDM_ownership_t         owner;
 
 } PDM_DMesh_nodal_section_std_t;

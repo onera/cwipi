@@ -661,7 +661,7 @@ void PDM_dcellface_to_dfacecell
     else { //Bnd faces
       assert (n_conn == 1);
       int sign = PDM_SIGN(_dface_cell[r_idx]);
-      PDM_g_num_t val = PDM_ABS(_dface_cell[r_idx]);
+      // PDM_g_num_t val = PDM_ABS(_dface_cell[r_idx]);
       if (sign > 0) {
         (*dface_cell)[2*i]   = _dface_cell[r_idx];
         (*dface_cell)[2*i+1] = 0;
@@ -875,7 +875,7 @@ PDM_dgroup_entity_transpose
 
 
 void
-PDM_dentity_group_transpose
+PDM_dentity_group_signed_transpose
 (
  int            n_group,
  int           *dentity_group_idx,
@@ -883,7 +883,8 @@ PDM_dentity_group_transpose
  PDM_g_num_t   *distrib_entity,
  int          **dgroup_entity_idx,
  PDM_g_num_t  **dgroup_entity,
- PDM_MPI_Comm   comm
+ PDM_MPI_Comm   comm,
+ const int      is_signed
 )
 {
   int i_rank;
@@ -901,7 +902,11 @@ PDM_dentity_group_transpose
   }
 
   for(int idx_entity = 0; idx_entity < dentity_group_idx[dn_entity]; ++idx_entity) {
-    select_entity_n[dentity_group[idx_entity]]++;
+    int i_group   = dentity_group[idx_entity];
+      if (is_signed) {
+        i_group = PDM_ABS(i_group) - 1;
+      }
+    select_entity_n[i_group]++;
   }
 
   if(0 == 1) {
@@ -917,6 +922,9 @@ PDM_dentity_group_transpose
   for(int i_entity = 0; i_entity < dn_entity; ++i_entity) {
     for(int idx_entity = dentity_group_idx[i_entity]; idx_entity <  dentity_group_idx[i_entity+1]; ++idx_entity) {
       int i_group   = dentity_group[idx_entity];
+      if (is_signed) {
+        i_group = PDM_ABS(i_group) - 1;
+      }
       int idx_write = select_entity_n[i_group]++;
       select_entity[i_group][idx_write] = distrib_entity[i_rank] + i_entity + 1;
     }
@@ -976,6 +984,30 @@ PDM_dentity_group_transpose
   *dgroup_entity_idx = _dgroup_entity_idx;
   *dgroup_entity     = _dgroup_entity;
 
+}
+
+
+
+void
+PDM_dentity_group_transpose
+(
+ int            n_group,
+ int           *dentity_group_idx,
+ int           *dentity_group,
+ PDM_g_num_t   *distrib_entity,
+ int          **dgroup_entity_idx,
+ PDM_g_num_t  **dgroup_entity,
+ PDM_MPI_Comm   comm
+)
+{
+  PDM_dentity_group_signed_transpose(n_group,
+                                     dentity_group_idx,
+                                     dentity_group,
+                                     distrib_entity,
+                                     dgroup_entity_idx,
+                                     dgroup_entity,
+                                     comm,
+                                     0);
 }
 
 

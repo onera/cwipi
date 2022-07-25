@@ -633,7 +633,7 @@ const PDM_Mesh_nodal_elt_t  t_elt
     } else if( geom_kind == PDM_GEOMETRY_KIND_RIDGE) {
       dmesh_nodal->ridge = PDM_DMesh_nodal_elmts_create(dmesh_nodal->comm, 1, dmesh_nodal->n_edge_abs);
     } else if( geom_kind == PDM_GEOMETRY_KIND_CORNER) {
-      dmesh_nodal->corner = PDM_DMesh_nodal_elmts_create(dmesh_nodal->comm, 1, dmesh_nodal->n_vtx_abs);
+      dmesh_nodal->corner = PDM_DMesh_nodal_elmts_create(dmesh_nodal->comm, 0, dmesh_nodal->n_vtx_abs);
     }
   }
 
@@ -731,6 +731,24 @@ const int                  id_section
   assert(dmne != NULL);
   return PDM_DMesh_nodal_elmts_section_std_get(dmne, id_section);
 }
+
+PDM_g_num_t *
+PDM_DMesh_nodal_section_std_ho_get
+(
+      PDM_dmesh_nodal_t   *dmesh_nodal,
+      PDM_geometry_kind_t  geom_kind,
+const int                  id_section,
+      int                 *order,
+const char               **ho_ordering
+)
+{
+  PDM_dmesh_nodal_elmts_t* dmne = _get_from_geometry_kind(dmesh_nodal, geom_kind);
+  assert(dmne != NULL);
+
+  PDM_g_num_t *delt_vtx = PDM_DMesh_nodal_elmts_section_std_ho_get(dmne, id_section, order, ho_ordering);
+
+  return delt_vtx;
+}
 /**
  * \brief Return standard section description
  * \param [in]  hdl            Distributed nodal mesh handle
@@ -754,6 +772,34 @@ const int                      id_section
   int _id_section = id_section - PDM_BLOCK_ID_BLOCK_STD;
 
   PDM_DMesh_nodal_section_std_t *section = dmn_elts->sections_std[_id_section];
+
+  if (section == NULL) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad standard section identifier\n");
+  }
+
+  return section->_connec;
+}
+
+
+PDM_g_num_t *
+PDM_DMesh_nodal_elmts_section_std_ho_get
+(
+      PDM_dmesh_nodal_elmts_t  *dmn_elts,
+const int                       id_section,
+      int                      *order,
+const char                    **ho_ordering
+)
+{
+  if (dmn_elts == NULL) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad mesh nodal identifier\n");
+  }
+
+  int _id_section = id_section - PDM_BLOCK_ID_BLOCK_STD;
+
+  PDM_DMesh_nodal_section_std_t *section = dmn_elts->sections_std[_id_section];
+
+  *order       = dmn_elts->sections_std[_id_section]->order;
+  *ho_ordering = dmn_elts->sections_std[_id_section]->ho_ordering;
 
   if (section == NULL) {
     PDM_error (__FILE__, __LINE__, 0, "Bad standard section identifier\n");
@@ -1495,6 +1541,7 @@ PDM_dmesh_nodal_dump_vtk
  const char                *filename_patter
 )
 {
+  /* TODO: add groups as scalar, elt-based fields */
 
   int i_rank;
   int n_rank;
@@ -1507,15 +1554,18 @@ PDM_dmesh_nodal_dump_vtk
   for(int i_section = 0; i_section < n_section; ++i_section) {
 
     int id_section = sections_id[i_section];
+    int order;
+    const char *ho_ordering = NULL;
     const PDM_g_num_t    *delmt_distribution = PDM_DMesh_nodal_distrib_section_get(dmn, geom_kind, id_section);
     int                   n_elt              = PDM_DMesh_nodal_section_n_elt_get  (dmn, geom_kind, id_section);
-    PDM_g_num_t          *dconnec            = PDM_DMesh_nodal_section_std_get    (dmn, geom_kind, id_section);
+    // PDM_g_num_t          *dconnec            = PDM_DMesh_nodal_section_std_get    (dmn, geom_kind, id_section);
+    PDM_g_num_t          *dconnec            = PDM_DMesh_nodal_section_std_ho_get (dmn, geom_kind, id_section, &order, &ho_ordering);
     PDM_Mesh_nodal_elt_t  t_elt              = PDM_DMesh_nodal_section_type_get   (dmn, geom_kind, id_section);
 
     int         *dconnec_idx    = (int         * ) malloc( (n_elt+1) * sizeof(int        ));
     PDM_g_num_t *delmt_ln_to_gn = (PDM_g_num_t * ) malloc( (n_elt  ) * sizeof(PDM_g_num_t));
 
-    int strid = PDM_Mesh_nodal_n_vtx_elt_get(t_elt    , 1);
+    int strid = PDM_Mesh_nodal_n_vtx_elt_get(t_elt, order);
     dconnec_idx[0] = 0;
     for(int i = 0; i < n_elt; ++i) {
       dconnec_idx[i+1] = dconnec_idx[i] + strid;
@@ -1559,17 +1609,18 @@ PDM_dmesh_nodal_dump_vtk
      */
     char filename[999];
     sprintf(filename, "%s_section_%2.2d_%2.2d.vtk", filename_patter, i_section, i_rank);
-    PDM_vtk_write_std_elements(filename,
-                               pn_vtx,
-                               pvtx_coord_out,
-                               pvtx_ln_to_gn,
-                               t_elt,
-                               n_elt,
-                               pcell_vtx,
-                               delmt_ln_to_gn,
-                               0,
-                               NULL,
-                               NULL);
+    PDM_vtk_write_std_elements_ho(filename,
+                                  order,
+                                  pn_vtx,
+                                  pvtx_coord_out,
+                                  pvtx_ln_to_gn,
+                                  t_elt,
+                                  n_elt,
+                                  pcell_vtx,
+                                  delmt_ln_to_gn,
+                                  0,
+                                  NULL,
+                                  NULL);
 
     free(tmp_pvtx_coord);
     free(pvtx_ln_to_gn);
@@ -1589,14 +1640,9 @@ void
 PDM_dmesh_nodal_reorder
 (
  PDM_dmesh_nodal_t *dmesh_nodal,
- const char        *ordering_name,
- const int          order
+ const char        *ordering_name
  )
 {
-  int n_nodes_max = PDM_Mesh_nodal_n_vtx_elt_get (PDM_MESH_NODAL_HEXAHO, order);
-
-  PDM_g_num_t *delt_vtx_ijk = malloc (sizeof(PDM_g_num_t) * n_nodes_max);
-
   PDM_geometry_kind_t start = PDM_GEOMETRY_KIND_MAX;
   if (dmesh_nodal->mesh_dimension == 2) {
     start = PDM_GEOMETRY_KIND_SURFACIC;
@@ -1604,71 +1650,29 @@ PDM_dmesh_nodal_reorder
     start = PDM_GEOMETRY_KIND_VOLUMIC;
   }
 
+  PDM_dmesh_nodal_elmts_t *dmne;
+
   for (PDM_geometry_kind_t geom_kind = start; geom_kind < PDM_GEOMETRY_KIND_MAX; geom_kind++) {
+
+    if (geom_kind == PDM_GEOMETRY_KIND_RIDGE) {
+      dmne = dmesh_nodal->ridge;
+    } else if (geom_kind == PDM_GEOMETRY_KIND_SURFACIC) {
+      dmne = dmesh_nodal->surfacic;
+    } else if (geom_kind == PDM_GEOMETRY_KIND_VOLUMIC) {
+      dmne = dmesh_nodal->volumic;
+    }
 
     int *sections_id = PDM_DMesh_nodal_sections_id_get(dmesh_nodal, geom_kind);
     int n_section    = PDM_DMesh_nodal_n_section_get  (dmesh_nodal, geom_kind);
 
-    for(int isection = 0; isection < n_section; isection++) {
+    for (int isection = 0; isection < n_section; isection++) {
 
-      int id_section = sections_id[isection];
-
-      PDM_Mesh_nodal_elt_t t_elt = PDM_DMesh_nodal_section_type_get(dmesh_nodal,
-                                                                    geom_kind,
-                                                                    id_section);
-
-      if (t_elt == PDM_MESH_NODAL_POINT) continue;
-
-      // -->> quick & dirty fix
-      if (t_elt == PDM_MESH_NODAL_BAR2) {
-        t_elt = PDM_MESH_NODAL_BARHO;
-      } else if (t_elt == PDM_MESH_NODAL_TRIA3) {
-        t_elt = PDM_MESH_NODAL_TRIAHO;
-      } else if (t_elt == PDM_MESH_NODAL_QUAD4) {
-        t_elt = PDM_MESH_NODAL_QUADHO;
-      } else if (t_elt == PDM_MESH_NODAL_TETRA4) {
-        t_elt = PDM_MESH_NODAL_TETRAHO;
-      } else if (t_elt == PDM_MESH_NODAL_PYRAMID5) {
-        t_elt = PDM_MESH_NODAL_PYRAMIDHO;
-      } else if (t_elt == PDM_MESH_NODAL_PRISM6) {
-        t_elt = PDM_MESH_NODAL_PRISMHO;
-      } else if (t_elt == PDM_MESH_NODAL_HEXA8) {
-        t_elt = PDM_MESH_NODAL_HEXAHO;
-      }
-      // <<--
-
-      int *ijk_to_user = PDM_ho_ordering_ijk_to_user_get(ordering_name,
-                                                         t_elt,
-                                                         order);
-
-      if (ijk_to_user == NULL) continue;
-
-      //log_trace("reorder section %d of kind %d (t_elt %d, order %d) with '%s'\n",
-      //          isection, (int) geom_kind, (int) t_elt, order, ordering_name);
-
-      int n_elt = PDM_DMesh_nodal_section_n_elt_get(dmesh_nodal,
-                                                    geom_kind,
-                                                    id_section);
-
-      PDM_g_num_t *delt_vtx = PDM_DMesh_nodal_section_std_get(dmesh_nodal,
-                                                              geom_kind,
-                                                              id_section);
-
-      int n_nodes = PDM_Mesh_nodal_n_vtx_elt_get(t_elt, order);
-
-      for (int ielt = 0; ielt < n_elt; ielt++) {
-        PDM_g_num_t *_delt_vtx = delt_vtx + n_nodes*ielt;
-        memcpy (delt_vtx_ijk, _delt_vtx, sizeof(PDM_g_num_t) * n_nodes);
-        for (int i = 0; i < n_nodes; i++) {
-          _delt_vtx[ijk_to_user[i]] = delt_vtx_ijk[i];
-        }
-
-      }
+      PDM_DMesh_nodal_elmts_section_std_ho_reorder(dmne,
+                                                   sections_id[isection],
+                                                   ordering_name);
     }
-
   }
 
-  free (delt_vtx_ijk);
 }
 
 
@@ -1855,7 +1859,7 @@ const double *
 PDM_dmesh_nodal_global_extents_get
 (
  PDM_dmesh_nodal_t         *dmn
- )
+)
 {
   if (dmn->is_computed_g_extents == PDM_FALSE) {
 
@@ -1878,6 +1882,34 @@ PDM_dmesh_nodal_global_extents_get
 
   return dmn->g_extents;
 }
+
+
+int
+PDM_dmesh_nodal_have_ho
+(
+ PDM_dmesh_nodal_t         *dmesh_nodal
+)
+{
+  int have_ho_volumic  = 0;
+  int have_ho_surfacic = 0;
+  int have_ho_ridge    = 0;
+  int have_ho_corner   = 0;
+  if(dmesh_nodal->volumic  != NULL) {
+    have_ho_volumic = PDM_dmesh_nodal_elmts_have_ho(dmesh_nodal->volumic);
+  }
+  if(dmesh_nodal->surfacic != NULL) {
+    have_ho_surfacic = PDM_dmesh_nodal_elmts_have_ho(dmesh_nodal->surfacic);
+  }
+  if(dmesh_nodal->ridge    != NULL) {
+    have_ho_ridge = PDM_dmesh_nodal_elmts_have_ho(dmesh_nodal->ridge);
+  }
+  if(dmesh_nodal->corner   != NULL) {
+    have_ho_corner = PDM_dmesh_nodal_elmts_have_ho(dmesh_nodal->corner);
+  }
+
+  return have_ho_volumic || have_ho_surfacic || have_ho_ridge || have_ho_corner;
+}
+
 
 #ifdef __cplusplus
 }

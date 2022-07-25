@@ -173,6 +173,19 @@ PDM_log_trace_connectivity_int2
 );
 /*----------------------------------------------------------------------------*/
 
+
+void
+PDM_log_trace_graph_nuplet_int
+(
+ const int         *array_idx,
+ const int         *array_desc,
+ const int          strid,
+ const int          larray,
+ const char*        header
+);
+
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

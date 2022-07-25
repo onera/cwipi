@@ -43,6 +43,11 @@ struct _pdm_domain_interface_t{
   int                          *interface_dn_face;
   PDM_g_num_t                 **interface_ids_face;
   int                         **interface_dom_face;
+
+  int                          *interface_dn_edge;
+  PDM_g_num_t                 **interface_ids_edge;
+  int                         **interface_dom_edge;
+
   int                          *interface_dn_vtx;
   PDM_g_num_t                 **interface_ids_vtx;
   int                         **interface_dom_vtx;

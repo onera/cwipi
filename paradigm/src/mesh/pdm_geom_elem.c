@@ -2626,179 +2626,180 @@ PDM_geom_elem_edge_upwind_and_downwind
 
 
 
+  if(1 == 0) {
+    // -->> !! Only works with tetra
+    int *cell_vtx = (int *) malloc(sizeof(int) * 4 * n_cell);
+    for (int i = 0; i < n_cell; i++) {
+      int iface = cell_face[4*i];
 
-  // -->> !! Only works with tetra
-  int *cell_vtx = (int *) malloc(sizeof(int) * 4 * n_cell);
-  for (int i = 0; i < n_cell; i++) {
-    int iface = cell_face[4*i];
+      if (iface < 0) {
+        iface = -iface - 1;
+        cell_vtx[4*i    ] = face_vtx[3*iface    ];
+        cell_vtx[4*i + 1] = face_vtx[3*iface + 1];
+        cell_vtx[4*i + 2] = face_vtx[3*iface + 2];
+      } else {
+        iface = iface - 1;
+        cell_vtx[4*i    ] = face_vtx[3*iface + 2];
+        cell_vtx[4*i + 1] = face_vtx[3*iface + 1];
+        cell_vtx[4*i + 2] = face_vtx[3*iface    ];
+      }
 
-    if (iface < 0) {
-      iface = -iface - 1;
-      cell_vtx[4*i    ] = face_vtx[3*iface    ];
-      cell_vtx[4*i + 1] = face_vtx[3*iface + 1];
-      cell_vtx[4*i + 2] = face_vtx[3*iface + 2];
-    } else {
-      iface = iface - 1;
-      cell_vtx[4*i    ] = face_vtx[3*iface + 2];
-      cell_vtx[4*i + 1] = face_vtx[3*iface + 1];
-      cell_vtx[4*i + 2] = face_vtx[3*iface    ];
-    }
-
-    iface = PDM_ABS(cell_face[4*i+1]) - 1;
-    for (int j = 0; j < 3; j++) {
-      int ivtx = face_vtx[3*iface + j];
-      if (ivtx != cell_vtx[4*i    ] &&
-          ivtx != cell_vtx[4*i + 1] &&
-          ivtx != cell_vtx[4*i + 2] ) {
-        cell_vtx[4*i + 3] = ivtx;
+      iface = PDM_ABS(cell_face[4*i+1]) - 1;
+      for (int j = 0; j < 3; j++) {
+        int ivtx = face_vtx[3*iface + j];
+        if (ivtx != cell_vtx[4*i    ] &&
+            ivtx != cell_vtx[4*i + 1] &&
+            ivtx != cell_vtx[4*i + 2] ) {
+          cell_vtx[4*i + 3] = ivtx;
+        }
       }
     }
-  }
 
 
-  int *cell_vtx_idx = (int *) malloc(sizeof(int) * (n_cell + 1));
-  for (int i = 0; i <= n_cell; i++) {
-    cell_vtx_idx[i] = 4*i;
-  }
-  // PDM_log_trace_connectivity_int(cell_vtx_idx, cell_vtx, n_cell, "cell_vtx : ");
-  // <<--
+    int *cell_vtx_idx = (int *) malloc(sizeof(int) * (n_cell + 1));
+    for (int i = 0; i <= n_cell; i++) {
+      cell_vtx_idx[i] = 4*i;
+    }
+    // PDM_log_trace_connectivity_int(cell_vtx_idx, cell_vtx, n_cell, "cell_vtx : ");
+    // <<--
 
-  int n_elt = 0;
-  int l_elt_vtx = 0;
-  for (int i = 0; i < n_edge; i++) {
-    n_elt += 1; // edge
-    l_elt_vtx += 2;
+    int n_elt = 0;
+    int l_elt_vtx = 0;
+    for (int i = 0; i < n_edge; i++) {
+      n_elt += 1; // edge
+      l_elt_vtx += 2;
 
-    if (upwind_cell[i] >= 0) {
-      n_elt += 3; // pt, face, cell
-      l_elt_vtx += 1;
-      l_elt_vtx += face_vtx_idx[upwind_face[i]+1] - face_vtx_idx[upwind_face[i]];
-      l_elt_vtx += cell_vtx_idx[upwind_cell[i]+1] - cell_vtx_idx[upwind_cell[i]];
+      if (upwind_cell[i] >= 0) {
+        n_elt += 3; // pt, face, cell
+        l_elt_vtx += 1;
+        l_elt_vtx += face_vtx_idx[upwind_face[i]+1] - face_vtx_idx[upwind_face[i]];
+        l_elt_vtx += cell_vtx_idx[upwind_cell[i]+1] - cell_vtx_idx[upwind_cell[i]];
+      }
+
+      if (downwind_cell[i] >= 0) {
+        n_elt += 3; // pt, face, cell
+        l_elt_vtx += 1;
+        l_elt_vtx += face_vtx_idx[downwind_face[i]+1] - face_vtx_idx[downwind_face[i]];
+        l_elt_vtx += cell_vtx_idx[downwind_cell[i]+1] - cell_vtx_idx[downwind_cell[i]];
+      }
     }
 
-    if (downwind_cell[i] >= 0) {
-      n_elt += 3; // pt, face, cell
-      l_elt_vtx += 1;
-      l_elt_vtx += face_vtx_idx[downwind_face[i]+1] - face_vtx_idx[downwind_face[i]];
-      l_elt_vtx += cell_vtx_idx[downwind_cell[i]+1] - cell_vtx_idx[downwind_cell[i]];
-    }
-  }
 
+    printf("n_vtx = %d\n", n_vtx);
+    FILE *f = fopen("visu_V4.vtk", "w");
 
-  printf("n_vtx = %d\n", n_vtx);
-  FILE *f = fopen("visu_V4.vtk", "w");
+    fprintf(f, "# vtk DataFile Version 2.0\n");
+    fprintf(f, "circles\n");
+    fprintf(f, "ASCII\n");
+    fprintf(f, "DATASET UNSTRUCTURED_GRID\n");
 
-  fprintf(f, "# vtk DataFile Version 2.0\n");
-  fprintf(f, "circles\n");
-  fprintf(f, "ASCII\n");
-  fprintf(f, "DATASET UNSTRUCTURED_GRID\n");
-
-  fprintf(f, "POINTS %d double\n", n_vtx + 2*n_edge);
-  for (int i = 0; i < n_vtx; i++) {
-    for (int j = 0; j < 3; j++) {
-      fprintf(f, "%.20lf ", vtx_coord[3*i+j]);
-    }
-    fprintf(f, "\n");
-  }
-  for (int iedge = 0; iedge < n_edge; iedge++) {
-    for (int j = 0; j < 3; j++) {
-      fprintf(f, "%.20lf ", upwind_point[3*iedge+j]);
-    }
-    fprintf(f, "\n");
-  }
-  for (int iedge = 0; iedge < n_edge; iedge++) {
-    for (int j = 0; j < 3; j++) {
-      fprintf(f, "%.20lf ", downwind_point[3*iedge+j]);
-    }
-    fprintf(f, "\n");
-  }
-
-  fprintf(f, "CELLS %d %d\n", n_elt, n_elt + l_elt_vtx);
-  for (int iedge = 0; iedge < n_edge; iedge++) {
-    fprintf(f, "2 %d %d\n", edge_vtx[2*iedge]-1, edge_vtx[2*iedge+1]-1);
-
-    if (upwind_cell[iedge] >= 0) {
-      fprintf(f, "1 %d\n", n_vtx + iedge);
-
-      int iface = upwind_face[iedge];
-      fprintf(f, "%d ", face_vtx_idx[iface+1] - face_vtx_idx[iface]);
-      for (int j = face_vtx_idx[iface]; j < face_vtx_idx[iface+1]; j++) {
-        fprintf(f, "%d ", face_vtx[j]-1);
+    fprintf(f, "POINTS %d double\n", n_vtx + 2*n_edge);
+    for (int i = 0; i < n_vtx; i++) {
+      for (int j = 0; j < 3; j++) {
+        fprintf(f, "%.20lf ", vtx_coord[3*i+j]);
       }
       fprintf(f, "\n");
-
-      int icell = upwind_cell[iedge];
-      fprintf(f, "%d ", cell_vtx_idx[icell+1] - cell_vtx_idx[icell]);
-      for (int j = cell_vtx_idx[icell]; j < cell_vtx_idx[icell+1]; j++) {
-        fprintf(f, "%d ", cell_vtx[j]-1);
+    }
+    for (int iedge = 0; iedge < n_edge; iedge++) {
+      for (int j = 0; j < 3; j++) {
+        fprintf(f, "%.20lf ", upwind_point[3*iedge+j]);
       }
       fprintf(f, "\n");
-
     }
-
-    if (downwind_cell[iedge] >= 0) {
-      fprintf(f, "1 %d\n", n_vtx + n_edge + iedge);
-
-      int iface = downwind_face[iedge];
-      fprintf(f, "%d ", face_vtx_idx[iface+1] - face_vtx_idx[iface]);
-      for (int j = face_vtx_idx[iface]; j < face_vtx_idx[iface+1]; j++) {
-        fprintf(f, "%d ", face_vtx[j]-1);
+    for (int iedge = 0; iedge < n_edge; iedge++) {
+      for (int j = 0; j < 3; j++) {
+        fprintf(f, "%.20lf ", downwind_point[3*iedge+j]);
       }
       fprintf(f, "\n");
+    }
 
-      int icell = downwind_cell[iedge];
-      fprintf(f, "%d ", cell_vtx_idx[icell+1] - cell_vtx_idx[icell]);
-      for (int j = cell_vtx_idx[icell]; j < cell_vtx_idx[icell+1]; j++) {
-        fprintf(f, "%d ", cell_vtx[j]-1);
+    fprintf(f, "CELLS %d %d\n", n_elt, n_elt + l_elt_vtx);
+    for (int iedge = 0; iedge < n_edge; iedge++) {
+      fprintf(f, "2 %d %d\n", edge_vtx[2*iedge]-1, edge_vtx[2*iedge+1]-1);
+
+      if (upwind_cell[iedge] >= 0) {
+        fprintf(f, "1 %d\n", n_vtx + iedge);
+
+        int iface = upwind_face[iedge];
+        fprintf(f, "%d ", face_vtx_idx[iface+1] - face_vtx_idx[iface]);
+        for (int j = face_vtx_idx[iface]; j < face_vtx_idx[iface+1]; j++) {
+          fprintf(f, "%d ", face_vtx[j]-1);
+        }
+        fprintf(f, "\n");
+
+        int icell = upwind_cell[iedge];
+        fprintf(f, "%d ", cell_vtx_idx[icell+1] - cell_vtx_idx[icell]);
+        for (int j = cell_vtx_idx[icell]; j < cell_vtx_idx[icell+1]; j++) {
+          fprintf(f, "%d ", cell_vtx[j]-1);
+        }
+        fprintf(f, "\n");
+
       }
-      fprintf(f, "\n");
+
+      if (downwind_cell[iedge] >= 0) {
+        fprintf(f, "1 %d\n", n_vtx + n_edge + iedge);
+
+        int iface = downwind_face[iedge];
+        fprintf(f, "%d ", face_vtx_idx[iface+1] - face_vtx_idx[iface]);
+        for (int j = face_vtx_idx[iface]; j < face_vtx_idx[iface+1]; j++) {
+          fprintf(f, "%d ", face_vtx[j]-1);
+        }
+        fprintf(f, "\n");
+
+        int icell = downwind_cell[iedge];
+        fprintf(f, "%d ", cell_vtx_idx[icell+1] - cell_vtx_idx[icell]);
+        for (int j = cell_vtx_idx[icell]; j < cell_vtx_idx[icell+1]; j++) {
+          fprintf(f, "%d ", cell_vtx[j]-1);
+        }
+        fprintf(f, "\n");
+
+      }
+    }
+
+
+    fprintf(f, "CELL_TYPES %d\n", n_elt);
+    for (int iedge = 0; iedge < n_edge; iedge++) {
+      fprintf(f, "3\n"); // line
+
+      if (upwind_cell[iedge] >= 0) {
+        fprintf(f, "1\n"); // point
+        fprintf(f, "7\n"); // polygon
+        fprintf(f, "10\n"); // tetra
+      }
+
+      if (downwind_cell[iedge] >= 0) {
+        fprintf(f, "1\n"); // point
+        fprintf(f, "7\n"); // polygon
+        fprintf(f, "10\n"); // tetra
+      }
 
     }
+
+    fprintf(f, "CELL_DATA %d\n", n_elt);
+    fprintf(f, "SCALARS i_edge int 1\n");
+      fprintf(f, "LOOKUP_TABLE default\n");
+    for (int iedge = 0; iedge < n_edge; iedge++) {
+      fprintf(f, "%d\n", iedge);
+
+      if (upwind_cell[iedge] >= 0) {
+        fprintf(f, "%d\n", iedge);
+        fprintf(f, "%d\n", iedge);
+        fprintf(f, "%d\n", iedge);
+      }
+
+      if (downwind_cell[iedge] >= 0) {
+        fprintf(f, "%d\n", iedge);
+        fprintf(f, "%d\n", iedge);
+        fprintf(f, "%d\n", iedge);
+      }
+
+    }
+
+    fclose(f);
+
+    free(cell_vtx);
+    free(cell_vtx_idx);
   }
-
-
-  fprintf(f, "CELL_TYPES %d\n", n_elt);
-  for (int iedge = 0; iedge < n_edge; iedge++) {
-    fprintf(f, "3\n"); // line
-
-    if (upwind_cell[iedge] >= 0) {
-      fprintf(f, "1\n"); // point
-      fprintf(f, "7\n"); // polygon
-      fprintf(f, "10\n"); // tetra
-    }
-
-    if (downwind_cell[iedge] >= 0) {
-      fprintf(f, "1\n"); // point
-      fprintf(f, "7\n"); // polygon
-      fprintf(f, "10\n"); // tetra
-    }
-
-  }
-
-  fprintf(f, "CELL_DATA %d\n", n_elt);
-  fprintf(f, "SCALARS i_edge int 1\n");
-    fprintf(f, "LOOKUP_TABLE default\n");
-  for (int iedge = 0; iedge < n_edge; iedge++) {
-    fprintf(f, "%d\n", iedge);
-
-    if (upwind_cell[iedge] >= 0) {
-      fprintf(f, "%d\n", iedge);
-      fprintf(f, "%d\n", iedge);
-      fprintf(f, "%d\n", iedge);
-    }
-
-    if (downwind_cell[iedge] >= 0) {
-      fprintf(f, "%d\n", iedge);
-      fprintf(f, "%d\n", iedge);
-      fprintf(f, "%d\n", iedge);
-    }
-
-  }
-
-  fclose(f);
-
-  free(cell_vtx);
-  free(cell_vtx_idx);
 
 
   free(line_coord  );

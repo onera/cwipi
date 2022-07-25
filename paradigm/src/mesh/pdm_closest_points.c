@@ -748,6 +748,7 @@ PDM_closest_point_t  *cls
         }
       }
     }
+    free (cls->src_cloud->tgt_in_src_dist);
   }
   if (free_tgt_in_src_gnum && free_tgt_in_src_dist) {
     if (cls->src_cloud->tgt_in_src_idx != NULL) {

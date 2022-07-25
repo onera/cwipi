@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -21,6 +22,7 @@
 #include "pdm_printf.h"
 #include "pdm_logging.h"
 #include "pdm_error.h"
+#include "pdm_ho_ordering.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -366,6 +368,20 @@ const int                n_group_elmt,
   dmn_elts->dgroup_elmt_owner = owner;
 }
 
+void
+PDM_DMesh_nodal_elmts_group_get
+(
+ PDM_dmesh_nodal_elmts_t  *dmn_elts,
+ int                      *n_group_elmt,
+ int                     **dgroup_elmt_idx,
+ PDM_g_num_t             **dgroup_elmt
+)
+{
+  *n_group_elmt    = dmn_elts->n_group_elmt;
+  *dgroup_elmt_idx = dmn_elts->dgroup_elmt_idx;
+  *dgroup_elmt     = dmn_elts->dgroup_elmt;
+}
+
 
 void
 PDM_DMesh_nodal_elmts_free
@@ -469,12 +485,14 @@ const PDM_Mesh_nodal_elt_t     t_elt
       id_block = dmn_elts->n_section_std++;
 
       dmn_elts->sections_std = realloc(dmn_elts->sections_std, dmn_elts->n_section_std * sizeof(PDM_DMesh_nodal_section_std_t * ));
-      dmn_elts->sections_std[id_block]          = malloc( sizeof(PDM_DMesh_nodal_section_std_t) );
-      dmn_elts->sections_std[id_block]->t_elt   = t_elt;
-      dmn_elts->sections_std[id_block]->n_elt   = -1;
-      dmn_elts->sections_std[id_block]->_connec = NULL;
-      dmn_elts->sections_std[id_block]->distrib = NULL;
-      dmn_elts->sections_std[id_block]->owner   = PDM_OWNERSHIP_KEEP;
+      dmn_elts->sections_std[id_block]              = malloc( sizeof(PDM_DMesh_nodal_section_std_t) );
+      dmn_elts->sections_std[id_block]->t_elt       = t_elt;
+      dmn_elts->sections_std[id_block]->n_elt       = -1;
+      dmn_elts->sections_std[id_block]->_connec     = NULL;
+      dmn_elts->sections_std[id_block]->distrib     = NULL;
+      dmn_elts->sections_std[id_block]->owner       = PDM_OWNERSHIP_KEEP;
+      dmn_elts->sections_std[id_block]->order       = 1;
+      dmn_elts->sections_std[id_block]->ho_ordering = NULL;
 
       id_block += PDM_BLOCK_ID_BLOCK_STD;
     }
@@ -531,6 +549,67 @@ const PDM_Mesh_nodal_elt_t     t_elt
   return id_block ;
 }
 
+
+
+int
+PDM_DMesh_nodal_elmts_section_ho_add
+(
+      PDM_dmesh_nodal_elmts_t *dmn_elts,
+const PDM_Mesh_nodal_elt_t     t_elt,
+const int                      order,
+const char                    *ho_ordering
+)
+{
+  if (dmn_elts == NULL) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad mesh nodal identifier\n");
+  }
+
+  if (t_elt == PDM_MESH_NODAL_POLY_2D || t_elt == PDM_MESH_NODAL_POLY_3D) {
+    PDM_error (__FILE__, __LINE__, 0, "Elt type %d cannot be stored in a HO section\n", (int) t_elt);
+  }
+
+  int id_block = -1;
+  dmn_elts->n_section++;
+
+  dmn_elts->sections_id  = realloc(dmn_elts->sections_id , sizeof(int) * dmn_elts->n_section);
+
+  if(t_elt == PDM_MESH_NODAL_POINT) {
+    if(dmn_elts->mesh_dimension != 0){
+      PDM_error (__FILE__, __LINE__, 0, "Bad mesh_dimension in PDM_DMesh_nodal_elmts_section_add = expected = %i and given = %i \n", dmn_elts->mesh_dimension, 0);
+    }
+  } else if(t_elt == PDM_MESH_NODAL_BAR2 || t_elt == PDM_MESH_NODAL_BARHO) {
+    if(dmn_elts->mesh_dimension != 1){
+      PDM_error (__FILE__, __LINE__, 0, "Bad mesh_dimension in PDM_DMesh_nodal_elmts_section_add = expected = %i and given = %i \n", dmn_elts->mesh_dimension, 1);
+    }
+  } else if(t_elt == PDM_MESH_NODAL_TRIA3 || t_elt == PDM_MESH_NODAL_QUAD4 || t_elt == PDM_MESH_NODAL_POLY_2D ||
+            t_elt == PDM_MESH_NODAL_TRIAHO || t_elt == PDM_MESH_NODAL_QUADHO) {
+    if(dmn_elts->mesh_dimension != 2){
+      PDM_error (__FILE__, __LINE__, 0, "Bad mesh_dimension in PDM_DMesh_nodal_elmts_section_add = expected = %i and given = %i \n", dmn_elts->mesh_dimension, 2);
+    }
+  } else {
+    if(dmn_elts->mesh_dimension != 3){
+      PDM_error (__FILE__, __LINE__, 0, "Bad mesh_dimension in PDM_DMesh_nodal_elmts_section_add = expected = %i and given = %i \n", dmn_elts->mesh_dimension, 3);
+    }
+  }
+
+
+  id_block = dmn_elts->n_section_std++;
+
+  dmn_elts->sections_std = realloc(dmn_elts->sections_std, dmn_elts->n_section_std * sizeof(PDM_DMesh_nodal_section_std_t * ));
+  dmn_elts->sections_std[id_block]              = malloc( sizeof(PDM_DMesh_nodal_section_std_t) );
+  dmn_elts->sections_std[id_block]->t_elt       = t_elt;
+  dmn_elts->sections_std[id_block]->n_elt       = -1;
+  dmn_elts->sections_std[id_block]->_connec     = NULL;
+  dmn_elts->sections_std[id_block]->distrib     = NULL;
+  dmn_elts->sections_std[id_block]->owner       = PDM_OWNERSHIP_KEEP;
+  dmn_elts->sections_std[id_block]->order       = order;
+  dmn_elts->sections_std[id_block]->ho_ordering = ho_ordering;
+
+  id_block += PDM_BLOCK_ID_BLOCK_STD;
+
+  _update_elmt_sections_id(dmn_elts);
+  return id_block ;
+}
 
 
 /* Update the owner ship of the different composents of dmn_elts */
@@ -1035,6 +1114,127 @@ PDM_dmesh_nodal_elmts_generate_distribution
       PDM_printf("%i ", dmn_elts->section_distribution[i_section]);
     }
   }
+}
+
+
+
+
+void
+PDM_DMesh_nodal_elmts_section_std_ho_reorder
+(
+      PDM_dmesh_nodal_elmts_t *dmn_elts,
+const int                      id_section,
+const char                    *ho_ordering
+)
+{
+  if (dmn_elts == NULL) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad mesh nodal identifier\n");
+  }
+
+  int _id_section = id_section - PDM_BLOCK_ID_BLOCK_STD;
+
+  PDM_DMesh_nodal_section_std_t *section = dmn_elts->sections_std[_id_section];
+
+  int *ijk_to_user = NULL;
+
+  int elt_node_n = PDM_Mesh_nodal_n_vtx_elt_get(section->t_elt,
+                                                section->order);
+  PDM_g_num_t *__delt_node = malloc(sizeof(PDM_g_num_t) * elt_node_n);
+
+
+  PDM_Mesh_nodal_elt_t t_elt = section->t_elt;
+  if (t_elt == PDM_MESH_NODAL_BAR2) {
+    t_elt = PDM_MESH_NODAL_BARHO;
+  } else if (t_elt == PDM_MESH_NODAL_TRIA3) {
+    t_elt = PDM_MESH_NODAL_TRIAHO;
+  } else if (t_elt == PDM_MESH_NODAL_QUAD4) {
+    t_elt = PDM_MESH_NODAL_QUADHO;
+  } else if (t_elt == PDM_MESH_NODAL_TETRA4) {
+    t_elt = PDM_MESH_NODAL_TETRAHO;
+  } else if (t_elt == PDM_MESH_NODAL_PYRAMID5) {
+    t_elt = PDM_MESH_NODAL_PYRAMIDHO;
+  } else if (t_elt == PDM_MESH_NODAL_PRISM6) {
+    t_elt = PDM_MESH_NODAL_PRISMHO;
+  } else if (t_elt == PDM_MESH_NODAL_HEXA8) {
+    t_elt = PDM_MESH_NODAL_HEXAHO;
+  }
+
+  if (section->ho_ordering != NULL) {
+
+    if (strcmp(section->ho_ordering, ho_ordering) == 0) {
+      free(__delt_node);
+      return;
+    }
+
+    // Current HO ordering -> IJK
+    ijk_to_user = PDM_ho_ordering_ijk_to_user_get(section->ho_ordering,
+                                                  t_elt,
+                                                  section->order);
+    assert(ijk_to_user != NULL);
+
+    for (int ielt = 0; ielt < section->n_elt; ielt++) {
+
+      PDM_g_num_t *_delt_node = section->_connec + elt_node_n * ielt;
+      memcpy(__delt_node, _delt_node, sizeof(PDM_g_num_t) * elt_node_n);
+
+      for (int i = 0; i < elt_node_n; i++) {
+        _delt_node[i] = __delt_node[ijk_to_user[i]];
+      }
+
+    }
+
+
+  }
+
+
+  // IJK -> New HO ordering
+  ijk_to_user = PDM_ho_ordering_ijk_to_user_get(ho_ordering,
+                                                t_elt,
+                                                section->order);
+
+  assert(ijk_to_user != NULL);
+
+  for (int ielt = 0; ielt < section->n_elt; ielt++) {
+
+    PDM_g_num_t *_delt_node = section->_connec + elt_node_n * ielt;
+    memcpy(__delt_node, _delt_node, sizeof(PDM_g_num_t) * elt_node_n);
+
+    for (int i = 0; i < elt_node_n; i++) {
+      _delt_node[ijk_to_user[i]] = __delt_node[i];
+    }
+
+  }
+
+  section->ho_ordering = ho_ordering;
+
+  free(__delt_node);
+}
+
+
+int
+PDM_dmesh_nodal_elmts_have_ho
+(
+ PDM_dmesh_nodal_elmts_t *dmn_elts
+)
+{
+  int have_ho = 0;
+  for(int i_section = 0; i_section < dmn_elts->n_section; ++i_section) {
+
+    int id_section = dmn_elts->sections_id[i_section];
+
+    PDM_Mesh_nodal_elt_t t_elt = PDM_DMesh_nodal_elmts_section_type_get(dmn_elts, id_section);
+    if (t_elt == PDM_MESH_NODAL_BARHO ||
+        t_elt == PDM_MESH_NODAL_TRIAHO ||
+        t_elt == PDM_MESH_NODAL_QUADHO ||
+        t_elt == PDM_MESH_NODAL_TETRAHO ||
+        t_elt == PDM_MESH_NODAL_PYRAMIDHO ||
+        t_elt == PDM_MESH_NODAL_PRISMHO ||
+        t_elt == PDM_MESH_NODAL_HEXAHO)
+    {
+      have_ho = 1;
+    }
+  }
+  return have_ho;
 }
 
 

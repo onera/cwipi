@@ -23,6 +23,7 @@
 #include "pdm_geom_elem.h"
 #include "pdm_array.h"
 #include "pdm_logging.h"
+#include "pdm_ho_ordering.h"
 
 #include "pdm_writer.h"
 
@@ -1251,6 +1252,145 @@ _type_cell_3D
 }
 
 
+static inline int
+ij2idx_tria
+(
+ const int i,
+ const int j,
+ const int order
+ )
+{
+    return i + j*(order+1) - (j-1)*j/2;
+}
+
+static inline int
+ij2idx_quad
+(
+ const int i,
+ const int j,
+ const int order
+ )
+{
+    return i + j*(order+1);
+}
+
+static inline int
+ijk2idx_tetra
+(
+ const int i,
+ const int j,
+ const int k,
+ const int order
+ )
+{
+    return i + j*(order + 1 - k) - j*(j-1)/2 + (k*(k*(k - 3*order - 6) + 3*order*(order + 4) + 11)) / 6;
+}
+
+static inline int
+ijk2idx_pyramid
+(
+ const int i,
+ const int j,
+ const int k,
+ const int order
+ )
+{
+    return i + j*(order+1-k) + (k*(k*(2*k - 6*order - 9) + 6*order*(order + 3) + 13)) / 6;
+}
+
+static inline int
+ijk2idx_prism
+(
+ const int i,
+ const int j,
+ const int k,
+ const int order
+ )
+{
+    return i + j*(order+1) - j*(j-1)/2 + k*(order+1)*(order+2)/2;
+}
+
+static inline int
+ijk2idx_hexa
+(
+ const int i,
+ const int j,
+ const int k,
+ const int order
+ )
+{
+    return i + (order+1)*(j + (order+1)*k);
+}
+
+static void
+_principal_to_ijk
+(
+ const PDM_Mesh_nodal_elt_t  t_elt,
+ const int                   order,
+ int                        *principal
+ )
+{
+  if (t_elt == PDM_MESH_NODAL_BARHO ||
+      t_elt == PDM_MESH_NODAL_BARHO_BEZIER) {
+    principal[0] = 0;
+    principal[1] = order;
+  }
+
+  else if (t_elt == PDM_MESH_NODAL_TRIAHO ||
+           t_elt == PDM_MESH_NODAL_TRIAHO_BEZIER) {
+    principal[0] = ij2idx_tria(0,     0,     order);
+    principal[1] = ij2idx_tria(order, 0,     order);
+    principal[2] = ij2idx_tria(0,     order, order);
+  }
+
+  else if (t_elt == PDM_MESH_NODAL_QUADHO) {
+    principal[0] = ij2idx_quad(0,     0,     order);
+    principal[1] = ij2idx_quad(order, 0,     order);
+    principal[2] = ij2idx_quad(order, order, order);
+    principal[3] = ij2idx_quad(0,     order, order);
+  }
+
+  else if (t_elt == PDM_MESH_NODAL_TETRAHO) {
+    principal[0] = ijk2idx_tetra(0,     0,     0,     order);
+    principal[1] = ijk2idx_tetra(order, 0,     0,     order);
+    principal[2] = ijk2idx_tetra(0,     order, 0,     order);
+    principal[3] = ijk2idx_tetra(0,     0,     order, order);
+  }
+
+  else if (t_elt == PDM_MESH_NODAL_PYRAMIDHO) {
+    principal[0] = ijk2idx_pyramid(0,     0,     0,     order);
+    principal[1] = ijk2idx_pyramid(order, 0,     0,     order);
+    principal[2] = ijk2idx_pyramid(order, order, 0,     order);
+    principal[3] = ijk2idx_pyramid(0,     order, 0,     order);
+    principal[4] = ijk2idx_pyramid(0,     0,     order, order);
+  }
+
+  else if (t_elt == PDM_MESH_NODAL_PRISMHO) {
+    principal[0] = ijk2idx_prism(0,     0,     0,     order);
+    principal[1] = ijk2idx_prism(order, 0,     0,     order);
+    principal[2] = ijk2idx_prism(0,     order, 0,     order);
+    principal[3] = ijk2idx_prism(0,     0,     order, order);
+    principal[4] = ijk2idx_prism(order, 0,     order, order);
+    principal[5] = ijk2idx_prism(0,     order, order, order);
+  }
+
+  else if (t_elt == PDM_MESH_NODAL_HEXAHO) {
+    principal[0] = ijk2idx_hexa(0,     0,     0,     order);
+    principal[1] = ijk2idx_hexa(order, 0,     0,     order);
+    principal[2] = ijk2idx_hexa(order, order, 0,     order);
+    principal[3] = ijk2idx_hexa(0,     order, 0,     order);
+    principal[4] = ijk2idx_hexa(0,     0,     order, order);
+    principal[5] = ijk2idx_hexa(order, 0,     order, order);
+    principal[6] = ijk2idx_hexa(order, order, order, order);
+    principal[7] = ijk2idx_hexa(0,     order, order, order);
+  }
+
+  else {
+    PDM_error(__FILE__, __LINE__, 0, "Invalid element type %d\n", (int) t_elt);
+  }
+}
+
+
 /*=============================================================================
  * Public function definitions
  *============================================================================*/
@@ -1279,6 +1419,7 @@ PDM_Mesh_nodal_elt_dim_get
       break;
     case PDM_MESH_NODAL_BAR2:
     case PDM_MESH_NODAL_BARHO:
+    case PDM_MESH_NODAL_BARHO_BEZIER:
       elt_dim = 1;
       break;
     case PDM_MESH_NODAL_TRIA3:
@@ -1286,6 +1427,7 @@ PDM_Mesh_nodal_elt_dim_get
     case PDM_MESH_NODAL_POLY_2D:
     case PDM_MESH_NODAL_TRIAHO:
     case PDM_MESH_NODAL_QUADHO:
+    case PDM_MESH_NODAL_TRIAHO_BEZIER:
       elt_dim = 2;
       break;
     case PDM_MESH_NODAL_TETRA4:
@@ -1410,6 +1552,13 @@ PDM_Mesh_nodal_n_vtx_elt_get
     break;
   case PDM_MESH_NODAL_HEXAHO :
     return (order + 1) * (order + 1) * (order + 1);
+    break;
+
+  case PDM_MESH_NODAL_BARHO_BEZIER:
+    return order + 1;
+    break;
+  case PDM_MESH_NODAL_TRIAHO_BEZIER:
+   return (order + 1) * (order + 2) / 2;
     break;
   default :
     PDM_error (__FILE__, __LINE__, 0, "Unknown for order Poly2D and Poly3D\n");
@@ -5371,27 +5520,34 @@ PDM_Mesh_nodal_n_vertices_element
     n_vtx = 1;
     break;
   case PDM_MESH_NODAL_BAR2:           /* Edge */
+  case PDM_MESH_NODAL_BARHO:           /* Edge */
     n_vtx = (_order+1);
     break;
   case PDM_MESH_NODAL_TRIA3:          /* Triangle */
+  case PDM_MESH_NODAL_TRIAHO:          /* Triangle */
     n_vtx = (_order+1)*(_order+2)/2;
     break;
   case PDM_MESH_NODAL_QUAD4:          /* Quadrangle */
+  case PDM_MESH_NODAL_QUADHO:          /* Quadrangle */
     n_vtx = (_order+1)*(_order+1);
     break;
   case PDM_MESH_NODAL_POLY_2D:        /* Simple Polygon */
     n_vtx = -1;
     break;
   case PDM_MESH_NODAL_TETRA4:         /* Tetrahedron */
+  case PDM_MESH_NODAL_TETRAHO:         /* Tetrahedron */
     n_vtx = (_order+1)*(_order+2)*(_order+3)/6;
     break;
   case PDM_MESH_NODAL_PYRAMID5:       /* Pyramid */
+  case PDM_MESH_NODAL_PYRAMIDHO:       /* Pyramid */
     n_vtx = (_order+1)*(_order+2)*(2*_order+3)/6;
     break;
   case PDM_MESH_NODAL_PRISM6:         /* Prism (pentahedron) */
+  case PDM_MESH_NODAL_PRISMHO:         /* Prism (pentahedron) */
     n_vtx = (_order+1)*(_order+1)*(_order+2)/2;
     break;
   case PDM_MESH_NODAL_HEXA8:          /* Hexahedron (brick) */
+  case PDM_MESH_NODAL_HEXAHO:          /* Hexahedron (brick) */
     n_vtx = (_order+1)*(_order+1)*(_order+1);
     break;
   case PDM_MESH_NODAL_POLY_3D:        /* Simple Polyhedron (convex or quasi-convex) */
@@ -5855,6 +6011,144 @@ const int               i_part
   }
 }
 
+void
+PDM_Mesh_nodal_ho_parent_node
+(
+ const PDM_Mesh_nodal_elt_t  t_elt,
+ const int                   order,
+ const char                 *ho_ordering,
+       int                  *parent_node
+ )
+{
+  int elt_vtx_n = PDM_Mesh_nodal_n_vtx_elt_get(t_elt, 1);
+
+  int principal_to_ijk[8];
+  _principal_to_ijk(t_elt,
+                    order,
+                    principal_to_ijk);
+
+  if (ho_ordering == NULL) {
+    for (int i = 0; i < elt_vtx_n; i++) {
+      parent_node[i] = principal_to_ijk[i];
+    }
+  }
+  else {
+    int *ijk_to_user = PDM_ho_ordering_ijk_to_user_get(ho_ordering,
+                                                       t_elt,
+                                                       order);
+    assert(ijk_to_user != NULL);
+
+    for (int i = 0; i < elt_vtx_n; i++) {
+      parent_node[i] = ijk_to_user[principal_to_ijk[i]];
+    }
+  }
+
+}
+
+
+
+void
+PDM_Mesh_nodal_reorder_elt_vtx
+(
+ const PDM_Mesh_nodal_elt_t  t_elt,
+ const int                   order,
+ const char                 *ho_ordering_in,
+ const char                 *ho_ordering_out,
+ const int                   n_elt,
+       int                  *elt_vtx_in,
+       int                  *elt_vtx_out
+ )
+{
+  int stride = PDM_Mesh_nodal_n_vtx_elt_get(t_elt,
+                                           order);
+
+  int *ijk_to_in = NULL;
+  if (ho_ordering_in != NULL) {
+    ijk_to_in = PDM_ho_ordering_ijk_to_user_get(ho_ordering_in,
+                                                t_elt,
+                                                order);
+    assert(ijk_to_in != NULL);
+  }
+
+  int *ijk_to_out = NULL;
+  if (ho_ordering_out != NULL) {
+    ijk_to_out = PDM_ho_ordering_ijk_to_user_get(ho_ordering_out,
+                                                 t_elt,
+                                                 order);
+    assert(ijk_to_out != NULL);
+  }
+
+
+  int *tmp = malloc(sizeof(int) * stride);
+  for (int ielt = 0; ielt < n_elt; ielt++) {
+
+    int *ev_in  = elt_vtx_in  + stride*ielt;
+    int *ev_out = elt_vtx_out + stride*ielt;
+    memcpy(tmp, ev_in, sizeof(int) * stride);
+
+    /* In --> IJK */
+    if (ijk_to_in != NULL) {
+      for (int i = 0; i < stride; i++) {
+        tmp[i] = ev_in[ijk_to_in[i]];
+      }
+    }
+
+    /* IJK --> Out */
+    if (ijk_to_out != NULL) {
+      for (int i = 0; i < stride; i++) {
+        ev_out[ijk_to_out[i]] = tmp[i];
+      }
+    }
+
+  }
+
+  // int *ijk_to_user = NULL;
+
+  // /* In --> IJK */
+  // if (ho_ordering_in != NULL){
+  //   ijk_to_user = PDM_ho_ordering_ijk_to_user_get(ho_ordering_in,
+  //                                                 t_elt,
+  //                                                 order);
+  //   assert(ijk_to_user != NULL);
+
+  //   for (int ielt = 0; ielt < n_elt; ielt++) {
+
+  //     int *ev_in  = elt_vtx_in  + ielt*stride;
+  //     int *ev_out = elt_vtx_out + ielt*stride;
+
+  //     for (int i = 0; i < stride; i++) {
+  //       ev_out[i] = ev_in[ijk_to_user[i]];
+  //     }
+
+  //   }
+  // }
+
+  // else {
+  //   if (elt_vtx_in != elt_vtx_out) {
+  //     memcpy(elt_vtx_out, elt_vtx_in, sizeof(int) * n_elt * stride);
+  //   }
+  // }
+
+
+  // /* IJK --> Out */
+  // int *ijk_to_user = PDM_ho_ordering_ijk_to_user_get(ho_ordering_out,
+  //                                                    t_elt,
+  //                                                    elt_order);
+  // assert(ijk_to_user != NULL;)
+
+  // int *tmp = malloc(sizeof(int) * stride);
+
+  // for (int ielt = 0; ielt < n_elt; ielt++) {
+  //   int *ev = elt_vtx_out + stride*i;
+  //   memcpy(tmv, ev, sizeof(int) * stride);
+
+  //   for (int i = 0; i < stride; i++) {
+  //     ev[ijk_to_user[i]] = tmp[i];
+  //   }
+  // }
+
+  free(tmp);
+}
 
 
 #ifdef __cplusplus

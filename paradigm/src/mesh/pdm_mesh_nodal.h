@@ -59,8 +59,9 @@ typedef enum {
   PDM_MESH_NODAL_PYRAMIDHO,
   PDM_MESH_NODAL_PRISMHO,
   PDM_MESH_NODAL_HEXAHO,
+  PDM_MESH_NODAL_BARHO_BEZIER, // temporary add to visualize Bezier curves
+  PDM_MESH_NODAL_TRIAHO_BEZIER, // temporary add to visualize Bezier triangles
   PDM_MESH_NODAL_N_ELEMENT_TYPES
-
 } PDM_Mesh_nodal_elt_t;
 
 
@@ -1175,6 +1176,28 @@ PDM_Mesh_nodal_cell_centers_reset
 const int               id_block,
 const int               i_part
 );
+
+void
+PDM_Mesh_nodal_ho_parent_node
+(
+ const PDM_Mesh_nodal_elt_t  t_elt,
+ const int                   order,
+ const char                 *ho_ordering,
+       int                  *parent_node
+ );
+
+
+void
+PDM_Mesh_nodal_reorder_elt_vtx
+(
+ const PDM_Mesh_nodal_elt_t  t_elt,
+ const int                   order,
+ const char                 *ho_ordering_in,
+ const char                 *ho_ordering_out,
+ const int                   n_elt,
+       int                  *elt_vtx_in,
+       int                  *elt_vtx_out
+ );
 
 #ifdef __cplusplus
 }

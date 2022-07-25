@@ -292,7 +292,7 @@ PDM_global_reduce_field_compute
   for (int i = 0; i < n_elt_block; i++) {
     stride_idx[i+1] = stride_idx[i] + block_field_stride[i]/gre->stride;
   }
-  free (block_field_stride);
+  //free (block_field_stride);
 
 
   double (*_reduce) (const double, const double) = NULL;
@@ -315,16 +315,38 @@ PDM_global_reduce_field_compute
   }
 
 
-  for (int i = 0; i < n_elt_block; i++) {
-    for (int j = stride_idx[i]+1; j < stride_idx[i+1]; j++) {
-      for (int k = 0; k < gre->stride; k++) {
-        double val = block_field[j*gre->stride + k];
-        block_field[i*gre->stride + k] = _reduce(block_field[i*gre->stride + k],
-                                                 val);
+  if (1) {//gre->operation == PDM_REDUCE_OP_SUM) {
+    int idx = 0;
+    for (int i = 0; i < n_elt_block; i++) {
+      for (int j = 0; j < gre->stride; j++) {
+        block_field[gre->stride*i + j] = block_field[gre->stride*idx + j];
+      }
+      idx++;
+
+      for (int k = 1; k < block_field_stride[i]/gre->stride; k++) {
+        for (int j = 0; j < gre->stride; j++) {
+          //block_field[gre->stride*i + j] += block_field[gre->stride*idx + j];
+          block_field[gre->stride*i + j] = _reduce(block_field[gre->stride*i + j],
+                                                   block_field[gre->stride*idx + j]);
+        }
+        idx++;
+      }
+    }
+
+  }
+  else {
+    for (int i = 0; i < n_elt_block; i++) {
+      for (int j = stride_idx[i]+1; j < stride_idx[i+1]; j++) {
+        for (int k = 0; k < gre->stride; k++) {
+          double val = block_field[j*gre->stride + k];
+          block_field[i*gre->stride + k] = _reduce(block_field[i*gre->stride + k],
+                                                   val);
+        }
       }
     }
   }
   free (stride_idx);
+  free (block_field_stride);
 
 
   PDM_block_to_part_exch_in_place (gre->btp,

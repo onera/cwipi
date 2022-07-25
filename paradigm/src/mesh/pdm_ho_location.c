@@ -5703,6 +5703,75 @@ PDM_ho_location
   return HUGE_VAL;
 }
 
+
+
+/**
+ * \brief Get the parametric coordinates of the Lagrange nodes
+ *
+ * \param [in]   type              Element type
+ * \param [in]   order             Element order
+ * \param [in]   umin              Lower bound on u-coordinate
+ * \param [in]   umax              Upper bound on u-coordinate
+ * \param [in]   vmin              Lower bound on v-coordinate
+ * \param [in]   vmax              Upper bound on v-coordinate
+ * \param [in]   wmin              Lower bound on w-coordinate
+ * \param [in]   wmax              Upper bound on w-coordinate
+ * \param [out]  uvw_node          Parametric coordinates of the Lagrange nodes
+ *
+ */
+
+void
+PDM_ho_location_uvw_nodes
+(
+ const PDM_Mesh_nodal_elt_t  type,
+ const int                   order,
+ const double                umin,
+ const double                umax,
+ const double                vmin,
+ const double                vmax,
+ const double                wmin,
+ const double                wmax,
+ double                     *uvw_node
+ )
+{
+  switch (type) {
+
+    case PDM_MESH_NODAL_BARHO:
+    case PDM_MESH_NODAL_BARHO_BEZIER:
+    _u_ho_edge_nodes(order, umin, umax, uvw_node);
+    break;
+
+    case PDM_MESH_NODAL_TRIAHO:
+    case PDM_MESH_NODAL_TRIAHO_BEZIER:
+    _uv_ho_tria_nodes(order, umin, umax, vmin, vmax, uvw_node);
+    break;
+
+    case PDM_MESH_NODAL_QUADHO:
+    _uv_ho_quad_nodes(order, umin, umax, vmin, vmax, uvw_node);
+    break;
+
+    case PDM_MESH_NODAL_TETRAHO:
+    _uvw_ho_tetra_nodes(order, umin, umax, vmin, vmax, wmin, wmax, uvw_node);
+    break;
+
+    case PDM_MESH_NODAL_PYRAMIDHO:
+    _uvw_ho_pyra_nodes(order, umin, umax, vmin, vmax, wmin, wmax, uvw_node);
+    break;
+
+    case PDM_MESH_NODAL_PRISMHO:
+    _uvw_ho_prism_nodes(order, umin, umax, vmin, vmax, wmin, wmax, uvw_node);
+    break;
+
+    case PDM_MESH_NODAL_HEXAHO:
+    _uvw_ho_hexa_nodes(order, umin, umax, vmin, vmax, wmin, wmax, uvw_node);
+    break;
+
+    default:
+    PDM_error(__FILE__, __LINE__, 0,
+              "Invalid element type %d\n", type);
+  }
+}
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

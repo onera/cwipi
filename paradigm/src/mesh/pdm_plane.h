@@ -111,6 +111,23 @@ const double n[3],
       double cp[3]
 );
 
+/**
+ * \brief Intersection between a plane and a line (taken from _intersect_faces_rays in pdm_inside_cloud_surf)
+ *
+ * \param [in]   line   Points of the line
+ * \param [in]   plane  Points of the plane
+ * \param [out]  ip     Intersection point
+ *
+ */
+
+void
+PDM_plane_line_intersection
+(
+const double line[6],
+const double plane[9],
+      double ip[3]
+);
+
 
 #ifdef __cplusplus
 }

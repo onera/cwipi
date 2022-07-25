@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
  * Standard C library headers
  *----------------------------------------------------------------------------*/
-
+#include <string.h>
 
 /*----------------------------------------------------------------------------
  *  Header for the current file
@@ -208,6 +208,65 @@ const double n[3],
   cp[0] = x[0] + t * n[0];
   cp[1] = x[1] + t * n[1];
   cp[2] = x[2] + t * n[2];
+}
+
+/**
+ * \brief Intersection between a plane and a line (taken from _intersect_faces_rays in pdm_inside_cloud_surf)
+ *
+ * \param [in]   line   Points of the line
+ * \param [in]   plane  Points of the plane
+ * \param [out]  ip     Intersection point
+ *
+ */
+
+void
+PDM_plane_line_intersection
+(
+const double line[6],
+const double plane[9],
+      double ip[3]
+)
+{
+  // Plane normal
+  double n[3];
+  PDM_plane_normal(3, plane, n);
+
+  // Line vector
+  double line_vect[3] = {
+    line[3] - line[0],
+    line[4] - line[1],
+    line[5] - line[2],
+  };
+
+  // Plane-Line vector
+  double plane_line_vect[3]= {
+    plane[0] - line[0],
+    plane[1] - line[1],
+    plane[2] - line[2],
+  };
+
+  // Intersection
+
+  double denom = PDM_DOT_PRODUCT(line_vect, n);
+  double numer = PDM_DOT_PRODUCT(plane_line_vect, n);
+
+  const double epsilon = 1e-12;
+
+  if (PDM_ABS(denom) < epsilon) { // epislon to avoid zero division
+    if (PDM_ABS(numer) < epsilon) { // the line is in the plane
+      memcpy(ip, line, sizeof(double) * 3);
+    } else {
+      // the line is parrallel to the plane
+    }
+  } else {  // the line intersects the plane
+    double t = numer/denom;
+    if ((t >= 0) && (t < 1)) {
+      for (int j = 0; j < 3; j++) {
+        ip[j] = line[j] + t*line_vect[j];
+      }
+    }
+  }
+
 }
 
 

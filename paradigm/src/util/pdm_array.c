@@ -44,6 +44,7 @@ extern "C" {
  * Allocate a new array of size size and fill it with 0
 */
 int* PDM_array_zeros_int(const int size) {
+  assert (size >= 0);
   int *array = (int *) malloc(size * sizeof(int));
   assert (array != NULL);
   for (int i = 0; i < size; i++) array[i] = 0;
@@ -54,12 +55,14 @@ int* PDM_array_zeros_int(const int size) {
  * Allocate a new array of size size and fill it with value
 */
 int* PDM_array_const_int(const int size, const int value) {
+  assert (size >= 0);
   int *array = (int *) malloc(size * sizeof(int));
   assert (array != NULL);
   for (int i = 0; i < size; i++) array[i] = value;
   return array;
 }
 PDM_g_num_t* PDM_array_const_gnum(const int size, const PDM_g_num_t value) {
+  assert (size >= 0);
   PDM_g_num_t *array = (PDM_g_num_t *) malloc(size * sizeof(PDM_g_num_t));
   assert (array != NULL);
   for (int i = 0; i < size; i++) array[i] = value;

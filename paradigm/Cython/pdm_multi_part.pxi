@@ -39,6 +39,9 @@ cdef extern from "pdm_multipart.h":
                                               const char            *renum_cell_method,
                                               const int             *renum_cell_properties,
                                               const char            *renum_face_method)
+    void PDM_multipart_set_reordering_options_vtx(      PDM_multipart_t *mtp,
+                                                  const int              i_zone,
+                                                  const char            *renum_vtx_method)
 
     # ------------------------------------------------------------------
     void PDM_multipart_run_ppart(PDM_multipart_t *mtp)
@@ -94,7 +97,8 @@ cdef extern from "pdm_multipart.h":
     # ------------------------------------------------------------------
     void PDM_multipart_get_part_mesh_nodal(PDM_multipart_t   *mtp,
                                            const int   i_zone,
-                                           PDM_part_mesh_nodal_t **pmesh_nodal)
+                                           PDM_part_mesh_nodal_t **pmesh_nodal,
+                                           PDM_ownership_t         ownership)
 
     # ------------------------------------------------------------------
     void PDM_multipart_part_graph_comm_vtx_dim_get(PDM_multipart_t   *mtp,
@@ -249,6 +253,14 @@ cdef class MultiPart:
                                            renum_cell_method,
                                            renum_properties_cell_data,
                                            renum_face_method)
+    # ------------------------------------------------------------------
+    def multipart_set_reordering_vtx(self, int i_zone,
+                                 char *renum_vtx_method):
+      """
+      """
+      PDM_multipart_set_reordering_options_vtx(self._mtp,
+                                           i_zone,
+                                           renum_vtx_method)
     # ------------------------------------------------------------------
     def multipart_run_ppart(self):
         """
@@ -684,7 +696,7 @@ cdef class MultiPart:
     # ------------------------------------------------------------------
     def multipart_part_mesh_nodal_get(self, int zone_gid):
         cdef PDM_part_mesh_nodal_t *pmesh_nodal
-        PDM_multipart_get_part_mesh_nodal(self._mtp, zone_gid, &pmesh_nodal)
+        PDM_multipart_get_part_mesh_nodal(self._mtp, zone_gid, &pmesh_nodal, PDM_OWNERSHIP_USER)
         if pmesh_nodal == NULL:
           return None
         else:

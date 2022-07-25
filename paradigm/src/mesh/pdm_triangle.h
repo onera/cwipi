@@ -79,6 +79,23 @@ PDM_triangle_evaluate_position
        double *weights
  );
 
+/**
+ * \brief Computes the intersection between a line and a triangle
+ *
+ * \param [in]   line        Points of the line
+ * \param [in]   tria_coord  Points of the triangle
+ * \param [out]  ip          Intersection point
+ *
+ */
+
+PDM_triangle_status_t
+PDM_triangle_line_intersection
+(
+const double line[6],
+const double tria_coord[9],
+      double ip[3]
+);
+
 
 /**
  * \brief Computes triangle barycenter

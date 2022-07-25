@@ -1095,8 +1095,22 @@ _generate_faces_from_dmesh_nodal
   dm->is_owner_connectivity[PDM_CONNECTIVITY_TYPE_FACE_CELL] = PDM_TRUE;
   dm->is_owner_connectivity[PDM_CONNECTIVITY_TYPE_FACE_VTX ] = PDM_TRUE;
 
+
+
   int n_section_child = dmesh_nodal->surfacic->n_section;
   PDM_g_num_t n_g_child = dmesh_nodal->surfacic->section_distribution[n_section_child];
+  if(dmesh_nodal->surfacic->dparent_idx != NULL) {
+    free(dmesh_nodal->surfacic->dparent_idx);
+  }
+  if(dmesh_nodal->surfacic->dparent_gnum != NULL) {
+    free(dmesh_nodal->surfacic->dparent_gnum);
+  }
+  if(dmesh_nodal->surfacic->dparent_sign != NULL) {
+    free(dmesh_nodal->surfacic->dparent_sign);
+  }
+  if(dmesh_nodal->surfacic->delmt_child_distrib != NULL) {
+    free(dmesh_nodal->surfacic->delmt_child_distrib);
+  }
   PDM_generate_entitiy_connectivity(dmesh_nodal->comm,
                                     dmesh_nodal->n_vtx_abs,
                                     n_g_child,
@@ -1213,6 +1227,7 @@ _generate_faces_from_dmesh_nodal
     if(0 == 1) {
       PDM_log_trace_array_long(dface_cell, 2 * dm->dn_face, "face_cell::");
       PDM_log_trace_array_long(_dface_vtx, _dface_vtx_idx[dm->dn_face], "_dface_vtx::");
+      PDM_log_trace_connectivity_long(_dface_vtx_idx, _dface_vtx, dm->dn_face, "_dface_vtx::");
     }
   }
 
@@ -1351,6 +1366,23 @@ _generate_faces_from_dmesh_nodal
     if(dmesh_nodal->ridge != NULL) {
       n_section_child_ridge = dmesh_nodal->ridge->n_section;
       n_g_child_ridge       = dmesh_nodal->ridge->section_distribution[n_section_child_ridge];
+
+
+      if(dmesh_nodal->ridge->dparent_idx != NULL) {
+        free(dmesh_nodal->ridge->dparent_idx);
+      }
+      if(dmesh_nodal->ridge->dparent_gnum != NULL) {
+        free(dmesh_nodal->ridge->dparent_gnum);
+      }
+      if(dmesh_nodal->ridge->dparent_sign != NULL) {
+        free(dmesh_nodal->ridge->dparent_sign);
+      }
+      if(dmesh_nodal->ridge->delmt_child_distrib != NULL) {
+        free(dmesh_nodal->ridge->delmt_child_distrib);
+      }
+
+
+
       PDM_generate_entitiy_connectivity(dmesh_nodal->comm,
                                         dmesh_nodal->n_vtx_abs,
                                         n_g_child_ridge,
@@ -1549,6 +1581,20 @@ _generate_edges_from_dmesh_nodal
   dparent_elmt_pos  [1] = dparent_elmt_ridge_pos  ;
   delmt_edge_vtx_idx[1] = delmt_ridge_edge_vtx_idx;
   delmt_edge_vtx    [1] = delmt_ridge_edge_vtx    ;
+
+
+  if(dmesh_nodal->ridge->dparent_idx != NULL) {
+    free(dmesh_nodal->ridge->dparent_idx);
+  }
+  if(dmesh_nodal->ridge->dparent_gnum != NULL) {
+    free(dmesh_nodal->ridge->dparent_gnum);
+  }
+  if(dmesh_nodal->ridge->dparent_sign != NULL) {
+    free(dmesh_nodal->ridge->dparent_sign);
+  }
+  if(dmesh_nodal->ridge->delmt_child_distrib != NULL) {
+    free(dmesh_nodal->ridge->delmt_child_distrib);
+  }
 
   /* Memory is deallocated inside */
   int n_section_child = dmesh_nodal->ridge->n_section;
@@ -2580,14 +2626,14 @@ PDM_g_num_t  **dentity_elmt
    * Get the max number of vertex of entitys
    */
   int* blk_entity_vtx_idx  = (int        *) malloc( (blk_entity_vtx_n_size+1) * sizeof(int        ));
-  int n_max_entity_per_key = -1;
+  int n_max_entity_per_key = 0;
   int n_tot_entity_per_key = 0;
   for(int i_entity = 0; i_entity < blk_size; ++i_entity) {
     n_max_entity_per_key = PDM_MAX(n_max_entity_per_key, blk_n_entity_per_key[i_entity]);
     n_tot_entity_per_key += blk_n_entity_per_key[i_entity];
   }
 
-  int n_max_vtx       = -1;
+  int n_max_vtx       = 0;
   blk_entity_vtx_idx[0] = 0;
   for(int i_entity = 0; i_entity < blk_entity_vtx_n_size; ++i_entity) {
     n_max_vtx          = PDM_MAX(n_max_vtx         , blk_entity_vtx_n    [i_entity]);

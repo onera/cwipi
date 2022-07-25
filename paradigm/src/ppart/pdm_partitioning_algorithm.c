@@ -153,8 +153,8 @@ PDM_part_assemble_partitions
                              comm);
 
   const int n_part_block = PDM_part_to_block_n_elt_block_get (ptb_partition);
-  //printf("rank = %i | n_part_block = %i\n",i_rank,n_part_block);
-  //printf("rank = %i | dn_part = %i\n",i_rank,dn_part);
+  // printf("rank = %i | n_part_block = %i\n",i_rank,n_part_block);
+  // printf("rank = %i | dn_part = %i\n",i_rank,dn_part);
   assert(n_part_block == dn_part || n_part_block==0);
   /*
    * Generate global numbering
@@ -1600,6 +1600,7 @@ PDM_part_generate_entity_graph_comm
 
   }
   const int n_entity_block = PDM_part_to_block_n_elt_block_get(ptb);
+  PDM_g_num_t* gnum_block = PDM_part_to_block_block_gnum_get(ptb);
 
    /*
     * Exchange
@@ -1650,17 +1651,16 @@ PDM_part_generate_entity_graph_comm
                           &proc_blk_stri,
                 (void **) &part_blk_data);
 
-  PDM_g_num_t* new_distrib = PDM_part_to_block_adapt_partial_block_to_block(ptb, &blk_stri, _entity_distribution[n_rank]);
-  free(new_distrib);
-  new_distrib = PDM_part_to_block_adapt_partial_block_to_block(ptb, &proc_blk_stri, _entity_distribution[n_rank]);
-  // int dn_check = new_distrib[i_rank+1] - new_distrib[i_rank];
-  // int dn_entity = entity_distribution[i_rank+1] - entity_distribution[i_rank];
-  free(new_distrib);
+  // PDM_g_num_t* new_distrib = PDM_part_to_block_adapt_partial_block_to_block(ptb, &blk_stri, _entity_distribution[n_rank]);
+  // free(new_distrib);
+  // new_distrib = PDM_part_to_block_adapt_partial_block_to_block(ptb, &proc_blk_stri, _entity_distribution[n_rank]);
+  // // int dn_check = new_distrib[i_rank+1] - new_distrib[i_rank];
+  // // int dn_entity = entity_distribution[i_rank+1] - entity_distribution[i_rank];
+  // free(new_distrib);
 
   /*
    * Free
    */
-  PDM_part_to_block_free(ptb);
   for(int i_part = 0; i_part < n_part; ++i_part) {
     free(part_stri[i_part]);
     free(part_data[i_part]);
@@ -1775,11 +1775,19 @@ PDM_part_generate_entity_graph_comm
   /*
    * All data is now sort we cen resend to partition
    */
-  PDM_block_to_part_t* btp = PDM_block_to_part_create(_entity_distribution,
-                               (const PDM_g_num_t **) pentity_ln_to_gn,
-                                                      pn_entity,
-                                                      n_part,
-                                                      comm);
+  // PDM_block_to_part_t* btp = PDM_block_to_part_create(_entity_distribution,
+  //                              (const PDM_g_num_t **) pentity_ln_to_gn,
+  //                                                     pn_entity,
+  //                                                     n_part,
+  //                                                     comm);
+  PDM_block_to_part_t* btp = PDM_block_to_part_create_from_sparse_block(gnum_block,
+                                                                        n_entity_block,
+                                                 (const PDM_g_num_t **) pentity_ln_to_gn,
+                                                                        pn_entity,
+                                                                        n_part,
+                                                                        comm);
+
+  PDM_part_to_block_free(ptb);
 
   // printf(" PDM_part_assemble_partitions PDM_part_generate_entity_graph_comm flag 4 - 1 \n");
   // PDM_MPI_Barrier(comm);

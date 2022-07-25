@@ -506,6 +506,16 @@ PDM_DMesh_nodal_section_std_get
 const int                  id_section
 );
 
+PDM_g_num_t *
+PDM_DMesh_nodal_section_std_ho_get
+(
+      PDM_dmesh_nodal_t   *dmesh_nodal,
+      PDM_geometry_kind_t  geom_kind,
+const int                  id_section,
+      int                 *order,
+const char               **ho_ordering
+);
+
 
 /**
  * \brief Get number of section elements
@@ -801,8 +811,7 @@ void
 PDM_dmesh_nodal_reorder
 (
  PDM_dmesh_nodal_t *dmesh_nodal,
- const char        *ordering_name,
- const int          order
+ const char        *ordering_name
  );
 
 
@@ -825,7 +834,14 @@ const double *
 PDM_dmesh_nodal_global_extents_get
 (
  PDM_dmesh_nodal_t         *dmn
- );
+);
+
+
+int
+PDM_dmesh_nodal_have_ho
+(
+ PDM_dmesh_nodal_t         *dmn
+);
 
 #ifdef __cplusplus
 }

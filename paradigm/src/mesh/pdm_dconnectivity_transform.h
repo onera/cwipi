@@ -131,6 +131,35 @@ PDM_dgroup_entity_transpose
  PDM_MPI_Comm   comm
 );
 
+/* Version of PDM_dentity_group_transpose valid for signed groups (is_signed = 1 for signed groups) */
+
+void
+PDM_dentity_group_signed_transpose
+(
+ int            n_group,
+ int           *dentity_group_idx,
+ int           *dentity_group,
+ PDM_g_num_t   *distrib_entity,
+ int          **dgroup_entity_idx,
+ PDM_g_num_t  **dgroup_entity,
+ PDM_MPI_Comm   comm,
+ const int      is_signed
+);
+
+/**
+ *
+ * \brief Create group->entity connectivity
+ *
+ * \param [in]   n_group               Number of groups
+ * \param [in]   dentity_group_idx     Group->Entity connectivity index
+ * \param [in]   dentity_group         Group->Entity connectivity
+ * \param [in]   distrib_entity        Entity distribution
+ * \param [out]  dgroup_entity_idx     Entity->Group connectivity index
+ * \param [out]  dgroup_entity         Entity->Group connectivity
+ * \param [in]   comm                  PDM_MPI communicator
+ *
+ */
+
 void
 PDM_dentity_group_transpose
 (

@@ -12,7 +12,6 @@ cimport cython
 cimport numpy as NPY
 from libcpp.map cimport map as cpp_map
 
-
 from mpi4py cimport MPI
 # -----------------------------------------------------------------
 cdef extern from "numpy/arrayobject.h":
@@ -158,6 +157,8 @@ cdef extern from "pdm_part_to_part.h":
        PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2  = 1
        PDM_PART_TO_PART_DATA_DEF_ORDER_PART2           = 2
        PDM_PART_TO_PART_DATA_DEF_ORDER_GNUM1_COME_FROM = 3
+
+
 
 
 def Finalize ():
@@ -307,7 +308,9 @@ cdef extern from "numpy/arrayobject.h":
 
 # -----------------------------------------------------------------
 cdef assert_single_dim_np(NPY.ndarray tab, dtype, int size=-1):
-  assert isinstance(tab, NPY.ndarray) and tab.ndim == 1 and tab.dtype == dtype
+  assert isinstance(tab, NPY.ndarray)
+  assert tab.ndim == 1 or (tab.ndim == 2 and (tab.shape[0] == 1 or tab.shape[1] == 1))
+  assert tab.dtype == dtype
   if size >= 0:
     assert tab.size == size
 
@@ -446,6 +449,13 @@ include "pdm_dist_cloud_surf.pxi"
 # --------------------
 @COMMENT_NOT_PDMA@include "pdm_iso_surface.pxi"
 
+# PDM_mesh_metric :
+# --------------------
+#@COMMENT_NOT_PDMA@include "pdm_mesh_metric.pxi"
+
+# PDM_mesh_adaptation :
+# --------------------
+#@COMMENT_NOT_PDMA@include "pdm_mesh_adaptation.pxi"
 
 # PDM_points_merge :
 # --------------------
@@ -526,3 +536,12 @@ include "pdm_writer.pxi"
 # PDM_writer :
 # --------------------
 include "pdm_part_to_part.pxi"
+
+# PDM_part_domain_interface :
+# --------------------
+include "pdm_part_domain_interface.pxi"
+
+
+
+
+

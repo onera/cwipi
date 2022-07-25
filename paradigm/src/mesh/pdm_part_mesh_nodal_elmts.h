@@ -63,6 +63,15 @@ PDM_part_mesh_nodal_elmts_add
 const PDM_Mesh_nodal_elt_t         t_elt
 );
 
+int
+PDM_part_mesh_nodal_elmts_ho_add
+(
+      PDM_part_mesh_nodal_elmts_t *pmne,
+const PDM_Mesh_nodal_elt_t         t_elt,
+const int                          order,
+const char                        *ho_ordering
+);
+
 void
 PDM_part_mesh_nodal_elmts_free
 (
@@ -93,6 +102,20 @@ const int                           id_part,
       PDM_g_num_t                 **numabs,
       int                         **parent_num,
       PDM_g_num_t                 **parent_entity_g_num
+);
+
+void
+PDM_part_mesh_nodal_elmts_block_std_ho_get
+(
+      PDM_part_mesh_nodal_elmts_t  *pmne,
+const int                           id_block,
+const int                           id_part,
+      int                         **connec,
+      PDM_g_num_t                 **numabs,
+      int                         **parent_num,
+      PDM_g_num_t                 **parent_entity_g_num,
+      int                          *order,
+const char                        **ho_ordering
 );
 
 int

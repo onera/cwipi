@@ -9,6 +9,7 @@
 #include <assert.h>
 
 #include "pdm.h"
+#include "pdm_priv.h"
 #include "pdm_config.h"
 #include "pdm_mpi.h"
 #include "pdm_printf.h"
@@ -166,7 +167,7 @@ int main(int argc, char *argv[])
   PDM_part_to_part_t *ptp = PDM_part_to_part_create ((const PDM_g_num_t **) gnum_elt1,
                                                      n_elt1,
                                                      n_part1,
-                                                     (const PDM_g_num_t **) gnum_elt2,
+                                                     (const PDM_g_num_t **)gnum_elt2,
                                                      n_elt2,
                                                      n_part2,
                                                      (const int **) part1_to_part2_idx,

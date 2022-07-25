@@ -66,6 +66,18 @@ cdef extern from "pdm_part_extension.h":
                                       PDM_mesh_entities_t       connectivity_type,
                                       PDM_g_num_t             **ln_to_gn)
 
+  int PDM_part_extension_interface_get(PDM_part_extension_t     *part_ext,
+                                       int                       i_domain,
+                                       int                       i_part,
+                                       PDM_mesh_entities_t       mesh_entity,
+                                       int                     **interface_no);
+
+  int PDM_part_extension_composed_interface_get(PDM_part_extension_t     *part_ext,
+                                                int                     **composed_interface_idx,
+                                                int                     **composed_interface,
+                                                PDM_g_num_t             **composed_ln_to_gn_sorted);
+
+
   int PDM_part_extension_group_get(PDM_part_extension_t     *part_ext,
                                    int                       i_domain,
                                    int                       i_part,
@@ -79,10 +91,15 @@ cdef extern from "pdm_part_extension.h":
                                    int                       i_part,
                                    double                  **vtx_coord)
 
+  void PDM_part_extension_part_domain_interface_shared_set(PDM_part_extension_t        *part_ext,
+                                                           PDM_part_domain_interface_t *pdi);
+
+
 cdef class PartExtension:
   """
   """
   cdef PDM_part_extension_t* _part_ext
+  cdef object pdi
   # ------------------------------------------------------------------
   def __cinit__(self,
                 n_domain,
@@ -314,6 +331,15 @@ cdef class PartExtension:
   def compute(self):
     PDM_part_extension_compute(self._part_ext)
 
+
+  # ------------------------------------------------------------------
+  def part_domain_interface_shared_set(self, PartDomainInterface pdi):
+    """
+    """
+    self.pdi = pdi # Keep alive
+    PDM_part_extension_part_domain_interface_shared_set(self._part_ext, pdi.pdi)
+
+
   # ------------------------------------------------------------------
   def get_connectivity(self,
                        int i_domain,
@@ -362,7 +388,9 @@ cdef class PartExtension:
     size = PDM_part_extension_ln_to_gn_get(self._part_ext, i_domain, i_part, mesh_ety_type, &ln_to_gn)
 
     if (ln_to_gn == NULL) :
-      np_ln_to_gn = None
+      # np_ln_to_gn = None
+      dim = <NPY.npy_intp> 0
+      np_ln_to_gn = NPY.PyArray_SimpleNew(1, &dim, PDM_G_NUM_NPY_INT)
     else :
       dim = <NPY.npy_intp> size
       np_ln_to_gn = NPY.PyArray_SimpleNewFromData(1,
@@ -372,6 +400,77 @@ cdef class PartExtension:
       PyArray_ENABLEFLAGS(np_ln_to_gn, NPY.NPY_OWNDATA)
 
     return np_ln_to_gn
+
+  # ------------------------------------------------------------------
+  def get_interface(self,
+                    int i_domain,
+                    int i_part,
+                    PDM_mesh_entities_t mesh_ety_type):
+    """
+    """
+    cdef int *interface_no,
+    cdef int size
+
+    size = PDM_part_extension_interface_get(self._part_ext, i_domain, i_part, mesh_ety_type, &interface_no)
+
+    if (interface_no == NULL) :
+      np_interface_no = None
+    else :
+      dim = <NPY.npy_intp> size
+      np_interface_no = NPY.PyArray_SimpleNewFromData(1,
+                                                  &dim,
+                                                  NPY.NPY_INT32,
+                                                  <void *> interface_no)
+      PyArray_ENABLEFLAGS(np_interface_no, NPY.NPY_OWNDATA)
+
+    return np_interface_no
+
+  # ------------------------------------------------------------------
+  def get_composed_interface(self):
+    """
+    """
+    cdef int         *composed_interface_idx,
+    cdef int         *composed_interface,
+    cdef PDM_g_num_t *composed_ln_to_gn_sorted,
+    cdef int          n_composed_interface
+    cdef NPY.npy_intp dim
+
+    n_composed_interface = PDM_part_extension_composed_interface_get(self._part_ext,
+                                                                     &composed_interface_idx,
+                                                                     &composed_interface,
+                                                                     &composed_ln_to_gn_sorted)
+
+    if (composed_interface_idx == NULL) :
+      np_composed_interface_idx = None
+    else :
+      dim = <NPY.npy_intp> n_composed_interface+1
+      np_composed_interface_idx = NPY.PyArray_SimpleNewFromData(1,
+                                                                &dim,
+                                                                NPY.NPY_INT32,
+                                                                <void *> composed_interface_idx)
+      PyArray_ENABLEFLAGS(np_composed_interface_idx, NPY.NPY_OWNDATA)
+
+    if (composed_interface == NULL) :
+      np_composed_interface = None
+    else :
+      dim = <NPY.npy_intp> np_composed_interface_idx[n_composed_interface]
+      np_composed_interface = NPY.PyArray_SimpleNewFromData(1,
+                                                  &dim,
+                                                  NPY.NPY_INT32,
+                                                  <void *> composed_interface)
+      PyArray_ENABLEFLAGS(np_composed_interface, NPY.NPY_OWNDATA)
+
+    if (composed_ln_to_gn_sorted == NULL) :
+      np_composed_ln_to_gn_sorted = None
+    else :
+      dim = <NPY.npy_intp> n_composed_interface
+      np_composed_ln_to_gn_sorted = NPY.PyArray_SimpleNewFromData(1,
+                                                  &dim,
+                                                  PDM_G_NUM_NPY_INT,
+                                                  <void *> composed_ln_to_gn_sorted)
+      PyArray_ENABLEFLAGS(np_composed_ln_to_gn_sorted, NPY.NPY_OWNDATA)
+
+    return (np_composed_interface_idx, np_composed_interface, np_composed_ln_to_gn_sorted)
 
   # ------------------------------------------------------------------
   def get_group(self,
@@ -448,5 +547,4 @@ cdef class PartExtension:
   def __dealloc__(self):
     """
     """
-    print("PartExtension::__dealloc__")
     PDM_part_extension_free(self._part_ext)

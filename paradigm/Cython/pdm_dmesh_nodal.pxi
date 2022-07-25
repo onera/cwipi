@@ -416,6 +416,9 @@ def dmesh_nodal_get_group(DMeshNodal pydmn, PDM_geometry_kind_t geom_kind):
   PDM_DMesh_nodal_update_ownership(pydmn.dmn, PDM_OWNERSHIP_USER)
   PDM_DMesh_nodal_section_group_elmt_get(pydmn.dmn, geom_kind, &n_group, &dgroup_elmt_idx, &dgroup_elmt);
 
+  if n_group == 0:
+    return None
+
   dim = <NPY.npy_intp> n_group + 1
   np_dgroup_elmt_idx = NPY.PyArray_SimpleNewFromData(1,
                                                      &dim,

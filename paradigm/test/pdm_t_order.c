@@ -67,9 +67,9 @@ compute_unique_idx
     int curr_elmt = connect_triplet[3*curr_idx+2];
     int is_same = is_same_triplet(last_proc, last_part, last_elmt,
                                   curr_proc, curr_part, curr_elmt);
-    printf(" curr:: ( %d / %d / %d ) | last:: ( %d / %d / %d ) \n",
-           curr_proc, curr_part, curr_elmt,
-           last_proc, last_part, last_elmt);
+    // printf(" curr:: ( %d / %d / %d ) | last:: ( %d / %d / %d ) \n",
+    //        curr_proc, curr_part, curr_elmt,
+    //        last_proc, last_part, last_elmt);
 
     if(is_same == 0){ // N'est pas le meme
       idx_unique++;
@@ -78,11 +78,11 @@ compute_unique_idx
       last_elmt = curr_elmt;
     }
     order_unique[i] = idx_unique;
-    printf("[%d] = %d --> %d \n", i, is_same, idx_unique);
+    // printf("[%d] = %d --> %d \n", i, is_same, idx_unique);
   }
 
 
-  if(1 == 1){
+  if(0 == 1){
     printf("order_unique:: \n");
     for(int i = 0; i < (int) nb_ent; i++){
       printf(" -------------------------- \n");
@@ -139,11 +139,11 @@ compute_unique_idx2
       last_elmt = curr_elmt;
     }
     order_unique[i] = idx_unique;
-    printf("[%d] = %d --> %d \n", i, is_same, idx_unique);
+    // printf("[%d] = %d --> %d \n", i, is_same, idx_unique);
   }
 
 
-  if(1 == 1){
+  if(0 == 1){
     printf("order_unique:: \n");
     for(int i = 0; i < (int) nb_ent; i++){
       printf(" -------------------------- \n");
@@ -231,20 +231,20 @@ char *argv[]
   int order_j1[nb_ent];
   PDM_order_lnum_s(connect_triplet_j1, stride, order_j1, nb_ent);
 
-  printf("order_j1:: ");
-  for(int i = 0; i < nb_ent; i++){
-    printf("%d ", order_j1[i]);
-  }
-  printf("\n");
+  // printf("order_j1:: ");
+  // for(int i = 0; i < nb_ent; i++){
+  //   printf("%d ", order_j1[i]);
+  // }
+  // printf("\n");
 
   int order_j2[nb_ent];
   PDM_order_lnum_s(connect_triplet_j2, stride, order_j2, nb_ent);
 
-  printf("order_j2:: ");
-  for(int i = 0; i < nb_ent; i++){
-    printf("%d ", order_j2[i]);
-  }
-  printf("\n");
+  // printf("order_j2:: ");
+  // for(int i = 0; i < nb_ent; i++){
+  //   printf("%d ", order_j2[i]);
+  // }
+  // printf("\n");
 
   /*
    * Unique

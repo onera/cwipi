@@ -111,12 +111,8 @@ PDM_multi_block_to_part_create
 
   mbtp->n_data_block = mbtp->n_rank * mbtp->n_block; /* All ranks have the same number of blocks */
 
-  mbtp->requested_block_idx = malloc (sizeof(int) * (mbtp->n_data_block + 1));
-  mbtp->requested_block_n   = malloc (sizeof(int) * (mbtp->n_data_block    ));
-  for (int i = 0; i < mbtp->n_data_block; i++) {
-    mbtp->requested_block_idx[i] = 0;
-    mbtp->requested_block_n  [i] = 0;
-  }
+  mbtp->requested_block_idx = PDM_array_zeros_int(mbtp->n_data_block + 1);
+  mbtp->requested_block_n   = PDM_array_zeros_int(mbtp->n_data_block);
 
   mbtp->n_elt = malloc (sizeof(int  ) * n_part);
   mbtp->ind   = malloc (sizeof(int *) * n_part);

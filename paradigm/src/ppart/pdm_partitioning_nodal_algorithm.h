@@ -49,7 +49,6 @@ PDM_reverse_dparent_gnum
 (
        PDM_g_num_t    *dparent_gnum,
        int            *dparent_sign,
-       PDM_g_num_t    *parent_distrib,
        PDM_g_num_t    *delmt_child_distrib,
        int             n_part,
        int            *pn_parent,
@@ -59,6 +58,23 @@ PDM_reverse_dparent_gnum
        PDM_g_num_t  ***pchild_parent_gnum,
        int          ***pchild_parent_sign,
  const PDM_MPI_Comm    comm
+);
+
+void
+PDM_generate_ho_vtx_ln_to_gn
+(
+ PDM_dmesh_nodal_t      *dmn,
+ int                     n_part,
+ int                    *pn_cell,
+ PDM_g_num_t           **pcell_ln_to_gn,
+ int                    *pn_face,
+ PDM_g_num_t           **pface_ln_to_gn,
+ int                    *pn_edge,
+ PDM_g_num_t           **pedge_ln_to_gn,
+ int                    *pn_vtx,
+ PDM_g_num_t           **pvtx_ln_to_gn,
+ int                   **pn_vtx_all,
+ PDM_g_num_t          ***vtx_all_ln_to_gn
 );
 
 #ifdef __cplusplus

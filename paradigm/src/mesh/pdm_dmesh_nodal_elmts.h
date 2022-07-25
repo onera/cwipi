@@ -59,6 +59,16 @@ PDM_DMesh_nodal_elmts_section_add
 const PDM_Mesh_nodal_elt_t     t_elt
 );
 
+
+int
+PDM_DMesh_nodal_elmts_section_ho_add
+(
+      PDM_dmesh_nodal_elmts_t *dmn_elts,
+const PDM_Mesh_nodal_elt_t     t_elt,
+const int                      order,
+const char                    *ho_ordering
+);
+
 void
 PDM_DMesh_nodal_elmts_update_ownership
 (
@@ -84,6 +94,15 @@ const int                n_group_elmt,
       int               *dgroup_elmt_idx,
       PDM_g_num_t       *dgroup_elmt,
       PDM_ownership_t    owner
+);
+
+void
+PDM_DMesh_nodal_elmts_group_get
+(
+ PDM_dmesh_nodal_elmts_t  *dmn_elts,
+ int                      *n_group_elmt,
+ int                     **dgroup_elmt_idx,
+ PDM_g_num_t             **dgroup_elmt
 );
 
 void
@@ -119,6 +138,15 @@ PDM_DMesh_nodal_elmts_section_std_get
 (
       PDM_dmesh_nodal_elmts_t *dmn_elts,
 const int                      id_section
+);
+
+PDM_g_num_t *
+PDM_DMesh_nodal_elmts_section_std_ho_get
+(
+      PDM_dmesh_nodal_elmts_t  *dmn_elts,
+const int                       id_section,
+      int                      *order,
+const char                    **ho_ordering
 );
 
 int
@@ -240,6 +268,21 @@ int                     *n_edge_elt_tot,
 int                     *n_sum_vtx_edge_tot
 );
 
+
+void
+PDM_DMesh_nodal_elmts_section_std_ho_reorder
+(
+      PDM_dmesh_nodal_elmts_t *dmn_elts,
+const int                      id_section,
+const char                    *ho_ordering
+);
+
+
+int
+PDM_dmesh_nodal_elmts_have_ho
+(
+ PDM_dmesh_nodal_elmts_t *dmn_elts
+);
 
 #ifdef __cplusplus
 }

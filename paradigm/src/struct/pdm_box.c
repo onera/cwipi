@@ -537,6 +537,33 @@ PDM_box_set_normalize_robust
   }
 }
 
+/**
+ *
+ * \brief Normalize a set of vectors according to a box set
+ *
+ * \param [in]   boxes              Pointer to box set structure
+ * \param [in]   n_pts              Number of coordinates
+ * \param [in]   pts_origin         Coordinates (size = 3 * \ref n_pts)
+ * \param [out]  pts_normalized     Normalized coordinates (size = 3 * \ref n_pts)
+ *
+ */
+
+void
+PDM_box_set_normalize_normal_vector
+(
+ PDM_box_set_t  *boxes,
+ const int       n_pts,
+ double         *pts_origin,
+ double         *pts_normalized
+ )
+{
+  for (int i = 0; i < n_pts; i++) {
+    for (int j = 0; j < boxes->dim; j++) {
+      pts_normalized[3*i + j] = pts_origin[3*i + j] * boxes->d[j]; // n'=(D^-1)^T*n (cf https://www.f-legrand.fr/scidoc/docimg/graphie/geometrie/affine/affine.html)
+    }
+  }
+}
+
 
 
 /**

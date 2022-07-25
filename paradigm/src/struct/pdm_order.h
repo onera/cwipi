@@ -85,6 +85,26 @@ int               order[],
 const size_t      nb_ent
 );
 
+
+int
+PDM_order_binary_search_long
+(
+ const PDM_g_num_t elt   [],
+ const PDM_g_num_t array [],
+ const size_t      stride,
+ const size_t      nb_ent
+);
+
+
+int
+PDM_order_inplace_unique_long
+(
+const int              n_entity,
+const size_t           stride,
+      PDM_g_num_t     *array,
+      int             *order
+);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
