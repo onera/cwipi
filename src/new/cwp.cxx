@@ -1703,7 +1703,7 @@ CWP_Mesh_interf_del
 
 /*
 void
-CWP_Mesh_interf_shared_fvm_nodal
+CWP_Mesh_interf_shared_pdm_nodal
 (
  const char   *local_code_name,
  const char   *cpl_id,
