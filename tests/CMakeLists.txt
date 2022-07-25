@@ -148,7 +148,7 @@ if (CWP_ENABLE_NEW_API)
     test_c_create (c_new_api_surf_P1P0_P0P1_part2 2)
     test_c_create (c_new_api_surf_P1P0_P0P1_without_part 2)
     test_fortran_create(fortran_new_api 10)
-#    test_fortran_create(fortran_new_api_surf 2)
+   test_fortran_create(fortran_new_api_surf 2)
 
     test_c_create (c_new_to_old_api 2)
     test_c_create (c_new_vs_old_vol 2)

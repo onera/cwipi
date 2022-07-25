@@ -372,7 +372,7 @@ module cwp
 
       subroutine CWP_Mesh_interf_f_poly_block_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
             i_part, block_id, n_elts, connec_idx, connec, global_num) &
-        bind(c, name = 'CWP_Mesh_interf_f_poly_block_set')
+        bind(c, name = 'CWP_Mesh_interf_f_poly_block_set_cf')
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id
