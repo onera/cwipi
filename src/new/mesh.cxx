@@ -142,6 +142,15 @@ namespace cwipi {
       if (_elt_in_block[i] != NULL) {
         free (_elt_in_block[i]);
       }
+
+      if (_isEltGnumComputed) {
+        free (_global_num_elt[i]); 
+      }
+
+      if (_isVtxGnumComputed) {
+        free (_global_num_vtx[i]); 
+      }
+
     }
 
     for (int i = 0; i < (int) _blockDB.size(); i++) {

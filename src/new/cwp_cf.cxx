@@ -1462,9 +1462,9 @@ CWP_Interp_from_location_set_cf (
 
   CWP_Interp_from_location_set(c_local_code_name, c_cpl_id, c_src_field_id, (CWP_Interp_from_location_t) ptInterpolationFct);
 
-  free(c_local_code_name);
-  free(c_cpl_id);
-  free(c_src_field_id);
+  delete [] c_local_code_name;
+  delete [] c_cpl_id;
+  delete [] c_src_field_id;
 }
 
 
@@ -1497,6 +1497,15 @@ CWP_Spatial_interp_property_set_cf
                                   c_property_name,
                                   c_property_type,
                                   c_property_value);
+
+  delete [] c_local_code_name;
+  delete [] c_cpl_id;
+  delete [] c_property_name;
+  delete [] c_property_type;
+  delete [] c_property_value;
+
+
+
 }
 
 
