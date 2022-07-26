@@ -20,13 +20,6 @@
 module cwp
     use iso_c_binding
 
-    ! CWP_Status_t
-    enum, bind(c)
-        enumerator :: &
-                CWP_STATUS_OFF, &
-                CWP_STATUS_ON
-    end enum
-
     ! CWP_Type_t
     enum, bind(c)
         enumerator :: &
@@ -46,8 +39,8 @@ module cwp
         enumerator :: &
                 CWP_COMM_PAR_WITH_PART, &
                 CWP_COMM_PAR_WITHOUT_PART, &
-                CWP_COMM_SEQ, &
-                CWP_COMM_INTERNAL
+                CWP_COMM_SEQ
+                ! CWP_COMM_INTERNAL
     end enum
 
     ! CWP_Time_exch_t
@@ -135,6 +128,36 @@ module cwp
                 CWP_DYNAMIC_MESH_VARIABLE
     end enum
 
+    ! CWP_Status_t
+    enum, bind(c)
+        enumerator :: &
+                CWP_STATUS_OFF, &
+                CWP_STATUS_ON
+    end enum
+
+    ! CWP_Err_t
+    enum, bind(c)
+      enumerator :: &
+        CWP_ERR_NO_ERROR, &
+        CWP_ERR_DEFAULT
+    end enum
+
+    ! CWP_State_t
+    enum, bind(c)
+      enumerator :: &
+        CWP_STATE_IN_PROGRESS, &
+        CWP_STATE_END,         &
+        CWP_STATE_OUTPUT_ERROR
+    end enum
+
+    ! CWP_Op_t
+    enum, bind(c)
+      enumerator :: &
+        CWP_OP_MIN, &
+        CWP_OP_MAX, &
+        CWP_OP_SUM
+    end enum
+
     interface
       subroutine CWP_Init_cf(fcomm, n_code, code_names, l_code_names, is_active_rank, time_init, intra_comms) &
               bind(c, name = 'CWP_Init_cf')
@@ -149,6 +172,52 @@ module cwp
         type(c_ptr),    value             :: intra_comms
       end subroutine CWP_Init_cf
 
+      subroutine CWP_State_update_cf(local_code_name, l_local_code_name, state) &
+        bind(c, name='CWP_State_update_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name
+        integer(c_int), value             :: l_local_code_name, state
+      end subroutine CWP_State_update_cf
+
+      subroutine CWP_Time_update_cf(local_code_name, l_local_code_name, current_time) &
+        bind(c, name='CWP_Time_update_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name
+        integer(c_int), value             :: l_local_code_name
+        real(c_double), value             :: current_time
+      end subroutine CWP_Time_update_cf
+
+      subroutine CWP_User_structure_set_cf(local_code_name, l_local_code_name, user_structure) &
+        bind (c, name="CWP_User_structure_set_cf")
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name
+        integer(c_int), value             :: l_local_code_name
+        type(c_ptr),    value             :: user_structure
+      end subroutine CWP_User_structure_set_cf
+
+      function CWP_User_structure_get_cf(local_code_name, l_local_code_name) &
+        result (user_structure)                                              &
+        bind (c, name="CWP_User_structure_get_cf")
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name
+        integer(c_int), value             :: l_local_code_name
+        type(c_ptr)                       :: user_structure
+      end function CWP_User_structure_get_cf
+
+      function CWP_State_get_cf(local_code_name, l_local_code_name) &
+        result (state)                                              &
+        bind(c, name='CWP_State_get_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name
+        integer(c_int), value             :: l_local_code_name
+        integer(c_int)                    :: state
+      end function CWP_State_get_cf
+
       subroutine CWP_Cpl_create_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, coupled_code_name, l_coupled_code_name, &
         entities_dim, comm_type, spatial_interp, n_part, displacement, freq) &
         bind(c, name = 'CWP_Cpl_create_cf')
@@ -156,12 +225,12 @@ module cwp
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id, coupled_code_name
         integer(c_int), value :: l_local_code_name, l_cpl_id, l_coupled_code_name
-        integer(kind = c_int), value :: entities_dim
-        integer(kind = c_int), value :: comm_type
-        integer(kind = c_int), value :: spatial_interp
-        integer(kind = c_int), value :: n_part
-        integer(kind = c_int), value :: displacement
-        integer(kind = c_int), value :: freq
+        integer(c_int), value :: entities_dim
+        integer(c_int), value :: comm_type
+        integer(c_int), value :: spatial_interp
+        integer(c_int), value :: n_part
+        integer(c_int), value :: displacement
+        integer(c_int), value :: freq
       end subroutine CWP_Cpl_Create_cf
 
       subroutine CWP_Cpl_del_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id) &
@@ -544,17 +613,280 @@ module cwp
         integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_property_name, l_property_type, l_property_value
       end subroutine CWP_Spatial_interp_property_set_cf
 
-  !>
-  !!
-  !! \brief Finalize CWIPI.
-  !!
-  !!
 
-  subroutine CWP_Finalize() &
-        bind(c, name = 'CWP_Finalize')
-  end subroutine CWP_Finalize
+    !>
+    !!
+    !! \brief Finalize CWIPI.
+    !!
+    !!
+
+    subroutine CWP_Finalize() &
+          bind(c, name = 'CWP_Finalize')
+    end subroutine CWP_Finalize
 
 
+    !>
+    !! \brief Return the number of codes known by CWIPI.
+    !!
+    !! \return Number of codes
+    !!
+    !!
+
+    function CWP_Codes_nb_get() &
+      result (n_codes)          &
+      bind(c, name='CWP_Codes_nb_get')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      integer(c_int) :: n_codes
+    end function CWP_Codes_nb_get
+
+
+    !>
+    !! \brief Return the number of local codes known by CWIPI.
+    !!
+    !! \return Number of local codes
+    !!
+    !!
+
+    function CWP_Loc_codes_nb_get() &
+      result (n_local_codes)        &
+      bind(c, name='CWP_Loc_codes_nb_get')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      integer(c_int) :: n_local_codes
+    end function CWP_Loc_codes_nb_get
+
+
+    !>
+    !! \brief Dump code properties.
+    !!
+    !!
+
+    subroutine CWP_Properties_dump() &
+      bind(c, name='CWP_Properties_dump')
+      use, intrinsic :: iso_c_binding
+      implicit none
+    end subroutine CWP_Properties_dump
+
+
+
+    subroutine CWP_Param_add_cf(local_code_name,   &
+                                l_local_code_name, &
+                                param_name,        &
+                                l_param_name,      &
+                                data_type,         &
+                                initial_value)     &
+      bind(c, name='CWP_Param_add_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, param_name
+      integer(c_int), value :: l_local_code_name, l_param_name
+      integer(c_int), value :: data_type
+      type(c_ptr),    value :: initial_value
+    end subroutine CWP_Param_add_cf
+
+
+    subroutine CWP_Param_set_cf(local_code_name,   &
+                                l_local_code_name, &
+                                param_name,        &
+                                l_param_name,      &
+                                data_type,         &
+                                value)             &
+      bind(c, name='CWP_Param_set_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, param_name
+      integer(c_int), value :: l_local_code_name, l_param_name
+      integer(c_int), value :: data_type
+      type(c_ptr),    value :: value
+    end subroutine CWP_Param_set_cf
+
+
+    subroutine CWP_Param_del_cf(local_code_name,   &
+                                l_local_code_name, &
+                                param_name,        &
+                                l_param_name,      &
+                                data_type)         &
+      bind(c, name='CWP_Param_del_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, param_name
+      integer(c_int), value :: l_local_code_name, l_param_name
+      integer(c_int), value :: data_type
+    end subroutine CWP_Param_del_cf
+
+
+    function CWP_Param_n_get_cf(local_code_name,   &
+                                l_local_code_name, &
+                                data_type)         &
+      result (n_param)                             &
+      bind(c, name='CWP_Param_n_get_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name
+      integer(c_int), value :: l_local_code_name
+      integer(c_int), value :: data_type
+      integer(c_int)        :: n_param
+    end function CWP_Param_n_get_cf
+
+
+    function CWP_Param_is_cf(local_code_name,   &
+                             l_local_code_name, &
+                             param_name,        &
+                             l_param_name,      &
+                             data_type)         &
+      result (is_param)                         &
+      bind(c, name='CWP_Param_is_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, param_name
+      integer(c_int), value :: l_local_code_name, l_param_name
+      integer(c_int), value :: data_type
+      integer(c_int)        :: is_param
+    end function CWP_Param_is_cf
+
+
+    subroutine CWP_Param_get_cf(local_code_name,   &
+                                l_local_code_name, &
+                                param_name,        &
+                                l_param_name,      &
+                                data_type,         &
+                                value)             &
+      bind(c, name='CWP_Param_get_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, param_name
+      integer(c_int), value :: l_local_code_name, l_param_name
+      integer(c_int), value :: data_type
+      type(c_ptr)           :: value
+    end subroutine CWP_Param_get_cf
+
+
+    subroutine CWP_Param_lock_cf(local_code_name,   &
+                                 l_local_code_name) &
+      bind(c, name='CWP_Param_lock_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name
+      integer(c_int), value :: l_local_code_name
+    end subroutine CWP_Param_lock_cf
+
+
+    subroutine CWP_Param_unlock_cf(local_code_name,   &
+                                   l_local_code_name) &
+      bind(c, name='CWP_Param_unlock_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name
+      integer(c_int), value :: l_local_code_name
+    end subroutine CWP_Param_unlock_cf
+
+
+    subroutine CWP_Mesh_interf_f_poly_block_get_cf(local_code_name,   &
+                                                   l_local_code_name, &
+                                                   cpl_id,            &
+                                                   l_cpl_id,          &
+                                                   i_part,            &
+                                                   block_id,          &
+                                                   n_elts,            &
+                                                   connec_idx,        &
+                                                   connec,            &
+                                                   global_num)        &
+      bind(c, name='CWP_Mesh_interf_f_poly_block_get_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, cpl_id
+      integer(c_int), value :: l_local_code_name, l_cpl_id
+      integer(c_int), value :: i_part, block_id
+      integer(c_int)        :: n_elts
+      type(c_ptr)           :: connec_idx, connec, global_num
+    end subroutine CWP_Mesh_interf_f_poly_block_get_cf
+
+
+    subroutine CWP_Mesh_interf_c_poly_block_get_cf(local_code_name,   &
+                                                   l_local_code_name, &
+                                                   cpl_id,            &
+                                                   l_cpl_id,          &
+                                                   i_part,            &
+                                                   block_id,          &
+                                                   n_elts,            &
+                                                   n_faces,           &
+                                                   connec_faces_idx,  &
+                                                   connec_faces,      &
+                                                   connec_cells_idx,  &
+                                                   connec_cells,      &
+                                                   global_num)        &
+      bind(c, name='CWP_Mesh_interf_c_poly_block_get_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, cpl_id
+      integer(c_int), value :: l_local_code_name, l_cpl_id
+      integer(c_int), value :: i_part, block_id
+      integer(c_int)        :: n_elts, n_faces
+      type(c_ptr)           :: connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num
+    end subroutine CWP_Mesh_interf_c_poly_block_get_cf
+
+
+    function CWP_Field_n_component_get_cf(local_code_name,   &
+                                          l_local_code_name, &
+                                          cpl_id,            &
+                                          l_cpl_id,          &
+                                          field_id,          &
+                                          l_field_id)        &
+      result (n_component)                                   &
+      bind(c, name='CWP_Field_n_component_get_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+      integer(c_int), value :: l_local_code_name, l_cpl_id, l_field_id
+      integer(c_int)        :: n_component
+    end function CWP_Field_n_component_get_cf
+
+
+    function CWP_Field_target_dof_location_get_cf(local_code_name,   &
+                                                  l_local_code_name, &
+                                                  cpl_id,            &
+                                                  l_cpl_id,          &
+                                                  field_id,          &
+                                                  l_field_id)        &
+      result (dof_location)                                          &
+      bind(c, name='CWP_Field_target_dof_location_get_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+      integer(c_int), value :: l_local_code_name, l_cpl_id, l_field_id
+      integer(c_int)        :: dof_location
+    end function CWP_Field_target_dof_location_get_cf
+
+
+    function CWP_Field_storage_get_cf(local_code_name,   &
+                                      l_local_code_name, &
+                                      cpl_id,            &
+                                      l_cpl_id,          &
+                                      field_id,          &
+                                      l_field_id)        &
+      result (storage)                                   &
+      bind(c, name='CWP_Field_storage_get_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+      integer(c_int), value :: l_local_code_name, l_cpl_id, l_field_id
+      integer(c_int)        :: storage
+    end function CWP_Field_storage_get_cf
+
+
+    subroutine CWP_Field_del_cf(local_code_name,   &
+                                l_local_code_name, &
+                                cpl_id,            &
+                                l_cpl_id,          &
+                                field_id,          &
+                                l_field_id)        &
+      bind(c, name='CWP_Field_del_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind = c_char, len = 1) :: local_code_name, cpl_id, field_id
+      integer(c_int), value :: l_local_code_name, l_cpl_id, l_field_id
+    end subroutine CWP_Field_del_cf
 
   end interface
 
@@ -606,41 +938,63 @@ contains
                      is_active_rank,      &
                      time_init,           &
                      c_loc(intra_comms))
+
   end subroutine CWP_Init
 
 
+  !>
+  !! \brief Update code state.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] state            State
+  !!
+  !!
+
+  subroutine CWP_State_update(local_code_name, &
+                              state)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name
+    integer(kind = c_int), intent(in) :: state
+    integer(c_int)                    :: l_local_code_name
+
+    l_local_code_name = len(local_code_name)
+
+    call CWP_State_update_cf(local_code_name,   &
+                             l_local_code_name, &
+                             state)
+
+  end subroutine CWP_State_update
 
 
-! /**
-!  * \brief Update code state.
-!  *
-!  * \param [in] local_code_name  Local code name
-!  * \param [in] state            State
-!  *
-!  */
+  !>
+  !! \brief Update code time.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in]  current_time Current time
+  !!
+  !!
 
-! void
-! CWP_State_update
-! (
-!  const char* local_code_name,
-!  const CWP_State_t state
-! );
+  subroutine CWP_Time_update(local_code_name, &
+                             current_time)
 
+    use, intrinsic :: iso_c_binding
+    implicit none
 
-! /**
-!  * \brief Update code time.
-!  *
-!  * \param [in] local_code_name  Local code name
-!  * \param [in]  current_time Current time
-!  *
-!  */
+    character(kind = c_char, len = *) :: local_code_name
+    double precision, intent(in)      :: current_time
+    integer(c_int)                    :: l_local_code_name
 
-! void
-! CWP_Time_update
-! (
-!  const char* local_code_name,
-!  const double current_time
-! );
+    l_local_code_name = len(local_code_name)
+
+    call CWP_Time_update_cf(local_code_name,   &
+                            l_local_code_name, &
+                            current_time)
+
+  end subroutine CWP_Time_update
+
 
 
 ! /**
@@ -667,71 +1021,90 @@ contains
 ! //);
 
 
-! /**
-!  * \brief Define a user structure associated to a code
-!  * 
-!  * This structure can be called into a callback 
-!  *
-!  * \param [in] local_code_name  Local code name
-!  * \param [in] user_structure   User structure
-!  *
-!  */
+  !>
+  !! \brief Define a user structure associated to a code
+  !!
+  !! This structure can be called into a callback
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] user_structure   User structure
+  !!
+  !!
 
-! void
-! CWP_User_structure_set
-! (
-!  const char* local_code_name,
-!        void* user_structure
-! );
+  subroutine CWP_User_structure_set(local_code_name, &
+                                    user_structure)
+    use, intrinsic :: iso_c_binding
+    implicit none
 
+    character(kind = c_char, len = *) :: local_code_name
+    type(c_ptr), value                :: user_structure
+    integer(c_int)                    :: l_local_code_name
 
-! /**
-!  * \brief Return the user structure associated 
-!  * 
-!  * This structure can be called into a callback 
-!  *
-!  * \param [in] local_code_name  Local code name
-!  * 
-!  * \return  User structure
-!  *
-!  */
+    l_local_code_name = len(local_code_name)
 
-! void *
-! CWP_User_structure_get
-! (
-!  const char* local_code_name
-! );
+    call CWP_User_structure_set_cf(local_code_name,   &
+                                 l_local_code_name, &
+                                 user_structure)
+
+  end subroutine CWP_User_structure_set
 
 
+  !>
+  !! \brief Return the user structure associated
+  !!
+  !! This structure can be called into a callback
+  !!
+  !! \param [in] local_code_name  Local code name
+  !!
+  !! \return  User structure
+  !!
+  !!
 
-! /**
-!  * \brief Return code state.
-!  *
-!  * \param [in]  code_name    Code name
-!  *
-!  * \return      Code state
-!  */
+  function CWP_User_structure_get(local_code_name) &
+    result (user_structure)
 
-! CWP_State_t
-! CWP_State_get
-! (
-!  const char    *code_name
-! );
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name
+    type(c_ptr)                       :: user_structure
+    integer(c_int)                    :: l_local_code_name
+
+    l_local_code_name = len(local_code_name)
+
+    user_structure = CWP_User_structure_get_cf(local_code_name,   &
+                                               l_local_code_name)
+
+  end function CWP_User_structure_get
 
 
 
-! /**
-!  * \brief Return the number of codes known by CWIPI.
-!  *
-!  * \return Number of codes
-!  *
-!  */
+  !>
+  !! \brief Return code state.
+  !!
+  !! \param [in]  code_name    Code name
+  !!
+  !! \return      Code state
+  !!
 
-! int
-! CWP_Codes_nb_get
-! (
-!  void
-! );
+  function CWP_State_get(local_code_name) &
+    result (state)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name
+    integer(c_int)                    :: state
+    integer(c_int)                    :: l_local_code_name
+
+    l_local_code_name = len(local_code_name)
+
+    state = CWP_State_get_cf(local_code_name,   &
+                             l_local_code_name)
+
+  end function CWP_State_get
+
+
 
 
 ! /**
@@ -748,19 +1121,6 @@ contains
 
 
 ! /**
-!  * \brief Return the number of local codes known by CWIPI.
-!  *
-!  * \return number of local codes.
-!  */
-
-! int
-! CWP_Loc_codes_nb_get
-! (
-!  void
-! );
-
-
-! /**
 !  * \brief Return the list of local code names known by CWIPI.
 !  *
 !  * \return list of local codes.
@@ -772,17 +1132,6 @@ contains
 !  void
 ! );
 
-
-! /**
-!  * \brief Dump code properties.
-!  *
-!  */
-
-! void
-! CWP_Properties_dump
-! (
-! void
-! );
 
   !>
   !! \brief Create a coupling object and define its properties.
@@ -1588,29 +1937,56 @@ contains
                                            c_global_num)
   end subroutine CWP_Mesh_interf_block_std_set
 
-! /**
-!  * \brief Get the properties of a standard block of the interface mesh.
-!  *
-!  * \param [in]  local_code_name  Local code name
-!  * \param [in]  cpl_id           Coupling identifier
-!  * \param [in]  i_part           Partition identifier
-!  * \param [in]  block_id         Block identifier
-!  * \param [out]  n_elts           Number of elements
-!  * \param [out]  connec           Connectivity (size = n_vertex_elt * n_elts)
-!  * \param [out]  global_num       Pointer to global element number (or NULL)
-!  */
 
-! void
-! CWP_Mesh_interf_block_std_get
-! (
-!  const char        *local_code_name,
-!  const char        *cpl_id,
-!  const int          i_part,
-!  const int          block_id,
-!  int               *n_elts,
-!  int              **connec,
-!  CWP_g_num_t      **global_num
-! );
+  !>
+  !! \brief Get the properties of a standard block of the interface mesh.
+  !!
+  !! \param [in]  local_code_name  Local code name
+  !! \param [in]  cpl_id           Coupling identifier
+  !! \param [in]  i_part           Partition identifier
+  !! \param [in]  block_id         Block identifier
+  !! \param [out]  n_elts           Number of elements
+  !! \param [out]  connec           Connectivity (size = n_vertex_elt * n_elts)
+  !! \param [out]  global_num       Pointer to global element number (or NULL)
+  !!
+
+  ! subroutine CWP_Mesh_interf_block_std_get(local_code_name, &
+  !                                          cpl_id,          &
+  !                                          i_part,          &
+  !                                          block_id,        &
+  !                                          n_elts,          &
+  !                                          connec,          &
+  !                                          global_num)
+
+  !   use, intrinsic :: iso_c_binding
+  !   implicit none
+
+  !   character(kind = c_char, len = *) :: local_code_name, cpl_id
+  !   integer(c_int) :: i_part, block_id, n_elts
+  !   integer(c_int),  dimension(:), pointer :: connec
+  !   integer(c_long), dimension(:), pointer :: global_num
+  !   integer(kind = c_int) :: l_local_code_name, l_cpl_id
+  !   type(c_ptr)      :: c_connec, c_global_num
+  !   interface(c_int) :: s_connec
+
+  !   l_local_code_name = len(local_code_name)
+  !   l_cpl_id          = len(cpl_id)
+
+  !   call CWP_Mesh_interf_block_std_get_cf(local_code_name,   &
+  !                                         l_local_code_name, &
+  !                                         cpl_id,            &
+  !                                         l_cpl_id,          &
+  !                                         i_part,            &
+  !                                         block_id,          &
+  !                                         n_elts,            &
+  !                                         c_connec,          &
+  !                                         c_global_num,      &
+  !                                         s_connec)
+
+  !   call c_f_pointer(c_global_num, global_num, [n_elts])
+  !   call c_f_pointer(c_connec,     connec,     [src_connec])
+
+  ! end subroutine CWP_Mesh_interf_block_std_get
 
 
   !>
@@ -1669,33 +2045,60 @@ contains
                                               c_global_num)
   end subroutine CWP_Mesh_interf_f_poly_block_set
 
-! /**
-!  * \brief Get the properties of a polygon block of the interface mesh partition.
-!  *
-!  * \param [in]  local_code_name  Local code name
-!  * \param [in]  cpl_id           Coupling identifier
-!  * \param [in]  i_part           Current partition
-!  * \param [in]  block_id         Block identifier
-!  * \param [out]  n_elts           Number of elements
-!  * \param [out]  connec_idx       Connectivity index (\p connec_id[0] = 0 and
-!  *                               size = \p n_elts + 1)
-!  * \param [out]  connec           Connectivity (size = \p connec_idx[\p n_elts])
-!  * \param [out]  global_num       Pointer to global element number (or NULL)
-!  *
-!  */
 
-! void
-! CWP_Mesh_interf_f_poly_block_get
-! (
-!  const char             *local_code_name,
-!  const char             *cpl_id,
-!  const int               i_part,
-!  const int               block_id,
-!  int                    *n_elts,
-!  int                   **connec_idx,
-!  int                   **connec,
-!  CWP_g_num_t           **global_num
-! );
+  !>
+  !! \brief Get the properties of a polygon block of the interface mesh partition.
+  !!
+  !! \param [in]  local_code_name  Local code name
+  !! \param [in]  cpl_id           Coupling identifier
+  !! \param [in]  i_part           Current partition
+  !! \param [in]  block_id         Block identifier
+  !! \param [out]  n_elts           Number of elements
+  !! \param [out]  connec_idx       Connectivity index (\p connec_id[0] = 0 and
+  !!                               size = \p n_elts + 1)
+  !! \param [out]  connec           Connectivity (size = \p connec_idx[\p n_elts])
+  !! \param [out]  global_num       Pointer to global element number (or NULL)
+  !!
+  !!
+
+  subroutine CWP_Mesh_interf_f_poly_block_get(local_code_name, &
+                                              cpl_id,          &
+                                              i_part,          &
+                                              block_id,        &
+                                              n_elts,          &
+                                              connec_idx,      &
+                                              connec,          &
+                                              global_num)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id
+    integer(c_int) :: i_part, block_id, n_elts
+    integer(c_int), dimension(:), pointer :: connec_idx, connec
+    integer(c_long), dimension(:), pointer :: global_num
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id
+    type(c_ptr) :: c_connec_idx, c_connec, c_global_num
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+
+    call CWP_Mesh_interf_f_poly_block_get_cf(local_code_name,   &
+                                             l_local_code_name, &
+                                             cpl_id,            &
+                                             l_cpl_id,          &
+                                             i_part,            &
+                                             block_id,          &
+                                             n_elts,            &
+                                             c_connec_idx,      &
+                                             c_connec,          &
+                                             c_global_num)
+
+    call c_f_pointer(c_connec_idx, connec_idx, [n_elts+1])
+    call c_f_pointer(c_connec,     connec,     [connec_idx(n_elts+1)])
+    call c_f_pointer(c_global_num, global_num, [n_elts])
+
+  end subroutine CWP_Mesh_interf_f_poly_block_get
 
 
   !>
@@ -1767,44 +2170,75 @@ contains
   end subroutine CWP_Mesh_interf_c_poly_block_set
 
 
-! /**
-!  * \brief Get the properties of a polyhedron block of the interface mesh partition..
-!  *
-!  * \param [in]  local_code_name   Local code name
-!  * \param [in]  cpl_id            Coupling identifier
-!  * \param [in]  i_part            Current partition
-!  * \param [in]  block_id          Block identifier
-!  * \param [out]  n_elts            Number of elements
-!  * \param [out]  connec_cells_idx  Polyhedron to face index
-!  *                                (\p src_poly_cell_face_idx[0] = 0 and
-!  *                                 size = \p n_elts + 1)
-!  * \param [out]  connec_cells      Polyhedron to face connectivity
-!  *                                (size = \p cell_face_idx[\p n_elts])
-!  * \param [out]  n_faces           Number of faces
-!  * \param [out]  connec_faces_idx  Polyhedron face to vertex index
-!  *                                (\p face_vertex_idx[0] = 0 and
-!  *                                 size = max(\p cell_face_connec) + 1)
-!  * \param [out]  connec_faces      Polyhedron face to vertex connectivity
-!  *                                (size = \p face_vertex_idx[\p n_elts])
-!  * \param [out]  global_num        Pointer to global element number (or NULL)
-!  *
-!  */
+  !>
+  !! \brief Get the properties of a polyhedron block of the interface mesh partition..
+  !!
+  !! \param [in]  local_code_name   Local code name
+  !! \param [in]  cpl_id            Coupling identifier
+  !! \param [in]  i_part            Current partition
+  !! \param [in]  block_id          Block identifier
+  !! \param [out]  n_elts            Number of elements
+  !! \param [out]  connec_cells_idx  Polyhedron to face index
+  !!                                (\p src_poly_cell_face_idx[0] = 0 and
+  !!                                 size = \p n_elts + 1)
+  !! \param [out]  connec_cells      Polyhedron to face connectivity
+  !!                                (size = \p cell_face_idx[\p n_elts])
+  !! \param [out]  n_faces           Number of faces
+  !! \param [out]  connec_faces_idx  Polyhedron face to vertex index
+  !!                                (\p face_vertex_idx[0] = 0 and
+  !!                                 size = max(\p cell_face_connec) + 1)
+  !! \param [out]  connec_faces      Polyhedron face to vertex connectivity
+  !!                                (size = \p face_vertex_idx[\p n_elts])
+  !! \param [out]  global_num        Pointer to global element number (or NULL)
+  !!
+  !!
 
-! void
-! CWP_Mesh_interf_c_poly_block_get
-! (
-!  const char           *local_code_name,
-!  const char           *cpl_id,
-!  const int             i_part,
-!  const int             block_id,
-!  int                  *n_elts,
-!  int                  *n_faces,
-!  int                 **connec_faces_idx,
-!  int                 **connec_faces,
-!  int                 **connec_cells_idx,
-!  int                 **connec_cells,
-!  CWP_g_num_t         **global_num
-! );
+  subroutine CWP_Mesh_interf_c_poly_block_get(local_code_name,  &
+                                              cpl_id,           &
+                                              i_part,           &
+                                              block_id,         &
+                                              n_elts,           &
+                                              n_faces,          &
+                                              connec_faces_idx, &
+                                              connec_faces,     &
+                                              connec_cells_idx, &
+                                              connec_cells,     &
+                                              global_num)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id
+    integer(c_int) :: i_part, block_id, n_elts, n_faces
+    integer(c_int),  dimension(:), pointer :: connec_faces_idx, connec_faces, connec_cells_idx, connec_cells
+    integer(c_long), dimension(:), pointer :: global_num
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id
+    type(c_ptr) :: c_connec_faces_idx, c_connec_faces, c_connec_cells_idx, c_connec_cells, c_global_num
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+
+    call CWP_Mesh_interf_c_poly_block_get_cf(local_code_name,    &
+                                             l_local_code_name,  &
+                                             cpl_id,             &
+                                             l_cpl_id,           &
+                                             i_part,             &
+                                             block_id,           &
+                                             n_elts,             &
+                                             n_faces,            &
+                                             c_connec_faces_idx, &
+                                             c_connec_faces,     &
+                                             c_connec_cells_idx, &
+                                             c_connec_cells,     &
+                                             c_global_num)
+
+    call c_f_pointer(c_connec_faces_idx, connec_faces_idx, [n_faces+1])
+    call c_f_pointer(c_connec_faces,     connec_faces,     [connec_faces_idx(n_faces+1)])
+    call c_f_pointer(c_connec_cells_idx, connec_cells_idx, [n_elts+1])
+    call c_f_pointer(c_connec_cells,     connec_cells,     [connec_cells_idx(n_elts+1)])
+    call c_f_pointer(c_global_num, global_num, [n_elts])
+
+  end subroutine CWP_Mesh_interf_c_poly_block_get
 
 
   !>
@@ -2061,81 +2495,151 @@ contains
                                 c_loc(data))
   end subroutine CWP_Field_data_set
 
-! /**
-!  *
-!  * \brief Get number of field components.
-!  *  * \param [in] local_code_name  Local code name
-!  * \param [in] cpl_id           Coupling identifier
-!  * \param [in] field_id         Field identifier
-!  *
-!  * \return                      number of field components
-!  *
-!  */
 
-! int
-! CWP_Field_n_component_get
-! (
-!  const char      *local_code_name,
-!  const char      *cpl_id,
-!  const char      *field_id
-! );
+  !>
+  !!
+  !! \brief Get number of field components.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] field_id         Field identifier
+  !!
+  !! \return                      number of field components
+  !!
+  !!
 
-! /**
-!  *
-!  * \brief Get target degrees of freedom location.
-!  *
-!  * \param [in] local_code_name  Local code name
-!  * \param [in] cpl_id           Coupling identifier
-!  * \param [in] field_id         Field identifier
-!  *
-!  * \return                      Location of degrees of freedom
-!  *
-!  */
+  function CWP_Field_n_component_get(local_code_name, &
+                                     cpl_id,          &
+                                     field_id)        &
+    result (n_component)
 
-! CWP_Dof_location_t
-! CWP_Field_target_dof_location_get
-! (
-!  const char      *local_code_name,
-!  const char      *cpl_id,
-!  const char      *field_id
-! );
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(c_int) :: n_component
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_field_id        = len(field_id)
+
+    n_component = CWP_Field_n_component_get_cf(local_code_name,   &
+                                               l_local_code_name, &
+                                               cpl_id,            &
+                                               l_cpl_id,          &
+                                               field_id,          &
+                                               l_field_id)
+
+  end function CWP_Field_n_component_get
 
 
-! /**
-!  *
-!  * \brief Get field storage type.
-!  *
-!  * \param [in] local_code_name  Local code name
-!  * \param [in] cpl_id           Coupling identifier
-!  * \param [in] field_id         Field identifier
-!  *
-!  * \return                      Field storage type
-!  */
+  !>
+  !!
+  !! \brief Get target degrees of freedom location.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] field_id         Field identifier
+  !!
+  !! \return                      Location of degrees of freedom
+  !!
+  !!
 
-! CWP_Field_storage_t
-! CWP_Field_storage_get
-! (
-!  const char      *local_code_name,
-!  const char      *cpl_id         ,
-!  const char      *field_id
-! );
+  function CWP_Field_target_dof_location_get(local_code_name, &
+                                             cpl_id,          &
+                                             field_id)        &
+    result (dof_location)
 
-! /**
-!  * \brief Delete a field.
-!  *
-!  * \param [in] local_code_name Local code name
-!  * \param [in]  cpl_id         Coupling identifier
-!  * \param [in]  field_id       Field identifier
-!  *
-!  */
+    use, intrinsic :: iso_c_binding
+    implicit none
 
-! void
-! CWP_Field_del
-! (
-!  const char      *local_code_name,
-!  const char      *cpl_id         ,
-!  const char      *field_id
-! );
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(c_int) :: dof_location
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_field_id        = len(field_id)
+
+    dof_location = CWP_Field_target_dof_location_get_cf(local_code_name,   &
+                                                        l_local_code_name, &
+                                                        cpl_id,            &
+                                                        l_cpl_id,          &
+                                                        field_id,          &
+                                                        l_field_id)
+
+  end function CWP_Field_target_dof_location_get
+
+
+  !>
+  !!
+  !! \brief Get field storage type.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] field_id         Field identifier
+  !!
+  !! \return                      Field storage type
+  !!
+
+  function CWP_Field_storage_get(local_code_name, &
+                                 cpl_id,          &
+                                 field_id)        &
+    result (storage)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(c_int) :: storage
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_field_id        = len(field_id)
+
+    storage = CWP_Field_storage_get_cf(local_code_name,   &
+                                       l_local_code_name, &
+                                       cpl_id,            &
+                                       l_cpl_id,          &
+                                       field_id,          &
+                                       l_field_id)
+
+  end function CWP_Field_storage_get
+
+
+  !>
+  !! \brief Delete a field.
+  !!
+  !! \param [in] local_code_name Local code name
+  !! \param [in]  cpl_id         Coupling identifier
+  !! \param [in]  field_id       Field identifier
+  !!
+  !!
+
+  subroutine CWP_Field_del(local_code_name, &
+                           cpl_id,          &
+                           field_id)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_field_id
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
+    l_field_id        = len(field_id)
+
+    call CWP_Field_del_cf(local_code_name,   &
+                          l_local_code_name, &
+                          cpl_id,            &
+                          l_cpl_id,          &
+                          field_id,          &
+                          l_field_id)
+
+  end subroutine CWP_Field_del
 
   !>
   !! \brief Send a spatially interpolated field to the coupled code with
@@ -2371,88 +2875,150 @@ contains
 !  *----------------------------------------------------------------------------*/
 
 
-! /**
-!  *
-!  * \brief Add a new parameter and intialize it.
-!  *
-!  * \param [in] local_code_name  Local code name
-!  * \param [in] param_name       Parameter name
-!  * \param [in] data_type        Parameter type
-!  * \param [in] initial_value    Initial value
-!  *
-!  */
+  !>
+  !!
+  !! \brief Add a new parameter and intialize it.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] param_name       Parameter name
+  !! \param [in] data_type        Parameter type
+  !! \param [in] initial_value    Initial value
+  !!
+  !!
 
-! void
-! CWP_Param_add
-! (
-!  const char        *local_code_name,
-!  const char        *param_name,
-!  const CWP_Type_t   data_type,
-!  void              *initial_value
-! );
+  subroutine CWP_Param_add(local_code_name, &
+                           param_name,      &
+                           data_type,       &
+                           initial_value)
 
+    use, intrinsic :: iso_c_binding
+    implicit none
 
-! /**
-!  *
-!  * \brief Set a parameter.
-!  *
-!  * \param [in] local_code_name  Local code name
-!  * \param [in] param_name       Parameter name
-!  * \param [in] data_type        Parameter type
-!  * \param [in] value            Value
-!  *
-!  */
+    character(kind = c_char, len = *) :: local_code_name
+    character(kind = c_char, len = *) :: param_name
+    integer, intent(in)               :: data_type
+    type(c_ptr), value                :: initial_value
+    integer(kind = c_int)             :: l_local_code_name, l_param_name
 
-! void
-! CWP_Param_set
-! (
-!  const char             *local_code_name,
-!  const char             *param_name,
-!  const CWP_Type_t        data_type,
-!  void                   *value
-! );
+    l_local_code_name = len(local_code_name)
+    l_param_name      = len(param_name)
+
+    call CWP_Param_add_cf(local_code_name,   &
+                          l_local_code_name, &
+                          param_name,        &
+                          l_param_name,      &
+                          data_type,         &
+                          initial_value)
+
+  end subroutine CWP_Param_add
 
 
-! /**
-!  *
-!  * \brief Delete a parameter.
-!  *
-!  * \param [in] local_code_name  Local code name
-!  * \param [in] param_name       Parameter name
-!  * \param [in] data_type        Parameter type,
-!  *
-!  */
 
-! void
-! CWP_Param_del
-! (
-!  const char       *local_code_name,
-!  const char       *param_name,
-!  const CWP_Type_t  data_type
-! );
+  !>
+  !!
+  !! \brief Set a parameter.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] param_name       Parameter name
+  !! \param [in] data_type        Parameter type
+  !! \param [in] value            Value
+  !!
+  !!
+
+  subroutine CWP_Param_set(local_code_name, &
+                           param_name,      &
+                           data_type,       &
+                           value)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name
+    character(kind = c_char, len = *) :: param_name
+    integer, intent(in)               :: data_type
+    type(c_ptr), value                :: value
+    integer(kind = c_int)             :: l_local_code_name, l_param_name
+
+    l_local_code_name = len(local_code_name)
+    l_param_name      = len(param_name)
+
+    call CWP_Param_set_cf(local_code_name,   &
+                          l_local_code_name, &
+                          param_name,        &
+                          l_param_name,      &
+                          data_type,         &
+                          value)
+
+  end subroutine CWP_Param_set
+
+
+  !>
+  !!
+  !! \brief Delete a parameter.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] param_name       Parameter name
+  !! \param [in] data_type        Parameter type,
+  !!
+  !!
+
+  subroutine CWP_Param_del(local_code_name, &
+                           param_name,      &
+                           data_type)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name
+    character(kind = c_char, len = *) :: param_name
+    integer, intent(in)               :: data_type
+    integer(kind = c_int)             :: l_local_code_name, l_param_name
+
+    l_local_code_name = len(local_code_name)
+    l_param_name      = len(param_name)
+
+    call CWP_Param_del_cf(local_code_name,   &
+                          l_local_code_name, &
+                          param_name,        &
+                          l_param_name,      &
+                          data_type)
+
+  end subroutine CWP_Param_del
 
 
 ! /*----------------------------------------------------------------------------*
 !  * Functions about all code parameters                                        *
 !  *----------------------------------------------------------------------------*/
 
-! /**
-!  *
-!  * \brief Return the number of parameters for the code \p code_name.
-!  *
-!  * \param [in] code_name       Local or distant code name
-!  * \param [in] data_type       Parameter type,
-!  *
-!  * return  Number of parameters
-!  *
-!  */
+  !>
+  !!
+  !! \brief Return the number of parameters for the code \p code_name.
+  !!
+  !! \param [in] code_name       Local or distant code name
+  !! \param [in] data_type       Parameter type,
+  !!
+  !! return  Number of parameters
+  !!
+  !!
 
-! int
-! CWP_Param_n_get
-! (
-!  const char             *code_name,
-!  const CWP_Type_t        data_type
-! );
+  function CWP_Param_n_get(code_name, &
+                           data_type) &
+    result (n_param)
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: code_name
+    integer, intent(in)               :: data_type
+    integer(kind = c_int)             :: l_code_name
+    integer                           :: n_param
+
+    l_code_name = len(code_name)
+
+    n_param = CWP_Param_n_get_cf(code_name,   &
+                                 l_code_name, &
+                                 data_type)
+
+  end function CWP_Param_n_get
 
 ! /**
 !  *
@@ -2475,45 +3041,82 @@ contains
 !  char                 ***paramNames
 ! );
 
-! /**
-!  *
-!  * \brief Is this \p code_name a parameter ?
-!  *
-!  * \param [in] code_name      Local or distant code name
-!  * \param [in] param_name     Parameter name
-!  * \param [in] data_type      Parameter type,
-!  *
-!  * return  1 : true / 0 : false
-!  *
-!  */
+  !>
+  !!
+  !! \brief Is this \p code_name a parameter ?
+  !!
+  !! \param [in] code_name      Local or distant code name
+  !! \param [in] param_name     Parameter name
+  !! \param [in] data_type      Parameter type,
+  !!
+  !! return  1 : true / 0 : false
+  !!
+  !!
 
-! int
-! CWP_Param_is
-! (
-!  const char             *code_name,
-!  const char             *param_name,
-!  const CWP_Type_t        data_type
-! );
+  function CWP_Param_is(code_name,  &
+                        param_name, &
+                        data_type)  &
+    result (is_param)
 
-! /**
-!  *
-!  * \brief Return the parameter value of \p param_name on \p code_name.
-!  *
-!  * \param [in]  code_name  Local or distant code name
-!  * \param [in]  param_name Parameter name
-!  * \param [in]  data_type  Parameter type
-!  * \param [out] value      Parameter value
-!  *
-!  */
+    use, intrinsic :: iso_c_binding
+    implicit none
 
-! void
-! CWP_Param_get
-! (
-!  const char       *code_name,
-!  const char       *param_name,
-!  const CWP_Type_t  data_type,
-!  void             *value
-! );
+    character(kind = c_char, len = *) :: code_name
+    character(kind = c_char, len = *) :: param_name
+    integer, intent(in)               :: data_type
+    integer(kind = c_int)             :: l_code_name
+    integer(kind = c_int)             :: l_param_name
+    integer                           :: is_param
+
+    l_code_name  = len(code_name)
+    l_param_name = len(param_name)
+
+    is_param = CWP_Param_is_cf(code_name,    &
+                               l_code_name,  &
+                               param_name,   &
+                               l_param_name, &
+                               data_type)
+
+  end function CWP_Param_is
+
+
+  !>
+  !!
+  !! \brief Return the parameter value of \p param_name on \p code_name.
+  !!
+  !! \param [in]  code_name  Local or distant code name
+  !! \param [in]  param_name Parameter name
+  !! \param [in]  data_type  Parameter type
+  !! \param [out] value      Parameter value
+  !!
+  !!
+
+  subroutine CWP_Param_get(code_name,  &
+                           param_name, &
+                           data_type,  &
+                           value)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: code_name
+    character(kind = c_char, len = *) :: param_name
+    integer, intent(in)               :: data_type
+    type(c_ptr)                       :: value
+    integer(kind = c_int)             :: l_code_name
+    integer(kind = c_int)             :: l_param_name
+
+    l_code_name  = len(code_name)
+    l_param_name = len(param_name)
+
+    call CWP_Param_get_cf(code_name,    &
+                          l_code_name,  &
+                          param_name,   &
+                          l_param_name, &
+                          data_type,    &
+                          value)
+
+  end subroutine CWP_Param_get
 
 ! /**
 !  *
@@ -2541,33 +3144,52 @@ contains
 !  ...
 ! );
 
-! /**
-!  *
-!  * \brief Lock access to local parameters from a distant code.
-!  *
-!  * \param [in]  code_name  Code to lock
-!  *
-!  */
+  !>
+  !!
+  !! \brief Lock access to local parameters from a distant code.
+  !!
+  !! \param [in]  code_name  Code to lock
+  !!
+  !!
 
-! void
-! CWP_Param_lock
-! (
-! const char *code_name
-! );
+  subroutine CWP_Param_lock(code_name)
 
-! /**
-!  *
-!  * \brief Unlock access to local parameters from a distant code.
-!  *
-!  * \param [in]  code_name  Code to unlock
-!  *
-!  */
+    use, intrinsic :: iso_c_binding
+    implicit none
 
-! void
-! CWP_Param_unlock
-! (
-! const char *code_name
-! );
+    character(kind = c_char, len = *) :: code_name
+    integer(kind = c_int)             :: l_code_name
+
+    l_code_name  = len(code_name)
+
+    call CWP_Param_lock_cf(code_name,  &
+                          l_code_name)
+
+  end subroutine CWP_Param_lock
+
+
+  !>
+  !!
+  !! \brief Unlock access to local parameters from a distant code.
+  !!
+  !! \param [in]  code_name  Code to unlock
+  !!
+  !!
+
+  subroutine CWP_Param_unlock(code_name)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: code_name
+    integer(kind = c_int)             :: l_code_name
+
+    l_code_name  = len(code_name)
+
+    call CWP_Param_unlock_cf(code_name,   &
+                             l_code_name)
+
+  end subroutine CWP_Param_unlock
 
 
 end module cwp

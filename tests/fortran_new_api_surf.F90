@@ -35,8 +35,23 @@ program testf
   integer(c_int)                :: n_computed_tgts
   integer(c_int),       pointer :: computed_tgts(:) => null()
 
+  integer(c_int),       target  :: toto
+  integer(c_int)                :: n_param
+  type(c_ptr)                   :: param_value = C_NULL_PTR
+  integer(c_int),       pointer :: tata => null()
+
+  integer(c_int)                :: n_vtx2, n_elt2
+  integer(c_int),       pointer :: connec_idx2(:) => null()
+  integer(c_int),       pointer :: connec2(:)     => null()
+  integer(c_long),      pointer :: vtx_g_num2(:)  => null()
+  integer(c_long),      pointer :: elt_g_num2(:)  => null()
+
   integer                       :: i, ivtx, n_wrong
   double precision              :: distance
+
+  character                     :: strnum
+  integer                       :: fid = 13
+  logical                       :: debug = .true.
   !--------------------------------------------------------------------
 
 
@@ -48,6 +63,11 @@ program testf
   if (n_rank /= 2) then
     print *, "n_rank must be 2"
     stop
+  endif
+
+  if (debug) then
+    write (strnum, '(i1)') i_rank
+    open(unit=fid, file="fortran_new_api_surf_"//strnum//".log", action='write')
   endif
 
 
@@ -80,6 +100,34 @@ program testf
                 time_init,       &
                 intra_comms)
 
+  !-->>
+  ! print *, "n_code =", CWP_Codes_nb_get()
+  ! print *, "n_local_code =", CWP_Loc_codes_nb_get()
+  ! print *, "state =", CWP_State_get(code_names(1))
+  ! call CWP_Properties_dump()
+
+  toto = 123456
+  if (code_names(1) == "code1") then
+    call CWP_Param_add("code1", "toto", CWP_INT, c_loc(toto))
+  endif
+
+  n_param = CWP_Param_n_get("code1", &
+                            CWP_INT)
+  print *, "n_param =", n_param
+
+  ! print *, code_names(1), ", param is? :", CWP_Param_is("code1",  &
+  !                                                       "toto", &
+  !                                                       CWP_INT)
+
+  if (code_names(1) == "code1") then
+    call CWP_Param_get("code1",  &
+                       "toto",   &
+                       CWP_INT,  &
+                       param_value)
+    call c_f_pointer(param_value, tata)
+    print *, "tata =", loc(tata)
+  endif
+  !<<--
 
   !! Create a coupling
   coupling_name = "fortran_new_api_surf"
@@ -136,6 +184,18 @@ program testf
 
   call CWP_Mesh_interf_finalize(code_names(1), &
                                 coupling_name)
+
+
+  !-->>
+  call CWP_Mesh_interf_f_poly_block_get(code_names(1), &
+                                        coupling_name, &
+                                        0,             &
+                                        id_block,      &
+                                        n_elt2,        &
+                                        connec_idx2,   &
+                                        connec2,       &
+                                        elt_g_num2)
+  !<<--
 
 
   !! Create fields
@@ -235,6 +295,11 @@ program testf
     enddo
 
     print *, "n_wrong =", n_wrong
+  endif
+
+
+  if (debug) then
+    close(fid)
   endif
 
 

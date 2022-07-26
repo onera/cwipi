@@ -1707,7 +1707,7 @@ CWP_Param_set
  *
  * \param [in] local_code_name  Local code name
  * \param [in] param_name       Parameter name
- * \param [in] data_type        Parameter type,
+ * \param [in] data_type        Parameter type
  *
  */
 
@@ -1769,7 +1769,7 @@ CWP_Param_list_get
  *
  * \param [in] code_name      Local or distant code name
  * \param [in] param_name     Parameter name
- * \param [in] data_type      Parameter type,
+ * \param [in] data_type      Parameter type
  *
  * return  1 : true / 0 : false
  *

@@ -202,6 +202,59 @@ CWP_Time_update_cf
 }
 
 
+/**
+ * \brief Define a user structure associated to a code
+ *
+ * This structure can be called into a callback
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] user_structure   User structure
+ *
+ */
+
+void
+CWP_User_structure_set_cf
+(
+ const char* local_code_name,
+ const int   l_local_code_name,
+       void* user_structure
+)
+{
+  char *c_local_code_name = _fortran_to_c_string(local_code_name, l_local_code_name);
+
+  CWP_User_structure_set (c_local_code_name, user_structure);
+
+  delete [] c_local_code_name;
+}
+
+
+/**
+ * \brief Return the user structure associated
+ *
+ * This structure can be called into a callback
+ *
+ * \param [in] local_code_name  Local code name
+ *
+ * \return  User structure
+ *
+ */
+
+void *
+CWP_User_structure_get_cf
+(
+ const char* local_code_name,
+ const int   l_local_code_name
+)
+{
+  char *c_local_code_name = _fortran_to_c_string(local_code_name, l_local_code_name);
+
+  void *user_structure = CWP_User_structure_get (c_local_code_name);
+
+  delete [] c_local_code_name;
+
+  return user_structure;
+}
+
 /*----------------------------------------------------------------------------*
  * Functions about other code properties                               *
  *----------------------------------------------------------------------------*/
@@ -706,6 +759,11 @@ void CWP_User_tgt_pts_set_cf (
 }
 
 
+/*----------------------------------------------------------------------------*
+ * Functions about Mesh                                                    *
+ *----------------------------------------------------------------------------*/
+
+
 /**
  * \brief Finalize interface mesh.
  *
@@ -933,6 +991,48 @@ CWP_Mesh_interf_block_std_set_cf (
 }
 
 
+// /**
+//  * \brief Get the properties of a standard block of the interface mesh.
+//  *
+//  * \param [in]  local_code_name  Local code name
+//  * \param [in]  cpl_id           Coupling identifier
+//  * \param [in]  i_part           Partition identifier
+//  * \param [in]  block_id         Block identifier
+//  * \param [out]  n_elts           Number of elements
+//  * \param [out]  connec           Connectivity (size = n_vertex_elt * n_elts)
+//  * \param [out]  global_num       Pointer to global element number (or NULL)
+//  */
+//
+// void
+// CWP_Mesh_interf_block_std_get_cf
+// (
+//  const char         *f_local_code_name,
+//        int           l_local_code_name,
+//  const char         *f_cpl_id,
+//        int           l_cpl_id,
+//  const int           i_part,
+//  const int           block_id,
+//        int          *n_elts,
+//        int         **connec,
+//        CWP_g_num_t **global_num,
+//        int          *s_connec
+// )
+// {
+//   char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+//   char *c_cpl_id          = _fortran_to_c_string(f_cpl_id,          l_cpl_id);
+//
+//   CWP_Mesh_interf_block_std_get(c_local_code_name,
+//                                 c_cpl_id,
+//                                 i_part,
+//                                 block_id,
+//                                 n_elts,
+//                                 connec,
+//                                 global_num);
+//
+//   delete [] c_local_code_name;
+//   delete [] c_cpl_id;
+// }
+
 /**
  * \brief Set the connectivity of a polygon block in a interface mesh partition.
  *
@@ -975,6 +1075,47 @@ CWP_Mesh_interf_f_poly_block_set_cf (
   delete [] c_cpl_id;
 }
 
+
+/**
+ * \brief Get the properties of a polygon block of the interface mesh partition.
+ *
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  i_part           Current partition
+ * \param [in]  block_id         Block identifier
+ * \param [out]  n_elts           Number of elements
+ * \param [out]  connec_idx       Connectivity index (\p connec_id[0] = 0 and
+ *                               size = \p n_elts + 1)
+ * \param [out]  connec           Connectivity (size = \p connec_idx[\p n_elts])
+ * \param [out]  global_num       Pointer to global element number (or NULL)
+ *
+ */
+
+void
+CWP_Mesh_interf_f_poly_block_get_cf
+(
+ const char         *f_local_code_name,
+       int           l_local_code_name,
+ const char         *f_cpl_id,
+       int           l_cpl_id,
+ const int           i_part,
+ const int           block_id,
+       int          *n_elts,
+       int         **connec_idx,
+       int         **connec,
+       CWP_g_num_t **global_num
+)
+{
+  char *c_local_code_name, *c_cpl_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id,          l_cpl_id);
+
+  CWP_Mesh_interf_f_poly_block_get(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, connec_idx, connec, global_num);
+
+  delete [] c_local_code_name;
+  delete [] c_cpl_id;
+}
 
 /**
  * \brief Adding a polyhedron connectivity block to the interface mesh.
@@ -1024,6 +1165,59 @@ CWP_Mesh_interf_c_poly_block_set_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
 
   CWP_Mesh_interf_c_poly_block_set(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, n_faces, connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num);
+
+  delete [] c_local_code_name;
+  delete [] c_cpl_id;
+}
+
+
+/**
+ * \brief Get the properties of a polyhedron block of the interface mesh partition..
+ *
+ * \param [in]  local_code_name   Local code name
+ * \param [in]  cpl_id            Coupling identifier
+ * \param [in]  i_part            Current partition
+ * \param [in]  block_id          Block identifier
+ * \param [out]  n_elts            Number of elements
+ * \param [out]  connec_cells_idx  Polyhedron to face index
+ *                                (\p src_poly_cell_face_idx[0] = 0 and
+ *                                 size = \p n_elts + 1)
+ * \param [out]  connec_cells      Polyhedron to face connectivity
+ *                                (size = \p cell_face_idx[\p n_elts])
+ * \param [out]  n_faces           Number of faces
+ * \param [out]  connec_faces_idx  Polyhedron face to vertex index
+ *                                (\p face_vertex_idx[0] = 0 and
+ *                                 size = max(\p cell_face_connec) + 1)
+ * \param [out]  connec_faces      Polyhedron face to vertex connectivity
+ *                                (size = \p face_vertex_idx[\p n_elts])
+ * \param [out]  global_num        Pointer to global element number (or NULL)
+ *
+ */
+
+void
+CWP_Mesh_interf_c_poly_block_get_cf
+(
+ const char         *f_local_code_name,
+       int           l_local_code_name,
+ const char         *f_cpl_id,
+       int           l_cpl_id,
+ const int           i_part,
+ const int           block_id,
+       int          *n_elts,
+       int          *n_faces,
+       int         **connec_faces_idx,
+       int         **connec_faces,
+       int         **connec_cells_idx,
+       int         **connec_cells,
+       CWP_g_num_t **global_num
+)
+{
+  char *c_local_code_name, *c_cpl_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id,          l_cpl_id);
+
+  CWP_Mesh_interf_c_poly_block_get(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, n_faces, connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
@@ -1273,6 +1467,159 @@ CWP_Field_data_set_cf (
 
 }
 
+
+/**
+ *
+ * \brief Get number of field components.
+ *  * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ *
+ * \return                      number of field components
+ *
+ */
+
+int
+CWP_Field_n_component_get_cf
+(
+ const char      *f_local_code_name,
+       int        l_local_code_name,
+ const char      *f_cpl_id,
+       int        l_cpl_id,
+ const char      *f_field_id,
+       int        l_field_id
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_field_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id,          l_cpl_id);
+  c_field_id        = _fortran_to_c_string(f_field_id,        l_field_id);
+
+  int n_component = CWP_Field_n_component_get(c_local_code_name, c_cpl_id, c_field_id);
+
+  delete [] c_local_code_name;
+  delete [] c_cpl_id;
+  delete [] c_field_id;
+
+  return n_component;
+}
+
+
+/**
+ *
+ * \brief Get target degrees of freedom location.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ *
+ * \return                      Location of degrees of freedom
+ *
+ */
+
+CWP_Dof_location_t
+CWP_Field_target_dof_location_get_cf
+(
+ const char      *f_local_code_name,
+       int        l_local_code_name,
+ const char      *f_cpl_id,
+       int        l_cpl_id,
+ const char      *f_field_id,
+       int        l_field_id
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_field_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id,          l_cpl_id);
+  c_field_id        = _fortran_to_c_string(f_field_id,        l_field_id);
+
+  CWP_Dof_location_t dof_location = CWP_Field_target_dof_location_get(c_local_code_name, c_cpl_id, c_field_id);
+
+  delete [] c_local_code_name;
+  delete [] c_cpl_id;
+  delete [] c_field_id;
+
+  return dof_location;
+}
+
+
+/**
+ *
+ * \brief Get field storage type.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ *
+ * \return                      Field storage type
+ */
+
+CWP_Field_storage_t
+CWP_Field_storage_get_cf
+(
+ const char      *f_local_code_name,
+       int        l_local_code_name,
+ const char      *f_cpl_id,
+       int        l_cpl_id,
+ const char      *f_field_id,
+       int        l_field_id
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_field_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id,          l_cpl_id);
+  c_field_id        = _fortran_to_c_string(f_field_id,        l_field_id);
+
+  CWP_Field_storage_t storage = CWP_Field_storage_get(c_local_code_name, c_cpl_id, c_field_id);
+
+  delete [] c_local_code_name;
+  delete [] c_cpl_id;
+  delete [] c_field_id;
+
+  return storage;
+}
+
+
+/**
+ * \brief Delete a field.
+ *
+ * \param [in] local_code_name Local code name
+ * \param [in]  cpl_id         Coupling identifier
+ * \param [in]  field_id       Field identifier
+ *
+ */
+
+void
+CWP_Field_del_cf
+(
+ const char      *f_local_code_name,
+       int        l_local_code_name,
+ const char      *f_cpl_id,
+       int        l_cpl_id,
+ const char      *f_field_id,
+       int        l_field_id
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_field_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id,          l_cpl_id);
+  c_field_id        = _fortran_to_c_string(f_field_id,        l_field_id);
+
+  CWP_Field_del(c_local_code_name, c_cpl_id, c_field_id);
+
+  delete [] c_local_code_name;
+  delete [] c_cpl_id;
+  delete [] c_field_id;
+}
+
+/*----------------------------------------------------------------------------*
+ * Functions about exchange                                                   *
+ *----------------------------------------------------------------------------*/
+
 /**
  * \brief Send a spatially interpolated field to the coupled code with
  *        nonblocking communications.
@@ -1497,18 +1844,317 @@ CWP_Spatial_interp_property_set_cf
                                   c_property_name,
                                   c_property_type,
                                   c_property_value);
-
   delete [] c_local_code_name;
   delete [] c_cpl_id;
   delete [] c_property_name;
   delete [] c_property_type;
   delete [] c_property_value;
-
-
-
 }
 
 
+/*----------------------------------------------------------------------------*
+ * Functions about control parameters                                         *
+ *----------------------------------------------------------------------------*/
+
+/**
+ *
+ * \brief Add a new parameter and intialize it.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] param_name       Parameter name
+ * \param [in] data_type        Parameter type
+ * \param [in] initial_value    Initial value
+ *
+ */
+
+void
+CWP_Param_add_cf
+(
+ const char        *f_local_code_name,
+ const int          l_local_code_name,
+ const char        *f_param_name,
+ const int          l_param_name,
+ const CWP_Type_t   data_type,
+ void              *initial_value
+)
+{
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_param_name      = _fortran_to_c_string(f_param_name,      l_param_name     );
+
+  CWP_Param_add(c_local_code_name,
+                c_param_name,
+                data_type,
+                initial_value);
+
+  delete [] c_local_code_name;
+  delete [] c_param_name;
+}
+
+
+/**
+ *
+ * \brief Set a parameter.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] param_name       Parameter name
+ * \param [in] data_type        Parameter type
+ * \param [in] value            Value
+ *
+ */
+
+void
+CWP_Param_set_cf
+(
+ const char        *f_local_code_name,
+ const int          l_local_code_name,
+ const char        *f_param_name,
+ const int          l_param_name,
+ const CWP_Type_t   data_type,
+ void              *value
+)
+{
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_param_name      = _fortran_to_c_string(f_param_name,      l_param_name     );
+
+  CWP_Param_set(c_local_code_name,
+                c_param_name,
+                data_type,
+                value);
+
+  delete [] c_local_code_name;
+  delete [] c_param_name;
+}
+
+/**
+ *
+ * \brief Delete a parameter.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] param_name       Parameter name
+ * \param [in] data_type        Parameter type
+ *
+ */
+
+void
+CWP_Param_del_cf
+(
+ const char       *f_local_code_name,
+ const int         l_local_code_name,
+ const char       *f_param_name,
+ const int         l_param_name,
+ const CWP_Type_t  data_type
+)
+{
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_param_name      = _fortran_to_c_string(f_param_name,      l_param_name     );
+
+  CWP_Param_del(c_local_code_name,
+                c_param_name,
+                data_type);
+
+  delete [] c_local_code_name;
+  delete [] c_param_name;
+}
+
+
+/*----------------------------------------------------------------------------*
+ * Functions about all code parameters                                        *
+ *----------------------------------------------------------------------------*/
+
+/**
+ *
+ * \brief Return the number of parameters for the code \p code_name.
+ *
+ * \param [in] code_name       Local or distant code name
+ * \param [in] data_type       Parameter type,
+ *
+ * return  Number of parameters
+ *
+ */
+
+int
+CWP_Param_n_get_cf
+(
+ const char             *f_code_name,
+ const int               l_code_name,
+ const CWP_Type_t        data_type
+)
+{
+  char *c_code_name = _fortran_to_c_string(f_code_name, l_code_name);
+
+  int n_param = CWP_Param_n_get(c_code_name,
+                                data_type);
+
+  delete [] c_code_name;
+
+  return n_param;
+}
+
+
+// /**
+//  *
+//  * \brief Return the list of parameters for the code \p code_name.
+//  *
+//  * \param [in]  code_name      Local or distant code name
+//  * \param [in]  data_type      Parameter type,
+//  * \param [out] nParam         Number of parameters
+//  * \param [out] paramNames     Parameter names
+//  *
+//  *
+//  */
+//
+// void
+// CWP_Param_list_get
+// (
+//  const char             *code_name,
+//  const CWP_Type_t        data_type,
+//  int                    *nParam,
+//  char                 ***paramNames
+// )
+
+
+/**
+ *
+ * \brief Is this \p code_name a parameter ?
+ *
+ * \param [in] code_name      Local or distant code name
+ * \param [in] param_name     Parameter name
+ * \param [in] data_type      Parameter type
+ *
+ * return  1 : true / 0 : false
+ *
+ */
+
+int
+CWP_Param_is_cf
+(
+ const char            *f_code_name,
+ const int              l_code_name,
+ const char            *f_param_name,
+ const int              l_param_name,
+ const CWP_Type_t       data_type
+)
+{
+  char *c_code_name  = _fortran_to_c_string(f_code_name,  l_code_name);
+  char *c_param_name = _fortran_to_c_string(f_param_name, l_param_name);
+
+  int is_param = CWP_Param_is(c_code_name,
+                              c_param_name,
+                              data_type);
+
+  delete [] c_code_name;
+  delete [] c_param_name;
+
+  return is_param;
+}
+
+
+/**
+ *
+ * \brief Return the parameter value of \p param_name on \p code_name.
+ *
+ * \param [in]  code_name  Local or distant code name
+ * \param [in]  param_name Parameter name
+ * \param [in]  data_type  Parameter type
+ * \param [out] value      Parameter value
+ *
+ */
+
+void
+CWP_Param_get_cf
+(
+ const char       *f_code_name,
+ const int         l_code_name,
+ const char       *f_param_name,
+ const int         l_param_name,
+ const CWP_Type_t  data_type,
+ void             *value
+)
+{
+  char *c_code_name  = _fortran_to_c_string(f_code_name,  l_code_name);
+  char *c_param_name = _fortran_to_c_string(f_param_name, l_param_name);
+
+  CWP_Param_get(c_code_name,
+                c_param_name,
+                data_type,
+                value);
+
+  delete [] c_code_name;
+  delete [] c_param_name;
+}
+
+
+// /**
+//  *
+//  * \brief Return the result of a reduce operation about a parameter.
+//  *
+//  * The parameter name has to be the same for all codes.
+//  *
+//  * \param [in]  op           Operation
+//  * \param [in]  param_name   Parameter name
+//  * \param [in]  data_type    Parameter type,
+//  * \param [out] res          Result
+//  * \param [in]  nCode        Number of codes
+//  * \param       ...          Codes name
+//  *
+//  */
+//
+// void
+// CWP_Param_reduce
+// (
+//  const CWP_Op_t    op,
+//  const char       *param_name,
+//  const CWP_Type_t  data_type,
+//  void             *res,
+//  const int         nCode,
+//  ...
+// );
+
+
+/**
+ *
+ * \brief Lock access to local parameters from a distant code.
+ *
+ * \param [in]  code_name  Code to lock
+ *
+ */
+
+void
+CWP_Param_lock_cf
+(
+ const char *f_code_name,
+ const int   l_code_name
+ )
+{
+  char *c_code_name = _fortran_to_c_string(f_code_name, l_code_name);
+
+  CWP_Param_lock(c_code_name);
+
+  delete [] c_code_name;
+}
+
+
+/**
+ *
+ * \brief Unlock access to local parameters from a distant code.
+ *
+ * \param [in]  code_name  Code to unlock
+ *
+ */
+
+void
+CWP_Param_unlock_cf
+(
+ const char *f_code_name,
+ const int   l_code_name
+ )
+{
+  char *c_code_name = _fortran_to_c_string(f_code_name, l_code_name);
+
+  CWP_Param_unlock(c_code_name);
+
+  delete [] c_code_name;
+}
 
 /*----------------------------------------------------------------------------*/
 
