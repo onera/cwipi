@@ -968,4 +968,177 @@ CWP_Interp_from_location_set_cf(
   void* ptInterpolationFct
 );
 
+
+/*----------------------------------------------------------------------------*
+ * Functions about control parameters                                         *
+ *----------------------------------------------------------------------------*/
+
+/**
+ *
+ * \brief Add a new parameter and intialize it.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] param_name       Parameter name
+ * \param [in] data_type        Parameter type
+ * \param [in] initial_value    Initial value
+ *
+ */
+
+void
+CWP_Param_add_cf
+(
+ const char        *f_local_code_name,
+ const int          l_local_code_name,
+ const char        *f_param_name,
+ const int          l_param_name,
+ const CWP_Type_t   data_type,
+ void              *initial_value
+);
+
+
+/**
+ *
+ * \brief Set a parameter.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] param_name       Parameter name
+ * \param [in] data_type        Parameter type
+ * \param [in] value            Value
+ *
+ */
+
+void
+CWP_Param_set_cf
+(
+ const char        *f_local_code_name,
+ const int          l_local_code_name,
+ const char        *f_param_name,
+ const int          l_param_name,
+ const CWP_Type_t   data_type,
+ void              *value
+);
+
+
+/**
+ *
+ * \brief Delete a parameter.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] param_name       Parameter name
+ * \param [in] data_type        Parameter type
+ *
+ */
+
+void
+CWP_Param_del_cf
+(
+ const char       *f_local_code_name,
+ const int         l_local_code_name,
+ const char       *f_param_name,
+ const int         l_param_name,
+ const CWP_Type_t  data_type
+);
+
+
+/*----------------------------------------------------------------------------*
+ * Functions about all code parameters                                        *
+ *----------------------------------------------------------------------------*/
+
+/**
+ *
+ * \brief Return the number of parameters for the code \p code_name.
+ *
+ * \param [in] code_name       Local or distant code name
+ * \param [in] data_type       Parameter type,
+ *
+ * return  Number of parameters
+ *
+ */
+
+int
+CWP_Param_n_get_cf
+(
+ const char             *f_code_name,
+ const int               l_code_name,
+ const CWP_Type_t        data_type
+);
+
+
+/**
+ *
+ * \brief Is this \p code_name a parameter ?
+ *
+ * \param [in] code_name      Local or distant code name
+ * \param [in] param_name     Parameter name
+ * \param [in] data_type      Parameter type
+ *
+ * return  1 : true / 0 : false
+ *
+ */
+
+int
+CWP_Param_is_cf
+(
+ const char            *f_code_name,
+ const int              l_code_name,
+ const char            *f_param_name,
+ const int              l_param_name,
+ const CWP_Type_t       data_type
+);
+
+
+/**
+ *
+ * \brief Return the parameter value of \p param_name on \p code_name.
+ *
+ * \param [in]  code_name  Local or distant code name
+ * \param [in]  param_name Parameter name
+ * \param [in]  data_type  Parameter type
+ * \param [out] value      Parameter value
+ *
+ */
+
+void
+CWP_Param_get_cf
+(
+ const char       *f_code_name,
+ const int         l_code_name,
+ const char       *f_param_name,
+ const int         l_param_name,
+ const CWP_Type_t  data_type,
+ void             *value
+);
+
+
+/**
+ *
+ * \brief Lock access to local parameters from a distant code.
+ *
+ * \param [in]  code_name  Code to lock
+ *
+ */
+
+void
+CWP_Param_lock_cf
+(
+ const char *f_code_name,
+ const int   l_code_name
+);
+
+/**
+ *
+ * \brief Unlock access to local parameters from a distant code.
+ *
+ * \param [in]  code_name  Code to unlock
+ *
+ */
+
+void
+CWP_Param_unlock_cf
+(
+ const char *f_code_name,
+ const int   l_code_name
+);
+
+
 #endif //CWP_CF_H_
