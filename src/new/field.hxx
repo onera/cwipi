@@ -216,9 +216,26 @@ namespace cwipi {
     void interpFromLocationSet(CWP_Interp_from_location_t fct)
     {
       _interpolationType     = CWP_INTERPOLATION_USER ;
-      _interpolationFunction = fct                    ;
+      _interpolationFunction = fct;
     }
 
+    void interpFromLocationUnSet()
+    {
+      _interpolationType     = CWP_INTERPOLATION_DEFAULT ;
+      _interpolationFunction = NULL;
+    }
+
+    void interpFortranFromLocationSet(void* fct)
+    {
+      _interpolationType     = CWP_INTERPOLATION_USER ;
+      _interpolationFunction_f = fct;
+    }
+
+    void interpFortranFromLocationUnSet()
+    {
+      _interpolationType     = CWP_INTERPOLATION_DEFAULT ;
+      _interpolationFunction_f = NULL;
+    }
 
     CWP_Interp_from_location_t interpolationFunctionGet() {
       return _interpolationFunction;

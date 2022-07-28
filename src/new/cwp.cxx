@@ -1779,11 +1779,7 @@ CWP_Interp_from_location_unset
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  CWP_UNUSED (cpl);
-  CWP_UNUSED (src_field_id);
-  printf("CWP_Interp_from_location_unset : Not implemented yet\n");
-  abort();
-//  cpl.interpFromLocUnSet(src_field_id,fct);
+  cpl.interpFromLocUnSet(src_field_id);
 }
 
 

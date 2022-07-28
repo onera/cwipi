@@ -856,6 +856,31 @@ namespace cwipi {
     }
   }
 
+  /**
+   *
+   * \brief Setting of an user interpolation from location.
+   *
+   * This function takes into account an user interpolation function written with
+   *  void (* \ref CWP_Interp_from_location_t) interface.
+   *
+   * \param [in] fct        Function
+   *
+   */
+
+  inline void
+  Coupling::interpFromLocUnSet ( 
+    const string field_id
+  )
+  {
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
+    if (It == _fields.end()) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "'%s' not existing field\n", field_id.c_str());
+    }
+    else {
+      It -> second -> interpFromLocationUnSet();
+    }
+  }
 
   /**
    *
@@ -869,12 +894,46 @@ namespace cwipi {
    */
 
   void
-  Coupling::interpFromLocSetF (
-    void       *fct
+  Coupling::interpFortranFromLocSet (
+    const string  field_id,
+    void         *fct
   )
   {
-    PDM_UNUSED (fct);
-    PDM_error(__FILE__, __LINE__, 0, "\ninterpFromLocSetF not implemented yet\n");
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
+    if (It == _fields.end()) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "'%s' not existing field\n", field_id.c_str());
+    }
+    else {
+      It -> second -> interpFortranFromLocationSet(fct);
+    }
+  }
+
+
+  /**
+   *
+   * \brief Setting of a FORTRAN user interpolation from location.
+   *
+   * This function takes into account an user interpolation function written
+   * in FORTRAN .
+   *
+   * \param [in] fct        Function
+   *
+   */
+
+  void
+  Coupling::interpFortranFromLocUnSet (
+    const string  field_id
+  )
+  {
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
+    if (It == _fields.end()) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "'%s' not existing field\n", field_id.c_str());
+    }
+    else {
+      It -> second -> interpFortranFromLocationUnSet();
+    }
   }
 
   /**

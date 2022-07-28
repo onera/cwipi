@@ -923,6 +923,22 @@ namespace cwipi {
 
     /**
      *
+     * \brief Setting of an user interpolation from location.
+     *
+     * This function takes into account an user interpolation function written with
+     *  void (* \ref CWP_Interp_from_location_t) interface.
+     *
+     * \param [in] fct        Function
+     *
+     */
+
+    inline void
+    interpFromLocUnSet ( 
+      const string field_id
+    );
+
+    /**
+     *
      * \brief Setting of a FORTRAN user interpolation from location.
      *
      * This function takes into account an user interpolation function written
@@ -933,8 +949,25 @@ namespace cwipi {
      */
 
     inline void
-    interpFromLocSetF (
+    interpFortranFromLocSet (
+      const string field_id,
       void       *fct
+    );
+
+    /**
+     *
+     * \brief Setting of a FORTRAN user interpolation from location.
+     *
+     * This function takes into account an user interpolation function written
+     * in FORTRAN .
+     *
+     * \param [in] fct        Function
+     *
+     */
+
+    inline void
+    interpFortranFromLocUnSet (
+      const string field_id
     );
 
     /**

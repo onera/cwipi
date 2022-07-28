@@ -13,8 +13,40 @@
  *----------------------------------------------------------------------------*/
 
 #include "pdm_logging.h"
+
 #include "cwp.h"
 #include "cwp_cf.h"
+#include "cwipi_config.h"
+#include "factory.hpp"
+#include "codeProperties.hxx"
+#include "codePropertiesDB.hxx"
+#include "codePropertiesDB_i.hxx"
+#include "couplingDB.hxx"
+#include "couplingDB_i.hxx"
+#include "coupling.hxx"
+#include "coupling_i.hxx"
+#include "commWithPart.hxx"
+#include "commWithoutPart.hxx"
+#include "commSeq.hxx"
+#include "field.hxx"
+#include "pdm.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
+#include "pdm_logging.h"
+#include "surfMeshGenerator.hxx"
+#include "surfMeshGeneratorDB.hxx"
+#include "spatialInterpClosestPoint.hxx"
+#include "spatialInterpIntersection.hxx"
+#include "spatialInterpLocationDistSurf.hxx"
+#include "spatialInterpLocationMeshLocation.hxx"
+
+#include "mesh.hxx"
+#include "block.hxx"
+#include "blockStd.hxx"
+#include "blockFP.hxx"
+#include "blockCP.hxx"
+#include <algorithm>
+#include <vector>
 
 /*----------------------------------------------------------------------------*/
 
@@ -40,6 +72,25 @@ using namespace std;
 /*============================================================================
  * Private function definitions
  *============================================================================*/
+
+
+static cwipi::Coupling&
+_cpl_get
+(
+ const char *local_code_name,
+ const char *cpl_id
+ )
+{
+  cwipi::CouplingDB & couplingDB =
+    cwipi::CouplingDB::getInstance();
+
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+
+   const string &cpl_name_str = cpl_id;
+   return couplingDB.couplingGet (properties.codePropertiesGet(string(local_code_name)),
+                                 cpl_name_str);
+}
 
 
 static char *
@@ -2147,13 +2198,96 @@ CWP_Param_unlock_cf
 (
  const char *f_code_name,
  const int   l_code_name
- )
+)
 {
   char *c_code_name = _fortran_to_c_string(f_code_name, l_code_name);
 
   CWP_Param_unlock(c_code_name);
 
   delete [] c_code_name;
+}
+
+/**
+ *
+ * \brief Setting of an fortran user interpolation from location.
+ *
+ * This function takes into account a fortran user interpolation function written with
+ * void (*\ref CWP_Interp_from_location_t) interface.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] src_field_id     Source field id
+ * \param [in] fct              Function
+ *
+ */
+
+void
+CWP_Interp_from_location_fortran_set
+(
+ const char *f_code_name,
+ const int   l_code_name,
+ const char *f_cpl_id,
+ const int   l_cpl_id, 
+ const char *f_src_field_id, 
+ const int   l_src_field_id,
+ void*       fct
+)
+{
+  char *c_code_name    = _fortran_to_c_string(f_code_name, l_code_name);
+  char *c_cpl_id       = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  char *c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
+
+  const string &field_name_str = c_src_field_id;
+
+  cwipi::Coupling& cpl = _cpl_get(c_code_name, c_cpl_id);
+
+  cpl.interpFortranFromLocSet(field_name_str, fct);
+
+  delete [] c_code_name;
+  delete [] c_cpl_id;
+  delete [] c_src_field_id;
+
+}
+
+/**
+ *
+ * \brief Setting of an fortran user interpolation from location.
+ *
+ * This function takes into account a fortran user interpolation function written with
+ * void (*\ref CWP_Interp_from_location_t) interface.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] src_field_id     Source field id
+ * \param [in] fct              Function
+ *
+ */
+
+void
+CWP_Interp_from_location_fortran_unset
+(
+ const char *f_code_name,
+ const int   l_code_name,
+ const char *f_cpl_id,
+ const int   l_cpl_id, 
+ const char *f_src_field_id, 
+ const int   l_src_field_id
+)
+{
+  char *c_code_name    = _fortran_to_c_string(f_code_name, l_code_name);
+  char *c_cpl_id       = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  char *c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
+
+  const string &field_name_str = c_src_field_id;
+
+  cwipi::Coupling& cpl = _cpl_get(c_code_name, c_cpl_id);
+
+  cpl.interpFortranFromLocUnSet(field_name_str);
+
+  delete [] c_code_name;
+  delete [] c_cpl_id;
+  delete [] c_src_field_id;
+
 }
 
 /*----------------------------------------------------------------------------*/

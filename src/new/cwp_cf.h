@@ -1140,5 +1140,56 @@ CWP_Param_unlock_cf
  const int   l_code_name
 );
 
+/**
+ *
+ * \brief Setting of an fortran user interpolation from location.
+ *
+ * This function takes into account a fortran user interpolation function written with
+ * void (*\ref CWP_Interp_from_location_t) interface.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] src_field_id     Source field id
+ * \param [in] fct              Function
+ *
+ */
+
+void
+CWP_Interp_from_location_fortran_set
+(
+ const char *f_code_name,
+ const int   l_code_name,
+ const char *f_cpl_id,
+ const int   l_cpl_id, 
+ const char *f_src_field_id, 
+ const int   l_src_field_id,
+ void*       fct
+);
+
+/**
+ *
+ * \brief Setting of an fortran user interpolation from location.
+ *
+ * This function takes into account a fortran user interpolation function written with
+ * void (*\ref CWP_Interp_from_location_t) interface.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] src_field_id     Source field id
+ * \param [in] fct              Function
+ *
+ */
+
+void
+CWP_Interp_from_location_fortran_unset
+(
+ const char *f_code_name,
+ const int   l_code_name,
+ const char *f_cpl_id,
+ const int   l_cpl_id, 
+ const char *f_src_field_id, 
+ const int   l_src_field_id
+);
+
 
 #endif //CWP_CF_H_
