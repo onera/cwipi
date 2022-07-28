@@ -25,6 +25,40 @@
 #include "coupling.hxx"
 #include "coupling_i.hxx"
 
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
+extern "C" {
+  void PROCF(callfortlocinterpfct, CALLFORTLOCINTERPFCT)
+  (
+    int    *interface_type,
+    char   *code_name,
+    int    *src_n_block,
+    int    *src_blocks_type,
+    int    *src_i_part,
+    int    *src_n_vtx,
+    double *src_vtx_coords,
+    int    *src_vtx_global_num,
+    int    *src_n_elts,
+    int    *src_id_block,
+    int    *src_elt_in_block,
+    int    *src_elt_vtx_idx,
+    int    *src_elt_vtx,
+    int    *src_elts_global_num,
+    int    *tgt_n_pts,
+    int    *tgt_pts_elt_idx,
+    double *tgt_pts_coords,
+    double *tgt_pts_dist,
+    double *tgt_pts_uvw,
+    int    *tgt_pts_weights_idx,
+    double *tgt_pts_weights,
+    int    *stride,
+    int    *src_field_dof_location,
+    void   *src_field,
+    void   *tgt_field,
+    void   *ptFortranLocInterpolationFct
+  );
+}
+#endif
+
 /**
  * \cond
  */
@@ -567,42 +601,51 @@ namespace cwipi {
     if (interpolationType == CWP_INTERPOLATION_USER) {
 
       CWP_Interp_from_location_t interpolationFunction = referenceField->interpolationFunctionGet();
+      void *interpolationFunction_f = referenceField->fortranInterpolationFunctionGet();
 
-      for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-        double      *part_points_coords           = _points_coords[i_part];
-        double      *part_points_uvw              = _points_uvw[i_part];
-        double      *part_points_dist2            = _points_dist2[i_part];
+      if (interpolationFunction != NULL) {
 
-        int         *part_weights_idx             = _weights_idx[i_part];
-        double      *part_weights                 = _weights[i_part];
+        for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+          double      *part_points_coords           = _points_coords[i_part];
+          double      *part_points_uvw              = _points_uvw[i_part];
+          double      *part_points_dist2            = _points_dist2[i_part];
 
-       (*interpolationFunction)(_cpl->entitiesDimGet(),
-                                _localCodeProperties->nameGet().c_str(),
-                                _mesh->nBlockGet(),
-                                _mesh->blocksTypeGet(),
-                                i_part,
-                                _mesh->getPartNVertex(i_part),
-                                _mesh->getVertexCoords(i_part),
-                                _mesh->getVertexGNum(i_part),
-                                _mesh->getPartNElts(i_part),
-                                _mesh->eltIdBlockGet(i_part),
-                                _mesh->eltInBlockGet(i_part),
-                                _cell_vtx_idx[i_part],
-                                _cell_vtx[i_part],
-                                _mesh->GNumEltsGet(i_part),
-                                _n_elt_weights[i_part],
-                                _elt_pts_inside_idx[i_part],
-                                part_points_coords,
-                                part_points_dist2,
-                                part_points_uvw,
-                                part_weights_idx,
-                                part_weights,
-                                nComponent,
-                                referenceFieldType,
-                                (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
-                                buffer
-                                );
+          int         *part_weights_idx             = _weights_idx[i_part];
+          double      *part_weights                 = _weights[i_part];
+
+         (*interpolationFunction)(_cpl->entitiesDimGet(),
+                                  _localCodeProperties->nameGet().c_str(),
+                                  _mesh->nBlockGet(),
+                                  _mesh->blocksTypeGet(),
+                                  i_part,
+                                  _mesh->getPartNVertex(i_part),
+                                  _mesh->getVertexCoords(i_part),
+                                  _mesh->getVertexGNum(i_part),
+                                  _mesh->getPartNElts(i_part),
+                                  _mesh->eltIdBlockGet(i_part),
+                                  _mesh->eltInBlockGet(i_part),
+                                  _cell_vtx_idx[i_part],
+                                  _cell_vtx[i_part],
+                                  _mesh->GNumEltsGet(i_part),
+                                  _n_elt_weights[i_part],
+                                  _elt_pts_inside_idx[i_part],
+                                  part_points_coords,
+                                  part_points_dist2,
+                                  part_points_uvw,
+                                  part_weights_idx,
+                                  part_weights,
+                                  nComponent,
+                                  referenceFieldType,
+                                  (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
+                                  buffer
+                                  );
+        }
     
+      }
+
+      else if (interpolationFunction_f != NULL) {
+
+
       }
 
     }

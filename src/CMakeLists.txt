@@ -61,7 +61,8 @@ endif()
 if (CWP_ENABLE_Fortran)
    list(APPEND SOURCES fortran/callfortinterpfct.f90)
    list(APPEND SOURCES fortran/callforthointerpfct.f90)
-endif()
+   list(APPEND SOURCES fortran/callfortlocinterpfct.f90)
+  endif()
 
 file(GLOB SOURCESF
     fortran/cwipi_cf.cxx

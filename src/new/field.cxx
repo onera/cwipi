@@ -36,6 +36,8 @@ namespace cwipi {
    _physTime       (physTime)    ,
    _iteration      (iteration)   ,
    _cpl            (cpl)         ,
+   _interpolationFunction   (NULL),
+   _interpolationFunction_f (NULL),
    _current_step_was_exchanged(0)
 
     {
