@@ -158,6 +158,287 @@ module cwp
         CWP_OP_SUM
     end enum
 
+    interface CWP_Param_set; module procedure &
+      CWP_Param_set_int_, &
+      CWP_Param_set_double_, &
+      CWP_Param_set_char_
+    end interface CWP_Param_set
+
+    interface CWP_Param_add; module procedure &
+      CWP_Param_add_int_, &
+      CWP_Param_add_double_, &
+      CWP_Param_add_char_
+    end interface CWP_Param_add
+
+    interface CWP_Init ; module procedure &
+        CWP_Init_
+    end interface CWP_Init
+        
+    interface CWP_State_update ; module procedure &
+        CWP_State_update_
+    end interface CWP_State_update
+        
+    interface CWP_Time_update ; module procedure &
+        CWP_Time_update_
+    end interface CWP_Time_update
+        
+    interface CWP_User_structure_set ; module procedure &
+        CWP_User_structure_set_
+    end interface CWP_User_structure_set
+        
+    interface CWP_User_structure_get ; module procedure &
+        CWP_User_structure_get_
+    end interface CWP_User_structure_get
+        
+    interface CWP_State_get ; module procedure &
+        CWP_State_get_
+    end interface CWP_State_get
+        
+    interface CWP_Cpl_create ; module procedure &
+        CWP_Cpl_create_
+    end interface CWP_Cpl_create
+        
+    interface CWP_Cpl_Del ; module procedure &
+        CWP_Cpl_Del_
+    end interface CWP_Cpl_Del
+        
+    interface CWP_N_uncomputed_tgts_get ; module procedure &
+        CWP_N_uncomputed_tgts_get_
+    end interface CWP_N_uncomputed_tgts_get
+        
+    interface CWP_Uncomputed_tgts_get ; module procedure &
+        CWP_Uncomputed_tgts_get_
+    end interface CWP_Uncomputed_tgts_get
+        
+    interface CWP_N_computed_tgts_get ; module procedure &
+        CWP_N_computed_tgts_get_
+    end interface CWP_N_computed_tgts_get
+        
+    interface CWP_Computed_tgts_get ; module procedure &
+        CWP_Computed_tgts_get_
+    end interface CWP_Computed_tgts_get
+        
+    interface CWP_N_involved_srcs_get ; module procedure &
+        CWP_N_involved_srcs_get_
+    end interface CWP_N_involved_srcs_get
+        
+    interface CWP_Involved_srcs_get ; module procedure &
+        CWP_Involved_srcs_get_
+    end interface CWP_Involved_srcs_get
+        
+    interface CWP_Spatial_interp_weights_compute ; module procedure &
+        CWP_Spatial_interp_weights_compute_
+    end interface CWP_Spatial_interp_weights_compute
+        
+    interface CWP_Spatial_interp_property_set ; module procedure &
+        CWP_Spatial_interp_property_set_
+    end interface CWP_Spatial_interp_property_set
+        
+    interface CWP_Visu_set ; module procedure &
+        CWP_Visu_set_
+    end interface CWP_Visu_set
+        
+    interface CWP_User_tgt_pts_set ; module procedure &
+        CWP_User_tgt_pts_set_
+    end interface CWP_User_tgt_pts_set
+        
+    interface CWP_Mesh_interf_finalize ; module procedure &
+        CWP_Mesh_interf_finalize_
+    end interface CWP_Mesh_interf_finalize
+        
+    interface CWP_Mesh_interf_vtx_set ; module procedure &
+        CWP_Mesh_interf_vtx_set_
+    end interface CWP_Mesh_interf_vtx_set
+        
+    interface CWP_Mesh_interf_block_add ; module procedure &
+        CWP_Mesh_interf_block_add_
+    end interface CWP_Mesh_interf_block_add
+        
+    interface CWP_Mesh_interf_block_std_set ; module procedure &
+        CWP_Mesh_interf_block_std_set_
+    end interface CWP_Mesh_interf_block_std_set
+        
+    interface CWP_Mesh_interf_f_poly_block_set ; module procedure &
+        CWP_Mesh_interf_f_poly_block_set_
+    end interface CWP_Mesh_interf_f_poly_block_set
+        
+    interface CWP_Mesh_interf_f_poly_block_get ; module procedure &
+        CWP_Mesh_interf_f_poly_block_get_
+    end interface CWP_Mesh_interf_f_poly_block_get
+        
+    interface CWP_Mesh_interf_c_poly_block_set ; module procedure &
+        CWP_Mesh_interf_c_poly_block_set_
+    end interface CWP_Mesh_interf_c_poly_block_set
+        
+    interface CWP_Mesh_interf_c_poly_block_get ; module procedure &
+        CWP_Mesh_interf_c_poly_block_get_
+    end interface CWP_Mesh_interf_c_poly_block_get
+        
+    interface CWP_Mesh_interf_del ; module procedure &
+        CWP_Mesh_interf_del_
+    end interface CWP_Mesh_interf_del
+        
+    interface CWP_Mesh_interf_from_cellface_set ; module procedure &
+        CWP_Mesh_interf_from_cellface_set_
+    end interface CWP_Mesh_interf_from_cellface_set
+        
+    interface CWP_Mesh_interf_from_faceedge_set ; module procedure &
+        CWP_Mesh_interf_from_faceedge_set_
+    end interface CWP_Mesh_interf_from_faceedge_set
+        
+    interface CWP_Field_create ; module procedure &
+        CWP_Field_create_
+    end interface CWP_Field_create
+        
+    interface CWP_Field_data_set ; module procedure &
+        CWP_Field_data_set_
+    end interface CWP_Field_data_set
+        
+    interface CWP_Field_n_component_get ; module procedure &
+        CWP_Field_n_component_get_
+    end interface CWP_Field_n_component_get
+        
+    interface CWP_Field_target_dof_location_get ; module procedure &
+        CWP_Field_target_dof_location_get_
+    end interface CWP_Field_target_dof_location_get
+        
+    interface CWP_Field_storage_get ; module procedure &
+        CWP_Field_storage_get_
+    end interface CWP_Field_storage_get
+        
+    interface CWP_Field_del ; module procedure &
+        CWP_Field_del_
+    end interface CWP_Field_del
+        
+    interface CWP_Field_issend ; module procedure &
+        CWP_Field_issend_
+    end interface CWP_Field_issend
+        
+    interface CWP_Field_irecv ; module procedure &
+        CWP_Field_irecv_
+    end interface CWP_Field_irecv
+        
+    interface CWP_Field_wait_issend ; module procedure &
+        CWP_Field_wait_issend_
+    end interface CWP_Field_wait_issend
+        
+    interface CWP_Field_wait_irecv ; module procedure &
+        CWP_Field_wait_irecv_
+    end interface CWP_Field_wait_irecv
+        
+    ! interface CWP_Interp_from_location_unset ; module procedure &
+    !     CWP_Interp_from_location_unset_
+    ! end interface CWP_Interp_from_location_unset
+        
+    interface CWP_Interp_from_location_set ; module procedure &
+        CWP_Interp_from_location_set_
+    end interface CWP_Interp_from_location_set
+        
+    interface CWP_Param_add_int ; module procedure &
+        CWP_Param_add_int_
+    end interface CWP_Param_add_int
+        
+    interface CWP_Param_add_double ; module procedure &
+        CWP_Param_add_double_
+    end interface CWP_Param_add_double
+        
+    interface CWP_Param_add_char ; module procedure &
+        CWP_Param_add_char_
+    end interface CWP_Param_add_char
+        
+    interface CWP_Param_set_int ; module procedure &
+        CWP_Param_set_int_
+    end interface CWP_Param_set_int
+        
+    interface CWP_Param_set_double ; module procedure &
+        CWP_Param_set_double_
+    end interface CWP_Param_set_double
+        
+    interface CWP_Param_set_char ; module procedure &
+        CWP_Param_set_char_
+    end interface CWP_Param_set_char
+        
+    interface CWP_Param_del ; module procedure &
+        CWP_Param_del_
+    end interface CWP_Param_del
+        
+    interface CWP_Param_n_get ; module procedure &
+        CWP_Param_n_get_
+    end interface CWP_Param_n_get
+        
+    interface CWP_Param_is ; module procedure &
+        CWP_Param_is_
+    end interface CWP_Param_is
+        
+    interface CWP_Param_get ; module procedure &
+        CWP_Param_get_
+    end interface CWP_Param_get
+        
+    interface CWP_Param_lock ; module procedure &
+        CWP_Param_lock_
+    end interface CWP_Param_lock
+        
+    interface CWP_Param_unlock ; module procedure &
+        CWP_Param_unlock_
+    end interface CWP_Param_unlock
+        
+
+  !
+  ! Private
+
+  private :: CWP_Init_ ,&                   
+             CWP_State_update_ ,&
+             CWP_Time_update_ ,&
+             CWP_User_structure_set_ ,&
+             CWP_User_structure_get_ ,&
+             CWP_State_get_ ,&
+             CWP_Cpl_create_ ,&
+             CWP_Cpl_Del_ ,&
+             CWP_N_uncomputed_tgts_get_ ,&
+             CWP_Uncomputed_tgts_get_ ,&
+             CWP_N_computed_tgts_get_ ,&
+             CWP_Computed_tgts_get_ ,&
+             CWP_N_involved_srcs_get_ ,&
+             CWP_Involved_srcs_get_ ,&
+             CWP_Spatial_interp_weights_compute_ ,&
+             CWP_Spatial_interp_property_set_ ,&
+             CWP_Visu_set_ ,&
+             CWP_User_tgt_pts_set_ ,&
+             CWP_Mesh_interf_finalize_ ,&
+             CWP_Mesh_interf_vtx_set_ ,&
+             CWP_Mesh_interf_block_add_ ,&
+             CWP_Mesh_interf_block_std_set_ ,&
+             CWP_Mesh_interf_f_poly_block_set_ ,&
+             CWP_Mesh_interf_f_poly_block_get_ ,&
+             CWP_Mesh_interf_c_poly_block_set_ ,&
+             CWP_Mesh_interf_c_poly_block_get_ ,&
+             CWP_Mesh_interf_del_ ,&
+             CWP_Mesh_interf_from_cellface_set_ ,&
+             CWP_Mesh_interf_from_faceedge_set_ ,&
+             CWP_Field_create_ ,&
+             CWP_Field_data_set_ ,&
+             CWP_Field_n_component_get_ ,&
+             CWP_Field_target_dof_location_get_ ,&
+             CWP_Field_storage_get_ ,&
+             CWP_Field_del_ ,&
+             CWP_Field_issend_ ,&
+             CWP_Field_irecv_ ,&
+             CWP_Field_wait_issend_ ,&
+             CWP_Field_wait_irecv_ ,&
+             ! CWP_Interp_from_location_unset_ ,&
+             CWP_Interp_from_location_set_ ,&
+             CWP_Param_add_int_ ,&
+             CWP_Param_add_double_ ,&
+             CWP_Param_add_char_ ,&
+             CWP_Param_set_int_ ,&
+             CWP_Param_set_double_ ,&
+             CWP_Param_set_char_ ,&
+             CWP_Param_del_ ,&
+             CWP_Param_n_get_ ,&
+             CWP_Param_is_ ,&
+             CWP_Param_get_ ,&
+             CWP_Param_lock_ ,&
+             CWP_Param_unlock_
     interface
       subroutine CWP_Init_cf(fcomm, n_code, code_names, l_code_names, is_active_rank, time_init, intra_comms) &
               bind(c, name = 'CWP_Init_cf')
@@ -909,7 +1190,7 @@ contains
   !!
   !!
 
-  subroutine CWP_Init (fcomm,          &
+  subroutine CWP_Init_ (fcomm,          &
                        n_code,         &
                        code_names,     &
                        is_active_rank, &
@@ -939,7 +1220,7 @@ contains
                      time_init,           &
                      c_loc(intra_comms))
 
-  end subroutine CWP_Init
+  end subroutine CWP_Init_
 
 
   !>
@@ -950,7 +1231,7 @@ contains
   !!
   !!
 
-  subroutine CWP_State_update(local_code_name, &
+  subroutine CWP_State_update_(local_code_name, &
                               state)
 
     use, intrinsic :: iso_c_binding
@@ -966,7 +1247,7 @@ contains
                              l_local_code_name, &
                              state)
 
-  end subroutine CWP_State_update
+  end subroutine CWP_State_update_
 
 
   !>
@@ -977,7 +1258,7 @@ contains
   !!
   !!
 
-  subroutine CWP_Time_update(local_code_name, &
+  subroutine CWP_Time_update_(local_code_name, &
                              current_time)
 
     use, intrinsic :: iso_c_binding
@@ -993,7 +1274,7 @@ contains
                             l_local_code_name, &
                             current_time)
 
-  end subroutine CWP_Time_update
+  end subroutine CWP_Time_update_
 
 
 
@@ -1031,7 +1312,7 @@ contains
   !!
   !!
 
-  subroutine CWP_User_structure_set(local_code_name, &
+  subroutine CWP_User_structure_set_(local_code_name, &
                                     user_structure)
     use, intrinsic :: iso_c_binding
     implicit none
@@ -1046,7 +1327,7 @@ contains
                                  l_local_code_name, &
                                  user_structure)
 
-  end subroutine CWP_User_structure_set
+  end subroutine CWP_User_structure_set_
 
 
   !>
@@ -1060,7 +1341,7 @@ contains
   !!
   !!
 
-  function CWP_User_structure_get(local_code_name) &
+  function CWP_User_structure_get_(local_code_name) &
     result (user_structure)
 
     use, intrinsic :: iso_c_binding
@@ -1075,7 +1356,7 @@ contains
     user_structure = CWP_User_structure_get_cf(local_code_name,   &
                                                l_local_code_name)
 
-  end function CWP_User_structure_get
+  end function CWP_User_structure_get_
 
 
 
@@ -1087,7 +1368,7 @@ contains
   !! \return      Code state
   !!
 
-  function CWP_State_get(local_code_name) &
+  function CWP_State_get_(local_code_name) &
     result (state)
 
     use, intrinsic :: iso_c_binding
@@ -1102,9 +1383,7 @@ contains
     state = CWP_State_get_cf(local_code_name,   &
                              l_local_code_name)
 
-  end function CWP_State_get
-
-
+  end function CWP_State_get_
 
 
 ! /**
@@ -1114,7 +1393,7 @@ contains
 !  */
 
 ! const char **
-! CWP_Codes_list_get
+! CWP_Codes_list_get_
 ! (
 ! void
 ! );
@@ -1127,7 +1406,7 @@ contains
 !  */
 
 ! const char **
-! CWP_Loc_codes_list_get
+! CWP_Loc_codes_list_get_
 ! (
 !  void
 ! );
@@ -1147,7 +1426,7 @@ contains
   !!
   !!
 
-  subroutine CWP_Cpl_create (local_code_name,   &
+  subroutine CWP_Cpl_create_ (local_code_name,   &
                              cpl_id,            &
                              coupled_code_name, &
                              entities_dim,      &
@@ -1185,7 +1464,7 @@ contains
                             n_part,             &
                             displacement,       &
                             freq)
-  end subroutine CWP_Cpl_Create
+  end subroutine CWP_Cpl_Create_
 
 
   !>
@@ -1197,7 +1476,7 @@ contains
   !!
   !!
 
-  subroutine CWP_Cpl_Del (local_code_name, &
+  subroutine CWP_Cpl_Del_ (local_code_name, &
                           cpl_id)
 
     use, intrinsic :: iso_c_binding
@@ -1210,7 +1489,7 @@ contains
     l_cpl_id          = len(cpl_id)
 
     call CWP_Cpl_del_cf (local_code_name, l_local_code_name, cpl_id, l_cpl_id)
-  end subroutine CWP_Cpl_Del
+  end subroutine CWP_Cpl_Del_
 
 
   !>
@@ -1225,7 +1504,7 @@ contains
   !! \return                Number of uncomputed targets
   !!
 
-  function CWP_N_uncomputed_tgts_get (local_code_name, &
+  function CWP_N_uncomputed_tgts_get_ (local_code_name, &
                                       cpl_id,          &
                                       field_id,        &
                                       i_part)          &
@@ -1254,7 +1533,7 @@ contains
                                                       field_id,          &
                                                       l_field_id,        &
                                                       i_part)
-  end function CWP_N_uncomputed_tgts_get
+  end function CWP_N_uncomputed_tgts_get_
 
 
   !>
@@ -1269,7 +1548,7 @@ contains
   !! \return                Uncomputed targets
   !!
 
-  function CWP_Uncomputed_tgts_get (local_code_name, &
+  function CWP_Uncomputed_tgts_get_ (local_code_name, &
                                     cpl_id,          &
                                     field_id,        &
                                     i_part)          &
@@ -1313,7 +1592,7 @@ contains
     call c_f_pointer (cptr = cptr_uncomputed_tgts, &
                       fptr = uncomputed_tgts  ,    &
                       shape= [ n_uncomputed_tgts])
-  end function CWP_Uncomputed_tgts_get
+  end function CWP_Uncomputed_tgts_get_
 
 
   !>
@@ -1328,7 +1607,7 @@ contains
   !! \return                Number of computed targets
   !!
 
-  function CWP_N_computed_tgts_get (local_code_name, &
+  function CWP_N_computed_tgts_get_(local_code_name, &
                                     cpl_id,          &
                                     field_id,        &
                                     i_part)          &
@@ -1356,7 +1635,7 @@ contains
                                                   field_id,          &
                                                   l_field_id,        &
                                                   i_part)
-  end function CWP_N_computed_tgts_get
+  end function CWP_N_computed_tgts_get_
 
 
   !>
@@ -1371,7 +1650,7 @@ contains
   !! \return                Computed targets
   !!
 
-  function CWP_Computed_tgts_get (local_code_name, &
+  function CWP_Computed_tgts_get_ (local_code_name, &
                                   cpl_id,          &
                                   field_id,        &
                                   i_part)          &
@@ -1417,7 +1696,7 @@ contains
     call c_f_pointer (cptr = cptr_computed_tgts, &
                       fptr = computed_tgts  ,    &
                       shape= [n_computed_tgts])
-  end function CWP_Computed_tgts_get
+  end function CWP_Computed_tgts_get_
 
 
   !>
@@ -1432,7 +1711,7 @@ contains
   !! \return                Number of involved sources
   !!
 
-  function CWP_N_involved_srcs_get (local_code_name, &
+  function CWP_N_involved_srcs_get_ (local_code_name, &
           cpl_id,          &
           field_id,        &
           i_part)          &
@@ -1460,7 +1739,7 @@ contains
             field_id,          &
             l_field_id,        &
             i_part)
-  end function CWP_N_involved_srcs_get
+  end function CWP_N_involved_srcs_get_
 
 
   !>
@@ -1475,7 +1754,7 @@ contains
   !! \return                Involved sources
   !!
 
-  function CWP_Involved_srcs_get (local_code_name, &
+  function CWP_Involved_srcs_get_ (local_code_name, &
           cpl_id,          &
           field_id,        &
           i_part)          &
@@ -1521,7 +1800,7 @@ contains
     call c_f_pointer (cptr = cptr_involved_srcs, &
             fptr = involved_srcs  ,    &
             shape= [n_involved_srcs])
-  end function CWP_Involved_srcs_get
+  end function CWP_Involved_srcs_get_
 
 
   !>
@@ -1565,7 +1844,7 @@ contains
   !! \param [in]  cpl_id              Coupling identifier
   !!
 
-  subroutine CWP_Spatial_interp_weights_compute (local_code_name, &
+  subroutine CWP_Spatial_interp_weights_compute_ (local_code_name, &
                                                  cpl_id)
 
     use, intrinsic :: iso_c_binding
@@ -1578,7 +1857,7 @@ contains
     l_cpl_id = len(cpl_id)
 
     call CWP_Spatial_interp_weights_compute_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id)
-  end subroutine CWP_Spatial_interp_weights_compute
+  end subroutine CWP_Spatial_interp_weights_compute_
 
 
   !>
@@ -1591,7 +1870,7 @@ contains
   !! \param [in]  property_value   Value of the property
   !!
 
-  subroutine CWP_Spatial_interp_property_set(local_code_name, &
+  subroutine CWP_Spatial_interp_property_set_(local_code_name, &
                                              cpl_id,          &
                                              property_name,   &
                                              property_type,   &
@@ -1616,7 +1895,7 @@ contains
                                             property_value,       &
                                             len(property_value))
 
-  end subroutine CWP_Spatial_interp_property_set
+  end subroutine CWP_Spatial_interp_property_set_
 
 
   !>
@@ -1633,7 +1912,7 @@ contains
   !!                               - binary : output binary files (default)
   !!
 
-  subroutine CWP_Visu_set (local_code_name, &
+  subroutine CWP_Visu_set_ (local_code_name, &
                            cpl_id,          &
                            freq,            &
                            format,          &
@@ -1669,7 +1948,7 @@ contains
   !! \param [in]  g_num            global number or NUL (size = n_pts)
   !!
 
-  subroutine CWP_User_tgt_pts_set(local_code_name, &
+  subroutine CWP_User_tgt_pts_set_(local_code_name, &
                                   cpl_id, &
                                   i_part, &
                                   n_pts, &
@@ -1696,7 +1975,7 @@ contains
 
     call CWP_User_tgt_pts_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, i_part, n_pts, &
             c_loc(coord), c_global_num)
-  end subroutine CWP_User_tgt_pts_set
+  end subroutine CWP_User_tgt_pts_set_
 
 
   !>
@@ -1709,7 +1988,7 @@ contains
   !! \param [in]  cpl_id           Coupling identifier
   !!
 
-  subroutine CWP_Mesh_interf_finalize (local_code_name, &
+  subroutine CWP_Mesh_interf_finalize_ (local_code_name, &
                                        cpl_id)
 
     use, intrinsic :: iso_c_binding
@@ -1722,7 +2001,7 @@ contains
     l_cpl_id = len(cpl_id)
 
     call CWP_Mesh_interf_finalize_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id)
-  end subroutine CWP_Mesh_interf_finalize
+  end subroutine CWP_Mesh_interf_finalize_
 
 
   !>
@@ -1736,7 +2015,7 @@ contains
   !! \param [in]  global_num       Pointer to parent element number (or NULL)
   !!
 
-  subroutine CWP_Mesh_interf_vtx_set (local_code_name, &
+  subroutine CWP_Mesh_interf_vtx_set_ (local_code_name, &
                                       cpl_id,          &
                                       i_part,          &
                                       n_pts,           &
@@ -1773,7 +2052,7 @@ contains
                                      c_loc(coord),      &
                                      c_global_num)
 
-  end subroutine CWP_Mesh_interf_vtx_set
+  end subroutine CWP_Mesh_interf_vtx_set_
 
 
   !>
@@ -1786,7 +2065,7 @@ contains
   !! \return block identifier
   !!
 
-  function CWP_Mesh_interf_block_add (local_code_name, &
+  function CWP_Mesh_interf_block_add_ (local_code_name, &
                                       cpl_id,          &
                                       block_type)      &
                                       result(block_id)
@@ -1802,7 +2081,7 @@ contains
     l_cpl_id = len(cpl_id)
 
     block_id = CWP_Mesh_interf_block_add_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, block_type)
-  end function CWP_Mesh_interf_block_add
+  end function CWP_Mesh_interf_block_add_
 
 
   !>
@@ -1898,7 +2177,7 @@ contains
   !! \param [in]  global_num       Pointer to global element number (or NULL)
   !!
 
-  subroutine CWP_Mesh_interf_block_std_set (local_code_name, &
+  subroutine CWP_Mesh_interf_block_std_set_ (local_code_name, &
                                             cpl_id,          &
                                             i_part,          &
                                             block_id,        &
@@ -1935,7 +2214,7 @@ contains
                                            n_elts,            &
                                            c_loc(connec),     &
                                            c_global_num)
-  end subroutine CWP_Mesh_interf_block_std_set
+  end subroutine CWP_Mesh_interf_block_std_set_
 
 
   !>
@@ -1950,7 +2229,7 @@ contains
   !! \param [out]  global_num       Pointer to global element number (or NULL)
   !!
 
-  ! subroutine CWP_Mesh_interf_block_std_get(local_code_name, &
+  ! subroutine CWP_Mesh_interf_block_std_get_(local_code_name, &
   !                                          cpl_id,          &
   !                                          i_part,          &
   !                                          block_id,        &
@@ -1986,7 +2265,7 @@ contains
   !   call c_f_pointer(c_global_num, global_num, [n_elts])
   !   call c_f_pointer(c_connec,     connec,     [src_connec])
 
-  ! end subroutine CWP_Mesh_interf_block_std_get
+  ! end subroutine CWP_Mesh_interf_block_std_get_
 
 
   !>
@@ -2003,7 +2282,7 @@ contains
   !! \param [in]  global_num       Pointer to global element number (or NULL)
   !!
 
-  subroutine CWP_Mesh_interf_f_poly_block_set( local_code_name, &
+  subroutine CWP_Mesh_interf_f_poly_block_set_( local_code_name, &
                                                cpl_id,          &
                                                i_part,          &
                                                block_id,        &
@@ -2043,7 +2322,7 @@ contains
                                               c_loc(connec_idx), &
                                               c_loc(connec),     &
                                               c_global_num)
-  end subroutine CWP_Mesh_interf_f_poly_block_set
+  end subroutine CWP_Mesh_interf_f_poly_block_set_
 
 
   !>
@@ -2061,7 +2340,7 @@ contains
   !!
   !!
 
-  subroutine CWP_Mesh_interf_f_poly_block_get(local_code_name, &
+  subroutine CWP_Mesh_interf_f_poly_block_get_(local_code_name, &
                                               cpl_id,          &
                                               i_part,          &
                                               block_id,        &
@@ -2098,7 +2377,7 @@ contains
     call c_f_pointer(c_connec,     connec,     [connec_idx(n_elts+1)])
     call c_f_pointer(c_global_num, global_num, [n_elts])
 
-  end subroutine CWP_Mesh_interf_f_poly_block_get
+  end subroutine CWP_Mesh_interf_f_poly_block_get_
 
 
   !>
@@ -2123,7 +2402,7 @@ contains
   !! \param [in]  global_num        Pointer to global element number (or NULL)
   !!
 
-  subroutine CWP_Mesh_interf_c_poly_block_set (local_code_name, &
+  subroutine CWP_Mesh_interf_c_poly_block_set_ (local_code_name, &
                                                cpl_id,          &
                                                i_part,          &
                                                block_id,        &
@@ -2167,7 +2446,7 @@ contains
                                               c_loc(connec_cells_idx), &
                                               c_loc(connec_cells),     &
                                               c_global_num)
-  end subroutine CWP_Mesh_interf_c_poly_block_set
+  end subroutine CWP_Mesh_interf_c_poly_block_set_
 
 
   !>
@@ -2193,7 +2472,7 @@ contains
   !!
   !!
 
-  subroutine CWP_Mesh_interf_c_poly_block_get(local_code_name,  &
+  subroutine CWP_Mesh_interf_c_poly_block_get_(local_code_name,  &
                                               cpl_id,           &
                                               i_part,           &
                                               block_id,         &
@@ -2238,7 +2517,7 @@ contains
     call c_f_pointer(c_connec_cells,     connec_cells,     [connec_cells_idx(n_elts+1)])
     call c_f_pointer(c_global_num, global_num, [n_elts])
 
-  end subroutine CWP_Mesh_interf_c_poly_block_get
+  end subroutine CWP_Mesh_interf_c_poly_block_get_
 
 
   !>
@@ -2249,7 +2528,7 @@ contains
   !!
   !!
 
-  subroutine CWP_Mesh_interf_del (local_code_name, &
+  subroutine CWP_Mesh_interf_del_ (local_code_name, &
                                   cpl_id)
 
     use, intrinsic :: iso_c_binding
@@ -2262,7 +2541,7 @@ contains
     l_cpl_id          = len(cpl_id)
 
     call CWP_Mesh_interf_del_cf (local_code_name, l_local_code_name, cpl_id, l_cpl_id)
-  end subroutine CWP_Mesh_interf_del
+  end subroutine CWP_Mesh_interf_del_
 
 
   !>
@@ -2286,7 +2565,7 @@ contains
   !! \param [in]  global_num        Pointer to parent element number (or NULL)
   !!
 
-  subroutine CWP_Mesh_interf_from_cellface_set (local_code_name, &
+  subroutine CWP_Mesh_interf_from_cellface_set_ (local_code_name, &
                                                 cpl_id,          &
                                                 i_part,          &
                                                 n_cells,         &
@@ -2330,7 +2609,7 @@ contains
                                                c_loc(face_vtx_idx),  &
                                                c_loc(face_vtx),      &
                                                c_global_num)
-  end subroutine CWP_Mesh_interf_from_cellface_set
+  end subroutine CWP_Mesh_interf_from_cellface_set_
 
 
   !>
@@ -2354,7 +2633,7 @@ contains
   !! \param [in]  global_num        Pointer to parent element number (or NULL)
   !!
 
-  subroutine CWP_Mesh_interf_from_faceedge_set (local_code_name, &
+  subroutine CWP_Mesh_interf_from_faceedge_set_ (local_code_name, &
                                                 cpl_id,          &
                                                 i_part,          &
                                                 n_faces,         &
@@ -2398,7 +2677,7 @@ contains
                                                c_loc(edge_vtx),     &
                                                c_global_num)
 
-  end subroutine CWP_Mesh_interf_from_faceedge_set
+  end subroutine CWP_Mesh_interf_from_faceedge_set_
 
 
   !>
@@ -2416,7 +2695,7 @@ contains
   !! \param [in]  visu_status     Visualization status
   !!
 
-  subroutine CWP_Field_create (local_code_name,      &
+  subroutine CWP_Field_create_ (local_code_name,      &
                                cpl_id,               &
                                field_id,             &
                                data_type,            &
@@ -2449,7 +2728,7 @@ contains
                               target_location,    &
                               exch_type,          &
                               visu_status)
-  end subroutine CWP_Field_create
+  end subroutine CWP_Field_create_
 
 
   !>
@@ -2464,7 +2743,7 @@ contains
   !! \param [in] data              Storage array (Mapping)
   !!
 
-  subroutine CWP_Field_data_set (local_code_name, &
+  subroutine CWP_Field_data_set_ (local_code_name, &
                                  cpl_id,          &
                                  field_id,        &
                                  i_part,          &
@@ -2493,7 +2772,7 @@ contains
                                 i_part,            &
                                 map_type,          &
                                 c_loc(data))
-  end subroutine CWP_Field_data_set
+  end subroutine CWP_Field_data_set_
 
 
   !>
@@ -2508,7 +2787,7 @@ contains
   !!
   !!
 
-  function CWP_Field_n_component_get(local_code_name, &
+  function CWP_Field_n_component_get_(local_code_name, &
                                      cpl_id,          &
                                      field_id)        &
     result (n_component)
@@ -2531,7 +2810,7 @@ contains
                                                field_id,          &
                                                l_field_id)
 
-  end function CWP_Field_n_component_get
+  end function CWP_Field_n_component_get_
 
 
   !>
@@ -2546,7 +2825,7 @@ contains
   !!
   !!
 
-  function CWP_Field_target_dof_location_get(local_code_name, &
+  function CWP_Field_target_dof_location_get_(local_code_name, &
                                              cpl_id,          &
                                              field_id)        &
     result (dof_location)
@@ -2569,7 +2848,7 @@ contains
                                                         field_id,          &
                                                         l_field_id)
 
-  end function CWP_Field_target_dof_location_get
+  end function CWP_Field_target_dof_location_get_
 
 
   !>
@@ -2583,7 +2862,7 @@ contains
   !! \return                      Field storage type
   !!
 
-  function CWP_Field_storage_get(local_code_name, &
+  function CWP_Field_storage_get_(local_code_name, &
                                  cpl_id,          &
                                  field_id)        &
     result (storage)
@@ -2606,7 +2885,7 @@ contains
                                        field_id,          &
                                        l_field_id)
 
-  end function CWP_Field_storage_get
+  end function CWP_Field_storage_get_
 
 
   !>
@@ -2618,7 +2897,7 @@ contains
   !!
   !!
 
-  subroutine CWP_Field_del(local_code_name, &
+  subroutine CWP_Field_del_(local_code_name, &
                            cpl_id,          &
                            field_id)
 
@@ -2639,7 +2918,7 @@ contains
                           field_id,          &
                           l_field_id)
 
-  end subroutine CWP_Field_del
+  end subroutine CWP_Field_del_
 
   !>
   !! \brief Send a spatially interpolated field to the coupled code with
@@ -2653,7 +2932,7 @@ contains
   !! \param [in]  src_field_id    Source field id
   !!
 
-  subroutine CWP_Field_issend (local_code_name, &
+  subroutine CWP_Field_issend_ (local_code_name, &
                                cpl_id,          &
                                src_field_id)
 
@@ -2673,7 +2952,7 @@ contains
                               l_cpl_id,           &
                               src_field_id,       &
                               l_src_field_id)
-  end subroutine CWP_Field_issend
+  end subroutine CWP_Field_issend_
 
 
   !>
@@ -2689,7 +2968,7 @@ contains
   !! \param [in]  tgt_field_id    Target field id
   !!
 
-  subroutine CWP_Field_irecv (local_code_name, &
+  subroutine CWP_Field_irecv_ (local_code_name, &
                               cpl_id,          &
                               tgt_field_id)
 
@@ -2709,7 +2988,7 @@ contains
                             l_cpl_id,           &
                             tgt_field_id,       &
                             l_tgt_field_id)
-  end subroutine CWP_Field_irecv
+  end subroutine CWP_Field_irecv_
 
 
   !>
@@ -2721,7 +3000,7 @@ contains
   !! \param [in] src_field_id     Source field id
   !!
 
-  subroutine CWP_Field_wait_issend (local_code_name, &
+  subroutine CWP_Field_wait_issend_ (local_code_name, &
                                     cpl_id,          &
                                     src_field_id)
     use, intrinsic :: iso_c_binding
@@ -2740,7 +3019,7 @@ contains
                                    l_cpl_id,           &
                                    src_field_id,       &
                                    l_src_field_id)
-  end subroutine CWP_Field_wait_issend
+  end subroutine CWP_Field_wait_issend_
 
 
   !>
@@ -2755,7 +3034,7 @@ contains
   !! \param [in] tgt_field_id     Target field id
   !!
 
-  subroutine CWP_Field_wait_irecv (local_code_name, &
+  subroutine CWP_Field_wait_irecv_ (local_code_name, &
                                    cpl_id,          &
                                    tgt_field_id)
 
@@ -2775,7 +3054,7 @@ contains
                                  l_cpl_id,            &
                                  tgt_field_id,        &
                                  l_tgt_field_id)
-  end subroutine CWP_Field_wait_irecv
+  end subroutine CWP_Field_wait_irecv_
 
 
 ! /**
@@ -2809,7 +3088,7 @@ contains
   !! \param [in] fct              Function
   !!
 
-  subroutine CWP_Interp_from_location_set(local_code_name, &
+  subroutine CWP_Interp_from_location_set_(local_code_name, &
                                           cpl_id, &
                                           src_field_id, &
                                           ptInterpolationFct)
@@ -2868,7 +3147,7 @@ contains
 
     ! call CWP_Interp_from_location_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
     !         & src_field_id, l_src_field_id, ptInterpolationFct)
-  end subroutine CWP_Interp_from_location_set
+  end subroutine CWP_Interp_from_location_set_
 
 ! /*----------------------------------------------------------------------------*
 !  * Functions about all code parameters                                        *
@@ -2886,19 +3165,27 @@ contains
   !!
   !!
 
-  subroutine CWP_Param_add(local_code_name, &
-                           param_name,      &
-                           data_type,       &
-                           initial_value)
+  subroutine CWP_Param_add_int_(local_code_name, &
+                               param_name,      &
+                               initial_value)
 
     use, intrinsic :: iso_c_binding
     implicit none
 
     character(kind = c_char, len = *) :: local_code_name
     character(kind = c_char, len = *) :: param_name
-    integer, intent(in)               :: data_type
-    type(c_ptr), value                :: initial_value
+    integer, intent(in)               :: initial_value
     integer(kind = c_int)             :: l_local_code_name, l_param_name
+
+    integer, dimension(1), target :: cvalue
+    integer, pointer               :: cptrvalue(:) 
+    integer                       :: data_type
+
+    data_type = CWP_INT
+
+    cvalue(1) = initial_value
+
+    cptrvalue => cvalue
 
     l_local_code_name = len(local_code_name)
     l_param_name      = len(param_name)
@@ -2908,11 +3195,78 @@ contains
                           param_name,        &
                           l_param_name,      &
                           data_type,         &
-                          initial_value)
+                          c_loc(cptrvalue))
 
-  end subroutine CWP_Param_add
+  end subroutine CWP_Param_add_int_
 
 
+  subroutine CWP_Param_add_double_(local_code_name, &
+                                  param_name,      &
+                                  initial_value)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name
+    character(kind = c_char, len = *) :: param_name
+    real(kind = 8), intent(in)               :: initial_value
+    integer(kind = c_int)             :: l_local_code_name, l_param_name
+
+    real(kind = 8), dimension(1), target :: cvalue
+    real(kind = 8), pointer              :: cptrvalue(:) 
+    integer                              :: data_type
+
+    data_type = CWP_DOUBLE
+
+    cvalue(1) = initial_value
+
+    cptrvalue => cvalue
+
+    l_local_code_name = len(local_code_name)
+    l_param_name      = len(param_name)
+
+    call CWP_Param_add_cf(local_code_name,   &
+                          l_local_code_name, &
+                          param_name,        &
+                          l_param_name,      &
+                          data_type,         &
+                          c_loc(cptrvalue))
+
+  end subroutine CWP_Param_add_double_
+
+  subroutine CWP_Param_add_char_(local_code_name, &
+                                param_name,      &
+                                initial_value)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name
+    character(kind = c_char, len = *) :: param_name
+    character(len=*), intent(in)      :: initial_value
+    integer(kind = c_int)             :: l_local_code_name, l_param_name
+
+    character(len=512), dimension(1), target :: cvalue
+    character(len=512), pointer            :: cptrvalue(:) 
+    integer                                :: data_type
+
+    data_type = CWP_CHAR
+
+    cvalue(1) = initial_value
+
+    cptrvalue => cvalue
+
+    l_local_code_name = len(local_code_name)
+    l_param_name      = len(param_name)
+
+    call CWP_Param_add_cf(local_code_name,   &
+                          l_local_code_name, &
+                          param_name,        &
+                          l_param_name,      &
+                          data_type,         &
+                          c_loc(cptrvalue))
+
+  end subroutine CWP_Param_add_char_
 
   !>
   !!
@@ -2925,19 +3279,26 @@ contains
   !!
   !!
 
-  subroutine CWP_Param_set(local_code_name, &
-                           param_name,      &
-                           data_type,       &
-                           value)
+  subroutine CWP_Param_set_int_(local_code_name, &
+                               param_name,      &
+                               value)
 
     use, intrinsic :: iso_c_binding
     implicit none
 
     character(kind = c_char, len = *) :: local_code_name
     character(kind = c_char, len = *) :: param_name
-    integer, intent(in)               :: data_type
-    type(c_ptr), value                :: value
+    integer, intent(in)               :: value
     integer(kind = c_int)             :: l_local_code_name, l_param_name
+
+    integer, dimension(1), target :: cvalue
+    integer, pointer               :: cptrvalue(:) 
+
+    integer                        :: data_type = CWP_INT
+
+    cvalue(1) = value
+
+    cptrvalue => cvalue
 
     l_local_code_name = len(local_code_name)
     l_param_name      = len(param_name)
@@ -2947,9 +3308,75 @@ contains
                           param_name,        &
                           l_param_name,      &
                           data_type,         &
-                          value)
+                          c_loc(cptrvalue))
 
-  end subroutine CWP_Param_set
+  end subroutine CWP_Param_set_int_
+
+  subroutine CWP_Param_set_double_(local_code_name, &
+                                  param_name,      &
+                                  value)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name
+    character(kind = c_char, len = *) :: param_name
+    real (kind = 8), intent(in)       :: value
+    integer(kind = c_int)             :: l_local_code_name, l_param_name
+
+    real(kind = 8), dimension(1), target :: cvalue
+    real(kind = 8), pointer               :: cptrvalue(:) 
+
+    integer                        :: data_type = CWP_DOUBLE
+
+    cvalue(1) = value
+
+    cptrvalue => cvalue
+
+    l_local_code_name = len(local_code_name)
+    l_param_name      = len(param_name)
+
+    call CWP_Param_set_cf(local_code_name,   &
+                          l_local_code_name, &
+                          param_name,        &
+                          l_param_name,      &
+                          data_type,         &
+                          c_loc(cptrvalue))
+
+  end subroutine CWP_Param_set_double_
+
+  subroutine CWP_Param_set_char_(local_code_name, &
+                                param_name,      &
+                                value)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name
+    character(kind = c_char, len = *) :: param_name
+    character(len=*)                  :: value
+    integer(kind = c_int)             :: l_local_code_name, l_param_name
+
+    character(len = 512), dimension(1), target :: cvalue
+    character(len = 512), pointer               :: cptrvalue(:) 
+
+    integer                        :: data_type = CWP_CHAR
+
+    cvalue(1) = value
+
+    cptrvalue => cvalue
+
+    l_local_code_name = len(local_code_name)
+    l_param_name      = len(param_name)
+
+    call CWP_Param_set_cf(local_code_name,   &
+                          l_local_code_name, &
+                          param_name,        &
+                          l_param_name,      &
+                          data_type,         &
+                          c_loc(cptrvalue))
+
+  end subroutine CWP_Param_set_char_
 
 
   !>
@@ -2962,7 +3389,7 @@ contains
   !!
   !!
 
-  subroutine CWP_Param_del(local_code_name, &
+  subroutine CWP_Param_del_(local_code_name, &
                            param_name,      &
                            data_type)
 
@@ -2983,7 +3410,7 @@ contains
                           l_param_name,      &
                           data_type)
 
-  end subroutine CWP_Param_del
+  end subroutine CWP_Param_del_
 
 
 ! /*----------------------------------------------------------------------------*
@@ -3001,7 +3428,7 @@ contains
   !!
   !!
 
-  function CWP_Param_n_get(code_name, &
+  function CWP_Param_n_get_(code_name, &
                            data_type) &
     result (n_param)
     use, intrinsic :: iso_c_binding
@@ -3018,7 +3445,7 @@ contains
                                  l_code_name, &
                                  data_type)
 
-  end function CWP_Param_n_get
+  end function CWP_Param_n_get_
 
 ! /**
 !  *
@@ -3053,7 +3480,7 @@ contains
   !!
   !!
 
-  function CWP_Param_is(code_name,  &
+  function CWP_Param_is_(code_name,  &
                         param_name, &
                         data_type)  &
     result (is_param)
@@ -3077,7 +3504,7 @@ contains
                                l_param_name, &
                                data_type)
 
-  end function CWP_Param_is
+  end function CWP_Param_is_
 
 
   !>
@@ -3091,7 +3518,7 @@ contains
   !!
   !!
 
-  subroutine CWP_Param_get(code_name,  &
+  subroutine CWP_Param_get_(code_name,  &
                            param_name, &
                            data_type,  &
                            value)
@@ -3116,7 +3543,7 @@ contains
                           data_type,    &
                           value)
 
-  end subroutine CWP_Param_get
+  end subroutine CWP_Param_get_
 
 ! /**
 !  *
@@ -3152,7 +3579,7 @@ contains
   !!
   !!
 
-  subroutine CWP_Param_lock(code_name)
+  subroutine CWP_Param_lock_(code_name)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -3165,7 +3592,7 @@ contains
     call CWP_Param_lock_cf(code_name,  &
                           l_code_name)
 
-  end subroutine CWP_Param_lock
+  end subroutine CWP_Param_lock_
 
 
   !>
@@ -3176,7 +3603,7 @@ contains
   !!
   !!
 
-  subroutine CWP_Param_unlock(code_name)
+  subroutine CWP_Param_unlock_(code_name)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -3189,7 +3616,7 @@ contains
     call CWP_Param_unlock_cf(code_name,   &
                              l_code_name)
 
-  end subroutine CWP_Param_unlock
+  end subroutine CWP_Param_unlock_
 
 
 end module cwp

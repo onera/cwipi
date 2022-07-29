@@ -108,7 +108,7 @@ program testf
 
   toto = 123456
   if (code_names(1) == "code1") then
-    call CWP_Param_add("code1", "toto", CWP_INT, c_loc(toto))
+    call CWP_Param_add("code1", "toto", toto)
   endif
 
   n_param = CWP_Param_n_get("code1", &
