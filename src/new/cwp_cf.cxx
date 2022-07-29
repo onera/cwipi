@@ -2222,7 +2222,7 @@ CWP_Param_unlock_cf
  */
 
 void
-CWP_Interp_from_location_fortran_set
+CWP_Interp_from_location_fortran_set_cf
 (
  const char *f_code_name,
  const int   l_code_name,
@@ -2264,7 +2264,7 @@ CWP_Interp_from_location_fortran_set
  */
 
 void
-CWP_Interp_from_location_fortran_unset
+CWP_Interp_from_location_fortran_unset_cf
 (
  const char *f_code_name,
  const int   l_code_name,

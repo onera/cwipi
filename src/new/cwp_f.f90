@@ -425,7 +425,7 @@ module cwp
              CWP_Field_irecv_ ,&
              CWP_Field_wait_issend_ ,&
              CWP_Field_wait_irecv_ ,&
-             ! CWP_Interp_from_location_unset_ ,&
+             CWP_Interp_from_location_unset_ ,&
              CWP_Interp_from_location_set_ ,&
              CWP_Param_add_int_ ,&
              CWP_Param_add_double_ ,&
@@ -3056,24 +3056,33 @@ contains
                                  l_tgt_field_id)
   end subroutine CWP_Field_wait_irecv_
 
+  !> 
+  !! 
+  !!  \brief Unsetting of an user interpolation.
+  !! 
+  !!  \param [in] local_code_name  Local code name
+  !!  \param [in] cpl_id           Coupling identifier
+  !!  \param [in] src_field_id     Source field id
+  !! 
+  !!
 
-! /**
-!  *
-!  * \brief Unsetting of an user interpolation.
-!  *
-!  * \param [in] local_code_name  Local code name
-!  * \param [in] cpl_id           Coupling identifier
-!  * \param [in] src_field_id     Source field id
-!  *
-!  */
+  subroutine CWP_Interp_from_location_unset_ (local_code_name, &
+                                             cpl_id, &
+                                             src_field_id)
 
-! void
-! CWP_Interp_from_location_unset
-! (
-!  const char                 *local_code_name,
-!  const char                 *cpl_id,
-!  const char                 *src_field_id
-! );
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+    l_src_field_id = len(src_field_id)
+
+    call CWP_Interp_from_location_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+            & src_field_id, l_src_field_id)
+
+  end subroutine CWP_Interp_from_location_unset_
 
   !>
   !!
@@ -3096,7 +3105,7 @@ contains
     use, intrinsic :: iso_c_binding
     implicit none
 
-    abstract interface
+    interface
       subroutine ptInterpolationFct ( &
               interface_type, &
               n_src_vtcs, &
@@ -3145,8 +3154,8 @@ contains
     l_cpl_id = len(cpl_id)
     l_src_field_id = len(src_field_id)
 
-    ! call CWP_Interp_from_location_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
-    !         & src_field_id, l_src_field_id, ptInterpolationFct)
+    call CWP_Interp_from_location_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+            & src_field_id, l_src_field_id, ptInterpolationFct)
   end subroutine CWP_Interp_from_location_set_
 
 ! /*----------------------------------------------------------------------------*
