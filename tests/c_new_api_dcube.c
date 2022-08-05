@@ -188,8 +188,6 @@ int main(int argc, char *argv[]) {
   double length = 1.;
   const double xmin = 0, ymin = 0., zmin = 0.;
 
-  int *n_vtx;
-  double **vtx_coord;
 
   PDM_dcube_t *dcube = PDM_dcube_gen_init(PDM_MPI_COMM_WORLD, n_vtx_seg, length, xmin, ymin, zmin, PDM_OWNERSHIP_KEEP);
 
@@ -214,33 +212,35 @@ int main(int argc, char *argv[]) {
                              n_property_cell, renum_properties_cell, n_property_face, renum_properties_face, n_part,
                              d_n_cell, d_n_face, d_n_vertices, n_face_group, NULL, NULL, NULL, NULL, have_dcell_part, d_cell_part,
                              d_face_cell, d_face_vertex_idx, d_face_vertex, NULL, d_vertex_coord, NULL, d_face_group_idx, d_face_group);
-  free(d_face_vertex_idx);
-  free(d_face_group_idx);
-  free(d_face_cell);
-  free(d_face_vertex);
-  free(d_face_group);
-  free(d_vertex_coord);
+  // free(d_face_vertex_idx);
+  // free(d_face_group_idx);
+  // free(d_face_cell);
+  // free(d_face_vertex);
+  // free(d_face_group);
+  // free(d_vertex_coord);
   free(d_cell_part);
+
+  PDM_dcube_gen_free(dcube);
 
   // Get connectivity
   // Cell face connectivity
-  int *n_cells = (int *) malloc(sizeof(int) * n_part);
-  int **cell_face_idx = (int **) malloc(sizeof(int *) * n_part);
-  int **cell_face = (int **) malloc(sizeof(int *) * n_part);
+  int          *n_cells       = (int         * ) malloc(sizeof(int          ) * n_part);
+  int         **cell_face_idx = (int         **) malloc(sizeof(int         *) * n_part);
+  int         **cell_face     = (int         **) malloc(sizeof(int         *) * n_part);
   PDM_g_num_t **cell_ln_to_gn = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
 
   // Face vertex connectivity
-  int *n_faces = (int *) malloc(sizeof(int) * n_part);
+  int  *n_faces      = (int  *) malloc(sizeof(int  ) * n_part);
   int **face_vtx_idx = (int **) malloc(sizeof(int *) * n_part);
-  int **face_vtx = (int **) malloc(sizeof(int *) * n_part);
+  int **face_vtx     = (int **) malloc(sizeof(int *) * n_part);
 
   // Cell vertex connectivity
   int **cell_vtx_idx = (int **) malloc(sizeof(int *) * n_part);
-  int **cell_vtx = (int **) malloc(sizeof(int *) * n_part);
+  int **cell_vtx     = (int **) malloc(sizeof(int *) * n_part);
 
   // Vertices
-  n_vtx = (int *) malloc(sizeof(int) * n_part);
-  vtx_coord = (double **) malloc(sizeof(double *) * n_part);
+  int          *n_vtx        = (int          *) malloc(sizeof(int          ) * n_part);
+  double      **vtx_coord    = (double      **) malloc(sizeof(double      *) * n_part);
   PDM_g_num_t **vtx_ln_to_gn = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * n_part);
 
   for (int i_part = 0 ; i_part < n_part ; i_part++) {
@@ -292,6 +292,9 @@ int main(int argc, char *argv[]) {
 
     memcpy(cell_vtx_idx[i_part], _cell_vtx_idx, (_n_cells + 1) * sizeof(int));
     memcpy(cell_vtx[i_part], _cell_vtx, _n_cells * 8 * sizeof(int));
+
+    free(_cell_vtx_idx);
+    free(_cell_vtx);
   }
 
   // Free
@@ -355,10 +358,46 @@ int main(int argc, char *argv[]) {
 //    }
   }
 
+  if (strcmp(code_name[0], "code1") != 0) {
+    free(send_val);
+  } else {
+    free(recv_val);
+  }
+
+  for (int i_part = 0 ; i_part < n_part ; i_part++) {
+    free(cell_face_idx[i_part]);
+    free(cell_face    [i_part]);
+    free(face_vtx_idx [i_part]);
+    free(face_vtx     [i_part]);
+    free(cell_vtx_idx [i_part]);
+    free(cell_vtx     [i_part]);
+    free(vtx_coord    [i_part]);
+    free(vtx_ln_to_gn [i_part]);
+    free(cell_ln_to_gn[i_part]);
+  }
+  free(cell_face_idx);
+  free(cell_face    );
+  free(face_vtx_idx );
+  free(face_vtx     );
+  free(cell_vtx_idx );
+  free(cell_vtx     );
+  free(vtx_coord    );
+  free(vtx_ln_to_gn );
+  free(cell_ln_to_gn);
+  free(n_cells      );
+  free(n_faces      );
+  free(n_vtx        );
+
+  free(time_init);
+
   // Finalize
   CWP_Mesh_interf_del(code_name[0], coupling_name);
   CWP_Cpl_del(code_name[0], coupling_name);
 
+  free(code_name);
+  free(coupled_code_name);
+  free(is_active_rank);
+  free(intra_comm);
   CWP_Finalize();
   MPI_Finalize();
 }
