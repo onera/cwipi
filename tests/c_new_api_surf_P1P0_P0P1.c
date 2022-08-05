@@ -168,14 +168,15 @@ main(int argc, char *argv[]) {
   nVertex = nVertexSeg * nVertexSeg;
   nElts = (nVertexSeg - 1) * (nVertexSeg - 1);
 
-  coords = (double **) malloc(sizeof(double *) * n_code);
-  eltsConnecPointer = (int **) malloc(sizeof(int *) * n_code);
-  eltsConnec = (int **) malloc(sizeof(int *) * n_code);
+  coords            = (double **) malloc(sizeof(double *) * n_code);
+  eltsConnecPointer = (int    **) malloc(sizeof(int    *) * n_code);
+  eltsConnec        = (int    **) malloc(sizeof(int    *) * n_code);
 
-  coords[0] = (double *) malloc(sizeof(double) * 3 * nVertex);
+  coords[0]            = (double *) malloc(sizeof(double) * 3 * nVertex);
   eltsConnecPointer[0] = (int *) malloc(sizeof(int) * (nElts + 1));
-  eltsConnec[0] = (int *) malloc(sizeof(int) * 4 * nElts);
+  eltsConnec[0]        = (int *) malloc(sizeof(int) * 4 * nElts);
   randLevel = 0.4;
+
 
   connectableLocalComm[0] = CWP_Connectable_comm_get((char *) code_name[0]);
   MPI_Comm_size(connectableLocalComm[0], &connectableLocalCommSize[0]);
@@ -348,9 +349,27 @@ main(int argc, char *argv[]) {
   CWP_Cpl_del(code_name[0], cpl_name);
 
   // Freeing memory
+  free(coords[0]           );
+  free(eltsConnecPointer[0]);
+  free(eltsConnec[0]       );
+
   free(coords);
+  free(eltsConnecPointer);
+  free(eltsConnec       );
+
+  free(sendValues[0]);
+  free(recvValues[0]);
   free(sendValues);
   free(recvValues);
+
+  free(code_name);
+  free(coupled_code_name);
+  free(is_active_rank);
+  free(time_init);
+  free(intra_comm);
+  free(connectableLocalComm);
+  free(connectableLocalCommSize);
+
 
   // Finalize
   CWP_Finalize();
