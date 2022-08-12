@@ -255,22 +255,22 @@ int main(int argc, char *argv[]) {
   int lFaceConnec = 0;
   int lCellConnec = 0;
 
-  double *coords = NULL;         // Coordinates of the points
-  int *faceVertexIdx = NULL;
-  int *faceVertex = NULL;
-  int *cellFaceIdx = NULL;
-  int *cellFace = NULL;
+  double *coords        = NULL;         // Coordinates of the points
+  int    *faceVertexIdx = NULL;
+  int    *faceVertex    = NULL;
+  int    *cellFaceIdx   = NULL;
+  int    *cellFace      = NULL;
 
   if (rank == 0)
     printf("        Read mesh\n");
 
   read_mesh_dim(meshFile, &dimension, &nVertex, &nFace, &nElements, &lFaceConnec, &lCellConnec);
 
-  coords = (double *) malloc(dimension * nVertex * sizeof(double));
-  faceVertexIdx = (int *) malloc((nFace + 1) * sizeof(int));
-  faceVertex = (int *) malloc(lFaceConnec * sizeof(int));
-  cellFaceIdx = (int *) malloc((nElements + 1) * sizeof(int));
-  cellFace = (int *) malloc(lCellConnec * sizeof(int));
+  coords        = (double *) malloc(dimension * nVertex * sizeof(double));
+  faceVertexIdx = (int    *) malloc((nFace + 1)         * sizeof(int   ));
+  faceVertex    = (int    *) malloc(lFaceConnec         * sizeof(int   ));
+  cellFaceIdx   = (int    *) malloc((nElements + 1)     * sizeof(int   ));
+  cellFace      = (int    *) malloc(lCellConnec         * sizeof(int   ));
 
   read_mesh(meshFile,
             dimension,
@@ -314,6 +314,20 @@ int main(int argc, char *argv[]) {
     printf("Interface Mesh deleted\n");
     fflush(stdout);
   }
+
+  if (rank == 0) {
+    CWP_Cpl_del("cpoly", cpl_id1);
+  }
+
+  if (rank == 1) {
+    CWP_Cpl_del("code2", cpl_id1);
+  }
+
+  free(coords       );
+  free(faceVertexIdx);
+  free(faceVertex   );
+  free(cellFaceIdx  );
+  free(cellFace     );
 
   CWP_Finalize();
   MPI_Finalize();

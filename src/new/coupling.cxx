@@ -257,11 +257,10 @@ namespace cwipi {
 
     delete &_fields;
 
-    if(_visu.isCreated()) {
-      // _visu.SpatialInterpFree();
-
-      delete _iteration;
-    }
+    // if(_visu.isCreated()) {
+    //   // _visu.SpatialInterpFree();
+    // }
+    delete _iteration;
 
     delete &_visu;
 

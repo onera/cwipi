@@ -55,21 +55,23 @@ namespace cwipi {
 
   Visu::~Visu() {
     // Check if these structures have been filled (ie geometry declared)
-    if (!_partitioning_field_data.empty()) {
-      for(int i_part=0;i_part<_n_part;i_part++) {
-        free(_partitioning_field_data[i_part]);
-      }
-    }
-    if (!_ranking_field_data.empty()) {
-      for(int i_part=0;i_part<_n_part;i_part++) {
-        free(_ranking_field_data[i_part]);
-      }
-    }
-    if (!_blocking_field_data.empty()) {
-      for(int i_part=0;i_part<_n_part;i_part++) {
-        free(_blocking_field_data[i_part]);
-      }
-    }
+
+    // TODO :  See with Eric but if we call multiple time GeomWrite a leaks appear
+    // if (!_partitioning_field_data.empty()) {
+    //   for(int i_part= 0 ; i_part < _n_part; i_part++) {
+    //     free(_partitioning_field_data[i_part]);
+    //   }
+    // }
+    // if (!_ranking_field_data.empty()) {
+    //   for(int i_part= 0 ; i_part < _n_part; i_part++) {
+    //     free(_ranking_field_data[i_part]);
+    //   }
+    // }
+    // if (!_blocking_field_data.empty()) {
+    //   for(int i_part= 0 ; i_part < _n_part; i_part++) {
+    //     free(_blocking_field_data[i_part]);
+    //   }
+    // }
 
     // PDM_writer_var_data_free(_visu_id, _id_partitioning_field);
     // PDM_writer_var_data_free(_visu_id, _id_ranking_field);
@@ -102,15 +104,15 @@ namespace cwipi {
 
     PDM_writer_topology_t pdm_topology = PDM_WRITER_TOPO_CST;
 
-    if(_topology == CWP_DYNAMIC_MESH_STATIC)          pdm_topology  = PDM_WRITER_TOPO_CST;
-    else if(_topology == CWP_DYNAMIC_MESH_DEFORMABLE) pdm_topology  = PDM_WRITER_TOPO_DEFORMABLE;
-    else if(_topology == CWP_DYNAMIC_MESH_VARIABLE  ) pdm_topology  = PDM_WRITER_TOPO_VARIABLE;
+    if     ( _topology == CWP_DYNAMIC_MESH_STATIC     ) pdm_topology  = PDM_WRITER_TOPO_CST;
+    else if( _topology == CWP_DYNAMIC_MESH_DEFORMABLE ) pdm_topology  = PDM_WRITER_TOPO_DEFORMABLE;
+    else if( _topology == CWP_DYNAMIC_MESH_VARIABLE   ) pdm_topology  = PDM_WRITER_TOPO_VARIABLE;
 
     _output_dir  = output_dir;
     _output_name = output_name;
 
     std::string str_options = format_option;
-    std::string delimiter = ",";
+    std::string delimiter   = ",";
 
     std::string chars = "\t\n\v\f\r ";
 
@@ -211,9 +213,9 @@ namespace cwipi {
                                                   PDMfieldType,
                                                   "blocking");
 
-    _partitioning_field_data.resize(mesh->getNPart() );
-    _ranking_field_data.resize(mesh->getNPart() );
-    _blocking_field_data.resize(mesh->getNPart() );
+    _partitioning_field_data.resize(mesh->getNPart());
+    _ranking_field_data     .resize(mesh->getNPart());
+    _blocking_field_data    .resize(mesh->getNPart());
 
     int worldRank;
     MPI_Comm_rank(MPI_COMM_WORLD,&worldRank);
@@ -221,7 +223,7 @@ namespace cwipi {
 //    int* blockDB = mesh->blockDBGet();
 
     int nBlock = mesh->nBlockGet();
-    for(int i_part=0;i_part<_n_part;i_part++){
+    for(int i_part= 0 ; i_part < _n_part; i_part++){
       _partitioning_field_data[i_part] = (double*) malloc( mesh->getPartNElts(i_part) * sizeof(double) );
       _ranking_field_data     [i_part] = (double*) malloc( mesh->getPartNElts(i_part) * sizeof(double) );
       _blocking_field_data    [i_part] = (double*) malloc( mesh->getPartNElts(i_part) * sizeof(double) );
@@ -231,7 +233,6 @@ namespace cwipi {
         for(int i_elt=0; i_elt< mesh->getBlockNElts(i_block,i_part); i_elt++){
           _blocking_field_data[i_part][idx++] = (double)i_block;
         }
-
       }
 
 
@@ -240,9 +241,9 @@ namespace cwipi {
         _ranking_field_data[i_part][i_elt] = (double)worldRank;
       }
 
-      PDM_writer_var_set(_visu_id, id_partitioning_field, _visu_mesh_id, i_part, (double*)_partitioning_field_data[i_part]);
-      PDM_writer_var_set(_visu_id, id_ranking_field, _visu_mesh_id, i_part, (double*)_ranking_field_data[i_part]);
-      PDM_writer_var_set(_visu_id, id_blocking_field, _visu_mesh_id, i_part, (double*)_blocking_field_data[i_part]);
+      PDM_writer_var_set(_visu_id, id_partitioning_field, _visu_mesh_id, i_part, (double *) _partitioning_field_data[i_part]);
+      PDM_writer_var_set(_visu_id, id_ranking_field     , _visu_mesh_id, i_part, (double *) _ranking_field_data     [i_part]);
+      PDM_writer_var_set(_visu_id, id_blocking_field    , _visu_mesh_id, i_part, (double *) _blocking_field_data    [i_part]);
     }
 
     PDM_writer_var_write(_visu_id, id_partitioning_field);
@@ -252,6 +253,13 @@ namespace cwipi {
     PDM_writer_var_data_free(_visu_id, id_partitioning_field);
     PDM_writer_var_data_free(_visu_id, id_ranking_field);
     PDM_writer_var_data_free(_visu_id, id_blocking_field);
+
+    /* No longer use and recall function causes leaks */
+    for(int i_part= 0 ; i_part < _n_part; i_part++){
+      free(_partitioning_field_data[i_part]);
+      free(_ranking_field_data     [i_part]);
+      free(_blocking_field_data    [i_part]);
+    }
 
   }
 
@@ -328,16 +336,17 @@ namespace cwipi {
       int nComponent = field->nComponentGet();
       PDM_writer_var_loc_t PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
 
-      if     (CWPfielType == CWP_DOF_LOCATION_CELL_CENTER)  PDMfieldType = PDM_WRITER_VAR_ELEMENTS   ;
-      else if(CWPfielType == CWP_DOF_LOCATION_NODE)         PDMfieldType = PDM_WRITER_VAR_VERTICES   ;
-      else if(CWPfielType == CWP_DOF_LOCATION_USER)         PDMfieldType = PDM_WRITER_VAR_PARTICLES ;
+      if     ( CWPfielType == CWP_DOF_LOCATION_CELL_CENTER ) PDMfieldType = PDM_WRITER_VAR_ELEMENTS   ;
+      else if( CWPfielType == CWP_DOF_LOCATION_NODE        ) PDMfieldType = PDM_WRITER_VAR_VERTICES   ;
+      else if( CWPfielType == CWP_DOF_LOCATION_USER        ) PDMfieldType = PDM_WRITER_VAR_PARTICLES ;
 
 
       PDM_writer_var_dim_t PDMfieldComp = PDM_WRITER_VAR_SCALAR;
       if( nComponent == 1) PDMfieldComp = PDM_WRITER_VAR_SCALAR;
       else if( nComponent == 3) PDMfieldComp = PDM_WRITER_VAR_VECTOR;
-      else if (nComponent !=0)
+      else if( nComponent !=0 ) {
         PDM_error(__FILE__, __LINE__, 0, "This field have a number of components which cannot be visualized.\n");
+      }
 
       // std::string prefix;
       // if(field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
@@ -386,10 +395,10 @@ namespace cwipi {
         std::string fieldName = prefix + "_" + field ->fieldIDGet();
 
         id_var_send = PDM_writer_var_create(_visu_id,
-                                           PDM_WRITER_ON,
-                                           PDMfieldComp,
-                                           PDMfieldType,
-                                           fieldName.c_str());
+                                            PDM_WRITER_ON,
+                                            PDMfieldComp,
+                                            PDMfieldType,
+                                            fieldName.c_str());
       }
 
 
@@ -590,7 +599,7 @@ namespace cwipi {
     PDM_writer_step_beg(_visu_id,physical_time);
     _physical_time = physical_time;
     if(_topology != CWP_DYNAMIC_MESH_STATIC){
-      for(int i_part=0;i_part<_n_part;i_part++) {
+      for(int i_part= 0 ; i_part < _n_part; i_part++) {
         int nVertex = mesh->getPartNVertex(i_part);
         double* coords = mesh->getVertexCoords(i_part);
         CWP_g_num_t* gnum = mesh->getVertexGNum(i_part);
@@ -609,7 +618,7 @@ namespace cwipi {
         CWP_Block_t type = mesh->blockTypeGet(id_block);
         int idBlockVisu = GeomBlockAdd(type);
 
-        for(int i_part=0;i_part<_n_part;i_part++) {
+        for(int i_part= 0 ; i_part < _n_part; i_part++) {
           int n_elts = mesh->getBlockNElts(id_block,i_part);
           CWP_g_num_t* gnum = mesh->globalNumGet(id_block,i_part);
           if(type != CWP_BLOCK_FACE_POLY && type != CWP_BLOCK_CELL_POLY) {

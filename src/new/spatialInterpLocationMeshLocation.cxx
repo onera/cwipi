@@ -158,32 +158,33 @@ namespace cwipi {
 
         for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
 
-          const double *part_coord = NULL;
+          const double      *part_coord = NULL;
           const PDM_g_num_t *part_gnum = NULL;
-          int part_n = -1;
+          int n_elt_size = 0;
 
           if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-            part_gnum = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
+            part_gnum  = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
             part_coord = _mesh->eltCentersGet (i_part);
-            part_n = _mesh->getPartNElts (i_part);
-            // PDM_log_trace_array_double (part_coord, 3*part_n, "cloud point cell center : ");
+            n_elt_size = _mesh->getPartNElts (i_part);
+            // PDM_log_trace_array_double (part_coord, 3*n_elt_size, "cloud point cell center : ");
             // PDM_log_trace_array_double (_mesh->getVertexCoords (i_part), 3*_mesh->getPartNVertex (i_part), "cloud point cell center : ");
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-            part_gnum = (const PDM_g_num_t *) _mesh->getVertexGNum (i_part);
+            part_gnum  = (const PDM_g_num_t *) _mesh->getVertexGNum (i_part);
             part_coord = _mesh->getVertexCoords (i_part);
-            part_n = _mesh->getPartNVertex (i_part);            
-            // PDM_log_trace_array_double (part_coord, 3*part_n, "cloud point node : ");
+            n_elt_size = _mesh->getPartNVertex (i_part);
+            // PDM_log_trace_array_double (part_coord, 3*n_elt_size, "cloud point node : ");
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
-            part_gnum = (const PDM_g_num_t *) _cpl->userTargetGNumGet (i_part);
+            part_gnum  = (const PDM_g_num_t *) _cpl->userTargetGNumGet (i_part);
             part_coord = _cpl->userTargetCoordsGet (i_part);
-            part_n = _cpl->userTargetNGet (i_part);
-            // PDM_log_trace_array_double (part_coord, 3*part_n, "cloud point user : ");
+            n_elt_size = _cpl->userTargetNGet (i_part);
+            // PDM_log_trace_array_double (part_coord, 3*n_elt_size, "cloud point user : ");
           }
         
+          printf("n_elt_size = %i\n", n_elt_size);
 
-          PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, part_n, (double *) part_coord, (PDM_g_num_t*) part_gnum);
+          PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, n_elt_size, (double *) part_coord, (PDM_g_num_t*) part_gnum);
 
         }
       }
@@ -207,26 +208,26 @@ namespace cwipi {
 
             const double *part_coord = NULL;
             const PDM_g_num_t *part_gnum = NULL;
-            int part_n = -1;
+            int n_elt_size = 0;
 
             if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-              part_gnum = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
+              part_gnum  = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
               part_coord = _mesh->eltCentersGet (i_part);
-              part_n = _mesh->getPartNElts (i_part);
+              n_elt_size = _mesh->getPartNElts (i_part);
 
             }
             else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-              part_gnum = (const PDM_g_num_t *) _mesh->getVertexGNum (i_part);
+              part_gnum  = (const PDM_g_num_t *) _mesh->getVertexGNum (i_part);
               part_coord = _mesh->getVertexCoords (i_part);
-              part_n = _mesh->getPartNVertex (i_part);            
+              n_elt_size = _mesh->getPartNVertex (i_part);
             }
             else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
-              part_gnum = (const PDM_g_num_t *) _cpl->userTargetGNumGet (i_part);
+              part_gnum  = (const PDM_g_num_t *) _cpl->userTargetGNumGet (i_part);
               part_coord = _cpl->userTargetCoordsGet (i_part);
-              part_n = _cpl->userTargetNGet (i_part);
+              n_elt_size = _cpl->userTargetNGet (i_part);
             }
 
-            PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, part_n, (double *) part_coord, (PDM_g_num_t*) part_gnum);
+            PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, n_elt_size, (double *) part_coord, (PDM_g_num_t*) part_gnum);
 
           }
 
@@ -240,26 +241,26 @@ namespace cwipi {
 
             const double *part_coord = NULL;
             const PDM_g_num_t *part_gnum = NULL;
-            int part_n = -1;
+            int n_elt_size = 0;
 
             if (_coupledCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-              part_gnum = (const PDM_g_num_t *) cpl_mesh->GNumEltsGet (i_part);
+              part_gnum  = (const PDM_g_num_t *) cpl_mesh->GNumEltsGet (i_part);
               part_coord = cpl_mesh->eltCentersGet (i_part);
-              part_n = cpl_mesh->getPartNElts (i_part);
+              n_elt_size = cpl_mesh->getPartNElts (i_part);
 
             }
             else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-              part_gnum = (const PDM_g_num_t *) cpl_mesh->getVertexGNum (i_part);
+              part_gnum  = (const PDM_g_num_t *) cpl_mesh->getVertexGNum (i_part);
               part_coord = cpl_mesh->getVertexCoords (i_part);
-              part_n = cpl_mesh->getPartNVertex (i_part);            
+              n_elt_size = cpl_mesh->getPartNVertex (i_part);
             }
             else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_USER) {
-              part_gnum = (const PDM_g_num_t *) cpl_cpl.userTargetGNumGet (i_part);
+              part_gnum  = (const PDM_g_num_t *) cpl_cpl.userTargetGNumGet (i_part);
               part_coord = cpl_cpl.userTargetCoordsGet (i_part);
-              part_n = cpl_cpl.userTargetNGet (i_part);
+              n_elt_size = cpl_cpl.userTargetNGet (i_part);
             }
 
-            PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, part_n, (double *) part_coord, (PDM_g_num_t*) part_gnum);
+            PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, n_elt_size, (double *) part_coord, (PDM_g_num_t*) part_gnum);
           }
         }
       }

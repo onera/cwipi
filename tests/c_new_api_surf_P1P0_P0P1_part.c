@@ -242,7 +242,7 @@ main(int argc, char *argv[]) {
     for (int i = 0 ; i < commWorldSize ; i++) {
       if (rankCode1[i] == 0 && rankCode2[i] == 0) {
         int t1 = rand() % commWorldSize;
-        while (!(rankCode1[t] == 1 && rankCode2[t] == 1)) {
+        while (!(rankCode1[t1] == 1 && rankCode2[t1] == 1)) {
           t1 = rand() % commWorldSize;
         }
         int h12 = rand() % 2;
@@ -391,30 +391,30 @@ main(int argc, char *argv[]) {
   // Mesh definition
   printf("%d - Create mesh\n", rank);
 
-  int **nVertex = NULL;
-  double ***coords = NULL;
-  int **nElts = NULL;
-  int ***eltsConnecPointer = NULL;
-  int ***eltsConnec = NULL;
+  int     **nVertex           = NULL;
+  double ***coords            = NULL;
+  int     **nElts             = NULL;
+  int    ***eltsConnecPointer = NULL;
+  int    ***eltsConnec        = NULL;
 
   // Domain bounds
   const double xmin = -10;
-  const double xmax = 10;
+  const double xmax =  10;
   const double ymin = -10;
-  const double ymax = 10;
+  const double ymax =  10;
 
-  coords = (double ***) malloc(sizeof(double **) * n_code);
-  eltsConnecPointer = (int ***) malloc(sizeof(int **) * n_code);
-  eltsConnec = (int ***) malloc(sizeof(int **) * n_code);
-  nVertex = (int **) malloc(sizeof(int *) * n_code);
-  nElts = (int **) malloc(sizeof(int *) * n_code);
+  coords            = (double ***) malloc(sizeof(double **) * n_code);
+  eltsConnecPointer = (int    ***) malloc(sizeof(int    **) * n_code);
+  eltsConnec        = (int    ***) malloc(sizeof(int    **) * n_code);
+  nVertex           = (int     **) malloc(sizeof(int    * ) * n_code);
+  nElts             = (int     **) malloc(sizeof(int    * ) * n_code);
 
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    coords[i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
-    eltsConnecPointer[i_code] = (int **) malloc(sizeof(int *) * nbPart[i_code]);
-    eltsConnec[i_code] = (int **) malloc(sizeof(int *) * nbPart[i_code]);
-    nVertex[i_code] = (int *) malloc(sizeof(int) * nbPart[i_code]);
-    nElts[i_code] = (int *) malloc(sizeof(int) * nbPart[i_code]);
+    coords           [i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
+    eltsConnecPointer[i_code] = (int    **) malloc(sizeof(int    *) * nbPart[i_code]);
+    eltsConnec       [i_code] = (int    **) malloc(sizeof(int    *) * nbPart[i_code]);
+    nVertex          [i_code] = (int     *) malloc(sizeof(int     ) * nbPart[i_code]);
+    nElts            [i_code] = (int     *) malloc(sizeof(int     ) * nbPart[i_code]);
   }
 
   srand(time(NULL));
@@ -427,12 +427,12 @@ main(int argc, char *argv[]) {
       for (int v = 0 ; v < nbPartSeg[i_code] ; v++) {
         int i_part = nbPartSeg[i_code] * u + v;
         int nVertexSegPart = nVertexSeg / nbPartSeg[i_code];
-        nVertex[i_code][i_part] = nVertexSegPart * nVertexSegPart;
-        nElts[i_code][i_part] = (nVertexSegPart - 1) * (nVertexSegPart - 1);
+        nVertex[i_code][i_part] =  nVertexSegPart      *  nVertexSegPart;
+        nElts  [i_code][i_part] = (nVertexSegPart - 1) * (nVertexSegPart - 1);
 
-        coords[i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nVertex[i_code][i_part]);
-        eltsConnecPointer[i_code][i_part] = (int *) malloc(sizeof(int) * (nElts[i_code][i_part] + 1));
-        eltsConnec[i_code][i_part] = (int *) malloc(sizeof(int) * 4 * nElts[i_code][i_part]);
+        coords           [i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nVertex[i_code][i_part]   );
+        eltsConnecPointer[i_code][i_part] = (int    *) malloc(sizeof(int   ) *    (nElts[i_code][i_part] + 1));
+        eltsConnec       [i_code][i_part] = (int    *) malloc(sizeof(int   ) * 4 * nElts[i_code][i_part]     );
         if (!strcmp(codeName[i_code], "code1")) {
           double xminPart = xmin + xSegPart * v;
           double yminPart = ymin + ySegPart * u;
@@ -538,14 +538,14 @@ main(int argc, char *argv[]) {
 
   printf("%d - Exchange Code1 <-> Code2\n", rank);
 
-  double ***sendValues = (double ***) malloc(sizeof(double *) * n_code);
-  double ***sendValues2 = (double ***) malloc(sizeof(double *) * n_code);
-  double ***sendValues3 = (double ***) malloc(sizeof(double *) * n_code);
-  double ***recvValues = (double ***) malloc(sizeof(double *) * n_code);
-  double ***recvValues2 = (double ***) malloc(sizeof(double *) * n_code);
-  double ***recvValues3 = (double ***) malloc(sizeof(double *) * n_code);
-  double ***Values2Vertex = (double ***) malloc(sizeof(double *) * n_code);
-  double ***recvValuesUser = (double ***) malloc(sizeof(double *) * n_code);
+  double ***sendValues     = (double ***) malloc(sizeof(double **) * n_code);
+  double ***sendValues2    = (double ***) malloc(sizeof(double **) * n_code);
+  double ***sendValues3    = (double ***) malloc(sizeof(double **) * n_code);
+  double ***recvValues     = (double ***) malloc(sizeof(double **) * n_code);
+  double ***recvValues2    = (double ***) malloc(sizeof(double **) * n_code);
+  double ***recvValues3    = (double ***) malloc(sizeof(double **) * n_code);
+  double ***Values2Vertex  = (double ***) malloc(sizeof(double **) * n_code);
+  double ***recvValuesUser = (double ***) malloc(sizeof(double **) * n_code);
 
   int nbPoints = 3;
   int **nbPointsUser = (int **) malloc(sizeof(int *) * n_code);
@@ -553,47 +553,47 @@ main(int argc, char *argv[]) {
   double ***coordsPointsUser = (double ***) malloc(sizeof(double **) * n_code);
 
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    sendValues[i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
+    sendValues [i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
     sendValues2[i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
     sendValues3[i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
 
-    nbPointsUser[i_code] = (int *) malloc(sizeof(int) * nbPart[i_code]);
-    recvValues[i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
-    recvValues2[i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
-    recvValues3[i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
-    Values2Vertex[i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
-    recvValuesUser[i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
+    nbPointsUser    [i_code] = (int     *) malloc(sizeof(int     ) * nbPart[i_code]);
+    recvValues      [i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
+    recvValues2     [i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
+    recvValues3     [i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
+    Values2Vertex   [i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
+    recvValuesUser  [i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
     coordsPointsUser[i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
     for (int i_part = 0 ; i_part < nbPart[i_code] ; i_part++) {
 
       if (!strcmp(codeName[i_code], "code1")) {
-        sendValues[i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);
+        sendValues [i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);
         sendValues2[i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);
         sendValues3[i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);
 
-        recvValues[i_code][i_part] = (double *) malloc(sizeof(double) * nElts[i_code][i_part]);
-        Values2Vertex[i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);
-        nbPointsUser[i_code][i_part] = 0;
-        recvValuesUser[i_code][i_part] = (double *) malloc(sizeof(double) * nbPointsUser[i_code][i_part]);
+        recvValues      [i_code][i_part] = (double *) malloc(sizeof(double) * nElts[i_code][i_part]);
+        Values2Vertex   [i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);
+        nbPointsUser    [i_code][i_part] = 0;
+        recvValuesUser  [i_code][i_part] = (double *) malloc(sizeof(double) * nbPointsUser[i_code][i_part]);
         coordsPointsUser[i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nbPointsUser[i_code][i_part]);
         for (int i = 0 ; i < nVertex[i_code][i_part] ; i++) {
           sendValues[i_code][i_part][i] = coords[i_code][i_part][3 * i];
         }
       }
       else {
-        sendValues[i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nElts[i_code][i_part]);
+        sendValues [i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nElts[i_code][i_part]);
         sendValues2[i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nElts[i_code][i_part]);
         sendValues3[i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nElts[i_code][i_part]);
 
-        recvValues[i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nVertex[i_code][i_part]);
-        recvValues2[i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nVertex[i_code][i_part]);
-        recvValues3[i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nVertex[i_code][i_part]);
-        Values2Vertex[i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);
-        nbPointsUser[i_code][i_part] = nbPoints;
-        recvValuesUser[i_code][i_part] = (double *) malloc(sizeof(double) * nbPointsUser[i_code][i_part]);
+        recvValues      [i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nVertex[i_code][i_part]);
+        recvValues2     [i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nVertex[i_code][i_part]);
+        recvValues3     [i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nVertex[i_code][i_part]);
+        Values2Vertex   [i_code][i_part] = (double *) malloc(sizeof(double) *     nVertex[i_code][i_part]);
+        nbPointsUser    [i_code][i_part] = nbPoints;
+        recvValuesUser  [i_code][i_part] = (double *) malloc(sizeof(double) *     nbPointsUser[i_code][i_part]);
         coordsPointsUser[i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nbPointsUser[i_code][i_part]);
         for (int i = 0 ; i < nElts[i_code][i_part] ; i++) {
-          sendValues[i_code][i_part][3 * i] = rank;
+          sendValues [i_code][i_part][3 * i] = rank;
           sendValues2[i_code][i_part][3 * i] = i_part;
           sendValues3[i_code][i_part][3 * i] = i;
         }
@@ -602,7 +602,7 @@ main(int argc, char *argv[]) {
         }
 
         for (int i = 0 ; i < nbPointsUser[i_code][i_part] ; i++) {
-          coordsPointsUser[i_code][i_part][3 * i] = 0.0 + 0.01 * i_part + 0.001 * i;
+          coordsPointsUser[i_code][i_part][3 * i    ] = 0.0 + 0.01 * i_part + 0.001 * i;
           coordsPointsUser[i_code][i_part][3 * i + 1] = rank * 0.1 + 0.01 * i_part + 0.001 * i;
           coordsPointsUser[i_code][i_part][3 * i + 2] = 0.0;
         }
@@ -1051,14 +1051,14 @@ main(int argc, char *argv[]) {
   // Freeing memory
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
     for (int i_part = 0 ; i_part < nbPart[i_code] ; i_part++) {
-      free(coords[i_code][i_part]);
-      free(sendValues[i_code][i_part]);
-      free(recvValues[i_code][i_part]);
+      free(coords       [i_code][i_part]);
+      free(sendValues   [i_code][i_part]);
+      free(recvValues   [i_code][i_part]);
       free(Values2Vertex[i_code][i_part]);
     }
-    free(coords[i_code]);
-    free(sendValues[i_code]);
-    free(recvValues[i_code]);
+    free(coords       [i_code]);
+    free(sendValues   [i_code]);
+    free(recvValues   [i_code]);
     free(Values2Vertex[i_code]);
   }
 
