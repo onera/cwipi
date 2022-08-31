@@ -326,9 +326,9 @@ module cwp
         CWP_Field_wait_irecv_
     end interface CWP_Field_wait_irecv
         
-    ! interface CWP_Interp_from_location_unset ; module procedure &
-    !     CWP_Interp_from_location_unset_
-    ! end interface CWP_Interp_from_location_unset
+    interface CWP_Interp_from_location_unset ; module procedure &
+        CWP_Interp_from_location_unset_
+    end interface CWP_Interp_from_location_unset
         
     interface CWP_Interp_from_location_set ; module procedure &
         CWP_Interp_from_location_set_
@@ -826,9 +826,9 @@ module cwp
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_tgt_field_id
       end subroutine CWP_Field_wait_irecv_cf
 
-      subroutine CWP_Interp_from_location_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+      subroutine CWP_Interp_from_location_fortran_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
               src_field_id, l_src_field_id, ptInterpolationFct) &
-              bind(c, name = 'CWP_Interp_from_location_set_cf')
+              bind(c, name = 'CWP_Interp_from_location_fortran_set_cf')
         use, intrinsic :: iso_c_binding
         implicit none
 
@@ -875,8 +875,17 @@ module cwp
         end interface
         character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_src_field_id
-      end subroutine CWP_Interp_from_location_set_cf
+      end subroutine CWP_Interp_from_location_fortran_set_cf
 
+      subroutine CWP_Interp_from_location_fortran_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+              src_field_id, l_src_field_id) &
+              bind(c, name = 'CWP_Interp_from_location_fortran_unset_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_src_field_id
+      end subroutine CWP_Interp_from_location_fortran_unset_cf
 
       subroutine CWP_Spatial_interp_property_set_cf(local_code_name,   &
                                                     l_local_code_name, &
@@ -3079,7 +3088,7 @@ contains
     l_cpl_id = len(cpl_id)
     l_src_field_id = len(src_field_id)
 
-    call CWP_Interp_from_location_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+    call CWP_Interp_from_location_fortran_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
             & src_field_id, l_src_field_id)
 
   end subroutine CWP_Interp_from_location_unset_
@@ -3154,7 +3163,7 @@ contains
     l_cpl_id = len(cpl_id)
     l_src_field_id = len(src_field_id)
 
-    call CWP_Interp_from_location_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+    call CWP_Interp_from_location_fortran_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
             & src_field_id, l_src_field_id, ptInterpolationFct)
   end subroutine CWP_Interp_from_location_set_
 
