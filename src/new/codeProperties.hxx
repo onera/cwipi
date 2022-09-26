@@ -982,6 +982,8 @@ namespace cwipi {
    int          *value
   )
   {
+    MPI_Barrier (_intraComm);
+
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
     _updateIntValues ();
@@ -1092,6 +1094,7 @@ namespace cwipi {
    double       *value
   )
   {
+    MPI_Barrier (_intraComm);
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
@@ -1207,6 +1210,7 @@ namespace cwipi {
    char        **value
   )
   {
+    MPI_Barrier (_intraComm);
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 

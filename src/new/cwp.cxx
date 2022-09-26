@@ -529,15 +529,16 @@ CWP_Time_update
  const double current_time
 )
 {
-  cwipi::CodePropertiesDB & properties =
-  cwipi::CodePropertiesDB::getInstance();
+  cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
+  
   properties.ctrlParamSet<double>(string(local_code_name),"time", current_time);
 
   // call timeUpdate() for all couplings
+  
   cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
+  
   couplingDB.timeUpdate(properties.codePropertiesGet(local_code_name),
                         current_time);
-
 
 }
 

@@ -1,5 +1,6 @@
 #ifndef __CWP_H__
 #define __CWP_H__
+
 /*
   This file is part of the CWIPI library.
 
@@ -97,7 +98,6 @@ typedef enum {
   CWP_VISU_FORMAT_ENSIGHT      /*!< Ensight visualization format */
 
 } CWP_Visu_format_t;
-
 
 
 /**
@@ -254,6 +254,7 @@ typedef enum {
   CWP_DYNAMIC_MESH_STATIC,      /*!< Static mesh*/
   CWP_DYNAMIC_MESH_DEFORMABLE,  /*!< Deformable mesh with constant topology */
   CWP_DYNAMIC_MESH_VARIABLE     /*!< Variable mesh topology */
+
 } CWP_Dynamic_mesh_t;
 
 /**
@@ -416,7 +417,7 @@ typedef void (*CWP_Interp_from_location_t)
 
 typedef void (*CWP_Interp_from_intersect_t)
 (
- const int interface_type
+  const int interface_type
 );
 
 /**
@@ -434,7 +435,7 @@ typedef void (*CWP_Interp_from_intersect_t)
 
 typedef void (*CWP_Interp_from_closest_pts_t)
 (
- const int interface_type
+  const int interface_type
 );
 
 /*=============================================================================
