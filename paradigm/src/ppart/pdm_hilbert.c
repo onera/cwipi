@@ -25,6 +25,7 @@
 #include "pdm_hilbert.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm_logging.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -471,23 +472,23 @@ _hilbert_encode_3d_others(const double  coord[3], const unsigned * _idata3d, con
  *   g_extents <-> global extents (size: dim*2)
  *   comm      <-- associated MPI communicator
  *---------------------------------------------------------------------------*/
-
 static void
-_local_to_global_extents(int         dim,
-                         double  extents[],
-                         PDM_MPI_Comm    comm)
+_local_to_global_extents(int          dim,
+                         double       extents[],
+                         PDM_MPI_Comm comm)
 {
-  int i;
   double  l_min[3], l_max[3];
 
-  for (i = 0; i < dim; i++) {
-    l_min[i] = extents[i];
+  for (int i = 0; i < dim; i++) {
+    l_min[i] = extents[i      ];
     l_max[i] = extents[i + dim];
   }
 
-  PDM_MPI_Allreduce(l_min, extents, dim, PDM__PDM_MPI_REAL, PDM_MPI_MIN, comm);
+  PDM_MPI_Allreduce(l_min, extents      , dim, PDM__PDM_MPI_REAL, PDM_MPI_MIN, comm);
   PDM_MPI_Allreduce(l_max, extents + dim, dim, PDM__PDM_MPI_REAL, PDM_MPI_MAX, comm);
 }
+
+
 
 
 /*----------------------------------------------------------------------------
@@ -610,12 +611,6 @@ _define_rank_distrib(int                       dim,
                      PDM_g_num_t               g_distrib[],
                      PDM_MPI_Comm              comm)
 {
-  int  id, rank_id;
-  PDM_hilbert_code_t  sample_code;
-  int   i;
-
-  int  bucket_id = 1;
-
   const int  sampling_factor = _sampling_factors[dim];
   const int  n_samples = sampling_factor * n_ranks;
 
@@ -623,46 +618,45 @@ _define_rank_distrib(int                       dim,
 
   PDM_g_num_t   *l_distrib = (PDM_g_num_t   *) malloc (n_samples * sizeof(PDM_g_num_t));
 
-  for (id = 0; id < n_samples; id++) {
+  for (int id = 0; id < n_samples; id++) {
     l_distrib[id] = 0;
     g_distrib[id] = 0;
   }
 
-  /* hilbert_codes are supposed to be ordered */
-
-  sample_code = sampling[bucket_id];
-
-  for (i = 0; i < n_codes; i++) {
-
-    PDM_g_num_t   o_id = order[i];
-
-    if (sample_code >= hilbert_codes[o_id])
-      l_distrib[bucket_id - 1] += weight[o_id];
-
-    else {
-
-      while (hilbert_codes[o_id] > sample_code) {
-        bucket_id++;
-        assert(bucket_id < n_samples + 1);
-        sample_code = sampling[bucket_id];
+  if(order == NULL) {
+    /* Hilbert codes not ordered !!!! */
+    for (int i = 0; i < n_codes; i++) {
+      size_t t_bucket = PDM_hilbert_quantile_search(n_samples, hilbert_codes[i], sampling);
+      l_distrib[t_bucket] += weight[i];
+    } /* End of loop on elements */
+  } else {
+    /* hilbert_codes are supposed to be ordered */
+    int  bucket_id = 1;
+    PDM_hilbert_code_t  sample_code;
+    sample_code = sampling[bucket_id];
+    for (int i = 0; i < n_codes; i++) {
+      PDM_g_num_t   o_id = order[i];
+      if (sample_code >= hilbert_codes[o_id])
+        l_distrib[bucket_id - 1] += weight[o_id];
+      else {
+        while (hilbert_codes[o_id] > sample_code) {
+          bucket_id++;
+          assert(bucket_id < n_samples + 1);
+          sample_code = sampling[bucket_id];
+        }
+        l_distrib[bucket_id - 1] += weight[o_id];
       }
-
-      l_distrib[bucket_id - 1] += weight[o_id];
-
-    }
-
-  } /* End of loop on elements */
+    } /* End of loop on elements */
+  }
 
   /* Define the global distribution */
-
   PDM_MPI_Allreduce(l_distrib, g_distrib, n_samples, PDM__PDM_MPI_G_NUM, PDM_MPI_SUM, comm);
 
   free(l_distrib);
 
   /* Define the cumulative frequency related to g_distribution */
-
   cfreq[0] = 0.;
-  for (id = 0; id < n_samples; id++) {
+  for (int id = 0; id < n_samples; id++) {
     double _g_distrib  = (double)g_distrib[id];
     double _gsum_weight = (double)gsum_weight;
     cfreq[id+1] = cfreq[id] + _g_distrib/_gsum_weight;
@@ -704,12 +698,12 @@ _define_rank_distrib(int                       dim,
 
   /* Convert global distribution from n_samples to n_ranks */
 
-  for (rank_id = 0; rank_id < n_ranks; rank_id++) {
+  for (int rank_id = 0; rank_id < n_ranks; rank_id++) {
 
     PDM_g_num_t   sum = 0;
     int   shift = rank_id * sampling_factor;
 
-    for (id = 0; id < sampling_factor; id++)
+    for (int id = 0; id < sampling_factor; id++)
       sum += g_distrib[shift + id];
     g_distrib[rank_id] = sum;
 
@@ -1126,7 +1120,10 @@ PDM_hilbert_encode_coords(int                  dim,
 
   }
 
-
+  // log_trace("n_coords  = %i \n", n_coords);
+  // PDM_log_trace_array_double(extents, 3, " extents = ");
+  // PDM_log_trace_array_double(s, 3, " s = ");
+  // PDM_log_trace_array_double(d, 3, " s = ");
 
   switch(dim) {
 
@@ -1282,9 +1279,9 @@ PDM_hilbert_local_order_coords(int                  dim,
  *----------------------------------------------------------------------------*/
 
 size_t
-PDM_hilbert_quantile_search(size_t              n_quantiles,
-                            PDM_hilbert_code_t  code,
-                            PDM_hilbert_code_t  quantile_start[])
+PDM_hilbert_quantile_search(const size_t              n_quantiles,
+                            const PDM_hilbert_code_t  code,
+                            const PDM_hilbert_code_t  quantile_start[])
 {
   size_t mid_id = 0;
   size_t start_id = 0;
@@ -1338,7 +1335,7 @@ PDM_hilbert_build_rank_index(int                       dim,
                              const int                 weight[],
                              const int                 order[],
                              PDM_hilbert_code_t        rank_index[],
-                             PDM_MPI_Comm                  comm)
+                             PDM_MPI_Comm              comm)
 {
   int  i, id, rank_id, n_samples;
   double  best_fit;

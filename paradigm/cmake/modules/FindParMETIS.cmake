@@ -37,8 +37,11 @@ endif()
 set(ENV_PARMETIS_INCDIR "")
 if (DEFINED ENV{PARMETIS_INCDIR})
   set (ENV_PARMETIS_INCDIR "$ENV{PARMETIS_INCDIR}")
+elseif(DEFINED ENV{PARMETIS_INCLUDE_DIR})
+  set (ENV_PARMETIS_INCDIR "$ENV{PARMETIS_INCLUDE_DIR}")
 endif()
-
+# message("ENV_PARMETIS_DIR" ${ENV_PARMETIS_DIR})
+# message("ENV_PARMETIS_INCDIR" ${ENV_PARMETIS_INCDIR})
 
 # Looking for include
 # -------------------
@@ -49,7 +52,7 @@ unset(_inc_env)
 
 if(ENV_PARMETIS_INCDIR)
   list(APPEND _inc_env "${ENV_PARMETIS_INCDIR}")
-elseif(ENV_METIS_DIR)
+elseif(ENV_PARMETIS_DIR)
   list(APPEND _inc_env "${ENV_PARMETIS_DIR}")
   list(APPEND _inc_env "${ENV_PARMETIS_DIR}/include")
   list(APPEND _inc_env "${ENV_PARMETIS_DIR}/include/parmetis")

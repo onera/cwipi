@@ -177,6 +177,8 @@ char *argv[]
   double      *coords = NULL;
   PDM_g_num_t *gnum   = NULL;
   PDM_point_cloud_gen_random (PDM_MPI_COMM_WORLD,
+                              0, // seed
+                              0, // geometric_g_num
                               nPts,
                               -radius, -radius, -radius,
                               radius, radius, radius,
@@ -201,7 +203,7 @@ char *argv[]
 
   PDM_para_octree_build (octree, NULL);
 
-  //PDM_para_octree_dump (octree);
+  // PDM_para_octree_dump (octree);
 
   PDM_para_octree_dump_times (octree);
 

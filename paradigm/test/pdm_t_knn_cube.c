@@ -261,6 +261,8 @@ int main(int argc, char *argv[])
 
   double h = 0.5 * length / (double) n_faceSeg;
   PDM_point_cloud_gen_random (PDM_MPI_COMM_WORLD,
+                              0, // seed
+                              0, // geometric_g_num
                               nTgt,
                               h, h, h,
                               length - 2*h, length - 2*h, length - 2*h,

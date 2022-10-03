@@ -1569,6 +1569,7 @@ _extract_part_and_reequilibrate_from_target
     pn_entity    = extrp->n_face;
     entity_g_num = extrp->face_ln_to_gn;
   }
+  // printf("_extract_part_and_reequilibrate_from_target \n");
 
   /*
    * Generate global numbering for traget g_num

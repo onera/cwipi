@@ -515,6 +515,8 @@ int main(int argc, char *argv[])
   /*
    * Export vtk en légende
    */
+  // PDM_part_mesh_nodal_dump_vtk(extract_pmne, PDM_GEOMETRY_KIND_VOLUMIC, "extract_vol_");
+
   // if(0 == 1) {
   //   for(int i_part = 0; i_part < n_part_out; ++i_part) {
 

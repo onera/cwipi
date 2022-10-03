@@ -490,60 +490,82 @@ PDM_part_mesh_nodal_dump_vtk
       int                  n_elt = PDM_part_mesh_nodal_elmts_block_n_elt_get(pmne, id_section, i_part);
       PDM_Mesh_nodal_elt_t t_elt = PDM_part_mesh_nodal_elmts_block_type_get (pmne, id_section);
 
-      int order;
-      const char *ho_ordering      = NULL;
-      int         *pcell_vtx       = NULL;
-      PDM_g_num_t *pelmt_ln_to_gn  = NULL;
-      int         *parent_num      = NULL;
-      PDM_g_num_t *parent_elmt_num = NULL;
-      PDM_part_mesh_nodal_elmts_block_std_ho_get(pmne,
-                                                 section_id[i_section],
-                                                 i_part,
-                                                 &pcell_vtx,
-                                                 &pelmt_ln_to_gn,
-                                                 &parent_num,
-                                                 &parent_elmt_num,
-                                                 &order,
-                                                 &ho_ordering);
-
-      // PDM_Mesh_nodal_reorder_elt_vtx();
-      int n_vtx_per_elmt = PDM_Mesh_nodal_n_vertices_element (t_elt, order);
-      int *pcell_vtx_out = malloc(n_vtx_per_elmt * n_elt * sizeof(int));
-      for(int i = 0; i < n_vtx_per_elmt * n_elt; ++i) {
-        pcell_vtx_out[i] = pcell_vtx[i];
-      }
-
-      PDM_Mesh_nodal_reorder_elt_vtx(t_elt,
-                                     order,
-                                     ho_ordering,
-                                     "PDM_HO_ORDERING_VTK",
-                                     n_elt,
-                                     pcell_vtx,
-                                     pcell_vtx_out);
-
       char filename[999];
       sprintf(filename, "%s_section_%2.2d_%2.2d_%2.2d.vtk", filename_patter, i_section, i_part, i_rank);
 
-      PDM_vtk_write_std_elements_ho(filename,
-                                    order,
-                                    pn_vtx,
-                                    pvtx_coord,
-                                    pvtx_ln_to_gn,
-                                    t_elt,
-                                    n_elt,
-                                    pcell_vtx_out,
-                                    pelmt_ln_to_gn,
-                                    0,
-                                    NULL,
-                                    NULL);
-      free(pcell_vtx_out);
+      int is_ho = PDM_Mesh_nodal_elmt_is_ho(t_elt);
+      if(is_ho) {
+        int order;
+        const char *ho_ordering      = NULL;
+        int         *pcell_vtx       = NULL;
+        PDM_g_num_t *pelmt_ln_to_gn  = NULL;
+        int         *parent_num      = NULL;
+        PDM_g_num_t *parent_elmt_num = NULL;
+        PDM_part_mesh_nodal_elmts_block_std_ho_get(pmne,
+                                                   section_id[i_section],
+                                                   i_part,
+                                                   &pcell_vtx,
+                                                   &pelmt_ln_to_gn,
+                                                   &parent_num,
+                                                   &parent_elmt_num,
+                                                   &order,
+                                                   &ho_ordering);
+
+        // PDM_Mesh_nodal_reorder_elt_vtx();
+        int n_vtx_per_elmt = PDM_Mesh_nodal_n_vertices_element (t_elt, order);
+        int *pcell_vtx_out = malloc(n_vtx_per_elmt * n_elt * sizeof(int));
+        for(int i = 0; i < n_vtx_per_elmt * n_elt; ++i) {
+          pcell_vtx_out[i] = pcell_vtx[i];
+        }
+
+        PDM_Mesh_nodal_reorder_elt_vtx(t_elt,
+                                       order,
+                                       ho_ordering,
+                                       "PDM_HO_ORDERING_VTK",
+                                       n_elt,
+                                       pcell_vtx,
+                                       pcell_vtx_out);
+
+
+        PDM_vtk_write_std_elements_ho(filename,
+                                      order,
+                                      pn_vtx,
+                                      pvtx_coord,
+                                      pvtx_ln_to_gn,
+                                      t_elt,
+                                      n_elt,
+                                      pcell_vtx_out,
+                                      pelmt_ln_to_gn,
+                                      0,
+                                      NULL,
+                                      NULL);
+        free(pcell_vtx_out);
+      } else {
+
+        int         *pcell_vtx       = NULL;
+        PDM_g_num_t *pelmt_ln_to_gn  = NULL;
+        int         *parent_num      = NULL;
+        PDM_g_num_t *parent_elmt_num = NULL;
+        PDM_part_mesh_nodal_elmts_block_std_get(pmne,
+                                                section_id[i_section],
+                                                i_part,
+                                                &pcell_vtx,
+                                                &pelmt_ln_to_gn,
+                                                &parent_num,
+                                                &parent_elmt_num);
+
+        PDM_vtk_write_std_elements(filename,
+                                   pn_vtx,
+                                   pvtx_coord,
+                                   pvtx_ln_to_gn,
+                                   t_elt,
+                                   n_elt,
+                                   pcell_vtx,
+                                   pelmt_ln_to_gn,
+                                   0,
+                                   NULL,
+                                   NULL);
+      }
     }
-
   }
-
-
 }
-
-// Faire extraction de maillage depuis mesh_nodal
-// Donc par exemple rendre un nouveau maillage (avec numero absolu des rigdes à partir du mesh_nodal )
-// PDM_extract_from_indices()

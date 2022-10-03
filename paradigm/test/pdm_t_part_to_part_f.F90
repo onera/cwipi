@@ -97,7 +97,7 @@ program testf
   integer                               :: i, j, k, idx
   character                             :: strnum
   integer                               :: fid = 13
-  integer                               :: debug = 0
+  integer                               :: debug = 1
 
   !-----------------------------------------------------------
 

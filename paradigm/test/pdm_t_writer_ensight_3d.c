@@ -273,25 +273,25 @@ int main(int argc, char *argv[])
                     &cpu_user,
                     &cpu_sys);
 
-  PDM_printf("[%i]   - elapsed total                    : %12.5e\n", i_rank, elapsed[0]);
-  PDM_printf("[%i]   - elapsed building graph           : %12.5e\n", i_rank, elapsed[1]);
-  PDM_printf("[%i]   - elapsed splitting graph          : %12.5e\n", i_rank, elapsed[2]);
-  PDM_printf("[%i]   - elapsed building mesh partitions : %12.5e\n", i_rank, elapsed[3]);
+  // PDM_printf("[%i]   - elapsed total                    : %12.5e\n", i_rank, elapsed[0]);
+  // PDM_printf("[%i]   - elapsed building graph           : %12.5e\n", i_rank, elapsed[1]);
+  // PDM_printf("[%i]   - elapsed splitting graph          : %12.5e\n", i_rank, elapsed[2]);
+  // PDM_printf("[%i]   - elapsed building mesh partitions : %12.5e\n", i_rank, elapsed[3]);
 
-  PDM_printf("[%i]   - cpu total                        : %12.5e\n", i_rank, cpu[0]);
-  PDM_printf("[%i]   - cpu building graph               : %12.5e\n", i_rank, cpu[1]);
-  PDM_printf("[%i]   - cpu splitting graph              : %12.5e\n", i_rank, cpu[2]);
-  PDM_printf("[%i]   - cpu building mesh partitions     : %12.5e\n", i_rank, cpu[3]);
+  // PDM_printf("[%i]   - cpu total                        : %12.5e\n", i_rank, cpu[0]);
+  // PDM_printf("[%i]   - cpu building graph               : %12.5e\n", i_rank, cpu[1]);
+  // PDM_printf("[%i]   - cpu splitting graph              : %12.5e\n", i_rank, cpu[2]);
+  // PDM_printf("[%i]   - cpu building mesh partitions     : %12.5e\n", i_rank, cpu[3]);
 
-  PDM_printf("[%i]   - cpu_user total                   : %12.5e\n", i_rank, cpu_user[0]);
-  PDM_printf("[%i]   - cpu_user building graph          : %12.5e\n", i_rank, cpu_user[1]);
-  PDM_printf("[%i]   - cpu_user splitting graph         : %12.5e\n", i_rank, cpu_user[2]);
-  PDM_printf("[%i]   - cpu_user building mesh partitions: %12.5e\n", i_rank, cpu_user[3]);
+  // PDM_printf("[%i]   - cpu_user total                   : %12.5e\n", i_rank, cpu_user[0]);
+  // PDM_printf("[%i]   - cpu_user building graph          : %12.5e\n", i_rank, cpu_user[1]);
+  // PDM_printf("[%i]   - cpu_user splitting graph         : %12.5e\n", i_rank, cpu_user[2]);
+  // PDM_printf("[%i]   - cpu_user building mesh partitions: %12.5e\n", i_rank, cpu_user[3]);
 
-  PDM_printf("[%i]   - cpu_sys total                    : %12.5e\n", i_rank, cpu_sys[0]);
-  PDM_printf("[%i]   - cpu_sys building graph           : %12.5e\n", i_rank, cpu_sys[1]);
-  PDM_printf("[%i]   - cpu_sys splitting graph          : %12.5e\n", i_rank, cpu_sys[2]);
-  PDM_printf("[%i]   - cpu_sys building mesh partitions : %12.5e\n", i_rank, cpu_sys[3]);
+  // PDM_printf("[%i]   - cpu_sys total                    : %12.5e\n", i_rank, cpu_sys[0]);
+  // PDM_printf("[%i]   - cpu_sys building graph           : %12.5e\n", i_rank, cpu_sys[1]);
+  // PDM_printf("[%i]   - cpu_sys splitting graph          : %12.5e\n", i_rank, cpu_sys[2]);
+  // PDM_printf("[%i]   - cpu_sys building mesh partitions : %12.5e\n", i_rank, cpu_sys[3]);
 
   struct timeval t_elaps_fin;
   gettimeofday(&t_elaps_fin, NULL);
@@ -303,6 +303,8 @@ int main(int argc, char *argv[])
   double t_elapsed = (double) tranche_elapsed_max/1000000.;
   PDM_printf("[%i]   - TEMPS DANS PART_CUBE  : %12.5e\n", i_rank,  t_elapsed);
 
+  PDM_MPI_Barrier(PDM_MPI_COMM_WORLD);
+  double t1 = PDM_MPI_Wtime();
   PDM_writer_t *id_cs = PDM_writer_create("Ensight",
                                           PDM_WRITER_FMT_ASCII,
                                           PDM_WRITER_TOPO_CST,
@@ -311,7 +313,7 @@ int main(int argc, char *argv[])
                                           "chrd3d",
                                           PDM_MPI_COMM_WORLD,
                                           PDM_IO_KIND_MPI_SIMPLE,
-                                          1.,
+                                          -1., // To test -1 to repart on all procs
                                           "append = 1");
 
   // PDM_writer_t *id_cs = PDM_writer_create("Ensight",
@@ -604,7 +606,16 @@ int main(int argc, char *argv[])
                        id_geom);
 
   PDM_writer_free(id_cs);
+  double dt = PDM_MPI_Wtime()-t1;
+  PDM_MPI_Barrier(PDM_MPI_COMM_WORLD);
+  double cpu_time_max = -1;
+  double cpu_time_min = -1;
+  PDM_MPI_Allreduce (&dt, &cpu_time_max, 1, PDM_MPI_DOUBLE, PDM_MPI_MAX, PDM_MPI_COMM_WORLD);
+  PDM_MPI_Allreduce (&dt, &cpu_time_min, 1, PDM_MPI_DOUBLE, PDM_MPI_MAX, PDM_MPI_COMM_WORLD);
 
+  if(i_rank == 0) {
+    printf("PDM_writer duration min/max : %12.5e / %12.5e \n", cpu_time_min, cpu_time_max);
+  }
 
   /* Calculs statistiques */
 

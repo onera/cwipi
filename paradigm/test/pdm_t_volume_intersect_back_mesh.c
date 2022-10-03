@@ -38,7 +38,7 @@
  *============================================================================*/
 
 static const int    verbose = 0;
-static const int    vtk     = 0;
+static const int    vtk     = 1;
 
 /*============================================================================
  * Private function definitions
@@ -537,7 +537,7 @@ int main(int argc, char *argv[])
                           (const PDM_g_num_t **) &d_back_face_ln_to_gn);
 
   free(background_box_extents);
-  free(d_back_face_ln_to_gn);
+  // free(d_back_face_ln_to_gn);
 
   // Create volumes using normals (first "volume" mesh then background mesh)
 
@@ -808,6 +808,15 @@ int main(int argc, char *argv[])
                                       edge_pt_plane,
                                       &volume_boxes_idx,
                                       &volume_boxes_g_num);
+
+  if (vtk) {
+    char filename1[999];
+    sprintf(filename1, "dbbt_%d.vtk", i_rank);
+    PDM_dbbtree_box_tree_write_vtk(filename1,
+                                   dbbt,
+                                   -1,
+                                   0);
+  }
 
   if (verbose) {
     log_trace("VOLUME-BOX INTERSECTION\n");

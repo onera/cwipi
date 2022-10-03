@@ -443,7 +443,7 @@ PDM_points_merge_create
     pm->candidates_desc[i] = NULL;
   }
 
-  pm->depth_max = 1000;
+  pm->depth_max = 31;
   pm->points_in_leaf_max = 4;
 
   pm->octree = PDM_octree_create (n_point_cloud, pm->depth_max,

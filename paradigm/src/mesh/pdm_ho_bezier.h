@@ -42,6 +42,37 @@
  * Public function interfaces
  *============================================================================*/
 
+
+/**
+ *
+ * \brief De Casteljau algorithm for Bézier curves
+ *
+ * Evaluates the point with parameter t on the Bézier curve
+ * and (optionally) builds the control points of the two
+ * subcurves sharing the evaluated point as a common vertex.
+ *
+ * \param[in]   dim     Dimension
+ * \param[in]   order   Order
+ * \param[in]   t       Parametric coordinate
+ * \param[in]   b       Bézier control points
+ * \param[out]  val     Evaluated point
+ * \param[out]  l       Control points of the 1st subcurve
+ * \param[out]  r       Control points of the 2nd subcurve
+ *
+ */
+
+void
+PDM_ho_bezier_de_casteljau_curve
+(
+ const int     dim,
+ const int     order,
+ const double  t,
+ double       *b,
+ double       *val,
+ double       *l,
+ double       *r
+ );
+
 /**
  *
  * \brief De Casteljau algorithm for Bézier triangles
@@ -63,7 +94,7 @@
  */
 
 void
-PDM_ho_bezier_de_casteljau_tria
+PDM_ho_bezier_de_casteljau_triangle
 (
  const int     dim,
  const int     order,
@@ -74,6 +105,27 @@ PDM_ho_bezier_de_casteljau_tria
  double       *atr,
  double       *ars,
  double       *ast
+ );
+
+
+/**
+ *
+ * \brief Build control points for derivative of a Bézier curve
+ *
+ * \param[in]   dim     Dimension
+ * \param[in]   order   Order
+ * \param[in]   b       Bézier control points
+ * \param[out]  db_dt   Bézier control points of derivative
+ *
+ */
+
+void
+PDM_ho_bezier_curve_derivative
+(
+ const int     dim,
+ const int     order,
+       double *b,
+       double *db_dt
  );
 
 
@@ -102,6 +154,31 @@ PDM_ho_bezier_triangle_derivatives
 
 /**
  *
+ * \brief Point location in a high-order Bézier curve
+ *
+ * \param[in]   order             Order
+ * \param[in]   n_node            Number of nodes
+ * \param[in]   node_coord        Coordinates of the Bézier control points (size = 3 * \ref n_node)
+ * \param[in]   point_coord       Coordinates of the point to locate (size = 3)
+ * \param[out]  projected_coords  Coordinates of the projection on the Bézier curve (size = 3)
+ * \param[out]  uvw               Parametric coordinates of the projection on the Bézier curve
+ *
+ */
+
+double
+PDM_ho_bezier_curve_location
+(
+ const int     order,
+ const int     n_node,
+       double *node_coord,
+       double *point_coord,
+       double *projected_coord,
+       double *u
+ );
+
+
+/**
+ *
  * \brief Point location in a high-order Bézier triangle
  *
  * \param[in]   order             Order
@@ -114,14 +191,14 @@ PDM_ho_bezier_triangle_derivatives
  */
 
 double
-PDM_ho_bezier_tria_location
+PDM_ho_bezier_triangle_location
 (
  const int     order,
  const int     n_node,
        double *node_coord,
        double *point_coord,
        double *projected_coord,
-       double *uvw
+       double *uv
  );
 
 #endif /* __PDM_HO_BEZIER_H__ */

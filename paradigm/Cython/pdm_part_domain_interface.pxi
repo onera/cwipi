@@ -23,6 +23,7 @@ cdef extern from "pdm_part_domain_interface.h":
                                        int                           interface_pn,
                                        PDM_g_num_t                  *interface_ln_to_gn,
                                        int                          *interface_sgn,
+                                       int                          *interface_sens,
                                        int                          *interface_ids,
                                        int                          *interface_ids_idx,
                                        int                          *interface_dom);
@@ -35,6 +36,7 @@ cdef extern from "pdm_part_domain_interface.h":
                                        int                           *interface_pn,
                                        PDM_g_num_t                  **interface_ln_to_gn,
                                        int                          **interface_sgn,
+                                       int                          **interface_sens,
                                        int                          **interface_ids,
                                        int                          **interface_ids_idx,
                                        int                          **interface_dom);
@@ -102,6 +104,7 @@ cdef class PartDomainInterface:
                     int                                           interface_pn,
                     NPY.ndarray[npy_pdm_gnum_t, mode='c', ndim=1] interface_ln_to_gn,
                     NPY.ndarray[NPY.int32_t   , mode='c', ndim=1] interface_sgn,
+                    NPY.ndarray[NPY.int32_t   , mode='c', ndim=1] interface_sens,
                     NPY.ndarray[NPY.int32_t   , mode='c', ndim=1] interface_ids,
                     NPY.ndarray[NPY.int32_t   , mode='c', ndim=1] interface_ids_idx,
                     NPY.ndarray[NPY.int32_t   , mode='c', ndim=1] interface_dom):
@@ -109,6 +112,7 @@ cdef class PartDomainInterface:
     """
     self.keep_alive.append(interface_ln_to_gn)
     self.keep_alive.append(interface_sgn)
+    self.keep_alive.append(interface_sens)
     self.keep_alive.append(interface_ids)
     self.keep_alive.append(interface_ids_idx)
     self.keep_alive.append(interface_dom)
@@ -120,6 +124,7 @@ cdef class PartDomainInterface:
                                   interface_pn,
                   <PDM_g_num_t *> interface_ln_to_gn.data,
                   <int         *> interface_sgn.data,
+                  <int         *> interface_sens.data,
                   <int         *> interface_ids.data,
                   <int         *> interface_ids_idx.data,
                   <int         *> interface_dom.data);

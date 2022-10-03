@@ -1650,7 +1650,7 @@ PDM_dmesh_nodal_reorder
     start = PDM_GEOMETRY_KIND_VOLUMIC;
   }
 
-  PDM_dmesh_nodal_elmts_t *dmne;
+  PDM_dmesh_nodal_elmts_t *dmne = NULL;
 
   for (PDM_geometry_kind_t geom_kind = start; geom_kind < PDM_GEOMETRY_KIND_MAX; geom_kind++) {
 
@@ -1862,6 +1862,7 @@ PDM_dmesh_nodal_global_extents_get
 )
 {
   if (dmn->is_computed_g_extents == PDM_FALSE) {
+    //TO DO Bastien: if high-order, compute extents using Bézier control points
 
     double l_min[3] = { HUGE_VAL};
     double l_max[3] = {-HUGE_VAL};

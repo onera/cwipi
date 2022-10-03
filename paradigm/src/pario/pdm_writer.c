@@ -565,6 +565,8 @@ const char                   *options
     (fmt_ptr->create_fct) (cs);
   }
 
+  cs->is_there_open_step = 0;
+
   return cs;
 
 }
@@ -586,6 +588,8 @@ PDM_writer_free
     return;
   }
 
+  PDM_writer_step_end (cs);
+  
   /* Appel de la fonction complementaire propre au format */
 
   PDM_writer_fmt_t *fmt_ptr = fmt_tab[cs->fmt_id];
@@ -706,6 +710,10 @@ PDM_writer_step_beg
   if (cs == NULL) {
     PDM_error (__FILE__, __LINE__, 0, "Bad writer identifier\n");
   }
+ 
+  if (cs->is_there_open_step) {
+    PDM_error (__FILE__, __LINE__, 0, "Error PDM_writer_step_beg : A step is already open\n");
+  }
 
   cs->physical_time = physical_time;
 
@@ -716,6 +724,8 @@ PDM_writer_step_beg
   if (fmt_ptr->beg_step_fct != NULL) {
     (fmt_ptr->beg_step_fct) (cs);
   }
+
+  cs->is_there_open_step = 1;
 
 }
 
@@ -738,11 +748,17 @@ PDM_writer_step_end
 
   /* Appel de la fonction complementaire propre au format */
 
-  PDM_writer_fmt_t *fmt_ptr = fmt_tab[cs->fmt_id];
+  if (cs->is_there_open_step) {
 
-  if (fmt_ptr->end_step_fct != NULL) {
-    (fmt_ptr->end_step_fct) (cs);
+    PDM_writer_fmt_t *fmt_ptr = fmt_tab[cs->fmt_id];
+
+    if (fmt_ptr->end_step_fct != NULL) {
+      (fmt_ptr->end_step_fct) (cs);
+    }
+
   }
+  
+  cs->is_there_open_step = 0;
 
 }
 
@@ -861,6 +877,39 @@ PDM_writer_geom_create_from_mesh_nodal
   return id_geom;
 }
 //<<--
+
+
+void
+PDM_writer_geom_set_from_mesh_nodal
+(
+ PDM_writer_t              *cs,
+ const int                  id_geom,
+ PDM_Mesh_nodal_t          *mesh
+)
+{
+  /* Erreur si le decoupage des polygones ou polyedres est choisi */
+
+  if (cs == NULL) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad writer identifier\n");
+  }
+
+  if (id_geom >= cs->geom_tab->n_geom) {
+    PDM_error(__FILE__, __LINE__, 0, "Bad geom identifier\n");
+    abort();
+  }
+  PDM_writer_geom_t *geom = cs->geom_tab->geom[id_geom];
+
+  if (geom == NULL) {
+    PDM_error(__FILE__, __LINE__, 0, "Bad geom identifier\n");
+    abort();
+  }
+  /* Initialisation de la structure PDM_writer_geom_t */
+
+  //_geom_init(geom, n_part, cs->pdm_mpi_comm);
+  geom->mesh_nodal  = mesh;
+
+}
+
 
 
 /**

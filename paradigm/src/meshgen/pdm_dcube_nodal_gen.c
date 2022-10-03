@@ -2320,7 +2320,14 @@ PDM_dcube_nodal_cart_topo
   free(distrib_k);
   free(i_period);
 
-  printf("i_interface = %d / %d\n", i_interface, n_interface);
+
+  if(0 == 1) {
+    for(int i_itrf = 0; i_itrf < n_interface; ++i_itrf) {
+      PDM_log_trace_array_long(interface_ids[i_itrf], 2 * interface_dn[i_itrf], "nodal_gen - interface_ids ::");
+    }
+  }
+
+  // printf("i_interface = %d / %d\n", i_interface, n_interface);
   PDM_domain_interface_set(_dom_intrf,
                            PDM_BOUND_TYPE_VTX,
                            interface_dn,

@@ -112,6 +112,24 @@ void
 
 }
 
+void
+PDM_extents_conformize(int    dim,
+                       double extents[],
+                       double eps)
+{
+  double max_range = 1.e-12;
+  for (int i = 0; i < dim; i++) {
+    max_range = PDM_MAX (max_range, extents[i+dim] - extents[i]);
+  }
+
+  // eps = 1.e-3
+  const double epsilon = eps * max_range; // Add eps in cas of only one point ...
+  for (int i = 0; i < dim; i++) {
+    extents[i    ] -= 1.1 * epsilon; // On casse la symetrie !
+    extents[i+dim] +=       epsilon;
+  }
+}
+
 
 #ifdef __cplusplus
 }

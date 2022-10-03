@@ -55,6 +55,7 @@ _usage(int exit_code)
      "  -p      <level>  Number of points to locate.\n\n"
      "  -octree          Use octree-based method.\n\n"
      "  -dbbree          Use dbbtree-based method.\n\n"
+     "  -doctree          Use dbbtree-based method.\n\n"
      "  -parmetis        Call ParMETIS.\n\n"
      "  -pt-scocth       Call PT-Scotch.\n\n"
      "  -h               This message.\n\n");
@@ -165,6 +166,9 @@ _read_args(int            argc,
     else if (strcmp(argv[i], "-octree") == 0) {
       *loc_method = PDM_MESH_LOCATION_OCTREE;
     }
+    else if (strcmp(argv[i], "-doctree") == 0) {
+      *loc_method = PDM_MESH_LOCATION_DOCTREE;
+    }
     else if (strcmp(argv[i], "-dbbtree") == 0) {
       *loc_method = PDM_MESH_LOCATION_DBBTREE;
     }
@@ -204,7 +208,130 @@ static void _rotate (const int  n_pts,
   }
 }
 
+/**
+ *
+ * \brief  Random
+ *
+ */
 
+static double
+_frand_a_b(double a, double b){
+  return ( rand()/(double)RAND_MAX ) * (b-a) + a;
+}
+
+static
+void
+_strip_cloud
+(
+ PDM_MPI_Comm        comm,
+ const PDM_g_num_t   n_vtx_seg,
+ const double        xmin,
+ const double        ymin,
+ const double        zmin,
+ const double        xmax,
+ const double        ymax,
+ const double        zmax,
+ int                *ln_pts,
+ double            **pts_coords_out,
+ PDM_g_num_t       **g_num
+)
+{
+  int i_rank, n_rank;
+  PDM_MPI_Comm_rank (comm, &i_rank);
+  PDM_MPI_Comm_size (comm, &n_rank);
+
+  double strip = 0.1;
+  int n_pts   = ((n_vtx_seg * n_vtx_seg * n_vtx_seg) / n_rank);
+  int n_pts_x = (int) (n_pts/(1.+(1.-4.*strip)+(1.-4.*strip) * (1.-4.*strip)));
+  int n_pts_y = (int) ((1.-4.*strip) * n_pts);
+  int n_pts_z = (int) ((1.-4.*strip) * (1.-4.*strip) * n_pts);
+
+  if ((n_pts - ( n_pts_y + n_pts_z)) < 0)
+    n_pts = n_pts_x + n_pts_y + n_pts_z;
+  else
+    n_pts_x = n_pts - ( n_pts_y + n_pts_z);
+
+  *ln_pts = n_pts;
+  *pts_coords_out  = malloc (sizeof(double) * 3 * n_pts);
+  double *pts_coords  = *pts_coords_out;
+  double *char_length = malloc (sizeof(double) * n_pts);
+
+  double _char_length = (xmax-xmin)/n_vtx_seg;
+  srand(i_rank+1); // Pas independant du parallèlisme mais pas de point double ...
+
+  int idx  = 0;
+  int idx2 = 0;
+  for (int i = 0; i < n_pts_x/2; i++) {
+    double x = _frand_a_b (xmin, xmin+strip);
+    double y = _frand_a_b (ymin, ymax);
+    double z = _frand_a_b (zmin, zmax);
+    char_length[idx2++] = _char_length;
+    pts_coords[idx++] = x;
+    pts_coords[idx++] = y;
+    pts_coords[idx++] = z;
+  }
+
+  for (int i =  n_pts_x/2; i < n_pts_x; i++) {
+    double x = _frand_a_b (xmax-strip, xmax);
+    double y = _frand_a_b (ymin, ymax);
+    double z = _frand_a_b (zmin, zmax);
+    char_length[idx2++] = _char_length;
+    pts_coords[idx++] = x;
+    pts_coords[idx++] = y;
+    pts_coords[idx++] = z;
+  }
+
+  for (int i = 0; i < n_pts_y/2; i++) {
+    double x = _frand_a_b (xmin+strip, xmax-strip);
+    double y = _frand_a_b (ymin, ymin+strip);
+    double z = _frand_a_b (zmin, zmax);
+    char_length[idx2++] = _char_length;
+    pts_coords[idx++] = x;
+    pts_coords[idx++] = y;
+    pts_coords[idx++] = z;
+  }
+
+  for (int i =  n_pts_y/2; i < n_pts_y; i++) {
+    double x = _frand_a_b (xmin+strip, xmax-strip);
+    double y = _frand_a_b (ymax-strip, ymax);
+    double z = _frand_a_b (zmin, zmax);
+    char_length[idx2++] = _char_length;
+    pts_coords[idx++] = x;
+    pts_coords[idx++] = y;
+    pts_coords[idx++] = z;
+  }
+
+  for (int i = 0; i < n_pts_z/2; i++) {
+    double x = _frand_a_b (xmin+strip, xmax-strip);
+    double y = _frand_a_b (ymin+strip, ymax-strip);
+    double z = _frand_a_b (zmin, zmin+strip);
+    char_length[idx2++] = _char_length;
+    pts_coords[idx++] = x;
+    pts_coords[idx++] = y;
+    pts_coords[idx++] = z;
+  }
+
+  for (int i =  n_pts_z/2; i < n_pts_z; i++) {
+    double x = _frand_a_b (xmin+strip, xmax-strip);
+    double y = _frand_a_b (ymin+strip, ymax-strip);
+    double z = _frand_a_b (zmax-strip, zmax);
+    char_length[idx2++] = _char_length;
+    pts_coords[idx++] = x;
+    pts_coords[idx++] = y;
+    pts_coords[idx++] = z;
+  }
+
+  PDM_gen_gnum_t* gen_gnum_pts = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, comm, PDM_OWNERSHIP_USER);
+
+  PDM_gnum_set_from_coords (gen_gnum_pts, 0, n_pts, pts_coords, char_length);
+
+  PDM_gnum_compute(gen_gnum_pts);
+
+  *g_num =  PDM_gnum_get (gen_gnum_pts, 0);
+
+  PDM_gnum_free(gen_gnum_pts);
+  free(char_length);
+}
 
 
 /**
@@ -212,7 +339,7 @@ static void _rotate (const int  n_pts,
  * \brief  Main
  *
  */
-
+// mpirun -np 2 ./test/pdm_t_mesh_location_dcube -n 3 -p 115 -doctree -post
 int main(int argc, char *argv[])
 {
 
@@ -392,6 +519,7 @@ int main(int argc, char *argv[])
 
   free(dcell_part);
 
+  fflush(stdout);
 
 
   /************************
@@ -409,17 +537,41 @@ int main(int argc, char *argv[])
   PDM_g_num_t *pts_gnum   = NULL;
 
   marge *= length;
-  PDM_point_cloud_gen_random (PDM_MPI_COMM_WORLD,
-                              n_pts,
-                              -marge,
-                              -marge,
-                              -marge,
-                              length + marge,
-                              length + marge,
-                              length + marge,
-                              &n_pts_l,
-                              &pts_coords,
-                              &pts_gnum);
+  int strip = 1;
+  if(strip == 0) {
+    // double llength = length/3;  // Desequilbrate
+    double llength = length;
+
+    PDM_point_cloud_gen_random (PDM_MPI_COMM_WORLD,
+                                0, // seed
+                                0, // geometric_g_num
+                                n_pts,
+                                -marge,
+                                -marge,
+                                -marge,
+                                llength + marge,
+                                llength + marge,
+                                llength + marge,
+                                &n_pts_l,
+                                &pts_coords,
+                                &pts_gnum);
+  } else {
+
+    const double xmax = xmin + length;
+    const double ymax = ymin + length;
+    const double zmax = zmin + length;
+    _strip_cloud (PDM_MPI_COMM_WORLD,
+                  n_vtx_seg,
+                  xmin,
+                  ymin,
+                  zmin,
+                  xmax,
+                  ymax,
+                  zmax,
+                  &n_pts_l,
+                  &pts_coords,
+                  &pts_gnum);
+  }
 
   if (rotation) {
     _rotate (n_pts_l,
@@ -826,6 +978,13 @@ int main(int argc, char *argv[])
           dist = PDM_MIN (dist, _dist);
         }
         //printf("distance = %e\n\n", dist);
+        if (dist >= location_tolerance) {
+          printf("point %ld : located in %ld (instead of %ld), dist = %e\n",
+                 pts_gnum[ipt],
+                 p_location[ipt],
+                 box_gnum,
+                 dist);
+        }
         assert (dist < location_tolerance);
         //<<--
       }

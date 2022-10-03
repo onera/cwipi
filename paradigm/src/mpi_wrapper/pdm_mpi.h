@@ -433,6 +433,14 @@ int PDM_MPI_Type_create_hindexed(int count, const int array_of_blocklengths[],
                       PDM_MPI_Datatype oldtype, PDM_MPI_Datatype *newtype);
 
 /*----------------------------------------------------------------------------
+ * PDM_MPI_Type_create_contiguous (wrapping de la fonction MPI_Type_create_contiguous)
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Type_create_contiguous(int               count,
+                                   PDM_MPI_Datatype  oldtype,
+                                   PDM_MPI_Datatype *newtype);
+/*----------------------------------------------------------------------------
  * PDM_MPI_Type_commit (wrapping de la fonction MPI_Type_commit)
  *
  *----------------------------------------------------------------------------*/
@@ -550,6 +558,9 @@ int PDM_MPI_Allreduce(void *sendbuf, void *recvbuf, int count,
 
 int PDM_MPI_Scan(const void *sendbuf, void *recvbuf, int count,
              PDM_MPI_Datatype datatype, PDM_MPI_Op op, PDM_MPI_Comm comm);
+
+int PDM_MPI_Exscan(const void *sendbuf, void *recvbuf, int count,
+                   PDM_MPI_Datatype datatype, PDM_MPI_Op op, PDM_MPI_Comm comm);
 
 int PDM_MPI_Iscan(const void *sendbuf, void *recvbuf, int count,
              PDM_MPI_Datatype datatype, PDM_MPI_Op op, PDM_MPI_Comm comm,
@@ -724,6 +735,86 @@ int PDM_mpi_win_shared_sync(PDM_mpi_win_shared_t* win);
 
 int PDM_MPI_Comm_get_attr_tag_ub(PDM_MPI_Comm comm, void *attribute_val, int *flag);
 int PDM_MPI_Rand_tag            (PDM_MPI_Comm comm);
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Dist_graph_create_adjacent
+ *
+ *----------------------------------------------------------------------------*/
+int PDM_MPI_Dist_graph_create_adjacent(PDM_MPI_Comm  comm_old,
+                                             int     indegree,
+                                       const int     sources[],
+                                             int     outdegree,
+                                       const int     destinations[],
+                                       int           reorder,
+                                       PDM_MPI_Comm *comm_dist_graph);
+
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Allgather (wrapping de la fonction MPI_Allgather)
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Neighbor_allgather(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
+                               void *recvbuf, int recvcount,
+                               PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm);
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Neighbor_allgatherv (wrapping de la fonction MPI_Neighbor_allgatherv)
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Neighbor_allgatherv(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
+                   void *recvbuf, int *recvcounts,
+                   int *displs, PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm);
+
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Neighbor_alltoall (wrapping de la fonction MPI_Neighbor_alltoall)
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Neighbor_alltoall(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
+                              void *recvbuf, int recvcount,
+                              PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm);
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Ialltoall (wrapping de la fonction MPI_Ialltoall)
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Ineighbor_alltoall(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
+                               void *recvbuf, int recvcount,
+                               PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm, PDM_MPI_Request *request);
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Neighbor_alltoallv (wrapping de la fonction MPI_Neighbor_alltoallv)
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Neighbor_alltoallv(void *sendbuf, int *sendcounts, int *sdispls,
+                               PDM_MPI_Datatype sendtype, void *recvbuf, int *recvcounts,
+                               int *rdispls, PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm);
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Ineighbor_alltoallv (wrapping de la fonction MPI_Ineighbor_alltoallv)
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Ineighbor_alltoallv(void *sendbuf, int *sendcounts, int *sdispls,
+                                PDM_MPI_Datatype sendtype, void *recvbuf, int *recvcounts,
+                                int *rdispls, PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm,
+                                PDM_MPI_Request *request);
+
+void
+PDM_MPI_setup_hybrid_dist_comm_graph
+(
+  PDM_MPI_Comm   comm,
+  PDM_MPI_Comm  *comm_shared_out,
+  PDM_MPI_Comm  *comm_dist_graph_out,
+  int           *n_degree,
+  int          **neighbor
+);
+
 
 #ifdef __cplusplus
 }

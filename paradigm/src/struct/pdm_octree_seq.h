@@ -32,7 +32,8 @@ extern "C" {
  * Type definitions
  *============================================================================*/
 
-typedef struct _pdm_octree_seq_t PDM_octree_seq_t;
+typedef struct _pdm_octree_seq_t     PDM_octree_seq_t;
+typedef struct _pdm_octree_seq_shm_t PDM_octree_seq_shm_t;
 
 /**
  * \enum PDM_octree_seq_child_t
@@ -339,6 +340,28 @@ int              *closest_octree_pt_id,
 double           *closest_octree_pt_dist2
 );
 
+/**
+ *
+ * \brief Get points located inside a set of boxes
+ *
+ * \param [in]   octree                 Pointer to \ref PDM_octree_seq object
+ * \param [in]   n_box                  Number of boxes
+ * \param [in]   box_extents            Extents of boxes
+ * \param [out]  pts_idx                Index of points located in boxes
+ * \param [out]  pts_l_num              Local ids of points located in boxes
+ *
+ */
+
+void
+PDM_octree_seq_points_inside_boxes
+(
+       PDM_octree_seq_t   *octree,
+ const int                 n_box,
+ const double              box_extents[],
+       int               **pts_idx,
+       int               **pts_l_num
+);
+
 
 /**
  *
@@ -353,6 +376,75 @@ void PDM_octree_seq_write_octants
 (
  PDM_octree_seq_t *octree,
  const char       *filename
+ );
+
+
+
+
+/**
+ *
+ * \brief Get node extents of subtree of given depth and starting from given root
+ *
+ * \param [in]  octree               Pointer to \ref PDM_octree_seq object
+ * \param [in]  root_id              ID of subtree root
+ * \param [in]  n_depth              Depth of subtree
+ * \param [out] n_node               Number of subtree nodes
+ * \param [out] node_ids             IDs of subtree nodes
+ * \param [out] node_extents         Extents of subtree nodes
+ * \param [out] node_weight          Weights of subtree nodes
+ *
+ */
+
+void
+PDM_octree_seq_extract_extent
+(
+  PDM_octree_seq_t  *octree,
+  int                root_id,
+  int                n_depth,
+  int               *n_node,
+  int              **node_ids,
+  double           **node_extents,
+  int              **node_weight
+);
+
+PDM_octree_seq_shm_t*
+PDM_octree_make_shared
+(
+  PDM_octree_seq_t* local_octree,
+  PDM_MPI_Comm      comm_shared
+);
+
+void
+PDM_octree_seq_shm_free
+(
+ PDM_octree_seq_shm_t* shm_octree
+);
+
+
+/**
+ *
+ * \brief Look for points inside at set of balls
+ *
+ * \param [in]  octree               Pointer to \ref PDM_octree_seq object
+ * \param [in]  n_ball               Number of balls
+ * \param [in]  ball_center          Center of balls (size = \ref n_ball * 3)
+ * \param [in]  ball_radius2         Squared radius of balls (size = \ref n_ball)
+ * \param [out] ball_pts_idx         Index for ball->points graph (size \ref n_ball + 1)
+ * \param [out] ball_pts_l_num       Ball->points graph (cloud_id, point_id)
+ * \param [out] ball_pts_dist2       Distance from points to ball centers
+ *
+ */
+
+void
+PDM_octree_seq_points_inside_balls
+(
+ const PDM_octree_seq_t  *octree,
+ const int                n_ball,
+ double                  *ball_center,
+ double                  *ball_radius2,
+ int                    **ball_pts_idx,
+ int                    **ball_pts_l_num,
+ double                 **ball_pts_dist2
  );
 
 #ifdef	__cplusplus

@@ -151,6 +151,7 @@ struct _PDM_writer_t {
   int                         n_options;          /* Nombre d'options */
   PDM_writer_option_t        *options;            /* Options complementaire */
   _PDM_writer_cst_global_var_tab_t cst_global_var_tab;
+  int                         is_there_open_step; /* This flag indicates if a step is open */
 };
 
 

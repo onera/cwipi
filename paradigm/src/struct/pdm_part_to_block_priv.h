@@ -90,29 +90,34 @@ struct _pdm_part_to_block_t {
 
   double                    **weight_g;             /*!< Global weights of elements for any part */
 
+  int                         enable_reverse;
+  int                        *idx_partial;          /*! Index of gnum in partial block */
 
   /* Asynchrone */
-  int              max_exch_request;
-  int              next_request;
-  size_t*          s_data;
-  PDM_stride_t*    t_stride;
-  int*             cst_stride;
-  int*             wait_status; /* 0 - Send / 1 - Is recv / 2 - Is treated */
-  PDM_MPI_Request* request_mpi;
-  unsigned char**  send_buffer;
-  unsigned char**  recv_buffer;
-  int**            recv_stride;
-  int**            n_send_buffer; // TODO -> size_t if long
-  int**            i_send_buffer;
-  int**            n_recv_buffer;
-  int**            i_recv_buffer;
+  int                      max_exch_request;
+  int                      next_request;
+  size_t                  *s_data;
+  PDM_stride_t*            t_stride;
+  int                     *cst_stride;
+  int                     *wait_status; /* 0 - Send / 1 - Is recv / 2 - Is treated */
+  PDM_MPI_Request         *request_mpi;
+  unsigned char          **send_buffer;
+  unsigned char          **recv_buffer;
+  int                    **recv_stride;
+  int                    **n_send_buffer; // TODO -> size_t if long
+  int                    **i_send_buffer;
+  int                    **n_recv_buffer;
+  int                    **i_recv_buffer;
 
-  int***           block_stride;
-  void***          block_data;
+  int                   ***block_stride;
+  void                  ***block_data;
 
-  PDM_mpi_comm_kind_t *comm_kind;
-  PDM_MPI_Win         *win_send;
-  PDM_MPI_Win         *win_recv;
+  int                  ****part_stride;
+  void                 ****part_data;
+
+  PDM_mpi_comm_kind_t     *comm_kind;
+  PDM_MPI_Win             *win_send;
+  PDM_MPI_Win             *win_recv;
 
 } ;
 

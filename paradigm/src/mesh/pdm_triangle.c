@@ -5,6 +5,7 @@
 #include <float.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*----------------------------------------------------------------------------
  *  Header for the current file
@@ -535,7 +536,7 @@ PDM_triangle_closest_point
   }
   _weights[1] = (r*c - s*b) / det;
   _weights[2] = (s*a - r*b) / det;
-  log_trace("  u = %f, v = %f\n", _weights[1], _weights[2]);
+  // log_trace("  u = %f, v = %f\n", _weights[1], _weights[2]);
   _weights[0] = 1. - _weights[1] - _weights[2];
 
   /* Projection inside triangle (= closest point) */
@@ -564,7 +565,7 @@ PDM_triangle_closest_point
     d01 = PDM_line_distance (x, v0, v1, &t01, c01);
     d12 = PDM_line_distance (x, v1, v2, &t12, c12);
     d20 = PDM_line_distance (x, v2, v0, &t20, c20);
-    log_trace("d01/12/20 = %f / %f / %f\n", d01, d12, d20);
+    // log_trace("d01/12/20 = %f / %f / %f\n", d01, d12, d20);
 
     if (d01 <= d12 && d01 <= d20) {
       // i = 0;
@@ -689,6 +690,202 @@ PDM_triangle_circumcircle
   PDM_GCC_SUPPRESS_WARNING_POP
     }
 
+
+/**
+ * \brief Compute intersection point between a triangle and a semi-infinite ray
+ *
+ * \param[in]  origin        Ray origin
+ * \param[in]  direction     Ray direction (need not be normalized)
+ * \param[in]  tri_coord     Coordinates of the triangle's vertices
+ * \param[out] intersection  Coordinates of the intersection point
+ * \param[out] t             Ray-parameter of the intersection point
+ * \param[out] weight        Barycentric coordinates in triangle of intersection point (or NULL)
+ *
+ * \return Intersection status
+ *
+ */
+
+PDM_triangle_status_t
+PDM_triangle_ray_intersection
+(
+ const double  origin[3],
+ const double  direction[3],
+ const double  tri_coord[9],
+       double  intersection[3],
+       double *t,
+       double *weight
+ )
+{
+  const double epsilon = 1e-12;
+
+  double v01[3] = {
+    tri_coord[3] - tri_coord[0],
+    tri_coord[4] - tri_coord[1],
+    tri_coord[5] - tri_coord[2]
+  };
+
+  double v02[3] = {
+    tri_coord[6] - tri_coord[0],
+    tri_coord[7] - tri_coord[1],
+    tri_coord[8] - tri_coord[2]
+  };
+
+  double normal[3];
+  PDM_CROSS_PRODUCT(normal, v01, v02);
+  double det = PDM_DOT_PRODUCT(normal, normal);
+  if (det < 1e-30) {
+    return PDM_TRIANGLE_DEGENERATED;
+  }
+  // PDM_log_trace_array_double(normal, 3, "normal : ");
+
+  double vec[3] = {
+    tri_coord[0] - origin[0],
+    tri_coord[1] - origin[1],
+    tri_coord[2] - origin[2]
+  };
+  double denom = PDM_DOT_PRODUCT(direction, normal);
+  double numer = PDM_DOT_PRODUCT(vec,       normal);
+
+  // log_trace("denom = %e, numer = %e\n", denom, numer);
+
+  if (PDM_ABS(denom) < epsilon) {
+    // Ray parallel to plane
+
+    if (PDM_ABS(numer) < epsilon) {
+      // Ray inside plane
+
+      // 1) Check if ray origin is inside triangle
+      double a = PDM_DOT_PRODUCT(v01, v01);
+      double b = PDM_DOT_PRODUCT(v01, v02);
+      double c = PDM_DOT_PRODUCT(v02, v02);
+
+      double e = -PDM_DOT_PRODUCT(vec, v01);
+      double f = -PDM_DOT_PRODUCT(vec, v02);
+
+      double u = e*c - f*b;
+      double v = a*f - b*e;
+
+      if (u >= 0. && v >= 0. && u + v <= det) {
+        memcpy(intersection, origin, sizeof(double)*3);
+        *t = 0.;
+        if (weight != NULL) {
+          double idet = 1./det;
+          weight[1] = u*idet;
+          weight[2] = v*idet;
+          weight[0] = 1. - weight[1] - weight[2];
+        }
+        return PDM_TRIANGLE_INSIDE;
+      }
+
+      // 2) Find first intersection between ray and the triangle's edges
+      double destination[3] = {
+        origin[0] + direction[0],
+        origin[1] + direction[1],
+        origin[2] + direction[2]
+      };
+
+      PDM_triangle_status_t stat = PDM_TRIANGLE_OUTSIDE;
+      *t = HUGE_VAL;
+      double s, _s, _t;
+      int iedge = -1;
+      for (int i = 0; i < 3; i++) {
+        PDM_line_intersection_mean_square(tri_coord + 3*i,
+                                          tri_coord + 3*((i+1)%3),
+                                          origin,
+                                          destination,
+                                          &_s,
+                                          &_t);
+        if (s >= 0. && s <= 1. && _t >= 0.) {
+          stat = PDM_TRIANGLE_INSIDE;
+          iedge = i;
+          s = _s;
+          *t = PDM_MIN(*t, _t);
+        }
+      }
+
+      if (stat == PDM_TRIANGLE_INSIDE) {
+        intersection[0] = origin[0] + (*t)*direction[0];
+        intersection[1] = origin[1] + (*t)*direction[1];
+        intersection[2] = origin[2] + (*t)*direction[2];
+
+        if (weight != NULL) {
+          if (iedge == 0) {
+            weight[1] = s;
+            weight[2] = 0;
+          }
+          else if (iedge == 1) {
+            weight[1] = 1 - s;
+            weight[2] = s;
+          }
+          else {
+            weight[1] = 0;
+            weight[2] = 1 - s;
+          }
+          weight[0] = 1. - weight[1] - weight[2];
+        }
+      }
+
+      return stat;
+
+    }
+    else {
+      return PDM_TRIANGLE_OUTSIDE;
+    }
+
+  }
+  else {
+    // General case
+    *t = numer/denom;
+    // log_trace("t = %f (%f %f %f)\n",
+    //           t,
+    //           origin[0] + t*direction[0],
+    //           origin[1] + t*direction[1],
+    //           origin[2] + t*direction[2]);
+
+    if (*t < 0.) {
+      return PDM_TRIANGLE_OUTSIDE;
+    }
+    else {
+      // Check if ray-plane intersection is inside triangle
+      intersection[0] = origin[0] + (*t)*direction[0];
+      intersection[1] = origin[1] + (*t)*direction[1];
+      intersection[2] = origin[2] + (*t)*direction[2];
+      // log_trace("intersection = %f %f %f\n",
+      //           intersection[0], intersection[1], intersection[2]);
+
+      double a = PDM_DOT_PRODUCT(v01, v01);
+      double b = PDM_DOT_PRODUCT(v01, v02);
+      double c = PDM_DOT_PRODUCT(v02, v02);
+
+      double vec2[3] = {
+        intersection[0] - tri_coord[0],
+        intersection[1] - tri_coord[1],
+        intersection[2] - tri_coord[2]
+      };
+
+      double e = PDM_DOT_PRODUCT(vec2, v01);
+      double f = PDM_DOT_PRODUCT(vec2, v02);
+
+      double u = e*c - f*b;
+      double v = a*f - b*e;
+
+      if (weight != NULL) {
+        double idet = 1./det;
+        weight[1] = u*idet;
+        weight[2] = v*idet;
+        weight[0] = 1. - weight[1] - weight[2];
+      }
+
+      if (u >= 0. && v >= 0. && u + v <= det) {
+        return PDM_TRIANGLE_INSIDE;
+      }
+
+    }
+
+  }
+
+  return PDM_TRIANGLE_OUTSIDE;
+}
 
 
 #ifdef __cplusplus

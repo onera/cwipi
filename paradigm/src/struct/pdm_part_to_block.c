@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <math.h>
 #include <string.h>
+#include <float.h>
 
 /*----------------------------------------------------------------------------
  *  Header for the current file
@@ -480,10 +481,10 @@ _distrib_data
       _counting_sort_long(ptb);
     }
 
-    // if(0 == 1) {
-    //   PDM_log_trace_array_long(ptb->sorted_recv_gnum, ptb->tn_recv_data, "sorted_recv_gnum");
-    //   PDM_log_trace_array_int (ptb->order           , ptb->tn_recv_data, "order");
-    // }
+    if(0 == 1) {
+      PDM_log_trace_array_long(ptb->sorted_recv_gnum, ptb->tn_recv_data, "sorted_recv_gnum");
+      PDM_log_trace_array_int (ptb->order           , ptb->tn_recv_data, "order");
+    }
 
   }
 
@@ -540,6 +541,22 @@ _distrib_data
 
     ptb->block_gnum_count = PDM_array_const_int(ptb->tn_recv_data, 1);
   }
+
+  /*
+   * Create idx_partial for reverse
+   */
+  ptb->enable_reverse = 1;
+  if ( (ptb->t_post         != PDM_PART_TO_BLOCK_POST_NOTHING)       &&
+       (ptb->t_post         != PDM_PART_TO_BLOCK_POST_MERGE_UNIFORM) &&
+       (ptb->enable_reverse == 1)) {
+    ptb->idx_partial = malloc(ptb->tn_recv_data * sizeof(int));
+    for(int i = 0; i < ptb->tn_recv_data; ++i) {
+      PDM_g_num_t gnum = ptb->sorted_recv_gnum[i];
+      int idx_in_partial_block = PDM_binary_search_long(gnum, ptb->block_gnum, ptb->n_elt_block);
+      assert(idx_in_partial_block != -1);
+      ptb->idx_partial[i] = idx_in_partial_block;
+    }
+  }
 }
 
 static
@@ -571,9 +588,10 @@ _distrib_data_hilbert
     int shift = 0;
     for(int i_part = 0; i_part < ptb->n_part; ++i_part) {
       for(int i_elt = 0; i_elt < ptb->n_elt[i_part]; ++i_elt) {
-        concat_vtx_coord[3*shift + 3 * i_elt    ] = pvtx_coords[i_part][3 * i_elt    ];
-        concat_vtx_coord[3*shift + 3 * i_elt + 1] = pvtx_coords[i_part][3 * i_elt + 1];
-        concat_vtx_coord[3*shift + 3 * i_elt + 2] = pvtx_coords[i_part][3 * i_elt + 2];
+        int idx_write = 3*(shift + i_elt);
+        concat_vtx_coord[idx_write    ] = pvtx_coords[i_part][3 * i_elt    ];
+        concat_vtx_coord[idx_write + 1] = pvtx_coords[i_part][3 * i_elt + 1];
+        concat_vtx_coord[idx_write + 2] = pvtx_coords[i_part][3 * i_elt + 2];
       }
       for(int i_elt = 0; i_elt < ptb->n_elt[i_part]; ++i_elt) {
         concat_weight[shift+i_elt] = weight[i_part][i_elt];
@@ -588,18 +606,12 @@ _distrib_data_hilbert
 
   /** Get EXTENTS **/
   PDM_hilbert_get_coord_extents_par(dim, ptb->n_elt_proc, concat_vtx_coord, extents, ptb->comm);
+  PDM_extents_conformize(dim, extents, 1e-3);
 
   /** Hilbert Coordinates Computation **/
   PDM_hilbert_code_t *hilbert_codes     = (PDM_hilbert_code_t *) malloc (ptb->n_elt_proc * sizeof(PDM_hilbert_code_t));
 
   PDM_hilbert_encode_coords(dim, PDM_HILBERT_CS, extents, ptb->n_elt_proc, concat_vtx_coord, hilbert_codes);
-
-  int* hilbert_order = (int * ) malloc(ptb->n_elt_proc * sizeof(int));
-  for(int i = 0; i < ptb->n_elt_proc; ++i) {
-    hilbert_order    [i] = i;
-  }
-
-  PDM_hilbert_local_order(ptb->n_elt_proc, hilbert_codes, hilbert_order); // Just deduce order hilbert_codes is unchanged
 
   if(ptb->n_part > 1 ) {
     free(concat_vtx_coord);
@@ -612,9 +624,10 @@ _distrib_data_hilbert
                                ptb->n_elt_proc,
                                hilbert_codes,
                                concat_weight,
-                               hilbert_order,
+                               NULL,
                                hilbert_codes_idx, // Is the distrib
                                ptb->comm);
+
 
   if(0 == 1) {
     PDM_log_trace_array_double(hilbert_codes, ptb->n_elt_proc, "hilbert_codes :: ");
@@ -695,7 +708,7 @@ _distrib_data_hilbert
       ptb->n_send_data[t_rank] += 1;
     }
   }
-  free(hilbert_order);
+  // free(hilbert_order);
   free(hilbert_codes);
 
   ptb->sorted_recv_gnum                 = (PDM_g_num_t        *) malloc(sizeof(PDM_g_num_t       ) * ptb->tn_recv_data);
@@ -799,6 +812,13 @@ _distrib_data_hilbert
   PDM_distrib_compute(ptb->n_elt_block, ptb->data_distrib_index, -1, ptb->comm);
 
   free(sorted_recv_codes);
+
+  /*
+   * To do : ptb->enable_reverse = 1;
+   */
+  ptb->enable_reverse = 0;
+
+
 }
 
 
@@ -948,6 +968,8 @@ _ptb_create
   ptb->block_gnum_count  = NULL;  /*!< Number of occurence of reveived data (size = tn_recv_data) */
 
   ptb->weight_g          = NULL; /*!< Global weights of elements for any part */
+  ptb->enable_reverse    = 0;
+  ptb->idx_partial       = NULL;
 
   /* Asynchone */
   ptb->max_exch_request = 10;
@@ -969,6 +991,9 @@ _ptb_create
   ptb->block_stride     = (int           *** ) malloc ( ptb->max_exch_request * sizeof(int            **) );
   ptb->block_data       = (void          *** ) malloc ( ptb->max_exch_request * sizeof(void           **) );
 
+  ptb->part_stride      = (int          **** ) malloc ( ptb->max_exch_request * sizeof(int           ***) );
+  ptb->part_data        = (void         **** ) malloc ( ptb->max_exch_request * sizeof(void          ***) );
+
   ptb->comm_kind        = (PDM_mpi_comm_kind_t *) malloc ( ptb->max_exch_request * sizeof(PDM_mpi_comm_kind_t  ));
   ptb->win_send         = (PDM_MPI_Win         *) malloc ( ptb->max_exch_request * sizeof(PDM_MPI_Win         *));
   ptb->win_recv         = (PDM_MPI_Win         *) malloc ( ptb->max_exch_request * sizeof(PDM_MPI_Win         *));
@@ -983,6 +1008,8 @@ _ptb_create
     ptb->i_recv_buffer[i_req] = NULL;
     ptb->block_stride [i_req] = NULL;
     ptb->block_data   [i_req] = NULL;
+    ptb->part_stride  [i_req] = NULL;
+    ptb->part_data    [i_req] = NULL;
     ptb->win_send     [i_req] = PDM_MPI_WIN_NULL;
     ptb->win_recv     [i_req] = PDM_MPI_WIN_NULL;
   }
@@ -1105,6 +1132,134 @@ _prepare_exchange
   }
 }
 
+
+static
+void
+_prepare_reverse_exchange
+(
+  PDM_part_to_block_t   *ptb,
+  size_t                 s_data,
+  PDM_stride_t           t_stride,
+  int                    cst_stride,
+  int                   *block_strid,
+  size_t                *i_send_buffer,
+  size_t                *i_recv_buffer,
+  int                   *n_send_buffer,
+  int                   *n_recv_buffer,
+  int                  **send_stride,
+  int                  **recv_stride
+)
+{
+  /*
+   * Exchange Stride and build buffer properties
+   */
+  int *_recv_stride = NULL;
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
+
+    for (int i = 0; i < ptb->s_comm; i++) {
+      n_send_buffer[i] = 0;
+      n_recv_buffer[i] = 0;
+    }
+
+    int *_send_stride = (int *) malloc (sizeof(int) * ptb->tn_recv_data);
+    *send_stride = _send_stride;
+
+    /* Because it's reverse we have tn_recn_data for send -_-' */
+    for(int i = 0; i < ptb->tn_recv_data; ++i) {
+      _send_stride[ptb->order[i]] = block_strid[ptb->idx_partial[i]];
+    }
+    // PDM_log_trace_array_int(_send_stride, ptb->tn_recv_data, "_send_stride :: ");
+
+    int s_recv = ptb->i_send_data[ptb->s_comm-1] + ptb->n_send_data[ptb->s_comm-1];
+    _recv_stride = (int *) malloc (sizeof(int) * s_recv);
+    assert (_send_stride != NULL);
+    assert (_recv_stride != NULL);
+
+    *recv_stride = _recv_stride;
+
+    PDM_MPI_Alltoallv (_send_stride,
+                       ptb->n_recv_data,
+                       ptb->i_recv_data,
+                       PDM_MPI_INT,
+                       _recv_stride,
+                       ptb->n_send_data,
+                       ptb->i_send_data,
+                       PDM_MPI_INT,
+                       ptb->comm);
+
+    if(0 == 1) {
+      PDM_log_trace_array_int(_recv_stride, s_recv, "recv_stride :: ");
+    }
+
+    /*
+     * Build buffers
+     */
+    for (int i = 0; i < ptb->s_comm; i++) {
+      int ibeg = ptb->i_recv_data[i];
+      int iend = ptb->i_recv_data[i] + ptb->n_recv_data[i];
+
+      n_send_buffer[i] = 0;
+      for (int k = ibeg; k < iend; k++){
+        n_send_buffer[i] += _send_stride[k];
+      }
+
+      n_send_buffer[i] *= (int) s_data;
+
+      if (i > 0) {
+        i_send_buffer[i] = i_send_buffer[i-1] + n_send_buffer[i-1];
+      } else {
+        i_send_buffer[i] = 0;
+      }
+
+      ibeg = ptb->i_send_data[i];
+      iend = ptb->i_send_data[i] + ptb->n_send_data[i];
+
+      n_recv_buffer[i] = 0;
+      for (int k = ibeg; k < iend; k++){
+        n_recv_buffer[i] += _recv_stride[k];
+      }
+
+      n_recv_buffer[i] *= (int) s_data;
+
+      if (i > 0) {
+        i_recv_buffer[i] = i_recv_buffer[i-1] + n_recv_buffer[i-1];
+      } else {
+        i_recv_buffer[i] = 0;
+      }
+
+    }
+
+  }
+
+  else if (t_stride == PDM_STRIDE_CST_INTERLACED) {
+
+    for (int i = 0; i < ptb->s_comm; i++) {
+
+      i_send_buffer[i] = ptb->i_recv_data[i] * cst_stride * (int) s_data;
+      i_recv_buffer[i] = ptb->i_send_data[i] * cst_stride * (int) s_data;
+
+      n_send_buffer[i] = ptb->n_recv_data[i] * cst_stride * (int) s_data;
+      n_recv_buffer[i] = ptb->n_send_data[i] * cst_stride * (int) s_data;
+
+    }
+
+  }
+
+  if(0 == 1) {
+    PDM_log_trace_array_size_t(i_send_buffer, ptb->s_comm, "i_send_buffer ::");
+    PDM_log_trace_array_size_t(i_recv_buffer, ptb->s_comm, "i_recv_buffer ::");
+    PDM_log_trace_array_int   (n_send_buffer, ptb->s_comm, "n_send_buffer ::");
+    PDM_log_trace_array_int   (n_recv_buffer, ptb->s_comm, "n_recv_buffer ::");
+  }
+}
+
+
+
+
+
+
+
+
 static
 void
 _prepare_send_buffer
@@ -1166,6 +1321,82 @@ _prepare_send_buffer
       free (i_part);
   }
 }
+
+
+
+static
+void
+_prepare_reverse_send_buffer
+(
+  PDM_part_to_block_t   *ptb,
+  size_t                 s_data,
+  PDM_stride_t           t_stride,
+  int                    cst_stride,
+  int                   *send_stride,
+  int                   *block_stride,
+  void                  *block_data,
+  size_t                *i_send_buffer,
+  int                   *n_send_buffer,
+  unsigned char         *send_buffer
+)
+{
+  // unsigned char **_part_data = (unsigned char **) part_data;
+  unsigned char *_block_data = (unsigned char *) block_data;
+
+  int s_send_buffer = i_send_buffer[ptb->s_comm-1] + n_send_buffer[ptb->s_comm-1];
+
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
+
+    /* Because it's reverse we have tn_recn_data for send -_-' */
+    for(int i = 0; i < ptb->tn_recv_data; ++i) {
+      send_stride[ptb->order[i]] = block_stride[ptb->idx_partial[i]];
+    }
+
+    int *send_idx = malloc((ptb->tn_recv_data+1) * sizeof(int));
+    send_idx[0] = 0;
+    for(int i = 0; i < ptb->tn_recv_data; ++i) {
+      send_idx[i+1] = send_idx[i] + send_stride[i];
+      // send_stride[i] = 0;
+    }
+
+    // Same for block_stride
+    int *block_idx = malloc((ptb->n_elt_block+1) * sizeof(int));
+    block_idx[0] = 0;
+    for(int i = 0; i < ptb->n_elt_block; ++i) {
+      block_idx[i+1] = block_idx[i] + block_stride[i];
+    }
+
+
+    for(int i = 0; i < ptb->tn_recv_data; ++i) {
+      size_t s_octet_elt = send_stride[ptb->order[i]] * s_data;
+      int idx_write = send_idx [ptb->order      [i]] * s_data;
+      int idx_read  = block_idx[ptb->idx_partial[i]] * s_data;
+      for (int k = 0; k < (int) s_octet_elt; k++) {
+        send_buffer[idx_write+k] = _block_data[idx_read+k];
+      }
+    }
+
+    free(send_stride);
+    free(send_idx);
+    free(block_idx);
+
+  }
+  else  {
+    size_t s_octet_elt = cst_stride * (int) s_data;
+    for(int i = 0; i < ptb->tn_recv_data; ++i) {
+      for (int k = 0; k < (int) s_octet_elt; k++) {
+        send_buffer[s_octet_elt * ptb->order[i] + k] = _block_data[s_octet_elt*ptb->idx_partial[i]+k];
+      }
+    }
+  }
+
+  if(0 == 1) {
+    int* tmp_send_buffer = (int *) send_buffer;
+    PDM_log_trace_array_int(tmp_send_buffer, s_send_buffer/sizeof(int), "tmp_send_buffer ::");
+  }
+
+}
+
 
 
 /**
@@ -1343,6 +1574,110 @@ _post_treatment
 
   return s_block_data;
 }
+
+/**
+ *
+ * \brief  Post-treatment of the resulting buffer
+ *
+ * \param [inout]   ptb          Part to block structure
+ *
+ */
+static
+void
+_post_treatment_reverse
+(
+  PDM_part_to_block_t  *ptb,
+  size_t                s_data,
+  PDM_stride_t          t_stride,
+  int                   cst_stride,
+  int                  *recv_stride,
+  unsigned char        *recv_buffer,
+  int                  *n_recv_buffer,
+  size_t               *i_recv_buffer,
+  int                ***part_stride,
+  void               ***part_data
+)
+{
+  *part_data = malloc(ptb->n_part * sizeof(unsigned char *));
+  unsigned char **_part_data = (unsigned char **) *part_data;
+
+  for (int i = 0; i <  ptb->s_comm; i++) {
+    n_recv_buffer[i] = 0;
+  }
+
+  if (t_stride == PDM_STRIDE_VAR_INTERLACED) {
+
+    *part_stride = malloc(ptb->n_part * sizeof(int *));
+    int **_part_stride = *part_stride;
+    int **_part_idx    = malloc(ptb->n_part * sizeof(int *));
+
+    int *n_recv_strid = malloc(ptb->s_comm * sizeof(int));
+    for(int i = 0; i < ptb->s_comm; ++i) {
+      n_recv_strid[i] = 0;
+    }
+
+    /*
+     * Post-treated recv_strid
+     */
+    int idx = -1;
+    for (int i = 0; i < ptb->n_part; i++) {
+      _part_stride[i] = malloc( ptb->n_elt[i]    * sizeof(int));
+      _part_idx   [i] = malloc((ptb->n_elt[i]+1) * sizeof(int));
+
+      for (int j = 0; j < ptb->n_elt[i]; j++) {
+        int iproc = ptb->dest_proc[++idx];
+        int idx_read = ptb->i_send_data[iproc] + n_recv_strid[iproc]++;
+        _part_stride[i][j] = recv_stride[idx_read];
+      }
+
+      _part_idx[i][0] = 0;
+      for(int j = 0; j < ptb->n_elt[i]; j++) {
+        _part_idx[i][j+1] = _part_idx[i][j] + _part_stride[i][j];
+      }
+
+      if(0 == 1) {
+        PDM_log_trace_array_int(_part_idx[i], ptb->n_elt[i]+1, "_part_idx :: ");
+      }
+
+    }
+
+    idx = -1;
+    int n_octet = (int) s_data;
+    for (int i = 0; i < ptb->n_part; i++) {
+      _part_data[i] = malloc(_part_idx[i][ptb->n_elt[i]] * n_octet * sizeof(unsigned char));
+      for (int j = 0; j < ptb->n_elt[i]; j++) {
+        int iproc = ptb->dest_proc[++idx];
+        int idx_write = n_octet * _part_idx[i][j];
+        for (int k = 0; k < (int) n_octet * _part_stride[i][j]; k++) {
+          int idx_read = i_recv_buffer[iproc] + n_recv_buffer[iproc]++;
+          _part_data[i][idx_write + k] = recv_buffer[idx_read];
+        }
+      }
+      free(_part_idx[i]);
+    }
+    free(n_recv_strid);
+    free(_part_idx);
+    free(recv_stride);
+
+  } else { // PDM_STRIDE_CST_INTERLACED
+
+    int n_octet = cst_stride * (int) s_data;
+    int idx = -1;
+    for (int i = 0; i < ptb->n_part; i++) {
+      _part_data[i] = malloc(ptb->n_elt[i] * n_octet * sizeof(unsigned char));
+      for (int j = 0; j < ptb->n_elt[i]; j++) {
+        int iproc = ptb->dest_proc[++idx];
+        for (int k = 0; k < (int) n_octet; k++) {
+          int idx_read = i_recv_buffer[iproc] + n_recv_buffer[iproc]++;
+          _part_data[i][n_octet*j + k] = recv_buffer[idx_read];
+        }
+      }
+    }
+  }
+}
+
+
+
 
 
 /*=============================================================================
@@ -2021,6 +2356,117 @@ PDM_part_to_block_exch
   return s_block_data;
 }
 
+/**
+ *
+ * \brief Initialize a data exchange
+ *
+ * \param [in]   ptb          Part to block structure
+ * \param [in]   s_data       Data size
+ * \param [in]   t_stride     Stride type
+ * \param [in]   var_stride   Variable stride (size = n_part) only for \ref PDM_writer_STRIDE_VAR
+ * \param [in]   cst_stride   Stride only for \ref PDM_writer_STRIDE_CST
+ *
+ * \return       Size of highest block
+ *
+ */
+
+void
+PDM_part_to_block_reverse_exch
+(
+ PDM_part_to_block_t *ptb,
+ size_t               s_data,
+ PDM_stride_t         t_stride,
+ int                  cst_stride,
+ int                 *block_stride,
+ void                *block_data,
+ int               ***part_stride,
+ void              ***part_data
+)
+{
+  assert(ptb->enable_reverse == 1);
+
+  size_t *i_send_buffer = (size_t *) malloc (sizeof(size_t) * ptb->s_comm);
+  size_t *i_recv_buffer = (size_t *) malloc (sizeof(size_t) * ptb->s_comm);
+  int    *n_send_buffer = (int    *) malloc (sizeof(int   ) * ptb->s_comm);
+  int    *n_recv_buffer = (int    *) malloc (sizeof(int   ) * ptb->s_comm);
+
+  /*
+   * Exchange Stride and build buffer properties
+   */
+  int *send_stride = NULL; // Release in post-treatment
+  int *recv_stride = NULL; // Release in post-treatment
+  _prepare_reverse_exchange(ptb,
+                            s_data,
+                            t_stride,
+                            cst_stride,
+                            block_stride,
+                            i_send_buffer,
+                            i_recv_buffer,
+                            n_send_buffer,
+                            n_recv_buffer,
+                            &send_stride,
+                            &recv_stride);
+
+  /*
+   * Prepare buffer
+   */
+  size_t s_send_buffer = i_send_buffer[ptb->s_comm - 1] + n_send_buffer[ptb->s_comm -1];
+  size_t s_recv_buffer = i_recv_buffer[ptb->s_comm - 1] + n_recv_buffer[ptb->s_comm -1];
+
+  unsigned char *send_buffer = (unsigned char *) malloc(sizeof(unsigned char) * s_send_buffer);
+  unsigned char *recv_buffer = (unsigned char *) malloc(sizeof(unsigned char) * s_recv_buffer);
+
+  assert (send_buffer != NULL);
+  assert (recv_buffer != NULL);
+
+  _prepare_reverse_send_buffer(ptb,
+                               s_data,
+                               t_stride,
+                               cst_stride,
+                               send_stride,
+                               block_stride,
+                               block_data,
+                               i_send_buffer,
+                               n_send_buffer,
+                               send_buffer);
+  // if(send_stride != NULL) {
+  //   free(send_stride);
+  // }
+
+  /*
+   * Data exchange
+   */
+  PDM_MPI_Alltoallv_l(send_buffer,
+                      n_send_buffer,
+                      i_send_buffer,
+                      PDM_MPI_BYTE,
+                      recv_buffer,
+                      n_recv_buffer,
+                      i_recv_buffer,
+                      PDM_MPI_BYTE,
+                      ptb->comm);
+
+
+
+  _post_treatment_reverse(ptb,
+                          s_data,
+                          t_stride,
+                          cst_stride,
+                          recv_stride,
+                          recv_buffer,
+                          n_recv_buffer,
+                          i_recv_buffer,
+                          part_stride,
+                          part_data);
+
+  free (recv_buffer);
+  free (send_buffer);
+
+  free(i_send_buffer);
+  free(i_recv_buffer);
+  free(n_send_buffer);
+  free(n_recv_buffer);
+}
 
 /**
  *
@@ -2210,6 +2656,198 @@ PDM_part_to_block_iexch
   ptb->wait_status[request_id] = 0;
 }
 
+
+
+/**
+ *
+ * \brief Initialize a data exchange
+ *
+ * \param [in]   ptb          Part to block structure
+ * \param [in]   s_data       Data size
+ * \param [in]   t_stride     Stride type
+ * \param [in]   var_stride   Variable stride (size = n_part) only for \ref PDM_writer_STRIDE_VAR
+ * \param [in]   cst_stride   Stride only for \ref PDM_writer_STRIDE_CST
+ *
+ * \return       Size of highest block
+ *
+ */
+
+void
+PDM_part_to_block_reverse_iexch
+(
+       PDM_part_to_block_t  *ptb,
+ const PDM_mpi_comm_kind_t   k_comm,
+       size_t                s_data,
+       PDM_stride_t          t_stride,
+       int                   cst_stride,
+       int                  *block_stride,
+       void                 *block_data,
+       int                ***part_stride,
+       void               ***part_data,
+       int                  *request
+)
+{
+  assert(ptb->enable_reverse == 1);
+
+  /*
+   * Take next id for message and buffer
+   */
+  int request_id = ptb->next_request++;
+  *request = request_id;
+
+  ptb->i_send_buffer[request_id] = (int *) malloc (sizeof(int) * ptb->s_comm);
+  ptb->i_recv_buffer[request_id] = (int *) malloc (sizeof(int) * ptb->s_comm);
+  ptb->n_send_buffer[request_id] = (int *) malloc (sizeof(int) * ptb->s_comm);
+  ptb->n_recv_buffer[request_id] = (int *) malloc (sizeof(int) * ptb->s_comm);
+
+  ptb->part_stride[request_id] = part_stride;
+  ptb->part_data  [request_id] = part_data;
+
+
+  /* Store additionnal information necessary for post-process */
+  ptb->s_data    [request_id] = s_data;
+  ptb->t_stride  [request_id] = t_stride;
+  ptb->cst_stride[request_id] = cst_stride;
+  ptb->comm_kind [request_id] = k_comm;
+
+  /* Short cut */
+  int* i_send_buffer = ptb->i_send_buffer[request_id];
+  int* i_recv_buffer = ptb->i_recv_buffer[request_id];
+  int* n_send_buffer = ptb->n_send_buffer[request_id];
+  int* n_recv_buffer = ptb->n_recv_buffer[request_id];
+
+  size_t *tmp_i_send_buffer = (size_t *) malloc (sizeof(size_t) * ptb->s_comm);
+  size_t *tmp_i_recv_buffer = (size_t *) malloc (sizeof(size_t) * ptb->s_comm);
+  /*
+   * Exchange Stride and build buffer properties
+   */
+  int *send_stride = NULL; // Release in post-treatment
+  int *recv_stride = NULL; // Release in post-treatment
+  _prepare_reverse_exchange(ptb,
+                            s_data,
+                            t_stride,
+                            cst_stride,
+                            block_stride,
+                            tmp_i_send_buffer,
+                            tmp_i_recv_buffer,
+                            n_send_buffer,
+                            n_recv_buffer,
+                            &send_stride,
+                            &recv_stride);
+  ptb->recv_stride[request_id] = recv_stride;
+
+  /*
+   * Data exchange
+   */
+  int s_send_buffer = tmp_i_send_buffer[ptb->s_comm - 1] + n_send_buffer[ptb->s_comm -1];
+  int s_recv_buffer = tmp_i_recv_buffer[ptb->s_comm - 1] + n_recv_buffer[ptb->s_comm -1];
+
+  if(k_comm == PDM_MPI_COMM_KIND_WIN_RMA) {
+
+    PDM_MPI_Win_allocate(s_send_buffer, sizeof(unsigned char), ptb->comm, &ptb->send_buffer[request_id], &ptb->win_send[request_id]);
+    PDM_MPI_Win_allocate(s_recv_buffer, sizeof(unsigned char), ptb->comm, &ptb->recv_buffer[request_id], &ptb->win_recv[request_id]);
+
+  } else {
+
+    ptb->send_buffer[request_id] = (unsigned char *) malloc(sizeof(unsigned char) * s_send_buffer);
+    ptb->recv_buffer[request_id] = (unsigned char *) malloc(sizeof(unsigned char) * s_recv_buffer);
+  }
+  /* Shortcut */
+  unsigned char *send_buffer = ptb->send_buffer[request_id];
+  unsigned char *recv_buffer = ptb->recv_buffer[request_id];
+
+  assert (send_buffer != NULL);
+  assert (recv_buffer != NULL);
+
+  _prepare_reverse_send_buffer(ptb,
+                               s_data,
+                               t_stride,
+                               cst_stride,
+                               send_stride,
+                               block_stride,
+                               block_data,
+                               tmp_i_send_buffer,
+                               n_send_buffer,
+                               send_buffer);
+
+  /*
+   * Copy back
+   */
+  for (int i = 0; i < ptb->s_comm; i++) {
+    i_send_buffer[i] = (int ) tmp_i_send_buffer[i];
+    i_recv_buffer[i] = (int ) tmp_i_recv_buffer[i];
+  }
+
+  free(tmp_i_send_buffer);
+  free(tmp_i_recv_buffer);
+
+  if (k_comm == PDM_MPI_COMM_KIND_P2P) {
+    printf ("Error PDM_part_to_block_iexch : "
+            " PDM_MPI_COMM_KIND_NEIGHBOR_COLLECTIVE k_comm is not implemented yet\n");
+    abort();
+  } else if(k_comm == PDM_MPI_COMM_KIND_COLLECTIVE) {
+    PDM_MPI_Ialltoallv(send_buffer,
+                       n_send_buffer,
+                       i_send_buffer,
+                       PDM_MPI_BYTE,
+                       recv_buffer,
+                       n_recv_buffer,
+                       i_recv_buffer,
+                       PDM_MPI_BYTE,
+                       ptb->comm,
+                       &ptb->request_mpi[request_id]);
+  } else if (k_comm == PDM_MPI_COMM_KIND_NEIGHBOR_COLLECTIVE) {
+
+    printf ("Error PDM_part_to_block_iexch : "
+            " PDM_MPI_COMM_KIND_NEIGHBOR_COLLECTIVE k_comm is not implemented yet\n");
+    abort();
+
+  } else if (k_comm == PDM_MPI_COMM_KIND_WIN_SHARED_AND_P2P) {
+
+    printf ("Error PDM_part_to_block_iexch : "
+            " PDM_MPI_COMM_KIND_WIN_SHARED_AND_P2P k_comm is not implemented yet\n");
+    abort();
+
+  } else if (k_comm == PDM_MPI_COMM_KIND_WIN_SHARED_AND_COLLECTIVE) {
+
+    printf ("Error PDM_part_to_block_iexch : "
+            " PDM_MPI_COMM_KIND_WIN_SHARED_AND_COLLECTIVE k_comm is not implemented yet\n");
+    abort();
+
+  } else if (k_comm == PDM_MPI_COMM_KIND_WIN_SHARED_AND_NEIGHBOR_COLLECTIVE) {
+
+    printf ("Error PDM_part_to_block_iexch : "
+            " PDM_MPI_COMM_KIND_WIN_SHARED_AND_NEIGHBOR_COLLECTIVE k_comm is not implemented yet\n");
+    abort();
+
+  } else if (k_comm == PDM_MPI_COMM_KIND_WIN_RMA) {
+
+    // double t1 = PDM_MPI_Wtime();
+    PDM_MPI_Win_fence(0, ptb->win_send[request_id]);
+    PDM_MPI_Win_fence(0, ptb->win_recv[request_id]);
+    PDM_MPI_Get_ialltoallv(ptb->win_send[request_id],
+                           ptb->win_recv[request_id],
+                           send_buffer,
+                           n_send_buffer,
+                           i_send_buffer,
+                           PDM_MPI_BYTE,
+                           recv_buffer,
+                           n_recv_buffer,
+                           i_recv_buffer,
+                           PDM_MPI_BYTE,
+                           ptb->comm);
+    // double dt = PDM_MPI_Wtime() - t1;
+    // log_trace("PDM_MPI_Get_ialltoallv + fence dt = %12.5e \n", dt);
+
+  }
+
+
+  ptb->wait_status[request_id] = 0;
+}
+
+
+
+
 /**
  *
  * \brief Wait for an exchange
@@ -2299,6 +2937,106 @@ PDM_part_to_block_iexch_wait
   ptb->wait_status[request_id] = 2;
 
   return s_block_data;
+}
+
+
+
+/**
+ *
+ * \brief Wait for an exchange
+ *
+ * \param [in]   ptb          Part to block structure
+ * \param [in]   request_id   Internal id of the current exchange
+ *
+ * \return       Size of highest block
+ */
+void
+PDM_part_to_block_reverse_iexch_wait
+(
+ PDM_part_to_block_t *ptb,
+ int                  request_id
+)
+{
+  // printf("PDM_part_to_block_async_wait::request_id::%d \n", request_id);
+
+  assert(ptb->wait_status[request_id] == 0);
+
+  if(ptb->comm_kind[request_id] == PDM_MPI_COMM_KIND_WIN_RMA) {
+    PDM_MPI_Win_fence(0, ptb->win_send[request_id]);
+    PDM_MPI_Win_fence(0, ptb->win_recv[request_id]);
+  } else {
+    int code = PDM_MPI_Wait(&ptb->request_mpi[request_id]);
+    assert(code == PDM_MPI_SUCCESS);
+  }
+
+  ptb->wait_status[request_id] = 1;
+
+  /*
+   *  Post-treatment
+   */
+  // size_t s_recv_buffer = ptb->i_recv_buffer[request_id][ptb->s_comm - 1] + ptb->n_recv_buffer[request_id][ptb->s_comm -1];
+
+
+  if(ptb->comm_kind[request_id] == PDM_MPI_COMM_KIND_WIN_RMA) {
+    PDM_MPI_Win_free(&ptb->win_send[request_id]);
+    ptb->win_send[request_id] = PDM_MPI_WIN_NULL;
+  } else {
+    free(ptb->send_buffer  [request_id]);
+  }
+  free(ptb->n_send_buffer[request_id]);
+  free(ptb->i_send_buffer[request_id]);
+
+  ptb->send_buffer  [request_id] = NULL;
+  ptb->n_send_buffer[request_id] = NULL;
+  ptb->i_send_buffer[request_id] = NULL;
+
+  size_t       s_data     = ptb->s_data    [request_id];
+  PDM_stride_t t_stride   = ptb->t_stride  [request_id];
+  int          cst_stride = ptb->cst_stride[request_id];
+
+  int           *recv_stride = ptb->recv_stride[request_id];
+  unsigned char *recv_buffer = ptb->recv_buffer[request_id];
+
+  size_t *tmp_i_recv_buffer = malloc((ptb->s_comm+1) * sizeof(size_t));
+  tmp_i_recv_buffer[0] = 0;
+  for(int i = 0; i < ptb->s_comm; ++i) {
+    tmp_i_recv_buffer[i+1] = tmp_i_recv_buffer[i] + ptb->n_recv_buffer[request_id][i];
+  }
+
+  _post_treatment_reverse(ptb,
+                          s_data,
+                          t_stride,
+                          cst_stride,
+                          recv_stride,
+                          recv_buffer,
+                          ptb->n_recv_buffer[request_id],
+                          tmp_i_recv_buffer,
+                          ptb->part_stride  [request_id],
+                          ptb->part_data    [request_id]);
+
+  free(tmp_i_recv_buffer);
+  free(ptb->n_recv_buffer[request_id]);
+  free(ptb->i_recv_buffer[request_id]);
+  ptb->n_recv_buffer[request_id] = NULL;
+  ptb->i_recv_buffer[request_id] = NULL;
+
+  /*
+   * Free
+   */
+
+  if(ptb->comm_kind[request_id] == PDM_MPI_COMM_KIND_WIN_RMA) {
+    PDM_MPI_Win_free(&ptb->win_recv[request_id]);
+    ptb->win_recv[request_id] = PDM_MPI_WIN_NULL;
+  } else {
+    free(ptb->recv_buffer  [request_id]);
+  }
+  ptb->recv_stride [request_id] = NULL;
+  ptb->recv_buffer [request_id] = NULL;
+  ptb->part_stride [request_id] = NULL;
+  ptb->part_data   [request_id] = NULL;
+
+  ptb->wait_status[request_id] = 2;
+
 }
 
 /**
@@ -2616,6 +3354,11 @@ PDM_part_to_block_free
     free (ptb->sorted_recv_gnum);
     ptb->sorted_recv_gnum = NULL;
   }
+
+  if (ptb->enable_reverse == 1 && ptb->idx_partial != NULL) {
+    free (ptb->idx_partial);
+    ptb->idx_partial = NULL;
+  }
   if (ptb->order != NULL) {
     free (ptb->order);
     ptb->order = NULL;
@@ -2653,6 +3396,8 @@ PDM_part_to_block_free
     assert(ptb->i_recv_buffer[i_req] == NULL);
     assert(ptb->block_stride [i_req] == NULL);
     assert(ptb->block_data   [i_req] == NULL);
+    assert(ptb->part_stride  [i_req] == NULL);
+    assert(ptb->part_data    [i_req] == NULL);
     assert(ptb->win_send     [i_req] == PDM_MPI_WIN_NULL);
     assert(ptb->win_recv     [i_req] == PDM_MPI_WIN_NULL);
   }
@@ -2671,6 +3416,8 @@ PDM_part_to_block_free
   free(ptb->i_recv_buffer);
   free(ptb->block_stride );
   free(ptb->block_data   );
+  free(ptb->part_stride  );
+  free(ptb->part_data    );
 
   free(ptb->comm_kind);
   free(ptb->win_send );

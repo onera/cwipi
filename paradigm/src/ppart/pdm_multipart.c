@@ -2212,6 +2212,7 @@ PDM_MPI_Comm       comm
                                            &dedge_bound_idx,
                                            PDM_OWNERSHIP_KEEP);
 
+
     int         **pedge_bound_idx               = NULL;
     int         **pedge_bound                   = NULL;
     // int         **pedge_join_idx                = NULL;

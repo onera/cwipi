@@ -153,6 +153,8 @@ main
   double      *src_coord = NULL;
   PDM_g_num_t *src_g_num = NULL;
   PDM_point_cloud_gen_random (comm,
+                              0, // seed
+                              0, // geometric_g_num
                               gn_src,
                               -radius, -radius, -radius,
                               radius, radius, radius,
@@ -164,7 +166,8 @@ main
   for(int i = 0; i < n_src; ++i) {
     weight[i] = 1;
   }
-
+  PDM_MPI_Barrier(comm);
+  double t1 = PDM_MPI_Wtime();
   PDM_part_to_block_t* ptb = PDM_part_to_block_geom_create(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                                            PDM_PART_TO_BLOCK_POST_CLEANUP,
                                                            1.,
@@ -175,6 +178,10 @@ main
                                                            &n_src,
                                                            1,
                                                            comm);
+  double t2 = PDM_MPI_Wtime();
+  if(0) {
+    log_trace("PDM_part_to_block_geom_create = %12.5e \n", t2 -t1);
+  }
 
   double *blk_src_coord = NULL;
   PDM_part_to_block_exch(ptb,

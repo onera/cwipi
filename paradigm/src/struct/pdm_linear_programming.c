@@ -70,11 +70,6 @@ _lp_solve_1d
   double L = -big_lp;
   double R =  big_lp;
 
-  if (_is_zero(c)) {
-    //?
-    return PDM_LP_UNBOUNDED;
-  }
-
   if (verbose) PDM_log_trace_array_double(a, n, "  a : ");
 
 
@@ -295,7 +290,14 @@ PDM_lp_solve_nd
       }
     }
 
-    if (verbose) log_trace("  jmax = %d, aijmax = %f\n", jmax, ai[jmax]);
+    if (verbose) {
+      if (jmax < 0) {
+        log_trace("  jmax = %d\n", jmax);
+      }
+      else {
+        log_trace("  jmax = %d, aijmax = %f\n", jmax, ai[jmax]);
+      }
+    }
 
     // --> null constraint
     if (jmax < 0) {

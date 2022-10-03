@@ -401,7 +401,7 @@ _gnum_from_coords_compute
   }
 
   m_code = malloc (n_entities * sizeof(PDM_morton_code_t));
-  order = malloc (n_entities * sizeof(PDM_l_num_t));
+  order = NULL;
 
   double d[3];
   double s[3];
@@ -411,7 +411,6 @@ _gnum_from_coords_compute
     fflush(stdout);
   }
 
-  PDM_morton_local_order(n_entities, m_code, order);
   if (0 && iproc == 0) {
     printf("  _gnum_from_coords_compute : PDM_morton_local_order OK\n");
     fflush(stdout);
@@ -446,7 +445,7 @@ _gnum_from_coords_compute
                                 n_entities,
                                 m_code,
                                 weight,
-                                order,
+                                NULL, //order
                                 morton_index,
                                 comm);
     if (0 && iproc == 0) {
@@ -454,7 +453,7 @@ _gnum_from_coords_compute
       fflush(stdout);
     }
 
-    free(order);
+    // free(order);
     free(weight);
     c_rank = malloc (n_entities * sizeof(int));
 
@@ -806,6 +805,10 @@ _gnum_from_coords_compute
   }
 
   else if (n_ranks == 1) {
+
+    order = malloc (n_entities * sizeof(PDM_l_num_t));
+
+    PDM_morton_local_order(n_entities, m_code, order);
 
     _check_morton_ordering(gen_gnum->dim, n_entities, coords, m_code, order);
 

@@ -47,6 +47,7 @@
 
 #include "pdm_priv.h"
 #include "pdm_morton.h"
+#include "pdm_hilbert.h"
 #include "pdm_binary_search.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
@@ -555,6 +556,38 @@ _evaluate_distribution(int          n_ranges,
   return  fit;
 }
 
+static uint64_t
+_interleave
+(
+ const int               dimension,
+ const PDM_morton_code_t c
+ )
+{
+  int k = 0;
+  uint64_t i = 0;
+  for (PDM_morton_int_t l = 0; l < c.L; l++) {
+    for (int j = dimension-1; j >= 0; j--) {
+      uint64_t a = (c.X[j] >> l) & 1l;
+      i += a << k;
+      k++;
+    }
+  }
+
+  return i;
+}
+
+static double
+_code_to_double
+(
+ const int               dimension,
+ const PDM_morton_code_t code
+ )
+{
+  uint64_t i = _interleave(dimension, code);
+  return (double) i;
+}
+
+
 /*----------------------------------------------------------------------------
  * Define a global distribution associated to a sampling array i.e. count
  * the number of elements in each range.
@@ -588,64 +621,65 @@ _define_rank_distrib(int                      dim,
                      PDM_g_num_t              g_distrib[],
                      PDM_MPI_Comm             comm)
 {
-  int  id, rank_id;
-  PDM_morton_code_t  sample_code;
-  int   i;
-
-  int  bucket_id = 1;
-  PDM_g_num_t   *l_distrib = NULL;
 
   const int  sampling_factor = _sampling_factors[dim];
   const int  n_samples = sampling_factor * n_ranks;
 
   /* Initialization */
+  PDM_g_num_t   *l_distrib = (PDM_g_num_t *) malloc(n_samples * sizeof(PDM_g_num_t));
 
-  l_distrib = (PDM_g_num_t *) malloc(n_samples * sizeof(PDM_g_num_t));
-
-  for (id = 0; id < n_samples; id++) {
+  for (int id = 0; id < n_samples; id++) {
     l_distrib[id] = 0;
     g_distrib[id] = 0;
   }
 
-  /* morton_codes are supposed to be ordered */
+  if(order == NULL) {
+    gmax_level = 21;
+    uint64_t max     = 1l << (gmax_level * dim);
+    double   inv_max = 1./((double) max);
 
-  sample_code = _double_to_code(dim, sampling[bucket_id], gmax_level);
+    /* morton_codes codes if not ordered !!!! */
+    for (int i = 0; i < n_codes; i++) {
+      PDM_morton_code_t lcode;
+      PDM_morton_copy (morton_codes[i], &lcode);
+      PDM_morton_assign_level (&lcode, gmax_level);
 
-  for (i = 0; i < n_codes; i++) {
-
-    PDM_g_num_t   o_id = order[i];
-
-    if (_a_ge_b(sample_code, morton_codes[o_id]))
-      l_distrib[bucket_id - 1] += weight[o_id];
-
-    else {
-
-      while (_a_gt_b(morton_codes[o_id], sample_code)) {
-
-        bucket_id++;
-        assert(bucket_id < n_samples + 1);
-
-        sample_code = _double_to_code(dim, sampling[bucket_id], gmax_level);
+      double val1d = _code_to_double(dim, lcode) * inv_max;
+      size_t t_bucket = PDM_hilbert_quantile_search(n_samples, val1d, sampling);
+      l_distrib[t_bucket] += weight[i];
+    } /* End of loop on elements */
+  } else {
+    /* morton_codes are supposed to be ordered */
+    PDM_morton_code_t  sample_code;
+    int  bucket_id = 1;
+    sample_code = _double_to_code(dim, sampling[bucket_id], gmax_level);
+    for (int i = 0; i < n_codes; i++) {
+      PDM_g_num_t   o_id = order[i];
+      if (_a_ge_b(sample_code, morton_codes[o_id])) {
+        l_distrib[bucket_id - 1] += weight[o_id];
       }
-
-      l_distrib[bucket_id - 1] += weight[o_id];
-
-    }
-
-  } /* End of loop on elements */
+      else {
+        while (_a_gt_b(morton_codes[o_id], sample_code)) {
+          bucket_id++;
+          assert(bucket_id < n_samples + 1);
+          sample_code = _double_to_code(dim, sampling[bucket_id], gmax_level);
+        }
+        l_distrib[bucket_id - 1] += weight[o_id];
+      }
+    } /* End of loop on elements */
+  }
 
   /* Define the global distribution */
-
-  PDM_MPI_Allreduce(l_distrib, g_distrib, n_samples, PDM__PDM_MPI_G_NUM, PDM_MPI_SUM,
-                comm);
+  PDM_MPI_Allreduce(l_distrib, g_distrib, n_samples, PDM__PDM_MPI_G_NUM, PDM_MPI_SUM, comm);
 
   free(l_distrib);
 
   /* Define the cumulative frequency related to g_distribution */
 
   cfreq[0] = 0.;
-  for (id = 0; id < n_samples; id++)
+  for (int id = 0; id < n_samples; id++) {
     cfreq[id+1] = cfreq[id] + (double)g_distrib[id]/(double)gsum_weight;
+  }
   cfreq[n_samples] = 1.0;
 
 #if 0 && defined(dbg_enabled) && !defined(dbg_enabled) /* For dbg_enabledging purpose only */
@@ -684,12 +718,12 @@ _define_rank_distrib(int                      dim,
 
   /* Convert global distribution from n_samples to n_ranks */
 
-  for (rank_id = 0; rank_id < n_ranks; rank_id++) {
+  for (int rank_id = 0; rank_id < n_ranks; rank_id++) {
 
     PDM_g_num_t   sum = 0;
     int   shift = rank_id * sampling_factor;
 
-    for (id = 0; id < sampling_factor; id++)
+    for (int id = 0; id < sampling_factor; id++)
       sum += g_distrib[shift + id];
     g_distrib[rank_id] = sum;
 

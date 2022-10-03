@@ -39,6 +39,8 @@
 
 #include "pdm_box.h"
 
+#include "pdm_point_tree_seq.h"
+
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
@@ -393,8 +395,20 @@ PDM_box_tree_copy_to_ranks
  int            *n_copied_ranks,
  int            *copied_ranks,
  int            *rank_copy_num
- );
+);
 
+/**
+ *
+ * \brief Make box_tree shared among nodes
+ *
+ * \param [in]   bt                 Pointer to box tree structure
+ *
+ */
+void
+PDM_box_tree_copy_to_shm
+(
+ PDM_box_tree_t *bt
+);
 
 void
 PDM_box_tree_free_copies
@@ -457,6 +471,17 @@ PDM_box_tree_boxes_containing_points
  );
 
 
+void
+PDM_box_tree_boxes_containing_points_shared
+(
+ PDM_box_tree_t *bt,
+ const int       i_shm,
+ const int       n_pts,
+ const double   *pts_coord,
+ int           **box_idx,
+ int           **box_l_num
+);
+
 /**
  *
  * \brief Get an indexed list of all ellipsoids containing points
@@ -514,6 +539,17 @@ PDM_box_tree_intersect_lines_boxes
  int            **box_l_num
  );
 
+void
+PDM_box_tree_intersect_lines_boxes_shared
+(
+ PDM_box_tree_t  *bt,
+ const int        i_copied_rank,
+ const int        n_line,
+ const double    *line_coord,
+ int            **box_idx,
+ int            **box_l_num
+ );
+
 /**
  *
  * \brief Get an indexed list of all lines intersecting boxes
@@ -531,7 +567,7 @@ PDM_box_tree_intersect_lines_boxes
  */
 
 void
-PDM_box_tree_intersect_lines_boxes2
+PDM_box_tree_intersect_boxes_lines
 (
  PDM_box_tree_t *bt,
  const int       i_copied_rank,
@@ -540,6 +576,56 @@ PDM_box_tree_intersect_lines_boxes2
  int           **box_line_idx,
  int           **box_line_l_num
  );
+
+void
+PDM_box_tree_intersect_boxes_lines_shared
+(
+ PDM_box_tree_t *bt,
+ const int       i_shm,
+ const int       n_line,
+ const double   *line_coord,
+ int           **box_line_idx,
+ int           **box_line_l_num
+ );
+
+
+/**
+ *
+ * \brief Get an indexed list of all boxes intersecting boxes
+ *
+ * The search can be performed either in the local box tree (\ref i_copied_rank < 0) or in
+ * any distant box tree copied locally from rank bt->copied_rank[\ref i_copied_rank]
+ *
+ * \param [in]   bt             Pointer to box tree structure
+ * \param [in]   i_copied_rank  Copied rank
+ * \param [in]   n_line         Number of boxes
+ * \param [in]   line_coord     Boxes coordinates (xa0, ya0, za0, xb0, yb0, zb0, xa1, ...)
+ * \param [out]  box_idx        Pointer to the index array on boxes (size = \ref n_line + 1)
+ * \param [out]  box_l_num      Pointer to the list of boxes intersecting boxes (size = \ref box_idx[\ref n_line])
+ *
+ */
+
+void
+PDM_box_tree_intersect_boxes_boxes
+(
+ PDM_box_tree_t *bt,
+ const int       i_copied_rank,
+ const int       n_box,
+ const double   *box_coord,
+ int           **box_idx,
+ int           **box_l_num
+);
+
+void
+PDM_box_tree_intersect_boxes_boxes2
+(
+ PDM_box_tree_t *bt,
+ const int       i_copied_rank,
+ const int       n_tgt_box,
+ const double   *tgt_box_extents,
+ int           **tbox_box_idx,
+ int           **tbox_box
+);
 
 /**
  *
@@ -632,6 +718,16 @@ PDM_box_tree_box_extents_get
  PDM_box_tree_t  *bt,
  const int        i_copied_rank,
  double         **extents
+ );
+
+
+void
+PDM_tree_intersection_point_box
+(
+ PDM_box_tree_t        *btree,
+ PDM_point_tree_seq_t  *ptree,
+ int                  **box_pts_idx,
+ int                  **box_pts
  );
 
 #ifdef __cplusplus

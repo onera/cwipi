@@ -363,7 +363,9 @@ _projection_on_background_mesh_get2
  int                   back_elt_order,
  PDM_Mesh_nodal_elt_t  back_elt_type,
  double               *proj_pt_coord,
- int                  *history_elt
+ int                  *closest_back_elt,
+ int                  *history_elt,
+ double               *history_proj
 )
 {
   const int vb = 1;
@@ -503,12 +505,12 @@ _projection_on_background_mesh_get2
                sizeof(double) * 3);
       }
 
-      distance = PDM_ho_bezier_tria_location(back_elt_order,
-                                             n_node,
-                                             tria_coord,
-                                             pt_to_project_coord,
-                                             cp,
-                                             uvw);
+      distance = PDM_ho_bezier_triangle_location(back_elt_order,
+                                                 n_node,
+                                                 tria_coord,
+                                                 pt_to_project_coord,
+                                                 cp,
+                                                 uvw);
       double u = uvw[0];
       double v = uvw[1];
       double w = uvw[2];
@@ -524,15 +526,19 @@ _projection_on_background_mesh_get2
     }
 
     if (vb) {
-      log_trace("iter %d, id_elt %d, dist = %f",
-                iter, id_elt, distance, uvw[0], uvw[1], uvw[2]);
+      log_trace("iter %d, id_elt %d, dist = %f",iter, id_elt, distance);
       PDM_log_trace_array_double(uvw, stride-1, ", uvw = ");
+      log_trace("cp = %f %f %f\n", cp[0], cp[1], cp[2]);
     }
 
     if (distance < min_distance) {
-      memcpy(proj_pt_coord, cp, sizeof(double) * 3);
+      memcpy(proj_pt_coord, cp,  sizeof(double) * 3);
       closest_elt  = id_elt + 1;
       min_distance = distance;
+    }
+
+    if (history_proj != NULL) {
+      memcpy(history_proj + 3*iter, proj_pt_coord, sizeof(double) * 3);
     }
 
 
@@ -577,8 +583,12 @@ _projection_on_background_mesh_get2
   free(is_visited);
   free(stack);
 
+  *closest_back_elt = closest_elt;
+
   if (vb) {
     printf("closest_elt = %d (0-based)\n", closest_elt-1);
+    log_trace("proj_pt_coord = %f %f %f\n",
+              proj_pt_coord[0], proj_pt_coord[1], proj_pt_coord[2]);
   }
 
   return iter+1;
@@ -643,13 +653,13 @@ _bezier_to_lagrange
     //     int id_vtx = ev[k++] - 1;
 
     //     if (!is_set[id_vtx]) {
-    //       PDM_ho_bezier_de_casteljau_tria(3,
-    //                                       elt_order,
-    //                                       i*step,
-    //                                       j*step,
-    //                                       ec,
-    //                                       lag + 3*id_vtx,
-    //                                       NULL, NULL, NULL);
+    //       PDM_ho_bezier_de_casteljau_triangle(3,
+    //                                           elt_order,
+    //                                           i*step,
+    //                                           j*step,
+    //                                           ec,
+    //                                           lag + 3*id_vtx,
+    //                                           NULL, NULL, NULL);
     //       is_set[id_vtx] = 1;
     //     }
     //   }
@@ -712,7 +722,10 @@ int main(int argc, char *argv[])
              &filename,
              pt_coord,
              &random_seed);
-  assert(filename != NULL);
+
+  if (filename == NULL) {
+    filename = (char *) "/stck/bandrieu/Public/adaptation/projection/back_faces_P1.dat";
+  }
 
   srand(random_seed);
   // if (random_seed >= 0) {
@@ -822,8 +835,10 @@ int main(int argc, char *argv[])
   int stride_ho = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, elt_order);
   int *elt_vtx_idx = PDM_array_new_idx_from_const_stride_int(stride_ho, n_elt);
 
-  double proj_pt_coord[3];
-  int *history_elt = malloc(sizeof(int) * n_elt);
+  double  proj_pt_coord[3];
+  int     closest_back_elt;
+  int    *history_elt  = malloc(sizeof(int) * n_elt);
+  double *history_proj = malloc(sizeof(int) * n_elt * 3);
 
   // Pick a random elt to start from
   int start = rand() % n_elt;
@@ -838,7 +853,9 @@ int main(int argc, char *argv[])
                                                    elt_order,
                                                    elt_type,
                                                    proj_pt_coord,
-                                                   history_elt);
+                                                   &closest_back_elt,
+                                                   history_elt,
+                                                   history_proj);
 
 
   /*
@@ -900,6 +917,25 @@ int main(int argc, char *argv[])
                              NULL,
                              NULL);
 
+  int *history_bar = malloc(sizeof(int) * (n_step-1) * 2);
+  for (int i = 0; i < n_step-1; i++) {
+    history_bar[2*i  ] = i+1;
+    history_bar[2*i+1] = i+2;
+  }
+
+  PDM_vtk_write_std_elements("history.vtk",
+                             n_step,
+                             history_proj,
+                             NULL,
+                             PDM_MESH_NODAL_BAR2,
+                             n_step-1,
+                             history_bar,
+                             NULL,
+                             0,
+                             NULL,
+                             NULL);
+  free(history_bar);
+
 
 
   free(vtx_coord);
@@ -907,6 +943,7 @@ int main(int argc, char *argv[])
   free(elt_vtx_idx);
   free(elt_elt);
   free(history_elt);
+  free(history_proj);
 
   PDM_MPI_Finalize();
 

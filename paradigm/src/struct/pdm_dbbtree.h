@@ -245,6 +245,37 @@ PDM_dbbtree_points_inside_boxes
 
 /**
  *
+ * \brief Get an indexed list of all points inside the boxes of a distributed box tree
+ *
+ *   \param [in]  dbbt               Pointer to distributed box tree structure
+ *   \param [in]  n_pts              Number of points
+ *   \param [in]  pts_g_num          Point global ids (size = \ref n_pts)
+ *   \param [in]  pts_coord          Point coordinates (size = 3 * \ref n_pts)
+ *   \param [in]  n_boxes            Number of boxes
+ *   \param [in]  box_g_num          Global ids of boxes (size = \ref n_boxes)
+ *   \param [out] pts_in_box_idx     Index of points in boxes (size = \ref n_boxes + 1, allocated inside function)
+ *   \param [out] pts_in_box_g_num   Global ids of points in boxes (size = \ref pts_in_box_idx[\ref n_boxes], allocated inside function)
+ *   \param [out] pts_in_box_coord   Coordinates of points in boxes (size = 3 *\ref pts_in_box_idx[\ref n_boxes], allocated inside function)
+ *   \param [in]  ellipsoids         Consider boxes as axis-aligned ellipsoids (1 or 0)
+ *
+ */
+void
+PDM_dbbtree_points_inside_boxes_shared
+(
+ PDM_dbbtree_t      *dbbt,
+ const int           n_pts,
+ PDM_g_num_t         pts_g_num[],
+ double              pts_coord[],
+ const int           n_boxes,
+ const PDM_g_num_t   box_g_num[],
+ int               **pts_in_box_idx,
+ PDM_g_num_t       **pts_in_box_g_num,
+ double            **pts_in_box_coord,
+ const int           ellipsoids
+);
+
+/**
+ *
  * \brief Get an indexed list of all boxes containing points
  *
  *   \param [in]  dbbt        Pointer to distributed box tree structure
@@ -348,6 +379,20 @@ PDM_dbbtree_lines_intersect_boxes2
  int          ***box_line_idx,
  PDM_g_num_t  ***box_line_g_num
  );
+
+void
+PDM_dbbtree_lines_intersect_boxes2_shared
+(
+ PDM_dbbtree_t  *dbbt,
+ const int       n_line,
+ PDM_g_num_t    *line_g_num,
+ double         *line_coord,
+ int            *n_part,
+ int           **redistrib_n_box,
+ PDM_g_num_t  ***redistrib_box_ln_to_gn,
+ int          ***box_line_idx,
+ PDM_g_num_t  ***box_line_g_num
+);
 
 /**
  *

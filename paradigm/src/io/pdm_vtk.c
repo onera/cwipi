@@ -959,21 +959,30 @@ PDM_vtk_write_circles
     fprintf(f, "4\n");
   }
 
-  if (g_num != NULL) {
+  if (g_num != NULL && color == NULL) {
     fprintf(f, "CELL_DATA %d\n", n_circles);
     fprintf(f, "SCALARS gnum long 1\n");
     fprintf(f, "LOOKUP_TABLE default\n");
     for (int i = 0; i < n_circles; i++) {
       fprintf(f, PDM_FMT_G_NUM"\n", g_num[i]);
-    }
-  }
-
-  else if (color != NULL) {
+     }
+  } else if (color != NULL && g_num == NULL) {
     fprintf(f, "CELL_DATA %d\n", n_circles);
-    fprintf(f, "SCALARS color long 1\n");
+    fprintf(f, "SCALARS color int 1\n");
     fprintf(f, "LOOKUP_TABLE default\n");
     for (int i = 0; i < n_circles; i++) {
       fprintf(f, "%d\n", color[i]);
+    }
+  } else if (g_num != NULL && color != NULL) {
+    fprintf(f, "CELL_DATA %d\n", n_circles);
+    fprintf(f, "FIELD field 2\n");
+    fprintf(f, "gnum 1 %d long\n", n_circles);
+    for (int i = 0; i < n_circles; i++) {
+      fprintf(f, PDM_FMT_G_NUM" ", g_num[i]);
+    }
+    fprintf(f, "\ncolor 1 %d int\n", n_circles);
+    for (int i = 0; i < n_circles; i++) {
+      fprintf(f, "%d ", color[i]);
     }
   }
 
@@ -2006,6 +2015,27 @@ PDM_vtk_write_std_elements_ho_with_vtx_field
     }
   }
 
+  if (n_vtx_field > 0) {
+    assert (vtx_field != NULL);
+
+    if (vtx_g_num == NULL) {
+      fprintf(f, "POINT_DATA %d\n", n_vtx);
+    }
+
+    fprintf(f, "FIELD vtx_field %d\n", n_vtx_field);
+    for (int i = 0; i < n_vtx_field; i++) {
+      // assert (vtx_field[i] != NULL);
+      assert (vtx_field_name[i] != NULL);
+
+      fprintf(f, "%s 1 %d double\n", vtx_field_name[i], n_vtx);
+      for (int j = 0; j < n_vtx; j++) {
+        fprintf(f, "%lf ", vtx_field[i][j]);
+      }
+      fprintf(f, "\n");
+    }
+  }
+
+
   if (elt_g_num != NULL) {
     fprintf(f, "CELL_DATA %d\n", n_elt);
     fprintf(f, "SCALARS elt_gnum long 1\n");
@@ -2035,33 +2065,13 @@ PDM_vtk_write_std_elements_ho_with_vtx_field
     }
   }
 
-  if (n_vtx_field > 0) {
-    assert (vtx_field != NULL);
-
-    if (vtx_g_num == NULL) {
-      fprintf(f, "POINT_DATA %d\n", n_vtx);
-    }
-
-    fprintf(f, "FIELD vtx_field %d\n", n_vtx_field);
-    for (int i = 0; i < n_vtx_field; i++) {
-      // assert (vtx_field[i] != NULL);
-      assert (vtx_field_name[i] != NULL);
-
-      fprintf(f, "%s 1 %d double\n", vtx_field_name[i], n_vtx);
-      for (int j = 0; j < n_vtx; j++) {
-        fprintf(f, "%lf ", vtx_field[i][j]);
-      }
-      fprintf(f, "\n");
-    }
-  }
-
   fclose(f);
 }
 
 
 
 /**
- * \brief Export a set of ellipsed to ASCII VTK format (unstructured grid of line segments)
+ * \brief Export a set of ellipses to ASCII VTK format (unstructured grid of line segments)
  *
  * \param [in]  filename     Output file name
  * \param [in]  n_ellipse    Number of ellipses
@@ -2124,21 +2134,30 @@ PDM_vtk_write_ellipses
     fprintf(f, "4\n");
   }
 
-  if (g_num != NULL) {
+  if (g_num != NULL && color == NULL) {
     fprintf(f, "CELL_DATA %d\n", n_ellipse);
     fprintf(f, "SCALARS gnum long 1\n");
     fprintf(f, "LOOKUP_TABLE default\n");
     for (int i = 0; i < n_ellipse; i++) {
       fprintf(f, PDM_FMT_G_NUM"\n", g_num[i]);
-    }
-  }
-
-  else if (color != NULL) {
+     }
+  } else if (color != NULL && g_num == NULL) {
     fprintf(f, "CELL_DATA %d\n", n_ellipse);
-    fprintf(f, "SCALARS color long 1\n");
+    fprintf(f, "SCALARS color int 1\n");
     fprintf(f, "LOOKUP_TABLE default\n");
     for (int i = 0; i < n_ellipse; i++) {
       fprintf(f, "%d\n", color[i]);
+    }
+  } else if (g_num != NULL && color != NULL) {
+    fprintf(f, "CELL_DATA %d\n", n_ellipse);
+    fprintf(f, "FIELD field 2\n");
+    fprintf(f, "gnum 1 %d long\n", n_ellipse);
+    for (int i = 0; i < n_ellipse; i++) {
+      fprintf(f, PDM_FMT_G_NUM" ", g_num[i]);
+    }
+    fprintf(f, "\ncolor 1 %d int\n", n_ellipse);
+    for (int i = 0; i < n_ellipse; i++) {
+      fprintf(f, "%d ", color[i]);
     }
   }
 

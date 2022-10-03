@@ -274,6 +274,40 @@ int PDM_polygon_3d_to_2d
  double       normal[3]
  );
 
+
+/**
+ * \brief Compute intersection point between a polygon and a semi-infinite ray
+ *
+ * \param[in]  ray_origin        Ray origin
+ * \param[in]  ray_direction     Ray direction (need not be normalized)
+ * \param[in]  n_vtx             Number of vertices
+ * \param[in]  vtx_coord         Coordinates of the polygon's vertices
+ * \param[in]  poly_center       Coordinates of the polygon's centroid (or NULL)
+ * \param[in]  poly_normal       Normal to polygon's median plane (or NULL)
+ * \param[in]  poly_bound        Polygon's bounds ([xmin, xmax, ymin, ymax, zmin, zmax] or NULL)
+ * \param[out] intersection      Coordinates of the intersection point
+ * \param[out] t                 Ray-parameter of the intersection point
+ * \param[out] weight            Barycentric coordinates in polygon of intersection point (or NULL)
+ *
+ * \return Intersection status
+ *
+ */
+
+PDM_polygon_status_t
+PDM_polygon_ray_intersection
+(
+ const double  ray_origin[3],
+ const double  ray_direction[3],
+ const int     n_vtx,
+ const double *vtx_coord,
+       double *poly_center,
+       double *poly_normal,
+       double *poly_bound,
+       double  intersection[3],
+       double *t,
+       double *weight
+ );
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -128,10 +128,28 @@ PDM_domain_interface_translate_entity1_entity2
  PDM_g_num_t            **interface_ids,
  int                    **dentity2_entity1_idx,
  PDM_g_num_t            **dentity2_entity1,
+ int                      connectivity_is_signed,
  PDM_MPI_Comm             comm,
  int                    **interface_dn_entity2,
  PDM_g_num_t           ***interface_ids_entity2,
  int                   ***interface_dom_entity2
+);
+
+void
+PDM_ddomain_interface_to_pdomain_interface
+(
+ PDM_MPI_Comm                   comm,
+ int                            n_interface,
+ int                            n_domain,
+ PDM_domain_interface_mult_t    multidomain_intrf,
+ PDM_bound_type_t               interface_kind,
+ int                           *dn_interface,
+ PDM_g_num_t                  **interface_ids,
+ int                          **interface_dom,
+ int                           *n_part,
+ int                          **pn_entity,
+ PDM_g_num_t                 ***entity_ln_to_gn,
+ PDM_part_domain_interface_t   *pditrf
 );
 
 

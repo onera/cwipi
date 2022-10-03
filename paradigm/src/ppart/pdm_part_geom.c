@@ -221,7 +221,7 @@ PDM_part_geom
   double *barycenter_coords = (double *) malloc (dn_cell * 3 * sizeof(double ));
 
   PDM_hilbert_code_t *hilbert_codes     = (PDM_hilbert_code_t *) malloc (dn_cell * sizeof(PDM_hilbert_code_t));
-  PDM_hilbert_code_t *tmp_hilbert_codes = (PDM_hilbert_code_t *) malloc (dn_cell * sizeof(PDM_hilbert_code_t));
+  // PDM_hilbert_code_t *tmp_hilbert_codes = (PDM_hilbert_code_t *) malloc (dn_cell * sizeof(PDM_hilbert_code_t));
 
   /*
    * cell center computation
@@ -262,22 +262,17 @@ PDM_part_geom
 	/** Hilbert Coordinates Computation **/
   PDM_hilbert_encode_coords(dim, PDM_HILBERT_CS, extents, dn_cell, barycenter_coords, hilbert_codes);
 
-  for (int i = 0; i < dn_cell; ++i) {
-    tmp_hilbert_codes [i] = hilbert_codes [i];
-	}
-
+ //  for (int i = 0; i < dn_cell; ++i) {
+ //    tmp_hilbert_codes [i] = hilbert_codes [i];
+	// }
   ///** Calcul des index des codes Hilbert **/
-
-  int * hilbert_order = (int * ) malloc (dn_cell * sizeof(int));
-
-  for (int i = 0; i < dn_cell; ++i) {
-    hilbert_order [i] = i;
-  }
-
-  assert (sizeof(double) == sizeof(PDM_hilbert_code_t));
-  PDM_sort_double (tmp_hilbert_codes, hilbert_order, dn_cell);
-
-  free(tmp_hilbert_codes);
+  // int * hilbert_order = (int * ) malloc (dn_cell * sizeof(int));
+  // for (int i = 0; i < dn_cell; ++i) {
+  //   hilbert_order [i] = i;
+  // }
+  // assert (sizeof(double) == sizeof(PDM_hilbert_code_t));
+  // PDM_sort_double (tmp_hilbert_codes, hilbert_order, dn_cell);
+  // free(tmp_hilbert_codes);
 
   int n_rank;
   PDM_MPI_Comm_size (comm, &n_rank);
@@ -304,7 +299,7 @@ PDM_part_geom
                                 dn_cell,
                                 hilbert_codes,
                                 weight,
-                                hilbert_order,
+                                NULL,
                                 hilbert_codes_idx,
                                 comm);
 
@@ -322,7 +317,7 @@ PDM_part_geom
 
   free(barycenter_coords);
   free(hilbert_codes_idx);
-  free(hilbert_order);
+  // free(hilbert_order);
   free(hilbert_codes);
 
 }
@@ -349,7 +344,6 @@ PDM_dreorder_from_coords
   int dn_vtx = distrib_vtx[i_rank+1] - distrib_vtx[i_rank];
 
   PDM_hilbert_code_t *hilbert_codes     = (PDM_hilbert_code_t *) malloc (dn_vtx * sizeof(PDM_hilbert_code_t));
-  PDM_hilbert_code_t *tmp_hilbert_codes = (PDM_hilbert_code_t *) malloc (dn_vtx * sizeof(PDM_hilbert_code_t));
 
   /** Initialisation **/
   double extents[2*dim]; /** DIM x 2**/
@@ -360,21 +354,19 @@ PDM_dreorder_from_coords
   /** Hilbert Coordinates Computation **/
   PDM_hilbert_encode_coords(dim, PDM_HILBERT_CS, extents, dn_vtx, dcoords, hilbert_codes);
 
-  for (int i = 0; i < dn_vtx; ++i) {
-    tmp_hilbert_codes [i] = hilbert_codes [i];
-  }
+  // PDM_hilbert_code_t *tmp_hilbert_codes = (PDM_hilbert_code_t *) malloc (dn_vtx * sizeof(PDM_hilbert_code_t));
+  // for (int i = 0; i < dn_vtx; ++i) {
+  //   tmp_hilbert_codes [i] = hilbert_codes [i];
+  // }
 
   ///** Calcul des index des codes Hilbert **/
-  int * hilbert_order = (int * ) malloc (dn_vtx * sizeof(int));
-
-  for (int i = 0; i < dn_vtx; ++i) {
-    hilbert_order [i] = i;
-  }
-
-  assert (sizeof(double) == sizeof(PDM_hilbert_code_t));
-  PDM_sort_double (tmp_hilbert_codes, hilbert_order, dn_vtx);
-
-  free(tmp_hilbert_codes);
+  // int * hilbert_order = (int * ) malloc (dn_vtx * sizeof(int));
+  // for (int i = 0; i < dn_vtx; ++i) {
+  //   hilbert_order [i] = i;
+  // }
+  // assert (sizeof(double) == sizeof(PDM_hilbert_code_t));
+  // PDM_sort_double (tmp_hilbert_codes, NULL, dn_vtx);
+  // free(tmp_hilbert_codes);
 
   PDM_hilbert_code_t *hilbert_codes_idx = (PDM_hilbert_code_t *) malloc ((n_rank+1) * sizeof(PDM_hilbert_code_t));
 
@@ -388,11 +380,9 @@ PDM_dreorder_from_coords
                                 dn_vtx,
                                 hilbert_codes,
                                 weight,
-                                hilbert_order,
+                                NULL, // No need order
                                 hilbert_codes_idx,
                                 comm);
-
-
   free(weight);
 
   /** Remplissage de cell_parts -> en fct des codes Hilbert **/
@@ -460,7 +450,7 @@ PDM_dreorder_from_coords
 
   /* Reorder locally */
   assert (sizeof(double) == sizeof(PDM_hilbert_code_t));
-  hilbert_order = (int * ) realloc(hilbert_order,  n_vtx_block * sizeof(int));
+  int *hilbert_order = (int * ) malloc( n_vtx_block * sizeof(int));
   for (int i = 0; i < n_vtx_block; ++i) {
     hilbert_order [i] = i;
   }

@@ -146,8 +146,7 @@ PDM_multi_block_to_part_create
                                      mbtp->requested_block_n  [i];
   }
 
-  int s_requested_data = mbtp->requested_block_idx[mbtp->n_data_block - 1]
-                       + mbtp->requested_block_n  [mbtp->n_data_block - 1];
+  int s_requested_data = mbtp->requested_block_idx[mbtp->n_data_block];
 
   for (int i = 0; i < mbtp->n_data_block; i++) {
     mbtp->requested_block_n[i] = 0;
@@ -539,9 +538,10 @@ PDM_multi_block_to_part_exch2
 
   } else if (t_stride == PDM_STRIDE_CST_INTERLACED) {
 
-    const int cst_stride = block_stride[0][0];
+    int cst_stride = 0;
     for(int i_block = 0; i_block < mbtp->n_block; ++i_block) {
       assert(block_stride[i_block][0] == block_stride[0][0]);
+      cst_stride = block_stride[i_block][0];
     }
     const int s_block_unit = cst_stride * (int) s_data;
 

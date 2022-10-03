@@ -150,6 +150,20 @@ PDM_para_octree_build
  double                  *global_extents
 );
 
+/**
+ *
+ * \brief Build octree
+ *
+ * \param [in]   octree             Pointer to octree structure
+ *
+ */
+
+void
+PDM_para_octree_build_shared
+(
+ const PDM_para_octree_t *octree,
+ double                  *global_extents
+);
 
 /**
  *
@@ -345,6 +359,20 @@ PDM_para_octree_free_copies
  );
 
 
+/**
+ *
+ * \brief Free copied data in an octree structure
+ *
+ * \param [in]   octree             Pointer to octree structure
+ *
+ */
+
+void
+PDM_para_octree_free_shm
+(
+ const PDM_para_octree_t *octree
+ );
+
 
 
 void
@@ -352,6 +380,19 @@ PDM_para_octree_export_vtk
 (
  const PDM_para_octree_t *octree,
  const char              *prefix
+ );
+
+
+void
+PDM_para_octree_points_inside_boxes_shared
+(
+ const PDM_para_octree_t  *octree,
+ const int                 n_boxes,
+ const double             *box_extents,
+ const PDM_g_num_t        *box_g_num,
+ int                     **pts_in_box_idx,
+ PDM_g_num_t             **pts_in_box_g_num,
+ double                  **pts_in_box_coord
  );
 
 #ifdef	__cplusplus

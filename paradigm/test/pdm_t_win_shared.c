@@ -86,6 +86,8 @@ char *argv[]
 
   free(distrib_numa);
 
+  PDM_MPI_Comm_free(&comm_shared);
+  PDM_MPI_Comm_free(&comm_node);
   PDM_mpi_win_shared_free(win);
   PDM_MPI_Finalize ();
 

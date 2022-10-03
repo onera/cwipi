@@ -206,6 +206,8 @@ main
   double      *src_coord;
   PDM_g_num_t *src_g_num;
   PDM_point_cloud_gen_random (comm,
+                              0, // seed
+                              0, // geometric_g_num
                               gn_src,
                               -radius, -radius, -radius,
                               radius, radius, radius,
@@ -218,6 +220,8 @@ main
   double      *tgt_coord;
   PDM_g_num_t *tgt_g_num;
   PDM_point_cloud_gen_random (comm,
+                              123456789, // seed
+                              0,         // geometric_g_num
                               gn_tgt,
                               -radius, -radius, -radius,
                               radius, radius, radius,

@@ -89,33 +89,44 @@ struct _PDM_boxes_t {
                                   * iproc, i_part, local_num */
 };
 
+typedef struct {
+
+  PDM_mpi_win_shared_t *w_g_num;
+  PDM_mpi_win_shared_t *w_extents;
+  PDM_mpi_win_shared_t *w_n_boxes_orig;
+  PDM_mpi_win_shared_t *w_origin;
+
+} _w_boxes_data_t;
+
 
 /* Set of bounding boxes */
 
 struct _PDM_box_set_t {
 
-  int         dim;            /* Spatial dimension (1, 2 or 3) */
-  int         dimensions[3];  /* Only used in 1 or 2D: X = 0, Y = 1, Z = 2 */
+  PDM_MPI_Comm    comm;                 /* Associated MPI communicator */
+  int             dim;                  /* Spatial dimension (1, 2 or 3) */
+  int             dimensions[3];        /* Only used in 1 or 2D: X = 0, Y = 1, Z = 2 */
 
-  PDM_g_num_t  n_g_boxes;      /* Global number of bounding boxes */
+  PDM_g_num_t  n_g_boxes;               /* Global number of bounding boxes */
 
-  PDM_boxes_t *local_boxes;   /* Local boxes */
+  PDM_boxes_t *local_boxes;             /* Local boxes */
 
-  int n_copied_ranks;          /* Number of copies from other ranks */
-  int *copied_ranks;           /* Copied ranks */
-  PDM_boxes_t *rank_boxes;    /* Boxes copied from other ranks */
+  int n_copied_ranks;                   /* Number of copies from other ranks */
+  int *copied_ranks;                    /* Copied ranks */
+  PDM_boxes_t *rank_boxes;              /* Boxes copied from other ranks */
 
-  double      gmin[3];        /* Global minima of the coordinates */
-  double      gmax[3];        /* Global maxima of the coordinates */
+  double      gmin[3];                  /* Global minima of the coordinates */
+  double      gmax[3];                  /* Global maxima of the coordinates */
 
+  int         normalized;               /* 1 if normalized, 0 otherwise */
 
-  int         normalized;     /* 1 if normalized, 0 otherwise */
+  double      s[3];                     /* Translation for the normalization */
+  double      d[3];                     /* Dilatation for the normalization */
 
-  double      s[3];           /* Translation for the normalization */
-  double      d[3];           /* Dilatation for the normalization */
-
-
-  PDM_MPI_Comm    comm;           /* Associated MPI communicator */
+  int                  n_rank_in_shm;
+  PDM_MPI_Comm         comm_shared;
+  PDM_boxes_t         *shm_boxes;       /* Boxes shared from other ranks */
+  _w_boxes_data_t     *wboxes_data;
 
 };
 

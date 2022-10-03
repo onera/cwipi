@@ -251,26 +251,26 @@ _eval_deformation
  *
  *----------------------------------------------------------------------------*/
 
-static void
-_u_ho_edge_nodes
-(
- const int     order,
- const double  umin,
- const double  umax,
- double       *u
- )
-{
-  int k = 0;
-  int _order = order+1;
+// static void
+// _u_ho_edge_nodes
+// (
+//  const int     order,
+//  const double  umin,
+//  const double  umax,
+//  double       *u
+//  )
+// {
+//   int k = 0;
+//   int _order = order+1;
 
 
-  double ustep = (umax - umin) / order;
+//   double ustep = (umax - umin) / order;
 
-  for (int i = 0; i < _order; i++) {
-    double _u = umin + i * ustep;
-    u[k++] = _u;
-  }
-}
+//   for (int i = 0; i < _order; i++) {
+//     double _u = umin + i * ustep;
+//     u[k++] = _u;
+//   }
+// }
 
 
 /*----------------------------------------------------------------------------
@@ -287,34 +287,34 @@ _u_ho_edge_nodes
  *
  *----------------------------------------------------------------------------*/
 
-static void
-_uv_ho_tria_nodes
-(
- const int     order,
- const double  umin,
- const double  umax,
- const double  vmin,
- const double  vmax,
- double       *uv
- )
-{
-  int k = 0;
-  int _order = order+1;
+// static void
+// _uv_ho_tria_nodes
+// (
+//  const int     order,
+//  const double  umin,
+//  const double  umax,
+//  const double  vmin,
+//  const double  vmax,
+//  double       *uv
+//  )
+// {
+//   int k = 0;
+//   int _order = order+1;
 
-  double ustep = (umax - umin) / order;
-  double vstep = (vmax - vmin) / order;
+//   double ustep = (umax - umin) / order;
+//   double vstep = (vmax - vmin) / order;
 
-  for (int j = 0; j < _order; j++) {
-    double v = vmin + j * vstep;
-    for (int i = 0; i < _order - j; i++) {
-      double u = umin + i * ustep;
+//   for (int j = 0; j < _order; j++) {
+//     double v = vmin + j * vstep;
+//     for (int i = 0; i < _order - j; i++) {
+//       double u = umin + i * ustep;
 
-      uv[k++] = u;
-      uv[k++] = v;
+//       uv[k++] = u;
+//       uv[k++] = v;
 
-    }
-  }
-}
+//     }
+//   }
+// }
 
 
 /*----------------------------------------------------------------------------
@@ -331,34 +331,34 @@ _uv_ho_tria_nodes
  *
  *----------------------------------------------------------------------------*/
 
-static void
-_uv_ho_quad_nodes
-(
- const int     order,
- const double  umin,
- const double  umax,
- const double  vmin,
- const double  vmax,
- double       *uv
- )
-{
-  int k = 0;
-  int _order = order+1;
+// static void
+// _uv_ho_quad_nodes
+// (
+//  const int     order,
+//  const double  umin,
+//  const double  umax,
+//  const double  vmin,
+//  const double  vmax,
+//  double       *uv
+//  )
+// {
+//   int k = 0;
+//   int _order = order+1;
 
-  double ustep = (umax - umin) / order;
-  double vstep = (vmax - vmin) / order;
+//   double ustep = (umax - umin) / order;
+//   double vstep = (vmax - vmin) / order;
 
-  for (int j = 0; j < _order; j++) {
-    double v = vmin + j * vstep;
-    for (int i = 0; i < _order; i++) {
-      double u = umin + i * ustep;
+//   for (int j = 0; j < _order; j++) {
+//     double v = vmin + j * vstep;
+//     for (int i = 0; i < _order; i++) {
+//       double u = umin + i * ustep;
 
-      uv[k++] = u;
-      uv[k++] = v;
+//       uv[k++] = u;
+//       uv[k++] = v;
 
-    }
-  }
-}
+//     }
+//   }
+// }
 
 
 /*----------------------------------------------------------------------------

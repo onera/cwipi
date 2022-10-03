@@ -153,9 +153,9 @@ PDM_hilbert_local_order_coords(int                  dim,
  *----------------------------------------------------------------------------*/
 
 size_t
-PDM_hilbert_quantile_search(size_t              n_quantiles,
-                            PDM_hilbert_code_t  code,
-                            PDM_hilbert_code_t  quantile_start[]);
+PDM_hilbert_quantile_search(const size_t              n_quantiles,
+                            const PDM_hilbert_code_t  code,
+                            const PDM_hilbert_code_t  quantile_start[]);
 
 /*----------------------------------------------------------------------------
  * Build a global Hilbert encoding rank index.
@@ -186,6 +186,15 @@ PDM_hilbert_build_rank_index(int                       dim,
                              PDM_MPI_Comm                  comm);
 
 /*----------------------------------------------------------------------------*/
+
+double
+PDM_hilbert_build_rank_index_pond(int                       dim,
+                                  int                       n_t_part,
+                                  int                       n_codes,
+                                  const PDM_hilbert_code_t  hilbert_code[],
+                                  const int                 weight[],
+                                  PDM_hilbert_code_t        rank_index[],
+                                  PDM_MPI_Comm              comm);
 
 #ifdef __cplusplus
 }

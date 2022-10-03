@@ -870,6 +870,10 @@ PDM_dgroup_entity_transpose
   }
 
   *dentity_group = realloc(*dentity_group, _dentity_group_idx[dn_entity] * sizeof(int));
+  if (*dentity_group == NULL) {
+    *dentity_group = malloc(sizeof(int) * _dentity_group_idx[dn_entity]);
+    assert(*dentity_group != NULL);
+  }
 }
 
 

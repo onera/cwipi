@@ -147,7 +147,7 @@ _offset_parts_by_domain
       pn_face            [i_domain][i_part] = part_ext->parts[i_domain][i_part].n_face;
       pn_edge            [i_domain][i_part] = part_ext->parts[i_domain][i_part].n_edge;
       pn_vtx             [i_domain][i_part] = part_ext->parts[i_domain][i_part].n_vtx;
-      pn_face_group      [i_domain][i_part] = part_ext->parts[i_domain][i_part].n_face_group;
+      pn_face_group      [i_domain][i_part] = part_ext->parts[i_domain][i_part].face_bound_idx[part_ext->parts[i_domain][i_part].n_face_group];
 
       cell_ln_to_gn      [i_domain][i_part] = part_ext->parts[i_domain][i_part].cell_ln_to_gn;
       face_ln_to_gn      [i_domain][i_part] = part_ext->parts[i_domain][i_part].face_ln_to_gn;
@@ -1311,6 +1311,7 @@ _generate_graph_comm_with_extended
     int           *interface_pn       = malloc(n_interface * sizeof(int          ));
     PDM_g_num_t  **interface_ln_to_gn = malloc(n_interface * sizeof(PDM_g_num_t *));
     int          **interface_sgn      = malloc(n_interface * sizeof(int         *));
+    int          **interface_sens     = malloc(n_interface * sizeof(int         *));
     int          **interface_ids      = malloc(n_interface * sizeof(int         *));
     int          **interface_ids_idx  = malloc(n_interface * sizeof(int         *));
     int          **interface_dom      = malloc(n_interface * sizeof(int         *));
@@ -1320,12 +1321,13 @@ _generate_graph_comm_with_extended
                                     i_domain,
                                     i_part,
                                     i_interface,
-                                    &interface_pn[i_interface],
+                                    &interface_pn      [i_interface],
                                     &interface_ln_to_gn[i_interface],
-                                    &interface_sgn[i_interface],
-                                    &interface_ids[i_interface],
-                                    &interface_ids_idx[i_interface],
-                                    &interface_dom[i_interface]);
+                                    &interface_sgn     [i_interface],
+                                    &interface_sens    [i_interface],
+                                    &interface_ids     [i_interface],
+                                    &interface_ids_idx [i_interface],
+                                    &interface_dom     [i_interface]);
     }
 
     /*
@@ -1388,9 +1390,6 @@ _generate_graph_comm_with_extended
     /*
      * Rajout des connexions entre partitions !!!
      */
-    printf("Il faut rajouter les connexions entre partitions \n");
-    log_trace("Il faut rajouter les connexions entre partitions \n");
-
 
     /* Compute index */
     _neighbor_idx[0] = 0;
@@ -1464,6 +1463,7 @@ _generate_graph_comm_with_extended
       free(interface_pn      );
       free(interface_ln_to_gn);
       free(interface_sgn     );
+      free(interface_sens    );
       free(interface_ids     );
       free(interface_ids_idx );
       free(interface_dom     );
@@ -1777,7 +1777,7 @@ _generate_graph_comm_with_extended
           PDM_g_num_t gnum2 = border_entity_ln_to_gn[i_part][old_order2];
 
           if(gnum1 != gnum2) {
-            printf("Is same !!! --> %i %i | %i %i --> new_indices = %i \n", old_order, old_order2, (int)gnum1, (int)gnum2, new_indices);
+            // printf("Is same !!! --> %i %i | %i %i --> new_indices = %i \n", old_order, old_order2, (int)gnum1, (int)gnum2, new_indices);
             is_treated[idx ] = 1;
             is_treated[idx2] = 1;
             _old_to_new_indices[old_order ] = new_indices;
@@ -2024,6 +2024,184 @@ _create_cell_cell_graph
 
 static
 void
+_compute_other_domain_interface
+(
+  PDM_part_extension_t *part_ext
+)
+{
+  if(part_ext->pdi == NULL) {
+    return;
+  }
+
+  int is_descibe_vtx  = PDM_part_domain_interface_exist_get(part_ext->pdi, PDM_BOUND_TYPE_VTX );
+  int is_descibe_edge = PDM_part_domain_interface_exist_get(part_ext->pdi, PDM_BOUND_TYPE_EDGE);
+  int is_descibe_face = PDM_part_domain_interface_exist_get(part_ext->pdi, PDM_BOUND_TYPE_FACE);
+
+  int n_part_loc_all_domain = 0;
+  for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
+    // n_tot_all_domain      += part_ext->n_tot_part_by_domain[i_domain];
+    n_part_loc_all_domain += part_ext->n_part[i_domain];
+  }
+
+  int have_edge = 0;
+  int have_face = 0;
+
+  for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
+    for(int i_part = 0; i_part < part_ext->n_part[i_domain]; ++i_part) {
+      if(part_ext->parts[i_domain][i_part].n_edge > 0 &&
+         part_ext->parts[i_domain][i_part].edge_ln_to_gn != NULL) {
+        have_edge = 1;
+      }
+      if(part_ext->parts[i_domain][i_part].n_face > 0 &&
+         part_ext->parts[i_domain][i_part].face_ln_to_gn != NULL) {
+        have_face = 1;
+      }
+
+    }
+  }
+
+
+  // En gros noeud centré avec toutes les connectivités
+  if(is_descibe_vtx == 1 &&
+     (is_descibe_edge == 0 || is_descibe_face == 0) &&
+     (have_edge       == 1 && have_face == 1)) {
+
+    // Rebuild domaine_interface in distributed frame
+    // PDM_domain_interface* dintrf = PDM_part_domain_interface_to_domain_interface()
+
+
+    int          **pn_vtx         = (int         ** ) malloc( part_ext->n_domain * sizeof(int          *));
+    int          **pn_edge        = (int         ** ) malloc( part_ext->n_domain * sizeof(int          *));
+    int          **pn_face        = (int         ** ) malloc( part_ext->n_domain * sizeof(int          *));
+    PDM_g_num_t ***pvtx_ln_to_gn  = (PDM_g_num_t ***) malloc( part_ext->n_domain * sizeof(PDM_g_num_t **));
+    PDM_g_num_t ***pedge_ln_to_gn = (PDM_g_num_t ***) malloc( part_ext->n_domain * sizeof(PDM_g_num_t **));
+    PDM_g_num_t ***pface_ln_to_gn = (PDM_g_num_t ***) malloc( part_ext->n_domain * sizeof(PDM_g_num_t **));
+    int         ***pedge_vtx_idx  = (int         ***) malloc( part_ext->n_domain * sizeof(int         **));
+    int         ***pedge_vtx      = (int         ***) malloc( part_ext->n_domain * sizeof(int         **));
+    int         ***pface_edge_idx = (int         ***) malloc( part_ext->n_domain * sizeof(int         **));
+    int         ***pface_edge     = (int         ***) malloc( part_ext->n_domain * sizeof(int         **));
+
+    for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
+      pn_vtx        [i_domain] = (int         * ) malloc( part_ext->n_domain * sizeof(int          ));
+      pn_edge       [i_domain] = (int         * ) malloc( part_ext->n_domain * sizeof(int          ));
+      pn_face       [i_domain] = (int         * ) malloc( part_ext->n_domain * sizeof(int          ));
+      pvtx_ln_to_gn [i_domain] = (PDM_g_num_t **) malloc( part_ext->n_domain * sizeof(PDM_g_num_t *));
+      pedge_ln_to_gn[i_domain] = (PDM_g_num_t **) malloc( part_ext->n_domain * sizeof(PDM_g_num_t *));
+      pface_ln_to_gn[i_domain] = (PDM_g_num_t **) malloc( part_ext->n_domain * sizeof(PDM_g_num_t *));
+      pedge_vtx_idx [i_domain] = (int         **) malloc( part_ext->n_domain * sizeof(int         *));
+      pedge_vtx     [i_domain] = (int         **) malloc( part_ext->n_domain * sizeof(int         *));
+      pface_edge_idx[i_domain] = (int         **) malloc( part_ext->n_domain * sizeof(int         *));
+      pface_edge    [i_domain] = (int         **) malloc( part_ext->n_domain * sizeof(int         *));
+
+      for(int i_part = 0; i_part < part_ext->n_part[i_domain]; ++i_part) {
+        pn_vtx        [i_domain][i_part] = part_ext->parts[i_domain][i_part].n_vtx;
+        pn_edge       [i_domain][i_part] = part_ext->parts[i_domain][i_part].n_edge;
+        pn_face       [i_domain][i_part] = part_ext->parts[i_domain][i_part].n_face;
+        pvtx_ln_to_gn [i_domain][i_part] = part_ext->parts[i_domain][i_part].vtx_ln_to_gn;
+        pedge_ln_to_gn[i_domain][i_part] = part_ext->parts[i_domain][i_part].edge_ln_to_gn;
+        pface_ln_to_gn[i_domain][i_part] = part_ext->parts[i_domain][i_part].face_ln_to_gn;
+        pface_edge_idx[i_domain][i_part] = part_ext->parts[i_domain][i_part].face_edge_idx;
+        pface_edge    [i_domain][i_part] = part_ext->parts[i_domain][i_part].face_edge;
+        // pedge_vtx     [i_domain][i_part] = part_ext->parts[i_domain][i_part].edge_vtx;
+        pedge_vtx     [i_domain][i_part] = (int *) malloc((2 * pn_edge[i_domain][i_part]) * sizeof(int));
+
+
+        int *_edge_vtx = part_ext->parts[i_domain][i_part].edge_vtx;
+        for(int i_edge = 0; i_edge < pn_edge[i_domain][i_part]; ++i_edge) {
+          pedge_vtx     [i_domain][i_part][2*i_edge  ] =  _edge_vtx[2*i_edge  ];
+          pedge_vtx     [i_domain][i_part][2*i_edge+1] = -_edge_vtx[2*i_edge+1];
+          // printf("i_edge = %i (%i)- i_vtx1 = %i | i_vtx2 = %i \n", i_edge, (int) pedge_ln_to_gn[i_domain][i_part][i_edge], _edge_vtx[2*i_edge  ], -_edge_vtx[2*i_edge+1]);
+        }
+
+        int _nedge = pn_edge[i_domain][i_part];
+        pedge_vtx_idx [i_domain][i_part] = malloc((_nedge+1) * sizeof(int));
+
+        pedge_vtx_idx [i_domain][i_part][0] = 0;
+        for(int i = 0; i < _nedge; ++i) {
+          pedge_vtx_idx [i_domain][i_part][i+1] = pedge_vtx_idx [i_domain][i_part][i] + 2;
+        }
+      }
+    }
+
+    if(is_descibe_edge == 0) {
+
+      // Translate
+      printf("Translate vtx to edge ... \n");
+      PDM_part_domain_interface_add(part_ext->pdi,
+                                    PDM_BOUND_TYPE_VTX,
+                                    PDM_BOUND_TYPE_EDGE,
+                                    part_ext->n_part,
+                                    pn_vtx,
+                                    pvtx_ln_to_gn,
+                                    pn_edge,
+                                    pedge_ln_to_gn,
+                                    pedge_vtx_idx,
+                                    pedge_vtx,
+                                    1); // Connectivity_is_signed
+      printf("Translate vtx to edge END \n");
+    }
+
+
+    if(have_face == 1 &&  is_descibe_face == 0) {
+
+      // Translate
+      printf("Translate edge to face ... \n");
+      // Translate
+      PDM_part_domain_interface_add(part_ext->pdi,
+                                    PDM_BOUND_TYPE_EDGE,
+                                    PDM_BOUND_TYPE_FACE,
+                                    part_ext->n_part,
+                                    pn_edge,
+                                    pedge_ln_to_gn,
+                                    pn_face,
+                                    pface_ln_to_gn,
+                                    pface_edge_idx,
+                                    pface_edge,
+                                    1);// Connectivity_is_signed
+    }
+
+
+    for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
+      for(int i_part = 0; i_part < part_ext->n_part[i_domain]; ++i_part) {
+        free(pedge_vtx_idx [i_domain][i_part]);
+        free(pedge_vtx     [i_domain][i_part]);
+      }
+      free(pn_vtx        [i_domain]);
+      free(pn_edge       [i_domain]);
+      free(pn_face       [i_domain]);
+      free(pvtx_ln_to_gn [i_domain]);
+      free(pedge_ln_to_gn[i_domain]);
+      free(pface_ln_to_gn[i_domain]);
+      free(pedge_vtx_idx [i_domain]);
+      free(pedge_vtx     [i_domain]);
+      free(pface_edge_idx[i_domain]);
+      free(pface_edge    [i_domain]);
+    }
+    free(pn_vtx        );
+    free(pn_edge       );
+    free(pn_face       );
+    free(pvtx_ln_to_gn );
+    free(pedge_ln_to_gn);
+    free(pface_ln_to_gn);
+    free(pedge_vtx_idx );
+    free(pedge_vtx     );
+    free(pface_edge_idx );
+    free(pface_edge     );
+
+  } else if (is_descibe_face == 1) {
+
+    // assert(is_descibe_vtx == 0);
+
+    // Faire la méthode de Julien face2vtx
+
+  }
+
+
+}
+
+
+static
+void
 _warm_up_domain_interface
 (
   PDM_part_extension_t *part_ext,
@@ -2044,44 +2222,67 @@ _warm_up_domain_interface
 
   PDM_g_num_t **opp_interface_and_gnum = NULL;
   int         **current_lentity        = NULL;
+  int         **current_sens           = NULL;
   int          *n_current_lentity      = NULL;
+
+  int          **gentity2_entity1_n    = NULL;
+  PDM_g_num_t  **gentity2_entity1      = NULL;
+
+  PDM_g_num_t **entity1_opp_gnum_and_interface = NULL;
+  int         **entity1_current_lentity        = NULL;
+  int         **entity1_current_sens           = NULL;
+  int          *n_cur_interface_entity1        = NULL;
 
   if(interface_kind == PDM_BOUND_TYPE_VTX) {
     assert(part_ext->opp_interface_and_gnum_vtx == NULL);
     assert(part_ext->cur_interface_vtx          == NULL);
     part_ext->opp_interface_and_gnum_vtx = (PDM_g_num_t **) malloc( n_part_loc_all_domain * sizeof(PDM_g_num_t *) );
     part_ext->cur_interface_vtx          = (int         **) malloc( n_part_loc_all_domain * sizeof(int         *) );
+    part_ext->cur_sens_vtx               = (int         **) malloc( n_part_loc_all_domain * sizeof(int         *) );
     part_ext->n_cur_interface_vtx        = (int          *) malloc( n_part_loc_all_domain * sizeof(int          ) );
 
     opp_interface_and_gnum = part_ext->opp_interface_and_gnum_vtx;
     current_lentity        = part_ext->cur_interface_vtx;
+    current_sens           = part_ext->cur_sens_vtx;
     n_current_lentity      = part_ext->n_cur_interface_vtx;
   } else if( interface_kind == PDM_BOUND_TYPE_EDGE) {
     assert(part_ext->opp_interface_and_gnum_edge == NULL);
     assert(part_ext->cur_interface_edge          == NULL);
     part_ext->opp_interface_and_gnum_edge = (PDM_g_num_t **) malloc( n_part_loc_all_domain * sizeof(PDM_g_num_t *) );
     part_ext->cur_interface_edge          = (int         **) malloc( n_part_loc_all_domain * sizeof(int         *) );
+    part_ext->cur_sens_edge               = (int         **) malloc( n_part_loc_all_domain * sizeof(int         *) );
     part_ext->n_cur_interface_edge        = (int          *) malloc( n_part_loc_all_domain * sizeof(int          ) );
+
+
+    gentity2_entity1_n = (int         **) malloc( n_part_loc_all_domain * sizeof(int         *) );
+    gentity2_entity1   = (PDM_g_num_t **) malloc( n_part_loc_all_domain * sizeof(PDM_g_num_t *) );
 
     opp_interface_and_gnum = part_ext->opp_interface_and_gnum_edge;
     current_lentity        = part_ext->cur_interface_edge;
+    current_sens           = part_ext->cur_sens_edge;
     n_current_lentity      = part_ext->n_cur_interface_edge;
   } else if( interface_kind == PDM_BOUND_TYPE_FACE) {
     assert(part_ext->opp_interface_and_gnum_face == NULL);
     assert(part_ext->cur_interface_face          == NULL);
     part_ext->opp_interface_and_gnum_face = (PDM_g_num_t **) malloc( n_part_loc_all_domain * sizeof(PDM_g_num_t *) );
     part_ext->cur_interface_face          = (int         **) malloc( n_part_loc_all_domain * sizeof(int         *) );
+    part_ext->cur_sens_face               = (int         **) malloc( n_part_loc_all_domain * sizeof(int         *) );
     part_ext->n_cur_interface_face        = (int          *) malloc( n_part_loc_all_domain * sizeof(int          ) );
+
+    gentity2_entity1_n = (int         **) malloc( n_part_loc_all_domain * sizeof(int         *) );
+    gentity2_entity1   = (PDM_g_num_t **) malloc( n_part_loc_all_domain * sizeof(PDM_g_num_t *) );
 
     opp_interface_and_gnum = part_ext->opp_interface_and_gnum_face;
     current_lentity        = part_ext->cur_interface_face;
+    current_sens           = part_ext->cur_sens_face;
     n_current_lentity      = part_ext->n_cur_interface_face;
   }
 
-  for(int i = 0; i < n_part_loc_all_domain; ++i) {
-    opp_interface_and_gnum[i] = NULL;
-    current_lentity       [i] = NULL;
-    n_current_lentity     [i] = 0;
+  for(int i_part = 0; i_part < n_part_loc_all_domain; ++i_part) {
+    opp_interface_and_gnum[i_part] = NULL;
+    current_lentity       [i_part] = NULL;
+    current_sens          [i_part] = NULL;
+    n_current_lentity     [i_part] = 0;
   }
 
   if(part_ext->pdi != NULL) {
@@ -2089,9 +2290,17 @@ _warm_up_domain_interface
                                                          interface_kind);
 
     if(is_descibe == 0) {
+      if(gentity2_entity1_n != NULL) {
+        free(gentity2_entity1_n);
+        free(gentity2_entity1);
+      }
       return;
     }
   } else {
+    if(gentity2_entity1_n != NULL) {
+      free(gentity2_entity1_n);
+      free(gentity2_entity1);
+    }
     return;
   }
 
@@ -2101,9 +2310,11 @@ _warm_up_domain_interface
   int         **neighbor_desc      = (int         **) malloc( n_part_loc_all_domain * sizeof(int         *) );
   int          *n_entity           = (int          *) malloc( n_part_loc_all_domain * sizeof(int          ) );
   PDM_g_num_t **entity_ln_to_gn    = (PDM_g_num_t **) malloc( n_part_loc_all_domain * sizeof(PDM_g_num_t *) );
+  PDM_g_num_t **entity1_ln_to_gn   = (PDM_g_num_t **) malloc( n_part_loc_all_domain * sizeof(PDM_g_num_t *) );
 
   int **pn_entity = malloc(part_ext->n_domain * sizeof(int *));
 
+  int connectivity_is_signed = 0;
   int shift_part   = 0;
   int shift_part_g = 0;
   for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
@@ -2119,13 +2330,94 @@ _warm_up_domain_interface
         n_entity       [i_part+shift_part] = part_ext->parts[i_domain][i_part].n_vtx;
         entity_ln_to_gn[i_part+shift_part] = part_ext->parts[i_domain][i_part].vtx_ln_to_gn;
       } else if( interface_kind == PDM_BOUND_TYPE_EDGE) {
-        pn_entity      [i_domain][i_part]  = part_ext->parts[i_domain][i_part].n_edge;
-        n_entity       [i_part+shift_part] = part_ext->parts[i_domain][i_part].n_edge;
-        entity_ln_to_gn[i_part+shift_part] = part_ext->parts[i_domain][i_part].edge_ln_to_gn;
+        pn_entity       [i_domain][i_part]  = part_ext->parts[i_domain][i_part].n_edge;
+        n_entity        [i_part+shift_part] = part_ext->parts[i_domain][i_part].n_edge;
+        entity_ln_to_gn [i_part+shift_part] = part_ext->parts[i_domain][i_part].edge_ln_to_gn;
+
+        gentity2_entity1_n[i_part+shift_part] = malloc( (pn_entity[i_domain][i_part]) * sizeof(int));
+        int         *_edge_vtx    = part_ext->parts[i_domain][i_part].edge_vtx;
+        PDM_g_num_t *vtx_ln_to_gn = part_ext->parts[i_domain][i_part].vtx_ln_to_gn;
+        gentity2_entity1  [i_part+shift_part] = malloc( (2 * pn_entity[i_domain][i_part]) * sizeof(PDM_g_num_t));
+
+
+        // Reform complete connectivity and replace implicit sens of edge_vtx
+        for(int i = 0; i < pn_entity      [i_domain][i_part]; ++i) {
+          gentity2_entity1_n[i_part+shift_part][i] = 2;
+          int i_vtx1 = _edge_vtx[2*i  ];
+          int i_vtx2 = _edge_vtx[2*i+1];
+
+          gentity2_entity1  [i_part+shift_part][2*i  ] =  vtx_ln_to_gn[i_vtx1-1];
+          gentity2_entity1  [i_part+shift_part][2*i+1] = -vtx_ln_to_gn[i_vtx2-1];
+          // gentity2_entity1  [i_part+shift_part][2*i+1] =  vtx_ln_to_gn[i_vtx2-1]; // if connectivity_is_signed == 0
+        }
+        connectivity_is_signed = 1;
+        // connectivity_is_signed = 0;
+
+        entity1_opp_gnum_and_interface      = part_ext->opp_interface_and_gnum_vtx;
+        entity1_current_lentity             = part_ext->cur_interface_vtx;
+        entity1_current_sens                = part_ext->cur_sens_vtx;
+        n_cur_interface_entity1             = part_ext->n_cur_interface_vtx;
+        entity1_ln_to_gn[i_part+shift_part] = vtx_ln_to_gn;
+
       } else if( interface_kind == PDM_BOUND_TYPE_FACE) {
         pn_entity      [i_domain][i_part]  = part_ext->parts[i_domain][i_part].n_face;
         n_entity       [i_part+shift_part] = part_ext->parts[i_domain][i_part].n_face;
         entity_ln_to_gn[i_part+shift_part] = part_ext->parts[i_domain][i_part].face_ln_to_gn;
+
+        int          _n_face        = part_ext->parts[i_domain][i_part].n_face;
+
+        // 2 choices : defined from edge or direclty for vtx
+        if(part_ext->parts[i_domain][i_part].n_edge != 0) {
+          int         *_face_edge_idx = part_ext->parts[i_domain][i_part].face_edge_idx;
+          int         *_face_edge     = part_ext->parts[i_domain][i_part].face_edge;
+          PDM_g_num_t *edge_ln_to_gn  = part_ext->parts[i_domain][i_part].edge_ln_to_gn;
+          assert(_face_edge_idx != NULL);
+          assert(_face_edge     != NULL);
+
+          gentity2_entity1_n[i_part+shift_part] = malloc( _n_face * sizeof(int));
+          gentity2_entity1  [i_part+shift_part] = malloc( _face_edge_idx[_n_face] * sizeof(PDM_g_num_t));
+
+          for(int i = 0; i < _n_face; ++i) {
+            gentity2_entity1_n[i_part+shift_part][i] = _face_edge_idx[i+1] - _face_edge_idx[i];
+            for(int idx_edge = _face_edge_idx[i]; idx_edge < _face_edge_idx[i+1]; ++idx_edge) {
+              int i_edge = PDM_ABS (_face_edge[idx_edge])-1;
+              int sgn    = PDM_SIGN(_face_edge[idx_edge]);
+              gentity2_entity1  [i_part+shift_part][idx_edge] = sgn * edge_ln_to_gn[i_edge];
+            }
+          }
+          connectivity_is_signed = 1;
+
+          entity1_opp_gnum_and_interface      = part_ext->opp_interface_and_gnum_edge;
+          entity1_current_lentity             = part_ext->cur_interface_edge;
+          entity1_current_sens                = part_ext->cur_sens_edge;
+          n_cur_interface_entity1             = part_ext->n_cur_interface_edge;
+          entity1_ln_to_gn[i_part+shift_part] = edge_ln_to_gn;
+
+        } else {
+          assert(part_ext->parts[i_domain][i_part].face_vtx != NULL);
+          int         *_face_vtx_idx = part_ext->parts[i_domain][i_part].face_vtx_idx;
+          int         *_face_vtx     = part_ext->parts[i_domain][i_part].face_vtx;
+          PDM_g_num_t *vtx_ln_to_gn  = part_ext->parts[i_domain][i_part].vtx_ln_to_gn;
+
+          gentity2_entity1_n[i_part+shift_part] = malloc( _n_face * sizeof(int));
+          gentity2_entity1  [i_part+shift_part] = malloc( _face_vtx_idx[_n_face] * sizeof(PDM_g_num_t));
+
+          for(int i = 0; i < _n_face; ++i) {
+            gentity2_entity1_n[i_part+shift_part][i] = _face_vtx_idx[i+1] - _face_vtx_idx[i];
+            for(int idx_vtx = _face_vtx_idx[i]; idx_vtx < _face_vtx_idx[i+1]; ++idx_vtx) {
+              int i_vtx = PDM_ABS (_face_vtx[idx_vtx])-1;
+              gentity2_entity1  [i_part+shift_part][idx_vtx] = vtx_ln_to_gn[i_vtx];
+            }
+          }
+          connectivity_is_signed = 0;
+
+          entity1_opp_gnum_and_interface      = part_ext->opp_interface_and_gnum_vtx;
+          entity1_current_lentity             = part_ext->cur_interface_vtx;
+          entity1_current_sens                = part_ext->cur_sens_vtx;
+          n_cur_interface_entity1             = part_ext->n_cur_interface_vtx;
+          entity1_ln_to_gn[i_part+shift_part] = vtx_ln_to_gn;
+
+        }
       }
 
     }
@@ -2170,6 +2462,7 @@ _warm_up_domain_interface
       neighbor_interface[i_part][  i  ] = pdi_neighbor[i_part][4*i+3];
     }
     // PDM_log_trace_graph_nuplet_int(neighbor_idx[i_part], neighbor_desc[i_part], 3, n_entity[i_part], "neighbor_desc (debug) :");
+    // PDM_log_trace_graph_nuplet_int(neighbor_idx[i_part], pdi_neighbor[i_part], 4, n_entity[i_part], "neighbor_desc (debug) :");
     free(pdi_neighbor[i_part]);
 
   }
@@ -2199,6 +2492,19 @@ _warm_up_domain_interface
                             NULL,
                  (void ***)&entity_ln_to_gn_opp);
 
+  // Exchange downside connectivity to know the incoming sens of the exchange entity
+  int         **entity2_entity1_opp_n = NULL;
+  PDM_g_num_t **entity2_entity1_opp   = NULL;
+  if(gentity2_entity1 != NULL) {
+    PDM_distant_neighbor_exch(dn,
+                              sizeof(PDM_g_num_t),
+                              PDM_STRIDE_VAR_INTERLACED,
+                              -1,
+                              gentity2_entity1_n,
+                    (void **) gentity2_entity1,
+                             &entity2_entity1_opp_n,
+                   (void ***)&entity2_entity1_opp);
+  }
 
 
   shift_part   = 0;
@@ -2210,7 +2516,6 @@ _warm_up_domain_interface
     /* First loop to count */
     for(int i_part = 0; i_part < part_ext->n_part[i_domain]; ++i_part) {
 
-
       // int         *_neighbor_n          = neighbor_n         [i_part+shift_part];
       int         *_neighbor_idx        = neighbor_idx       [i_part+shift_part];
       int         *_neighbor_interface  = neighbor_interface [i_part+shift_part];
@@ -2219,16 +2524,171 @@ _warm_up_domain_interface
 
       opp_interface_and_gnum[i_part+shift_part] = malloc( 2 * _neighbor_idx[n_entity[i_part+shift_part]] * sizeof(PDM_g_num_t));
       current_lentity       [i_part+shift_part] = malloc(     _neighbor_idx[n_entity[i_part+shift_part]] * sizeof(int        ));
+      current_sens          [i_part+shift_part] = malloc(     _neighbor_idx[n_entity[i_part+shift_part]] * sizeof(int        ));
       PDM_g_num_t *_opp_interface_and_gnum = opp_interface_and_gnum[i_part+shift_part];
       int         *_current_lentity = current_lentity[i_part+shift_part];
+      int         *_current_sens    = current_sens   [i_part+shift_part];
 
       /* For each border count number of opposite */
-      int idx_write = 0;
+      int idx_write     = 0;
+      int idx_read      = 0;
+      int idx_read_recv = 0;
       for(int i_entity = 0; i_entity < n_entity[i_part+shift_part]; ++i_entity) {
+
+        /*
+         * Treatement of sens
+         */
+        int idx_write2 = idx_write;
+        if(gentity2_entity1 != NULL) {
+          // log_trace("-------------------------- i_entity = %i \n", i_entity);
+          for(int idx_entity = _neighbor_idx[i_entity]; idx_entity < _neighbor_idx[i_entity+1]; ++idx_entity) {
+            int strid = entity2_entity1_opp_n[i_part+shift_part][idx_entity];
+            assert(strid == gentity2_entity1_n[i_part+shift_part][i_entity]);
+
+            /*
+             * Translate all incoming data in current partition info
+             */
+            // log_trace(" \t \t i_entity = %i %i \n", _entity_ln_to_gn[i_entity], _entity_ln_to_gn_opp[idx_entity]);
+
+            // Dans le cas ou on a une entité qui rebondit sur nous on ignore car gérer par les raccord de partitionnement
+            if(_entity_ln_to_gn[i_entity] == _entity_ln_to_gn_opp[idx_entity]) {
+              idx_read_recv += strid;
+              continue; // Cause we are the same entities, no interface need to be manage
+            }
+
+            for(int p = 0; p < strid; ++p) {
+              PDM_g_num_t gopp    = PDM_ABS (entity2_entity1_opp[i_part+shift_part][idx_read_recv+p]);
+              int         sgn_opp = PDM_SIGN(entity2_entity1_opp[i_part+shift_part][idx_read_recv+p]);
+
+              PDM_g_num_t search_elmt[2] = {gopp, _neighbor_interface[idx_entity]};
+              // printf("Search elmt = %i %i\n", gopp, _neighbor_interface[idx_entity]);
+              // printf("n_cur_interface_entity1[i_part+shift_part] = %i \n", n_cur_interface_entity1[i_part+shift_part]);
+              // PDM_log_trace_array_long(entity1_opp_gnum_and_interface[i_part+shift_part], 2 * n_cur_interface_entity1[i_part+shift_part], "entity1_opp_gnum_and_interface ::");
+
+              // log_trace("i_entity = %i | idx_entity = %i \n", i_entity, idx_entity);
+              // log_trace("Search elmt = %i %i \n", gopp, _neighbor_interface[idx_entity]);
+              int pos = PDM_order_binary_search_long(search_elmt, entity1_opp_gnum_and_interface[i_part+shift_part], 2, n_cur_interface_entity1[i_part+shift_part]);
+              // log_trace("pos = %i \n", pos);
+              assert(pos != -1);
+
+              int         lentity        = entity1_current_lentity[i_part+shift_part][pos    ];
+              PDM_g_num_t gopp_translate = entity1_ln_to_gn       [i_part+shift_part][lentity];
+              int         sgn_translate  = entity1_current_sens   [i_part+shift_part][pos    ];
+
+              entity2_entity1_opp[i_part+shift_part][idx_read_recv+p] = sgn_translate * sgn_opp * gopp_translate;
+
+            }
+
+            // log_trace("current connectivity =");
+            // for(int k = 0; k < strid; ++k) {
+            //   log_trace("%i ", gentity2_entity1[i_part+shift_part][idx_read+k]);
+            // }
+            // log_trace("\n");
+
+
+            // log_trace("\t --> ");
+            // for(int k = 0; k < strid; ++k) {
+            //   log_trace("%i ", entity2_entity1_opp[i_part+shift_part][idx_read_recv+k]);
+            // }
+            // log_trace("\n");
+
+            /*
+             * Determine sens
+             */
+            int sens = 0;
+            if(connectivity_is_signed == 0) {
+
+              if(strid == 2) { // Cas particulier edge
+
+                PDM_g_num_t i1 = gentity2_entity1[i_part+shift_part][idx_read  ];
+                PDM_g_num_t i2 = gentity2_entity1[i_part+shift_part][idx_read+1];
+
+                PDM_g_num_t j1 = entity2_entity1_opp[i_part+shift_part][idx_read_recv  ];
+                PDM_g_num_t j2 = entity2_entity1_opp[i_part+shift_part][idx_read_recv+1];
+
+                if(i1 == j1) {
+                  sens = 1;
+                } else {
+                  assert(i1 == j2);
+                  assert(i2 == j1);
+                  sens = -1;
+                }
+              } else {
+
+                int idx_cur_min = 0;
+                int idx_opp_min = 0;
+                PDM_g_num_t gcur = gentity2_entity1   [i_part+shift_part][idx_read];
+                PDM_g_num_t gopp = entity2_entity1_opp[i_part+shift_part][idx_read_recv];
+
+                for(int k = 0; k < strid; ++k) {
+                  if(gentity2_entity1[i_part+shift_part][idx_read+k] < gcur) {
+                    gcur = gentity2_entity1   [i_part+shift_part][idx_read+k];
+                    idx_cur_min = k;
+                  }
+                  if(entity2_entity1_opp[i_part+shift_part][idx_read_recv+k] < gopp) {
+                    gopp = entity2_entity1_opp[i_part+shift_part][idx_read_recv+k];
+                    idx_opp_min = k;
+                  }
+                }
+
+                int next_idx_cur_min = (idx_cur_min + 1         ) % strid;
+                int prev_idx_cur_min = (idx_cur_min - 1  + strid) % strid;
+                int next_idx_opp_min = (idx_opp_min + 1         ) % strid;
+                // int prev_idx_opp_min = (idx_opp_min-1) % strid;
+
+                if(gentity2_entity1[i_part+shift_part][idx_read+next_idx_cur_min] == entity2_entity1_opp[i_part+shift_part][idx_read_recv+next_idx_opp_min])  {
+                  sens = 1;
+                } else {
+                  // log_trace("strid      = %i\n", strid);
+                  // log_trace("idx_cur_min      = %i\n", idx_cur_min);
+                  // log_trace("next_idx_cur_min = %i\n", next_idx_cur_min);
+                  // log_trace("prev_idx_cur_min = %i\n", prev_idx_cur_min);
+                  // log_trace("next_idx_opp_min = %i\n", next_idx_opp_min);
+                  // log_trace("val1 = %i| val2 = %i \n", gentity2_entity1[i_part+shift_part][idx_read+prev_idx_cur_min], entity2_entity1_opp[i_part+shift_part][idx_read_recv+next_idx_opp_min]);
+                  assert(gentity2_entity1[i_part+shift_part][idx_read+prev_idx_cur_min] == entity2_entity1_opp[i_part+shift_part][idx_read_recv+next_idx_opp_min]);
+                  sens = -1;
+                }
+              }
+            } else {
+              for(int k = 0; k < strid; ++k) {
+                PDM_g_num_t gcur    = PDM_ABS (gentity2_entity1[i_part+shift_part][idx_read+k]);
+                int         sgn_cur = PDM_SIGN(gentity2_entity1[i_part+shift_part][idx_read+k]);
+                int lsens = 0;
+                for(int p = 0; p < strid; ++p) {
+                  PDM_g_num_t gopp   = PDM_ABS (entity2_entity1_opp[i_part+shift_part][idx_read_recv+p]);
+
+                  if(gopp == gcur) {
+                    int sgn_opp   = PDM_SIGN(entity2_entity1_opp[i_part+shift_part][idx_read_recv+p]);
+                    if(sgn_opp != sgn_cur) { lsens = -1;}
+                    else                   { lsens =  1;}
+                  }
+                }
+
+                assert(lsens != 0);
+
+                if(sens != 0) {
+                  assert(lsens == sens);
+                }
+                sens = lsens;
+
+              }
+            }
+            assert(sens != 0);
+
+
+            if(_entity_ln_to_gn_opp[idx_entity] != _entity_ln_to_gn[i_entity]) {
+              _current_sens   [idx_write2++] = sens;
+            }
+
+            idx_read_recv += strid;
+          }
+          idx_read += gentity2_entity1_n[i_part+shift_part][i_entity];
+        } /* END gentity2_entity1 != NULL */
+
+
         for(int idx_entity = _neighbor_idx[i_entity]; idx_entity < _neighbor_idx[i_entity+1]; ++idx_entity) {
 
-          // log_trace("_entity_ln_to_gn_opp[%i] = %i \n", idx_entity, _entity_ln_to_gn_opp[idx_entity]);
-
+          // log_trace("(%i) _entity_ln_to_gn_opp[%i] = %i \n", _entity_ln_to_gn[i_entity], idx_entity, _entity_ln_to_gn_opp[idx_entity]);
           // _opp_interface_and_gnum[2*idx_entity  ] =  _entity_ln_to_gn_opp[idx_entity];
           // _opp_interface_and_gnum[2*idx_entity+1] =  _neighbor_interface [idx_entity]; // Opposite interface so revert sign
           // _current_lentity[idx_entity] = i_entity;
@@ -2236,24 +2696,26 @@ _warm_up_domain_interface
           if(_entity_ln_to_gn_opp[idx_entity] != _entity_ln_to_gn[i_entity]) {
             _opp_interface_and_gnum[2*idx_write  ] = _entity_ln_to_gn_opp[idx_entity];
             _opp_interface_and_gnum[2*idx_write+1] = _neighbor_interface[idx_entity];
-            _current_lentity[idx_write++] = i_entity;
+            _current_lentity[idx_write] = i_entity;
+            if(gentity2_entity1 == NULL) {
+              _current_sens[idx_write] = 1;
+            }
+            idx_write++;
           }
-
-
         }
       }
-
 
       /*
        * Tri indirect sur le doublet et on order _current_lentity
        */
       // idx_write = _neighbor_idx[n_entity[i_part+shift_part]];
       int* order = malloc(     _neighbor_idx[n_entity[i_part+shift_part]] * sizeof(int        ));
-      // PDM_order_gnum_s(_opp_interface_and_gnum, 2, order, _neighbor_idx[n_entity[i_part+shift_part]]);
       PDM_order_gnum_s(_opp_interface_and_gnum, 2, order, idx_write);
 
       PDM_g_num_t *unique_opp_interface_and_gnum = malloc( 2 * _neighbor_idx[n_entity[i_part+shift_part]] * sizeof(PDM_g_num_t));
       int         *unique_current_lentity        = malloc(     _neighbor_idx[n_entity[i_part+shift_part]] * sizeof(int        ));
+      int         *unique_current_sens           = malloc(     _neighbor_idx[n_entity[i_part+shift_part]] * sizeof(int        ));
+      // PDM_log_trace_array_long(opp_interface_and_gnum[i_part+shift_part], 2  * idx_write , "_opp_interface_and_gnum (Avant unique) ");
 
       int n_unique = 0;
 
@@ -2269,6 +2731,7 @@ _warm_up_domain_interface
           unique_opp_interface_and_gnum[2*n_unique  ] = curr_elmt;
           unique_opp_interface_and_gnum[2*n_unique+1] = curr_inte;
           unique_current_lentity[n_unique] = _current_lentity[old_order];
+          unique_current_sens   [n_unique] = _current_sens   [old_order];
           n_unique++;
           last_elmt = curr_elmt;
           last_inte = curr_inte;
@@ -2278,12 +2741,15 @@ _warm_up_domain_interface
 
       free(opp_interface_and_gnum[i_part+shift_part]);
       free(current_lentity       [i_part+shift_part]);
+      free(current_sens          [i_part+shift_part]);
 
       unique_opp_interface_and_gnum = realloc(unique_opp_interface_and_gnum, 2 * n_unique * sizeof(PDM_g_num_t));
       unique_current_lentity        = realloc(unique_current_lentity       ,     n_unique * sizeof(int        ));
+      unique_current_sens           = realloc(unique_current_sens          ,     n_unique * sizeof(int        ));
 
       opp_interface_and_gnum[i_part+shift_part] = unique_opp_interface_and_gnum;
       current_lentity       [i_part+shift_part] = unique_current_lentity;
+      current_sens          [i_part+shift_part] = unique_current_sens   ;
 
       free(order);
 
@@ -2291,7 +2757,8 @@ _warm_up_domain_interface
 
       if(0 == 1) {
         PDM_log_trace_array_long(opp_interface_and_gnum[i_part+shift_part], 2  * n_current_lentity[i_part+shift_part] , "_opp_interface_and_gnum : ");
-        PDM_log_trace_array_int(current_lentity       [i_part+shift_part],      n_current_lentity[i_part+shift_part] , "_current_lentity : ");
+        PDM_log_trace_array_int(current_lentity        [i_part+shift_part],      n_current_lentity[i_part+shift_part] , "_current_lentity        : ");
+        PDM_log_trace_array_int(current_sens           [i_part+shift_part],      n_current_lentity[i_part+shift_part] , "_current_sens           : ");
       }
 
       free(entity_ln_to_gn_opp[i_part+shift_part]);
@@ -2304,6 +2771,24 @@ _warm_up_domain_interface
 
   PDM_distant_neighbor_free(dn);
   free(entity_ln_to_gn_opp);
+
+  if(gentity2_entity1 != NULL) {
+    for(int i_part = 0; i_part < n_part_loc_all_domain; ++i_part) {
+      free(gentity2_entity1_n    [i_part]);
+      free(gentity2_entity1      [i_part]);
+      free(entity2_entity1_opp_n[i_part]);
+      free(entity2_entity1_opp  [i_part]);
+    }
+    free(gentity2_entity1_n    );
+    free(gentity2_entity1      );
+    free(entity2_entity1_opp_n);
+    free(entity2_entity1_opp  );
+  }
+  free(entity1_ln_to_gn);
+
+
+
+
   /*
    * Free
    */
@@ -2990,7 +3475,7 @@ _compute_dual_graph
       int* _border_cell_cell_interface    = next_cell_cell_interface [i_part+shift_part];
       int* _border_cell_cell_extended_idx = (int * ) malloc( (n_cell_border+1) * sizeof(int) );
 
-      if( 1 == 1) {
+      if( 0 == 1) {
         printf("prev_cell_cell_extended :: --------------------- \n");
         for(int i_cell = 0; i_cell < n_cell; ++i_cell) {
           if( prev_cell_cell_extended_idx[i_part+shift_part][i_cell+1] > prev_cell_cell_extended_idx[i_part+shift_part][i_cell]){
@@ -3022,7 +3507,7 @@ _compute_dual_graph
           n_neight += _border_cell_cell_extended_n[idx_neight];
 
 
-          printf(" Coming in interface = %i \n", part_ext->dist_neighbor_cell_interface[i_part+shift_part][idx_neight]);
+          // printf(" Coming in interface = %i \n", part_ext->dist_neighbor_cell_interface[i_part+shift_part][idx_neight]);
           int cur_interface = part_ext->dist_neighbor_cell_interface[i_part+shift_part][idx_neight];
 
           for(int j = 0; j < _border_cell_cell_extended_n[idx_neight]; ++j ) {
@@ -4031,6 +4516,7 @@ _generate_extended_partition_connectivity
  int           n_cur_interface_entity2,
  PDM_g_num_t  *opp_interface_and_gnum_entity2,
  int          *cur_interface_entity2,
+ int          *cur_interface_sens,
  int          *entity1_entity2_idx,
  int          *entity1_entity2,
  int          *border_gentity1_entity2_n,
@@ -4324,7 +4810,9 @@ _generate_extended_partition_connectivity
 
       if(pos_interface != -1) {
         int sgn    = PDM_SIGN(border_lentity1_entity2[i]); // A aller cherche dans le cell_face de depart
-        border_lentity1_entity2[idx++] = - sgn * ( cur_interface_entity2[pos_interface] + 1 ); // Car on shift
+        int sens   = cur_interface_sens[pos_interface];
+        border_lentity1_entity2[idx++] = sens * sgn * ( cur_interface_entity2[pos_interface] + 1 ); // Car on shift
+        // border_lentity1_entity2[idx++] = - sgn * ( cur_interface_entity2[pos_interface] + 1 ); // Car on shift
         i_entity2_extented++;
         continue;
       }
@@ -4578,6 +5066,7 @@ _rebuild_connectivity
   int                   *n_cur_interface_entity2,
   PDM_g_num_t          **opp_interface_and_gnum_entity2,
   int                  **cur_interface_entity2,
+  int                  **cur_interface_sens,
   int                 ***border_lentity1_entity2_idx,
   int                 ***border_lentity1_entity2,
   int                 ***entity2_entity2_extended_idx,
@@ -4714,6 +5203,7 @@ _rebuild_connectivity
                                                 n_cur_interface_entity2       [i_part+shift_part],
                                                 opp_interface_and_gnum_entity2[i_part+shift_part],
                                                 cur_interface_entity2         [i_part+shift_part],
+                                                cur_interface_sens            [i_part+shift_part],
                                                 entity1_entity2_idx           [i_part+shift_part],
                                                 entity1_entity2               [i_part+shift_part],
                                                 border_gentity1_entity2_n     [i_part+shift_part],
@@ -4854,6 +5344,7 @@ _rebuild_connectivity_cell_face
                         part_ext->n_cur_interface_face,
                         part_ext->opp_interface_and_gnum_face,
                         part_ext->cur_interface_face,
+                        part_ext->cur_sens_face,
                        &part_ext->border_cell_face_idx,
                        &part_ext->border_cell_face,
                        &part_ext->face_face_extended_idx,
@@ -4920,6 +5411,7 @@ _rebuild_connectivity_face_vtx
                         part_ext->n_cur_interface_vtx,
                         part_ext->opp_interface_and_gnum_vtx,
                         part_ext->cur_interface_vtx,
+                        part_ext->cur_sens_vtx,
                        &part_ext->border_face_vtx_idx,
                        &part_ext->border_face_vtx,
                        &part_ext->vtx_vtx_extended_idx,
@@ -4983,12 +5475,59 @@ _rebuild_connectivity_face_edge
                         part_ext->n_cur_interface_edge,
                         part_ext->opp_interface_and_gnum_edge,
                         part_ext->cur_interface_edge,
+                        part_ext->cur_sens_edge,
                        &part_ext->border_face_edge_idx,
                        &part_ext->border_face_edge,
                        &part_ext->edge_edge_extended_idx,
                        &part_ext->edge_edge_extended,
                        &part_ext->edge_edge_interface,
                        &part_ext->border_edge_ln_to_gn);
+
+  if(0 == 1) {
+    shift_part = 0;
+    for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
+      for(int i_part = 0; i_part < part_ext->n_part[i_domain]; ++i_part) {
+
+        int _n_edge          = part_ext->parts[i_domain][i_part].n_edge;
+        int _n_face          = part_ext->parts[i_domain][i_part].n_face;
+        int _n_face_extended = part_ext->face_face_extended_idx[i_part+shift_part][_n_face];
+        // int _n_edge_extended = part_ext->edge_edge_extended_idx[i_part+shift_part][_n_edge];
+        int         *extended_face_edge_idx = part_ext->border_face_edge_idx[i_part+shift_part];
+        int         *extended_face_edge     = part_ext->border_face_edge    [i_part+shift_part];
+        PDM_g_num_t *extended_edge_ln_to_gn = part_ext->border_edge_ln_to_gn[i_part+shift_part];
+
+        for(int i_face = 0; i_face < _n_face; ++i_face) {
+          printf("i_face = %i - ", i_face);
+          for(int idx_edge = face_edge_idx [i_part+shift_part][i_face]; idx_edge < face_edge_idx [i_part+shift_part][i_face+1]; ++idx_edge) {
+
+            int i_edge = PDM_ABS (face_edge[i_part+shift_part][idx_edge])-1;
+            int sgn    = PDM_SIGN(face_edge[i_part+shift_part][idx_edge]);
+            PDM_g_num_t g_edge = edge_ln_to_gn [i_part+shift_part][i_edge];
+
+            printf(PDM_FMT_G_NUM" ", sgn * g_edge);
+          }
+          printf("---- \n");
+        }
+        for(int i_face = 0; i_face < _n_face_extended; ++i_face) {
+          printf("extended i_face = %i - ", i_face);
+          for(int idx_edge = extended_face_edge_idx[i_face]; idx_edge < extended_face_edge_idx[i_face+1]; ++idx_edge) {
+
+            int i_edge = PDM_ABS (extended_face_edge[idx_edge])-1;
+            int sgn    = PDM_SIGN(extended_face_edge[idx_edge]);
+            PDM_g_num_t g_edge = 0;
+            if(i_edge < _n_edge) {
+              g_edge = edge_ln_to_gn [i_part+shift_part][i_edge];
+            } else {
+              g_edge = extended_edge_ln_to_gn[i_edge-_n_edge];
+            }
+            printf(PDM_FMT_G_NUM" ", sgn * g_edge);
+          }
+          printf("---- \n");
+        }
+      }
+      shift_part += part_ext->n_part[i_domain];
+    }
+  }
 
   free(n_face       );
   free(n_edge        );
@@ -5026,7 +5565,16 @@ _rebuild_connectivity_edge_vtx
       n_edge      [i_part+shift_part] = part_ext->parts[i_domain][i_part].n_edge;
       n_vtx       [i_part+shift_part] = part_ext->parts[i_domain][i_part].n_vtx;
       edge_vtx_idx[i_part+shift_part] = (int *) malloc((n_edge[i_part+shift_part]+1) * sizeof(int));
-      edge_vtx    [i_part+shift_part] = part_ext->parts[i_domain][i_part].edge_vtx;
+      // edge_vtx    [i_part+shift_part] = part_ext->parts[i_domain][i_part].edge_vtx;
+
+      edge_vtx    [i_part+shift_part] = (int *) malloc((2 * n_edge[i_part+shift_part]) * sizeof(int));
+      int *_edge_vtx = part_ext->parts[i_domain][i_part].edge_vtx;
+
+      for(int i_edge = 0; i_edge < n_edge      [i_part+shift_part]; ++i_edge) {
+        edge_vtx[i_part+shift_part][2*i_edge  ] =  _edge_vtx[2*i_edge  ];
+        edge_vtx[i_part+shift_part][2*i_edge+1] = -_edge_vtx[2*i_edge+1];
+      }
+
       vtx_ln_to_gn[i_part+shift_part] = part_ext->parts[i_domain][i_part].vtx_ln_to_gn;
 
       edge_vtx_idx[i_part+shift_part][0] = 0;
@@ -5052,6 +5600,7 @@ _rebuild_connectivity_edge_vtx
                         part_ext->n_cur_interface_vtx,
                         part_ext->opp_interface_and_gnum_vtx,
                         part_ext->cur_interface_vtx,
+                        part_ext->cur_sens_vtx,
                        &part_ext->border_edge_vtx_idx,
                        &part_ext->border_edge_vtx,
                        &part_ext->vtx_vtx_extended_idx,
@@ -5063,21 +5612,28 @@ _rebuild_connectivity_edge_vtx
   for(int i_domain = 0; i_domain < part_ext->n_domain; ++i_domain) {
     for(int i_part = 0; i_part < part_ext->n_part[i_domain]; ++i_part) {
       free(edge_vtx_idx  [i_part+shift_part]);
+      free(edge_vtx      [i_part+shift_part]);
 
       /* Generic algorithm setup a sign on edge_vtx - We remove it by swap */
-      // int pn_edge = part_ext->parts[i_domain][i_part].n_edge;
-      // int pn_edge_extented = part_ext->edge_edge_extended_idx[shift_part+i_part][pn_edge];
-      // for(int i_edge = 0; i_edge < pn_edge_extented; ++i_edge) {
-      //   int i_vtx1 = part_ext->border_edge_vtx[i_part+shift_part][2*i_edge  ];
-      //   int i_vtx2 = part_ext->border_edge_vtx[i_part+shift_part][2*i_edge+1];
-      //   if(i_vtx1 < 0) {
-      //     part_ext->border_edge_vtx[i_part+shift_part][2*i_edge  ] = PDM_ABS(i_vtx2);
-      //     part_ext->border_edge_vtx[i_part+shift_part][2*i_edge+1] = PDM_ABS(i_vtx1);
-      //   } else {
-      //     part_ext->border_edge_vtx[i_part+shift_part][2*i_edge  ] = PDM_ABS(i_vtx1);
-      //     part_ext->border_edge_vtx[i_part+shift_part][2*i_edge+1] = PDM_ABS(i_vtx2);
-      //   }
-      // }
+      int pn_edge = part_ext->parts[i_domain][i_part].n_edge;
+      int pn_edge_extented = part_ext->edge_edge_extended_idx[shift_part+i_part][pn_edge];
+      for(int i_edge = 0; i_edge < pn_edge_extented; ++i_edge) {
+        int i_vtx1 = part_ext->border_edge_vtx[i_part+shift_part][2*i_edge  ];
+        int i_vtx2 = part_ext->border_edge_vtx[i_part+shift_part][2*i_edge+1];
+        // printf("i_edge = %i | i_vtx1 = %i | i_vtx2 = %i ",i_edge, i_vtx1, i_vtx2);
+        if(i_vtx1 < 0 && i_vtx2 > 0) {
+          part_ext->border_edge_vtx[i_part+shift_part][2*i_edge  ] = PDM_ABS(i_vtx2);
+          part_ext->border_edge_vtx[i_part+shift_part][2*i_edge+1] = PDM_ABS(i_vtx1);
+        } else if (i_vtx2 < 0 && i_vtx1 > 0 ) {
+          part_ext->border_edge_vtx[i_part+shift_part][2*i_edge  ] = PDM_ABS(i_vtx1);
+          part_ext->border_edge_vtx[i_part+shift_part][2*i_edge+1] = PDM_ABS(i_vtx2);
+        } else {
+          part_ext->border_edge_vtx[i_part+shift_part][2*i_edge  ] = PDM_ABS(i_vtx1);
+          part_ext->border_edge_vtx[i_part+shift_part][2*i_edge+1] = PDM_ABS(i_vtx2);
+        }
+
+        // printf(" ----> i_vtx1 = %i | i_vtx2 = %i \n",part_ext->border_edge_vtx[i_part+shift_part][2*i_edge  ], part_ext->border_edge_vtx[i_part+shift_part][2*i_edge+1  ]);
+      }
 
     }
     shift_part += part_ext->n_part[i_domain];
@@ -5405,6 +5961,9 @@ PDM_part_extension_create
   part_ext->cur_interface_face          = NULL;
   part_ext->cur_interface_edge          = NULL;
   part_ext->cur_interface_vtx           = NULL;
+  part_ext->cur_sens_face               = NULL;
+  part_ext->cur_sens_edge               = NULL;
+  part_ext->cur_sens_vtx                = NULL;
   part_ext->n_cur_interface_face        = NULL;
   part_ext->n_cur_interface_edge        = NULL;
   part_ext->n_cur_interface_vtx         = NULL;
@@ -5646,10 +6205,14 @@ PDM_part_extension_compute
   /*
    * Warm up domain interface --> Usefull to rebuild connectivity inside domain interface
    */
+  _compute_other_domain_interface(part_ext);
+  // log_trace("_warm_up_domain_interface(part_ext, PDM_BOUND_TYPE_VTX ) \n");
+  _warm_up_domain_interface(part_ext, PDM_BOUND_TYPE_VTX );
+  // log_trace("_warm_up_domain_interface(part_ext, PDM_BOUND_TYPE_EDGE ) \n");
+  _warm_up_domain_interface(part_ext, PDM_BOUND_TYPE_EDGE);
+  // log_trace("_warm_up_domain_interface(part_ext, PDM_BOUND_TYPE_FACE ) \n");
   _warm_up_domain_interface(part_ext, PDM_BOUND_TYPE_FACE);
   // exit(1);
-  _warm_up_domain_interface(part_ext, PDM_BOUND_TYPE_EDGE);
-  _warm_up_domain_interface(part_ext, PDM_BOUND_TYPE_VTX );
 
   /*
    * Create for first level the proper graph
@@ -6254,6 +6817,17 @@ PDM_part_extension_free
           free(part_ext->cur_interface_vtx[i_part+shift_part]);
         }
 
+        if(part_ext->cur_sens_face[i_part+shift_part] != NULL) {
+          free(part_ext->cur_sens_face[i_part+shift_part]);
+        }
+
+        if(part_ext->cur_sens_edge[i_part+shift_part] != NULL) {
+          free(part_ext->cur_sens_edge[i_part+shift_part]);
+        }
+
+        if(part_ext->cur_sens_vtx[i_part+shift_part] != NULL) {
+          free(part_ext->cur_sens_vtx[i_part+shift_part]);
+        }
 
 
         if(part_ext->face_face_extended_idx != NULL) {
@@ -6364,16 +6938,19 @@ PDM_part_extension_free
   if(part_ext->opp_interface_and_gnum_face != NULL) {
     free(part_ext->opp_interface_and_gnum_face);
     free(part_ext->cur_interface_face);
+    free(part_ext->cur_sens_face);
     free(part_ext->n_cur_interface_face);
   }
   if(part_ext->opp_interface_and_gnum_edge != NULL) {
     free(part_ext->opp_interface_and_gnum_edge);
     free(part_ext->cur_interface_edge);
+    free(part_ext->cur_sens_edge);
     free(part_ext->n_cur_interface_edge);
   }
   if(part_ext->opp_interface_and_gnum_vtx != NULL) {
     free(part_ext->opp_interface_and_gnum_vtx);
     free(part_ext->cur_interface_vtx);
+    free(part_ext->cur_sens_vtx);
     free(part_ext->n_cur_interface_vtx);
   }
 
@@ -6594,6 +7171,7 @@ PDM_part_extension_connectivity_get
       n_entity     = part_ext->face_face_extended_idx[shift_part+i_part][n_face];
       *connect_idx = part_ext->border_face_edge_idx  [shift_part+i_part];
       *connect     = part_ext->border_face_edge      [shift_part+i_part];
+      // PDM_log_trace_connectivity_int(*connect_idx, *connect, n_entity, "face_edge");
     }
     break;
 
@@ -6612,6 +7190,7 @@ PDM_part_extension_connectivity_get
       n_entity     = part_ext->edge_edge_extended_idx[shift_part+i_part][n_edge];
       *connect_idx = part_ext->border_edge_vtx_idx   [shift_part+i_part];
       *connect     = part_ext->border_edge_vtx       [shift_part+i_part];
+      // PDM_log_trace_connectivity_int(*connect_idx, *connect, n_entity, "edge_vtx");
     }
     break;
 

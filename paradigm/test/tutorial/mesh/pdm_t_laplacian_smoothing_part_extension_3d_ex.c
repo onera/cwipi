@@ -751,7 +751,7 @@ int main(int argc, char *argv[])
 
   /* Laplacian Smoothing */
 
-  // char    filename[999];
+  char    filename[999];
   int     vtx1_idx;
   int     vtx2_idx;
   double *normalisation  = malloc(pn_vtx * sizeof(double));
@@ -759,20 +759,20 @@ int main(int argc, char *argv[])
 
   /* Set up of Ensight output */
 
-  PDM_writer_t *id_cs = PDM_writer_create("Ensight",
-                                          PDM_WRITER_FMT_BIN,
-                                          PDM_WRITER_TOPO_DEFORMABLE, // topologie constante mais coordonnées variables
-                                          PDM_WRITER_OFF,
-                                          "test_3d_ens",
-                                          "lapalcian_smoothing",
-                                          PDM_MPI_COMM_WORLD,
-                                          PDM_IO_KIND_MPI_SIMPLE,
-                                          1.,
-                                          NULL);
+  // PDM_writer_t *id_cs = PDM_writer_create("Ensight",
+  //                                         PDM_WRITER_FMT_BIN,
+  //                                         PDM_WRITER_TOPO_DEFORMABLE, // topologie constante mais coordonnées variables
+  //                                         PDM_WRITER_OFF,
+  //                                         "test_3d_ens",
+  //                                         "lapalcian_smoothing",
+  //                                         PDM_MPI_COMM_WORLD,
+  //                                         PDM_IO_KIND_MPI_SIMPLE,
+  //                                         1.,
+  //                                         NULL);
 
-  int id_geom = PDM_writer_geom_create(id_cs,
-                                       "test3d_geom",
-                                       n_part);
+  // int id_geom = PDM_writer_geom_create(id_cs,
+  //                                      "test3d_geom",
+  //                                      n_part);
 
 
   int *face_vtx_n  = (int *) malloc (sizeof(int) * pn_face);
@@ -790,48 +790,47 @@ int main(int argc, char *argv[])
   for (int i_step = 0; i_step <= n_steps; i_step++) {
 
     // Output in ensight format
-    PDM_writer_step_beg(id_cs, (double) i_step);
+    // PDM_writer_step_beg(id_cs, (double) i_step);
 
-    if (i_step == 0) {
-      PDM_writer_geom_coord_set (id_cs,
-                                 id_geom,
-                                 0,
-                                 pn_vtx,
-                                 pvtx_coord,
-                                 vtx_ln_to_gn,
-                                 PDM_OWNERSHIP_USER);
-      PDM_writer_geom_cell3d_cellface_add (id_cs,
-                                           id_geom,
-                                           0,
-                                           pn_cell,
-                                           pn_face,
-                                           pface_edge_idx,
-                                           face_vtx_n,
-                                           pface_vtx,
-                                           pcell_face_idx,
-                                           cell_face_n,
-                                           pcell_face,
-                                           cell_ln_to_gn);
-    }
-    PDM_writer_geom_write(id_cs,
-                          id_geom);
+    // if (i_step == 0) {
+    //   PDM_writer_geom_coord_set (id_cs,
+    //                              id_geom,
+    //                              0,
+    //                              pn_vtx,
+    //                              pvtx_coord,
+    //                              vtx_ln_to_gn);
+    //   PDM_writer_geom_cell3d_cellface_add (id_cs,
+    //                                        id_geom,
+    //                                        0,
+    //                                        pn_cell,
+    //                                        pn_face,
+    //                                        pface_edge_idx,
+    //                                        face_vtx_n,
+    //                                        pface_vtx,
+    //                                        pcell_face_idx,
+    //                                        cell_face_n,
+    //                                        pcell_face,
+    //                                        cell_ln_to_gn);
+    // }
+    // PDM_writer_geom_write(id_cs,
+    //                       id_geom);
 
 
     // Output in vtk format
 
-    // sprintf(filename, "mesh_%2.2d_%2.2d.vtk", i_rank, i_step);
+    sprintf(filename, "mesh_%2.2d_%2.2d.vtk", i_rank, i_step);
 
-    // PDM_vtk_write_std_elements(filename,
-    //                            pn_vtx,
-    //                            pvtx_coord,
-    //                            vtx_ln_to_gn,
-    //                            PDM_MESH_NODAL_BAR2,
-    //                            pn_edge,
-    //                            pedge_vtx,
-    //                            NULL,
-    //                            0,
-    //                            NULL,
-    //                            NULL);
+    PDM_vtk_write_std_elements(filename,
+                               pn_vtx,
+                               pvtx_coord,
+                               vtx_ln_to_gn,
+                               PDM_MESH_NODAL_BAR2,
+                               pn_edge,
+                               pedge_vtx,
+                               NULL,
+                               0,
+                               NULL,
+                               NULL);
 
     // Initialise pvtx_coord_new
     for (int i = 0; i < pn_vtx; i++) {
@@ -928,7 +927,7 @@ int main(int argc, char *argv[])
 
     free(pvtx_coord_extension_new);
 
-    PDM_writer_step_end(id_cs);
+    // PDM_writer_step_end(id_cs);
   } // end Laplacian Smoothing loop
 
 

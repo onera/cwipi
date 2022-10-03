@@ -254,8 +254,22 @@ typedef enum {
 
   PDM_MESH_LOCATION_OCTREE,
   PDM_MESH_LOCATION_DBBTREE,
+  PDM_MESH_LOCATION_DOCTREE,
 
 } PDM_mesh_location_method_t;
+
+typedef enum {
+
+  PDM_DOCTREE_LOCAL_TREE_OCTREE,
+  PDM_DOCTREE_LOCAL_TREE_LINEAR_OCTREE,
+  PDM_DOCTREE_LOCAL_TREE_KDTREE,
+
+} PDM_doctree_local_tree_t;
+
+typedef enum {
+  PDM_TREE_SOLICITATION_BOXES_POINTS,
+  PDM_TREE_SOLICITATION_BOXES_BOXES
+} PDM_tree_solicitation_t;
 
 
 typedef enum {
@@ -338,6 +352,20 @@ PDM_Finalize
 (
 void
 );
+
+/**
+ * \brief PDM_extents_conformize
+ *
+ * Correction extents to manage singular cases and di-symetrizes pb
+ * eps = 1.e-3 is a standard value
+ *
+ */
+void
+PDM_extents_conformize(int    dim,
+                       double extents[],
+                       double eps);
+
+
 
 #ifdef __cplusplus
 }

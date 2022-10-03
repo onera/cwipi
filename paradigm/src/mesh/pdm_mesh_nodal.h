@@ -122,6 +122,21 @@ PDM_Mesh_nodal_n_vtx_elt_get
 );
 
 /**
+ * \brief Get if the element is consider as HO or not
+ *
+ * \param [in]   type     Element type
+ *
+ * \return       0 if element is not ho else 1
+ *
+ */
+int
+PDM_Mesh_nodal_elmt_is_ho
+(
+  PDM_Mesh_nodal_elt_t type
+);
+
+
+/**
  * \brief Create a Mesh nodal structure
  *
  * \param [in]   n_part   Number of partition on the current process

@@ -45,7 +45,7 @@ readable_fs
   char  *buf
 )
 {
-  double dbl_size = size;
+  double dbl_size = (double) size;
   int i = 0;
   const char* units[] = {"B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
   while (dbl_size > 1024) {

@@ -296,6 +296,126 @@ _compute_face_vtx
 
 
 
+static void
+_compute_face_vtx2
+(
+ int   n_face,
+ int  *face_edge_idx,
+ int  *face_edge,
+ int  *edge_vtx,
+ int **face_vtx_out
+ )
+{
+
+  *face_vtx_out = malloc (sizeof(int) * face_edge_idx[n_face]);
+  int *face_vtx = *face_vtx_out;
+
+  int *face_vtx_idx = malloc (sizeof(int) * (n_face+1));
+
+  for(int i_face = 0; i_face <  face_edge_idx[n_face]; ++i_face) {
+    face_vtx[i_face] = 10000;
+  }
+
+  int n_edge = 0;
+  for (int i = 0; i < face_edge_idx[n_face]; i++) {
+    n_edge = PDM_MAX(n_edge, PDM_ABS(face_edge[i]));
+  }
+
+
+  int *is_treated = PDM_array_const_int(n_face, -1);
+  face_vtx_idx[0] = 0;
+  for (int i_face = 0; i_face < n_face; i_face++) {
+
+    int n_vtx_on_face = (face_edge_idx[i_face+1] - face_edge_idx[i_face]);
+    face_vtx_idx[i_face+1] = face_vtx_idx[i_face] + n_vtx_on_face;
+
+    int idx_write = face_vtx_idx[i_face];
+
+    // printf(" --------------------------------------- i_face = %i \n", i_face);
+    // for(int idx_edge = face_edge_idx[i_face]; idx_edge < face_edge_idx[i_face+1]; ++idx_edge) {
+    //   int i_edge = PDM_ABS(face_edge[idx_edge]) - 1;
+    //   int i_vtx1 = edge_vtx[2*i_edge  ];
+    //   int i_vtx2 = edge_vtx[2*i_edge+1];
+    //   printf("i_edge = %i (%i)-> %i /%i (%i/%i) \n", i_edge, face_edge[idx_edge], i_vtx1, i_vtx2, i_vtx1-1, i_vtx2-1);
+    // }
+
+    // Find first vtx of face
+    int idx_first_edge = face_edge_idx[i_face];
+    int i_edge_first = PDM_ABS (face_edge[idx_first_edge]) - 1;
+    int sgn          = PDM_SIGN(face_edge[idx_first_edge]);
+    int next_vtx = -1;
+    if(sgn == 1) {
+      face_vtx[idx_write++] = edge_vtx[2*i_edge_first  ];
+      next_vtx = PDM_ABS(edge_vtx[2*i_edge_first+1]);
+    } else {
+      face_vtx[idx_write++] = edge_vtx[2*i_edge_first+1];
+      next_vtx = PDM_ABS(edge_vtx[2*i_edge_first]);
+    }
+
+    is_treated[0] = 1;
+    int found = 1;
+    int i_step = 0;
+    while(found < n_vtx_on_face){
+      for(int idx_edge = face_edge_idx[i_face]+1; idx_edge < face_edge_idx[i_face+1]; ++idx_edge) {
+
+        int i_edge = PDM_ABS(face_edge[idx_edge]) - 1;
+        // printf("idx_edge :: %i | i_edge ::  %i | treated ::  %i (  %i )\n", idx_edge, i_edge, is_treated[idx_edge-face_edge_idx[i_face]], idx_edge-face_edge_idx[i_face]);
+
+        // Find the next edge that refers to next_vtx
+        if(is_treated[idx_edge-face_edge_idx[i_face]] == -1) {
+          int sgn2   = PDM_SIGN(face_edge[idx_edge]);
+          int i_vtx1 = PDM_ABS (edge_vtx[2*i_edge  ]);
+          int i_vtx2 = PDM_ABS (edge_vtx[2*i_edge+1]);
+
+          if(i_vtx1 == next_vtx) {
+            if(sgn2 == 1) {
+              face_vtx[idx_write++] = i_vtx1;
+              next_vtx = i_vtx2;
+            } else {
+              face_vtx[idx_write++] = i_vtx2;
+              next_vtx = i_vtx1;
+            }
+
+            is_treated[idx_edge-face_edge_idx[i_face]] = 1;
+            found++;
+          } else if(i_vtx2 == next_vtx) {
+
+            if(sgn2 == 1) {
+              face_vtx[idx_write++] = i_vtx1;
+              next_vtx = i_vtx2;
+            } else {
+              face_vtx[idx_write++] = i_vtx2;
+              next_vtx = i_vtx1;
+            }
+
+            is_treated[idx_edge-face_edge_idx[i_face]] = 1;
+            found++;
+          }
+        }
+      } /* End for */
+
+      if(i_step > 10) {
+        printf(" abort for i_face = %i with foud = %i \n", i_face, found);
+        abort();
+      }
+      i_step++;
+
+    } /* End while */
+
+    /*
+     * Reset
+     */
+    for(int i = 0; i < found; ++i) {
+      is_treated[i] = -1;
+    }
+  }
+  // PDM_log_trace_connectivity_int(face_vtx_idx, face_vtx, n_face, "face_vtx ::");
+
+  free(face_vtx_idx);
+  free(is_treated);
+
+}
+
 /**
  *
  * \brief  Main
@@ -306,47 +426,13 @@ _compute_face_vtx
 // mpirun -np 1 ./test/pdm_t_join_domains -nx 3 -ny 3 -nz 2 -t 8 -pi
 // mpirun -np 1 ./test/pdm_t_join_domains -nx 3 -ny 3 -nz 2 -t 8 -pi -pj
 // Repro LS89 : mpirun -np 2 ./test/pdm_t_join_domains -nx 5 -ny 4 -nz 2 -pt-scotch -pj
+// mpirun -np 1 ./test/pdm_t_join_domains -nx 3 -ny 3 -nz 2 -pi -pt-scotch -n_part 2
 int main
 (
  int   argc,
  char *argv[]
 )
 {
-  // PDM_MPI_Init(&argc, &argv);
-
-  // int size          = 4;
-  // int array[2*4] = {4, 0, 2, 1, 2, 0, 1, 1};
-  // int* lorder = malloc(size * sizeof(int));
-  // PDM_order_lnum_s(array, 2, lorder, size);
-
-  // PDM_order_array(size, 2 * sizeof(int), lorder, array);
-
-  // PDM_log_trace_array_int(lorder,   size, "lorder : ");
-  // PDM_log_trace_array_int(array, 2 * size, "Sorted array : ");
-
-
-  // // Search
-  // int elt_to_find1[] = {1, 1};
-  // int elt_to_find2[] = {2, 0};
-  // int elt_to_find3[] = {2, 1};
-  // int elt_to_find4[] = {4, 0};
-  // int elt_to_find5[] = {4, 1};
-  // int pos1 = PDM_order_binary_search_long(elt_to_find1, array, 2, size);
-  // int pos2 = PDM_order_binary_search_long(elt_to_find2, array, 2, size);
-  // int pos3 = PDM_order_binary_search_long(elt_to_find3, array, 2, size);
-  // int pos4 = PDM_order_binary_search_long(elt_to_find4, array, 2, size);
-  // int pos5 = PDM_order_binary_search_long(elt_to_find5, array, 2, size);
-
-  // printf("pos1 = %i \n", pos1);
-  // printf("pos2 = %i \n", pos2);
-  // printf("pos3 = %i \n", pos3);
-  // printf("pos4 = %i \n", pos4);
-  // printf("pos5 = %i \n", pos5);
-
-  // free(lorder);
-
-  // PDM_MPI_Finalize();
-  // return 0;
   /*
    *  Set default values
    */
@@ -604,23 +690,24 @@ int main
 
     // PDM_log_trace_array_int(dedge_vtx_idx[i], dn_edge[i], "dedge_vtx_idx[i] :: ");
     // PDM_log_trace_array_long(dedge_vtx[i], dedge_vtx_idx[i][dn_edge[i]], "dedge_vtx[i] :: ");
+    // PDM_log_trace_connectivity_long(dedge_vtx_idx[i], dedge_vtx[i], dn_edge[i], "dedge_vtx ::");
 
   }
 
   /*
    * Transform interface by vtx by interface by faces
    */
-  PDM_domain_interface_translate_vtx2face(dom_intrf,
-                                          dn_vtx,
-                                          dn_face,
-                                          dface_vtx_idx,
-                                          dface_vtx);
+  // PDM_domain_interface_translate_vtx2face(dom_intrf,
+  //                                         dn_vtx,
+  //                                         dn_face,
+  //                                         dface_vtx_idx,
+  //                                         dface_vtx);
 
-  PDM_domain_interface_translate_vtx2edge(dom_intrf,
-                                          dn_vtx,
-                                          dn_edge,
-                                          dedge_vtx_idx,
-                                          dedge_vtx);
+  // PDM_domain_interface_translate_vtx2edge(dom_intrf,
+  //                                         dn_vtx,
+  //                                         dn_edge,
+  //                                         dedge_vtx_idx,
+  //                                         dedge_vtx);
 
   /*
    *  Prepare pointer by domain and by part
@@ -692,8 +779,8 @@ int main
    * Extension
    */
   int n_depth = 1;
-  // PDM_extend_type_t  extend_type = PDM_EXTEND_FROM_VTX;
-  PDM_extend_type_t  extend_type = PDM_EXTEND_FROM_FACE;
+  PDM_extend_type_t  extend_type = PDM_EXTEND_FROM_VTX;
+  // PDM_extend_type_t  extend_type = PDM_EXTEND_FROM_FACE;
   // int n_depth = 2;
   PDM_part_extension_t* part_ext = PDM_part_extension_create(n_domain,
                                                              n_part_by_domain,
@@ -796,6 +883,11 @@ int main
                         face_edge,
                         edge_vtx,
                         &pface_vtx[i_dom][i_part]);
+      // _compute_face_vtx2(n_face2,
+      //                   face_edge_idx,
+      //                   face_edge,
+      //                   edge_vtx,
+      //                   &pface_vtx[i_dom][i_part]);
 
       // assert(n_edge2 == n_edge);
       PDM_part_extension_set_part(part_ext, i_dom, i_part,
@@ -829,6 +921,16 @@ int main
                                   vtx_ln_to_gn,
                                   face_bound_ln_to_gn,
                                   vtx);
+
+      // for(int i_edge = 0; i_edge < n_edge; ++i_edge) {
+      //   int i_vtx1 = PDM_ABS(edge_vtx[2*i_edge  ])-1;
+      //   int i_vtx2 = PDM_ABS(edge_vtx[2*i_edge+1])-1;
+      //   log_trace("i_edge(%i) = %i / %i | %i = %i / %i\n", i_edge,
+      //             i_vtx1, i_vtx2, edge_ln_to_gn[i_edge],
+      //             vtx_ln_to_gn[i_vtx1], vtx_ln_to_gn[i_vtx2]);
+      //   // log_trace("i_edge(%i) = %i / %i \n", edge_ln_to_gn[i_edge],
+      //   //           vtx_ln_to_gn[i_vtx1], vtx_ln_to_gn[i_vtx2]);
+      // }
 
       /*
        *  Mini-Bricoloage
@@ -914,7 +1016,6 @@ int main
       int  scell_face, sface_vtx, sface_bound, sface_join;
       int  n_section;
       int *n_elt;
-
       PDM_multipart_part_dim_get(mpart_id,
                                  i_dom,
                                  i_part,
@@ -1245,15 +1346,20 @@ int main
 
         // Concatenate face_vtx
         int *concat_face_vtx = NULL;
-        _compute_face_vtx(n_face_tot,
-                          concat_face_edge_idx,
-                          concat_face_edge,
-                          concat_edge_vtx,
-                          &concat_face_vtx);
-        // PDM_log_trace_connectivity_int(concat_face_edge_idx,
-        //                                concat_face_vtx,
-        //                                n_face_tot,
-        //                                "concat_face_vtx ::");
+        // _compute_face_vtx(n_face_tot,
+        //                   concat_face_edge_idx,
+        //                   concat_face_edge,
+        //                   concat_edge_vtx,
+        //                   &concat_face_vtx);
+        _compute_face_vtx2(n_face_tot,
+                           concat_face_edge_idx,
+                           concat_face_edge,
+                           concat_edge_vtx,
+                           &concat_face_vtx);
+        PDM_log_trace_connectivity_int(concat_face_edge_idx,
+                                       concat_face_vtx,
+                                       n_face_tot,
+                                       "concat_face_vtx ::");
 
         sprintf(filename_pts, "out_face_vtx_%i_%i_%i.vtk", i_dom, i_part, i_rank);
         PDM_vtk_write_polydata(filename_pts,
@@ -1283,7 +1389,7 @@ int main
                                                           &face_edge_idx,
                                                           PDM_OWNERSHIP_KEEP);
 
-        assert(n_face2 = pn_face[i_dom][i_part]);
+        assert(n_face2 == pn_face[i_dom][i_part]);
         int n_face_tot = pn_face[i_dom][i_part]+n_face_extended;
 
         int *concat_face_vtx_idx = malloc( (n_face_tot+1) * sizeof(int));

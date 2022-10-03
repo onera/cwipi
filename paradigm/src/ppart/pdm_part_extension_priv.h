@@ -78,6 +78,9 @@ struct _pdm_part_extension_t {
   int         **cur_interface_face;          /* Works with opp_interface_and_gnum_*, sort in the smae way and give the local number     */
   int         **cur_interface_edge;
   int         **cur_interface_vtx;
+  int         **cur_sens_face;          /* Works with opp_interface_and_gnum_*, sort in the smae way and give the sens of entity to receive     */
+  int         **cur_sens_edge;
+  int         **cur_sens_vtx;
   int          *n_cur_interface_face;
   int          *n_cur_interface_edge;
   int          *n_cur_interface_vtx;

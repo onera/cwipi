@@ -43,25 +43,25 @@ _subdivide_bezier_triangle
   const int n = (order+1)*(order+2)/2;
 
   double atr[n*dim], ars[n*dim];
-  PDM_ho_bezier_de_casteljau_tria(dim, order, 0.0, 0.5, b,   NULL,
-                                  atr, ars, NULL);
+  PDM_ho_bezier_de_casteljau_triangle(dim, order, 0.0, 0.5, b,   NULL,
+                                      atr, ars, NULL);
 
   // double bat[n*dim];
   double bra[n*dim];
-  PDM_ho_bezier_de_casteljau_tria(dim, order, 0.5, 0.5, atr, NULL,
-                                  b0, NULL, bra);
-                                  //bat, NULL, bra);
+  PDM_ho_bezier_de_casteljau_triangle(dim, order, 0.5, 0.5, atr, NULL,
+                                      b0, NULL, bra);
+                                      //bat, NULL, bra);
 
   //double csa[n*dim];
-  PDM_ho_bezier_de_casteljau_tria(dim, order, 0.5, 0.5, ars, NULL,
-                                  NULL, NULL, b2);
-                                  //NULL, NULL, csa);
+  PDM_ho_bezier_de_casteljau_triangle(dim, order, 0.5, 0.5, ars, NULL,
+                                      NULL, NULL, b2);
+                                      //NULL, NULL, csa);
 
   // double cbr[n*dim];
   // double cab[n*dim];
-  PDM_ho_bezier_de_casteljau_tria(dim, order, 1.0, 1.0, bra, NULL,
-                                  b1, NULL, b3);
-                                  //cbr, NULL, cab);
+  PDM_ho_bezier_de_casteljau_triangle(dim, order, 1.0, 1.0, bra, NULL,
+                                      b1, NULL, b3);
+                                      //cbr, NULL, cab);
 
   // TODO: check/transform the local uv frame of each subtriangle...
 }
@@ -85,16 +85,16 @@ _subdivide_bezier_triangle2
   double ctr[n*dim];
   double uc = umin;
   double vc = 1 - umin - wmin;
-  PDM_ho_bezier_de_casteljau_tria(dim, order, uc, vc, b, NULL,
-                                  ctr, NULL, NULL);
+  PDM_ho_bezier_de_casteljau_triangle(dim, order, uc, vc, b, NULL,
+                                      ctr, NULL, NULL);
 
   double ub = 1 - vmin - wmin;
   double vb = vmin;
   double u1b = 1 - ub + (uc - 1) * vb/vc; // /!\ if vc == 0
   double v1b = ub - uc*vb/vc;             // /!\ if vc == 0
   double bct[n*dim];
-  PDM_ho_bezier_de_casteljau_tria(dim, order, u1b, v1b, ctr, NULL,
-                                  bct, NULL, NULL);
+  PDM_ho_bezier_de_casteljau_triangle(dim, order, u1b, v1b, ctr, NULL,
+                                      bct, NULL, NULL);
 
   double ua = umin;
   double va = vmin;
@@ -104,8 +104,8 @@ _subdivide_bezier_triangle2
   double F = -(1 + E*uc)/vc;
   double u2a = B*ua + C*va;
   double v2a = 1 + E*ua + F*va;
-  PDM_ho_bezier_de_casteljau_tria(dim, order, u2a, v2a, bct, NULL,
-                                  bsub, NULL, NULL);
+  PDM_ho_bezier_de_casteljau_triangle(dim, order, u2a, v2a, bct, NULL,
+                                      bsub, NULL, NULL);
 }
 
 
@@ -355,15 +355,15 @@ int main(int argc, char *argv[])
   for (int i = 0; i < 3; i++) {
     sub3_node_xyz[i] = malloc(sizeof(double) * n_node * 3);
   }
-  PDM_ho_bezier_de_casteljau_tria(3,
-                                  order,
-                                  uv[0],
-                                  uv[1],
-                                  node_xyz,
-                                  p,
-                                  sub3_node_xyz[0],//NULL,//
-                                  sub3_node_xyz[1],//NULL,//
-                                  sub3_node_xyz[2]);//NULL);//
+  PDM_ho_bezier_de_casteljau_triangle(3,
+                                      order,
+                                      uv[0],
+                                      uv[1],
+                                      node_xyz,
+                                      p,
+                                      sub3_node_xyz[0],//NULL,//
+                                      sub3_node_xyz[1],//NULL,//
+                                      sub3_node_xyz[2]);//NULL);//
 
   log_trace("u = %f, v = %f\n", uv[0], uv[1]);
   log_trace("p = %f %f %f\n", p[0], p[1], p[2]);
@@ -371,8 +371,8 @@ int main(int argc, char *argv[])
 
   // evaluate tangent and normal vectors
   double dpdu[3], dpdv[3], normal[3];
-  PDM_ho_bezier_de_casteljau_tria(3, order-1, uv[0], uv[1], deriv[0], dpdu, NULL, NULL, NULL);
-  PDM_ho_bezier_de_casteljau_tria(3, order-1, uv[0], uv[1], deriv[1], dpdv, NULL, NULL, NULL);
+  PDM_ho_bezier_de_casteljau_triangle(3, order-1, uv[0], uv[1], deriv[0], dpdu, NULL, NULL, NULL);
+  PDM_ho_bezier_de_casteljau_triangle(3, order-1, uv[0], uv[1], deriv[1], dpdv, NULL, NULL, NULL);
   PDM_CROSS_PRODUCT(normal, dpdu, dpdv);
 
   for (int i = 0; i < 2; i++) {
@@ -398,8 +398,8 @@ int main(int argc, char *argv[])
 
     double *weight2 = malloc(sizeof(double) * n_node);
     // de Casteljau to compute weights
-    PDM_ho_bezier_de_casteljau_tria(n_node, order, uv[0], uv[1],
-                                    NULL, weight2, NULL, NULL, NULL);
+    PDM_ho_bezier_de_casteljau_triangle(n_node, order, uv[0], uv[1],
+                                        NULL, weight2, NULL, NULL, NULL);
     log_trace("diff weights :\n");
     int idx = 0;
     for (int j = 0; j <= order; j++) {
@@ -551,9 +551,9 @@ int main(int argc, char *argv[])
 
   double pts[9];
   int color[3] = {0, 1, 2};
-  PDM_ho_bezier_de_casteljau_tria(3, order, umin, vmin, node_xyz, &pts[0], NULL, NULL, NULL);
-  PDM_ho_bezier_de_casteljau_tria(3, order, 1 - vmin - wmin, vmin, node_xyz, &pts[3], NULL, NULL, NULL);
-  PDM_ho_bezier_de_casteljau_tria(3, order, umin, 1 - umin - wmin, node_xyz, &pts[6], NULL, NULL, NULL);
+  PDM_ho_bezier_de_casteljau_triangle(3, order, umin, vmin, node_xyz, &pts[0], NULL, NULL, NULL);
+  PDM_ho_bezier_de_casteljau_triangle(3, order, 1 - vmin - wmin, vmin, node_xyz, &pts[3], NULL, NULL, NULL);
+  PDM_ho_bezier_de_casteljau_triangle(3, order, umin, 1 - umin - wmin, node_xyz, &pts[6], NULL, NULL, NULL);
   PDM_vtk_write_point_cloud("bezier_sub1tria_corners.vtk",
                             3,
                             pts,

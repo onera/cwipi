@@ -203,7 +203,7 @@ PDM_g_num_t  **dmissing_child_parent_g_num
    * Get the max number of vertex of entitys
    */
   int* blk_entity_vtx_idx  = (int        *) malloc( (blk_entity_vtx_n_size+1) * sizeof(int        ));
-  int n_max_entity_per_key = -1;
+  int n_max_entity_per_key = 0;
   int n_tot_entity_per_key = 0;
   int n_child_approx = 0;
   int idx_tmp = 0;
@@ -218,7 +218,7 @@ PDM_g_num_t  **dmissing_child_parent_g_num
     }
   }
 
-  int n_max_vtx       = -1;
+  int n_max_vtx       = 0;
   blk_entity_vtx_idx[0] = 0;
   for(int i_entity = 0; i_entity < blk_entity_vtx_n_size; ++i_entity) {
     n_max_vtx          = PDM_MAX(n_max_vtx         , blk_entity_vtx_n    [i_entity]);
@@ -838,8 +838,8 @@ PDM_g_num_t  **dmissing_child_parent_g_num
 
   } else {
 
-    PDM_mpi_comm_kind_t k_comm = PDM_MPI_COMM_KIND_WIN_RMA;
-    // PDM_mpi_comm_kind_t k_comm = PDM_MPI_COMM_KIND_COLLECTIVE;
+    // PDM_mpi_comm_kind_t k_comm = PDM_MPI_COMM_KIND_WIN_RMA;
+    PDM_mpi_comm_kind_t k_comm = PDM_MPI_COMM_KIND_COLLECTIVE;
 
     int request_entity_vtx = -1;
     PDM_part_to_block_iexch(ptb,

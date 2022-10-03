@@ -1566,6 +1566,39 @@ PDM_Mesh_nodal_n_vtx_elt_get
   return -1;
 }
 
+int
+PDM_Mesh_nodal_elmt_is_ho
+(
+  PDM_Mesh_nodal_elt_t type
+)
+{  switch (type) {
+  case PDM_MESH_NODAL_POINT :
+  case PDM_MESH_NODAL_BAR2 :
+  case PDM_MESH_NODAL_TRIA3 :
+  case PDM_MESH_NODAL_QUAD4 :
+  case PDM_MESH_NODAL_TETRA4 :
+  case PDM_MESH_NODAL_PYRAMID5 :
+  case PDM_MESH_NODAL_PRISM6 :
+  case PDM_MESH_NODAL_HEXA8 :
+    return 0;
+    break;
+
+  case PDM_MESH_NODAL_BARHO :
+  case PDM_MESH_NODAL_TRIAHO :
+  case PDM_MESH_NODAL_QUADHO :
+  case PDM_MESH_NODAL_TETRAHO :
+  case PDM_MESH_NODAL_PYRAMIDHO :
+  case PDM_MESH_NODAL_PRISMHO :
+  case PDM_MESH_NODAL_HEXAHO :
+  case PDM_MESH_NODAL_BARHO_BEZIER:
+  case PDM_MESH_NODAL_TRIAHO_BEZIER:
+    return 1;
+    break;
+  default :
+    PDM_error (__FILE__, __LINE__, 0, "Unknown for order Poly2D and Poly3D\n");
+  }
+  return -1;
+}
 
 
 /**

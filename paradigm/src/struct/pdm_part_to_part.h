@@ -97,6 +97,38 @@ PDM_part_to_part_create
 
 /**
  *
+ * \brief Create a partitions to partitions redistribution
+ *
+ * \param [in]   gnum_elt1              Element global number (size : \ref n_part1)
+ * \param [in]   n_elt1                 Local number of elements (size : \ref n_part1)
+ * \param [in]   n_part1                Number of partition
+ * \param [in]   n_elt2                 Local number of elements (size : \ref n_part2)
+ * \param [in]   n_part2                Number of partition
+ * \param [in]   part1_to_part2_idx     Index of data to send to gnum2 from gnum1 
+ *                                      (for each part size : \ref n_elt1+1) 
+ * \param [in]   part1_to_part2_triplet  Data to send to (irank2, ipart2, ielt2) from gnum1 
+ * \param [in]   comm                    MPI communicator
+ *
+ * \return   Initialized \ref PDM_part_to_part instance
+ *
+ */
+
+PDM_part_to_part_t *
+PDM_part_to_part_create_from_num2_triplet
+(
+ const PDM_g_num_t   **gnum_elt1,
+ const int            *n_elt1,
+ const int             n_part1,
+ const int            *n_elt2,
+ const int             n_part2,
+ const int           **part1_to_part2_idx,
+ const int           **part1_to_part2_triplet,
+ const PDM_MPI_Comm    comm
+);
+
+
+/**
+ *
  * \brief Initialize an exchange based on MPI_ialltoall
  *
  * \param [in]   ptp                 Block to part structure
