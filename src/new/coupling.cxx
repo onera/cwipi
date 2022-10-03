@@ -40,6 +40,8 @@
 
 #include "communication.hxx"
 #include "visualization.hxx"
+#include "pdm_writer.h"
+
 
 /*----------------------------------------------------------------------------
  * Macro for handling of different symbol names (underscored or not,
@@ -126,7 +128,8 @@ namespace cwipi {
    _entities_dim(entities_dim),
    _mesh(*new Mesh(localCodeProperties.connectableCommGet(),NULL,nPart,displacement,this)),
    _recvFreqType (recvFreqType),
-   _visu(*new Visu(localCodeProperties.connectableCommGet(),displacement)),
+   _freq_writer(-1),
+   _writer(nullptr),
    _fields(*(new map < string, Field * >())),
    _cplDB(cplDB),
    _iteration(new int),
@@ -141,8 +144,13 @@ namespace cwipi {
    _spatial_interp_send(*new std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*>()),
    _spatial_interp_recv(*new std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*>()),
    _spatial_interp_properties_double(*new std::map<std::string, double>),
-   _spatial_interp_properties_int(*new std::map<std::string, int>)
-    {
+   _spatial_interp_properties_int(*new std::map<std::string, int>),
+   _visu(*new Visu(localCodeProperties.connectableCommGet(),displacement)),
+   _is_mesh_finalized(0),
+   _is_first_field_created(0),
+   _n_step(0)
+
+   {
 
 /*    int rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
@@ -1103,19 +1111,101 @@ namespace cwipi {
     const char             *format_option
   )
   {
+
+    if (_is_first_field_created) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "Error : CWP_Visu_set has to be called before CWP_Field_create.\n");
+      abort();
+    }
+
+    if (_is_mesh_finalized) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "Error : CWP_Visu_set has to be called before CWP_Mesh_interf_finalize.\n");
+      abort();
+    }
+
     string CodeName = _localCodeProperties.nameGet();
     string cplCodeName = _coupledCodeProperties.nameGet();
     string cplId = IdGet();
 
     string visuDir = "cwipi";
     string output_dir = visuDir+"/"+cplId+"_"+CodeName+"_"+cplCodeName;
+    string output_dir_tmp = visuDir+"2/"+cplId+"_"+CodeName+"_"+cplCodeName;
 
     int rank;
 
     MPI_Comm_rank(_communication.unionCommGet(),&rank);
 
-    if (commTypeGet() == CWP_COMM_PAR_WITH_PART ||
-        (commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && rank == _communication.unionCommLocCodeRootRanksGet())) {
+    if ((commTypeGet() == CWP_COMM_PAR_WITH_PART ||
+        (commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && rank == _communication.unionCommLocCodeRootRanksGet())) && freq > 0) {
+
+      _freq_writer = freq;
+
+      PDM_MPI_Comm pdmComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_localCodeProperties.connectableCommGet()));
+
+      PDM_writer_topology_t pdm_topology = PDM_WRITER_TOPO_CST;
+
+      if     ( _displacement == CWP_DYNAMIC_MESH_STATIC     ) {
+        pdm_topology  = PDM_WRITER_TOPO_CST;
+      }
+      
+      else if( _displacement == CWP_DYNAMIC_MESH_DEFORMABLE ) {
+        pdm_topology  = PDM_WRITER_TOPO_DEFORMABLE;
+      }
+
+      else { 
+        pdm_topology  = PDM_WRITER_TOPO_VARIABLE;
+      }
+
+      PDM_writer_fmt_fic_t fmt_fic      = PDM_WRITER_FMT_BIN;
+      const char* fmt                   = "Ensight";
+      PDM_writer_status_t st_reprise    = PDM_WRITER_OFF;
+      const char *options_comp          = "";
+      //Proportion of working node for file acess
+      int working_node = 1;
+  
+      PDM_io_kind_t acess_type =   PDM_IO_KIND_MPI_SIMPLE;
+
+      std::string str_options = format_option;
+      std::string delimiter   = ",";
+
+      std::string chars = "\t\n\v\f\r ";
+
+      size_t pos = 0;
+      std::string option;
+      do
+      {
+        pos = str_options.find(delimiter);
+        option = str_options.substr(0, pos);
+        option.erase(0, option.find_first_not_of(chars));
+        option.erase(option.find_last_not_of(chars)+1,option.length());
+        str_options.erase(0, pos + delimiter.length());
+
+        if (option == "text") {
+          fmt_fic = PDM_WRITER_FMT_ASCII;
+        }
+        else if (option == "binary") {
+          fmt_fic = PDM_WRITER_FMT_BIN;
+        }
+        else if (option != "") {
+          PDM_error(__FILE__, __LINE__, 0,
+                    "Not a valid visualization option.\n");
+        } 
+
+      }
+      while (pos != std::string::npos);
+
+      _writer = PDM_writer_create(fmt,
+                                  fmt_fic,
+                                  pdm_topology,
+                                  st_reprise,
+                                  (char *) output_dir_tmp.c_str(),
+                                  (char *) string("chr").c_str(),
+                                  pdmComm,
+                                  acess_type,
+                                  working_node,
+                                  options_comp);
+
       _visu.VisuCreate(freq,
                      format,
                      format_option,
@@ -1163,6 +1253,8 @@ namespace cwipi {
    const CWP_Status_t         visu_status
   )
   {
+
+    _is_first_field_created = 1;
 
     if (fieldIs(field_id)) {
       PDM_error(__FILE__, __LINE__, 0,
@@ -1770,6 +1862,12 @@ namespace cwipi {
   )
   {
 
+    _n_step++;
+
+    if (_writer != NULL) {
+      PDM_writer_step_end(_writer);
+    }
+
     if(_visu.isCreated() and _visu.physicalTimeGet() > -1.0) {
        _visu.WriterStepEnd();
     }
@@ -1778,6 +1876,10 @@ namespace cwipi {
     while (itf != _fields.end()) {
       itf->second->currentStepWasExchangedReset();
       itf++;
+    }
+
+    if (_writer != NULL && (_n_step % _freq_writer == 0)) {
+      PDM_writer_step_beg(_writer, current_time);
     }
 
     if(_visu.isCreated()) {

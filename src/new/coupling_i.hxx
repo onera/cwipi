@@ -71,6 +71,38 @@ namespace cwipi {
   }
 
 
+
+  /**
+   *
+   * \brief Return the PDM_writer object associated to this coupling
+   *
+   * \return Visu object pointer
+   *
+   */
+
+  PDM_writer_t* 
+  Coupling::writerGet ()
+  {
+    return _writer;
+  }
+
+
+
+  /**
+   *
+   * \brief Return the PDM_writer object associated to this coupling
+   *
+   * \return Visu object pointer
+   *
+   */
+
+  int 
+  Coupling::freqWriterGet ()
+  {
+    return _freq_writer;
+  }
+
+
   /*----------------------------------------------------------------------------*
    * Methods about mesh                                                     *
    *----------------------------------------------------------------------------*/
@@ -542,6 +574,7 @@ namespace cwipi {
 
   void Coupling::meshFinalize() 
   {
+    _is_mesh_finalized = 1;
     _mesh.geomFinalize();
   }
 

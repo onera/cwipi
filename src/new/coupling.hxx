@@ -214,6 +214,31 @@ namespace cwipi {
     inline Visu* 
     visuGet ();
 
+
+    /**
+     *
+     * \brief Return the PDM_writer object associated to this coupling
+     *
+     * \return Visu object pointer
+     *
+     */
+
+    inline PDM_writer_t* 
+    writerGet ();
+
+
+
+    /**
+     *
+     * \brief Return the PDM_writer object associated to this coupling
+     *
+     * \return Visu object pointer
+     *
+     */
+
+    inline  int 
+    freqWriterGet ();
+
     /*----------------------------------------------------------------------------*
      * Methods  about mesh                                                     *
      *----------------------------------------------------------------------------*/
@@ -1402,7 +1427,8 @@ namespace cwipi {
     const CWP_Interface_t                  _entities_dim;           /*!< Mesh entities dimension */
           Mesh                             &_mesh;                  /*!< SpatialInterp mesh */
     const CWP_Time_exch_t                   _recvFreqType;          /*!< Receiving frequency type */
-          Visu                             &_visu;                  /*!< Visualization */
+          int                               _freq_writer;           /*!< Writer frequency*/
+          PDM_writer_t                     *_writer;                /*!< Writer */
           double                            _recvFreq;              /*!< Receiving frequency */
           double                            _recvNextTime;          /*!< Next receiving time */
           std::map < string, Field * >     &_fields;                /*!< Fields Data Base */
@@ -1427,6 +1453,11 @@ namespace cwipi {
     std::map<std::string, int>             &_spatial_interp_properties_int;    /*!< Spatial interpolation properties of type int */
 
 //    int                                     _is_up_to_date;
+          Visu                             &_visu;                  /*!< Visualization */
+
+          int                               _is_mesh_finalized;     /*!< Flag which indicates mesh is finalized  */              
+          int                               _is_first_field_created;  /*!< Flag which indicates a first variable is created */
+          int                               _n_step;                  /*!< Number of time step (number of timeUpdate call ) */
 
   };
 }
