@@ -391,6 +391,21 @@ namespace cwipi {
     const string &codeName
     );
 
+
+    /**
+     * \brief Is locked param  
+     *
+     * \param [in]  codeName  Local code name to lock
+     *
+     */
+    
+    inline int 
+    isLocked
+    (
+     const string &codeName
+    );
+
+
     /**
      * \brief unlock access to local parameters from a distant code  
      *

@@ -31,6 +31,7 @@
 #include <mpi.h>
 #include <cassert>
 #include <cstring>
+#include <iostream>
 
 #include <map>
 #include <vector>
@@ -498,6 +499,15 @@ namespace cwipi {
 
 
     /**
+     * \brief Is locked param
+     *
+     */
+
+    inline int
+    paramIsLocked();
+
+
+    /**
      * \brief Unlock access to the control parameters
      *
      */
@@ -700,6 +710,17 @@ namespace cwipi {
   CodeProperties::paramLock()
   {
     _winGlobData[0] = 1;
+  }
+
+  /**
+   * \brief Is locked param
+   *
+   */
+
+  int
+  CodeProperties::paramIsLocked()
+  {
+    return (_winGlobData[0] == 1);
   }
 
 
@@ -982,7 +1003,9 @@ namespace cwipi {
    int          *value
   )
   {
-    MPI_Barrier (_intraComm);
+    // cout << "ctrlParamGet int " << _name  << " " << name << endl;
+
+    // MPI_Barrier (_intraComm);
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
@@ -1094,7 +1117,9 @@ namespace cwipi {
    double       *value
   )
   {
-    MPI_Barrier (_intraComm);
+    // cout << "ctrlParamGet double " << _name  << " " << name << endl;
+
+    // MPI_Barrier (_intraComm);
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
@@ -1210,7 +1235,9 @@ namespace cwipi {
    char        **value
   )
   {
-    MPI_Barrier (_intraComm);
+    // cout << "ctrlParamGet char " << _name  << " " << name << endl;
+
+    // MPI_Barrier (_intraComm);
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 

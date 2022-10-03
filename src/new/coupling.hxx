@@ -1426,7 +1426,7 @@ namespace cwipi {
     std::map<std::string, double>          &_spatial_interp_properties_double; /*!< Spatial interpolation properties of type double */
     std::map<std::string, int>             &_spatial_interp_properties_int;    /*!< Spatial interpolation properties of type int */
 
-    int                                     _is_up_to_date;
+//    int                                     _is_up_to_date;
 
   };
 }

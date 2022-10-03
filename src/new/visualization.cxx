@@ -332,6 +332,8 @@ namespace cwipi {
 
   void Visu::WriterFieldCreate(Field* field) {
 
+
+
       CWP_Dof_location_t CWPfielType = field->locationGet();
       int nComponent = field->nComponentGet();
       PDM_writer_var_loc_t PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
@@ -384,6 +386,8 @@ namespace cwipi {
       // field->visuIdSet(id_var);
       // field->visuIdComputedSet(id_var_computed);
 
+      printf("WriterFieldCreate - beg: '%s'\n",field ->fieldIDGet().c_str());;
+      fflush(stdout);
 
       int id_var_send          = -1;
       int id_var_recv          = -1;
@@ -399,6 +403,10 @@ namespace cwipi {
                                             PDMfieldComp,
                                             PDMfieldType,
                                             fieldName.c_str());
+        field->idVarSendSet(id_var_send);
+
+        printf("WriterFieldCreate - send: '%s' %d\n",fieldName.c_str(), id_var_send);
+      fflush(stdout);
       }
 
 
@@ -418,24 +426,33 @@ namespace cwipi {
         if (_topology == CWP_DYNAMIC_MESH_STATIC) {
           time_dependent = PDM_WRITER_OFF;
         }
+        printf("WriterFieldCreate - recv: '%s' %d\n",fieldName.c_str(), id_var_recv);
+      fflush(stdout);
 
         id_var_recv_computed = PDM_writer_var_create(_visu_id,
                                                      time_dependent,
                                                      PDM_WRITER_VAR_SCALAR,
                                                      PDMfieldType,
                                                      fieldComputedName.c_str());
+
+        field->idVarRecvSet(id_var_recv);
+        field->idVarRecvComputedSet(id_var_recv_computed);
+
+        printf("WriterFieldCreate - recv: '%s' %d\n",fieldName.c_str(), id_var_recv);
+      fflush(stdout);
+        printf("WriterFieldCreate - recv 2: '%s' %d\n",fieldComputedName.c_str(), id_var_recv_computed);
+      fflush(stdout);
+
+
       }
 
-
-      field->idVarSendSet(id_var_send);
-      field->idVarRecvSet(id_var_recv);
-      field->idVarRecvComputedSet(id_var_recv_computed);
   }
 
 
 /********************************************************/
 
   void Visu::fieldDataSet(Field* field, CWP_Field_map_t storage_type, int i_part) {
+
 
     int id_var = -1;
 
@@ -470,6 +487,9 @@ namespace cwipi {
 /********************************************************/
 
   void Visu::WriterField(Field* field, int* n_ref_values, int **ref_values,  const CWP_Field_map_t  map_type) {
+
+
+
     int id_var          = -1;
     int id_var_computed = -1;
 
@@ -477,9 +497,17 @@ namespace cwipi {
 
     if (map_type == CWP_FIELD_MAP_SOURCE) {
       id_var          = field->idVarSendGet();
+
+      printf("WriterField - send : '%s' %d\n",field ->fieldIDGet().c_str(), id_var);
+      fflush(stdout);
+
     } else {
       id_var          = field->idVarRecvGet();
+      printf("WriterField - recv : '%s' %d\n",field ->fieldIDGet().c_str(), id_var);
+      fflush(stdout);
       id_var_computed = field->idVarRecvComputedGet();
+      printf("WriterField - recv computed : '%s' %d\n",field ->fieldIDGet().c_str(), id_var_computed);
+      fflush(stdout);
     }
 
     PDM_writer_var_data_free(_visu_id, id_var);
@@ -572,8 +600,14 @@ namespace cwipi {
 
     }
 
+
+      printf("WriterField - PDM_writer_var_write : '%s' %d\n",field ->fieldIDGet().c_str(), id_var);
+      fflush(stdout);
+
     PDM_writer_var_write(_visu_id, id_var);
     if (map_type == CWP_FIELD_MAP_TARGET) {
+      printf("WriterField - PDM_writer_var_write var computed: '%s'\n",field ->fieldIDGet().c_str());
+      fflush(stdout);
       PDM_writer_var_write(_visu_id, id_var_computed);
     }
 
@@ -590,6 +624,9 @@ namespace cwipi {
       }
       free (cp_field_is_computed);
     }
+
+      printf("WriterField - fin : '%s'\n",field ->fieldIDGet().c_str());
+      fflush(stdout);
 
   }
 

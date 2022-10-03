@@ -428,6 +428,27 @@ namespace cwipi {
                 "'%s' is not a local code \n", codeName.c_str());
     p->second->paramLock();
   }
+
+  /**
+   * \brief Is locked param  
+   *
+   * \param [in]  codeName  Local code name to lock
+   *
+   */
+  
+  int 
+  CodePropertiesDB::isLocked
+  (
+   const string &codeName
+  )
+  {
+    const map <string, CodeProperties * >::iterator p = 
+      _locCodePropertiesDB.find(codeName);
+    if (p == _locCodePropertiesDB.end())
+      PDM_error(__FILE__, __LINE__, 0,
+                "'%s' is not a local code \n", codeName.c_str());
+    return p->second->paramIsLocked();
+  }
   
   /**
    * \brief unlock access to local parameters from a distant code  

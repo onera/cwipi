@@ -531,10 +531,22 @@ CWP_Time_update
 {
   cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
   
+  int is_locked = properties.isLocked(local_code_name);
+
+  if (!is_locked) {
+    properties.lock(local_code_name);
+  }
+
   properties.ctrlParamSet<double>(string(local_code_name),"time", current_time);
 
-  // call timeUpdate() for all couplings
+  if (!is_locked) {
+    properties.unLock(local_code_name);
+  }
   
+  MPI_Comm intra_comm = properties.intraCommGet(local_code_name);
+
+  MPI_Barrier (intra_comm);
+
   cwipi::CouplingDB & couplingDB = cwipi::CouplingDB::getInstance();
   
   couplingDB.timeUpdate(properties.codePropertiesGet(local_code_name),
@@ -1017,15 +1029,6 @@ CWP_Spatial_interp_weights_compute
 {
 
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-
-  if (!cpl.isUpToDateGet()) {
-
-    cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
-    double current_time = properties.ctrlParamGet<double>(string(local_code_name),"time");
-
-    cpl.timeUpdate(current_time);
-    cpl.isUpToDateSet();
-  }
 
   cpl.spatialInterpWeightsCompute ();
 

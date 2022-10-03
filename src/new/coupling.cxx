@@ -141,8 +141,8 @@ namespace cwipi {
    _spatial_interp_send(*new std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*>()),
    _spatial_interp_recv(*new std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*>()),
    _spatial_interp_properties_double(*new std::map<std::string, double>),
-   _spatial_interp_properties_int(*new std::map<std::string, int>),
-   _is_up_to_date(0)  {
+   _spatial_interp_properties_int(*new std::map<std::string, int>)
+    {
 
 /*    int rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
@@ -1757,9 +1757,6 @@ namespace cwipi {
     return _mesh.globalNumGet(id_block,i_part);
   }
 
-
-
-
   /**
    * \brief Update time.
    *
@@ -1777,7 +1774,6 @@ namespace cwipi {
        _visu.WriterStepEnd();
     }
 
-    // currentStepWasExchangedReset() for all fields
     std::map < string, Field * >::iterator itf = _fields.begin();
     while (itf != _fields.end()) {
       itf->second->currentStepWasExchangedReset();
@@ -1791,17 +1787,17 @@ namespace cwipi {
   }
 
 
-  int
-  Coupling::isUpToDateGet ()
-  {
-    return _is_up_to_date;
-  }
+  // int
+  // Coupling::isUpToDateGet ()
+  // {
+  //   return _is_up_to_date;
+  // }
 
-  void
-  Coupling::isUpToDateSet ()
-  {
-    _is_up_to_date = 1;
-  }
+  // void
+  // Coupling::isUpToDateSet ()
+  // {
+  //   _is_up_to_date = 1;
+  // }
 
 
 
