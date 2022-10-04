@@ -729,6 +729,31 @@ PDM_writer_step_beg
 
 }
 
+
+
+/**
+ * \brief Is there a open step
+ *
+ * \param [in] cs             Pointer to \ref PDM_writer object
+ *
+ * \return   Flag which indicates if a step is open
+ */
+
+int 
+PDM_writer_is_open_step
+(
+ PDM_writer_t  *cs
+)
+{
+  if (cs == NULL) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad writer identifier\n");
+  }
+
+  return cs->is_there_open_step;  
+}
+
+
+
 /**
  * \brief Fin d'increment
  *

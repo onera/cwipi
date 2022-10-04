@@ -226,6 +226,21 @@ PDM_writer_step_beg
 
 
 /**
+ * \brief Is there a open step
+ *
+ * \param [in] cs             Pointer to \ref PDM_writer object
+ *
+ * \return   Flag which indicates if a step is open
+ */
+
+int 
+PDM_writer_is_open_step
+(
+ PDM_writer_t  *cs
+);
+
+
+/**
  * \brief Fin d'increment
  *
  * \param [in] cs             Pointer to \ref PDM_writer object
