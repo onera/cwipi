@@ -1459,6 +1459,10 @@ namespace cwipi {
           int                               _is_first_field_created;  /*!< Flag which indicates a first variable is created */
           int                               _n_step;                  /*!< Number of time step (number of timeUpdate call ) */
 
+          vector<CWP_Dof_location_t>        _sis_loc_r;               /*!< Location ofsource dof associated to target spatial interpolation objects*/
+          vector<CWP_Dof_location_t>        _cpl_sis_loc_r;           /*!< Location ofsource dof associated to target spatial interpolation objects (for the coupled if present)*/
+
+
   };
 }
 
