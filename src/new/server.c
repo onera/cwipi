@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <mpi.h>
+#include <stdint.h>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -36,6 +36,7 @@
 
 #include "server.h"
 #include <pdm_error.h>
+#include <pdm_mpi.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,11 +61,12 @@ CWP_CreateServer
 {
   struct sockaddr_in server_addr; // storage for IP adress and port
   socklen_t d; // length
+  int true=1;
 
   memset(svr,0,sizeof(t_server));
   svr->port             = server_port;
   svr->flags            = flags;
-  svr->server_endianess = iplib_endian_machine(); // TO DO
+  // svr->server_endianess = iplib_endian_machine(); // TO DO
 
   if(gethostname(svr->host_name,sizeof(svr->host_name)) != 0) { // IP adress
     log_trace("CWP:Warning could not get host name using loopback address 127.0.0.1");
@@ -87,7 +89,7 @@ CWP_CreateServer
   }
 
   getsockopt(svr->listen_socket, SOL_SOCKET, SO_RCVBUF, (char*)&svr->max_msg_size, &d);
-  svr->max_msg_size = PALMONIP_MSG_MAXMSGSIZE;
+  // svr->max_msg_size = PALMONIP_MSG_MAXMSGSIZE;
 
   if (svr->flags & CWP_SVRFLAG_VERBOSE) {
     log_trace("CWP:Max message size:%i\n",svr->max_msg_size);
@@ -117,7 +119,7 @@ CWP_CreateServer
     return -1;
   }
 
-  svr->state = PALMONIP_SVRSTATE_WAITCONN; // TO DO: adapt
+  // svr->state = PALMONIP_SVRSTATE_WAITCONN;
 
   if (svr->flags & CWP_SVRFLAG_VERBOSE) {
     log_trace("CWP:Server created on %s port %i\n",svr->host_name,svr->port);
@@ -139,73 +141,6 @@ CWP_KillServer
 
 }
 
-/*============================================================================
- * Main
- *============================================================================*/
-
-/* Arguments for main */
-
-_read_args(int            argc,
-           char         **argv,
-           char          *name,
-           int           *ports)
-{
-  int i = 1;
-
-  /* Parse and check command line */
-
-  while (i < argc) {
-
-    if (strcmp(argv[i], "-h") == 0)
-      _usage(EXIT_SUCCESS);
-
-    else if (strcmp(argv[i], "-name") == 0) {
-      i++;
-      if (i >= argc)
-        _usage(EXIT_FAILURE);
-      else
-        name = malloc( sizeof(char) * (strlen(argv[i])+1) );
-        strcpy(name, argv[i]);
-    }
-
-    else if (strcmp(argv[i], "-ports") == 0) { // To adapt !!!
-      i++;
-      if (i >= argc) {
-        _usage(EXIT_FAILURE);
-      }
-      else {
-        *n_pts = atoi(argv[i]);
-      }
-    }
-
-    else
-      _usage(EXIT_FAILURE);
-    i++;
-
-  }
-
-}
-
-/* Main */
-
-int main(int argc, char *argv[])
-{
-  // TO DO: read args and setup default ports values (need to know number of ports as well) of first and last ?
-
-  int i_rank;
-  int n_rank;
-
-  PDM_MPI_Init(&argc, &argv);
-  PDM_MPI_Comm comm = PDM_MPI_COMM_WORLD;
-  PDM_MPI_Comm_rank(comm, &i_rank);
-  PDM_MPI_Comm_size(comm, &n_rank);
-
-  // TO DO create server and execute depending on message type received
-
-  PDM_MPI_Finalize();
-
-  return 0;
-}
 
 #ifdef __cplusplus
 }

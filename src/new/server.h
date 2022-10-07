@@ -31,12 +31,16 @@
  *  Header for the current file
  *----------------------------------------------------------------------------*/
 
+#ifdef WINDOWS
+
+#else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <errno.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -74,6 +78,8 @@ typedef struct t_server
  * Public function interfaces
  *============================================================================*/
 
+/* Create a server */
+
 int
 CWP_CreateServer
 (
@@ -81,6 +87,8 @@ CWP_CreateServer
  int flags,
  p_server svr
 );
+
+/* Kill a server */
 
 int
 CWP_KillServer
