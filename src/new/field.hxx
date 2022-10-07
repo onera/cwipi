@@ -60,9 +60,7 @@ namespace cwipi {
            CWP_Field_storage_t    storage     ,
            int                    nComponent  ,
            CWP_Field_exch_t       exchangeType,
-           CWP_Status_t           visuStatus  ,
-           int*                   iteration   ,
-           double*                physTime    );
+           CWP_Status_t           visuStatus);
 
     /**
      * \brief Destructor
@@ -274,16 +272,6 @@ namespace cwipi {
     // }
 
 
-    int* iterationGet() const
-    {
-      return _iteration;
-    }
-
-    double* physicalTimeGet() const
-    {
-      return _physTime;
-    }
-
     void currentStepWasExchangedReset()
     {
       _current_step_was_exchanged = 0;
@@ -292,19 +280,6 @@ namespace cwipi {
     int currentStepWasExchangedGet() const
     {
       return _current_step_was_exchanged;
-    }
-
-
-    void ReceptionBufferCreation(int TotLocatedTargets) {
-        std::ostringstream strs;
-
-        strs <<"interp"<<_fieldID<<"_"<<_iteration;
-        std::string fieldID = strs.str();
-
-        //On alloue l'espace pour la réception si pas déjà fait
-        if(_recvBuffer == NULL) {
-          _recvBuffer = (void*)malloc(_dataTypeSize*_nComponent*TotLocatedTargets);
-        }
     }
 
 
@@ -318,7 +293,6 @@ namespace cwipi {
 
   }
 
-
   void lastRequestAdd_p2p (int i_proc, std::vector<MPI_Request> request) {
     _last_request_p2p[i_proc] = request;
   }
@@ -327,7 +301,6 @@ namespace cwipi {
   std::vector<MPI_Request> lastRequestGet_p2p (int i_proc) {
     return _last_request_p2p[i_proc];
   }
-
 
 
   void* recvBufferGet () {
@@ -373,14 +346,14 @@ namespace cwipi {
     int                                      _fieldIDInt;
     void                                    *_sendBuffer;
     void                                    *_recvBuffer;
-    double*                                  _physTime;
-    int*                                     _iteration;
     Coupling                                *_cpl;
     Mesh                                    *_mesh;
     int                                      _n_part;
     int                                      _id_var_send;
     int                                      _id_var_recv;
     int                                      _id_var_recv_computed;
+    PDM_writer_t                            *_writer;
+
     std::map <int,MPI_Request>               _last_request;
     std::map <int,std::vector<MPI_Request>>  _last_request_p2p;
     int                                      _dataTypeSize;
@@ -393,11 +366,6 @@ namespace cwipi {
 
     int                                      _current_step_was_exchanged;
   };
-
-
-
-
-
 
 }
 

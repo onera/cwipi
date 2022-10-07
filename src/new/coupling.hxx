@@ -80,8 +80,8 @@ namespace cwipi {
     Coupling (
      const string                &cplId,
      const CWP_Comm_t             commType,
-     const CodeProperties        &localCodeProperties,
-     const CodeProperties        &coupledCodeProperties,
+           CodeProperties        &localCodeProperties,
+           CodeProperties        &coupledCodeProperties,
      const CWP_Interface_t        entities_dim,
      const CWP_Spatial_interp_t   spatialInterpAlgo,
      const int                    nPart,
@@ -1422,18 +1422,18 @@ namespace cwipi {
     const string                            _cplId;                 /*!< Coupling identifier */
           CWP_Comm_t                        _commType;              /*!< Communication type */
           Communication                    &_communication;         /*!< Communication */
-    const CodeProperties                   &_localCodeProperties;   /*!< Local code properties */
-    const CodeProperties                   &_coupledCodeProperties; /*!< Coupled code properties */
+          CodeProperties                   &_localCodeProperties;   /*!< Local code properties */
+          CodeProperties                   &_coupledCodeProperties; /*!< Coupled code properties */
     const CWP_Interface_t                  _entities_dim;           /*!< Mesh entities dimension */
           Mesh                             &_mesh;                  /*!< SpatialInterp mesh */
     const CWP_Time_exch_t                   _recvFreqType;          /*!< Receiving frequency type */
+          int                               _id_geom_writer;        /*!< Geom writer identifier*/
           int                               _freq_writer;           /*!< Writer frequency*/
           PDM_writer_t                     *_writer;                /*!< Writer */
           double                            _recvFreq;              /*!< Receiving frequency */
           double                            _recvNextTime;          /*!< Next receiving time */
           std::map < string, Field * >     &_fields;                /*!< Fields Data Base */
           CouplingDB                       &_cplDB;                 /*!< Coupling Data base */
-          int*                              _iteration;             /*!< Interation ???? */
           CWP_Dynamic_mesh_t                _displacement;          /*!< Type of mesh displacement */ 
     const CWP_Spatial_interp_t              _spatialInterpAlgo;     /*!< Spatial intepolation algorithm */
     const int                               _nPart;                 /*!< Number of partitions */  

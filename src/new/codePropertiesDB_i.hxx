@@ -118,7 +118,7 @@ namespace cwipi {
    *
    */
 
-  inline const CodeProperties &
+  inline  CodeProperties &
   CodePropertiesDB::codePropertiesGet
   (
    const string &codeName

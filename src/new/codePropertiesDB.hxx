@@ -161,7 +161,7 @@ namespace cwipi {
      *
      */
 
-    inline const CodeProperties &
+    inline CodeProperties &
     codePropertiesGet
     (
      const string &codeName

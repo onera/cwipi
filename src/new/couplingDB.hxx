@@ -66,9 +66,9 @@ namespace cwipi {
     void
     couplingCreate
     (
-     const CodeProperties        &localCodeProperties,
+           CodeProperties        &localCodeProperties,
      const string                &cplId,
-     const CodeProperties        &coupledCodeProperties,
+           CodeProperties        &coupledCodeProperties,
      const CWP_Interface_t       entities_dim,
      const CWP_Comm_t           commType,
      const CWP_Spatial_interp_t           spatialInterpAlgo,

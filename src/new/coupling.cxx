@@ -111,8 +111,8 @@ namespace cwipi {
   (
    const string               &cplId,
    const CWP_Comm_t           cplType,
-   const CodeProperties       &localCodeProperties,
-   const CodeProperties       &coupledCodeProperties,
+         CodeProperties       &localCodeProperties,
+         CodeProperties       &coupledCodeProperties,
    const CWP_Interface_t      entities_dim,
    const CWP_Spatial_interp_t spatialInterpAlgo,
    const int                  nPart,
@@ -132,7 +132,6 @@ namespace cwipi {
    _writer(nullptr),
    _fields(*(new map < string, Field * >())),
    _cplDB(cplDB),
-   _iteration(new int),
    _displacement(displacement),
    _spatialInterpAlgo(spatialInterpAlgo),
    _nPart(nPart),
@@ -268,7 +267,6 @@ namespace cwipi {
     // if(_visu.isCreated()) {
     //   // _visu.SpatialInterpFree();
     // }
-    delete _iteration;
 
     delete &_visu;
 
@@ -368,11 +366,53 @@ namespace cwipi {
 
     /////////////////////////////////////////////////////////////////////////////
     //                                                                         //
+    // Export field                                                            //
+    //                                                                         //
+    /////////////////////////////////////////////////////////////////////////////
+
+    if (_writer != NULL) {
+
+      if (!PDM_writer_is_open_step (_writer)) {
+
+        double current_time;
+
+        _localCodeProperties.ctrlParamGet("time", &current_time);
+
+        PDM_writer_step_beg (_writer, current_time);
+
+      }
+
+      if (_n_step == 0) {
+
+        _id_geom_writer =PDM_writer_geom_create_from_mesh_nodal (_writer, 
+                                                                 "geom",
+                                                                 _mesh.getPdmNodalIndex());
+
+        PDM_writer_geom_write(_writer, _id_geom_writer);
+
+      }
+
+      else if (((_n_step % _freq_writer) == 0) && (_displacement != CWP_DYNAMIC_MESH_STATIC)) {
+        
+        PDM_writer_geom_set_from_mesh_nodal (_writer, 
+                                             _id_geom_writer,
+                                             _mesh.getPdmNodalIndex());
+
+        PDM_writer_geom_write(_writer, _id_geom_writer);
+
+      }
+    } 
+
+    _n_step++;
+
+
+    /////////////////////////////////////////////////////////////////////////////
+    //                                                                         //
     // Exchange fields properties to obtain spatial intepolation to build      //
     //                                                                         //
     /////////////////////////////////////////////////////////////////////////////
 
-   // - Store Data to send
+    // - Store Data to send
 
     if (!_coupledCodeProperties.localCodeIs()) {
 
@@ -1264,9 +1304,6 @@ namespace cwipi {
     //
     // Create the new field
 
-    double physTime=0.0;
-    *_iteration = 0;
-
     cwipi::Field *newField = new cwipi::Field(field_id,
                                               _fields.size(),
                                               data_type,
@@ -1275,10 +1312,7 @@ namespace cwipi {
                                               storage,
                                               n_component,
                                               exch_type,
-                                              visu_status,
-                                              _iteration, //iteration
-                                             &physTime);  //physTime
-
+                                              visu_status);  
 
     pair<string, Field* > newPair(string(field_id), newField);
     string localName = _localCodeProperties.nameGet();

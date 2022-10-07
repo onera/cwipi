@@ -1001,7 +1001,7 @@ namespace cwipi {
   (
    const string &name,
    int          *value
-  )
+  ) 
   {
     // cout << "ctrlParamGet int " << _name  << " " << name << endl;
 
@@ -1115,7 +1115,7 @@ namespace cwipi {
   (
    const string &name,
    double       *value
-  )
+  ) 
   {
     // cout << "ctrlParamGet double " << _name  << " " << name << endl;
 

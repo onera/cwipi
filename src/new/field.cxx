@@ -21,9 +21,7 @@ namespace cwipi {
                  CWP_Field_storage_t    storage     ,
                  int                    nComponent  ,
                  CWP_Field_exch_t       exchangeType,
-                 CWP_Status_t           visuStatus  ,
-                 int*                   iteration   ,
-                 double*                physTime    ):
+                 CWP_Status_t           visuStatus):
    _storage        (storage)     ,
    _nComponent     (nComponent)  ,
    _fieldLocation  (fieldType)   ,
@@ -33,47 +31,44 @@ namespace cwipi {
    _dataType       (dataType)    ,
    _fieldID        (field_id)    ,
    _fieldIDInt     (fieldIDInt)  ,
-   _physTime       (physTime)    ,
-   _iteration      (iteration)   ,
    _cpl            (cpl)         ,
    _interpolationFunction   (NULL),
    _interpolationFunction_f (NULL),
    _current_step_was_exchanged(0)
 
-    {
-      _mesh = cpl->meshGet();
-      _n_part = _mesh->getNPart();
-      _data_tgt.resize(_n_part,NULL);
-      _data_src.resize(_n_part,NULL);
-      _sendBuffer = NULL;
-      _recvBuffer = NULL;
+  {
+    _mesh = cpl->meshGet();
+    _n_part = _mesh->getNPart();
+    _data_tgt.resize(_n_part,NULL);
+    _data_src.resize(_n_part,NULL);
+    _sendBuffer = NULL;
+    _recvBuffer = NULL;
+    _dataTypeSize = 0;
 
+    switch (_dataType) {
+      case CWP_DOUBLE:
+        _dataTypeSize = sizeof(double);
+        break;
+      case CWP_INT:
+        _dataTypeSize = sizeof(int);
+        break;
+      case CWP_CHAR:
+        PDM_error(__FILE__, __LINE__, 0, "CWP_CHAR is not usable.\n");
 
-      _dataTypeSize = 0;
-      switch (_dataType) {
-        case CWP_DOUBLE:
-          _dataTypeSize = sizeof(double);
-          break;
-        case CWP_INT:
-          _dataTypeSize = sizeof(int);
-          break;
-        case CWP_CHAR:
-          PDM_error(__FILE__, __LINE__, 0, "CWP_CHAR is not usable.\n");
-
-      }
-
-       _interpolationType = CWP_INTERPOLATION_DEFAULT;
     }
 
+     _interpolationType = CWP_INTERPOLATION_DEFAULT;
+  }
 
 
-    Field::~Field(){
-      _data_tgt.clear();
-      _data_src.clear();
+  Field::~Field(){
+    _data_tgt.clear();
+    _data_src.clear();
 
-       if (_sendBuffer != NULL) free(_sendBuffer);
-       if (_recvBuffer != NULL) free(_recvBuffer);
-     }
+     if (_sendBuffer != NULL) free(_sendBuffer);
+     if (_recvBuffer != NULL) free(_recvBuffer);
+   }
+
 
   void Field::dataSet ( int i_part, const CWP_Field_map_t   map_type, void* data)
   {
