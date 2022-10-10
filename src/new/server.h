@@ -20,7 +20,9 @@
 */
 
 /*
-  Inspired from OpenPALM, a free software under the GNU Lesser General Public License
+  This file is inspired from OpenPALM.
+  OpenPALM is a free software under the GNU Lesser General Public License.
+  See: https://www.cerfacs.fr/globc/PALM_WEB/
 */
 
 /*----------------------------------------------------------------------------

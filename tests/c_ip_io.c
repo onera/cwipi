@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <math.h>
 
 #include <pdm_error.h>
 #include <pdm_io.h>
@@ -142,17 +143,18 @@ int main(int argc, char *argv[])
   PDM_MPI_Comm_rank(comm, &i_rank);
   PDM_MPI_Comm_size(comm, &n_rank);
 
-  // port choice (test numa?)
-  int port = port_begin + i_rank;
+  // port choice (test numa)
+  PDM_MPI_Comm comm_node;
+  PDM_MPI_Comm_split_type(comm, PDM_MPI_SPLIT_NUMA, &comm_node); // PDM_MPI_SPLIT_SHARED
 
-  char *p =malloc(sizeof(int));
-  sprintf(p,"%d",port_end);
-  int max_port_size = strlen(p);
-  free(p);
+  int i_rank_node;
+  PDM_MPI_Comm_rank(comm_node, &i_rank_node);
+
+  int port = port_begin + i_rank_node;
 
   // retreive host_name
-  char *host_name = malloc(256);
-  gethostname(host_name, 256);
+  char *host_name = malloc(99);
+  gethostname(host_name, 99);
 
   // determine max host_name size
   int  irank_host_name_size     = strlen(host_name);
@@ -173,61 +175,38 @@ int main(int argc, char *argv[])
     }
   }
 
-  // create string: host_name/port\n "%10.10s/5.5d\n"
-  char format0[2] = "%";
-
-  char format1[2 * sizeof(int) + 4];
-  sprintf(format1,"%d.%dd\n", max_port_size, max_port_size);
-
-  char *format2 = malloc(2 * sizeof(int) + 5);
-  format2 = format0;
-  strcat(format2, format1);
-
-  char format3[2 * sizeof(int) + 4];
-  sprintf(format3,"%d.%ds/",max_host_name_size, max_host_name_size);
-
-  char format5[2] = "%";
-
-  char *format4 = malloc(2 * sizeof(int) + 5);
-  format4 = format5;
-
-  strcat(format4, format3);
-
-  char *format = malloc(4 * sizeof(int) + 10);
-  format = format4;
-
-  strcat(format, format2);
+  // create string: host_name/port\n "%?.?s/9.9d\n"
+  char format[99];
+  sprintf(format,"%s%d.%ds/%s9.9d\n", "%", max_host_name_size, max_host_name_size, "%");
 
   log_trace("%s", format);
 
-  char *data = malloc(max_port_size + max_host_name_size);
+  char data[max_host_name_size + 12];
   sprintf(data, format, host_name, port);
-
-  log_trace("%s", data);
 
   // write with pdm_io
   // --> open
 
   PDM_io_file_t *unite = NULL;
-  PDM_l_num_t              ierr;
+  PDM_l_num_t    ierr;
 
   PDM_io_open(config,
               PDM_IO_FMT_BIN,
               PDM_IO_SUFF_MAN,
               "",
               PDM_IO_BACKUP_OFF,
-              PDM_IO_KIND_MPIIO_EO,
+              PDM_IO_KIND_MPI_SIMPLE, // PDM_IO_KIND_MPIIO_EO,
               PDM_IO_MOD_WRITE,
               PDM_IO_NATIVE,
               comm,
-              1.,
+              -1.,
               &unite,
               &ierr);
 
-  // --> global write: header and offset (= host_name_size + port_size + 2)
+  // --> global write: header and offset
 
-  char  buf[82];
-  sprintf(buf, "FORMAT hostname/port\nSIZE %ld\n", strlen(data));
+  char  buf[99];
+  sprintf(buf, "FORMAT hostname/port\nSIZE %5.5ld\n", strlen(data)); // header_size = 30 char
 
   size_t s_buf =  strlen(buf);
   PDM_io_global_write(unite,
@@ -237,114 +216,94 @@ int main(int argc, char *argv[])
 
   // --> par_block_write
 
-  int one = 1;
-  PDM_g_num_t debut_bloc = i_rank * strlen(data) + strlen(buf);
+  log_trace("%s", data);
 
-  PDM_io_par_block_write(unite,
+  int one = 1;
+  PDM_g_num_t debut_bloc = 0; // i_rank * strlen(data) + strlen(buf)
+  PDM_g_num_t i_rank_gnum = (PDM_g_num_t) (i_rank+1);
+
+  PDM_io_par_interlaced_write(unite,
                          PDM_STRIDE_CST_INTERLACED,
          (PDM_l_num_t *) &one, // n_composantes
-           (PDM_l_num_t) sizeof(char) * strlen(data),
+           (PDM_l_num_t) strlen(data),
            (PDM_l_num_t) one,  // n_donnees
-                         debut_bloc,
-                         data);
+                        &i_rank_gnum, // debut_bloc,
+          (const void *) data);
 
   // --> close
 
   PDM_io_close(unite);
+  PDM_io_free(unite);
 
   // read with pdm_io
-  // --> read data size
-
-  int header_size = 0;
-
-  FILE *f = fopen(config, "r");
-
-  if (f == NULL) {
-    PDM_error(__FILE__, __LINE__, 0, "Could not read file %s\n", config);
-  }
-
-  char line[999];
-
-  int size = 0;
-  int not_size = 1;
-
-  while (1) {
-
-    int stat = fscanf(f, "%s", line);
-
-    if (stat == EOF) {
-      break;
-    }
-
-    log_trace("%s\n", line);
-
-    if (strstr(line, "SIZE") != NULL) {
-      not_size = 0;
-      header_size += strlen(line);
-      // Get size
-      fscanf(f, "%s", line);
-      // fscanf(f, "%d", &size);
-      header_size += strlen(line);
-      size = atoi(line);
-    }
-
-    if (not_size) {
-      header_size += strlen(line);
-    }
-
-  }
-
-  header_size += 4; // for blanc and \n
-
-  log_trace("size = %d\n", size);
-
-  fclose(f);
-
   // --> open
 
   PDM_io_file_t *read = NULL;
-  PDM_l_num_t    ierr1;
+  PDM_l_num_t    ierr_read;
 
   PDM_io_open(config,
               PDM_IO_FMT_BIN,
               PDM_IO_SUFF_MAN,
               "",
               PDM_IO_BACKUP_OFF,
-              PDM_IO_KIND_MPIIO_EO,
-              PDM_IO_MOD_WRITE,
+              PDM_IO_KIND_MPI_SIMPLE,
+              PDM_IO_MOD_READ,
               PDM_IO_NATIVE,
               comm,
-              1.,
+              -1.,
               &read,
-              &ierr1);
+              &ierr_read);
 
+  // --> global read of header
+
+  char *buffer = NULL;
+
+  PDM_io_global_read(read,
+                     30 * sizeof(char),
+                     1,
+                     buffer);
+
+  char line[30];
+  long  size;
+
+  while (1) {
+
+    sscanf(buffer, "%s", line);
+
+    if (strstr(line, "SIZE") != NULL) {
+      sscanf(buffer, "%ld", &size);
+    }
+
+  }
+
+  log_trace("size: %ld (real), %ld (read)", strlen(data), size);
 
   // --> read data (hostname/port);
 
-  int one1 = 1;
-  PDM_g_num_t debut_bloc1 = i_rank * size + header_size;
+  PDM_g_num_t debut_bloc_read = i_rank * size + 30;
 
   char *read_data = NULL;
 
-  PDM_io_par_block_read(read,
+  PDM_io_par_interlaced_read(read,
                         PDM_STRIDE_CST_INTERLACED,
-         (PDM_l_num_t *) &one1, // n_composantes
-           (PDM_l_num_t) sizeof(char) * strlen(data),
-           (PDM_l_num_t) one1,  // n_donnees
-                         debut_bloc1,
+         (PDM_l_num_t *) &one, // n_composantes
+           (PDM_l_num_t) size,
+           (PDM_l_num_t) one,  // n_donnees
+                         &i_rank_gnum,
                          read_data);
 
   // retreive hostname and port seperatly
-  char d1[] = "/";
-  char *p1 = strtok(read_data, d1);
-  log_trace("%s\n", p1);
-  p1 = strtok(NULL, d1);
-  int port1 = atoi(p1);
-  log_trace("%d\n", port1);
+  char divider[] = "/";
+  char *read_str = strtok(read_data, divider);
+  log_trace("%s\n", read_str);
+  read_str = strtok(NULL, divider);
+  int read_port = atoi(read_str);
+  log_trace("read_port = %d\n", read_port);
 
   // --> close
 
   PDM_io_close(read);
+  PDM_io_free(read);
 
   // free
   free(all_jrank_host_name_size);
