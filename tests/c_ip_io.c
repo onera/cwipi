@@ -145,17 +145,19 @@ int main(int argc, char *argv[])
   // port choice (test numa?)
   int port = port_begin + i_rank;
 
-  char p[sizeof(int)];
+  char *p =malloc(sizeof(int));
   sprintf(p,"%d",port_end);
   int max_port_size = strlen(p);
+  free(p);
 
   // retreive host_name
-  char host_name[256];
-  gethostname(host_name, sizeof(host_name));
+  char *host_name = malloc(256);
+  gethostname(host_name, 256);
 
   // determine max host_name size
   int  irank_host_name_size     = strlen(host_name);
   int *all_jrank_host_name_size = malloc(sizeof(int) * n_rank);
+
   PDM_MPI_Allgather(&irank_host_name_size,
                     1,
                     PDM_MPI_INT,
@@ -172,76 +174,180 @@ int main(int argc, char *argv[])
   }
 
   // create string: host_name/port\n "%10.10s/5.5d\n"
-  char format0[4 * sizeof(int) + 6];
-  sprintf(format0,"%d.%ds/%d.%dd\n",max_host_name_size, max_host_name_size, max_port_size, max_port_size);
+  char format0[2] = "%";
 
-  char format[4 * sizeof(int) + 7];
-  format[] = "%";
-  strcat(format, format0); // TO DO: does not work change !
+  char format1[2 * sizeof(int) + 4];
+  sprintf(format1,"%d.%dd\n", max_port_size, max_port_size);
 
-  log_trace("format: %s\n", format);
+  char *format2 = malloc(2 * sizeof(int) + 5);
+  format2 = format0;
+  strcat(format2, format1);
+
+  char format3[2 * sizeof(int) + 4];
+  sprintf(format3,"%d.%ds/",max_host_name_size, max_host_name_size);
+
+  char format5[2] = "%";
+
+  char *format4 = malloc(2 * sizeof(int) + 5);
+  format4 = format5;
+
+  strcat(format4, format3);
+
+  char *format = malloc(4 * sizeof(int) + 10);
+  format = format4;
+
+  strcat(format, format2);
+
+  log_trace("%s", format);
+
+  char *data = malloc(max_port_size + max_host_name_size);
+  sprintf(data, format, host_name, port);
+
+  log_trace("%s", data);
 
   // write with pdm_io
   // --> open
 
+  PDM_io_file_t *unite = NULL;
+  PDM_l_num_t              ierr;
+
+  PDM_io_open(config,
+              PDM_IO_FMT_BIN,
+              PDM_IO_SUFF_MAN,
+              "",
+              PDM_IO_BACKUP_OFF,
+              PDM_IO_KIND_MPIIO_EO,
+              PDM_IO_MOD_WRITE,
+              PDM_IO_NATIVE,
+              comm,
+              1.,
+              &unite,
+              &ierr);
+
   // --> global write: header and offset (= host_name_size + port_size + 2)
 
-  // --> par_write
+  char  buf[82];
+  sprintf(buf, "FORMAT hostname/port\nSIZE %ld\n", strlen(data));
+
+  size_t s_buf =  strlen(buf);
+  PDM_io_global_write(unite,
+        (PDM_l_num_t) sizeof(char),
+        (PDM_l_num_t) s_buf,
+                      buf);
+
+  // --> par_block_write
+
+  int one = 1;
+  PDM_g_num_t debut_bloc = i_rank * strlen(data) + strlen(buf);
+
+  PDM_io_par_block_write(unite,
+                         PDM_STRIDE_CST_INTERLACED,
+         (PDM_l_num_t *) &one, // n_composantes
+           (PDM_l_num_t) sizeof(char) * strlen(data),
+           (PDM_l_num_t) one,  // n_donnees
+                         debut_bloc,
+                         data);
 
   // --> close
 
+  PDM_io_close(unite);
+
   // read with pdm_io
+  // --> read data size
 
-  // PDM_MPI_File f;
-  // PDM_MPI_File_open(comm,
-  //                   config,
-  //                   PDM_MPI_MODE_WRONLY_CREATE,
-  //                   &f);
+  int header_size = 0;
 
-  // PDM_MPI_Offset offset = (PDM_MPI_Offset) i_rank * 300;
-  // int n_written_octets;
-  // PDM_MPI_File_write_at_all(f,
-  //                           offset,
-  //                           data,
-  //                           sizeof(char) * 300, // number of written octets
-  //                           PDM_MPI_BYTE,
-  //                           &n_written_octets);
+  FILE *f = fopen(config, "r");
 
-  // if (n_written_octets != sizeof(char) * 300) {
-  //   PDM_error(__FILE__, __LINE__, 0, "Incorrect number of octets written (%d/6)\n", n_written_octets);
-  // }
+  if (f == NULL) {
+    PDM_error(__FILE__, __LINE__, 0, "Could not read file %s\n", config);
+  }
 
-  // PDM_MPI_File_close(&f);
+  char line[999];
 
-  // // read i_rank-th couple ip adress + port
+  int size = 0;
+  int not_size = 1;
 
-  // FILE *fl = fopen(config, "r");
+  while (1) {
 
-  // if (fl == NULL) {
-  //   PDM_error(__FILE__, __LINE__, 0, "Could not read file %s.txt\n", config);
-  // }
+    int stat = fscanf(f, "%s", line);
 
-  // int i    = 0;
+    if (stat == EOF) {
+      break;
+    }
 
-  // char line[999];
+    log_trace("%s\n", line);
 
-  // while (1) {
+    if (strstr(line, "SIZE") != NULL) {
+      not_size = 0;
+      header_size += strlen(line);
+      // Get size
+      fscanf(f, "%s", line);
+      // fscanf(f, "%d", &size);
+      header_size += strlen(line);
+      size = atoi(line);
+    }
 
-  //   int stat = fscanf(fl, "%s", line);
+    if (not_size) {
+      header_size += strlen(line);
+    }
 
-  //   if (stat == EOF) {
-  //     break;
-  //   }
+  }
 
-  //   if (i == i_rank) { // ntohs ?
-  //     log_trace("line: %s\n", line);
-  //     break;
-  //   }
+  header_size += 4; // for blanc and \n
 
-  //   i++;
-  // }
+  log_trace("size = %d\n", size);
 
-  // fclose(fl);
+  fclose(f);
+
+  // --> open
+
+  PDM_io_file_t *read = NULL;
+  PDM_l_num_t    ierr1;
+
+  PDM_io_open(config,
+              PDM_IO_FMT_BIN,
+              PDM_IO_SUFF_MAN,
+              "",
+              PDM_IO_BACKUP_OFF,
+              PDM_IO_KIND_MPIIO_EO,
+              PDM_IO_MOD_WRITE,
+              PDM_IO_NATIVE,
+              comm,
+              1.,
+              &read,
+              &ierr1);
+
+
+  // --> read data (hostname/port);
+
+  int one1 = 1;
+  PDM_g_num_t debut_bloc1 = i_rank * size + header_size;
+
+  char *read_data = NULL;
+
+  PDM_io_par_block_read(read,
+                        PDM_STRIDE_CST_INTERLACED,
+         (PDM_l_num_t *) &one1, // n_composantes
+           (PDM_l_num_t) sizeof(char) * strlen(data),
+           (PDM_l_num_t) one1,  // n_donnees
+                         debut_bloc1,
+                         read_data);
+
+  // retreive hostname and port seperatly
+  char d1[] = "/";
+  char *p1 = strtok(read_data, d1);
+  log_trace("%s\n", p1);
+  p1 = strtok(NULL, d1);
+  int port1 = atoi(p1);
+  log_trace("%d\n", port1);
+
+  // --> close
+
+  PDM_io_close(read);
+
+  // free
+  free(all_jrank_host_name_size);
 
   PDM_MPI_Finalize();
 
