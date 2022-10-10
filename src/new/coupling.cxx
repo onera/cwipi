@@ -39,7 +39,7 @@
 #include "field.hxx"
 
 #include "communication.hxx"
-#include "visualization.hxx"
+// #include "visualization.hxx"
 #include "pdm_writer.h"
 
 
@@ -126,7 +126,7 @@ namespace cwipi {
    _localCodeProperties(localCodeProperties),
    _coupledCodeProperties(coupledCodeProperties),
    _entities_dim(entities_dim),
-   _mesh(*new Mesh(localCodeProperties.connectableCommGet(),NULL,nPart,displacement,this)),
+   _mesh(*new Mesh(localCodeProperties.connectableCommGet(),nPart,displacement,this)),
    _recvFreqType (recvFreqType),
    _id_geom_writer(-1),
    _id_field_partitioning_writer(-1),
@@ -147,7 +147,7 @@ namespace cwipi {
    _spatial_interp_recv(*new std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*>()),
    _spatial_interp_properties_double(*new std::map<std::string, double>),
    _spatial_interp_properties_int(*new std::map<std::string, int>),
-   _visu(*new Visu(localCodeProperties.connectableCommGet(),displacement)),
+   // _visu(*new Visu(localCodeProperties.connectableCommGet(),displacement)),
    _is_mesh_finalized(0),
    _is_first_field_created(0),
    _n_step(0)
@@ -179,11 +179,11 @@ namespace cwipi {
           distCpl._communication.init(_communication);
         }
 
-        Visu* visu_cpl = distCpl.visuGet();
-        Mesh* mesh_cpl = distCpl.meshGet();
+        // Visu* visu_cpl = distCpl.visuGet();
+        // Mesh* mesh_cpl = distCpl.meshGet();
 
-        _mesh.setVisu(&_visu);
-        mesh_cpl->setVisu(visu_cpl);
+        // _mesh.setVisu(&_visu);
+        // mesh_cpl->setVisu(visu_cpl);
 
       }
     } // if (coupledCodeProperties.localCodeIs())
@@ -212,12 +212,12 @@ namespace cwipi {
 
         MPI_Comm_create(_localCodeProperties.connectableCommGet(), visuGroup, &visuComm);
 
-        if(unionRank == _communication.unionCommLocCodeRootRanksGet()){
-          _visu = *new Visu(visuComm,displacement);
-        }
+        // if(unionRank == _communication.unionCommLocCodeRootRanksGet()){
+        //   _visu = *new Visu(visuComm,displacement);
+        // }
       }
 
-       _mesh.setVisu(&_visu);
+       // _mesh.setVisu(&_visu);
 
     } // end else
 
@@ -236,9 +236,9 @@ namespace cwipi {
     delete &_spatial_interp_properties_double;
     delete &_spatial_interp_properties_int;
 
-    if(_visu.isCreated()) {
-       _visu.WriterStepEnd();
-    }
+    // if(_visu.isCreated()) {
+    //    _visu.WriterStepEnd();
+    // }
 
     std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t > , SpatialInterp*>::iterator it = _spatial_interp_send.begin();
     while (it != _spatial_interp_send.end()) {
@@ -259,8 +259,8 @@ namespace cwipi {
 
     std::map < string, Field * >::iterator itf = _fields.begin();
     while (itf != _fields.end()) {
-      if(_visu.isCreated() && itf->second->visuStatusGet() == CWP_STATUS_ON )
-        _visu.fieldDataFree(itf->second);
+      // if(_visu.isCreated() && itf->second->visuStatusGet() == CWP_STATUS_ON )
+      //   _visu.fieldDataFree(itf->second);
       delete itf->second;
       itf++;
     }
@@ -271,7 +271,7 @@ namespace cwipi {
     //   // _visu.SpatialInterpFree();
     // }
 
-    delete &_visu;
+    // delete &_visu;
 
     delete &_communication;
 
@@ -1387,13 +1387,13 @@ namespace cwipi {
                                   working_node,
                                   options_comp);
 
-      _visu.VisuCreate(freq,
-                     format,
-                     format_option,
-                     (char *) output_dir.c_str(),
-                     (char *) string("chr").c_str());
+      // _visu.VisuCreate(freq,
+      //                format,
+      //                format_option,
+      //                (char *) output_dir.c_str(),
+      //                (char *) string("chr").c_str());
 
-      _visu.GeomCreate(_mesh.getNPart());
+      // _visu.GeomCreate(_mesh.getNPart());
     }
   }
 
@@ -1458,9 +1458,9 @@ namespace cwipi {
     pair<string, Field* > newPair(string(field_id), newField);
     string localName = _localCodeProperties.nameGet();
     _fields.insert(newPair);
-    if (_visu.isCreated() && newField->visuStatusGet() == CWP_STATUS_ON) {
-      _visu.WriterFieldCreate(newField);
-    }
+    // if (_visu.isCreated() && newField->visuStatusGet() == CWP_STATUS_ON) {
+    //   _visu.WriterFieldCreate(newField);
+    // }
   }
 
 
@@ -1510,9 +1510,9 @@ namespace cwipi {
     }
     else {
       It->second->dataSet(i_part, map_type, data);
-      if (_visu.isCreated() && It->second->visuStatusGet() == CWP_STATUS_ON) {
-        _visu.fieldDataSet(It->second,map_type, i_part);
-      }
+      // if (_visu.isCreated() && It->second->visuStatusGet() == CWP_STATUS_ON) {
+      //   _visu.fieldDataSet(It->second,map_type, i_part);
+      // }
     }
   }
 
@@ -2034,9 +2034,9 @@ namespace cwipi {
       PDM_writer_step_end(_writer);
     }
 
-    if(_visu.isCreated() and _visu.physicalTimeGet() > -1.0) {
-       _visu.WriterStepEnd();
-    }
+    // if(_visu.isCreated() and _visu.physicalTimeGet() > -1.0) {
+    //    _visu.WriterStepEnd();
+    // }
 
     std::map < string, Field * >::iterator itf = _fields.begin();
     while (itf != _fields.end()) {
@@ -2048,9 +2048,9 @@ namespace cwipi {
       PDM_writer_step_beg(_writer, current_time);
     }
 
-    if(_visu.isCreated()) {
-       _visu.WriterStepBegin(current_time, &_mesh);
-    }
+    // if(_visu.isCreated()) {
+    //    _visu.WriterStepBegin(current_time, &_mesh);
+    // }
 
   }
 

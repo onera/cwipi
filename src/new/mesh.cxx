@@ -68,7 +68,6 @@ namespace cwipi {
   Mesh::Mesh
   (
     const MPI_Comm &localComm,
-    Visu* visu,
     const int npart,
     const CWP_Dynamic_mesh_t displacement,
     Coupling *cpl
@@ -78,7 +77,7 @@ namespace cwipi {
     _nBlocks(0),
     _blocksType(nullptr),  
                   //_hoOrdering (NULL),
-    _visu(visu),
+    // _visu(visu),
     _displacement(displacement),
     _cpl(cpl),
     _faceEdgeMethod(0),
@@ -477,12 +476,12 @@ namespace cwipi {
                                _global_num_vtx[i_part],
                                PDM_OWNERSHIP_USER);
 
-      if(_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC) {
-        _visu->GeomCoordSet(i_part,
-        _nVertex       [i_part],
-        _coords        [i_part],
-        _global_num_vtx[i_part]);
-      }
+      // if(_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC) {
+      //   _visu->GeomCoordSet(i_part,
+      //   _nVertex       [i_part],
+      //   _coords        [i_part],
+      //   _global_num_vtx[i_part]);
+      // }
 
     }//loop i_part
 
@@ -988,9 +987,9 @@ namespace cwipi {
     _nBlocks     = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
     _blocks_id   = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
 
-    if(_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC ) {
-      _visu->GeomWrite(this);
-    }
+    // if(_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC ) {
+    //   _visu->GeomWrite(this);
+    // }
 
   }
 
@@ -1143,10 +1142,10 @@ namespace cwipi {
 
     _nBlocks   = _blockDB.size();
 
-    if(_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC) {
-      int id_visu = _visu->GeomBlockAdd(block_type);
-      _id_visu.insert(std::pair <int,int> (myBlock->blockIDCWIPIGet(),id_visu));
-    }
+    // if(_visu->isCreated() && _displacement == CWP_DYNAMIC_MESH_STATIC) {
+    //   int id_visu = _visu->GeomBlockAdd(block_type);
+    //   _id_visu.insert(std::pair <int,int> (myBlock->blockIDCWIPIGet(),id_visu));
+    // }
 
     return myBlock->blockIDCWIPIGet();
 

@@ -26,6 +26,7 @@
 #include "codeProperties.hxx"
 #include "coupling.hxx"
 #include "pdm_part_to_part.h"
+#include "pdm_writer.h"
 
 /**
  * \cond
@@ -168,7 +169,7 @@ namespace cwipi {
     Coupling                   *_cpl;
     Mesh                       *_mesh;                  /*!< Interface Mesh */
 
-    Visu                       *_visu;                  /*!< Visualization object */
+    // Visu                       *_visu;                  /*!< Visualization object */
     CodeProperties             *_localCodeProperties;   
     CodeProperties             *_coupledCodeProperties; 
 

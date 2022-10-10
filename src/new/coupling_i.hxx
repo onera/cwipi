@@ -66,9 +66,9 @@ namespace cwipi {
    *
    */
 
-  Visu* Coupling::visuGet() {
-     return &_visu;
-  }
+  // Visu* Coupling::visuGet() {
+  //    // return &_visu;
+  // }
 
 
 

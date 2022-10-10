@@ -31,13 +31,14 @@
 #include "mesh.hxx"
 
 #include "spatialInterp.hxx"
-#include "visualization.hxx"
+// #include "visualization.hxx"
 #include "field.hxx"
-
+#include "pdm_writer.h"
 
 /**
  * \cond
  */
+
 using namespace std;
 
 namespace cwipi {
@@ -1466,7 +1467,7 @@ namespace cwipi {
     std::map<std::string, int>             &_spatial_interp_properties_int;    /*!< Spatial interpolation properties of type int */
 
 //    int                                     _is_up_to_date;
-          Visu                             &_visu;                  /*!< Visualization */
+          // Visu                             &_visu;                  /*!< Visualization */
 
           int                               _is_mesh_finalized;     /*!< Flag which indicates mesh is finalized  */              
           int                               _is_first_field_created;  /*!< Flag which indicates a first variable is created */

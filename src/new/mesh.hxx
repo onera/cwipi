@@ -33,7 +33,7 @@
 #include "blockCP.hxx"
 #include "blockStd.hxx"
 #include "cwp.h"
-#include "visualization.hxx"
+// #include "visualization.hxx"
 
 
 /**
@@ -54,7 +54,7 @@ namespace cwipi {
    */
 
   class Coupling;
-  class Visu;
+  // class Visu;
   class Mesh {
 
   public:
@@ -73,7 +73,6 @@ namespace cwipi {
     Mesh
     (
       const MPI_Comm    &localComm,
-      Visu              *visu,
       int                npart,
       CWP_Dynamic_mesh_t displacement,
       Coupling           *cpl
@@ -544,14 +543,14 @@ namespace cwipi {
     *
     */
 
-   inline void setVisu(Visu* visu);
+   // inline void setVisu(Visu* visu);
 
    CWP_g_num_t* globalNumGet(int id_block,int i_part) {
       CWP_g_num_t* gnum = _blockDB[id_block] -> GNumMeshGet(i_part);
       return gnum;
    }
 
-   inline Visu* getVisu();
+   // inline Visu* getVisu();
 
 
    CWP_g_num_t* GNumEltsGet(int i_part);
@@ -617,7 +616,7 @@ namespace cwipi {
     std::vector<int*>                       _connec_idx;
     std::vector<int*>                       _connec;
 
-    Visu                                   *_visu;                   /*!< Pointer to the Visu object */
+    // Visu                                   *_visu;                   /*!< Pointer to the Visu object */
     std::map<int,int>                       _id_visu;                /*!< Map of the PDM_Writer block identifier */
     CWP_Dynamic_mesh_t                      _displacement;           /*!< Type of mesh displacement */
     Coupling                               *_cpl;
@@ -665,13 +664,13 @@ namespace cwipi {
     return _displacement;
   }
 
-  void Mesh::setVisu(Visu* visu) {
-    _visu = visu;
-  }
+  // void Mesh::setVisu(Visu* visu) {
+  //   // _visu = visu;
+  // }
 
-  Visu* Mesh::getVisu() {
-    return _visu;
-  }
+  // Visu* Mesh::getVisu() {
+  //   // return _visu;
+  // }
 
   int  Mesh::getIdVisu(int block_id) {
     return _id_visu[block_id];

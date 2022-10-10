@@ -94,20 +94,20 @@ namespace cwipi {
 
   void BlockFP::geomFinalize(){
 
-    for(int i_part = 0; i_part<_n_part; i_part++){
+    // for(int i_part = 0; i_part<_n_part; i_part++){
 
-      Visu* visu = ((Mesh*)_mesh)->getVisu();
-      if(visu->isCreated() && ((Mesh*)_mesh)->getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
-        visu->GeomBlockPoly2D ( ((Mesh*)_mesh)->getIdVisu( _block_id_cwipi ),
-                                  i_part,
-                                  _n_elt[i_part] ,
-                                  _connec_idx [i_part],
-                                  _connec     [i_part],
-                                  _global_num [i_part]);
+    //   Visu* visu = ((Mesh*)_mesh)->getVisu();
+    //   if(visu->isCreated() && ((Mesh*)_mesh)->getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
+    //     visu->GeomBlockPoly2D ( ((Mesh*)_mesh)->getIdVisu( _block_id_cwipi ),
+    //                               i_part,
+    //                               _n_elt[i_part] ,
+    //                               _connec_idx [i_part],
+    //                               _connec     [i_part],
+    //                               _global_num [i_part]);
 
 
-     }
-    } //end i_part
+    //  }
+    // } //end i_part
   }
 }
 

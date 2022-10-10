@@ -113,23 +113,23 @@ namespace cwipi {
 
   void BlockCP::geomFinalize(){
 
-    for(int i_part = 0; i_part<_n_part; i_part++){
+    // for(int i_part = 0; i_part<_n_part; i_part++){
 
-      Visu* visu = ((Mesh*)_mesh)->getVisu();
-      if(visu->isCreated() && ((Mesh*)_mesh)->getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
-        visu->GeomBlockPoly3D( ((Mesh*)_mesh)->getIdVisu( _block_id_cwipi ),
-                                  i_part,
-                                  _n_elt[i_part] ,
-                                  _n_faces[i_part],
-                                  _connec_faces_idx [i_part],
-                                  _connec_faces     [i_part],
-                                  _connec_cells_idx[i_part],
-                                  _connec_cells    [i_part],
-                                  _global_num [i_part]);
+    //   Visu* visu = ((Mesh*)_mesh)->getVisu();
+    //   if(visu->isCreated() && ((Mesh*)_mesh)->getDisplacement() == CWP_DYNAMIC_MESH_STATIC) {
+    //     visu->GeomBlockPoly3D( ((Mesh*)_mesh)->getIdVisu( _block_id_cwipi ),
+    //                               i_part,
+    //                               _n_elt[i_part] ,
+    //                               _n_faces[i_part],
+    //                               _connec_faces_idx [i_part],
+    //                               _connec_faces     [i_part],
+    //                               _connec_cells_idx[i_part],
+    //                               _connec_cells    [i_part],
+    //                               _global_num [i_part]);
 
 
-      }
-    } //end i_part
+    //   }
+    // } //end i_part
 
 
   }
