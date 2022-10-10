@@ -1428,6 +1428,8 @@ namespace cwipi {
           Mesh                             &_mesh;                  /*!< SpatialInterp mesh */
     const CWP_Time_exch_t                   _recvFreqType;          /*!< Receiving frequency type */
           int                               _id_geom_writer;        /*!< Geom writer identifier*/
+          int                               _id_field_partitioning_writer;  /*!< Identifier of the partitionning field of the writer */
+          int                               _id_field_ranking_writer; /*!< Identifier of the ranking field of the writer*/      
           int                               _freq_writer;           /*!< Writer frequency*/
           PDM_writer_t                     *_writer;                /*!< Writer */
           double                            _recvFreq;              /*!< Receiving frequency */
