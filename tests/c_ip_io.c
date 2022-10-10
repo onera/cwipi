@@ -256,33 +256,46 @@ int main(int argc, char *argv[])
 
   // --> global read of header
 
-  char *buffer = NULL;
+  char *buffer = malloc(99);
+  for (int i = 0; i < 99; i++) {
+    buffer[i] = '\0';
+  }
 
   PDM_io_global_read(read,
-                     30 * sizeof(char),
+                     32 * sizeof(char),
                      1,
                      buffer);
 
-  char line[30];
-  long  size;
+  log_trace("%s", buffer);
 
-  while (1) {
+  char div[] = "\n";
+  char *readbuff = strtok(buffer, div);
 
-    sscanf(buffer, "%s", line);
+  log_trace("%s\n", readbuff);
+  readbuff = strtok(NULL, div);
 
-    if (strstr(line, "SIZE") != NULL) {
-      sscanf(buffer, "%ld", &size);
-    }
+  log_trace("%s\n", readbuff);
 
-  }
+  char div1[] = " ";
+  char *l2 = strtok(readbuff, div1);
+  log_trace("%s\n", l2);
+  l2 = strtok(NULL, div1);
 
-  log_trace("size: %ld (real), %ld (read)", strlen(data), size);
+  log_trace("%s\n", l2);
+
+  int size = atoi(l2);
+
+  log_trace("size: %ld (real), %d (read)", strlen(data), size);
 
   // --> read data (hostname/port);
 
-  PDM_g_num_t debut_bloc_read = i_rank * size + 30;
+  PDM_g_num_t debut_bloc_read = i_rank * size + 32;
 
-  char *read_data = NULL;
+  char *read_data = malloc(size+1);
+
+  for (int i = 0; i < size+1; i++) {
+    read_data[i] = '\0';
+  }
 
   PDM_io_par_interlaced_read(read,
                         PDM_STRIDE_CST_INTERLACED,
