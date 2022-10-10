@@ -1402,6 +1402,17 @@ namespace cwipi {
 
     /**
      *
+     * \brief Export mesh to Ensight format
+     *
+     */
+
+    void 
+    exportMesh(Coupling &cpl);
+
+
+
+    /**
+     *
      * \brief Compute user target global number (if not given by user)
      *
      */

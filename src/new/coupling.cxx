@@ -343,17 +343,163 @@ namespace cwipi {
     std::string name,
     int         value
   )
-{
-  std::map<std::string, int>::iterator it;
-  it = _spatial_interp_properties_int.find(name);
+  {
+    std::map<std::string, int>::iterator it;
+    it = _spatial_interp_properties_int.find(name);
 
-  if (it == _spatial_interp_properties_int.end()) {
-    pair<string, int> newPair(name, value);
-    _spatial_interp_properties_int.insert(newPair);
-  } else {
-    it->second = value;
+    if (it == _spatial_interp_properties_int.end()) {
+      pair<string, int> newPair(name, value);
+      _spatial_interp_properties_int.insert(newPair);
+    } else {
+      it->second = value;
+    }
   }
-}
+
+
+  /**
+   *
+   * \brief Export mesh to Ensight format
+   *
+   */
+
+  void 
+  Coupling::exportMesh(Coupling &cpl)
+  {
+    if (cpl._writer != NULL) {
+
+      if (!PDM_writer_is_open_step (cpl._writer)) {
+
+        double current_time;
+
+        cpl._localCodeProperties.ctrlParamGet("time", &current_time);
+
+        PDM_writer_step_beg (cpl._writer, current_time);
+
+      }
+
+      if (cpl._n_step == 0) {
+
+        cpl._id_geom_writer =PDM_writer_geom_create_from_mesh_nodal (cpl._writer, 
+                                                                 "geom",
+                                                                 cpl._mesh.getPdmNodalIndex());
+
+        PDM_writer_geom_write(cpl._writer, cpl._id_geom_writer);
+
+        PDM_writer_var_loc_t PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
+
+        PDM_writer_var_dim_t PDMfieldComp = PDM_WRITER_VAR_SCALAR;
+
+        PDM_writer_status_t  st_dep_tps = PDM_WRITER_ON;
+
+        if (cpl._displacement == CWP_DYNAMIC_MESH_STATIC) {
+          st_dep_tps = PDM_WRITER_OFF;          
+        }
+
+        _id_field_partitioning_writer = PDM_writer_var_create(cpl._writer,
+                                                              st_dep_tps,
+                                                              PDMfieldComp,
+                                                              PDMfieldType,
+                                                              "partitioning");
+
+        _id_field_ranking_writer = PDM_writer_var_create(cpl._writer,
+                                                     st_dep_tps,
+                                                     PDMfieldComp,
+                                                     PDMfieldType,
+                                                     "ranking");
+
+        std::vector <double *> partitioning_field_data(cpl._mesh.getNPart());
+        std::vector <double *> ranking_field_data(cpl._mesh.getNPart());
+
+        int worldRank;
+        MPI_Comm_rank (cpl._localCodeProperties.connectableCommGet(), &worldRank);
+
+        int n_part = cpl._mesh.getNPart();
+        int g_n_part = 0;
+
+        MPI_Scan (&n_part, &g_n_part, 1, MPI_INT, MPI_SUM, cpl._localCodeProperties.connectableCommGet());
+
+        g_n_part += -n_part;        
+
+        for(int i_part= 0 ; i_part < cpl._mesh.getNPart(); i_part++){
+          partitioning_field_data[i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
+          ranking_field_data     [i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
+
+          for(int i_elt = 0; i_elt < cpl._mesh.getPartNElts(i_part); i_elt++){
+            partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
+            ranking_field_data[i_part][i_elt] = (double) worldRank;
+          }
+
+          PDM_writer_var_set(cpl._writer, cpl._id_field_partitioning_writer, cpl._id_geom_writer, i_part, (double *) partitioning_field_data[i_part]);
+          PDM_writer_var_set(cpl._writer, cpl._id_field_ranking_writer     , cpl._id_geom_writer, i_part, (double *) ranking_field_data     [i_part]);
+        }
+
+        PDM_writer_var_write(cpl._writer, cpl._id_field_partitioning_writer);
+        PDM_writer_var_write(cpl._writer, cpl._id_field_ranking_writer);
+
+        PDM_writer_var_data_free(cpl._writer, cpl._id_field_partitioning_writer);
+        PDM_writer_var_data_free(cpl._writer, cpl._id_field_ranking_writer);
+
+        for(int i_part= 0 ; i_part < cpl._mesh.getNPart(); i_part++){
+          free (partitioning_field_data[i_part]);
+          free (ranking_field_data     [i_part]);
+          partitioning_field_data[i_part] = nullptr;
+          ranking_field_data     [i_part] = nullptr;
+        }
+      }
+
+      else if (((cpl._n_step % cpl._freq_writer) == 0) && (cpl._displacement != CWP_DYNAMIC_MESH_STATIC)) {
+
+        if (cpl._displacement == CWP_DYNAMIC_MESH_VARIABLE) {
+        
+          PDM_writer_geom_set_from_mesh_nodal (cpl._writer, 
+                                               cpl._id_geom_writer,
+                                               cpl._mesh.getPdmNodalIndex());
+        }
+
+        PDM_writer_geom_write(cpl._writer, cpl._id_geom_writer);
+
+        std::vector <double *> partitioning_field_data(cpl._mesh.getNPart());
+        std::vector <double *> ranking_field_data(cpl._mesh.getNPart());
+
+        int worldRank;
+        MPI_Comm_rank (cpl._localCodeProperties.connectableCommGet(), &worldRank);
+
+        int n_part = cpl._mesh.getNPart();
+        int g_n_part = 0;
+
+        MPI_Scan (&n_part, &g_n_part, 1, MPI_INT, MPI_SUM, cpl._localCodeProperties.connectableCommGet());
+
+        g_n_part += -n_part;        
+
+        for(int i_part= 0 ; i_part < cpl._mesh.getNPart(); i_part++){
+          partitioning_field_data[i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
+          ranking_field_data     [i_part] = (double*) malloc(cpl._mesh.getPartNElts(i_part) * sizeof(double) );
+
+          for(int i_elt = 0; i_elt < cpl._mesh.getPartNElts(i_part); i_elt++){
+            partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
+            ranking_field_data[i_part][i_elt] = (double) worldRank;
+          }
+
+          PDM_writer_var_set(cpl._writer, cpl._id_field_partitioning_writer, cpl._id_geom_writer, i_part, (double *) partitioning_field_data[i_part]);
+          PDM_writer_var_set(cpl._writer, cpl._id_field_ranking_writer     , cpl._id_geom_writer, i_part, (double *) ranking_field_data     [i_part]);
+        }
+
+        PDM_writer_var_write(cpl._writer, cpl._id_field_partitioning_writer);
+        PDM_writer_var_write(cpl._writer, cpl._id_field_ranking_writer);
+
+        PDM_writer_var_data_free(cpl._writer, cpl._id_field_partitioning_writer);
+        PDM_writer_var_data_free(cpl._writer, cpl._id_field_ranking_writer);
+
+        for(int i_part= 0 ; i_part < cpl._mesh.getNPart(); i_part++){
+          free (partitioning_field_data[i_part]);
+          free (ranking_field_data     [i_part]);
+          partitioning_field_data[i_part] = nullptr;
+          ranking_field_data     [i_part] = nullptr;
+        }
+      }
+    }
+
+  }
 
 
   /**
@@ -374,139 +520,9 @@ namespace cwipi {
     /////////////////////////////////////////////////////////////////////////////
 
     if (!_coupledCodeProperties.localCodeIs()) {
-      if (_writer != NULL) {
 
-        if (!PDM_writer_is_open_step (_writer)) {
+      exportMesh(*this);
 
-          double current_time;
-
-          _localCodeProperties.ctrlParamGet("time", &current_time);
-
-          PDM_writer_step_beg (_writer, current_time);
-
-        }
-
-        if (_n_step == 0) {
-
-          _id_geom_writer =PDM_writer_geom_create_from_mesh_nodal (_writer, 
-                                                                   "geom",
-                                                                   _mesh.getPdmNodalIndex());
-
-          PDM_writer_geom_write(_writer, _id_geom_writer);
-
-          PDM_writer_var_loc_t PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
-
-          PDM_writer_var_dim_t PDMfieldComp = PDM_WRITER_VAR_SCALAR;
-
-          PDM_writer_status_t  st_dep_tps = PDM_WRITER_ON;
-
-          if (_displacement == CWP_DYNAMIC_MESH_STATIC) {
-            st_dep_tps = PDM_WRITER_OFF;          
-          }
-
-          _id_field_partitioning_writer = PDM_writer_var_create(_writer,
-                                                                st_dep_tps,
-                                                                PDMfieldComp,
-                                                                PDMfieldType,
-                                                                "partitioning");
-
-          _id_field_ranking_writer = PDM_writer_var_create(_writer,
-                                                       st_dep_tps,
-                                                       PDMfieldComp,
-                                                       PDMfieldType,
-                                                       "ranking");
-
-          std::vector <double *> partitioning_field_data(_mesh.getNPart());
-          std::vector <double *> ranking_field_data(_mesh.getNPart());
-
-          int worldRank;
-          MPI_Comm_rank (_localCodeProperties.connectableCommGet(), &worldRank);
-
-          int n_part = _mesh.getNPart();
-          int g_n_part = 0;
-
-          MPI_Scan (&n_part, &g_n_part, 1, MPI_INT, MPI_SUM, _localCodeProperties.connectableCommGet());
-
-          g_n_part += -n_part;        
-
-          for(int i_part= 0 ; i_part < _mesh.getNPart(); i_part++){
-            partitioning_field_data[i_part] = (double*) malloc(_mesh.getPartNElts(i_part) * sizeof(double) );
-            ranking_field_data     [i_part] = (double*) malloc(_mesh.getPartNElts(i_part) * sizeof(double) );
-
-            for(int i_elt = 0; i_elt < _mesh.getPartNElts(i_part); i_elt++){
-              partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
-              ranking_field_data[i_part][i_elt] = (double) worldRank;
-            }
-
-            PDM_writer_var_set(_writer, _id_field_partitioning_writer, _id_geom_writer, i_part, (double *) partitioning_field_data[i_part]);
-            PDM_writer_var_set(_writer, _id_field_ranking_writer     , _id_geom_writer, i_part, (double *) ranking_field_data     [i_part]);
-          }
-
-          PDM_writer_var_write(_writer, _id_field_partitioning_writer);
-          PDM_writer_var_write(_writer, _id_field_ranking_writer);
-
-          PDM_writer_var_data_free(_writer, _id_field_partitioning_writer);
-          PDM_writer_var_data_free(_writer, _id_field_ranking_writer);
-
-          for(int i_part= 0 ; i_part < _mesh.getNPart(); i_part++){
-            free (partitioning_field_data[i_part]);
-            free (ranking_field_data     [i_part]);
-            partitioning_field_data[i_part] = nullptr;
-            ranking_field_data     [i_part] = nullptr;
-          }
-        }
-
-        else if (((_n_step % _freq_writer) == 0) && (_displacement != CWP_DYNAMIC_MESH_STATIC)) {
-
-          if (_displacement == CWP_DYNAMIC_MESH_VARIABLE) {
-          
-            PDM_writer_geom_set_from_mesh_nodal (_writer, 
-                                                 _id_geom_writer,
-                                                 _mesh.getPdmNodalIndex());
-          }
-
-          PDM_writer_geom_write(_writer, _id_geom_writer);
-
-          std::vector <double *> partitioning_field_data(_mesh.getNPart());
-          std::vector <double *> ranking_field_data(_mesh.getNPart());
-
-          int worldRank;
-          MPI_Comm_rank (_localCodeProperties.connectableCommGet(), &worldRank);
-
-          int n_part = _mesh.getNPart();
-          int g_n_part = 0;
-
-          MPI_Scan (&n_part, &g_n_part, 1, MPI_INT, MPI_SUM, _localCodeProperties.connectableCommGet());
-
-          g_n_part += -n_part;        
-
-          for(int i_part= 0 ; i_part < _mesh.getNPart(); i_part++){
-            partitioning_field_data[i_part] = (double*) malloc(_mesh.getPartNElts(i_part) * sizeof(double) );
-            ranking_field_data     [i_part] = (double*) malloc(_mesh.getPartNElts(i_part) * sizeof(double) );
-
-            for(int i_elt = 0; i_elt < _mesh.getPartNElts(i_part); i_elt++){
-              partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
-              ranking_field_data[i_part][i_elt] = (double) worldRank;
-            }
-
-            PDM_writer_var_set(_writer, _id_field_partitioning_writer, _id_geom_writer, i_part, (double *) partitioning_field_data[i_part]);
-            PDM_writer_var_set(_writer, _id_field_ranking_writer     , _id_geom_writer, i_part, (double *) ranking_field_data     [i_part]);
-          }
-
-          PDM_writer_var_write(_writer, _id_field_partitioning_writer);
-          PDM_writer_var_write(_writer, _id_field_ranking_writer);
-
-          PDM_writer_var_data_free(_writer, _id_field_partitioning_writer);
-          PDM_writer_var_data_free(_writer, _id_field_ranking_writer);
-
-          for(int i_part= 0 ; i_part < _mesh.getNPart(); i_part++){
-            free (partitioning_field_data[i_part]);
-            free (ranking_field_data     [i_part]);
-            partitioning_field_data[i_part] = nullptr;
-            ranking_field_data     [i_part] = nullptr;
-          }
-        }
-      }
     }
 
     else {
@@ -518,277 +534,13 @@ namespace cwipi {
         cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
 
         if (codeID < cplCodeID) {
-          if (_writer != NULL) {
 
-            if (!PDM_writer_is_open_step (_writer)) {
-
-              double current_time;
-
-              _localCodeProperties.ctrlParamGet("time", &current_time);
-
-              PDM_writer_step_beg (_writer, current_time);
-
-            }
-
-            if (_n_step == 0) {
-
-              _id_geom_writer =PDM_writer_geom_create_from_mesh_nodal (_writer, 
-                                                                       "geom",
-                                                                       _mesh.getPdmNodalIndex());
-
-              PDM_writer_geom_write(_writer, _id_geom_writer);
-
-              PDM_writer_var_loc_t PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
-
-              PDM_writer_var_dim_t PDMfieldComp = PDM_WRITER_VAR_SCALAR;
-
-              PDM_writer_status_t  st_dep_tps = PDM_WRITER_ON;
-
-              if (_displacement == CWP_DYNAMIC_MESH_STATIC) {
-                st_dep_tps = PDM_WRITER_OFF;          
-              }
-
-              _id_field_partitioning_writer = PDM_writer_var_create(_writer,
-                                                                    st_dep_tps,
-                                                                    PDMfieldComp,
-                                                                    PDMfieldType,
-                                                                    "partitioning");
-
-              _id_field_ranking_writer = PDM_writer_var_create(_writer,
-                                                           st_dep_tps,
-                                                           PDMfieldComp,
-                                                           PDMfieldType,
-                                                           "ranking");
-
-              std::vector <double *> partitioning_field_data(_mesh.getNPart());
-              std::vector <double *> ranking_field_data(_mesh.getNPart());
-
-              int worldRank;
-              MPI_Comm_rank (_localCodeProperties.connectableCommGet(), &worldRank);
-
-              int n_part = _mesh.getNPart();
-              int g_n_part = 0;
-
-              MPI_Scan (&n_part, &g_n_part, 1, MPI_INT, MPI_SUM, _localCodeProperties.connectableCommGet());
-
-              g_n_part += -n_part;        
-
-              for(int i_part= 0 ; i_part < _mesh.getNPart(); i_part++){
-                partitioning_field_data[i_part] = (double*) malloc(_mesh.getPartNElts(i_part) * sizeof(double) );
-                ranking_field_data     [i_part] = (double*) malloc(_mesh.getPartNElts(i_part) * sizeof(double) );
-
-                for(int i_elt = 0; i_elt < _mesh.getPartNElts(i_part); i_elt++){
-                  partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
-                  ranking_field_data[i_part][i_elt] = (double) worldRank;
-                }
-
-                PDM_writer_var_set(_writer, _id_field_partitioning_writer, _id_geom_writer, i_part, (double *) partitioning_field_data[i_part]);
-                PDM_writer_var_set(_writer, _id_field_ranking_writer     , _id_geom_writer, i_part, (double *) ranking_field_data     [i_part]);
-              }
-
-              PDM_writer_var_write(_writer, _id_field_partitioning_writer);
-              PDM_writer_var_write(_writer, _id_field_ranking_writer);
-
-              PDM_writer_var_data_free(_writer, _id_field_partitioning_writer);
-              PDM_writer_var_data_free(_writer, _id_field_ranking_writer);
-
-              for(int i_part= 0 ; i_part < _mesh.getNPart(); i_part++){
-                free (partitioning_field_data[i_part]);
-                free (ranking_field_data     [i_part]);
-                partitioning_field_data[i_part] = nullptr;
-                ranking_field_data     [i_part] = nullptr;
-              }
-            }
-
-            else if (((_n_step % _freq_writer) == 0) && (_displacement != CWP_DYNAMIC_MESH_STATIC)) {
-
-              if (_displacement == CWP_DYNAMIC_MESH_VARIABLE) {
-              
-                PDM_writer_geom_set_from_mesh_nodal (_writer, 
-                                                     _id_geom_writer,
-                                                     _mesh.getPdmNodalIndex());
-              }
-
-              PDM_writer_geom_write(_writer, _id_geom_writer);
-
-              std::vector <double *> partitioning_field_data(_mesh.getNPart());
-              std::vector <double *> ranking_field_data(_mesh.getNPart());
-
-              int worldRank;
-              MPI_Comm_rank (_localCodeProperties.connectableCommGet(), &worldRank);
-
-              int n_part = _mesh.getNPart();
-              int g_n_part = 0;
-
-              MPI_Scan (&n_part, &g_n_part, 1, MPI_INT, MPI_SUM, _localCodeProperties.connectableCommGet());
-
-              g_n_part += -n_part;        
-
-              for(int i_part= 0 ; i_part < _mesh.getNPart(); i_part++){
-                partitioning_field_data[i_part] = (double*) malloc(_mesh.getPartNElts(i_part) * sizeof(double) );
-                ranking_field_data     [i_part] = (double*) malloc(_mesh.getPartNElts(i_part) * sizeof(double) );
-
-                for(int i_elt = 0; i_elt < _mesh.getPartNElts(i_part); i_elt++){
-                  partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
-                  ranking_field_data[i_part][i_elt] = (double) worldRank;
-                }
-
-                PDM_writer_var_set(_writer, _id_field_partitioning_writer, _id_geom_writer, i_part, (double *) partitioning_field_data[i_part]);
-                PDM_writer_var_set(_writer, _id_field_ranking_writer     , _id_geom_writer, i_part, (double *) ranking_field_data     [i_part]);
-              }
-
-              PDM_writer_var_write(_writer, _id_field_partitioning_writer);
-              PDM_writer_var_write(_writer, _id_field_ranking_writer);
-
-              PDM_writer_var_data_free(_writer, _id_field_partitioning_writer);
-              PDM_writer_var_data_free(_writer, _id_field_ranking_writer);
-
-              for(int i_part= 0 ; i_part < _mesh.getNPart(); i_part++){
-                free (partitioning_field_data[i_part]);
-                free (ranking_field_data     [i_part]);
-                partitioning_field_data[i_part] = nullptr;
-                ranking_field_data     [i_part] = nullptr;
-              }
-            }
-          }
-
-          if (cpl_cpl._writer != NULL) {
-
-            if (!PDM_writer_is_open_step (cpl_cpl._writer)) {
-
-              double current_time;
-
-              _coupledCodeProperties.ctrlParamGet("time", &current_time);
-
-              PDM_writer_step_beg (cpl_cpl._writer, current_time);
-
-            }
-
-            if (cpl_cpl._n_step == 0) {
-
-              cpl_cpl._id_geom_writer =PDM_writer_geom_create_from_mesh_nodal (cpl_cpl._writer, 
-                                                                       "geom",
-                                                                       cpl_cpl._mesh.getPdmNodalIndex());
-
-              PDM_writer_geom_write(cpl_cpl._writer, cpl_cpl._id_geom_writer);
-
-              PDM_writer_var_loc_t PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
-
-              PDM_writer_var_dim_t PDMfieldComp = PDM_WRITER_VAR_SCALAR;
-
-              PDM_writer_status_t  st_dep_tps = PDM_WRITER_ON;
-
-              if (cpl_cpl._displacement == CWP_DYNAMIC_MESH_STATIC) {
-                st_dep_tps = PDM_WRITER_OFF;          
-              }
-
-              _id_field_partitioning_writer = PDM_writer_var_create(cpl_cpl._writer,
-                                                                    st_dep_tps,
-                                                                    PDMfieldComp,
-                                                                    PDMfieldType,
-                                                                    "partitioning");
-
-              _id_field_ranking_writer = PDM_writer_var_create(cpl_cpl._writer,
-                                                           st_dep_tps,
-                                                           PDMfieldComp,
-                                                           PDMfieldType,
-                                                           "ranking");
-
-              std::vector <double *> partitioning_field_data(cpl_cpl._mesh.getNPart());
-              std::vector <double *> ranking_field_data(cpl_cpl._mesh.getNPart());
-
-              int worldRank;
-              MPI_Comm_rank (_coupledCodeProperties.connectableCommGet(), &worldRank);
-
-              int n_part = cpl_cpl._mesh.getNPart();
-              int g_n_part = 0;
-
-              MPI_Scan (&n_part, &g_n_part, 1, MPI_INT, MPI_SUM, _localCodeProperties.connectableCommGet());
-
-              g_n_part += -n_part;        
-
-              for(int i_part= 0 ; i_part < _mesh.getNPart(); i_part++){
-                partitioning_field_data[i_part] = (double*) malloc(_mesh.getPartNElts(i_part) * sizeof(double) );
-                ranking_field_data     [i_part] = (double*) malloc(_mesh.getPartNElts(i_part) * sizeof(double) );
-
-                for(int i_elt = 0; i_elt < _mesh.getPartNElts(i_part); i_elt++){
-                  partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
-                  ranking_field_data[i_part][i_elt] = (double) worldRank;
-                }
-
-                PDM_writer_var_set(_writer, _id_field_partitioning_writer, _id_geom_writer, i_part, (double *) partitioning_field_data[i_part]);
-                PDM_writer_var_set(_writer, _id_field_ranking_writer     , _id_geom_writer, i_part, (double *) ranking_field_data     [i_part]);
-              }
-
-              PDM_writer_var_write(_writer, _id_field_partitioning_writer);
-              PDM_writer_var_write(_writer, _id_field_ranking_writer);
-
-              PDM_writer_var_data_free(_writer, _id_field_partitioning_writer);
-              PDM_writer_var_data_free(_writer, _id_field_ranking_writer);
-
-              for(int i_part= 0 ; i_part < _mesh.getNPart(); i_part++){
-                free (partitioning_field_data[i_part]);
-                free (ranking_field_data     [i_part]);
-                partitioning_field_data[i_part] = nullptr;
-                ranking_field_data     [i_part] = nullptr;
-              }
-            }
-
-            else if (((_n_step % _freq_writer) == 0) && (_displacement != CWP_DYNAMIC_MESH_STATIC)) {
-
-              if (_displacement == CWP_DYNAMIC_MESH_VARIABLE) {
-              
-                PDM_writer_geom_set_from_mesh_nodal (_writer, 
-                                                     _id_geom_writer,
-                                                     _mesh.getPdmNodalIndex());
-              }
-
-              PDM_writer_geom_write(_writer, _id_geom_writer);
-
-              std::vector <double *> partitioning_field_data(_mesh.getNPart());
-              std::vector <double *> ranking_field_data(_mesh.getNPart());
-
-              int worldRank;
-              MPI_Comm_rank (_localCodeProperties.connectableCommGet(), &worldRank);
-
-              int n_part = _mesh.getNPart();
-              int g_n_part = 0;
-
-              MPI_Scan (&n_part, &g_n_part, 1, MPI_INT, MPI_SUM, _localCodeProperties.connectableCommGet());
-
-              g_n_part += -n_part;        
-
-              for(int i_part= 0 ; i_part < _mesh.getNPart(); i_part++){
-                partitioning_field_data[i_part] = (double*) malloc(_mesh.getPartNElts(i_part) * sizeof(double) );
-                ranking_field_data     [i_part] = (double*) malloc(_mesh.getPartNElts(i_part) * sizeof(double) );
-
-                for(int i_elt = 0; i_elt < _mesh.getPartNElts(i_part); i_elt++){
-                  partitioning_field_data[i_part][i_elt] = (double) (i_part + g_n_part);
-                  ranking_field_data[i_part][i_elt] = (double) worldRank;
-                }
-
-                PDM_writer_var_set(_writer, _id_field_partitioning_writer, _id_geom_writer, i_part, (double *) partitioning_field_data[i_part]);
-                PDM_writer_var_set(_writer, _id_field_ranking_writer     , _id_geom_writer, i_part, (double *) ranking_field_data     [i_part]);
-              }
-
-              PDM_writer_var_write(_writer, _id_field_partitioning_writer);
-              PDM_writer_var_write(_writer, _id_field_ranking_writer);
-
-              PDM_writer_var_data_free(_writer, _id_field_partitioning_writer);
-              PDM_writer_var_data_free(_writer, _id_field_ranking_writer);
-
-              for(int i_part= 0 ; i_part < _mesh.getNPart(); i_part++){
-                free (partitioning_field_data[i_part]);
-                free (ranking_field_data     [i_part]);
-                partitioning_field_data[i_part] = nullptr;
-                ranking_field_data     [i_part] = nullptr;
-              }
-            }
-          }
+          exportMesh(*this);
+          exportMesh(cpl_cpl);   
 
         }
-      }     
-    } 
+      }
+    }
 
     /////////////////////////////////////////////////////////////////////////////
     //                                                                         //
@@ -967,7 +719,6 @@ namespace cwipi {
           }
           it++;
         }
-
 
         int sis_s = (int) _spatial_interp_send.size();
 
