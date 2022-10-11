@@ -149,6 +149,7 @@ if (CWP_ENABLE_NEW_API)
     test_c_create (c_new_api_surf_P1P0_P0P1_without_part 2)
 
     test_c_create (c_ip_io 1)
+    test_c_create (server_main 1)
 
 
     if (CWP_ENABLE_Fortran)

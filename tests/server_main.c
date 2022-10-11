@@ -131,8 +131,8 @@ main
 {
   // default
   char *config     = NULL;
-  int   port_begin = 1024;
-  int   port_end   = 49151;
+  int   port_begin = 49100;
+  int   port_end   = 49150;
 
   _read_args(argc,
              argv,
@@ -163,15 +163,15 @@ main
   int server_port = port_begin + i_rank_node;
 
   // create server
-  p_server svr = malloc(sizeof(p_server));
-  if (CWP_CreateServer(server_port, CWP_SVRFLAG_VERBOSE, svr) != 0) {
+  p_server svr = malloc(sizeof(t_server));
+  if (CWP_server_create(server_port, CWP_SVRFLAG_VERBOSE, svr) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "Server creation failed\n");
     return -1;
   }
 
   // write config file
   // --> retreive host_name size
-  nt  irank_host_name_size     = strlen(svr->host_name);
+  int  irank_host_name_size     = strlen(svr->host_name);
   int *all_jrank_host_name_size = malloc(sizeof(int) * n_rank);
 
   PDM_MPI_Allgather(&irank_host_name_size,
@@ -240,7 +240,7 @@ main
   PDM_io_free(write);
 
   // shutdown server
-  CWP_KillServer(svr);
+  CWP_server_kill(svr);
 
   PDM_MPI_Finalize();
 

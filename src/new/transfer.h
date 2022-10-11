@@ -1,5 +1,5 @@
-#ifndef __CLIENT_H__
-#define __CLIENT_H__
+#ifndef __TRANSFER_H__
+#define __TRANSFER_H__
 /*
   This file is part of the CWIPI library.
 
@@ -30,17 +30,14 @@
  *----------------------------------------------------------------------------*/
 
 #ifdef WINDOWS
-
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netdb.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <errno.h>
 #endif
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,52 +50,19 @@ extern "C" {
  * Macro definitions
  *============================================================================*/
 
-#define CWP_CLIENTFLAG_VERBOSE    1
-#define CWP_CLIENTFLAG_NOVERBOSE  0
-
-/*============================================================================
- * Types definition
- *============================================================================*/
-
-typedef struct t_client
-{
-  int server_port;
-  int flags;
-  int socket;
-  int max_msg_size;
-  int listen_socket;
-  int connected_socket;
-  int client_endianess;
-  int server_endianess;
-  char server_name[256];
-
-}t_client,*p_client;
+#define CWP_BIG    100
+#define CWP_LITTLE 0
 
 /*=============================================================================
  * Public function interfaces
  *============================================================================*/
 
-/* Connect to a server */
+/* machine endianess */
 
-int
-CWP_client_connect
-(
- const char* server_name,
- int server_port,
- int flags,
- p_client clt
-);
-
-/* Disconnect */
-
-int
-CWP_client_disconnect
-(
- p_client clt
-);
+int CWP_transfer_endian_machine();
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* __CLIENT_H__ */
+#endif /* __TRANSFER_H__ */

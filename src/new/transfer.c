@@ -1,5 +1,3 @@
-#ifndef __CLIENT_H__
-#define __CLIENT_H__
 /*
   This file is part of the CWIPI library.
 
@@ -26,21 +24,22 @@
 */
 
 /*----------------------------------------------------------------------------
- *  Header for the current file
+ *  System headers
  *----------------------------------------------------------------------------*/
 
-#ifdef WINDOWS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
 
-#else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <errno.h>
-#endif
+/*----------------------------------------------------------------------------
+ *  Local headers
+ *----------------------------------------------------------------------------*/
 
+#include "transfer.h"
+#include <pdm_error.h>
+#include <pdm_mpi.h>
+#include "pdm_logging.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,55 +49,18 @@ extern "C" {
 #endif /* __cplusplus */
 
 /*=============================================================================
- * Macro definitions
- *============================================================================*/
-
-#define CWP_CLIENTFLAG_VERBOSE    1
-#define CWP_CLIENTFLAG_NOVERBOSE  0
-
-/*============================================================================
- * Types definition
- *============================================================================*/
-
-typedef struct t_client
-{
-  int server_port;
-  int flags;
-  int socket;
-  int max_msg_size;
-  int listen_socket;
-  int connected_socket;
-  int client_endianess;
-  int server_endianess;
-  char server_name[256];
-
-}t_client,*p_client;
-
-/*=============================================================================
  * Public function interfaces
  *============================================================================*/
 
-/* Connect to a server */
+/* machine endianess */
 
 int
-CWP_client_connect
-(
- const char* server_name,
- int server_port,
- int flags,
- p_client clt
-);
-
-/* Disconnect */
-
-int
-CWP_client_disconnect
-(
- p_client clt
-);
+CWP_transfer_endian_machine()
+{
+  int i = 0x12345678;
+  if ( htonl(i) == i ) {return CWP_BIG;} else { return CWP_LITTLE;}
+}
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-#endif /* __CLIENT_H__ */

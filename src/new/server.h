@@ -54,6 +54,12 @@ extern "C" {
 /*=============================================================================
  * Macro definitions
  *============================================================================*/
+/* server status */
+#define CWP_SVRSTATE_WAITCONN      0
+#define CWP_SVRSTATE_LISTENINGMSG  1
+#define CWP_SVRSTATE_RECVPPUTDATA  2
+#define CWP_SVRSTATE_SENDPGETDATA  3
+#define CWP_SVRSTATE_TERMINATING   4
 
 /* for debug */
 #define CWP_SVRFLAG_VERBOSE    1
@@ -83,7 +89,7 @@ typedef struct t_server
 /* Create a server */
 
 int
-CWP_CreateServer
+CWP_server_create
 (
  int server_port,
  int flags,
@@ -93,7 +99,7 @@ CWP_CreateServer
 /* Kill a server */
 
 int
-CWP_KillServer
+CWP_server_kill
 (
  p_server svr
 );

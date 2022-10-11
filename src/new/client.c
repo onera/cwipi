@@ -37,6 +37,8 @@
  *----------------------------------------------------------------------------*/
 
 #include "client.h"
+#include "message.h"
+#include "transfer.h"
 #include <pdm_error.h>
 #include <pdm_mpi.h>
 #include "pdm_logging.h"
@@ -55,7 +57,7 @@ extern "C" {
 /* Connect to a server */
 
 int
-CWP_Connect
+CWP_client_connect
 (
  const char* server_name,
  int server_port,
@@ -74,7 +76,7 @@ CWP_Connect
   clt->flags=flags;
 
   // verbose
-  if (clt->flags & CWP_SVRFLAG_VERBOSE) {
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
     log_trace("CWP:Creating Client, connecting to %s:%i...\n",server_name,server_port);
   }
 
@@ -96,25 +98,25 @@ CWP_Connect
                  sizeof(struct sockaddr)) == -1) {}
 
   // verbose
-  if (clt->flags & CWP_SVRFLAG_VERBOSE) {
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
     log_trace("CWP:Client connected on %s port %i \n", server_name, server_port);
   }
 
   // set maximum message size
   getsockopt(clt->socket, SOL_SOCKET, SO_RCVBUF, (void*)&clt->max_msg_size, &d);
-  clt->max_msg_size = PALMONIP_MSG_MAXMSGSIZE; // TO DO
+  clt->max_msg_size = CWP_MSG_MAXMSGSIZE;
 
   // exchange endianess // TO DO: create transfer.c and endianess
-  clt->client_endianess = iplib_endian_machine();
-  il_cl_endian = htonl(clt->client_endianess);
-  transfer_writedata(clt->socket,clt->max_msg_size,
-         (void*)&il_cl_endian,iLen);
-  transfer_readdata(clt->socket,clt->max_msg_size,
-           (void*)&clt->server_endianess,iLen);
-  clt->server_endianess = ntohl(sg_client->server_endianess);
+  clt->client_endianess = CWP_transfer_endian_machine();
+  // il_cl_endian = htonl(clt->client_endianess);
+  // transfer_writedata(clt->socket,clt->max_msg_size,
+  //        (void*)&il_cl_endian,sizeof(int));
+  // transfer_readdata(clt->socket,clt->max_msg_size,
+  //          (void*)&clt->server_endianess,iLen);
+  // clt->server_endianess = ntohl(clt->server_endianess);
 
   // verbose
-  if (clt->flags & CWP_SVRFLAG_VERBOSE) {
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
     log_trace("CWP:client endian %i server indian %i\n",clt->client_endianess,clt->server_endianess);
   }
 
@@ -125,30 +127,30 @@ CWP_Connect
 /* Disconnect */
 
 int
-CWP_Disconnect
+CWP_client_disconnect
 (
  p_client clt
 )
 {
   t_message msg;
 
-  if (clt->flags & CWP_SVRFLAG_VERBOSE) {
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
     log_trace("CWP:Client shutting down\n");
   }
 
   // TO DO: send message to srv
-  NEWMESSAGE(msg,PALMONIP_MSG_DIE);
+  // NEWMESSAGE(msg,PALMONIP_MSG_DIE);
 
   Palm_On_Ip_ClientSendMsg(&msg);
 
   // shutdown
 #ifdef WINDOWS
-  shutdown(sg_client->socket,SD_BOTH);
+  shutdown(clt->socket,SD_BOTH);
 #else
-  shutdown(sg_client->socket,SHUT_RDWR);
+  shutdown(clt->socket,SHUT_RDWR);
 #endif
 
-  memset(sg_client,0,sizeof(t_client));
+  memset(clt,0,sizeof(t_client));
 
   return 0;
 }

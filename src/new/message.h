@@ -1,5 +1,5 @@
-#ifndef __CLIENT_H__
-#define __CLIENT_H__
+#ifndef __MESSAGE_H__
+#define __MESSAGE_H__
 /*
   This file is part of the CWIPI library.
 
@@ -25,23 +25,6 @@
   See: https://www.cerfacs.fr/globc/PALM_WEB/
 */
 
-/*----------------------------------------------------------------------------
- *  Header for the current file
- *----------------------------------------------------------------------------*/
-
-#ifdef WINDOWS
-
-#else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <errno.h>
-#endif
-
-
 #ifdef __cplusplus
 extern "C" {
 #if 0
@@ -53,52 +36,35 @@ extern "C" {
  * Macro definitions
  *============================================================================*/
 
-#define CWP_CLIENTFLAG_VERBOSE    1
-#define CWP_CLIENTFLAG_NOVERBOSE  0
+#define CWP_MSG_MAXMSGSIZE 8192
+
+/* Request numbering for CWIPI mirror operations */
+
+/* Init an request */
+#define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}
 
 /*============================================================================
  * Types definition
  *============================================================================*/
 
-typedef struct t_client
+/* Data structure used for each client-server request */
+
+typedef struct t_message
 {
-  int server_port;
-  int flags;
-  int socket;
-  int max_msg_size;
-  int listen_socket;
-  int connected_socket;
-  int client_endianess;
-  int server_endianess;
-  char server_name[256];
-
-}t_client,*p_client;
-
-/*=============================================================================
- * Public function interfaces
- *============================================================================*/
-
-/* Connect to a server */
-
-int
-CWP_client_connect
-(
- const char* server_name,
- int server_port,
- int flags,
- p_client clt
-);
-
-/* Disconnect */
-
-int
-CWP_client_disconnect
-(
- p_client clt
-);
+  int message_type;
+  int flag;
+  int msg_tag;
+  int msg_time;
+  int data_size;
+        int data1;
+        int data2;
+        int data3;
+  char space[256];
+  char object[256];
+}t_message,*p_message;
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* __CLIENT_H__ */
+#endif /* __MESSAGE_H__ */

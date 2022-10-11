@@ -37,6 +37,8 @@
  *----------------------------------------------------------------------------*/
 
 #include "server.h"
+#include "message.h"
+#include "transfer.h"
 #include <pdm_error.h>
 #include <pdm_mpi.h>
 #include "pdm_logging.h"
@@ -55,7 +57,7 @@ extern "C" {
 /* Create a server */
 
 int
-CWP_CreateServer
+CWP_server_create
 (
  int server_port,
  int flags,
@@ -69,7 +71,7 @@ CWP_CreateServer
   memset(svr,0,sizeof(t_server));
   svr->port             = server_port;
   svr->flags            = flags;
-  svr->server_endianess = iplib_endian_machine(); // TO DO: create function
+  svr->server_endianess = CWP_transfer_endian_machine();
 
   // retreive hostname
   if(gethostname(svr->host_name,sizeof(svr->host_name)) != 0) {
@@ -92,7 +94,7 @@ CWP_CreateServer
 
   // set maximum message size
   getsockopt(svr->listen_socket, SOL_SOCKET, SO_RCVBUF, (char*)&svr->max_msg_size, &d);
-  svr->max_msg_size = PALMONIP_MSG_MAXMSGSIZE; // TO DO: define in message.h
+  svr->max_msg_size = CWP_MSG_MAXMSGSIZE;
 
   // verbose
   if (svr->flags & CWP_SVRFLAG_VERBOSE) {
@@ -123,7 +125,7 @@ CWP_CreateServer
     return -1;
   }
 
-  svr->state = PALMONIP_SVRSTATE_WAITCONN; // TO DO: create state
+  svr->state = CWP_SVRSTATE_WAITCONN;
 
   // verbose
   if (svr->flags & CWP_SVRFLAG_VERBOSE) {
@@ -136,7 +138,7 @@ CWP_CreateServer
 /* Kill a server */
 
 int
-CWP_KillServer
+CWP_server_kill
 (
  p_server svr
 )
