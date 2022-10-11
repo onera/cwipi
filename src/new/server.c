@@ -62,75 +62,75 @@ CWP_CreateServer
  p_server svr
 )
 {
-  struct sockaddr_in server_addr; // storage for IP adress and port
-  socklen_t d; // length
+  struct sockaddr_in server_addr;
+  socklen_t d;
   int true=1;
 
   memset(svr,0,sizeof(t_server));
   svr->port             = server_port;
   svr->flags            = flags;
-  // svr->server_endianess = iplib_endian_machine(); // TO DO
+  svr->server_endianess = iplib_endian_machine(); // TO DO: create function
 
-  if(gethostname(svr->host_name,sizeof(svr->host_name)) != 0) { // IP adress
-    log_trace("CWP:Warning could not get host name using loopback address 127.0.0.1");
-    strcpy(svr->host_name, "127.0.0.1");
+  // retreive hostname
+  if(gethostname(svr->host_name,sizeof(svr->host_name)) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "Could not get host name\n");
+    return -1;
   }
 
+  // verbose
   if (svr->flags & CWP_SVRFLAG_VERBOSE) {
     log_trace("CWP:Creating Server on %s port %i...\n", svr->host_name, svr->port);
   }
 
-  // create communication point
-  // AF_INET: processes on different hosts connected by IPv4
-  // SOCK_STREAM: dialog support for binary data flux
-  // 0: only one protocol type for combination of AF_INET + SOCK_STREAM
+  // create socket (IPv4, binary data flux, unique protocol for AF_INET + SOCK_STREAM)
   svr->listen_socket = socket(AF_INET, SOCK_STREAM, 0);
 
-  if (svr->listen_socket == -1) { // socket descriptor or -1 if failed
+  if (svr->listen_socket == -1) {
     PDM_error(__FILE__, __LINE__, 0, "Could not create socket to listen\n");
     return -1;
   }
 
+  // set maximum message size
   getsockopt(svr->listen_socket, SOL_SOCKET, SO_RCVBUF, (char*)&svr->max_msg_size, &d);
-  // svr->max_msg_size = PALMONIP_MSG_MAXMSGSIZE;
+  svr->max_msg_size = PALMONIP_MSG_MAXMSGSIZE; // TO DO: define in message.h
 
+  // verbose
   if (svr->flags & CWP_SVRFLAG_VERBOSE) {
     log_trace("CWP:Max message size:%i\n",svr->max_msg_size);
   }
 
-
-  // if process would be killed SO_REUSEADDR ensure the restarted process can connect on the same socket (thus port) again
+  // ensure restarted process can reconnect to same socket
   if (setsockopt(svr->listen_socket,SOL_SOCKET,SO_REUSEADDR,&true,sizeof(int)) == -1) {
     PDM_error(__FILE__, __LINE__, 0, "Setsockopt failed\n");
     return -1;
   }
 
+  // fill data structure for ip adress + port
   server_addr.sin_family      = AF_INET;
-  server_addr.sin_port        = htons(svr->port); // conversion from host to network byte order (short)
+  server_addr.sin_port        = htons(svr->port);
   server_addr.sin_addr.s_addr = INADDR_ANY;
   bzero(&(server_addr.sin_zero),8);
 
-  // links sockets to IP adress and port
+  // bind socket to ip adress + port
   if (bind(svr->listen_socket, (struct sockaddr *)&server_addr, sizeof(struct sockaddr)) == -1) {
     PDM_error(__FILE__, __LINE__, 0, "Unable to bind socket\n");
     return -1;
   }
 
-  // waits for a client to connect
+  // wait for client to connect
   if (listen(svr->listen_socket, SOMAXCONN) == -1) {
     PDM_error(__FILE__, __LINE__, 0, "Unable to listen on socket\n");
     return -1;
   }
 
-  // svr->state = PALMONIP_SVRSTATE_WAITCONN;
+  svr->state = PALMONIP_SVRSTATE_WAITCONN; // TO DO: create state
 
+  // verbose
   if (svr->flags & CWP_SVRFLAG_VERBOSE) {
-    log_trace("CWP:Server created on %s port %i\n",svr->host_name,svr->port);
+    log_trace("CWP:Server created on %s port %i\n", svr->host_name, svr->port);
   }
 
   return 0;
-
-
 }
 
 /* Kill a server */
@@ -141,7 +141,23 @@ CWP_KillServer
  p_server svr
 )
 {
+  // verbose
+  if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+    log_trace("CWP:Server shutting down\n");
+  }
 
+  // shutdown
+  #ifdef WINDOWS
+    shutdown(svr->listen_socket,SD_BOTH);
+    shutdown(svr->connected_socket,SD_BOTH);
+  #else
+    shutdown(svr->listen_socket,SHUT_RDWR);
+    shutdown(svr->connected_socket,SHUT_RDWR);
+  #endif
+
+  memset(svr,0,sizeof(t_server));
+
+  return 0;
 }
 
 
