@@ -68,7 +68,7 @@ CWP_client_connect
   struct hostent *host;
   struct sockaddr_in server_addr;
   socklen_t d;
-  int il_cl_endian;
+  int ncl_endian;
 
   memset(clt,0,sizeof(t_client));
   strncpy(clt->server_name,server_name,sizeof(clt->server_name));
@@ -80,7 +80,7 @@ CWP_client_connect
     log_trace("CWP:Creating Client, connecting to %s:%i...\n",server_name,server_port);
   }
 
-  host = (struct hostent *)gethostbyname(server_name);
+  host = (struct hostent *) gethostbyname(server_name);
 
   // create socket
   if ((clt->socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -106,14 +106,14 @@ CWP_client_connect
   getsockopt(clt->socket, SOL_SOCKET, SO_RCVBUF, (void*)&clt->max_msg_size, &d);
   clt->max_msg_size = CWP_MSG_MAXMSGSIZE;
 
-  // exchange endianess // TO DO: create transfer.c and endianess
+  // exchange endianess
   clt->client_endianess = CWP_transfer_endian_machine();
-  // il_cl_endian = htonl(clt->client_endianess);
-  // transfer_writedata(clt->socket,clt->max_msg_size,
-  //        (void*)&il_cl_endian,sizeof(int));
-  // transfer_readdata(clt->socket,clt->max_msg_size,
-  //          (void*)&clt->server_endianess,iLen);
-  // clt->server_endianess = ntohl(clt->server_endianess);
+  ncl_endian = htonl(clt->client_endianess);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,
+         (void*)&ncl_endian,sizeof(int));
+  CWP_transfer_readdata(clt->socket,clt->max_msg_size,
+           (void*)&clt->server_endianess,sizeof(int));
+  clt->server_endianess = ntohl(clt->server_endianess);
 
   // verbose
   if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {

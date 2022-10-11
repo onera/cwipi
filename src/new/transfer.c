@@ -41,6 +41,32 @@
 #include <pdm_mpi.h>
 #include "pdm_logging.h"
 
+#ifdef WINDOWS
+#else
+/* pour milli_sleep */
+#include <unistd.h>
+
+void milli_sleep(unsigned int milli_seconds) {
+  usleep(milli_seconds*1000);
+}
+#endif
+
+#ifdef WIN32
+/* pour milli_sleep */
+#include <windows.h>
+
+void milli_sleep(unsigned int milli_seconds) {
+  Sleep(milli_seconds);
+}
+#endif
+
+/*=============================================================================
+ * Macro definitions
+ *============================================================================*/
+
+#define SOCKET_TIMEOUT_CNT      60 //total waiting time 60*50ms=3s
+#define SOCKET_TIMEOUT_INTERVAL 50 //50ms
+
 #ifdef __cplusplus
 extern "C" {
 #if 0
@@ -59,6 +85,94 @@ CWP_transfer_endian_machine()
 {
   int i = 0x12345678;
   if ( htonl(i) == i ) {return CWP_BIG;} else { return CWP_LITTLE;}
+}
+
+/* read */
+
+int
+CWP_transfer_readdata
+(
+ int   socket,
+ int   batch_size,
+ void* dataptr,
+ int   data_size
+)
+{
+  int data_to_xfer=data_size;
+  int xfer_size, read_bytes,data_read,timeout;
+  unsigned char* buf=(unsigned char*) data_ptr;
+
+  xfer_size = data_to_xfer;
+  read_bytes=0;
+
+  data_read=0;
+  while( data_to_xfer >0 ) {
+    xfer_size=data_to_xfer;
+    if (xfer_size>batch_size) {
+      xfer_size=batch_size;
+    }
+    /* poll the socket until data is found if timeout */
+    read_bytes=0;
+    timeout=SOCKET_TIMEOUT_CNT;
+    while(read_bytes<=0 && timeout>0) {
+      read_bytes=recv(socket,buf,xfer_size,MSG_PEEK);
+      if(read_bytes<=0) {
+        milli_sleep(SOCKET_TIMEOUT_INTERVAL);
+      }
+      timeout--;
+    }
+    if(timeout<=0 && read_bytes<=0) {
+      PDM_error(__FILE__, __LINE__, 0, "Transfer Error, read data read %i/%i bytes and socket returned %i\n",
+        data_read,data_size,read_bytes);
+      return -1;
+    }
+    read_bytes=recv(socket,buf,xfer_size,0);
+    xfer_size=read_bytes;
+    buf+=xfer_size;
+    data_read+=xfer_size;
+    data_to_xfer-=xfer_size;
+  }
+
+  if (read_bytes!=xfer_size) {
+    PDM_error(__FILE__, __LINE__, 0, "Transfer Error, read data was waiting for %i bytes and recieved %i bytes\n",
+      data_size,data_read);
+    return -1;
+  }
+
+  return 0;
+}
+
+/* write */
+
+int
+CWP_transfer_writedata
+(
+ int   socket,
+ int   batch_size,
+ void* dataptr,
+ int   data_size
+)
+{
+  int data_to_xfer=data_size;
+  int xfer_size, sent_bytes;
+  unsigned char* buf=(unsigned char*) data_ptr;
+  while( data_to_xfer >0 ) {
+    xfer_size=data_to_xfer;
+    if (xfer_size>batch_size) {
+      xfer_size=batch_size;
+    }
+    sent_bytes=send(socket,buf,xfer_size,0);
+    if(sent_bytes<=0 && xfer_size>0) {
+      PDM_error(__FILE__, __LINE__, 0, "Transfer Error, write tried to send %i bytes, socket send returned %i\n",
+        xfer_size,sent_bytes);
+    return -1;
+    }
+    xfer_size=sent_bytes;
+    buf+=xfer_size;
+    data_to_xfer-=xfer_size;
+  }
+
+  return 0;
 }
 
 #ifdef __cplusplus

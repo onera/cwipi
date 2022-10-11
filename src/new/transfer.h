@@ -61,6 +61,28 @@ extern "C" {
 
 int CWP_transfer_endian_machine();
 
+/* read */
+
+int
+CWP_transfer_readdata
+(
+ int socket,
+ int batch_size,
+ void* dataptr,
+ int data_size
+);
+
+/* write */
+
+int
+CWP_transfer_writedata
+(
+ int socket,
+ int batch_size,
+ void* dataptr,
+ int data_size
+);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

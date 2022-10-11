@@ -30,7 +30,7 @@
  *  Local headers
  *----------------------------------------------------------------------------*/
 
-#include "server.h"
+#include "client.h"
 #include <pdm_error.h>
 #include <pdm_io.h>
 #include <pdm_mpi.h>
@@ -49,6 +49,12 @@ extern "C" {
 #endif /* __cplusplus */
 
 /*=============================================================================
+ * Macro definitions
+ *============================================================================*/
+
+#define CWP_HEADER_SIZE    32
+
+/*=============================================================================
  * Util functions
  *============================================================================*/
 
@@ -59,7 +65,6 @@ _usage(int exit_code)
     ("\n"
      "  Usage: \n\n"
      "  -c     Filename of the server configuration file.\n\n"
-     "  -p     Begin and end port number for the server sockets port range.\n\n"
      "  -h     This message.\n\n");
 
   exit(exit_code);
@@ -70,9 +75,7 @@ _read_args
 (
  int            argc,
  char         **argv,
- char         **config,     // filename for server ip adresses + ports
- int           *port_begin, // begin of port range
- int           *port_end    // end of port range
+ char         **config  // filename for server ip adresses + ports
 )
 {
   int i = 1;
@@ -90,23 +93,6 @@ _read_args
         _usage(EXIT_FAILURE);
       else {
         *config = argv[i];
-      }
-    }
-
-    else if (strcmp(argv[i], "-p") == 0) {
-
-      i++;
-      if (i >= argc)
-        _usage(EXIT_FAILURE);
-      else {
-        *port_begin = atoi(argv[i]);
-      }
-
-      i++;
-      if (i >= argc)
-        _usage(EXIT_FAILURE);
-      else {
-        *port_end = atoi(argv[i]);
       }
     }
 
@@ -131,14 +117,10 @@ main
 {
   // default
   char *config     = NULL;
-  int   port_begin = 49100;
-  int   port_end   = 49150;
 
   _read_args(argc,
              argv,
-             &config,
-             &port_begin,
-             &port_end);
+             &config);
 
   if (config == NULL) {
     config = (char *) "cwp_config_srv.txt";
@@ -153,53 +135,9 @@ main
   PDM_MPI_Comm_rank(comm, &i_rank);
   PDM_MPI_Comm_size(comm, &n_rank);
 
-  // port choice
-  PDM_MPI_Comm comm_node;
-  int i_rank_node;
-
-  PDM_MPI_Comm_split_type(comm, PDM_MPI_SPLIT_SHARED, &comm_node);
-  PDM_MPI_Comm_rank(comm_node, &i_rank_node);
-
-  int server_port = port_begin + i_rank_node;
-
-  // create server
-  p_server svr = malloc(sizeof(t_server));
-  if (CWP_server_create(server_port, CWP_SVRFLAG_VERBOSE, svr) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "Server creation failed\n");
-    return -1;
-  }
-
-  // write config file
-  // --> retreive host_name size
-  int  irank_host_name_size     = strlen(svr->host_name);
-  int *all_jrank_host_name_size = malloc(sizeof(int) * n_rank);
-
-  PDM_MPI_Allgather(&irank_host_name_size,
-                    1,
-                    PDM_MPI_INT,
-                    all_jrank_host_name_size,
-                    1,
-                    PDM_MPI_INT,
-                    comm);
-
-  int max_host_name_size = -1;
-  for (int i = 0; i < n_rank; i++) {
-    if (all_jrank_host_name_size[i] > max_host_name_size) {
-      max_host_name_size = all_jrank_host_name_size[i];
-    }
-  }
-
-  free(all_jrank_host_name_size);
-
-  // --> create format and data string
-  char format[99];
-  sprintf(format,"%s%d.%ds/%s9.9d\n", "%", max_host_name_size, max_host_name_size, "%");
-
-  char data[max_host_name_size + 12];
-  sprintf(data, format, svr->host_name, svr->port);
-
+  // read host_name and port from config file
   // --> open
-  PDM_io_file_t *write = NULL;
+  PDM_io_file_t *read = NULL;
   PDM_l_num_t    ierr;
 
   PDM_io_open(config,
@@ -207,42 +145,75 @@ main
               PDM_IO_SUFF_MAN,
               "",
               PDM_IO_BACKUP_OFF,
-              PDM_IO_KIND_MPI_SIMPLE, // PDM_IO_KIND_MPIIO_EO,
-              PDM_IO_MOD_WRITE,
+              PDM_IO_KIND_MPI_SIMPLE,
+              PDM_IO_MOD_READ,
               PDM_IO_NATIVE,
               comm,
               -1.,
-              &write,
+              &read,
               &ierr);
 
-  // --> global write of header
-  char  buf[99];
-  sprintf(buf, "FORMAT hostname/port\nSIZE %5.5ld\n", strlen(data)); // header_size = 30 char
+  // --> global read offset in header
+  char *buffer = malloc(CWP_HEADER_SIZE+1);
+  for (int i = 0; i < CWP_HEADER_SIZE; i++) {
+    buffer[i] = '\0';
+  }
 
-  size_t s_buf =  strlen(buf);
-  PDM_io_global_write(write,
-        (PDM_l_num_t) sizeof(char),
-        (PDM_l_num_t) s_buf,
-                      buf);
+  PDM_io_global_read(read,
+                     CWP_HEADER_SIZE * sizeof(char),
+                     1,
+                     buffer);
 
-  // --> block write of data
+  char div_line[] = "\n";
+  char *line = strtok(buffer, div_line);
+  line = strtok(NULL, div_line);
+
+  char div_word[] = " ";
+  char *word = strtok(line, div_word);
+  word = strtok(NULL, div_word);
+
+  int offset = atoi(word);
+
+  // --> block read hostname/port
+  char *data = malloc(offset+1);
+
+  for (int i = 0; i < offset+1; i++) {
+    data[i] = '\0';
+  }
+
   int one = 1;
   PDM_g_num_t i_rank_gnum = (PDM_g_num_t) (i_rank+1);
 
-  PDM_io_par_interlaced_write(write,
-                              PDM_STRIDE_CST_INTERLACED,
-              (PDM_l_num_t *) &one,
-                (PDM_l_num_t) strlen(data),
-                (PDM_l_num_t) one,
-                              &i_rank_gnum,
-               (const void *) data);
+  PDM_io_par_interlaced_read(read,
+                             PDM_STRIDE_CST_INTERLACED,
+             (PDM_l_num_t *) &one,
+               (PDM_l_num_t) offset,
+               (PDM_l_num_t) one,
+                             &i_rank_gnum,
+                             data);
+
+  char div[] = "/";
+  char *str = strtok(data, div);
+  char *server_name = malloc(strlen(str)+1);
+  memcpy(server_name, str, strlen(str));
+  str = strtok(NULL, div);
+  int server_port = atoi(str);
 
   // --> close
-  PDM_io_close(write);
-  PDM_io_free(write);
+  PDM_io_close(read);
+  PDM_io_free(read);
 
-  // shutdown server
-  CWP_server_kill(svr);
+  // client struct
+  p_client clt = malloc(sizeof(t_client));
+
+  // connect
+  if (CWP_client_connect(server_name, server_port, CWP_CLIENTFLAG_VERBOSE, clt) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "Client connexion failed\n");
+    return -1;
+  }
+
+  // disconnect
+  CWP_client_disconnect(clt);
 
   PDM_MPI_Finalize();
 
