@@ -83,7 +83,26 @@ typedef struct t_server
 }t_server,*p_server;
 
 /*=============================================================================
- * Public function interfaces
+ * Server CWIPI function interfaces
+ *============================================================================*/
+
+/**
+ * \brief Initialize CWIPI.
+ *
+ * \param [in]  p_client       Pointer on server data structure
+ * \param [in]  p_message      Pointer on message data structure
+ *
+ */
+
+void
+CWP_server_Init
+(
+  p_client                 srv,
+  p_message                msg
+);
+
+/*=============================================================================
+ * Server function interfaces
  *============================================================================*/
 
 /* Create a server */
@@ -102,6 +121,15 @@ int
 CWP_server_kill
 (
  p_server svr
+);
+
+/* Message handler */
+
+int
+CWP_server_msg_handler
+(
+ p_server svr,
+ p_message msg
 );
 
 /* Run a server */

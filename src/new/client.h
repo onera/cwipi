@@ -75,7 +75,46 @@ typedef struct t_client
 }t_client,*p_client;
 
 /*=============================================================================
- * Public function interfaces
+ * Client CWIPI function interfaces
+ *============================================================================*/
+
+/**
+ * \brief Initialize CWIPI.
+ *
+ * \param [in]  p_client       Pointer on client data structure
+ * \param [in]  n_code         Number of codes on the current rank
+ * \param [in]  code_names     Names of codes on the current rank (size = \p n_code)
+ * \param [in]  is_active_rank Is current rank have to be used by CWIPI (size = \p n_code)
+ * \param [in]  time_init      Initial time (size = \p n_code)
+ * \param [out] intra_comms    MPI intra communicators of each code (size = \p n_code)
+ *
+ */
+
+void
+CWP_client_Init
+(
+  p_client                 clt,
+  const int                n_code,
+  const char             **code_names,
+  const CWP_Status_t      *is_active_rank,
+  const double            *time_init,
+  MPI_Comm                *intra_comms
+);
+
+/**
+ *
+ * \brief Finalize CWIPI.
+ *
+ */
+
+ void
+CWP_client_Finalize
+(
+ void
+);
+
+/*=============================================================================
+ * Client function interfaces
  *============================================================================*/
 
 /* Connect to a server */

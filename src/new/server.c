@@ -50,8 +50,69 @@ extern "C" {
 #endif
 #endif /* __cplusplus */
 
+/*=============================================================================
+ * Server CWIPI function interfaces
+ *============================================================================*/
+
+void
+CWP_server_Init
+(
+  const MPI_Comm           global_comm,
+  p_client                 srv,
+  p_message                msg
+)
+{
+  int il_err;
+  MPI_Comm intra_comms;
+  int n_code;
+  int code_name_size;
+  const char         **code_names;
+  const CWP_Status_t  *is_active_rank;
+  const double        *time_init;
+
+  // receive data
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, n_code, sizeof(int));
+  code_names = malloc(n_code);
+  for (int i = 0; i < n_codes; i++) {
+    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &code_name_size, sizeof(int));
+    code_names[i] = malloc(code_name_size);
+    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) code_names[i], code_name_size);
+  }
+  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, is_active_rank, n_code * sizeof(int));
+  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, time_init, n_code * sizeof(double));
+
+  // launch CWP_Init
+  il_err = CWP_Init(global_comm,
+                    n_code,
+                    code_names,
+                    is_active_rank,
+                    time_init,
+                    &intra_comms);
+
+  // send intracomm
+  svr->state = CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,
+         &intra_comms, sizeof(int));
+
+  // send error code
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,
+         &il_err, sizeof(int));
+
+  // free
+  for (int i = 0; i < n_codes; i++) {
+    free(code_names[i]);
+  }
+  free(code_names);
+  free(is_active_rank);
+  free(time_init);
+
+  svr->state=PALMONIP_SVRSTATE_LISTENINGMSG;
+  return il_err;
+}
+
 /*============================================================================
- * Public function definitions
+ * Server function definitions
  *============================================================================*/
 
 /* Create a server */
@@ -162,6 +223,33 @@ CWP_server_kill
   return 0;
 }
 
+/* Message handler */
+
+int
+CWP_server_msg_handler
+(
+ p_server svr,
+ p_message msg
+)
+{
+
+  switch(msg->message_type) {
+
+  case CWP_MSG_DIE:
+    svr->state=CWP_SVRSTATE_TERMINATING;
+    if (svr->flags & CWP_SVRFLAG_VERBOSE ) {
+      log_trace("CWP:server recieved termination signal.\n");
+    }
+    break;
+
+  default:
+    PDM_error(__FILE__, __LINE__, 0, "Received unknown message type %i, terminating server\n", msg->message_type);
+    return -1;
+  }
+
+  return 0;
+}
+
 /* Run a server */
 
 int
@@ -172,6 +260,8 @@ CWP_server_run
 {
   struct sockaddr_in client_addr;
   socklen_t sin_size;
+  int il_sv_endian;
+  int il_cl_endian;
 
   // accept client connexion
   svr->connected_socket = accept(svr->listen_socket, (struct sockaddr *)&client_addr,&sin_size);
@@ -179,10 +269,48 @@ CWP_server_run
   // verbose
   if (svr->flags & CWP_SVRFLAG_VERBOSE) {
     log_trace("CWP:got a connection from %s:%d\n",
-     inet_ntoa(client_addr.sin_addr),ntohs(client_addr.sin_port));
+    inet_ntoa(client_addr.sin_addr),ntohs(client_addr.sin_port));
   }
 
-  // TO DO: see iplib_server
+  // endianess
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  if(CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,
+           &il_cl_endian,sizeof(int))!=0) {
+    PDM_error(__FILE__, __LINE__, 0, "Client endian read failed\n");
+    svr->state=CWP_SVRSTATE_LISTENINGMSG;
+    return -1;
+  }
+  il_cl_endian =  ntohl(il_cl_endian);
+
+  svr->client_endianess = il_cl_endian;
+
+  il_sv_endian = htonl(svr->server_endianess);
+
+  if(CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,
+           &il_sv_endian,sizeof(int))!=0) {
+    PDM_error(__FILE__, __LINE__, 0, "Server endian send failed\n");
+    svr->state=CWP_SVRSTATE_LISTENINGMSG;
+    return -1;
+  }
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+
+  if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+    log_trace("Server : client endian %i server indian %i\n",svr->client_endianess,svr->server_endianess);
+  }
+
+  while (svr->state != CWP_SVRSTATE_TERMINATING) {
+
+    transfer_readdata(svr->connected_socket,svr->max_msg_size,&msg, sizeof(t_message));
+
+    if (CWP_server_msg_handler(svr,&msg) != 0) {
+      PDM_error(__FILE__, __LINE__, 0, "Server message handling failed\n");
+      return -1;
+    }
+
+  }
+
+  return 0;
 }
 
 

@@ -39,6 +39,7 @@
 #include "client.h"
 #include "message.h"
 #include "transfer.h"
+#include "cwp.h"
 #include <pdm_error.h>
 #include <pdm_mpi.h>
 #include "pdm_logging.h"
@@ -50,8 +51,144 @@ extern "C" {
 #endif
 #endif /* __cplusplus */
 
+/*=============================================================================
+ * Private function interfaces
+ *============================================================================*/
+
+void  ip_swap_4bytes(char *f_bytes) {
+  char a,b;
+  if (sg_client->server_endianess == sg_client->client_endianess) {return;}
+  a =  f_bytes[0];
+  b =  f_bytes[1];
+  f_bytes[0] = f_bytes[3];
+  f_bytes[1] = f_bytes[2];
+  f_bytes[2] = b;
+  f_bytes[3] = a;
+  return;
+}
+
+void  ip_swap_8bytes(char *cd_h_bytes) {
+  char a,b,c,d;
+  if (sg_client->server_endianess == sg_client->client_endianess) {return;}
+  a =  cd_h_bytes[0];
+  b =  cd_h_bytes[1];
+  c =  cd_h_bytes[2];
+  d =  cd_h_bytes[3];
+  cd_h_bytes[0] = cd_h_bytes[7];
+  cd_h_bytes[1] = cd_h_bytes[6];
+  cd_h_bytes[2] = cd_h_bytes[5];
+  cd_h_bytes[3] = cd_h_bytes[4];
+  cd_h_bytes[4] = d;
+  cd_h_bytes[5] = c;
+  cd_h_bytes[6] = b;
+  cd_h_bytes[7] = a;
+  return;
+}
+
+void ip_swap_data_endian(char *data, const int datasize) {
+  int i;
+  if (sg_client->server_endianess == sg_client->client_endianess) {return;}
+
+  for (i=0 ; i<datasize; i=i+4) {
+    ip_swap_4bytes(&data[i]);
+  }
+  return;
+}
+
+/* convert message endian if client endianess different from server endianess */
+
+int CWP_client_send_msg(p_message msg) {
+
+  int data_size = sizeof(t_message);
+  if (sg_client->server_endianess != sg_client->client_endianess) {
+    ip_swap_4bytes((char *)&msg->message_type);
+    ip_swap_4bytes((char *)&msg->flag);
+    ip_swap_4bytes((char *)&msg->msg_tag);
+    ip_swap_4bytes((char *)&msg->msg_time);
+    ip_swap_4bytes((char *)&msg->data_size);
+    ip_swap_4bytes((char *)&msg->data1);
+    ip_swap_4bytes((char *)&msg->data2);
+    ip_swap_4bytes((char *)&msg->data3);
+  }
+  return transfer_writedata(sg_client->socket,sg_client->max_msg_size,(void*)msg,data_size);
+}
+
+int CWP_swap_endian_4bytes(int *data,const  int datasize) {
+  int i;
+  for (i=0 ; i<datasize; i++) {
+    ip_swap_4bytes((char*)&data[i]);
+  }
+  return 0;
+}
+
+int CWP_swap_endian_8bytes(double *data,const int datasize) {
+  int i;
+  for (i=0 ; i<datasize; i++) {
+    ip_swap_8bytes((char*)&data[i]);
+  }
+  return 0;
+}
+
+/*=============================================================================
+ * Client CWIPI function interfaces
+ *============================================================================*/
+
+void
+CWP_client_Init
+(
+  p_client                 clt,
+  const int                n_code,
+  const char             **code_names,
+  const CWP_Status_t      *is_active_rank,
+  const double            *time_init,
+  MPI_Comm                *intra_comms
+)
+{
+  t_message msg;
+  int il_err;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Init\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_PCW_INIT);
+
+  // send message
+  if (CWP_client_send_msg(&msg); != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Init failed to send message header\n");
+    return -1;
+  }
+
+  // endian swap
+  int endian_n_code         = n_code;
+  int endian_is_active_rank = is_active_rank;
+  double endian_time_init   = time_init;
+  CWP_swap_endian_4bytes(&endian_n_code, 1);
+  CWP_swap_endian_4bytes(&endian_is_active_rank, 1);
+  CWP_swap_endian_8bytes(&endian_time_init, 1);
+
+  // send arguments
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_code, sizeof(int));
+  for (int i = 0; i < n_codes; i++) {
+    int code_name_size = strlen(code_names[i]);
+    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &code_name_size, sizeof(int));
+    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) code_names, code_name_size);
+  }
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_is_active_rank, n_code * sizeof(int));
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_time_init, n_code * sizeof(double));
+
+  // receive intracomms (pointless ?)
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, intra_comms, sizeof(int));
+
+  // receive error code
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, &il_err, sizeof(int));
+  return il_err;
+}
+
 /*============================================================================
- * Public function definitions
+ * Client function definitions
  *============================================================================*/
 
 /* Connect to a server */
@@ -68,7 +205,7 @@ CWP_client_connect
   struct hostent *host;
   struct sockaddr_in server_addr;
   socklen_t d;
-  int ncl_endian;
+  int il_cl_endian;
 
   memset(clt,0,sizeof(t_client));
   strncpy(clt->server_name,server_name,sizeof(clt->server_name));
@@ -108,9 +245,9 @@ CWP_client_connect
 
   // exchange endianess
   clt->client_endianess = CWP_transfer_endian_machine();
-  ncl_endian = htonl(clt->client_endianess);
+  il_cl_endian = htonl(clt->client_endianess);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,
-         (void*)&ncl_endian,sizeof(int));
+         (void*)&il_cl_endian,sizeof(int));
   CWP_transfer_readdata(clt->socket,clt->max_msg_size,
            (void*)&clt->server_endianess,sizeof(int));
   clt->server_endianess = ntohl(clt->server_endianess);
@@ -140,7 +277,7 @@ CWP_client_disconnect
 
   NEWMESSAGE(msg, CWP_MSG_DIE);
 
-  // Palm_On_Ip_ClientSendMsg(&msg); // TO DO: send message to server
+  CWP_client_send_msg(&msg);
 
   // shutdown
 #ifdef WINDOWS

@@ -59,7 +59,11 @@ extern "C" {
 
 /* machine endianess */
 
-int CWP_transfer_endian_machine(void);
+int
+CWP_transfer_endian_machine
+(
+ void
+);
 
 /* read */
 

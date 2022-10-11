@@ -244,9 +244,6 @@ main
   // accept
   CWP_server_run(svr);
 
-  // TMP: sleep while client disconnect
-  sleep(180);
-
   // shutdown server
   CWP_server_kill(svr);
 
