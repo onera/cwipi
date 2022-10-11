@@ -147,13 +147,13 @@ CWP_KillServer
   }
 
   // shutdown
-  #ifdef WINDOWS
-    shutdown(svr->listen_socket,SD_BOTH);
-    shutdown(svr->connected_socket,SD_BOTH);
-  #else
-    shutdown(svr->listen_socket,SHUT_RDWR);
-    shutdown(svr->connected_socket,SHUT_RDWR);
-  #endif
+#ifdef WINDOWS
+  shutdown(svr->listen_socket,SD_BOTH);
+  shutdown(svr->connected_socket,SD_BOTH);
+#else
+  shutdown(svr->listen_socket,SHUT_RDWR);
+  shutdown(svr->connected_socket,SHUT_RDWR);
+#endif
 
   memset(svr,0,sizeof(t_server));
 

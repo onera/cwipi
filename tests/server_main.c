@@ -30,6 +30,7 @@
  *  Local headers
  *----------------------------------------------------------------------------*/
 
+#include "server.h"
 #include <pdm_error.h>
 #include <pdm_io.h>
 #include <pdm_mpi.h>
@@ -38,7 +39,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "pdm_logging.h"
-#include "server.h"
 #include "pdm_printf.h"
 
 #ifdef __cplusplus
