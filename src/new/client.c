@@ -138,10 +138,9 @@ CWP_client_disconnect
     log_trace("CWP:Client shutting down\n");
   }
 
-  // TO DO: send message to srv
-  // NEWMESSAGE(msg,PALMONIP_MSG_DIE);
+  NEWMESSAGE(msg, CWP_MSG_DIE);
 
-  Palm_On_Ip_ClientSendMsg(&msg);
+  // Palm_On_Ip_ClientSendMsg(&msg); // TO DO: send message to server
 
   // shutdown
 #ifdef WINDOWS

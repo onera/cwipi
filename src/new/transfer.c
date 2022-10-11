@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -46,7 +47,7 @@
 /* pour milli_sleep */
 #include <unistd.h>
 
-void milli_sleep(unsigned int milli_seconds) {
+static void milli_sleep(unsigned int milli_seconds) {
   usleep(milli_seconds*1000);
 }
 #endif
@@ -55,7 +56,7 @@ void milli_sleep(unsigned int milli_seconds) {
 /* pour milli_sleep */
 #include <windows.h>
 
-void milli_sleep(unsigned int milli_seconds) {
+static void milli_sleep(unsigned int milli_seconds) {
   Sleep(milli_seconds);
 }
 #endif
@@ -94,7 +95,7 @@ CWP_transfer_readdata
 (
  int   socket,
  int   batch_size,
- void* dataptr,
+ void* data_ptr,
  int   data_size
 )
 {
@@ -149,7 +150,7 @@ CWP_transfer_writedata
 (
  int   socket,
  int   batch_size,
- void* dataptr,
+ void* data_ptr,
  int   data_size
 )
 {

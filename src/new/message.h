@@ -39,6 +39,7 @@ extern "C" {
 #define CWP_MSG_MAXMSGSIZE 8192
 
 /* Request numbering for CWIPI mirror operations */
+#define CWP_MSG_DIE                             0
 
 /* Init an request */
 #define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}

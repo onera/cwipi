@@ -241,6 +241,12 @@ main
   PDM_io_close(write);
   PDM_io_free(write);
 
+  // accept
+  CWP_server_run(svr);
+
+  // TMP: sleep while client disconnect
+  sleep(180);
+
   // shutdown server
   CWP_server_kill(svr);
 

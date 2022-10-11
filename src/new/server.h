@@ -104,6 +104,14 @@ CWP_server_kill
  p_server svr
 );
 
+/* Run a server */
+
+int
+CWP_server_run
+(
+ p_server svr
+);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

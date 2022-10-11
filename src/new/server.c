@@ -162,6 +162,29 @@ CWP_server_kill
   return 0;
 }
 
+/* Run a server */
+
+int
+CWP_server_run
+(
+ p_server svr
+)
+{
+  struct sockaddr_in client_addr;
+  socklen_t sin_size;
+
+  // accept client connexion
+  svr->connected_socket = accept(svr->listen_socket, (struct sockaddr *)&client_addr,&sin_size);
+
+  // verbose
+  if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+    log_trace("CWP:got a connection from %s:%d\n",
+     inet_ntoa(client_addr.sin_addr),ntohs(client_addr.sin_port));
+  }
+
+  // TO DO: see iplib_server
+}
+
 
 #ifdef __cplusplus
 }
