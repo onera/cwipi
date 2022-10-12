@@ -106,10 +106,59 @@ CWP_client_Init
  *
  */
 
- void
+void
 CWP_client_Finalize
 (
  void
+);
+
+/**
+ *
+ * \brief Param_lock CWIPI.
+ *
+ * \param [in]  code_name  Code to lock
+ *
+ */
+
+void
+CWP_client_Param_lock
+(
+const char *code_name
+);
+
+/**
+ *
+ * \brief Param_unlock CWIPI.
+ *
+ * \param [in]  code_name  Code to unlock
+ *
+ */
+
+
+void
+CWP_client_Param_unlock
+(
+const char *code_name
+);
+
+/**
+ *
+ * \brief CWP_Param_add CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] param_name       Parameter name
+ * \param [in] data_type        Parameter type
+ * \param [in] initial_value    Initial value
+ *
+ */
+
+void
+CWP_client_Param_add
+(
+ const char        *local_code_name,
+ const char        *param_name,
+ const CWP_Type_t  data_type,
+ void              *initial_value
 );
 
 /*=============================================================================

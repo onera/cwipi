@@ -41,6 +41,10 @@ extern "C" {
 /* Request numbering for CWIPI mirror operations */
 #define CWP_MSG_DIE                             0
 #define CWP_MSG_CWP_INIT                        1
+#define CWP_MSG_CWP_FINALIZE                    2
+#define CWP_MSG_CWP_PARAM_LOCK                  3
+#define CWP_MSG_CWP_PARAM_UNLOCK                4
+#define CWP_MSG_CWP_PARAM_ADD                   5
 
 /* Init an request */
 #define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}

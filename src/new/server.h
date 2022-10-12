@@ -76,7 +76,8 @@ extern "C" {
 
 typedef struct t_server
 {
-  PDM_MPI_Comm comm; // struct pour stocker les datas internes à CWIPI
+  MPI_Comm global_comm;
+  MPI_Comm *intra_comms;
   int port;
   int state;
   int flags;
@@ -95,16 +96,68 @@ typedef struct t_server
 /**
  * \brief Initialize CWIPI.
  *
- * \param [in]  p_client       Pointer on server data structure
- * \param [in]  p_message      Pointer on message data structure
+ * \param [in]  p_server       Pointer on server data structure
  *
  */
 
 void
 CWP_server_Init
 (
-  p_server                 svr,
-  p_message                msg
+  p_server                 svr
+);
+
+/**
+ *
+ * \brief Finalize CWIPI.
+ *
+ */
+
+void
+CWP_server_Finalize
+(
+ void
+);
+
+/**
+ *
+ * \brief Param_lock CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Param_lock
+(
+ p_server                 svr
+);
+
+/**
+ *
+ * \brief Param_unlock CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Param_unlock
+(
+ p_server                 svr
+);
+
+/**
+ *
+ * \brief Param_add CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Param_add
+(
+ p_server                 svr
 );
 
 /*=============================================================================

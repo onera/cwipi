@@ -223,6 +223,9 @@ main
                   is_active_rank,
                   time_init);
 
+  // CWP_Finalize
+  CWP_client_Finalize();
+
   // disconnect
   CWP_client_disconnect();
 
