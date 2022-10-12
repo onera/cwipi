@@ -164,6 +164,7 @@ main
 
   // create server
   p_server svr = malloc(sizeof(t_server));
+  svr->comm = &comm; // TO DO: always COMM_WORLD?? is it the right input for cwipi??
   if (CWP_server_create(server_port, CWP_SVRFLAG_VERBOSE, svr) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "Server creation failed\n");
     return -1;

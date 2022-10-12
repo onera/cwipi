@@ -51,13 +51,17 @@ extern "C" {
 #endif
 #endif /* __cplusplus */
 
+/* pointeur on client structure */
+
+static t_client *clt;
+
 /*=============================================================================
  * Private function interfaces
  *============================================================================*/
 
 void  ip_swap_4bytes(char *f_bytes) {
   char a,b;
-  if (sg_client->server_endianess == sg_client->client_endianess) {return;}
+  if (clt->server_endianess == clt->client_endianess) {return;}
   a =  f_bytes[0];
   b =  f_bytes[1];
   f_bytes[0] = f_bytes[3];
@@ -69,7 +73,7 @@ void  ip_swap_4bytes(char *f_bytes) {
 
 void  ip_swap_8bytes(char *cd_h_bytes) {
   char a,b,c,d;
-  if (sg_client->server_endianess == sg_client->client_endianess) {return;}
+  if (clt->server_endianess == clt->client_endianess) {return;}
   a =  cd_h_bytes[0];
   b =  cd_h_bytes[1];
   c =  cd_h_bytes[2];
@@ -87,7 +91,7 @@ void  ip_swap_8bytes(char *cd_h_bytes) {
 
 void ip_swap_data_endian(char *data, const int datasize) {
   int i;
-  if (sg_client->server_endianess == sg_client->client_endianess) {return;}
+  if (clt->server_endianess == clt->client_endianess) {return;}
 
   for (i=0 ; i<datasize; i=i+4) {
     ip_swap_4bytes(&data[i]);
@@ -100,7 +104,7 @@ void ip_swap_data_endian(char *data, const int datasize) {
 int CWP_client_send_msg(p_message msg) {
 
   int data_size = sizeof(t_message);
-  if (sg_client->server_endianess != sg_client->client_endianess) {
+  if (clt->server_endianess != clt->client_endianess) {
     ip_swap_4bytes((char *)&msg->message_type);
     ip_swap_4bytes((char *)&msg->flag);
     ip_swap_4bytes((char *)&msg->msg_tag);
@@ -110,7 +114,7 @@ int CWP_client_send_msg(p_message msg) {
     ip_swap_4bytes((char *)&msg->data2);
     ip_swap_4bytes((char *)&msg->data3);
   }
-  return transfer_writedata(sg_client->socket,sg_client->max_msg_size,(void*)msg,data_size);
+  return CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*)msg,data_size);
 }
 
 int CWP_swap_endian_4bytes(int *data,const  int datasize) {
@@ -136,16 +140,13 @@ int CWP_swap_endian_8bytes(double *data,const int datasize) {
 void
 CWP_client_Init
 (
-  p_client                 clt,
   const int                n_code,
   const char             **code_names,
   const CWP_Status_t      *is_active_rank,
-  const double            *time_init,
-  MPI_Comm                *intra_comms
+  const double            *time_init
 )
 {
   t_message msg;
-  int il_err;
 
   // verbose
   if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
@@ -153,38 +154,35 @@ CWP_client_Init
   }
 
   // create message
-  NEWMESSAGE(msg, CWP_MSG_PCW_INIT);
+  NEWMESSAGE(msg, CWP_MSG_CWP_INIT);
 
   // send message
-  if (CWP_client_send_msg(&msg); != 0) {
+  if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Init failed to send message header\n");
-    return -1;
   }
 
   // endian swap
-  int endian_n_code         = n_code;
-  int endian_is_active_rank = is_active_rank;
-  double endian_time_init   = time_init;
+  int     endian_n_code         = n_code;
+  int     endian_code_name_size;
+  int    *endian_is_active_rank = malloc(sizeof(int) * n_code);
+  double *endian_time_init      = malloc(sizeof(double) * n_code);
+  memcpy(endian_is_active_rank, is_active_rank, sizeof(int) * n_code);
+  memcpy(endian_time_init, time_init, sizeof(double) * n_code);
   CWP_swap_endian_4bytes(&endian_n_code, 1);
-  CWP_swap_endian_4bytes(&endian_is_active_rank, 1);
-  CWP_swap_endian_8bytes(&endian_time_init, 1);
+  CWP_swap_endian_4bytes(endian_is_active_rank, 1);
+  CWP_swap_endian_8bytes(endian_time_init, 1);
 
   // send arguments
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_code, sizeof(int));
-  for (int i = 0; i < n_codes; i++) {
-    int code_name_size = strlen(code_names[i]);
-    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &code_name_size, sizeof(int));
-    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) code_names, code_name_size);
+  for (int i = 0; i < n_code; i++) {
+    int code_name_size = strlen(code_names[i])+1;
+    endian_code_name_size = code_name_size;
+    CWP_swap_endian_4bytes(&endian_code_name_size, 1);
+    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_code_name_size, sizeof(int));
+    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) code_names[i], code_name_size);
   }
-  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_is_active_rank, n_code * sizeof(int));
-  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_time_init, n_code * sizeof(double));
-
-  // receive intracomms (pointless ?)
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, intra_comms, sizeof(int));
-
-  // receive error code
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, &il_err, sizeof(int));
-  return il_err;
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_is_active_rank, n_code * sizeof(int));
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_time_init, n_code * sizeof(double));
 }
 
 /*============================================================================
@@ -198,8 +196,7 @@ CWP_client_connect
 (
  const char* server_name,
  int server_port,
- int flags,
- p_client clt
+ int flags
 )
 {
   struct hostent *host;
@@ -207,6 +204,7 @@ CWP_client_connect
   socklen_t d;
   int il_cl_endian;
 
+  clt = malloc(sizeof(t_client));
   memset(clt,0,sizeof(t_client));
   strncpy(clt->server_name,server_name,sizeof(clt->server_name));
   clt->server_port=server_port;
@@ -265,9 +263,7 @@ CWP_client_connect
 
 int
 CWP_client_disconnect
-(
- p_client clt
-)
+()
 {
   t_message msg;
 

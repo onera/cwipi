@@ -44,6 +44,11 @@
 #include <errno.h>
 #endif
 
+#include "cwp.h"
+#include "message.h"
+#include "client.h"
+#include <pdm_mpi.h>
+
 #ifdef __cplusplus
 extern "C" {
 #if 0
@@ -71,6 +76,7 @@ extern "C" {
 
 typedef struct t_server
 {
+  PDM_MPI_Comm comm; // struct pour stocker les datas internes à CWIPI
   int port;
   int state;
   int flags;
@@ -97,7 +103,7 @@ typedef struct t_server
 void
 CWP_server_Init
 (
-  p_client                 srv,
+  p_server                 svr,
   p_message                msg
 );
 

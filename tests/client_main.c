@@ -40,6 +40,7 @@
 #include <arpa/inet.h>
 #include "pdm_logging.h"
 #include "pdm_printf.h"
+#include "cwp.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -203,17 +204,27 @@ main
   PDM_io_close(read);
   PDM_io_free(read);
 
-  // client struct
-  p_client clt = malloc(sizeof(t_client));
-
   // connect
-  if (CWP_client_connect(server_name, server_port, CWP_CLIENTFLAG_VERBOSE, clt) != 0) {
+  if (CWP_client_connect(server_name, server_port, CWP_CLIENTFLAG_VERBOSE) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "Client connexion failed\n");
     return -1;
   }
 
+  // CWP_Init
+  int           n_code = 1;
+  char        **code_names = malloc(sizeof(char *) * n_code);
+  code_names[0] = "code1";
+  CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
+  is_active_rank[0] = CWP_STATUS_ON;
+  double       *time_init = malloc(sizeof(double) * n_code);
+  time_init[0] = 0.;
+  CWP_client_Init(n_code,
+                  (const char **) code_names,
+                  is_active_rank,
+                  time_init);
+
   // disconnect
-  CWP_client_disconnect(clt);
+  CWP_client_disconnect();
 
   PDM_MPI_Finalize();
 

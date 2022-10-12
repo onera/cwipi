@@ -37,6 +37,7 @@
  *----------------------------------------------------------------------------*/
 
 #include "server.h"
+#include "cwp.h"
 #include "message.h"
 #include "transfer.h"
 #include <pdm_error.h>
@@ -57,58 +58,53 @@ extern "C" {
 void
 CWP_server_Init
 (
-  const MPI_Comm           global_comm,
-  p_client                 srv,
+  p_server                 svr,
   p_message                msg
 )
 {
-  int il_err;
-  MPI_Comm intra_comms;
-  int n_code;
-  int code_name_size;
-  const char         **code_names;
-  const CWP_Status_t  *is_active_rank;
-  const double        *time_init;
+  int      n_code;
+  int      code_name_size;
+  char         **code_names = NULL;
+  CWP_Status_t  *is_active_rank = NULL;
+  double        *time_init = NULL;
 
   // receive data
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
-  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, n_code, sizeof(int));
-  code_names = malloc(n_code);
-  for (int i = 0; i < n_codes; i++) {
-    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &code_name_size, sizeof(int));
+  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &n_code, sizeof(int));
+  code_names = malloc(sizeof(char *) * n_code);
+  for (int i = 0; i < n_code; i++) {
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &code_name_size, sizeof(int));
     code_names[i] = malloc(code_name_size);
-    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) code_names[i], code_name_size);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) code_names[i], code_name_size);
   }
+  is_active_rank = malloc(sizeof(int) * n_code);
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, is_active_rank, n_code * sizeof(int));
+  time_init = malloc(sizeof(double) * n_code);
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, time_init, n_code * sizeof(double));
 
   // launch CWP_Init
-  il_err = CWP_Init(global_comm,
-                    n_code,
-                    code_names,
-                    is_active_rank,
-                    time_init,
-                    &intra_comms);
+  MPI_Comm *intra_comms = malloc(sizeof(MPI_Comm) * n_code);
+  CWP_Init(* ((MPI_Comm *) PDM_MPI_2_mpi_comm(svr->comm)),
+           n_code,
+           (const char **) code_names,
+           is_active_rank,
+           time_init,
+           intra_comms); // stocker
 
-  // send intracomm
-  svr->state = CWP_SVRSTATE_SENDPGETDATA;
-  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,
-         &intra_comms, sizeof(int));
-
-  // send error code
-  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,
-         &il_err, sizeof(int));
+  // verbose
+  if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+    CWP_Properties_dump();
+  }
 
   // free
-  for (int i = 0; i < n_codes; i++) {
+  for (int i = 0; i < n_code; i++) {
     free(code_names[i]);
   }
   free(code_names);
   free(is_active_rank);
   free(time_init);
 
-  svr->state=PALMONIP_SVRSTATE_LISTENINGMSG;
-  return il_err;
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
 /*============================================================================
@@ -232,14 +228,33 @@ CWP_server_msg_handler
  p_message msg
 )
 {
+  // verbose
+  if (svr->flags & CWP_SVRFLAG_VERBOSE ) {
+    log_trace("CWP: Received msg->message_type: %d\n", msg->message_type);
+  }
 
   switch(msg->message_type) {
 
   case CWP_MSG_DIE:
     svr->state=CWP_SVRSTATE_TERMINATING;
+
+    // verbose
     if (svr->flags & CWP_SVRFLAG_VERBOSE ) {
-      log_trace("CWP:server recieved termination signal.\n");
+      log_trace("CWP: server recieved termination signal\n");
     }
+
+    break;
+
+  case CWP_MSG_CWP_INIT:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE ) {
+      log_trace("CWP: server received CWP_Init signal\n");
+    }
+
+    // launch
+    CWP_server_Init(svr, msg); // TO DO: cwipi_init can't fail? no err output
+
     break;
 
   default:
@@ -299,9 +314,11 @@ CWP_server_run
     log_trace("Server : client endian %i server indian %i\n",svr->client_endianess,svr->server_endianess);
   }
 
+  t_message msg;
+
   while (svr->state != CWP_SVRSTATE_TERMINATING) {
 
-    transfer_readdata(svr->connected_socket,svr->max_msg_size,&msg, sizeof(t_message));
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,&msg, sizeof(t_message));
 
     if (CWP_server_msg_handler(svr,&msg) != 0) {
       PDM_error(__FILE__, __LINE__, 0, "Server message handling failed\n");
