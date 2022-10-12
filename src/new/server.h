@@ -160,6 +160,20 @@ CWP_server_Param_add
  p_server                 svr
 );
 
+/**
+ *
+ * \brief Param_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Param_get
+(
+ p_server                 svr
+);
+
 /*=============================================================================
  * Server function interfaces
  *============================================================================*/

@@ -164,7 +164,7 @@ main
 
   // create server
   p_server svr = malloc(sizeof(t_server));
-  svr->comm = * ((MPI_Comm *) PDM_MPI_2_mpi_comm(svr->comm));
+  svr->global_comm = * ((MPI_Comm *) PDM_MPI_2_mpi_comm(comm));
   if (CWP_server_create(server_port, CWP_SVRFLAG_VERBOSE, svr) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "Server creation failed\n");
     return -1;

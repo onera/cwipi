@@ -161,6 +161,26 @@ CWP_client_Param_add
  void              *initial_value
 );
 
+/**
+ *
+ * \brief CWP_Param_get CWIPI.
+ *
+ * \param [in]  code_name  Local or distant code name
+ * \param [in]  param_name Parameter name
+ * \param [in]  data_type  Parameter type
+ * \param [out] value      Parameter value
+ *
+ */
+
+void
+CWP_client_Param_get
+(
+ const char       *code_name,
+ const char       *param_name,
+ const CWP_Type_t  data_type,
+ void             *value
+);
+
 /*=============================================================================
  * Client function interfaces
  *============================================================================*/

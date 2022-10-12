@@ -57,11 +57,19 @@ extern "C" {
 
 // --> wrapper
 
-void read_name(char *name) {
+static void read_name(char *name,  p_server svr) {
   int name_size;
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &name_size, sizeof(int));
+  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) &name_size, sizeof(int));
   name = malloc(name_size);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) name, code_name_size);
+  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) name, name_size);
+}
+
+static void write_name(char * name, p_server svr) {
+  int name_size = strlen(name);
+  int endian_name_size = name_size;
+  CWP_swap_endian_4bytes(&endian_name_size, 1);
+  CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, (void*) &endian_name_size, sizeof(int));
+  CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, (void*) name, name_size);
 }
 
 /*=============================================================================
@@ -86,7 +94,7 @@ CWP_server_Init
   code_names = malloc(sizeof(char *) * n_code);
   for (int i = 0; i < n_code; i++) {
     code_names[i] = NULL;
-    read_name(code_names[i]);
+    read_name(code_names[i], svr);
   }
   is_active_rank = malloc(sizeof(int) * n_code);
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, is_active_rank, n_code * sizeof(int));
@@ -100,7 +108,7 @@ CWP_server_Init
            (const char **) code_names,
            is_active_rank,
            time_init,
-           intra_comms); // stocker
+           svr->intra_comms);
 
 
   // verbose
@@ -132,7 +140,7 @@ CWP_server_Param_lock
 )
 {
   char *code_name = NULL;
-  read_name(code_name);
+  read_name(code_name, svr);
 
   CWP_Param_lock((const char *) code_name);
 
@@ -145,7 +153,7 @@ CWP_server_Param_unlock
 )
 {
   char *code_name = NULL;
-  read_name(code_name);
+  read_name(code_name, svr);
 
   CWP_Param_unlock((const char *) code_name);
 
@@ -159,45 +167,99 @@ CWP_server_Param_add
 {
   // read local code name
   char *local_code_name = NULL;
-  read_name(local_code_name);
+  read_name(local_code_name, svr);
 
   // read param name
   char *param_name = NULL;
-  read_name(param_name);
+  read_name(param_name, svr);
 
   // read initial value
-  void initial_value;
   int data_type = -1;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &data_type, sizeof(int));
 
   switch (data_type) {
 
-  case CWP_DOUBLE:
+  case CWP_DOUBLE: ;
     double double_initial_value;
     CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &double_initial_value, sizeof(double));
-    initial_value = (void) double_initial_value;
+    CWP_Param_add(local_code_name,
+                  param_name,
+                  data_type,
+                  &double_initial_value);
     break;
 
-  case CWP_INT:
+  case CWP_INT: ;
     double int_initial_value;
     CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &int_initial_value, sizeof(int));
-    initial_value = (void) int_initial_value;
+    CWP_Param_add(local_code_name,
+                  param_name,
+                  data_type,
+                  &int_initial_value);
     break;
 
-  case CWP_CHAR:
+  case CWP_CHAR: ;
     char *char_initial_value = NULL;
-    read_name(char_initial_value);
-    initial_value = (void) char_initial_value;
+    read_name(char_initial_value, svr);
+    CWP_Param_add(local_code_name,
+                  param_name,
+                  data_type,
+                  &char_initial_value);
     break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0, "Received unknown CWP_Type_t %i\n", data_type);
   }
 
+}
+
+void
+CWP_server_Param_get
+(
+ p_server                 svr
+)
+{
+  // read local code name
+  char *local_code_name = NULL;
+  read_name(local_code_name, svr);
+
+  // read param name
+  char *param_name = NULL;
+  read_name(param_name, svr);
+
+  // read initial value
+  void *value;
+  int data_type = -1;
+  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &data_type, sizeof(int));
+
+  // launch
   CWP_Param_add(local_code_name,
                 param_name,
                 data_type,
-                &initial_value);
+                value);
+
+  // send value
+  switch (data_type) {
+
+  case CWP_DOUBLE: ;
+    double endian_double_value = * ((double*) value);
+    CWP_swap_endian_8bytes(&endian_double_value, 1);
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,(void*) &endian_double_value, sizeof(double));
+    break;
+
+  case CWP_INT: ;
+    int endian_int_value = * ((int *) value);
+    CWP_swap_endian_4bytes(&endian_int_value, 1);
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,(void*) &endian_int_value, sizeof(int));
+    break;
+
+  case CWP_CHAR:
+    write_name((char *) value, svr);
+    break;
+
+  default:
+    PDM_error(__FILE__, __LINE__, 0, "Received unknown CWP_Type_t %i\n", data_type);
+  }
+
 }
 
 /*============================================================================
@@ -395,6 +457,18 @@ CWP_server_msg_handler
 
     // launch
     CWP_server_Param_add(svr);
+
+    break;
+
+  case CWP_MSG_CWP_PARAM_GET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Param_get signal\n");
+    }
+
+    // launch
+    CWP_server_Param_get(svr);
 
     break;
 
