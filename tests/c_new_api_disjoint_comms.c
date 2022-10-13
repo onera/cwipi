@@ -314,8 +314,10 @@ main
   // exchDirection[0] = CWP_FIELD_EXCH_SEND;
   // exchDirection[1] = CWP_FIELD_EXCH_RECV;
 
-  bool cond_code1 = rank == 1 || rank == 2;
-  bool cond_code2 = rank == 0 || rank == 2;
+  // bool cond_code1 = rank == 1 || rank == 2;
+  // bool cond_code2 = rank == 0 || rank == 2;
+  bool cond_code1 = rank == 0;
+  bool cond_code2 = rank == 1;
   exchDirection[0] = CWP_FIELD_EXCH_SEND;
   exchDirection[1] = CWP_FIELD_EXCH_RECV;
 

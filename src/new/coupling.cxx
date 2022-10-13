@@ -555,6 +555,7 @@ namespace cwipi {
       int codeID    = localCodePropertiesGet()->idGet();
       int cplCodeID = coupledCodePropertiesGet()->idGet();
 
+      int sir_s2 = 0;
       if (_n_step == 0) {
 
         std::string localFieldsName="";
@@ -723,7 +724,7 @@ namespace cwipi {
         int sis_s = (int) _spatial_interp_send.size();
 
         vector<CWP_Dof_location_t> sis_loc;
-        sis_loc.resize(2*sis_s);
+        sis_loc.reserve(2*sis_s);
 
         std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = _spatial_interp_send.begin();
         while(sis_it != _spatial_interp_send.end()) {
@@ -747,7 +748,7 @@ namespace cwipi {
         int sir_s = (int) _spatial_interp_recv.size();
 
         vector<CWP_Dof_location_t> sir_loc;
-        sir_loc.resize(2*sir_s);
+        sir_loc.reserve(2*sir_s);
 
         std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sir_it = _spatial_interp_recv.begin();
         while(sir_it != _spatial_interp_recv.end()) {
@@ -771,8 +772,12 @@ namespace cwipi {
 
         assert(sir_r == sis_s);
 
+//        vector<CWP_Dof_location_t>        sis_loc_r;
+        sir_s2 = sir_s;
+
         _sis_loc_r.resize(2*sir_s);
 
+//        printf("_sis_loc_r[0] - 0 : %d\n", (int) sis_loc_r[0]);
 
         _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
                                                                    2*sis_s,
@@ -783,6 +788,7 @@ namespace cwipi {
                                                                    (void *) &(_sis_loc_r[0]),
                                                                    -1,
                                                                    NULL);
+//        printf("_sis_loc_r[0] - 1 : %d\n", (int) _sis_loc_r[0]);
 
         vector<CWP_Dof_location_t> sir_loc_r;
         sir_loc_r.resize(2*sis_s);
@@ -810,7 +816,13 @@ namespace cwipi {
 
         // spatial_interp recv
 
-        for (int i = 0; i < (int) (_sis_loc_r.size()/2); i++) {
+        printf("_sis_loc_r[0] - 2 : %d %d\n", (int) _sis_loc_r.size(), sir_s2);
+        if (_sis_loc_r.size() > 0) {
+          printf("_sis_loc_r[0] - 2 : %d %d\n", (int) _sis_loc_r[0] , (int) _sis_loc_r[1]);
+        }
+
+        for (int i = 0; i < sir_s2; i++) {
+        // for (int i = 0; i < (int) (_sis_loc_r.size()/2); i++) {
           _spatial_interp_recv[make_pair(_sis_loc_r[2*i+1], _sis_loc_r[2*i])]->weightsCompute();
         }
 
@@ -820,7 +832,14 @@ namespace cwipi {
 
         // spatial_interp recv
 
+        printf("_sis_loc_r[0] - 3 : %d %d\n", (int) _sis_loc_r.size(), sir_s2);
+        if (_sis_loc_r.size() > 0) {
+          printf("_sis_loc_r[0] - 3 : %d %d\n", (int) _sis_loc_r[0] , (int) _sis_loc_r[1]);
+        }
+
         for (int i = 0; i < (int) (_sis_loc_r.size()/2); i++) {
+          printf("_spatial_interp_recv.size() 2 : %d\n", (int) _spatial_interp_recv.size());
+          printf("_sis_loc_r[0] - 4 : %d %d\n", (int) _sis_loc_r[2*i] , (int) _sis_loc_r[2*i+1]);
           _spatial_interp_recv[make_pair(_sis_loc_r[2*i+1], _sis_loc_r[2*i])]->weightsCompute();
         }
 
@@ -885,7 +904,7 @@ namespace cwipi {
           cpl_localFieldsNameIdx.push_back(0);
 
           std::vector<CWP_Field_exch_t> cpl_localFieldsExch;
-          cpl_localFieldsExch.reserve(cpl_localNbField);
+          cpl_localFieldsExch.reservespatialInterpWeightsCompute(cpl_localNbField);
 
           std::vector<CWP_Dof_location_t> cpl_localFieldLocationV;
           cpl_localFieldLocationV.reserve(cpl_localNbField);
@@ -1092,7 +1111,7 @@ namespace cwipi {
           int sis_s = (int) _spatial_interp_send.size();
 
           vector<CWP_Dof_location_t> sis_loc;
-          sis_loc.resize(2*sis_s);
+          sis_loc.reserve(2*sis_s);
 
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sis_it = _spatial_interp_send.begin();
           while(sis_it != _spatial_interp_send.end()) {
@@ -1104,7 +1123,7 @@ namespace cwipi {
           int cpl_sis_s = (int) cpl_cpl._spatial_interp_send.size();
 
           vector<CWP_Dof_location_t> cpl_sis_loc;
-          cpl_sis_loc.resize(2*cpl_sis_s);
+          cpl_sis_loc.reserve(2*cpl_sis_s);
 
           sis_it = cpl_cpl._spatial_interp_send.begin();
           while(sis_it != cpl_cpl._spatial_interp_send.end()) {
@@ -1129,7 +1148,7 @@ namespace cwipi {
           int sir_s = (int) _spatial_interp_recv.size();
     
           vector<CWP_Dof_location_t> sir_loc;
-          sir_loc.resize(2*sis_r);
+          sir_loc.reserve(2*sis_r);
     
           std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator sir_it = _spatial_interp_recv.begin();
           while(sir_it != _spatial_interp_recv.end()) {
@@ -1141,7 +1160,7 @@ namespace cwipi {
           int cpl_sir_s = (int) cpl_cpl._spatial_interp_recv.size();
     
           vector<CWP_Dof_location_t> cpl_sir_loc;
-          cpl_sir_loc.resize(2*cpl_sir_s);
+          cpl_sir_loc.reserve(2*cpl_sir_s);
     
           sir_it = cpl_cpl._spatial_interp_recv.begin();
           while(sir_it != cpl_cpl._spatial_interp_recv.end()) {
@@ -1311,7 +1330,7 @@ namespace cwipi {
 
     string visuDir = "cwipi";
     string output_dir = visuDir+"/"+cplId+"_"+CodeName+"_"+cplCodeName;
-    string output_dir_tmp = visuDir+"2/"+cplId+"_"+CodeName+"_"+cplCodeName;
+    string output_dir_tmp = visuDir+"_writer/"+cplId+"_"+CodeName+"_"+cplCodeName;
 
     int rank;
 
