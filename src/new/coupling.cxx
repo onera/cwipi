@@ -904,7 +904,7 @@ namespace cwipi {
           cpl_localFieldsNameIdx.push_back(0);
 
           std::vector<CWP_Field_exch_t> cpl_localFieldsExch;
-          cpl_localFieldsExch.reservespatialInterpWeightsCompute(cpl_localNbField);
+          cpl_localFieldsExch.reserve(cpl_localNbField);
 
           std::vector<CWP_Dof_location_t> cpl_localFieldLocationV;
           cpl_localFieldLocationV.reserve(cpl_localNbField);
