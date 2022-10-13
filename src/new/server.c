@@ -57,11 +57,11 @@ extern "C" {
 
 // --> wrapper
 
-static void read_name(char *name,  p_server svr) {
+static void read_name(char **name,  p_server svr) {
   int name_size;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) &name_size, sizeof(int));
-  name = malloc(name_size);
-  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) name, name_size);
+  *name = realloc(*name, name_size);
+  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) *name, name_size);
 }
 
 static void write_name(char * name, p_server svr) {
@@ -82,8 +82,7 @@ CWP_server_Init
   p_server                 svr
 )
 {
-  int      n_code;
-  int      code_name_size;
+  int            n_code;
   char         **code_names = NULL;
   CWP_Status_t  *is_active_rank = NULL;
   double        *time_init = NULL;
@@ -91,10 +90,15 @@ CWP_server_Init
   // receive data
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &n_code, sizeof(int));
+
+  if (n_code > 1) {
+    PDM_error(__FILE__, __LINE__, 0, "CWIPI client-server not implemented yet for n_code > 1\n");
+  }
+
   code_names = malloc(sizeof(char *) * n_code);
   for (int i = 0; i < n_code; i++) {
-    code_names[i] = NULL;
-    read_name(code_names[i], svr);
+    code_names[i] = malloc(sizeof(char));
+    read_name(&code_names[i], svr);
   }
   is_active_rank = malloc(sizeof(int) * n_code);
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, is_active_rank, n_code * sizeof(int));
@@ -110,11 +114,20 @@ CWP_server_Init
            time_init,
            svr->intra_comms);
 
+  // wait all ranks have receive msg
+  log_trace("wait at barrier\n");
+  MPI_Barrier(svr->intra_comms[0]);
+  log_trace("passed barrier\n");
 
   // verbose
   if (svr->flags & CWP_SVRFLAG_VERBOSE) {
     CWP_Properties_dump();
   }
+
+  // wait all ranks have receive msg
+  log_trace("wait at barrier\n");
+  MPI_Barrier(svr->intra_comms[0]);
+  log_trace("passed barrier\n");
 
   // free
   for (int i = 0; i < n_code; i++) {
@@ -128,9 +141,18 @@ CWP_server_Init
 }
 
 void
-CWP_server_Finalize()
+CWP_server_Finalize
+(
+ p_server                 svr
+)
 {
+  // wait all ranks have receive msg
+  log_trace("wait at barrier\n");
+  MPI_Barrier(svr->intra_comms[0]);
+  log_trace("passed barrier\n");
+
   CWP_Finalize();
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
 void
@@ -139,11 +161,18 @@ CWP_server_Param_lock
  p_server                 svr
 )
 {
-  char *code_name = NULL;
-  read_name(code_name, svr);
+  // wait all ranks have receive msg
+  log_trace("wait at barrier\n");
+  MPI_Barrier(svr->intra_comms[0]);
+  log_trace("passed barrier\n");
 
+  // launch
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *code_name = malloc(sizeof(char));
+  read_name(&code_name, svr);
   CWP_Param_lock((const char *) code_name);
 
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
 void
@@ -152,11 +181,19 @@ CWP_server_Param_unlock
  p_server                 svr
 )
 {
-  char *code_name = NULL;
-  read_name(code_name, svr);
+  // wait all ranks have receive msg
+  log_trace("wait at barrier\n");
+  MPI_Barrier(svr->intra_comms[0]);
+  log_trace("passed barrier\n");
+
+  // launch
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *code_name = malloc(sizeof(char));
+  read_name(&code_name, svr);
 
   CWP_Param_unlock((const char *) code_name);
 
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
 void
@@ -165,13 +202,19 @@ CWP_server_Param_add
  p_server                 svr
 )
 {
+  // wait all ranks have receive msg
+  log_trace("wait at barrier\n");
+  MPI_Barrier(svr->intra_comms[0]);
+  log_trace("passed barrier\n");
+
   // read local code name
-  char *local_code_name = NULL;
-  read_name(local_code_name, svr);
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
 
   // read param name
-  char *param_name = NULL;
-  read_name(param_name, svr);
+  char *param_name = malloc(sizeof(char));
+  read_name(&param_name, svr);
 
   // read initial value
   int data_type = -1;
@@ -198,8 +241,8 @@ CWP_server_Param_add
     break;
 
   case CWP_CHAR: ;
-    char *char_initial_value = NULL;
-    read_name(char_initial_value, svr);
+    char *char_initial_value = malloc(sizeof(char));
+    read_name(&char_initial_value, svr);
     CWP_Param_add(local_code_name,
                   param_name,
                   data_type,
@@ -210,6 +253,7 @@ CWP_server_Param_add
     PDM_error(__FILE__, __LINE__, 0, "Received unknown CWP_Type_t %i\n", data_type);
   }
 
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
 void
@@ -219,12 +263,13 @@ CWP_server_Param_get
 )
 {
   // read local code name
-  char *local_code_name = NULL;
-  read_name(local_code_name, svr);
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
 
   // read param name
-  char *param_name = NULL;
-  read_name(param_name, svr);
+  char *param_name = malloc(sizeof(char));
+  read_name(&param_name, svr);
 
   // read initial value
   void *value;
@@ -232,12 +277,13 @@ CWP_server_Param_get
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &data_type, sizeof(int));
 
   // launch
-  CWP_Param_add(local_code_name,
+  CWP_Param_get(local_code_name,
                 param_name,
                 data_type,
                 value);
 
   // send value
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
   switch (data_type) {
 
   case CWP_DOUBLE: ;
@@ -260,6 +306,7 @@ CWP_server_Param_get
     PDM_error(__FILE__, __LINE__, 0, "Received unknown CWP_Type_t %i\n", data_type);
   }
 
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
 /*============================================================================
@@ -271,6 +318,7 @@ CWP_server_Param_get
 int
 CWP_server_create
 (
+ MPI_Comm global_comm,
  int server_port,
  int flags,
  p_server svr
@@ -281,6 +329,7 @@ CWP_server_create
   int true=1;
 
   memset(svr,0,sizeof(t_server));
+  svr->global_comm      = global_comm;
   svr->port             = server_port;
   svr->flags            = flags;
   svr->server_endianess = CWP_transfer_endian_machine();
@@ -305,6 +354,7 @@ CWP_server_create
   }
 
   // set maximum message size
+  // TO DO: memset or strncpy to avoid uninitialised byte(s)?
   getsockopt(svr->listen_socket, SOL_SOCKET, SO_RCVBUF, (char*)&svr->max_msg_size, &d);
   svr->max_msg_size = CWP_MSG_MAXMSGSIZE;
 
@@ -383,11 +433,6 @@ CWP_server_msg_handler
  p_message msg
 )
 {
-  // verbose
-  if (svr->flags & CWP_SVRFLAG_VERBOSE) {
-    log_trace("CWP: Received msg->message_type: %d\n", msg->message_type);
-  }
-
   switch(msg->message_type) {
 
   case CWP_MSG_DIE:
@@ -420,7 +465,7 @@ CWP_server_msg_handler
     }
 
     // launch
-    CWP_server_Finalize();
+    CWP_server_Finalize(svr);
 
     break;
 
@@ -530,6 +575,7 @@ CWP_server_run
   }
 
   t_message msg;
+  int count = 0;
 
   while (svr->state != CWP_SVRSTATE_TERMINATING) {
 
@@ -539,6 +585,8 @@ CWP_server_run
       PDM_error(__FILE__, __LINE__, 0, "Server message handling failed\n");
       return -1;
     }
+
+    count++;
 
   }
 

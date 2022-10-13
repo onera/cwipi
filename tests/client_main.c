@@ -227,6 +227,7 @@ main
   int toto = 42;
   CWP_client_Param_lock("code1");
   CWP_client_Param_add("code1", "toto", CWP_INT, &toto);
+  CWP_client_Param_unlock("code1");
   int titi;
   CWP_client_Param_get("code1", "toto", CWP_INT, &titi);
   log_trace("code 1 : toto : %d\n", titi);

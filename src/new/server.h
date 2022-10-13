@@ -115,7 +115,7 @@ CWP_server_Init
 void
 CWP_server_Finalize
 (
- void
+ p_server                 svr
 );
 
 /**
@@ -183,6 +183,7 @@ CWP_server_Param_get
 int
 CWP_server_create
 (
+ MPI_Comm global_comm,
  int server_port,
  int flags,
  p_server svr

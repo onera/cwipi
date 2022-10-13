@@ -61,7 +61,7 @@ static t_client *clt;
 
 // --> wrapper
 
-static void write_name(char * name) {
+static void write_name(const char * name) {
   int name_size = strlen(name);
   int endian_name_size = name_size;
   CWP_swap_endian_4bytes(&endian_name_size, 1);
@@ -69,11 +69,11 @@ static void write_name(char * name) {
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) name, name_size);
 }
 
-static void read_name(char *name) {
+static void read_name(char **name) {
   int name_size;
   CWP_transfer_readdata(clt->socket,clt->max_msg_size,(void*) &name_size, sizeof(int));
-  name = malloc(name_size);
-  CWP_transfer_readdata(clt->socket,clt->max_msg_size,(void*) name, name_size);
+  *name = realloc(*name, name_size);
+  CWP_transfer_readdata(clt->socket,clt->max_msg_size,(void*) *name, name_size);
 }
 
 // --> endianness
@@ -377,8 +377,8 @@ CWP_client_Param_get
     break;
 
   case CWP_CHAR: ;
-    char *char_value = NULL;
-    read_name(char_value);
+    char *char_value = malloc(sizeof(char));
+    read_name(&char_value);
     memcpy(value, char_value, strlen(char_value));
     break;
 
