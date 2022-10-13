@@ -248,7 +248,6 @@ CWP_server_Param_get
  p_server                 svr
 )
 {
-
   // wait all ranks have receive msg
   MPI_Barrier(svr->intra_comms[0]);
 
@@ -305,6 +304,85 @@ CWP_server_Param_get
   }
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Cpl_create
+(
+ p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read code name
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read coupled code name
+  char *coupled_code_name = malloc(sizeof(char));
+  read_name(&coupled_code_name, svr);
+
+  // read entities dimension
+  int entities_dim;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &entities_dim, sizeof(int));
+
+  // read communication type
+  int comm_type;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &comm_type, sizeof(int));
+
+  // read spatial interpolation
+  int spatial_interp;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &spatial_interp, sizeof(int));
+
+  // read number of partitions
+  int n_part;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_part, sizeof(int));
+
+  // read displacement type
+  int displacement;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &displacement, sizeof(int));
+
+  // read time exchange type
+  int recv_freq_type;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &recv_freq_type, sizeof(int));
+
+  // launch
+  CWP_Cpl_create(local_code_name,
+                 cpl_id,
+                 coupled_code_name,
+                 entities_dim,
+                 comm_type,
+                 spatial_interp,
+                 n_part,
+                 displacement,
+                 recv_freq_type);
+}
+
+void
+CWP_server_Cpl_del
+(
+ p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read code name
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // launch
+  CWP_Cpl_del(local_code_name,
+              cpl_id);
 }
 
 /*============================================================================
@@ -512,6 +590,30 @@ CWP_server_msg_handler
 
     // launch
     CWP_server_Param_get(svr);
+
+    break;
+
+  case CWP_MSG_CWP_CPL_CREATE:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Cpl_create signal\n");
+    }
+
+    // launch
+    CWP_server_Cpl_create(svr);
+
+    break;
+
+  case CWP_MSG_CWP_CPL_DEL:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Cpl_del signal\n");
+    }
+
+    // launch
+    CWP_server_Cpl_del(svr);
 
     break;
 

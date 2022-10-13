@@ -49,6 +49,9 @@ extern "C" {
 #define CWP_MSG_CWP_PARAM_ADD                   5
 #define CWP_MSG_CWP_PARAM_GET                   6
 
+#define CWP_MSG_CWP_CPL_CREATE                  7
+#define CWP_MSG_CWP_CPL_DEL                     8
+
 /* Init an request */
 #define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}
 

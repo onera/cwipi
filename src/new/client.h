@@ -143,7 +143,7 @@ const char *code_name
 
 /**
  *
- * \brief CWP_Param_add CWIPI.
+ * \brief Param_add CWIPI.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] param_name       Parameter name
@@ -163,7 +163,7 @@ CWP_client_Param_add
 
 /**
  *
- * \brief CWP_Param_get CWIPI.
+ * \brief Param_get CWIPI.
  *
  * \param [in]  code_name  Local or distant code name
  * \param [in]  param_name Parameter name
@@ -180,6 +180,51 @@ CWP_client_Param_get
  const CWP_Type_t  data_type,
  void             *value
 );
+
+/**
+ * \brief Cpl_create CWIPI.
+ *
+ * \param [in]  local_code_name     Local code name
+ * \param [in]  cpl_id              Coupling identifier
+ * \param [in]  coupled_code_name   Distant or local coupled code name
+ * \param [in]  comm_type           Communication type
+ * \param [in]  spatial_interp      Spatial interpolation method
+ * \param [in]  n_part              Number of interface partition
+ * \param [in]  displacement        Mesh moving status
+ * \param [in]  recv_freq_type      Type of receiving frequency
+ *
+ */
+
+void
+CWP_client_Cpl_create
+(
+ const char                *local_code_name,
+ const char                *cpl_id,
+ const char                *coupled_code_name,
+ CWP_Interface_t            entities_dim,
+ const CWP_Comm_t           comm_type,
+ const CWP_Spatial_interp_t spatial_interp,
+ const int                  n_part,
+ const CWP_Dynamic_mesh_t   displacement,
+ const CWP_Time_exch_t      recv_freq_type
+);
+
+/**
+ *
+ * \brief Cpl_del CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ *
+ */
+
+void
+CWP_client_Cpl_del
+(
+ const char *local_code_name,
+ const char *cpl_id
+);
+
 
 /*=============================================================================
  * Client function interfaces

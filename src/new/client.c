@@ -339,7 +339,7 @@ CWP_client_Param_get
  void             *value
 )
 {
-    t_message msg;
+  t_message msg;
 
   // verbose
   if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
@@ -354,7 +354,7 @@ CWP_client_Param_get
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_get failed to send message header\n");
   }
 
-  // send local code name
+  // send code name
   write_name(code_name);
 
   // send param name
@@ -386,6 +386,104 @@ CWP_client_Param_get
     PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i\n", data_type);
   }
 
+}
+
+void
+CWP_client_Cpl_create
+(
+ const char                *local_code_name,
+ const char                *cpl_id,
+ const char                *coupled_code_name,
+ CWP_Interface_t            entities_dim,
+ const CWP_Comm_t           comm_type,
+ const CWP_Spatial_interp_t spatial_interp,
+ const int                  n_part,
+ const CWP_Dynamic_mesh_t   displacement,
+ const CWP_Time_exch_t      recv_freq_type
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Cpl_create\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_CPL_CREATE);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Cpl_create failed to send message header\n");
+  }
+
+  // send code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send coupled code name
+  write_name(coupled_code_name);
+
+  // send entities dimension
+  int endian_entities_dim = entities_dim;
+  CWP_swap_endian_4bytes(&endian_entities_dim, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_entities_dim, sizeof(int));
+
+  // send communication type
+  int endian_comm_type = comm_type;
+  CWP_swap_endian_4bytes(&endian_comm_type, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_comm_type, sizeof(int));
+
+  // send spatial interpolation
+  int endian_spatial_interp = spatial_interp;
+  CWP_swap_endian_4bytes(&endian_spatial_interp, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_spatial_interp, sizeof(int));
+
+  // send number of partitions
+  int endian_n_part = n_part;
+  CWP_swap_endian_4bytes(&endian_n_part, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_part, sizeof(int));
+
+  // send displacement type
+  int endian_displacement = displacement;
+  CWP_swap_endian_4bytes(&endian_displacement, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_displacement, sizeof(int));
+
+  // send time exchange type
+  int endian_recv_freq_type = recv_freq_type;
+  CWP_swap_endian_4bytes(&endian_recv_freq_type, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_recv_freq_type, sizeof(int));
+}
+
+void
+CWP_client_Cpl_del
+(
+ const char *local_code_name,
+ const char *cpl_id
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Cpl_create\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_CPL_CREATE);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Cpl_create failed to send message header\n");
+  }
+
+  // send code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
 }
 
 /*============================================================================

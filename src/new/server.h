@@ -174,6 +174,34 @@ CWP_server_Param_get
  p_server                 svr
 );
 
+/**
+ *
+ * \brief Cpl_create CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Cpl_create
+(
+ p_server                 svr
+);
+
+/**
+ *
+ * \brief Cpl_del CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Cpl_del
+(
+ p_server                 svr
+);
+
 /*=============================================================================
  * Server function interfaces
  *============================================================================*/
