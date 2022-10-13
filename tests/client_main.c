@@ -211,17 +211,36 @@ main
   }
 
   // CWP_Init
-  int           n_code = 1;
-  char        **code_names = malloc(sizeof(char *) * n_code);
-  code_names[0] = "code1";
-  CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
-  is_active_rank[0] = CWP_STATUS_ON;
-  double       *time_init = malloc(sizeof(double) * n_code);
-  time_init[0] = 0.;
+  int n_code = 0;
+  const char **code_names = NULL;
+  double *times_init = NULL;
+  CWP_Status_t *is_coupled_rank = NULL;
+
+  if (i_rank == 0) {
+    n_code = 1;
+    code_names = malloc(sizeof(char *) * n_code);
+    code_names[0] = "code1";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
+    is_coupled_rank[0] = CWP_STATUS_ON;
+  }
+
+  if (i_rank == 1) {
+    n_code = 1;
+    code_names = malloc(sizeof(char *) * n_code);
+    code_names[0] = "code2";
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
+    is_coupled_rank[0] = CWP_STATUS_ON;
+  }
+
+  times_init = malloc(sizeof(double) * n_code);
+  for (int i = 0 ; i < n_code ; i++) {
+    times_init[i] = 0;
+  }
+
   CWP_client_Init(n_code,
                   (const char **) code_names,
-                  is_active_rank,
-                  time_init);
+                  is_coupled_rank,
+                  times_init);
 
   // CWP_Param_*
   int toto = 42;
@@ -232,13 +251,48 @@ main
   CWP_client_Param_get("code1", "toto", CWP_INT, &titi);
   printf("code 1 : toto : %d\n", titi);
 
-  CWP_client_Param_lock("code1");
+  CWP_client_Param_lock("code2");
   const char *A = "Bonjour code 1 !";
-  CWP_client_Param_add("code1", "toto2", CWP_CHAR, &A);
-  CWP_client_Param_unlock("code1");
+  CWP_client_Param_add("code2", "toto2", CWP_CHAR, &A);
+  CWP_client_Param_unlock("code2");
   const char *titi2;
-  CWP_client_Param_get("code1", "toto2", CWP_CHAR, &titi2);
-  printf("code 1 : toto2 : %s\n", titi2);
+  CWP_client_Param_get("code2", "toto2", CWP_CHAR, &titi2);
+  printf("code 2 : toto2 : %s\n", titi2);
+
+  char cpl_id1[] = "cpl1_code1_code2";
+  CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
+
+  if (i_rank == 0) {
+    CWP_client_Cpl_create("code1",
+                          cpl_id1,
+                          "code2",
+                          CWP_INTERFACE_VOLUME,
+                          CWP_COMM_PAR_WITH_PART,
+                          interp_method,
+                          1,
+                          CWP_DYNAMIC_MESH_STATIC,
+                          CWP_TIME_EXCH_USER_CONTROLLED);
+  }
+
+  if (i_rank == 1) {
+    CWP_client_Cpl_create("code2",
+                          cpl_id1,
+                          "code1",
+                          CWP_INTERFACE_VOLUME,
+                          CWP_COMM_PAR_WITH_PART,
+                          interp_method,
+                          1,
+                          CWP_DYNAMIC_MESH_STATIC,
+                          CWP_TIME_EXCH_USER_CONTROLLED);
+  }
+
+  if (i_rank == 0) {
+    CWP_client_Cpl_del("code1", cpl_id1);
+  }
+
+  if (i_rank == 1) {
+    CWP_client_Cpl_del("code2", cpl_id1);
+  }
 
   // CWP_Finalize
   CWP_client_Finalize();

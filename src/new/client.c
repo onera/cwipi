@@ -468,15 +468,15 @@ CWP_client_Cpl_del
 
   // verbose
   if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Cpl_create\n");
+    log_trace("CWP:Client initiating CWP_Cpl_del\n");
   }
 
   // create message
-  NEWMESSAGE(msg, CWP_MSG_CWP_CPL_CREATE);
+  NEWMESSAGE(msg, CWP_MSG_CWP_CPL_DEL);
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Cpl_create failed to send message header\n");
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Cpl_del failed to send message header\n");
   }
 
   // send code name
