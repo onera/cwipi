@@ -65,9 +65,9 @@ static void read_name(char **name,  p_server svr) {
 }
 
 static void write_name(char * name, p_server svr) {
-  int name_size = strlen(name);
+  int name_size = strlen(name) + 1; // +1 for "\0"
   int endian_name_size = name_size;
-  CWP_swap_endian_4bytes(&endian_name_size, 1);
+  // CWP_swap_endian_4bytes(&endian_name_size, 1); // TO DO: mandatory ?
   CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, (void*) &endian_name_size, sizeof(int));
   CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, (void*) name, name_size);
 }
@@ -115,19 +115,12 @@ CWP_server_Init
            svr->intra_comms);
 
   // wait all ranks have receive msg
-  log_trace("wait at barrier\n");
   MPI_Barrier(svr->intra_comms[0]);
-  log_trace("passed barrier\n");
 
   // verbose
   if (svr->flags & CWP_SVRFLAG_VERBOSE) {
     CWP_Properties_dump();
   }
-
-  // wait all ranks have receive msg
-  log_trace("wait at barrier\n");
-  MPI_Barrier(svr->intra_comms[0]);
-  log_trace("passed barrier\n");
 
   // free
   for (int i = 0; i < n_code; i++) {
@@ -147,9 +140,7 @@ CWP_server_Finalize
 )
 {
   // wait all ranks have receive msg
-  log_trace("wait at barrier\n");
   MPI_Barrier(svr->intra_comms[0]);
-  log_trace("passed barrier\n");
 
   CWP_Finalize();
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
@@ -162,14 +153,13 @@ CWP_server_Param_lock
 )
 {
   // wait all ranks have receive msg
-  log_trace("wait at barrier\n");
   MPI_Barrier(svr->intra_comms[0]);
-  log_trace("passed barrier\n");
 
   // launch
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
   char *code_name = malloc(sizeof(char));
   read_name(&code_name, svr);
+
   CWP_Param_lock((const char *) code_name);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
@@ -182,9 +172,7 @@ CWP_server_Param_unlock
 )
 {
   // wait all ranks have receive msg
-  log_trace("wait at barrier\n");
   MPI_Barrier(svr->intra_comms[0]);
-  log_trace("passed barrier\n");
 
   // launch
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -203,9 +191,7 @@ CWP_server_Param_add
 )
 {
   // wait all ranks have receive msg
-  log_trace("wait at barrier\n");
   MPI_Barrier(svr->intra_comms[0]);
-  log_trace("passed barrier\n");
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -262,6 +248,10 @@ CWP_server_Param_get
  p_server                 svr
 )
 {
+
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
   char *local_code_name = malloc(sizeof(char));
@@ -271,35 +261,43 @@ CWP_server_Param_get
   char *param_name = malloc(sizeof(char));
   read_name(&param_name, svr);
 
-  // read initial value
-  void *value;
+  // read value data_type
   int data_type = -1;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &data_type, sizeof(int));
-
-  // launch
-  CWP_Param_get(local_code_name,
-                param_name,
-                data_type,
-                value);
 
   // send value
   svr->state=CWP_SVRSTATE_SENDPGETDATA;
   switch (data_type) {
 
   case CWP_DOUBLE: ;
-    double endian_double_value = * ((double*) value);
-    CWP_swap_endian_8bytes(&endian_double_value, 1);
+    double double_value;
+    CWP_Param_get(local_code_name,
+                  param_name,
+                  data_type,
+                  &double_value);
+    double endian_double_value = double_value;
+    // CWP_swap_endian_8bytes(&endian_double_value, 1); TO DO: mandatory here?
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,(void*) &endian_double_value, sizeof(double));
     break;
 
   case CWP_INT: ;
-    int endian_int_value = * ((int *) value);
-    CWP_swap_endian_4bytes(&endian_int_value, 1);
+    int int_value;
+    CWP_Param_get(local_code_name,
+                  param_name,
+                  data_type,
+                  &int_value);
+    int endian_int_value = int_value;
+    // CWP_swap_endian_4bytes(&endian_int_value, 1); TO DO: mandatory here?
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,(void*) &endian_int_value, sizeof(int));
     break;
 
-  case CWP_CHAR:
-    write_name((char *) value, svr);
+  case CWP_CHAR: ;
+    char *char_value = malloc(sizeof(char));
+    CWP_Param_get(local_code_name,
+                  param_name,
+                  data_type,
+                  &char_value);
+    write_name(char_value, svr);
     break;
 
   default:

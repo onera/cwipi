@@ -230,15 +230,15 @@ main
   CWP_client_Param_unlock("code1");
   int titi;
   CWP_client_Param_get("code1", "toto", CWP_INT, &titi);
-  log_trace("code 1 : toto : %d\n", titi);
+  printf("code 1 : toto : %d\n", titi);
 
   CWP_client_Param_lock("code1");
   const char *A = "Bonjour code 1 !";
   CWP_client_Param_add("code1", "toto2", CWP_CHAR, &A);
   CWP_client_Param_unlock("code1");
   const char *titi2;
-  CWP_Param_get("code1", "toto2", CWP_CHAR, &titi2);
-  log_trace("code 1 : toto2 : %s\n", titi2);
+  CWP_client_Param_get("code1", "toto2", CWP_CHAR, &titi2);
+  printf("code 1 : toto2 : %s\n", titi2);
 
   // CWP_Finalize
   CWP_client_Finalize();

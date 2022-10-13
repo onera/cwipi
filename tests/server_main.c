@@ -241,6 +241,14 @@ main
   PDM_io_close(write);
   PDM_io_free(write);
 
+  // verbose
+  MPI_Barrier(* ((MPI_Comm *) PDM_MPI_2_mpi_comm(comm)));
+  if (i_rank == 0) {
+    printf("----------------------------------------------------------------------------\n");
+    printf("All servers listening and cwipi config file created. You may connect clients\n");
+    printf("----------------------------------------------------------------------------\n");
+  }
+
   // accept
   CWP_server_run(svr);
 

@@ -62,7 +62,7 @@ static t_client *clt;
 // --> wrapper
 
 static void write_name(const char * name) {
-  int name_size = strlen(name);
+  int name_size = strlen(name) + 1;  // +1 for "\0"
   int endian_name_size = name_size;
   CWP_swap_endian_4bytes(&endian_name_size, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_name_size, sizeof(int));
