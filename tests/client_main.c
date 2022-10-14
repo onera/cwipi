@@ -243,18 +243,23 @@ main
                   times_init);
 
   // CWP_Param_*
-  int toto = 42;
-  CWP_client_Param_lock("code1");
-  CWP_client_Param_add("code1", "toto", CWP_INT, &toto);
-  CWP_client_Param_unlock("code1");
+  if (i_rank == 0) {
+    int toto = 42;
+    CWP_client_Param_lock("code1");
+    CWP_client_Param_add("code1", "toto", CWP_INT, &toto);
+    CWP_client_Param_unlock("code1");
+  }
+
+  if (i_rank == 1) {
+    CWP_client_Param_lock("code2");
+    const char *A = "Bonjour code 1 !";
+    CWP_client_Param_add("code2", "toto2", CWP_CHAR, &A);
+    CWP_client_Param_unlock("code2");
+  }
+
   int titi;
   CWP_client_Param_get("code1", "toto", CWP_INT, &titi);
   printf("code 1 : toto : %d\n", titi);
-
-  CWP_client_Param_lock("code2");
-  const char *A = "Bonjour code 1 !";
-  CWP_client_Param_add("code2", "toto2", CWP_CHAR, &A);
-  CWP_client_Param_unlock("code2");
   const char *titi2;
   CWP_client_Param_get("code2", "toto2", CWP_CHAR, &titi2);
   printf("code 2 : toto2 : %s\n", titi2);
