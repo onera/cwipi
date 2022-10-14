@@ -48,9 +48,15 @@ extern "C" {
 #define CWP_MSG_CWP_PARAM_UNLOCK                4
 #define CWP_MSG_CWP_PARAM_ADD                   5
 #define CWP_MSG_CWP_PARAM_GET                   6
+#define CWP_MSG_CWP_PARAM_SET                   7
+#define CWP_MSG_CWP_PARAM_DEL                   8
+#define CWP_MSG_CWP_PARAM_N_GET                 9
+#define CWP_MSG_CWP_PARAM_LIST_GET              10
+#define CWP_MSG_CWP_PARAM_IS                    11
+#define CWP_MSG_CWP_PARAM_REDUCE                12
 
-#define CWP_MSG_CWP_CPL_CREATE                  7
-#define CWP_MSG_CWP_CPL_DEL                     8
+#define CWP_MSG_CWP_CPL_CREATE                  13
+#define CWP_MSG_CWP_CPL_DEL                     14
 
 /* Init an request */
 #define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}

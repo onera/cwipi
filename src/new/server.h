@@ -176,6 +176,96 @@ CWP_server_Param_get
 
 /**
  *
+ * \brief Param_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Param_set
+(
+ p_server                 svr
+);
+
+
+/**
+ *
+ * \brief Param_del CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Param_del
+(
+ p_server                 svr
+);
+
+
+/**
+ *
+ * \brief Param_n_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Param_n_get
+(
+ p_server                 svr
+);
+
+
+/**
+ *
+ * \brief Param_list_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Param_list_get
+(
+ p_server                 svr
+);
+
+
+/**
+ *
+ * \brief Param_is CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Param_is
+(
+ p_server                 svr
+);
+
+
+/**
+ *
+ * \brief Param_reduce CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Param_reduce
+(
+ p_server                 svr
+);
+
+
+/**
+ *
  * \brief Cpl_create CWIPI.
  *
  * \param [in]  p_server       Pointer on server data structure
@@ -200,6 +290,872 @@ void
 CWP_server_Cpl_del
 (
  p_server                 svr
+);
+
+/**
+ * \brief State_update CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_State_update
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Time_update CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Time_update
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Output_file_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Output_file_set
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief User_structure_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_User_structure_set
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief User_structure_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_User_structure_get
+(
+  p_server                 svr
+);
+
+/**
+ * \brief State_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_State_get
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Codes_nb_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Codes_nb_get
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Codes_list_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Codes_list_get
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Loc_codes_nb_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Loc_codes_nb_get
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Loc_codes_list_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Loc_codes_list_get
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Properties_dump CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Properties_dump
+(
+  p_server                 svr
+);
+
+/**
+ *
+ * \brief N_uncomputed_tgts_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_N_uncomputed_tgts_get
+(
+  p_server                 svr
+);
+
+
+/**
+ *
+ * \brief Uncomputed_tgts_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Uncomputed_tgts_get
+(
+  p_server                 svr
+);
+
+/**
+ *
+ * \brief N_computed_tgts_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_N_computed_tgts_get
+(
+  p_server                 svr
+);
+
+/**
+ *
+ * \brief Computed_tgts_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Computed_tgts_get
+(
+  p_server                 svr
+);
+
+
+/**
+ *
+ * \brief N_involved_srcs_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_N_involved_srcs_get
+(
+  p_server                 svr
+);
+
+
+/**
+ *
+ * \brief Involved_srcs_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Involved_srcs_get
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Spatial_interp_weights_compute CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Spatial_interp_weights_compute
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Spatial_interp_property_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Spatial_interp_property_set
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Visu_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Visu_set
+(
+  p_server                 svr
+);
+
+/**
+ * \brief SUser_tgt_pts_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_User_tgt_pts_set
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Mesh_interf_finalize CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_finalize
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Mesh_interf_vtx_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_vtx_set
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Mesh_interf_block_add CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_block_add
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Mesh_interf_block_std_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_block_std_set
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Mesh_interf_block_std_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_block_std_get
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Mesh_interf_f_poly_block_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_f_poly_block_set
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Mesh_interf_f_poly_block_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_f_poly_block_get
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Mesh_interf_c_poly_block_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_c_poly_block_set
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Mesh_interf_c_poly_block_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_c_poly_block_get
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Mesh_interf_del CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_del
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Mesh_interf_from_cellface_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_from_cellface_set
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Mesh_interf_from_faceedge_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_from_faceedge_set
+(
+  p_server                 svr
+);
+
+/**
+ *
+ * \brief Field_create CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Field_create
+(
+  p_server                 svr
+);
+
+
+/**
+ *
+ * \brief Field_data_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Field_data_set
+(
+  p_server                 svr
+);
+
+/**
+ *
+ * \brief Field_n_component_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Field_n_component_get
+(
+  p_server                 svr
+);
+
+/**
+ *
+ * \brief Field_target_dof_location_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Field_target_dof_location_get
+(
+  p_server                 svr
+);
+
+/**
+ *
+ * \brief Field_storage_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Field_storage_get
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Field_del CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Field_del
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Field_issend CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Field_issend
+(
+  p_server                 svr
+);
+
+/**
+ *
+ * \brief Field_irecv CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Field_irecv
+(
+  p_server                 svr
+);
+
+/**
+ *
+ * \brief Field_wait_issend CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Field_wait_issend
+(
+  p_server                 svr
+);
+
+
+/**
+ *
+ * \brief Field_wait_irecv CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Field_wait_irecv
+(
+  p_server                 svr
+);
+
+/**
+ *
+ * \brief Interp_from_location_unset CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Interp_from_location_unset
+(
+  p_server                 svr
+);
+
+
+/**
+ *
+ * \brief Interp_from_location_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Interp_from_location_set
+(
+  p_server                 svr
+);
+
+/*=============================================================================
+ * Client CWIPI function interfaces that are not implemented yet
+ *============================================================================*/
+
+/**
+ * \brief Mesh_interf_h_order_block_set CWIPI. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_h_order_block_set
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Mesh_interf_h_order_block_get CWIPI. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_h_order_block_get
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Cpl_trans_init CWIPI. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Cpl_trans_init
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Cpl_trans_update CWIPI. <b>(Not implemented yet)</b>
+  *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Cpl_trans_update
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Cpl_rotation_init CWIPI. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Cpl_rotation_init
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Cpl_rotation_update CWIPI. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Cpl_rotation_update
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Cpl_storage_properties_set CWIPI. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Cpl_storage_properties_set
+(
+  p_server                 svr
+);
+
+
+/**
+ *
+ * \brief Interp_from_intersect_set CWIPI. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Interp_from_intersect_set
+(
+  p_server                 svr
+);
+
+/**
+ *
+ * \brief Interp_from_closest_pts_set CWIPI. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Interp_from_closest_pts_set
+(
+  p_server                 svr
+);
+
+
+
+/**
+ * \brief Computed_tgts_dist_to_spatial_interp_get CWIPI. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Computed_tgts_dist_to_spatial_interp_get
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Recv_freq_set CWIPI. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Recv_freq_set
+(
+  p_server                 svr
+);
+
+/**
+ * \brief next_recv_time_set CWIPI. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_next_recv_time_set
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Cpl_time_step_set CWIPI. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Cpl_time_step_set
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Field_exch CWIPI. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Field_exch
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Mesh_interf_shared_pdm_nodal CWIPI. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+
+void
+CWP_server_Mesh_interf_shared_pdm_nodal
+(
+  p_server                 svr
+);
+
+
+/**
+ *
+ * \brief Field_data_type_get CWIPI.  <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Field_data_type_get
+(
+  p_server                 svr
+);
+
+
+/**
+ *
+ * \brief Field_gradient_data_set CWIPI. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Field_gradient_data_set
+(
+  p_server                 svr
 );
 
 /*=============================================================================
