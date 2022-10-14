@@ -839,15 +839,15 @@ CWP_client_State_get
 
   // verbose
   if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_State_update\n");
+    log_trace("CWP:Client initiating CWP_State_get\n");
   }
 
   // create message
-  NEWMESSAGE(msg, CWP_MSG_CWP_STATE_UPDATE);
+  NEWMESSAGE(msg, CWP_MSG_CWP_STATE_GET);
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_State_update failed to send message header\n");
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_State_get failed to send message header\n");
   }
 
   // send code name
@@ -858,6 +858,128 @@ CWP_client_State_get
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &state, sizeof(int));
 
   return state;
+}
+
+int
+CWP_client_Codes_nb_get
+(
+ void
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Codes_nb_get\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_CODES_NB_GET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Codes_nb_get failed to send message header\n");
+  }
+
+  // read nb_codes
+  int nb_codes = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_codes, sizeof(int));
+
+  return nb_codes;
+}
+
+const char **
+CWP_client_Codes_list_get
+(
+void
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Codes_list_get\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_CODES_LIST_GET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Codes_list_get failed to send message header\n");
+  }
+
+  // read code names
+  int nb_codes = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_codes, sizeof(int));
+  char **code_names = malloc(nb_codes);
+  for (int i = 0; i < nb_codes; i++) {
+    code_names[i] = malloc(sizeof(char));
+    read_name(code_names[i]);
+  }
+
+  return code_names;
+}
+
+int
+CWP_client_Loc_codes_nb_get
+(
+ void
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Loc_codes_nb_get\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_LOC_CODES_NB_GET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Loc_codes_nb_get failed to send message header\n");
+  }
+
+  // read nb_codes
+  int nb_local_codes = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_local_codes, sizeof(int));
+
+  return nb_local_codes;
+}
+
+const char **
+CWP_client_Loc_codes_list_get
+(
+ void
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Loc_codes_list_get\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_LOC_CODES_LIST_GET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Loc_codes_list_get failed to send message header\n");
+  }
+
+  // read code names
+  int nb_local_codes = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_local_codes, sizeof(int));
+  char **code_local_names = malloc(nb_local_codes);
+  for (int i = 0; i < nb_local_codes; i++) {
+    code_local_names[i] = malloc(sizeof(char));
+    read_name(code_local_names[i]);
+  }
+
+  return code_local_names;
 }
 
 /*============================================================================

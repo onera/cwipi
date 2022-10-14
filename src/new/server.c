@@ -704,6 +704,94 @@ CWP_server_State_get
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
+void
+CWP_server_Codes_nb_get
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // launch
+  int nb_codes = CWP_Codes_nb_get();
+
+  // send number of codes
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &nb_codes, sizeof(int));
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Codes_list_get
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // get number of codes
+  int nb_codes = CWP_Codes_nb_get();
+
+  // send number of codes
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &nb_codes, sizeof(int));
+
+  // launch
+  const char **code_names = CWP_Loc_codes_list_get();
+  for (int i = 0; i < nb_codes; i++) {
+    write_name(code_names[i], svr);
+  }
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Loc_codes_nb_get
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // launch
+  int nb_local_codes = CWP_Loc_codes_nb_get();
+
+  // send number of codes
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &nb_local_codes, sizeof(int));
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Loc_codes_list_get
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // get number of codes
+  int nb_local_codes = CWP_Loc_codes_nb_get();
+
+  // send number of codes
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &nb_local_codes, sizeof(int));
+
+  // launch
+  const char **local_code_names = CWP_Loc_codes_list_get();
+  for (int i = 0; i < nb_local_codes; i++) {
+    write_name(local_code_names[i], svr);
+  }
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
 /*============================================================================
  * Server function definitions
  *============================================================================*/
@@ -1051,6 +1139,54 @@ CWP_server_msg_handler
 
     // launch
     CWP_server_State_get(svr);
+
+    break;
+
+  case CWP_MSG_CWP_CODES_NB_GET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Codes_nb_get signal\n");
+    }
+
+    // launch
+    CWP_server_Codes_nb_get(svr);
+
+    break;
+
+  case CWP_MSG_CWP_CODES_LIST_GET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Codes_list_get signal\n");
+    }
+
+    // launch
+    CWP_server_Codes_list_get(svr);
+
+    break;
+
+  case CWP_MSG_CWP_LOC_CODES_NB_GET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Loc_Codes_nb_get signal\n");
+    }
+
+    // launch
+    CWP_server_Loc_Codes_nb_get(svr);
+
+    break;
+
+  case CWP_MSG_CWP_LOC_CODES_LIST_GET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Loc_Codes_list_get signal\n");
+    }
+
+    // launch
+    CWP_server_Loc_Codes_list_get(svr);
 
     break;
 

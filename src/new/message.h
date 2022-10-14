@@ -63,6 +63,10 @@ extern "C" {
 #define CWP_MSG_CWP_STATE_UPDATE                17
 #define CWP_MSG_CWP_TIME_UPDATE                 18
 #define CWP_MSG_CWP_STATE_GET                   19
+#define CWP_MSG_CWP_CODES_NB_GET                20
+#define CWP_MSG_CWP_CODES_LIST_GET              21
+#define CWP_MSG_CWP_LOC_CODES_NB_GET            22
+#define CWP_MSG_CWP_LOC_CODES_LIST_GET          23
 
 /* Init an request */
 #define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}
