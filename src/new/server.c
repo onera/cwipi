@@ -117,11 +117,6 @@ CWP_server_Init
   // wait all ranks have receive msg
   MPI_Barrier(svr->intra_comms[0]);
 
-  // verbose
-  if (svr->flags & CWP_SVRFLAG_VERBOSE) {
-    CWP_Properties_dump();
-  }
-
   // free
   for (int i = 0; i < n_code; i++) {
     free(code_names[i]);
@@ -307,6 +302,195 @@ CWP_server_Param_get
 }
 
 void
+CWP_server_Param_set
+(
+ p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read param name
+  char *param_name = malloc(sizeof(char));
+  read_name(&param_name, svr);
+
+  // read initial value
+  int data_type = -1;
+  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &data_type, sizeof(int));
+
+  switch (data_type) {
+
+  case CWP_DOUBLE: ;
+    double double_initial_value;
+    CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &double_initial_value, sizeof(double));
+    CWP_Param_set(local_code_name,
+                  param_name,
+                  data_type,
+                  &double_initial_value);
+    break;
+
+  case CWP_INT: ;
+    double int_initial_value;
+    CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &int_initial_value, sizeof(int));
+    CWP_Param_set(local_code_name,
+                  param_name,
+                  data_type,
+                  &int_initial_value);
+    break;
+
+  case CWP_CHAR: ;
+    char *char_initial_value = malloc(sizeof(char));
+    read_name(&char_initial_value, svr);
+    CWP_Param_set(local_code_name,
+                  param_name,
+                  data_type,
+                  &char_initial_value);
+    break;
+
+  default:
+    PDM_error(__FILE__, __LINE__, 0, "Received unknown CWP_Type_t %i\n", data_type);
+  }
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Param_del
+(
+ p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read param name
+  char *param_name = malloc(sizeof(char));
+  read_name(&param_name, svr);
+
+  // read initial value
+  int data_type = -1;
+  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &data_type, sizeof(int));
+
+  // launch
+  CWP_Param_del(local_code_name,
+                param_name,
+                data_type);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Param_n_get
+(
+ p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *code_name = malloc(sizeof(char));
+  read_name(&code_name, svr);
+
+  // read initial value
+  int data_type = -1;
+  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &data_type, sizeof(int));
+
+  // launch
+  int n_param = CWP_Param_n_get(code_name,
+                                data_type);
+
+  // send n_param
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &n_param, sizeof(int));
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Param_list_get
+(
+ p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *code_name = malloc(sizeof(char));
+  read_name(&code_name, svr);
+
+  // read initial value
+  int data_type = -1;
+  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &data_type, sizeof(int));
+
+  // launch
+  int nParam = -1;
+  char **paramNames = NULL;
+  CWP_Param_list_get(code_name,
+                     data_type
+                     &nParam,
+                     &paramNames);
+
+  // send nParam
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &nParam, sizeof(int));
+
+  // send paramNames
+  for (int i = 0; i < nParam; i++) {
+    write_name(paramNames[i]);
+  }
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Param_is
+(
+ p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *code_name = malloc(sizeof(char));
+  read_name(&code_name, svr);
+
+  // read param name
+  char *param_name = malloc(sizeof(char));
+  read_name(&param_name, svr);
+
+  // read initial value
+  int data_type = -1;
+  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &data_type, sizeof(int));
+
+  // launch
+  int is_param = CWP_Param_is(code_name,
+                              param_name,
+                              data_type);
+
+  // send is_param
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &is_param, sizeof(int));
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
 CWP_server_Cpl_create
 (
  p_server                 svr
@@ -316,6 +500,7 @@ CWP_server_Cpl_create
   MPI_Barrier(svr->intra_comms[0]);
 
   // read code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
   char *local_code_name = malloc(sizeof(char));
   read_name(&local_code_name, svr);
 
@@ -361,6 +546,8 @@ CWP_server_Cpl_create
                  n_part,
                  displacement,
                  recv_freq_type);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
 void
@@ -373,6 +560,7 @@ CWP_server_Cpl_del
   MPI_Barrier(svr->intra_comms[0]);
 
   // read code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
   char *local_code_name = malloc(sizeof(char));
   read_name(&local_code_name, svr);
 
@@ -383,6 +571,63 @@ CWP_server_Cpl_del
   // launch
   CWP_Cpl_del(local_code_name,
               cpl_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Properties_dump
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // launch
+  CWP_Properties_dump();
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Visu_set
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read frequency
+  int freq;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &freq, sizeof(int));
+
+  // read format
+  int format;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &format, sizeof(int));
+
+  // read format option
+  char *format_option = malloc(sizeof(char));
+  read_name(&format_option, svr);
+
+  // launch
+  CWP_Visu_set(local_code_name,
+               cpl_id,
+               freq,
+               format,
+               format_option);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
 /*============================================================================
@@ -593,6 +838,66 @@ CWP_server_msg_handler
 
     break;
 
+  case CWP_MSG_CWP_PARAM_SET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Param_set signal\n");
+    }
+
+    // launch
+    CWP_server_Param_set(svr);
+
+    break;
+
+  case CWP_MSG_CWP_PARAM_DEL:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Param_del signal\n");
+    }
+
+    // launch
+    CWP_server_Param_del(svr);
+
+    break;
+
+  case CWP_MSG_CWP_PARAM_N_GET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Param_n_get signal\n");
+    }
+
+    // launch
+    CWP_server_Param_n_get(svr);
+
+    break;
+
+  case CWP_MSG_CWP_PARAM_LIST_GET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Param_list_get signal\n");
+    }
+
+    // launch
+    CWP_server_Param_list_get(svr);
+
+    break
+
+  case CWP_MSG_CWP_PARAM_IS:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Param_is signal\n");
+    }
+
+    // launch
+    CWP_server_Param_is(svr);
+
+    break
+
   case CWP_MSG_CWP_CPL_CREATE:
 
     // verbose
@@ -614,6 +919,28 @@ CWP_server_msg_handler
 
     // launch
     CWP_server_Cpl_del(svr);
+
+  case CWP_MSG_CWP_PROPERTIES_DUMP:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Properties_dump signal\n");
+    }
+
+    // launch
+    CWP_server_Properties_dump(svr);
+
+    break;
+
+  case CWP_MSG_CWP_VISU_SET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Visu_set signal\n");
+    }
+
+    // launch
+    CWP_server_Visu_set(svr);
 
     break;
 
