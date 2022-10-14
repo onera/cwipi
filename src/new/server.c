@@ -630,6 +630,80 @@ CWP_server_Visu_set
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
+void
+CWP_server_State_update
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read state
+  int state;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &state, sizeof(int));
+
+  // launch
+  CWP_State_update(local_code_name,
+                   state);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Time_update
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read current time
+  double current_time;
+  CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &current_time, sizeof(double));
+
+  // launch
+  CWP_Time_update(local_code_name,
+                  current_time);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_State_get
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *code_name = malloc(sizeof(char));
+  read_name(&code_name, svr);
+
+  // launch
+  int state = CWP_State_get(code_name);
+
+  // send state
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &state, sizeof(int));
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
 /*============================================================================
  * Server function definitions
  *============================================================================*/
@@ -941,6 +1015,42 @@ CWP_server_msg_handler
 
     // launch
     CWP_server_Visu_set(svr);
+
+    break;
+
+  case CWP_MSG_CWP_STATE_UPDATE:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_State_update signal\n");
+    }
+
+    // launch
+    CWP_server_State_update(svr);
+
+    break;
+
+  case CWP_MSG_CWP_TIME_UPDATE:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Time_update signal\n");
+    }
+
+    // launch
+    CWP_server_Time_update(svr);
+
+    break;
+
+  case CWP_MSG_CWP_STATE_GET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_State_get signal\n");
+    }
+
+    // launch
+    CWP_server_State_get(svr);
 
     break;
 

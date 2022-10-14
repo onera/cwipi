@@ -767,6 +767,99 @@ CWP_client_Visu_set
   write_name(format_option);
 }
 
+void
+CWP_client_State_update
+(
+ const char* local_code_name,
+ const CWP_State_t state
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_State_update\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_STATE_UPDATE);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_State_update failed to send message header\n");
+  }
+
+  // send code name
+  write_name(local_code_name);
+
+  // send state
+  int endian_state = state;
+  CWP_swap_endian_4bytes(&endian_state, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_state, sizeof(int));
+}
+
+void
+CWP_client_Time_update
+(
+ const char* local_code_name,
+ const double current_time
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Time_update\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_TIME_UPDATE);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Time_update failed to send message header\n");
+  }
+
+  // send code name
+  write_name(local_code_name);
+
+  // send time
+  double endian_current_time = current_time;
+  CWP_swap_endian_8bytes(&endian_current_time, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_current_time, sizeof(double));
+}
+
+CWP_State_t
+CWP_client_State_get
+(
+ const char    *code_name
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_State_update\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_STATE_UPDATE);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_State_update failed to send message header\n");
+  }
+
+  // send code name
+  write_name(code_name);
+
+  // read state
+  int state = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &state, sizeof(int));
+
+  return state;
+}
+
 /*============================================================================
  * Client function definitions
  *============================================================================*/

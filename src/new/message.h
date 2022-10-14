@@ -60,6 +60,9 @@ extern "C" {
 
 #define CWP_MSG_CWP_PROPERTIES_DUMP             15
 #define CWP_MSG_CWP_VISU_SET                    16
+#define CWP_MSG_CWP_STATE_UPDATE                17
+#define CWP_MSG_CWP_TIME_UPDATE                 18
+#define CWP_MSG_CWP_STATE_GET                   19
 
 /* Init an request */
 #define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}
