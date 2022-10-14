@@ -440,7 +440,7 @@ CWP_server_Param_list_get
   int nParam = -1;
   char **paramNames = NULL;
   CWP_Param_list_get(code_name,
-                     data_type
+                     data_type,
                      &nParam,
                      &paramNames);
 
@@ -450,7 +450,7 @@ CWP_server_Param_list_get
 
   // send paramNames
   for (int i = 0; i < nParam; i++) {
-    write_name(paramNames[i]);
+    write_name(paramNames[i], svr);
   }
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
@@ -1046,7 +1046,7 @@ CWP_server_msg_handler
     // launch
     CWP_server_Param_list_get(svr);
 
-    break
+    break;
 
   case CWP_MSG_CWP_PARAM_IS:
 
@@ -1058,7 +1058,7 @@ CWP_server_msg_handler
     // launch
     CWP_server_Param_is(svr);
 
-    break
+    break;
 
   case CWP_MSG_CWP_CPL_CREATE:
 
@@ -1081,6 +1081,8 @@ CWP_server_msg_handler
 
     // launch
     CWP_server_Cpl_del(svr);
+
+    break;
 
   case CWP_MSG_CWP_PROPERTIES_DUMP:
 
@@ -1174,7 +1176,7 @@ CWP_server_msg_handler
     }
 
     // launch
-    CWP_server_Loc_Codes_nb_get(svr);
+    CWP_server_Loc_codes_nb_get(svr);
 
     break;
 
@@ -1186,7 +1188,7 @@ CWP_server_msg_handler
     }
 
     // launch
-    CWP_server_Loc_Codes_list_get(svr);
+    CWP_server_Loc_codes_list_get(svr);
 
     break;
 

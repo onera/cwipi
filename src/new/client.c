@@ -426,19 +426,19 @@ CWP_client_Param_set
   switch (data_type) {
 
   case CWP_DOUBLE: ;
-    double endian_double_initial_value = * ((double *) initial_value);
-    CWP_swap_endian_8bytes(&endian_double_initial_value, 1);
-    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_double_initial_value, sizeof(double));
+    double endian_double_value = * ((double *) value);
+    CWP_swap_endian_8bytes(&endian_double_value, 1);
+    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_double_value, sizeof(double));
     break;
 
   case CWP_INT: ;
-    int endian_int_initial_value = * ((int *) initial_value);
-    CWP_swap_endian_4bytes(&endian_int_initial_value, 1);
-    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_int_initial_value, sizeof(int));
+    int endian_int_value = * ((int *) value);
+    CWP_swap_endian_4bytes(&endian_int_value, 1);
+    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_int_value, sizeof(int));
     break;
 
   case CWP_CHAR:
-    write_name(initial_value);
+    write_name(value);
     break;
 
   default:
@@ -555,9 +555,9 @@ CWP_client_Param_list_get
 
   // read param names
   *paramNames = malloc(sizeof(*nParam));
-  for (int i = 0; i < n_param; i++) {
+  for (int i = 0; i < *nParam; i++) {
     (*paramNames)[i] = malloc(sizeof(char));
-    read_name(&(*paramNames)[i])
+    read_name(&(*paramNames)[i]);
   }
 }
 
@@ -915,7 +915,7 @@ void
   char **code_names = malloc(nb_codes);
   for (int i = 0; i < nb_codes; i++) {
     code_names[i] = malloc(sizeof(char));
-    read_name(code_names[i]);
+    read_name(&code_names[i]);
   }
 
   return code_names;
@@ -976,7 +976,7 @@ CWP_client_Loc_codes_list_get
   char **code_local_names = malloc(nb_local_codes);
   for (int i = 0; i < nb_local_codes; i++) {
     code_local_names[i] = malloc(sizeof(char));
-    read_name(code_local_names[i]);
+    read_name(&code_local_names[i]);
   }
 
   return code_local_names;
