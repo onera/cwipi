@@ -982,6 +982,190 @@ CWP_client_Loc_codes_list_get
   return code_local_names;
 }
 
+int
+CWP_client_N_uncomputed_tgts_get
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id,
+ const int   i_part
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_N_uncomputed_tgts_get\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_N_UNCOMPUTED_TGTS_GET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_N_uncomputed_tgts_get failed to send message header\n");
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send field identifier
+  write_name(field_id);
+
+  // send i_part
+  int endian_i_part = i_part;
+  CWP_swap_endian_4bytes(&endian_i_part, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // read number of targets
+  int nb_tgts = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_tgts, sizeof(int));
+
+  return nb_tgts;
+}
+
+const int *
+CWP_client_Uncomputed_tgts_get
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id,
+ const int   i_part
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Uncomputed_tgts_get\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_UNCOMPUTED_TGTS_GET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Uncomputed_tgts_get failed to send message header\n");
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send field identifier
+  write_name(field_id);
+
+  // send i_part
+  int endian_i_part = i_part;
+  CWP_swap_endian_4bytes(&endian_i_part, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // read number of targets
+  int nb_tgts = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_tgts, sizeof(int));
+  int *tgts = malloc(sizeof(int) * nb_tgts);
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) tgts, sizeof(int)*nb_tgts);
+
+  return tgts;
+}
+
+int
+CWP_client_N_computed_tgts_get
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id,
+ const int   i_part
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_N_computed_tgts_get\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_N_COMPUTED_TGTS_GET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_N_computed_tgts_get failed to send message header\n");
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send field identifier
+  write_name(field_id);
+
+  // send i_part
+  int endian_i_part = i_part;
+  CWP_swap_endian_4bytes(&endian_i_part, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // read number of targets
+  int nb_tgts = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_tgts, sizeof(int));
+
+  return nb_tgts;
+}
+
+const int *
+CWP_client_Computed_tgts_get
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id,
+ const int   i_part
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Computed_tgts_get\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_COMPUTED_TGTS_GET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Computed_tgts_get failed to send message header\n");
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send field identifier
+  write_name(field_id);
+
+  // send i_part
+  int endian_i_part = i_part;
+  CWP_swap_endian_4bytes(&endian_i_part, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // read number of targets
+  int nb_tgts = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_tgts, sizeof(int));
+  int *tgts = malloc(sizeof(int) * nb_tgts);
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) tgts, sizeof(int)*nb_tgts);
+
+  return tgts;
+}
+
 /*============================================================================
  * Client function definitions
  *============================================================================*/

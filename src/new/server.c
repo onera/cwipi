@@ -792,6 +792,174 @@ CWP_server_Loc_codes_list_get
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
+void
+CWP_server_N_uncomputed_tgts_get
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read field identifier
+  char *field_id = malloc(sizeof(char));
+  read_name(&field_id, svr);
+
+  // read i_part
+  int i_part;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &i_part, sizeof(int));
+
+  // launch
+  int nb_tgts = CWP_N_uncomputed_tgts_get(local_code_name,
+                                          cpl_id,
+                                          field_id,
+                                          i_part);
+
+  // send number of targets
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &nb_tgts, sizeof(int));
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Uncomputed_tgts_get
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read field identifier
+  char *field_id = malloc(sizeof(char));
+  read_name(&field_id, svr);
+
+  // read i_part
+  int i_part;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &i_part, sizeof(int));
+
+  // launch
+  int nb_tgts = CWP_N_uncomputed_tgts_get(local_code_name,
+                                          cpl_id,
+                                          field_id,
+                                          i_part);
+
+  int *tgts = CWP_Uncomputed_tgts_get(local_code_name,
+                                          cpl_id,
+                                          field_id,
+                                          i_part);
+
+  // send number of targets
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &nb_tgts, sizeof(int));
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) tgts, sizeof(int) * nb_tgts);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_N_computed_tgts_get
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read field identifier
+  char *field_id = malloc(sizeof(char));
+  read_name(&field_id, svr);
+
+  // read i_part
+  int i_part;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &i_part, sizeof(int));
+
+  // launch
+  int nb_tgts = CWP_N_computed_tgts_get(local_code_name,
+                                          cpl_id,
+                                          field_id,
+                                          i_part);
+
+  // send number of targets
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &nb_tgts, sizeof(int));
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Computed_tgts_get
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read field identifier
+  char *field_id = malloc(sizeof(char));
+  read_name(&field_id, svr);
+
+  // read i_part
+  int i_part;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &i_part, sizeof(int));
+
+  // launch
+  int nb_tgts = CWP_N_computed_tgts_get(local_code_name,
+                                          cpl_id,
+                                          field_id,
+                                          i_part);
+
+  int *tgts = CWP_Cncomputed_tgts_get(local_code_name,
+                                          cpl_id,
+                                          field_id,
+                                          i_part);
+
+  // send number of targets
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &nb_tgts, sizeof(int));
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) tgts, sizeof(int) * nb_tgts);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
 /*============================================================================
  * Server function definitions
  *============================================================================*/
@@ -1172,7 +1340,7 @@ CWP_server_msg_handler
 
     // verbose
     if (svr->flags & CWP_SVRFLAG_VERBOSE) {
-      log_trace("CWP: server received CWP_Loc_Codes_nb_get signal\n");
+      log_trace("CWP: server received CWP_Loc_codes_nb_get signal\n");
     }
 
     // launch
@@ -1184,11 +1352,59 @@ CWP_server_msg_handler
 
     // verbose
     if (svr->flags & CWP_SVRFLAG_VERBOSE) {
-      log_trace("CWP: server received CWP_Loc_Codes_list_get signal\n");
+      log_trace("CWP: server received CWP_Loc_codes_list_get signal\n");
     }
 
     // launch
     CWP_server_Loc_codes_list_get(svr);
+
+    break;
+
+  case CWP_MSG_CWP_N_UNCOMPUTED_TGTS_GET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_N_uncomputed_tgts_get signal\n");
+    }
+
+    // launch
+    CWP_server_N_uncomputed_tgts_get(svr);
+
+    break;
+
+  case CWP_MSG_CWP_UNCOMPUTED_TGTS_GET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Uncomputed_tgts_get signal\n");
+    }
+
+    // launch
+    CWP_server_Uncomputed_tgts_get(svr);
+
+    break;
+
+  case CWP_MSG_CWP_N_COMPUTED_TGTS_GET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_N_computed_tgts_get signal\n");
+    }
+
+    // launch
+    CWP_server_N_computed_tgts_get(svr);
+
+    break;
+
+  case CWP_MSG_CWP_COMPUTED_TGTS_GET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Computed_tgts_get signal\n");
+    }
+
+    // launch
+    CWP_server_Computed_tgts_get(svr);
 
     break;
 

@@ -39,34 +39,42 @@ extern "C" {
 #define CWP_MSG_MAXMSGSIZE 8192
 
 /* Request numbering for CWIPI mirror operations */
-#define CWP_MSG_DIE                             0
+#define CWP_MSG_DIE                                 0
 
-#define CWP_MSG_CWP_INIT                        1
-#define CWP_MSG_CWP_FINALIZE                    2
+#define CWP_MSG_CWP_INIT                            1
+#define CWP_MSG_CWP_FINALIZE                        2
 
-#define CWP_MSG_CWP_PARAM_LOCK                  3
-#define CWP_MSG_CWP_PARAM_UNLOCK                4
-#define CWP_MSG_CWP_PARAM_ADD                   5
-#define CWP_MSG_CWP_PARAM_GET                   6
-#define CWP_MSG_CWP_PARAM_SET                   7
-#define CWP_MSG_CWP_PARAM_DEL                   8
-#define CWP_MSG_CWP_PARAM_N_GET                 9
-#define CWP_MSG_CWP_PARAM_LIST_GET              10
-#define CWP_MSG_CWP_PARAM_IS                    11
-#define CWP_MSG_CWP_PARAM_REDUCE                12
+#define CWP_MSG_CWP_PARAM_LOCK                      3
+#define CWP_MSG_CWP_PARAM_UNLOCK                    4
+#define CWP_MSG_CWP_PARAM_ADD                       5
+#define CWP_MSG_CWP_PARAM_GET                       6
+#define CWP_MSG_CWP_PARAM_SET                       7
+#define CWP_MSG_CWP_PARAM_DEL                       8
+#define CWP_MSG_CWP_PARAM_N_GET                     9
+#define CWP_MSG_CWP_PARAM_LIST_GET                  10
+#define CWP_MSG_CWP_PARAM_IS                        11
+#define CWP_MSG_CWP_PARAM_REDUCE                    12
 
-#define CWP_MSG_CWP_CPL_CREATE                  13
-#define CWP_MSG_CWP_CPL_DEL                     14
+#define CWP_MSG_CWP_CPL_CREATE                      13
+#define CWP_MSG_CWP_CPL_DEL                         14
 
-#define CWP_MSG_CWP_PROPERTIES_DUMP             15
-#define CWP_MSG_CWP_VISU_SET                    16
-#define CWP_MSG_CWP_STATE_UPDATE                17
-#define CWP_MSG_CWP_TIME_UPDATE                 18
-#define CWP_MSG_CWP_STATE_GET                   19
-#define CWP_MSG_CWP_CODES_NB_GET                20
-#define CWP_MSG_CWP_CODES_LIST_GET              21
-#define CWP_MSG_CWP_LOC_CODES_NB_GET            22
-#define CWP_MSG_CWP_LOC_CODES_LIST_GET          23
+#define CWP_MSG_CWP_PROPERTIES_DUMP                 15
+#define CWP_MSG_CWP_VISU_SET                        16
+#define CWP_MSG_CWP_STATE_UPDATE                    17
+#define CWP_MSG_CWP_TIME_UPDATE                     18
+#define CWP_MSG_CWP_STATE_GET                       19
+#define CWP_MSG_CWP_CODES_NB_GET                    20
+#define CWP_MSG_CWP_CODES_LIST_GET                  21
+#define CWP_MSG_CWP_LOC_CODES_NB_GET                22
+#define CWP_MSG_CWP_LOC_CODES_LIST_GET              23
+#define CWP_MSG_CWP_N_UNCOMPUTED_TGTS_GET           24
+#define CWP_MSG_CWP_UNCOMPUTED_TGTS_GET             25
+#define CWP_MSG_CWP_N_COMPUTED_TGTS_GET             26
+#define CWP_MSG_CWP_COMPUTED_TGTS_GET               27
+#define CWP_MSG_CWP_N_INVOLVED_SRCS_GET             28
+#define CWP_MSG_CWP_INVOLVED_SRCS_GET               29
+#define CWP_MSG_CWP_SPATIAL_INTERP_WEIGHTS_COMPUTE  30
+#define CWP_MSG_CWP_SPATIAL_INTERP_PROPERTY_SET     31
 
 /* Init an request */
 #define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}
