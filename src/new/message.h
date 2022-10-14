@@ -75,6 +75,20 @@ extern "C" {
 #define CWP_MSG_CWP_INVOLVED_SRCS_GET               29
 #define CWP_MSG_CWP_SPATIAL_INTERP_WEIGHTS_COMPUTE  30
 #define CWP_MSG_CWP_SPATIAL_INTERP_PROPERTY_SET     31
+#define CWP_MSG_CWP_USER_TGT_PTS_SET                32
+
+#define CWP_MSG_CWP_MESH_INTERF_FINALIZE            33
+#define CWP_MSG_CWP_MESH_INTERF_VTX_SET             34
+#define CWP_MSG_CWP_MESH_INTERF_BLOCK_ADD           35
+#define CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_SET       36
+#define CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_GET       37
+#define CWP_MSG_CWP_MESH_INTERF_F_POLY_BLOCK_SET    38
+#define CWP_MSG_CWP_MESH_INTERF_F_POLY_BLOCK_GET    39
+#define CWP_MSG_CWP_MESH_INTERF_C_POLY_BLOCK_SET    40
+#define CWP_MSG_CWP_MESH_INTERF_C_POLY_BLOCK_GET    41
+#define CWP_MSG_CWP_MESH_INTERF_DEL                 42
+#define CWP_MSG_CWP_MESH_INTERF_FROM_CELLFACE_SET   43
+#define CWP_MSG_CWP_MESH_INTERF_FROM_FACEEDGE_SET   44
 
 /* Init an request */
 #define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}

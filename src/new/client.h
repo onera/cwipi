@@ -645,7 +645,7 @@ void
 CWP_client_Spatial_interp_weights_compute
 (
  const char     *local_code_name,
- const char        *cpl_id
+ const char     *cpl_id
 );
 
 

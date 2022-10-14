@@ -187,8 +187,8 @@ CWP_client_Init
   memcpy(endian_is_active_rank, is_active_rank, sizeof(int) * n_code);
   memcpy(endian_time_init, time_init, sizeof(double) * n_code);
   CWP_swap_endian_4bytes(&endian_n_code, 1);
-  CWP_swap_endian_4bytes(endian_is_active_rank, 1);
-  CWP_swap_endian_8bytes(endian_time_init, 1);
+  CWP_swap_endian_4bytes(endian_is_active_rank, n_code);
+  CWP_swap_endian_8bytes(endian_time_init, n_code);
 
   // send arguments
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_code, sizeof(int));
@@ -1164,6 +1164,408 @@ CWP_client_Computed_tgts_get
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) tgts, sizeof(int)*nb_tgts);
 
   return tgts;
+}
+
+int
+CWP_client_N_involved_srcs_get
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id,
+ const int   i_part
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_N_involved_srcs_get\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_N_INVOLVED_SRCS_GET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_N_involved_srcs_get failed to send message header\n");
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send field identifier
+  write_name(field_id);
+
+  // send i_part
+  int endian_i_part = i_part;
+  CWP_swap_endian_4bytes(&endian_i_part, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // read number of sources
+  int nb_srcs = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_srcs, sizeof(int));
+
+  return nb_srcs;
+}
+
+const int *
+CWP_client_Involved_srcs_get
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const char *field_id,
+ const int   i_part
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Involved_srcs_get\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_INVOLVED_SRCS_GET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Involved_srcs_get failed to send message header\n");
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send field identifier
+  write_name(field_id);
+
+  // send i_part
+  int endian_i_part = i_part;
+  CWP_swap_endian_4bytes(&endian_i_part, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // read number of sources
+  int nb_srcs = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_srcs, sizeof(int));
+  int *srcs = malloc(sizeof(int) * nb_srcs);
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) srcs, sizeof(int)*nb_srcs);
+
+  return srcs;
+}
+
+void
+CWP_client_Spatial_interp_weights_compute
+(
+ const char     *local_code_name,
+ const char     *cpl_id
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Spatial_interp_weights_compute\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_SPATIAL_INTERP_WEIGHTS_COMPUTE);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Spatial_interp_weights_compute failed to send message header\n");
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+}
+
+void
+CWP_client_Spatial_interp_property_set
+(
+ const char     *local_code_name,
+ const char     *cpl_id,
+ const char     *property_name,
+ const char     *property_type,
+ const char     *property_value
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Spatial_interp_property_set\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_SPATIAL_INTERP_PROPERTY_SET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Spatial_interp_property_set failed to send message header\n");
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send property name
+  write_name(property_name);
+
+  // send property type
+  write_name(property_type);
+
+  // send property value
+  write_name(property_value);
+}
+
+void
+CWP_client_User_tgt_pts_set
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const int      i_part,
+ const int      n_pts,
+ double         coord[],
+ CWP_g_num_t    global_num[]
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_User_tgt_pts_set\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_USER_TGT_PTS_SET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_User_tgt_pts_set failed to send message header\n");
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send i_part
+  int endian_i_part = i_part;
+  CWP_swap_endian_4bytes(&endian_i_part, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // send n_pts
+  int endian_n_pts = n_pts;
+  CWP_swap_endian_4bytes(&endian_n_pts, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_pts, sizeof(int));
+
+  // send coord
+  double *endian_coord = NULL;
+  memcpy(endian_coord, coord, sizeof(double) * n_pts);
+  CWP_swap_endian_8bytes(endian_coord, n_pts);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_coord, sizeof(double) * n_pts);
+
+  // send global_num
+  CWP_g_num_t *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_pts);
+  memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_pts);
+  CWP_swap_endian_8bytes(endian_global_num, n_pts); // WARNING: 4bytes if on 32bit machine
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_pts);
+}
+
+void
+CWP_client_Mesh_interf_finalize
+(
+ const char           *local_code_name,
+ const char           *cpl_id
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_User_tgt_pts_set\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_USER_TGT_PTS_SET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_User_tgt_pts_set failed to send message header\n");
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+}
+
+void
+CWP_client_Mesh_interf_vtx_set
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const int             i_part,
+ const int             n_pts,
+ double                coord[],
+ CWP_g_num_t           global_num[]
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Mesh_interf_vtx_set\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_MESH_INTERF_VTX_SET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_vtx_set failed to send message header\n");
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send i_part
+  int endian_i_part = i_part;
+  CWP_swap_endian_4bytes(&endian_i_part, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // send n_pts
+  int endian_n_pts = n_pts;
+  CWP_swap_endian_4bytes(&endian_n_pts, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_pts, sizeof(int));
+
+  // send coord
+  double *endian_coord = NULL;
+  memcpy(endian_coord, coord, sizeof(double) * n_pts);
+  CWP_swap_endian_8bytes(endian_coord, n_pts);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_coord, sizeof(double) * n_pts);
+
+  // send global_num
+  CWP_g_num_t *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_pts);
+  memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_pts);
+  CWP_swap_endian_8bytes(endian_global_num, n_pts); // WARNING: 4bytes if on 32bit machine
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_pts);
+}
+
+int
+CWP_client_Mesh_interf_block_add
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const CWP_Block_t     block_type
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Mesh_interf_block_add\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_MESH_INTERF_BLOCK_ADD);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_block_add failed to send message header\n");
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send block type
+  int endian_block_type = block_type;
+  CWP_swap_endian_4bytes(&endian_block_type, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_block_type, sizeof(int));
+
+  // read block identifier
+  int block_id = -2;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &block_id, sizeof(int));
+}
+
+void
+CWP_client_Mesh_interf_block_std_set
+(
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const int          i_part,
+ const int          block_id,
+ const int          n_elts,
+ int                connec[],
+ CWP_g_num_t        global_num[]
+)
+{
+  t_message msg;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client initiating CWP_Mesh_interf_block_std_set\n");
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_GE);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_block_std_set failed to send message header\n");
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send i_part
+  int endian_i_part = i_part;
+  CWP_swap_endian_4bytes(&endian_i_part, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // send block_id
+  int endian_block_id = block_id;
+  CWP_swap_endian_4bytes(&endian_block_id, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_block_id, sizeof(int));
+
+  // send n_elts
+  int endian_n_elts = n_elts;
+  CWP_swap_endian_4bytes(&endian_n_elts, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_elts, sizeof(int));
+
+  // send connectivity
+  int n_vtx_elt = ; // TO DO: which function to retreive n_vtx_elt from block_id ?
+  // for instance for CWP_BLOCK_FACE_POLY, how do I know ? so need to send n_vtx
+  int *endian_connec = malloc(sizeof(int) * n_elts * n_vtx_elt);
+  CWP_swap_endian_4bytes(endian_connec, n_elts * n_vtx_elt);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_connec, sizeof(int) * n_elts * n_vtx_elt);
+
+  // send global number
+  CWP_g_num_t  *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_elts);
+  memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_elts);
+  WP_swap_endian_8bytes(endian_global_num, n_elts); // TO DO 32 bit machine
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_elts);
 }
 
 /*============================================================================
