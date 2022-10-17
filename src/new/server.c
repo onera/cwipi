@@ -1837,6 +1837,8 @@ CWP_server_Field_n_component_get
   // send number of components
   svr->state = CWP_SVRSTATE_SENDPGETDATA;
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &n_component, sizeof(int));
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
 void
@@ -1869,6 +1871,72 @@ CWP_server_Field_target_dof_location_get
   // send number of components
   svr->state = CWP_SVRSTATE_SENDPGETDATA;
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &dof_location, sizeof(int));
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Field_storage_get
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state = CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read field identifier
+  char *field_id = malloc(sizeof(char));
+  read_name(&field_id, svr);
+
+  // launch
+  int storage_type = CWP_Field_storage_get(local_code_name,
+                                           cpl_id,
+                                           field_id);
+
+  // send number of components
+  svr->state = CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &storage_type, sizeof(int));
+
+  svr->state = CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Field_del
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state = CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read field identifier
+  char *field_id = malloc(sizeof(char));
+  read_name(&field_id, svr);
+
+  // launch
+  CWP_Field_del(local_code_name,
+                cpl_id,
+                field_id);
+
+  svr->state = CWP_SVRSTATE_LISTENINGMSG;
 }
 
 /*============================================================================
@@ -2557,6 +2625,54 @@ CWP_server_msg_handler
 
     // launch
     CWP_server_Field_target_dof_location_get(svr);
+
+    break;
+
+  case CWP_MSG_CWP_FIELD_STORAGE_GET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Field_storage_get signal\n");
+    }
+
+    // launch
+    CWP_server_Field_storage_get(svr);
+
+    break;
+
+  case CWP_MSG_CWP_FIELD_DEL:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Field_del signal\n");
+    }
+
+    // launch
+    CWP_server_Field_del(svr);
+
+    break;
+
+  case CWP_MSG_CWP_INTERP_FROM_LOCATION_UNSET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Interp_from_location_unset signal\n");
+    }
+
+    // launch
+    CWP_server_Interp_from_location_unset(svr);
+
+    break;
+
+  case CWP_MSG_CWP_INTERP_FROM_LOCATION_SET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Interp_from_location_set signal\n");
+    }
+
+    // launch
+    CWP_server_Interp_from_location_set(svr);
 
     break;
 
