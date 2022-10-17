@@ -4213,8 +4213,10 @@ PDM_part_to_part_iexch
 
     }
 
-    for (int i = 0; i < ptp->n_part1; i++) {
-      free (__part1_to_part2_data[i]);
+    if (t_part1_data_def == PDM_PART_TO_PART_DATA_DEF_ORDER_PART1) {
+      for (int i = 0; i < ptp->n_part1; i++) {
+        free (__part1_to_part2_data[i]);
+      }
     }
     free(__part1_to_part2_data);
     free(___part2_data);
