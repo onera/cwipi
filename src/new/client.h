@@ -29,19 +29,7 @@
  *  Header for the current file
  *----------------------------------------------------------------------------*/
 
-#ifdef WINDOWS
-
-#else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <errno.h>
-#endif
-
-#include "cwp.h"
+#include <cwp.h>
 
 
 #ifdef __cplusplus
@@ -381,14 +369,16 @@ CWP_client_Time_update
 /**
  * \brief Output_file_set CWIPI.
  *
- * \param [in] output_file    Output file
+ * Server should be able to reach file directory !
+ *
+ * \param [in] output_filename    Output file directory or name
  *
  */
 
 void
 CWP_client_Output_file_set
 (
-FILE *output_file
+const char *output_filename
 );
 
 
@@ -1103,6 +1093,8 @@ CWP_client_Field_create
  * \param [in] i_part            Current partition
  * \param [in] data_type         Choice if data is setted for the source or the target
  * \param [in] data              Storage array (Mapping)
+ * \param [in] n_component       Number of components of the field
+ * \param [in] n_dof             Number of (cells, vtx or user)
  *
  */
 
@@ -1114,7 +1106,9 @@ CWP_client_Field_data_set
  const char              *field_id,
  const int                i_part,
  const CWP_Field_map_t    map_type,
- double                   data[]
+ double                   data[],
+ const int                n_component,
+ int                      n_dof
 );
 
 /**
@@ -1304,6 +1298,7 @@ CWP_client_Interp_from_location_unset
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] src_field_id     Source field id
+ * \param [in] data_type        Field data type
  * \param [in] fct              Function
  *
  */
@@ -1314,6 +1309,7 @@ CWP_client_Interp_from_location_set
  const char                 *local_code_name,
  const char                 *cpl_id,
  const char                 *src_field_id,
+ const CWP_Type_t            data_type,
  CWP_Interp_from_location_t  fct
 );
 

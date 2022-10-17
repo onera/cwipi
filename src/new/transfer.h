@@ -25,20 +25,6 @@
   See: https://www.cerfacs.fr/globc/PALM_WEB/
 */
 
-/*----------------------------------------------------------------------------
- *  Header for the current file
- *----------------------------------------------------------------------------*/
-
-#ifdef WINDOWS
-#else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <errno.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #if 0

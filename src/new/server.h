@@ -26,28 +26,10 @@
 */
 
 /*----------------------------------------------------------------------------
- * Standard C library headers
- *----------------------------------------------------------------------------*/
-
-/*----------------------------------------------------------------------------
  *  Header for the current file
  *----------------------------------------------------------------------------*/
 
-#ifdef WINDOWS
-
-#else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <errno.h>
-#endif
-
-#include "cwp.h"
 #include "message.h"
-#include "client.h"
-#include <pdm_mpi.h>
 
 #ifdef __cplusplus
 extern "C" {

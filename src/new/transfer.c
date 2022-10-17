@@ -34,32 +34,25 @@
 #include <unistd.h>
 
 /*----------------------------------------------------------------------------
+ * Standard C library headers
+ *----------------------------------------------------------------------------*/
+
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
+
+/*----------------------------------------------------------------------------
  *  Local headers
  *----------------------------------------------------------------------------*/
 
 #include "transfer.h"
+
 #include <pdm_error.h>
 #include <pdm_mpi.h>
-#include "pdm_logging.h"
-
-#ifdef WINDOWS
-#else
-/* pour milli_sleep */
-#include <unistd.h>
-
-static void milli_sleep(unsigned int milli_seconds) {
-  usleep(milli_seconds*1000);
-}
-#endif
-
-#ifdef WIN32
-/* pour milli_sleep */
-#include <windows.h>
-
-static void milli_sleep(unsigned int milli_seconds) {
-  Sleep(milli_seconds);
-}
-#endif
+#include <pdm_logging.h>
 
 /*=============================================================================
  * Macro definitions
@@ -74,6 +67,14 @@ extern "C" {
 } /* Fake brace to force back Emacs auto-indentation back to column 0 */
 #endif
 #endif /* __cplusplus */
+
+/*=============================================================================
+ * Private function interfaces
+ *============================================================================*/
+
+static void milli_sleep(unsigned int milli_seconds) {
+  usleep(milli_seconds*1000);
+}
 
 /*=============================================================================
  * Public function interfaces
