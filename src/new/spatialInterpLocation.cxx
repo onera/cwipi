@@ -144,28 +144,33 @@ namespace cwipi {
     //
     // Map nodal mesh
 
-    if (!_coupledCodeProperties->localCodeIs()) {
-      if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-        _pdm_CplNodal = _mesh->getPdmNodalIndex();
-      }
-      else {
-        _pdm_CplNodal = NULL; 
-      }
-    }
+    _pdm_CplNodal = NULL;
 
+    // if (!_coupledCodeProperties->localCodeIs()) {
+
+    if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+      _pdm_CplNodal = _mesh->getPdmNodalIndex();
+    }
     else {
-      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-        if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-          _pdm_CplNodal = _mesh->getPdmNodalIndex();
-        }
-        else {
-
-          cwipi::Coupling &cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-          cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
-          _pdm_CplNodal = cpl_mesh->getPdmNodalIndex();
-        }
-      }
+      _pdm_CplNodal = NULL; 
     }
+
+    // }
+
+    // else {
+    //   if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+    //     if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+    //       _pdm_CplNodal = _mesh->getPdmNodalIndex();
+    //     }
+    //     else {
+    //       cwipi::Coupling &cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+    //       cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
+    //       _pdm_CplNodal = cpl_mesh->getPdmNodalIndex();
+
+    //       _pdm_CplNodal = NULL; 
+    //     }
+    //   }
+    // }
 
     if (_pdm_CplNodal != NULL) {
       printf("SpatialInterpLocation::init Mesh_nodal_n_blocks :%d\n", PDM_Mesh_nodal_n_blocks_get(_pdm_CplNodal));

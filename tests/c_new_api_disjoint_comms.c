@@ -314,10 +314,12 @@ main
   // exchDirection[0] = CWP_FIELD_EXCH_SEND;
   // exchDirection[1] = CWP_FIELD_EXCH_RECV;
 
-  // bool cond_code1 = rank == 1 || rank == 2;
-  // bool cond_code2 = rank == 0 || rank == 2;
-  bool cond_code1 = rank == 0;
-  bool cond_code2 = rank == 1;
+  bool cond_code1 = rank == 1 || rank == 2;
+  bool cond_code2 = rank == 0 || rank == 2;
+
+  // bool cond_code1 = rank == 0 ;
+  // bool cond_code2 = rank == 1 ;
+
   exchDirection[0] = CWP_FIELD_EXCH_SEND;
   exchDirection[1] = CWP_FIELD_EXCH_RECV;
 
@@ -437,6 +439,8 @@ main
            time_init,
            intra_comms);
 
+  CWP_Properties_dump ();
+
   printf("%d --- CWIPI initialized\n", rank);
 
   // Get the comm size and rank
@@ -505,7 +509,7 @@ main
     for (int i = 0 ; i < intra_comm_size[comm_nb] ; ++i) {
       printf("%d ", ranks_on_code2[i]);
     }
-    printf("\n");
+    printf("\n"); 
   }
 
   if (rank == master_both) {
@@ -556,15 +560,21 @@ main
     printf("%d (%d, %s) --- Coupling created between %s and %s\n", rank, intra_comm_rank[i_code], code_names[i_code], code_names[i_code], coupled_code_names[i_code]);
   }
 
-  for (int i_code = 0 ; i_code < n_code ; ++i_code) {
+  if (cond_code2) {
+    CWP_Visu_set("code2",
+               cpl_name,
+               1,
+               CWP_VISU_FORMAT_ENSIGHT,
+               "text");
+  }
 
-    CWP_Visu_set(code_names[i_code],
-                 cpl_name,
-                 1,
-                 CWP_VISU_FORMAT_ENSIGHT,
-                 "text");
 
-    printf("%d (%d, %s) --- Visu set\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+  if (cond_code1) {
+    CWP_Visu_set("code1",
+               cpl_name,
+               1,
+               CWP_VISU_FORMAT_ENSIGHT,
+               "text");
   }
 
   // Create PDM communicators
@@ -624,7 +634,7 @@ main
                             &vtx_ln_to_gn[i_code],
                             &cell_ln_to_gn[i_code]);
 
-    printf("%d (%d, %s) --- dcube created\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+    printf("%d (%d, %s, %ld) --- dcube created : \n", rank, intra_comm_rank[i_code], code_names[i_code], n_vtx_seg[i_code]);
 
     mesh_nodal[i_code] = PDM_Mesh_nodal_create(n_part, pdm_intra_comms[i_code]);
 
@@ -742,7 +752,7 @@ main
                        cpl_name,
                        field_name,
                        CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_INTERLEAVED,
+                       CWP_FIELD_STORAGE_INTERLACED,
                        3,
                        CWP_DOF_LOCATION_NODE,
                        exchDirection[0],
@@ -777,7 +787,7 @@ main
                        cpl_name,
                        field_name,
                        CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_INTERLEAVED,
+                       CWP_FIELD_STORAGE_INTERLACED,
                        3,
                        CWP_DOF_LOCATION_NODE,
                        exchDirection[1],

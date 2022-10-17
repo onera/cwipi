@@ -233,6 +233,7 @@ namespace cwipi {
 
   Coupling::~Coupling()
   {
+
     delete &_spatial_interp_properties_double;
     delete &_spatial_interp_properties_int;
 
@@ -365,7 +366,13 @@ namespace cwipi {
   void 
   Coupling::exportMesh(Coupling &cpl)
   {
+
+    printf("Coupling::exportMesh\n");
+
     if (cpl._writer != NULL) {
+
+      printf("exportMesh : %s\n", cpl._localCodeProperties.nameGet().c_str());
+      fflush(stdout);
 
       if (!PDM_writer_is_open_step (cpl._writer)) {
 
@@ -395,17 +402,17 @@ namespace cwipi {
           st_dep_tps = PDM_WRITER_OFF;          
         }
 
-        _id_field_partitioning_writer = PDM_writer_var_create(cpl._writer,
-                                                              st_dep_tps,
-                                                              PDMfieldComp,
-                                                              PDMfieldType,
-                                                              "partitioning");
+        cpl._id_field_partitioning_writer = PDM_writer_var_create(cpl._writer,
+                                                                  st_dep_tps,
+                                                                  PDMfieldComp,
+                                                                  PDMfieldType,
+                                                                  "partitioning");
 
-        _id_field_ranking_writer = PDM_writer_var_create(cpl._writer,
-                                                     st_dep_tps,
-                                                     PDMfieldComp,
-                                                     PDMfieldType,
-                                                     "ranking");
+        cpl._id_field_ranking_writer = PDM_writer_var_create(cpl._writer,
+                                                             st_dep_tps,
+                                                             PDMfieldComp,
+                                                             PDMfieldType,
+                                                             "ranking");
 
         std::vector <double *> partitioning_field_data(cpl._mesh.getNPart());
         std::vector <double *> ranking_field_data(cpl._mesh.getNPart());
@@ -499,6 +506,11 @@ namespace cwipi {
       }
     }
 
+    else {
+      printf(" sortie NULL\n");
+    }
+
+    fflush(stdout);
   }
 
 
@@ -518,6 +530,8 @@ namespace cwipi {
     // Export mesh and associted fields                                        //
     //                                                                         //
     /////////////////////////////////////////////////////////////////////////////
+
+
 
     if (!_coupledCodeProperties.localCodeIs()) {
 
@@ -555,7 +569,6 @@ namespace cwipi {
       int codeID    = localCodePropertiesGet()->idGet();
       int cplCodeID = coupledCodePropertiesGet()->idGet();
 
-      int sir_s2 = 0;
       if (_n_step == 0) {
 
         std::string localFieldsName="";
@@ -772,12 +785,7 @@ namespace cwipi {
 
         assert(sir_r == sis_s);
 
-//        vector<CWP_Dof_location_t>        sis_loc_r;
-        sir_s2 = sir_s;
-
         _sis_loc_r.resize(2*sir_s);
-
-//        printf("_sis_loc_r[0] - 0 : %d\n", (int) sis_loc_r[0]);
 
         _communication.iexchGlobalDataBetweenCodesThroughUnionCom (sizeof(CWP_Dof_location_t),
                                                                    2*sis_s,
@@ -788,7 +796,6 @@ namespace cwipi {
                                                                    (void *) &(_sis_loc_r[0]),
                                                                    -1,
                                                                    NULL);
-//        printf("_sis_loc_r[0] - 1 : %d\n", (int) _sis_loc_r[0]);
 
         vector<CWP_Dof_location_t> sir_loc_r;
         sir_loc_r.resize(2*sis_s);
@@ -816,13 +823,7 @@ namespace cwipi {
 
         // spatial_interp recv
 
-        printf("_sis_loc_r[0] - 2 : %d %d\n", (int) _sis_loc_r.size(), sir_s2);
-        if (_sis_loc_r.size() > 0) {
-          printf("_sis_loc_r[0] - 2 : %d %d\n", (int) _sis_loc_r[0] , (int) _sis_loc_r[1]);
-        }
-
-        for (int i = 0; i < sir_s2; i++) {
-        // for (int i = 0; i < (int) (_sis_loc_r.size()/2); i++) {
+        for (int i = 0; i < (int) (_sis_loc_r.size()/2); i++) {
           _spatial_interp_recv[make_pair(_sis_loc_r[2*i+1], _sis_loc_r[2*i])]->weightsCompute();
         }
 
@@ -832,14 +833,7 @@ namespace cwipi {
 
         // spatial_interp recv
 
-        printf("_sis_loc_r[0] - 3 : %d %d\n", (int) _sis_loc_r.size(), sir_s2);
-        if (_sis_loc_r.size() > 0) {
-          printf("_sis_loc_r[0] - 3 : %d %d\n", (int) _sis_loc_r[0] , (int) _sis_loc_r[1]);
-        }
-
         for (int i = 0; i < (int) (_sis_loc_r.size()/2); i++) {
-          printf("_spatial_interp_recv.size() 2 : %d\n", (int) _spatial_interp_recv.size());
-          printf("_sis_loc_r[0] - 4 : %d %d\n", (int) _sis_loc_r[2*i] , (int) _sis_loc_r[2*i+1]);
           _spatial_interp_recv[make_pair(_sis_loc_r[2*i+1], _sis_loc_r[2*i])]->weightsCompute();
         }
 
@@ -1405,14 +1399,6 @@ namespace cwipi {
                                   acess_type,
                                   working_node,
                                   options_comp);
-
-      // _visu.VisuCreate(freq,
-      //                format,
-      //                format_option,
-      //                (char *) output_dir.c_str(),
-      //                (char *) string("chr").c_str());
-
-      // _visu.GeomCreate(_mesh.getNPart());
     }
   }
 

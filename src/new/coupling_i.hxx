@@ -562,7 +562,13 @@ namespace cwipi {
   void 
   Coupling::meshDel()
   {
+    
+    if (_writer != NULL) {
+      PDM_writer_free (_writer);
+      _writer = nullptr;
+    }
     _mesh.meshDel();
+
   }
 
 
