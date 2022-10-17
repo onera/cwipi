@@ -199,7 +199,8 @@ _read_args
  int      argc,
  char   **argv,
  int     *order,
- double  *noise
+ double  *noise,
+ int     *visu
  )
 {
   int i = 1;
@@ -229,6 +230,10 @@ _read_args
       }
     }
 
+    else if (strcmp(argv[i], "-visu") == 0) {
+      *visu = 1;
+    }
+
     else
       _usage(EXIT_FAILURE);
     i++;
@@ -254,6 +259,7 @@ int main(int argc, char *argv[])
    */
   int    order = 3;
   double noise = 0.;
+  int    visu  = 0;
 
   /*
    *  Read args
@@ -261,7 +267,8 @@ int main(int argc, char *argv[])
   _read_args(argc,
              argv,
              &order,
-             &noise);
+             &noise,
+             &visu);
 
 
   /*
@@ -454,48 +461,20 @@ int main(int argc, char *argv[])
   /*
    *  Visu VTK
    */
-  int *ijk_to_vtk = PDM_ho_ordering_ijk_to_user_get("PDM_HO_ORDERING_VTK",
-                                                    PDM_MESH_NODAL_TRIAHO_BEZIER,
-                                                    order);
-  int *connec = malloc(sizeof(int) * n_node);
-  for (int i = 0; i < n_node; i++) {
-    connec[ijk_to_vtk[i]] = i+1;
-  }
+  if (visu) {
+    int *ijk_to_vtk = PDM_ho_ordering_ijk_to_user_get("PDM_HO_ORDERING_VTK",
+                                                      PDM_MESH_NODAL_TRIAHO_BEZIER,
+                                                      order);
 
-  PDM_vtk_write_std_elements_ho("bezier_tria.vtk",
-                                order,
-                                n_node,
-                                node_xyz,
-                                NULL,
-                                PDM_MESH_NODAL_TRIAHO_BEZIER,
-                                1,
-                                connec,
-                                NULL,
-                                0,
-                                NULL,
-                                NULL);
+    int *connec = malloc(sizeof(int) * n_node);
+    for (int i = 0; i < n_node; i++) {
+      connec[ijk_to_vtk[i]] = i+1;
+    }
 
-  PDM_vtk_write_std_elements("bezierCP_tria.vtk",
-                             n_node,
-                             node_xyz,
-                             NULL,
-                             PDM_MESH_NODAL_TRIA3,
-                             n_tria,
-                             tria_node,
-                             NULL,
-                             0,
-                             NULL,
-                             NULL);
-
-
-
-  char filename[999];
-  for (int i = 0; i < 4; i++) {
-    sprintf(filename, "bezier_subtria%d.vtk", i);
-    PDM_vtk_write_std_elements_ho(filename,
+    PDM_vtk_write_std_elements_ho("bezier_tria.vtk",
                                   order,
                                   n_node,
-                                  sub_node_xyz[i],
+                                  node_xyz,
                                   NULL,
                                   PDM_MESH_NODAL_TRIAHO_BEZIER,
                                   1,
@@ -505,10 +484,9 @@ int main(int argc, char *argv[])
                                   NULL,
                                   NULL);
 
-    sprintf(filename, "bezierCP_subtria%d.vtk", i);
-    PDM_vtk_write_std_elements(filename,
+    PDM_vtk_write_std_elements("bezierCP_tria.vtk",
                                n_node,
-                               sub_node_xyz[i],
+                               node_xyz,
                                NULL,
                                PDM_MESH_NODAL_TRIA3,
                                n_tria,
@@ -517,14 +495,85 @@ int main(int argc, char *argv[])
                                0,
                                NULL,
                                NULL);
-  }
 
-  for (int i = 0; i < 3; i++) {
-    sprintf(filename, "bezier_sub3tria%d.vtk", i);
-    PDM_vtk_write_std_elements_ho(filename,
+
+
+    char filename[999];
+    for (int i = 0; i < 4; i++) {
+      sprintf(filename, "bezier_subtria%d.vtk", i);
+      PDM_vtk_write_std_elements_ho(filename,
+                                    order,
+                                    n_node,
+                                    sub_node_xyz[i],
+                                    NULL,
+                                    PDM_MESH_NODAL_TRIAHO_BEZIER,
+                                    1,
+                                    connec,
+                                    NULL,
+                                    0,
+                                    NULL,
+                                    NULL);
+
+      sprintf(filename, "bezierCP_subtria%d.vtk", i);
+      PDM_vtk_write_std_elements(filename,
+                                 n_node,
+                                 sub_node_xyz[i],
+                                 NULL,
+                                 PDM_MESH_NODAL_TRIA3,
+                                 n_tria,
+                                 tria_node,
+                                 NULL,
+                                 0,
+                                 NULL,
+                                 NULL);
+    }
+
+    for (int i = 0; i < 3; i++) {
+      sprintf(filename, "bezier_sub3tria%d.vtk", i);
+      PDM_vtk_write_std_elements_ho(filename,
+                                    order,
+                                    n_node,
+                                    sub3_node_xyz[i],
+                                    NULL,
+                                    PDM_MESH_NODAL_TRIAHO_BEZIER,
+                                    1,
+                                    connec,
+                                    NULL,
+                                    0,
+                                    NULL,
+                                    NULL);
+
+      sprintf(filename, "bezierCP_sub3tria%d.vtk", i);
+      PDM_vtk_write_std_elements(filename,
+                                 n_node,
+                                 sub3_node_xyz[i],
+                                 NULL,
+                                 PDM_MESH_NODAL_TRIA3,
+                                 n_tria,
+                                 tria_node,
+                                 NULL,
+                                 0,
+                                 NULL,
+                                 NULL);
+    }
+
+
+    double pts[9];
+    int color[3] = {0, 1, 2};
+    PDM_ho_bezier_de_casteljau_triangle(3, order, umin, vmin, node_xyz, &pts[0], NULL, NULL, NULL);
+    PDM_ho_bezier_de_casteljau_triangle(3, order, 1 - vmin - wmin, vmin, node_xyz, &pts[3], NULL, NULL, NULL);
+    PDM_ho_bezier_de_casteljau_triangle(3, order, umin, 1 - umin - wmin, node_xyz, &pts[6], NULL, NULL, NULL);
+    PDM_vtk_write_point_cloud("bezier_sub1tria_corners.vtk",
+                              3,
+                              pts,
+                              NULL,
+                              color);
+
+
+    PDM_vtk_write_std_elements_ho("bezier_sub1tria.vtk",
                                   order,
                                   n_node,
-                                  sub3_node_xyz[i],
+                                  sub1_node_xyz,
                                   NULL,
                                   PDM_MESH_NODAL_TRIAHO_BEZIER,
                                   1,
@@ -534,10 +583,9 @@ int main(int argc, char *argv[])
                                   NULL,
                                   NULL);
 
-    sprintf(filename, "bezierCP_sub3tria%d.vtk", i);
-    PDM_vtk_write_std_elements(filename,
+    PDM_vtk_write_std_elements("bezierCP_sub1tria.vtk",
                                n_node,
-                               sub3_node_xyz[i],
+                               sub1_node_xyz,
                                NULL,
                                PDM_MESH_NODAL_TRIA3,
                                n_tria,
@@ -546,64 +594,26 @@ int main(int argc, char *argv[])
                                0,
                                NULL,
                                NULL);
+    free(connec);
+
+
+
+    FILE *f = fopen("bezier_deriv.vtk", "w");
+    fprintf(f, "# vtk DataFile Version 2.0\n");
+    fprintf(f, "bezier_deriv\nASCII\nDATASET UNSTRUCTURED_GRID\n");
+    fprintf(f, "POINTS 3 double\n");
+    for (int i = 0; i < 3; i++) {
+      fprintf(f, "%f %f %f\n", p[0], p[1], p[2]);
+    }
+    fprintf(f, "CELLS 3 6\n1 0\n1 1\n1 2\n");
+    fprintf(f, "CELL_TYPES 3\n1\n1\n1\n");
+    fprintf(f, "POINT_DATA 3\n");
+    fprintf(f, "VECTORS vector double\n");
+    fprintf(f, "%f %f %f\n", dpdu[0], dpdu[1], dpdu[2]);
+    fprintf(f, "%f %f %f\n", dpdv[0], dpdv[1], dpdv[2]);
+    fprintf(f, "%f %f %f\n", normal[0], normal[1], normal[2]);
+    fclose(f);
   }
-
-
-  double pts[9];
-  int color[3] = {0, 1, 2};
-  PDM_ho_bezier_de_casteljau_triangle(3, order, umin, vmin, node_xyz, &pts[0], NULL, NULL, NULL);
-  PDM_ho_bezier_de_casteljau_triangle(3, order, 1 - vmin - wmin, vmin, node_xyz, &pts[3], NULL, NULL, NULL);
-  PDM_ho_bezier_de_casteljau_triangle(3, order, umin, 1 - umin - wmin, node_xyz, &pts[6], NULL, NULL, NULL);
-  PDM_vtk_write_point_cloud("bezier_sub1tria_corners.vtk",
-                            3,
-                            pts,
-                            NULL,
-                            color);
-
-
-  PDM_vtk_write_std_elements_ho("bezier_sub1tria.vtk",
-                                order,
-                                n_node,
-                                sub1_node_xyz,
-                                NULL,
-                                PDM_MESH_NODAL_TRIAHO_BEZIER,
-                                1,
-                                connec,
-                                NULL,
-                                0,
-                                NULL,
-                                NULL);
-
-  PDM_vtk_write_std_elements("bezierCP_sub1tria.vtk",
-                             n_node,
-                             sub1_node_xyz,
-                             NULL,
-                             PDM_MESH_NODAL_TRIA3,
-                             n_tria,
-                             tria_node,
-                             NULL,
-                             0,
-                             NULL,
-                             NULL);
-  free(connec);
-
-
-
-  FILE *f = fopen("bezier_deriv.vtk", "w");
-  fprintf(f, "# vtk DataFile Version 2.0\n");
-  fprintf(f, "bezier_deriv\nASCII\nDATASET UNSTRUCTURED_GRID\n");
-  fprintf(f, "POINTS 3 double\n");
-  for (int i = 0; i < 3; i++) {
-    fprintf(f, "%f %f %f\n", p[0], p[1], p[2]);
-  }
-  fprintf(f, "CELLS 3 6\n1 0\n1 1\n1 2\n");
-  fprintf(f, "CELL_TYPES 3\n1\n1\n1\n");
-  fprintf(f, "POINT_DATA 3\n");
-  fprintf(f, "VECTORS vector double\n");
-  fprintf(f, "%f %f %f\n", dpdu[0], dpdu[1], dpdu[2]);
-  fprintf(f, "%f %f %f\n", dpdv[0], dpdv[1], dpdv[2]);
-  fprintf(f, "%f %f %f\n", normal[0], normal[1], normal[2]);
-  fclose(f);
 
 
 

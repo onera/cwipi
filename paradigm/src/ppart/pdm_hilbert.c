@@ -612,7 +612,7 @@ _define_rank_distrib(int                       dim,
                      PDM_MPI_Comm              comm)
 {
   const int  sampling_factor = _sampling_factors[dim];
-  const int  n_samples = sampling_factor * n_ranks;
+  const int  n_samples = PDM_MAX(1, sampling_factor * n_ranks);
 
   /* Initialization */
 
@@ -1337,14 +1337,13 @@ PDM_hilbert_build_rank_index(int                       dim,
                              PDM_hilbert_code_t        rank_index[],
                              PDM_MPI_Comm              comm)
 {
-  int  i, id, rank_id, n_samples;
+  int  i, id, rank_id;
   double  best_fit;
 
   const int  sampling_factor = _sampling_factors[dim];
 
   /* Allocations and Initialization */
-
-  n_samples = sampling_factor * n_t_part;
+  const int  n_samples = PDM_MAX(1, sampling_factor * n_t_part);
 
   PDM_hilbert_code_t  *sampling =
           (PDM_hilbert_code_t  *) malloc(sizeof(PDM_hilbert_code_t) * (n_samples + 1));

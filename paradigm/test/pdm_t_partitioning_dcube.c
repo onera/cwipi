@@ -929,8 +929,10 @@ int main(int argc, char *argv[])
                                                 part_distribution,
                                                 cell_distribution,
                                                 cell_part,
+                                                NULL,
                                     (int ** )  &pn_cell,
-                            (PDM_g_num_t ***)  &pcell_ln_to_gn);
+                            (PDM_g_num_t ***)  &pcell_ln_to_gn,
+                                                NULL);
   /*
    * Tentative extented partition
    */

@@ -1298,17 +1298,18 @@ const PDM_l_num_t    n_face,
     abort();
   }
 
-  PDM_Mesh_nodal_block_poly3d_set (geom->_mesh_nodal,
-                                   id_bloc,
-                                   id_part,
-                                   n_elt,
-                                   n_face,
-                                   facsom_idx,
-                                   facsom,
-                                   cellfac_idx,
-                                   cellfac,
-                                   numabs,
-                                   NULL);
+  PDM_Mesh_nodal_block_poly3d_set(geom->_mesh_nodal,
+                                  id_bloc,
+                                  id_part,
+                                  n_elt,
+                                  n_face,
+                                  facsom_idx,
+                                  facsom,
+                                  NULL,
+                                  cellfac_idx,
+                                  cellfac,
+                                  numabs,
+                                  NULL);
 }
 
 /**
@@ -1364,19 +1365,19 @@ PDM_writer_geom_cell3d_cellface_add
     abort();
   }
 
-  PDM_Mesh_nodal_cell3d_cellface_add (geom->_mesh_nodal,
-                                      id_part,
-                                      n_cell,
-                                      
-                                      n_face,
-                                      face_som_idx,
-                                      face_som_nb,
-                                      face_som,
-                                      cell_face_idx,
-                                      cell_face_nb,
-                                      cell_face,
-                                      numabs,
-                                      PDM_OWNERSHIP_KEEP);
+  PDM_Mesh_nodal_cell3d_cellface_add(geom->_mesh_nodal,
+                                     id_part,
+                                     n_cell,
+                                     n_face,
+                                     face_som_idx,
+                                     face_som_nb,
+                                     face_som,
+                                     NULL,
+                                     cell_face_idx,
+                                     cell_face_nb,
+                                     cell_face,
+                                     numabs,
+                                     PDM_OWNERSHIP_KEEP);
   if (0 == 1) {
     printf("n_cell : %d\n", n_cell);
     for (int i = 0; i < n_cell; i++) {

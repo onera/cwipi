@@ -7,6 +7,7 @@
 
 #include "pdm.h"
 #include "pdm_mpi.h"
+#include "pdm_part_to_block.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -294,6 +295,19 @@ PDM_para_octree_dump_times
  */
 
 void
+PDM_para_octree_points_inside_boxes_block_frame
+(
+ const PDM_para_octree_t  *octree,
+ const int                 n_boxes,
+ const double             *box_extents,
+ const PDM_g_num_t        *box_g_num,
+ PDM_part_to_block_t     **ptb_out,
+ int                     **dbox_pts_n,
+ PDM_g_num_t             **dbox_pts_g_num,
+ double                  **dbox_pts_coord
+ );
+
+void
 PDM_para_octree_points_inside_boxes
 (
  const PDM_para_octree_t  *octree,
@@ -393,7 +407,21 @@ PDM_para_octree_points_inside_boxes_shared
  int                     **pts_in_box_idx,
  PDM_g_num_t             **pts_in_box_g_num,
  double                  **pts_in_box_coord
- );
+);
+
+
+void
+PDM_para_octree_points_inside_boxes_shared_block_frame
+(
+ const PDM_para_octree_t  *octree,
+ const int                 n_boxes,
+ const double             *box_extents,
+ const PDM_g_num_t        *box_g_num,
+ PDM_part_to_block_t     **ptb_out,
+ int                     **dbox_pts_n,
+ PDM_g_num_t             **dbox_pts_g_num,
+ double                  **dbox_pts_coord
+);
 
 #ifdef	__cplusplus
 }

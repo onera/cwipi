@@ -315,7 +315,6 @@ int main(int argc, char *argv[])
                              face_edge,
                             &edge_face_idx,
                             &edge_face);
-
   // Entities for vtk output
   char filename[999];
 
@@ -424,6 +423,7 @@ int main(int argc, char *argv[])
   }
 
   // Additional free
+  free(bdr_group);
   free(vtx_new_coord);
   free(vtx_edge_idx);
   free(vtx_edge);
@@ -435,6 +435,9 @@ int main(int argc, char *argv[])
   free(edge_vtx     );
   free(vtx_coord    );
 
+  free(edge_face_idx);
+  free(edge_face);
+  free(edge_vtx_idx);
   PDM_MPI_Finalize();
   return 0;
 }

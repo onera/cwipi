@@ -19,6 +19,7 @@
 #include "pdm_polygon.h"
 #include "pdm_geom_elem.h"
 #include "pdm_triangulate.h"
+#include "pdm_logging.h"
 
 #include "pdm_mean_values.h"
 
@@ -81,6 +82,185 @@ static inline double _distance2(const double a[3], const double b[3]) {
     +    (a[2] - b[2]) * (a[2] - b[2]);
 }
 
+
+
+static void
+_compute_mean_value_coord_polygon
+(
+ const int     n_vtx,
+ const double *vtx_coord,
+ const int     n_pts,
+ const double *pts_coord,
+       double *mean_value_coord
+ )
+{
+  double eps_same_pt2 = 1e-24; // squared distance
+  double eps_on_line2 = 1e-24; // squared distance (scale?)
+  double s[n_vtx*3];
+  double r[n_vtx];
+  double A[n_vtx];
+  double D[n_vtx];
+
+
+  /* Compute local epsilon (1e-12 * max range of the polygon) */
+  double extents[6] = {
+    HUGE_VAL, HUGE_VAL, HUGE_VAL,
+    -HUGE_VAL, -HUGE_VAL, -HUGE_VAL
+  };
+  for (int i = 0; i < n_vtx; i++) {
+    for (int j = 0; j < 3; j++) {
+      double x = vtx_coord[3*i+j];
+      extents[j  ] = PDM_MIN(extents[j  ], x);
+      extents[j+3] = PDM_MAX(extents[j+3], x);
+    }
+  }
+
+  double max_range = 0.;
+  for (int j = 0; j < 3; j++) {
+    max_range = PDM_MAX(max_range, extents[j+3] - extents[j]);
+  }
+
+  eps_same_pt2 *= max_range*max_range;
+
+  eps_on_line2 = eps_same_pt2;
+
+  double normal[3];
+  PDM_plane_normal(n_vtx,
+                   vtx_coord,
+                   normal);
+
+  for (int ipt = 0; ipt < n_pts; ipt++) {
+
+    const double *p = pts_coord  + ipt*3;
+    double *m = mean_value_coord + ipt*n_vtx;
+
+    // int dbg = (p[0] > 0.065 && p[0] < 0.066 &&
+    //            p[1] > 0.11  && p[1] < 0.12);
+    int dbg = 0;
+    // int dbg = (p[0] > -0.424127 && p[0] < -0.424125 &&
+    //            p[1] > -0.029731 && p[1] < -0.029729);
+
+
+    if (dbg) {
+      log_trace("eps_same_pt2 = %e\n", eps_same_pt2);
+    }
+
+    int special_case = 0;
+    for (int ivtx = 0; ivtx < n_vtx; ivtx++) {
+      double *si = s + 3*ivtx;
+
+      r[ivtx] = 0.;
+      for (int j = 0; j < 3; j++) {
+        si[j] = vtx_coord[3*ivtx+j] - p[j];
+        r[ivtx] += si[j]*si[j];
+      }
+
+      if (r[ivtx] < eps_same_pt2) {
+        /* Point coincident with current vertex */
+        for (int jvtx = 0; jvtx < n_vtx; jvtx++) {
+          m[jvtx] = (double) (jvtx == ivtx);
+        }
+        special_case = 1;
+        break;
+      }
+
+      r[ivtx] = sqrt(r[ivtx]);
+      if (dbg) {
+        log_trace("r[%d] = %e\n", ivtx, r[ivtx]);
+      }
+    } // End of loop on vertices
+
+    if (special_case) {
+      continue;
+    }
+
+    for (int ivtx = 0; ivtx < n_vtx; ivtx++) {
+      int jvtx = (ivtx + 1) % n_vtx;
+
+      double *si = s + 3*ivtx;
+      double *sj = s + 3*jvtx;
+
+      D[ivtx] = PDM_DOT_PRODUCT(si, sj);
+      double w[3];
+      PDM_CROSS_PRODUCT(w, si, sj);
+      A[ivtx] = PDM_DOT_PRODUCT(w, w);
+
+      if (A[ivtx] < eps_on_line2) {
+        /* Point on line */
+        for (int kvtx = 0; kvtx < n_vtx; kvtx++) {
+          m[kvtx] = 0.;
+        }
+
+        if (D[ivtx] > 0) {
+          /* Point outside edge ij */
+          double denom = 0.;
+          double t     = 0.;
+          for (int j = 0; j < 3; j++) {
+            double u = vtx_coord[3*jvtx+j] - vtx_coord[3*ivtx+j];
+            t -= si[j] * u;
+            denom += u*u;
+          }
+
+          if (denom > eps_same_pt2) {
+            t /= denom;
+          }
+
+          m[ivtx] = 1. - t;
+          m[jvtx] = t;
+        }
+        else {
+          /* Point inside edge ij */
+          double idenom = 1./(r[ivtx] + r[jvtx]);
+          m[ivtx] = r[jvtx] * idenom;
+          m[jvtx] = r[ivtx] * idenom;
+          if (dbg) {
+            log_trace("point inside edge %d\n", ivtx);
+          }
+        }
+        special_case = 1;
+        break;
+      }
+
+      A[ivtx] = PDM_SIGN(PDM_DOT_PRODUCT(normal, w)) * sqrt(A[ivtx]); // SIGN!!!
+      if (dbg) {
+        log_trace("D[%d] = %e, A[%d] = %e\n", ivtx, D[ivtx], ivtx, A[ivtx]);
+      }
+    } // End of loop on vertices
+
+
+    if (special_case == PDM_TRUE) {
+      continue;
+    }
+
+
+    double sum = 0.;
+    for (int i = 0; i < n_vtx; i++) {
+      int ip = (i + 1) % n_vtx;
+      int im = (i - 1 + n_vtx) % n_vtx;
+
+      m[i] = (r[ip] - D[i]/r[i])/A[i] + (r[im] - D[im]/r[i])/A[im];
+      sum += m[i];
+    } // End of loop on vertices
+
+    if (PDM_ABS(sum) > 1e-15) {
+      sum = 1./sum;
+      for (int i = 0; i < n_vtx; i++) {
+        m[i] *= sum;
+      }
+    }
+
+    if (dbg) {
+      log_trace("poly_coord :");
+      for (int i = 0 ; i < n_vtx; i++) {
+        PDM_log_trace_array_double(vtx_coord + 3*i, 3, "");
+      }
+      log_trace("pt (%f %f %f), mvc = ", p[0], p[1], p[2]);
+      PDM_log_trace_array_double(m, n_vtx, "");
+    }
+
+  } // End of loop on points
+}
+
 /*=============================================================================
  * Public function definition
  *============================================================================*/
@@ -137,6 +317,16 @@ PDM_mean_values_polygon_2d
   for (ipt = 0; ipt < n_pts; ipt++) {
     const double *_pt = pts_coord + 2 * ipt;
     double       *_bc = mean_value_coord + n_vtx * ipt;
+
+    // int dbg = (_pt[0] > 0.065 && _pt[0] < 0.066 &&
+    //            _pt[1] > 0.11  && _pt[1] < 0.12);
+    int dbg = 0;
+    // int dbg = (_pt[0] > -0.424127 && _pt[0] < -0.424125 &&
+    //            _pt[1] > -0.029731 && _pt[1] < -0.029729);
+
+    if (dbg) {
+      log_trace("eps2 = %e\n", eps2);
+    }
 
     /* If current point is outside the polygon,
        consider its projection on the polygon boundary */
@@ -203,6 +393,9 @@ PDM_mean_values_polygon_2d
       else {
         r[ivtx] = sqrt (r[ivtx]);
       }
+      if (dbg) {
+        log_trace("r[%d] = %e\n", ivtx, r[ivtx]);
+      }
     }
 
 
@@ -217,6 +410,9 @@ PDM_mean_values_polygon_2d
 
       A[ivtx] = veci[0] * vecj[1] - veci[1] * vecj[0];
       D[ivtx] = PDM_DOT_PRODUCT_2D (veci, vecj);
+      if (dbg) {
+        log_trace("D[%d] = %e, A[%d] = %e\n", ivtx, D[ivtx], ivtx, A[ivtx]);
+      }
 
       /* Point on edge */
       if (fabs(A[ivtx]) < eps) {
@@ -257,6 +453,15 @@ PDM_mean_values_polygon_2d
     else {
       printf("!!! sum_w = %g\n", sum_w);
     }
+
+    if (dbg) {
+      log_trace("poly_coord :");
+      for (int i = 0 ; i < n_vtx; i++) {
+        PDM_log_trace_array_double(vtx_coord + 2*i, 2, "");
+      }
+      log_trace("pt (%f %f), mvc = ", _pt[0], _pt[1]);
+      PDM_log_trace_array_double(_bc, n_vtx, "");
+    }
   }
 
   free (s);
@@ -288,16 +493,35 @@ PDM_mean_values_polygon_3d
 )
 {
 
+  if (1) {
+    _compute_mean_value_coord_polygon(n_vtx,
+                                      vtx_coord,
+                                      n_pts,
+                                      pts_coord,
+                                      mean_value_coord);
+    return;
+  }
+
+
   double *vtx_uv = malloc (sizeof(double) * n_vtx * 2);
   double *pts_uv = malloc (sizeof(double) * n_pts * 2);
 
-  PDM_polygon_3d_to_2d (n_vtx,
-                        vtx_coord,
-                        vtx_uv,
-                        n_pts,
-                        pts_coord,
-                        pts_uv,
-                        NULL);
+  // PDM_polygon_3d_to_2d (n_vtx,
+  //                       vtx_coord,
+  //                       vtx_uv,
+  //                       n_pts,
+  //                       pts_coord,
+  //                       pts_uv,
+  //                       NULL);
+  for (int i = 0; i < n_vtx; i++) {
+    vtx_uv[2*i  ] = vtx_coord[3*i  ];
+    vtx_uv[2*i+1] = vtx_coord[3*i+1];
+  }
+
+  for (int i = 0; i < n_pts; i++) {
+    pts_uv[2*i  ] = pts_coord[3*i  ];
+    pts_uv[2*i+1] = pts_coord[3*i+1];
+  }
 
   PDM_mean_values_polygon_2d (n_vtx,
                               vtx_uv,

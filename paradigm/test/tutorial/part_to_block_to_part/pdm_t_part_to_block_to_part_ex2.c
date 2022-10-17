@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
 
   /* Set child ln_to_gn from parent */
 
-  PDM_gen_gnum_t *gen_gnum = PDM_gnum_create(1, n_part, PDM_FALSE, 1.e-3, comm, PDM_OWNERSHIP_USER);
+  PDM_gen_gnum_t *gen_gnum = PDM_gnum_create(1, n_part, PDM_FALSE, 1.e-3, comm, PDM_OWNERSHIP_KEEP);
 
   PDM_gnum_set_from_parents(gen_gnum, 0, pn_elmt, pln_to_to_gn);
 

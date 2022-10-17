@@ -1349,7 +1349,6 @@ PDM_part_domain_interface_as_graph
                               neighbor_entity_idx,
                               neighbor_entity_desc);
 
-
   /*
    * At this stage we have interface composition AND
    * All combination is a real new connection

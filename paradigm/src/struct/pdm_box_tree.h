@@ -679,6 +679,23 @@ PDM_box_tree_extract_extents
        int      **extract_child_id
 );
 
+void
+PDM_box_tree_extract_leaves
+(
+ PDM_box_tree_t  *bt,
+ int             *n_leaf,
+ int            **leaf_id
+ );
+
+void
+PDM_box_tree_extract_node_extents
+(
+ PDM_box_tree_t  *bt,
+ int              n_node,
+ int             *node_id,
+ double          *node_extents,
+ const int        normalized
+ );
 
 void
 PDM_box_tree_extract_extents_by_child_ids

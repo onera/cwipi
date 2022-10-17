@@ -306,10 +306,6 @@ PDM_geom_elem_tria_surface_vector
     }
 
     PDM_CROSS_PRODUCT(surface_vectorTri, v1, v2);
-    printf(" surface_vector = %20.16e - %20.16e,  %20.16e - %20.16e,  %20.16e - %20.16e\n",
-           v1[1]*v2[2], v1[2]*v2[1],
-           v1[2]*v2[0], v1[0]*v2[2],
-           v1[0]*v2[1], v1[1]*v2[0]);
 
     surface_vectorTri[0] *= 0.5;
     surface_vectorTri[1] *= 0.5;
@@ -2292,8 +2288,8 @@ PDM_geom_elem_polyhedra_properties
       }
 
       else {
-        PDM_printf( "Warning polyhedraProperties : volume < 0 for polyhedron '%i'\n",
-                    ipoly + 1);
+        PDM_printf( "Warning polyhedraProperties : volume < 0 for polyhedron '%i' (%f)\n",
+                    ipoly + 1, volume[ipoly]);
       }
     }
 
@@ -2325,6 +2321,7 @@ PDM_geom_elem_polyhedra_properties
     }
 
   }
+  PDM_UNUSED(volume_t);
 
   free (polyhedraVertices);
 
@@ -2451,6 +2448,19 @@ PDM_geom_elem_edge_upwind_and_downwind
   int    *downwind_face  = *downwind_face_out;
   double *upwind_point   = *upwind_point_out;
   double *downwind_point = *downwind_point_out;
+
+  for(int i = 0; i < n_edge; ++i) {
+    upwind_cell  [i] = -1;
+    downwind_cell[i] = -1;
+    upwind_face  [i] = -1;
+    downwind_face[i] = -1;
+    upwind_point  [3*i  ] = DBL_MAX;
+    upwind_point  [3*i+1] = DBL_MAX;
+    upwind_point  [3*i+2] = DBL_MAX;
+    downwind_point[3*i  ] = DBL_MAX;
+    downwind_point[3*i+1] = DBL_MAX;
+    downwind_point[3*i+2] = DBL_MAX;
+  }
 
 
   PDM_triangulate_state_t *tri_state  = NULL;

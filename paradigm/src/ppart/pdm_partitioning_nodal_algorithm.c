@@ -490,7 +490,7 @@ PDM_dmesh_nodal_elmts_to_part_mesh_nodal_elmts
       }
 
       numabs    [i_section][idx_write] = g_num+1;
-      parent_num[i_section][idx_write] = i_elmt+1;
+      parent_num[i_section][idx_write] = i_elmt;//+1; // 0-based to be coherent with PDM_Mesh_nodal
       if(pparent_entitity_ln_to_gn != NULL) {
         sparent_entitity_ln_to_gn[i_section][idx_write] = pparent_entitity_ln_to_gn[i_part][i_elmt];
       }

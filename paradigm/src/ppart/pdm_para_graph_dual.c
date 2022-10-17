@@ -921,6 +921,8 @@ const PDM_MPI_Comm      comm
   int i_rank;
   int n_rank;
 
+  PDM_UNUSED(part_fraction);
+
   PDM_MPI_Comm_rank(comm, &i_rank);
   PDM_MPI_Comm_size(comm, &n_rank);
 

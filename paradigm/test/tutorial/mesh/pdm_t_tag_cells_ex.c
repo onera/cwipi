@@ -505,6 +505,12 @@ int main(int argc, char *argv[])
     n_current_cell_tag_new = 0; // pourquoi ça fonctionne mieux quand lui pas mis à 0
   } // end loop on domain
 
+  free(face_cell_idx);
+  free(face_cell);
+  free(current_cell_tag);
+  free(current_cell_tag_new);
+  free(zeros);
+
   /*
    *  Visualize 'expanded' cell tags
    */

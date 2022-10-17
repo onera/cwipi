@@ -1771,8 +1771,10 @@ PDM_MPI_Comm       comm
                                distrib_partition,
                                distrib_node,
                                node_part,
+                               NULL,
                               &pn_node,
-                              &pnode_ln_to_gn);
+                              &pnode_ln_to_gn,
+                               NULL);
 
 
   free(node_part);
@@ -2505,8 +2507,10 @@ PDM_MPI_Comm      comm
                                part_distri,
                                cell_distri,
                                cell_part,
+                               NULL,
                               &pn_cell,
-                              &pcell_ln_to_gn);
+                              &pcell_ln_to_gn,
+                               NULL);
 
   free(dual_graph_idx);
   free(dual_graph);

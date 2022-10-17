@@ -206,13 +206,13 @@ _read_args(int                          argc,
       }
     }
     else if (strcmp(argv[i], "-pt-scotch") == 0) {
-      *part_method = PDM_PART_SPLIT_PTSCOTCH;
+      *part_method = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
     }
     else if (strcmp(argv[i], "-parmetis") == 0) {
-      *part_method = PDM_PART_SPLIT_PARMETIS;
+      *part_method = PDM_SPLIT_DUAL_WITH_PARMETIS;
     }
     else if (strcmp(argv[i], "-hilbert") == 0) {
-      *part_method = PDM_PART_SPLIT_HILBERT;
+      *part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
     }
     else if (strcmp(argv[i], "-octree") == 0) {
       *loc_method = PDM_MESH_LOCATION_OCTREE;
@@ -1410,12 +1410,15 @@ int main(int argc, char *argv[])
   int         extension_depth_tgt = 0;
   int         extension_depth_src = 0;
 #ifdef PDM_HAVE_PARMETIS
-  PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_PARMETIS;
+  PDM_split_dual_t part_method  = PDM_SPLIT_DUAL_WITH_PARMETIS;
 #else
 #ifdef PDM_HAVE_PTSCOTCH
-  PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
+  PDM_split_dual_t part_method  = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
+#else
+  PDM_split_dual_t part_method  = PDM_SPLIT_DUAL_WITH_HILBERT;
 #endif
 #endif
+
 
   PDM_g_num_t n_pts = 10;
   PDM_mesh_location_method_t loc_method = PDM_MESH_LOCATION_OCTREE;
@@ -1746,10 +1749,10 @@ int main(int argc, char *argv[])
     fflush(stdout);
   }
 
-  PDM_mesh_location_compute (mesh_loc);
+  // PDM_mesh_location_compute (mesh_loc);
+  PDM_mesh_location_compute_optim(mesh_loc);
 
   PDM_mesh_location_dump_times (mesh_loc);
-
 
 
 
@@ -2112,6 +2115,7 @@ int main(int argc, char *argv[])
                          tgt_proj_coord,
                          tgt_g_num,
                          tgt_location);
+
   }
 
 

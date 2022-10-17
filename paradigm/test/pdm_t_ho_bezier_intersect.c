@@ -59,7 +59,8 @@ static void
 _read_args
 (
  int            argc,
- char         **argv
+ char         **argv,
+ int           *visu
 )
 {
   int i = 1;
@@ -70,6 +71,10 @@ _read_args
 
     if (strcmp (argv[i], "-h") == 0)
       _usage(EXIT_SUCCESS);
+
+    else if (strcmp(argv[i], "-visu") == 0) {
+      *visu = 1;
+    }
 
     else
       _usage (EXIT_FAILURE);
@@ -89,9 +94,11 @@ int main(int argc, char *argv[])
 
   int           i_rank;
   int           numProcs;
+  int           visu = 0;
 
   _read_args (argc,
-              argv);
+              argv,
+              &visu);
 
   PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &i_rank);
   PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &numProcs);
@@ -312,7 +319,7 @@ int main(int argc, char *argv[])
   PDM_g_num_t *vtx_g_num = malloc(sizeof(PDM_g_num_t) * n_vtx);
   int *face_vtx = malloc(sizeof(int) * n_vtx_triangle);
   PDM_g_num_t *face_g_num = malloc(sizeof(PDM_g_num_t) * 1);
-  const char        *vtx_field_name = "ho_bezier_basis";
+  const char  *vtx_field_name = "ho_bezier_basis";
   double      *vtx_field = malloc(sizeof(double) * n_vtx);
 
   for (int j = 0; j < n_vtx_triangle; j++) {
@@ -356,54 +363,58 @@ int main(int argc, char *argv[])
 
   face_g_num[0] = 1;
 
-  PDM_vtk_write_std_elements_ho(filename1,
-                                order,
-                                n_vtx_triangle,
-                                tria_coord,
-                                vtx_g_num,
-                                PDM_MESH_NODAL_TRIAHO_BEZIER,
-                                1,
-                                face_vtx,
-                                face_g_num,
-                                0,
-                                NULL,
-                                NULL);
-
-  // vtk output of points
-  char filename2[999];
-  sprintf(filename2, "P%d_triangle_vtx.vtk", order);
-
-  for (int j = n_vtx_triangle; j < n_vtx; j++) {
-    vtx_g_num[j] = j + 1;
-    vtx_field[j] = 1;
+  if (visu) {
+    PDM_vtk_write_std_elements_ho(filename1,
+                                  order,
+                                  n_vtx_triangle,
+                                  tria_coord,
+                                  vtx_g_num,
+                                  PDM_MESH_NODAL_TRIAHO_BEZIER,
+                                  1,
+                                  face_vtx,
+                                  face_g_num,
+                                  0,
+                                  NULL,
+                                  NULL);
   }
 
-  double *vector_derivatives[2] = {vector_du, vector_dv};
+  // vtk output of points
+  if (visu) {
+    char filename2[999];
+    sprintf(filename2, "P%d_triangle_vtx.vtk", order);
 
-  const char* vector_derivatives_names[] = {"dw_du", "dw_dv", 0};
+    for (int j = n_vtx_triangle; j < n_vtx; j++) {
+      vtx_g_num[j] = j + 1;
+      vtx_field[j] = 1;
+    }
 
-  double *vector_normal[1] = {normal};
+    double *vector_derivatives[2] = {vector_du, vector_dv};
 
-  const char* normal_name[] = {"n", 0};
+    const char* vector_derivatives_names[] = {"dw_du", "dw_dv", 0};
 
-  PDM_vtk_write_point_cloud_with_field(filename2,
-                                       n_vtx,
-                                       tria_coord,
-                                       vtx_g_num,
-                                       NULL,
-                                       1,
-                       (const char **) &vtx_field_name,
-                     (const double **) &vtx_field,
-                                       2,
-                       (const char **) &vector_derivatives_names,
-                     (const double **) &vector_derivatives,
-                                       1,
-                       (const char **) &normal_name,
-                     (const double **) &vector_normal);
+    double *vector_normal[1] = {normal};
 
-  free(vtx_g_num);
+    const char* normal_name[] = {"n", 0};
+
+    PDM_vtk_write_point_cloud_with_field(filename2,
+                                         n_vtx,
+                                         tria_coord,
+                                         vtx_g_num,
+                                         NULL,
+                                         1,
+                         (const char **) &vtx_field_name,
+                       (const double **) &vtx_field,
+                                         2,
+                         (const char **) &vector_derivatives_names,
+                       (const double **) &vector_derivatives,
+                                         1,
+                         (const char **) &normal_name,
+                       (const double **) &vector_normal);
+
+  }
   free(face_vtx);
   free(face_g_num);
+  free(vtx_g_num);
   free(vtx_field);
 
   PDM_MPI_Finalize ();

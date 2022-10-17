@@ -432,6 +432,7 @@ _calcul_numabs_face_poly3d
       max_loc = _max((PDM_g_num_t) numabs_block[j], max_loc);
     }
   }
+  PDM_UNUSED(n_elt_proc);
 
   PDM_MPI_Allreduce(&max_loc, &max_abs, 1,
                     PDM__PDM_MPI_G_NUM, PDM_MPI_MAX, geom->pdm_mpi_comm);

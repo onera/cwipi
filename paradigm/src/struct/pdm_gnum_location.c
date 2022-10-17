@@ -224,33 +224,33 @@ PDM_gnum_location_compute
       part_stride[i][j]   = 3;
       part_data[i][3*j]   = rank;
       part_data[i][3*j+1] = i;
-      part_data[i][3*j+2] = j+1;
+      part_data[i][3*j+2] = j;
     }
   }
 
   int  *block_stride = NULL;
   int  *block_data = NULL;
 
-  // PDM_part_to_block_exch (ptb,
-  //                         s_data,
-  //                         t_stride,
-  //                         cst_stride,
-  //                         part_stride,
-  //                         (void **) part_data,
-  //                         &block_stride,
-  //                         (void **) &block_data);
+  PDM_part_to_block_exch (ptb,
+                          s_data,
+                          t_stride,
+                          cst_stride,
+                          part_stride,
+                          (void **) part_data,
+                          &block_stride,
+                          (void **) &block_data);
 
-  int request_id = -1;
-  PDM_part_to_block_iexch (ptb,
-                           PDM_MPI_COMM_KIND_COLLECTIVE,
-                           s_data,
-                           t_stride,
-                           cst_stride,
-                           part_stride,
-                 (void **) part_data,
-                           &block_stride,
-                 (void **) &block_data,
-                           &request_id);
+  // int request_id = -1;
+  // PDM_part_to_block_iexch (ptb,
+  //                          PDM_MPI_COMM_KIND_COLLECTIVE,
+  //                          s_data,
+  //                          t_stride,
+  //                          cst_stride,
+  //                          part_stride,
+  //                (void **) part_data,
+  //                          &block_stride,
+  //                (void **) &block_data,
+  //                          &request_id);
 
   for (int i = 0; i < gnum_loc->n_part_in; i++) {
     free (part_stride[i]);
@@ -269,7 +269,7 @@ PDM_gnum_location_compute
                                                                         gnum_loc->n_part_out,
                                                                         gnum_loc->comm);
 
-  PDM_part_to_block_iexch_wait(ptb, request_id);
+  // PDM_part_to_block_iexch_wait(ptb, request_id);
 
   PDM_block_to_part_exch (btp,
                           s_data,

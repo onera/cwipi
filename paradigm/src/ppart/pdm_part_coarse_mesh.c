@@ -238,12 +238,12 @@ int            *cell_part
 static void
 _coarse_from_metis
 (
-PDM_coarse_mesh_t* cm,
-const int       i_part,
-int            *n_coarse_cell_computed,
-int            *cell_cell_idx,
-int            *cell_cell,
-int            *cell_part
+PDM_coarse_mesh_t  *cm,
+const int           i_part,
+int                *n_coarse_cell_computed,
+int                *cell_cell_idx,
+int                *cell_cell,
+int                *cell_part
 )
 {
 #ifdef PDM_HAVE_PARMETIS
@@ -339,6 +339,14 @@ int            *cell_part
       (*n_coarse_cell_computed) = n_part;
 
 #else
+
+      PDM_UNUSED(cm);
+      PDM_UNUSED(i_part);
+      PDM_UNUSED(n_coarse_cell_computed);
+      PDM_UNUSED(cell_cell_idx);
+      PDM_UNUSED(cell_cell);
+      PDM_UNUSED(cell_part);
+
       PDM_printf("PDM_part error : METIS unavailable\n");
       exit(1);
 

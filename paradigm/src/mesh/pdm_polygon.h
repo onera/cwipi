@@ -168,11 +168,11 @@ PDM_polygon_point_in
 PDM_polygon_status_t
 PDM_polygon_point_in_new
 (
- const double  x[3],
- const int     numPts,
- const double *pts,
- double       *bounds,
- double       *n
+ const double  xyz[3],
+ const int     n_vtx,
+ const double *vtx_xyz,
+ double        bounds[6],
+ double        normal[3]
 );
 /**
  * \brief Computes polygon barycenter

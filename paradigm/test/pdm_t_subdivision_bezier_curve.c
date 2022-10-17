@@ -68,7 +68,8 @@ _read_args
  int      argc,
  char   **argv,
  int     *order,
- double  *noise
+ double  *noise,
+ int     *visu
  )
 {
   int i = 1;
@@ -98,6 +99,10 @@ _read_args
       }
     }
 
+    else if (strcmp(argv[i], "-visu") == 0) {
+      *visu = 1;
+    }
+
     else
       _usage(EXIT_FAILURE);
     i++;
@@ -119,6 +124,7 @@ int main(int argc, char *argv[])
    */
   int    order = 3;
   double noise = 0.;
+  int    visu  = 0;
 
   /*
    *  Read args
@@ -126,7 +132,8 @@ int main(int argc, char *argv[])
   _read_args(argc,
              argv,
              &order,
-             &noise);
+             &noise,
+             &visu);
 
 
   /*
@@ -211,6 +218,8 @@ int main(int argc, char *argv[])
     }
 
     printf("max_diff = %e\n", max_diff);
+    free(weight);
+    free(weight2);
   }
 
 
@@ -245,27 +254,11 @@ int main(int argc, char *argv[])
                                  elt_node,
                                  elt_node);
 
-
-  PDM_vtk_write_std_elements_ho("bezier_curve.vtk",
-                                order,
-                                n_node,
-                                node_coord,
-                                NULL,
-                                PDM_MESH_NODAL_BARHO_BEZIER,
-                                1,
-                                elt_node,
-                                NULL,
-                                0,
-                                NULL,
-                                NULL);
-
-  char filename[999];
-  for (int i = 0; i < 2; i++) {
-    sprintf(filename, "bezier_subcurve_%d.vtk", i);
-    PDM_vtk_write_std_elements_ho(filename,
+  if (visu) {
+    PDM_vtk_write_std_elements_ho("bezier_curve.vtk",
                                   order,
                                   n_node,
-                                  sub_node_coord[i],
+                                  node_coord,
                                   NULL,
                                   PDM_MESH_NODAL_BARHO_BEZIER,
                                   1,
@@ -274,20 +267,37 @@ int main(int argc, char *argv[])
                                   0,
                                   NULL,
                                   NULL);
+
+    char filename[999];
+    for (int i = 0; i < 2; i++) {
+      sprintf(filename, "bezier_subcurve_%d.vtk", i);
+      PDM_vtk_write_std_elements_ho(filename,
+                                    order,
+                                    n_node,
+                                    sub_node_coord[i],
+                                    NULL,
+                                    PDM_MESH_NODAL_BARHO_BEZIER,
+                                    1,
+                                    elt_node,
+                                    NULL,
+                                    0,
+                                    NULL,
+                                    NULL);
+    }
+
+
+    FILE *f = fopen("bezier_deriv_curve.vtk", "w");
+    fprintf(f, "# vtk DataFile Version 2.0\n");
+    fprintf(f, "bezier_deriv\nASCII\nDATASET UNSTRUCTURED_GRID\n");
+    fprintf(f, "POINTS 1 double\n");
+    fprintf(f, "%f %f %f\n", p[0], p[1], p[2]);
+    fprintf(f, "CELLS 1 2\n1 0\n");
+    fprintf(f, "CELL_TYPES 1\n1\n");
+    fprintf(f, "POINT_DATA 1\n");
+    fprintf(f, "VECTORS vector double\n");
+    fprintf(f, "%f %f %f\n", dp_dt[0], dp_dt[1], dp_dt[2]);
+    fclose(f);
   }
-
-
-  FILE *f = fopen("bezier_deriv_curve.vtk", "w");
-  fprintf(f, "# vtk DataFile Version 2.0\n");
-  fprintf(f, "bezier_deriv\nASCII\nDATASET UNSTRUCTURED_GRID\n");
-  fprintf(f, "POINTS 1 double\n");
-  fprintf(f, "%f %f %f\n", p[0], p[1], p[2]);
-  fprintf(f, "CELLS 1 2\n1 0\n");
-  fprintf(f, "CELL_TYPES 1\n1\n");
-  fprintf(f, "POINT_DATA 1\n");
-  fprintf(f, "VECTORS vector double\n");
-  fprintf(f, "%f %f %f\n", dp_dt[0], dp_dt[1], dp_dt[2]);
-  fclose(f);
 
   /*
    *  Free memory

@@ -13,6 +13,7 @@
 #include "pdm_mpi.h"
 #include "pdm.h"
 #include "pdm_box.h"
+#include "pdm_part_to_block.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -111,7 +112,19 @@ PDM_dbbtree_boxes_set
  const int          *nElts,
  const double      **extents,
  const PDM_g_num_t **gNum
- );
+);
+
+
+PDM_box_set_t *
+PDM_dbbtree_boxes_set_with_init_location
+(
+ PDM_dbbtree_t      *dbbt,
+ const int           n_part,
+ const int          *nElts,
+ const int         **init_location,
+ const double      **extents,
+ const PDM_g_num_t **gNum
+);
 
 PDM_box_set_t *
 PDM_dbbtree_boxes_set_for_intersect_line
@@ -142,6 +155,18 @@ PDM_dbbtree_boxes_set_for_intersect_line
  * to the tree intersection
  *
  */
+PDM_box_set_t *
+PDM_dbbtree_intersect_boxes_with_init_location_set
+(
+ PDM_dbbtree_t      *dbbt,
+ const int           n_part,
+ const int          *nElts,
+ const int         **init_location,
+ const double      **extents,
+ const PDM_g_num_t **gNum,
+ int                *box_index[],
+ int                *box_l_num[]
+);
 
 PDM_box_set_t *
 PDM_dbbtree_intersect_boxes_set
@@ -240,6 +265,20 @@ PDM_dbbtree_points_inside_boxes
  PDM_g_num_t       **pts_in_box_g_num,
  double            **pts_in_box_coord,
  const int           ellipsoids
+ );
+
+void
+PDM_dbbtree_points_inside_boxes_block_frame
+(
+ PDM_dbbtree_t        *dbbt,
+ const int             n_pts,
+ PDM_g_num_t           pts_g_num[],
+ double                pts_coord[],
+ PDM_part_to_block_t **ptb_out,
+ int                 **dbox_pts_n,
+ PDM_g_num_t         **dbox_pts_g_num,
+ double              **dbox_pts_coord,
+ const int             ellipsoids
  );
 
 
@@ -376,6 +415,7 @@ PDM_dbbtree_lines_intersect_boxes2
  int            *n_part,
  int           **redistrib_n_box,
  PDM_g_num_t  ***redistrib_box_ln_to_gn,
+ int          ***redistrib_box_init_location,
  int          ***box_line_idx,
  PDM_g_num_t  ***box_line_g_num
  );
@@ -383,15 +423,16 @@ PDM_dbbtree_lines_intersect_boxes2
 void
 PDM_dbbtree_lines_intersect_boxes2_shared
 (
- PDM_dbbtree_t  *dbbt,
- const int       n_line,
- PDM_g_num_t    *line_g_num,
- double         *line_coord,
- int            *n_part,
- int           **redistrib_n_box,
- PDM_g_num_t  ***redistrib_box_ln_to_gn,
- int          ***box_line_idx,
- PDM_g_num_t  ***box_line_g_num
+ PDM_dbbtree_t   *dbbt,
+ const int        n_line,
+ PDM_g_num_t     *line_g_num,
+ double          *line_coord,
+ int             *n_part,
+ int            **redistrib_n_box,
+ PDM_g_num_t   ***redistrib_box_ln_to_gn,
+ int           ***redistrib_box_init_location,
+ int           ***box_line_idx,
+ PDM_g_num_t   ***box_line_g_num
 );
 
 /**

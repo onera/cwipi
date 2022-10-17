@@ -576,6 +576,7 @@ int main(int argc, char *argv[])
                              &pface_cell_idx,
                              &pface_cell);
 
+
   /* Get vtx_group */
 
   int *pedge_face_idx = NULL;
@@ -619,6 +620,8 @@ int main(int argc, char *argv[])
                            pedge_group,
                            &pvtx_group_idx,
                            &pvtx_group);
+
+
 
   for (int i = 0; i < pn_vtx; i++) {
     log_trace("sommet d'indice %d à %d groupes qui sont:", i, (pvtx_group_idx[i+1]- pvtx_group_idx[i]));
@@ -754,7 +757,7 @@ int main(int argc, char *argv[])
   char    filename[999];
   int     vtx1_idx;
   int     vtx2_idx;
-  double *normalisation  = malloc(pn_vtx * sizeof(double));
+  double *normalisation  = malloc(    pn_vtx * sizeof(double));
   double *pvtx_coord_new = malloc(3 * pn_vtx * sizeof(double));
 
   /* Set up of Ensight output */
@@ -925,6 +928,7 @@ int main(int argc, char *argv[])
       pvtx_coord_extension[3*i+2] = pvtx_coord_extension_new[i_part][3*i+2];
     } // end loop on extension coordinates
 
+    free(pvtx_coord_extension_new[i_part]);
     free(pvtx_coord_extension_new);
 
     // PDM_writer_step_end(id_cs);
@@ -932,10 +936,31 @@ int main(int argc, char *argv[])
 
 
   /* Free entities */
-
   PDM_multipart_free(mpart);
   PDM_part_extension_free(pe);
   PDM_part_to_part_free(ptp);
+
+  free(face_vtx_n  );
+  free(cell_face_n );
+  free(extension_vtx_gnum_idx );
+
+  free(pvtx_edge_idx);
+  free(pvtx_edge);
+  free(pedge_group_idx);
+  free(pedge_group);
+  free(pedge_face_idx);
+  free(pedge_face);
+  free(pedge_vtx_idx);
+  free(pface_vtx);
+  free(pface_cell_idx);
+  free(pface_cell);
+  free(pface_group_idx);
+  free(pface_group);
+  free(pvtx_group_idx);
+  free(pvtx_group    );
+
+  free(normalisation );
+  free(pvtx_coord_new);
 
   PDM_MPI_Finalize();
   return 0;

@@ -102,7 +102,7 @@ PDM_part_mesh_create
   pmesh->pconnectivity_idx      = (int         *** ) malloc( PDM_CONNECTIVITY_TYPE_MAX * sizeof(int         **) );
   pmesh->pentity_ln_to_gn       = (PDM_g_num_t *** ) malloc( PDM_MESH_ENTITY_MAX       * sizeof(PDM_g_num_t **) );
 
-  pmesh->pn_entity              = (int          ** ) malloc( PDM_MESH_ENTITY_MAX       * sizeof(int         **) );
+  pmesh->pn_entity              = (int          ** ) malloc( PDM_MESH_ENTITY_MAX       * sizeof(int          *) );
 
   pmesh->is_owner_connectivity  = malloc( PDM_CONNECTIVITY_TYPE_MAX * sizeof(PDM_bool_t   ) );
   pmesh->is_owner_ln_to_gn      = malloc( PDM_MESH_ENTITY_MAX       * sizeof(PDM_bool_t   ) );
@@ -119,9 +119,10 @@ PDM_part_mesh_create
     pmesh->pn_entity        [i] = NULL;
   }
 
-  pmesh->pbound          = malloc( PDM_BOUND_TYPE_MAX * sizeof(PDM_g_num_t *) );
-  pmesh->pbound_idx      = malloc( PDM_BOUND_TYPE_MAX * sizeof(int         *) );
-  pmesh->is_owner_bound  = malloc( PDM_BOUND_TYPE_MAX * sizeof(PDM_bool_t   ) );
+  pmesh->pbound                  = malloc( PDM_BOUND_TYPE_MAX * sizeof(PDM_g_num_t *) );
+  pmesh->pbound_idx              = malloc( PDM_BOUND_TYPE_MAX * sizeof(int         *) );
+  pmesh->is_owner_bound          = malloc( PDM_BOUND_TYPE_MAX * sizeof(PDM_bool_t   ) );
+  pmesh->is_owner_bound_ln_to_gn = malloc( PDM_BOUND_TYPE_MAX * sizeof(PDM_bool_t   ) );
 
   for(int i = 0; i < PDM_BOUND_TYPE_MAX; ++i ) {
     pmesh->n_group_bnd[i] = 0;
@@ -134,6 +135,11 @@ PDM_part_mesh_create
     pmesh->pbound_idx             [i] = NULL;
   }
 
+  pmesh->vtx_coords = malloc(pmesh->n_part * sizeof(double));
+  for(int i_part = 0; i_part < n_part; ++i_part) {
+    pmesh->vtx_coords[i_part] = NULL;
+  }
+  pmesh->is_owner_vtx_coord = PDM_FALSE;
 
   return pmesh;
 }
@@ -143,23 +149,35 @@ void
 PDM_part_mesh_n_entity_set
 (
  PDM_part_mesh_t          *pmesh,
+ int                       i_part,
  PDM_mesh_entities_t       entity_type,
- int                      *pn_entity
+ int                       pn_entity
 )
 {
-  pmesh->pn_entity[entity_type] = pn_entity;
+  if(pmesh->pn_entity[entity_type] == NULL) {
+    pmesh->pn_entity[entity_type] = malloc(pmesh->n_part * sizeof(int));
+    for(int i = 0; i < pmesh->n_part; ++i) {
+      pmesh->pn_entity[entity_type][i] = 0;
+    }
+  }
+  pmesh->pn_entity[entity_type][i_part] = pn_entity;
 }
 
 
-void
+int
 PDM_part_mesh_n_entity_get
 (
  PDM_part_mesh_t          *pmesh,
- PDM_mesh_entities_t       entity_type,
- int                     **pn_entity
+ int                       i_part,
+ PDM_mesh_entities_t       entity_type
 )
 {
-  *pn_entity = pmesh->pn_entity[entity_type];
+  if(pmesh->pn_entity[entity_type] != NULL) {
+    return pmesh->pn_entity[entity_type][i_part];
+  } else {
+    return 0;
+  }
+
 }
 
 
@@ -167,12 +185,19 @@ void
 PDM_part_mesh_entity_ln_to_gn_set
 (
  PDM_part_mesh_t          *pmesh,
+ int                       i_part,
  PDM_mesh_entities_t       entity_type,
- PDM_g_num_t             **pentity_ln_to_gn,
+ PDM_g_num_t              *pentity_ln_to_gn,
  PDM_ownership_t           ownership
 )
 {
-  pmesh->pentity_ln_to_gn [entity_type] = pentity_ln_to_gn;
+  if(pmesh->pentity_ln_to_gn [entity_type] == NULL) {
+    pmesh->pentity_ln_to_gn [entity_type] = malloc(pmesh->n_part * sizeof(int *));
+    for(int i = 0; i < pmesh->n_part; ++i) {
+      pmesh->pentity_ln_to_gn [entity_type][i] = NULL;
+    }
+  }
+  pmesh->pentity_ln_to_gn [entity_type][i_part] = pentity_ln_to_gn;
   if(ownership == PDM_OWNERSHIP_USER || ownership == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE) {
     pmesh->is_owner_ln_to_gn[entity_type] = PDM_FALSE;
   } else {
@@ -185,12 +210,17 @@ void
 PDM_part_mesh_entity_ln_to_gn_get
 (
  PDM_part_mesh_t          *pmesh,
+ int                       i_part,
  PDM_mesh_entities_t       entity_type,
- PDM_g_num_t            ***pentity_ln_to_gn,
+ PDM_g_num_t             **pentity_ln_to_gn,
  PDM_ownership_t           ownership
 )
 {
-  *pentity_ln_to_gn = pmesh->pentity_ln_to_gn[entity_type];
+  if(pmesh->pentity_ln_to_gn[entity_type] != NULL) {
+    *pentity_ln_to_gn = pmesh->pentity_ln_to_gn[entity_type][i_part];
+  } else {
+    *pentity_ln_to_gn = NULL;
+  }
   if(ownership == PDM_OWNERSHIP_USER || ownership == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE) {
     pmesh->is_owner_ln_to_gn[entity_type] = PDM_FALSE;
   } else {
@@ -204,14 +234,23 @@ void
 PDM_part_mesh_connectivity_set
 (
  PDM_part_mesh_t          *pmesh,
+ int                       i_part,
  PDM_connectivity_type_t   connectivity_type,
- int                     **connect,
- int                     **connect_idx,
+ int                      *connect,
+ int                      *connect_idx,
  PDM_ownership_t           ownership
 )
 {
-  pmesh->pconnectivity        [connectivity_type] = connect;
-  pmesh->pconnectivity_idx    [connectivity_type] = connect_idx;
+  if(pmesh->pconnectivity [connectivity_type] == NULL) {
+    pmesh->pconnectivity    [connectivity_type] = malloc(pmesh->n_part * sizeof(int *));
+    pmesh->pconnectivity_idx[connectivity_type] = malloc(pmesh->n_part * sizeof(int *));
+    for(int i = 0; i < pmesh->n_part; ++i) {
+      pmesh->pconnectivity    [connectivity_type][i] = NULL;
+      pmesh->pconnectivity_idx[connectivity_type][i] = NULL;
+    }
+  }
+  pmesh->pconnectivity        [connectivity_type][i_part] = connect;
+  pmesh->pconnectivity_idx    [connectivity_type][i_part] = connect_idx;
 
   if(ownership == PDM_OWNERSHIP_USER || ownership == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE) {
     pmesh->is_owner_connectivity[connectivity_type] = PDM_FALSE;
@@ -220,19 +259,62 @@ PDM_part_mesh_connectivity_set
   }
 }
 
+void
+PDM_part_mesh_vtx_coord_set
+(
+ PDM_part_mesh_t   *pmesh,
+ int                i_part,
+ double            *vtx_coord,
+ PDM_ownership_t    ownership
+)
+{
+  pmesh->vtx_coords[i_part] = vtx_coord;
+  if(ownership == PDM_OWNERSHIP_USER || ownership == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE) {
+    pmesh->is_owner_vtx_coord = PDM_FALSE;
+  } else {
+    pmesh->is_owner_vtx_coord = PDM_TRUE;
+  }
+}
+
+void
+PDM_part_mesh_vtx_coord_get
+(
+ PDM_part_mesh_t   *pmesh,
+ int                i_part,
+ double           **vtx_coord,
+ PDM_ownership_t    ownership
+)
+{
+  if(pmesh->vtx_coords[i_part] != NULL) {
+    *vtx_coord = pmesh->vtx_coords[i_part];
+  } else {
+    *vtx_coord = NULL;
+  }
+  if(ownership == PDM_OWNERSHIP_USER || ownership == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE) {
+    pmesh->is_owner_vtx_coord = PDM_FALSE;
+  } else {
+    pmesh->is_owner_vtx_coord = PDM_TRUE;
+  }
+}
 
 void
 PDM_part_mesh_connectivity_get
 (
  PDM_part_mesh_t           *pmesh,
+ int                        i_part,
  PDM_connectivity_type_t    connectivity_type,
- int                     ***connect,
- int                     ***connect_idx,
+ int                      **connect,
+ int                      **connect_idx,
  PDM_ownership_t           ownership
 )
 {
-  *connect     = pmesh->pconnectivity    [connectivity_type];
-  *connect_idx = pmesh->pconnectivity_idx[connectivity_type];
+  if(pmesh->pconnectivity    [connectivity_type][i_part] != NULL) {
+    *connect     = pmesh->pconnectivity    [connectivity_type][i_part];
+    *connect_idx = pmesh->pconnectivity_idx[connectivity_type][i_part];
+  } else {
+    *connect     = NULL;
+    *connect_idx = NULL;
+  }
 
   if(ownership == PDM_OWNERSHIP_USER || ownership == PDM_OWNERSHIP_UNGET_RESULT_IS_FREE) {
     pmesh->is_owner_connectivity[connectivity_type] = PDM_FALSE;
@@ -347,16 +429,16 @@ PDM_part_mesh_free
           free(pmesh->pconnectivity_idx[i][i_part]);
         }
       }
+    }
 
-      if(pmesh->pconnectivity[i] != NULL) {
-        free(pmesh->pconnectivity[i]);
-        pmesh->pconnectivity[i] = NULL;
-      }
+    if(pmesh->pconnectivity[i] != NULL) {
+      free(pmesh->pconnectivity[i]);
+      pmesh->pconnectivity[i] = NULL;
+    }
 
-      if(pmesh->pconnectivity_idx[i] != NULL) {
-        free(pmesh->pconnectivity_idx[i]);
-        pmesh->pconnectivity_idx[i] = NULL;
-      }
+    if(pmesh->pconnectivity_idx[i] != NULL) {
+      free(pmesh->pconnectivity_idx[i]);
+      pmesh->pconnectivity_idx[i] = NULL;
     }
   }
 
@@ -368,13 +450,21 @@ PDM_part_mesh_free
           free(pmesh->pentity_ln_to_gn[i][i_part]);
         }
       }
+    }
 
-      if(pmesh->pentity_ln_to_gn[i] != NULL) {
-        free(pmesh->pentity_ln_to_gn[i]);
-        pmesh->pentity_ln_to_gn[i] = NULL;
-      }
+    if(pmesh->pentity_ln_to_gn[i] != NULL) {
+      free(pmesh->pentity_ln_to_gn[i]);
+      pmesh->pentity_ln_to_gn[i] = NULL;
     }
   }
+
+  /* Free vtx__coord */
+  if(pmesh->is_owner_vtx_coord == PDM_TRUE) {
+    for(int i_part = 0; i_part < pmesh->n_part; ++i_part) {
+      free(pmesh->vtx_coords[i_part]);
+    }
+  }
+  free(pmesh->vtx_coords);
 
   /* Free group */
   for(int i = 0; i < PDM_BOUND_TYPE_MAX; ++i) {
@@ -416,6 +506,25 @@ PDM_part_mesh_free
       }
     }
   }
+
+
+  for(int i = 0; i < PDM_MESH_ENTITY_MAX; ++i) {
+    if(pmesh->pn_entity[i] !=NULL){
+      free(pmesh->pn_entity[i]);
+    }
+  }
+
+  free(pmesh->pn_entity);
+  free(pmesh->pconnectivity);
+  free(pmesh->pconnectivity_idx);
+  free(pmesh->pentity_ln_to_gn);
+  free(pmesh->is_owner_connectivity);
+  free(pmesh->is_owner_ln_to_gn    );
+  free(pmesh->pbound                 );
+  free(pmesh->pbound_idx             );
+  free(pmesh->is_owner_bound         );
+  free(pmesh->is_owner_bound_ln_to_gn);
+
 
   free(pmesh);
 }

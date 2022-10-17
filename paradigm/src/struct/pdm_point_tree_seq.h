@@ -260,6 +260,31 @@ PDM_point_tree_seq_extract_nodes
   int                  **node_weight
 );
 
+/**
+ *
+ * \brief Get node extents of subtree of given a list of node_id
+ *
+ * \param [in]  ptree                Pointer to \ref PDM_point_tree_seq object
+ * \param [in]  n_child_to_extract   Number of node to extract
+ * \param [in]  child_ids_to_extract Id of node to extract
+ * \param [out] n_extract_child      Number of child extracted
+ * \param [out] extract_extents      Extents of all child
+ * \param [out] extract_child_id     Id of all child
+ * \param [out] extract_is_leaf      Tag to know if child is a leaf or not
+ *
+ */
+void
+PDM_point_tree_seq_extract_extents_by_child_ids
+(
+  PDM_point_tree_seq_t  *ptree,
+  const int              n_node_to_extract,
+  const int             *node_ids_to_extract,
+        int             *n_extract_child,
+        int            **node_to_child_idx,
+        int            **extract_child_id,
+        int            **extract_is_leaf,
+        double         **extract_extents
+);
 
 /**
  *
@@ -442,6 +467,17 @@ PDM_tree_intersection_point_box2
  double                *box_extents,
  int                  **box_pts_idx,
  int                  **box_pts
+ );
+
+
+void
+PDM_point_tree_seq_intersect_box_leaf
+(
+       PDM_point_tree_seq_t  *ptree,
+ const int                    n_box,
+ const double                 box_extents[],
+       int                  **box_leaf_idx,
+       int                  **box_leaf
  );
 
 #ifdef  __cplusplus

@@ -78,7 +78,8 @@ _read_args
  PDM_g_num_t   *gn_pts,
  double        *radius,
  int           *tree_type,
- char         **filename
+ char         **filename,
+ int           *visu
 )
 {
   int i = 1;
@@ -131,6 +132,10 @@ _read_args
       }
     }
 
+    else if (strcmp(argv[i], "-visu") == 0) {
+      *visu = 1;
+    }
+
     else {
       _usage(EXIT_FAILURE);
     }
@@ -171,14 +176,16 @@ main
   PDM_g_num_t               gn_pts    = 10;
   double                    radius    = 10.;
   PDM_doctree_local_tree_t  tree_type = PDM_DOCTREE_LOCAL_TREE_OCTREE;
-  char                     *filename = NULL;
+  char                     *filename  = NULL;
+  int                       visu      = 0;
 
   _read_args(argc,
              argv,
              &gn_pts,
              &radius,
      (int *) &tree_type,
-             &filename);
+             &filename,
+             &visu);
 
 
   /* Random point cloud */
@@ -273,7 +280,7 @@ main
 
   PDM_point_tree_seq_build(ptree);
 
-  if (1 == 1) {
+  if (visu) {
     char filename2[999];
     sprintf(filename2, "ptree_%d_%i.vtk", (int) tree_type, i_rank);
     PDM_point_tree_seq_write_nodes(ptree, filename2);

@@ -41,7 +41,7 @@
  *============================================================================*/
 
 static const int verbose = 0;
-static const int vtk     = 1;
+static const int vtk     = 0;
 
 /*============================================================================
  * Private function definitions

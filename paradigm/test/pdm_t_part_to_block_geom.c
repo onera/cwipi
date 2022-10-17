@@ -168,10 +168,12 @@ main
   }
   PDM_MPI_Barrier(comm);
   double t1 = PDM_MPI_Wtime();
+  PDM_part_geom_t part_geom_kind = PDM_PART_GEOM_HILBERT;
+  // PDM_part_geom_t part_geom_kind = PDM_PART_GEOM_MORTON;
   PDM_part_to_block_t* ptb = PDM_part_to_block_geom_create(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                                            PDM_PART_TO_BLOCK_POST_CLEANUP,
                                                            1.,
-                                                           PDM_PART_GEOM_HILBERT,
+                                                           part_geom_kind,
                                                            &src_coord,
                                                            &src_g_num,
                                                            &weight,
@@ -208,6 +210,18 @@ main
   PDM_g_num_t* parent_gnum = PDM_part_to_block_block_gnum_get   (ptb);
   PDM_g_num_t* distrib_pts = PDM_part_to_block_distrib_index_get(ptb);
 
+  /*
+   * Pour le retour :
+   *   On garde le block de parent_num
+   *   On fait le init_location
+   *   On traite tout sur la numerotation hilbert (jusq'au bout de la localisation)
+   *   On traduit le resultats mesh_pts en faisant PDM_block_to_part()
+   *     block = hilbert
+   *     part  = Résultats de la localisation en gnumm_hilbert puis on traduit
+   *   Un exhange de gnum          -> parent_gnum (Update de la connectivité  )
+   *   Un echange de init_location
+   */
+
   if(0 == 1) {
     PDM_log_trace_array_long(distrib_pts, n_rank+1, "distrib_pts :: ");
     PDM_log_trace_array_long(parent_gnum, n_parent, "parent_gnum :: ");
@@ -231,7 +245,11 @@ main
       debug_gnum[i] = distrib_pts[i_rank] + i + 1;
     }
 
-    sprintf(filename, "redistrib_pvtx_coord_%2.2d.vtk", i_rank);
+    if(part_geom_kind == PDM_PART_GEOM_HILBERT) {
+      sprintf(filename, "redistrib_pvtx_coord_hilbert_%2.2d.vtk", i_rank);
+    }  else if (part_geom_kind == PDM_PART_GEOM_MORTON) {
+      sprintf(filename, "redistrib_pvtx_coord_morton_%2.2d.vtk", i_rank);
+    }
     // PDM_vtk_write_point_cloud(filename,
     //                           n_parent,
     //                           blk_src_coord,
@@ -251,31 +269,34 @@ main
   /*
    * Check ordering
    */
-  int dim = 3;
-  double extents[2*dim]; /** DIM x 2**/
+  if(part_geom_kind == PDM_PART_GEOM_HILBERT) {
+    int dim = 3;
+    double extents[2*dim]; /** DIM x 2**/
 
-  /** Get EXTENTS **/
-  PDM_hilbert_get_coord_extents_par(dim, n_parent, blk_src_coord, extents, comm);
+    /** Get EXTENTS **/
+    PDM_hilbert_get_coord_extents_par(dim, n_parent, blk_src_coord, extents, comm);
+    PDM_extents_conformize(dim, extents, 1e-3);
 
-  PDM_hilbert_code_t* hilbert_codes = (PDM_hilbert_code_t * ) malloc(n_parent * sizeof(PDM_hilbert_code_t));
-  PDM_hilbert_encode_coords(dim, PDM_HILBERT_CS, extents, n_parent, blk_src_coord, hilbert_codes);
+    PDM_hilbert_code_t* hilbert_codes = (PDM_hilbert_code_t * ) malloc(n_parent * sizeof(PDM_hilbert_code_t));
+    PDM_hilbert_encode_coords(dim, PDM_HILBERT_CS, extents, n_parent, blk_src_coord, hilbert_codes);
 
-  PDM_hilbert_code_t first = 0.;
-  if(n_parent > 0) {
-    first = hilbert_codes[0];
+    PDM_hilbert_code_t first = 0.;
+    if(n_parent > 0) {
+      first = hilbert_codes[0];
+    }
+    for(int i = 1; i < n_parent; ++i) {
+      if(first > hilbert_codes[i]) {
+        printf("first = %12.5e / %12.5e ", first, hilbert_codes[i]);
+      }
+      assert(first <= hilbert_codes[i]);
+      first = hilbert_codes[i];
+    }
+    // PDM_log_trace_array_double(hilbert_codes, n_parent, "hilbert_codes ::");
+    free (hilbert_codes);
   }
-  for(int i = 1; i < n_parent; ++i) {
-    assert(first <= hilbert_codes[i]);
-    first = hilbert_codes[i];
-  }
-
-  // PDM_log_trace_array_double(hilbert_codes, n_parent, "hilbert_codes ::");
-
-
   PDM_part_to_block_free(ptb);
 
   /* Free */
-  free (hilbert_codes);
   free (blk_src_coord);
   free (blk_check_gnum);
   free (weight);
@@ -286,7 +307,6 @@ main
   if (i_rank == 0) {
     PDM_printf ("-- End\n");
   }
-
 
   PDM_MPI_Finalize ();
 

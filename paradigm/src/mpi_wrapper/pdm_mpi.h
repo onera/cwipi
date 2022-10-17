@@ -176,7 +176,7 @@ enum {
 };
 
 enum {
-  PDM_MPI_REQUEST_NULL  = -1
+  PDM_MPI_REQUEST_NULL  = -123456789
 };
 
 enum {
@@ -813,6 +813,34 @@ PDM_MPI_setup_hybrid_dist_comm_graph
   PDM_MPI_Comm  *comm_dist_graph_out,
   int           *n_degree,
   int          **neighbor
+);
+
+int
+PDM_MPI_Dist_graph_neighbors_count
+(
+  PDM_MPI_Comm  comm,
+  int          *n_degree_in,
+  int          *n_degree_out,
+  int          *is_weighted
+);
+
+int
+PDM_MPI_Dist_graph_neighbors
+(
+  PDM_MPI_Comm   comm,
+  int            n_degree_in,
+  int           *sources,
+  int            n_degree_out,
+  int           *destinations
+);
+
+void
+PDM_MPI_setup_dist_graph_from_neighbor_in
+(
+  PDM_MPI_Comm   comm,
+  int            n_degree_in,
+  int           *neighbor_in,
+  PDM_MPI_Comm  *comm_dist_graph_out
 );
 
 

@@ -13,6 +13,7 @@
 #include "pdm.h"
 #include "pdm_mesh_nodal.h"
 #include "pdm_timer.h"
+#include "pdm_part_to_part.h"
 
 /*=============================================================================
  * Macro definitions
@@ -103,6 +104,9 @@ struct _pdm_mesh_location_t {
 
   _point_cloud_t *point_clouds; /*!< Point clouds */
 
+  int        use_user_extract;
+  int      **is_elmt_select_by_user;
+
   double tolerance;
 
   PDM_mesh_location_method_t method;
@@ -127,7 +131,11 @@ struct _pdm_mesh_location_t {
   int  tag_point_location_get; /*!< Tag call to point_location_get function */ 
   int  tag_points_in_elt_get;  /*!< Tag call to points_in_elt_get function */ 
   int  tag_cell_vtx_get;       /*!< Tag call to cell_vtx_get function */ 
+  // int *tag_pts_in_elt_get;     /*!< Tag call to points_in_elt_get function */
 
+
+  PDM_part_to_part_t **ptp; /*!< To exchange data between elt and points (both in user frame) */
+  PDM_ownership_t     *ptp_ownership;
 } ;
 
 /*=============================================================================

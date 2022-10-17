@@ -989,7 +989,8 @@ PDM_GCC_SUPPRESS_WARNING_POP
  *  "The point in polygon problem for arbitrary polygons", K.Hormann, A. Agathos (2001)
  **/
 
-PDM_polygon_status_t PDM_polygon_point_in_new
+PDM_polygon_status_t
+PDM_polygon_point_in_new
 (
  const double  xyz[3],
  const int     n_vtx,

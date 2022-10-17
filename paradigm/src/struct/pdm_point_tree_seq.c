@@ -1138,7 +1138,7 @@ _build_point_tree
 
   _l_nodes_t *nodes = ptree->nodes;
 
-  if(1) {
+  if(0) {
     int depth_max      = 0;
     int n_pts_leaf_max = -1;
     int n_pts_leaf_min = ptree->n_pts+1;
@@ -1934,6 +1934,90 @@ PDM_point_tree_seq_extract_nodes
 
 /**
  *
+ * \brief Get node extents of subtree of given depth and starting from given root
+ *
+ * \param [in]  kdtree               Pointer to \ref PDM_kdtree_seq object
+ * \param [in]  root_id              ID of subtree root
+ * \param [in]  n_depth              Depth of subtree
+ * \param [out] n_node               Number of subtree nodes
+ * \param [out] node_ids             IDs of subtree nodes
+ * \param [out] node_extents         Extents of subtree nodes
+ * \param [out] node_weight          Weights of subtree nodes
+ *
+ */
+
+void
+PDM_point_tree_seq_extract_extents_by_child_ids
+(
+  PDM_point_tree_seq_t  *ptree,
+  const int              n_node_to_extract,
+  const int             *node_ids_to_extract,
+        int             *n_extract_child,
+        int            **node_to_child_idx,
+        int            **extract_child_id,
+        int            **extract_is_leaf,
+        double         **extract_extents
+)
+{
+  _l_nodes_t *nodes = ptree->nodes;
+
+  int    *_node_to_child_idx = malloc((n_node_to_extract + 1 ) * sizeof(int   ));
+  _node_to_child_idx[0] = 0;
+
+  int n_children   = PDM_point_tree_n_children_get(ptree);
+  double *_extract_extents   = malloc(n_node_to_extract * n_children * 6 * sizeof(double));
+  int    *_extract_child_id  = malloc(n_node_to_extract * n_children     * sizeof(int   ));
+  int    *_extract_is_leaf   = malloc(n_node_to_extract * n_children     * sizeof(int   ));
+  int     _n_extract_child   = 0;
+
+  for(int i_node_to_extract = 0; i_node_to_extract < n_node_to_extract; ++i_node_to_extract) {
+    int node_id = node_ids_to_extract[i_node_to_extract];
+    _node_to_child_idx[i_node_to_extract+1] = _node_to_child_idx[i_node_to_extract];
+
+    if(nodes->is_leaf[node_id]) {
+      _extract_child_id[_n_extract_child] = 1;
+      for(int k = 0; k < 6; ++k) {
+        _extract_extents[6*_n_extract_child+k] = nodes->extents[6*node_id+k];
+      }
+      _n_extract_child++;
+
+      _node_to_child_idx[i_node_to_extract+1]++;
+
+    } else {
+      const int *_child_ids = nodes->children_id + n_children*node_id;
+      for (int i = 0; i < n_children; i++) {
+        int child_id = _child_ids[i];
+        if (child_id < 0) {
+          continue;
+        }
+
+        _extract_child_id[_n_extract_child] = child_id;
+        _extract_is_leaf [_n_extract_child] = 1;
+
+        for(int k = 0; k < 6; ++k) {
+          _extract_extents[6*_n_extract_child+k] = nodes->extents[6*child_id+k];
+        }
+
+        _node_to_child_idx[i_node_to_extract+1]++;
+        _n_extract_child++;
+      }
+    }
+  }
+
+  _extract_extents  = realloc(_extract_extents , _n_extract_child * 6 * sizeof(double));
+  _extract_child_id = realloc(_extract_child_id, _n_extract_child     * sizeof(int   ));
+  _extract_is_leaf  = realloc(_extract_is_leaf , _n_extract_child     * sizeof(int   ));
+
+  *n_extract_child   = _n_extract_child;
+  *node_to_child_idx = _node_to_child_idx;
+  *extract_child_id  = _extract_child_id;
+  *extract_is_leaf   = _extract_is_leaf;
+  *extract_extents   = _extract_extents;
+}
+
+
+/**
+ *
  * \brief Look for closest points stored inside a point_tree
  *
  * \param [in]   ptree                  Pointer to \ref PDM_point_tree_seq object
@@ -2276,7 +2360,7 @@ PDM_point_tree_seq_points_inside_boxes
               }
 
               for (int j = 0; j < nodes->n_points[child_id]; j++) {
-                _box_pts[_box_pts_idx[ibox+1]++] = nodes->range[2*child_id] + j;
+                _box_pts[_box_pts_idx[ibox+1]++] = ptree->new_to_old[nodes->range[2*child_id] + j];
               }
             }
 
@@ -3319,10 +3403,6 @@ PDM_tree_intersection_point_box2
                                           &btree_new_to_old);
 
 
-  int s_queue = 1000; // ?
-  int *queue0 = malloc(sizeof(int) * s_queue * 2);
-  int *queue1 = malloc(sizeof(int) * s_queue * 2);
-  int *queues[2] = {queue0, queue1};
 
   /* Get point_tree data (use gets!!!) */
   int ptree_n_children = PDM_point_tree_n_children_get(ptree);
@@ -3363,6 +3443,10 @@ PDM_tree_intersection_point_box2
     return;
   }
 
+  int s_queue = 1000; // ?
+  int *queue0 = malloc(sizeof(int) * s_queue * 2);
+  int *queue1 = malloc(sizeof(int) * s_queue * 2);
+  int *queues[2] = {queue0, queue1};
 
   int n_queue = 0;
   queues[0][2*n_queue  ] = btree_node_id;
@@ -3656,5 +3740,149 @@ PDM_tree_intersection_point_box2
   }
   free(__box_pts_n);
   free(__box_pts);
+
+  free(queue0);
+  free(queue1);
+
+}
+
+
+
+
+void
+PDM_point_tree_seq_intersect_box_leaf
+(
+       PDM_point_tree_seq_t  *ptree,
+ const int                    n_box,
+ const double                 box_extents[],
+       int                  **box_leaf_idx,
+       int                  **box_leaf
+ )
+{
+  *box_leaf_idx = malloc (sizeof(int) * (n_box + 1));
+  int *_box_leaf_idx = *box_leaf_idx;
+  _box_leaf_idx[0] = 0;
+
+  if (n_box < 1) {
+    *box_leaf = malloc (sizeof(int) * _box_leaf_idx[n_box]);
+    return;
+  }
+
+  const int n_children = PDM_point_tree_n_children_get(ptree);
+
+
+  _l_nodes_t *nodes = ptree->nodes;
+
+  int s_pt_stack = ((n_children - 1) * (ptree->depth_max - 1) + n_children);
+  int *stack_id  = malloc (s_pt_stack * sizeof(int));
+
+  int node_inside_box;
+  int intersect;
+
+  int tmp_size = 4 * n_box;
+  *box_leaf = malloc (sizeof(int) * tmp_size);
+  int *_box_leaf = *box_leaf;
+
+  for (int ibox = 0; ibox < n_box; ibox++) {
+    int dbg_enabled = 0;
+    if (dbg_enabled) {
+      log_trace("box %d\n", ibox);
+    }
+
+    _box_leaf_idx[ibox+1] = _box_leaf_idx[ibox];
+
+    const double *_box_extents = box_extents + 6*ibox;
+
+    intersect = _intersect_node_box_explicit (3,
+                                              &nodes->extents[0],
+                                              _box_extents,
+                                              &node_inside_box);
+
+    if (!intersect) {
+      continue;
+    }
+
+
+    if (nodes->is_leaf[0]) {
+      if (tmp_size <= _box_leaf_idx[ibox+1]+1) {
+        tmp_size = PDM_MAX (2*tmp_size, _box_leaf_idx[ibox+1]+1);
+        *box_leaf = realloc (*box_leaf, sizeof(int) * tmp_size);
+        _box_leaf = *box_leaf;
+      }
+      _box_leaf[_box_leaf_idx[ibox+1]++] = 0;
+      continue;
+    }
+
+
+    /* Push root in stack */
+    int pos_stack = 0;
+    stack_id[pos_stack++] = 0;
+
+    while (pos_stack > 0) {
+      int node_id = stack_id[--pos_stack];
+
+      if (dbg_enabled) {
+        log_trace("  node %d, range=%d/%d, n_points=%d, leaf_id=%d\n",
+                  node_id,
+                  nodes->range[2*node_id], nodes->range[2*node_id+1],
+                  nodes->n_points[node_id],
+                  nodes->is_leaf[node_id]);
+      }
+
+      const int *_child_ids = nodes->children_id + n_children*node_id;
+      for (int i = 0; i < n_children; i++) {
+        int child_id = _child_ids[i];
+        if (child_id < 0) {
+          continue;
+        }
+
+        if (dbg_enabled) {
+          log_trace("    child %d: id=%d, range=%d/%d, n_points=%d, leaf_id=%d\n",
+                    i,
+                    child_id,
+                    nodes->range[2*child_id+0],
+                    nodes->range[2*child_id+1],
+                    nodes->n_points[child_id],
+                    nodes->is_leaf[child_id]);
+          log_trace("    leaf_extents = %f %f %f %f %f %f\n",
+                    nodes->extents[6*child_id+0],
+                    nodes->extents[6*child_id+1],
+                    nodes->extents[6*child_id+2],
+                    nodes->extents[6*child_id+3],
+                    nodes->extents[6*child_id+4],
+                    nodes->extents[6*child_id+5]);
+        }
+
+        intersect = _intersect_node_box_explicit (3,
+                                                  nodes->extents + 6*child_id,
+                                                  _box_extents,
+                                                  &node_inside_box);
+
+        if (dbg_enabled) {
+          log_trace("    intersect = %d\n", intersect);
+        }
+
+        if (intersect) {
+          if (nodes->is_leaf[child_id]) {
+            if (tmp_size <= _box_leaf_idx[ibox+1]+1) {
+              tmp_size = PDM_MAX(2*tmp_size, _box_leaf_idx[ibox+1]+1);
+              *box_leaf = realloc(*box_leaf, sizeof(int) * tmp_size);
+              _box_leaf = *box_leaf;
+            }
+            _box_leaf[_box_leaf_idx[ibox+1]++] = child_id;
+          }
+          else {
+            /* Push child in stack */
+            stack_id[pos_stack++] = child_id;
+          }
+        }
+
+      } // End of loop on children
+
+    } /* End While */
+  } /* End boxe loop */
+
+  free (stack_id);
+  *box_leaf = realloc(*box_leaf, sizeof(int) * _box_leaf_idx[n_box]);
 
 }

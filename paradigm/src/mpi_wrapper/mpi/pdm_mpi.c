@@ -27,7 +27,6 @@
 #include "pdm_error.h"
 #include "pdm_priv.h"
 #include "pdm_mpi_priv.h"
-
 #include <mpi.h>
 
 #ifdef __cplusplus
@@ -474,6 +473,7 @@ static MPI_Comm _pdm_mpi_2_mpi_comm(PDM_MPI_Comm pdm_mpi_comm)
       PDM_error(__FILE__, __LINE__, 0,"_pdm_mpi_2_mpi_comm :"
             " pdm_mpi_comm '%d' non valide\n", pdm_mpi_comm);
       abort();
+      return MPI_COMM_NULL;
     }
   }
 }
@@ -566,6 +566,7 @@ static MPI_Request _pdm_mpi_2_mpi_request(PDM_MPI_Request pdm_mpi_request)
       PDM_error(__FILE__, __LINE__, 0,"_pdm_mpi_2_mpi_request :"
             " pdm_mpi_request '%d' non valide\n", pdm_mpi_request);
       abort();
+      return MPI_REQUEST_NULL;
     }
   }
 }
@@ -594,6 +595,7 @@ static MPI_Win _pdm_mpi_2_mpi_win(PDM_MPI_Win pdm_mpi_win)
       PDM_error(__FILE__, __LINE__, 0,"_pdm_mpi_2_mpi_win :"
             " pdm_mpi_win '%d' non valide\n", pdm_mpi_win);
       abort();
+      return MPI_WIN_NULL;
     }
   }
 }
@@ -793,6 +795,7 @@ static MPI_Datatype _pdm_mpi_2_mpi_datatype(PDM_MPI_Datatype pdm_mpi_datatype)
       PDM_error(__FILE__, __LINE__, 0,"_pdm_mpi_2_mpi_datatype :"
             " pdm_mpi_datatype '%d' non valide\n", pdm_mpi_datatype);
       abort();
+      return MPI_DATATYPE_NULL;
     }
   }
 }
@@ -987,6 +990,7 @@ static MPI_File _pdm_mpi_2_mpi_file(PDM_MPI_File pdm_mpi_file)
       PDM_error(__FILE__, __LINE__, 0,"_pdm_mpi_2_mpi_file :"
               " pdm_mpi_file '%d' non valide\n", pdm_mpi_file);
       abort();
+      return MPI_FILE_NULL;
     }
   }
 }
@@ -1099,6 +1103,7 @@ void *PDM_MPI_2_mpi_comm(PDM_MPI_Comm pdm_mpi_comm)
       PDM_error(__FILE__, __LINE__, 0,"_pdm_mpi_2_mpi_comm :"
             " pdm_mpi_comm '%d' non valide\n", pdm_mpi_comm);
       abort();
+      return NULL;
     }
   }
 }
@@ -1666,6 +1671,7 @@ int PDM_MPI_Irecv(void *buf, int count, PDM_MPI_Datatype datatype, int source,
   MPI_Request _mpi_request = MPI_REQUEST_NULL;
   int code =  MPI_Irecv(buf, count, _pdm_mpi_2_mpi_datatype(datatype), source,
                        tag, _pdm_mpi_2_mpi_comm(comm), &_mpi_request);
+  assert(code == 0);
   *request = _mpi_2_pdm_mpi_request_add(_mpi_request);
   assert(_mpi_request != MPI_REQUEST_NULL);
 
@@ -1698,6 +1704,7 @@ int PDM_MPI_Issend(const void *buf, int count, PDM_MPI_Datatype datatype, int de
                         tag, _pdm_mpi_2_mpi_comm(comm), &_mpi_request);
 
   *request = _mpi_2_pdm_mpi_request_add(_mpi_request);
+  assert(code == 0);
   return _mpi_2_pdm_mpi_err(code);
 }
 
@@ -1711,6 +1718,7 @@ int PDM_MPI_Wait(PDM_MPI_Request *request)
 {
   MPI_Request _request = _pdm_mpi_2_mpi_request(*request);
   int code = MPI_Wait(&_request, MPI_STATUS_IGNORE);
+  assert(code == 0);
 
   free(mpi_request[*request]);
   mpi_request[*request] = NULL;
@@ -1955,6 +1963,7 @@ int PDM_MPI_Allgather(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
                             recvbuf, recvcount,
                             _pdm_mpi_2_mpi_datatype(recvtype),
                             _pdm_mpi_2_mpi_comm(comm));
+  assert(code == MPI_SUCCESS);
   return _mpi_2_pdm_mpi_err(code);
 }
 
@@ -2571,8 +2580,8 @@ PDM_mpi_win_shared_create(PDM_MPI_Aint size,
 
   MPI_Info info;
   MPI_Info_create( &info );
-  MPI_Info_set(info, "no_locks", "true");
-  MPI_Info_set( info, "alloc_shared_noncontig", "true" );
+  // MPI_Info_set(info, "no_locks", "true");
+  // MPI_Info_set( info, "alloc_shared_noncontig", "true" );
 
   wins->win = MPI_WIN_NULL;
   wins->ptr = NULL;
@@ -2709,13 +2718,15 @@ int PDM_MPI_Dist_graph_create_adjacent(PDM_MPI_Comm  comm_old,
                                        PDM_MPI_Comm *newcomm)
 {
   MPI_Comm _newcomm;
+  const int *weight_in  = MPI_UNWEIGHTED;
+  const int *weight_out = MPI_UNWEIGHTED;
   int code = MPI_Dist_graph_create_adjacent(_pdm_mpi_2_mpi_comm(comm_old),
                                             indegree,
                                             sources,
-                                            MPI_UNWEIGHTED,
+                                            weight_in,
                                             outdegree,
                                             destinations,
-                                            MPI_UNWEIGHTED,
+                                            weight_out,
                                             MPI_INFO_NULL,
                                             reorder,
                                             &_newcomm);
@@ -3036,6 +3047,128 @@ PDM_MPI_setup_hybrid_dist_comm_graph
   *neighbor = neighbor_in;
 }
 
+
+
+
+int
+PDM_MPI_Dist_graph_neighbors_count
+(
+  PDM_MPI_Comm  comm,
+  int          *n_degree_in,
+  int          *n_degree_out,
+  int          *is_weighted
+)
+{
+  int code = MPI_Dist_graph_neighbors_count(_pdm_mpi_2_mpi_comm(comm),
+                                            n_degree_in,
+                                            n_degree_out,
+                                            is_weighted);
+  return _mpi_2_pdm_mpi_err(code);
+}
+
+
+
+int
+PDM_MPI_Dist_graph_neighbors
+(
+  PDM_MPI_Comm   comm,
+  int            n_degree_in,
+  int           *sources,
+  int            n_degree_out,
+  int           *destinations
+)
+{
+
+  int *weight_in  = NULL;
+  int *weight_out = NULL;
+  int code = MPI_Dist_graph_neighbors(_pdm_mpi_2_mpi_comm(comm),
+                                      n_degree_in,
+                                      sources,
+                                      weight_in,
+                                      n_degree_out,
+                                      destinations,
+                                      weight_out);
+  return _mpi_2_pdm_mpi_err(code);
+}
+
+
+
+
+void
+PDM_MPI_setup_dist_graph_from_neighbor_in
+(
+  PDM_MPI_Comm   comm,
+  int            n_degree_in,
+  int           *neighbor_in,
+  PDM_MPI_Comm  *comm_dist_graph_out
+)
+{
+  int i_rank;
+  int n_rank;
+  PDM_MPI_Comm_rank(comm, &i_rank);
+  PDM_MPI_Comm_size(comm, &n_rank);
+
+  int *send_n   = malloc(  n_rank    * sizeof(int));
+  int *recv_n   = malloc(  n_rank    * sizeof(int));
+  int *send_idx = malloc( (n_rank+1) * sizeof(int));
+  int *recv_idx = malloc( (n_rank+1) * sizeof(int));
+
+  for(int i = 0; i < n_rank; ++i) {
+    send_n[i] = 0;
+    recv_n[i] = 0;
+  }
+
+  PDM_MPI_Comm_rank(comm, &i_rank);
+  PDM_MPI_Comm_size(comm, &n_rank);
+
+  for(int i = 0; i < n_degree_in; ++i) {
+    send_n[neighbor_in[i]]++;
+  }
+
+  send_idx[0] = 0;
+  for(int i = 0; i < n_rank; ++i) {
+    send_idx[i+1] = send_idx[i] + send_n[i];
+    send_n[i] = 0;
+  }
+
+  int *send_cur_i_rank = malloc(send_idx[n_rank] * sizeof(int));
+
+  for(int i = 0; i < n_degree_in; ++i) {
+    int idx_write = send_idx[neighbor_in[i]] + send_n[neighbor_in[i]]++;
+    send_cur_i_rank[idx_write] = i_rank;
+  }
+
+
+  PDM_MPI_Alltoall(send_n, 1, PDM_MPI_INT,
+                   recv_n, 1, PDM_MPI_INT, comm);
+
+  recv_idx[0] = 0;
+  for(int i = 0; i < n_rank; ++i) {
+    recv_idx[i+1] = recv_idx[i] + recv_n[i];
+  }
+  int *recv_opp_i_rank = malloc(recv_idx[n_rank] * sizeof(int));
+
+  PDM_MPI_Alltoallv(send_cur_i_rank, send_n, send_idx, PDM_MPI_INT,
+                    recv_opp_i_rank, recv_n, recv_idx, PDM_MPI_INT, comm);
+
+
+  int n_degrees_out = recv_idx[n_rank];
+  int *neighbor_out = recv_opp_i_rank; // Already sort normaly
+
+  free(send_n);
+  free(recv_n);
+  free(send_idx);
+  free(recv_idx);
+  free(send_cur_i_rank);
+
+  PDM_MPI_Dist_graph_create_adjacent(comm,
+                                     n_degree_in,
+                                     neighbor_in,
+                                     n_degrees_out,
+                                     neighbor_out,
+                                     0,
+                                     comm_dist_graph_out);
+}
 
 
 

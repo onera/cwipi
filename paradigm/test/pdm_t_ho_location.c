@@ -80,7 +80,8 @@ _read_args(int            argc,
            PDM_g_num_t   *nz,
            int           *order,
            int           *t_elt,
-           int           *use_newton)
+           int           *use_newton,
+           int           *visu)
 {
   int i = 1;
 
@@ -158,6 +159,9 @@ _read_args(int            argc,
     else if (strcmp(argv[i], "-newton") == 0) {
       *use_newton = 1;
     }
+    else if (strcmp(argv[i], "-visu") == 0) {
+      *visu = 1;
+    }
     else
       _usage(EXIT_FAILURE);
     i++;
@@ -176,22 +180,22 @@ _eval_field
 {
   int _order = PDM_MAX(1, (int) floor(sqrt(order)));
 
-  double f = x + y + z + 1;
+  double f = x - y + z - 1;
 
   if (_order == 1) {
     return f;
   }
 
-  f += x*x + y*y + z*z + x*y + y*z + z*x;
+  f += x*x - y*y + z*z - x*y + y*z - z*x;
 
   if (_order == 2) {
     return f;
   }
 
   f +=
-  x*x*x + y*y*y + z*z*z +
-  x*x*y + x*x*z +
-  y*y*x + y*y*z +
+  x*x*x - y*y*y + z*z*z -
+  x*x*y + x*x*z -
+  y*y*x + y*y*z -
   z*z*x + z*z*y;
 
   return f;
@@ -234,377 +238,6 @@ _eval_deformation
   *dz += 0.1*x*x*x;
 
   return;
-}
-
-
-
-
-/*----------------------------------------------------------------------------
- *
- * Get u coordinate of ho edge nodes
- *
- * parameters:
- *   order            <-- element order
- *   umin             <-- u min
- *   umax             <-- u max
- *   uv               --> u (size = n_node)
- *
- *----------------------------------------------------------------------------*/
-
-// static void
-// _u_ho_edge_nodes
-// (
-//  const int     order,
-//  const double  umin,
-//  const double  umax,
-//  double       *u
-//  )
-// {
-//   int k = 0;
-//   int _order = order+1;
-
-
-//   double ustep = (umax - umin) / order;
-
-//   for (int i = 0; i < _order; i++) {
-//     double _u = umin + i * ustep;
-//     u[k++] = _u;
-//   }
-// }
-
-
-/*----------------------------------------------------------------------------
- *
- * Get uv coordinates of ho triangle nodes
- *
- * parameters:
- *   order            <-- element order
- *   umin             <-- u min
- *   umax             <-- u max
- *   vmin             <-- v min
- *   vmax             <-- v max
- *   uv               --> uv (size = 2*n_node)
- *
- *----------------------------------------------------------------------------*/
-
-// static void
-// _uv_ho_tria_nodes
-// (
-//  const int     order,
-//  const double  umin,
-//  const double  umax,
-//  const double  vmin,
-//  const double  vmax,
-//  double       *uv
-//  )
-// {
-//   int k = 0;
-//   int _order = order+1;
-
-//   double ustep = (umax - umin) / order;
-//   double vstep = (vmax - vmin) / order;
-
-//   for (int j = 0; j < _order; j++) {
-//     double v = vmin + j * vstep;
-//     for (int i = 0; i < _order - j; i++) {
-//       double u = umin + i * ustep;
-
-//       uv[k++] = u;
-//       uv[k++] = v;
-
-//     }
-//   }
-// }
-
-
-/*----------------------------------------------------------------------------
- *
- * Get uv coordinates of ho quadrangle nodes
- *
- * parameters:
- *   order            <-- element order
- *   umin             <-- u min
- *   umax             <-- u max
- *   vmin             <-- v min
- *   vmax             <-- v max
- *   uv               --> uv (size = 2*n_node)
- *
- *----------------------------------------------------------------------------*/
-
-// static void
-// _uv_ho_quad_nodes
-// (
-//  const int     order,
-//  const double  umin,
-//  const double  umax,
-//  const double  vmin,
-//  const double  vmax,
-//  double       *uv
-//  )
-// {
-//   int k = 0;
-//   int _order = order+1;
-
-//   double ustep = (umax - umin) / order;
-//   double vstep = (vmax - vmin) / order;
-
-//   for (int j = 0; j < _order; j++) {
-//     double v = vmin + j * vstep;
-//     for (int i = 0; i < _order; i++) {
-//       double u = umin + i * ustep;
-
-//       uv[k++] = u;
-//       uv[k++] = v;
-
-//     }
-//   }
-// }
-
-
-/*----------------------------------------------------------------------------
- *
- * Get uvw coordinates of ho tetrahedron nodes
- *
- * parameters:
- *   order            <-- element order
- *   umin             <-- u min
- *   umax             <-- u max
- *   vmin             <-- v min
- *   vmax             <-- v max
- *   wmin             <-- w min
- *   wmax             <-- w max
- *   uvw              --> uvw (size = 3*n_node)
- *
- *----------------------------------------------------------------------------*/
-
-static void
-_uvw_ho_tetra_nodes
-(
- const int     order,
- const double  umin,
- const double  umax,
- const double  vmin,
- const double  vmax,
- const double  wmin,
- const double  wmax,
- double       *uvw
- )
-{
-  int p = 0;
-  int _order = order + 1;
-
-  double ustep = (umax - umin) / order;
-  double vstep = (vmax - vmin) / order;
-  double wstep = (wmax - wmin) / order;
-
-
-  for (int k = 0; k < _order; k++){
-    double w = wmin + k * wstep;
-    for (int j = 0; j < _order - k; j++) {
-      double v = vmin + j * vstep;
-      for (int i = 0; i < _order - j - k; i++) {
-        double u = umin + i * ustep;
-
-        uvw[p++] = u;
-        uvw[p++] = v;
-        uvw[p++] = w;
-
-      }
-    }
-  }
-}
-
-
-/*----------------------------------------------------------------------------
- *
- * Get uvw coordinates of ho pyramid nodes
- *
- * parameters:
- *   order            <-- element order
- *   umin             <-- u min
- *   umax             <-- u max
- *   vmin             <-- v min
- *   vmax             <-- v max
- *   wmin             <-- w min
- *   wmax             <-- w max
- *   uvw              --> uvw (size = 3*n_node)
- *
- *----------------------------------------------------------------------------*/
-
-static void
-_uvw_ho_pyra_nodes
-(
- const int     order,
- const double  umin,
- const double  umax,
- const double  vmin,
- const double  vmax,
- const double  wmin,
- const double  wmax,
- double       *uvw
- )
-{
-  int p = 0;
-  int _order = order + 1;
-
-  double ustep = (umax - umin) / order;
-  double vstep = (vmax - vmin) / order;
-  double wstep = (wmax - wmin) / order;
-
-
-  for (int k = 0; k < _order; k++){
-    double w = wmin + k * wstep;
-    for (int j = 0; j < _order - k; j++) {
-      double v = vmin + j * vstep;
-      for (int i = 0; i < _order - k; i++) {
-        double u = umin + i * ustep;
-
-        uvw[p++] = u;
-        uvw[p++] = v;
-        uvw[p++] = w;
-
-      }
-    }
-  }
-}
-
-
-/*----------------------------------------------------------------------------
- *
- * Get uvw coordinates of ho prism nodes
- *
- * parameters:
- *   order            <-- element order
- *   umin             <-- u min
- *   umax             <-- u max
- *   vmin             <-- v min
- *   vmax             <-- v max
- *   wmin             <-- w min
- *   wmax             <-- w max
- *   uvw              --> uvw (size = 3*n_node)
- *
- *----------------------------------------------------------------------------*/
-
-static void
-_uvw_ho_prism_nodes
-(
- const int     order,
- const double  umin,
- const double  umax,
- const double  vmin,
- const double  vmax,
- const double  wmin,
- const double  wmax,
- double       *uvw
- )
-{
-  int p = 0;
-  int _order = order + 1;
-
-  double ustep = (umax - umin) / order;
-  double vstep = (vmax - vmin) / order;
-  double wstep = (wmax - wmin) / order;
-
-
-  for (int k = 0; k < _order; k++){
-    double w = wmin + k * wstep;
-    for (int j = 0; j < _order; j++) {
-      double v = vmin + j * vstep;
-      for (int i = 0; i < _order - j; i++) {
-        double u = umin + i * ustep;
-
-        uvw[p++] = u;
-        uvw[p++] = v;
-        uvw[p++] = w;
-
-      }
-    }
-  }
-}
-
-
-/*----------------------------------------------------------------------------
- *
- * Get uv coordinates of ho hexahedron nodes
- *
- * parameters:
- *   order            <-- element order
- *   umin             <-- u min
- *   umax             <-- u max
- *   vmin             <-- v min
- *   vmax             <-- v max
- *   wmin             <-- w min
- *   wmax             <-- w max
- *   uvw              --> uvw (size = 3*n_node)
- *
- *----------------------------------------------------------------------------*/
-
-static void
-_uvw_ho_hexa_nodes
-(
- const int     order,
- const double  umin,
- const double  umax,
- const double  vmin,
- const double  vmax,
- const double  wmin,
- const double  wmax,
- double       *uvw
- )
-{
-  int p = 0;
-  int _order = order+1;
-
-  double ustep = (umax - umin) / order;
-  double vstep = (vmax - vmin) / order;
-  double wstep = (wmax - wmin) / order;
-
-
-  for (int k = 0; k < _order; k++){
-    double w = wmin + k * wstep;
-    for (int j = 0; j < _order; j++) {
-      double v = vmin + j * vstep;
-      for (int i = 0; i < _order; i++) {
-        double u = umin + i * ustep;
-
-        uvw[p++] = u;
-        uvw[p++] = v;
-        uvw[p++] = w;
-
-      }
-    }
-  }
-}
-
-
-static void
-_uvw_nodes
-(
- const PDM_Mesh_nodal_elt_t  elt_type,
- const int                   order,
- double                     *uvw
- )
-{
-  switch (elt_type) {
-    case PDM_MESH_NODAL_TETRAHO:
-    _uvw_ho_tetra_nodes(order, 0, 1, 0, 1, 0, 1, uvw);
-    break;
-
-    case PDM_MESH_NODAL_PYRAMIDHO:
-    _uvw_ho_pyra_nodes(order, 0, 1, 0, 1, 0, 1, uvw);
-    break;
-
-    case PDM_MESH_NODAL_PRISMHO:
-    _uvw_ho_prism_nodes(order, 0, 1, 0, 1, 0, 1, uvw);
-    break;
-
-    case PDM_MESH_NODAL_HEXAHO:
-    _uvw_ho_hexa_nodes(order, 0, 1, 0, 1, 0, 1, uvw);
-    break;
-
-    default:
-    PDM_error(__FILE__, __LINE__, 0, "Invalid HO elt type %d\n", (int) elt_type);
-  }
 }
 
 
@@ -818,6 +451,75 @@ _compute_uvw
 
 
 
+static int _accept_uvw
+(
+ const double               *uvw,
+ const PDM_Mesh_nodal_elt_t  t_elt
+ )
+{
+  // PDM_UNUSED(uvw);
+  // PDM_UNUSED(t_elt);
+  // return 1;
+
+  switch (t_elt) {
+
+    case PDM_MESH_NODAL_TRIAHO: {
+      return (uvw[0] >= 0. &&
+              uvw[1] >= 0. &&
+              uvw[0] + uvw[1] <= 1.);
+      break;
+    }
+    case PDM_MESH_NODAL_QUADHO: {
+      return (uvw[0] >= 0. &&
+              uvw[0] <= 1. &&
+              uvw[1] >= 0. &&
+              uvw[1] <= 1.);
+
+      break;
+    }
+    case PDM_MESH_NODAL_TETRAHO: {
+      return (uvw[0] >= 0. &&
+              uvw[1] >= 0. &&
+              uvw[2] >= 0. &&
+              uvw[0] + uvw[1] + uvw[2] <= 1.);
+      break;
+    }
+    case PDM_MESH_NODAL_PYRAMIDHO: {
+      return (uvw[0] >= 0. &&
+              uvw[0] <= 1. - uvw[2] &&
+              uvw[1] >= 0. &&
+              uvw[1] <= 1. - uvw[2] &&
+              uvw[2] >= 0. &&
+              uvw[2] <= 1.);
+      break;
+    }
+    case PDM_MESH_NODAL_PRISMHO: {
+      return (uvw[0] >= 0. &&
+              uvw[1] >= 0. &&
+              uvw[2] >= 0. &&
+              uvw[2] <= 1. &&
+              uvw[0] + uvw[1] <= 1.);
+      break;
+    }
+    case PDM_MESH_NODAL_HEXAHO: {
+      return (uvw[0] >= 0. &&
+              uvw[0] <= 1. &&
+              uvw[1] >= 0. &&
+              uvw[1] <= 1. &&
+              uvw[2] >= 0. &&
+              uvw[2] <= 1.);
+
+      break;
+    }
+    default: {
+      return 1;
+    }
+
+  }
+
+  return 1;
+}
+
 
 /**
  *
@@ -831,14 +533,15 @@ int main(int argc, char *argv[])
   /*
    *  Set default values
    */
-  PDM_g_num_t          gn_pts = 1;
-  PDM_g_num_t          nx     = 2;
-  PDM_g_num_t          ny     = 2;
-  PDM_g_num_t          nz     = 2;
-  int                  order  = 3;
-  double               length = 1.;
+  PDM_g_num_t          gn_pts     = 1;
+  PDM_g_num_t          nx         = 2;
+  PDM_g_num_t          ny         = 2;
+  PDM_g_num_t          nz         = 2;
+  int                  order      = 3;
+  double               length     = 1.;
   int                  use_newton = 0;
-  PDM_Mesh_nodal_elt_t t_elt  = PDM_MESH_NODAL_HEXAHO;
+  int                  visu       = 0;
+  PDM_Mesh_nodal_elt_t t_elt      = PDM_MESH_NODAL_HEXAHO;
   // 11 -> tria_ho
   // 12 -> quad_ho
   // 13 -> tetra_ho
@@ -861,7 +564,8 @@ int main(int argc, char *argv[])
              &nz,
              &order,
              (int *) &t_elt,
-             &use_newton);
+             &use_newton,
+             &visu);
 
   /*
    *  Init
@@ -884,11 +588,12 @@ int main(int argc, char *argv[])
          PDM_MAX(1, (int) ceil(sqrt(order))));
 
 
-  int dim = 3;
-  if (t_elt == PDM_MESH_NODAL_TRIAHO ||
-      t_elt == PDM_MESH_NODAL_QUADHO) {
-    dim = 2;
-  }
+  // int dim = 3;
+  // if (t_elt == PDM_MESH_NODAL_TRIAHO ||
+  //     t_elt == PDM_MESH_NODAL_QUADHO) {
+  //   dim = 2;
+  // }
+  int elt_dim = PDM_Mesh_nodal_elt_dim_get(t_elt);
 
 
   if (order > 3) {
@@ -949,6 +654,7 @@ int main(int argc, char *argv[])
   // double frequence = 4.;
 
   if (1) {
+    /* Polynomial deformation */
     for (int i = 0; i < dn_vtx; i++) {
       double x = (dvtx_coord[3*i    ] - 0.5) / length;
       double y = (dvtx_coord[3*i + 1] - 0.5) / length;
@@ -962,20 +668,10 @@ int main(int argc, char *argv[])
       dvtx_coord[3*i    ] += length * dx;
       dvtx_coord[3*i + 1] += length * dy;
       dvtx_coord[3*i + 2] += length * dz;
-
-      //double scale = length * pow(2, order-1);
-
-      // if (dim == 2) {
-      //   //dvtx_coord[3*i + 2] = scale * (pow(x, order) + pow(y, order));
-      //   dvtx_coord[3*i + 2] = length * (x*x + y*y);
-      // } else {
-      //   dvtx_coord[3*i    ] += amplitude*length*cos(frequence*y);
-      //   dvtx_coord[3*i + 1] += amplitude*length*cos(frequence*z);
-      //   dvtx_coord[3*i + 2] += amplitude*length*cos(frequence*x);
-      // }
     }
 
     if (1) {
+      /* Rotation */
       for (int i = 0; i < dn_vtx; i++) {
         double x = dvtx_coord[3*i  ];
         double y = dvtx_coord[3*i+1];
@@ -993,9 +689,9 @@ int main(int argc, char *argv[])
 
   /* Isolate a single element */
   PDM_geometry_kind_t geom_kind;
-  if (dim == 3) {
+  if (elt_dim == 3) {
     geom_kind = PDM_GEOMETRY_KIND_VOLUMIC;
-  } else if (dim == 2) {
+  } else if (elt_dim == 2) {
     geom_kind = PDM_GEOMETRY_KIND_SURFACIC;
   } else {
     geom_kind = PDM_GEOMETRY_KIND_RIDGE;
@@ -1037,12 +733,21 @@ int main(int argc, char *argv[])
   //                            &n_pts,
   //                            &pts_coord,
   //                            &pts_ln_to_gn);
+
+
   int n_pts = (int) gn_pts;
-  double *pts_uvw_init = malloc(sizeof(double) * n_pts * 3);
+  double *pts_uvw_init = malloc(sizeof(double) * n_pts * elt_dim);
   double *pts_coord    = malloc(sizeof(double) * n_pts * 3);
-  for (int i = 0; i < 3*n_pts; i++) {
+  for (int i = 0; i < n_pts; i++) {
     // pts_coord[i] = 0.3 + 0.4*((double) rand() / (double) RAND_MAX);
-    pts_uvw_init[i] = (double) rand() / (double) RAND_MAX;
+    while (1) {
+      for (int j = 0; j < elt_dim; j++) {
+        pts_uvw_init[elt_dim*i+j] = (double) rand() / (double) RAND_MAX;
+      }
+      if (_accept_uvw(&pts_uvw_init[elt_dim*i], t_elt)) {
+        break;
+      }
+    }
   }
 
   double *pts_weight = malloc(sizeof(double) * n_pts * n_node);
@@ -1070,7 +775,7 @@ int main(int argc, char *argv[])
 
   /* HO location */
   double *proj_coord = malloc(sizeof(double) * n_pts * 3);
-  double *pts_uvw    = malloc(sizeof(double) * n_pts * 3);
+  double *pts_uvw    = malloc(sizeof(double) * n_pts * elt_dim);
   for (int i = 0; i < n_pts; i++) {
     int stat = 0;
 
@@ -1080,7 +785,7 @@ int main(int argc, char *argv[])
                           pts_coord + 3*i,
                           node_coord,
                           1e-8,
-                          pts_uvw + 3*i);
+                          pts_uvw + elt_dim*i);
     }
 
     if (!stat) {
@@ -1090,7 +795,7 @@ int main(int argc, char *argv[])
                                     node_coord,
                                     pts_coord  + 3*i,
                                     proj_coord + 3*i,
-                                    pts_uvw    + 3*i);
+                                    pts_uvw    + elt_dim*i);
       log_trace("i = %d, dist = %e\n", i, dist);
     }
   }
@@ -1104,10 +809,13 @@ int main(int argc, char *argv[])
 
 
 
-  double *node_uvw = malloc(sizeof(double) * n_node * 3);
-  _uvw_nodes(t_elt,
-             order,
-             node_uvw);
+  double *node_uvw = malloc(sizeof(double) * n_node * elt_dim);
+  PDM_ho_location_uvw_nodes(t_elt,
+                            order,
+                            0., 1.,
+                            0., 1.,
+                            0., 1.,
+                            node_uvw);
 
 
   double *node_field = malloc(sizeof(double) * n_node);
@@ -1125,6 +833,7 @@ int main(int argc, char *argv[])
   double *interp_field = malloc(sizeof(double) * n_pts);
   double *proj_field   = malloc(sizeof(double) * n_pts);
   double field_max = 0.;
+  double err_max   = 0.;
   for (int i = 0; i < n_pts; i++) {
 
     double *q = pts_coord  + 3*i;
@@ -1162,11 +871,12 @@ int main(int argc, char *argv[])
 
     field_max  = PDM_MAX(field_max, PDM_ABS(proj_field[i]));
     double err = PDM_ABS(proj_field[i] - interp_field[i]);
+    err_max = PDM_MAX(err_max, err);
     log_trace("i = %d, %f %f %f, dist = %e, err = %e\n", i, p[0], p[1], p[2], dist, err);
   }
   log_trace("max field = %e\n", field_max);
 
-
+  printf("err_max = %e, relative = %e\n", err_max, err_max/field_max);
 
 
   int *connec = malloc(sizeof(int) * n_node);
@@ -1174,74 +884,74 @@ int main(int argc, char *argv[])
     connec[i] = i + 1;
   }
 
-  FILE *f = fopen("ho_location_elt.mesh", "w");
+  // FILE *f = fopen("ho_location_elt.mesh", "w");
 
-  fprintf(f, "MeshVersionFormatted 3\nDimension 3\n");
+  // fprintf(f, "MeshVersionFormatted 3\nDimension 3\n");
 
-  fprintf(f, "Vertices\n%d\n", n_node);
-  for (int i = 0; i < n_node; i++) {
-    for (int j = 0; j < 3; j++) {
-      fprintf(f, "%f ", node_coord[3*i + j]);
-    }
-    fprintf(f, "%d\n", i+1);
-  }
+  // fprintf(f, "Vertices\n%d\n", n_node);
+  // for (int i = 0; i < n_node; i++) {
+  //   for (int j = 0; j < 3; j++) {
+  //     fprintf(f, "%f ", node_coord[3*i + j]);
+  //   }
+  //   fprintf(f, "%d\n", i+1);
+  // }
 
-  switch (t_elt) {
-    case PDM_MESH_NODAL_TETRAHO: {
-      fprintf(f, "TetrahedraP%dOrdering\n%d\n", order, n_node);
-      for (int k = 0; k <= order; k++) {
-        for (int j = 0; j <= order-k; j++) {
-          for (int i = 0; i <= order-k-j; i++) {
-            fprintf(f, "%d %d %d\n", i, j, k);
-          }
-        }
-      }
+  // switch (t_elt) {
+  //   case PDM_MESH_NODAL_TETRAHO: {
+  //     fprintf(f, "TetrahedraP%dOrdering\n%d\n", order, n_node);
+  //     for (int k = 0; k <= order; k++) {
+  //       for (int j = 0; j <= order-k; j++) {
+  //         for (int i = 0; i <= order-k-j; i++) {
+  //           fprintf(f, "%d %d %d\n", i, j, k);
+  //         }
+  //       }
+  //     }
 
-      fprintf(f, "TetrahedraP%d\n1\n", order);
-      for (int i = 0; i < n_node; i++) {
-        fprintf(f, "%d ", connec[i]);
-      }
-      fprintf(f, "1\n");
-      break;
-    }
+  //     fprintf(f, "TetrahedraP%d\n1\n", order);
+  //     for (int i = 0; i < n_node; i++) {
+  //       fprintf(f, "%d ", connec[i]);
+  //     }
+  //     fprintf(f, "1\n");
+  //     break;
+  //   }
 
-    case PDM_MESH_NODAL_HEXAHO: {
-      fprintf(f, "HexahedraQ%dOrdering\n%d\n", order, n_node);
-      for (int k = 0; k <= order; k++) {
-        for (int j = 0; j <= order; j++) {
-          for (int i = 0; i <= order; i++) {
-            fprintf(f, "%d %d %d\n", i, j, k);
-          }
-        }
-      }
+  //   case PDM_MESH_NODAL_HEXAHO: {
+  //     fprintf(f, "HexahedraQ%dOrdering\n%d\n", order, n_node);
+  //     for (int k = 0; k <= order; k++) {
+  //       for (int j = 0; j <= order; j++) {
+  //         for (int i = 0; i <= order; i++) {
+  //           fprintf(f, "%d %d %d\n", i, j, k);
+  //         }
+  //       }
+  //     }
 
-      fprintf(f, "HexahedraQ%d\n1\n", order);
-      for (int i = 0; i < n_node; i++) {
-        fprintf(f, "%d ", connec[i]);
-      }
-      fprintf(f, "1\n");
-      break;
-    }
+  //     fprintf(f, "HexahedraQ%d\n1\n", order);
+  //     for (int i = 0; i < n_node; i++) {
+  //       fprintf(f, "%d ", connec[i]);
+  //     }
+  //     fprintf(f, "1\n");
+  //     break;
+  //   }
 
-    default: {
+  //   default: {
 
-    }
-  }
+  //   }
+  // }
 
-  fprintf(f, "End\n");
-  fclose(f);
+  // fprintf(f, "End\n");
+  // fclose(f);
 
 
-  f = fopen("ho_location_elt.sol", "w");
-  fprintf(f, "MeshVersionFormatted 3\nDimension 3\n");
+  // f = fopen("ho_location_elt.sol", "w");
+  // fprintf(f, "MeshVersionFormatted 3\nDimension 3\n");
 
-  fprintf(f, "SolAtVertices\n%d\n1 1\n", n_node);
-  for (int i = 0; i < n_node; i++) {
-    fprintf(f, "%f\n", node_field[i]);
-  }
+  // fprintf(f, "SolAtVertices\n%d\n1 1\n", n_node);
+  // for (int i = 0; i < n_node; i++) {
+  //   fprintf(f, "%f\n", node_field[i]);
+  // }
 
-  fprintf(f, "End\n");
-  fclose(f);
+  // fprintf(f, "End\n");
+  // fclose(f);
 
 
 
@@ -1257,49 +967,51 @@ int main(int argc, char *argv[])
     connec[ijk_to_user[i]] = i + 1;
   }
 
-  const char *field_name[] = {"field", "interp"};
-  PDM_vtk_write_std_elements_ho_with_vtx_field("ho_location_elt.vtk",
-                                               order,
-                                               n_node,
-                                               node_coord,
-                                               NULL,
-                                               t_elt,
-                                               1,
-                                               connec,
-                                               NULL,
-                                               0,
-                                               NULL,
-                                               NULL,
-                                               1,
-                                               (const char   **) field_name,
-                                               (const double **) &node_field);
+  if (visu) {
+    const char *field_name[] = {"field", "field0"};
+    PDM_vtk_write_std_elements_ho_with_vtx_field("ho_location_elt.vtk",
+                                                 order,
+                                                 n_node,
+                                                 node_coord,
+                                                 NULL,
+                                                 t_elt,
+                                                 1,
+                                                 connec,
+                                                 NULL,
+                                                 0,
+                                                 NULL,
+                                                 NULL,
+                                                 1,
+                                                 (const char   **) field_name,
+                                                 (const double **) &node_field);
+
+    const double *field[2] = {interp_field, proj_field};
+    PDM_vtk_write_std_elements_double("ho_location_pts.vtk",
+                                      n_pts,
+                                      pts_coord,
+                                      NULL,
+                                      PDM_MESH_NODAL_POINT,
+                                      n_pts,
+                                      NULL,
+                                      NULL,
+                                      2,
+                                      (const char   **) field_name,
+                                      (const double **) field);
+
+
+    PDM_vtk_write_std_elements_double("ho_location_proj.vtk",
+                                      n_pts,
+                                      proj_coord,
+                                      NULL,
+                                      PDM_MESH_NODAL_POINT,
+                                      n_pts,
+                                      NULL,
+                                      NULL,
+                                      2,
+                                      (const char   **) field_name,
+                                      (const double **) field);
+  }
   free(connec);
-
-  const double *field[2] = {proj_field, interp_field};
-  PDM_vtk_write_std_elements_double("ho_location_pts.vtk",
-                                    n_pts,
-                                    pts_coord,
-                                    NULL,
-                                    PDM_MESH_NODAL_POINT,
-                                    n_pts,
-                                    NULL,
-                                    NULL,
-                                    2,
-                                    (const char   **) field_name,
-                                    (const double **) field);
-
-
-  PDM_vtk_write_std_elements_double("ho_location_proj.vtk",
-                                    n_pts,
-                                    proj_coord,
-                                    NULL,
-                                    PDM_MESH_NODAL_POINT,
-                                    n_pts,
-                                    NULL,
-                                    NULL,
-                                    2,
-                                    (const char   **) field_name,
-                                    (const double **) field);
 
   free(node_coord);
   free(pts_coord);

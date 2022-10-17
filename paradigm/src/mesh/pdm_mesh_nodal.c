@@ -564,6 +564,18 @@ _block_poly3d_free_partial
     free(_block_poly3d->_numabs);
     _block_poly3d->_numabs = NULL;
   }
+
+  if (_block_poly3d->_face_ln_to_gn != NULL) {
+    if (_block_poly3d->owner == PDM_OWNERSHIP_KEEP) {
+      for (int i = 0; i < _block_poly3d->n_part; i++) {
+        if (_block_poly3d->_face_ln_to_gn[i] != NULL)
+          free(_block_poly3d->_face_ln_to_gn[i]);
+        _block_poly3d->_face_ln_to_gn[i] = NULL;
+      }
+    }
+    free(_block_poly3d->_face_ln_to_gn);
+    _block_poly3d->_face_ln_to_gn = NULL;
+  }
 }
 
 
@@ -1561,7 +1573,7 @@ PDM_Mesh_nodal_n_vtx_elt_get
    return (order + 1) * (order + 2) / 2;
     break;
   default :
-    PDM_error (__FILE__, __LINE__, 0, "Unknown for order Poly2D and Poly3D\n");
+    PDM_error (__FILE__, __LINE__, 0, "Unknown order for Poly2D and Poly3D (type %d)\n", type);
   }
   return -1;
 }
@@ -2044,6 +2056,30 @@ PDM_Mesh_nodal_vertices_get
   return vtx->_coords;
 }
 
+/* !!!! Parent??? */
+int
+PDM_Mesh_nodal_vertices_ln_to_gn_get
+(
+       PDM_Mesh_nodal_t  *mesh,
+ const int                id_part,
+       PDM_g_num_t      **vtx_ln_to_gn
+)
+{
+  if (mesh == NULL) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad mesh nodal identifier\n");
+  }
+
+  if (id_part >= mesh->n_part) {
+    PDM_error (__FILE__, __LINE__, 0, "Bad part identifier\n");
+  }
+
+  PDM_Mesh_nodal_vtx_t *vtx = mesh->vtx[id_part];
+
+  *vtx_ln_to_gn = vtx->_numabs;
+
+  return vtx->n_vtx;
+}
+
 
 /**
  * \brief  Return global numbering of vertices
@@ -2422,6 +2458,7 @@ const PDM_ownership_t       ownership
       mesh->blocks_poly3d[id_block]->_cellvtx_idx = (PDM_l_num_t **) malloc(sizeof(PDM_l_num_t *) * mesh->blocks_poly3d[id_block]->n_part);
       mesh->blocks_poly3d[id_block]->_cellvtx     = (PDM_l_num_t **) malloc(sizeof(PDM_l_num_t *) * mesh->blocks_poly3d[id_block]->n_part);
       mesh->blocks_poly3d[id_block]->_numabs      = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * mesh->blocks_poly3d[id_block]->n_part);
+      mesh->blocks_poly3d[id_block]->_face_ln_to_gn = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * mesh->blocks_poly3d[id_block]->n_part);
       mesh->blocks_poly3d[id_block]->numabs_int   = NULL;
       mesh->blocks_poly3d[id_block]->cell_centers = NULL;
       mesh->blocks_poly3d[id_block]->cell_centers_to_compute = NULL;
@@ -2441,6 +2478,7 @@ const PDM_ownership_t       ownership
         mesh->blocks_poly3d[id_block]->_cellvtx_idx[i] = NULL;
         mesh->blocks_poly3d[id_block]->_cellvtx[i]     = NULL;
         mesh->blocks_poly3d[id_block]->_numabs[i]      = NULL;
+        mesh->blocks_poly3d[id_block]->_face_ln_to_gn[i] = NULL;
       }
 
       id_block += PDM_BLOCK_ID_BLOCK_POLY3D;
@@ -3312,6 +3350,7 @@ static void _compute_cell_vtx_connectivity
  * \param [in]  n_face         Number of faces used to describe polyhedra
  * \param [in]  facvtx_idx     Index of face vertex connectivity
  * \param [in]  facvtx         Face vertex connectivity
+ * \param [in]  face_ln_to_gn  Face global numbering
  * \param [in]  cellfac_idx    Index of cell face connectivity
  * \param [in]  cellfac        Cell face connectivity
  * \param [in]  numabs         Global numbering
@@ -3329,6 +3368,7 @@ const PDM_l_num_t       n_elt,
 const PDM_l_num_t       n_face,
 const PDM_l_num_t      *facvtx_idx,
 const PDM_l_num_t      *facvtx,
+const PDM_g_num_t      *face_ln_to_gn,
 const PDM_l_num_t      *cellfac_idx,
 const PDM_l_num_t      *cellfac,
 const PDM_g_num_t      *numabs,
@@ -3362,7 +3402,7 @@ const PDM_l_num_t      *parent_num
   block->_cellfac_idx[id_part] = (PDM_l_num_t *) cellfac_idx;
   block->_cellfac[id_part]     = (PDM_l_num_t *) cellfac;
   block->_numabs[id_part]      = (PDM_g_num_t *) numabs;
-
+  block->_face_ln_to_gn[id_part] = (PDM_g_num_t *) face_ln_to_gn;
 
   /* Compute cell-vertex connectivity */
   _compute_cell_vtx_connectivity (n_elt,
@@ -3504,6 +3544,7 @@ PDM_Mesh_nodal_block_poly3d_cell_vtx_connect_get
  * \param [in]  face_vtx_idx   Index of face vertex connectivity
  * \param [in]  face_vtx_nb    Number of vertices for each face
  * \param [in]  face_vtx       Face vertex connectivity
+ * \param [in]  face_ln_to_gn  Face global numbering
  * \param [in]  cell_face_idx  Index of cell face connectivity
  * \param [in]  cell_face_nb   Number of faces for each cell
  * \param [in]  cell_face      Cell face connectivity
@@ -3522,6 +3563,7 @@ const int               n_face,
 const PDM_l_num_t      *face_vtx_idx,
 const PDM_l_num_t      *face_vtx_nb,
 const PDM_l_num_t      *face_vtx,
+const PDM_g_num_t      *face_ln_to_gn,
 const PDM_l_num_t      *cell_face_idx,
 const PDM_l_num_t      *cell_face_nb,
 const PDM_l_num_t      *cell_face,
@@ -3586,6 +3628,7 @@ const PDM_ownership_t  ownership
     mesh->prepa_blocks->cell_face     = (PDM_l_num_t **) malloc(sizeof(PDM_l_num_t *) * mesh->n_part);
     mesh->prepa_blocks->add_etat      = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t)*mesh->n_part);
     mesh->prepa_blocks->numabs = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *)*mesh->n_part);
+    mesh->prepa_blocks->face_ln_to_gn = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *)*mesh->n_part);
     for (int i = 0; i < mesh->n_part; i++) {
       mesh->prepa_blocks->add_etat[i] = 0;
     }
@@ -3671,6 +3714,7 @@ const PDM_ownership_t  ownership
   mesh->prepa_blocks->cell_face_nb[id_part]  = (PDM_l_num_t *) cell_face_nb;
   mesh->prepa_blocks->cell_face[id_part]     = (PDM_l_num_t *) cell_face;
   mesh->prepa_blocks->numabs[id_part]        = (PDM_g_num_t *) numabs;
+  mesh->prepa_blocks->face_ln_to_gn[id_part] = (PDM_g_num_t *) face_ln_to_gn;
   mesh->prepa_blocks->add_etat[id_part]      = 1;
   mesh->prepa_blocks->n_face[id_part]        = n_face;
   mesh->prepa_blocks->n_cell[id_part]        = n_cell;
@@ -3861,6 +3905,7 @@ const PDM_ownership_t  ownership
       PDM_l_num_t *cellfac_poly_idx = NULL;
       PDM_l_num_t *cellfac_poly = NULL;
       PDM_l_num_t l_cellfac_poly = 0;
+      PDM_g_num_t *block_face_ln_to_gn = NULL;
 
       if (n_poly3d_part > 0) {
         tag_face_poly3d = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * n_face_part);
@@ -3972,12 +4017,19 @@ const PDM_ownership_t  ownership
 
         facsom_poly_idx = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * (n_face_poly + 1));
         facsom_poly = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t) * l_facsom_poly);
+        if (mesh->prepa_blocks->face_ln_to_gn[i_part] != NULL) {
+          block_face_ln_to_gn = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_face_poly);
+        }
 
         facsom_poly_idx[0] = 0;
         PDM_l_num_t idx_facsom_poly = 0;
         PDM_l_num_t idx_facsom = 0;
+        n_face_poly = 0;
         for (int i = 0; i < n_face_part; i++) {
           if (tag_face_poly3d[i] >= 0) {
+            if (mesh->prepa_blocks->face_ln_to_gn[i_part] != NULL) {
+              block_face_ln_to_gn[n_face_poly++] = mesh->prepa_blocks->face_ln_to_gn[i_part][i];
+            }
             PDM_l_num_t ideb = face_som_idx_courant[i] - adjust;
             PDM_l_num_t ifin = ideb + face_som_nb_courant[i];
             facsom_poly_idx[idx_facsom+1] = facsom_poly_idx[idx_facsom] + face_som_nb_courant[i];
@@ -4058,7 +4110,7 @@ const PDM_ownership_t  ownership
                                      numabs_pyramid,
                                      num_parent_pyramid);
 
-      if (som_elts[4] > 0)
+      if (som_elts[4] > 0) {
         PDM_Mesh_nodal_block_poly3d_set(mesh,
                                         id_bloc_poly_3d,
                                         i_part,
@@ -4066,10 +4118,13 @@ const PDM_ownership_t  ownership
                                         n_face_poly,
                                         facsom_poly_idx,
                                         facsom_poly,
+                                        block_face_ln_to_gn,
                                         cellfac_poly_idx,
                                         cellfac_poly,
                                         numabs_poly3d,
                                         num_parent_poly3d);
+        // PDM_log_trace_array_int(num_parent_poly3d, n_poly3d_part, "num_parent_poly3d ::");
+      }
     }
 
     if (mesh->prepa_blocks != NULL) {
@@ -4088,6 +4143,7 @@ const PDM_ownership_t  ownership
       free(mesh->prepa_blocks->cell_face);
       free(mesh->prepa_blocks->add_etat);
       free(mesh->prepa_blocks->numabs);
+      free(mesh->prepa_blocks->face_ln_to_gn);
       free(mesh->prepa_blocks);
       mesh->prepa_blocks = NULL;
     }
@@ -5737,82 +5793,6 @@ PDM_Mesh_nodal_compute_cell_extents
     }
   } // End of loop on elements
 
-}
-
-
-/**
- * \brief Get the cell-vertex connectivity for a polyhedron described by its faces
- *
- * (NOT USED)
- *
- * \param [in]   icell         Cell local id
- * \param [in]   face_vtx_idx  Face-vertex connectivity index
- * \param [in]   face_vtx      Face-vertex connectivity
- * \param [in]   cell_face_idx Cell-face connectivity index
- * \param [in]   cell_face     Cell-face connectivity
- * \param [out]  cell_vtx      Cell-vertex connectivity
- *
- * \return    Number of vertices in the cell
- *
- */
-
-PDM_l_num_t
-PDM_Mesh_nodal_poly3d_cell_vtx_get
-(
- const PDM_l_num_t   icell,
- const PDM_l_num_t   face_vtx_idx[],
- const PDM_l_num_t   face_vtx[],
- const PDM_l_num_t   cell_face_idx[],
- const PDM_l_num_t   cell_face[],
- PDM_l_num_t       **cell_vtx
- )
-{
-  PDM_l_num_t n_vtx_cell = 0;
-
-  int n_face_cell = cell_face_idx[icell+1] - cell_face_idx[icell];
-  int s_cell_vtx = 6 * n_face_cell;
-
-  *cell_vtx = malloc (sizeof(PDM_l_num_t) * s_cell_vtx);
-  PDM_l_num_t *_cell_vtx = *cell_vtx;
-
-  /* Loop on faces */
-  PDM_bool_t already_in_cell;
-  for (PDM_l_num_t iface = cell_face_idx[icell]; iface < cell_face_idx[icell+1]; iface++) {
-    int id_face = PDM_ABS (cell_face[iface]) - 1;
-
-    for (int ivtx = face_vtx_idx[id_face]; ivtx < face_vtx_idx[id_face+1]; ivtx++) {
-      PDM_l_num_t id_vtx = face_vtx[ivtx];// - 1;
-
-      int pos =_binary_search (id_vtx,
-                               _cell_vtx,
-                               n_vtx_cell,
-                               &already_in_cell);
-
-      if (already_in_cell == PDM_TRUE) {
-        continue;
-      }
-
-      if (pos >= s_cell_vtx) {
-        s_cell_vtx *= 2;
-        *cell_vtx = realloc (*cell_vtx, sizeof(PDM_l_num_t) * s_cell_vtx);
-        _cell_vtx = *cell_vtx;
-      }
-
-      for (int j = n_vtx_cell; j > pos; j--) {
-        _cell_vtx[j] = _cell_vtx[j-1];
-      }
-      _cell_vtx[pos] = id_vtx;
-      n_vtx_cell++;
-
-    }
-
-  }
-
-  if (s_cell_vtx > n_vtx_cell) {
-    *cell_vtx = realloc (*cell_vtx, sizeof(PDM_l_num_t) * n_vtx_cell);
-  }
-
-  return n_vtx_cell;
 }
 
 

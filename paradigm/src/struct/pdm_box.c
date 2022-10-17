@@ -1973,19 +1973,19 @@ PDM_box_copy_boxes_to_ranks
     g_num        = (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * n_boxes);
     extents      = (double *)      malloc (sizeof(double)      * n_boxes*boxes->dim*2);
     n_boxes_orig = (int *)         malloc (sizeof(int)         * n_part_orig);
-    origin       = (int *)         malloc (sizeof(int)         * n_part_orig*3);
+    origin       = (int *)         malloc (sizeof(int)         * n_boxes * 3);
     if ( myRank == i_rank ) {
       // set buffers
       memcpy(g_num,        boxes->local_boxes->g_num,        sizeof(PDM_g_num_t) * n_boxes);
       memcpy(extents,      boxes->local_boxes->extents,      sizeof(double)      * n_boxes*boxes->dim*2);
       memcpy(n_boxes_orig, boxes->local_boxes->n_boxes_orig, sizeof(int)         * n_part_orig);
-      memcpy(origin,       boxes->local_boxes->origin,       sizeof(int)         * n_part_orig*3);
+      memcpy(origin,       boxes->local_boxes->origin,       sizeof(int)         * n_boxes * 3);
     }
     // broadcast buffers
     PDM_MPI_Bcast(g_num,        n_boxes,              PDM__PDM_MPI_G_NUM, i_rank, boxes->comm);
-    PDM_MPI_Bcast(extents,      n_boxes*boxes->dim*2, PDM_MPI_DOUBLE,     i_rank, boxes->comm);
-    PDM_MPI_Bcast(n_boxes_orig, n_part_orig,          PDM_MPI_INT,        i_rank, boxes->comm);
-    PDM_MPI_Bcast(origin,       n_part_orig*3,        PDM_MPI_INT,        i_rank, boxes->comm);
+    PDM_MPI_Bcast(extents,      n_boxes*boxes->dim*2, PDM_MPI_DOUBLE    , i_rank, boxes->comm);
+    PDM_MPI_Bcast(n_boxes_orig, n_part_orig         , PDM_MPI_INT       , i_rank, boxes->comm);
+    PDM_MPI_Bcast(origin,       n_boxes * 3         , PDM_MPI_INT       , i_rank, boxes->comm);
 
 
     if  ( myRank != i_rank ) {
@@ -1995,12 +1995,12 @@ PDM_box_copy_boxes_to_ranks
       boxes->rank_boxes[icopied].g_num        = (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * n_boxes);
       boxes->rank_boxes[icopied].extents      = (double *)      malloc (sizeof(double)      * n_boxes*boxes->dim*2);
       boxes->rank_boxes[icopied].n_boxes_orig = (int *)         malloc (sizeof(int)         * n_part_orig);
-      boxes->rank_boxes[icopied].origin       = (int *)         malloc (sizeof(int)         * n_part_orig*3);
+      boxes->rank_boxes[icopied].origin       = (int *)         malloc (sizeof(int)         * n_boxes*3);
 
       memcpy(boxes->rank_boxes[icopied].g_num,        g_num,        sizeof(PDM_g_num_t) * n_boxes);
       memcpy(boxes->rank_boxes[icopied].extents,      extents,      sizeof(double)      * n_boxes*boxes->dim*2);
       memcpy(boxes->rank_boxes[icopied].n_boxes_orig, n_boxes_orig, sizeof(int)         * n_part_orig);
-      memcpy(boxes->rank_boxes[icopied].origin,       origin,       sizeof(int)         * n_part_orig*3);
+      memcpy(boxes->rank_boxes[icopied].origin,       origin,       sizeof(int)         * n_boxes*3);
 
       icopied++;
     }

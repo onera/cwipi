@@ -209,13 +209,13 @@ _read_args(int                          argc,
       }
     }
     else if (strcmp(argv[i], "-pt-scotch") == 0) {
-      *part_method = PDM_PART_SPLIT_PTSCOTCH;
+      *part_method = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
     }
     else if (strcmp(argv[i], "-parmetis") == 0) {
-      *part_method = PDM_PART_SPLIT_PARMETIS;
+      *part_method = PDM_SPLIT_DUAL_WITH_PARMETIS;
     }
     else if (strcmp(argv[i], "-hilbert") == 0) {
-      *part_method = PDM_PART_SPLIT_HILBERT;
+      *part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
     }
     else if (strcmp(argv[i], "-octree") == 0) {
       *loc_method = PDM_MESH_LOCATION_OCTREE;
@@ -1745,10 +1745,12 @@ int main(int argc, char *argv[])
   int         extension_depth_tgt = 0;
   int         extension_depth_src = 0;
 #ifdef PDM_HAVE_PARMETIS
-  PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_PARMETIS;
+  PDM_split_dual_t part_method  = PDM_SPLIT_DUAL_WITH_PARMETIS;
 #else
 #ifdef PDM_HAVE_PTSCOTCH
-  PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
+  PDM_split_dual_t part_method  = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
+#else
+  PDM_split_dual_t part_method  = PDM_SPLIT_DUAL_WITH_HILBERT;
 #endif
 #endif
 
@@ -1827,8 +1829,8 @@ int main(int argc, char *argv[])
   /*
    *  Source cube
    */
-  int case_type = 0; // Random cube mesh
-  // int case_type = 1; // Helice configuration
+  // int case_type = 0; // Random cube mesh
+  int case_type = 1; // Helice configuration
   int n_mesh = -1;
   // int n_mesh = 2;
   // int n_mesh = 5;
@@ -1888,6 +1890,7 @@ int main(int argc, char *argv[])
   double ***blk_interp_vol  = malloc(n_mesh * sizeof(double **));
   double ***cell_nat        = malloc(n_mesh * sizeof(double **));
   double ***mask            = malloc(n_mesh * sizeof(double **));
+  int    ***elmt_cross_surf = malloc(n_mesh * sizeof(int    **));
 
   const int n_timer = 8;
   double cpu_time_max[n_timer];
@@ -1958,7 +1961,7 @@ int main(int argc, char *argv[])
     }
 
     // Rand a number around 20% for n_vtx_seg
-    PDM_g_num_t percent = ceil( (double) n_vtx_seg * (25. / 100.));
+    PDM_g_num_t percent = (PDM_g_num_t) ceil( (double) n_vtx_seg * (25. / 100.));
     PDM_g_num_t n_vtx_add_rand = rand() % ( percent ) - percent / 2;
     PDM_g_num_t n_vtx_seg_rand = n_vtx_seg + n_vtx_add_rand;
 
@@ -2136,11 +2139,14 @@ int main(int argc, char *argv[])
    * First step : mask
    */
   for(int i_cloud = 0; i_cloud < n_mesh; ++i_cloud) {
-    mask[i_cloud] = malloc(n_part * sizeof(double *));
+    mask           [i_cloud] = malloc(n_part * sizeof(double *));
+    elmt_cross_surf[i_cloud] = malloc(n_part * sizeof(int    *));
     for(int i_part = 0; i_part < n_part; ++i_part) {
-      mask[i_cloud][i_part] = malloc(n_cell[i_cloud][i_part] * sizeof(double));
+      mask           [i_cloud][i_part] = malloc(n_cell[i_cloud][i_part] * sizeof(double));
+      elmt_cross_surf[i_cloud][i_part] = malloc(n_cell[i_cloud][i_part] * sizeof(int));
       for(int i = 0; i < n_cell[i_cloud][i_part]; ++i) {
-        mask[i_cloud][i_part][i] = 0.; // 0 -> pas masqué
+        mask           [i_cloud][i_part][i] = 0.; // 0 -> pas masqué
+        elmt_cross_surf[i_cloud][i_part][i] = 0.; // Pas d'interaction avec une surface
       }
     }
   }
@@ -2186,7 +2192,8 @@ int main(int argc, char *argv[])
                                                external_vtx_ln_to_gn [i_mesh][i_part]);
     }
 
-    PDM_inside_cloud_surf_compute(ics[i_mesh]);
+    // PDM_inside_cloud_surf_compute(ics[i_mesh]);
+    PDM_inside_cloud_surf_compute_optim(ics[i_mesh]);
 
     int mask_type = 1;
     for(int i_cloud = 0; i_cloud < n_mesh; ++i_cloud) {
@@ -2201,6 +2208,8 @@ int main(int argc, char *argv[])
         /* Translate information into a single field at cell */
         for(int i_cell = 0; i_cell < n_cell[i_cloud][i_part]; ++i_cell) {
 
+          int one_is_interior = 0;
+          int one_is_exterior = 0;
           double cell_is_completely_inside = 1.;
           double face_is_inside = 0.;
           for(int idx_face = cell_face_idx[i_cloud][i_part][i_cell]; idx_face < cell_face_idx[i_cloud][i_part][i_cell+1]; ++idx_face) {
@@ -2211,6 +2220,9 @@ int main(int argc, char *argv[])
               face_is_inside = PDM_MAX(face_is_inside, is_inside[i_vtx]);
               if(is_inside[i_vtx] == 0) {
                 cell_is_completely_inside = 0;
+                one_is_exterior = 1;
+              } else {
+                one_is_interior = 1;
               }
             }
           }
@@ -2220,6 +2232,11 @@ int main(int argc, char *argv[])
           } else {
             mask[i_cloud][i_part][i_cell] = PDM_MAX(mask[i_cloud][i_part][i_cell], cell_is_completely_inside);
           }
+
+          if(one_is_interior == 1 && one_is_exterior == 1) {
+            elmt_cross_surf[i_cloud][i_part][i_cell] = 1;
+          }
+
         }
 
         free(is_inside);
@@ -2282,6 +2299,8 @@ int main(int argc, char *argv[])
     /* Set source mesh */
     PDM_mesh_location_mesh_global_data_set(mesh_loc[i_mesh], n_part);
 
+    int **is_elmt_select_by_user = malloc(n_part * sizeof(int *));
+
     for (int i_part = 0; i_part < n_part; i_part++) {
       PDM_mesh_location_part_set (mesh_loc[i_mesh],
                                   i_part,
@@ -2296,15 +2315,54 @@ int main(int argc, char *argv[])
                                   n_vtx_without_ext [i_mesh][i_part],
                                   vtx_coord         [i_mesh][i_part],
                                   vtx_ln_to_gn      [i_mesh][i_part]);
+
+      is_elmt_select_by_user[i_part] = malloc(n_cell_without_ext[i_mesh][i_part] * sizeof(int));
+      for(int i_cell = 0; i_cell < n_cell_without_ext[i_mesh][i_part]; ++i_cell) {
+        if(mask[i_mesh][i_part][i_cell] > 0.5) {
+          is_elmt_select_by_user[i_part][i_cell] = 0;
+        } else {
+          is_elmt_select_by_user[i_part][i_cell] = 1;
+        }
+      }
+
+      // PDM_mesh_location_user_extract_set(mesh_loc[i_mesh],
+      //                                    i_part,
+      //                                    is_elmt_select_by_user[i_part]);
+      PDM_mesh_location_user_extract_set(mesh_loc[i_mesh],
+                                         i_part,
+                                         elmt_cross_surf[i_mesh][i_part]);
     }
 
     /* Set location parameters */
     PDM_mesh_location_tolerance_set(mesh_loc[i_mesh], tolerance);
     PDM_mesh_location_method_set(mesh_loc[i_mesh], loc_method);
 
-    PDM_mesh_location_compute (mesh_loc[i_mesh]);
+    char *env_var = NULL;
+    env_var = getenv ("PDM_MESH_LOCATION_NEW");
+    int algo = 1;
+    if (env_var != NULL) {
+      algo = atoi(env_var);
+    }
+    if(algo == 0) {
+      PDM_mesh_location_compute (mesh_loc[i_mesh]);
+    } else if(algo == 1) {
+      // PDM_mesh_location_compute_optim2(mesh_loc[i_mesh]);
+      PDM_mesh_location_compute_optim(mesh_loc[i_mesh]);
+    }
 
     PDM_mesh_location_dump_times (mesh_loc[i_mesh]);
+
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      free(is_elmt_select_by_user[i_part]);
+    }
+    free(is_elmt_select_by_user);
+
+    PDM_MPI_Barrier(comm);
+    // if (i_rank == 0) {
+    //   printf("OK! :D");
+    // }
+    // PDM_MPI_Finalize();
+    // return 0;
 
 
   }
@@ -2371,16 +2429,19 @@ int main(int argc, char *argv[])
        * Creation du part_to_part pour chaque mesh / cloud
        */
       assert(n_tot_cloud == n_mesh);
-      ptp[i_mesh][i_cloud] = PDM_part_to_part_create ((const PDM_g_num_t **) cell_ln_to_gn[i_mesh],
-                                                                             n_cell_without_ext[i_mesh],
-                                                                             n_part,
-                                                      (const PDM_g_num_t **) cell_ln_to_gn[i_cloud],
-                                                                             n_cell       [i_cloud],
-                                                                             n_part,
-                                                      (const int         **) mesh_pts_idx [i_mesh][i_cloud],
-                                                      (const PDM_g_num_t **) mesh_pts_gnum[i_mesh][i_cloud],
-                                                                             comm);
-
+      // ptp[i_mesh][i_cloud] = PDM_part_to_part_create ((const PDM_g_num_t **) cell_ln_to_gn[i_mesh],
+      //                                                                        n_cell_without_ext[i_mesh],
+      //                                                                        n_part,
+      //                                                 (const PDM_g_num_t **) cell_ln_to_gn[i_cloud],
+      //                                                                        n_cell       [i_cloud],
+      //                                                                        n_part,
+      //                                                 (const int         **) mesh_pts_idx [i_mesh][i_cloud],
+      //                                                 (const PDM_g_num_t **) mesh_pts_gnum[i_mesh][i_cloud],
+      //                                                                        comm);
+      PDM_mesh_location_part_to_part_get(mesh_loc[i_mesh],
+                                         i_cloud,
+                                         &ptp[i_mesh][i_cloud],
+                                         PDM_OWNERSHIP_USER);
 
     }
   }
@@ -2746,11 +2807,14 @@ int main(int argc, char *argv[])
 
   for(int i_cloud = 0; i_cloud < n_mesh; ++i_cloud) {
     for(int i_part = 0; i_part < n_part; ++i_part) {
-      free(mask[i_cloud][i_part]);
+      free(mask           [i_cloud][i_part]);
+      free(elmt_cross_surf[i_cloud][i_part]);
     }
-    free(mask[i_cloud]);
+    free(mask           [i_cloud]);
+    free(elmt_cross_surf[i_cloud]);
   }
   free(mask);
+  free(elmt_cross_surf);
 
   free(n_cell        );
   free(n_face        );

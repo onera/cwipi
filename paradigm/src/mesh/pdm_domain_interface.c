@@ -3900,19 +3900,19 @@ PDM_ddomain_interface_to_pdomain_interface
              (void ***)  &part_data_itrf_gnum);
 
 
-  for(int i_part = 0; i_part < n_part_tot; ++i_part) {
-    // PDM_log_trace_array_int (part_stride    [i_part], pn_entity_all[i_part], "part_stride"    );
-
-    int n_data = 0;
-    for(int i = 0; i < pn_entity_all[i_part]; ++i) {
-      n_data += part_stride    [i_part][i];
+  if(0 == 1) {
+    for(int i_part = 0; i_part < n_part_tot; ++i_part) {
+      PDM_log_trace_array_int (part_stride    [i_part], pn_entity_all[i_part], "part_stride"    );
+      int n_data = 0;
+      for(int i = 0; i < pn_entity_all[i_part]; ++i) {
+        n_data += part_stride    [i_part][i];
+      }
+      // PDM_log_trace_array_int (part_data_dom      [i_part], n_data, "part_data_dom"      );
+      // PDM_log_trace_array_int (part_data_sens     [i_part], n_data, "part_data_sens"     );
+      PDM_log_trace_array_int (part_data_intno    [i_part], n_data, "part_data_intno"    );
+      PDM_log_trace_array_long(part_data_gnum     [i_part], n_data, "part_data_gnum"     );
+      PDM_log_trace_array_long(part_data_itrf_gnum[i_part], n_data, "part_data_itrf_gnum");
     }
-
-    // PDM_log_trace_array_int (part_data_dom      [i_part], n_data, "part_data_dom"      );
-    // PDM_log_trace_array_int (part_data_sens     [i_part], n_data, "part_data_sens"     );
-    // PDM_log_trace_array_int (part_data_intno    [i_part], n_data, "part_data_intno"    );
-    // PDM_log_trace_array_long(part_data_gnum     [i_part], n_data, "part_data_gnum"     );
-    // PDM_log_trace_array_long(part_data_itrf_gnum[i_part], n_data, "part_data_itrf_gnum");
   }
 
   /*

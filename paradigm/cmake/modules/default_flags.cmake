@@ -48,7 +48,7 @@ elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
 
   find_library(FORTRAN_LIBRARIES ifcore)
   mark_as_advanced (FORTRAN_LIBRARIES)
-  set (FORTRAN_LIBRARIES_FLAG          )
+  set (FORTRAN_LIBRARIES_FLAG)
 
 elseif (CMAKE_Fortran_COMPILER_ID MATCHES "XL")
 
@@ -115,6 +115,24 @@ elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PathScale")
 
   set (FORTRAN_LIBRARIES         )
   set (FORTRAN_LIBRARIES_FLAG    )
+
+elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM")
+
+  set (CMAKE_Fortran_FLAGS "-fpp -Wp,-P -fpic -warn -diag-disable 7712")
+
+  set (CMAKE_Fortran_FLAGS_RELEASE "-O3")
+
+  include(CheckCCompilerFlag)
+
+  set (CMAKE_Fortran_FLAGS_DEBUG          "-O0 -g -check all -check nopointer -traceback")
+  set (CMAKE_Fortran_FLAGS_PROFILING      "${CMAKE_Fortran_FLAGS_RELEASE} -pg")
+  set (CMAKE_Fortran_FLAGS_RELWITHDEBINFO "${CMAKE_Fortran_FLAGS_RELEASE} -g")
+  set (CMAKE_Fortran_FLAGS_MINSIZEREL     "-O2 -g")
+  set (CMAKE_Fortran_FLAGS_SANITIZE       "-O0 -g -check all -check nopointer -traceback")
+
+  find_library(FORTRAN_LIBRARIES ifcore)
+  mark_as_advanced (FORTRAN_LIBRARIES)
+  set (FORTRAN_LIBRARIES_FLAG)
 
 else ()
 
@@ -347,7 +365,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
   set (CXX_LIBRARIES_FLAG        )
 
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
-  set (CMAKE_CXX_FLAGS " -fPIC -fuse-ld=lld -std=c++11 -Wall -pedantic -Wshadow -Wpointer-arith -Wuninitialized -Wunused -Wempty-translation-unit -Wno-unused-function")
+  set (CMAKE_CXX_FLAGS "-cc=icpx -fPIC -fuse-ld=lld -std=c++11 -Wall -pedantic -Wshadow -Wpointer-arith -Wuninitialized -Wunused -Wempty-translation-unit -Wno-unused-function")
   set (CMAKE_CXX_FLAGS_RELEASE "-O3")
   set (CMAKE_CXX_FLAGS_DEBUG "-g -O0")
   set (CMAKE_CXX_FLAGS_PROFILING       "${CMAKE_CXX_FLAGS_RELEASE} -p")

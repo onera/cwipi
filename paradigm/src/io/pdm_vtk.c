@@ -1526,7 +1526,7 @@ PDM_vtk_write_std_elements
     fprintf(f, "LOOKUP_TABLE default\n");
     for (int i = 0; i < n_elt; i++) {
       fprintf(f, PDM_FMT_G_NUM"\n", elt_g_num[i]);
-     }
+    }
   }
 
   if (n_elt_ifield > 0) {

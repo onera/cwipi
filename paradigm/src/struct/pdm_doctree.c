@@ -264,6 +264,15 @@ PDM_doctree_create
     doct->times_cpu_s  [i] = 0.;
   }
 
+  doct->ownership              = PDM_OWNERSHIP_KEEP;
+  doct->ptb_unit_op_equi       = NULL;
+  doct->block_pts_in_box_n     = NULL;
+  doct->block_pts_in_box_g_num = NULL;
+  doct->block_pts_in_box_coord = NULL;
+
+  doct->dn_pts_equi                = 0;
+  doct->equi_pts_init_location_idx = NULL;
+  doct->equi_pts_init_location     = NULL;
   return doct;
 }
 
@@ -274,6 +283,8 @@ PDM_doctree_build
  PDM_doctree_t     *doct
 )
 {
+  int verbose = 0;
+
   int n_rank, i_rank;
   PDM_MPI_Comm_rank (doct->comm, &i_rank);
   PDM_MPI_Comm_size (doct->comm, &n_rank);
@@ -525,7 +536,7 @@ PDM_doctree_build
   PDM_MPI_Barrier(doct->comm_shared);
 
   box_set = PDM_box_set_create(3,
-                               0,  // No normalization to preserve initial extents
+                               1,  // No normalization to preserve initial extents
                                0,  // No projection to preserve initial extents
                                n_shared_boxes,
                                shared_coarse_boxes_gnum,
@@ -687,14 +698,18 @@ PDM_doctree_build
                                                                1,
                                                                doct->comm);
   double t2 = PDM_MPI_Wtime();
-  log_trace("Equi leaf = %12.5e \n", t2 - t1);
-
+  if (verbose) {
+    log_trace("Equi leaf = %12.5e \n", t2 - t1);
+  }
   // PDM_gnum_free(gnum_extract);
 
   int          dn_equi_tree     = PDM_part_to_block_n_elt_block_get  (ptb_equi_box);
+  doct->dn_pts_equi = dn_equi_tree;
   PDM_g_num_t* parent_tree_gnum = PDM_part_to_block_block_gnum_get   (ptb_equi_box);
   PDM_g_num_t* distrib_tree     = PDM_part_to_block_distrib_index_get(ptb_equi_box);
-  log_trace("n_shared_boxes = %i / n_coarse_box = %i / dn_equi_tree = %i / n_extract_shared_boxes = %i \n", n_shared_boxes, n_coarse_box, dn_equi_tree, n_extract_shared_boxes);
+  if (verbose) {
+    log_trace("n_shared_boxes = %i / n_coarse_box = %i / dn_equi_tree = %i / n_extract_shared_boxes = %i \n", n_shared_boxes, n_coarse_box, dn_equi_tree, n_extract_shared_boxes);
+  }
 
   int dn_tree_min = n_shared_boxes+1;
   int dn_tree_max = 0;
@@ -703,8 +718,10 @@ PDM_doctree_build
     dn_tree_min = PDM_MIN(dn_tree_min, distrib_tree[i+1] - distrib_tree[i]);
     dn_tree_max = PDM_MAX(dn_tree_max, distrib_tree[i+1] - distrib_tree[i]);
   }
-  log_trace("dn_tree_min = %i / dn_tree_max = %i / dn_equi_tree = %i \n", dn_tree_min, dn_tree_max, dn_equi_tree);
-  log_trace("distrib_tree[n_rank] = %i \n", distrib_tree[n_rank]);
+  if (verbose) {
+    log_trace("dn_tree_min = %i / dn_tree_max = %i / dn_equi_tree = %i \n", dn_tree_min, dn_tree_max, dn_equi_tree);
+    log_trace("distrib_tree[n_rank] = %i \n", distrib_tree[n_rank]);
+  }
 
   int *coarse_box_to_new_rank = PDM_part_to_block_destination_get(ptb_equi_box);
   if(0 == 1) {
@@ -870,6 +887,16 @@ PDM_doctree_build
     free(dinit_location_pts);
   }
 
+  if(0 == 1) {
+    char filename[999];
+    sprintf(filename, "out_reorder_blk_coord_send_%i.vtk", i_rank);
+    PDM_vtk_write_point_cloud(filename,
+                              n_pts_tot,
+                              reorder_blk_coord_send,
+                              reorder_blk_pts_gnum,
+                              NULL);
+  }
+
   /*
    * Coordinates
    */
@@ -915,6 +942,28 @@ PDM_doctree_build
     PDM_log_trace_array_int(shm_equi_pts_tot_idx, n_rank_in_shm+1, "shm_equi_pts_tot_idx ::");
   }
 
+
+  // int *shm_equi_init_location_pts_tot_idx = malloc( (n_rank_in_shm + 1) * sizeof(int));
+  // shm_equi_init_location_pts_tot_idx[0] = 0;
+  // int equi_n_init_locatation_pts_tot_idx = equi_n_pts_tot + 1;
+  // PDM_MPI_Allgather(&equi_n_init_locatation_pts_tot_idx     , 1, PDM_MPI_INT,
+  //                   &shm_equi_init_location_pts_tot_idx[1], 1, PDM_MPI_INT, doct->comm_shared);
+
+  // for(int i = 0; i < n_rank_in_shm; ++i) {
+  //   shm_equi_init_location_pts_tot_idx[i+1] += shm_equi_init_location_pts_tot_idx[i];
+  // }
+  // int n_equi_init_locatation_pts_tot_idx_tot = shm_equi_init_location_pts_tot_idx[n_rank_in_shm];
+
+  // PDM_mpi_win_shared_t* wequi_pts_init_location_idx = PDM_mpi_win_shared_create(n_equi_init_locatation_pts_tot_idx_tot, sizeof(int), doct->comm_shared);
+  // int *equi_pts_init_location_idx                   = PDM_mpi_win_shared_get(wequi_pts_init_location_idx);
+
+  // PDM_mpi_win_shared_lock_all (0, wequi_pts_init_location_idx);
+  // int *lequi_pts_init_location_idx = &equi_pts_init_location_idx[shm_equi_init_location_pts_tot_idx[i_rank_in_shm]];
+
+
+  // PDM_mpi_win_shared_lock_all (0, wequi_pts_init_location);
+  // PDM_g_num_t *lequi_pts_init_location = &equi_pts_init_location[shm_equi_pts_tot_idx_idx[i_rank_in_shm]+i_rank_in_shm];
+
   /*
    * g_num
    */
@@ -929,55 +978,85 @@ PDM_doctree_build
   /*
    * Init location -> Attention si gnum de points dupliqué -> variable
    */
-  int* equi_pts_init_location_idx = NULL;
-  int* equi_pts_init_location     = NULL;
-  if(have_pts_init_location == 1) {
-    int* equi_pts_init_location_n = malloc(equi_n_pts_tot * sizeof(int));
+  // int* equi_pts_init_location_idx = NULL;
+  // int* equi_pts_init_location     = NULL;
+  // PDM_mpi_win_shared_t* wequi_pts_init_location = NULL;
+  // int *shm_equi_pts_init_location_tot_idx = NULL;
 
-    PDM_block_to_part_exch_in_place(btp,
-                                    sizeof(int),
-                                    PDM_STRIDE_VAR_INTERLACED,
-                                    coarse_box_n_pts,
-                                    reorder_init_location_n,
-                                    &equi_n_pts,
-                          (void **) &equi_pts_init_location_n);
+  // if(have_pts_init_location == 1) {
+  //   abort();
+  //   int* equi_pts_init_location_n = malloc(equi_n_pts_tot * sizeof(int));
 
-    equi_pts_init_location_idx = PDM_array_new_idx_from_sizes_int(equi_pts_init_location_n, equi_n_pts_tot);
+  //   PDM_block_to_part_exch_in_place(btp,
+  //                                   sizeof(int),
+  //                                   PDM_STRIDE_VAR_INTERLACED,
+  //                                   coarse_box_n_pts,
+  //                                   reorder_init_location_n,
+  //                                   &equi_n_pts,
+  //                         (void **) &equi_pts_init_location_n);
 
-    int recv_size = equi_pts_init_location_idx[equi_n_pts_tot];
-    equi_pts_init_location = malloc(3 * recv_size * sizeof(int));
+  //   // equi_pts_init_location_idx = PDM_array_new_idx_from_sizes_int(equi_pts_init_location_n, equi_n_pts_tot);
+  //   lequi_pts_init_location_idx[0] = 0;
+  //   for(int i = 0; i < equi_n_pts_tot; ++i ) {
+  //     lequi_pts_init_location_idx[i+1] = lequi_pts_init_location_idx[i] + equi_pts_init_location_n[i];
+  //   }
 
-    int *tmp_n = malloc(dn_equi_tree * sizeof(int));
+  //   int recv_size = equi_pts_init_location_idx[equi_n_pts_tot];
 
-    if(0 == 1) {
-      PDM_log_trace_array_int(coarse_box_n_pts, n_coarse_box, "coarse_box_n_pts :");
-      PDM_log_trace_array_int(coarse_box_init_location_n, n_coarse_box, "coarse_box_init_location_n :");
-      int n_tot = 0;
-      for(int i = 0; i < n_coarse_box; ++i) {
-        n_tot += coarse_box_init_location_n[i];
-      }
-      PDM_log_trace_array_int(reorder_init_location, 3 * n_tot, "reorder_init_location : ");
-    }
+  //   /*
+  //    *  Compute size for directly have shared_memory pts_gnum
+  //    */
+  //   shm_equi_pts_init_location_tot_idx = malloc( (n_rank_in_shm + 1) * sizeof(int));
+  //   shm_equi_pts_init_location_tot_idx[0] = 0;
+  //   PDM_MPI_Allgather(&recv_size                            , 1, PDM_MPI_INT,
+  //                     &shm_equi_pts_init_location_tot_idx[1], 1, PDM_MPI_INT, doct->comm_shared);
 
-    PDM_block_to_part_exch_in_place(btp,
-                                    3 * sizeof(int),
-                                    PDM_STRIDE_VAR_INTERLACED,
-                                    coarse_box_init_location_n,
-                                    reorder_init_location,
-                                    &tmp_n,
-                          (void **) &equi_pts_init_location);
+  //   for(int i = 0; i < n_rank_in_shm; ++i) {
+  //     shm_equi_pts_init_location_tot_idx[i+1] += shm_equi_pts_init_location_tot_idx[i];
+  //   }
+  //   int n_recv_size_tot = shm_equi_pts_init_location_tot_idx[n_rank_in_shm];
 
-    free(tmp_n);
-    free(reorder_init_location);
-    free(reorder_init_location_n);
-    free(coarse_box_init_location_n);
+  //   // Exchange size
+  //   wequi_pts_init_location = PDM_mpi_win_shared_create(3 * n_recv_size_tot, sizeof(int), doct->comm_shared);
+  //   equi_pts_init_location  = PDM_mpi_win_shared_get(wequi_pts_init_location);
 
-    // A mettre dans la structure
-    free(equi_pts_init_location);
-    free(equi_pts_init_location_n);
-    free(equi_pts_init_location_idx);
+  //   // equi_pts_init_location = malloc(3 * recv_size * sizeof(int));
+  //   int *lequi_pts_init_location = &equi_pts_init_location[3 * shm_equi_pts_init_location_tot_idx[i_rank_in_shm]];
 
-  }
+  //   int *tmp_n = malloc(dn_equi_tree * sizeof(int));
+
+  //   if(0 == 1) {
+  //     PDM_log_trace_array_int(coarse_box_n_pts, n_coarse_box, "coarse_box_n_pts :");
+  //     PDM_log_trace_array_int(coarse_box_init_location_n, n_coarse_box, "coarse_box_init_location_n :");
+  //     int n_tot = 0;
+  //     for(int i = 0; i < n_coarse_box; ++i) {
+  //       n_tot += coarse_box_init_location_n[i];
+  //     }
+  //     PDM_log_trace_array_int(reorder_init_location, 3 * n_tot, "reorder_init_location : ");
+  //   }
+
+  //   PDM_block_to_part_exch_in_place(btp,
+  //                                   3 * sizeof(int),
+  //                                   PDM_STRIDE_VAR_INTERLACED,
+  //                                   coarse_box_init_location_n,
+  //                                   reorder_init_location,
+  //                                   &tmp_n,
+  //                         (void **) &lequi_pts_init_location);
+
+  //   free(tmp_n);
+  //   free(reorder_init_location);
+  //   free(reorder_init_location_n);
+  //   free(coarse_box_init_location_n);
+
+  //   // A mettre dans la structure
+  //   // free(equi_pts_init_location);
+  //   free(equi_pts_init_location_n);
+  //   // free(equi_pts_init_location_idx);
+
+  //   // doct->equi_pts_init_location_idx = equi_pts_init_location_idx;
+  //   // doct->equi_pts_init_location     = equi_pts_init_location;
+
+  // }
 
 
   free(reorder_blk_coord_send);
@@ -1127,6 +1206,7 @@ PDM_doctree_build
     PDM_mpi_win_shared_lock_all (0, wshared_entity_coord);
     PDM_mpi_win_shared_lock_all (0, wshared_entity_gnum);
     PDM_mpi_win_shared_lock_all (0, wshared_entity_init_location);
+    PDM_MPI_Barrier  (doct->comm_shared); // Enforce synchro to avoid latency due to other MPI CALL !! DO NOT REMOVE !!!
 
     PDM_g_num_t *shared_entity_gnum          = PDM_mpi_win_shared_get(wshared_entity_gnum );
     double      *shared_entity_coord         = PDM_mpi_win_shared_get(wshared_entity_coord);
@@ -1296,7 +1376,6 @@ PDM_doctree_build
   b_t_cpu_s   = e_t_cpu_s;
   PDM_timer_resume(doct->timer);
 
-
   /*
    * Wait message and free all useless buffer
    */
@@ -1423,8 +1502,6 @@ PDM_doctree_build
       PDM_g_num_t *lbox_gnum    = &shm_box_gnum [  beg];
       double      *lbox_extents = &shm_box_extents[6*beg];
 
-      res_box_g_num[i_shm] = &shm_box_gnum[beg];
-
       if(0 == 1) {
         char filename[999];
         sprintf(filename, "equi_boxes_for_solicitate_%i_%i.vtk", i_shm, i_rank);
@@ -1442,12 +1519,26 @@ PDM_doctree_build
                                                     &(box_pts_idx[i_shm]),
                                                     &(box_pts_l_num[i_shm]));
 
-      res_box_weight[i_shm] = malloc(n_lbox * sizeof(double));
-      res_box_strid [i_shm] = malloc(n_lbox * sizeof(int   ));
+      res_box_weight[i_shm] = malloc(n_lbox * sizeof(double     ));
+      res_box_strid [i_shm] = malloc(n_lbox * sizeof(int        ));
+      res_box_g_num [i_shm] = malloc(n_lbox * sizeof(PDM_g_num_t));
 
+      int n_lbox_compress = 0;
       for(int i = 0; i < n_lbox; ++i ){
-        res_box_strid [i_shm][i] = box_pts_idx[i_shm][i+1] - box_pts_idx[i_shm][i];
-        res_box_weight[i_shm][i] = box_pts_idx[i_shm][i+1] - box_pts_idx[i_shm][i];
+        if(box_pts_idx[i_shm][i+1] - box_pts_idx[i_shm][i] > 0 ){
+          res_box_strid [i_shm][n_lbox_compress] = box_pts_idx[i_shm][i+1] - box_pts_idx[i_shm][i];
+          res_box_weight[i_shm][n_lbox_compress] = box_pts_idx[i_shm][i+1] - box_pts_idx[i_shm][i];
+          res_box_g_num [i_shm][n_lbox_compress] = shm_box_gnum[beg+i];
+          n_lbox_compress++;
+        }
+      }
+      res_box_weight[i_shm] = realloc(res_box_weight[i_shm], n_lbox_compress * sizeof(double     ));
+      res_box_strid [i_shm] = realloc(res_box_strid [i_shm], n_lbox_compress * sizeof(int        ));
+      res_box_g_num [i_shm] = realloc(res_box_g_num [i_shm], n_lbox_compress * sizeof(PDM_g_num_t));
+      part_n_box    [i_shm] = n_lbox_compress;
+
+      if(verbose && n_lbox_compress < n_lbox) {
+        log_trace("Compress = %i ---> %i \n", n_lbox, n_lbox_compress);
       }
 
       double *sorted_tree_coord = NULL;
@@ -1463,7 +1554,10 @@ PDM_doctree_build
       res_box_pts_coords[i_shm] = malloc(3 * _box_pts_idx[n_lbox] * sizeof(double     ));
       res_box_pts_gnum  [i_shm] = malloc(    _box_pts_idx[n_lbox] * sizeof(PDM_g_num_t));
 
-      PDM_g_num_t *shm_equi_pts_gnum   = &equi_pts_gnum      [  shm_equi_pts_tot_idx[i_shm]];
+      PDM_g_num_t *shm_equi_pts_gnum          = &equi_pts_gnum      [  shm_equi_pts_tot_idx[i_shm]];
+
+      // int *shm_equi_pts_init_location     = &equi_pts_init_location    [3 * shm_equi_pts_init_location_tot_idx[i_shm]];
+      // int *shm_equi_pts_init_location_idx = &equi_pts_init_location_idx[    shm_equi_init_location_pts_tot_idx[i_shm]];
 
       if(0 == 1) {
         char filename[999];
@@ -1480,6 +1574,11 @@ PDM_doctree_build
       for(int i = 0;  i < _box_pts_idx[n_lbox]; ++i) {
         int l_num = _box_pts_l_num[i];
         res_box_pts_gnum  [i_shm][i] = shm_equi_pts_gnum[l_num];
+
+        // for(int k = shm_equi_pts_init_location_idx[i]; k < shm_equi_pts_init_location_idx[i+1]; ++k) {
+        //   res_box_pts_coords[i_shm][] = shm_equi_pts_init_location[k];
+        // }
+
         for (int k = 0; k < 3; k++) {
           res_box_pts_coords[i_shm][3*i + k] = sorted_tree_coord[3*old_to_new_pts[l_num] + k];
         }
@@ -1512,6 +1611,7 @@ PDM_doctree_build
   free(equi_pts_coords);
   free(distrib_search_by_rank_idx);
   free(shm_equi_pts_tot_idx);
+  // free(shm_equi_init_location_pts_tot_idx);
   // PDM_MPI_Barrier  (doct->comm);
   PDM_timer_hang_on(doct->timer);
   e_t_elapsed = PDM_timer_elapsed (doct->timer);
@@ -1532,8 +1632,11 @@ PDM_doctree_build
 
   PDM_MPI_Barrier(doct->comm_shared);
 
-  PDM_mpi_win_shared_unlock_all (wequi_pts_gnum);
-  PDM_mpi_win_shared_free (wequi_pts_gnum);
+  PDM_mpi_win_shared_unlock_all(wequi_pts_gnum);
+  // PDM_mpi_win_shared_unlock_all(wequi_pts_init_location);
+
+  PDM_mpi_win_shared_free(wequi_pts_gnum);
+  // PDM_mpi_win_shared_free(wequi_pts_init_location);
 
   /*
    * Equilibrate unitary works
@@ -1594,6 +1697,7 @@ PDM_doctree_build
     free(res_box_pts_coords[i_shm]);
     free(res_box_pts_gnum  [i_shm]);
     free(res_box_strid     [i_shm]);
+    free(res_box_g_num     [i_shm]);
   }
   free(part_n_box    );
 
@@ -1606,6 +1710,15 @@ PDM_doctree_build
   //-->>
   /* Remove doubles */
   int n_unit_op_equi_elt_block = PDM_part_to_block_n_elt_block_get (doct->ptb_unit_op_equi);
+  if (0 == 1) {
+    log_trace("-- doctree block frame (before removing doubles) --\n");
+    int sum_weight = 0;
+    for (int i = 0; i < n_unit_op_equi_elt_block; i++) {
+      sum_weight += block_pts_in_box_n[i];
+    }
+    log_trace("sum_weight = %d\n", sum_weight);
+  }
+
   if (1) {
     int max_n = 0;
     for (int i = 0; i < n_unit_op_equi_elt_block; i++) {
@@ -1657,6 +1770,21 @@ PDM_doctree_build
   doct->block_pts_in_box_n     = block_pts_in_box_n;
   doct->block_pts_in_box_g_num = block_pts_in_box_g_num;
   doct->block_pts_in_box_coord = block_pts_in_box_coord;
+
+  if (0 == 1) {
+    PDM_g_num_t *dbox_g_num = PDM_part_to_block_block_gnum_get(doct->ptb_unit_op_equi);
+    int *idx = PDM_array_new_idx_from_sizes_int(block_pts_in_box_n,
+                                                n_unit_op_equi_elt_block);
+    log_trace("-- doctree block frame (after removing doubles) --\n");
+    for (int i = 0; i < n_unit_op_equi_elt_block; i++) {
+      log_trace("box "PDM_FMT_G_NUM" : pts ", dbox_g_num[i]);
+      PDM_log_trace_array_long(block_pts_in_box_g_num + idx[i],
+                               block_pts_in_box_n[i],
+                               "");
+    }
+    log_trace("sum_weight = %d\n", idx[n_unit_op_equi_elt_block]);
+    free(idx);
+  }
 
   PDM_mpi_win_shared_unlock_all (wshared_entity_coord  );
   PDM_mpi_win_shared_unlock_all (wshared_entity_gnum);
@@ -1808,6 +1936,39 @@ PDM_doctree_results_in_orig_frame_get
   free(tmp_pts_in_box_coord);
 }
 
+void
+PDM_doctree_results_in_block_frame_get
+(
+ PDM_doctree_t       *doct,
+ int                 *dn_box,
+ PDM_g_num_t        **dbox_g_num,
+ int                **dbox_pts_n,
+ PDM_g_num_t        **dbox_pts,
+ double             **pts_coord,
+ PDM_ownership_t      ownership
+)
+{
+  doct->ownership = ownership;
+
+  *dn_box = PDM_part_to_block_n_elt_block_get(doct->ptb_unit_op_equi);
+
+  PDM_g_num_t *block_g_num = PDM_part_to_block_block_gnum_get(doct->ptb_unit_op_equi);
+
+  if (ownership == PDM_OWNERSHIP_USER) {
+    *dbox_g_num = malloc(sizeof(PDM_g_num_t) * (*dn_box));
+    memcpy(*dbox_g_num,
+           block_g_num,
+           sizeof(PDM_g_num_t) * (*dn_box));
+  }
+  else {
+    *dbox_g_num = block_g_num;
+  }
+
+  *dbox_pts_n = doct->block_pts_in_box_n;
+  *dbox_pts   = doct->block_pts_in_box_g_num;
+  *pts_coord  = doct->block_pts_in_box_coord;
+}
+
 
 void
 PDM_doctree_free
@@ -1820,9 +1981,14 @@ PDM_doctree_free
   free(doct->pts_coords       );
   free(doct->pts_init_location);
 
-  free(doct->block_pts_in_box_g_num);
-  free(doct->block_pts_in_box_coord);
-  free(doct->block_pts_in_box_n    );
+  if (doct->ownership == PDM_OWNERSHIP_KEEP) {
+    free(doct->block_pts_in_box_g_num);
+    free(doct->block_pts_in_box_coord);
+    free(doct->block_pts_in_box_n    );
+  }
+
+  // free(doct->equi_pts_init_location_idx);
+  // free(doct->equi_pts_init_location);
 
   PDM_part_to_block_free(doct->ptb_unit_op_equi);
 
@@ -1841,6 +2007,20 @@ PDM_doctree_free
   PDM_timer_free(doct->timer);
 
   free(doct);
+}
+
+void
+PDM_doctree_init_pts_location_get
+(
+  PDM_doctree_t   *doct,
+  int             *n_pts,
+  int            **equi_pts_init_location_idx,
+  int            **equi_pts_init_location
+)
+{
+  *n_pts = doct->dn_pts_equi;
+  *equi_pts_init_location_idx = doct->equi_pts_init_location_idx;
+  *equi_pts_init_location     = doct->equi_pts_init_location;
 }
 
 

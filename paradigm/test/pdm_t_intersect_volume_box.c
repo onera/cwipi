@@ -60,7 +60,8 @@ static void
 _read_args
 (
  int            argc,
- char         **argv
+ char         **argv,
+ int           *visu
 )
 {
   int i = 1;
@@ -71,6 +72,10 @@ _read_args
 
     if (strcmp (argv[i], "-h") == 0)
       _usage(EXIT_SUCCESS);
+
+    else if (strcmp(argv[i], "-visu") == 0) {
+      *visu = 1;
+    }
 
     else
       _usage (EXIT_FAILURE);
@@ -394,8 +399,10 @@ int main(int argc, char *argv[])
   int           i_rank;
   int           numProcs;
 
+  int visu = 0;
   _read_args (argc,
-              argv);
+              argv,
+              &visu);
 
   PDM_MPI_Comm comm = PDM_MPI_COMM_WORLD;
 
@@ -494,10 +501,12 @@ int main(int argc, char *argv[])
   PDM_g_num_t *box_g_num = malloc(sizeof(PDM_g_num_t) * 1);
   box_g_num[0] = 1;
 
-  PDM_vtk_write_boxes(filename1,
-                      1,
-                      box_extents1,
-                      box_g_num);
+  if (visu) {
+    PDM_vtk_write_boxes(filename1,
+                        1,
+                        box_extents1,
+                        box_g_num);
+  }
 
   const char *filename2 = "line.vtk";
   double *coord = malloc(sizeof(double) * 6);
@@ -510,7 +519,7 @@ int main(int argc, char *argv[])
   PDM_g_num_t *line_g_num = malloc(sizeof(PDM_g_num_t) * 1);
   line_g_num[0] = 1;
 
-  if(1 == 0) {
+  if(visu) {
     PDM_vtk_write_lines(filename2,
                         1,
                         coord,
@@ -596,7 +605,7 @@ int main(int argc, char *argv[])
   face_vtx[10] = 7;
   face_vtx[11] = 8;
 
-  if(1 == 0) {
+  if(visu) {
     PDM_vtk_write_std_elements(filename3,
                                10,
                                vtx_coord,
@@ -616,7 +625,7 @@ int main(int argc, char *argv[])
 
   const char* normal_name[] = {"n", 0};
 
-  if(1 == 0) {
+  if(visu) {
     PDM_vtk_write_point_cloud_with_field(filename4,
                                          4,
                                          pt_plane,
@@ -731,7 +740,7 @@ int main(int argc, char *argv[])
 
   }
 
-  if(0 == 1) {
+  if(visu) {
     const char *filename6 = "scale_up_boxes.vtk";
 
     PDM_vtk_write_boxes_with_field(filename6,

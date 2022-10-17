@@ -92,11 +92,31 @@ PDM_doctree_results_in_orig_frame_get
  double             **pts_coord
 );
 
+void
+PDM_doctree_results_in_block_frame_get
+(
+ PDM_doctree_t       *doct,
+ int                 *dn_box,
+ PDM_g_num_t        **dbox_g_num,
+ int                **dbox_pts_n,
+ PDM_g_num_t        **dbox_pts,
+ double             **pts_coord,
+ PDM_ownership_t      ownership
+);
 
 void
 PDM_doctree_dump_times
 (
   PDM_doctree_t   *doct
+);
+
+void
+PDM_doctree_init_pts_location_get
+(
+  PDM_doctree_t   *doct,
+  int             *n_pts,
+  int            **equi_pts_init_location_idx,
+  int            **equi_pts_init_location
 );
 
 

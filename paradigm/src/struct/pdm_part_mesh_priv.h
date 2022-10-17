@@ -63,8 +63,11 @@ struct _pdm_part_mesh_t
 
   PDM_g_num_t       ***pentity_ln_to_gn;                /* Array of connectivty (size = PDM_MESH_ENTITY_MAX)            */
 
+  double             **vtx_coords;
+
   PDM_bool_t         *is_owner_connectivity;
   PDM_bool_t         *is_owner_ln_to_gn;
+  PDM_bool_t          is_owner_vtx_coord;
 
   int                  n_group_bnd[PDM_BOUND_TYPE_MAX]; /*!< Number of group by elememnt type                                 */
   PDM_g_num_t       ***pbound_ln_to_gn;                 /* Array of connectivty (size = PDM_CONNECTIVITY_TYPE_MAX)           */

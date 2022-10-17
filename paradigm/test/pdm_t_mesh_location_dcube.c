@@ -367,6 +367,8 @@ int main(int argc, char *argv[])
   PDM_g_num_t n_pts = 10;
   PDM_mesh_location_method_t loc_method = PDM_MESH_LOCATION_OCTREE;
 
+  int reverse = 1;
+
   /*
    *  Read args
    */
@@ -537,7 +539,7 @@ int main(int argc, char *argv[])
   PDM_g_num_t *pts_gnum   = NULL;
 
   marge *= length;
-  int strip = 1;
+  int strip = 0;
   if(strip == 0) {
     // double llength = length/3;  // Desequilbrate
     double llength = length;
@@ -606,7 +608,9 @@ int main(int argc, char *argv[])
                                          PDM_OWNERSHIP_KEEP);
 
   /* Set point cloud(s) */
-  PDM_mesh_location_reverse_results_enable(mesh_loc);
+  if (reverse) {
+    PDM_mesh_location_reverse_results_enable(mesh_loc);
+  }
 
   if (i_rank == 0) {
     printf("-- Mesh location_cloud_set\n");
@@ -727,7 +731,9 @@ int main(int argc, char *argv[])
     fflush(stdout);
   }
 
-  PDM_mesh_location_compute (mesh_loc);
+  // PDM_mesh_location_compute_optim2 (mesh_loc);
+  PDM_mesh_location_compute_optim (mesh_loc);
+  // PDM_mesh_location_compute(mesh_loc);
 
   PDM_mesh_location_dump_times (mesh_loc);
 
@@ -759,90 +765,90 @@ int main(int argc, char *argv[])
 
 
 
+  if (reverse) {
+    for (int ipart = 0; ipart < n_part; ipart++) {
+      int n_cell;
+      int n_face;
+      int n_face_part_bound;
+      int n_vtx;
+      int n_proc;
+      int n_t_part;
+      int s_cell_face;
+      int s_face_vtx;
+      int s_face_group;
+      int n_edge_group2;
 
-  for (int ipart = 0; ipart < n_part; ipart++) {
-    int n_cell;
-    int n_face;
-    int n_face_part_bound;
-    int n_vtx;
-    int n_proc;
-    int n_t_part;
-    int s_cell_face;
-    int s_face_vtx;
-    int s_face_group;
-    int n_edge_group2;
+      PDM_part_part_dim_get(ppart,
+                            ipart,
+                            &n_cell,
+                            &n_face,
+                            &n_face_part_bound,
+                            &n_vtx,
+                            &n_proc,
+                            &n_t_part,
+                            &s_cell_face,
+                            &s_face_vtx,
+                            &s_face_group,
+                            &n_edge_group2);
 
-    PDM_part_part_dim_get(ppart,
-                          ipart,
-                          &n_cell,
-                          &n_face,
-                          &n_face_part_bound,
-                          &n_vtx,
-                          &n_proc,
-                          &n_t_part,
-                          &s_cell_face,
-                          &s_face_vtx,
-                          &s_face_group,
-                          &n_edge_group2);
+      int         *cell_tag;
+      int         *cell_face_idx;
+      int         *cell_face;
+      PDM_g_num_t *cell_ln_to_gn;
+      int         *face_tag;
+      int         *face_cell;
+      int         *face_vtx_idx;
+      int         *face_vtx;
+      PDM_g_num_t *face_ln_to_gn;
+      int         *face_part_boundProcIdx;
+      int         *face_part_boundPartIdx;
+      int         *face_part_bound;
+      int         *vtx_tag;
+      double      *vtx;
+      PDM_g_num_t *vtx_ln_to_gn;
+      int         *face_group_idx;
+      int         *face_group;
+      PDM_g_num_t *face_group_ln_to_gn;
 
-    int         *cell_tag;
-    int         *cell_face_idx;
-    int         *cell_face;
-    PDM_g_num_t *cell_ln_to_gn;
-    int         *face_tag;
-    int         *face_cell;
-    int         *face_vtx_idx;
-    int         *face_vtx;
-    PDM_g_num_t *face_ln_to_gn;
-    int         *face_part_boundProcIdx;
-    int         *face_part_boundPartIdx;
-    int         *face_part_bound;
-    int         *vtx_tag;
-    double      *vtx;
-    PDM_g_num_t *vtx_ln_to_gn;
-    int         *face_group_idx;
-    int         *face_group;
-    PDM_g_num_t *face_group_ln_to_gn;
-
-    PDM_part_part_val_get (ppart,
-                           ipart,
-                           &cell_tag,
-                           &cell_face_idx,
-                           &cell_face,
-                           &cell_ln_to_gn,
-                           &face_tag,
-                           &face_cell,
-                           &face_vtx_idx,
-                           &face_vtx,
-                           &face_ln_to_gn,
-                           &face_part_boundProcIdx,
-                           &face_part_boundPartIdx,
-                           &face_part_bound,
-                           &vtx_tag,
-                           &vtx,
-                           &vtx_ln_to_gn,
-                           &face_group_idx,
-                           &face_group,
-                           &face_group_ln_to_gn);
+      PDM_part_part_val_get (ppart,
+                             ipart,
+                             &cell_tag,
+                             &cell_face_idx,
+                             &cell_face,
+                             &cell_ln_to_gn,
+                             &face_tag,
+                             &face_cell,
+                             &face_vtx_idx,
+                             &face_vtx,
+                             &face_ln_to_gn,
+                             &face_part_boundProcIdx,
+                             &face_part_boundPartIdx,
+                             &face_part_bound,
+                             &vtx_tag,
+                             &vtx,
+                             &vtx_ln_to_gn,
+                             &face_group_idx,
+                             &face_group,
+                             &face_group_ln_to_gn);
 
 
-    int *cell_vtx_idx;
-    int *cell_vtx;
-    PDM_mesh_location_cell_vertex_get (mesh_loc,
+      int *cell_vtx_idx;
+      int *cell_vtx;
+      PDM_mesh_location_cell_vertex_get (mesh_loc,
                                        ipart,//i_part_mesh,
                                        &cell_vtx_idx,
                                        &cell_vtx);
 
-    int         *elt_pts_inside_idx;
-    PDM_g_num_t *points_gnum;
-    double      *points_coords;
-    double      *points_uvw;
-    int         *points_weights_idx;
-    double      *points_weights;
-    double      *points_dist2;
-    double      *points_projected_coords;
-    PDM_mesh_location_points_in_elt_get (mesh_loc,
-                                         ipart,
+      int         *elt_pts_inside_idx;
+      PDM_g_num_t *points_gnum;
+      double      *points_coords;
+      double      *points_uvw;
+      int         *points_weights_idx;
+      double      *points_weights;
+      double      *points_dist2;
+      double      *points_projected_coords;
+      PDM_mesh_location_points_in_elt_get (mesh_loc,
+                                           ipart,
                                          0,//i_point_cloud,
                                          &elt_pts_inside_idx,
                                          &points_gnum,
@@ -854,43 +860,47 @@ int main(int argc, char *argv[])
                                          &points_projected_coords);
 
 
-    if (0) {
-      printf("cell_vtx : \n");
-      for (int j = 0; j < n_cell; j++) {
-        printf("%d :", j);
-        for (int k = cell_vtx_idx[j]; k < cell_vtx_idx[j+1]; k++) {
-          printf(" %d", cell_vtx[k]);
+      if (0) {
+        printf("cell_vtx : \n");
+        for (int j = 0; j < n_cell; j++) {
+          printf("%d :", j);
+          for (int k = cell_vtx_idx[j]; k < cell_vtx_idx[j+1]; k++) {
+            printf(" %d", cell_vtx[k]);
+          }
+          printf("\n");
         }
-        printf("\n");
-      }
-      printf("location in cell coords / uvw / dist2 / proj: \n");
-      for (int j = 0; j < n_cell; j++) {
-        printf(PDM_FMT_G_NUM" :", cell_ln_to_gn[j]);
-        for (int k = elt_pts_inside_idx[j]; k < elt_pts_inside_idx[j+1]; k++) {
-          printf(" "PDM_FMT_G_NUM" ooooo : %12.5e %12.5e %12.5e / %12.5e %12.5e %12.5e / %12.5e / %12.5e %12.5e %12.5e\n",
-            points_gnum[k],
-            points_coords[3*k],points_coords[3*k+1],points_coords[3*k+2],
-            points_uvw[3*k],points_uvw[3*k+1],points_uvw[3*k+2],points_dist2[k],
-            points_projected_coords[3*k],points_projected_coords[3*k+1],points_projected_coords[3*k+2]);
+        printf("location in cell coords / uvw / dist2 / proj: \n");
+        for (int j = 0; j < n_cell; j++) {
+          printf(PDM_FMT_G_NUM" :", cell_ln_to_gn[j]);
+          for (int k = elt_pts_inside_idx[j]; k < elt_pts_inside_idx[j+1]; k++) {
+            printf(" "PDM_FMT_G_NUM" ooooo : %12.5e %12.5e %12.5e / %12.5e %12.5e %12.5e / %12.5e / %12.5e %12.5e %12.5e\n",
+                   points_gnum[k],
+                   points_coords[3*k],points_coords[3*k+1],points_coords[3*k+2],
+                   points_uvw[3*k],points_uvw[3*k+1],points_uvw[3*k+2],points_dist2[k],
+                   points_projected_coords[3*k],points_projected_coords[3*k+1],points_projected_coords[3*k+2]);
           // printf(" "PDM_FMT_G_NUM" ooooo : \n",
           //   points_gnum[k]);
-        }
-        printf("\n");
-      }
-
-      printf("location in cell weights : \n");
-      for (int j = 0; j < n_cell; j++) {
-        printf(PDM_FMT_G_NUM" :", cell_ln_to_gn[j]);
-        for (int k = elt_pts_inside_idx[j]; k < elt_pts_inside_idx[j+1]; k++) {
-          for (int k1 = points_weights_idx[k]; k1 < elt_pts_inside_idx[k+1]; k1++) {
-            printf(" %12.5e", points_weights[k1]);
           }
-          printf(" /");
+          printf("\n");
         }
-        printf("\n");
+
+        printf("location in cell weights : \n");
+        for (int j = 0; j < n_cell; j++) {
+          printf(PDM_FMT_G_NUM" :", cell_ln_to_gn[j]);
+          for (int k = elt_pts_inside_idx[j]; k < elt_pts_inside_idx[j+1]; k++) {
+            for (int k1 = points_weights_idx[k]; k1 < elt_pts_inside_idx[k+1]; k1++) {
+              printf(" %12.5e", points_weights[k1]);
+            }
+            printf(" /");
+          }
+          printf("\n");
+        }
       }
     }
   }
+
+  // log_trace("n_pts_l = %d\n", n_pts_l);
+  // PDM_log_trace_array_int(unlocated, n_unlocated, "unlocated : ");
 
   if (0) {
     printf("Unlocated %d :\n", n_unlocated);
@@ -954,7 +964,7 @@ int main(int argc, char *argv[])
       }
 
       //printf("%d: ("PDM_FMT_G_NUM") | ("PDM_FMT_G_NUM")\n", ipt, p_location[ipt], box_gnum);
-      if (p_location[ipt] != box_gnum) {
+      if (p_location[k1] != box_gnum) {
         // double *cp = p_proj_coord + 3*ipt;
         /*printf("%d ("PDM_FMT_G_NUM") (%.15lf %.15lf %.15lf): ("PDM_FMT_G_NUM") | ("PDM_FMT_G_NUM") proj : (%.15lf %.15lf %.15lf)\n",
                ipt, pts_gnum[ipt],
@@ -979,7 +989,7 @@ int main(int argc, char *argv[])
         }
         //printf("distance = %e\n\n", dist);
         if (dist >= location_tolerance) {
-          printf("point %ld : located in %ld (instead of %ld), dist = %e\n",
+          printf("point "PDM_FMT_G_NUM" : located in "PDM_FMT_G_NUM" (instead of "PDM_FMT_G_NUM"), dist = %e\n",
                  pts_gnum[ipt],
                  p_location[ipt],
                  box_gnum,

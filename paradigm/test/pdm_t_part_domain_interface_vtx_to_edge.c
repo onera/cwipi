@@ -496,7 +496,7 @@ int main
         pedge_vtx_idx [i_dom][i_part][i] = 2*i;
       }
 
-      if(1 == 1) {
+      if(post) {
         double *vtx_coord = NULL;
         int n_vtx = PDM_multipart_part_vtx_coord_get(mpart_id,
                                                      i_dom,

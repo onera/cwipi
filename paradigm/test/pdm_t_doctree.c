@@ -211,7 +211,7 @@ char *argv[]
   PDM_doctree_point_set(doct,
                         0,
                         n_src,
-                        init_location_pts,
+                        NULL,
                         src_g_num,
                         src_coord);
   int n_box = 0;

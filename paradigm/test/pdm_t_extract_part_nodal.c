@@ -33,6 +33,8 @@
 #include "pdm_part_geom.h"
 #include "pdm_logging.h"
 #include "pdm_priv.h"
+#include "pdm_gnum_location.h"
+#include "pdm_distrib.h"
 
 /*============================================================================
  * Type definitions
@@ -229,6 +231,14 @@ int main(int argc, char *argv[])
 
   PDM_multipart_run_ppart(mpart_id);
 
+  PDM_g_num_t n_cell_abs;
+  PDM_g_num_t n_face_abs;
+  PDM_g_num_t n_edge_abs;
+  PDM_g_num_t n_vtx_abs;
+  PDM_DMesh_nodal_section_g_dims_get(dmn, &n_cell_abs, &n_face_abs, &n_edge_abs, &n_vtx_abs);
+  PDM_g_num_t* distrib_cell = PDM_compute_uniform_entity_distribution(comm, n_cell_abs);
+  int dn_cell = distrib_cell[i_rank+1] - distrib_cell[i_rank];
+
   /*
    * Get the partition zone
    */
@@ -252,7 +262,14 @@ int main(int argc, char *argv[])
   int         **pface_edge_idx          = (int         **) malloc( n_part_zones * sizeof(int         *));
   int         **pedge_vtx               = (int         **) malloc( n_part_zones * sizeof(int         *));
   double      **pvtx_coord              = (double      **) malloc( n_part_zones * sizeof(double      *));
-  // double      **tmp_extract_cell_center = (double      **) malloc( n_part_zones * sizeof(double      *));
+
+  PDM_g_num_t **target_g_num   = (PDM_g_num_t **) malloc( n_part_zones * sizeof(PDM_g_num_t *));
+  int          *pn_target_cell = (int          *) malloc( n_part_zones * sizeof(int          ));
+
+  /*
+   * Compute gnum location
+   */
+  PDM_gnum_location_t* gnum_loc = PDM_gnum_location_create(n_part, n_part, comm, PDM_OWNERSHIP_KEEP);
 
   for (int i_part = 0; i_part < n_part_zones; i_part++){
 
@@ -404,10 +421,37 @@ int main(int argc, char *argv[])
       }
     }
 
+    /* On prends tout les gnum impaire dans un ordre reverse */
+    int n_target_cell = 0;
+    target_g_num[i_part] = malloc(dn_cell * sizeof(PDM_g_num_t));
+
+    for(int i = 0; i < dn_cell; ++i ) {
+      PDM_g_num_t gnum = distrib_cell[i_rank+1] - i;
+      if(gnum % 2 == 0) {
+        target_g_num[i_part][n_target_cell++] = gnum;
+      }
+    }
+
+    target_g_num  [i_part] = realloc(target_g_num[i_part], n_target_cell * sizeof(PDM_g_num_t));
+    pn_target_cell[i_part] = n_target_cell;
+
+
     selected_l_num[i_part] = realloc(selected_l_num[i_part], n_select_cell * sizeof(int        ));
     pn_select_cell[i_part] = n_select_cell;
 
+    PDM_gnum_location_elements_set(gnum_loc,
+                                   i_part,
+                                   pn_cell[i_part],
+                                   pcell_ln_to_gn[i_part]);
+    PDM_gnum_location_requested_elements_set(gnum_loc,
+                                             i_part,
+                                             pn_target_cell[i_part],
+                                             target_g_num  [i_part]);
+
+
+
   }
+  PDM_gnum_location_compute(gnum_loc);
 
 
   PDM_part_mesh_nodal_elmts_t* pmne_vol = PDM_dmesh_nodal_to_part_mesh_nodal_elmts(dmn,
@@ -419,22 +463,16 @@ int main(int argc, char *argv[])
                                                                                    pcell_ln_to_gn,
                                                                                    NULL);
 
-
-
-
-
-
   /*
    * Extract
    */
   int n_part_out = 1;
-  PDM_bool_t equilibrate = PDM_FALSE;
-  // PDM_bool_t equilibrate = PDM_TRUE;
   PDM_extract_part_t* extrp = PDM_extract_part_create(3,
                                                       n_part,
                                                       n_part_out,
-                                                      equilibrate,
+                                                      PDM_EXTRACT_PART_KIND_FROM_TARGET,
                                                       PDM_SPLIT_DUAL_WITH_PTSCOTCH,
+                                                      PDM_TRUE, // compute_child_gnum
                                                       PDM_OWNERSHIP_KEEP,
                                                       comm);
 
@@ -462,11 +500,19 @@ int main(int argc, char *argv[])
                               pvtx_coord[i_part]);
 
     // ATTENTION SPECIFIE LE LNUM DANS LE REPERE DU PMNE_VOL
-    PDM_extract_part_selected_lnum_set(extrp,
-                                       i_part,
-                                       pn_select_cell[i_part],
-                                       selected_l_num[i_part]);
+    // PDM_extract_part_selected_lnum_set(extrp,
+    //                                    i_part,
+    //                                    pn_select_cell[i_part],
+    //                                    selected_l_num[i_part]);
+    int *location_idx = NULL;
+    int *location     = NULL;
+    PDM_gnum_location_get(gnum_loc, i_part, &location_idx, &location);
 
+    PDM_extract_part_target_set(extrp,
+                                i_part,
+                                pn_target_cell[i_part],
+                                target_g_num  [i_part],
+                                location);
     // PDM_log_trace_array_int(selected_l_num[i_part], pn_select_cell[i_part], "selected_l_num ::");
 
   }
@@ -487,10 +533,13 @@ int main(int argc, char *argv[])
                                                             i_part,
                                                             PDM_MESH_ENTITY_CELL);
 
+
     pn_extract_vtx[i_part] = PDM_extract_part_n_entity_get(extrp,
                                                            i_part,
                                                            PDM_MESH_ENTITY_VERTEX);
 
+    printf("pn_extract_cell[i_part] = %i \n", pn_extract_cell[i_part]);
+    printf("pn_extract_vtx[i_part]  = %i \n", pn_extract_vtx[i_part] );
     PDM_extract_part_vtx_coord_get(extrp,
                                    i_part,
                                    &pextract_vtx[i_part],
@@ -502,11 +551,12 @@ int main(int argc, char *argv[])
                                   &pextract_cell_ln_to_gn[i_part],
                                   PDM_OWNERSHIP_KEEP);
 
-    PDM_extract_part_ln_to_gn_get(extrp,
-                                  i_part,
-                                  PDM_MESH_ENTITY_VERTEX,
-                                  &pextract_vtx_ln_to_gn[i_part],
-                                  PDM_OWNERSHIP_KEEP);
+    pextract_vtx_ln_to_gn[i_part] = NULL;
+    // PDM_extract_part_ln_to_gn_get(extrp,
+    //                               i_part,
+    //                               PDM_MESH_ENTITY_VERTEX,
+    //                               &pextract_vtx_ln_to_gn[i_part],
+    //                               PDM_OWNERSHIP_KEEP);
   }
 
   PDM_part_mesh_nodal_elmts_t* extract_pmne = NULL;
@@ -515,34 +565,48 @@ int main(int argc, char *argv[])
   /*
    * Export vtk en légende
    */
+
+  PDM_gnum_location_free(gnum_loc);
+
+
   // PDM_part_mesh_nodal_dump_vtk(extract_pmne, PDM_GEOMETRY_KIND_VOLUMIC, "extract_vol_");
+  if(post){
 
-  // if(0 == 1) {
-  //   for(int i_part = 0; i_part < n_part_out; ++i_part) {
+    // int *extract_sections_id = PDM_part_mesh_nodal_elmts_sections_id_get(extrp->extract_pmne);
+    for(int i_part = 0; i_part < n_part; ++i_part) {
 
-  //     char filename[999];
-  //     sprintf(filename, "extract_vtx_coord_%3.3d_%3.3d.vtk", i_part, i_rank);
-  //     PDM_vtk_write_point_cloud(filename,
-  //                               pn_extract_vtx[i_part],
-  //                               pextract_vtx[i_part],
-  //                               NULL, NULL);
+      char filename[999];
+      sprintf(filename, "out_extract_%i_%i.vtk", i_part, i_rank);
 
-  //     PDM_log_trace_connectivity_int(pextract_face_vtx_idx[i_part],
-  //                                    pextract_face_vtx    [i_part],
-  //                                    pn_extract_face[i_part], " pextract_face_vtx :: ");
+      int id_section = 0;
+      PDM_Mesh_nodal_elt_t t_elt = PDM_part_mesh_nodal_elmts_block_type_get(extract_pmne, id_section);
+      int         *elmt_vtx                 = NULL;
+      int         *parent_num               = NULL;
+      PDM_g_num_t *numabs                   = NULL;
+      PDM_g_num_t *parent_entitity_ln_to_gn = NULL;
+      PDM_part_mesh_nodal_elmts_block_std_get(extract_pmne,
+                                              id_section,
+                                              i_part,
+                                              &elmt_vtx,
+                                              &numabs,
+                                              &parent_num,
+                                              &parent_entitity_ln_to_gn);
 
-  //     sprintf(filename, "extract_face_vtx_coord_%3.3d_%3.3d.vtk", i_part, i_rank);
-  //     PDM_vtk_write_polydata(filename,
-  //                            pn_extract_vtx[i_part],
-  //                            pextract_vtx[i_part],
-  //                            pextract_vtx_ln_to_gn[i_part],
-  //                            pn_extract_face[i_part],
-  //                            pextract_face_vtx_idx[i_part],
-  //                            pextract_face_vtx[i_part],
-  //                            pextract_face_ln_to_gn[i_part],
-  //                            NULL);
-  //   }
-  // }
+      PDM_log_trace_array_long(parent_entitity_ln_to_gn, pn_extract_cell[i_part], "parent_entitity_ln_to_gn ::");
+
+      PDM_vtk_write_std_elements(filename,
+                                 pn_extract_vtx[i_part],
+                                 pextract_vtx[i_part],
+                                 pextract_vtx_ln_to_gn[i_part],
+                                 t_elt,
+                                 pn_extract_cell[i_part],
+                                 elmt_vtx,
+                                 parent_entitity_ln_to_gn,
+                                 0,
+                                 NULL,
+                                 NULL);
+    }
+  }
 
   free(pn_extract_cell);
   free(pn_extract_vtx);
@@ -557,14 +621,18 @@ int main(int argc, char *argv[])
   for (int i_part = 0; i_part < n_part_zones; i_part++){
     free(cell_center       [i_part]);
     free(selected_l_num    [i_part]);
+    free(target_g_num      [i_part]);
   }
   free(cell_center);
   free(selected_l_num);
+  free(target_g_num);
+  free(pn_target_cell);
   free(pn_cell);
   free(pn_face);
   free(pn_edge);
   free(pn_vtx);
   free(pn_select_cell);
+  free(distrib_cell);
 
   free(pcell_ln_to_gn);
   free(pface_ln_to_gn);

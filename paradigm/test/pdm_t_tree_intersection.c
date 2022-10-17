@@ -639,10 +639,10 @@ main
     //                                 box_pts_g_num2,
     //                                 n_box,
     //                                 "box_pts2 : ");
-    free(box_pts_idx2);
-    free(box_pts_g_num2);
-    free(box_pts_coord2);
   }
+  free(box_pts_idx2);
+  free(box_pts_g_num2);
+  free(box_pts_coord2);
 
 
 

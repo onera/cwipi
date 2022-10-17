@@ -1793,9 +1793,9 @@ PDM_surf_mesh_is_plane_surface
     const double* _faceNormal = faceNormal;
     for (int j = 0; j < n_face; j++) {
       double faceNormalNorm[3];
-      double _mod1 = _MAX (_MODULE (faceNormal), epsilonAbs);
+      double _mod1 = _MAX (_MODULE (_faceNormal), epsilonAbs);
       for (int k = 0; k < 3; k++) {
-        faceNormalNorm[k] = faceNormal[k]/_mod1;
+        faceNormalNorm[k] = _faceNormal[k]/_mod1;
       }
       if ((1 - fabs (_DOT_PRODUCT(faceNormalNorm, normalSum))) > tolerance) {
         isPlane = 0;

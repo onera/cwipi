@@ -67,7 +67,6 @@ program testf
   if (n_rank .ne. 1) then
     print *,'Error : 1 MPI processes are mandatory'
     call mpi_finalize(code)
-    stop
   end if
 
 

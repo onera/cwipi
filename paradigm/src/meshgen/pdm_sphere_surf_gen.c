@@ -42,6 +42,8 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_logging.h"
+#include "pdm_multipart.h"
+#include "pdm_part_connectivity_transform.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -847,6 +849,169 @@ PDM_sphere_surf_icosphere_gen_nodal
   free(distrib_face);
   free(dface_vtx_idx);
 }
+
+
+
+
+
+
+void
+PDM_sphere_surf_icosphere_gen_part
+(
+ const PDM_MPI_Comm        comm,
+ const PDM_g_num_t         n,
+ const double              x_center,
+ const double              y_center,
+ const double              z_center,
+ const double              radius,
+ const int                 n_part,
+ const PDM_split_dual_t    part_method,
+       int               **pn_vtx,
+       double           ***pvtx_coord,
+       PDM_g_num_t      ***pvtx_ln_to_gn,
+       int               **pn_face,
+       int              ***pface_vtx_idx,
+       int              ***pface_vtx,
+       PDM_g_num_t      ***pface_ln_to_gn
+)
+{
+  PDM_dmesh_nodal_t *dmn = NULL;
+  PDM_sphere_surf_icosphere_gen_nodal(comm,
+                                      n,
+                                      x_center,
+                                      y_center,
+                                      z_center,
+                                      radius,
+                                      &dmn);
+
+  int n_zone = 1;
+  int n_part_zones = n_part;
+  PDM_multipart_t *mpart = PDM_multipart_create(n_zone,
+                                                &n_part_zones,
+                                                PDM_FALSE,
+                                                part_method,
+                                                PDM_PART_SIZE_HOMOGENEOUS,
+                                                NULL,
+                                                comm,
+                                                PDM_OWNERSHIP_KEEP);
+
+  PDM_multipart_set_reordering_options(mpart,
+                                       -1,
+                                       "PDM_PART_RENUM_CELL_NONE",
+                                       NULL,
+                                       "PDM_PART_RENUM_FACE_NONE");
+
+  PDM_multipart_register_dmesh_nodal(mpart, 0, dmn);
+
+  PDM_multipart_run_ppart(mpart);
+
+
+  *pn_vtx         = malloc(sizeof(int          ) * n_part);
+  *pvtx_coord     = malloc(sizeof(double      *) * n_part);
+  *pvtx_ln_to_gn  = malloc(sizeof(PDM_g_num_t *) * n_part);
+  *pn_face        = malloc(sizeof(int          ) * n_part);
+  *pface_vtx_idx  = malloc(sizeof(int         *) * n_part);
+  *pface_vtx      = malloc(sizeof(int         *) * n_part);
+  *pface_ln_to_gn = malloc(sizeof(PDM_g_num_t *) * n_part);
+
+  for (int ipart = 0; ipart < n_part; ipart++) {
+
+    /* Vertices */
+    PDM_g_num_t *_vtx_ln_to_gn;
+    (*pn_vtx)[ipart] = PDM_multipart_part_ln_to_gn_get(mpart,
+                                                       0,
+                                                       ipart,
+                                                       PDM_MESH_ENTITY_VERTEX,
+                                                       &_vtx_ln_to_gn,
+                                                       PDM_OWNERSHIP_USER);
+    (*pvtx_ln_to_gn)[ipart] = malloc(sizeof(PDM_g_num_t) * (*pn_vtx)[ipart]);
+    memcpy((*pvtx_ln_to_gn)[ipart], _vtx_ln_to_gn, sizeof(PDM_g_num_t) * (*pn_vtx)[ipart]);
+
+    double *_vtx_coord;
+    PDM_multipart_part_vtx_coord_get(mpart,
+                                     0,
+                                     ipart,
+                                     &_vtx_coord,
+                                     PDM_OWNERSHIP_USER);
+    (*pvtx_coord)[ipart] = malloc(sizeof(double) * (*pn_vtx)[ipart] * 3);
+    memcpy((*pvtx_coord)[ipart], _vtx_coord, sizeof(double) * (*pn_vtx)[ipart] * 3);
+
+
+    /* Faces */
+    PDM_g_num_t *_face_ln_to_gn;
+    (*pn_face)[ipart] = PDM_multipart_part_ln_to_gn_get(mpart,
+                                                       0,
+                                                       ipart,
+                                                       PDM_MESH_ENTITY_FACE,
+                                                       &_face_ln_to_gn,
+                                                       PDM_OWNERSHIP_USER);
+    (*pface_ln_to_gn)[ipart] = malloc(sizeof(PDM_g_num_t) * (*pn_face)[ipart]);
+    memcpy((*pface_ln_to_gn)[ipart], _face_ln_to_gn, sizeof(PDM_g_num_t) * (*pn_face)[ipart]);
+
+    int *_face_vtx;
+    int *_face_vtx_idx;
+    PDM_multipart_part_connectivity_get(mpart,
+                                        0,
+                                        ipart,
+                                        PDM_CONNECTIVITY_TYPE_FACE_VTX,
+                                        &_face_vtx,
+                                        &_face_vtx_idx,
+                                        PDM_OWNERSHIP_USER);
+
+    if (_face_vtx != NULL) {
+      (*pface_vtx_idx)[ipart] = malloc(sizeof(int) * ((*pn_face)[ipart]+1));
+      memcpy((*pface_vtx_idx)[ipart], _face_vtx_idx, sizeof(int) * ((*pn_face)[ipart]+1));
+
+      (*pface_vtx)[ipart] = malloc(sizeof(int) * _face_vtx_idx[(*pn_face)[ipart]]);
+      memcpy((*pface_vtx)[ipart], _face_vtx, sizeof(int) * _face_vtx_idx[(*pn_face)[ipart]]);
+    }
+
+    else {
+      int *_face_edge;
+      int *_face_edge_idx;
+      PDM_multipart_part_connectivity_get(mpart,
+                                          0,
+                                          ipart,
+                                          PDM_CONNECTIVITY_TYPE_FACE_EDGE,
+                                          &_face_edge,
+                                          &_face_edge_idx,
+                                          PDM_OWNERSHIP_KEEP);
+
+      int *_edge_vtx;
+      int *_edge_vtx_idx;
+      PDM_multipart_part_connectivity_get(mpart,
+                                          0,
+                                          ipart,
+                                          PDM_CONNECTIVITY_TYPE_EDGE_VTX,
+                                          &_edge_vtx,
+                                          &_edge_vtx_idx,
+                                          PDM_OWNERSHIP_KEEP);
+
+      (*pface_vtx_idx)[ipart] = malloc(sizeof(int) * ((*pn_face)[ipart]+1));
+      memcpy((*pface_vtx_idx)[ipart], _face_edge_idx, sizeof(int) * ((*pn_face)[ipart]+1));
+
+
+      PDM_compute_face_vtx_from_face_and_edge((*pn_face)[ipart],
+                                              _face_edge_idx,
+                                              _face_edge,
+                                              _edge_vtx,
+                                              &(*pface_vtx)[ipart]);
+    }
+
+  }
+
+  PDM_DMesh_nodal_free(dmn);
+  PDM_multipart_free(mpart);
+}
+
+
+
+
+
+
+
+
+
 
 
 

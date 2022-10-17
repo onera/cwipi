@@ -1063,6 +1063,7 @@ _distrib_cell
       }
       k_compress += 1;
     }
+    PDM_UNUSED(n_dupl);
 
     mesh_part->n_face = k_compress;
 
@@ -1363,6 +1364,7 @@ _distrib_face
         }
         k_compress += 1;
       }
+      PDM_UNUSED(n_dupl);
 
 
       mesh_part->n_vtx = k_compress;
@@ -1733,6 +1735,7 @@ _search_part_bound_face
           nBoundFace += 1;
         }
       }
+      PDM_UNUSED(nBoundFace);
 
       for (int i = 0; i < n_rank; i++) {
         face_to_send_idx[i+1] += face_to_send_idx[i] ;

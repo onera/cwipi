@@ -2872,11 +2872,10 @@ PDM_g_num_t            *nAbsNewVtxB
                          &b_stride_one,
                          (void **) &b_nNewPointsA);
 
-  int sum1=0;
-  for (int k = 0; k < n_elt_block; k++) {
-    sum1+=b_stride_one[k];
-  }
-
+  // int sum1=0;
+  // for (int k = 0; k < n_elt_block; k++) {
+  //   sum1+=b_stride_one[k];
+  // }
   free (b_stride_one);
 
   /*
@@ -3592,6 +3591,8 @@ PDM_g_num_t            *nAbsNewVtxB
       }
     }
   }
+  PDM_UNUSED(nPtsFromBForA);
+  PDM_UNUSED(nNewPtsFromBForA);
 
   PDM_MPI_Wait (&request1);
 
@@ -3621,6 +3622,7 @@ PDM_g_num_t            *nAbsNewVtxB
       }
     }
   }
+  PDM_UNUSED(nNewPtsFromAForB);
 
   PDM_MPI_Wait (&request2);
   /* PDM_MPI_Barrier (_ei->comm); */

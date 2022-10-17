@@ -8,6 +8,7 @@
 #include "pdm.h"
 #include "pdm_mpi.h"
 #include "pdm_mesh_nodal.h"
+#include "pdm_part_to_part.h"
 
 #ifdef	__cplusplus
 extern "C" {
@@ -282,6 +283,26 @@ PDM_mesh_location_part_set
 
 /**
  *
+ * \brief Set a part of a mesh
+ *
+ * \param [in]   id                     Pointer to \ref PDM_mesh_location object
+ * \param [in]   i_part                 Partition to define
+ * \param [in]   n_cell                 Number of cells
+ * \param [in]   is_elmt_select_by_user Flag to determine if user want or no to extract current cell
+ *
+ */
+void
+PDM_mesh_location_user_extract_set
+(
+       PDM_mesh_location_t *ml,
+ const int                  i_part,
+ const int                 *is_elmt_select_by_user
+);
+
+
+
+/**
+ *
  * \brief Set a part of a mesh (2d version)
  *
  * \param [in]   id            Pointer to \ref PDM_mesh_location object
@@ -364,6 +385,21 @@ void
 PDM_mesh_location_compute
 (
 PDM_mesh_location_t        *ml
+);
+
+
+/**
+ *
+ * \brief Compute point location optim
+ *
+ * \param [in]   id  Pointer to \ref PDM_mesh_location object
+ *
+ */
+
+void
+PDM_mesh_location_compute_optim
+(
+ PDM_mesh_location_t        *ml
 );
 
 
@@ -512,6 +548,27 @@ PDM_mesh_location_reverse_results_enable
 (
 PDM_mesh_location_t *ml
 );
+
+
+/**
+ * \brief Get part_to_part object to exchange data between
+ * the source mesh and a target point cloud (both in user frame)
+ *
+ * \param [in ] ml         Pointer to \ref PDM_mesh_location_t object
+ * \param [in ] icloud     Point cloud ID
+ * \param [out] ptp        Pointer to \ref PDM_part_to_part_t object
+ * \param [in ] ownership  Ownership for ptp
+ *
+ */
+
+void
+PDM_mesh_location_part_to_part_get
+(
+       PDM_mesh_location_t  *ml,
+ const int                   icloud,
+       PDM_part_to_part_t  **ptp,
+       PDM_ownership_t       ownership
+ );
 
 #ifdef	__cplusplus
 }

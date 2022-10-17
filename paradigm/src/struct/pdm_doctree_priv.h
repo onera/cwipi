@@ -99,10 +99,17 @@ struct _pdm_doctree_t {
   double                   **entity_coords;
 
   /* Equilibrate results */
+  PDM_ownership_t            ownership;
   PDM_part_to_block_t       *ptb_unit_op_equi;
   int                       *block_pts_in_box_n;
   PDM_g_num_t               *block_pts_in_box_g_num;
   double                    *block_pts_in_box_coord;
+
+  /* Equilibrate results */
+  int                        dn_pts_equi;
+  int                       *equi_pts_init_location;
+  int                       *equi_pts_init_location_idx;
+
 
   /* Misc */
   PDM_timer_t *timer; /*!< Timer */

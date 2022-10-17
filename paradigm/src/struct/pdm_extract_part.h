@@ -27,6 +27,7 @@
 
 #include "pdm.h"
 #include "pdm_mpi.h"
+#include "pdm_part_to_part.h"
 #include "pdm_part_mesh_nodal_elmts.h"
 
 /*----------------------------------------------------------------------------*/
@@ -59,24 +60,40 @@ typedef struct _pdm_extract_part_t PDM_extract_part_t;
 
 /**
  *
- * \brief Build an iso surface struct
+ * \brief Build an extract_part struct
  *
+ * \param [in]   dim                 Extraction dimension
+ * \param [in]   n_part_in           Number of initial partition
+ * \param [in]   n_part_out          Number of final partition
+ * \param [in]   extract_kind        Extraction kind : (local/requilibrate/from target)
+ * \param [in]   split_dual_method   Split method if requilibrate extract_kind
+ * \param [in]   compute_child_gnum  Yes/No computation of a newest global numbering
+ * \param [in]   ownership           Tell if you want ownership of resulting
+ * \param [in]   comm                MPI communicator
  *
- * \return     Identifier
+ * \return   Initialized \ref PDM_extract_part_t instance
  */
 PDM_extract_part_t*
 PDM_extract_part_create
 (
- const int                    dim,
- const int                    n_part_in,
- const int                    n_part_out,
-       PDM_bool_t             equilibrate,
-       PDM_split_dual_t       split_dual_method,
-       PDM_ownership_t        ownership,
-       PDM_MPI_Comm           comm
+ const int                     dim,
+ const int                     n_part_in,
+ const int                     n_part_out,
+       PDM_extract_part_kind_t extract_kind,
+       PDM_split_dual_t        split_dual_method,
+       PDM_bool_t              compute_child_gnum,
+       PDM_ownership_t         ownership,
+       PDM_MPI_Comm            comm
 );
 
 
+/**
+ *
+ * \brief Build an iso surface struct
+ *
+ * \param [in]   extrp      PDM_extract_part_t
+ *
+ */
 void
 PDM_extract_part_compute
 (
@@ -84,6 +101,16 @@ PDM_extract_part_compute
 );
 
 
+/**
+ *
+ * \brief Set the extract number
+ *
+ * \param [in]   extrp         PDM_extract_part_t
+ * \param [in]   i_part        part identifier
+ * \param [in]   n_extract     Number of entity to select
+ * \param [in]   extract_lnum  List of id to extract (starting at 0)
+ *
+ */
 void
 PDM_extract_part_selected_lnum_set
 (
@@ -93,15 +120,35 @@ PDM_extract_part_selected_lnum_set
   int                      *extract_lnum
 );
 
+/**
+ *
+ * \brief Set the extract target number
+ *
+ * \param [in]   extrp             PDM_extract_part_t
+ * \param [in]   i_part            part identifier
+ * \param [in]   n_target          Number of target to select
+ * \param [in]   target_gnum       List of global id to extract
+ * \param [in]   target_location   Init location (optional NULL pointer accepted and computed internaly)
+ *
+ */
 void
-PDM_extract_part_target_gnum_set
+PDM_extract_part_target_set
 (
   PDM_extract_part_t       *extrp,
   int                       i_part,
   int                       n_target,
-  PDM_g_num_t              *target_gnum
+  PDM_g_num_t              *target_gnum,
+  int                      *target_location
 );
 
+/**
+ *
+ * \brief Set partition
+ *
+ * \param [in]   extrp             PDM_extract_part_t
+ * \param [in]   i_part            part identifier
+ *
+ */
 void
 PDM_extract_part_part_set
 (
@@ -125,6 +172,14 @@ PDM_extract_part_part_set
   double                   *vtx_coord
 );
 
+/**
+ *
+ * \brief Set PDM_part_mesh_nodal_elmts_t
+ *
+ * \param [in]   extrp            PDM_extract_part_t structure
+ * \param [in]   pmne             PDM_part_mesh_nodal_elmts_t corresponding of dimenstion
+ *
+ */
 void
 PDM_extract_part_part_nodal_set
 (
@@ -133,6 +188,16 @@ PDM_extract_part_part_nodal_set
 );
 
 
+/**
+ *
+ * \brief Set PDM_part_mesh_nodal_elmts_t
+ *
+ * \param [in]   extrp               PDM_extract_part_t structure
+ * \param [in]   i_part_out          part identifier
+ * \param [in]   PDM_mesh_entities_t Kind of entity required
+ *
+ * \return Number of entity
+ */
 int
 PDM_extract_part_n_entity_get
 (
@@ -210,6 +275,16 @@ PDM_extract_part_free
 (
   PDM_extract_part_t  *extrp
 );
+
+void
+PDM_extract_part_part_to_part_get
+(
+       PDM_extract_part_t   *extrp,
+ const PDM_mesh_entities_t   entity_type,
+       PDM_part_to_part_t  **ptp,
+       PDM_ownership_t       ownership
+
+ );
 
 /*----------------------------------------------------------------------------*/
 

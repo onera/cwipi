@@ -1,5 +1,5 @@
 #ifndef __PDM_HKEY_H__
-#define __PDM_KKEY_H__
+#define __PDM_HKEY_H__
 
 /*----------------------------------------------------------------------------
  * Standard C library headers

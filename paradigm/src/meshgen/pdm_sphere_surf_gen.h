@@ -163,6 +163,28 @@ PDM_sphere_surf_icosphere_gen_nodal
        PDM_dmesh_nodal_t **_dmn
 );
 
+
+void
+PDM_sphere_surf_icosphere_gen_part
+(
+ const PDM_MPI_Comm        comm,
+ const PDM_g_num_t         n,
+ const double              x_center,
+ const double              y_center,
+ const double              z_center,
+ const double              radius,
+ const int                 n_part,
+ const PDM_split_dual_t    part_method,
+       int               **pn_vtx,
+       double           ***pvtx_coord,
+       PDM_g_num_t      ***pvtx_ln_to_gn,
+       int               **pn_face,
+       int              ***pface_vtx_idx,
+       int              ***pface_vtx,
+       PDM_g_num_t      ***pface_ln_to_gn
+);
+
+
 #ifdef __cplusplus
 }
 #endif

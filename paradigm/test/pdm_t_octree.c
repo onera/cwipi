@@ -81,7 +81,8 @@ _read_args
  PDM_g_num_t   *nPts,
  double        *radius,
  int           *local,
- int           *rand
+ int           *rand,
+ int           *visu
 )
 {
   int i = 1;
@@ -122,6 +123,10 @@ _read_args
       *rand = 1;
     }
 
+    else if (strcmp(argv[i], "-visu") == 0) {
+      *visu = 1;
+    }
+
     else {
       _usage(EXIT_FAILURE);
     }
@@ -144,7 +149,7 @@ _read_args
 int
 main
 (
-int argc,
+int   argc,
 char *argv[]
 )
 {
@@ -159,16 +164,18 @@ char *argv[]
   PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &n_rank);
 
   PDM_g_num_t nPts   = 10;
-  double radius = 10.;
-  int local = 0;
-  int rand = 0;
+  double      radius = 10.;
+  int         local  = 0;
+  int         rand   = 0;
+  int         visu   = 0;
 
   _read_args(argc,
              argv,
              &nPts,
              &radius,
              &local,
-             &rand);
+             &rand,
+             &visu);
 
   /* Initialize random */
 
@@ -208,7 +215,7 @@ char *argv[]
                                  src_coord);
   PDM_octree_seq_build(oct_orig);
 
-  if(0 == 1) {
+  if(visu) {
     char filename[999];
     sprintf(filename, "octree_orig_%i.vtk", i_rank);
     PDM_octree_seq_write_octants(oct_orig, filename);
@@ -267,7 +274,7 @@ char *argv[]
                                  blk_src_coord);
   PDM_octree_seq_build(oct_equi);
 
-  if(1 == 1) {
+  if(visu) {
     char filename[999];
     sprintf(filename, "octree_equi_%i.vtk", i_rank);
     PDM_octree_seq_write_octants(oct_equi, filename);
@@ -311,7 +318,7 @@ char *argv[]
     }
 
 
-    if(1 == 1) {
+    if(visu) {
       char filename[999];
       sprintf(filename, "boxes_%i.vtk", i_rank);
       PDM_vtk_write_boxes(filename,

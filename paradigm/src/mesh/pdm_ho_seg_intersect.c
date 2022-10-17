@@ -204,7 +204,7 @@ double                    **intersection_point
    */
 
   int out = 0;
-  int line0_side, line1_side;
+  double line0_side, line1_side;
 
   double face_coord0[3];
   double face_coord1[3];
@@ -257,7 +257,7 @@ double                    **intersection_point
 
   PDM_CROSS_PRODUCT(n, face01, face02);
 
-  int d = -(n[0]*face_coord0[0] + n[1]*face_coord0[1] + n[2]*face_coord0[2]);
+  double d = -(n[0]*face_coord0[0] + n[1]*face_coord0[1] + n[2]*face_coord0[2]);
 
   line0_side = PDM_DOT_PRODUCT(n, face0line0);
   line1_side = PDM_DOT_PRODUCT(n, face0line1);
@@ -265,7 +265,7 @@ double                    **intersection_point
   if (line0_side * line1_side < 0) {
     *intersection_point = malloc(sizeof(double) * 3);
     out = 1;
-    int t = ((n[0] + 1) * face_coord0[0] + (n[1] + 1) *  face_coord0[1] +  (n[2] + 1) *  face_coord0[2] + d);
+    double t = ((n[0] + 1) * face_coord0[0] + (n[1] + 1) *  face_coord0[1] +  (n[2] + 1) *  face_coord0[2] + d);
     t -= (line_coord0[0] + line_coord0[1] + line_coord0[2]);
     t /= ((line_coord0[0] - line_coord1[0]) + (line_coord0[1] - line_coord1[1]) + (line_coord0[2] - line_coord1[2]));
 
@@ -290,7 +290,7 @@ _ho_bounding_box_line_intersect_points_get
   *box_line_intersect_points     = malloc(sizeof(double) * line_boxes_idx[n_line] * 6);
   double *_box_line_intersect_points = *box_line_intersect_points;
 
-  int count_plane_intersect;
+  int count_plane_intersect = 0;
   double x_min, y_min, z_min, x_max, y_max, z_max;
 
   double face_points[9];

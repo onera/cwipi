@@ -27,6 +27,7 @@
 
 #include "pdm.h"
 #include "pdm_mpi.h"
+#include "pdm_part_to_part.h"
 #include "pdm_part_mesh_nodal_elmts.h"
 
 /*----------------------------------------------------------------------------*/
@@ -54,14 +55,16 @@ extern "C" {
 
 struct _pdm_extract_part_t
 {
-  PDM_bool_t             equilibrate;
-  int                    dim;
-  int                    n_part_in;
-  int                    n_part_out;
 
-  PDM_split_dual_t       split_dual_method;
-  PDM_ownership_t        ownership;
-  PDM_MPI_Comm           comm;
+  int                     dim;
+  int                     n_part_in;
+  int                     n_part_out;
+  PDM_extract_part_kind_t extract_kind;
+  PDM_bool_t              compute_child_gnum;
+
+  PDM_split_dual_t        split_dual_method;
+  PDM_ownership_t         ownership;
+  PDM_MPI_Comm            comm;
 
   /* Partitioned view - To do with extract for selected gnum + part_to_part */
   int                 *n_cell;
@@ -94,6 +97,7 @@ struct _pdm_extract_part_t
   int                  from_target;
   int                 *n_target;
   PDM_g_num_t        **target_gnum;
+  int                **target_location;
 
   /* Extracted part (Intermediate distributed result) */
   int                   dn_equi_cell;
@@ -123,7 +127,7 @@ struct _pdm_extract_part_t
 
 
 
-  /* Extrated part */
+  /* Extracted part */
   double             **pextract_vtx_coord;
 
   PDM_bool_t         *is_owner_connectivity;
@@ -144,6 +148,9 @@ struct _pdm_extract_part_t
   PDM_bool_t                   is_owner_extract_pmne;
   PDM_part_mesh_nodal_elmts_t *extract_pmne;
 
+  /* Part-to-part objects */
+  PDM_part_to_part_t *ptp_entity[PDM_MESH_ENTITY_MAX];
+  PDM_ownership_t     ptp_ownership[PDM_MESH_ENTITY_MAX];
 };
 
 

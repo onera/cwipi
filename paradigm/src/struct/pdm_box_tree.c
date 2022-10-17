@@ -64,7 +64,7 @@
  *----------------------------------------------------------------------------*/
 
 #include "pdm_box_tree.h"
-
+#include "pdm_box_tree_priv.h"
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
@@ -79,117 +79,6 @@ extern "C" {
  *============================================================================*/
 
 #define PDM_BOX_TREE_MAX_BUILD_LOOPS 50
-
-/* Structures for each octant or quadrant */
-/*----------------------------------------*/
-
-/* If the type is BOX_TREE_NODE, the ordering of children is defined as follows,
-   using notation B: bottom, U: up, E: east, W: west, S: south,  N: north.
-
-   octant:   0: BSW, 1: BSE, 2: BNW, 3: BNE, 4: USW, 5: USE, 6: UNW, 7: UNE
-   quadrant: 0:  SW, 1:  SE, 2:  NW, 3:  NE
-   segment:  0:   W, 1:   E
-*/
-
-typedef struct {
-
-  _Bool              is_leaf;      /* True for leaf nodes */
-
-  PDM_morton_code_t  morton_code;  /* Level and coordinates in the grid
-                                      according to Morton encoding */
-
-  int   n_boxes;             /* Number of associated bounding boxes */
-  int   start_id;            /* Position of the first box_id */
-  int   extra_weight;
-
-} _node_t;
-
-/* Structure used to manage statistics */
-
-typedef struct {
-
-  unsigned    max_level_reached;  /* Max level number reached */
-
-  int   n_leaves;           /* Number of leaves in the tree */
-  int   n_boxes;            /* Number of boxes to locate in the tree */
-  int   n_linked_boxes;     /* Number of linked boxes in the tree */
-  int   n_spill_leaves;     /* Number of leaves where n_boxes > threshold */
-
-  int   min_linked_boxes;   /* Minimum number of boxes for a leaf */
-  int   max_linked_boxes;   /* Maximum number of boxes for a leaf */
-
-} PDM_box_tree_stats_t;
-
-
-
-/* Box tree data */
-struct _PDM_box_tree_data_t {
-
-  int        n_max_nodes;     /* Current max. allocated nodes */
-  int        n_nodes;         /* Number of nodes (including leaves) */
-
-  _node_t   *nodes;           /* Array of nodes (root at index 0) */
-
-  int       *child_ids;       /* Ids of associated children
-				 (size: 2^dim * n_max_nodes) */
-
-  int       *box_ids;         /* List of associated box ids.
-				 size = stat.n_linked_boxes */
-
-  int       *stack;           /* Stack for look for closest leaves */
-
-  int       *pos_stack;       /* Current position in the stack */
-
-
-  int        n_build_loops;   /* Number of loops required to build */
-
-};
-
-typedef struct {
-
-  PDM_mpi_win_shared_t *w_nodes;
-  PDM_mpi_win_shared_t *w_child_ids;
-  PDM_mpi_win_shared_t *w_box_ids;
-
-  int                n_max_nodes;
-  int                n_nodes;
-  int                n_linked_boxes;
-
-} _w_box_tree_data_t;
-
-
-
-
-
-/* Main box tree structure */
-/*-------------------------*/
-
-struct _PDM_box_tree_t {
-
-  PDM_MPI_Comm         comm;         /* Associated MPI communicator */
-  int                  n_children;    /* 8, 4, or 2 (2^dim) */
-
-  int                  max_level;     /* Max. possible level */
-  int                  threshold;     /* Max number of boxes linked to a
-					                               node if max_level is not reached */
-  float                max_box_ratio; /* Max n_linked_boxes / n_boxes value */
-
-  PDM_box_tree_stats_t stats;         /* Statistics related to the structure */
-
-  PDM_box_tree_data_t *local_data;    /* Local box tree data */
-
-  int n_copied_ranks;                 /* Number of copies from other ranks */
-  int *copied_ranks;                  /* Copied ranks */
-  PDM_box_tree_data_t *rank_data;     /* Box tree data copied from other ranks */
-
-  /* Shared memory */
-  int                  n_rank_in_shm;
-  PDM_box_tree_data_t *shm_data;
-  _w_box_tree_data_t  *wbox_tree_data;
-
-
-  PDM_box_set_t  *boxes;              /* Associated boxes */
-};
 
 /*=============================================================================
  * Static global variables
@@ -2785,7 +2674,7 @@ _build_leaf_weight(const PDM_box_tree_t    *bt,
   const _node_t  *node = bt->local_data->nodes + node_id;
 
   if (node->is_leaf == false) {
-    int repart_weight = ceil((double) node->extra_weight/bt->n_children);
+    int repart_weight = (int) ceil((double) node->extra_weight/bt->n_children);
     // int repart_weight = bt->n_children;
     for (i = 0; i < bt->n_children; i++) {
       _build_leaf_weight(bt,
@@ -3790,7 +3679,7 @@ PDM_box_tree_destroy(PDM_box_tree_t  **bt)
   // PDM_box_tree_free_copies(_bt);
 
   free(_bt);
-  *bt = _bt;
+  *bt = NULL;
 }
 
 
@@ -6668,9 +6557,9 @@ PDM_box_tree_intersect_boxes_boxes
 
   const int dim = bt->boxes->dim;
   const int two_dim = 2*dim;
-  //int normalized = bt->boxes->normalized;
+  // int normalized = bt->boxes->normalized;
 
-  /* if (normalized) { */
+  // if (normalized) {
   double *_tgt_box_extents = malloc (sizeof(double) * two_dim * n_tgt_box);
   PDM_box_set_normalize_robust ((PDM_box_set_t *) bt->boxes,
                                 n_tgt_box*2,
@@ -7208,7 +7097,7 @@ PDM_box_tree_extract_extents
     int *child_ids = box_tree_data->child_ids + node_id*bt->n_children;
     _node_t *node = &(box_tree_data->nodes[node_id]);
 
-    if (node->is_leaf) {
+    if (node_depth[node_id] < depth_max && node->is_leaf) {
       continue;
     }
 
@@ -7251,6 +7140,105 @@ PDM_box_tree_extract_extents
   *n_extract_boxes  = _n_extract_boxes;
   *extract_extents  = _extract_extents;
   *extract_child_id = _extract_child_id;
+}
+
+
+
+void
+PDM_box_tree_extract_leaves
+(
+ PDM_box_tree_t  *bt,
+       int       *n_leaf,
+       int      **leaf_id
+)
+{
+  /*
+   * Il faudrait aussi sortir les child_id des noeuds extrait
+   *   Si on a le node_id -> On peut rajouter un poids fonction de la solicitation
+   *   box_tree_data->nodes[child_id].extra_weight = 0
+   */
+  assert(bt != NULL);
+
+  PDM_box_tree_data_t *box_tree_data = bt->local_data;
+
+  int n_nodes = box_tree_data->n_nodes;
+
+  /* Depth */
+  int  s_stack = ((bt->n_children - 1) * (bt->max_level - 1) + bt->n_children);
+  int *stack = malloc ((sizeof(int)) * s_stack);
+  int pos_stack = 0;
+
+  int    *_leaf_id = malloc(n_nodes     * sizeof(int   ));
+  int     _n_leaf  = 0;
+
+  stack[pos_stack++] = 0;
+  while (pos_stack > 0) {
+
+    int node_id = stack[--pos_stack];
+
+    int *child_ids = box_tree_data->child_ids + node_id*bt->n_children;
+    _node_t *node = &(box_tree_data->nodes[node_id]);
+
+    if (node->is_leaf) {
+      _leaf_id[_n_leaf++] = node_id;
+    }
+    else {
+      for (int ichild = 0; ichild < bt->n_children; ichild++) {
+        int child_id = child_ids[ichild];
+        if (child_id < 0 || box_tree_data->nodes[child_id].n_boxes == 0) {
+          continue;
+        }
+        stack[pos_stack++] = child_id;
+      }
+    }
+  }
+  free(stack);
+
+  // _extract_extents  = realloc(_extract_extents , _n_extract_boxes * 6 * sizeof(double));
+  // _extract_child_id = realloc(_extract_child_id, _n_extract_child     * sizeof(int   ));
+
+  // *n_extract_child  = _n_extract_child;
+  // *n_extract_boxes  = _n_extract_boxes;
+  // *extract_extents  = _extract_extents;
+  // *extract_child_id = _extract_child_id;
+
+  _leaf_id = realloc(_leaf_id, _n_leaf * sizeof(int));
+  *n_leaf  = _n_leaf;
+  *leaf_id = _leaf_id;
+}
+
+
+void
+PDM_box_tree_extract_node_extents
+(
+ PDM_box_tree_t  *bt,
+ int              n_node,
+ int             *node_id,
+ double          *node_extents,
+ const int        normalized
+ )
+{
+  int dim = 3;
+  PDM_box_tree_data_t *box_tree_data = bt->local_data;
+  double *btree_s, *btree_d;
+  PDM_box_set_normalization_get((PDM_box_set_t *) bt->boxes,
+                                &btree_s,
+                                &btree_d);
+
+  for (int inode = 0; inode < n_node; inode++) {
+    if (normalized) {
+      _extents(dim,
+               box_tree_data->nodes[node_id[inode]].morton_code,
+               node_extents + 6*inode);
+    }
+    else {
+      _extents_real(dim,
+                    box_tree_data->nodes[node_id[inode]].morton_code,
+                    btree_s,
+                    btree_d,
+                    node_extents + 6*inode);
+    }
+  }
 }
 
 
@@ -7701,21 +7689,6 @@ PDM_tree_intersection_point_box
                                 &btree_d);
 
 
-
-  int s_queue = 1000; // ?
-  int *queue0 = malloc(sizeof(int) * s_queue * 2);
-  int *queue1 = malloc(sizeof(int) * s_queue * 2);
-  int *queues[2] = {queue0, queue1};
-
-  int *queue0_depth = NULL;
-  int *queue1_depth = NULL;
-  if (subdiv_crit == SUBDIVISION_CRITERION_DEPTH) {
-    queue0_depth = malloc(sizeof(int) * s_queue);
-    queue1_depth = malloc(sizeof(int) * s_queue);
-  }
-
-  int *queues_depth[2] = {queue0_depth, queue1_depth};
-
   /* Get point_tree data (use gets!!!) */
   int ptree_n_children = PDM_point_tree_n_children_get(ptree);
   int    *ptree_depth       = ptree->nodes->depth;
@@ -7770,6 +7743,21 @@ PDM_tree_intersection_point_box
     }
     return;
   }
+
+
+  int s_queue = 1000; // ?
+  int *queue0 = malloc(sizeof(int) * s_queue * 2);
+  int *queue1 = malloc(sizeof(int) * s_queue * 2);
+  int *queues[2] = {queue0, queue1};
+
+  int *queue0_depth = NULL;
+  int *queue1_depth = NULL;
+  if (subdiv_crit == SUBDIVISION_CRITERION_DEPTH) {
+    queue0_depth = malloc(sizeof(int) * s_queue);
+    queue1_depth = malloc(sizeof(int) * s_queue);
+  }
+
+  int *queues_depth[2] = {queue0_depth, queue1_depth};
 
 
   int n_queue = 0;
@@ -8106,6 +8094,14 @@ PDM_tree_intersection_point_box
   }
   free(__box_pts_n);
   free(__box_pts);
+
+  if(queue0_depth != NULL) {
+    free(queue0_depth);
+  }
+  if(queue1_depth != NULL) {
+    free(queue1_depth);
+  }
+
 
 }
 

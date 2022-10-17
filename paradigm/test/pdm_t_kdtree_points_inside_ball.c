@@ -86,7 +86,8 @@ _read_args
  PDM_g_num_t   *nPts,
  double        *length,
  int           *local,
- int           *rand
+ int           *rand,
+ int           *visu
 )
 {
   int i = 1;
@@ -127,6 +128,10 @@ _read_args
       *rand = 1;
     }
 
+    else if (strcmp(argv[i], "-visu") == 0) {
+      *visu = 1;
+    }
+
     else {
       _usage(EXIT_FAILURE);
     }
@@ -165,17 +170,19 @@ char *argv[]
   int n_rank;
   PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &n_rank);
 
-  PDM_g_num_t nPts   = 10;
-  double length = 10.;
-  int local = 0;
-  int randomize = 0;
+  PDM_g_num_t nPts      = 10;
+  double      length    = 10.;
+  int         local     = 0;
+  int         randomize = 0;
+  int         visu      = 0;
 
   _read_args(argc,
              argv,
              &nPts,
              &length,
              &local,
-             &randomize);
+             &randomize,
+             &visu);
 
   /* Initialize random */
 
@@ -280,7 +287,7 @@ char *argv[]
                                      &pts_inside_ball_l_num,
                                      &pts_inside_ball_dist2);
 
-  if(1 == 1) {
+  if(visu) {
     char filename[999];
     sprintf(filename, "kdtree_%i.vtk", i_rank);
     PDM_kdtree_seq_write_nodes(kdt, filename);

@@ -981,6 +981,7 @@ int main
     }
     shift_part += pn_n_part[i_dom];
   }
+  PDM_UNUSED(shift_part);
 
 
   double t1 = PDM_MPI_Wtime();

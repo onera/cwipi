@@ -332,7 +332,7 @@ int main(int argc, char *argv[])
                  elt_type,
                  &mpart);
 
-  int          pn_face         = 0;
+  // int          pn_face         = 0;
   int          pn_edge         = 0;
   int          pn_vtx          = 0;
   int         *pface_edge_idx  = NULL;
@@ -370,13 +370,13 @@ int main(int argc, char *argv[])
                                                PDM_OWNERSHIP_KEEP);
 
   /* Get faces */
-  pn_face = PDM_multipart_part_connectivity_get(mpart,
-                                               0,
-                                               i_part,
-                                               PDM_CONNECTIVITY_TYPE_FACE_EDGE,
-                                               &pface_edge,
-                                               &pface_edge_idx,
-                                               PDM_OWNERSHIP_KEEP);
+  PDM_multipart_part_connectivity_get(mpart,
+                                      0,
+                                      i_part,
+                                      PDM_CONNECTIVITY_TYPE_FACE_EDGE,
+                                      &pface_edge,
+                                      &pface_edge_idx,
+                                      PDM_OWNERSHIP_KEEP);
 
   /* Get groups */
   // _get_groups(mpart,
@@ -395,19 +395,19 @@ int main(int argc, char *argv[])
 
   /* Transpose into edge_face */
   int   n_part          = 1;
-  int **tmp_pedge_face_idx = NULL;
-  int **tmp_pedge_face     = NULL;
+  // int **tmp_pedge_face_idx = NULL;
+  // int **tmp_pedge_face     = NULL;
 
-  PDM_part_connectivity_transpose(n_part,
-                                  &pn_face,
-                                  &pn_edge,
-                                  &pface_edge_idx,
-                                  &pface_edge,
-                                  &tmp_pedge_face_idx,
-                                  &tmp_pedge_face);
+  // PDM_part_connectivity_transpose(n_part,
+  //                                 &pn_face,
+  //                                 &pn_edge,
+  //                                 &pface_edge_idx,
+  //                                 &pface_edge,
+  //                                 &tmp_pedge_face_idx,
+  //                                 &tmp_pedge_face);
 
-  // int *pedge_face_idx = tmp_pedge_face_idx[i_part];
-  // int *pedge_face     = tmp_pedge_face[i_part];
+  // // int *pedge_face_idx = tmp_pedge_face_idx[i_part];
+  // // int *pedge_face     = tmp_pedge_face[i_part];
 
   /* Transpose into edge_group */
   int **tmp_pedge_group_idx = NULL;
@@ -422,7 +422,9 @@ int main(int argc, char *argv[])
                                   &tmp_pedge_group);
 
   int *pedge_group_idx = tmp_pedge_group_idx[i_part];
-  int *pedge_group     = tmp_pedge_group[i_part];
+  int *pedge_group     = tmp_pedge_group    [i_part];
+  free(tmp_pedge_group_idx);
+  free(tmp_pedge_group    );
 
   /* Transpose into vtx_edge */
   int **tmp_pvtx_edge_idx = NULL;
@@ -439,7 +441,9 @@ int main(int argc, char *argv[])
                                   &tmp_pvtx_edge);
 
   int *pvtx_edge_idx = tmp_pvtx_edge_idx[i_part];
-  int *pvtx_edge     = tmp_pvtx_edge[i_part];
+  int *pvtx_edge     = tmp_pvtx_edge    [i_part];
+  free(tmp_pvtx_edge_idx);
+  free(tmp_pvtx_edge    );
 
   /* Combine into vtx_group */
 
@@ -572,9 +576,10 @@ int main(int argc, char *argv[])
     nelmt_proc = PDM_part_to_block_n_elt_block_get(ptb);
 
     if (i_step ==0) {
-      dnormalisation_summed = malloc(nelmt_proc * sizeof(double));
+      dnormalisation_summed = malloc(    nelmt_proc * sizeof(double));
       dnew_vtx_coord_summed = malloc(3 * nelmt_proc * sizeof(double));
     }
+
 
     // Sum merged normalisation and new_vtx_coord
 
@@ -642,13 +647,35 @@ int main(int argc, char *argv[])
       }
     }
 
+
+    PDM_part_to_block_free(ptb);
+    PDM_block_to_part_free(btp);
+
+    free(dstrid_new_vtx_coord);
+    free(dnew_vtx_coord);
+
   } // end loop on Laplacian Smoothing steps
+
+
+  free(pedge_vtx_idx    );
+  free(pstrid        );
+  free(pnormalisation);
+  free(pnew_vtx_coord);
+  free(dnormalisation_summed);
+  free(dnew_vtx_coord_summed);
+  free(dstrid_normalisation);
+  free(dnormalisation);
+
+  free(pvtx_edge_idx);
+  free(pvtx_edge    );
+  free(pvtx_group_idx);
+  free(pvtx_group    );
+  free(pedge_group_idx);
+  free(pedge_group    );
 
   /* Free entities */
   // TO DO add free of mallocs
   PDM_multipart_free(mpart);
-  PDM_part_to_block_free(ptb);
-  PDM_block_to_part_free(btp);
 
   PDM_MPI_Finalize();
   return 0;

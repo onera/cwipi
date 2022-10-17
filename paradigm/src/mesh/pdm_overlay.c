@@ -2737,10 +2737,10 @@ _compute_overlay_planes
   free (faceIdxCurrent[0]);
   free (faceIdxCurrent[1]);
 
-  int s_prop2 = 0;
-  for (int i = 0; i < n_boxesB_without_dupl; i++) {
-    s_prop2 += _tmp_stride2[i];
-  }
+  // int s_prop2 = 0;
+  // for (int i = 0; i < n_boxesB_without_dupl; i++) {
+  //   s_prop2 += _tmp_stride2[i];
+  // }
 
   PDM_g_num_t *recvFaceToEdgeOrAndGnumPtInt;
   PDM_part_to_block_exch (ptb_boxesB,

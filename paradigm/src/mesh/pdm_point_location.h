@@ -11,6 +11,7 @@
 
 #include "pdm.h"
 #include "pdm_mesh_nodal.h"
+#include "pdm_part_mesh_nodal_elmts.h"
 
 /*=============================================================================
  * Macro definitions
@@ -75,6 +76,22 @@ PDM_point_location_nodal
  double            **projected_coord,
  int               **bar_coord_idx,
  double            **bar_coord
+ );
+
+void
+PDM_point_location_nodal2
+(
+ PDM_part_mesh_nodal_elmts_t   *pmne,
+ const int                      n_part,
+ const double                 **pvtx_coord,
+ const int                    **pts_idx,
+ const double                 **pts_coord,
+ const double                   tolerance,
+ double                      ***distance,
+ double                      ***projected_coord,
+ int                         ***bar_coord_idx,
+ double                      ***bar_coord,
+ double                      ***uvw
  );
 
 

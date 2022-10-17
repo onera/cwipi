@@ -345,8 +345,14 @@ PDM_compute_face_vtx_from_face_and_edge
     // first edge
     int iedge = PDM_ABS(_face_edge[0]) - 1;
     edge_tag[iedge] = 1;
-    _face_vtx[0] = edge_vtx[2*iedge  ];
-    _face_vtx[1] = edge_vtx[2*iedge+1];
+    if (_face_edge[0] > 0) {
+      _face_vtx[0] = edge_vtx[2*iedge  ];
+      _face_vtx[1] = edge_vtx[2*iedge+1];
+    }
+    else {
+      _face_vtx[0] = edge_vtx[2*iedge+1];
+      _face_vtx[1] = edge_vtx[2*iedge  ];
+    }
 
     for (int i = 2; i < _n_edge; i++) {
 
@@ -358,11 +364,13 @@ PDM_compute_face_vtx_from_face_and_edge
         }
 
         if (edge_vtx[2*iedge] == _face_vtx[i-1]) {
+          assert(_face_edge[j] > 0);
           _face_vtx[i] = edge_vtx[2*iedge+1];
           edge_tag[iedge] = 1;
           break;
         }
         else if (edge_vtx[2*iedge+1] == _face_vtx[i-1]) {
+          assert(_face_edge[j] < 0);
           _face_vtx[i] = edge_vtx[2*iedge];
           edge_tag[iedge] = 1;
           break;

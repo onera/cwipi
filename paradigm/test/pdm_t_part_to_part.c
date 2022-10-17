@@ -16,6 +16,7 @@
 #include "pdm_error.h"
 #include "pdm_logging.h"
 #include "pdm_part_to_part.h"
+#include "pdm_array.h"
 
 /*============================================================================
  * Type definitions
@@ -301,14 +302,21 @@ int main(int argc, char *argv[])
   log_trace("\n\n---- Exchange an interleaved, constant-stride field ----\n");
   PDM_g_num_t **part1_field = malloc(sizeof(PDM_g_num_t *) * n_part1);
   for (int i = 0; i < n_part1; i++) {
-    int n = part1_to_part2_idx[i][n_elt1[i]];
+    // int n = part1_to_part2_idx[i][n_elt1[i]];
+    // part1_field[i] = malloc(sizeof(PDM_g_num_t) * n * 2);
+
+    // for (int j = 0; j < n_elt1[i]; j++) {
+    //   for (int k = part1_to_part2_idx[i][j]; k < part1_to_part2_idx[i][j+1]; k++) {
+    //     part1_field[i][k  ] = gnum_elt1[i][j];
+    //     part1_field[i][k+n] = part1_to_part2[i][k];
+    //   }
+    // }
+    int n = n_elt1[i];
     part1_field[i] = malloc(sizeof(PDM_g_num_t) * n * 2);
 
     for (int j = 0; j < n_elt1[i]; j++) {
-      for (int k = part1_to_part2_idx[i][j]; k < part1_to_part2_idx[i][j+1]; k++) {
-        part1_field[i][k  ] = gnum_elt1[i][j];
-        part1_field[i][k+n] = part1_to_part2[i][k];
-      }
+      part1_field[i][j  ] = gnum_elt1[i][j];
+      part1_field[i][j+n] = gnum_elt1[i][j]+1;
     }
 
     log_trace("\npart1 %d\n", i);
@@ -322,7 +330,7 @@ int main(int argc, char *argv[])
   PDM_part_to_part_iexch (ptp,
                           PDM_MPI_COMM_KIND_P2P,
                           PDM_STRIDE_CST_INTERLEAVED,
-                          PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,
+                          PDM_PART_TO_PART_DATA_DEF_ORDER_PART1,//PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,
                           2,
                           sizeof(PDM_g_num_t),
                           NULL,
@@ -372,6 +380,177 @@ int main(int argc, char *argv[])
     PDM_log_trace_array_long(part1_field[i],     n, "  part1_field (1st comp) : ");
     PDM_log_trace_array_long(part1_field[i] + n, n, "  part1_field (2nd comp) : ");
   }
+
+
+  log_trace("==== P1 -> P2 ====\n");
+  /* 2 consecutive iexch in stride var with same stride */
+  for (int ipart = 0; ipart < n_part1; ipart++) {
+    int s_part1_data = 0;
+    part1_stride[ipart] = realloc(part1_stride[ipart], sizeof(int) * n_elt1[ipart]);
+    for (int i = 0; i < n_elt1[ipart]; i++) {
+      part1_stride[ipart][i] = (int) (gnum_elt1[ipart][i] % 2) + 1;
+      s_part1_data += part1_stride[ipart][i];
+    }
+
+    part1_data[ipart] = realloc(part1_data[ipart], sizeof(PDM_g_num_t) * s_part1_data);
+    int idx = 0;
+    for (int i = 0; i < n_elt1[ipart]; i++) {
+      for (int j = 0; j < part1_stride[ipart][i]; j++) {
+        part1_data[ipart][idx++] = gnum_elt1[ipart][i];
+      }
+    }
+  }
+
+  for (int i = 0; i < n_part2; i++) {
+    free (part2_stride[i]);
+    free (part2_data  [i]);
+  }
+  free (part2_stride);
+  free (part2_data);
+
+
+  part2_stride = NULL;
+  // log_trace("1\n");
+  PDM_part_to_part_iexch(ptp,
+                         PDM_MPI_COMM_KIND_P2P,
+                         PDM_STRIDE_VAR_INTERLACED,
+                         PDM_PART_TO_PART_DATA_DEF_ORDER_PART1,
+                         1,
+                         sizeof(PDM_g_num_t),
+         (const int  **) part1_stride,
+         (const void **) part1_data,
+                         &part2_stride,
+              (void ***) &part2_data,
+                         &request);
+  PDM_part_to_part_iexch_wait (ptp, request);
+
+  // log_trace("2\n");
+  PDM_g_num_t **part2_data2 = NULL;
+  PDM_part_to_part_iexch(ptp,
+                         PDM_MPI_COMM_KIND_P2P,
+                         PDM_STRIDE_VAR_INTERLACED,
+                         PDM_PART_TO_PART_DATA_DEF_ORDER_PART1,
+                         1,
+                         sizeof(PDM_g_num_t),
+         (const int  **) part1_stride,
+         (const void **) part1_data,
+                         &part2_stride,
+              (void ***) &part2_data2,
+                         &request);
+  PDM_part_to_part_iexch_wait (ptp, request);
+
+  for (int i = 0; i < n_part2; i++) {
+    int idx = 0;
+    for (int j = 0; j < n_ref_num2[i]; j++) {
+      int id2 = ref_num2[i][j] - 1;
+      for (int k = gnum1_come_from_idx[i][j]; k < gnum1_come_from_idx[i][j+1]; k++) {
+        log_trace("gnum2 "PDM_FMT_G_NUM", gnum1 "PDM_FMT_G_NUM", expected stride = %d, got %d\n",
+                  gnum_elt2[i][id2], gnum1_come_from[i][k], (int) (gnum1_come_from[i][k]%2) + 1,
+                  part2_stride[i][k]);
+        for (int l = 0; l < part2_stride[i][k]; l++) {
+          log_trace("  "PDM_FMT_G_NUM" / "PDM_FMT_G_NUM"\n",
+                    part2_data2[i][idx], part2_data[i][idx]);
+          assert(part2_data2[i][idx] == part2_data[i][idx]);
+          idx++;
+        }
+      }
+    }
+
+    free (part2_data2[i]);
+  }
+  free (part2_data2);
+
+
+
+  log_trace("==== P1 <- P2 ====\n");
+  /* 2 consecutive reverse iexch in stride var with same stride */
+  for (int ipart = 0; ipart < n_part2; ipart++) {
+    int s_part2_data = 0;
+    part2_stride[ipart] = realloc(part2_stride[ipart], sizeof(int) * n_elt2[ipart]);
+    for (int i = 0; i < n_elt2[ipart]; i++) {
+      part2_stride[ipart][i] = (int) (gnum_elt2[ipart][i] % 2) + 1;
+      s_part2_data += part2_stride[ipart][i];
+    }
+
+    part2_data[ipart] = realloc(part2_data[ipart], sizeof(PDM_g_num_t) * s_part2_data);
+    int idx = 0;
+    for (int i = 0; i < n_elt2[ipart]; i++) {
+      for (int j = 0; j < part2_stride[ipart][i]; j++) {
+        part2_data[ipart][idx++] = gnum_elt2[ipart][i];
+      }
+    }
+  }
+
+  for (int i = 0; i < n_part1; i++) {
+    free (part1_stride[i]);
+    free (part1_data  [i]);
+  }
+  free (part1_stride);
+  free (part1_data);
+
+  part1_stride = NULL;
+  // log_trace("1\n");
+  PDM_part_to_part_reverse_iexch(ptp,
+                                 PDM_MPI_COMM_KIND_P2P,
+                                 PDM_STRIDE_VAR_INTERLACED,
+                                 PDM_PART_TO_PART_DATA_DEF_ORDER_PART2,
+                                 1,
+                                 sizeof(PDM_g_num_t),
+                 (const int  **) part2_stride,
+                 (const void **) part2_data,
+                                 &part1_stride,
+                      (void ***) &part1_data,
+                                 &request);
+  PDM_part_to_part_reverse_iexch_wait (ptp, request);
+  // for (int i = 0; i < n_part1; i++) {
+  //   log_trace("part1 %d\n", i);
+  //   PDM_log_trace_array_int(part1_stride[i], part1_to_part2_idx[i][n_elt1[i]], "part1_stride : ");
+  // }
+  // log_trace("2\n");
+
+  // for (int i = 0; i < n_part1; i++) {
+  //   free(part1_stride[i]);
+  // }
+  // free(part1_stride);
+  // part1_stride = NULL;
+
+  PDM_g_num_t **part1_data2 = NULL;
+  PDM_part_to_part_reverse_iexch(ptp,
+                                 PDM_MPI_COMM_KIND_P2P,
+                                 PDM_STRIDE_VAR_INTERLACED,
+                                 PDM_PART_TO_PART_DATA_DEF_ORDER_PART2,
+                                 1,
+                                 sizeof(PDM_g_num_t),
+                 (const int  **) part2_stride,
+                 (const void **) part2_data,
+                                 &part1_stride,
+                      (void ***) &part1_data2,
+                                 &request);
+  PDM_part_to_part_reverse_iexch_wait (ptp, request);
+  // for (int i = 0; i < n_part1; i++) {
+  //   log_trace("part1 %d\n", i);
+  //   PDM_log_trace_array_int(part1_stride[i], part1_to_part2_idx[i][n_elt1[i]], "part1_stride : ");
+  // }
+
+  for (int i = 0; i < n_part1; i++) {
+    int idx = 0;
+    for (int j = 0; j < n_elt1[i]; j++) {
+      for (int k = part1_to_part2_idx[i][j]; k < part1_to_part2_idx[i][j+1]; k++) {
+        log_trace("gnum1 "PDM_FMT_G_NUM", gnum2 "PDM_FMT_G_NUM", expected stride = %d, got %d\n",
+                  gnum_elt1[i][j], part1_to_part2[i][k], (int) (part1_to_part2[i][k]%2) + 1,
+                  part1_stride[i][k]);
+        for (int l = 0; l < part1_stride[i][k]; l++) {
+          log_trace("  "PDM_FMT_G_NUM" / "PDM_FMT_G_NUM"\n",
+                    part1_data2[i][idx], part1_data[i][idx]);
+          assert(part1_data2[i][idx] == part1_data[i][idx]);
+          idx++;
+        }
+      }
+    }
+
+    free (part1_data2[i]);
+  }
+  free (part1_data2);
 
 
   /*

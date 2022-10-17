@@ -228,16 +228,16 @@ _read_distributed_stl
 
   int dn_face_end = _distrib_face[i_rank+1] - _distrib_face[i_rank];
   int *tmp_dface_vtx_n = (int * ) malloc( dn_face_end * sizeof(int));
-  PDM_g_num_t *tmp_dface_vtx   = NULL;
+  // PDM_g_num_t *tmp_dface_vtx   = NULL;
 
-  PDM_block_to_block_exch(btb_face,
-                          sizeof(int),//sizeof(PDM_g_num_t),
-                          PDM_STRIDE_VAR_INTERLACED,
-                          -1,
-                          face_vtx_n,
-                (void *)  face_vtx,
-                          tmp_dface_vtx_n,
-                (void **) &tmp_dface_vtx);
+  // PDM_block_to_block_exch(btb_face,
+  //                         sizeof(int),//sizeof(PDM_g_num_t),
+  //                         PDM_STRIDE_VAR_INTERLACED,
+  //                         -1,
+  //                         face_vtx_n,
+  //               (void *)  face_vtx,
+  //                         tmp_dface_vtx_n,
+  //               (void **) &tmp_dface_vtx);
 
   // PDM_log_trace_array_int   (face_vtx_n    , n_face, "face_vtx_n : ");
   // PDM_log_trace_array_double(face_vtx_coord, 3 * 3 * n_face, "face_vtx_coord : ");
@@ -388,7 +388,7 @@ _read_distributed_stl
   // free(_dface_vtx);
 
   free(tmp_dface_vtx_idx);
-  free(tmp_dface_vtx);
+  // free(tmp_dface_vtx);
 
   free(tmp_dface_vtx_n  );
   // free(tmp_dvtx_coord  );
@@ -501,7 +501,9 @@ PDM_reader_stl_dmesh_nodal
 
   /* Split mesh */
   /* !!! We assume we only have triangles */
-  free(dface_vtx_idx);
+  if (dface_vtx_idx != NULL){
+    free(dface_vtx_idx);
+  }
 
   PDM_dmesh_nodal_t *dmn = _create_dmesh_nodal(comm,
                                                distrib_vtx,

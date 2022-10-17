@@ -149,14 +149,6 @@ PDM_inplace_unique_long2
  int r
 )
 {
-  // printf("PDM_inplace_unique_long::a:: ");
-  // for(int i = l; i < r; ++i){
-  //   printf("%d ", a[i]);
-  // }
-  // printf("\n");
-
-
-  // PDM_quick_sort_long(a, l, r); /* Less optimal than PDM_sort_long */
   int array_size = r - l + 1;
   if(array_size == 0) {
     return array_size;
@@ -169,36 +161,6 @@ PDM_inplace_unique_long2
   }
   // PDM_radix_sort_long(&a[l], order, array_size);
   PDM_sort_long(&a[l], order, array_size);
-
-
-  // int first = a[l];
-  // for(int i = 1; i < array_size; ++i ) {
-  //   if(a[i] < first){
-  //     printf("The list is not sorted : a[%d] = %d > a[%d] = "PDM_FMT_G_NUM" \n", i-1, first, i, a[i]);
-  //     // printf("Problem with list size : %d\n", itest);
-  //     abort();
-  //   }
-  //   first = a[i];
-  // }
-
-  // for(int i = 0; i < array_size; ++i){
-  //   order[i] = i;
-  // }
-  // PDM_sort_long(&a[l], order, array_size);
-  // PDM_quick_sort_long2(&a[l], 0, array_size, order);
-
-  // printf("PDM_inplace_unique_long::a::sort:: ");
-  // for(int i = l; i < r; ++i){
-  //   printf("%d ", a[i]);
-  // }
-  // printf("\n");
-
-  // printf("PDM_inplace_unique_long::a::order:: ");
-  // for(int i = 0; i < array_size; ++i){
-  //   printf("%d ", order[i]);
-  //   unique_order[i] = -1;
-  // }
-  // printf("\n");
 
   int new_size  = 1;
   int idx_write = l;
@@ -217,12 +179,6 @@ PDM_inplace_unique_long2
     }
     unique_order[order[idx-l]] = idx_save;
   }
-
-  // printf("PDM_inplace_unique_long::a::unique_order:: ");
-  // for(int i = 0; i < array_size; ++i){
-  //   printf("%d ", unique_order[i]);
-  // }
-  // printf("\n");
 
   free(order);
 

@@ -308,6 +308,7 @@ main
                           PDM_BOX_TREE_ASYNC_LEVEL);
   t2 = PDM_MPI_Wtime();
   t_build_btree = t2 - t1;
+  free(init_location_box);
 
 
   /* Sollicitations */

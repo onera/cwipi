@@ -222,7 +222,7 @@ const int      n_vtx_seg,
  */
 
 static int where_next_couple(int* tab, int target, int start, int end) {
-  int idx;
+  int idx = -1;
   for (int j = start; j < end; j+=2) {
     if(tab[j] == target) {
       idx = j;
@@ -260,7 +260,7 @@ void get_ordered_face_vtx
   }
 
   int idx = 0;
-  int *face_vtx_long = malloc( 2* count * sizeof(int));
+  int *face_vtx_long     = malloc( 2* count * sizeof(int));
   int *face_vtx_long_idx = malloc( (n_face+1) * sizeof(int));
   *face_vtx_ordered_idx = (int * ) malloc( (n_face+1) * sizeof(int));
 
@@ -318,8 +318,10 @@ void get_ordered_face_vtx
 
   } // end loop on faces
 
-  PDM_log_trace_array_int((*face_vtx_ordered_idx), n_face, "(*face_vtx_ordered_idx): ");
-  PDM_log_trace_array_int((*face_vtx_ordered), count, "(*face_vtx_ordered): ");
+  // PDM_log_trace_array_int((*face_vtx_ordered_idx), n_face, "(*face_vtx_ordered_idx): ");
+  // PDM_log_trace_array_int((*face_vtx_ordered), count, "(*face_vtx_ordered): ");
+  free(face_vtx_long     );
+  free(face_vtx_long_idx );
 
 }
 
@@ -367,7 +369,7 @@ get_next_edge
   int* vtx_vtx_edge
 )
 {
-  int next_edge_idx;
+  int next_edge_idx = -1;
   int other_vtx_idx;
 
   for (int j = face_vtx_ordered_idx[iter_face_idx]; j < face_vtx_ordered_idx[iter_face_idx+1]; j++) {
@@ -458,7 +460,7 @@ int main(int argc, char *argv[])
                            edge_vtx,
                            &vtx_vtx_idx,
                            &vtx_vtx);
-
+  free(edge_vtx_idx);
   int *vtx_face_idx = NULL;
   int *vtx_face = NULL;
 
@@ -469,7 +471,6 @@ int main(int argc, char *argv[])
                            edge_face,
                            &vtx_face_idx,
                            &vtx_face);
-
   int *face_vtx_ordered     = NULL;
   int *face_vtx_ordered_idx = NULL;
 
@@ -618,6 +619,18 @@ int main(int argc, char *argv[])
   free(edge_face     );
   free(vtx_vtx_idx   );
   free(vtx_vtx       );
+  free(vtx_vtx_edge);
+  free(vtx_face_idx);
+  free(vtx_face);
+  free(face_vtx);
+
+  free(vtx_ordered_face_neighbours    );
+  free(vtx_ordered_face_neighbours_idx);
+  free(vtx_ordered_vtx_neighbours     );
+  free(vtx_ordered_vtx_neighbours_idx );
+
+  free(face_vtx_ordered);
+  free(face_vtx_ordered_idx);
 
   PDM_MPI_Finalize();
   return 0;

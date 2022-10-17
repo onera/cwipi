@@ -15,6 +15,7 @@
 #include "pdm.h"
 #include "pdm_priv.h"
 #include "pdm_mpi.h"
+#include "pdm_mesh_nodal_priv.h"
 #include "pdm_part_mesh_nodal.h"
 #include "pdm_part_mesh_nodal_priv.h"
 #include "pdm_printf.h"
@@ -569,3 +570,5 @@ PDM_part_mesh_nodal_dump_vtk
     }
   }
 }
+
+

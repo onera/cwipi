@@ -317,14 +317,28 @@ typedef enum {
  */
 typedef enum {
 
-  PDM_ISO_SURFACE_KIND_PLANE  = 0,
-  PDM_ISO_SURFACE_KIND_SPHERE = 1,
-  PDM_ISO_SURFACE_KIND_FIELD  = 2,
+  PDM_ISO_SURFACE_KIND_PLANE   = 0,
+  PDM_ISO_SURFACE_KIND_SPHERE  = 1,
+  PDM_ISO_SURFACE_KIND_FIELD   = 2,
+  PDM_ISO_SURFACE_KIND_ELLIPSE = 3,
+  PDM_ISO_SURFACE_KIND_QUADRIC = 4,
+  PDM_ISO_SURFACE_KIND_HEART   = 5,
 
 } PDM_iso_surface_kind_t;
 
 
 
+typedef enum {
+
+  PDM_EXTRACT_PART_KIND_LOCAL         = 0, /*!< Extraction local                    */
+  PDM_EXTRACT_PART_KIND_REEQUILIBRATE = 1, /*!< Requilibrate and reform partition   */
+  PDM_EXTRACT_PART_KIND_FROM_TARGET   = 2, /*!< Extract into target specify by user */
+} PDM_extract_part_kind_t;
+
+typedef enum {
+  PDM_MESH_INTERSECTION_KIND_SOFT = 0, /*! Resulting is only relative weight of A inside B */
+  PDM_MESH_INTERSECTION_KIND_FULL = 1, /*! Resulting is new mesh                           */
+} PDM_mesh_intersection_kind_t;
 
 /*=============================================================================
  * Public function prototypes

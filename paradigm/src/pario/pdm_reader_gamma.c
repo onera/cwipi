@@ -85,6 +85,9 @@ PDM_reader_gamma_dmesh_nodal
   PDM_g_num_t gn_edge  = 0;
   PDM_g_num_t gn_tria  = 0;
   PDM_g_num_t gn_tetra = 0;
+  PDM_g_num_t gn_pyra  = 0;
+  PDM_g_num_t gn_prism = 0;
+  PDM_g_num_t gn_hexa  = 0;
 
   double      *gvtx_coord   = NULL;
   PDM_g_num_t *gedge_vtx    = NULL;
@@ -93,6 +96,12 @@ PDM_reader_gamma_dmesh_nodal
   int         *gtria_group  = NULL;
   PDM_g_num_t *gtetra_vtx   = NULL;
   int         *gtetra_group = NULL;
+  PDM_g_num_t *gpyra_vtx    = NULL;
+  int         *gpyra_group  = NULL;
+  PDM_g_num_t *gprism_vtx   = NULL;
+  int         *gprism_group = NULL;
+  PDM_g_num_t *ghexa_vtx    = NULL;
+  int         *ghexa_group  = NULL;
 
   char line[999];
 
@@ -192,6 +201,57 @@ PDM_reader_gamma_dmesh_nodal
       }
 
 
+      else if (strstr(line, "Pyramids") != NULL) {
+        // Get pyramids
+        long _gn_pyra;
+        fscanf(f, "%ld", &_gn_pyra);
+        gn_pyra = (PDM_g_num_t) _gn_pyra;
+
+        gpyra_vtx   = malloc(sizeof(PDM_g_num_t) * gn_pyra * 5);
+        gpyra_group = malloc(sizeof(int        ) * gn_pyra);
+        for (PDM_g_num_t i = 0; i < gn_pyra; i++) {
+          for (int j = 0; j < 5; j++) {
+            fscanf(f, PDM_FMT_G_NUM, &gpyra_vtx[5*i + j]);
+          }
+          fscanf(f, "%d", &gpyra_group[i]);
+        }
+      }
+
+
+      else if (strstr(line, "Prisms") != NULL) {
+        // Get prisms
+        long _gn_prism;
+        fscanf(f, "%ld", &_gn_prism);
+        gn_prism = (PDM_g_num_t) _gn_prism;
+
+        gprism_vtx   = malloc(sizeof(PDM_g_num_t) * gn_prism * 6);
+        gprism_group = malloc(sizeof(int        ) * gn_prism);
+        for (PDM_g_num_t i = 0; i < gn_prism; i++) {
+          for (int j = 0; j < 6; j++) {
+            fscanf(f, PDM_FMT_G_NUM, &gprism_vtx[6*i + j]);
+          }
+          fscanf(f, "%d", &gprism_group[i]);
+        }
+      }
+
+
+      else if (strstr(line, "Hexahedra") != NULL) {
+        // Get hexahedra
+        long _gn_hexa;
+        fscanf(f, "%ld", &_gn_hexa);
+        gn_hexa = (PDM_g_num_t) _gn_hexa;
+
+        ghexa_vtx   = malloc(sizeof(PDM_g_num_t) * gn_hexa * 8);
+        ghexa_group = malloc(sizeof(int        ) * gn_hexa);
+        for (PDM_g_num_t i = 0; i < gn_hexa; i++) {
+          for (int j = 0; j < 8; j++) {
+            fscanf(f, PDM_FMT_G_NUM, &ghexa_vtx[8*i + j]);
+          }
+          fscanf(f, "%d", &ghexa_group[i]);
+        }
+      }
+
+
     }
     fclose(f);
 
@@ -277,16 +337,30 @@ PDM_reader_gamma_dmesh_nodal
   int dn_edge  = (int) gn_edge;
   int dn_tria  = (int) gn_tria;
   int dn_tetra = (int) gn_tetra;
+  int dn_pyra  = (int) gn_pyra;
+  int dn_prism = (int) gn_prism;
+  int dn_hexa  = (int) gn_hexa;
   PDM_g_num_t *init_distrib_vtx   = PDM_compute_entity_distribution(comm, dn_vtx);
   PDM_g_num_t *init_distrib_edge  = PDM_compute_entity_distribution(comm, dn_edge);
   PDM_g_num_t *init_distrib_tria  = PDM_compute_entity_distribution(comm, dn_tria);
   PDM_g_num_t *init_distrib_tetra = PDM_compute_entity_distribution(comm, dn_tetra);
+  PDM_g_num_t *init_distrib_pyra  = PDM_compute_entity_distribution(comm, dn_pyra);
+  PDM_g_num_t *init_distrib_prism = PDM_compute_entity_distribution(comm, dn_prism);
+  PDM_g_num_t *init_distrib_hexa  = PDM_compute_entity_distribution(comm, dn_hexa);
 
-  // PDM_MPI_Bcast(&dim,      1, PDM_MPI_INT,        0, comm);
+  int mesh_dimension = dim;
+  if (dim == 3 && gn_tetra == 0 && gn_pyra == 0 && gn_prism == 0 && gn_hexa == 0) {
+    mesh_dimension = 2;
+  }
+
   PDM_MPI_Bcast(&gn_vtx,   1, PDM__PDM_MPI_G_NUM, 0, comm);
   PDM_MPI_Bcast(&gn_edge,  1, PDM__PDM_MPI_G_NUM, 0, comm);
   PDM_MPI_Bcast(&gn_tria,  1, PDM__PDM_MPI_G_NUM, 0, comm);
   PDM_MPI_Bcast(&gn_tetra, 1, PDM__PDM_MPI_G_NUM, 0, comm);
+  PDM_MPI_Bcast(&gn_pyra,  1, PDM__PDM_MPI_G_NUM, 0, comm);
+  PDM_MPI_Bcast(&gn_prism, 1, PDM__PDM_MPI_G_NUM, 0, comm);
+  PDM_MPI_Bcast(&gn_hexa,  1, PDM__PDM_MPI_G_NUM, 0, comm);
+  PDM_MPI_Bcast(&mesh_dimension, 1, PDM_MPI_INT, 0, comm);
 
   /* Vertices*/
   PDM_g_num_t *distrib_vtx = PDM_compute_uniform_entity_distribution(comm, gn_vtx);
@@ -383,6 +457,90 @@ PDM_reader_gamma_dmesh_nodal
   //               (void **) &dtetra_group);
 
 
+  /* Pyramids */
+  PDM_g_num_t *distrib_pyra = PDM_compute_uniform_entity_distribution(comm, gn_pyra);
+
+  PDM_block_to_block_t *btb_pyra = PDM_block_to_block_create(init_distrib_pyra,
+                                                              distrib_pyra,
+                                                              comm);
+
+  PDM_g_num_t *dpyra_vtx = NULL;
+  PDM_block_to_block_exch(btb_pyra,
+                          sizeof(PDM_g_num_t),
+                          PDM_STRIDE_CST_INTERLACED,
+                          5,
+                          NULL,
+                (void  *) gpyra_vtx,
+                          NULL,
+                (void **) &dpyra_vtx);
+
+  // int *dpyra_group = NULL;
+  // PDM_block_to_block_exch(btb_pyra,
+  //                         sizeof(int),
+  //                         PDM_STRIDE_CST_INTERLACED,
+  //                         1,
+  //                         NULL,
+  //               (void *)  gpyra_group,
+  //                         NULL,
+  //               (void **) &dpyra_group);
+
+
+  /* Prisms */
+  PDM_g_num_t *distrib_prism = PDM_compute_uniform_entity_distribution(comm, gn_prism);
+
+  PDM_block_to_block_t *btb_prism = PDM_block_to_block_create(init_distrib_prism,
+                                                              distrib_prism,
+                                                              comm);
+
+  PDM_g_num_t *dprism_vtx = NULL;
+  PDM_block_to_block_exch(btb_prism,
+                          sizeof(PDM_g_num_t),
+                          PDM_STRIDE_CST_INTERLACED,
+                          6,
+                          NULL,
+                (void  *) gprism_vtx,
+                          NULL,
+                (void **) &dprism_vtx);
+
+  // int *dprism_group = NULL;
+  // PDM_block_to_block_exch(btb_prism,
+  //                         sizeof(int),
+  //                         PDM_STRIDE_CST_INTERLACED,
+  //                         1,
+  //                         NULL,
+  //               (void *)  gprism_group,
+  //                         NULL,
+  //               (void **) &dprism_group);
+
+
+  /* Hexahedra */
+  PDM_g_num_t *distrib_hexa = PDM_compute_uniform_entity_distribution(comm, gn_hexa);
+
+  PDM_block_to_block_t *btb_hexa = PDM_block_to_block_create(init_distrib_hexa,
+                                                              distrib_hexa,
+                                                              comm);
+
+  PDM_g_num_t *dhexa_vtx = NULL;
+  PDM_block_to_block_exch(btb_hexa,
+                          sizeof(PDM_g_num_t),
+                          PDM_STRIDE_CST_INTERLACED,
+                          8,
+                          NULL,
+                (void  *) ghexa_vtx,
+                          NULL,
+                (void **) &dhexa_vtx);
+
+  // int *dhexa_group = NULL;
+  // PDM_block_to_block_exch(btb_hexa,
+  //                         sizeof(int),
+  //                         PDM_STRIDE_CST_INTERLACED,
+  //                         1,
+  //                         NULL,
+  //               (void *)  ghexa_group,
+  //                         NULL,
+  //               (void **) &dhexa_group);
+
+
   if (gvtx_coord   != NULL) free(gvtx_coord);
   if (gedge_vtx    != NULL) free(gedge_vtx);
   if (gedge_group  != NULL) free(gedge_group);
@@ -390,21 +548,28 @@ PDM_reader_gamma_dmesh_nodal
   if (gtria_group  != NULL) free(gtria_group);
   if (gtetra_vtx   != NULL) free(gtetra_vtx);
   if (gtetra_group != NULL) free(gtetra_group);
+  if (gpyra_vtx    != NULL) free(gpyra_vtx);
+  if (gpyra_group  != NULL) free(gpyra_group);
+  if (gprism_vtx   != NULL) free(gprism_vtx);
+  if (gprism_group != NULL) free(gprism_group);
+  if (ghexa_vtx    != NULL) free(ghexa_vtx);
+  if (ghexa_group  != NULL) free(ghexa_group);
 
   PDM_block_to_block_free(btb_vtx);
   PDM_block_to_block_free(btb_edge);
   PDM_block_to_block_free(btb_tria);
   PDM_block_to_block_free(btb_tetra);
+  PDM_block_to_block_free(btb_pyra);
+  PDM_block_to_block_free(btb_prism);
+  PDM_block_to_block_free(btb_hexa);
 
   free(init_distrib_vtx  );
   free(init_distrib_edge );
   free(init_distrib_tria );
   free(init_distrib_tetra);
-
-  int mesh_dimension = dim;
-  if (dim == 3 && gn_tetra == 0) {
-    mesh_dimension = 2;
-  }
+  free(init_distrib_pyra );
+  free(init_distrib_prism);
+  free(init_distrib_hexa );
 
   if (i_rank == 0) {
     printf("mesh_dimension = %d\n", mesh_dimension);
@@ -412,26 +577,31 @@ PDM_reader_gamma_dmesh_nodal
     printf("gn_edge  = "PDM_FMT_G_NUM"\n", gn_edge);
     printf("gn_tria  = "PDM_FMT_G_NUM"\n", gn_tria);
     printf("gn_tetra = "PDM_FMT_G_NUM"\n", gn_tetra);
+    printf("gn_pyra  = "PDM_FMT_G_NUM"\n", gn_pyra);
+    printf("gn_prism = "PDM_FMT_G_NUM"\n", gn_prism);
+    printf("gn_hexa  = "PDM_FMT_G_NUM"\n", gn_hexa);
   }
 
   PDM_dmesh_nodal_t *dmn = PDM_DMesh_nodal_create(comm,
                                                   mesh_dimension,
                                                   gn_vtx,
-                                                  gn_tetra,
+                                                  gn_tetra + gn_pyra + gn_prism + gn_hexa,
                                                   gn_tria,
                                                   gn_edge);
 
-  dn_vtx   = (int) (distrib_vtx[i_rank+1]   - distrib_vtx[i_rank]);
-  dn_edge  = (int) (distrib_edge[i_rank+1]  - distrib_edge[i_rank]);
-  dn_tria  = (int) (distrib_tria[i_rank+1]  - distrib_tria[i_rank]);
+  dn_vtx   = (int) (distrib_vtx  [i_rank+1] - distrib_vtx  [i_rank]);
+  dn_edge  = (int) (distrib_edge [i_rank+1] - distrib_edge [i_rank]);
+  dn_tria  = (int) (distrib_tria [i_rank+1] - distrib_tria [i_rank]);
   dn_tetra = (int) (distrib_tetra[i_rank+1] - distrib_tetra[i_rank]);
+  dn_pyra  = (int) (distrib_pyra [i_rank+1] - distrib_pyra [i_rank]);
+  dn_prism = (int) (distrib_prism[i_rank+1] - distrib_prism[i_rank]);
+  dn_hexa  = (int) (distrib_hexa [i_rank+1] - distrib_hexa [i_rank]);
 
   /* Vertices */
   PDM_DMesh_nodal_coord_set(dmn,
                             dn_vtx,
                             dvtx_coord,
                             PDM_OWNERSHIP_KEEP);
-
 
   /* Sections */
   dmn->ridge->n_g_elmts = gn_edge;
@@ -444,7 +614,6 @@ PDM_reader_gamma_dmesh_nodal
                                         PDM_OWNERSHIP_KEEP);
 
 
-
   dmn->surfacic->n_g_elmts = gn_tria;
   int id_section_tria = PDM_DMesh_nodal_elmts_section_add(dmn->surfacic,
                                                           PDM_MESH_NODAL_TRIA3);
@@ -455,14 +624,47 @@ PDM_reader_gamma_dmesh_nodal
                                         PDM_OWNERSHIP_KEEP);
 
   if (mesh_dimension == 3) {
-    dmn->volumic->n_g_elmts = gn_tetra;
-    int id_section_tetra = PDM_DMesh_nodal_elmts_section_add(dmn->volumic,
-                                                             PDM_MESH_NODAL_TETRA4);
-    PDM_DMesh_nodal_elmts_section_std_set(dmn->volumic,
-                                          id_section_tetra,
-                                          dn_tetra,
-                                          dtetra_vtx,
-                                          PDM_OWNERSHIP_KEEP);
+    dmn->volumic->n_g_elmts = gn_tetra + gn_pyra + gn_prism + gn_hexa;
+
+    if (gn_tetra > 0) {
+      int id_section_tetra = PDM_DMesh_nodal_elmts_section_add(dmn->volumic,
+                                                               PDM_MESH_NODAL_TETRA4);
+      PDM_DMesh_nodal_elmts_section_std_set(dmn->volumic,
+                                            id_section_tetra,
+                                            dn_tetra,
+                                            dtetra_vtx,
+                                            PDM_OWNERSHIP_KEEP);
+    }
+
+    if (gn_pyra > 0) {
+      int id_section_pyra = PDM_DMesh_nodal_elmts_section_add(dmn->volumic,
+                                                              PDM_MESH_NODAL_PYRAMID5);
+      PDM_DMesh_nodal_elmts_section_std_set(dmn->volumic,
+                                            id_section_pyra,
+                                            dn_pyra,
+                                            dpyra_vtx,
+                                            PDM_OWNERSHIP_KEEP);
+    }
+
+    if (gn_prism > 0) {
+      int id_section_prism = PDM_DMesh_nodal_elmts_section_add(dmn->volumic,
+                                                               PDM_MESH_NODAL_PRISM6);
+      PDM_DMesh_nodal_elmts_section_std_set(dmn->volumic,
+                                            id_section_prism,
+                                            dn_prism,
+                                            dprism_vtx,
+                                            PDM_OWNERSHIP_KEEP);
+    }
+
+    if (gn_hexa > 0) {
+      int id_section_hexa = PDM_DMesh_nodal_elmts_section_add(dmn->volumic,
+                                                              PDM_MESH_NODAL_HEXA8);
+      PDM_DMesh_nodal_elmts_section_std_set(dmn->volumic,
+                                            id_section_hexa,
+                                            dn_hexa,
+                                            dhexa_vtx,
+                                            PDM_OWNERSHIP_KEEP);
+    }
   }
 
 
@@ -537,6 +739,9 @@ PDM_reader_gamma_dmesh_nodal
   free(distrib_edge );
   free(distrib_tria );
   free(distrib_tetra);
+  free(distrib_pyra );
+  free(distrib_prism);
+  free(distrib_hexa );
 
   return dmn;
 }
