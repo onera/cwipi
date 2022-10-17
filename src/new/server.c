@@ -1713,6 +1713,164 @@ CWP_server_Mesh_interf_from_faceedge_set
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
+void
+CWP_server_Field_create
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read field identifier
+  char *field_id = malloc(sizeof(char));
+  read_name(&field_id, svr);
+
+  // read data_type
+  int data_type;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &data_type, sizeof(int));
+
+  // read storage
+  int storage;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &storage, sizeof(int));
+
+  // read n_component
+  int n_component;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_component, sizeof(int));
+
+  // read target_location
+  int target_location;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &target_location, sizeof(int));
+
+  // read exch_type
+  int exch_type;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &exch_type, sizeof(int));
+
+  // read visu_status
+  int visu_status;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &visu_status, sizeof(int));
+
+  // launch
+  CWP_Field_create(local_code_name,
+                   cpl_id,
+                   field_id,
+                   data_type,
+                   storage,
+                   n_component,
+                   target_location,
+                   exch_type,
+                   visu_status);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Field_data_set
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read field identifier
+  char *field_id = malloc(sizeof(char));
+  read_name(&field_id, svr);
+
+  // read i_part
+  int i_part;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &i_part, sizeof(int));
+
+  // read map_type
+  int map_type;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &map_type, sizeof(int));
+
+  // read data array
+  // TO DO: depends on array size
+}
+
+void
+CWP_server_Field_n_component_get
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state = CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read field identifier
+  char *field_id = malloc(sizeof(char));
+  read_name(&field_id, svr);
+
+  // launch
+  int n_component = CWP_Field_n_component_get(local_code_name,
+                                              cpl_id,
+                                              field_id);
+
+  // send number of components
+  svr->state = CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &n_component, sizeof(int));
+}
+
+void
+CWP_server_Field_target_dof_location_get
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state = CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read field identifier
+  char *field_id = malloc(sizeof(char));
+  read_name(&field_id, svr);
+
+  // launch
+  int dof_location = CWP_Field_target_dof_location_get(local_code_name,
+                                                       cpl_id,
+                                                       field_id);
+
+  // send number of components
+  svr->state = CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &dof_location, sizeof(int));
+}
+
 /*============================================================================
  * Server function definitions
  *============================================================================*/
@@ -2351,6 +2509,54 @@ CWP_server_msg_handler
 
     // launch
     CWP_server_Mesh_interf_from_faceedge_set(svr);
+
+    break;
+
+  case CWP_MSG_CWP_FIELD_CREATE:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Field_create signal\n");
+    }
+
+    // launch
+    CWP_server_Field_create(svr);
+
+    break;
+
+  case CWP_MSG_CWP_FIELD_DATA_SET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Field_data_set signal\n");
+    }
+
+    // launch
+    CWP_server_Field_data_set(svr);
+
+    break;
+
+  case CWP_MSG_CWP_FIELD_N_COMPONENT_GET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Field_n_component_get signal\n");
+    }
+
+    // launch
+    CWP_server_Field_n_component_get(svr);
+
+    break;
+
+  case CWP_MSG_CWP_FIELD_TARGET_DOF_LOCATION_GET:
+
+    // verbose
+    if (svr->flags & CWP_SVRFLAG_VERBOSE) {
+      log_trace("CWP: server received CWP_Field_target_dof_location_get signal\n");
+    }
+
+    // launch
+    CWP_server_Field_target_dof_location_get(svr);
 
     break;
 
