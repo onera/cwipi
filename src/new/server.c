@@ -1939,6 +1939,36 @@ CWP_server_Field_del
   svr->state = CWP_SVRSTATE_LISTENINGMSG;
 }
 
+void
+CWP_server_Interp_from_location_unset
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state = CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read source field identifier
+  char *src_field_id = malloc(sizeof(char));
+  read_name(&src_field_id, svr);
+
+  // launch
+  CWP_Interp_from_location_unset(local_code_name,
+                                 cpl_id,
+                                 src_field_id);
+
+  svr->state = CWP_SVRSTATE_LISTENINGMSG;
+}
+
 /*============================================================================
  * Server function definitions
  *============================================================================*/
