@@ -890,6 +890,7 @@ _cube_mesh
                                           (*pface_vtx_idx)[i_part],
                                           face_vtx_nb[i_part],
                                           (*pface_vtx)[i_part],
+                                          NULL,
                                           (*pcell_face_idx)[i_part],
                                           cell_face_nb[i_part],
                                           (*pcell_face)[i_part],
