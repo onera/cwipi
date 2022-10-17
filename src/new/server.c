@@ -1583,6 +1583,136 @@ CWP_server_Mesh_interf_del
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
+void
+CWP_server_Mesh_interf_from_cellface_set
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read i_part
+  int i_part;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &i_part, sizeof(int));
+
+  // read n_cells
+  int n_cells;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_cells, sizeof(int));
+
+  // read connectivity cells index
+  int *cell_face_idx = malloc(sizeof(int) * (n_cells+1));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) cell_face_idx, sizeof(int) * (n_cells+1));
+
+  // read connectivity cells
+  int *cell_face = malloc(sizeof(int) * cell_face_idx[n_cells]);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) cell_face, sizeof(int) * cell_face_idx[n_cells]);
+
+  // read n_faces
+  int n_faces;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_faces, sizeof(int));
+
+  // read connectivity faces index
+  int *face_vtx_idx = malloc(sizeof(int) * (n_faces+1));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) face_vtx_idx, sizeof(int) * (n_faces+1));
+
+  // read connectivity faces
+  int *face_vtx = malloc(sizeof(int) * face_vtx_idx[n_faces]);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) face_vtx, sizeof(int) * face_vtx_idx[n_faces]);
+
+  // read global number
+  CWP_g_num_t *global_num = malloc(sizeof(CWP_g_num_t) * n_elts);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_elts);
+
+  // launch
+  CWP_Mesh_interf_from_cellface_set(local_code_name,
+                                    cpl_id,
+                                    i_part,
+                                    n_cells,
+                                    cell_face_idx,
+                                    cell_face,
+                                    n_faces,
+                                    face_vtx_idx,
+                                    face_vtx,
+                                    parent_num);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Mesh_interf_from_faceedge_set
+(
+  p_server                 svr
+)
+{
+  // wait all ranks have receive msg
+  MPI_Barrier(svr->intra_comms[0]);
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read i_part
+  int i_part;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &i_part, sizeof(int));
+
+  // read n_cells
+  int n_faces;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_faces, sizeof(int));
+
+  // read connectivity faces index
+  int *face_edge_idx = malloc(sizeof(int) * (n_faces+1));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) face_edge_idx, sizeof(int) * (n_faces+1));
+
+  // read connectivity faces
+  int *face_edge = malloc(sizeof(int) * face_edge_idx[n_faces]);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) face_edge, sizeof(int) * face_edge_idx[n_faces]);
+
+  // read n_edges
+  int n_edges;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_edges, sizeof(int));
+
+  // read connectivity edges index
+  int *edge_vtx_idx = malloc(sizeof(int) * (n_edges+1));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) edge_vtx_idx, sizeof(int) * (n_edges+1));
+
+  // read connectivity edges
+  int *edge_vtx = malloc(sizeof(int) * edge_vtx_idx[n_edges]);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) edge_vtx, sizeof(int) * edge_vtx_idx[n_edges]);
+
+  // read global number
+  CWP_g_num_t *global_num = malloc(sizeof(CWP_g_num_t) * n_elts);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_elts);
+
+  // launch
+  CWP_Mesh_interf_from_faceedge_set(local_code_name,
+                                    cpl_id,
+                                    i_part,
+                                    n_faces,
+                                    face_edge_idx,
+                                    face_edge,
+                                    n_edges,
+                                    edge_vtx_idx,
+                                    edge_vtx,
+                                    parent_num);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
 /*============================================================================
  * Server function definitions
  *============================================================================*/
