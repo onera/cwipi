@@ -779,6 +779,7 @@ CWP_client_Mesh_interf_block_add
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  i_part           Partition identifier
  * \param [in]  block_id         Block identifier
+ * \param [in]  block_type       Block type
  * \param [in]  n_elts           Number of elements
  * \param [in]  connec           Connectivity (size = n_vertex_elt * n_elts)
  * \param [in]  global_num       Pointer to global element number (or NULL)
@@ -792,6 +793,7 @@ CWP_client_Mesh_interf_block_std_set
  const char        *cpl_id,
  const int          i_part,
  const int          block_id,
+ const CWP_Block_t  block_type,
  const int          n_elts,
  int                connec[],
  CWP_g_num_t        global_num[]

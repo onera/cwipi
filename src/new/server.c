@@ -558,9 +558,8 @@ CWP_server_Param_reduce
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) res, sizeof(int));
     break;
 
-  case CWP_CHAR:*
-    res = malloc(sizeof(char));
-    write_name(&res);
+  case CWP_CHAR: ;
+    write_name(res, svr);
     break;
 
   default:
@@ -783,7 +782,7 @@ CWP_server_Output_file_set
   fclose(output_file);
 
   // launch
-  CWP_Output_file_set(output_file)
+  CWP_Output_file_set(output_file);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -1567,7 +1566,7 @@ CWP_server_Mesh_interf_f_poly_block_set
                                    i_part,
                                    block_id,
                                    n_elts,
-                                   connec_idx
+                                   connec_idx,
                                    connec,
                                    global_num);
 
@@ -1724,7 +1723,7 @@ CWP_server_Mesh_interf_c_poly_block_set
 }
 
 void
-CWP_server_Mesh_interf_f_poly_block_get
+CWP_server_Mesh_interf_c_poly_block_get
 (
   p_server                 svr
 )
@@ -1757,17 +1756,17 @@ CWP_server_Mesh_interf_f_poly_block_get
   int         *connec_cells_idx = NULL;
   int         *connec_cells     = NULL;
   CWP_g_num_t *global_num       = NULL;
-  CWP_Mesh_interf_f_poly_block_get(local_code_name,
+  CWP_Mesh_interf_c_poly_block_get(local_code_name,
                                    cpl_id,
                                    i_part,
                                    block_id,
-                                   n_elts,
-                                   n_faces,
-                                   connec_faces_idx,
-                                   connec_faces,
-                                   connec_cells_idx,
-                                   connec_cells,
-                                   global_num);
+                                   &n_elts,
+                                   &n_faces,
+                                   &connec_faces_idx,
+                                   &connec_faces,
+                                   &connec_cells_idx,
+                                   &connec_cells,
+                                   &global_num);
 
   // send n_elts
   svr->state=CWP_SVRSTATE_SENDPGETDATA;
@@ -1879,8 +1878,8 @@ CWP_server_Mesh_interf_from_cellface_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) face_vtx, sizeof(int) * face_vtx_idx[n_faces]);
 
   // read global number
-  CWP_g_num_t *global_num = malloc(sizeof(CWP_g_num_t) * n_elts);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_elts);
+  CWP_g_num_t *global_num = malloc(sizeof(CWP_g_num_t) * n_cells);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_cells);
 
   // launch
   CWP_Mesh_interf_from_cellface_set(local_code_name,
@@ -1953,8 +1952,8 @@ CWP_server_Mesh_interf_from_faceedge_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) edge_vtx, sizeof(int) * edge_vtx_idx[n_edges]);
 
   // read global number
-  CWP_g_num_t *global_num = malloc(sizeof(CWP_g_num_t) * n_elts);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_elts);
+  CWP_g_num_t *global_num = malloc(sizeof(CWP_g_num_t) * n_faces);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_faces);
 
   // launch
   CWP_Mesh_interf_from_faceedge_set(local_code_name,
@@ -2425,11 +2424,14 @@ CWP_server_Interp_from_location_unset
   svr->state = CWP_SVRSTATE_LISTENINGMSG;
 }
 
-// void
-// CWP_server_Interp_from_location_set
-// (
-//   p_server                 svr
-// )
+void
+CWP_server_Interp_from_location_set
+(
+  p_server                 svr
+)
+{
+  log_trace("CWP: CWP_server_Interp_from_location_set not implemented yet\n");
+}
 // {
 //   // wait all ranks have receive msg
 //   MPI_Barrier(svr->intra_comms[0]);
@@ -3209,7 +3211,7 @@ CWP_server_msg_handler
     }
 
     // launch
-    CWP_server_CWP_Field_issend(svr);
+    CWP_server_Field_issend(svr);
 
     break;
 
