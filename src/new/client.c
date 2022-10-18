@@ -1564,10 +1564,10 @@ CWP_client_User_tgt_pts_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_pts, sizeof(int));
 
   // send coord
-  double *endian_coord = NULL;
-  memcpy(endian_coord, coord, sizeof(double) * n_pts);
-  CWP_swap_endian_8bytes(endian_coord, n_pts);
-  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_coord, sizeof(double) * n_pts);
+  double *endian_coord = malloc(sizeof(double) * 3 * n_pts);
+  memcpy(endian_coord, coord, sizeof(double) * 3 * n_pts);
+  CWP_swap_endian_8bytes(endian_coord, 3 * n_pts);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_coord, sizeof(double) * 3 * n_pts);
 
   // send global_num
   CWP_g_num_t *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_pts);
@@ -1653,10 +1653,10 @@ CWP_client_Mesh_interf_vtx_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_pts, sizeof(int));
 
   // send coord
-  double *endian_coord = NULL;
-  memcpy(endian_coord, coord, sizeof(double) * n_pts);
-  CWP_swap_endian_8bytes(endian_coord, n_pts);
-  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_coord, sizeof(double) * n_pts);
+  double *endian_coord = malloc(sizeof(double) * 3 * n_pts);
+  memcpy(endian_coord, coord, sizeof(double) * 3 * n_pts);
+  CWP_swap_endian_8bytes(endian_coord, 3 * n_pts);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_coord, sizeof(double) * 3 * n_pts);
 
   // send global_num
   CWP_g_num_t *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_pts);

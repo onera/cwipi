@@ -28,6 +28,26 @@
 #include "pdm_dcube_nodal_gen.h"
 #include "pdm_dmesh_nodal_to_dmesh.h"
 #include "pdm_logging.h"
+#include "client.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
+#include "pdm_io.h"
+#include "pdm_mpi.h"
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+/*=============================================================================
+ * Macro definitions
+ *============================================================================*/
+
+#define CWP_HEADER_SIZE    32
+
+/*=============================================================================
+ * Private functions definitions
+ *============================================================================*/
 
 static void
 create_dcube_from_nodal
@@ -266,28 +286,165 @@ create_dcube_from_nodal
   PDM_dcube_nodal_gen_free(dcube);
 }
 
+/*=============================================================================
+ * Util functions
+ *============================================================================*/
+
+static void
+_usage(int exit_code)
+{
+  PDM_printf
+    ("\n"
+     "  Usage: \n\n"
+     "  -c     Filename of the server configuration file.\n\n"
+     "  -h     This message.\n\n");
+
+  exit(exit_code);
+}
+
+static void
+_read_args
+(
+ int            argc,
+ char         **argv,
+ char         **config  // filename for server ip adresses + ports
+)
+{
+  int i = 1;
+
+  /* Parse and check command line */
+
+  while (i < argc) {
+
+    if (strcmp(argv[i], "-h") == 0)
+      _usage(EXIT_SUCCESS);
+
+    else if (strcmp(argv[i], "-c") == 0) {
+      i++;
+      if (i >= argc)
+        _usage(EXIT_FAILURE);
+      else {
+        *config = argv[i];
+      }
+    }
+
+    else
+      _usage(EXIT_FAILURE);
+    i++;
+
+  }
+
+}
+
+/*=============================================================================
+ * Main
+ *============================================================================*/
 
 int
 main
-        (
-                int argc,
-                char *argv[]
-        ) {
+(
+ int argc,
+ char *argv[]
+)
+{
+  // default
+  char *config     = NULL;
 
-  MPI_Init(&argc, &argv);
+  _read_args(argc,
+             argv,
+             &config);
+
+  if (config == NULL) {
+    config = (char *) "cwp_config_srv.txt";
+  }
+
+  // mpi
   int rank;
   int comm_world_size;
 
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
-  assert(comm_world_size > 0);
+  PDM_MPI_Init(&argc, &argv);
+  PDM_MPI_Comm comm = PDM_MPI_COMM_WORLD;
+  PDM_MPI_Comm_rank(comm, &rank);
+  PDM_MPI_Comm_size(comm, &comm_world_size);
+
+  // read host_name and port from config file
+  // --> open
+  PDM_io_file_t *read = NULL;
+  PDM_l_num_t    ierr;
+
+  PDM_io_open(config,
+              PDM_IO_FMT_BIN,
+              PDM_IO_SUFF_MAN,
+              "",
+              PDM_IO_BACKUP_OFF,
+              PDM_IO_KIND_MPI_SIMPLE,
+              PDM_IO_MOD_READ,
+              PDM_IO_NATIVE,
+              comm,
+              -1.,
+              &read,
+              &ierr);
+
+  // --> global read offset in header
+  char *buffer = malloc(CWP_HEADER_SIZE+1);
+  for (int i = 0; i < CWP_HEADER_SIZE; i++) {
+    buffer[i] = '\0';
+  }
+
+  PDM_io_global_read(read,
+                     CWP_HEADER_SIZE * sizeof(char),
+                     1,
+                     buffer);
+
+  char div_line[] = "\n";
+  char *line = strtok(buffer, div_line);
+  line = strtok(NULL, div_line);
+
+  char div_word[] = " ";
+  char *word = strtok(line, div_word);
+  word = strtok(NULL, div_word);
+
+  int offset = atoi(word);
+
+  // --> block read hostname/port
+  char *data = malloc(offset+1);
+
+  for (int i = 0; i < offset+1; i++) {
+    data[i] = '\0';
+  }
+
+  int one = 1;
+  PDM_g_num_t rank_gnum = (PDM_g_num_t) (rank+1);
+
+  PDM_io_par_interlaced_read(read,
+                             PDM_STRIDE_CST_INTERLACED,
+             (PDM_l_num_t *) &one,
+               (PDM_l_num_t) offset,
+               (PDM_l_num_t) one,
+                             &rank_gnum,
+                             data);
+
+  char div[] = "/";
+  char *str = strtok(data, div);
+  char *server_name = malloc(strlen(str)+1);
+  memcpy(server_name, str, strlen(str));
+  str = strtok(NULL, div);
+  int server_port = atoi(str);
+
+  // --> close
+  PDM_io_close(read);
+  PDM_io_free(read);
+
+  // connect
+  if (CWP_client_connect(server_name, server_port, CWP_CLIENTFLAG_VERBOSE) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "Client connexion failed\n");
+    return -1;
+  }
 
   // Input
   int n_part = 1;
 
   CWP_Field_exch_t exchDirection[2];
-
-  // Cas test :
 
   bool cond_code1 = rank == 1;
   bool cond_code2 = rank == 0 || rank == 2;
@@ -330,8 +487,6 @@ main
   double *z_min = (double *) malloc(n_code * sizeof(double));
 
   CWP_Status_t *is_active_rank = (CWP_Status_t *) malloc(n_code * sizeof(CWP_Status_t));
-
-  MPI_Comm *intra_comms = (MPI_Comm *) malloc(n_code * sizeof(MPI_Comm));
 
   // Define which rank works for which code
   if (cond_both) {
@@ -388,112 +543,12 @@ main
   }
 
   // Init cwipi
-  CWP_Init(MPI_COMM_WORLD,
-           n_code,
-           (const char **) code_names,
-           is_active_rank,
-           time_init,
-           intra_comms);
+  CWP_client_Init(n_code,
+                  (const char **) code_names,
+                  is_active_rank,
+                  time_init);
 
   printf("%d --- CWIPI initialized\n", rank);
-
-  // Get the comm size and rank
-  int *intra_comm_rank = (int *) malloc(n_code * sizeof(int));
-  int *intra_comm_size = (int *) malloc(n_code * sizeof(int));
-
-  for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-    MPI_Comm_rank(intra_comms[i_code], &intra_comm_rank[i_code]);
-    MPI_Comm_size(intra_comms[i_code], &intra_comm_size[i_code]);
-    assert(intra_comm_size[i_code] > 0);
-  }
-
-  // Gather ranks and master ranks
-  int *ranks_on_code1 = (int *) malloc(comm_world_size * sizeof(int));
-  int *ranks_on_code2 = (int *) malloc(comm_world_size * sizeof(int));
-  int master_code1 = -1, master_code2 = -1, master_both = -1;
-
-  int comm_nb = 0;
-  if (cond_code1) {
-    MPI_Allgather(&rank, 1, MPI_INT, ranks_on_code1, 1, MPI_INT, intra_comms[0]);
-    MPI_Allreduce(&rank, &master_code1, 1, MPI_INT, MPI_MIN, intra_comms[0]);
-  }
-
-  if (cond_code2) {
-    if (n_code == 1) {
-      comm_nb = 0;
-    }
-    else if (n_code == 2) {
-      comm_nb = 1;
-    }
-
-    MPI_Allgather(&rank, 1, MPI_INT, ranks_on_code2, 1, MPI_INT, intra_comms[comm_nb]);
-    MPI_Allreduce(&rank, &master_code2, 1, MPI_INT, MPI_MIN, intra_comms[comm_nb]);
-  }
-
-  if (cond_both) {
-    for (int i = 0 ; i < intra_comm_size[0] ; ++i) {
-      for (int j = 0 ; j < intra_comm_size[1] ; ++j) {
-        if (ranks_on_code1[i] == ranks_on_code2[j]) {
-          master_both = ranks_on_code1[i];
-          break;
-        }
-      }
-    }
-  }
-
-  // Print the number and ranks for each code
-  if (rank == master_code1) {
-    printf("%d --- %d procs work for code %d (%.1f %%): ", rank, intra_comm_size[0], code_id[0], (double) intra_comm_size[0] / comm_world_size * 100);
-    for (int i = 0 ; i < intra_comm_size[0] ; ++i) {
-      printf("%d ", ranks_on_code1[i]);
-    }
-    printf("\n");
-  }
-
-  if (rank == master_code2) {
-    if (n_code == 1) {
-      comm_nb = 0;
-    }
-    else if (n_code == 2) {
-      comm_nb = 1;
-    }
-
-    printf("%d --- %d procs work for code %d (%.1f %%): ", rank, intra_comm_size[comm_nb], code_id[comm_nb], (double) intra_comm_size[comm_nb] / comm_world_size * 100);
-
-    for (int i = 0 ; i < intra_comm_size[comm_nb] ; ++i) {
-      printf("%d ", ranks_on_code2[i]);
-    }
-    printf("\n");
-  }
-
-  if (rank == master_both) {
-    int tmp_code1 = -1, tmp_code2 = -1;
-    int nb_both_codes = 0;
-    int *ranks_on_both = (int *) malloc(comm_world_size * sizeof(int));
-    for (int i = 0 ; i < comm_world_size ; ++i) {
-      for (int j = 0 ; j < intra_comm_size[0] ; ++j) {
-        if (i == ranks_on_code1[j]) {
-          tmp_code1 = i;
-        }
-      }
-      for (int j = 0 ; j < intra_comm_size[1] ; ++j) {
-        if (i == ranks_on_code2[j]) {
-          tmp_code2 = i;
-        }
-      }
-      if (tmp_code1 != -1 && tmp_code2 != -1) {
-        ranks_on_both[nb_both_codes++] = i;
-      }
-      tmp_code1 = -1;
-      tmp_code2 = -1;
-    }
-
-    printf("%d --- %d procs work for both codes (%.1f %%): ", rank, nb_both_codes, (double) nb_both_codes / comm_world_size * 100);
-    for (int i = 0 ; i < nb_both_codes ; ++i) {
-      printf("%d ", ranks_on_both[i]);
-    }
-    printf("\n");
-  }
 
   // Create coupling and visu
   const char *cpl_name = "c_new_api_disjoint_comms";
@@ -501,39 +556,28 @@ main
 
   for (int i_code = 0 ; i_code < n_code ; ++i_code) {
 
-    CWP_Cpl_create(code_names[i_code],
-                   cpl_name,
-                   coupled_code_names[i_code],
-                   CWP_INTERFACE_VOLUME,
-                   CWP_COMM_PAR_WITH_PART,
-                   interp_method,
-                   n_part,
-                   CWP_DYNAMIC_MESH_STATIC,
-                   CWP_TIME_EXCH_USER_CONTROLLED);
+    CWP_client_Cpl_create(code_names[i_code],
+                          cpl_name,
+                          coupled_code_names[i_code],
+                          CWP_INTERFACE_VOLUME,
+                          CWP_COMM_PAR_WITH_PART,
+                          interp_method,
+                          n_part,
+                          CWP_DYNAMIC_MESH_STATIC,
+                          CWP_TIME_EXCH_USER_CONTROLLED);
 
-    printf("%d (%d, %s) --- Coupling created between %s and %s\n", rank, intra_comm_rank[i_code], code_names[i_code], code_names[i_code], coupled_code_names[i_code]);
+    printf("%d --- Coupling created between %s and %s\n", rank, code_names[i_code], coupled_code_names[i_code]);
   }
 
   for (int i_code = 0 ; i_code < n_code ; ++i_code) {
 
-    CWP_Visu_set(code_names[i_code],
-                 cpl_name,
-                 1,
-                 CWP_VISU_FORMAT_ENSIGHT,
-                 "text");
+    CWP_client_Visu_set(code_names[i_code],
+                        cpl_name,
+                        1,
+                        CWP_VISU_FORMAT_ENSIGHT,
+                        "text");
 
-    printf("%d (%d, %s) --- Visu set\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-  }
-
-  // Create PDM communicators
-
-  PDM_MPI_Comm *pdm_intra_comms = (PDM_MPI_Comm *) malloc(n_code * sizeof(PDM_MPI_Comm));
-
-  for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-
-    pdm_intra_comms[i_code] = PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comms[i_code]);
-    printf("%d (%d, %s) --- PDM comm created\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-
+    printf("%d : %s --- Visu set\n", rank, code_names[i_code]);
   }
 
   // Create geometry
@@ -559,13 +603,24 @@ main
 
   PDM_Mesh_nodal_t **mesh_nodal = (PDM_Mesh_nodal_t **) malloc(n_code * sizeof(PDM_Mesh_nodal_t **));
 
+  // TO DO: create local comm to code using comm_split
+
+  PDM_MPI_Comm LocalComm;
+  int color;
+  if (cond_code2) {
+    color = 1;
+  } else {
+    color = 0;
+  }
+  PDM_MPI_Comm_split(comm, color, 0, &LocalComm);
+
   for (int i_code = 0 ; i_code < n_code ; ++i_code) {
 
     face_vtx_nb[i_code] = (PDM_l_num_t **) malloc(sizeof(PDM_l_num_t **) * n_part);
     cell_face_nb[i_code] = (PDM_l_num_t **) malloc(sizeof(PDM_l_num_t **) * n_part);
     connec[i_code] = (PDM_l_num_t **) malloc(sizeof(PDM_l_num_t **) * n_part);
 
-    create_dcube_from_nodal(pdm_intra_comms[i_code],
+    create_dcube_from_nodal(LocalComm,
                             element_type[i_code],
                             n_vtx_seg[i_code],
                             1.,
@@ -582,9 +637,9 @@ main
                             &vtx_ln_to_gn[i_code],
                             &cell_ln_to_gn[i_code]);
 
-    printf("%d (%d, %s) --- dcube created\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+    printf("%d : %s --- dcube created\n", rank, code_names[i_code]);
 
-    mesh_nodal[i_code] = PDM_Mesh_nodal_create(n_part, pdm_intra_comms[i_code]);
+    mesh_nodal[i_code] = PDM_Mesh_nodal_create(n_part, LocalComm);
 
     for (int i_part = 0 ; i_part < n_part ; ++i_part) {
       face_vtx_nb[i_code][i_part] = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t *) * n_faces[i_code][i_part]);
@@ -599,14 +654,14 @@ main
       }
 
       // Set coords
-      CWP_Mesh_interf_vtx_set(code_names[i_code],
-                              cpl_name,
-                              i_part,
-                              n_vtx[i_code][i_part],
-                              coord[i_code][i_part],
-                              vtx_ln_to_gn[i_code][i_part]);
+      CWP_client_Mesh_interf_vtx_set(code_names[i_code],
+                                     cpl_name,
+                                     i_part,
+                                     n_vtx[i_code][i_part],
+                                     coord[i_code][i_part],
+                                     vtx_ln_to_gn[i_code][i_part]);
 
-      printf("%d (%d, %s) --- Points set for part %d %d\n", rank, intra_comm_rank[i_code], code_names[i_code], i_part, n_vtx[i_code][i_part]);
+      printf("%d : %s --- Points set for part %d %d\n", rank, code_names[i_code], i_part, n_vtx[i_code][i_part]);
 
       // 1 - Set connectivities from nodal
 //        CWP_Mesh_interf_from_cellface_set(code_names[i_code], cpl_name, i_part, n_cells[i_code][i_part], cell_face_idx[i_code][i_part], cell_face[i_code][i_part],
@@ -642,23 +697,24 @@ main
         PDM_Mesh_nodal_g_num_in_block_compute(mesh_nodal[i_code], i_block, PDM_OWNERSHIP_USER);
         PDM_g_num_t *g_num = PDM_Mesh_nodal_block_g_num_get(mesh_nodal[i_code], i_block, i_part);
 
-        int block_id = CWP_Mesh_interf_block_add(code_names[i_code],
+        int block_id = CWP_client_Mesh_interf_block_add(code_names[i_code],
                                                  cpl_name,
                                                  element_type_cwp[i_code]);
 
-        CWP_Mesh_interf_block_std_set(code_names[i_code],
-                                      cpl_name,
-                                      i_part,
-                                      block_id,
-                                      n_cells[i_code][i_part],
-                                      connec[i_code][i_part],
-                                      g_num);
+        CWP_client_Mesh_interf_block_std_set(code_names[i_code],
+                                             cpl_name,
+                                             i_part,
+                                             block_id,
+                                             element_type_cwp[i_code],
+                                             n_cells[i_code][i_part],
+                                             connec[i_code][i_part],
+                                             g_num);
       }
     }
 
-    CWP_Mesh_interf_finalize(code_names[i_code], cpl_name);
+    CWP_client_Mesh_interf_finalize(code_names[i_code], cpl_name);
 
-    printf("%d (%d, %s) --- Geometry set\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+    printf("%d : %s --- Geometry set\n", rank, code_names[i_code]);
   }
 
   // Create and initialise Fields: code1 -> code2
@@ -696,82 +752,90 @@ main
 
     if (code_id[i_code] == 1) {
 
-      CWP_Field_create(code_names[i_code],
-                       cpl_name,
-                       field_name,
-                       CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_INTERLEAVED,
-                       3,
-                       CWP_DOF_LOCATION_NODE,
-                       exchDirection[0],
-                       CWP_STATUS_ON);
+      CWP_client_Field_create(code_names[i_code],
+                              cpl_name,
+                              field_name,
+                              CWP_DOUBLE,
+                              CWP_FIELD_STORAGE_INTERLEAVED,
+                              3,
+                              CWP_DOF_LOCATION_NODE,
+                              exchDirection[0],
+                              CWP_STATUS_ON);
 
       if (exchDirection[0] == CWP_FIELD_EXCH_SEND) {
 
-        CWP_Field_data_set(code_names[i_code],
-                           cpl_name,
-                           field_name,
-                           0,
-                           CWP_FIELD_MAP_SOURCE,
-                           send_values[i_code]);
+        CWP_client_Field_data_set(code_names[i_code],
+                                  cpl_name,
+                                  field_name,
+                                  0,
+                                  CWP_FIELD_MAP_SOURCE,
+                                  send_values[i_code],
+                                  3,
+                                  n_vtx[i_code][0]);
 
       }
 
       else {
 
-        CWP_Field_data_set(code_names[i_code],
-                           cpl_name,
-                           field_name,
-                           0,
-                           CWP_FIELD_MAP_TARGET,
-                           recv_values[i_code]);
+        CWP_client_Field_data_set(code_names[i_code],
+                                  cpl_name,
+                                  field_name,
+                                  0,
+                                  CWP_FIELD_MAP_TARGET,
+                                  recv_values[i_code],
+                                  3,
+                                  n_vtx[i_code][0]);
 
       }
     }
 
     if (code_id[i_code] == 2) {
 
-      CWP_Field_create(code_names[i_code],
-                       cpl_name,
-                       field_name,
-                       CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_INTERLEAVED,
-                       3,
-                       CWP_DOF_LOCATION_NODE,
-                       exchDirection[1],
-                       CWP_STATUS_ON);
+      CWP_client_Field_create(code_names[i_code],
+                              cpl_name,
+                              field_name,
+                              CWP_DOUBLE,
+                              CWP_FIELD_STORAGE_INTERLEAVED,
+                              3,
+                              CWP_DOF_LOCATION_NODE,
+                              exchDirection[1],
+                              CWP_STATUS_ON);
 
       if (exchDirection[1] == CWP_FIELD_EXCH_RECV) {
 
-        CWP_Field_data_set(code_names[i_code],
-                           cpl_name,
-                           field_name,
-                           0,
-                           CWP_FIELD_MAP_TARGET,
-                           recv_values[i_code]);
+        CWP_client_Field_data_set(code_names[i_code],
+                                  cpl_name,
+                                  field_name,
+                                  0,
+                                  CWP_FIELD_MAP_TARGET,
+                                  recv_values[i_code],
+                                  3,
+                                  n_vtx[i_code][0]);
       }
 
       else {
 
-        CWP_Field_data_set(code_names[i_code],
-                           cpl_name,
-                           field_name,
-                           0,
-                           CWP_FIELD_MAP_SOURCE,
-                           send_values[i_code]);
+        CWP_client_Field_data_set(code_names[i_code],
+                                  cpl_name,
+                                  field_name,
+                                  0,
+                                  CWP_FIELD_MAP_SOURCE,
+                                  send_values[i_code],
+                                  3,
+                                  n_vtx[i_code][0]);
       }
     }
-    printf("%d (%d, %s) --- Field created and data set\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+    printf("%d : %s --- Field created and data set\n", rank, code_names[i_code]);
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
+  PDM_MPI_Barrier(comm);
 
   // Compute weights
   for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-    printf("%d (%d, %s) --- Weights computed\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+    printf("%d : %s --- Weights computed\n", rank, code_names[i_code]);
     fflush(stdout);
 
-    CWP_Spatial_interp_weights_compute(code_names[i_code], cpl_name);
+    CWP_client_Spatial_interp_weights_compute(code_names[i_code], cpl_name);
 
   }
 
@@ -781,22 +845,22 @@ main
   if (exchDirection[0] == CWP_FIELD_EXCH_SEND) {
     if (cond_code2) {
 
-      n_computed_tgts = CWP_N_computed_tgts_get("code2", cpl_name, field_name, 0);
-      n_uncomputed_tgts = CWP_N_uncomputed_tgts_get("code2", cpl_name, field_name, 0);
-      computed_tgts = CWP_Computed_tgts_get("code2", cpl_name, field_name, 0);
-      uncomputed_tgts = CWP_Uncomputed_tgts_get("code2", cpl_name, field_name, 0);
+      n_computed_tgts = CWP_client_N_computed_tgts_get("code2", cpl_name, field_name, 0);
+      n_uncomputed_tgts = CWP_client_N_uncomputed_tgts_get("code2", cpl_name, field_name, 0);
+      computed_tgts = CWP_client_Computed_tgts_get("code2", cpl_name, field_name, 0);
+      uncomputed_tgts = CWP_client_Uncomputed_tgts_get("code2", cpl_name, field_name, 0);
 
       int i_code = n_code == 2 ? 1 : 0;
 
-      printf("%d (%d, %s) --- n computed targets: %d\n", rank, intra_comm_rank[i_code], code_names[i_code], n_computed_tgts);
-      printf("%d (%d, %s) --- n uncomputed targets: %d\n", rank, intra_comm_rank[i_code], code_names[i_code], n_uncomputed_tgts);
+      printf("%d : %s --- n computed targets: %d\n", rank, code_names[i_code], n_computed_tgts);
+      printf("%d : %s --- n uncomputed targets: %d\n", rank, code_names[i_code], n_uncomputed_tgts);
       if (n_computed_tgts != 0) {
-        printf("%d (%d, %s) --- computed targets: ", rank, intra_comm_rank[i_code], code_names[i_code]);
+        printf("%d : %s --- computed targets: ", rank, code_names[i_code]);
         for (int i = 0 ; i < n_computed_tgts ; ++i) printf("%d ", computed_tgts[i]);
         printf("\n");
       }
       if (n_uncomputed_tgts != 0) {
-        printf("%d (%d, %s) --- uncomputed targets: ", rank, intra_comm_rank[i_code], code_names[i_code]);
+        printf("%d : %s --- uncomputed targets: ", rank, code_names[i_code]);
         for (int i = 0 ; i < n_uncomputed_tgts ; ++i) printf("%d ", uncomputed_tgts[i]);
         printf("\n");
       }
@@ -804,14 +868,14 @@ main
 
     if (cond_code1) {
 
-      n_involved_srcs = CWP_N_involved_srcs_get("code1", cpl_name, field_name, 0);
-      involved_srcs = CWP_Involved_srcs_get("code1", cpl_name, field_name, 0);
+      n_involved_srcs = CWP_client_N_involved_srcs_get("code1", cpl_name, field_name, 0);
+      involved_srcs = CWP_client_Involved_srcs_get("code1", cpl_name, field_name, 0);
 
       int i_code = n_code == 2 ? 1 : 0;
 
-      printf("%d (%d, %s) --- n involved sources: %d\n", rank, intra_comm_rank[i_code], code_names[i_code], n_involved_srcs);
+      printf("%d : %s --- n involved sources: %d\n", rank, code_names[i_code], n_involved_srcs);
       if (n_involved_srcs != 0) {
-        printf("%d (%d, %s) --- involved sources: ", rank, intra_comm_rank[i_code], code_names[i_code]);
+        printf("%d : %s --- involved sources: ", rank, code_names[i_code]);
         for (int i = 0 ; i < n_involved_srcs ; ++i) printf("%d ", involved_srcs[i]);
         printf("\n");
       }
@@ -820,20 +884,20 @@ main
   else {
     if (cond_code1) {
 
-      n_computed_tgts = CWP_N_computed_tgts_get("code1", cpl_name, field_name, 0);
-      n_uncomputed_tgts = CWP_N_uncomputed_tgts_get("code1", cpl_name, field_name, 0);
-      computed_tgts = CWP_Computed_tgts_get("code1", cpl_name, field_name, 0);
-      uncomputed_tgts = CWP_Uncomputed_tgts_get("code1", cpl_name, field_name, 0);
+      n_computed_tgts = CWP_client_N_computed_tgts_get("code1", cpl_name, field_name, 0);
+      n_uncomputed_tgts = CWP_client_N_uncomputed_tgts_get("code1", cpl_name, field_name, 0);
+      computed_tgts = CWP_client_Computed_tgts_get("code1", cpl_name, field_name, 0);
+      uncomputed_tgts = CWP_client_Uncomputed_tgts_get("code1", cpl_name, field_name, 0);
 
-      printf("%d (%d, %s) --- n computed targets: %d\n", rank, intra_comm_rank[0], code_names[0], n_computed_tgts);
-      printf("%d (%d, %s) --- n uncomputed targets: %d\n", rank, intra_comm_rank[0], code_names[0], n_uncomputed_tgts);
+      printf("%d : %s --- n computed targets: %d\n", rank, code_names[0], n_computed_tgts);
+      printf("%d : %s --- n uncomputed targets: %d\n", rank, code_names[0], n_uncomputed_tgts);
       if (n_computed_tgts != 0) {
-        printf("%d (%d, %s) --- computed targets: ", rank, intra_comm_rank[0], code_names[0]);
+        printf("%d : %s --- computed targets: ", rank, code_names[0]);
         for (int i = 0 ; i < n_computed_tgts ; ++i) printf("%d ", computed_tgts[i]);
         printf("\n");
       }
       if (n_uncomputed_tgts != 0) {
-        printf("%d (%d, %s) --- uncomputed targets: ", rank, intra_comm_rank[0], code_names[0]);
+        printf("%d : %s --- uncomputed targets: ", rank, code_names[0]);
         for (int i = 0 ; i < n_uncomputed_tgts ; ++i) printf("%d ", uncomputed_tgts[i]);
         printf("\n");
       }
@@ -846,9 +910,9 @@ main
 
       int i_code = n_code == 2 ? 1 : 0;
 
-      printf("%d (%d, %s) --- n involved sources: %d\n", rank, intra_comm_rank[i_code], code_names[i_code], n_involved_srcs);
+      printf("%d : %s --- n involved sources: %d\n", rank, code_names[i_code], n_involved_srcs);
       if (n_involved_srcs != 0) {
-        printf("%d (%d, %s) --- involved sources: ", rank, intra_comm_rank[i_code], code_names[i_code]);
+        printf("%d : %s --- involved sources: ", rank, code_names[i_code]);
         for (int i = 0 ; i < n_involved_srcs ; ++i) printf("%d ", involved_srcs[i]);
         printf("\n");
       }
@@ -856,119 +920,97 @@ main
   }
 
 
-  // Send and receive field
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    if (code_id[i_code] == 2) {
-      if (exchDirection[1] == CWP_FIELD_EXCH_SEND) {
-
-        CWP_Field_issend(code_names[i_code], cpl_name, field_name);
-
-        printf("%d (%d, %s) --- Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-      }
-      else {
-
-        CWP_Field_irecv(code_names[i_code], cpl_name, field_name);
-
-        printf("%d (%d, %s) --- Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-      }
-    }
-
-    if (code_id[i_code] == 1) {
-      if (exchDirection[0] == CWP_FIELD_EXCH_SEND) {
-
-        CWP_Field_issend(code_names[i_code], cpl_name, field_name);
-
-        printf("%d (%d, %s) --- Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-      }
-      else {
-
-        CWP_Field_irecv(code_names[i_code], cpl_name, field_name);
-
-        printf("%d (%d, %s) --- Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-      }
-    }
-  }
-
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    if (code_id[i_code] == 2) {
-      if (exchDirection[1] == CWP_FIELD_EXCH_RECV) {
-
-        CWP_Field_wait_irecv(code_names[i_code], cpl_name, field_name);
-
-        printf("%d (%d, %s) --- wait Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-      }
-      else {
-
-        CWP_Field_wait_issend(code_names[i_code], cpl_name, field_name);
-
-        printf("%d (%d, %s) --- wait Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-      }
-    }
-    if (code_id[i_code] == 1) {
-      if (exchDirection[0] == CWP_FIELD_EXCH_RECV) {
-
-        CWP_Field_wait_irecv(code_names[i_code], cpl_name, field_name);
-
-        printf("%d (%d, %s) --- wait Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-      }
-      else {
-
-        CWP_Field_wait_issend(code_names[i_code], cpl_name, field_name);
-
-        printf("%d (%d, %s) --- wait Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
-      }
-    }
-  }
-
-  for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-    if (code_id[i_code] == 2 && (exchDirection[1] == CWP_FIELD_EXCH_RECV)) {
-      for (int i = 0 ; i < n_computed_tgts ; i++) {
-        printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
-      }
-    }
-    if (code_id[i_code] == 1 && (exchDirection[0] == CWP_FIELD_EXCH_RECV)) {
-      for (int i = 0 ; i < n_computed_tgts ; i++) {
-        printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
-      }
-    }
-  }
-
+  // // Send and receive field
   // for (int i_code = 0 ; i_code < n_code ; i_code++) {
-  //     if (code_id[i_code] == 2) {
-  //         CWP_Field_irecv(code_names[i_code], cpl_name, field_name);
-  //         printf("%d (%d, %s) --- Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+  //   if (code_id[i_code] == 2) {
+  //     if (exchDirection[1] == CWP_FIELD_EXCH_SEND) {
+
+  //       CWP_client_Field_issend(code_names[i_code], cpl_name, field_name);
+
+  //       printf("%d : %s --- Sent field\n", rank, code_names[i_code]);
   //     }
-  //     if (code_id[i_code] == 1) {
-  //         CWP_Field_issend(code_names[i_code], cpl_name, field_name);
-  //         printf("%d (%d, %s) --- Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+  //     else {
+
+  //       CWP_client_Field_irecv(code_names[i_code], cpl_name, field_name);
+
+  //       printf("%d : %s --- Received field\n", rank, code_names[i_code]);
   //     }
+  //   }
+
+  //   if (code_id[i_code] == 1) {
+  //     if (exchDirection[0] == CWP_FIELD_EXCH_SEND) {
+
+  //       CWP_client_Field_issend(code_names[i_code], cpl_name, field_name);
+
+  //       printf("%d : %s --- Sent field\n", rank, code_names[i_code]);
+  //     }
+  //     else {
+
+  //       CWP_client_Field_irecv(code_names[i_code], cpl_name, field_name);
+
+  //       printf("%d : %s --- Received field\n", rank, code_names[i_code]);
+  //     }
+  //   }
   // }
 
   // for (int i_code = 0 ; i_code < n_code ; i_code++) {
-  //     if (code_id[i_code] == 1) {
-  //         CWP_Field_wait_issend(code_names[i_code], cpl_name, field_name);
-  //         printf("%d (%d, %s) --- Sent field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+  //   if (code_id[i_code] == 2) {
+  //     if (exchDirection[1] == CWP_FIELD_EXCH_RECV) {
+
+  //       CWP_client_Field_wait_irecv(code_names[i_code], cpl_name, field_name);
+
+  //       printf("%d : %s --- wait Received field\n", rank, code_names[i_code]);
   //     }
-  //     if (code_id[i_code] == 2) {
-  //         CWP_Field_wait_irecv(code_names[i_code], cpl_name, field_name);
-  //         printf("%d (%d, %s) --- Received field\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+  //     else {
+
+  //       CWP_client_Field_wait_issend(code_names[i_code], cpl_name, field_name);
+
+  //       printf("%d : %s --- wait Sent field\n", rank, code_names[i_code]);
   //     }
+  //   }
+  //   if (code_id[i_code] == 1) {
+  //     if (exchDirection[0] == CWP_FIELD_EXCH_RECV) {
+
+  //       CWP_client_Field_wait_irecv(code_names[i_code], cpl_name, field_name);
+
+  //       printf("%d : %s --- wait Received field\n", rank, code_names[i_code]);
+  //     }
+  //     else {
+
+  //       CWP_client_Field_wait_issend(code_names[i_code], cpl_name, field_name);
+
+  //       printf("%d : %s --- wait Sent field\n", rank, code_names[i_code]);
+  //     }
+  //   }
+  // }
+
+  // for (int i_code = 0 ; i_code < n_code ; ++i_code) {
+  //   if (code_id[i_code] == 2 && (exchDirection[1] == CWP_FIELD_EXCH_RECV)) {
+  //     for (int i = 0 ; i < n_computed_tgts ; i++) {
+  //       printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
+  //     }
+  //   }
+  //   if (code_id[i_code] == 1 && (exchDirection[0] == CWP_FIELD_EXCH_RECV)) {
+  //     for (int i = 0 ; i < n_computed_tgts ; i++) {
+  //       printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
+  //     }
+  //   }
   // }
 
   // Delete interf
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
 
-    CWP_Mesh_interf_del(code_names[i_code], cpl_name);
+    CWP_client_Mesh_interf_del(code_names[i_code], cpl_name);
 
-    printf("%d (%d, %s) --- Interface deleted\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+    printf("%d : %s --- Interface deleted\n", rank, code_names[i_code]);
   }
 
   // Delete coupling
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
 
-    CWP_Cpl_del(code_names[i_code], cpl_name);
+    CWP_client_Cpl_del(code_names[i_code], cpl_name);
 
-    printf("%d (%d, %s) --- Coupling deleted\n", rank, intra_comm_rank[i_code], code_names[i_code]);
+    printf("%d : %s --- Coupling deleted\n", rank, code_names[i_code]);
   }
 
   free(element_type);
@@ -976,9 +1018,10 @@ main
 
   //Finalize cwipi
 
-  CWP_Finalize();
+  CWP_client_Finalize();
   printf("%d --- CWIPI finalized\n", rank);
 
-  MPI_Finalize();
-  exit(0);
+  PDM_MPI_Finalize();
+
+  return 0;
 }
