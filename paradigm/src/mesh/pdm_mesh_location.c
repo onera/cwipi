@@ -1983,14 +1983,21 @@ static void _pmesh_nodal_elmts_free
 static PDM_part_mesh_nodal_elmts_t *
 _mesh_nodal_to_pmesh_nodal_elmts
 (
- PDM_Mesh_nodal_t *mesh_nodal
- )
+ PDM_Mesh_nodal_t *mesh_nodal,
+ PDM_MPI_Comm     location_comm
+)
 {
   PDM_part_mesh_nodal_elmts_t *pmne = NULL;
 
-  int  n_block   = PDM_Mesh_nodal_n_blocks_get (mesh_nodal);
-  int  n_part    = PDM_Mesh_nodal_n_part_get   (mesh_nodal);
-  int *blocks_id = PDM_Mesh_nodal_blocks_id_get(mesh_nodal);
+  int  n_block   = 0; 
+  int  n_part    = 0;
+  int *blocks_id = NULL;
+
+  if (mesh_nodal != NULL) {
+    n_block   = PDM_Mesh_nodal_n_blocks_get (mesh_nodal);
+    n_part    = PDM_Mesh_nodal_n_part_get   (mesh_nodal);
+    blocks_id = PDM_Mesh_nodal_blocks_id_get(mesh_nodal);
+  }
 
   /* Infer mesh dimension from mesh_nodal */
   int has_dim[4] = {0, 0, 0, 0};
@@ -2016,11 +2023,15 @@ _mesh_nodal_to_pmesh_nodal_elmts
     }
   }
 
+
+  int max_mesh_dimension = 0;
+  PDM_MPI_Allreduce (&mesh_dimension, &max_mesh_dimension, 1, PDM_MPI_INT, PDM_MPI_MAX, location_comm);
+
   // log_trace("mesh_dimension = %d", mesh_dimension);
 
-  pmne = PDM_part_mesh_nodal_elmts_create(mesh_dimension,
+  pmne = PDM_part_mesh_nodal_elmts_create(max_mesh_dimension,
                                           n_part,
-                                          mesh_nodal->pdm_mpi_comm);
+                                          location_comm);
 
   pmne->n_section        = n_block;
   pmne->n_section_std    = 0;
@@ -6954,7 +6965,8 @@ PDM_mesh_location_compute_optim
    */
 
   /* Create dummy part_mesh_nodal */
-  PDM_part_mesh_nodal_elmts_t *pmne = _mesh_nodal_to_pmesh_nodal_elmts(ml->mesh_nodal);
+
+  PDM_part_mesh_nodal_elmts_t *pmne = _mesh_nodal_to_pmesh_nodal_elmts(ml->mesh_nodal, ml->comm);
 
   /* Build the bounding boxes of all mesh elements
     (concatenate nodal blocks for each part) */
@@ -7380,12 +7392,12 @@ PDM_mesh_location_compute_optim
         log_trace("point cloud extraction %d / %d\n", l_n_pts[1], l_n_pts[0]);
       }
 
-      select_pts_g_num_user    = malloc(n_part * sizeof(PDM_g_num_t * ));
-      select_pts_coord         = malloc(n_part * sizeof(double      * ));
-      select_pts_init_location = malloc(n_part * sizeof(int         * ));
+      select_pts_g_num_user    = malloc(pcloud->n_part * sizeof(PDM_g_num_t * ));
+      select_pts_coord         = malloc(pcloud->n_part * sizeof(double      * ));
+      select_pts_init_location = malloc(pcloud->n_part * sizeof(int         * ));
 
       // Just extract gnum
-      for (int ipart = 0; ipart < n_part; ipart++) {
+      for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
         select_pts_g_num_user   [ipart] = malloc(    n_select_pts[ipart] * sizeof(PDM_g_num_t));
         select_pts_coord        [ipart] = malloc(3 * n_select_pts[ipart] * sizeof(double     ));
         select_pts_init_location[ipart] = malloc(3 * n_select_pts[ipart] * sizeof(int        ));
@@ -7414,8 +7426,8 @@ PDM_mesh_location_compute_optim
       select_pts_g_num_user   = pcloud->gnum;
       select_pts_coord        = pcloud->coords;
 
-      select_pts_init_location = malloc(n_part * sizeof(int         * ));
-      for (int ipart = 0; ipart < n_part; ipart++) {
+      select_pts_init_location = malloc(pcloud->n_part * sizeof(int         * ));
+      for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
         select_pts_init_location[ipart] = malloc(3 * n_select_pts[ipart] * sizeof(int        ));
         for (int i = 0; i < n_select_pts[ipart]; i++) {
           select_pts_init_location[ipart][3*i  ] = i_rank;
@@ -7510,7 +7522,7 @@ PDM_mesh_location_compute_optim
 
     /* Compute global number of selected elements */
     PDM_g_num_t l_n_elt[2] = {0, 0};
-    for (int ipart = 0; ipart < pcloud->n_part; ipart++) {
+    for (int ipart = 0; ipart < n_part; ipart++) {
       int n_elt = PDM_Mesh_nodal_n_cell_get(ml->mesh_nodal,
                                             ipart);
       l_n_elt[0] += n_elt;
