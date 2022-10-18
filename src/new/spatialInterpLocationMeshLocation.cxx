@@ -307,7 +307,7 @@ namespace cwipi {
   (
   ) 
   {
-    int _pdm_location_optim = 1;
+    int _pdm_location_optim = 0;
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
