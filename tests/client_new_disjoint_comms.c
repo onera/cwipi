@@ -684,6 +684,7 @@ main
                                          face_vtx_idx[i_code][i_part],
                                          face_vtx_nb[i_code][i_part],
                                          face_vtx[i_code][i_part],
+                                         NULL,
                                          cell_face_idx[i_code][i_part],
                                          cell_face_nb[i_code][i_part],
                                          cell_face[i_code][i_part],
