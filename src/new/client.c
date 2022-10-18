@@ -438,6 +438,8 @@ CWP_client_Param_get
   CWP_swap_endian_4bytes(&endian_data_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_data_type, sizeof(CWP_Type_t));
 
+  printf("--> send done client side\n");
+
   // receive value
   switch (data_type) {
 
@@ -605,15 +607,15 @@ CWP_client_Param_list_get
 
   // verbose
   if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Param_n_get\n");
+    log_trace("CWP:Client initiating CWP_Param_list_get\n");
   }
 
   // create message
-  NEWMESSAGE(msg, CWP_MSG_CWP_PARAM_N_GET);
+  NEWMESSAGE(msg, CWP_MSG_CWP_PARAM_LIST_GET);
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_n_get failed to send message header\n");
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_list_get failed to send message header\n");
   }
 
   // send local code name
@@ -628,7 +630,7 @@ CWP_client_Param_list_get
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) nParam, sizeof(int));
 
   // read param names
-  *paramNames = malloc(sizeof(*nParam));
+  *paramNames = malloc(sizeof(char *) * (*nParam));
   for (int i = 0; i < *nParam; i++) {
     (*paramNames)[i] = malloc(sizeof(char));
     read_name(&(*paramNames)[i]);
