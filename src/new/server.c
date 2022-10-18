@@ -1299,9 +1299,6 @@ CWP_server_Spatial_interp_property_set
   // free
   free(local_code_name);
   free(cpl_id);
-  free(property_name);
-  free(property_type);
-  free(property_value);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -1333,8 +1330,8 @@ CWP_server_User_tgt_pts_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_pts, sizeof(int));
 
   // read coord
-  double *coord = malloc(sizeof(double) * n_pts);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coord, sizeof(double) * n_pts);
+  double *coord = malloc(sizeof(double) * 3 * n_pts);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coord, sizeof(double) * 3 * n_pts);
 
   // read global_num
   CWP_g_num_t *global_num = malloc(sizeof(CWP_g_num_t) * n_pts);
@@ -1351,8 +1348,6 @@ CWP_server_User_tgt_pts_set
   // free
   free(local_code_name);
   free(cpl_id);
-  free(coord);
-  free(global_num);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -1413,8 +1408,8 @@ CWP_server_Mesh_interf_vtx_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_pts, sizeof(int));
 
   // read coord
-  double *coord = malloc(sizeof(double) * n_pts);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coord, sizeof(double) * n_pts);
+  double *coord = malloc(sizeof(double) * 3 * n_pts);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coord, sizeof(double) * 3 * n_pts);
 
   // read global_num
   CWP_g_num_t *global_num = malloc(sizeof(CWP_g_num_t) * n_pts);
@@ -1431,8 +1426,6 @@ CWP_server_Mesh_interf_vtx_set
   // free
   free(local_code_name);
   free(cpl_id);
-  free(coord);
-  free(global_num);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -1528,8 +1521,6 @@ CWP_server_Mesh_interf_block_std_set
   // free
   free(local_code_name);
   free(cpl_id);
-  free(connec);
-  free(global_num);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -1589,9 +1580,6 @@ CWP_server_Mesh_interf_f_poly_block_set
   // free
   free(local_code_name);
   free(cpl_id);
-  free(connec_idx);
-  free(connec);
-  free(global_num);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -1729,11 +1717,6 @@ CWP_server_Mesh_interf_c_poly_block_set
   // free
   free(local_code_name);
   free(cpl_id);
-  free(connec_faces_idx);
-  free(connec_faces);
-  free(connec_cells_idx);
-  free(connec_cells);
-  free(global_num);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -1912,11 +1895,6 @@ CWP_server_Mesh_interf_from_cellface_set
   // free
   free(local_code_name);
   free(cpl_id);
-  free(cell_face_idx);
-  free(cell_face);
-  free(face_vtx_idx);
-  free(face_vtx);
-  free(global_num);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -1986,11 +1964,6 @@ CWP_server_Mesh_interf_from_faceedge_set
   // free
   free(local_code_name);
   free(cpl_id);
-  free(face_edge_idx);
-  free(face_edge);
-  free(edge_vtx_idx);
-  free(edge_vtx);
-  free(global_num);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -2107,8 +2080,6 @@ CWP_server_Field_data_set
   // free
   free(local_code_name);
   free(cpl_id);
-  free(field_id);
-  free(data);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -2994,11 +2965,11 @@ CWP_server_msg_handler
 
     // verbose
     if (svr->flags & CWP_SVRFLAG_VERBOSE) {
-      log_trace("CWP: server received CWP_User_tgt_pts_set signal\n");
+      log_trace("CWP: server received CWP_Spatial_interp_property_set signal\n");
     }
 
     // launch
-    CWP_server_User_tgt_pts_set(svr);
+    CWP_server_Spatial_interp_property_set(svr);
 
     break;
 
@@ -3006,11 +2977,11 @@ CWP_server_msg_handler
 
     // verbose
     if (svr->flags & CWP_SVRFLAG_VERBOSE) {
-      log_trace("CWP: server received CWP_Spatial_interp_property_set signal\n");
+      log_trace("CWP: server received CWP_User_tgt_pts_set signal\n");
     }
 
     // launch
-    CWP_server_Spatial_interp_property_set(svr);
+    CWP_server_User_tgt_pts_set(svr);
 
     break;
 
@@ -3361,7 +3332,6 @@ CWP_server_run
   }
 
   t_message msg;
-  int count = 0;
 
   while (svr->state != CWP_SVRSTATE_TERMINATING) {
 
@@ -3371,8 +3341,6 @@ CWP_server_run
       PDM_error(__FILE__, __LINE__, 0, "Server message handling failed\n");
       return -1;
     }
-
-    count++;
 
   }
 

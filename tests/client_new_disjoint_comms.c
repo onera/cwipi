@@ -603,7 +603,7 @@ main
 
   PDM_Mesh_nodal_t **mesh_nodal = (PDM_Mesh_nodal_t **) malloc(n_code * sizeof(PDM_Mesh_nodal_t **));
 
-  // TO DO: create local comm to code using comm_split
+  // Create local comm to code using comm_split
 
   PDM_MPI_Comm LocalComm;
   int color;
@@ -698,8 +698,8 @@ main
         PDM_g_num_t *g_num = PDM_Mesh_nodal_block_g_num_get(mesh_nodal[i_code], i_block, i_part);
 
         int block_id = CWP_client_Mesh_interf_block_add(code_names[i_code],
-                                                 cpl_name,
-                                                 element_type_cwp[i_code]);
+                                                        cpl_name,
+                                                        element_type_cwp[i_code]);
 
         CWP_client_Mesh_interf_block_std_set(code_names[i_code],
                                              cpl_name,

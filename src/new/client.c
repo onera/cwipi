@@ -1592,15 +1592,15 @@ CWP_client_Mesh_interf_finalize
 
   // verbose
   if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_User_tgt_pts_set\n");
+    log_trace("CWP:Client initiating CWP_Mesh_interf_finalize\n");
   }
 
   // create message
-  NEWMESSAGE(msg, CWP_MSG_CWP_USER_TGT_PTS_SET);
+  NEWMESSAGE(msg, CWP_MSG_CWP_MESH_INTERF_FINALIZE);
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_User_tgt_pts_set failed to send message header\n");
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_finalize failed to send message header\n");
   }
 
   // send local code name
@@ -1707,6 +1707,8 @@ CWP_client_Mesh_interf_block_add
   // read block identifier
   int block_id = -2;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &block_id, sizeof(int));
+
+  return block_id;
 }
 
 void
