@@ -1248,9 +1248,13 @@ CWP_server_Spatial_interp_weights_compute
   char *cpl_id = malloc(sizeof(char));
   read_name(&cpl_id, svr);
 
+  printf("received mandatory data\n");
+
   // launch
   CWP_Spatial_interp_weights_compute(local_code_name,
                                      cpl_id);
+
+  printf("launched\n");
 
   // free
   free(local_code_name);
