@@ -3294,7 +3294,7 @@ CWP_server_run
 )
 {
   struct sockaddr_in client_addr;
-  socklen_t sin_size;
+  socklen_t sin_size = 0;
   int il_sv_endian;
   int il_cl_endian;
 
