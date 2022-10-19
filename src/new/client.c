@@ -739,7 +739,7 @@ CWP_client_Param_reduce
 
   case CWP_CHAR: ;
     res = malloc(sizeof(char));
-    read_name(&res);
+    read_name((char **) &res);
     break;
 
   default:
@@ -1580,6 +1580,10 @@ CWP_client_User_tgt_pts_set
     CWP_swap_endian_8bytes(endian_global_num, n_pts);
   }
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_pts);
+
+  // free
+  free(endian_coord);
+  free(endian_global_num);
 }
 
 void
@@ -1669,6 +1673,10 @@ CWP_client_Mesh_interf_vtx_set
     CWP_swap_endian_8bytes(endian_global_num, n_pts);
   }
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_pts);
+
+  // free
+  free(endian_coord);
+  free(endian_global_num);
 }
 
 int
@@ -1784,6 +1792,10 @@ CWP_client_Mesh_interf_block_std_set
     CWP_swap_endian_8bytes(endian_global_num, n_elts);
   }
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_elts);
+
+  // free
+  free(endian_connec);
+  free(endian_global_num);
 }
 
 void
@@ -1857,6 +1869,11 @@ CWP_client_Mesh_interf_f_poly_block_set
     CWP_swap_endian_8bytes(endian_global_num, n_elts);
   }
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_elts);
+
+  // free
+  free(endian_connec_idx);
+  free(endian_connec);
+  free(endian_global_num);
 }
 
 void
@@ -2007,6 +2024,13 @@ CWP_client_Mesh_interf_c_poly_block_set
     CWP_swap_endian_8bytes(endian_global_num, n_elts);
   }
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_elts);
+
+  // free
+  free(endian_connec_faces_idx);
+  free(endian_connec_faces);
+  free(endian_connec_cells_idx);
+  free(endian_connec_cells);
+  free(endian_global_num);
 }
 
 void
@@ -2192,6 +2216,13 @@ CWP_client_Mesh_interf_from_cellface_set
     CWP_swap_endian_8bytes(endian_global_num, n_cells);
   }
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_cells);
+
+  // free
+  free(endian_cell_face_idx);
+  free(endian_cell_face);
+  free(endian_face_vtx_idx);
+  free(endian_face_vtx);
+  free(endian_global_num);
 }
 
 void
@@ -2201,12 +2232,12 @@ CWP_client_Mesh_interf_from_faceedge_set
  const char           *cpl_id,
  const int             i_part,
  const int             n_faces,
- int             face_edge_idx[],
- int             face_edge[],
+ int                   face_edge_idx[],
+ int                   face_edge[],
  const int             n_edges,
- int             edge_vtx_idx[],
- int             edge_vtx[],
- CWP_g_num_t     global_num[]
+ int                   edge_vtx_idx[],
+ int                   edge_vtx[],
+ CWP_g_num_t           global_num[]
 )
 {
   t_message msg;
@@ -2279,6 +2310,13 @@ CWP_client_Mesh_interf_from_faceedge_set
     CWP_swap_endian_8bytes(endian_global_num, n_faces);
   }
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_faces);
+
+  // free
+  free(endian_face_edge_idx);
+  free(endian_face_edge);
+  free(endian_edge_vtx_idx);
+  free(endian_edge_vtx);
+  free(endian_global_num);
 }
 
 void
@@ -2406,6 +2444,9 @@ CWP_client_Field_data_set
   memcpy(endian_data, data, sizeof(double) * size);
   CWP_swap_endian_8bytes(endian_data, size);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_data, sizeof(double) * size);
+
+  // free
+  free(endian_data);
 }
 
 int
@@ -2442,7 +2483,7 @@ CWP_client_Field_n_component_get
 
   // read number of components
   int n_components = -1;
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, n_components, sizeof(int));
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, &n_components, sizeof(int));
 
   return n_components;
 }
@@ -2481,7 +2522,7 @@ CWP_client_Field_target_dof_location_get
 
   // read location of target degrees of freedom
   int dof_location = -1;
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, dof_location, sizeof(int));
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, &dof_location, sizeof(int));
 
   return dof_location;
 }
@@ -2520,7 +2561,7 @@ CWP_client_Field_storage_get
 
   // read field storage type
   int storage_type = -1;
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, storage_type, sizeof(int));
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, &storage_type, sizeof(int));
 
   return storage_type;
 }

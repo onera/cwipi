@@ -196,7 +196,7 @@ main
   char div[] = "/";
   char *str = strtok(data, div);
   char *server_name = malloc(strlen(str)+1);
-  memcpy(server_name, str, strlen(str));
+  memcpy(server_name, str, strlen(str)+1);
   str = strtok(NULL, div);
   int server_port = atoi(str);
 
