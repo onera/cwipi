@@ -96,9 +96,9 @@ CWP_server_Init
 )
 {
   int            n_code;
-  char         **code_names = NULL;
+  char         **code_names     = NULL;
   CWP_Status_t  *is_active_rank = NULL;
-  double        *time_init = NULL;
+  double        *time_init      = NULL;
 
   // receive data
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -289,18 +289,13 @@ CWP_server_Param_get
 
   case CWP_DOUBLE: ;
     double double_value;
-    printf("--> start get double\n");
 
     CWP_Param_get(local_code_name,
                   param_name,
                   data_type,
                   &double_value);
 
-    printf("--> get double\n");
-
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,(void*) &double_value, sizeof(double));
-
-    printf("--> send double\n");
     break;
 
   case CWP_INT: ;
@@ -310,11 +305,7 @@ CWP_server_Param_get
                   data_type,
                   &int_value);
 
-    printf("--> get int\n");
-
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,(void*) &int_value, sizeof(int));
-
-     printf("--> send int\n");
     break;
 
   case CWP_CHAR: ;
@@ -324,11 +315,7 @@ CWP_server_Param_get
                   data_type,
                   &char_value);
 
-    printf("--> get char\n");
-
     write_name(char_value, svr);
-
-    printf("--> send char\n");
     break;
 
   default:
@@ -418,8 +405,6 @@ CWP_server_Param_del
   CWP_Type_t data_type = -1;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &data_type, sizeof(CWP_Type_t));
 
-  printf("là je vais del %s\n", param_name);
-
   // launch
   CWP_Param_del(local_code_name,
                 param_name,
@@ -450,8 +435,6 @@ CWP_server_Param_n_get
   int n_param = CWP_Param_n_get(code_name,
                                 data_type);
 
-  printf("server n_param = %d pour le code %s\n", n_param, code_name);
-
   // send n_param
   svr->state=CWP_SVRSTATE_SENDPGETDATA;
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &n_param, sizeof(int));
@@ -468,20 +451,14 @@ CWP_server_Param_list_get
   // wait all ranks have receive msg
   MPI_Barrier(svr->intra_comms[0]);
 
-  printf("tout est envoyé par le client, là je suis dans le serveur\n");
-
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
   char *code_name = malloc(sizeof(char));
   read_name(&code_name, svr);
 
-  printf("code name reçu\n");
-
   // read data type
   CWP_Type_t data_type = -1;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &data_type, sizeof(CWP_Type_t));
-
-  printf("data type reçu\n");
 
   // launch
   int nParam = -1;
@@ -497,7 +474,6 @@ CWP_server_Param_list_get
 
   // send paramNames
   for (int i = 0; i < nParam; i++) {
-    printf("server param name = %s\n", paramNames[i]);
     write_name(paramNames[i], svr);
   }
 
@@ -780,8 +756,6 @@ CWP_server_Time_update
   double current_time;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &current_time, sizeof(double));
 
-  printf("%s at time %f\n", local_code_name, current_time);
-
   // launch
   CWP_Time_update(local_code_name,
                   current_time);
@@ -821,6 +795,7 @@ CWP_server_User_structure_set
   p_server                 svr
 )
 {
+  PDM_UNUSED(svr);
   log_trace("CWP: CWP_User_structure_set not implemented in client/server mode\n");
 }
 
@@ -830,6 +805,7 @@ CWP_server_User_structure_get
   p_server                 svr
 )
 {
+  PDM_UNUSED(svr);
   log_trace("CWP: CWP_User_structure_get not implemented in client/server mode\n");
 }
 
@@ -1021,7 +997,7 @@ CWP_server_Uncomputed_tgts_get
                                           field_id,
                                           i_part);
 
-  int *tgts = malloc(sizeof(int) * nb_tgts);
+  const int *tgts = malloc(sizeof(int) * nb_tgts);
   tgts = CWP_Uncomputed_tgts_get(local_code_name,
                                  cpl_id,
                                  field_id,
@@ -1068,9 +1044,9 @@ CWP_server_N_computed_tgts_get
 
   // launch
   int nb_tgts = CWP_N_computed_tgts_get(local_code_name,
-                                          cpl_id,
-                                          field_id,
-                                          i_part);
+                                        cpl_id,
+                                        field_id,
+                                        i_part);
 
   // send number of targets
   svr->state=CWP_SVRSTATE_SENDPGETDATA;
@@ -1116,7 +1092,7 @@ CWP_server_Computed_tgts_get
                                         field_id,
                                         i_part);
 
-  int *tgts = malloc(sizeof(int) * nb_tgts);
+  const int *tgts = malloc(sizeof(int) * nb_tgts);
   tgts = CWP_Computed_tgts_get(local_code_name,
                                cpl_id,
                                field_id,
@@ -1211,7 +1187,7 @@ CWP_server_Involved_srcs_get
                                         field_id,
                                         i_part);
 
-  int *srcs = malloc(sizeof(int) * nb_srcs);
+  const int *srcs = malloc(sizeof(int) * nb_srcs);
   srcs = CWP_Involved_srcs_get(local_code_name,
                                cpl_id,
                                field_id,
@@ -1248,13 +1224,9 @@ CWP_server_Spatial_interp_weights_compute
   char *cpl_id = malloc(sizeof(char));
   read_name(&cpl_id, svr);
 
-  printf("received mandatory data\n");
-
   // launch
   CWP_Spatial_interp_weights_compute(local_code_name,
                                      cpl_id);
-
-  printf("launched\n");
 
   // free
   free(local_code_name);
@@ -1453,16 +1425,16 @@ CWP_server_Mesh_interf_block_add
   read_name(&cpl_id, svr);
 
   // read block_type
-  int block_type;
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &block_type, sizeof(int));
+  CWP_Block_t block_type;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &block_type, sizeof(CWP_Block_t));
 
   // launch
-  CWP_Block_t block_id = CWP_Mesh_interf_block_add(local_code_name,
+  int block_id = CWP_Mesh_interf_block_add(local_code_name,
                                            cpl_id,
                                            block_type);
   // send block identifier
   svr->state=CWP_SVRSTATE_SENDPGETDATA;
-  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &block_id, sizeof(CWP_Block_t));
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &block_id, sizeof(int));
 
   // free
   free(local_code_name);
@@ -1495,7 +1467,7 @@ CWP_server_Mesh_interf_block_std_set
 
   // read block_id
   int block_id;
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &block_id, sizeof(int));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &block_id, sizeof(int));;
 
   // read n_elts
   int n_elts;
@@ -2421,6 +2393,7 @@ CWP_server_Interp_from_location_set
   p_server                 svr
 )
 {
+  PDM_UNUSED(svr);
   log_trace("CWP: CWP_server_Interp_from_location_set not implemented yet\n");
 }
 // {

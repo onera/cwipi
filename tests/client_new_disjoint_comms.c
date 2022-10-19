@@ -641,8 +641,6 @@ main
 
     mesh_nodal[i_code] = PDM_Mesh_nodal_create(n_part, LocalComm);
 
-    printf("pointer value of my mesh is %p\n", mesh_nodal[i_code]);
-
     for (int i_part = 0 ; i_part < n_part ; ++i_part) {
       face_vtx_nb[i_code][i_part] = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t *) * n_faces[i_code][i_part]);
       cell_face_nb[i_code][i_part] = (PDM_l_num_t *) malloc(sizeof(PDM_l_num_t *) * n_cells[i_code][i_part]);

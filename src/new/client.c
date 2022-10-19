@@ -438,8 +438,6 @@ CWP_client_Param_get
   CWP_swap_endian_4bytes(&endian_data_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_data_type, sizeof(CWP_Type_t));
 
-  printf("--> send done client side\n");
-
   // receive value
   switch (data_type) {
 
@@ -1769,6 +1767,7 @@ CWP_client_Mesh_interf_block_std_set
 
   // send connectivity
   int *endian_connec = malloc(sizeof(int) * n_elts * n_vtx_elt);
+  memcpy(endian_connec, connec, sizeof(int) * n_elts * n_vtx_elt);
   CWP_swap_endian_4bytes(endian_connec, n_elts * n_vtx_elt);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_connec, sizeof(int) * n_elts * n_vtx_elt);
 
