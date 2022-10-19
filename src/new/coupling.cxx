@@ -407,7 +407,7 @@ namespace cwipi {
       }
 
       /* Then begin a new time step if none is currently open */
-      if (!PDM_writer_is_open_step (cpl._writer)) {
+      if (!PDM_writer_is_open_step (cpl._writer) && ((cpl._n_step % cpl._freq_writer) == 0)) {
 
         double current_time;
 

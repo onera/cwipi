@@ -1154,7 +1154,7 @@ main(int argc, char *argv[]) {
   }
 
   // Create coupling
-  const char *coupling_name = "c_surf_cpl_P1P1";
+  const char *coupling_name = "c_new_vs_old_sendrecv";
 
   if (version == CWP_VERSION_OLD) {
     cwipi_create_coupling(coupling_name,                             // Coupling id
@@ -1344,15 +1344,15 @@ main(int argc, char *argv[]) {
     CWP_Status_t visu_status = CWP_STATUS_ON;
     MPI_Barrier(MPI_COMM_WORLD);
 
-      CWP_Field_create(code_name[0],
-                       coupling_name,
-                       field_name,
-                       CWP_DOUBLE,
-                       CWP_FIELD_STORAGE_INTERLACED,
-                       1,
-                       CWP_DOF_LOCATION_NODE,
-                       CWP_FIELD_EXCH_SENDRECV,
-                       visu_status);
+    CWP_Field_create(code_name[0],
+                     coupling_name,
+                     field_name,
+                     CWP_DOUBLE,
+                     CWP_FIELD_STORAGE_INTERLACED,
+                     1,
+                     CWP_DOF_LOCATION_NODE,
+                     CWP_FIELD_EXCH_SENDRECV,
+                     visu_status);
   }
 
   if (verbose && rank == 0) {

@@ -506,7 +506,7 @@ int main(int argc, char *argv[])
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
     CWP_Visu_set(code_name[i_code],       // Code name
                  cpl_name,                // Coupling id
-                 1,                       // Postprocessing frequency
+                 2,                       // Postprocessing frequency
                  CWP_VISU_FORMAT_ENSIGHT, // Postprocessing format
                  "text");                 // Postprocessing option
   }
@@ -679,8 +679,6 @@ int main(int argc, char *argv[])
   double recv_time = 0.;
   for (int step = 0; step < 10; step++) {
 
-    recv_time += 1.;
-
     MPI_Barrier(MPI_COMM_WORLD);
 
     if (rank == 0) {
@@ -698,15 +696,16 @@ int main(int argc, char *argv[])
 
       // CWP_next_recv_time_set(code_name[i_code],
       //                        cpl_name,
+      //                        recv_time);
       if (step > 0) {
         CWP_Time_update(code_name[i_code],
                         recv_time);
       }
-      //                        recv_time);
       CWP_Spatial_interp_weights_compute(code_name[i_code], cpl_name);
 
     }
 
+    recv_time += 1.;
 
     MPI_Barrier(MPI_COMM_WORLD);
 
