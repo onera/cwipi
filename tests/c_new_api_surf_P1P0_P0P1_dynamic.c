@@ -677,8 +677,7 @@ int main(int argc, char *argv[])
 
 
   double recv_time = 0.;
-
-  for (int step = 0; step < 2; step++) {
+  for (int step = 0; step < 10; step++) {
 
     recv_time += 1.;
 
@@ -699,11 +698,13 @@ int main(int argc, char *argv[])
 
       // CWP_next_recv_time_set(code_name[i_code],
       //                        cpl_name,
+      if (step > 0) {
+        CWP_Time_update(code_name[i_code],
+                        recv_time);
+      }
       //                        recv_time);
-      CWP_Time_update(code_name[i_code],
-                      recv_time);
-
       CWP_Spatial_interp_weights_compute(code_name[i_code], cpl_name);
+
     }
 
 

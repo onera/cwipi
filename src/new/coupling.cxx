@@ -41,6 +41,7 @@
 #include "communication.hxx"
 // #include "visualization.hxx"
 #include "pdm_writer.h"
+#include "pdm_logging.h"
 
 
 /*----------------------------------------------------------------------------
@@ -369,28 +370,18 @@ namespace cwipi {
 
     printf("Coupling::exportMesh\n");
 
+
     if (cpl._writer != NULL) {
 
       printf("exportMesh : %s\n", cpl._localCodeProperties.nameGet().c_str());
       fflush(stdout);
 
-      if (!PDM_writer_is_open_step (cpl._writer)) {
-
-        double current_time;
-
-        cpl._localCodeProperties.ctrlParamGet("time", &current_time);
-
-        PDM_writer_step_beg (cpl._writer, current_time);
-
-      }
-
+      /* First, create geometry and variables if necessary */
       if (cpl._n_step == 0) {
 
-        cpl._id_geom_writer =PDM_writer_geom_create_from_mesh_nodal (cpl._writer, 
-                                                                 "geom",
-                                                                 cpl._mesh.getPdmNodalIndex());
-
-        PDM_writer_geom_write(cpl._writer, cpl._id_geom_writer);
+        cpl._id_geom_writer =PDM_writer_geom_create_from_mesh_nodal (cpl._writer,
+                                                                     "geom",
+                                                                     cpl._mesh.getPdmNodalIndex());
 
         PDM_writer_var_loc_t PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
 
@@ -399,7 +390,7 @@ namespace cwipi {
         PDM_writer_status_t  st_dep_tps = PDM_WRITER_ON;
 
         if (cpl._displacement == CWP_DYNAMIC_MESH_STATIC) {
-          st_dep_tps = PDM_WRITER_OFF;          
+          st_dep_tps = PDM_WRITER_OFF;
         }
 
         cpl._id_field_partitioning_writer = PDM_writer_var_create(cpl._writer,
@@ -413,6 +404,24 @@ namespace cwipi {
                                                              PDMfieldComp,
                                                              PDMfieldType,
                                                              "ranking");
+      }
+
+      /* Then begin a new time step if none is currently open */
+      if (!PDM_writer_is_open_step (cpl._writer)) {
+
+        double current_time;
+
+        cpl._localCodeProperties.ctrlParamGet("time", &current_time);
+
+        PDM_writer_step_beg (cpl._writer, current_time);
+
+      }
+
+
+      /* Finally write geometry and variables */
+      if (cpl._n_step == 0) {
+
+        PDM_writer_geom_write(cpl._writer, cpl._id_geom_writer);
 
         std::vector <double *> partitioning_field_data(cpl._mesh.getNPart());
         std::vector <double *> ranking_field_data(cpl._mesh.getNPart());
