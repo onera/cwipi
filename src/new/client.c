@@ -132,26 +132,9 @@ static int n_nodes_get(CWP_Block_t block_type) {
   return n_nodes;
 }
 
-// --> wrapper
-
-static void write_name(const char * name) {
-  int name_size = strlen(name) + 1;  // +1 for "\0"
-  int endian_name_size = name_size;
-  CWP_swap_endian_4bytes(&endian_name_size, 1);
-  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_name_size, sizeof(int));
-  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) name, name_size);
-}
-
-static void read_name(char **name) {
-  int name_size;
-  CWP_transfer_readdata(clt->socket,clt->max_msg_size,(void*) &name_size, sizeof(int));
-  *name = realloc(*name, name_size);
-  CWP_transfer_readdata(clt->socket,clt->max_msg_size,(void*) *name, name_size);
-}
-
 // --> endianness
 
-void  ip_swap_4bytes(char *f_bytes) {
+static void ip_swap_4bytes(char *f_bytes) {
   char a,b;
   if (clt->server_endianess == clt->client_endianess) {return;}
   a =  f_bytes[0];
@@ -163,7 +146,7 @@ void  ip_swap_4bytes(char *f_bytes) {
   return;
 }
 
-void  ip_swap_8bytes(char *cd_h_bytes) {
+static void ip_swap_8bytes(char *cd_h_bytes) {
   char a,b,c,d;
   if (clt->server_endianess == clt->client_endianess) {return;}
   a =  cd_h_bytes[0];
@@ -181,7 +164,7 @@ void  ip_swap_8bytes(char *cd_h_bytes) {
   return;
 }
 
-void ip_swap_data_endian(char *data, const int datasize) {
+static void ip_swap_data_endian(char *data, const int datasize) {
   int i;
   if (clt->server_endianess == clt->client_endianess) {return;}
 
@@ -193,7 +176,7 @@ void ip_swap_data_endian(char *data, const int datasize) {
 
 /* convert message endian if client endianess different from server endianess */
 
-int CWP_client_send_msg(p_message msg) {
+static int CWP_client_send_msg(p_message msg) {
 
   int data_size = sizeof(t_message);
   if (clt->server_endianess != clt->client_endianess) {
@@ -209,7 +192,7 @@ int CWP_client_send_msg(p_message msg) {
   return CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*)msg,data_size);
 }
 
-int CWP_swap_endian_4bytes(int *data,const  int datasize) {
+static int CWP_swap_endian_4bytes(int *data,const  int datasize) {
   int i;
   for (i=0 ; i<datasize; i++) {
     ip_swap_4bytes((char*)&data[i]);
@@ -217,12 +200,29 @@ int CWP_swap_endian_4bytes(int *data,const  int datasize) {
   return 0;
 }
 
-int CWP_swap_endian_8bytes(double *data,const int datasize) {
+static int CWP_swap_endian_8bytes(double *data,const int datasize) {
   int i;
   for (i=0 ; i<datasize; i++) {
     ip_swap_8bytes((char*)&data[i]);
   }
   return 0;
+}
+
+// --> wrapper
+
+static void write_name(const char * name) {
+  int name_size = strlen(name) + 1;  // +1 for "\0"
+  int endian_name_size = name_size;
+  CWP_swap_endian_4bytes(&endian_name_size, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_name_size, sizeof(int));
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) name, name_size);
+}
+
+static void read_name(char **name) {
+  int name_size;
+  CWP_transfer_readdata(clt->socket,clt->max_msg_size,(void*) &name_size, sizeof(int));
+  *name = realloc(*name, name_size);
+  CWP_transfer_readdata(clt->socket,clt->max_msg_size,(void*) *name, name_size);
 }
 
 /*=============================================================================
@@ -1006,6 +1006,8 @@ CWP_client_User_structure_set
        void* user_structure
 )
 {
+  PDM_UNUSED(local_code_name);
+  PDM_UNUSED(user_structure);
   log_trace("CWP: CWP_User_structure_set not implemented in client/server mode\n");
 }
 
@@ -1015,9 +1017,10 @@ CWP_client_User_structure_get
  const char* local_code_name
 )
 {
+  PDM_UNUSED(local_code_name);
   log_trace("CWP: CWP_User_structure_get not implemented in client/server mode\n");
 
-  return;
+  return 0;
 }
 
 CWP_State_t
@@ -1109,7 +1112,7 @@ void
     read_name(&code_names[i]);
   }
 
-  return code_names;
+  return (const char **) code_names;
 }
 
 int
@@ -1170,7 +1173,7 @@ CWP_client_Loc_codes_list_get
     read_name(&code_local_names[i]);
   }
 
-  return code_local_names;
+  return (const char **) code_local_names;
 }
 
 int
@@ -2657,9 +2660,14 @@ CWP_client_Field_wait_issend
 void
 CWP_client_Field_wait_irecv
 (
- const char  *local_code_name,
- const char  *cpl_id,
- const char  *tgt_field_id
+ const char              *local_code_name,
+ const char              *cpl_id,
+ const char              *tgt_field_id,
+ const int                i_part,
+ const CWP_Field_map_t    map_type,
+ const int                n_component,
+ int                      n_dof,
+ double                 **data
 )
 {
   t_message msg;
@@ -2685,6 +2693,26 @@ CWP_client_Field_wait_irecv
 
   // send target field identifier
   write_name(tgt_field_id);
+
+  // send data needed to retreive field
+  // send i_part
+  int endian_i_part = i_part;
+  CWP_swap_endian_4bytes(&endian_i_part, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // send map type
+  CWP_Field_map_t endian_map_type = map_type;
+  CWP_swap_endian_4bytes(&endian_map_type, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_map_type, sizeof(CWP_Field_map_t));
+
+  // send size
+  int size = n_component * n_dof;
+  int endian_size = size;
+  CWP_swap_endian_4bytes(&endian_size, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_size, sizeof(int));
+
+  // read irecv Field_data
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, *data, sizeof(double) * size);
 }
 
 void
@@ -2917,7 +2945,7 @@ CWP_client_connect
 
   clt = malloc(sizeof(t_client));
   memset(clt,0,sizeof(t_client));
-  strncpy(clt->server_name,server_name,sizeof(clt->server_name));
+  strncpy(clt->server_name, server_name,sizeof(clt->server_name));
   clt->server_port=server_port;
   clt->flags=flags;
 

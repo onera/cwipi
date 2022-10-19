@@ -718,6 +718,23 @@ namespace cwipi {
       void *data
     );
 
+    /**
+    *
+    * \brief Get Field data
+    *
+    * \param [in]   field_id       Field identifier
+    * \param [out]  data           Storage array (mapping)
+    *
+    */
+
+    void fieldDataGet
+    (
+      const std::string &field_id,
+      int i_part,
+      const CWP_Field_map_t   map_type,
+     void** data
+    );
+
 
     /**
      *

@@ -148,23 +148,24 @@ main
   int i_rank;
   int n_rank;
 
-  PDM_MPI_Init(&argc, &argv);
-  PDM_MPI_Comm comm = PDM_MPI_COMM_WORLD;
-  PDM_MPI_Comm_rank(comm, &i_rank);
-  PDM_MPI_Comm_size(comm, &n_rank);
+  MPI_Init(&argc, &argv);
+  MPI_Comm comm = MPI_COMM_WORLD;
+  MPI_Comm_rank(comm, &i_rank);
+  MPI_Comm_size(comm, &n_rank);
 
   // port choice
-  PDM_MPI_Comm comm_node;
+  MPI_Comm comm_node;
   int i_rank_node;
 
-  PDM_MPI_Comm_split_type(comm, PDM_MPI_SPLIT_SHARED, &comm_node);
-  PDM_MPI_Comm_rank(comm_node, &i_rank_node);
+  // shared comm split
+  MPI_Comm_split_type(comm, MPI_COMM_TYPE_SHARED, i_rank, MPI_INFO_NULL, &comm_node);
+  MPI_Comm_rank(comm_node, &i_rank_node);
 
   int server_port = port_begin + i_rank_node;
 
   // create server
   p_server svr = malloc(sizeof(t_server));
-  if (CWP_server_create(* ((MPI_Comm *) PDM_MPI_2_mpi_comm(comm)), server_port, CWP_SVRFLAG_VERBOSE, svr) != 0) {
+  if (CWP_server_create(comm, server_port, CWP_SVRFLAG_VERBOSE, svr) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "Server creation failed\n");
     return -1;
   }
@@ -174,13 +175,13 @@ main
   int  irank_host_name_size     = strlen(svr->host_name);
   int *all_jrank_host_name_size = malloc(sizeof(int) * n_rank);
 
-  PDM_MPI_Allgather(&irank_host_name_size,
-                    1,
-                    PDM_MPI_INT,
-                    all_jrank_host_name_size,
-                    1,
-                    PDM_MPI_INT,
-                    comm);
+  MPI_Allgather(&irank_host_name_size,
+                1,
+                MPI_INT,
+                all_jrank_host_name_size,
+                1,
+                MPI_INT,
+                comm);
 
   int max_host_name_size = -1;
   for (int i = 0; i < n_rank; i++) {
@@ -210,7 +211,7 @@ main
               PDM_IO_KIND_MPI_SIMPLE, // PDM_IO_KIND_MPIIO_EO,
               PDM_IO_MOD_WRITE,
               PDM_IO_NATIVE,
-              comm,
+              PDM_MPI_mpi_2_pdm_mpi_comm(&comm),
               -1.,
               &write,
               &ierr);
@@ -242,7 +243,7 @@ main
   PDM_io_free(write);
 
   // verbose
-  MPI_Barrier(* ((MPI_Comm *) PDM_MPI_2_mpi_comm(comm)));
+  MPI_Barrier(comm);
   if (i_rank == 0) {
     printf("----------------------------------------------------------------------------\n");
     printf("All servers listening and cwipi config file created. You may connect clients\n");
@@ -255,7 +256,8 @@ main
   // shutdown server
   CWP_server_kill(svr);
 
-  PDM_MPI_Finalize();
+  // mpi finalize
+  MPI_Finalize();
 
   return 0;
 }

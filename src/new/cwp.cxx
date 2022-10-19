@@ -1894,6 +1894,36 @@ CWP_Field_data_set
   }
 }
 
+/**
+ *
+ * \brief Get field data.
+ *
+ * \param [in]  local_code_name   Local code name
+ * \param [in]  cpl_id            Coupling identifier
+ * \param [in]  field_id          Field identifier
+ * \param [in]  i_part            Current partition
+ * \param [in]  data_type         Choice if data is setted for the source or the target
+ * \param [out] data              Storage array (Mapping)
+ *
+ */
+
+void
+CWP_Field_data_get
+(
+ const char              *local_code_name,
+ const char              *cpl_id,
+ const char              *field_id,
+ const int                i_part,
+ const CWP_Field_map_t    map_type,
+ double                 **data
+)
+{
+  if(_is_active_rank(local_code_name)){
+    cwipi::Coupling& cpl = _cpl_get(local_code_name, cpl_id);
+    cpl.fieldDataGet(field_id, i_part, map_type, (void **) data);
+  }
+}
+
 
 /**
  *

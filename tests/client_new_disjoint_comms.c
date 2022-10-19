@@ -427,7 +427,7 @@ main
   char div[] = "/";
   char *str = strtok(data, div);
   char *server_name = malloc(strlen(str)+1);
-  memcpy(server_name, str, strlen(str));
+  memcpy(server_name, str, strlen(str)+1);
   str = strtok(NULL, div);
   int server_port = atoi(str);
 
@@ -921,82 +921,84 @@ main
   }
 
 
-  // // Send and receive field
-  // for (int i_code = 0 ; i_code < n_code ; i_code++) {
-  //   if (code_id[i_code] == 2) {
-  //     if (exchDirection[1] == CWP_FIELD_EXCH_SEND) {
+  // Send and receive field
+  for (int i_code = 0 ; i_code < n_code ; i_code++) {
+    if (code_id[i_code] == 2) {
+      if (exchDirection[1] == CWP_FIELD_EXCH_SEND) {
 
-  //       CWP_client_Field_issend(code_names[i_code], cpl_name, field_name);
+        CWP_client_Field_issend(code_names[i_code], cpl_name, field_name);
 
-  //       printf("%d : %s --- Sent field\n", rank, code_names[i_code]);
-  //     }
-  //     else {
+        printf("%d : %s --- Sent field\n", rank, code_names[i_code]);
+      }
+      else {
 
-  //       CWP_client_Field_irecv(code_names[i_code], cpl_name, field_name);
+        CWP_client_Field_irecv(code_names[i_code], cpl_name, field_name);
 
-  //       printf("%d : %s --- Received field\n", rank, code_names[i_code]);
-  //     }
-  //   }
+        printf("%d : %s --- Received field\n", rank, code_names[i_code]);
+      }
+    }
 
-  //   if (code_id[i_code] == 1) {
-  //     if (exchDirection[0] == CWP_FIELD_EXCH_SEND) {
+    if (code_id[i_code] == 1) {
+      if (exchDirection[0] == CWP_FIELD_EXCH_SEND) {
 
-  //       CWP_client_Field_issend(code_names[i_code], cpl_name, field_name);
+        CWP_client_Field_issend(code_names[i_code], cpl_name, field_name);
 
-  //       printf("%d : %s --- Sent field\n", rank, code_names[i_code]);
-  //     }
-  //     else {
+        printf("%d : %s --- Sent field\n", rank, code_names[i_code]);
+      }
+      else {
 
-  //       CWP_client_Field_irecv(code_names[i_code], cpl_name, field_name);
+        CWP_client_Field_irecv(code_names[i_code], cpl_name, field_name);
 
-  //       printf("%d : %s --- Received field\n", rank, code_names[i_code]);
-  //     }
-  //   }
-  // }
+        printf("%d : %s --- Received field\n", rank, code_names[i_code]);
+      }
+    }
+  }
 
-  // for (int i_code = 0 ; i_code < n_code ; i_code++) {
-  //   if (code_id[i_code] == 2) {
-  //     if (exchDirection[1] == CWP_FIELD_EXCH_RECV) {
+  for (int i_code = 0 ; i_code < n_code ; i_code++) {
+    if (code_id[i_code] == 2) {
+      if (exchDirection[1] == CWP_FIELD_EXCH_RECV) {
 
-  //       CWP_client_Field_wait_irecv(code_names[i_code], cpl_name, field_name);
+        CWP_client_Field_wait_irecv(code_names[i_code], cpl_name, field_name, 0,
+                                    CWP_FIELD_MAP_TARGET, 3, n_vtx[i_code][0], &recv_values[i_code]);
 
-  //       printf("%d : %s --- wait Received field\n", rank, code_names[i_code]);
-  //     }
-  //     else {
+        printf("%d : %s --- wait Received field\n", rank, code_names[i_code]);
+      }
+      else {
 
-  //       CWP_client_Field_wait_issend(code_names[i_code], cpl_name, field_name);
+        CWP_client_Field_wait_issend(code_names[i_code], cpl_name, field_name);
 
-  //       printf("%d : %s --- wait Sent field\n", rank, code_names[i_code]);
-  //     }
-  //   }
-  //   if (code_id[i_code] == 1) {
-  //     if (exchDirection[0] == CWP_FIELD_EXCH_RECV) {
+        printf("%d : %s --- wait Sent field\n", rank, code_names[i_code]);
+      }
+    }
+    if (code_id[i_code] == 1) {
+      if (exchDirection[0] == CWP_FIELD_EXCH_RECV) {
 
-  //       CWP_client_Field_wait_irecv(code_names[i_code], cpl_name, field_name);
+        CWP_client_Field_wait_irecv(code_names[i_code], cpl_name, field_name, 0,
+                                    CWP_FIELD_MAP_TARGET, 3, n_vtx[i_code][0], &recv_values[i_code]);
 
-  //       printf("%d : %s --- wait Received field\n", rank, code_names[i_code]);
-  //     }
-  //     else {
+        printf("%d : %s --- wait Received field\n", rank, code_names[i_code]);
+      }
+      else {
 
-  //       CWP_client_Field_wait_issend(code_names[i_code], cpl_name, field_name);
+        CWP_client_Field_wait_issend(code_names[i_code], cpl_name, field_name);
 
-  //       printf("%d : %s --- wait Sent field\n", rank, code_names[i_code]);
-  //     }
-  //   }
-  // }
+        printf("%d : %s --- wait Sent field\n", rank, code_names[i_code]);
+      }
+    }
+  }
 
-  // for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-  //   if (code_id[i_code] == 2 && (exchDirection[1] == CWP_FIELD_EXCH_RECV)) {
-  //     for (int i = 0 ; i < n_computed_tgts ; i++) {
-  //       printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
-  //     }
-  //   }
-  //   if (code_id[i_code] == 1 && (exchDirection[0] == CWP_FIELD_EXCH_RECV)) {
-  //     for (int i = 0 ; i < n_computed_tgts ; i++) {
-  //       printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
-  //     }
-  //   }
-  // }
+  for (int i_code = 0 ; i_code < n_code ; ++i_code) {
+    if (code_id[i_code] == 2 && (exchDirection[1] == CWP_FIELD_EXCH_RECV)) {
+      for (int i = 0 ; i < n_computed_tgts ; i++) {
+        printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
+      }
+    }
+    if (code_id[i_code] == 1 && (exchDirection[0] == CWP_FIELD_EXCH_RECV)) {
+      for (int i = 0 ; i < n_computed_tgts ; i++) {
+        printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
+      }
+    }
+  }
 
   // Delete interf
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
@@ -1018,9 +1020,11 @@ main
   free(element_type_cwp);
 
   //Finalize cwipi
-
   CWP_client_Finalize();
   printf("%d --- CWIPI finalized\n", rank);
+
+  // disconnect
+  CWP_client_disconnect();
 
   PDM_MPI_Finalize();
 

@@ -2056,6 +2056,7 @@ CWP_server_Field_data_set
   // free
   free(local_code_name);
   free(cpl_id);
+  free(field_id);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -2339,10 +2340,35 @@ CWP_server_Field_wait_irecv
   char *tgt_field_id = malloc(sizeof(char));
   read_name(&tgt_field_id, svr);
 
+  // read i_part
+  int i_part;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &i_part, sizeof(int));
+
+  // read map_type
+  int map_type;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &map_type, sizeof(int));
+
+  // read size
+  int size;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &size, sizeof(int));
+
   // launch
   CWP_Field_wait_irecv(local_code_name,
                        cpl_id,
                        tgt_field_id);
+
+  // launch CWP_Field_data_get to retreive field and send to Client
+  double *data = malloc(sizeof(double) * size);
+  CWP_Field_data_get(local_code_name,
+                     cpl_id,
+                     tgt_field_id,
+                     i_part,
+                     map_type,
+                     &data);
+
+  // send data
+  svr->state = CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) data, sizeof(double) * size);
 
   // free
   free(local_code_name);
