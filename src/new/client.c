@@ -260,7 +260,7 @@ CWP_client_Init
   memcpy(endian_is_active_rank, is_active_rank, sizeof(CWP_Status_t) * n_code);
   memcpy(endian_time_init, time_init, sizeof(double) * n_code);
   CWP_swap_endian_4bytes(&endian_n_code, 1);
-  CWP_swap_endian_4bytes(endian_is_active_rank, n_code);
+  CWP_swap_endian_4bytes((int *) endian_is_active_rank, n_code);
   CWP_swap_endian_8bytes(endian_time_init, n_code);
 
   // send arguments
@@ -377,7 +377,7 @@ CWP_client_Param_add
 
   // send initial value
   CWP_Type_t endian_data_type = data_type;
-  CWP_swap_endian_4bytes(&endian_data_type, 1);
+  CWP_swap_endian_4bytes((int *) &endian_data_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_data_type, sizeof(CWP_Type_t));
 
   switch (data_type) {
@@ -435,7 +435,7 @@ CWP_client_Param_get
 
   // send value data type
   CWP_Type_t endian_data_type = data_type;
-  CWP_swap_endian_4bytes(&endian_data_type, 1);
+  CWP_swap_endian_4bytes((int *) &endian_data_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_data_type, sizeof(CWP_Type_t));
 
   // receive value
@@ -494,7 +494,7 @@ CWP_client_Param_set
 
   // send initial value
   CWP_Type_t endian_data_type = data_type;
-  CWP_swap_endian_4bytes(&endian_data_type, 1);
+  CWP_swap_endian_4bytes((int *) &endian_data_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_data_type, sizeof(CWP_Type_t));
 
   switch (data_type) {
@@ -551,7 +551,7 @@ CWP_client_Param_del
 
   // send data type
   CWP_Type_t endian_data_type = data_type;
-  CWP_swap_endian_4bytes(&endian_data_type, 1);
+  CWP_swap_endian_4bytes((int *) &endian_data_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_data_type, sizeof(CWP_Type_t));
 }
 
@@ -582,7 +582,7 @@ CWP_client_Param_n_get
 
   // send data type
   CWP_Type_t endian_data_type = data_type;
-  CWP_swap_endian_4bytes(&endian_data_type, 1);
+  CWP_swap_endian_4bytes((int *) &endian_data_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size, (void*) &endian_data_type, sizeof(CWP_Type_t));
 
   // read n_param
@@ -621,7 +621,7 @@ CWP_client_Param_list_get
 
   // send data type
   CWP_Type_t endian_data_type = data_type;
-  CWP_swap_endian_4bytes(&endian_data_type, 1);
+  CWP_swap_endian_4bytes((int *) &endian_data_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size, (void*) &endian_data_type, sizeof(CWP_Type_t));
 
   // read n_param
@@ -666,7 +666,7 @@ CWP_client_Param_is
 
   // send data type
   CWP_Type_t endian_data_type = data_type;
-  CWP_swap_endian_4bytes(&endian_data_type, 1);
+  CWP_swap_endian_4bytes((int *) &endian_data_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_data_type, sizeof(CWP_Type_t));
 
   // read bool
@@ -704,7 +704,7 @@ CWP_client_Param_reduce
 
   // send operation type
   CWP_Op_t endian_op = op;
-  CWP_swap_endian_4bytes(&endian_op, 1);
+  CWP_swap_endian_4bytes((int *) &endian_op, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size, (void*) &endian_op, sizeof(CWP_Op_t));
 
   // send prameter name
@@ -712,7 +712,7 @@ CWP_client_Param_reduce
 
   // send data type
   CWP_Type_t endian_data_type = data_type;
-  CWP_swap_endian_4bytes(&endian_data_type, 1);
+  CWP_swap_endian_4bytes((int *) &endian_data_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size, (void*) &endian_data_type, sizeof(CWP_Type_t));
 
   // send number of codes
@@ -787,17 +787,17 @@ CWP_client_Cpl_create
 
   // send entities dimension
   CWP_Interface_t endian_entities_dim = entities_dim;
-  CWP_swap_endian_4bytes(&endian_entities_dim, 1);
+  CWP_swap_endian_4bytes((int *) &endian_entities_dim, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_entities_dim, sizeof(CWP_Interface_t));
 
   // send communication type
   CWP_Comm_t endian_comm_type = comm_type;
-  CWP_swap_endian_4bytes(&endian_comm_type, 1);
+  CWP_swap_endian_4bytes((int *) &endian_comm_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_comm_type, sizeof(CWP_Comm_t));
 
   // send spatial interpolation
   CWP_Spatial_interp_t endian_spatial_interp = spatial_interp;
-  CWP_swap_endian_4bytes(&endian_spatial_interp, 1);
+  CWP_swap_endian_4bytes((int *) &endian_spatial_interp, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_spatial_interp, sizeof(CWP_Spatial_interp_t));
 
   // send number of partitions
@@ -807,12 +807,12 @@ CWP_client_Cpl_create
 
   // send displacement type
   CWP_Dynamic_mesh_t endian_displacement = displacement;
-  CWP_swap_endian_4bytes(&endian_displacement, 1);
+  CWP_swap_endian_4bytes((int *) &endian_displacement, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_displacement, sizeof(CWP_Dynamic_mesh_t));
 
   // send time exchange type
   CWP_Time_exch_t endian_recv_freq_type = recv_freq_type;
-  CWP_swap_endian_4bytes(&endian_recv_freq_type, 1);
+  CWP_swap_endian_4bytes((int *) &endian_recv_freq_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_recv_freq_type, sizeof(CWP_Time_exch_t));
 }
 
@@ -905,7 +905,7 @@ CWP_client_Visu_set
 
   // send format
   CWP_Visu_format_t endian_format = format;
-  CWP_swap_endian_4bytes(&endian_format, 1);
+  CWP_swap_endian_4bytes((int *) &endian_format, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_format, sizeof(CWP_Visu_format_t));
 
   // send format option
@@ -939,7 +939,7 @@ CWP_client_State_update
 
   // send state
   CWP_State_t endian_state = state;
-  CWP_swap_endian_4bytes(&endian_state, 1);
+  CWP_swap_endian_4bytes((int *) &endian_state, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_state, sizeof(CWP_State_t));
 }
 
@@ -1574,10 +1574,10 @@ CWP_client_User_tgt_pts_set
   CWP_g_num_t *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_pts);
   memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_pts);
   if (sizeof(CWP_g_num_t) == 4) {
-    CWP_swap_endian_4bytes(endian_global_num, n_pts);
+    CWP_swap_endian_4bytes((int *) endian_global_num, n_pts);
   }
   else  if (sizeof(CWP_g_num_t) == 8) {
-    CWP_swap_endian_8bytes(endian_global_num, n_pts);
+    CWP_swap_endian_8bytes((double *) endian_global_num, n_pts);
   }
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_pts);
 
@@ -1667,10 +1667,10 @@ CWP_client_Mesh_interf_vtx_set
   CWP_g_num_t *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_pts);
   memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_pts);
   if (sizeof(CWP_g_num_t) == 4) {
-    CWP_swap_endian_4bytes(endian_global_num, n_pts);
+    CWP_swap_endian_4bytes((int *) endian_global_num, n_pts);
   }
   else  if (sizeof(CWP_g_num_t) == 8) {
-    CWP_swap_endian_8bytes(endian_global_num, n_pts);
+    CWP_swap_endian_8bytes((double *) endian_global_num, n_pts);
   }
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_pts);
 
@@ -1710,7 +1710,7 @@ CWP_client_Mesh_interf_block_add
 
   // send block type
   CWP_Block_t endian_block_type = block_type;
-  CWP_swap_endian_4bytes(&endian_block_type, 1);
+  CWP_swap_endian_4bytes((int *) &endian_block_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_block_type, sizeof(CWP_Block_t));
 
   // read block identifier
@@ -1786,10 +1786,10 @@ CWP_client_Mesh_interf_block_std_set
   CWP_g_num_t  *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_elts);
   memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_elts);
   if (sizeof(CWP_g_num_t) == 4) {
-    CWP_swap_endian_4bytes(endian_global_num, n_elts);
+    CWP_swap_endian_4bytes((int *) endian_global_num, n_elts);
   }
   else  if (sizeof(CWP_g_num_t) == 8) {
-    CWP_swap_endian_8bytes(endian_global_num, n_elts);
+    CWP_swap_endian_8bytes((double *) endian_global_num, n_elts);
   }
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_elts);
 
@@ -1863,10 +1863,10 @@ CWP_client_Mesh_interf_f_poly_block_set
   CWP_g_num_t  *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_elts);
   memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_elts);
   if (sizeof(CWP_g_num_t) == 4) {
-    CWP_swap_endian_4bytes(endian_global_num, n_elts);
+    CWP_swap_endian_4bytes((int *) endian_global_num, n_elts);
   }
   else  if (sizeof(CWP_g_num_t) == 8) {
-    CWP_swap_endian_8bytes(endian_global_num, n_elts);
+    CWP_swap_endian_8bytes((double *) endian_global_num, n_elts);
   }
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_elts);
 
@@ -2018,10 +2018,10 @@ CWP_client_Mesh_interf_c_poly_block_set
   CWP_g_num_t  *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_elts);
   memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_elts);
   if (sizeof(CWP_g_num_t) == 4) {
-    CWP_swap_endian_4bytes(endian_global_num, n_elts);
+    CWP_swap_endian_4bytes((int *) endian_global_num, n_elts);
   }
   else  if (sizeof(CWP_g_num_t) == 8) {
-    CWP_swap_endian_8bytes(endian_global_num, n_elts);
+    CWP_swap_endian_8bytes((double *) endian_global_num, n_elts);
   }
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_elts);
 
@@ -2210,10 +2210,10 @@ CWP_client_Mesh_interf_from_cellface_set
   CWP_g_num_t  *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_cells);
   memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_cells);
   if (sizeof(CWP_g_num_t) == 4) {
-    CWP_swap_endian_4bytes(endian_global_num, n_cells);
+    CWP_swap_endian_4bytes((int *) endian_global_num, n_cells);
   }
   else  if (sizeof(CWP_g_num_t) == 8) {
-    CWP_swap_endian_8bytes(endian_global_num, n_cells);
+    CWP_swap_endian_8bytes((double *) endian_global_num, n_cells);
   }
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_cells);
 
@@ -2304,10 +2304,10 @@ CWP_client_Mesh_interf_from_faceedge_set
   CWP_g_num_t  *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_faces);
   memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_faces);
   if (sizeof(CWP_g_num_t) == 4) {
-    CWP_swap_endian_4bytes(endian_global_num, n_faces);
+    CWP_swap_endian_4bytes((int *) endian_global_num, n_faces);
   }
   else  if (sizeof(CWP_g_num_t) == 8) {
-    CWP_swap_endian_8bytes(endian_global_num, n_faces);
+    CWP_swap_endian_8bytes((double *) endian_global_num, n_faces);
   }
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_faces);
 
@@ -2359,12 +2359,12 @@ CWP_client_Field_create
 
   // send data type
   CWP_Type_t endian_data_type = data_type;
-  CWP_swap_endian_4bytes(&endian_data_type, 1);
+  CWP_swap_endian_4bytes((int *) &endian_data_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_data_type, sizeof(CWP_Type_t));
 
   // send storage mode
   CWP_Field_storage_t endian_storage = storage;
-  CWP_swap_endian_4bytes(&endian_storage, 1);
+  CWP_swap_endian_4bytes((int *) &endian_storage, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_storage, sizeof(CWP_Field_storage_t));
 
   // send number of components
@@ -2374,17 +2374,17 @@ CWP_client_Field_create
 
   // send target location
   CWP_Dof_location_t endian_target_location = target_location;
-  CWP_swap_endian_4bytes(&endian_target_location, 1);
+  CWP_swap_endian_4bytes((int *) &endian_target_location, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_target_location, sizeof(CWP_Dof_location_t));
 
   // send exchange type
   CWP_Field_exch_t endian_exch_type = exch_type;
-  CWP_swap_endian_4bytes(&endian_exch_type, 1);
+  CWP_swap_endian_4bytes((int *) &endian_exch_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_exch_type, sizeof(CWP_Field_exch_t));
 
   // send visualisation status
   CWP_Status_t endian_visu_status = visu_status;
-  CWP_swap_endian_4bytes(&endian_visu_status, 1);
+  CWP_swap_endian_4bytes((int *) &endian_visu_status, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_visu_status, sizeof(CWP_Status_t));
 }
 
@@ -2432,7 +2432,7 @@ CWP_client_Field_data_set
 
   // send map type
   CWP_Field_map_t endian_map_type = map_type;
-  CWP_swap_endian_4bytes(&endian_map_type, 1);
+  CWP_swap_endian_4bytes((int *) &endian_map_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_map_type, sizeof(CWP_Field_map_t));
 
   // send map with data
@@ -2743,7 +2743,7 @@ CWP_client_Field_wait_irecv
 
   // send map type
   CWP_Field_map_t endian_map_type = map_type;
-  CWP_swap_endian_4bytes(&endian_map_type, 1);
+  CWP_swap_endian_4bytes((int *) &endian_map_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_map_type, sizeof(CWP_Field_map_t));
 
   // send size
