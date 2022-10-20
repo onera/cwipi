@@ -2483,8 +2483,8 @@ CWP_server_create
  p_server svr
 )
 {
-  struct sockaddr_in server_addr;
-  socklen_t d;
+  struct sockaddr_in *server_addr = malloc(sizeof(struct sockaddr_in));
+  socklen_t max_msg_size_len;
   int true=1;
 
   memset(svr,0,sizeof(t_server));
@@ -2512,30 +2512,31 @@ CWP_server_create
     return -1;
   }
 
-  // set maximum message size
-  // TO DO: memset or strncpy to avoid uninitialised byte(s)?
-  getsockopt(svr->listen_socket, SOL_SOCKET, SO_RCVBUF, (char*)&svr->max_msg_size, &d);
+  // get maximum message size
+  max_msg_size_len  = sizeof(int);
+  svr->max_msg_size = 0;
+  getsockopt(svr->listen_socket, SOL_SOCKET, SO_RCVBUF, (void *) &svr->max_msg_size, &max_msg_size_len);
   svr->max_msg_size = CWP_MSG_MAXMSGSIZE;
 
   // verbose
   if (svr->flags & CWP_SVRFLAG_VERBOSE) {
-    log_trace("CWP:Max message size:%i\n",svr->max_msg_size);
+    log_trace("CWP:Max message size:%i\n", svr->max_msg_size);
   }
 
   // ensure restarted process can reconnect to same socket
-  if (setsockopt(svr->listen_socket,SOL_SOCKET,SO_REUSEADDR,&true,sizeof(int)) == -1) {
+  if (setsockopt(svr->listen_socket, SOL_SOCKET, SO_REUSEADDR, &true, sizeof(int)) == -1) {
     PDM_error(__FILE__, __LINE__, 0, "Setsockopt failed\n");
     return -1;
   }
 
   // fill data structure for ip adress + port
-  server_addr.sin_family      = AF_INET;
-  server_addr.sin_port        = htons(svr->port);
-  server_addr.sin_addr.s_addr = INADDR_ANY;
-  bzero(&(server_addr.sin_zero),8);
+  server_addr->sin_family      = AF_INET;
+  server_addr->sin_port        = htons(svr->port);
+  server_addr->sin_addr.s_addr = INADDR_ANY;
+  bzero(&(server_addr->sin_zero),8);
 
   // bind socket to ip adress + port
-  if (bind(svr->listen_socket, (struct sockaddr *)&server_addr, sizeof(struct sockaddr)) == -1) {
+  if (bind(svr->listen_socket, (struct sockaddr *) server_addr, sizeof(struct sockaddr)) == -1) {
     PDM_error(__FILE__, __LINE__, 0, "Unable to bind socket\n");
     return -1;
   }
@@ -3293,18 +3294,18 @@ CWP_server_run
  p_server svr
 )
 {
-  struct sockaddr_in client_addr;
-  socklen_t sin_size = 0;
+  struct sockaddr_in *client_addr = malloc(sizeof(struct sockaddr_in));
+  socklen_t client_addr_len = sizeof(struct sockaddr_in);
   int il_sv_endian;
   int il_cl_endian;
 
   // accept client connexion
-  svr->connected_socket = accept(svr->listen_socket, (struct sockaddr *)&client_addr,&sin_size);
+  svr->connected_socket = accept(svr->listen_socket, (struct sockaddr *) client_addr, &client_addr_len);
 
   // verbose
   if (svr->flags & CWP_SVRFLAG_VERBOSE) {
     log_trace("CWP:got a connection from %s:%d\n",
-    inet_ntoa(client_addr.sin_addr),ntohs(client_addr.sin_port));
+    inet_ntoa(client_addr->sin_addr),ntohs(client_addr->sin_port));
   }
 
   // endianess

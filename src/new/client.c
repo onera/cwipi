@@ -2980,8 +2980,8 @@ CWP_client_connect
 )
 {
   struct hostent *host;
-  struct sockaddr_in server_addr;
-  socklen_t d;
+  struct sockaddr_in *server_addr = malloc(sizeof(struct sockaddr_in));
+  socklen_t max_msg_size_len = 0;
   int il_cl_endian;
 
   clt = malloc(sizeof(t_client));
@@ -3003,13 +3003,13 @@ CWP_client_connect
     return -1;
   }
 
-  server_addr.sin_family = AF_INET;
-  server_addr.sin_port = htons(server_port);
-  server_addr.sin_addr = *((struct in_addr *)host->h_addr);
-  bzero(&(server_addr.sin_zero),8);
+  server_addr->sin_family = AF_INET;
+  server_addr->sin_port = htons(server_port);
+  server_addr->sin_addr = *((struct in_addr *)host->h_addr);
+  bzero(&(server_addr->sin_zero),8);
 
   // connect
-  while (connect(clt->socket, (struct sockaddr *)&server_addr,
+  while (connect(clt->socket, (struct sockaddr *) server_addr,
                  sizeof(struct sockaddr)) == -1) {}
 
   // verbose
@@ -3017,8 +3017,10 @@ CWP_client_connect
     log_trace("CWP:Client connected on %s port %i \n", server_name, server_port);
   }
 
-  // set maximum message size
-  getsockopt(clt->socket, SOL_SOCKET, SO_RCVBUF, (void*)&clt->max_msg_size, &d);
+  // get maximum message size
+  clt->max_msg_size = 0;
+  max_msg_size_len  = sizeof(int);
+  getsockopt(clt->socket, SOL_SOCKET, SO_RCVBUF, (void *)&clt->max_msg_size, &max_msg_size_len);
   clt->max_msg_size = CWP_MSG_MAXMSGSIZE;
 
   // exchange endianess
