@@ -757,7 +757,7 @@ main
                               cpl_name,
                               field_name,
                               CWP_DOUBLE,
-                              CWP_FIELD_STORAGE_INTERLEAVED,
+                              CWP_FIELD_STORAGE_INTERLACED,
                               3,
                               CWP_DOF_LOCATION_NODE,
                               exchDirection[0],
@@ -796,7 +796,7 @@ main
                               cpl_name,
                               field_name,
                               CWP_DOUBLE,
-                              CWP_FIELD_STORAGE_INTERLEAVED,
+                              CWP_FIELD_STORAGE_INTERLACED,
                               3,
                               CWP_DOF_LOCATION_NODE,
                               exchDirection[1],
@@ -1015,6 +1015,8 @@ main
 
     printf("%d : %s --- Coupling deleted\n", rank, code_names[i_code]);
   }
+
+  // free
 
   free(element_type);
   free(element_type_cwp);

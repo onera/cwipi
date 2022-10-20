@@ -130,7 +130,7 @@ CWP_server_Init
   // wait all ranks have receive msg
   MPI_Barrier(svr->intra_comms[0]);
 
-  // free
+  // free TO DO: isn't it as a set where I shouldn't free?
   for (int i = 0; i < n_code; i++) {
     free(code_names[i]);
   }
@@ -628,6 +628,11 @@ CWP_server_Cpl_create
                  displacement,
                  recv_freq_type);
 
+  // free
+  free(local_code_name);
+  free(cpl_id);
+  free(coupled_code_name);
+
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
@@ -653,7 +658,9 @@ CWP_server_Cpl_del
   CWP_Cpl_del(local_code_name,
               cpl_id);
 
-  // TO DO: free everything that has been allocated for Cpl
+  // free
+  free(local_code_name);
+  free(cpl_id);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -709,6 +716,10 @@ CWP_server_Visu_set
                freq,
                format,
                format_option);
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }

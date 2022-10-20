@@ -257,6 +257,10 @@ main
   // shutdown server
   CWP_server_kill(svr);
 
+  // free
+  free(svr->intra_comms);
+  free(svr);
+
   // mpi finalize
   MPI_Finalize();
 
