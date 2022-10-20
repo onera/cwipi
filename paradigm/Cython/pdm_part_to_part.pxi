@@ -115,14 +115,16 @@ cdef class PartToPartCapsule:
   cdef cpp_map[int, size_t]        dict_npy_type
   cdef cpp_map[int, PDM_stride_t]  dict_stride
   cdef cpp_map[int, int         ]  dict_cst_strid
+  cdef MPI.Comm                    py_comm
   # --------------------------------------------------------------------
 
 
   # --- Functions ------------------------------------------------------
-  def __cinit__(self, object caps):
+  def __cinit__(self, object caps, MPI.Comm comm):
     """
     """
 
+    self.py_comm               = comm
     # cdef PDM_part_to_part_t *ptp = <PDM_part_to_part_t *> PyCapsule_GetPointer(caps, NULL)
     self.ptp = <PDM_part_to_part_t *> PyCapsule_GetPointer(caps, NULL)
     # self.ptp = ptp
@@ -219,6 +221,7 @@ cdef class PartToPart:
   cdef cpp_map[int, size_t]        dict_npy_type
   cdef cpp_map[int, PDM_stride_t]  dict_stride
   cdef cpp_map[int, int         ]  dict_cst_strid
+  cdef MPI.Comm                    py_comm
   # ************************************************************************
   # ------------------------------------------------------------------------
   def __cinit__(self, MPI.Comm comm,
@@ -239,6 +242,7 @@ cdef class PartToPart:
     self.lpart1_to_part2     = part1_to_part2
 
     # > Convert input data
+    self.py_comm               = comm
     cdef MPI.MPI_Comm c_comm   = comm.ob_mpi
     cdef PDM_MPI_Comm pdm_comm = PDM_MPI_mpi_2_pdm_mpi_comm(&c_comm)
 
@@ -390,8 +394,9 @@ def iexch(PyPartToPart                   pyptp,
 
   cdef void** _part1_data   = np_list_to_void_pointers(part1_data)
 
-  cdef size_t s_data   = part1_data[0].dtype.itemsize
-  cdef size_t npy_type = part1_data[0].dtype.num
+  ref_dtype = recover_dtype(part1_data, pyptp.py_comm)
+  cdef size_t s_data   = ref_dtype.itemsize
+  cdef size_t npy_type = ref_dtype.num
 
   cdef int**  _part2_stride = NULL;
   cdef void** _part2_data   = NULL;
@@ -488,7 +493,6 @@ def reverse_iexch(PyPartToPart                pyptp,
                   bint interlaced_str=True):
   """
   """
-  cdef NPY.ndarray  np_part2_data
   cdef int          request_exch
   cdef PDM_stride_t _stride_t
 
@@ -508,9 +512,10 @@ def reverse_iexch(PyPartToPart                pyptp,
 
   cdef void** _part2_data   = np_list_to_void_pointers(part2_data)
 
-  np_part2_data        = part2_data[0]
-  cdef size_t s_data   = np_part2_data.dtype.itemsize
-  cdef size_t npy_type = part2_data[0].dtype.num
+
+  ref_dtype = recover_dtype(part2_data, pyptp.py_comm)
+  cdef size_t s_data   = ref_dtype.itemsize
+  cdef size_t npy_type = ref_dtype.num
 
   cdef int**  _part1_stride = NULL;
   cdef void** _part1_data   = NULL;

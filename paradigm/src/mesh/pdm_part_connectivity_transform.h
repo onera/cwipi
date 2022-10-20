@@ -88,6 +88,16 @@ PDM_compute_face_vtx_from_face_and_edge
  int **face_vtx
 );
 
+void
+PDM_compute_face_vtx_from_face_and_edge_unsigned
+(
+ int   n_face,
+ int  *face_edge_idx,
+ int  *face_edge,
+ int  *edge_vtx,
+ int **face_vtx
+);
+
 
 
 #ifdef  __cplusplus

@@ -1257,6 +1257,7 @@ _cube_mesh2
                                 &face_join,
                                 &face_join_ln_to_gn);
 
+    int *_face_vtx = face_vtx;
     if (face_vtx == NULL) {
       int *_face_edge_idx = NULL;
       int *_face_edge     = NULL;
@@ -1279,11 +1280,13 @@ _cube_mesh2
                                           PDM_OWNERSHIP_KEEP);
 
       face_vtx_idx = _face_edge_idx;
+      int **__face_vtx = NULL;
       PDM_compute_face_vtx_from_face_and_edge(n_face,
                                               _face_edge_idx,
                                               _face_edge,
                                               _edge_vtx,
-                                              &face_vtx);
+                                              &__face_vtx);
+      _face_vtx = __face_vtx;
     }
 
     int n_ext_vtx  = 0;
@@ -1407,7 +1410,7 @@ _cube_mesh2
       s_face_vtx += ext_face_vtx_idx[n_ext_face];
     }
     (*pface_vtx)[i_part] = (int *) malloc(sizeof(int) * s_face_vtx);
-    memcpy((*pface_vtx)[i_part], face_vtx, sizeof(int) * face_vtx_idx[n_face]);
+    memcpy((*pface_vtx)[i_part], _face_vtx, sizeof(int) * face_vtx_idx[n_face]);
 
 
     (*pface_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (n_face + n_ext_face));
@@ -1442,8 +1445,8 @@ _cube_mesh2
       memcpy((*pface_ln_to_gn)[i_part] + n_face, ext_face_ln_to_gn, sizeof(PDM_g_num_t) * n_ext_face);
     }
 
-    if(face_vtx != NULL) {
-      free(face_vtx);
+    if(_face_vtx != face_vtx) {
+      free(_face_vtx);
     }
   }
 

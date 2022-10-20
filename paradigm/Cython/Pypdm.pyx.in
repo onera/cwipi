@@ -327,6 +327,19 @@ cdef assert_single_dim_np(NPY.ndarray tab, dtype, int size=-1):
   if size >= 0:
     assert tab.size == size
 
+cdef recover_dtype(list np_array_list, MPI.Comm py_comm):
+  """ Check that numpy dtype is consistent across all partitions and return it """
+  dtypes = [array.dtype for array in np_array_list]
+
+  rank_if = py_comm.Get_rank() if len(np_array_list) > 0 else -1
+  master = py_comm.allreduce(rank_if, op=MPI.MAX)
+
+  ref_dtype = dtypes[0] if py_comm.Get_rank() == master else None
+  ref_dtype = py_comm.bcast(ref_dtype, master)
+
+  assert all(dtype == ref_dtype for dtype in dtypes), "Inconsistent dtype for arrays"
+  return ref_dtype
+
 cdef int* list_to_int_pointer(list data):
   cdef int* array = <int *> malloc(len(data) * sizeof(int))
   for i,d in enumerate(data):

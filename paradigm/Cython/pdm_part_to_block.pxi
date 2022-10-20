@@ -173,16 +173,9 @@ cdef class PartToBlock:
       cdef void** _part_data   = np_list_to_void_pointers(part_data)
 
       # Retrieve size of data if proc holds no partition
-      cdef int dtype_data_num_l = -1
-      if self.n_part > 0:
-        dtype_data_num_l = part_data[0].dtype.num
-      dtype_data_num = self.py_comm.allreduce(dtype_data_num_l, op=MPI.MAX)
-      assert dtype_data_num_l == -1 or dtype_data_num_l == dtype_data_num
-
-      #Dont know how to recover s_data so we create a fake array ;)
-      zero       = <NPY.npy_intp> 0
-      tpm_array = NPY.PyArray_EMPTY(1, &zero, dtype_data_num, 0)
-      cdef size_t s_data    = tpm_array.itemsize
+      ref_dtype = recover_dtype(part_data, self.py_comm)
+      cdef size_t s_data         = ref_dtype.itemsize
+      cdef size_t dtype_data_num = ref_dtype.num
 
 
       cdef int*  _block_stride  = NULL

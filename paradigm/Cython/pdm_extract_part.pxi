@@ -81,6 +81,7 @@ cdef class ExtractPart:
   # --------------------------------------------------------------------------
   # > Class attributes
   cdef PDM_extract_part_t* _extrp
+  cdef MPI.Comm py_comm   
   ptp_objects = {}
   keep_alive = []
   # --------------------------------------------------------------------------
@@ -97,6 +98,7 @@ cdef class ExtractPart:
     """
     Compute the distance from point clouds to a surface
     """
+    self.py_comm = comm
     cdef MPI.MPI_Comm c_comm = comm.ob_mpi
     self._extrp =  PDM_extract_part_create(dim,
                                            n_part_in,
@@ -273,7 +275,7 @@ cdef class ExtractPart:
                                         &ptpc,
                                          PDM_OWNERSHIP_USER)
       py_casp = PyCapsule_New(ptpc, NULL, NULL);
-      self.ptp_objects[entity_type] = PartToPartCapsule(py_casp) # The free is inside the class
+      self.ptp_objects[entity_type] = PartToPartCapsule(py_casp, self.py_comm) # The free is inside the class
       return self.ptp_objects[entity_type]
 
 

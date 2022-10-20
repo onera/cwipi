@@ -1008,7 +1008,7 @@ _p2p_stride_var_data_reverse_issend
     }
   } 
 
-  for (int i = 0; i < ptp->n_part1; i++) {
+  for (int i = 0; i < ptp->n_part2; i++) {
     free(part2_to_part1_data_idx[i]);
   }
   free(part2_to_part1_data_idx);
