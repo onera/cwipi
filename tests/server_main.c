@@ -244,6 +244,7 @@ main
 
   // verbose
   MPI_Barrier(comm);
+
   if (i_rank == 0) {
     printf("----------------------------------------------------------------------------\n");
     printf("All servers listening and cwipi config file created. You may connect clients\n");

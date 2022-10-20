@@ -739,7 +739,7 @@ CWP_client_Param_reduce
 
   case CWP_CHAR: ;
     res = malloc(sizeof(char));
-    read_name((char **) &res);
+    read_name(&res);
     break;
 
   default:
@@ -1112,7 +1112,7 @@ void
     read_name(&code_names[i]);
   }
 
-  return (const char **) code_names;
+  return code_names;
 }
 
 int
@@ -1173,7 +1173,7 @@ CWP_client_Loc_codes_list_get
     read_name(&code_local_names[i]);
   }
 
-  return (const char **) code_local_names;
+  return code_local_names;
 }
 
 int
@@ -3032,7 +3032,7 @@ CWP_client_connect
 
   // verbose
   if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:client endian %i server indian %i\n",clt->client_endianess,clt->server_endianess);
+    log_trace("CWP:client endian %i server endian %i\n",clt->client_endianess,clt->server_endianess);
   }
 
   return 0;

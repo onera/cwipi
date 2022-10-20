@@ -3331,7 +3331,7 @@ CWP_server_run
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 
   if (svr->flags & CWP_SVRFLAG_VERBOSE) {
-    log_trace("Server : client endian %i server indian %i\n",svr->client_endianess,svr->server_endianess);
+    log_trace("Server : client endian %i server endian %i\n",svr->client_endianess,svr->server_endianess);
   }
 
   t_message msg;
