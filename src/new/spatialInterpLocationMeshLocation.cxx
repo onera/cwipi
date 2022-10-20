@@ -33,11 +33,11 @@
 namespace cwipi {
 
 
-  void 
+  void
   SpatialInterpLocationMeshLocation::localization_init
   (
-  ) 
-  {   
+  )
+  {
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
@@ -57,7 +57,7 @@ namespace cwipi {
       }
 
       PDM_mesh_location_tolerance_set(_id_pdm, tolerance);
-  
+
       if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
         PDM_mesh_location_n_part_cloud_set(_id_pdm, 0, _nPart);
@@ -74,7 +74,7 @@ namespace cwipi {
 
     else {
 
-      // Attention : 
+      // Attention :
       //     - creation d'un objet unique pdm sur le plus petit des 2 id + Copie de l'id dans l'objet du code couple
       //     - rien a faire pour id le plus grand
 
@@ -103,18 +103,18 @@ namespace cwipi {
 
         if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
 
-          cpl_spatial_interp = 
+          cpl_spatial_interp =
             dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
 
         }
 
         else {
 
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
 
-          cpl_spatial_interp = 
+          cpl_spatial_interp =
             dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
         }
 
@@ -146,17 +146,17 @@ namespace cwipi {
 
 
 
-  void 
+  void
   SpatialInterpLocationMeshLocation::localization_points_cloud_setting
   (
-  ) 
+  )
   {
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
       if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
-        for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
+        for (int i_part = 0 ; i_part < _nPart ; i_part++) {
 
           const double      *part_coord = NULL;
           const PDM_g_num_t *part_gnum = NULL;
@@ -181,7 +181,7 @@ namespace cwipi {
             n_elt_size = _cpl->userTargetNGet (i_part);
             // PDM_log_trace_array_double (part_coord, 3*n_elt_size, "cloud point user : ");
           }
-        
+
           printf("n_elt_size = %i\n", n_elt_size);
 
           PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, n_elt_size, (double *) part_coord, (PDM_g_num_t*) part_gnum);
@@ -190,7 +190,7 @@ namespace cwipi {
       }
 
       else {
-        for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
+        for (int i_part = 0 ; i_part < _nPart ; i_part++) {
           PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, 0, NULL, NULL);
         }
       }
@@ -204,7 +204,7 @@ namespace cwipi {
 
         if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
-          for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
+          for (int i_part = 0 ; i_part < _nPart ; i_part++) {
 
             const double *part_coord = NULL;
             const PDM_g_num_t *part_gnum = NULL;
@@ -234,10 +234,10 @@ namespace cwipi {
         }
 
         else {
-  
+
           cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
 
-          for (int i_part = 0 ; i_part < _cplNPart ; i_part++) { 
+          for (int i_part = 0 ; i_part < _cplNPart ; i_part++) {
 
             const double *part_coord = NULL;
             const PDM_g_num_t *part_gnum = NULL;
@@ -268,7 +268,7 @@ namespace cwipi {
   }
 
 
-  void 
+  void
   SpatialInterpLocationMeshLocation::localization_surface_setting
   (
   )
@@ -295,19 +295,19 @@ namespace cwipi {
           cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
 
           PDM_mesh_location_shared_nodal_mesh_set(_id_pdm, cpl_mesh->getPdmNodalIndex());
-  
+
         }
       }
     }
   }
 
 
-  void 
+  void
   SpatialInterpLocationMeshLocation::localization_compute
   (
-  ) 
+  )
   {
-    int _pdm_location_optim = 0;
+    int _pdm_location_optim = 1;
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
@@ -320,7 +320,7 @@ namespace cwipi {
       PDM_mesh_location_dump_times(_id_pdm);
     }
 
-    else { 
+    else {
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
 
         if (_pdm_location_optim) {
@@ -336,10 +336,10 @@ namespace cwipi {
   }
 
 
-  void 
+  void
   SpatialInterpLocationMeshLocation::localization_get
   (
-  ) 
+  )
   {
 
     if (!_coupledCodeProperties->localCodeIs()) {
@@ -424,19 +424,19 @@ namespace cwipi {
         for (int i_part = 0; i_part < _nPart; i_part++) {
 
           _n_computed_tgt[i_part] = PDM_mesh_location_n_located_get (_id_pdm,
-                                                                     0, 
+                                                                     0,
                                                                      i_part);
 
           _n_uncomputed_tgt[i_part] = PDM_mesh_location_n_unlocated_get (_id_pdm,
-                                                                         0, 
+                                                                         0,
                                                                          i_part);
 
           _computed_tgt[i_part] = PDM_mesh_location_located_get (_id_pdm,
-                                                                 0, 
+                                                                 0,
                                                                  i_part);
 
           _uncomputed_tgt[i_part] = PDM_mesh_location_unlocated_get (_id_pdm,
-                                                                     0, 
+                                                                     0,
                                                                      i_part);
 
           PDM_mesh_location_point_location_get (_id_pdm,
@@ -450,7 +450,7 @@ namespace cwipi {
           _elt_pts_inside_idx[i_part] = (int*) malloc (sizeof(int)); // Use malloc not new [] !
           _elt_pts_inside_idx[i_part][0] = 0;
 
-        }      
+        }
       }
     }
 
@@ -463,7 +463,7 @@ namespace cwipi {
 
         if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
 
           cpl_spatial_interp = dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
 
@@ -471,7 +471,7 @@ namespace cwipi {
 
         else {
 
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
 
           cpl_spatial_interp = dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
 
@@ -529,20 +529,20 @@ namespace cwipi {
           for (int i_part = 0; i_part < _cplNPart; i_part++) {
 
             cpl_spatial_interp->_n_computed_tgt[i_part] = PDM_mesh_location_n_located_get (_id_pdm,
-                                                                                           0, 
+                                                                                           0,
                                                                                            i_part);
 
 
             cpl_spatial_interp->_n_uncomputed_tgt[i_part] = PDM_mesh_location_n_unlocated_get (_id_pdm,
-                                                                                               0, 
+                                                                                               0,
                                                                                                i_part);
 
             cpl_spatial_interp->_computed_tgt[i_part] = PDM_mesh_location_located_get (_id_pdm,
-                                                                                       0, 
+                                                                                       0,
                                                                                        i_part);
 
             cpl_spatial_interp->_uncomputed_tgt[i_part] = PDM_mesh_location_unlocated_get (_id_pdm,
-                                                                                           0, 
+                                                                                           0,
                                                                                            i_part);
 
             PDM_mesh_location_point_location_get (_id_pdm,
@@ -554,9 +554,9 @@ namespace cwipi {
 
             // For pdm_part1_to_selected_part2
             cpl_spatial_interp->_elt_pts_inside_idx[i_part] = (int*) malloc (sizeof(int)); // Use malloc not new [] !
-            cpl_spatial_interp->_elt_pts_inside_idx[i_part][0] = 0; 
+            cpl_spatial_interp->_elt_pts_inside_idx[i_part][0] = 0;
 
-          }      
+          }
 
         }
 
@@ -565,19 +565,19 @@ namespace cwipi {
           for (int i_part = 0; i_part < _nPart; i_part++) {
 
             _n_computed_tgt[i_part] = PDM_mesh_location_n_located_get (_id_pdm,
-                                                                       0, 
+                                                                       0,
                                                                        i_part);
 
             _n_uncomputed_tgt[i_part] = PDM_mesh_location_n_unlocated_get (_id_pdm,
-                                                                           0, 
+                                                                           0,
                                                                            i_part);
 
             _computed_tgt[i_part] = PDM_mesh_location_located_get (_id_pdm,
-                                                                   0, 
+                                                                   0,
                                                                    i_part);
 
             _uncomputed_tgt[i_part] = PDM_mesh_location_unlocated_get (_id_pdm,
-                                                                       0, 
+                                                                       0,
                                                                        i_part);
 
             PDM_mesh_location_point_location_get (_id_pdm,
@@ -623,7 +623,7 @@ namespace cwipi {
                 ++count;
               }
             }
-      
+
             cpl_spatial_interp->_n_involved_sources_tgt[i_part] = count;
             cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) realloc(cpl_spatial_interp->_involved_sources_tgt[i_part], sizeof(int) * count);
 
@@ -667,7 +667,7 @@ namespace cwipi {
 
         if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
 
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet(); 
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
 
           cpl_spatial_interp = dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
 
@@ -675,7 +675,7 @@ namespace cwipi {
 
         else {
 
-          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet(); 
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
 
           cpl_spatial_interp = dynamic_cast <SpatialInterpLocationMeshLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
 

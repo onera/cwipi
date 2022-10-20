@@ -173,220 +173,220 @@ module cwp
     interface CWP_Init ; module procedure &
         CWP_Init_
     end interface CWP_Init
-        
+
     interface CWP_State_update ; module procedure &
         CWP_State_update_
     end interface CWP_State_update
-        
+
     interface CWP_Time_update ; module procedure &
         CWP_Time_update_
     end interface CWP_Time_update
-        
+
     interface CWP_User_structure_set ; module procedure &
         CWP_User_structure_set_
     end interface CWP_User_structure_set
-        
+
     interface CWP_User_structure_get ; module procedure &
         CWP_User_structure_get_
     end interface CWP_User_structure_get
-        
+
     interface CWP_State_get ; module procedure &
         CWP_State_get_
     end interface CWP_State_get
-        
+
     interface CWP_Cpl_create ; module procedure &
         CWP_Cpl_create_
     end interface CWP_Cpl_create
-        
+
     interface CWP_Cpl_Del ; module procedure &
         CWP_Cpl_Del_
     end interface CWP_Cpl_Del
-        
+
     interface CWP_N_uncomputed_tgts_get ; module procedure &
         CWP_N_uncomputed_tgts_get_
     end interface CWP_N_uncomputed_tgts_get
-        
+
     interface CWP_Uncomputed_tgts_get ; module procedure &
         CWP_Uncomputed_tgts_get_
     end interface CWP_Uncomputed_tgts_get
-        
+
     interface CWP_N_computed_tgts_get ; module procedure &
         CWP_N_computed_tgts_get_
     end interface CWP_N_computed_tgts_get
-        
+
     interface CWP_Computed_tgts_get ; module procedure &
         CWP_Computed_tgts_get_
     end interface CWP_Computed_tgts_get
-        
+
     interface CWP_N_involved_srcs_get ; module procedure &
         CWP_N_involved_srcs_get_
     end interface CWP_N_involved_srcs_get
-        
+
     interface CWP_Involved_srcs_get ; module procedure &
         CWP_Involved_srcs_get_
     end interface CWP_Involved_srcs_get
-        
+
     interface CWP_Spatial_interp_weights_compute ; module procedure &
         CWP_Spatial_interp_weights_compute_
     end interface CWP_Spatial_interp_weights_compute
-        
+
     interface CWP_Spatial_interp_property_set ; module procedure &
         CWP_Spatial_interp_property_set_
     end interface CWP_Spatial_interp_property_set
-        
+
     interface CWP_Visu_set ; module procedure &
         CWP_Visu_set_
     end interface CWP_Visu_set
-        
+
     interface CWP_User_tgt_pts_set ; module procedure &
         CWP_User_tgt_pts_set_
     end interface CWP_User_tgt_pts_set
-        
+
     interface CWP_Mesh_interf_finalize ; module procedure &
         CWP_Mesh_interf_finalize_
     end interface CWP_Mesh_interf_finalize
-        
+
     interface CWP_Mesh_interf_vtx_set ; module procedure &
         CWP_Mesh_interf_vtx_set_
     end interface CWP_Mesh_interf_vtx_set
-        
+
     interface CWP_Mesh_interf_block_add ; module procedure &
         CWP_Mesh_interf_block_add_
     end interface CWP_Mesh_interf_block_add
-        
+
     interface CWP_Mesh_interf_block_std_set ; module procedure &
         CWP_Mesh_interf_block_std_set_
     end interface CWP_Mesh_interf_block_std_set
-        
+
     interface CWP_Mesh_interf_f_poly_block_set ; module procedure &
         CWP_Mesh_interf_f_poly_block_set_
     end interface CWP_Mesh_interf_f_poly_block_set
-        
+
     interface CWP_Mesh_interf_f_poly_block_get ; module procedure &
         CWP_Mesh_interf_f_poly_block_get_
     end interface CWP_Mesh_interf_f_poly_block_get
-        
+
     interface CWP_Mesh_interf_c_poly_block_set ; module procedure &
         CWP_Mesh_interf_c_poly_block_set_
     end interface CWP_Mesh_interf_c_poly_block_set
-        
+
     interface CWP_Mesh_interf_c_poly_block_get ; module procedure &
         CWP_Mesh_interf_c_poly_block_get_
     end interface CWP_Mesh_interf_c_poly_block_get
-        
+
     interface CWP_Mesh_interf_del ; module procedure &
         CWP_Mesh_interf_del_
     end interface CWP_Mesh_interf_del
-        
+
     interface CWP_Mesh_interf_from_cellface_set ; module procedure &
         CWP_Mesh_interf_from_cellface_set_
     end interface CWP_Mesh_interf_from_cellface_set
-        
+
     interface CWP_Mesh_interf_from_faceedge_set ; module procedure &
         CWP_Mesh_interf_from_faceedge_set_
     end interface CWP_Mesh_interf_from_faceedge_set
-        
+
     interface CWP_Field_create ; module procedure &
         CWP_Field_create_
     end interface CWP_Field_create
-        
+
     interface CWP_Field_data_set ; module procedure &
         CWP_Field_data_set_
     end interface CWP_Field_data_set
-        
+
     interface CWP_Field_n_component_get ; module procedure &
         CWP_Field_n_component_get_
     end interface CWP_Field_n_component_get
-        
+
     interface CWP_Field_target_dof_location_get ; module procedure &
         CWP_Field_target_dof_location_get_
     end interface CWP_Field_target_dof_location_get
-        
+
     interface CWP_Field_storage_get ; module procedure &
         CWP_Field_storage_get_
     end interface CWP_Field_storage_get
-        
+
     interface CWP_Field_del ; module procedure &
         CWP_Field_del_
     end interface CWP_Field_del
-        
+
     interface CWP_Field_issend ; module procedure &
         CWP_Field_issend_
     end interface CWP_Field_issend
-        
+
     interface CWP_Field_irecv ; module procedure &
         CWP_Field_irecv_
     end interface CWP_Field_irecv
-        
+
     interface CWP_Field_wait_issend ; module procedure &
         CWP_Field_wait_issend_
     end interface CWP_Field_wait_issend
-        
+
     interface CWP_Field_wait_irecv ; module procedure &
         CWP_Field_wait_irecv_
     end interface CWP_Field_wait_irecv
-        
+
     interface CWP_Interp_from_location_unset ; module procedure &
         CWP_Interp_from_location_unset_
     end interface CWP_Interp_from_location_unset
-        
-    interface CWP_Interp_from_location_set ; module procedure &
-        CWP_Interp_from_location_set_
-    end interface CWP_Interp_from_location_set
-        
+
+!!$    interface CWP_Interp_from_location_set ; module procedure &
+!!$        CWP_Interp_from_location_set_
+!!$    end interface CWP_Interp_from_location_set
+
     interface CWP_Param_add_int ; module procedure &
         CWP_Param_add_int_
     end interface CWP_Param_add_int
-        
+
     interface CWP_Param_add_double ; module procedure &
         CWP_Param_add_double_
     end interface CWP_Param_add_double
-        
+
     interface CWP_Param_add_char ; module procedure &
         CWP_Param_add_char_
     end interface CWP_Param_add_char
-        
+
     interface CWP_Param_set_int ; module procedure &
         CWP_Param_set_int_
     end interface CWP_Param_set_int
-        
+
     interface CWP_Param_set_double ; module procedure &
         CWP_Param_set_double_
     end interface CWP_Param_set_double
-        
+
     interface CWP_Param_set_char ; module procedure &
         CWP_Param_set_char_
     end interface CWP_Param_set_char
-        
+
     interface CWP_Param_del ; module procedure &
         CWP_Param_del_
     end interface CWP_Param_del
-        
+
     interface CWP_Param_n_get ; module procedure &
         CWP_Param_n_get_
     end interface CWP_Param_n_get
-        
+
     interface CWP_Param_is ; module procedure &
         CWP_Param_is_
     end interface CWP_Param_is
-        
+
     interface CWP_Param_get ; module procedure &
         CWP_Param_get_
     end interface CWP_Param_get
-        
+
     interface CWP_Param_lock ; module procedure &
         CWP_Param_lock_
     end interface CWP_Param_lock
-        
+
     interface CWP_Param_unlock ; module procedure &
         CWP_Param_unlock_
     end interface CWP_Param_unlock
-        
+
 
   !
   ! Private
 
-  private :: CWP_Init_ ,&                   
+  private :: CWP_Init_ ,&
              CWP_State_update_ ,&
              CWP_Time_update_ ,&
              CWP_User_structure_set_ ,&
@@ -426,7 +426,7 @@ module cwp
              CWP_Field_wait_issend_ ,&
              CWP_Field_wait_irecv_ ,&
              CWP_Interp_from_location_unset_ ,&
-             CWP_Interp_from_location_set_ ,&
+!!$             CWP_Interp_from_location_set_ ,&
              CWP_Param_add_int_ ,&
              CWP_Param_add_double_ ,&
              CWP_Param_add_char_ ,&
@@ -1974,9 +1974,9 @@ contains
     type(c_ptr) :: c_global_num
 
     if (associated(global_num)) then
-      c_global_num = c_loc(global_num)            
+      c_global_num = c_loc(global_num)
     else
-      c_global_num = c_null_ptr            
+      c_global_num = c_null_ptr
     endif
 
     l_local_code_name = len(local_code_name)
@@ -2043,9 +2043,9 @@ contains
     type(c_ptr) :: c_global_num
 
     if (associated(global_num)) then
-      c_global_num = c_loc(global_num)            
+      c_global_num = c_loc(global_num)
     else
-      c_global_num = c_null_ptr            
+      c_global_num = c_null_ptr
     endif
 
     l_local_code_name = len(local_code_name)
@@ -2206,9 +2206,9 @@ contains
     type(c_ptr) :: c_global_num
 
     if (associated(global_num)) then
-      c_global_num = c_loc(global_num)            
+      c_global_num = c_loc(global_num)
     else
-      c_global_num = c_null_ptr            
+      c_global_num = c_null_ptr
     endif
 
     l_local_code_name = len(local_code_name)
@@ -2313,9 +2313,9 @@ contains
     type(c_ptr) :: c_global_num
 
     if (associated(global_num)) then
-      c_global_num = c_loc(global_num)            
+      c_global_num = c_loc(global_num)
     else
-      c_global_num = c_null_ptr            
+      c_global_num = c_null_ptr
     endif
 
     l_local_code_name = len(local_code_name)
@@ -2434,9 +2434,9 @@ contains
     type(c_ptr) :: c_global_num
 
     if (associated(global_num)) then
-      c_global_num = c_loc(global_num)            
+      c_global_num = c_loc(global_num)
     else
-      c_global_num = c_null_ptr            
+      c_global_num = c_null_ptr
     endif
 
     l_local_code_name = len(local_code_name)
@@ -2597,9 +2597,9 @@ contains
     type(c_ptr) :: c_global_num
 
     if (associated(global_num)) then
-      c_global_num = c_loc(global_num)            
+      c_global_num = c_loc(global_num)
     else
-      c_global_num = c_null_ptr            
+      c_global_num = c_null_ptr
     endif
 
     l_local_code_name = len(local_code_name)
@@ -2665,9 +2665,9 @@ contains
     type(c_ptr) :: c_global_num
 
     if (associated(global_num)) then
-      c_global_num = c_loc(global_num)            
+      c_global_num = c_loc(global_num)
     else
-      c_global_num = c_null_ptr            
+      c_global_num = c_null_ptr
     endif
 
     l_local_code_name = len(local_code_name)
@@ -3065,14 +3065,14 @@ contains
                                  l_tgt_field_id)
   end subroutine CWP_Field_wait_irecv_
 
-  !> 
-  !! 
+  !>
+  !!
   !!  \brief Unsetting of an user interpolation.
-  !! 
+  !!
   !!  \param [in] local_code_name  Local code name
   !!  \param [in] cpl_id           Coupling identifier
   !!  \param [in] src_field_id     Source field id
-  !! 
+  !!
   !!
 
   subroutine CWP_Interp_from_location_unset_ (local_code_name, &
@@ -3106,66 +3106,66 @@ contains
   !! \param [in] fct              Function
   !!
 
-  subroutine CWP_Interp_from_location_set_(local_code_name, &
-                                          cpl_id, &
-                                          src_field_id, &
-                                          ptInterpolationFct)
-
-    use, intrinsic :: iso_c_binding
-    implicit none
-
-    interface
-      subroutine ptInterpolationFct ( &
-              interface_type, &
-              n_src_vtcs, &
-              n_src_std_elts, &
-              n_tgt_pts, &
-              src_vtcs_coords, &
-              src_connec_idx, &
-              src_connec, &
-              tgt_pts_coords, &
-              tgt_pts_target_location, &
-              tgt_pts_dist, &
-              tgt_pts_bary_coords_idx, &
-              tgt_pts_bary_coords, &
-              stride, &
-              src_field_location, &
-              src_field, &
-              tgt_field_location, &
-              tgt_field &
-              )
-        use, intrinsic :: iso_c_binding
-        implicit none
-
-        integer(kind = c_int)               :: interface_type
-        integer(kind = c_int)               :: n_src_vtcs
-        integer(kind = c_int)               :: n_src_std_elts
-        integer(kind = c_int)               :: n_tgt_pts
-        real(kind = c_double), dimension(*) :: src_vtcs_coords
-        integer(kind = c_int), dimension(*) :: src_connec_idx
-        integer(kind = c_int), dimension(*) :: src_connec
-        real(kind = c_double), dimension(*) :: tgt_pts_coords
-        integer(kind = c_int), dimension(*) :: tgt_pts_target_location
-        real(kind = c_double), dimension(*) :: tgt_pts_dist
-        integer(kind = c_int), dimension(*) :: tgt_pts_bary_coords_idx
-        real(kind = c_double), dimension(*) :: tgt_pts_bary_coords
-        integer(kind = c_int)               :: stride
-        integer(kind = c_int)               :: src_field_location
-        real(kind = c_double), dimension(*) :: src_field
-        integer(kind = c_int)               :: tgt_field_location
-        real(kind = c_double), dimension(*) :: tgt_field
-      end subroutine ptInterpolationFct
-    end interface
-
-    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
-    l_local_code_name = len(local_code_name)
-    l_cpl_id = len(cpl_id)
-    l_src_field_id = len(src_field_id)
-
-    call CWP_Interp_from_location_fortran_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
-            & src_field_id, l_src_field_id, ptInterpolationFct)
-  end subroutine CWP_Interp_from_location_set_
+!!$  subroutine CWP_Interp_from_location_set_(local_code_name, &
+!!$                                          cpl_id, &
+!!$                                          src_field_id, &
+!!$                                          ptInterpolationFct)
+!!$
+!!$    use, intrinsic :: iso_c_binding
+!!$    implicit none
+!!$
+!!$    interface
+!!$      subroutine ptInterpolationFct ( &
+!!$              interface_type, &
+!!$              n_src_vtcs, &
+!!$              n_src_std_elts, &
+!!$              n_tgt_pts, &
+!!$              src_vtcs_coords, &
+!!$              src_connec_idx, &
+!!$              src_connec, &
+!!$              tgt_pts_coords, &
+!!$              tgt_pts_target_location, &
+!!$              tgt_pts_dist, &
+!!$              tgt_pts_bary_coords_idx, &
+!!$              tgt_pts_bary_coords, &
+!!$              stride, &
+!!$              src_field_location, &
+!!$              src_field, &
+!!$              tgt_field_location, &
+!!$              tgt_field &
+!!$              )
+!!$        use, intrinsic :: iso_c_binding
+!!$        implicit none
+!!$
+!!$        integer(kind = c_int)               :: interface_type
+!!$        integer(kind = c_int)               :: n_src_vtcs
+!!$        integer(kind = c_int)               :: n_src_std_elts
+!!$        integer(kind = c_int)               :: n_tgt_pts
+!!$        real(kind = c_double), dimension(*) :: src_vtcs_coords
+!!$        integer(kind = c_int), dimension(*) :: src_connec_idx
+!!$        integer(kind = c_int), dimension(*) :: src_connec
+!!$        real(kind = c_double), dimension(*) :: tgt_pts_coords
+!!$        integer(kind = c_int), dimension(*) :: tgt_pts_target_location
+!!$        real(kind = c_double), dimension(*) :: tgt_pts_dist
+!!$        integer(kind = c_int), dimension(*) :: tgt_pts_bary_coords_idx
+!!$        real(kind = c_double), dimension(*) :: tgt_pts_bary_coords
+!!$        integer(kind = c_int)               :: stride
+!!$        integer(kind = c_int)               :: src_field_location
+!!$        real(kind = c_double), dimension(*) :: src_field
+!!$        integer(kind = c_int)               :: tgt_field_location
+!!$        real(kind = c_double), dimension(*) :: tgt_field
+!!$      end subroutine ptInterpolationFct
+!!$    end interface
+!!$
+!!$    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
+!!$    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+!!$    l_local_code_name = len(local_code_name)
+!!$    l_cpl_id = len(cpl_id)
+!!$    l_src_field_id = len(src_field_id)
+!!$
+!!$    call CWP_Interp_from_location_fortran_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+!!$            & src_field_id, l_src_field_id, ptInterpolationFct)
+!!$  end subroutine CWP_Interp_from_location_set_
 
 ! /*----------------------------------------------------------------------------*
 !  * Functions about all code parameters                                        *
@@ -3196,7 +3196,7 @@ contains
     integer(kind = c_int)             :: l_local_code_name, l_param_name
 
     integer, dimension(1), target :: cvalue
-    integer, pointer               :: cptrvalue(:) 
+    integer, pointer               :: cptrvalue(:)
     integer                       :: data_type
 
     data_type = CWP_INT
@@ -3231,7 +3231,7 @@ contains
     integer(kind = c_int)             :: l_local_code_name, l_param_name
 
     real(kind = 8), dimension(1), target :: cvalue
-    real(kind = 8), pointer              :: cptrvalue(:) 
+    real(kind = 8), pointer              :: cptrvalue(:)
     integer                              :: data_type
 
     data_type = CWP_DOUBLE
@@ -3265,7 +3265,7 @@ contains
     integer(kind = c_int)             :: l_local_code_name, l_param_name
 
     character(len=512), dimension(1), target :: cvalue
-    character(len=512), pointer            :: cptrvalue(:) 
+    character(len=512), pointer            :: cptrvalue(:)
     integer                                :: data_type
 
     data_type = CWP_CHAR
@@ -3310,7 +3310,7 @@ contains
     integer(kind = c_int)             :: l_local_code_name, l_param_name
 
     integer, dimension(1), target :: cvalue
-    integer, pointer               :: cptrvalue(:) 
+    integer, pointer               :: cptrvalue(:)
 
     integer                        :: data_type = CWP_INT
 
@@ -3343,7 +3343,7 @@ contains
     integer(kind = c_int)             :: l_local_code_name, l_param_name
 
     real(kind = 8), dimension(1), target :: cvalue
-    real(kind = 8), pointer               :: cptrvalue(:) 
+    real(kind = 8), pointer               :: cptrvalue(:)
 
     integer                        :: data_type = CWP_DOUBLE
 
@@ -3376,7 +3376,7 @@ contains
     integer(kind = c_int)             :: l_local_code_name, l_param_name
 
     character(len = 512), dimension(1), target :: cvalue
-    character(len = 512), pointer               :: cptrvalue(:) 
+    character(len = 512), pointer               :: cptrvalue(:)
 
     integer                        :: data_type = CWP_CHAR
 

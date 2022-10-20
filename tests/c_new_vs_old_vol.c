@@ -94,29 +94,29 @@ _usage(int exit_code) {
 static void
 _read_args
 (
-  int                   argc, 
-  char                **argv, 
-  CWP_Version_t        *version, 
-  int                  *n_vtx_seg1, 
+  int                   argc,
+  char                **argv,
+  CWP_Version_t        *version,
+  int                  *n_vtx_seg1,
   int                  *n_vtx_seg2,
   double               *length,
   double               *separation_x,
   double               *separation_y,
   double               *separation_z,
-  int                  *deform, 
+  int                  *deform,
   double               *tolerance,
-  int                  *randomize, 
+  int                  *randomize,
   int                  *nProcData,
   PDM_split_dual_t     *part_method,
-  CWP_Spatial_interp_t *loc_method, 
-  char                **output_filename, 
+  CWP_Spatial_interp_t *loc_method,
+  char                **output_filename,
   int                  *verbose,
   int                  *extension_depth_tgt,
   int                  *extension_depth_src,
   PDM_Mesh_nodal_elt_t *elt_type,
   int                  *use_gnum,
   int                  *interlaced_field
-) 
+)
 {
   int i = 1;
 
@@ -313,7 +313,7 @@ _rotate(const int n_pts, double *coord) {
 static void
 _cube_mesh
 (
- const int                     activeRank,  
+ const int                     activeRank,
  const PDM_MPI_Comm            comm,
  const int                     n_part,
  const PDM_split_dual_t        part_method,
@@ -501,7 +501,7 @@ _cube_mesh
 
     if (part_extension_depth > 0) {
 
-      // TODO: Part extension et nodal sont-ils compatibles ? 
+      // TODO: Part extension et nodal sont-ils compatibles ?
       assert(0);
 
 
@@ -880,16 +880,16 @@ _cube_mesh
                                 (*pvtx_ln_to_gn)[i_part],
                                 PDM_OWNERSHIP_USER);
 
-      face_vtx_nb[i_part]  = malloc (sizeof(int) * (*pn_face)[i_part]);   
+      face_vtx_nb[i_part]  = malloc (sizeof(int) * (*pn_face)[i_part]);
       cell_face_nb[i_part] = malloc (sizeof(int) * (*pn_cell)[i_part]);
 
       for (int i = 0; i < (*pn_cell)[i_part]; i++) {
-        cell_face_nb[i_part][i] = (*pcell_face_idx)[i_part][i + 1] - (*pcell_face_idx)[i_part][i];           
-      } 
+        cell_face_nb[i_part][i] = (*pcell_face_idx)[i_part][i + 1] - (*pcell_face_idx)[i_part][i];
+      }
 
       for (int i = 0; i < (*pn_face)[i_part]; i++) {
-        face_vtx_nb[i_part][i] = (*pface_vtx_idx)[i_part][i + 1] - (*pface_vtx_idx)[i_part][i];           
-      } 
+        face_vtx_nb[i_part][i] = (*pface_vtx_idx)[i_part][i + 1] - (*pface_vtx_idx)[i_part][i];
+      }
 
       PDM_Mesh_nodal_cell3d_cellface_add (nodal,
                                           i_part,
@@ -907,8 +907,8 @@ _cube_mesh
     }
 
     for (int i_part = 0; i_part < n_part; i_part++) {
-      free (cell_face_nb[i_part]);           
-      free (face_vtx_nb[i_part]);           
+      free (cell_face_nb[i_part]);
+      free (face_vtx_nb[i_part]);
     }
 
     free (cell_face_nb);
@@ -922,7 +922,7 @@ _cube_mesh
     }
 
     PDM_Mesh_nodal_free(nodal);
-    
+
     PDM_multipart_free (mpart);
     PDM_dmesh_free (dmesh);
     PDM_part_extension_free (part_ext);
@@ -952,7 +952,7 @@ _cube_mesh
       (*pn_vtx)[ipart] = _nVtx;
       (*pcell_face_idx)[ipart] = (int *) malloc(sizeof(int) * (_nCell + 1));
       (*pcell_face_idx)[ipart][0] = 0;
-      (*pcell_face)[ipart] = (int *) malloc(sizeof(int) * 0); 
+      (*pcell_face)[ipart] = (int *) malloc(sizeof(int) * 0);
       (*pcell_vtx)[ipart] = (int *) malloc(sizeof(int) * 0);
       (*pface_vtx_idx)[ipart] = (int *) malloc(sizeof(int) * (_nFace + 1));
       (*pface_vtx_idx)[ipart][0] = 0;
@@ -963,7 +963,7 @@ _cube_mesh
       (*pvtx_ln_to_gn)[ipart] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * _nVtx);
     }
   }
-//  printf("pncel, pnface, pnvtx : %d %d %d \n", (*pn_cell)[0], (*pn_face)[0], (*pn_vtx)[0]); 
+//  printf("pncel, pnface, pnvtx : %d %d %d \n", (*pn_cell)[0], (*pn_face)[0], (*pn_vtx)[0]);
 }
 
 
@@ -1062,26 +1062,26 @@ main(int argc, char *argv[]) {
   int         extension_depth_tgt = 0;
   int         extension_depth_src = 0;
   int         use_gnum            = 1;
-  int         interlaced_field    = 0;
+  int         interlaced_field    = 1;
 
   PDM_Mesh_nodal_elt_t elt_type = PDM_MESH_NODAL_TETRA4;
 
-  _read_args (argc, 
-              argv, 
-             &version, 
-             &n_vtx_seg1, 
+  _read_args (argc,
+              argv,
+             &version,
+             &n_vtx_seg1,
              &n_vtx_seg2,
              &length,
              &separation_x,
              &separation_y,
              &separation_z,
-             &deform, 
+             &deform,
              &tolerance,
-             &randomize, 
+             &randomize,
              &n_proc_data,
              &part_method,
-             &loc_method, 
-             &output_filename, 
+             &loc_method,
+             &output_filename,
              &verbose,
              &extension_depth_tgt,
              &extension_depth_src,
@@ -1090,7 +1090,7 @@ main(int argc, char *argv[]) {
              &interlaced_field);
 
   if (output_filename !=NULL) {
-    filedump = 1;    
+    filedump = 1;
   }
 
   CWP_Field_storage_t field_storage = CWP_FIELD_STORAGE_INTERLEAVED;
@@ -1278,28 +1278,28 @@ main(int argc, char *argv[]) {
   if (elt_type == PDM_MESH_NODAL_TETRA4) {
     block_type = CWP_BLOCK_CELL_TETRA4;
     for (int i = 0; i < pn_cell[0]; i++) {
-      cellVtxIdx[i+1] = 4 + cellVtxIdx[i];  
+      cellVtxIdx[i+1] = 4 + cellVtxIdx[i];
     }
   }
 
   else if (elt_type == PDM_MESH_NODAL_HEXA8) {
     block_type = CWP_BLOCK_CELL_HEXA8;
     for (int i = 0; i < pn_cell[0]; i++) {
-      cellVtxIdx[i+1] = 8 + cellVtxIdx[i];  
+      cellVtxIdx[i+1] = 8 + cellVtxIdx[i];
     }
   }
 
   else if (elt_type == PDM_MESH_NODAL_PYRAMID5) {
     block_type = CWP_BLOCK_CELL_PYRAM5;
     for (int i = 0; i < pn_cell[0]; i++) {
-      cellVtxIdx[i+1] = 5 + cellVtxIdx[i];  
+      cellVtxIdx[i+1] = 5 + cellVtxIdx[i];
     }
   }
 
   else if (elt_type == PDM_MESH_NODAL_PRISM6) {
     block_type = CWP_BLOCK_CELL_PRISM6;
     for (int i = 0; i < pn_cell[0]; i++) {
-      cellVtxIdx[i+1] = 6 + cellVtxIdx[i];  
+      cellVtxIdx[i+1] = 6 + cellVtxIdx[i];
     }
   }
 
@@ -1318,7 +1318,7 @@ main(int argc, char *argv[]) {
 
     int block_id = CWP_Mesh_interf_block_add (code_name[0],
                                               coupling_name,
-                                              block_type);  
+                                              block_type);
 
 
     CWP_Mesh_interf_block_std_set (code_name[0],
@@ -1354,7 +1354,7 @@ main(int argc, char *argv[]) {
       send_val2[i] = pvtx_coord[0][3*i+1];
     }
 
-    if (interlaced_field && version == CWP_VERSION_NEW) {
+    if (interlaced_field || version == CWP_VERSION_OLD) {
       for (int i = 0 ; i < 3*pn_vtx[0]; i++) {
         send_val[i] = pvtx_coord[0][i];
       }
@@ -1368,7 +1368,7 @@ main(int argc, char *argv[]) {
 
     if (0) {
       log_trace("send_val = \n");
-      if (interlaced_field && version == CWP_VERSION_NEW) {
+      if (interlaced_field || version == CWP_VERSION_OLD) {
         for (int i = 0 ; i < pn_vtx[0]; i++) {
           log_trace("%f %f %f\n", send_val[3*i], send_val[3*i+1], send_val[3*i+2]);
         }
@@ -1490,7 +1490,7 @@ main(int argc, char *argv[]) {
 
     CWP_Spatial_interp_property_set(code_name[0], coupling_name, "tolerance", "double", "1e-2");
     CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
-  
+
     if (code_id != 1) {
       n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name2, 0);
       n_located = CWP_N_computed_tgts_get(code_name[0], coupling_name, field_name2, 0);
@@ -1692,7 +1692,7 @@ main(int argc, char *argv[]) {
   FILE *output = stdout;
   if (filedump) {
     output = fopen(output_filename, "w");
-  } 
+  }
 
   if (rank == 0) {
     printf("\n\nGeometric algorithm :%12.5es\n", max_geom_time);
@@ -1706,6 +1706,8 @@ main(int argc, char *argv[]) {
     printf("Geometric algorithm OK\n");
 
   }
+
+  printf("n_unlocated : %d\n", n_unlocated);
 
   //  Exchange interpolated fields 1
   MPI_Barrier(MPI_COMM_WORLD);
@@ -1789,10 +1791,10 @@ main(int argc, char *argv[]) {
 
   if (version == CWP_VERSION_OLD) {
     if (code_id == 1) {
-      cwipi_issend(coupling_name, "ech", 0, 1, 1, 0.1, field_name2, send_val, &request);
+      cwipi_issend(coupling_name, "ech", 0, 1, 1, 0.1, field_name2, send_val2, &request);
     }
     else {
-      cwipi_irecv(coupling_name, "ech", 0, 1, 1, 0.1, field_name2, recv_val, &request);
+      cwipi_irecv(coupling_name, "ech", 0, 1, 1, 0.1, field_name2, recv_val2, &request);
     }
   }
 
@@ -1859,7 +1861,7 @@ main(int argc, char *argv[]) {
 
   //  Check
 
-  if (1) {
+  if (0) {
     double max_err = 0.;
     if (code_id == 2) {
 
@@ -1867,7 +1869,7 @@ main(int argc, char *argv[]) {
         log_trace("recv_val : %p\n", (void *) recv_val);
         // PDM_log_trace_array_double(recv_val, 3 * n_located, "recv_val     : ");
         log_trace("recv_val / coord = \n");
-        if (interlaced_field && version == CWP_VERSION_NEW) {
+        if (interlaced_field || version == CWP_VERSION_OLD) {
           for (int i = 0 ; i < n_located; i++) {
             int ivtx = located[i] - 1;
             log_trace("%d ("PDM_FMT_G_NUM"): %3.3f %3.3f %3.3f / %3.3f %3.3f %3.3f\n",
@@ -1899,7 +1901,7 @@ main(int argc, char *argv[]) {
         double _recv_val;
 
         for (int j = 0; j < 3; j++) {
-          if (interlaced_field && version == CWP_VERSION_NEW) {
+          if (interlaced_field || version == CWP_VERSION_OLD) {
             _recv_val = recv_val[3*i + j];
           } else {
             _recv_val = recv_val[n_located*j + i];
@@ -1941,7 +1943,7 @@ main(int argc, char *argv[]) {
   free(is_active_rank);
   free(time_init);
   free(intra_comm);
-  
+
   if (current_rank_has_mesh) {
     for (int ipart = 0; ipart < n_part; ipart++) {
       free (pcell_face_idx[ipart]);
