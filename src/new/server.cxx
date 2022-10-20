@@ -247,7 +247,6 @@ CWP_server_Param_add
                   param_name,
                   data_type,
                   &char_initial_value);
-    free(char_initial_value);
     break;
 
   default:
@@ -322,6 +321,10 @@ CWP_server_Param_get
     PDM_error(__FILE__, __LINE__, 0, "Received unknown CWP_Type_t %i\n", data_type);
   }
 
+  // free
+  free(local_code_name);
+  free(param_name);
+
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
@@ -380,6 +383,10 @@ CWP_server_Param_set
     PDM_error(__FILE__, __LINE__, 0, "Received unknown CWP_Type_t %i\n", data_type);
   }
 
+  // free
+  free(local_code_name);
+  free(param_name);
+
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
@@ -410,6 +417,10 @@ CWP_server_Param_del
                 param_name,
                 data_type);
 
+  // free
+  free(local_code_name);
+  free(param_name);
+
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
@@ -438,6 +449,9 @@ CWP_server_Param_n_get
   // send n_param
   svr->state=CWP_SVRSTATE_SENDPGETDATA;
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &n_param, sizeof(int));
+
+  // free
+  free(code_name);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -477,6 +491,9 @@ CWP_server_Param_list_get
     write_name(paramNames[i], svr);
   }
 
+  // free
+  free(code_name);
+
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
@@ -510,6 +527,10 @@ CWP_server_Param_is
   // send is_param
   svr->state=CWP_SVRSTATE_SENDPGETDATA;
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &is_param, sizeof(int));
+
+  // free
+  free(code_name);
+  free(param_name);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -567,6 +588,10 @@ CWP_server_Param_reduce
   default:
     PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i\n", data_type);
   }
+
+  // free
+  free(code_name);
+  free(param_name);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -746,6 +771,9 @@ CWP_server_State_update
   CWP_State_update(local_code_name,
                    state);
 
+  // free
+  free(local_code_name);
+
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
@@ -770,6 +798,9 @@ CWP_server_Time_update
   // launch
   CWP_Time_update(local_code_name,
                   current_time);
+
+  // free
+  free(local_code_name);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -840,6 +871,9 @@ CWP_server_State_get
   // send state
   svr->state=CWP_SVRSTATE_SENDPGETDATA;
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &state, sizeof(int));
+
+  // free
+  free(code_name);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -1627,9 +1661,6 @@ CWP_server_Mesh_interf_f_poly_block_get
   // free
   free(local_code_name);
   free(cpl_id);
-  free(connec_idx);
-  free(connec);
-  free(global_num);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -1779,11 +1810,6 @@ CWP_server_Mesh_interf_c_poly_block_get
   // free
   free(local_code_name);
   free(cpl_id);
-  free(connec_faces_idx);
-  free(connec_faces);
-  free(connec_cells_idx);
-  free(connec_cells);
-  free(global_num);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }

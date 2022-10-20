@@ -64,8 +64,6 @@ extern "C" {
 
 typedef struct t_server
 {
-  MPI_Comm global_comm;
-  MPI_Comm *intra_comms;
   int port;
   int state;
   int flags;
@@ -76,6 +74,28 @@ typedef struct t_server
   int server_endianess;
   char host_name[256];
 }t_server,*p_server;
+
+typedef struct t_server_cwp
+{
+  int nParam;
+  char **paramNames; // Param_list_get
+} t_server_cwp, *p_server_cwp;
+
+typedef struct t_server_cwp
+{
+  int nParam;
+  char **paramNames; // Param_list_get
+} t_server_cwp, *p_server_cwp;
+
+typedef struct t_server_cwp
+{
+  MPI_Comm       global_comm;
+  MPI_Comm      *intra_comms;
+  char          *format_option; // Visu_set
+  int            n_codes;
+  char         **code_names; // Codes_list_get
+  p_server_cwp   codeData;
+} t_server_cwp, *p_server_cwp;
 
 /*=============================================================================
  * Server CWIPI function interfaces
