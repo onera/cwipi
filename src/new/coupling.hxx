@@ -1425,6 +1425,20 @@ namespace cwipi {
     SpatialInterpPropertiesNamesGet (
     );
 
+
+    /**
+     * \brief Return kind of displacement
+     *  
+     * 
+     * \return kind of displacement
+     *
+     */
+
+    inline CWP_Dynamic_mesh_t
+    DisplacementGet (
+    );
+
+
   public:
 
     // A supprimer 

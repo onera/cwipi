@@ -1473,6 +1473,9 @@ namespace cwipi {
     pair<string, Field* > newPair(string(field_id), newField);
     string localName = _localCodeProperties.nameGet();
     _fields.insert(newPair);
+
+
+
     // if (_visu.isCreated() && newField->visuStatusGet() == CWP_STATUS_ON) {
     //   _visu.WriterFieldCreate(newField);
     // }
@@ -1648,6 +1651,12 @@ namespace cwipi {
         else {
           it2->second->issend(sendingField);
         }
+
+
+
+
+
+        
       }
       else {
         PDM_error(__FILE__, __LINE__, 0, "\nUnknown field\n");

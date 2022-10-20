@@ -32,6 +32,24 @@ namespace cwipi {
    * Methods about exchange frequency                                           *
    *----------------------------------------------------------------------------*/
 
+
+
+    /**
+     * \brief Return kind of displacement
+     *  
+     * 
+     * \return kind of displacement
+     *
+     */
+
+    CWP_Dynamic_mesh_t
+    Coupling::DisplacementGet (
+    )
+    {
+      return _displacement;
+    }
+
+
   /**
    * \brief Setting receiving frequency.
    *
