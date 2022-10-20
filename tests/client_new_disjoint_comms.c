@@ -28,7 +28,7 @@
 #include "pdm_dcube_nodal_gen.h"
 #include "pdm_dmesh_nodal_to_dmesh.h"
 #include "pdm_logging.h"
-#include "client.h"
+#include "client.hxx"
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_io.h"

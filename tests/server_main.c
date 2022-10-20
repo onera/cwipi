@@ -30,7 +30,7 @@
  *  Local headers
  *----------------------------------------------------------------------------*/
 
-#include "server.h"
+#include "server.hxx"
 #include <pdm_error.h>
 #include <pdm_io.h>
 #include <pdm_mpi.h>

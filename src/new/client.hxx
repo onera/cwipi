@@ -30,6 +30,8 @@
  *----------------------------------------------------------------------------*/
 
 #include <cwp.h>
+#include <map>
+#include <string>
 
 
 #ifdef __cplusplus

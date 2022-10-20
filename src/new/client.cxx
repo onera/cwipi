@@ -48,7 +48,7 @@
  *  Local headers
  *----------------------------------------------------------------------------*/
 
-#include "client.h"
+#include "client.hxx"
 #include "message.h"
 #include "transfer.h"
 
@@ -221,7 +221,7 @@ static void write_name(const char * name) {
 static void read_name(char **name) {
   int name_size;
   CWP_transfer_readdata(clt->socket,clt->max_msg_size,(void*) &name_size, sizeof(int));
-  *name = realloc(*name, name_size);
+  *name = (char *) realloc(*name, name_size);
   CWP_transfer_readdata(clt->socket,clt->max_msg_size,(void*) *name, name_size);
 }
 
@@ -255,8 +255,8 @@ CWP_client_Init
 
   // endian swap
   int           endian_n_code         = n_code;
-  CWP_Status_t *endian_is_active_rank = malloc(sizeof(int) * n_code);
-  double       *endian_time_init      = malloc(sizeof(double) * n_code);
+  CWP_Status_t *endian_is_active_rank = (CWP_Status_t *) malloc(sizeof(int) * n_code);
+  double       *endian_time_init      = (double *) malloc(sizeof(double) * n_code);
   memcpy(endian_is_active_rank, is_active_rank, sizeof(CWP_Status_t) * n_code);
   memcpy(endian_time_init, time_init, sizeof(double) * n_code);
   CWP_swap_endian_4bytes(&endian_n_code, 1);
@@ -395,7 +395,7 @@ CWP_client_Param_add
     break;
 
   case CWP_CHAR:
-    write_name(initial_value);
+    write_name((char *) initial_value);
     break;
 
   default:
@@ -450,7 +450,7 @@ CWP_client_Param_get
     break;
 
   case CWP_CHAR: ;
-    char *char_value = malloc(sizeof(char));
+    char *char_value = (char *) malloc(sizeof(char));
     read_name(&char_value);
     memcpy(value, char_value, strlen(char_value));
     free(char_value);
@@ -512,7 +512,7 @@ CWP_client_Param_set
     break;
 
   case CWP_CHAR:
-    write_name(value);
+    write_name((char *) value);
     break;
 
   default:
@@ -628,9 +628,9 @@ CWP_client_Param_list_get
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) nParam, sizeof(int));
 
   // read param names
-  *paramNames = malloc(sizeof(char *) * (*nParam));
+  *paramNames = (char **) malloc(sizeof(char *) * (*nParam));
   for (int i = 0; i < *nParam; i++) {
-    (*paramNames)[i] = malloc(sizeof(char));
+    (*paramNames)[i] = (char *) malloc(sizeof(char));
     read_name(&(*paramNames)[i]);
   }
 }
@@ -738,8 +738,8 @@ CWP_client_Param_reduce
     break;
 
   case CWP_CHAR: ;
-    res = malloc(sizeof(char));
-    read_name(&res);
+    res = (char *) malloc(sizeof(char));
+    read_name((char **) &res);
     break;
 
   default:
@@ -1048,8 +1048,8 @@ CWP_client_State_get
   write_name(code_name);
 
   // read state
-  int state = -1;
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &state, sizeof(int));
+  CWP_State_t state = (CWP_State_t) -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &state, sizeof(CWP_State_t));
 
   return state;
 }
@@ -1106,13 +1106,13 @@ void
   // read code names
   int nb_codes = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_codes, sizeof(int));
-  char **code_names = malloc(nb_codes);
+  char **code_names = (char **) malloc(nb_codes);
   for (int i = 0; i < nb_codes; i++) {
-    code_names[i] = malloc(sizeof(char));
+    code_names[i] = (char *) malloc(sizeof(char));
     read_name(&code_names[i]);
   }
 
-  return code_names;
+  return (const char **) code_names;
 }
 
 int
@@ -1167,13 +1167,13 @@ CWP_client_Loc_codes_list_get
   // read code names
   int nb_local_codes = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_local_codes, sizeof(int));
-  char **code_local_names = malloc(nb_local_codes);
+  char **code_local_names = (char **) malloc(nb_local_codes);
   for (int i = 0; i < nb_local_codes; i++) {
-    code_local_names[i] = malloc(sizeof(char));
+    code_local_names[i] = (char *) malloc(sizeof(char));
     read_name(&code_local_names[i]);
   }
 
-  return code_local_names;
+  return (const char **) code_local_names;
 }
 
 int
@@ -1262,7 +1262,7 @@ CWP_client_Uncomputed_tgts_get
   // read number of targets
   int nb_tgts = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_tgts, sizeof(int));
-  int *tgts = malloc(sizeof(int) * nb_tgts);
+  int *tgts = (int *) malloc(sizeof(int) * nb_tgts);
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) tgts, sizeof(int)*nb_tgts);
 
   return tgts;
@@ -1354,7 +1354,7 @@ CWP_client_Computed_tgts_get
   // read number of targets
   int nb_tgts = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_tgts, sizeof(int));
-  int *tgts = malloc(sizeof(int) * nb_tgts);
+  int *tgts = (int *) malloc(sizeof(int) * nb_tgts);
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) tgts, sizeof(int)*nb_tgts);
 
   return tgts;
@@ -1446,7 +1446,7 @@ CWP_client_Involved_srcs_get
   // read number of sources
   int nb_srcs = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_srcs, sizeof(int));
-  int *srcs = malloc(sizeof(int) * nb_srcs);
+  int *srcs = (int *) malloc(sizeof(int) * nb_srcs);
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) srcs, sizeof(int)*nb_srcs);
 
   return srcs;
@@ -1565,13 +1565,13 @@ CWP_client_User_tgt_pts_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_pts, sizeof(int));
 
   // send coord
-  double *endian_coord = malloc(sizeof(double) * 3 * n_pts);
+  double *endian_coord = (double *) malloc(sizeof(double) * 3 * n_pts);
   memcpy(endian_coord, coord, sizeof(double) * 3 * n_pts);
   CWP_swap_endian_8bytes(endian_coord, 3 * n_pts);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_coord, sizeof(double) * 3 * n_pts);
 
   // send global_num
-  CWP_g_num_t *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_pts);
+  CWP_g_num_t *endian_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
   memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_pts);
   if (sizeof(CWP_g_num_t) == 4) {
     CWP_swap_endian_4bytes((int *) endian_global_num, n_pts);
@@ -1658,13 +1658,13 @@ CWP_client_Mesh_interf_vtx_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_pts, sizeof(int));
 
   // send coord
-  double *endian_coord = malloc(sizeof(double) * 3 * n_pts);
+  double *endian_coord = (double *) malloc(sizeof(double) * 3 * n_pts);
   memcpy(endian_coord, coord, sizeof(double) * 3 * n_pts);
   CWP_swap_endian_8bytes(endian_coord, 3 * n_pts);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_coord, sizeof(double) * 3 * n_pts);
 
   // send global_num
-  CWP_g_num_t *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_pts);
+  CWP_g_num_t *endian_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
   memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_pts);
   if (sizeof(CWP_g_num_t) == 4) {
     CWP_swap_endian_4bytes((int *) endian_global_num, n_pts);
@@ -1777,13 +1777,13 @@ CWP_client_Mesh_interf_block_std_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_vtx_elt, sizeof(int));
 
   // send connectivity
-  int *endian_connec = malloc(sizeof(int) * n_elts * n_vtx_elt);
+  int *endian_connec = (int *) malloc(sizeof(int) * n_elts * n_vtx_elt);
   memcpy(endian_connec, connec, sizeof(int) * n_elts * n_vtx_elt);
   CWP_swap_endian_4bytes(endian_connec, n_elts * n_vtx_elt);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_connec, sizeof(int) * n_elts * n_vtx_elt);
 
   // send global number
-  CWP_g_num_t  *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_elts);
+  CWP_g_num_t  *endian_global_num = (CWP_g_num_t  *) malloc(sizeof(CWP_g_num_t) * n_elts);
   memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_elts);
   if (sizeof(CWP_g_num_t) == 4) {
     CWP_swap_endian_4bytes((int *) endian_global_num, n_elts);
@@ -1848,19 +1848,19 @@ CWP_client_Mesh_interf_f_poly_block_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_elts, sizeof(int));
 
   // send connectivity index
-  int *endian_connec_idx = malloc(sizeof(int) * (n_elts+1));
+  int *endian_connec_idx = (int *) malloc(sizeof(int) * (n_elts+1));
   memcpy(endian_connec_idx, connec_idx, sizeof(int) * (n_elts+1));
   CWP_swap_endian_4bytes(endian_connec_idx, n_elts + 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_connec_idx, sizeof(int) * (n_elts+1));
 
   // send connectivity
-  int *endian_connec = malloc(sizeof(int) * connec_idx[n_elts]);
+  int *endian_connec = (int *) malloc(sizeof(int) * connec_idx[n_elts]);
   memcpy(endian_connec, connec, sizeof(int) * connec_idx[n_elts]);
   CWP_swap_endian_4bytes(endian_connec, connec_idx[n_elts]);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_connec, sizeof(int) * connec_idx[n_elts]);
 
   // send global number
-  CWP_g_num_t  *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_elts);
+  CWP_g_num_t  *endian_global_num = (CWP_g_num_t  *) malloc(sizeof(CWP_g_num_t) * n_elts);
   memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_elts);
   if (sizeof(CWP_g_num_t) == 4) {
     CWP_swap_endian_4bytes((int *) endian_global_num, n_elts);
@@ -1991,31 +1991,31 @@ CWP_client_Mesh_interf_c_poly_block_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_faces, sizeof(int));
 
   // send connectivity of faces index
-  int *endian_connec_faces_idx = malloc(sizeof(int) * (n_faces+1));
+  int *endian_connec_faces_idx = (int *) malloc(sizeof(int) * (n_faces+1));
   memcpy(endian_connec_faces_idx, connec_faces_idx, sizeof(int) * (n_faces+1));
   CWP_swap_endian_4bytes(endian_connec_faces_idx, n_faces + 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_connec_faces_idx, sizeof(int) * (n_faces+1));
 
   // send connec_facestivity faces
-  int *endian_connec_faces = malloc(sizeof(int) * connec_faces_idx[n_faces]);
+  int *endian_connec_faces = (int *) malloc(sizeof(int) * connec_faces_idx[n_faces]);
   memcpy(endian_connec_faces, connec_faces, sizeof(int) * connec_faces_idx[n_faces]);
   CWP_swap_endian_4bytes(endian_connec_faces, connec_faces_idx[n_faces]);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_connec_faces, sizeof(int) * connec_faces_idx[n_faces]);
 
   // send connectivity of cells index
-  int *endian_connec_cells_idx = malloc(sizeof(int) * (n_elts+1));
+  int *endian_connec_cells_idx = (int *) malloc(sizeof(int) * (n_elts+1));
   memcpy(endian_connec_cells_idx, connec_cells_idx, sizeof(int) * (n_elts+1));
   CWP_swap_endian_4bytes(endian_connec_cells_idx, n_elts + 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_connec_cells_idx, sizeof(int) * (n_elts+1));
 
   // send connec_cellstivity cells
-  int *endian_connec_cells = malloc(sizeof(int) * connec_cells_idx[n_elts]);
+  int *endian_connec_cells = (int *) malloc(sizeof(int) * connec_cells_idx[n_elts]);
   memcpy(endian_connec_cells, connec_cells, sizeof(int) * connec_cells_idx[n_elts]);
   CWP_swap_endian_4bytes(endian_connec_cells, connec_cells_idx[n_elts]);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_connec_cells, sizeof(int) * connec_cells_idx[n_elts]);
 
   // send global number
-  CWP_g_num_t  *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_elts);
+  CWP_g_num_t  *endian_global_num = (CWP_g_num_t  *) malloc(sizeof(CWP_g_num_t) * n_elts);
   memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_elts);
   if (sizeof(CWP_g_num_t) == 4) {
     CWP_swap_endian_4bytes((int *) endian_global_num, n_elts);
@@ -2178,13 +2178,13 @@ CWP_client_Mesh_interf_from_cellface_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_cells, sizeof(int));
 
   // send cell->face connectivity index
-  int *endian_cell_face_idx = malloc(sizeof(int) * (n_cells+1));
+  int *endian_cell_face_idx = (int *) malloc(sizeof(int) * (n_cells+1));
   memcpy(endian_cell_face_idx, cell_face_idx, sizeof(int) * (n_cells+1));
   CWP_swap_endian_4bytes(endian_cell_face_idx, n_cells + 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_cell_face_idx, sizeof(int) * (n_cells+1));
 
   // send cell->face connectivity
-  int *endian_cell_face = malloc(sizeof(int) * cell_face_idx[n_cells]);
+  int *endian_cell_face = (int *) malloc(sizeof(int) * cell_face_idx[n_cells]);
   memcpy(endian_cell_face, cell_face, sizeof(int) * cell_face_idx[n_cells]);
   CWP_swap_endian_4bytes(endian_cell_face, cell_face_idx[n_cells]);
   CWP_transfer_writedata(clt->socket, clt->max_msg_size, (void *) endian_cell_face, sizeof(int) * cell_face_idx[n_cells]);
@@ -2195,19 +2195,19 @@ CWP_client_Mesh_interf_from_cellface_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_faces, sizeof(int));
 
   // send face->vertex connectivity index
-  int *endian_face_vtx_idx = malloc(sizeof(int) * (n_faces+1));
+  int *endian_face_vtx_idx = (int *) malloc(sizeof(int) * (n_faces+1));
   memcpy(endian_face_vtx_idx, face_vtx_idx, sizeof(int) * (n_faces+1));
   CWP_swap_endian_4bytes(endian_face_vtx_idx, n_faces + 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_face_vtx_idx, sizeof(int) * (n_faces+1));
 
   // send face->vertex connectivity
-  int *endian_face_vtx = malloc(sizeof(int) * face_vtx_idx[n_faces]);
+  int *endian_face_vtx = (int *) malloc(sizeof(int) * face_vtx_idx[n_faces]);
   memcpy(endian_face_vtx, face_vtx, sizeof(int) * face_vtx_idx[n_faces]);
   CWP_swap_endian_4bytes(endian_face_vtx, face_vtx_idx[n_faces]);
   CWP_transfer_writedata(clt->socket, clt->max_msg_size, (void *) endian_face_vtx, sizeof(int) * face_vtx_idx[n_faces]);
 
   // send global number
-  CWP_g_num_t  *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_cells);
+  CWP_g_num_t  *endian_global_num = (CWP_g_num_t  *) malloc(sizeof(CWP_g_num_t) * n_cells);
   memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_cells);
   if (sizeof(CWP_g_num_t) == 4) {
     CWP_swap_endian_4bytes((int *) endian_global_num, n_cells);
@@ -2272,13 +2272,13 @@ CWP_client_Mesh_interf_from_faceedge_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_faces, sizeof(int));
 
   // send face->vertex connectivity index
-  int *endian_face_edge_idx = malloc(sizeof(int) * (n_faces+1));
+  int *endian_face_edge_idx = (int *) malloc(sizeof(int) * (n_faces+1));
   memcpy(endian_face_edge_idx, face_edge_idx, sizeof(int) * (n_faces+1));
   CWP_swap_endian_4bytes(endian_face_edge_idx, n_faces + 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_face_edge_idx, sizeof(int) * (n_faces+1));
 
   // send face->vertex connectivity
-  int *endian_face_edge = malloc(sizeof(int) * face_edge_idx[n_faces]);
+  int *endian_face_edge = (int *) malloc(sizeof(int) * face_edge_idx[n_faces]);
   memcpy(endian_face_edge, face_edge, sizeof(int) * face_edge_idx[n_faces]);
   CWP_swap_endian_4bytes(endian_face_edge, face_edge_idx[n_faces]);
   CWP_transfer_writedata(clt->socket, clt->max_msg_size, (void *) endian_face_edge, sizeof(int) * face_edge_idx[n_faces]);
@@ -2289,19 +2289,19 @@ CWP_client_Mesh_interf_from_faceedge_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_edges, sizeof(int));
 
   // send edge->vertex connectivity index
-  int *endian_edge_vtx_idx = malloc(sizeof(int) * (n_edges+1));
+  int *endian_edge_vtx_idx = (int *) malloc(sizeof(int) * (n_edges+1));
   memcpy(endian_edge_vtx_idx, edge_vtx_idx, sizeof(int) * (n_edges+1));
   CWP_swap_endian_4bytes(endian_edge_vtx_idx, n_edges + 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_edge_vtx_idx, sizeof(int) * (n_edges+1));
 
   // send edge->vertex connectivity
-  int *endian_edge_vtx = malloc(sizeof(int) * edge_vtx_idx[n_edges]);
+  int *endian_edge_vtx = (int *) malloc(sizeof(int) * edge_vtx_idx[n_edges]);
   memcpy(endian_edge_vtx, edge_vtx, sizeof(int) * edge_vtx_idx[n_edges]);
   CWP_swap_endian_4bytes(endian_edge_vtx, edge_vtx_idx[n_edges]);
   CWP_transfer_writedata(clt->socket, clt->max_msg_size, (void *) endian_edge_vtx, sizeof(int) * edge_vtx_idx[n_edges]);
 
   // send global number
-  CWP_g_num_t  *endian_global_num = malloc(sizeof(CWP_g_num_t) * n_faces);
+  CWP_g_num_t  *endian_global_num = (CWP_g_num_t  *) malloc(sizeof(CWP_g_num_t) * n_faces);
   memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_faces);
   if (sizeof(CWP_g_num_t) == 4) {
     CWP_swap_endian_4bytes((int *) endian_global_num, n_faces);
@@ -2440,7 +2440,7 @@ CWP_client_Field_data_set
   int endian_size = size;
   CWP_swap_endian_4bytes(&endian_size, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_size, sizeof(int));
-  double *endian_data = malloc(sizeof(double) * size);
+  double *endian_data = (double *) malloc(sizeof(double) * size);
   memcpy(endian_data, data, sizeof(double) * size);
   CWP_swap_endian_8bytes(endian_data, size);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_data, sizeof(double) * size);
@@ -2521,8 +2521,8 @@ CWP_client_Field_target_dof_location_get
   write_name(field_id);
 
   // read location of target degrees of freedom
-  int dof_location = -1;
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, &dof_location, sizeof(int));
+  CWP_Dof_location_t dof_location = (CWP_Dof_location_t) -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, &dof_location, sizeof(CWP_Dof_location_t));
 
   return dof_location;
 }
@@ -2560,8 +2560,8 @@ CWP_client_Field_storage_get
   write_name(field_id);
 
   // read field storage type
-  int storage_type = -1;
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, &storage_type, sizeof(int));
+  CWP_Field_storage_t storage_type = (CWP_Field_storage_t) -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, &storage_type, sizeof(CWP_Field_storage_t));
 
   return storage_type;
 }
@@ -2980,11 +2980,11 @@ CWP_client_connect
 )
 {
   struct hostent *host;
-  struct sockaddr_in *server_addr = malloc(sizeof(struct sockaddr_in));
+  struct sockaddr_in *server_addr = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in));
   socklen_t max_msg_size_len = 0;
   int il_cl_endian;
 
-  clt = malloc(sizeof(t_client));
+  clt = (t_client *) malloc(sizeof(t_client));
   memset(clt,0,sizeof(t_client));
   strncpy(clt->server_name, server_name,sizeof(clt->server_name));
   clt->server_port=server_port;

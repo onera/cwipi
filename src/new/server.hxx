@@ -29,7 +29,10 @@
  * Standard C library headers
  *----------------------------------------------------------------------------*/
 
+#include <cwp.h>
 #include <mpi.h>
+#include <map>
+#include <string>
 
 /*----------------------------------------------------------------------------
  *  Header for the current file
@@ -62,40 +65,89 @@ extern "C" {
  * Types definition
  *============================================================================*/
 
+// FIELD
+
+typedef struct t_server_field
+{
+  double *data;
+  int     i_part;
+  int     n_components;
+} t_server_field, *p_server_field;
+
+// COUPLING
+
+typedef struct t_server_cpl
+{
+  int n_vtx;
+  int n_edges;
+  int n_faces;
+  int n_elts;
+  int n_vtx_std_elt;
+
+  double *coord;
+  double *usr_tgt_coord;
+
+  CWP_g_num_t *vtx_gnum;
+  CWP_g_num_t *face_gnum;
+  CWP_g_num_t *elt_gnum;
+  CWP_g_num_t *usr_tgt_gnum;
+
+  int *std_connec;
+  int *f_connec_idx;
+  int *f_connec;
+  int *connec_faces_idx;
+  int *connec_faces;
+  int *connec_cells_idx;
+  int *connec_cells;
+  int *cell_face_idx;
+  int *cell_face;
+  int *face_vtx_idx;
+  int *face_vtx;
+  int *face_edge_idx;
+  int *face_edge;
+  int *edge_vtx_idx;
+  int *edge_vtx;
+
+  std::map<std::string, p_server_field>   server_field;
+} t_server_cpl, *p_server_cpl;
+
+// CODE
+
+typedef struct t_server_code
+{
+  int                                   nParam;
+  char                                **paramNames; // Param_list_get
+  std::map<std::string, char *>         char_param_value;
+
+  std::map<std::string, p_server_cpl>   server_cpl;
+} t_server_code, *p_server_code;
+
+// CWP
+
+typedef struct t_server_cwp
+{
+  MPI_Comm                               global_comm;
+  MPI_Comm                              *intra_comms;
+  char                                  *format_option; // Visu_set
+  int                                    n_codes;
+  char                                 **code_names; // Codes_list_get
+
+  std::map<std::string, p_server_code>   server_code;
+} t_server_cwp, *p_server_cwp;
+
 typedef struct t_server
 {
-  int port;
-  int state;
-  int flags;
-  int max_msg_size;
-  int listen_socket;
-  int connected_socket;
-  int client_endianess;
-  int server_endianess;
-  char host_name[256];
+  p_server_cwp server_cwp;
+  int          port;
+  int          state;
+  int          flags;
+  int          max_msg_size;
+  int          listen_socket;
+  int          connected_socket;
+  int          client_endianess;
+  int          server_endianess;
+  char         host_name[256];
 }t_server,*p_server;
-
-typedef struct t_server_cwp
-{
-  int nParam;
-  char **paramNames; // Param_list_get
-} t_server_cwp, *p_server_cwp;
-
-typedef struct t_server_cwp
-{
-  int nParam;
-  char **paramNames; // Param_list_get
-} t_server_cwp, *p_server_cwp;
-
-typedef struct t_server_cwp
-{
-  MPI_Comm       global_comm;
-  MPI_Comm      *intra_comms;
-  char          *format_option; // Visu_set
-  int            n_codes;
-  char         **code_names; // Codes_list_get
-  p_server_cwp   codeData;
-} t_server_cwp, *p_server_cwp;
 
 /*=============================================================================
  * Server CWIPI function interfaces
