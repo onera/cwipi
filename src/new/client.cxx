@@ -80,49 +80,49 @@ static int n_nodes_get(CWP_Block_t block_type) {
 
   switch(block_type) {
 
-  case CWP_BLOCK_NODE:
+  case CWP_BLOCK_NODE: {
     n_nodes = 1;
-    break;
+    } break;
 
-  case CWP_BLOCK_EDGE2:
+  case CWP_BLOCK_EDGE2: {
     n_nodes = 2;
-    break;
+    } break;
 
-  case CWP_BLOCK_FACE_TRIA3:
+  case CWP_BLOCK_FACE_TRIA3: {
     n_nodes = 3;
-    break;
+    } break;
 
-  case CWP_BLOCK_FACE_QUAD4:
+  case CWP_BLOCK_FACE_QUAD4: {
     n_nodes = 4;
-    break;
+    } break;
 
-  case CWP_BLOCK_FACE_POLY:
+  case CWP_BLOCK_FACE_POLY: {
     // TO DO: what value ?
     PDM_error(__FILE__, __LINE__, 0, "Number of nodes unknown for CWP_BLOCK_FACE_POLY\n");
     return -1;
-    break;
+    } break;
 
-  case CWP_BLOCK_CELL_TETRA4:
+  case CWP_BLOCK_CELL_TETRA4: {
     n_nodes = 4;
-    break;
+    } break;
 
-  case CWP_BLOCK_CELL_HEXA8:
+  case CWP_BLOCK_CELL_HEXA8: {
     n_nodes = 8;
-    break;
+    } break;
 
-  case CWP_BLOCK_CELL_PRISM6:
+  case CWP_BLOCK_CELL_PRISM6: {
     n_nodes = 6;
-    break;
+    } break;
 
-  case CWP_BLOCK_CELL_PYRAM5:
+  case CWP_BLOCK_CELL_PYRAM5: {
     n_nodes = 5;
-    break;
+    } break;
 
-  case CWP_BLOCK_CELL_POLY:
+  case CWP_BLOCK_CELL_POLY: {
     // TO DO: what value ?
     PDM_error(__FILE__, __LINE__, 0, "Number of nodes unknown for CWP_BLOCK_CELL_POLY\n");
     return -1;
-    break;
+    } break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0, "Unknown block type %d\n", block_type);
@@ -382,21 +382,21 @@ CWP_client_Param_add
 
   switch (data_type) {
 
-  case CWP_DOUBLE: ;
+  case CWP_DOUBLE: {
     double endian_double_initial_value = * ((double *) initial_value);
     CWP_swap_endian_8bytes(&endian_double_initial_value, 1);
     CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_double_initial_value, sizeof(double));
-    break;
+    } break;
 
-  case CWP_INT: ;
+  case CWP_INT: {
     int endian_int_initial_value = * ((int *) initial_value);
     CWP_swap_endian_4bytes(&endian_int_initial_value, 1);
     CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_int_initial_value, sizeof(int));
-    break;
+    } break;
 
-  case CWP_CHAR:
+  case CWP_CHAR: {
     write_name((char *) initial_value);
-    break;
+    } break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i\n", data_type);
@@ -441,20 +441,20 @@ CWP_client_Param_get
   // receive value
   switch (data_type) {
 
-  case CWP_DOUBLE:
+  case CWP_DOUBLE: {
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, value, sizeof(double));
-    break;
+    } break;
 
-  case CWP_INT:
+  case CWP_INT: {
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, value, sizeof(int));
-    break;
+    } break;
 
-  case CWP_CHAR: ;
+  case CWP_CHAR: {
     char *char_value = (char *) malloc(sizeof(char));
     read_name(&char_value);
     memcpy(value, char_value, strlen(char_value));
     free(char_value);
-    break;
+    } break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i\n", data_type);
@@ -499,21 +499,21 @@ CWP_client_Param_set
 
   switch (data_type) {
 
-  case CWP_DOUBLE: ;
+  case CWP_DOUBLE: {
     double endian_double_value = * ((double *) value);
     CWP_swap_endian_8bytes(&endian_double_value, 1);
     CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_double_value, sizeof(double));
-    break;
+    } break;
 
-  case CWP_INT: ;
+  case CWP_INT: {
     int endian_int_value = * ((int *) value);
     CWP_swap_endian_4bytes(&endian_int_value, 1);
     CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_int_value, sizeof(int));
-    break;
+    } break;
 
-  case CWP_CHAR:
+  case CWP_CHAR: {
     write_name((char *) value);
-    break;
+    } break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i\n", data_type);
@@ -729,18 +729,18 @@ CWP_client_Param_reduce
   // retreive result
   switch (data_type) {
 
-  case CWP_DOUBLE: ;
+  case CWP_DOUBLE: {
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) res, sizeof(double));
-    break;
+    } break;
 
-  case CWP_INT: ;
+  case CWP_INT: {
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) res, sizeof(int));
-    break;
+    } break;
 
-  case CWP_CHAR: ;
+  case CWP_CHAR: {
     res = (char *) malloc(sizeof(char));
     read_name((char **) &res);
-    break;
+    } break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i\n", data_type);

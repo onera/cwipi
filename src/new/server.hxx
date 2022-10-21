@@ -29,10 +29,12 @@
  * Standard C library headers
  *----------------------------------------------------------------------------*/
 
-#include <cwp.h>
-#include <mpi.h>
-#include <map>
 #include <string>
+#include <map>
+
+#include <mpi.h>
+
+#include "cwp.h"
 
 /*----------------------------------------------------------------------------
  *  Header for the current file

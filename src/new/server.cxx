@@ -221,32 +221,32 @@ CWP_server_Param_add
 
   switch (data_type) {
 
-  case CWP_DOUBLE: ;
+  case CWP_DOUBLE: {
     double double_initial_value;
     CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &double_initial_value, sizeof(double));
     CWP_Param_add(local_code_name,
                   param_name,
                   data_type,
                   &double_initial_value);
-    break;
+    } break;
 
-  case CWP_INT: ;
+  case CWP_INT: {
     double int_initial_value;
     CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &int_initial_value, sizeof(int));
     CWP_Param_add(local_code_name,
                   param_name,
                   data_type,
                   &int_initial_value);
-    break;
+    } break;
 
-  case CWP_CHAR: ;
+  case CWP_CHAR: {
     char *char_initial_value = (char *) malloc(sizeof(char));
     read_name(&char_initial_value, svr);
     CWP_Param_add(local_code_name,
                   param_name,
                   data_type,
                   &char_initial_value);
-    break;
+    } break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0, "Received unknown CWP_Type_t %i\n", data_type);
@@ -285,7 +285,7 @@ CWP_server_Param_get
   svr->state=CWP_SVRSTATE_SENDPGETDATA;
   switch (data_type) {
 
-  case CWP_DOUBLE: ;
+  case CWP_DOUBLE: {
     double double_value;
 
     CWP_Param_get(local_code_name,
@@ -294,9 +294,9 @@ CWP_server_Param_get
                   &double_value);
 
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,(void*) &double_value, sizeof(double));
-    break;
+    } break;
 
-  case CWP_INT: ;
+  case CWP_INT: {
     int int_value;
     CWP_Param_get(local_code_name,
                   param_name,
@@ -304,9 +304,9 @@ CWP_server_Param_get
                   &int_value);
 
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,(void*) &int_value, sizeof(int));
-    break;
+    } break;
 
-  case CWP_CHAR: ;
+  case CWP_CHAR: {
     char *char_value = (char *) malloc(sizeof(char));
     CWP_Param_get(local_code_name,
                   param_name,
@@ -314,7 +314,7 @@ CWP_server_Param_get
                   &char_value);
 
     write_name(char_value, svr);
-    break;
+    } break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0, "Received unknown CWP_Type_t %i\n", data_type);
@@ -351,32 +351,32 @@ CWP_server_Param_set
 
   switch (data_type) {
 
-  case CWP_DOUBLE: ;
+  case CWP_DOUBLE: {
     double double_initial_value;
     CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &double_initial_value, sizeof(double));
     CWP_Param_set(local_code_name,
                   param_name,
                   data_type,
                   &double_initial_value);
-    break;
+    } break;
 
-  case CWP_INT: ;
+  case CWP_INT: {
     double int_initial_value;
     CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &int_initial_value, sizeof(int));
     CWP_Param_set(local_code_name,
                   param_name,
                   data_type,
                   &int_initial_value);
-    break;
+    } break;
 
-  case CWP_CHAR: ;
+  case CWP_CHAR: {
     char *char_initial_value = (char *) malloc(sizeof(char));
     read_name(&char_initial_value, svr);
     CWP_Param_set(local_code_name,
                   param_name,
                   data_type,
                   &char_initial_value);
-    break;
+    } break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0, "Received unknown CWP_Type_t %i\n", data_type);
@@ -572,17 +572,17 @@ CWP_server_Param_reduce
   svr->state=CWP_SVRSTATE_SENDPGETDATA;
   switch (data_type) {
 
-  case CWP_DOUBLE: ;
+  case CWP_DOUBLE: {
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) res, sizeof(int));
-    break;
+    } break;
 
-  case CWP_INT: ;
+  case CWP_INT: {
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) res, sizeof(int));
-    break;
+    } break;
 
-  case CWP_CHAR: ;
+  case CWP_CHAR: {
     write_name((char *) res, svr);
-    break;
+    } break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i\n", data_type);

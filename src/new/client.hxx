@@ -29,9 +29,10 @@
  *  Header for the current file
  *----------------------------------------------------------------------------*/
 
-#include <cwp.h>
-#include <map>
 #include <string>
+#include <map>
+
+#include "cwp.h"
 
 
 #ifdef __cplusplus
