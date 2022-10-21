@@ -829,41 +829,10 @@ main
     printf("%d : %s --- Field created and data set\n", rank, code_names[i_code]);
   }
 
-  // Field_*
-
-  for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-    int n_component = CWP_client_Field_n_component_get(code_names[i_code],
-                                                       cpl_name,
-                                                       field_name);
-
-    printf("%d : %s --- number of components: %d\n", rank, code_names[i_code], n_component);
-  }
-
-  CWP_Field_storage_t storage = -1;
-
-  if (cond_code1) {
-    CWP_Field_storage_t storage = CWP_client_Field_storage_get(code_names[0],
-                                                               cpl_name,
-                                                               field_name);
-
-    printf("%d : %s --- storage: %d\n", rank, code_names[0], storage);
-  }
-
-  if (cond_code2) {
-    CWP_Field_storage_t storage = CWP_client_Field_storage_get(code_names[1],
-                                                               cpl_name,
-                                                               field_name);
-
-    printf("%d : %s --- storage: %d\n", rank, code_names[1], storage);
-  }
-
   PDM_MPI_Barrier(comm);
 
   // Compute weights
   for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-
-    CWP_Spatial_interp_property_set(code_names[0], cpl_name, "tolerance", "double", "1e-2");
-    printf("%d : %s --- Property set\n", rank, code_names[i_code]);
 
     CWP_client_Spatial_interp_weights_compute(code_names[i_code], cpl_name);
 
@@ -1031,6 +1000,35 @@ main
     }
   }
 
+  // Field_*
+
+  for (int i_code = 0 ; i_code < n_code ; ++i_code) {
+    int n_component = CWP_client_Field_n_component_get(code_names[i_code],
+                                                       cpl_name,
+                                                       field_name);
+
+    printf("%d : %s --- number of components: %d\n", rank, code_names[i_code], n_component);
+  }
+
+  // property_set
+
+  // if (cond_code1) {
+  //   CWP_Spatial_interp_property_set(code_names[0], cpl_name, "tolerance", "double", "1e-2");
+  //   printf("%d : %s --- Property set\n", rank, code_names[0]);
+  // }
+
+  // Field_*
+
+  for (int i_code = 0 ; i_code < n_code ; ++i_code) {
+
+    CWP_Field_storage_t storage = CWP_client_Field_storage_get(code_names[i_code],
+                                                               cpl_name,
+                                                               field_name);
+
+    printf("%d : %s --- storage == CWP_FIELD_STORAGE_INTERLACED: %d\n", rank, code_names[i_code], storage == CWP_FIELD_STORAGE_INTERLACED);
+
+  }
+
   // User_tgt_pts
   double tgt_coord[12] = {0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0};
   CWP_g_num_t tgt_gnum[4] = {1, 2, 3, 4};
@@ -1041,15 +1039,24 @@ main
                                 4,
                                 tgt_coord,
                                 tgt_gnum); // TO DO: try with NULL here what happens
+
+    printf("%d : %s --- User_tgt_pts_set\n", rank, code_names[i_code]);
   }
+
+  // Time_update
+  for (int i_code = 0 ; i_code < n_code ; i_code++) {
+    CWP_client_Time_update(code_names[i_code], 0.1);
+  }
+
+  PDM_MPI_Barrier(comm);
 
   // Delete field
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
+  // for (int i_code = 0 ; i_code < n_code ; i_code++) {
 
-    CWP_client_Field_del(code_names[i_code], cpl_name, field_name);
+  //   CWP_client_Field_del(code_names[i_code], cpl_name, field_name);
 
-    printf("%d : %s --- Field deleted\n", rank, code_names[i_code]);
-  }
+  //   printf("%d : %s --- Field deleted\n", rank, code_names[i_code]);
+  // }
 
   // Delete interf
   for (int i_code = 0 ; i_code < n_code ; i_code++) {

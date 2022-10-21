@@ -395,7 +395,8 @@ CWP_client_Param_add
     } break;
 
   case CWP_CHAR: {
-    write_name((char *) initial_value);
+    char **p_char_value = (char **) initial_value;
+    write_name(*p_char_value);
     } break;
 
   default:
@@ -450,10 +451,10 @@ CWP_client_Param_get
     } break;
 
   case CWP_CHAR: {
-    char *char_value = (char *) malloc(sizeof(char));
-    read_name(&char_value);
-    memcpy(value, char_value, strlen(char_value));
-    free(char_value);
+    int name_size;
+    CWP_transfer_readdata(clt->socket,clt->max_msg_size,(void*) &name_size, sizeof(int));
+    * (char **) value = (char *) malloc(sizeof(char) * name_size);
+    CWP_transfer_readdata(clt->socket,clt->max_msg_size,(void*) * (char **) value, name_size);
     } break;
 
   default:
@@ -1106,7 +1107,7 @@ void
   // read code names
   int nb_codes = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_codes, sizeof(int));
-  char **code_names = (char **) malloc(nb_codes);
+  char **code_names = (char **) malloc(sizeof(char *) * nb_codes);
   for (int i = 0; i < nb_codes; i++) {
     code_names[i] = (char *) malloc(sizeof(char));
     read_name(&code_names[i]);
@@ -1167,7 +1168,7 @@ CWP_client_Loc_codes_list_get
   // read code names
   int nb_local_codes = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_local_codes, sizeof(int));
-  char **code_local_names = (char **) malloc(nb_local_codes);
+  char **code_local_names = (char **) malloc(sizeof(char *) * nb_local_codes);
   for (int i = 0; i < nb_local_codes; i++) {
     code_local_names[i] = (char *) malloc(sizeof(char));
     read_name(&code_local_names[i]);

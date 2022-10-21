@@ -252,11 +252,11 @@ main
   // CWP_Codes_*
   int n_codes = CWP_client_Codes_nb_get();
   printf("n_codes = %d\n", n_codes);
-  char **codeNames = malloc(sizeof(char *));
+  char **codeNames = malloc(sizeof(char *) * n_codes);
   for (int i = 0; i < n_codes; i++) {
     codeNames[i] = malloc(99);
   }
-  codeNames = CWP_client_Codes_list_get();
+  codeNames = (char **) CWP_client_Codes_list_get();
   for (int i = 0; i < n_codes; i++) {
     printf("i_rank: %d code_names[i] = %s\n", i_rank, codeNames[i]);
   }
@@ -264,11 +264,11 @@ main
   // CWP_Loc_codes_*
   int n_Loc_codes = CWP_client_Loc_codes_nb_get();
   printf("n_Loc_codes = %d\n", n_Loc_codes);
-  char **LoccodeNames = malloc(sizeof(char *));
+  char **LoccodeNames = malloc(sizeof(char *) * n_Loc_codes);
   for (int i = 0; i < n_Loc_codes; i++) {
     LoccodeNames[i] = malloc(99);
   }
-  LoccodeNames = CWP_client_Loc_codes_list_get();
+  LoccodeNames = (char **) CWP_client_Loc_codes_list_get();
   for (int i = 0; i < n_Loc_codes; i++) {
     printf("i_rank: %d Loc_code_names[i] = %s\n", i_rank, LoccodeNames[i]);
   }
@@ -276,12 +276,11 @@ main
   // Properties_dump
   CWP_client_Properties_dump();
 
-  // *_update
+  // State_update
   if (i_rank == 0) {
-    CWP_client_State_update("code1", CWP_INTERFACE_LINEAR);
+    CWP_client_State_update("code1", CWP_STATE_IN_PROGRESS);
     CWP_State_t state = CWP_client_State_get("code1");
-    printf("state = %d\n", state);
-    CWP_client_Time_update("code1", 0.1);
+    printf("state == CWP_STATE_IN_PROGRESS: %d\n", state == CWP_STATE_IN_PROGRESS);
   }
 
   // CWP_Param_*
@@ -312,7 +311,7 @@ main
   double titi1;
   CWP_client_Param_get("code1", "tata", CWP_DOUBLE, &titi1);
   printf("i_rank: %d code 1 : tata : %f\n", i_rank, titi1);
-  const char *titi2;
+  const char *titi2 = malloc(99);
   CWP_client_Param_get("code2", "toto2", CWP_CHAR, &titi2);
   printf("i_rank: %d code 2 : toto2 : %s\n", i_rank, titi2);
   int titi;
@@ -325,13 +324,14 @@ main
     CWP_client_Param_unlock("code1");
   }
 
-  PDM_MPI_Barrier(comm);
+  int code1_n_double = -1;
 
-  int code1_n_int = CWP_client_Param_n_get("code1", CWP_INT);
-  printf("i_rank: %d code 1 : n_int_param : %d\n", i_rank, code1_n_int);
-  int code1_n_double = CWP_client_Param_n_get("code1", CWP_DOUBLE);
-  printf("i_rank: %d code 1 : n_double_param : %d\n", i_rank, code1_n_double);
-
+  if (i_rank == 0) {
+    int code1_n_int = CWP_client_Param_n_get("code1", CWP_INT);
+    printf("i_rank: %d code 1 : n_int_param : %d\n", i_rank, code1_n_int);
+    code1_n_double = CWP_client_Param_n_get("code1", CWP_DOUBLE);
+    printf("i_rank: %d code 1 : n_double_param : %d\n", i_rank, code1_n_double);
+  }
 
   if (i_rank == 0) {
     double tatic = 107.52;
@@ -350,23 +350,27 @@ main
   PDM_MPI_Barrier(comm);
 
   // reduce
-  double res = 0;
-  CWP_client_Param_reduce(CWP_OP_MAX, "tatic", CWP_DOUBLE, &res, 2);
+  // double res = 0;
+  // CWP_client_Param_reduce(CWP_OP_MAX, "tatic", CWP_DOUBLE, &res, 2);
 
-  printf("i_rank: %d max(tatic) = res = %f\n", i_rank, res);
+  // printf("i_rank: %d max(tatic) = res = %f\n", i_rank, res);
 
-  char **param_names = NULL;
+  if (i_rank == 0) {
+    char **param_names = malloc(sizeof(char **));
 
-  CWP_client_Param_list_get("code1", CWP_DOUBLE, &code1_n_double, &param_names);
-  for (int i = 0; i < code1_n_double; i++) {
-    printf("i_rank: %d code 1 : param[%d] = %s\n", i_rank, i, param_names[i]);
+    for (int i = 0; i < code1_n_double; i++) {
+      CWP_client_Param_list_get("code1", CWP_DOUBLE, &code1_n_double, &param_names);
+      printf("i_rank: %d code 1 : param[%d] = %s\n", i_rank, i, param_names[i]);
+    }
   }
 
-  int is_param = CWP_client_Param_is("code2", "toto2", CWP_CHAR);
-  printf("i_rank: %d code 2 : toto2 is param = %d\n", i_rank, is_param);
+  if (i_rank == 1) {
+    int is_param = CWP_client_Param_is("code2", "toto2", CWP_CHAR);
+    printf("i_rank: %d code 2 : toto2 is param = %d\n", i_rank, is_param);
 
-  is_param = CWP_client_Param_is("code2", "tambouille", CWP_CHAR);
-  printf("i_rank: %d code 2 : tambouille is param = %d\n", i_rank, is_param);
+    is_param = CWP_client_Param_is("code2", "tambouille", CWP_CHAR);
+    printf("i_rank: %d code 2 : tambouille is param = %d\n", i_rank, is_param);
+  }
 
   char cpl_id1[] = "cpl1_code1_code2";
   CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;

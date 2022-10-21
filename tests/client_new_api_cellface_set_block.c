@@ -37,39 +37,6 @@
 
 /*----------------------------------------------------------------------
  *
- * Read mesh dimension
- *
- * parameters:
- *   f                   <-- Mesh file
- *   dimension           --> Dimension
- *   n_vtx             --> number of vertices
- *   n_elmt           --> number of elements
- *   nConnecVertex       --> size of connectivity
- *---------------------------------------------------------------------*/
-
-static int read_mesh_dim(FILE *f,
-                         int *dimension,
-                         int *n_vtx,
-                         int *n_face,
-                         int *n_elt,
-                         int *lface_connec,
-                         int *lcell_connec) {
-  int r;
-  r = fscanf(f, "%d %d %d %d %d %d",
-             dimension,
-             n_vtx,
-             n_face,
-             n_elt,
-             lface_connec,
-             lcell_connec);
-  if (r == EOF)
-    return 0;
-  else return 1;
-}
-
-
-/*----------------------------------------------------------------------
- *
  * Read mesh
  *
  * parameters:
@@ -137,7 +104,6 @@ static int read_mesh(FILE    *f,
 
   return EXIT_SUCCESS;
 }
-
 
 /*=============================================================================
  * Util functions
@@ -405,8 +371,6 @@ main
 
   if (rank == 0)
     printf("        Read mesh\n");
-
-  read_mesh_dim(mesh_file, &dimension, &n_vtx, &n_face, &n_elmt, &lface_connec, &lcell_connec);
 
   coords        = (double *) malloc(dimension * n_vtx * sizeof(double));
   face_vtx_idx  = (int    *) malloc((n_face + 1)      * sizeof(int   ));

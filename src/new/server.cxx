@@ -320,7 +320,6 @@ CWP_server_Param_get
                   param_name,
                   data_type,
                   &char_value);
-
     write_name(char_value, svr);
     } break;
 
@@ -568,6 +567,8 @@ CWP_server_Param_reduce
   int nCode = -1;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &nCode, sizeof(int));
 
+  printf("SERVER op : %d, param_name: %s, ncode: %d\n", (int) op, param_name, nCode);
+
   // launch
   void *res = NULL;
   CWP_Param_reduce(op,
@@ -798,7 +799,7 @@ CWP_server_Time_update
   read_name(&local_code_name, svr);
 
   // read current time
-  double current_time;
+  double current_time = - 1.0;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &current_time, sizeof(double));
 
   // launch
@@ -829,7 +830,7 @@ CWP_server_Output_file_set
   FILE *output_file = NULL;
 
   output_file = fopen(output_filename, "a+"); // TO DO: wich opening mode?
-  fclose(output_file);
+  // fclose(output_file); // TO DO: close frees everything? so don't?
 
   // launch
   CWP_Output_file_set(output_file);
