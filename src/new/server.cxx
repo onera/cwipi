@@ -47,10 +47,11 @@
  *  Local headers
  *----------------------------------------------------------------------------*/
 
-#include "server.hxx"
+#include "server.h"
 #include "transfer.h"
-#include "client.hxx"
+#include "client.h"
 #include "message.h"
+#include "struct.hxx"
 
 #include <pdm_error.h>
 #include <pdm_mpi.h>
@@ -63,6 +64,10 @@ extern "C" {
 } /* Fake brace to force back Emacs auto-indentation back to column 0 */
 #endif
 #endif /* __cplusplus */
+
+/* file struct definition */
+
+static t_server_mpi *svr_mpi;
 
 /*=============================================================================
  * Private function interfaces
@@ -118,16 +123,16 @@ CWP_server_Init
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, time_init, n_code * sizeof(double));
 
   // launch CWP_Init
-  svr->server_cwp->intra_comms = (MPI_Comm *) malloc(sizeof(MPI_Comm) * n_code);
-  CWP_Init(svr->server_cwp->global_comm,
+  svr_mpi->intra_comms = (MPI_Comm *) malloc(sizeof(MPI_Comm) * n_code);
+  CWP_Init(svr_mpi->global_comm,
            n_code,
            (const char **) code_names,
            is_active_rank,
            time_init,
-           svr->server_cwp->intra_comms);
+           svr_mpi->intra_comms);
 
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // free TO DO: isn't it as a set where I shouldn't free?
   for (int i = 0; i < n_code; i++) {
@@ -147,7 +152,10 @@ CWP_server_Finalize
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
+
+  // free
+  if (svr_mpi->intra_comms != NULL) free(svr_mpi->intra_comms);
 
   CWP_Finalize();
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
@@ -160,7 +168,7 @@ CWP_server_Param_lock
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // launch
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -182,7 +190,7 @@ CWP_server_Param_unlock
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // launch
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -204,7 +212,7 @@ CWP_server_Param_add
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -266,7 +274,7 @@ CWP_server_Param_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -334,7 +342,7 @@ CWP_server_Param_set
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -396,7 +404,7 @@ CWP_server_Param_del
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -430,7 +438,7 @@ CWP_server_Param_n_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -462,7 +470,7 @@ CWP_server_Param_list_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -503,7 +511,7 @@ CWP_server_Param_is
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -541,7 +549,7 @@ CWP_server_Param_reduce
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read operation
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -601,7 +609,7 @@ CWP_server_Cpl_create
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -666,7 +674,7 @@ CWP_server_Cpl_del
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -695,7 +703,7 @@ CWP_server_Properties_dump
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // launch
   CWP_Properties_dump();
@@ -710,7 +718,7 @@ CWP_server_Visu_set
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -754,7 +762,7 @@ CWP_server_State_update
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -782,7 +790,7 @@ CWP_server_Time_update
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -810,7 +818,7 @@ CWP_server_Output_file_set
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -856,7 +864,7 @@ CWP_server_State_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -883,7 +891,7 @@ CWP_server_Codes_nb_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // launch
   int nb_codes = CWP_Codes_nb_get();
@@ -902,7 +910,7 @@ CWP_server_Codes_list_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // get number of codes
   int nb_codes = CWP_Codes_nb_get();
@@ -927,7 +935,7 @@ CWP_server_Loc_codes_nb_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // launch
   int nb_local_codes = CWP_Loc_codes_nb_get();
@@ -946,7 +954,7 @@ CWP_server_Loc_codes_list_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // get number of codes
   int nb_local_codes = CWP_Loc_codes_nb_get();
@@ -971,7 +979,7 @@ CWP_server_N_uncomputed_tgts_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1015,7 +1023,7 @@ CWP_server_Uncomputed_tgts_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1066,7 +1074,7 @@ CWP_server_N_computed_tgts_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1110,7 +1118,7 @@ CWP_server_Computed_tgts_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1161,7 +1169,7 @@ CWP_server_N_involved_srcs_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1205,7 +1213,7 @@ CWP_server_Involved_srcs_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1256,7 +1264,7 @@ CWP_server_Spatial_interp_weights_compute
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1285,7 +1293,7 @@ CWP_server_Spatial_interp_property_set
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1329,7 +1337,7 @@ CWP_server_User_tgt_pts_set
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1378,7 +1386,7 @@ CWP_server_Mesh_interf_finalize
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1407,7 +1415,7 @@ CWP_server_Mesh_interf_vtx_set
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1456,7 +1464,7 @@ CWP_server_Mesh_interf_block_add
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1493,7 +1501,7 @@ CWP_server_Mesh_interf_block_std_set
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1551,7 +1559,7 @@ CWP_server_Mesh_interf_f_poly_block_set
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1610,7 +1618,7 @@ CWP_server_Mesh_interf_f_poly_block_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1670,7 +1678,7 @@ CWP_server_Mesh_interf_c_poly_block_set
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1744,7 +1752,7 @@ CWP_server_Mesh_interf_c_poly_block_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1819,7 +1827,7 @@ CWP_server_Mesh_interf_del
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1848,7 +1856,7 @@ CWP_server_Mesh_interf_from_cellface_set
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1917,7 +1925,7 @@ CWP_server_Mesh_interf_from_faceedge_set
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -1986,7 +1994,7 @@ CWP_server_Field_create
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -2051,7 +2059,7 @@ CWP_server_Field_data_set
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -2103,7 +2111,7 @@ CWP_server_Field_n_component_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state = CWP_SVRSTATE_RECVPPUTDATA;
@@ -2142,7 +2150,7 @@ CWP_server_Field_target_dof_location_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state = CWP_SVRSTATE_RECVPPUTDATA;
@@ -2181,7 +2189,7 @@ CWP_server_Field_storage_get
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state = CWP_SVRSTATE_RECVPPUTDATA;
@@ -2220,7 +2228,7 @@ CWP_server_Field_del
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state = CWP_SVRSTATE_RECVPPUTDATA;
@@ -2255,7 +2263,7 @@ CWP_server_Field_issend
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state = CWP_SVRSTATE_RECVPPUTDATA;
@@ -2290,7 +2298,7 @@ CWP_server_Field_irecv
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state = CWP_SVRSTATE_RECVPPUTDATA;
@@ -2325,7 +2333,7 @@ CWP_server_Field_wait_issend
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state = CWP_SVRSTATE_RECVPPUTDATA;
@@ -2360,7 +2368,7 @@ CWP_server_Field_wait_irecv
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state = CWP_SVRSTATE_RECVPPUTDATA;
@@ -2420,7 +2428,7 @@ CWP_server_Interp_from_location_unset
 )
 {
   // wait all ranks have receive msg
-  MPI_Barrier(svr->server_cwp->intra_comms[0]);
+  MPI_Barrier(svr_mpi->intra_comms[0]);
 
   // read local code name
   svr->state = CWP_SVRSTATE_RECVPPUTDATA;
@@ -2451,57 +2459,107 @@ CWP_server_Interp_from_location_unset
 void
 CWP_server_Interp_from_location_set
 (
-  p_server                 svr
+  p_server                 svr // TO DO: deal with other than double data_type
 )
 {
-  PDM_UNUSED(svr);
-  log_trace("CWP: CWP_server_Interp_from_location_set not implemented yet\n");
+  // // wait all ranks have receive msg
+  // MPI_Barrier(svr_mpi->intra_comms[0]);
+
+  // // read local code name
+  // svr->state = CWP_SVRSTATE_RECVPPUTDATA;
+  // char *local_code_name = (char *) malloc(sizeof(char));
+  // read_name(&local_code_name, svr);
+
+  // // read coupling identifier
+  // char *cpl_id = (char *) malloc(sizeof(char));
+  // read_name(&cpl_id, svr);
+
+  // // read source field identifier
+  // char *src_field_id = (char *) malloc(sizeof(char));
+  // read_name(&src_field_id, svr);
+
+  // // create structure with received data
+  // CWP_Interp_from_location_t *fct = (CWP_Interp_from_location_t *) malloc(sizeof(CWP_Interp_from_location_t));
+
+  // fct->code_name           = (char *) malloc(sizeof(char));
+  // read_name(&fct->code_name, svr);
+
+  // fct->src_n_block = -1;
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &fct->src_n_block, sizeof(int));
+  // fct->src_blocks_type     = (CWP_Block_t *) malloc(sizeof(CWP_Block_t) * fct->src_n_block);
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_blocks_type, sizeof(CWP_Block_t) * fct->src_n_block);
+
+  // fct->src_i_part = -1;
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &fct->src_i_part, sizeof(int));
+  // fct->src_n_vtx = -1;
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &fct->src_n_vtx, sizeof(int));
+
+  // fct->src_vtx_coords      = (double *) malloc(sizeof(double) * 3 * fct->src_n_vtx);
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_vtx_coords, sizeof(double) * 3 * fct->src_n_vtx);
+
+  // fct->src_vtx_global_num  = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * fct->src_n_vtx);
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_vtx_global_num, sizeof(CWP_g_num_t) * fct->src_n_vtx);
+
+  // fct->src_n_elts = -1;
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &fct->src_n_elts, sizeof(int));
+
+  // fct->src_id_block        = (int *) malloc(sizeof(int) * fct->src_n_elts);
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_id_block, sizeof(int) * fct->src_n_elts);
+
+  // fct->src_elt_in_block    = (int *) malloc(sizeof(int) * fct->src_n_elts);
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_elt_in_block, sizeof(int) * fct->src_n_elts);
+
+  // fct->src_elt_vtx_idx     = (int *) malloc(sizeof(int) * (fct->src_n_elts + 1));
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_elt_vtx_idx, sizeof(int) * (fct->src_n_elts + 1));
+
+  // fct->src_elt_vtx         = (int *) malloc(sizeof(int) * fct->src_elt_vtx_idx[fct->src_n_elts]);
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_elt_vtx, sizeof(int) * fct->src_elt_vtx_idx[fct->src_n_elts]);
+
+  // fct->src_elts_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * fct->src_n_elts);
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_elts_global_num, sizeof(CWP_g_num_t) * fct->src_n_elts);
+
+  // fct->tgt_n_pts = -1;
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &fct->tgt_n_pts, sizeof(int));
+
+  // fct->tgt_pts_elt_idx     = (int *) malloc(sizeof(int) * (fct->tgt_n_pts+1));
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->tgt_pts_elt_idx, sizeof(int) * (fct->tgt_n_pts+1));
+
+  // fct->tgt_pts_coords      = (double *) malloc(sizeof(double) * 3 * fct->tgt_n_pts);
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->tgt_pts_coords, sizeof(double) * 3 * fct->tgt_n_pts);
+
+  // fct->tgt_pts_dist        = (double *) malloc(sizeof(double) * fct->tgt_n_pts);
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->tgt_pts_dist, sizeof(double) * fct->tgt_n_pts);
+
+  // // TO DO: size = dim_interface * tgt_n_pts get dim_interface??
+  // fct->tgt_pts_uvw         = malloc(sizeof(double) * fct->tgt_n_pts);
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->tgt_pts_uvw, sizeof(double) * fct->tgt_n_pts);
+
+  // fct->tgt_pts_weights_idx = (int *) malloc(sizeof(int) * (fct->tgt_n_pts + 1));
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->tgt_pts_weights_idx, sizeof(int) * (fct->tgt_n_pts + 1));
+
+  // fct->tgt_pts_weights     = (double *) malloc(sizeof(double) * fct->tgt_pts_weights_idx[fct->tgt_n_pts]);
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->tgt_pts_weights, sizeof(double) * * fct->tgt_pts_weights_idx[fct->tgt_n_pts]);
+
+  // fct->stride = -1;
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &fct->stride, sizeof(int));
+
+  // fct->src_field_dof_location = (CWP_Dof_location_t) -1;
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &fct->src_field_dof_location, sizeof(CWP_Dof_location_t));
+
+  // fct->src_field           = (double *) malloc(sizeof(double) * fct->src_n_vtx * fct->stride);
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_field, sizeof(double) * fct->src_n_vtx * fct->stride);
+
+  // fct->tgt_field           = (double *) malloc(sizeof(double) * fct->src_n_vtx * fct->stride);
+  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->tgt_field, sizeof(double) * fct->src_n_vtx * fct->stride);
+
+  // // launch
+  // CWP_Interp_from_location_set(local_code_name,
+  //                              cpl_id,
+  //                              src_field_id,
+  //                              *fct);
+
+  // svr->state = CWP_SVRSTATE_LISTENINGMSG;
 }
-// {
-//   // wait all ranks have receive msg
-//   MPI_Barrier(svr->server_cwp->intra_comms[0]);
-
-//   // read local code name
-//   svr->state = CWP_SVRSTATE_RECVPPUTDATA;
-//   char *local_code_name = malloc(sizeof(char));
-//   read_name(&local_code_name, svr);
-
-//   // read coupling identifier
-//   char *cpl_id = malloc(sizeof(char));
-//   read_name(&cpl_id, svr);
-
-//   // read source field identifier
-//   char *src_field_id = malloc(sizeof(char));
-//   read_name(&src_field_id, svr);
-
-//   // create structure with received data
-//   CWP_Interp_from_location_t *fct = malloc(sizeof(CWP_Interp_from_location_t));
-//   fct->code_name           = malloc(sizeof(char));
-//   fct->src_blocks_type     = malloc(sizeof(CWP_Block_t));
-//   fct->src_vtx_coords      = malloc(sizeof(double));
-//   fct->src_vtx_global_num  = malloc(sizeof(CWP_g_num_t));
-//   fct->src_id_block        = malloc(sizeof(int));
-//   fct->src_elt_in_block    = malloc(sizeof(int));
-//   fct->src_elt_vtx_idx     = malloc(sizeof(int));
-//   fct->src_elt_vtx         = malloc(sizeof(int));
-//   fct->src_elts_global_num = malloc(sizeof(CWP_g_num_t));
-//   fct->tgt_pts_elt_idx     = malloc(sizeof(int));
-//   fct->tgt_pts_coords      = malloc(sizeof(double));
-//   fct->tgt_pts_dist        = malloc(sizeof(double));
-//   fct->tgt_pts_uvw         = malloc(sizeof(double));
-//   fct->tgt_pts_weights_idx = malloc(sizeof(int));
-//   fct->tgt_pts_weights     = malloc(sizeof(double));
-//   fct->src_field           = malloc(sizeof());
-//   fct->tgt_field           = malloc(sizeof());
-
-//   // launch
-//   CWP_Interp_from_location_set(local_code_name,
-//                                cpl_id,
-//                                src_field_id,
-//                                fct);
-
-//   svr->state = CWP_SVRSTATE_LISTENINGMSG;
-// }
 
 /*============================================================================
  * Server function definitions
@@ -2527,8 +2585,8 @@ CWP_server_create
   svr->flags            = flags;
   svr->server_endianess = CWP_transfer_endian_machine();
 
-  svr->server_cwp                   = (p_server_cwp) malloc(sizeof(p_server_cwp));
-  svr->server_cwp->global_comm      = global_comm;
+  svr_mpi               = (p_server_mpi) malloc(sizeof(t_server_mpi));
+  svr_mpi->global_comm  = global_comm;
 
   // retreive hostname
   if(gethostname(svr->host_name,sizeof(svr->host_name)) != 0) {

@@ -30,7 +30,7 @@
  *  Local headers
  *----------------------------------------------------------------------------*/
 
-#include "server.hxx"
+#include "server.h"
 #include <pdm_error.h>
 #include <pdm_io.h>
 #include <pdm_mpi.h>
@@ -258,7 +258,6 @@ main
   CWP_server_kill(svr);
 
   // free
-  free(svr->intra_comms);
   free(svr);
 
   // mpi finalize

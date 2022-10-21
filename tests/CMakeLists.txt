@@ -151,7 +151,9 @@ if (CWP_ENABLE_NEW_API)
     test_c_create (c_ip_io 1)
     test_c_create (server_main 1)
     test_c_create (client_main 1)
-    test_c_create (client_new_disjoint_comms 1)
+    test_c_create (client_new_api_disjoint_comms 1)
+    test_c_create (client_new_api_cellface_set_block 1)
+    test_c_create (client_new_api_c_poly_block 1)
 
 
     if (CWP_ENABLE_Fortran)

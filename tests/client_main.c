@@ -30,7 +30,7 @@
  *  Local headers
  *----------------------------------------------------------------------------*/
 
-#include "client.hxx"
+#include "client.h"
 #include <pdm_error.h>
 #include <pdm_io.h>
 #include <pdm_mpi.h>
@@ -246,6 +246,9 @@ main
   CWP_client_User_structure_set("code1", NULL);
   CWP_client_User_structure_get("code1");
 
+  // Outputfile
+  CWP_client_Output_file_set("outputfile.txt");
+
   // CWP_Codes_*
   int n_codes = CWP_client_Codes_nb_get();
   printf("n_codes = %d\n", n_codes);
@@ -274,12 +277,12 @@ main
   CWP_client_Properties_dump();
 
   // *_update
-  // if (i_rank == 0) {
-  //   CWP_client_State_update("code1", CWP_INTERFACE_LINEAR);
-  //   CWP_State_t state = CWP_client_State_get("code1");
-  //   printf("state = %d\n", state);
-  //   CWP_client_Time_update("code1", 0.1);
-  // }
+  if (i_rank == 0) {
+    CWP_client_State_update("code1", CWP_INTERFACE_LINEAR);
+    CWP_State_t state = CWP_client_State_get("code1");
+    printf("state = %d\n", state);
+    CWP_client_Time_update("code1", 0.1);
+  }
 
   // CWP_Param_*
   if (i_rank == 0) {
@@ -336,6 +339,21 @@ main
     CWP_client_Param_add("code1", "tatic", CWP_DOUBLE, &tatic);
     CWP_client_Param_unlock("code1");
   }
+
+  if (i_rank == 1) {
+    double totic = 33.50;
+    CWP_client_Param_lock("code2");
+    CWP_client_Param_add("code2", "tatic", CWP_DOUBLE, &totic);
+    CWP_client_Param_unlock("code2");
+  }
+
+  PDM_MPI_Barrier(comm);
+
+  // reduce
+  double res = 0;
+  CWP_client_Param_reduce(CWP_OP_MAX, "tatic", CWP_DOUBLE, &res, 2);
+
+  printf("i_rank: %d max(tatic) = res = %f\n", i_rank, res);
 
   char **param_names = NULL;
 

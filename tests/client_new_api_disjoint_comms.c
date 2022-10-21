@@ -28,7 +28,7 @@
 #include "pdm_dcube_nodal_gen.h"
 #include "pdm_dmesh_nodal_to_dmesh.h"
 #include "pdm_logging.h"
-#include "client.hxx"
+#include "client.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_io.h"
@@ -829,15 +829,46 @@ main
     printf("%d : %s --- Field created and data set\n", rank, code_names[i_code]);
   }
 
+  // Field_*
+
+  for (int i_code = 0 ; i_code < n_code ; ++i_code) {
+    int n_component = CWP_client_Field_n_component_get(code_names[i_code],
+                                                       cpl_name,
+                                                       field_name);
+
+    printf("%d : %s --- number of components: %d\n", rank, code_names[i_code], n_component);
+  }
+
+  CWP_Field_storage_t storage = -1;
+
+  if (cond_code1) {
+    CWP_Field_storage_t storage = CWP_client_Field_storage_get(code_names[0],
+                                                               cpl_name,
+                                                               field_name);
+
+    printf("%d : %s --- storage: %d\n", rank, code_names[0], storage);
+  }
+
+  if (cond_code2) {
+    CWP_Field_storage_t storage = CWP_client_Field_storage_get(code_names[1],
+                                                               cpl_name,
+                                                               field_name);
+
+    printf("%d : %s --- storage: %d\n", rank, code_names[1], storage);
+  }
+
   PDM_MPI_Barrier(comm);
 
   // Compute weights
   for (int i_code = 0 ; i_code < n_code ; ++i_code) {
-    printf("%d : %s --- Weights computed\n", rank, code_names[i_code]);
-    fflush(stdout);
+
+    CWP_Spatial_interp_property_set(code_names[0], cpl_name, "tolerance", "double", "1e-2");
+    printf("%d : %s --- Property set\n", rank, code_names[i_code]);
 
     CWP_client_Spatial_interp_weights_compute(code_names[i_code], cpl_name);
 
+    printf("%d : %s --- Weights computed\n", rank, code_names[i_code]);
+    fflush(stdout);
   }
 
   int n_computed_tgts = 0, n_uncomputed_tgts = 0, n_involved_srcs = 0;
@@ -998,6 +1029,26 @@ main
         printf("%12.5e %12.5e\n", recv_values[i_code][3 * i], coord[i_code][0][3 * (computed_tgts[i] - 1)]);
       }
     }
+  }
+
+  // User_tgt_pts
+  double tgt_coord[12] = {0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0};
+  CWP_g_num_t tgt_gnum[4] = {1, 2, 3, 4};
+  for (int i_code = 0 ; i_code < n_code ; i_code++) {
+    CWP_client_User_tgt_pts_set(code_names[i_code],
+                                cpl_name,
+                                0,
+                                4,
+                                tgt_coord,
+                                tgt_gnum); // TO DO: try with NULL here what happens
+  }
+
+  // Delete field
+  for (int i_code = 0 ; i_code < n_code ; i_code++) {
+
+    CWP_client_Field_del(code_names[i_code], cpl_name, field_name);
+
+    printf("%d : %s --- Field deleted\n", rank, code_names[i_code]);
   }
 
   // Delete interf

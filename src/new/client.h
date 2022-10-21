@@ -29,9 +29,6 @@
  *  Header for the current file
  *----------------------------------------------------------------------------*/
 
-#include <string>
-#include <map>
-
 #include "cwp.h"
 
 
@@ -1319,7 +1316,6 @@ CWP_client_Interp_from_location_set
  const char                 *local_code_name,
  const char                 *cpl_id,
  const char                 *src_field_id,
- const CWP_Type_t            data_type,
  CWP_Interp_from_location_t  fct
 );
 
