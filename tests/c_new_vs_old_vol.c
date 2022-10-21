@@ -1682,9 +1682,11 @@ main(int argc, char *argv[]) {
     }
   }
 
+  MPI_Barrier(MPI_COMM_WORLD);
   PDM_timer_hang_on(timer);
   t_end = PDM_timer_elapsed(timer);
   PDM_timer_resume(timer);
+
   double geom_time = t_end - t_start;
   double max_geom_time;
   MPI_Reduce(&geom_time, &max_geom_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -1711,7 +1713,6 @@ main(int argc, char *argv[]) {
 
   //  Exchange interpolated fields 1
   MPI_Barrier(MPI_COMM_WORLD);
-
   PDM_timer_hang_on(timer);
   t_start = PDM_timer_elapsed(timer);
   PDM_timer_resume(timer);
@@ -1735,14 +1736,14 @@ main(int argc, char *argv[]) {
     }
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  PDM_timer_hang_on(timer);
-  t_end = PDM_timer_elapsed(timer);
-  double exch_time1 = t_end - t_start;
-  double max_exch_time1;
-  t_start = t_end;
-  MPI_Reduce(&exch_time1, &max_exch_time1, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-  PDM_timer_resume(timer);
+  /* MPI_Barrier(MPI_COMM_WORLD); */
+  /* PDM_timer_hang_on(timer); */
+  /* t_end = PDM_timer_elapsed(timer); */
+  /* double exch_time1 = t_end - t_start; */
+  /* double max_exch_time1; */
+  /* t_start = t_end; */
+  /* MPI_Reduce(&exch_time1, &max_exch_time1, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD); */
+  /* PDM_timer_resume(timer); */
 
   if (version == CWP_VERSION_OLD) {
     if (code_id == 1) {
@@ -1769,22 +1770,24 @@ main(int argc, char *argv[]) {
   MPI_Reduce(&exch_time, &max_exch_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
   if (rank == 0) {
-    printf("Exchange 1 fields issend/irecv: %12.5es\n", max_exch_time1);
-    printf("Exchange 1 fields wait        : %12.5es\n", max_exch_time);
-    printf("Total Exchange 1              : %12.5es\n", max_exch_time1 + max_exch_time);
+    /* printf("Exchange 1 fields issend/irecv: %12.5es\n", max_exch_time1); */
+    /* printf("Exchange 1 fields wait        : %12.5es\n", max_exch_time); */
+    /* printf("Total Exchange 1              : %12.5es\n", max_exch_time1 + max_exch_time); */
+    printf("Total Exchange 1              : %12.5es\n", max_exch_time);
 
     if (filedump) {
-      fprintf(output, "%12.5e ", max_exch_time1 + max_exch_time);
+      fprintf(output, "%12.5e ", max_exch_time);
     }
   }
 
-  double redondance_geom = max_exch_time1;
-  max_geom_time += max_exch_time1;
+  /* double exch_time1 = 0; */
+  /* double redondance_geom = max_exch_time1; */
+  /* max_geom_time += max_exch_time1; */
 
   //  Exchange interpolated fields 2
   PDM_timer_resume(timer);
-  MPI_Barrier(MPI_COMM_WORLD);
 
+  MPI_Barrier(MPI_COMM_WORLD);
   PDM_timer_hang_on(timer);
   t_start = PDM_timer_elapsed(timer);
   PDM_timer_resume(timer);
@@ -1807,16 +1810,24 @@ main(int argc, char *argv[]) {
     }
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  PDM_timer_hang_on(timer);
-  t_end = PDM_timer_elapsed(timer);
-  exch_time1 = t_end - t_start;
-  CWP_UNUSED (max_exch_time1);
-  t_start = t_end;
-  MPI_Reduce(&exch_time1, &max_exch_time1, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-  PDM_timer_resume(timer);
+  /* MPI_Barrier(MPI_COMM_WORLD); */
+  /* PDM_timer_hang_on(timer); */
+  /* t_end = PDM_timer_elapsed(timer); */
+  /* exch_time1 = t_end - t_start; */
 
-  redondance_geom += -max_exch_time1;
+  /* CWP_UNUSED (max_exch_time1); */
+
+  /* t_start = t_end; */
+  /* MPI_Reduce(&exch_time1, &max_exch_time1, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD); */
+
+  /* PDM_timer_resume(timer); */
+
+  /* MPI_Barrier(MPI_COMM_WORLD); */
+  /* PDM_timer_hang_on(timer); */
+  /* t_start = PDM_timer_elapsed(timer); */
+  /* PDM_timer_resume(timer); */
+
+  /* redondance_geom += -max_exch_time1; */
 
   if (version == CWP_VERSION_OLD) {
     if (code_id == 1) {
@@ -1839,24 +1850,24 @@ main(int argc, char *argv[]) {
   PDM_timer_hang_on(timer);
   t_end = PDM_timer_elapsed(timer);
   exch_time = t_end - t_start;
-  CWP_UNUSED (max_exch_time1);
+  /* CWP_UNUSED (max_exch_time1); */
   MPI_Reduce(&exch_time, &max_exch_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
   if (rank == 0) {
-    printf("Exchange 2 fields issend/irecv :%12.5es\n", max_exch_time1);
-    printf("Exchange 2  fields wait        :%12.5es\n", max_exch_time);
-    printf("Total exchange 2               :%12.5es\n", max_exch_time1 + max_exch_time);
+    /* printf("Exchange 2 fields issend/irecv :%12.5es\n", max_exch_time1); */
+    /* printf("Exchange 2  fields wait        :%12.5es\n", max_exch_time); */
+    printf("Total exchange 2               :%12.5es\n", max_exch_time);
 
     printf("\n\nTemps geometrie                            : %12.5es\n", max_geom_time);
-    printf("Temps geometrie escompte (sans redondance) : %12.5es\n",
-           max_geom_time - redondance_geom);
-    printf("Temps un Echange aux noeuds                : %12.5es\n",
-           max_exch_time1 + max_exch_time);
+    /* printf("Temps geometrie escompte (sans redondance) : %12.5es\n", */
+    /*        max_geom_time - redondance_geom); */
+    /* printf("Temps un Echange aux noeuds                : %12.5es\n", */
+    /*        max_exch_time1 + max_exch_time); */
 
-    if (filedump) {
-      fprintf(output, "%12.5e\n", max_exch_time1 + max_exch_time);
-      fclose(output);
-    }
+    /* if (filedump) { */
+    /*   fprintf(output, "%12.5e\n", max_exch_time1 + max_exch_time); */
+    /*   fclose(output); */
+    /* } */
   }
 
   //  Check

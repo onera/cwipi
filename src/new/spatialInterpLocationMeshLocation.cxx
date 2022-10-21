@@ -312,6 +312,7 @@ namespace cwipi {
     if (!_coupledCodeProperties->localCodeIs()) {
 
       if (_pdm_location_optim) {
+        printf("PDM_mesh_location_compute_optim\n");
         PDM_mesh_location_compute_optim(_id_pdm);
       }
       else {
@@ -324,6 +325,7 @@ namespace cwipi {
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
 
         if (_pdm_location_optim) {
+          printf("PDM_mesh_location_compute_optim\n");
           PDM_mesh_location_compute_optim(_id_pdm);
         }
         else {
