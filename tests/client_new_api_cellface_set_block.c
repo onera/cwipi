@@ -260,10 +260,6 @@ main
     return -1;
   }
 
-  FILE *mesh_file;
-  mesh_file = fopen("meshes/mesh_poly_d1", "r");
-
-
   int n_partition = 0;
   const int two = 2;
   while (two * pow(n_partition, two) < comm_world_size) n_partition++;
@@ -276,25 +272,6 @@ main
     PDM_MPI_Finalize();
     return EXIT_SUCCESS;
   }
-
-  PDM_MPI_Comm_rank(PDM_MPI_COMM_WORLD, &rank);
-  PDM_MPI_Comm_size(PDM_MPI_COMM_WORLD, &comm_world_size);
-
-  char *src_name = (char *) malloc(sizeof(char) * (strlen(__FILE__) + 1));
-  strcpy(src_name, __FILE__);
-  char *src_base_name = NULL;
-  src_base_name = strrchr(src_name, '.');
-  if (src_base_name != NULL)
-    *src_base_name = '\0';
-  src_base_name = NULL;
-  src_base_name = strrchr(src_name, '/');
-  if (src_base_name != NULL)
-    src_base_name += 1;
-  else
-    src_base_name = src_name;
-
-  if (rank == 0)
-    printf("\nSTART: %s\n", src_base_name);
 
 
   /* Initialization
@@ -369,8 +346,18 @@ main
   int    *cell_face_idx = NULL;
   int    *cell_face     = NULL;
 
-  if (rank == 0)
-    printf("        Read mesh\n");
+  if (rank == 0) printf("        Read mesh\n");
+
+  FILE *mesh_file;
+  mesh_file = fopen("../meshes/mesh_poly_d1", "r");
+
+  fscanf(mesh_file, "%d %d %d %d %d %d",
+         &dimension,
+         &n_vtx,
+         &n_face,
+         &n_elmt,
+         &lface_connec,
+         &lcell_connec);
 
   coords        = (double *) malloc(dimension * n_vtx * sizeof(double));
   face_vtx_idx  = (int    *) malloc((n_face + 1)      * sizeof(int   ));
@@ -399,8 +386,18 @@ main
     CWP_client_Visu_set("code1_cell_faces", cpl_id1, 1.0, CWP_VISU_FORMAT_ENSIGHT, "binary");
     printf("Visu Set\n");
 
+    CWP_g_num_t *global_num_vtx = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_vtx);
+    for (int i = 0; i < n_vtx; i++) {
+      global_num_vtx[i] = i + 1;
+    }
+
     printf("vtx_set\n");
-    CWP_client_Mesh_interf_vtx_set("code1_cell_faces", cpl_id1, 0, n_vtx, coords, NULL);
+    CWP_client_Mesh_interf_vtx_set("code1_cell_faces", cpl_id1, 0, n_vtx, coords, global_num_vtx);
+
+    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elmt);
+    for (int i = 0; i < n_elmt; i++) {
+      global_num[i] = i + 1;
+    }
 
     printf("Cell_face Add and Setting\n");
     CWP_client_Mesh_interf_from_cellface_set("code1_cell_faces",
@@ -412,7 +409,7 @@ main
                                              n_face,
                                              face_vtx_idx,
                                              face_vtx,
-                                             NULL);
+                                             global_num); // TO DO: deal with NULL tab passed !
 
 
     printf("Interface Mesh deletion\n");
@@ -427,7 +424,6 @@ main
 
   PDM_MPI_Finalize();
 
-  free(src_name);
   free(code_names);
   free(is_coupled_rank);
   free(times_init);

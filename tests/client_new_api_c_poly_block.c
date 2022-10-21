@@ -295,7 +295,7 @@ main
 
   FILE *meshFile;
 
-  meshFile = fopen("meshes/mesh_poly_d1", "r");
+  meshFile = fopen("../meshes/mesh_poly_d1", "r");
 
   int n_partition = 0;
   const int two = 2;
