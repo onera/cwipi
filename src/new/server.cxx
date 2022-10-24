@@ -68,6 +68,7 @@ extern "C" {
 /* file struct definition */
 
 static t_server_mpi *svr_mpi;
+static t_cwp        *svr_cwp;
 
 /*=============================================================================
  * Private function interfaces
@@ -107,6 +108,11 @@ CWP_server_Init
   // receive data
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &n_code, sizeof(int));
+
+  // svr_cwp init
+  svr_cwp = (p_cwp) malloc(sizeof(t_cwp));
+  memset(svr_cwp, 0, sizeof(t_cwp));
+  svr_cwp->code = (t_code *) malloc(sizeof(t_code));
 
   if (n_code > 1) {
     PDM_error(__FILE__, __LINE__, 0, "CWIPI client-server not implemented yet for n_code > 1\n");
@@ -921,9 +927,9 @@ CWP_server_Codes_list_get
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &nb_codes, sizeof(int));
 
   // launch
-  const char **code_names = CWP_Codes_list_get();
+  svr_cwp->code_names = CWP_Codes_list_get();
   for (int i = 0; i < nb_codes; i++) {
-    write_name((char *) code_names[i], svr);
+    write_name((char *) svr_cwp->code_names[i], svr);
   }
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
@@ -965,9 +971,9 @@ CWP_server_Loc_codes_list_get
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &nb_local_codes, sizeof(int));
 
   // launch
-  const char **local_code_names = CWP_Loc_codes_list_get();
+  svr_cwp->loc_code_names = CWP_Loc_codes_list_get();
   for (int i = 0; i < nb_local_codes; i++) {
-    write_name((char *) local_code_names[i], svr);
+    write_name((char *) svr_cwp->loc_code_names[i], svr);
   }
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;

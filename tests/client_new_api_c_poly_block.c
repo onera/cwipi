@@ -458,7 +458,7 @@ main
     int getNFace = -1;
     int *getFaceVertexIdx = malloc(sizeof(int) * (nFace + 1));
     int *getFaceVertex    = malloc(sizeof(int) * faceVertexIdx[nFace]);
-    int *getCellFaceIdx   = malloc(sizeof(int) * (nElements + 1));
+    int *getCellFaceIdx   = malloc((nElements + 1)     * sizeof(int   ));
     int *getCellFace      = malloc(sizeof(int) * cellFaceIdx[nElements]);
     CWP_client_Mesh_interf_c_poly_block_get("cpoly", cpl_id1, 0, block_id,
                                             &getNElements,
@@ -473,7 +473,7 @@ main
     printf("nElements same ? %d\n", getNElements == nElements);
     printf("nFaces same ? %d\n", getNFace == nFace);
     int equal = -1;
-    for (int i = 0; i < nElements + 1; i++) {
+    for (int i = 0; i < nFace + 1; i++) {
       equal = (getFaceVertexIdx[i] == faceVertexIdx[i]);
       if (equal == 0) {
         break;
@@ -481,7 +481,7 @@ main
     }
     printf("FaceVertexIdx same ? %d\n", equal);
     equal = -1;
-    for (int i = 0; i < faceVertexIdx[nElements]; i++) {
+    for (int i = 0; i < faceVertexIdx[nFace]; i++) {
       equal = (getFaceVertex[i] == faceVertex[i]);
       // printf("getFaceVertex[i] = %d vs. faceVertex[i] = %d\n", getFaceVertex[i], faceVertex[i]);
       if (equal == 0) {
@@ -490,7 +490,7 @@ main
     }
     printf("FaceVertex same ? %d\n", equal);
     equal = -1;
-    for (int i = 0; i < nFace + 1; i++) {
+    for (int i = 0; i < nElements + 1; i++) {
       equal = (getCellFaceIdx[i] == cellFaceIdx[i]);
       // printf("getCellFaceIdx[i] = %d vs. cellFaceIdx[i] = %d\n", getCellFaceIdx[i], cellFaceIdx[i]);
       if (equal == 0) {
@@ -500,7 +500,7 @@ main
     printf("CellFaceIdx same ? %d\n", equal);
     equal = -1;
     // printf("cellFaceIdx[nFace] = %d\n", cellFaceIdx[nFace]);
-    for (int i = 0; i < cellFaceIdx[nFace]; i++) {
+    for (int i = 0; i < cellFaceIdx[nElements]; i++) {
       equal = (getCellFace[i] == cellFace[i]);
       if (equal == 0) {
         break;
@@ -529,6 +529,10 @@ main
   free(cellFace     );
 
   CWP_client_Finalize();
+
+  // disconnect
+  CWP_client_disconnect();
+
   PDM_MPI_Finalize();
 
   free(srcName);

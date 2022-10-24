@@ -523,6 +523,10 @@ main
 
   // Finalize
   CWP_client_Finalize();
+
+  // disconnect
+  CWP_client_disconnect();
+
   PDM_MPI_Finalize();
   return EXIT_SUCCESS;
 }

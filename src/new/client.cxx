@@ -52,6 +52,7 @@
 #include "message.h"
 #include "transfer.h"
 
+#include "struct.hxx"
 
 #include <cwp.h>
 #include <pdm_error.h>
@@ -68,6 +69,7 @@ extern "C" {
 /* file struct definition */
 
 static t_client *clt;
+static t_cwp    *clt_cwp;
 
 /*=============================================================================
  * Private function interfaces
@@ -1077,10 +1079,10 @@ CWP_client_Codes_nb_get
   }
 
   // read nb_codes
-  int nb_codes = -1;
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_codes, sizeof(int));
+  clt_cwp->n_code_names = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &clt_cwp->n_code_names, sizeof(int));
 
-  return nb_codes;
+  return clt_cwp->n_code_names;
 }
 
 const char **
@@ -1105,15 +1107,15 @@ void
   }
 
   // read code names
-  int nb_codes = -1;
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_codes, sizeof(int));
-  char **code_names = (char **) malloc(sizeof(char *) * nb_codes);
-  for (int i = 0; i < nb_codes; i++) {
-    code_names[i] = (char *) malloc(sizeof(char));
-    read_name(&code_names[i]);
+  clt_cwp->n_code_names = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &clt_cwp->n_code_names, sizeof(int));
+  clt_cwp->code_names = (const char **) malloc(sizeof(char *) * clt_cwp->n_code_names);
+  for (int i = 0; i < clt_cwp->n_code_names; i++) {
+    clt_cwp->code_names[i] = (const char *) malloc(sizeof(char));
+    read_name((char **) &clt_cwp->code_names[i]);
   }
 
-  return (const char **) code_names;
+  return clt_cwp->code_names;
 }
 
 int
@@ -1138,10 +1140,10 @@ CWP_client_Loc_codes_nb_get
   }
 
   // read nb_codes
-  int nb_local_codes = -1;
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_local_codes, sizeof(int));
+  clt_cwp->n_loc_code_names = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &clt_cwp->n_loc_code_names, sizeof(int));
 
-  return nb_local_codes;
+  return clt_cwp->n_loc_code_names;
 }
 
 const char **
@@ -1166,15 +1168,15 @@ CWP_client_Loc_codes_list_get
   }
 
   // read code names
-  int nb_local_codes = -1;
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_local_codes, sizeof(int));
-  char **code_local_names = (char **) malloc(sizeof(char *) * nb_local_codes);
-  for (int i = 0; i < nb_local_codes; i++) {
-    code_local_names[i] = (char *) malloc(sizeof(char));
-    read_name(&code_local_names[i]);
+  clt_cwp->n_loc_code_names = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &clt_cwp->n_loc_code_names, sizeof(int));
+  clt_cwp->loc_code_names = (const char **) malloc(sizeof(char *) * clt_cwp->n_loc_code_names);
+  for (int i = 0; i < clt_cwp->n_loc_code_names; i++) {
+    clt_cwp->loc_code_names[i] = (const char *) malloc(sizeof(char));
+    read_name((char **) &clt_cwp->loc_code_names[i]);
   }
 
-  return (const char **) code_local_names;
+  return clt_cwp->loc_code_names;
 }
 
 int
@@ -3011,6 +3013,11 @@ CWP_client_connect
   clt->server_port=server_port;
   clt->flags=flags;
 
+  // clt_cwp init
+  clt_cwp = (p_cwp) malloc(sizeof(t_cwp));
+  memset(clt_cwp, 0, sizeof(t_cwp));
+  clt_cwp->code = (t_code *) malloc(sizeof(t_code));
+
   // verbose
   if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
     log_trace("CWP:Creating Client, connecting to %s:%i...\n",server_name,server_port);
@@ -3077,6 +3084,21 @@ CWP_client_disconnect
   NEWMESSAGE(msg, CWP_MSG_DIE);
 
   CWP_client_send_msg(&msg);
+
+  // free
+  if (clt_cwp->code_names != NULL) {
+    for (int i = 0; i < clt_cwp->n_code_names; i++) {
+      free((void *) clt_cwp->code_names[i]);
+    }
+    free((void **) clt_cwp->code_names);
+  }
+
+  if (clt_cwp->loc_code_names != NULL) {
+    for (int i = 0; i < clt_cwp->n_loc_code_names; i++) {
+      free((void *) clt_cwp->loc_code_names[i]);
+    }
+    free((void **) clt_cwp->loc_code_names);
+  }
 
   // shutdown
 #ifdef WINDOWS

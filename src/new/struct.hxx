@@ -50,6 +50,23 @@ extern "C" {
  * Types definition
  *============================================================================*/
 
+typedef struct t_code
+{
+  char                                **paramNames; // Param_list_get
+  std::map<std::string, char *>         char_param_value;
+
+  // std::map<std::string, p_server_cpl>   server_cpl;
+} t_code, *p_code;
+
+typedef struct t_cwp
+{
+  int          n_code_names;
+  const char **code_names;     // Codes_list_get
+  int          n_loc_code_names;
+  const char **loc_code_names; // Loc_codes_list_get
+  p_code       code;    // not implemented yet for n_code > 1
+} t_cwp, *p_cwp;
+
 typedef struct t_server_mpi
 {
   MPI_Comm  global_comm;
