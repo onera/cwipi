@@ -1012,10 +1012,10 @@ main
 
   // property_set
 
-  // if (cond_code1) {
-  //   CWP_Spatial_interp_property_set(code_names[0], cpl_name, "tolerance", "double", "1e-2");
-  //   printf("%d : %s --- Property set\n", rank, code_names[0]);
-  // }
+  if (cond_code1) {
+    CWP_client_Spatial_interp_property_set(code_names[0], cpl_name, "tolerance", "double", "1e-2");
+    printf("%d : %s --- Property set\n", rank, code_names[0]);
+  }
 
   // Field_*
 
