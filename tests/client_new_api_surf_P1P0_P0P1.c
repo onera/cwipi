@@ -28,7 +28,9 @@
 #include "grid_mesh.h"
 #include "pdm_mpi.h"
 #include "pdm_io.h"
+#include "pdm_distrib.h"
 #include "pdm_printf.h"
+#include "pdm_partitioning_algorithm.h"
 #include "client.h"
 
 /*=============================================================================
@@ -494,6 +496,54 @@ main
     CWP_client_Field_wait_irecv(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_TARGET, 1, nVertex, &recvValues[0]);
     CWP_client_Field_wait_issend(code_name[0], cpl_name, field_name2);
   }
+
+  // Mesh_interf_from_faceedge_set
+  int          **part_pface_edge_idx = NULL;
+  int          **part_pface_edge     = NULL;
+  int           *part_pn_edge        = NULL;
+  int          **part_pedge_vtx      = NULL;
+  PDM_g_num_t  **part_pedge_ln_to_gn = NULL;
+
+  PDM_g_num_t   *pface_ln_to_gn = malloc(sizeof(PDM_g_num_t) * nElts);
+  PDM_g_num_t   *pvtx_ln_to_gn  = malloc(sizeof(PDM_g_num_t) * nVertex);
+
+  PDM_g_num_t*distrib_elt = PDM_compute_entity_distribution(comm, nElts);
+  PDM_g_num_t*distrib_vtx = PDM_compute_entity_distribution(comm, nVertex);
+
+  for (int i = 0; i < nElts; i++) {
+    pface_ln_to_gn[i] = distrib_elt[rank] + i + 1;
+  }
+
+  for (int i = 0; i < nVertex; i++) {
+    pvtx_ln_to_gn[i] = distrib_vtx[rank] + i + 1;
+  }
+
+  PDM_compute_face_edge_from_face_vtx(comm,
+                                      1,
+                                      &nElts,
+                                      &nVertex,
+                                      &eltsConnecPointer[0],
+                                      &eltsConnec[0],
+                                      &pface_ln_to_gn,
+                                      &pvtx_ln_to_gn,
+                                      &part_pface_edge_idx,
+                                      &part_pface_edge,
+                                      &part_pn_edge,
+                                      &part_pedge_vtx,
+                                      &part_pedge_ln_to_gn);
+
+  int *edge_vtx_idx = PDM_array_new_idx_from_const_stride_int(2, part_pn_edge[0]);
+
+  CWP_client_Mesh_interf_from_faceedge_set(code_name[0],
+                                           cpl_name,
+                                           0,
+                                           nElts,
+                                           part_pface_edge_idx[0],
+                                           part_pface_edge[0],
+                                           part_pn_edge[0],
+                                           edge_vtx_idx,
+                                           part_pedge_vtx[0],
+                                           global_num);
 
   printf("%d - Delete mesh\n", rank);
   CWP_client_Mesh_interf_del(code_name[0], cpl_name);

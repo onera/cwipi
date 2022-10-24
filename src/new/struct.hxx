@@ -52,8 +52,8 @@ extern "C" {
 
 typedef struct t_code
 {
-  char                                **paramNames; // Param_list_get
-  std::map<std::string, char *>         char_param_value;
+  int                             n_param_names;
+  char                          **param_names; // Param_list_get
 
   // std::map<std::string, p_server_cpl>   server_cpl;
 } t_code, *p_code;
@@ -64,7 +64,10 @@ typedef struct t_cwp
   const char **code_names;     // Codes_list_get
   int          n_loc_code_names;
   const char **loc_code_names; // Loc_codes_list_get
-  p_code       code;    // not implemented yet for n_code > 1
+
+  std::map<std::string, char *>   char_param_value;
+
+  p_code code;
 } t_cwp, *p_cwp;
 
 typedef struct t_server_mpi

@@ -349,11 +349,20 @@ main
 
   PDM_MPI_Barrier(comm);
 
-  // reduce
-  // double res = 0;
-  // CWP_client_Param_reduce(CWP_OP_MAX, "tatic", CWP_DOUBLE, &res, 2);
+  double tita;
+  CWP_client_Param_get("code1", "tatic", CWP_DOUBLE, &tita);
+  printf("i_rank: %d code 1 : tatic : %f\n", i_rank, tita);
+  double tito;
+  CWP_client_Param_get("code2", "tatic", CWP_DOUBLE, &tito);
+  printf("i_rank: %d code 2 : tatic : %f\n", i_rank, tito);
 
-  // printf("i_rank: %d max(tatic) = res = %f\n", i_rank, res);
+  printf("i_rank: %d c'est bon !\n", i_rank);
+
+  // reduce
+  double res = 0;
+  CWP_client_Param_reduce(CWP_OP_MAX, "tatic", CWP_DOUBLE, &res, 2);
+
+  printf("i_rank: %d max(tatic) = res = %f\n", i_rank, res);
 
   if (i_rank == 0) {
     char **param_names = malloc(sizeof(char **));

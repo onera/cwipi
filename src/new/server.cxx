@@ -42,6 +42,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <iostream>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -113,6 +114,7 @@ CWP_server_Init
   svr_cwp = (p_cwp) malloc(sizeof(t_cwp));
   memset(svr_cwp, 0, sizeof(t_cwp));
   svr_cwp->code = (t_code *) malloc(sizeof(t_code));
+  memset(svr_cwp->code, 0, sizeof(t_code));
 
   if (n_code > 1) {
     PDM_error(__FILE__, __LINE__, 0, "CWIPI client-server not implemented yet for n_code > 1\n");
@@ -254,12 +256,31 @@ CWP_server_Param_add
     } break;
 
   case CWP_CHAR: {
-    char *char_initial_value = (char *) malloc(sizeof(char));
-    read_name(&char_initial_value, svr);
+    int name_size;
+    CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) &name_size, sizeof(int));
+    char *char_initial_value = (char *) malloc(name_size);
+    CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) char_initial_value, name_size);
+    printf("char_initial_value = %s\n", char_initial_value);
+    std::string s(param_name);
+    std::cout << "s: " << s << "\n";
+
+    std::map<std::string, char *>   m;
+    m.insert(std::make_pair(s, char_initial_value));
+
+    printf("svr_cwp->char_param_value = %p\n", (void *) &svr_cwp->char_param_value);
+
+    int toto = svr_cwp->char_param_value.empty();
+    printf("toto = %d\n", toto);
+
+    svr_cwp->char_param_value.clear();
+
+    svr_cwp->char_param_value.insert(std::make_pair(s, char_initial_value));
+    printf("svr_cwp->char_param_value[s] = %s\n", svr_cwp->char_param_value[s]);
+
     CWP_Param_add(local_code_name,
                   param_name,
                   data_type,
-                  &char_initial_value);
+                  &svr_cwp->char_param_value[s]);
     } break;
 
   default:
@@ -321,11 +342,12 @@ CWP_server_Param_get
     } break;
 
   case CWP_CHAR: {
-    char *char_value = (char *) malloc(sizeof(char));
+    char *char_value = NULL;
     CWP_Param_get(local_code_name,
                   param_name,
                   data_type,
                   &char_value);
+
     write_name(char_value, svr);
     } break;
 
@@ -383,12 +405,16 @@ CWP_server_Param_set
     } break;
 
   case CWP_CHAR: {
-    char *char_initial_value = (char *) malloc(sizeof(char));
-    read_name(&char_initial_value, svr);
+    int name_size;
+    CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) &name_size, sizeof(int));
+    char *char_initial_value = (char *) malloc(name_size);
+    CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) char_initial_value, name_size);
+    std::string s(param_name);
+    svr_cwp->char_param_value.emplace(std::make_pair(s, char_initial_value));
     CWP_Param_set(local_code_name,
                   param_name,
                   data_type,
-                  &char_initial_value);
+                  &svr_cwp->char_param_value[s]);
     } break;
 
   default:
@@ -432,6 +458,12 @@ CWP_server_Param_del
   // free
   free(local_code_name);
   free(param_name);
+  if (data_type == CWP_CHAR) {
+    p_code code = svr_cwp->code;
+    std::string s(param_name);
+    if (svr_cwp->char_param_value[s] != NULL) free(svr_cwp->char_param_value[s]);
+    svr_cwp->char_param_value.erase(s);
+  }
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -487,20 +519,21 @@ CWP_server_Param_list_get
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &data_type, sizeof(CWP_Type_t));
 
   // launch
-  int nParam = -1;
-  char **paramNames = NULL;
+  p_code code = svr_cwp->code;
+  code->n_param_names = -1;
+  code->param_names = NULL;
   CWP_Param_list_get(code_name,
                      data_type,
-                     &nParam,
-                     &paramNames);
+                     &code->n_param_names,
+                     &code->param_names);
 
   // send nParam
   svr->state=CWP_SVRSTATE_SENDPGETDATA;
-  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &nParam, sizeof(int));
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &code->n_param_names, sizeof(int));
 
   // send paramNames
-  for (int i = 0; i < nParam; i++) {
-    write_name(paramNames[i], svr);
+  for (int i = 0; i < code->n_param_names; i++) {
+    write_name(code->param_names[i], svr);
   }
 
   // free
@@ -573,34 +606,38 @@ CWP_server_Param_reduce
   int nCode = -1;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &nCode, sizeof(int));
 
-  printf("SERVER op : %d, param_name: %s, ncode: %d\n", (int) op, param_name, nCode);
-
-  // launch
-  void *res = NULL;
-  CWP_Param_reduce(op,
-                   param_name,
-                   data_type,
-                   res,
-                   nCode);
+  printf("SERVER op : %d, param_name: %s, ncode: %d, data_type: %d\n", (int) op, param_name, nCode, data_type);
 
   // send res
   svr->state=CWP_SVRSTATE_SENDPGETDATA;
   switch (data_type) {
 
   case CWP_DOUBLE: {
-    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) res, sizeof(int));
+    double res = -1.;
+    CWP_Param_reduce(op,
+                   param_name,
+                   data_type,
+                   (void *) &res,
+                   nCode,
+                   "code1",
+                   "code2");
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &res, sizeof(double));
     } break;
 
   case CWP_INT: {
-    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) res, sizeof(int));
-    } break;
-
-  case CWP_CHAR: {
-    write_name((char *) res, svr);
+    int res = -1;
+    CWP_Param_reduce(op,
+                     param_name,
+                     data_type,
+                     (void *) &res,
+                     nCode,
+                     "code1",
+                     "code2");
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &res, sizeof(int));
     } break;
 
   default:
-    PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i\n", data_type);
+    PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i or impossible on CWP_CHAR\n", data_type);
   }
 
   // free
