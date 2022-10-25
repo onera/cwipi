@@ -49,6 +49,19 @@ extern "C" {
 /*============================================================================
  * Types definition
  *============================================================================*/
+typedef struct t_coupling
+{
+  // Mesh_interf_vtx_set
+  double *vtx_coord;
+  CWP_g_num_t *vtx_global_num;
+
+  // Mesh_interf_c_poly_block_set
+  int *connec_faces_idx;
+  int *connec_faces;
+  int *connec_cells_idx;
+  int *connec_cells;
+  CWP_g_num_t *cell_global_num;
+} t_coupling, *p_coupling;
 
 typedef struct t_cwp
 {
@@ -64,6 +77,12 @@ typedef struct t_cwp
   int                             n_param_names;
   char                          **param_names;
   std::map<std::string, char *>   char_param_value;
+
+  // Output_file_set
+  FILE *output_file;
+
+  // cpl_id
+  std::map<std::string, p_coupling> coupling;
 } t_cwp, *p_cwp;
 
 typedef struct t_server_mpi

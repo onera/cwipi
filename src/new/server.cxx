@@ -116,6 +116,7 @@ CWP_server_Init
 
   // mandatory for the map to work
   svr_cwp->char_param_value.clear();
+  svr_cwp->coupling.clear();
 
   if (n_code > 1) {
     PDM_error(__FILE__, __LINE__, 0, "CWIPI client-server not implemented yet for n_code > 1\n");
@@ -165,6 +166,7 @@ CWP_server_Finalize
 
   // free
   if (svr_mpi->intra_comms != NULL) free(svr_mpi->intra_comms);
+  if (svr_cwp->output_file != NULL) free(svr_cwp->output_file);
 
   CWP_Finalize();
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
@@ -333,8 +335,8 @@ CWP_server_Param_get
                   param_name,
                   data_type,
                   &char_value);
-
     write_name(char_value, svr);
+    free(char_value);
     } break;
 
   default:
@@ -731,6 +733,10 @@ CWP_server_Param_reduce
 
   // free
   free(param_name);
+  for (int i = 0; i < nCode; i++) {
+    free(code_names[i]);
+  }
+  free(code_names);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -792,6 +798,12 @@ CWP_server_Cpl_create
                  displacement,
                  recv_freq_type);
 
+  // create occurence in map
+  std::string s(cpl_id);
+  p_coupling coupling = (t_coupling *) malloc(sizeof(t_coupling));
+  memset(coupling, 0, sizeof(t_coupling));
+  svr_cwp->coupling.insert(std::make_pair(s, coupling));
+
   // free
   free(local_code_name);
   free(cpl_id);
@@ -821,6 +833,22 @@ CWP_server_Cpl_del
   // launch
   CWP_Cpl_del(local_code_name,
               cpl_id);
+
+  // remove from map
+  std::string s(cpl_id);
+
+  p_coupling coupling = svr_cwp->coupling[s];
+
+  if (coupling->vtx_coord != NULL) free(coupling->vtx_coord);
+  if (coupling->vtx_global_num != NULL) free(coupling->vtx_global_num);
+  if (coupling->connec_faces_idx != NULL) free(coupling->connec_faces_idx);
+  if (coupling->connec_faces != NULL) free(coupling->connec_faces);
+  if (coupling->connec_cells_idx != NULL) free(coupling->connec_cells_idx);
+  if (coupling->connec_cells != NULL) free(coupling->connec_cells);
+  if (coupling->cell_global_num != NULL) free(coupling->cell_global_num);
+
+  free(coupling);
+  svr_cwp->coupling.erase(s);
 
   // free
   free(local_code_name);
@@ -884,6 +912,7 @@ CWP_server_Visu_set
   // free
   free(local_code_name);
   free(cpl_id);
+  free(format_option);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -959,13 +988,16 @@ CWP_server_Output_file_set
   read_name(&output_filename, svr);
 
   // create FILE *
-  FILE *output_file = NULL;
+  svr_cwp->output_file = NULL;
 
-  output_file = fopen(output_filename, "a+"); // TO DO: wich opening mode?
+  svr_cwp->output_file = fopen(output_filename, "a+"); // TO DO: wich opening mode?
   // fclose(output_file); // TO DO: close frees everything? so don't?
 
   // launch
-  CWP_Output_file_set(output_file);
+  CWP_Output_file_set(svr_cwp->output_file);
+
+  // free
+  free(output_filename);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -1581,8 +1613,10 @@ CWP_server_Mesh_interf_vtx_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_pts, sizeof(int));
 
   // read coord
-  double *coord = (double *) malloc(sizeof(double) * 3 * n_pts);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coord, sizeof(double) * 3 * n_pts);
+  std::string s(cpl_id);
+  p_coupling coupling = svr_cwp->coupling[s];
+  coupling->vtx_coord = (double *) malloc(sizeof(double) * 3 * n_pts);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->vtx_coord, sizeof(double) * 3 * n_pts);
 
   // read global_num
   int NULL_flag;
@@ -1594,19 +1628,19 @@ CWP_server_Mesh_interf_vtx_set
                             cpl_id,
                             i_part,
                             n_pts,
-                            coord,
+                            coupling->vtx_coord,
                             NULL);
   }
   else {
-    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
-    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_pts);
+    coupling->vtx_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->vtx_global_num, sizeof(CWP_g_num_t) * n_pts);
 
     CWP_Mesh_interf_vtx_set(local_code_name,
                             cpl_id,
                             i_part,
                             n_pts,
-                            coord,
-                            global_num);
+                            coupling->vtx_coord,
+                            coupling->vtx_global_num);
   }
 
   // free
@@ -1902,20 +1936,23 @@ CWP_server_Mesh_interf_c_poly_block_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_faces, sizeof(int));
 
   // read connectivity faces index
-  int *connec_faces_idx = (int *) malloc(sizeof(int) * (n_faces+1));
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) connec_faces_idx, sizeof(int) * (n_faces+1));
+  std::string s(cpl_id);
+  p_coupling coupling = svr_cwp->coupling[s];
+
+  coupling->connec_faces_idx = (int *) malloc(sizeof(int) * (n_faces+1));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->connec_faces_idx, sizeof(int) * (n_faces+1));
 
   // read connectivity faces
-  int *connec_faces = (int *) malloc(sizeof(int) * connec_faces_idx[n_faces]);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) connec_faces, sizeof(int) * connec_faces_idx[n_faces]);
+  coupling->connec_faces = (int *) malloc(sizeof(int) * coupling->connec_faces_idx[n_faces]);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->connec_faces, sizeof(int) * coupling->connec_faces_idx[n_faces]);
 
   // read connectivity index
-  int *connec_cells_idx = (int *) malloc(sizeof(int) * (n_elts+1));
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) connec_cells_idx, sizeof(int) * (n_elts+1));
+  coupling->connec_cells_idx = (int *) malloc(sizeof(int) * (n_elts+1));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->connec_cells_idx, sizeof(int) * (n_elts+1));
 
   // read connectivity
-  int *connec_cells = (int *) malloc(sizeof(int) * connec_cells_idx[n_elts]);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) connec_cells, sizeof(int) * connec_cells_idx[n_elts]);
+  coupling->connec_cells = (int *) malloc(sizeof(int) * coupling->connec_cells_idx[n_elts]);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->connec_cells, sizeof(int) * coupling->connec_cells_idx[n_elts]);
 
   // read global number
   int NULL_flag;
@@ -1929,15 +1966,15 @@ CWP_server_Mesh_interf_c_poly_block_set
                                      block_id,
                                      n_elts,
                                      n_faces,
-                                     connec_faces_idx,
-                                     connec_faces,
-                                     connec_cells_idx,
-                                     connec_cells,
+                                     coupling->connec_faces_idx,
+                                     coupling->connec_faces,
+                                     coupling->connec_cells_idx,
+                                     coupling->connec_cells,
                                      NULL);
   }
   else {
-    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
-    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_elts);
+    coupling->cell_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->cell_global_num, sizeof(CWP_g_num_t) * n_elts);
 
     CWP_Mesh_interf_c_poly_block_set(local_code_name,
                                      cpl_id,
@@ -1945,11 +1982,11 @@ CWP_server_Mesh_interf_c_poly_block_set
                                      block_id,
                                      n_elts,
                                      n_faces,
-                                     connec_faces_idx,
-                                     connec_faces,
-                                     connec_cells_idx,
-                                     connec_cells,
-                                     global_num);
+                                     coupling->connec_faces_idx,
+                                     coupling->connec_faces,
+                                     coupling->connec_cells_idx,
+                                     coupling->connec_cells,
+                                     coupling->cell_global_num);
   }
 
   // free
