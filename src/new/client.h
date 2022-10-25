@@ -1108,9 +1108,8 @@ CWP_client_Field_data_set
  const char              *field_id,
  const int                i_part,
  const CWP_Field_map_t    map_type,
- double                   data[],
- const int                n_component,
- int                      n_dof
+ int                      n_entities,
+ double                   data[]
 );
 
 /**
@@ -1269,10 +1268,6 @@ CWP_client_Field_wait_irecv
  const char              *local_code_name,
  const char              *cpl_id,
  const char              *tgt_field_id,
- const int                i_part,
- const CWP_Field_map_t    map_type,
- const int                n_component,
- int                      n_dof,
  double                 **data
 );
 

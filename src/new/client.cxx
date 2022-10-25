@@ -43,6 +43,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <errno.h>
+#include <tuple>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -69,6 +70,7 @@ extern "C" {
 /* file struct definition */
 
 static t_client *clt;
+static t_field *fields;
 
 /*=============================================================================
  * Private function interfaces
@@ -253,6 +255,12 @@ CWP_client_Init
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Init failed to send message header\n");
   }
+
+  fields = (t_field *) malloc(sizeof(t_field));
+  memset(fields, 0, sizeof(t_field));
+
+  // mandatory to use the map
+  fields->field_settings.clear();
 
   // endian swap
   int           endian_n_code         = n_code;
@@ -2467,6 +2475,19 @@ CWP_client_Field_create
   CWP_Status_t endian_visu_status = visu_status;
   CWP_swap_endian_4bytes((int *) &endian_visu_status, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_visu_status, sizeof(CWP_Status_t));
+
+  // add field
+  std::string s1(local_code_name);
+  std::string s2(cpl_id);
+  std::string s3(field_id);
+
+  p_field_settings settings = (t_field_settings *) malloc(sizeof(t_field_settings));
+  settings->i_part = -1;
+  settings->n_component = n_component;
+  settings->n_entities = -1;
+  settings->map_type = (CWP_Field_map_t) -1;
+
+  fields->field_settings.insert(std::make_pair(std::make_tuple(s1, s2, s3), settings));
 }
 
 void
@@ -2477,9 +2498,8 @@ CWP_client_Field_data_set
  const char              *field_id,
  const int                i_part,
  const CWP_Field_map_t    map_type,
- double                   data[],
- const int                n_component,
- int                      n_dof
+ int                      n_entities,
+ double                   data[]
 )
 {
   t_message msg;
@@ -2516,8 +2536,17 @@ CWP_client_Field_data_set
   CWP_swap_endian_4bytes((int *) &endian_map_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_map_type, sizeof(CWP_Field_map_t));
 
+  // complete field settings
+  std::string s1(local_code_name);
+  std::string s2(cpl_id);
+  std::string s3(field_id);
+  p_field_settings settings = fields->field_settings[std::make_tuple(s1, s2, s3)];
+  settings->i_part = i_part;
+  settings->n_entities = n_entities;
+  settings->map_type = map_type;
+
   // send map with data
-  int size = n_component * n_dof;
+  int size = settings->n_component * n_entities;
   int endian_size = size;
   CWP_swap_endian_4bytes(&endian_size, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_size, sizeof(int));
@@ -2785,10 +2814,6 @@ CWP_client_Field_wait_irecv
  const char              *local_code_name,
  const char              *cpl_id,
  const char              *tgt_field_id,
- const int                i_part,
- const CWP_Field_map_t    map_type,
- const int                n_component,
- int                      n_dof,
  double                 **data
 )
 {
@@ -2817,18 +2842,23 @@ CWP_client_Field_wait_irecv
   write_name(tgt_field_id);
 
   // send data needed to retreive field
+  std::string s1(local_code_name);
+  std::string s2(cpl_id);
+  std::string s3(tgt_field_id);
+  p_field_settings settings = fields->field_settings[std::make_tuple(s1, s2, s3)];
+
   // send i_part
-  int endian_i_part = i_part;
+  int endian_i_part = settings->i_part;
   CWP_swap_endian_4bytes(&endian_i_part, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
 
   // send map type
-  CWP_Field_map_t endian_map_type = map_type;
+  CWP_Field_map_t endian_map_type = settings->map_type;
   CWP_swap_endian_4bytes((int *) &endian_map_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_map_type, sizeof(CWP_Field_map_t));
 
   // send size
-  int size = n_component * n_dof;
+  int size = settings->n_component * settings->n_entities;
   int endian_size = size;
   CWP_swap_endian_4bytes(&endian_size, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_size, sizeof(int));

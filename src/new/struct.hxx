@@ -31,6 +31,7 @@
 
 #include <string>
 #include <map>
+#include <tuple>
 
 /*----------------------------------------------------------------------------
  * Standard C library headers
@@ -49,6 +50,24 @@ extern "C" {
 /*============================================================================
  * Types definition
  *============================================================================*/
+
+typedef struct t_field_settings
+{
+  int             i_part;
+  CWP_Field_map_t map_type;
+  int             n_component;
+  int             n_entities;
+} t_field_settings, *p_field_settings;
+
+typedef struct t_field
+{
+  // Field_data_set
+  double *data;
+
+  // Field_wait_irecv
+  std::map<std::tuple<std::string, std::string , std::string> , p_field_settings> field_settings;
+} t_field, *p_field;
+
 typedef struct t_coupling
 {
   // Mesh_interf_vtx_set
@@ -61,6 +80,34 @@ typedef struct t_coupling
   int *connec_cells_idx;
   int *connec_cells;
   CWP_g_num_t *cell_global_num;
+
+  // Mesh_interf_f_poly_block_set
+  int *connec_idx;
+  int *connec;
+  CWP_g_num_t *elt_global_num;
+
+  // Mesh_interf_from_faceedge_set
+  int *face_edge_idx;
+  int *face_edge;
+  int *edge_vtx_idx;
+  int *edge_vtx;
+  CWP_g_num_t *face_global_num;
+
+  // Mesh_interf_block_std_set
+  int *std_connec;
+  CWP_g_num_t *std_global_num;
+
+  // User_tgt_pts_set
+  double *usr_coord;
+  CWP_g_num_t *usr_global_num;
+
+  // Spatial_interp_property_set
+  char *property_name;
+  char *property_type;
+  char *property_value;
+
+  // field_id
+  std::map<std::string, p_field> field;
 } t_coupling, *p_coupling;
 
 typedef struct t_cwp

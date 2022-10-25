@@ -804,6 +804,9 @@ CWP_server_Cpl_create
   memset(coupling, 0, sizeof(t_coupling));
   svr_cwp->coupling.insert(std::make_pair(s, coupling));
 
+  // mandatory for map
+  coupling->field.clear();
+
   // free
   free(local_code_name);
   free(cpl_id);
@@ -846,6 +849,32 @@ CWP_server_Cpl_del
   if (coupling->connec_cells_idx != NULL) free(coupling->connec_cells_idx);
   if (coupling->connec_cells != NULL) free(coupling->connec_cells);
   if (coupling->cell_global_num != NULL) free(coupling->cell_global_num);
+  if (coupling->connec_idx != NULL) free(coupling->connec_idx);
+  if (coupling->connec != NULL) free(coupling->connec);
+  if (coupling->elt_global_num != NULL) free(coupling->elt_global_num);
+  if (coupling->face_edge_idx != NULL) free(coupling->face_edge_idx);
+  if (coupling->face_edge != NULL) free(coupling->face_edge);
+  if (coupling->edge_vtx_idx != NULL) free(coupling->edge_vtx_idx);
+  if (coupling->edge_vtx != NULL) free(coupling->edge_vtx);
+  if (coupling->face_global_num != NULL) free(coupling->face_global_num);
+  if (coupling->std_connec != NULL) free(coupling->std_connec);
+  if (coupling->std_global_num != NULL) free(coupling->std_global_num);
+  if (coupling->usr_coord != NULL) free(coupling->usr_coord);
+  if (coupling->usr_global_num != NULL) free(coupling->usr_global_num);
+  if (coupling->property_name != NULL) free(coupling->property_name);
+  if (coupling->property_type != NULL) free(coupling->property_type);
+  if (coupling->property_value != NULL) free(coupling->property_value);
+
+  if (!coupling->field.empty()) {
+    for (auto const& [key, val] : coupling->field) {
+      p_field field = coupling->field[key];
+      if (val != NULL) {
+        if (field->data != NULL) free(field->data);
+      }
+      free(val);
+      coupling->field.erase(key);
+    }
+  }
 
   free(coupling);
   svr_cwp->coupling.erase(s);
@@ -1213,7 +1242,7 @@ CWP_server_Uncomputed_tgts_get
                                           field_id,
                                           i_part);
 
-  const int *tgts = (const int *) malloc(sizeof(int) * nb_tgts);
+  const int *tgts = NULL;
   tgts = CWP_Uncomputed_tgts_get(local_code_name,
                                  cpl_id,
                                  field_id,
@@ -1308,7 +1337,7 @@ CWP_server_Computed_tgts_get
                                         field_id,
                                         i_part);
 
-  const int *tgts = (const int *) malloc(sizeof(int) * nb_tgts);
+  const int *tgts = NULL;
   tgts = CWP_Computed_tgts_get(local_code_name,
                                cpl_id,
                                field_id,
@@ -1403,7 +1432,7 @@ CWP_server_Involved_srcs_get
                                         field_id,
                                         i_part);
 
-  const int *srcs = (const int *) malloc(sizeof(int) * nb_srcs);
+  const int *srcs = NULL;
   srcs = CWP_Involved_srcs_get(local_code_name,
                                cpl_id,
                                field_id,
@@ -1470,23 +1499,26 @@ CWP_server_Spatial_interp_property_set
   read_name(&cpl_id, svr);
 
   // read property name
-  char *property_name = (char *) malloc(sizeof(char));
-  read_name(&property_name, svr);
+  std::string s(cpl_id);
+  p_coupling coupling = svr_cwp->coupling[s];
+
+  coupling->property_name = (char *) malloc(sizeof(char));
+  read_name(&coupling->property_name, svr);
 
   // read property type
-  char *property_type = (char *) malloc(sizeof(char));
-  read_name(&property_type, svr);
+  coupling->property_type = (char *) malloc(sizeof(char));
+  read_name(&coupling->property_type, svr);
 
   // read property value
-  char *property_value = (char *) malloc(sizeof(char));
-  read_name(&property_value, svr);
+  coupling->property_value = (char *) malloc(sizeof(char));
+  read_name(&coupling->property_value, svr);
 
   // launch
   CWP_Spatial_interp_property_set(local_code_name,
                                   cpl_id,
-                                  property_name,
-                                  property_type,
-                                  property_value);
+                                  coupling->property_name,
+                                  coupling->property_type,
+                                  coupling->property_value);
 
   // free
   free(local_code_name);
@@ -1522,8 +1554,11 @@ CWP_server_User_tgt_pts_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_pts, sizeof(int));
 
   // read coord
-  double *coord = (double *) malloc(sizeof(double) * 3 * n_pts);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coord, sizeof(double) * 3 * n_pts);
+  std::string s(cpl_id);
+  p_coupling coupling = svr_cwp->coupling[s];
+
+  coupling->usr_coord = (double *) malloc(sizeof(double) * 3 * n_pts);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->usr_coord, sizeof(double) * 3 * n_pts);
 
   // read global_num
   int NULL_flag;
@@ -1535,19 +1570,19 @@ CWP_server_User_tgt_pts_set
                          cpl_id,
                          i_part,
                          n_pts,
-                         coord,
+                         coupling->usr_coord,
                          NULL);
   }
   else {
-    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
-    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_pts);
+    coupling->usr_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->usr_global_num, sizeof(CWP_g_num_t) * n_pts);
 
     CWP_User_tgt_pts_set(local_code_name,
                          cpl_id,
                          i_part,
                          n_pts,
-                         coord,
-                         global_num);
+                         coupling->usr_coord,
+                         coupling->usr_global_num);
   }
 
   // free
@@ -1722,8 +1757,11 @@ CWP_server_Mesh_interf_block_std_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_vtx_elt, sizeof(int));
 
   // read connectivity
-  int *connec = (int *) malloc(sizeof(int) * n_elts * n_vtx_elt);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) connec, sizeof(int) * n_elts * n_vtx_elt);
+  std::string s(cpl_id);
+  p_coupling coupling = svr_cwp->coupling[s];
+
+  coupling->std_connec = (int *) malloc(sizeof(int) * n_elts * n_vtx_elt);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->std_connec, sizeof(int) * n_elts * n_vtx_elt);
 
   // read global number
   int NULL_flag;
@@ -1736,20 +1774,20 @@ CWP_server_Mesh_interf_block_std_set
                                   i_part,
                                   block_id,
                                   n_elts,
-                                  connec,
+                                  coupling->std_connec,
                                   NULL);
   }
   else {
-    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
-    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_elts);
+    coupling->std_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->std_global_num, sizeof(CWP_g_num_t) * n_elts);
 
     CWP_Mesh_interf_block_std_set(local_code_name,
                                   cpl_id,
                                   i_part,
                                   block_id,
                                   n_elts,
-                                  connec,
-                                  global_num);
+                                  coupling->std_connec,
+                                  coupling->std_global_num);
   }
 
   // free
@@ -1790,12 +1828,15 @@ CWP_server_Mesh_interf_f_poly_block_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_elts, sizeof(int));
 
   // read connectivity index
-  int *connec_idx = (int *) malloc(sizeof(int) * (n_elts+1));
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) connec_idx, sizeof(int) * (n_elts+1));
+  std::string s(cpl_id);
+  p_coupling coupling = svr_cwp->coupling[s];
+
+  coupling->connec_idx = (int *) malloc(sizeof(int) * (n_elts+1));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->connec_idx, sizeof(int) * (n_elts+1));
 
   // read connectivity
-  int *connec = (int *) malloc(sizeof(int) * connec_idx[n_elts]);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) connec, sizeof(int) * connec_idx[n_elts]);
+  coupling->connec = (int *) malloc(sizeof(int) * coupling->connec_idx[n_elts]);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->connec, sizeof(int) * coupling->connec_idx[n_elts]);
 
   // read global number
   int NULL_flag;
@@ -1808,22 +1849,22 @@ CWP_server_Mesh_interf_f_poly_block_set
                                      i_part,
                                      block_id,
                                      n_elts,
-                                     connec_idx,
-                                     connec,
+                                     coupling->connec_idx,
+                                     coupling->connec,
                                      NULL);
   }
   else {
-    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
-    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_elts);
+    coupling->elt_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->elt_global_num, sizeof(CWP_g_num_t) * n_elts);
 
     CWP_Mesh_interf_f_poly_block_set(local_code_name,
                                      cpl_id,
                                      i_part,
                                      block_id,
                                      n_elts,
-                                     connec_idx,
-                                     connec,
-                                     global_num);
+                                     coupling->connec_idx,
+                                     coupling->connec,
+                                     coupling->elt_global_num);
   }
 
   // free
@@ -2222,24 +2263,27 @@ CWP_server_Mesh_interf_from_faceedge_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_faces, sizeof(int));
 
   // read connectivity faces index
-  int *face_edge_idx = (int *) malloc(sizeof(int) * (n_faces+1));
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) face_edge_idx, sizeof(int) * (n_faces+1));
+  std::string s(cpl_id);
+  p_coupling coupling = svr_cwp->coupling[s];
+
+  coupling->face_edge_idx = (int *) malloc(sizeof(int) * (n_faces+1));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->face_edge_idx, sizeof(int) * (n_faces+1));
 
   // read connectivity faces
-  int *face_edge = (int *) malloc(sizeof(int) * face_edge_idx[n_faces]);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) face_edge, sizeof(int) * face_edge_idx[n_faces]);
+  coupling->face_edge = (int *) malloc(sizeof(int) * coupling->face_edge_idx[n_faces]);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->face_edge, sizeof(int) * coupling->face_edge_idx[n_faces]);
 
   // read n_edges
   int n_edges;
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_edges, sizeof(int));
 
   // read connectivity edges index
-  int *edge_vtx_idx = (int *) malloc(sizeof(int) * (n_edges+1));
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) edge_vtx_idx, sizeof(int) * (n_edges+1));
+  coupling->edge_vtx_idx = (int *) malloc(sizeof(int) * (n_edges+1));
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->edge_vtx_idx, sizeof(int) * (n_edges+1));
 
   // read connectivity edges
-  int *edge_vtx = (int *) malloc(sizeof(int) * edge_vtx_idx[n_edges]);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) edge_vtx, sizeof(int) * edge_vtx_idx[n_edges]);
+  coupling->edge_vtx = (int *) malloc(sizeof(int) * coupling->edge_vtx_idx[n_edges]);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->edge_vtx, sizeof(int) * coupling->edge_vtx_idx[n_edges]);
 
   // read global number
   int NULL_flag;
@@ -2251,27 +2295,27 @@ CWP_server_Mesh_interf_from_faceedge_set
                                       cpl_id,
                                       i_part,
                                       n_faces,
-                                      face_edge_idx,
-                                      face_edge,
+                                      coupling->face_edge_idx,
+                                      coupling->face_edge,
                                       n_edges,
-                                      edge_vtx_idx,
-                                      edge_vtx,
+                                      coupling->edge_vtx_idx,
+                                      coupling->edge_vtx,
                                       NULL);
   }
   else {
-    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_faces);
-    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_faces);
+    coupling->face_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_faces);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coupling->face_global_num, sizeof(CWP_g_num_t) * n_faces);
 
     CWP_Mesh_interf_from_faceedge_set(local_code_name,
                                       cpl_id,
                                       i_part,
                                       n_faces,
-                                      face_edge_idx,
-                                      face_edge,
+                                      coupling->face_edge_idx,
+                                      coupling->face_edge,
                                       n_edges,
-                                      edge_vtx_idx,
-                                      edge_vtx,
-                                      global_num);
+                                      coupling->edge_vtx_idx,
+                                      coupling->edge_vtx,
+                                      coupling->face_global_num);
   }
 
   // free
@@ -2338,6 +2382,14 @@ CWP_server_Field_create
                    exch_type,
                    visu_status);
 
+  // create occurence in map
+  std::string s1(cpl_id);
+  p_coupling coupling = svr_cwp->coupling[s1];
+  std::string s2(field_id);
+  p_field field = (t_field *) malloc(sizeof(t_field));
+  memset(field, 0, sizeof(t_field));
+  coupling->field.insert(std::make_pair(s2, field));
+
   // free
   free(local_code_name);
   free(cpl_id);
@@ -2377,10 +2429,15 @@ CWP_server_Field_data_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &map_type, sizeof(CWP_Field_map_t));
 
   // read data array
+  std::string s1(cpl_id);
+  p_coupling coupling = svr_cwp->coupling[s1];
+  std::string s2(field_id);
+  p_field field = coupling->field[s2];
+
   int size;
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &size, sizeof(int));
-  double *data = (double *) malloc(sizeof(double) * size);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) data, sizeof(double) * size);
+  field->data = (double *) malloc(sizeof(double) * size);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) field->data, sizeof(double) * size);
 
   // launch
   CWP_Field_data_set(local_code_name,
@@ -2388,7 +2445,7 @@ CWP_server_Field_data_set
                      field_id,
                      i_part,
                      map_type,
-                     data);
+                     field->data);
 
   // free
   free(local_code_name);
@@ -2543,6 +2600,16 @@ CWP_server_Field_del
                 field_id);
 
   // free
+  std::string s1(cpl_id);
+  p_coupling coupling = svr_cwp->coupling[s1];
+  std::string s2(field_id);
+  p_field field = coupling->field[s2];
+
+  if (field->data != NULL) free(field->data);
+
+  free(field);
+  coupling->field.erase(s2);
+
   free(local_code_name);
   free(cpl_id);
   free(field_id);
@@ -2695,7 +2762,7 @@ CWP_server_Field_wait_irecv
                        tgt_field_id);
 
   // launch CWP_Field_data_get to retreive field and send to Client
-  double *data = (double *) malloc(sizeof(double) * size);
+  double *data = NULL;
   CWP_Field_data_get(local_code_name,
                      cpl_id,
                      tgt_field_id,
