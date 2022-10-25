@@ -113,8 +113,9 @@ CWP_server_Init
   // svr_cwp init
   svr_cwp = (p_cwp) malloc(sizeof(t_cwp));
   memset(svr_cwp, 0, sizeof(t_cwp));
-  svr_cwp->code = (t_code *) malloc(sizeof(t_code));
-  memset(svr_cwp->code, 0, sizeof(t_code));
+
+  // mandatory for the map to work
+  svr_cwp->char_param_value.clear();
 
   if (n_code > 1) {
     PDM_error(__FILE__, __LINE__, 0, "CWIPI client-server not implemented yet for n_code > 1\n");
@@ -260,23 +261,8 @@ CWP_server_Param_add
     CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) &name_size, sizeof(int));
     char *char_initial_value = (char *) malloc(name_size);
     CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) char_initial_value, name_size);
-    printf("char_initial_value = %s\n", char_initial_value);
     std::string s(param_name);
-    std::cout << "s: " << s << "\n";
-
-    std::map<std::string, char *>   m;
-    m.insert(std::make_pair(s, char_initial_value));
-
-    printf("svr_cwp->char_param_value = %p\n", (void *) &svr_cwp->char_param_value);
-
-    int toto = svr_cwp->char_param_value.empty();
-    printf("toto = %d\n", toto);
-
-    svr_cwp->char_param_value.clear();
-
     svr_cwp->char_param_value.insert(std::make_pair(s, char_initial_value));
-    printf("svr_cwp->char_param_value[s] = %s\n", svr_cwp->char_param_value[s]);
-
     CWP_Param_add(local_code_name,
                   param_name,
                   data_type,
@@ -410,7 +396,7 @@ CWP_server_Param_set
     char *char_initial_value = (char *) malloc(name_size);
     CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) char_initial_value, name_size);
     std::string s(param_name);
-    svr_cwp->char_param_value.emplace(std::make_pair(s, char_initial_value));
+    svr_cwp->char_param_value.insert(std::make_pair(s, char_initial_value));
     CWP_Param_set(local_code_name,
                   param_name,
                   data_type,
@@ -459,7 +445,6 @@ CWP_server_Param_del
   free(local_code_name);
   free(param_name);
   if (data_type == CWP_CHAR) {
-    p_code code = svr_cwp->code;
     std::string s(param_name);
     if (svr_cwp->char_param_value[s] != NULL) free(svr_cwp->char_param_value[s]);
     svr_cwp->char_param_value.erase(s);
@@ -519,21 +504,20 @@ CWP_server_Param_list_get
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &data_type, sizeof(CWP_Type_t));
 
   // launch
-  p_code code = svr_cwp->code;
-  code->n_param_names = -1;
-  code->param_names = NULL;
+  svr_cwp->n_param_names = -1;
+  svr_cwp->param_names = NULL;
   CWP_Param_list_get(code_name,
                      data_type,
-                     &code->n_param_names,
-                     &code->param_names);
+                     &svr_cwp->n_param_names,
+                     &svr_cwp->param_names);
 
   // send nParam
   svr->state=CWP_SVRSTATE_SENDPGETDATA;
-  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &code->n_param_names, sizeof(int));
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &svr_cwp->n_param_names, sizeof(int));
 
   // send paramNames
-  for (int i = 0; i < code->n_param_names; i++) {
-    write_name(code->param_names[i], svr);
+  for (int i = 0; i < svr_cwp->n_param_names; i++) {
+    write_name(svr_cwp->param_names[i], svr);
   }
 
   // free
@@ -606,7 +590,12 @@ CWP_server_Param_reduce
   int nCode = -1;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &nCode, sizeof(int));
 
-  printf("SERVER op : %d, param_name: %s, ncode: %d, data_type: %d\n", (int) op, param_name, nCode, data_type);
+  // read code names
+  char **code_names = (char **) malloc(sizeof(char *) * nCode);
+  for (int i = 0; i < nCode; i++) {
+    code_names[i] = (char *) malloc(sizeof(char));
+    read_name(&code_names[i], svr);
+  }
 
   // send res
   svr->state=CWP_SVRSTATE_SENDPGETDATA;
@@ -614,25 +603,125 @@ CWP_server_Param_reduce
 
   case CWP_DOUBLE: {
     double res = -1.;
-    CWP_Param_reduce(op,
-                   param_name,
-                   data_type,
-                   (void *) &res,
-                   nCode,
-                   "code1",
-                   "code2");
+
+    switch (nCode) {
+
+      case 0: {
+        CWP_Param_reduce(op,
+                         param_name,
+                         data_type,
+                         (void *) &res,
+                         nCode);
+      } break;
+
+      case 1: {
+        CWP_Param_reduce(op,
+                         param_name,
+                         data_type,
+                         (void *) &res,
+                         nCode,
+                         code_names[0]);
+      } break;
+
+      case 2: {
+        CWP_Param_reduce(op,
+                         param_name,
+                         data_type,
+                         (void *) &res,
+                         nCode,
+                         code_names[0],
+                         code_names[1]);
+      } break;
+
+      case 3: {
+        CWP_Param_reduce(op,
+                         param_name,
+                         data_type,
+                         (void *) &res,
+                         nCode,
+                         code_names[0],
+                         code_names[1],
+                         code_names[2]);
+      } break;
+
+      case 4: {
+        CWP_Param_reduce(op,
+                         param_name,
+                         data_type,
+                         (void *) &res,
+                         nCode,
+                         code_names[0],
+                         code_names[1],
+                         code_names[2],
+                         code_names[3]);
+      } break;
+
+      default:
+        PDM_error(__FILE__, __LINE__, 0, "CWP_Param_reduce not implemented yet for more than 4 codes\n");
+    }
+
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &res, sizeof(double));
     } break;
 
   case CWP_INT: {
     int res = -1;
-    CWP_Param_reduce(op,
-                     param_name,
-                     data_type,
-                     (void *) &res,
-                     nCode,
-                     "code1",
-                     "code2");
+
+    switch (nCode) {
+
+      case 0: {
+        CWP_Param_reduce(op,
+                         param_name,
+                         data_type,
+                         (void *) &res,
+                         nCode);
+      } break;
+
+      case 1: {
+        CWP_Param_reduce(op,
+                         param_name,
+                         data_type,
+                         (void *) &res,
+                         nCode,
+                         code_names[0]);
+      } break;
+
+      case 2: {
+        CWP_Param_reduce(op,
+                         param_name,
+                         data_type,
+                         (void *) &res,
+                         nCode,
+                         code_names[0],
+                         code_names[1]);
+      } break;
+
+      case 3: {
+        CWP_Param_reduce(op,
+                         param_name,
+                         data_type,
+                         (void *) &res,
+                         nCode,
+                         code_names[0],
+                         code_names[1],
+                         code_names[2]);
+      } break;
+
+      case 4: {
+        CWP_Param_reduce(op,
+                         param_name,
+                         data_type,
+                         (void *) &res,
+                         nCode,
+                         code_names[0],
+                         code_names[1],
+                         code_names[2],
+                         code_names[3]);
+      } break;
+
+      default:
+        PDM_error(__FILE__, __LINE__, 0, "CWP_Param_reduce not implemented yet for more than 4 codes\n");
+    }
+
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &res, sizeof(int));
     } break;
 
@@ -1405,16 +1494,29 @@ CWP_server_User_tgt_pts_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coord, sizeof(double) * 3 * n_pts);
 
   // read global_num
-  CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_pts);
+  int NULL_flag;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &NULL_flag, sizeof(int));
 
   // launch
-  CWP_User_tgt_pts_set(local_code_name,
-                       cpl_id,
-                       i_part,
-                       n_pts,
-                       coord,
-                       global_num);
+  if (NULL_flag) {
+    CWP_User_tgt_pts_set(local_code_name,
+                         cpl_id,
+                         i_part,
+                         n_pts,
+                         coord,
+                         NULL);
+  }
+  else {
+    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_pts);
+
+    CWP_User_tgt_pts_set(local_code_name,
+                         cpl_id,
+                         i_part,
+                         n_pts,
+                         coord,
+                         global_num);
+  }
 
   // free
   free(local_code_name);
@@ -1483,16 +1585,29 @@ CWP_server_Mesh_interf_vtx_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) coord, sizeof(double) * 3 * n_pts);
 
   // read global_num
-  CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_pts);
+  int NULL_flag;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &NULL_flag, sizeof(int));
 
   // launch
-  CWP_Mesh_interf_vtx_set(local_code_name,
-                          cpl_id,
-                          i_part,
-                          n_pts,
-                          coord,
-                          global_num);
+  if (NULL_flag) {
+    CWP_Mesh_interf_vtx_set(local_code_name,
+                            cpl_id,
+                            i_part,
+                            n_pts,
+                            coord,
+                            NULL);
+  }
+  else {
+    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_pts);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_pts);
+
+    CWP_Mesh_interf_vtx_set(local_code_name,
+                            cpl_id,
+                            i_part,
+                            n_pts,
+                            coord,
+                            global_num);
+  }
 
   // free
   free(local_code_name);
@@ -1577,17 +1692,31 @@ CWP_server_Mesh_interf_block_std_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) connec, sizeof(int) * n_elts * n_vtx_elt);
 
   // read global number
-  CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_elts);
+  int NULL_flag;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &NULL_flag, sizeof(int));
 
   // launch
-  CWP_Mesh_interf_block_std_set(local_code_name,
-                                cpl_id,
-                                i_part,
-                                block_id,
-                                n_elts,
-                                connec,
-                                global_num);
+  if (NULL_flag) {
+    CWP_Mesh_interf_block_std_set(local_code_name,
+                                  cpl_id,
+                                  i_part,
+                                  block_id,
+                                  n_elts,
+                                  connec,
+                                  NULL);
+  }
+  else {
+    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_elts);
+
+    CWP_Mesh_interf_block_std_set(local_code_name,
+                                  cpl_id,
+                                  i_part,
+                                  block_id,
+                                  n_elts,
+                                  connec,
+                                  global_num);
+  }
 
   // free
   free(local_code_name);
@@ -1635,18 +1764,33 @@ CWP_server_Mesh_interf_f_poly_block_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) connec, sizeof(int) * connec_idx[n_elts]);
 
   // read global number
-  CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_elts);
+  int NULL_flag;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &NULL_flag, sizeof(int));
 
   // launch
-  CWP_Mesh_interf_f_poly_block_set(local_code_name,
-                                   cpl_id,
-                                   i_part,
-                                   block_id,
-                                   n_elts,
-                                   connec_idx,
-                                   connec,
-                                   global_num);
+  if (NULL_flag) {
+    CWP_Mesh_interf_f_poly_block_set(local_code_name,
+                                     cpl_id,
+                                     i_part,
+                                     block_id,
+                                     n_elts,
+                                     connec_idx,
+                                     connec,
+                                     NULL);
+  }
+  else {
+    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_elts);
+
+    CWP_Mesh_interf_f_poly_block_set(local_code_name,
+                                     cpl_id,
+                                     i_part,
+                                     block_id,
+                                     n_elts,
+                                     connec_idx,
+                                     connec,
+                                     global_num);
+  }
 
   // free
   free(local_code_name);
@@ -1706,7 +1850,15 @@ CWP_server_Mesh_interf_f_poly_block_get
   CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, connec, sizeof(int) * connec_idx[n_elts]);
 
   // send global number
-  CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, global_num, sizeof(CWP_g_num_t) * n_elts);
+  int NULL_flag = 0;
+  if (global_num == NULL) {
+    NULL_flag = 1;
+  }
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,(void*) &NULL_flag, sizeof(int));
+
+  if (!NULL_flag) {
+    CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, global_num, sizeof(CWP_g_num_t) * n_elts);
+  }
 
   // free
   free(local_code_name);
@@ -1855,7 +2007,15 @@ CWP_server_Mesh_interf_c_poly_block_get
   CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, connec_cells, sizeof(int) * connec_cells_idx[n_elts]);
 
   // send global number
-  CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, global_num, sizeof(CWP_g_num_t) * n_elts);
+  int NULL_flag = 0;
+  if (global_num == NULL) {
+    NULL_flag = 1;
+  }
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,(void*) &NULL_flag, sizeof(int));
+
+  if (!NULL_flag) {
+    CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, global_num, sizeof(CWP_g_num_t) * n_elts);
+  }
 
   // free
   free(local_code_name);
@@ -1940,20 +2100,37 @@ CWP_server_Mesh_interf_from_cellface_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) face_vtx, sizeof(int) * face_vtx_idx[n_faces]);
 
   // read global number
-  CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_cells);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_cells);
+  int NULL_flag;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &NULL_flag, sizeof(int));
 
   // launch
-  CWP_Mesh_interf_from_cellface_set(local_code_name,
-                                    cpl_id,
-                                    i_part,
-                                    n_cells,
-                                    cell_face_idx,
-                                    cell_face,
-                                    n_faces,
-                                    face_vtx_idx,
-                                    face_vtx,
-                                    global_num);
+  if (NULL_flag) {
+    CWP_Mesh_interf_from_cellface_set(local_code_name,
+                                      cpl_id,
+                                      i_part,
+                                      n_cells,
+                                      cell_face_idx,
+                                      cell_face,
+                                      n_faces,
+                                      face_vtx_idx,
+                                      face_vtx,
+                                      NULL);
+  }
+  else {
+    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_cells);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_cells);
+
+    CWP_Mesh_interf_from_cellface_set(local_code_name,
+                                      cpl_id,
+                                      i_part,
+                                      n_cells,
+                                      cell_face_idx,
+                                      cell_face,
+                                      n_faces,
+                                      face_vtx_idx,
+                                      face_vtx,
+                                      global_num);
+  }
 
   // free
   free(local_code_name);
@@ -2009,20 +2186,37 @@ CWP_server_Mesh_interf_from_faceedge_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) edge_vtx, sizeof(int) * edge_vtx_idx[n_edges]);
 
   // read global number
-  CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_faces);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_faces);
+  int NULL_flag;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &NULL_flag, sizeof(int));
 
   // launch
-  CWP_Mesh_interf_from_faceedge_set(local_code_name,
-                                    cpl_id,
-                                    i_part,
-                                    n_faces,
-                                    face_edge_idx,
-                                    face_edge,
-                                    n_edges,
-                                    edge_vtx_idx,
-                                    edge_vtx,
-                                    global_num);
+  if (NULL_flag) {
+    CWP_Mesh_interf_from_faceedge_set(local_code_name,
+                                      cpl_id,
+                                      i_part,
+                                      n_faces,
+                                      face_edge_idx,
+                                      face_edge,
+                                      n_edges,
+                                      edge_vtx_idx,
+                                      edge_vtx,
+                                      NULL);
+  }
+  else {
+    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_faces);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_faces);
+
+    CWP_Mesh_interf_from_faceedge_set(local_code_name,
+                                      cpl_id,
+                                      i_part,
+                                      n_faces,
+                                      face_edge_idx,
+                                      face_edge,
+                                      n_edges,
+                                      edge_vtx_idx,
+                                      edge_vtx,
+                                      global_num);
+  }
 
   // free
   free(local_code_name);
@@ -2692,6 +2886,9 @@ CWP_server_create
   if (svr->flags & CWP_SVRFLAG_VERBOSE) {
     log_trace("CWP:Server created on %s port %i\n", svr->host_name, svr->port);
   }
+
+  // free
+  free(server_addr);
 
   return 0;
 }
@@ -3486,6 +3683,9 @@ CWP_server_run
     }
 
   }
+
+  // free
+  free(client_addr);
 
   return 0;
 }

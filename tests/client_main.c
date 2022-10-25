@@ -252,26 +252,32 @@ main
   // CWP_Codes_*
   int n_codes = CWP_client_Codes_nb_get();
   printf("n_codes = %d\n", n_codes);
-  char **codeNames = malloc(sizeof(char *) * n_codes);
-  for (int i = 0; i < n_codes; i++) {
-    codeNames[i] = malloc(99);
-  }
+  char **codeNames = NULL;
   codeNames = (char **) CWP_client_Codes_list_get();
   for (int i = 0; i < n_codes; i++) {
     printf("i_rank: %d code_names[i] = %s\n", i_rank, codeNames[i]);
   }
 
+  // free
+  for (int i = 0; i < n_codes; i++) {
+    free(codeNames[i]);
+  }
+  free(codeNames);
+
   // CWP_Loc_codes_*
   int n_Loc_codes = CWP_client_Loc_codes_nb_get();
   printf("n_Loc_codes = %d\n", n_Loc_codes);
-  char **LoccodeNames = malloc(sizeof(char *) * n_Loc_codes);
-  for (int i = 0; i < n_Loc_codes; i++) {
-    LoccodeNames[i] = malloc(99);
-  }
+  char **LoccodeNames = NULL;
   LoccodeNames = (char **) CWP_client_Loc_codes_list_get();
   for (int i = 0; i < n_Loc_codes; i++) {
     printf("i_rank: %d Loc_code_names[i] = %s\n", i_rank, LoccodeNames[i]);
   }
+
+  // free
+  for (int i = 0; i < n_Loc_codes; i++) {
+    free(LoccodeNames[i]);
+  }
+  free(LoccodeNames);
 
   // Properties_dump
   CWP_client_Properties_dump();
@@ -311,18 +317,13 @@ main
   double titi1;
   CWP_client_Param_get("code1", "tata", CWP_DOUBLE, &titi1);
   printf("i_rank: %d code 1 : tata : %f\n", i_rank, titi1);
-  const char *titi2 = malloc(99);
+  const char *titi2 = NULL;
   CWP_client_Param_get("code2", "toto2", CWP_CHAR, &titi2);
   printf("i_rank: %d code 2 : toto2 : %s\n", i_rank, titi2);
+  free(titi2);
   int titi;
   CWP_client_Param_get("code1", "toto", CWP_INT, &titi);
   printf("i_rank: %d code 1 : toto : %d\n", i_rank, titi);
-
-  if (i_rank == 0) {
-    CWP_client_Param_lock("code1");
-    CWP_client_Param_del("code1", "toto", CWP_INT);
-    CWP_client_Param_unlock("code1");
-  }
 
   int code1_n_double = -1;
 
@@ -347,6 +348,12 @@ main
     CWP_client_Param_unlock("code2");
   }
 
+  if (i_rank == 0) {
+    CWP_client_Param_lock("code1");
+    CWP_client_Param_del("code1", "toto", CWP_INT);
+    CWP_client_Param_unlock("code1");
+  }
+
   PDM_MPI_Barrier(comm);
 
   double tita;
@@ -356,21 +363,23 @@ main
   CWP_client_Param_get("code2", "tatic", CWP_DOUBLE, &tito);
   printf("i_rank: %d code 2 : tatic : %f\n", i_rank, tito);
 
-  printf("i_rank: %d c'est bon !\n", i_rank);
-
   // reduce
   double res = 0;
-  CWP_client_Param_reduce(CWP_OP_MAX, "tatic", CWP_DOUBLE, &res, 2);
-
-  printf("i_rank: %d max(tatic) = res = %f\n", i_rank, res);
+  CWP_client_Param_reduce(CWP_OP_MAX, "tatic", CWP_DOUBLE, &res, 2, "code1", "code2");
 
   if (i_rank == 0) {
-    char **param_names = malloc(sizeof(char **));
+    char **param_names = NULL;
+    CWP_client_Param_list_get("code1", CWP_DOUBLE, &code1_n_double, &param_names);
 
     for (int i = 0; i < code1_n_double; i++) {
-      CWP_client_Param_list_get("code1", CWP_DOUBLE, &code1_n_double, &param_names);
       printf("i_rank: %d code 1 : param[%d] = %s\n", i_rank, i, param_names[i]);
     }
+
+    // free
+    for (int i = 0; i < code1_n_double; i++) {
+      free(param_names[i]);
+    }
+    free(param_names);
   }
 
   if (i_rank == 1) {
@@ -421,6 +430,13 @@ main
 
   // disconnect
   CWP_client_disconnect();
+
+  // free
+  if (buffer != NULL) free(buffer);
+  if (server_name != NULL) free(server_name);
+  if (times_init != NULL) free(times_init);
+  if (code_names != NULL) free(code_names);
+  if (is_coupled_rank != NULL) free(is_coupled_rank);
 
   PDM_MPI_Finalize();
 

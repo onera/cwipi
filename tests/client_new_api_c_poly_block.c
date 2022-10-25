@@ -433,7 +433,8 @@ main
     }
 
     printf("vtx_set\n");
-    CWP_client_Mesh_interf_vtx_set("cpoly", cpl_id1, 0, nVertex, coords, global_num_vtx);
+    CWP_client_Mesh_interf_vtx_set("cpoly", cpl_id1, 0, nVertex, coords, NULL);
+    // global_num_vtx or try with gnum NULL
 
     printf("3D Cell Polyhedra Block Add\n");
     int block_id = CWP_client_Mesh_interf_block_add("cpoly", cpl_id1, CWP_BLOCK_CELL_POLY);
@@ -451,7 +452,7 @@ main
                                             faceVertex,
                                             cellFaceIdx,
                                             cellFace,
-                                            global_num);
+                                            global_num); // global_num or try with gnum NULL
 
     CWP_g_num_t *cellGnum = malloc(sizeof(CWP_g_num_t) * nElements);
     int getNElements = -1;
