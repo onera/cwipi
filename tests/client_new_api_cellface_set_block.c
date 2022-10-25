@@ -409,8 +409,11 @@ main
                                              n_face,
                                              face_vtx_idx,
                                              face_vtx,
-                                             global_num); // TO DO: deal with NULL tab passed !
+                                             global_num);
 
+    // free
+    free(global_num_vtx);
+    free(global_num);
 
     printf("Interface Mesh deletion\n");
     CWP_client_Mesh_interf_del("code1_cell_faces", cpl_id1);
@@ -435,6 +438,9 @@ main
   free(face_vtx     );
   free(cell_face_idx);
   free(cell_face    );
+  free(buffer);
+  free(data);
+  free(server_name);
 
   return 0;
 }

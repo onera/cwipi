@@ -1918,21 +1918,39 @@ CWP_server_Mesh_interf_c_poly_block_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) connec_cells, sizeof(int) * connec_cells_idx[n_elts]);
 
   // read global number
-  CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_elts);
+  int NULL_flag;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &NULL_flag, sizeof(int));
 
   // launch
-  CWP_Mesh_interf_c_poly_block_set(local_code_name,
-                                   cpl_id,
-                                   i_part,
-                                   block_id,
-                                   n_elts,
-                                   n_faces,
-                                   connec_faces_idx,
-                                   connec_faces,
-                                   connec_cells_idx,
-                                   connec_cells,
-                                   global_num);
+  if (NULL_flag) {
+    CWP_Mesh_interf_c_poly_block_set(local_code_name,
+                                     cpl_id,
+                                     i_part,
+                                     block_id,
+                                     n_elts,
+                                     n_faces,
+                                     connec_faces_idx,
+                                     connec_faces,
+                                     connec_cells_idx,
+                                     connec_cells,
+                                     NULL);
+  }
+  else {
+    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) global_num, sizeof(CWP_g_num_t) * n_elts);
+
+    CWP_Mesh_interf_c_poly_block_set(local_code_name,
+                                     cpl_id,
+                                     i_part,
+                                     block_id,
+                                     n_elts,
+                                     n_faces,
+                                     connec_faces_idx,
+                                     connec_faces,
+                                     connec_cells_idx,
+                                     connec_cells,
+                                     global_num);
+  }
 
   // free
   free(local_code_name);
@@ -2011,6 +2029,7 @@ CWP_server_Mesh_interf_c_poly_block_get
   if (global_num == NULL) {
     NULL_flag = 1;
   }
+
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,(void*) &NULL_flag, sizeof(int));
 
   if (!NULL_flag) {

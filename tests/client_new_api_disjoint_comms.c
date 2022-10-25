@@ -584,7 +584,7 @@ main
   int **n_vtx = (int **) malloc(n_code * sizeof(int **));
   int **n_faces = (int **) malloc(n_code * sizeof(int **));
   int **n_cells = (int **) malloc(n_code * sizeof(int **));
-  int *n_blocks = (int *) malloc(n_code * sizeof(int *));
+  int  *n_blocks = (int *) malloc(n_code * sizeof(int *));
 
   double ***coord = (double ***) malloc(n_code * sizeof(double ***));
 
@@ -1000,6 +1000,59 @@ main
     }
   }
 
+  // free
+
+  for (int i_code = 0 ; i_code < n_code ; ++i_code) {
+    for (int i_part = 0 ; i_part < n_part ; ++i_part) {
+      free(coord[i_code][i_part]);
+      free(face_vtx_idx[i_code][i_part]);
+      free(face_vtx[i_code][i_part]);
+      free(cell_face_idx[i_code][i_part]);
+      free(cell_face[i_code][i_part]);
+      free(connec[i_code][i_part]);
+      free(face_vtx_nb[i_code][i_part]);
+      free(cell_face_nb[i_code][i_part]);
+      free(vtx_ln_to_gn[i_code][i_part]);
+      free(cell_ln_to_gn[i_code][i_part]);
+    }
+    free(send_values[i_code]);
+    free(recv_values[i_code]);
+    free(n_vtx[i_code]);
+    free(n_faces[i_code]);
+    free(n_cells[i_code]);
+    free(coord[i_code]);
+    free(face_vtx_idx[i_code]);
+    free(face_vtx[i_code]);
+    free(cell_face_idx[i_code]);
+    free(cell_face[i_code]);
+    free(connec[i_code]);
+    free(face_vtx_nb[i_code]);
+    free(cell_face_nb[i_code]);
+    free(vtx_ln_to_gn[i_code]);
+    free(cell_ln_to_gn[i_code]);
+    free(mesh_nodal[i_code]);
+  }
+  free(send_values);
+  free(recv_values);
+  free(n_vtx );
+  free(n_faces );
+  free(n_cells );
+  free(n_blocks);
+  free(coord);
+  free(face_vtx_idx );
+  free(face_vtx );
+  free(cell_face_idx);
+  free(cell_face );
+  free(connec);
+  free(face_vtx_nb );
+  free(cell_face_nb);
+  free(vtx_ln_to_gn );
+  free(cell_ln_to_gn);
+  free(mesh_nodal);
+  free(computed_tgts);
+  free(uncomputed_tgts);
+  free(involved_srcs );
+
   // Field_*
 
   for (int i_code = 0 ; i_code < n_code ; ++i_code) {
@@ -1075,9 +1128,20 @@ main
   }
 
   // free
-
+  free(buffer);
+  free(data);
+  free(server_name);
   free(element_type);
   free(element_type_cwp);
+  free(code_id);
+  free(code_names);
+  free(coupled_code_names);
+  free(time_init);
+  free(n_vtx_seg);
+  free(x_min);
+  free(y_min);
+  free(z_min);
+  free(is_active_rank);
 
   //Finalize cwipi
   CWP_client_Finalize();

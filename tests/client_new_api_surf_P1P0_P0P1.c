@@ -27,6 +27,7 @@
 #include "cwp_priv.h"
 #include "grid_mesh.h"
 #include "pdm_mpi.h"
+#include "pdm_error.h"
 #include "pdm_io.h"
 #include "pdm_distrib.h"
 #include "pdm_printf.h"
@@ -375,8 +376,8 @@ main
   }
   printf("eltsConnec equal: %d\n", equal);
   equal = -1;
-  for (int i = 0; i < (nElts + 1); i++) {
-    equal = (global_num[i] == global_num[i]);
+  for (int i = 0; i < nElts; i++) {
+    equal = (global_num[i] == GETglobal_num[i]);
     if (equal == 0) {
       break;
     }
@@ -507,8 +508,8 @@ main
   PDM_g_num_t   *pface_ln_to_gn = malloc(sizeof(PDM_g_num_t) * nElts);
   PDM_g_num_t   *pvtx_ln_to_gn  = malloc(sizeof(PDM_g_num_t) * nVertex);
 
-  PDM_g_num_t*distrib_elt = PDM_compute_entity_distribution(comm, nElts);
-  PDM_g_num_t*distrib_vtx = PDM_compute_entity_distribution(comm, nVertex);
+  PDM_g_num_t *distrib_elt = PDM_compute_entity_distribution(comm, nElts);
+  PDM_g_num_t *distrib_vtx = PDM_compute_entity_distribution(comm, nVertex);
 
   for (int i = 0; i < nElts; i++) {
     pface_ln_to_gn[i] = distrib_elt[rank] + i + 1;
@@ -532,7 +533,11 @@ main
                                       &part_pedge_vtx,
                                       &part_pedge_ln_to_gn);
 
-  int *edge_vtx_idx = PDM_array_new_idx_from_const_stride_int(2, part_pn_edge[0]);
+  int *edge_vtx_idx = malloc(sizeof(int) * (part_pn_edge[0] + 1));
+  edge_vtx_idx[0] = 0;
+  for (int i = 1; i < part_pn_edge[0] + 1; i++) {
+    edge_vtx_idx[i] = edge_vtx_idx[i-1] + 2;
+  }
 
   CWP_client_Mesh_interf_from_faceedge_set(code_name[0],
                                            cpl_name,
@@ -569,6 +574,27 @@ main
   free(coupled_code_name);
   free(is_active_rank);
   free(time_init);
+
+  free(data);
+  free(buffer);
+  free(server_name);
+
+  free(GETeltsConnecPointer);
+  free(GETeltsConnec  );
+  free(GETglobal_num);
+  free(global_num);
+  free(global_num_vtx);
+  free(pface_ln_to_gn);
+  free(pvtx_ln_to_gn );
+  free(distrib_elt);
+  free(distrib_vtx);
+  free(edge_vtx_idx );
+
+  free(part_pface_edge_idx);
+  free(part_pface_edge    );
+  free(part_pn_edge       );
+  free(part_pedge_vtx     );
+  free(part_pedge_ln_to_gn);
 
 
   // Finalize

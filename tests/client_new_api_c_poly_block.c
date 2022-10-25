@@ -427,10 +427,10 @@ main
     CWP_client_Visu_set("cpoly", cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "binary");
     printf("Visu Set\n");
 
-    CWP_g_num_t *global_num_vtx = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * nVertex);
-    for (int i = 0; i < nVertex; i++) {
-      global_num_vtx[i] = i + 1;
-    }
+    // CWP_g_num_t *global_num_vtx = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * nVertex);
+    // for (int i = 0; i < nVertex; i++) {
+    //   global_num_vtx[i] = i + 1;
+    // }
 
     printf("vtx_set\n");
     CWP_client_Mesh_interf_vtx_set("cpoly", cpl_id1, 0, nVertex, coords, NULL);
@@ -439,10 +439,10 @@ main
     printf("3D Cell Polyhedra Block Add\n");
     int block_id = CWP_client_Mesh_interf_block_add("cpoly", cpl_id1, CWP_BLOCK_CELL_POLY);
 
-    CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * nElements);
-    for (int i = 0; i < nElements; i++) {
-      global_num[i] = i + 1;
-    }
+    // CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * nElements);
+    // for (int i = 0; i < nElements; i++) {
+    //   global_num[i] = i + 1;
+    // }
 
     printf("3D Cell Polyhedra Block Set\n");
     CWP_client_Mesh_interf_c_poly_block_set("cpoly", cpl_id1, 0, block_id,
@@ -452,9 +452,9 @@ main
                                             faceVertex,
                                             cellFaceIdx,
                                             cellFace,
-                                            global_num); // global_num or try with gnum NULL
+                                            NULL); // global_num or try with gnum NULL
 
-    CWP_g_num_t *cellGnum = malloc(sizeof(CWP_g_num_t) * nElements);
+    CWP_g_num_t *cellGnum = NULL; // malloc(sizeof(CWP_g_num_t) * nElements);
     int getNElements = -1;
     int getNFace = -1;
     int *getFaceVertexIdx = malloc(sizeof(int) * (nFace + 1));
@@ -509,6 +509,18 @@ main
     }
     printf("CellFace same ? %d\n", equal);
 
+    if (cellGnum == NULL) {
+      printf("NULL gnum\n");
+    } else {
+      printf("non NULL gnum\n");
+    }
+
+    free(getFaceVertexIdx);
+    free(getFaceVertex   );
+    free(getCellFaceIdx  );
+    free(getCellFace );
+    free(cellGnum    );
+
     printf("Interface Mesh deletion\n");
     CWP_client_Mesh_interf_del("cpoly", cpl_id1);
     printf("Interface Mesh deleted\n");
@@ -528,6 +540,8 @@ main
   free(faceVertex   );
   free(cellFaceIdx  );
   free(cellFace     );
+  free(server_name);
+  free(buffer);
 
   CWP_client_Finalize();
 

@@ -2367,10 +2367,10 @@ CWP_client_Mesh_interf_from_faceedge_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_edge_vtx_idx, sizeof(int) * (n_edges+1));
 
   // send edge->vertex connectivity
-  int *endian_edge_vtx = (int *) malloc(sizeof(int) * edge_vtx_idx[n_edges]);
-  memcpy(endian_edge_vtx, edge_vtx, sizeof(int) * edge_vtx_idx[n_edges]);
-  CWP_swap_endian_4bytes(endian_edge_vtx, edge_vtx_idx[n_edges]);
-  CWP_transfer_writedata(clt->socket, clt->max_msg_size, (void *) endian_edge_vtx, sizeof(int) * edge_vtx_idx[n_edges]);
+  int *endian_edge_vtx = (int *) malloc(sizeof(int) * 2 * n_edges);
+  memcpy(endian_edge_vtx, edge_vtx, sizeof(int) * 2 * n_edges);
+  CWP_swap_endian_4bytes(endian_edge_vtx, 2 * n_edges);
+  CWP_transfer_writedata(clt->socket, clt->max_msg_size, (void *) endian_edge_vtx, sizeof(int) * 2 * n_edges);
 
   // send global number
   int NULL_flag = 0;
