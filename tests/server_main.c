@@ -167,7 +167,7 @@ main
 
   // create server
   p_server svr = malloc(sizeof(t_server));
-  if (CWP_server_create(comm, server_port, CWP_SVRFLAG_VERBOSE, svr) != 0) {
+  if (CWP_server_create(comm, server_port, 1, svr) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "Server creation failed\n");
     return -1;
   }
@@ -220,7 +220,7 @@ main
 
   // --> global write of header
   char  buf[99];
-  sprintf(buf, "FORMAT hostname/port\nSIZE %5.5ld\n", strlen(data)); // header_size = 30 char
+  sprintf(buf, "FORMAT hostname/port\nN %10.10ld\nSIZE %5.5ld\n", (long) n_rank, strlen(data)); // header_size = 45 char
 
   size_t s_buf =  strlen(buf);
   PDM_io_global_write(write,

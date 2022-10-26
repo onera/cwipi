@@ -55,10 +55,6 @@ extern "C" {
 #define CWP_SVRSTATE_SENDPGETDATA  3
 #define CWP_SVRSTATE_TERMINATING   4
 
-/* for debug */
-#define CWP_SVRFLAG_VERBOSE    1
-#define CWP_SVRFLAG_NOVERBOSE  0
-
 /*============================================================================
  * Types definition
  *============================================================================*/

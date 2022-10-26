@@ -56,12 +56,13 @@
 #include "struct.hxx"
 
 #include "cwp_priv.h"
+// #include "cwipi_config.h"
 
 #include <cwp.h>
 #include <pdm_error.h>
 #include <pdm_mpi.h>
-#include <pdm_logging.h>
 #include <pdm_io.h>
+#include <pdm_version.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,7 +80,7 @@ static t_field *fields;
  * Macro definitions
  *============================================================================*/
 
-#define CWP_HEADER_SIZE    32
+#define CWP_HEADER_SIZE    45
 
 /*=============================================================================
  * Private function interfaces
@@ -239,6 +240,337 @@ static void read_name(char **name) {
   CWP_transfer_readdata(clt->socket,clt->max_msg_size,(void*) *name, name_size);
 }
 
+// --> verbose
+
+static void verbose(t_message msg) {
+
+  char *function = (char *) malloc(sizeof(char) * 99);
+
+  switch (msg.message_type) {
+  case CWP_MSG_CWP_INIT: {
+    char name[] = "CWP_Init";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_FINALIZE: {
+    char name[] = "CWP_Finalize";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PARAM_LOCK: {
+    char name[] = "CWP_Param_lock";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PARAM_UNLOCK: {
+    char name[] = "CWP_Param_unlock";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PARAM_ADD: {
+    char name[] = "CWP_Param_add";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PARAM_GET: {
+    char name[] = "CWP_Param_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PARAM_SET: {
+    char name[] = "CWP_Param_set";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PARAM_DEL: {
+    char name[] = "CWP_Param_del";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PARAM_N_GET: {
+    char name[] = "CWP_Param_n_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PARAM_LIST_GET: {
+    char name[] = "CWP_Param_list_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PARAM_IS: {
+    char name[] = "CWP_Param_is";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PARAM_REDUCE: {
+    char name[] = "CWP_Param_reduce";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_CPL_CREATE: {
+    char name[] = "CWP_Cpl_create";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_CPL_DEL: {
+    char name[] = "CWP_Cpl_del";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PROPERTIES_DUMP: {
+    char name[] = "CWP_Properties_dump";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_VISU_SET: {
+    char name[] = "CWP_Visu_set";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_STATE_UPDATE: {
+    char name[] = "CWP_State_update";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_TIME_UPDATE: {
+    char name[] = "CWP_Time_update";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_STATE_GET: {
+    char name[] = "CWP_State_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_CODES_NB_GET: {
+    char name[] = "CWP_Codes_nb_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_CODES_LIST_GET: {
+    char name[] = "CWP_Codes_list_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_LOC_CODES_NB_GET: {
+    char name[] = "CWP_Loc_codes_nb_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_LOC_CODES_LIST_GET: {
+    char name[] = "CWP_Loc_codes_list_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_N_UNCOMPUTED_TGTS_GET: {
+    char name[] = "CWP_N_uncomputed_tgts_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_UNCOMPUTED_TGTS_GET: {
+    char name[] = "CWP_Uncomputed_tgts_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_N_COMPUTED_TGTS_GET: {
+    char name[] = "CWP_N_computed_tgts_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_COMPUTED_TGTS_GET: {
+    char name[] = "CWP_Computed_tgts_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_N_INVOLVED_SRCS_GET: {
+    char name[] = "CWP_N_involved_srcs_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_INVOLVED_SRCS_GET: {
+    char name[] = "CWP_Involved_srcs_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_SPATIAL_INTERP_WEIGHTS_COMPUTE: {
+    char name[] = "CWP_Spatial_interp_weights_compute";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_SPATIAL_INTERP_PROPERTY_SET: {
+    char name[] = "CWP_Spatial_interp_property_set";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_USER_TGT_PTS_SET: {
+    char name[] = "CWP_User_tgt_pts_set";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_MESH_INTERF_FINALIZE: {
+    char name[] = "CWP_Mesh_interf_finalize";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_MESH_INTERF_VTX_SET: {
+    char name[] = "CWP_Mesh_interf_vtx_set";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_MESH_INTERF_BLOCK_ADD: {
+    char name[] = "CWP_Mesh_interf_block_add";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_SET: {
+    char name[] = "CWP_Mesh_interf_block_std_set";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_GET: {
+    char name[] = "CWP_Mesh_interf_block_std_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_MESH_INTERF_F_POLY_BLOCK_SET: {
+    char name[] = "CWP_Mesh_interf_f_poly_block_set";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_MESH_INTERF_F_POLY_BLOCK_GET: {
+    char name[] = "CWP_Mesh_interf_f_poly_block_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_MESH_INTERF_C_POLY_BLOCK_SET: {
+    char name[] = "CWP_Mesh_interf_c_poly_block_set";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_MESH_INTERF_C_POLY_BLOCK_GET: {
+    char name[] = "CWP_Mesh_interf_c_poly_block_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_MESH_INTERF_DEL: {
+    char name[] = "CWP_Mesh_interf_del";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_MESH_INTERF_FROM_CELLFACE_SET: {
+    char name[] = "CWP_Mesh_interf_from_cellface_set";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_MESH_INTERF_FROM_FACEEDGE_SET: {
+    char name[] = "CWP_Mesh_interf_from_faceedge_set";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_FIELD_CREATE: {
+    char name[] = "CWP_Field_create";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_FIELD_DATA_SET: {
+    char name[] = "CWP_Field_data_set";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_FIELD_N_COMPONENT_GET: {
+    char name[] = "CWP_Field_n_component_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_FIELD_TARGET_DOF_LOCATION_GET: {
+    char name[] = "CWP_Field_target_dof_location_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_FIELD_STORAGE_GET: {
+    char name[] = "CWP_Field_storage_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_FIELD_DEL: {
+    char name[] = "CWP_Field_del";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_FIELD_ISSEND: {
+    char name[] = "CWP_Field_issend";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_FIELD_IRECV: {
+    char name[] = "CWP_Field_irecv";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_FIELD_WAIT_ISSEND: {
+    char name[] = "CWP_Field_wait_issend";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_FIELD_WAIT_IRECV: {
+    char name[] = "CWP_Field_wait_irecv";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_INTERP_FROM_LOCATION_UNSET: {
+    char name[] = "CWP_Interp_from_location_unset";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_INTERP_FROM_LOCATION_SET: {
+    char name[] = "CWP_Interp_from_location_set";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_OUTPUT_FILE_SET: {
+    char name[] = "CWP_Output_file_set";
+    strcpy(function, name);
+    } break;
+
+  default:
+    PDM_error(__FILE__, __LINE__, 0, "Unknown cwipi function %d\n", msg.message_type);
+  }
+
+  char *flag = (char *) malloc(sizeof(char) * 99);
+
+  switch (msg.flag) {
+  case CWP_SVR_BEGIN: {
+    char name[] = "begin";
+    strcpy(flag, name);
+    } break;
+
+  case CWP_SVR_LCH_BEGIN: {
+    char name[] = "before lauching";
+    strcpy(flag, name);
+    } break;
+
+  case CWP_SVR_LCH_END: {
+    char name[] = "after lauching";
+    strcpy(flag, name);
+    } break;
+
+  case CWP_SVR_END: {
+    char name[] = "end";
+    strcpy(flag, name);
+    } break;
+
+  default:
+    PDM_error(__FILE__, __LINE__, 0, "Unknown server flag %d\n", msg.flag);
+  }
+
+  // print
+  printf("CWP-SERVER: %s --> %s\n", function, flag);
+
+  // free
+  free(function);
+  free(flag);
+}
+
 /*============================================================================
  * Client function definitions
  *============================================================================*/
@@ -265,8 +597,8 @@ CWP_client_connect
   clt->flags=flags;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Creating Client, connecting to %s:%i...\n",server_name,server_port);
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Creating Client, connecting to %s:%i...\n",server_name,server_port);
   }
 
   host = (struct hostent *) gethostbyname(server_name);
@@ -287,8 +619,8 @@ CWP_client_connect
                  sizeof(struct sockaddr)) == -1) {}
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client connected on %s port %i \n", server_name, server_port);
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client connected on %s port %i \n", server_name, server_port);
   }
 
   // get maximum message size
@@ -307,8 +639,8 @@ CWP_client_connect
   clt->server_endianess = ntohl(clt->server_endianess);
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:client endian %i server endian %i\n",clt->client_endianess,clt->server_endianess);
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:client endian %i server endian %i\n",clt->client_endianess,clt->server_endianess);
   }
 
   // free
@@ -326,8 +658,8 @@ CWP_client_disconnect
 {
   t_message msg;
 
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client shutting down\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client shutting down\n");
   }
 
   NEWMESSAGE(msg, CWP_MSG_DIE);
@@ -403,12 +735,25 @@ CWP_client_Init
   char div_line[] = "\n";
   char *line = strtok(buffer, div_line);
   line = strtok(NULL, div_line);
+  char *second_line = (char *) malloc(sizeof(char) * (strlen(line) + 1));
+  memcpy(second_line, line, strlen(line) + 1);
+  line = strtok(NULL, div_line);
 
   char div_word[] = " ";
+  char *N = strtok(second_line, div_word);
+  N = strtok(NULL, div_word);
+
+  int nb_rank = atoi(N);
+
   char *word = strtok(line, div_word);
   word = strtok(NULL, div_word);
 
   int offset = atoi(word);
+
+  // check number of ranks
+  if (n_rank != nb_rank) {
+    PDM_error(__FILE__, __LINE__, 0, "Client executing on %d and server on %d ranks. Should be on the same number of ranks\n", n_rank, nb_rank);
+  }
 
   // --> block read hostname/port
   char *data = (char *) malloc(offset+1);
@@ -440,7 +785,7 @@ CWP_client_Init
   PDM_io_free(read);
 
   // connect
-  if (CWP_client_connect(server_name, server_port, CWP_CLIENTFLAG_VERBOSE) != 0) {
+  if (CWP_client_connect(server_name, server_port, CWP_FLAG_VERBOSE) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "Client connexion failed\n");
   }
 
@@ -448,13 +793,14 @@ CWP_client_Init
   free(buffer);
   free(data);
   free(server_name);
+  free(second_line);
 
   /* cwipi init */
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Init\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Init\n");
   }
 
   // create message
@@ -463,6 +809,13 @@ CWP_client_Init
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Init failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   fields = (t_field *) malloc(sizeof(t_field));
@@ -489,9 +842,46 @@ CWP_client_Init
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_is_active_rank, n_code * sizeof(CWP_Status_t));
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_time_init, n_code * sizeof(double));
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // free
   free(endian_is_active_rank);
   free(endian_time_init);
+
+  // standard cwipi init message
+  char *version = PDM_version_get();
+
+  int rank;
+  MPI_Comm_rank (comm, &rank);
+
+  if (rank == 0) {
+
+    printf("\ncwipi %s initializing\n", version);
+    printf("------------------------\n\n");
+
+  }
+
+  // free
+  free(version);
 }
 
 void
@@ -501,8 +891,8 @@ CWP_client_Finalize()
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Finalize\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Finalize\n");
   }
 
   // create message
@@ -526,8 +916,8 @@ const char *code_name
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Param_lock\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Param_lock\n");
   }
 
   // create message
@@ -551,8 +941,8 @@ const char *code_name
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Param_unlock\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Param_unlock\n");
   }
 
   // create message
@@ -579,8 +969,8 @@ CWP_client_Param_add
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Param_add\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Param_add\n");
   }
 
   // create message
@@ -638,8 +1028,8 @@ CWP_client_Param_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Param_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Param_get\n");
   }
 
   // create message
@@ -697,8 +1087,8 @@ CWP_client_Param_set
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Param_set\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Param_set\n");
   }
 
   // create message
@@ -754,8 +1144,8 @@ CWP_client_Param_del
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Param_del\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Param_del\n");
   }
 
   // create message
@@ -788,8 +1178,8 @@ CWP_client_Param_n_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Param_n_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Param_n_get\n");
   }
 
   // create message
@@ -827,8 +1217,8 @@ CWP_client_Param_list_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Param_list_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Param_list_get\n");
   }
 
   // create message
@@ -869,8 +1259,8 @@ CWP_client_Param_is
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Param_is\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Param_is\n");
   }
 
   // create message
@@ -913,8 +1303,8 @@ CWP_client_Param_reduce
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Param_reduce\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Param_reduce\n");
   }
 
   // create message
@@ -988,8 +1378,8 @@ CWP_client_Cpl_create
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Cpl_create\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Cpl_create\n");
   }
 
   // create message
@@ -1050,8 +1440,8 @@ CWP_client_Cpl_del
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Cpl_del\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Cpl_del\n");
   }
 
   // create message
@@ -1078,8 +1468,8 @@ void
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Properties_dump\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Properties_dump\n");
   }
 
   // create message
@@ -1104,8 +1494,8 @@ CWP_client_Visu_set
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Visu_set\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Visu_set\n");
   }
 
   // create message
@@ -1146,8 +1536,8 @@ CWP_client_State_update
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_State_update\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_State_update\n");
   }
 
   // create message
@@ -1177,8 +1567,8 @@ CWP_client_Time_update
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Time_update\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Time_update\n");
   }
 
   // create message
@@ -1207,8 +1597,8 @@ const char *output_filename
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Output_file_set\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Output_file_set\n");
   }
 
   // create message
@@ -1232,7 +1622,7 @@ CWP_client_User_structure_set
 {
   PDM_UNUSED(local_code_name);
   PDM_UNUSED(user_structure);
-  log_trace("CWP: CWP_User_structure_set not implemented in client/server mode\n");
+  printf("CWP-CLIENT: CWP_User_structure_set not implemented in client/server mode\n");
 }
 
 void *
@@ -1242,7 +1632,7 @@ CWP_client_User_structure_get
 )
 {
   PDM_UNUSED(local_code_name);
-  log_trace("CWP: CWP_User_structure_get not implemented in client/server mode\n");
+  printf("CWP-CLIENT: CWP_User_structure_get not implemented in client/server mode\n");
 
   return 0;
 }
@@ -1256,8 +1646,8 @@ CWP_client_State_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_State_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_State_get\n");
   }
 
   // create message
@@ -1287,8 +1677,8 @@ CWP_client_Codes_nb_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Codes_nb_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Codes_nb_get\n");
   }
 
   // create message
@@ -1315,8 +1705,8 @@ void
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Codes_list_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Codes_list_get\n");
   }
 
   // create message
@@ -1348,8 +1738,8 @@ CWP_client_Loc_codes_nb_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Loc_codes_nb_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Loc_codes_nb_get\n");
   }
 
   // create message
@@ -1376,8 +1766,8 @@ CWP_client_Loc_codes_list_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Loc_codes_list_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Loc_codes_list_get\n");
   }
 
   // create message
@@ -1412,8 +1802,8 @@ CWP_client_N_uncomputed_tgts_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_N_uncomputed_tgts_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_N_uncomputed_tgts_get\n");
   }
 
   // create message
@@ -1457,8 +1847,8 @@ CWP_client_Uncomputed_tgts_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Uncomputed_tgts_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Uncomputed_tgts_get\n");
   }
 
   // create message
@@ -1504,8 +1894,8 @@ CWP_client_N_computed_tgts_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_N_computed_tgts_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_N_computed_tgts_get\n");
   }
 
   // create message
@@ -1549,8 +1939,8 @@ CWP_client_Computed_tgts_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Computed_tgts_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Computed_tgts_get\n");
   }
 
   // create message
@@ -1596,8 +1986,8 @@ CWP_client_N_involved_srcs_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_N_involved_srcs_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_N_involved_srcs_get\n");
   }
 
   // create message
@@ -1641,8 +2031,8 @@ CWP_client_Involved_srcs_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Involved_srcs_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Involved_srcs_get\n");
   }
 
   // create message
@@ -1686,8 +2076,8 @@ CWP_client_Spatial_interp_weights_compute
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Spatial_interp_weights_compute\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Spatial_interp_weights_compute\n");
   }
 
   // create message
@@ -1718,8 +2108,8 @@ CWP_client_Spatial_interp_property_set
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Spatial_interp_property_set\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Spatial_interp_property_set\n");
   }
 
   // create message
@@ -1760,8 +2150,8 @@ CWP_client_User_tgt_pts_set
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_User_tgt_pts_set\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_User_tgt_pts_set\n");
   }
 
   // create message
@@ -1829,8 +2219,8 @@ CWP_client_Mesh_interf_finalize
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Mesh_interf_finalize\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_finalize\n");
   }
 
   // create message
@@ -1862,8 +2252,8 @@ CWP_client_Mesh_interf_vtx_set
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Mesh_interf_vtx_set\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_vtx_set\n");
   }
 
   // create message
@@ -1932,8 +2322,8 @@ CWP_client_Mesh_interf_block_add
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Mesh_interf_block_add\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_block_add\n");
   }
 
   // create message
@@ -1978,8 +2368,8 @@ CWP_client_Mesh_interf_block_std_set
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Mesh_interf_block_std_set\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_block_std_set\n");
   }
 
   // create message
@@ -2064,8 +2454,8 @@ CWP_client_Mesh_interf_f_poly_block_set
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Mesh_interf_f_poly_block_set\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_f_poly_block_set\n");
   }
 
   // create message
@@ -2151,8 +2541,8 @@ CWP_client_Mesh_interf_f_poly_block_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Mesh_interf_f_poly_block_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_f_poly_block_get\n");
   }
 
   // create message
@@ -2218,8 +2608,8 @@ CWP_client_Mesh_interf_c_poly_block_set
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Mesh_interf_c_poly_block_set\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_c_poly_block_set\n");
   }
 
   // create message
@@ -2327,8 +2717,8 @@ CWP_client_Mesh_interf_c_poly_block_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Mesh_interf_c_poly_block_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_c_poly_block_get\n");
   }
 
   // create message
@@ -2395,8 +2785,8 @@ CWP_client_Mesh_interf_del
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Mesh_interf_del\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_del\n");
   }
 
   // create message
@@ -2432,8 +2822,8 @@ CWP_client_Mesh_interf_from_cellface_set
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Mesh_interf_from_cellface_set\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_from_cellface_set\n");
   }
 
   // create message
@@ -2535,8 +2925,8 @@ CWP_client_Mesh_interf_from_faceedge_set
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Mesh_interf_from_faceedge_set\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_from_faceedge_set\n");
   }
 
   // create message
@@ -2637,8 +3027,8 @@ CWP_client_Field_create
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Field_create\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Field_create\n");
   }
 
   // create message
@@ -2717,8 +3107,8 @@ CWP_client_Field_data_set
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Field_data_set\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Field_data_set\n");
   }
 
   // create message
@@ -2782,8 +3172,8 @@ CWP_client_Field_n_component_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Field_n_component_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Field_n_component_get\n");
   }
 
   // create message
@@ -2821,8 +3211,8 @@ CWP_client_Field_target_dof_location_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Field_target_dof_location_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Field_target_dof_location_get\n");
   }
 
   // create message
@@ -2860,8 +3250,8 @@ CWP_client_Field_storage_get
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Field_storage_get\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Field_storage_get\n");
   }
 
   // create message
@@ -2899,8 +3289,8 @@ CWP_client_Field_del
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Field_del\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Field_del\n");
   }
 
   // create message
@@ -2932,8 +3322,8 @@ CWP_client_Field_issend
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Field_issend\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Field_issend\n");
   }
 
   // create message
@@ -2965,8 +3355,8 @@ CWP_client_Field_irecv
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Field_irecv\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Field_irecv\n");
   }
 
   // create message
@@ -2998,8 +3388,8 @@ CWP_client_Field_wait_issend
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Field_wait_issend\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Field_wait_issend\n");
   }
 
   // create message
@@ -3032,8 +3422,8 @@ CWP_client_Field_wait_irecv
   t_message msg;
 
   // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client initiating CWP_Field_wait_irecv\n");
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    printf("CWP-CLIENT:Client initiating CWP_Field_wait_irecv\n");
   }
 
   // create message
@@ -3090,8 +3480,8 @@ CWP_client_Interp_from_location_unset
   // t_message msg;
 
   // // verbose
-  // if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-  //   log_trace("CWP:Client initiating CWP_Interp_from_location_unset\n");
+  // if (clt->flags & CWP_FLAG_VERBOSE) {
+  //   printf("CWP-CLIENT:Client initiating CWP_Interp_from_location_unset\n");
   // }
 
   // // create message
