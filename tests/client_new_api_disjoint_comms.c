@@ -39,6 +39,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "cwp_priv.h"
+
 /*=============================================================================
  * Macro definitions
  *============================================================================*/
@@ -998,54 +1000,54 @@ main
 
   for (int i_code = 0 ; i_code < n_code ; ++i_code) {
     for (int i_part = 0 ; i_part < n_part ; ++i_part) {
-      free(coord[i_code][i_part]);
-      free(face_vtx_idx[i_code][i_part]);
-      free(face_vtx[i_code][i_part]);
-      free(cell_face_idx[i_code][i_part]);
-      free(cell_face[i_code][i_part]);
-      free(connec[i_code][i_part]);
-      free(face_vtx_nb[i_code][i_part]);
-      free(cell_face_nb[i_code][i_part]);
-      free(vtx_ln_to_gn[i_code][i_part]);
-      free(cell_ln_to_gn[i_code][i_part]);
+      free((void *) coord[i_code][i_part]);
+      free((void *) face_vtx_idx[i_code][i_part]);
+      free((void *) face_vtx[i_code][i_part]);
+      free((void *) cell_face_idx[i_code][i_part]);
+      free((void *) cell_face[i_code][i_part]);
+      free((void *) connec[i_code][i_part]);
+      free((void *) face_vtx_nb[i_code][i_part]);
+      free((void *) cell_face_nb[i_code][i_part]);
+      free((void *) vtx_ln_to_gn[i_code][i_part]);
+      free((void *) cell_ln_to_gn[i_code][i_part]);
     }
-    free(send_values[i_code]);
-    free(recv_values[i_code]);
-    free(n_vtx[i_code]);
-    free(n_faces[i_code]);
-    free(n_cells[i_code]);
-    free(coord[i_code]);
-    free(face_vtx_idx[i_code]);
-    free(face_vtx[i_code]);
-    free(cell_face_idx[i_code]);
-    free(cell_face[i_code]);
-    free(connec[i_code]);
-    free(face_vtx_nb[i_code]);
-    free(cell_face_nb[i_code]);
-    free(vtx_ln_to_gn[i_code]);
-    free(cell_ln_to_gn[i_code]);
-    free(mesh_nodal[i_code]);
+    free((void *) send_values[i_code]);
+    free((void *) recv_values[i_code]);
+    free((void *) n_vtx[i_code]);
+    free((void *) n_faces[i_code]);
+    free((void *) n_cells[i_code]);
+    free((void *) coord[i_code]);
+    free((void *) face_vtx_idx[i_code]);
+    free((void *) face_vtx[i_code]);
+    free((void *) cell_face_idx[i_code]);
+    free((void *) cell_face[i_code]);
+    free((void *) connec[i_code]);
+    free((void *) face_vtx_nb[i_code]);
+    free((void *) cell_face_nb[i_code]);
+    free((void *) vtx_ln_to_gn[i_code]);
+    free((void *) cell_ln_to_gn[i_code]);
+    free((void *) mesh_nodal[i_code]);
   }
-  free(send_values);
-  free(recv_values);
-  free(n_vtx );
-  free(n_faces );
-  free(n_cells );
-  free(n_blocks);
-  free(coord);
-  free(face_vtx_idx );
-  free(face_vtx );
-  free(cell_face_idx);
-  free(cell_face );
-  free(connec);
-  free(face_vtx_nb );
-  free(cell_face_nb);
-  free(vtx_ln_to_gn );
-  free(cell_ln_to_gn);
-  free(mesh_nodal);
-  free(computed_tgts);
-  free(uncomputed_tgts);
-  free(involved_srcs );
+  free((void *) send_values);
+  free((void *) recv_values);
+  free((void *) n_vtx );
+  free((void *) n_faces );
+  free((void *) n_cells );
+  free((void *) n_blocks);
+  free((void *) coord);
+  free((void *) face_vtx_idx );
+  free((void *) face_vtx );
+  free((void *) cell_face_idx);
+  free((void *) cell_face );
+  free((void *) connec);
+  free((void *) face_vtx_nb );
+  free((void *) cell_face_nb);
+  free((void *) vtx_ln_to_gn );
+  free((void *) cell_ln_to_gn);
+  free((void *) mesh_nodal);
+  free((void *) computed_tgts);
+  free((void *) uncomputed_tgts);
+  free((void *) involved_srcs );
 
   // Field_*
 

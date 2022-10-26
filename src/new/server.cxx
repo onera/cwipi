@@ -54,6 +54,8 @@
 #include "message.h"
 #include "struct.hxx"
 
+#include "cwp_priv.h"
+
 #include <pdm_error.h>
 #include <pdm_mpi.h>
 #include <pdm_logging.h>
@@ -112,7 +114,6 @@ CWP_server_Init
 
   // svr_cwp init
   svr_cwp = (p_cwp) malloc(sizeof(t_cwp));
-  memset(svr_cwp, 0, sizeof(t_cwp));
 
   // mandatory for the map to work
   svr_cwp->char_param_value.clear();
@@ -144,7 +145,7 @@ CWP_server_Init
   // wait all ranks have receive msg
   MPI_Barrier(svr_mpi->intra_comms[0]);
 
-  // free TO DO: isn't it as a set where I shouldn't free?
+  // free
   for (int i = 0; i < n_code; i++) {
     free(code_names[i]);
   }
@@ -801,7 +802,6 @@ CWP_server_Cpl_create
   // create occurence in map
   std::string s(cpl_id);
   p_coupling coupling = (t_coupling *) malloc(sizeof(t_coupling));
-  memset(coupling, 0, sizeof(t_coupling));
   svr_cwp->coupling.insert(std::make_pair(s, coupling));
 
   // mandatory for map
@@ -866,13 +866,13 @@ CWP_server_Cpl_del
   if (coupling->property_value != NULL) free(coupling->property_value);
 
   if (!coupling->field.empty()) {
-    for (auto const& [key, val] : coupling->field) {
-      p_field field = coupling->field[key];
-      if (val != NULL) {
+    for (auto const& x : coupling->field) {
+      p_field field = coupling->field[x.first];
+      if (x.second != NULL) {
         if (field->data != NULL) free(field->data);
       }
-      free(val);
-      coupling->field.erase(key);
+      free(x.second);
+      coupling->field.erase(x.first);
     }
   }
 
@@ -1020,7 +1020,6 @@ CWP_server_Output_file_set
   svr_cwp->output_file = NULL;
 
   svr_cwp->output_file = fopen(output_filename, "a+"); // TO DO: wich opening mode?
-  // fclose(output_file); // TO DO: close frees everything? so don't?
 
   // launch
   CWP_Output_file_set(svr_cwp->output_file);
@@ -2387,7 +2386,6 @@ CWP_server_Field_create
   p_coupling coupling = svr_cwp->coupling[s1];
   std::string s2(field_id);
   p_field field = (t_field *) malloc(sizeof(t_field));
-  memset(field, 0, sizeof(t_field));
   coupling->field.insert(std::make_pair(s2, field));
 
   // free
@@ -2820,106 +2818,11 @@ CWP_server_Interp_from_location_unset
 void
 CWP_server_Interp_from_location_set
 (
-  p_server                 svr // TO DO: deal with other than double data_type
+  p_server                 svr
 )
 {
-  // // wait all ranks have receive msg
-  // MPI_Barrier(svr_mpi->intra_comms[0]);
-
-  // // read local code name
-  // svr->state = CWP_SVRSTATE_RECVPPUTDATA;
-  // char *local_code_name = (char *) malloc(sizeof(char));
-  // read_name(&local_code_name, svr);
-
-  // // read coupling identifier
-  // char *cpl_id = (char *) malloc(sizeof(char));
-  // read_name(&cpl_id, svr);
-
-  // // read source field identifier
-  // char *src_field_id = (char *) malloc(sizeof(char));
-  // read_name(&src_field_id, svr);
-
-  // // create structure with received data
-  // CWP_Interp_from_location_t *fct = (CWP_Interp_from_location_t *) malloc(sizeof(CWP_Interp_from_location_t));
-
-  // fct->code_name           = (char *) malloc(sizeof(char));
-  // read_name(&fct->code_name, svr);
-
-  // fct->src_n_block = -1;
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &fct->src_n_block, sizeof(int));
-  // fct->src_blocks_type     = (CWP_Block_t *) malloc(sizeof(CWP_Block_t) * fct->src_n_block);
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_blocks_type, sizeof(CWP_Block_t) * fct->src_n_block);
-
-  // fct->src_i_part = -1;
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &fct->src_i_part, sizeof(int));
-  // fct->src_n_vtx = -1;
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &fct->src_n_vtx, sizeof(int));
-
-  // fct->src_vtx_coords      = (double *) malloc(sizeof(double) * 3 * fct->src_n_vtx);
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_vtx_coords, sizeof(double) * 3 * fct->src_n_vtx);
-
-  // fct->src_vtx_global_num  = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * fct->src_n_vtx);
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_vtx_global_num, sizeof(CWP_g_num_t) * fct->src_n_vtx);
-
-  // fct->src_n_elts = -1;
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &fct->src_n_elts, sizeof(int));
-
-  // fct->src_id_block        = (int *) malloc(sizeof(int) * fct->src_n_elts);
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_id_block, sizeof(int) * fct->src_n_elts);
-
-  // fct->src_elt_in_block    = (int *) malloc(sizeof(int) * fct->src_n_elts);
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_elt_in_block, sizeof(int) * fct->src_n_elts);
-
-  // fct->src_elt_vtx_idx     = (int *) malloc(sizeof(int) * (fct->src_n_elts + 1));
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_elt_vtx_idx, sizeof(int) * (fct->src_n_elts + 1));
-
-  // fct->src_elt_vtx         = (int *) malloc(sizeof(int) * fct->src_elt_vtx_idx[fct->src_n_elts]);
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_elt_vtx, sizeof(int) * fct->src_elt_vtx_idx[fct->src_n_elts]);
-
-  // fct->src_elts_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * fct->src_n_elts);
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_elts_global_num, sizeof(CWP_g_num_t) * fct->src_n_elts);
-
-  // fct->tgt_n_pts = -1;
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &fct->tgt_n_pts, sizeof(int));
-
-  // fct->tgt_pts_elt_idx     = (int *) malloc(sizeof(int) * (fct->tgt_n_pts+1));
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->tgt_pts_elt_idx, sizeof(int) * (fct->tgt_n_pts+1));
-
-  // fct->tgt_pts_coords      = (double *) malloc(sizeof(double) * 3 * fct->tgt_n_pts);
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->tgt_pts_coords, sizeof(double) * 3 * fct->tgt_n_pts);
-
-  // fct->tgt_pts_dist        = (double *) malloc(sizeof(double) * fct->tgt_n_pts);
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->tgt_pts_dist, sizeof(double) * fct->tgt_n_pts);
-
-  // // TO DO: size = dim_interface * tgt_n_pts get dim_interface??
-  // fct->tgt_pts_uvw         = malloc(sizeof(double) * fct->tgt_n_pts);
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->tgt_pts_uvw, sizeof(double) * fct->tgt_n_pts);
-
-  // fct->tgt_pts_weights_idx = (int *) malloc(sizeof(int) * (fct->tgt_n_pts + 1));
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->tgt_pts_weights_idx, sizeof(int) * (fct->tgt_n_pts + 1));
-
-  // fct->tgt_pts_weights     = (double *) malloc(sizeof(double) * fct->tgt_pts_weights_idx[fct->tgt_n_pts]);
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->tgt_pts_weights, sizeof(double) * * fct->tgt_pts_weights_idx[fct->tgt_n_pts]);
-
-  // fct->stride = -1;
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &fct->stride, sizeof(int));
-
-  // fct->src_field_dof_location = (CWP_Dof_location_t) -1;
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &fct->src_field_dof_location, sizeof(CWP_Dof_location_t));
-
-  // fct->src_field           = (double *) malloc(sizeof(double) * fct->src_n_vtx * fct->stride);
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->src_field, sizeof(double) * fct->src_n_vtx * fct->stride);
-
-  // fct->tgt_field           = (double *) malloc(sizeof(double) * fct->src_n_vtx * fct->stride);
-  // CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) fct->tgt_field, sizeof(double) * fct->src_n_vtx * fct->stride);
-
-  // // launch
-  // CWP_Interp_from_location_set(local_code_name,
-  //                              cpl_id,
-  //                              src_field_id,
-  //                              *fct);
-
-  // svr->state = CWP_SVRSTATE_LISTENINGMSG;
+  PDM_UNUSED(svr);
+  // TO DO: create some standard interpolation function on server side for user to choose
 }
 
 /*============================================================================

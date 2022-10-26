@@ -41,6 +41,8 @@
 #include "pdm_logging.h"
 #include "pdm_printf.h"
 
+#include "cwp_priv.h"
+
 #ifdef __cplusplus
 extern "C" {
 #if 0

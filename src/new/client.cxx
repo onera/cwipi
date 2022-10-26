@@ -55,6 +55,8 @@
 
 #include "struct.hxx"
 
+#include "cwp_priv.h"
+
 #include <cwp.h>
 #include <pdm_error.h>
 #include <pdm_mpi.h>
@@ -167,15 +169,17 @@ static void ip_swap_8bytes(char *cd_h_bytes) {
   return;
 }
 
-static void ip_swap_data_endian(char *data, const int datasize) {
-  int i;
-  if (clt->server_endianess == clt->client_endianess) {return;}
+// TO DO: seens pointless to convert endian of a char *, right?
 
-  for (i=0 ; i<datasize; i=i+4) {
-    ip_swap_4bytes(&data[i]);
-  }
-  return;
-}
+// static void ip_swap_data_endian(char *data, const int datasize) {
+//   int i;
+//   if (clt->server_endianess == clt->client_endianess) {return;}
+
+//   for (i=0 ; i<datasize; i=i+4) {
+//     ip_swap_4bytes(&data[i]);
+//   }
+//   return;
+// }
 
 /* convert message endian if client endianess different from server endianess */
 
@@ -257,7 +261,6 @@ CWP_client_Init
   }
 
   fields = (t_field *) malloc(sizeof(t_field));
-  memset(fields, 0, sizeof(t_field));
 
   // mandatory to use the map
   fields->field_settings.clear();
@@ -1799,7 +1802,6 @@ CWP_client_Mesh_interf_block_std_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_elts, sizeof(int));
 
   // send n_vtx_elt
-  // TO DO: knowing the size of connec one could retreive n_vtx_elt also for POLY
   int n_vtx_elt = n_nodes_get(block_type);
   int endian_n_vtx_elt = n_vtx_elt;
   CWP_swap_endian_4bytes(&endian_n_vtx_elt, 1);

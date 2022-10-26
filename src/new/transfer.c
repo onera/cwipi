@@ -86,7 +86,7 @@ int
 CWP_transfer_endian_machine()
 {
   int i = 0x12345678;
-  if ( htonl(i) == i ) {return CWP_BIG;} else { return CWP_LITTLE;}
+  if ( (int32_t) htonl(i) == i ) {return CWP_BIG;} else { return CWP_LITTLE;}
 }
 
 /* read */

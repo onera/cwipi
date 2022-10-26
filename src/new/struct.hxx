@@ -57,7 +57,7 @@ typedef struct t_field_settings
   CWP_Field_map_t map_type;
   int             n_component;
   int             n_entities;
-} t_field_settings, *p_field_settings;
+}t_field_settings,*p_field_settings;
 
 typedef struct t_field
 {

@@ -42,6 +42,8 @@
 #include "pdm_printf.h"
 #include "cwp.h"
 
+#include "cwp_priv.h"
+
 #ifdef __cplusplus
 extern "C" {
 #if 0
@@ -320,7 +322,7 @@ main
   const char *titi2 = NULL;
   CWP_client_Param_get("code2", "toto2", CWP_CHAR, &titi2);
   printf("i_rank: %d code 2 : toto2 : %s\n", i_rank, titi2);
-  free(titi2);
+  free((void *) titi2);
   int titi;
   CWP_client_Param_get("code1", "toto", CWP_INT, &titi);
   printf("i_rank: %d code 1 : toto : %d\n", i_rank, titi);
