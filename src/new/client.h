@@ -82,6 +82,8 @@ typedef struct t_client
 void
 CWP_client_Init
 (
+ MPI_Comm                  comm,
+  char                    *config,
   const int                n_code,
   const char             **code_names,
   const CWP_Status_t      *is_active_rank,

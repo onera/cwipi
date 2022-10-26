@@ -61,6 +61,7 @@
 #include <pdm_error.h>
 #include <pdm_mpi.h>
 #include <pdm_logging.h>
+#include <pdm_io.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,6 +74,12 @@ extern "C" {
 
 static t_client *clt;
 static t_field *fields;
+
+/*=============================================================================
+ * Macro definitions
+ *============================================================================*/
+
+#define CWP_HEADER_SIZE    32
 
 /*=============================================================================
  * Private function interfaces
@@ -232,6 +239,113 @@ static void read_name(char **name) {
   CWP_transfer_readdata(clt->socket,clt->max_msg_size,(void*) *name, name_size);
 }
 
+/*============================================================================
+ * Client function definitions
+ *============================================================================*/
+
+/* Connect to a server */
+
+int
+CWP_client_connect
+(
+ const char* server_name,
+ int server_port,
+ int flags
+)
+{
+  struct hostent *host;
+  struct sockaddr_in *server_addr = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in));
+  socklen_t max_msg_size_len = 0;
+  int il_cl_endian;
+
+  clt = (t_client *) malloc(sizeof(t_client));
+  memset(clt,0,sizeof(t_client));
+  strncpy(clt->server_name, server_name,sizeof(clt->server_name));
+  clt->server_port=server_port;
+  clt->flags=flags;
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Creating Client, connecting to %s:%i...\n",server_name,server_port);
+  }
+
+  host = (struct hostent *) gethostbyname(server_name);
+
+  // create socket
+  if ((clt->socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+    PDM_error(__FILE__, __LINE__, 0, "Could not create Socket\n");
+    return -1;
+  }
+
+  server_addr->sin_family = AF_INET;
+  server_addr->sin_port = htons(server_port);
+  server_addr->sin_addr = *((struct in_addr *)host->h_addr);
+  bzero(&(server_addr->sin_zero),8);
+
+  // connect
+  while (connect(clt->socket, (struct sockaddr *) server_addr,
+                 sizeof(struct sockaddr)) == -1) {}
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client connected on %s port %i \n", server_name, server_port);
+  }
+
+  // get maximum message size
+  clt->max_msg_size = 0;
+  max_msg_size_len  = sizeof(int);
+  getsockopt(clt->socket, SOL_SOCKET, SO_RCVBUF, (void *)&clt->max_msg_size, &max_msg_size_len);
+  clt->max_msg_size = CWP_MSG_MAXMSGSIZE;
+
+  // exchange endianess
+  clt->client_endianess = CWP_transfer_endian_machine();
+  il_cl_endian = htonl(clt->client_endianess);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,
+         (void*)&il_cl_endian,sizeof(int));
+  CWP_transfer_readdata(clt->socket,clt->max_msg_size,
+           (void*)&clt->server_endianess,sizeof(int));
+  clt->server_endianess = ntohl(clt->server_endianess);
+
+  // verbose
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:client endian %i server endian %i\n",clt->client_endianess,clt->server_endianess);
+  }
+
+  // free
+  free(server_addr);
+
+  return 0;
+
+}
+
+/* Disconnect */
+
+int
+CWP_client_disconnect
+()
+{
+  t_message msg;
+
+  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
+    log_trace("CWP:Client shutting down\n");
+  }
+
+  NEWMESSAGE(msg, CWP_MSG_DIE);
+
+  CWP_client_send_msg(&msg);
+
+  // shutdown
+#ifdef WINDOWS
+  shutdown(clt->socket,SD_BOTH);
+#else
+  shutdown(clt->socket,SHUT_RDWR);
+#endif
+
+  memset(clt,0,sizeof(t_client));
+
+  return 0;
+}
+
 /*=============================================================================
  * Client CWIPI function interfaces
  *============================================================================*/
@@ -239,12 +353,103 @@ static void read_name(char **name) {
 void
 CWP_client_Init
 (
+ MPI_Comm                  comm,
+  char                    *config,
   const int                n_code,
   const char             **code_names,
   const CWP_Status_t      *is_active_rank,
   const double            *time_init
 )
 {
+  /* connect */
+
+  // mpi
+  int i_rank;
+  int n_rank;
+
+  PDM_MPI_Comm pdm_comm = PDM_MPI_mpi_2_pdm_mpi_comm(&comm);
+  PDM_MPI_Comm_rank(pdm_comm, &i_rank);
+  PDM_MPI_Comm_size(pdm_comm, &n_rank);
+
+  // read host_name and port from config file
+  // --> open
+  PDM_io_file_t *read = NULL;
+  PDM_l_num_t    ierr;
+
+  PDM_io_open(config,
+              PDM_IO_FMT_BIN,
+              PDM_IO_SUFF_MAN,
+              "",
+              PDM_IO_BACKUP_OFF,
+              PDM_IO_KIND_MPI_SIMPLE,
+              PDM_IO_MOD_READ,
+              PDM_IO_NATIVE,
+              pdm_comm,
+              -1.,
+              &read,
+              &ierr);
+
+  // --> global read offset in header
+  char *buffer = (char *) malloc(CWP_HEADER_SIZE+1);
+  for (int i = 0; i < CWP_HEADER_SIZE; i++) {
+    buffer[i] = '\0';
+  }
+
+  PDM_io_global_read(read,
+                     CWP_HEADER_SIZE * sizeof(char),
+                     1,
+                     buffer);
+
+  char div_line[] = "\n";
+  char *line = strtok(buffer, div_line);
+  line = strtok(NULL, div_line);
+
+  char div_word[] = " ";
+  char *word = strtok(line, div_word);
+  word = strtok(NULL, div_word);
+
+  int offset = atoi(word);
+
+  // --> block read hostname/port
+  char *data = (char *) malloc(offset+1);
+
+  for (int i = 0; i < offset+1; i++) {
+    data[i] = '\0';
+  }
+
+  int one = 1;
+  PDM_g_num_t i_rank_gnum = (PDM_g_num_t) (i_rank+1);
+
+  PDM_io_par_interlaced_read(read,
+                             PDM_STRIDE_CST_INTERLACED,
+             (PDM_l_num_t *) &one,
+               (PDM_l_num_t) offset,
+               (PDM_l_num_t) one,
+                             &i_rank_gnum,
+                             data);
+
+  char div[] = "/";
+  char *str = strtok(data, div);
+  char *server_name = (char *) malloc(strlen(str)+1);
+  memcpy(server_name, str, strlen(str)+1);
+  str = strtok(NULL, div);
+  int server_port = atoi(str);
+
+  // --> close
+  PDM_io_close(read);
+  PDM_io_free(read);
+
+  // connect
+  if (CWP_client_connect(server_name, server_port, CWP_CLIENTFLAG_VERBOSE) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "Client connexion failed\n");
+  }
+
+  // free
+  free(buffer);
+  free(data);
+  free(server_name);
+
+  /* cwipi init */
   t_message msg;
 
   // verbose
@@ -261,6 +466,7 @@ CWP_client_Init
   }
 
   fields = (t_field *) malloc(sizeof(t_field));
+  memset(fields, 0, sizeof(t_field));
 
   // mandatory to use the map
   fields->field_settings.clear();
@@ -291,6 +497,7 @@ CWP_client_Init
 void
 CWP_client_Finalize()
 {
+  /* finalize */
   t_message msg;
 
   // verbose
@@ -305,6 +512,9 @@ CWP_client_Finalize()
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Finalize failed to send message header\n");
   }
+
+  /* disconnect */
+  CWP_client_disconnect();
 }
 
 void
@@ -2927,113 +3137,6 @@ CWP_client_Interp_from_location_set
   *        at server side and user could choose out of them or
   *        implement some others
   */
-}
-
-/*============================================================================
- * Client function definitions
- *============================================================================*/
-
-/* Connect to a server */
-
-int
-CWP_client_connect
-(
- const char* server_name,
- int server_port,
- int flags
-)
-{
-  struct hostent *host;
-  struct sockaddr_in *server_addr = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in));
-  socklen_t max_msg_size_len = 0;
-  int il_cl_endian;
-
-  clt = (t_client *) malloc(sizeof(t_client));
-  memset(clt,0,sizeof(t_client));
-  strncpy(clt->server_name, server_name,sizeof(clt->server_name));
-  clt->server_port=server_port;
-  clt->flags=flags;
-
-  // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Creating Client, connecting to %s:%i...\n",server_name,server_port);
-  }
-
-  host = (struct hostent *) gethostbyname(server_name);
-
-  // create socket
-  if ((clt->socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-    PDM_error(__FILE__, __LINE__, 0, "Could not create Socket\n");
-    return -1;
-  }
-
-  server_addr->sin_family = AF_INET;
-  server_addr->sin_port = htons(server_port);
-  server_addr->sin_addr = *((struct in_addr *)host->h_addr);
-  bzero(&(server_addr->sin_zero),8);
-
-  // connect
-  while (connect(clt->socket, (struct sockaddr *) server_addr,
-                 sizeof(struct sockaddr)) == -1) {}
-
-  // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client connected on %s port %i \n", server_name, server_port);
-  }
-
-  // get maximum message size
-  clt->max_msg_size = 0;
-  max_msg_size_len  = sizeof(int);
-  getsockopt(clt->socket, SOL_SOCKET, SO_RCVBUF, (void *)&clt->max_msg_size, &max_msg_size_len);
-  clt->max_msg_size = CWP_MSG_MAXMSGSIZE;
-
-  // exchange endianess
-  clt->client_endianess = CWP_transfer_endian_machine();
-  il_cl_endian = htonl(clt->client_endianess);
-  CWP_transfer_writedata(clt->socket,clt->max_msg_size,
-         (void*)&il_cl_endian,sizeof(int));
-  CWP_transfer_readdata(clt->socket,clt->max_msg_size,
-           (void*)&clt->server_endianess,sizeof(int));
-  clt->server_endianess = ntohl(clt->server_endianess);
-
-  // verbose
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:client endian %i server endian %i\n",clt->client_endianess,clt->server_endianess);
-  }
-
-  // free
-  free(server_addr);
-
-  return 0;
-
-}
-
-/* Disconnect */
-
-int
-CWP_client_disconnect
-()
-{
-  t_message msg;
-
-  if (clt->flags & CWP_CLIENTFLAG_VERBOSE) {
-    log_trace("CWP:Client shutting down\n");
-  }
-
-  NEWMESSAGE(msg, CWP_MSG_DIE);
-
-  CWP_client_send_msg(&msg);
-
-  // shutdown
-#ifdef WINDOWS
-  shutdown(clt->socket,SD_BOTH);
-#else
-  shutdown(clt->socket,SHUT_RDWR);
-#endif
-
-  memset(clt,0,sizeof(t_client));
-
-  return 0;
 }
 
 #ifdef __cplusplus

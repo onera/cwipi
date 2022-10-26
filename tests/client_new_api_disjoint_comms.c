@@ -364,84 +364,10 @@ main
   int rank;
   int comm_world_size;
 
-  PDM_MPI_Init(&argc, &argv);
-  PDM_MPI_Comm comm = PDM_MPI_COMM_WORLD;
-  PDM_MPI_Comm_rank(comm, &rank);
-  PDM_MPI_Comm_size(comm, &comm_world_size);
-
-  // read host_name and port from config file
-  // --> open
-  PDM_io_file_t *read = NULL;
-  PDM_l_num_t    ierr;
-
-  PDM_io_open(config,
-              PDM_IO_FMT_BIN,
-              PDM_IO_SUFF_MAN,
-              "",
-              PDM_IO_BACKUP_OFF,
-              PDM_IO_KIND_MPI_SIMPLE,
-              PDM_IO_MOD_READ,
-              PDM_IO_NATIVE,
-              comm,
-              -1.,
-              &read,
-              &ierr);
-
-  // --> global read offset in header
-  char *buffer = malloc(CWP_HEADER_SIZE+1);
-  for (int i = 0; i < CWP_HEADER_SIZE; i++) {
-    buffer[i] = '\0';
-  }
-
-  PDM_io_global_read(read,
-                     CWP_HEADER_SIZE * sizeof(char),
-                     1,
-                     buffer);
-
-  char div_line[] = "\n";
-  char *line = strtok(buffer, div_line);
-  line = strtok(NULL, div_line);
-
-  char div_word[] = " ";
-  char *word = strtok(line, div_word);
-  word = strtok(NULL, div_word);
-
-  int offset = atoi(word);
-
-  // --> block read hostname/port
-  char *data = malloc(offset+1);
-
-  for (int i = 0; i < offset+1; i++) {
-    data[i] = '\0';
-  }
-
-  int one = 1;
-  PDM_g_num_t rank_gnum = (PDM_g_num_t) (rank+1);
-
-  PDM_io_par_interlaced_read(read,
-                             PDM_STRIDE_CST_INTERLACED,
-             (PDM_l_num_t *) &one,
-               (PDM_l_num_t) offset,
-               (PDM_l_num_t) one,
-                             &rank_gnum,
-                             data);
-
-  char div[] = "/";
-  char *str = strtok(data, div);
-  char *server_name = malloc(strlen(str)+1);
-  memcpy(server_name, str, strlen(str)+1);
-  str = strtok(NULL, div);
-  int server_port = atoi(str);
-
-  // --> close
-  PDM_io_close(read);
-  PDM_io_free(read);
-
-  // connect
-  if (CWP_client_connect(server_name, server_port, CWP_CLIENTFLAG_VERBOSE) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "Client connexion failed\n");
-    return -1;
-  }
+  MPI_Init(&argc, &argv);
+  MPI_Comm comm = MPI_COMM_WORLD;
+  MPI_Comm_rank(comm, &rank);
+  MPI_Comm_size(comm, &comm_world_size);
 
   // Input
   int n_part = 1;
@@ -545,7 +471,9 @@ main
   }
 
   // Init cwipi
-  CWP_client_Init(n_code,
+  CWP_client_Init(comm,
+                  config,
+                  n_code,
                   (const char **) code_names,
                   is_active_rank,
                   time_init);
@@ -614,7 +542,7 @@ main
   } else {
     color = 0;
   }
-  PDM_MPI_Comm_split(comm, color, 0, &LocalComm);
+  PDM_MPI_Comm_split(PDM_MPI_mpi_2_pdm_mpi_comm(&comm), color, 0, &LocalComm);
 
   for (int i_code = 0 ; i_code < n_code ; ++i_code) {
 
@@ -827,7 +755,7 @@ main
     printf("%d : %s --- Field created and data set\n", rank, code_names[i_code]);
   }
 
-  PDM_MPI_Barrier(comm);
+  MPI_Barrier(comm);
 
   // Compute weights
   for (int i_code = 0 ; i_code < n_code ; ++i_code) {
@@ -1097,7 +1025,7 @@ main
     CWP_client_Time_update(code_names[i_code], 0.1);
   }
 
-  PDM_MPI_Barrier(comm);
+  MPI_Barrier(comm);
 
   // Delete field
   // for (int i_code = 0 ; i_code < n_code ; i_code++) {
@@ -1124,9 +1052,6 @@ main
   }
 
   // free
-  free(buffer);
-  free(data);
-  free(server_name);
   free(element_type);
   free(element_type_cwp);
   free(code_id);
@@ -1143,10 +1068,7 @@ main
   CWP_client_Finalize();
   printf("%d --- CWIPI finalized\n", rank);
 
-  // disconnect
-  CWP_client_disconnect();
-
-  PDM_MPI_Finalize();
+  MPI_Finalize();
 
   return 0;
 }

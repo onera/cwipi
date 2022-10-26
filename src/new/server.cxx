@@ -114,6 +114,7 @@ CWP_server_Init
 
   // svr_cwp init
   svr_cwp = (p_cwp) malloc(sizeof(t_cwp));
+  memset(svr_cwp, 0, sizeof(t_cwp)); // TO DO: find solution to remove and that maps behave fine...
 
   // mandatory for the map to work
   svr_cwp->char_param_value.clear();
@@ -167,7 +168,6 @@ CWP_server_Finalize
 
   // free
   if (svr_mpi->intra_comms != NULL) free(svr_mpi->intra_comms);
-  if (svr_cwp->output_file != NULL) free(svr_cwp->output_file);
 
   CWP_Finalize();
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
@@ -802,9 +802,10 @@ CWP_server_Cpl_create
   // create occurence in map
   std::string s(cpl_id);
   p_coupling coupling = (t_coupling *) malloc(sizeof(t_coupling));
+  memset(coupling, 0, sizeof(t_coupling));
   svr_cwp->coupling.insert(std::make_pair(s, coupling));
 
-  // mandatory for map
+  // mandatory
   coupling->field.clear();
 
   // free

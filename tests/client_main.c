@@ -52,12 +52,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /*=============================================================================
- * Macro definitions
- *============================================================================*/
-
-#define CWP_HEADER_SIZE    32
-
-/*=============================================================================
  * Util functions
  *============================================================================*/
 
@@ -133,84 +127,10 @@ main
   int i_rank;
   int n_rank;
 
-  PDM_MPI_Init(&argc, &argv);
-  PDM_MPI_Comm comm = PDM_MPI_COMM_WORLD;
-  PDM_MPI_Comm_rank(comm, &i_rank);
-  PDM_MPI_Comm_size(comm, &n_rank);
-
-  // read host_name and port from config file
-  // --> open
-  PDM_io_file_t *read = NULL;
-  PDM_l_num_t    ierr;
-
-  PDM_io_open(config,
-              PDM_IO_FMT_BIN,
-              PDM_IO_SUFF_MAN,
-              "",
-              PDM_IO_BACKUP_OFF,
-              PDM_IO_KIND_MPI_SIMPLE,
-              PDM_IO_MOD_READ,
-              PDM_IO_NATIVE,
-              comm,
-              -1.,
-              &read,
-              &ierr);
-
-  // --> global read offset in header
-  char *buffer = malloc(CWP_HEADER_SIZE+1);
-  for (int i = 0; i < CWP_HEADER_SIZE; i++) {
-    buffer[i] = '\0';
-  }
-
-  PDM_io_global_read(read,
-                     CWP_HEADER_SIZE * sizeof(char),
-                     1,
-                     buffer);
-
-  char div_line[] = "\n";
-  char *line = strtok(buffer, div_line);
-  line = strtok(NULL, div_line);
-
-  char div_word[] = " ";
-  char *word = strtok(line, div_word);
-  word = strtok(NULL, div_word);
-
-  int offset = atoi(word);
-
-  // --> block read hostname/port
-  char *data = malloc(offset+1);
-
-  for (int i = 0; i < offset+1; i++) {
-    data[i] = '\0';
-  }
-
-  int one = 1;
-  PDM_g_num_t i_rank_gnum = (PDM_g_num_t) (i_rank+1);
-
-  PDM_io_par_interlaced_read(read,
-                             PDM_STRIDE_CST_INTERLACED,
-             (PDM_l_num_t *) &one,
-               (PDM_l_num_t) offset,
-               (PDM_l_num_t) one,
-                             &i_rank_gnum,
-                             data);
-
-  char div[] = "/";
-  char *str = strtok(data, div);
-  char *server_name = malloc(strlen(str)+1);
-  memcpy(server_name, str, strlen(str)+1);
-  str = strtok(NULL, div);
-  int server_port = atoi(str);
-
-  // --> close
-  PDM_io_close(read);
-  PDM_io_free(read);
-
-  // connect
-  if (CWP_client_connect(server_name, server_port, CWP_CLIENTFLAG_VERBOSE) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "Client connexion failed\n");
-    return -1;
-  }
+  MPI_Init(&argc, &argv);
+  MPI_Comm comm = MPI_COMM_WORLD;
+  MPI_Comm_rank(comm, &i_rank);
+  MPI_Comm_size(comm, &n_rank);
 
   // CWP_Init
   int n_code = 0;
@@ -239,7 +159,9 @@ main
     times_init[i] = 0;
   }
 
-  CWP_client_Init(n_code,
+  CWP_client_Init(comm,
+                  config,
+                  n_code,
                   (const char **) code_names,
                   is_coupled_rank,
                   times_init);
@@ -314,7 +236,7 @@ main
     CWP_client_Param_unlock("code2");
   }
 
-  PDM_MPI_Barrier(comm);
+  MPI_Barrier(comm);
 
   double titi1;
   CWP_client_Param_get("code1", "tata", CWP_DOUBLE, &titi1);
@@ -356,7 +278,7 @@ main
     CWP_client_Param_unlock("code1");
   }
 
-  PDM_MPI_Barrier(comm);
+  MPI_Barrier(comm);
 
   double tita;
   CWP_client_Param_get("code1", "tatic", CWP_DOUBLE, &tita);
@@ -430,17 +352,12 @@ main
   // CWP_Finalize
   CWP_client_Finalize();
 
-  // disconnect
-  CWP_client_disconnect();
-
   // free
-  if (buffer != NULL) free(buffer);
-  if (server_name != NULL) free(server_name);
   if (times_init != NULL) free(times_init);
   if (code_names != NULL) free(code_names);
   if (is_coupled_rank != NULL) free(is_coupled_rank);
 
-  PDM_MPI_Finalize();
+  MPI_Finalize();
 
   return 0;
 }
