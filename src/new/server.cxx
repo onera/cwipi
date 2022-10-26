@@ -66,6 +66,10 @@ extern "C" {
 #endif
 #endif /* __cplusplus */
 
+/* debug */
+
+static int svr_debug = 0;
+
 /* file struct definition */
 
 static t_server_mpi *svr_mpi;
@@ -163,7 +167,7 @@ CWP_server_Init
   if (svr->flags & CWP_FLAG_VERBOSE) {
     t_message message;
     NEWMESSAGE(message, CWP_MSG_CWP_INIT);
-    message.flag = CWP_SVR_LCH_END;
+    message.flag = CWP_SVR_END;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
 
@@ -175,15 +179,6 @@ CWP_server_Init
   free(is_active_rank);
   free(time_init);
 
-  // send status msg
-  MPI_Barrier(svr_mpi->intra_comms[0]);
-  if (svr->flags & CWP_FLAG_VERBOSE) {
-    t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_INIT);
-    message.flag = CWP_SVR_END;
-    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
-  }
-
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
@@ -193,13 +188,29 @@ CWP_server_Finalize
  p_server                 svr
 )
 {
-  // wait all ranks have receive msg
+  // send status msg
   MPI_Barrier(svr_mpi->intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_FINALIZE);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
 
   // free
   if (svr_mpi->intra_comms != NULL) free(svr_mpi->intra_comms);
 
   CWP_Finalize();
+
+  // send status msg
+  MPI_Barrier(svr_mpi->global_comm);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_FINALIZE);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
@@ -209,15 +220,40 @@ CWP_server_Param_lock
  p_server                 svr
 )
 {
-  // wait all ranks have receive msg
+  // send status msg
   MPI_Barrier(svr_mpi->intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PARAM_LOCK);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
 
-  // launch
+  // receive code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
   char *code_name = (char *) malloc(sizeof(char));
   read_name(&code_name, svr);
 
+  // send status msg
+  MPI_Barrier(svr_mpi->intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PARAM_LOCK);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // launch
   CWP_Param_lock((const char *) code_name);
+
+  // send status msg
+  MPI_Barrier(svr_mpi->intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PARAM_LOCK);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
 
   // free
   free(code_name);
@@ -231,15 +267,40 @@ CWP_server_Param_unlock
  p_server                 svr
 )
 {
-  // wait all ranks have receive msg
+  // send status msg
   MPI_Barrier(svr_mpi->intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PARAM_UNLOCK);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
 
-  // launch
+  // receive code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
   char *code_name = (char *) malloc(sizeof(char));
   read_name(&code_name, svr);
 
+  // send status msg
+  MPI_Barrier(svr_mpi->intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PARAM_UNLOCK);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // launch
   CWP_Param_unlock((const char *) code_name);
+
+  // send status msg
+  MPI_Barrier(svr_mpi->intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PARAM_UNLOCK);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
 
   // free
   free(code_name);
@@ -253,8 +314,14 @@ CWP_server_Param_add
  p_server                 svr
 )
 {
-  // wait all ranks have receive msg
+  // send status msg
   MPI_Barrier(svr_mpi->intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PARAM_ADD);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -274,6 +341,16 @@ CWP_server_Param_add
   case CWP_DOUBLE: {
     double double_initial_value;
     CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &double_initial_value, sizeof(double));
+
+    // send status msg
+    MPI_Barrier(svr_mpi->intra_comms[0]);
+    if (svr->flags & CWP_FLAG_VERBOSE) {
+      t_message message;
+      NEWMESSAGE(message, CWP_MSG_CWP_PARAM_ADD);
+      message.flag = CWP_SVR_LCH_BEGIN;
+      CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+    }
+
     CWP_Param_add(local_code_name,
                   param_name,
                   data_type,
@@ -283,6 +360,16 @@ CWP_server_Param_add
   case CWP_INT: {
     double int_initial_value;
     CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &int_initial_value, sizeof(int));
+
+    // send status msg
+    MPI_Barrier(svr_mpi->intra_comms[0]);
+    if (svr->flags & CWP_FLAG_VERBOSE) {
+      t_message message;
+      NEWMESSAGE(message, CWP_MSG_CWP_PARAM_ADD);
+      message.flag = CWP_SVR_LCH_BEGIN;
+      CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+    }
+
     CWP_Param_add(local_code_name,
                   param_name,
                   data_type,
@@ -296,6 +383,16 @@ CWP_server_Param_add
     CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, (void*) char_initial_value, name_size);
     std::string s(param_name);
     svr_cwp->char_param_value.insert(std::make_pair(s, char_initial_value));
+
+    // send status msg
+    MPI_Barrier(svr_mpi->intra_comms[0]);
+    if (svr->flags & CWP_FLAG_VERBOSE) {
+      t_message message;
+      NEWMESSAGE(message, CWP_MSG_CWP_PARAM_ADD);
+      message.flag = CWP_SVR_LCH_BEGIN;
+      CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+    }
+
     CWP_Param_add(local_code_name,
                   param_name,
                   data_type,
@@ -304,6 +401,15 @@ CWP_server_Param_add
 
   default:
     PDM_error(__FILE__, __LINE__, 0, "Received unknown CWP_Type_t %i\n", data_type);
+  }
+
+  // send status msg
+  MPI_Barrier(svr_mpi->intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PARAM_ADD);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
 
   // free
@@ -319,8 +425,14 @@ CWP_server_Param_get
  p_server                 svr
 )
 {
-  // wait all ranks have receive msg
+  // send status msg
   MPI_Barrier(svr_mpi->intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PARAM_GET);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
 
   // read local code name
   svr->state=CWP_SVRSTATE_RECVPPUTDATA;
@@ -335,6 +447,15 @@ CWP_server_Param_get
   CWP_Type_t data_type = (CWP_Type_t ) -1;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &data_type, sizeof(CWP_Type_t));
 
+  // send status msg
+  MPI_Barrier(svr_mpi->intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PARAM_GET);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
   // send value
   svr->state=CWP_SVRSTATE_SENDPGETDATA;
   switch (data_type) {
@@ -347,6 +468,15 @@ CWP_server_Param_get
                   data_type,
                   &double_value);
 
+    // send status msg
+    MPI_Barrier(svr_mpi->intra_comms[0]);
+    if (svr->flags & CWP_FLAG_VERBOSE) {
+      t_message message;
+      NEWMESSAGE(message, CWP_MSG_CWP_PARAM_GET);
+      message.flag = CWP_SVR_LCH_END;
+      CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+    }
+
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,(void*) &double_value, sizeof(double));
     } break;
 
@@ -357,6 +487,15 @@ CWP_server_Param_get
                   data_type,
                   &int_value);
 
+      // send status msg
+    MPI_Barrier(svr_mpi->intra_comms[0]);
+    if (svr->flags & CWP_FLAG_VERBOSE) {
+      t_message message;
+      NEWMESSAGE(message, CWP_MSG_CWP_PARAM_GET);
+      message.flag = CWP_SVR_LCH_END;
+      CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+    }
+
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,(void*) &int_value, sizeof(int));
     } break;
 
@@ -366,12 +505,31 @@ CWP_server_Param_get
                   param_name,
                   data_type,
                   &char_value);
+
+    // send status msg
+    MPI_Barrier(svr_mpi->intra_comms[0]);
+    if (svr->flags & CWP_FLAG_VERBOSE) {
+      t_message message;
+      NEWMESSAGE(message, CWP_MSG_CWP_PARAM_GET);
+      message.flag = CWP_SVR_LCH_END;
+      CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+    }
+
     write_name(char_value, svr);
     free(char_value);
     } break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0, "Received unknown CWP_Type_t %i\n", data_type);
+  }
+
+  // send status msg
+  MPI_Barrier(svr_mpi->intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PARAM_GET);
+    message.flag = CWP_SVR_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
 
   // free
@@ -2890,7 +3048,7 @@ CWP_server_create
   }
 
   // verbose
-  if (svr->flags & CWP_FLAG_VERBOSE) {
+  if (svr_debug) {
     printf("CWP:Creating Server on %s port %i...\n", svr->host_name, svr->port);
   }
 
@@ -2909,7 +3067,7 @@ CWP_server_create
   svr->max_msg_size = CWP_MSG_MAXMSGSIZE;
 
   // verbose
-  if (svr->flags & CWP_FLAG_VERBOSE) {
+  if (svr_debug) {
     printf("CWP:Max message size:%i\n", svr->max_msg_size);
   }
 
@@ -2940,7 +3098,7 @@ CWP_server_create
   svr->state = CWP_SVRSTATE_WAITCONN;
 
   // verbose
-  if (svr->flags & CWP_FLAG_VERBOSE) {
+  if (svr_debug) {
     printf("CWP:Server created on %s port %i\n", svr->host_name, svr->port);
   }
 
@@ -2959,7 +3117,7 @@ CWP_server_kill
 )
 {
   // verbose
-  if (svr->flags & CWP_FLAG_VERBOSE) {
+  if (svr_debug) {
     printf("CWP:Server shutting down\n");
   }
 
@@ -2992,7 +3150,7 @@ CWP_server_msg_handler
     svr->state=CWP_SVRSTATE_TERMINATING;
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server recieved termination signal\n");
     }
 
@@ -3001,7 +3159,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_INIT:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Init signal\n");
     }
 
@@ -3013,7 +3171,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_FINALIZE:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Finalize signal\n");
     }
 
@@ -3025,7 +3183,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_PARAM_LOCK:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Param_lock signal\n");
     }
 
@@ -3037,7 +3195,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_PARAM_UNLOCK:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Param_unlock signal\n");
     }
 
@@ -3049,7 +3207,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_PARAM_ADD:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Param_add signal\n");
     }
 
@@ -3061,7 +3219,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_PARAM_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Param_get signal\n");
     }
 
@@ -3073,7 +3231,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_PARAM_SET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Param_set signal\n");
     }
 
@@ -3085,7 +3243,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_PARAM_DEL:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Param_del signal\n");
     }
 
@@ -3097,7 +3255,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_PARAM_N_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Param_n_get signal\n");
     }
 
@@ -3109,7 +3267,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_PARAM_LIST_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Param_list_get signal\n");
     }
 
@@ -3121,7 +3279,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_PARAM_IS:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Param_is signal\n");
     }
 
@@ -3133,7 +3291,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_PARAM_REDUCE:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Param_reduce signal\n");
     }
 
@@ -3145,7 +3303,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_CPL_CREATE:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Cpl_create signal\n");
     }
 
@@ -3157,7 +3315,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_CPL_DEL:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Cpl_del signal\n");
     }
 
@@ -3169,7 +3327,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_PROPERTIES_DUMP:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Properties_dump signal\n");
     }
 
@@ -3181,7 +3339,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_VISU_SET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Visu_set signal\n");
     }
 
@@ -3193,7 +3351,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_STATE_UPDATE:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_State_update signal\n");
     }
 
@@ -3205,7 +3363,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_TIME_UPDATE:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Time_update signal\n");
     }
 
@@ -3217,7 +3375,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_STATE_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_State_get signal\n");
     }
 
@@ -3229,7 +3387,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_CODES_NB_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Codes_nb_get signal\n");
     }
 
@@ -3241,7 +3399,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_CODES_LIST_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Codes_list_get signal\n");
     }
 
@@ -3253,7 +3411,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_LOC_CODES_NB_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Loc_codes_nb_get signal\n");
     }
 
@@ -3265,7 +3423,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_LOC_CODES_LIST_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Loc_codes_list_get signal\n");
     }
 
@@ -3277,7 +3435,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_N_UNCOMPUTED_TGTS_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_N_uncomputed_tgts_get signal\n");
     }
 
@@ -3289,7 +3447,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_UNCOMPUTED_TGTS_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Uncomputed_tgts_get signal\n");
     }
 
@@ -3301,7 +3459,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_N_COMPUTED_TGTS_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_N_computed_tgts_get signal\n");
     }
 
@@ -3313,7 +3471,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_COMPUTED_TGTS_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Computed_tgts_get signal\n");
     }
 
@@ -3325,7 +3483,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_N_INVOLVED_SRCS_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_N_involved_srcs_get\n");
     }
 
@@ -3337,7 +3495,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_INVOLVED_SRCS_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Involved_srcs_get signal\n");
     }
 
@@ -3349,7 +3507,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_SPATIAL_INTERP_WEIGHTS_COMPUTE:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Spatial_interp_weights_compute\n");
     }
 
@@ -3361,7 +3519,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_SPATIAL_INTERP_PROPERTY_SET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Spatial_interp_property_set signal\n");
     }
 
@@ -3373,7 +3531,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_USER_TGT_PTS_SET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_User_tgt_pts_set signal\n");
     }
 
@@ -3385,7 +3543,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_MESH_INTERF_FINALIZE:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Mesh_interf_finalize signal\n");
     }
 
@@ -3397,7 +3555,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_MESH_INTERF_VTX_SET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Mesh_interf_vtx_set signal\n");
     }
 
@@ -3409,7 +3567,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_MESH_INTERF_BLOCK_ADD:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Mesh_interf_block_add signal\n");
     }
 
@@ -3421,7 +3579,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_SET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Mesh_interf_block_std_set signal\n");
     }
 
@@ -3434,7 +3592,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_MESH_INTERF_F_POLY_BLOCK_SET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Mesh_interf_f_poly_block_set signal\n");
     }
 
@@ -3446,7 +3604,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_MESH_INTERF_F_POLY_BLOCK_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Mesh_interf_f_poly_block_get signal\n");
     }
 
@@ -3458,7 +3616,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_MESH_INTERF_C_POLY_BLOCK_SET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Mesh_interf_c_poly_block_set signal\n");
     }
 
@@ -3470,7 +3628,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_MESH_INTERF_C_POLY_BLOCK_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Mesh_interf_c_poly_block_get signal\n");
     }
 
@@ -3482,7 +3640,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_MESH_INTERF_DEL:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Mesh_interf_del signal\n");
     }
 
@@ -3494,7 +3652,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_MESH_INTERF_FROM_CELLFACE_SET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Mesh_interf_from_cellface_set signal\n");
     }
 
@@ -3506,7 +3664,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_MESH_INTERF_FROM_FACEEDGE_SET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Mesh_interf_from_faceedge_set signal\n");
     }
 
@@ -3518,7 +3676,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_FIELD_CREATE:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Field_create signal\n");
     }
 
@@ -3530,7 +3688,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_FIELD_DATA_SET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Field_data_set signal\n");
     }
 
@@ -3542,7 +3700,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_FIELD_N_COMPONENT_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Field_n_component_get signal\n");
     }
 
@@ -3554,7 +3712,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_FIELD_TARGET_DOF_LOCATION_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Field_target_dof_location_get signal\n");
     }
 
@@ -3566,7 +3724,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_FIELD_STORAGE_GET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Field_storage_get signal\n");
     }
 
@@ -3578,7 +3736,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_FIELD_DEL:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Field_del signal\n");
     }
 
@@ -3590,7 +3748,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_FIELD_ISSEND:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_CWP_Field_issend signal\n");
     }
 
@@ -3602,7 +3760,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_FIELD_IRECV:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Field_irecv signal\n");
     }
 
@@ -3614,7 +3772,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_FIELD_WAIT_ISSEND:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Field_wait_issend signal\n");
     }
 
@@ -3626,7 +3784,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_FIELD_WAIT_IRECV:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Field_wait_irecv signal\n");
     }
 
@@ -3638,7 +3796,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_INTERP_FROM_LOCATION_UNSET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Interp_from_location_unset signal\n");
     }
 
@@ -3650,7 +3808,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_INTERP_FROM_LOCATION_SET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Interp_from_location_set signal\n");
     }
 
@@ -3662,7 +3820,7 @@ CWP_server_msg_handler
   case CWP_MSG_CWP_OUTPUT_FILE_SET:
 
     // verbose
-    if (svr->flags & CWP_FLAG_VERBOSE) {
+    if (svr_debug) {
       printf("CWP: server received CWP_Output_file_set signal\n");
     }
 
@@ -3696,7 +3854,7 @@ CWP_server_run
   svr->connected_socket = accept(svr->listen_socket, (struct sockaddr *) client_addr, &client_addr_len);
 
   // verbose
-  if (svr->flags & CWP_FLAG_VERBOSE) {
+  if (svr_debug) {
     printf("CWP:got a connection from %s:%d\n",
     inet_ntoa(client_addr->sin_addr),ntohs(client_addr->sin_port));
   }
@@ -3724,7 +3882,7 @@ CWP_server_run
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 
-  if (svr->flags & CWP_FLAG_VERBOSE) {
+  if (svr_debug) {
     printf("Server : client endian %i server endian %i\n",svr->client_endianess,svr->server_endianess);
   }
 

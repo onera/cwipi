@@ -540,22 +540,22 @@ static void verbose(t_message msg) {
 
   switch (msg.flag) {
   case CWP_SVR_BEGIN: {
-    char name[] = "begin";
+    char name[] = "begin of server function";
     strcpy(flag, name);
     } break;
 
   case CWP_SVR_LCH_BEGIN: {
-    char name[] = "before lauching";
+    char name[] = "received function arguments";
     strcpy(flag, name);
     } break;
 
   case CWP_SVR_LCH_END: {
-    char name[] = "after lauching";
+    char name[] = "cwipi function finished";
     strcpy(flag, name);
     } break;
 
   case CWP_SVR_END: {
-    char name[] = "end";
+    char name[] = "return arguments sent";
     strcpy(flag, name);
     } break;
 
@@ -598,7 +598,7 @@ CWP_client_connect
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Creating Client, connecting to %s:%i...\n",server_name,server_port);
+    printf("CWP-CLIENT: Creating Client, connecting to %s:%i...\n",server_name,server_port);
   }
 
   host = (struct hostent *) gethostbyname(server_name);
@@ -620,7 +620,7 @@ CWP_client_connect
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client connected on %s port %i \n", server_name, server_port);
+    printf("CWP-CLIENT: Client connected on %s port %i \n", server_name, server_port);
   }
 
   // get maximum message size
@@ -640,7 +640,7 @@ CWP_client_connect
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:client endian %i server endian %i\n",clt->client_endianess,clt->server_endianess);
+    printf("CWP-CLIENT: client endian %i server endian %i\n",clt->client_endianess,clt->server_endianess);
   }
 
   // free
@@ -659,7 +659,7 @@ CWP_client_disconnect
   t_message msg;
 
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client shutting down\n");
+    printf("CWP-CLIENT: Client shutting down\n");
   }
 
   NEWMESSAGE(msg, CWP_MSG_DIE);
@@ -800,7 +800,7 @@ CWP_client_Init
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Init\n");
+    printf("CWP-CLIENT: Client initiating CWP_Init\n");
   }
 
   // create message
@@ -856,13 +856,6 @@ CWP_client_Init
     verbose(message);
   }
 
-  // receive status msg
-  if (clt->flags & CWP_FLAG_VERBOSE) {
-    t_message message;
-    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
-  }
-
   // free
   free(endian_is_active_rank);
   free(endian_time_init);
@@ -892,7 +885,7 @@ CWP_client_Finalize()
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Finalize\n");
+    printf("CWP-CLIENT: Client initiating CWP_Finalize\n");
   }
 
   // create message
@@ -901,6 +894,20 @@ CWP_client_Finalize()
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Finalize failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   /* disconnect */
@@ -917,7 +924,7 @@ const char *code_name
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Param_lock\n");
+    printf("CWP-CLIENT: Client initiating CWP_Param_lock\n");
   }
 
   // create message
@@ -928,8 +935,29 @@ const char *code_name
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_lock failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send code name
   write_name(code_name);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
@@ -942,7 +970,7 @@ const char *code_name
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Param_unlock\n");
+    printf("CWP-CLIENT: Client initiating CWP_Param_unlock\n");
   }
 
   // create message
@@ -953,8 +981,29 @@ const char *code_name
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_unlock failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send code name
   write_name(code_name);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
@@ -970,7 +1019,7 @@ CWP_client_Param_add
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Param_add\n");
+    printf("CWP-CLIENT: Client initiating CWP_Param_add\n");
   }
 
   // create message
@@ -979,6 +1028,13 @@ CWP_client_Param_add
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_add failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -1014,6 +1070,20 @@ CWP_client_Param_add
   default:
     PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i\n", data_type);
   }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
@@ -1029,7 +1099,7 @@ CWP_client_Param_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Param_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_Param_get\n");
   }
 
   // create message
@@ -1038,6 +1108,13 @@ CWP_client_Param_get
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_get failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send code name
@@ -1050,6 +1127,20 @@ CWP_client_Param_get
   CWP_Type_t endian_data_type = data_type;
   CWP_swap_endian_4bytes((int *) &endian_data_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_data_type, sizeof(CWP_Type_t));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // receive value
   switch (data_type) {
@@ -1073,6 +1164,13 @@ CWP_client_Param_get
     PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i\n", data_type);
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
 }
 
 void
@@ -1088,7 +1186,7 @@ CWP_client_Param_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Param_set\n");
+    printf("CWP-CLIENT: Client initiating CWP_Param_set\n");
   }
 
   // create message
@@ -1145,7 +1243,7 @@ CWP_client_Param_del
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Param_del\n");
+    printf("CWP-CLIENT: Client initiating CWP_Param_del\n");
   }
 
   // create message
@@ -1179,7 +1277,7 @@ CWP_client_Param_n_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Param_n_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_Param_n_get\n");
   }
 
   // create message
@@ -1218,7 +1316,7 @@ CWP_client_Param_list_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Param_list_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_Param_list_get\n");
   }
 
   // create message
@@ -1260,7 +1358,7 @@ CWP_client_Param_is
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Param_is\n");
+    printf("CWP-CLIENT: Client initiating CWP_Param_is\n");
   }
 
   // create message
@@ -1304,7 +1402,7 @@ CWP_client_Param_reduce
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Param_reduce\n");
+    printf("CWP-CLIENT: Client initiating CWP_Param_reduce\n");
   }
 
   // create message
@@ -1379,7 +1477,7 @@ CWP_client_Cpl_create
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Cpl_create\n");
+    printf("CWP-CLIENT: Client initiating CWP_Cpl_create\n");
   }
 
   // create message
@@ -1441,7 +1539,7 @@ CWP_client_Cpl_del
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Cpl_del\n");
+    printf("CWP-CLIENT: Client initiating CWP_Cpl_del\n");
   }
 
   // create message
@@ -1469,7 +1567,7 @@ void
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Properties_dump\n");
+    printf("CWP-CLIENT: Client initiating CWP_Properties_dump\n");
   }
 
   // create message
@@ -1495,7 +1593,7 @@ CWP_client_Visu_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Visu_set\n");
+    printf("CWP-CLIENT: Client initiating CWP_Visu_set\n");
   }
 
   // create message
@@ -1537,7 +1635,7 @@ CWP_client_State_update
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_State_update\n");
+    printf("CWP-CLIENT: Client initiating CWP_State_update\n");
   }
 
   // create message
@@ -1568,7 +1666,7 @@ CWP_client_Time_update
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Time_update\n");
+    printf("CWP-CLIENT: Client initiating CWP_Time_update\n");
   }
 
   // create message
@@ -1598,7 +1696,7 @@ const char *output_filename
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Output_file_set\n");
+    printf("CWP-CLIENT: Client initiating CWP_Output_file_set\n");
   }
 
   // create message
@@ -1622,7 +1720,7 @@ CWP_client_User_structure_set
 {
   PDM_UNUSED(local_code_name);
   PDM_UNUSED(user_structure);
-  printf("CWP-CLIENT: CWP_User_structure_set not implemented in client/server mode\n");
+  printf("CWP-CLIENT:  CWP_User_structure_set not implemented in client/server mode\n");
 }
 
 void *
@@ -1632,7 +1730,7 @@ CWP_client_User_structure_get
 )
 {
   PDM_UNUSED(local_code_name);
-  printf("CWP-CLIENT: CWP_User_structure_get not implemented in client/server mode\n");
+  printf("CWP-CLIENT:  CWP_User_structure_get not implemented in client/server mode\n");
 
   return 0;
 }
@@ -1647,7 +1745,7 @@ CWP_client_State_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_State_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_State_get\n");
   }
 
   // create message
@@ -1678,7 +1776,7 @@ CWP_client_Codes_nb_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Codes_nb_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_Codes_nb_get\n");
   }
 
   // create message
@@ -1706,7 +1804,7 @@ void
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Codes_list_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_Codes_list_get\n");
   }
 
   // create message
@@ -1739,7 +1837,7 @@ CWP_client_Loc_codes_nb_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Loc_codes_nb_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_Loc_codes_nb_get\n");
   }
 
   // create message
@@ -1767,7 +1865,7 @@ CWP_client_Loc_codes_list_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Loc_codes_list_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_Loc_codes_list_get\n");
   }
 
   // create message
@@ -1803,7 +1901,7 @@ CWP_client_N_uncomputed_tgts_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_N_uncomputed_tgts_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_N_uncomputed_tgts_get\n");
   }
 
   // create message
@@ -1848,7 +1946,7 @@ CWP_client_Uncomputed_tgts_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Uncomputed_tgts_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_Uncomputed_tgts_get\n");
   }
 
   // create message
@@ -1895,7 +1993,7 @@ CWP_client_N_computed_tgts_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_N_computed_tgts_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_N_computed_tgts_get\n");
   }
 
   // create message
@@ -1940,7 +2038,7 @@ CWP_client_Computed_tgts_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Computed_tgts_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_Computed_tgts_get\n");
   }
 
   // create message
@@ -1987,7 +2085,7 @@ CWP_client_N_involved_srcs_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_N_involved_srcs_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_N_involved_srcs_get\n");
   }
 
   // create message
@@ -2032,7 +2130,7 @@ CWP_client_Involved_srcs_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Involved_srcs_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_Involved_srcs_get\n");
   }
 
   // create message
@@ -2077,7 +2175,7 @@ CWP_client_Spatial_interp_weights_compute
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Spatial_interp_weights_compute\n");
+    printf("CWP-CLIENT: Client initiating CWP_Spatial_interp_weights_compute\n");
   }
 
   // create message
@@ -2109,7 +2207,7 @@ CWP_client_Spatial_interp_property_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Spatial_interp_property_set\n");
+    printf("CWP-CLIENT: Client initiating CWP_Spatial_interp_property_set\n");
   }
 
   // create message
@@ -2151,7 +2249,7 @@ CWP_client_User_tgt_pts_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_User_tgt_pts_set\n");
+    printf("CWP-CLIENT: Client initiating CWP_User_tgt_pts_set\n");
   }
 
   // create message
@@ -2220,7 +2318,7 @@ CWP_client_Mesh_interf_finalize
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_finalize\n");
+    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_finalize\n");
   }
 
   // create message
@@ -2253,7 +2351,7 @@ CWP_client_Mesh_interf_vtx_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_vtx_set\n");
+    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_vtx_set\n");
   }
 
   // create message
@@ -2323,7 +2421,7 @@ CWP_client_Mesh_interf_block_add
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_block_add\n");
+    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_block_add\n");
   }
 
   // create message
@@ -2369,7 +2467,7 @@ CWP_client_Mesh_interf_block_std_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_block_std_set\n");
+    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_block_std_set\n");
   }
 
   // create message
@@ -2455,7 +2553,7 @@ CWP_client_Mesh_interf_f_poly_block_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_f_poly_block_set\n");
+    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_f_poly_block_set\n");
   }
 
   // create message
@@ -2542,7 +2640,7 @@ CWP_client_Mesh_interf_f_poly_block_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_f_poly_block_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_f_poly_block_get\n");
   }
 
   // create message
@@ -2609,7 +2707,7 @@ CWP_client_Mesh_interf_c_poly_block_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_c_poly_block_set\n");
+    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_c_poly_block_set\n");
   }
 
   // create message
@@ -2718,7 +2816,7 @@ CWP_client_Mesh_interf_c_poly_block_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_c_poly_block_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_c_poly_block_get\n");
   }
 
   // create message
@@ -2786,7 +2884,7 @@ CWP_client_Mesh_interf_del
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_del\n");
+    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_del\n");
   }
 
   // create message
@@ -2823,7 +2921,7 @@ CWP_client_Mesh_interf_from_cellface_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_from_cellface_set\n");
+    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_from_cellface_set\n");
   }
 
   // create message
@@ -2926,7 +3024,7 @@ CWP_client_Mesh_interf_from_faceedge_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Mesh_interf_from_faceedge_set\n");
+    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_from_faceedge_set\n");
   }
 
   // create message
@@ -3028,7 +3126,7 @@ CWP_client_Field_create
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Field_create\n");
+    printf("CWP-CLIENT: Client initiating CWP_Field_create\n");
   }
 
   // create message
@@ -3108,7 +3206,7 @@ CWP_client_Field_data_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Field_data_set\n");
+    printf("CWP-CLIENT: Client initiating CWP_Field_data_set\n");
   }
 
   // create message
@@ -3173,7 +3271,7 @@ CWP_client_Field_n_component_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Field_n_component_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_Field_n_component_get\n");
   }
 
   // create message
@@ -3212,7 +3310,7 @@ CWP_client_Field_target_dof_location_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Field_target_dof_location_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_Field_target_dof_location_get\n");
   }
 
   // create message
@@ -3251,7 +3349,7 @@ CWP_client_Field_storage_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Field_storage_get\n");
+    printf("CWP-CLIENT: Client initiating CWP_Field_storage_get\n");
   }
 
   // create message
@@ -3290,7 +3388,7 @@ CWP_client_Field_del
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Field_del\n");
+    printf("CWP-CLIENT: Client initiating CWP_Field_del\n");
   }
 
   // create message
@@ -3323,7 +3421,7 @@ CWP_client_Field_issend
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Field_issend\n");
+    printf("CWP-CLIENT: Client initiating CWP_Field_issend\n");
   }
 
   // create message
@@ -3356,7 +3454,7 @@ CWP_client_Field_irecv
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Field_irecv\n");
+    printf("CWP-CLIENT: Client initiating CWP_Field_irecv\n");
   }
 
   // create message
@@ -3389,7 +3487,7 @@ CWP_client_Field_wait_issend
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Field_wait_issend\n");
+    printf("CWP-CLIENT: Client initiating CWP_Field_wait_issend\n");
   }
 
   // create message
@@ -3423,7 +3521,7 @@ CWP_client_Field_wait_irecv
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT:Client initiating CWP_Field_wait_irecv\n");
+    printf("CWP-CLIENT: Client initiating CWP_Field_wait_irecv\n");
   }
 
   // create message
@@ -3481,7 +3579,7 @@ CWP_client_Interp_from_location_unset
 
   // // verbose
   // if (clt->flags & CWP_FLAG_VERBOSE) {
-  //   printf("CWP-CLIENT:Client initiating CWP_Interp_from_location_unset\n");
+  //   printf("CWP-CLIENT: Client initiating CWP_Interp_from_location_unset\n");
   // }
 
   // // create message
