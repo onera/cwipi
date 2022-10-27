@@ -58,24 +58,24 @@ extern "C" {
  * Types definition
  *============================================================================*/
 
-typedef struct t_field_settings
+struct t_field_settings
 {
   int             i_part;
   CWP_Field_map_t map_type;
   int             n_component;
   int             n_entities;
-}t_field_settings,*p_field_settings;
+};
 
-typedef struct t_field
+struct t_field
 {
   // Field_data_set
   double *data;
 
   // Field_wait_irecv
-  std::map<std::tuple<std::string, std::string , std::string> , p_field_settings> field_settings;
-} t_field, *p_field;
+  std::map<std::tuple<std::string, std::string , std::string> , t_field_settings> field_settings;
+};
 
-typedef struct t_coupling
+struct t_coupling
 {
   // Mesh_interf_vtx_set
   double *vtx_coord;
@@ -114,10 +114,10 @@ typedef struct t_coupling
   char *property_value;
 
   // field_id
-  std::map<std::string, p_field> field;
-} t_coupling, *p_coupling;
+  std::map<std::string, t_field> field;
+};
 
-typedef struct t_cwp
+struct t_cwp
 {
   // Codes_list_get
   int          n_code_names;
@@ -136,14 +136,14 @@ typedef struct t_cwp
   FILE *output_file;
 
   // cpl_id
-  std::map<std::string, p_coupling> coupling;
-} t_cwp, *p_cwp;
+  std::map<std::string, t_coupling> coupling;
+};
 
-typedef struct t_server_mpi
+struct t_server_mpi
 {
   MPI_Comm  global_comm;
   MPI_Comm *intra_comms;
-} t_server_mpi, *p_server_mpi;
+};
 
 #ifdef __cplusplus
 }

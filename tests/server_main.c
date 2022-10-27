@@ -167,7 +167,7 @@ main
 
   // create server
   p_server svr = malloc(sizeof(t_server));
-  if (CWP_server_create(comm, server_port, 1, svr) != 0) {
+  if (CWP_server_create(comm, server_port, 0, svr) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "Server creation failed\n");
     return -1;
   }

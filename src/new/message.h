@@ -43,7 +43,6 @@ extern "C" {
 #define CWP_SVR_BEGIN      101
 #define CWP_SVR_LCH_BEGIN  102
 #define CWP_SVR_LCH_END    103
-#define CWP_SVR_END        104
 
 /* Request numbering for CWIPI mirror operations */
 #define CWP_MSG_DIE                                 0
