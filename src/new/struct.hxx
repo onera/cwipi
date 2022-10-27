@@ -60,6 +60,13 @@ extern "C" {
 
 struct t_field_settings
 {
+  t_field_settings() {
+    i_part      = -1;
+    map_type    = (CWP_Field_map_t) -1;
+    n_component = -1;
+    n_entities  = -1;
+  }
+
   int             i_part;
   CWP_Field_map_t map_type;
   int             n_component;
@@ -68,6 +75,11 @@ struct t_field_settings
 
 struct t_field
 {
+  t_field() {
+    data = NULL;
+  }
+
+
   // Field_data_set
   double *data;
 

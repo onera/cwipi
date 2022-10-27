@@ -64,6 +64,9 @@
 #include <pdm_io.h>
 #include <pdm_version.h>
 
+#include <iostream>
+#include <ostream>
+
 #ifdef __cplusplus
 extern "C" {
 #if 0
@@ -74,7 +77,7 @@ extern "C" {
 /* file struct definition */
 
 static t_client *clt;
-static t_field fields;
+static t_field fields = t_field();
 
 /*=============================================================================
  * Macro definitions
@@ -3230,13 +3233,9 @@ CWP_client_Field_create
   std::string s2(cpl_id);
   std::string s3(field_id);
 
-  t_field_settings settings = t_field_settings();
-  settings.i_part = -1;
-  settings.n_component = n_component;
-  settings.n_entities = -1;
-  settings.map_type = (CWP_Field_map_t) -1;
+  fields.field_settings[std::make_tuple(s1, s2, s3)] = t_field_settings();
+  fields.field_settings[std::make_tuple(s1, s2, s3)].n_component = n_component;
 
-  fields.field_settings.insert(std::make_pair(std::make_tuple(s1, s2, s3), settings));
 }
 
 void
@@ -3289,13 +3288,13 @@ CWP_client_Field_data_set
   std::string s1(local_code_name);
   std::string s2(cpl_id);
   std::string s3(field_id);
-  t_field_settings settings = fields.field_settings[std::make_tuple(s1, s2, s3)];
-  settings.i_part = i_part;
-  settings.n_entities = n_entities;
-  settings.map_type = map_type;
+
+  fields.field_settings[std::make_tuple(s1, s2, s3)].i_part     = i_part;
+  fields.field_settings[std::make_tuple(s1, s2, s3)].n_entities = n_entities;
+  fields.field_settings[std::make_tuple(s1, s2, s3)].map_type   = map_type;
 
   // send map with data
-  int size = settings.n_component * n_entities;
+  int size = fields.field_settings[std::make_tuple(s1, s2, s3)].n_component * n_entities;
   int endian_size = size;
   CWP_swap_endian_4bytes(&endian_size, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_size, sizeof(int));
@@ -3594,20 +3593,19 @@ CWP_client_Field_wait_irecv
   std::string s1(local_code_name);
   std::string s2(cpl_id);
   std::string s3(tgt_field_id);
-  t_field_settings settings = fields.field_settings[std::make_tuple(s1, s2, s3)];
 
   // send i_part
-  int endian_i_part = settings.i_part;
+  int endian_i_part = fields.field_settings[std::make_tuple(s1, s2, s3)].i_part;
   CWP_swap_endian_4bytes(&endian_i_part, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
 
   // send map type
-  CWP_Field_map_t endian_map_type = settings.map_type;
+  CWP_Field_map_t endian_map_type = fields.field_settings[std::make_tuple(s1, s2, s3)].map_type;
   CWP_swap_endian_4bytes((int *) &endian_map_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_map_type, sizeof(CWP_Field_map_t));
 
   // send size
-  int size = settings.n_component * settings.n_entities;
+  int size = fields.field_settings[std::make_tuple(s1, s2, s3)].n_component * fields.field_settings[std::make_tuple(s1, s2, s3)].n_entities;
   int endian_size = size;
   CWP_swap_endian_4bytes(&endian_size, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_size, sizeof(int));

@@ -1077,36 +1077,33 @@ CWP_server_Cpl_del
   // remove from map
   std::string s(cpl_id);
 
-  t_coupling coupling = svr_cwp.coupling[s];
+  if (svr_cwp.coupling[s].vtx_coord != NULL) free(svr_cwp.coupling[s].vtx_coord);
+  if (svr_cwp.coupling[s].vtx_global_num != NULL) free(svr_cwp.coupling[s].vtx_global_num);
+  if (svr_cwp.coupling[s].connec_faces_idx != NULL) free(svr_cwp.coupling[s].connec_faces_idx);
+  if (svr_cwp.coupling[s].connec_faces != NULL) free(svr_cwp.coupling[s].connec_faces);
+  if (svr_cwp.coupling[s].connec_cells_idx != NULL) free(svr_cwp.coupling[s].connec_cells_idx);
+  if (svr_cwp.coupling[s].connec_cells != NULL) free(svr_cwp.coupling[s].connec_cells);
+  if (svr_cwp.coupling[s].cell_global_num != NULL) free(svr_cwp.coupling[s].cell_global_num);
+  if (svr_cwp.coupling[s].connec_idx != NULL) free(svr_cwp.coupling[s].connec_idx);
+  if (svr_cwp.coupling[s].connec != NULL) free(svr_cwp.coupling[s].connec);
+  if (svr_cwp.coupling[s].elt_global_num != NULL) free(svr_cwp.coupling[s].elt_global_num);
+  if (svr_cwp.coupling[s].face_edge_idx != NULL) free(svr_cwp.coupling[s].face_edge_idx);
+  if (svr_cwp.coupling[s].face_edge != NULL) free(svr_cwp.coupling[s].face_edge);
+  if (svr_cwp.coupling[s].edge_vtx_idx != NULL) free(svr_cwp.coupling[s].edge_vtx_idx);
+  if (svr_cwp.coupling[s].edge_vtx != NULL) free(svr_cwp.coupling[s].edge_vtx);
+  if (svr_cwp.coupling[s].face_global_num != NULL) free(svr_cwp.coupling[s].face_global_num);
+  if (svr_cwp.coupling[s].std_connec != NULL) free(svr_cwp.coupling[s].std_connec);
+  if (svr_cwp.coupling[s].std_global_num != NULL) free(svr_cwp.coupling[s].std_global_num);
+  if (svr_cwp.coupling[s].usr_coord != NULL) free(svr_cwp.coupling[s].usr_coord);
+  if (svr_cwp.coupling[s].usr_global_num != NULL) free(svr_cwp.coupling[s].usr_global_num);
+  if (svr_cwp.coupling[s].property_name != NULL) free(svr_cwp.coupling[s].property_name);
+  if (svr_cwp.coupling[s].property_type != NULL) free(svr_cwp.coupling[s].property_type);
+  if (svr_cwp.coupling[s].property_value != NULL) free(svr_cwp.coupling[s].property_value);
 
-  if (coupling.vtx_coord != NULL) free(coupling.vtx_coord);
-  if (coupling.vtx_global_num != NULL) free(coupling.vtx_global_num);
-  if (coupling.connec_faces_idx != NULL) free(coupling.connec_faces_idx);
-  if (coupling.connec_faces != NULL) free(coupling.connec_faces);
-  if (coupling.connec_cells_idx != NULL) free(coupling.connec_cells_idx);
-  if (coupling.connec_cells != NULL) free(coupling.connec_cells);
-  if (coupling.cell_global_num != NULL) free(coupling.cell_global_num);
-  if (coupling.connec_idx != NULL) free(coupling.connec_idx);
-  if (coupling.connec != NULL) free(coupling.connec);
-  if (coupling.elt_global_num != NULL) free(coupling.elt_global_num);
-  if (coupling.face_edge_idx != NULL) free(coupling.face_edge_idx);
-  if (coupling.face_edge != NULL) free(coupling.face_edge);
-  if (coupling.edge_vtx_idx != NULL) free(coupling.edge_vtx_idx);
-  if (coupling.edge_vtx != NULL) free(coupling.edge_vtx);
-  if (coupling.face_global_num != NULL) free(coupling.face_global_num);
-  if (coupling.std_connec != NULL) free(coupling.std_connec);
-  if (coupling.std_global_num != NULL) free(coupling.std_global_num);
-  if (coupling.usr_coord != NULL) free(coupling.usr_coord);
-  if (coupling.usr_global_num != NULL) free(coupling.usr_global_num);
-  if (coupling.property_name != NULL) free(coupling.property_name);
-  if (coupling.property_type != NULL) free(coupling.property_type);
-  if (coupling.property_value != NULL) free(coupling.property_value);
-
-  if (!coupling.field.empty()) {
-    for (auto const& x : coupling.field) {
-      t_field field = coupling.field[x.first];
-      if (field.data != NULL) free(field.data);
-      coupling.field.erase(x.first);
+  if (!svr_cwp.coupling[s].field.empty()) {
+    for (auto const& x : svr_cwp.coupling[s].field) {
+      if (svr_cwp.coupling[s].field[x.first].data != NULL) free(svr_cwp.coupling[s].field[x.first].data);
+      svr_cwp.coupling[s].field.erase(x.first);
     }
   }
   svr_cwp.coupling.erase(s);
@@ -3021,6 +3018,8 @@ CWP_server_Field_wait_irecv
   CWP_Field_wait_irecv(local_code_name,
                        cpl_id,
                        tgt_field_id);
+
+  printf("i_part = %d, map_type = %d\n", i_part, (int) map_type);
 
   // launch CWP_Field_data_get to retreive field and send to Client
   double *data = NULL;
