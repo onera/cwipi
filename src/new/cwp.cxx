@@ -672,6 +672,29 @@ CWP_Properties_dump
   properties.dump();
 }
 
+/**
+ * \brief Dump string of code properties.
+ *
+ */
+
+int
+CWP_Properties_str_dump
+(
+ char **char_out
+)
+{
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+  string str_out = properties.str_dump();
+
+  // prepare output
+  int size = str_out.length() + 1;
+  *char_out = (char *) malloc(sizeof(char) * size);
+  strcpy(*char_out, str_out.c_str());
+
+  return size;
+}
+
 /*----------------------------------------------------------------------------*
  * General functions about coupling                                           *
  *----------------------------------------------------------------------------*/

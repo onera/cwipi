@@ -373,7 +373,7 @@ CWP_client_Time_update
 void
 CWP_client_Output_file_set
 (
-const char *output_filename
+  FILE *output_file
 );
 
 

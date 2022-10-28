@@ -678,6 +678,17 @@ CWP_Properties_dump
 void
 );
 
+/**
+ * \brief Dump string of code properties.
+ *
+ */
+
+int
+CWP_Properties_str_dump
+(
+ char **char_out
+);
+
 /*----------------------------------------------------------------------------*
  * General functions about coupling                                           *
  *----------------------------------------------------------------------------*/

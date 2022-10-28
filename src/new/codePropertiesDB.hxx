@@ -379,6 +379,14 @@ namespace cwipi {
     dump();
 
     /**
+     * \brief Dump string of properties
+     *
+     */
+
+    string
+    str_dump();
+
+    /**
      * \brief Lock access to local parameters from a distant code  
      *
      * \param [in]  codeName  Code name to lock

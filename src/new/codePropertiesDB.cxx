@@ -580,4 +580,23 @@ namespace cwipi {
     }
   }
 
+  /**
+    * \brief Dump string of properties
+    *
+    */
+
+  string
+  CodePropertiesDB::str_dump()
+  {
+    string out;
+    typedef map <string, CodeProperties * >::iterator CI;
+    for (CI p = _codePropertiesDB.begin();
+         p != _codePropertiesDB.end(); p++) {
+      if (p->second != NULL) {
+        out.append(p->second->str_dump());
+      }
+    }
+    return out;
+  }
+
 }

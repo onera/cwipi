@@ -159,6 +159,10 @@ main
     times_init[i] = 0;
   }
 
+  // Outputfile
+  FILE *f = fopen("output_file.txt", "a");
+  CWP_client_Output_file_set(f);
+
   CWP_client_Init(comm,
                   config,
                   n_code,
@@ -169,9 +173,6 @@ main
   // CWP_User_structure_*
   CWP_client_User_structure_set("code1", NULL);
   CWP_client_User_structure_get("code1");
-
-  // Outputfile
-  CWP_client_Output_file_set("outputfile.txt");
 
   // CWP_Codes_*
   int n_codes = CWP_client_Codes_nb_get();

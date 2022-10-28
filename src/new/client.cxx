@@ -63,9 +63,7 @@
 #include <pdm_mpi.h>
 #include <pdm_io.h>
 #include <pdm_version.h>
-
-#include <iostream>
-#include <ostream>
+#include <pdm_printf.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -78,6 +76,7 @@ extern "C" {
 
 static t_client *clt;
 static t_field fields = t_field();
+static FILE* _cwipi_output_listing;
 
 /*=============================================================================
  * Macro definitions
@@ -88,6 +87,18 @@ static t_field fields = t_field();
 /*=============================================================================
  * Private function interfaces
  *============================================================================*/
+
+// --> taken from cwp.cxx
+
+static int
+_cwipi_print_with_c
+(
+ const char     *const format,
+ va_list         arg_ptr
+)
+{
+  return vfprintf(_cwipi_output_listing, format, arg_ptr);
+}
 
 // --> n_nodes
 
@@ -562,7 +573,7 @@ static void verbose(t_message msg) {
   }
 
   // print
-  printf("CWP-SERVER: %s --> %s\n", function, flag);
+  PDM_printf("CWP-SERVER: %s --> %s\n", function, flag);
 
   // free
   free(function);
@@ -594,11 +605,6 @@ CWP_client_connect
   clt->server_port=server_port;
   clt->flags=flags;
 
-  // verbose
-  if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Creating Client, connecting to %s:%i...\n",server_name,server_port);
-  }
-
   host = (struct hostent *) gethostbyname(server_name);
 
   // create socket
@@ -618,7 +624,7 @@ CWP_client_connect
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client connected on %s port %i \n", server_name, server_port);
+    PDM_printf("CWP-CLIENT: client connected to server on %s port %i\n", server_name, server_port);
   }
 
   // get maximum message size
@@ -641,11 +647,6 @@ CWP_client_connect
   CWP_swap_endian_4bytes(&endian_flags, 1);
   CWP_transfer_writedata(clt->socket, clt->max_msg_size, (void*) &endian_flags, sizeof(int));
 
-  // verbose
-  if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: client endian %i server endian %i\n",clt->client_endianess,clt->server_endianess);
-  }
-
   // free
   free(server_addr);
 
@@ -662,7 +663,7 @@ CWP_client_disconnect
   t_message msg;
 
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client shutting down\n");
+    PDM_printf("CWP-CLIENT: Client shutting down\n");
   }
 
   NEWMESSAGE(msg, CWP_MSG_DIE);
@@ -795,6 +796,9 @@ CWP_client_Init
     flags = atoi(pPath);
   }
 
+  // tmp
+  flags = 1;
+
   // connect
   if (CWP_client_connect(server_name, server_port, flags) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "Client connexion failed\n");
@@ -811,7 +815,7 @@ CWP_client_Init
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Init\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Init\n");
   }
 
   // create message
@@ -890,7 +894,7 @@ CWP_client_Finalize()
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Finalize\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Finalize\n");
   }
 
   // create message
@@ -929,7 +933,7 @@ const char *code_name
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Param_lock\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_lock\n");
   }
 
   // create message
@@ -975,7 +979,7 @@ const char *code_name
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Param_unlock\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_unlock\n");
   }
 
   // create message
@@ -1024,7 +1028,7 @@ CWP_client_Param_add
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Param_add\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_add\n");
   }
 
   // create message
@@ -1104,7 +1108,7 @@ CWP_client_Param_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Param_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_get\n");
   }
 
   // create message
@@ -1184,7 +1188,7 @@ CWP_client_Param_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Param_set\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_set\n");
   }
 
   // create message
@@ -1262,7 +1266,7 @@ CWP_client_Param_del
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Param_del\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_del\n");
   }
 
   // create message
@@ -1317,7 +1321,7 @@ CWP_client_Param_n_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Param_n_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_n_get\n");
   }
 
   // create message
@@ -1328,6 +1332,13 @@ CWP_client_Param_n_get
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_n_get failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send local code name
   write_name(code_name);
 
@@ -1335,6 +1346,20 @@ CWP_client_Param_n_get
   CWP_Type_t endian_data_type = data_type;
   CWP_swap_endian_4bytes((int *) &endian_data_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size, (void*) &endian_data_type, sizeof(CWP_Type_t));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read n_param
   int n_param = -1;
@@ -1356,7 +1381,7 @@ CWP_client_Param_list_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Param_list_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_list_get\n");
   }
 
   // create message
@@ -1367,6 +1392,13 @@ CWP_client_Param_list_get
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_list_get failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send local code name
   write_name(code_name);
 
@@ -1374,6 +1406,20 @@ CWP_client_Param_list_get
   CWP_Type_t endian_data_type = data_type;
   CWP_swap_endian_4bytes((int *) &endian_data_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size, (void*) &endian_data_type, sizeof(CWP_Type_t));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read n_param
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) nParam, sizeof(int));
@@ -1398,7 +1444,7 @@ CWP_client_Param_is
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Param_is\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_is\n");
   }
 
   // create message
@@ -1407,6 +1453,13 @@ CWP_client_Param_is
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_is failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -1419,6 +1472,20 @@ CWP_client_Param_is
   CWP_Type_t endian_data_type = data_type;
   CWP_swap_endian_4bytes((int *) &endian_data_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_data_type, sizeof(CWP_Type_t));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read bool
   int is_param = -1;
@@ -1442,7 +1509,7 @@ CWP_client_Param_reduce
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Param_reduce\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_reduce\n");
   }
 
   // create message
@@ -1451,6 +1518,13 @@ CWP_client_Param_reduce
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Param_reduce failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send operation type
@@ -1482,6 +1556,20 @@ CWP_client_Param_reduce
   }
 
   va_end(code_name_list);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // retreive result
   switch (data_type) {
@@ -1517,7 +1605,7 @@ CWP_client_Cpl_create
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Cpl_create\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Cpl_create\n");
   }
 
   // create message
@@ -1526,6 +1614,13 @@ CWP_client_Cpl_create
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Cpl_create failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send code name
@@ -1566,6 +1661,20 @@ CWP_client_Cpl_create
   CWP_Time_exch_t endian_recv_freq_type = recv_freq_type;
   CWP_swap_endian_4bytes((int *) &endian_recv_freq_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_recv_freq_type, sizeof(CWP_Time_exch_t));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
@@ -1579,7 +1688,7 @@ CWP_client_Cpl_del
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Cpl_del\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Cpl_del\n");
   }
 
   // create message
@@ -1590,11 +1699,32 @@ CWP_client_Cpl_del
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Cpl_del failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send code name
   write_name(local_code_name);
 
   // send coupling identifier
   write_name(cpl_id);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
@@ -1607,7 +1737,7 @@ void
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Properties_dump\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Properties_dump\n");
   }
 
   // create message
@@ -1618,17 +1748,31 @@ void
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Properties_dump failed to send message header\n");
   }
 
-  // // read
-  // int size = -1;
-  // CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &size, sizeof(int));
-  // char *recv = (char *) malloc(sizeof(char) * size);
-  // CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) recv, size);
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
-  // // out
-  // printf("%s\n", recv);
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
-  // // free
-  // free(recv);
+  // read
+  int size = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &size, sizeof(int));
+  char *recv = (char *) malloc(sizeof(char) * size);
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) recv, size);
+
+  // out
+  printf("%s\n", recv);
+
+  // free
+  free(recv);
 }
 
 void
@@ -1645,7 +1789,7 @@ CWP_client_Visu_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Visu_set\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Visu_set\n");
   }
 
   // create message
@@ -1654,6 +1798,13 @@ CWP_client_Visu_set
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Visu_set failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send code name
@@ -1674,6 +1825,20 @@ CWP_client_Visu_set
 
   // send format option
   write_name(format_option);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
@@ -1687,7 +1852,7 @@ CWP_client_State_update
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_State_update\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_State_update\n");
   }
 
   // create message
@@ -1698,6 +1863,13 @@ CWP_client_State_update
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_State_update failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send code name
   write_name(local_code_name);
 
@@ -1705,6 +1877,20 @@ CWP_client_State_update
   CWP_State_t endian_state = state;
   CWP_swap_endian_4bytes((int *) &endian_state, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_state, sizeof(CWP_State_t));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
@@ -1718,7 +1904,7 @@ CWP_client_Time_update
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Time_update\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Time_update\n");
   }
 
   // create message
@@ -1729,6 +1915,13 @@ CWP_client_Time_update
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Time_update failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send code name
   write_name(local_code_name);
 
@@ -1736,31 +1929,31 @@ CWP_client_Time_update
   double endian_current_time = current_time;
   CWP_swap_endian_8bytes(&endian_current_time, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_current_time, sizeof(double));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
 CWP_client_Output_file_set
 (
-const char *output_filename
+  FILE *output_file
 )
 {
-  t_message msg;
-
-  // verbose
-  if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Output_file_set\n");
-  }
-
-  // create message
-  NEWMESSAGE(msg, CWP_MSG_CWP_OUTPUT_FILE_SET);
-
-  // send message
-  if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Output_file_set failed to send message header\n");
-  }
-
-  // send output file name or directory
-  write_name(output_filename);
+  // set file for PDM_printf
+  _cwipi_output_listing = output_file;
+  PDM_printf_proxy_set(_cwipi_print_with_c);
 }
 
 void
@@ -1772,7 +1965,7 @@ CWP_client_User_structure_set
 {
   PDM_UNUSED(local_code_name);
   PDM_UNUSED(user_structure);
-  printf("CWP-CLIENT:  CWP_User_structure_set not implemented in client/server mode\n");
+  printf("CWP-CLIENT: CWP_User_structure_set not implemented in client/server mode\n");
 }
 
 void *
@@ -1782,7 +1975,7 @@ CWP_client_User_structure_get
 )
 {
   PDM_UNUSED(local_code_name);
-  printf("CWP-CLIENT:  CWP_User_structure_get not implemented in client/server mode\n");
+  printf("CWP-CLIENT: CWP_User_structure_get not implemented in client/server mode\n");
 
   return 0;
 }
@@ -1797,7 +1990,7 @@ CWP_client_State_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_State_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_State_get\n");
   }
 
   // create message
@@ -1808,8 +2001,29 @@ CWP_client_State_get
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_State_get failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send code name
   write_name(code_name);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read state
   CWP_State_t state = (CWP_State_t) -1;
@@ -1828,7 +2042,7 @@ CWP_client_Codes_nb_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Codes_nb_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Codes_nb_get\n");
   }
 
   // create message
@@ -1837,6 +2051,20 @@ CWP_client_Codes_nb_get
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Codes_nb_get failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // read nb_codes
@@ -1856,7 +2084,7 @@ void
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Codes_list_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Codes_list_get\n");
   }
 
   // create message
@@ -1865,6 +2093,20 @@ void
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Codes_list_get failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // read code names
@@ -1889,7 +2131,7 @@ CWP_client_Loc_codes_nb_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Loc_codes_nb_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Loc_codes_nb_get\n");
   }
 
   // create message
@@ -1898,6 +2140,20 @@ CWP_client_Loc_codes_nb_get
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Loc_codes_nb_get failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // read nb_codes
@@ -1917,7 +2173,7 @@ CWP_client_Loc_codes_list_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Loc_codes_list_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Loc_codes_list_get\n");
   }
 
   // create message
@@ -1926,6 +2182,20 @@ CWP_client_Loc_codes_list_get
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Loc_codes_list_get failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // read code names
@@ -1953,7 +2223,7 @@ CWP_client_N_uncomputed_tgts_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_N_uncomputed_tgts_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_N_uncomputed_tgts_get\n");
   }
 
   // create message
@@ -1962,6 +2232,13 @@ CWP_client_N_uncomputed_tgts_get
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_N_uncomputed_tgts_get failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -1977,6 +2254,20 @@ CWP_client_N_uncomputed_tgts_get
   int endian_i_part = i_part;
   CWP_swap_endian_4bytes(&endian_i_part, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read number of targets
   int nb_tgts = -1;
@@ -1998,7 +2289,7 @@ CWP_client_Uncomputed_tgts_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Uncomputed_tgts_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Uncomputed_tgts_get\n");
   }
 
   // create message
@@ -2007,6 +2298,13 @@ CWP_client_Uncomputed_tgts_get
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Uncomputed_tgts_get failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -2022,6 +2320,20 @@ CWP_client_Uncomputed_tgts_get
   int endian_i_part = i_part;
   CWP_swap_endian_4bytes(&endian_i_part, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read number of targets
   int nb_tgts = -1;
@@ -2045,7 +2357,7 @@ CWP_client_N_computed_tgts_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_N_computed_tgts_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_N_computed_tgts_get\n");
   }
 
   // create message
@@ -2054,6 +2366,13 @@ CWP_client_N_computed_tgts_get
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_N_computed_tgts_get failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -2069,6 +2388,20 @@ CWP_client_N_computed_tgts_get
   int endian_i_part = i_part;
   CWP_swap_endian_4bytes(&endian_i_part, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read number of targets
   int nb_tgts = -1;
@@ -2090,7 +2423,7 @@ CWP_client_Computed_tgts_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Computed_tgts_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Computed_tgts_get\n");
   }
 
   // create message
@@ -2099,6 +2432,13 @@ CWP_client_Computed_tgts_get
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Computed_tgts_get failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -2114,6 +2454,20 @@ CWP_client_Computed_tgts_get
   int endian_i_part = i_part;
   CWP_swap_endian_4bytes(&endian_i_part, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read number of targets
   int nb_tgts = -1;
@@ -2137,7 +2491,7 @@ CWP_client_N_involved_srcs_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_N_involved_srcs_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_N_involved_srcs_get\n");
   }
 
   // create message
@@ -2146,6 +2500,13 @@ CWP_client_N_involved_srcs_get
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_N_involved_srcs_get failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -2161,6 +2522,20 @@ CWP_client_N_involved_srcs_get
   int endian_i_part = i_part;
   CWP_swap_endian_4bytes(&endian_i_part, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read number of sources
   int nb_srcs = -1;
@@ -2182,7 +2557,7 @@ CWP_client_Involved_srcs_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Involved_srcs_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Involved_srcs_get\n");
   }
 
   // create message
@@ -2191,6 +2566,13 @@ CWP_client_Involved_srcs_get
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Involved_srcs_get failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -2206,6 +2588,20 @@ CWP_client_Involved_srcs_get
   int endian_i_part = i_part;
   CWP_swap_endian_4bytes(&endian_i_part, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read number of sources
   int nb_srcs = -1;
@@ -2227,7 +2623,7 @@ CWP_client_Spatial_interp_weights_compute
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Spatial_interp_weights_compute\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Spatial_interp_weights_compute\n");
   }
 
   // create message
@@ -2238,11 +2634,32 @@ CWP_client_Spatial_interp_weights_compute
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Spatial_interp_weights_compute failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send local code name
   write_name(local_code_name);
 
   // send coupling identifier
   write_name(cpl_id);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
@@ -2259,7 +2676,7 @@ CWP_client_Spatial_interp_property_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Spatial_interp_property_set\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Spatial_interp_property_set\n");
   }
 
   // create message
@@ -2268,6 +2685,13 @@ CWP_client_Spatial_interp_property_set
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Spatial_interp_property_set failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -2284,6 +2708,20 @@ CWP_client_Spatial_interp_property_set
 
   // send property value
   write_name(property_value);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
@@ -2301,7 +2739,7 @@ CWP_client_User_tgt_pts_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_User_tgt_pts_set\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_User_tgt_pts_set\n");
   }
 
   // create message
@@ -2310,6 +2748,13 @@ CWP_client_User_tgt_pts_set
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_User_tgt_pts_set failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -2352,6 +2797,20 @@ CWP_client_User_tgt_pts_set
       CWP_swap_endian_8bytes((double *) endian_global_num, n_pts);
     }
     CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_pts);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // free
@@ -2370,7 +2829,7 @@ CWP_client_Mesh_interf_finalize
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_finalize\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_finalize\n");
   }
 
   // create message
@@ -2381,11 +2840,32 @@ CWP_client_Mesh_interf_finalize
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_finalize failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send local code name
   write_name(local_code_name);
 
   // send coupling identifier
   write_name(cpl_id);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
@@ -2403,7 +2883,7 @@ CWP_client_Mesh_interf_vtx_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_vtx_set\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_vtx_set\n");
   }
 
   // create message
@@ -2412,6 +2892,13 @@ CWP_client_Mesh_interf_vtx_set
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_vtx_set failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -2454,6 +2941,20 @@ CWP_client_Mesh_interf_vtx_set
       CWP_swap_endian_8bytes((double *) endian_global_num, n_pts);
     }
     CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_pts);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // free
@@ -2473,7 +2974,7 @@ CWP_client_Mesh_interf_block_add
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_block_add\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_block_add\n");
   }
 
   // create message
@@ -2482,6 +2983,13 @@ CWP_client_Mesh_interf_block_add
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_block_add failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -2494,6 +3002,20 @@ CWP_client_Mesh_interf_block_add
   CWP_Block_t endian_block_type = block_type;
   CWP_swap_endian_4bytes((int *) &endian_block_type, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_block_type, sizeof(CWP_Block_t));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read block identifier
   int block_id = -2;
@@ -2519,7 +3041,7 @@ CWP_client_Mesh_interf_block_std_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_block_std_set\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_block_std_set\n");
   }
 
   // create message
@@ -2528,6 +3050,13 @@ CWP_client_Mesh_interf_block_std_set
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_block_std_set failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -2583,6 +3112,20 @@ CWP_client_Mesh_interf_block_std_set
     CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_elts);
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // free
   free(endian_connec);
   if (endian_global_num != NULL) free(endian_global_num);
@@ -2605,7 +3148,7 @@ CWP_client_Mesh_interf_f_poly_block_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_f_poly_block_set\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_f_poly_block_set\n");
   }
 
   // create message
@@ -2614,6 +3157,13 @@ CWP_client_Mesh_interf_f_poly_block_set
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_f_poly_block_set failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -2669,6 +3219,20 @@ CWP_client_Mesh_interf_f_poly_block_set
     CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_elts);
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // free
   free(endian_connec_idx);
   free(endian_connec);
@@ -2692,7 +3256,7 @@ CWP_client_Mesh_interf_f_poly_block_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_f_poly_block_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_f_poly_block_get\n");
   }
 
   // create message
@@ -2701,6 +3265,13 @@ CWP_client_Mesh_interf_f_poly_block_get
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_f_poly_block_get failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -2718,6 +3289,20 @@ CWP_client_Mesh_interf_f_poly_block_get
   int endian_block_id = block_id;
   CWP_swap_endian_4bytes(&endian_block_id, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_block_id, sizeof(int));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read n_elts
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, n_elts, sizeof(int));
@@ -2759,7 +3344,7 @@ CWP_client_Mesh_interf_c_poly_block_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_c_poly_block_set\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_c_poly_block_set\n");
   }
 
   // create message
@@ -2768,6 +3353,13 @@ CWP_client_Mesh_interf_c_poly_block_set
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_c_poly_block_set failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -2840,6 +3432,20 @@ CWP_client_Mesh_interf_c_poly_block_set
     CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_elts);
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // free
   free(endian_connec_faces_idx);
   free(endian_connec_faces);
@@ -2868,7 +3474,7 @@ CWP_client_Mesh_interf_c_poly_block_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_c_poly_block_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_c_poly_block_get\n");
   }
 
   // create message
@@ -2877,6 +3483,13 @@ CWP_client_Mesh_interf_c_poly_block_get
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_c_poly_block_get failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -2894,6 +3507,20 @@ CWP_client_Mesh_interf_c_poly_block_get
   int endian_block_id = block_id;
   CWP_swap_endian_4bytes(&endian_block_id, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_block_id, sizeof(int));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read n_elts
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, n_elts, sizeof(int));
@@ -2936,7 +3563,7 @@ CWP_client_Mesh_interf_del
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_del\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_del\n");
   }
 
   // create message
@@ -2947,11 +3574,32 @@ CWP_client_Mesh_interf_del
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_del failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send local code name
   write_name(local_code_name);
 
   // send coupling identifier
   write_name(cpl_id);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
@@ -2973,7 +3621,7 @@ CWP_client_Mesh_interf_from_cellface_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_from_cellface_set\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_from_cellface_set\n");
   }
 
   // create message
@@ -2982,6 +3630,13 @@ CWP_client_Mesh_interf_from_cellface_set
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_from_cellface_set failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -3049,6 +3704,20 @@ CWP_client_Mesh_interf_from_cellface_set
     CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_cells);
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // free
   free(endian_cell_face_idx);
   free(endian_cell_face);
@@ -3076,7 +3745,7 @@ CWP_client_Mesh_interf_from_faceedge_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_from_faceedge_set\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_from_faceedge_set\n");
   }
 
   // create message
@@ -3085,6 +3754,13 @@ CWP_client_Mesh_interf_from_faceedge_set
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_from_faceedge_set failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -3152,6 +3828,20 @@ CWP_client_Mesh_interf_from_faceedge_set
     CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_faces);
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // free
   free(endian_face_edge_idx);
   free(endian_face_edge);
@@ -3178,7 +3868,7 @@ CWP_client_Field_create
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Field_create\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_create\n");
   }
 
   // create message
@@ -3187,6 +3877,13 @@ CWP_client_Field_create
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_create failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -3236,6 +3933,20 @@ CWP_client_Field_create
   fields.field_settings[std::make_tuple(s1, s2, s3)] = t_field_settings();
   fields.field_settings[std::make_tuple(s1, s2, s3)].n_component = n_component;
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
 }
 
 void
@@ -3254,7 +3965,7 @@ CWP_client_Field_data_set
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Field_data_set\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_data_set\n");
   }
 
   // create message
@@ -3263,6 +3974,13 @@ CWP_client_Field_data_set
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_data_set failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -3303,6 +4021,20 @@ CWP_client_Field_data_set
   CWP_swap_endian_8bytes(endian_data, size);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_data, sizeof(double) * size);
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // free
   free(endian_data);
 }
@@ -3319,7 +4051,7 @@ CWP_client_Field_n_component_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Field_n_component_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_n_component_get\n");
   }
 
   // create message
@@ -3330,6 +4062,13 @@ CWP_client_Field_n_component_get
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_n_component_get failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send local code name
   write_name(local_code_name);
 
@@ -3338,6 +4077,20 @@ CWP_client_Field_n_component_get
 
   // send field identifier
   write_name(field_id);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read number of components
   int n_components = -1;
@@ -3358,7 +4111,7 @@ CWP_client_Field_target_dof_location_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Field_target_dof_location_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_target_dof_location_get\n");
   }
 
   // create message
@@ -3369,6 +4122,13 @@ CWP_client_Field_target_dof_location_get
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_target_dof_location_get failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send local code name
   write_name(local_code_name);
 
@@ -3377,6 +4137,20 @@ CWP_client_Field_target_dof_location_get
 
   // send field identifier
   write_name(field_id);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read location of target degrees of freedom
   CWP_Dof_location_t dof_location = (CWP_Dof_location_t) -1;
@@ -3397,7 +4171,7 @@ CWP_client_Field_storage_get
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Field_storage_get\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_storage_get\n");
   }
 
   // create message
@@ -3408,6 +4182,13 @@ CWP_client_Field_storage_get
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_storage_get failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send local code name
   write_name(local_code_name);
 
@@ -3416,6 +4197,20 @@ CWP_client_Field_storage_get
 
   // send field identifier
   write_name(field_id);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read field storage type
   CWP_Field_storage_t storage_type = (CWP_Field_storage_t) -1;
@@ -3436,7 +4231,7 @@ CWP_client_Field_del
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Field_del\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_del\n");
   }
 
   // create message
@@ -3447,6 +4242,13 @@ CWP_client_Field_del
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_del failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send local code name
   write_name(local_code_name);
 
@@ -3455,6 +4257,20 @@ CWP_client_Field_del
 
   // send field identifier
   write_name(field_id);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
@@ -3469,7 +4285,7 @@ CWP_client_Field_issend
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Field_issend\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_issend\n");
   }
 
   // create message
@@ -3480,6 +4296,13 @@ CWP_client_Field_issend
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_issend failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send local code name
   write_name(local_code_name);
 
@@ -3488,6 +4311,20 @@ CWP_client_Field_issend
 
   // send source field identifier
   write_name(src_field_id);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
@@ -3502,7 +4339,7 @@ CWP_client_Field_irecv
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Field_irecv\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_irecv\n");
   }
 
   // create message
@@ -3513,6 +4350,13 @@ CWP_client_Field_irecv
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_irecv failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send local code name
   write_name(local_code_name);
 
@@ -3521,6 +4365,20 @@ CWP_client_Field_irecv
 
   // send target field identifier
   write_name(tgt_field_id);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
@@ -3535,7 +4393,7 @@ CWP_client_Field_wait_issend
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Field_wait_issend\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_wait_issend\n");
   }
 
   // create message
@@ -3546,6 +4404,13 @@ CWP_client_Field_wait_issend
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_wait_issend failed to send message header\n");
   }
 
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
   // send local code name
   write_name(local_code_name);
 
@@ -3554,6 +4419,20 @@ CWP_client_Field_wait_issend
 
   // send source field identifier
   write_name(src_field_id);
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 }
 
 void
@@ -3569,7 +4448,7 @@ CWP_client_Field_wait_irecv
 
   // verbose
   if (clt->flags & CWP_FLAG_VERBOSE) {
-    printf("CWP-CLIENT: Client initiating CWP_Field_wait_irecv\n");
+    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_wait_irecv\n");
   }
 
   // create message
@@ -3578,6 +4457,13 @@ CWP_client_Field_wait_irecv
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "CWP_client_Field_wait_irecv failed to send message header\n");
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
   }
 
   // send local code name
@@ -3609,6 +4495,20 @@ CWP_client_Field_wait_irecv
   int endian_size = size;
   CWP_swap_endian_4bytes(&endian_size, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_size, sizeof(int));
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
+
+  // receive status msg
+  if (clt->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    verbose(message);
+  }
 
   // read irecv Field_data
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, *data, sizeof(double) * size);
