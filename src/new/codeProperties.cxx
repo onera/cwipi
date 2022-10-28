@@ -341,18 +341,15 @@ namespace cwipi
     if (sValueMax > 80) sValueMax = 80;
 
     char fmtIntName[22];
-    sprintf(buffer, fmtIntName, "     * %%%u.%us : %%d\n",sParamMax, sParamMax);
-    properties.append(buffer);
+    sprintf(fmtIntName, "     * %%%u.%us : %%d\n",sParamMax, sParamMax);
 
     char fmtDoubleName[26];
-    sprintf(buffer, fmtDoubleName, "     * %%%u.%us : %%12.5e\n",sParamMax, sParamMax);
-    properties.append(buffer);
+    sprintf(fmtDoubleName, "     * %%%u.%us : %%12.5e\n",sParamMax, sParamMax);
 
     char fmtStrName[27];
-    sprintf(buffer, fmtStrName, "     * %%%u.%us : %%%u.%us\n",
+    sprintf(fmtStrName, "     * %%%u.%us : %%%u.%us\n",
             sParamMax, sParamMax,
             sValueMax, sValueMax);
-    properties.append(buffer);
 
     char *tmpName = (char *) malloc (sizeof(char) * (sParamMax + 1));
     char *tmpValue = (char *) malloc (sizeof(char) * (sValueMax + 1));
@@ -364,7 +361,8 @@ namespace cwipi
                min (sParam, (int) sParamMax));
       tmpName[sParam] = '\0';
 
-      sprintf(buffer, fmtIntName, tmpName, _winIntParamValueData[i]);
+      sprintf(fmtIntName, tmpName, _winIntParamValueData[i]);
+      sprintf(buffer, "%s", fmtIntName);
       properties.append(buffer);
 
     }
@@ -379,7 +377,8 @@ namespace cwipi
                min (sParam, (int) sParamMax));
       tmpName[sParam] = '\0';
 
-      sprintf(buffer, fmtDoubleName, tmpName, _winDoubleParamValueData[i]);
+      sprintf(fmtDoubleName, tmpName, _winDoubleParamValueData[i]);
+      sprintf(buffer, "%s", fmtDoubleName);
       properties.append(buffer);
 
     }
