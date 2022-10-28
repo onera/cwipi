@@ -307,30 +307,18 @@ namespace cwipi {
   (
   )
   {
-    int _pdm_location_optim = 1;
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
-      if (_pdm_location_optim) {
-        printf("PDM_mesh_location_compute_optim\n");
-        PDM_mesh_location_compute_optim(_id_pdm);
-      }
-      else {
-        PDM_mesh_location_compute(_id_pdm);
-      }
+      PDM_mesh_location_compute(_id_pdm);
+
       PDM_mesh_location_dump_times(_id_pdm);
     }
 
     else {
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
 
-        if (_pdm_location_optim) {
-          printf("PDM_mesh_location_compute_optim\n");
-          PDM_mesh_location_compute_optim(_id_pdm);
-        }
-        else {
-          PDM_mesh_location_compute(_id_pdm);
-        }
+        PDM_mesh_location_compute(_id_pdm);
 
         PDM_mesh_location_dump_times(_id_pdm);
       }
