@@ -361,8 +361,7 @@ namespace cwipi
                min (sParam, (int) sParamMax));
       tmpName[sParam] = '\0';
 
-      sprintf(fmtIntName, tmpName, _winIntParamValueData[i]);
-      sprintf(buffer, "%s", fmtIntName);
+      sprintf(buffer, fmtIntName, tmpName, _winIntParamValueData[i]);
       properties.append(buffer);
 
     }
@@ -377,8 +376,7 @@ namespace cwipi
                min (sParam, (int) sParamMax));
       tmpName[sParam] = '\0';
 
-      sprintf(fmtDoubleName, tmpName, _winDoubleParamValueData[i]);
-      sprintf(buffer, "%s", fmtDoubleName);
+      sprintf(buffer, fmtDoubleName, tmpName, _winDoubleParamValueData[i]);
       properties.append(buffer);
 
     }

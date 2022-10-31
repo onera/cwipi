@@ -138,6 +138,15 @@ main
   double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
 
+  MPI_Comm LocalComm;
+  int color;
+  if (i_rank == 0) {
+    color = 1;
+  } else {
+    color = 0;
+  }
+  MPI_Comm_split(comm, color, 0, &LocalComm);
+
   if (i_rank == 0) {
     n_code = 1;
     code_names = malloc(sizeof(char *) * n_code);
@@ -160,10 +169,11 @@ main
   }
 
   // Outputfile
-  FILE *f = fopen("output_file.txt", "a");
+  FILE *f = fopen("output_file.txt", "w");
   CWP_client_Output_file_set(f);
 
   CWP_client_Init(comm,
+                  LocalComm,
                   config,
                   n_code,
                   (const char **) code_names,
@@ -237,8 +247,6 @@ main
     CWP_client_Param_unlock("code2");
   }
 
-  MPI_Barrier(comm);
-
   double titi1;
   CWP_client_Param_get("code1", "tata", CWP_DOUBLE, &titi1);
   printf("i_rank: %d code 1 : tata : %f\n", i_rank, titi1);
@@ -278,8 +286,6 @@ main
     CWP_client_Param_del("code1", "toto", CWP_INT);
     CWP_client_Param_unlock("code1");
   }
-
-  MPI_Barrier(comm);
 
   double tita;
   CWP_client_Param_get("code1", "tatic", CWP_DOUBLE, &tita);

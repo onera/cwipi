@@ -45,15 +45,16 @@ extern "C" {
 
 typedef struct t_client
 {
-  int server_port;
-  int flags;
-  int socket;
-  int max_msg_size;
-  int listen_socket;
-  int connected_socket;
-  int client_endianess;
-  int server_endianess;
-  char server_name[256];
+  MPI_Comm comm;
+  int      server_port;
+  int      flags;
+  int      socket;
+  int      max_msg_size;
+  int      listen_socket;
+  int      connected_socket;
+  int      client_endianess;
+  int      server_endianess;
+  char     server_name[256];
 
 }t_client,*p_client;
 
@@ -75,7 +76,8 @@ typedef struct t_client
 void
 CWP_client_Init
 (
- MPI_Comm                  comm,
+  MPI_Comm                  comm,
+  MPI_Comm                  local_comm,
   char                    *config,
   const int                n_code,
   const char             **code_names,
@@ -1706,6 +1708,7 @@ CWP_client_Field_gradient_data_set
 int
 CWP_client_connect
 (
+ MPI_Comm  comm,
  const char* server_name,
  int server_port,
  int flags

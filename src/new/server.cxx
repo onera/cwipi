@@ -1307,7 +1307,7 @@ CWP_server_Properties_dump
 
   // launch
   char *properties = NULL;
-  int size = CWP_Properties_str_dump(&properties);
+  int size = CWP_Properties_str_dump(&properties); // .length + 1
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -1317,7 +1317,6 @@ CWP_server_Properties_dump
     message.flag = CWP_SVR_LCH_END;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
-
 
   // send
   CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, (void*) &size, sizeof(int));
