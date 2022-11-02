@@ -554,7 +554,7 @@ static void verbose(t_message msg) {
 
   switch (msg.flag) {
   case CWP_SVR_BEGIN: {
-    char name[] = "begin of server function";
+    char name[] = "start of server function";
     strcpy(flag, name);
     } break;
 
@@ -564,7 +564,7 @@ static void verbose(t_message msg) {
     } break;
 
   case CWP_SVR_LCH_END: {
-    char name[] = "cwipi function finished";
+    char name[] = "cwipi function execution finished";
     strcpy(flag, name);
     } break;
 
@@ -699,15 +699,135 @@ void
 CWP_client_Init
 (
   MPI_Comm                  comm,
-  MPI_Comm                  local_comm,
   char                    *config,
   const int                n_code,
   const char             **code_names,
   const CWP_Status_t      *is_active_rank,
   const double            *time_init
-  // MPI_Comm                *intra_comms
 )
 {
+  // one code par rank in client-server mode
+  if (n_code != 1) {
+    PDM_error(__FILE__, __LINE__, 0, "Expected 1 code per rank in client-server mode, got %d\n", n_code);
+  }
+
+  /*intra communicators */
+
+  int my_rank;
+  int total_rank;
+  MPI_Comm_rank(comm, &my_rank);
+  MPI_Comm_size(comm, &total_rank);
+
+  // --> get local code name size
+  int i_rank_size = strlen(code_names[0]) + 1;
+  int *j_rank_size = NULL;
+
+  if (my_rank == 0) {
+    j_rank_size = (int *) malloc(sizeof(int) * total_rank);
+  }
+
+  MPI_Barrier(comm);
+
+  MPI_Gather((const void *) &i_rank_size, 1, MPI_INT,
+             (void *)       j_rank_size, 1, MPI_INT,
+             0, comm);
+
+  int total_size = 0;
+  int *j_rank_idx = NULL;
+
+  if (my_rank == 0) {
+    j_rank_idx = (int *) malloc(sizeof(int) * total_rank);
+    j_rank_idx[0] = 0;
+    for (int i = 0; i < total_rank; i++) {
+      total_size += j_rank_size[i];
+      if (i > 0) {
+        j_rank_idx[i] = j_rank_idx[i-1] + j_rank_size[i-1];
+      }
+    }
+  }
+
+  // --> get local code names
+  char *j_rank_code_names = NULL;
+
+  if (my_rank == 0) {
+    j_rank_code_names = (char *) malloc(sizeof(char) * total_size);
+  }
+
+  MPI_Barrier(comm);
+
+  MPI_Gatherv((const void *) code_names[0], i_rank_size, MPI_CHAR,
+             (void *)       j_rank_code_names, j_rank_size, j_rank_idx, MPI_CHAR,
+             0, comm);
+
+  // --> create map
+  char *key = NULL;
+  int *value = NULL;
+  int n_codes = 0;
+  int index = 0;
+  int total_n_codes_size = 0;
+
+  if (my_rank == 0) {
+    n_codes = 0;
+    std::map<std::string, int> color;
+    for (int i = 0; i < total_rank; i++) {
+      std::string s(j_rank_code_names + index);
+      if (color.find(s) == color.end()) {
+        color[s] = n_codes;
+        n_codes++;
+      }
+      index += j_rank_size[i];
+    }
+
+    key = (char *) malloc(sizeof(char) * total_size);
+    value = (int *) malloc(sizeof(int) * n_codes);
+
+    int iter = 0;
+    for (auto const& x : color) {
+      int size = x.first.length() + 1;
+      memcpy(key + total_n_codes_size, x.first.c_str(), size);
+      value[iter] = x.second;
+      iter++;
+      total_n_codes_size += size;
+    }
+
+    key = (char *) realloc((void *) key, total_n_codes_size);
+  }
+
+  MPI_Barrier(comm);
+
+  // --> send code names vect associated color vect
+  MPI_Bcast((void *) &n_codes, 1, MPI_INT, 0, comm);
+  MPI_Bcast((void *) &total_n_codes_size, 1, MPI_INT, 0, comm);
+
+  if (my_rank != 0) {
+    key = (char *) malloc(sizeof(char) * total_n_codes_size);
+    value = (int *) malloc(sizeof(int) * n_codes);
+  }
+
+  MPI_Barrier(comm);
+
+  MPI_Bcast((void *) key, total_n_codes_size, MPI_CHAR, 0, comm);
+  MPI_Bcast((void *) value, n_codes, MPI_INT, 0, comm);
+
+  MPI_Barrier(comm);
+
+  // --> associate color to rank
+  int i_rank_color = -1;
+  index = 0;
+  for (int i = 0; i <  n_codes; i++) {
+    if (strcmp(key + index, code_names[0])) {
+      i_rank_color = value[i];
+    }
+    index += (strlen(key + index) + 1);
+  }
+  MPI_Comm local_comm;
+  MPI_Comm_split(comm, i_rank_color, 0, &local_comm);
+
+  // free
+  if (key != NULL) free(key);
+  if (value != NULL) free(value);
+  if (j_rank_code_names != NULL) free(j_rank_code_names);
+
   /* connect */
 
   // mpi
@@ -766,9 +886,9 @@ CWP_client_Init
   int offset = atoi(word);
 
   // check number of ranks
-  // if (n_rank != nb_rank) {
-  //   PDM_error(__FILE__, __LINE__, 0, "Client executing on %d and server on %d ranks. Should be on the same number of ranks\n", n_rank, nb_rank);
-  // }
+  if (n_rank != nb_rank) {
+    PDM_error(__FILE__, __LINE__, 0, "Client executing on %d and server on %d ranks. Should be on the same number of ranks\n", n_rank, nb_rank);
+  }
 
   // --> block read hostname/port
   char *data = (char *) malloc(offset+1);

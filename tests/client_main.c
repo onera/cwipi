@@ -138,15 +138,6 @@ main
   double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
 
-  MPI_Comm LocalComm;
-  int color;
-  if (i_rank == 0) {
-    color = 1;
-  } else {
-    color = 0;
-  }
-  MPI_Comm_split(comm, color, 0, &LocalComm);
-
   if (i_rank == 0) {
     n_code = 1;
     code_names = malloc(sizeof(char *) * n_code);
@@ -173,7 +164,6 @@ main
   CWP_client_Output_file_set(f);
 
   CWP_client_Init(comm,
-                  LocalComm,
                   config,
                   n_code,
                   (const char **) code_names,

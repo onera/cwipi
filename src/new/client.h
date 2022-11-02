@@ -64,6 +64,7 @@ typedef struct t_client
 
 /**
  * \brief Initialize CWIPI.
+ *        /!\ n_code == 1 in client-server mode
  *
  * \param [in]  n_code         Number of codes on the current rank
  * \param [in]  code_names     Names of codes on the current rank (size = \p n_code)
@@ -77,7 +78,6 @@ void
 CWP_client_Init
 (
   MPI_Comm                  comm,
-  MPI_Comm                  local_comm,
   char                    *config,
   const int                n_code,
   const char             **code_names,
