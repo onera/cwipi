@@ -573,8 +573,8 @@ static void verbose(t_message msg) {
   }
 
   // print
-  PDM_printf("CWP-SERVER: %s --> %s\n", function, flag);
-  PDM_printf_flush();
+  // PDM_printf("%s-CWP-SERVER: %s --> %s\n", clt->code_name, function, flag);
+  // PDM_printf_flush();
 
   // free
   free(function);
@@ -591,6 +591,7 @@ int
 CWP_client_connect
 (
  MPI_Comm  comm,
+ MPI_Comm  intra_comm,
  const char* server_name,
  int server_port,
  int flags
@@ -607,6 +608,9 @@ CWP_client_connect
   clt->server_port = server_port;
   clt->flags = flags;
   clt->comm = comm;
+  clt->intra_comm = intra_comm;
+  MPI_Comm_rank(clt->comm, &clt->i_rank);
+  MPI_Comm_rank(clt->intra_comm, &clt->intra_i_rank);
 
   host = (struct hostent *) gethostbyname(server_name);
 
@@ -628,8 +632,50 @@ CWP_client_connect
   // verbose
   MPI_Barrier(clt->comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE)) {
-    PDM_printf("CWP-CLIENT: client connected to server on %s port %i\n", server_name, server_port);
-    PDM_printf_flush();
+    // send buffer to rank 0 of comm
+    char buffer[1080];
+    sprintf(buffer, "CWP-CLIENT: client connected to server on %s port %i\n", server_name, server_port);
+    int i_rank_size = strlen(buffer) + 1;
+    int *j_rank_size = NULL;
+
+    int n_rank;
+    MPI_Comm_size(clt->comm, &n_rank);
+
+    if (clt->i_rank == 0) {
+      j_rank_size = (int *) malloc(sizeof(int) * n_rank);
+    }
+
+    MPI_Barrier(clt->comm);
+
+    MPI_Gather((const void *) &i_rank_size, 1, MPI_INT,
+             (void *)          j_rank_size, 1, MPI_INT,
+             0, comm);
+
+    char *print_buffer = NULL;
+    int  *j_rank_idx   = NULL;
+
+    if (clt->i_rank == 0) {
+      int total_size = 0;
+      j_rank_idx = (int *) malloc(sizeof(int) * n_rank);
+      for (int i = 0; i < n_rank; i++) {
+        j_rank_idx[i] = total_size;
+        total_size += j_rank_size[i];
+      }
+      print_buffer = (char *) malloc(sizeof(char) * total_size);
+    }
+
+    MPI_Barrier(clt->comm);
+
+    MPI_Gatherv((const void *) buffer, i_rank_size, MPI_CHAR,
+                (void *)       print_buffer, j_rank_size, j_rank_idx, MPI_CHAR,
+                0, comm);
+
+    if (clt->i_rank == 0) {
+      for (int i = 0; i < n_rank; i++) {
+        PDM_printf("%s", print_buffer + j_rank_idx[i]);
+        PDM_printf_flush();
+      }
+    }
   }
 
   // get maximum message size
@@ -667,11 +713,21 @@ CWP_client_disconnect
 {
   t_message msg;
 
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client shutting down\n");
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    char buffer[1080];
+    sprintf(buffer, "CWP-CLIENT: Client shutting down\n");
+    int size = strlen(buffer) + 1;
+    MPI_Send(&size, 1, MPI_INT, 0, 0, clt->comm);
+    MPI_Send(buffer, size, MPI_CHAR, 0, 1, clt->comm);
+  } else if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    MPI_Status status;
+    MPI_Probe(MPI_ANY_SOURCE, 0, clt->comm, &status);
+    int size = -1;
+    char buffer[1080];
+    MPI_Recv(&size, 1, MPI_INT, status.MPI_SOURCE, 0, clt->comm, MPI_STATUS_IGNORE);
+    MPI_Recv(buffer, size, MPI_CHAR, status.MPI_SOURCE, 1, clt->comm, MPI_STATUS_IGNORE);
+    PDM_printf("%s", buffer);
     PDM_printf_flush();
   }
 
@@ -820,8 +876,8 @@ CWP_client_Init
     }
     index += (strlen(key + index) + 1);
   }
-  MPI_Comm local_comm;
-  MPI_Comm_split(comm, i_rank_color, 0, &local_comm);
+  MPI_Comm intra_comm;
+  MPI_Comm_split(comm, i_rank_color, my_rank, &intra_comm); // smallest i_rank becomes rank 0 in intra_comm
 
   // free
   if (key != NULL) free(key);
@@ -931,9 +987,13 @@ CWP_client_Init
   flags = 1;
 
   // connect
-  if (CWP_client_connect(local_comm, server_name, server_port, flags) != 0) {
+  if (CWP_client_connect(comm, intra_comm, server_name, server_port, flags) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "Client connexion failed\n");
   }
+
+  // code name
+  clt->code_name = (char *) malloc(sizeof(char) * (strlen(code_names[0])+1));
+  memcpy(clt->code_name, code_names[0], strlen(code_names[0]));
 
   // free
   free(buffer);
@@ -945,12 +1005,10 @@ CWP_client_Init
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int rank;
-  MPI_Comm_rank(clt->comm, &rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Init\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Init\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -962,8 +1020,8 @@ CWP_client_Init
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -988,16 +1046,16 @@ CWP_client_Init
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_time_init, n_code * sizeof(double));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1010,7 +1068,7 @@ CWP_client_Init
   // standard cwipi init message
   char *version = PDM_version_get();
 
-  if (rank == 0) {
+  if (clt->i_rank == 0) {
 
     printf("\ncwipi %s initializing\n", version);
     printf("------------------------\n\n");
@@ -1028,12 +1086,10 @@ CWP_client_Finalize()
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Finalize\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Finalize\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -1045,16 +1101,16 @@ CWP_client_Finalize()
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1073,11 +1129,22 @@ const char *code_name
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_lock\n");
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    char buffer[1080];
+    sprintf(buffer, "%s-CWP-CLIENT: Client initiating CWP_Param_lock\n", clt->code_name);
+    int size = strlen(buffer) + 1;
+    MPI_Send(&size, 1, MPI_INT, 0, 0, clt->comm);
+    MPI_Send(buffer, size, MPI_CHAR, 0, 1, clt->comm);
+  } else if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    MPI_Status status;
+    MPI_Probe(MPI_ANY_SOURCE, 0, clt->comm, &status);
+    int size = -1;
+    char buffer[1080];
+    MPI_Recv(&size, 1, MPI_INT, status.MPI_SOURCE, 0, clt->comm, MPI_STATUS_IGNORE);
+    MPI_Recv(buffer, size, MPI_CHAR, status.MPI_SOURCE, 1, clt->comm, MPI_STATUS_IGNORE);
+    printf("%d - %s", clt->i_rank, buffer);
+    PDM_printf("%s", buffer);
     PDM_printf_flush();
   }
 
@@ -1090,8 +1157,8 @@ const char *code_name
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1101,16 +1168,16 @@ const char *code_name
   write_name(code_name);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1126,12 +1193,10 @@ const char *code_name
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_unlock\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_unlock\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -1143,8 +1208,8 @@ const char *code_name
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1154,16 +1219,16 @@ const char *code_name
   write_name(code_name);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1182,12 +1247,10 @@ CWP_client_Param_add
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_add\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_add\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -1199,8 +1262,8 @@ CWP_client_Param_add
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1241,16 +1304,16 @@ CWP_client_Param_add
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1269,12 +1332,10 @@ CWP_client_Param_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -1286,8 +1347,8 @@ CWP_client_Param_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1305,16 +1366,16 @@ CWP_client_Param_get
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_data_type, sizeof(CWP_Type_t));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1357,12 +1418,10 @@ CWP_client_Param_set
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_set\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_set\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -1374,8 +1433,8 @@ CWP_client_Param_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1415,16 +1474,16 @@ CWP_client_Param_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1442,12 +1501,10 @@ CWP_client_Param_del
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_del\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_del\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -1459,8 +1516,8 @@ CWP_client_Param_del
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1478,16 +1535,16 @@ CWP_client_Param_del
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_data_type, sizeof(CWP_Type_t));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1504,12 +1561,10 @@ CWP_client_Param_n_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_n_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_n_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -1521,8 +1576,8 @@ CWP_client_Param_n_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1537,16 +1592,16 @@ CWP_client_Param_n_get
   CWP_transfer_writedata(clt->socket,clt->max_msg_size, (void*) &endian_data_type, sizeof(CWP_Type_t));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1571,12 +1626,10 @@ CWP_client_Param_list_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_list_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_list_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -1588,8 +1641,8 @@ CWP_client_Param_list_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1604,16 +1657,16 @@ CWP_client_Param_list_get
   CWP_transfer_writedata(clt->socket,clt->max_msg_size, (void*) &endian_data_type, sizeof(CWP_Type_t));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1641,12 +1694,10 @@ CWP_client_Param_is
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_is\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_is\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -1658,8 +1709,8 @@ CWP_client_Param_is
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1677,16 +1728,16 @@ CWP_client_Param_is
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_data_type, sizeof(CWP_Type_t));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1713,12 +1764,10 @@ CWP_client_Param_reduce
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Param_reduce\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_reduce\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -1730,8 +1779,8 @@ CWP_client_Param_reduce
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1768,16 +1817,16 @@ CWP_client_Param_reduce
   va_end(code_name_list);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1816,12 +1865,10 @@ CWP_client_Cpl_create
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Cpl_create\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Cpl_create\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -1833,8 +1880,8 @@ CWP_client_Cpl_create
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1880,16 +1927,16 @@ CWP_client_Cpl_create
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_recv_freq_type, sizeof(CWP_Time_exch_t));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1906,12 +1953,10 @@ CWP_client_Cpl_del
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Cpl_del\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Cpl_del\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -1923,8 +1968,8 @@ CWP_client_Cpl_del
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1937,16 +1982,16 @@ CWP_client_Cpl_del
   write_name(cpl_id);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -1962,12 +2007,10 @@ void
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Properties_dump\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Properties_dump\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -1979,16 +2022,16 @@ void
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2021,12 +2064,10 @@ CWP_client_Visu_set
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Visu_set\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Visu_set\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -2038,8 +2079,8 @@ CWP_client_Visu_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2065,16 +2106,16 @@ CWP_client_Visu_set
   write_name(format_option);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2091,12 +2132,10 @@ CWP_client_State_update
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_State_update\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_State_update\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -2108,8 +2147,8 @@ CWP_client_State_update
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2124,16 +2163,16 @@ CWP_client_State_update
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_state, sizeof(CWP_State_t));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2150,12 +2189,10 @@ CWP_client_Time_update
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Time_update\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Time_update\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -2167,8 +2204,8 @@ CWP_client_Time_update
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2183,16 +2220,16 @@ CWP_client_Time_update
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_current_time, sizeof(double));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2243,12 +2280,10 @@ CWP_client_State_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_State_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_State_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -2260,8 +2295,8 @@ CWP_client_State_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2271,16 +2306,16 @@ CWP_client_State_get
   write_name(code_name);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2302,12 +2337,10 @@ CWP_client_Codes_nb_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Codes_nb_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Codes_nb_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -2319,16 +2352,16 @@ CWP_client_Codes_nb_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2350,12 +2383,10 @@ void
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Codes_list_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Codes_list_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -2367,16 +2398,16 @@ void
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2403,12 +2434,10 @@ CWP_client_Loc_codes_nb_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Loc_codes_nb_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Loc_codes_nb_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -2420,16 +2449,16 @@ CWP_client_Loc_codes_nb_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2451,12 +2480,10 @@ CWP_client_Loc_codes_list_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Loc_codes_list_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Loc_codes_list_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -2468,16 +2495,16 @@ CWP_client_Loc_codes_list_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2507,12 +2534,10 @@ CWP_client_N_uncomputed_tgts_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_N_uncomputed_tgts_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_N_uncomputed_tgts_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -2524,8 +2549,8 @@ CWP_client_N_uncomputed_tgts_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2546,16 +2571,16 @@ CWP_client_N_uncomputed_tgts_get
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2580,12 +2605,10 @@ CWP_client_Uncomputed_tgts_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Uncomputed_tgts_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Uncomputed_tgts_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -2597,8 +2620,8 @@ CWP_client_Uncomputed_tgts_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2619,16 +2642,16 @@ CWP_client_Uncomputed_tgts_get
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2655,12 +2678,10 @@ CWP_client_N_computed_tgts_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_N_computed_tgts_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_N_computed_tgts_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -2672,8 +2693,8 @@ CWP_client_N_computed_tgts_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2694,16 +2715,16 @@ CWP_client_N_computed_tgts_get
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2728,12 +2749,10 @@ CWP_client_Computed_tgts_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Computed_tgts_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Computed_tgts_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -2745,8 +2764,8 @@ CWP_client_Computed_tgts_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2767,16 +2786,16 @@ CWP_client_Computed_tgts_get
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2803,12 +2822,10 @@ CWP_client_N_involved_srcs_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_N_involved_srcs_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_N_involved_srcs_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -2820,8 +2837,8 @@ CWP_client_N_involved_srcs_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2842,16 +2859,16 @@ CWP_client_N_involved_srcs_get
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2876,12 +2893,10 @@ CWP_client_Involved_srcs_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Involved_srcs_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Involved_srcs_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -2893,8 +2908,8 @@ CWP_client_Involved_srcs_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2915,16 +2930,16 @@ CWP_client_Involved_srcs_get
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2949,12 +2964,10 @@ CWP_client_Spatial_interp_weights_compute
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Spatial_interp_weights_compute\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Spatial_interp_weights_compute\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -2966,8 +2979,8 @@ CWP_client_Spatial_interp_weights_compute
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -2980,16 +2993,16 @@ CWP_client_Spatial_interp_weights_compute
   write_name(cpl_id);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3009,12 +3022,10 @@ CWP_client_Spatial_interp_property_set
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Spatial_interp_property_set\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Spatial_interp_property_set\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -3026,8 +3037,8 @@ CWP_client_Spatial_interp_property_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3049,16 +3060,16 @@ CWP_client_Spatial_interp_property_set
   write_name(property_value);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3079,12 +3090,10 @@ CWP_client_User_tgt_pts_set
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_User_tgt_pts_set\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_User_tgt_pts_set\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -3096,8 +3105,8 @@ CWP_client_User_tgt_pts_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3146,16 +3155,16 @@ CWP_client_User_tgt_pts_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3176,12 +3185,10 @@ CWP_client_Mesh_interf_finalize
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_finalize\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_finalize\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -3193,8 +3200,8 @@ CWP_client_Mesh_interf_finalize
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3207,16 +3214,16 @@ CWP_client_Mesh_interf_finalize
   write_name(cpl_id);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3237,12 +3244,10 @@ CWP_client_Mesh_interf_vtx_set
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_vtx_set\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_vtx_set\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -3254,8 +3259,8 @@ CWP_client_Mesh_interf_vtx_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3304,16 +3309,16 @@ CWP_client_Mesh_interf_vtx_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3335,12 +3340,10 @@ CWP_client_Mesh_interf_block_add
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_block_add\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_block_add\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -3352,8 +3355,8 @@ CWP_client_Mesh_interf_block_add
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3371,16 +3374,16 @@ CWP_client_Mesh_interf_block_add
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_block_type, sizeof(CWP_Block_t));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3409,12 +3412,10 @@ CWP_client_Mesh_interf_block_std_set
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_block_std_set\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_block_std_set\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -3426,8 +3427,8 @@ CWP_client_Mesh_interf_block_std_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3487,16 +3488,16 @@ CWP_client_Mesh_interf_block_std_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3523,12 +3524,10 @@ CWP_client_Mesh_interf_f_poly_block_set
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_f_poly_block_set\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_f_poly_block_set\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -3540,8 +3539,8 @@ CWP_client_Mesh_interf_f_poly_block_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3601,16 +3600,16 @@ CWP_client_Mesh_interf_f_poly_block_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3638,12 +3637,10 @@ CWP_client_Mesh_interf_f_poly_block_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_f_poly_block_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_f_poly_block_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -3655,8 +3652,8 @@ CWP_client_Mesh_interf_f_poly_block_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3679,16 +3676,16 @@ CWP_client_Mesh_interf_f_poly_block_get
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_block_id, sizeof(int));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3733,12 +3730,10 @@ CWP_client_Mesh_interf_c_poly_block_set
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_c_poly_block_set\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_c_poly_block_set\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -3750,8 +3745,8 @@ CWP_client_Mesh_interf_c_poly_block_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3828,16 +3823,16 @@ CWP_client_Mesh_interf_c_poly_block_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3870,12 +3865,10 @@ CWP_client_Mesh_interf_c_poly_block_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_c_poly_block_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_c_poly_block_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -3887,8 +3880,8 @@ CWP_client_Mesh_interf_c_poly_block_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3911,16 +3904,16 @@ CWP_client_Mesh_interf_c_poly_block_get
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_block_id, sizeof(int));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3966,12 +3959,10 @@ CWP_client_Mesh_interf_del
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_del\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_del\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -3983,8 +3974,8 @@ CWP_client_Mesh_interf_del
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -3997,16 +3988,16 @@ CWP_client_Mesh_interf_del
   write_name(cpl_id);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4031,12 +4022,10 @@ CWP_client_Mesh_interf_from_cellface_set
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_from_cellface_set\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_from_cellface_set\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -4048,8 +4037,8 @@ CWP_client_Mesh_interf_from_cellface_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4121,16 +4110,16 @@ CWP_client_Mesh_interf_from_cellface_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4162,12 +4151,10 @@ CWP_client_Mesh_interf_from_faceedge_set
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Mesh_interf_from_faceedge_set\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_from_faceedge_set\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -4179,8 +4166,8 @@ CWP_client_Mesh_interf_from_faceedge_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4252,16 +4239,16 @@ CWP_client_Mesh_interf_from_faceedge_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4292,12 +4279,10 @@ CWP_client_Field_create
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_create\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_create\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -4309,8 +4294,8 @@ CWP_client_Field_create
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4364,16 +4349,16 @@ CWP_client_Field_create
   fields.field_settings[std::make_tuple(s1, s2, s3)].n_component = n_component;
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4396,12 +4381,10 @@ CWP_client_Field_data_set
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_data_set\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_data_set\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -4413,8 +4396,8 @@ CWP_client_Field_data_set
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4459,16 +4442,16 @@ CWP_client_Field_data_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_data, sizeof(double) * size);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4489,12 +4472,10 @@ CWP_client_Field_n_component_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_n_component_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_n_component_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -4506,8 +4487,8 @@ CWP_client_Field_n_component_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4523,16 +4504,16 @@ CWP_client_Field_n_component_get
   write_name(field_id);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4556,12 +4537,10 @@ CWP_client_Field_target_dof_location_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_target_dof_location_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_target_dof_location_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -4573,8 +4552,8 @@ CWP_client_Field_target_dof_location_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4590,16 +4569,16 @@ CWP_client_Field_target_dof_location_get
   write_name(field_id);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4623,12 +4602,10 @@ CWP_client_Field_storage_get
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_storage_get\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_storage_get\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -4640,8 +4617,8 @@ CWP_client_Field_storage_get
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4657,16 +4634,16 @@ CWP_client_Field_storage_get
   write_name(field_id);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4690,12 +4667,10 @@ CWP_client_Field_del
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_del\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_del\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -4707,8 +4682,8 @@ CWP_client_Field_del
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4724,16 +4699,16 @@ CWP_client_Field_del
   write_name(field_id);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4751,12 +4726,10 @@ CWP_client_Field_issend
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_issend\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_issend\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -4768,8 +4741,8 @@ CWP_client_Field_issend
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4785,16 +4758,16 @@ CWP_client_Field_issend
   write_name(src_field_id);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4812,12 +4785,10 @@ CWP_client_Field_irecv
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_irecv\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_irecv\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -4829,8 +4800,8 @@ CWP_client_Field_irecv
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4846,16 +4817,16 @@ CWP_client_Field_irecv
   write_name(tgt_field_id);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4873,12 +4844,10 @@ CWP_client_Field_wait_issend
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_wait_issend\n");
-    PDM_printf_flush();
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_wait_issend\n", clt->code_name);
+    // PDM_printf_flush();
   }
 
   // create message
@@ -4890,8 +4859,8 @@ CWP_client_Field_wait_issend
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4907,16 +4876,16 @@ CWP_client_Field_wait_issend
   write_name(src_field_id);
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4935,11 +4904,9 @@ CWP_client_Field_wait_irecv
   t_message msg;
 
   // verbose
-  MPI_Barrier(clt->comm);
-  int i_rank;
-  MPI_Comm_rank(clt->comm, &i_rank);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
-    PDM_printf("CWP-CLIENT: Client initiating CWP_Field_wait_irecv\n");
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_wait_irecv\n", clt->code_name);
   }
 
   // create message
@@ -4951,8 +4918,8 @@ CWP_client_Field_wait_irecv
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
@@ -4989,16 +4956,16 @@ CWP_client_Field_wait_irecv
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_size, sizeof(int));
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);
   }
 
   // receive status msg
-  MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (i_rank == 0)) {
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     verbose(message);

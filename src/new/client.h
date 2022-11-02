@@ -46,6 +46,10 @@ extern "C" {
 typedef struct t_client
 {
   MPI_Comm comm;
+  int      i_rank;
+  MPI_Comm intra_comm;
+  int      intra_i_rank;
+  char     *code_name;
   int      server_port;
   int      flags;
   int      socket;
@@ -1709,6 +1713,7 @@ int
 CWP_client_connect
 (
  MPI_Comm  comm,
+ MPI_Comm  intra_comm,
  const char* server_name,
  int server_port,
  int flags
