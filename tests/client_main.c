@@ -160,8 +160,15 @@ main
   }
 
   // Outputfile
-  FILE *f = fopen("output_file.txt", "w");
-  CWP_client_Output_file_set(f);
+  if (i_rank == 0) {
+    FILE *f = fopen("output_file_code1.txt", "w");
+    CWP_client_Output_file_set(f);
+  }
+
+  if (i_rank == 1) {
+    FILE *f = fopen("output_file_code2.txt", "w");
+    CWP_client_Output_file_set(f);
+  }
 
   CWP_client_Init(comm,
                   config,

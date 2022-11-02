@@ -370,7 +370,7 @@ CWP_client_Time_update
 /**
  * \brief Output_file_set CWIPI.
  *
- * Server should be able to reach file directory !
+ * /!\ one file per code
  *
  * \param [in] output_filename    Output file directory or name
  *

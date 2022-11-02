@@ -573,8 +573,8 @@ static void verbose(t_message msg) {
   }
 
   // print
-  // PDM_printf("%s-CWP-SERVER: %s --> %s\n", clt->code_name, function, flag);
-  // PDM_printf_flush();
+  PDM_printf("%s-CWP-SERVER: %s --> %s\n", clt->code_name, function, flag);
+  PDM_printf_flush();
 
   // free
   free(function);
@@ -632,50 +632,8 @@ CWP_client_connect
   // verbose
   MPI_Barrier(clt->comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE)) {
-    // send buffer to rank 0 of comm
-    char buffer[1080];
-    sprintf(buffer, "CWP-CLIENT: client connected to server on %s port %i\n", server_name, server_port);
-    int i_rank_size = strlen(buffer) + 1;
-    int *j_rank_size = NULL;
-
-    int n_rank;
-    MPI_Comm_size(clt->comm, &n_rank);
-
-    if (clt->i_rank == 0) {
-      j_rank_size = (int *) malloc(sizeof(int) * n_rank);
-    }
-
-    MPI_Barrier(clt->comm);
-
-    MPI_Gather((const void *) &i_rank_size, 1, MPI_INT,
-             (void *)          j_rank_size, 1, MPI_INT,
-             0, comm);
-
-    char *print_buffer = NULL;
-    int  *j_rank_idx   = NULL;
-
-    if (clt->i_rank == 0) {
-      int total_size = 0;
-      j_rank_idx = (int *) malloc(sizeof(int) * n_rank);
-      for (int i = 0; i < n_rank; i++) {
-        j_rank_idx[i] = total_size;
-        total_size += j_rank_size[i];
-      }
-      print_buffer = (char *) malloc(sizeof(char) * total_size);
-    }
-
-    MPI_Barrier(clt->comm);
-
-    MPI_Gatherv((const void *) buffer, i_rank_size, MPI_CHAR,
-                (void *)       print_buffer, j_rank_size, j_rank_idx, MPI_CHAR,
-                0, comm);
-
-    if (clt->i_rank == 0) {
-      for (int i = 0; i < n_rank; i++) {
-        PDM_printf("%s", print_buffer + j_rank_idx[i]);
-        PDM_printf_flush();
-      }
-    }
+    printf("CWP-CLIENT: client connected to server on %s port %i\n", server_name, server_port);
+    fflush(stdout);
   }
 
   // get maximum message size
@@ -713,22 +671,10 @@ CWP_client_disconnect
 {
   t_message msg;
 
-  MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    char buffer[1080];
-    sprintf(buffer, "CWP-CLIENT: Client shutting down\n");
-    int size = strlen(buffer) + 1;
-    MPI_Send(&size, 1, MPI_INT, 0, 0, clt->comm);
-    MPI_Send(buffer, size, MPI_CHAR, 0, 1, clt->comm);
-  } else if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
-    MPI_Status status;
-    MPI_Probe(MPI_ANY_SOURCE, 0, clt->comm, &status);
-    int size = -1;
-    char buffer[1080];
-    MPI_Recv(&size, 1, MPI_INT, status.MPI_SOURCE, 0, clt->comm, MPI_STATUS_IGNORE);
-    MPI_Recv(buffer, size, MPI_CHAR, status.MPI_SOURCE, 1, clt->comm, MPI_STATUS_IGNORE);
-    PDM_printf("%s", buffer);
-    PDM_printf_flush();
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    printf("CWP-CLIENT: Client shutting down\n");
+    fflush(stdout);
   }
 
   NEWMESSAGE(msg, CWP_MSG_DIE);
@@ -883,6 +829,8 @@ CWP_client_Init
   if (key != NULL) free(key);
   if (value != NULL) free(value);
   if (j_rank_code_names != NULL) free(j_rank_code_names);
+  if (j_rank_size != NULL) free(j_rank_size);
+  if (j_rank_idx != NULL) free(j_rank_idx);
 
   /* connect */
 
@@ -993,6 +941,7 @@ CWP_client_Init
 
   // code name
   clt->code_name = (char *) malloc(sizeof(char) * (strlen(code_names[0])+1));
+  memset(clt->code_name, 0, strlen(code_names[0])+1);
   memcpy(clt->code_name, code_names[0], strlen(code_names[0]));
 
   // free
@@ -1007,8 +956,8 @@ CWP_client_Init
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Init\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Init\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -1088,8 +1037,8 @@ CWP_client_Finalize()
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Finalize\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Finalize\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -1116,6 +1065,8 @@ CWP_client_Finalize()
     verbose(message);
   }
 
+  if (clt->code_name != NULL) free(clt->code_name);
+
   /* disconnect */
   CWP_client_disconnect();
 }
@@ -1131,20 +1082,7 @@ const char *code_name
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    char buffer[1080];
-    sprintf(buffer, "%s-CWP-CLIENT: Client initiating CWP_Param_lock\n", clt->code_name);
-    int size = strlen(buffer) + 1;
-    MPI_Send(&size, 1, MPI_INT, 0, 0, clt->comm);
-    MPI_Send(buffer, size, MPI_CHAR, 0, 1, clt->comm);
-  } else if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
-    MPI_Status status;
-    MPI_Probe(MPI_ANY_SOURCE, 0, clt->comm, &status);
-    int size = -1;
-    char buffer[1080];
-    MPI_Recv(&size, 1, MPI_INT, status.MPI_SOURCE, 0, clt->comm, MPI_STATUS_IGNORE);
-    MPI_Recv(buffer, size, MPI_CHAR, status.MPI_SOURCE, 1, clt->comm, MPI_STATUS_IGNORE);
-    printf("%d - %s", clt->i_rank, buffer);
-    PDM_printf("%s", buffer);
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_lock\n", clt->code_name);
     PDM_printf_flush();
   }
 
@@ -1195,8 +1133,8 @@ const char *code_name
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_unlock\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_unlock\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -1249,8 +1187,8 @@ CWP_client_Param_add
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_add\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_add\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -1334,8 +1272,8 @@ CWP_client_Param_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -1420,8 +1358,8 @@ CWP_client_Param_set
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_set\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_set\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -1503,8 +1441,8 @@ CWP_client_Param_del
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_del\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_del\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -1563,8 +1501,8 @@ CWP_client_Param_n_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_n_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_n_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -1628,8 +1566,8 @@ CWP_client_Param_list_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_list_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_list_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -1696,8 +1634,8 @@ CWP_client_Param_is
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_is\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_is\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -1766,8 +1704,8 @@ CWP_client_Param_reduce
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_reduce\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Param_reduce\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -1867,8 +1805,8 @@ CWP_client_Cpl_create
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Cpl_create\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Cpl_create\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -1955,8 +1893,8 @@ CWP_client_Cpl_del
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Cpl_del\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Cpl_del\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2009,8 +1947,8 @@ void
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Properties_dump\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Properties_dump\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2066,8 +2004,8 @@ CWP_client_Visu_set
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Visu_set\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Visu_set\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2134,8 +2072,8 @@ CWP_client_State_update
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_State_update\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_State_update\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2191,8 +2129,8 @@ CWP_client_Time_update
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Time_update\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Time_update\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2282,8 +2220,8 @@ CWP_client_State_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_State_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_State_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2339,8 +2277,8 @@ CWP_client_Codes_nb_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Codes_nb_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Codes_nb_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2385,8 +2323,8 @@ void
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Codes_list_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Codes_list_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2436,8 +2374,8 @@ CWP_client_Loc_codes_nb_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Loc_codes_nb_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Loc_codes_nb_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2482,8 +2420,8 @@ CWP_client_Loc_codes_list_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Loc_codes_list_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Loc_codes_list_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2536,8 +2474,8 @@ CWP_client_N_uncomputed_tgts_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_N_uncomputed_tgts_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_N_uncomputed_tgts_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2607,8 +2545,8 @@ CWP_client_Uncomputed_tgts_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Uncomputed_tgts_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Uncomputed_tgts_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2680,8 +2618,8 @@ CWP_client_N_computed_tgts_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_N_computed_tgts_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_N_computed_tgts_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2751,8 +2689,8 @@ CWP_client_Computed_tgts_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Computed_tgts_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Computed_tgts_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2824,8 +2762,8 @@ CWP_client_N_involved_srcs_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_N_involved_srcs_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_N_involved_srcs_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2895,8 +2833,8 @@ CWP_client_Involved_srcs_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Involved_srcs_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Involved_srcs_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -2966,8 +2904,8 @@ CWP_client_Spatial_interp_weights_compute
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Spatial_interp_weights_compute\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Spatial_interp_weights_compute\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -3024,8 +2962,8 @@ CWP_client_Spatial_interp_property_set
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Spatial_interp_property_set\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Spatial_interp_property_set\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -3092,8 +3030,8 @@ CWP_client_User_tgt_pts_set
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_User_tgt_pts_set\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_User_tgt_pts_set\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -3187,8 +3125,8 @@ CWP_client_Mesh_interf_finalize
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_finalize\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_finalize\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -3246,8 +3184,8 @@ CWP_client_Mesh_interf_vtx_set
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_vtx_set\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_vtx_set\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -3342,8 +3280,8 @@ CWP_client_Mesh_interf_block_add
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_block_add\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_block_add\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -3414,8 +3352,8 @@ CWP_client_Mesh_interf_block_std_set
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_block_std_set\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_block_std_set\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -3526,8 +3464,8 @@ CWP_client_Mesh_interf_f_poly_block_set
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_f_poly_block_set\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_f_poly_block_set\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -3639,8 +3577,8 @@ CWP_client_Mesh_interf_f_poly_block_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_f_poly_block_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_f_poly_block_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -3732,8 +3670,8 @@ CWP_client_Mesh_interf_c_poly_block_set
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_c_poly_block_set\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_c_poly_block_set\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -3867,8 +3805,8 @@ CWP_client_Mesh_interf_c_poly_block_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_c_poly_block_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_c_poly_block_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -3961,8 +3899,8 @@ CWP_client_Mesh_interf_del
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_del\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_del\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -4024,8 +3962,8 @@ CWP_client_Mesh_interf_from_cellface_set
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_from_cellface_set\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_from_cellface_set\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -4153,8 +4091,8 @@ CWP_client_Mesh_interf_from_faceedge_set
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_from_faceedge_set\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_from_faceedge_set\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -4281,8 +4219,8 @@ CWP_client_Field_create
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_create\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_create\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -4383,8 +4321,8 @@ CWP_client_Field_data_set
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_data_set\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_data_set\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -4474,8 +4412,8 @@ CWP_client_Field_n_component_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_n_component_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_n_component_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -4539,8 +4477,8 @@ CWP_client_Field_target_dof_location_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_target_dof_location_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_target_dof_location_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -4604,8 +4542,8 @@ CWP_client_Field_storage_get
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_storage_get\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_storage_get\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -4669,8 +4607,8 @@ CWP_client_Field_del
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_del\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_del\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -4728,8 +4666,8 @@ CWP_client_Field_issend
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_issend\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_issend\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -4787,8 +4725,8 @@ CWP_client_Field_irecv
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_irecv\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_irecv\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -4846,8 +4784,8 @@ CWP_client_Field_wait_issend
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_wait_issend\n", clt->code_name);
-    // PDM_printf_flush();
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_wait_issend\n", clt->code_name);
+    PDM_printf_flush();
   }
 
   // create message
@@ -4906,10 +4844,8 @@ CWP_client_Field_wait_irecv
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    // PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_wait_irecv\n", clt->code_name);
-  }
-
-  // create message
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Field_wait_irecv\n", clt->code_name);
+  } // create message
   NEWMESSAGE(msg, CWP_MSG_CWP_FIELD_WAIT_IRECV);
 
   // send message
