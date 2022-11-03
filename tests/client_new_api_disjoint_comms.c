@@ -478,6 +478,23 @@ main
                   is_active_rank,
                   time_init);
 
+  MPI_Barrier(comm);
+
+  // CWP_Codes_*
+  int n_codes = CWP_client_Codes_nb_get();
+  printf("n_codes = %d\n", n_codes);
+  char **codeNames = NULL;
+  codeNames = (char **) CWP_client_Codes_list_get();
+  for (int i = 0; i < n_codes; i++) {
+    printf("rank: %d code_names[i] = %s\n", rank, codeNames[i]);
+  }
+
+  // free
+  for (int i = 0; i < n_codes; i++) {
+    free(codeNames[i]);
+  }
+  free(codeNames);
+
   printf("%d --- CWIPI initialized\n", rank);
 
   // Create coupling and visu

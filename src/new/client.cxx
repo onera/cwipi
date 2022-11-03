@@ -956,7 +956,7 @@ CWP_client_Init
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Init\n", clt->code_name);
+    PDM_printf("Client initiating CWP_Init\n", clt->code_name);
     PDM_printf_flush();
   }
 
@@ -970,10 +970,10 @@ CWP_client_Init
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // endian swap
@@ -996,18 +996,18 @@ CWP_client_Init
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // free
@@ -1037,7 +1037,7 @@ CWP_client_Finalize()
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Finalize\n", clt->code_name);
+    PDM_printf("Client initiating CWP_Finalize\n", clt->code_name);
     PDM_printf_flush();
   }
 
@@ -1051,18 +1051,18 @@ CWP_client_Finalize()
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   if (clt->code_name != NULL) free(clt->code_name);
@@ -1096,10 +1096,10 @@ const char *code_name
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send code name
@@ -1107,18 +1107,18 @@ const char *code_name
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -1147,10 +1147,10 @@ const char *code_name
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send code name
@@ -1158,18 +1158,18 @@ const char *code_name
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -1201,10 +1201,10 @@ CWP_client_Param_add
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -1243,18 +1243,18 @@ CWP_client_Param_add
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -1286,10 +1286,10 @@ CWP_client_Param_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send code name
@@ -1305,18 +1305,18 @@ CWP_client_Param_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive value
@@ -1372,10 +1372,10 @@ CWP_client_Param_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -1413,18 +1413,18 @@ CWP_client_Param_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -1455,10 +1455,10 @@ CWP_client_Param_del
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -1474,18 +1474,18 @@ CWP_client_Param_del
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -1515,10 +1515,10 @@ CWP_client_Param_n_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -1531,18 +1531,18 @@ CWP_client_Param_n_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read n_param
@@ -1580,10 +1580,10 @@ CWP_client_Param_list_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -1596,18 +1596,18 @@ CWP_client_Param_list_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read n_param
@@ -1648,10 +1648,10 @@ CWP_client_Param_is
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -1667,18 +1667,18 @@ CWP_client_Param_is
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read bool
@@ -1718,10 +1718,10 @@ CWP_client_Param_reduce
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send operation type
@@ -1756,18 +1756,18 @@ CWP_client_Param_reduce
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // retreive result
@@ -1819,10 +1819,10 @@ CWP_client_Cpl_create
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send code name
@@ -1866,18 +1866,18 @@ CWP_client_Cpl_create
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -1907,10 +1907,10 @@ CWP_client_Cpl_del
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send code name
@@ -1921,18 +1921,18 @@ CWP_client_Cpl_del
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -1961,18 +1961,18 @@ void
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read
@@ -2018,10 +2018,10 @@ CWP_client_Visu_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send code name
@@ -2045,18 +2045,18 @@ CWP_client_Visu_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -2086,10 +2086,10 @@ CWP_client_State_update
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send code name
@@ -2102,18 +2102,18 @@ CWP_client_State_update
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -2143,10 +2143,10 @@ CWP_client_Time_update
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send code name
@@ -2159,18 +2159,18 @@ CWP_client_Time_update
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -2234,10 +2234,10 @@ CWP_client_State_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send code name
@@ -2245,18 +2245,18 @@ CWP_client_State_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read state
@@ -2291,18 +2291,18 @@ CWP_client_Codes_nb_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read nb_codes
@@ -2337,18 +2337,18 @@ void
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read code names
@@ -2388,18 +2388,18 @@ CWP_client_Loc_codes_nb_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read nb_codes
@@ -2434,18 +2434,18 @@ CWP_client_Loc_codes_list_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read code names
@@ -2488,10 +2488,10 @@ CWP_client_N_uncomputed_tgts_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -2510,18 +2510,18 @@ CWP_client_N_uncomputed_tgts_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read number of targets
@@ -2559,10 +2559,10 @@ CWP_client_Uncomputed_tgts_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -2581,18 +2581,18 @@ CWP_client_Uncomputed_tgts_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read number of targets
@@ -2632,10 +2632,10 @@ CWP_client_N_computed_tgts_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -2654,18 +2654,18 @@ CWP_client_N_computed_tgts_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read number of targets
@@ -2703,10 +2703,10 @@ CWP_client_Computed_tgts_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -2725,18 +2725,18 @@ CWP_client_Computed_tgts_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read number of targets
@@ -2776,10 +2776,10 @@ CWP_client_N_involved_srcs_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -2798,18 +2798,18 @@ CWP_client_N_involved_srcs_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read number of sources
@@ -2847,10 +2847,10 @@ CWP_client_Involved_srcs_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -2869,18 +2869,18 @@ CWP_client_Involved_srcs_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read number of sources
@@ -2918,10 +2918,10 @@ CWP_client_Spatial_interp_weights_compute
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -2932,18 +2932,18 @@ CWP_client_Spatial_interp_weights_compute
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -2976,10 +2976,10 @@ CWP_client_Spatial_interp_property_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -2999,18 +2999,18 @@ CWP_client_Spatial_interp_property_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -3044,10 +3044,10 @@ CWP_client_User_tgt_pts_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -3094,18 +3094,18 @@ CWP_client_User_tgt_pts_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // free
@@ -3139,10 +3139,10 @@ CWP_client_Mesh_interf_finalize
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -3153,18 +3153,18 @@ CWP_client_Mesh_interf_finalize
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -3198,10 +3198,10 @@ CWP_client_Mesh_interf_vtx_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -3248,18 +3248,18 @@ CWP_client_Mesh_interf_vtx_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // free
@@ -3294,10 +3294,10 @@ CWP_client_Mesh_interf_block_add
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -3313,23 +3313,24 @@ CWP_client_Mesh_interf_block_add
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read block identifier
   int block_id = -2;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &block_id, sizeof(int));
+  printf("clt->i_rank = %d - block_id = %d\n", clt->i_rank, block_id);
 
   return block_id;
 }
@@ -3366,10 +3367,10 @@ CWP_client_Mesh_interf_block_std_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -3427,18 +3428,18 @@ CWP_client_Mesh_interf_block_std_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // free
@@ -3478,10 +3479,10 @@ CWP_client_Mesh_interf_f_poly_block_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -3539,18 +3540,18 @@ CWP_client_Mesh_interf_f_poly_block_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // free
@@ -3591,10 +3592,10 @@ CWP_client_Mesh_interf_f_poly_block_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -3615,18 +3616,18 @@ CWP_client_Mesh_interf_f_poly_block_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read n_elts
@@ -3684,10 +3685,10 @@ CWP_client_Mesh_interf_c_poly_block_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -3762,18 +3763,18 @@ CWP_client_Mesh_interf_c_poly_block_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // free
@@ -3819,10 +3820,10 @@ CWP_client_Mesh_interf_c_poly_block_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -3843,18 +3844,18 @@ CWP_client_Mesh_interf_c_poly_block_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read n_elts
@@ -3913,10 +3914,10 @@ CWP_client_Mesh_interf_del
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -3927,18 +3928,18 @@ CWP_client_Mesh_interf_del
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -3976,10 +3977,10 @@ CWP_client_Mesh_interf_from_cellface_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -4049,18 +4050,18 @@ CWP_client_Mesh_interf_from_cellface_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // free
@@ -4105,10 +4106,10 @@ CWP_client_Mesh_interf_from_faceedge_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -4178,18 +4179,18 @@ CWP_client_Mesh_interf_from_faceedge_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // free
@@ -4233,10 +4234,10 @@ CWP_client_Field_create
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -4288,18 +4289,18 @@ CWP_client_Field_create
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
 }
@@ -4335,10 +4336,10 @@ CWP_client_Field_data_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -4381,18 +4382,18 @@ CWP_client_Field_data_set
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // free
@@ -4426,10 +4427,10 @@ CWP_client_Field_n_component_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -4443,18 +4444,18 @@ CWP_client_Field_n_component_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read number of components
@@ -4491,10 +4492,10 @@ CWP_client_Field_target_dof_location_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -4508,18 +4509,18 @@ CWP_client_Field_target_dof_location_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read location of target degrees of freedom
@@ -4556,10 +4557,10 @@ CWP_client_Field_storage_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -4573,18 +4574,18 @@ CWP_client_Field_storage_get
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read field storage type
@@ -4621,10 +4622,10 @@ CWP_client_Field_del
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -4638,18 +4639,18 @@ CWP_client_Field_del
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -4680,10 +4681,10 @@ CWP_client_Field_issend
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -4697,18 +4698,18 @@ CWP_client_Field_issend
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -4739,10 +4740,10 @@ CWP_client_Field_irecv
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -4756,18 +4757,18 @@ CWP_client_Field_irecv
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -4798,10 +4799,10 @@ CWP_client_Field_wait_issend
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -4815,18 +4816,18 @@ CWP_client_Field_wait_issend
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 }
 
@@ -4855,10 +4856,10 @@ CWP_client_Field_wait_irecv
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // send local code name
@@ -4893,18 +4894,18 @@ CWP_client_Field_wait_irecv
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
-    verbose(message);
+    if (clt->intra_i_rank == 0) verbose(message);
   }
 
   // read irecv Field_data
