@@ -956,7 +956,7 @@ CWP_client_Init
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    PDM_printf("Client initiating CWP_Init\n", clt->code_name);
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Init\n", clt->code_name);
     PDM_printf_flush();
   }
 
@@ -1037,7 +1037,7 @@ CWP_client_Finalize()
   // verbose
   MPI_Barrier(clt->intra_comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
-    PDM_printf("Client initiating CWP_Finalize\n", clt->code_name);
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Finalize\n", clt->code_name);
     PDM_printf_flush();
   }
 
