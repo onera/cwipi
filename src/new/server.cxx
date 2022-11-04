@@ -40,6 +40,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <iostream>
@@ -4223,6 +4224,18 @@ CWP_server_create
     PDM_error(__FILE__, __LINE__, 0, "Could not get host name\n");
     return -1;
   }
+
+  // tmp
+  struct addrinfo *svr_info;
+
+  char port_str[16] = {};
+  sprintf(port_str, "%d", svr->port);
+
+  const int status = getaddrinfo(svr->host_name, port_str, NULL, &svr_info); // hint
+  printf("status = %d\n", status);
+  char *dst = (char *) malloc(sizeof(char) * INET_ADDRSTRLEN);
+  inet_ntop(AF_INET, svr_info->ai_addr->sa_data, dst, INET_ADDRSTRLEN);
+  printf("svr_info->ai_addr->sa_data: %s\n", dst);
 
   // verbose
   if (svr_debug) {

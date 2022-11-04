@@ -104,6 +104,8 @@ if (CWP_ENABLE_BLAS)
     find_package(BLAS)
   endif()
 
+  find_package(LAPACK)
+
 
 endif()
 

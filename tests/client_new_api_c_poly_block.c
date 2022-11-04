@@ -223,7 +223,8 @@ main
 
   FILE *meshFile;
 
-  meshFile = fopen("../meshes/mesh_poly_d1", "r");
+  // meshFile = fopen("../meshes/mesh_poly_d1", "r"); // SPIRO
+  meshFile = fopen("./meshes/mesh_poly_d1", "r"); // SATOR
 
   int n_partition = 0;
   const int two = 2;
@@ -234,7 +235,7 @@ main
   if (n2 != comm_world_size) {
     if (rank == 0)
       printf("      Not executed : only available if the number of processus in the form of '2 * n^2' \n");
-    PDM_MPI_Finalize();
+    MPI_Finalize();
     return EXIT_SUCCESS;
   }
 
@@ -283,6 +284,17 @@ main
 
   for (int i = 0 ; i < n_code_name ; i++) {
     times_init[i] = 0;
+  }
+
+  // Outputfile
+  if (rank == 0) {
+    FILE *f = fopen("output_file_code1.txt", "w");
+    CWP_client_Output_file_set(f);
+  }
+
+  if (rank == 1) {
+    FILE *f = fopen("output_file_code2.txt", "w");
+    CWP_client_Output_file_set(f);
   }
 
   CWP_client_Init(comm,
@@ -446,7 +458,7 @@ main
     free(getFaceVertex   );
     free(getCellFaceIdx  );
     free(getCellFace );
-    free(cellGnum    );
+    if (cellGnum != NULL) free(cellGnum    );
 
     printf("Interface Mesh deletion\n");
     CWP_client_Mesh_interf_del("cpoly", cpl_id1);

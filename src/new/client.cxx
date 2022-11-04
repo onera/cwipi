@@ -612,22 +612,34 @@ CWP_client_connect
   MPI_Comm_rank(clt->comm, &clt->i_rank);
   MPI_Comm_rank(clt->intra_comm, &clt->intra_i_rank);
 
-  host = (struct hostent *) gethostbyname(server_name);
+  struct addrinfo *svr_info;
+  // struct addrinfo hints = {};
+  // hints.ai_family = AF_INET;
+  // hints.ai_socktype = SOCK_STREAM;
+  // hints.ai_protocol = IPPROTO_TCP;
+
+  char port_str[16] = {};
+  sprintf(port_str, "%d", server_port);
+
+  const int status = getaddrinfo(server_name, port_str, NULL, &svr_info); // hint
+  printf("server_name %s / port %d\n", server_name, server_port);
+  printf("status = %d -- > err code %s\n", status, gai_strerror(status));
+  char *dst = (char *) malloc(sizeof(char) * INET_ADDRSTRLEN);
+  inet_ntop(AF_INET, svr_info->ai_addr->sa_data, dst, INET_ADDRSTRLEN);
+  printf("svr_info->ai_addr->sa_data: %s\n", dst);
+
+  // host = (struct hostent *) gethostbyname(server_name);
+  // printf("host: %p\n", host);
 
   // create socket
-  if ((clt->socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+  if ((clt->socket = socket(svr_info->ai_family, SOCK_STREAM, 0)) == -1) {
     PDM_error(__FILE__, __LINE__, 0, "Could not create Socket\n");
     return -1;
   }
 
-  server_addr->sin_family = AF_INET;
-  server_addr->sin_port = htons(server_port);
-  server_addr->sin_addr = *((struct in_addr *)host->h_addr);
-  bzero(&(server_addr->sin_zero),8);
-
   // connect
-  while (connect(clt->socket, (struct sockaddr *) server_addr,
-                 sizeof(struct sockaddr)) == -1) {}
+  while (connect(clt->socket, (struct sockaddr *) svr_info->ai_addr,
+                 (int) svr_info->ai_addrlen) == -1) {}
 
   // verbose
   MPI_Barrier(clt->comm);
@@ -657,7 +669,7 @@ CWP_client_connect
   CWP_transfer_writedata(clt->socket, clt->max_msg_size, (void*) &endian_flags, sizeof(int));
 
   // free
-  free(server_addr);
+  free(svr_info);
 
   return 0;
 
