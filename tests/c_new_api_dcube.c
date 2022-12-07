@@ -22,8 +22,8 @@
 #include <string.h>
 
 #include "src/new/cwp.h"
-#include "paradigm/src/meshgen/pdm_dcube_gen.h"
-#include "paradigm/src/ppart/pdm_part.h"
+#include "pdm_dcube_gen.h"
+#include "pdm_part.h"
 #include "pdm_priv.h"
 
 

@@ -432,8 +432,9 @@ set(CWP_ETC_DIR "etc")
 #------------------------------------------------------------------------------
 
 if (CWP_ENABLE_NEW_API)
-  if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/paradigm")
-  add_subdirectory(paradigm)
+  if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/external/paradigm")
+  add_subdirectory(external/paradigm)
+#  add_subdirectory(paradigm)
 #  add_subdirectory(paradigm/doc)
   endif()
 endif()
