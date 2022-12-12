@@ -53,7 +53,9 @@
 #include "pdm_dmesh_nodal_to_dmesh.h"
 
 
-#define ABS(a) ((a) <  0  ? -(a) : (a))
+#define ABS(a)   ((a) <  0  ? -(a) : (a))
+#define MIN(a,b) ((a) < (b) ?  (a) : (b))
+#define MAX(a,b) ((a) > (b) ?  (a) : (b))
 
 typedef enum {
     CWP_VERSION_OLD,
@@ -283,14 +285,15 @@ _read_args
   }
 }
 
-
+static double R[3][3] =
+{
+  {-0.14547275709949994,  0.8415293589391187 , -0.5202557207618055 },
+  { 0.9893622576902102 ,  0.12373586628506748, -0.07649678720582984},
+  { 0.                 , -0.5258495730132333 , -0.8505775840931856 }
+};
 
 static void
 _rotate(const int n_pts, double *coord) {
-  double R[3][3] = {{0.9362934,  -0.2896295, 0.1986693},
-                    {0.3129918,  0.9447025,  -0.0978434},
-                    {-0.1593451, 0.1537920,  0.9751703}};
-
   for (int i = 0 ; i < n_pts ; i++) {
     double x = coord[3 * i];
     double y = coord[3 * i + 1];
@@ -301,6 +304,21 @@ _rotate(const int n_pts, double *coord) {
     }
   }
 }
+
+static void
+_unrotate(const int n_pts, double *coord) {
+  for (int i = 0 ; i < n_pts ; i++) {
+    double x = coord[3 * i];
+    double y = coord[3 * i + 1];
+    double z = coord[3 * i + 2];
+
+    for (int j = 0 ; j < 3 ; j++) {
+      coord[3 * i + j] = R[0][j] * x + R[1][j] * y + R[2][j] * z;
+    }
+  }
+}
+
+
 
 static void
 _cube_mesh
@@ -1143,7 +1161,7 @@ main(int argc, char *argv[]) {
                           CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                           coupled_code_name[0],                      // Coupled application id
                           3,                                         // Geometric entities dimension
-                          0.01,                                       // Geometric tolerance
+                          tolerance,                                 // Geometric tolerance
                           CWIPI_STATIC_MESH,                         // Mesh type
                           CWIPI_SOLVER_CELL_VERTEX,                  // Solver type
                           -1,                                        // Postprocessing frequency
@@ -1196,6 +1214,10 @@ main(int argc, char *argv[]) {
   double xmin = -0.5 * length;
   double ymin = -0.5 * length;
   double zmin = -0.5 * length;
+
+  double xyz_min[3] = {xmin, ymin, zmin};
+  double xyz_max[3] = {xmin + length, ymin + length, zmin + length};
+
 //  int init_random = (int) time(NULL);
   int init_random = 5;
 
@@ -1347,14 +1369,14 @@ main(int argc, char *argv[]) {
   t_start = PDM_timer_elapsed(timer);
   PDM_timer_resume(timer);
 
-  int n_unlocated = 0;
+  // int n_unlocated = 0;
   int n_located = 0;
   const int *located = NULL;
   if (version == CWP_VERSION_OLD) {
     cwipi_locate(coupling_name);
 
     if (code_id != 1) {
-      n_unlocated = cwipi_get_n_not_located_points(coupling_name);
+      // n_unlocated = cwipi_get_n_not_located_points(coupling_name);
       n_located = cwipi_get_n_located_points(coupling_name);
       located = cwipi_get_located_points(coupling_name);
     }
@@ -1364,14 +1386,12 @@ main(int argc, char *argv[]) {
     PDM_part_to_block_global_statistic_reset();
     PDM_block_to_part_global_statistic_reset();
 
-    // CWP_next_recv_time_set(code_name[0],
-    //                        coupling_name,
-    //                        0.);
-    CWP_Time_update(code_name[0], 0.);
-
+    char char_tol[99];
+    sprintf(char_tol, "%e", tolerance);
+    CWP_Spatial_interp_property_set(code_name[0], coupling_name, "tolerance", "double", char_tol);
     CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
   
-    n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name, 0);
+    // n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name, 0);
     n_located = CWP_N_computed_tgts_get(code_name[0], coupling_name, field_name, 0);
     located =  CWP_Computed_tgts_get(code_name[0], coupling_name, field_name, 0);
   }
@@ -1482,16 +1502,31 @@ main(int argc, char *argv[]) {
     printf("Total Exchange 1              : %12.5es\n", max_exch_time1 + max_exch_time);
   }
 
-  double redondance_geom = max_exch_time1;
+  // double redondance_geom = max_exch_time1;
   max_geom_time += max_exch_time1;
 
   //  Check
   if (1) {
     double max_err = 0.;
+    PDM_g_num_t n_wrong = 0;
     if (code_id == 2) {
       for (int i = 0 ; i < n_located ; i++) {
-        double err = ABS (recv_val[i] - pvtx_coord[0][3 * (located[i] -1)]);
+
+        int pt_id = located[i] -1;
+        double coord[3] = {pvtx_coord[0][3*pt_id], pvtx_coord[0][3*pt_id+1], pvtx_coord[0][3*pt_id+2]};
+        if (deform) {
+          _unrotate(1, coord);
+        }
+        for (int j = 0; j < 3; j++) {
+          coord[j] = MIN(MAX(coord[j], xyz_min[j]), xyz_max[j]);
+        }
+        if (deform) {
+          _rotate(1, coord);
+        }
+
+        double err = ABS (recv_val[i] - coord[0]);
         if (err > 1.e-4) {
+          n_wrong++;
           printf("[%d] !! vtx %ld %d err = %g (x = %f, recv = %f)\n",
           rank, pvtx_ln_to_gn[0][(located[i] - 1)], located[i], err, pvtx_coord[0][3*(located[i]-1)], recv_val[i]);
         }
@@ -1503,8 +1538,10 @@ main(int argc, char *argv[]) {
 
     double global_max_err = 0.;
     MPI_Reduce(&max_err, &global_max_err, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    PDM_g_num_t global_n_wrong = 0;
+    PDM_MPI_Reduce(&n_wrong, &global_n_wrong, 1, PDM__PDM_MPI_G_NUM, PDM_MPI_MAX, 0, PDM_MPI_COMM_WORLD);
     if (rank == 0) {
-      printf("Max error = %g\n", global_max_err);
+      printf("Max error = %g ("PDM_FMT_G_NUM" wrong points)\n", global_max_err, global_n_wrong);
     }
   }
 
