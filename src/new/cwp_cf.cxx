@@ -73,6 +73,47 @@ using namespace std;
  * Private function definitions
  *============================================================================*/
 
+static int
+_n_vtx_block_get
+(
+ int block_id
+)
+{
+  switch (block_id)
+  {
+    case CWP_BLOCK_EDGE2:
+      return 2;
+      break;
+
+    case CWP_BLOCK_FACE_TRIA3:
+      return 3;
+      break;
+
+    case CWP_BLOCK_FACE_QUAD4:
+      return 4;
+      break;
+
+    case CWP_BLOCK_CELL_TETRA4:
+      return 4;
+      break;
+
+    case CWP_BLOCK_CELL_HEXA8:
+      return 8;
+      break;
+
+    case CWP_BLOCK_CELL_PRISM6:
+      return 6;
+      break;
+
+    case CWP_BLOCK_CELL_PYRAM5:
+      return 5;
+      break;
+
+    default:
+      PDM_error(__FILE__, __LINE__, 0, "Unkown block type %d\n", block_id);
+  }
+  return 0;
+}
 
 static cwipi::Coupling&
 _cpl_get
@@ -1079,6 +1120,9 @@ CWP_Mesh_interf_block_std_get_cf
                                 n_elts,
                                 connec,
                                 global_num);
+
+  int n_vtx_block = _n_vtx_block_get(block_id);
+  *s_connec = n_vtx_block * (*n_elts);
 
   delete [] c_local_code_name;
   delete [] c_cpl_id;
