@@ -1120,6 +1120,10 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                  FVMC_MPI_TAG, this_locator->comm, &status);
   }
 
+  printf("local_max_entity_dim = %d, distant_max_entity_dim = %d\n",
+         local_max_entity_dim, distant_max_entity_dim);
+  fflush(stdout);
+
 
   /* Initialization */
 
@@ -1328,11 +1332,15 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                    this_locator->comm, &status);
 
       BFTC_MALLOC(uvw_loc, n_coords_loc * distant_max_entity_dim, double);
+      printf("sendrecv uvw\n");
+      fflush(stdout);
       MPI_Sendrecv(uvw_dist, (int)n_coords_dist * local_max_entity_dim,
                    MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
                    uvw_loc, (int)n_coords_loc * distant_max_entity_dim,
                    MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
                    this_locator->comm, &status);
+      printf("sendrecv uvw out\n");
+      fflush(stdout);
     }
 
     else if (local_nodal_order != -1) {
