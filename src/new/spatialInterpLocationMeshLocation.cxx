@@ -634,6 +634,14 @@ namespace cwipi {
         }
       }
     }
+
+    PDM_part_to_part_t *ptp = NULL;
+    PDM_mesh_location_part_to_part_get(_id_pdm,
+                                       0,
+                                       &ptp,
+                                       PDM_OWNERSHIP_USER);
+    log_trace("ptp : %p\n", (void *) ptp);
+    PDM_part_to_part_free(ptp);
   }
 
 
