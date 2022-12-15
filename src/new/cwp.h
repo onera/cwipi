@@ -1166,6 +1166,22 @@ CWP_Mesh_interf_block_std_get
  CWP_g_num_t      **global_num
 );
 
+/**
+  * \brief Get the standard block type
+  *
+  * \param [in]  block_id    Block identifier
+  *
+  * \return block type
+  */
+
+CWP_Block_t
+CWP_std_block_type_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const int               block_id
+);
+
 
 /**
  * \brief Set the connectivity of a polygon block in a interface mesh partition.

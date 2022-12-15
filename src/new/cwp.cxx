@@ -1449,6 +1449,28 @@ CWP_Mesh_interf_block_std_get
 
 }
 
+ /**
+  * \brief Get the standard block type
+  *
+  * \param [in]  block_id    Block identifier
+  *
+  * \return block type
+  */
+
+CWP_Block_t
+CWP_std_block_type_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const int          block_id
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  CWP_Block_t block_type = cpl.meshStdBlockTypeGet(block_id);
+
+  return block_type;
+}
+
 /*void
 CWP_Mesh_interf_h_order_block_set
 (

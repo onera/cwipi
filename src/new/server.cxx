@@ -95,6 +95,65 @@ static void write_name(char * name, p_server svr) {
   CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, (void*) name, name_size);
 }
 
+// --> n_nodes
+
+static int n_nodes_get(CWP_Block_t block_type) {
+  int n_nodes = 0;
+
+  switch(block_type) {
+
+  case CWP_BLOCK_NODE: {
+    n_nodes = 1;
+    } break;
+
+  case CWP_BLOCK_EDGE2: {
+    n_nodes = 2;
+    } break;
+
+  case CWP_BLOCK_FACE_TRIA3: {
+    n_nodes = 3;
+    } break;
+
+  case CWP_BLOCK_FACE_QUAD4: {
+    n_nodes = 4;
+    } break;
+
+  case CWP_BLOCK_FACE_POLY: {
+    // TO DO: what value ?
+    PDM_error(__FILE__, __LINE__, 0, "Number of nodes unknown for CWP_BLOCK_FACE_POLY\n");
+    return -1;
+    } break;
+
+  case CWP_BLOCK_CELL_TETRA4: {
+    n_nodes = 4;
+    } break;
+
+  case CWP_BLOCK_CELL_HEXA8: {
+    n_nodes = 8;
+    } break;
+
+  case CWP_BLOCK_CELL_PRISM6: {
+    n_nodes = 6;
+    } break;
+
+  case CWP_BLOCK_CELL_PYRAM5: {
+    n_nodes = 5;
+    } break;
+
+  case CWP_BLOCK_CELL_POLY: {
+    // TO DO: what value ?
+    PDM_error(__FILE__, __LINE__, 0, "Number of nodes unknown for CWP_BLOCK_CELL_POLY\n");
+    return -1;
+    } break;
+
+  default:
+    PDM_error(__FILE__, __LINE__, 0, "Unknown block type %d\n", block_type);
+    return -1;
+  }
+
+  return n_nodes;
+}
+
 /*=============================================================================
  * Server CWIPI function interfaces
  *============================================================================*/
@@ -2712,6 +2771,95 @@ CWP_server_Mesh_interf_block_std_set
     NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_SET);
     message.flag = CWP_SVR_LCH_END;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Mesh_interf_block_std_get
+(
+  p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_SET);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read i_part
+  int i_part;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &i_part, sizeof(int));
+
+  // read block_id
+  int block_id;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &block_id, sizeof(int));;
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_SET);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  int               n_elts     = -1;
+  int              *connec     = NULL;
+  CWP_g_num_t      *global_num = NULL;
+  // CWP_Mesh_interf_block_std_get(local_code_name,
+  //                               cpl_id,
+  //                               i_part,
+  //                               block_id,
+  //                               &n_elts,
+  //                               &connec,
+  //                               &global_num);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_SET);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // send n_elts
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &n_elts, sizeof(int));
+
+  // send connectivity
+  CWP_Block_t block_type = CWP_std_block_type_get(local_code_name, cpl_id, block_id);
+  int n_vtx_elt = n_nodes_get(block_type);
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &n_vtx_elt, sizeof(int));
+  CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, connec, sizeof(int) * (n_vtx_elt * n_elts));
+
+  // send global number
+  int NULL_flag = 0;
+  if (global_num == NULL) {
+    NULL_flag = 1;
+  }
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,(void*) &NULL_flag, sizeof(int));
+
+  if (!NULL_flag) {
+    CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, global_num, sizeof(CWP_g_num_t) * n_elts);
   }
 
   // free

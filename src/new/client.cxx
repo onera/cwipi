@@ -3460,6 +3460,95 @@ CWP_client_Mesh_interf_block_std_set
 }
 
 void
+CWP_client_Mesh_interf_block_std_get
+(
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const int          i_part,
+ const int          block_id,
+ int               *n_elts,
+ int              **connec,
+ CWP_g_num_t      **global_num
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_block_std_get\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_GET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_f_poly_block_get failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->intra_comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->intra_i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send i_part
+  int endian_i_part = i_part;
+  CWP_swap_endian_4bytes(&endian_i_part, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // send block_id
+  int endian_block_id = block_id;
+  CWP_swap_endian_4bytes(&endian_block_id, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_block_id, sizeof(int));
+
+  // receive status msg
+  MPI_Barrier(clt->intra_comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->intra_i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->intra_comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->intra_i_rank == 0) verbose(message);
+  }
+
+  // read n_elts
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, n_elts, sizeof(int));
+
+  // read connectivity
+  int n_vtx_elt = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, &n_vtx_elt, sizeof(int));
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, *connec, sizeof(int) * (n_vtx_elt * (*n_elts)));
+
+  // read global number
+  int NULL_flag = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, &NULL_flag, sizeof(int));
+
+  if (!NULL_flag) {
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, *global_num, sizeof(CWP_g_num_t) * (*n_elts));
+  } else {
+    *global_num = NULL;
+  }
+
+}
+
+void
 CWP_client_Mesh_interf_f_poly_block_set
 (
  const char             *local_code_name,

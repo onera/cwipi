@@ -382,26 +382,41 @@ namespace cwipi {
       CWP_g_num_t       global_num[]
     );
 
-  /**
-   * \brief Get a standard block to the interface mesh
-   *
-   *
-   * \param [in]   i_part      Current partition
-   * \param [in]   block_id    Block identifier
-   * \param [out]  n_elts      Number of elements
-   * \param [out]  connec      Connectivity
-   * \param [out]  global_num  Pointer to global element number (or NULL)
-   *
-   */
 
-  inline void
-  meshStdBlockGet (
-    const int    i_part,
-    const int    block_id,
-    int         *n_elts,
-    int         **connec,
-    CWP_g_num_t **global_num
-  );
+    /**
+     * \brief Get a standard block to the interface mesh
+     *
+     *
+     * \param [in]   i_part      Current partition
+     * \param [in]   block_id    Block identifier
+     * \param [out]  n_elts      Number of elements
+     * \param [out]  connec      Connectivity
+     * \param [out]  global_num  Pointer to global element number (or NULL)
+     *
+     */
+
+    inline void
+    meshStdBlockGet (
+      const int    i_part,
+      const int    block_id,
+      int         *n_elts,
+      int         **connec,
+      CWP_g_num_t **global_num
+    );
+
+    /**
+     * \brief Get the standard block type
+     *
+     * \param [in]  block_id    Block identifier
+     *
+     * \return block type
+     *
+     */
+
+    inline CWP_Block_t
+    meshStdBlockTypeGet (
+      const int           block_id
+    );
 
 
     /**

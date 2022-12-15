@@ -1087,6 +1087,18 @@ namespace cwipi {
 
   }
 
+  CWP_Block_t
+  Mesh::stdBlockTypeGet
+  (
+    const int              block_id
+  )
+  {
+    BlockStd *block = dynamic_cast <BlockStd *> (_blockDB [block_id]);
+    CWP_Block_t block_type = block->blockTypeGet();
+
+    return block_type;
+  }
+
   /*************************************************/
 
   void
