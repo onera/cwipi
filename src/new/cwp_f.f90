@@ -1085,14 +1085,14 @@ module cwp
                                                 n_elts,            &
                                                 c_connec,          &
                                                 c_global_num,      &
-                                                l_connec)          &
+                                                s_connec)          &
         bind(c, name = 'CWP_Mesh_interf_block_std_get_cf')
         use, intrinsic :: iso_c_binding
         implicit none
         character(kind = c_char, len = 1) :: local_code_name, cpl_id
         integer(c_int), value :: i_part, block_id, n_elts
         type(c_ptr)      :: c_connec, c_global_num
-        integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_connec
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id, s_connec
     end subroutine CWP_Mesh_interf_block_std_get_cf
 
 
@@ -2274,10 +2274,10 @@ contains
     implicit none
 
     character(kind = c_char, len = *) :: local_code_name, cpl_id
-    integer(c_int) :: i_part, block_id, n_elts
+    integer(c_int) :: i_part, block_id, n_elts, s_connec
     integer(c_int),  dimension(:), pointer :: connec
     integer(c_long), dimension(:), pointer :: global_num
-    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_connec
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, s_connec
     type(c_ptr)      :: c_connec, c_global_num
 
     l_local_code_name = len(local_code_name)
@@ -2292,10 +2292,10 @@ contains
                                           n_elts,            &
                                           c_connec,          &
                                           c_global_num,      &
-                                          l_connec)
+                                          s_connec)          &
 
     call c_f_pointer(c_global_num, global_num, [n_elts])
-    call c_f_pointer(c_connec,     connec,     [l_connec])
+    call c_f_pointer(c_connec,     connec,     [s_connec])
 
   end subroutine CWP_Mesh_interf_block_std_get_
 

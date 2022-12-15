@@ -1042,47 +1042,47 @@ CWP_Mesh_interf_block_std_set_cf (
 }
 
 
-// /**
-//  * \brief Get the properties of a standard block of the interface mesh.
-//  *
-//  * \param [in]  local_code_name  Local code name
-//  * \param [in]  cpl_id           Coupling identifier
-//  * \param [in]  i_part           Partition identifier
-//  * \param [in]  block_id         Block identifier
-//  * \param [out]  n_elts           Number of elements
-//  * \param [out]  connec           Connectivity (size = n_vertex_elt * n_elts)
-//  * \param [out]  global_num       Pointer to global element number (or NULL)
-//  */
-//
-// void
-// CWP_Mesh_interf_block_std_get_cf
-// (
-//  const char         *f_local_code_name,
-//        int           l_local_code_name,
-//  const char         *f_cpl_id,
-//        int           l_cpl_id,
-//  const int           i_part,
-//  const int           block_id,
-//        int          *n_elts,
-//        int         **connec,
-//        CWP_g_num_t **global_num,
-//        int          *s_connec
-// )
-// {
-//   char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
-//   char *c_cpl_id          = _fortran_to_c_string(f_cpl_id,          l_cpl_id);
-//
-//   CWP_Mesh_interf_block_std_get(c_local_code_name,
-//                                 c_cpl_id,
-//                                 i_part,
-//                                 block_id,
-//                                 n_elts,
-//                                 connec,
-//                                 global_num);
-//
-//   delete [] c_local_code_name;
-//   delete [] c_cpl_id;
-// }
+/**
+ * \brief Get the properties of a standard block of the interface mesh.
+ *
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  i_part           Partition identifier
+ * \param [in]  block_id         Block identifier
+ * \param [out]  n_elts           Number of elements
+ * \param [out]  connec           Connectivity (size = n_vertex_elt * n_elts)
+ * \param [out]  global_num       Pointer to global element number (or NULL)
+ */
+
+void
+CWP_Mesh_interf_block_std_get_cf
+(
+ const char         *f_local_code_name,
+       int           l_local_code_name,
+ const char         *f_cpl_id,
+       int           l_cpl_id,
+ const int           i_part,
+ const int           block_id,
+       int          *n_elts,
+       int         **connec,
+       CWP_g_num_t **global_num,
+       int          *s_connec
+)
+{
+  char *c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  char *c_cpl_id          = _fortran_to_c_string(f_cpl_id,          l_cpl_id);
+
+  CWP_Mesh_interf_block_std_get(c_local_code_name,
+                                c_cpl_id,
+                                i_part,
+                                block_id,
+                                n_elts,
+                                connec,
+                                global_num);
+
+  delete [] c_local_code_name;
+  delete [] c_cpl_id;
+}
 
 /**
  * \brief Set the connectivity of a polygon block in a interface mesh partition.
