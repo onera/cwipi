@@ -258,6 +258,10 @@ module cwp
         CWP_Mesh_interf_block_std_set_
     end interface CWP_Mesh_interf_block_std_set
 
+    interface CWP_Mesh_interf_block_std_get ; module procedure &
+        CWP_Mesh_interf_block_std_get_
+    end interface CWP_Mesh_interf_block_std_get
+
     interface CWP_Mesh_interf_f_poly_block_set ; module procedure &
         CWP_Mesh_interf_f_poly_block_set_
     end interface CWP_Mesh_interf_f_poly_block_set
@@ -408,6 +412,7 @@ module cwp
              CWP_Mesh_interf_vtx_set_ ,&
              CWP_Mesh_interf_block_add_ ,&
              CWP_Mesh_interf_block_std_set_ ,&
+             CWP_Mesh_interf_block_std_get_ ,&
              CWP_Mesh_interf_f_poly_block_set_ ,&
              CWP_Mesh_interf_f_poly_block_get_ ,&
              CWP_Mesh_interf_c_poly_block_set_ ,&
@@ -1070,6 +1075,25 @@ module cwp
       character(kind = c_char, len = 1) :: local_code_name
       integer(c_int), value :: l_local_code_name
     end subroutine CWP_Param_unlock_cf
+
+    subroutine CWP_Mesh_interf_block_std_get_cf(local_code_name,   &
+                                                l_local_code_name, &
+                                                cpl_id,            &
+                                                l_cpl_id,          &
+                                                i_part,            &
+                                                block_id,          &
+                                                n_elts,            &
+                                                c_connec,          &
+                                                c_global_num,      &
+                                                l_connec)          &
+        bind(c, name = 'CWP_Mesh_interf_block_std_get_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id
+        integer(c_int), value :: i_part, block_id, n_elts
+        type(c_ptr)      :: c_connec, c_global_num
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_connec
+    end subroutine CWP_Mesh_interf_block_std_get_cf
 
 
     subroutine CWP_Mesh_interf_f_poly_block_get_cf(local_code_name,   &
@@ -2238,44 +2262,42 @@ contains
   !! \param [out]  global_num       Pointer to global element number (or NULL)
   !!
 
-  ! subroutine CWP_Mesh_interf_block_std_get_(local_code_name, &
-  !                                          cpl_id,          &
-  !                                          i_part,          &
-  !                                          block_id,        &
-  !                                          n_elts,          &
-  !                                          connec,          &
-  !                                          global_num)
+  subroutine CWP_Mesh_interf_block_std_get_(local_code_name, &
+                                           cpl_id,          &
+                                           i_part,          &
+                                           block_id,        &
+                                           n_elts,          &
+                                           connec,          &
+                                           global_num)
 
-  !   use, intrinsic :: iso_c_binding
-  !   implicit none
+    use, intrinsic :: iso_c_binding
+    implicit none
 
-  !   character(kind = c_char, len = *) :: local_code_name, cpl_id
-  !   integer(c_int) :: i_part, block_id, n_elts
-  !   integer(c_int),  dimension(:), pointer :: connec
-  !   integer(c_long), dimension(:), pointer :: global_num
-  !   integer(kind = c_int) :: l_local_code_name, l_cpl_id
-  !   type(c_ptr)      :: c_connec, c_global_num
-  !   interface(c_int) :: s_connec
+    character(kind = c_char, len = *) :: local_code_name, cpl_id
+    integer(c_int) :: i_part, block_id, n_elts
+    integer(c_int),  dimension(:), pointer :: connec
+    integer(c_long), dimension(:), pointer :: global_num
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_connec
+    type(c_ptr)      :: c_connec, c_global_num
 
-  !   l_local_code_name = len(local_code_name)
-  !   l_cpl_id          = len(cpl_id)
+    l_local_code_name = len(local_code_name)
+    l_cpl_id          = len(cpl_id)
 
-  !   call CWP_Mesh_interf_block_std_get_cf(local_code_name,   &
-  !                                         l_local_code_name, &
-  !                                         cpl_id,            &
-  !                                         l_cpl_id,          &
-  !                                         i_part,            &
-  !                                         block_id,          &
-  !                                         n_elts,            &
-  !                                         c_connec,          &
-  !                                         c_global_num,      &
-  !                                         s_connec)
+    call CWP_Mesh_interf_block_std_get_cf(local_code_name,   &
+                                          l_local_code_name, &
+                                          cpl_id,            &
+                                          l_cpl_id,          &
+                                          i_part,            &
+                                          block_id,          &
+                                          n_elts,            &
+                                          c_connec,          &
+                                          c_global_num,      &
+                                          l_connec)
 
-  !   call c_f_pointer(c_global_num, global_num, [n_elts])
-  !   call c_f_pointer(c_connec,     connec,     [src_connec])
+    call c_f_pointer(c_global_num, global_num, [n_elts])
+    call c_f_pointer(c_connec,     connec,     [l_connec])
 
-  ! end subroutine CWP_Mesh_interf_block_std_get_
-
+  end subroutine CWP_Mesh_interf_block_std_get_
 
   !>
   !! \brief Set the connectivity of a polygon block in a interface mesh partition.
