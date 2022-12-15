@@ -21,6 +21,7 @@
 
 #include "block.hxx"
 #include "cwp.h"
+#include <cstdlib>
 #include <map>
 #include <vector>
 
