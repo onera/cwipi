@@ -155,6 +155,28 @@ namespace cwipi {
     );
 
     /**
+     * \brief Get a face polygon block from the interface mesh
+     *
+     * \param [in] i_part      Partition identifier
+     * \param [in] block_id    Block identifier
+     * \param [out] n_elts      Number of block elements
+     * \param [out] connec_idx  Vertices to elements connectivity index
+     * \param [out] connec      Vertices to elements connectivity
+     * \param [out] global_num  Global numbering of the vertices in the block (or NULL)
+     *
+     */
+
+    void
+    stdBlockGet
+    (
+      const int    i_part,
+      const int    block_id,
+      int         *n_elts,
+      int         **connec,
+      CWP_g_num_t **global_num
+    );
+
+    /**
      * \brief Set a face polygon block to the interface mesh
      *
      * \param [in] i_part      Partition identifier
