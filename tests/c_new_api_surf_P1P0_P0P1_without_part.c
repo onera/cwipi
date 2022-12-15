@@ -19,14 +19,29 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <string.h>
 #include <time.h>
-#include <math.h>
 
+#include "cwipi.h"
 #include "cwp.h"
-#include "grid_mesh.h"
 #include "cwp_priv.h"
 
+#include "grid_mesh.h"
+#include "pdm_poly_surf_gen.h"
+#include "pdm_multipart.h"
+#include "pdm_part_connectivity_transform.h"
+#include "pdm_dmesh.h"
+#include "pdm_array.h"
+#include "pdm_logging.h"
+#include "pdm_mpi.h"
+#include "pdm_dcube_nodal_gen.h"
+#include "pdm_dmesh_nodal.h"
+#include "pdm_distrib.h"
+
+
+
+#define ABS(a) ((a) <  0  ? -(a) : (a))
 
 /*----------------------------------------------------------------------
  *
@@ -37,12 +52,13 @@
  *---------------------------------------------------------------------*/
 
 static void
-_display_usage(int exit_code) {
+_usage(int exit_code) {
   printf("\n"
          "  Usage: \n\n"
-         "  -n     <level>  Number of vertices in band width.\n\n"
-         "  -rand  <level>  Random level ( > 0 and < 0.4) \n\n"
-         "  -h             this message.\n\n");
+         "  -n           <> Number of vertices in band length.\n\n"
+         "  -no_random      Disable mesh randomization\n\n"
+         "  -n_proc_data <> Number of processes where there are data \n\n"
+         "  -h              this message.\n\n");
 
   exit(exit_code);
 }
@@ -58,124 +74,491 @@ _display_usage(int exit_code) {
  *---------------------------------------------------------------------*/
 
 static void
-_read_args(int argc, char **argv, int *nVertex, double *randLevel) {
+_read_args
+(
+  int                    argc,
+  char                 **argv,
+  int                   *n_vtx_seg1,
+  int                   *n_vtx_seg2,
+  PDM_split_dual_t      *part_method,
+  double                *tolerance,
+  int                   *randomize
+)
+{
   int i = 1;
 
   // Parse and check command line
   while (i < argc) {
     if (strcmp(argv[i], "-h") == 0) {
-      _display_usage(EXIT_SUCCESS);
+      _usage(EXIT_SUCCESS);
     }
-
     else if (strcmp(argv[i], "-n") == 0) {
       i++;
       if (i >= argc) {
-        _display_usage(EXIT_FAILURE);
+        _usage(EXIT_FAILURE);
       }
       else {
-        *nVertex = atoi(argv[i]);
+        *n_vtx_seg1 = atoi(argv[i]);
+        *n_vtx_seg2 = atoi(argv[i]);
       }
     }
-    else if (strcmp(argv[i], "-rand") == 0) {
+    else if (strcmp(argv[i], "-n1") == 0) {
       i++;
       if (i >= argc) {
-        _display_usage(EXIT_FAILURE);
+        _usage(EXIT_FAILURE);
       }
       else {
-        *randLevel = atof(argv[i]);
+        *n_vtx_seg1 = atoi(argv[i]);
       }
     }
+    else if (strcmp(argv[i], "-n2") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *n_vtx_seg2 = atoi(argv[i]);
+      }
+    }
+    else if (strcmp(argv[i], "-no_random") == 0) {
+      *randomize = 0;
+    }
+    else if (strcmp(argv[i], "-t") == 0) {
+      i++;
+      if (i >= argc)
+        _usage(EXIT_FAILURE);
+      else
+        *tolerance = atof(argv[i]);
+    }
+    else if (strcmp(argv[i], "-pt-scotch") == 0) {
+      *part_method = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
+    }
+    else if (strcmp(argv[i], "-parmetis") == 0) {
+      *part_method = PDM_SPLIT_DUAL_WITH_PARMETIS;
+    }
+    else if (strcmp(argv[i], "-hilbert") == 0) {
+      *part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
+    }
+    else
+      _usage(EXIT_FAILURE);
     i++;
   }
 }
 
 
 static void
-_userInterpolation
+_gen_mesh
 (
-  const int                  interface_type,
-  const char                *code_name,
-  const int                  src_n_block,
-  const CWP_Block_t          src_blocks_type[],
-  const int                  src_i_part,
-  const int                  src_n_vtx,
-  const double               src_vtx_coords[],
-  const CWP_g_num_t          src_vtx_global_num[],
-  const int                  src_n_elts,
-  const int                  src_i_block[],
-  const int                  src_elt_in_block[],
-  const int                  src_elt_vtx_idx[],
-  const int                  src_elt_vtx[],
-  const CWP_g_num_t          src_elts_global_num[],
-  const int                  tgt_n_pts,
-  const int                  tgt_pts_elt_idx[],
-  const double               tgt_pts_coords[],
-  const double               tgt_pts_dist[],
-  const double               tgt_pts_uvw[],
-  const int                  tgt_pts_weights_idx[],
-  const double               tgt_pts_weights[],
-  const int                  stride,
-  const CWP_Dof_location_t   src_field_dof_location,
-  const void                *src_field,
-  void                      *tgt_field
-)
+ const PDM_MPI_Comm        comm,
+ const int                 n_part,
+ const PDM_split_dual_t    part_method,
+ const PDM_g_num_t         n_vtx_seg,
+ const int                 randomize,
+ const int                 random_seed,
+ const int                 is_partitionned,
+ int                     **pn_face,
+ int                     **pn_vtx,
+ int                    ***pface_vtx_idx,
+ int                    ***pface_vtx,
+ double                 ***pvtx_coord,
+ PDM_g_num_t            ***pface_ln_to_gn,
+ PDM_g_num_t            ***pvtx_ln_to_gn
+ )
 {
+  int i_rank;
+  PDM_MPI_Comm_rank(comm, &i_rank);
 
-  CWP_UNUSED (interface_type);
-  CWP_UNUSED (code_name);
-  CWP_UNUSED (src_n_block);
-  CWP_UNUSED (src_blocks_type);
-  CWP_UNUSED (src_i_part);
-  CWP_UNUSED (src_n_vtx);
-  CWP_UNUSED (src_vtx_coords);
-  CWP_UNUSED (src_vtx_global_num);
-  CWP_UNUSED (src_n_elts);
-  CWP_UNUSED (src_i_block);
-  CWP_UNUSED (src_elt_in_block);
-  CWP_UNUSED (src_elt_vtx_idx);
-  CWP_UNUSED (src_elt_vtx);
-  CWP_UNUSED (src_elts_global_num);
-  CWP_UNUSED (tgt_n_pts);
-  CWP_UNUSED (tgt_pts_elt_idx);
-  CWP_UNUSED (tgt_pts_coords);
-  CWP_UNUSED (tgt_pts_dist);
-  CWP_UNUSED (tgt_pts_uvw);
-  CWP_UNUSED (tgt_pts_weights_idx);
-  CWP_UNUSED (tgt_pts_weights);
-  CWP_UNUSED (stride);
-  CWP_UNUSED (src_field_dof_location);
-  CWP_UNUSED (src_field);
-  CWP_UNUSED (tgt_field);
+  int n_rank;
+  PDM_MPI_Comm_size(comm, &n_rank);
+
+  /* Generate a distributed polygonal mesh */
+  // PDM_g_num_t  ng_face         = 0;
+  // PDM_g_num_t  ng_vtx          = 0;
+  // PDM_g_num_t  ng_edge         = 0;
+  // int          dn_vtx          = 0;
+  // double      *dvtx_coord      = NULL;
+  // int          dn_face         = 0;
+  // int         *dface_vtx_idx   = NULL;
+  // PDM_g_num_t *dface_vtx       = NULL;
+  // PDM_g_num_t *dface_edge      = NULL;
+  // int          dn_edge         = 0;
+  // PDM_g_num_t *dedge_vtx       = NULL;
+  // PDM_g_num_t *dedge_face      = NULL;
+  // int          n_edge_group    = 0;
+  // int         *dedge_group_idx = NULL;
+  // PDM_g_num_t *dedge_group     = NULL;
+
+  // PDM_poly_surf_gen(comm,
+  //                   0.,
+  //                   0.1,
+  //                   0.,
+  //                   0.1,
+  //                   randomize,
+  //                   random_seed,
+  //                   n_vtx_seg,
+  //                   n_vtx_seg,
+  //                   &ng_face,
+  //                   &ng_vtx,
+  //                   &ng_edge,
+  //                   &dn_vtx,
+  //                   &dvtx_coord,
+  //                   &dn_face,
+  //                   &dface_vtx_idx,
+  //                   &dface_vtx,
+  //                   &dface_edge,
+  //                   &dn_edge,
+  //                   &dedge_vtx,
+  //                   &dedge_face,
+  //                   &n_edge_group,
+  //                   &dedge_group_idx,
+  //                   &dedge_group);
+  double xmin   = 0.;
+  double ymin   = 0.;
+  double zmin   = 0.;
+  double length = 1.;
+  PDM_dcube_nodal_t *dcube = PDM_dcube_nodal_gen_create(comm,
+                                                        n_vtx_seg,
+                                                        n_vtx_seg,
+                                                        1,
+                                                        length,
+                                                        xmin,
+                                                        ymin,
+                                                        zmin,
+                                                        PDM_MESH_NODAL_QUAD4,
+                                                        1,
+                                                        PDM_OWNERSHIP_KEEP);
+  PDM_dcube_nodal_gen_build(dcube);
+  PDM_dmesh_nodal_t *dmn = PDM_dcube_nodal_gen_dmesh_nodal_get(dcube);
+  PDM_dmesh_nodal_generate_distribution(dmn);
 
 
-//   if (src_field_location == CWP_DOF_LOCATION_NODE) {
-//     for (int i = 0 ; i < n_tgt_pts ; i++) {
+  PDM_g_num_t *distrib_vtx = PDM_dmesh_nodal_vtx_distrib_get(dmn);
+  int dn_vtx = distrib_vtx[i_rank+1] - distrib_vtx[i_rank];
+  double *dvtx_coord = PDM_DMesh_nodal_vtx_get(dmn);
 
-// //      int ielt = tgt_pts_target_location[i];
+  if (randomize) {
+    double noise = 0.2*length/(double) (n_vtx_seg - 1);
+    for(int i_vtx = 0; i_vtx < dn_vtx; ++i_vtx) {
+      if (ABS(dvtx_coord[3*i_vtx  ] - xmin         ) > 1.e-9 &&
+          ABS(dvtx_coord[3*i_vtx  ] - xmin - length) > 1.e-9 &&
+          ABS(dvtx_coord[3*i_vtx+1] - ymin         ) > 1.e-9 &&
+          ABS(dvtx_coord[3*i_vtx+1] - ymin - length) > 1.e-9) {
+        srand(distrib_vtx[i_rank] + i_vtx + random_seed);
+        for (int i = 0; i < 2; i++) {
+          dvtx_coord[3*i_vtx+i] += noise*0.5*(2*rand()/(double) RAND_MAX - 1);
+        }
+      }
+    }
+  }
 
-//       //      int ivertex[4];
-//       //      ivertex[0] = src_connec[src_connec_idx[ielt]];
-//       //      ivertex[1] = src_connec[src_connec_idx[ielt] + 1];
-//       //      ivertex[2] = src_connec[src_connec_idx[ielt] + 2];
-//       //      ivertex[3] = src_connec[src_connec_idx[ielt] + 3];
 
-// //      double *shapef = (double *) malloc(4 * n_src_std_elts * sizeof(double));
-// //      double *shapef_elt = shapef + 4 * ielt;
+  *pn_face        = (int *)          malloc(sizeof(int *)          * n_part);
+  *pn_vtx         = (int *)          malloc(sizeof(int *)          * n_part);
+  *pface_vtx_idx  = (int **)         malloc(sizeof(int **)         * n_part);
+  *pface_vtx      = (int **)         malloc(sizeof(int **)         * n_part);
+  *pface_ln_to_gn = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t **) * n_part);
+  *pvtx_ln_to_gn  = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t **) * n_part);
+  *pvtx_coord     = (double **)      malloc(sizeof(double **)      * n_part);
 
-//       //  printf("n_tgt_pts USER_INTERP %i\n",n_tgt_pts);
-//       ((double *) tgt_field)[i] = 0.0;
-//       for (int k = 0 ; k < 4 ; k++) {
-//         ((double *) tgt_field)[i] = ((double *) src_field)[0];//ivertex[k]];
-//       }
+  if (is_partitionned) {
+    /* Spit the mesh */
+    int n_zone = 1;
+    PDM_multipart_t *mpart = PDM_multipart_create(n_zone,
+                                                  &n_part,
+                                                  PDM_FALSE,
+                                                  part_method,
+                                                  PDM_PART_SIZE_HOMOGENEOUS,
+                                                  NULL,
+                                                  comm,
+                                                  PDM_OWNERSHIP_KEEP);
 
-// //      free(shapef);
-//     }
-//   }
-//   else {
-//     printf("Error in userInterpolation : bad solver_type\n");
-//     exit(EXIT_FAILURE);
-//   }
+    PDM_multipart_set_reordering_options(mpart,
+                                         -1,
+                                         "PDM_PART_RENUM_CELL_NONE",
+                                         NULL,
+                                         "PDM_PART_RENUM_FACE_NONE");
+
+    PDM_multipart_register_dmesh_nodal(mpart, 0, dmn);
+    // int n_join = 0;
+    // PDM_dmesh_t *dmesh = PDM_dmesh_create(PDM_OWNERSHIP_KEEP,
+    //                                       dn_face,
+    //                                       dn_edge,
+    //                                       -1,
+    //                                       dn_vtx,
+    //                                       n_edge_group,
+    //                                       n_join,
+    //                                       comm);
+
+    // int *djoins_ids = malloc (sizeof(int) * n_join);
+    // int *dedge_join_idx = malloc (sizeof(int) * (n_join + 1));
+    // dedge_join_idx[0] = 0;
+    // PDM_g_num_t *dedge_join = malloc (sizeof(PDM_g_num_t) * dedge_join_idx[n_join]);
+
+    // int *dedge_vtx_idx = PDM_array_new_idx_from_const_stride_int(2, dn_edge);
+
+    // PDM_dmesh_set(dmesh,
+    //               dvtx_coord,
+    //               dedge_vtx_idx,
+    //               dedge_vtx,
+    //               dedge_face,
+    //               dedge_group_idx,
+    //               dedge_group,
+    //               djoins_ids,
+    //               dedge_join_idx,
+    //               dedge_join);
+
+    // PDM_multipart_register_block(mpart, 0, dmesh);
+
+    // /* Connection between zones */
+    // int n_total_joins = 0;
+    // int *join_to_opposite = malloc(sizeof(int) * n_total_joins);
+    // PDM_multipart_register_joins(mpart, n_total_joins, join_to_opposite);
+
+    /* Run */
+    PDM_multipart_run_ppart(mpart);
+
+    // free(djoins_ids);
+    // free(dedge_join_idx);
+    // free(dedge_join);
+    // free(join_to_opposite);
+
+
+
+    /* Get partitioned mesh */
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      int n_face;
+      int n_edge;
+      int n_edge_part_bound;
+      int n_vtx;
+      int n_proc;
+      int n_t_part;
+      int s_face_edge;
+      int s_edge_vtx;
+      int s_edge_join;
+      int s_edge_group;
+
+      int n_groups, n_joins;
+      int n_section;
+      int *n_elt;
+
+      int         *face_tag;
+      int         *face_edge_idx;
+      int         *face_edge;
+      PDM_g_num_t *face_ln_to_gn;
+      int         *edge_tag;
+      int         *edge_face;
+      int         *edge_vtx_idx;
+      int         *edge_vtx;
+      PDM_g_num_t *edge_ln_to_gn;
+      int         *edge_part_bound_proc_idx;
+      int         *edge_part_bound_part_idx;
+      int         *edge_part_bound;
+      int         *vtx_tag;
+      double      *vtx;
+      PDM_g_num_t *vtx_ln_to_gn;
+      int         *edge_group_idx;
+      int         *edge_group;
+      PDM_g_num_t *edge_group_ln_to_gn;
+      PDM_g_num_t *edge_join_ln_to_gn;
+      int         *edge_join_idx, *edge_join;
+      int         **elt_vtx_idx;
+      int         **elt_vtx;
+      PDM_g_num_t **elt_section_ln_to_gn;
+
+      PDM_multipart_part_dim_get(mpart,
+                                 0,
+                                 i_part,
+                                 &n_section,
+                                 &n_elt,
+                                 &n_face,
+                                 &n_edge,
+                                 &n_edge_part_bound,
+                                 &n_vtx,
+                                 &n_proc,
+                                 &n_t_part,
+                                 &s_face_edge,
+                                 &s_edge_vtx,
+                                 &s_edge_group,
+                                 &n_groups,
+                                 &s_edge_join,
+                                 &n_joins);
+
+      PDM_multipart_part_val_get(mpart,
+                                 0,
+                                 i_part,
+                                 &elt_vtx_idx,
+                                 &elt_vtx,
+                                 &elt_section_ln_to_gn,
+                                 &face_tag,
+                                 &face_edge_idx,
+                                 &face_edge,
+                                 &face_ln_to_gn,
+                                 &edge_tag,
+                                 &edge_face,
+                                 &edge_vtx_idx,
+                                 &edge_vtx,
+                                 &edge_ln_to_gn,
+                                 &edge_part_bound_proc_idx,
+                                 &edge_part_bound_part_idx,
+                                 &edge_part_bound,
+                                 &vtx_tag,
+                                 &vtx,
+                                 &vtx_ln_to_gn,
+                                 &edge_group_idx,
+                                 &edge_group,
+                                 &edge_group_ln_to_gn,
+                                 &edge_join_idx,
+                                 &edge_join,
+                                 &edge_join_ln_to_gn);
+
+      *(pn_face)[i_part] = n_face;
+      *(pn_vtx)[i_part]  = n_vtx;
+
+      /* Vertices */
+      (*pvtx_coord)[i_part] = (double *) malloc(sizeof(double) * 3 * n_vtx);
+      memcpy((*pvtx_coord)[i_part], vtx, sizeof(double) * 3 * n_vtx);
+
+      (*pvtx_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_vtx);
+      memcpy((*pvtx_ln_to_gn)[i_part], vtx_ln_to_gn, sizeof(PDM_g_num_t) * n_vtx);
+
+
+      /* Faces */
+      PDM_multipart_part_connectivity_get(mpart,
+                                          0,
+                                          i_part,
+                                          PDM_CONNECTIVITY_TYPE_FACE_EDGE,
+                                          &face_edge,
+                                          &face_edge_idx,
+                                          PDM_OWNERSHIP_KEEP);
+      PDM_multipart_part_connectivity_get(mpart,
+                                          0,
+                                          i_part,
+                                          PDM_CONNECTIVITY_TYPE_EDGE_VTX,
+                                          &edge_vtx,
+                                          &edge_vtx_idx,
+                                          PDM_OWNERSHIP_KEEP);
+
+      (*pface_vtx_idx)[i_part] = (int *) malloc(sizeof(int) * (n_face + 1));
+      memcpy((*pface_vtx_idx)[i_part], face_edge_idx, sizeof(int) * (n_face + 1));
+
+      PDM_compute_face_vtx_from_face_and_edge(n_face,
+                                              face_edge_idx,
+                                              face_edge,
+                                              edge_vtx,
+                                              *pface_vtx + i_part);
+
+      (*pface_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_face);
+      memcpy((*pface_ln_to_gn)[i_part], face_ln_to_gn, sizeof(PDM_g_num_t) * n_face);
+    }
+    PDM_multipart_free(mpart);
+    // PDM_dmesh_free(dmesh);
+    // free(dedge_vtx_idx);
+  }
+
+  else {
+    int i_part = 0;
+    // Not partitionned => allgather
+    int *recv_count = malloc(sizeof(int) * n_rank);
+    int *recv_shift = malloc(sizeof(int) * (n_rank + 1));
+    recv_shift[0] = 0;
+    // log_trace("allgather dn_vtx...\n");
+    PDM_MPI_Allgather(&dn_vtx, 1, PDM_MPI_INT, recv_count, 1, PDM_MPI_INT, comm);
+    for (int i = 0; i < n_rank; i++) {
+      recv_shift[i+1] = recv_shift[i] + recv_count[i];
+    }
+
+
+    /* Vertices */
+    PDM_MPI_Datatype mpi_coord;
+    PDM_MPI_Type_create_contiguous(3, PDM_MPI_DOUBLE, &mpi_coord);
+    PDM_MPI_Type_commit(&mpi_coord);
+
+    (*pn_vtx)[i_part] = recv_shift[n_rank];
+    (*pvtx_coord)[i_part] = (double *) malloc(sizeof(double) * 3 * (*pn_vtx)[i_part]);
+    // log_trace("allgatherv dvtx_coord...\n");
+    PDM_MPI_Allgatherv(dvtx_coord, dn_vtx, mpi_coord,
+                       (*pvtx_coord)[i_part], recv_count, recv_shift, mpi_coord, comm);
+
+    (*pvtx_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (*pn_vtx)[i_part]);
+    for (int i = 0; i < (*pn_vtx)[i_part]; i++) {
+      (*pvtx_ln_to_gn)[i_part][i] = i + 1;
+    }
+
+
+    /* Faces */
+
+    int *sections_id = PDM_DMesh_nodal_sections_id_get(dmn, PDM_GEOMETRY_KIND_SURFACIC);
+    // int  n_section   = PDM_DMesh_nodal_n_section_get  (dmn, PDM_GEOMETRY_KIND_SURFACIC);
+
+    int id_section = sections_id[0];
+    // const PDM_g_num_t    *distrib_face = PDM_DMesh_nodal_distrib_section_get(dmn, PDM_GEOMETRY_KIND_SURFACIC, id_section);
+    int                   dn_face      = PDM_DMesh_nodal_section_n_elt_get  (dmn, PDM_GEOMETRY_KIND_SURFACIC, id_section);
+    PDM_g_num_t          *dface_vtx    = PDM_DMesh_nodal_section_std_get    (dmn, PDM_GEOMETRY_KIND_SURFACIC, id_section);
+    PDM_Mesh_nodal_elt_t  t_elt        = PDM_DMesh_nodal_section_type_get   (dmn, PDM_GEOMETRY_KIND_SURFACIC, id_section);
+
+    int stride = PDM_Mesh_nodal_n_vtx_elt_get(t_elt, 1);
+
+    // log_trace("allgather dn_face...\n");
+    PDM_MPI_Allgather(&dn_face, 1, PDM_MPI_INT, recv_count, 1, PDM_MPI_INT, comm);
+    for (int i = 0; i < n_rank; i++) {
+      recv_shift[i+1] = recv_shift[i] + recv_count[i];
+    }
+
+    (*pn_face)[i_part] = recv_shift[n_rank];
+
+    int s_dface_vtx = stride*dn_face;//dface_vtx_idx[dn_face];
+    int *_dface_vtx  = malloc(sizeof(int) * s_dface_vtx);
+    int *dface_vtx_n = PDM_array_const_int(dn_face, stride);
+    for (int i = 0; i < s_dface_vtx; i++) {
+      _dface_vtx[i] = (int) dface_vtx[i];
+    }
+
+    int *face_vtx_n = malloc(sizeof(int) * (*pn_face)[i_part]);
+    // log_trace("allgatherv dface_vtx_n...\n");
+    PDM_MPI_Allgatherv(dface_vtx_n, dn_face, PDM_MPI_INT,
+                       face_vtx_n, recv_count, recv_shift, PDM_MPI_INT, comm);
+    free(dface_vtx_n);
+
+
+    (*pface_vtx_idx)[i_part] = (int *) malloc(sizeof(int) * ((*pn_face)[i_part] + 1));
+    (*pface_vtx_idx)[i_part][0] = 0;
+    for (int i = 0; i < (*pn_face)[i_part]; i++) {
+      (*pface_vtx_idx)[i_part][i+1] = (*pface_vtx_idx)[i_part][i] + face_vtx_n[i];
+    }
+    free(face_vtx_n);
+
+    // log_trace("allgather s_dface_vtx...\n");
+    PDM_MPI_Allgather(&s_dface_vtx, 1, PDM_MPI_INT, recv_count, 1, PDM_MPI_INT, comm);
+    for (int i = 0; i < n_rank; i++) {
+      recv_shift[i+1] = recv_shift[i] + recv_count[i];
+    }
+
+    (*pface_vtx)[i_part] = (int *) malloc(sizeof(int) * (*pface_vtx_idx)[i_part][(*pn_face)[i_part]]);
+    // log_trace("allgatherv dface_vtx...\n");
+    PDM_MPI_Allgatherv(_dface_vtx, s_dface_vtx, PDM_MPI_INT,
+                       (*pface_vtx)[i_part], recv_count, recv_shift, PDM_MPI_INT, comm);
+    free(_dface_vtx);
+
+
+    (*pface_ln_to_gn)[i_part] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (*pn_face)[i_part]);
+    for (int i = 0; i < (*pn_face)[i_part]; i++) {
+      (*pface_ln_to_gn)[i_part][i] = i + 1;
+    }
+  }
+
+
+
+  // free(dvtx_coord);
+  // free(dface_vtx_idx);
+  // free(dface_vtx);
+  // free(dface_edge);
+  // free(dedge_vtx);
+  // free(dedge_face);
+  // free(dedge_group_idx);
+  // free(dedge_group);
+  PDM_dcube_nodal_gen_free(dcube);
 }
+
 
 
 /*----------------------------------------------------------------------
@@ -184,842 +567,325 @@ _userInterpolation
  *
  *---------------------------------------------------------------------*/
 
-int
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
+  // Read args from command line
+  int    n_vtx_seg1            = 4;
+  int    n_vtx_seg2            = 4;
+  int    randomize             = 1;
+  double tolerance             = 1e-2;
+
+#ifdef PDM_HAVE_PARMETIS
+  PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_PARMETIS;
+#else
+#ifdef PDM_HAVE_PTSCOTCH
+  PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
+#else
+  PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
+#endif
+#endif
+
+
+  _read_args(argc,
+             argv,
+             &n_vtx_seg1,
+             &n_vtx_seg2,
+             &part_method,
+             &tolerance,
+             &randomize);
+
+  // Initialize MPI
   MPI_Init(&argc, &argv);
 
   int rank;
-  int commWorldSize;
+  int comm_world_size;
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &commWorldSize);
+  MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
 
-  srand(rank + time(0));
+  assert (comm_world_size > 1);
 
-  int n_partition = 0;
-  while (1.5 * (double) pow(n_partition, 2) < commWorldSize) {
-    n_partition++;
-  }
 
-  if (pow(n_partition, 2) > commWorldSize) {
-    n_partition--;
-  }
+  // Initialize CWIPI
+  int n_part = 1;
+  int n_code = 1;
+  int code_id[2];
+  const char **code_name = malloc(sizeof(char *) * n_code);
+  const char **coupled_code_name = malloc(sizeof(char *) * n_code);
+  CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
+  double *time_init = malloc(sizeof(double) * n_code);
 
-  int size_code1 = (int) (pow(n_partition, 2));
-  int size_code2 = (int) (pow(n_partition, 2));
-
-  // Read args from command line
-  int nVertexSeg = 100;
-  double randLevel = 0.4;
-
-  _read_args(argc, argv, &nVertexSeg, &randLevel);
-
-  // Initialization
-  int n_code = 0;
-  const char **codeName = NULL;
-  double *times_init = NULL;
-  CWP_Status_t *is_coupled_rank = NULL;
-
-  const char **codeCoupledName = NULL;
-
-  int rankCode1[commWorldSize];
-  int rankCode2[commWorldSize];
-
-  // Random distribution of codes on processes.
-  if (rank == 0) {
-    // Intializes random number generator
-    srand((unsigned) time(NULL));
-
-    int size_code1_domain = size_code1;
-    int size_code2_domain = size_code2;
-    printf("size_code1 %i\n", size_code1);
-    for (int i = 0 ; i < commWorldSize ; i++) {
-      rankCode1[i] = 0;
-      rankCode2[i] = 0;
-    }
-    for (int i = 0 ; i < size_code1_domain ; i++) {
-      int tmp = rand() % commWorldSize;
-      while (rankCode1[tmp] == 1) {
-        tmp = rand() % commWorldSize;
-      }
-      rankCode1[tmp] = 1;
-    }
-
-    for (int i = 0 ; i < size_code2_domain ; i++) {
-      int tmp = rand() % commWorldSize;
-      while (rankCode2[tmp] == 1) {
-        tmp = rand() % commWorldSize;
-      }
-      rankCode2[tmp] = 1;
-    }
-
-    for (int i = 0 ; i < commWorldSize ; i++) {
-      if (rankCode1[i] == 0 && rankCode2[i] == 0) {
-        int t = rand() % commWorldSize;
-        while (!(rankCode1[t] == 1 && rankCode2[t] == 1)) {
-          t = rand() % commWorldSize;
-        }
-        int h12 = rand() % 2;
-        if (h12 == 0) {
-          rankCode1[t] = 0;
-          rankCode1[i] = 1;
-        }
-        else {
-          rankCode2[t] = 0;
-          rankCode2[i] = 1;
-        }
-      }
-    }
-
-    int ind = 0;
-    for (int i = 0 ; i < commWorldSize ; i++) {
-      if (rankCode2[i] || rankCode1[i]) {
-        //        nranks[ind] = i;
-        ind++;
-      }
-    }
-  }
-
-  int rankCode1Rcv = -1;
-  int rankCode2Rcv = -1;
-
-  MPI_Scatter(&rankCode1, 1, MPI_INT, &rankCode1Rcv, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-  MPI_Scatter(&rankCode2, 1, MPI_INT, &rankCode2Rcv, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-  MPI_Scatter(&rankCode2, 1, MPI_INT, &rankCode2Rcv, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-  if (rankCode1Rcv && rankCode2Rcv) {
-    printf("I am process %i and I own the code1 and the code2.\n", rank);
+  int n_vtx_seg;
+  CWP_Comm_t comm_type;
+  if (rank < comm_world_size / 2) {
+    code_id[0] = 1;
+    code_name[0] = "code1";
+    coupled_code_name[0] = "code2";
+    n_vtx_seg = n_vtx_seg1;
+    comm_type = CWP_COMM_PAR_WITHOUT_PART;
   }
   else {
-    if (rankCode1Rcv) {
-      printf("maxI am process %i and I own the code1.\n", rank);
-    }
-    if (rankCode2Rcv) {
-      printf("maxI am process %i and I own the code2.\n", rank);
-    }
+    code_id[0] = 2;
+    code_name[0] = "code2";
+    coupled_code_name[0] = "code1";
+    n_vtx_seg = n_vtx_seg2;
+    comm_type = CWP_COMM_PAR_WITHOUT_PART;
   }
 
-  int *nbPartSeg = NULL;
-  int *nbPart = NULL;
 
-  if (rankCode1Rcv) {
-    n_code = 1;
-    codeName = malloc(sizeof(char *) * n_code);
-    codeCoupledName = malloc(sizeof(char *) * n_code);
-    codeName[0] = "code1";
-    codeCoupledName[0] = "code2";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    is_coupled_rank[0] = CWP_STATUS_ON;
-    nbPartSeg = (int *) malloc(sizeof(int) * n_code);
-    nbPartSeg[0] = 1;
-    nbPart = (int *) malloc(sizeof(int) * n_code);
-    nbPart[0] = nbPartSeg[0] * nbPartSeg[0];
-  }
+  MPI_Comm *intra_comm = malloc(sizeof(MPI_Comm) * n_code);
+  is_active_rank[0] = CWP_STATUS_ON;
+  time_init[0] = 0.;
 
-  if (rankCode2Rcv) {
-    n_code = 1;
-    codeName = malloc(sizeof(char *) * n_code);
-    codeCoupledName = malloc(sizeof(char *) * n_code);
-    codeName[0] = "code2";
-    codeCoupledName[0] = "code1";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    is_coupled_rank[0] = CWP_STATUS_ON;
-    nbPartSeg = (int *) malloc(sizeof(int) * n_code);
-    nbPartSeg[0] = 1;
-    nbPart = (int *) malloc(sizeof(int) * n_code);
-    nbPart[0] = nbPartSeg[0] * nbPartSeg[0];
-  }
-
-  if (rankCode1Rcv && rankCode2Rcv) {
-    n_code = 2;
-    codeName = malloc(sizeof(char *) * n_code);
-    codeCoupledName = malloc(sizeof(char *) * n_code);
-    codeName[0] = "code1";
-    codeName[1] = "code2";
-    codeCoupledName[0] = "code2";
-    codeCoupledName[1] = "code1";
-    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
-    is_coupled_rank[0] = CWP_STATUS_ON;
-    is_coupled_rank[1] = CWP_STATUS_ON;
-    nbPartSeg = (int *) malloc(sizeof(int) * n_code);
-    nbPartSeg[0] = 1;
-    nbPartSeg[1] = 1;
-    nbPart = (int *) malloc(sizeof(int) * n_code);
-    nbPart[0] = nbPartSeg[0] * nbPartSeg[0];
-    nbPart[1] = nbPartSeg[1] * nbPartSeg[1];
-  }
-
-  times_init = malloc(sizeof(double) * n_code);
-
-  for (int i = 0 ; i < n_code ; i++) {
-    times_init[i] = 0;
-  }
-
-  MPI_Comm *localComm = malloc(sizeof(MPI_Comm) * n_code);
   CWP_Init(MPI_COMM_WORLD,
            n_code,
-           (const char **) codeName,
-           is_coupled_rank,
-           times_init,
-           localComm);
+           (const char **) code_name,
+           is_active_rank,
+           time_init,
+           intra_comm);
 
-  // Output redirection
-  int currentRank[n_code];
-  int localCommSize[n_code];
 
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    if (localComm[i_code] != MPI_COMM_NULL) {
-      MPI_Comm_rank(localComm[i_code], &currentRank[i_code]);
-    }
-    if (localComm[i_code] != MPI_COMM_NULL) {
-      MPI_Comm_size(localComm[i_code], &localCommSize[i_code]);
-    }
+  if (rank == 0) {
+    printf("CWIPI Init OK\n");
   }
 
+
+  // Create coupling
   const char *cpl_name = "c_new_api_surf_P1P0_P0P1_without_part";
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    printf("        Create coupling %i code %i\n", rank, i_code);
-    CWP_Cpl_create(codeName[i_code],                                      // Code name
-                   cpl_name,                                              // Coupling id
-                   codeCoupledName[i_code],                               // Coupled application id
-                   CWP_INTERFACE_SURFACE,
-                   CWP_COMM_PAR_WITHOUT_PART,                             // Coupling type
-                   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, // Solver type
-                   nbPart[i_code],                                        // Partition number
-                   CWP_DYNAMIC_MESH_STATIC,                               // Mesh type
-                   CWP_TIME_EXCH_USER_CONTROLLED);                           // frequency
-    printf("   After     Create coupling %i code %i\n", rank, i_code);
+  CWP_Cpl_create(code_name[0],                                          // Code name
+                 cpl_name,                                              // Coupling id
+                 coupled_code_name[0],                                  // Coupled application id
+                 CWP_INTERFACE_SURFACE,
+                 comm_type,                                             // Coupling type
+                 CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, // Solver type
+                 n_part,                                                // Partition number
+                 CWP_DYNAMIC_MESH_STATIC,                               // Mesh displacement type
+                 CWP_TIME_EXCH_USER_CONTROLLED);                        // Postprocessing frequency
+
+
+  CWP_Visu_set(code_name[0],            // Code name
+               cpl_name,                // Coupling id
+               1,                       // Postprocessing frequency
+               CWP_VISU_FORMAT_ENSIGHT, // Postprocessing format
+               "text");                 // Postprocessing option
+
+
+  if (rank == 0) {
+    printf("Create coupling OK\n");
   }
 
-  printf("        Set visu\n");
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    CWP_Visu_set(codeName[i_code],        // Code name
-                 cpl_name,                // Coupling id
-                 1,                       // Postprocessing frequency
-                 CWP_VISU_FORMAT_ENSIGHT, // Postprocessing format
-                 "text");                 // Postprocessing option
+
+  // Define mesh
+  PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) intra_comm);
+
+  int          *pn_face        = NULL;
+  int          *pn_vtx         = NULL;
+  int         **pface_vtx_idx  = NULL;
+  int         **pface_vtx      = NULL;
+  double      **pvtx_coord     = NULL;
+  PDM_g_num_t **pface_ln_to_gn = NULL;
+  PDM_g_num_t **pvtx_ln_to_gn  = NULL;
+  _gen_mesh(mesh_comm,
+            n_part,
+            part_method,
+            n_vtx_seg,
+            randomize,
+            code_id[0],
+            (comm_type == CWP_COMM_PAR_WITH_PART),
+            &pn_face,
+            &pn_vtx,
+            &pface_vtx_idx,
+            &pface_vtx,
+            &pvtx_coord,
+            &pface_ln_to_gn,
+            &pvtx_ln_to_gn);
+
+  CWP_Mesh_interf_vtx_set(code_name[0],
+                          cpl_name,
+                          0,
+                          pn_vtx[0],
+                          pvtx_coord[0],
+                          pvtx_ln_to_gn[0]);
+
+  int block_id = CWP_Mesh_interf_block_add(code_name[0],
+                                           cpl_name,
+                                           CWP_BLOCK_FACE_POLY);
+
+  CWP_Mesh_interf_f_poly_block_set(code_name[0],
+                                   cpl_name,
+                                   0,
+                                   block_id,
+                                   pn_face[0],
+                                   pface_vtx_idx[0],
+                                   pface_vtx[0],
+                                   pface_ln_to_gn[0]);
+
+  CWP_Mesh_interf_finalize(code_name[0], cpl_name);
+
+  if (rank == 0) {
+    printf("Set mesh OK\n");
   }
 
-  // Mesh definition
-  printf("        Create mesh %i\n", rank);
 
-  int **nVertex = NULL;            // Number of vertex
-  double ***coords = NULL;         // Vertex coordinates
-  int **nElts = NULL;              // Number of elements
-  int ***eltsConnecPointer = NULL; // Connectivity index
-  int ***eltsConnec = NULL;        // Connectivity
-
-  // Domain bounds
-  const double xmin = -10;
-  const double xmax = 10;
-  const double ymin = -10;
-  const double ymax = 10;
-
-  coords            = (double ***) malloc(sizeof(double **) * n_code);
-  eltsConnecPointer = (int    ***) malloc(sizeof(int    **) * n_code);
-  eltsConnec        = (int    ***) malloc(sizeof(int    **) * n_code);
-  nVertex           = (int     **) malloc(sizeof(int     *) * n_code);
-  nElts             = (int     **) malloc(sizeof(int     *) * n_code);
-
-  srand(time(NULL));
-
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    coords           [i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
-    eltsConnecPointer[i_code] = (int    **) malloc(sizeof(int    *) * nbPart[i_code]);
-    eltsConnec       [i_code] = (int    **) malloc(sizeof(int    *) * nbPart[i_code]);
-    nVertex          [i_code] = (int     *) malloc(sizeof(int     ) * nbPart[i_code]);
-    nElts            [i_code] = (int     *) malloc(sizeof(int     ) * nbPart[i_code]);
+  // Create and set fields
+  // field1: code1 -> code2
+  // field2: code2 -> code1
+  const char *field_name1 = "cooX_t0";
+  const char *field_name2 = "code2_elt_gnum";
+  double *send_val = (double *) malloc(sizeof(double *) * 3 * pn_vtx[0]);
+  double *recv_val = (double *) malloc(sizeof(double *) * pn_face[0]);
+  if (code_id[0] == 1) {
+    for (int i = 0 ; i < pn_vtx[0] ; i++) {
+      send_val[3*i  ] = pvtx_coord[0][3*i  ];
+      send_val[3*i+1] = pvtx_coord[0][3*i+1];
+      send_val[3*i+2] = pvtx_coord[0][3*i+2];
+    }
   }
-
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    randLevel = 0.4;
-    double xSegPart = (xmax - xmin) / (double) nbPartSeg[i_code];
-    double ySegPart = (ymax - ymin) / (double) nbPartSeg[i_code];
-    for (int u = 0 ; u < nbPartSeg[i_code] ; u++) {
-      for (int v = 0 ; v < nbPartSeg[i_code] ; v++) {
-        int i_part = nbPartSeg[i_code] * u + v;
-        int nVertexSegPart = nVertexSeg / nbPartSeg[i_code];
-        nVertex[i_code][i_part] = nVertexSegPart * nVertexSegPart;
-        nElts[i_code][i_part] = (nVertexSegPart - 1) * (nVertexSegPart - 1);
-
-        coords           [i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nVertex[i_code][i_part]);
-        eltsConnecPointer[i_code][i_part] = (int    *) malloc(sizeof(int   ) *    (nElts[i_code][i_part] + 1));
-        eltsConnec       [i_code][i_part] = (int    *) malloc(sizeof(int   ) * 4 * nElts[i_code][i_part]);
-        if (strcmp(codeName[i_code], "code1") == 0) {
-          double xminPart = xmin + xSegPart * v;
-          double yminPart = ymin + ySegPart * u;
-          double xmaxPart = xminPart + xSegPart;
-          double ymaxPart = yminPart + ySegPart;
-          printf("INFO rank %i i_part %i x %f %f y %f %f nbPart %i test %i nVertex %i \n",
-                 rank,
-                 i_part,
-                 xminPart,
-                 yminPart,
-                 xmaxPart,
-                 ymaxPart,
-                 nbPart[i_code],
-                 nVertexSeg / nbPartSeg[i_code],
-                 nVertex[i_code][i_part]);
-
-          grid_mesh(xminPart,
-                    xmaxPart,
-                    yminPart,
-                    ymaxPart,
-                    randLevel,
-                    nVertexSegPart,
-                    (int) sqrt(localCommSize[i_code]),
-                    coords[i_code][i_part],
-                    eltsConnecPointer[i_code][i_part],
-                    eltsConnec[i_code][i_part],
-                    localComm[i_code]);
-        }
-      }
+  else {
+    send_val = (double *) malloc(sizeof(double) * pn_face[0]);
+    recv_val = (double *) malloc(sizeof(double) * 3 * pn_vtx[0]);
+    for (int i = 0 ; i < pn_face[0] ; i++) {
+      send_val[i] = (double) pface_ln_to_gn[0][i];
     }
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    randLevel = 0.2;
-    double xSegPart = (xmax - xmin) / (double) nbPartSeg[i_code];
-    double ySegPart = (ymax - ymin) / (double) nbPartSeg[i_code];
-    for (int u = 0 ; u < nbPartSeg[i_code] ; u++) {
-      for (int v = 0 ; v < nbPartSeg[i_code] ; v++) {
-        int i_part = nbPartSeg[i_code] * u + v;
-        int nVertexSegPart = nVertexSeg / nbPartSeg[i_code];
-        if (strcmp(codeName[i_code], "code2") == 0) {
-          double xminPart = xmin + xSegPart * v;
-          double yminPart = ymin + ySegPart * u;
-          double xmaxPart = xminPart + xSegPart;
-          double ymaxPart = yminPart + ySegPart;
-          printf("INFO rank %i i_part %i xmin %f ymin %f xmax %f ymax %f nbPart %i test %i nVertex %i \n",
-                 rank,
-                 i_part,
-                 xminPart,
-                 yminPart,
-                 xmaxPart,
-                 ymaxPart,
-                 nbPart[i_code],
-                 nVertexSeg / nbPartSeg[i_code],
-                 nVertex[i_code][i_part]);
+  CWP_Status_t visu_status = CWP_STATUS_ON;
 
-          grid_mesh(xminPart,
-                    xmaxPart,
-                    yminPart,
-                    ymaxPart,
-                    randLevel,
-                    nVertexSegPart,
-                    (int) sqrt(localCommSize[i_code]),
-                    coords[i_code][i_part],
-                    eltsConnecPointer[i_code][i_part],
-                    eltsConnec[i_code][i_part],
-                    localComm[i_code]);
-        }
-      }
-    }
+
+  if (code_id[0] == 1) {
+    CWP_Field_create(code_name[0],
+                     cpl_name,
+                     field_name1,
+                     CWP_DOUBLE,
+                     CWP_FIELD_STORAGE_INTERLACED,
+                     3,
+                     CWP_DOF_LOCATION_NODE,
+                     CWP_FIELD_EXCH_SEND,
+                     visu_status);
+    CWP_Field_data_set(code_name[0],
+                       cpl_name,
+                       field_name1,
+                       0,
+                       CWP_FIELD_MAP_SOURCE,
+                       send_val);
+
+    CWP_Field_create(code_name[0],
+                     cpl_name,
+                     field_name2,
+                     CWP_DOUBLE,
+                     CWP_FIELD_STORAGE_INTERLACED,
+                     1,
+                     CWP_DOF_LOCATION_CELL_CENTER,
+                     CWP_FIELD_EXCH_RECV,
+                     visu_status);
+    CWP_Field_data_set(code_name[0],
+                       cpl_name,
+                       field_name2,
+                       0,
+                       CWP_FIELD_MAP_TARGET,
+                       recv_val);
   }
+  else {
+    CWP_Field_create(code_name[0],
+                     cpl_name,
+                     field_name1,
+                     CWP_DOUBLE,
+                     CWP_FIELD_STORAGE_INTERLACED,
+                     3,
+                     CWP_DOF_LOCATION_NODE,
+                     CWP_FIELD_EXCH_RECV,
+                     visu_status);
+    CWP_Field_data_set(code_name[0],
+                       cpl_name,
+                       field_name1,
+                       0,
+                       CWP_FIELD_MAP_TARGET,
+                       recv_val);
 
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    for (int i_part = 0 ; i_part < nbPart[i_code] ; i_part++) {
-      CWP_Mesh_interf_vtx_set(codeName[i_code],
-                              cpl_name,
-                              i_part,
-                              nVertex[i_code][i_part],
-                              coords[i_code][i_part],
-                              NULL);
-    }
-  }
-
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    int block_id = CWP_Mesh_interf_block_add(codeName[i_code], cpl_name, CWP_BLOCK_FACE_POLY);
-
-    for (int i_part = 0 ; i_part < nbPart[i_code] ; i_part++) {
-      CWP_Mesh_interf_f_poly_block_set(codeName[i_code],
-                                       cpl_name,
-                                       i_part,
-                                       block_id,
-                                       nElts[i_code][i_part],
-                                       eltsConnecPointer[i_code][i_part],
-                                       eltsConnec[i_code][i_part],
-                                       NULL);
-    }
-  }
-
-  printf("       Finalize %i\n", rank);
-
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    CWP_Mesh_interf_finalize(codeName[i_code], cpl_name);
-  }
-
-  // Fields exchange
-  printf("        Exchange Code1 <-> Code2 %i\n", rank);
-
-  double ***sendValues     = (double ***) malloc(sizeof(double **) * n_code);
-  double ***recvValues     = (double ***) malloc(sizeof(double **) * n_code);
-  double ***Values2Vertex  = (double ***) malloc(sizeof(double **) * n_code);
-  double ***recvValuesUser = (double ***) malloc(sizeof(double **) * n_code);
-
-  int nbPoints = 3;
-  int **nbPointsUser = (int **) malloc(sizeof(int *) * n_code);
-
-  double ***coordsPointsUser = (double ***) malloc(sizeof(double **) * n_code);
-
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    sendValues      [i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
-    nbPointsUser    [i_code] = (int     *) malloc(sizeof(int     ) * nbPart[i_code]);
-    recvValues      [i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
-    Values2Vertex   [i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
-    recvValuesUser  [i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
-    coordsPointsUser[i_code] = (double **) malloc(sizeof(double *) * nbPart[i_code]);
-    for (int i_part = 0 ; i_part < nbPart[i_code] ; i_part++) {
-
-      if (strcmp(codeName[i_code], "code1") == 0) {
-        sendValues      [i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);
-        recvValues      [i_code][i_part] = (double *) malloc(sizeof(double) * nElts  [i_code][i_part]);
-        Values2Vertex   [i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);
-        nbPointsUser    [i_code][i_part] = 0;
-        recvValuesUser  [i_code][i_part] = (double *) malloc(sizeof(double) *     nbPointsUser[i_code][i_part]);
-        coordsPointsUser[i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nbPointsUser[i_code][i_part]);
-        for (int i = 0 ; i < nVertex[i_code][i_part] ; i++) {
-          sendValues[i_code][i_part][i] = rank;
-        }
-      }
-      else {
-        sendValues      [i_code][i_part] = (double *) malloc(sizeof(double) *     nElts  [i_code][i_part]);
-        recvValues      [i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nVertex[i_code][i_part]);
-        Values2Vertex   [i_code][i_part] = (double *) malloc(sizeof(double) *     nVertex[i_code][i_part]);
-        nbPointsUser    [i_code][i_part] = nbPoints;
-        recvValuesUser  [i_code][i_part] = (double *) malloc(sizeof(double) *     nbPointsUser[i_code][i_part]);
-        coordsPointsUser[i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nbPointsUser[i_code][i_part]);
-        for (int i = 0 ; i < nElts[i_code][i_part] ; i++) {
-          sendValues[i_code][i_part][i] = rank;
-        }
-        for (int i = 0 ; i < nVertex[i_code][i_part] ; i++) {
-          Values2Vertex[i_code][i_part][i] = i;
-        }
-
-        for (int i = 0 ; i < nbPointsUser[i_code][i_part] ; i++) {
-          coordsPointsUser[i_code][i_part][3 * i    ] = 0.0 + 0.01 * i_part + 0.001 * i;
-          coordsPointsUser[i_code][i_part][3 * i + 1] = rank * 0.1 + 0.01 * i_part + 0.001 * i;
-          coordsPointsUser[i_code][i_part][3 * i + 2] = 0.0;
-        }
-      }
-    }
-  }
-
-  // Define fields
-  int code1I = 1;
-  int code2I = 1;
-  int code3I = 1;
-  int code4I = 1;
-  int code5I = 1;
-
-  const char *fieldName1;
-  const char *fieldName2;
-  const char *fieldName3;
-  fieldName1 = "cooX";
-  fieldName2 = "rank";
-  fieldName3 = "userField";
-  const char *fieldName4 = "userInterpolation";
-  const char *fieldName5 = "sendRecvField";
-
-  printf("        Field %i\n", rank);
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    if (strcmp(codeName[i_code], "code1") == 0) {
-      if (code1I == 1) {
-        CWP_Field_create(codeName[i_code],
-                         cpl_name,
-                         fieldName1,
-                         CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_INTERLEAVED,
-                         1,
-                         CWP_DOF_LOCATION_NODE,
-                         CWP_FIELD_EXCH_SEND,
-                         CWP_STATUS_ON);
-      }
-      if (code2I == 1) {
-        CWP_Field_create(codeName[i_code],
-                         cpl_name,
-                         fieldName2,
-                         CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_INTERLEAVED,
-                         1,
-                         CWP_DOF_LOCATION_CELL_CENTER,
-                         CWP_FIELD_EXCH_RECV,
-                         CWP_STATUS_ON);
-      }
-      if (code3I == 1) {
-        CWP_Field_create(codeName[i_code],
-                         cpl_name,
-                         fieldName3,
-                         CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_INTERLEAVED,
-                         1,
-                         CWP_DOF_LOCATION_NODE,
-                         CWP_FIELD_EXCH_SEND,
-                         CWP_STATUS_OFF);
-      }
-      if (code4I == 1) {
-        CWP_Field_create(codeName[i_code],
-                         cpl_name,
-                         fieldName4,
-                         CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_INTERLEAVED,
-                         1,
-                         CWP_DOF_LOCATION_NODE,
-                         CWP_FIELD_EXCH_SEND,
-                         CWP_STATUS_ON);
-      }
-      if (code5I == 1) {
-        CWP_Field_create(codeName[i_code],
-                         cpl_name,
-                         fieldName5,
-                         CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_INTERLEAVED,
-                         1,
-                         CWP_DOF_LOCATION_NODE,
-                         CWP_FIELD_EXCH_RECV,
-                         CWP_STATUS_OFF);
-      }
-
-      for (int i_part = 0 ; i_part < nbPart[i_code] ; i_part++) {
-        if (code1I == 1) {
-          CWP_Field_data_set(codeName[i_code],
-                             cpl_name,
-                             fieldName1,
-                             i_part,
-                             CWP_FIELD_MAP_SOURCE,
-                             sendValues[i_code][i_part]);
-        }
-        if (code2I == 1) {
-          CWP_Field_data_set(codeName[i_code],
-                             cpl_name,
-                             fieldName2,
-                             i_part,
-                             CWP_FIELD_MAP_TARGET,
-                             recvValues[i_code][i_part]);
-        }
-        if (code3I == 1) {
-          CWP_Field_data_set(codeName[i_code],
-                             cpl_name,
-                             fieldName3,
-                             i_part,
-                             CWP_FIELD_MAP_SOURCE,
-                             sendValues[i_code][i_part]);
-        }
-        if (code4I == 1) {
-          CWP_Field_data_set(codeName[i_code],
-                             cpl_name,
-                             fieldName4,
-                             i_part,
-                             CWP_FIELD_MAP_SOURCE,
-                             sendValues[i_code][i_part]);
-        }
-        if (code5I == 1) {
-          CWP_Field_data_set(codeName[i_code],
-                             cpl_name,
-                             fieldName5,
-                             i_part,
-                             CWP_FIELD_MAP_TARGET,
-                             Values2Vertex[i_code][i_part]);
-        }
-      }
-
-      if (code4I == 1) {
-        CWP_Interp_from_location_set(codeName[i_code], cpl_name, fieldName4, _userInterpolation);
-      }
-    }
-    else {
-      if (code1I == 1) {
-        CWP_Field_create(codeName[i_code],
-                         cpl_name,
-                         fieldName1,
-                         CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_INTERLEAVED,
-                         1,
-                         CWP_DOF_LOCATION_NODE,
-                         CWP_FIELD_EXCH_RECV,
-                         CWP_STATUS_ON);
-      }
-      if (code2I == 1) {
-        CWP_Field_create(codeName[i_code],
-                         cpl_name,
-                         fieldName2,
-                         CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_INTERLEAVED,
-                         1,
-                         CWP_DOF_LOCATION_CELL_CENTER,
-                         CWP_FIELD_EXCH_SEND,
-                         CWP_STATUS_ON);
-      }
-      if (code3I == 1) {
-        CWP_Field_create(codeName[i_code],
-                         cpl_name,
-                         fieldName3,
-                         CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_INTERLEAVED,
-                         1,
-                         CWP_DOF_LOCATION_USER,
-                         CWP_FIELD_EXCH_RECV,
-                         CWP_STATUS_OFF);
-      }
-      if (code4I == 1) {
-        CWP_Field_create(codeName[i_code],
-                         cpl_name,
-                         fieldName4,
-                         CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_INTERLEAVED,
-                         1,
-                         CWP_DOF_LOCATION_NODE,
-                         CWP_FIELD_EXCH_RECV,
-                         CWP_STATUS_ON);
-      }
-      if (code5I == 1) {
-        CWP_Field_create(codeName[i_code],
-                         cpl_name,
-                         fieldName5,
-                         CWP_DOUBLE,
-                         CWP_FIELD_STORAGE_INTERLEAVED,
-                         1,
-                         CWP_DOF_LOCATION_NODE,
-                         CWP_FIELD_EXCH_SEND,
-                         CWP_STATUS_ON);
-      }
-
-      for (int i_part = 0 ; i_part < nbPart[i_code] ; i_part++) {
-        if (code1I == 1) {
-          CWP_Field_data_set(codeName[i_code],
-                             cpl_name,
-                             fieldName1,
-                             i_part,
-                             CWP_FIELD_MAP_TARGET,
-                             Values2Vertex[i_code][i_part]);
-        }
-        if (code2I == 1) {
-          CWP_Field_data_set(codeName[i_code],
-                             cpl_name,
-                             fieldName2,
-                             i_part,
-                             CWP_FIELD_MAP_SOURCE,
-                             sendValues[i_code][i_part]);
-        }
-        if (code3I == 1) {
-          CWP_Field_data_set(codeName[i_code],
-                             cpl_name,
-                             fieldName3,
-                             i_part,
-                             CWP_FIELD_MAP_TARGET,
-                             recvValuesUser[i_code][i_part]);
-        }
-        if (code4I == 1) {
-          CWP_Field_data_set(codeName[i_code],
-                             cpl_name,
-                             fieldName4,
-                             i_part,
-                             CWP_FIELD_MAP_TARGET,
-                             recvValues[i_code][i_part]);
-        }
-        if (code5I == 1) {
-          CWP_Field_data_set(codeName[i_code],
-                             cpl_name,
-                             fieldName5,
-                             i_part,
-                             CWP_FIELD_MAP_SOURCE,
-                             Values2Vertex[i_code][i_part]);
-        }
-        if (code3I == 1) {
-          CWP_User_tgt_pts_set(codeName[i_code],
-                               cpl_name,
-                               i_part,
-                               nbPointsUser[i_code][i_part],
-                               coordsPointsUser[i_code][i_part],
-                               NULL);
-        }
-      }
-    }
-  }
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  printf("Before compute\n");
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    CWP_Spatial_interp_weights_compute(codeName[i_code], cpl_name);
-  }
-  printf("After compute\n");
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    if (strcmp(codeName[i_code], "code1") == 0) {
-      if (code1I == 1) {
-        CWP_Field_issend(codeName[i_code], cpl_name, fieldName1);
-      }
-      if (code1I == 1) {
-        CWP_Field_wait_issend(codeName[i_code], cpl_name, fieldName1);
-      }
-    }
-    else {
-      if (code1I == 1) {
-        CWP_Field_irecv(codeName[i_code], cpl_name, fieldName1);
-      }
-      if (code1I == 1) {
-        CWP_Field_wait_irecv(codeName[i_code], cpl_name, fieldName1);
-      }
-    }
-  }
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    if (strcmp(codeName[i_code], "code1") == 0) {
-      if (code2I == 1) {
-        CWP_Field_irecv(codeName[i_code], cpl_name, fieldName2);
-      }
-      if (code2I == 1) {
-        CWP_Field_wait_irecv(codeName[i_code], cpl_name, fieldName2);
-      }
-    }
-    else {
-      if (code2I == 1) {
-        CWP_Field_issend(codeName[i_code], cpl_name, fieldName2);
-      }
-      if (code2I == 1) {
-        CWP_Field_wait_issend(codeName[i_code], cpl_name, fieldName2);
-      }
-    }
-  }
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    if (strcmp(codeName[i_code], "code1") == 0) {
-      if (code3I == 1) {
-        CWP_Field_issend(codeName[i_code], cpl_name, fieldName3);
-      }
-      if (code3I == 1) {
-        CWP_Field_wait_issend(codeName[i_code], cpl_name, fieldName3);
-      }
-    }
-    else {
-      if (code3I == 1) {
-        CWP_Field_irecv(codeName[i_code], cpl_name, fieldName3);
-      }
-      if (code3I == 1) {
-        CWP_Field_wait_irecv(codeName[i_code], cpl_name, fieldName3);
-      }
-    }
-  }
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    if (strcmp(codeName[i_code], "code1") == 0) {
-      if (code4I == 1) {
-        CWP_Field_issend(codeName[i_code], cpl_name, fieldName4);
-      }
-      if (code4I == 1) {
-        CWP_Field_wait_issend(codeName[i_code], cpl_name, fieldName4);
-      }
-    }
-    else {
-      if (code4I == 1) {
-        CWP_Field_irecv(codeName[i_code], cpl_name, fieldName4);
-      }
-      if (code4I == 1) {
-        CWP_Field_wait_irecv(codeName[i_code], cpl_name, fieldName4);
-      }
-    }
-  }
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    if (strcmp(codeName[i_code], "code1") == 0) {
-      if (code5I == 1) {
-        CWP_Field_irecv(codeName[i_code], cpl_name, fieldName5);
-      }
-      if (code5I == 1) {
-        CWP_Field_wait_irecv(codeName[i_code], cpl_name, fieldName5);
-      }
-    }
-    else {
-      if (code5I == 1) {
-        CWP_Field_issend(codeName[i_code], cpl_name, fieldName5);
-      }
-      if (code5I == 1) {
-        CWP_Field_wait_issend(codeName[i_code], cpl_name, fieldName5);
-      }
-    }
-  }
-
-  // Coupling deletion
-  printf("%d - Delete mesh\n", rank);
-  MPI_Barrier(MPI_COMM_WORLD);
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    CWP_Mesh_interf_del(codeName[i_code], cpl_name);
+    CWP_Field_create(code_name[0],
+                     cpl_name,
+                     field_name2,
+                     CWP_DOUBLE,
+                     CWP_FIELD_STORAGE_INTERLACED,
+                     1,
+                     CWP_DOF_LOCATION_CELL_CENTER,
+                     CWP_FIELD_EXCH_SEND,
+                     visu_status);
+    CWP_Field_data_set(code_name[0],
+                       cpl_name,
+                       field_name2,
+                       0,
+                       CWP_FIELD_MAP_SOURCE,
+                       send_val);
   }
 
   if (rank == 0) {
-    printf("%d - Delete coupling\n", rank);
+    printf("Fields OK\n");
   }
 
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    CWP_Cpl_del(codeName[i_code], cpl_name);
+  MPI_Barrier(MPI_COMM_WORLD);
+
+
+  char char_tol[99];
+  sprintf(char_tol, "%e", tolerance);
+  CWP_Spatial_interp_property_set(code_name[0], cpl_name, "tolerance", "double", char_tol);
+  CWP_Spatial_interp_weights_compute(code_name[0], cpl_name);
+
+
+
+  if (code_id[0] == 1) {
+    CWP_Field_issend(code_name[0], cpl_name, field_name1);
+    CWP_Field_irecv (code_name[0], cpl_name, field_name2);
+  }
+  else {
+    CWP_Field_irecv (code_name[0], cpl_name, field_name1);
+    CWP_Field_issend(code_name[0], cpl_name, field_name2);
   }
 
-  // Freeing memory
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    for (int i_part = 0 ; i_part < nbPart[i_code] ; i_part++) {
-      free(coords           [i_code][i_part]);
-      free(eltsConnecPointer[i_code][i_part]);
-      free(eltsConnec       [i_code][i_part]);
-      free(sendValues       [i_code][i_part]);
-      free(recvValues       [i_code][i_part]);
-      free(Values2Vertex    [i_code][i_part]);
-      free(coordsPointsUser [i_code][i_part]);
-      free(recvValuesUser   [i_code][i_part]);
-    }
-    free(coords          [i_code]);
-    free(sendValues      [i_code]);
-    free(recvValues      [i_code]);
-    free(Values2Vertex   [i_code]);
-    free(nbPointsUser    [i_code]);
-    free(coordsPointsUser[i_code]);
-    free(recvValuesUser  [i_code]);
 
-    free(eltsConnecPointer[i_code]);
-    free(eltsConnec       [i_code]);
-    free(nVertex          [i_code]);
-    free(nElts            [i_code]);
+  if (code_id[0] == 1) {
+    CWP_Field_wait_issend(code_name[0], cpl_name, field_name1);
+    CWP_Field_wait_irecv (code_name[0], cpl_name, field_name2);
+  }
+  else {
+    CWP_Field_wait_irecv (code_name[0], cpl_name, field_name1);
+    CWP_Field_wait_issend(code_name[0], cpl_name, field_name2);
   }
 
-  free(coords);
-  free(sendValues);
-  free(Values2Vertex);
-  free(recvValues);
-  free(nbPointsUser);
-  free(coordsPointsUser);
-  free(recvValuesUser);
-  free(eltsConnecPointer);
-  free(eltsConnec       );
-  free(nVertex          );
-  free(nElts            );
 
-  free(times_init);
-  free(localComm);
-  if(nbPartSeg != NULL) {
-    free(nbPartSeg);
-  }
-  if(nbPart != NULL) {
-    free(nbPart);
-  }
-  free(codeName);
-  free(codeCoupledName);
-  free(is_coupled_rank);
+  CWP_Mesh_interf_del(code_name[0], cpl_name);
+  CWP_Cpl_del(code_name[0], cpl_name);
 
-  // Finalize
+
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    free(pface_vtx_idx[i_part]);
+    free(pface_vtx[i_part]);
+    free(pvtx_coord[i_part]);
+    free(pface_ln_to_gn[i_part]);
+    free(pvtx_ln_to_gn[i_part]);
+  }
+  free(pn_face);
+  free(pn_vtx);
+  free(pface_vtx_idx);
+  free(pface_vtx);
+  free(pvtx_coord);
+  free(pface_ln_to_gn);
+  free(pvtx_ln_to_gn);
+
+  free(send_val);
+  free(recv_val);
+
+
+  free(coupled_code_name);
+  free(code_name);
+  free(is_active_rank);
+  free(intra_comm);
+  free(time_init);
+
+  //  Finalize CWIPI
   CWP_Finalize();
+
+  // Finalize MPI
   MPI_Finalize();
 
   return EXIT_SUCCESS;

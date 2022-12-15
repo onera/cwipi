@@ -512,7 +512,7 @@ _cube_mesh
     if (part_extension_depth > 0) {
 
       // TODO: Part extension et nodal sont-ils compatibles ? 
-      assert(0);
+      // assert(0);
 
 
       part_ext = PDM_part_extension_create(1,
