@@ -1234,7 +1234,7 @@ module cwp
       integer(c_int)         :: n_loc_codes
     end subroutine CWP_Loc_codes_list_get_cf
 
-    subroutine CWP_Param_list_get_cf(code_name, l_code_name, data_type, c_param_names, c_param_sizes, n_param) &
+    subroutine CWP_Param_list_get_cf(code_name, l_code_name, data_type, n_param, c_param_names, c_param_sizes) &
       bind (c, name="CWP_Param_list_get_cf")
       use, intrinsic :: iso_c_binding
       implicit none
@@ -3593,7 +3593,7 @@ contains
   subroutine CWP_Param_list_get_(code_name, &
                                  data_type, &
                                  n_param,   &
-                                 c_param_names)
+                                 f_param_names)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -3607,7 +3607,7 @@ contains
 
     l_code_name  = len(code_name)
 
-    call CWP_Param_list_get_cf(code_name, l_code_name, data_type, c_param_names, c_param_sizes, n_param)
+    call CWP_Param_list_get_cf(code_name, l_code_name, data_type, n_param, c_param_names, c_param_sizes)
 
     call c_f_char_array(c_param_names, c_param_sizes, n_param, f_param_names)
 

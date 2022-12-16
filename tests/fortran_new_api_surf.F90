@@ -53,9 +53,10 @@ program testf
   integer                       :: fid = 13
   logical                       :: debug = .true.
 
-  !--> character array getters
+  !--> list getters
   character(256), allocatable :: code_list(:)
   character(256), allocatable :: loc_code_list(:)
+  character(256), allocatable :: f_param_names(:)
   !--------------------------------------------------------------------
 
 
@@ -143,6 +144,16 @@ program testf
     print *, "tata =", loc(tata)
   endif
   !<<--
+
+  ! --> get list of int parameter names
+  call CWP_Param_list_get("code1",  &
+                          CWP_INT,  &
+                          n_param,  &
+                          f_param_names)
+
+  do i=1, n_param
+   print *, "f_param_names : ", i, " -> ", f_param_names(i)
+  end do
 
   !! Create a coupling
   coupling_name = "fortran_new_api_surf"
