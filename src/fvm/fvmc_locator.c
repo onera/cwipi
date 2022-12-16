@@ -1120,6 +1120,9 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                  FVMC_MPI_TAG, this_locator->comm, &status);
   }
 
+  printf("_locate_all_distant coucou00\n");
+  fflush(stdout);
+  MPI_Barrier(this_locator->comm);
 
   /* Initialization */
 
@@ -1188,7 +1191,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   /* fflush(stdout); */
 
   /* MPI_Barrier(this_locator->comm); */
-
+  
   for (i = 0; i < this_locator->n_intersects; i++) {
 
     dist_index = i; /* Ordering (communication schema) not yet optimized */
@@ -1228,7 +1231,6 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
     }
 
-
     /* Send then receive partial buffer */
 
     dist_rank = this_locator->intersect_rank[dist_index];
@@ -1250,9 +1252,6 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                  coords_dist, (int)(n_coords_dist*dim),
                  FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
                  this_locator->comm, &status);
-
-
-
 
     _locator_trace_end_comm(_fvmc_locator_log_end_p_comm, comm_timing);
 
@@ -1303,6 +1302,10 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
     BFTC_MALLOC(distance_loc, n_coords_loc, float);
 
     _locator_trace_start_comm(_fvmc_locator_log_start_p_comm, comm_timing);
+
+printf("_locate_all_distant coucou01 n_coords_loc=%6d n_coords_dist=%6d \n",n_coords_loc,n_coords_dist);
+fflush(stdout);
+MPI_Barrier(this_locator->comm);
 
     MPI_Sendrecv(location_dist, (int)n_coords_dist,
                  FVMC_MPI_LNUM, dist_rank, FVMC_MPI_TAG,
@@ -1356,6 +1359,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
                this_locator->comm, &status);
     }
+
 
     _locator_trace_end_comm(_fvmc_locator_log_end_p_comm, comm_timing);
 
@@ -1474,6 +1478,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
     }
   }
 
+
   /* Second loop on possibly intersecting distant ranks */
   /*----------------------------------------------------*/
 
@@ -1538,6 +1543,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
     }
   }
 
+
   /* Third loop on possibly intersecting distant ranks */
   /*----------------------------------------------------*/
 
@@ -1576,6 +1582,10 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
   }
 
+printf("_locate_all_distant coucou02\n");
+fflush(stdout);
+MPI_Barrier(this_locator->comm);
+
   for (i = 0; i < this_locator->n_intersects; i++) {
 
     dist_index = i; /* Ordering (communication schema) not yet optimized */
@@ -1589,7 +1599,13 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
     start_idx = this_locator->local_points_idx[i];
 
+printf("_locate_all_distant coucou03 n_coords_loc=%6d\n",n_coords_loc);
+fflush(stdout);
+MPI_Barrier(this_locator->comm);
+
     for (j = 0; j < n_coords_loc; j++) {
+
+printf("_locate_all_distant  j=%d/%d\n",j,n_coords_loc);
 
       coord_idx = send_index[location_shift[i] + j];
       this_locator->local_point_ids[start_idx + j] = coord_idx;
@@ -1617,7 +1633,15 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
       }
     }
 
+//printf("_locate_all_distant coucou04 n_coords_loc=%6d\n",n_coords_loc);
+//fflush(stdout);
+//MPI_Barrier(this_locator->comm);
+
     _locator_trace_start_comm(_fvmc_locator_log_start_p_comm, comm_timing);
+
+printf("_locate_all_distant coucou05 n_coords_loc=%6d n_coords_dist=%6d \n",n_coords_loc,n_coords_dist);
+fflush(stdout);
+MPI_Barrier(this_locator->comm);
 
     MPI_Sendrecv(send_location, (int)n_coords_loc,
                  FVMC_MPI_LNUM, dist_rank, FVMC_MPI_TAG,
@@ -1657,6 +1681,11 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                    (int)(n_coords_dist*max_entity_dim),
                    MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
                    this_locator->comm, &status);
+
+printf("_locate_all_distant coucou05\n");
+fflush(stdout);
+MPI_Barrier(this_locator->comm);
+
     }
 
     else if (distant_nodal_order != -1) {
@@ -1714,6 +1743,11 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
   this_locator->location_wtime[1] += comm_timing[0];
   this_locator->location_cpu_time[1] += comm_timing[1];
+
+  printf("<<< _locate_all_distant\n");
+  fflush(stdout);
+
+
 }
 
 #endif /* defined(FVMC_HAVE_MPI) */
