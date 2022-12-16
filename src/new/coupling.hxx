@@ -1439,6 +1439,20 @@ namespace cwipi {
     );
 
 
+    /**
+     * \brief Curent number of coupling step
+     *  
+     * 
+     * \return the current number of coupling step
+     *
+     */
+
+    inline int 
+    NStepGet (
+    );
+
+
+
   public:
 
     // A supprimer 
@@ -1464,6 +1478,11 @@ namespace cwipi {
 
     void
     isUpToDateSet ();
+
+
+    int
+    idGeomWriterGet();
+
 
   private:
 

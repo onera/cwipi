@@ -81,6 +81,20 @@ namespace cwipi {
     void dataSet (int i_part, const CWP_Field_map_t  map_type, void* data);
 
 
+
+    /**
+     * \brief Write th
+     *
+     * \param [in] data   Data array
+     *
+     */
+
+    void write 
+    (
+      CWP_Field_exch_t exch_type
+    );
+
+
     /**
      *
      * \brief Get field storage type

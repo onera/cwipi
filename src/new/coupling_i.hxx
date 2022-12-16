@@ -121,6 +121,21 @@ namespace cwipi {
   }
 
 
+  /**
+   * \brief Curent number of coupling step
+   *  
+   * 
+   * \return the current number of coupling step
+   *
+   */
+
+  int 
+  Coupling::NStepGet (
+  )
+  {
+    return _n_step;
+  }
+
   /*----------------------------------------------------------------------------*
    * Methods about mesh                                                     *
    *----------------------------------------------------------------------------*/
@@ -1512,6 +1527,15 @@ namespace cwipi {
   )
   {
     return _spatial_interp_properties_int;
+  }
+
+
+  int
+  Coupling::idGeomWriterGet
+  (
+  )
+  {
+    return _id_geom_writer;
   }
 
 } // name space cwipi

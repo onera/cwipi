@@ -196,6 +196,155 @@ void Field::dataSet ( int i_part, const CWP_Field_map_t   map_type, void* data)
 }
 
 
+/**
+ * \brief Write th
+ *
+ * \param [in] data   Data array
+ *
+ */
+
+void 
+Field::write 
+(
+CWP_Field_exch_t exch_type
+)
+{
+  PDM_writer_t* writer =  _cpl->writerGet();
+
+  assert(CWP_FIELD_EXCH_SENDRECV != exch_type);
+
+  int *id_writer_var;
+
+  std::vector<void* > *data_var;
+
+  if (exch_type == CWP_FIELD_EXCH_SEND) {
+    id_writer_var = _id_writer_var_send;
+    *data_var = _data_src;
+  }
+  else {
+    id_writer_var = _id_writer_var_recv;  
+    *data_var = _data_tgt;
+  }
+
+  if (writer != nullptr) {
+    if ((_cpl->NStepGet() % _cpl->freqWriterGet()) == 0) {
+
+      double **comp_data = malloc (sizeof(double *) * _cpl->getNPart());
+
+      if (_storage == CWP_FIELD_STORAGE_INTERLACED && nComponent > 1) {
+        for(int i_part= 0 ; i_part < _cpl->getNPart(); i_part++){
+          int n_elt_size = 0;
+
+          if (_coupledCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+            n_elt_size = _cpl->getPartNElts (i_part);
+          }
+          else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_NODE) {
+            n_elt_size = _cpl->getPartNVertex (i_part);
+          }
+          else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_USER) {
+            n_elt_size = _cpl->userTargetNGet (i_part);
+          }
+
+          comp_data[i_part] = malloc (sizeof(double) * n_elt_size);
+
+        }
+      }
+
+      for (int i_comp = 0; i_comp < nComponent; i_comp++) {
+
+        for(int i_part= 0 ; i_part < _cpl->getNPart(); i_part++){
+
+          int n_elt_size = 0;
+
+          if (_coupledCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+            n_elt_size = _cpl->getPartNElts (i_part);
+          }
+          else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_NODE) {
+            n_elt_size = _cpl->getPartNVertex (i_part);
+          }
+          else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_USER) {
+            n_elt_size = _cpl->userTargetNGet (i_part);
+          }
+
+          if (_storage == CWP_FIELD_STORAGE_INTERLACED && nComponent > 1) {
+            for (int j = 0; j < n_elt_size; j++) {
+              comp_data[i_part][j] = ((double *) (*data_var)[i_part])[i_comp * nComponent + j];
+            }
+          }
+          else {
+            comp_data[i_part] = (double *) &(((double *)(*data_var)[i_part])[n_elt_size * nComponent]);
+          }  
+
+          //A finir : remplir comp_data si interlaced mettre juste le point si interleaved !!
+
+          PDM_writer_var_set(writer, id_writer_var, cpl->idGeomWriterGet(), i_part, comp_data[i_part]);
+        }
+
+        PDM_writer_var_write(writer, id_writer_var);
+
+        PDM_writer_var_data_free(writer, id_writer_var);
+
+      }
+
+    }
+
+
+    // if (exch_type == CWP_FIELD_EXCH_RECV) {
+    //   if ((_cpl->NStepGet() % _cpl->freqWriterGet()) == 0) {
+
+    //     CWP_Dynamic_mesh_t topology = cpl->DisplacementGet();
+
+    //     if (topology != CWP_DYNAMIC_MESH_STATIC || _cpl->NStepGet() == 0) {
+
+    //       for(int i_part= 0 ; i_part < _cpl->getNPart(); i_part++){
+
+    //         int n_elt_size = 0;
+
+    //         if (_coupledCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+    //           n_elt_size = _cpl->getPartNElts (i_part);
+    //         }
+    //         else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_NODE) {
+    //           n_elt_size = _cpl->getPartNVertex (i_part);
+    //         }
+    //         else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_USER) {
+    //           n_elt_size = _cpl->userTargetNGet (i_part);
+    //         }
+
+
+    //         //A finir : remplir comp_data si interlaced mettre juste le point si interleaved !!
+
+
+
+    //         PDM_writer_var_set(writer, _id_writer_var_recv_computed, cpl->idGeomWriterGet(), i_part, comp_data);
+    //       }
+
+    //       PDM_writer_var_write(writer, _id_writer_var_recv_computed);
+
+    //       PDM_writer_var_data_free(writer, _id_writer_var_recv_computed);
+
+    //     }
+
+    //   }
+
+    // }
+
+    if (_storage == CWP_FIELD_STORAGE_INTERLACED && nComponent > 1) {
+      for(int i_part= 0 ; i_part < _cpl->getNPart(); i_part++){
+      
+        free (comp_data[i_part]);
+
+      }
+    }
+
+    free (comp_data);
+
+  }
+
+}
+
+
+
+
 }
 
 /**

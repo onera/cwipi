@@ -504,6 +504,15 @@ namespace cwipi {
         _recv_buffer[intId] = NULL;
       }
 
+      PDM_writer_t* writer =  _cpl->writerGet();
+
+
+      if (writer != nullptr) {
+        if ((_cpl->NStepGet() % _cpl->freqWriterGet()) == 0) {
+
+        }
+
+      }
       // if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
       //   _visu->WriterField(referenceField, nullptr, nullptr, CWP_FIELD_MAP_SOURCE);
       // }
