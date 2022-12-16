@@ -1120,10 +1120,6 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                  FVMC_MPI_TAG, this_locator->comm, &status);
   }
 
-  printf("local_max_entity_dim = %d, distant_max_entity_dim = %d\n",
-         local_max_entity_dim, distant_max_entity_dim);
-  fflush(stdout);
-
 
   /* Initialization */
 
@@ -1303,10 +1299,6 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
     BFTC_MALLOC(distance_loc, n_coords_loc, float);
 
     _locator_trace_start_comm(_fvmc_locator_log_start_p_comm, comm_timing);
-
-printf("_locate_all_distant coucou01 n_coords_loc=%6d n_coords_dist=%6d \n",n_coords_loc,n_coords_dist);
-fflush(stdout);
-MPI_Barrier(this_locator->comm);
 
     MPI_Sendrecv(location_dist, (int)n_coords_dist,
                  FVMC_MPI_LNUM, dist_rank, FVMC_MPI_TAG,
@@ -1587,10 +1579,6 @@ MPI_Barrier(this_locator->comm);
 
   }
 
-printf("_locate_all_distant coucou02\n");
-fflush(stdout);
-MPI_Barrier(this_locator->comm);
-
   for (i = 0; i < this_locator->n_intersects; i++) {
 
     dist_index = i; /* Ordering (communication schema) not yet optimized */
@@ -1604,14 +1592,7 @@ MPI_Barrier(this_locator->comm);
 
     start_idx = this_locator->local_points_idx[i];
 
-printf("_locate_all_distant coucou03 n_coords_loc=%6d\n",n_coords_loc);
-fflush(stdout);
-MPI_Barrier(this_locator->comm);
-
     for (j = 0; j < n_coords_loc; j++) {
-
-printf("_locate_all_distant  j=%d/%d\n",j,n_coords_loc);
-
       coord_idx = send_index[location_shift[i] + j];
       this_locator->local_point_ids[start_idx + j] = coord_idx;
       send_location[j] = location[coord_idx];
@@ -1638,15 +1619,7 @@ printf("_locate_all_distant  j=%d/%d\n",j,n_coords_loc);
       }
     }
 
-//printf("_locate_all_distant coucou04 n_coords_loc=%6d\n",n_coords_loc);
-//fflush(stdout);
-//MPI_Barrier(this_locator->comm);
-
     _locator_trace_start_comm(_fvmc_locator_log_start_p_comm, comm_timing);
-
-printf("_locate_all_distant coucou05 n_coords_loc=%6d n_coords_dist=%6d \n",n_coords_loc,n_coords_dist);
-fflush(stdout);
-MPI_Barrier(this_locator->comm);
 
     MPI_Sendrecv(send_location, (int)n_coords_loc,
                  FVMC_MPI_LNUM, dist_rank, FVMC_MPI_TAG,
@@ -1686,10 +1659,6 @@ MPI_Barrier(this_locator->comm);
                    (int)(n_coords_dist*max_entity_dim),
                    MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
                    this_locator->comm, &status);
-
-printf("_locate_all_distant coucou05\n");
-fflush(stdout);
-MPI_Barrier(this_locator->comm);
 
     }
 
