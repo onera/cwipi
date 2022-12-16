@@ -1474,12 +1474,8 @@ contains
       do i = 1, n_codes
         strlen      = f_code_list_s(i)
         call c_f_pointer(fptr2(i), fptr, [strlen])
-        ! print *, "code", i, "strlen =", strlen
-        ! print *, "fptr(1:strlen, i) :", fptr(1:strlen, i)
         ! fstrings(i) = transfer(fptr(1:strlen, i), fstrings(i))
-        print *, "fptr(1:strlen, i) :", fptr(1:strlen)
         fstrings(i) = transfer(fptr(1:strlen), fstrings(i))
-        print *, "fstrings(", i, ") :", fstrings(i)
       end do
 
       call pdm_fortran_free_c(code_list_s)
