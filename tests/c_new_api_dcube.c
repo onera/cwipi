@@ -339,12 +339,12 @@ int main(int argc, char *argv[]) {
   if (strcmp(code_name[0], "code1") != 0) {
     printf("%s is sending data\n", code_name[0]);
     CWP_Field_issend(code_name[0], coupling_name, field_name);
-    CWP_Field_wait_issend(code_name[0], coupling_name, field_name);
+    // CWP_Field_wait_issend(code_name[0], coupling_name, field_name);
   }
   else {
     printf("%s is receiving data\n", code_name[0]);
     CWP_Field_irecv(code_name[0], coupling_name, field_name);
-    CWP_Field_wait_irecv(code_name[0], coupling_name, field_name);
+    // CWP_Field_wait_irecv(code_name[0], coupling_name, field_name);
 
 //    int n_computed_tgts = CWP_N_computed_tgts_get(code_name[0], coupling_name, field_name, 0);
 //    int n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name, 0);
@@ -359,8 +359,20 @@ int main(int argc, char *argv[]) {
   }
 
   if (strcmp(code_name[0], "code1") != 0) {
+    CWP_Field_wait_issend(code_name[0], coupling_name, field_name);
     free(send_val);
   } else {
+    CWP_Field_wait_irecv(code_name[0], coupling_name, field_name);
+    //    int n_computed_tgts = CWP_N_computed_tgts_get(code_name[0], coupling_name, field_name, 0);
+//    int n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name, 0);
+//    const int* computed_tgts = CWP_Computed_tgts_get(code_name[0], coupling_name, field_name, 0);
+//
+//    printf("n_computed_tgts = %d\n", n_computed_tgts);
+//    printf("n_uncomputed_tgts = %d\n", n_uncomputed_tgts);
+//
+//    for (int i = 0 ; i < n_computed_tgts ; i++) {
+//      printf("%12.5e %12.5e\n", recv_val[3 * i], vtx_coord[0][3 * (computed_tgts[i] - 1)]);
+//    }
     free(recv_val);
   }
 

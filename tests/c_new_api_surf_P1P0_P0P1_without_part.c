@@ -570,7 +570,7 @@ int main(int argc, char *argv[])
     code_name[0] = "code1";
     coupled_code_name[0] = "code2";
     n_vtx_seg = n_vtx_seg1;
-    comm_type = CWP_COMM_PAR_WITH_PART;
+    comm_type = CWP_COMM_PAR_WITHOUT_PART;
   }
   else {
     code_id[0] = 2;
