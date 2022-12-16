@@ -84,7 +84,8 @@ namespace cwipi {
     _cellFaceMethod(0),
     _pdmNodal_handle_index(),
     _isVtxGnumComputed(false),
-    _isEltGnumComputed(false)
+    _isEltGnumComputed(false),
+    _isFaceGnumComputed(false)
   {
 
     _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&localComm));
@@ -103,6 +104,7 @@ namespace cwipi {
     _coords .resize(npart,NULL);
     _global_num_vtx .resize(npart,NULL);
     _global_num_elt .resize(npart,NULL);
+    _global_num_face.resize(npart,NULL);
 
     _nCells      .resize(npart, 0)  ;
     _cellFaceIdx .resize(npart, NULL);
@@ -142,6 +144,10 @@ namespace cwipi {
         free (_elt_in_block[i]);
       }
 
+      if (_isFaceGnumComputed) {
+        free (_global_num_face[i]);
+      }
+
       if (_isEltGnumComputed) {
         free (_global_num_elt[i]); 
       }
@@ -150,6 +156,14 @@ namespace cwipi {
         free (_global_num_vtx[i]); 
       }
 
+
+      if (_faceVtxNb[i] != NULL) {
+        free(_faceVtxNb[i]);
+      }
+
+      if (_cellFaceNb[i] != NULL) {
+        free(_cellFaceNb[i]);
+      }
     }
 
     for (int i = 0; i < (int) _blockDB.size(); i++) {
@@ -572,6 +586,65 @@ namespace cwipi {
 
     else if(_cellFaceMethod == 1){
 
+      int compute_face_gnum = 0;
+      for (int i_part = 0; i_part < _npart; i_part++) {
+        if (_faceLNToGN[i_part] == NULL) {
+          compute_face_gnum = 1;
+          break;
+        }
+      }
+
+      if(compute_face_gnum) {
+
+        _isFaceGnumComputed = true;
+
+        PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+
+        double ** face_center = new double* [_npart];
+
+        for (int i_part = 0; i_part < _npart; i_part++) {
+          face_center[i_part] = new double[3*_nFace[i_part]];
+          for (int j = 0; j < 3*_nFace[i_part]; j++) {
+            face_center[i_part][j] = 0.;
+          }
+
+          for (int j = 0; j < _nFace[i_part]; j++) {
+            int idx = _faceVtxIdx[i_part][j];
+            int nb = _faceVtxIdx[i_part][j+1] - _faceVtxIdx[i_part][j];
+
+            for (int k = idx; k < idx + nb; k++) {
+              int ivtx = _faceVtx[i_part][k] - 1;
+              for (int k2 = 0; k2 < 3; k2++) {
+                face_center[i_part][3*j+k2] += _coords[i_part][3*ivtx+k2];
+              }
+            }
+
+            for (int k2 = 0; k2 < 3; k2++) {
+              face_center[i_part][3*j+k2] /= nb;
+            }
+          }
+        }
+
+        for (int i_part = 0; i_part < _npart; i_part++) {
+          PDM_gnum_set_from_coords (pdmGNum_handle_index, i_part, _nFace[i_part], face_center[i_part], NULL);
+        }
+
+        PDM_gnum_compute (pdmGNum_handle_index);
+
+        for(int i_part=0;i_part<_npart;i_part++) {
+          _faceLNToGN[i_part] = const_cast<CWP_g_num_t*>(PDM_gnum_get (pdmGNum_handle_index, i_part));
+        }
+
+        PDM_gnum_free (pdmGNum_handle_index);
+
+        for (int i_part = 0; i_part < _npart; i_part++) {
+          delete[] face_center[i_part];
+        }
+
+        delete[] face_center;
+      }
+
+
       int compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
         if (_cellLNToGN[i_part] == NULL) {
@@ -652,7 +725,7 @@ namespace cwipi {
                                            _faceVtxIdx[i_part],
                                            _faceVtxNb[i_part],
                                            _faceVtx[i_part],
-                                           NULL,
+                                           _faceLNToGN[i_part],//NULL,
                                            _cellFaceIdx[i_part],
                                            _cellFaceNb[i_part],
                                            _cellFace[i_part],

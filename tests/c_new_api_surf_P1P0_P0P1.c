@@ -181,36 +181,23 @@ main(int argc, char *argv[]) {
   connectableLocalComm[0] = CWP_Connectable_comm_get((char *) code_name[0]);
   MPI_Comm_size(connectableLocalComm[0], &connectableLocalCommSize[0]);
 
-  srand(time(NULL));
+  srand(0);//time(NULL));
 
-  if (strcmp(code_name[0], "code1") == 0) {
-    grid_mesh(xmin,
-              xmax,
-              ymin,
-              ymax,
-              randLevel,
-              nVertexSeg,
-              (int) sqrt(connectableLocalCommSize[0]),
-              coords[0],
-              eltsConnecPointer[0],
-              eltsConnec[0],
-              connectableLocalComm[0]);
-  }
 
-  randLevel = 0.2;
   if (strcmp(code_name[0], "code2") == 0) {
-    grid_mesh(xmin,
-              xmax,
-              ymin,
-              ymax,
-              randLevel,
-              nVertexSeg,
-              (int) sqrt(connectableLocalCommSize[0]),
-              coords[0],
-              eltsConnecPointer[0],
-              eltsConnec[0],
-              connectableLocalComm[0]);
+    randLevel = 0.2;
   }
+  grid_mesh(xmin,
+            xmax,
+            ymin,
+            ymax,
+            randLevel,
+            nVertexSeg,
+            (int) sqrt(connectableLocalCommSize[0]),
+            coords[0],
+            eltsConnecPointer[0],
+            eltsConnec[0],
+            connectableLocalComm[0]);
 
   printf("%d - Number of vertex   : %d\n", rank, nVertex);
   printf("%d - Number of elements : %d\n", rank, nElts);
@@ -306,10 +293,11 @@ main(int argc, char *argv[]) {
     CWP_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_TARGET, recvValues[0]);
   }
 
+  MPI_Barrier(MPI_COMM_WORLD);
   printf("%d - Before compute\n", rank);
-  CWP_next_recv_time_set(code_name[0],
-                         cpl_name,
-                         0.);
+  // CWP_next_recv_time_set(code_name[0],
+  //                        cpl_name,
+  //                        0.);
   CWP_Spatial_interp_weights_compute(code_name[0], cpl_name);
 
   int n_uncomputed = 0;

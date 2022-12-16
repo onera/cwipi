@@ -634,6 +634,7 @@ namespace cwipi {
 
     std::vector <CWP_g_num_t*>              _global_num_vtx;         /*!< Global vertices numbering for each partition  */
     std::vector <CWP_g_num_t*>              _global_num_elt;         /*!< Global elements numbering for each partition  */
+    std::vector <CWP_g_num_t*>              _global_num_face;        /*!< Global faces numbering for each partition  */
 
     std::vector<int*>                       _connec_idx;
     std::vector<int*>                       _connec;
@@ -671,6 +672,7 @@ namespace cwipi {
 
     bool                                    _isVtxGnumComputed;
     bool                                    _isEltGnumComputed;
+    bool                                    _isFaceGnumComputed;
 
 
 
