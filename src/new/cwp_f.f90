@@ -395,6 +395,10 @@ module cwp
         CWP_Loc_codes_list_get_
     end interface CWP_Loc_codes_list_get
 
+    interface CWP_Param_list_get ; module procedure &
+        CWP_Param_list_get_
+    end interface CWP_Param_list_get
+
   !
   ! Private
 
@@ -454,7 +458,8 @@ module cwp
              CWP_Param_lock_ ,&
              CWP_Param_unlock_,&
              CWP_Codes_list_get_,&
-             CWP_Loc_codes_list_get_
+             CWP_Loc_codes_list_get_,&
+             CWP_Param_list_get_
 
     interface
       subroutine CWP_Init_cf(fcomm, n_code, code_names, l_code_names, is_active_rank, time_init, intra_comms) &
@@ -1229,6 +1234,17 @@ module cwp
       integer(c_int)         :: n_loc_codes
     end subroutine CWP_Loc_codes_list_get_cf
 
+    subroutine CWP_Param_list_get_cf(code_name, l_code_name, data_type, c_param_names, c_param_sizes, n_param) &
+      bind (c, name="CWP_Param_list_get_cf")
+      use, intrinsic :: iso_c_binding
+      implicit none
+      type(c_ptr)                       :: c_param_names, c_param_sizes
+      integer(c_int)                    :: n_param
+      character(kind = c_char, len = 1) :: code_name
+      integer(c_int), value             :: l_code_name
+      integer(c_int), value             :: data_type
+    end subroutine CWP_Param_list_get_cf
+
   end interface
 
 contains
@@ -1491,7 +1507,7 @@ contains
       implicit none
 
       type(c_ptr) :: code_list, code_list_s
-      integer(c_int) :: i, n_codes
+      integer(c_int) :: n_codes
       character(256), allocatable :: fstrings(:)
 
       call CWP_Codes_list_get_cf(code_list, code_list_s, n_codes)
@@ -1513,7 +1529,7 @@ contains
       implicit none
 
       type(c_ptr) :: loc_code_list, loc_code_list_s
-      integer(c_int) :: i, n_loc_codes
+      integer(c_int) :: n_loc_codes
       character(256), allocatable :: fstrings(:)
 
       call CWP_Loc_codes_list_get_cf(loc_code_list, loc_code_list_s, n_loc_codes)
@@ -3564,26 +3580,38 @@ contains
 
   end function CWP_Param_n_get_
 
-! /**
-!  *
-!  * \brief Return the list of parameters for the code \p code_name.
-!  *
-!  * \param [in]  code_name      Local or distant code name
-!  * \param [in]  data_type      Parameter type,
-!  * \param [out] nParam         Number of parameters
-!  * \param [out] paramNames     Parameter names
-!  *
-!  *
-!  */
+  !>
+  !!
+  !! \brief eturn the list of parameters for the code \p code_name.
+  !!
+  !! \param [in] code_name      Local or distant code name
+  !! \param [in] data_type      Parameter type
+  !! \param [in] n_param        Number of parameters
+  !! \param [in] param_names    Parameter names
+  !!
 
-! void
-! CWP_Param_list_get
-! (
-!  const char             *code_name,
-!  const CWP_Type_t        data_type,
-!  int                    *nParam,
-!  char                 ***paramNames
-! );
+  subroutine CWP_Param_list_get_(code_name, &
+                                 data_type, &
+                                 n_param,   &
+                                 c_param_names)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: code_name
+    integer(kind = c_int)             :: l_code_name
+    integer                           :: data_type
+    type(c_ptr)                       :: c_param_names, c_param_sizes
+    integer(c_int)                    :: n_param
+    character(256), allocatable       :: f_param_names(:)
+
+    l_code_name  = len(code_name)
+
+    call CWP_Param_list_get_cf(code_name, l_code_name, data_type, c_param_names, c_param_sizes, n_param)
+
+    call c_f_char_array(c_param_names, c_param_sizes, n_param, f_param_names)
+
+  end subroutine CWP_Param_list_get_
 
   !>
   !!

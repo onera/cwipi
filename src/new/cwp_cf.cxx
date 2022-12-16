@@ -2138,26 +2138,42 @@ CWP_Param_n_get_cf
 }
 
 
-// /**
-//  *
-//  * \brief Return the list of parameters for the code \p code_name.
-//  *
-//  * \param [in]  code_name      Local or distant code name
-//  * \param [in]  data_type      Parameter type,
-//  * \param [out] nParam         Number of parameters
-//  * \param [out] paramNames     Parameter names
-//  *
-//  *
-//  */
-//
-// void
-// CWP_Param_list_get
-// (
-//  const char             *code_name,
-//  const CWP_Type_t        data_type,
-//  int                    *nParam,
-//  char                 ***paramNames
-// )
+/**
+ *
+ * \brief Return the list of parameters for the code \p code_name.
+ *
+ * \param [in]  code_name      Local or distant code name
+ * \param [in]  data_type      Parameter type,
+ * \param [out] nParam         Number of parameters
+ * \param [out] paramNames     Parameter names
+ *
+ *
+ */
+
+void
+CWP_Param_list_get_cf
+(
+ const char            *f_code_name,
+ const int              l_code_name,
+ const CWP_Type_t        data_type,
+ int                    *n_param,
+ char                 ***c_param_names,
+ int                   **c_param_sizes
+)
+{
+  char *c_code_name  = _fortran_to_c_string(f_code_name,  l_code_name);
+
+  CWP_Param_list_get(c_code_name,
+                     data_type,
+                     n_param,
+                     c_param_names);
+
+  *c_param_sizes = (int *) malloc(sizeof(int) * (*n_param));
+
+  for (int i = 0; i < (*n_param); i++) {
+    (*c_param_sizes)[i] = strlen((*c_param_names)[i]);
+  }
+}
 
 
 /**
