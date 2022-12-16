@@ -109,8 +109,8 @@ program testf
   loc_code_list = CWP_Loc_codes_list_get()
 
   do i=1,n_code
-    print *, "code_list(", i, ") :", code_list(i)
-    print *, "loc_code_list(", i, ") :", loc_code_list(i)
+    print *, i_rank, " --> ", code_list(", i, ") :", code_list(i)
+    print *, i_rank, " --> ", "loc_code_list(", i, ") :", loc_code_list(i)
   end do
 
   !-->>
