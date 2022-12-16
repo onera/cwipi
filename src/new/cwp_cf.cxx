@@ -73,6 +73,7 @@ using namespace std;
  * Private function definitions
  *============================================================================*/
 
+// TO DO: change to block_type insted of id
 static int
 _n_vtx_block_get
 (
@@ -378,6 +379,53 @@ CWP_State_get_cf
 
 }
 
+/**
+ * \brief Return code names and size of those names
+ *
+ * \param [in] code_list    Code names
+ * \param [in] code_list_s  Size of those code name chars
+ *
+ */
+
+void
+CWP_Codes_list_get_cf
+(
+ const char ***code_list,
+ int         **code_list_s,
+ int          *n_codes
+)
+{
+  *n_codes   = CWP_Codes_nb_get();
+  *code_list = CWP_Codes_list_get();
+
+  for (int i = 0; i < (*n_codes); i++) {
+    (*code_list_s)[i] = strlen((*code_list)[i]);
+  }
+}
+
+/**
+ * \brief Return local code names and size of those names
+ *
+ * \param [in] loc_code_list    Code names
+ * \param [in] loc_code_list_s  Size of those code name chars
+ *
+ */
+
+void
+CWP_Loc_codes_list_get_cf
+(
+ const char ***loc_code_list,
+ int         **loc_code_list_s,
+ int          *n_loc_codes
+)
+{
+  *n_loc_codes = CWP_Codes_nb_get();
+  *loc_code_list   = CWP_Codes_list_get();
+
+  for (int i = 0; i < (*n_loc_codes); i++) {
+    (*loc_code_list_s)[i] = strlen((*loc_code_list)[i]);
+  }
+}
 
 /*----------------------------------------------------------------------------*
  * General functions about coupling                                           *

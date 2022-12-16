@@ -386,6 +386,13 @@ module cwp
         CWP_Param_unlock_
     end interface CWP_Param_unlock
 
+    interface CWP_Codes_list_get ; module procedure &
+        CWP_Codes_list_get_
+    end interface CWP_Codes_list_get
+
+    interface CWP_Loc_codes_list_get ; module procedure &
+        CWP_Loc_codes_list_get_
+    end interface CWP_Loc_codes_list_get
 
   !
   ! Private
@@ -443,7 +450,10 @@ module cwp
              CWP_Param_is_ ,&
              CWP_Param_get_ ,&
              CWP_Param_lock_ ,&
-             CWP_Param_unlock_
+             CWP_Param_unlock_,&
+             CWP_Codes_list_get_,&
+             CWP_Loc_codes_list_get_
+
     interface
       subroutine CWP_Init_cf(fcomm, n_code, code_names, l_code_names, is_active_rank, time_init, intra_comms) &
               bind(c, name = 'CWP_Init_cf')
@@ -919,7 +929,6 @@ module cwp
           bind(c, name = 'CWP_Finalize')
     end subroutine CWP_Finalize
 
-
     !>
     !! \brief Return the number of codes known by CWIPI.
     !!
@@ -1202,6 +1211,22 @@ module cwp
       integer(c_int), value :: l_local_code_name, l_cpl_id, l_field_id
     end subroutine CWP_Field_del_cf
 
+    subroutine CWP_Codes_list_get_cf(code_list, code_list_s, n_codes) &
+      bind (c, name="CWP_Codes_list_get_cf")
+      use, intrinsic :: iso_c_binding
+      implicit none
+      type(c_ptr)            :: code_list, code_list_s
+      integer(c_int)         :: n_codes
+    end subroutine CWP_Codes_list_get_cf
+
+    subroutine CWP_Loc_codes_list_get_cf(loc_code_list, loc_code_list_s, n_loc_codes) &
+      bind (c, name="CWP_Loc_codes_list_get_cf")
+      use, intrinsic :: iso_c_binding
+      implicit none
+      type(c_ptr)            :: loc_code_list, loc_code_list_s
+      integer(c_int)         :: n_loc_codes
+    end subroutine CWP_Loc_codes_list_get_cf
+
   end interface
 
 contains
@@ -1418,32 +1443,64 @@ contains
 
   end function CWP_State_get_
 
+  !>
+    !! \brief Return list of codes known by CWIPI.
+    !!
+    !! \return List of code names
+    !!
 
-! /**
-!  * \brief Return the list of code names known by CWIPI.
-!  *
-!  * \return list of codes.
-!  */
+    function CWP_Codes_list_get_() &
+      result (fstrings)
 
-! const char **
-! CWP_Codes_list_get_
-! (
-! void
-! );
+      use, intrinsic :: iso_c_binding
+      implicit none
 
+      type(c_ptr) :: code_list, code_list_s
+      integer(c_int) :: i, n_codes, strlen
+      character(c_char), pointer :: fptr(:,:)
+      integer(c_int), pointer     :: f_code_list_s(:)
+      character(256), allocatable :: fstrings(:)
 
-! /**
-!  * \brief Return the list of local code names known by CWIPI.
-!  *
-!  * \return list of local codes.
-!  */
+      call CWP_Codes_list_get_cf(code_list, code_list_s, n_codes)
 
-! const char **
-! CWP_Loc_codes_list_get_
-! (
-!  void
-! );
+      call c_f_pointer(code_list, fptr, [ 256, n_codes ])
+      call c_f_pointer(code_list_s, f_code_list_s, [n_codes])
 
+      do i = 1, n_codes
+        strlen      = f_code_list_s(i)
+        fstrings(i) = transfer(fptr(1:strlen, i), fstrings(i))
+      end do
+
+    end function CWP_Codes_list_get_
+
+    !>
+    !! \brief Return list of local codes known by CWIPI.
+    !!
+    !! \return List of local code names
+    !!
+
+    function CWP_Loc_codes_list_get_() &
+      result (fstrings)
+
+      use, intrinsic :: iso_c_binding
+      implicit none
+
+      type(c_ptr) :: loc_code_list, loc_code_list_s
+      integer(c_int) :: i, n_loc_codes, strlen
+      character(c_char), pointer :: fptr(:,:)
+      integer(c_int), pointer     :: f_loc_code_list_s(:)
+      character(256), allocatable :: fstrings(:)
+
+      call CWP_Loc_codes_list_get_cf(loc_code_list, loc_code_list_s, n_loc_codes)
+
+      call c_f_pointer(loc_code_list, fptr, [ 256, n_loc_codes ])
+      call c_f_pointer(loc_code_list_s, f_loc_code_list_s, [n_loc_codes])
+
+      do i = 1, n_loc_codes
+        strlen      = f_loc_code_list_s(i)
+        fstrings(i) = transfer(fptr(1:strlen, i), fstrings(i))
+      end do
+    end function CWP_Loc_codes_list_get_
 
   !>
   !! \brief Create a coupling object and define its properties.
@@ -2263,12 +2320,12 @@ contains
   !!
 
   subroutine CWP_Mesh_interf_block_std_get_(local_code_name, &
-                                           cpl_id,          &
-                                           i_part,          &
-                                           block_id,        &
-                                           n_elts,          &
-                                           connec,          &
-                                           global_num)
+                                            cpl_id,          &
+                                            i_part,          &
+                                            block_id,        &
+                                            n_elts,          &
+                                            connec,          &
+                                            global_num)
 
     use, intrinsic :: iso_c_binding
     implicit none
