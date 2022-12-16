@@ -398,7 +398,10 @@ CWP_Codes_list_get_cf
   *n_codes   = CWP_Codes_nb_get();
   *code_list = CWP_Codes_list_get();
 
+  *code_list_s = (int *) malloc(sizeof(int) * (*n_codes));
+
   for (int i = 0; i < (*n_codes); i++) {
+    printf("(*code_list)[%d] : %s\n", i, (*code_list)[i]);
     (*code_list_s)[i] = strlen((*code_list)[i]);
   }
 }
@@ -422,7 +425,10 @@ CWP_Loc_codes_list_get_cf
   *n_loc_codes = CWP_Codes_nb_get();
   *loc_code_list   = CWP_Codes_list_get();
 
+  *loc_code_list_s = (int *) malloc(sizeof(int) * (*n_loc_codes));
+
   for (int i = 0; i < (*n_loc_codes); i++) {
+    printf("(*loc_code_list)[%d] : %s\n", i, (*loc_code_list)[i]);
     (*loc_code_list_s)[i] = strlen((*loc_code_list)[i]);
   }
 }

@@ -19,6 +19,7 @@
 
 module cwp
     use iso_c_binding
+    use pdm_fortran
 
     ! CWP_Type_t
     enum, bind(c)
@@ -1466,10 +1467,16 @@ contains
       call c_f_pointer(code_list, fptr, [ 256, n_codes ])
       call c_f_pointer(code_list_s, f_code_list_s, [n_codes])
 
+      allocate(fstrings(n_codes))
       do i = 1, n_codes
         strlen      = f_code_list_s(i)
+        print *, "fptr(1:strlen, i) :", fptr(1:strlen, i)
         fstrings(i) = transfer(fptr(1:strlen, i), fstrings(i))
+        print *, "fstrings(", i, ") :", fstrings(i)
       end do
+
+      call pdm_fortran_free_c(code_list_s)
+      call pdm_fortran_free_c(code_list)
 
     end function CWP_Codes_list_get_
 
@@ -1496,10 +1503,15 @@ contains
       call c_f_pointer(loc_code_list, fptr, [ 256, n_loc_codes ])
       call c_f_pointer(loc_code_list_s, f_loc_code_list_s, [n_loc_codes])
 
+      allocate(fstrings(n_loc_codes))
       do i = 1, n_loc_codes
         strlen      = f_loc_code_list_s(i)
         fstrings(i) = transfer(fptr(1:strlen, i), fstrings(i))
       end do
+
+      call pdm_fortran_free_c(loc_code_list_s)
+      call pdm_fortran_free_c(loc_code_list)
+
     end function CWP_Loc_codes_list_get_
 
   !>

@@ -52,6 +52,10 @@ program testf
   character                     :: strnum
   integer                       :: fid = 13
   logical                       :: debug = .true.
+
+  !--> character array getters
+  character(256), allocatable :: code_list(:)
+  character(256), allocatable :: loc_code_list(:)
   !--------------------------------------------------------------------
 
 
@@ -99,6 +103,15 @@ program testf
                 is_coupled_rank, &
                 time_init,       &
                 intra_comms)
+
+  !--> character array getters
+  code_list     = CWP_Codes_list_get()
+  loc_code_list = CWP_Loc_codes_list_get()
+
+  do i=1,n_code
+    print *, "code_list(", i, ") :", code_list(i)
+    print *, "loc_code_list(", i, ") :", loc_code_list(i)
+  end do
 
   !-->>
   ! print *, "n_code =", CWP_Codes_nb_get()
