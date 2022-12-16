@@ -1458,20 +1458,27 @@ contains
 
       type(c_ptr) :: code_list, code_list_s
       integer(c_int) :: i, n_codes, strlen
-      character(c_char), pointer :: fptr(:,:)
+      ! character(c_char), pointer :: fptr(:,:)
+      type(c_ptr), pointer :: fptr2(:) => null()
+      character(c_char), pointer :: fptr(:) => null()
       integer(c_int), pointer     :: f_code_list_s(:)
       character(256), allocatable :: fstrings(:)
 
       call CWP_Codes_list_get_cf(code_list, code_list_s, n_codes)
 
-      call c_f_pointer(code_list, fptr, [ 256, n_codes ])
+      !call c_f_pointer(code_list, fptr, [ 256, n_codes ])
+      call c_f_pointer(code_list, fptr2, [n_codes])
       call c_f_pointer(code_list_s, f_code_list_s, [n_codes])
 
       allocate(fstrings(n_codes))
       do i = 1, n_codes
         strlen      = f_code_list_s(i)
-        print *, "fptr(1:strlen, i) :", fptr(1:strlen, i)
-        fstrings(i) = transfer(fptr(1:strlen, i), fstrings(i))
+        call c_f_pointer(fptr2(i), fptr, [strlen])
+        ! print *, "code", i, "strlen =", strlen
+        ! print *, "fptr(1:strlen, i) :", fptr(1:strlen, i)
+        ! fstrings(i) = transfer(fptr(1:strlen, i), fstrings(i))
+        print *, "fptr(1:strlen, i) :", fptr(1:strlen)
+        fstrings(i) = transfer(fptr(1:strlen), fstrings(i))
         print *, "fstrings(", i, ") :", fstrings(i)
       end do
 
@@ -1494,19 +1501,24 @@ contains
 
       type(c_ptr) :: loc_code_list, loc_code_list_s
       integer(c_int) :: i, n_loc_codes, strlen
-      character(c_char), pointer :: fptr(:,:)
+      ! character(c_char), pointer :: fptr(:,:)
+      type(c_ptr), pointer :: fptr2(:) => null()
+      character(c_char), pointer :: fptr(:) => null()
       integer(c_int), pointer     :: f_loc_code_list_s(:)
       character(256), allocatable :: fstrings(:)
 
       call CWP_Loc_codes_list_get_cf(loc_code_list, loc_code_list_s, n_loc_codes)
 
-      call c_f_pointer(loc_code_list, fptr, [ 256, n_loc_codes ])
+      ! call c_f_pointer(loc_code_list, fptr, [ 256, n_loc_codes ])
+      call c_f_pointer(loc_code_list, fptr2, [n_loc_codes])
       call c_f_pointer(loc_code_list_s, f_loc_code_list_s, [n_loc_codes])
 
       allocate(fstrings(n_loc_codes))
       do i = 1, n_loc_codes
         strlen      = f_loc_code_list_s(i)
-        fstrings(i) = transfer(fptr(1:strlen, i), fstrings(i))
+        call c_f_pointer(fptr2(i), fptr, [strlen])
+        ! fstrings(i) = transfer(fptr(1:strlen, i), fstrings(i))
+        fstrings(i) = transfer(fptr(1:strlen), fstrings(i))
       end do
 
       call pdm_fortran_free_c(loc_code_list_s)
