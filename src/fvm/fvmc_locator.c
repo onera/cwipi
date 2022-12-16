@@ -1463,7 +1463,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
   fvmc_coord_t *send_uvw = NULL;
   if (distant_nodal_order != -1) {
-    BFTC_MALLOC(send_uvw, n_points * local_max_entity_dim , double);
+    BFTC_MALLOC(send_uvw, n_points * distant_max_entity_dim , double);
   }
 
   n_interior = 0;
