@@ -398,7 +398,8 @@ module cwp
   !
   ! Private
 
-  private :: CWP_Init_ ,&
+  private :: c_f_char_array,&
+             CWP_Init_ ,&
              CWP_State_update_ ,&
              CWP_Time_update_ ,&
              CWP_User_structure_set_ ,&
@@ -1232,6 +1233,39 @@ module cwp
 
 contains
 
+  !> convert an array of char * in c to an array
+  !  of characters of maximum size 256 in FORTRAN
+
+  subroutine c_f_char_array(c_char_array, &
+                            c_size_array, &
+                            n_chars, &
+                            f_char_array)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    type(c_ptr) :: c_char_array, c_size_array
+    type(c_ptr), pointer :: fptr2(:) => null()
+    character(c_char), pointer :: fptr(:) => null()
+    integer(c_int), pointer     :: f_size_array(:)
+    character(256), allocatable :: f_char_array(:)
+    integer(c_int) :: i, n_chars, strlen
+
+    call c_f_pointer(c_char_array, fptr2, [n_chars])
+    call c_f_pointer(c_size_array, f_size_array, [n_chars])
+
+    allocate(f_char_array(n_chars))
+    do i = 1, n_chars
+      strlen      = f_size_array(i)
+      call c_f_pointer(fptr2(i), fptr, [strlen])
+      f_char_array(i) = transfer(fptr(1:strlen), f_char_array(i))
+    end do
+
+    call pdm_fortran_free_c(c_char_array)
+    call pdm_fortran_free_c(c_size_array)
+
+  end subroutine c_f_char_array
+
 
   !>
   !! \brief Initialize CWIPI.
@@ -1457,29 +1491,12 @@ contains
       implicit none
 
       type(c_ptr) :: code_list, code_list_s
-      integer(c_int) :: i, n_codes, strlen
-      ! character(c_char), pointer :: fptr(:,:)
-      type(c_ptr), pointer :: fptr2(:) => null()
-      character(c_char), pointer :: fptr(:) => null()
-      integer(c_int), pointer     :: f_code_list_s(:)
+      integer(c_int) :: i, n_codes
       character(256), allocatable :: fstrings(:)
 
       call CWP_Codes_list_get_cf(code_list, code_list_s, n_codes)
 
-      !call c_f_pointer(code_list, fptr, [ 256, n_codes ])
-      call c_f_pointer(code_list, fptr2, [n_codes])
-      call c_f_pointer(code_list_s, f_code_list_s, [n_codes])
-
-      allocate(fstrings(n_codes))
-      do i = 1, n_codes
-        strlen      = f_code_list_s(i)
-        call c_f_pointer(fptr2(i), fptr, [strlen])
-        ! fstrings(i) = transfer(fptr(1:strlen, i), fstrings(i))
-        fstrings(i) = transfer(fptr(1:strlen), fstrings(i))
-      end do
-
-      call pdm_fortran_free_c(code_list_s)
-      call pdm_fortran_free_c(code_list)
+      call c_f_char_array(code_list, code_list_s, n_codes, fstrings)
 
     end function CWP_Codes_list_get_
 
@@ -1496,29 +1513,12 @@ contains
       implicit none
 
       type(c_ptr) :: loc_code_list, loc_code_list_s
-      integer(c_int) :: i, n_loc_codes, strlen
-      ! character(c_char), pointer :: fptr(:,:)
-      type(c_ptr), pointer :: fptr2(:) => null()
-      character(c_char), pointer :: fptr(:) => null()
-      integer(c_int), pointer     :: f_loc_code_list_s(:)
+      integer(c_int) :: i, n_loc_codes
       character(256), allocatable :: fstrings(:)
 
       call CWP_Loc_codes_list_get_cf(loc_code_list, loc_code_list_s, n_loc_codes)
 
-      ! call c_f_pointer(loc_code_list, fptr, [ 256, n_loc_codes ])
-      call c_f_pointer(loc_code_list, fptr2, [n_loc_codes])
-      call c_f_pointer(loc_code_list_s, f_loc_code_list_s, [n_loc_codes])
-
-      allocate(fstrings(n_loc_codes))
-      do i = 1, n_loc_codes
-        strlen      = f_loc_code_list_s(i)
-        call c_f_pointer(fptr2(i), fptr, [strlen])
-        ! fstrings(i) = transfer(fptr(1:strlen, i), fstrings(i))
-        fstrings(i) = transfer(fptr(1:strlen), fstrings(i))
-      end do
-
-      call pdm_fortran_free_c(loc_code_list_s)
-      call pdm_fortran_free_c(loc_code_list)
+      call c_f_char_array(loc_code_list, loc_code_list_s, n_loc_codes, fstrings)
 
     end function CWP_Loc_codes_list_get_
 
