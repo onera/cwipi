@@ -1815,7 +1815,7 @@ CWP_Param_get
  * \param [in]  data_type    Parameter type,
  * \param [out] res          Result
  * \param [in]  nCode        Number of codes
- * \param       code_names   Codes name
+ * \param [in]  code_names   Codes name
  *
  */
 

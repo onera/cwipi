@@ -2272,31 +2272,54 @@ CWP_Param_get_cf
 }
 
 
-// /**
-//  *
-//  * \brief Return the result of a reduce operation about a parameter.
-//  *
-//  * The parameter name has to be the same for all codes.
-//  *
-//  * \param [in]  op           Operation
-//  * \param [in]  param_name   Parameter name
-//  * \param [in]  data_type    Parameter type,
-//  * \param [out] res          Result
-//  * \param [in]  nCode        Number of codes
-//  * \param       ...          Codes name
-//  *
-//  */
-//
-// void
-// CWP_Param_reduce
-// (
-//  const CWP_Op_t    op,
-//  const char       *param_name,
-//  const CWP_Type_t  data_type,
-//  void             *res,
-//  const int         nCode,
-//  ...
-// );
+/**
+ *
+ * \brief Return the result of a reduce operation about a parameter.
+ *
+ * The parameter name has to be the same for all codes.
+ *
+ * \param [in]  op           Operation
+ * \param [in]  param_name   Parameter name
+ * \param [in]  l_param_name Length parameter name
+ * \param [in]  data_type    Parameter type
+ * \param [out] res          Result
+ * \param [in]  n_codes      Number of codes
+ * \param [in]  f_code_names Codes name
+ * \param [in]  l_code_names Length of codes name
+ *
+ */
+
+void
+CWP_Param_reduce_cf
+(
+ const CWP_Op_t    op,
+ const char       *f_param_name,
+ const int         l_param_name,
+ const CWP_Type_t  data_type,
+ void             *res,
+ const int         n_codes,
+ const char      **f_code_names,
+ const int        *l_code_names
+)
+{
+  char  *c_param_name = _fortran_to_c_string(f_param_name, l_param_name);
+  char **c_code_names = (char **) malloc(sizeof(char *) * n_codes);
+  for (int i = 0; i < n_codes; i++) {
+    c_code_names[i] = _fortran_to_c_string(f_code_names[i], l_code_names[i]);
+  }
+
+  CWP_Param_reduce(op,
+                   c_param_name,
+                   data_type,
+                   res,
+                   n_codes,
+   (const char **) c_code_names);
+
+  for (int i = 0; i < n_codes; i++) {
+    delete [] c_code_names[i];
+  }
+  delete [] c_param_name;
+}
 
 
 /**

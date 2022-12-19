@@ -383,6 +383,10 @@ module cwp
         CWP_Param_get_
     end interface CWP_Param_get
 
+    interface CWP_Param_reduce ; module procedure &
+        CWP_Param_reduce_
+    end interface CWP_Param_reduce
+
     interface CWP_Param_lock ; module procedure &
         CWP_Param_lock_
     end interface CWP_Param_lock
@@ -460,6 +464,7 @@ module cwp
              CWP_Param_n_get_ ,&
              CWP_Param_is_ ,&
              CWP_Param_get_ ,&
+             CWP_Param_reduce_,&
              CWP_Param_lock_ ,&
              CWP_Param_unlock_,&
              CWP_Codes_list_get_,&
@@ -1084,6 +1089,26 @@ module cwp
       integer(c_int), value :: data_type
       type(c_ptr)           :: value
     end subroutine CWP_Param_get_cf
+
+    subroutine CWP_Param_reduce_cf(op,           &
+                                   param_name,   &
+                                   l_param_name, &
+                                   data_type,    &
+                                   res,          &
+                                   n_codes,      &
+                                   code_names,   &
+                                   l_code_names) &
+
+      bind(c, name='CWP_Param_reduce_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      integer(c_int), value             :: op, data_type, n_codes
+      type(c_ptr)                       :: res
+      character(kind = c_char, len = 1) :: param_name
+      integer(c_int), value             :: l_param_name
+      type(c_ptr),    value             :: code_names
+      type(c_ptr),    value             :: l_code_names
+    end subroutine CWP_Param_reduce_cf
 
 
     subroutine CWP_Param_lock_cf(local_code_name,   &
@@ -3723,33 +3748,51 @@ contains
 
   end subroutine CWP_Param_get_
 
-! /**
-!  *
-!  * \brief Return the result of a reduce operation about a parameter.
-!  *
-!  * The parameter name has to be the same for all codes.
-!  *
-!  * \param [in]  op           Operation
-!  * \param [in]  param_name   Parameter name
-!  * \param [in]  data_type    Parameter type,
-!  * \param [out] res          Result
-!  * \param [in]  nCode        Number of codes
-!  * \param       ...          Codes name
-!  *
-!  */
+  !>
+  !!
+  !! \brief Return the result of a reduce operation about a parameter
+  !!
+  !! \param [in]  op           Operation
+  !! \param [in]  param_name   Parameter name
+  !! \param [in]  data_type    Parameter type,
+  !! \param [out] res          Result
+  !! \param [in]  n_codes      Number of codes
+  !! \param [in]  code_names   Codes name
+  !!
 
-! void
-! CWP_Param_reduce
-! (
-!  const CWP_Op_t    op,
-!  const char       *param_name,
-!  const CWP_Type_t  data_type,
-!  void             *res,
-!  const int         nCode,
-!  ...
-! );
+  subroutine CWP_Param_reduce_(op,         &
+                               param_name, &
+                               data_type,  &
+                               res,        &
+                               n_codes,    &
+                               code_names)
 
-! TO DO: might be best to reimplement using Param_Get s or just a fixed number of parameters
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    integer, intent(in)                                           :: op, data_type
+    type(c_ptr)                                                   :: res
+    integer(c_int)                                                :: n_codes, i
+    character(kind = c_char, len = *)                             :: param_name
+    integer(kind = c_int)                                         :: l_param_name
+    character(kind = c_char, len = *), dimension(n_codes), target :: code_names
+    integer, dimension(n_codes), target                           :: l_code_names
+
+    l_param_name = len(param_name)
+    do i=1,n_codes
+      l_code_names(i) = len(code_names(i))
+    end do
+
+    call CWP_Param_reduce_cf(op,                &
+                             param_name,        &
+                             l_param_name,      &
+                             data_type,         &
+                             res,               &
+                             n_codes,           &
+                             c_loc(code_names), &
+                             c_loc(l_code_names))
+
+  end subroutine CWP_Param_reduce_
 
   !>
   !!
