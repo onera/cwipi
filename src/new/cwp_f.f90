@@ -1275,6 +1275,7 @@ contains
       strlen      = f_size_array(i)
       call c_f_pointer(fptr2(i), fptr, [strlen])
       f_char_array(i) = transfer(fptr(1:strlen), f_char_array(i))
+      f_char_array(i) = f_char_array(i)(1:strlen)//char(0)
     end do
 
     call pdm_fortran_free_c(c_char_array)
