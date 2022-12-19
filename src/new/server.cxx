@@ -993,6 +993,8 @@ CWP_server_Param_reduce
   int nCode = -1;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &nCode, sizeof(int));
 
+  printf("received before names\n");
+
   // read code names
   char **code_names = (char **) malloc(sizeof(char *) * nCode);
   for (int i = 0; i < nCode; i++) {
@@ -1015,62 +1017,14 @@ CWP_server_Param_reduce
 
   case CWP_DOUBLE: {
     double res = -1.;
+    CWP_Param_reduce(op,
+                     param_name,
+                     data_type,
+                     (void *) &res,
+                     nCode,
+                     code_names);
 
-    switch (nCode) {
-
-      case 0: {
-        CWP_Param_reduce(op,
-                         param_name,
-                         data_type,
-                         (void *) &res,
-                         nCode);
-      } break;
-
-      case 1: {
-        CWP_Param_reduce(op,
-                         param_name,
-                         data_type,
-                         (void *) &res,
-                         nCode,
-                         code_names[0]);
-      } break;
-
-      case 2: {
-        CWP_Param_reduce(op,
-                         param_name,
-                         data_type,
-                         (void *) &res,
-                         nCode,
-                         code_names[0],
-                         code_names[1]);
-      } break;
-
-      case 3: {
-        CWP_Param_reduce(op,
-                         param_name,
-                         data_type,
-                         (void *) &res,
-                         nCode,
-                         code_names[0],
-                         code_names[1],
-                         code_names[2]);
-      } break;
-
-      case 4: {
-        CWP_Param_reduce(op,
-                         param_name,
-                         data_type,
-                         (void *) &res,
-                         nCode,
-                         code_names[0],
-                         code_names[1],
-                         code_names[2],
-                         code_names[3]);
-      } break;
-
-      default:
-        PDM_error(__FILE__, __LINE__, 0, "CWP_Param_reduce not implemented yet for more than 4 codes\n");
-    }
+    printf("CWP_SVR_LCH_END before\n");
 
     // send status msg
     MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -1086,62 +1040,12 @@ CWP_server_Param_reduce
 
   case CWP_INT: {
     int res = -1;
-
-    switch (nCode) {
-
-      case 0: {
-        CWP_Param_reduce(op,
-                         param_name,
-                         data_type,
-                         (void *) &res,
-                         nCode);
-      } break;
-
-      case 1: {
-        CWP_Param_reduce(op,
-                         param_name,
-                         data_type,
-                         (void *) &res,
-                         nCode,
-                         code_names[0]);
-      } break;
-
-      case 2: {
-        CWP_Param_reduce(op,
-                         param_name,
-                         data_type,
-                         (void *) &res,
-                         nCode,
-                         code_names[0],
-                         code_names[1]);
-      } break;
-
-      case 3: {
-        CWP_Param_reduce(op,
-                         param_name,
-                         data_type,
-                         (void *) &res,
-                         nCode,
-                         code_names[0],
-                         code_names[1],
-                         code_names[2]);
-      } break;
-
-      case 4: {
-        CWP_Param_reduce(op,
-                         param_name,
-                         data_type,
-                         (void *) &res,
-                         nCode,
-                         code_names[0],
-                         code_names[1],
-                         code_names[2],
-                         code_names[3]);
-      } break;
-
-      default:
-        PDM_error(__FILE__, __LINE__, 0, "CWP_Param_reduce not implemented yet for more than 4 codes\n");
-    }
+    CWP_Param_reduce(op,
+                     param_name,
+                     data_type,
+                     (void *) &res,
+                     nCode,
+                     code_names);
 
     // send status msg
     MPI_Barrier(svr_mpi.intra_comms[0]);

@@ -1708,7 +1708,7 @@ CWP_client_Param_reduce
  const CWP_Type_t  data_type,
  void             *res,
  const int         nCode,
- ...
+ const char      **code_names
 )
 {
   t_message msg;
@@ -1755,16 +1755,9 @@ CWP_client_Param_reduce
   CWP_transfer_writedata(clt->socket,clt->max_msg_size, (void*) &endian_nCode, sizeof(int));
 
   // send code names
-  va_list code_name_list;
-  char *name = NULL;
-
-  va_start(code_name_list, nCode);
   for (int i = 0; i < nCode; i++) {
-    name = (char *) va_arg(code_name_list, char *);
-    write_name(name);
+    write_name(code_names[i]);
   }
-
-  va_end(code_name_list);
 
   // receive status msg
   MPI_Barrier(clt->intra_comm);

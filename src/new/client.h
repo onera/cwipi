@@ -278,7 +278,7 @@ CWP_client_Param_is
  * \param [in]  data_type    Parameter type,
  * \param [out] res          Result
  * \param [in]  nCode        Number of codes
- * \param       ...          Codes name
+ * \param       code_names   Codes name
  *
  */
 
@@ -290,7 +290,7 @@ CWP_client_Param_reduce
  const CWP_Type_t  data_type,
  void             *res,
  const int         nCode,
- ...
+ const char      **code_names
 );
 
 /**
