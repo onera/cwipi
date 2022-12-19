@@ -14,7 +14,8 @@ else ()
    set (mpi4pylibmpi mpi_c)
 endif()
 
-configure_file(cwipi.pyx.in cwipi.pyx)
+# configure_file(cwipi.pyx.in cwipi.pyx)
+configure_file(cwp.pyx.in cwp.pyx)
 
 file (COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.pxi")
 file (COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.py")
@@ -28,7 +29,8 @@ list (APPEND include_dirs ${CMAKE_BINARY_DIR})
 
 include(UseCython)
 cython_add_module (cwipi 
-                   PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/cwipi.pyx"
+                   # PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/cwipi.pyx"
+                   PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/cwp.pyx"
                    OTHER_SOURCES $<TARGET_OBJECTS:cwp>
                    INCLUDE_DIRECTORIES ${include_dirs})
 

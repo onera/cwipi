@@ -4,10 +4,19 @@ import glob
 import os
 import sys
 
+# setup(
+#     name = "cwipi",
+#     packages     = ['cwipi'],
+#     data_files = [('', ["cwipi.so"])],
+#     author = 'E. Quemerais',
+#     description = 'Coupling With Interpolation Parallel Interface',
+#     license = 'LGPL',
+#     )
+
 setup(
     name = "cwipi",
     packages     = ['cwipi'],
-    data_files = [('', ["cwipi.so"])],
+    data_files = [('', ["cwp.so"])],
     author = 'E. Quemerais',
     description = 'Coupling With Interpolation Parallel Interface',
     license = 'LGPL',
