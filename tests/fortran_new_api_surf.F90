@@ -57,6 +57,9 @@ program testf
   character(256), allocatable :: code_list(:)
   character(256), allocatable :: loc_code_list(:)
   character(256), allocatable :: f_param_names(:)
+
+  !--> output file
+  character(len = 23),   pointer :: output_file(:)         => null()
   !--------------------------------------------------------------------
 
 
@@ -84,7 +87,8 @@ program testf
            coupled_code_names(n_code), &
            is_coupled_rank(n_code),    &
            time_init(n_code),          &
-           intra_comms(n_code))
+           intra_comms(n_code),        &
+           output_file(1))
 
   if (i_rank == 0) then
     code_names(1)         = "code1"
@@ -104,6 +108,10 @@ program testf
                 is_coupled_rank, &
                 time_init,       &
                 intra_comms)
+
+  !--> output file
+  output_file(1) = "fortran_output_file.txt"
+  call CWP_Output_file_set(output_file(1))
 
   !--> character array getters
   code_list     = CWP_Codes_list_get()

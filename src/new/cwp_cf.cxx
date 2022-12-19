@@ -348,6 +348,31 @@ CWP_User_structure_get_cf
   return user_structure;
 }
 
+
+/**
+ * \brief Define output file
+ *
+ * \param [in] output_file_name    Output file name
+ *
+ */
+
+void
+CWP_Output_file_set_cf
+(
+ const char* f_output_file_name,
+ const int   l_output_file_name
+)
+{
+  char *c_local_code_name = _fortran_to_c_string(f_output_file_name, l_output_file_name);
+
+  FILE *c_output_file;
+  c_output_file = fopen(c_local_code_name, "a");
+
+  CWP_Output_file_set(c_output_file);
+
+  delete [] c_local_code_name;
+}
+
 /*----------------------------------------------------------------------------*
  * Functions about other code properties                               *
  *----------------------------------------------------------------------------*/

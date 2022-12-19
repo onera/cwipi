@@ -191,6 +191,10 @@ module cwp
         CWP_User_structure_get_
     end interface CWP_User_structure_get
 
+    interface CWP_Output_file_set ; module procedure &
+        CWP_Output_file_set_
+    end interface CWP_Output_file_set
+
     interface CWP_State_get ; module procedure &
         CWP_State_get_
     end interface CWP_State_get
@@ -408,6 +412,7 @@ module cwp
              CWP_Time_update_ ,&
              CWP_User_structure_set_ ,&
              CWP_User_structure_get_ ,&
+             CWP_Output_file_set_,&
              CWP_State_get_ ,&
              CWP_Cpl_create_ ,&
              CWP_Cpl_Del_ ,&
@@ -510,6 +515,14 @@ module cwp
         integer(c_int), value             :: l_local_code_name
         type(c_ptr)                       :: user_structure
       end function CWP_User_structure_get_cf
+
+      subroutine CWP_Output_file_set_cf(f_output_file_name, l_output_file_name) &
+        bind (c, name="CWP_Output_file_set_cf")
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: f_output_file_name
+        integer(c_int), value             :: l_output_file_name
+      end subroutine CWP_Output_file_set_cf
 
       function CWP_State_get_cf(local_code_name, l_local_code_name) &
         result (state)                                              &
@@ -1468,7 +1481,26 @@ contains
 
   end function CWP_User_structure_get_
 
+  !>
+  !! \brief Define output file
+  !!
+  !! \param [in] output_file_name    Output file name
+  !!
+  !!
 
+  subroutine CWP_Output_file_set_ (f_output_file_name)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: f_output_file_name
+    integer(c_int)                    :: l_output_file_name
+
+    l_output_file_name = len(f_output_file_name)
+
+    call CWP_Output_file_set_cf (f_output_file_name, &
+                                 l_output_file_name)
+  end subroutine CWP_Output_file_set_
 
   !>
   !! \brief Return code state.
@@ -3716,6 +3748,8 @@ contains
 !  const int         nCode,
 !  ...
 ! );
+
+! TO DO: might be best to reimplement using Param_Get s or just a fixed number of parameters
 
   !>
   !!
