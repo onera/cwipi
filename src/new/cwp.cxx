@@ -2500,7 +2500,7 @@ CWP_Param_get
  * \param [in]  data_type    Parameter type,
  * \param [out] res          Result
  * \param [in]  nCode        Number of codes
- * \param       ...          Codes name
+ * \param       code_names   Codes name
  *
  */
 
@@ -2512,32 +2512,28 @@ CWP_Param_reduce
  const CWP_Type_t  data_type,
  void             *res,
  const int         nCode,
- ...
- )
+ const char      **code_names
+)
 {
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
   const string &nameStr = param_name;
-  va_list pa;
 
-  va_start(pa, nCode);
   switch(data_type) {
   case CWP_INT : {
     int *intRes = (int *) res;
-    properties.ctrlParamReduce<int>(op, nameStr, intRes, nCode, &pa);
+    properties.ctrlParamReduce<int>(op, nameStr, intRes, nCode, code_names);
     break;
   }
   case CWP_DOUBLE : {
     double *doubleRes = (double *) res;
-    properties.ctrlParamReduce<double>(op, nameStr, doubleRes, nCode, &pa);
+    properties.ctrlParamReduce<double>(op, nameStr, doubleRes, nCode, code_names);
     break;
   }
   default :
     PDM_error(__FILE__, __LINE__, 0,
                "Not yet implemented data type\n");
-
-    va_end(pa);
   }
 }
 

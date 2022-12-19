@@ -352,36 +352,36 @@ namespace cwipi {
 
   
   /**
-   * \brief Reduce a parameter.
-   *
-   * \param [in]  op     Operator from \ref CWP_Op_t
-   * \param [in]  name   Parameter name
-   * \param [out] res    Result          
-   * \param [in]  nCode  Number of code
-   * \param       ...    Code names
-   *
-   * \return             Operation result
-   *
-   */
+     * \brief Reduce a parameter through a list of codes. The available processes
+     *        are sum, max and min.
+     *
+     * \param [in]  op          Operator from \ref CWP_Op_t
+     * \param [in]  name        Parameter name
+     * \param [in]  nCode       Number of code
+     * \param       code_names  Code names
+     *
+     * \return             Operation result
+     *
+     */
 
   template < typename T > 
   void
   CodePropertiesDB::ctrlParamReduce
   (
-   const CWP_Op_t  op, 
-   const string    &name,
-   T               *res,
-   const int        nCode,
-   va_list         *pa
+    const CWP_Op_t  op,
+    const string    &name,
+    T               *res,
+    const int        nCode,
+    const char     **code_names
   )
   {
-    string codeName1 = string((char*)va_arg(*pa, char *));
+    string codeName1 = string((char*) code_names[0]);
 
     *res = this->ctrlParamGet < T > (codeName1, name);
 
     for (int k = 1; k < nCode; k++) {
 
-      string codeName = string((char*)va_arg(*pa, char *));
+      string codeName = string((char*) code_names[k]);
 
       const map <string, CodeProperties * >::iterator p = 
         _codePropertiesDB.find(codeName);
@@ -393,11 +393,11 @@ namespace cwipi {
       T distParam = this->ctrlParamGet < T > (codeName, name);
 
       switch (op) {
-      case CWP_OP_MIN:
+      case CWP_OP_MAX:
         *res = max(distParam, *res);
         break;
       
-      case CWP_OP_MAX:
+      case CWP_OP_MIN:
         *res = min(distParam, *res);
         break;
 

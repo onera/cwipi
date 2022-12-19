@@ -350,10 +350,10 @@ namespace cwipi {
      * \brief Reduce a parameter through a list of codes. The available processes
      *        are sum, max and min. 
      *
-     * \param [in]  op     Operator from \ref CWP_Op_t
-     * \param [in]  name   Parameter name
-     * \param [in]  nCode  Number of code
-     * \param       pa     Code names
+     * \param [in]  op          Operator from \ref CWP_Op_t
+     * \param [in]  name        Parameter name
+     * \param [in]  nCode       Number of code
+     * \param       code_names  Code names
      *
      * \return             Operation result
      *
@@ -367,7 +367,7 @@ namespace cwipi {
      const string    &name,
      T               *res,
      const int        nCode,
-     va_list         *pa                       
+     const char     **code_names
     );
 
     /**
