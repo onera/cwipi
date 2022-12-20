@@ -1,578 +1,612 @@
-# cython: c_string_type=str, c_string_encoding=ascii
-#-----------------------------------------------------------------------------
-# This file is part of the CWIPI library.
-#
-# Copyright (C) 2011  ONERA
-#
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 3 of the License, or (at your option) any later version.
-#
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library. If not, see <http://www.gnu.org/licenses/>.
-#-----------------------------------------------------------------------------
-
-"""
-cwipi - Coupling With Interpolation Parallel Interface library.
-"""
-
-# IMPORTS
-
-cimport cython
-
-import numpy as np
-cimport numpy as np
-
-cimport mpi4py.MPI as MPI
-from mpi4py.@mpi4pylibmpi@ cimport *
-
-from libc.stdlib cimport malloc, free
-from libc.stdio cimport FILE, fdopen
-from cpython.object cimport PyObject_AsFileDescriptor
-
-# EXTERN
-
-cdef extern from "cwipi_cython.h":
-    ctypedef enum cwipi_fake_enum_t:
-      CWIPI_FAKE_ENUM
-
-cdef extern from "cwp.h":
-
-  # TYPES
-
-  ctypedef enum CWP_Type_t:
-      CWP_DOUBLE
-      CWP_INT
-      CWP_CHAR
-
-  ctypedef enum CWP_Visu_format_t:
-      CWP_VISU_FORMAT_ENSIGHT
-
-  ctypedef enum CWP_Comm_t:
-      CWP_COMM_PAR_WITH_PART
-      CWP_COMM_PAR_WITHOUT_PART
-      CWP_COMM_SEQ
-
-  ctypedef enum CWP_Time_exch_t:
-      CWP_TIME_EXCH_USER_CONTROLLED
-
-  ctypedef enum CWP_Dof_location_t:
-      CWP_DOF_LOCATION_UNDEF
-      CWP_DOF_LOCATION_CELL_CENTER
-      CWP_DOF_LOCATION_NODE
-      CWP_DOF_LOCATION_USER
-
-  ctypedef enum CWP_Field_exch_t:
-      CWP_FIELD_EXCH_SEND
-      CWP_FIELD_EXCH_RECV
-      CWP_FIELD_EXCH_SENDRECV
-
-  ctypedef enum CWP_Field_map_t:
-      CWP_FIELD_MAP_SOURCE
-      CWP_FIELD_MAP_TARGET
-
-  ctypedef enum CWP_Field_storage_t:
-      CWP_FIELD_STORAGE_INTERLACED
-      CWP_FIELD_STORAGE_INTERLEAVED
-
-  ctypedef enum CWP_Status_t:
-      CWP_STATUS_OFF
-      CWP_STATUS_ON
-
-  ctypedef enum CWP_Err_t:
-      CWP_ERR_NO_ERROR
-      CWP_ERR_DEFAULT
-
-  ctypedef enum CWP_Block_t:
-      CWP_BLOCK_NODE
-      CWP_BLOCK_EDGE2
-      CWP_BLOCK_FACE_TRIA3
-      CWP_BLOCK_FACE_QUAD4
-      CWP_BLOCK_FACE_POLY
-      CWP_BLOCK_CELL_TETRA4
-      CWP_BLOCK_CELL_HEXA8
-      CWP_BLOCK_CELL_PRISM6
-      CWP_BLOCK_CELL_PYRAM5
-      CWP_BLOCK_CELL_POLY
-
-  ctypedef enum CWP_Dynamic_mesh_t:
-      CWP_DYNAMIC_MESH_STATIC
-      CWP_DYNAMIC_MESH_DEFORMABLE
-      CWP_DYNAMIC_MESH_VARIABLE
-
-  ctypedef enum CWP_Spatial_interp_t:
-      CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES
-      CWP_SPATIAL_INTERP_FROM_INTERSECTION
-      CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF
-      CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE
-      CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE
-
-  ctypedef enum CWP_Interface_t:
-      CWP_DYNAMIC_MESH_STATIC
-      CWP_DYNAMIC_MESH_DEFORMABLE
-      CWP_DYNAMIC_MESH_VARIABLE
-
-  ctypedef enum CWP_State_t:
-      CWP_STATE_IN_PROGRESS
-      CWP_STATE_END
-      CWP_STATE_OUTPUT_ERROR
-
-  ctypedef enum CWP_Op_t:
-      CWP_OP_MIN
-      CWP_OP_MAX
-      CWP_OP_SUM
-
-  ctypedef void (*CWP_interp_from_location_t) (int                  interface_type,
-                                               char                *code_name,
-                                               int                  src_n_block,
-                                               CWP_Block_t          src_blocks_type[],
-                                               int                  src_i_part,
-                                               int                  src_n_vtx,
-                                               double               src_vtx_coords[],
-                                               CWP_g_num_t          src_vtx_global_num[],
-                                               int                  src_n_elts,
-                                               int                  src_id_block[],
-                                               int                  src_elt_in_block[],
-                                               int                  src_elt_vtx_idx[],
-                                               int                  src_elt_vtx[],
-                                               CWP_g_num_t          src_elts_global_num[],
-                                               int                  tgt_n_pts,
-                                               int                  tgt_pts_elt_idx[],
-                                               double               tgt_pts_coords[],
-                                               double               tgt_pts_dist[],
-                                               double               tgt_pts_uvw[],
-                                               int                  tgt_pts_weights_idx[],
-                                               double               tgt_pts_weights[],
-                                               int                  stride,
-                                               CWP_Dof_location_t   src_field_dof_location,
-                                               void                *src_field,
-                                               void                *tgt_field)
-
-  ctypedef void (*CWP_interp_from_intersect_t) (int interface_type)
-
-  ctypedef void (*CWP_interp_from_closest_pts_t) (int interface_type)
-
-  # CWIPI
-  # --> general functions
-  void CWP_Init(MPI_Comm           global_comm,
-                int                n_code,
-                char             **code_names,
-                CWP_Status_t      *is_active_rank,
-                double            *time_init,
-                MPI_Comm          *intra_comms)
-  void CWP_Finalize()
-
-  # --> functions about current code properties
-  void CWP_State_update(char* local_code_name,
-                        CWP_State_t state)
-  void CWP_Time_update(char* local_code_name,
-                       double current_time)
-  void CWP_Output_file_set(FILE *output_file)
-  void CWP_User_structure_set(char* local_code_name,
-                              void* user_structure)
-  void *CWP_User_structure_get(char* local_code_name)
-
-  # --> functions about other code properties
-  CWP_State_t CWP_State_get(char    *code_name)
-  int CWP_Codes_nb_get()
-  char **CWP_Codes_list_get()
-  int CWP_Loc_codes_nb_get()
-  char **CWP_Loc_codes_list_get()
-
-  # --> functions about properties
-  void CWP_Properties_dump()
-
-  # --> general functions about coupling
-  void CWP_Cpl_create(char                *local_code_name,
-                      char                *cpl_id,
-                      char                *coupled_code_name,
-                      CWP_Interface_t      entities_dim,
-                      CWP_Comm_t           comm_type,
-                      CWP_Spatial_interp_t spatial_interp,
-                      int                  n_part,
-                      CWP_Dynamic_mesh_t   displacement,
-                      CWP_Time_exch_t      recv_freq_type)
-  void CWP_Cpl_del(char *local_code_name,
-                   char *cpl_id)
-  int CWP_N_uncomputed_tgts_get(char *local_code_name,
-                                char *cpl_id,
-                                char *field_id,
-                                int   i_part)
-  int *CWP_Uncomputed_tgts_get(char *local_code_name,
-                               char *cpl_id,
-                               char *field_id,
-                               int   i_part)
-  int CWP_N_computed_tgts_get(char *local_code_name,
-                              char *cpl_id,
-                              char *field_id,
-                              int   i_part)
-  int *CWP_Computed_tgts_get(char *local_code_name,
-                             char *cpl_id,
-                             char *field_id,
-                             int   i_part)
-  int CWP_N_involved_srcs_get(char *local_code_name,
-                              char *cpl_id,
-                              char *field_id,
-                              int   i_part)
-  int *CWP_Involved_srcs_get(char *local_code_name,
-                             char *cpl_id,
-                             char *field_id,
-                             int   i_part)
-
-  # --> functions about spatial interpolation
-  void CWP_Spatial_interp_weights_compute(char     *local_code_name,
-                                          char     *cpl_id)
-  void CWP_Spatial_interp_property_set(char     *local_code_name,
-                                       char     *cpl_id,
-                                       char     *property_name,
-                                       char     *property_type,
-                                       char     *property_value)
-
-  # --> functions about visualization
-  void CWP_Visu_set(char                 *local_code_name,
-                    char                 *cpl_id,
-                    int                   freq,
-                    CWP_Visu_format_t     visu_format,
-                    char                 *format_option)
-
-  # --> functions about User target points
-  void CWP_User_tgt_pts_set(char    *local_code_name,
-                            char    *cpl_id,
-                            int      i_part,
-                            int      n_pts,
-                            double         coord[],
-                            CWP_g_num_t    global_num[])
-
-  # --> functions about Mesh
-  void CWP_Mesh_interf_finalize(char         *local_code_name,
-                                char         *cpl_id)
-  void CWP_Mesh_interf_vtx_set(char           *local_code_name,
-                               char           *cpl_id,
-                               int             i_part,
-                               int             n_pts,
-                               double          coord[],
-                               CWP_g_num_t     global_num[])
-  int CWP_Mesh_interf_block_add(char           *local_code_name,
-                                char           *cpl_id,
-                                CWP_Block_t     block_type)
-  void CWP_Mesh_interf_block_std_set(char        *local_code_name,
-                                     char        *cpl_id,
-                                     int          i_part,
-                                     int          block_id,
-                                     int          n_elts,
-                                     int          connec[],
-                                     CWP_g_num_t  global_num[])
-  void CWP_Mesh_interf_block_std_get(char        *local_code_name,
-                                     char        *cpl_id,
-                                     int          i_part,
-                                     int          block_id,
-                                     int               *n_elts,
-                                     int              **connec,
-                                     CWP_g_num_t      **global_num)
-  void CWP_Mesh_interf_f_poly_block_set(char             *local_code_name,
-                                        char             *cpl_id,
-                                        int               i_part,
-                                        int               block_id,
-                                        int               n_elts,
-                                        int               connec_idx[],
-                                        int               connec[],
-                                        CWP_g_num_t       global_num[])
-  void CWP_Mesh_interf_f_poly_block_get(char             *local_code_name,
-                                        char             *cpl_id,
-                                        int               i_part,
-                                        int               block_id,
-                                        int                    *n_elts,
-                                        int                   **connec_idx,
-                                        int                   **connec,
-                                        CWP_g_num_t           **global_num)
-  void CWP_Mesh_interf_c_poly_block_set(char           *local_code_name,
-                                        char           *cpl_id,
-                                        int             i_part,
-                                        int             block_id,
-                                        int             n_elts,
-                                        int             n_faces,
-                                        int                   connec_faces_idx[],
-                                        int                   connec_faces[],
-                                        int                   connec_cells_idx[],
-                                        int                   connec_cells[],
-                                        CWP_g_num_t           global_num[])
-  void CWP_Mesh_interf_c_poly_block_get(char           *local_code_name,
-                                        char           *cpl_id,
-                                        int             i_part,
-                                        int             block_id,
-                                        int              *n_elts,
-                                        int              *n_faces,
-                                        int             **connec_faces_idx,
-                                        int             **connec_faces,
-                                        int             **connec_cells_idx,
-                                        int             **connec_cells,
-                                        CWP_g_num_t     **global_num)
-  void CWP_Mesh_interf_del(char *local_code_name,
-                           char *cpl_id)
-  void CWP_Mesh_interf_from_cellface_set(char           *local_code_name,
-                                         char           *cpl_id,
-                                         int             i_part,
-                                         int             n_cells,
-                                         int             cell_face_idx[],
-                                         int             cell_face[],
-                                         int             n_faces,
-                                         int             face_vtx_idx[],
-                                         int             face_vtx[],
-                                         CWP_g_num_t     global_num[])
-  void CWP_Mesh_interf_from_faceedge_set(char           *local_code_name,
-                                         char           *cpl_id,
-                                         int             i_part,
-                                         int             n_faces,
-                                         int             face_edge_idx[],
-                                         int             face_edge[],
-                                         int             n_edges,
-                                         int             edge_vtx_idx[],
-                                         int             edge_vtx[],
-                                         CWP_g_num_t     global_num[])
-
-  # --> functions about field
-  void CWP_Field_create(char                  *local_code_name,
-                        char                  *cpl_id,
-                        char                  *field_id,
-                        CWP_Type_t             data_type,
-                        CWP_Field_storage_t    storage,
-                        int                    n_component,
-                        CWP_Dof_location_t     target_location,
-                        CWP_Field_exch_t       exch_type,
-                        CWP_Status_t           visu_status)
-  void CWP_Field_data_set(char              *local_code_name,
-                          char              *cpl_id,
-                          char              *field_id,
-                          int                i_part,
-                          CWP_Field_map_t    map_type,
-                          double                   data[])
-  int CWP_Field_n_component_get(char      *local_code_name,
-                                char      *cpl_id,
-                                char      *field_id)
-  CWP_Dof_location_t CWP_Field_target_dof_location_get(char      *local_code_name,
-                                                       char      *cpl_id,
-                                                       char      *field_id)
-  CWP_Field_storage_t CWP_Field_storage_get(char      *local_code_name,
-                                            char      *cpl_id         ,
-                                            char      *field_id)
-  void CWP_Field_del(char      *local_code_name,
-                     char      *cpl_id         ,
-                     char      *field_id)
-
-  # --> functions about exchange
-  void CWP_Field_issend(char     *local_code_name,
-                        char     *cpl_id,
-                        char     *src_field_id)
-  void CWP_Field_irecv(char        *local_code_name,
-                       char        *cpl_id,
-                       char        *tgt_field_id)
-  void CWP_Field_wait_issend(char  *local_code_name,
-                             char  *cpl_id,
-                             char  *src_field_id)
-  void CWP_Field_wait_irecv(char  *local_code_name,
-                            char  *cpl_id,
-                            char  *tgt_field_id)
-
-  # --> functions about user interpolation
-  void CWP_Interp_from_location_unset(char                 *local_code_name,
-                                      char                 *cpl_id,
-                                      char                 *src_field_id)
-  void CWP_Interp_from_location_set(char                       *local_code_name,
-                                    char                       *cpl_id,
-                                    char                       *src_field_id,
-                                    CWP_Interp_from_location_t  fct)
-
-  # --> functions about control parameters
-  void CWP_Param_add(char        *local_code_name,
-                     char        *param_name,
-                     CWP_Type_t   data_type,
-                     void        *initial_value)
-  void CWP_Param_set(char             *local_code_name,
-                     char             *param_name,
-                     CWP_Type_t        data_type,
-                     void             *value)
-  void CWP_Param_del(char       *local_code_name,
-                     char       *param_name,
-                     CWP_Type_t  data_type)
-
-  # --> functions about all code parameters
-  int CWP_Param_n_get(char             *code_name,
-                      CWP_Type_t        data_type)
-  void CWP_Param_list_get(char             *code_name,
-                          CWP_Type_t        data_type,
-                          int              *nParam,
-                          char           ***paramNames)
-  int CWP_Param_is(char             *code_name,
-                   char             *param_name,
-                   CWP_Type_t        data_type)
-  void CWP_Param_get(char       *code_name,
-                     char       *param_name,
-                     CWP_Type_t  data_type,
-                     void       *value)
-  void CWP_Param_reduce(CWP_Op_t    op,
-                        char       *param_name,
-                        CWP_Type_t  data_type,
-                        void       *res,
-                        int         nCode,
-                        char      **code_names)
-  void CWP_Param_lock(char *code_name)
-  void CWP_Param_unlock(char *code_name)
-
-  # --> client-server
-
-# DEFINITION
-# --> general functions
-
-def init(MPI.Comm global_comm,
-         int      n_code,
-         char   **code_names):
-  """
-  Initialize CWIPI library and create intra-communicator.
-
-  Parameters:
-    global_comm (MPI.Comm) : MPI global communicator
-    n_code      (int)      : Number of codes on the current rank
-    code_names  (char**)   : Names of codes on the current rank (size = n_code)
-
-  Returns:
-    is_active_rank (int)      : Is current rank have to be used by CWIPI (size = n_code)
-    time_init      (double)   : Initial time (size = n_code)
-    intra_comms    (MPI.Comm) : MPI intra communicators of each code (size = n_code)
-  """
-
-  cdef MPI_Comm c_global_comm = global_comm.ob_mpi
-
-  CWP_Status_t is_active_rank = -1
-  double       time_init      = -1
-
-  # TO DO: how to handle MPI_Comm *intra_comms ???
-
-  CWP_Init(global_comm,
-           n_code,
-           code_names,
-           &(is_active_rank),
-           &(time_init),
-           )
-
-
-  return is_active_rank, time_init, intra_comms
-
-def finalize():
-  """
-  Finalize this module.
-
-  After this call, no other function from this module can be called.
-  It is a synchronization point between all applications.
-  """
-
-  CWP_Finalize()
-
-# --> functions about current code properties
-def state_update(char*       local_code_name,
-                     CWP_State_t state)
-    """
-    Update code state.
-
-    Parameters:
-      local_code_name (char*)       : Local code name
-      state           (CWP_State_t) : State
-    """
-
-    CWP_State_update(local_code_name,
-                     state)
-
-def time_update(char*  local_code_name,
-                    double current_time)
-  """
-  Update code time.
-
-  Parameters:
-    local_code_name (char*)  : Local code name
-    current_time    (double) : Current time
-  """
-
-  CWP_Time_update(local_code_name,
-                  current_time)
-
-def output_file_set(output_file):
-  # TO DO: take time to understand for FILE
-
-def user_structure_set():
-  # TO DO: how to pass void * structure
-
-def user_structure_get():
-  # TO DO: issue with return void*
-
-# --> functions about other code properties
-
-def state_get(char* code_name):
-  """
-  Get code state.
-
-  Parameters:
-    local_code_name (char*)       : Local code name
-  """
-
-  CWP_State_get(code_name)
-
-def codes_nb_get():
-  """
-  Return the number of codes known by CWIPI.
-
-  Returns:
-    n_code (int) : Number of codes known by CWIPI
-  """
-
-  int n_code = CWP_Codes_nb_get()
-
-  return n_code
-
-def codes_list_get():
-  """
-  Return the list of code names known by CWIPI.
-
-  Returns:
-    code_list (char**) : Number of codes known by CWIPI
-  """
-
-  char** code_list = CWP_Codes_list_get()
-
-  return code_list
-
-def loc_codes_nb_get():
-  """
-  Return the number of local codes known by CWIPI.
-
-  Returns:
-    n_loc_code (int) : Number of codes known by CWIPI
-  """
-
-  int n_loc_code = CWP_Loc_codes_nb_get()
-
-  return n_loc_code
-
-def loc_codes_list_get():
-  """
-  Return the list of code names known by CWIPI.
-
-  Returns:
-    loc_code_list (char**) : Number of local codes known by CWIPI
-  """
-
-  char** loc_code_list = CWP_Loc_codes_list_get()
-
-  return loc_code_list
-
-# --> functions about properties
-def properties_dump():
-  """
-  Dump application properties.
-  """
-
-  CWP_Properties_dump()
+# # cython: c_string_type=str, c_string_encoding=ascii
+# #-----------------------------------------------------------------------------
+# # This file is part of the CWIPI library.
+# #
+# # Copyright (C) 2011  ONERA
+# #
+# # This library is free software; you can redistribute it and/or
+# # modify it under the terms of the GNU Lesser General Public
+# # License as published by the Free Software Foundation; either
+# # version 3 of the License, or (at your option) any later version.
+# #
+# # This library is distributed in the hope that it will be useful,
+# # but WITHOUT ANY WARRANTY; without even the implied warranty of
+# # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# # Lesser General Public License for more details.
+# #
+# # You should have received a copy of the GNU Lesser General Public
+# # License along with this library. If not, see <http://www.gnu.org/licenses/>.
+# #-----------------------------------------------------------------------------
+
+# """
+# cwipi - Coupling With Interpolation Parallel Interface library.
+# """
+
+# # IMPORTS
+
+# cimport cython
+
+# import numpy as np
+# cimport numpy as np
+
+# cimport mpi4py.MPI as MPI
+# from mpi4py.@mpi4pylibmpi@ cimport *
+
+# from libc.stdlib cimport malloc, free
+# from libc.stdio cimport FILE, fdopen
+# from cpython.object cimport PyObject_AsFileDescriptor
+
+# # EXTERN
+
+# cdef extern from "cwipi_cython.h":
+#     ctypedef enum cwipi_fake_enum_t:
+#       CWIPI_FAKE_ENUM
+
+# cdef extern from "cwp.h":
+
+#   # TYPES
+
+#   ctypedef enum CWP_Type_t:
+#       CWP_DOUBLE
+#       CWP_INT
+#       CWP_CHAR
+
+#   ctypedef enum CWP_Visu_format_t:
+#       CWP_VISU_FORMAT_ENSIGHT
+
+#   ctypedef enum CWP_Comm_t:
+#       CWP_COMM_PAR_WITH_PART
+#       CWP_COMM_PAR_WITHOUT_PART
+#       CWP_COMM_SEQ
+
+#   ctypedef enum CWP_Time_exch_t:
+#       CWP_TIME_EXCH_USER_CONTROLLED
+
+#   ctypedef enum CWP_Dof_location_t:
+#       CWP_DOF_LOCATION_UNDEF
+#       CWP_DOF_LOCATION_CELL_CENTER
+#       CWP_DOF_LOCATION_NODE
+#       CWP_DOF_LOCATION_USER
+
+#   ctypedef enum CWP_Field_exch_t:
+#       CWP_FIELD_EXCH_SEND
+#       CWP_FIELD_EXCH_RECV
+#       CWP_FIELD_EXCH_SENDRECV
+
+#   ctypedef enum CWP_Field_map_t:
+#       CWP_FIELD_MAP_SOURCE
+#       CWP_FIELD_MAP_TARGET
+
+#   ctypedef enum CWP_Field_storage_t:
+#       CWP_FIELD_STORAGE_INTERLACED
+#       CWP_FIELD_STORAGE_INTERLEAVED
+
+#   ctypedef enum CWP_Status_t:
+#       CWP_STATUS_OFF
+#       CWP_STATUS_ON
+
+#   ctypedef enum CWP_Err_t:
+#       CWP_ERR_NO_ERROR
+#       CWP_ERR_DEFAULT
+
+#   ctypedef enum CWP_Block_t:
+#       CWP_BLOCK_NODE
+#       CWP_BLOCK_EDGE2
+#       CWP_BLOCK_FACE_TRIA3
+#       CWP_BLOCK_FACE_QUAD4
+#       CWP_BLOCK_FACE_POLY
+#       CWP_BLOCK_CELL_TETRA4
+#       CWP_BLOCK_CELL_HEXA8
+#       CWP_BLOCK_CELL_PRISM6
+#       CWP_BLOCK_CELL_PYRAM5
+#       CWP_BLOCK_CELL_POLY
+
+#   ctypedef enum CWP_Dynamic_mesh_t:
+#       CWP_DYNAMIC_MESH_STATIC
+#       CWP_DYNAMIC_MESH_DEFORMABLE
+#       CWP_DYNAMIC_MESH_VARIABLE
+
+#   ctypedef enum CWP_Spatial_interp_t:
+#       CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES
+#       CWP_SPATIAL_INTERP_FROM_INTERSECTION
+#       CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF
+#       CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE
+#       CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE
+
+#   ctypedef enum CWP_Interface_t:
+#       CWP_DYNAMIC_MESH_STATIC
+#       CWP_DYNAMIC_MESH_DEFORMABLE
+#       CWP_DYNAMIC_MESH_VARIABLE
+
+#   ctypedef enum CWP_State_t:
+#       CWP_STATE_IN_PROGRESS
+#       CWP_STATE_END
+#       CWP_STATE_OUTPUT_ERROR
+
+#   ctypedef enum CWP_Op_t:
+#       CWP_OP_MIN
+#       CWP_OP_MAX
+#       CWP_OP_SUM
+
+#   ctypedef void (*CWP_interp_from_location_t) (int                  interface_type,
+#                                                char                *code_name,
+#                                                int                  src_n_block,
+#                                                CWP_Block_t          src_blocks_type[],
+#                                                int                  src_i_part,
+#                                                int                  src_n_vtx,
+#                                                double               src_vtx_coords[],
+#                                                CWP_g_num_t          src_vtx_global_num[],
+#                                                int                  src_n_elts,
+#                                                int                  src_id_block[],
+#                                                int                  src_elt_in_block[],
+#                                                int                  src_elt_vtx_idx[],
+#                                                int                  src_elt_vtx[],
+#                                                CWP_g_num_t          src_elts_global_num[],
+#                                                int                  tgt_n_pts,
+#                                                int                  tgt_pts_elt_idx[],
+#                                                double               tgt_pts_coords[],
+#                                                double               tgt_pts_dist[],
+#                                                double               tgt_pts_uvw[],
+#                                                int                  tgt_pts_weights_idx[],
+#                                                double               tgt_pts_weights[],
+#                                                int                  stride,
+#                                                CWP_Dof_location_t   src_field_dof_location,
+#                                                void                *src_field,
+#                                                void                *tgt_field)
+
+#   ctypedef void (*CWP_interp_from_intersect_t) (int interface_type)
+
+#   ctypedef void (*CWP_interp_from_closest_pts_t) (int interface_type)
+
+#   # CWIPI
+#   # --> general functions
+#   void CWP_Init(MPI_Comm           global_comm,
+#                 int                n_code,
+#                 char             **code_names,
+#                 CWP_Status_t      *is_active_rank,
+#                 double            *time_init,
+#                 MPI_Comm          *intra_comms)
+#   void CWP_Finalize()
+
+#   # --> functions about current code properties
+#   void CWP_State_update(char* local_code_name,
+#                         CWP_State_t state)
+#   void CWP_Time_update(char* local_code_name,
+#                        double current_time)
+#   void CWP_Output_file_set(FILE *output_file)
+#   void CWP_User_structure_set(char* local_code_name,
+#                               void* user_structure)
+#   void *CWP_User_structure_get(char* local_code_name)
+
+#   # --> functions about other code properties
+#   CWP_State_t CWP_State_get(char    *code_name)
+#   int CWP_Codes_nb_get()
+#   char **CWP_Codes_list_get()
+#   int CWP_Loc_codes_nb_get()
+#   char **CWP_Loc_codes_list_get()
+
+#   # --> functions about properties
+#   void CWP_Properties_dump()
+
+#   # --> general functions about coupling
+#   void CWP_Cpl_create(char                *local_code_name,
+#                       char                *cpl_id,
+#                       char                *coupled_code_name,
+#                       CWP_Interface_t      entities_dim,
+#                       CWP_Comm_t           comm_type,
+#                       CWP_Spatial_interp_t spatial_interp,
+#                       int                  n_part,
+#                       CWP_Dynamic_mesh_t   displacement,
+#                       CWP_Time_exch_t      recv_freq_type)
+#   void CWP_Cpl_del(char *local_code_name,
+#                    char *cpl_id)
+#   int CWP_N_uncomputed_tgts_get(char *local_code_name,
+#                                 char *cpl_id,
+#                                 char *field_id,
+#                                 int   i_part)
+#   int *CWP_Uncomputed_tgts_get(char *local_code_name,
+#                                char *cpl_id,
+#                                char *field_id,
+#                                int   i_part)
+#   int CWP_N_computed_tgts_get(char *local_code_name,
+#                               char *cpl_id,
+#                               char *field_id,
+#                               int   i_part)
+#   int *CWP_Computed_tgts_get(char *local_code_name,
+#                              char *cpl_id,
+#                              char *field_id,
+#                              int   i_part)
+#   int CWP_N_involved_srcs_get(char *local_code_name,
+#                               char *cpl_id,
+#                               char *field_id,
+#                               int   i_part)
+#   int *CWP_Involved_srcs_get(char *local_code_name,
+#                              char *cpl_id,
+#                              char *field_id,
+#                              int   i_part)
+
+#   # --> functions about spatial interpolation
+#   void CWP_Spatial_interp_weights_compute(char     *local_code_name,
+#                                           char     *cpl_id)
+#   void CWP_Spatial_interp_property_set(char     *local_code_name,
+#                                        char     *cpl_id,
+#                                        char     *property_name,
+#                                        char     *property_type,
+#                                        char     *property_value)
+
+#   # --> functions about visualization
+#   void CWP_Visu_set(char                 *local_code_name,
+#                     char                 *cpl_id,
+#                     int                   freq,
+#                     CWP_Visu_format_t     visu_format,
+#                     char                 *format_option)
+
+#   # --> functions about User target points
+#   void CWP_User_tgt_pts_set(char    *local_code_name,
+#                             char    *cpl_id,
+#                             int      i_part,
+#                             int      n_pts,
+#                             double         coord[],
+#                             CWP_g_num_t    global_num[])
+
+#   # --> functions about Mesh
+#   void CWP_Mesh_interf_finalize(char         *local_code_name,
+#                                 char         *cpl_id)
+#   void CWP_Mesh_interf_vtx_set(char           *local_code_name,
+#                                char           *cpl_id,
+#                                int             i_part,
+#                                int             n_pts,
+#                                double          coord[],
+#                                CWP_g_num_t     global_num[])
+#   int CWP_Mesh_interf_block_add(char           *local_code_name,
+#                                 char           *cpl_id,
+#                                 CWP_Block_t     block_type)
+#   void CWP_Mesh_interf_block_std_set(char        *local_code_name,
+#                                      char        *cpl_id,
+#                                      int          i_part,
+#                                      int          block_id,
+#                                      int          n_elts,
+#                                      int          connec[],
+#                                      CWP_g_num_t  global_num[])
+#   void CWP_Mesh_interf_block_std_get(char        *local_code_name,
+#                                      char        *cpl_id,
+#                                      int          i_part,
+#                                      int          block_id,
+#                                      int               *n_elts,
+#                                      int              **connec,
+#                                      CWP_g_num_t      **global_num)
+#   void CWP_Mesh_interf_f_poly_block_set(char             *local_code_name,
+#                                         char             *cpl_id,
+#                                         int               i_part,
+#                                         int               block_id,
+#                                         int               n_elts,
+#                                         int               connec_idx[],
+#                                         int               connec[],
+#                                         CWP_g_num_t       global_num[])
+#   void CWP_Mesh_interf_f_poly_block_get(char             *local_code_name,
+#                                         char             *cpl_id,
+#                                         int               i_part,
+#                                         int               block_id,
+#                                         int                    *n_elts,
+#                                         int                   **connec_idx,
+#                                         int                   **connec,
+#                                         CWP_g_num_t           **global_num)
+#   void CWP_Mesh_interf_c_poly_block_set(char           *local_code_name,
+#                                         char           *cpl_id,
+#                                         int             i_part,
+#                                         int             block_id,
+#                                         int             n_elts,
+#                                         int             n_faces,
+#                                         int                   connec_faces_idx[],
+#                                         int                   connec_faces[],
+#                                         int                   connec_cells_idx[],
+#                                         int                   connec_cells[],
+#                                         CWP_g_num_t           global_num[])
+#   void CWP_Mesh_interf_c_poly_block_get(char           *local_code_name,
+#                                         char           *cpl_id,
+#                                         int             i_part,
+#                                         int             block_id,
+#                                         int              *n_elts,
+#                                         int              *n_faces,
+#                                         int             **connec_faces_idx,
+#                                         int             **connec_faces,
+#                                         int             **connec_cells_idx,
+#                                         int             **connec_cells,
+#                                         CWP_g_num_t     **global_num)
+#   void CWP_Mesh_interf_del(char *local_code_name,
+#                            char *cpl_id)
+#   void CWP_Mesh_interf_from_cellface_set(char           *local_code_name,
+#                                          char           *cpl_id,
+#                                          int             i_part,
+#                                          int             n_cells,
+#                                          int             cell_face_idx[],
+#                                          int             cell_face[],
+#                                          int             n_faces,
+#                                          int             face_vtx_idx[],
+#                                          int             face_vtx[],
+#                                          CWP_g_num_t     global_num[])
+#   void CWP_Mesh_interf_from_faceedge_set(char           *local_code_name,
+#                                          char           *cpl_id,
+#                                          int             i_part,
+#                                          int             n_faces,
+#                                          int             face_edge_idx[],
+#                                          int             face_edge[],
+#                                          int             n_edges,
+#                                          int             edge_vtx_idx[],
+#                                          int             edge_vtx[],
+#                                          CWP_g_num_t     global_num[])
+
+#   # --> functions about field
+#   void CWP_Field_create(char                  *local_code_name,
+#                         char                  *cpl_id,
+#                         char                  *field_id,
+#                         CWP_Type_t             data_type,
+#                         CWP_Field_storage_t    storage,
+#                         int                    n_component,
+#                         CWP_Dof_location_t     target_location,
+#                         CWP_Field_exch_t       exch_type,
+#                         CWP_Status_t           visu_status)
+#   void CWP_Field_data_set(char              *local_code_name,
+#                           char              *cpl_id,
+#                           char              *field_id,
+#                           int                i_part,
+#                           CWP_Field_map_t    map_type,
+#                           double                   data[])
+#   int CWP_Field_n_component_get(char      *local_code_name,
+#                                 char      *cpl_id,
+#                                 char      *field_id)
+#   CWP_Dof_location_t CWP_Field_target_dof_location_get(char      *local_code_name,
+#                                                        char      *cpl_id,
+#                                                        char      *field_id)
+#   CWP_Field_storage_t CWP_Field_storage_get(char      *local_code_name,
+#                                             char      *cpl_id         ,
+#                                             char      *field_id)
+#   void CWP_Field_del(char      *local_code_name,
+#                      char      *cpl_id         ,
+#                      char      *field_id)
+
+#   # --> functions about exchange
+#   void CWP_Field_issend(char     *local_code_name,
+#                         char     *cpl_id,
+#                         char     *src_field_id)
+#   void CWP_Field_irecv(char        *local_code_name,
+#                        char        *cpl_id,
+#                        char        *tgt_field_id)
+#   void CWP_Field_wait_issend(char  *local_code_name,
+#                              char  *cpl_id,
+#                              char  *src_field_id)
+#   void CWP_Field_wait_irecv(char  *local_code_name,
+#                             char  *cpl_id,
+#                             char  *tgt_field_id)
+
+#   # --> functions about user interpolation
+#   void CWP_Interp_from_location_unset(char                 *local_code_name,
+#                                       char                 *cpl_id,
+#                                       char                 *src_field_id)
+#   void CWP_Interp_from_location_set(char                       *local_code_name,
+#                                     char                       *cpl_id,
+#                                     char                       *src_field_id,
+#                                     CWP_Interp_from_location_t  fct)
+
+#   # --> functions about control parameters
+#   void CWP_Param_add(char        *local_code_name,
+#                      char        *param_name,
+#                      CWP_Type_t   data_type,
+#                      void        *initial_value)
+#   void CWP_Param_set(char             *local_code_name,
+#                      char             *param_name,
+#                      CWP_Type_t        data_type,
+#                      void             *value)
+#   void CWP_Param_del(char       *local_code_name,
+#                      char       *param_name,
+#                      CWP_Type_t  data_type)
+
+#   # --> functions about all code parameters
+#   int CWP_Param_n_get(char             *code_name,
+#                       CWP_Type_t        data_type)
+#   void CWP_Param_list_get(char             *code_name,
+#                           CWP_Type_t        data_type,
+#                           int              *nParam,
+#                           char           ***paramNames)
+#   int CWP_Param_is(char             *code_name,
+#                    char             *param_name,
+#                    CWP_Type_t        data_type)
+#   void CWP_Param_get(char       *code_name,
+#                      char       *param_name,
+#                      CWP_Type_t  data_type,
+#                      void       *value)
+#   void CWP_Param_reduce(CWP_Op_t    op,
+#                         char       *param_name,
+#                         CWP_Type_t  data_type,
+#                         void       *res,
+#                         int         nCode,
+#                         char      **code_names)
+#   void CWP_Param_lock(char *code_name)
+#   void CWP_Param_unlock(char *code_name)
+
+#   # --> client-server
+
+# # DEFINITION
+# # --> general functions
+
+# def init(MPI.Comm global_comm,
+#          int      n_code,
+#          char   **code_names):
+#   """
+#   Initialize CWIPI library and create intra-communicator.
+
+#   Parameters:
+#     global_comm (MPI.Comm) : MPI global communicator
+#     n_code      (int)      : Number of codes on the current rank
+#     code_names  (char**)   : Names of codes on the current rank (size = n_code)
+
+#   Returns:
+#     is_active_rank (int)      : Is current rank have to be used by CWIPI (size = n_code)
+#     time_init      (double)   : Initial time (size = n_code)
+#     intra_comms    (MPI.Comm) : MPI intra communicators of each code (size = n_code)
+#   """
+
+#   cdef MPI_Comm c_global_comm = global_comm.ob_mpi
+
+#   CWP_Status_t is_active_rank = -1
+#   double       time_init      = -1
+
+#   # TO DO: how to handle MPI_Comm *intra_comms ???
+
+#   CWP_Init(global_comm,
+#            n_code,
+#            code_names,
+#            &(is_active_rank),
+#            &(time_init),
+#            )
+
+
+#   return is_active_rank, time_init, intra_comms
+
+# def finalize():
+#   """
+#   Finalize this module.
+
+#   After this call, no other function from this module can be called.
+#   It is a synchronization point between all applications.
+#   """
+
+#   CWP_Finalize()
+
+# # --> functions about current code properties
+# def state_update(char*       local_code_name,
+#                      CWP_State_t state)
+#     """
+#     Update code state.
+
+#     Parameters:
+#       local_code_name (char*)       : Local code name
+#       state           (CWP_State_t) : State
+#     """
+
+#     CWP_State_update(local_code_name,
+#                      state)
+
+# def time_update(char*  local_code_name,
+#                     double current_time)
+#   """
+#   Update code time.
+
+#   Parameters:
+#     local_code_name (char*)  : Local code name
+#     current_time    (double) : Current time
+#   """
+
+#   CWP_Time_update(local_code_name,
+#                   current_time)
+
+# def output_file_set(output_file):
+#   # TO DO: take time to understand for FILE
+
+# def user_structure_set():
+#   # TO DO: how to pass void * structure
+
+# def user_structure_get():
+#   # TO DO: issue with return void*
+
+# # --> functions about other code properties
+
+# def state_get(char* code_name):
+#   """
+#   Get code state.
+
+#   Parameters:
+#     local_code_name (char*)       : Local code name
+#   """
+
+#   CWP_State_get(code_name)
+
+# def codes_nb_get():
+#   """
+#   Return the number of codes known by CWIPI.
+
+#   Returns:
+#     n_code (int) : Number of codes known by CWIPI
+#   """
+
+#   int n_code = CWP_Codes_nb_get()
+
+#   return n_code
+
+# def codes_list_get():
+#   """
+#   Return the list of code names known by CWIPI.
+
+#   Returns:
+#     code_list (char**) : Number of codes known by CWIPI
+#   """
+
+#   char** code_list = CWP_Codes_list_get()
+
+#   return code_list
+
+# def loc_codes_nb_get():
+#   """
+#   Return the number of local codes known by CWIPI.
+
+#   Returns:
+#     n_loc_code (int) : Number of codes known by CWIPI
+#   """
+
+#   int n_loc_code = CWP_Loc_codes_nb_get()
+
+#   return n_loc_code
+
+# def loc_codes_list_get():
+#   """
+#   Return the list of code names known by CWIPI.
+
+#   Returns:
+#     loc_code_list (char**) : Number of local codes known by CWIPI
+#   """
+
+#   char** loc_code_list = CWP_Loc_codes_list_get()
+
+#   return loc_code_list
+
+# # --> functions about properties
+# def properties_dump():
+#   """
+#   Dump application properties.
+#   """
+
+#   CWP_Properties_dump()
+
+# # TO DO: Param_add etc here ???
+
+# # Coupling class
+# cdef class Coupling (object):
+
+#     """
+#     Create a CWIPI coupling object.
+#     """
+
+#     def __init__(self,
+#                  char                *local_code_name,
+#                  char                *cpl_id,
+#                  char                *coupled_code_name,
+#                  CWP_Interface_t      entities_dim,
+#                  CWP_Comm_t           comm_type,
+#                  CWP_Spatial_interp_t spatial_interp,
+#                  int                  n_part,
+#                  CWP_Dynamic_mesh_t   displacement,
+#                  CWP_Time_exch_t      recv_freq_type):
+#       """
+#       Initialize coupling object.
+
+#       Parameters:
+#         local_code_name   (char*)                : Local code name
+#         cpl_id            (char*)                : Coupling identifier
+#         coupled_code_name (char*)                : Distant or local coupled code name
+#         entities_dim      (CWP_Interface_t)      : ?
+#         comm_type         (CWP_Comm_t)           : Communication type
+#         spatial_interp    (CWP_Spatial_interp_t) : Spatial interpolation method
+#         n_part            (int)                  : Number of interface partition
+#         displacement      (CWP_Dynamic_mesh_t)   : Mesh moving status
+#         recv_freq_type    (CWP_Time_exch_t)      : Type of receiving frequency
+#       """
