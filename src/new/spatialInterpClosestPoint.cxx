@@ -20,6 +20,8 @@
 #include "pdm_closest_points.h"
 #include "spatialInterpClosestPoint.hxx"
 #include "cwp_priv.h"
+#include "coupling.hxx"
+#include "coupling_i.hxx"
 
 CWP_CLANG_SUPPRESS_WARNING("-Wunused-private-field")
 
@@ -28,8 +30,74 @@ namespace cwipi {
     //CWIPI_CLANG_SUPPRESS_WARNING("-Wunused-private-field")
     SpatialInterpClosestPoint::SpatialInterpClosestPoint() = default;
 
-    SpatialInterpClosestPoint::~SpatialInterpClosestPoint() = default;
+    // SpatialInterpClosestPoint::~SpatialInterpClosestPoint() = default;
 
+    SpatialInterpClosestPoint::~SpatialInterpClosestPoint
+    (
+     )
+    {
+      for (int i_part = 0; i_part < _nPart; i_part++) {
+        if (_src_to_tgt_idx[i_part] != NULL) {
+          free(_src_to_tgt_idx[i_part]);
+        }
+        if (_src_to_tgt[i_part] != NULL) {
+          free(_src_to_tgt[i_part]);
+        }
+        if (_src_to_tgt_dist[i_part] != NULL) {
+          free(_src_to_tgt_dist[i_part]);
+        }
+      }
+
+
+      delete[] _src_to_tgt_idx;
+      delete[] _src_to_tgt;
+      delete[] _src_to_tgt_dist;
+    }
+
+
+    /**
+     *
+     * \brief SpatialInterpClosestPoint Init.
+     *
+     */
+
+    void
+    SpatialInterpClosestPoint::init
+    (
+     Coupling                   *coupling,
+     CWP_Dof_location_t          localCodeDofLOcation,
+     CWP_Dof_location_t          cplCodeDofLOcation,
+     SpatialInterpExchDirection  exchDirection
+     )
+    {
+      SpatialInterp::init (coupling,
+                           localCodeDofLOcation,
+                           cplCodeDofLOcation,
+                           exchDirection);
+
+      _interpolation_time = CWP_SPATIAL_INTERP_AT_SEND;
+
+      //
+      // Data for PDM_part_to_part_t
+      // ?
+
+      //
+      // Target properties
+      // not really useful, do we keep this?
+
+      //
+      // Source properties
+      _src_to_tgt_idx  = new int*         [_nPart];
+      _src_to_tgt      = new PDM_g_num_t* [_nPart];
+      _src_to_tgt_dist = new double*      [_nPart];
+
+      for (int i_part = 0; i_part < _nPart; i_part++) {
+        _src_to_tgt_idx [i_part] = NULL;
+        _src_to_tgt     [i_part] = NULL;
+        _src_to_tgt_dist[i_part] = NULL;
+      }
+
+    }
 
     void SpatialInterpClosestPoint::weightsCompute() {
 //         // In case of withOutPart the user provided not null data only on the root rank (senderRank).
@@ -72,6 +140,187 @@ namespace cwipi {
 
 //         PDM_closest_points_free (_id_pdm);
 // //        cout << cplComm_rank << ": PDM_closest_point freed " << _id_pdm << endl;
+
+      if (!_coupledCodeProperties->localCodeIs() ||
+          _localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+          if (_src_to_tgt_idx[i_part] != NULL) {
+            free(_src_to_tgt_idx[i_part]);
+          }
+          if (_src_to_tgt[i_part] != NULL) {
+            free(_src_to_tgt[i_part]);
+          }
+          if (_src_to_tgt_dist[i_part] != NULL) {
+            free(_src_to_tgt_dist[i_part]);
+          }
+          _src_to_tgt_idx [i_part] = NULL;
+          _src_to_tgt     [i_part] = NULL;
+          _src_to_tgt_dist[i_part] = NULL;
+
+
+          if (_weights_idx[i_part] != NULL) {
+            free(_weights_idx[i_part]);
+          }
+
+          if (_weights[i_part] != NULL) {
+            free(_weights[i_part]);
+          }
+
+          if (_computed_tgt[i_part] != NULL) {
+            free(_computed_tgt[i_part]);
+          }
+
+          if (_uncomputed_tgt[i_part] != NULL) {
+            free(_uncomputed_tgt[i_part]);
+          }
+
+          if (_involved_sources_tgt[i_part] != NULL) {
+            free(_involved_sources_tgt[i_part]);
+          }
+
+          _n_elt_weights[i_part] = 0;
+          _weights_idx  [i_part] = NULL;
+          _weights      [i_part] = NULL;
+
+          _n_computed_tgt[i_part] = 0;
+          _computed_tgt  [i_part] = NULL;
+
+          _n_uncomputed_tgt[i_part] = 0;
+          _uncomputed_tgt  [i_part] = NULL;
+
+          _n_involved_sources_tgt[i_part] = 0;
+          _involved_sources_tgt  [i_part] = NULL;
+        }
+
+      }
+
+      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+
+        SpatialInterpClosestPoint *cpl_spatial_interp;
+
+        cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+
+        if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
+
+          cpl_spatial_interp =
+            dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+
+        }
+
+        else {
+
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
+
+          cpl_spatial_interp =
+            dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+        }
+
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+
+          if (cpl_spatial_interp->_src_to_tgt_idx[i_part] != NULL) {
+            free(cpl_spatial_interp->_src_to_tgt_idx[i_part]);
+          }
+          if (cpl_spatial_interp->_src_to_tgt[i_part] != NULL) {
+            free(cpl_spatial_interp->_src_to_tgt[i_part]);
+          }
+          if (cpl_spatial_interp->_src_to_tgt_dist[i_part] != NULL) {
+            free(cpl_spatial_interp->_src_to_tgt_dist[i_part]);
+          }
+          cpl_spatial_interp->_src_to_tgt_idx [i_part] = NULL;
+          cpl_spatial_interp->_src_to_tgt     [i_part] = NULL;
+          cpl_spatial_interp->_src_to_tgt_dist[i_part] = NULL;
+
+
+          if (cpl_spatial_interp->_weights_idx[i_part] != NULL) {
+            free(cpl_spatial_interp->_weights_idx[i_part]);
+          }
+
+          if (cpl_spatial_interp->_weights[i_part] != NULL) {
+            free(cpl_spatial_interp->_weights[i_part]);
+          }
+
+          if (cpl_spatial_interp->_computed_tgt[i_part] != NULL) {
+            free(cpl_spatial_interp->_computed_tgt[i_part]);
+          }
+
+          if (cpl_spatial_interp->_uncomputed_tgt[i_part] != NULL) {
+            free(cpl_spatial_interp->_uncomputed_tgt[i_part]);
+          }
+
+          if (cpl_spatial_interp->_involved_sources_tgt[i_part] != NULL) {
+            free(cpl_spatial_interp->_involved_sources_tgt[i_part]);
+          }
+
+          cpl_spatial_interp->_n_elt_weights[i_part] = 0;
+          cpl_spatial_interp->_weights_idx  [i_part] = NULL;
+          cpl_spatial_interp->_weights      [i_part] = NULL;
+
+          cpl_spatial_interp->_n_computed_tgt[i_part] = 0;
+          cpl_spatial_interp->_computed_tgt  [i_part] = NULL;
+
+          cpl_spatial_interp->_n_uncomputed_tgt[i_part] = 0;
+          cpl_spatial_interp->_uncomputed_tgt  [i_part] = NULL;
+
+          cpl_spatial_interp->_n_involved_sources_tgt[i_part] = 0;
+          cpl_spatial_interp->_involved_sources_tgt  [i_part] = NULL;
+
+        }
+
+      }
+
+      // localization_init();
+
+      // localization_points_cloud_setting();
+
+      // localization_surface_setting();
+
+      // localization_compute();
+
+      // Reset part_to_part object
+      if (_ptsp != nullptr) {
+        if (!_coupledCodeProperties->localCodeIs()) {
+          PDM_part_to_part_free (_ptsp);
+          _ptsp = nullptr;
+        }
+        else {
+
+          if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+            PDM_part_to_part_free (_ptsp);
+            _ptsp = nullptr;
+
+            SpatialInterpClosestPoint *cpl_spatial_interp;
+
+            cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+
+            if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+              std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
+              cpl_spatial_interp =
+              dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+            }
+
+            else {
+              std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
+              cpl_spatial_interp =
+              dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+            }
+
+            cpl_spatial_interp->_ptsp = NULL;
+          }
+
+        }
+      }
+
+      // ptp get...
+
+      // localization_get();
+
+      // localization_free();
+
+      // create ptp if null
+
     }
 
     void SpatialInterpClosestPoint::interpolate(Field *referenceField, double **buffer) {
