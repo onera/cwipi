@@ -1,4 +1,5 @@
 # cython: c_string_type=str, c_string_encoding=ascii
+
 #-----------------------------------------------------------------------------
 # This file is part of the CWIPI library.
 #
@@ -21,3 +22,141 @@
 """
 cwipi - Coupling With Interpolation Parallel Interface library.
 """
+
+# IMPORTS
+
+cimport cython
+
+import numpy as np
+cimport numpy as np
+
+cimport mpi4py.MPI as MPI
+from mpi4py.@mpi4pylibmpi@ cimport *
+
+from libc.stdlib cimport malloc, free
+from libc.stdio cimport FILE, fdopen
+from cpython.object cimport PyObject_AsFileDescriptor
+
+# EXTERN
+
+cdef extern from "cwipi_cython.h":
+    ctypedef enum cwipi_fake_enum_t:
+      CWIPI_FAKE_ENUM
+
+cdef extern from "cwp.h":
+
+  # TYPES
+
+  ctypedef enum cwp_type_t:
+      CWP_DOUBLE
+      CWP_INT
+      CWP_CHAR
+
+  ctypedef enum cwp_visu_format_t:
+      CWP_VISU_FORMAT_ENSIGHT
+
+  ctypedef enum cwp_comm_t:
+      CWP_COMM_PAR_WITH_PART
+      CWP_COMM_PAR_WITHOUT_PART
+      CWP_COMM_SEQ
+
+  ctypedef enum cwp_time_exch_t:
+      CWP_TIME_EXCH_USER_CONTROLLED
+
+  ctypedef enum cwp_dof_location_t:
+      CWP_DOF_LOCATION_UNDEF
+      CWP_DOF_LOCATION_CELL_CENTER
+      CWP_DOF_LOCATION_NODE
+      CWP_DOF_LOCATION_USER
+
+  ctypedef enum cwp_field_exch_t:
+      CWP_FIELD_EXCH_SEND
+      CWP_FIELD_EXCH_RECV
+      CWP_FIELD_EXCH_SENDRECV
+
+  ctypedef enum cwp_field_map_t:
+      CWP_FIELD_MAP_SOURCE
+      CWP_FIELD_MAP_TARGET
+
+  ctypedef enum cwp_field_storage_t:
+      CWP_FIELD_STORAGE_INTERLACED
+      CWP_FIELD_STORAGE_INTERLEAVED
+
+  ctypedef enum cwp_status_t:
+      CWP_STATUS_OFF
+      CWP_STATUS_ON
+
+  ctypedef enum cwp_err_t:
+      CWP_ERR_NO_ERROR
+      CWP_ERR_DEFAULT
+
+  ctypedef enum cwp_block_t:
+      CWP_BLOCK_NODE
+      CWP_BLOCK_EDGE2
+      CWP_BLOCK_FACE_TRIA3
+      CWP_BLOCK_FACE_QUAD4
+      CWP_BLOCK_FACE_POLY
+      CWP_BLOCK_CELL_TETRA4
+      CWP_BLOCK_CELL_HEXA8
+      CWP_BLOCK_CELL_PRISM6
+      CWP_BLOCK_CELL_PYRAM5
+      CWP_BLOCK_CELL_POLY
+
+  ctypedef enum cwp_dynamic_mesh_t:
+      CWP_DYNAMIC_MESH_STATIC
+      CWP_DYNAMIC_MESH_DEFORMABLE
+      CWP_DYNAMIC_MESH_VARIABLE
+
+  ctypedef enum cwp_spatial_interp_t:
+      CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES
+      CWP_SPATIAL_INTERP_FROM_INTERSECTION
+      CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF
+      CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE
+      CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE
+
+  ctypedef enum cwp_interface_t:
+      CWP_DYNAMIC_MESH_STATIC
+      CWP_DYNAMIC_MESH_DEFORMABLE
+      CWP_DYNAMIC_MESH_VARIABLE
+
+  ctypedef enum cwp_state_t:
+      CWP_STATE_IN_PROGRESS
+      CWP_STATE_END
+      CWP_STATE_OUTPUT_ERROR
+
+  ctypedef enum cwp_op_t:
+      CWP_OP_MIN
+      CWP_OP_MAX
+      CWP_OP_SUM
+
+  ctypedef void (*cwp_interp_from_location_t) (int                  interface_type,
+                                               char                *code_name,
+                                               int                  src_n_block,
+                                               CWP_Block_t          src_blocks_type[],
+                                               int                  src_i_part,
+                                               int                  src_n_vtx,
+                                               double               src_vtx_coords[],
+                                               CWP_g_num_t          src_vtx_global_num[],
+                                               int                  src_n_elts,
+                                               int                  src_id_block[],
+                                               int                  src_elt_in_block[],
+                                               int                  src_elt_vtx_idx[],
+                                               int                  src_elt_vtx[],
+                                               CWP_g_num_t          src_elts_global_num[],
+                                               int                  tgt_n_pts,
+                                               int                  tgt_pts_elt_idx[],
+                                               double               tgt_pts_coords[],
+                                               double               tgt_pts_dist[],
+                                               double               tgt_pts_uvw[],
+                                               int                  tgt_pts_weights_idx[],
+                                               double               tgt_pts_weights[],
+                                               int                  stride,
+                                               CWP_Dof_location_t   src_field_dof_location,
+                                               void                *src_field,
+                                               void                      *tgt_field)
+
+  ctypedef void (*cwp_interp_from_intersect_t) (int interface_type)
+
+  ctypedef void (*cwp_interp_from_closest_pts_t) (int interface_type)
+
+  # CWIPI
