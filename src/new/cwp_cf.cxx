@@ -2298,16 +2298,14 @@ CWP_Param_reduce_cf
  const CWP_Type_t  data_type,
  void             *res,
  const int         n_codes,
- const char       *f_code_names,
+ const char      **f_code_names,
  const int        *l_code_names
 )
 {
   char  *c_param_name = _fortran_to_c_string(f_param_name, l_param_name);
-  char **c_code_names = (char **) malloc(n_codes * sizeof(char *));
-  int idx = 0;
-  for (int i = 0 ; i < n_codes ; i++) {
-    c_code_names[i] = _fortran_to_c_string(f_code_names + idx, l_code_names[i]);
-    idx += l_code_names[i];
+  char **c_code_names = (char **) malloc(sizeof(char *) * n_codes);
+  for (int i = 0; i < n_codes; i++) {
+    c_code_names[i] = _fortran_to_c_string(f_code_names[i], l_code_names[i]);
   }
 
   CWP_Param_reduce(op,

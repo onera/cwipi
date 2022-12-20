@@ -60,10 +60,6 @@ program testf
 
   !--> output file
   character(len = 23),   pointer :: output_file(:)         => null()
-
-  !--> reduce
-  integer(c_int),       pointer :: res => null()
-  character(len = 5),   pointer :: g_code_names(:)         => null()
   !--------------------------------------------------------------------
 
 
@@ -92,8 +88,7 @@ program testf
            is_coupled_rank(n_code),    &
            time_init(n_code),          &
            intra_comms(n_code),        &
-           output_file(1),             &
-           g_code_names(2))
+           output_file(1))
 
   if (i_rank == 0) then
     code_names(1)         = "code1"
@@ -135,14 +130,9 @@ program testf
   ! print *, "state =", CWP_State_get(code_names(1))
   ! call CWP_Properties_dump()
 
-  toto = 5
+  toto = 123456
   if (code_names(1) == "code1") then
     call CWP_Param_add("code1", "toto", toto)
-  endif
-
-  toto = 12
-  if (code_names(1) == "code2") then
-    call CWP_Param_add("code2", "toto", toto)
   endif
 
   n_param = CWP_Param_n_get("code1", &
@@ -172,19 +162,6 @@ program testf
   do i=1, n_param
    print *, "f_param_names : ", i, " -> ", f_param_names(i)
   end do
-
-  !--> sum of parameters
-  g_code_names(1) = "code1"
-  g_code_names(2) = "code2"
-  call CWP_Param_reduce(CWP_OP_SUM, &
-                        "toto",     &
-                        CWP_INT,    &
-                        param_value,&
-                        2,          &
-                        g_code_names)
-
-  call c_f_pointer(param_value, res)
-  print *, "res of sum reduce : ", loc(res)
 
   !! Create a coupling
   coupling_name = "fortran_new_api_surf"
