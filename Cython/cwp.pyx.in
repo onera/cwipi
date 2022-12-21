@@ -1024,8 +1024,6 @@ cdef class Field (object):
 
       return storage
 
-# TO DO: créer fonction dans coupling pour add un champs dans le self.dict_field de coupling
-
 #-----------------------------------------------------------------------------
 # COUPLING CLASS
 cdef class Coupling (object):
@@ -1061,6 +1059,7 @@ cdef class Coupling (object):
 
       self.local_code_name = local_code_name
       self.id = cpl_id
+      self.fields = {}
 
       CWP_Cpl_create(local_code_name,
                      cpl_id,
@@ -1077,7 +1076,93 @@ cdef class Coupling (object):
       Delete a coupling object.
       """
 
-      CWP_Cpl_del(self.local_code_name, self.cpl_id)
+      CWP_Cpl_del(self.local_code_name, self.id)
+
+    # --> FIELD
+    def field_create(self,
+                     char                  *field_id,
+                     CWP_Type_t             data_type,
+                     CWP_Field_storage_t    storage,
+                     int                    n_component,
+                     CWP_Dof_location_t     target_location,
+                     CWP_Field_exch_t       exch_type,
+                     CWP_Status_t           visu_status):
+      """
+      Create field object and add in self.fields dictionnary.
+
+      Parameters:
+        field_id        (char*)               : Field id
+        data_type       (CWP_Type_t)          : Data type
+        storage         (CWP_Field_storage_t) : Storage type
+        n_component     (int)                 : Number of component
+        target_location (CWP_Dof_location_t)  : Target location
+        exch_type       (CWP_Field_exch_t)    : Exchange type
+        visu_status     (CWP_Status_t)        : Visualization status
+      """
+      self.fields[field_id] = Field(self.local_code_name,
+                                    self.id
+                                    field_id,
+                                    data_type,
+                                    storage,
+                                    n_component,
+                                    target_location,
+                                    exch_type,
+                                    visu_status)
+
+    def field_set(self,
+                  char                  *field_id,
+                  int                i_part,
+                  CWP_Field_map_t    map_type,
+                  NPY.ndarray[NPY.double_t, mode='c', ndim=1] data):
+      """
+      Set field data for a given Field object in the dictionnary.
+
+      Parameters:
+        field_id        (char*)               : Field id
+        i_part    (int)                       : Current partition
+        data_type (CWP_Field_map_t)           : Choice if data is setted for the source or the target
+        data      (NPY.ndarray[NPY.double_t]) : Storage array (Mapping)
+      """
+      self.fields[field_id].data_set(i_part,
+                                     map_type,
+                                     data)
+
+    def field_get(self,
+                  char                  *field_id):
+      """
+      Get field properties.
+
+      Parameters:
+        field_id        (char*)               : Field id
+
+      Returns:
+        n_comp (int) : Number of field components
+        dof_loc (CWP_Dof_location_t) : Location of degrees of freedom
+        storage (CWP_Field_storage_t) : Field storage type
+      """
+
+      int n_comp = self.fields[field_id].n_component_get()
+      CWP_Dof_location_t dof_loc = self.fields[field_id].target_dof_location_get()
+      CWP_Field_storage_t storage = self.fields[field_id].storage_get()
+
+      return {
+              'n_comp' : n_comp
+              'dof_loc': dof_loc
+              'storage': storage
+             }
+
+    def field_del(self,
+                  char                  *field_id):
+      """
+      Delete Field object and field form self.fiels dictionnary
+
+      Parameters:
+        field_id        (char*)               : Field id
+      """
+      del self.fields[field_id]
+      # same as:
+      # field = self.fields.pop(field_id)
+      # del(field)
 
     # --> MESH
     def mesh_interf_finalize(self):
@@ -1087,7 +1172,7 @@ cdef class Coupling (object):
       not provided.
       """
 
-      CWP_Mesh_interf_finalize(self.local_code_name, self.cpl_id)
+      CWP_Mesh_interf_finalize(self.local_code_name, self.id)
 
     def mesh_interf_vtx_set(self,
                             int i_part,
@@ -1108,7 +1193,7 @@ cdef class Coupling (object):
       assert n_pts <= global_num.size
 
       CWP_Mesh_interf_vtx_set(self.local_code_name,
-                              self.cpl_id,
+                              self.id,
                               i_part,
                               n_pts,
                    <double *> coord.data,
@@ -1127,7 +1212,7 @@ cdef class Coupling (object):
       """
 
       int block_id = CWP_Mesh_interf_block_add(self.local_code_name,
-                                               self.cpl_id,
+                                               self.id,
                                                block_type)
 
       return block_id
@@ -1151,7 +1236,7 @@ cdef class Coupling (object):
       """
 
       CWP_Mesh_interf_block_std_set(self.local_code_name,
-                                    self.cpl_id,
+                                    self.id,
                                     i_part,
                                     block_id,
                                     n_elts,
@@ -1179,7 +1264,7 @@ cdef class Coupling (object):
       cdef long *global_num
 
       CWP_Mesh_interf_block_std_get(self.local_code_name,
-                                    self.cpl_id,
+                                    self.id,
                                     i_part,
                                     block_id,
                                     &(n_elts),
@@ -1213,7 +1298,7 @@ cdef class Coupling (object):
       """
 
       CWP_Mesh_interf_f_poly_block_set(self.local_code_name,
-                                       self.cpl_id,
+                                       self.id,
                                        i_part,
                                        block_id,
                                        n_elts,
@@ -1244,7 +1329,7 @@ cdef class Coupling (object):
       cdef long *global_num
 
       CWP_Mesh_interf_f_poly_block_get(self.local_code_name,
-                                       self.cpl_id,
+                                       self.id,
                                        i_part,
                                        block_id,
                                        &(n_elts),
@@ -1285,7 +1370,7 @@ cdef class Coupling (object):
       """
 
       CWP_Mesh_interf_c_poly_block_set(self.local_code_name,
-                                       self.cpl_id,
+                                       self.id,
                                        i_part,
                                        block_id,
                                        n_elts,
@@ -1325,7 +1410,7 @@ cdef class Coupling (object):
       cdef long *global_num
 
       CWP_Mesh_interf_c_poly_block_get(self.local_code_name,
-                                       self.cpl_id,
+                                       self.id,
                                        i_part,
                                        block_id,
                                        &(n_elts),
@@ -1351,7 +1436,7 @@ cdef class Coupling (object):
       Delete interface mesh.
       """
       CWP_Mesh_interf_del(self.local_code_name,
-                          self.cpl_id)
+                          self.id)
 
     def mesh_interf_from_cellface_set(self,
                                       i_part,
@@ -1377,7 +1462,7 @@ cdef class Coupling (object):
     """
 
     CWP_Mesh_interf_from_cellface_set(self.local_code_name,
-                                      self.cpl_id,
+                                      self.id,
                                       i_part,
                                       n_cells,
                               <int *> cell_face_idx,
@@ -1411,7 +1496,7 @@ cdef class Coupling (object):
     """
 
     CWP_Mesh_interf_from_faceedge_set(self.local_code_name,
-                                      self.cpl_id,
+                                      self.id,
                                       i_part,
                                       n_faces,
                               <int *> face_edge_idx,
