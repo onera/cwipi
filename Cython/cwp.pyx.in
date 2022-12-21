@@ -904,6 +904,128 @@ def param_unlock(char        *code_name):
   """
 
   CWP_Param_unlock(code_name)
+
+#-----------------------------------------------------------------------------
+# FIELD CLASS
+cdef class Field (object):
+
+    """
+    Create a CWIPI field object.
+    """
+
+    def __init__(self,
+                 char                  *local_code_name,
+                 char                  *cpl_id,
+                 char                  *field_id,
+                 CWP_Type_t             data_type,
+                 CWP_Field_storage_t    storage,
+                 int                    n_component,
+                 CWP_Dof_location_t     target_location,
+                 CWP_Field_exch_t       exch_type,
+                 CWP_Status_t           visu_status):
+      """
+      Initialize field object.
+
+      Parameters:
+        local_code_name (char*)               : Local code name
+        cpl_id          (char*)               : Field id
+        field_id        (char*)               : Field id
+        data_type       (CWP_Type_t)          : Data type
+        storage         (CWP_Field_storage_t) : Storage type
+        n_component     (int)                 : Number of component
+        target_location (CWP_Dof_location_t)  : Target location
+        exch_type       (CWP_Field_exch_t)    : Exchange type
+        visu_status     (CWP_Status_t)        : Visualization status
+      """
+
+      self.local_code_name = local_code_name
+      self.cpl_id = cpl_id
+      self.id = field_id
+
+      CWP_Field_create(self.local_code_name,
+                       self.cpl_id,
+                       self.id,
+                       data_type,
+                       storage,
+                       n_component,
+                       target_location,
+                       exch_type,
+                       visu_status)
+
+    def __del__(self):
+      """
+      Delete a field object.
+      """
+
+      CWP_Field_del(self.local_code_name,
+                    self.cpl_id,
+                    self.id)
+
+    # --> DATA
+    def data_set(self,
+                 int                i_part,
+                 CWP_Field_map_t    map_type,
+                 NPY.ndarray[NPY.double_t, mode='c', ndim=1] data):
+      """
+      Set field data.
+
+      Parameters:
+        i_part    (int)                       : Current partition
+        data_type (CWP_Field_map_t)           : Choice if data is setted for the source or the target
+        data      (NPY.ndarray[NPY.double_t]) : Storage array (Mapping)
+      """
+
+      CWP_Field_data_set(self.local_code_name,
+                         self.cpl_id,
+                         self.id,
+                         i_part,
+                         data_type,
+              <double *> data)
+
+    def n_component_get(self):
+      """
+      Get number of field components.
+
+      Returns:
+        n_comp (int) : Number of field components
+      """
+
+      int n_comp = CWP_Field_n_component_get(self.local_code_name,
+                                             self.cpl_id,
+                                             self.id)
+
+      return n_comp
+
+    def target_dof_location_get(self):
+      """
+      Get target degrees of freedom location.
+
+      Returns:
+        dof_loc (CWP_Dof_location_t) : Location of degrees of freedom
+      """
+
+      CWP_Dof_location_t dof_loc = CWP_Field_target_dof_location_get(self.local_code_name,
+                                                                     self.cpl_id,
+                                                                     self.id)
+
+      return dof_loc
+
+    def storage_get(self):
+      """
+      Get field storage type.
+
+      Returns:
+        storage (CWP_Field_storage_t) : Field storage type
+      """
+
+      CWP_Field_storage_t storage = CWP_Field_storage_get(self.local_code_name,
+                                                          self.cpl_id,
+                                                          self.id)
+
+      return storage
+
+# TO DO: créer fonction dans coupling pour add un champs dans le self.dict_field de coupling
+
 #-----------------------------------------------------------------------------
 # COUPLING CLASS
 cdef class Coupling (object):
