@@ -16,7 +16,7 @@ if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
   link_libraries("m")
 
-  set (CMAKE_Fortran_FLAGS "-fPIC -Wall -pedantic -std=gnu -Wno-unused-dummy-argument -Wno-maybe-uninitialized")
+  set (CMAKE_Fortran_FLAGS "-fallow-argument-mismatch -fPIC -Wall -std=gnu -Wno-unused-dummy-argument -Wno-maybe-uninitialized")
 
   set (CMAKE_Fortran_FLAGS_RELEASE         "-O3")
   set (CMAKE_Fortran_FLAGS_DEBUG           "-O0 -g -fcheck=bounds -fbacktrace")
