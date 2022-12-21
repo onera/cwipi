@@ -612,8 +612,298 @@ def properties_dump():
   CWP_Properties_dump()
 
 # --> functions about control parameters
-# TO DO
+def param_add_int(char        *local_code_name,
+                  char        *param_name,
+                  int          initial_value):
+  """
+  Add a new interger parameter and intialize it.
 
+  Parameters:
+    local_code_name  (char*) : Local code name
+    param_name       (char*) : Parameter name
+    initial_value    (int)   : Initial value
+  """
+
+  CWP_Param_add(local_code_name,
+                param_name,
+                CWP_INT,
+                initial_value)
+
+def param_add_dbl(char        *local_code_name,
+                  char        *param_name,
+                  int          initial_value):
+  """
+  Add a new double parameter and intialize it.
+
+  Parameters:
+    local_code_name  (char*)  : Local code name
+    param_name       (char*)  : Parameter name
+    initial_value    (double) : Initial value
+  """
+
+  CWP_Param_add(local_code_name,
+                param_name,
+                CWP_DOUBLE,
+                initial_value)
+
+def param_add_str(char        *local_code_name,
+                  char        *param_name,
+                  char        *initial_value):
+  """
+  Add a new string parameter and intialize it.
+
+  Parameters:
+    local_code_name  (char*) : Local code name
+    param_name       (char*) : Parameter name
+    initial_value    (char*) : Initial value
+  """
+
+  CWP_Param_add(local_code_name,
+                param_name,
+                CWP_CHAR,
+                initial_value)
+
+def param_set_int(char        *local_code_name,
+                  char        *param_name,
+                  int          initial_value):
+  """
+  Set an integer parameter.
+
+  Parameters:
+    local_code_name  (char*) : Local code name
+    param_name       (char*) : Parameter name
+    initial_value    (int)   : Initial value
+  """
+
+  CWP_Param_set(local_code_name,
+                param_name,
+                CWP_INT,
+                initial_value)
+
+def param_set_dbl(char        *local_code_name,
+                  char        *param_name,
+                  double       initial_value):
+  """
+  Set a double parameter.
+
+  Parameters:
+    local_code_name  (char*)  : Local code name
+    param_name       (char*)  : Parameter name
+    initial_value    (double) : Initial value
+  """
+
+  CWP_Param_set(local_code_name,
+                param_name,
+                CWP_DOUBLE,
+                initial_value)
+
+def param_set_str(char        *local_code_name,
+                  char        *param_name,
+                  char        *initial_value):
+  """
+  Set a string parameter.
+
+  Parameters:
+    local_code_name  (char*) : Local code name
+    param_name       (char*) : Parameter name
+    initial_value    (char*) : Initial value
+  """
+
+  CWP_Param_set(local_code_name,
+                param_name,
+                CWP_CHAR,
+                initial_value)
+
+def param_del(char        *local_code_name,
+              char        *param_name,
+              CWP_Type_t   data_type):
+  """
+  Delete a parameter.
+
+  Parameters:
+    local_code_name  (char*)      : Local code name
+    param_name       (char*)      : Parameter name
+    data_type        (CWP_Type_t) : Parameter type
+  """
+
+  CWP_Param_del(local_code_name,
+                param_name,
+                data_type)
+
+# -> functions about all code parameters
+def param_n_get(char        *code_name,
+                CWP_Type_t   data_type):
+  """
+  Return the number of parameters for the code code_name.
+
+  Parameters:
+    code_name        (char*)      : Code name
+    data_type        (CWP_Type_t) : Parameter type
+
+  Returns:
+    n_param  (int) : Number of parameters for the code code_name
+  """
+
+  int n_param = CWP_Param_n_get(code_name,
+                                data_type)
+
+  return n_param
+
+def param_list_get(char        *code_name,
+                   CWP_Type_t   data_type):
+  """
+  Return the number of parameters for the code code_name.
+
+  Parameters:
+    code_name        (char*)      : Code name
+    data_type        (CWP_Type_t) : Parameter type
+
+  Returns:
+    n_param     (int)    : Number of parameters for the code code_name
+    param_names (char**) : Parameter names
+  """
+
+  int n_param = -1;
+  char **param_names = NULL
+
+  CWP_Param_list_get(code_name,
+                     data_type,
+                     &(n_param),
+                     &(param_names))
+
+  return {
+          'n_param'     : n_param
+          'param_names' : param_names
+         }
+
+def param_is(char        *code_name,
+             char        *param_name,
+             CWP_Type_t   data_type):
+  """
+  Is this code_name a parameter ?
+
+  Parameters:
+    code_name        (char*)      : Code name
+    param_name       (char*)      : Parameter name
+    data_type        (CWP_Type_t) : Parameter type
+
+  Returns:
+   is_param (int) : 1 : true / 0 : false
+  """
+
+  int is_param = CWP_Param_is(code_name,
+                              param_name,
+                              data_type)
+
+  return is_param
+
+def param_get(char        *code_name,
+              char        *param_name,
+              CWP_Type_t   data_type):
+  """
+  Return the parameter value of param_name on code_name.
+
+  Parameters:
+    code_name        (char*)      : Code name
+    param_name       (char*)      : Parameter name
+    data_type        (CWP_Type_t) : Parameter type
+
+  Returns:
+   value (data_type) : Parameter value
+  """
+  if (data_type == CWP_INT):
+    int value = -1
+    CWP_Param_get(code_name,
+                  param_name,
+                  data_type,
+                  &(value))
+    return value
+
+  elif (data_type == CWP_DOUBLE):
+    double value = -1
+    CWP_Param_get(code_name,
+                  param_name,
+                  data_type,
+                  &(value))
+    return value
+
+  elif (data_type == CWP_CHAR):
+    char *value = NULL
+    CWP_Param_get(code_name,
+                  param_name,
+                  data_type,
+                  &(value))
+    return value
+
+def param_reduce(CWP_Op_t    op,
+                 char       *param_name,
+                 CWP_Type_t  data_type,
+                 int         nCode,
+                 char      **code_names)
+  """
+  Return the result of a reduce operation about a parameter.
+  The parameter name has to be the same for all codes.
+
+  Parameters:
+    op         (CWP_Op_t)   :Operation
+    param_name (char*)      :Parameter name
+    data_type  (CWP_Type_t) :Parameter type
+    nCode      (int)        :Number of codes
+    code_names (char**)     :Codes name
+
+  Returns:
+    res (data_type) : Result
+  """
+
+  if (data_type == CWP_INT):
+    int res = -1
+    CWP_Param_reduce(op,
+                     param_name,
+                     data_type,
+                     &(res),
+                     nCode,
+                     code_names)
+    return res
+
+  elif (data_type == CWP_DOUBLE):
+    double res = -1
+    CWP_Param_reduce(op,
+                     param_name,
+                     data_type,
+                     &(res),
+                     nCode,
+                     code_names)
+    return res
+
+  elif (data_type == CWP_CHAR):
+    char *res = NULL
+    CWP_Param_reduce(op,
+                     param_name,
+                     data_type,
+                     &(res),
+                     nCode,
+                     code_names)
+    return res
+
+def param_lock(char        *code_name):
+  """
+  Lock access to local parameters from a distant code.
+
+  Parameters:
+    code_name (char*) : Code name
+  """
+
+  CWP_Param_lock(code_name)
+
+def param_unlock(char        *code_name):
+  """
+  Unlock access to local parameters from a distant code.
+
+  Parameters:
+    code_name (char*) : Code name
+  """
+
+  CWP_Param_unlock(code_name)
 #-----------------------------------------------------------------------------
 # COUPLING CLASS
 cdef class Coupling (object):
