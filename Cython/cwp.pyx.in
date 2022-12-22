@@ -33,12 +33,11 @@ from mpi4py import MPI
 from libc.stdlib       cimport malloc, free
 from cpython.ref       cimport PyObject, Py_INCREF, Py_DECREF, Py_XDECREF
 from cpython.pycapsule cimport PyCapsule_New, PyCapsule_GetPointer, PyCapsule_IsValid, PyCapsule_GetName
-from libcpp.map cimport map as cpp_map
-from cpython.object cimport PyObject_AsFileDescriptor
 from libc.stdio cimport FILE, fdopen
+from cpython.object cimport PyObject_AsFileDescriptor
 cimport cython
 cimport numpy as NPY
-from mpi4py cimport MPI
+cimport mpi4py.MPI as MPI
 
 # mandatory
 NPY.import_array()
@@ -462,7 +461,7 @@ cdef create_numpy_l(long int* array, int size, bint flag_owndata=True):
 
 def init(MPI.Comm global_comm,
          int      n_code,
-         char   **code_names):
+         NPY.ndarray[NPY.str] code_names):
   """
   Initialize CWIPI library and create intra-communicator.
 
@@ -477,12 +476,19 @@ def init(MPI.Comm global_comm,
     intra_comms    (MPI.Comm) : MPI intra communicators of each code (size = n_code)
   """
 
+  cdef char **c_code_names = <char**> malloc(sizeof(char*) * n_code)
+  for i in range(n_code):
+    c_code_names[i] = <char *> malloc(sizeof(char) * len(code_names[i]))
+
+  for i in range(n_code):
+    c_code_names[i] = code_names[i]
+
   cdef CWP_Status_t is_active_rank
   cdef double       time_init
 
   cdef MPI.MPI_Comm c_global_comm = global_comm.ob_mpi
 
-  cdef MPI.MPI_Comm** intra_comms = <MPI.MPI_Comm **> malloc(n_code * sizeof(MPI.MPI_Comm *))
+  cdef MPI.MPI_Comm* intra_comms = <MPI.MPI_Comm *> malloc(n_code * sizeof(MPI.MPI_Comm))
   cdef py_intra_comms = [MPI.Comm()]*n_code
 
   cdef MPI.MPI_Comm c_comm
@@ -491,14 +497,14 @@ def init(MPI.Comm global_comm,
   for i_code in range(n_code):
     comm = py_intra_comms[i_code]
     c_comm = <MPI.MPI_Comm> comm.ob_mpi
-    intra_comms[i_code] = &c_comm
+    intra_comms[i_code] = c_comm
 
-  CWP_Init(global_comm,
+  CWP_Init(c_global_comm,
            n_code,
-           code_names,
+           c_code_names,
            &(is_active_rank),
            &(time_init),
-           &(intra_comms))
+           intra_comms)
 
   free(intra_comms)
 
@@ -586,7 +592,12 @@ def codes_list_get():
     code_list (char**) : Number of codes known by CWIPI
   """
 
-  cdef char** code_list = CWP_Codes_list_get()
+  cdef char** c_code_list = CWP_Codes_list_get()
+
+  cdef int n_code = CWP_Codes_nb_get()
+  code_list = NPY.array(size=n_code, dtype=str)
+  for i in range(n_code):
+    code_list[i] = c_code_list[i]
 
   return code_list
 
@@ -610,7 +621,12 @@ def loc_codes_list_get():
     loc_code_list (char**) : Number of local codes known by CWIPI
   """
 
-  cdef char** loc_code_list = CWP_Loc_codes_list_get()
+  cdef char** c_loc_code_list = CWP_Loc_codes_list_get()
+
+  cdef int n_loc_code = CWP_Loc_codes_nb_get()
+  loc_code_list = NPY.array(size=n_loc_code, dtype=str)
+  for i in range(n_loc_code):
+    loc_code_list[i] = c_loc_code_list[i]
 
   return loc_code_list
 
@@ -756,7 +772,7 @@ def param_n_get(char        *code_name,
   """
 
   cdef int n_param = CWP_Param_n_get(code_name,
-                                data_type)
+                                     data_type)
 
   return n_param
 
@@ -775,12 +791,16 @@ def param_list_get(char        *code_name,
   """
 
   cdef int n_param = -1;
-  cdef char **param_names = NULL
+  cdef char **c_param_names = NULL
 
   CWP_Param_list_get(code_name,
                      data_type,
                      &(n_param),
-                     &(param_names))
+                     &(c_param_names))
+
+  param_names = NPY.array(size=n_param, dtype=str)
+  for i in range(n_param):
+    param_names[i] = c_param_names[i]
 
   return {
           'n_param'     : n_param,
@@ -852,7 +872,7 @@ def param_reduce(CWP_Op_t    op,
                  char       *param_name,
                  CWP_Type_t  data_type,
                  int         nCode,
-                 char      **code_names):
+                 NPY.ndarray[NPY.str] code_names):
   """
   Return the result of a reduce operation about a parameter.
   The parameter name has to be the same for all codes.
@@ -868,6 +888,13 @@ def param_reduce(CWP_Op_t    op,
     res (data_type) : Result
   """
 
+  cdef char **c_code_names = <char**> malloc(sizeof(char*) * nCode)
+  for i in range(nCode):
+    c_code_names[i] = <char *> malloc(sizeof(char) * len(code_names[i]))
+
+  for i in range(nCode):
+    c_code_names[i] = code_names[i]
+
   cdef int int_res = -1
   cdef double dbl_res = -1
   cdef char *str_res = NULL
@@ -878,7 +905,7 @@ def param_reduce(CWP_Op_t    op,
                      data_type,
                      &(int_res),
                      nCode,
-                     code_names)
+                     c_code_names)
     return int_res
 
   elif (data_type == CWP_DOUBLE):
@@ -887,7 +914,7 @@ def param_reduce(CWP_Op_t    op,
                      data_type,
                      &(dbl_res),
                      nCode,
-                     code_names)
+                     c_code_names)
     return dbl_res
 
   elif (data_type == CWP_CHAR):
@@ -896,7 +923,7 @@ def param_reduce(CWP_Op_t    op,
                      data_type,
                      &(str_res),
                      nCode,
-                     code_names)
+                     c_code_names)
     return str_res
 
 def param_lock(char        *code_name):
@@ -1066,7 +1093,7 @@ cdef class Field (object):
                          self.id,
                          i_part,
                          map_type,
-              <double *> data)
+              <double *> data.data)
 
     def n_component_get(self):
       """
@@ -1388,9 +1415,9 @@ cdef class Coupling (object):
                                        i_part,
                                        block_id,
                                        n_elts,
-                               <int *> connec_idx,
-                               <int *> connec,
-                              <long *> global_num)
+                               <int *> connec_idx.data,
+                               <int *> connec.data,
+                              <long *> global_num.data)
 
     def mesh_interf_f_poly_block_set(self,
                                      i_part,
@@ -1461,11 +1488,11 @@ cdef class Coupling (object):
                                        block_id,
                                        n_elts,
                                        n_faces,
-                               <int *> connec_faces_idx,
-                               <int *> connec_faces,
-                               <int *> connec_cells_idx,
-                               <int *> connec_cells,
-                              <long *> global_num)
+                               <int *> connec_faces_idx.data,
+                               <int *> connec_faces.data,
+                               <int *> connec_cells_idx.data,
+                               <int *> connec_cells.data,
+                              <long *> global_num.data)
 
     def mesh_interf_c_poly_block_get(self,
                                      i_part,
@@ -1551,12 +1578,12 @@ cdef class Coupling (object):
                                         self.id,
                                         i_part,
                                         n_cells,
-                                <int *> cell_face_idx,
-                                <int *> cell_face,
+                                <int *> cell_face_idx.data,
+                                <int *> cell_face.data,
                                         n_faces,
-                                <int *> face_vtx_idx,
-                                <int *> face_vtx,
-                               <long *> global_num)
+                                <int *> face_vtx_idx.data,
+                                <int *> face_vtx.data,
+                               <long *> global_num.data)
 
     def mesh_interf_from_faceedge_set(self,
                                       i_part,
@@ -1585,12 +1612,12 @@ cdef class Coupling (object):
                                         self.id,
                                         i_part,
                                         n_faces,
-                                <int *> face_edge_idx,
-                                <int *> face_edge,
+                                <int *> face_edge_idx.data,
+                                <int *> face_edge.data,
                                         n_edges,
-                                <int *> edge_vtx_idx,
-                                <int *> edge_vtx,
-                               <long *> global_num)
+                                <int *> edge_vtx_idx.data,
+                                <int *> edge_vtx.data,
+                               <long *> global_num.data)
 
     # --> SPATIAL INTERPOLATION TO DO:
 
@@ -1637,8 +1664,8 @@ cdef class Coupling (object):
                            self.id,
                            i_part,
                            n_pts,
-                <double *> coord,
-                  <long *> global_num)
+                <double *> coord.data,
+                  <long *> global_num.data)
 
     # --> USER INTERPOLATION
     def interp_from_location_unset(self,
