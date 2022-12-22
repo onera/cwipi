@@ -19,7 +19,7 @@ enable_testing()
 set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules")
 
-project(CWP VERSION 0.12.0 LANGUAGES C CXX Fortran)
+project(CWP VERSION 0.12.1 LANGUAGES C CXX Fortran)
 
 #------------------------------------------------------------------------------
 # Enable languages
