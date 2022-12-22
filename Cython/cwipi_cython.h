@@ -6,12 +6,13 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 
-CWIPI_CLANG_SUPPRESS_WARNING("-Wshadow")
-CWIPI_CLANG_SUPPRESS_WARNING("-Wdeprecated")
-CWIPI_CLANG_SUPPRESS_WARNING("-Wpedantic")
-CWIPI_CLANG_SUPPRESS_WARNING("-W#warnings")
-CWIPI_CLANG_SUPPRESS_WARNING("-Wincompatible-function-pointer-types")
-CWIPI_CLANG_SUPPRESS_WARNING("-Wdeprecated-declarations")
+// CWIPI
+CWP_CLANG_SUPPRESS_WARNING("-Wshadow")
+CWP_CLANG_SUPPRESS_WARNING("-Wdeprecated")
+CWP_CLANG_SUPPRESS_WARNING("-Wpedantic")
+CWP_CLANG_SUPPRESS_WARNING("-W#warnings")
+CWP_CLANG_SUPPRESS_WARNING("-Wincompatible-function-pointer-types")
+CWP_CLANG_SUPPRESS_WARNING("-Wdeprecated-declarations")
 
 typedef enum  {
   CWIPI_FAKE_ENUM

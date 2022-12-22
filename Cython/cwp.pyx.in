@@ -552,7 +552,30 @@ def time_update(char*  local_code_name,
                   current_time)
 
 # def output_file_set(output_file):
-#   # TO DO: FILE
+#   """
+#   Define output file.
+
+#   Parameters:
+#     output_file(file):  Output file
+
+#   Note:
+#     If this file is written by both cwipi and python, I/O buffering may mix up the output.
+#     In this case, calling output_listing.flush() before any cwipi call may help.
+#   """
+
+#   cdef int fd
+#   cdef FILE* c_file
+#   cdef str mode
+
+#   # next line will most likely fail if output_listing is not
+#   # an io.TextIOWrapper(in py3) or a file(in py2)
+#   mode = output_listing.mode
+
+#   fd = PyObject_AsFileDescriptor(output_file)
+#   c_file = fdopen(fd, mode)
+
+#   CWP_Output_file_set(c_file)
+
 
 # def user_structure_set():
 #   # TO DO: pass void * structure
