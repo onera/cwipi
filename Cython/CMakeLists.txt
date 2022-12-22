@@ -31,7 +31,7 @@ include(UseCython)
 cython_add_module (cwipi 
                    # PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/cwipi.pyx"
                    PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/cwp.pyx"
-                   OTHER_SOURCES $<TARGET_OBJECTS:cwp>
+#                   OTHER_SOURCES $<TARGET_OBJECTS:cwp>
                    INCLUDE_DIRECTORIES ${include_dirs})
 
 get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)                          
@@ -80,7 +80,6 @@ set (SITE_PACKAGES_CWP "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSI
 
 add_custom_target(target ALL DEPENDS ${OUTPUT})
 
-
 if ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
     (CMAKE_C_COMPILER_ID STREQUAL "Intel") OR
     (CMAKE_C_COMPILER_ID STREQUAL "AppleClang")  OR
@@ -88,4 +87,20 @@ if ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
   set_target_properties (cwipi PROPERTIES COMPILE_FLAGS "-w")
 endif()
 
-install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} --quiet install --prefix=${CMAKE_CWP_INSTALL_PYTHON_DIR} --install-data=${SITE_PACKAGES_CWP} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})")
+#
+# Install module with direct copy due to some problems with setup install 
+# options 
+#
+
+#install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY}  install --prefix=${CMAKE_CWP_INSTALL_PYTHON_DIR} --install-data=${SITE_PACKAGES_CWP} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})")
+
+#install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY}  install --prefix=${CMAKE_CWP_INSTALL_PYTHON_DIR} --install-data=${SITE_PACKAGES_CWP} --single-version-externally-managed --root=/ WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})")
+
+
+install(DIRECTORY DESTINATION ${SITE_PACKAGES_CWP})
+install(FILES  "${CMAKE_CURRENT_SOURCE_DIR}/cwipi/__init__.py"
+        DESTINATION            "${SITE_PACKAGES_CWP}")
+
+install(PROGRAMS  "${CMAKE_CURRENT_BINARY_DIR}/cwipi.so"
+        DESTINATION            "${SITE_PACKAGES_CWP}")
+
