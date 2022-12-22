@@ -551,31 +551,30 @@ def time_update(char*  local_code_name,
   CWP_Time_update(local_code_name,
                   current_time)
 
-# def output_file_set(output_file):
-#   """
-#   Define output file.
+def output_file_set(output_file):
+  """
+  Define output file.
 
-#   Parameters:
-#     output_file(file):  Output file
+  Parameters:
+    output_file(file):  Output file
 
-#   Note:
-#     If this file is written by both cwipi and python, I/O buffering may mix up the output.
-#     In this case, calling output_listing.flush() before any cwipi call may help.
-#   """
+  Note:
+    If this file is written by both cwipi and python, I/O buffering may mix up the output.
+    In this case, calling output_listing.flush() before any cwipi call may help.
+  """
 
-#   cdef int fd
-#   cdef FILE* c_file
-#   cdef str mode
+  cdef int fd
+  cdef FILE* c_file
+  cdef str mode
 
-#   # next line will most likely fail if output_listing is not
-#   # an io.TextIOWrapper(in py3) or a file(in py2)
-#   mode = output_listing.mode
+  # next line will most likely fail if output_file is not
+  # an io.TextIOWrapper(in py3) or a file(in py2)
+  mode = output_file.mode
 
-#   fd = PyObject_AsFileDescriptor(output_file)
-#   c_file = fdopen(fd, mode)
+  fd = PyObject_AsFileDescriptor(output_file)
+  c_file = fdopen(fd, mode)
 
-#   CWP_Output_file_set(c_file)
-
+  CWP_Output_file_set(c_file)
 
 # def user_structure_set():
 #   # TO DO: pass void * structure
@@ -1642,10 +1641,33 @@ cdef class Coupling (object):
                                 <int *> edge_vtx.data,
                                <long *> global_num.data)
 
-    # --> SPATIAL INTERPOLATION TO DO:
+    # --> SPATIAL INTERPOLATION
+    def spatial_interp_weights_compute(self):
+      """
+      Compute spatial interpolation weights.
+      """
 
-    # CWP_Spatial_interp_weights_compute
-    # CWP_Spatial_interp_property_set
+      CWP_Spatial_interp_weights_compute(self.local_code_name,
+                                         self.id)
+
+    def spatial_interp_property_set(self,
+                                    char *property_name,
+                                    char *property_type,
+                                    char *property_value):
+      """
+      Set a property of the spatial interpolation algorithm.
+
+      Parameters:
+        property_name  (char*) : Name of the property
+        property_type  (char*) : Type of the property ("double" or "int")
+        property_value (char*) : Value of the property
+      """
+
+      CWP_Spatial_interp_property_set(self.local_code_name,
+                                      self.id,
+                                      property_name,
+                                      property_type,
+                                      property_value)
 
     # --> VISU
     def visu_set(self,
