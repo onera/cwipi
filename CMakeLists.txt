@@ -65,7 +65,7 @@ option(CWP_ENABLE_MPI_CHECK "Check MPI Wrapper" ON)
 # Python Bindings
 # ---------------
 
-option(CWP_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
+option(CWP_ENABLE_PYTHON_BINDINGS "Build Python module" ON)
 
 # Fortran interface
 # -----------------

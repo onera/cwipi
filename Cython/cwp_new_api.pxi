@@ -35,7 +35,6 @@ from cpython.ref       cimport PyObject, Py_INCREF, Py_DECREF, Py_XDECREF
 from cpython.pycapsule cimport PyCapsule_New, PyCapsule_GetPointer, PyCapsule_IsValid, PyCapsule_GetName
 from libc.stdio cimport FILE, fdopen
 from cpython.object cimport PyObject_AsFileDescriptor
-cimport cython
 cimport numpy as NPY
 cimport mpi4py.MPI as MPI
 
@@ -44,10 +43,6 @@ NPY.import_array()
 
 #-----------------------------------------------------------------------------
 # EXTERN
-
-cdef extern from "cwipi_cython.h":
-    ctypedef enum cwipi_fake_enum_t:
-      CWIPI_FAKE_ENUM
 
 cdef extern from "cwp.h":
 
@@ -2035,18 +2030,3 @@ cdef class Cpl (object):
                                    src_field_id,
                                    interp_callback)
       current_cpl_id = -1
-
-#-----------------------------------------------------------------------------
-# EXTERN
-cdef extern from "cwipi_config.h":
-    # trick from: https://stackoverflow.com/questions/5697479/how-can-a-defined-c-value-be-exposed-to-python-in-a-cython-module
-    cdef int _CWIPI_MAJOR_VERSION "CWIPI_MAJOR_VERSION"
-    cdef int _CWIPI_MINOR_VERSION "CWIPI_MINOR_VERSION"
-    cdef int _CWIPI_RELEASE_VERSION "CWIPI_RELEASE_VERSION"
-    cdef char* _CWIPI_VERSION "CWIPI_VERSION"
-
-# CWIPI_VERSION = _CWIPI_VERSION
-# CWIPI_MAJOR_VERSION = _CWIPI_MAJOR_VERSION
-# CWIPI_MINOR_VERSION = _CWIPI_MINOR_VERSION
-# CWIPI_RELEASE_VERSION = _CWIPI_RELEASE_VERSION
-__version__ = _CWIPI_VERSION

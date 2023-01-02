@@ -33,8 +33,6 @@ cwipi - Coupling With Interpolation Parallel Interface library.
 #   - add __version__
 #   - docstring
 
-cimport cython
-
 import numpy as np
 cimport numpy as np
 
@@ -50,11 +48,6 @@ interp_f={}
 interp_ho_loc_f={}
 interp_ho_bas_f={}
 current_cpl = ""
-
-cdef extern from "cwipi_cython.h":
-    ctypedef enum cwipi_fake_enum_t:
-      CWIPI_FAKE_ENUM
-
 
 cdef extern from "cwipi.h":
 
@@ -1764,18 +1757,3 @@ cdef double ho_loc_callback(int entities_dim,
                                         point_coords_a,
                                         projected_coords_a,
                                         projected_uvw_a)
-
-
-
-cdef extern from "cwipi_config.h":
-    # trick from: https://stackoverflow.com/questions/5697479/how-can-a-defined-c-value-be-exposed-to-python-in-a-cython-module
-    cdef int _CWIPI_MAJOR_VERSION "CWIPI_MAJOR_VERSION"
-    cdef int _CWIPI_MINOR_VERSION "CWIPI_MINOR_VERSION"
-    cdef int _CWIPI_RELEASE_VERSION "CWIPI_RELEASE_VERSION"
-    cdef char* _CWIPI_VERSION "CWIPI_VERSION"
-
-# CWIPI_VERSION = _CWIPI_VERSION
-# CWIPI_MAJOR_VERSION = _CWIPI_MAJOR_VERSION
-# CWIPI_MINOR_VERSION = _CWIPI_MINOR_VERSION
-# CWIPI_RELEASE_VERSION = _CWIPI_RELEASE_VERSION
-__version__ = _CWIPI_VERSION
