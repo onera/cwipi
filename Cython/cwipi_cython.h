@@ -1,8 +1,8 @@
 #ifndef __CWIPI_CYTHON_H__
 #define __CWIPI_CYTHON_H__
 
-// #include "cwipi.h"
-// #include "cwipi_priv.h"
+#include "cwipi.h"
+#include "cwipi_priv.h"
 #include "cwp.h"
 #include "cwp_priv.h"
 

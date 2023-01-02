@@ -218,4 +218,5 @@ endif()
 
 if (CWP_ENABLE_PYTHON_BINDINGS)
   test_python_create (python_api ${_MPIEXEC_MAX_NUMPROCS})
+  test_python_create (python_new_api 2)
 endif()
