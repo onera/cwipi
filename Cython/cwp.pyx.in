@@ -135,258 +135,35 @@ cdef extern from "cwp.h":
       CWP_OP_MAX
       CWP_OP_SUM
 
-#-----------------------------------------------------------------------------
-# CALLBACKS
-g_cwp_interp_from_location_fct = {}
-current_cpl_id = -1
+  ctypedef void (*CWP_interp_from_location_t) (int                  interface_type,
+                                               char                *code_name,
+                                               int                  src_n_block,
+                                               CWP_Block_t         *src_blocks_type,
+                                               int                  src_i_part,
+                                               int                  src_n_vtx,
+                                               double              *src_vtx_coords,
+                                               long                *src_vtx_global_num,
+                                               int                  src_n_elts,
+                                               int                 *src_id_block,
+                                               int                 *src_elt_in_block,
+                                               int                 *src_elt_vtx_idx,
+                                               int                 *src_elt_vtx,
+                                               long                *src_elts_global_num,
+                                               int                  tgt_n_pts,
+                                               int                 *tgt_pts_elt_idx,
+                                               double              *tgt_pts_coords,
+                                               double              *tgt_pts_dist,
+                                               double              *tgt_pts_uvw,
+                                               int                 *tgt_pts_weights_idx,
+                                               double              *tgt_pts_weights,
+                                               int                  stride,
+                                               CWP_Dof_location_t   src_field_dof_location,
+                                               void                *src_field,
+                                               void                *tgt_field)
 
-cdef void cwp_interp_from_location_fct(const int                  interface_type,
-                                       const char                *code_name,
-                                       const int                  src_n_block,
-                                       const CWP_Block_t          src_blocks_type[],
-                                       const int                  src_i_part,
-                                       const int                  src_n_vtx,
-                                       const double               src_vtx_coords[],
-                                       const CWP_g_num_t          src_vtx_global_num[],
-                                       const int                  src_n_elts,
-                                       const int                  src_id_block[],
-                                       const int                  src_elt_in_block[],
-                                       const int                  src_elt_vtx_idx[],
-                                       const int                  src_elt_vtx[],
-                                       const CWP_g_num_t          src_elts_global_num[],
-                                       const int                  tgt_n_pts,
-                                       const int                  tgt_pts_elt_idx[],
-                                       const double               tgt_pts_coords[],
-                                       const double               tgt_pts_dist[],
-                                       const double               tgt_pts_uvw[],
-                                       const int                  tgt_pts_weights_idx[],
-                                       const double               tgt_pts_weights[],
-                                       const int                  stride,
-                                       const CWP_Dof_location_t   src_field_dof_location,
-                                       const void                *src_field,
-                                       void                      *tgt_field)
-  """
-  User interpolation function interface from location into a mesh.
+  ctypedef void (*CWP_interp_from_intersect_t) (int interface_type)
 
-  Parameters:
-    global_comm (MPI.Comm) : MPI global communicator
-    interface_type              Interface type
-    code_name                   Name of code
-    src_n_block                 Number of blocks
-    src_block_type              Block types (size = n_block)
-    src_i_part                  Part id
-    src_n_vtx                   Number of vertices
-    src_vtx_coords              Coordinates of vertices (size = 3 * src_n_vtx)
-    src_vtx_global_num          Global number of vertices (size = src_n_vtx)
-    src_n_elts                  Number of elements
-    src_id_block                 block id of the element
-                                (size = src_n_elts)
-    src_elt_in_block            Element number of the elements into it block
-                                (size = src_n_elts)
-    src_elt_vtx_idx              Element to vertex index
-                                (src_elt_vtx_idx[0] = 0 and
-                                size = src_n_elts + 1)
-    src_elt_vtx                  Element to vertex connectivity.
-                                (size = src_elt_vtx_idx[src_n_elts])
-    src_elts_global_num         Global number of elements (size = src_n_elts)
-    tgt_n_pts                   Number of target points
-    tgt_pts_elt_idx             The list of target points located in each element
-                                (size = src_n_elts + 1)
-    tgt_pts_coords              Target points coordinates
-                                (size = 3 * tgt_n_pts)
-    tgt_pts_dist                target points distance to location element
-                                (size = tgt_n_pts)
-    tgt_pts_uvw                 Parametric coordinates of target points in the elements
-                                ( 0 <= u <= 1, 0 <= v <= 1, -1 : for polydra and polygons)
-                                (size = dim_interface * tgt_n_pts)
-    tgt_pts_weights_idx         Index of Barycentric coordinates target points
-                                in location element
-                                (tgt_pts_bary_coords_idx[0] = 0 and
-                                size = n_tgt_pts + 1)
-    tgt_pts_weights             Barycentric coordinates target points
-                                in location element
-                                (size = tgt_pts_weights_idx[n_tgt_pts])
-    stride                      Number of field components
-    src_field_dof_location      source field location
-    src_field                   source field
-                                (size depends on field type and stride)
-
-  Returns:
-    tgt_field                   target field
-                                (size = stride * n_tgt_pts)
-  """
-
-  global g_cwp_interp_from_location_fct
-  global current_cpl_id
-  cdef NPY.npy_intp dims = 0
-
-  if (src_n_block == 0 or src_blocks_type == NULL):
-    src_blocks_type_a = None
-  else:
-    dims = <np.npy_intp>(src_n_block)
-    src_blocks_type_a = NPY.PyArray_SimpleNewFromData(1,
-                                                      &dims,
-                                                      NPY.NPY_LONG, # TO DO: ok for CWP_Block_t?
-                                                      <void *> src_blocks_type)
-
-  if (src_n_vtx == 0 or src_vtx_coords == NULL):
-    src_vtx_coords_a = None
-  else:
-    dims = <np.npy_intp>(3 * src_n_vtx)
-    src_vtx_coords_a = NPY.PyArray_SimpleNewFromData(1,
-                                                     &dims,
-                                                     NPY.NPY_DOUBLE,
-                                                     <void *> src_vtx_coords)
-
-  if (src_n_vtx == 0 or src_vtx_global_num == NULL):
-    src_vtx_global_num_a = None
-  else:
-    dims = <np.npy_intp>(src_n_vtx)
-    src_vtx_global_num_a = NPY.PyArray_SimpleNewFromData(1,
-                                                         &dims,
-                                                         NPY.NPY_LONG,
-                                                         <void *> src_vtx_global_num)
-
-  if (src_n_elts == 0 or src_id_block == NULL):
-    src_id_block_a = None
-  else:
-    dims = <np.npy_intp>(src_n_elts)
-    src_id_block_a = NPY.PyArray_SimpleNewFromData(1,
-                                                   &dims,
-                                                   NPY.NPY_INT,
-                                                   <void *> src_id_block)
-
-  if (src_n_elts == 0 or src_elt_vtx_idx == NULL):
-    src_elt_vtx_idx_a = None
-    src_elt_vtx_a     = None
-  else:
-    dims = <np.npy_intp>(src_n_elts+1)
-    src_elt_vtx_idx_a = NPY.PyArray_SimpleNewFromData(1,
-                                                      &dims,
-                                                      NPY.NPY_INT,
-                                                      <void *> src_elt_vtx_idx)
-    if (src_elt_vtx_idx[src_n_elts] == 0 or src_elt_vtx == NULL):
-      src_elt_vtx_a = None
-    else:
-      dims = <np.npy_intp>(src_elt_vtx[src_n_elts])
-      src_elt_vtx_a = NPY.PyArray_SimpleNewFromData(1,
-                                                    &dims,
-                                                    NPY.NPY_INT,
-                                                    <void *> src_elt_vtx)
-
-  if (src_n_elts == 0 or src_elts_global_num == NULL):
-    src_elts_global_num_a = None
-  else:
-    dims = <np.npy_intp>(src_n_elts)
-    src_elts_global_num_a = NPY.PyArray_SimpleNewFromData(1,
-                                                          &dims,
-                                                          NPY.NPY_LONG,
-                                                          <void *> src_elts_global_num)
-
-  if (tgt_n_pts == 0 or tgt_pts_elt_idx == NULL):
-    tgt_pts_elt_idx_a = None
-  else:
-    dims = <np.npy_intp>(tgt_n_pts+1)
-    tgt_pts_elt_idx_a = NPY.PyArray_SimpleNewFromData(1,
-                                                      &dims,
-                                                      NPY.NPY_INT,
-                                                      <void *> tgt_pts_elt_idx)
-
-  if (tgt_n_pts == 0 or tgt_pts_coords == NULL):
-    tgt_pts_coords_a = None
-  else:
-    dims = <np.npy_intp>(3*tgt_n_pts)
-    tgt_pts_coords_a = NPY.PyArray_SimpleNewFromData(1,
-                                                     &dims,
-                                                     NPY.NPY_DOUBLE,
-                                                     <void *> tgt_pts_coords)
-
-  if (tgt_n_pts == 0 or tgt_pts_dist == NULL):
-    tgt_pts_dist_a = None
-  else:
-    dims = <np.npy_intp>(tgt_n_pts)
-    tgt_pts_dist_a = NPY.PyArray_SimpleNewFromData(1,
-                                                   &dims,
-                                                   NPY.NPY_DOUBLE,
-                                                   <void *> tgt_pts_dist)
-
-  if (tgt_n_pts == 0 or tgt_pts_uvw == NULL):
-    tgt_pts_uvw_a = None
-  else:
-    dim_interface = 3 # tmp
-    dims = <np.npy_intp>(dim_interface * tgt_n_pts) # TO DO ?
-    tgt_pts_uvw_a = NPY.PyArray_SimpleNewFromData(1,
-                                                  &dims,
-                                                  NPY.NPY_DOUBLE,
-                                                  <void *> tgt_pts_uvw)
-
-  if (tgt_n_pts == 0 or tgt_pts_weights_idx == NULL):
-    tgt_pts_weights_idx_a = None
-    tgt_pts_weights_a     = None
-  else:
-    dims = <np.npy_intp>(tgt_n_pts+1)
-    tgt_pts_weights_idx_a = NPY.PyArray_SimpleNewFromData(1,
-                                                  &dims,
-                                                  NPY.NPY_INT,
-                                                  <void *> tgt_pts_weights_idx)
-    if (tgt_pts_weights_idx[tgt_n_pts] == 0 or tgt_pts_weights == NULL):
-      tgt_pts_weights_a = None
-    else:
-      dims = <np.npy_intp>(tgt_pts_weights[tgt_n_pts])
-      tgt_pts_weights_a = NPY.PyArray_SimpleNewFromData(1,
-                                                       &dims,
-                                                       NPY.NPY_DOUBLE,
-                                                       <void *> tgt_pts_weights)
-
-  if (src_n_elts == 0 or src_field == NULL):
-    src_field_a = None
-  else:
-    size = stride*tgt_n_pts # tmp
-    dims = <np.npy_intp>(size) # TO DO ?
-    src_field_a = NPY.PyArray_SimpleNewFromData(1,
-                                                &dims,
-                                                NPY.NPY_DOUBLE,
-                                                <void *> src_field)
-
-  if (tgt_n_pts == 0 or tgt_field == NULL):
-    tgt_field_a = None
-  else:
-    dims = <np.npy_intp>(stride*tgt_n_pts)
-    tgt_field_a = NPY.PyArray_SimpleNewFromData(1,
-                                                &dims,
-                                                NPY.NPY_DOUBLE,
-                                                <void *> tgt_field)
-
-  (<object> g_cwp_interp_from_location_fct[current_cpl_id]) (interface_type,
-                                                          code_name,
-                                                          src_n_block,
-                                                          src_blocks_type_a,
-                                                          src_i_part,
-                                                          src_n_vtx,
-                                                          src_vtx_coords_a,
-                                                          src_vtx_global_num_a,
-                                                          src_n_elts,
-                                                          src_id_block_a,
-                                                          src_elt_in_block_a,
-                                                          src_elt_vtx_idx_a,
-                                                          src_elt_vtx_a,
-                                                          src_elts_global_num_a,
-                                                          tgt_n_pts,
-                                                          tgt_pts_elt_idx_a,
-                                                          tgt_pts_coords_a,
-                                                          tgt_pts_dist_a,
-                                                          tgt_pts_uvw_a,
-                                                          tgt_pts_weights_idx_a,
-                                                          tgt_pts_weights_a,
-                                                          stride,
-                                                          src_field_dof_location,
-                                                          src_field_a,
-                                                          tgt_field_a)
-
-  # TO DO
-  # ctypedef void (*CWP_interp_from_intersect_t) (int interface_type)
-
-  # ctypedef void (*CWP_interp_from_closest_pts_t) (int interface_type)
+  ctypedef void (*CWP_interp_from_closest_pts_t) (int interface_type)
 
   #-----------------------------------------------------------------------------
   # CWIPI
@@ -617,7 +394,7 @@ cdef void cwp_interp_from_location_fct(const int                  interface_type
   void CWP_Interp_from_location_set(char                       *local_code_name,
                                     char                       *cpl_id,
                                     char                       *src_field_id,
-                                    fct)
+                                    CWP_interp_from_location_t  fct)
 
   # --> functions about control parameters
   void CWP_Param_add(char        *local_code_name,
@@ -655,7 +432,264 @@ cdef void cwp_interp_from_location_fct(const int                  interface_type
   void CWP_Param_lock(char *code_name)
   void CWP_Param_unlock(char *code_name)
 
-  # --> client-server
+  # --> client-server TO DO
+
+#-----------------------------------------------------------------------------
+# CALLBACK
+g_interp_fct = {}
+current_cpl_id = -1
+
+cdef void callback(const int                  interface_type,
+                   const char                *code_name,
+                   const int                  src_n_block,
+                   const CWP_Block_t          src_blocks_type[],
+                   const int                  src_i_part,
+                   const int                  src_n_vtx,
+                   const double               src_vtx_coords[],
+                   const long                 src_vtx_global_num[], # TO DO replace by CWP_g_num_t ?
+                   const int                  src_n_elts,
+                   const int                  src_id_block[],
+                   const int                  src_elt_in_block[],
+                   const int                  src_elt_vtx_idx[],
+                   const int                  src_elt_vtx[],
+                   const long                 src_elts_global_num[], # TO DO replace by CWP_g_num_t ?
+                   const int                  tgt_n_pts,
+                   const int                  tgt_pts_elt_idx[],
+                   const double               tgt_pts_coords[],
+                   const double               tgt_pts_dist[],
+                   const double               tgt_pts_uvw[],
+                   const int                  tgt_pts_weights_idx[],
+                   const double               tgt_pts_weights[],
+                   const int                  stride,
+                   const CWP_Dof_location_t   src_field_dof_location,
+                   const void                *src_field,
+                   void                      *tgt_field):
+    """
+    User interpolation function interface from location into a mesh.
+
+    Parameters:
+      global_comm (MPI.Comm) : MPI global communicator
+      interface_type              Interface type
+      code_name                   Name of code
+      src_n_block                 Number of blocks
+      src_block_type              Block types (size = n_block)
+      src_i_part                  Part id
+      src_n_vtx                   Number of vertices
+      src_vtx_coords              Coordinates of vertices (size = 3 * src_n_vtx)
+      src_vtx_global_num          Global number of vertices (size = src_n_vtx)
+      src_n_elts                  Number of elements
+      src_id_block                 block id of the element
+                                  (size = src_n_elts)
+      src_elt_in_block            Element number of the elements into it block
+                                  (size = src_n_elts)
+      src_elt_vtx_idx              Element to vertex index
+                                  (src_elt_vtx_idx[0] = 0 and
+                                  size = src_n_elts + 1)
+      src_elt_vtx                  Element to vertex connectivity.
+                                  (size = src_elt_vtx_idx[src_n_elts])
+      src_elts_global_num         Global number of elements (size = src_n_elts)
+      tgt_n_pts                   Number of target points
+      tgt_pts_elt_idx             The list of target points located in each element
+                                  (size = src_n_elts + 1)
+      tgt_pts_coords              Target points coordinates
+                                  (size = 3 * tgt_n_pts)
+      tgt_pts_dist                target points distance to location element
+                                  (size = tgt_n_pts)
+      tgt_pts_uvw                 Parametric coordinates of target points in the elements
+                                  ( 0 <= u <= 1, 0 <= v <= 1, -1 : for polydra and polygons)
+                                  (size = dim_interface * tgt_n_pts)
+      tgt_pts_weights_idx         Index of Barycentric coordinates target points
+                                  in location element
+                                  (tgt_pts_bary_coords_idx[0] = 0 and
+                                  size = n_tgt_pts + 1)
+      tgt_pts_weights             Barycentric coordinates target points
+                                  in location element
+                                  (size = tgt_pts_weights_idx[n_tgt_pts])
+      stride                      Number of field components
+      src_field_dof_location      source field location
+      src_field                   source field
+                                  (size depends on field type and stride)
+
+    Returns:
+      tgt_field                   target field
+                                  (size = stride * n_tgt_pts)
+    """
+
+    global g_interp_fct
+    global current_cpl_id
+    cdef NPY.npy_intp dims = 0
+
+    if (src_n_block == 0 or src_blocks_type == NULL):
+      src_blocks_type_a = None
+    else:
+      dims = <NPY.npy_intp>(src_n_block)
+      src_blocks_type_a = NPY.PyArray_SimpleNewFromData(1,
+                                                        &dims,
+                                                        NPY.NPY_LONG, # TO DO: ok for CWP_Block_t?
+                                                        <void *> src_blocks_type)
+
+    if (src_n_vtx == 0 or src_vtx_coords == NULL):
+      src_vtx_coords_a = None
+    else:
+      dims = <NPY.npy_intp>(3 * src_n_vtx)
+      src_vtx_coords_a = NPY.PyArray_SimpleNewFromData(1,
+                                                       &dims,
+                                                       NPY.NPY_DOUBLE,
+                                                       <void *> src_vtx_coords)
+
+    if (src_n_vtx == 0 or src_vtx_global_num == NULL):
+      src_vtx_global_num_a = None
+    else:
+      dims = <NPY.npy_intp>(src_n_vtx)
+      src_vtx_global_num_a = NPY.PyArray_SimpleNewFromData(1,
+                                                           &dims,
+                                                           NPY.NPY_LONG,
+                                                           <void *> src_vtx_global_num)
+
+    if (src_n_elts == 0 or src_id_block == NULL):
+      src_id_block_a = None
+    else:
+      dims = <NPY.npy_intp>(src_n_elts)
+      src_id_block_a = NPY.PyArray_SimpleNewFromData(1,
+                                                     &dims,
+                                                     NPY.NPY_INT,
+                                                     <void *> src_id_block)
+
+    if (src_n_elts == 0 or src_elt_in_block == NULL):
+      src_elt_in_block_a = None
+    else:
+      dims = <NPY.npy_intp>(src_n_elts)
+      src_elt_in_block_a = NPY.PyArray_SimpleNewFromData(1,
+                                                     &dims,
+                                                     NPY.NPY_INT,
+                                                     <void *> src_elt_in_block)
+
+    if (src_n_elts == 0 or src_elt_vtx_idx == NULL):
+      src_elt_vtx_idx_a = None
+      src_elt_vtx_a     = None
+    else:
+      dims = <NPY.npy_intp>(src_n_elts+1)
+      src_elt_vtx_idx_a = NPY.PyArray_SimpleNewFromData(1,
+                                                        &dims,
+                                                        NPY.NPY_INT,
+                                                        <void *> src_elt_vtx_idx)
+      if (src_elt_vtx_idx[src_n_elts] == 0 or src_elt_vtx == NULL):
+        src_elt_vtx_a = None
+      else:
+        dims = <NPY.npy_intp>(src_elt_vtx[src_n_elts])
+        src_elt_vtx_a = NPY.PyArray_SimpleNewFromData(1,
+                                                      &dims,
+                                                      NPY.NPY_INT,
+                                                      <void *> src_elt_vtx)
+
+    if (src_n_elts == 0 or src_elts_global_num == NULL):
+      src_elts_global_num_a = None
+    else:
+      dims = <NPY.npy_intp>(src_n_elts)
+      src_elts_global_num_a = NPY.PyArray_SimpleNewFromData(1,
+                                                            &dims,
+                                                            NPY.NPY_LONG,
+                                                            <void *> src_elts_global_num)
+
+    if (tgt_n_pts == 0 or tgt_pts_elt_idx == NULL):
+      tgt_pts_elt_idx_a = None
+    else:
+      dims = <NPY.npy_intp>(tgt_n_pts+1)
+      tgt_pts_elt_idx_a = NPY.PyArray_SimpleNewFromData(1,
+                                                        &dims,
+                                                        NPY.NPY_INT,
+                                                        <void *> tgt_pts_elt_idx)
+
+    if (tgt_n_pts == 0 or tgt_pts_coords == NULL):
+      tgt_pts_coords_a = None
+    else:
+      dims = <NPY.npy_intp>(3*tgt_n_pts)
+      tgt_pts_coords_a = NPY.PyArray_SimpleNewFromData(1,
+                                                       &dims,
+                                                       NPY.NPY_DOUBLE,
+                                                       <void *> tgt_pts_coords)
+
+    if (tgt_n_pts == 0 or tgt_pts_dist == NULL):
+      tgt_pts_dist_a = None
+    else:
+      dims = <NPY.npy_intp>(tgt_n_pts)
+      tgt_pts_dist_a = NPY.PyArray_SimpleNewFromData(1,
+                                                     &dims,
+                                                     NPY.NPY_DOUBLE,
+                                                     <void *> tgt_pts_dist)
+
+    if (tgt_n_pts == 0 or tgt_pts_uvw == NULL):
+      tgt_pts_uvw_a = None
+    else:
+      dim_interface = 3 # tmp
+      dims = <NPY.npy_intp>(dim_interface * tgt_n_pts) # TO DO ?
+      tgt_pts_uvw_a = NPY.PyArray_SimpleNewFromData(1,
+                                                    &dims,
+                                                    NPY.NPY_DOUBLE,
+                                                    <void *> tgt_pts_uvw)
+
+    if (tgt_n_pts == 0 or tgt_pts_weights_idx == NULL):
+      tgt_pts_weights_idx_a = None
+      tgt_pts_weights_a     = None
+    else:
+      dims = <NPY.npy_intp>(tgt_n_pts+1)
+      tgt_pts_weights_idx_a = NPY.PyArray_SimpleNewFromData(1,
+                                                    &dims,
+                                                    NPY.NPY_INT,
+                                                    <void *> tgt_pts_weights_idx)
+      if (tgt_pts_weights_idx[tgt_n_pts] == 0 or tgt_pts_weights == NULL):
+        tgt_pts_weights_a = None
+      else:
+        dims = <NPY.npy_intp>(tgt_pts_weights[tgt_n_pts])
+        tgt_pts_weights_a = NPY.PyArray_SimpleNewFromData(1,
+                                                         &dims,
+                                                         NPY.NPY_DOUBLE,
+                                                         <void *> tgt_pts_weights)
+
+    if (src_n_elts == 0 or src_field == NULL):
+      src_field_a = None
+    else:
+      size = stride*tgt_n_pts # tmp
+      dims = <NPY.npy_intp>(size) # TO DO ?
+      src_field_a = NPY.PyArray_SimpleNewFromData(1,
+                                                  &dims,
+                                                  NPY.NPY_DOUBLE,
+                                                  <void *> src_field)
+
+    if (tgt_n_pts == 0 or tgt_field == NULL):
+      tgt_field_a = None
+    else:
+      dims = <NPY.npy_intp>(stride*tgt_n_pts)
+      tgt_field_a = NPY.PyArray_SimpleNewFromData(1,
+                                                  &dims,
+                                                  NPY.NPY_DOUBLE,
+                                                  <void *> tgt_field)
+
+    (<object> g_interp_fct[current_cpl_id]) (interface_type,
+                                                            code_name,
+                                                            src_n_block,
+                                                            src_blocks_type_a,
+                                                            src_i_part,
+                                                            src_n_vtx,
+                                                            src_vtx_coords_a,
+                                                            src_vtx_global_num_a,
+                                                            src_n_elts,
+                                                            src_id_block_a,
+                                                            src_elt_in_block_a,
+                                                            src_elt_vtx_idx_a,
+                                                            src_elt_vtx_a,
+                                                            src_elts_global_num_a,
+                                                            tgt_n_pts,
+                                                            tgt_pts_elt_idx_a,
+                                                            tgt_pts_coords_a,
+                                                            tgt_pts_dist_a,
+                                                            tgt_pts_uvw_a,
+                                                            tgt_pts_weights_idx_a,
+                                                            tgt_pts_weights_a,
+                                                            stride,
+                                                            src_field_dof_location,
+                                                            src_field_a,
+                                                            tgt_field_a)
 
 #-----------------------------------------------------------------------------
 # UTILS
@@ -799,11 +833,38 @@ def output_file_set(output_file):
 
   CWP_Output_file_set(c_file)
 
-# def user_structure_set():
-#   # TO DO: pass void * structure
+def user_structure_set(char*     local_code_name,
+                       object user_structure): # TO DO: object ?
+  """
+  Define a user structure associated to a code.
 
-# def user_structure_get():
-#   # TO DO: return void*
+  Parameters:
+    local_code_name  (char*)      : Local code name
+    user_structure   (PyObject *) : User structure
+  """
+
+  cdef void *c_user_structure = <void *> PyCapsule_GetPointer(user_structure, NULL)
+
+  CWP_User_structure_set(local_code_name,
+                         c_user_structure)
+
+def user_structure_get(local_code_name):
+  """
+  Return the user structure associated.
+
+  Parameters:
+    local_code_name  (char*) : Local code name
+
+  Returns:
+    user_structure   (PyObject *) : User structure
+  """
+
+  cdef void *c_user_structure = CWP_User_structure_get(local_code_name)
+
+  if c_user_structure: # not Null
+    user_structure = PyCapsule_New(c_user_structure, NULL, NULL)
+
+  return user_structure
 
 # --> functions about other code properties
 
@@ -1961,14 +2022,15 @@ cdef class Coupling (object):
         src_field_id (char*)                      : Source field id
         fct                                       : Function
       """
-
+      global current_cpl_id
+      global g_interp_fct
       current_cpl_id = self.id
-      g_cwp_interp_from_location_fct[current_cpl_id] = fct
+      g_interp_fct[current_cpl_id] = fct
 
       CWP_Interp_from_location_set(self.local_code_name,
                                    self.id,
                                    src_field_id,
-                                   cwp_interp_from_location_fct)
+                                   callback)
       current_cpl_id = -1
 
 #-----------------------------------------------------------------------------
