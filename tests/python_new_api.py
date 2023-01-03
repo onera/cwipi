@@ -44,6 +44,12 @@ def runTest():
 
     code_names = ["proc0","proc1"]
 
+    if (i_rank == 0):
+        code_name = ["proc0"]
+
+    if (i_rank == 1):
+        code_name = ["proc1"]
+
     try:
         from pycwp import pycwp
     except:
@@ -53,25 +59,25 @@ def runTest():
 
     # OUTPUT
     srank = '{0}'.format(i_rank)
-    f=open("python_api_"+srank.zfill(4)+".txt",'w')
+    f=open("python_new_api_"+srank.zfill(4)+".txt",'w')
     pycwp.output_file_set(f)
 
     # INIT
     n_code = 1
     out = pycwp.init(comm,
-                   n_code,
-                   code_names[i_rank])
+                     n_code,
+                     code_name)
     f.write("pycwp.init:\n")
     f.write("  - is_active_rank : {param}\n".format(param=out["is_active_rank"]))
     f.write("  - time_init : {param}\n".format(param=out["time_init"]))
     f.write("  - intra_comms : {param}\n".format(param=out["intra_comms"][0]))
 
     # STATE UPDATE
-    pycwp.state_update(code_names[i_rank], pycwp.CWP_STATE_END)
+    pycwp.state_update(code_names[i_rank], pycwp.STATE_END)
     state = pycwp.state_get(code_names[i_rank])
     f.write("pycwp.state_get:\n")
     f.write("  - state : {param}\n".format(param=state))
-    pycwp.state_update(code_names[i_rank], pycwp.CWP_STATE_IN_PROGRESS)
+    pycwp.state_update(code_names[i_rank], pycwp.STATE_IN_PROGRESS)
 
     # TIME UPDATE
     pycwp.time_update(code_names[i_rank], 0.0)

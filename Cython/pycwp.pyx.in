@@ -436,6 +436,13 @@ cdef extern from "cwp.h":
   # --> client-server TO DO
 
 #-----------------------------------------------------------------------------
+# ENUM
+
+STATE_IN_PROGRESS   = CWP_STATE_IN_PROGRESS
+STATE_END           = CWP_STATE_END
+STATE_OUTPUT_ERROR  = CWP_STATE_OUTPUT_ERROR
+
+#-----------------------------------------------------------------------------
 # CALLBACK
 g_interp_fct = {}
 current_cpl_id = ""
@@ -719,7 +726,7 @@ cdef create_numpy_l(long int* array, int size, bint flag_owndata=True):
 
 def init(MPI.Comm global_comm,
          int      n_code,
-         NPY.ndarray[NPY.str] code_names):
+         list code_names):
   """
   Initialize CWIPI library and create intra-communicator.
 
@@ -1185,7 +1192,7 @@ def param_reduce(CWP_Op_t    op,
                  char       *param_name,
                  CWP_Type_t  data_type,
                  int         nCode,
-                 NPY.ndarray[NPY.str] code_names):
+                 list        code_names):
   """
   Return the result of a reduce operation about a parameter.
   The parameter name has to be the same for all codes.
