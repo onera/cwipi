@@ -1728,7 +1728,7 @@ cdef class Cpl (object):
                                <int *> connec.data,
                               <long *> global_num.data)
 
-    def mesh_interf_f_poly_block_set(self,
+    def mesh_interf_f_poly_block_get(self,
                                      i_part,
                                      block_id):
       """

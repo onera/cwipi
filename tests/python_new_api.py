@@ -62,16 +62,16 @@ def runTest():
                      n_code,
                      code_names[i_rank])
     f.write("cwipi.init:\n")
-    f.write("  - is_active_rank : {param}\n".format(param=is_active_rank))
-    f.write("  - time_init : {param}\n".format(param=time_init))
-    f.write("  - intra_comms : {param}\n".format(param=intra_comms[0]))
+    f.write("  - is_active_rank : {param}\n".format(param=out["is_active_rank"]))
+    f.write("  - time_init : {param}\n".format(param=out["time_init"]))
+    f.write("  - intra_comms : {param}\n".format(param=out["intra_comms"][0]))
 
     # STATE UPDATE
-    cwipi.state_update(code_names[i_rank], CWP_STATE_END)
+    cwipi.state_update(code_names[i_rank], cwipi.CWP_STATE_END)
     state = cwipi.state_get(code_names[i_rank])
     f.write("cwipi.state_get:\n")
     f.write("  - state : {param}\n".format(param=state))
-    cwipi.state_update(code_names[i_rank], CWP_STATE_IN_PROGRESS)
+    cwipi.state_update(code_names[i_rank], cwipi.CWP_STATE_IN_PROGRESS)
 
     # TIME UPDATE
     cwipi.time_update(code_names[i_rank], 0.0)
@@ -112,7 +112,7 @@ def runTest():
         cwipi.param_add_int(code_names[i_rank], "entier", -1)
         cwipi.param_unlock(code_names[i_rank])
 
-    value = cwipi.param_get(code_names[i_rank], "double", CWP_DOUBLE)
+    value = cwipi.param_get(code_names[i_rank], "double", Ccwipi.WP_DOUBLE)
     f.write("cwipi.param_get ({param}):\n".format(param=i_rank))
     f.write("  - value (0): {param}\n".format(param=value))
 
@@ -129,7 +129,7 @@ def runTest():
         cwipi.param_set_int(code_names[i_rank], "entier", 2)
         cwipi.param_unlock(code_names[i_rank])
 
-    value = cwipi.param_get(code_names[i_rank], "double", CWP_DOUBLE)
+    value = cwipi.param_get(code_names[i_rank], "double", cwipi.CWP_DOUBLE)
     f.write("cwipi.param_get ({param}):\n".format(param=i_rank))
     f.write("  - value (1): {param}\n".format(param=value))
 
@@ -137,24 +137,24 @@ def runTest():
     cwipi.param_del(code_names[i_rank], "str", CWP_CHAR)
     cwipi.param_unlock(code_names[i_rank])
 
-    n_param_str = cwipi.param_n_get(code_names[i_rank], CWP_CHAR)
-    n_param_int = cwipi.param_n_get(code_names[i_rank], CWP_INT)
+    n_param_str = cwipi.param_n_get(code_names[i_rank], cwipi.CWP_CHAR)
+    n_param_int = cwipi.param_n_get(code_names[i_rank], cwipi.CWP_INT)
     f.write("cwipi.param_n_get:\n")
     f.write("  - n_param_str: {param}\n".format(param=n_param_str))
     f.write("  - n_param_int: {param}\n".format(param=n_param_int))
 
-    double_param = cwipi.param_list_get(code_names[i_rank], CWP_DOUBLE)
+    double_param = cwipi.param_list_get(code_names[i_rank], cwipi.CWP_DOUBLE)
     f.write("cwipi.param_list_get:\n")
     f.write("  - double_param: {param}\n".format(param=double_param[0]))
 
-    bool_int = cwipi.param_is(code_names[i_rank], "entier", CWP_INT)
-    bool_int = cwipi.param_is(code_names[i_rank], "chapeau", CWP_INT)
+    bool_int = cwipi.param_is(code_names[i_rank], "entier", cwipi.CWP_INT)
+    bool_int = cwipi.param_is(code_names[i_rank], "chapeau", cwipi.CWP_INT)
 
     f.write("cwipi.param_is:\n")
     f.write("  - bool_int 'entier': {param}\n".format(param=bool_int))
     f.write("  - bool_int 'chapeau': {param}\n".format(param=bool_int))
 
-    result = cwipi.param_reduce(CWP_OP_MIN, "entier",  CWP_INT, 2, code_names)
+    result = cwipi.param_reduce(CWP_OP_MIN, "entier",  cwipi.CWP_INT, 2, code_names)
     f.write("cwipi.param_reduce:\n")
     f.write("  - result: {param}\n".format(param=result))
 
@@ -162,32 +162,80 @@ def runTest():
     cpl = cwipi.Cpl(code_names[i_rank],
                     "test",
                     code_names[(i_rank+1)%2],
-                    CWP_INTERFACE_VOLUME,
-                    CWP_COMM_PAR_WITH_PART,
-                    CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                    cwipi.CWP_INTERFACE_LINEAR,
+                    cwipi.CWP_COMM_PAR_WITH_PART,
+                    cwipi.CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
                     1,
-                    CWP_DYNAMIC_MESH_STATIC,
-                    CWP_TIME_EXCH_USER_CONTROLLED)
+                    cwipi.CWP_DYNAMIC_MESH_STATIC,
+                    cwipi.CWP_TIME_EXCH_USER_CONTROLLED)
 
-    # FIELD to do
-    # cpl.field_create()
-    # cpl.field_set()
-    # cpl.field_get()
-    # cpl.field_del()
+    # MESH
 
-    # MESH to do
-    # cpl.mesh_interf_finalize()
-    # cpl.mesh_interf_vtx_set()
+    if (i_rank == 0):
+        coord = np.array([0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0], dtype=np.double)
+        connec_idx = np.array([0, 3, 6], dtype=np.int32)
+        connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
+
+    if (i_rank == 1):
+        coord = np.array([0, 1, 0, 0, 2, 0, 1, 1, 0, 1, 2, 0], dtype=np.double)
+        connec_idx = np.array([0, 3, 6], dtype=np.int32)
+        connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
+
+    cpl.mesh_interf_vtx_set(0,
+                            4,
+                            coord,
+                            NULL)
+
+    cpl.mesh_interf_finalize()
+
     # cpl.mesh_interf_block_add()
     # cpl.mesh_interf_block_std_set()
     # cpl.mesh_interf_block_std_get()
-    # cpl.mesh_interf_f_poly_block_set()
-    # cpl.mesh_interf_f_poly_block_set()
+
+    cpl.mesh_interf_f_poly_block_set(0,
+                                     0,
+                                     2,
+                                     connec_idx,
+                                     connec,
+                                     NULL)
+
+    out = cpl.mesh_interf_f_poly_block_get(0, 0)
+    f.write("mesh_interf_f_poly_block_get ({param}):\n".format(param=i_rank))
+    f.write("  - n_elts : {param}\n".format(param=out["n_elts"]))
+    f.write("  - connec_idx[0] : {param}\n".format(param=out["connec_idx"][0]))
+    f.write("  - connec[0] : {param}\n".format(param=out["connec"][0]))
+    f.write("  - global_num : {param}\n".format(param=out["global_num"]))
+
     # cpl.mesh_interf_c_poly_block_set()
     # cpl.mesh_interf_c_poly_block_get()
-    # cpl.mesh_interf_del()
     # cpl.mesh_interf_from_cellface_set()
     # cpl.mesh_interf_from_faceedge_set()
+
+    # FIELD to do
+
+    sendField=np.array([0.0, 0.1, 0.2, 0.3], dtype=np.double)
+    recvField=np.arange(4, dtype=np.double)
+
+    cpl.field_create("champs",
+                     cwipi.CWP_DOUBLE,
+                     cwipi.CWP_FIELD_STORAGE_INTERLACED,
+                     1,
+                     cwipi.CWP_DOF_LOCATION_NODE,
+                     cwipi.CWP_FIELD_EXCH_SENDRECV,
+                     cwipi.CWP_STATUS_OFF)
+
+    cpl.field_set("champs",
+                  0,
+                  cwipi.CWP_FIELD_MAP_SOURCE,
+                  sendField)
+
+    out = cpl.field_get("champs")
+    f.write("cpl.field_get ({param}):\n".format(param=i_rank))
+    f.write("  - n_comp : {param}\n".format(param=out["n_comp"]))
+    f.write("  - dof_loc : {param}\n".format(param=out["dof_loc"]))
+    f.write("  - storage : {param}\n".format(param=out["storage"]))
+
+    cpl.field_del("champs")
 
     # SPATIAL INTERPOLATION to do
     # cpl.spatial_interp_weights_compute()
@@ -195,7 +243,7 @@ def runTest():
 
     # VISU
     cpl.visu_set(1,
-                 CWP_VISU_FORMAT_ENSIGHT,
+                 cwipi.CWP_VISU_FORMAT_ENSIGHT,
                  "text")
 
     # USER TGT PTS to do
@@ -215,6 +263,7 @@ def runTest():
     # cwipi.user_structure_set()
     # cwipi.user_structure_get()
 
+    cpl.mesh_interf_del()
     del cpl
 
     # FINALIZE
