@@ -52,7 +52,7 @@ def runTest():
         sys.exit(1)
 
     # OUTPUT
-    srank = '{0}'.format(rank)
+    srank = '{0}'.format(i_rank)
     f=open("python_api_"+srank.zfill(4)+".txt",'w')
     pycwp.output_file_set(f)
 

@@ -6,6 +6,14 @@ if (MPI_Fortran_COMPILER)
   set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
 endif(MPI_Fortran_COMPILER)
 
+if ((Mpi4Py_VERSION VERSION_GREATER 2.0.0) OR
+    (Mpi4Py_VERSION VERSION_EQUAL 2.0.0))
+   set (mpi4pylibmpi libmpi)
+else ()
+   set (mpi4pylibmpi mpi_c)
+endif()
+
+
 file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.pxi")
 file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.py")
 
@@ -13,6 +21,14 @@ file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "
 configure_file(cwipi.pyx.in cwipi.pyx)
 # new API
 configure_file(pycwp.pyx.in pycwp.pyx)
+
+set (include_dirs "")
+list (APPEND include_dirs ${Mpi4Py_INCLUDE_DIR})
+list (APPEND include_dirs ${NumPy_INCLUDE_DIR})
+list (APPEND include_dirs ${CMAKE_CURRENT_BINARY_DIR})
+list (APPEND include_dirs ${CMAKE_CURRENT_SOURCE_DIR})
+list (APPEND include_dirs ${CMAKE_BINARY_DIR})
+
 
 include(UseCython)
 
@@ -22,7 +38,7 @@ cython_add_module (cwipi
                    INCLUDE_DIRECTORIES ${include_dirs})
 # new API
 cython_add_module (pycwp
-                   PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/cwipi.pyx"
+                   PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/pycwp.pyx"
                    INCLUDE_DIRECTORIES ${include_dirs})
 
 # old API
@@ -61,7 +77,7 @@ endif()
 
 if ((NOT MPI_C_COMPILER) AND MPI_C_COMPILE_FLAGS)
    set_target_properties(cwipi PROPERTIES
-                              COMPILE_FLAGS ${MPI_C_COMPILE_FLAGS})
+                         COMPILE_FLAGS ${MPI_C_COMPILE_FLAGS})
 endif()
 
 # new API
@@ -76,43 +92,56 @@ endif()
 
 if ((NOT MPI_C_COMPILER) AND MPI_C_COMPILE_FLAGS)
    set_target_properties(pycwp PROPERTIES
-                              COMPILE_FLAGS ${MPI_C_COMPILE_FLAGS})
+                         COMPILE_FLAGS ${MPI_C_COMPILE_FLAGS})
 endif()
 
 set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
-set(DEPS        "${CMAKE_CURRENT_SOURCE_DIR}/cwipi/__init__.py")
-set(DEPS        "${CMAKE_CURRENT_SOURCE_DIR}/pycwp/__init__.py")
 set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/timestamp")
 
-add_custom_command(OUTPUT ${OUTPUT}
-                       COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} --quiet build
-                       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
-                       DEPENDS ${DEPS})
-
 # old API
-set (SITE_PACKAGES_CWP "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/cwipi")
+set(DEPS_OLD    "${CMAKE_CURRENT_SOURCE_DIR}/cwipi/__init__.py")
+add_custom_command(OUTPUT ${OUTPUT}
+                   COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} --quiet build
+                   COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
+                   DEPENDS ${DEPS_OLD})
 
 # new API
-set (SITE_PACKAGES_CWP "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/pycwp")
+set(DEPS_NEW    "${CMAKE_CURRENT_SOURCE_DIR}/pycwp/__init__.py")
+add_custom_command(OUTPUT ${OUTPUT}
+                   COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} --quiet build
+                   COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
+                   DEPENDS ${DEPS_NEW})
+
+# old API
+set (SITE_PACKAGES_CWP_OLD "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/cwipi")
 
 if ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
     (CMAKE_C_COMPILER_ID STREQUAL "Intel") OR
-    (CMAKE_C_COMPILER_ID STREQUAL "AppleClang")  OR
+    (CMAKE_C_COMPILER_ID STREQUAL "AppleClang") OR
     (CMAKE_C_COMPILER_ID STREQUAL "PGI"))
-  set_target_properties (pycwp PROPERTIES COMPILE_FLAGS "-w")
   set_target_properties (cwipi PROPERTIES COMPILE_FLAGS "-w")
 endif()
 
-install(DIRECTORY DESTINATION ${SITE_PACKAGES_CWP})
+# new API
+set (SITE_PACKAGES_CWP_NEW "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/pycwp")
+
+if ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
+    (CMAKE_C_COMPILER_ID STREQUAL "Intel") OR
+    (CMAKE_C_COMPILER_ID STREQUAL "AppleClang") OR
+    (CMAKE_C_COMPILER_ID STREQUAL "PGI"))
+  set_target_properties (pycwp PROPERTIES COMPILE_FLAGS "-w")
+endif()
 
 # old API
+install(DIRECTORY DESTINATION ${SITE_PACKAGES_CWP_OLD})
 install(FILES  "${CMAKE_CURRENT_SOURCE_DIR}/cwipi/__init__.py"
-        DESTINATION            "${SITE_PACKAGES_CWP}")
+        DESTINATION            "${SITE_PACKAGES_CWP_OLD}")
 install(PROGRAMS  "${CMAKE_CURRENT_BINARY_DIR}/cwipi.so"
-        DESTINATION            "${SITE_PACKAGES_CWP}")
+        DESTINATION            "${SITE_PACKAGES_CWP_OLD}")
 
 # new API
+install(DIRECTORY DESTINATION ${SITE_PACKAGES_CWP_NEW})
 install(FILES  "${CMAKE_CURRENT_SOURCE_DIR}/pycwp/__init__.py"
-        DESTINATION            "${SITE_PACKAGES_CWP}")
+        DESTINATION            "${SITE_PACKAGES_CWP_NEW}")
 install(PROGRAMS  "${CMAKE_CURRENT_BINARY_DIR}/pycwp.so"
-        DESTINATION            "${SITE_PACKAGES_CWP}")
+        DESTINATION            "${SITE_PACKAGES_CWP_NEW}")
