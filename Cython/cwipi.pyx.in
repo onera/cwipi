@@ -39,7 +39,7 @@ import numpy as np
 cimport numpy as np
 
 cimport mpi4py.MPI as MPI
-from mpi4py.@mpi4pylibmpi@ cimport *
+# from mpi4py.@mpi4pylibmpi@ cimport *
 
 from libc.stdlib cimport malloc, free
 from libc.stdio cimport FILE, fdopen
@@ -168,7 +168,7 @@ cdef extern from "cwipi.h":
 #
 # CWIPI bases functions
 
-    void cwipi_init(MPI_Comm common_comm, char* application_name, MPI_Comm* application_comm)
+    void cwipi_init(MPI.MPI_Comm common_comm, char* application_name, MPI.MPI_Comm* application_comm)
     void cwipi_set_output_listing(FILE* output_listing)
     void cwipi_dump_application_properties()
     void cwipi_finalize()
@@ -296,7 +296,7 @@ def init(MPI.Comm common_comm, char* application_name):
 
     It is a synchronization point between all applications.
     """
-    cdef MPI_Comm c_common_comm = common_comm.ob_mpi
+    cdef MPI.MPI_Comm c_common_comm = common_comm.ob_mpi
 
     cdef MPI.Comm application_comm = MPI.Comm()
 

@@ -79,7 +79,7 @@ def runTest():
     fname = ["proc0","proc1"]
 
     try:
-        from cwp import cwp
+        from cwipi import cwipi
     except:
         if rank == 0:
             print("      Error : CWIPI module not found (update PYTHONPATH variable)")
@@ -93,8 +93,8 @@ def runTest():
 
     srank = '{0}'.format(rank)
     f=open("python_api_"+srank.zfill(4)+".txt",'w')
-    cwp.set_output_listing(f)
-    comm_loc = cwp.init(MPI.COMM_WORLD, applis[rank])
+    cwipi.set_output_listing(f)
+    comm_loc = cwipi.init(MPI.COMM_WORLD, applis[rank])
 
     #
     # Control parameters
@@ -103,54 +103,54 @@ def runTest():
         print("        Control parameters")
 
     if (rank == 0):
-        cwp.add_local_int_control_parameter("i_0_param_1", 1)
-        cwp.add_local_int_control_parameter("i_1_param_1", 1)
-        cwp.add_local_int_control_parameter("i_2_param_1", 1)
-        cwp.add_local_int_control_parameter("i_3_param_1", 1)
-        cwp.add_local_double_control_parameter("d_0_param_1", 1)
-        cwp.add_local_double_control_parameter("d_1_param_1", 1)
-        cwp.add_local_double_control_parameter("d_2_param_1", 1)
-        cwp.add_local_string_control_parameter("s_0_param_1", "1")
-        cwp.add_local_string_control_parameter("s_1_param_1",  "1")
-        cwp.add_local_string_control_parameter("s_2_param_1",  "1")
-        cwp.add_local_string_control_parameter("s_3_param_1",  "1")
-        cwp.add_local_string_control_parameter("s_4_param_1",  "1")
-        cwp.add_local_string_control_parameter("s_5_param_1",  "1")
+        cwipi.add_local_int_control_parameter("i_0_param_1", 1)
+        cwipi.add_local_int_control_parameter("i_1_param_1", 1)
+        cwipi.add_local_int_control_parameter("i_2_param_1", 1)
+        cwipi.add_local_int_control_parameter("i_3_param_1", 1)
+        cwipi.add_local_double_control_parameter("d_0_param_1", 1)
+        cwipi.add_local_double_control_parameter("d_1_param_1", 1)
+        cwipi.add_local_double_control_parameter("d_2_param_1", 1)
+        cwipi.add_local_string_control_parameter("s_0_param_1", "1")
+        cwipi.add_local_string_control_parameter("s_1_param_1",  "1")
+        cwipi.add_local_string_control_parameter("s_2_param_1",  "1")
+        cwipi.add_local_string_control_parameter("s_3_param_1",  "1")
+        cwipi.add_local_string_control_parameter("s_4_param_1",  "1")
+        cwipi.add_local_string_control_parameter("s_5_param_1",  "1")
     else :
-        cwp.add_local_int_control_parameter("i_0_param_2", 1)
-        cwp.add_local_int_control_parameter("i_1_param_2", 1)
-        cwp.add_local_int_control_parameter("i_2_param_2", 1)
-        cwp.add_local_int_control_parameter("i_3_param_2", 1)
-        cwp.add_local_int_control_parameter("i_4_param_2", 1)
-        cwp.add_local_double_control_parameter("d_0_param_2", 1)
-        cwp.add_local_double_control_parameter("d_1_param_2", 1)
-        cwp.add_local_string_control_parameter("s_0_param_2",  "1")
-        cwp.add_local_string_control_parameter("s_1_param_2",  "1")
-        cwp.add_local_string_control_parameter("s_2_param_2",  "1")
-        cwp.add_local_string_control_parameter("s_3_param_2",  "1")
+        cwipi.add_local_int_control_parameter("i_0_param_2", 1)
+        cwipi.add_local_int_control_parameter("i_1_param_2", 1)
+        cwipi.add_local_int_control_parameter("i_2_param_2", 1)
+        cwipi.add_local_int_control_parameter("i_3_param_2", 1)
+        cwipi.add_local_int_control_parameter("i_4_param_2", 1)
+        cwipi.add_local_double_control_parameter("d_0_param_2", 1)
+        cwipi.add_local_double_control_parameter("d_1_param_2", 1)
+        cwipi.add_local_string_control_parameter("s_0_param_2",  "1")
+        cwipi.add_local_string_control_parameter("s_1_param_2",  "1")
+        cwipi.add_local_string_control_parameter("s_2_param_2",  "1")
+        cwipi.add_local_string_control_parameter("s_3_param_2",  "1")
 
-    cwp.synchronize_control_parameter(applis[(rank + 1) % 2])
+    cwipi.synchronize_control_parameter(applis[(rank + 1) % 2])
 
-    has_toto_0 = cwp.has_int_parameter("proc0","toto")
-    has_toto_1 = cwp.has_int_parameter("proc1","toto")
-    has_param1_0 = cwp.has_double_parameter("proc0","d_0_param_1")
-    has_param1_1 = cwp.has_double_parameter("proc1","d_0_param_2")
+    has_toto_0 = cwipi.has_int_parameter("proc0","toto")
+    has_toto_1 = cwipi.has_int_parameter("proc1","toto")
+    has_param1_0 = cwipi.has_double_parameter("proc0","d_0_param_1")
+    has_param1_1 = cwipi.has_double_parameter("proc1","d_0_param_2")
 
-#    f.write(cwp.get_list_int_parameter("proc0"))
+#    f.write(cwipi.get_list_int_parameter("proc0"))
     f.write("  - has d_0_param_1 proc0 : {param}\n".format(param=has_param1_0))
     f.write("  - has d_0_param_2 proc1 : {param}\n".format(param=has_param1_1))
-    f.write("  - list int param proc0 : {param}\n".format(param=cwp.get_list_int_parameter("proc0")))
-    f.write("  - list int param proc1 : {param}\n".format(param=cwp.get_list_int_parameter("proc1")))
-    f.write("  - list double param proc0 : {param}\n".format(param=cwp.get_list_double_parameter("proc0")))
-    f.write("  - list double param proc1 : {param}\n".format(param=cwp.get_list_double_parameter("proc1")))
-    f.write("  - list string param proc0 : {param}\n".format(param=cwp.get_list_string_parameter("proc0")))
-    f.write("  - list string param proc1 : {param}\n".format(param=cwp.get_list_string_parameter("proc1")))
+    f.write("  - list int param proc0 : {param}\n".format(param=cwipi.get_list_int_parameter("proc0")))
+    f.write("  - list int param proc1 : {param}\n".format(param=cwipi.get_list_int_parameter("proc1")))
+    f.write("  - list double param proc0 : {param}\n".format(param=cwipi.get_list_double_parameter("proc0")))
+    f.write("  - list double param proc1 : {param}\n".format(param=cwipi.get_list_double_parameter("proc1")))
+    f.write("  - list string param proc0 : {param}\n".format(param=cwipi.get_list_string_parameter("proc0")))
+    f.write("  - list string param proc1 : {param}\n".format(param=cwipi.get_list_string_parameter("proc1")))
 
-    f.flush()  # make sure f is flushed before cwp writes its properties
-    cwp.dump_application_properties()
+    f.flush()  # make sure f is flushed before cwipi writes its properties
+    cwipi.dump_application_properties()
 
-#    param_1 = cwp.get_local_int_control_parameter("param_1")
-#    param_2 = cwp.get_distant_int_control_parameter(applis[(rank + 1) % 2],"param_1")
+#    param_1 = cwipi.get_local_int_control_parameter("param_1")
+#    param_2 = cwipi.get_distant_int_control_parameter(applis[(rank + 1) % 2],"param_1")
 #    f.write('parametres: {param_1}, {param_2}'.format(param_1=param_1, param_2=param_2))
 
     #
@@ -161,13 +161,13 @@ def runTest():
 
     # Constructor
 
-    cpl = cwp.Coupling("cpl",
-                         cwp.COUPLING_PARALLEL_WITH_PARTITIONING,
+    cpl = cwipi.Coupling("cpl",
+                         cwipi.COUPLING_PARALLEL_WITH_PARTITIONING,
                          applis[(rank + 1) % 2] , 
                          2, 
                          0.1,  
-                         cwp.CYCLIC_MESH,
-                         cwp.SOLVER_CELL_VERTEX,
+                         cwipi.CYCLIC_MESH,
+                         cwipi.SOLVER_CELL_VERTEX,
                          1, 
                          "Ensight", 
                          "txt")

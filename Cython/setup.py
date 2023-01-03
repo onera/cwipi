@@ -5,11 +5,21 @@ import os
 import sys
 
 setup(
-    name = "cwipi",
-    packages     = ['cwipi'],
+    name = "pycwp",
+    packages     = ['pycwp'],
     data_files = [('', ["pycwp.so"])],
     author = 'E. Quemerais',
     description = 'Coupling With Interpolation Parallel Interface',
+    license = 'LGPL'
+    )
+
+setup(
+    name = "cwipi",
+    packages     = ['cwipi'],
+    data_files = [('', ["cwipi.so"])],
+    author = 'E. Quemerais',
+    description = 'Coupling With Interpolation Parallel Interface',
     license = 'LGPL',
+    include_dirs=[numpy.get_include()]
     )
 
