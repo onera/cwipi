@@ -45,7 +45,7 @@ def runTest():
     code_names = ["proc0","proc1"]
 
     try:
-        from cwipi import cwipi
+        from cwp import cwp
     except:
         if i_rank == 0:
             print("      Error : CWIPI module not found (update PYTHONPATH variable)")
@@ -54,38 +54,38 @@ def runTest():
     # OUTPUT
     srank = '{0}'.format(rank)
     f=open("python_api_"+srank.zfill(4)+".txt",'w')
-    cwipi.output_file_set(f)
+    cwp.output_file_set(f)
 
     # INIT
     n_code = 1
-    out = cwipi.init(comm,
+    out = cwp.init(comm,
                      n_code,
                      code_names[i_rank])
-    f.write("cwipi.init:\n")
+    f.write("cwp.init:\n")
     f.write("  - is_active_rank : {param}\n".format(param=out["is_active_rank"]))
     f.write("  - time_init : {param}\n".format(param=out["time_init"]))
     f.write("  - intra_comms : {param}\n".format(param=out["intra_comms"][0]))
 
     # STATE UPDATE
-    cwipi.state_update(code_names[i_rank], cwipi.CWP_STATE_END)
-    state = cwipi.state_get(code_names[i_rank])
-    f.write("cwipi.state_get:\n")
+    cwp.state_update(code_names[i_rank], cwp.CWP_STATE_END)
+    state = cwp.state_get(code_names[i_rank])
+    f.write("cwp.state_get:\n")
     f.write("  - state : {param}\n".format(param=state))
-    cwipi.state_update(code_names[i_rank], cwipi.CWP_STATE_IN_PROGRESS)
+    cwp.state_update(code_names[i_rank], cwp.CWP_STATE_IN_PROGRESS)
 
     # TIME UPDATE
-    cwipi.time_update(code_names[i_rank], 0.0)
+    cwp.time_update(code_names[i_rank], 0.0)
 
     # PROPERTIES DUMP
     f.flush()
-    cwipi.properties_dump()
+    cwp.properties_dump()
 
     # CODES
-    n_code = cwipi.codes_nb_get()
-    code   = cwipi.codes_list_get()
-    n_loc_code = cwipi.loc_codes_nb_get()
-    loc_code   = cwipi.loc_codes_list_get()
-    f.write("cwipi.code:\n")
+    n_code = cwp.codes_nb_get()
+    code   = cwp.codes_list_get()
+    n_loc_code = cwp.loc_codes_nb_get()
+    loc_code   = cwp.loc_codes_list_get()
+    f.write("cwp.code:\n")
     f.write("  - n_code : {param}\n".format(param=n_code))
     for i in range(n_code):
         f.write("    --> {param}\n".format(param=code[i]))
@@ -94,80 +94,80 @@ def runTest():
         f.write("    --> {param}\n".format(param=loc_code[i]))
 
     # PARAM
-    cwipi.param_lock(code_names[i_rank])
-    cwipi.param_add_dbl(code_names[i_rank], "double", 0.5)
-    cwipi.param_unlock(code_names[i_rank])
+    cwp.param_lock(code_names[i_rank])
+    cwp.param_add_dbl(code_names[i_rank], "double", 0.5)
+    cwp.param_unlock(code_names[i_rank])
 
-    cwipi.param_lock(code_names[i_rank])
-    cwipi.param_add_str(code_names[i_rank], "str", "chat")
-    cwipi.param_unlock(code_names[i_rank])
+    cwp.param_lock(code_names[i_rank])
+    cwp.param_add_str(code_names[i_rank], "str", "chat")
+    cwp.param_unlock(code_names[i_rank])
 
     if (i_rank == 0):
-        cwipi.param_lock(code_names[i_rank])
-        cwipi.param_add_int(code_names[i_rank], "entier", 1)
-        cwipi.param_unlock(code_names[i_rank])
+        cwp.param_lock(code_names[i_rank])
+        cwp.param_add_int(code_names[i_rank], "entier", 1)
+        cwp.param_unlock(code_names[i_rank])
 
     if (i_rank == 1):
-        cwipi.param_lock(code_names[i_rank])
-        cwipi.param_add_int(code_names[i_rank], "entier", -1)
-        cwipi.param_unlock(code_names[i_rank])
+        cwp.param_lock(code_names[i_rank])
+        cwp.param_add_int(code_names[i_rank], "entier", -1)
+        cwp.param_unlock(code_names[i_rank])
 
-    value = cwipi.param_get(code_names[i_rank], "double", Ccwipi.WP_DOUBLE)
-    f.write("cwipi.param_get ({param}):\n".format(param=i_rank))
+    value = cwp.param_get(code_names[i_rank], "double", Ccwp.WP_DOUBLE)
+    f.write("cwp.param_get ({param}):\n".format(param=i_rank))
     f.write("  - value (0): {param}\n".format(param=value))
 
-    cwipi.param_lock(code_names[i_rank])
-    cwipi.param_set_dbl(code_names[i_rank], "double", 0.25)
-    cwipi.param_unlock(code_names[i_rank])
+    cwp.param_lock(code_names[i_rank])
+    cwp.param_set_dbl(code_names[i_rank], "double", 0.25)
+    cwp.param_unlock(code_names[i_rank])
 
-    cwipi.param_lock(code_names[i_rank])
-    cwipi.param_set_str(code_names[i_rank], "str", "chien")
-    cwipi.param_unlock(code_names[i_rank])
+    cwp.param_lock(code_names[i_rank])
+    cwp.param_set_str(code_names[i_rank], "str", "chien")
+    cwp.param_unlock(code_names[i_rank])
 
     if (i_rank == 0):
-        cwipi.param_lock(code_names[i_rank])
-        cwipi.param_set_int(code_names[i_rank], "entier", 2)
-        cwipi.param_unlock(code_names[i_rank])
+        cwp.param_lock(code_names[i_rank])
+        cwp.param_set_int(code_names[i_rank], "entier", 2)
+        cwp.param_unlock(code_names[i_rank])
 
-    value = cwipi.param_get(code_names[i_rank], "double", cwipi.CWP_DOUBLE)
-    f.write("cwipi.param_get ({param}):\n".format(param=i_rank))
+    value = cwp.param_get(code_names[i_rank], "double", cwp.CWP_DOUBLE)
+    f.write("cwp.param_get ({param}):\n".format(param=i_rank))
     f.write("  - value (1): {param}\n".format(param=value))
 
-    cwipi.param_lock(code_names[i_rank])
-    cwipi.param_del(code_names[i_rank], "str", CWP_CHAR)
-    cwipi.param_unlock(code_names[i_rank])
+    cwp.param_lock(code_names[i_rank])
+    cwp.param_del(code_names[i_rank], "str", CWP_CHAR)
+    cwp.param_unlock(code_names[i_rank])
 
-    n_param_str = cwipi.param_n_get(code_names[i_rank], cwipi.CWP_CHAR)
-    n_param_int = cwipi.param_n_get(code_names[i_rank], cwipi.CWP_INT)
-    f.write("cwipi.param_n_get:\n")
+    n_param_str = cwp.param_n_get(code_names[i_rank], cwp.CWP_CHAR)
+    n_param_int = cwp.param_n_get(code_names[i_rank], cwp.CWP_INT)
+    f.write("cwp.param_n_get:\n")
     f.write("  - n_param_str: {param}\n".format(param=n_param_str))
     f.write("  - n_param_int: {param}\n".format(param=n_param_int))
 
-    double_param = cwipi.param_list_get(code_names[i_rank], cwipi.CWP_DOUBLE)
-    f.write("cwipi.param_list_get:\n")
+    double_param = cwp.param_list_get(code_names[i_rank], cwp.CWP_DOUBLE)
+    f.write("cwp.param_list_get:\n")
     f.write("  - double_param: {param}\n".format(param=double_param[0]))
 
-    bool_int = cwipi.param_is(code_names[i_rank], "entier", cwipi.CWP_INT)
-    bool_int = cwipi.param_is(code_names[i_rank], "chapeau", cwipi.CWP_INT)
+    bool_int = cwp.param_is(code_names[i_rank], "entier", cwp.CWP_INT)
+    bool_int = cwp.param_is(code_names[i_rank], "chapeau", cwp.CWP_INT)
 
-    f.write("cwipi.param_is:\n")
+    f.write("cwp.param_is:\n")
     f.write("  - bool_int 'entier': {param}\n".format(param=bool_int))
     f.write("  - bool_int 'chapeau': {param}\n".format(param=bool_int))
 
-    result = cwipi.param_reduce(CWP_OP_MIN, "entier",  cwipi.CWP_INT, 2, code_names)
-    f.write("cwipi.param_reduce:\n")
+    result = cwp.param_reduce(CWP_OP_MIN, "entier",  cwp.CWP_INT, 2, code_names)
+    f.write("cwp.param_reduce:\n")
     f.write("  - result: {param}\n".format(param=result))
 
     # Cpl
-    cpl = cwipi.Cpl(code_names[i_rank],
+    cpl = cwp.Cpl(code_names[i_rank],
                     "test",
                     code_names[(i_rank+1)%2],
-                    cwipi.CWP_INTERFACE_LINEAR,
-                    cwipi.CWP_COMM_PAR_WITH_PART,
-                    cwipi.CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                    cwp.CWP_INTERFACE_LINEAR,
+                    cwp.CWP_COMM_PAR_WITH_PART,
+                    cwp.CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
                     1,
-                    cwipi.CWP_DYNAMIC_MESH_STATIC,
-                    cwipi.CWP_TIME_EXCH_USER_CONTROLLED)
+                    cwp.CWP_DYNAMIC_MESH_STATIC,
+                    cwp.CWP_TIME_EXCH_USER_CONTROLLED)
 
     # MESH
 
@@ -217,16 +217,16 @@ def runTest():
     recvField=np.arange(4, dtype=np.double)
 
     cpl.field_create("champs",
-                     cwipi.CWP_DOUBLE,
-                     cwipi.CWP_FIELD_STORAGE_INTERLACED,
+                     cwp.CWP_DOUBLE,
+                     cwp.CWP_FIELD_STORAGE_INTERLACED,
                      1,
-                     cwipi.CWP_DOF_LOCATION_NODE,
-                     cwipi.CWP_FIELD_EXCH_SENDRECV,
-                     cwipi.CWP_STATUS_OFF)
+                     cwp.CWP_DOF_LOCATION_NODE,
+                     cwp.CWP_FIELD_EXCH_SENDRECV,
+                     cwp.CWP_STATUS_OFF)
 
     cpl.field_set("champs",
                   0,
-                  cwipi.CWP_FIELD_MAP_SOURCE,
+                  cwp.CWP_FIELD_MAP_SOURCE,
                   sendField)
 
     out = cpl.field_get("champs")
@@ -243,7 +243,7 @@ def runTest():
 
     # VISU
     cpl.visu_set(1,
-                 cwipi.CWP_VISU_FORMAT_ENSIGHT,
+                 cwp.CWP_VISU_FORMAT_ENSIGHT,
                  "text")
 
     # USER TGT PTS to do
@@ -254,20 +254,20 @@ def runTest():
     # cpl.interp_from_location_set()
 
     # SEND/RECV to do
-    # cwipi.field_issend()
-    # cwipi.field_irecv()
-    # cwipi.field_wait_issend()
-    # cwipi.field_wait_irecv()
+    # cwp.field_issend()
+    # cwp.field_irecv()
+    # cwp.field_wait_issend()
+    # cwp.field_wait_irecv()
 
     # USER STRUCTURE to do
-    # cwipi.user_structure_set()
-    # cwipi.user_structure_get()
+    # cwp.user_structure_set()
+    # cwp.user_structure_get()
 
     cpl.mesh_interf_del()
     del cpl
 
     # FINALIZE
-    cwipi.finalize()
+    cwp.finalize()
 
     # END
     f.write("\nEnd.\n")

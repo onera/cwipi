@@ -7,7 +7,7 @@ import sys
 setup(
     name = "cwipi",
     packages     = ['cwipi'],
-    data_files = [('', ["cwp.so"])],
+    data_files = [('', ["pycwp.so"])],
     author = 'E. Quemerais',
     description = 'Coupling With Interpolation Parallel Interface',
     license = 'LGPL',

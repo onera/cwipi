@@ -14,7 +14,7 @@ else ()
    set (mpi4pylibmpi mpi_c)
 endif()
 
-configure_file(cwp.pyx.in cwp.pyx)
+configure_file(pycwp.pyx.in pycwp.pyx)
 
 file (COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.pxi")
 file (COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.py")
@@ -27,13 +27,13 @@ list (APPEND include_dirs ${CMAKE_CURRENT_SOURCE_DIR})
 list (APPEND include_dirs ${CMAKE_BINARY_DIR})
 
 include(UseCython)
-cython_add_module (cwipi 
-                   PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/cwp.pyx"
+cython_add_module (pycwp
+                   PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/pycwp.pyx"
                    # OTHER_SOURCES $<TARGET_OBJECTS:cwp>
                    INCLUDE_DIRECTORIES ${include_dirs})
 
-get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)                          
-target_include_directories(cwipi PUBLIC ${CWP_INC})
+get_target_property(CWP_INC pycwp INCLUDE_DIRECTORIES)
+target_include_directories(pycwp PUBLIC ${CWP_INC})
 
 unset(LINK_LIBRARIES)
 list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
@@ -47,21 +47,21 @@ if (${PTSCOTCH_FOUND})
 endif ()
 
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new") 
- target_link_libraries(cwipi ${LINK_LIBRARIES} pdm_shared pdm_mpi_shared)
+ target_link_libraries(pycwp ${LINK_LIBRARIES} pdm_shared pdm_mpi_shared)
 endif()
 
-target_link_libraries(cwipi cwp_shared)
+target_link_libraries(pycwp cwp_shared)
 if (CWP_ENABLE_Fortran)
-  target_link_libraries(cwipi cwpf_shared)
+  target_link_libraries(pycwp cwpf_shared)
 endif()
 
 if (CWP_ENABLE_SPACE_NODAL_BASIS)
-  target_link_libraries(cwipi spaceBasis_shared)
+  target_link_libraries(pycwp spaceBasis_shared)
 endif()
 
 
 if ((NOT MPI_C_COMPILER) AND MPI_C_COMPILE_FLAGS)
-   set_target_properties(cwipi PROPERTIES
+   set_target_properties(pycwp PROPERTIES
                               COMPILE_FLAGS ${MPI_C_COMPILE_FLAGS})
 endif()
 
@@ -74,7 +74,7 @@ add_custom_command(OUTPUT ${OUTPUT}
                        COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
                        DEPENDS ${DEPS})
 
-set (SITE_PACKAGES_CWP "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/cwipi")
+set (SITE_PACKAGES_CWP "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/pycwp")
 
 add_custom_target(target ALL DEPENDS ${OUTPUT})
 
@@ -82,7 +82,7 @@ if ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
     (CMAKE_C_COMPILER_ID STREQUAL "Intel") OR
     (CMAKE_C_COMPILER_ID STREQUAL "AppleClang")  OR
     (CMAKE_C_COMPILER_ID STREQUAL "PGI"))
-  set_target_properties (cwipi PROPERTIES COMPILE_FLAGS "-w")
+  set_target_properties (pycwp PROPERTIES COMPILE_FLAGS "-w")
 endif()
 
 #
@@ -99,6 +99,6 @@ install(DIRECTORY DESTINATION ${SITE_PACKAGES_CWP})
 install(FILES  "${CMAKE_CURRENT_SOURCE_DIR}/cwipi/__init__.py"
         DESTINATION            "${SITE_PACKAGES_CWP}")
 
-install(PROGRAMS  "${CMAKE_CURRENT_BINARY_DIR}/cwipi.so"
+install(PROGRAMS  "${CMAKE_CURRENT_BINARY_DIR}/pycwp.so"
         DESTINATION            "${SITE_PACKAGES_CWP}")
 
