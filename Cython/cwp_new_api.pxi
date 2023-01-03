@@ -433,7 +433,7 @@ cdef extern from "cwp.h":
 #-----------------------------------------------------------------------------
 # CALLBACK
 g_interp_fct = {}
-current_cpl_id = -1
+current_cpl_id = ""
 
 cdef void interp_callback(const int                  interface_type,
                           const char                *code_name,
@@ -870,10 +870,15 @@ def state_get(char* code_name):
   Get code state.
 
   Parameters:
-    local_code_name (char*)       : Local code name
+    local_code_name (char*) : Local code name
+
+  Returns:
+    state (CWP_State_t) : Current state
   """
 
-  CWP_State_get(code_name)
+  cdef CWP_State_t state = CWP_State_get(code_name)
+
+  return state
 
 def codes_nb_get():
   """
@@ -961,7 +966,7 @@ def param_add_int(char        *local_code_name,
 
 def param_add_dbl(char        *local_code_name,
                   char        *param_name,
-                  int          initial_value):
+                  double       initial_value):
   """
   Add a new double parameter and intialize it.
 
@@ -2029,4 +2034,4 @@ cdef class Cpl (object):
                                    self.id,
                                    src_field_id,
                                    interp_callback)
-      current_cpl_id = -1
+      current_cpl_id = ""
