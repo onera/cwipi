@@ -274,9 +274,24 @@ namespace cwipi {
           (double *) malloc(sizeof(double) * stride * selected_part2_idx[i][n_elt1[i]]);
       }
 
+      PDM_part_to_part_data_def_t data_def;
       if (_interpolation_time == CWP_SPATIAL_INTERP_AT_SEND) {
         interpolate (referenceField, _send_buffer[intId]);
+        data_def = PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2;
       }
+      else {
+       // send raw field (copy?)
+       int nComponent = referenceField->nComponentGet();
+       for (int i = 0; i < _nPart; i++) {
+         double *referenceData = (double *) referenceField->dataGet(i, CWP_FIELD_MAP_SOURCE);
+
+         memcpy(_send_buffer[intId][i],
+                referenceData,
+                sizeof(double) * nComponent * n_elt1[i]);
+       }
+       data_def = PDM_PART_TO_PART_DATA_DEF_ORDER_PART1;
+      }
+
 
       MPI_Aint  *maxTagTmp;
       int flag; 
@@ -319,7 +334,7 @@ namespace cwipi {
       PDM_part_to_part_iexch(_ptsp,
                              PDM_MPI_COMM_KIND_P2P,
                              pdm_storage,
-                             PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,
+                             data_def,//PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,
                              stride,
                              s_data,
                              NULL,
@@ -662,8 +677,7 @@ namespace cwipi {
 
       _recv_adler.insert (it2, mpi_tag);
 
-      // Fake reveceive
-
+      // Fake receive
       PDM_part_to_part_iexch(_ptsp,
                              PDM_MPI_COMM_KIND_P2P,
                              pdm_storage,

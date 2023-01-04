@@ -1053,7 +1053,8 @@ main(int argc, char *argv[]) {
   int randomize                   = 1;
   int n_proc_data                 = -1;
 
-  CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
+  // CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
+  CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
 #ifdef PDM_HAVE_PARMETIS
   PDM_split_dual_t part_method    = PDM_SPLIT_DUAL_WITH_PARMETIS;
 #else
@@ -1080,7 +1081,7 @@ main(int argc, char *argv[]) {
   int         extension_depth_tgt = 0;
   int         extension_depth_src = 0;
   int         use_gnum            = 1;
-  int         interlaced_field    = 1;
+  int         interlaced_field    = 0;
 
   PDM_Mesh_nodal_elt_t elt_type = PDM_MESH_NODAL_TETRA4;
 
@@ -1380,7 +1381,13 @@ main(int argc, char *argv[]) {
       for (int i = 0 ; i < 3*pn_vtx[0]; i++) {
         send_val[i] = pvtx_coord[0][i];
       }
-    } else {
+
+      for (int i = 0 ; i < pn_vtx[0]; i++) {
+        log_trace(PDM_FMT_G_NUM" : ", pvtx_ln_to_gn[0][i]);
+        PDM_log_trace_array_double(&send_val[3*i], 3, "");
+      }
+    }
+    else {
       for (int i = 0 ; i < pn_vtx[0]; i++) {
         for (int j = 0; j < 3; j++) {
           send_val[pn_vtx[0]*j + i] = pvtx_coord[0][3*i + j];
@@ -1977,7 +1984,7 @@ main(int argc, char *argv[]) {
         n_wrong += is_wrong;
       }
 
-      if (deform) {
+      if (coord != pvtx_coord[0]) {
         free(coord);
       }
     }
@@ -2035,6 +2042,7 @@ main(int argc, char *argv[]) {
   free(pface_vtx);
   free(pcell_ln_to_gn);
   free(pface_ln_to_gn);
+  free(cellVtxIdx);
 
   if (code_id == 1) {
     free(send_val);

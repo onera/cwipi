@@ -23,6 +23,9 @@
 #include "spatialInterp.hxx"
 
 namespace cwipi {
+
+  const int CWP_CLOSEST_POINTS_N_CLOSEST_PTS = 2;
+
   class SpatialInterpClosestPoint : public SpatialInterp {
   public:
     SpatialInterpClosestPoint();
@@ -48,11 +51,22 @@ namespace cwipi {
         //   Coupling *coupling, 
         //   CWP_Dof_location_t pointsCloudLocation,
         //   CWP_Dof_location_t cplCodeDofLOcation) override;
+        void init (
+         Coupling                   *coupling,
+         CWP_Dof_location_t          localCodeDofLOcation,
+         CWP_Dof_location_t          cplCodeDofLOcation,
+         SpatialInterpExchDirection  exchDirection) override;
 
         SpatialInterpClosestPoint *_spatial_interp_cpl;
 
-        PDM_g_num_t *closest_src_gnum;
-        double *closest_src_dstance;
+        // PDM_g_num_t *closest_src_gnum;
+        // double *closest_src_dstance;
+        PDM_g_num_t **_closest_src_gnum;
+        double      **_closest_src_dist;
+
+        int         **tgt_in_src_idx;
+        PDM_g_num_t **tgt_in_src_gnum;
+        double      **tgt_in_src_dist;
 
     protected:
         PDM_closest_point_t *_id_pdm;
