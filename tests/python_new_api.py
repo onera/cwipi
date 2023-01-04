@@ -118,7 +118,7 @@ def runTest():
         pycwp.param_add_int(code_names[i_rank], "entier", -1)
         pycwp.param_unlock(code_names[i_rank])
 
-    value = pycwp.param_get(code_names[i_rank], "double", pycwp.CWP_DOUBLE)
+    value = pycwp.param_get(code_names[i_rank], "double", pycwp.DOUBLE)
     f.write("cwp.param_get ({param}):\n".format(param=i_rank))
     f.write("  - value (0): {param}\n".format(param=value))
 
@@ -135,32 +135,32 @@ def runTest():
         pycwp.param_set_int(code_names[i_rank], "entier", 2)
         pycwp.param_unlock(code_names[i_rank])
 
-    value = pycwp.param_get(code_names[i_rank], "double", pycwp.CWP_DOUBLE)
+    value = pycwp.param_get(code_names[i_rank], "double", pycwp.DOUBLE)
     f.write("pycwp.param_get ({param}):\n".format(param=i_rank))
     f.write("  - value (1): {param}\n".format(param=value))
 
     pycwp.param_lock(code_names[i_rank])
-    pycwp.param_del(code_names[i_rank], "str", pycwp.CWP_CHAR)
+    pycwp.param_del(code_names[i_rank], "str", pycwp.CHAR)
     pycwp.param_unlock(code_names[i_rank])
 
-    n_param_str = pycwp.param_n_get(code_names[i_rank], pycwp.CWP_CHAR)
-    n_param_int = pycwp.param_n_get(code_names[i_rank], pycwp.CWP_INT)
+    n_param_str = pycwp.param_n_get(code_names[i_rank], pycwp.CHAR)
+    n_param_int = pycwp.param_n_get(code_names[i_rank], pycwp.INT)
     f.write("pycwp.param_n_get:\n")
     f.write("  - n_param_str: {param}\n".format(param=n_param_str))
     f.write("  - n_param_int: {param}\n".format(param=n_param_int))
 
-    double_param = pycwp.param_list_get(code_names[i_rank], pycwp.CWP_DOUBLE)
+    double_param = pycwp.param_list_get(code_names[i_rank], pycwp.DOUBLE)
     f.write("pycwp.param_list_get:\n")
     f.write("  - double_param: {param}\n".format(param=double_param[0]))
 
-    bool_int = pycwp.param_is(code_names[i_rank], "entier", pycwp.CWP_INT)
-    bool_int = pycwp.param_is(code_names[i_rank], "chapeau", pycwp.CWP_INT)
+    bool_int = pycwp.param_is(code_names[i_rank], "entier", pycwp.INT)
+    bool_int = pycwp.param_is(code_names[i_rank], "chapeau", pycwp.INT)
 
     f.write("pycwp.param_is:\n")
     f.write("  - bool_int 'entier': {param}\n".format(param=bool_int))
     f.write("  - bool_int 'chapeau': {param}\n".format(param=bool_int))
 
-    result = pycwp.param_reduce(pycwp.CWP_OP_MIN, "entier",  pycwp.CWP_INT, 2, code_names)
+    result = pycwp.param_reduce(pycwp.OP_MIN, "entier",  pycwp.INT, 2, code_names)
     f.write("pycwp.param_reduce:\n")
     f.write("  - result: {param}\n".format(param=result))
 
@@ -168,12 +168,12 @@ def runTest():
     cpl = pycwp.Cpl(code_names[i_rank],
                     "test",
                     code_names[(i_rank+1)%2],
-                    pycwp.CWP_INTERFACE_LINEAR,
-                    pycwp.CWP_COMM_PAR_WITH_PART,
-                    pycwp.CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                    pycwp.INTERFACE_LINEAR,
+                    pycwp.COMM_PAR_WITH_PART,
+                    pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
                     1,
-                    pycwp.CWP_DYNAMIC_MESH_STATIC,
-                    pycwp.CWP_TIME_EXCH_USER_CONTROLLED)
+                    pycwp.DYNAMIC_MESH_STATIC,
+                    pycwp.TIME_EXCH_USER_CONTROLLED)
 
     # MESH
 
@@ -223,16 +223,16 @@ def runTest():
     recvField=np.arange(4, dtype=np.double)
 
     cpl.field_create("champs",
-                     pycwp.CWP_DOUBLE,
-                     pycwp.CWP_FIELD_STORAGE_INTERLACED,
+                     pycwp.DOUBLE,
+                     pycwp.FIELD_STORAGE_INTERLACED,
                      1,
-                     pycwp.CWP_DOF_LOCATION_NODE,
-                     pycwp.CWP_FIELD_EXCH_SENDRECV,
-                     pycwp.CWP_STATUS_OFF)
+                     pycwp.DOF_LOCATION_NODE,
+                     pycwp.FIELD_EXCH_SENDRECV,
+                     pycwp.STATUS_OFF)
 
     cpl.field_set("champs",
                   0,
-                  pycwp.CWP_FIELD_MAP_SOURCE,
+                  pycwp.FIELD_MAP_SOURCE,
                   sendField)
 
     out = cpl.field_get("champs")
@@ -249,7 +249,7 @@ def runTest():
 
     # VISU
     cpl.visu_set(1,
-                 pycwp.CWP_VISU_FORMAT_ENSIGHT,
+                 pycwp.VISU_FORMAT_ENSIGHT,
                  "text")
 
     # USER TGT PTS to do
