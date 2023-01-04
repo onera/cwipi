@@ -1449,6 +1449,10 @@ cdef class Field (object):
         self.cpl_id = cpl_id
         self.field_id = field_id
 
+        print(">> self.local_code_name : {param}\n".format(param=self.local_code_name))
+        print(">> self.cpl_id : {param}\n".format(param=self.cpl_id))
+        print(">> self.field_id : {param}\n".format(param=self.field_id))
+
         CWP_Field_create(self.local_code_name,
                          self.cpl_id,
                          self.field_id,
@@ -1481,6 +1485,10 @@ cdef class Field (object):
           map_type  (CWP_Field_map_t)           : Choice if data is setted for the source or the target
           data      (NPY.ndarray[NPY.double_t]) : Storage array (Mapping)
         """
+
+        print(">> self.local_code_name : {param}\n".format(param=self.local_code_name))
+        print(">> self.cpl_id : {param}\n".format(param=self.cpl_id))
+        print(">> self.field_id : {param}\n".format(param=self.field_id))
 
         CWP_Field_data_set(self.local_code_name,
                            self.cpl_id,
@@ -1628,7 +1636,8 @@ cdef class Coupling (object):
                                  visu_status))
 
         # remove to do
-        print("self.fields[self.n_fields] --> {param}:\n".format(param=self.fields[self.n_fields]))
+        print("self.fields[self.n_fields] --> {param}".format(param=self.fields[self.n_fields]))
+        print(id(self.fields[self.n_fields]))
 
         self.n_fields = self.n_fields + 1
 
@@ -1641,7 +1650,7 @@ cdef class Coupling (object):
         Set field data for a given Field object in the dictionnary.
 
         Parameters:
-          field_id        (char*)               : Field id
+          field_id  (char*)                     : Field id
           i_part    (int)                       : Current partition
           data_type (CWP_Field_map_t)           : Choice if data is setted for the source or the target
           data      (NPY.ndarray[NPY.double_t]) : Storage array (Mapping)
@@ -1650,7 +1659,8 @@ cdef class Coupling (object):
         cdef int idx = self.fields_name[field_id]
 
         # remove to do
-        print("self.fields[idx] --> {param}:\n".format(param=self.fields[idx]))
+        print("self.fields[idx] --> {param}".format(param=self.fields[idx]))
+        print(id(self.fields[idx]))
 
         self.fields[idx].data_set(i_part,
                                   map_type,

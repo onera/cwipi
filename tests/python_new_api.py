@@ -183,6 +183,11 @@ def runTest():
                     pycwp.DYNAMIC_MESH_STATIC,
                     pycwp.TIME_EXCH_USER_CONTROLLED)
 
+    # VISU
+    cpl.visu_set(1,
+                 pycwp.VISU_FORMAT_ENSIGHT,
+                 "text")
+
     # MESH
 
     if (i_rank == 0):
@@ -259,7 +264,7 @@ def runTest():
 
     f.write("cpl.field_get ({param}):\n".format(param=i_rank))
     f.flush()
-    # out = cpl.field_get("champs")
+    out = cpl.field_get("champs")
     f.write("  - n_comp : {param}\n".format(param=out["n_comp"]))
     f.write("  - dof_loc : {param}\n".format(param=out["dof_loc"]))
     f.write("  - storage : {param}\n".format(param=out["storage"]))
@@ -272,11 +277,6 @@ def runTest():
     # SPATIAL INTERPOLATION to do
     # cpl.spatial_interp_weights_compute()
     # cpl.spatial_interp_property_set()
-
-    # VISU
-    cpl.visu_set(1,
-                 pycwp.VISU_FORMAT_ENSIGHT,
-                 "text")
 
     # USER TGT PTS to do
     # cpl.user_tgt_pts_set()
