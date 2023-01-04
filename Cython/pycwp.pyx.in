@@ -790,68 +790,68 @@ cdef create_numpy_l(long int* array, int size, bint flag_owndata=True):
 def init(MPI.Comm global_comm,
          int      n_code,
          list code_names):
-  """
-  Initialize CWIPI library and create intra-communicator.
+    """
+    Initialize CWIPI library and create intra-communicator.
 
-  Parameters:
-    global_comm (MPI.Comm) : MPI global communicator
-    n_code      (int)      : Number of codes on the current rank
-    code_names  (char**)   : Names of codes on the current rank (size = n_code)
+    Parameters:
+      global_comm (MPI.Comm) : MPI global communicator
+      n_code      (int)      : Number of codes on the current rank
+      code_names  (char**)   : Names of codes on the current rank (size = n_code)
 
-  Returns:
-    is_active_rank (int)      : Is current rank have to be used by CWIPI (size = n_code)
-    time_init      (double)   : Initial time (size = n_code)
-    intra_comms    (MPI.Comm) : MPI intra communicators of each code (size = n_code)
-  """
+    Returns:
+      is_active_rank (int)      : Is current rank have to be used by CWIPI (size = n_code)
+      time_init      (double)   : Initial time (size = n_code)
+      intra_comms    (MPI.Comm) : MPI intra communicators of each code (size = n_code)
+    """
 
-  cdef char **c_code_names = <char**> malloc(sizeof(char*) * n_code)
-  for i in range(n_code):
-    c_code_names[i] = <char *> malloc(sizeof(char) * len(code_names[i]))
+    cdef char **c_code_names = <char**> malloc(sizeof(char*) * n_code)
+    for i in range(n_code):
+      c_code_names[i] = <char *> malloc(sizeof(char) * len(code_names[i]))
 
-  for i in range(n_code):
-    py_byte_code_name = code_names[i].encode('UTF-8')
-    c_code_names[i] = py_byte_code_name
+    for i in range(n_code):
+      py_byte_code_name = code_names[i].encode('UTF-8')
+      c_code_names[i] = py_byte_code_name
 
-  cdef CWP_Status_t is_active_rank
-  cdef double       time_init
+    cdef CWP_Status_t is_active_rank
+    cdef double       time_init
 
-  cdef MPI.MPI_Comm c_global_comm = global_comm.ob_mpi
+    cdef MPI.MPI_Comm c_global_comm = global_comm.ob_mpi
 
-  cdef MPI.MPI_Comm* intra_comms = <MPI.MPI_Comm *> malloc(n_code * sizeof(MPI.MPI_Comm))
-  cdef py_intra_comms = [MPI.Comm()]*n_code
+    cdef MPI.MPI_Comm* intra_comms = <MPI.MPI_Comm *> malloc(n_code * sizeof(MPI.MPI_Comm))
+    cdef py_intra_comms = [MPI.Comm()]*n_code
 
-  cdef MPI.MPI_Comm c_comm
-  cdef MPI.Comm comm
+    cdef MPI.MPI_Comm c_comm
+    cdef MPI.Comm comm
 
-  for i_code in range(n_code):
-    comm = py_intra_comms[i_code]
-    c_comm = <MPI.MPI_Comm> comm.ob_mpi
-    intra_comms[i_code] = c_comm
+    for i_code in range(n_code):
+      comm = py_intra_comms[i_code]
+      c_comm = <MPI.MPI_Comm> comm.ob_mpi
+      intra_comms[i_code] = c_comm
 
-  CWP_Init(c_global_comm,
-           n_code,
-           c_code_names,
-           &(is_active_rank),
-           &(time_init),
-           intra_comms)
+    CWP_Init(c_global_comm,
+             n_code,
+             c_code_names,
+             &(is_active_rank),
+             &(time_init),
+             intra_comms)
 
-  free(intra_comms)
+    free(intra_comms)
 
-  return {
-          'is_active_rank' : is_active_rank,
-          'time_init'      : time_init,
-          'intra_comms'    : py_intra_comms
-         }
+    return {
+            'is_active_rank' : is_active_rank,
+            'time_init'      : time_init,
+            'intra_comms'    : py_intra_comms
+           }
 
 def finalize():
-  """
-  Finalize this module.
+    """
+    Finalize this module.
 
-  After this call, no other function from this module can be called.
-  It is a synchronization point between all applications.
-  """
+    After this call, no other function from this module can be called.
+    It is a synchronization point between all applications.
+    """
 
-  CWP_Finalize()
+    CWP_Finalize()
 
 # --> functions about current code properties
 def state_update(char*       local_code_name,
@@ -869,386 +869,392 @@ def state_update(char*       local_code_name,
 
 def time_update(char*  local_code_name,
                 double current_time):
-  """
-  Update code time.
+    """
+    Update code time.
 
-  Parameters:
-    local_code_name (char*)  : Local code name
-    current_time    (double) : Current time
-  """
+    Parameters:
+      local_code_name (char*)  : Local code name
+      current_time    (double) : Current time
+    """
 
-  CWP_Time_update(local_code_name,
-                  current_time)
+    CWP_Time_update(local_code_name,
+                    current_time)
 
 def output_file_set(output_file):
-  """
-  Define output file.
+    """
+    Define output file.
 
-  Parameters:
-    output_file(file):  Output file
+    Parameters:
+      output_file(file):  Output file
 
-  Note:
-    If this file is written by both cwipi and python, I/O buffering may mix up the output.
-    In this case, calling output_listing.flush() before any cwipi call may help.
-  """
+    Note:
+      If this file is written by both cwipi and python, I/O buffering may mix up the output.
+      In this case, calling output_listing.flush() before any cwipi call may help.
+    """
 
-  cdef int fd
-  cdef FILE* c_file
-  cdef str mode
+    cdef int fd
+    cdef FILE* c_file
+    cdef str mode
 
-  # next line will most likely fail if output_file is not
-  # an io.TextIOWrapper(in py3) or a file(in py2)
-  mode = output_file.mode
+    # next line will most likely fail if output_file is not
+    # an io.TextIOWrapper(in py3) or a file(in py2)
+    mode = output_file.mode
 
-  fd = PyObject_AsFileDescriptor(output_file)
-  c_file = fdopen(fd, mode)
+    fd = PyObject_AsFileDescriptor(output_file)
+    c_file = fdopen(fd, mode)
 
-  CWP_Output_file_set(c_file)
+    CWP_Output_file_set(c_file)
 
 def user_structure_set(char*     local_code_name,
                        object user_structure): # TO DO: object ?
-  """
-  Define a user structure associated to a code.
+    """
+    Define a user structure associated to a code.
 
-  Parameters:
-    local_code_name  (char*)      : Local code name
-    user_structure   (PyObject *) : User structure
-  """
+    Parameters:
+      local_code_name  (char*)      : Local code name
+      user_structure   (PyObject *) : User structure
+    """
 
-  cdef void *c_user_structure = <void *> PyCapsule_GetPointer(user_structure, NULL)
+    cdef void *c_user_structure = <void *> PyCapsule_GetPointer(user_structure, NULL)
 
-  CWP_User_structure_set(local_code_name,
-                         c_user_structure)
+    CWP_User_structure_set(local_code_name,
+                           c_user_structure)
 
 def user_structure_get(local_code_name):
-  """
-  Return the user structure associated.
+    """
+    Return the user structure associated.
 
-  Parameters:
-    local_code_name  (char*) : Local code name
+    Parameters:
+      local_code_name  (char*) : Local code name
 
-  Returns:
-    user_structure   (PyObject *) : User structure
-  """
+    Returns:
+      user_structure   (PyObject *) : User structure
+    """
 
-  cdef void *c_user_structure = CWP_User_structure_get(local_code_name)
+    cdef void *c_user_structure = CWP_User_structure_get(local_code_name)
 
-  if c_user_structure: # not Null
-    user_structure = PyCapsule_New(c_user_structure, NULL, NULL)
+    if c_user_structure: # not Null
+      user_structure = PyCapsule_New(c_user_structure, NULL, NULL)
 
-  return user_structure
+    return user_structure
 
 # --> functions about other code properties
 
 def state_get(char* code_name):
-  """
-  Get code state.
+    """
+    Get code state.
 
-  Parameters:
-    local_code_name (char*) : Local code name
+    Parameters:
+      local_code_name (char*) : Local code name
 
-  Returns:
-    state (CWP_State_t) : Current state
-  """
+    Returns:
+      state (CWP_State_t) : Current state
+    """
 
-  cdef CWP_State_t state = CWP_State_get(code_name)
+    cdef CWP_State_t state = CWP_State_get(code_name)
 
-  return state
+    return state
 
 def codes_nb_get():
-  """
-  Return the number of codes known by CWIPI.
+    """
+    Return the number of codes known by CWIPI.
 
-  Returns:
-    n_code (int) : Number of codes known by CWIPI
-  """
+    Returns:
+      n_code (int) : Number of codes known by CWIPI
+    """
 
-  cdef int n_code = CWP_Codes_nb_get()
+    cdef int n_code = CWP_Codes_nb_get()
 
-  return n_code
+    return n_code
 
 def codes_list_get():
-  """
-  Return the list of code names known by CWIPI.
+    """
+    Return the list of code names known by CWIPI.
 
-  Returns:
-    code_list (char**) : Number of codes known by CWIPI
-  """
+    Returns:
+      code_list (char**) : Number of codes known by CWIPI
+    """
 
-  cdef char** c_code_list = CWP_Codes_list_get()
+    cdef char** c_code_list = CWP_Codes_list_get()
 
-  cdef int n_code = CWP_Codes_nb_get()
-  code_list = NPY.array(size=n_code, dtype=str)
-  for i in range(n_code):
-    code_list[i] = c_code_list[i]
+    cdef int n_code = CWP_Codes_nb_get()
+    code_list = []
+    for i in range(n_code):
+      code_list.append(c_code_list[i])
 
-  return code_list
+    code_list = NPY.array(code_list)
+
+    return code_list
 
 def loc_codes_nb_get():
-  """
-  Return the number of local codes known by CWIPI.
+    """
+    Return the number of local codes known by CWIPI.
 
-  Returns:
-    n_loc_code (int) : Number of codes known by CWIPI
-  """
+    Returns:
+      n_loc_code (int) : Number of codes known by CWIPI
+    """
 
-  cdef int n_loc_code = CWP_Loc_codes_nb_get()
+    cdef int n_loc_code = CWP_Loc_codes_nb_get()
 
-  return n_loc_code
+    return n_loc_code
 
 def loc_codes_list_get():
-  """
-  Return the list of code names known by CWIPI.
+    """
+    Return the list of code names known by CWIPI.
 
-  Returns:
-    loc_code_list (char**) : Number of local codes known by CWIPI
-  """
+    Returns:
+      loc_code_list (char**) : Number of local codes known by CWIPI
+    """
 
-  cdef char** c_loc_code_list = CWP_Loc_codes_list_get()
+    cdef char** c_loc_code_list = CWP_Loc_codes_list_get()
 
-  cdef int n_loc_code = CWP_Loc_codes_nb_get()
-  loc_code_list = NPY.array(size=n_loc_code, dtype=str)
-  for i in range(n_loc_code):
-    loc_code_list[i] = c_loc_code_list[i]
+    cdef int n_loc_code = CWP_Loc_codes_nb_get()
+    loc_code_list = []
+    for i in range(n_loc_code):
+      loc_code_list.append(c_loc_code_list[i])
 
-  return loc_code_list
+    loc_code_list = NPY.array(loc_code_list)
+
+    return loc_code_list
 
 # --> functions about properties
 def properties_dump():
-  """
-  Dump application properties.
-  """
+    """
+    Dump application properties.
+    """
 
-  CWP_Properties_dump()
+    CWP_Properties_dump()
 
 # --> functions about control parameters
 def param_add_int(char        *local_code_name,
                   char        *param_name,
                   int          initial_value):
-  """
-  Add a new interger parameter and intialize it.
+    """
+    Add a new interger parameter and intialize it.
 
-  Parameters:
-    local_code_name  (char*) : Local code name
-    param_name       (char*) : Parameter name
-    initial_value    (int)   : Initial value
-  """
+    Parameters:
+      local_code_name  (char*) : Local code name
+      param_name       (char*) : Parameter name
+      initial_value    (int)   : Initial value
+    """
 
-  CWP_Param_add(local_code_name,
-                param_name,
-                CWP_INT,
-                &(initial_value))
+    CWP_Param_add(local_code_name,
+                  param_name,
+                  CWP_INT,
+                  &(initial_value))
 
 def param_add_dbl(char        *local_code_name,
                   char        *param_name,
                   double       initial_value):
-  """
-  Add a new double parameter and intialize it.
+    """
+    Add a new double parameter and intialize it.
 
-  Parameters:
-    local_code_name  (char*)  : Local code name
-    param_name       (char*)  : Parameter name
-    initial_value    (double) : Initial value
-  """
+    Parameters:
+      local_code_name  (char*)  : Local code name
+      param_name       (char*)  : Parameter name
+      initial_value    (double) : Initial value
+    """
 
-  CWP_Param_add(local_code_name,
-                param_name,
-                CWP_DOUBLE,
-                &(initial_value))
+    CWP_Param_add(local_code_name,
+                  param_name,
+                  CWP_DOUBLE,
+                  &(initial_value))
 
 def param_add_str(char        *local_code_name,
                   char        *param_name,
                   char        *initial_value):
-  """
-  Add a new string parameter and intialize it.
+    """
+    Add a new string parameter and intialize it.
 
-  Parameters:
-    local_code_name  (char*) : Local code name
-    param_name       (char*) : Parameter name
-    initial_value    (char*) : Initial value
-  """
+    Parameters:
+      local_code_name  (char*) : Local code name
+      param_name       (char*) : Parameter name
+      initial_value    (char*) : Initial value
+    """
 
-  CWP_Param_add(local_code_name,
-                param_name,
-                CWP_CHAR,
-                &(initial_value))
+    CWP_Param_add(local_code_name,
+                  param_name,
+                  CWP_CHAR,
+                  &(initial_value))
 
 def param_set_int(char        *local_code_name,
                   char        *param_name,
                   int          initial_value):
-  """
-  Set an integer parameter.
+    """
+    Set an integer parameter.
 
-  Parameters:
-    local_code_name  (char*) : Local code name
-    param_name       (char*) : Parameter name
-    initial_value    (int)   : Initial value
-  """
+    Parameters:
+      local_code_name  (char*) : Local code name
+      param_name       (char*) : Parameter name
+      initial_value    (int)   : Initial value
+    """
 
-  CWP_Param_set(local_code_name,
-                param_name,
-                CWP_INT,
-                &(initial_value))
+    CWP_Param_set(local_code_name,
+                  param_name,
+                  CWP_INT,
+                  &(initial_value))
 
 def param_set_dbl(char        *local_code_name,
                   char        *param_name,
                   double       initial_value):
-  """
-  Set a double parameter.
+    """
+    Set a double parameter.
 
-  Parameters:
-    local_code_name  (char*)  : Local code name
-    param_name       (char*)  : Parameter name
-    initial_value    (double) : Initial value
-  """
+    Parameters:
+      local_code_name  (char*)  : Local code name
+      param_name       (char*)  : Parameter name
+      initial_value    (double) : Initial value
+    """
 
-  CWP_Param_set(local_code_name,
-                param_name,
-                CWP_DOUBLE,
-                &(initial_value))
+    CWP_Param_set(local_code_name,
+                  param_name,
+                  CWP_DOUBLE,
+                  &(initial_value))
 
 def param_set_str(char        *local_code_name,
                   char        *param_name,
                   char        *initial_value):
-  """
-  Set a string parameter.
+    """
+    Set a string parameter.
 
-  Parameters:
-    local_code_name  (char*) : Local code name
-    param_name       (char*) : Parameter name
-    initial_value    (char*) : Initial value
-  """
+    Parameters:
+      local_code_name  (char*) : Local code name
+      param_name       (char*) : Parameter name
+      initial_value    (char*) : Initial value
+    """
 
-  CWP_Param_set(local_code_name,
-                param_name,
-                CWP_CHAR,
-                &(initial_value))
+    CWP_Param_set(local_code_name,
+                  param_name,
+                  CWP_CHAR,
+                  &(initial_value))
 
 def param_del(char        *local_code_name,
               char        *param_name,
               CWP_Type_t   data_type):
-  """
-  Delete a parameter.
+    """
+    Delete a parameter.
 
-  Parameters:
-    local_code_name  (char*)      : Local code name
-    param_name       (char*)      : Parameter name
-    data_type        (CWP_Type_t) : Parameter type
-  """
+    Parameters:
+      local_code_name  (char*)      : Local code name
+      param_name       (char*)      : Parameter name
+      data_type        (CWP_Type_t) : Parameter type
+    """
 
-  CWP_Param_del(local_code_name,
-                param_name,
-                data_type)
+    CWP_Param_del(local_code_name,
+                  param_name,
+                  data_type)
 
 # -> functions about all code parameters
 def param_n_get(char        *code_name,
                 CWP_Type_t   data_type):
-  """
-  Return the number of parameters for the code code_name.
+    """
+    Return the number of parameters for the code code_name.
 
-  Parameters:
-    code_name        (char*)      : Code name
-    data_type        (CWP_Type_t) : Parameter type
+    Parameters:
+      code_name        (char*)      : Code name
+      data_type        (CWP_Type_t) : Parameter type
 
-  Returns:
-    n_param  (int) : Number of parameters for the code code_name
-  """
+    Returns:
+      n_param  (int) : Number of parameters for the code code_name
+    """
 
-  cdef int n_param = CWP_Param_n_get(code_name,
-                                     data_type)
+    cdef int n_param = CWP_Param_n_get(code_name,
+                                       data_type)
 
-  return n_param
+    return n_param
 
 def param_list_get(char        *code_name,
                    CWP_Type_t   data_type):
-  """
-  Return the number of parameters for the code code_name.
+    """
+    Return the number of parameters for the code code_name.
 
-  Parameters:
-    code_name        (char*)      : Code name
-    data_type        (CWP_Type_t) : Parameter type
+    Parameters:
+      code_name        (char*)      : Code name
+      data_type        (CWP_Type_t) : Parameter type
 
-  Returns:
-    n_param     (int)    : Number of parameters for the code code_name
-    param_names (char**) : Parameter names
-  """
+    Returns:
+      n_param     (int)    : Number of parameters for the code code_name
+      param_names (char**) : Parameter names
+    """
 
-  cdef int n_param = -1;
-  cdef char **c_param_names = NULL
+    cdef int n_param = -1;
+    cdef char **c_param_names = NULL
 
-  CWP_Param_list_get(code_name,
-                     data_type,
-                     &(n_param),
-                     &(c_param_names))
+    CWP_Param_list_get(code_name,
+                       data_type,
+                       &(n_param),
+                       &(c_param_names))
 
-  param_names = NPY.array(size=n_param, dtype=str)
-  for i in range(n_param):
-    param_names[i] = c_param_names[i]
+    param_names = []
+    for i in range(n_param):
+      param_names.append(c_param_names[i])
 
-  return {
-          'n_param'     : n_param,
-          'param_names' : param_names
-         }
+    param_names = NPY.array(param_names)
+
+    return {
+            'n_param'     : n_param,
+            'param_names' : param_names
+           }
 
 def param_is(char        *code_name,
              char        *param_name,
              CWP_Type_t   data_type):
-  """
-  Is this code_name a parameter ?
+    """
+    Is this code_name a parameter ?
 
-  Parameters:
-    code_name        (char*)      : Code name
-    param_name       (char*)      : Parameter name
-    data_type        (CWP_Type_t) : Parameter type
+    Parameters:
+      code_name        (char*)      : Code name
+      param_name       (char*)      : Parameter name
+      data_type        (CWP_Type_t) : Parameter type
 
-  Returns:
-   is_param (int) : 1 : true / 0 : false
-  """
+    Returns:
+     is_param (int) : 1 : true / 0 : false
+    """
 
-  cdef int is_param = CWP_Param_is(code_name,
-                              param_name,
-                              data_type)
+    cdef int is_param = CWP_Param_is(code_name,
+                                param_name,
+                                data_type)
 
-  return is_param
+    return is_param
 
 def param_get(char        *code_name,
               char        *param_name,
               CWP_Type_t   data_type):
-  """
-  Return the parameter value of param_name on code_name.
+    """
+    Return the parameter value of param_name on code_name.
 
-  Parameters:
-    code_name        (char*)      : Code name
-    param_name       (char*)      : Parameter name
-    data_type        (CWP_Type_t) : Parameter type
+    Parameters:
+      code_name        (char*)      : Code name
+      param_name       (char*)      : Parameter name
+      data_type        (CWP_Type_t) : Parameter type
 
-  Returns:
-   value (data_type) : Parameter value
-  """
+    Returns:
+     value (data_type) : Parameter value
+    """
 
-  cdef int int_value = -1
-  cdef double dbl_value = -1
-  cdef char *str_value = NULL
+    cdef int int_value = -1
+    cdef double dbl_value = -1
+    cdef char *str_value = NULL
 
-  if (data_type == CWP_INT):
-    CWP_Param_get(code_name,
-                  param_name,
-                  data_type,
-                  &(int_value))
-    return int_value
+    if (data_type == CWP_INT):
+      CWP_Param_get(code_name,
+                    param_name,
+                    data_type,
+                    &(int_value))
+      return int_value
 
-  elif (data_type == CWP_DOUBLE):
-    CWP_Param_get(code_name,
-                  param_name,
-                  data_type,
-                  &(dbl_value))
-    return dbl_value
+    elif (data_type == CWP_DOUBLE):
+      CWP_Param_get(code_name,
+                    param_name,
+                    data_type,
+                    &(dbl_value))
+      return dbl_value
 
-  elif (data_type == CWP_CHAR):
-    CWP_Param_get(code_name,
-                  param_name,
-                  data_type,
-                  &(str_value))
+    elif (data_type == CWP_CHAR):
+      CWP_Param_get(code_name,
+                    param_name,
+                    data_type,
+                    &(str_value))
     return str_value
 
 def param_reduce(CWP_Op_t    op,
@@ -1256,151 +1262,151 @@ def param_reduce(CWP_Op_t    op,
                  CWP_Type_t  data_type,
                  int         nCode,
                  list        code_names):
-  """
-  Return the result of a reduce operation about a parameter.
-  The parameter name has to be the same for all codes.
+    """
+    Return the result of a reduce operation about a parameter.
+    The parameter name has to be the same for all codes.
 
-  Parameters:
-    op         (CWP_Op_t)   :Operation
-    param_name (char*)      :Parameter name
-    data_type  (CWP_Type_t) :Parameter type
-    nCode      (int)        :Number of codes
-    code_names (char**)     :Codes name
+    Parameters:
+      op         (CWP_Op_t)   :Operation
+      param_name (char*)      :Parameter name
+      data_type  (CWP_Type_t) :Parameter type
+      nCode      (int)        :Number of codes
+      code_names (char**)     :Codes name
 
-  Returns:
-    res (data_type) : Result
-  """
+    Returns:
+      res (data_type) : Result
+    """
 
-  cdef char **c_code_names = <char**> malloc(sizeof(char*) * nCode)
-  for i in range(nCode):
-    c_code_names[i] = <char *> malloc(sizeof(char) * len(code_names[i]))
+    cdef char **c_code_names = <char**> malloc(sizeof(char*) * nCode)
+    for i in range(nCode):
+      c_code_names[i] = <char *> malloc(sizeof(char) * len(code_names[i]))
 
-  for i in range(nCode):
-    py_byte_code_name = code_names[i].encode('UTF-8')
-    c_code_names[i] = py_byte_code_name
+    for i in range(nCode):
+      py_byte_code_name = code_names[i].encode('UTF-8')
+      c_code_names[i] = py_byte_code_name
 
-  cdef int int_res = -1
-  cdef double dbl_res = -1
-  cdef char *str_res = NULL
+    cdef int int_res = -1
+    cdef double dbl_res = -1
+    cdef char *str_res = NULL
 
-  if (data_type == CWP_INT):
-    CWP_Param_reduce(op,
-                     param_name,
-                     data_type,
-                     &(int_res),
-                     nCode,
-                     c_code_names)
-    return int_res
+    if (data_type == CWP_INT):
+      CWP_Param_reduce(op,
+                       param_name,
+                       data_type,
+                       &(int_res),
+                       nCode,
+                       c_code_names)
+      return int_res
 
-  elif (data_type == CWP_DOUBLE):
-    CWP_Param_reduce(op,
-                     param_name,
-                     data_type,
-                     &(dbl_res),
-                     nCode,
-                     c_code_names)
-    return dbl_res
+    elif (data_type == CWP_DOUBLE):
+      CWP_Param_reduce(op,
+                       param_name,
+                       data_type,
+                       &(dbl_res),
+                       nCode,
+                       c_code_names)
+      return dbl_res
 
-  elif (data_type == CWP_CHAR):
-    CWP_Param_reduce(op,
-                     param_name,
-                     data_type,
-                     &(str_res),
-                     nCode,
-                     c_code_names)
+    elif (data_type == CWP_CHAR):
+      CWP_Param_reduce(op,
+                       param_name,
+                       data_type,
+                       &(str_res),
+                       nCode,
+                       c_code_names)
     return str_res
 
 def param_lock(char        *code_name):
-  """
-  Lock access to local parameters from a distant code.
+    """
+    Lock access to local parameters from a distant code.
 
-  Parameters:
-    code_name (char*) : Code name
-  """
+    Parameters:
+      code_name (char*) : Code name
+    """
 
-  CWP_Param_lock(code_name)
+    CWP_Param_lock(code_name)
 
 def param_unlock(char        *code_name):
-  """
-  Unlock access to local parameters from a distant code.
+    """
+    Unlock access to local parameters from a distant code.
 
-  Parameters:
-    code_name (char*) : Code name
-  """
+    Parameters:
+      code_name (char*) : Code name
+    """
 
-  CWP_Param_unlock(code_name)
+    CWP_Param_unlock(code_name)
 
 # --> functions about exchange
 def field_issend(char     *local_code_name,
                  char     *cpl_id,
                  char     *src_field_id):
-  """
-  Send a spatially interpolated field to the coupled code with
-  nonblocking communications.
+    """
+    Send a spatially interpolated field to the coupled code with
+    nonblocking communications.
 
-  This function is independant of CWP_Time_exch_t mode. The user has to
-  manually check the consistency of the exchanges.
+    This function is independant of CWP_Time_exch_t mode. The user has to
+    manually check the consistency of the exchanges.
 
-  Parameters:
-    local_code_name (char*) : Local code name
-    cpl_id          (char*) : Coupling identifier
-    src_field_id    (char*) : Source field identifier
-  """
+    Parameters:
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      src_field_id    (char*) : Source field identifier
+    """
 
-  CWP_Field_issend(local_code_name,
-                   cpl_id,
-                   src_field_id)
+    CWP_Field_issend(local_code_name,
+                     cpl_id,
+                     src_field_id)
 
 def field_irecv(char     *local_code_name,
                 char     *cpl_id,
                 char     *tgt_field_id):
-  """
-  Wait the end of an exchange related to request from CWP_Field_issend.
+    """
+    Wait the end of an exchange related to request from CWP_Field_issend.
 
-  Parameters:
-    local_code_name (char*) : Local code name
-    cpl_id          (char*) : Coupling identifier
-    tgt_field_id    (char*) : Target field identifier
-  """
+    Parameters:
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      tgt_field_id    (char*) : Target field identifier
+    """
 
-  CWP_Field_irecv(local_code_name,
-                  cpl_id,
-                  tgt_field_id)
+    CWP_Field_irecv(local_code_name,
+                    cpl_id,
+                    tgt_field_id)
 
 def field_wait_issend(char     *local_code_name,
                       char     *cpl_id,
                       char     *src_field_id):
-  """
-  Wait the end of an exchange related to request from CWP_Field_issend.
+    """
+    Wait the end of an exchange related to request from CWP_Field_issend.
 
-  Parameters:
-    local_code_name (char*) : Local code name
-    cpl_id          (char*) : Coupling identifier
-    src_field_id    (char*) : Source field identifier
-  """
+    Parameters:
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      src_field_id    (char*) : Source field identifier
+    """
 
-  CWP_Field_wait_issend(local_code_name,
-                        cpl_id,
-                        src_field_id)
+    CWP_Field_wait_issend(local_code_name,
+                          cpl_id,
+                          src_field_id)
 
 def field_wait_irecv(char     *local_code_name,
                      char     *cpl_id,
                      char     *tgt_field_id):
-  """
-  Wait the end of an exchange related to request from CWP_Field_irecv.
+    """
+    Wait the end of an exchange related to request from CWP_Field_irecv.
 
-  This function waits the end of exchange related to request
-  from CWP_Field_irecv
+    This function waits the end of exchange related to request
+    from CWP_Field_irecv
 
-  Parameters:
-    local_code_name (char*) : Local code name
-    cpl_id          (char*) : Coupling identifier
-    tgt_field_id    (char*) : Target field identifier
-  """
+    Parameters:
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      tgt_field_id    (char*) : Target field identifier
+    """
 
-  CWP_Field_wait_irecv(local_code_name,
-                       cpl_id,
-                       tgt_field_id)
+    CWP_Field_wait_irecv(local_code_name,
+                         cpl_id,
+                         tgt_field_id)
 
 #-----------------------------------------------------------------------------
 # FIELD CLASS
@@ -1410,124 +1416,131 @@ cdef class Field (object):
     Create a CWIPI field object.
     """
 
+    cdef char *local_code_name
+    cdef char *cpl_id
+    cdef char *field_id
+
     def __init__(self,
-                 char                  *local_code_name,
-                 char                  *cpl_id,
-                 char                  *field_id,
-                 CWP_Type_t             data_type,
-                 CWP_Field_storage_t    storage,
-                 int                    n_component,
-                 CWP_Dof_location_t     target_location,
-                 CWP_Field_exch_t       exch_type,
-                 CWP_Status_t           visu_status):
-      """
-      Initialize field object.
+                   char                  *local_code_name,
+                   char                  *cpl_id,
+                   char                  *field_id,
+                   CWP_Type_t             data_type,
+                   CWP_Field_storage_t    storage,
+                   int                    n_component,
+                   CWP_Dof_location_t     target_location,
+                   CWP_Field_exch_t       exch_type,
+                   CWP_Status_t           visu_status):
+        """
+        Initialize field object.
 
-      Parameters:
-        local_code_name (char*)               : Local code name
-        cpl_id          (char*)               : Field id
-        field_id        (char*)               : Field id
-        data_type       (CWP_Type_t)          : Data type
-        storage         (CWP_Field_storage_t) : Storage type
-        n_component     (int)                 : Number of component
-        target_location (CWP_Dof_location_t)  : Target location
-        exch_type       (CWP_Field_exch_t)    : Exchange type
-        visu_status     (CWP_Status_t)        : Visualization status
-      """
+        Parameters:
+          local_code_name (char*)               : Local code name
+          cpl_id          (char*)               : Field id
+          field_id        (char*)               : Field id
+          data_type       (CWP_Type_t)          : Data type
+          storage         (CWP_Field_storage_t) : Storage type
+          n_component     (int)                 : Number of component
+          target_location (CWP_Dof_location_t)  : Target location
+          exch_type       (CWP_Field_exch_t)    : Exchange type
+          visu_status     (CWP_Status_t)        : Visualization status
+        """
 
-      self.local_code_name = local_code_name
-      self.cpl_id = cpl_id
-      self.id = field_id
+        self.local_code_name = local_code_name
+        self.cpl_id = cpl_id
+        self.field_id = field_id
 
-      CWP_Field_create(self.local_code_name,
-                       self.cpl_id,
-                       self.id,
-                       data_type,
-                       storage,
-                       n_component,
-                       target_location,
-                       exch_type,
-                       visu_status)
+        CWP_Field_create(self.local_code_name,
+                         self.cpl_id,
+                         self.field_id,
+                         data_type,
+                         storage,
+                         n_component,
+                         target_location,
+                         exch_type,
+                         visu_status)
 
     def __del__(self):
-      """
-      Delete a field object.
-      """
+        """
+        Delete a field object.
+        """
 
-      CWP_Field_del(self.local_code_name,
-                    self.cpl_id,
-                    self.id)
+        CWP_Field_del(self.local_code_name,
+                      self.cpl_id,
+                      self.field_id)
 
     # --> DATA
     def data_set(self,
-                 int                i_part,
-                 CWP_Field_map_t    map_type,
-                 NPY.ndarray[NPY.double_t, mode='c', ndim=1] data):
-      """
-      Set field data.
+                   int                i_part,
+                   CWP_Field_map_t    map_type,
+                   NPY.ndarray[NPY.double_t] data):
+        """
+        Set field data.
 
-      Parameters:
-        i_part    (int)                       : Current partition
-        map_type  (CWP_Field_map_t)           : Choice if data is setted for the source or the target
-        data      (NPY.ndarray[NPY.double_t]) : Storage array (Mapping)
-      """
+        Parameters:
+          i_part    (int)                       : Current partition
+          map_type  (CWP_Field_map_t)           : Choice if data is setted for the source or the target
+          data      (NPY.ndarray[NPY.double_t]) : Storage array (Mapping)
+        """
 
-      CWP_Field_data_set(self.local_code_name,
-                         self.cpl_id,
-                         self.id,
-                         i_part,
-                         map_type,
-              <double *> data.data)
+        CWP_Field_data_set(self.local_code_name,
+                           self.cpl_id,
+                           self.field_id,
+                           i_part,
+                           map_type,
+                <double *> data.data)
 
     def n_component_get(self):
-      """
-      Get number of field components.
+        """
+        Get number of field components.
 
-      Returns:
-        n_comp (int) : Number of field components
-      """
+        Returns:
+          n_comp (int) : Number of field components
+        """
 
-      cdef int n_comp = CWP_Field_n_component_get(self.local_code_name,
-                                                  self.cpl_id,
-                                                  self.id)
+        cdef int n_comp = CWP_Field_n_component_get(self.local_code_name,
+                                                    self.cpl_id,
+                                                    self.field_id)
 
-      return n_comp
+        return n_comp
 
     def target_dof_location_get(self):
-      """
-      Get target degrees of freedom location.
+        """
+        Get target degrees of freedom location.
 
-      Returns:
-        dof_loc (CWP_Dof_location_t) : Location of degrees of freedom
-      """
+        Returns:
+          dof_loc (CWP_Dof_location_t) : Location of degrees of freedom
+        """
 
-      cdef CWP_Dof_location_t dof_loc = CWP_Field_target_dof_location_get(self.local_code_name,
-                                                                          self.cpl_id,
-                                                                          self.id)
+        cdef CWP_Dof_location_t dof_loc = CWP_Field_target_dof_location_get(self.local_code_name,
+                                                                            self.cpl_id,
+                                                                            self.field_id)
 
-      return dof_loc
+        return dof_loc
 
     def storage_get(self):
-      """
-      Get field storage type.
+        """
+        Get field storage type.
 
-      Returns:
-        storage (CWP_Field_storage_t) : Field storage type
-      """
+        Returns:
+          storage (CWP_Field_storage_t) : Field storage type
+        """
 
-      cdef CWP_Field_storage_t storage = CWP_Field_storage_get(self.local_code_name,
-                                                               self.cpl_id,
-                                                               self.id)
+        cdef CWP_Field_storage_t storage = CWP_Field_storage_get(self.local_code_name,
+                                                                 self.cpl_id,
+                                                                 self.field_id)
 
-      return storage
+        return storage
 
 #-----------------------------------------------------------------------------
 # COUPLING CLASS
-cdef class Cpl (object):
+cdef class Coupling (object):
 
     """
     Create a CWIPI coupling object.
     """
+    cdef char *local_code_name
+    cdef char *cpl_id
+    cdef dict __dict__
 
     def __init__(self,
                  char                *local_code_name,
@@ -1539,41 +1552,41 @@ cdef class Cpl (object):
                  int                  n_part,
                  CWP_Dynamic_mesh_t   displacement,
                  CWP_Time_exch_t      recv_freq_type):
-      """
-      Initialize coupling object.
+        """
+        Initialize coupling object.
 
-      Parameters:
-        local_code_name   (char*)                : Local code name
-        cpl_id            (char*)                : Coupling identifier
-        coupled_code_name (char*)                : Distant or local coupled code name
-        entities_dim      (CWP_Interface_t)      : ?
-        comm_type         (CWP_Comm_t)           : Communication type
-        spatial_interp    (CWP_Spatial_interp_t) : Spatial interpolation method
-        n_part            (int)                  : Number of interface partition
-        displacement      (CWP_Dynamic_mesh_t)   : Mesh moving status
-        recv_freq_type    (CWP_Time_exch_t)      : Type of receiving frequency
-      """
+        Parameters:
+          local_code_name   (char*)                : Local code name
+          cpl_id            (char*)                : Coupling identifier
+          coupled_code_name (char*)                : Distant or local coupled code name
+          entities_dim      (CWP_Interface_t)      : ?
+          comm_type         (CWP_Comm_t)           : Communication type
+          spatial_interp    (CWP_Spatial_interp_t) : Spatial interpolation method
+          n_part            (int)                  : Number of interface partition
+          displacement      (CWP_Dynamic_mesh_t)   : Mesh moving status
+          recv_freq_type    (CWP_Time_exch_t)      : Type of receiving frequency
+        """
 
-      self.local_code_name = local_code_name
-      self.id = cpl_id
-      self.fields = {}
+        self.local_code_name = local_code_name
+        self.cpl_id = cpl_id
+        self.fields = {}
 
-      CWP_Cpl_create(local_code_name,
-                     cpl_id,
-                     coupled_code_name,
-                     entities_dim,
-                     comm_type,
-                     spatial_interp,
-                     n_part,
-                     displacement,
-                     recv_freq_type)
+        CWP_Cpl_create(local_code_name,
+                       cpl_id,
+                       coupled_code_name,
+                       entities_dim,
+                       comm_type,
+                       spatial_interp,
+                       n_part,
+                       displacement,
+                       recv_freq_type)
 
     def __del__(self):
-      """
-      Delete a coupling object.
-      """
+        """
+        Delete a coupling object.
+        """
 
-      CWP_Cpl_del(self.local_code_name, self.id)
+        CWP_Cpl_del(self.local_code_name, self.cpl_id)
 
     # --> FIELD
     def field_create(self,
@@ -1584,532 +1597,604 @@ cdef class Cpl (object):
                      CWP_Dof_location_t     target_location,
                      CWP_Field_exch_t       exch_type,
                      CWP_Status_t           visu_status):
-      """
-      Create field object and add in self.fields dictionnary.
+        """
+        Create field object and add in self.fields dictionnary.
 
-      Parameters:
-        field_id        (char*)               : Field id
-        data_type       (CWP_Type_t)          : Data type
-        storage         (CWP_Field_storage_t) : Storage type
-        n_component     (int)                 : Number of component
-        target_location (CWP_Dof_location_t)  : Target location
-        exch_type       (CWP_Field_exch_t)    : Exchange type
-        visu_status     (CWP_Status_t)        : Visualization status
-      """
-      self.fields[field_id] = Field(self.local_code_name,
-                                    self.id,
-                                    field_id,
-                                    data_type,
-                                    storage,
-                                    n_component,
-                                    target_location,
-                                    exch_type,
-                                    visu_status)
+        Parameters:
+          field_id        (char*)               : Field id
+          data_type       (CWP_Type_t)          : Data type
+          storage         (CWP_Field_storage_t) : Storage type
+          n_component     (int)                 : Number of component
+          target_location (CWP_Dof_location_t)  : Target location
+          exch_type       (CWP_Field_exch_t)    : Exchange type
+          visu_status     (CWP_Status_t)        : Visualization status
+        """
+        self.fields[field_id] = Field(self.local_code_name,
+                                      self.cpl_id,
+                                      field_id,
+                                      data_type,
+                                      storage,
+                                      n_component,
+                                      target_location,
+                                      exch_type,
+                                      visu_status)
 
     def field_set(self,
                   char                  *field_id,
                   int                i_part,
                   CWP_Field_map_t    map_type,
-                  NPY.ndarray[NPY.double_t, mode='c', ndim=1] data):
-      """
-      Set field data for a given Field object in the dictionnary.
+                  NPY.ndarray[NPY.double_t] data):
+        """
+        Set field data for a given Field object in the dictionnary.
 
-      Parameters:
-        field_id        (char*)               : Field id
-        i_part    (int)                       : Current partition
-        data_type (CWP_Field_map_t)           : Choice if data is setted for the source or the target
-        data      (NPY.ndarray[NPY.double_t]) : Storage array (Mapping)
-      """
-      self.fields[field_id].data_set(i_part,
-                                     map_type,
-                                     data)
+        Parameters:
+          field_id        (char*)               : Field id
+          i_part    (int)                       : Current partition
+          data_type (CWP_Field_map_t)           : Choice if data is setted for the source or the target
+          data      (NPY.ndarray[NPY.double_t]) : Storage array (Mapping)
+        """
+        self.fields[field_id].data_set(i_part,
+                                       map_type,
+                                       data)
 
     def field_get(self,
                   char                  *field_id):
-      """
-      Get field properties.
+        """
+        Get field properties.
 
-      Parameters:
-        field_id        (char*)               : Field id
+        Parameters:
+          field_id        (char*)               : Field id
 
-      Returns:
-        n_comp (int) : Number of field components
-        dof_loc (CWP_Dof_location_t) : Location of degrees of freedom
-        storage (CWP_Field_storage_t) : Field storage type
-      """
+        Returns:
+          n_comp (int) : Number of field components
+          dof_loc (CWP_Dof_location_t) : Location of degrees of freedom
+          storage (CWP_Field_storage_t) : Field storage type
+        """
 
-      cdef int n_comp = self.fields[field_id].n_component_get()
-      cdef CWP_Dof_location_t dof_loc = self.fields[field_id].target_dof_location_get()
-      cdef CWP_Field_storage_t storage = self.fields[field_id].storage_get()
+        cdef int n_comp = self.fields[field_id].n_component_get()
+        cdef CWP_Dof_location_t dof_loc = self.fields[field_id].target_dof_location_get()
+        cdef CWP_Field_storage_t storage = self.fields[field_id].storage_get()
 
-      return {
-              'n_comp' : n_comp,
-              'dof_loc': dof_loc,
-              'storage': storage
-             }
+        return {
+                'n_comp' : n_comp,
+                'dof_loc': dof_loc,
+                'storage': storage
+               }
 
     def field_del(self,
                   char                  *field_id):
-      """
-      Delete Field object and field form self.fiels dictionnary
+        """
+        Delete Field object and field form self.fiels dictionnary
 
-      Parameters:
-        field_id        (char*)               : Field id
-      """
-      del self.fields[field_id]
-      # same as:
-      # field = self.fields.pop(field_id)
-      # del(field)
+        Parameters:
+          field_id        (char*)               : Field id
+        """
+        del self.fields[field_id]
+        # same as:
+        # field = self.fields.pop(field_id)
+        # del(field)
 
     # --> MESH
     def mesh_interf_finalize(self):
-      """
-      Finalize interface mesh.
-      This function computes the global numbers of mesh entities if they are
-      not provided.
-      """
+        """
+        Finalize interface mesh.
+        This function computes the global numbers of mesh entities if they are
+        not provided.
+        """
 
-      CWP_Mesh_interf_finalize(self.local_code_name, self.id)
+        CWP_Mesh_interf_finalize(self.local_code_name, self.cpl_id)
 
     def mesh_interf_vtx_set(self,
                             int i_part,
                             int n_pts,
-                            NPY.ndarray[NPY.double_t, mode='c', ndim=1] coord not None,
-                            NPY.ndarray[NPY.long, mode='c', ndim=1] global_num):
-      """
-      Set vertices.
+                            NPY.ndarray[NPY.double_t] coord not None,
+                            NPY.ndarray[NPY.long] global_num):
+        """
+        Set vertices.
 
-      Parameters:
-        i_part     (int)                       : Current partition
-        n_pts      (int)                       : Number of points
-        coord      (NPY.ndarray[NPY.double_t]) : Coordinates (size = 3 * n_pts)
-        global_num (NPY.ndarray[NPY.long])     : Pointer to parent element number (or None)
-      """
+        Parameters:
+          i_part     (int)                       : Current partition
+          n_pts      (int)                       : Number of points
+          coord      (NPY.ndarray[NPY.double_t]) : Coordinates (size = 3 * n_pts)
+          global_num (NPY.ndarray[NPY.long])     : Pointer to parent element number (or None)
+        """
 
-      assert 3 * n_pts <= coord.size
-      assert n_pts <= global_num.size
-
-      CWP_Mesh_interf_vtx_set(self.local_code_name,
-                              self.id,
-                              i_part,
-                              n_pts,
-                   <double *> coord.data,
-                     <long *> global_num.data)
+        if (global_num is None):
+          CWP_Mesh_interf_vtx_set(self.local_code_name,
+                                  self.cpl_id,
+                                  i_part,
+                                  n_pts,
+                                  <double *> coord.data,
+                                  NULL)
+        else:
+          CWP_Mesh_interf_vtx_set(self.local_code_name,
+                                  self.cpl_id,
+                                  i_part,
+                                  n_pts,
+                                  <double *> coord.data,
+                                  <long *> global_num.data)
 
     def mesh_interf_block_add(self,
                               CWP_Block_t block_type):
-      """
-      Add a connectivity block to the interface mesh.
+        """
+        Add a connectivity block to the interface mesh.
 
-      Parameters:
-        block_type (CWP_Block_t) : Block type
+        Parameters:
+          block_type (CWP_Block_t) : Block type
 
-      Returns:
-        block_id (int) : Block identifier
-      """
+        Returns:
+          block_id (int) : Block identifier
+        """
 
-      cdef int block_id = CWP_Mesh_interf_block_add(self.local_code_name,
-                                                    self.id,
-                                                    block_type)
+        cdef int block_id = CWP_Mesh_interf_block_add(self.local_code_name,
+                                                      self.cpl_id,
+                                                      block_type)
 
-      return block_id
+        return block_id
 
     def mesh_interf_block_std_set(self,
                                   i_part,
                                   block_id,
                                   n_elts,
-                                  NPY.ndarray[NPY.int32_t, mode='c', ndim=1] connec not None,
-                                  NPY.ndarray[NPY.long, mode='c', ndim=1]    global_num):
-      """
-      Set a standard block to the interface mesh.
-      This function adds a connectivity block to the interface mesh.
+                                  NPY.ndarray[NPY.int32_t] connec not None,
+                                  NPY.ndarray[NPY.long]    global_num):
+        """
+        Set a standard block to the interface mesh.
+        This function adds a connectivity block to the interface mesh.
 
-      Parameters:
-        i_part     (int)                      : Partition identifier
-        block_id   (int)                      : Block identifier
-        n_elts     (int)                      : Number of elements
-        connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
-        global_num (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
-      """
+        Parameters:
+          i_part     (int)                      : Partition identifier
+          block_id   (int)                      : Block identifier
+          n_elts     (int)                      : Number of elements
+          connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
+          global_num (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
+        """
 
-      CWP_Mesh_interf_block_std_set(self.local_code_name,
-                                    self.id,
-                                    i_part,
-                                    block_id,
-                                    n_elts,
-                            <int *> connec.data,
-                           <long *> global_num.data)
+        if (global_num is None):
+          CWP_Mesh_interf_block_std_set(self.local_code_name,
+                                        self.cpl_id,
+                                        i_part,
+                                        block_id,
+                                        n_elts,
+                                        <int *> connec.data,
+                                        NULL)
+        else:
+          CWP_Mesh_interf_block_std_set(self.local_code_name,
+                                        self.cpl_id,
+                                        i_part,
+                                        block_id,
+                                        n_elts,
+                                        <int *> connec.data,
+                                        <long *> global_num.data)
 
     def mesh_interf_block_std_get(self,
                                   i_part,
                                   block_id):
-      """
-      Get the properties of a standard block of the interface mesh.
+        """
+        Get the properties of a standard block of the interface mesh.
 
-      Parameters:
-        i_part     (int) : Partition identifier
-        block_id   (int) : Block identifier
+        Parameters:
+          i_part     (int) : Partition identifier
+          block_id   (int) : Block identifier
 
-      Returns:
-        n_elts     (int)                      : Number of elements
-        connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
-        global_num (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
-      """
+        Returns:
+          n_elts     (int)                      : Number of elements
+          connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
+          global_num (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
+        """
 
-      cdef int n_elts = -1
-      cdef int  *connec
-      cdef long *global_num
+        cdef int n_elts = -1
+        cdef int  *connec
+        cdef long *global_num
 
-      CWP_Mesh_interf_block_std_get(self.local_code_name,
-                                    self.id,
-                                    i_part,
-                                    block_id,
-                                    &(n_elts),
-                                    &(connec),
-                                    &(global_num))
+        CWP_Mesh_interf_block_std_get(self.local_code_name,
+                                      self.cpl_id,
+                                      i_part,
+                                      block_id,
+                                      &(n_elts),
+                                      &(connec),
+                                      &(global_num))
 
-      cdef int size = n_elts * 3 # TO DO: tmp value
-      return {
-              'n_elts'     : n_elts,
-              'connec'     : create_numpy_i(connec, size), # TO DO: get n_vtx_elt
-              'global_num' : create_numpy_l(global_num, n_elts)
-             }
+        # if (global_num is NULL):
+        #   global_num = None
+
+        cdef int size = n_elts * 3 # TO DO: tmp value
+        return {
+                'n_elts'     : n_elts,
+                'connec'     : create_numpy_i(connec, size), # TO DO: get n_vtx_elt
+                'global_num' : create_numpy_l(global_num, n_elts)
+               }
 
     def mesh_interf_f_poly_block_set(self,
                                      i_part,
                                      block_id,
                                      n_elts,
-                                     NPY.ndarray[NPY.int32_t, mode='c', ndim=1] connec_idx not None,
-                                     NPY.ndarray[NPY.int32_t, mode='c', ndim=1] connec not None,
-                                     NPY.ndarray[NPY.long, mode='c', ndim=1]    global_num):
-      """
-      Set the connectivity of a polygon block in a interface mesh partition.
+                                     NPY.ndarray[NPY.int32_t] connec_idx not None,
+                                     NPY.ndarray[NPY.int32_t] connec not None,
+                                     NPY.ndarray[NPY.long]    global_num):
+        """
+        Set the connectivity of a polygon block in a interface mesh partition.
 
-      Parameters:
-        i_part     (int)                      : Partition identifier
-        block_id   (int)                      : Block identifier
-        n_elts     (int)                      : Number of elements
-        connec_idx (NPY.ndarray[NPY.int32_t]) : Connectivity index ( connec_id[0] = 0 and size = n_elts + 1)
-        connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = connec_idx[n_elts])
-        global_num (NPY.ndarray[NPY.long])    : Pointer to global element number (or None)
-      """
+        Parameters:
+          i_part     (int)                      : Partition identifier
+          block_id   (int)                      : Block identifier
+          n_elts     (int)                      : Number of elements
+          connec_idx (NPY.ndarray[NPY.int32_t]) : Connectivity index ( connec_id[0] = 0 and size = n_elts + 1)
+          connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = connec_idx[n_elts])
+          global_num (NPY.ndarray[NPY.long])    : Pointer to global element number (or None)
+        """
 
-      CWP_Mesh_interf_f_poly_block_set(self.local_code_name,
-                                       self.id,
-                                       i_part,
-                                       block_id,
-                                       n_elts,
-                               <int *> connec_idx.data,
-                               <int *> connec.data,
-                              <long *> global_num.data)
+        if (global_num is None):
+          CWP_Mesh_interf_f_poly_block_set(self.local_code_name,
+                                           self.cpl_id,
+                                           i_part,
+                                           block_id,
+                                           n_elts,
+                                           <int *> connec_idx.data,
+                                           <int *> connec.data,
+                                           NULL)
+        else:
+          CWP_Mesh_interf_f_poly_block_set(self.local_code_name,
+                                           self.cpl_id,
+                                           i_part,
+                                           block_id,
+                                           n_elts,
+                                           <int *> connec_idx.data,
+                                           <int *> connec.data,
+                                           <long *> global_num.data)
 
     def mesh_interf_f_poly_block_get(self,
                                      i_part,
                                      block_id):
-      """
-      Get the connectivity of a polygon block in a interface mesh partition.
+        """
+        Get the connectivity of a polygon block in a interface mesh partition.
 
-      Parameters:
-        i_part     (int)                      : Partition identifier
-        block_id   (int)                      : Block identifier
+        Parameters:
+          i_part     (int)                      : Partition identifier
+          block_id   (int)                      : Block identifier
 
-      Returns:
-        n_elts     (int)                      : Number of elements
-        connec_idx (NPY.ndarray[NPY.int32_t]) : Connectivity index ( connec_id[0] = 0 and size = n_elts + 1)
-        connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = connec_idx[n_elts])
-        global_num (NPY.ndarray[NPY.long])    : Pointer to global element number (or None)
-      """
+        Returns:
+          n_elts     (int)                      : Number of elements
+          connec_idx (NPY.ndarray[NPY.int32_t]) : Connectivity index ( connec_id[0] = 0 and size = n_elts + 1)
+          connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = connec_idx[n_elts])
+          global_num (NPY.ndarray[NPY.long])    : Pointer to global element number (or None)
+        """
 
-      cdef int n_elts = -1
-      cdef int  *connec
-      cdef int  *connec_idx
-      cdef long *global_num
+        cdef int n_elts = -1
+        cdef int  *connec
+        cdef int  *connec_idx
+        cdef long *global_num
 
-      CWP_Mesh_interf_f_poly_block_get(self.local_code_name,
-                                       self.id,
-                                       i_part,
-                                       block_id,
-                                       &(n_elts),
-                                       &(connec_idx),
-                                       &(connec),
-                                       &(global_num))
+        CWP_Mesh_interf_f_poly_block_get(self.local_code_name,
+                                         self.cpl_id,
+                                         i_part,
+                                         block_id,
+                                         &(n_elts),
+                                         &(connec_idx),
+                                         &(connec),
+                                         &(global_num))
 
-      return {
-              'n_elts'     : n_elts,
-              'connec_idx' : create_numpy_i(connec_idx, n_elts+1),
-              'connec'     : create_numpy_i(connec, connec_idx[n_elts]), # TO DO: correct to do this connec_idx[n_elts] ?
-              'global_num' : create_numpy_l(global_num, n_elts)
-             }
+        return {
+                'n_elts'     : n_elts,
+                'connec_idx' : create_numpy_i(connec_idx, n_elts+1),
+                'connec'     : create_numpy_i(connec, connec_idx[n_elts]), # TO DO: correct to do this connec_idx[n_elts] ?
+                'global_num' : create_numpy_l(global_num, n_elts)
+               }
 
     def mesh_interf_c_poly_block_set(self,
                                      i_part,
                                      block_id,
                                      n_elts,
                                      n_faces,
-                                     NPY.ndarray[NPY.int32_t, mode='c', ndim=1] connec_faces_idx,
-                                     NPY.ndarray[NPY.int32_t, mode='c', ndim=1] connec_faces,
-                                     NPY.ndarray[NPY.int32_t, mode='c', ndim=1] connec_cells_idx,
-                                     NPY.ndarray[NPY.int32_t, mode='c', ndim=1] connec_cells,
-                                     NPY.ndarray[NPY.long, mode='c', ndim=1]    global_num):
-      """
-      Set the properties of a polyhedron block in a interface mesh partition.
+                                     NPY.ndarray[NPY.int32_t] connec_faces_idx not None,
+                                     NPY.ndarray[NPY.int32_t] connec_faces not None,
+                                     NPY.ndarray[NPY.int32_t] connec_cells_idx not None,
+                                     NPY.ndarray[NPY.int32_t] connec_cells not None,
+                                     NPY.ndarray[NPY.long]    global_num):
+        """
+        Set the properties of a polyhedron block in a interface mesh partition.
 
-      Parameters:
-        i_part           (int)                      : Partition identifier
-        block_id         (int)                      : Block identifier
-        n_elts           (int)                      : Number of elements
-        n_faces          (int)                      : Number of faces
-        connec_faces_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex index (face_vertex_idx[0] = 0 and size = max(cell_face_connec) + 1)
-        connec_faces     (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex connectivity (size = face_vertex_idx[n_elts])
-        connec_cells_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron to face index (cell_face_idx[0] = 0 and size = n_elts + 1)
-        connec_cells     (NPY.ndarray[NPY.int32_t]) : Polyhedron to face connectivity (size = cell_face_idx[n_elts])
-        global_num       (NPY.ndarray[NPY.long])    : Pointer to global element number (or None)
-      """
+        Parameters:
+          i_part           (int)                      : Partition identifier
+          block_id         (int)                      : Block identifier
+          n_elts           (int)                      : Number of elements
+          n_faces          (int)                      : Number of faces
+          connec_faces_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex index (face_vertex_idx[0] = 0 and size = max(cell_face_connec) + 1)
+          connec_faces     (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex connectivity (size = face_vertex_idx[n_elts])
+          connec_cells_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron to face index (cell_face_idx[0] = 0 and size = n_elts + 1)
+          connec_cells     (NPY.ndarray[NPY.int32_t]) : Polyhedron to face connectivity (size = cell_face_idx[n_elts])
+          global_num       (NPY.ndarray[NPY.long])    : Pointer to global element number (or None)
+        """
 
-      CWP_Mesh_interf_c_poly_block_set(self.local_code_name,
-                                       self.id,
-                                       i_part,
-                                       block_id,
-                                       n_elts,
-                                       n_faces,
-                               <int *> connec_faces_idx.data,
-                               <int *> connec_faces.data,
-                               <int *> connec_cells_idx.data,
-                               <int *> connec_cells.data,
-                              <long *> global_num.data)
+        if (global_num is None):
+          CWP_Mesh_interf_c_poly_block_set(self.local_code_name,
+                                           self.cpl_id,
+                                           i_part,
+                                           block_id,
+                                           n_elts,
+                                           n_faces,
+                                           <int *> connec_faces_idx.data,
+                                           <int *> connec_faces.data,
+                                           <int *> connec_cells_idx.data,
+                                           <int *> connec_cells.data,
+                                           <long *> global_num.data)
+        else:
+          CWP_Mesh_interf_c_poly_block_set(self.local_code_name,
+                                           self.cpl_id,
+                                           i_part,
+                                           block_id,
+                                           n_elts,
+                                           n_faces,
+                                           <int *> connec_faces_idx.data,
+                                           <int *> connec_faces.data,
+                                           <int *> connec_cells_idx.data,
+                                           <int *> connec_cells.data,
+                                           <long *> global_num.data)
 
     def mesh_interf_c_poly_block_get(self,
                                      i_part,
                                      block_id):
-      """
-      Get the properties of a polyhedron block of the interface mesh partition.
+        """
+        Get the properties of a polyhedron block of the interface mesh partition.
 
-      Parameters:
-        i_part           (int)                      : Partition identifier
-        block_id         (int)                      : Block identifier
+        Parameters:
+          i_part           (int)                      : Partition identifier
+          block_id         (int)                      : Block identifier
 
-      Returns:
-        n_elts           (int)                      : Number of elements
-        n_faces          (int)                      : Number of faces
-        connec_faces_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex index (face_vertex_idx[0] = 0 and size = max(cell_face_connec) + 1)
-        connec_faces     (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex connectivity (size = face_vertex_idx[n_elts])
-        connec_cells_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron to face index (cell_face_idx[0] = 0 and size = n_elts + 1)
-        connec_cells     (NPY.ndarray[NPY.int32_t]) : Polyhedron to face connectivity (size = cell_face_idx[n_elts])
-        global_num       (NPY.ndarray[NPY.long])    : Pointer to global element number (or None)
-      """
+        Returns:
+          n_elts           (int)                      : Number of elements
+          n_faces          (int)                      : Number of faces
+          connec_faces_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex index (face_vertex_idx[0] = 0 and size = max(cell_face_connec) + 1)
+          connec_faces     (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex connectivity (size = face_vertex_idx[n_elts])
+          connec_cells_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron to face index (cell_face_idx[0] = 0 and size = n_elts + 1)
+          connec_cells     (NPY.ndarray[NPY.int32_t]) : Polyhedron to face connectivity (size = cell_face_idx[n_elts])
+          global_num       (NPY.ndarray[NPY.long])    : Pointer to global element number (or None)
+        """
 
-      cdef int n_elts  = -1
-      cdef int n_faces = -1
-      cdef int  *connec_faces_idx
-      cdef int  *connec_faces
-      cdef int  *connec_cells_idx
-      cdef int  *connec_cells
-      cdef long *global_num
+        cdef int n_elts  = -1
+        cdef int n_faces = -1
+        cdef int  *connec_faces_idx
+        cdef int  *connec_faces
+        cdef int  *connec_cells_idx
+        cdef int  *connec_cells
+        cdef long *global_num
 
-      CWP_Mesh_interf_c_poly_block_get(self.local_code_name,
-                                       self.id,
-                                       i_part,
-                                       block_id,
-                                       &(n_elts),
-                                       &(n_faces),
-                                       &(connec_faces_idx),
-                                       &(connec_faces),
-                                       &(connec_cells_idx),
-                                       &(connec_cells),
-                                       &(global_num))
+        CWP_Mesh_interf_c_poly_block_get(self.local_code_name,
+                                         self.cpl_id,
+                                         i_part,
+                                         block_id,
+                                         &(n_elts),
+                                         &(n_faces),
+                                         &(connec_faces_idx),
+                                         &(connec_faces),
+                                         &(connec_cells_idx),
+                                         &(connec_cells),
+                                         &(global_num))
 
-      return {
-              'n_elts'           : n_elts,
-              'n_faces'          : n_faces,
-              'connec_faces_idx' : create_numpy_i(connec_faces_idx, n_faces+1),
-              'connec_faces'     : create_numpy_i(connec_faces, connec_faces_idx[n_faces]), # TO DO: correct to do this connec_faces_idx[n_faces] ?
-              'connec_cells_idx' : create_numpy_i(connec_cells_idx, n_elts+1),
-              'connec_cells'     : create_numpy_i(connec_cells, connec_cells_idx[n_elts]), # TO DO: correct to do this connec_faces_idx[n_faces] ?
-              'global_num'       : create_numpy_l(global_num, n_elts)
-             }
+        return {
+                'n_elts'           : n_elts,
+                'n_faces'          : n_faces,
+                'connec_faces_idx' : create_numpy_i(connec_faces_idx, n_faces+1),
+                'connec_faces'     : create_numpy_i(connec_faces, connec_faces_idx[n_faces]), # TO DO: correct to do this connec_faces_idx[n_faces] ?
+                'connec_cells_idx' : create_numpy_i(connec_cells_idx, n_elts+1),
+                'connec_cells'     : create_numpy_i(connec_cells, connec_cells_idx[n_elts]), # TO DO: correct to do this connec_faces_idx[n_faces] ?
+                'global_num'       : create_numpy_l(global_num, n_elts)
+               }
 
     def mesh_interf_del(self):
-      """
-      Delete interface mesh.
-      """
-      CWP_Mesh_interf_del(self.local_code_name,
-                          self.id)
+        """
+        Delete interface mesh.
+        """
+        CWP_Mesh_interf_del(self.local_code_name,
+                            self.cpl_id)
 
     def mesh_interf_from_cellface_set(self,
                                       i_part,
                                       n_cells,
-                                      NPY.ndarray[NPY.int32_t, mode='c', ndim=1] cell_face_idx,
-                                      NPY.ndarray[NPY.int32_t, mode='c', ndim=1] cell_face,
+                                      NPY.ndarray[NPY.int32_t] cell_face_idx not None,
+                                      NPY.ndarray[NPY.int32_t] cell_face not None,
                                       n_faces,
-                                      NPY.ndarray[NPY.int32_t, mode='c', ndim=1] face_vtx_idx,
-                                      NPY.ndarray[NPY.int32_t, mode='c', ndim=1] face_vtx,
-                                      NPY.ndarray[NPY.long, mode='c', ndim=1]    global_num):
-      """
-      Define the interface mesh from a cell to face connectivity.
+                                      NPY.ndarray[NPY.int32_t] face_vtx_idx not None,
+                                      NPY.ndarray[NPY.int32_t] face_vtx not None,
+                                      NPY.ndarray[NPY.long]    global_num):
+        """
+        Define the interface mesh from a cell to face connectivity.
 
-      Parameters:
-        i_part        (int)                      : Current partition
-        n_cells       (int)                      : Number of cells
-        cell_face_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron to face index (cell_face_idx[0] = 0 and size = n_elts + 1)
-        cell_face     (NPY.ndarray[NPY.int32_t]) : Cell to face connectivity (size = cell_face_idx[n_elts])
-        n_faces       (int)                      : Number of faces
-        face_vtx_idx  (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex index (face_vtx_idx[0] = 0 and size = n_faces + 1)
-        face_vtx      (NPY.ndarray[NPY.int32_t]) : Face to vertex connectivity (size = face_vtx_idx[n_elts])
-        global_num    (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
-      """
+        Parameters:
+          i_part        (int)                      : Current partition
+          n_cells       (int)                      : Number of cells
+          cell_face_idx (NPY.ndarray[NPY.int32_t]) : Polyhedron to face index (cell_face_idx[0] = 0 and size = n_elts + 1)
+          cell_face     (NPY.ndarray[NPY.int32_t]) : Cell to face connectivity (size = cell_face_idx[n_elts])
+          n_faces       (int)                      : Number of faces
+          face_vtx_idx  (NPY.ndarray[NPY.int32_t]) : Polyhedron face to vertex index (face_vtx_idx[0] = 0 and size = n_faces + 1)
+          face_vtx      (NPY.ndarray[NPY.int32_t]) : Face to vertex connectivity (size = face_vtx_idx[n_elts])
+          global_num    (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
+        """
 
-      CWP_Mesh_interf_from_cellface_set(self.local_code_name,
-                                        self.id,
-                                        i_part,
-                                        n_cells,
-                                <int *> cell_face_idx.data,
-                                <int *> cell_face.data,
-                                        n_faces,
-                                <int *> face_vtx_idx.data,
-                                <int *> face_vtx.data,
-                               <long *> global_num.data)
+        if (global_num is None):
+          CWP_Mesh_interf_from_cellface_set(self.local_code_name,
+                                            self.cpl_id,
+                                            i_part,
+                                            n_cells,
+                                            <int *> cell_face_idx.data,
+                                            <int *> cell_face.data,
+                                            n_faces,
+                                            <int *> face_vtx_idx.data,
+                                            <int *> face_vtx.data,
+                                            NULL)
+        else:
+          CWP_Mesh_interf_from_cellface_set(self.local_code_name,
+                                            self.cpl_id,
+                                            i_part,
+                                            n_cells,
+                                            <int *> cell_face_idx.data,
+                                            <int *> cell_face.data,
+                                            n_faces,
+                                            <int *> face_vtx_idx.data,
+                                            <int *> face_vtx.data,
+                                            <long *> global_num.data)
 
     def mesh_interf_from_faceedge_set(self,
                                       i_part,
                                       n_faces,
-                                      NPY.ndarray[NPY.int32_t, mode='c', ndim=1] face_edge_idx,
-                                      NPY.ndarray[NPY.int32_t, mode='c', ndim=1] face_edge,
+                                      NPY.ndarray[NPY.int32_t] face_edge_idx not None,
+                                      NPY.ndarray[NPY.int32_t] face_edge not None,
                                       n_edges,
-                                      NPY.ndarray[NPY.int32_t, mode='c', ndim=1] edge_vtx_idx,
-                                      NPY.ndarray[NPY.int32_t, mode='c', ndim=1] edge_vtx,
-                                      NPY.ndarray[NPY.long, mode='c', ndim=1]    global_num):
-      """
-      Define the surface interface mesh from a face to edge connectivity.
+                                      NPY.ndarray[NPY.int32_t] edge_vtx_idx not None,
+                                      NPY.ndarray[NPY.int32_t] edge_vtx not None,
+                                      NPY.ndarray[NPY.long]    global_num):
+        """
+        Define the surface interface mesh from a face to edge connectivity.
 
-      Parameters:
-        i_part        (int)                      : Current partition
-        n_faces       (int)                      : Number of faces
-        face_edge_idx (NPY.ndarray[NPY.int32_t]) : Polygon to edge index (face_edge_idx[0] = 0 and size =  n_faces + 1)
-        face_edge     (NPY.ndarray[NPY.int32_t]) : Face to edge connectivity (size = face_edge_idx[n_faces])
-        n_edges       (int)                      : Number of edges
-        edge_vtx_idx  (NPY.ndarray[NPY.int32_t]) : Polyhedron edge to vertex index  (edge_vtx_idx[0] = 0 and size = n_edges + 1)
-        edge_vtx      (NPY.ndarray[NPY.int32_t]) : Face to vertex connectivity (size = edge_vtx_idx[n_edges])
-        global_num    (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
-      """
+        Parameters:
+          i_part        (int)                      : Current partition
+          n_faces       (int)                      : Number of faces
+          face_edge_idx (NPY.ndarray[NPY.int32_t]) : Polygon to edge index (face_edge_idx[0] = 0 and size =  n_faces + 1)
+          face_edge     (NPY.ndarray[NPY.int32_t]) : Face to edge connectivity (size = face_edge_idx[n_faces])
+          n_edges       (int)                      : Number of edges
+          edge_vtx_idx  (NPY.ndarray[NPY.int32_t]) : Polyhedron edge to vertex index  (edge_vtx_idx[0] = 0 and size = n_edges + 1)
+          edge_vtx      (NPY.ndarray[NPY.int32_t]) : Face to vertex connectivity (size = edge_vtx_idx[n_edges])
+          global_num    (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
+        """
 
-      CWP_Mesh_interf_from_faceedge_set(self.local_code_name,
-                                        self.id,
-                                        i_part,
-                                        n_faces,
-                                <int *> face_edge_idx.data,
-                                <int *> face_edge.data,
-                                        n_edges,
-                                <int *> edge_vtx_idx.data,
-                                <int *> edge_vtx.data,
-                               <long *> global_num.data)
+        if (global_num is None):
+          CWP_Mesh_interf_from_faceedge_set(self.local_code_name,
+                                            self.cpl_id,
+                                            i_part,
+                                            n_faces,
+                                            <int *> face_edge_idx.data,
+                                            <int *> face_edge.data,
+                                            n_edges,
+                                            <int *> edge_vtx_idx.data,
+                                            <int *> edge_vtx.data,
+                                            NULL)
+        else:
+          CWP_Mesh_interf_from_faceedge_set(self.local_code_name,
+                                            self.cpl_id,
+                                            i_part,
+                                            n_faces,
+                                            <int *> face_edge_idx.data,
+                                            <int *> face_edge.data,
+                                            n_edges,
+                                            <int *> edge_vtx_idx.data,
+                                            <int *> edge_vtx.data,
+                                            <long *> global_num.data)
 
     # --> SPATIAL INTERPOLATION
     def spatial_interp_weights_compute(self):
-      """
-      Compute spatial interpolation weights.
-      """
+        """
+        Compute spatial interpolation weights.
+        """
 
-      CWP_Spatial_interp_weights_compute(self.local_code_name,
-                                         self.id)
+        CWP_Spatial_interp_weights_compute(self.local_code_name,
+                                           self.cpl_id)
 
     def spatial_interp_property_set(self,
                                     char *property_name,
                                     char *property_type,
                                     char *property_value):
-      """
-      Set a property of the spatial interpolation algorithm.
+        """
+        Set a property of the spatial interpolation algorithm.
 
-      Parameters:
-        property_name  (char*) : Name of the property
-        property_type  (char*) : Type of the property ("double" or "int")
-        property_value (char*) : Value of the property
-      """
+        Parameters:
+          property_name  (char*) : Name of the property
+          property_type  (char*) : Type of the property ("double" or "int")
+          property_value (char*) : Value of the property
+        """
 
-      CWP_Spatial_interp_property_set(self.local_code_name,
-                                      self.id,
-                                      property_name,
-                                      property_type,
-                                      property_value)
+        CWP_Spatial_interp_property_set(self.local_code_name,
+                                        self.cpl_id,
+                                        property_name,
+                                        property_type,
+                                        property_value)
 
     # --> VISU
     def visu_set(self,
                  int                   freq,
                  CWP_Visu_format_t     visu_format,
                  char                 *format_option):
-      """
-      Enable visualization output.
+        """
+        Enable visualization output.
 
-      Parameters:
-        freq            (int)               : Output frequency
-        visu_format     (CWP_Visu_format_t) : Output format to visualize exchanged fieldsDouble
-        format_option   (char*)             : Output options "opt1, opt2, ..."
-      """
+        Parameters:
+          freq            (int)               : Output frequency
+          visu_format     (CWP_Visu_format_t) : Output format to visualize exchanged fieldsDouble
+          format_option   (char*)             : Output options "opt1, opt2, ..."
+        """
 
-      CWP_Visu_set(self.local_code_name,
-                   self.id,
-                   freq,
-                   visu_format,
-                   format_option)
+        CWP_Visu_set(self.local_code_name,
+                     self.cpl_id,
+                     freq,
+                     visu_format,
+                     format_option)
 
     # --> USER TGT
     def user_tgt_pts_set(self,
                          int i_part,
                          int n_pts,
-                         NPY.ndarray[NPY.double_t, mode='c', ndim=1] coord,
-                         NPY.ndarray[NPY.long, mode='c', ndim=1] global_num):
-      """
-      This function must be called if the degrees of freedom locations are CWP_DOF_LOCATION_USER
+                         NPY.ndarray[NPY.double_t] coord not None,
+                         NPY.ndarray[NPY.long] global_num):
+        """
+        This function must be called if the degrees of freedom locations are CWP_DOF_LOCATION_USER
 
-      Parameters:
-         i_part     (int)                      : Current partition
-         n_pts      (int)                      : Number of points
-         coord      (NPY.ndarray[NPY.double_t) : Coordinates (size = 3 * n_pts)
-         global_num (NPY.ndarray[NPY.long])    : Global number or NUL (size = n_pts)
-      """
+        Parameters:
+           i_part     (int)                      : Current partition
+           n_pts      (int)                      : Number of points
+           coord      (NPY.ndarray[NPY.double_t) : Coordinates (size = 3 * n_pts)
+           global_num (NPY.ndarray[NPY.long])    : Global number or NUL (size = n_pts)
+        """
 
-      CWP_User_tgt_pts_set(self.local_code_name,
-                           self.id,
-                           i_part,
-                           n_pts,
-                <double *> coord.data,
-                  <long *> global_num.data)
+        if (global_num is None):
+          CWP_User_tgt_pts_set(self.local_code_name,
+                               self.cpl_id,
+                               i_part,
+                               n_pts,
+                               <double *> coord.data,
+                               NULL)
+        else:
+          CWP_User_tgt_pts_set(self.local_code_name,
+                               self.cpl_id,
+                               i_part,
+                               n_pts,
+                               <double *> coord.data,
+                               <long *> global_num.data)
 
     # --> USER INTERPOLATION
     def interp_from_location_unset(self,
                                    char  *src_field_id):
-      """
-      Unsetting of an user interpolation.
+        """
+        Unsetting of an user interpolation.
 
-      Parameters:
-        src_field_id (char*) : Source field identifier
-      """
+        Parameters:
+          src_field_id (char*) : Source field identifier
+        """
 
-      CWP_Interp_from_location_unset(self.local_code_name,
-                                     self.id,
-                                     src_field_id)
+        CWP_Interp_from_location_unset(self.local_code_name,
+                                       self.cpl_id,
+                                       src_field_id)
 
     def interp_from_location_set(self,
                                  const char                 *src_field_id,
                                  fct):
-      """
-      Setting of an user interpolation from location.
-      This function takes into account an user interpolation function written with
-      void (*\ref CWP_Interp_from_location_t) interface.
+        """
+        Setting of an user interpolation from location.
+        This function takes into account an user interpolation function written with
+        void (*\ref CWP_Interp_from_location_t) interface.
 
-      Parameters:
-        src_field_id (char*)                      : Source field id
-        fct                                       : Function
-      """
-      global current_cpl_id
-      global g_interp_fct
-      current_cpl_id = self.id
-      g_interp_fct[current_cpl_id] = fct
+        Parameters:
+          src_field_id (char*)                      : Source field id
+          fct                                       : Function
+        """
+        global current_cpl_id
+        global g_interp_fct
+        current_cpl_id = self.cpl_id
+        g_interp_fct[current_cpl_id] = fct
 
-      CWP_Interp_from_location_set(self.local_code_name,
-                                   self.id,
-                                   src_field_id,
-                                   interp_callback)
-      current_cpl_id = ""
+        CWP_Interp_from_location_set(self.local_code_name,
+                                     self.cpl_id,
+                                     src_field_id,
+                                     interp_callback)
+        current_cpl_id = ""
 
 #-----------------------------------------------------------------------------
 # EXTERN

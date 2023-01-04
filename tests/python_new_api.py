@@ -35,7 +35,7 @@ def runTest():
     n_rank = comm.size
 
     if (i_rank == 0):
-        print("\nSTART: python_api.py")
+        print("\nSTART: python_new_api.py")
 
     if (n_rank != 2):
         if i_rank == 0:
@@ -63,35 +63,35 @@ def runTest():
     pycwp.output_file_set(f)
 
     # INIT
+    f.write("pycwp.init:\n")
     n_code = 1
     out = pycwp.init(comm,
                      n_code,
                      code_name)
-    f.write("pycwp.init:\n")
     f.write("  - is_active_rank : {param}\n".format(param=out["is_active_rank"]))
     f.write("  - time_init : {param}\n".format(param=out["time_init"]))
     f.write("  - intra_comms : {param}\n".format(param=out["intra_comms"][0]))
 
     # STATE UPDATE
-    pycwp.state_update(code_names[i_rank], pycwp.STATE_END)
-    state = pycwp.state_get(code_names[i_rank])
-    f.write("pycwp.state_get:\n")
-    f.write("  - state : {param}\n".format(param=state))
     pycwp.state_update(code_names[i_rank], pycwp.STATE_IN_PROGRESS)
+    f.write("pycwp.state_get:\n")
+    state = pycwp.state_get(code_names[i_rank])
+    f.write("  - state : {param}\n".format(param=state))
+    pycwp.state_update(code_names[i_rank], pycwp.STATE_END)
+    f.flush()
 
-    # TIME UPDATE
-    pycwp.time_update(code_names[i_rank], 0.0)
+    # TIME UPDATE to do why segfault
+    # pycwp.time_update(code_names[i_rank], 1.5)
 
     # PROPERTIES DUMP
-    f.flush()
     pycwp.properties_dump()
 
     # CODES
+    f.write("pycwp.code:\n")
     n_code = pycwp.codes_nb_get()
     code   = pycwp.codes_list_get()
     n_loc_code = pycwp.loc_codes_nb_get()
     loc_code   = pycwp.loc_codes_list_get()
-    f.write("pycwp.code:\n")
     f.write("  - n_code : {param}\n".format(param=n_code))
     for i in range(n_code):
         f.write("    --> {param}\n".format(param=code[i]))
@@ -118,8 +118,8 @@ def runTest():
         pycwp.param_add_int(code_names[i_rank], "entier", -1)
         pycwp.param_unlock(code_names[i_rank])
 
-    value = pycwp.param_get(code_names[i_rank], "double", pycwp.DOUBLE)
     f.write("cwp.param_get ({param}):\n".format(param=i_rank))
+    value = pycwp.param_get(code_names[i_rank], "double", pycwp.DOUBLE)
     f.write("  - value (0): {param}\n".format(param=value))
 
     pycwp.param_lock(code_names[i_rank])
@@ -135,37 +135,43 @@ def runTest():
         pycwp.param_set_int(code_names[i_rank], "entier", 2)
         pycwp.param_unlock(code_names[i_rank])
 
-    value = pycwp.param_get(code_names[i_rank], "double", pycwp.DOUBLE)
     f.write("pycwp.param_get ({param}):\n".format(param=i_rank))
+    value = pycwp.param_get(code_names[i_rank], "double", pycwp.DOUBLE)
     f.write("  - value (1): {param}\n".format(param=value))
 
     pycwp.param_lock(code_names[i_rank])
     pycwp.param_del(code_names[i_rank], "str", pycwp.CHAR)
     pycwp.param_unlock(code_names[i_rank])
 
+    f.write("pycwp.param_n_get:\n")
     n_param_str = pycwp.param_n_get(code_names[i_rank], pycwp.CHAR)
     n_param_int = pycwp.param_n_get(code_names[i_rank], pycwp.INT)
-    f.write("pycwp.param_n_get:\n")
     f.write("  - n_param_str: {param}\n".format(param=n_param_str))
     f.write("  - n_param_int: {param}\n".format(param=n_param_int))
 
-    double_param = pycwp.param_list_get(code_names[i_rank], pycwp.DOUBLE)
     f.write("pycwp.param_list_get:\n")
-    f.write("  - double_param: {param}\n".format(param=double_param[0]))
-
-    bool_int = pycwp.param_is(code_names[i_rank], "entier", pycwp.INT)
-    bool_int = pycwp.param_is(code_names[i_rank], "chapeau", pycwp.INT)
+    double_param = pycwp.param_list_get(code_names[i_rank], pycwp.DOUBLE)
+    for i in range(double_param['n_param']):
+        f.write("    --> double_param: {param}\n".format(param=double_param['param_names'][i]))
 
     f.write("pycwp.param_is:\n")
+    bool_int = pycwp.param_is(code_names[i_rank], "entier", pycwp.INT)
+    bool_int = pycwp.param_is(code_names[i_rank], "chapeau", pycwp.INT)
     f.write("  - bool_int 'entier': {param}\n".format(param=bool_int))
     f.write("  - bool_int 'chapeau': {param}\n".format(param=bool_int))
 
-    result = pycwp.param_reduce(pycwp.OP_MIN, "entier",  pycwp.INT, 2, code_names)
+    f.write("pycwp.param_list_get:\n")
+    int_param = pycwp.param_list_get(code_names[i_rank], pycwp.INT)
+    for i in range(int_param['n_param']):
+        f.write("    --> int_param: {param}\n".format(param=int_param['param_names'][i]))
+
     f.write("pycwp.param_reduce:\n")
+    result = pycwp.param_reduce(pycwp.OP_MIN, "entier",  pycwp.INT, 2, code_names)
     f.write("  - result: {param}\n".format(param=result))
+    f.flush()
 
     # Cpl
-    cpl = pycwp.Cpl(code_names[i_rank],
+    cpl = pycwp.Coupling(code_names[i_rank],
                     "test",
                     code_names[(i_rank+1)%2],
                     pycwp.INTERFACE_LINEAR,
@@ -190,7 +196,7 @@ def runTest():
     cpl.mesh_interf_vtx_set(0,
                             4,
                             coord,
-                            NULL)
+                            None)
 
     cpl.mesh_interf_finalize()
 
@@ -203,14 +209,15 @@ def runTest():
                                      2,
                                      connec_idx,
                                      connec,
-                                     NULL)
+                                     None)
 
-    out = cpl.mesh_interf_f_poly_block_get(0, 0)
     f.write("mesh_interf_f_poly_block_get ({param}):\n".format(param=i_rank))
+    out = cpl.mesh_interf_f_poly_block_get(0, 0)
     f.write("  - n_elts : {param}\n".format(param=out["n_elts"]))
     f.write("  - connec_idx[0] : {param}\n".format(param=out["connec_idx"][0]))
     f.write("  - connec[0] : {param}\n".format(param=out["connec"][0]))
     f.write("  - global_num : {param}\n".format(param=out["global_num"]))
+    f.flush()
 
     # cpl.mesh_interf_c_poly_block_set()
     # cpl.mesh_interf_c_poly_block_get()
@@ -235,11 +242,12 @@ def runTest():
                   pycwp.FIELD_MAP_SOURCE,
                   sendField)
 
-    out = cpl.field_get("champs")
     f.write("cpl.field_get ({param}):\n".format(param=i_rank))
+    out = cpl.field_get("champs")
     f.write("  - n_comp : {param}\n".format(param=out["n_comp"]))
     f.write("  - dof_loc : {param}\n".format(param=out["dof_loc"]))
     f.write("  - storage : {param}\n".format(param=out["storage"]))
+    f.flush()
 
     cpl.field_del("champs")
 
