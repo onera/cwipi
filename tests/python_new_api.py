@@ -80,11 +80,11 @@ def runTest():
     pycwp.state_update(code_names[i_rank], pycwp.STATE_END)
     f.flush()
 
-    # TIME UPDATE to do why segfault
+    # TIME UPDATE to do need to do an exchange before updatting?
     # pycwp.time_update(code_names[i_rank], 1.5)
 
-    # PROPERTIES DUMP
-    pycwp.properties_dump()
+    # PROPERTIES DUMP to do file transmission wrong ?
+    # pycwp.properties_dump()
 
     # CODES
     f.write("pycwp.code:\n")
@@ -171,6 +171,8 @@ def runTest():
     f.flush()
 
     # Cpl
+    f.write("pycwp.Coupling:\n")
+    f.flush()
     cpl = pycwp.Coupling(code_names[i_rank],
                     "test",
                     code_names[(i_rank+1)%2],
@@ -193,26 +195,35 @@ def runTest():
         connec_idx = np.array([0, 3, 6], dtype=np.int32)
         connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
 
+    f.write("cpl.mesh_interf_vtx_set:\n")
+    f.flush()
     cpl.mesh_interf_vtx_set(0,
                             4,
                             coord,
                             None)
 
+    f.write("cpl.mesh_interf_finalize:\n")
+    f.flush()
     cpl.mesh_interf_finalize()
 
     # cpl.mesh_interf_block_add()
     # cpl.mesh_interf_block_std_set()
     # cpl.mesh_interf_block_std_get()
 
+    f.write("cpl.mesh_interf_block_add:\n")
+    f.flush()
+    block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
+    f.write("cpl.mesh_interf_f_poly_block_set ({param}):\n".format(param=i_rank))
+    f.flush()
     cpl.mesh_interf_f_poly_block_set(0,
-                                     0,
+                                     block_id,
                                      2,
                                      connec_idx,
                                      connec,
                                      None)
-
-    f.write("mesh_interf_f_poly_block_get ({param}):\n".format(param=i_rank))
-    out = cpl.mesh_interf_f_poly_block_get(0, 0)
+    f.write("cpl.mesh_interf_f_poly_block_get:\n")
+    f.flush()
+    out = cpl.mesh_interf_f_poly_block_get(0, block_id)
     f.write("  - n_elts : {param}\n".format(param=out["n_elts"]))
     f.write("  - connec_idx[0] : {param}\n".format(param=out["connec_idx"][0]))
     f.write("  - connec[0] : {param}\n".format(param=out["connec"][0]))
@@ -229,6 +240,8 @@ def runTest():
     sendField=np.array([0.0, 0.1, 0.2, 0.3], dtype=np.double)
     recvField=np.arange(4, dtype=np.double)
 
+    f.write("cpl.field_create:\n")
+    f.flush()
     cpl.field_create("champs",
                      pycwp.DOUBLE,
                      pycwp.FIELD_STORAGE_INTERLACED,
@@ -237,18 +250,23 @@ def runTest():
                      pycwp.FIELD_EXCH_SENDRECV,
                      pycwp.STATUS_OFF)
 
+    f.write("cpl.field_set:\n")
+    f.flush()
     cpl.field_set("champs",
                   0,
                   pycwp.FIELD_MAP_SOURCE,
                   sendField)
 
     f.write("cpl.field_get ({param}):\n".format(param=i_rank))
-    out = cpl.field_get("champs")
+    f.flush()
+    # out = cpl.field_get("champs")
     f.write("  - n_comp : {param}\n".format(param=out["n_comp"]))
     f.write("  - dof_loc : {param}\n".format(param=out["dof_loc"]))
     f.write("  - storage : {param}\n".format(param=out["storage"]))
     f.flush()
 
+    f.write("cpl.field_del:\n")
+    f.flush()
     cpl.field_del("champs")
 
     # SPATIAL INTERPOLATION to do
@@ -285,6 +303,8 @@ def runTest():
 
     # END
     f.write("\nEnd.\n")
+    comm.Barrier()
+    MPI.Finalize()
 
 if __name__ == '__main__':
     runTest()

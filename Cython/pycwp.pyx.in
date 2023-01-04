@@ -1421,15 +1421,15 @@ cdef class Field (object):
     cdef char *field_id
 
     def __init__(self,
-                   char                  *local_code_name,
-                   char                  *cpl_id,
-                   char                  *field_id,
-                   CWP_Type_t             data_type,
-                   CWP_Field_storage_t    storage,
-                   int                    n_component,
-                   CWP_Dof_location_t     target_location,
-                   CWP_Field_exch_t       exch_type,
-                   CWP_Status_t           visu_status):
+                 char                  *local_code_name,
+                 char                  *cpl_id,
+                 char                  *field_id,
+                 CWP_Type_t             data_type,
+                 CWP_Field_storage_t    storage,
+                 int                    n_component,
+                 CWP_Dof_location_t     target_location,
+                 CWP_Field_exch_t       exch_type,
+                 CWP_Status_t           visu_status):
         """
         Initialize field object.
 
@@ -1470,9 +1470,9 @@ cdef class Field (object):
 
     # --> DATA
     def data_set(self,
-                   int                i_part,
-                   CWP_Field_map_t    map_type,
-                   NPY.ndarray[NPY.double_t] data):
+                 int                i_part,
+                 CWP_Field_map_t    map_type,
+                 NPY.ndarray[NPY.double_t] data):
         """
         Set field data.
 
@@ -1540,6 +1540,9 @@ cdef class Coupling (object):
     """
     cdef char *local_code_name
     cdef char *cpl_id
+    cdef int n_fields
+    cdef list fields
+    # cdef Field[:] fields
     cdef dict __dict__
 
     def __init__(self,
@@ -1569,7 +1572,9 @@ cdef class Coupling (object):
 
         self.local_code_name = local_code_name
         self.cpl_id = cpl_id
-        self.fields = {}
+        self.n_fields = 0
+        self.fields_name = {}
+        self.fields = []
 
         CWP_Cpl_create(local_code_name,
                        cpl_id,
@@ -1609,18 +1614,26 @@ cdef class Coupling (object):
           exch_type       (CWP_Field_exch_t)    : Exchange type
           visu_status     (CWP_Status_t)        : Visualization status
         """
-        self.fields[field_id] = Field(self.local_code_name,
-                                      self.cpl_id,
-                                      field_id,
-                                      data_type,
-                                      storage,
-                                      n_component,
-                                      target_location,
-                                      exch_type,
-                                      visu_status)
+
+        self.fields_name[field_id] = self.n_fields
+
+        self.fields.append(Field(self.local_code_name,
+                                 self.cpl_id,
+                                 field_id,
+                                 data_type,
+                                 storage,
+                                 n_component,
+                                 target_location,
+                                 exch_type,
+                                 visu_status))
+
+        # remove to do
+        print("self.fields[self.n_fields] --> {param}:\n".format(param=self.fields[self.n_fields]))
+
+        self.n_fields = self.n_fields + 1
 
     def field_set(self,
-                  char                  *field_id,
+                  char              *field_id,
                   int                i_part,
                   CWP_Field_map_t    map_type,
                   NPY.ndarray[NPY.double_t] data):
@@ -1633,9 +1646,15 @@ cdef class Coupling (object):
           data_type (CWP_Field_map_t)           : Choice if data is setted for the source or the target
           data      (NPY.ndarray[NPY.double_t]) : Storage array (Mapping)
         """
-        self.fields[field_id].data_set(i_part,
-                                       map_type,
-                                       data)
+
+        cdef int idx = self.fields_name[field_id]
+
+        # remove to do
+        print("self.fields[idx] --> {param}:\n".format(param=self.fields[idx]))
+
+        self.fields[idx].data_set(i_part,
+                                  map_type,
+                                  data)
 
     def field_get(self,
                   char                  *field_id):
@@ -1651,9 +1670,11 @@ cdef class Coupling (object):
           storage (CWP_Field_storage_t) : Field storage type
         """
 
-        cdef int n_comp = self.fields[field_id].n_component_get()
-        cdef CWP_Dof_location_t dof_loc = self.fields[field_id].target_dof_location_get()
-        cdef CWP_Field_storage_t storage = self.fields[field_id].storage_get()
+        cdef int idx = self.fields_name[field_id]
+
+        cdef int n_comp = self.fields[idx].n_component_get()
+        cdef CWP_Dof_location_t dof_loc = self.fields[idx].target_dof_location_get()
+        cdef CWP_Field_storage_t storage = self.fields[idx].storage_get()
 
         return {
                 'n_comp' : n_comp,
@@ -1669,7 +1690,7 @@ cdef class Coupling (object):
         Parameters:
           field_id        (char*)               : Field id
         """
-        del self.fields[field_id]
+        del self.fields_name[field_id]
         # same as:
         # field = self.fields.pop(field_id)
         # del(field)
@@ -1830,8 +1851,8 @@ cdef class Coupling (object):
                                            i_part,
                                            block_id,
                                            n_elts,
-                                           <int *> connec_idx.data,
-                                           <int *> connec.data,
+                                   <int *> connec_idx.data,
+                                   <int *> connec.data,
                                            NULL)
         else:
           CWP_Mesh_interf_f_poly_block_set(self.local_code_name,
@@ -1839,9 +1860,9 @@ cdef class Coupling (object):
                                            i_part,
                                            block_id,
                                            n_elts,
-                                           <int *> connec_idx.data,
-                                           <int *> connec.data,
-                                           <long *> global_num.data)
+                                   <int *> connec_idx.data,
+                                   <int *> connec.data,
+                                  <long *> global_num.data)
 
     def mesh_interf_f_poly_block_get(self,
                                      i_part,
