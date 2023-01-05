@@ -469,12 +469,6 @@ namespace cwipi {
               n_tgt     =                       _cpl->userTargetNGet     (i_part);
             }
 
-            _n_computed_tgt[i_part] = n_tgt; // ?
-            _computed_tgt  [i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
-            for (int i = 0; i < _n_computed_tgt[i_part]; i++) {
-              _computed_tgt[i_part][i] = i + 1;
-            }
-
             PDM_closest_points_tgt_cloud_set(_id_pdm,
                                              i_part,
                                              n_tgt,
@@ -603,12 +597,6 @@ namespace cwipi {
                 n_tgt     =                       _cpl->userTargetNGet     (i_part);
               }
 
-              _n_computed_tgt[i_part] = n_tgt; // ?
-              _computed_tgt  [i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
-              for (int i = 0; i < _n_computed_tgt[i_part]; i++) {
-                _computed_tgt[i_part][i] = i + 1;
-              }
-
               PDM_closest_points_tgt_cloud_set(_id_pdm,
                                                i_part,
                                                n_tgt,
@@ -705,6 +693,14 @@ namespace cwipi {
                                    i_part,
                                    &(_closest_src_gnum[i_part]),
                                    &(_closest_src_dist[i_part]));
+
+            _n_computed_tgt  [i_part] = PDM_closest_points_n_tgt_get(_id_pdm, i_part);
+            _n_uncomputed_tgt[i_part] = 0;
+
+            _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
+            for (int i = 0; i < _n_computed_tgt[i_part]; i++) {
+              _computed_tgt[i_part][i] = i + 1;
+            }
           }
 
         }
@@ -758,6 +754,14 @@ namespace cwipi {
                                      i_part,
                                      &(cpl_spatial_interp->_closest_src_gnum[i_part]),
                                      &(cpl_spatial_interp->_closest_src_dist[i_part]));
+
+              cpl_spatial_interp->_n_computed_tgt  [i_part] = PDM_closest_points_n_tgt_get(_id_pdm, i_part);
+              cpl_spatial_interp->_n_uncomputed_tgt[i_part] = 0;
+
+              cpl_spatial_interp->_computed_tgt[i_part] = (int *) malloc(sizeof(int) * cpl_spatial_interp->_n_computed_tgt[i_part]);
+              for (int i = 0; i < cpl_spatial_interp->_n_computed_tgt[i_part]; i++) {
+                cpl_spatial_interp->_computed_tgt[i_part][i] = i + 1;
+              }
             }
           }
           else {
@@ -769,6 +773,14 @@ namespace cwipi {
                                      i_part,
                                      &(_closest_src_gnum[i_part]),
                                      &(_closest_src_dist[i_part]));
+
+              _n_computed_tgt  [i_part] = PDM_closest_points_n_tgt_get(_id_pdm, i_part);
+              _n_uncomputed_tgt[i_part] = 0;
+
+              _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
+              for (int i = 0; i < _n_computed_tgt[i_part]; i++) {
+                _computed_tgt[i_part][i] = i + 1;
+              }
             }
 
             for (int i_part = 0; i_part < _cplNPart; i_part++) {
@@ -826,7 +838,6 @@ namespace cwipi {
       }
 
       // create ptp if null
-      // not 100% confident...
       if (_ptsp == NULL) {
 
         if (!_coupledCodeProperties->localCodeIs()) {
