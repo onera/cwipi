@@ -118,6 +118,8 @@ def runTest():
         pycwp.param_add_int(code_names[i_rank], "entier", -1)
         pycwp.param_unlock(code_names[i_rank])
 
+    comm.Barrier()
+
     f.write("cwp.param_get ({param}):\n".format(param=i_rank))
     value = pycwp.param_get(code_names[i_rank], "double", pycwp.DOUBLE)
     f.write("  - value (0): {param}\n".format(param=value))
@@ -135,6 +137,8 @@ def runTest():
         pycwp.param_set_int(code_names[i_rank], "entier", 2)
         pycwp.param_unlock(code_names[i_rank])
 
+    comm.Barrier()
+
     f.write("pycwp.param_get ({param}):\n".format(param=i_rank))
     value = pycwp.param_get(code_names[i_rank], "double", pycwp.DOUBLE)
     f.write("  - value (1): {param}\n".format(param=value))
@@ -143,6 +147,8 @@ def runTest():
     pycwp.param_del(code_names[i_rank], "str", pycwp.CHAR)
     pycwp.param_unlock(code_names[i_rank])
 
+    comm.Barrier()
+
     f.write("pycwp.param_n_get:\n")
     n_param_str = pycwp.param_n_get(code_names[i_rank], pycwp.CHAR)
     n_param_int = pycwp.param_n_get(code_names[i_rank], pycwp.INT)
@@ -150,20 +156,28 @@ def runTest():
     f.write("  - n_param_int: {param}\n".format(param=n_param_int))
 
     f.write("pycwp.param_list_get:\n")
-    double_param = pycwp.param_list_get(code_names[i_rank], pycwp.DOUBLE)
-    for i in range(double_param['n_param']):
-        f.write("    --> double_param: {param}\n".format(param=double_param['param_names'][i]))
+    str_param = pycwp.param_list_get(code_names[i_rank], pycwp.CHAR)
+    for i in range(str_param['n_param']):
+        f.write("    --> str_param: {param}\n".format(param=str_param['param_names'][i]))
 
     f.write("pycwp.param_is:\n")
     bool_int = pycwp.param_is(code_names[i_rank], "entier", pycwp.INT)
-    bool_int = pycwp.param_is(code_names[i_rank], "chapeau", pycwp.INT)
     f.write("  - bool_int 'entier': {param}\n".format(param=bool_int))
+    bool_int = pycwp.param_is(code_names[i_rank], "chapeau", pycwp.INT)
     f.write("  - bool_int 'chapeau': {param}\n".format(param=bool_int))
+
+    comm.Barrier()
 
     f.write("pycwp.param_list_get:\n")
     int_param = pycwp.param_list_get(code_names[i_rank], pycwp.INT)
     for i in range(int_param['n_param']):
         f.write("    --> int_param: {param}\n".format(param=int_param['param_names'][i]))
+
+    f.write("pycwp.param_get ({param}):\n".format(param=i_rank))
+    value = pycwp.param_get(code_names[i_rank], "entier", pycwp.INT)
+    f.write("  - value int: {param}\n".format(param=value))
+
+    comm.Barrier()
 
     f.write("pycwp.param_reduce:\n")
     result = pycwp.param_reduce(pycwp.OP_MIN, "entier",  pycwp.INT, 2, code_names)
@@ -230,8 +244,8 @@ def runTest():
     f.flush()
     out = cpl.mesh_interf_f_poly_block_get(0, block_id)
     f.write("  - n_elts : {param}\n".format(param=out["n_elts"]))
-    f.write("  - connec_idx[0] : {param}\n".format(param=out["connec_idx"][0]))
-    f.write("  - connec[0] : {param}\n".format(param=out["connec"][0]))
+    f.write("  - connec_idx {param}\n".format(param=out["connec_idx"]))
+    f.write("  - connec {param}\n".format(param=out["connec"]))
     f.write("  - global_num : {param}\n".format(param=out["global_num"]))
     f.flush()
 
@@ -240,7 +254,7 @@ def runTest():
     # cpl.mesh_interf_from_cellface_set()
     # cpl.mesh_interf_from_faceedge_set()
 
-    # FIELD to do
+    # FIELD
 
     sendField=np.array([0.0, 0.1, 0.2, 0.3], dtype=np.double)
     recvField=np.arange(4, dtype=np.double)
@@ -299,7 +313,11 @@ def runTest():
     # pycwp.user_structure_set()
     # pycwp.user_structure_get()
 
+    f.write("cpl.mesh_interf_del:\n")
+    f.flush()
     cpl.mesh_interf_del()
+    f.write("del cpl:\n")
+    f.flush()
     del cpl
 
     # FINALIZE

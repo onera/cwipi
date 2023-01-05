@@ -1212,8 +1212,8 @@ def param_is(char        *code_name,
     """
 
     cdef int is_param = CWP_Param_is(code_name,
-                                param_name,
-                                data_type)
+                                     param_name,
+                                     data_type)
 
     return is_param
 
