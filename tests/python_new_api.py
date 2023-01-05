@@ -255,12 +255,16 @@ def runTest():
                      pycwp.FIELD_EXCH_SENDRECV,
                      pycwp.STATUS_OFF)
 
+    comm.Barrier()
+
     f.write("cpl.field_set:\n")
     f.flush()
     cpl.field_set("champs",
                   0,
                   pycwp.FIELD_MAP_SOURCE,
                   sendField)
+
+    comm.Barrier()
 
     f.write("cpl.field_get ({param}):\n".format(param=i_rank))
     f.flush()

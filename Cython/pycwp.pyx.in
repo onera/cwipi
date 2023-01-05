@@ -1416,9 +1416,10 @@ cdef class Field (object):
     Create a CWIPI field object.
     """
 
-    cdef char *local_code_name
-    cdef char *cpl_id
-    cdef char *field_id
+    # do not use char* in class because it doesn't work, use str instead
+    cdef str local_code_name
+    cdef str cpl_id
+    cdef str field_id
 
     def __init__(self,
                  char                  *local_code_name,
@@ -1448,10 +1449,6 @@ cdef class Field (object):
         self.local_code_name = local_code_name
         self.cpl_id = cpl_id
         self.field_id = field_id
-
-        print(">> self.local_code_name : {param}\n".format(param=self.local_code_name))
-        print(">> self.cpl_id : {param}\n".format(param=self.cpl_id))
-        print(">> self.field_id : {param}\n".format(param=self.field_id))
 
         CWP_Field_create(self.local_code_name,
                          self.cpl_id,
@@ -1485,10 +1482,6 @@ cdef class Field (object):
           map_type  (CWP_Field_map_t)           : Choice if data is setted for the source or the target
           data      (NPY.ndarray[NPY.double_t]) : Storage array (Mapping)
         """
-
-        print(">> self.local_code_name : {param}\n".format(param=self.local_code_name))
-        print(">> self.cpl_id : {param}\n".format(param=self.cpl_id))
-        print(">> self.field_id : {param}\n".format(param=self.field_id))
 
         CWP_Field_data_set(self.local_code_name,
                            self.cpl_id,
@@ -1546,8 +1539,8 @@ cdef class Coupling (object):
     """
     Create a CWIPI coupling object.
     """
-    cdef char *local_code_name
-    cdef char *cpl_id
+    cdef str local_code_name
+    cdef str cpl_id
     cdef int n_fields
     cdef list fields
     # cdef Field[:] fields
@@ -1635,10 +1628,6 @@ cdef class Coupling (object):
                                  exch_type,
                                  visu_status))
 
-        # remove to do
-        print("self.fields[self.n_fields] --> {param}".format(param=self.fields[self.n_fields]))
-        print(id(self.fields[self.n_fields]))
-
         self.n_fields = self.n_fields + 1
 
     def field_set(self,
@@ -1657,10 +1646,6 @@ cdef class Coupling (object):
         """
 
         cdef int idx = self.fields_name[field_id]
-
-        # remove to do
-        print("self.fields[idx] --> {param}".format(param=self.fields[idx]))
-        print(id(self.fields[idx]))
 
         self.fields[idx].data_set(i_part,
                                   map_type,
@@ -1700,10 +1685,10 @@ cdef class Coupling (object):
         Parameters:
           field_id        (char*)               : Field id
         """
+        cdef int idx = self.fields_name[field_id]
+
         del self.fields_name[field_id]
-        # same as:
-        # field = self.fields.pop(field_id)
-        # del(field)
+        #del self.fields[idx] to do update idx or del all at end cpl
 
     # --> MESH
     def mesh_interf_finalize(self):
