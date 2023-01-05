@@ -576,9 +576,6 @@ namespace cwipi {
                 n_tgt     =                       _cpl->userTargetNGet     (i_part);
               }
 
-              // computed tgt??
-              // PDM_closest_points_n_tgt_get?
-
               PDM_closest_points_tgt_cloud_set(_id_pdm,
                                                i_part,
                                                n_tgt,
@@ -915,7 +912,6 @@ namespace cwipi {
 
 
     void SpatialInterpClosestPoint::interpolate(Field *referenceField, double **buffer) {
-      log_trace(">> SpatialInterpClosestPoint::interpolate\n");
 
       int nComponent = referenceField->nComponentGet();
       CWP_Dof_location_t referenceFieldType = referenceField->locationGet();
