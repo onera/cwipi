@@ -92,8 +92,19 @@ namespace cwipi {
       // Data for PDM_part_to_part_t
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
         for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-         _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
-         _src_n_gnum[i_part] = _mesh->getPartNElts (i_part);
+          if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+            _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
+            _src_n_gnum[i_part] = _mesh->getPartNElts (i_part);
+
+          }
+          else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
+            _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum (i_part);
+            _src_n_gnum[i_part] = _mesh->getPartNVertex (i_part);
+          }
+          else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
+            _src_gnum  [i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet (i_part);
+            _src_n_gnum[i_part] = _cpl->userTargetNGet (i_part);
+          }
         }
       }
       else {
@@ -670,7 +681,7 @@ namespace cwipi {
                                                    &(_tgt_in_src_idx [i_part]),
                                                    &(_tgt_in_src_dist[i_part]));
 
-            _n_involved_sources_tgt[i_part] = _tgt_in_src_idx[i_part][_src_n_gnum[i_part]];
+            _n_involved_sources_tgt[i_part] = _src_n_gnum[i_part];
             _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
 
             int count = 0;
@@ -731,7 +742,7 @@ namespace cwipi {
                                                      &(_tgt_in_src_idx [i_part]),
                                                      &(_tgt_in_src_dist[i_part]));
 
-              _n_involved_sources_tgt[i_part] = _tgt_in_src_idx[i_part][_src_n_gnum[i_part]];
+              _n_involved_sources_tgt[i_part] = _src_n_gnum[i_part];
               _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
 
               int count = 0;
@@ -793,7 +804,7 @@ namespace cwipi {
                                                      &(cpl_spatial_interp->_tgt_in_src_idx [i_part]),
                                                      &(cpl_spatial_interp->_tgt_in_src_dist[i_part]));
 
-              cpl_spatial_interp->_n_involved_sources_tgt[i_part] = cpl_spatial_interp->_tgt_in_src_idx[i_part][cpl_spatial_interp->_src_n_gnum[i_part]];
+              cpl_spatial_interp->_n_involved_sources_tgt[i_part] = cpl_spatial_interp->_src_n_gnum[i_part];
               cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * cpl_spatial_interp->_n_involved_sources_tgt[i_part]);
 
               int count = 0;
