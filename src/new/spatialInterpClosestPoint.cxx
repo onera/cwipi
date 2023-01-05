@@ -682,13 +682,24 @@ namespace cwipi {
                                                    &(_tgt_in_src_idx [i_part]),
                                                    &(_tgt_in_src_dist[i_part]));
 
-            // involved sources...
+            _n_involved_sources_tgt[i_part] = _tgt_in_src_idx[i_part][_src_n_gnum[i_part]];
+            _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
+
+            int count = 0;
+            for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
+              if (_tgt_in_src_idx[i_part][i + 1] > _tgt_in_src_idx[i_part][i]) {
+                _involved_sources_tgt[i_part][count] = i + 1;
+                ++count;
+              }
+            }
+
+            _n_involved_sources_tgt[i_part] = count;
+            _involved_sources_tgt[i_part] = (int*) realloc(_involved_sources_tgt[i_part], sizeof(int) * count);
+
           }
           else {
             _tgt_in_src_idx[i_part] = (int*) malloc (sizeof(int)); // Use malloc not new [] !
             _tgt_in_src_idx[i_part][0] = 0;
-
-            // involved sources...
 
             PDM_closest_points_get(_id_pdm,
                                    i_part,
@@ -724,12 +735,22 @@ namespace cwipi {
                                                      &(_tgt_in_src_idx [i_part]),
                                                      &(_tgt_in_src_dist[i_part]));
 
-              // involved sources...
+              _n_involved_sources_tgt[i_part] = _tgt_in_src_idx[i_part][_src_n_gnum[i_part]];
+              _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
+
+              int count = 0;
+              for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
+                if (_tgt_in_src_idx[i_part][i + 1] > _tgt_in_src_idx[i_part][i]) {
+                  _involved_sources_tgt[i_part][count] = i + 1;
+                  ++count;
+                }
+              }
+
+              _n_involved_sources_tgt[i_part] = count;
+              _involved_sources_tgt[i_part] = (int*) realloc(_involved_sources_tgt[i_part], sizeof(int) * count);
             }
 
             for (int i_part = 0; i_part < _cplNPart; i_part++) {
-              // involved sources...
-
               cpl_spatial_interp->_tgt_in_src_idx[i_part] = (int*) malloc (sizeof(int)); // Use malloc not new [] !
               cpl_spatial_interp->_tgt_in_src_idx[i_part][0] = 0;
 
@@ -750,8 +771,6 @@ namespace cwipi {
                                      &(_closest_src_dist[i_part]));
             }
 
-            // involved sources...
-
             for (int i_part = 0; i_part < _cplNPart; i_part++) {
               PDM_closest_points_tgt_in_src_get(_id_pdm,
                                                 i_part,
@@ -762,7 +781,19 @@ namespace cwipi {
                                                      &(cpl_spatial_interp->_tgt_in_src_idx [i_part]),
                                                      &(cpl_spatial_interp->_tgt_in_src_dist[i_part]));
 
-              // involved sources...
+              cpl_spatial_interp->_n_involved_sources_tgt[i_part] = cpl_spatial_interp->_tgt_in_src_idx[i_part][cpl_spatial_interp->_src_n_gnum[i_part]];
+              cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * cpl_spatial_interp->_n_involved_sources_tgt[i_part]);
+
+              int count = 0;
+              for (int i = 0 ; i < cpl_spatial_interp->_src_n_gnum[i_part] ; ++i) {
+                if (cpl_spatial_interp->_tgt_in_src_idx[i_part][i + 1] > cpl_spatial_interp->_tgt_in_src_idx[i_part][i]) {
+                  cpl_spatial_interp->_involved_sources_tgt[i_part][count] = i + 1;
+                  ++count;
+                }
+              }
+
+              cpl_spatial_interp->_n_involved_sources_tgt[i_part] = count;
+              cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) realloc(cpl_spatial_interp->_involved_sources_tgt[i_part], sizeof(int) * count);
             }
           }
         }
