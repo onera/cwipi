@@ -64,9 +64,9 @@ namespace cwipi {
         PDM_g_num_t **_closest_src_gnum;
         double      **_closest_src_dist;
 
-        int         **tgt_in_src_idx;
-        PDM_g_num_t **tgt_in_src_gnum;
-        double      **tgt_in_src_dist;
+        int         **_tgt_in_src_idx;
+        PDM_g_num_t **_tgt_in_src_gnum;
+        double      **_tgt_in_src_dist;
 
     protected:
         PDM_closest_point_t *_id_pdm;

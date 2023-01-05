@@ -280,16 +280,36 @@ namespace cwipi {
         data_def = PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2;
       }
       else {
-       // send raw field (copy?)
-       int nComponent = referenceField->nComponentGet();
-       for (int i = 0; i < _nPart; i++) {
-         double *referenceData = (double *) referenceField->dataGet(i, CWP_FIELD_MAP_SOURCE);
+        // send source field (copy?)
+        for (int i = 0; i < _nPart; i++) {
+          double *referenceData = (double *) referenceField->dataGet(i, CWP_FIELD_MAP_SOURCE);
 
-         memcpy(_send_buffer[intId][i],
-                referenceData,
-                sizeof(double) * nComponent * n_elt1[i]);
-       }
-       data_def = PDM_PART_TO_PART_DATA_DEF_ORDER_PART1;
+          if (storage == CWP_FIELD_STORAGE_INTERLACED) {
+            for (int j = 0; j < n_elt1[i]; j++) {
+              for (int k = selected_part2_idx[i][j]; k < selected_part2_idx[i][j+1]; k++) {
+                for (int l = 0; l < stride; l++) {
+                  _send_buffer[intId][i][stride*k + l] = referenceData[stride*j + l];
+                }
+              }
+            }
+          }
+          else {
+            for (int l = 0; l < stride; l++) {
+              for (int j = 0; j < n_elt1[i]; j++) {
+                for (int k = selected_part2_idx[i][j]; k < selected_part2_idx[i][j+1]; k++) {
+                  _send_buffer[intId][i][selected_part2_idx[i][n_elt1[i]]*l + k] = referenceData[n_elt1[i]*l + j];
+                }
+              }
+            }
+          }
+          // for (int j = 0; j < stride * n_elt1[i]; j++) {
+          //   _send_buffer[intId][i][j] = referenceData[j];
+          // }
+          // memcpy(_send_buffer[intId][i],
+          //        referenceData,
+          //        sizeof(double) * stride * n_elt1[i]);
+        }
+        data_def = PDM_PART_TO_PART_DATA_DEF_ORDER_PART1;
       }
 
 
@@ -334,7 +354,7 @@ namespace cwipi {
       PDM_part_to_part_iexch(_ptsp,
                              PDM_MPI_COMM_KIND_P2P,
                              pdm_storage,
-                             data_def,//PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,
+                             PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,//data_def,//
                              stride,
                              s_data,
                              NULL,

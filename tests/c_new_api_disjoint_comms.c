@@ -241,7 +241,7 @@ create_dcube_from_nodal
     memcpy(*cell_face[i_part], _cell_face, _s_cell_face * sizeof(int));
     memcpy(*cell_ln_to_gn[i_part], _cell_ln_to_gn, _n_cells * sizeof(PDM_g_num_t));
 
-    PDM_log_trace_connectivity_int(*cell_face_idx[i_part], *cell_face[i_part], *n_cells[i_part], "final cell_face");
+    // PDM_log_trace_connectivity_int(*cell_face_idx[i_part], *cell_face[i_part], *n_cells[i_part], "final cell_face");
 
     // Faces
     *n_faces[i_part] = _n_faces;
@@ -251,7 +251,7 @@ create_dcube_from_nodal
     memcpy(*face_vtx_idx[i_part], _face_vtx_idx, (_n_faces + 1) * sizeof(int));
     memcpy(*face_vtx[i_part], _face_vtx, _s_face_vtx * sizeof(int));
 
-    PDM_log_trace_connectivity_int(*face_vtx_idx[i_part], *face_vtx[i_part], *n_faces[i_part], "final face_vertex");
+    // PDM_log_trace_connectivity_int(*face_vtx_idx[i_part], *face_vtx[i_part], *n_faces[i_part], "final face_vertex");
 
     // Vertices
     *n_vtx[i_part] = _n_vtx;
@@ -543,7 +543,7 @@ main
 
   // Create coupling and visu
   const char *cpl_name = "c_new_api_disjoint_comms";
-  CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE;
+  CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;//CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE;
 
   for (int i_code = 0 ; i_code < n_code ; ++i_code) {
 
