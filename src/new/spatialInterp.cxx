@@ -33,6 +33,7 @@
 #include "pdm_binary_search.h"
 #include "pdm_error.h"
 #include "pdm_printf.h"
+#include "pdm_logging.h"
 #include "cwp.h"
 #include "cwp_priv.h"
 #include <limits>
@@ -274,10 +275,8 @@ namespace cwipi {
           (double *) malloc(sizeof(double) * stride * selected_part2_idx[i][n_elt1[i]]);
       }
 
-      PDM_part_to_part_data_def_t data_def;
       if (_interpolation_time == CWP_SPATIAL_INTERP_AT_SEND) {
         interpolate (referenceField, _send_buffer[intId]);
-        data_def = PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2;
       }
       else {
         // send source field (copy?)
@@ -302,14 +301,7 @@ namespace cwipi {
               }
             }
           }
-          // for (int j = 0; j < stride * n_elt1[i]; j++) {
-          //   _send_buffer[intId][i][j] = referenceData[j];
-          // }
-          // memcpy(_send_buffer[intId][i],
-          //        referenceData,
-          //        sizeof(double) * stride * n_elt1[i]);
         }
-        data_def = PDM_PART_TO_PART_DATA_DEF_ORDER_PART1;
       }
 
 
@@ -349,12 +341,11 @@ namespace cwipi {
 
       _send_adler.insert (it2, mpi_tag);
 
-      // Fake reveceive
-
+      // Fake receive
       PDM_part_to_part_iexch(_ptsp,
                              PDM_MPI_COMM_KIND_P2P,
                              pdm_storage,
-                             PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,//data_def,//
+                             PDM_PART_TO_PART_DATA_DEF_ORDER_PART1_TO_PART2,
                              stride,
                              s_data,
                              NULL,
@@ -466,7 +457,6 @@ namespace cwipi {
         for (int i = 0; i < _cplNPart; i++) {
           cpl_spatial_interp->_send_buffer[cpl_intId][i] = nullptr;
         }
-
         PDM_part_to_part_iexch(_ptsp,
                                PDM_MPI_COMM_KIND_P2P,
                                pdm_storage,
@@ -804,7 +794,31 @@ namespace cwipi {
         if (_interpolation_time == CWP_SPATIAL_INTERP_AT_SEND) {
           cpl_spatial_interp->interpolate (cpl_referenceField, cpl_spatial_interp->_send_buffer[cpl_intId]);
         }
+        else {
+          // send source field (copy?)
+          for (int i = 0; i < _nPart; i++) {
+            double *cpl_referenceData = (double *) cpl_referenceField->dataGet(i, CWP_FIELD_MAP_SOURCE);
 
+            if (storage == CWP_FIELD_STORAGE_INTERLACED) {
+              for (int j = 0; j < cpl_n_elt1[i]; j++) {
+                for (int k = cpl_selected_part2_idx[i][j]; k < cpl_selected_part2_idx[i][j+1]; k++) {
+                  for (int l = 0; l < stride; l++) {
+                    cpl_spatial_interp->_send_buffer[intId][i][stride*k + l] = cpl_referenceData[stride*j + l];
+                  }
+                }
+              }
+            }
+            else {
+              for (int l = 0; l < stride; l++) {
+                for (int j = 0; j < cpl_n_elt1[i]; j++) {
+                  for (int k = cpl_selected_part2_idx[i][j]; k < cpl_selected_part2_idx[i][j+1]; k++) {
+                    cpl_spatial_interp->_send_buffer[intId][i][cpl_selected_part2_idx[i][cpl_n_elt1[i]]*l + k] = cpl_referenceData[cpl_n_elt1[i]*l + j];
+                  }
+                }
+              }
+            }
+          }
+        }
 
         PDM_part_to_part_iexch(_ptsp,
                                PDM_MPI_COMM_KIND_P2P,

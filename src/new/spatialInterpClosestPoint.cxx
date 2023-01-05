@@ -36,9 +36,7 @@ namespace cwipi {
     (
      )
     {
-      log_trace(">> ~SpatialInterpClosestPoint (%p)\n", (void *) this);
       for (int i_part = 0; i_part < _nPart; i_part++) {
-        log_trace("_closest_src_gnum[%d] : %p\n", i_part, _closest_src_gnum[i_part]);
         if (_closest_src_gnum[i_part] != NULL) {
           free(_closest_src_gnum[i_part]);
         }
@@ -801,14 +799,13 @@ namespace cwipi {
       if (_ptsp == NULL) {
 
         if (!_coupledCodeProperties->localCodeIs()) {
-
-          _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **)_src_gnum,
-                                           (const int *)_src_n_gnum,
+          _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **) _src_gnum,
+                                           (const int          *) _src_n_gnum,
                                            _nPart,
-                                           (const PDM_g_num_t **)_tgt_gnum,
-                                           (const int *)_tgt_n_gnum,
+                                           (const PDM_g_num_t **) _tgt_gnum,
+                                           (const int          *) _tgt_n_gnum,
                                            _nPart,
-                                           (const int **) _tgt_in_src_idx,
+                                           (const int         **) _tgt_in_src_idx,
                                            (const PDM_g_num_t **) _tgt_in_src_gnum,
                                            _pdmCplComm);
         }
@@ -831,26 +828,26 @@ namespace cwipi {
 
             if (_ptsp == NULL) {
               if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-                _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **)_src_gnum,
-                                             (const int *)_src_n_gnum,
-                                             _nPart,
-                                             (const PDM_g_num_t **)cpl_spatial_interp->_tgt_gnum,
-                                             (const int *)cpl_spatial_interp->_tgt_n_gnum,
-                                             _cplNPart,
-                                             (const int **)_tgt_in_src_idx,
-                                             (const PDM_g_num_t **)_tgt_in_src_gnum,
-                                             _pdmCplComm);
+                _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **) _src_gnum,
+                                                 (const int          *) _src_n_gnum,
+                                                 _nPart,
+                                                 (const PDM_g_num_t **) cpl_spatial_interp->_tgt_gnum,
+                                                 (const int          *) cpl_spatial_interp->_tgt_n_gnum,
+                                                 _cplNPart,
+                                                 (const int         **) _tgt_in_src_idx,
+                                                 (const PDM_g_num_t **) _tgt_in_src_gnum,
+                                                 _pdmCplComm);
               }
               else {
-                _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **)cpl_spatial_interp->_src_gnum,
-                                             (const int *)cpl_spatial_interp->_src_n_gnum,
-                                             _cplNPart,
-                                             (const PDM_g_num_t **) _tgt_gnum,
-                                             (const int *) _tgt_n_gnum,
-                                             _nPart,
-                                             (const int **)cpl_spatial_interp->_tgt_in_src_idx,
-                                             (const PDM_g_num_t **)cpl_spatial_interp->_tgt_in_src_gnum,
-                                             _pdmCplComm);
+                _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **) cpl_spatial_interp->_src_gnum,
+                                                 (const int          *) cpl_spatial_interp->_src_n_gnum,
+                                                 _cplNPart,
+                                                 (const PDM_g_num_t **) _tgt_gnum,
+                                                 (const int          *) _tgt_n_gnum,
+                                                 _nPart,
+                                                 (const int         **) cpl_spatial_interp->_tgt_in_src_idx,
+                                                 (const PDM_g_num_t **) cpl_spatial_interp->_tgt_in_src_gnum,
+                                                 _pdmCplComm);
               }
             }
 
@@ -865,8 +862,6 @@ namespace cwipi {
 
 
     void SpatialInterpClosestPoint::interpolate(Field *referenceField, double **buffer) {
-      CWP_UNUSED (referenceField);    
-      CWP_UNUSED (buffer);    
       log_trace(">> SpatialInterpClosestPoint::interpolate\n");
 
       int nComponent = referenceField->nComponentGet();
@@ -923,7 +918,7 @@ namespace cwipi {
                 referenceData[n_pts*j + i] /= sum_w;
               }
 
-              if (1) {
+              if (0) {
                 log_trace("received:\n");
                 for (int k = 0; k < n_closest_pts; k++) {
                   log_trace("from " PDM_FMT_G_NUM ", at dist %f : ",
@@ -944,7 +939,7 @@ namespace cwipi {
 
           else { // if (storage == CWP_FIELD_STORAGE_INTERLACED) {
 
-            if (1) {
+            if (0) {
               log_trace(">>>\nreceived :\n");
               for (int i = 0; i < n_pts; i++) {
                 for (int k = 0; k < n_closest_pts; k++) {
@@ -976,7 +971,7 @@ namespace cwipi {
                 referenceData[nComponent*i + j] /= sum_w;
               }
 
-              if (1) {
+              if (0) {
                 log_trace("received:\n");
                 for (int k = 0; k < n_closest_pts; k++) {
                   log_trace("from " PDM_FMT_G_NUM ", at dist %f : ",

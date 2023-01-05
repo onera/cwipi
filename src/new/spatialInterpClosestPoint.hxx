@@ -24,7 +24,7 @@
 
 namespace cwipi {
 
-  const int CWP_CLOSEST_POINTS_N_CLOSEST_PTS = 2;
+  const int CWP_CLOSEST_POINTS_N_CLOSEST_PTS = 1;
 
   class SpatialInterpClosestPoint : public SpatialInterp {
   public:
