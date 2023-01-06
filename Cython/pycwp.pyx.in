@@ -1916,7 +1916,7 @@ cdef class Coupling (object):
         return {
                 'n_elts'     : n_elts,
                 'connec_idx' : create_numpy_i(connec_idx, n_elts+1),
-                'connec'     : create_numpy_i(connec, connec_idx[n_elts]), # TO DO: correct to do this connec_idx[n_elts] ?
+                'connec'     : create_numpy_i(connec, connec_idx[n_elts]),
                 'global_num' : create_numpy_l(global_num, n_elts)
                }
 
@@ -2014,9 +2014,9 @@ cdef class Coupling (object):
                 'n_elts'           : n_elts,
                 'n_faces'          : n_faces,
                 'connec_faces_idx' : create_numpy_i(connec_faces_idx, n_faces+1),
-                'connec_faces'     : create_numpy_i(connec_faces, connec_faces_idx[n_faces]), # TO DO: correct to do this connec_faces_idx[n_faces] ?
+                'connec_faces'     : create_numpy_i(connec_faces, connec_faces_idx[n_faces]),
                 'connec_cells_idx' : create_numpy_i(connec_cells_idx, n_elts+1),
-                'connec_cells'     : create_numpy_i(connec_cells, connec_cells_idx[n_elts]), # TO DO: correct to do this connec_faces_idx[n_faces] ?
+                'connec_cells'     : create_numpy_i(connec_cells, connec_cells_idx[n_elts]),
                 'global_num'       : create_numpy_l(global_num, n_elts)
                }
 

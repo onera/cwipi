@@ -78,6 +78,9 @@
 #include <algorithm>
 #include <vector>
 
+#include <sys/stat.h>
+#include <unistd.h>
+
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
@@ -615,8 +618,27 @@ CWP_Output_file_set
  FILE *output_file
 )
 {
+  int fd;
+  char fd_path[255];
+  char * filename = (char *) malloc(255);
+  ssize_t n;
+
+  fd = fileno(output_file);
+  sprintf(fd_path, "/proc/self/fd/%d", fd);
+  n = readlink(fd_path, filename, 255);
+  printf("n : %d\n", n);
+  filename[n] = '\0';
+  printf("filename : %s\n", filename);
+
+  struct stat FileAttrib;
+  stat(filename, &FileAttrib);
+  printf( "Permissions: %d\n", FileAttrib.st_mode );
+
   _cwipi_output_listing = output_file;
   PDM_printf_proxy_set(_cwipi_print_with_c);
+
+  fprintf(output_file, "j'arrive à écrire depuis le C!!\n");
+  fflush(output_file);
 }
 
 //
