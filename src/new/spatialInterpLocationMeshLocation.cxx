@@ -307,33 +307,23 @@ namespace cwipi {
   (
   )
   {
-    printf("inside localization_compute\n");
+
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
-      printf(" NOT local code\n");
-
       PDM_mesh_location_compute(_id_pdm);
-
-      printf("computed !\n");
 
       PDM_mesh_location_dump_times(_id_pdm);
 
-      printf("end\n");
     }
 
     else {
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
 
-        printf("local code\n");
-
         PDM_mesh_location_compute(_id_pdm);
-
-        printf("computed !\n");
 
         PDM_mesh_location_dump_times(_id_pdm);
 
-        printf("end\n");
       }
     }
   }
