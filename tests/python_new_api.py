@@ -115,9 +115,6 @@ def runTest():
     pycwp.state_update(code_names[i_rank], pycwp.STATE_END)
     f.flush()
 
-    # TIME UPDATE to do need to do an exchange before updatting?
-    # pycwp.time_update(code_names[i_rank], 1.5)
-
     # PROPERTIES DUMP to do file transmission wrong ?
     f.write("pycwp.properties_dump:\n")
     pycwp.properties_dump()
@@ -363,18 +360,25 @@ def runTest():
     f.write("  - storage : {param}\n".format(param=out["storage"]))
     f.flush()
 
-    # SPATIAL INTERPOLATION
-    # f.write("cpl.spatial_interp_weights_compute:\n")
+    # TIME UPDATE
+    # f.write("cpycwp.time_update:\n")
     # f.flush()
-    # cpl.spatial_interp_property_set("tolerance", "double", "1e-2")
+    # pycwp.time_update(code_names[i_rank], 1.5)
 
-    # f.write("cpl.spatial_interp_weights_compute:\n")
-    # f.flush()
-    # cpl.spatial_interp_weights_compute()
+    # SPATIAL INTERPOLATION
+    f.write("cpl.spatial_interp_property_set:\n")
+    f.flush()
+    cpl.spatial_interp_property_set("tolerance", "double", "1e-2")
+
+    comm.Barrier()
+
+    f.write("cpl.spatial_interp_weights_compute:\n")
+    f.flush()
+    cpl.spatial_interp_weights_compute()
 
     # comm.Barrier()
 
-    # USER INTERPOLATION
+    # USER INTERPOLATION to do has to be done
     # f.write("cpl.interp_from_location_set:\n")
     # f.flush()
     # cpl.interp_from_location_set("champs0", userInterp)
@@ -384,29 +388,43 @@ def runTest():
 
     # SEND/RECV
 
-    # f.write("pycwp.field_issend and pycwp.field_irecv:\n")
-    # f.flush()
-    # if (i_rank == 0):
-    #     pycwp.field_issend(code_names[i_rank], "test", "champs0")
-    #     pycwp.field_irecv(code_names[i_rank], "test", "champs1")
+    if (i_rank == 0):
+        f.write("pycwp.field_issend (0):\n")
+        f.flush()
+        pycwp.field_issend(code_names[i_rank], "test", "champs0")
+        f.write("pycwp.field_irecv (0):\n")
+        f.flush()
+        pycwp.field_irecv(code_names[i_rank], "test", "champs1")
 
-    # if (i_rank == 1):
-    #     pycwp.field_issend(code_names[i_rank], "test", "champs0")
-    #     pycwp.field_irecv(code_names[i_rank], "test", "champs1")
+    if (i_rank == 1):
+        f.write("pycwp.field_issend (1):\n")
+        f.flush()
+        pycwp.field_issend(code_names[i_rank], "test", "champs1")
+        f.write("pycwp.field_irecv (1):\n")
+        f.flush()
+        pycwp.field_irecv(code_names[i_rank], "test", "champs0")
 
-    # f.write("pycwp.field_wait_issend and pycwp.field_wait_irecv:\n")
-    # f.flush()
-    # if (i_rank == 0):
-    #     pycwp.field_wait_issend(code_names[i_rank], "test", "champs0")
-    #     pycwp.field_wait_irecv(code_names[i_rank], "test", "champs1")
+    f.write("pycwp.field_wait_issend and pycwp.field_wait_irecv:\n")
+    f.flush()
+    if (i_rank == 0):
+        f.write("pycwp.field_wait_issend (0):\n")
+        f.flush()
+        pycwp.field_wait_issend(code_names[i_rank], "test", "champs0")
+        f.write("pycwp.field_wait_irecv (0):\n")
+        f.flush()
+        pycwp.field_wait_irecv(code_names[i_rank], "test", "champs1")
 
-    # if (i_rank == 1):
-    #     pycwp.field_wait_issend(code_names[i_rank], "test", "champs0")
-    #     pycwp.field_wait_irecv(code_names[i_rank], "test", "champs1")
+    if (i_rank == 1):
+        f.write("pycwp.field_wait_issend (1):\n")
+        f.flush()
+        pycwp.field_wait_issend(code_names[i_rank], "test", "champs1")
+        f.write("pycwp.field_wait_irecv (1):\n")
+        f.flush()
+        pycwp.field_wait_irecv(code_names[i_rank], "test", "champs0")
 
-    # comm.Barrier()
+    comm.Barrier()
 
-    # USER INTERPOLATION
+    # USER INTERPOLATION to do has to be done
     # f.write("cpl.interp_from_location_unset:\n")
     # f.flush()
     # cpl.interp_from_location_unset("champs0")
@@ -428,9 +446,21 @@ def runTest():
                          coord,
                          None)
 
-    # USER STRUCTURE to do
-    # pycwp.user_structure_set()
-    # pycwp.user_structure_get()
+    # USER STRUCTURE
+    # class userClass:
+    #     animal = "chat"
+    #     aliment = "aligot"
+    #     ville = "Toulouse"
+
+    # userObj = userClass()
+
+    # pycwp.user_structure_set(code_names[i_rank],
+    #                          userObj)
+    # user_structure = pycwp.user_structure_get(code_names[i_rank])
+
+    # print(user_structure.animal)
+    # print(user_structure.aliment)
+    # print(user_structure.ville)
 
     f.write("cpl.mesh_interf_del:\n")
     f.flush()
@@ -552,6 +582,7 @@ def runTest():
 
     # END
     f.write("\nEnd.\n")
+    f.close()
     comm.Barrier()
     MPI.Finalize()
 
