@@ -106,13 +106,13 @@ namespace cwipi {
     
     virtual void interpolate (Field* referenceField, double **buffer) = 0;
 
-    void issend(Field* referenceField);
+    virtual void issend(Field* referenceField);
 
-    void irecv(Field* recevingField);
+    virtual void irecv(Field* recevingField);
 
-    void waitIssend(Field* referenceField);
+    virtual void waitIssend(Field* referenceField);
 
-    void waitIrecv(Field* recevingField);
+    virtual void waitIrecv(Field* recevingField);
 
     /**
      *

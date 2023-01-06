@@ -43,7 +43,7 @@ namespace cwipi {
 
       _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
-      PDM_mesh_location_reverse_results_enable (_id_pdm);
+      // PDM_mesh_location_reverse_results_enable (_id_pdm);
 
       PDM_mesh_location_method_set(_id_pdm, _location_method);
 
@@ -82,7 +82,7 @@ namespace cwipi {
 
         _id_pdm = PDM_mesh_location_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
-        PDM_mesh_location_reverse_results_enable (_id_pdm);
+        // PDM_mesh_location_reverse_results_enable (_id_pdm);
 
         PDM_mesh_location_method_set(_id_pdm, _location_method);
 
