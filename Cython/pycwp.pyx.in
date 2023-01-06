@@ -506,6 +506,27 @@ OP_MAX = CWP_OP_MAX
 OP_SUM = CWP_OP_SUM
 
 #-----------------------------------------------------------------------------
+# UTIL
+
+cdef std_block_n_pts_get(int block_type):
+  if (block_type == BLOCK_NODE):
+    return 1
+  elif (block_type == BLOCK_EDGE2):
+    return 2
+  if (block_type == BLOCK_FACE_TRIA3):
+    return 3
+  if (block_type == BLOCK_FACE_QUAD4):
+    return 4
+  if (block_type == BLOCK_CELL_TETRA4):
+    return 4
+  if (block_type == BLOCK_CELL_HEXA8):
+    return 8
+  if (block_type == BLOCK_CELL_PRISM6):
+    return 6
+  if (block_type == BLOCK_CELL_PYRAM5):
+    return 5
+
+#-----------------------------------------------------------------------------
 # CALLBACK
 g_interp_fct = {}
 current_cpl_id = ""
@@ -737,30 +758,30 @@ cdef void interp_callback(const int                  interface_type,
                                                   <void *> tgt_field)
 
     (<object> g_interp_fct[current_cpl_id]) (interface_type,
-                                                            code_name,
-                                                            src_n_block,
-                                                            src_blocks_type_a,
-                                                            src_i_part,
-                                                            src_n_vtx,
-                                                            src_vtx_coords_a,
-                                                            src_vtx_global_num_a,
-                                                            src_n_elts,
-                                                            src_id_block_a,
-                                                            src_elt_in_block_a,
-                                                            src_elt_vtx_idx_a,
-                                                            src_elt_vtx_a,
-                                                            src_elts_global_num_a,
-                                                            tgt_n_pts,
-                                                            tgt_pts_elt_idx_a,
-                                                            tgt_pts_coords_a,
-                                                            tgt_pts_dist_a,
-                                                            tgt_pts_uvw_a,
-                                                            tgt_pts_weights_idx_a,
-                                                            tgt_pts_weights_a,
-                                                            stride,
-                                                            src_field_dof_location,
-                                                            src_field_a,
-                                                            tgt_field_a)
+                                             code_name,
+                                             src_n_block,
+                                             src_blocks_type_a,
+                                             src_i_part,
+                                             src_n_vtx,
+                                             src_vtx_coords_a,
+                                             src_vtx_global_num_a,
+                                             src_n_elts,
+                                             src_id_block_a,
+                                             src_elt_in_block_a,
+                                             src_elt_vtx_idx_a,
+                                             src_elt_vtx_a,
+                                             src_elts_global_num_a,
+                                             tgt_n_pts,
+                                             tgt_pts_elt_idx_a,
+                                             tgt_pts_coords_a,
+                                             tgt_pts_dist_a,
+                                             tgt_pts_uvw_a,
+                                             tgt_pts_weights_idx_a,
+                                             tgt_pts_weights_a,
+                                             stride,
+                                             src_field_dof_location,
+                                             src_field_a,
+                                             tgt_field_a)
 
 #-----------------------------------------------------------------------------
 # UTILS
@@ -895,7 +916,8 @@ def output_file_set(output_file):
     cdef int fd
     cdef FILE* c_file
     cdef str mode
-
+    if (isinstance(output_file, str)):
+        output_file = open(output_file, 'w')
     # next line will most likely fail if output_file is not
     # an io.TextIOWrapper(in py3) or a file(in py2)
     mode = output_file.mode
@@ -1814,7 +1836,8 @@ cdef class Coupling (object):
         # if (global_num is NULL):
         #   global_num = None
 
-        cdef int size = n_elts * 3 # TO DO: tmp value
+        block_type = BLOCK_FACE_TRIA3 # tmp to do when rebase cs on dev for id to type
+        cdef int size = n_elts * std_block_n_pts_get(block_type)
         return {
                 'n_elts'     : n_elts,
                 'connec'     : create_numpy_i(connec, size), # TO DO: get n_vtx_elt
@@ -1933,7 +1956,7 @@ cdef class Coupling (object):
                                            <int *> connec_faces.data,
                                            <int *> connec_cells_idx.data,
                                            <int *> connec_cells.data,
-                                           <long *> global_num.data)
+                                           NULL)
         else:
           CWP_Mesh_interf_c_poly_block_set(self.local_code_name,
                                            self.cpl_id,
