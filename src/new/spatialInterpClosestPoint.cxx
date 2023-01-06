@@ -910,6 +910,186 @@ namespace cwipi {
     }
 
 
+    /**
+     * Solve the linear system Ax = b using Gaussian elimination,
+     * where A is an n*n matrix and b, x are n*stride matrices
+     * (Aij = A[n*i+j], bij = b[stride*i+j], xij = x[stride*i+j])
+     *
+     * return 1 if A is singular, 0 else
+     */
+    static int _linsolve
+    (
+     const int     n,
+     const int     stride,
+           double *A,
+           double *b,
+           double *x
+     )
+    {
+      const double eps = 1e-15;
+
+      for (int i = 0; i < n; i++) {
+        /* Seek best pivot */
+        double amax = std::fabs(A[n*i+i]);
+        int imax = i;
+        for (int k = i+1; k < n; k++) {
+          double aki = std::fabs(A[n*k+i]);
+          if (aki > amax) {
+            amax = aki;
+            imax = k;
+          }
+        }
+
+        if (amax <= eps) {
+          /* matrix A is singular */
+          return 1;
+        }
+
+        /* Swap rows i and imax */
+        if (i != imax) {
+          for (int j = 0; j < n; j++) {
+            double tmp = A[n*i+j];
+            A[n*i   +j] = A[n*imax+j];
+            A[n*imax+j] = tmp;
+          }
+
+          for (int j = 0; j < stride; j++) {
+            double tmp = b[stride*i + j];
+            b[stride*i    + j] = b[stride*imax + j];
+            b[stride*imax + j] = tmp;
+          }
+        }
+
+        /* Eliminate subdiagonal terms */
+        double inv_amax = 1./A[n*i+i];
+
+        for (int k = i+1; k < n; k++) {
+          double r = A[n*k+i] * inv_amax;
+          for (int j = i+1; j < n; j++) {
+            A[n*k+j] -= r * A[n*i+j];
+          }
+          A[n*k+i] = 0.;
+
+          for (int j = 0; j < stride; j++) {
+            b[stride*k + j] -= r * b[stride*i + j];
+          }
+        }
+      }
+
+      /* Solve triangular system */
+      memcpy(x, b, sizeof(double) * n * stride);
+
+      for (int i = n-1; i >= 0; i--) {
+        for (int j = i+1; j < n; j++) {
+          for (int k = 0; k < stride; k++) {
+            x[stride*i + k] -= x[stride*j + k] * A[n*i+j];
+          }
+        }
+
+        double inv_ai = 1./A[n*i+i];
+        for (int k = 0; k < stride; k++) {
+          x[stride*i + k] *= inv_ai;
+        }
+      }
+
+      return 0;
+    }
+
+
+    static void _interp_least_squares
+    (
+     const int     n_closest_pts,
+     const int     stride,
+     const double *src_value,
+     const double *src_coord,
+     const double *tgt_coord,
+           double *tgt_value
+     )
+    {
+      double A[4*4] = {0.};
+      double b[4*stride] = {0.};
+
+      for (int i = 0; i < n_closest_pts; i++) {
+        double x = src_coord[3*i    ];
+        double y = src_coord[3*i + 1];
+        double z = src_coord[3*i + 2];
+
+        A[4*0+0] += x * x;
+        A[4*0+1] += x * y;
+        A[4*0+2] += x * z;
+        A[4*0+3] += x;
+
+        A[4*1+1] += y * y;
+        A[4*1+2] += y * z;
+        A[4*1+3] += y;
+
+        A[4*2+2] += z * z;
+        A[4*2+3] += z;
+
+        A[4*3+3] += 1.;
+
+        for (int j = 0; j < stride; j++) {
+          double f = src_value[stride*i + j];
+          b[4*i + 0] += x * f;
+          b[4*i + 1] += y * f;
+          b[4*i + 2] += z * f;
+          b[4*i + 3] += f;
+        }
+      }
+
+      /* Symmetrize */
+      A[4*1+0] = A[4*0+1];
+      A[4*2+0] = A[4*0+2];
+      A[4*3+0] = A[4*0+3];
+
+      A[4*2+1] = A[4*1+2];
+      A[4*3+1] = A[4*1+3];
+
+      A[4*3+2] = A[4*2+3];
+
+      double coeff[4*stride];
+      if (_linsolve(4, stride, A, b, coeff) == 0) {
+        for (int j = 0; j < stride; j++) {
+          tgt_value[j] =
+          coeff[4*j + 0] * tgt_coord[0] +
+          coeff[4*j + 1] * tgt_coord[1] +
+          coeff[4*j + 2] * tgt_coord[2] +
+          coeff[4*j + 3];
+        }
+      }
+    }
+
+
+    static void _interp_idw
+    (
+     const int     n_closest_pts,
+     const int     stride,
+     const double *src_value,
+     const double *src_dist2,
+           double *tgt_value
+     )
+    {
+      const double eps_dist2 = 1e-30;
+      for (int j = 0; j < stride; j++) {
+        tgt_value[j] = 0.;
+      }
+
+      double sum_w = 0.;
+      for (int i = 0; i < n_closest_pts; i++) {
+        double w = 1./std::max(eps_dist2, src_dist2[i]);
+        sum_w += w;
+        for (int j = 0; j < stride; j++) {
+          tgt_value[j] += w*src_value[stride*i + j];
+        }
+      }
+
+      sum_w = 1./sum_w;
+      for (int j = 0; j < stride; j++) {
+        tgt_value[j] *= sum_w;
+      }
+    }
+
+
 
     void SpatialInterpClosestPoint::interpolate(Field *referenceField, double **buffer) {
 
@@ -933,6 +1113,48 @@ namespace cwipi {
           n_closest_pts = it->second;
         }
 
+        int use_idw_interpolation = 1;
+        double       *src_coord = NULL;
+        const double *tgt_coord = NULL;
+        // double **send_coord = NULL;
+        // double **recv_coord = NULL;
+        // double *mat = NULL;
+
+        double *src_value = NULL;
+        double *tgt_value = NULL;
+
+        if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
+          src_value = (double *) malloc(sizeof(double) * nComponent * n_closest_pts);
+          tgt_value = (double *) malloc(sizeof(double) * nComponent);
+        }
+
+        // if (!use_idw_interpolation) {
+        //   send_coord = (double **) malloc(sizeof(double *) * _nPart);
+        //   for (int i_part = 0; i_part < _nPart; i_part++) {
+        //     send_coord[i_part] = _mesh->getVertexCoords(i_part);
+        //   }
+
+        //   // deadlock :(
+        //   int request_coord = -1;
+        //   PDM_part_to_part_iexch(_ptsp,
+        //                          PDM_MPI_COMM_KIND_P2P,
+        //                          PDM_STRIDE_CST_INTERLACED,
+        //                          PDM_PART_TO_PART_DATA_DEF_ORDER_PART1,
+        //                          1,
+        //                          3*sizeof(double),
+        //                          NULL,
+        //                          (const void  **) send_coord,
+        //                          NULL,
+        //                          (      void ***) &recv_coord,
+        //                          &request_coord);
+
+        //   PDM_part_to_part_iexch_wait(_ptsp, request_coord);
+        //   free(send_coord);
+
+        //   mat = (double *) malloc(sizeof(double) * n_closest_pts * 4);
+        // }
+
+
         for (int i_part = 0; i_part < _nPart; i_part++) {
 
           double *referenceData = (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_TARGET);
@@ -950,93 +1172,71 @@ namespace cwipi {
 
 
           // TO DO : least square interpolation
-
-          if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
-
-            for (int i = 0; i < n_pts; i++) {
-              double sum_w = 0;
-              for (int k = 0; k < n_closest_pts; k++) {
-                double w = 1./std::max(1e-16, sqrt(_closest_src_dist[i_part][n_closest_pts*i + k]));
-                sum_w += w;
-                for (int j = 0; j < nComponent; j++) {
-                  referenceData[n_pts*j + i] += w*buffer[i_part][n_closest_pts*(n_pts*j + i) + k];
-                }
-              }
-
-              for (int j = 0; j < nComponent; j++) {
-                referenceData[n_pts*j + i] /= sum_w;
-              }
-
-              if (0) {
-                log_trace("received:\n");
-                for (int k = 0; k < n_closest_pts; k++) {
-                  log_trace("from " PDM_FMT_G_NUM ", at dist %f : ",
-                            _closest_src_gnum[i_part][n_closest_pts*i + k],
-                            sqrt(_closest_src_dist[i_part][n_closest_pts*i + k]));
-                  for (int j = 0; j < nComponent; j++) {
-                    log_trace("%f ", buffer[i_part][n_closest_pts*(n_pts*j + i) + k]);
-                  }
-                  log_trace("\n");
-                }
-                for (int j = 0; j < nComponent; j++) {
-                  log_trace("%f ", referenceData[n_pts*j + i]);
-                }
-                log_trace("\n");
-              }
+          // => requires x,y,z coordinates of closest source points
+          if (!use_idw_interpolation) {
+            if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+              tgt_coord = _mesh->eltCentersGet(i_part);
+            }
+            else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
+              tgt_coord = _mesh->getVertexCoords(i_part);
+            }
+            else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
+              tgt_coord = _cpl->userTargetCoordsGet(i_part);
             }
           }
 
-          else { // if (storage == CWP_FIELD_STORAGE_INTERLACED) {
 
-            if (0) {
-              log_trace(">>>\nreceived :\n");
-              for (int i = 0; i < n_pts; i++) {
-                for (int k = 0; k < n_closest_pts; k++) {
-                  log_trace("from " PDM_FMT_G_NUM " : ", _closest_src_gnum[i_part][n_closest_pts*i + k]);
-                  for (int j = 0; j < nComponent; j++) {
-                    log_trace("%f ", buffer[i_part][nComponent*(n_closest_pts*i + k) + j]);
-                  }
-                  log_trace("\n");
-                }
-              }
-              log_trace("<<<\n");
-            }
+          for (int i = 0; i < n_pts; i++) {
 
-            for (int i = 0; i < n_pts; i++) {
-              for (int j = 0; j < nComponent; j++) {
-                referenceData[nComponent*i + j] = 0;
-              }
 
-              double sum_w = 0;
+            if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
+              // interlace src_value
               for (int k = 0; k < n_closest_pts; k++) {
-                double w = 1./std::max(1e-16, sqrt(_closest_src_dist[i_part][n_closest_pts*i + k]));
-                sum_w += w;
                 for (int j = 0; j < nComponent; j++) {
-                  referenceData[nComponent*i + j] += w*buffer[i_part][nComponent*(n_closest_pts*i + k) + j];
+                  src_value[nComponent*k + j] = buffer[i_part][n_closest_pts*(n_pts*j + i) + k];
                 }
-              }
-
-              for (int j = 0; j < nComponent; j++) {
-                referenceData[nComponent*i + j] /= sum_w;
-              }
-
-              if (0) {
-                log_trace("received:\n");
-                for (int k = 0; k < n_closest_pts; k++) {
-                  log_trace("from " PDM_FMT_G_NUM ", at dist %f : ",
-                            _closest_src_gnum[i_part][n_closest_pts*i + k],
-                            sqrt(_closest_src_dist[i_part][n_closest_pts*i + k]));
-                  PDM_log_trace_array_double(&buffer[i_part][nComponent*(n_closest_pts*i + k)],
-                                             nComponent,
-                                             "");
-                }
-                PDM_log_trace_array_double(&referenceData[nComponent*i],
-                                           nComponent,
-                                           "interpolated : ");
               }
             }
-          }
+            else {
+              src_value = buffer[i_part] + nComponent*n_closest_pts*i;
+              tgt_value = referenceData + nComponent*i;
+            }
 
+            if (use_idw_interpolation) {
+              _interp_idw(n_closest_pts,
+                          nComponent,
+                          src_value,
+                          _closest_src_dist[i_part] + n_closest_pts*i,
+                          tgt_value);
+            }
+            else {
+              _interp_least_squares(n_closest_pts,
+                                    nComponent,
+                                    src_value,
+                                    src_coord + 3*n_closest_pts*i,
+                                    tgt_coord + 3*i,
+                                    tgt_value);
+            }
+
+            if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
+              // de-interlace tgt_value
+              for (int j = 0; j < nComponent; j++) {
+                referenceData[n_pts*j + i] = tgt_value[j];
+              }
+            }
+
+          }
+        }
+
+        if (!use_idw_interpolation) {
+          free(src_value);
+          free(tgt_value);
+          // free(mat);
+
+          // for (int i_part = 0; i_part < _nPart; i_part++) {
+          //   free(recv_coord[i_part]);
+          // }
+          // free(recv_coord);
         }
 
 
