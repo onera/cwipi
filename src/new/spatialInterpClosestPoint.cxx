@@ -935,10 +935,6 @@ namespace cwipi {
         if (!_coupledCodeProperties->localCodeIs()) {
 
           // MPI tag?...
-          log_trace("begin _send_coord : %f %f %f\n",
-                    _send_coord[0][0],
-                    _send_coord[0][1],
-                    _send_coord[0][2]);
 
           PDM_part_to_part_iexch(_ptsp,
                                  PDM_MPI_COMM_KIND_P2P,
@@ -1076,6 +1072,7 @@ namespace cwipi {
             dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
 
             // MPI tag?...
+            log_trace("cpl_spatial_interp : %p\n", (void *) cpl_spatial_interp);
 
             PDM_part_to_part_iexch(_ptsp,
                                    PDM_MPI_COMM_KIND_P2P,
@@ -1145,11 +1142,11 @@ namespace cwipi {
 
     static void _interp_idw
     (
-     const int     n_closest_pts,
-     const int     stride,
-     const double *src_value,
-     const double *src_dist2,
-           double *tgt_value
+      const int     n_closest_pts,
+      const int     stride,
+      const double *src_value,
+      const double *src_dist2,
+            double *tgt_value
      )
     {
       const double eps_dist2 = 1e-30;
@@ -1182,11 +1179,11 @@ namespace cwipi {
      */
     static int _linsolve
     (
-     const int     n,
-     const int     stride,
-           double *A,
-           double *b,
-           double *x
+      const int     n,
+      const int     stride,
+            double *A,
+            double *b,
+            double *x
      )
     {
       const double eps = 1e-15;
@@ -1223,7 +1220,7 @@ namespace cwipi {
 
         if (amax <= eps) {
           /* matrix A is singular */
-          log_trace("A is singular :\n");
+          log_trace("A is singular\n");
           // for (int ii = 0; ii < n; ii++) {
           //   for (int jj = 0; jj < n; jj++) {
           //     log_trace("%f ", A[n*ii+jj]);
@@ -1296,12 +1293,13 @@ namespace cwipi {
 
     static void _interp_least_squares
     (
-     const int     n_closest_pts,
-     const int     stride,
-     const double *src_value,
-     const double *src_coord,
-     const double *tgt_coord,
-           double *tgt_value
+      const int     n_closest_pts,
+      const int     stride,
+      const double *src_value,
+      const double *src_coord,
+      const double *src_dist2,
+      const double *tgt_coord,
+            double *tgt_value
      )
     {
       double A[4*4] = {0.};
@@ -1357,9 +1355,14 @@ namespace cwipi {
       }
       else {
         // what do we do if A is singular? SVD? IDW?
-        for (int j = 0; j < stride; j++) {
-          tgt_value[j] = (j+1)*1000;
-        }
+        _interp_idw(n_closest_pts,
+                    stride,
+                    src_value,
+                    src_dist2,
+                    tgt_value);
+        // for (int j = 0; j < stride; j++) {
+        //   tgt_value[j] = (j+1)*1000;
+        // }
       }
     }
 
@@ -1469,6 +1472,7 @@ namespace cwipi {
                                     nComponent,
                                     src_value,
                                     src_coord + 3*n_closest_pts*i,
+                                    _closest_src_dist[i_part] + n_closest_pts*i,
                                     tgt_coord + 3*i,
                                     tgt_value);
               log_trace("recv :\n");
