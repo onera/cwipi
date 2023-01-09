@@ -282,6 +282,8 @@ main
   // mesh_file = fopen("../meshes/mesh_poly_d1", "r"); // SPIRO
   mesh_file = fopen("./meshes/mesh_poly_d1", "r"); // SATOR
 
+  // TO DO: understand why somehow blocked in fscanf ??
+
   fscanf(mesh_file, "%d %d %d %d %d %d",
          &dimension,
          &n_vtx,

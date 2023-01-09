@@ -993,8 +993,6 @@ CWP_server_Param_reduce
   int nCode = -1;
   CWP_transfer_readdata(svr->connected_socket, svr->max_msg_size, &nCode, sizeof(int));
 
-  printf("received before names\n");
-
   // read code names
   char **code_names = (char **) malloc(sizeof(char *) * nCode);
   for (int i = 0; i < nCode; i++) {
@@ -1022,9 +1020,7 @@ CWP_server_Param_reduce
                      data_type,
                      (void *) &res,
                      nCode,
-                     code_names);
-
-    printf("CWP_SVR_LCH_END before\n");
+     (const char **) code_names);
 
     // send status msg
     MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -1045,7 +1041,7 @@ CWP_server_Param_reduce
                      data_type,
                      (void *) &res,
                      nCode,
-                     code_names);
+     (const char **) code_names);
 
     // send status msg
     MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -4284,10 +4280,8 @@ CWP_server_create
   sprintf(port_str, "%d", svr->port);
 
   const int status = getaddrinfo(svr->host_name, port_str, NULL, &svr_info); // hint
-  printf("status = %d\n", status);
   char *dst = (char *) malloc(sizeof(char) * INET_ADDRSTRLEN);
   inet_ntop(AF_INET, svr_info->ai_addr->sa_data, dst, INET_ADDRSTRLEN);
-  printf("svr_info->ai_addr->sa_data: %s\n", dst);
 
   // verbose
   if (svr_debug) {

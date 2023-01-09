@@ -338,6 +338,7 @@ main
   CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
 
   if (i_rank == 0) {
+    printf("CWP_client_Cpl_create rank 0\n");
     CWP_client_Cpl_create("code1",
                           cpl_id1,
                           "code2",
@@ -350,6 +351,7 @@ main
   }
 
   if (i_rank == 1) {
+    printf("CWP_client_Cpl_create rank 1\n");
     CWP_client_Cpl_create("code2",
                           cpl_id1,
                           "code1",
@@ -362,21 +364,26 @@ main
   }
 
   if (i_rank == 0) {
+    printf("CWP_client_Cpl_del rank 0\n");
     CWP_client_Cpl_del("code1", cpl_id1);
   }
 
   if (i_rank == 1) {
+    printf("CWP_client_Cpl_del rank 1\n");
     CWP_client_Cpl_del("code2", cpl_id1);
   }
 
   // CWP_Finalize
+  printf("CWP_client_Finalize\n");
   CWP_client_Finalize();
 
   // free
+  printf("Free\n");
   if (times_init != NULL) free(times_init);
   if (code_names != NULL) free(code_names);
   if (is_coupled_rank != NULL) free(is_coupled_rank);
 
+  printf("MPI_Finalize\n");
   MPI_Finalize();
 
   return 0;
