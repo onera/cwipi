@@ -108,12 +108,12 @@ def runTest():
     f.write("  - intra_comms : {param}\n".format(param=out["intra_comms"][0]))
 
     # STATE UPDATE
-    # pycwp.state_update(code_names[i_rank], pycwp.STATE_IN_PROGRESS)
-    # f.write("pycwp.state_get:\n")
-    # state = pycwp.state_get(code_names[i_rank])
-    # f.write("  - state : {param}\n".format(param=state))
-    # pycwp.state_update(code_names[i_rank], pycwp.STATE_END)
-    # f.flush()
+    pycwp.state_update(code_names[i_rank], pycwp.STATE_IN_PROGRESS)
+    f.write("pycwp.state_get:\n")
+    state = pycwp.state_get(code_names[i_rank])
+    f.write("  - state : {param}\n".format(param=state))
+    pycwp.state_update(code_names[i_rank], pycwp.STATE_END)
+    f.flush()
 
     # PROPERTIES DUMP to do file transmission wrong ?
     f.write("pycwp.properties_dump:\n")
@@ -234,210 +234,214 @@ def runTest():
     #if SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, blocked in weigths_compute
 
     # VISU
-    # cpl.visu_set(1,
-    #              pycwp.VISU_FORMAT_ENSIGHT,
-    #              "text")
+    cpl.visu_set(1,
+                 pycwp.VISU_FORMAT_ENSIGHT,
+                 "text")
+
+    # std or polygon
+    polygon = 0
 
     # MESH
+    if (polygon):
+        if (i_rank == 0):
+            coord = np.array([0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0], dtype=np.double)
+            connec_idx = np.array([0, 3, 6], dtype=np.int32)
+            connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
 
-    if (i_rank == 0):
-        coord = np.array([0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0], dtype=np.double)
-        connec_idx = np.array([0, 3, 6], dtype=np.int32)
+        if (i_rank == 1):
+            coord = np.array([0, 1, 0, 0, 2, 0, 1, 1, 0, 1, 2, 0], dtype=np.double)
+            connec_idx = np.array([0, 3, 6], dtype=np.int32)
+            connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
+
+        f.write("cpl.mesh_interf_vtx_set:\n")
+        f.flush()
+        cpl.mesh_interf_vtx_set(0,
+                                4,
+                                coord,
+                                None)
+
+        f.write("cpl.mesh_interf_block_add:\n")
+        f.flush()
+        block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
+        f.write("cpl.mesh_interf_f_poly_block_set ({param}):\n".format(param=i_rank))
+        f.flush()
+
+        cpl.mesh_interf_f_poly_block_set(0,
+                                         block_id,
+                                         2,
+                                         connec_idx,
+                                         connec,
+                                         None)
+
+        f.write("cpl.mesh_interf_finalize:\n")
+        f.flush()
+        cpl.mesh_interf_finalize()
+
+        f.write("cpl.mesh_interf_f_poly_block_get:\n")
+        f.flush()
+        out = cpl.mesh_interf_f_poly_block_get(0, block_id)
+        f.write("  - n_elts : {param}\n".format(param=out["n_elts"]))
+        f.write("  - connec_idx {param}\n".format(param=out["connec_idx"]))
+        f.write("  - connec {param}\n".format(param=out["connec"]))
+        f.write("  - global_num : {param}\n".format(param=out["global_num"]))
+        f.flush()
+
+        # FIELD
+
+        # USER INTERPOLATION to do has to be done
+        # f.write("cpl.interp_from_location_set:\n")
+        # f.flush()
+        # cpl.interp_from_location_set("champs", userInterp)
+
+        sendField = np.array([0.0, 0.1, 0.2, 0.3], dtype=np.double)
+        recvField = np.arange(4, dtype=np.double)
+
+        if (i_rank == 0):
+            cpl.field_create("champs",
+                             pycwp.DOUBLE,
+                             pycwp.FIELD_STORAGE_INTERLACED,
+                             1,
+                             pycwp.DOF_LOCATION_NODE,
+                             pycwp.FIELD_EXCH_SEND,
+                             pycwp.STATUS_OFF)
+            cpl.field_set("champs",
+                          0,
+                          pycwp.FIELD_MAP_SOURCE,
+                          sendField)
+
+        if (i_rank == 1):
+            cpl.field_create("champs",
+                             pycwp.DOUBLE,
+                             pycwp.FIELD_STORAGE_INTERLACED,
+                             1,
+                             pycwp.DOF_LOCATION_NODE,
+                             pycwp.FIELD_EXCH_RECV,
+                             pycwp.STATUS_OFF)
+            cpl.field_set("champs",
+                          0,
+                          pycwp.FIELD_MAP_TARGET,
+                          recvField)
+
+        comm.Barrier()
+
+        f.write("cpl.spatial_interp_property_set:\n")
+        f.flush()
+        cpl.spatial_interp_property_set("tolerance", "double", "1e-2")
+
+        comm.Barrier()
+
+        f.write("cpl.spatial_interp_weights_compute:\n")
+        f.flush()
+        cpl.spatial_interp_weights_compute()
+
+        if (i_rank == 0):
+            f.write("pycwp.field_issend (0):\n")
+            f.flush()
+            pycwp.field_issend(code_names[i_rank], "test", "champs")
+
+        if (i_rank == 1):
+            f.write("pycwp.field_irecv (1):\n")
+            f.flush()
+            pycwp.field_irecv(code_names[i_rank], "test", "champs")
+
+        if (i_rank == 0):
+            f.write("pycwp.field_wait_issend (0):\n")
+            f.flush()
+            pycwp.field_wait_issend(code_names[i_rank], "test", "champs")
+
+        if (i_rank == 1):
+            f.write("pycwp.field_wait_irecv (1):\n")
+            f.flush()
+            pycwp.field_wait_irecv(code_names[i_rank], "test", "champs")
+
+        comm.Barrier()
+
+        f.write("cpl.field_del:\n")
+        f.flush()
+        cpl.field_del("champs")
+
+        # USER INTERPOLATION to do has to be done
+        # f.write("cpl.interp_from_location_unset:\n")
+        # f.flush()
+        # cpl.interp_from_location_unset("champs")
+
+        # TIME UPDATE
+        f.write("cpycwp.time_update:\n")
+        f.flush()
+        pycwp.time_update(code_names[i_rank], 1.5)
+
+        comm.Barrier()
+
+        # USER TGT PTS
+        coord = np.array([6, 7, 8, 9, 10, 11], dtype=np.double)
+        f.write("cpl.user_tgt_pts_set:\n")
+        f.flush()
+        cpl.user_tgt_pts_set(0,
+                             2,
+                             coord,
+                             None)
+
+        # USER STRUCTURE
+        # class userClass:
+        #     animal = "chat"
+        #     aliment = "aligot"
+        #     ville = "Toulouse"
+
+        # userObj = userClass()
+
+        # pycwp.user_structure_set(code_names[i_rank],
+        #                          userObj)
+        # user_structure = pycwp.user_structure_get(code_names[i_rank])
+
+        # print(user_structure.animal)
+        # print(user_structure.aliment)
+        # print(user_structure.ville)
+
+        f.write("cpl.mesh_interf_del:\n")
+        f.flush()
+        cpl.mesh_interf_del()
+
+    else:
+        # STD MESH
+        f.write("cpl.mesh_interf_block_add:\n")
+        f.flush()
+        block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_TRIA3)
+        f.write("cpl.mesh_interf_block_std_set:\n")
+        f.flush()
         connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
+        cpl.mesh_interf_block_std_set(0,
+                                      block_id,
+                                      2,
+                                      connec,
+                                      None)
 
-    if (i_rank == 1):
-        coord = np.array([0, 1, 0, 0, 2, 0, 1, 1, 0, 1, 2, 0], dtype=np.double)
-        connec_idx = np.array([0, 3, 6], dtype=np.int32)
-        connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
-
-    f.write("cpl.mesh_interf_vtx_set:\n")
-    f.flush()
-    cpl.mesh_interf_vtx_set(0,
-                            4,
-                            coord,
-                            None)
-
-    f.write("cpl.mesh_interf_block_add:\n")
-    f.flush()
-    block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
-    f.write("cpl.mesh_interf_f_poly_block_set ({param}):\n".format(param=i_rank))
-    f.flush()
-
-    cpl.mesh_interf_f_poly_block_set(0,
-                                     block_id,
-                                     2,
-                                     connec_idx,
-                                     connec,
-                                     None)
-
-    f.write("cpl.mesh_interf_finalize:\n")
-    f.flush()
-    cpl.mesh_interf_finalize()
-
-    f.write("cpl.mesh_interf_f_poly_block_get:\n")
-    f.flush()
-    out = cpl.mesh_interf_f_poly_block_get(0, block_id)
-    f.write("  - n_elts : {param}\n".format(param=out["n_elts"]))
-    f.write("  - connec_idx {param}\n".format(param=out["connec_idx"]))
-    f.write("  - connec {param}\n".format(param=out["connec"]))
-    f.write("  - global_num : {param}\n".format(param=out["global_num"]))
-    f.flush()
-
-    # FIELD
-
-    # USER INTERPOLATION to do has to be done
-    # f.write("cpl.interp_from_location_set:\n")
-    # f.flush()
-    # cpl.interp_from_location_set("champs", userInterp)
-
-    sendField = np.array([0.0, 0.1, 0.2, 0.3], dtype=np.double)
-    recvField = np.arange(4, dtype=np.double)
-
-    if (i_rank == 0):
-        cpl.field_create("champs",
-                         pycwp.DOUBLE,
-                         pycwp.FIELD_STORAGE_INTERLACED,
-                         1,
-                         pycwp.DOF_LOCATION_NODE,
-                         pycwp.FIELD_EXCH_SEND,
-                         pycwp.STATUS_OFF)
-        cpl.field_set("champs",
-                      0,
-                      pycwp.FIELD_MAP_SOURCE,
-                      sendField)
-
-    if (i_rank == 1):
-        cpl.field_create("champs",
-                         pycwp.DOUBLE,
-                         pycwp.FIELD_STORAGE_INTERLACED,
-                         1,
-                         pycwp.DOF_LOCATION_NODE,
-                         pycwp.FIELD_EXCH_RECV,
-                         pycwp.STATUS_OFF)
-        cpl.field_set("champs",
-                      0,
-                      pycwp.FIELD_MAP_TARGET,
-                      recvField)
-
-    comm.Barrier()
-
-    f.write("cpl.spatial_interp_property_set:\n")
-    f.flush()
-    cpl.spatial_interp_property_set("tolerance", "double", "1e-2")
-
-    comm.Barrier()
-
-    f.write("cpl.spatial_interp_weights_compute:\n")
-    f.flush()
-    cpl.spatial_interp_weights_compute()
-
-    if (i_rank == 0):
-        f.write("pycwp.field_issend (0):\n")
+        f.write("cpl.mesh_interf_block_std_get:\n")
         f.flush()
-        pycwp.field_issend(code_names[i_rank], "test", "champs")
-
-    if (i_rank == 1):
-        f.write("pycwp.field_irecv (1):\n")
+        out = cpl.mesh_interf_block_std_get(0,
+                                            block_id)
+        f.write("  - n_elts : {param}\n".format(param=out["n_elts"]))
+        f.write("  - connec {param}\n".format(param=out["connec"]))
+        f.write("  - global_num : {param}\n".format(param=out["global_num"]))
         f.flush()
-        pycwp.field_irecv(code_names[i_rank], "test", "champs")
 
-    if (i_rank == 0):
-        f.write("pycwp.field_wait_issend (0):\n")
+        f.write("cpl.mesh_interf_from_faceedge_set:\n")
         f.flush()
-        pycwp.field_wait_issend(code_names[i_rank], "test", "champs")
+        face_edge_idx = np.array([0, 3, 6], dtype=np.int32)
+        face_edge = np.array([1, 2, 3, 5, 4, 3], dtype=np.int32)
+        edge_vtx_idx = np.array([0, 2, 4, 6, 8, 10], dtype=np.int32)
+        edge_vtx = np.array([3, 1, 1, 2, 2, 3, 4, 2, 3, 4], dtype=np.int32)
+        cpl.mesh_interf_from_faceedge_set(0,
+                                          2,
+                                          face_edge_idx,
+                                          face_edge,
+                                          5,
+                                          edge_vtx_idx,
+                                          edge_vtx,
+                                          None)
 
-    if (i_rank == 1):
-        f.write("pycwp.field_wait_irecv (1):\n")
+        f.write("cpl.mesh_interf_del:\n")
         f.flush()
-        pycwp.field_wait_irecv(code_names[i_rank], "test", "champs")
-
-    comm.Barrier()
-
-    f.write("cpl.field_del:\n")
-    f.flush()
-    cpl.field_del("champs")
-
-    # USER INTERPOLATION to do has to be done
-    # f.write("cpl.interp_from_location_unset:\n")
-    # f.flush()
-    # cpl.interp_from_location_unset("champs")
-
-    # TIME UPDATE
-    # f.write("cpycwp.time_update:\n")
-    # f.flush()
-    # pycwp.time_update(code_names[i_rank], 1.5)
-
-    # comm.Barrier()
-
-    # USER TGT PTS
-    # coord = np.array([6, 7, 8, 9, 10, 11], dtype=np.double)
-    # f.write("cpl.user_tgt_pts_set:\n")
-    # f.flush()
-    # cpl.user_tgt_pts_set(0,
-    #                      2,
-    #                      coord,
-    #                      None)
-
-    # USER STRUCTURE
-    # class userClass:
-    #     animal = "chat"
-    #     aliment = "aligot"
-    #     ville = "Toulouse"
-
-    # userObj = userClass()
-
-    # pycwp.user_structure_set(code_names[i_rank],
-    #                          userObj)
-    # user_structure = pycwp.user_structure_get(code_names[i_rank])
-
-    # print(user_structure.animal)
-    # print(user_structure.aliment)
-    # print(user_structure.ville)
-
-    f.write("cpl.mesh_interf_del:\n")
-    f.flush()
-    cpl.mesh_interf_del()
-
-    # STD MESH
-    # f.write("cpl.mesh_interf_block_add:\n")
-    # f.flush()
-    # block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_TRIA3)
-    # f.write("cpl.mesh_interf_block_std_set:\n")
-    # f.flush()
-    # connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
-    # cpl.mesh_interf_block_std_set(0,
-    #                               block_id,
-    #                               2,
-    #                               connec,
-    #                               None)
-
-    # f.write("cpl.mesh_interf_block_std_get:\n")
-    # f.flush()
-    # out = cpl.mesh_interf_block_std_get(0,
-    #                                     block_id)
-    # f.write("  - n_elts : {param}\n".format(param=out["n_elts"]))
-    # f.write("  - connec {param}\n".format(param=out["connec"]))
-    # f.write("  - global_num : {param}\n".format(param=out["global_num"]))
-    # f.flush()
-
-    # f.write("cpl.mesh_interf_from_faceedge_set:\n")
-    # f.flush()
-    # face_edge_idx = np.array([0, 3, 6], dtype=np.int32)
-    # face_edge = np.array([1, 2, 3, 5, 4, 3], dtype=np.int32)
-    # edge_vtx_idx = np.array([0, 2, 4, 6, 8, 10], dtype=np.int32)
-    # edge_vtx = np.array([3, 1, 1, 2, 2, 3, 4, 2, 3, 4], dtype=np.int32)
-    # cpl.mesh_interf_from_faceedge_set(0,
-    #                                   2,
-    #                                   face_edge_idx,
-    #                                   face_edge,
-    #                                   5,
-    #                                   edge_vtx_idx,
-    #                                   edge_vtx,
-    #                                   None)
-
-    # f.write("cpl.mesh_interf_del:\n")
-    # f.flush()
-    # cpl.mesh_interf_del()
+        cpl.mesh_interf_del()
 
     # Volumic Cpl
     f.write("pycwp.Coupling:\n")
