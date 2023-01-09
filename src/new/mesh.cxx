@@ -1333,6 +1333,7 @@ namespace cwipi {
       return PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index, id_part);
     }
     else {
+      // for linear interface might work using above return here
       PDM_error(__FILE__, __LINE__, 0, "getPartNElts : Element type is no taking account.\n");
     }
 
