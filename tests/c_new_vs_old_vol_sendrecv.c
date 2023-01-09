@@ -1519,7 +1519,7 @@ main(int argc, char *argv[]) {
           _unrotate(1, coord);
         }
         for (int j = 0; j < 3; j++) {
-          coord[j] = MIN(MAX(coord[j], xyz_min[j]), xyz_max[j]);
+          // coord[j] = MIN(MAX(coord[j], xyz_min[j]), xyz_max[j]);
         }
         if (deform) {
           _rotate(1, coord);

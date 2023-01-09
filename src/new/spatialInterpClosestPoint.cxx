@@ -63,6 +63,17 @@ namespace cwipi {
       delete[] _tgt_in_src_idx;
       delete[] _tgt_in_src_gnum;
       delete[] _tgt_in_src_dist;
+
+      free(_send_coord);
+
+      if (_recv_coord != NULL) {
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+          if (_recv_coord[i_part] != NULL) {
+            free(_recv_coord[i_part]);
+          }
+        }
+        free(_recv_coord);
+      }
     }
 
 
@@ -150,6 +161,7 @@ namespace cwipi {
       }
 
       _send_coord = NULL;
+      _recv_coord = NULL;
     }
 
 
@@ -350,7 +362,6 @@ namespace cwipi {
         n_closest_pts = it->second;
       }
 
-      log_trace("n_closest_pts = %d\n", n_closest_pts);
 
       if (!_coupledCodeProperties->localCodeIs()) {
         _id_pdm = PDM_closest_points_create(_pdmCplComm,
@@ -446,7 +457,6 @@ namespace cwipi {
                              (double      *) tgt_coord,
                              (PDM_g_num_t *) tgt_g_num);
 
-            log_trace("A n_tgt = %d\n", n_tgt);
           }
         }
         else {
@@ -605,7 +615,6 @@ namespace cwipi {
                                (double      *) tgt_coord,
                                (PDM_g_num_t *) tgt_g_num);
 
-              log_trace("B n_tgt = %d\n", n_tgt);
             }
           }
           else {
@@ -639,7 +648,6 @@ namespace cwipi {
                                (double      *) tgt_coord,
                                (PDM_g_num_t *) tgt_g_num);
 
-              log_trace("C n_tgt = %d\n", n_tgt);
             }
           }
         }
@@ -699,31 +707,31 @@ namespace cwipi {
                                             &_ptsp,
                                             PDM_OWNERSHIP_USER);
 
-        if (1) {
-          int  *n_ref_gnum2;
-          int **ref_gnum2;
-          PDM_part_to_part_ref_lnum2_get (_ptsp,
-                                          &n_ref_gnum2,
-                                          &ref_gnum2);
+        // if (0) {
+        //   int  *n_ref_gnum2;
+        //   int **ref_gnum2;
+        //   PDM_part_to_part_ref_lnum2_get (_ptsp,
+        //                                   &n_ref_gnum2,
+        //                                   &ref_gnum2);
 
-          int          **gnum1_come_from_idx;
-          PDM_g_num_t  **gnum1_come_from;
-          PDM_part_to_part_gnum1_come_from_get (_ptsp,
-                                                &gnum1_come_from_idx,
-                                                &gnum1_come_from);
+        //   int          **gnum1_come_from_idx;
+        //   PDM_g_num_t  **gnum1_come_from;
+        //   PDM_part_to_part_gnum1_come_from_get (_ptsp,
+        //                                         &gnum1_come_from_idx,
+        //                                         &gnum1_come_from);
 
-          int n_part1;
-          int n_part2;
-          PDM_part_to_part_n_part_get(_ptsp, &n_part1, &n_part2);
+        //   int n_part1;
+        //   int n_part2;
+        //   PDM_part_to_part_n_part_get(_ptsp, &n_part1, &n_part2);
 
-          for (int i = 0; i < n_part2; i++) {
-            log_trace("n_ref_gnum2[%d] = %d, end idx = %d\n",
-                      i, n_ref_gnum2[i], gnum1_come_from_idx[i][n_ref_gnum2[i]]);
-            for (int j = 0; j < n_ref_gnum2[i]; j++) {
-              log_trace("  %d -> %d\n", j, gnum1_come_from_idx[i][j+1] - gnum1_come_from_idx[i][j]);
-            }
-          }
-        }
+        //   for (int i = 0; i < n_part2; i++) {
+        //     log_trace("n_ref_gnum2[%d] = %d, end idx = %d\n",
+        //               i, n_ref_gnum2[i], gnum1_come_from_idx[i][n_ref_gnum2[i]]);
+        //     for (int j = 0; j < n_ref_gnum2[i]; j++) {
+        //       log_trace("  %d -> %d\n", j, gnum1_come_from_idx[i][j+1] - gnum1_come_from_idx[i][j]);
+        //     }
+        //   }
+        // }
       }
 
       // localization_get();
@@ -976,23 +984,8 @@ namespace cwipi {
 
     void SpatialInterpClosestPoint::issend(Field *referenceField) {
 
-      log_trace("SpatialInterpClosestPoint::issend : _coordinates_exchanged? %d\n", _coordinates_exchanged);
-
       if (!_coordinates_exchanged) {
         /* Send source points coordinates */
-        // _send_coord = (const double **) malloc(sizeof(double *) * _nPart);
-        // for (int i_part = 0; i_part < _nPart; i_part++) {
-        //   if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-        //     _send_coord[i_part] = _mesh->eltCentersGet(i_part);
-        //   }
-        //   else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-        //     _send_coord[i_part] = _mesh->getVertexCoords(i_part);
-        //   }
-        //   else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
-        //     _send_coord[i_part] = _cpl->userTargetCoordsGet(i_part);
-        //   }
-        // }
-
         if (!_coupledCodeProperties->localCodeIs()) {
 
           // MPI tag?...
@@ -1047,8 +1040,6 @@ namespace cwipi {
 
     void SpatialInterpClosestPoint::waitIssend(Field *referenceField) {
 
-      log_trace("SpatialInterpClosestPoint::waitIssend : _coordinates_exchanged? %d\n", _coordinates_exchanged);
-
       if (!_coordinates_exchanged) {
 
         if (!_coupledCodeProperties->localCodeIs()) {
@@ -1087,29 +1078,12 @@ namespace cwipi {
 
     void SpatialInterpClosestPoint::irecv(Field *referenceField) {
 
-      log_trace("SpatialInterpClosestPoint::irecv : _coordinates_exchanged? %d\n", _coordinates_exchanged);
-
       /* Receive source points coordinates */
-      // _send_coord = (const double **) malloc(sizeof(double *) * _nPart);
-      for (int i_part = 0; i_part < _nPart; i_part++) {
-        // if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-        //   _send_coord[i_part] = _mesh->eltCentersGet(i_part);
-        // }
-        // else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-        //   _send_coord[i_part] = _mesh->getVertexCoords(i_part);
-        // }
-        // else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
-        //   _send_coord[i_part] = _cpl->userTargetCoordsGet(i_part);
-        // }
-        _send_coord[i_part] = NULL;
-      }
-
       if (!_coordinates_exchanged) {
 
         if (!_coupledCodeProperties->localCodeIs()) {
 
           // MPI tag?...
-          log_trace(">> PDM_part_to_part_iexch\n");
           PDM_part_to_part_iexch(_ptsp,
                                  PDM_MPI_COMM_KIND_P2P,
                                  PDM_STRIDE_CST_INTERLACED,
@@ -1133,8 +1107,6 @@ namespace cwipi {
             dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
 
             // MPI tag?...
-            log_trace("cpl_spatial_interp : %p\n", (void *) cpl_spatial_interp);
-            log_trace("cpl_spatial_interp->_send_coord : %p\n", (void *) cpl_spatial_interp->_send_coord);
             PDM_part_to_part_iexch(_ptsp,
                                    PDM_MPI_COMM_KIND_P2P,
                                    PDM_STRIDE_CST_INTERLACED,
@@ -1157,8 +1129,6 @@ namespace cwipi {
 
 
     void SpatialInterpClosestPoint::waitIrecv(Field *referenceField) {
-
-      log_trace("SpatialInterpClosestPoint::waitIrecv : _coordinates_exchanged? %d\n", _coordinates_exchanged);
 
       if (!_coordinates_exchanged) {
 
@@ -1281,7 +1251,7 @@ namespace cwipi {
 
         if (amax <= eps) {
           /* matrix A is singular */
-          log_trace("A is singular\n");
+          // log_trace("A is singular\n");
           // for (int ii = 0; ii < n; ii++) {
           //   for (int jj = 0; jj < n; jj++) {
           //     log_trace("%f ", A[n*ii+jj]);
@@ -1367,7 +1337,7 @@ namespace cwipi {
       double b[4*stride] = {0.};
 
       for (int i = 0; i < n_closest_pts; i++) {
-        log_trace("i = %d / %d\n", i, n_closest_pts);
+        // log_trace("i = %d / %d\n", i, n_closest_pts);
         double x = src_coord[3*i    ];
         double y = src_coord[3*i + 1];
         double z = src_coord[3*i + 2];
@@ -1498,7 +1468,7 @@ namespace cwipi {
           src_coord = _recv_coord[i_part];
 
           for (int i = 0; i < n_pts; i++) {
-            log_trace("tgt pt %d / %d\n", i, n_pts);
+            // log_trace("tgt pt %d / %d\n", i, n_pts);
 
             if (0) {
               for (int k = 0; k < n_closest_pts; k++) {
@@ -1538,20 +1508,23 @@ namespace cwipi {
                                     _closest_src_dist[i_part] + n_closest_pts*i,
                                     tgt_coord + 3*i,
                                     tgt_value);
-              log_trace("recv :\n");
-              for (int k = 0; k < n_closest_pts; k++) {
-                log_trace("  from " PDM_FMT_G_NUM " : ", _closest_src_gnum[i_part][n_closest_pts*i + k]);
-                PDM_log_trace_array_double(src_value + nComponent*k,
-                                           nComponent,
-                                           "");
-              }
-              PDM_log_trace_array_double(tgt_value,
-                                         nComponent,
-                                         "interpolated : ");
-              PDM_log_trace_array_double(tgt_coord + 3*i,
-                                         3,
-                                         "tgt_coord    : ");
 
+
+              if (0) {
+                log_trace("recv :\n");
+                for (int k = 0; k < n_closest_pts; k++) {
+                  log_trace("  from " PDM_FMT_G_NUM " : ", _closest_src_gnum[i_part][n_closest_pts*i + k]);
+                  PDM_log_trace_array_double(src_value + nComponent*k,
+                                             nComponent,
+                                             "");
+                }
+                PDM_log_trace_array_double(tgt_value,
+                                           nComponent,
+                                           "interpolated : ");
+                PDM_log_trace_array_double(tgt_coord + 3*i,
+                                           3,
+                                           "tgt_coord    : ");
+              }
             }
 
             if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
