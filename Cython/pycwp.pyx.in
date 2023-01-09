@@ -34,7 +34,7 @@ cimport cython
 from libc.stdlib       cimport malloc, free
 from cpython.ref       cimport PyObject, Py_INCREF, Py_DECREF, Py_XDECREF
 from cpython.pycapsule cimport PyCapsule_New, PyCapsule_GetPointer, PyCapsule_IsValid, PyCapsule_GetName
-from libc.stdio cimport FILE, fdopen
+from libc.stdio cimport FILE, fdopen, fopen
 from cpython.object cimport PyObject_AsFileDescriptor
 cimport numpy as NPY
 cimport mpi4py.MPI as MPI
@@ -916,14 +916,14 @@ def output_file_set(output_file):
     cdef int fd
     cdef FILE* c_file
     cdef str mode
-    if (isinstance(output_file, str)):
-        output_file = open(output_file, 'w')
-    # next line will most likely fail if output_file is not
-    # an io.TextIOWrapper(in py3) or a file(in py2)
+
     mode = output_file.mode
 
-    fd = PyObject_AsFileDescriptor(output_file)
-    c_file = fdopen(fd, mode)
+    if (output_file == None):
+      c_file = fopen(output_file.name, mode)
+    else:
+      fd = PyObject_AsFileDescriptor(output_file)
+      c_file = fdopen(fd, mode)
 
     CWP_Output_file_set(c_file)
 

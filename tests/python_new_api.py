@@ -116,8 +116,8 @@ def runTest():
     # f.flush()
 
     # PROPERTIES DUMP to do file transmission wrong ?
-    # f.write("pycwp.properties_dump:\n")
-    # pycwp.properties_dump()
+    f.write("pycwp.properties_dump:\n")
+    pycwp.properties_dump()
 
     # CODES
     f.write("pycwp.code:\n")
