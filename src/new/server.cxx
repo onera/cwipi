@@ -2724,13 +2724,13 @@ CWP_server_Mesh_interf_block_std_get
   int               n_elts     = -1;
   int              *connec     = NULL;
   CWP_g_num_t      *global_num = NULL;
-  // CWP_Mesh_interf_block_std_get(local_code_name,
-  //                               cpl_id,
-  //                               i_part,
-  //                               block_id,
-  //                               &n_elts,
-  //                               &connec,
-  //                               &global_num);
+  CWP_Mesh_interf_block_std_get(local_code_name,
+                                cpl_id,
+                                i_part,
+                                block_id,
+                                &n_elts,
+                                &connec,
+                                &global_num);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
