@@ -1277,7 +1277,7 @@ def param_get(char        *code_name,
                     param_name,
                     data_type,
                     &(str_value))
-    return str_value
+      return str_value
 
 def param_reduce(CWP_Op_t    op,
                  char       *param_name,
@@ -1832,16 +1832,17 @@ cdef class Coupling (object):
                                       &(n_elts),
                                       &(connec),
                                       &(global_num))
-
-        # if (global_num is NULL):
-        #   global_num = None
+        if (global_num is NULL):
+          py_global_num = None
+        else :
+          py_global_num = create_numpy_l(global_num, n_elts)
 
         block_type = BLOCK_FACE_TRIA3 # tmp to do when rebase cs on dev for id to type
         cdef int size = n_elts * std_block_n_pts_get(block_type)
         return {
                 'n_elts'     : n_elts,
                 'connec'     : create_numpy_i(connec, size), # TO DO: get n_vtx_elt
-                'global_num' : create_numpy_l(global_num, n_elts)
+                'global_num' : py_global_num
                }
 
     def mesh_interf_f_poly_block_set(self,
@@ -1913,11 +1914,16 @@ cdef class Coupling (object):
                                          &(connec),
                                          &(global_num))
 
+        if (global_num is NULL):
+          py_global_num = None
+        else :
+          py_global_num = create_numpy_l(global_num, n_elts)
+
         return {
                 'n_elts'     : n_elts,
                 'connec_idx' : create_numpy_i(connec_idx, n_elts+1),
                 'connec'     : create_numpy_i(connec, connec_idx[n_elts]),
-                'global_num' : create_numpy_l(global_num, n_elts)
+                'global_num' : py_global_num
                }
 
     def mesh_interf_c_poly_block_set(self,
@@ -2010,6 +2016,11 @@ cdef class Coupling (object):
                                          &(connec_cells),
                                          &(global_num))
 
+        if (global_num is NULL):
+          py_global_num = None
+        else :
+          py_global_num = create_numpy_l(global_num, n_elts)
+
         return {
                 'n_elts'           : n_elts,
                 'n_faces'          : n_faces,
@@ -2017,7 +2028,7 @@ cdef class Coupling (object):
                 'connec_faces'     : create_numpy_i(connec_faces, connec_faces_idx[n_faces]),
                 'connec_cells_idx' : create_numpy_i(connec_cells_idx, n_elts+1),
                 'connec_cells'     : create_numpy_i(connec_cells, connec_cells_idx[n_elts]),
-                'global_num'       : create_numpy_l(global_num, n_elts)
+                'global_num'       : py_global_num
                }
 
     def mesh_interf_del(self):

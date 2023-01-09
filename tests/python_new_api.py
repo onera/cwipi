@@ -230,6 +230,9 @@ def runTest():
                          pycwp.DYNAMIC_MESH_VARIABLE,
                          pycwp.TIME_EXCH_USER_CONTROLLED)
 
+    #if SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES, get munmap_chunk(): invalid pointer
+    #if SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, blocked in weigths_compute
+
     # VISU
     # cpl.visu_set(1,
     #              pycwp.VISU_FORMAT_ENSIGHT,
@@ -270,6 +273,7 @@ def runTest():
     f.write("cpl.mesh_interf_finalize:\n")
     f.flush()
     cpl.mesh_interf_finalize()
+
     f.write("cpl.mesh_interf_f_poly_block_get:\n")
     f.flush()
     out = cpl.mesh_interf_f_poly_block_get(0, block_id)
@@ -280,6 +284,11 @@ def runTest():
     f.flush()
 
     # FIELD
+
+    # USER INTERPOLATION to do has to be done
+    # f.write("cpl.interp_from_location_set:\n")
+    # f.flush()
+    # cpl.interp_from_location_set("champs", userInterp)
 
     sendField = np.array([0.0, 0.1, 0.2, 0.3], dtype=np.double)
     recvField = np.arange(4, dtype=np.double)
@@ -348,24 +357,17 @@ def runTest():
     f.flush()
     cpl.field_del("champs")
 
+    # USER INTERPOLATION to do has to be done
+    # f.write("cpl.interp_from_location_unset:\n")
+    # f.flush()
+    # cpl.interp_from_location_unset("champs")
+
     # TIME UPDATE
     # f.write("cpycwp.time_update:\n")
     # f.flush()
     # pycwp.time_update(code_names[i_rank], 1.5)
 
-    # USER INTERPOLATION to do has to be done
-    # f.write("cpl.interp_from_location_set:\n")
-    # f.flush()
-    # cpl.interp_from_location_set("champs0", userInterp)
-    # cpl.interp_from_location_set("champs1", userInterp)
-
     # comm.Barrier()
-
-    # USER INTERPOLATION to do has to be done
-    # f.write("cpl.interp_from_location_unset:\n")
-    # f.flush()
-    # cpl.interp_from_location_unset("champs0")
-    # cpl.interp_from_location_unset("champs1")
 
     # USER TGT PTS
     # coord = np.array([6, 7, 8, 9, 10, 11], dtype=np.double)
@@ -437,10 +439,6 @@ def runTest():
     # f.flush()
     # cpl.mesh_interf_del()
 
-    # f.write("del cpl:\n")
-    # f.flush()
-    # del cpl
-
     # Volumic Cpl
     f.write("pycwp.Coupling:\n")
     f.flush()
@@ -484,10 +482,6 @@ def runTest():
     f.write("  - connec_cells_idx {param}\n".format(param=out["connec_cells_idx"]))
     f.write("  - connec_cells {param}\n".format(param=out["connec_cells"]))
 
-    f.write("cpl2.mesh_interf_del:\n")
-    f.flush()
-    cpl2.mesh_interf_del()
-
     face_vtx_idx = np.array([0, 3, 6, 9, 12], dtype=np.int32)
     face_vtx = np.array([1, 2, 3, 1, 2, 4, 2, 3, 4, 1, 3, 4], dtype=np.int32)
     cell_face_idx = np.array([0, 4], dtype=np.int32)
@@ -503,9 +497,10 @@ def runTest():
                                       face_vtx_idx,
                                       face_vtx,
                                       None)
-    # f.write("del cpl:\n")
-    # f.flush()
-    # del cpl
+
+    f.write("cpl2.mesh_interf_del:\n")
+    f.flush()
+    cpl2.mesh_interf_del()
 
     # FINALIZE
     pycwp.finalize()
