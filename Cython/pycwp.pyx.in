@@ -277,6 +277,9 @@ cdef extern from "cwp.h":
                                      int          n_elts,
                                      int          *connec,
                                      long         *global_num)
+  CWP_Block_t CWP_std_block_type_get(char             *local_code_name,
+                                     char             *cpl_id,
+                                     int               block_id)
   void CWP_Mesh_interf_block_std_get(char         *local_code_name,
                                      char         *cpl_id,
                                      int           i_part,
@@ -713,8 +716,7 @@ cdef void interp_callback(const int                  interface_type,
     if (tgt_n_pts == 0 or tgt_pts_uvw == NULL):
       tgt_pts_uvw_a = None
     else:
-      dim_interface = 3 # tmp
-      dims = <NPY.npy_intp>(dim_interface * tgt_n_pts) # TO DO ?
+      dims = <NPY.npy_intp>(3 * tgt_n_pts) # TO DO: always 3 bcs u,v and w ?
       tgt_pts_uvw_a = NPY.PyArray_SimpleNewFromData(1,
                                                     &dims,
                                                     NPY.NPY_DOUBLE,
@@ -741,8 +743,15 @@ cdef void interp_callback(const int                  interface_type,
     if (src_n_elts == 0 or src_field == NULL):
       src_field_a = None
     else:
-      size = stride*tgt_n_pts # tmp
-      dims = <NPY.npy_intp>(size) # TO DO ?
+      if (src_field_dof_location == CWP_DOF_LOCATION_NODE):
+        size = stride*src_n_vtx
+      elif (src_field_dof_location == CWP_DOF_LOCATION_CELL_CENTER):
+        size = stride*src_n_elts
+      else:
+        # TO DO: handle CWP_DOF_LOCATION_USER
+        print("Error: {param} source field dof location not handled yet".format(param=src_field_dof_location))
+
+      dims = <NPY.npy_intp>(size)
       src_field_a = NPY.PyArray_SimpleNewFromData(1,
                                                   &dims,
                                                   NPY.NPY_DOUBLE,
@@ -928,7 +937,7 @@ def output_file_set(output_file):
     CWP_Output_file_set(c_file)
 
 def user_structure_set(char*     local_code_name,
-                       object user_structure): # TO DO: object ?
+                       object user_structure):
     """
     Define a user structure associated to a code.
 
@@ -1716,7 +1725,6 @@ cdef class Coupling (object):
         cdef int idx = self.fields_name[field_id]
 
         del self.fields_name[field_id]
-        #del self.fields[idx] to do update idx or del all at end cpl
 
     # --> MESH
     def mesh_interf_finalize(self):
@@ -1843,11 +1851,13 @@ cdef class Coupling (object):
         else :
           py_global_num = create_numpy_l(global_num, n_elts)
 
-        block_type = BLOCK_FACE_TRIA3 # tmp to do when rebase cs on dev for id to type
+        cdef CWP_Block_t block_type = CWP_std_block_type_get(self.local_code_name,
+                                                             self.cpl_id,
+                                                             block_id)
         cdef int size = n_elts * std_block_n_pts_get(block_type)
         return {
                 'n_elts'     : n_elts,
-                'connec'     : create_numpy_i(connec, size), # TO DO: get n_vtx_elt
+                'connec'     : create_numpy_i(connec, size),
                 'global_num' : py_global_num
                }
 
