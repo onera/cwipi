@@ -934,10 +934,11 @@ def user_structure_set(char*     local_code_name,
 
     Parameters:
       local_code_name  (char*)      : Local code name
-      user_structure   (PyObject *) : User structure
+      user_structure   (object) : User structure
     """
 
-    cdef void *c_user_structure = <void *> PyCapsule_GetPointer(user_structure, NULL)
+    cdef void *c_user_structure = <void *> user_structure
+    # PyCapsule_GetPointer(user_structure, NULL)
 
     CWP_User_structure_set(local_code_name,
                            c_user_structure)
@@ -950,13 +951,18 @@ def user_structure_get(local_code_name):
       local_code_name  (char*) : Local code name
 
     Returns:
-      user_structure   (PyObject *) : User structure
+      user_structure   (object) : User structure
     """
 
     cdef void *c_user_structure = CWP_User_structure_get(local_code_name)
 
+    cdef object user_structure
+
     if c_user_structure: # not Null
-      user_structure = PyCapsule_New(c_user_structure, NULL, NULL)
+      user_structure = <object>c_user_structure
+      # PyCapsule_New(c_user_structure, NULL, NULL)
+    else:
+      user_structure = None
 
     return user_structure
 

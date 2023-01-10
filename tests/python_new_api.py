@@ -239,7 +239,7 @@ def runTest():
                  "text")
 
     # std or polygon
-    polygon = 0
+    polygon = 1
 
     # MESH
     if (polygon):
@@ -382,20 +382,24 @@ def runTest():
                              None)
 
         # USER STRUCTURE
-        # class userClass:
-        #     animal = "chat"
-        #     aliment = "aligot"
-        #     ville = "Toulouse"
+        class userClass:
+            animal = "chat"
+            aliment = "aligot"
+            ville = "Toulouse"
 
-        # userObj = userClass()
+        userObj = userClass()
 
-        # pycwp.user_structure_set(code_names[i_rank],
-        #                          userObj)
-        # user_structure = pycwp.user_structure_get(code_names[i_rank])
+        f.write("pycwp.user_structure_set:\n")
+        f.flush()
+        pycwp.user_structure_set(code_names[i_rank],
+                                 userObj)
+        f.write("pycwp.user_structure_get:\n")
+        f.flush()
+        user_structure = pycwp.user_structure_get(code_names[i_rank])
 
-        # print(user_structure.animal)
-        # print(user_structure.aliment)
-        # print(user_structure.ville)
+        print(user_structure.animal)
+        print(user_structure.aliment)
+        print(user_structure.ville)
 
         f.write("cpl.mesh_interf_del:\n")
         f.flush()
