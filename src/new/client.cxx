@@ -56,7 +56,7 @@
 #include "struct.hxx"
 
 #include "cwp_priv.h"
-// #include "cwipi_config.h"
+#include "cwipi_config.h"
 
 #include <cwp.h>
 #include <pdm_error.h>
@@ -640,7 +640,7 @@ CWP_client_connect
 
   // verbose
   MPI_Barrier(clt->comm);
-  if ((clt->flags  & CWP_FLAG_VERBOSE)) {
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
     printf("CWP-CLIENT: client connected to server on %s port %i\n", server_name, server_port);
     fflush(stdout);
   }
@@ -940,9 +940,6 @@ CWP_client_Init
     flags = atoi(pPath);
   }
 
-  // tmp
-  flags = 1;
-
   // connect
   if (CWP_client_connect(comm, intra_comm, server_name, server_port, flags) != 0) {
     PDM_error(__FILE__, __LINE__, 0, "Client connexion failed\n");
@@ -1024,17 +1021,12 @@ CWP_client_Init
   free(endian_time_init);
 
   // standard cwipi init message
-  char *version = PDM_version_get();
-
   if (clt->i_rank == 0) {
 
-    printf("\ncwipi %s initializing\n", version);
+    printf("\ncwipi " CWIPI_VERSION " initializing\n");
     printf("------------------------\n\n");
 
   }
-
-  // free
-  free(version);
 }
 
 void
