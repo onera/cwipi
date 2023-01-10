@@ -1202,7 +1202,7 @@ CWP_Mesh_interf_block_std_get_cf
 
   int block_type  = CWP_std_block_type_get(c_local_code_name,
                                            c_cpl_id,
-                                           block_id)
+                                           block_id);
   int n_vtx_block = _n_vtx_block_get(block_type);
   *s_connec = n_vtx_block * (*n_elts);
 
