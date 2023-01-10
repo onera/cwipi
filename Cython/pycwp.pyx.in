@@ -716,7 +716,16 @@ cdef void interp_callback(const int                  interface_type,
     if (tgt_n_pts == 0 or tgt_pts_uvw == NULL):
       tgt_pts_uvw_a = None
     else:
-      dims = <NPY.npy_intp>(3 * tgt_n_pts) # TO DO: always 3 bcs u,v and w ?
+      if (interface_type == CWP_INTERFACE_LINEAR):
+        interface_dim = 1
+      elif (interface_type == CWP_INTERFACE_SURFACE):
+        interface_dim = 2
+      elif (interface_type == CWP_INTERFACE_VOLUME):
+        interface_dim = 3
+      else:
+        print("Error: {param} interface type not handled yet".format(param=interface_type))
+
+      dims = <NPY.npy_intp>(interface_dim * tgt_n_pts)
       tgt_pts_uvw_a = NPY.PyArray_SimpleNewFromData(1,
                                                     &dims,
                                                     NPY.NPY_DOUBLE,
