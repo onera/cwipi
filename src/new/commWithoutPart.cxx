@@ -18,6 +18,7 @@
 */
 
 #include "commWithoutPart.hxx"
+#include "pdm_logging.h"
 
 using namespace std;
 
@@ -91,6 +92,7 @@ namespace cwipi {
     _cplCommLocRanks = new std::vector<int>(*_unionCommLocRanks);
       
     if (cplCodeCommType != CWP_COMM_PAR_WITH_PART) {
+      log_trace("cplCodeCommType != CWP_COMM_PAR_WITH_PART\n");
 
       int cplRanks2[2];
       int gap1 = 0;
@@ -114,12 +116,18 @@ namespace cwipi {
     }
   
     else {
+      log_trace("cplCodeCommType == CWP_COMM_PAR_WITH_PART\n");
+      log_trace("cplRanks.size() = %d\n", cplRanks.size());
+      log_trace("_localCodeProperties->rootRankGet() = %d\n", _localCodeProperties->rootRankGet());
           
-      vector <int> exRanks(cplRanks.size()-1);
-      
+      vector <int> exRanks(cplRanks.size());//-1);
+      log_trace("exRanks : %p, size = %d\n", exRanks, exRanks.size());
+
       int j = 0;
       for (size_t i = 0; i < cplRanks.size(); i++) {
+        log_trace("i = %d, cplRanks[i] = %d\n", i, cplRanks[i]);
         if (cplRanks[i] != _localCodeProperties->rootRankGet()) {
+          log_trace("  j = %d\n", j);
           exRanks[j++] = cplRanks[i]; 
         }      
       }

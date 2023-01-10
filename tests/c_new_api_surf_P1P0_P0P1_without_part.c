@@ -600,6 +600,7 @@ int main(int argc, char *argv[])
 
   // Create coupling
   const char *cpl_name = "c_new_api_surf_P1P0_P0P1_without_part";
+  log_trace(">> CWP_Cpl_create\n");
   CWP_Cpl_create(code_name[0],                                          // Code name
                  cpl_name,                                              // Coupling id
                  coupled_code_name[0],                                  // Coupled application id
