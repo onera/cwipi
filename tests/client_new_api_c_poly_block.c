@@ -223,8 +223,8 @@ main
 
   FILE *meshFile;
 
-  // meshFile = fopen("../meshes/mesh_poly_d1", "r"); // SPIRO
-  meshFile = fopen("./meshes/mesh_poly_d1", "r"); // SATOR
+  meshFile = fopen("../meshes/mesh_poly_d1", "r"); // SPIRO
+  // meshFile = fopen("./meshes/mesh_poly_d1", "r"); // SATOR
 
   int n_partition = 0;
   const int two = 2;
