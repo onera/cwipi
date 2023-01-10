@@ -672,6 +672,29 @@ CWP_Properties_dump
   properties.dump();
 }
 
+/**
+ * \brief Dump string of code properties.
+ *
+ */
+
+int
+CWP_Properties_str_dump
+(
+ char **char_out
+)
+{
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+  string str_out = properties.str_dump();
+
+  // prepare output
+  int size = str_out.length() + 1;
+  *char_out = (char *) malloc(sizeof(char) * size);
+  strcpy(*char_out, str_out.c_str());
+
+  return size;
+}
+
 /*----------------------------------------------------------------------------*
  * General functions about coupling                                           *
  *----------------------------------------------------------------------------*/
@@ -1426,6 +1449,28 @@ CWP_Mesh_interf_block_std_get
 
 }
 
+ /**
+  * \brief Get the standard block type
+  *
+  * \param [in]  block_id    Block identifier
+  *
+  * \return block type
+  */
+
+CWP_Block_t
+CWP_std_block_type_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const int          block_id
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  CWP_Block_t block_type = cpl.meshStdBlockTypeGet(block_id);
+
+  return block_type;
+}
+
 /*void
 CWP_Mesh_interf_h_order_block_set
 (
@@ -1891,6 +1936,36 @@ CWP_Field_data_set
   if(_is_active_rank(local_code_name)){
     cwipi::Coupling& cpl = _cpl_get(local_code_name, cpl_id);
     cpl.fieldDataSet(field_id, i_part, map_type, data);
+  }
+}
+
+/**
+ *
+ * \brief Get field data.
+ *
+ * \param [in]  local_code_name   Local code name
+ * \param [in]  cpl_id            Coupling identifier
+ * \param [in]  field_id          Field identifier
+ * \param [in]  i_part            Current partition
+ * \param [in]  data_type         Choice if data is setted for the source or the target
+ * \param [out] data              Storage array (Mapping)
+ *
+ */
+
+void
+CWP_Field_data_get
+(
+ const char              *local_code_name,
+ const char              *cpl_id,
+ const char              *field_id,
+ const int                i_part,
+ const CWP_Field_map_t    map_type,
+ double                 **data
+)
+{
+  if(_is_active_rank(local_code_name)){
+    cwipi::Coupling& cpl = _cpl_get(local_code_name, cpl_id);
+    cpl.fieldDataGet(field_id, i_part, map_type, (void **) data);
   }
 }
 

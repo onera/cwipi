@@ -79,11 +79,10 @@ namespace cwipi {
       _data_tgt[i_part] = data;
     }
     else {
-      PDM_error(__FILE__, __LINE__, 0, "Field::dataSet Error : unknoown data type.\n");
+      PDM_error(__FILE__, __LINE__, 0, "Field::dataSet Error : unknown data type.\n");
     }
 
   }
-
 
 }
 

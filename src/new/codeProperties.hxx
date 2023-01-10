@@ -490,6 +490,15 @@ namespace cwipi {
 
 
     /**
+     * \brief Dump string of properties
+     *
+     */
+
+    string
+    str_dump();
+
+
+    /**
      * \brief Lock access to the control parameters
      *
      */

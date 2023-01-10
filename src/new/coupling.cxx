@@ -1530,6 +1530,35 @@ namespace cwipi {
     }
   }
 
+  /**
+  *
+  * \brief Get Field data
+  *
+  * \param [in]   field_id       Field identifier
+  * \param [out]  data           Storage array (mapping)
+  *
+  */
+
+  void
+  Coupling::fieldDataGet
+  (
+    const string &field_id,
+    int i_part,
+    const CWP_Field_map_t   map_type,
+    void** data
+  )
+  {
+
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
+    if (It == _fields.end()) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "'%s' not existing field\n", field_id.c_str());
+    }
+    else {
+      *data = It->second->dataGet(i_part, map_type);
+    }
+  }
+
   /*----------------------------------------------------------------------------*
    * Methods about exchange                                                     *
    *----------------------------------------------------------------------------*/
