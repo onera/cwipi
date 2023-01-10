@@ -327,6 +327,22 @@ main
   }
 
   if (i_rank == 1) {
+    int code2_n_char = -1;
+    char **param_names = NULL;
+    CWP_client_Param_list_get("code2", CWP_CHAR, &code2_n_char, &param_names);
+
+    for (int i = 0; i < code2_n_char; i++) {
+      printf("i_rank: %d code 1 : param[%d] = %s\n", i_rank, i, param_names[i]);
+    }
+
+    // free
+    for (int i = 0; i < code2_n_char; i++) {
+      free(param_names[i]);
+    }
+    free(param_names);
+  }
+
+  if (i_rank == 1) {
     int is_param = CWP_client_Param_is("code2", "toto2", CWP_CHAR);
     printf("i_rank: %d code 2 : toto2 is param = %d\n", i_rank, is_param);
 

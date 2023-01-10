@@ -267,10 +267,12 @@ CWP_server_Finalize
   }
 
   if (!svr_cwp.char_param_value.empty()) {
-    for (auto const& x : svr_cwp.char_param_value) {
-      if (svr_cwp.char_param_value[x.first] != NULL) free((void *) svr_cwp.char_param_value[x.first]);
-      svr_cwp.char_param_value.erase(x.first);
+    for (const auto& x : svr_cwp.char_param_value) {
+      if (x.second != NULL) {
+        free((void *) x.second);
+      }
     }
+    svr_cwp.char_param_value.clear();
   }
 
   // launch
