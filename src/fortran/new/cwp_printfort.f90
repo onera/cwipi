@@ -60,38 +60,39 @@ contains
 
   end subroutine cwp_set_output_listing_f
 
-  !>
-  !! \brief Set up the file used for the output listing.
-  !!
-  !!  \param [in]  chaine        String from C function
-  !!  \param [in]  taille        String size
-  !!
-  !!
-
-  subroutine printfortran (chaine, taille) &
-
-    bind(c, name = 'printfortran')
-
-    use, intrinsic :: iso_c_binding
-    implicit none
-
-    character, dimension(*) :: chaine
-    integer   ::    taille
-    character(len = 16384) :: chloc
-    integer       ii
-
-    taille = min(taille, 16384 - 1)
-    !
-    do ii = 1, taille
-       chloc(ii:ii) = chaine(ii)
-    enddo
-    !
-    write(ifile, 1000, advance='no') chloc(1:taille)
-    !
-    return
-
-    1000 format(a)
-
-  end subroutine printfortran
-
 end module cwp_printfort
+
+!>
+!! \brief Set up the file used for the output listing.
+!!
+!!  \param [in]  chaine        String from C function
+!!  \param [in]  taille        String size
+!!
+!!
+
+subroutine printfortran (chaine, taille) &
+
+  bind(c, name = 'printfortran')
+
+  use, intrinsic :: iso_c_binding
+  use cwp_printfort
+  implicit none
+
+  character, dimension(*) :: chaine
+  integer   ::    taille
+  character(len = 16384) :: chloc
+  integer       ii
+
+  taille = min(taille, 16384 - 1)
+  !
+  do ii = 1, taille
+     chloc(ii:ii) = chaine(ii)
+  enddo
+  !
+  write(ifile, 1000, advance='no') chloc(1:taille)
+  !
+  return
+
+  1000 format(a)
+
+end subroutine printfortran
