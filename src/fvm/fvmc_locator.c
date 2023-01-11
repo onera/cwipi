@@ -1718,7 +1718,6 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   this_locator->location_wtime[1] += comm_timing[0];
   this_locator->location_cpu_time[1] += comm_timing[1];
 
-  printf("<<< _locate_all_distant\n");
   fflush(stdout);
 
 
