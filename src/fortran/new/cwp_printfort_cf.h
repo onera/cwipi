@@ -1,5 +1,5 @@
-#ifndef __CWIPI_PRINTFORT_CF_H__
-#define __CWIPI_PRINTFORT_CF_H__
+#ifndef __CWP_PRINTFORTRAN_CF_H__
+#define __CWP_PRINTFORTRAN_CF_H__
 /*
   This file is part of the CWIPI library. 
 
@@ -26,30 +26,6 @@
  * Macro definitions
  *============================================================================*/
 
-/*----------------------------------------------------------------------------
- * Macro for handling of different symbol names (underscored or not,
- * lowercase or uppercase) between C and Fortran, for link resolution.
- *----------------------------------------------------------------------------*/
-
-#if !defined (__hpux) && !defined (_AIX)
-#define PROCF(x, y) x##_
-#else
-#define PROCF(x, y) x
-#endif
-
-/*----------------------------------------------------------------------------
- * Macro used to handle automatic "Fortran string length" arguments
- * (not used by CWIPI, but set by many compilers).
- * Some compilers, like the Fujitsu VPP 5000 compiler, may not
- * support the variable length lists in mixed C/Fortran calls.
- *----------------------------------------------------------------------------*/
-
-#if defined (__uxpv__)  /* Fujitsu VPP 5000 case */
-#define ARGF_SUPP_CHAINE
-#else
-#define ARGF_SUPP_CHAINE , ...
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #if 0
@@ -75,12 +51,12 @@ extern "C" {
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwp_set_output_listing_cf, CWP_SET_OUTPUT_LISTING_CF)
-     ();
+void cwp_set_output_listing_cf ();
 
+void printfortran (char *buf_print_f, int *msgsize);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* __CWIPI_H__ */
+#endif /* __CWP_PRINTFORTRAN_CF_H__ */

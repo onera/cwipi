@@ -31,7 +31,6 @@
  * BFT library headers
  *----------------------------------------------------------------------------*/
 
-//#include "pdm_printf.h"
 #include "bftc_printf.h"
 
 /*----------------------------------------------------------------------------
@@ -46,7 +45,7 @@
  *  Header for the current file
  *----------------------------------------------------------------------------*/
 
-#include "cwp_printfort_cf.h"
+#include "fortran/new/cwp_printfort_cf.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -56,18 +55,6 @@ extern "C" {
 } /* Fake brace to force back Emacs auto-indentation back to column 0 */
 #endif
 #endif /* __cplusplus */
-
-/*============================================================================
- * Fortran function header
- *============================================================================*/
-
-/*----------------------------------------------------------------------------
- * Fortran printing
- *----------------------------------------------------------------------------*/
-
-#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
-  void PROCF (printfort, PRINTFORT) (char *buf_print_f, int *msgsize);
-#endif
 
 /*============================================================================
  * Local macro definitions
@@ -138,7 +125,7 @@ _cwp_print_with_fortran
 
   /* Impression effective par le code Fortran */
 
-  PROCF (printfort, PRINTFORT) (buf_print_f, &msgsize);
+  printfortran (buf_print_f, &msgsize);
   return msgsize;
 }
 #endif
@@ -154,10 +141,8 @@ _cwp_print_with_fortran
  *----------------------------------------------------------------------------*/
 
 #ifndef CWP_HAVE_NOT_FORTRAN_IN_C
-void PROCF(cwp_set_output_listing_cf, CWP_SET_OUTPUT_LISTING_CF)()
+void cwp_set_output_listing_cf ()
 {
-  //  PDM_printf_proxy_set(_cwp_print_with_fortran);
-
   bftc_printf_proxy_set(_cwp_print_with_fortran);
 }
 #endif

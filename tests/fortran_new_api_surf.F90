@@ -59,7 +59,8 @@ program testf
   character(256), allocatable :: f_param_names(:)
 
   !--> output file
-  character(len = 23),   pointer :: output_file(:)         => null()
+  ! character(len = 23),   pointer :: output_file(:)         => null()
+  integer :: iiunit
 
   !--> reduce
   integer(c_int),       pointer :: res => null()
@@ -92,7 +93,7 @@ program testf
            is_coupled_rank(n_code),    &
            time_init(n_code),          &
            intra_comms(n_code),        &
-           output_file(1),             &
+           ! output_file(1),             &
            g_code_names(2))
 
   if (i_rank == 0) then
@@ -115,8 +116,21 @@ program testf
                 intra_comms)
 
   !--> output file
-  output_file(1) = "fortran_output_file.txt"
-  call CWP_Output_file_set(output_file(1))
+  ! output_file(1) = "fortran_output_file.txt"
+  ! call CWP_Output_file_set(output_file(1))
+  iiunit = 9
+  open(unit=iiunit, file='fortran_new_api_surf_'//strnum//'.txt', &
+       form='formatted', status='unknown')
+
+  write(iiunit,*) "!> write from fortran test"
+
+  call cwp_output_fortran_unit_set(iiunit)
+
+  !-->>
+  print *, "n_code =", CWP_Codes_nb_get()
+  print *, "n_local_code =", CWP_Loc_codes_nb_get()
+  print *, "state =", CWP_State_get(code_names(1))
+  call CWP_Properties_dump()
 
   !--> character array getters
   code_list     = CWP_Codes_list_get()
@@ -128,12 +142,6 @@ program testf
   end do
 
   print *, i_rank, " --> ", "loc_code_list(", 1, ") :", loc_code_list(1)
-
-  !-->>
-  ! print *, "n_code =", CWP_Codes_nb_get()
-  ! print *, "n_local_code =", CWP_Loc_codes_nb_get()
-  ! print *, "state =", CWP_State_get(code_names(1))
-  ! call CWP_Properties_dump()
 
   toto = 5
   if (code_names(1) == "code1") then

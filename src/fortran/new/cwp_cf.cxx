@@ -15,7 +15,7 @@
 #include "pdm_logging.h"
 
 #include "cwp.h"
-#include "cwp_cf.h"
+#include "fortran/new/cwp_cf.h"
 #include "cwipi_config.h"
 #include "factory.hpp"
 #include "codeProperties.hxx"
@@ -60,7 +60,6 @@ extern "C" {
 
 using namespace std;
 
-
 /*============================================================================
  * Type definitions
  *============================================================================*/
@@ -73,14 +72,13 @@ using namespace std;
  * Private function definitions
  *============================================================================*/
 
-// TO DO: change to block_type insted of id
 static int
 _n_vtx_block_get
 (
- int block_id
+ int block_type
 )
 {
-  switch (block_id)
+  switch (block_type)
   {
     case CWP_BLOCK_EDGE2:
       return 2;
@@ -111,7 +109,7 @@ _n_vtx_block_get
       break;
 
     default:
-      PDM_error(__FILE__, __LINE__, 0, "Unkown block type %d\n", block_id);
+      PDM_error(__FILE__, __LINE__, 0, "Unkown block type %d\n", block_type);
   }
   return 0;
 }
@@ -1163,13 +1161,16 @@ CWP_Mesh_interf_block_std_set_cf (
 /**
  * \brief Get the properties of a standard block of the interface mesh.
  *
- * \param [in]  local_code_name  Local code name
- * \param [in]  cpl_id           Coupling identifier
- * \param [in]  i_part           Partition identifier
- * \param [in]  block_id         Block identifier
- * \param [out]  n_elts           Number of elements
- * \param [out]  connec           Connectivity (size = n_vertex_elt * n_elts)
- * \param [out]  global_num       Pointer to global element number (or NULL)
+ * \param [in]  f_local_code_name   Fortran local code name
+ * \param [in]  l_local_code_name   Length of Fortran local code name
+ * \param [in]  f_cpl_id            Fortran Coupling identifier
+ * \param [in]  l_cpl_id            Length of Fortran coupling identifier
+ * \param [in]  i_part              Partition identifier
+ * \param [in]  block_id            Block identifier
+ * \param [in]  n_elts              Number of elements
+ * \param [in]  connec              Connectivity (size = n_vertex_elt * n_elts)
+ * \param [in]  global_num          Pointer to global element number (or NULL)
+ *
  */
 
 void
@@ -1198,7 +1199,10 @@ CWP_Mesh_interf_block_std_get_cf
                                 connec,
                                 global_num);
 
-  int n_vtx_block = _n_vtx_block_get(block_id);
+  int block_type  = CWP_std_block_type_get(c_local_code_name,
+                                           c_cpl_id,
+                                           block_id);
+  int n_vtx_block = _n_vtx_block_get(block_type);
   *s_connec = n_vtx_block * (*n_elts);
 
   delete [] c_local_code_name;

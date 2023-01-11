@@ -290,6 +290,25 @@ namespace cwipi {
   }
 
   /**
+    * \brief Get the standard block type
+    *
+    * \param [in]  block_id    Block identifier
+    *
+    * \return block type
+    *
+    */
+
+  CWP_Block_t
+  Coupling::meshStdBlockTypeGet (
+    const int           block_id
+  )
+  {
+    CWP_Block_t block_type = _mesh.stdBlockTypeGet(block_id);
+
+    return block_type;
+  }
+
+  /**
    * \brief Set a generic high order block to the interface mesh
    *
    *

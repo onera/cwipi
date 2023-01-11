@@ -597,6 +597,36 @@ CWP_Mesh_interf_block_std_set_cf (
   CWP_g_num_t global_num[]
 ); 
 
+/**
+ * \brief Get the properties of a standard block of the interface mesh.
+ *
+ * \param [in]  f_local_code_name   Fortran local code name
+ * \param [in]  l_local_code_name   Length of Fortran local code name
+ * \param [in]  f_cpl_id            Fortran Coupling identifier
+ * \param [in]  l_cpl_id            Length of Fortran coupling identifier
+ * \param [in]  i_part              Partition identifier
+ * \param [in]  block_id            Block identifier
+ * \param [in]  n_elts              Number of elements
+ * \param [in]  connec              Connectivity (size = n_vertex_elt * n_elts)
+ * \param [in]  global_num          Pointer to global element number (or NULL)
+ *
+ */
+
+void
+CWP_Mesh_interf_block_std_get_cf
+(
+ const char         *f_local_code_name,
+       int           l_local_code_name,
+ const char         *f_cpl_id,
+       int           l_cpl_id,
+ const int           i_part,
+ const int           block_id,
+       int          *n_elts,
+       int         **connec,
+       CWP_g_num_t **global_num,
+       int          *s_connec
+);
+
 
 /**
  * \brief Set the connectivity of a polygon block in a interface mesh partition.

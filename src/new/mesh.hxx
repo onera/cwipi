@@ -177,6 +177,21 @@ namespace cwipi {
     );
 
     /**
+     * \brief Get the standard block type
+     *
+     * \param [in] block_id    Block identifier
+     *
+     * \return block type
+     *
+     */
+
+    CWP_Block_t
+    stdBlockTypeGet
+    (
+     const int              block_id
+    );
+
+    /**
      * \brief Set a face polygon block to the interface mesh
      *
      * \param [in] i_part      Partition identifier

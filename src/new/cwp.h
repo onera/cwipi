@@ -678,6 +678,17 @@ CWP_Properties_dump
 void
 );
 
+/**
+ * \brief Dump string of code properties.
+ *
+ */
+
+int
+CWP_Properties_str_dump
+(
+ char **char_out
+);
+
 /*----------------------------------------------------------------------------*
  * General functions about coupling                                           *
  *----------------------------------------------------------------------------*/
@@ -1155,6 +1166,22 @@ CWP_Mesh_interf_block_std_get
  CWP_g_num_t      **global_num
 );
 
+/**
+  * \brief Get the standard block type
+  *
+  * \param [in]  block_id    Block identifier
+  *
+  * \return block type
+  */
+
+CWP_Block_t
+CWP_std_block_type_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const int               block_id
+);
+
 
 /**
  * \brief Set the connectivity of a polygon block in a interface mesh partition.
@@ -1442,6 +1469,30 @@ CWP_Field_data_set
  const int                i_part,
  const CWP_Field_map_t    map_type,
  double                   data[]
+);
+
+/**
+ *
+ * \brief Get field data.
+ *
+ * \param [in] local_code_name   Local code name
+ * \param [in] cpl_id            Coupling identifier
+ * \param [in] field_id          Field identifier
+ * \param [in] i_part            Current partition
+ * \param [in] data_type         Choice if data is setted for the source or the target
+ * \param [out] data              Storage array (Mapping)
+ *
+ */
+
+void
+CWP_Field_data_get
+(
+ const char              *local_code_name,
+ const char              *cpl_id,
+ const char              *field_id,
+ const int                i_part,
+ const CWP_Field_map_t    map_type,
+ double                 **data
 );
 
 /**
@@ -2254,7 +2305,7 @@ CWP_Field_gradient_data_set
  double                  data[]
 );
 
-#include "cwp_cf.h"
+#include "fortran/new/cwp_cf.h"
 
 #ifdef __cplusplus
 }
