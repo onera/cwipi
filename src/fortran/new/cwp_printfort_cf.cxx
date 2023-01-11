@@ -46,7 +46,7 @@
  *  Header for the current file
  *----------------------------------------------------------------------------*/
 
-#include "fortran/new/cwp_printfortran_cf.h"
+#include "fortran/new/cwp_printfort_cf.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -56,18 +56,6 @@ extern "C" {
 } /* Fake brace to force back Emacs auto-indentation back to column 0 */
 #endif
 #endif /* __cplusplus */
-
-/*============================================================================
- * Fortran function header
- *============================================================================*/
-
-/*----------------------------------------------------------------------------
- * Fortran printing
- *----------------------------------------------------------------------------*/
-
-#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
-  void printfortran (char *buf_print_f, int *msgsize);
-#endif
 
 /*============================================================================
  * Local macro definitions

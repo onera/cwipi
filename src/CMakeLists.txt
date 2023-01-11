@@ -90,10 +90,9 @@ file(GLOB SOURCESF
     # fortran/cwp_printfort_cf.cxx
     # new/cwp_f.f90
     fortran/new/cwp_cf.cxx
-    fortran/new/cwp_printfortran_cf.cxx
+    fortran/new/cwp_printfort_cf.cxx
     fortran/new/cwp_f.f90
-    fortran/new/cwp_printfortran.f90
-    fortran/new/printfortran.f90)
+    fortran/new/cwp_printfort.f90)
 
 add_library(cwp OBJECT ${SOURCES})
 

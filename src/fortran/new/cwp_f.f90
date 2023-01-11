@@ -1481,7 +1481,8 @@ contains
 
   subroutine cwp_output_fortran_unit_set (outputUnit)
 
-    use cwp_printfortran
+    use, intrinsic :: iso_c_binding
+    use cwp_printfort
 
     implicit none
 
