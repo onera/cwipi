@@ -132,6 +132,11 @@ endif()
 # Allow Fortran call from C
 # --------------------------
 
+# Client-Server
+# -------------
+
+option(CWP_ENABLE_CLIENT_SERVER "Enable Client-Server" OFF)
+
 #------------------------------------------------------------------------------
 # Default build : Release
 #------------------------------------------------------------------------------

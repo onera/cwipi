@@ -1424,42 +1424,6 @@ contains
 
   end subroutine CWP_Time_update_
 
-
-
-! /**
-!  * \brief Define output file.
-!  *
-!  * \param [in] output_file    Output file
-!  *
-!  */
-
-
-! //**
-! // * \brief Writing output to fortran file.
-! // *
-! // * This function set the file fortran logical unit for writing output.
-! // *
-! // * \param [in]  iunit        File fortan logical unit
-! // *
-! // */
-
-! //void
-! //PROCF (cwp_output_fortran_unit_set, CWP_OUTPUT_FORTRAN_UNIT_SET)
-! //(
-! // int *iunit
-! //);
-
-
-  !>
-  !! \brief Define a user structure associated to a code
-  !!
-  !! This structure can be called into a callback
-  !!
-  !! \param [in] local_code_name  Local code name
-  !! \param [in] user_structure   User structure
-  !!
-  !!
-
   subroutine CWP_User_structure_set_(local_code_name, &
                                     user_structure)
     use, intrinsic :: iso_c_binding
@@ -1507,7 +1471,30 @@ contains
   end function CWP_User_structure_get_
 
   !>
-  !! \brief Define output file
+  !! \brief Writing output to fortran file (shared by fortran and C code).
+  !!
+  !! This function set the file fortran logical unit for writing output.
+  !!
+  !!  \param [in]  iunit        File fortan logical unit
+  !!
+  !!
+
+  subroutine cwp_output_fortran_unit_set (outputUnit)
+
+    use cwp_printfortran
+
+    implicit none
+
+    integer :: outputUnit
+
+    ifile = outputUnit
+
+    call cwp_set_output_listing_f(outputUnit)
+
+  end subroutine cwp_output_fortran_unit_set
+
+  !>
+  !! \brief Define output file (in which only C code writes).
   !!
   !! \param [in] output_file_name    Output file name
   !!

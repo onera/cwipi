@@ -2305,7 +2305,7 @@ CWP_Field_gradient_data_set
  double                  data[]
 );
 
-#include "cwp_cf.h"
+#include "fortran/new/cwp_cf.h"
 
 #ifdef __cplusplus
 }

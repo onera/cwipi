@@ -27,7 +27,7 @@
 #include "pdm_mpi.h"
 #include "pdm_error.h"
 #include "pdm_printf.h"
-#include "client.h"
+#include "client_server/client.h"
 
 #include "cwp_priv.h"
 

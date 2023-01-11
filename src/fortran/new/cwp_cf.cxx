@@ -15,7 +15,7 @@
 #include "pdm_logging.h"
 
 #include "cwp.h"
-#include "cwp_cf.h"
+#include "fortran/new/cwp_cf.h"
 #include "cwipi_config.h"
 #include "factory.hpp"
 #include "codeProperties.hxx"
@@ -60,6 +60,17 @@ extern "C" {
 
 using namespace std;
 
+/*============================================================================
+ * Fortran function header
+ *============================================================================*/
+
+/*----------------------------------------------------------------------------
+ * Fortran printing
+ *----------------------------------------------------------------------------*/
+
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
+  void printfortran (char *buf_print_f, int *msgsize);
+#endif
 
 /*============================================================================
  * Type definitions

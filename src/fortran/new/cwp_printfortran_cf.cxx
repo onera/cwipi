@@ -46,7 +46,7 @@
  *  Header for the current file
  *----------------------------------------------------------------------------*/
 
-#include "cwp_printfort_cf.h"
+#include "fortran/new/cwp_printfortran_cf.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -66,7 +66,7 @@ extern "C" {
  *----------------------------------------------------------------------------*/
 
 #ifndef CWP_HAVE_NOT_FORTRAN_IN_C
-  void PROCF (printfort, PRINTFORT) (char *buf_print_f, int *msgsize);
+  void printfortran (char *buf_print_f, int *msgsize);
 #endif
 
 /*============================================================================
@@ -138,7 +138,7 @@ _cwp_print_with_fortran
 
   /* Impression effective par le code Fortran */
 
-  PROCF (printfort, PRINTFORT) (buf_print_f, &msgsize);
+  printfortran (buf_print_f, &msgsize);
   return msgsize;
 }
 #endif
@@ -154,10 +154,8 @@ _cwp_print_with_fortran
  *----------------------------------------------------------------------------*/
 
 #ifndef CWP_HAVE_NOT_FORTRAN_IN_C
-void PROCF(cwp_set_output_listing_cf, CWP_SET_OUTPUT_LISTING_CF)()
+void cwp_set_output_listing_cf ()
 {
-  //  PDM_printf_proxy_set(_cwp_print_with_fortran);
-
   bftc_printf_proxy_set(_cwp_print_with_fortran);
 }
 #endif

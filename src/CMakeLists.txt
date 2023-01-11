@@ -48,6 +48,18 @@ if (CWP_ENABLE_NEW_API)
   endif()
 
   get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
+
+  if (CWP_ENABLE_CLIENT_SERVER)
+    list(APPEND SOURCES new/client_server/client.cxx)
+    list(APPEND SOURCES new/client_server/client.h)
+    list(APPEND SOURCES new/client_server/message.h)
+    list(APPEND SOURCES new/client_server/server.cxx)
+    list(APPEND SOURCES new/client_server/server.h)
+    list(APPEND SOURCES new/client_server/struct.hxx)
+    list(APPEND SOURCES new/client_server/transfer.c)
+    list(APPEND SOURCES new/client_server/transfer.h)
+  endif()
+
  endif()
 else()
   file(GLOB SOURCES 
@@ -57,24 +69,31 @@ else()
        *.[ch]xx)
 endif()
 
-
+# why not SOURCESF ?
 if (CWP_ENABLE_Fortran)
    list(APPEND SOURCES fortran/callfortinterpfct.f90)
    list(APPEND SOURCES fortran/callforthointerpfct.f90)
    list(APPEND SOURCES fortran/callfortlocinterpfct.f90)
-  endif()
+endif()
 
 file(GLOB SOURCESF
+    # --> old fortran
     fortran/cwipi_cf.cxx
     fortran/cwipi_f.f90
     fortran/cwipi_printfort_cf.cxx
     fortran/cwipi_printfort.f90
     fortran/cwipi_set_output_logical_unit.f90
-    fortran/cwp_output_fortran_unit_set.f90
-    fortran/cwp_printfort_cf.cxx
     fortran/printfort.f90
     fortran/mod_fvmc_ho_basis.f90
-    new/cwp_f.f90)
+    # --> new fortran
+    # fortran/cwp_output_fortran_unit_set.f90
+    # fortran/cwp_printfort_cf.cxx
+    # new/cwp_f.f90
+    fortran/new/cwp_cf.cxx
+    fortran/new/cwp_printfortran_cf.cxx
+    fortran/new/cwp_f.f90
+    fortran/new/cwp_printfortran.f90
+    fortran/new/printfortran.f90)
 
 add_library(cwp OBJECT ${SOURCES})
 
@@ -112,31 +131,31 @@ if (BLAS_FOUND)
 endif()
 
 if (CWP_ENABLE_Fortran)
- add_library(cwpf OBJECT ${SOURCESF})
+  add_library(cwpf OBJECT ${SOURCESF})
 
- target_include_directories(cwpf
-                           INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
-                           PRIVATE   ${CMAKE_BINARY_DIR}
-                           PUBLIC    ${CMAKE_SOURCE_DIR}
-                           PUBLIC    ${MPI_Fortran_ADDITIONAL_INCLUDE_DIRS}
-                           PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/new
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft) 
+  target_include_directories(cwpf
+                             INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
+                             PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
+                             PRIVATE   ${CMAKE_BINARY_DIR}
+                             PUBLIC    ${CMAKE_SOURCE_DIR}
+                             PUBLIC    ${MPI_Fortran_ADDITIONAL_INCLUDE_DIRS}
+                             PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
+                             PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/new
+                             PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
+                             PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft)
 
-  add_dependencies(cwpf cwp)        
+  add_dependencies(cwpf cwp)
 
-if (CWP_ENABLE_SPACE_NODAL_BASIS)
-  add_dependencies(cwpf spaceBasis)        
-endif()
-
-if (CWP_ENABLE_NEW_API)
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
-    add_dependencies(cwpf pdmf)
-    target_include_directories(cwpf PRIVATE ${PDM_INC}) 
+  if (CWP_ENABLE_SPACE_NODAL_BASIS)
+    add_dependencies(cwpf spaceBasis)
   endif()
-endif()
+
+  if (CWP_ENABLE_NEW_API)
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
+      add_dependencies(cwpf pdmf)
+      target_include_directories(cwpf PRIVATE ${PDM_INC})
+    endif()
+  endif()
 endif()
 
 # Liste des header
@@ -175,13 +194,13 @@ endif ()
 if (MKL_FOUND)
   list(APPEND LINK_LIBRARIES ${MKL_LIBRARIES})
 else ()
-if (BLAS_FOUND)
-  list(APPEND LINK_LIBRARIES ${BLAS_LIBRARIES})
-endif()
+  if (BLAS_FOUND)
+    list(APPEND LINK_LIBRARIES ${BLAS_LIBRARIES})
+  endif()
 
-if (LAPACK_FOUND)
-  list(APPEND LINK_LIBRARIES ${LAPACK_LIBRARIES})
-endif()
+  if (LAPACK_FOUND)
+    list(APPEND LINK_LIBRARIES ${LAPACK_LIBRARIES})
+  endif()
 endif()
 
 

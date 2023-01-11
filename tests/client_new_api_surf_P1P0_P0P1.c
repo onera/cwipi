@@ -32,7 +32,7 @@
 #include "pdm_distrib.h"
 #include "pdm_printf.h"
 #include "pdm_partitioning_algorithm.h"
-#include "client.h"
+#include "client_server/client.h"
 
 #include "cwp_priv.h"
 
