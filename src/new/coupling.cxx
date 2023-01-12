@@ -1314,6 +1314,7 @@ namespace cwipi {
     const char             *format_option
   )
   {
+    CWP_UNUSED(format);
 
     if (_is_first_field_created) {
       PDM_error(__FILE__, __LINE__, 0,

@@ -2016,6 +2016,16 @@ namespace cwipi {
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
+    if (typeid(T) == typeid(string)) {
+      _updateStrValues();
+    }
+    else if (typeid(T) == typeid(int)) {
+      _updateIntValues ();
+    }
+    else if (typeid(T) == typeid(double)) {
+      _updateDoubleValues();
+    }
+
     if (rank != _rootRankInGlobalComm) {
 
       do {
