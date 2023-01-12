@@ -1515,14 +1515,17 @@ main(int argc, char *argv[]) {
 
         int pt_id = located[i] -1;
         double coord[3] = {pvtx_coord[0][3*pt_id], pvtx_coord[0][3*pt_id+1], pvtx_coord[0][3*pt_id+2]};
-        if (deform) {
-          _unrotate(1, coord);
-        }
-        for (int j = 0; j < 3; j++) {
-          // coord[j] = MIN(MAX(coord[j], xyz_min[j]), xyz_max[j]);
-        }
-        if (deform) {
-          _rotate(1, coord);
+        if (loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE &&
+            loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE) {
+          if (deform) {
+            _unrotate(1, coord);
+          }
+          for (int j = 0; j < 3; j++) {
+            coord[j] = MIN(MAX(coord[j], xyz_min[j]), xyz_max[j]);
+          }
+          if (deform) {
+            _rotate(1, coord);
+          }
         }
 
         double err = ABS (recv_val[i] - coord[0]);

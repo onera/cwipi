@@ -1146,7 +1146,8 @@ module cwp
         character(kind = c_char, len = 1) :: local_code_name, cpl_id
         integer(c_int), value :: i_part, block_id, n_elts
         type(c_ptr)      :: c_connec, c_global_num
-        integer(kind = c_int), value :: l_local_code_name, l_cpl_id, s_connec
+        integer(kind = c_int), value :: l_local_code_name, l_cpl_id
+        integer(kind = c_int) :: s_connec
     end subroutine CWP_Mesh_interf_block_std_get_cf
 
 

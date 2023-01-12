@@ -1910,16 +1910,19 @@ main(int argc, char *argv[]) {
 
       double *coord = malloc(sizeof(double) * pn_vtx[0] * 3);
       memcpy(coord, pvtx_coord[0], sizeof(double) * pn_vtx[0] * 3);
-      if (deform) {
-        _unrotate(pn_vtx[0], coord);
-      }
-      for (int i = 0 ; i < pn_vtx[0]; i++) {
-        for (int j = 0; j < 3; j++) {
-          coord[3*i+j] = MIN(MAX(coord[3*i+j], xyz_min[j]), xyz_max[j]);
+      if (loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE &&
+          loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE) {
+        if (deform) {
+          _unrotate(pn_vtx[0], coord);
         }
-      }
-      if (deform) {
-        _rotate(pn_vtx[0], coord);
+        for (int i = 0 ; i < pn_vtx[0]; i++) {
+          for (int j = 0; j < 3; j++) {
+            coord[3*i+j] = MIN(MAX(coord[3*i+j], xyz_min[j]), xyz_max[j]);
+          }
+        }
+        if (deform) {
+          _rotate(pn_vtx[0], coord);
+        }
       }
 
       if (0) {

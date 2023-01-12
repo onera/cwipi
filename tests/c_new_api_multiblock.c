@@ -590,7 +590,7 @@ int main(int argc, char *argv[])
   double      tolerance           = 1e-2;
 
   char* output_filename           = NULL;
-  int filedump                    = 0;
+  // int filedump                    = 0;
 
   int         use_gnum            = 1;
 
@@ -611,9 +611,9 @@ int main(int argc, char *argv[])
              &verbose,
              &use_gnum);
 
-  if (output_filename !=NULL) {
-    filedump = 1;
-  }
+  // if (output_filename !=NULL) {
+  //   filedump = 1;
+  // }
 
   // Initialize MPI
   MPI_Init(&argc, &argv);
@@ -860,11 +860,11 @@ int main(int argc, char *argv[])
   CWP_Spatial_interp_property_set(code_name[0], coupling_name, "tolerance", "double", "1e-2");
   CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
 
-  int n_unlocated = 0;
+  // int n_unlocated = 0;
   int n_located = 0;
   const int *located = NULL;
   if (code_id != 1) {
-    n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name, 0);
+    // n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name, 0);
     n_located   = CWP_N_computed_tgts_get  (code_name[0], coupling_name, field_name, 0);
     printf("n_located = %d\n", n_located);
     located     = CWP_Computed_tgts_get    (code_name[0], coupling_name, field_name, 0);

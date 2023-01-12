@@ -1193,14 +1193,14 @@ main(int argc, char *argv[]) {
   t_start = PDM_timer_elapsed(timer);
   PDM_timer_resume(timer);
 
-  int n_unlocated = 0;
+  // int n_unlocated = 0;
   int n_located = 0;
   const int *located = NULL;
   if (version == CWP_VERSION_OLD) {
     cwipi_locate(coupling_name);
 
     if (code_id != 1) {
-      n_unlocated = cwipi_get_n_not_located_points(coupling_name);
+      // n_unlocated = cwipi_get_n_not_located_points(coupling_name);
       n_located = cwipi_get_n_located_points(coupling_name);
       located = cwipi_get_located_points(coupling_name);
     }
@@ -1214,7 +1214,7 @@ main(int argc, char *argv[]) {
     CWP_Spatial_interp_weights_compute(code_name[0], coupling_name);
   
     if (code_id != 1) {
-      n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name2, 0);
+      // n_unlocated = CWP_N_uncomputed_tgts_get(code_name[0], coupling_name, field_name2, 0);
       n_located = CWP_N_computed_tgts_get(code_name[0], coupling_name, field_name2, 0);
       located =  CWP_Computed_tgts_get(code_name[0], coupling_name, field_name2, 0);
     }

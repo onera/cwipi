@@ -40,10 +40,10 @@ program testf
   type(c_ptr)                   :: param_value = C_NULL_PTR
   integer(c_int),       pointer :: tata => null()
 
-  integer(c_int)                :: n_vtx2, n_elt2
+  integer(c_int)                :: n_elt2
   integer(c_int),       pointer :: connec_idx2(:) => null()
   integer(c_int),       pointer :: connec2(:)     => null()
-  integer(c_long),      pointer :: vtx_g_num2(:)  => null()
+  ! integer(c_long),      pointer :: vtx_g_num2(:)  => null()
   integer(c_long),      pointer :: elt_g_num2(:)  => null()
 
   integer                       :: i, ivtx, n_wrong
