@@ -55,6 +55,8 @@ void cwp_set_output_listing_cf ();
 
 void printfortran (char *buf_print_f, int *msgsize);
 
+void flushfortran (void);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
