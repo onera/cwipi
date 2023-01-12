@@ -135,8 +135,8 @@ _cwp_print_with_fortran
 static int
 _cwp_flush_with_fortran(void)
 {
-  // flushfortran();
-  return 42; // TO DO: tmp value try if problem comes from lack of flush set
+  flushfortran();
+  return 42; // TO DO: how to know fortran flush failed?
 }
 #endif
 

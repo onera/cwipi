@@ -105,8 +105,6 @@ subroutine flushfortran () &
   use cwp_printfort
   implicit none
 
-  ! flush only gnu compatible so close/open
-  close(ifile)
-  open(ifile)
+  call flush(ifile)
 
 end subroutine flushfortran
