@@ -78,8 +78,8 @@ subroutine printfortran (chaine, taille) &
   use cwp_printfort
   implicit none
 
-  character, dimension(*) :: chaine
-  integer   ::    taille
+  character (kind=c_char, len=1), dimension(*), intent (in) :: chaine
+  integer (c_int), intent (inout) :: taille
   character(len = 16384) :: chloc
   integer       ii
 
@@ -96,3 +96,17 @@ subroutine printfortran (chaine, taille) &
   1000 format(a)
 
 end subroutine printfortran
+
+subroutine flushfortran () &
+
+  bind(c, name = 'flushfortran')
+
+  use, intrinsic :: iso_c_binding
+  use cwp_printfort
+  implicit none
+
+  ! flush only gnu compatible so close/open
+  close(ifile)
+  open(ifile)
+
+end subroutine flushfortran

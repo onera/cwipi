@@ -31,7 +31,8 @@
  * BFT library headers
  *----------------------------------------------------------------------------*/
 
-#include "bftc_printf.h"
+// #include "bftc_printf.h"
+#include "pdm_printf.h"
 
 /*----------------------------------------------------------------------------
  * FVM library headers
@@ -79,14 +80,14 @@ extern "C" {
  *----------------------------------------------------------------------------*/
 
 #ifndef CWP_HAVE_NOT_FORTRAN_IN_C
-int static
+static int
 _cwp_print_with_fortran
 (
  const char     *const format,
        va_list         arg_ptr
 )
 {
- int  msgsize;
+  int  msgsize;
 
  /* Tampon pour impressions depuis du code C : on imprime dans un chaîne
     de caractères, qui sera imprimée vers un fichier par du code Fortran.
@@ -97,7 +98,7 @@ _cwp_print_with_fortran
 #undef BUF_PRINT_F_SIZE
 #define BUF_PRINT_F_SIZE 16384
 
- static char buf_print_f[BUF_PRINT_F_SIZE];
+  static char buf_print_f[BUF_PRINT_F_SIZE];
 
  /* Impression dans le tampon */
 
@@ -130,6 +131,15 @@ _cwp_print_with_fortran
 }
 #endif
 
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
+static int
+_cwp_flush_with_fortran(void)
+{
+  // flushfortran();
+  return 42; // TO DO: tmp value try if problem comes from lack of flush set
+}
+#endif
+
 /*============================================================================
  * Public function definitions
  *============================================================================*/
@@ -143,7 +153,9 @@ _cwp_print_with_fortran
 #ifndef CWP_HAVE_NOT_FORTRAN_IN_C
 void cwp_set_output_listing_cf ()
 {
-  bftc_printf_proxy_set(_cwp_print_with_fortran);
+  PDM_printf_proxy_set(_cwp_print_with_fortran);
+  PDM_printf_flush_proxy_set(_cwp_flush_with_fortran);
+
 }
 #endif
 

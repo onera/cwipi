@@ -50,7 +50,6 @@ program testf
   double precision              :: distance
 
   character                     :: strnum
-  integer                       :: fid = 13
   logical                       :: debug = .true.
 
   !--> list getters
@@ -60,7 +59,7 @@ program testf
 
   !--> output file
   ! character(len = 23),   pointer :: output_file(:)         => null()
-  integer :: iiunit
+  integer :: iiunit = 9
 
   !--> reduce
   integer(c_int),       pointer :: res => null()
@@ -80,9 +79,8 @@ program testf
 
   if (debug) then
     write (strnum, '(i1)') i_rank
-    open(unit=fid, file="fortran_new_api_surf_"//strnum//".log", action='write')
+    open(unit=iiunit, file='fortran_new_api_surf_'//strnum//'.txt')
   endif
-
 
   !! Initialize CWIPI
   n_code = 1
@@ -108,6 +106,11 @@ program testf
     time_init(1)          = 0.d0
   endif
 
+  !--> output file
+  ! output_file(1) = "fortran_output_file.txt"
+  ! call CWP_Output_file_set(output_file(1))
+  call cwp_output_fortran_unit_set(iiunit)
+
   call CWP_Init(MPI_comm_world,  &
                 n_code,          &
                 code_names,      &
@@ -115,21 +118,12 @@ program testf
                 time_init,       &
                 intra_comms)
 
-  !--> output file
-  ! output_file(1) = "fortran_output_file.txt"
-  ! call CWP_Output_file_set(output_file(1))
-  iiunit = 9
-  open(unit=iiunit, file='fortran_new_api_surf_'//strnum//'.txt', &
-       form='formatted', status='unknown')
-
-  write(iiunit,*) "!> write from fortran test"
-
-  call cwp_output_fortran_unit_set(iiunit)
-
   !-->>
-  print *, "n_code =", CWP_Codes_nb_get()
-  print *, "n_local_code =", CWP_Loc_codes_nb_get()
-  print *, "state =", CWP_State_get(code_names(1))
+  if (debug) then
+    write(iiunit,*) "n_code =", CWP_Codes_nb_get()
+    write(iiunit,*) "n_local_code =", CWP_Loc_codes_nb_get()
+    write(iiunit,*) "state =", CWP_State_get(code_names(1))
+  endif
   call CWP_Properties_dump()
 
   !--> character array getters
@@ -137,11 +131,13 @@ program testf
   loc_code_list = CWP_Loc_codes_list_get()
 
   !--> n_total_codes = 2
-  do i=1,2
-    print *, i_rank, " --> ", "code_list(", i, ") :", code_list(i)
-  end do
+  if (debug) then
+    do i=1,2
+      write(iiunit,*) i_rank, " --> ", "code_list(", i, ") :", code_list(i)
+    end do
 
-  print *, i_rank, " --> ", "loc_code_list(", 1, ") :", loc_code_list(1)
+    write(iiunit,*) i_rank, " --> ", "loc_code_list(", 1, ") :", loc_code_list(1)
+  endif
 
   toto = 5
   if (code_names(1) == "code1") then
@@ -155,9 +151,11 @@ program testf
 
   n_param = CWP_Param_n_get("code1", &
                             CWP_INT)
-  print *, "n_param =", n_param
+  if (debug) then
+    write(iiunit,*) "n_param =", n_param
+  endif
 
-  ! print *, code_names(1), ", param is? :", CWP_Param_is("code1",  &
+  ! write(iiunit,*) code_names(1), ", param is? :", CWP_Param_is("code1",  &
   !                                                       "toto", &
   !                                                       CWP_INT)
 
@@ -167,7 +165,9 @@ program testf
                        CWP_INT,  &
                        param_value)
     call c_f_pointer(param_value, tata)
-    print *, "tata =", loc(tata)
+    if (debug) then
+      write(iiunit,*) "tata =", loc(tata)
+    endif
   endif
   !<<--
 
@@ -177,9 +177,11 @@ program testf
                           n_param,  &
                           f_param_names)
 
-  do i=1, n_param
-   print *, "f_param_names : ", i, " -> ", f_param_names(i)
-  end do
+  if (debug) then
+    do i=1, n_param
+     write(iiunit,*) "f_param_names : ", i, " -> ", f_param_names(i)
+    end do
+  endif
 
   !--> sum of parameters
   g_code_names(1) = "code1"
@@ -192,7 +194,9 @@ program testf
                         g_code_names)
 
   call c_f_pointer(param_value, res)
-  print *, "res of sum reduce : ", loc(res)
+  if (debug) then
+    write(iiunit,*) "res of sum reduce : ", loc(res)
+  endif
 
   !! Create a coupling
   coupling_name = "fortran_new_api_surf"
@@ -338,8 +342,9 @@ program testf
                                               coupling_name, &
                                               field_name,    &
                                               0)
-
-    print *, n_computed_tgts, " computed tgts /", n_vtx
+    if (debug) then
+      write(iiunit,*) n_computed_tgts, " computed tgts /", n_vtx
+    endif
 
     computed_tgts => CWP_computed_tgts_get(code_names(1), &
                                            coupling_name, &
@@ -353,18 +358,22 @@ program testf
 
       if (distance > 1.d-6) then
         n_wrong = n_wrong + 1
-        print *, "error vtx", ivtx, "distance =", distance
-        print *, "coord =", vtx_coord(3*ivtx-2:3*ivtx), " recv =", field_data(3*i-2:3*i)
+        if (debug) then
+          write(iiunit,*) "error vtx", ivtx, "distance =", distance
+          write(iiunit,*) "coord =", vtx_coord(3*ivtx-2:3*ivtx), " recv =", field_data(3*i-2:3*i)
+        endif
       endif
 
     enddo
 
-    print *, "n_wrong =", n_wrong
+    if (debug) then
+      write(iiunit,*) "n_wrong =", n_wrong
+    endif
   endif
 
 
   if (debug) then
-    close(fid)
+    close(iiunit)
   endif
 
 
