@@ -794,7 +794,6 @@ CWP_client_Mesh_interf_block_std_set
  const char        *cpl_id,
  const int          i_part,
  const int          block_id,
- const CWP_Block_t  block_type,
  const int          n_elts,
  int                connec[],
  CWP_g_num_t        global_num[]
@@ -823,6 +822,24 @@ CWP_client_Mesh_interf_block_std_get
  int               *n_elts,
  int              **connec,
  CWP_g_num_t      **global_num
+);
+
+/**
+  * \brief Get the standard block type
+  *
+  * \param [in]  local_code_name  Local code name
+  * \param [in]  cpl_id           Coupling identifier
+  * \param [in]  block_id    Block identifier
+  *
+  * \return block type
+  */
+
+CWP_Block_t
+CWP_client_std_block_type_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const int               block_id
 );
 
 

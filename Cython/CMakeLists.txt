@@ -17,6 +17,12 @@ endif()
 file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.pxi")
 file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.py")
 
+if (CWP_ENABLE_CLIENT_SERVER)
+  file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/client_server" FILES_MATCHING PATTERN "*.pxi")
+else ()
+  set(COMMENT_NOT_CLIENT_SERVER "\#")
+endif()
+
 # old API
 configure_file(cwipi.pyx.in cwipi.pyx)
 # new API

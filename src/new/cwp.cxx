@@ -1462,7 +1462,7 @@ CWP_std_block_type_get
 (
  const char             *local_code_name,
  const char             *cpl_id,
- const int          block_id
+ const int               block_id
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
