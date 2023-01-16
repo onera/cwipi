@@ -20,6 +20,7 @@
 */
 
 #include "spatialInterp.hxx"
+#include "pdm_mesh_intersection.h"
 
 namespace cwipi {
   class SpatialInterpIntersection : public SpatialInterp {
@@ -29,6 +30,11 @@ namespace cwipi {
     ~SpatialInterpIntersection() override;
 
     void weightsCompute() override;
+
+    void issend     (Field *referenceField) override;
+    void waitIssend (Field *referenceField) override;
+    void irecv      (Field *referenceField) override;
+    void waitIrecv  (Field *referenceField) override;
 
   private:
     void interpolate(Field *referenceField, double **buffer) override;
@@ -50,9 +56,9 @@ namespace cwipi {
 
     SpatialInterpIntersection *_spatial_interp_cpl;
 
-    int         **_elt_a_elt_b_idx;
-    PDM_g_num_t **_elt_a_elt_b_gnum;
-    double      **_elt_a_elt_b_weight;
+    int         **_tgt_to_src_idx;
+    PDM_g_num_t **_tgt_to_src_gnum;
+    double      **_tgt_to_src_weight;
 
   protected:
     PDM_mesh_intersection_t *_id_pdm;

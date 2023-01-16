@@ -323,8 +323,8 @@ namespace cwipi {
           if (cpl_spatial_interp->_tgt_in_src_idx[i_part] != NULL) {
             free(cpl_spatial_interp->_tgt_in_src_idx[i_part]);
           }
-          if (cpl_spatial_interp->_tgt_in_src_dist[i_part] != NULL) {
-            free(cpl_spatial_interp->_tgt_in_src_dist[i_part]);
+          if (cpl_spatial_interp->_tgt_in_src_gnum[i_part] != NULL) {
+            free(cpl_spatial_interp->_tgt_in_src_gnum[i_part]);
           }
           if (cpl_spatial_interp->_tgt_in_src_dist[i_part] != NULL) {
             free(cpl_spatial_interp->_tgt_in_src_dist[i_part]);
@@ -938,7 +938,7 @@ namespace cwipi {
         }
       }
 
-      /* Create part_ot_part object if null */
+      /* Create part_to_part object if null */
       if (_ptsp == NULL) {
 
         if (!_coupledCodeProperties->localCodeIs()) {
