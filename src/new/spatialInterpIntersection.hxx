@@ -30,9 +30,33 @@ namespace cwipi {
 
     void weightsCompute() override;
 
+  private:
     void interpolate(Field *referenceField, double **buffer) override;
 
-};
+    /**
+      *
+      * \brief Initialization of the SpatialInterp object.
+      *
+      * \param [in] coupling            Pointer the coupling object.
+      * \param [in] pointsCloudLocation Location of the cloud of points.
+      * \param [in] coupling            Pointer the coupling object.
+      *
+      */
+
+    void init (Coupling                   *coupling,
+               CWP_Dof_location_t          localCodeDofLOcation,
+               CWP_Dof_location_t          cplCodeDofLOcation,
+               SpatialInterpExchDirection  exchDirection) override;
+
+    SpatialInterpIntersection *_spatial_interp_cpl;
+
+    int         **_elt_a_elt_b_idx;
+    PDM_g_num_t **_elt_a_elt_b_gnum;
+    double      **_elt_a_elt_b_weight;
+
+  protected:
+    PDM_mesh_intersection_t *_id_pdm;
+  };
 
 }
 
