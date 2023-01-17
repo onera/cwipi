@@ -248,7 +248,111 @@ namespace cwipi {
     /* Set source (B) and target (A) meshes */
     /* CWIPI stores a nodal mesh but pdm_mesh_intersection requires ngons... */
 
-    //...
+    // get dimension of local and coupled codes
+    int local_mesh_dim = 0;
+    int cpl_mesh_dim   = 0;
+
+    if (local_mesh_dim != cpl_mesh_dim) {
+      PDM_error(__FILE__, __LINE__, 0,
+                "Both meshes must have the same dimension (got %d / %d)\n",
+                local_mesh_dim, cpl_mesh_dim);
+    }
+
+    int mesh_dim = local_mesh_dim;
+
+    int n_part_tgt = 0;
+    int n_part_src = 0;
+    if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+      n_part_src = _nPart;
+    }
+    else {
+      n_part_src  = _cplNPart;
+    }
+    if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+      n_part_tgt = _nPart;
+    }
+    else {
+      n_part_tgt  = _cplNPart;
+    }
+
+    // A = target
+    // B = source
+
+    if (!_coupledCodeProperties->localCodeIs()) {
+
+      _id_pdm = PDM_mesh_intersection_create(PDM_MESH_INTERSECTION_KIND_SOFT,
+                                             mesh_dim,
+                                             mesh_dim,
+                                             n_part_tgt,
+                                             n_part_src,
+                                             0.,
+                                             _pdmCplComm);
+
+      // source mesh
+      if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+        // local mesh
+      }
+      else {
+        // empty mesh
+      }
+
+      // target mesh
+      if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+        // local mesh
+      }
+      else {
+        // empty mesh
+      }
+    }
+
+    else {
+      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+
+        _id_pdm = PDM_mesh_intersection_create(PDM_MESH_INTERSECTION_KIND_SOFT,
+                                               mesh_dim,
+                                               mesh_dim,
+                                               n_part_tgt,
+                                               n_part_src,
+                                               0.,
+                                               _pdmCplComm);
+
+        SpatialInterpIntersection *cpl_spatial_interp;
+        cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+
+        if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
+          cpl_spatial_interp =
+          dynamic_cast <SpatialInterpIntersection *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+        }
+        else {
+          std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
+          cpl_spatial_interp =
+          dynamic_cast <SpatialInterpIntersection *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+        }
+
+        cpl_spatial_interp->_id_pdm = _id_pdm;
+
+        // source mesh
+        if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+          // local mesh
+          // cpl->... empty
+        }
+        else {
+          // empty mesh
+          // cpl->... local mesh
+        }
+
+        // target mesh
+        if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+          // local mesh
+          // cpl->... empty
+        }
+        else {
+          // empty mesh
+          // cpl->... local mesh
+        }
+      }
+    }
 
 
     /* Compute */
