@@ -4981,7 +4981,7 @@ CWP_client_Field_wait_issend
   }
 }
 
-void
+int
 CWP_client_Field_wait_irecv
 (
  const char              *local_code_name,
@@ -5060,6 +5060,8 @@ CWP_client_Field_wait_irecv
 
   // read irecv Field_data
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, *data, sizeof(double) * size);
+
+  return size;
 }
 
 void

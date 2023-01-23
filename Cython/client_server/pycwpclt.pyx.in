@@ -355,9 +355,10 @@ cdef extern from "client_server/client.h":
   void CWP_client_Field_wait_issend(char  *local_code_name,
                                     char  *cpl_id,
                                     char  *src_field_id)
-  void CWP_client_Field_wait_irecv(char  *local_code_name,
-                                   char  *cpl_id,
-                                   char  *tgt_field_id)
+  int CWP_client_Field_wait_irecv(char    *local_code_name,
+                                  char    *cpl_id,
+                                  char    *tgt_field_id,
+                                  double **data)
 
   # --> functions about control parameters
   void CWP_client_Param_add(char        *local_code_name,
@@ -504,6 +505,13 @@ cdef create_numpy_l(long int* array, int size, bint flag_owndata=True):
         PyArray_ENABLEFLAGS(nparray, NPY.NPY_OWNDATA)
     return nparray
 
+cdef create_numpy_d(double* array, int size, bint flag_owndata=True):
+    dim = <NPY.npy_intp> size
+    nparray = NPY.PyArray_SimpleNewFromData(1, &dim, NPY.NPY_DOUBLE, <void *> array)
+    if flag_owndata:
+        PyArray_ENABLEFLAGS(nparray, NPY.NPY_OWNDATA)
+    return nparray
+
 #-----------------------------------------------------------------------------
 # DEFINITION
 # --> general functions
@@ -645,11 +653,21 @@ def field_wait_irecv(char     *local_code_name,
       local_code_name (char*) : Local code name
       cpl_id          (char*) : Coupling identifier
       tgt_field_id    (char*) : Target field identifier
+
+    Returns:
+      data (double *) : Received data
     """
 
-    CWP_client_Field_wait_irecv(local_code_name,
-                                cpl_id,
-                                tgt_field_id)
+    cdef double *data
+
+    cdef int size = CWP_client_Field_wait_irecv(local_code_name,
+                                                cpl_id,
+                                                tgt_field_id,
+                                                &(data))
+
+    pydata = create_numpy_d(data, size)
+
+    return pydata
 
 #-----------------------------------------------------------------------------
 # FIELD CLASS
