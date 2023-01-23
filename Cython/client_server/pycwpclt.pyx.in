@@ -1227,6 +1227,142 @@ cdef class Field (object):
 
         return storage
 
+    # --> LOCALISATION
+    def n_uncomputed_tgts_get(self,
+                              int   i_part):
+      """
+      Get the number of uncomputed targets.
+
+      Parameters:
+        i_part    (int)  : Current partition
+
+      Returns:
+        n_unc_tgt (int) : Number of uncomputed targets
+      """
+
+      cdef int n_unc_tgt = CWP_client_N_uncomputed_tgts_get(self.local_code_name,
+                                                            self.cpl_id,
+                                                            self.field_id,
+                                                            i_part)
+
+      return n_unc_tgt
+
+    def uncomputed_tgts_get(self,
+                            int   i_part):
+      """
+      Get the uncomputed targets.
+
+      Parameters:
+        i_part    (int)  : Current partition
+
+      Returns:
+        unc_tgt (int *) : Uncomputed targets
+      """
+
+      cdef int *unc_tgt = CWP_client_Uncomputed_tgts_get(self.local_code_name,
+                                                         self.cpl_id,
+                                                         self.field_id,
+                                                         i_part)
+
+      cdef int n_unc_tgt = CWP_client_N_uncomputed_tgts_get(self.local_code_name,
+                                                            self.cpl_id,
+                                                            self.field_id,
+                                                            i_part)
+
+      py_unc_tgt = create_numpy_i(unc_tgt, n_unc_tgt)
+
+      return py_unc_tgt
+
+    def n_computed_tgts_get(self,
+                              int   i_part):
+      """
+      Get the number of computed targets.
+
+      Parameters:
+        i_part    (int)  : Current partition
+
+      Returns:
+        n_c_tgt (int) : Number of computed targets
+      """
+
+      cdef int n_c_tgt = CWP_client_N_computed_tgts_get(self.local_code_name,
+                                                        self.cpl_id,
+                                                        self.field_id,
+                                                        i_part)
+
+      return n_c_tgt
+
+    def computed_tgts_get(self,
+                            int   i_part):
+      """
+      Get the computed targets.
+
+      Parameters:
+        i_part    (int)  : Current partition
+
+      Returns:
+        c_tgt (int *) : Computed targets
+      """
+
+      cdef int *c_tgt = CWP_client_Computed_tgts_get(self.local_code_name,
+                                                     self.cpl_id,
+                                                     self.field_id,
+                                                     i_part)
+
+      cdef int n_c_tgt = CWP_client_N_computed_tgts_get(self.local_code_name,
+                                                        self.cpl_id,
+                                                        self.field_id,
+                                                        i_part)
+
+      py_c_tgt = create_numpy_i(c_tgt, n_c_tgt)
+
+      return py_c_tgt
+
+    def n_involved_srcs_get(self,
+                            int   i_part):
+      """
+      Get the number of involved sources.
+
+      Parameters:
+        i_part    (int)  : Current partition
+
+      Returns:
+        n_i_src (int) : Number of involved sources
+      """
+
+      cdef int n_i_src = CWP_client_N_involved_srcs_get(self.local_code_name,
+                                                        self.cpl_id,
+                                                        self.field_id,
+                                                        i_part)
+
+      return n_i_src
+
+    def involved_srcs_get(self,
+                          int   i_part):
+      """
+      Get the involved sources.
+
+      Parameters:
+        i_part    (int)  : Current partition
+
+      Returns:
+        n_i_src (int *) : involved sources
+      """
+
+      cdef int *i_src = CWP_client_Involved_srcs_get(self.local_code_name,
+                                                       self.cpl_id,
+                                                       self.field_id,
+                                                       i_part)
+
+      cdef int n_i_src = CWP_client_N_involved_srcs_get(self.local_code_name,
+                                                          self.cpl_id,
+                                                          self.field_id,
+                                                          i_part)
+
+      py_i_src = create_numpy_i(i_src, n_i_src)
+
+      return py_i_src
+
 #-----------------------------------------------------------------------------
 # COUPLING CLASS
 cdef class Coupling (object):
