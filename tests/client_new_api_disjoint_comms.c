@@ -653,7 +653,6 @@ main
                                              cpl_name,
                                              i_part,
                                              block_id,
-                                             element_type_cwp[i_code],
                                              n_cells[i_code][i_part],
                                              connec[i_code][i_part],
                                              g_num);

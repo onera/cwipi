@@ -597,8 +597,8 @@ CWP_client_connect
  int flags
 )
 {
-  struct hostent *host;
-  struct sockaddr_in *server_addr = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in));
+  // struct hostent *host;
+  // struct sockaddr_in *server_addr = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in));
   socklen_t max_msg_size_len = 0;
   int il_cl_endian;
 
@@ -621,7 +621,7 @@ CWP_client_connect
   char port_str[16] = {};
   sprintf(port_str, "%d", server_port);
 
-  const int status = getaddrinfo(server_name, port_str, NULL, &svr_info); // hint
+  getaddrinfo(server_name, port_str, NULL, &svr_info); // hint
   char *dst = (char *) malloc(sizeof(char) * INET_ADDRSTRLEN);
   inet_ntop(AF_INET, svr_info->ai_addr->sa_data, dst, INET_ADDRSTRLEN);
 
@@ -3388,7 +3388,7 @@ CWP_client_Mesh_interf_block_std_set
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_elts, sizeof(int));
 
   // send n_vtx_elt
-  block_type = CWP_client_std_block_type_get(local_code_name, cpl_id, block_id);
+  CWP_Block_t block_type = CWP_client_std_block_type_get(local_code_name, cpl_id, block_id);
   int n_vtx_elt = n_nodes_get(block_type);
   int endian_n_vtx_elt = n_vtx_elt;
   CWP_swap_endian_4bytes(&endian_n_vtx_elt, 1);
@@ -3592,7 +3592,7 @@ CWP_client_std_block_type_get
 
   // read block_type
   CWP_Block_t block_type;
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, block_type, sizeof(int));
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void *) &block_type, sizeof(int));
 
   return block_type;
 }

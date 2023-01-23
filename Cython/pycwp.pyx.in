@@ -2289,4 +2289,4 @@ __version__ = _CWIPI_VERSION
 
 # PDM_dist_cellcenter_surf :
 # --------------------
-@COMMENT_NOT_CLIENT_SERVER@include "pycwp_client_server.pxi"
+# @COMMENT_NOT_CLIENT_SERVER@include "pycwp_client_server.pxi"
