@@ -567,6 +567,437 @@ def finalize():
 
     CWP_client_Finalize()
 
+# --> functions about current code properties
+def state_update(char*       local_code_name,
+                 CWP_State_t state):
+    """
+    Update code state.
+
+    Parameters:
+      local_code_name (char*)       : Local code name
+      state           (CWP_State_t) : State
+    """
+
+    CWP_client_State_update(local_code_name,
+                            state)
+
+def time_update(char*  local_code_name,
+                double current_time):
+    """
+    Update code time.
+
+    Parameters:
+      local_code_name (char*)  : Local code name
+      current_time    (double) : Current time
+    """
+
+    CWP_client_Time_update(local_code_name,
+                           current_time)
+
+def output_file_set(output_file):
+    """
+    Define output file.
+
+    Parameters:
+      output_file(file):  Output file
+
+    Note:
+      If this file is written by both cwipi and python, I/O buffering may mix up the output.
+      In this case, calling output_listing.flush() before any cwipi call may help.
+    """
+
+    cdef int fd
+    cdef FILE* c_file
+    cdef str mode
+
+    mode = output_file.mode
+
+    if (output_file == None):
+      c_file = fopen(output_file.name, mode)
+    else:
+      fd = PyObject_AsFileDescriptor(output_file)
+      c_file = fdopen(fd, mode)
+
+    CWP_client_Output_file_set(c_file)
+
+# --> functions about other code properties
+
+def state_get(char* code_name):
+    """
+    Get code state.
+
+    Parameters:
+      local_code_name (char*) : Local code name
+
+    Returns:
+      state (CWP_State_t) : Current state
+    """
+
+    cdef CWP_State_t state = CWP_client_State_get(code_name)
+
+    return state
+
+def codes_nb_get():
+    """
+    Return the number of codes known by CWIPI.
+
+    Returns:
+      n_code (int) : Number of codes known by CWIPI
+    """
+
+    cdef int n_code = CWP_client_Codes_nb_get()
+
+    return n_code
+
+def codes_list_get():
+    """
+    Return the list of code names known by CWIPI.
+
+    Returns:
+      code_list (char**) : Number of codes known by CWIPI
+    """
+
+    cdef char** c_code_list = CWP_client_Codes_list_get()
+
+    cdef int n_code = CWP_client_Codes_nb_get()
+    code_list = []
+    for i in range(n_code):
+      code_list.append(c_code_list[i])
+
+    code_list = NPY.array(code_list)
+
+    return code_list
+
+def loc_codes_nb_get():
+    """
+    Return the number of local codes known by CWIPI.
+
+    Returns:
+      n_loc_code (int) : Number of codes known by CWIPI
+    """
+
+    cdef int n_loc_code = CWP_client_Loc_codes_nb_get()
+
+    return n_loc_code
+
+def loc_codes_list_get():
+    """
+    Return the list of code names known by CWIPI.
+
+    Returns:
+      loc_code_list (char**) : Number of local codes known by CWIPI
+    """
+
+    cdef char** c_loc_code_list = CWP_client_Loc_codes_list_get()
+
+    cdef int n_loc_code = CWP_client_Loc_codes_nb_get()
+    loc_code_list = []
+    for i in range(n_loc_code):
+      loc_code_list.append(c_loc_code_list[i])
+
+    loc_code_list = NPY.array(loc_code_list)
+
+    return loc_code_list
+
+# --> functions about properties
+def properties_dump():
+    """
+    Dump application properties.
+    """
+
+    CWP_client_Properties_dump()
+
+# --> functions about control parameters
+def param_add_int(char        *local_code_name,
+                  char        *param_name,
+                  int          initial_value):
+    """
+    Add a new interger parameter and intialize it.
+
+    Parameters:
+      local_code_name  (char*) : Local code name
+      param_name       (char*) : Parameter name
+      initial_value    (int)   : Initial value
+    """
+
+    CWP_client_Param_add(local_code_name,
+                         param_name,
+                         CWP_INT,
+                         &(initial_value))
+
+def param_add_dbl(char        *local_code_name,
+                  char        *param_name,
+                  double       initial_value):
+    """
+    Add a new double parameter and intialize it.
+
+    Parameters:
+      local_code_name  (char*)  : Local code name
+      param_name       (char*)  : Parameter name
+      initial_value    (double) : Initial value
+    """
+
+    CWP_client_Param_add(local_code_name,
+                         param_name,
+                         CWP_DOUBLE,
+                         &(initial_value))
+
+def param_add_str(char        *local_code_name,
+                  char        *param_name,
+                  char        *initial_value):
+    """
+    Add a new string parameter and intialize it.
+
+    Parameters:
+      local_code_name  (char*) : Local code name
+      param_name       (char*) : Parameter name
+      initial_value    (char*) : Initial value
+    """
+
+    CWP_client_Param_add(local_code_name,
+                         param_name,
+                         CWP_CHAR,
+                         &(initial_value))
+
+def param_set_int(char        *local_code_name,
+                  char        *param_name,
+                  int          initial_value):
+    """
+    Set an integer parameter.
+
+    Parameters:
+      local_code_name  (char*) : Local code name
+      param_name       (char*) : Parameter name
+      initial_value    (int)   : Initial value
+    """
+
+    CWP_client_Param_set(local_code_name,
+                         param_name,
+                         CWP_INT,
+                         &(initial_value))
+
+def param_set_dbl(char        *local_code_name,
+                  char        *param_name,
+                  double       initial_value):
+    """
+    Set a double parameter.
+
+    Parameters:
+      local_code_name  (char*)  : Local code name
+      param_name       (char*)  : Parameter name
+      initial_value    (double) : Initial value
+    """
+
+    CWP_client_Param_set(local_code_name,
+                         param_name,
+                         CWP_DOUBLE,
+                         &(initial_value))
+
+def param_set_str(char        *local_code_name,
+                  char        *param_name,
+                  char        *initial_value):
+    """
+    Set a string parameter.
+
+    Parameters:
+      local_code_name  (char*) : Local code name
+      param_name       (char*) : Parameter name
+      initial_value    (char*) : Initial value
+    """
+
+    CWP_client_Param_set(local_code_name,
+                         param_name,
+                         CWP_CHAR,
+                         &(initial_value))
+
+def param_del(char        *local_code_name,
+              char        *param_name,
+              CWP_Type_t   data_type):
+    """
+    Delete a parameter.
+
+    Parameters:
+      local_code_name  (char*)      : Local code name
+      param_name       (char*)      : Parameter name
+      data_type        (CWP_Type_t) : Parameter type
+    """
+
+    CWP_client_Param_del(local_code_name,
+                         param_name,
+                         data_type)
+
+# -> functions about all code parameters
+def param_n_get(char        *code_name,
+                CWP_Type_t   data_type):
+    """
+    Return the number of parameters for the code code_name.
+
+    Parameters:
+      code_name        (char*)      : Code name
+      data_type        (CWP_Type_t) : Parameter type
+
+    Returns:
+      n_param  (int) : Number of parameters for the code code_name
+    """
+
+    cdef int n_param = CWP_client_Param_n_get(code_name,
+                                              data_type)
+
+    return n_param
+
+def param_list_get(char        *code_name,
+                   CWP_Type_t   data_type):
+    """
+    Return the number of parameters for the code code_name.
+
+    Parameters:
+      code_name        (char*)      : Code name
+      data_type        (CWP_Type_t) : Parameter type
+
+    Returns:
+      n_param     (int)    : Number of parameters for the code code_name
+      param_names (char**) : Parameter names
+    """
+
+    cdef int n_param = -1;
+    cdef char **c_param_names = NULL
+
+    CWP_client_Param_list_get(code_name,
+                              data_type,
+                              &(n_param),
+                              &(c_param_names))
+
+    param_names = []
+    for i in range(n_param):
+      param_names.append(c_param_names[i])
+
+    param_names = NPY.array(param_names)
+
+    return {
+            'n_param'     : n_param,
+            'param_names' : param_names
+           }
+
+def param_is(char        *code_name,
+             char        *param_name,
+             CWP_Type_t   data_type):
+    """
+    Is this code_name a parameter ?
+
+    Parameters:
+      code_name        (char*)      : Code name
+      param_name       (char*)      : Parameter name
+      data_type        (CWP_Type_t) : Parameter type
+
+    Returns:
+     is_param (int) : 1 : true / 0 : false
+    """
+
+    cdef int is_param = CWP_client_Param_is(code_name,
+                                            param_name,
+                                            data_type)
+
+    return is_param
+
+def param_get(char        *code_name,
+              char        *param_name,
+              CWP_Type_t   data_type):
+    """
+    Return the parameter value of param_name on code_name.
+
+    Parameters:
+      code_name        (char*)      : Code name
+      param_name       (char*)      : Parameter name
+      data_type        (CWP_Type_t) : Parameter type
+
+    Returns:
+     value (data_type) : Parameter value
+    """
+
+    cdef int int_value = -1
+    cdef double dbl_value = -1
+    cdef char *str_value = NULL
+
+    if (data_type == CWP_INT):
+      CWP_client_Param_get(code_name,
+                           param_name,
+                           data_type,
+                           &(int_value))
+      return int_value
+
+    elif (data_type == CWP_DOUBLE):
+      CWP_client_Param_get(code_name,
+                           param_name,
+                           data_type,
+                           &(dbl_value))
+      return dbl_value
+
+    elif (data_type == CWP_CHAR):
+      CWP_client_Param_get(code_name,
+                           param_name,
+                           data_type,
+                           &(str_value))
+      return str_value
+
+def param_reduce(CWP_Op_t    op,
+                 char       *param_name,
+                 CWP_Type_t  data_type,
+                 int         nCode,
+                 list        code_names):
+    """
+    Return the result of a reduce operation about a parameter.
+    The parameter name has to be the same for all codes.
+
+    Parameters:
+      op         (CWP_Op_t)   :Operation
+      param_name (char*)      :Parameter name
+      data_type  (CWP_Type_t) :Parameter type
+      nCode      (int)        :Number of codes
+      code_names (char**)     :Codes name
+
+    Returns:
+      res (data_type) : Result
+    """
+
+    cdef char **c_code_names = <char**> malloc(sizeof(char*) * nCode)
+    for i in range(nCode):
+      c_code_names[i] = <char *> malloc(sizeof(char) * len(code_names[i]))
+
+    for i in range(nCode):
+      py_byte_code_name = code_names[i].encode('UTF-8')
+      c_code_names[i] = py_byte_code_name
+
+    cdef int int_res = -1
+    cdef double dbl_res = -1
+    cdef char *str_res = NULL
+
+    if (data_type == CWP_INT):
+      CWP_client_Param_reduce(op,
+                              param_name,
+                              data_type,
+                              &(int_res),
+                              nCode,
+                              c_code_names)
+      return int_res
+
+    elif (data_type == CWP_DOUBLE):
+      CWP_client_Param_reduce(op,
+                              param_name,
+                              data_type,
+                              &(dbl_res),
+                              nCode,
+                              c_code_names)
+      return dbl_res
+
+    elif (data_type == CWP_CHAR):
+      CWP_client_Param_reduce(op,
+                              param_name,
+                              data_type,
+                              &(str_res),
+                              nCode,
+                              c_code_names)
+    return str_res
+
 def param_lock(char        *code_name):
     """
     Lock access to local parameters from a distant code.

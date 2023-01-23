@@ -115,7 +115,7 @@ def runTest():
     pycwp.state_update(code_names[i_rank], pycwp.STATE_END)
     f.flush()
 
-    # PROPERTIES DUMP to do file transmission wrong ?
+    # PROPERTIES DUMP
     f.write("pycwp.properties_dump:\n")
     pycwp.properties_dump()
 
