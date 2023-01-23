@@ -3592,7 +3592,7 @@ CWP_client_std_block_type_get
 
   // read block_type
   CWP_Block_t block_type;
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void *) &block_type, sizeof(int));
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size,(void*) &block_type, sizeof(int));
 
   return block_type;
 }
