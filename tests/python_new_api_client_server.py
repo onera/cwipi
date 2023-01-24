@@ -57,7 +57,7 @@ def runTest():
 
     # INIT
     print("pycwpclt.init:\n")
-    config = "../server/cwp_config_srv.txt"
+    config = "cwp_config_srv.txt"
     is_active_rank = np.array([1], dtype=np.int32)
     time_init = np.array([0.], dtype=np.double)
     out = pycwpclt.init(comm,
@@ -191,6 +191,7 @@ def runTest():
                  pycwpclt.VISU_FORMAT_ENSIGHT,
                  "text")
 
+    # VTX
     if (i_rank == 0):
         coord = np.array([0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0], dtype=np.double)
         connec_idx = np.array([0, 3, 6], dtype=np.int32)
@@ -209,26 +210,48 @@ def runTest():
 
     comm.Barrier()
 
+    # STD
     print("cpl.mesh_interf_block_add:\n")
-    block_id = cpl.mesh_interf_block_add(pycwpclt.BLOCK_FACE_POLY)
+    block_id = cpl.mesh_interf_block_add(pycwpclt.BLOCK_FACE_TRIA3)
+    print("cpl.mesh_interf_block_std_set:\n")
+    cpl.mesh_interf_block_std_set(0,
+                                  block_id,
+                                  2,
+                                  connec,
+                                  None)
 
-    print("cpl.mesh_interf_f_poly_block_set ({param}):\n".format(param=i_rank))
-    cpl.mesh_interf_f_poly_block_set(0,
-                                     block_id,
-                                     2,
-                                     connec_idx,
-                                     connec,
-                                     None)
-
-    print("cpl.mesh_interf_finalize:\n")
-    cpl.mesh_interf_finalize()
-
-    print("cpl.mesh_interf_f_poly_block_get:\n")
-    out = cpl.mesh_interf_f_poly_block_get(0, block_id)
+    print("cpl.mesh_interf_block_std_get:\n")
+    out = cpl.mesh_interf_block_std_get(0,
+                                        block_id)
     print("  - n_elts : {param}\n".format(param=out["n_elts"]))
-    print("  - connec_idx {param}\n".format(param=out["connec_idx"]))
     print("  - connec {param}\n".format(param=out["connec"]))
     print("  - global_num : {param}\n".format(param=out["global_num"]))
+
+    # POLY
+    # print("cpl.mesh_interf_block_add:\n")
+    # block_id = cpl.mesh_interf_block_add(pycwpclt.BLOCK_FACE_POLY)
+
+    # print("cpl.mesh_interf_f_poly_block_set ({param}):\n".format(param=i_rank))
+    # cpl.mesh_interf_f_poly_block_set(0,
+    #                                  block_id,
+    #                                  2,
+    #                                  connec_idx,
+    #                                  connec,
+    #                                  None)
+
+    # print("cpl.mesh_interf_finalize:\n")
+    # cpl.mesh_interf_finalize()
+
+    # comm.Barrier()
+
+    # print("cpl.mesh_interf_f_poly_block_get:\n")
+    # out = cpl.mesh_interf_f_poly_block_get(0, block_id)
+    # print("  - n_elts : {param}\n".format(param=out["n_elts"]))
+    # print("  - connec_idx {param}\n".format(param=out["connec_idx"]))
+    # print("  - connec {param}\n".format(param=out["connec"]))
+    # print("  - global_num : {param}\n".format(param=out["global_num"]))
+
+    comm.Barrier()
 
     # FINALIZE
     pycwpclt.finalize()

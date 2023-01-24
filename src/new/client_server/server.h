@@ -631,19 +631,6 @@ CWP_server_Mesh_interf_block_std_get
   p_server                 svr
 );
 
-/**
- * \brief Get the standard block type.
- *
- * \param [in]  p_server       Pointer on server data structure
- *
- */
-
-void
-CWP_server_std_block_type_get
-(
- p_server                 svr
-);
-
 
 /**
  * \brief Mesh_interf_f_poly_block_set CWIPI.

@@ -2611,6 +2611,10 @@ CWP_server_Mesh_interf_block_std_set
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_elts, sizeof(int));
 
   // read n_vtx_elt
+  CWP_Block_t block_type = CWP_std_block_type_get(local_code_name, cpl_id, block_id);
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &block_type, sizeof(int));
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
   int n_vtx_elt;
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_vtx_elt, sizeof(int));
 
@@ -2692,7 +2696,7 @@ CWP_server_Mesh_interf_block_std_get
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
     t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_SET);
+    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_GET);
     message.flag = CWP_SVR_BEGIN;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
@@ -2718,7 +2722,7 @@ CWP_server_Mesh_interf_block_std_get
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
     t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_SET);
+    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_GET);
     message.flag = CWP_SVR_LCH_BEGIN;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
@@ -2738,7 +2742,7 @@ CWP_server_Mesh_interf_block_std_get
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
     t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_SET);
+    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_GET);
     message.flag = CWP_SVR_LCH_END;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
@@ -2765,66 +2769,6 @@ CWP_server_Mesh_interf_block_std_get
   }
 
   // free
-  free(local_code_name);
-  free(cpl_id);
-
-  svr->state=CWP_SVRSTATE_LISTENINGMSG;
-}
-
-void
-CWP_server_std_block_type_get
-(
- p_server                 svr
-)
-{
-  // send status msg
-  MPI_Barrier(svr_mpi.intra_comms[0]);
-  if (svr->flags & CWP_FLAG_VERBOSE) {
-    t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_STD_BLOCK_TYPE_GET);
-    message.flag = CWP_SVR_BEGIN;
-    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
-  }
-
-  // read local code name
-  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
-  char *local_code_name = (char *) malloc(sizeof(char));
-  read_name(&local_code_name, svr);
-
-  // read coupling identifier
-  char *cpl_id = (char *) malloc(sizeof(char));
-  read_name(&cpl_id, svr);
-
-  // read block_id
-  int block_id;
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &block_id, sizeof(int));;
-
-  // send status msg
-  MPI_Barrier(svr_mpi.intra_comms[0]);
-  if (svr->flags & CWP_FLAG_VERBOSE) {
-    t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_STD_BLOCK_TYPE_GET);
-    message.flag = CWP_SVR_LCH_BEGIN;
-    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
-  }
-
-  // launch
-  CWP_Block_t block_type = CWP_std_block_type_get(local_code_name, cpl_id, block_id);
-
-  // send status msg
-  MPI_Barrier(svr_mpi.intra_comms[0]);
-  if (svr->flags & CWP_FLAG_VERBOSE) {
-    t_message message;
-    NEWMESSAGE(message, CWP_MSG_CWP_STD_BLOCK_TYPE_GET);
-    message.flag = CWP_SVR_LCH_END;
-    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
-  }
-
-  // send block_type
-  svr->state=CWP_SVRSTATE_SENDPGETDATA;
-  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &block_type, sizeof(int));
-
-    // free
   free(local_code_name);
   free(cpl_id);
 
@@ -4897,19 +4841,6 @@ CWP_server_msg_handler
     CWP_server_Mesh_interf_block_std_get(svr);
 
     break;
-
-  case CWP_MSG_CWP_STD_BLOCK_TYPE_GET:
-
-    // verbose
-    if (svr_debug) {
-      printf("CWP: server received CWP_std_block_type_get signal\n");
-    }
-
-    // launch
-    CWP_server_std_block_type_get(svr);
-
-    break;
-
 
   case CWP_MSG_CWP_MESH_INTERF_F_POLY_BLOCK_SET:
 
