@@ -100,12 +100,14 @@ def runTest():
     # INIT
     f.write("pycwp.init:\n")
     n_code = 1
+    is_active_rank = np.array([1], dtype=np.int32)
+    time_init = np.array([0.], dtype=np.double)
     out = pycwp.init(comm,
                      n_code,
-                     code_name)
-    f.write("  - is_active_rank : {param}\n".format(param=out["is_active_rank"]))
-    f.write("  - time_init : {param}\n".format(param=out["time_init"]))
-    f.write("  - intra_comms : {param}\n".format(param=out["intra_comms"][0]))
+                     code_name,
+                     is_active_rank,
+                     time_init)
+    f.write("  - intra_comms : {param}\n".format(param=out[0]))
 
     # STATE UPDATE
     pycwp.state_update(code_names[i_rank], pycwp.STATE_IN_PROGRESS)

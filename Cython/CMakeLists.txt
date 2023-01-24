@@ -183,7 +183,7 @@ if (CWP_ENABLE_CLIENT_SERVER)
       (CMAKE_C_COMPILER_ID STREQUAL "Intel") OR
       (CMAKE_C_COMPILER_ID STREQUAL "AppleClang") OR
       (CMAKE_C_COMPILER_ID STREQUAL "PGI"))
-    set_target_properties (pycwp PROPERTIES COMPILE_FLAGS "-w")
+    set_target_properties (pycwpclt PROPERTIES COMPILE_FLAGS "-w")
   endif()
 endif()
 

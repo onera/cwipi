@@ -57,12 +57,14 @@ def runTest():
 
     # INIT
     print("pycwpclt.init:\n")
-    config = "cwp_config_srv.txt"
+    config = "../server/cwp_config_srv.txt"
+    is_active_rank = np.array([1], dtype=np.int32)
+    time_init = np.array([0.], dtype=np.double)
     out = pycwpclt.init(comm,
                         config,
-                        code_name)
-    print("  - is_active_rank : {param}\n".format(param=out["is_active_rank"]))
-    print("  - time_init : {param}\n".format(param=out["time_init"]))
+                        code_name,
+                        is_active_rank,
+                        time_init)
 
     # STATE UPDATE
     pycwpclt.state_update(code_names[i_rank], pycwpclt.STATE_IN_PROGRESS)
@@ -171,6 +173,62 @@ def runTest():
     print("pycwpclt.param_reduce:\n")
     result = pycwpclt.param_reduce(pycwpclt.OP_MIN, "entier",  pycwpclt.INT, 2, code_names)
     print("  - result: {param}\n".format(param=result))
+
+    # Cpl
+    print("pycwpclt.Coupling:\n")
+    cpl = pycwpclt.Coupling(code_names[i_rank],
+                            "test",
+                            code_names[(i_rank+1)%2],
+                            pycwpclt.INTERFACE_SURFACE,
+                            pycwpclt.COMM_PAR_WITH_PART,
+                            pycwpclt.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                            1,
+                            pycwpclt.DYNAMIC_MESH_VARIABLE,
+                            pycwpclt.TIME_EXCH_USER_CONTROLLED)
+
+    # VISU
+    cpl.visu_set(1,
+                 pycwpclt.VISU_FORMAT_ENSIGHT,
+                 "text")
+
+    if (i_rank == 0):
+        coord = np.array([0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0], dtype=np.double)
+        connec_idx = np.array([0, 3, 6], dtype=np.int32)
+        connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
+
+    if (i_rank == 1):
+        coord = np.array([0, 1, 0, 0, 2, 0, 1, 1, 0, 1, 2, 0], dtype=np.double)
+        connec_idx = np.array([0, 3, 6], dtype=np.int32)
+        connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
+
+    print("cpl.mesh_interf_vtx_set:\n")
+    cpl.mesh_interf_vtx_set(0,
+                            4,
+                            coord,
+                            None)
+
+    comm.Barrier()
+
+    print("cpl.mesh_interf_block_add:\n")
+    block_id = cpl.mesh_interf_block_add(pycwpclt.BLOCK_FACE_POLY)
+
+    print("cpl.mesh_interf_f_poly_block_set ({param}):\n".format(param=i_rank))
+    cpl.mesh_interf_f_poly_block_set(0,
+                                     block_id,
+                                     2,
+                                     connec_idx,
+                                     connec,
+                                     None)
+
+    print("cpl.mesh_interf_finalize:\n")
+    cpl.mesh_interf_finalize()
+
+    print("cpl.mesh_interf_f_poly_block_get:\n")
+    out = cpl.mesh_interf_f_poly_block_get(0, block_id)
+    print("  - n_elts : {param}\n".format(param=out["n_elts"]))
+    print("  - connec_idx {param}\n".format(param=out["connec_idx"]))
+    print("  - connec {param}\n".format(param=out["connec"]))
+    print("  - global_num : {param}\n".format(param=out["global_num"]))
 
     # FINALIZE
     pycwpclt.finalize()

@@ -518,24 +518,21 @@ cdef create_numpy_d(double* array, int size, bint flag_owndata=True):
 
 def init(MPI.Comm global_comm,
          char*    config,
-         char*    code_name):
+         char*    code_name,
+         NPY.ndarray[NPY.int32_t] is_active_rank not None,
+         NPY.ndarray[NPY.double_t] time_init not None):
     """
     Initialize CWIPI library and create intra-communicator.
 
     ! n_code == 1 in client-server mode !
 
     Parameters:
-      global_comm (MPI.Comm) : MPI global communicator
-      config      (char*   ) : path to server configuration file
-      code_name   (char*   ) : name of local code
-
-    Returns:
-      is_active_rank (int)      : Is current rank have to be used by CWIPI (size = n_code)
-      time_init      (double)   : Initial time (size = n_code)
+      global_comm    (MPI.Comm)  : MPI global communicator
+      config         (char*   )  : path to server configuration file
+      code_name      (char*   )  : name of local code
+      is_active_rank (int*)      : Is current rank have to be used by CWIPI (size = n_code)
+      time_init      (double*)   : Initial time (size = n_code)
     """
-
-    cdef CWP_Status_t is_active_rank
-    cdef double       time_init
 
     cdef MPI.MPI_Comm c_global_comm = global_comm.ob_mpi
 
@@ -549,13 +546,8 @@ def init(MPI.Comm global_comm,
                     config,
                     1,
                     c_code_names,
-                    &(is_active_rank),
-                    &(time_init))
-
-    return {
-            'is_active_rank' : is_active_rank,
-            'time_init'      : time_init
-           }
+   <CWP_Status_t *> is_active_rank.data,
+         <double *> time_init.data)
 
 def finalize():
     """

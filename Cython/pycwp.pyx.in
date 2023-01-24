@@ -826,18 +826,20 @@ cdef create_numpy_l(long int* array, int size, bint flag_owndata=True):
 
 def init(MPI.Comm global_comm,
          int      n_code,
-         list code_names):
+         list code_names,
+         NPY.ndarray[NPY.int32_t] is_active_rank not None,
+         NPY.ndarray[NPY.double_t] time_init not None):
     """
     Initialize CWIPI library and create intra-communicator.
 
     Parameters:
-      global_comm (MPI.Comm) : MPI global communicator
-      n_code      (int)      : Number of codes on the current rank
-      code_names  (char**)   : Names of codes on the current rank (size = n_code)
+      global_comm    (MPI.Comm) : MPI global communicator
+      n_code         (int)      : Number of codes on the current rank
+      code_names     (char**)   : Names of codes on the current rank (size = n_code)
+      is_active_rank (int*)     : Is current rank have to be used by CWIPI (size = n_code)
+      time_init      (double*)  : Initial time (size = n_code)
 
     Returns:
-      is_active_rank (int)      : Is current rank have to be used by CWIPI (size = n_code)
-      time_init      (double)   : Initial time (size = n_code)
       intra_comms    (MPI.Comm) : MPI intra communicators of each code (size = n_code)
     """
 
@@ -848,9 +850,6 @@ def init(MPI.Comm global_comm,
     for i in range(n_code):
       py_byte_code_name = code_names[i].encode('UTF-8')
       c_code_names[i] = py_byte_code_name
-
-    cdef CWP_Status_t is_active_rank
-    cdef double       time_init
 
     cdef MPI.MPI_Comm c_global_comm = global_comm.ob_mpi
 
@@ -868,17 +867,13 @@ def init(MPI.Comm global_comm,
     CWP_Init(c_global_comm,
              n_code,
              c_code_names,
-             &(is_active_rank),
-             &(time_init),
+             <CWP_Status_t *> is_active_rank.data,
+             <double *> time_init.data,
              intra_comms)
 
     free(intra_comms)
 
-    return {
-            'is_active_rank' : is_active_rank,
-            'time_init'      : time_init,
-            'intra_comms'    : py_intra_comms
-           }
+    return py_intra_comms
 
 def finalize():
     """
@@ -1642,7 +1637,7 @@ cdef class Field (object):
       return n_c_tgt
 
     def computed_tgts_get(self,
-                            int   i_part):
+                          int   i_part):
       """
       Get the computed targets.
 

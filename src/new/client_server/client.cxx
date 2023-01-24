@@ -3324,7 +3324,6 @@ CWP_client_Mesh_interf_block_add
   // read block identifier
   int block_id = -2;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &block_id, sizeof(int));
-  printf("clt->i_rank = %d - block_id = %d\n", clt->i_rank, block_id);
 
   return block_id;
 }
@@ -3780,24 +3779,36 @@ CWP_client_Mesh_interf_f_poly_block_get
     if (clt->intra_i_rank == 0) verbose(message);
   }
 
+  printf("0\n");
+
   // read n_elts
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, n_elts, sizeof(int));
+
+  printf("1\n");
 
   // read connectivity index
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, *connec_idx, sizeof(int) * ((*n_elts)+1));
 
+  printf("2\n");
+
   // read connectivity
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, *connec, sizeof(int) * (*connec_idx)[(*n_elts)]);
+
+  printf("3\n");
 
   // read global number
   int NULL_flag = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, &NULL_flag, sizeof(int));
+
+  printf("4\n");
 
   if (!NULL_flag) {
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, *global_num, sizeof(CWP_g_num_t) * (*n_elts));
   } else {
     *global_num = NULL;
   }
+
+  printf("end\n");
 }
 
 void
