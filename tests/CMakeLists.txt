@@ -133,7 +133,7 @@ include(TestCreate)
 set (_MPIEXEC_MAX_NUMPROCS 10)
 
 if (CWP_ENABLE_NEW_API)
-    set("MPIEXEC_PREFLAGS" "--oversubscribe")
+    #set("MPIEXEC_PREFLAGS" "--oversubscribe")
 
     test_c_create (c_new_api 10)
     test_c_create (c_new_api_c_poly_block 2)
