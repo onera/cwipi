@@ -69,7 +69,7 @@ extern "C" {
 
 /* debug */
 
-static int svr_debug = 0;
+static int svr_debug = 1;
 
 /* file struct definition */
 
@@ -2754,8 +2754,15 @@ CWP_server_Mesh_interf_block_std_get
   // send connectivity
   CWP_Block_t block_type = CWP_std_block_type_get(local_code_name, cpl_id, block_id);
   int n_vtx_elt = n_nodes_get(block_type);
+
+  printf("n_vtx_elt : %d\n", n_vtx_elt);
+  fflush(stdout);
+
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &n_vtx_elt, sizeof(int));
   CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, connec, sizeof(int) * (n_vtx_elt * n_elts));
+
+  printf("connec sent\n");
+  fflush(stdout);
 
   // send global number
   int NULL_flag = 0;
@@ -2769,6 +2776,69 @@ CWP_server_Mesh_interf_block_std_get
   }
 
   // free
+  free(local_code_name);
+  free(cpl_id);
+
+  printf("end\n");
+  fflush(stdout);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_std_block_type_get
+(
+ p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_STD_BLOCK_TYPE_GET);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read block_id
+  int block_id;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &block_id, sizeof(int));;
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_STD_BLOCK_TYPE_GET);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // launch
+  CWP_Block_t block_type = CWP_std_block_type_get(local_code_name, cpl_id, block_id);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_STD_BLOCK_TYPE_GET);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // send block_type
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &block_type, sizeof(int));
+
+    // free
   free(local_code_name);
   free(cpl_id);
 
@@ -4779,6 +4849,18 @@ CWP_server_msg_handler
 
     // launch
     CWP_server_User_tgt_pts_set(svr);
+
+    break;
+
+  case CWP_MSG_CWP_STD_BLOCK_TYPE_GET:
+
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_std_block_type_get signal\n");
+    }
+
+    // launch
+    CWP_server_std_block_type_get(svr);
 
     break;
 

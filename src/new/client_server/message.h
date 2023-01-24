@@ -112,6 +112,8 @@ extern "C" {
 
 #define CWP_MSG_CWP_OUTPUT_FILE_SET                 57
 
+#define CWP_MSG_CWP_STD_BLOCK_TYPE_GET              58
+
 /* Init an request */
 #define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}
 

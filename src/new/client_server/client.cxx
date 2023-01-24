@@ -441,6 +441,11 @@ static void verbose(t_message msg) {
     strcpy(function, name);
     } break;
 
+  case CWP_MSG_CWP_STD_BLOCK_TYPE_GET: {
+    char name[] = "CWP_std_block_type_get";
+    strcpy(function, name);
+    } break;
+
   case CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_GET: {
     char name[] = "CWP_Mesh_interf_block_std_get";
     strcpy(function, name);
@@ -3510,23 +3515,109 @@ CWP_client_Mesh_interf_block_std_get
     if (clt->intra_i_rank == 0) verbose(message);
   }
 
+  printf("n_elts\n");
+  fflush(stdout);
+
   // read n_elts
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, n_elts, sizeof(int));
+
+  printf("connectivity\n");
+  fflush(stdout);
 
   // read connectivity
   int n_vtx_elt = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, &n_vtx_elt, sizeof(int));
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, *connec, sizeof(int) * (n_vtx_elt * (*n_elts)));
+
+  printf("n_vtx_elt : %d\n", n_vtx_elt);
+  fflush(stdout);
+
+  int *connectivity = malloc(sizeof(int) * 3 * 2);
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, connectivity, sizeof(int) * (n_vtx_elt * (*n_elts)));
+  *connec = connectivity;
+
+  printf("NULL_flag\n");
+  fflush(stdout);
 
   // read global number
   int NULL_flag = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, &NULL_flag, sizeof(int));
+
+  printf("global number\n");
+  fflush(stdout);
 
   if (!NULL_flag) {
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, *global_num, sizeof(CWP_g_num_t) * (*n_elts));
   } else {
     *global_num = NULL;
   }
+
+}
+
+CWP_Block_t
+CWP_client_std_block_type_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const int               block_id
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->intra_comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->intra_i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_std_block_type_get\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_STD_BLOCK_TYPE_GET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_std_block_type_get failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->intra_comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->intra_i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send block_id
+  int endian_block_id = block_id;
+  CWP_swap_endian_4bytes(&endian_block_id, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_block_id, sizeof(int));
+
+  // receive status msg
+  MPI_Barrier(clt->intra_comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->intra_i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->intra_comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->intra_i_rank == 0) verbose(message);
+  }
+
+  // read block_type
+  CWP_Block_t block_type;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size,(void*) &block_type, sizeof(int));
+
+  return block_type;
 }
 
 void
@@ -3714,8 +3805,6 @@ CWP_client_Mesh_interf_f_poly_block_get
 
   // read n_elts
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, n_elts, sizeof(int));
-
-  // TO DO: read issue here !!
 
   // read connectivity index
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, *connec_idx, sizeof(int) * ((*n_elts)+1));
