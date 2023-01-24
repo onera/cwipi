@@ -31,11 +31,6 @@ namespace cwipi {
 
     void weightsCompute() override;
 
-    void issend     (Field *referenceField) override;
-    void waitIssend (Field *referenceField) override;
-    void irecv      (Field *referenceField) override;
-    void waitIrecv  (Field *referenceField) override;
-
   private:
     void interpolate(Field *referenceField, double **buffer) override;
 
@@ -56,8 +51,10 @@ namespace cwipi {
 
     SpatialInterpIntersection *_spatial_interp_cpl;
 
-    int         **_tgt_to_src_idx;
-    PDM_g_num_t **_tgt_to_src_gnum;
+    int         **_src_to_tgt_idx;
+    PDM_g_num_t **_src_to_tgt_gnum;
+    double      **_src_to_tgt_weight;
+
     double      **_tgt_to_src_weight;
 
   protected:

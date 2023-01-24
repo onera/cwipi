@@ -19,6 +19,11 @@
 
 #include <spatialInterpIntersection.hxx>
 #include "pdm_mesh_intersection.h"
+#include "cwp_priv.h"
+#include "coupling.hxx"
+#include "coupling_i.hxx"
+#include "pdm_array.h"
+#include "pdm_logging.h"
 
 namespace cwipi {
   SpatialInterpIntersection::SpatialInterpIntersection() = default;
@@ -28,19 +33,24 @@ namespace cwipi {
    )
   {
     for (int i_part = 0; i_part < _nPart; i_part++) {
-      if (_tgt_to_src_idx[i_part] != NULL) {
-        free(_tgt_to_src_idx[i_part]);
+      if (_src_to_tgt_idx[i_part] != NULL) {
+        free(_src_to_tgt_idx[i_part]);
       }
-      if (_tgt_to_src_gnum[i_part] != NULL) {
-        free(_tgt_to_src_gnum[i_part]);
+      if (_src_to_tgt_gnum[i_part] != NULL) {
+        free(_src_to_tgt_gnum[i_part]);
       }
+      if (_src_to_tgt_weight[i_part] != NULL) {
+        free(_src_to_tgt_weight[i_part]);
+      }
+
       if (_tgt_to_src_weight[i_part] != NULL) {
         free(_tgt_to_src_weight[i_part]);
       }
     }
 
-    delete[] _tgt_to_src_idx;
-    delete[] _tgt_to_src_gnum;
+    delete[] _src_to_tgt_idx;
+    delete[] _src_to_tgt_gnum;
+    delete[] _src_to_tgt_weight;
     delete[] _tgt_to_src_weight;
   }
 
@@ -81,7 +91,7 @@ namespace cwipi {
             _src_n_gnum[i_part] = _mesh->getPartNVertex (i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
-            // ???
+            PDM_error(__FILE__, __LINE__, 0, "Ivalid dof location %d\n", (int) _localCodeDofLocation);
             _src_gnum  [i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet (i_part);
             _src_n_gnum[i_part] = _cpl->userTargetNGet (i_part);
           }
@@ -99,7 +109,7 @@ namespace cwipi {
             _tgt_n_gnum[i_part] = _mesh->getPartNVertex (i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
-            // ???
+            PDM_error(__FILE__, __LINE__, 0, "Ivalid dof location %d\n", (int) _localCodeDofLocation);
             _tgt_gnum  [i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet (i_part);
             _tgt_n_gnum[i_part] = _cpl->userTargetNGet (i_part);
           }
@@ -108,13 +118,15 @@ namespace cwipi {
 
       //
       // Target properties
-      _tgt_to_src_idx    = new int*         [_nPart];
-      _tgt_to_src_gnum   = new PDM_g_num_t* [_nPart];
+      _src_to_tgt_idx    = new int*         [_nPart];
+      _src_to_tgt_gnum   = new PDM_g_num_t* [_nPart];
+      _src_to_tgt_weight = new double*      [_nPart];
       _tgt_to_src_weight = new double*      [_nPart];
 
       for (int i_part = 0; i_part < _nPart; i_part++) {
-        _tgt_to_src_idx   [i_part] = NULL;
-        _tgt_to_src_gnum  [i_part] = NULL;
+        _src_to_tgt_idx   [i_part] = NULL;
+        _src_to_tgt_gnum  [i_part] = NULL;
+        _src_to_tgt_weight[i_part] = NULL;
         _tgt_to_src_weight[i_part] = NULL;
       }
     }
@@ -126,17 +138,21 @@ namespace cwipi {
 
       for (int i_part = 0; i_part < _nPart; i_part++) {
 
-        if (_tgt_to_src_idx[i_part] != NULL) {
-          free(_tgt_to_src_idx[i_part]);
+        if (_src_to_tgt_idx[i_part] != NULL) {
+          free(_src_to_tgt_idx[i_part]);
         }
-        if (_tgt_to_src_gnum[i_part] != NULL) {
-          free(_tgt_to_src_gnum[i_part]);
+        if (_src_to_tgt_gnum[i_part] != NULL) {
+          free(_src_to_tgt_gnum[i_part]);
+        }
+        if (_src_to_tgt_weight[i_part] != NULL) {
+          free(_src_to_tgt_weight[i_part]);
         }
         if (_tgt_to_src_weight[i_part] != NULL) {
           free(_tgt_to_src_weight[i_part]);
         }
-        _tgt_to_src_idx   [i_part] = NULL;
-        _tgt_to_src_gnum  [i_part] = NULL;
+        _src_to_tgt_idx   [i_part] = NULL;
+        _src_to_tgt_gnum  [i_part] = NULL;
+        _src_to_tgt_weight[i_part] = NULL;
         _tgt_to_src_weight[i_part] = NULL;
 
 
@@ -194,17 +210,21 @@ namespace cwipi {
 
       for (int i_part = 0; i_part < _nPart; i_part++) {
 
-        if (cpl_spatial_interp->_tgt_to_src_idx[i_part] != NULL) {
-          free(cpl_spatial_interp->_tgt_to_src_idx[i_part]);
+        if (cpl_spatial_interp->_src_to_tgt_idx[i_part] != NULL) {
+          free(cpl_spatial_interp->_src_to_tgt_idx[i_part]);
         }
-        if (cpl_spatial_interp->_tgt_to_src_gnum[i_part] != NULL) {
-          free(cpl_spatial_interp->_tgt_to_src_gnum[i_part]);
+        if (cpl_spatial_interp->_src_to_tgt_gnum[i_part] != NULL) {
+          free(cpl_spatial_interp->_src_to_tgt_gnum[i_part]);
+        }
+        if (cpl_spatial_interp->_src_to_tgt_weight[i_part] != NULL) {
+          free(cpl_spatial_interp->_src_to_tgt_weight[i_part]);
         }
         if (cpl_spatial_interp->_tgt_to_src_weight[i_part] != NULL) {
           free(cpl_spatial_interp->_tgt_to_src_weight[i_part]);
         }
-        cpl_spatial_interp->_tgt_to_src_idx   [i_part] = NULL;
-        cpl_spatial_interp->_tgt_to_src_gnum  [i_part] = NULL;
+        cpl_spatial_interp->_src_to_tgt_idx   [i_part] = NULL;
+        cpl_spatial_interp->_src_to_tgt_gnum  [i_part] = NULL;
+        cpl_spatial_interp->_src_to_tgt_weight[i_part] = NULL;
         cpl_spatial_interp->_tgt_to_src_weight[i_part] = NULL;
 
 
@@ -245,8 +265,7 @@ namespace cwipi {
 
 
 
-    /* Set source (B) and target (A) meshes */
-    /* CWIPI stores a nodal mesh but pdm_mesh_intersection requires ngons... */
+    /* Set source (A) and target (B) meshes */
 
     // get dimension of local and coupled codes
     int local_mesh_dim = 0;
@@ -260,8 +279,8 @@ namespace cwipi {
 
     int mesh_dim = local_mesh_dim;
 
-    int n_part_tgt = 0;
     int n_part_src = 0;
+    int n_part_tgt = 0;
     if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
       n_part_src = _nPart;
     }
@@ -275,22 +294,23 @@ namespace cwipi {
       n_part_tgt  = _cplNPart;
     }
 
-    // A = target
-    // B = source
+    // A = source
+    // B = target
 
     if (!_coupledCodeProperties->localCodeIs()) {
 
       _id_pdm = PDM_mesh_intersection_create(PDM_MESH_INTERSECTION_KIND_SOFT,
                                              mesh_dim,
                                              mesh_dim,
-                                             n_part_tgt,
                                              n_part_src,
+                                             n_part_tgt,
                                              0.,
                                              _pdmCplComm);
 
       // source mesh
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
         // local mesh
+        // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, _pdm_CplNodal);
       }
       else {
         // empty mesh
@@ -299,6 +319,7 @@ namespace cwipi {
       // target mesh
       if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
         // local mesh
+        // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, _pdm_CplNodal);
       }
       else {
         // empty mesh
@@ -311,8 +332,8 @@ namespace cwipi {
         _id_pdm = PDM_mesh_intersection_create(PDM_MESH_INTERSECTION_KIND_SOFT,
                                                mesh_dim,
                                                mesh_dim,
-                                               n_part_tgt,
                                                n_part_src,
+                                               n_part_tgt,
                                                0.,
                                                _pdmCplComm);
 
@@ -332,24 +353,31 @@ namespace cwipi {
 
         cpl_spatial_interp->_id_pdm = _id_pdm;
 
+        cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
+        CWP_UNUSED(cpl_mesh);
+
         // source mesh
         if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
           // local mesh
+          // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, _pdm_CplNodal);
           // cpl->... empty
         }
         else {
           // empty mesh
           // cpl->... local mesh
+          // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, cpl_mesh->getPdmNodalIndex());
         }
 
         // target mesh
         if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
           // local mesh
+          // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, _pdm_CplNodal);
           // cpl->... empty
         }
         else {
           // empty mesh
           // cpl->... local mesh
+          // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, cpl_mesh->getPdmNodalIndex());
         }
       }
     }
@@ -402,25 +430,101 @@ namespace cwipi {
                                              PDM_OWNERSHIP_USER);
     }
 
+    /* Create part_to_part object if null */
+    if (_ptsp == NULL) {
+      if (!_coupledCodeProperties->localCodeIs()) {
+        _ptsp = PDM_part_to_part_create((const PDM_g_num_t **) _src_gnum,
+                                        (const int          *) _src_n_gnum,
+                                        _nPart,
+                                        (const PDM_g_num_t **) _tgt_gnum,
+                                        (const int          *) _tgt_n_gnum,
+                                        _nPart,
+                                        (const int         **) _src_to_tgt_idx,
+                                        (const PDM_g_num_t **) _src_to_tgt_gnum,
+                                        _pdmCplComm);
+      }
+      else {
+        if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+          SpatialInterpIntersection *cpl_spatial_interp;
+
+          cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+
+          if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+            std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
+            cpl_spatial_interp =
+            dynamic_cast <SpatialInterpIntersection *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+          }
+          else {
+            std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
+            cpl_spatial_interp =
+            dynamic_cast <SpatialInterpIntersection *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+          }
+
+          if (_ptsp == NULL) {
+            if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+              _ptsp = PDM_part_to_part_create((const PDM_g_num_t **) _src_gnum,
+                                              (const int          *) _src_n_gnum,
+                                              _nPart,
+                                              (const PDM_g_num_t **) cpl_spatial_interp->_tgt_gnum,
+                                              (const int          *) cpl_spatial_interp->_tgt_n_gnum,
+                                              _cplNPart,
+                                              (const int         **) _src_to_tgt_idx,
+                                              (const PDM_g_num_t **) _src_to_tgt_gnum,
+                                              _pdmCplComm);
+            }
+            else {
+              _ptsp = PDM_part_to_part_create((const PDM_g_num_t **) cpl_spatial_interp->_src_gnum,
+                                              (const int          *) cpl_spatial_interp->_src_n_gnum,
+                                              _cplNPart,
+                                              (const PDM_g_num_t **) _tgt_gnum,
+                                              (const int          *) _tgt_n_gnum,
+                                              _nPart,
+                                              (const int         **) cpl_spatial_interp->_src_to_tgt_idx,
+                                              (const PDM_g_num_t **) cpl_spatial_interp->_src_to_tgt_gnum,
+                                              _pdmCplComm);
+            }
+          }
+
+          cpl_spatial_interp->_ptsp = _ptsp;
+        }
+      }
+    }
+
     /* Get PDM results */
     if (!_coupledCodeProperties->localCodeIs()) {
+      int  *n_ref_tgt = NULL;
+      int **ref_tgt   = NULL;
+      PDM_part_to_part_ref_lnum2_get(_ptsp, &n_ref_tgt, &ref_tgt);
+
       for (int i_part = 0; i_part < _nPart; i_part++) {
         if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-          _tgt_to_src_idx[i_part] = (int *) malloc(sizeof(int));
-          _tgt_to_src_idx[i_part][0] = 0;
-
-          // involved sources...
-          // computed tgt...
-        }
-        else {
           PDM_mesh_intersection_result_from_a_get(_id_pdm,
                                                   i_part,
-                                                  &(_tgt_to_src_idx   [i_part]),
-                                                  &(_tgt_to_src_gnum  [i_part]),
-                                                  &(_tgt_to_src_weight[i_part]));
+                                                  &(_src_to_tgt_idx   [i_part]),
+                                                  &(_src_to_tgt_gnum  [i_part]),
+                                                  &(_src_to_tgt_weight[i_part]));
 
-          // involved sources...
-          // computed tgt...
+          _n_involved_sources_tgt[i_part] = _src_n_gnum[i_part];
+          _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
+
+          int count = 0;
+          for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
+            if (_src_to_tgt_idx[i_part][i + 1] > _src_to_tgt_idx[i_part][i]) {
+              _involved_sources_tgt[i_part][count] = i + 1;
+              ++count;
+            }
+          }
+
+          _n_involved_sources_tgt[i_part] = count;
+          _involved_sources_tgt[i_part] = (int*) realloc(_involved_sources_tgt[i_part], sizeof(int) * count);
+        }
+        else {
+          _src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
+          _src_to_tgt_idx[i_part][0] = 0;
+
+          _n_computed_tgt[i_part] = n_ref_tgt[i_part];
+          _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
+          memcpy(_computed_tgt[i_part], ref_tgt[i_part], sizeof(int) * _n_computed_tgt[i_part]);
         }
       }
     }
@@ -439,44 +543,72 @@ namespace cwipi {
           cpl_spatial_interp = dynamic_cast <SpatialInterpIntersection *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
         }
 
+        int  *n_ref_tgt = NULL;
+        int **ref_tgt   = NULL;
+        PDM_part_to_part_ref_lnum2_get(_ptsp, &n_ref_tgt, &ref_tgt);
+
         if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
           for (int i_part = 0; i_part < _nPart; i_part++) {
-            _tgt_to_src_idx[i_part] = (int *) malloc(sizeof(int));
-            _tgt_to_src_idx[i_part][0] = 0;
+            PDM_mesh_intersection_result_from_a_get(_id_pdm,
+                                                    i_part,
+                                                    &(_src_to_tgt_idx   [i_part]),
+                                                    &(_src_to_tgt_gnum  [i_part]),
+                                                    &(_src_to_tgt_weight[i_part]));
 
-            // involved sources...
-            // computed tgt...
+            _n_involved_sources_tgt[i_part] = _src_n_gnum[i_part];
+            _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
+
+            int count = 0;
+            for (int i = 0 ; i < _src_n_gnum[i_part] ; ++i) {
+              if (_src_to_tgt_idx[i_part][i + 1] > _src_to_tgt_idx[i_part][i]) {
+                _involved_sources_tgt[i_part][count] = i + 1;
+                ++count;
+              }
+            }
+
+            _n_involved_sources_tgt[i_part] = count;
+            _involved_sources_tgt[i_part] = (int*) realloc(_involved_sources_tgt[i_part], sizeof(int) * count);
           }
 
           for (int i_part = 0; i_part < _cplNPart; i_part++) {
-            PDM_mesh_intersection_result_from_a_get(_id_pdm,
-                                                    i_part,
-                                                    &(cpl_spatial_interp->_tgt_to_src_idx   [i_part]),
-                                                    &(cpl_spatial_interp->_tgt_to_src_gnum  [i_part]),
-                                                    &(cpl_spatial_interp->_tgt_to_src_weight[i_part]));
+            cpl_spatial_interp->_src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
+            cpl_spatial_interp->_src_to_tgt_idx[i_part][0] = 0;
 
-            // involved sources...
-            // computed tgt...
+            cpl_spatial_interp->_n_computed_tgt[i_part] = n_ref_tgt[i_part];
+            cpl_spatial_interp->_computed_tgt[i_part] = (int *) malloc(sizeof(int) * cpl_spatial_interp->_n_computed_tgt[i_part]);
+            memcpy(cpl_spatial_interp->_computed_tgt[i_part], ref_tgt[i_part], sizeof(int) * cpl_spatial_interp->_n_computed_tgt[i_part]);
           }
         }
         else {
           for (int i_part = 0; i_part < _nPart; i_part++) {
-            PDM_mesh_intersection_result_from_a_get(_id_pdm,
-                                                    i_part,
-                                                    &(_tgt_to_src_idx   [i_part]),
-                                                    &(_tgt_to_src_gnum  [i_part]),
-                                                    &(_tgt_to_src_weight[i_part]));
+            _src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
+            _src_to_tgt_idx[i_part][0] = 0;
 
-            // involved sources...
-            // computed tgt...
+            _n_computed_tgt[i_part] = n_ref_tgt[i_part];
+            _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
+            memcpy(_computed_tgt[i_part], ref_tgt[i_part], sizeof(int) * _n_computed_tgt[i_part]);
           }
 
           for (int i_part = 0; i_part < _cplNPart; i_part++) {
-            cpl_spatial_interp->_tgt_to_src_idx[i_part] = (int *) malloc(sizeof(int));
-            cpl_spatial_interp->_tgt_to_src_idx[i_part][0] = 0;
+            PDM_mesh_intersection_result_from_a_get(_id_pdm,
+                                                    i_part,
+                                                    &(cpl_spatial_interp->_src_to_tgt_idx   [i_part]),
+                                                    &(cpl_spatial_interp->_src_to_tgt_gnum  [i_part]),
+                                                    &(cpl_spatial_interp->_src_to_tgt_weight[i_part]));
 
-            // involved sources...
-            // computed tgt...
+            cpl_spatial_interp->_n_involved_sources_tgt[i_part] = cpl_spatial_interp->_src_n_gnum[i_part];
+            cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * cpl_spatial_interp->_n_involved_sources_tgt[i_part]);
+
+            int count = 0;
+            for (int i = 0 ; i < cpl_spatial_interp->_src_n_gnum[i_part] ; ++i) {
+              if (cpl_spatial_interp->_src_to_tgt_idx[i_part][i + 1] > cpl_spatial_interp->_src_to_tgt_idx[i_part][i]) {
+                cpl_spatial_interp->_involved_sources_tgt[i_part][count] = i + 1;
+                ++count;
+              }
+            }
+
+            cpl_spatial_interp->_n_involved_sources_tgt[i_part] = count;
+            cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) realloc(cpl_spatial_interp->_involved_sources_tgt[i_part], sizeof(int) * count);
           }
         }
       }
@@ -508,596 +640,6 @@ namespace cwipi {
         cpl_spatial_interp->_id_pdm = nullptr;
       }
     }
-
-    /* Create part_to_part object if null */
-    if (_ptsp == NULL) {
-      if (!_coupledCodeProperties->localCodeIs()) {
-        _ptsp = PDM_part_to_part_create((const PDM_g_num_t **) _tgt_gnum,
-                                        (const int          *) _tgt_n_gnum,
-                                        _nPart,
-                                        (const PDM_g_num_t **) _src_gnum,
-                                        (const int          *) _src_n_gnum,
-                                        _nPart,
-                                        (const int         **) _tgt_to_src_idx,
-                                        (const PDM_g_num_t **) _tgt_to_src_gnum,
-                                        _pdmCplComm);
-      }
-      else {
-        if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-          SpatialInterpIntersection *cpl_spatial_interp;
-
-          cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-
-          if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-            std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
-            cpl_spatial_interp =
-            dynamic_cast <SpatialInterpIntersection *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-          }
-          else {
-            std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
-            cpl_spatial_interp =
-            dynamic_cast <SpatialInterpIntersection *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-          }
-
-          if (_ptsp == NULL) {
-            if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-              _ptsp = PDM_part_to_part_create((const PDM_g_num_t **) _tgt_gnum,
-                                              (const int          *) _tgt_n_gnum,
-                                              _nPart,
-                                              (const PDM_g_num_t **) cpl_spatial_interp->_src_gnum,
-                                              (const int          *) cpl_spatial_interp->_src_n_gnum,
-                                              _cplNPart,
-                                              (const int         **) _tgt_to_src_idx,
-                                              (const PDM_g_num_t **) _tgt_to_src_gnum,
-                                              _pdmCplComm);
-            }
-            else {
-              _ptsp = PDM_part_to_part_create((const PDM_g_num_t **) cpl_spatial_interp->_tgt_gnum,
-                                              (const int          *) cpl_spatial_interp->_tgt_n_gnum,
-                                              _cplNPart,
-                                              (const PDM_g_num_t **) _src_gnum,
-                                              (const int          *) _src_n_gnum,
-                                              _nPart,
-                                              (const int         **) cpl_spatial_interp->_tgt_to_src_idx,
-                                              (const PDM_g_num_t **) cpl_spatial_interp->_tgt_to_src_gnum,
-                                              _pdmCplComm);
-            }
-          }
-
-          cpl_spatial_interp->_ptsp = _ptsp;
-        }
-      }
-    }
-  }
-
-
-  void SpatialInterpIntersection::issend(Field *referenceField) {
-
-    if (referenceField->currentStepWasExchangedGet()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "The field has already been exchanged for the current time step "
-                "(CWP_Time_update must be called before the exchange)\n");
-    }
-
-    if (!_coupledCodeProperties->localCodeIs()) {
-
-      const int intId            = referenceField->fieldIDIntGet();
-      const CWP_Type_t data_type = referenceField->dataTypeGet();
-      CWP_UNUSED (data_type);
-      const size_t s_data        = sizeof(double);
-      const int stride           = referenceField->nComponentGet();
-      const CWP_Field_storage_t storage = referenceField->storageTypeGet();
-      PDM_stride_t pdm_storage;
-      if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
-        pdm_storage = PDM_STRIDE_CST_INTERLEAVED;
-      } else {
-        pdm_storage = PDM_STRIDE_CST_INTERLACED;
-      }
-
-      int  n_part_tgt;
-      int  n_part_src;
-      int *n_tgt = NULL;
-      int *n_src = NULL;
-      PDM_part_to_part_n_part_and_n_elt_get(_ptsp,
-                                            &n_part_tgt,
-                                            &n_part_src,
-                                            &n_tgt,
-                                            &n_src);
-
-      int         **come_from_idx = NULL;
-      PDM_g_num_t **come_from     = NULL;
-      PDM_part_to_part_gnum1_come_from_get(_ptsp,
-                                           &come_from_idx,
-                                           &come_from);
-
-      _send_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
-      for (int i = 0; i < _nPart; i++) {
-        double *referenceData = (double *) referenceField->dataGet(i, CWP_FIELD_MAP_SOURCE);
-        _send_buffer[intId][i] = (double *) malloc(sizeof(double) * stride * n_src[i]);
-
-        if (storage == CWP_FIELD_STORAGE_INTERLACED) {
-          for (int j = 0; j < n_src[i]; j++) {
-            for (int k = come_from_idx[i][j]; k < come_from_idx[i][j+1]; k++) {
-              for (int l = 0; l < stride; l++) {
-                _send_buffer[intId][i][stride*k + l] = referenceData[stride*j + l];
-              }
-            }
-          }
-        }
-        else {
-          for (int l = 0; l < stride; l++) {
-            for (int j = 0; j < n_src[i]; j++) {
-              for (int k = come_from_idx[i][j]; k < come_from_idx[i][j+1]; k++) {
-                _send_buffer[intId][i][come_from_idx[i][n_src[i]]*l + k] = referenceData[n_src[i]*l + j];
-              }
-            }
-          }
-        }
-      }
-
-
-      PDM_part_to_part_reverse_iexch(_ptsp,
-                                     PDM_MPI_COMM_KIND_P2P,
-                                     pdm_storage,
-                                     PDM_PART_TO_PART_DATA_DEF_ORDER_GNUM1_COME_FROM,
-                                     stride,
-                                     s_data,
-                                     NULL,
-                    (const void  **) _send_buffer[intId],
-                                     NULL,
-                    (      void ***) &_recv_buffer[intId],
-                                     &(_send_request[intId]));
-      _recv_request[intId] = _send_request[intId];
-    }
-
-    else {
-      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-        cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-
-        const int intId            = referenceField->fieldIDIntGet();
-        const CWP_Type_t data_type = referenceField->dataTypeGet();
-        CWP_UNUSED(data_type);
-        const size_t s_data        = sizeof(double);
-        const int stride           = referenceField->nComponentGet();
-        const CWP_Field_storage_t storage = referenceField->storageTypeGet();
-        PDM_stride_t pdm_storage;
-        if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
-          pdm_storage = PDM_STRIDE_CST_INTERLEAVED;
-        } else {
-          pdm_storage = PDM_STRIDE_CST_INTERLACED;
-        }
-
-        int  n_part_tgt;
-        int  n_part_src;
-        int *n_tgt = NULL;
-        int *n_src = NULL;
-        PDM_part_to_part_n_part_and_n_elt_get(_ptsp,
-                                              &n_part_tgt,
-                                              &n_part_src,
-                                              &n_tgt,
-                                              &n_src);
-
-        int         **come_from_idx = NULL;
-        PDM_g_num_t **come_from     = NULL;
-        PDM_part_to_part_gnum1_come_from_get(_ptsp,
-                                             &come_from_idx,
-                                             &come_from);
-
-        _send_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
-        for (int i = 0; i < _nPart; i++) {
-          double *referenceData = (double *) referenceField->dataGet(i, CWP_FIELD_MAP_SOURCE);
-          _send_buffer[intId][i] = (double *) malloc(sizeof(double) * stride * n_src[i]);
-
-          if (storage == CWP_FIELD_STORAGE_INTERLACED) {
-            for (int j = 0; j < n_src[i]; j++) {
-              for (int k = come_from_idx[i][j]; k < come_from_idx[i][j+1]; k++) {
-                for (int l = 0; l < stride; l++) {
-                  _send_buffer[intId][i][stride*k + l] = referenceData[stride*j + l];
-                }
-              }
-            }
-          }
-          else {
-            for (int l = 0; l < stride; l++) {
-              for (int j = 0; j < n_src[i]; j++) {
-                for (int k = come_from_idx[i][j]; k < come_from_idx[i][j+1]; k++) {
-                  _send_buffer[intId][i][come_from_idx[i][n_src[i]]*l + k] = referenceData[n_src[i]*l + j];
-                }
-              }
-            }
-          }
-        }
-
-
-        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
-        SpatialInterpIntersection *cpl_spatial_interp =
-        dynamic_cast <SpatialInterpIntersection *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-
-        Field* cpl_referenceField = (*cpl_cpl.fieldsGet())[referenceField->fieldIDGet()];
-
-        const int cpl_intId = cpl_referenceField->fieldIDIntGet();
-        cpl_spatial_interp->_send_buffer[cpl_intId] = (double **) malloc(sizeof(double *) * _cplNPart);
-        cpl_spatial_interp->_recv_buffer[cpl_intId] = (double **) malloc(sizeof(double *) * _cplNPart);
-
-        for (int i = 0; i < _cplNPart; i++) {
-          cpl_spatial_interp->_send_buffer[cpl_intId][i] = nullptr;
-        }
-        PDM_part_to_part_reverse_iexch(_ptsp,
-                                       PDM_MPI_COMM_KIND_P2P,
-                                       pdm_storage,
-                                       PDM_PART_TO_PART_DATA_DEF_ORDER_GNUM1_COME_FROM,
-                                       stride,
-                                       s_data,
-                                       NULL,
-                       (const void **) _send_buffer[intId],
-                                       NULL,
-                            (void ***) &cpl_spatial_interp->_recv_buffer[cpl_intId],
-                                       &(_send_request[intId]));
-        cpl_spatial_interp->_recv_request[cpl_intId] = _send_request[intId];
-      }
-    }
-  }
-
-  void SpatialInterpIntersection::waitIssend(Field* referenceField) {
-    if (!_coupledCodeProperties->localCodeIs()) {
-
-      const int intId = referenceField->fieldIDIntGet();
-
-      PDM_part_to_part_reverse_iexch_wait (_ptsp, _send_request[intId]);
-
-      if (_send_buffer[intId] != NULL) {
-        for (int i = 0; i < _nPart; i++) {
-          if (_send_buffer[intId][i] != NULL) {
-            free (_send_buffer[intId][i]);
-            _send_buffer[intId][i] = NULL;
-          }
-        }
-        free (_send_buffer[intId]);
-        _send_buffer[intId] = NULL;
-      }
-
-      if (_recv_buffer[intId] != NULL) {
-        for (int i = 0; i < _nPart; i++) {
-          if (_recv_buffer[intId][i] != NULL) {
-            free (_recv_buffer[intId][i]);
-            _recv_buffer[intId][i] = NULL;
-          }
-        }
-        free (_recv_buffer[intId]);
-        _recv_buffer[intId] = NULL;
-      }
-
-      // if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
-      //   _visu->WriterField(referenceField, nullptr, nullptr, CWP_FIELD_MAP_SOURCE);
-      // }
-    }
-
-    else {
-      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-        cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-
-        const int intId            = referenceField->fieldIDIntGet();
-
-        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
-        SpatialInterpIntersection *cpl_spatial_interp =
-        dynamic_cast <SpatialInterpIntersection *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-
-        Field* cpl_referenceField = (*cpl_cpl.fieldsGet())[referenceField->fieldIDGet()];
-
-        const int cpl_intId = cpl_referenceField->fieldIDIntGet();
-
-        PDM_part_to_part_reverse_iexch_wait(_ptsp, cpl_spatial_interp->_recv_request[cpl_intId]);
-
-        for (int i = 0; i < _nPart; i++) {
-          if (_send_buffer[intId] != NULL) {
-            if (_send_buffer[intId][i] != NULL) {
-              free (_send_buffer[intId][i]);
-              _send_buffer[intId][i] = NULL;
-            }
-            free (_send_buffer[intId]);
-            _send_buffer[intId] = NULL;
-          }
-          if (_recv_buffer[intId] != NULL) {
-            if (_recv_buffer[intId][i] != NULL) {
-              free (_recv_buffer[intId][i]);
-              _recv_buffer[intId][i] = NULL;
-            }
-            free (_recv_buffer[intId]);
-            _recv_buffer[intId] = NULL;
-          }
-        }
-
-        int nComponent   = cpl_referenceField->nComponentGet();
-        int dataTypeSize = cpl_referenceField->dataTypeSizeGet();
-
-        int          *n_tgt;
-        int         **tgt_to_src_idx;
-        PDM_g_num_t **tgt_to_src;
-        PDM_part_to_part_part1_to_part2_get(_ptsp,
-                                            &n_tgt,
-                                            &tgt_to_src_idx,
-                                            &tgt_to_src);
-
-        for (int i = 0; i < _cplNPart; i++) {
-          double *referenceData  = (double *) cpl_referenceField->dataGet(i, CWP_FIELD_MAP_TARGET);
-          for (int j = 0; j < n_tgt[i]; j++) {
-            assert ((tgt_to_src[i][j+1] - tgt_to_src[i][j]) == 1); // why??
-          }
-          memcpy(referenceData, cpl_spatial_interp->_recv_buffer[cpl_intId][i], dataTypeSize * nComponent * n_tgt[i]);
-        }
-
-        for (int i = 0; i < _cplNPart; i++) {
-          if (cpl_spatial_interp->_send_buffer[cpl_intId] != NULL) {
-            if (cpl_spatial_interp->_send_buffer[cpl_intId][i] != NULL) {
-              free (cpl_spatial_interp->_send_buffer[cpl_intId][i]);
-              cpl_spatial_interp->_send_buffer[cpl_intId][i] = NULL;
-            }
-            free (cpl_spatial_interp->_send_buffer[cpl_intId]);
-            cpl_spatial_interp->_send_buffer[cpl_intId] = NULL;
-          }
-          if (cpl_spatial_interp->_recv_buffer[cpl_intId] != NULL) {
-            if (cpl_spatial_interp->_recv_buffer[cpl_intId][i] != NULL) {
-              free (cpl_spatial_interp->_recv_buffer[cpl_intId][i]);
-              cpl_spatial_interp->_recv_buffer[cpl_intId][i] = NULL;
-            }
-            free (cpl_spatial_interp->_recv_buffer[cpl_intId]);
-            cpl_spatial_interp->_recv_buffer[cpl_intId] = NULL;
-          }
-
-          // if(cpl_spatial_interp->_visu->isCreated() && cpl_referenceField->visuStatusGet() == CWP_STATUS_ON) {
-          //   cpl_spatial_interp->_visu->WriterField(cpl_referenceField, ptp2_n_ref_gnum2, ptp2_ref_gnum2, CWP_FIELD_MAP_TARGET);
-          // }
-
-        }
-      }
-    }
-  }
-
-  void SpatialInterpIntersection::irecv(Field *referenceField) {
-
-    if (referenceField->currentStepWasExchangedGet()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "The field has already been exchanged for the current time step "
-                "(CWP_Time_update must be called before the exchange)\n");
-    }
-
-    if (!_coupledCodeProperties->localCodeIs()) {
-
-      const int intId            = referenceField->fieldIDIntGet();
-      const CWP_Type_t data_type = referenceField->dataTypeGet();
-      CWP_UNUSED(data_type);
-      const size_t s_data        = sizeof(double);
-      const int stride           = referenceField->nComponentGet();
-      const CWP_Field_storage_t storage = referenceField->storageTypeGet();
-      PDM_stride_t pdm_storage;
-      if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
-        pdm_storage = PDM_STRIDE_CST_INTERLEAVED;
-      } else {
-        pdm_storage = PDM_STRIDE_CST_INTERLACED;
-      }
-
-      _send_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
-
-      for (int i = 0; i < _nPart; i++) {
-        _send_buffer[intId][i] = nullptr;
-      }
-
-      PDM_part_to_part_reverse_iexch(_ptsp,
-                                     PDM_MPI_COMM_KIND_P2P,
-                                     pdm_storage,
-                                     PDM_PART_TO_PART_DATA_DEF_ORDER_GNUM1_COME_FROM,
-                                     stride,
-                                     s_data,
-                                     NULL,
-                     (const void **) _send_buffer[intId],
-                                     NULL,
-                          (void ***) &_recv_buffer[intId],
-                                     &(_send_request[intId]));
-      _recv_request[intId] = _send_request[intId];
-    }
-
-    else {
-      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-        cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-
-        const int intId            = referenceField->fieldIDIntGet();
-        const CWP_Type_t data_type = referenceField->dataTypeGet();
-        CWP_UNUSED(data_type);
-        const size_t s_data        = sizeof(double);
-        const int stride           = referenceField->nComponentGet();
-        const CWP_Field_storage_t storage = referenceField->storageTypeGet();
-        PDM_stride_t pdm_storage;
-        if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
-          pdm_storage = PDM_STRIDE_CST_INTERLEAVED;
-        } else {
-          pdm_storage = PDM_STRIDE_CST_INTERLACED;
-        }
-
-        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
-        SpatialInterpIntersection *cpl_spatial_interp =
-        dynamic_cast <SpatialInterpIntersection *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-
-        Field* cpl_referenceField = (*cpl_cpl.fieldsGet())[referenceField->fieldIDGet()];
-
-        const int cpl_intId = cpl_referenceField->fieldIDIntGet();
-
-
-        int  cpl_n_part_tgt;
-        int  cpl_n_part_src;
-        int *cpl_n_tgt = NULL;
-        int *cpl_n_src = NULL;
-        PDM_part_to_part_n_part_and_n_elt_get(_ptsp,
-                                              &cpl_n_part_tgt,
-                                              &cpl_n_part_src,
-                                              &cpl_n_tgt,
-                                              &cpl_n_src);
-
-        int         **cpl_come_from_idx = NULL;
-        PDM_g_num_t **cpl_come_from     = NULL;
-        PDM_part_to_part_gnum1_come_from_get(_ptsp,
-                                             &cpl_come_from_idx,
-                                             &cpl_come_from);
-
-
-        cpl_spatial_interp->_send_buffer[cpl_intId] = (double **) malloc(sizeof(double *) * _cplNPart);
-
-        for (int i = 0; i < _cplNPart; i++) {
-          double *cpl_referenceData = (double *) cpl_referenceField->dataGet(i, CWP_FIELD_MAP_SOURCE);
-
-          cpl_spatial_interp->_send_buffer[intId][i] = (double *) malloc(sizeof(double) * stride * cpl_n_src[i]);
-
-          if (storage == CWP_FIELD_STORAGE_INTERLACED) {
-            for (int j = 0; j < cpl_n_src[i]; j++) {
-              for (int k = cpl_come_from_idx[i][j]; k < cpl_come_from_idx[i][j+1]; k++) {
-                for (int l = 0; l < stride; l++) {
-                  cpl_spatial_interp->_send_buffer[intId][i][stride*k + l] = cpl_referenceData[stride*j + l];
-                }
-              }
-            }
-          }
-          else {
-            for (int l = 0; l < stride; l++) {
-              for (int j = 0; j < cpl_n_src[i]; j++) {
-                for (int k = cpl_come_from_idx[i][j]; k < cpl_come_from_idx[i][j+1]; k++) {
-                  cpl_spatial_interp->_send_buffer[intId][i][cpl_come_from_idx[i][cpl_n_src[i]]*l + k] = cpl_referenceData[cpl_n_src[i]*l + j];
-                }
-              }
-            }
-          }
-        }
-
-        PDM_part_to_part_reverse_iexch(_ptsp,
-                                       PDM_MPI_COMM_KIND_P2P,
-                                       pdm_storage,
-                                       PDM_PART_TO_PART_DATA_DEF_ORDER_GNUM1_COME_FROM,
-                                       stride,
-                                       s_data,
-                                       NULL,
-                       (const void **) cpl_spatial_interp->_send_buffer[cpl_intId],
-                                       NULL,
-                            (void ***) &_recv_buffer[intId],
-                                       &(cpl_spatial_interp->_send_request[cpl_intId]));
-        _recv_request[intId] = cpl_spatial_interp->_send_request[cpl_intId];
-      }
-    }
-  }
-
-  void SpatialInterpIntersection::waitIrecv(Field *referenceField) {
-
-    if (!_coupledCodeProperties->localCodeIs()) {
-
-      const int intId = referenceField->fieldIDIntGet();
-
-      PDM_part_to_part_reverse_iexch_wait(_ptsp, _send_request[intId]);
-
-      interpolate(referenceField, _recv_buffer[intId]);
-
-      if (_send_buffer[intId] != NULL) {
-        for (int i = 0; i < _nPart; i++) {
-          if (_send_buffer[intId][i] != NULL) {
-            free (_send_buffer[intId][i]);
-            _send_buffer[intId][i] = NULL;
-          }
-        }
-        free (_send_buffer[intId]);
-        _send_buffer[intId] = NULL;
-      }
-
-      if (_recv_buffer[intId] != NULL) {
-        for (int i = 0; i < _nPart; i++) {
-          if (_recv_buffer[intId][i] != NULL) {
-            free (_recv_buffer[intId][i]);
-            _recv_buffer[intId][i] = NULL;
-          }
-        }
-        free (_recv_buffer[intId]);
-        _recv_buffer[intId] = NULL;
-      }
-
-      // if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
-
-      //   int  *ptp2_n_ref_gnum2;
-      //   int **ptp2_ref_gnum2;
-      //   PDM_part_to_part_ref_lnum2_get (_ptsp,
-      //                                  &ptp2_n_ref_gnum2,
-      //                                  &ptp2_ref_gnum2);
-
-      //   _visu->WriterField(referenceField, ptp2_n_ref_gnum2, ptp2_ref_gnum2, CWP_FIELD_MAP_TARGET);
-
-      // }
-    }
-
-    else {
-      if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-        cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-
-        const int intId = referenceField->fieldIDIntGet();
-
-        std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.sendSpatialInterpGet();
-        SpatialInterpIntersection *cpl_spatial_interp =
-        dynamic_cast <SpatialInterpIntersection *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-
-        Field* cpl_referenceField = (*cpl_cpl.fieldsGet())[referenceField->fieldIDGet()];
-
-        const int cpl_intId = cpl_referenceField->fieldIDIntGet();
-
-        PDM_part_to_part_reverse_iexch_wait(_ptsp, cpl_spatial_interp->_send_request[cpl_intId]);
-
-        interpolate(referenceField, _recv_buffer[intId]);
-
-        for (int i = 0; i < _cplNPart; i++) {
-          if (cpl_spatial_interp->_send_buffer[intId] != NULL) {
-            if (cpl_spatial_interp->_send_buffer[intId][i] != NULL) {
-              free (cpl_spatial_interp->_send_buffer[intId][i]);
-              cpl_spatial_interp->_send_buffer[intId][i] = NULL;
-            }
-            free (cpl_spatial_interp->_send_buffer[intId]);
-            cpl_spatial_interp->_send_buffer[intId] = NULL;
-          }
-          if (cpl_spatial_interp->_recv_buffer[intId] != NULL) {
-            if (cpl_spatial_interp->_recv_buffer[intId][i] != NULL) {
-              free (cpl_spatial_interp->_recv_buffer[intId][i]);
-              cpl_spatial_interp->_recv_buffer[intId][i] = NULL;
-            }
-            free (cpl_spatial_interp->_send_buffer[intId]);
-            cpl_spatial_interp->_send_buffer[intId] = NULL;
-          }
-        }
-
-        for (int i = 0; i < _nPart; i++) {
-          if (_send_buffer[intId] != NULL) {
-            if (_send_buffer[intId][i] != NULL) {
-              free (_send_buffer[intId][i]);
-              _send_buffer[intId][i] = NULL;
-            }
-            free (_send_buffer[intId]);
-            _send_buffer[intId] = NULL;
-          }
-          if (_recv_buffer[intId] != NULL) {
-            if (_recv_buffer[intId][i] != NULL) {
-              free (_recv_buffer[intId][i]);
-              _recv_buffer[intId][i] = NULL;
-            }
-            free (_recv_buffer[intId]);
-            _recv_buffer[intId] = NULL;
-          }
-        }
-
-        // if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
-
-        //   int  *ptp2_n_ref_gnum2;
-        //   int **ptp2_ref_gnum2;
-        //   PDM_part_to_part_ref_lnum2_get (_ptsp,
-        //                                  &ptp2_n_ref_gnum2,
-        //                                  &ptp2_ref_gnum2);
-        //   _visu->WriterField(referenceField, ptp2_n_ref_gnum2, ptp2_ref_gnum2, CWP_FIELD_MAP_TARGET);
-        // }
-
-        // if(cpl_spatial_interp->_visu->isCreated() && cpl_referenceField->visuStatusGet() == CWP_STATUS_ON) {
-        //   cpl_spatial_interp->_visu->WriterField(cpl_referenceField, nullptr, nullptr, CWP_FIELD_MAP_SOURCE);
-        // }
-      }
-    }
   }
 
   void SpatialInterpIntersection::interpolate(Field *referenceField, double **buffer) {
@@ -1112,6 +654,16 @@ namespace cwipi {
     }
 
     else {
+
+      int  *n_ref_tgt = NULL;
+      int **ref_tgt   = NULL;
+      PDM_part_to_part_ref_lnum2_get(_ptsp, &n_ref_tgt, &ref_tgt);
+
+      int         **come_from_idx = NULL;
+      PDM_g_num_t **come_from     = NULL;
+      PDM_part_to_part_gnum1_come_from_get(_ptsp,
+                                           &come_from_idx,
+                                           &come_from);
 
       for (int i_part = 0; i_part < _nPart; i_part++) {
 
@@ -1132,15 +684,17 @@ namespace cwipi {
           referenceData[j] = 0;
         }
 
-        for (int i = 0; i < n_tgt; i++) {
+        for (int iref = 0; iref < n_ref_tgt[i_part]; iref++) {
 
-          for (int k = _tgt_to_src_idx[i_part][i]; k < _tgt_to_src_idx[i_part][i+1]; k++) {
+          int i = ref_tgt[i_part][iref] - 1;
+
+          for (int k = come_from_idx[i_part][i]; k < come_from_idx[i_part][i+1]; k++) {
 
             double w = _tgt_to_src_weight[i_part][k];
 
             if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
               for (int j = 0; j < nComponent; j++) {
-                referenceData[n_tgt*j + i] += w*buffer[i_part][_tgt_to_src_idx[i_part][n_tgt]*j + k];
+                referenceData[n_tgt*j + i] += w*buffer[i_part][come_from_idx[i_part][n_ref_tgt[i_part]]*j + k];
               }
             }
             else {
