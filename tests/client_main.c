@@ -190,12 +190,6 @@ main
     printf("i_rank: %d code_names[i] = %s\n", i_rank, codeNames[i]);
   }
 
-  // free
-  for (int i = 0; i < n_codes; i++) {
-    free(codeNames[i]);
-  }
-  free(codeNames);
-
   // CWP_Loc_codes_*
   int n_Loc_codes = CWP_client_Loc_codes_nb_get();
   printf("n_Loc_codes = %d\n", n_Loc_codes);
@@ -204,12 +198,6 @@ main
   for (int i = 0; i < n_Loc_codes; i++) {
     printf("i_rank: %d Loc_code_names[i] = %s\n", i_rank, LoccodeNames[i]);
   }
-
-  // free
-  for (int i = 0; i < n_Loc_codes; i++) {
-    free(LoccodeNames[i]);
-  }
-  free(LoccodeNames);
 
   // Properties_dump
   CWP_client_Properties_dump();
@@ -250,7 +238,6 @@ main
   const char *titi2 = NULL;
   CWP_client_Param_get("code2", "toto2", CWP_CHAR, &titi2);
   printf("i_rank: %d code 2 : toto2 : %s\n", i_rank, titi2);
-  free((void *) titi2);
   int titi;
   CWP_client_Param_get("code1", "toto", CWP_INT, &titi);
   printf("i_rank: %d code 1 : toto : %d\n", i_rank, titi);
@@ -319,11 +306,6 @@ main
       printf("i_rank: %d code 1 : param[%d] = %s\n", i_rank, i, param_names[i]);
     }
 
-    // free
-    for (int i = 0; i < code1_n_double; i++) {
-      free(param_names[i]);
-    }
-    free(param_names);
   }
 
   if (i_rank == 1) {
@@ -335,11 +317,6 @@ main
       printf("i_rank: %d code 1 : param[%d] = %s\n", i_rank, i, param_names[i]);
     }
 
-    // free
-    for (int i = 0; i < code2_n_char; i++) {
-      free(param_names[i]);
-    }
-    free(param_names);
   }
 
   if (i_rank == 1) {

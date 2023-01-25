@@ -77,6 +77,7 @@ extern "C" {
 static t_client *clt;
 static t_field fields = t_field();
 static FILE* _cwipi_output_listing;
+static t_cwp clt_cwp;
 
 /*=============================================================================
  * Macro definitions
@@ -607,6 +608,9 @@ CWP_client_connect
   socklen_t max_msg_size_len = 0;
   int il_cl_endian;
 
+  CWP_UNUSED(host);
+  CWP_UNUSED(server_addr);
+
   clt = (t_client *) malloc(sizeof(t_client));
   memset(clt,0,sizeof(t_client));
   strncpy(clt->server_name, server_name,sizeof(clt->server_name));
@@ -629,6 +633,8 @@ CWP_client_connect
   getaddrinfo(server_name, port_str, NULL, &svr_info); // hint
   char *dst = (char *) malloc(sizeof(char) * INET_ADDRSTRLEN);
   inet_ntop(AF_INET, svr_info->ai_addr->sa_data, dst, INET_ADDRSTRLEN);
+
+  CWP_UNUSED(status);
 
   // host = (struct hostent *) gethostbyname(server_name);
   // printf("host: %p\n", host);
@@ -1073,6 +1079,37 @@ CWP_client_Finalize()
 
   if (clt->code_name != NULL) free(clt->code_name);
 
+  if (clt_cwp.code_names != NULL) {
+    for (int i = 0; i < clt_cwp.n_code_names; i++) {
+      if (clt_cwp.code_names[i] != NULL) free((void *) clt_cwp.code_names[i]);
+    }
+    free(clt_cwp.code_names);
+  }
+
+
+  if (clt_cwp.loc_code_names != NULL) {
+    for (int i = 0; i < clt_cwp.n_loc_code_names; i++) {
+      if (clt_cwp.loc_code_names[i] != NULL) free((void *) clt_cwp.loc_code_names[i]);
+    }
+    free(clt_cwp.loc_code_names);
+  }
+
+  if (clt_cwp.param_names != NULL) {
+    for (int i = 0; i < clt_cwp.n_param_names; i++) {
+      if (clt_cwp.param_names[i] != NULL) free(clt_cwp.param_names[i]);
+    }
+    free(clt_cwp.param_names);
+  }
+
+  if (!clt_cwp.char_param_value.empty()) {
+    for (const auto& x : clt_cwp.char_param_value) {
+      if (x.second != NULL) {
+        free((void *) x.second);
+      }
+    }
+    clt_cwp.char_param_value.clear();
+  }
+
   /* disconnect */
   CWP_client_disconnect();
 }
@@ -1337,17 +1374,17 @@ CWP_client_Param_get
     } break;
 
   case CWP_CHAR: {
-    int name_size;
-    CWP_transfer_readdata(clt->socket,clt->max_msg_size,(void*) &name_size, sizeof(int));
-    * (char **) value = (char *) malloc(sizeof(char) * (name_size+1));
-    memset(* (char **) value, 0, (name_size+1));
-    CWP_transfer_readdata(clt->socket,clt->max_msg_size,(void*) * (char **) value, name_size);
+    char *char_value = (char *) malloc(sizeof(char));
+    read_name(&char_value);
+    std::string s(param_name);
+    clt_cwp.char_param_value.insert(std::make_pair(s, char_value));
+    * (char **) value = (char *) clt_cwp.char_param_value[s];
+
     } break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0, "Unknown CWP_Type_t %i\n", data_type);
   }
-
 }
 
 void
@@ -1617,14 +1654,16 @@ CWP_client_Param_list_get
   }
 
   // read n_param
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) nParam, sizeof(int));
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &(clt_cwp.n_param_names), sizeof(int));
+  *nParam = clt_cwp.n_param_names;
 
   // read param names
-  *paramNames = (char **) malloc(sizeof(char *) * (*nParam));
-  for (int i = 0; i < *nParam; i++) {
-    (*paramNames)[i] = (char *) malloc(sizeof(char));
-    read_name(&(*paramNames)[i]);
+  clt_cwp.param_names = (char **) malloc(sizeof(char *) * (clt_cwp.n_param_names));
+  for (int i = 0; i < clt_cwp.n_param_names; i++) {
+    (clt_cwp.param_names)[i] = (char *) malloc(sizeof(char));
+    read_name(&((clt_cwp.param_names)[i]));
   }
+  *paramNames = clt_cwp.param_names;
 }
 
 int
@@ -1878,6 +1917,11 @@ CWP_client_Cpl_create
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     if (clt->intra_i_rank == 0) verbose(message);
   }
+
+  // create occurence in map
+  std::string s(cpl_id);
+  t_coupling coupling = t_coupling();
+  clt_cwp.coupling.insert(std::make_pair(s, coupling));
 }
 
 void
@@ -2351,15 +2395,15 @@ void
   }
 
   // read code names
-  int n_code_names = -1;
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &n_code_names, sizeof(int));
-  const char ** code_names = (const char **) malloc(sizeof(char *) * n_code_names);
-  for (int i = 0; i < n_code_names; i++) {
-    code_names[i] = (const char *) malloc(sizeof(char));
-    read_name((char **) &code_names[i]);
+  clt_cwp.n_code_names = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &(clt_cwp.n_code_names), sizeof(int));
+  clt_cwp.code_names = (char **) malloc(sizeof(char *) * clt_cwp.n_code_names);
+  for (int i = 0; i < clt_cwp.n_code_names; i++) {
+    (clt_cwp.code_names)[i] = (char *) malloc(sizeof(char));
+    read_name((char **) &((clt_cwp.code_names)[i]));
   }
 
-  return code_names;
+  return (const char**) clt_cwp.code_names;
 }
 
 int
@@ -2448,15 +2492,15 @@ CWP_client_Loc_codes_list_get
   }
 
   // read code names
-  int n_loc_code_names = -1;
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &n_loc_code_names, sizeof(int));
-  const char ** loc_code_names = (const char **) malloc(sizeof(char *) * n_loc_code_names);
-  for (int i = 0; i < n_loc_code_names; i++) {
-    loc_code_names[i] = (const char *) malloc(sizeof(char));
-    read_name((char **) &loc_code_names[i]);
+  clt_cwp.n_loc_code_names = -1;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &(clt_cwp.n_loc_code_names), sizeof(int));
+  clt_cwp.loc_code_names = (char **) malloc(sizeof(char *) * clt_cwp.n_loc_code_names);
+  for (int i = 0; i < clt_cwp.n_loc_code_names; i++) {
+    (clt_cwp.loc_code_names)[i] = (char *) malloc(sizeof(char));
+    read_name((char **) &((clt_cwp.loc_code_names)[i]));
   }
 
-  return loc_code_names;
+  return (const char **) clt_cwp.loc_code_names;
 }
 
 int
@@ -3531,9 +3575,7 @@ CWP_client_Mesh_interf_block_std_get
   printf("n_vtx_elt : %d\n", n_vtx_elt);
   fflush(stdout);
 
-  int *connectivity = malloc(sizeof(int) * 3 * 2);
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, connectivity, sizeof(int) * (n_vtx_elt * (*n_elts)));
-  *connec = connectivity;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, *connec, sizeof(int) * (n_vtx_elt * (*n_elts)));
 
   printf("NULL_flag\n");
   fflush(stdout);

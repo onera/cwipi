@@ -69,7 +69,7 @@ extern "C" {
 
 /* debug */
 
-static int svr_debug = 1;
+static int svr_debug = 0;
 
 /* file struct definition */
 
@@ -1631,7 +1631,7 @@ CWP_server_Codes_list_get
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &nb_codes, sizeof(int));
 
   // launch
-  svr_cwp.code_names = CWP_Codes_list_get();
+  svr_cwp.code_names = (char **) CWP_Codes_list_get();
   for (int i = 0; i < nb_codes; i++) {
     write_name((char *) svr_cwp.code_names[i], svr);
   }
@@ -1705,7 +1705,7 @@ CWP_server_Loc_codes_list_get
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &nb_local_codes, sizeof(int));
 
   // launch
-  svr_cwp.loc_code_names = CWP_Loc_codes_list_get();
+  svr_cwp.loc_code_names = (char **) CWP_Loc_codes_list_get();
   for (int i = 0; i < nb_local_codes; i++) {
     write_name((char *) svr_cwp.loc_code_names[i], svr);
   }
@@ -4358,6 +4358,8 @@ CWP_server_create
   const int status = getaddrinfo(svr->host_name, port_str, NULL, &svr_info); // hint
   char *dst = (char *) malloc(sizeof(char) * INET_ADDRSTRLEN);
   inet_ntop(AF_INET, svr_info->ai_addr->sa_data, dst, INET_ADDRSTRLEN);
+
+  CWP_UNUSED(status);
 
   // verbose
   if (svr_debug) {

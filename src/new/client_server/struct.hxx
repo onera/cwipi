@@ -131,13 +131,14 @@ struct t_coupling
 
 struct t_cwp
 {
+
   // Codes_list_get
   int          n_code_names;
-  const char **code_names;
+  char       **code_names;
 
   // Loc_codes_list_get
   int          n_loc_code_names;
-  const char **loc_code_names;
+  char       **loc_code_names;
 
   // Param_list_get, Param_get
   int                             n_param_names;
