@@ -75,7 +75,7 @@ extern "C" {
 /* file struct definition */
 
 static t_client *clt;
-static t_field fields = t_field();
+static t_field fields = t_field(); // could be removed since there is clt_cwp, but code needs to be adapted
 static FILE* _cwipi_output_listing;
 static t_cwp clt_cwp;
 
@@ -1993,6 +1993,8 @@ CWP_client_Cpl_del
 
   if (clt_cwp.coupling[s].std_connec != NULL    ) free(clt_cwp.coupling[s].std_connec);
   if (clt_cwp.coupling[s].std_global_num != NULL) free(clt_cwp.coupling[s].std_global_num);
+
+  clt_cwp.coupling.erase(s);
 }
 
 void
@@ -2657,10 +2659,14 @@ CWP_client_Uncomputed_tgts_get
   // read number of targets
   int nb_tgts = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_tgts, sizeof(int));
-  int *tgts = (int *) malloc(sizeof(int) * nb_tgts);
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) tgts, sizeof(int)*nb_tgts);
 
-  return tgts;
+  std::string s1(cpl_id);
+  std::string s2(field_id);
+
+  clt_cwp.coupling[s1].field[s2].u_tgts = (int *) malloc(sizeof(int) * nb_tgts);
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) clt_cwp.coupling[s1].field[s2].u_tgts, sizeof(int)*nb_tgts);
+
+  return clt_cwp.coupling[s1].field[s2].u_tgts;
 }
 
 int
@@ -2801,10 +2807,14 @@ CWP_client_Computed_tgts_get
   // read number of targets
   int nb_tgts = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_tgts, sizeof(int));
-  int *tgts = (int *) malloc(sizeof(int) * nb_tgts);
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) tgts, sizeof(int)*nb_tgts);
 
-  return tgts;
+  std::string s1(cpl_id);
+  std::string s2(field_id);
+
+  clt_cwp.coupling[s1].field[s2].c_tgts = (int *) malloc(sizeof(int) * nb_tgts);
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) clt_cwp.coupling[s1].field[s2].c_tgts, sizeof(int)*nb_tgts);
+
+  return clt_cwp.coupling[s1].field[s2].c_tgts;
 }
 
 int
@@ -2945,10 +2955,14 @@ CWP_client_Involved_srcs_get
   // read number of sources
   int nb_srcs = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &nb_srcs, sizeof(int));
-  int *srcs = (int *) malloc(sizeof(int) * nb_srcs);
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) srcs, sizeof(int)*nb_srcs);
 
-  return srcs;
+  std::string s1(cpl_id);
+  std::string s2(field_id);
+
+  clt_cwp.coupling[s1].field[s2].srcs = (int *) malloc(sizeof(int) * nb_srcs);
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) clt_cwp.coupling[s1].field[s2].srcs, sizeof(int)*nb_srcs);
+
+  return clt_cwp.coupling[s1].field[s2].srcs;
 }
 
 void
@@ -4528,6 +4542,10 @@ CWP_client_Field_create
   fields.field_settings[std::make_tuple(s1, s2, s3)] = t_field_settings();
   fields.field_settings[std::make_tuple(s1, s2, s3)].n_component = n_component;
 
+  t_coupling coupling = clt_cwp.coupling[s2];
+  t_field field = t_field();
+  coupling.field.insert(std::make_pair(s3, field));
+
   // receive status msg
   MPI_Barrier(clt->intra_comm);
   if (clt->flags  & CWP_FLAG_VERBOSE) {
@@ -4893,6 +4911,19 @@ CWP_client_Field_del
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     if (clt->intra_i_rank == 0) verbose(message);
   }
+
+  // free
+  std::string s1(cpl_id);
+  t_coupling coupling = clt_cwp.coupling[s1];
+  std::string s2(field_id);
+  t_field field = coupling.field[s2];
+
+  if (field.data != NULL  ) free(field.data);
+  if (field.u_tgts != NULL) free(field.u_tgts);
+  if (field.c_tgts != NULL) free(field.c_tgts);
+  if (field.srcs != NULL  ) free(field.srcs);
+
+  coupling.field.erase(s2);
 }
 
 void
@@ -5150,7 +5181,9 @@ CWP_client_Field_wait_irecv
   }
 
   // read irecv Field_data
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, *data, sizeof(double) * size);
+  clt_cwp.coupling[s2].field[s3].data = (double *) malloc(sizeof(double) * size);
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s2].field[s3].data, sizeof(double) * size);
+  *data = clt_cwp.coupling[s2].field[s3].data;
 
   return size;
 }

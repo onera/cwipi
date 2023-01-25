@@ -79,6 +79,14 @@ struct t_field
     data = NULL;
   }
 
+  // Involved_srcs_get
+  int *srcs;
+
+  // Computed_tgts_get
+  int *c_tgts;
+
+  // Uncomputed_tgts_get
+  int *u_tgts;
 
   // Field_data_set
   double *data;
