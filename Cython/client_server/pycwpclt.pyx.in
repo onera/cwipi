@@ -1624,7 +1624,7 @@ cdef class Coupling (object):
           global_num (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
         """
 
-        cdef int n_elts = -1
+        cdef int   n_elts = -1
         cdef int  *connec
         cdef long *global_num
 

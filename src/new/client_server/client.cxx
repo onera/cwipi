@@ -1977,6 +1977,22 @@ CWP_client_Cpl_del
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     if (clt->intra_i_rank == 0) verbose(message);
   }
+
+  // free struct
+  std::string s(cpl_id);
+
+  if (clt_cwp.coupling[s].connec_faces_idx != NULL) free(clt_cwp.coupling[s].connec_faces_idx);
+  if (clt_cwp.coupling[s].connec_faces != NULL    ) free(clt_cwp.coupling[s].connec_faces);
+  if (clt_cwp.coupling[s].connec_cells_idx != NULL) free(clt_cwp.coupling[s].connec_cells_idx);
+  if (clt_cwp.coupling[s].connec_cells != NULL    ) free(clt_cwp.coupling[s].connec_cells);
+  if (clt_cwp.coupling[s].cell_global_num != NULL ) free(clt_cwp.coupling[s].cell_global_num);
+
+  if (clt_cwp.coupling[s].connec_idx != NULL     ) free(clt_cwp.coupling[s].connec_idx);
+  if (clt_cwp.coupling[s].connec != NULL         ) free(clt_cwp.coupling[s].connec);
+  if (clt_cwp.coupling[s].elt_global_num != NULL ) free(clt_cwp.coupling[s].elt_global_num);
+
+  if (clt_cwp.coupling[s].std_connec != NULL    ) free(clt_cwp.coupling[s].std_connec);
+  if (clt_cwp.coupling[s].std_global_num != NULL) free(clt_cwp.coupling[s].std_global_num);
 }
 
 void
@@ -3516,7 +3532,7 @@ CWP_client_Mesh_interf_block_std_get
 
   // send message
   if (CWP_client_send_msg(&msg) != 0) {
-    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_f_poly_block_get failed to send message header\n");
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_block_std_get failed to send message header\n");
   }
 
   // receive status msg
@@ -3559,36 +3575,26 @@ CWP_client_Mesh_interf_block_std_get
     if (clt->intra_i_rank == 0) verbose(message);
   }
 
-  printf("n_elts\n");
-  fflush(stdout);
-
   // read n_elts
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, n_elts, sizeof(int));
 
-  printf("connectivity\n");
-  fflush(stdout);
+  std::string s(cpl_id);
 
   // read connectivity
   int n_vtx_elt = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, &n_vtx_elt, sizeof(int));
-
-  printf("n_vtx_elt : %d\n", n_vtx_elt);
-  fflush(stdout);
-
+  clt_cwp.coupling[s].std_connec = (int *) malloc(sizeof(int) * (n_vtx_elt * (*n_elts)));
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, *connec, sizeof(int) * (n_vtx_elt * (*n_elts)));
-
-  printf("NULL_flag\n");
-  fflush(stdout);
+  *connec = clt_cwp.coupling[s].std_connec;
 
   // read global number
   int NULL_flag = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, &NULL_flag, sizeof(int));
 
-  printf("global number\n");
-  fflush(stdout);
-
   if (!NULL_flag) {
-    CWP_transfer_readdata(clt->socket, clt->max_msg_size, *global_num, sizeof(CWP_g_num_t) * (*n_elts));
+    clt_cwp.coupling[s].std_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * (*n_elts));
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s].std_global_num, sizeof(CWP_g_num_t) * (*n_elts));
+    *global_num = clt_cwp.coupling[s].std_global_num;
   } else {
     *global_num = NULL;
   }
@@ -3848,18 +3854,26 @@ CWP_client_Mesh_interf_f_poly_block_get
   // read n_elts
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, n_elts, sizeof(int));
 
+  std::string s(cpl_id);
+
   // read connectivity index
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, *connec_idx, sizeof(int) * ((*n_elts)+1));
+  clt_cwp.coupling[s].connec_idx = (int *) malloc(sizeof(int) * ((*n_elts)+1));
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s].connec_idx, sizeof(int) * ((*n_elts)+1));
+  *connec_idx = clt_cwp.coupling[s].connec_idx;
 
   // read connectivity
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, *connec, sizeof(int) * (*connec_idx)[(*n_elts)]);
+  clt_cwp.coupling[s].connec = (int *) malloc(sizeof(int) * (*connec_idx)[(*n_elts)]);
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s].connec, sizeof(int) * (*connec_idx)[(*n_elts)]);
+  *connec = clt_cwp.coupling[s].connec;
 
   // read global number
   int NULL_flag = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, &NULL_flag, sizeof(int));
 
   if (!NULL_flag) {
-    CWP_transfer_readdata(clt->socket, clt->max_msg_size, *global_num, sizeof(CWP_g_num_t) * (*n_elts));
+    clt_cwp.coupling[s].elt_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * (*n_elts));
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s].elt_global_num, sizeof(CWP_g_num_t) * (*n_elts));
+    *global_num = clt_cwp.coupling[s].elt_global_num;
   } else {
     *global_num = NULL;
   }
@@ -4079,24 +4093,36 @@ CWP_client_Mesh_interf_c_poly_block_get
   // read n_faces
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, n_faces, sizeof(int));
 
-  // read connectivity index
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, *connec_faces_idx, sizeof(int) * ((*n_faces)+1));
-
-  // read connectivity
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, *connec_faces, sizeof(int) * (*connec_faces_idx)[(*n_faces)]);
+  std::string s(cpl_id);
 
   // read connectivity index
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, *connec_cells_idx, sizeof(int) * ((*n_elts)+1));
+  clt_cwp.coupling[s].connec_faces_idx = (int *) malloc(sizeof(int) * ((*n_faces)+1));
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s].connec_faces_idx, sizeof(int) * ((*n_faces)+1));
+  *connec_faces_idx = clt_cwp.coupling[s].connec_faces_idx;
 
   // read connectivity
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, *connec_cells, sizeof(int) * (*connec_cells_idx)[(*n_elts)]);
+  clt_cwp.coupling[s].connec_faces = (int *) malloc(sizeof(int) * (*connec_faces_idx)[(*n_faces)]);
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s].connec_faces, sizeof(int) * (*connec_faces_idx)[(*n_faces)]);
+  *connec_faces = clt_cwp.coupling[s].connec_faces;
+
+  // read connectivity index
+  clt_cwp.coupling[s].connec_cells_idx = (int *) malloc(sizeof(int) * ((*n_elts)+1));
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s].connec_cells_idx, sizeof(int) * ((*n_elts)+1));
+  *connec_cells_idx = clt_cwp.coupling[s].connec_cells_idx;
+
+  // read connectivity
+  clt_cwp.coupling[s].connec_cells = (int *) malloc(sizeof(int) * (*connec_cells_idx)[(*n_elts)]);
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s].connec_cells, sizeof(int) * (*connec_cells_idx)[(*n_elts)]);
+  *connec_cells = clt_cwp.coupling[s].connec_cells;
 
   // read global number
   int NULL_flag = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, &NULL_flag, sizeof(int));
 
   if (!NULL_flag) {
-    CWP_transfer_readdata(clt->socket, clt->max_msg_size, *global_num, sizeof(CWP_g_num_t) * (*n_elts));
+    clt_cwp.coupling[s].cell_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * (*n_elts));
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s].cell_global_num, sizeof(CWP_g_num_t) * (*n_elts));
+    *global_num = clt_cwp.coupling[s].cell_global_num;
   } else {
     *global_num = NULL;
   }

@@ -223,8 +223,8 @@ main
 
   FILE *meshFile;
 
-  meshFile = fopen("../meshes/mesh_poly_d1", "r"); // SPIRO
-  // meshFile = fopen("./meshes/mesh_poly_d1", "r"); // SATOR
+  // meshFile = fopen("../meshes/mesh_poly_d1", "r"); // SPIRO
+  meshFile = fopen("./meshes/mesh_poly_d1", "r"); // SATOR
 
   int n_partition = 0;
   const int two = 2;
@@ -384,6 +384,7 @@ main
     // }
 
     printf("3D Cell Polyhedra Block Set\n");
+    fflush(stdout);
     CWP_client_Mesh_interf_c_poly_block_set("cpoly", cpl_id1, 0, block_id,
                                             nElements,
                                             nFace,
@@ -393,13 +394,15 @@ main
                                             cellFace,
                                             NULL); // global_num or try with gnum NULL
 
-    CWP_g_num_t *cellGnum = NULL; // malloc(sizeof(CWP_g_num_t) * nElements);
+    CWP_g_num_t *cellGnum = NULL;
     int getNElements = -1;
     int getNFace = -1;
-    int *getFaceVertexIdx = malloc(sizeof(int) * (nFace + 1));
-    int *getFaceVertex    = malloc(sizeof(int) * faceVertexIdx[nFace]);
-    int *getCellFaceIdx   = malloc((nElements + 1)     * sizeof(int   ));
-    int *getCellFace      = malloc(sizeof(int) * cellFaceIdx[nElements]);
+    int *getFaceVertexIdx = NULL;
+    int *getFaceVertex    = NULL;
+    int *getCellFaceIdx   = NULL;
+    int *getCellFace      = NULL;
+    printf("before get\n");
+    fflush(stdout);
     CWP_client_Mesh_interf_c_poly_block_get("cpoly", cpl_id1, 0, block_id,
                                             &getNElements,
                                             &getNFace,
@@ -454,10 +457,6 @@ main
       printf("non NULL gnum\n");
     }
 
-    free(getFaceVertexIdx);
-    free(getFaceVertex   );
-    free(getCellFaceIdx  );
-    free(getCellFace );
     if (cellGnum != NULL) free(cellGnum    );
 
     printf("Interface Mesh deletion\n");

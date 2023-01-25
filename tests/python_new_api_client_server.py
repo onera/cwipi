@@ -90,6 +90,8 @@ def runTest():
     for i in range(n_loc_code):
         print("    --> {param}\n".format(param=loc_code[i]))
 
+    comm.Barrier()
+
     # PARAM
     pycwpclt.param_lock(code_names[i_rank])
     pycwpclt.param_add_dbl(code_names[i_rank], "double", 0.5)
