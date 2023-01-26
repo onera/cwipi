@@ -331,6 +331,10 @@ void LocationToLocalMesh::unpackLocation(unsigned char *buff)
     // read the locator
     cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
     if (s == 1) {
+      if (_fvmLocator != NULL) {
+        fvmc_locator_destroy(_fvmLocator);
+      }
+
       _fvmLocator = fvmc_locator_create(_optBboxStep,
                                         _tolerance,
                                         _couplingComm,

@@ -540,6 +540,9 @@ int main
   /* Free
    * ---- */
   
+  free(pts_to_locate);
+  free(res);
+  free(ijk);
   free(coords);
   free(eltsConnecPointer);
   free(eltsConnec);

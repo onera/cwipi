@@ -427,7 +427,7 @@ int main( int argc, char* argv[] ) {
   cwipi_finalize();
 
   fclose(outputFile);
-
+  free (srcName);
   MPI_Finalize();
 
   return EXIT_SUCCESS;

@@ -390,6 +390,8 @@ int main( int argc, char* argv[] ) {
 
   fclose(outputFile);
 
+  free (srcName);
+
   MPI_Finalize();
 
   return EXIT_SUCCESS;

@@ -464,6 +464,7 @@ int main( int argc, char* argv[] ) {
     }
 
     free(coords);
+    free(coordsPts);
     free(faceVertexIdx);
     free(faceVertex);
     free(cellFaceIdx);
@@ -480,6 +481,8 @@ int main( int argc, char* argv[] ) {
   cwipi_finalize();
 
   fclose(outputFile);
+
+  free (srcName);
 
   MPI_Finalize();
 

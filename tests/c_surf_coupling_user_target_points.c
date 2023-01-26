@@ -395,6 +395,7 @@ int main
    * -------------- */
 
   free(coords);
+  free(coordsToLocate);
   free(eltsConnecPointer);
   free(eltsConnec);
   free(sendValues);

@@ -426,6 +426,7 @@ program testf
 
   call cwipi_finalize_f()
 
+  deallocate(distLocPts)
   deallocate(coords)
   deallocate(coordstolocate)
   deallocate(connecindex)

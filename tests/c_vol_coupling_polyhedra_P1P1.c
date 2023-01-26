@@ -462,6 +462,7 @@ int main( int argc, char* argv[] ) {
       return EXIT_FAILURE;
     }
 
+    free(coordsPts);
     free(coords);
     free(faceVertexIdx);
     free(faceVertex);
@@ -479,6 +480,8 @@ int main( int argc, char* argv[] ) {
   cwipi_finalize();
 
   fclose(outputFile);
+
+  free (srcName);
 
   MPI_Finalize();
 
