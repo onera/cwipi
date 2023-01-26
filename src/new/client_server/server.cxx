@@ -44,6 +44,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <iostream>
+#include <map>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -1238,11 +1239,13 @@ CWP_server_Cpl_del
   if (svr_cwp.coupling[s].property_value != NULL) free(svr_cwp.coupling[s].property_value);
 
   if (!svr_cwp.coupling[s].field.empty()) {
-    for (auto const& x : svr_cwp.coupling[s].field) {
-      if (svr_cwp.coupling[s].field[x.first].data != NULL) free(svr_cwp.coupling[s].field[x.first].data);
-      svr_cwp.coupling[s].field.erase(x.first);
+    std::map<std::string, t_field>::iterator itr = svr_cwp.coupling[s].field.begin();
+    while (itr != svr_cwp.coupling[s].field.end()) {
+      if ((itr->second).data != NULL) free((itr->second).data);
+      itr = svr_cwp.coupling[s].field.erase(itr);
     }
   }
+
   svr_cwp.coupling.erase(s);
 
   // free
@@ -2755,14 +2758,8 @@ CWP_server_Mesh_interf_block_std_get
   CWP_Block_t block_type = CWP_std_block_type_get(local_code_name, cpl_id, block_id);
   int n_vtx_elt = n_nodes_get(block_type);
 
-  printf("n_vtx_elt : %d\n", n_vtx_elt);
-  fflush(stdout);
-
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &n_vtx_elt, sizeof(int));
   CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, connec, sizeof(int) * (n_vtx_elt * n_elts));
-
-  printf("connec sent\n");
-  fflush(stdout);
 
   // send global number
   int NULL_flag = 0;
@@ -2778,9 +2775,6 @@ CWP_server_Mesh_interf_block_std_get
   // free
   free(local_code_name);
   free(cpl_id);
-
-  printf("end\n");
-  fflush(stdout);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -4000,6 +3994,7 @@ CWP_server_Field_del
   t_field field = coupling.field[s2];
 
   if (field.data != NULL) free(field.data);
+  field.data = NULL;
 
   coupling.field.erase(s2);
 

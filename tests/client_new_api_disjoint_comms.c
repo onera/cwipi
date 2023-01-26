@@ -489,12 +489,6 @@ main
     printf("rank: %d code_names[i] = %s\n", rank, codeNames[i]);
   }
 
-  // free
-  for (int i = 0; i < n_codes; i++) {
-    free(codeNames[i]);
-  }
-  free(codeNames);
-
   printf("%d --- CWIPI initialized\n", rank);
 
   // Create coupling and visu
@@ -897,6 +891,10 @@ main
   }
 
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
+    free((void *) recv_values[i_code]);
+  }
+
+  for (int i_code = 0 ; i_code < n_code ; i_code++) {
     if (code_id[i_code] == 2) {
       if (exchDirection[1] == CWP_FIELD_EXCH_RECV) {
 
@@ -956,7 +954,6 @@ main
       free((void *) cell_ln_to_gn[i_code][i_part]);
     }
     free((void *) send_values[i_code]);
-    free((void *) recv_values[i_code]);
     free((void *) n_vtx[i_code]);
     free((void *) n_faces[i_code]);
     free((void *) n_cells[i_code]);
@@ -989,9 +986,6 @@ main
   free((void *) vtx_ln_to_gn );
   free((void *) cell_ln_to_gn);
   free((void *) mesh_nodal);
-  free((void *) computed_tgts);
-  free((void *) uncomputed_tgts);
-  free((void *) involved_srcs );
 
   // Field_*
 
@@ -1081,6 +1075,8 @@ main
   free(is_active_rank);
 
   //Finalize cwipi
+  fflush(stdout);
+
   CWP_client_Finalize();
   printf("%d --- CWIPI finalized\n", rank);
 

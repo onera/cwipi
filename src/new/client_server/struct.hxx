@@ -76,7 +76,10 @@ struct t_field_settings
 struct t_field
 {
   t_field() {
-    data = NULL;
+    data   = NULL;
+    srcs   = NULL;
+    c_tgts = NULL;
+    u_tgts = NULL;
   }
 
   // Involved_srcs_get

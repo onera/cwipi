@@ -266,9 +266,9 @@ main
   }
 
   int GETnElts = -1;
-  int *GETeltsConnecPointer = (int *) malloc(sizeof(int) * (nElts + 1));
-  int *GETeltsConnec       = (int *) malloc(sizeof(int) * 4 * nElts);
-  CWP_g_num_t *GETglobal_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * nElts);
+  int *GETeltsConnecPointer  = NULL;
+  int *GETeltsConnec         = NULL;
+  CWP_g_num_t *GETglobal_num = NULL;
 
   CWP_client_Mesh_interf_f_poly_block_set(code_name[0],
                                           cpl_name,
@@ -419,6 +419,9 @@ main
     CWP_client_Field_issend(code_name[0], cpl_name, field_name2);
   }
 
+  free(recvValues[0]);
+  recvValues[0] = NULL;
+
   if (strcmp(code_name[0], "code1") == 0) {
     CWP_client_Field_wait_issend(code_name[0], cpl_name, field_name1);
     CWP_client_Field_wait_irecv(code_name[0], cpl_name, field_name2, &recvValues[0]);
@@ -496,18 +499,13 @@ main
   free(eltsConnec       );
 
   free(sendValues[0]);
-  free(recvValues[0]);
   free(sendValues);
-  free(recvValues);
 
   free(code_name);
   free(coupled_code_name);
   free(is_active_rank);
   free(time_init);
 
-  free(GETeltsConnecPointer);
-  free(GETeltsConnec  );
-  free(GETglobal_num);
   free(global_num);
   free(global_num_vtx);
   free(pface_ln_to_gn);

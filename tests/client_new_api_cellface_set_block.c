@@ -279,8 +279,8 @@ main
   if (rank == 0) printf("        Read mesh\n");
 
   FILE *mesh_file;
-  mesh_file = fopen("../meshes/mesh_poly_d1", "r"); // SPIRO
-  // mesh_file = fopen("./meshes/mesh_poly_d1", "r"); // SATOR
+  // mesh_file = fopen("../meshes/mesh_poly_d1", "r"); // SPIRO
+  mesh_file = fopen("./meshes/mesh_poly_d1", "r"); // SATOR
 
   fscanf(mesh_file, "%d %d %d %d %d %d",
          &dimension,

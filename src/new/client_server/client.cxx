@@ -1994,6 +1994,30 @@ CWP_client_Cpl_del
   if (clt_cwp.coupling[s].std_connec != NULL    ) free(clt_cwp.coupling[s].std_connec);
   if (clt_cwp.coupling[s].std_global_num != NULL) free(clt_cwp.coupling[s].std_global_num);
 
+  if (!clt_cwp.coupling[s].field.empty()) {
+
+    std::map<std::string, t_field>::iterator itr = clt_cwp.coupling[s].field.begin();
+    while (itr != clt_cwp.coupling[s].field.end()) {
+      if ((itr->second).srcs   != NULL) {
+        free((itr->second).srcs);
+        (itr->second).srcs = NULL;
+      }
+      if ((itr->second).c_tgts != NULL) {
+        free((itr->second).c_tgts);
+        (itr->second).c_tgts = NULL;
+      }
+      if ((itr->second).u_tgts != NULL) {
+        free((itr->second).u_tgts);
+        (itr->second).u_tgts = NULL;
+      }
+      if ((itr->second).data   != NULL) {
+       free((itr->second).data);
+       (itr->second).data = NULL;
+      }
+      itr = clt_cwp.coupling[s].field.erase(itr);
+    }
+  }
+
   clt_cwp.coupling.erase(s);
 }
 
@@ -4919,9 +4943,13 @@ CWP_client_Field_del
   t_field field = coupling.field[s2];
 
   if (field.data != NULL  ) free(field.data);
+  field.data = NULL;
   if (field.u_tgts != NULL) free(field.u_tgts);
+  field.u_tgts = NULL;
   if (field.c_tgts != NULL) free(field.c_tgts);
+  field.u_tgts = NULL;
   if (field.srcs != NULL  ) free(field.srcs);
+  field.srcs = NULL;
 
   coupling.field.erase(s2);
 }
