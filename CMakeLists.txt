@@ -135,7 +135,7 @@ endif()
 # Client-Server
 # -------------
 
-option(CWP_ENABLE_CLIENT_SERVER "Enable Client-Server" ON)
+option(CWP_ENABLE_CLIENT_SERVER "Enable Client-Server" OFF)
 
 #------------------------------------------------------------------------------
 # Default build : Release

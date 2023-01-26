@@ -1024,6 +1024,8 @@ main
   // Delete coupling
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
 
+    CWP_Field_del(code_names[i_code], cpl_name, field_name);
+
     CWP_Cpl_del(code_names[i_code], cpl_name);
 
     printf("%d (%d, %s) --- Coupling deleted\n", rank, intra_comm_rank[i_code], code_names[i_code]);

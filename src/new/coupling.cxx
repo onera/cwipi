@@ -263,7 +263,7 @@ namespace cwipi {
     while (itf != _fields.end()) {
       // if(_visu.isCreated() && itf->second->visuStatusGet() == CWP_STATUS_ON )
       //   _visu.fieldDataFree(itf->second);
-      delete itf->second;
+      if (itf->second = NULL) delete itf->second;
       itf++;
     }
 

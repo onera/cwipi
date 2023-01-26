@@ -743,6 +743,7 @@ namespace cwipi {
     }
     else {
       delete It->second;
+      It->second = NULL;
     }
 
   }
