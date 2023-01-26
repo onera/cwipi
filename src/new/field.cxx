@@ -63,13 +63,11 @@ namespace cwipi {
 
   Field::~Field(){
 
-     if (_data_tgt.size() != 0) _data_tgt.clear();
-     if (_data_src.size() != 0) _data_src.clear();
+     _data_tgt.clear();
+     _data_src.clear();
 
      if (_sendBuffer != NULL) free(_sendBuffer);
-     _sendBuffer = NULL;
      if (_recvBuffer != NULL) free(_recvBuffer);
-     _recvBuffer = NULL;
    }
 
 
