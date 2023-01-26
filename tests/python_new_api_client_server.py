@@ -193,65 +193,259 @@ def runTest():
                  pycwpclt.VISU_FORMAT_ENSIGHT,
                  "text")
 
-    # VTX
-    if (i_rank == 0):
-        coord = np.array([0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0], dtype=np.double)
-        connec_idx = np.array([0, 3, 6], dtype=np.int32)
+    # std or polygon
+    polygon = 0
+
+    # MESH
+    if (polygon):
+        if (i_rank == 0):
+            coord = np.array([0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0], dtype=np.double)
+            connec_idx = np.array([0, 3, 6], dtype=np.int32)
+            connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
+
+        if (i_rank == 1):
+            coord = np.array([0, 1, 0, 0, 2, 0, 1, 1, 0, 1, 2, 0], dtype=np.double)
+            connec_idx = np.array([0, 3, 6], dtype=np.int32)
+            connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
+
+        print("cpl.mesh_interf_vtx_set:\n")
+
+        cpl.mesh_interf_vtx_set(0,
+                                4,
+                                coord,
+                                None)
+
+        print("cpl.mesh_interf_block_add:\n")
+
+        block_id = cpl.mesh_interf_block_add(pycwpclt.BLOCK_FACE_POLY)
+        print("cpl.mesh_interf_f_poly_block_set ({param}):\n".format(param=i_rank))
+
+
+        cpl.mesh_interf_f_poly_block_set(0,
+                                         block_id,
+                                         2,
+                                         connec_idx,
+                                         connec,
+                                         None)
+
+        print("cpl.mesh_interf_finalize:\n")
+
+        cpl.mesh_interf_finalize()
+
+        print("cpl.mesh_interf_f_poly_block_get:\n")
+
+        out = cpl.mesh_interf_f_poly_block_get(0, block_id)
+        print("  - n_elts : {param}\n".format(param=out["n_elts"]))
+        print("  - connec_idx {param}\n".format(param=out["connec_idx"]))
+        print("  - connec {param}\n".format(param=out["connec"]))
+        print("  - global_num : {param}\n".format(param=out["global_num"]))
+
+
+        # FIELD
+
+        # USER INTERPOLATION to do has to be done
+        # print("cpl.interp_from_location_set:\n")
+        #
+        # cpl.interp_from_location_set("champs", userInterp)
+
+        sendField = np.array([0.0, 0.1, 0.2, 0.3], dtype=np.double)
+        recvField = np.arange(4, dtype=np.double)
+
+        if (i_rank == 0):
+            cpl.field_create("champs",
+                             pycwpclt.DOUBLE,
+                             pycwpclt.FIELD_STORAGE_INTERLACED,
+                             1,
+                             pycwpclt.DOF_LOCATION_NODE,
+                             pycwpclt.FIELD_EXCH_SEND,
+                             pycwpclt.STATUS_OFF)
+            cpl.field_set("champs",
+                          0,
+                          pycwpclt.FIELD_MAP_SOURCE,
+                          4,
+                          sendField)
+
+        if (i_rank == 1):
+            cpl.field_create("champs",
+                             pycwpclt.DOUBLE,
+                             pycwpclt.FIELD_STORAGE_INTERLACED,
+                             1,
+                             pycwpclt.DOF_LOCATION_NODE,
+                             pycwpclt.FIELD_EXCH_RECV,
+                             pycwpclt.STATUS_OFF)
+            cpl.field_set("champs",
+                          0,
+                          pycwpclt.FIELD_MAP_TARGET,
+                          4,
+                          recvField)
+
+        comm.Barrier()
+
+        print("cpl.spatial_interp_property_set:\n")
+
+        cpl.spatial_interp_property_set("tolerance", "double", "1e-2")
+
+        comm.Barrier()
+
+        print("cpl.spatial_interp_weights_compute:\n")
+
+        cpl.spatial_interp_weights_compute()
+
+        if (i_rank == 0):
+            print("pycwpclt.field_issend (0):\n")
+
+            pycwpclt.field_issend(code_names[i_rank], "test", "champs")
+
+        if (i_rank == 1):
+            print("pycwpclt.field_irecv (1):\n")
+
+            pycwpclt.field_irecv(code_names[i_rank], "test", "champs")
+
+        if (i_rank == 0):
+            print("pycwpclt.field_wait_issend (0):\n")
+
+            pycwpclt.field_wait_issend(code_names[i_rank], "test", "champs")
+
+        if (i_rank == 1):
+            print("pycwpclt.field_wait_irecv (1):\n")
+
+            pycwpclt.field_wait_irecv(code_names[i_rank], "test", "champs")
+
+        comm.Barrier()
+
+        print("cpl.field_del:\n")
+
+        cpl.field_del("champs")
+
+        # USER INTERPOLATION to do has to be done
+        # print("cpl.interp_from_location_unset:\n")
+        #
+        # cpl.interp_from_location_unset("champs")
+
+        # TIME UPDATE
+        print("cpycwpclt.time_update:\n")
+
+        pycwpclt.time_update(code_names[i_rank], 1.5)
+
+        comm.Barrier()
+
+        # USER TGT PTS
+        coord = np.array([6, 7, 8, 9, 10, 11], dtype=np.double)
+        print("cpl.user_tgt_pts_set:\n")
+
+        cpl.user_tgt_pts_set(0,
+                             2,
+                             coord,
+                             None)
+
+        print("cpl.mesh_interf_del:\n")
+
+        cpl.mesh_interf_del()
+
+    else:
+        # STD MESH
+        print("cpl.mesh_interf_block_add:\n")
+
+        block_id = cpl.mesh_interf_block_add(pycwpclt.BLOCK_FACE_TRIA3)
+        print("cpl.mesh_interf_block_std_set:\n")
+
         connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
+        cpl.mesh_interf_block_std_set(0,
+                                      block_id,
+                                      2,
+                                      connec,
+                                      None)
 
-    if (i_rank == 1):
-        coord = np.array([0, 1, 0, 0, 2, 0, 1, 1, 0, 1, 2, 0], dtype=np.double)
-        connec_idx = np.array([0, 3, 6], dtype=np.int32)
-        connec = np.array([1, 2, 3, 2, 4, 3], dtype=np.int32)
+        print("cpl.mesh_interf_block_std_get:\n")
 
-    print("cpl.mesh_interf_vtx_set:\n")
-    cpl.mesh_interf_vtx_set(0,
-                            4,
-                            coord,
-                            None)
+        out = cpl.mesh_interf_block_std_get(0,
+                                            block_id)
+        print("  - n_elts : {param}\n".format(param=out["n_elts"]))
+        print("  - connec {param}\n".format(param=out["connec"]))
+        print("  - global_num : {param}\n".format(param=out["global_num"]))
 
-    comm.Barrier()
 
-    # STD
-    print("cpl.mesh_interf_block_add:\n")
-    block_id = cpl.mesh_interf_block_add(pycwpclt.BLOCK_FACE_TRIA3)
-    print("cpl.mesh_interf_block_std_set:\n")
-    cpl.mesh_interf_block_std_set(0,
-                                  block_id,
-                                  2,
-                                  connec,
-                                  None)
+        print("cpl.mesh_interf_from_faceedge_set:\n")
 
-    print("cpl.mesh_interf_block_std_get:\n")
-    out = cpl.mesh_interf_block_std_get(0,
-                                        block_id)
+        face_edge_idx = np.array([0, 3, 6], dtype=np.int32)
+        face_edge = np.array([1, 2, 3, 5, 4, 3], dtype=np.int32)
+        edge_vtx_idx = np.array([0, 2, 4, 6, 8, 10], dtype=np.int32)
+        edge_vtx = np.array([3, 1, 1, 2, 2, 3, 4, 2, 3, 4], dtype=np.int32)
+        cpl.mesh_interf_from_faceedge_set(0,
+                                          2,
+                                          face_edge_idx,
+                                          face_edge,
+                                          5,
+                                          edge_vtx_idx,
+                                          edge_vtx,
+                                          None)
+
+        print("cpl.mesh_interf_del:\n")
+
+        cpl.mesh_interf_del()
+
+    # Volumic Cpl
+    print("pycwpclt.Coupling:\n")
+
+    cpl2 = pycwpclt.Coupling(code_names[i_rank],
+                         "test_vol",
+                         code_names[(i_rank+1)%2],
+                         pycwpclt.INTERFACE_VOLUME,
+                         pycwpclt.COMM_PAR_WITH_PART,
+                         pycwpclt.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                         1,
+                         pycwpclt.DYNAMIC_MESH_STATIC,
+                         pycwpclt.TIME_EXCH_USER_CONTROLLED)
+
+    block_id = cpl2.mesh_interf_block_add(pycwpclt.BLOCK_CELL_POLY)
+
+    connec_faces_idx = np.array([0, 3, 6, 9, 12], dtype=np.int32)
+    connec_faces = np.array([1, 2, 3, 1, 2, 4, 2, 3, 4, 1, 3, 4], dtype=np.int32)
+    connec_cells_idx = np.array([0, 4], dtype=np.int32)
+    connec_cells = np.array([1, 2, 3, 4], dtype=np.int32)
+
+    print("cpl2.mesh_interf_c_poly_block_set:\n")
+
+    cpl2.mesh_interf_c_poly_block_set(0,
+                                     block_id,
+                                     1,
+                                     4,
+                                     connec_faces_idx,
+                                     connec_faces,
+                                     connec_cells_idx,
+                                     connec_cells,
+                                     None)
+
+    print("cpl2.mesh_interf_c_poly_block_get:\n")
+
+    out = cpl2.mesh_interf_c_poly_block_get(0,
+                                           block_id)
     print("  - n_elts : {param}\n".format(param=out["n_elts"]))
-    print("  - connec {param}\n".format(param=out["connec"]))
-    print("  - global_num : {param}\n".format(param=out["global_num"]))
+    print("  - n_faces : {param}\n".format(param=out["n_faces"]))
+    print("  - connec_faces_idx {param}\n".format(param=out["connec_faces_idx"]))
+    print("  - connec_faces {param}\n".format(param=out["connec_faces"]))
+    print("  - connec_cells_idx {param}\n".format(param=out["connec_cells_idx"]))
+    print("  - connec_cells {param}\n".format(param=out["connec_cells"]))
 
-    # POLY
-    # print("cpl.mesh_interf_block_add:\n")
-    # block_id = cpl.mesh_interf_block_add(pycwpclt.BLOCK_FACE_POLY)
+    face_vtx_idx = np.array([0, 3, 6, 9, 12], dtype=np.int32)
+    face_vtx = np.array([1, 2, 3, 1, 2, 4, 2, 3, 4, 1, 3, 4], dtype=np.int32)
+    cell_face_idx = np.array([0, 4], dtype=np.int32)
+    cell_face = np.array([1, 2, 3, 4], dtype=np.int32)
 
-    # print("cpl.mesh_interf_f_poly_block_set ({param}):\n".format(param=i_rank))
-    # cpl.mesh_interf_f_poly_block_set(0,
-    #                                  block_id,
-    #                                  2,
-    #                                  connec_idx,
-    #                                  connec,
-    #                                  None)
+    print("cpl2.mesh_interf_from_cellface_set:\n")
 
-    # print("cpl.mesh_interf_finalize:\n")
-    # cpl.mesh_interf_finalize()
+    cpl2.mesh_interf_from_cellface_set(0,
+                                      1,
+                                      cell_face_idx,
+                                      cell_face,
+                                      4,
+                                      face_vtx_idx,
+                                      face_vtx,
+                                      None)
 
-    # comm.Barrier()
+    print("cpl2.mesh_interf_del:\n")
 
-    # print("cpl.mesh_interf_f_poly_block_get:\n")
-    # out = cpl.mesh_interf_f_poly_block_get(0, block_id)
-    # print("  - n_elts : {param}\n".format(param=out["n_elts"]))
-    # print("  - connec_idx {param}\n".format(param=out["connec_idx"]))
-    # print("  - connec {param}\n".format(param=out["connec"]))
-    # print("  - global_num : {param}\n".format(param=out["global_num"]))
+    cpl2.mesh_interf_del()
 
     comm.Barrier()
 

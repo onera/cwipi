@@ -1635,6 +1635,7 @@ cdef class Coupling (object):
                                              &(n_elts),
                                              &(connec),
                                              &(global_num))
+
         if (global_num is NULL):
           py_global_num = None
         else :

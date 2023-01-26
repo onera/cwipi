@@ -3622,7 +3622,7 @@ CWP_client_Mesh_interf_block_std_get
   int n_vtx_elt = -1;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, &n_vtx_elt, sizeof(int));
   clt_cwp.coupling[s].std_connec = (int *) malloc(sizeof(int) * (n_vtx_elt * (*n_elts)));
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, *connec, sizeof(int) * (n_vtx_elt * (*n_elts)));
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s].std_connec, sizeof(int) * (n_vtx_elt * (*n_elts)));
   *connec = clt_cwp.coupling[s].std_connec;
 
   // read global number
