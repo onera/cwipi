@@ -779,6 +779,28 @@ const char *cpl_id
                          cpl_id_str);
 }
 
+/**
+ * \brief Get coupling communicator and coupling ranks.
+ *
+ * \param [in]  local_code_name      Local code name
+ * \param [in]  cpl_id               Coupling identifier
+ * \param [out] cpl_comm             Coupling communicator
+ * \param [out] cpl_ranks            Coupling ranks
+ *
+ */
+void
+CWP_Cpl_comm_get
+(
+const char *local_code_name,
+const char *cpl_id,
+MPI_Comm   *cpl_comm,
+int       **cpl_ranks
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.commGet(cpl_comm,
+              cpl_ranks);
+}
 
 /**
  * \brief Exchange spatially interpolated fields. <b>(Not implemented yet)</b>

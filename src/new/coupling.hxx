@@ -99,6 +99,24 @@ namespace cwipi {
     virtual ~Coupling();
 
     /*----------------------------------------------------------------------------*
+     * Methods about communicators                                                *
+     *----------------------------------------------------------------------------*/
+
+    /**
+    * \brief Get coupling communicator and coupling ranks.
+    *
+    * \param [out] cpl_comm             Coupling communicator
+    * \param [out] cpl_ranks            Coupling ranks
+    *
+    */
+
+    void
+    commGet (
+      MPI_Comm  *cpl_comm,
+      int      **cpl_ranks
+    );
+
+    /*----------------------------------------------------------------------------*
      * Methods about exchange frequency                                           *
      *----------------------------------------------------------------------------*/
 

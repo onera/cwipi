@@ -739,6 +739,24 @@ CWP_Cpl_del
  const char *cpl_id
 );
 
+/**
+ * \brief Get coupling communicator and coupling ranks.
+ *
+ * \param [in]  local_code_name      Local code name
+ * \param [in]  cpl_id               Coupling identifier
+ * \param [out] cpl_comm             Coupling communicator
+ * \param [out] cpl_ranks            Coupling ranks
+ *
+ */
+void
+CWP_Cpl_comm_get
+(
+const char *local_code_name,
+const char *cpl_id,
+MPI_Comm   *cpl_comm,
+int       **cpl_ranks
+);
+
 
 /**
  *

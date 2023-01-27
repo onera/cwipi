@@ -295,6 +295,29 @@ namespace cwipi {
     #endif
   }
 
+  /*----------------------------------------------------------------------------*
+   * Methods about communicators                                                *
+   *----------------------------------------------------------------------------*/
+
+ /**
+  * \brief Get coupling communicator and coupling ranks.
+  *
+  * \param [out] cpl_comm             Coupling communicator
+  * \param [out] cpl_ranks            Coupling ranks
+  *
+  */
+
+  void
+  Coupling::commGet (
+    MPI_Comm  *cpl_comm,
+    int      **cpl_ranks
+  )
+  {
+    *cpl_comm  = _communication.cplCommGet();
+    std::vector<int>* vect_cpl_ranks = _communication.cplCommCplRanksGet();
+    *cpl_ranks = vect_cpl_ranks->data();
+  }
+
 
   /*----------------------------------------------------------------------------*
    * Methods about exchange frequency                                           *
