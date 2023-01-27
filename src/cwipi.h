@@ -844,6 +844,24 @@ void cwipi_create_coupling
 
 /*----------------------------------------------------------------------------
  *
+ * Get coupling communicator and coupling ranks.
+ *
+ * parameters:
+ *   local_code_name  <-- Local code name
+ *   cpl_id           <-- Coupling identifier
+ *   cpl_comm         --> Coupling communicator
+ *   cpl_ranks        --> Coupling ranks
+ *----------------------------------------------------------------------------*/
+
+void cwipi_coupling_comm_get
+(
+ const char  *coupling_name,
+ MPI_Comm   *cpl_comm,
+ int       **cpl_ranks
+);
+
+/*----------------------------------------------------------------------------
+ *
  * Set data user (optional)
  *
  * parameters:

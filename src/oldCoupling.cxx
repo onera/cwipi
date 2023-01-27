@@ -147,6 +147,7 @@ namespace cwipi {
     _tmpDistantField = NULL;
     _supportMesh = NULL;
     _couplingComm = MPI_COMM_NULL;
+    _rankList = NULL;
     _coupledApplicationNRankCouplingComm = -1;
     _coupledApplicationBeginningRankCouplingComm = -1;
     _mergeComm = MPI_COMM_NULL;
@@ -306,6 +307,8 @@ namespace cwipi {
         delete p->second;
     }
 
+    delete [] _rankList;
+
     _distance.clear();
 
     _tmpDistantFieldsIssend.clear();
@@ -370,6 +373,18 @@ namespace cwipi {
     if (_fvmComm != MPI_COMM_NULL)
       MPI_Comm_free(&_fvmComm);
 
+  }
+
+  // Get coupling communicator and coupling ranks.
+
+  void
+  oldCoupling::commGet (
+    MPI_Comm  *cpl_comm,
+    int      **cpl_ranks
+  )
+  {
+    *cpl_comm  = _couplingComm;
+    *cpl_ranks = _rankList;
   }
 
   void oldCoupling::_interpolate(double *referenceField,
@@ -2364,7 +2379,7 @@ namespace cwipi {
       //
       // Exchange coupling type
 
-      cwipi_coupling_type_t* couplingTypes = 
+      cwipi_coupling_type_t* couplingTypes =
            (cwipi_coupling_type_t*) malloc (sizeof(cwipi_coupling_type_t) * coupledApplicationCommSize);
 
       MPI_Allgather((void*)& _couplingType,
@@ -2417,22 +2432,22 @@ namespace cwipi {
       if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING ||
           distantCouplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
 
-        int *rankList =  (int *) malloc (sizeof(int) * (coupledApplicationCommSize));
+        _rankList = new int[coupledApplicationCommSize];
         int nRankList = -1;
 
         if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING &&
             distantCouplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
 
           nRankList = 2;
-          rankList[0] = 0;
+          _rankList[0] = 0;
 
           _coupledApplicationNRankCouplingComm = 1;
           if (localBeginningRank < distantBeginningRank) {
-            rankList[1] = nLocalRank;
+            _rankList[1] = nLocalRank;
             _coupledApplicationBeginningRankCouplingComm = 1;
           }
           else {
-            rankList[1] = nDistantRank;
+            _rankList[1] = nDistantRank;
             _coupledApplicationBeginningRankCouplingComm = 0;
           }
         }
@@ -2441,16 +2456,16 @@ namespace cwipi {
           nRankList = 1 + nDistantRank;
           _coupledApplicationNRankCouplingComm = nDistantRank;
           if (localBeginningRank < distantBeginningRank) {
-            rankList[0] = 0;
+            _rankList[0] = 0;
             _coupledApplicationBeginningRankCouplingComm = 1;
             for (int i = 0; i < nDistantRank; i++)
-              rankList[i+1] = nLocalRank + i;
+              _rankList[i+1] = nLocalRank + i;
           }
           else {
             _coupledApplicationBeginningRankCouplingComm = 0;
             for (int i = 0; i < nDistantRank; i++)
-              rankList[i] = i;
-            rankList[nDistantRank] = nDistantRank;
+              _rankList[i] = i;
+            _rankList[nDistantRank] = nDistantRank;
           }
         }
 
@@ -2460,15 +2475,15 @@ namespace cwipi {
           if (localBeginningRank < distantBeginningRank) {
             _coupledApplicationBeginningRankCouplingComm = nLocalRank;
             for (int i = 0; i < nLocalRank; i++)
-              rankList[i] = i;
-            rankList[nLocalRank] = nLocalRank;
+              _rankList[i] = i;
+            _rankList[nLocalRank] = nLocalRank;
           }
 
           else {
-            rankList[0] = 0;
+            _rankList[0] = 0;
             _coupledApplicationBeginningRankCouplingComm = 0;
             for (int i = 0; i < nLocalRank; i++)
-              rankList[i+1] = nDistantRank + i;
+              _rankList[i+1] = nDistantRank + i;
           }
         }
 
@@ -2483,14 +2498,12 @@ namespace cwipi {
 
         MPI_Comm_group(_mergeComm, &mergeGroup);
 
-        MPI_Group_incl(mergeGroup, nRankList, rankList, &couplingGroup);
+        MPI_Group_incl(mergeGroup, nRankList, _rankList, &couplingGroup);
 
         MPI_Comm_create(_mergeComm, couplingGroup, &_couplingComm);
 
         MPI_Group_free(&couplingGroup);
         MPI_Group_free(&mergeGroup);
-
-        free ( rankList);
 
       }
       else

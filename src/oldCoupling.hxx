@@ -56,6 +56,9 @@ namespace cwipi {
 
     virtual ~oldCoupling();
 
+    void commGet (MPI_Comm  *cpl_comm,
+                  int      **cpl_ranks);
+
     void defineMesh(const int nVertex,
                     const int nElement,
                     double coordinates[],
@@ -279,6 +282,7 @@ namespace cwipi {
   private:
     fvmc_writer_t        *_fvmWriter;
     MPI_Comm             _couplingComm;
+    int                  *_rankList;
     MPI_Comm             _mergeComm;
     MPI_Comm             _fvmComm;
     int                  _coupledApplicationNRankCouplingComm;
