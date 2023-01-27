@@ -309,20 +309,60 @@ namespace cwipi {
 
       // source mesh
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-        // local mesh
         // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, _pdm_CplNodal);
       }
       else {
         // empty mesh
+        for (int i = 0; i < n_part_src; i++) {
+          PDM_mesh_intersection_part_set(_id_pdm,
+                                         0,     // i_mesh
+                                         i,     // i_part
+                                         0,     // n_cell
+                                         0,     // n_face
+                                         0,     // n_edge
+                                         0,     // n_vtx
+                                         NULL,  // cell_face_idx
+                                         NULL,  // cell_face
+                                         NULL,  // face_edge_idx
+                                         NULL,  // face_edge
+                                         NULL,  // edge_vtx
+                                         NULL,  // face_vtx_idx
+                                         NULL,  // face_vtx
+                                         NULL,  // cell_ln_to_gn
+                                         NULL,  // face_ln_to_gn
+                                         NULL,  // edge_ln_to_gn
+                                         NULL,  // vtx_ln_to_gn
+                                         NULL); // vtx_coord
+        }
       }
 
       // target mesh
       if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-        // local mesh
         // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, _pdm_CplNodal);
       }
       else {
         // empty mesh
+        for (int i = 0; i < n_part_src; i++) {
+          PDM_mesh_intersection_part_set(_id_pdm,
+                                         1,     // i_mesh
+                                         i,     // i_part
+                                         0,     // n_cell
+                                         0,     // n_face
+                                         0,     // n_edge
+                                         0,     // n_vtx
+                                         NULL,  // cell_face_idx
+                                         NULL,  // cell_face
+                                         NULL,  // face_edge_idx
+                                         NULL,  // face_edge
+                                         NULL,  // edge_vtx
+                                         NULL,  // face_vtx_idx
+                                         NULL,  // face_vtx
+                                         NULL,  // cell_ln_to_gn
+                                         NULL,  // face_ln_to_gn
+                                         NULL,  // edge_ln_to_gn
+                                         NULL,  // vtx_ln_to_gn
+                                         NULL); // vtx_coord
+        }
       }
     }
 
@@ -358,25 +398,17 @@ namespace cwipi {
 
         // source mesh
         if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-          // local mesh
           // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, _pdm_CplNodal);
-          // cpl->... empty
         }
         else {
-          // empty mesh
-          // cpl->... local mesh
           // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, cpl_mesh->getPdmNodalIndex());
         }
 
         // target mesh
         if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-          // local mesh
           // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, _pdm_CplNodal);
-          // cpl->... empty
         }
         else {
-          // empty mesh
-          // cpl->... local mesh
           // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, cpl_mesh->getPdmNodalIndex());
         }
       }
