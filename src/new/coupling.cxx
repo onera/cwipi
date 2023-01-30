@@ -305,17 +305,27 @@ namespace cwipi {
   * \param [out] cpl_comm             Coupling communicator
   * \param [out] cpl_ranks            Coupling ranks
   *
+  * \return Size of \ref cpl_ranks vector
+  *
   */
 
-  void
+  int
   Coupling::commGet (
     MPI_Comm  *cpl_comm,
     int      **cpl_ranks
   )
   {
-    *cpl_comm  = _communication.cplCommGet();
+    // _cplComm = unionComm in withPart case (cf commWithPart.cxx)
+    if (_commType == CWP_COMM_PAR_WITH_PART) {
+      *cpl_comm  = _communication.unionCommGet();
+    } else {
+      *cpl_comm  = _communication.cplCommGet();
+    }
+
     std::vector<int>* vect_cpl_ranks = _communication.cplCommCplRanksGet();
     *cpl_ranks = vect_cpl_ranks->data();
+
+    return vect_cpl_ranks->size();
   }
 
 

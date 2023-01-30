@@ -853,7 +853,7 @@ void cwipi_create_coupling
  *   cpl_ranks        --> Coupling ranks
  *----------------------------------------------------------------------------*/
 
-void cwipi_coupling_comm_get
+int cwipi_coupling_comm_get
 (
  const char  *coupling_name,
  MPI_Comm   *cpl_comm,

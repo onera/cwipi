@@ -103,14 +103,16 @@ namespace cwipi {
      *----------------------------------------------------------------------------*/
 
     /**
-    * \brief Get coupling communicator and coupling ranks.
-    *
-    * \param [out] cpl_comm             Coupling communicator
-    * \param [out] cpl_ranks            Coupling ranks
-    *
-    */
+     * \brief Get coupling communicator and coupling ranks.
+     *
+     * \param [out] cpl_comm             Coupling communicator
+     * \param [out] cpl_ranks            Coupling ranks
+     *
+     * \return Size of \ref cpl_ranks vector
+     *
+     */
 
-    void
+    int
     commGet (
       MPI_Comm  *cpl_comm,
       int      **cpl_ranks

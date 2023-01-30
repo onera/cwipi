@@ -747,8 +747,10 @@ CWP_Cpl_del
  * \param [out] cpl_comm             Coupling communicator
  * \param [out] cpl_ranks            Coupling ranks
  *
+ * \return Size of \ref cpl_ranks vector
+ *
  */
-void
+int
 CWP_Cpl_comm_get
 (
 const char *local_code_name,

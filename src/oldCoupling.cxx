@@ -377,7 +377,7 @@ namespace cwipi {
 
   // Get coupling communicator and coupling ranks.
 
-  void
+  int
   oldCoupling::commGet (
     MPI_Comm  *cpl_comm,
     int      **cpl_ranks
@@ -385,6 +385,8 @@ namespace cwipi {
   {
     *cpl_comm  = _couplingComm;
     *cpl_ranks = _rankList;
+
+    return _nRankList;
   }
 
   void oldCoupling::_interpolate(double *referenceField,
@@ -2433,12 +2435,12 @@ namespace cwipi {
           distantCouplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
 
         _rankList = new int[coupledApplicationCommSize];
-        int nRankList = -1;
+        _nRankList = -1;
 
         if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING &&
             distantCouplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
 
-          nRankList = 2;
+          _nRankList = 2;
           _rankList[0] = 0;
 
           _coupledApplicationNRankCouplingComm = 1;
@@ -2453,7 +2455,7 @@ namespace cwipi {
         }
 
         else if (distantCouplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
-          nRankList = 1 + nDistantRank;
+          _nRankList = 1 + nDistantRank;
           _coupledApplicationNRankCouplingComm = nDistantRank;
           if (localBeginningRank < distantBeginningRank) {
             _rankList[0] = 0;
@@ -2470,7 +2472,7 @@ namespace cwipi {
         }
 
         else if (_couplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
-          nRankList = 1 + nLocalRank;
+          _nRankList = 1 + nLocalRank;
           _coupledApplicationNRankCouplingComm = 1;
           if (localBeginningRank < distantBeginningRank) {
             _coupledApplicationBeginningRankCouplingComm = nLocalRank;
@@ -2498,7 +2500,7 @@ namespace cwipi {
 
         MPI_Comm_group(_mergeComm, &mergeGroup);
 
-        MPI_Group_incl(mergeGroup, nRankList, _rankList, &couplingGroup);
+        MPI_Group_incl(mergeGroup, _nRankList, _rankList, &couplingGroup);
 
         MPI_Comm_create(_mergeComm, couplingGroup, &_couplingComm);
 
@@ -2506,8 +2508,16 @@ namespace cwipi {
         MPI_Group_free(&mergeGroup);
 
       }
-      else
+      else {
+
+        // added for get communicator
+        _nRankList = endRank - begRank;
+        _rankList = new int[_nRankList];
+        for (int i = 0; i < _nRankList; i++) {
+          _rankList[i] = begRank + i;
+        }
         MPI_Comm_dup(_mergeComm, &_couplingComm);
+      }
     }
 
 

@@ -767,9 +767,12 @@ void cwipi_create_coupling
  *   cpl_id           <-- Coupling identifier
  *   cpl_comm         --> Coupling communicator
  *   cpl_ranks        --> Coupling ranks
+ *
+ * returns:
+ *   size             --> Number of ranks
  *----------------------------------------------------------------------------*/
 
-void cwipi_coupling_comm_get
+int cwipi_coupling_comm_get
 (
  const char  *coupling_name,
  MPI_Comm   *cpl_comm,
@@ -783,8 +786,10 @@ void cwipi_coupling_comm_get
 
   cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
-  coupling.commGet(cpl_comm,
-                   cpl_ranks);
+  int size = coupling.commGet(cpl_comm,
+                              cpl_ranks);
+
+  return size;
 }
 
 /*----------------------------------------------------------------------------

@@ -1215,6 +1215,47 @@ main(int argc, char *argv[]) {
     printf("Create coupling OK\n");
   }
 
+  // Get communicator
+  if (version == CWP_VERSION_OLD) {
+    MPI_Comm   cpl_comm;
+    int       *cpl_ranks = NULL;
+    int size = cwipi_coupling_comm_get(coupling_name,
+                                       &cpl_comm,
+                                       &cpl_ranks);
+
+    if (verbose) {
+      printf("cpl_comm = %d\n", cpl_comm);
+      printf("cpl_ranks : \n");
+      printf("size = %d\n", size);
+      for (int i =0; i < size; i++) {
+        printf("cpl_ranks[%d] = %d\n", i, cpl_ranks[i]);
+      }
+    }
+
+  }
+  else {
+    MPI_Comm   cpl_comm;
+    int       *cpl_ranks = NULL;
+    int size = CWP_Cpl_comm_get(code_name[0],
+                                coupling_name,
+                                &cpl_comm,
+                                &cpl_ranks);
+
+    if (verbose) {
+      printf("cpl_comm = %d\n", cpl_comm);
+      printf("cpl_ranks : \n");
+      printf("size = %d\n", size);
+      for (int i =0; i < size; i++) {
+        printf("cpl_ranks[%d] = %d\n", i, cpl_ranks[i]);
+      }
+    }
+
+  }
+
+  if (verbose && rank == 0) {
+    printf("Get communicator OK\n");
+  }
+
   // Define mesh
   PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) intra_comm);
 

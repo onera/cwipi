@@ -787,8 +787,10 @@ const char *cpl_id
  * \param [out] cpl_comm             Coupling communicator
  * \param [out] cpl_ranks            Coupling ranks
  *
+ * \return Size of \ref cpl_ranks vector
+ *
  */
-void
+int
 CWP_Cpl_comm_get
 (
 const char *local_code_name,
@@ -798,8 +800,10 @@ int       **cpl_ranks
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.commGet(cpl_comm,
-              cpl_ranks);
+  int size = cpl.commGet(cpl_comm,
+                         cpl_ranks);
+
+  return size;
 }
 
 /**
