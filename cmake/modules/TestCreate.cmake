@@ -58,5 +58,7 @@ function(test_python_create name n_proc)
             ${MPIEXEC_PREFLAGS}
             ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/${name}.py
             ${MPIEXEC_POSTFLAGS})
-
+  if (PYTHON_TEST_ENV)
+    set_property(TEST ${name} PROPERTY ENVIRONMENT ${PYTHON_TEST_ENV})
+  endif()
 endfunction()

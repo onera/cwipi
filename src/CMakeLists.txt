@@ -186,8 +186,9 @@ if (CWP_ENABLE_Fortran)
   set (LIST_HEADERF "")
   list(APPEND LIST_HEADERF "${CMAKE_BINARY_DIR}/cwipi_configf.h")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/cwipi.mod")
-  list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/cwp.mod")
-
+  if (CWP_ENABLE_NEW_API)
+    list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/cwp.mod")
+  endif()  
 endif ()
 
 # Options du link

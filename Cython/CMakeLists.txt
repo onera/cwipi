@@ -18,11 +18,14 @@ file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "
 
 # old API
 configure_file(cwipi.pyx.in cwipi.pyx)
+
 # new API
-configure_file(pycwp.pyx.in pycwp.pyx)
-# client-server
-if (CWP_ENABLE_CLIENT_SERVER)
-  configure_file(client_server/pycwpclt.pyx.in client_server/pycwpclt.pyx)
+if (CWP_ENABLE_NEW_API)
+  configure_file(pycwp.pyx.in pycwp.pyx)
+  # client-server
+  if (CWP_ENABLE_CLIENT_SERVER)
+    configure_file(client_server/pycwpclt.pyx.in client_server/pycwpclt.pyx)
+  endif()
 endif()
 
 set (include_dirs "")
@@ -40,14 +43,16 @@ cython_add_module (cwipi
                    PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/cwipi.pyx"
                    INCLUDE_DIRECTORIES ${include_dirs})
 # new API
-cython_add_module (pycwp
-                   PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/pycwp.pyx"
-                   INCLUDE_DIRECTORIES ${include_dirs})
-# client-server
-if (CWP_ENABLE_CLIENT_SERVER)
-  cython_add_module (pycwpclt
-                     PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/client_server/pycwpclt.pyx"
+if (CWP_ENABLE_NEW_API)
+  cython_add_module (pycwp
+                     PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/pycwp.pyx"
                      INCLUDE_DIRECTORIES ${include_dirs})
+  # client-server
+  if (CWP_ENABLE_CLIENT_SERVER)
+    cython_add_module (pycwpclt
+                       PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/client_server/pycwpclt.pyx"
+                       INCLUDE_DIRECTORIES ${include_dirs})
+  endif()
 endif()
 
 # old API
@@ -55,12 +60,14 @@ get_target_property(CWP_INC cwipi INCLUDE_DIRECTORIES)
 target_include_directories(cwipi PUBLIC ${CWP_INC})
 
 # new API
-get_target_property(CWP_INC pycwp INCLUDE_DIRECTORIES)
-target_include_directories(pycwp PUBLIC ${CWP_INC})
-# client-server
-if (CWP_ENABLE_CLIENT_SERVER)
-  get_target_property(CWP_INC pycwpclt INCLUDE_DIRECTORIES)
-  target_include_directories(pycwpclt PUBLIC ${CWP_INC})
+if (CWP_ENABLE_NEW_API)
+  get_target_property(CWP_INC pycwp INCLUDE_DIRECTORIES)
+  target_include_directories(pycwp PUBLIC ${CWP_INC})
+  # client-server
+  if (CWP_ENABLE_CLIENT_SERVER)
+    get_target_property(CWP_INC pycwpclt INCLUDE_DIRECTORIES)
+    target_include_directories(pycwpclt PUBLIC ${CWP_INC})
+  endif()
 endif()
 
 unset(LINK_LIBRARIES)
@@ -98,62 +105,71 @@ if ((NOT MPI_C_COMPILER) AND MPI_C_COMPILE_FLAGS)
 endif()
 
 # new API
-target_link_libraries(pycwp cwp_shared)
-if (CWP_ENABLE_Fortran)
-  target_link_libraries(pycwp cwpf_shared)
-endif()
-
-if (CWP_ENABLE_SPACE_NODAL_BASIS)
-  target_link_libraries(pycwp spaceBasis_shared)
-endif()
-
-if ((NOT MPI_C_COMPILER) AND MPI_C_COMPILE_FLAGS)
-   set_target_properties(pycwp PROPERTIES
-                         COMPILE_FLAGS ${MPI_C_COMPILE_FLAGS})
-endif()
-
-# client-server
-if (CWP_ENABLE_CLIENT_SERVER)
-  target_link_libraries(pycwpclt cwp_shared)
+if (CWP_ENABLE_NEW_API)
+  target_link_libraries(pycwp cwp_shared)
   if (CWP_ENABLE_Fortran)
-    target_link_libraries(pycwpclt cwpf_shared)
+    target_link_libraries(pycwp cwpf_shared)
   endif()
 
   if (CWP_ENABLE_SPACE_NODAL_BASIS)
-    target_link_libraries(pycwpclt spaceBasis_shared)
+    target_link_libraries(pycwp spaceBasis_shared)
   endif()
 
   if ((NOT MPI_C_COMPILER) AND MPI_C_COMPILE_FLAGS)
-     set_target_properties(pycwpclt PROPERTIES
+     set_target_properties(pycwp PROPERTIES
                            COMPILE_FLAGS ${MPI_C_COMPILE_FLAGS})
   endif()
+
+  # client-server
+  if (CWP_ENABLE_CLIENT_SERVER)
+    target_link_libraries(pycwpclt cwp_shared)
+    if (CWP_ENABLE_Fortran)
+      target_link_libraries(pycwpclt cwpf_shared)
+    endif()
+
+    if (CWP_ENABLE_SPACE_NODAL_BASIS)
+      target_link_libraries(pycwpclt spaceBasis_shared)
+    endif()
+
+    if ((NOT MPI_C_COMPILER) AND MPI_C_COMPILE_FLAGS)
+       set_target_properties(pycwpclt PROPERTIES
+                             COMPILE_FLAGS ${MPI_C_COMPILE_FLAGS})
+    endif()
+  endif()
+
 endif()
 
-set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
-set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/timestamp")
+set(SETUP_PY_OLD "${CMAKE_CURRENT_BINARY_DIR}/setup_old.py")
+set(OUTPUT       "${CMAKE_CURRENT_BINARY_DIR}/timestamp")
 
 # old API
 set(DEPS_OLD    "${CMAKE_CURRENT_SOURCE_DIR}/cwipi/__init__.py")
 add_custom_command(OUTPUT ${OUTPUT}
-                   COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} --quiet build
+                   COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_OLD} --quiet build
                    COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
                    DEPENDS ${DEPS_OLD})
 
 # new API
-set(DEPS_NEW    "${CMAKE_CURRENT_SOURCE_DIR}/pycwp/__init__.py")
-add_custom_command(OUTPUT ${OUTPUT}
-                   COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} --quiet build
-                   COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
-                   DEPENDS ${DEPS_NEW})
-
-# client-server
-if (CWP_ENABLE_CLIENT_SERVER)
-  set(DEPS_NEW    "${CMAKE_CURRENT_SOURCE_DIR}/client_server/pycwpclt/__init__.py")
+if (CWP_ENABLE_NEW_API)
+  set(SETUP_PY_NEW "${CMAKE_CURRENT_BINARY_DIR}/setup_new.py")
+  set(DEPS_NEW     "${CMAKE_CURRENT_SOURCE_DIR}/pycwp/__init__.py")
+  set(OUTPUT_NEW   "${CMAKE_CURRENT_BINARY_DIR}/timestamp_new")
   add_custom_command(OUTPUT ${OUTPUT}
-                     COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} --quiet build
-                     COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
+                     COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_NEW} --quiet build
+                     COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT_NEW}
                      DEPENDS ${DEPS_NEW})
+
+  # client-server
+  if (CWP_ENABLE_CLIENT_SERVER)
+    set(DEPS_NEW    "${CMAKE_CURRENT_SOURCE_DIR}/client_server/pycwpclt/__init__.py")
+    add_custom_command(OUTPUT ${OUTPUT}
+                       COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_NEW} --quiet build
+                       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT_NEW}
+                       DEPENDS ${DEPS_NEW})
+  endif()
+
 endif()
+
 
 # old API
 set (SITE_PACKAGES_CWP_OLD "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/cwipi")
@@ -166,25 +182,29 @@ if ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
 endif()
 
 # new API
-set (SITE_PACKAGES_CWP_NEW "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/pycwp")
+if (CWP_ENABLE_NEW_API)
 
-if ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
-    (CMAKE_C_COMPILER_ID STREQUAL "Intel") OR
-    (CMAKE_C_COMPILER_ID STREQUAL "AppleClang") OR
-    (CMAKE_C_COMPILER_ID STREQUAL "PGI"))
-  set_target_properties (pycwp PROPERTIES COMPILE_FLAGS "-w")
-endif()
-
-# client-server
-if (CWP_ENABLE_CLIENT_SERVER)
-  set (SITE_PACKAGES_CWP_CS "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/pycwpclt")
+  set (SITE_PACKAGES_CWP_NEW "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/pycwp")
 
   if ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
       (CMAKE_C_COMPILER_ID STREQUAL "Intel") OR
       (CMAKE_C_COMPILER_ID STREQUAL "AppleClang") OR
       (CMAKE_C_COMPILER_ID STREQUAL "PGI"))
-    set_target_properties (pycwpclt PROPERTIES COMPILE_FLAGS "-w")
+    set_target_properties (pycwp PROPERTIES COMPILE_FLAGS "-w")
   endif()
+
+  # client-server
+  if (CWP_ENABLE_CLIENT_SERVER)
+    set (SITE_PACKAGES_CWP_CS "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/pycwpclt")
+
+    if ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
+        (CMAKE_C_COMPILER_ID STREQUAL "Intel") OR
+        (CMAKE_C_COMPILER_ID STREQUAL "AppleClang") OR
+        (CMAKE_C_COMPILER_ID STREQUAL "PGI"))
+      set_target_properties (pycwpclt PROPERTIES COMPILE_FLAGS "-w")
+    endif()
+  endif()
+
 endif()
 
 # old API
@@ -195,17 +215,19 @@ install(PROGRAMS  "${CMAKE_CURRENT_BINARY_DIR}/cwipi.so"
         DESTINATION            "${SITE_PACKAGES_CWP_OLD}")
 
 # new API
-install(DIRECTORY DESTINATION ${SITE_PACKAGES_CWP_NEW})
-install(FILES  "${CMAKE_CURRENT_SOURCE_DIR}/pycwp/__init__.py"
-        DESTINATION            "${SITE_PACKAGES_CWP_NEW}")
-install(PROGRAMS  "${CMAKE_CURRENT_BINARY_DIR}/pycwp.so"
-        DESTINATION            "${SITE_PACKAGES_CWP_NEW}")
+if (CWP_ENABLE_NEW_API)
+  install(DIRECTORY DESTINATION ${SITE_PACKAGES_CWP_NEW})
+  install(FILES  "${CMAKE_CURRENT_SOURCE_DIR}/pycwp/__init__.py"
+          DESTINATION            "${SITE_PACKAGES_CWP_NEW}")
+  install(PROGRAMS  "${CMAKE_CURRENT_BINARY_DIR}/pycwp.so"
+          DESTINATION            "${SITE_PACKAGES_CWP_NEW}")
 
-# client-server
-if (CWP_ENABLE_CLIENT_SERVER)
-  install(DIRECTORY DESTINATION ${SITE_PACKAGES_CWP_CS})
-  install(FILES  "${CMAKE_CURRENT_SOURCE_DIR}/client_server/pycwpclt/__init__.py"
-          DESTINATION            "${SITE_PACKAGES_CWP_CS}")
-  install(PROGRAMS  "${CMAKE_CURRENT_BINARY_DIR}/pycwpclt.so"
-          DESTINATION            "${SITE_PACKAGES_CWP_CS}")
+  # client-server
+  if (CWP_ENABLE_CLIENT_SERVER)
+    install(DIRECTORY DESTINATION ${SITE_PACKAGES_CWP_CS})
+    install(FILES  "${CMAKE_CURRENT_SOURCE_DIR}/client_server/pycwpclt/__init__.py"
+            DESTINATION            "${SITE_PACKAGES_CWP_CS}")
+    install(PROGRAMS  "${CMAKE_CURRENT_BINARY_DIR}/pycwpclt.so"
+            DESTINATION            "${SITE_PACKAGES_CWP_CS}")
+  endif()
 endif()
