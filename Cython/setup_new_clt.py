@@ -5,11 +5,11 @@ import os
 import sys
 
 setup(
-    name = "pycwp",
-    packages     = ['pycwp'],
-    data_files = [('', ["pycwp.so"])],
+    name = "pycwpclt",
+    packages     = ['pycwpclt'],
+    data_files = [('', ["pycwpclt.so"])],
     author = 'E. Quemerais, B. Andrieu, K. Hoogveld, X. Lamboley',
-    description = 'Coupling With Interpolation Parallel Interface',
+    description = 'Coupling With Interpolation Parallel Interface - Client',
     license = 'LGPL'
     )
 

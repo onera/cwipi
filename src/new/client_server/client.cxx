@@ -55,10 +55,10 @@
 
 #include "struct.hxx"
 
+#include "cwp.h"
 #include "cwp_priv.h"
 #include "cwipi_config.h"
 
-#include <cwp.h>
 #include <pdm_error.h>
 #include <pdm_mpi.h>
 #include <pdm_io.h>
@@ -608,9 +608,6 @@ CWP_client_connect
   socklen_t max_msg_size_len = 0;
   int il_cl_endian;
 
-  CWP_UNUSED(host);
-  CWP_UNUSED(server_addr);
-
   clt = (t_client *) malloc(sizeof(t_client));
   memset(clt,0,sizeof(t_client));
   strncpy(clt->server_name, server_name,sizeof(clt->server_name));
@@ -633,8 +630,6 @@ CWP_client_connect
   getaddrinfo(server_name, port_str, NULL, &svr_info); // hint
   char *dst = (char *) malloc(sizeof(char) * INET_ADDRSTRLEN);
   inet_ntop(AF_INET, svr_info->ai_addr->sa_data, dst, INET_ADDRSTRLEN);
-
-  CWP_UNUSED(status);
 
   // host = (struct hostent *) gethostbyname(server_name);
   // printf("host: %p\n", host);

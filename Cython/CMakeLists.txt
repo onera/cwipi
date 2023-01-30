@@ -24,7 +24,7 @@ if (CWP_ENABLE_NEW_API)
   configure_file(pycwp.pyx.in pycwp.pyx)
   # client-server
   if (CWP_ENABLE_CLIENT_SERVER)
-    configure_file(client_server/pycwpclt.pyx.in client_server/pycwpclt.pyx)
+    configure_file(pycwpclt.pyx.in pycwpclt.pyx)
   endif()
 endif()
 
@@ -50,7 +50,7 @@ if (CWP_ENABLE_NEW_API)
   # client-server
   if (CWP_ENABLE_CLIENT_SERVER)
     cython_add_module (pycwpclt
-                       PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/client_server/pycwpclt.pyx"
+                       PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/pycwpclt.pyx"
                        INCLUDE_DIRECTORIES ${include_dirs})
   endif()
 endif()
@@ -154,18 +154,20 @@ if (CWP_ENABLE_NEW_API)
   set(SETUP_PY_NEW "${CMAKE_CURRENT_BINARY_DIR}/setup_new.py")
   set(DEPS_NEW     "${CMAKE_CURRENT_SOURCE_DIR}/pycwp/__init__.py")
   set(OUTPUT_NEW   "${CMAKE_CURRENT_BINARY_DIR}/timestamp_new")
-  add_custom_command(OUTPUT ${OUTPUT}
+  add_custom_command(OUTPUT ${OUTPUT_NEW}
                      COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_NEW} --quiet build
                      COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT_NEW}
                      DEPENDS ${DEPS_NEW})
 
   # client-server
   if (CWP_ENABLE_CLIENT_SERVER)
-    set(DEPS_NEW    "${CMAKE_CURRENT_SOURCE_DIR}/client_server/pycwpclt/__init__.py")
-    add_custom_command(OUTPUT ${OUTPUT}
-                       COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_NEW} --quiet build
-                       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT_NEW}
-                       DEPENDS ${DEPS_NEW})
+    set(SETUP_PY_NEW_CLT "${CMAKE_CURRENT_BINARY_DIR}/setup_new_clt.py")
+    set(DEPS_NEW_CLT    "${CMAKE_CURRENT_SOURCE_DIR}/pycwpclt/__init__.py")
+    set(OUTPUT_NEW_CLT   "${CMAKE_CURRENT_BINARY_DIR}/timestamp_new_clt")
+    add_custom_command(OUTPUT ${OUTPUT_NEW_CLT}
+                       COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_NEW_CLT} --quiet build
+                       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT_NEW_CLT}
+                       DEPENDS ${DEPS_NEW_CLT})
   endif()
 
 endif()
@@ -225,7 +227,7 @@ if (CWP_ENABLE_NEW_API)
   # client-server
   if (CWP_ENABLE_CLIENT_SERVER)
     install(DIRECTORY DESTINATION ${SITE_PACKAGES_CWP_CS})
-    install(FILES  "${CMAKE_CURRENT_SOURCE_DIR}/client_server/pycwpclt/__init__.py"
+    install(FILES  "${CMAKE_CURRENT_SOURCE_DIR}/pycwpclt/__init__.py"
             DESTINATION            "${SITE_PACKAGES_CWP_CS}")
     install(PROGRAMS  "${CMAKE_CURRENT_BINARY_DIR}/pycwpclt.so"
             DESTINATION            "${SITE_PACKAGES_CWP_CS}")
