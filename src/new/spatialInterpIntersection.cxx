@@ -271,6 +271,26 @@ namespace cwipi {
     int local_mesh_dim = 0;
     int cpl_mesh_dim   = 0;
 
+    CWP_Interface_t interf_dim = _cpl->entitiesDimGet();
+    switch (interf_dim) {
+      case CWP_INTERFACE_POINT:
+      local_mesh_dim = 0;
+      break;
+      case CWP_INTERFACE_LINEAR:
+      local_mesh_dim = 1;
+      break;
+      case CWP_INTERFACE_SURFACE:
+      local_mesh_dim = 2;
+      break;
+      case CWP_INTERFACE_VOLUME:
+      local_mesh_dim = 3;
+      break;
+      default:
+      PDM_error(__FILE__, __LINE__, 0, "Invalid interface dimension %d\n", local_mesh_dim);
+    }
+
+    cpl_mesh_dim = local_mesh_dim; // ?
+
     if (local_mesh_dim != cpl_mesh_dim) {
       PDM_error(__FILE__, __LINE__, 0,
                 "Both meshes must have the same dimension (got %d / %d)\n",
@@ -302,8 +322,6 @@ namespace cwipi {
       _id_pdm = PDM_mesh_intersection_create(PDM_MESH_INTERSECTION_KIND_SOFT,
                                              mesh_dim,
                                              mesh_dim,
-                                             n_part_src,
-                                             n_part_tgt,
                                              0.,
                                              _pdmCplComm);
 
@@ -313,6 +331,7 @@ namespace cwipi {
       }
       else {
         // empty mesh
+        PDM_mesh_intersection_n_part_set(_id_pdm, 0, n_part_src);
         for (int i = 0; i < n_part_src; i++) {
           PDM_mesh_intersection_part_set(_id_pdm,
                                          0,     // i_mesh
@@ -342,7 +361,8 @@ namespace cwipi {
       }
       else {
         // empty mesh
-        for (int i = 0; i < n_part_src; i++) {
+        PDM_mesh_intersection_n_part_set(_id_pdm, 0, n_part_tgt);
+        for (int i = 0; i < n_part_tgt; i++) {
           PDM_mesh_intersection_part_set(_id_pdm,
                                          1,     // i_mesh
                                          i,     // i_part
@@ -372,8 +392,6 @@ namespace cwipi {
         _id_pdm = PDM_mesh_intersection_create(PDM_MESH_INTERSECTION_KIND_SOFT,
                                                mesh_dim,
                                                mesh_dim,
-                                               n_part_src,
-                                               n_part_tgt,
                                                0.,
                                                _pdmCplComm);
 
