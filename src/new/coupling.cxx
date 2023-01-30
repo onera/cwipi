@@ -315,12 +315,7 @@ namespace cwipi {
     int      **cpl_ranks
   )
   {
-    // _cplComm = unionComm in withPart case (cf commWithPart.cxx)
-    if (_commType == CWP_COMM_PAR_WITH_PART) {
-      *cpl_comm  = _communication.unionCommGet();
-    } else {
-      *cpl_comm  = _communication.cplCommGet();
-    }
+    *cpl_comm  = _communication.cplCommGet();
 
     std::vector<int>* vect_cpl_ranks = _communication.cplCommCplRanksGet();
     *cpl_ranks = vect_cpl_ranks->data();

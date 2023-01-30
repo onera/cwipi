@@ -314,7 +314,6 @@ namespace cwipi {
   (
   )
   {
-    printf("--> _unionComm : %d\n", _unionComm);
     return _unionComm;
   }
 

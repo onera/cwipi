@@ -1230,6 +1230,10 @@ main(int argc, char *argv[]) {
       for (int i =0; i < size; i++) {
         printf("cpl_ranks[%d] = %d\n", i, cpl_ranks[i]);
       }
+
+      int recv = -1;
+      MPI_Allreduce(&rank, &recv, 1, MPI_INT, MPI_SUM, cpl_comm);
+      printf("recv : %d\n", recv);
     }
 
   }
@@ -1248,6 +1252,10 @@ main(int argc, char *argv[]) {
       for (int i =0; i < size; i++) {
         printf("cpl_ranks[%d] = %d\n", i, cpl_ranks[i]);
       }
+
+      int recv = -1;
+      MPI_Allreduce(&rank, &recv, 1, MPI_INT, MPI_SUM, cpl_comm);
+      printf("recv : %d\n", recv);
     }
 
   }
