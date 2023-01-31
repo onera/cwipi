@@ -1,8 +1,17 @@
+
+#include "cwipi_configf.h"
+
 program new_api
+#ifdef CWP_HAVE_FORTRAN_MPI_MODULE  
     use mpi
+#endif
     use cwp
 
     implicit none
+
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
+    include "mpif.h"
+#endif  
 
     integer :: n_code
     integer :: ierr

@@ -112,14 +112,14 @@ end subroutine userInterpolation
 
 program testf
 
-#ifdef PDM_HAVE_FORTRAN_MPI_MODULE  
+#ifdef CWP_HAVE_FORTRAN_MPI_MODULE  
   use mpi
 #endif
   use cwipi
 
   implicit none
 
-#ifndef PDM_HAVE_FORTRAN_MPI_MODULE  
+#ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
   include "mpif.h"
 #endif  
 
