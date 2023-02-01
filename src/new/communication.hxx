@@ -174,7 +174,7 @@ namespace cwipi {
     void
     irecvGlobalDataBetweenCodesThroughUnionCom
     (
-     MPI_Request     global_recv_request,
+     MPI_Request     global_recv_request, // TO DO: useless ?
      MPI_Request     data_recv_request,
      size_t          s_send_entity,
      int             send_stride,
@@ -192,33 +192,19 @@ namespace cwipi {
      *
      * \param [in] global_send_request
      * \param [in] data_send_request
-     * \param [in] global_recv_request
-     * \param [in] data_recv_request
-     * \param [in] s_recv_entity
-     * \param [in] recv_stride
-     * \param [in] n_recv_entity
-     * \param [in] recv_data
      */
 
     void
     waitIsendGlobalDataBetweenCodesThroughUnionCom
     (
      MPI_Request     global_send_request,
-     MPI_Request     data_send_request,
-     MPI_Request     global_recv_request,
-     MPI_Request     data_recv_request,
-     size_t         *s_recv_entity,
-     int            *recv_stride,
-     int            *n_recv_entity,
-     void           *recv_data
+     MPI_Request     data_send_request
     );
 
     /**
      *
      * \brief Asynchrone receive wait of global data array
      *
-     * \param [in] global_send_request
-     * \param [in] data_send_request
      * \param [in] global_recv_request
      * \param [in] data_recv_request
      * \param [in] s_recv_entity
@@ -230,8 +216,6 @@ namespace cwipi {
     void
     waitIrecvGlobalDataBetweenCodesThroughUnionCom
     (
-     MPI_Request     global_send_request,
-     MPI_Request     data_send_request,
      MPI_Request     global_recv_request,
      MPI_Request     data_recv_request,
      size_t         *s_recv_entity,
