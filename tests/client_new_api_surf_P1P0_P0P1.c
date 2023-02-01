@@ -113,7 +113,7 @@ main
              &config);
 
   if (config == NULL) {
-    config = (char *) "cwp_config_srv.txt";
+    config = (char *) "../bin/cwp_config_srv.txt";
   }
 
   // mpi
@@ -124,6 +124,11 @@ main
   MPI_Comm comm = MPI_COMM_WORLD;
   MPI_Comm_rank(comm, &rank);
   MPI_Comm_size(comm, &commWorldSize);
+
+  // launch server
+  char launch_server[99];
+  sprintf(launch_server, "mpirun -n %d ../bin/server_main", commWorldSize);
+  system(launch_server);
 
   // Read args from command line
   int nVertexSeg = 10;

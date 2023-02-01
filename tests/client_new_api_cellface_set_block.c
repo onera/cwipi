@@ -176,7 +176,7 @@ main
              &config);
 
   if (config == NULL) {
-    config = (char *) "cwp_config_srv.txt";
+    config = (char *) "../bin/cwp_config_srv.txt";
   }
 
   // mpi
@@ -187,6 +187,11 @@ main
   MPI_Comm comm = MPI_COMM_WORLD;
   MPI_Comm_rank(comm, &rank);
   MPI_Comm_size(comm, &comm_world_size);
+
+  // launch server
+  char launch_server[99];
+  sprintf(launch_server, "mpirun -n %d ../bin/server_main", comm_world_size);
+  system(launch_server);
 
   int n_partition = 0;
   const int two = 2;
@@ -279,8 +284,7 @@ main
   if (rank == 0) printf("        Read mesh\n");
 
   FILE *mesh_file;
-  // mesh_file = fopen("../meshes/mesh_poly_d1", "r"); // SPIRO
-  mesh_file = fopen("./meshes/mesh_poly_d1", "r"); // SATOR
+  mesh_file = fopen("./meshes/mesh_poly_d1", "r"); // WARNING: adapt depending on where client is launched
 
   fscanf(mesh_file, "%d %d %d %d %d %d",
          &dimension,

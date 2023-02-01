@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -120,7 +121,7 @@ main
              &config);
 
   if (config == NULL) {
-    config = (char *) "cwp_config_srv.txt";
+    config = (char *) "../bin/cwp_config_srv.txt";
   }
 
   // mpi
@@ -131,6 +132,17 @@ main
   MPI_Comm comm = MPI_COMM_WORLD;
   MPI_Comm_rank(comm, &i_rank);
   MPI_Comm_size(comm, &n_rank);
+
+  // launch server
+  char launch_server[99];
+  sprintf(launch_server, "mpirun -n %d ../bin/server_main &", n_rank);
+  system(launch_server);
+
+  while (access(config, R_OK) != 0) {
+    printf("HERE\n");
+    // wait
+  }
+  sleep(20);
 
   // CWP_Init
   int n_code = 0;
