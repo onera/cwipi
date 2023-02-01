@@ -124,6 +124,11 @@ namespace cwipi {
      void        *recv_data_cpl
     );
 
+    void
+    isendGlobalDataBetweenCodesThroughUnionCom
+    (
+    );
+
 
     MPI_Comm
     unionCommGet

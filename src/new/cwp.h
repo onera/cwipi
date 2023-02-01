@@ -1950,10 +1950,10 @@ CWP_Global_data_issend
 (
  const char     *local_code_name,
  const char     *cpl_id,
- CWP_Type_t      data_type,
- int             n_entity,
- int             stride,
- void           *data
+ size_t          s_data,
+ int             send_stride,
+ int             n_send_data,
+ void           *send_data
 );
 
 /**
@@ -1971,10 +1971,10 @@ CWP_Global_data_irecv
 (
  const char     *local_code_name,
  const char     *cpl_id,
- CWP_Type_t      data_type,
- int            *n_entity,
- int            *stride,
- void          **data
+ size_t         *s_data,
+ int            *send_stride,
+ int            *n_send_data,
+ void          **send_data
 );
 
 /**
