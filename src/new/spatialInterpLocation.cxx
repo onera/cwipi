@@ -100,19 +100,19 @@ namespace cwipi {
       }      
     }
 
-    delete[] _cell_vtx;
-    delete[] _cell_vtx_idx;
+    free ( _cell_vtx);
+    free ( _cell_vtx_idx);
 
-    delete[] _tgt_distance;
-    delete[] _tgt_projected;
-    delete[] _tgt_closest_elt_gnum;
+    free ( _tgt_distance);
+    free ( _tgt_projected);
+    free ( _tgt_closest_elt_gnum);
 
-    delete[] _elt_pts_inside_idx;
-    delete[] _points_gnum;
-    delete[] _points_coords;
-    delete[] _points_uvw;
-    delete[] _points_dist2;
-    delete[] _points_projected_coords;
+    free ( _elt_pts_inside_idx);
+    free ( _points_gnum);
+    free ( _points_coords);
+    free ( _points_uvw);
+    free ( _points_dist2);
+    free ( _points_projected_coords);
 
 
     //PDM_Mesh_nodal_free (_pdm_CplNodal);
@@ -208,21 +208,21 @@ namespace cwipi {
     //
     // Target properties
     
-    _tgt_distance = new double* [_nPart];                 // Distance to the closest source element surface by partition
-    _tgt_projected = new double* [_nPart];                // Projected point coordinates (on the closest source element surface)
-    _tgt_closest_elt_gnum = new CWP_g_num_t* [_nPart];    // Closest source element global numbering
+    _tgt_distance =  (double**) malloc (sizeof(double*) * _nPart);                 // Distance to the closest source element surface by partition
+    _tgt_projected = (double**) malloc (sizeof(double*) * _nPart);                // Projected point coordinates (on the closest source element surface)
+    _tgt_closest_elt_gnum = (CWP_g_num_t**) malloc(sizeof(CWP_g_num_t*) * _nPart);    // Closest source element global numbering
 
     //
     // Source properties
 
-    _elt_pts_inside_idx = new int* [_nPart];
-    _points_gnum = new CWP_g_num_t* [_nPart];
-    _points_coords = new double* [_nPart];
-    _points_uvw = new double* [_nPart];
-    _points_dist2 = new double* [_nPart];
-    _points_projected_coords = new double* [_nPart];
-    _cell_vtx_idx = new int* [_nPart];
-    _cell_vtx = new int* [_nPart];
+    _elt_pts_inside_idx =  (int **) malloc (sizeof(int *) * (_nPart));
+    _points_gnum = (CWP_g_num_t**) malloc(sizeof(CWP_g_num_t*) * _nPart);
+    _points_coords =  (double **) malloc (sizeof(double *) * (_nPart));
+    _points_uvw =  (double **) malloc (sizeof(double *) * (_nPart));
+    _points_dist2 =  (double **) malloc (sizeof(double *) * (_nPart));
+    _points_projected_coords =  (double **) malloc (sizeof(double *) * (_nPart));
+    _cell_vtx_idx =  (int **) malloc (sizeof(int *) * (_nPart));
+    _cell_vtx =  (int **) malloc (sizeof(int *) * (_nPart));
 
     for (int i_part = 0; i_part < _nPart; i_part++) {
       _tgt_distance[i_part] = NULL;

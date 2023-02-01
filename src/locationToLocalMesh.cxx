@@ -660,7 +660,7 @@ void LocationToLocalMesh::locate()
         // Location
 
         if (localInfo == CWIPI_DISTANT_MESH_INFO)
-          _locationToDistantMesh._elementContaining = new int[_locationToDistantMesh._nLocatedPoint];
+          _locationToDistantMesh._elementContaining =  (int *) malloc (sizeof(int) * (_locationToDistantMesh._nLocatedPoint));
 
         int *pLocation = NULL;
         if (distantInfo == CWIPI_DISTANT_MESH_INFO)
@@ -679,7 +679,7 @@ void LocationToLocalMesh::locate()
 
         if (localInfo == CWIPI_DISTANT_MESH_INFO)
           _locationToDistantMesh._elementContainingMPIrankContaining =
-            new int[_locationToDistantMesh._nLocatedPoint];
+             (int *) malloc (sizeof(int) * (_locationToDistantMesh._nLocatedPoint));
 
         int *pMPIrank = NULL;
         std::vector <int> *MPIrank = NULL;
@@ -707,7 +707,7 @@ void LocationToLocalMesh::locate()
         // ElementContainingNVertex
 
         if (localInfo == CWIPI_DISTANT_MESH_INFO)
-          _locationToDistantMesh._elementContainingNVertex = new int[_locationToDistantMesh._nLocatedPoint + 1];
+          _locationToDistantMesh._elementContainingNVertex =  (int *) malloc (sizeof(int) * (_locationToDistantMesh._nLocatedPoint + 1));
 
         int *p_nVertex = NULL;
         _maxElementContainingNVertex = 0;
@@ -767,12 +767,12 @@ void LocationToLocalMesh::locate()
         int *tmpDistant = NULL;
 
         if (localInfo == CWIPI_DISTANT_MESH_INFO) {
-          tmpDistant = new int [_locationToDistantMesh._nLocatedPoint];
-          _locationToDistantMesh._elementContainingVertex = new int [_locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]];
+          tmpDistant =  (int *) malloc (sizeof(int) * (_locationToDistantMesh._nLocatedPoint));
+          _locationToDistantMesh._elementContainingVertex =  (int *) malloc (sizeof(int) * (_locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]));
         }
 
         if (distantInfo == CWIPI_DISTANT_MESH_INFO)
-          tmpLocal = new int [_nDistantPoint];
+          tmpLocal =  (int *) malloc (sizeof(int) * (_nDistantPoint));
 
         for (int i = 0; i < _maxElementContainingNVertex; i++) {
           if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
@@ -807,10 +807,10 @@ void LocationToLocalMesh::locate()
         }
 
         if (localInfo == CWIPI_DISTANT_MESH_INFO)
-          delete [] tmpDistant;
+          free ( tmpDistant);
 
         if (distantInfo == CWIPI_DISTANT_MESH_INFO)
-          delete [] tmpLocal;
+          free ( tmpLocal);
 
         //
         // ElementContainingBarycentricCoordinates
@@ -819,12 +819,12 @@ void LocationToLocalMesh::locate()
         double *tmpDistant1 = NULL;
 
         if (localInfo == CWIPI_DISTANT_MESH_INFO) {
-          tmpDistant1 = new double [_locationToDistantMesh._nLocatedPoint];
-          _locationToDistantMesh._elementContainingBarycentricCoordinates = new double [_locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]];
+          tmpDistant1 =  (double *) malloc (sizeof(double) * (_locationToDistantMesh._nLocatedPoint));
+          _locationToDistantMesh._elementContainingBarycentricCoordinates =  (double *) malloc (sizeof(double) * (_locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]));
         }
 
         if (distantInfo == CWIPI_DISTANT_MESH_INFO)
-          tmpLocal1 = new double [_nDistantPoint];
+          tmpLocal1 =  (double *) malloc (sizeof(double) * (_nDistantPoint));
 
         for (int i = 0; i < _maxElementContainingNVertex; i++) {
           std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
@@ -858,10 +858,10 @@ void LocationToLocalMesh::locate()
         }
 
         if (localInfo == CWIPI_DISTANT_MESH_INFO)
-          delete [] tmpDistant1;
+          free ( tmpDistant1);
 
         if (distantInfo == CWIPI_DISTANT_MESH_INFO)
-          delete [] tmpLocal1;
+          free ( tmpLocal1);
 
         // TODO: Optimisation a réaliser dans fvm en mettant un stride[dim]
         //       pour l'instant on calcule le max des nombre de sommets
@@ -874,12 +874,12 @@ void LocationToLocalMesh::locate()
 
         int stride = 3;
         if (localInfo == CWIPI_DISTANT_MESH_INFO) {
-          tmpDistant1 = new double [stride * _locationToDistantMesh._nLocatedPoint];
-          _locationToDistantMesh._elementContainingVertexCoords = new double [stride * _locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]];
+          tmpDistant1 =  (double *) malloc (sizeof(double) * (stride * _locationToDistantMesh._nLocatedPoint));
+          _locationToDistantMesh._elementContainingVertexCoords =  (double *) malloc (sizeof(double) * (stride * _locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]));
         }
 
         if (distantInfo == CWIPI_DISTANT_MESH_INFO)
-          tmpLocal1 = new double [stride * _nDistantPoint];
+          tmpLocal1 =  (double *) malloc (sizeof(double) * (stride * _nDistantPoint));
 
         for (int i = 0; i < _maxElementContainingNVertex; i++) {
           std::vector <int> & _nVertexRef = *_nVertex;
@@ -916,10 +916,10 @@ void LocationToLocalMesh::locate()
         }
 
         if (localInfo == CWIPI_DISTANT_MESH_INFO)
-          delete [] tmpDistant1;
+          free ( tmpDistant1);
 
         if (distantInfo == CWIPI_DISTANT_MESH_INFO)
-          delete [] tmpLocal1;
+          free ( tmpLocal1);
       }
 
       // TODO: Attention la fonction synchronise ne devrait-elle pas etre dans le if precedent !
@@ -948,12 +948,12 @@ void LocationToLocalMesh::exchangeCellVertexFieldOfElementContaining (double *se
   double *tmpLocal1 = NULL;
 
   if (receivingField != NULL) {
-    tmpDistant1 = new double [stride * _locationToDistantMesh._nLocatedPoint];
-    _locationToDistantMesh._elementContainingVertexCoords = new double [stride * _locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]];
+    tmpDistant1 =  (double *) malloc (sizeof(double) * (stride * _locationToDistantMesh._nLocatedPoint));
+    _locationToDistantMesh._elementContainingVertexCoords =  (double *) malloc (sizeof(double) * (stride * _locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]));
   }
 
   if (sendingField != NULL)
-    tmpLocal1 = new double [stride * _nDistantPoint];
+    tmpLocal1 =  (double *) malloc (sizeof(double) * (stride * _nDistantPoint));
 
   for (int i = 0; i < _maxElementContainingNVertex; i++) {
     std::vector <int> & _nVertexRef = *_nVertex;
@@ -987,8 +987,8 @@ void LocationToLocalMesh::exchangeCellVertexFieldOfElementContaining (double *se
     }
   }
 
-  delete [] tmpLocal1;
-  delete [] tmpDistant1;
+  free ( tmpLocal1);
+  free ( tmpDistant1);
 }
 
 ///
@@ -1106,7 +1106,7 @@ void  LocationToLocalMesh::midplaneProjection
 
     /* Première rotation d'axe (Oz) et d'angle (Ox, proj normale sur Oxy) */
 
-    coo_som_fac_tmp = new double [3 * nbr_som_fac];
+    coo_som_fac_tmp =  (double *) malloc (sizeof(double) * (3 * nbr_som_fac));
 
     vect1[0] = 1.;
     vect1[1] = 0.;
@@ -1173,7 +1173,7 @@ void  LocationToLocalMesh::midplaneProjection
     coo_point_dist[2] = 0.;
 
 
-    delete [] (coo_som_fac_tmp);
+    free ( (coo_som_fac_tmp));
 
   }
   else {
@@ -2065,7 +2065,7 @@ void LocationToLocalMesh::compute3DMeanValues()
           // TODO : A optimiser : faire une allocation unique sur le nombre de faces max
           //  d'un polyedre et le nombre de sommet max par face
 
-          int *faceToVertexEltIdx = new int[n_poly_face + 1];
+          int *faceToVertexEltIdx =  (int *) malloc (sizeof(int) * (n_poly_face + 1));
 
           faceToVertexEltIdx[0] = 0;
           for (int i = 0; i < n_poly_face; i++) {
@@ -2075,8 +2075,8 @@ void LocationToLocalMesh::compute3DMeanValues()
               - polyFaceToVertexIdx[iface];
           }
 
-          int *faceToVertexElt = new int[faceToVertexEltIdx[n_poly_face]];
-          int *faceDirection = new int[n_poly_face];
+          int *faceToVertexElt =  (int *) malloc (sizeof(int) * (faceToVertexEltIdx[n_poly_face]));
+          int *faceDirection =  (int *) malloc (sizeof(int) * (n_poly_face));
           int k = 0;
           for (int i = 0; i < n_poly_face; i++) {
             const int iface          = abs(polyCellToFace[faceIdx + i]) - 1;
@@ -2087,7 +2087,7 @@ void LocationToLocalMesh::compute3DMeanValues()
             }
           }
 
-          double* vertex_coords_Elts = new double[3*n_poly_vertex];
+          double* vertex_coords_Elts =  (double *) malloc (sizeof(double) * (3*n_poly_vertex));
           for (int i = 0; i < n_poly_vertex; i++) {
             int ivertex = polyMeshConnectivity[vertexIdx + i] - 1;
             for (int j = 0; j < 3; j++) {
@@ -2108,10 +2108,10 @@ void LocationToLocalMesh::compute3DMeanValues()
                                   dist_distances[ipoint],
                                   &distBarCoords[0] + nDistBarCoords[ipoint]);
 
-          delete[] vertex_coords_Elts;
-          delete[] faceToVertexElt;
-          delete[] faceToVertexEltIdx;
-          delete[] faceDirection;
+          free ( vertex_coords_Elts);
+          free ( faceToVertexElt);
+          free ( faceToVertexEltIdx);
+          free ( faceDirection);
 
           ipoint++;
         }

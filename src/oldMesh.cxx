@@ -300,7 +300,7 @@ namespace cwipi {
                                 NULL);
 
       if (nbPoly != 0) {
-        _polygonIndex = new int[nbPoly+1];
+        _polygonIndex =  (int *) malloc (sizeof(int) * (nbPoly+1));
         for(int i = 0; i < nbPoly+1; i++) {
           _polygonIndex[i] = _eltConnectivityIndex[nbTriangle+nbQuadrangle+i]-_eltConnectivityIndex[nbTriangle+nbQuadrangle];
         }
@@ -468,8 +468,8 @@ namespace cwipi {
       MPI_Comm_size(_localComm, &localCommSize);
       MPI_Comm_rank(_localComm, &localRank);
       
-      int *allNElts     = new int[localCommSize];
-      unsigned int *globalEltNum = new unsigned int[_nElts];
+      int *allNElts     =  (int *) malloc (sizeof(int) * (localCommSize));
+      unsigned int *globalEltNum =  (unsigned int *) malloc (sizeof(unsigned int) * (_nElts));
       
       MPI_Allgather((void *) const_cast<int*> (&_nElts),
                     1,
@@ -497,12 +497,12 @@ namespace cwipi {
 
       fvmc_nodal_init_io_num(_fvmNodal, globalEltNum, _nDim);
 
-      delete [] globalEltNum;
+      free ( globalEltNum);
 
       //
       // global vertex num
       
-      unsigned int *globalVertexNum = new unsigned int[_nVertex];
+      unsigned int *globalVertexNum =  (unsigned int *) malloc (sizeof(unsigned int) * (_nVertex));
       
       MPI_Allgather((void *) const_cast<int*> (&_nVertex),
                     1,
@@ -523,8 +523,8 @@ namespace cwipi {
       fvmc_nodal_order_vertices(_fvmNodal, globalVertexNum);
       fvmc_nodal_init_io_num(_fvmNodal, globalVertexNum, 0);
       
-      delete[] globalVertexNum;
-      delete[] allNElts;
+      free ( globalVertexNum);
+      free ( allNElts);
       
 #if defined(DEBUG) && 0
       fvmc_nodal_dump(_fvmNodal);
@@ -795,7 +795,7 @@ namespace cwipi {
                                 NULL);
 
       if (nbPoly != 0) {
-        _polygonIndex = new int[nbPoly+1];
+        _polygonIndex =  (int *) malloc (sizeof(int) * (nbPoly+1));
         for(int i = 0; i < nbPoly+1; i++) {
           _polygonIndex[i] = _eltConnectivityIndex[nbTriangle+nbQuadrangle+i]-_eltConnectivityIndex[nbTriangle+nbQuadrangle];
         }
@@ -945,8 +945,8 @@ namespace cwipi {
     MPI_Comm_size(_localComm, &localCommSize);
     MPI_Comm_rank(_localComm, &localRank);
 
-    int *allNElts     = new int[localCommSize];
-    unsigned int *globalEltNum = new unsigned int[_nElts];
+    int *allNElts     =  (int *) malloc (sizeof(int) * (localCommSize));
+    unsigned int *globalEltNum =  (unsigned int *) malloc (sizeof(unsigned int) * (_nElts));
 
     MPI_Allgather((void *) const_cast<int*> (&_nElts),
                   1,
@@ -974,12 +974,12 @@ namespace cwipi {
 
     fvmc_nodal_init_io_num(_fvmNodal, globalEltNum, _nDim);
 
-    delete [] globalEltNum;
+    free ( globalEltNum);
 
     //
     // global vertex num
 
-    unsigned int *globalVertexNum = new unsigned int[_nVertex];
+    unsigned int *globalVertexNum =  (unsigned int *) malloc (sizeof(unsigned int) * (_nVertex));
 
     MPI_Allgather((void *) const_cast<int*> (&_nVertex),
                   1,
@@ -1000,8 +1000,8 @@ namespace cwipi {
     fvmc_nodal_order_vertices(_fvmNodal, globalVertexNum);
     fvmc_nodal_init_io_num(_fvmNodal, globalVertexNum, 0);
 
-    delete[] globalVertexNum;
-    delete[] allNElts;
+    free ( globalVertexNum);
+    free ( allNElts);
 
     #if defined(DEBUG) && 0
     fvmc_nodal_dump(_fvmNodal);
@@ -1019,7 +1019,7 @@ namespace cwipi {
     delete _normalFace;
     delete _characteristicLength;
     delete _isDegenerated;
-    delete[] _polygonIndex;
+    free ( _polygonIndex);
     delete _polyhedraCellToVertexConnectivity;
     delete _polyhedraCellToVertexConnectivityIndex; 
 

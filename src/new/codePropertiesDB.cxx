@@ -146,7 +146,7 @@ namespace cwipi {
     }
     //properties[2] = is_active_rank;
 
-    int *allProperties = new int[2*globalCommSize];
+    int *allProperties =  (int *) malloc (sizeof(int) * (2*globalCommSize));
 
     MPI_Allgather(&properties,
                   2,
@@ -156,18 +156,18 @@ namespace cwipi {
                   MPI_INT,
                   globalComm);
 
-    char *concatenateNames = new char[properties[1]];
+    char *concatenateNames =  (char *) malloc (sizeof(char) * (properties[1]));
     char *_concatenateNames = concatenateNames;
     for (int i = 0; i < n_codes; i++) {
       strcpy(_concatenateNames, code_names[i]);
       _concatenateNames += strlen(code_names[i]) + 1;
     }
 
-    int *iproc = new int[globalCommSize + 1];
-    int *codesLengthName = new int[globalCommSize];
+    int *iproc =  (int *) malloc (sizeof(int) * (globalCommSize + 1));
+    int *codesLengthName =  (int *) malloc (sizeof(int) * (globalCommSize));
 
-    int *iproc2 = new int[globalCommSize + 1];
-    int *n_codes_rank = new int[globalCommSize];
+    int *iproc2 =  (int *) malloc (sizeof(int) * (globalCommSize + 1));
+    int *n_codes_rank =  (int *) malloc (sizeof(int) * (globalCommSize));
     
     iproc[0] = 0;
     iproc2[0] = 0;
@@ -181,8 +181,8 @@ namespace cwipi {
     int totalLength = iproc[globalCommSize];
     int totalCode = iproc2[globalCommSize];
     
-    char *mergeNames = new char[totalLength];
-    int *mergeIsCoupled = new int[totalCode];
+    char *mergeNames =  (char *) malloc (sizeof(char) * (totalLength));
+    int *mergeIsCoupled =  (int *) malloc (sizeof(int) * (totalCode));
     
     MPI_Allgatherv((void*) concatenateNames,
                    properties[1],
@@ -202,8 +202,8 @@ namespace cwipi {
                    MPI_INT,
                    globalComm);
 
-    delete[] concatenateNames;
-    delete[] codesLengthName;
+    free ( concatenateNames);
+    free ( codesLengthName);
 
 
 
@@ -528,12 +528,12 @@ namespace cwipi {
 
     }
          
-    delete [] allProperties;
-    delete [] iproc;
-    delete [] iproc2;
-    delete [] mergeNames;
-    delete [] mergeIsCoupled;
-    delete[] n_codes_rank;
+    free ( allProperties);
+    free ( iproc);
+    free ( iproc2);
+    free ( mergeNames);
+    free ( mergeIsCoupled);
+    free ( n_codes_rank);
     
     
     // Create intra coupled code group

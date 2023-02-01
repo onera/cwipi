@@ -45,8 +45,8 @@ namespace cwipi {
         }
       }
 
-      delete[] _closest_src_gnum;
-      delete[] _closest_src_dist;
+      free ( _closest_src_gnum);
+      free ( _closest_src_dist);
 
       for (int i_part = 0; i_part < _nPart; i_part++) {
         if (_tgt_in_src_idx[i_part] != NULL) {
@@ -60,9 +60,9 @@ namespace cwipi {
         }
       }
 
-      delete[] _tgt_in_src_idx;
-      delete[] _tgt_in_src_gnum;
-      delete[] _tgt_in_src_dist;
+      free ( _tgt_in_src_idx);
+      free ( _tgt_in_src_gnum);
+      free ( _tgt_in_src_dist);
 
       if (_send_coord != NULL) {
         free(_send_coord);
@@ -142,8 +142,8 @@ namespace cwipi {
 
       //
       // Target properties
-      _closest_src_gnum = new PDM_g_num_t* [_nPart];
-      _closest_src_dist = new double*      [_nPart];
+      _closest_src_gnum = (PDM_g_num_t**) malloc (sizeof(PDM_g_num_t*) * _nPart);
+      _closest_src_dist = (double **) malloc (sizeof(double *) * (_nPart));
 
       for (int i_part = 0; i_part < _nPart; i_part++) {
         _closest_src_gnum[i_part] = NULL;
@@ -152,9 +152,10 @@ namespace cwipi {
 
       //
       // Source properties
-      _tgt_in_src_idx  = new int*         [_nPart];
-      _tgt_in_src_gnum = new PDM_g_num_t* [_nPart];
-      _tgt_in_src_dist = new double*      [_nPart];
+      _tgt_in_src_idx  =  (int **) malloc (sizeof(int *) * (_nPart));
+      _tgt_in_src_gnum = (PDM_g_num_t**) malloc (sizeof(PDM_g_num_t*) * _nPart);
+      
+      _tgt_in_src_dist =  (double **) malloc (sizeof(double *) * (_nPart));
 
       for (int i_part = 0; i_part < _nPart; i_part++) {
         _tgt_in_src_idx [i_part] = NULL;

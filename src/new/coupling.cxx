@@ -285,9 +285,9 @@ namespace cwipi {
           free (_localUserTargetGnum[iPart]);
         }
       }
-      delete [] _userTargetN;
-      delete [] _userTargetGnum;
-      delete [] _userTargetCoord;
+      free ( _userTargetN);
+      free ( _userTargetGnum);
+      free ( _userTargetCoord);
     }
 
     #if defined(DEBUG) && 0
@@ -2046,7 +2046,7 @@ namespace cwipi {
 
         PDM_gnum_compute (pgg);
 
-        _localUserTargetGnum = new  CWP_g_num_t * [_nPart];
+        _localUserTargetGnum = (CWP_g_num_t **) malloc (sizeof(CWP_g_num_t *) * _nPart);
 
         for (int iPart = 0; iPart < _nPart; iPart++){
           _localUserTargetGnum[iPart] = const_cast <CWP_g_num_t*> (PDM_gnum_get (pgg, iPart));

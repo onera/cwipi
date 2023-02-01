@@ -155,13 +155,13 @@ _fortran_to_c_string (
   assert(imax >= imin);
 
   if ((imax == l_application_name_f) || (imin == l_application_name_f)) {
-    application_name_c = new char[1];
+    application_name_c =  (char *) malloc (sizeof(char) * (1));
     // application_name_c = (char *) malloc(sizeof(char) * 1);
     application_name_c[0] = '\0';
   }
   else {
     int size = imax - imin + 2;
-    application_name_c = new char[size];
+    application_name_c =  (char *) malloc (sizeof(char) * (size));
     // application_name_c = (char *) malloc(sizeof(char) * size);
     int index = 0;
     for (int k = imin ; k <= imax ; k++) {
@@ -228,12 +228,12 @@ CWP_Init_cf (
   for (int i = 0 ; i < n_code ; i++) {
     f_intra_comms[i] = MPI_Comm_c2f(c_intra_comms[i]);
 
-    delete [] c_code_names[i];
+    free ( c_code_names[i]);
   }
 
-  // delete [] c_code_names;
+  // free ( c_code_names);
   free(c_code_names);
-  // delete [] c_intra_comms;
+  // free ( c_intra_comms);
   free(c_intra_comms);
 }
 
@@ -264,7 +264,7 @@ CWP_State_update_cf
   CWP_State_update (c_local_code_name,
                     state);
 
-  delete [] c_local_code_name;
+  free ( c_local_code_name);
 }
 
 
@@ -289,7 +289,7 @@ CWP_Time_update_cf
 
   CWP_Time_update (c_local_code_name, current_time);
   
-  delete [] c_local_code_name;
+  free ( c_local_code_name);
 }
 
 
@@ -315,7 +315,7 @@ CWP_User_structure_set_cf
 
   CWP_User_structure_set (c_local_code_name, user_structure);
 
-  delete [] c_local_code_name;
+  free ( c_local_code_name);
 }
 
 
@@ -341,7 +341,7 @@ CWP_User_structure_get_cf
 
   void *user_structure = CWP_User_structure_get (c_local_code_name);
 
-  delete [] c_local_code_name;
+  free ( c_local_code_name);
 
   return user_structure;
 }
@@ -368,7 +368,7 @@ CWP_Output_file_set_cf
 
   CWP_Output_file_set(c_output_file);
 
-  delete [] c_local_code_name;
+  free ( c_local_code_name);
 }
 
 /*----------------------------------------------------------------------------*
@@ -396,7 +396,7 @@ CWP_State_get_cf
 
   CWP_State_t res = CWP_State_get (c_local_code_name);
 
-  delete [] c_local_code_name;
+  free ( c_local_code_name);
 
   return res;
 
@@ -507,9 +507,9 @@ CWP_Cpl_create_cf (
                  displacement, 
                  freq);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_coupled_code_name;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_coupled_code_name);
 }
 
 /**
@@ -537,8 +537,8 @@ CWP_Cpl_del_cf (
 
   CWP_Cpl_del(c_local_code_name, c_cpl_id);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 }
 
 
@@ -575,9 +575,9 @@ CWP_N_uncomputed_tgts_get_cf (
 
   int res = CWP_N_uncomputed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_field_id);
 
   return res;
 }
@@ -616,9 +616,9 @@ CWP_Uncomputed_tgts_get_cf (
 
   const int* res = CWP_Uncomputed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_field_id);
 
   return res;
 }
@@ -655,9 +655,9 @@ CWP_N_computed_tgts_get_cf (
 
   int res = CWP_N_computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_field_id);
 
   return res;
 }
@@ -694,9 +694,9 @@ CWP_Computed_tgts_get_cf (
 
   const int *res = CWP_Computed_tgts_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_field_id);
 
   return res;
 }
@@ -733,9 +733,9 @@ CWP_N_involved_srcs_get_cf (
 
   int res = CWP_N_involved_srcs_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_field_id);
 
   return res;
 }
@@ -772,9 +772,9 @@ CWP_Involved_srcs_get_cf (
 
   const int *res = CWP_Involved_srcs_get(c_local_code_name, c_cpl_id, c_field_id, i_part);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_field_id);
 
   return res;
 }
@@ -806,8 +806,8 @@ CWP_Computed_tgts_dist_to_spatial_interp_get_cf (
 
   const double *res = CWP_Computed_tgts_dist_to_spatial_interp_get(c_local_code_name, c_cpl_id);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 
   return res;
 }
@@ -838,8 +838,8 @@ CWP_Spatial_interp_weights_compute_cf (
 
   CWP_Spatial_interp_weights_compute(c_local_code_name, c_cpl_id);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 }
 
 /*----------------------------------------------------------------------------*
@@ -882,9 +882,9 @@ void CWP_Visu_set_cf (
 
   CWP_Visu_set(c_local_code_name, c_cpl_id, freq, format, c_format_option);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_format_option;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_format_option);
 }
 
 /*----------------------------------------------------------------------------*
@@ -960,8 +960,8 @@ CWP_Mesh_interf_finalize_cf
 
   CWP_Mesh_interf_finalize(c_local_code_name, c_cpl_id);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 }
 
 
@@ -996,8 +996,8 @@ CWP_Mesh_interf_vtx_set_cf(
 
   CWP_Mesh_interf_vtx_set(c_local_code_name, c_cpl_id, i_part, n_pts, coord, global_num);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 }
 
 
@@ -1029,8 +1029,8 @@ CWP_Mesh_interf_block_add_cf (
 
   int id = CWP_Mesh_interf_block_add(c_local_code_name, c_cpl_id, block_type);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 
   return id;
 }
@@ -1153,8 +1153,8 @@ CWP_Mesh_interf_block_std_set_cf (
 
   CWP_Mesh_interf_block_std_set(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, connec, global_num);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 }
 
 
@@ -1205,8 +1205,8 @@ CWP_Mesh_interf_block_std_get_cf
   int n_vtx_block = _n_vtx_block_get(block_type);
   *s_connec = n_vtx_block * (*n_elts);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 }
 
 /**
@@ -1247,8 +1247,8 @@ CWP_Mesh_interf_f_poly_block_set_cf (
 
   CWP_Mesh_interf_f_poly_block_set(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, connec_idx, connec, global_num);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 }
 
 
@@ -1289,8 +1289,8 @@ CWP_Mesh_interf_f_poly_block_get_cf
 
   CWP_Mesh_interf_f_poly_block_get(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, connec_idx, connec, global_num);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 }
 
 /**
@@ -1342,8 +1342,8 @@ CWP_Mesh_interf_c_poly_block_set_cf (
 
   CWP_Mesh_interf_c_poly_block_set(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, n_faces, connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 }
 
 
@@ -1395,8 +1395,8 @@ CWP_Mesh_interf_c_poly_block_get_cf
 
   CWP_Mesh_interf_c_poly_block_get(c_local_code_name, c_cpl_id, i_part, block_id, n_elts, n_faces, connec_faces_idx, connec_faces, connec_cells_idx, connec_cells, global_num);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 }
 
 
@@ -1422,8 +1422,8 @@ CWP_Mesh_interf_del_cf (
 
   CWP_Mesh_interf_del(c_local_code_name, c_cpl_id);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 }
 
 
@@ -1474,8 +1474,8 @@ CWP_Mesh_interf_from_cellface_set_cf (
 
   CWP_Mesh_interf_from_cellface_set(c_local_code_name, c_cpl_id, i_part, n_cells, cell_face_idx, cell_face, n_faces, face_vtx_idx, face_vtx, parent_num);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 }
 
 
@@ -1535,8 +1535,8 @@ CWP_Mesh_interf_from_faceedge_set_cf (
                                     edge_vtx, 
                                     parent_num);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
 
 }
 
@@ -1596,9 +1596,9 @@ CWP_Field_create_cf
                    exch_type, 
                    visu_status);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_field_id);
 
 }
 
@@ -1637,9 +1637,9 @@ CWP_Field_data_set_cf (
 
   CWP_Field_data_set(c_local_code_name, c_cpl_id, c_field_id, i_part, (CWP_Field_map_t) map_type, data);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_field_id);
 
 }
 
@@ -1674,9 +1674,9 @@ CWP_Field_n_component_get_cf
 
   int n_component = CWP_Field_n_component_get(c_local_code_name, c_cpl_id, c_field_id);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_field_id);
 
   return n_component;
 }
@@ -1713,9 +1713,9 @@ CWP_Field_target_dof_location_get_cf
 
   CWP_Dof_location_t dof_location = CWP_Field_target_dof_location_get(c_local_code_name, c_cpl_id, c_field_id);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_field_id);
 
   return dof_location;
 }
@@ -1751,9 +1751,9 @@ CWP_Field_storage_get_cf
 
   CWP_Field_storage_t storage = CWP_Field_storage_get(c_local_code_name, c_cpl_id, c_field_id);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_field_id);
 
   return storage;
 }
@@ -1787,9 +1787,9 @@ CWP_Field_del_cf
 
   CWP_Field_del(c_local_code_name, c_cpl_id, c_field_id);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_field_id);
 }
 
 /*----------------------------------------------------------------------------*
@@ -1831,9 +1831,9 @@ CWP_Field_issend_cf (
 
   CWP_Field_issend(c_local_code_name, c_cpl_id, c_src_field_id);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_src_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_src_field_id);
 }
 
 /**
@@ -1872,9 +1872,9 @@ CWP_Field_irecv_cf(
 
   CWP_Field_irecv(c_local_code_name, c_cpl_id, c_tgt_field_id);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_tgt_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_tgt_field_id);
 }
 
 /**
@@ -1908,9 +1908,9 @@ CWP_Field_wait_issend_cf (
 
   CWP_Field_wait_issend(c_local_code_name, c_cpl_id, c_src_field_id);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_src_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_src_field_id);
 }
 
 /**
@@ -1947,9 +1947,9 @@ CWP_Field_wait_irecv_cf (
 
   CWP_Field_wait_irecv(c_local_code_name, c_cpl_id, c_tgt_field_id);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_tgt_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_tgt_field_id);
 }
 
 /**
@@ -1985,9 +1985,9 @@ CWP_Interp_from_location_set_cf (
 
   CWP_Interp_from_location_set(c_local_code_name, c_cpl_id, c_src_field_id, (CWP_Interp_from_location_t) ptInterpolationFct);
 
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_src_field_id;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_src_field_id);
 }
 
 
@@ -2020,11 +2020,11 @@ CWP_Spatial_interp_property_set_cf
                                   c_property_name,
                                   c_property_type,
                                   c_property_value);
-  delete [] c_local_code_name;
-  delete [] c_cpl_id;
-  delete [] c_property_name;
-  delete [] c_property_type;
-  delete [] c_property_value;
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_property_name);
+  free ( c_property_type);
+  free ( c_property_value);
 }
 
 
@@ -2062,8 +2062,8 @@ CWP_Param_add_cf
                 data_type,
                 initial_value);
 
-  delete [] c_local_code_name;
-  delete [] c_param_name;
+  free ( c_local_code_name);
+  free ( c_param_name);
 }
 
 
@@ -2097,8 +2097,8 @@ CWP_Param_set_cf
                 data_type,
                 value);
 
-  delete [] c_local_code_name;
-  delete [] c_param_name;
+  free ( c_local_code_name);
+  free ( c_param_name);
 }
 
 /**
@@ -2128,8 +2128,8 @@ CWP_Param_del_cf
                 c_param_name,
                 data_type);
 
-  delete [] c_local_code_name;
-  delete [] c_param_name;
+  free ( c_local_code_name);
+  free ( c_param_name);
 }
 
 
@@ -2161,7 +2161,7 @@ CWP_Param_n_get_cf
   int n_param = CWP_Param_n_get(c_code_name,
                                 data_type);
 
-  delete [] c_code_name;
+  free ( c_code_name);
 
   return n_param;
 }
@@ -2234,8 +2234,8 @@ CWP_Param_is_cf
                               c_param_name,
                               data_type);
 
-  delete [] c_code_name;
-  delete [] c_param_name;
+  free ( c_code_name);
+  free ( c_param_name);
 
   return is_param;
 }
@@ -2271,8 +2271,8 @@ CWP_Param_get_cf
                 data_type,
                 value);
 
-  delete [] c_code_name;
-  delete [] c_param_name;
+  free ( c_code_name);
+  free ( c_param_name);
 }
 
 
@@ -2322,9 +2322,9 @@ CWP_Param_reduce_cf
    (const char **) c_code_names);
 
   for (int i = 0; i < n_codes; i++) {
-    delete [] c_code_names[i];
+    free ( c_code_names[i]);
   }
-  delete [] c_param_name;
+  free ( c_param_name);
 }
 
 
@@ -2347,7 +2347,7 @@ CWP_Param_lock_cf
 
   CWP_Param_lock(c_code_name);
 
-  delete [] c_code_name;
+  free ( c_code_name);
 }
 
 
@@ -2370,7 +2370,7 @@ CWP_Param_unlock_cf
 
   CWP_Param_unlock(c_code_name);
 
-  delete [] c_code_name;
+  free ( c_code_name);
 }
 
 /**
@@ -2409,9 +2409,9 @@ CWP_Interp_from_location_fortran_set_cf
 
   cpl.interpFortranFromLocSet(field_name_str, fct);
 
-  delete [] c_code_name;
-  delete [] c_cpl_id;
-  delete [] c_src_field_id;
+  free ( c_code_name);
+  free ( c_cpl_id);
+  free ( c_src_field_id);
 
 }
 
@@ -2450,9 +2450,9 @@ CWP_Interp_from_location_fortran_unset_cf
 
   cpl.interpFortranFromLocUnSet(field_name_str);
 
-  delete [] c_code_name;
-  delete [] c_cpl_id;
-  delete [] c_src_field_id;
+  free ( c_code_name);
+  free ( c_cpl_id);
+  free ( c_src_field_id);
 
 }
 

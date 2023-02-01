@@ -171,7 +171,7 @@ namespace cwipi {
     }
 
     if (_blocksType != NULL) {
-      delete [] _blocksType;
+      free ( _blocksType);
     }
 
   }
@@ -515,10 +515,10 @@ namespace cwipi {
 
         PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
-        double ** face_center = new double* [_npart];
+        double ** face_center =  (double **) malloc (sizeof(double *) * (_npart));
 
         for (int i_part = 0; i_part < _npart; i_part++) {
-          face_center[i_part] = new double[3*_nFace[i_part]];
+          face_center[i_part] =  (double *) malloc (sizeof(double) * (3*_nFace[i_part]));
           for (int j = 0; j < 3*_nFace[i_part]; j++) {
             face_center[i_part][j] = 0.;
           }
@@ -556,10 +556,10 @@ namespace cwipi {
         PDM_gnum_free (pdmGNum_handle_index);
 
         for (int i_part = 0; i_part < _npart; i_part++) {
-          delete[] face_center[i_part];
+          free ( face_center[i_part]);
         }
 
-        delete[] face_center;
+        free ( face_center);
 
       }
 
@@ -600,10 +600,10 @@ namespace cwipi {
 
         PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
-        double ** face_center = new double* [_npart];
+        double ** face_center =  (double **) malloc (sizeof(double *) * (_npart));
 
         for (int i_part = 0; i_part < _npart; i_part++) {
-          face_center[i_part] = new double[3*_nFace[i_part]];
+          face_center[i_part] =  (double *) malloc (sizeof(double) * (3*_nFace[i_part]));
           for (int j = 0; j < 3*_nFace[i_part]; j++) {
             face_center[i_part][j] = 0.;
           }
@@ -638,10 +638,10 @@ namespace cwipi {
         PDM_gnum_free (pdmGNum_handle_index);
 
         for (int i_part = 0; i_part < _npart; i_part++) {
-          delete[] face_center[i_part];
+          free ( face_center[i_part]);
         }
 
-        delete[] face_center;
+        free ( face_center);
       }
 
 
@@ -659,10 +659,10 @@ namespace cwipi {
 
         PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
-        double ** cell_center = new double* [_npart];
+        double ** cell_center =  (double **) malloc (sizeof(double *) * (_npart));
 
         for (int i_part = 0; i_part < _npart; i_part++) {
-          cell_center[i_part] = new double[3*_nCells[i_part]];
+          cell_center[i_part] =  (double *) malloc (sizeof(double) * (3*_nCells[i_part]));
           for (int j = 0; j < 3*_nCells[i_part]; j++) {
             cell_center[i_part][j] = 0.;
           }
@@ -710,10 +710,10 @@ namespace cwipi {
         PDM_gnum_free (pdmGNum_handle_index);
 
         for (int i_part = 0; i_part < _npart; i_part++) {
-          delete[] cell_center[i_part];
+          free ( cell_center[i_part]);
         }
 
-        delete[] cell_center;
+        free ( cell_center);
 
       }
 
@@ -807,10 +807,10 @@ namespace cwipi {
 
         PDM_gen_gnum_t *pdmGNum_handle_index = PDM_gnum_create(3, _npart, PDM_FALSE, 1e-3, _pdm_localComm, PDM_OWNERSHIP_KEEP);
 
-        double **cell_center = new double* [_npart];
+        double **cell_center =  (double **) malloc (sizeof(double *) * (_npart));
 
         for(int i_part = 0; i_part < _npart; i_part++){
-          cell_center[i_part] = new double[3*_nElts[i_part]];
+          cell_center[i_part] =  (double *) malloc (sizeof(double) * (3*_nElts[i_part]));
 
           for(int i = 0; i < 3*_nElts[i_part]; i++){
             cell_center[i_part][i] = 0.;
@@ -959,10 +959,10 @@ namespace cwipi {
         PDM_gnum_free (pdmGNum_handle_index);
 
         for (int i_part = 0; i_part < _npart; i_part++) {
-          delete[] cell_center[i_part];
+          free ( cell_center[i_part]);
         }
 
-        delete[] cell_center;
+        free ( cell_center);
 
       }
 

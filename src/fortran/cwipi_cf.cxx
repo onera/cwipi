@@ -127,12 +127,12 @@ static char *_cwipi_fortran_to_c_string(const char *application_name_f,
   assert(imax >= imin);
 
   if ((imax == l_application_name_f) || (imin == l_application_name_f)) {
-    application_name_c = new char[1];
+    application_name_c =  (char *) malloc (sizeof(char) * (1));
     application_name_c[0] = '\0';
   }
   else {
     int size = imax - imin + 2;
-    application_name_c = new char[size];
+    application_name_c =  (char *) malloc (sizeof(char) * (size));
     int index = 0;
     for (int k = imin; k <= imax; k++)
       application_name_c[index++] = application_name_f[k];
@@ -190,7 +190,7 @@ void PROCF(cwipi_init_cf, CWIPI_INIT_CF)
   *application_fcomm = MPI_Comm_c2f(application_comm);
 
 
-  delete[] application_name_c;
+  free ( application_name_c);
 }
 
 /*----------------------------------------------------------------------------
@@ -212,7 +212,7 @@ void PROCF(cwipi_add_loc_int_ctrl_param_cf,
 {
   char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
   cwipi_add_local_int_control_parameter(nameC, *initial_value);
-  delete[] nameC;
+  free ( nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -234,7 +234,7 @@ void PROCF(cwipi_add_loc_dbl_ctrl_param_cf,
 {
   char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
   cwipi_add_local_double_control_parameter(nameC, *initial_value);
-  delete[] nameC;
+  free ( nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -258,8 +258,8 @@ void PROCF(cwipi_add_loc_str_ctrl_param_cf,
   char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
   char* valueC = _cwipi_fortran_to_c_string(initial_value, *l_value);
   cwipi_add_local_string_control_parameter(nameC, valueC);
-  delete[] nameC;
-  delete[] valueC;
+  free ( nameC);
+  free ( valueC);
 }
 
 /*----------------------------------------------------------------------------
@@ -281,7 +281,7 @@ void PROCF(cwipi_set_loc_int_ctrl_param_cf,
 {
   char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
   cwipi_set_local_int_control_parameter(nameC, *value);
-  delete[] nameC;
+  free ( nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -303,7 +303,7 @@ void PROCF(cwipi_set_loc_dbl_ctrl_param_cf,
 {
   char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
   cwipi_set_local_double_control_parameter(nameC, *value);
-  delete[] nameC;
+  free ( nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -327,8 +327,8 @@ void PROCF(cwipi_set_loc_str_ctrl_param_cf,
   char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
   char* valueC = _cwipi_fortran_to_c_string(initial_value, *l_value);
   cwipi_set_local_string_control_parameter(nameC, valueC);
-  delete[] nameC;
-  delete[] valueC;
+  free ( nameC);
+  free ( valueC);
 }
 
 /*----------------------------------------------------------------------------
@@ -349,7 +349,7 @@ void PROCF(cwipi_get_loc_int_ctrl_param_cf,
 {
   char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
   *value = cwipi_get_local_int_control_parameter(nameC);
-  delete[] nameC;
+  free ( nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -370,7 +370,7 @@ void PROCF(cwipi_get_loc_dbl_ctrl_param_cf,
 {
   char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
   *value = cwipi_get_local_double_control_parameter(nameC);
-  delete[] nameC;
+  free ( nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -404,7 +404,7 @@ void PROCF(cwipi_get_loc_str_ctrl_param_cf,
     value_str_f[i] = ' ';
     i+=1;
   }
-  delete[] nameC;
+  free ( nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -424,7 +424,7 @@ void PROCF(cwipi_del_loc_int_ctrl_param_cf,
 {
   char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
   cwipi_delete_local_int_control_parameter(nameC);
-  delete[] nameC;
+  free ( nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -444,7 +444,7 @@ void PROCF(cwipi_del_loc_dbl_ctrl_param_cf,
 {
   char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
   cwipi_delete_local_double_control_parameter(nameC);
-  delete[] nameC;
+  free ( nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -464,7 +464,7 @@ void PROCF(cwipi_del_loc_str_ctrl_param_cf,
 {
   char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
   cwipi_delete_local_string_control_parameter(nameC);
-  delete[] nameC;
+  free ( nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -493,8 +493,8 @@ void PROCF(cwipi_get_dis_int_ctrl_param_cf,
   *value = cwipi_get_distant_int_control_parameter(application_nameC,
                                                        nameC);
 
-  delete[] nameC;
-  delete[] application_nameC;
+  free ( nameC);
+  free ( application_nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -523,8 +523,8 @@ void PROCF(cwipi_get_dis_dbl_ctrl_param_cf,
   *value = cwipi_get_distant_double_control_parameter(application_nameC,
                                                           nameC);
 
-  delete[] nameC;
-  delete[] application_nameC;
+  free ( nameC);
+  free ( application_nameC);
 }
 /*
  * ----------------------------------------------------------------------------
@@ -565,8 +565,8 @@ void PROCF(cwipi_get_dis_str_ctrl_param_cf,
     i+=1;
   }
 
-  delete[] nameC;
-  delete[] application_nameC;
+  free ( nameC);
+  free ( application_nameC);
 }
 
 
@@ -836,7 +836,7 @@ void PROCF(cwipi_synch_ctrl_param_cf,
 
   cwipi_synchronize_control_parameter(application_nameC);
 
-  delete[] application_nameC;
+  free ( application_nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -922,10 +922,10 @@ void PROCF(cwipi_create_coupling_cf,
                         output_format_optionC,
                         *nbLocations);
 
-  delete[] coupling_nameC;
-  delete[] coupled_applicationC;
-  delete[] output_formatC;
-  delete[] output_format_optionC;
+  free ( coupling_nameC);
+  free ( coupled_applicationC);
+  free ( output_formatC);
+  free ( output_format_optionC);
 }
 
 /*----------------------------------------------------------------------------
@@ -956,7 +956,7 @@ void PROCF(cwipi_set_points_to_locate_cf,
   cwipi_set_points_to_locate(coupling_nameC,
                                  *n_points,
                                  coordinate);
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 
@@ -1002,7 +1002,7 @@ void PROCF(cwipi_define_mesh_cf,
                         coordinates,
                         connectivity_index,
                         connectivity);
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 void PROCF(cwipi_ho_define_mesh_cf,
@@ -1027,7 +1027,7 @@ void PROCF(cwipi_ho_define_mesh_cf,
                        coordinates,
                        connectivity_index,
                        connectivity);
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 void PROCF(cwipi_ho_options_set_cf,
@@ -1051,9 +1051,9 @@ void PROCF(cwipi_ho_options_set_cf,
                        optionC,
                        valueC);
 
-  delete[] coupling_nameC;
-  delete[] optionC;
-  delete[] valueC;
+  free ( coupling_nameC);
+  free ( optionC);
+  free ( valueC);
 }
 
 void PROCF(cwipi_add_polyhedra_cf,
@@ -1079,7 +1079,7 @@ void PROCF(cwipi_add_polyhedra_cf,
                       *n_faces,
                       face_connectivity_index,
                       face_connectivity);
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -1111,7 +1111,7 @@ void PROCF (cwipi_ho_ordering_from_ijk_set_cf,
                                  *n_nodes,
                                  ijk);
 
-  delete[] coupling_idC;
+  free ( coupling_idC);
 }
 
 /*----------------------------------------------------------------------------
@@ -1143,7 +1143,7 @@ void PROCF (cwipi_ho_ordering_from_ref_elt_set_cf,
                                      *n_nodes,
                                      coords);
 
-  delete[] coupling_idC;
+  free ( coupling_idC);
 
 }
 
@@ -1173,7 +1173,7 @@ void PROCF(cwipi_locate_cf, CWIPI_LOCATE_CF) (const char *coupling_name,
 
   coupling.locate();
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -1201,7 +1201,7 @@ void PROCF(cwipi_set_location_index_cf,
 
   coupling.setLocationIndex(*index);
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 
 
 }
@@ -1231,7 +1231,7 @@ void PROCF(cwipi_load_location_cf,
 
   coupling.loadLocation();
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 
 
 }
@@ -1253,7 +1253,7 @@ void PROCF(cwipi_save_location_cf,
 
   coupling.saveLocation();
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 
 
 }
@@ -1296,9 +1296,9 @@ void PROCF(cwipi_open_location_file_cf,
 
   coupling.openLocationFile(filenameC, modeC);
 
-  delete[] coupling_nameC;
-  delete[] filenameC;
-  delete[] modeC;
+  free ( coupling_nameC);
+  free ( filenameC);
+  free ( modeC);
 }
 
 /*----------------------------------------------------------------------------
@@ -1326,7 +1326,7 @@ void PROCF(cwipi_open_location_file_cf,
 
   coupling.closeLocationFile();
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 
 
 }
@@ -1363,7 +1363,7 @@ void PROCF(cwipi_dist_located_pts_get_cf, CWIPI_DIST_LOCATED_PTS_GET_CF)
   for (int i = 0; i < npts; i++)
     distance[i] = dist_c[i];
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -1390,7 +1390,7 @@ void PROCF(cwipi_update_location_cf, CWIPI_UPDATE_LOCATION_CF) (const char *coup
 
   coupling.updateLocation();
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -1423,7 +1423,7 @@ void PROCF(cwipi_get_distant_location_cf,
   for (int i = 0; i < nDistantPoint; i++)
     location[i] = locationC[i];
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -1456,7 +1456,7 @@ void PROCF(cwipi_get_distant_distance_cf,
   for (int i = 0; i < nDistantPoint; i++)
     distance[i] = distanceC[i];
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -1487,7 +1487,7 @@ void PROCF(cwipi_get_n_located_dist_pts_cf,
 
   *n_located_distant_Points = coupling.getNDistantPoint();
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 
@@ -1523,7 +1523,7 @@ void PROCF(cwipi_get_dis_coord_cf,
   for (int i = 0; i < 3 * nDistantPoint; i++)
     coordinates[i] = coordinatesC[i];
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 
@@ -1559,7 +1559,7 @@ void PROCF(cwipi_get_dis_bary_coord_idx_cf,
   for (int i = 0; i < nDistantPoint + 1; i++)
     barycentricCoordinatesIndex[i] = barycentricCoordinatesIndexC[i];
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -1589,7 +1589,7 @@ void PROCF(cwipi_get_n_located_pts_cf,
 
   *n_located_points = coupling.getNLocatedPoint();
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -1619,7 +1619,7 @@ void PROCF(cwipi_get_n_not_located_pts_cf,
 
   *n_not_located_points = coupling.getNNotlocatedPoint();
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -1656,7 +1656,7 @@ void PROCF(cwipi_get_dis_bary_coord_cf,
   for (int i = 0; i < barycentricCoordinatesIndexC[nDistantPoint]; i++)
     barycentricCoordinates[i] = barycentricCoordinatesC[i];
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -1690,7 +1690,7 @@ void PROCF(cwipi_get_n_dis_ranks_cf, CWIPI_GET_N_DIS_RANKS_CF)
 
   *n_dis_ranks = coupling.getNDistantRank();
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 
@@ -1729,7 +1729,7 @@ void PROCF(cwipi_get_dis_distrib_cf, CWIPI_GET_DIS_DISTRIB_CF)
   for (int i = 0; i < n_dis_ranks + 1; i++)
     distrib[i] = distrib_c[i];
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 
@@ -1768,7 +1768,7 @@ void PROCF(cwipi_get_loc_pts_distrib_cf, CWIPI_GET_LOC_PTS_DISTRIB_CF)
   for (int i = 0; i < n_dis_ranks + 1; i++)
     distrib[i] = distrib_c[i];
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 
@@ -1849,10 +1849,10 @@ void PROCF(cwipi_exch_with_user_itp_cf,
 
   *n_not_located_points = coupling.getNNotlocatedPoint();
 
-  delete[] coupling_nameC;
-  delete[] exchange_nameC;
-  delete[] sending_field_nameC;
-  delete[] receiving_field_nameC;
+  free ( coupling_nameC);
+  free ( exchange_nameC);
+  free ( sending_field_nameC);
+  free ( receiving_field_nameC);
 }
 
 
@@ -1907,10 +1907,10 @@ void PROCF(cwipi_exchange_cf,
 
   *n_not_located_points = coupling.getNNotlocatedPoint();
 
-  delete[] coupling_nameC;
-  delete[] exchange_nameC;
-  delete[] sending_field_nameC;
-  delete[] receiving_field_nameC;
+  free ( coupling_nameC);
+  free ( exchange_nameC);
+  free ( sending_field_nameC);
+  free ( receiving_field_nameC);
 }
 
 void PROCF(cwipi_receive_cf,
@@ -1957,9 +1957,9 @@ void PROCF(cwipi_receive_cf,
                                         NULL);
   *n_not_located_points = coupling.getNNotlocatedPoint();
 
-  delete[] coupling_nameC;
-  delete[] exchange_nameC;
-  delete[] receiving_field_nameC;
+  free ( coupling_nameC);
+  free ( exchange_nameC);
+  free ( receiving_field_nameC);
 }
 
 void PROCF(cwipi_send_with_user_itp_cf,
@@ -2003,9 +2003,9 @@ void PROCF(cwipi_send_with_user_itp_cf,
                                         NULL,
                                         NULL,
                                         ptFortranInterpolationFct);
-  delete[] coupling_nameC;
-  delete[] exchange_nameC;
-  delete[] sending_field_nameC;
+  free ( coupling_nameC);
+  free ( exchange_nameC);
+  free ( sending_field_nameC);
 }
 
 void PROCF(cwipi_send_cf,
@@ -2048,9 +2048,9 @@ void PROCF(cwipi_send_cf,
                                         NULL,
                                         NULL,
                                         NULL);
-  delete[] coupling_nameC;
-  delete[] exchange_nameC;
-  delete[] sending_field_nameC;
+  free ( coupling_nameC);
+  free ( exchange_nameC);
+  free ( sending_field_nameC);
 }
 
 
@@ -2096,9 +2096,9 @@ void PROCF(cwipi_issend_cf,
                   NULL,
                   request);
 
-  delete[] coupling_nameC;
-  delete[] exchange_nameC;
-  delete[] sending_field_nameC;
+  free ( coupling_nameC);
+  free ( exchange_nameC);
+  free ( sending_field_nameC);
 }
 
 void PROCF(cwipi_issend_with_user_itp_cf,
@@ -2144,9 +2144,9 @@ void PROCF(cwipi_issend_with_user_itp_cf,
                   ptFortranInterpolationFct,
                   request);
 
-  delete[] coupling_nameC;
-  delete[] exchange_nameC;
-  delete[] sending_field_nameC;
+  free ( coupling_nameC);
+  free ( exchange_nameC);
+  free ( sending_field_nameC);
 }
 
 void PROCF(cwipi_ireceive_cf, 
@@ -2190,9 +2190,9 @@ void PROCF(cwipi_ireceive_cf,
                  receiving_field,
                  request);
 
-  delete[] coupling_nameC;
-  delete[] exchange_nameC;
-  delete[] receiving_field_nameC;
+  free ( coupling_nameC);
+  free ( exchange_nameC);
+  free ( receiving_field_nameC);
 }
 
 
@@ -2214,7 +2214,7 @@ void PROCF(cwipi_wait_irecv_cf, CWIPI_WAIT_IRECV_CF)
 
   coupling.waitIrecv(*request);
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 void PROCF(cwipi_wait_issend_cf, CWIPI_WAIT_ISSEND_CF)
@@ -2235,7 +2235,7 @@ void PROCF(cwipi_wait_issend_cf, CWIPI_WAIT_ISSEND_CF)
 
   coupling.waitIssend(*request);
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 
@@ -2259,7 +2259,7 @@ void PROCF(cwipi_delete_coupling_cf,
     _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
   cwipi_delete_coupling(coupling_nameC);
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 }
 
 /*----------------------------------------------------------------------------
@@ -2319,7 +2319,7 @@ void PROCF(cwipi_get_not_located_pts_cf,
   for( int i = 0; i <  n_not_located_points; i++)
     notLocatedPoints[i] = notLocatedPointsC[i];
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 
 }
 
@@ -2355,7 +2355,7 @@ void PROCF(cwipi_get_located_pts_cf,
   for( int i = 0; i < n_located_points; i++)
     locatedPoints[i] = locatedPointsC[i];
 
-  delete[] coupling_nameC;
+  free ( coupling_nameC);
 
 }
 

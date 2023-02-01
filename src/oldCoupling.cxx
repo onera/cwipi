@@ -1140,7 +1140,7 @@ namespace cwipi {
                      _coupledApplicationBeginningRankCouplingComm, 0,
                      _couplingComm, &MPIStatus);
 
-        char *distantCouplingName = new char[lDistantName];
+        char *distantCouplingName =  (char *) malloc (sizeof(char) * (lDistantName));
 
         MPI_Sendrecv(const_cast <char*>(_name.c_str()),
                      lLocalName, MPI_CHAR,
@@ -1153,7 +1153,7 @@ namespace cwipi {
           bftc_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
                      _name.c_str(),
                      distantCouplingName);
-        delete[] distantCouplingName;
+        free ( distantCouplingName);
 
         //
         // Check exchange name
@@ -1165,7 +1165,7 @@ namespace cwipi {
                      _coupledApplicationBeginningRankCouplingComm, 0,
                      _couplingComm, &MPIStatus);
 
-        char *distantExchangeName = new char[lDistantName];
+        char *distantExchangeName =  (char *) malloc (sizeof(char) * (lDistantName));
 
         MPI_Sendrecv(const_cast <char*>(exchangeName),
                      lLocalName, MPI_CHAR,
@@ -1179,7 +1179,7 @@ namespace cwipi {
                      exchangeName,
                      distantExchangeName);
 
-        delete[] distantExchangeName;
+        free ( distantExchangeName);
       }
     }
 
@@ -2007,7 +2007,7 @@ namespace cwipi {
 
         const int nElts  = _supportMesh->getNElts();
 
-        int *domLoc = new int [nElts];
+        int *domLoc =  (int *) malloc (sizeof(int) * (nElts));
 
         for (int i = 0; i < nElts; i++)
           domLoc[i] = localRank+1;
@@ -2024,7 +2024,7 @@ namespace cwipi {
                                  -1,
                                  0.0,
                                  (const void *const *)  &domLoc);
-        delete[] domLoc;
+        free ( domLoc);
       }
 
       // TODO: A deplacer et a recreer en cas de maillage mobile
@@ -2039,7 +2039,7 @@ namespace cwipi {
         if (_solverType == CWIPI_SOLVER_CELL_CENTER) {
           const int nElts  = _supportMesh->getNElts();
 
-          int *domLoc = new int [nElts];
+          int *domLoc =  (int *) malloc (sizeof(int) * (nElts));
 
           for (int i = 0; i < nElts; i++)
             domLoc[i] = 1;
@@ -2063,7 +2063,7 @@ namespace cwipi {
         else {
           const int nVertex = _supportMesh->getNVertex();
 
-          int *domLoc = new int [nVertex];
+          int *domLoc =  (int *) malloc (sizeof(int) * (nVertex));
 
           for (int i = 0; i < nVertex; i++)
             domLoc[i] = 1;
@@ -2083,7 +2083,7 @@ namespace cwipi {
                                    -1,
                                    0.0,
                                    (const void *const *)  &domLoc);
-          delete [] domLoc;
+          free ( domLoc);
         }
       }
 
@@ -2168,7 +2168,7 @@ namespace cwipi {
             ptField = const_cast <void **> (&sendingField);
             if (stride > 1) {
               if (cpSendingField == NULL)
-                cpSendingField = new double [fieldSize];
+                cpSendingField =  (double *) malloc (sizeof(double) * (fieldSize));
               for (int jj =0; jj < fieldSize; jj++) {
                 cpSendingField[jj] = ((double *) sendingField)[jj*stride+kk];
               }
@@ -2192,7 +2192,7 @@ namespace cwipi {
         }
 
         if (stride > 1 && cpSendingField != NULL)
-          delete [] cpSendingField;
+          free ( cpSendingField);
 
       }
 
@@ -2204,7 +2204,7 @@ namespace cwipi {
         if (receivingField != NULL && _locationToDistantMesh->getCoordsPointsToLocate() == NULL) {
 
           int lReceivingField = _locationToDistantMesh->getNpointsToLocate();
-          double *cpReceivingField = new double [lReceivingField];
+          double *cpReceivingField =  (double *) malloc (sizeof(double) * (lReceivingField));
           const int nLocatedPoint = _locationToDistantMesh->getNpointsToLocate() - _locationToDistantMesh->getNUnlocatedPoint();
 
           for (int j = 0; j < stride; j++) {
@@ -2234,7 +2234,7 @@ namespace cwipi {
                                      timeValue,
                                      (const void *const *) &cpReceivingField);
           }
-          delete [] cpReceivingField;
+          free ( cpReceivingField);
         }
       }
     }
@@ -2364,8 +2364,8 @@ namespace cwipi {
       //
       // Exchange coupling type
 
-      cwipi_coupling_type_t* couplingTypes =
-        new cwipi_coupling_type_t[coupledApplicationCommSize];
+      cwipi_coupling_type_t* couplingTypes = 
+           (cwipi_coupling_type_t*) malloc (sizeof(cwipi_coupling_type_t) * coupledApplicationCommSize);
 
       MPI_Allgather((void*)& _couplingType,
                     1,
@@ -2409,7 +2409,7 @@ namespace cwipi {
       else
         distantCouplingType = couplingTypes[0];
 
-      delete [] couplingTypes;
+      free ( couplingTypes);
 
       //
       // Build coupling communicator
@@ -2417,7 +2417,7 @@ namespace cwipi {
       if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING ||
           distantCouplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
 
-        int *rankList = new int[coupledApplicationCommSize];
+        int *rankList =  (int *) malloc (sizeof(int) * (coupledApplicationCommSize));
         int nRankList = -1;
 
         if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING &&
@@ -2490,7 +2490,7 @@ namespace cwipi {
         MPI_Group_free(&couplingGroup);
         MPI_Group_free(&mergeGroup);
 
-        delete [] rankList;
+        free ( rankList);
 
       }
       else

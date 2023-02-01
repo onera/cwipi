@@ -68,12 +68,12 @@ namespace cwipi {
       }
     }
 
-    delete[] _n_elt_weights;
-    delete[] _n_computed_tgt;
-    delete[] _n_uncomputed_tgt;
-    delete[] _n_involved_sources_tgt;
-    delete[] _src_n_gnum;
-    delete[] _tgt_n_gnum;
+    free ( _n_elt_weights);
+    free ( _n_computed_tgt);
+    free ( _n_uncomputed_tgt);
+    free ( _n_involved_sources_tgt);
+    free ( _src_n_gnum);
+    free ( _tgt_n_gnum);
 
     for (int i = 0; i < _nPart; i++) {
       if (_weights_idx[i] != NULL) {
@@ -92,16 +92,16 @@ namespace cwipi {
         free (_uncomputed_tgt[i]);
       }
     }
-    delete[] _weights_idx;
-    delete[] _weights;
+    free ( _weights_idx);
+    free ( _weights);
 
-    delete[] _computed_tgt;
-    delete[] _involved_sources_tgt;
+    free ( _computed_tgt);
+    free ( _involved_sources_tgt);
 
-    delete[] _uncomputed_tgt;
+    free ( _uncomputed_tgt);
 
-    delete[] _src_gnum;
-    delete[] _tgt_gnum;
+    free ( _src_gnum);
+    free ( _tgt_gnum);
   }
 
 
@@ -167,11 +167,11 @@ namespace cwipi {
     _ptsp = NULL;
 
     if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-      _src_n_gnum = new int [_nPart];
-      _src_gnum = new const PDM_g_num_t* [_nPart];
+      _src_n_gnum =  (int *) malloc (sizeof(int) * (_nPart));
+      _src_gnum =  (const PDM_g_num_t **) malloc (sizeof(PDM_g_num_t) * _nPart);
 
-      _tgt_n_gnum = new int [_cplNPart];
-      _tgt_gnum = new const PDM_g_num_t* [_cplNPart];
+      _tgt_n_gnum =  (int *) malloc (sizeof(int) * (_cplNPart));
+      _tgt_gnum = (const PDM_g_num_t **) malloc (sizeof(PDM_g_num_t) * _cplNPart);
 
       for (int i_part = 0 ; i_part < _nPart ; i_part++) { 
         _src_n_gnum[i_part] = 0;
@@ -184,11 +184,11 @@ namespace cwipi {
       }
     }
     else {
-      _src_n_gnum = new int [_cplNPart];
-      _src_gnum = new const PDM_g_num_t* [_cplNPart];
+      _src_n_gnum =  (int *) malloc (sizeof(int) * (_cplNPart));
+      _src_gnum = (const PDM_g_num_t **) malloc (sizeof(PDM_g_num_t) * _cplNPart);
 
-      _tgt_n_gnum = new int [_nPart];
-      _tgt_gnum = new const PDM_g_num_t* [_nPart];
+      _tgt_n_gnum =  (int *) malloc (sizeof(int) * (_nPart));
+      _tgt_gnum = (const PDM_g_num_t **) malloc (sizeof(PDM_g_num_t) * _nPart);
 
       for (int i_part = 0 ; i_part < _cplNPart ; i_part++) { 
         _src_n_gnum[i_part] = 0;
@@ -202,18 +202,18 @@ namespace cwipi {
     }
 
 
-    _n_elt_weights = new int [_nPart];
-    _weights_idx = new int* [_nPart];
-    _weights = new double* [_nPart];
+    _n_elt_weights =  (int *) malloc (sizeof(int) * (_nPart));
+    _weights_idx =  (int **) malloc (sizeof(int *) * (_nPart));
+    _weights =  (double **) malloc (sizeof(double *) * (_nPart));
 
-    _n_computed_tgt = new int [_nPart];
-    _computed_tgt = new int* [_nPart];
+    _n_computed_tgt =  (int *) malloc (sizeof(int) * (_nPart));
+    _computed_tgt =  (int **) malloc (sizeof(int *) * (_nPart));
 
-    _n_involved_sources_tgt = new int [_nPart];
-    _involved_sources_tgt = new int* [_nPart];
+    _n_involved_sources_tgt =  (int *) malloc (sizeof(int) * (_nPart));
+    _involved_sources_tgt =  (int **) malloc (sizeof(int *) * (_nPart));
 
-    _n_uncomputed_tgt = new int [_nPart];
-    _uncomputed_tgt = new int* [_nPart];
+    _n_uncomputed_tgt =  (int *) malloc (sizeof(int) * (_nPart));
+    _uncomputed_tgt =  (int **) malloc (sizeof(int *) * (_nPart));
 
     for (int i = 0; i < _nPart; i++) {
       _weights_idx[i] = NULL;
