@@ -174,8 +174,8 @@ namespace cwipi {
     void
     irecvGlobalDataBetweenCodesThroughUnionCom
     (
-     MPI_Request     global_recv_request, // TO DO: useless ?
-     MPI_Request     data_recv_request,
+     MPI_Request     global_recv_request,
+     MPI_Request     data_recv_request, // TO DO: useless ?
      size_t          s_send_entity,
      int             send_stride,
      int             n_send_entity,

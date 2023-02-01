@@ -80,6 +80,7 @@
 
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 /*----------------------------------------------------------------------------*/
 
@@ -117,6 +118,36 @@ static FILE* _cwipi_output_listing;
 /*============================================================================
  * Private function definitions
  *============================================================================*/
+
+static bool
+_is_active_rank
+(
+ const char *local_code_name
+ )
+{
+   cwipi::CodePropertiesDB & propertiesDB = cwipi::CodePropertiesDB::getInstance();
+   const cwipi::CodeProperties &properties = propertiesDB.codePropertiesGet(local_code_name);
+   return properties.isActiveRank();
+}
+
+
+static cwipi::Coupling&
+_cpl_get
+(
+ const char *local_code_name,
+ const char *cpl_id
+ )
+{
+  cwipi::CouplingDB & couplingDB =
+    cwipi::CouplingDB::getInstance();
+
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+
+   const string &cpl_name_str = cpl_id;
+   return couplingDB.couplingGet (properties.codePropertiesGet(string(local_code_name)),
+                                 cpl_name_str);
+}
 
 // --> Fonctions privee qui n'appartiennent pas a l'API
 
@@ -427,39 +458,6 @@ static int _cwipi_flush_output_listing(void)
  *
  * \return                Coupling instance from it identifier
  */
-#include <stdlib.h>
-
-
-static bool
-_is_active_rank
-(
- const char *local_code_name
- )
-{
-   cwipi::CodePropertiesDB & propertiesDB = cwipi::CodePropertiesDB::getInstance();
-   const cwipi::CodeProperties &properties = propertiesDB.codePropertiesGet(local_code_name);
-   return properties.isActiveRank();
-}
-
-
-static cwipi::Coupling&
-_cpl_get
-(
- const char *local_code_name,
- const char *cpl_id
- )
-{
-  cwipi::CouplingDB & couplingDB =
-    cwipi::CouplingDB::getInstance();
-
-  cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
-
-   const string &cpl_name_str = cpl_id;
-   return couplingDB.couplingGet (properties.codePropertiesGet(string(local_code_name)),
-                                 cpl_name_str);
-}
-
 
 /*=============================================================================
  * Public function prototypes - with xml data

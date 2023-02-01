@@ -2056,7 +2056,7 @@ CWP_Data_irecv
  CWP_g_num_t        *gnum_recv,
  const int         **send_to_recv_idx,
  const CWP_Type_t  **send_to_recv,
- void              **recv_data,
+ void              **recv_data
 );
 
 // int              ***gnum1_come_from_idx,
