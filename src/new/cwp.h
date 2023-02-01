@@ -1593,7 +1593,7 @@ CWP_Field_del
 );
 
 /*----------------------------------------------------------------------------*
- * Functions about exchange                                                   *
+ * Functions about field exchange                                             *
  *----------------------------------------------------------------------------*/
 
 
@@ -1929,6 +1929,173 @@ void
 CWP_Param_unlock
 (
 const char *code_name
+);
+
+/*----------------------------------------------------------------------------*
+ * Functions about data exchange                                              *
+ *----------------------------------------------------------------------------*/
+
+/**
+ * \brief Send a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in]
+ *
+ *
+ */
+
+void
+CWP_Global_data_issend
+(
+ const char     *local_code_name,
+ const char     *cpl_id,
+ CWP_Type_t      data_type,
+ int             n_entity,
+ int             stride,
+ void           *data
+);
+
+/**
+ * \brief Receive a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in]
+ *
+ *
+ */
+
+void
+CWP_Global_data_irecv
+(
+ const char     *local_code_name,
+ const char     *cpl_id,
+ CWP_Type_t      data_type,
+ int            *n_entity,
+ int            *stride,
+ void          **data
+);
+
+/**
+ * \brief Wait of send a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in]
+ *
+ *
+ */
+
+void
+CWP_Global_data_wait_issend
+(
+ const char     *local_code_name,
+ const char     *cpl_id
+);
+
+/**
+ * \brief Wait of receive a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in]
+ *
+ *
+ */
+
+void
+CWP_Global_data_wait_irecv
+(
+ const char     *local_code_name,
+ const char     *cpl_id
+);
+
+/**
+ * \brief Send a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in]
+ *
+ *
+ */
+
+// TO DO: with part_to_part
+
+void
+CWP_Data_issend
+(
+ const char         *local_code_name,
+ const char         *cpl_id,
+ const size_t        s_data,
+ int                 n_gnum_send,
+ CWP_g_num_t        *gnum_send,
+ const int         **send_to_recv_idx,
+ const CWP_Type_t  **send_to_recv,
+ const void        **send_to_recv_data
+);
+
+/**
+ * \brief Receive a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in]
+ *
+ *
+ */
+
+void
+CWP_Data_irecv
+(
+ const char         *local_code_name,
+ const char         *cpl_id,
+ CWP_Type_t          data_type,
+ int                 n_gnum_recv,
+ CWP_g_num_t        *gnum_recv,
+ const int         **send_to_recv_idx,
+ const CWP_Type_t  **send_to_recv,
+ void              **recv_data,
+);
+
+// int              ***gnum1_come_from_idx,
+// PDM_g_num_t      ***gnum1_come_from
+// int               **n_ref_lnum2,
+// int              ***ref_lnum2
+
+/**
+ * \brief Wait of send a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in]
+ *
+ *
+ */
+
+void
+CWP_Data_wait_issend
+(
+ const char     *local_code_name,
+ const char     *cpl_id
+);
+
+/**
+ * \brief Wait of receive a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in]
+ *
+ *
+ */
+
+void
+CWP_Data_wait_irecv
+(
+ const char     *local_code_name,
+ const char     *cpl_id
 );
 
 /*****************************************************************************************************

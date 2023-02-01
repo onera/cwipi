@@ -118,6 +118,275 @@ static FILE* _cwipi_output_listing;
  * Private function definitions
  *============================================================================*/
 
+// --> Fonctions privee qui n'appartiennent pas a l'API
+
+void
+CWP_surf_gen_init
+(
+  char* genName, int nx, int ny, int nPart, MPI_Comm* comm, double prop, double width, double randomVar
+)
+{
+  if(_is_active_rank(genName)){
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    surfMeshDB.createMember(genName);
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+    surfMesh->init(nx,ny,nPart,comm,prop,width,randomVar);
+  }
+}
+
+void
+CWP_surf_gen_compute(char* genName)
+{
+
+  if(_is_active_rank(genName)){
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+    surfMesh->computeMesh();
+  }
+}
+
+void
+CWP_surf_gen_by_block_get
+( char* genName, int i_part,
+  int* nVtx , double** coords, CWP_g_num_t** vtxGnum, int* nElts,
+  int* nTri , int** eltsConnecTri , CWP_g_num_t** eltsGnumTri,
+  int* nQuad, int** eltsConnecQuad, CWP_g_num_t** eltsGnumQuad,
+  int* nPoly, int** eltsConnecPolyIndex, int** eltsConnecPoly, CWP_g_num_t** eltsGnumPoly
+)
+{
+
+
+  if(_is_active_rank(genName)){
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+    *nVtx = surfMesh->nVtxGet(i_part);
+    *nElts = surfMesh->nEltsGet(i_part);
+    *coords = surfMesh->coordsGet(i_part);
+    *vtxGnum = surfMesh->vtxGnumGet(i_part);
+
+    *nTri = surfMesh->nTriGet(i_part);
+    *eltsConnecTri = surfMesh->connecTriGet(i_part);
+    *eltsGnumTri = surfMesh->eltsGnumTriGet(i_part);
+
+    *nQuad = surfMesh->nQuadGet(i_part);
+    *eltsConnecQuad = surfMesh->connecQuadGet(i_part);
+    *eltsGnumQuad = surfMesh->eltsGnumQuadGet(i_part);
+
+    *nPoly = surfMesh->nPolyGet(i_part);
+    *eltsConnecPoly = surfMesh->connecPolyGet(i_part);
+    *eltsConnecPolyIndex = surfMesh->connecPolyIndexGet(i_part);
+    *eltsGnumPoly = surfMesh->eltsGnumPolyGet(i_part);
+  }
+  else{
+    *nVtx = 0;
+    *nElts = 0;
+    *coords = NULL;
+    *vtxGnum = NULL;
+
+    *nTri = 0;
+    *eltsConnecTri = NULL;
+    *eltsGnumTri = NULL;
+
+    *nQuad = 0;
+    *eltsConnecQuad = NULL;
+    *eltsGnumQuad = NULL;
+
+    *nPoly = 0;
+    *eltsConnecPoly = NULL;
+    *eltsConnecPolyIndex = (int*)malloc(sizeof(int));
+    (*eltsConnecPolyIndex)[0]=0;
+    *eltsGnumPoly = NULL;
+  }
+
+
+}
+
+
+void
+CWP_surf_gen_one_connectivity_get
+( char* genName, int i_part,
+  int* nVtx , double** coords, CWP_g_num_t** vtxGnum,
+  int* nElts, int** eltsConnecIndex, int** eltsConnec, CWP_g_num_t** eltsGnum
+)
+{
+
+  if(_is_active_rank(genName)){
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+
+    *nVtx = surfMesh->nVtxGet(i_part);
+    *nElts = surfMesh->nEltsGet(i_part);
+    *coords = surfMesh->coordsGet(i_part);
+    *vtxGnum = surfMesh->vtxGnumGet(i_part);
+
+    *eltsConnec = surfMesh->connecGet(i_part);
+    *eltsConnecIndex = surfMesh->connecIndexGet(i_part);
+    *eltsGnum = surfMesh->eltsGnumGet(i_part);
+  }
+  else{
+    *nVtx = 0;
+    *nElts = 0;
+    *coords = NULL;
+    *vtxGnum = NULL;
+
+    *eltsConnec = NULL;
+    *eltsConnecIndex = (int*)malloc(sizeof(int));
+    (*eltsConnecIndex)[0]=0;
+    *eltsGnum = NULL;
+  }
+
+
+}
+
+
+
+void
+CWP_surf_face_edge_get
+( char* genName, int i_part,
+  int* nVtx , double** coords, CWP_g_num_t** vtxGnum,
+  int* nFace, int** faceEdgeIdx, int** faceEdge,
+  int* nEdge, int** edgeVtxIdx, int** edgeVtx,
+  CWP_g_num_t** faceLNToGN
+)
+{
+
+  if(_is_active_rank(genName)){
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+
+    *nVtx = surfMesh->nVtxGet(i_part);
+    *nFace = surfMesh->nFaceGet(i_part);
+    *coords = surfMesh->coordsGet(i_part);
+    *vtxGnum = surfMesh->vtxGnumGet(i_part);
+
+    *nEdge = surfMesh->nEdgeGet(i_part);
+    *faceEdgeIdx = surfMesh->faceEdgeIdxGet(i_part);
+    *faceEdge = surfMesh->faceEdgeGet(i_part);
+
+    *edgeVtxIdx = surfMesh->edgeVtxIdxGet(i_part);
+    *edgeVtx = surfMesh->edgeVtxGet(i_part);
+
+    *faceLNToGN = surfMesh->faceLNToGNGet(i_part);
+  }
+  else{
+    *nVtx = 0;
+    *coords = NULL;
+    *vtxGnum = NULL;
+
+    *faceEdgeIdx =(int*)malloc(sizeof(int));
+    (*faceEdgeIdx)[0]=0;
+
+    *faceEdge = NULL;
+
+    *edgeVtxIdx = (int*)malloc(sizeof(int));
+    (*edgeVtxIdx)[0]=0;
+
+    *edgeVtx = NULL;
+
+    *faceLNToGN = NULL;
+
+  }
+
+
+}
+
+
+
+
+
+
+void
+CWP_surf_gen_tri_field_get
+( char* genName, int i_part,
+  double** field
+)
+{
+
+  if(_is_active_rank(genName)){
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+    *field = surfMesh->specialFieldTriGet(i_part);
+  }
+  else{
+    *field = NULL;
+  }
+}
+
+
+void
+CWP_surf_gen_quad_field_get
+( char* genName, int i_part,
+  double** field
+)
+{
+
+  if(_is_active_rank(genName)){
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+    *field = surfMesh->specialFieldQuadGet(i_part);
+  }
+  else{
+    *field = NULL;
+  }
+}
+
+void
+CWP_surf_gen_poly_field_get
+( char* genName, int i_part,
+  double** field
+)
+{
+
+  if(_is_active_rank(genName)){
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+    *field = surfMesh->specialFieldPolyGet(i_part);
+  }
+  else{
+    *field = NULL;
+  }
+}
+
+
+
+
+ CWP_g_num_t*
+ CWP_GlobalNumGet
+ (
+  const char  *local_code_name,
+  const char  *cpl_id,
+  const int    id_block,
+  const int    i_part
+ )
+ {
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+   return cpl.globalNumGet(id_block,i_part);
+
+ }
+
+
+
+MPI_Comm
+CWP_Connectable_comm_get
+(
+  char* local_code_name
+)
+{
+
+  if(_is_active_rank(local_code_name)){
+    cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
+    const cwipi::CodeProperties & localCodeProperties = properties.codePropertiesGet(string(local_code_name));
+    MPI_Comm connecComm = localCodeProperties.connectableCommGet();
+
+    return connecComm;
+  }
+
+  return MPI_COMM_NULL;
+}
+
+// <-- Fonctions privee qui n'appartiennent pas a l'API
+
 /**
  *
  * \brief Intermediate function to write an output in the C file output
@@ -2105,7 +2374,7 @@ CWP_Field_del
 }
 
 /*----------------------------------------------------------------------------*
- * Functions about exchange                                                   *
+ * Functions about field exchange                                             *
  *----------------------------------------------------------------------------*/
 
 /**
@@ -2704,274 +2973,151 @@ const char *code_name
 }
 
 
+/*----------------------------------------------------------------------------*
+ * Functions about data exchange                                              *
+ *----------------------------------------------------------------------------*/
 
-// Fonctions privee qui n'appartiennent pas a l'API qui doivent etre deplacees
+// m'inspirer de Communication::iexchGlobalDataBetweenCodesThroughUnionCom
 
-
+/**
+ * \brief Send a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in]
+ *
+ *
+ */
 
 void
-CWP_surf_gen_init
+CWP_Global_data_issend
 (
-  char* genName, int nx, int ny, int nPart, MPI_Comm* comm, double prop, double width, double randomVar
+ const char     *local_code_name,
+ const char     *cpl_id,
+ CWP_Type_t      data_type,
+ int             n_entity,
+ int             stride,
+ void           *data
 )
 {
-  if(_is_active_rank(genName)){
-    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
-    surfMeshDB.createMember(genName);
-    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
-    surfMesh->init(nx,ny,nPart,comm,prop,width,randomVar);
-  }
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  // call coupling issend function, which does:
+  // MPI_Comm cpl_comm = _communication.cplCommGet();
+  // int root_rank = _communication.cplCommCplCodeRootRanksGet();
+  // std::vector<int>* cpl_ranks = _communication.cplCommCplRanksGet();
+
+  // int i_rank;
+  // MPI_Comm_rank(cpl_comm, &i_rank);
+
+  // if (i_rank == root_rank) {
+  //   MPI_Send(&n_entity, 1,  MPI_INT, ?, 0, cpl_comm);
+  //   MPI_Send(&stride, 1,  MPI_INT, ?, 0, cpl_comm);
+
+  //   MPI_Isend(data, n_entity*stride,  TYPE, ?, 0, cpl_comm);
+
+  // }  // end if root rank
 }
+
+/**
+ * \brief Receive a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in]
+ *
+ *
+ */
 
 void
-CWP_surf_gen_compute(char* genName)
-{
-
-  if(_is_active_rank(genName)){
-    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
-    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
-    surfMesh->computeMesh();
-  }
-}
-
-void
-CWP_surf_gen_by_block_get
-( char* genName, int i_part,
-  int* nVtx , double** coords, CWP_g_num_t** vtxGnum, int* nElts,
-  int* nTri , int** eltsConnecTri , CWP_g_num_t** eltsGnumTri,
-  int* nQuad, int** eltsConnecQuad, CWP_g_num_t** eltsGnumQuad,
-  int* nPoly, int** eltsConnecPolyIndex, int** eltsConnecPoly, CWP_g_num_t** eltsGnumPoly
-)
-{
-
-
-  if(_is_active_rank(genName)){
-    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
-    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
-    *nVtx = surfMesh->nVtxGet(i_part);
-    *nElts = surfMesh->nEltsGet(i_part);
-    *coords = surfMesh->coordsGet(i_part);
-    *vtxGnum = surfMesh->vtxGnumGet(i_part);
-
-    *nTri = surfMesh->nTriGet(i_part);
-    *eltsConnecTri = surfMesh->connecTriGet(i_part);
-    *eltsGnumTri = surfMesh->eltsGnumTriGet(i_part);
-
-    *nQuad = surfMesh->nQuadGet(i_part);
-    *eltsConnecQuad = surfMesh->connecQuadGet(i_part);
-    *eltsGnumQuad = surfMesh->eltsGnumQuadGet(i_part);
-
-    *nPoly = surfMesh->nPolyGet(i_part);
-    *eltsConnecPoly = surfMesh->connecPolyGet(i_part);
-    *eltsConnecPolyIndex = surfMesh->connecPolyIndexGet(i_part);
-    *eltsGnumPoly = surfMesh->eltsGnumPolyGet(i_part);
-  }
-  else{
-    *nVtx = 0;
-    *nElts = 0;
-    *coords = NULL;
-    *vtxGnum = NULL;
-
-    *nTri = 0;
-    *eltsConnecTri = NULL;
-    *eltsGnumTri = NULL;
-
-    *nQuad = 0;
-    *eltsConnecQuad = NULL;
-    *eltsGnumQuad = NULL;
-
-    *nPoly = 0;
-    *eltsConnecPoly = NULL;
-    *eltsConnecPolyIndex = (int*)malloc(sizeof(int));
-    (*eltsConnecPolyIndex)[0]=0;
-    *eltsGnumPoly = NULL;
-  }
-
-
-}
-
-
-void
-CWP_surf_gen_one_connectivity_get
-( char* genName, int i_part,
-  int* nVtx , double** coords, CWP_g_num_t** vtxGnum,
-  int* nElts, int** eltsConnecIndex, int** eltsConnec, CWP_g_num_t** eltsGnum
-)
-{
-
-  if(_is_active_rank(genName)){
-    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
-    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
-
-    *nVtx = surfMesh->nVtxGet(i_part);
-    *nElts = surfMesh->nEltsGet(i_part);
-    *coords = surfMesh->coordsGet(i_part);
-    *vtxGnum = surfMesh->vtxGnumGet(i_part);
-
-    *eltsConnec = surfMesh->connecGet(i_part);
-    *eltsConnecIndex = surfMesh->connecIndexGet(i_part);
-    *eltsGnum = surfMesh->eltsGnumGet(i_part);
-  }
-  else{
-    *nVtx = 0;
-    *nElts = 0;
-    *coords = NULL;
-    *vtxGnum = NULL;
-
-    *eltsConnec = NULL;
-    *eltsConnecIndex = (int*)malloc(sizeof(int));
-    (*eltsConnecIndex)[0]=0;
-    *eltsGnum = NULL;
-  }
-
-
-}
-
-
-
-void
-CWP_surf_face_edge_get
-( char* genName, int i_part,
-  int* nVtx , double** coords, CWP_g_num_t** vtxGnum,
-  int* nFace, int** faceEdgeIdx, int** faceEdge,
-  int* nEdge, int** edgeVtxIdx, int** edgeVtx,
-  CWP_g_num_t** faceLNToGN
-)
-{
-
-  if(_is_active_rank(genName)){
-    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
-    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
-
-    *nVtx = surfMesh->nVtxGet(i_part);
-    *nFace = surfMesh->nFaceGet(i_part);
-    *coords = surfMesh->coordsGet(i_part);
-    *vtxGnum = surfMesh->vtxGnumGet(i_part);
-
-    *nEdge = surfMesh->nEdgeGet(i_part);
-    *faceEdgeIdx = surfMesh->faceEdgeIdxGet(i_part);
-    *faceEdge = surfMesh->faceEdgeGet(i_part);
-
-    *edgeVtxIdx = surfMesh->edgeVtxIdxGet(i_part);
-    *edgeVtx = surfMesh->edgeVtxGet(i_part);
-
-    *faceLNToGN = surfMesh->faceLNToGNGet(i_part);
-  }
-  else{
-    *nVtx = 0;
-    *coords = NULL;
-    *vtxGnum = NULL;
-
-    *faceEdgeIdx =(int*)malloc(sizeof(int));
-    (*faceEdgeIdx)[0]=0;
-
-    *faceEdge = NULL;
-
-    *edgeVtxIdx = (int*)malloc(sizeof(int));
-    (*edgeVtxIdx)[0]=0;
-
-    *edgeVtx = NULL;
-
-    *faceLNToGN = NULL;
-
-  }
-
-
-}
-
-
-
-
-
-
-void
-CWP_surf_gen_tri_field_get
-( char* genName, int i_part,
-  double** field
-)
-{
-
-  if(_is_active_rank(genName)){
-    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
-    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
-    *field = surfMesh->specialFieldTriGet(i_part);
-  }
-  else{
-    *field = NULL;
-  }
-}
-
-
-void
-CWP_surf_gen_quad_field_get
-( char* genName, int i_part,
-  double** field
-)
-{
-
-  if(_is_active_rank(genName)){
-    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
-    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
-    *field = surfMesh->specialFieldQuadGet(i_part);
-  }
-  else{
-    *field = NULL;
-  }
-}
-
-void
-CWP_surf_gen_poly_field_get
-( char* genName, int i_part,
-  double** field
-)
-{
-
-  if(_is_active_rank(genName)){
-    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
-    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
-    *field = surfMesh->specialFieldPolyGet(i_part);
-  }
-  else{
-    *field = NULL;
-  }
-}
-
-
-
-
- CWP_g_num_t*
- CWP_GlobalNumGet
- (
-  const char  *local_code_name,
-  const char  *cpl_id,
-  const int    id_block,
-  const int    i_part
- )
- {
-   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-
-   return cpl.globalNumGet(id_block,i_part);
-
- }
-
-
-
-MPI_Comm
-CWP_Connectable_comm_get
+CWP_Global_data_irecv
 (
-  char* local_code_name
+ const char     *local_code_name,
+ const char     *cpl_id,
+ CWP_Type_t      data_type,
+ int            *n_entity,
+ int            *stride,
+ void          **data
 )
 {
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  // chercher root rank de l'autre dans coupledCodeProperties ok sauf si pas même rank
+  // call coupling irecv function, which does:
+  // MPI_Comm cpl_comm = _communication.cplCommGet();
+  // int root_rank = _communication.cplCommCplCodeRootRanksGet();
+  // std::vector<int>* cpl_ranks = _communication.cplCommCplRanksGet();
 
-  if(_is_active_rank(local_code_name)){
-    cwipi::CodePropertiesDB & properties = cwipi::CodePropertiesDB::getInstance();
-    const cwipi::CodeProperties & localCodeProperties = properties.codePropertiesGet(string(local_code_name));
-    MPI_Comm connecComm = localCodeProperties.connectableCommGet();
+  // int i_rank;
+  // MPI_Comm_rank(cpl_comm, &i_rank);
 
-    return connecComm;
-  }
+  // if (i_rank == root_rank) {
+  //   MPI_Recv(&n_entity, 1,  MPI_INT, ?, 0, cpl_comm);
+  //   MPI_Recv(&stride, 1,  MPI_INT, ?, 0, cpl_comm);
 
-  return MPI_COMM_NULL;
+  //   MPI_Recv(data, n_entity*stride,  TYPE, ?, 0, cpl_comm); ou Irecv
+
+  // }  // end if root rank
+
+  // MPI_Group cplGroup = MPI_GROUP_NULL;
+  // MPI_Group codeGroup = MPI_GROUP_NULL;
+
+  // --> use intracomm : comm dup et utiliser celui-ci pour bdcast
+
+  // MPI_Comm_group(cpl_comm, &cplGroup);
+
+  // MPI_Group_incl(cplGroup, NRANKS, cpl_ranks, &codeGroup);
+
+  // MPI_Comm_create(cpl_comm,
+  //                 codeGroup,
+  //                 code_comm);
+
+  // MPI_Bcast(&n_entity, 1, MPI_INT, root_rank, 0, code_comm);
+  // MPI_Bcast(&stride, 1,  MPI_INT, root_rank, 0, code_comm);
+  // MPI_Ibcast(data, n_entity*stride, TYPE, root_rank, 0, code_comm);
+}
+
+/**
+ * \brief Wait of send a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in]
+ *
+ *
+ */
+
+void
+CWP_Global_data_wait_issend
+(
+ const char     *local_code_name,
+ const char     *cpl_id
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  // Add request above
+  // MPI_Wait(&request, MPI_STATUS_IGNORE);
+}
+
+/**
+ * \brief Wait of receive a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in]
+ *
+ *
+ */
+
+void
+CWP_Global_data_wait_irecv
+(
+ const char     *local_code_name,
+ const char     *cpl_id
+)
+{
+  // wait de irecv puis broadcast normal
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  // Add request above the one of bcast not of recv or do bcast here once received?
+  // MPI_Wait(&request, MPI_STATUS_IGNORE);
 }
 
 /*-----------------------------------------------------------------------------*/
