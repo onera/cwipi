@@ -296,6 +296,100 @@ namespace cwipi {
   }
 
   /*----------------------------------------------------------------------------*
+   * Methods about global data                                                  *
+   *----------------------------------------------------------------------------*/
+
+  /**
+   * \brief Send a data array.
+   *
+   * \param [in] s_send_entity
+   * \param [in] send_stride
+   * \param [in] n_send_entity
+   * \param [in] send_data
+   *
+   */
+
+  void
+  globalDataIsend
+  (
+   size_t          s_send_entity,
+   int             send_stride,
+   int             n_send_entity,
+   void           *send_data
+   )
+  {
+    _communication.isendGlobalDataBetweenCodesThroughUnionCom(// globalData
+                                                              // globalData
+                                                              s_send_entity,
+                                                              send_stride,
+                                                              n_send_entity,
+                                                              send_data,
+                                                              // globalData
+                                                              // globalData
+                                                              // globalData
+                                                              // globalData);
+  }
+
+  /**
+   * \brief Receive a data array.
+   *
+   * \param [in] s_recv_entity
+   * \param [in] recv_stride
+   * \param [in] n_recv_entity
+   * \param [in] recv_data
+   *
+   */
+
+  void
+  globalDataIrecv
+  (
+   size_t         *s_recv_entity,
+   int            *recv_stride,
+   int            *n_recv_entity,
+   void           *recv_data
+  )
+  {
+    _communication.irecvGlobalDataBetweenCodesThroughUnionCom(// globalData
+                                                              // globalData
+                                                              // globalData
+                                                              // globalData
+                                                              // globalData
+                                                              // globalData
+                                                              s_recv_entity,
+                                                              recv_stride,
+                                                              n_recv_entity,
+                                                              recv_data);
+  }
+
+  /**
+   * \brief Wait of send a data array.
+   */
+
+  void
+  globalDataWaitIsend
+  ()
+  {
+    _communication.waitIsendGlobalDataBetweenCodesThroughUnionCom(// globalData
+                                                                  // globalData);
+  }
+
+  /**
+   * \brief Wait of receive a data array.
+   */
+
+  void
+  globalDataWaitIrecv
+  ()
+  {
+    _communication.waitIrecvGlobalDataBetweenCodesThroughUnionCom(// globalData
+                                                                  // globalData
+                                                                  // globalData
+                                                                  // globalData
+                                                                  // globalData
+                                                                  // globalData);
+  }
+
+  /*----------------------------------------------------------------------------*
    * Methods about communicators                                                *
    *----------------------------------------------------------------------------*/
 

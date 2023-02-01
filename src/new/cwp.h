@@ -1948,7 +1948,7 @@ const char *code_name
  */
 
 void
-CWP_Global_data_issend
+CWP_Global_data_isend
 (
  const char     *local_code_name,
  const char     *cpl_id,
@@ -1990,7 +1990,7 @@ CWP_Global_data_irecv
  */
 
 void
-CWP_Global_data_wait_issend
+CWP_Global_data_wait_isend
 (
  const char     *local_code_name,
  const char     *cpl_id

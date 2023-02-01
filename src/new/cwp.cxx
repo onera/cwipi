@@ -2988,7 +2988,7 @@ const char *code_name
  */
 
 void
-CWP_Global_data_issend
+CWP_Global_data_isend
 (
  const char     *local_code_name,
  const char     *cpl_id,
@@ -2999,7 +2999,10 @@ CWP_Global_data_issend
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  // TO DO: call function from coupling
+  cpl.globalDataIsend(s_recv_entity,
+                      recv_stride,
+                      n_recv_entity,
+                      recv_data);
 }
 
 /**
@@ -3026,7 +3029,10 @@ CWP_Global_data_irecv
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  // TO DO: call function from coupling
+  cpl.globalDataIrecv(s_recv_entity,
+                      recv_stride,
+                      n_recv_entity,
+                      recv_data);
 }
 
 /**
@@ -3038,14 +3044,14 @@ CWP_Global_data_irecv
  */
 
 void
-CWP_Global_data_wait_issend
+CWP_Global_data_wait_isend
 (
  const char     *local_code_name,
  const char     *cpl_id
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  // TO DO: call function from coupling
+  cpl.globalDataWaitIsend();
 }
 
 /**
@@ -3064,7 +3070,7 @@ CWP_Global_data_wait_irecv
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  // TO DO: call function from coupling
+  cpl.globalDataWaitIrecv();
 }
 
 /*-----------------------------------------------------------------------------*/

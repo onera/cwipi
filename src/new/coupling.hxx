@@ -99,6 +99,64 @@ namespace cwipi {
     virtual ~Coupling();
 
     /*----------------------------------------------------------------------------*
+     * Methods about global data                                                  *
+     *----------------------------------------------------------------------------*/
+
+    /**
+     * \brief Send a data array.
+     *
+     * \param [in] s_send_entity
+     * \param [in] send_stride
+     * \param [in] n_send_entity
+     * \param [in] send_data
+     *
+     */
+
+    void
+    globalDataIsend
+    (
+     size_t          s_send_entity,
+     int             send_stride,
+     int             n_send_entity,
+     void           *send_data
+     );
+
+    /**
+     * \brief Receive a data array.
+     *
+     * \param [in] s_recv_entity
+     * \param [in] recv_stride
+     * \param [in] n_recv_entity
+     * \param [in] recv_data
+     *
+     */
+
+    void
+    globalDataIrecv
+    (
+     size_t         *s_recv_entity,
+     int            *recv_stride,
+     int            *n_recv_entity,
+     void           *recv_data
+    );
+
+    /**
+     * \brief Wait of send a data array.
+     */
+
+    void
+    globalDataWaitIsend
+    ();
+
+    /**
+     * \brief Wait of receive a data array.
+     */
+
+    void
+    globalDataWaitIrecv
+    ();
+
+    /*----------------------------------------------------------------------------*
      * Methods about communicators                                                *
      *----------------------------------------------------------------------------*/
 
