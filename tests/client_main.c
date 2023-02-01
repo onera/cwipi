@@ -142,7 +142,7 @@ main
     printf("HERE\n");
     // wait
   }
-  sleep(20);
+  sleep(5);
 
   // CWP_Init
   int n_code = 0;
