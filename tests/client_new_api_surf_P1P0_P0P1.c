@@ -22,6 +22,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "cwp.h"
 #include "cwp_priv.h"
@@ -127,8 +128,14 @@ main
 
   // launch server
   char launch_server[99];
-  sprintf(launch_server, "mpirun -n %d ../bin/server_main", commWorldSize);
+  sprintf(launch_server, "mpirun -n %d ../bin/server_main &", commWorldSize);
   system(launch_server);
+
+  while (access(config, R_OK) != 0) {
+    printf("HERE\n");
+    // wait
+  }
+  sleep(5);
 
   // Read args from command line
   int nVertexSeg = 10;

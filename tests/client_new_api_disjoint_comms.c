@@ -21,6 +21,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <assert.h>
+#include <unistd.h>
 
 #include "cwp.h"
 #include "pdm.h"
@@ -371,8 +372,14 @@ main
 
   // launch server
   char launch_server[99];
-  sprintf(launch_server, "mpirun -n %d ../bin/server_main", comm_world_size);
+  sprintf(launch_server, "mpirun -n %d ../bin/server_main &", comm_world_size);
   system(launch_server);
+
+  while (access(config, R_OK) != 0) {
+    printf("HERE\n");
+    // wait
+  }
+  sleep(5);
 
   // Input
   int n_part = 1;
