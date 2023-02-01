@@ -124,9 +124,120 @@ namespace cwipi {
      void        *recv_data_cpl
     );
 
+    /**
+     *
+     * \brief Asynchrone send of global data array
+     *
+     * \param [in] global_send_request
+     * \param [in] data_send_request
+     * \param [in] s_send_entity
+     * \param [in] send_stride
+     * \param [in] n_send_entity
+     * \param [in] send_data
+     * \param [in] s_recv_entity
+     * \param [in] recv_stride
+     * \param [in] n_recv_entity
+     * \param [in] recv_data
+     */
+
     void
     isendGlobalDataBetweenCodesThroughUnionCom
     (
+     MPI_Request     global_send_request,
+     MPI_Request     data_send_request,
+     size_t          s_send_entity,
+     int             send_stride,
+     int             n_send_entity,
+     void           *send_data,
+     size_t         *s_recv_entity,
+     int            *recv_stride,
+     int            *n_recv_entity,
+     void           *recv_data
+    );
+
+    /**
+     *
+     * \brief Asynchrone receive of global data array
+     *
+     * \param [in] global_recv_request
+     * \param [in] data_recv_request
+     * \param [in] s_send_entity
+     * \param [in] send_stride
+     * \param [in] n_send_entity
+     * \param [in] send_data
+     * \param [in] s_recv_entity
+     * \param [in] recv_stride
+     * \param [in] n_recv_entity
+     * \param [in] recv_data
+     */
+
+    void
+    irecvGlobalDataBetweenCodesThroughUnionCom
+    (
+     MPI_Request     global_recv_request,
+     MPI_Request     data_recv_request,
+     size_t          s_send_entity,
+     int             send_stride,
+     int             n_send_entity,
+     void           *send_data,
+     size_t         *s_recv_entity,
+     int            *recv_stride,
+     int            *n_recv_entity,
+     void           *recv_data
+    );
+
+    /**
+     *
+     * \brief Asynchrone send wait of global data array
+     *
+     * \param [in] global_send_request
+     * \param [in] data_send_request
+     * \param [in] global_recv_request
+     * \param [in] data_recv_request
+     * \param [in] s_recv_entity
+     * \param [in] recv_stride
+     * \param [in] n_recv_entity
+     * \param [in] recv_data
+     */
+
+    void
+    waitIsendGlobalDataBetweenCodesThroughUnionCom
+    (
+     MPI_Request     global_send_request,
+     MPI_Request     data_send_request,
+     MPI_Request     global_recv_request,
+     MPI_Request     data_recv_request,
+     size_t         *s_recv_entity,
+     int            *recv_stride,
+     int            *n_recv_entity,
+     void           *recv_data
+    );
+
+    /**
+     *
+     * \brief Asynchrone receive wait of global data array
+     *
+     * \param [in] global_send_request
+     * \param [in] data_send_request
+     * \param [in] global_recv_request
+     * \param [in] data_recv_request
+     * \param [in] s_recv_entity
+     * \param [in] recv_stride
+     * \param [in] n_recv_entity
+     * \param [in] recv_data
+     */
+
+    void
+    waitIrecvGlobalDataBetweenCodesThroughUnionCom
+    (
+     MPI_Request     global_send_request,
+     MPI_Request     data_send_request,
+     MPI_Request     global_recv_request,
+     MPI_Request     data_recv_request,
+     size_t         *s_recv_entity,
+     int            *recv_stride,
+     int            *n_recv_entity,
+     void           *recv_data
     );
 
 

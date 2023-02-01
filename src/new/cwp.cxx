@@ -2977,15 +2977,15 @@ const char *code_name
  * Functions about data exchange                                              *
  *----------------------------------------------------------------------------*/
 
-// m'inspirer de Communication::iexchGlobalDataBetweenCodesThroughUnionCom
-
 /**
  * \brief Send a data array.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in]
- *
+ * \param [in] s_send_entity
+ * \param [in] send_stride
+ * \param [in] n_send_entity
+ * \param [in] send_data
  *
  */
 
@@ -2994,28 +2994,14 @@ CWP_Global_data_issend
 (
  const char     *local_code_name,
  const char     *cpl_id,
- CWP_Type_t      data_type,
- int             n_entity,
- int             stride,
- void           *data
+ size_t          s_send_entity,
+ int             send_stride,
+ int             n_send_entity,
+ void           *send_data
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  // call coupling issend function, which does:
-  // MPI_Comm cpl_comm = _communication.cplCommGet();
-  // int root_rank = _communication.cplCommCplCodeRootRanksGet();
-  // std::vector<int>* cpl_ranks = _communication.cplCommCplRanksGet();
-
-  // int i_rank;
-  // MPI_Comm_rank(cpl_comm, &i_rank);
-
-  // if (i_rank == root_rank) {
-  //   MPI_Send(&n_entity, 1,  MPI_INT, ?, 0, cpl_comm);
-  //   MPI_Send(&stride, 1,  MPI_INT, ?, 0, cpl_comm);
-
-  //   MPI_Isend(data, n_entity*stride,  TYPE, ?, 0, cpl_comm);
-
-  // }  // end if root rank
+  // TO DO: call function from coupling
 }
 
 /**
@@ -3023,8 +3009,10 @@ CWP_Global_data_issend
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in]
- *
+ * \param [in] s_recv_entity
+ * \param [in] recv_stride
+ * \param [in] n_recv_entity
+ * \param [in] recv_data
  *
  */
 
@@ -3033,46 +3021,14 @@ CWP_Global_data_irecv
 (
  const char     *local_code_name,
  const char     *cpl_id,
- CWP_Type_t      data_type,
- int            *n_entity,
- int            *stride,
- void          **data
+ size_t         *s_recv_entity,
+ int            *recv_stride,
+ int            *n_recv_entity,
+ void           *recv_data
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  // chercher root rank de l'autre dans coupledCodeProperties ok sauf si pas même rank
-  // call coupling irecv function, which does:
-  // MPI_Comm cpl_comm = _communication.cplCommGet();
-  // int root_rank = _communication.cplCommCplCodeRootRanksGet();
-  // std::vector<int>* cpl_ranks = _communication.cplCommCplRanksGet();
-
-  // int i_rank;
-  // MPI_Comm_rank(cpl_comm, &i_rank);
-
-  // if (i_rank == root_rank) {
-  //   MPI_Recv(&n_entity, 1,  MPI_INT, ?, 0, cpl_comm);
-  //   MPI_Recv(&stride, 1,  MPI_INT, ?, 0, cpl_comm);
-
-  //   MPI_Recv(data, n_entity*stride,  TYPE, ?, 0, cpl_comm); ou Irecv
-
-  // }  // end if root rank
-
-  // MPI_Group cplGroup = MPI_GROUP_NULL;
-  // MPI_Group codeGroup = MPI_GROUP_NULL;
-
-  // --> use intracomm : comm dup et utiliser celui-ci pour bdcast
-
-  // MPI_Comm_group(cpl_comm, &cplGroup);
-
-  // MPI_Group_incl(cplGroup, NRANKS, cpl_ranks, &codeGroup);
-
-  // MPI_Comm_create(cpl_comm,
-  //                 codeGroup,
-  //                 code_comm);
-
-  // MPI_Bcast(&n_entity, 1, MPI_INT, root_rank, 0, code_comm);
-  // MPI_Bcast(&stride, 1,  MPI_INT, root_rank, 0, code_comm);
-  // MPI_Ibcast(data, n_entity*stride, TYPE, root_rank, 0, code_comm);
+  // TO DO: call function from coupling
 }
 
 /**
@@ -3080,8 +3036,6 @@ CWP_Global_data_irecv
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in]
- *
  *
  */
 
@@ -3093,8 +3047,7 @@ CWP_Global_data_wait_issend
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  // Add request above
-  // MPI_Wait(&request, MPI_STATUS_IGNORE);
+  // TO DO: call function from coupling
 }
 
 /**
@@ -3102,8 +3055,6 @@ CWP_Global_data_wait_issend
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in]
- *
  *
  */
 
@@ -3114,10 +3065,8 @@ CWP_Global_data_wait_irecv
  const char     *cpl_id
 )
 {
-  // wait de irecv puis broadcast normal
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  // Add request above the one of bcast not of recv or do bcast here once received?
-  // MPI_Wait(&request, MPI_STATUS_IGNORE);
+  // TO DO: call function from coupling
 }
 
 /*-----------------------------------------------------------------------------*/

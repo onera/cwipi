@@ -620,6 +620,87 @@ namespace cwipi {
       }
     }
   }
+
+  /**
+   *
+   * \brief Asynchrone send of global data array
+   *
+   * \param [in] global_send_request
+   * \param [in] data_send_request
+   * \param [in] s_send_entity
+   * \param [in] send_stride
+   * \param [in] n_send_entity
+   * \param [in] send_data
+   * \param [in] s_recv_entity
+   * \param [in] recv_stride
+   * \param [in] n_recv_entity
+   * \param [in] recv_data
+   */
+
+  void
+  isendGlobalDataBetweenCodesThroughUnionCom
+  (
+   MPI_Request     global_send_request,
+   MPI_Request     data_send_request,
+   size_t          s_send_entity,
+   int             send_stride,
+   int             n_send_entity,
+   void           *send_data,
+   size_t         *s_recv_entity,
+   int            *recv_stride,
+   int            *n_recv_entity,
+   void           *recv_data
+  )
+  {
+
+    // Get union communicator ie. union of all active ranks of the codes in the coupling
+    int unionCommRank;
+    MPI_Comm_rank (_unionComm, &unionCommRank);
+
+    // Get couplings id
+    int codeID    = _localCodeProperties->idGet();
+    int cplCodeID = _cplCodeProperties->idGet();
+
+    // Isend
+    if (unionCommRank ==  _locCodeRootRankUnionComm) {
+      if (_cplCodeProperties->localCodeIs()) {
+        if (_locCodeRootRankUnionComm == _cplCodeRootRankUnionComm) {
+          if (codeID < cplCodeID) {
+
+            // set receive global data
+            *s_recv_entity = s_send_entity;
+            *recv_stride   = send_stride;
+            *n_recv_entity = n_send_entity;
+
+            // set receive data
+            memcpy (recv_data, send_data, s_send_entity * send_stride * n_send_entity);
+
+          } // end code with smallest id does the action of the rank
+        } // end if i_rank is root rank of coupled code
+        else {
+
+          int *globalData = malloc(sizeof(int) * 3);
+          globalData[0] = (int) s_send_entity;
+          globalData[1] = send_stride;
+          globalData[2] = n_send_entity;
+          MPI_Isend(globalData, 3,  MPI_INT, _cplCodeRootRankUnionComm, 0, _unionComm, global_send_request);
+          MPI_Isend(data, (int) s_send_entity * send_stride * n_send_entity,  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, data_recv_request);
+
+        }
+      } // end if i_rank is joint with the coupled code
+      else {
+
+        int *globalData = malloc(sizeof(int) * 3);
+        globalData[0] = (int) s_send_entity;
+        globalData[1] = send_stride;
+        globalData[2] = n_send_entity;
+        MPI_Isend(globalData, 3,  MPI_INT, _cplCodeRootRankUnionComm, 0, _unionComm, global_send_request);
+        MPI_Isend(data, (int) s_send_entity * send_stride * n_send_entity,  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, data_recv_request);
+
+      }
+    } // end if i_rank is the root rank of the local code
+  }
+
 }
 
 /**
