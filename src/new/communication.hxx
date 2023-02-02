@@ -195,7 +195,7 @@ namespace cwipi {
      size_t         *s_recv_entity,
      int            *recv_stride,
      int            *n_recv_entity,
-     void           *recv_data
+     void          **recv_data
     );
 
     /**
@@ -226,7 +226,7 @@ namespace cwipi {
      size_t         *s_recv_entity,
      int            *recv_stride,
      int            *n_recv_entity,
-     void           *recv_data
+     void          **recv_data
     );
 
 

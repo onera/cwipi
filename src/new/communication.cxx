@@ -778,7 +778,7 @@ namespace cwipi {
    size_t         *s_recv_entity,
    int            *recv_stride,
    int            *n_recv_entity,
-   void           *recv_data
+   void          **recv_data
   )
   {
     // Get union communicator ie. union of all active ranks of the codes in the coupling
@@ -849,7 +849,7 @@ namespace cwipi {
    size_t         *s_recv_entity,
    int            *recv_stride,
    int            *n_recv_entity,
-   void           *recv_data
+   void          **recv_data
   )
   {
     // Get union communicator ie. union of all active ranks of the codes in the coupling
@@ -880,8 +880,8 @@ namespace cwipi {
 
           MPI_Wait(global_recv_request, MPI_STATUS_IGNORE);
 
-          * (void**) recv_data = malloc((*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
-          MPI_Irecv(* (void**) recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, data_recv_request);
+          *recv_data = malloc((*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
+          MPI_Irecv(*recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, data_recv_request);
           MPI_Wait(data_recv_request, MPI_STATUS_IGNORE);
 
         }
@@ -890,8 +890,8 @@ namespace cwipi {
 
         MPI_Wait(global_recv_request, MPI_STATUS_IGNORE);
 
-         * (void**) recv_data = malloc((*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
-         MPI_Irecv(* (void**) recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, data_recv_request);
+         *recv_data = malloc((*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
+         MPI_Irecv(*recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, data_recv_request);
          MPI_Wait(data_recv_request, MPI_STATUS_IGNORE);
 
       }
@@ -918,7 +918,7 @@ namespace cwipi {
       free(globalData);
     }
 
-    MPI_Bcast(* (void**) recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, _locCodeRootRankUnionComm, _unionComm);
+    MPI_Bcast(*recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, _locCodeRootRankUnionComm, _unionComm);
   }
 
 }

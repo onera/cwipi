@@ -33,21 +33,35 @@ using namespace std;
 namespace cwipi {
 
   GlobalData::GlobalData(std::string     global_data_id,
-                         size_t          s_entity,
-                         int             stride,
-                         int             n_entity,
-                         void           *data):
+                         size_t          s_send_entity,
+                         int             send_stride,
+                         int             n_send_entity,
+                         void           *send_data):
   _global_data_id(global_data_id),
-  _s_entity(s_entity),
-  _stride(stride),
-  _n_entity(n_entity),
-  _data(data)
+  _s_send_entity(s_send_entity),
+  _send_stride(send_stride),
+  _n_send_entity(n_send_entity),
+  _send_data(send_data)
+  {
+  }
+
+  GlobalData::GlobalData(std::string     global_data_id,
+                         size_t         *s_recv_entity,
+                         int            *recv_stride,
+                         int            *n_recv_entity,
+                         void          **recv_data):
+  _global_data_id(global_data_id),
+  _s_recv_entity(s_recv_entity),
+  _recv_stride(recv_stride),
+  _n_recv_entity(n_recv_entity),
+  _recv_data(recv_data)
   {
   }
 
   GlobalData::~GlobalData()
   {
-    if (_data != NULL) free(_data);
+    if (_send_data != NULL) free(_send_data);
+    if (*_recv_data != NULL) free(*_recv_data);
   }
 
 }

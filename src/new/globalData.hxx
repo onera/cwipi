@@ -50,11 +50,21 @@ namespace cwipi {
      */
     GlobalData() {}
 
-    GlobalData(std::string     field_id,
+    // send
+
+    GlobalData(std::string     global_data_id,
                size_t          s_entity,
                int             stride,
                int             n_entity,
                void           *data);
+
+    // recv
+
+    GlobalData(std::string     global_data_id,
+               size_t         *s_recv_entity,
+               int            *recv_stride,
+               int            *n_recv_entity,
+               void          **recv_data);
 
     /**
      * \brief Destructor
@@ -76,28 +86,56 @@ namespace cwipi {
       return _data_request;
     }
 
+    // send
+
     inline size_t
-    s_entity_get()
+    s_send_entity_get()
     {
-      return _s_entity;
+      return _s_send_entity;
     }
 
     inline int
-    stride_get()
+    send_stride_get()
     {
-      return _stride;
+      return _send_stride;
     }
 
     inline int
-    n_entity_get()
+    n_send_entity_get()
     {
-      return _n_entity;
+      return _n_send_entity;
     }
 
     inline void *
-    data_get()
+    send_data_get()
     {
-      return _data;
+      return _send_data;
+    }
+
+    // recv
+
+    inline size_t *
+    s_recv_entity_get()
+    {
+      return _s_recv_entity;
+    }
+
+    inline int *
+    recv_stride_get()
+    {
+      return _recv_stride;
+    }
+
+    inline int *
+    n_recv_entity_get()
+    {
+      return _n_recv_entity;
+    }
+
+    inline void **
+    recv_data_get()
+    {
+      return _recv_data;
     }
 
   private:
@@ -105,10 +143,18 @@ namespace cwipi {
     std::string     _global_data_id;
     MPI_Request    *_global_request;
     MPI_Request    *_data_request;
-    size_t          _s_entity;
-    int             _stride;
-    int             _n_entity;
-    void           *_data;
+
+    // send
+    size_t          _s_send_entity;
+    int             _send_stride;
+    int             _n_send_entity;
+    void           *_send_data;
+
+    // recv
+    size_t         *_s_recv_entity;
+    int            *_recv_stride;
+    int            *_n_recv_entity;
+    void          **_recv_data;
 
   };
 

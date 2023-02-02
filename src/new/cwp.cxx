@@ -3030,7 +3030,7 @@ CWP_Global_data_irecv
  size_t         *s_recv_entity,
  int            *recv_stride,
  int            *n_recv_entity,
- void           *recv_data
+ void          **recv_data
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);

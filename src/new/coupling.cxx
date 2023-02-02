@@ -345,10 +345,10 @@ namespace cwipi {
 
     MPI_Request * global_request = it->second->global_request_get();
     MPI_Request * data_request   = it->second->data_request_get();
-    size_t        s_entity       = it->second->s_entity_get();
-    int           stride         = it->second->stride_get();
-    int           n_entity       = it->second->n_entity_get();
-    void *        data           = it->second->data_get();
+    size_t        s_entity       = it->second->s_send_entity_get();
+    int           stride         = it->second->send_stride_get();
+    int           n_entity       = it->second->n_send_entity_get();
+    void *        data           = it->second->send_data_get();
 
     _communication.isendGlobalDataBetweenCodesThroughUnionCom(global_request,
                                                               data_request,
@@ -378,31 +378,31 @@ namespace cwipi {
    size_t         *s_recv_entity,
    int            *recv_stride,
    int            *n_recv_entity,
-   void           *recv_data
+   void          **recv_data
   )
   {
     // Create an instance of GlobalData
     map<string,GlobalData*>::iterator it = _globalData.find(global_data_id.c_str());
     if (it == _globalData.end()) {
       cwipi::GlobalData *newGlobalData = new cwipi::GlobalData(global_data_id,
-                                                               0,
-                                                               -1,
-                                                               -1,
-                                                               NULL);
+                                                               s_recv_entity,
+                                                               recv_stride,
+                                                               n_recv_entity,
+                                                               recv_data);
 
       pair<string, GlobalData* > newPair(global_data_id, newGlobalData);
       _globalData.insert(newPair);
     } // end if does not exist
 
     MPI_Request * global_request = it->second->global_request_get();
-    size_t        s_entity       = it->second->s_entity_get();
-    int           stride         = it->second->stride_get();
-    int           n_entity       = it->second->n_entity_get();
+    size_t *      s_entity       = it->second->s_recv_entity_get();
+    int *         stride         = it->second->recv_stride_get();
+    int *         n_entity       = it->second->n_recv_entity_get();
 
     _communication.irecvGlobalDataBetweenCodesThroughUnionCom(global_request,
-                                                              &s_entity,
-                                                              &stride,
-                                                              &n_entity);
+                                                              s_entity,
+                                                              stride,
+                                                              n_entity);
   }
 
   /**
@@ -422,18 +422,18 @@ namespace cwipi {
     map<string,GlobalData*>::iterator it = _globalData.find(global_data_id.c_str());
     MPI_Request * global_request = it->second->global_request_get();
     MPI_Request * data_request   = it->second->data_request_get();
-    size_t        s_entity       = it->second->s_entity_get();
-    int           stride         = it->second->stride_get();
-    int           n_entity       = it->second->n_entity_get();
-    void *        data           = it->second->data_get();
+    size_t        s_entity       = it->second->s_send_entity_get();
+    int           stride         = it->second->send_stride_get();
+    int           n_entity       = it->second->n_send_entity_get();
+    void *        data           = it->second->send_data_get();
 
     // Get coupled
     cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
     map<string,GlobalData*>::iterator cpl_it = cpl_cpl._globalData.find(global_data_id.c_str());
-    size_t        cpl_s_entity       = cpl_it->second->s_entity_get();
-    int           cpl_stride         = cpl_it->second->stride_get();
-    int           cpl_n_entity       = cpl_it->second->n_entity_get();
-    void *        cpl_data           = cpl_it->second->data_get();
+    size_t *      cpl_s_entity       = cpl_it->second->s_recv_entity_get();
+    int *         cpl_stride         = cpl_it->second->recv_stride_get();
+    int *         cpl_n_entity       = cpl_it->second->n_recv_entity_get();
+    void **       cpl_data           = cpl_it->second->recv_data_get();
 
     _communication.waitIsendGlobalDataBetweenCodesThroughUnionCom(global_request,
                                                                   data_request,
@@ -441,12 +441,10 @@ namespace cwipi {
                                                                   stride,
                                                                   n_entity,
                                                                   data,
-                                                                  &cpl_s_entity,
-                                                                  &cpl_stride,
-                                                                  &cpl_n_entity,
-                                                                  cpl_data); // TO DO: handle neatly the void *'s
-
-    // TO DO: set if copy the recv data (return to know if needed)
+                                                                  cpl_s_entity,
+                                                                  cpl_stride,
+                                                                  cpl_n_entity,
+                                                                  cpl_data);
   }
 
   /**
@@ -467,18 +465,18 @@ namespace cwipi {
     map<string,GlobalData*>::iterator it = _globalData.find(global_data_id.c_str());
     MPI_Request * global_request = it->second->global_request_get();
     MPI_Request * data_request   = it->second->data_request_get();
-    size_t        s_entity       = it->second->s_entity_get();
-    int           stride         = it->second->stride_get();
-    int           n_entity       = it->second->n_entity_get();
-    void *        data           = it->second->data_get();
+    size_t *      s_entity       = it->second->s_recv_entity_get();
+    int *         stride         = it->second->recv_stride_get();
+    int *         n_entity       = it->second->n_recv_entity_get();
+    void **       data           = it->second->recv_data_get();
 
     // Get coupled
     cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
     map<string,GlobalData*>::iterator cpl_it = cpl_cpl._globalData.find(global_data_id.c_str());
-    size_t        cpl_s_entity       = cpl_it->second->s_entity_get();
-    int           cpl_stride         = cpl_it->second->stride_get();
-    int           cpl_n_entity       = cpl_it->second->n_entity_get();
-    void *        cpl_data           = cpl_it->second->data_get();
+    size_t        cpl_s_entity       = cpl_it->second->s_send_entity_get();
+    int           cpl_stride         = cpl_it->second->send_stride_get();
+    int           cpl_n_entity       = cpl_it->second->n_send_entity_get();
+    void *        cpl_data           = cpl_it->second->send_data_get();
 
     _communication.waitIrecvGlobalDataBetweenCodesThroughUnionCom(global_request,
                                                                   data_request,
@@ -486,12 +484,10 @@ namespace cwipi {
                                                                   cpl_stride,
                                                                   cpl_n_entity,
                                                                   cpl_data,
-                                                                  &s_entity,
-                                                                  &stride,
-                                                                  &n_entity,
-                                                                  data); // TO DO: handle neatly the void *'s
-
-    // TO DO: set if copy the recv data (return to know if needed)
+                                                                  s_entity,
+                                                                  stride,
+                                                                  n_entity,
+                                                                  data);
   }
 
   /*----------------------------------------------------------------------------*
