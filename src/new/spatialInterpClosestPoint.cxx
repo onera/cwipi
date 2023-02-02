@@ -69,7 +69,15 @@ namespace cwipi {
       }
 
       if (_recv_coord != NULL) {
-        for (int i_part = 0; i_part < _nPart; i_part++) {
+        int n_part_tgt = 0;
+        if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+          n_part_tgt = _nPart;
+        }
+        else {
+          n_part_tgt  = _cplNPart;
+        }
+
+        for (int i_part = 0; i_part < n_part_tgt; i_part++) {
           if (_recv_coord[i_part] != NULL) {
             free(_recv_coord[i_part]);
           }
