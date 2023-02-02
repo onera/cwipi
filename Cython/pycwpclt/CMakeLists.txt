@@ -1,0 +1,53 @@
+file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.pxi")
+file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.py")
+
+configure_file(pycwpclt.pyx.in pycwpclt.pyx)
+
+include(UseCython)
+
+cython_add_module (pycwpclt
+                 PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/pycwpclt.pyx"
+                 INCLUDE_DIRECTORIES ${include_dirs})
+
+
+get_target_property(CWP_INC pycwpclt INCLUDE_DIRECTORIES)
+target_include_directories(pycwpclt PUBLIC ${CWP_INC})
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
+
+  target_link_libraries(pycwpclt ${LINK_LIBRARIES} pdm_shared pdm_mpi_shared)
+
+endif()
+
+target_link_libraries(pycwpclt cwp_shared)
+if (CWP_ENABLE_Fortran)
+  target_link_libraries(pycwpclt cwp_shared)
+endif()
+
+
+if (CWP_ENABLE_SPACE_NODAL_BASIS)
+  target_link_libraries(pycwpclt spaceBasis_shared)
+endif()
+
+if ((NOT MPI_C_COMPILER) AND MPI_C_COMPILE_FLAGS)
+  set_target_properties(pycwpclt PROPERTIES
+                         COMPILE_FLAGS ${MPI_C_COMPILE_FLAGS})
+endif()
+
+
+set(SETUP_PY     "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
+set(OUTPUT       "${CMAKE_CURRENT_BINARY_DIR}/timestamp")
+set(DEPS         "${CMAKE_CURRENT_SOURCE_DIR}/__init__.py")
+add_custom_command(OUTPUT ${OUTPUT}
+                   COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} --quiet build
+                   COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
+                   DEPENDS ${DEPS_OLD})
+
+set (SITE_PACKAGES_CWP "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/pycwpclt")
+
+if ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
+    (CMAKE_C_COMPILER_ID STREQUAL "Intel") OR
+    (CMAKE_C_COMPILER_ID STREQUAL "AppleClang") OR
+    (CMAKE_C_COMPILER_ID STREQUAL "PGI"))
+  set_target_properties (pycwpclt PROPERTIES COMPILE_FLAGS "-w")
+endif()
