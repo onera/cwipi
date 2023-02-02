@@ -462,9 +462,9 @@ _gen_mesh
                                  &face_join,
                                  &face_join_ln_to_gn);
 
-      *(pn_cell)[i_part] = n_cell;
-      *(pn_face)[i_part] = n_face;
-      *(pn_vtx)[i_part]  = n_vtx;
+      (*pn_cell)[i_part] = n_cell;
+      (*pn_face)[i_part] = n_face;
+      (*pn_vtx)[i_part]  = n_vtx;
 
       /* Vertices */
       (*pvtx_coord)[i_part] = (double *) malloc(sizeof(double) * 3 * n_vtx);

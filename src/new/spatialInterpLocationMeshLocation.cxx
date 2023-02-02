@@ -182,7 +182,7 @@ namespace cwipi {
             // PDM_log_trace_array_double (part_coord, 3*n_elt_size, "cloud point user : ");
           }
 
-          printf("n_elt_size = %i\n", n_elt_size);
+          // printf("n_elt_size = %i\n", n_elt_size);
 
           PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, n_elt_size, (double *) part_coord, (PDM_g_num_t*) part_gnum);
 
@@ -190,7 +190,7 @@ namespace cwipi {
       }
 
       else {
-        for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+        for (int i_part = 0 ; i_part < _cplNPart ; i_part++) {
           PDM_mesh_location_cloud_set(_id_pdm, 0, i_part, 0, NULL, NULL);
         }
       }

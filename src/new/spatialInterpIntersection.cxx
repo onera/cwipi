@@ -90,6 +90,7 @@ namespace cwipi {
             _src_n_gnum[i_part] = _mesh->getPartNElts (i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
+            PDM_error(__FILE__, __LINE__, 0, "node-centered version of PDM_mesh_intersection not implemented yet\n");
             _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum (i_part);
             _src_n_gnum[i_part] = _mesh->getPartNVertex (i_part);
           }
@@ -107,6 +108,7 @@ namespace cwipi {
             _tgt_n_gnum[i_part] = _mesh->getPartNElts (i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
+            PDM_error(__FILE__, __LINE__, 0, "node-centered version of PDM_mesh_intersection not implemented yet\n");
             _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum (i_part);
             _tgt_n_gnum[i_part] = _mesh->getPartNVertex (i_part);
           }
@@ -308,13 +310,13 @@ namespace cwipi {
       n_part_src = _nPart;
     }
     else {
-      n_part_src  = _cplNPart;
+      n_part_src = _cplNPart;
     }
     if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
       n_part_tgt = _nPart;
     }
     else {
-      n_part_tgt  = _cplNPart;
+      n_part_tgt = _cplNPart;
     }
 
     // A = source
@@ -554,17 +556,14 @@ namespace cwipi {
       PDM_part_to_part_ref_lnum2_get(_ptsp, &n_ref_tgt, &ref_tgt);
 
       for (int i_part = 0; i_part < _nPart; i_part++) {
-        PDM_mesh_intersection_result_from_b_get(_id_pdm,
-                                                i_part,
-                                                &(_tgt_to_src_weight[i_part]));
-
-        PDM_mesh_intersection_result_from_a_get(_id_pdm,
-                                                i_part,
-                                                &(_src_to_tgt_idx   [i_part]),
-                                                &(_src_to_tgt_gnum  [i_part]),
-                                                &(_src_to_tgt_weight[i_part]));
 
         if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+
+          PDM_mesh_intersection_result_from_a_get(_id_pdm,
+                                                  i_part,
+                                                  &(_src_to_tgt_idx   [i_part]),
+                                                  &(_src_to_tgt_gnum  [i_part]),
+                                                  &(_src_to_tgt_weight[i_part]));
 
           _n_involved_sources_tgt[i_part] = _src_n_gnum[i_part];
           _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
@@ -581,8 +580,12 @@ namespace cwipi {
           _involved_sources_tgt[i_part] = (int*) realloc(_involved_sources_tgt[i_part], sizeof(int) * count);
         }
         else {
-          // _src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
-          // _src_to_tgt_idx[i_part][0] = 0;
+          _src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
+          _src_to_tgt_idx[i_part][0] = 0;
+
+          PDM_mesh_intersection_result_from_b_get(_id_pdm,
+                                                  i_part,
+                                                  &(_tgt_to_src_weight[i_part]));
 
           _n_computed_tgt[i_part] = n_ref_tgt[i_part];
           _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
@@ -609,38 +612,13 @@ namespace cwipi {
         int **ref_tgt   = NULL;
         PDM_part_to_part_ref_lnum2_get(_ptsp, &n_ref_tgt, &ref_tgt);
 
-        for (int i_part = 0; i_part < _nPart; i_part++) {
-          PDM_mesh_intersection_result_from_b_get(_id_pdm,
-                                                  i_part,
-                                                  &(_tgt_to_src_weight[i_part]));
-
-          PDM_mesh_intersection_result_from_a_get(_id_pdm,
+        if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+          for (int i_part = 0; i_part < _nPart; i_part++) {
+            PDM_mesh_intersection_result_from_a_get(_id_pdm,
                                                     i_part,
                                                     &(_src_to_tgt_idx   [i_part]),
                                                     &(_src_to_tgt_gnum  [i_part]),
                                                     &(_src_to_tgt_weight[i_part]));
-        }
-
-        for (int i_part = 0; i_part < _cplNPart; i_part++) {
-          PDM_mesh_intersection_result_from_b_get(_id_pdm,
-                                                  i_part,
-                                                  &(cpl_spatial_interp->_tgt_to_src_weight[i_part]));
-
-          PDM_mesh_intersection_result_from_a_get(_id_pdm,
-                                                    i_part,
-                                                    &(cpl_spatial_interp->_src_to_tgt_idx   [i_part]),
-                                                    &(cpl_spatial_interp->_src_to_tgt_gnum  [i_part]),
-                                                    &(cpl_spatial_interp->_src_to_tgt_weight[i_part]));
-
-        }
-
-        if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-          for (int i_part = 0; i_part < _nPart; i_part++) {
-            // PDM_mesh_intersection_result_from_a_get(_id_pdm,
-            //                                         i_part,
-            //                                         &(_src_to_tgt_idx   [i_part]),
-            //                                         &(_src_to_tgt_gnum  [i_part]),
-            //                                         &(_src_to_tgt_weight[i_part]));
 
             _n_involved_sources_tgt[i_part] = _src_n_gnum[i_part];
             _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
@@ -658,12 +636,12 @@ namespace cwipi {
           }
 
           for (int i_part = 0; i_part < _cplNPart; i_part++) {
-            // cpl_spatial_interp->_src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
-            // cpl_spatial_interp->_src_to_tgt_idx[i_part][0] = 0;
+            cpl_spatial_interp->_src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
+            cpl_spatial_interp->_src_to_tgt_idx[i_part][0] = 0;
 
-            // PDM_mesh_intersection_result_from_b_get(_id_pdm,
-            //                                         i_part,
-            //                                         &(cpl_spatial_interp->_tgt_to_src_weight[i_part]));
+            PDM_mesh_intersection_result_from_b_get(_id_pdm,
+                                                    i_part,
+                                                    &(cpl_spatial_interp->_tgt_to_src_weight[i_part]));
 
             cpl_spatial_interp->_n_computed_tgt[i_part] = n_ref_tgt[i_part];
             cpl_spatial_interp->_computed_tgt[i_part] = (int *) malloc(sizeof(int) * cpl_spatial_interp->_n_computed_tgt[i_part]);
@@ -672,12 +650,12 @@ namespace cwipi {
         }
         else {
           for (int i_part = 0; i_part < _nPart; i_part++) {
-            // _src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
-            // _src_to_tgt_idx[i_part][0] = 0;
+            _src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
+            _src_to_tgt_idx[i_part][0] = 0;
 
-            // PDM_mesh_intersection_result_from_b_get(_id_pdm,
-            //                                         i_part,
-            //                                         &(_tgt_to_src_weight[i_part]));
+            PDM_mesh_intersection_result_from_b_get(_id_pdm,
+                                                    i_part,
+                                                    &(_tgt_to_src_weight[i_part]));
 
             _n_computed_tgt[i_part] = n_ref_tgt[i_part];
             _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
@@ -685,11 +663,11 @@ namespace cwipi {
           }
 
           for (int i_part = 0; i_part < _cplNPart; i_part++) {
-            // PDM_mesh_intersection_result_from_a_get(_id_pdm,
-            //                                         i_part,
-            //                                         &(cpl_spatial_interp->_src_to_tgt_idx   [i_part]),
-            //                                         &(cpl_spatial_interp->_src_to_tgt_gnum  [i_part]),
-            //                                         &(cpl_spatial_interp->_src_to_tgt_weight[i_part]));
+            PDM_mesh_intersection_result_from_a_get(_id_pdm,
+                                                    i_part,
+                                                    &(cpl_spatial_interp->_src_to_tgt_idx   [i_part]),
+                                                    &(cpl_spatial_interp->_src_to_tgt_gnum  [i_part]),
+                                                    &(cpl_spatial_interp->_src_to_tgt_weight[i_part]));
 
             cpl_spatial_interp->_n_involved_sources_tgt[i_part] = cpl_spatial_interp->_src_n_gnum[i_part];
             cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * cpl_spatial_interp->_n_involved_sources_tgt[i_part]);

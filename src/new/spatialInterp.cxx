@@ -494,7 +494,8 @@ namespace cwipi {
       }
 
       if (_recv_buffer[intId] != NULL) {
-        for (int i = 0; i < _nPart; i++) {
+        // for (int i = 0; i < _nPart; i++) {
+        for (int i = 0; i < _cplNPart; i++) {
           if (_recv_buffer[intId][i] != NULL) {
             free (_recv_buffer[intId][i]);
             _recv_buffer[intId][i] = NULL;
