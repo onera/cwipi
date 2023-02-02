@@ -1054,7 +1054,8 @@ main(int argc, char *argv[]) {
   int n_proc_data                 = -1;
 
   // CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
-  CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
+  // CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
+  CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
 #ifdef PDM_HAVE_PARMETIS
   PDM_split_dual_t part_method    = PDM_SPLIT_DUAL_WITH_PARMETIS;
 #else
@@ -1903,7 +1904,8 @@ main(int argc, char *argv[]) {
 
   //  Check
 
-  if (1) {
+  if (loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE &&
+      loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE) {
     double max_err = 0.;
     PDM_g_num_t n_wrong = 0;
     if (code_id == 2) {

@@ -32,8 +32,10 @@ namespace cwipi {
   (
    )
   {
+    log_trace(">> ~SpatialInterpIntersection\n");
     for (int i_part = 0; i_part < _nPart; i_part++) {
       if (_src_to_tgt_idx[i_part] != NULL) {
+        log_trace("_src_to_tgt_idx[%d] : %p\n", i_part, (void *) _src_to_tgt_idx[i_part]);
         free(_src_to_tgt_idx[i_part]);
       }
       if (_src_to_tgt_gnum[i_part] != NULL) {
@@ -78,23 +80,27 @@ namespace cwipi {
       _interpolation_time = CWP_SPATIAL_INTERP_AT_RECV;
 
       //
+      // Map nodal mesh
+      _pdm_CplNodal = _mesh->getPdmNodalIndex();
+
+      //
       // Data for PDM_part_to_part_t
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
         for (int i_part = 0 ; i_part < _nPart ; i_part++) {
           if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
             _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
             _src_n_gnum[i_part] = _mesh->getPartNElts (i_part);
-
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
             _src_gnum  [i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum (i_part);
             _src_n_gnum[i_part] = _mesh->getPartNVertex (i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
-            PDM_error(__FILE__, __LINE__, 0, "Ivalid dof location %d\n", (int) _localCodeDofLocation);
+            PDM_error(__FILE__, __LINE__, 0, "Invalid dof location %d\n", (int) _localCodeDofLocation);
             _src_gnum  [i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet (i_part);
             _src_n_gnum[i_part] = _cpl->userTargetNGet (i_part);
           }
+          log_trace("_src_n_gnum[%d] = %d\n", i_part, _src_n_gnum[i_part]);
         }
       }
       else {
@@ -102,19 +108,19 @@ namespace cwipi {
           if (_localCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
             _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->GNumEltsGet (i_part);
             _tgt_n_gnum[i_part] = _mesh->getPartNElts (i_part);
-
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_NODE) {
             _tgt_gnum  [i_part] = (const PDM_g_num_t *) _mesh->getVertexGNum (i_part);
             _tgt_n_gnum[i_part] = _mesh->getPartNVertex (i_part);
           }
           else if (_localCodeDofLocation == CWP_DOF_LOCATION_USER) {
-            PDM_error(__FILE__, __LINE__, 0, "Ivalid dof location %d\n", (int) _localCodeDofLocation);
+            PDM_error(__FILE__, __LINE__, 0, "Invalid dof location %d\n", (int) _localCodeDofLocation);
             _tgt_gnum  [i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet (i_part);
             _tgt_n_gnum[i_part] = _cpl->userTargetNGet (i_part);
           }
         }
       }
+
 
       //
       // Target properties
@@ -323,66 +329,69 @@ namespace cwipi {
                                              mesh_dim,
                                              mesh_dim,
                                              0.,
-                                             _pdmCplComm);
+                                             _pdmCplComm,
+                                             PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
       // source mesh
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-        // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, _pdm_CplNodal);
+        PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, _pdm_CplNodal);
       }
       else {
         // empty mesh
-        PDM_mesh_intersection_n_part_set(_id_pdm, 0, n_part_src);
-        for (int i = 0; i < n_part_src; i++) {
-          PDM_mesh_intersection_part_set(_id_pdm,
-                                         0,     // i_mesh
-                                         i,     // i_part
-                                         0,     // n_cell
-                                         0,     // n_face
-                                         0,     // n_edge
-                                         0,     // n_vtx
-                                         NULL,  // cell_face_idx
-                                         NULL,  // cell_face
-                                         NULL,  // face_edge_idx
-                                         NULL,  // face_edge
-                                         NULL,  // edge_vtx
-                                         NULL,  // face_vtx_idx
-                                         NULL,  // face_vtx
-                                         NULL,  // cell_ln_to_gn
-                                         NULL,  // face_ln_to_gn
-                                         NULL,  // edge_ln_to_gn
-                                         NULL,  // vtx_ln_to_gn
-                                         NULL); // vtx_coord
-        }
+        PDM_mesh_intersection_n_part_set2(_id_pdm, 0, n_part_src);
+        // PDM_mesh_intersection_n_part_set(_id_pdm, 0, n_part_src);
+        // for (int i = 0; i < n_part_src; i++) {
+        //   PDM_mesh_intersection_part_set(_id_pdm,
+        //                                  0,     // i_mesh
+        //                                  i,     // i_part
+        //                                  0,     // n_cell
+        //                                  0,     // n_face
+        //                                  0,     // n_edge
+        //                                  0,     // n_vtx
+        //                                  NULL,  // cell_face_idx
+        //                                  NULL,  // cell_face
+        //                                  NULL,  // face_edge_idx
+        //                                  NULL,  // face_edge
+        //                                  NULL,  // edge_vtx
+        //                                  NULL,  // face_vtx_idx
+        //                                  NULL,  // face_vtx
+        //                                  NULL,  // cell_ln_to_gn
+        //                                  NULL,  // face_ln_to_gn
+        //                                  NULL,  // edge_ln_to_gn
+        //                                  NULL,  // vtx_ln_to_gn
+        //                                  NULL); // vtx_coord
+        // }
       }
 
       // target mesh
       if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-        // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, _pdm_CplNodal);
+        PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, _pdm_CplNodal);
       }
       else {
         // empty mesh
-        PDM_mesh_intersection_n_part_set(_id_pdm, 0, n_part_tgt);
-        for (int i = 0; i < n_part_tgt; i++) {
-          PDM_mesh_intersection_part_set(_id_pdm,
-                                         1,     // i_mesh
-                                         i,     // i_part
-                                         0,     // n_cell
-                                         0,     // n_face
-                                         0,     // n_edge
-                                         0,     // n_vtx
-                                         NULL,  // cell_face_idx
-                                         NULL,  // cell_face
-                                         NULL,  // face_edge_idx
-                                         NULL,  // face_edge
-                                         NULL,  // edge_vtx
-                                         NULL,  // face_vtx_idx
-                                         NULL,  // face_vtx
-                                         NULL,  // cell_ln_to_gn
-                                         NULL,  // face_ln_to_gn
-                                         NULL,  // edge_ln_to_gn
-                                         NULL,  // vtx_ln_to_gn
-                                         NULL); // vtx_coord
-        }
+        PDM_mesh_intersection_n_part_set2(_id_pdm, 1, n_part_tgt);
+        // PDM_mesh_intersection_n_part_set(_id_pdm, 1, n_part_tgt);
+        // for (int i = 0; i < n_part_tgt; i++) {
+        //   PDM_mesh_intersection_part_set(_id_pdm,
+        //                                  1,     // i_mesh
+        //                                  i,     // i_part
+        //                                  0,     // n_cell
+        //                                  0,     // n_face
+        //                                  0,     // n_edge
+        //                                  0,     // n_vtx
+        //                                  NULL,  // cell_face_idx
+        //                                  NULL,  // cell_face
+        //                                  NULL,  // face_edge_idx
+        //                                  NULL,  // face_edge
+        //                                  NULL,  // edge_vtx
+        //                                  NULL,  // face_vtx_idx
+        //                                  NULL,  // face_vtx
+        //                                  NULL,  // cell_ln_to_gn
+        //                                  NULL,  // face_ln_to_gn
+        //                                  NULL,  // edge_ln_to_gn
+        //                                  NULL,  // vtx_ln_to_gn
+        //                                  NULL); // vtx_coord
+        // }
       }
     }
 
@@ -393,7 +402,8 @@ namespace cwipi {
                                                mesh_dim,
                                                mesh_dim,
                                                0.,
-                                               _pdmCplComm);
+                                               _pdmCplComm,
+                                               PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
         SpatialInterpIntersection *cpl_spatial_interp;
         cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
@@ -416,18 +426,18 @@ namespace cwipi {
 
         // source mesh
         if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-          // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, _pdm_CplNodal);
+          PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, _pdm_CplNodal);
         }
         else {
-          // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, cpl_mesh->getPdmNodalIndex());
+          PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 0, cpl_mesh->getPdmNodalIndex());
         }
 
         // target mesh
         if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-          // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, _pdm_CplNodal);
+          PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, _pdm_CplNodal);
         }
         else {
-          // PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, cpl_mesh->getPdmNodalIndex());
+          PDM_mesh_intersection_mesh_nodal_set(_id_pdm, 1, cpl_mesh->getPdmNodalIndex());
         }
       }
     }
@@ -547,12 +557,17 @@ namespace cwipi {
       PDM_part_to_part_ref_lnum2_get(_ptsp, &n_ref_tgt, &ref_tgt);
 
       for (int i_part = 0; i_part < _nPart; i_part++) {
+        PDM_mesh_intersection_result_from_b_get(_id_pdm,
+                                                i_part,
+                                                &(_tgt_to_src_weight[i_part]));
+
+        PDM_mesh_intersection_result_from_a_get(_id_pdm,
+                                                i_part,
+                                                &(_src_to_tgt_idx   [i_part]),
+                                                &(_src_to_tgt_gnum  [i_part]),
+                                                &(_src_to_tgt_weight[i_part]));
+
         if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-          PDM_mesh_intersection_result_from_a_get(_id_pdm,
-                                                  i_part,
-                                                  &(_src_to_tgt_idx   [i_part]),
-                                                  &(_src_to_tgt_gnum  [i_part]),
-                                                  &(_src_to_tgt_weight[i_part]));
 
           _n_involved_sources_tgt[i_part] = _src_n_gnum[i_part];
           _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
@@ -569,8 +584,8 @@ namespace cwipi {
           _involved_sources_tgt[i_part] = (int*) realloc(_involved_sources_tgt[i_part], sizeof(int) * count);
         }
         else {
-          _src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
-          _src_to_tgt_idx[i_part][0] = 0;
+          // _src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
+          // _src_to_tgt_idx[i_part][0] = 0;
 
           _n_computed_tgt[i_part] = n_ref_tgt[i_part];
           _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
@@ -597,13 +612,38 @@ namespace cwipi {
         int **ref_tgt   = NULL;
         PDM_part_to_part_ref_lnum2_get(_ptsp, &n_ref_tgt, &ref_tgt);
 
-        if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-          for (int i_part = 0; i_part < _nPart; i_part++) {
-            PDM_mesh_intersection_result_from_a_get(_id_pdm,
+        for (int i_part = 0; i_part < _nPart; i_part++) {
+          PDM_mesh_intersection_result_from_b_get(_id_pdm,
+                                                  i_part,
+                                                  &(_tgt_to_src_weight[i_part]));
+
+          PDM_mesh_intersection_result_from_a_get(_id_pdm,
                                                     i_part,
                                                     &(_src_to_tgt_idx   [i_part]),
                                                     &(_src_to_tgt_gnum  [i_part]),
                                                     &(_src_to_tgt_weight[i_part]));
+        }
+
+        for (int i_part = 0; i_part < _cplNPart; i_part++) {
+          PDM_mesh_intersection_result_from_b_get(_id_pdm,
+                                                  i_part,
+                                                  &(cpl_spatial_interp->_tgt_to_src_weight[i_part]));
+
+          PDM_mesh_intersection_result_from_a_get(_id_pdm,
+                                                    i_part,
+                                                    &(cpl_spatial_interp->_src_to_tgt_idx   [i_part]),
+                                                    &(cpl_spatial_interp->_src_to_tgt_gnum  [i_part]),
+                                                    &(cpl_spatial_interp->_src_to_tgt_weight[i_part]));
+
+        }
+
+        if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+          for (int i_part = 0; i_part < _nPart; i_part++) {
+            // PDM_mesh_intersection_result_from_a_get(_id_pdm,
+            //                                         i_part,
+            //                                         &(_src_to_tgt_idx   [i_part]),
+            //                                         &(_src_to_tgt_gnum  [i_part]),
+            //                                         &(_src_to_tgt_weight[i_part]));
 
             _n_involved_sources_tgt[i_part] = _src_n_gnum[i_part];
             _involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * _n_involved_sources_tgt[i_part]);
@@ -621,8 +661,12 @@ namespace cwipi {
           }
 
           for (int i_part = 0; i_part < _cplNPart; i_part++) {
-            cpl_spatial_interp->_src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
-            cpl_spatial_interp->_src_to_tgt_idx[i_part][0] = 0;
+            // cpl_spatial_interp->_src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
+            // cpl_spatial_interp->_src_to_tgt_idx[i_part][0] = 0;
+
+            // PDM_mesh_intersection_result_from_b_get(_id_pdm,
+            //                                         i_part,
+            //                                         &(cpl_spatial_interp->_tgt_to_src_weight[i_part]));
 
             cpl_spatial_interp->_n_computed_tgt[i_part] = n_ref_tgt[i_part];
             cpl_spatial_interp->_computed_tgt[i_part] = (int *) malloc(sizeof(int) * cpl_spatial_interp->_n_computed_tgt[i_part]);
@@ -631,8 +675,12 @@ namespace cwipi {
         }
         else {
           for (int i_part = 0; i_part < _nPart; i_part++) {
-            _src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
-            _src_to_tgt_idx[i_part][0] = 0;
+            // _src_to_tgt_idx[i_part] = (int *) malloc(sizeof(int));
+            // _src_to_tgt_idx[i_part][0] = 0;
+
+            // PDM_mesh_intersection_result_from_b_get(_id_pdm,
+            //                                         i_part,
+            //                                         &(_tgt_to_src_weight[i_part]));
 
             _n_computed_tgt[i_part] = n_ref_tgt[i_part];
             _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
@@ -640,11 +688,11 @@ namespace cwipi {
           }
 
           for (int i_part = 0; i_part < _cplNPart; i_part++) {
-            PDM_mesh_intersection_result_from_a_get(_id_pdm,
-                                                    i_part,
-                                                    &(cpl_spatial_interp->_src_to_tgt_idx   [i_part]),
-                                                    &(cpl_spatial_interp->_src_to_tgt_gnum  [i_part]),
-                                                    &(cpl_spatial_interp->_src_to_tgt_weight[i_part]));
+            // PDM_mesh_intersection_result_from_a_get(_id_pdm,
+            //                                         i_part,
+            //                                         &(cpl_spatial_interp->_src_to_tgt_idx   [i_part]),
+            //                                         &(cpl_spatial_interp->_src_to_tgt_gnum  [i_part]),
+            //                                         &(cpl_spatial_interp->_src_to_tgt_weight[i_part]));
 
             cpl_spatial_interp->_n_involved_sources_tgt[i_part] = cpl_spatial_interp->_src_n_gnum[i_part];
             cpl_spatial_interp->_involved_sources_tgt[i_part] = (int*) malloc(sizeof(int) * cpl_spatial_interp->_n_involved_sources_tgt[i_part]);
@@ -738,7 +786,7 @@ namespace cwipi {
 
           int i = ref_tgt[i_part][iref] - 1;
 
-          for (int k = come_from_idx[i_part][i]; k < come_from_idx[i_part][i+1]; k++) {
+          for (int k = come_from_idx[i_part][iref]; k < come_from_idx[i_part][iref+1]; k++) {
 
             double w = _tgt_to_src_weight[i_part][k];
 

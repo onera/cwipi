@@ -25,6 +25,7 @@
 #include <mpi.h>
 
 #include <pdm_mesh_nodal.h>
+#include <pdm_part_mesh_nodal.h>
 #include <pdm_printf.h>
 #include "pdm_error.h"
 #include "pdm_gnum.h"
@@ -413,7 +414,7 @@ namespace cwipi {
     *
     */
 
-    inline PDM_Mesh_nodal_t& getPdmNodal();
+    inline PDM_part_mesh_nodal_t& getPdmNodal();
 
     /**
     * \brief Get the number of elements of the id_block block.
@@ -505,7 +506,7 @@ namespace cwipi {
     *
     *
     */
-    inline  PDM_Mesh_nodal_t * getPdmNodalIndex();
+    inline  PDM_part_mesh_nodal_t * getPdmNodalIndex();
 
    /**
     * \brief Return Coordinates of the i_part partition.
@@ -625,6 +626,10 @@ namespace cwipi {
      return _blockDB[id_block] -> GNumMeshGet(i_part);
    }
 
+   PDM_geometry_kind_t geomKindGet() {
+    return _geom_kind;
+   }
+
    PDM_MPI_Comm _pdm_localComm;
   private:
 
@@ -683,7 +688,8 @@ namespace cwipi {
     int                                     _faceEdgeMethod;
     int                                     _cellFaceMethod;
 
-    PDM_Mesh_nodal_t                       *_pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
+    PDM_part_mesh_nodal_t                  *_pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
+    PDM_geometry_kind_t                     _geom_kind;
 
     bool                                    _isVtxGnumComputed;
     bool                                    _isEltGnumComputed;
@@ -723,7 +729,7 @@ namespace cwipi {
     return _coords[i_part];
   }
 
-  PDM_Mesh_nodal_t *Mesh::getPdmNodalIndex() {
+  PDM_part_mesh_nodal_t *Mesh::getPdmNodalIndex() {
     return _pdmNodal_handle_index;
   }
 

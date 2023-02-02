@@ -115,7 +115,7 @@ namespace cwipi {
     free ( _points_projected_coords);
 
 
-    //PDM_Mesh_nodal_free (_pdm_CplNodal);
+    //PDM_part_mesh_nodal_free (_pdm_CplNodal);
   }
 
 
@@ -173,7 +173,7 @@ namespace cwipi {
     // }
 
     if (_pdm_CplNodal != NULL) {
-      printf("SpatialInterpLocation::init Mesh_nodal_n_blocks :%d\n", PDM_Mesh_nodal_n_blocks_get(_pdm_CplNodal));
+      printf("SpatialInterpLocation::init Mesh_nodal_n_blocks :%d\n", PDM_part_mesh_nodal_n_section_in_geom_kind_get(_pdm_CplNodal, _mesh->geomKindGet()));
       fflush(stdout);
     }
 

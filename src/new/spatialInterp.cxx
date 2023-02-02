@@ -494,7 +494,9 @@ namespace cwipi {
       }
 
       if (_recv_buffer[intId] != NULL) {
+        log_trace("_nPart = %d\n", _nPart);
         for (int i = 0; i < _nPart; i++) {
+          log_trace("  _recv_buffer[intId][%d] : %p\n", i, (void *) _recv_buffer[intId][i]);
           if (_recv_buffer[intId][i] != NULL) {
             free (_recv_buffer[intId][i]);
             _recv_buffer[intId][i] = NULL;

@@ -59,6 +59,8 @@ namespace cwipi {
 
   protected:
     PDM_mesh_intersection_t *_id_pdm;
+
+    PDM_part_mesh_nodal_t* _pdm_CplNodal;
   };
 
 }
