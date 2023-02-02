@@ -330,6 +330,8 @@ namespace cwipi {
    void           *send_data
    )
   {
+    cout << "globalDataIsend - in\n" << endl;
+
     // Create an instance of GlobalData
     map<string,GlobalData*>::iterator it = _globalData.find(global_data_id.c_str());
     if (it == _globalData.end()) {
@@ -343,19 +345,31 @@ namespace cwipi {
       _globalData.insert(newPair);
     } // end if does not exist
 
-    MPI_Request * global_request = it->second->global_request_get();
-    MPI_Request * data_request   = it->second->data_request_get();
     size_t        s_entity       = it->second->s_send_entity_get();
     int           stride         = it->second->send_stride_get();
     int           n_entity       = it->second->n_send_entity_get();
     void *        data           = it->second->send_data_get();
 
-    _communication.isendGlobalDataBetweenCodesThroughUnionCom(global_request,
-                                                              data_request,
+    MPI_Request s_entity_request;
+    MPI_Request stride_request;
+    MPI_Request n_entity_request;
+    MPI_Request data_request;
+
+    _communication.isendGlobalDataBetweenCodesThroughUnionCom(&s_entity_request,
+                                                              &stride_request,
+                                                              &n_entity_request,
+                                                              &data_request,
                                                               s_entity,
                                                               stride,
                                                               n_entity,
                                                               data);
+
+    it->second->s_entity_request_set(&s_entity_request);
+    it->second->stride_request_set(&stride_request);
+    it->second->n_entity_request_set(&n_entity_request);
+    it->second->data_request_set(&data_request);
+
+    cout << "globalDataIsend - out\n" << endl;
   }
 
   /**
@@ -369,8 +383,6 @@ namespace cwipi {
    *
    */
 
-  // TO DO: dans GlobalData stocker l'adresse/pointeur des output de recv pour bien remplir ça et pas juste la structure
-
   void
   Coupling::globalDataIrecv
   (
@@ -381,6 +393,8 @@ namespace cwipi {
    void          **recv_data
   )
   {
+    cout << "globalDataIrecv - in\n" << endl;
+
     // Create an instance of GlobalData
     map<string,GlobalData*>::iterator it = _globalData.find(global_data_id.c_str());
     if (it == _globalData.end()) {
@@ -394,15 +408,25 @@ namespace cwipi {
       _globalData.insert(newPair);
     } // end if does not exist
 
-    MPI_Request * global_request = it->second->global_request_get();
     size_t *      s_entity       = it->second->s_recv_entity_get();
     int *         stride         = it->second->recv_stride_get();
     int *         n_entity       = it->second->n_recv_entity_get();
 
-    _communication.irecvGlobalDataBetweenCodesThroughUnionCom(global_request,
+    MPI_Request s_entity_request;
+    MPI_Request stride_request;
+    MPI_Request n_entity_request;
+
+    _communication.irecvGlobalDataBetweenCodesThroughUnionCom(&s_entity_request,
+                                                              &stride_request,
+                                                              &n_entity_request,
                                                               s_entity,
                                                               stride,
                                                               n_entity);
+    it->second->s_entity_request_set(&s_entity_request);
+    it->second->stride_request_set(&stride_request);
+    it->second->n_entity_request_set(&n_entity_request);
+
+    cout << "globalDataIrecv - out\n" << endl;
   }
 
   /**
@@ -418,14 +442,18 @@ namespace cwipi {
    const string    &global_data_id
   )
   {
+    cout << "globalDataWaitIsend - in\n" << endl;
+
     // Get local
     map<string,GlobalData*>::iterator it = _globalData.find(global_data_id.c_str());
-    MPI_Request * global_request = it->second->global_request_get();
-    MPI_Request * data_request   = it->second->data_request_get();
-    size_t        s_entity       = it->second->s_send_entity_get();
-    int           stride         = it->second->send_stride_get();
-    int           n_entity       = it->second->n_send_entity_get();
-    void *        data           = it->second->send_data_get();
+    MPI_Request * s_entity_request = it->second->s_entity_request_get();
+    MPI_Request * stride_request   = it->second->stride_request_get();
+    MPI_Request * n_entity_request = it->second->n_entity_request_get();
+    MPI_Request * data_request     = it->second->data_request_get();
+    size_t        s_entity         = it->second->s_send_entity_get();
+    int           stride           = it->second->send_stride_get();
+    int           n_entity         = it->second->n_send_entity_get();
+    void *        data             = it->second->send_data_get();
 
     // Get coupled
     cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
@@ -435,7 +463,9 @@ namespace cwipi {
     int *         cpl_n_entity       = cpl_it->second->n_recv_entity_get();
     void **       cpl_data           = cpl_it->second->recv_data_get();
 
-    _communication.waitIsendGlobalDataBetweenCodesThroughUnionCom(global_request,
+    _communication.waitIsendGlobalDataBetweenCodesThroughUnionCom(s_entity_request,
+                                                                  stride_request,
+                                                                  n_entity_request,
                                                                   data_request,
                                                                   s_entity,
                                                                   stride,
@@ -445,6 +475,8 @@ namespace cwipi {
                                                                   cpl_stride,
                                                                   cpl_n_entity,
                                                                   cpl_data);
+
+    cout << "globalDataWaitIsend - out\n" << endl;
   }
 
   /**
@@ -460,11 +492,13 @@ namespace cwipi {
    const string    &global_data_id
   )
   {
+    cout << "globalDataWaitIrecv - in\n" << endl;
 
     // Get local
     map<string,GlobalData*>::iterator it = _globalData.find(global_data_id.c_str());
-    MPI_Request * global_request = it->second->global_request_get();
-    MPI_Request * data_request   = it->second->data_request_get();
+    MPI_Request * s_entity_request = it->second->s_entity_request_get();
+    MPI_Request * stride_request   = it->second->stride_request_get();
+    MPI_Request * n_entity_request = it->second->n_entity_request_get();
     size_t *      s_entity       = it->second->s_recv_entity_get();
     int *         stride         = it->second->recv_stride_get();
     int *         n_entity       = it->second->n_recv_entity_get();
@@ -478,8 +512,9 @@ namespace cwipi {
     int           cpl_n_entity       = cpl_it->second->n_send_entity_get();
     void *        cpl_data           = cpl_it->second->send_data_get();
 
-    _communication.waitIrecvGlobalDataBetweenCodesThroughUnionCom(global_request,
-                                                                  data_request,
+    _communication.waitIrecvGlobalDataBetweenCodesThroughUnionCom(s_entity_request,
+                                                                  stride_request,
+                                                                  n_entity_request,
                                                                   cpl_s_entity,
                                                                   cpl_stride,
                                                                   cpl_n_entity,
@@ -488,6 +523,8 @@ namespace cwipi {
                                                                   stride,
                                                                   n_entity,
                                                                   data);
+
+    cout << "globalDataWaitIrecv - out\n" << endl;
   }
 
   /*----------------------------------------------------------------------------*

@@ -72,20 +72,6 @@ namespace cwipi {
      */
     ~GlobalData();
 
-    // Getters
-
-    inline MPI_Request *
-    global_request_get()
-    {
-      return _global_request;
-    }
-
-    inline MPI_Request *
-    data_request_get()
-    {
-      return _data_request;
-    }
-
     // send
 
     inline size_t
@@ -138,10 +124,74 @@ namespace cwipi {
       return _recv_data;
     }
 
+    // request
+
+    inline MPI_Request *
+    s_entity_request_get()
+    {
+      return _s_entity_request;
+    }
+
+    inline MPI_Request *
+    stride_request_get()
+    {
+      return _stride_request;
+    }
+
+    inline MPI_Request *
+    n_entity_request_get()
+    {
+      return _n_entity_request;
+    }
+
+    inline MPI_Request *
+    data_request_get()
+    {
+      return _data_request;
+    }
+
+    inline void
+    s_entity_request_set
+    (
+     MPI_Request *req
+    )
+    {
+      _s_entity_request = req;
+    }
+
+    inline void
+    stride_request_set
+    (
+     MPI_Request *req
+    )
+    {
+      _stride_request = req;
+    }
+
+    inline void
+    n_entity_request_set
+    (
+     MPI_Request *req
+    )
+    {
+      _n_entity_request = req;
+    }
+
+    inline void
+    data_request_set
+    (
+     MPI_Request *req
+    )
+    {
+      _data_request = req;
+    }
+
   private:
 
     std::string     _global_data_id;
-    MPI_Request    *_global_request;
+    MPI_Request    *_s_entity_request;
+    MPI_Request    *_stride_request;
+    MPI_Request    *_n_entity_request;
     MPI_Request    *_data_request;
 
     // send

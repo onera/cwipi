@@ -625,7 +625,9 @@ namespace cwipi {
    *
    * \brief Non blocking send of global data array
    *
-   * \param [in] global_send_request
+   * \param [in] s_send_entity_request
+   * \param [in] send_stride_request
+   * \param [in] n_send_entity_request
    * \param [in] data_send_request
    * \param [in] s_send_entity
    * \param [in] send_stride
@@ -636,7 +638,9 @@ namespace cwipi {
   void
   Communication::isendGlobalDataBetweenCodesThroughUnionCom
   (
-   MPI_Request    *global_send_request,
+   MPI_Request    *s_send_entity_request,
+   MPI_Request    *send_stride_request,
+   MPI_Request    *n_send_entity_request,
    MPI_Request    *data_send_request,
    size_t          s_send_entity,
    int             send_stride,
@@ -664,25 +668,19 @@ namespace cwipi {
         } // end if i_rank is root rank of coupled code
         else {
 
-          int *globalData = (int *) malloc(sizeof(int) * 3);
-          globalData[0] = (int) s_send_entity;
-          globalData[1] = send_stride;
-          globalData[2] = n_send_entity;
-          MPI_Isend(globalData, 3,  MPI_INT, _cplCodeRootRankUnionComm, 0, _unionComm, global_send_request);
+          MPI_Isend(&s_send_entity, (int) sizeof(size_t),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, s_send_entity_request);
+          MPI_Isend(&send_stride, 1,  MPI_INT, _cplCodeRootRankUnionComm, 0, _unionComm, send_stride_request);
+          MPI_Isend(&n_send_entity, 1,  MPI_INT, _cplCodeRootRankUnionComm, 0, _unionComm, n_send_entity_request);
           MPI_Isend(send_data, (int) s_send_entity * send_stride * n_send_entity,  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, data_send_request);
-          free(globalData);
 
         }
       } // end if i_rank is joint with the coupled code
       else {
 
-        int *globalData = (int *) malloc(sizeof(int) * 3);
-        globalData[0] = (int) s_send_entity;
-        globalData[1] = send_stride;
-        globalData[2] = n_send_entity;
-        MPI_Isend(globalData, 3,  MPI_INT, _cplCodeRootRankUnionComm, 0, _unionComm, global_send_request);
-        MPI_Isend(send_data, (int) s_send_entity * send_stride * n_send_entity,  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, data_send_request);
-        free(globalData);
+          MPI_Isend(&s_send_entity, (int) sizeof(size_t),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, s_send_entity_request);
+          MPI_Isend(&send_stride, 1,  MPI_INT, _cplCodeRootRankUnionComm, 0, _unionComm, send_stride_request);
+          MPI_Isend(&n_send_entity, 1,  MPI_INT, _cplCodeRootRankUnionComm, 0, _unionComm, n_send_entity_request);
+          MPI_Isend(send_data, (int) s_send_entity * send_stride * n_send_entity,  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, data_send_request);
 
       }
     } // end if i_rank is the root rank of the local code
@@ -692,7 +690,9 @@ namespace cwipi {
    *
    * \brief Non blocking receive of global data array
    *
-   * \param [in] global_recv_request
+   * \param [in] s_recv_entity_request
+   * \param [in] recv_stride_request
+   * \param [in] n_recv_entity_request
    * \param [in] s_recv_entity
    * \param [in] recv_stride
    * \param [in] n_recv_entity
@@ -702,12 +702,16 @@ namespace cwipi {
   void
   Communication::irecvGlobalDataBetweenCodesThroughUnionCom
   (
-   MPI_Request    *global_recv_request,
+   MPI_Request    *s_recv_entity_request,
+   MPI_Request    *recv_stride_request,
+   MPI_Request    *n_recv_entity_request,
    size_t         *s_recv_entity,
    int            *recv_stride,
    int            *n_recv_entity
   )
   {
+    cout << "irecvGlobalDataBetweenCodesThroughUnionCom - 1\n" << endl;
+
     // Get union communicator ie. union of all active ranks of the codes in the coupling
     int unionCommRank;
     MPI_Comm_rank (_unionComm, &unionCommRank);
@@ -728,33 +732,42 @@ namespace cwipi {
         } // end if i_rank is root rank of coupled code
         else {
 
-          int *globalData = (int *) malloc(sizeof(int) * 3);
-          MPI_Irecv(globalData, 3,  MPI_INT, _cplCodeRootRankUnionComm, 0, _unionComm, global_recv_request);
-          memcpy ((size_t *) s_recv_entity, (size_t *) &(globalData[0]), sizeof(size_t));
-          memcpy ((int *) recv_stride, (int *) &(globalData[1]), sizeof(int));
-          memcpy ((int *) n_recv_entity, (int *) &(globalData[2]), sizeof(int));
-          free(globalData);
+          MPI_Irecv(s_recv_entity, (int) sizeof(size_t),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, s_recv_entity_request);
+          MPI_Irecv(recv_stride, 1,  MPI_INT, _cplCodeRootRankUnionComm, 0, _unionComm, recv_stride_request);
+          MPI_Irecv(n_recv_entity, 1,  MPI_INT, _cplCodeRootRankUnionComm, 0, _unionComm, n_recv_entity_request);
+
 
         }
       } // end if i_rank is joint with the coupled code
       else {
 
-        int *globalData = (int *) malloc(sizeof(int) * 3);
-        MPI_Irecv(globalData, 3,  MPI_INT, _cplCodeRootRankUnionComm, 0, _unionComm, global_recv_request);
-        memcpy ((size_t *) s_recv_entity, (size_t *) &(globalData[0]), sizeof(size_t));
-        memcpy ((int *) recv_stride, (int *) &(globalData[1]), sizeof(int));
-        memcpy ((int *) n_recv_entity, (int *) &(globalData[2]), sizeof(int));
-        free(globalData);
+        cout << "irecvGlobalDataBetweenCodesThroughUnionCom - 2\n" << endl;
+
+        size_t toto;
+
+        MPI_Irecv(&toto, (int) sizeof(size_t),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, s_recv_entity_request);
+        *s_recv_entity = toto;
+
+        cout << "irecvGlobalDataBetweenCodesThroughUnionCom - 2.5\n" << endl;
+
+        MPI_Irecv(recv_stride, 1,  MPI_INT, _cplCodeRootRankUnionComm, 0, _unionComm, recv_stride_request);
+        MPI_Irecv(n_recv_entity, 1,  MPI_INT, _cplCodeRootRankUnionComm, 0, _unionComm, n_recv_entity_request);
+
+        cout << "irecvGlobalDataBetweenCodesThroughUnionCom - 3\n" << endl;
 
       }
     } // end if i_rank is the root rank of the local code
+
+    cout << "irecvGlobalDataBetweenCodesThroughUnionCom - 4\n" << endl;
   }
 
   /**
    *
    * \brief Non blocking send wait of global data array
    *
-   * \param [in] global_send_request
+   * \param [in] s_send_entity_request
+   * \param [in] send_stride_request
+   * \param [in] n_send_entity_request
    * \param [in] data_send_request
    * \param [in] s_send_entity
    * \param [in] send_stride
@@ -769,7 +782,9 @@ namespace cwipi {
   void
   Communication::waitIsendGlobalDataBetweenCodesThroughUnionCom
   (
-   MPI_Request    *global_send_request,
+   MPI_Request    *s_send_entity_request,
+   MPI_Request    *send_stride_request,
+   MPI_Request    *n_send_entity_request,
    MPI_Request    *data_send_request,
    size_t          s_send_entity,
    int             send_stride,
@@ -807,14 +822,18 @@ namespace cwipi {
         } // end if i_rank is root rank of coupled code
         else {
 
-          MPI_Wait(global_send_request, MPI_STATUS_IGNORE);
+          MPI_Wait(s_send_entity_request, MPI_STATUS_IGNORE);
+          MPI_Wait(send_stride_request, MPI_STATUS_IGNORE);
+          MPI_Wait(n_send_entity_request, MPI_STATUS_IGNORE);
           MPI_Wait(data_send_request, MPI_STATUS_IGNORE);
 
         }
       } // end if i_rank is joint with the coupled code
       else {
 
-        MPI_Wait(global_send_request, MPI_STATUS_IGNORE);
+        MPI_Wait(s_send_entity_request, MPI_STATUS_IGNORE);
+        MPI_Wait(send_stride_request, MPI_STATUS_IGNORE);
+        MPI_Wait(n_send_entity_request, MPI_STATUS_IGNORE);
         MPI_Wait(data_send_request, MPI_STATUS_IGNORE);
 
       }
@@ -825,8 +844,9 @@ namespace cwipi {
    *
    * \brief Non blocking receive wait of global data array
    *
-   * \param [in] global_recv_request
-   * \param [in] data_recv_request
+   * \param [in] s_recv_entity_request
+   * \param [in] recv_stride_request
+   * \param [in] n_recv_entity_request
    * \param [in] s_send_entity
    * \param [in] send_stride
    * \param [in] n_send_entity
@@ -840,8 +860,9 @@ namespace cwipi {
   void
   Communication::waitIrecvGlobalDataBetweenCodesThroughUnionCom
   (
-   MPI_Request    *global_recv_request,
-   MPI_Request    *data_recv_request,
+   MPI_Request    *s_recv_entity_request,
+   MPI_Request    *recv_stride_request,
+   MPI_Request    *n_recv_entity_request,
    size_t          s_send_entity,
    int             send_stride,
    int             n_send_entity,
@@ -852,6 +873,8 @@ namespace cwipi {
    void          **recv_data
   )
   {
+    MPI_Request data_recv_request;
+
     // Get union communicator ie. union of all active ranks of the codes in the coupling
     int unionCommRank;
     MPI_Comm_rank (_unionComm, &unionCommRank);
@@ -878,45 +901,33 @@ namespace cwipi {
         } // end if i_rank is root rank of coupled code
         else {
 
-          MPI_Wait(global_recv_request, MPI_STATUS_IGNORE);
+          MPI_Wait(s_recv_entity_request, MPI_STATUS_IGNORE);
+          MPI_Wait(recv_stride_request, MPI_STATUS_IGNORE);
+          MPI_Wait(n_recv_entity_request, MPI_STATUS_IGNORE);
 
           *recv_data = malloc((*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
-          MPI_Irecv(*recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, data_recv_request);
-          MPI_Wait(data_recv_request, MPI_STATUS_IGNORE);
+          MPI_Irecv(*recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, &data_recv_request);
+          MPI_Wait(&data_recv_request, MPI_STATUS_IGNORE);
 
         }
       } // end if i_rank is joint with the coupled code
       else {
 
-        MPI_Wait(global_recv_request, MPI_STATUS_IGNORE);
+        MPI_Wait(s_recv_entity_request, MPI_STATUS_IGNORE);
+        MPI_Wait(recv_stride_request, MPI_STATUS_IGNORE);
+        MPI_Wait(n_recv_entity_request, MPI_STATUS_IGNORE);
 
-         *recv_data = malloc((*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
-         MPI_Irecv(*recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, data_recv_request);
-         MPI_Wait(data_recv_request, MPI_STATUS_IGNORE);
+        *recv_data = malloc((*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
+        MPI_Irecv(*recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, 0, _unionComm, &data_recv_request);
+        MPI_Wait(&data_recv_request, MPI_STATUS_IGNORE);
 
       }
     } // end if i_rank is the root rank of the local code
 
     // Broadcast
-    int *globalData = (int *) malloc(sizeof(int) * 3);
-
-    if (unionCommRank == _locCodeRootRankUnionComm) {
-      globalData[0] = (int) (*s_recv_entity);
-      globalData[1] = (*recv_stride);
-      globalData[2] = (*n_recv_entity);
-    } // end if i_rank is the root rank of the local code
-
-    MPI_Bcast(globalData, 3, MPI_INT, _locCodeRootRankUnionComm, _unionComm);
-
-    if (unionCommRank == _locCodeRootRankUnionComm) {
-      free(globalData);
-    } // end if i_rank is the root rank of the local code
-    else {
-      memcpy ((size_t *) s_recv_entity, (size_t *) &(globalData[0]), sizeof(size_t));
-      memcpy ((int *) recv_stride, (int *) &(globalData[1]), sizeof(int));
-      memcpy ((int *) n_recv_entity, (int *) &(globalData[2]), sizeof(int));
-      free(globalData);
-    }
+    MPI_Bcast(s_recv_entity, (int) sizeof(size_t),  MPI_UNSIGNED_CHAR,_locCodeRootRankUnionComm, _unionComm);
+    MPI_Bcast(recv_stride, 1,  MPI_INT, _locCodeRootRankUnionComm, _unionComm);
+    MPI_Bcast(n_recv_entity, 1,  MPI_INT, _locCodeRootRankUnionComm, _unionComm);
 
     MPI_Bcast(*recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, _locCodeRootRankUnionComm, _unionComm);
   }

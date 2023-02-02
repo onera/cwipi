@@ -1211,8 +1211,8 @@ main(int argc, char *argv[]) {
 
   }
 
-  if (verbose && rank == 0) {
-    printf("Create coupling OK\n");
+  if (verbose) {
+    printf("Create coupling OK between %s and %s \n", code_name[0], coupled_code_name[0]);
   }
 
   // Get communicator
@@ -1234,6 +1234,7 @@ main(int argc, char *argv[]) {
       int recv = -1;
       MPI_Allreduce(&rank, &recv, 1, MPI_INT, MPI_SUM, cpl_comm);
       printf("recv : %d\n", recv);
+      fflush(stdout);
     }
 
   }
@@ -1256,12 +1257,79 @@ main(int argc, char *argv[]) {
       int recv = -1;
       MPI_Allreduce(&rank, &recv, 1, MPI_INT, MPI_SUM, cpl_comm);
       printf("recv : %d\n", recv);
+      fflush(stdout);
     }
 
   }
 
   if (verbose && rank == 0) {
     printf("Get communicator OK\n");
+    fflush(stdout);
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  // Exchange vector
+  if (version != CWP_VERSION_OLD) {
+
+    const char *global_data_name  = "lapin";
+    int *send_data = malloc(sizeof(int) * 4);
+    send_data[0] = 42;
+    send_data[0] = 13;
+    send_data[0] = 1959;
+    send_data[0] = 1954;
+
+    size_t  s_recv_entity = 0;
+    int     recv_stride   = -1;
+    int     n_recv_entity = -1;
+    int    *recv_data = NULL;
+
+    if (verbose) {
+      printf("before : code_id %d \n", code_id);
+      fflush(stdout);
+    }
+
+    if (code_id == 1) {
+      CWP_Global_data_isend(code_name[0],
+                            coupling_name,
+                            global_data_name,
+                            sizeof(int),
+                            2,
+                            2,
+                            send_data);
+    } else {
+      CWP_Global_data_irecv(code_name[0],
+                            coupling_name,
+                            global_data_name,
+                            &s_recv_entity,
+                            &recv_stride,
+                            &n_recv_entity,
+                  (void **) &recv_data);
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    if (code_id == 1) {
+      CWP_Global_data_wait_isend(code_name[0],
+                                 coupling_name,
+                                 global_data_name);
+    } else {
+      CWP_Global_data_wait_irecv(code_name[0],
+                                 coupling_name,
+                                 global_data_name);
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    if (verbose) {
+      for (int i = 0; i < 4; i++) {
+        printf("send[%d] : %d\n", i, send_data[i]);
+        fflush(stdout);
+        printf("recv[%d] : %d\n", i, recv_data[i]);
+        fflush(stdout);
+      }
+    }
+
   }
 
   // Define mesh
