@@ -32,10 +32,8 @@ namespace cwipi {
   (
    )
   {
-    log_trace(">> ~SpatialInterpIntersection\n");
     for (int i_part = 0; i_part < _nPart; i_part++) {
       if (_src_to_tgt_idx[i_part] != NULL) {
-        log_trace("_src_to_tgt_idx[%d] : %p\n", i_part, (void *) _src_to_tgt_idx[i_part]);
         free(_src_to_tgt_idx[i_part]);
       }
       if (_src_to_tgt_gnum[i_part] != NULL) {
@@ -100,7 +98,6 @@ namespace cwipi {
             _src_gnum  [i_part] = (const PDM_g_num_t *) _cpl->userTargetGNumGet (i_part);
             _src_n_gnum[i_part] = _cpl->userTargetNGet (i_part);
           }
-          log_trace("_src_n_gnum[%d] = %d\n", i_part, _src_n_gnum[i_part]);
         }
       }
       else {
