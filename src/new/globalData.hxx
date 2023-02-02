@@ -19,14 +19,11 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <sstream>
-#include <mesh.hxx>
 #include <map>
+#include <sstream>
 
-#include <coupling.hxx>
 #include "cwp.h"
 #include "cwp_priv.h"
-#include "pdm_writer.h"
 
 /**
  * \cond
@@ -53,10 +50,11 @@ namespace cwipi {
      */
     GlobalData() {}
 
-    GlobalData(size_t          s_send_entity,
-               int             send_stride,
-               int             n_send_entity,
-               void           *send_data);
+    GlobalData(std::string     field_id,
+               size_t          s_entity,
+               int             stride,
+               int             n_entity,
+               void           *data);
 
     /**
      * \brief Destructor
@@ -67,49 +65,50 @@ namespace cwipi {
     // Getters
 
     inline MPI_Request *
-    global_send_request_get()
+    global_request_get()
     {
-      return _global_send_request;
+      return _global_request;
     }
 
     inline MPI_Request *
-    data_send_request_get()
+    data_request_get()
     {
-      return _data_send_request;
+      return _data_request;
     }
 
     inline size_t
-    s_send_entity_get()
+    s_entity_get()
     {
-      return _s_send_entity;
+      return _s_entity;
     }
 
     inline int
-    send_stride_get()
+    stride_get()
     {
-      return _send_stride;
+      return _stride;
     }
 
     inline int
-    n_send_entity_get()
+    n_entity_get()
     {
-      return _n_send_entity;
+      return _n_entity;
     }
 
     inline void *
-    send_data_get()
+    data_get()
     {
-      return _send_data;
+      return _data;
     }
 
   private:
 
-    MPI_Request    *_global_send_request;
-    MPI_Request    *_data_send_request;
-    size_t          _s_send_entity;
-    int             _send_stride;
-    int             _n_send_entity;
-    void           *_send_data;
+    std::string     _global_data_id;
+    MPI_Request    *_global_request;
+    MPI_Request    *_data_request;
+    size_t          _s_entity;
+    int             _stride;
+    int             _n_entity;
+    void           *_data;
 
   };
 

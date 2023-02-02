@@ -1940,6 +1940,7 @@ const char *code_name
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
+ * \param [in] global_data_id
  * \param [in] s_send_entity
  * \param [in] send_stride
  * \param [in] n_send_entity
@@ -1952,6 +1953,7 @@ CWP_Global_data_isend
 (
  const char     *local_code_name,
  const char     *cpl_id,
+ const char     *global_data_id,
  size_t          s_send_entity,
  int             send_stride,
  int             n_send_entity,
@@ -1963,6 +1965,7 @@ CWP_Global_data_isend
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
+ * \param [in] global_data_id
  * \param [in] s_recv_entity
  * \param [in] recv_stride
  * \param [in] n_recv_entity
@@ -1975,6 +1978,7 @@ CWP_Global_data_irecv
 (
  const char     *local_code_name,
  const char     *cpl_id,
+ const char     *global_data_id,
  size_t         *s_recv_entity,
  int            *recv_stride,
  int            *n_recv_entity,
@@ -1986,6 +1990,7 @@ CWP_Global_data_irecv
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
+ * \param [in] global_data_id
  *
  */
 
@@ -1993,7 +1998,8 @@ void
 CWP_Global_data_wait_isend
 (
  const char     *local_code_name,
- const char     *cpl_id
+ const char     *cpl_id,
+ const char     *global_data_id
 );
 
 /**
@@ -2001,6 +2007,7 @@ CWP_Global_data_wait_isend
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
+ * \param [in] global_data_id
  *
  */
 
@@ -2008,7 +2015,8 @@ void
 CWP_Global_data_wait_irecv
 (
  const char     *local_code_name,
- const char     *cpl_id
+ const char     *cpl_id,
+ const char     *global_data_id
 );
 
 /**

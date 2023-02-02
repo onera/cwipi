@@ -17,14 +17,12 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <sstream>
-#include <mesh.hxx>
 #include <map>
+#include <sstream>
 
-#include <coupling.hxx>
+#include <globalData.hxx>
 #include "cwp.h"
 #include "cwp_priv.h"
-#include "pdm_writer.h"
 
 /**
  * \cond
@@ -34,20 +32,22 @@ using namespace std;
 
 namespace cwipi {
 
-  GlobalData::GlobalData(size_t          s_send_entity,
-                         int             send_stride,
-                         int             n_send_entity,
-                         void           *send_data):
-  _s_send_entity(s_send_entity),
-  _send_stride(send_stride),
-  _n_send_entity(n_send_entity),
-  _send_data(send_data):
+  GlobalData::GlobalData(std::string     global_data_id,
+                         size_t          s_entity,
+                         int             stride,
+                         int             n_entity,
+                         void           *data):
+  _global_data_id(global_data_id),
+  _s_entity(s_entity),
+  _stride(stride),
+  _n_entity(n_entity),
+  _data(data)
   {
   }
 
   GlobalData::~GlobalData()
   {
-    free(send_data);
+    if (_data != NULL) free(_data);
   }
 
 }

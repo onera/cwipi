@@ -33,6 +33,7 @@
 #include "spatialInterp.hxx"
 // #include "visualization.hxx"
 #include "field.hxx"
+#include "globalData.hxx"
 #include "pdm_writer.h"
 
 /**
@@ -105,6 +106,7 @@ namespace cwipi {
     /**
      * \brief Send a data array.
      *
+     * \param [in] global_data_id
      * \param [in] s_send_entity
      * \param [in] send_stride
      * \param [in] n_send_entity
@@ -115,6 +117,7 @@ namespace cwipi {
     void
     globalDataIsend
     (
+     const string    &global_data_id,
      size_t          s_send_entity,
      int             send_stride,
      int             n_send_entity,
@@ -124,6 +127,7 @@ namespace cwipi {
     /**
      * \brief Receive a data array.
      *
+     * \param [in] global_data_id
      * \param [in] s_recv_entity
      * \param [in] recv_stride
      * \param [in] n_recv_entity
@@ -134,6 +138,7 @@ namespace cwipi {
     void
     globalDataIrecv
     (
+     const string    &global_data_id,
      size_t         *s_recv_entity,
      int            *recv_stride,
      int            *n_recv_entity,
@@ -142,19 +147,29 @@ namespace cwipi {
 
     /**
      * \brief Wait of send a data array.
+     *
+     * \param [in] global_data_id
+     *
      */
 
     void
     globalDataWaitIsend
-    ();
+    (
+     const string    &global_data_id
+    );
 
     /**
      * \brief Wait of receive a data array.
+     *
+     * \param [in] global_data_id
+     *
      */
 
     void
     globalDataWaitIrecv
-    ();
+    (
+     const string    &global_data_id
+    );
 
     /*----------------------------------------------------------------------------*
      * Methods about communicators                                                *
@@ -1562,32 +1577,33 @@ namespace cwipi {
     Coupling();
 
   private:
-    const string                            _cplId;                 /*!< Coupling identifier */
-          CWP_Comm_t                        _commType;              /*!< Communication type */
-          Communication                    &_communication;         /*!< Communication */
-          CodeProperties                   &_localCodeProperties;   /*!< Local code properties */
-          CodeProperties                   &_coupledCodeProperties; /*!< Coupled code properties */
-    const CWP_Interface_t                  _entities_dim;           /*!< Mesh entities dimension */
-          Mesh                             &_mesh;                  /*!< SpatialInterp mesh */
-    const CWP_Time_exch_t                   _recvFreqType;          /*!< Receiving frequency type */
-          int                               _id_geom_writer;        /*!< Geom writer identifier*/
-          int                               _id_field_partitioning_writer;  /*!< Identifier of the partitionning field of the writer */
-          int                               _id_field_ranking_writer; /*!< Identifier of the ranking field of the writer*/      
-          int                               _freq_writer;           /*!< Writer frequency*/
-          PDM_writer_t                     *_writer;                /*!< Writer */
-          double                            _recvFreq;              /*!< Receiving frequency */
-          double                            _recvNextTime;          /*!< Next receiving time */
-          std::map < string, Field * >     &_fields;                /*!< Fields Data Base */
-          CouplingDB                       &_cplDB;                 /*!< Coupling Data base */
-          CWP_Dynamic_mesh_t                _displacement;          /*!< Type of mesh displacement */ 
-    const CWP_Spatial_interp_t              _spatialInterpAlgo;     /*!< Spatial intepolation algorithm */
-    const int                               _nPart;                 /*!< Number of partitions */  
-          int                               _cplNPart;              /*!< Number of partitions of coupled code */  
+    const string                              _cplId;                 /*!< Coupling identifier */
+          CWP_Comm_t                          _commType;              /*!< Communication type */
+          Communication                      &_communication;         /*!< Communication */
+          CodeProperties                     &_localCodeProperties;   /*!< Local code properties */
+          CodeProperties                     &_coupledCodeProperties; /*!< Coupled code properties */
+    const CWP_Interface_t                    _entities_dim;           /*!< Mesh entities dimension */
+          Mesh                               &_mesh;                  /*!< SpatialInterp mesh */
+    const CWP_Time_exch_t                     _recvFreqType;          /*!< Receiving frequency type */
+          int                                 _id_geom_writer;        /*!< Geom writer identifier*/
+          int                                 _id_field_partitioning_writer;  /*!< Identifier of the partitionning field of the writer */
+          int                                 _id_field_ranking_writer; /*!< Identifier of the ranking field of the writer*/
+          int                                 _freq_writer;           /*!< Writer frequency*/
+          PDM_writer_t                       *_writer;                /*!< Writer */
+          double                              _recvFreq;              /*!< Receiving frequency */
+          double                              _recvNextTime;          /*!< Next receiving time */
+          std::map < string, Field * >       &_fields;                /*!< Fields Data Base */
+          std::map < string, GlobalData * >  &_globalData;            /*!< GlobalData Data Base */
+          CouplingDB                         &_cplDB;                 /*!< Coupling Data base */
+          CWP_Dynamic_mesh_t                  _displacement;          /*!< Type of mesh displacement */
+    const CWP_Spatial_interp_t                _spatialInterpAlgo;     /*!< Spatial intepolation algorithm */
+    const int                                 _nPart;                 /*!< Number of partitions */
+          int                                 _cplNPart;              /*!< Number of partitions of coupled code */
 
-          int                              *_userTargetN;           /*!< Number of user targets on by partition (size number partitions of the mesh) */
-    const CWP_g_num_t                     **_userTargetGnum;        /*!< Target global numbering by partition (size number partitions of the mesh) */
-          CWP_g_num_t                     **_localUserTargetGnum;   /*!< Target global numbering by partition (used if _gnum_user_target is not setted by user) */
-    const double                          **_userTargetCoord;       /*!< Target coordinates by partition (size number partitions of the mesh) */
+          int                                *_userTargetN;           /*!< Number of user targets on by partition (size number partitions of the mesh) */
+    const CWP_g_num_t                       **_userTargetGnum;        /*!< Target global numbering by partition (size number partitions of the mesh) */
+          CWP_g_num_t                       **_localUserTargetGnum;   /*!< Target global numbering by partition (used if _gnum_user_target is not setted by user) */
+    const double                            **_userTargetCoord;       /*!< Target coordinates by partition (size number partitions of the mesh) */
 
     std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &_spatial_interp_send; /*!< local sent Spatial interpolation objects 
                                                                                                                   to associate with receive distant spatial interpolatiol */
