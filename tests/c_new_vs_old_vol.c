@@ -1275,9 +1275,9 @@ main(int argc, char *argv[]) {
     const char *global_data_name  = "lapin";
     int *send_data = malloc(sizeof(int) * 4);
     send_data[0] = 42;
-    send_data[0] = 13;
-    send_data[0] = 1959;
-    send_data[0] = 1954;
+    send_data[1] = 13;
+    send_data[2] = 1959;
+    send_data[3] = 1954;
 
     size_t  s_recv_entity = 0;
     int     recv_stride   = -1;
@@ -1323,10 +1323,13 @@ main(int argc, char *argv[]) {
 
     if (verbose) {
       for (int i = 0; i < 4; i++) {
-        printf("send[%d] : %d\n", i, send_data[i]);
-        fflush(stdout);
-        printf("recv[%d] : %d\n", i, recv_data[i]);
-        fflush(stdout);
+        if (code_id == 1) {
+          printf("rank %d -- send[%d] : %d\n", rank, i, send_data[i]);
+          fflush(stdout);
+        } else {
+          printf("rank %d -- recv[%d] : %d\n", rank, i, recv_data[i]);
+          fflush(stdout);
+        }
       }
     }
 
