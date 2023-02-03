@@ -1023,7 +1023,7 @@ namespace cwipi {
     }
 
  
-    _blocksType = new CWP_Block_t[_nBlocks];
+    _blocksType = (CWP_Block_t *) malloc (sizeof(CWP_Block_t) * _nBlocks);
 
     for (int i_block = 0 ; i_block < _nBlocks ; i_block++) {
       _blockDB[i_block]->geomFinalize();

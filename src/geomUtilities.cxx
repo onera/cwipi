@@ -844,7 +844,7 @@ namespace cwipi {
 
     }
 
-    delete [] surfaceVector; 
+    free (surfaceVector); 
     free ( faceCenter);
     free ( colorVertice);
 
