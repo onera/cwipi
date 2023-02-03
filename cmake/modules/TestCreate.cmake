@@ -1,8 +1,8 @@
 ################################################################################
-#  
+#
 # test_c_create and test_fortran_create add a Fortran test or a C test
 #
-# They uses LINK_LIBRARIES and TEST_INC variables 
+# They uses LINK_LIBRARIES and TEST_INC variables
 #
 ################################################################################
 
@@ -26,7 +26,7 @@ function(test_c_create name n_proc)
              ${MPIEXEC_POSTFLAGS})
 
   if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
-    set_property(TEST ${name} PROPERTY ENVIRONMENT "LSAN_OPTIONS=suppressions=${CMAKE_SOURCE_DIR}/scripts/asan/asan.supp")
+    set_property(TEST ${name} PROPERTY ENVIRONMENT "LSAN_OPTIONS=suppressions=${CMAKE_SOURCE_DIR}/script/asan/asan.supp")
   endif()
 
 endfunction()
@@ -41,7 +41,7 @@ function(test_fortran_create name n_proc)
      set_target_properties(${name}
                            PROPERTIES
                            COMPILE_FLAGS ${MPI_Fortran_COMPILE_FLAGS})
-     target_include_directories(${name} PRIVATE ${MPI_Fortran_INCLUDE_PATH})                      
+     target_include_directories(${name} PRIVATE ${MPI_Fortran_INCLUDE_PATH})
    endif()
    target_include_directories(${name} PRIVATE ${CMAKE_SOURCE_DIR}
                                       PRIVATE ${CMAKE_BINARY_DIR}
@@ -56,12 +56,12 @@ function(test_fortran_create name n_proc)
              ${MPIEXEC_POSTFLAGS})
 
   if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
-    set_property(TEST ${name} PROPERTY ENVIRONMENT "LSAN_OPTIONS=suppressions=${CMAKE_SOURCE_DIR}/scripts/asan/asan.supp")
+    set_property(TEST ${name} PROPERTY ENVIRONMENT "LSAN_OPTIONS=suppressions=${CMAKE_SOURCE_DIR}/script/asan/asan.supp")
   endif()
 endfunction()
 
 function(test_python_create name n_proc)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${name}.py ${CMAKE_CURRENT_BINARY_DIR}/${name}.py)  
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${name}.py ${CMAKE_CURRENT_BINARY_DIR}/${name}.py)
 
   add_custom_target(${name}
                       DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${name}.py)
