@@ -3033,6 +3033,9 @@ CWP_Global_data_irecv
  void          **recv_data
 )
 {
+
+  assert(s_recv_entity != NULL);
+
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
   cpl.globalDataIrecv(global_data_id,
                       s_recv_entity,

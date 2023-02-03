@@ -128,6 +128,7 @@ namespace cwipi {
      *
      * \brief Non blocking send of global data array
      *
+     * \param [in] global_data_id
      * \param [in] s_send_entity_request
      * \param [in] send_stride_request
      * \param [in] n_send_entity_request
@@ -141,6 +142,7 @@ namespace cwipi {
     void
     isendGlobalDataBetweenCodesThroughUnionCom
     (
+     const string     global_data_id,
      MPI_Request    *s_send_entity_request,
      MPI_Request    *send_stride_request,
      MPI_Request    *n_send_entity_request,
@@ -155,6 +157,7 @@ namespace cwipi {
      *
      * \brief Non blocking receive of global data array
      *
+     * \param [in] global_data_id
      * \param [in] s_recv_entity_request
      * \param [in] recv_stride_request
      * \param [in] n_recv_entity_request
@@ -167,6 +170,7 @@ namespace cwipi {
     void
     irecvGlobalDataBetweenCodesThroughUnionCom
     (
+     const string     global_data_id,
      MPI_Request    *s_recv_entity_request,
      MPI_Request    *recv_stride_request,
      MPI_Request    *n_recv_entity_request,
@@ -179,6 +183,7 @@ namespace cwipi {
      *
      * \brief Non blocking send wait of global data array
      *
+     * \param [in] global_data_id
      * \param [in] s_send_entity_request
      * \param [in] send_stride_request
      * \param [in] n_send_entity_request
@@ -196,6 +201,7 @@ namespace cwipi {
     void
     waitIsendGlobalDataBetweenCodesThroughUnionCom
     (
+     const string     global_data_id,
      MPI_Request    *s_send_entity_request,
      MPI_Request    *send_stride_request,
      MPI_Request    *n_send_entity_request,
@@ -214,6 +220,7 @@ namespace cwipi {
      *
      * \brief Non blocking receive wait of global data array
      *
+     * \param [in] global_data_id
      * \param [in] s_recv_entity_request
      * \param [in] recv_stride_request
      * \param [in] n_recv_entity_request
@@ -230,6 +237,7 @@ namespace cwipi {
     void
     waitIrecvGlobalDataBetweenCodesThroughUnionCom
     (
+     const string     global_data_id,
      MPI_Request    *s_recv_entity_request,
      MPI_Request    *recv_stride_request,
      MPI_Request    *n_recv_entity_request,
@@ -330,6 +338,32 @@ namespace cwipi {
 
 
   private :
+
+    /**
+     *
+     * \brief Adler code (taken from SpatialInterp)
+     *
+     */
+
+
+    uint32_t _adler32
+    (
+     const void *buf,
+     size_t buflength
+     );
+
+    /**
+     *
+     * \brief Get an adler code
+     *
+     */
+
+    uint32_t _get_tag
+    (
+     const string    global_data_id,
+     MPI_Comm        comm,
+     int             offset
+     );
 
     /**
      *

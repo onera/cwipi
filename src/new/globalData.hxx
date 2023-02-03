@@ -21,6 +21,7 @@
 
 #include <map>
 #include <sstream>
+#include <iostream>
 
 #include "cwp.h"
 #include "cwp_priv.h"
@@ -53,10 +54,10 @@ namespace cwipi {
     // send
 
     GlobalData(std::string     global_data_id,
-               size_t          s_entity,
-               int             stride,
-               int             n_entity,
-               void           *data);
+               size_t          s_send_entity,
+               int             send_stride,
+               int             n_send_entity,
+               void           *send_data);
 
     // recv
 
