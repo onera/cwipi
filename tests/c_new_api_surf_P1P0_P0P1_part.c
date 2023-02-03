@@ -183,7 +183,7 @@ main(int argc, char *argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &commWorldSize);
 
-  srand(rank + time(0));
+  srand(rank);// + time(0));
 
   int n_partition = 0;
   while (1.5 * (double) pow(n_partition, 2) < commWorldSize) {
@@ -1051,21 +1051,67 @@ main(int argc, char *argv[]) {
   // Freeing memory
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
     for (int i_part = 0 ; i_part < nbPart[i_code] ; i_part++) {
-      free(coords       [i_code][i_part]);
       free(sendValues   [i_code][i_part]);
       free(recvValues   [i_code][i_part]);
+      free(sendValues2  [i_code][i_part]);
+      if (strcmp(codeName[i_code], "code1")) {
+        free(recvValues2  [i_code][i_part]);
+        free(recvValues3  [i_code][i_part]);
+      }
+      free(sendValues3  [i_code][i_part]);
       free(Values2Vertex[i_code][i_part]);
+      free(recvValuesUser[i_code][i_part]);
+
+      free(coords           [i_code][i_part]);
+      free(eltsConnecPointer[i_code][i_part]);
+      free(eltsConnec       [i_code][i_part]);
+
+      free(coordsPointsUser[i_code][i_part]);
     }
-    free(coords       [i_code]);
     free(sendValues   [i_code]);
     free(recvValues   [i_code]);
+    free(sendValues2  [i_code]);
+    free(recvValues2  [i_code]);
+    free(sendValues3  [i_code]);
+    free(recvValues3  [i_code]);
     free(Values2Vertex[i_code]);
+    free(recvValuesUser[i_code]);
+
+    free(coords           [i_code]);
+    free(eltsConnecPointer[i_code]);
+    free(eltsConnec       [i_code]);
+    free(nVertex          [i_code]);
+    free(nElts            [i_code]);
+
+    free(nbPointsUser    [i_code]);
+    free(coordsPointsUser[i_code]);
   }
 
-  free(coords);
   free(sendValues);
-  free(Values2Vertex);
   free(recvValues);
+  free(sendValues2);
+  free(recvValues2);
+  free(sendValues3);
+  free(recvValues3);
+  free(Values2Vertex);
+  free(recvValuesUser);
+
+  free(coords);
+  free(eltsConnecPointer);
+  free(eltsConnec);
+  free(nVertex);
+  free(nElts);
+
+  free(times_init);
+  free(codeName);
+  free(codeCoupledName);
+  free(is_coupled_rank);
+  free(nbPartSeg);
+  free(nbPart);
+  free(localComm);
+
+  free(nbPointsUser);
+  free(coordsPointsUser);
 
   // Finalize
   CWP_Finalize();

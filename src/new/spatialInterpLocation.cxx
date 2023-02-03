@@ -669,7 +669,7 @@ namespace cwipi {
 
           int    part_n_elt               = _mesh->getPartNElts(i_part);
 
-          double *local_buffer = (double *) *buffer;
+          double *local_buffer = (double *) buffer[i_part];
 
           int ival = 0;
           if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
@@ -713,7 +713,7 @@ namespace cwipi {
           int         *connec_idx = connec_idx2; 
           int         *connec = connec2;
           
-          double *local_buffer = (double *) *buffer;
+          double *local_buffer = (double *) buffer[i_part];
 
           int ival = 0;
 
