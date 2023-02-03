@@ -1,6 +1,15 @@
+file(GLOB SOURCE_PXI
+     CONFIGURE_DEPENDS 
+     *.pxi)
 
-file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.pxi")
-file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.py")
+file(GLOB SOURCE_PY
+     CONFIGURE_DEPENDS 
+     *.py)
+
+foreach(F IN LISTS SOURCE_PXI SOURCE_PY)
+    get_filename_component(F_BASENAME "${F}" NAME )    
+    configure_file(${F_BASENAME} ${CMAKE_CURRENT_BINARY_DIR}/${F_BASENAME} ) 
+endforeach()
 
 configure_file(pycwp.pyx.in pycwp.pyx)
 
@@ -8,8 +17,8 @@ include(UseCython)
 
 cython_add_module (pycwp
                  PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/pycwp.pyx"
-                 INCLUDE_DIRECTORIES ${include_dirs})
-
+                 INCLUDE_DIRECTORIES ${include_dirs}
+                 DEPENDS ${SOURCE_PXI})
 
 get_target_property(CWP_INC pycwp INCLUDE_DIRECTORIES)
 target_include_directories(pycwp PUBLIC ${CWP_INC})

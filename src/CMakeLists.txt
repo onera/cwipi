@@ -31,7 +31,8 @@ endif()
 
 if (CWP_ENABLE_NEW_API)
  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new") 
-  file(GLOB SOURCES 
+  file(GLOB SOURCES
+       CONFIGURE_DEPENDS 
        bft/*.[ch]
        fvm/*.[ch]
        new/*.[ch]
@@ -63,6 +64,7 @@ if (CWP_ENABLE_NEW_API)
  endif()
 else()
   file(GLOB SOURCES 
+       CONFIGURE_DEPENDS 
        bft/*.[ch]
        fvm/*.[ch]
        *.[ch]
@@ -80,6 +82,7 @@ endif()
 if (CWP_ENABLE_NEW_API)
 
   file(GLOB SOURCESF
+       CONFIGURE_DEPENDS 
       # --> old fortran
       fortran/cwipi_cf.cxx
       fortran/cwipi_f.f90
@@ -100,6 +103,7 @@ if (CWP_ENABLE_NEW_API)
 else()
 
   file(GLOB SOURCESF
+       CONFIGURE_DEPENDS 
       # --> old fortran
       fortran/cwipi_cf.cxx
       fortran/cwipi_f.f90

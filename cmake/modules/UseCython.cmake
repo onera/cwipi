@@ -84,7 +84,7 @@ include( CMakeParseArguments )
 function( COMPILE_PYX _name generated_file)
   set(options)
   set(oneValueArgs)
-  set(multiValueArgs PYX_SOURCES INCLUDE_DIRECTORIES)
+  set(multiValueArgs PYX_SOURCES INCLUDE_DIRECTORIES DEPENDS)
   cmake_parse_arguments( COMPILE_PYX "${options}" "${oneValueArgs}"
                         "${multiValueArgs}" ${ARGN} )
 
@@ -156,7 +156,7 @@ function( COMPILE_PYX _name generated_file)
     ARGS ${cxx_arg} ${include_directory_arg} ${version_arg}
     ${annotate_arg} ${no_docstrings_arg} ${cython_debug_arg} ${CYTHON_FLAGS}
     --output-file  ${_generated_file} ${pyx_locations}
-    DEPENDS ${pyx_locations}
+    DEPENDS ${pyx_locations} ${COMPILE_PYX_SOURCE_PXI}
     IMPLICIT_DEPENDS ${pyx_lang}
     COMMENT ${comment}
    )
@@ -169,7 +169,7 @@ endfunction()
 function( CYTHON_ADD_MODULE _name )
   set(options)
   set(oneValueArgs)
-  set(multiValueArgs PYX_SOURCES OTHER_SOURCES INCLUDE_DIRECTORIES)
+  set(multiValueArgs PYX_SOURCES OTHER_SOURCES INCLUDE_DIRECTORIES DEPENDS)
   cmake_parse_arguments( CYTHON_ADD_MODULE "${options}" "${oneValueArgs}"
                         "${multiValueArgs}" ${ARGN} )
 
@@ -180,7 +180,8 @@ function( CYTHON_ADD_MODULE _name )
 
   compile_pyx( ${_name} generated_file
                 PYX_SOURCES ${CYTHON_ADD_MODULE_PYX_SOURCES}
-                INCLUDE_DIRECTORIES ${CYTHON_ADD_MODULE_INCLUDE_DIRECTORIES})
+                INCLUDE_DIRECTORIES ${CYTHON_ADD_MODULE_INCLUDE_DIRECTORIES}
+                DEPENDS ${CYTHON_ADD_MODULE_DEPENDS})
 
   include_directories( ${PYTHON_INCLUDE_DIRS} )
   python_add_module( ${_name} ${generated_file} ${CYTHON_ADD_MODULE_OTHER_SOURCES})

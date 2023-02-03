@@ -1,18 +1,25 @@
+file(GLOB SOURCE_PXI
+     CONFIGURE_DEPENDS 
+     *.pxi)
 
-file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.pxi")
-file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.py")
+file(GLOB SOURCE_PY
+     CONFIGURE_DEPENDS 
+     *.py)
+
+foreach(F IN LISTS SOURCE_PXI SOURCE_PY)
+    get_filename_component(F_BASENAME "${F}" NAME )    
+    configure_file(${F_BASENAME} ${CMAKE_CURRENT_BINARY_DIR}/${F_BASENAME} ) 
+endforeach()
 
 configure_file(cwipi.pyx.in cwipi.pyx)
 
 include(UseCython)
 
-# old API
 cython_add_module (cwipi
                    PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/cwipi.pyx"
-                   INCLUDE_DIRECTORIES ${include_dirs})
+                   INCLUDE_DIRECTORIES ${include_dirs}
+                   DEPENDS ${SOURCE_PXI})
 
-
-# old API
 get_target_property(CWP_INC cwipi INCLUDE_DIRECTORIES)
 target_include_directories(cwipi PUBLIC ${CWP_INC})
 
@@ -22,12 +29,10 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
 
 endif()
 
-# old API
 target_link_libraries(cwipi cwp_shared)
 if (CWP_ENABLE_Fortran)
   target_link_libraries(cwipi cwpf_shared)
 endif()
-
 
 if (CWP_ENABLE_SPACE_NODAL_BASIS)
   target_link_libraries(cwipi spaceBasis_shared)

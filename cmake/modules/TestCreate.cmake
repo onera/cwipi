@@ -62,7 +62,10 @@ endfunction()
 
 function(test_python_create name n_proc)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${name}.py ${CMAKE_CURRENT_BINARY_DIR}/${name}.py)  
-  file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/${name}.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+  add_custom_target(${name}
+                      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${name}.py)
+
   add_test (${name} ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${n_proc}
             ${MPIEXEC_PREFLAGS}
             ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/${name}.py
