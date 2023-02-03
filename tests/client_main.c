@@ -121,7 +121,7 @@ main
              &config);
 
   if (config == NULL) {
-    config = (char *) "../bin/cwp_config_srv.txt";
+    config = (char *) "./cwp_config_srv.txt";
   }
 
   // mpi
@@ -134,13 +134,16 @@ main
   MPI_Comm_size(comm, &n_rank);
 
   // launch server
-  char launch_server[99];
-  sprintf(launch_server, "mpirun -n %d ../bin/server_main &", n_rank);
-  system(launch_server);
+
+  if (i_rank == 0) {
+    char launch_server[37] = "";
+    sprintf(launch_server, "mpirun -n %6.6d ../bin/cwp_server &", n_rank);
+    system(launch_server);
+  }
 
   while (access(config, R_OK) != 0) {
     printf("HERE\n");
-    // wait
+    sleep(1);
   }
   sleep(5);
 

@@ -54,12 +54,12 @@ endif()
 
 if (CWP_ENABLE_NEW_API)
   if (CWP_ENABLE_CLIENT_SERVER)
-    add_executable (server_main server_main.c)
-    target_include_directories(server_main PRIVATE ${CMAKE_SOURCE_DIR}
+    add_executable (cwp_server server_main.c)
+    target_include_directories(cwp_server PRIVATE ${CMAKE_SOURCE_DIR}
                                PRIVATE ${CMAKE_BINARY_DIR}
                                PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-    target_link_libraries(server_main ${LINK_LIBRARIES})
-    install(TARGETS server_main DESTINATION bin)
+    target_link_libraries(cwp_server ${LINK_LIBRARIES})
+    install(TARGETS cwp_server DESTINATION bin)
   endif()
 endif()

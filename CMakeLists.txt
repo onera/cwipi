@@ -450,9 +450,6 @@ if (CWP_ENABLE_NEW_API)
 #  add_subdirectory(paradigm)
 #  add_subdirectory(paradigm/doc)
   endif()
-  if (CWP_ENABLE_CLIENT_SERVER)
-    add_subdirectory(bin)
-  endif()
 endif()
 
 add_subdirectory(src)
@@ -464,6 +461,14 @@ endif()
 if (CWP_ENABLE_SPACE_NODAL_BASIS)
  add_subdirectory(spaceBasis)
 endif ()
+
+if (CWP_ENABLE_NEW_API)
+  if (CWP_ENABLE_CLIENT_SERVER)
+    add_subdirectory(bin)
+  endif()
+endif()
+
+
 add_subdirectory(tests)
 add_subdirectory(doc)
 
