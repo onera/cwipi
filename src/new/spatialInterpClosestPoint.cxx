@@ -316,7 +316,7 @@ namespace cwipi {
             dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
         }
 
-        for (int i_part = 0; i_part < _nPart; i_part++) {
+        for (int i_part = 0; i_part < _cplNPart; i_part++) {
 
           if (cpl_spatial_interp->_closest_src_gnum[i_part] != NULL) {
             free(cpl_spatial_interp->_closest_src_gnum[i_part]);
@@ -947,9 +947,9 @@ namespace cwipi {
       }
 
       /* Create part_to_part object if null */
-      if (_ptsp == NULL) {
 
-        if (!_coupledCodeProperties->localCodeIs()) {
+      if (!_coupledCodeProperties->localCodeIs()) {
+        if (_ptsp == NULL) {
           _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **) _src_gnum,
                                            (const int          *) _src_n_gnum,
                                            _nPart,
@@ -960,55 +960,55 @@ namespace cwipi {
                                            (const PDM_g_num_t **) _tgt_in_src_gnum,
                                            _pdmCplComm);
         }
-        else {
-          if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-            SpatialInterpClosestPoint *cpl_spatial_interp;
+      }
+      else {
+        if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+          SpatialInterpClosestPoint *cpl_spatial_interp;
 
-            cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+          cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
 
-            if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-              std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
-              cpl_spatial_interp =
-              dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+          if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+            std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
+            cpl_spatial_interp =
+            dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+          }
+          else {
+            std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
+            cpl_spatial_interp =
+            dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+          }
+
+          if (_ptsp == NULL) {
+            if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+              _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **) _src_gnum,
+                                               (const int          *) _src_n_gnum,
+                                               _nPart,
+                                               (const PDM_g_num_t **) cpl_spatial_interp->_tgt_gnum,
+                                               (const int          *) cpl_spatial_interp->_tgt_n_gnum,
+                                               _cplNPart,
+                                               (const int         **) _tgt_in_src_idx,
+                                               (const PDM_g_num_t **) _tgt_in_src_gnum,
+                                               _pdmCplComm);
             }
             else {
-              std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
-              cpl_spatial_interp =
-              dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+              _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **) cpl_spatial_interp->_src_gnum,
+                                               (const int          *) cpl_spatial_interp->_src_n_gnum,
+                                               _cplNPart,
+                                               (const PDM_g_num_t **) _tgt_gnum,
+                                               (const int          *) _tgt_n_gnum,
+                                               _nPart,
+                                               (const int         **) cpl_spatial_interp->_tgt_in_src_idx,
+                                               (const PDM_g_num_t **) cpl_spatial_interp->_tgt_in_src_gnum,
+                                               _pdmCplComm);
             }
-
-            if (_ptsp == NULL) {
-              if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-                _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **) _src_gnum,
-                                                 (const int          *) _src_n_gnum,
-                                                 _nPart,
-                                                 (const PDM_g_num_t **) cpl_spatial_interp->_tgt_gnum,
-                                                 (const int          *) cpl_spatial_interp->_tgt_n_gnum,
-                                                 _cplNPart,
-                                                 (const int         **) _tgt_in_src_idx,
-                                                 (const PDM_g_num_t **) _tgt_in_src_gnum,
-                                                 _pdmCplComm);
-              }
-              else {
-                _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **) cpl_spatial_interp->_src_gnum,
-                                                 (const int          *) cpl_spatial_interp->_src_n_gnum,
-                                                 _cplNPart,
-                                                 (const PDM_g_num_t **) _tgt_gnum,
-                                                 (const int          *) _tgt_n_gnum,
-                                                 _nPart,
-                                                 (const int         **) cpl_spatial_interp->_tgt_in_src_idx,
-                                                 (const PDM_g_num_t **) cpl_spatial_interp->_tgt_in_src_gnum,
-                                                 _pdmCplComm);
-              }
-            }
-
-            cpl_spatial_interp->_ptsp = _ptsp;
-
           }
+
+          cpl_spatial_interp->_ptsp = _ptsp;
+
         }
       }
-
     }
+
 
 
 

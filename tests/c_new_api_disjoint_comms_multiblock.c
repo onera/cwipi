@@ -241,7 +241,7 @@ _create_dcube_from_nodal
     memcpy(*cell_face[i_part], _cell_face, _s_cell_face * sizeof(int));
     memcpy(*cell_ln_to_gn[i_part], _cell_ln_to_gn, _n_cells * sizeof(PDM_g_num_t));
 
-    PDM_log_trace_connectivity_int(*cell_face_idx[i_part], *cell_face[i_part], *n_cells[i_part], "final cell_face");
+    // PDM_log_trace_connectivity_int(*cell_face_idx[i_part], *cell_face[i_part], *n_cells[i_part], "final cell_face");
 
     // Faces
     *n_faces[i_part] = _n_faces;
@@ -251,7 +251,7 @@ _create_dcube_from_nodal
     memcpy(*face_vtx_idx[i_part], _face_vtx_idx, (_n_faces + 1) * sizeof(int));
     memcpy(*face_vtx[i_part], _face_vtx, _s_face_vtx * sizeof(int));
 
-    PDM_log_trace_connectivity_int(*face_vtx_idx[i_part], *face_vtx[i_part], *n_faces[i_part], "final face_vertex");
+    // PDM_log_trace_connectivity_int(*face_vtx_idx[i_part], *face_vtx[i_part], *n_faces[i_part], "final face_vertex");
 
     // Vertices
     *n_vtx[i_part] = _n_vtx;
@@ -770,10 +770,12 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  log_trace("n_code = %d\n", n_code);
   for (int i_code = 0 ; i_code < n_code ; ++i_code) {
+    log_trace("i_code %d : code_id = %d\n", i_code, code_id[i_code]);
 
     if (code_id[i_code] == 1) {
-
+      log_trace("create field with exchDirection %d\n", exchDirection[0]);
       CWP_Field_create(code_names[i_code],
                        cpl_name,
                        field_name,
@@ -785,7 +787,7 @@ int main(int argc, char *argv[]) {
                        CWP_STATUS_ON);
 
       if (exchDirection[0] == CWP_FIELD_EXCH_SEND) {
-
+        log_trace("data set source\n");
         CWP_Field_data_set(code_names[i_code],
                            cpl_name,
                            field_name,
@@ -796,7 +798,7 @@ int main(int argc, char *argv[]) {
       }
 
       else {
-
+        log_trace("data set target\n");
         CWP_Field_data_set(code_names[i_code],
                            cpl_name,
                            field_name,
@@ -808,7 +810,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (code_id[i_code] == 2) {
-
+      log_trace("create field with exchDirection %d\n", exchDirection[1]);
       CWP_Field_create(code_names[i_code],
                        cpl_name,
                        field_name,
@@ -820,7 +822,7 @@ int main(int argc, char *argv[]) {
                        CWP_STATUS_ON);
 
       if (exchDirection[1] == CWP_FIELD_EXCH_RECV) {
-
+        log_trace("data set target\n");
         CWP_Field_data_set(code_names[i_code],
                            cpl_name,
                            field_name,
@@ -830,7 +832,7 @@ int main(int argc, char *argv[]) {
       }
 
       else {
-
+        log_trace("data set source\n");
         CWP_Field_data_set(code_names[i_code],
                            cpl_name,
                            field_name,

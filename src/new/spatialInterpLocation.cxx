@@ -399,7 +399,7 @@ namespace cwipi {
             dynamic_cast <SpatialInterpLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
         }
 
-        for (int i_part = 0; i_part < _nPart; i_part++) {
+        for (int i_part = 0; i_part < _cplNPart; i_part++) {
           if (cpl_spatial_interp->_tgt_distance[i_part] != NULL) {
             free (cpl_spatial_interp->_tgt_distance[i_part]);
             free (cpl_spatial_interp->_tgt_projected[i_part]);
@@ -545,10 +545,6 @@ namespace cwipi {
                                          (const PDM_g_num_t **)_points_gnum,
                                          _pdmCplComm);
       }
-      else {
-        printf("ptp from mesh_location OK\n");
-        fflush(stdout);
-      }
     }
     else {
 
@@ -594,10 +590,6 @@ namespace cwipi {
                                              _pdmCplComm);
 
           }
-        }
-        else {
-          printf("ptp from mesh_location OK\n");
-          fflush(stdout);
         }
 
         cpl_spatial_interp->_ptsp = _ptsp;
