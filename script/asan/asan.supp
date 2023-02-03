@@ -17,4 +17,5 @@ leak:PyThread_allocate_lock
 leak:list_extend
 leak:resize_compact
 leak:function_code_fastcall
+leak:ofi_mem_init
 #interceptor_via_fun:__libc_start_main
