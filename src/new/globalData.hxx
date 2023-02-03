@@ -75,19 +75,19 @@ namespace cwipi {
 
     // send
 
-    inline size_t
+    inline size_t&
     s_send_entity_get()
     {
       return _s_send_entity;
     }
 
-    inline int
+    inline int&
     send_stride_get()
     {
       return _send_stride;
     }
 
-    inline int
+    inline int&
     n_send_entity_get()
     {
       return _n_send_entity;
@@ -127,25 +127,25 @@ namespace cwipi {
 
     // request
 
-    inline MPI_Request *
+    inline MPI_Request
     s_entity_request_get()
     {
       return _s_entity_request;
     }
 
-    inline MPI_Request *
+    inline MPI_Request
     stride_request_get()
     {
       return _stride_request;
     }
 
-    inline MPI_Request *
+    inline MPI_Request
     n_entity_request_get()
     {
       return _n_entity_request;
     }
 
-    inline MPI_Request *
+    inline MPI_Request
     data_request_get()
     {
       return _data_request;
@@ -154,7 +154,7 @@ namespace cwipi {
     inline void
     s_entity_request_set
     (
-     MPI_Request *req
+     MPI_Request req
     )
     {
       _s_entity_request = req;
@@ -163,7 +163,7 @@ namespace cwipi {
     inline void
     stride_request_set
     (
-     MPI_Request *req
+     MPI_Request req
     )
     {
       _stride_request = req;
@@ -172,7 +172,7 @@ namespace cwipi {
     inline void
     n_entity_request_set
     (
-     MPI_Request *req
+     MPI_Request req
     )
     {
       _n_entity_request = req;
@@ -181,7 +181,7 @@ namespace cwipi {
     inline void
     data_request_set
     (
-     MPI_Request *req
+     MPI_Request req
     )
     {
       _data_request = req;
@@ -190,10 +190,10 @@ namespace cwipi {
   private:
 
     std::string     _global_data_id;
-    MPI_Request    *_s_entity_request;
-    MPI_Request    *_stride_request;
-    MPI_Request    *_n_entity_request;
-    MPI_Request    *_data_request;
+    MPI_Request     _s_entity_request;
+    MPI_Request     _stride_request;
+    MPI_Request     _n_entity_request;
+    MPI_Request     _data_request;
 
     // send
     size_t          _s_send_entity;

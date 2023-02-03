@@ -683,13 +683,18 @@ int             offset
    MPI_Request    *send_stride_request,
    MPI_Request    *n_send_entity_request,
    MPI_Request    *data_send_request,
-   size_t          s_send_entity,
-   int             send_stride,
-   int             n_send_entity,
+   size_t         &s_send_entity,
+   int            &send_stride,
+   int            &n_send_entity,
    void           *send_data
   )
   {
     assert(send_data != NULL);
+
+    printf("s_send_entity_request %p\n", s_send_entity_request);
+    printf("send_stride_request %p\n", send_stride_request);
+    printf("n_send_entity_request %p\n", n_send_entity_request);
+    printf("data_send_request %p\n", data_send_request);
 
     uint32_t s_entity_tag = _get_tag(global_data_id,
                                      _unionComm,
@@ -703,6 +708,11 @@ int             offset
     uint32_t data_tag = _get_tag(global_data_id,
                                  _unionComm,
                                  3);
+
+    printf("SEND s_entity_tag %d\n", s_entity_tag);
+    printf("SEND stride_tag %d\n", stride_tag);
+    printf("SEND n_entity_tag %d\n", n_entity_tag);
+    printf("SEND data_tag %d\n", data_tag);
 
     // Get union communicator ie. union of all active ranks of the codes in the coupling
     int unionCommRank;
@@ -724,7 +734,11 @@ int             offset
         } // end if i_rank is root rank of coupled code
         else {
 
-          MPI_Issend(&s_send_entity, (int) sizeof(size_t),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, (int) s_entity_tag, _unionComm, s_send_entity_request);
+          int err = MPI_Issend(&s_send_entity, (int) sizeof(size_t),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, (int) s_entity_tag, _unionComm, s_send_entity_request);
+          printf("---> err : %d\n", err);
+          // int flag;
+          // MPI_Test(s_send_entity_request, &flag, MPI_STATUS_IGNORE);
+          // printf("---> flag : %d\n", flag);
           MPI_Issend(&send_stride, 1,  MPI_INT, _cplCodeRootRankUnionComm, (int) stride_tag, _unionComm, send_stride_request);
           MPI_Issend(&n_send_entity, 1,  MPI_INT, _cplCodeRootRankUnionComm, (int) n_entity_tag, _unionComm, n_send_entity_request);
           MPI_Issend(send_data, (int) s_send_entity * send_stride * n_send_entity,  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, (int) data_tag, _unionComm, data_send_request);
@@ -733,7 +747,11 @@ int             offset
       } // end if i_rank is joint with the coupled code
       else {
 
-          MPI_Issend(&s_send_entity, (int) sizeof(size_t),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, (int) s_entity_tag, _unionComm, s_send_entity_request);
+          int err = MPI_Issend(&s_send_entity, (int) sizeof(size_t),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, (int) s_entity_tag, _unionComm, s_send_entity_request);
+          printf("---> err : %d\n", err);
+          // int flag;
+          // MPI_Test(s_send_entity_request, &flag, MPI_STATUS_IGNORE);
+          // printf("---> flag : %d\n", flag);
           MPI_Issend(&send_stride, 1,  MPI_INT, _cplCodeRootRankUnionComm, (int) stride_tag, _unionComm, send_stride_request);
           MPI_Issend(&n_send_entity, 1,  MPI_INT, _cplCodeRootRankUnionComm, (int) n_entity_tag, _unionComm, n_send_entity_request);
           MPI_Issend(send_data, (int) s_send_entity * send_stride * n_send_entity,  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, (int) data_tag, _unionComm, data_send_request);
@@ -772,6 +790,10 @@ int             offset
     assert(recv_stride != NULL);
     assert(n_recv_entity != NULL);
 
+    printf("s_recv_entity_request %p\n", s_recv_entity_request);
+    printf("recv_stride_request %p\n", recv_stride_request);
+    printf("n_recv_entity_request %p\n", n_recv_entity_request);
+
     uint32_t s_entity_tag = _get_tag(global_data_id,
                                      _unionComm,
                                      0);
@@ -781,6 +803,10 @@ int             offset
     uint32_t n_entity_tag = _get_tag(global_data_id,
                                      _unionComm,
                                      2);
+
+    printf("RECV s_entity_tag %d\n", s_entity_tag);
+    printf("RECV stride_tag %d\n", stride_tag);
+    printf("RECV n_entity_tag %d\n", n_entity_tag);
 
     // Get union communicator ie. union of all active ranks of the codes in the coupling
     int unionCommRank;
@@ -856,6 +882,11 @@ int             offset
    void          **recv_data
   )
   {
+    printf("s_send_entity_request %p\n", s_send_entity_request);
+    printf("send_stride_request %p\n", send_stride_request);
+    printf("n_send_entity_request %p\n", n_send_entity_request);
+    printf("data_send_request %p\n", data_send_request);
+
     // Get union communicator ie. union of all active ranks of the codes in the coupling
     int unionCommRank;
     MPI_Comm_rank (_unionComm, &unionCommRank);
@@ -884,7 +915,8 @@ int             offset
         } // end if i_rank is root rank of coupled code
         else {
 
-          MPI_Wait(s_send_entity_request, MPI_STATUS_IGNORE);
+          int err = MPI_Wait(s_send_entity_request, MPI_STATUS_IGNORE);
+          cout << "err : " << err << "\n" << endl;
           MPI_Wait(send_stride_request, MPI_STATUS_IGNORE);
           MPI_Wait(n_send_entity_request, MPI_STATUS_IGNORE);
           MPI_Wait(data_send_request, MPI_STATUS_IGNORE);
@@ -893,7 +925,8 @@ int             offset
       } // end if i_rank is joint with the coupled code
       else {
 
-        MPI_Wait(s_send_entity_request, MPI_STATUS_IGNORE);
+        int err = MPI_Wait(s_send_entity_request, MPI_STATUS_IGNORE);
+        cout << "err : " << err << "\n" << endl;
         MPI_Wait(send_stride_request, MPI_STATUS_IGNORE);
         MPI_Wait(n_send_entity_request, MPI_STATUS_IGNORE);
         MPI_Wait(data_send_request, MPI_STATUS_IGNORE);
@@ -937,11 +970,17 @@ int             offset
    void          **recv_data
   )
   {
+    printf("s_recv_entity_request %p\n", s_recv_entity_request);
+    printf("recv_stride_request %p\n", recv_stride_request);
+    printf("n_recv_entity_request %p\n", n_recv_entity_request);
+
     MPI_Request data_recv_request;
 
     uint32_t data_tag = _get_tag(global_data_id,
                                  _unionComm,
                                  3);
+
+    printf("RECV data_tag %d\n", data_tag);
 
     // Get union communicator ie. union of all active ranks of the codes in the coupling
     int unionCommRank;
@@ -971,35 +1010,79 @@ int             offset
         } // end if i_rank is root rank of coupled code
         else {
 
+          printf("--> before wait\n");
+
           MPI_Wait(s_recv_entity_request, MPI_STATUS_IGNORE);
           MPI_Wait(recv_stride_request, MPI_STATUS_IGNORE);
           MPI_Wait(n_recv_entity_request, MPI_STATUS_IGNORE);
 
+          printf("--> before irecv\n");
+
           *recv_data = malloc((*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
           MPI_Irecv(*recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, (int) data_tag, _unionComm, &data_recv_request);
+
+          printf("--> after irecv\n");
+
           MPI_Wait(&data_recv_request, MPI_STATUS_IGNORE);
+
+          printf("--> after wait\n");
 
         }
       } // end if i_rank is joint with the coupled code
       else {
 
+        printf("--> before wait\n");
+
         MPI_Wait(s_recv_entity_request, MPI_STATUS_IGNORE);
         MPI_Wait(recv_stride_request, MPI_STATUS_IGNORE);
         MPI_Wait(n_recv_entity_request, MPI_STATUS_IGNORE);
 
+        printf("--> before irecv\n");
+
         *recv_data = malloc((*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
         MPI_Irecv(*recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, _cplCodeRootRankUnionComm, (int) data_tag, _unionComm, &data_recv_request);
+
+        printf("--> after irecv\n");
+
         MPI_Wait(&data_recv_request, MPI_STATUS_IGNORE);
+
+        printf("--> after wait\n");
 
       }
     } // end if i_rank is the root rank of the local code
 
-    // Broadcast
-    MPI_Bcast(s_recv_entity, (int) sizeof(size_t),  MPI_UNSIGNED_CHAR,_locCodeRootRankUnionComm, _unionComm);
-    MPI_Bcast(recv_stride, 1,  MPI_INT, _locCodeRootRankUnionComm, _unionComm);
-    MPI_Bcast(n_recv_entity, 1,  MPI_INT, _locCodeRootRankUnionComm, _unionComm);
+    printf("--> before broadcast\n");
 
-    MPI_Bcast(*recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, _locCodeRootRankUnionComm, _unionComm);
+    if (unionCommRank ==  _locCodeRootRankUnionComm) {
+      printf(">>>>>>>>>>> %d %d %d\n", (int) *s_recv_entity, *recv_stride, *n_recv_entity);
+    }
+
+    MPI_Barrier(_localCodeProperties->connectableCommGet());
+
+    // Broadcast
+    int rank1;
+    MPI_Comm_rank(_localCodeProperties->connectableCommGet(), &rank1);
+    int s1;
+    MPI_Comm_size(_localCodeProperties->connectableCommGet(), &s1);
+
+    MPI_Bcast(s_recv_entity, (int) sizeof(size_t),  MPI_UNSIGNED_CHAR,0, _localCodeProperties->connectableCommGet());
+    MPI_Bcast(recv_stride, 1,  MPI_INT, 0, _localCodeProperties->connectableCommGet());
+    MPI_Bcast(n_recv_entity, 1,  MPI_INT, 0, _localCodeProperties->connectableCommGet());
+
+    printf("--> halfway broadcast - 0\n");
+
+    if (rank1 !=  0) {
+      printf(">>>>>>>>>>> %d %d %d\n", (int) *s_recv_entity, *recv_stride, *n_recv_entity);
+      *recv_data = malloc((*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
+      printf("--> halfway broadcast - 1\n");
+    }
+    MPI_Bcast(*recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, 0, _localCodeProperties->connectableCommGet());
+
+    for (int i = 0; i < 4; i++) {
+      printf("*recv_data[%d] : %d\n", i, (* (int **) recv_data)[i]);
+      fflush(stdout);
+    }
+    printf("--> end broadcast\n");
   }
 
 }

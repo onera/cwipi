@@ -147,9 +147,9 @@ namespace cwipi {
      MPI_Request    *send_stride_request,
      MPI_Request    *n_send_entity_request,
      MPI_Request    *data_send_request,
-     size_t          s_send_entity,
-     int             send_stride,
-     int             n_send_entity,
+     size_t          &s_send_entity,
+     int             &send_stride,
+     int             &n_send_entity,
      void           *send_data
     );
 

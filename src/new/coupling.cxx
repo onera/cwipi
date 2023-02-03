@@ -348,9 +348,9 @@ namespace cwipi {
 
     assert(it != _globalData.end());
 
-    size_t        s_entity       = it->second->s_send_entity_get();
-    int           stride         = it->second->send_stride_get();
-    int           n_entity       = it->second->n_send_entity_get();
+    size_t        &s_entity       = it->second->s_send_entity_get();
+    int           &stride         = it->second->send_stride_get();
+    int           &n_entity       = it->second->n_send_entity_get();
     void *        data           = it->second->send_data_get();
 
     MPI_Request s_entity_request;
@@ -368,10 +368,10 @@ namespace cwipi {
                                                               n_entity,
                                                               data);
 
-    it->second->s_entity_request_set(&s_entity_request);
-    it->second->stride_request_set(&stride_request);
-    it->second->n_entity_request_set(&n_entity_request);
-    it->second->data_request_set(&data_request);
+    it->second->s_entity_request_set(s_entity_request);
+    it->second->stride_request_set(stride_request);
+    it->second->n_entity_request_set(n_entity_request);
+    it->second->data_request_set(data_request);
 
     cout << "globalDataIsend - out\n" << endl;
   }
@@ -435,9 +435,9 @@ namespace cwipi {
                                                               stride,
                                                               n_entity);
 
-    it->second->s_entity_request_set(&s_entity_request);
-    it->second->stride_request_set(&stride_request);
-    it->second->n_entity_request_set(&n_entity_request);
+    it->second->s_entity_request_set(s_entity_request);
+    it->second->stride_request_set(stride_request);
+    it->second->n_entity_request_set(n_entity_request);
 
     cout << "globalDataIrecv - out\n" << endl;
   }
@@ -459,10 +459,10 @@ namespace cwipi {
 
     // Get local
     map<string,GlobalData*>::iterator it = _globalData.find(global_data_id.c_str());
-    MPI_Request * s_entity_request = it->second->s_entity_request_get();
-    MPI_Request * stride_request   = it->second->stride_request_get();
-    MPI_Request * n_entity_request = it->second->n_entity_request_get();
-    MPI_Request * data_request     = it->second->data_request_get();
+    MPI_Request s_entity_request = it->second->s_entity_request_get();
+    MPI_Request stride_request   = it->second->stride_request_get();
+    MPI_Request n_entity_request = it->second->n_entity_request_get();
+    MPI_Request data_request     = it->second->data_request_get();
     size_t        s_entity         = it->second->s_send_entity_get();
     int           stride           = it->second->send_stride_get();
     int           n_entity         = it->second->n_send_entity_get();
@@ -483,10 +483,10 @@ namespace cwipi {
     }
 
     _communication.waitIsendGlobalDataBetweenCodesThroughUnionCom(global_data_id,
-                                                                  s_entity_request,
-                                                                  stride_request,
-                                                                  n_entity_request,
-                                                                  data_request,
+                                                                  &s_entity_request,
+                                                                  &stride_request,
+                                                                  &n_entity_request,
+                                                                  &data_request,
                                                                   s_entity,
                                                                   stride,
                                                                   n_entity,
@@ -516,9 +516,9 @@ namespace cwipi {
 
     // Get local
     map<string,GlobalData*>::iterator it = _globalData.find(global_data_id.c_str());
-    MPI_Request * s_entity_request = it->second->s_entity_request_get();
-    MPI_Request * stride_request   = it->second->stride_request_get();
-    MPI_Request * n_entity_request = it->second->n_entity_request_get();
+    MPI_Request  s_entity_request = it->second->s_entity_request_get();
+    MPI_Request  stride_request   = it->second->stride_request_get();
+    MPI_Request  n_entity_request = it->second->n_entity_request_get();
     size_t *      s_entity       = it->second->s_recv_entity_get();
     int *         stride         = it->second->recv_stride_get();
     int *         n_entity       = it->second->n_recv_entity_get();
@@ -539,9 +539,9 @@ namespace cwipi {
     }
 
     _communication.waitIrecvGlobalDataBetweenCodesThroughUnionCom(global_data_id,
-                                                                  s_entity_request,
-                                                                  stride_request,
-                                                                  n_entity_request,
+                                                                  &s_entity_request,
+                                                                  &stride_request,
+                                                                  &n_entity_request,
                                                                   cpl_s_entity,
                                                                   cpl_stride,
                                                                   cpl_n_entity,
