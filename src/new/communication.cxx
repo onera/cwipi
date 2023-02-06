@@ -676,7 +676,7 @@ int             offset
    */
 
   void
-  Communication::isendGlobalDataBetweenCodesThroughUnionCom
+  Communication::issendGlobalDataBetweenCodesThroughUnionCom
   (
    const string    global_data_id,
    MPI_Request    *s_send_entity_request,
@@ -861,7 +861,7 @@ int             offset
    */
 
   void
-  Communication::waitIsendGlobalDataBetweenCodesThroughUnionCom
+  Communication::waitIssendGlobalDataBetweenCodesThroughUnionCom
   (
    MPI_Request    *s_send_entity_request,
    MPI_Request    *send_stride_request,
@@ -1029,24 +1029,14 @@ int             offset
     int connectable_i_rank;
     MPI_Comm_rank(_localCodeProperties->connectableCommGet(), &connectable_i_rank);
 
-
-    printf("bcast - 0\n");
-    fflush(stdout);
-
     MPI_Bcast(s_recv_entity, (int) sizeof(size_t),  MPI_UNSIGNED_CHAR,0, _localCodeProperties->connectableCommGet());
     MPI_Bcast(recv_stride, 1,  MPI_INT, 0, _localCodeProperties->connectableCommGet());
     MPI_Bcast(n_recv_entity, 1,  MPI_INT, 0, _localCodeProperties->connectableCommGet());
-
-    printf("bcast - 1\n");
-    fflush(stdout);
 
     if (connectable_i_rank !=  0) {
       *recv_data = malloc((*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
     }
     MPI_Bcast(*recv_data, (int) (*s_recv_entity) * (*recv_stride) * (*n_recv_entity),  MPI_UNSIGNED_CHAR, 0, _localCodeProperties->connectableCommGet());
-
-    printf("bcast - 2\n");
-    fflush(stdout);
   }
 
 }

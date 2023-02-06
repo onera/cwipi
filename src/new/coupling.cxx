@@ -315,7 +315,7 @@ namespace cwipi {
    */
 
   void
-  Coupling::globalDataIsend
+  Coupling::globalDataIssend
   (
    const string    &global_data_id,
    size_t          s_send_entity,
@@ -350,15 +350,15 @@ namespace cwipi {
     MPI_Request n_entity_request;
     MPI_Request data_request;
 
-    _communication.isendGlobalDataBetweenCodesThroughUnionCom(global_data_id,
-                                                              &s_entity_request,
-                                                              &stride_request,
-                                                              &n_entity_request,
-                                                              &data_request,
-                                                              s_entity,
-                                                              stride,
-                                                              n_entity,
-                                                              data);
+    _communication.issendGlobalDataBetweenCodesThroughUnionCom(global_data_id,
+                                                               &s_entity_request,
+                                                               &stride_request,
+                                                               &n_entity_request,
+                                                               &data_request,
+                                                               s_entity,
+                                                               stride,
+                                                               n_entity,
+                                                               data);
 
     it->second.s_entity_request_set(s_entity_request);
     it->second.stride_request_set(stride_request);
@@ -436,7 +436,7 @@ namespace cwipi {
    */
 
   void
-  Coupling::globalDataWaitIsend
+  Coupling::globalDataWaitIssend
   (
    const string    &global_data_id
   )
@@ -466,18 +466,18 @@ namespace cwipi {
       cpl_data           = cpl_it->second.recv_data_get();
     }
 
-    _communication.waitIsendGlobalDataBetweenCodesThroughUnionCom(&s_entity_request,
-                                                                  &stride_request,
-                                                                  &n_entity_request,
-                                                                  &data_request,
-                                                                  s_entity,
-                                                                  stride,
-                                                                  n_entity,
-                                                                  data,
-                                                                  cpl_s_entity,
-                                                                  cpl_stride,
-                                                                  cpl_n_entity,
-                                                                  cpl_data);
+    _communication.waitIssendGlobalDataBetweenCodesThroughUnionCom(&s_entity_request,
+                                                                   &stride_request,
+                                                                   &n_entity_request,
+                                                                   &data_request,
+                                                                   s_entity,
+                                                                   stride,
+                                                                   n_entity,
+                                                                   data,
+                                                                   cpl_s_entity,
+                                                                   cpl_stride,
+                                                                   cpl_n_entity,
+                                                                   cpl_data);
   }
 
   /**

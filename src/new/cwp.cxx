@@ -2989,7 +2989,7 @@ const char *code_name
  */
 
 void
-CWP_Global_data_isend
+CWP_Global_data_issend
 (
  const char     *local_code_name,
  const char     *cpl_id,
@@ -3001,11 +3001,11 @@ CWP_Global_data_isend
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.globalDataIsend(global_data_id,
-                      s_send_entity,
-                      send_stride,
-                      n_send_entity,
-                      send_data);
+  cpl.globalDataIssend(global_data_id,
+                       s_send_entity,
+                       send_stride,
+                       n_send_entity,
+                       send_data);
 }
 
 /**
@@ -3054,7 +3054,7 @@ CWP_Global_data_irecv
  */
 
 void
-CWP_Global_data_wait_isend
+CWP_Global_data_wait_issend
 (
  const char     *local_code_name,
  const char     *cpl_id,
@@ -3062,7 +3062,7 @@ CWP_Global_data_wait_isend
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.globalDataWaitIsend(global_data_id);
+  cpl.globalDataWaitIssend(global_data_id);
 }
 
 /**

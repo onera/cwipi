@@ -115,7 +115,7 @@ namespace cwipi {
      */
 
     void
-    globalDataIsend
+    globalDataIssend
     (
      const string    &global_data_id,
      size_t          s_send_entity,
@@ -153,7 +153,7 @@ namespace cwipi {
      */
 
     void
-    globalDataWaitIsend
+    globalDataWaitIssend
     (
      const string    &global_data_id
     );

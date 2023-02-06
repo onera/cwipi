@@ -140,7 +140,7 @@ namespace cwipi {
      */
 
     void
-    isendGlobalDataBetweenCodesThroughUnionCom
+    issendGlobalDataBetweenCodesThroughUnionCom
     (
      const string     global_data_id,
      MPI_Request    *s_send_entity_request,
@@ -198,7 +198,7 @@ namespace cwipi {
      */
 
     void
-    waitIsendGlobalDataBetweenCodesThroughUnionCom
+    waitIssendGlobalDataBetweenCodesThroughUnionCom
     (
      MPI_Request    *s_send_entity_request,
      MPI_Request    *send_stride_request,
