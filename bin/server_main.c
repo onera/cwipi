@@ -62,7 +62,7 @@ _usage(int exit_code)
      "  Usage: \n\n"
      "  -c     Filename of the server configuration file.\n\n"
      "  -p     Begin and end port number for the server sockets port range.\n\n"
-     "  -id    Code identifier. \n\n"
+     "  -cn    Code identifier. \n\n"
      "  -h     This message.\n\n");
 
   exit(exit_code);
@@ -76,7 +76,7 @@ _read_args
  char         **config,     // filename for server ip adresses + ports
  int           *port_begin, // begin of port range
  int           *port_end,   // end of port range
- int           *code_name   // code name
+ char         **code_name   // code name
 )
 {
   int i = 1;
@@ -114,12 +114,12 @@ _read_args
       }
     }
 
-    else if (strcmp(argv[i], "-id") == 0) {
+    else if (strcmp(argv[i], "-cn") == 0) {
       i++;
       if (i >= argc)
         _usage(EXIT_FAILURE);
       else {
-        *code_name = atoi(argv[i]);
+        *code_name = argv[i];
       }
     }
 
@@ -129,6 +129,25 @@ _read_args
 
   }
 
+}
+
+static int
+_substrcmp
+(
+ char* a,
+ int s_a,
+ char* b,
+ int s_b
+)
+{
+  char *sub_a = malloc(s_a);
+  char *sub_b = malloc(s_b);
+  strncpy(sub_a, a, s_a);
+  strncpy(sub_b, b, s_b);
+  int out = strcmp(sub_a, sub_b);
+  free(sub_a);
+  free(sub_b);
+  return out;
 }
 
 /*=============================================================================
@@ -146,17 +165,17 @@ main
   char *config     = NULL;
   int   port_begin = 49100;
   int   port_end   = 49150;
-  int   code_id    = -1;
+  char* code_name  = NULL;
 
   _read_args(argc,
              argv,
              &config,
              &port_begin,
              &port_end,
-             &code_id);
+             &code_name);
 
-  if (code_id == -1) {
-    PDM_error(__FILE__, __LINE__, 0, "Server must be launched with a code identifier.\n");
+  if (code_name == NULL) {
+    PDM_error(__FILE__, __LINE__, 0, "Server must be launched with a non NULL code identifier.\n");
   }
 
   if (config == NULL) {
@@ -173,8 +192,67 @@ main
   MPI_Comm_size(comm, &n_rank);
 
   // create intracomm
+  size_t  s_code_name = strlen(code_name) + 1;
+  size_t *s_recv = malloc(sizeof(size_t) * n_rank);
+  int *code_ids = malloc(sizeof(int) * n_rank);
+  int *code_name_idx = malloc(sizeof(int) * n_rank);
+  int n_code_name = 0;
+  int s_total_recv = 0;
+  int *s_recv_idx = malloc(sizeof(int) * n_rank);
+
+  MPI_Allgather(&s_code_name,
+                sizeof(size_t),
+                MPI_UNSIGNED_CHAR,
+                s_recv,
+                n_rank * sizeof(size_t),
+                MPI_UNSIGNED_CHAR,
+                comm);
+
+  for (int i = 0; i < n_rank; i++) {
+    s_total_recv += s_recv[i];
+    if (i == 0) {
+      s_recv_idx[i] = 0;
+    } else {
+      s_recv_idx[i] = s_recv_idx[i-1] + s_recv[i];
+    }
+    code_ids[i] = -1;
+  }
+
+  char *code_names = malloc(s_total_recv);
+  MPI_Allgatherv(code_name,
+                 s_code_name,
+                 MPI_CHAR,
+                 code_names,
+         (int *) s_recv,
+                 s_recv_idx,
+                 MPI_CHAR,
+                 comm);
+
+  for (int i = 0; i < i_rank + 1; i++) {
+    for (int j = 0; j < n_code_name; j++) {
+      int idx = code_name_idx[j];
+      if (_substrcmp(&code_names[idx], (int) s_recv[idx], &code_names[i], (int) s_recv[i]) == 1) {
+        code_ids[i] = code_ids[code_name_idx[j]];
+      }
+    }
+    if (code_ids[i] == -1) {
+      code_name_idx[n_code_name++] = i;
+      code_ids[i] = i;
+    }
+  }
+
+  printf("%s has id %d\n", code_name, code_ids[i_rank]);
+  fflush(stdout);
+
   MPI_Comm intra_comm;
-  MPI_Comm_split(comm, code_id, i_rank, &intra_comm);
+  MPI_Comm_split(comm, code_ids[i_rank], i_rank, &intra_comm);
+
+  // free
+  free(code_name_idx);
+  free(code_ids);
+  free(code_names);
+  free(s_recv_idx);
+  free(s_recv);
 
   int i_intra_rank;
   int n_intra_rank;
@@ -271,9 +349,9 @@ main
   PDM_io_free(write);
 
   // verbose
-  MPI_Barrier(intra_comm);
+  MPI_Barrier(comm);
 
-  if (i_intra_rank == 0) {
+  if (i_rank == 0) {
     printf("----------------------------------------------------------------------------\n");
     printf("All servers listening and cwipi config file created. You may connect clients\n");
     printf("----------------------------------------------------------------------------\n");
