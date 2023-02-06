@@ -59,10 +59,7 @@ namespace cwipi {
   }
 
   GlobalData::~GlobalData()
-  {
-    if (_send_data != NULL) free(_send_data);
-    if (*_recv_data != NULL) free(*_recv_data);
-  }
+  {}
 
 }
 

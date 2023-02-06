@@ -183,7 +183,6 @@ namespace cwipi {
      *
      * \brief Non blocking send wait of global data array
      *
-     * \param [in] global_data_id
      * \param [in] s_send_entity_request
      * \param [in] send_stride_request
      * \param [in] n_send_entity_request
@@ -201,7 +200,6 @@ namespace cwipi {
     void
     waitIsendGlobalDataBetweenCodesThroughUnionCom
     (
-     const string     global_data_id,
      MPI_Request    *s_send_entity_request,
      MPI_Request    *send_stride_request,
      MPI_Request    *n_send_entity_request,

@@ -113,48 +113,6 @@ _read_args
 
 }
 
-// tmp test
-
-static void
-_g
-(
- int *e
-)
-{
-  *e = 42;
-}
-
-struct toto
-{
-  int *c;
-};
-
-typedef struct toto tata;
-
-static int *
-_get
-(
- tata *st
-)
-{
-  return st->c;
-}
-
-static void
-_f
-(
- int *b
-)
-{
-  tata *st;
-  st->c = b;
-  int *d = _get(st);
-  _g(d);
-}
-
-// end tmp test
-
-
 /*
  * Main
  */
@@ -185,15 +143,6 @@ int main(int argc, char *argv[])
   PDM_MPI_Comm comm = PDM_MPI_COMM_WORLD;
   PDM_MPI_Comm_rank(comm, &i_rank);
   PDM_MPI_Comm_size(comm, &n_rank);
-
-  // tmp test
-
-  int a = -1;
-  printf("before - a : %d\n", a);
-  _f(&a);
-  printf("after - a : %d\n", a);
-
-  // end tmp test
 
   // port choice (test numa)
   PDM_MPI_Comm comm_node;
