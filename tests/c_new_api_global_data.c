@@ -124,7 +124,6 @@ main(int argc, char *argv[]) {
     CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
     double *time_init = malloc(sizeof(double) * n_code);
 
-    int n_vtx_seg;
     if (rank < comm_world_size / 2) {
       code_id = 1;
       code_name[0] = "code1";
@@ -326,8 +325,6 @@ main(int argc, char *argv[]) {
     }
 
     // free
-    free(send_data1);
-    free(recv_data1);
     free(send_data2);
     free(recv_data2);
 
@@ -343,6 +340,10 @@ main(int argc, char *argv[]) {
 
     // Finalize cwipi
     CWP_Finalize();
+
+    // free
+    free(send_data1);
+    free(recv_data1);
 
   } // end is mixed
 
