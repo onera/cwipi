@@ -26,6 +26,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <assert.h>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -120,9 +121,6 @@ main
              argv,
              &config);
 
-  if (config == NULL) {
-    config = (char *) "./cwp_config_srv.txt";
-  }
 
   // mpi
   int i_rank;
@@ -133,13 +131,29 @@ main
   MPI_Comm_rank(comm, &i_rank);
   MPI_Comm_size(comm, &n_rank);
 
+  if (config == NULL) {
+    if (i_rank == 0) {
+      config = (char *) "client_main_o/code1/cwp_config_srv.txt";
+    }
+    else {
+      config = (char *) "client_main_o/code2/cwp_config_srv.txt";
+    }
+  }
+
+  assert (n_rank == 2);
+
   // launch server
 
   if (i_rank == 0) {
-    char launch_server[37] = "";
-    sprintf(launch_server, "mpirun -n %6.6d ../bin/cwp_server &", n_rank);
-    system(launch_server);
+    system("mkdir -p client_main_o/code1");
+    system("mkdir -p client_main_o/code2");
+    system("mpirun -n 1 ../bin/cwp_server -p 49100 49100 -c \"client_main_o/code1/cwp_config_srv.txt\" : -n 1  ../bin/cwp_server -p 49101 49101 -c \"client_main_o/code2/cwp_config_srv.txt\" &");
   }
+
+  // else { 
+  //   const char *launch_server = "mkdir -p client_main_o/code2 && cd client_main_o/code2 && mpirun -n 1 ../../../bin/cwp_server -p 49101 49101 &";
+  //   system(launch_server);
+  // }
 
   while (access(config, R_OK) != 0) {
     printf("HERE\n");
@@ -152,9 +166,11 @@ main
   const char **code_names = NULL;
   double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
+  int id_code = 0;
 
   if (i_rank == 0) {
     n_code = 1;
+    id_code = 0;
     code_names = malloc(sizeof(char *) * n_code);
     code_names[0] = "code1";
     is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
@@ -163,6 +179,7 @@ main
 
   if (i_rank == 1) {
     n_code = 1;
+    id_code = 1;
     code_names = malloc(sizeof(char *) * n_code);
     code_names[0] = "code2";
     is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code);
@@ -185,7 +202,11 @@ main
     CWP_client_Output_file_set(f);
   }
 
-  CWP_client_Init(comm,
+
+  MPI_Comm intra_comm;
+  MPI_Comm_split(comm, id_code, i_rank, &intra_comm); // smallest i_rank becomes rank 0 in intra_comm
+
+  CWP_client_Init(intra_comm,
                   config,
                   n_code,
                   (const char **) code_names,
@@ -392,6 +413,9 @@ main
   if (is_coupled_rank != NULL) free(is_coupled_rank);
 
   printf("MPI_Finalize\n");
+
+  MPI_Comm_free(&intra_comm);
+
   MPI_Finalize();
 
   return 0;
