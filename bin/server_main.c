@@ -62,6 +62,7 @@ _usage(int exit_code)
      "  Usage: \n\n"
      "  -c     Filename of the server configuration file.\n\n"
      "  -p     Begin and end port number for the server sockets port range.\n\n"
+     "  -id    Code identifier. \n\n"
      "  -h     This message.\n\n");
 
   exit(exit_code);
@@ -74,7 +75,8 @@ _read_args
  char         **argv,
  char         **config,     // filename for server ip adresses + ports
  int           *port_begin, // begin of port range
- int           *port_end    // end of port range
+ int           *port_end,   // end of port range
+ int           *code_name   // code name
 )
 {
   int i = 1;
@@ -112,6 +114,15 @@ _read_args
       }
     }
 
+    else if (strcmp(argv[i], "-id") == 0) {
+      i++;
+      if (i >= argc)
+        _usage(EXIT_FAILURE);
+      else {
+        *code_name = atoi(argv[i]);
+      }
+    }
+
     else
       _usage(EXIT_FAILURE);
     i++;
@@ -135,12 +146,18 @@ main
   char *config     = NULL;
   int   port_begin = 49100;
   int   port_end   = 49150;
+  int   code_id    = -1;
 
   _read_args(argc,
              argv,
              &config,
              &port_begin,
-             &port_end);
+             &port_end,
+             &code_id);
+
+  if (code_id == -1) {
+    PDM_error(__FILE__, __LINE__, 0, "Server must be launched with a code identifier.\n");
+  }
 
   if (config == NULL) {
     config = (char *) "cwp_config_srv.txt";
@@ -155,12 +172,21 @@ main
   MPI_Comm_rank(comm, &i_rank);
   MPI_Comm_size(comm, &n_rank);
 
+  // create intracomm
+  MPI_Comm intra_comm;
+  MPI_Comm_split(comm, code_id, i_rank, &intra_comm);
+
+  int i_intra_rank;
+  int n_intra_rank;
+  MPI_Comm_rank(intra_comm, &i_intra_rank);
+  MPI_Comm_size(intra_comm, &n_intra_rank);
+
   // port choice
   MPI_Comm comm_node;
   int i_rank_node;
 
   // shared comm split
-  MPI_Comm_split_type(comm, MPI_COMM_TYPE_SHARED, i_rank, MPI_INFO_NULL, &comm_node);
+  MPI_Comm_split_type(intra_comm, MPI_COMM_TYPE_SHARED, i_intra_rank, MPI_INFO_NULL, &comm_node);
   MPI_Comm_rank(comm_node, &i_rank_node);
 
   int server_port = port_begin + i_rank_node;
@@ -175,7 +201,7 @@ main
   // write config file
   // --> retreive host_name size
   int  irank_host_name_size     = strlen(svr->host_name);
-  int *all_jrank_host_name_size = malloc(sizeof(int) * n_rank);
+  int *all_jrank_host_name_size = malloc(sizeof(int) * n_intra_rank);
 
   MPI_Allgather(&irank_host_name_size,
                 1,
@@ -183,10 +209,10 @@ main
                 all_jrank_host_name_size,
                 1,
                 MPI_INT,
-                comm);
+                intra_comm);
 
   int max_host_name_size = -1;
-  for (int i = 0; i < n_rank; i++) {
+  for (int i = 0; i < n_intra_rank; i++) {
     if (all_jrank_host_name_size[i] > max_host_name_size) {
       max_host_name_size = all_jrank_host_name_size[i];
     }
@@ -213,14 +239,14 @@ main
               PDM_IO_KIND_MPI_SIMPLE, // PDM_IO_KIND_MPIIO_EO,
               PDM_IO_MOD_WRITE,
               PDM_IO_NATIVE,
-              PDM_MPI_mpi_2_pdm_mpi_comm(&comm),
+              PDM_MPI_mpi_2_pdm_mpi_comm(&intra_comm),
               -1.,
               &write,
               &ierr);
 
   // --> global write of header
   char  buf[99];
-  sprintf(buf, "FORMAT hostname/port\nN %10.10ld\nSIZE %5.5ld\n", (long) n_rank, strlen(data)); // header_size = 45 char
+  sprintf(buf, "FORMAT hostname/port\nN %10.10ld\nSIZE %5.5ld\n", (long) n_intra_rank, strlen(data)); // header_size = 45 char
 
   size_t s_buf =  strlen(buf);
   PDM_io_global_write(write,
@@ -230,7 +256,7 @@ main
 
   // --> block write of data
   int one = 1;
-  PDM_g_num_t i_rank_gnum = (PDM_g_num_t) (i_rank+1);
+  PDM_g_num_t i_rank_gnum = (PDM_g_num_t) (i_intra_rank+1);
 
   PDM_io_par_interlaced_write(write,
                               PDM_STRIDE_CST_INTERLACED,
@@ -245,9 +271,9 @@ main
   PDM_io_free(write);
 
   // verbose
-  MPI_Barrier(comm);
+  MPI_Barrier(intra_comm);
 
-  if (i_rank == 0) {
+  if (i_intra_rank == 0) {
     printf("----------------------------------------------------------------------------\n");
     printf("All servers listening and cwipi config file created. You may connect clients\n");
     printf("----------------------------------------------------------------------------\n");
@@ -263,6 +289,8 @@ main
   free(svr);
 
   // mpi finalize
+  MPI_Comm_free(&intra_comm);
+  MPI_Comm_free(&comm_node);
   MPI_Finalize();
 
   return 0;

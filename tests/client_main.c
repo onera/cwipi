@@ -147,13 +147,8 @@ main
   if (i_rank == 0) {
     system("mkdir -p client_main_o/code1");
     system("mkdir -p client_main_o/code2");
-    system("mpirun -n 1 ../bin/cwp_server -p 49100 49100 -c \"client_main_o/code1/cwp_config_srv.txt\" : -n 1  ../bin/cwp_server -p 49101 49101 -c \"client_main_o/code2/cwp_config_srv.txt\" &");
+    system("mpirun -n 1 ../bin/cwp_server -id 0 -p 49100 49100 -c \"client_main_o/code1/cwp_config_srv.txt\" : -n 1  ../bin/cwp_server -id 1 -p 49101 49101 -c \"client_main_o/code2/cwp_config_srv.txt\" &");
   }
-
-  // else { 
-  //   const char *launch_server = "mkdir -p client_main_o/code2 && cd client_main_o/code2 && mpirun -n 1 ../../../bin/cwp_server -p 49101 49101 &";
-  //   system(launch_server);
-  // }
 
   while (access(config, R_OK) != 0) {
     printf("HERE\n");
