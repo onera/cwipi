@@ -228,7 +228,7 @@ main
                  MPI_CHAR,
                  comm);
 
-  for (int i = 0; i < i_rank + 1; i++) {
+  for (int i = 0; i < n_rank; i++) {
     for (int j = 0; j < n_code_name; j++) {
       int idx = code_name_idx[j];
       if (_substrcmp(&code_names[idx], (int) s_recv[idx], &code_names[i], (int) s_recv[i]) == 1) {
@@ -240,9 +240,6 @@ main
       code_ids[i] = i;
     }
   }
-
-  printf("%s has id %d\n", code_name, code_ids[i_rank]);
-  fflush(stdout);
 
   MPI_Comm intra_comm;
   MPI_Comm_split(comm, code_ids[i_rank], i_rank, &intra_comm);

@@ -245,13 +245,9 @@ main
     int toto = 42;
     CWP_client_Param_lock("code1");
     CWP_client_Param_add("code1", "toto", CWP_INT, &toto);
-    CWP_client_Param_unlock("code1");
     double tata = 0.99;
-    CWP_client_Param_lock("code1");
     CWP_client_Param_add("code1", "tata", CWP_DOUBLE, &tata);
-    CWP_client_Param_unlock("code1");
     double tota = 0.55;
-    CWP_client_Param_lock("code1");
     CWP_client_Param_set("code1", "tata", CWP_DOUBLE, &tota);
     CWP_client_Param_unlock("code1");
   }
@@ -261,6 +257,10 @@ main
     const char *A = "Bonjour code 1 !";
     CWP_client_Param_add("code2", "toto2", CWP_CHAR, &A);
     CWP_client_Param_unlock("code2");
+  }
+
+  while (CWP_client_Param_is("code1", "tata", CWP_DOUBLE) == 0) {
+    // wait
   }
 
   double titi1;
