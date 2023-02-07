@@ -512,9 +512,9 @@ main
   free(cellFaceIdx  );
   free(cellFace     );
 
-  MPI_Comm_free(&intra_comm);
-
   CWP_client_Finalize();
+
+  MPI_Comm_free(&intra_comm);
 
   MPI_Finalize();
 
