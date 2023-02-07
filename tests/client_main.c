@@ -151,7 +151,6 @@ main
   }
 
   while (access(config, R_OK) != 0) {
-    printf("HERE\n");
     sleep(1);
   }
   sleep(5);
@@ -196,7 +195,6 @@ main
     FILE *f = fopen("output_file_code2.txt", "w");
     CWP_client_Output_file_set(f);
   }
-
 
   MPI_Comm intra_comm;
   MPI_Comm_split(comm, id_code, i_rank, &intra_comm); // smallest i_rank becomes rank 0 in intra_comm
@@ -259,9 +257,7 @@ main
     CWP_client_Param_unlock("code2");
   }
 
-  while (CWP_client_Param_is("code1", "tata", CWP_DOUBLE) == 0) {
-    // wait
-  }
+  MPI_Barrier(comm);
 
   double titi1;
   CWP_client_Param_get("code1", "tata", CWP_DOUBLE, &titi1);
@@ -301,6 +297,8 @@ main
     CWP_client_Param_del("code1", "toto", CWP_INT);
     CWP_client_Param_unlock("code1");
   }
+
+  MPI_Barrier(comm);
 
   double tita;
   CWP_client_Param_get("code1", "tatic", CWP_DOUBLE, &tita);

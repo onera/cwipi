@@ -23,6 +23,7 @@
 #include <math.h>
 #include <time.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include "cwp.h"
 #include "cwp_priv.h"
@@ -113,10 +114,6 @@ main
              argv,
              &config);
 
-  if (config == NULL) {
-    config = (char *) "../bin/cwp_config_srv.txt";
-  }
-
   // mpi
   int rank;
   int commWorldSize;
@@ -126,16 +123,31 @@ main
   MPI_Comm_rank(comm, &rank);
   MPI_Comm_size(comm, &commWorldSize);
 
+  if (config == NULL) {
+    if (rank % 2 == 0) {
+      config = (char *) "client_new_api_surf_P1P0_P0P1_o/code1/cwp_config_srv.txt";
+    }
+    else {
+      config = (char *) "client_new_api_surf_P1P0_P0P1_o/code2/cwp_config_srv.txt";
+    }
+  }
+
+  assert (commWorldSize % 2 == 0);
+
   // launch server
-  char launch_server[99];
-  sprintf(launch_server, "mpirun -n %d ../bin/server_main &", commWorldSize);
-  system(launch_server);
+
+  if (rank == 0) {
+    system("mkdir -p client_new_api_surf_P1P0_P0P1_o/code1");
+    system("mkdir -p client_new_api_surf_P1P0_P0P1_o/code2");
+    system("mpirun -n 2 ../bin/cwp_server -cn code1 -p 49100 49101 -c \"client_new_api_surf_P1P0_P0P1_o/code1/cwp_config_srv.txt\" : -n 2  ../bin/cwp_server -cn code2 -p 49102 49103 -c \"client_new_api_surf_P1P0_P0P1_o/code2/cwp_config_srv.txt\" &");
+  }
 
   while (access(config, R_OK) != 0) {
-    printf("HERE\n");
-    // wait
+    sleep(1);
   }
-  sleep(5);
+  sleep(10);
+
+  MPI_Barrier(comm);
 
   // Read args from command line
   int nVertexSeg = 10;
@@ -151,18 +163,30 @@ main
   is_active_rank[0] = CWP_STATUS_ON;
   time_init[0] = 0.;
   if (rank % 2 == 0) {
-    printf("%d - Working for code1\n", rank);
     code_name[0] = "code1";
     coupled_code_name[0] = "code2";
   }
 
   else {
-    printf("%d - Working for code2\n", rank);
     code_name[0] = "code2";
     coupled_code_name[0] = "code1";
   }
 
-  CWP_client_Init(comm,
+  MPI_Comm intra_comm;
+  int color;
+  if (rank % 2 == 0) {
+    color = 1;
+  } else {
+    color = 0;
+  }
+  MPI_Comm_split(comm, color, rank, &intra_comm);
+
+  int intra_rank;
+  int n_intra_rank;
+  MPI_Comm_rank(comm, &intra_rank);
+  MPI_Comm_size(comm, &n_intra_rank);
+
+  CWP_client_Init(intra_comm,
                   config,
                   n_code,
                   (const char **) code_name,
@@ -216,19 +240,6 @@ main
   eltsConnec[0]        = (int *) malloc(sizeof(int) * 4 * nElts);
   randLevel = 0.4;
 
-  // Create local comm to code using comm_split
-
-  PDM_MPI_Comm LocalComm;
-  int color;
-  if (rank % 2 == 0) {
-    color = 1;
-  } else {
-    color = 0;
-  }
-  PDM_MPI_Comm_split(PDM_MPI_mpi_2_pdm_mpi_comm(&comm), color, 0, &LocalComm);
-  int size = -1;
-  PDM_MPI_Comm_size(LocalComm, &size);
-
   srand(time(NULL));
 
   if (strcmp(code_name[0], "code1") == 0) {
@@ -238,11 +249,11 @@ main
               ymax,
               randLevel,
               nVertexSeg,
-              (int) sqrt(size),
+              (int) sqrt(n_intra_rank),
               coords[0],
               eltsConnecPointer[0],
               eltsConnec[0],
-              * (MPI_Comm *) PDM_MPI_2_mpi_comm(LocalComm));
+              intra_comm);
   }
 
   randLevel = 0.2;
@@ -253,11 +264,11 @@ main
               ymax,
               randLevel,
               nVertexSeg,
-              (int) sqrt(size),
+              (int) sqrt(n_intra_rank),
               coords[0],
               eltsConnecPointer[0],
               eltsConnec[0],
-              * (MPI_Comm *) PDM_MPI_2_mpi_comm(LocalComm));
+              intra_comm);
   }
 
   printf("%d - Number of vertex   : %d\n", rank, nVertex);
@@ -535,6 +546,8 @@ main
 
   // Finalize
   CWP_client_Finalize();
+
+  MPI_Comm_free(&intra_comm);
 
   MPI_Finalize();
   return EXIT_SUCCESS;

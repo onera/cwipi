@@ -22,6 +22,7 @@
 #include <string.h>
 #include <math.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include "cwp.h"
 #include "pdm_io.h"
@@ -209,10 +210,6 @@ main
              argv,
              &config);
 
-  if (config == NULL) {
-    config = (char *) "../bin/cwp_config_srv.txt";
-  }
-
   // mpi
   int rank;
   int comm_world_size;
@@ -222,16 +219,29 @@ main
   MPI_Comm_rank(comm, &rank);
   MPI_Comm_size(comm, &comm_world_size);
 
+  if (config == NULL) {
+    if (rank == 0) {
+      config = (char *) "client_new_api_c_poly_block_o/code1/cwp_config_srv.txt";
+    }
+    else {
+      config = (char *) "client_new_api_c_poly_block_o/code2/cwp_config_srv.txt";
+    }
+  }
+
+  assert (comm_world_size == 2);
+
   // launch server
-  char launch_server[99];
-  sprintf(launch_server, "mpirun -n %d ../bin/server_main &", comm_world_size);
-  system(launch_server);
+
+  if (rank == 0) {
+    system("mkdir -p client_new_api_c_poly_block_o/code1");
+    system("mkdir -p client_new_api_c_poly_block_o/code2");
+    system("mpirun -n 1 ../bin/cwp_server -cn code1 -p 49100 49100 -c \"client_new_api_c_poly_block_o/code1/cwp_config_srv.txt\" : -n 1 ../bin/cwp_server -cn code2 -p 49101 49101 -c \"client_new_api_c_poly_block_o/code2/cwp_config_srv.txt\" &");
+  }
 
   while (access(config, R_OK) != 0) {
-    printf("HERE\n");
-    // wait
+    sleep(1);
   }
-  sleep(5);
+  sleep(10);
 
   FILE *meshFile;
 
@@ -308,7 +318,11 @@ main
     CWP_client_Output_file_set(f);
   }
 
-  CWP_client_Init(comm,
+  MPI_Comm intra_comm;
+  int color = rank;
+  MPI_Comm_split(comm, color, rank, &intra_comm);
+
+  CWP_client_Init(intra_comm,
                   config,
                   n_code_name,
                   codeNames,
@@ -318,6 +332,7 @@ main
   char cpl_id1[] = "cpl_code1_code2";
 
   printf("Coupling creation\n");
+  fflush(stdout);
   if (rank == 0) {
     CWP_client_Cpl_create("cpoly", cpl_id1, "code2", CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITHOUT_PART,
                           CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, 1,
@@ -330,6 +345,7 @@ main
                           CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
   }
   printf("Coupling created\n");
+  fflush(stdout);
 
   /* Building of the local mesh */
 
@@ -346,8 +362,10 @@ main
   int    *cellFaceIdx   = NULL;
   int    *cellFace      = NULL;
 
-  if (rank == 0)
+  if (rank == 0) {
     printf("        Read mesh\n");
+    fflush(stdout);
+  }
 
   read_mesh_dim(meshFile, &dimension, &nVertex, &nFace, &nElements, &lFaceConnec, &lCellConnec);
 
@@ -374,8 +392,10 @@ main
 
   if (rank == 0) {
     printf("Visu Setting\n");
+    fflush(stdout);
     CWP_client_Visu_set("cpoly", cpl_id1, 1, CWP_VISU_FORMAT_ENSIGHT, "binary");
     printf("Visu Set\n");
+    fflush(stdout);
 
     // CWP_g_num_t *global_num_vtx = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * nVertex);
     // for (int i = 0; i < nVertex; i++) {
@@ -383,10 +403,12 @@ main
     // }
 
     printf("vtx_set\n");
+    fflush(stdout);
     CWP_client_Mesh_interf_vtx_set("cpoly", cpl_id1, 0, nVertex, coords, NULL);
     // global_num_vtx or try with gnum NULL
 
     printf("3D Cell Polyhedra Block Add\n");
+    fflush(stdout);
     int block_id = CWP_client_Mesh_interf_block_add("cpoly", cpl_id1, CWP_BLOCK_CELL_POLY);
 
     // CWP_g_num_t *global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * nElements);
@@ -489,6 +511,8 @@ main
   free(faceVertex   );
   free(cellFaceIdx  );
   free(cellFace     );
+
+  MPI_Comm_free(&intra_comm);
 
   CWP_client_Finalize();
 

@@ -131,25 +131,6 @@ _read_args
 
 }
 
-static int
-_substrcmp
-(
- char* a,
- int s_a,
- char* b,
- int s_b
-)
-{
-  char *sub_a = malloc(s_a);
-  char *sub_b = malloc(s_b);
-  strncpy(sub_a, a, s_a);
-  strncpy(sub_b, b, s_b);
-  int out = strcmp(sub_a, sub_b);
-  free(sub_a);
-  free(sub_b);
-  return out;
-}
-
 /*=============================================================================
  * Main
  *============================================================================*/
@@ -192,47 +173,61 @@ main
   MPI_Comm_size(comm, &n_rank);
 
   // create intracomm
-  size_t  s_code_name = strlen(code_name) + 1;
-  size_t *s_recv = malloc(sizeof(size_t) * n_rank);
-  int *code_ids = malloc(sizeof(int) * n_rank);
-  int *code_name_idx = malloc(sizeof(int) * n_rank);
-  int n_code_name = 0;
-  int s_total_recv = 0;
-  int *s_recv_idx = malloc(sizeof(int) * n_rank);
+  size_t  s_code_name = strlen(code_name);
+  int *s_recv = malloc(sizeof(int) * n_rank);
 
   MPI_Allgather(&s_code_name,
-                sizeof(size_t),
-                MPI_UNSIGNED_CHAR,
+                1,
+                MPI_INT,
                 s_recv,
-                n_rank * sizeof(size_t),
-                MPI_UNSIGNED_CHAR,
+                1,
+                MPI_INT,
                 comm);
 
-  for (int i = 0; i < n_rank; i++) {
-    s_total_recv += s_recv[i];
-    if (i == 0) {
-      s_recv_idx[i] = 0;
-    } else {
-      s_recv_idx[i] = s_recv_idx[i-1] + s_recv[i];
-    }
-    code_ids[i] = -1;
+  int *idx_recv = malloc(sizeof(int) * n_rank);
+  int s_total   = s_recv[0];
+  idx_recv[0]   = 0;
+
+  for (int i = 1; i < n_rank; i++) {
+    s_total    += s_recv[i-1];
+    idx_recv[i] = idx_recv[i-1] + s_recv[i-1];
   }
 
-  char *code_names = malloc(s_total_recv);
+  char *code_names = malloc(sizeof(char) * s_total);
   MPI_Allgatherv(code_name,
                  s_code_name,
                  MPI_CHAR,
                  code_names,
-         (int *) s_recv,
-                 s_recv_idx,
+   (const int *) s_recv,
+   (const int *) idx_recv,
                  MPI_CHAR,
                  comm);
 
+  // post
+  char **post_code_names = malloc(sizeof(char *) * n_rank);
   for (int i = 0; i < n_rank; i++) {
+    post_code_names[i] = malloc(sizeof(char) * (s_recv[i] + 1));
+  }
+
+  for (int i = 0; i < n_rank; i++) {
+    int idx = idx_recv[i];
+    post_code_names[i][s_recv[i]] = '\0';
+    memcpy(post_code_names[i], &code_names[idx], s_recv[i]);
+  }
+
+  // set ids
+  int n_code_name    = 0;
+  int *code_ids      = malloc(sizeof(int) * n_rank);
+  int *code_name_idx = malloc(sizeof(int) * n_rank);
+
+  for (int i = 0; i < n_rank; i++) {
+    code_ids[i] = -1;
+
     for (int j = 0; j < n_code_name; j++) {
-      int idx = code_name_idx[j];
-      if (_substrcmp(&code_names[idx], (int) s_recv[idx], &code_names[i], (int) s_recv[i]) == 1) {
-        code_ids[i] = code_ids[code_name_idx[j]];
+      int jj = code_name_idx[j];
+
+      if (strcmp(post_code_names[jj], post_code_names[i]) == 0) {
+        code_ids[i] = code_ids[jj];
       }
     }
     if (code_ids[i] == -1) {
@@ -241,6 +236,11 @@ main
     }
   }
 
+  printf("i_rank : %d - code_name %s has id %d\n", i_rank, code_name, code_ids[i_rank]);
+  fflush(stdout);
+
+  MPI_Barrier(comm);
+
   MPI_Comm intra_comm;
   MPI_Comm_split(comm, code_ids[i_rank], i_rank, &intra_comm);
 
@@ -248,7 +248,7 @@ main
   free(code_name_idx);
   free(code_ids);
   free(code_names);
-  free(s_recv_idx);
+  free(idx_recv);
   free(s_recv);
 
   int i_intra_rank;
@@ -261,7 +261,7 @@ main
   int i_rank_node;
 
   // shared comm split
-  MPI_Comm_split_type(intra_comm, MPI_COMM_TYPE_SHARED, i_intra_rank, MPI_INFO_NULL, &comm_node);
+  MPI_Comm_split_type(comm, MPI_COMM_TYPE_SHARED, i_intra_rank, MPI_INFO_NULL, &comm_node);
   MPI_Comm_rank(comm_node, &i_rank_node);
 
   int server_port = port_begin + i_rank_node;

@@ -22,6 +22,7 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include "cwp.h"
 #include "pdm.h"
@@ -357,10 +358,6 @@ main
              argv,
              &config);
 
-  if (config == NULL) {
-    config = (char *) "../bin/cwp_config_srv.txt";
-  }
-
   // mpi
   int rank;
   int comm_world_size;
@@ -370,14 +367,27 @@ main
   MPI_Comm_rank(comm, &rank);
   MPI_Comm_size(comm, &comm_world_size);
 
+  if (config == NULL) {
+    if (rank == 1) {
+      config = (char *) "client_new_api_disjoint_comms_o/code1/cwp_config_srv.txt";
+    }
+    else if (rank == 0 || rank == 2) {
+      config = (char *) "client_new_api_disjoint_comms_o/code2/cwp_config_srv.txt";
+    }
+  }
+
+  assert (comm_world_size == 3);
+
   // launch server
-  char launch_server[99];
-  sprintf(launch_server, "mpirun -n %d ../bin/server_main &", comm_world_size);
-  system(launch_server);
+
+  if (rank == 0) {
+    system("mkdir -p client_new_api_disjoint_comms_o/code1");
+    system("mkdir -p client_new_api_disjoint_comms_o/code2");
+    system("mpirun -n 1 ../bin/cwp_server -cn code1 -p 49100 49100 -c \"client_new_api_disjoint_comms_o/code1/cwp_config_srv.txt\" : -n 2  ../bin/cwp_server -cn code2 -p 49101 49102 -c \"client_new_api_disjoint_comms_o/code2/cwp_config_srv.txt\" &");
+  }
 
   while (access(config, R_OK) != 0) {
-    printf("HERE\n");
-    // wait
+    sleep(1);
   }
   sleep(5);
 
@@ -482,15 +492,18 @@ main
     z_min[0] = z_min_code2;
   }
 
+  MPI_Comm intra_comm;
+  MPI_Comm_split(comm, code_id[0], rank, &intra_comm);
+
   // Init cwipi
-  CWP_client_Init(comm,
+  CWP_client_Init(intra_comm,
                   config,
                   n_code,
                   (const char **) code_names,
                   is_active_rank,
                   time_init);
 
-  MPI_Barrier(comm);
+  MPI_Barrier(intra_comm);
 
   // CWP_Codes_*
   int n_codes = CWP_client_Codes_nb_get();
@@ -565,7 +578,7 @@ main
   } else {
     color = 0;
   }
-  PDM_MPI_Comm_split(PDM_MPI_mpi_2_pdm_mpi_comm(&comm), color, 0, &LocalComm);
+  PDM_MPI_Comm_split(PDM_MPI_mpi_2_pdm_mpi_comm(&intra_comm), color, 0, &LocalComm);
 
   for (int i_code = 0 ; i_code < n_code ; ++i_code) {
 
@@ -777,7 +790,7 @@ main
     printf("%d : %s --- Field created and data set\n", rank, code_names[i_code]);
   }
 
-  MPI_Barrier(comm);
+  MPI_Barrier(intra_comm);
 
   // Compute weights
   for (int i_code = 0 ; i_code < n_code ; ++i_code) {
@@ -1047,7 +1060,7 @@ main
     CWP_client_Time_update(code_names[i_code], 0.1);
   }
 
-  MPI_Barrier(comm);
+  MPI_Barrier(intra_comm);
 
   // Delete field
   // for (int i_code = 0 ; i_code < n_code ; i_code++) {
@@ -1091,6 +1104,8 @@ main
 
   CWP_client_Finalize();
   printf("%d --- CWIPI finalized\n", rank);
+
+  MPI_Comm_free(&intra_comm);
 
   MPI_Finalize();
 

@@ -3240,6 +3240,8 @@ CWP_client_Mesh_interf_vtx_set
   t_message msg;
 
   // verbose
+  printf("toto 1\n");
+  fflush(stdout);
   MPI_Barrier(clt->comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
     PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_vtx_set\n", clt->code_name);
@@ -3255,6 +3257,8 @@ CWP_client_Mesh_interf_vtx_set
   }
 
   // receive status msg
+  printf("toto 2\n");
+  fflush(stdout);
   MPI_Barrier(clt->comm);
   if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
@@ -3305,6 +3309,8 @@ CWP_client_Mesh_interf_vtx_set
   }
 
   // receive status msg
+  printf("toto 3\n");
+  fflush(stdout);
   MPI_Barrier(clt->comm);
   if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
@@ -3313,6 +3319,8 @@ CWP_client_Mesh_interf_vtx_set
   }
 
   // receive status msg
+  printf("toto 4\n");
+  fflush(stdout);
   MPI_Barrier(clt->comm);
   if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
@@ -3336,6 +3344,8 @@ CWP_client_Mesh_interf_block_add
   t_message msg;
 
   // verbose
+  printf("zozo 1\n");
+  fflush(stdout);
   MPI_Barrier(clt->comm);
   if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
     PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_block_add\n", clt->code_name);
@@ -3351,6 +3361,8 @@ CWP_client_Mesh_interf_block_add
   }
 
   // receive status msg
+  printf("zozo 2\n");
+  fflush(stdout);
   MPI_Barrier(clt->comm);
   if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
@@ -3370,6 +3382,8 @@ CWP_client_Mesh_interf_block_add
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_block_type, sizeof(CWP_Block_t));
 
   // receive status msg
+  printf("zozo 3\n");
+  fflush(stdout);
   MPI_Barrier(clt->comm);
   if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
@@ -3378,7 +3392,11 @@ CWP_client_Mesh_interf_block_add
   }
 
   // receive status msg
+  printf("zozo 4\n");
+  fflush(stdout);
   MPI_Barrier(clt->comm);
+  printf("zozo 5\n");
+  fflush(stdout);
   if (clt->flags  & CWP_FLAG_VERBOSE) {
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
@@ -3388,6 +3406,9 @@ CWP_client_Mesh_interf_block_add
   // read block identifier
   int block_id = -2;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) &block_id, sizeof(int));
+
+  printf("zozo 6\n");
+  fflush(stdout);
 
   return block_id;
 }

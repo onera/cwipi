@@ -22,6 +22,7 @@
 #include <string.h>
 #include <math.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include "cwp.h"
 #include "pdm_io.h"
@@ -176,10 +177,6 @@ main
              argv,
              &config);
 
-  if (config == NULL) {
-    config = (char *) "../bin/cwp_config_srv.txt";
-  }
-
   // mpi
   int rank;
   int comm_world_size;
@@ -189,14 +186,27 @@ main
   MPI_Comm_rank(comm, &rank);
   MPI_Comm_size(comm, &comm_world_size);
 
+  if (config == NULL) {
+    if (rank == 0) {
+      config = (char *) "client_new_api_cellface_set_block_o/code1/cwp_config_srv.txt";
+    }
+    else {
+      config = (char *) "client_new_api_cellface_set_block_o/code2/cwp_config_srv.txt";
+    }
+  }
+
+  assert (comm_world_size == 2);
+
   // launch server
-  char launch_server[99];
-  sprintf(launch_server, "mpirun -n %d ../bin/server_main &", comm_world_size);
-  system(launch_server);
+
+  if (rank == 0) {
+    system("mkdir -p client_new_api_cellface_set_block_o/code1");
+    system("mkdir -p client_new_api_cellface_set_block_o/code2");
+    system("mpirun -n 1 ../bin/cwp_server -cn code0 -p 49100 49100 -c \"client_new_api_cellface_set_block_o/code1/cwp_config_srv.txt\" : -n 1  ../bin/cwp_server -cn code1 -p 49101 49101 -c \"client_new_api_cellface_set_block_o/code2/cwp_config_srv.txt\" &");
+  }
 
   while (access(config, R_OK) != 0) {
-    printf("HERE\n");
-    // wait
+    sleep(1);
   }
   sleep(5);
 
@@ -221,8 +231,10 @@ main
   const char **code_names = NULL;
   double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
+  int id_code = 0;
 
   if (rank == 0) {
+    id_code = 0;
     n_code = 1;
     code_names = malloc(sizeof(char *) * n_code);
     code_names[0] = "code1_cell_faces";
@@ -231,6 +243,7 @@ main
   }
 
   if (rank == 1) {
+    id_code = 1;
     n_code = 1;
     code_names = malloc(sizeof(char *) * n_code);
     code_names[0] = "code2";
@@ -245,8 +258,11 @@ main
     times_init[i] = 0;
   }
 
+  MPI_Comm intra_comm;
+  MPI_Comm_split(comm, id_code, rank, &intra_comm);
+
   printf("CWIPI Initialization rank %i\n", rank);
-  CWP_client_Init(comm,
+  CWP_client_Init(intra_comm,
                   config,
                   n_code,
                   code_names,
@@ -366,6 +382,8 @@ main
   fflush(stdout);
 
   CWP_client_Finalize();
+
+  MPI_Comm_free(&intra_comm);
 
   MPI_Finalize();
 
