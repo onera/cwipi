@@ -506,16 +506,12 @@ namespace cwipi {
 
       PDM_writer_t* writer =  _cpl->writerGet();
 
-
       if (writer != nullptr) {
         if ((_cpl->NStepGet() % _cpl->freqWriterGet()) == 0) {
-
+          referenceField->write(CWP_FIELD_EXCH_SEND);
         }
-
       }
-      // if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
-      //   _visu->WriterField(referenceField, nullptr, nullptr, CWP_FIELD_MAP_SOURCE);
-      // }
+
     }
 
     else {
@@ -552,10 +548,13 @@ namespace cwipi {
           }
         }
 
-        // if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
-        //   _visu->WriterField(referenceField, nullptr, nullptr, CWP_FIELD_MAP_SOURCE);
-        // }
+        PDM_writer_t* writer =  _cpl->writerGet();
 
+        if (writer != nullptr) {
+          if ((_cpl->NStepGet() % _cpl->freqWriterGet()) == 0) {
+            referenceField->write(CWP_FIELD_EXCH_SEND);
+          }
+        }
 
         int nComponent                        = cpl_referenceField->nComponentGet();
         int dataTypeSize                      = cpl_referenceField->dataTypeSizeGet();
@@ -607,13 +606,15 @@ namespace cwipi {
             cpl_spatial_interp->_recv_buffer[cpl_intId] = NULL;
           }
 
-          // if(cpl_spatial_interp->_visu->isCreated() && cpl_referenceField->visuStatusGet() == CWP_STATUS_ON) {
-          //   cpl_spatial_interp->_visu->WriterField(cpl_referenceField, ptp2_n_ref_gnum2, ptp2_ref_gnum2, CWP_FIELD_MAP_TARGET);
-          // }
+          if (writer != nullptr) {
+            if ((_cpl->NStepGet() % _cpl->freqWriterGet()) == 0) {
+              referenceField->write(CWP_FIELD_EXCH_RECV);
+            }
+          }
 
         }
-      }
-    }
+      } // end if local code works
+    } // end if joint
   }
 
 
@@ -912,19 +913,15 @@ namespace cwipi {
         _recv_buffer[intId] = NULL;
       }
 
-      // if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
+      PDM_writer_t* writer =  _cpl->writerGet();
 
-      //   int  *ptp2_n_ref_gnum2;
-      //   int **ptp2_ref_gnum2;
-      //   PDM_part_to_part_ref_lnum2_get (_ptsp,
-      //                                  &ptp2_n_ref_gnum2,
-      //                                  &ptp2_ref_gnum2);
+      if (writer != nullptr) {
+        if ((_cpl->NStepGet() % _cpl->freqWriterGet()) == 0) {
+          referenceField->write(CWP_FIELD_EXCH_RECV);
+        }
+      }
 
-      //   _visu->WriterField(referenceField, ptp2_n_ref_gnum2, ptp2_ref_gnum2, CWP_FIELD_MAP_TARGET);
-
-      // }
-
-    }
+    } // end if disjoint
 
     else {
       if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
@@ -1015,22 +1012,22 @@ namespace cwipi {
           }
         }
 
-        // if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
+        PDM_writer_t* writer =  _cpl->writerGet();
 
-        //   int  *ptp2_n_ref_gnum2;
-        //   int **ptp2_ref_gnum2;
-        //   PDM_part_to_part_ref_lnum2_get (_ptsp,
-        //                                  &ptp2_n_ref_gnum2,
-        //                                  &ptp2_ref_gnum2);
-        //   _visu->WriterField(referenceField, ptp2_n_ref_gnum2, ptp2_ref_gnum2, CWP_FIELD_MAP_TARGET);
-        // }
+        if (writer != nullptr) {
+          if ((_cpl->NStepGet() % _cpl->freqWriterGet()) == 0) {
+            referenceField->write(CWP_FIELD_EXCH_SEND);
+          }
+        }
 
-        // if(cpl_spatial_interp->_visu->isCreated() && cpl_referenceField->visuStatusGet() == CWP_STATUS_ON) {
-        //   cpl_spatial_interp->_visu->WriterField(cpl_referenceField, nullptr, nullptr, CWP_FIELD_MAP_SOURCE);
-        // }
+        if (writer != nullptr) {
+          if ((_cpl->NStepGet() % _cpl->freqWriterGet()) == 0) {
+            referenceField->write(CWP_FIELD_EXCH_RECV);
+          }
+        }
 
-      }
-    }
+      } // if local rank has to work
+    } // end if joint
   }
 
   
