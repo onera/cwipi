@@ -1480,7 +1480,7 @@ namespace cwipi {
     isUpToDateSet ();
 
 
-    int
+    inline int
     idGeomWriterGet();
 
 

@@ -933,13 +933,13 @@ namespace cwipi {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
     if (it == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : '%s' not existing field\n", field_id.c_str());
+      PDM_error(__FILE__, __LINE__, 0, "Error involvedSourcesGet : '%s' not existing field\n", field_id.c_str());
     }
 
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV) {
-      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : '%s' does not send data\n", field_id.c_str());
+      PDM_error(__FILE__, __LINE__, 0, "Error involvedSourcesGet : '%s' does not send data\n", field_id.c_str());
     }
 
     return _spatial_interp_send[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->involvedSourcesGet(i_part);

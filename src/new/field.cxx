@@ -67,6 +67,7 @@ Field::Field (std::string            field_id    ,
     _id_writer_var_send = (int *) malloc (sizeof (int) * _nComponent);
     _id_writer_var_recv = (int *) malloc (sizeof (int) * _nComponent);
 
+    // Set field location type
     PDM_writer_var_loc_t pdm_field_type = PDM_WRITER_VAR_ELEMENTS;
 
     if     ( _fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) { 
@@ -79,17 +80,13 @@ Field::Field (std::string            field_id    ,
       pdm_field_type = PDM_WRITER_VAR_PARTICLES ;
     }
 
-
+    // Create send variables
     if (_exchangeType == CWP_FIELD_EXCH_SEND ||
         _exchangeType == CWP_FIELD_EXCH_SENDRECV) {
 
-  Field::~Field(){
-
-     _data_tgt.clear();
-     _data_src.clear();
       std::string prefix = "s";
 
-      for (int i_comp = 0; i_comp < nComponent; i_comp++) {
+      for (int i_comp = 0; i_comp < _nComponent; i_comp++) {
 
         std::ostringstream num;
         num << (i_comp + 1);
@@ -110,12 +107,14 @@ Field::Field (std::string            field_id    ,
       PDM_error(__FILE__, __LINE__, 0, "Field::dataSet Error : unknown data type.\n");
     }
 
+
+    // Create receive variables
     if (_exchangeType == CWP_FIELD_EXCH_RECV ||
         _exchangeType == CWP_FIELD_EXCH_SENDRECV) {
 
       std::string prefix = "r";
 
-      for (int i_comp = 0; i_comp < nComponent; i_comp++) {
+      for (int i_comp = 0; i_comp < _nComponent; i_comp++) {
 
         std::ostringstream num;
         num << (i_comp + 1);
@@ -131,6 +130,7 @@ Field::Field (std::string            field_id    ,
         fflush(stdout);
       }
 
+      // Create variable to tag if dof has been located ("computed")
       std::string fieldName = prefix + "_" + _fieldID;
       std::string fieldComputedName = fieldName + "_is_computed";
 
@@ -197,9 +197,9 @@ void Field::dataSet ( int i_part, const CWP_Field_map_t   map_type, void* data)
 
 
 /**
- * \brief Write th
+ * \brief Write the field send or receive variables
  *
- * \param [in] data   Data array
+ * \param [in] exch_type Exchange type
  *
  */
 
@@ -209,12 +209,10 @@ Field::write
 CWP_Field_exch_t exch_type
 )
 {
-  PDM_writer_t* writer =  _cpl->writerGet();
-
   assert(CWP_FIELD_EXCH_SENDRECV != exch_type);
 
+  // Get data depending on exchange type
   int *id_writer_var;
-
   std::vector<void* > *data_var;
 
   if (exch_type == CWP_FIELD_EXCH_SEND) {
@@ -226,123 +224,151 @@ CWP_Field_exch_t exch_type
     *data_var = _data_tgt;
   }
 
-  if (writer != nullptr) {
+  // Write
+  if (_writer != nullptr) {
     if ((_cpl->NStepGet() % _cpl->freqWriterGet()) == 0) {
 
-      double **comp_data = malloc (sizeof(double *) * _cpl->getNPart());
+      double **comp_data = (double **) malloc (sizeof(double *) * _cpl->nPartGet());
 
-      if (_storage == CWP_FIELD_STORAGE_INTERLACED && nComponent > 1) {
-        for(int i_part= 0 ; i_part < _cpl->getNPart(); i_part++){
+      // (x1, y1, z1, ... , xn, yn, zn)
+      // Allocate memory for reordering to write per variable
+      if (_storage == CWP_FIELD_STORAGE_INTERLACED && _nComponent > 1) {
+        for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
           int n_elt_size = 0;
 
-          if (_coupledCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-            n_elt_size = _cpl->getPartNElts (i_part);
+          if (_fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+            n_elt_size = _mesh->getPartNElts(i_part);
           }
-          else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-            n_elt_size = _cpl->getPartNVertex (i_part);
+          else if (_fieldLocation == CWP_DOF_LOCATION_NODE) {
+            n_elt_size = _mesh->getPartNVertex(i_part);
           }
-          else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_USER) {
-            n_elt_size = _cpl->userTargetNGet (i_part);
+          else if (_fieldLocation == CWP_DOF_LOCATION_USER) {
+            n_elt_size = _cpl->userTargetNGet(i_part);
           }
 
-          comp_data[i_part] = malloc (sizeof(double) * n_elt_size);
+          comp_data[i_part] = (double *) malloc (sizeof(double) * n_elt_size);
 
-        }
+        } // end loop n_part
+      } // end if interlaced
+      else {
+        PDM_error(__FILE__, __LINE__, 0, "Trying to write field %s with one components with INTERLACED format, should be INTERLEAVED\n", _fieldID);
       }
 
-      for (int i_comp = 0; i_comp < nComponent; i_comp++) {
+      // Fill in array and write it
+      for (int i_comp = 0; i_comp < _nComponent; i_comp++) {
 
-        for(int i_part= 0 ; i_part < _cpl->getNPart(); i_part++){
+        for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
 
           int n_elt_size = 0;
 
-          if (_coupledCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-            n_elt_size = _cpl->getPartNElts (i_part);
+          if (_fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+            n_elt_size = _mesh->getPartNElts(i_part);
           }
-          else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-            n_elt_size = _cpl->getPartNVertex (i_part);
+          else if (_fieldLocation == CWP_DOF_LOCATION_NODE) {
+            n_elt_size = _mesh->getPartNVertex(i_part);
           }
-          else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_USER) {
-            n_elt_size = _cpl->userTargetNGet (i_part);
+          else if (_fieldLocation == CWP_DOF_LOCATION_USER) {
+            n_elt_size = _cpl->userTargetNGet(i_part);
           }
 
-          if (_storage == CWP_FIELD_STORAGE_INTERLACED && nComponent > 1) {
+          // (x1, y1, z1, ... , xn, yn, zn)
+          if (_storage == CWP_FIELD_STORAGE_INTERLACED && _nComponent > 1) {
             for (int j = 0; j < n_elt_size; j++) {
-              comp_data[i_part][j] = ((double *) (*data_var)[i_part])[i_comp * nComponent + j];
+              comp_data[i_part][j] = ((double *) (*data_var)[i_part])[j * _nComponent + i_comp];
             }
           }
+          // (x1, ... xn, y1, ..., yn, z1, ...zn)
           else {
-            comp_data[i_part] = (double *) &(((double *)(*data_var)[i_part])[n_elt_size * nComponent]);
-          }  
+            comp_data[i_part] = (double *) &(((double *)(*data_var)[i_part])[n_elt_size * _nComponent]);
+          }
 
-          //A finir : remplir comp_data si interlaced mettre juste le point si interleaved !!
+          PDM_writer_var_set(_writer, id_writer_var[i_comp], _cpl->idGeomWriterGet(), i_part, comp_data[i_part]);
+        } // end loop n_part
 
-          PDM_writer_var_set(writer, id_writer_var, cpl->idGeomWriterGet(), i_part, comp_data[i_part]);
+        PDM_writer_var_write(_writer, id_writer_var[i_comp]);
+
+        PDM_writer_var_data_free(_writer, id_writer_var[i_comp]);
+
+      } // end loop on components
+
+      if (_storage == CWP_FIELD_STORAGE_INTERLACED && _nComponent > 1) {
+        for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
+          free (comp_data[i_part]);
+        }
+      }
+      free (comp_data);
+    } // end if frequency
+
+    // Write "computed" tag for received field
+
+    if (exch_type == CWP_FIELD_EXCH_RECV) {
+      if ((_cpl->NStepGet() % _cpl->freqWriterGet()) == 0) {
+
+        CWP_Dynamic_mesh_t topology = _cpl->DisplacementGet();
+
+        if (topology != CWP_DYNAMIC_MESH_STATIC || _cpl->NStepGet() == 0) {
+
+          double **double_computed_target = (double **) malloc(sizeof(double * ) * _cpl->nPartGet());
+          for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
+            int n_elt_size = 0;
+
+            if (_fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+              n_elt_size = _mesh->getPartNElts(i_part);
+            }
+            else if (_fieldLocation == CWP_DOF_LOCATION_NODE) {
+              n_elt_size = _mesh->getPartNVertex(i_part);
+            }
+            else if (_fieldLocation == CWP_DOF_LOCATION_USER) {
+              n_elt_size = _cpl->userTargetNGet(i_part);
+            }
+
+            double_computed_target[i_part] = (double *) malloc(sizeof(double) * n_elt_size);
+          }
+
+          for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
+
+            int n_elt_size = 0;
+
+            if (_fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) {
+              n_elt_size = _mesh->getPartNElts(i_part);
+            }
+            else if (_fieldLocation == CWP_DOF_LOCATION_NODE) {
+              n_elt_size = _mesh->getPartNVertex(i_part);
+            }
+            else if (_fieldLocation == CWP_DOF_LOCATION_USER) {
+              n_elt_size = _cpl->userTargetNGet(i_part);
+            }
+
+            const int  *computed_target        = _cpl->computedTargetsGet(_fieldID, i_part);
+            for (int i = 0; i < n_elt_size; i++) {
+              double_computed_target[i_part][i] = (double) computed_target[i];
+            }
+
+            PDM_writer_var_set(_writer,
+                               _id_writer_var_recv_computed,
+                               _cpl->idGeomWriterGet(),
+                               i_part,
+                               double_computed_target[i_part]);
+
+          } // end loop n_part
+
+          PDM_writer_var_write(_writer, _id_writer_var_recv_computed);
+
+          PDM_writer_var_data_free(_writer, _id_writer_var_recv_computed);
+
+          for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
+            free (double_computed_target[i_part]);
+          }
+          free (double_computed_target);
+
         }
 
-        PDM_writer_var_write(writer, id_writer_var);
+      } // end if frequency
+    } // end if recv
 
-        PDM_writer_var_data_free(writer, id_writer_var);
-
-      }
-
-    }
-
-
-    // if (exch_type == CWP_FIELD_EXCH_RECV) {
-    //   if ((_cpl->NStepGet() % _cpl->freqWriterGet()) == 0) {
-
-    //     CWP_Dynamic_mesh_t topology = cpl->DisplacementGet();
-
-    //     if (topology != CWP_DYNAMIC_MESH_STATIC || _cpl->NStepGet() == 0) {
-
-    //       for(int i_part= 0 ; i_part < _cpl->getNPart(); i_part++){
-
-    //         int n_elt_size = 0;
-
-    //         if (_coupledCodeDofLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-    //           n_elt_size = _cpl->getPartNElts (i_part);
-    //         }
-    //         else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_NODE) {
-    //           n_elt_size = _cpl->getPartNVertex (i_part);
-    //         }
-    //         else if (_coupledCodeDofLocation == CWP_DOF_LOCATION_USER) {
-    //           n_elt_size = _cpl->userTargetNGet (i_part);
-    //         }
-
-
-    //         //A finir : remplir comp_data si interlaced mettre juste le point si interleaved !!
-
-
-
-    //         PDM_writer_var_set(writer, _id_writer_var_recv_computed, cpl->idGeomWriterGet(), i_part, comp_data);
-    //       }
-
-    //       PDM_writer_var_write(writer, _id_writer_var_recv_computed);
-
-    //       PDM_writer_var_data_free(writer, _id_writer_var_recv_computed);
-
-    //     }
-
-    //   }
-
-    // }
-
-    if (_storage == CWP_FIELD_STORAGE_INTERLACED && nComponent > 1) {
-      for(int i_part= 0 ; i_part < _cpl->getNPart(); i_part++){
-      
-        free (comp_data[i_part]);
-
-      }
-    }
-
-    free (comp_data);
-
-  }
+  } // end if writer not null
 
 }
-
-
 
 
 }
