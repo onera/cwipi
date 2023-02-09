@@ -470,8 +470,6 @@ namespace cwipi {
    *
    */
 
-  // TO DO : really usefull ??
-
   void
   Coupling::partDataDel
   (
@@ -484,11 +482,96 @@ namespace cwipi {
                 "'%s' not existing partitionned data exchange object\n", part_data_id.c_str());
     }
     else {
-      // TO DO: remove from map ?
+      _partData.erase(part_data_id.c_str());
+      // TO DO: since PartData is not a pointer, do something else ?
     }
   }
 
   // TO DO: Global Data need to remove the object ??
+
+  /**
+   * \brief Issend partitionned data
+   *
+   * \param [in] part_data_id
+   * \param [in] s_data
+   * \param [in] n_components
+   * \param [in] part1_to_part2_data
+   * \param [in] request
+   *
+   */
+
+  void
+  Coupling::partDataIssend
+  (
+   const string   &part_data_id,
+   size_t         s_data,
+   int            n_components,
+   void         **part1_to_part2_data,
+   int           *request
+  )
+  {
+    // TO DO
+  }
+
+  /**
+   * \brief Irecv partitionned data
+   *
+   * \param [in] part_data_id
+   * \param [in] s_data
+   * \param [in] n_components
+   * \param [in] part2_data
+   * \param [in] request
+   *
+   */
+
+  void
+  Coupling::partDataIrecv
+  (
+   const string   &part_data_id,
+   size_t         s_data,
+   int            n_components,
+   void         **part2_data,
+   int           *request
+  )
+  {
+    // TO DO
+  }
+
+  /**
+   * \brief Wait issend partitionned data
+   *
+   * \param [in] part_data_id
+   * \param [in] request
+   *
+   */
+
+  void
+  Coupling::partDataWaitIssend
+  (
+   const string   &part_data_id,
+   int           *request
+  )
+  {
+    // TO DO
+  }
+
+  /**
+   * \brief Wait irecv partitionned data
+   *
+   * \param [in] part_data_id
+   * \param [in] request
+   *
+   */
+
+  void
+  Coupling::partDataWaitIrecv
+  (
+   const string   &part_data_id,
+   int           *request
+  )
+  {
+    // TO DO
+  }
 
   /*----------------------------------------------------------------------------*
    * Methods about global data                                                  *

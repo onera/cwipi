@@ -3112,7 +3112,11 @@ CWP_Part_data_create
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  // TO DO
+  cpl.partDataCreate(part_data_id,
+                     exch_type,
+                     gnum_elt,
+                     n_elt,
+                     n_part);
 }
 
 /**
@@ -3133,7 +3137,7 @@ CWP_Part_data_del
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  // TO DO
+  cpl.partDataDel(part_data_id);
 }
 
 
@@ -3163,7 +3167,11 @@ CWP_Part_data_issend
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  // TO DO
+  cpl.partDataIssend(part_data_id,
+                     s_data,
+                     n_components,
+                     part1_to_part2_data,
+                     request);
 }
 
 /**
@@ -3174,7 +3182,7 @@ CWP_Part_data_issend
  * \param [in] part_data_id
  * \param [in] s_data
  * \param [in] n_components
- * \param [in] part1_to_part2_data
+ * \param [in] part2_data
  * \param [in] request
  *
  */
@@ -3192,10 +3200,12 @@ CWP_Part_data_irecv
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  // TO DO
+  cpl.partDataIrecv(part_data_id,
+                    s_data,
+                    n_components,
+                    part2_data,
+                    request);
 }
-
-// TO DO: add where the data comes from ?
 
 /**
  * \brief Wait of send a data array.
@@ -3217,7 +3227,8 @@ CWP_Part_data_wait_issend
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  // TO DO
+  cpl.partDataWaitIssend(part_data_id,
+                         request);
 }
 
 /**
@@ -3240,7 +3251,8 @@ CWP_Part_data_wait_irecv
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  // TO DO
+  cpl.partDataWaitIrecv(part_data_id,
+                        request);
 }
 
 /*-----------------------------------------------------------------------------*/
