@@ -226,9 +226,10 @@ CWP_Field_exch_t exch_type
 
       double **comp_data = (double **) malloc (sizeof(double *) * _cpl->nPartGet());
 
-      // (x1, y1, z1, ... , xn, yn, zn)
+      // (x1, y1, z1, ... , xn, yn, zn) or recv
       // Allocate memory for reordering to write per variable
-      if (_storage == CWP_FIELD_STORAGE_INTERLACED && _nComponent > 1) {
+      if ((_storage == CWP_FIELD_STORAGE_INTERLACED && _nComponent > 1) ||
+          (exch_type == CWP_FIELD_EXCH_RECV)) {
         for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
           int n_elt_size = 0;
 
@@ -252,6 +253,7 @@ CWP_Field_exch_t exch_type
 
         for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
 
+          // size
           int n_elt_size = 0;
 
           if (_fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) {
@@ -264,15 +266,43 @@ CWP_Field_exch_t exch_type
             n_elt_size = _cpl->userTargetNGet(i_part);
           }
 
+          // recv computed
+          const int  *computed_target    = NULL;
+          int         n_computed_target  = 0;
+          if (exch_type == CWP_FIELD_EXCH_RECV) {
+            computed_target    = _cpl->computedTargetsGet(_fieldID, i_part);
+            n_computed_target  = _cpl->nComputedTargetsGet(_fieldID, i_part);
+          }
+
           // (x1, y1, z1, ... , xn, yn, zn)
           if (_storage == CWP_FIELD_STORAGE_INTERLACED && _nComponent > 1) {
-            for (int j = 0; j < n_elt_size; j++) {
-              comp_data[i_part][j] = ((double *) data_var[i_part])[j * _nComponent + i_comp];
+            if ((exch_type == CWP_FIELD_EXCH_RECV) && (n_computed_target != n_elt_size)) {
+              for (int j = 0; j < n_elt_size; j++) {
+                comp_data[i_part][j] = HUGE_VAL;
+              }
+              for (int j = 0; j < n_computed_target; j++) {
+                int jdx = computed_target[j] -1;
+                comp_data[i_part][jdx] = ((double *) data_var[i_part])[j * _nComponent + i_comp];
+              }
+            } else {
+              for (int j = 0; j < n_elt_size; j++) {
+                comp_data[i_part][j] = ((double *) data_var[i_part])[j * _nComponent + i_comp];
+              }
             }
           }
           // (x1, ... xn, y1, ..., yn, z1, ...zn)
           else {
-            comp_data[i_part] = (double *) &(((double *)data_var[i_part])[n_elt_size * i_comp]);
+            if (exch_type == CWP_FIELD_EXCH_RECV) {
+              for (int j = 0; j < n_elt_size; j++) {
+                comp_data[i_part][j] = HUGE_VAL;
+              }
+              for (int j = 0; j < n_computed_target; j++) {
+                int jdx = computed_target[j] -1;
+                comp_data[i_part][jdx] = ((double *) data_var[i_part])[n_computed_target * i_comp + j];
+              }
+            } else {
+              comp_data[i_part] = (double *) &(((double *)data_var[i_part])[n_elt_size * i_comp]);
+            }
           }
 
           PDM_writer_var_set(_writer, id_writer_var[i_comp], _cpl->idGeomWriterGet(), i_part, comp_data[i_part]);
@@ -284,25 +314,16 @@ CWP_Field_exch_t exch_type
 
       } // end loop on components
 
-      if (_storage == CWP_FIELD_STORAGE_INTERLACED && _nComponent > 1) {
-        for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
-          free (comp_data[i_part]);
-        }
-      }
-      free (comp_data);
-    } // end if frequency
-
-    // Write "computed" tag for received field
-
-    if (exch_type == CWP_FIELD_EXCH_RECV) {
-      if ((_cpl->NStepGet() % _cpl->freqWriterGet()) == 0) {
+      // write computed tag
+      if (exch_type == CWP_FIELD_EXCH_RECV) {
 
         CWP_Dynamic_mesh_t topology = _cpl->DisplacementGet();
 
         if (topology != CWP_DYNAMIC_MESH_STATIC || _cpl->NStepGet() == 0) {
 
-          double **double_computed_target = (double **) malloc(sizeof(double * ) * _cpl->nPartGet());
           for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
+
+            // size
             int n_elt_size = 0;
 
             if (_fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) {
@@ -315,40 +336,29 @@ CWP_Field_exch_t exch_type
               n_elt_size = _cpl->userTargetNGet(i_part);
             }
 
-            double_computed_target[i_part] = (double *) malloc(sizeof(double) * n_elt_size);
-          }
-
-          for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
-
-            int n_elt_size = 0;
-
-            if (_fieldLocation == CWP_DOF_LOCATION_CELL_CENTER) {
-              n_elt_size = _mesh->getPartNElts(i_part);
-            }
-            else if (_fieldLocation == CWP_DOF_LOCATION_NODE) {
-              n_elt_size = _mesh->getPartNVertex(i_part);
-            }
-            else if (_fieldLocation == CWP_DOF_LOCATION_USER) {
-              n_elt_size = _cpl->userTargetNGet(i_part);
-            }
-
-            for (int i = 0; i < n_elt_size; i++) {
-              double_computed_target[i_part][i] = 0.;
-            }
-
+            // computed
             const int  *computed_target    = _cpl->computedTargetsGet(_fieldID, i_part);
             int         n_computed_target  = _cpl->nComputedTargetsGet(_fieldID, i_part);
 
-            for (int i = 0; i < n_computed_target; i++) {
-              int idx = computed_target[i] -1; // WARNING: what if signed value?
-              double_computed_target[i_part][idx] = 1.;
+            if (n_elt_size == n_computed_target) {
+              for (int i = 0; i < n_elt_size; i++) {
+                comp_data[i_part][i] = 1.;
+              }
+            } else {
+              for (int i = 0; i < n_elt_size; i++) {
+                comp_data[i_part][i] = 0.;
+              }
+              for (int i = 0; i < n_computed_target; i++) {
+                int idx = computed_target[i] -1;
+                comp_data[i_part][idx] = 1.;
+              }
             }
 
             PDM_writer_var_set(_writer,
                                _id_writer_var_recv_computed,
                                _cpl->idGeomWriterGet(),
                                i_part,
-                               double_computed_target[i_part]);
+                               comp_data[i_part]);
 
           } // end loop n_part
 
@@ -356,16 +366,18 @@ CWP_Field_exch_t exch_type
 
           PDM_writer_var_data_free(_writer, _id_writer_var_recv_computed);
 
-          for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
-            free (double_computed_target[i_part]);
-          }
-          free (double_computed_target);
-
         }
+      }
 
-      } // end if frequency
-    } // end if recv
+      if ((_storage == CWP_FIELD_STORAGE_INTERLACED && _nComponent > 1) ||
+          (exch_type == CWP_FIELD_EXCH_RECV)) {
+        for(int i_part= 0 ; i_part < _cpl->nPartGet(); i_part++){
+          free (comp_data[i_part]);
+        }
+      }
+      free (comp_data);
 
+    } // end if frequency
   } // end if writer not null
 
 }
