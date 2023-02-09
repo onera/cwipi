@@ -67,13 +67,16 @@ namespace cwipi {
   {
 
     if (_cplComm != _unionComm) {
-      if (_cplComm != MPI_COMM_NULL) {
-        MPI_Comm_free(&_cplComm);
-        _cplComm = MPI_COMM_NULL;
-      }
+      if (!_localCodeProperties->isActiveRank() ||
+          _localCodeProperties->idGet() < _cplCodeProperties->idGet()) {
+        if (_cplComm != MPI_COMM_NULL) {
+          MPI_Comm_free(&_cplComm);
+          _cplComm = MPI_COMM_NULL;
+        }
 
-      if (_unionComm != MPI_COMM_NULL) {
-        MPI_Comm_free(&_unionComm);
+        if (_unionComm != MPI_COMM_NULL) {
+          MPI_Comm_free(&_unionComm);
+        }
       }
     }
 
@@ -86,8 +89,10 @@ namespace cwipi {
       }
       else {
         if (_localCodeProperties->idGet() < _cplCodeProperties->idGet()) {
-          MPI_Comm_free(&_cplComm);
-          _cplComm = MPI_COMM_NULL;
+          if (_cplComm != MPI_COMM_NULL) {
+            MPI_Comm_free(&_cplComm);
+            _cplComm = MPI_COMM_NULL;
+          }
         }       
       }
     }

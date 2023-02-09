@@ -402,7 +402,7 @@ namespace cwipi {
 
 
       if (!_coupledCodeProperties->localCodeIs()) {
-        _id_pdm = PDM_closest_points_create(_pdmCplComm,
+        _id_pdm = PDM_closest_points_create(_pdmUnionComm,
                                             n_closest_pts,
                                             PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
@@ -507,7 +507,7 @@ namespace cwipi {
 
       else {
         if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-          _id_pdm = PDM_closest_points_create(_pdmCplComm,
+          _id_pdm = PDM_closest_points_create(_pdmUnionComm,
                                               n_closest_pts,
                                               PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
@@ -958,7 +958,7 @@ namespace cwipi {
                                            _nPart,
                                            (const int         **) _tgt_in_src_idx,
                                            (const PDM_g_num_t **) _tgt_in_src_gnum,
-                                           _pdmCplComm);
+                                           _pdmUnionComm);
         }
       }
       else {
@@ -988,7 +988,7 @@ namespace cwipi {
                                                _cplNPart,
                                                (const int         **) _tgt_in_src_idx,
                                                (const PDM_g_num_t **) _tgt_in_src_gnum,
-                                               _pdmCplComm);
+                                               _pdmUnionComm);
             }
             else {
               _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **) cpl_spatial_interp->_src_gnum,
@@ -999,7 +999,7 @@ namespace cwipi {
                                                _nPart,
                                                (const int         **) cpl_spatial_interp->_tgt_in_src_idx,
                                                (const PDM_g_num_t **) cpl_spatial_interp->_tgt_in_src_gnum,
-                                               _pdmCplComm);
+                                               _pdmUnionComm);
             }
           }
 

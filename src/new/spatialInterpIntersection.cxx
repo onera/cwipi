@@ -328,7 +328,7 @@ namespace cwipi {
                                              mesh_dim,
                                              mesh_dim,
                                              0.,
-                                             _pdmCplComm,
+                                             _pdmUnionComm,
                                              PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
       // source mesh
@@ -401,7 +401,7 @@ namespace cwipi {
                                                mesh_dim,
                                                mesh_dim,
                                                0.,
-                                               _pdmCplComm,
+                                               _pdmUnionComm,
                                                PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
         SpatialInterpIntersection *cpl_spatial_interp;
@@ -500,7 +500,7 @@ namespace cwipi {
                                         _nPart,
                                         (const int         **) _src_to_tgt_idx,
                                         (const PDM_g_num_t **) _src_to_tgt_gnum,
-                                        _pdmCplComm);
+                                        _pdmUnionComm);
       }
     }
     else {
@@ -530,7 +530,7 @@ namespace cwipi {
                                             _cplNPart,
                                             (const int         **) _src_to_tgt_idx,
                                             (const PDM_g_num_t **) _src_to_tgt_gnum,
-                                            _pdmCplComm);
+                                            _pdmUnionComm);
           }
           else {
             _ptsp = PDM_part_to_part_create((const PDM_g_num_t **) cpl_spatial_interp->_src_gnum,
@@ -541,7 +541,7 @@ namespace cwipi {
                                             _nPart,
                                             (const int         **) cpl_spatial_interp->_src_to_tgt_idx,
                                             (const PDM_g_num_t **) cpl_spatial_interp->_src_to_tgt_gnum,
-                                            _pdmCplComm);
+                                            _pdmUnionComm);
           }
         }
         cpl_spatial_interp->_ptsp = _ptsp;

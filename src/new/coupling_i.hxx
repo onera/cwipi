@@ -107,6 +107,19 @@ namespace cwipi {
    * Methods about mesh                                                     *
    *----------------------------------------------------------------------------*/
 
+  bool
+  Coupling::has_mesh
+  (
+   )
+  {
+    int i_rank;
+    MPI_Comm_rank(_communication.unionCommGet(), &i_rank);
+
+    return ((commTypeGet() == CWP_COMM_PAR_WITH_PART                ) ||
+            (commTypeGet() == CWP_COMM_PAR_WITHOUT_PART &&
+             i_rank == _communication.unionCommLocCodeRootRanksGet()));
+  }
+
   /**
    * \brief Setting vertices
    *
@@ -127,10 +140,18 @@ namespace cwipi {
     CWP_g_num_t        global_num[]
   )
   {
-    _mesh.coordSet(i_part,
-                   n_pts,
-                   coords,
-                   global_num);
+    if (has_mesh()) {
+      _mesh.coordSet(i_part,
+                     n_pts,
+                     coords,
+                     global_num);
+    }
+    else {
+      _mesh.coordSet(i_part,
+                     0,
+                     NULL,
+                     NULL);
+    }
   }
 
 
@@ -366,12 +387,22 @@ namespace cwipi {
     CWP_g_num_t          global_num[]
   )
   {
-    _mesh.poly2DBlockSet(i_part,
-                         block_id,
-                         n_elts,
-                         connec_idx,
-                         connec,
-                         global_num);
+    if (has_mesh()) {
+      _mesh.poly2DBlockSet(i_part,
+                           block_id,
+                           n_elts,
+                           connec_idx,
+                           connec,
+                           global_num);
+    }
+    else {
+      _mesh.poly2DBlockSet(i_part,
+                           block_id,
+                           0,
+                           NULL,
+                           NULL,
+                           NULL);
+    }
   }
 
 
@@ -444,15 +475,28 @@ namespace cwipi {
           CWP_g_num_t   global_num[]
   )
   {
-    _mesh.poly3DBlockSet(i_part,
-                         block_id,
-                         n_elts,
-                         n_faces,
-                         connec_faces_idx,
-                         connec_faces,
-                         connec_cells_idx,
-                         connec_cells,
-                         global_num);
+    if (has_mesh()) {
+      _mesh.poly3DBlockSet(i_part,
+                           block_id,
+                           n_elts,
+                           n_faces,
+                           connec_faces_idx,
+                           connec_faces,
+                           connec_cells_idx,
+                           connec_cells,
+                           global_num);
+    }
+    else {
+      _mesh.poly3DBlockSet(i_part,
+                           block_id,
+                           0,
+                           0,
+                           NULL,
+                           NULL,
+                           NULL,
+                           NULL,
+                           NULL);
+    }
   }
 
 
@@ -540,14 +584,26 @@ namespace cwipi {
           CWP_g_num_t parent_num[]
   )
   {
-    _mesh.fromCellFaceSet(i_part,
-                          n_cells,
-                          cell_face_idx,
-                          cell_face,
-                          n_faces,
-                          face_vtx_idx,
-                          face_vtx,
-                          parent_num);
+    if (has_mesh()) {
+      _mesh.fromCellFaceSet(i_part,
+                            n_cells,
+                            cell_face_idx,
+                            cell_face,
+                            n_faces,
+                            face_vtx_idx,
+                            face_vtx,
+                            parent_num);
+    }
+    else {
+      _mesh.fromCellFaceSet(i_part,
+                            0,
+                            NULL,
+                            NULL,
+                            0,
+                            NULL,
+                            NULL,
+                            NULL);
+    }
   }
 
 
@@ -588,14 +644,26 @@ namespace cwipi {
           CWP_g_num_t parent_num[]
   )
   {
-    _mesh.fromFacesEdgeSet (i_part,
-                            n_faces,
-                            face_edge_idx,
-                            face_edge,
-                            n_edges,
-                            edge_vtx_idx,
-                            edge_vtx,
-                            parent_num);
+    if (has_mesh()) {
+      _mesh.fromFacesEdgeSet (i_part,
+                              n_faces,
+                              face_edge_idx,
+                              face_edge,
+                              n_edges,
+                              edge_vtx_idx,
+                              edge_vtx,
+                              parent_num);
+    }
+    else {
+      _mesh.fromFacesEdgeSet (i_part,
+                              0,
+                              NULL,
+                              NULL,
+                              0,
+                              NULL,
+                              NULL,
+                              NULL);
+    }
   }
 
 

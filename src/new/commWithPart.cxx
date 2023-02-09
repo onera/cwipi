@@ -96,7 +96,22 @@ namespace cwipi {
 
       //Exclusion des rangs connectable (unionComm) du code couplé pour obtenir le communicateur cplComm
       // contenant uniquement les rangs connectable du code couplé
-      MPI_Group_excl(unionGroup, cplRanks.size(), &((*_unionCommCplRanks)[0]), &_cplGroup);
+
+      const int cplRootRankInGlobalComm = _cplCodeProperties->rootRankGet();
+      int cplRootRankInUnionComm;
+      MPI_Group_translate_ranks(globalGroup, 1, &cplRootRankInGlobalComm,
+                                unionGroup, &cplRootRankInUnionComm);
+      int *excludeRanks = (int *) malloc(sizeof(int) * (cplRanks.size() - 1));
+      int j = 0;
+      for (size_t i = 0; i < cplRanks.size(); i++) {
+        if ((*_unionCommCplRanks)[i] != cplRootRankInUnionComm) {
+          excludeRanks[j++] = (*_unionCommCplRanks)[i];
+        }
+      }
+
+      MPI_Group_excl(unionGroup, cplRanks.size()-1, excludeRanks, &_cplGroup);
+      free(excludeRanks);
+
       MPI_Comm_create(_unionComm, _cplGroup, &_cplComm);
 
     }

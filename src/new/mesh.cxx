@@ -598,7 +598,7 @@ namespace cwipi {
 
       int compute_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
-        if (_faceLNToGN[i_part] == NULL) {
+        if (_faceLNToGN[i_part] == NULL && _nFace[i_part] > 0) {
           compute_gnum = 1;
           break;
         }
@@ -682,7 +682,7 @@ namespace cwipi {
 
       int compute_face_gnum = 0;
       for (int i_part = 0; i_part < _npart; i_part++) {
-        if (_faceLNToGN[i_part] == NULL) {
+        if (_faceLNToGN[i_part] == NULL && _nCells[i_part] > 0) {
           compute_face_gnum = 1;
           break;
         }
@@ -888,7 +888,7 @@ namespace cwipi {
 
         for(int i_block = 0; i_block < _nBlocks; i_block++){
 
-          if (_blockDB[i_block]->GNumMeshGet(i_part) == NULL) {
+          if (_blockDB[i_block]->GNumMeshGet(i_part) == NULL && _blockDB[i_block]->NEltsGet(i_part) > 0) {
             compute_gnum = 1;
             break;
           }

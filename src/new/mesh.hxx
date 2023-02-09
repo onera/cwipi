@@ -753,7 +753,7 @@ namespace cwipi {
 
   bool Mesh::gnumVtxRequired () {
     for(int i=0; i<_npart;i++){
-      if(_global_num_vtx[i] == NULL)
+      if(_global_num_vtx[i] == NULL && _nVertex[i] > 0)
         return true;
     }
     return false;

@@ -546,43 +546,89 @@ namespace cwipi {
           _recv_buffer[intId] = NULL;
         }
 
-        // if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
-        //   _visu->WriterField(referenceField, nullptr, nullptr, CWP_FIELD_MAP_SOURCE);
-        // }
+        const int cplRootRank = _coupledCodeProperties->rootRankGet();
+        const MPI_Comm& globalComm = _coupledCodeProperties->globalCommGet();
+        int globalRank;
+        MPI_Comm_rank(globalComm, &globalRank);
 
-        if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
-          cpl_spatial_interp->interpolate (cpl_referenceField, cpl_spatial_interp->_recv_buffer[cpl_intId]);
-        }
-        else {
-          int nComponent                        = cpl_referenceField->nComponentGet();
-          int dataTypeSize                      = cpl_referenceField->dataTypeSizeGet();
+        if (cpl_cpl.commTypeGet() == CWP_COMM_PAR_WITHOUT_PART || globalRank == cplRootRank) {
+          if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
+            cpl_spatial_interp->interpolate (cpl_referenceField, cpl_spatial_interp->_recv_buffer[cpl_intId]);
+          }
+          else {
+            int nComponent                        = cpl_referenceField->nComponentGet();
+            int dataTypeSize                      = cpl_referenceField->dataTypeSizeGet();
 
-          int  *ptp2_n_ref_gnum2;
-          int **ptp2_ref_gnum2;
-          PDM_part_to_part_ref_lnum2_get (_ptsp,
-                                          &ptp2_n_ref_gnum2,
-                                          &ptp2_ref_gnum2);
+            int  *ptp2_n_ref_gnum2;
+            int **ptp2_ref_gnum2;
+            PDM_part_to_part_ref_lnum2_get (_ptsp,
+                                            &ptp2_n_ref_gnum2,
+                                            &ptp2_ref_gnum2);
 
-          int  *ptp2_n_unref_gnum2;
-          int **ptp2_unref_gnum2;
-          PDM_part_to_part_unref_lnum2_get (_ptsp,
-                                            &ptp2_n_unref_gnum2,
-                                            &ptp2_unref_gnum2);
-
-
-          int         **ptp2_gnum1_come_from_idx;
-          PDM_g_num_t **ptp2_gnum1_come_from;
-          PDM_part_to_part_gnum1_come_from_get (_ptsp,
-                                                &ptp2_gnum1_come_from_idx,
-                                                &ptp2_gnum1_come_from);
+            int  *ptp2_n_unref_gnum2;
+            int **ptp2_unref_gnum2;
+            PDM_part_to_part_unref_lnum2_get (_ptsp,
+                                              &ptp2_n_unref_gnum2,
+                                              &ptp2_unref_gnum2);
 
 
-          for (int i = 0; i < _cplNPart; i++) {
-            double *referenceData  = (double *) cpl_referenceField->dataGet(i, CWP_FIELD_MAP_TARGET);
-            for (int j = 0; j < ptp2_n_ref_gnum2[i]; j++) {
-              assert ((ptp2_gnum1_come_from_idx[i][j+1] - ptp2_gnum1_come_from_idx[i][j]) == 1);
+            int         **ptp2_gnum1_come_from_idx;
+            PDM_g_num_t **ptp2_gnum1_come_from;
+            PDM_part_to_part_gnum1_come_from_get (_ptsp,
+                                                  &ptp2_gnum1_come_from_idx,
+                                                  &ptp2_gnum1_come_from);
+
+
+            for (int i = 0; i < _cplNPart; i++) {
+              double *referenceData  = (double *) cpl_referenceField->dataGet(i, CWP_FIELD_MAP_TARGET);
+              for (int j = 0; j < ptp2_n_ref_gnum2[i]; j++) {
+                assert ((ptp2_gnum1_come_from_idx[i][j+1] - ptp2_gnum1_come_from_idx[i][j]) == 1);
+              }
+              memcpy(referenceData, cpl_spatial_interp->_recv_buffer[cpl_intId][i], dataTypeSize * nComponent * ptp2_n_ref_gnum2[i]);
             }
-            memcpy(referenceData, cpl_spatial_interp->_recv_buffer[cpl_intId][i], dataTypeSize * nComponent * ptp2_n_ref_gnum2[i]);
+          }
+        }
+
+        if (cpl_cpl.commTypeGet() == CWP_COMM_PAR_WITHOUT_PART) {
+          /* Root rank broadcasts the referenceField inside the intraConnectableComm */
+          MPI_Group globalGroup;
+          MPI_Comm_group(_coupledCodeProperties->globalCommGet(), &globalGroup);
+          int cplRootRankInIntraConnectableComm;
+          MPI_Group_translate_ranks(globalGroup, 1, &cplRootRank,
+                                    _coupledCodeProperties->connectableGroupGet(), &cplRootRankInIntraConnectableComm);
+
+          int rankInIntraConnectableComm;
+          MPI_Comm_rank(_coupledCodeProperties->connectableCommGet(), &rankInIntraConnectableComm);
+
+          // Easier way to get 'n_elt'?
+          int nComponent = cpl_referenceField->nComponentGet();
+          int  n_elt;
+          int  n_part1 = 0;
+          int  n_part2 = 0;
+          int *n_elt1  = NULL;
+          int *n_elt2  = NULL;
+          PDM_part_to_part_n_part_and_n_elt_get(_ptsp,
+                                                &n_part1,
+                                                &n_part2,
+                                                &n_elt1,
+                                                &n_elt2);
+          for (int i = 0; i < _nPart; i++) {
+            if (globalRank == cplRootRank) {
+              n_elt = n_elt2[i];
+            }
+            MPI_Bcast((void *) &n_elt,
+                      1,
+                      MPI_INT,
+                      cplRootRankInIntraConnectableComm,
+                      _coupledCodeProperties->connectableCommGet());
+
+            double *cpl_referenceData = (double *) cpl_referenceField->dataGet(i, CWP_FIELD_MAP_TARGET);
+
+            MPI_Bcast((void *) cpl_referenceData,
+                      n_elt * nComponent,
+                      MPI_DOUBLE,
+                      cplRootRankInIntraConnectableComm,
+                      _coupledCodeProperties->connectableCommGet());
           }
         }
 
@@ -851,39 +897,89 @@ namespace cwipi {
 
       PDM_part_to_part_iexch_wait (_ptsp, _send_request[intId]);
 
-      if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
-        interpolate (referenceField, _recv_buffer[intId]);
-      }
-      else {
-        int nComponent                        = referenceField->nComponentGet();
-        int dataTypeSize                      = referenceField->dataTypeSizeGet();
+      const int localRootRank = _localCodeProperties->rootRankGet();
+      const MPI_Comm& globalComm = _localCodeProperties->globalCommGet();
+      int globalRank;
+      MPI_Comm_rank(globalComm, &globalRank);
 
-        int  *ptp2_n_ref_gnum2;
-        int **ptp2_ref_gnum2;
-        PDM_part_to_part_ref_lnum2_get (_ptsp,
-                                       &ptp2_n_ref_gnum2,
-                                       &ptp2_ref_gnum2);
+      if (_cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART || globalRank == localRootRank) {
+        if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV ) {
+          interpolate (referenceField, _recv_buffer[intId]);
+        }
+        else {
+          int nComponent                        = referenceField->nComponentGet();
+          int dataTypeSize                      = referenceField->dataTypeSizeGet();
 
-        int  *ptp2_n_unref_gnum2;
-        int **ptp2_unref_gnum2;
-        PDM_part_to_part_unref_lnum2_get (_ptsp,
-                                         &ptp2_n_unref_gnum2,
-                                         &ptp2_unref_gnum2);
+          int  *ptp2_n_ref_gnum2;
+          int **ptp2_ref_gnum2;
+          PDM_part_to_part_ref_lnum2_get (_ptsp,
+                                          &ptp2_n_ref_gnum2,
+                                          &ptp2_ref_gnum2);
+
+          int  *ptp2_n_unref_gnum2;
+          int **ptp2_unref_gnum2;
+          PDM_part_to_part_unref_lnum2_get (_ptsp,
+                                            &ptp2_n_unref_gnum2,
+                                            &ptp2_unref_gnum2);
 
 
-        int         **ptp2_gnum1_come_from_idx;
-        PDM_g_num_t **ptp2_gnum1_come_from;
-        PDM_part_to_part_gnum1_come_from_get (_ptsp,
-                                             &ptp2_gnum1_come_from_idx,
-                                             &ptp2_gnum1_come_from);
+          int         **ptp2_gnum1_come_from_idx;
+          PDM_g_num_t **ptp2_gnum1_come_from;
+          PDM_part_to_part_gnum1_come_from_get (_ptsp,
+                                                &ptp2_gnum1_come_from_idx,
+                                                &ptp2_gnum1_come_from);
 
 
-        for (int i = 0; i < _nPart; i++) {
-          double *referenceData  = (double *) referenceField->dataGet(i, CWP_FIELD_MAP_TARGET);
-          for (int j = 0; j < ptp2_n_ref_gnum2[i]; j++) {
-            assert ((ptp2_gnum1_come_from_idx[i][j+1] - ptp2_gnum1_come_from_idx[i][j]) <= 1);
+          for (int i = 0; i < _nPart; i++) {
+            double *referenceData  = (double *) referenceField->dataGet(i, CWP_FIELD_MAP_TARGET);
+            for (int j = 0; j < ptp2_n_ref_gnum2[i]; j++) {
+              assert ((ptp2_gnum1_come_from_idx[i][j+1] - ptp2_gnum1_come_from_idx[i][j]) <= 1);
+            }
+            memcpy(referenceData, _recv_buffer[intId][i], dataTypeSize * nComponent * ptp2_n_ref_gnum2[i]);
           }
-          memcpy(referenceData, _recv_buffer[intId][i], dataTypeSize * nComponent * ptp2_n_ref_gnum2[i]);
+        }
+      }
+
+      if (_cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART) {
+        /* Root rank broadcasts the referenceField inside the intraConnectableComm */
+        MPI_Group globalGroup;
+        MPI_Comm_group(_localCodeProperties->globalCommGet(), &globalGroup);
+        int localRootRankInIntraConnectableComm;
+        MPI_Group_translate_ranks(globalGroup, 1, &localRootRank,
+                                  _localCodeProperties->connectableGroupGet(), &localRootRankInIntraConnectableComm);
+
+        int rankInIntraConnectableComm;
+        MPI_Comm_rank(_localCodeProperties->connectableCommGet(), &rankInIntraConnectableComm);
+
+        // Easier way to get 'n_elt'?
+        int nComponent = referenceField->nComponentGet();
+        int  n_elt;
+        int  n_part1 = 0;
+        int  n_part2 = 0;
+        int *n_elt1  = NULL;
+        int *n_elt2  = NULL;
+        PDM_part_to_part_n_part_and_n_elt_get(_ptsp,
+                                              &n_part1,
+                                              &n_part2,
+                                              &n_elt1,
+                                              &n_elt2);
+        for (int i = 0; i < _nPart; i++) {
+          if (globalRank == localRootRank) {
+            n_elt = n_elt2[i];
+          }
+          MPI_Bcast((void *) &n_elt,
+                    1,
+                    MPI_INT,
+                    localRootRankInIntraConnectableComm,
+                    _localCodeProperties->connectableCommGet());
+
+          double *referenceData = (double *) referenceField->dataGet(i, CWP_FIELD_MAP_TARGET);
+
+          MPI_Bcast((void *) referenceData,
+                    n_elt * nComponent,
+                    MPI_DOUBLE,
+                    localRootRankInIntraConnectableComm,
+                    _localCodeProperties->connectableCommGet());
         }
       }
 
@@ -938,39 +1034,89 @@ namespace cwipi {
 
         PDM_part_to_part_iexch_wait (_ptsp, cpl_spatial_interp->_send_request[cpl_intId]);
 
-        if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
-          interpolate (referenceField, _recv_buffer[intId]);
-        }
-        else {
-          int nComponent                        = referenceField->nComponentGet();
-          int dataTypeSize                      = referenceField->dataTypeSizeGet();
+        const int localRootRank = _localCodeProperties->rootRankGet();
+        const MPI_Comm& globalComm = _localCodeProperties->globalCommGet();
+        int globalRank;
+        MPI_Comm_rank(globalComm, &globalRank);
 
-          int  *ptp2_n_ref_gnum2;
-          int **ptp2_ref_gnum2;
-          PDM_part_to_part_ref_lnum2_get (_ptsp,
-                                         &ptp2_n_ref_gnum2,
-                                         &ptp2_ref_gnum2);
+        if (_cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART || globalRank == localRootRank) {
+          if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
+            interpolate (referenceField, _recv_buffer[intId]);
+          }
+          else {
+            int nComponent                        = referenceField->nComponentGet();
+            int dataTypeSize                      = referenceField->dataTypeSizeGet();
 
-          int  *ptp2_n_unref_gnum2;
-          int **ptp2_unref_gnum2;
-          PDM_part_to_part_unref_lnum2_get (_ptsp,
-                                           &ptp2_n_unref_gnum2,
-                                           &ptp2_unref_gnum2);
+            int  *ptp2_n_ref_gnum2;
+            int **ptp2_ref_gnum2;
+            PDM_part_to_part_ref_lnum2_get (_ptsp,
+                                            &ptp2_n_ref_gnum2,
+                                            &ptp2_ref_gnum2);
+
+            int  *ptp2_n_unref_gnum2;
+            int **ptp2_unref_gnum2;
+            PDM_part_to_part_unref_lnum2_get (_ptsp,
+                                              &ptp2_n_unref_gnum2,
+                                              &ptp2_unref_gnum2);
 
 
-          int         **ptp2_gnum1_come_from_idx;
-          PDM_g_num_t **ptp2_gnum1_come_from;
-          PDM_part_to_part_gnum1_come_from_get (_ptsp,
-                                               &ptp2_gnum1_come_from_idx,
-                                               &ptp2_gnum1_come_from);
+            int         **ptp2_gnum1_come_from_idx;
+            PDM_g_num_t **ptp2_gnum1_come_from;
+            PDM_part_to_part_gnum1_come_from_get (_ptsp,
+                                                  &ptp2_gnum1_come_from_idx,
+                                                  &ptp2_gnum1_come_from);
 
 
-          for (int i = 0; i < _nPart; i++) {
-            double *referenceData  = (double *) referenceField->dataGet(i, CWP_FIELD_MAP_TARGET);
-            for (int j = 0; j < ptp2_n_ref_gnum2[i]; j++) {
-              assert ((ptp2_gnum1_come_from_idx[i][j+1] - ptp2_gnum1_come_from_idx[i][j]) == 1);
+            for (int i = 0; i < _nPart; i++) {
+              double *referenceData  = (double *) referenceField->dataGet(i, CWP_FIELD_MAP_TARGET);
+              for (int j = 0; j < ptp2_n_ref_gnum2[i]; j++) {
+                assert ((ptp2_gnum1_come_from_idx[i][j+1] - ptp2_gnum1_come_from_idx[i][j]) == 1);
+              }
+              memcpy(referenceData, _recv_buffer[intId][i], dataTypeSize * nComponent * ptp2_n_ref_gnum2[i]);
             }
-            memcpy(referenceData, _recv_buffer[intId][i], dataTypeSize * nComponent * ptp2_n_ref_gnum2[i]);
+          }
+        }
+
+        if (_cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART) {
+          /* Root rank broadcasts the referenceField inside the intraConnectableComm */
+          MPI_Group globalGroup;
+          MPI_Comm_group(_localCodeProperties->globalCommGet(), &globalGroup);
+          int localRootRankInIntraConnectableComm;
+          MPI_Group_translate_ranks(globalGroup, 1, &localRootRank,
+                                    _localCodeProperties->connectableGroupGet(), &localRootRankInIntraConnectableComm);
+
+          int rankInIntraConnectableComm;
+          MPI_Comm_rank(_localCodeProperties->connectableCommGet(), &rankInIntraConnectableComm);
+
+          // Easier way to get 'n_elt'?
+          int nComponent = referenceField->nComponentGet();
+          int  n_elt;
+          int  n_part1 = 0;
+          int  n_part2 = 0;
+          int *n_elt1  = NULL;
+          int *n_elt2  = NULL;
+          PDM_part_to_part_n_part_and_n_elt_get(_ptsp,
+                                                &n_part1,
+                                                &n_part2,
+                                                &n_elt1,
+                                                &n_elt2);
+          for (int i = 0; i < _nPart; i++) {
+            if (globalRank == localRootRank) {
+              n_elt = n_elt2[i];
+            }
+            MPI_Bcast((void *) &n_elt,
+                      1,
+                      MPI_INT,
+                      localRootRankInIntraConnectableComm,
+                      _localCodeProperties->connectableCommGet());
+
+            double *referenceData = (double *) referenceField->dataGet(i, CWP_FIELD_MAP_TARGET);
+
+            MPI_Bcast((void *) referenceData,
+                      n_elt * nComponent,
+                      MPI_DOUBLE,
+                      localRootRankInIntraConnectableComm,
+                      _localCodeProperties->connectableCommGet());
           }
         }
 
@@ -1011,20 +1157,6 @@ namespace cwipi {
             _recv_buffer[intId] = NULL;
           }
         }
-
-        // if(_visu->isCreated() && referenceField->visuStatusGet() == CWP_STATUS_ON) {
-
-        //   int  *ptp2_n_ref_gnum2;
-        //   int **ptp2_ref_gnum2;
-        //   PDM_part_to_part_ref_lnum2_get (_ptsp,
-        //                                  &ptp2_n_ref_gnum2,
-        //                                  &ptp2_ref_gnum2);
-        //   _visu->WriterField(referenceField, ptp2_n_ref_gnum2, ptp2_ref_gnum2, CWP_FIELD_MAP_TARGET);
-        // }
-
-        // if(cpl_spatial_interp->_visu->isCreated() && cpl_referenceField->visuStatusGet() == CWP_STATUS_ON) {
-        //   cpl_spatial_interp->_visu->WriterField(cpl_referenceField, nullptr, nullptr, CWP_FIELD_MAP_SOURCE);
-        // }
 
       }
     }
