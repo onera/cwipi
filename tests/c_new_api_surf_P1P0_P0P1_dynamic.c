@@ -496,7 +496,7 @@ int main(int argc, char *argv[])
                    coupled_code_name[i_code],                             // Coupled application id
                    CWP_INTERFACE_SURFACE,
                    CWP_COMM_PAR_WITH_PART,                                // Coupling type
-                   CWP_SPATIAL_INTERP_FROM_INTERSECTION, // Solver type
+                   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, // Solver type
                    n_part,                                                // Partition number
                    CWP_DYNAMIC_MESH_DEFORMABLE,                           // Mesh displacement type
                    CWP_TIME_EXCH_USER_CONTROLLED);                        // Postprocessing frequency
@@ -605,21 +605,21 @@ int main(int argc, char *argv[])
 
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
     if (code_id[i_code] == 1) {
-      // CWP_Field_create(code_name[i_code],
-      //                  cpl_name,
-      //                  field_name1,
-      //                  CWP_DOUBLE,
-      //                  CWP_FIELD_STORAGE_INTERLACED,
-      //                  3,
-      //                  CWP_DOF_LOCATION_NODE,
-      //                  CWP_FIELD_EXCH_SEND,
-      //                  visu_status);
-      // CWP_Field_data_set(code_name[i_code],
-      //                    cpl_name,
-      //                    field_name1,
-      //                    0,
-      //                    CWP_FIELD_MAP_SOURCE,
-      //                    send_val[i_code]);
+      CWP_Field_create(code_name[i_code],
+                       cpl_name,
+                       field_name1,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_INTERLACED,
+                       3,
+                       CWP_DOF_LOCATION_NODE,
+                       CWP_FIELD_EXCH_SEND,
+                       visu_status);
+      CWP_Field_data_set(code_name[i_code],
+                         cpl_name,
+                         field_name1,
+                         0,
+                         CWP_FIELD_MAP_SOURCE,
+                         send_val[i_code]);
 
       CWP_Field_create(code_name[i_code],
                        cpl_name,
@@ -638,21 +638,21 @@ int main(int argc, char *argv[])
                          recv_val[i_code]);
     }
     else {
-      // CWP_Field_create(code_name[i_code],
-      //                  cpl_name,
-      //                  field_name1,
-      //                  CWP_DOUBLE,
-      //                  CWP_FIELD_STORAGE_INTERLACED,
-      //                  3,
-      //                  CWP_DOF_LOCATION_NODE,
-      //                  CWP_FIELD_EXCH_RECV,
-      //                  visu_status);
-      // CWP_Field_data_set(code_name[i_code],
-      //                    cpl_name,
-      //                    field_name1,
-      //                    0,
-      //                    CWP_FIELD_MAP_TARGET,
-      //                    recv_val[i_code]);
+      CWP_Field_create(code_name[i_code],
+                       cpl_name,
+                       field_name1,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_INTERLACED,
+                       3,
+                       CWP_DOF_LOCATION_NODE,
+                       CWP_FIELD_EXCH_RECV,
+                       visu_status);
+      CWP_Field_data_set(code_name[i_code],
+                         cpl_name,
+                         field_name1,
+                         0,
+                         CWP_FIELD_MAP_TARGET,
+                         recv_val[i_code]);
 
       CWP_Field_create(code_name[i_code],
                        cpl_name,
@@ -694,9 +694,9 @@ int main(int argc, char *argv[])
         mesh_rotate(pvtx_coord[i_code][0], pn_vtx[i_code][0], 3 * recv_time);
       }
 
-      // CWP_next_recv_time_set(code_name[i_code],
-      //                        cpl_name,
-      //                        recv_time);
+      CWP_next_recv_time_set(code_name[i_code],
+                             cpl_name,
+                             recv_time);
       if (step > 0) {
         CWP_Time_update(code_name[i_code],
                         recv_time);
@@ -712,11 +712,11 @@ int main(int argc, char *argv[])
 
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
       if (code_id[i_code] == 1) {
-        // CWP_Field_issend(code_name[i_code], cpl_name, field_name1);
+        CWP_Field_issend(code_name[i_code], cpl_name, field_name1);
         CWP_Field_irecv (code_name[i_code], cpl_name, field_name2);
       }
       else {
-        // CWP_Field_irecv (code_name[i_code], cpl_name, field_name1);
+        CWP_Field_irecv (code_name[i_code], cpl_name, field_name1);
         CWP_Field_issend(code_name[i_code], cpl_name, field_name2);
       }
     }
@@ -724,11 +724,11 @@ int main(int argc, char *argv[])
 
     for (int i_code = 0 ; i_code < n_code ; i_code++) {
       if (code_id[i_code] == 1) {
-        // CWP_Field_wait_issend(code_name[i_code], cpl_name, field_name1);
+        CWP_Field_wait_issend(code_name[i_code], cpl_name, field_name1);
         CWP_Field_wait_irecv (code_name[i_code], cpl_name, field_name2);
       }
       else {
-        // CWP_Field_wait_irecv (code_name[i_code], cpl_name, field_name1);
+        CWP_Field_wait_irecv (code_name[i_code], cpl_name, field_name1);
         CWP_Field_wait_issend(code_name[i_code], cpl_name, field_name2);
       }
     }

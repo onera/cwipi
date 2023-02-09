@@ -38,11 +38,11 @@ namespace cwipi {
             _id_pdm = PDM_dist_cloud_surf_create(PDM_MESH_NATURE_MESH_SETTED, 1, _pdmCplComm, PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
             if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-                PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, _cplNPart); // TODO What should be in args 2 and 3 ?
+                // PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, _cplNPart); // TODO What should be in args 2 and 3 ?
                 PDM_dist_cloud_surf_n_part_cloud_set(_id_pdm, 0, _nPart);
             }
             else {
-                PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, _nPart); // TODO What should be in args 2 and 3 ?
+                // PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, _nPart); // TODO What should be in args 2 and 3 ?
                 PDM_dist_cloud_surf_n_part_cloud_set(_id_pdm, 0, _cplNPart);
             }
         }
@@ -70,11 +70,11 @@ namespace cwipi {
                 cpl_spatial_interp->_id_pdm = _id_pdm;
 
                 if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-                    PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, _cplNPart); // TODO What should be in args 2 and 3 ?
+                    // PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, _cplNPart); // TODO What should be in args 2 and 3 ?
                     PDM_dist_cloud_surf_n_part_cloud_set(_id_pdm, 0, _nPart);
                 }
                 else {
-                    PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, _nPart); // TODO What should be in args 2 and 3 ?
+                    // PDM_dist_cloud_surf_surf_mesh_global_data_set(_id_pdm, _nPart); // TODO What should be in args 2 and 3 ?
                     PDM_dist_cloud_surf_n_part_cloud_set(_id_pdm, 0, _cplNPart);
                 }
             }
@@ -218,61 +218,63 @@ namespace cwipi {
 
         if (!_coupledCodeProperties->localCodeIs()) {
             if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-                for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-                    int n_vtx = _mesh->getPartNVertex(i_part);
-                    int n_elts = _mesh->getPartNElts(i_part);
-                    double *coords = _mesh->getVertexCoords(i_part);
-                    CWP_g_num_t *vtx_gnum = _mesh->getVertexGNum(i_part);
-                    CWP_g_num_t *elt_gnum = _mesh->GNumEltsGet(i_part);
-                    int *connecIdx = NULL;
-                    int *connec = NULL;
-                    // int *connecIdx = _mesh->connecIdxGet(i_part);
-                    // int *connec = _mesh->connecGet(i_part);
+                PDM_dist_cloud_surf_nodal_mesh_set(_id_pdm, _pdm_CplNodal);
+                // for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+                //     int n_vtx = _mesh->getPartNVertex(i_part);
+                //     int n_elts = _mesh->getPartNElts(i_part);
+                //     double *coords = _mesh->getVertexCoords(i_part);
+                //     CWP_g_num_t *vtx_gnum = _mesh->getVertexGNum(i_part);
+                //     CWP_g_num_t *elt_gnum = _mesh->GNumEltsGet(i_part);
+                //     int *connecIdx = NULL;
+                //     int *connec = NULL;
+                //     // int *connecIdx = _mesh->connecIdxGet(i_part);
+                //     // int *connec = _mesh->connecGet(i_part);
 
-                    PDM_dist_cloud_surf_surf_mesh_part_set(_id_pdm, i_part, n_elts, connecIdx, connec, elt_gnum, n_vtx, coords, vtx_gnum);
-                }
+                //     PDM_dist_cloud_surf_surf_mesh_part_set(_id_pdm, i_part, n_elts, connecIdx, connec, elt_gnum, n_vtx, coords, vtx_gnum);
+                // }
             }
             else {
-                for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-                    PDM_dist_cloud_surf_surf_mesh_part_set(_id_pdm, i_part, 0, fake_idx, NULL, NULL, 0, NULL, NULL);
-                }
+                // for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+                //     PDM_dist_cloud_surf_surf_mesh_part_set(_id_pdm, i_part, 0, fake_idx, NULL, NULL, 0, NULL, NULL);
+                // }
             }
         }
         else {
             if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
                 if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-                    for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-                        int n_vtx = _mesh->getPartNVertex(i_part);
-                        int n_elts = _mesh->getPartNElts(i_part);
-                        double *coords = _mesh->getVertexCoords(i_part);
-                        CWP_g_num_t *vtx_gnum = _mesh->getVertexGNum(i_part);
-                        CWP_g_num_t *elt_gnum = _mesh->GNumEltsGet(i_part);
-                        int *connecIdx = NULL;
-                        int *connec = NULL;
-                        // int *connecIdx = _mesh->connecIdxGet(i_part);
-                        // int *connec = _mesh->connecGet(i_part);
+                    PDM_dist_cloud_surf_nodal_mesh_set(_id_pdm, _pdm_CplNodal);
+                    // for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+                    //     int n_vtx = _mesh->getPartNVertex(i_part);
+                    //     int n_elts = _mesh->getPartNElts(i_part);
+                    //     double *coords = _mesh->getVertexCoords(i_part);
+                    //     CWP_g_num_t *vtx_gnum = _mesh->getVertexGNum(i_part);
+                    //     CWP_g_num_t *elt_gnum = _mesh->GNumEltsGet(i_part);
+                    //     int *connecIdx = NULL;
+                    //     int *connec = NULL;
+                    //     // int *connecIdx = _mesh->connecIdxGet(i_part);
+                    //     // int *connec = _mesh->connecGet(i_part);
 
-                        PDM_dist_cloud_surf_surf_mesh_part_set(_id_pdm, i_part, n_elts, connecIdx, connec, elt_gnum, n_vtx, coords, vtx_gnum);
-                    }
+                    //     PDM_dist_cloud_surf_surf_mesh_part_set(_id_pdm, i_part, n_elts, connecIdx, connec, elt_gnum, n_vtx, coords, vtx_gnum);
+                    // }
                 }
                 else {
                     cwipi::Coupling &cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
 
                     cwipi::Mesh *cpl_mesh = cpl_cpl.meshGet();
+                    PDM_dist_cloud_surf_nodal_mesh_set(_id_pdm, cpl_mesh->getPdmNodalIndex());
+                    // for (int i_part = 0 ; i_part < _cplNPart ; i_part++) {
+                    //     int n_vtx = cpl_mesh->getPartNVertex(i_part);
+                    //     int n_elts = cpl_mesh->getPartNElts(i_part);
+                    //     double *coords = cpl_mesh->getVertexCoords(i_part);
+                    //     CWP_g_num_t *vtx_gnum = cpl_mesh->getVertexGNum(i_part);
+                    //     CWP_g_num_t *elt_gnum = cpl_mesh->GNumEltsGet(i_part);
+                    //     int *connecIdx = NULL;
+                    //     int *connec = NULL;
+                    //     // int *connecIdx = cpl_mesh->connecIdxGet(i_part);
+                    //     // int *connec = cpl_mesh->connecGet(i_part);
 
-                    for (int i_part = 0 ; i_part < _cplNPart ; i_part++) {
-                        int n_vtx = cpl_mesh->getPartNVertex(i_part);
-                        int n_elts = cpl_mesh->getPartNElts(i_part);
-                        double *coords = cpl_mesh->getVertexCoords(i_part);
-                        CWP_g_num_t *vtx_gnum = cpl_mesh->getVertexGNum(i_part);
-                        CWP_g_num_t *elt_gnum = cpl_mesh->GNumEltsGet(i_part);
-                        int *connecIdx = NULL;
-                        int *connec = NULL;
-                        // int *connecIdx = cpl_mesh->connecIdxGet(i_part);
-                        // int *connec = cpl_mesh->connecGet(i_part);
-
-                        PDM_dist_cloud_surf_surf_mesh_part_set(_id_pdm, i_part, n_elts, connecIdx, connec, elt_gnum, n_vtx, coords, vtx_gnum);
-                    }
+                    //     PDM_dist_cloud_surf_surf_mesh_part_set(_id_pdm, i_part, n_elts, connecIdx, connec, elt_gnum, n_vtx, coords, vtx_gnum);
+                    // }
                 }
             }
         }
