@@ -167,6 +167,18 @@ typedef enum {
 
 } CWP_Field_exch_t ;
 
+/**
+ * \enum CWP_PartData_exch_t
+ * \brief Modes of field exchange.
+ */
+
+typedef enum {
+
+  CWP_PARTDATA_SEND,        /*!< Send */
+  CWP_PARTDATA_RECV,        /*!< Receive */
+
+} CWP_PartData_exch_t ;
+
 
 /**
  * \enum CWP_Field_exch_t
@@ -2025,6 +2037,7 @@ CWP_Global_data_wait_irecv
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] part_data_id
+ * \param [in] exch_type
  * \param [in] gnum_elt
  * \param [in] n_elt
  * \param [in] n_part
@@ -2034,12 +2047,13 @@ CWP_Global_data_wait_irecv
 void
 CWP_Part_data_create
 (
- const char          *local_code_name,
- const char          *cpl_id,
- const char          *part_data_id,
- PDM_g_num_t  **gnum_elt,
- int           *n_elt,
- int            n_part
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *part_data_id,
+ CWP_PartData_exch_t   exch_type,
+ CWP_g_num_t         **gnum_elt,
+ int                  *n_elt,
+ int                   n_part
  );
 
 /**

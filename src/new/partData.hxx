@@ -26,6 +26,8 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 
+#include "pdm_part_to_part.h"
+
 /**
  * \cond
  */
@@ -51,11 +53,11 @@ namespace cwipi {
      */
     PartData() {}
 
-    PartData(std::string     global_data_id,
-               size_t          s_send_entity,
-               int             send_stride,
-               int             n_send_entity,
-               void           *send_data);
+    PartData(std::string           part_data_id,
+             CWP_PartData_exch_t   exch_type,
+             CWP_g_num_t         **gnum_elt,
+             int                  *n_elt,
+             int                   n_part);
 
     /**
      * \brief Destructor
@@ -63,13 +65,172 @@ namespace cwipi {
      */
     ~PartData();
 
-    // TO DO: setters, getters etc
+    // Getters
+
+    inline PDM_part_to_part_t *
+    get_ptp()
+    {
+      return _ptp;
+    }
+
+    inline size_t
+    get_s_data()
+    {
+      return _s_data;
+    }
+
+    inline int
+    get_n_components()
+    {
+      return _n_components;
+    }
+
+    inline CWP_g_num_t  **
+    get_gnum_elt1()
+    {
+      return _gnum_elt1;
+    }
+
+    inline int *
+    get_n_elt1()
+    {
+      return _n_elt1;
+    }
+
+    inline int
+    get_n_part1()
+    {
+      return _n_part1;
+    }
+
+    inline void **
+    get_part1_to_part2_data()
+    {
+      return _part1_to_part2_data;
+    }
+
+    inline int *
+    get_request1()
+    {
+      return _request1;
+    }
+
+    inline CWP_g_num_t  **
+    get_gnum_elt2()
+    {
+      return _gnum_elt2;
+    }
+
+    inline int *
+    get_n_elt2()
+    {
+      return _n_elt2;
+    }
+
+    inline int
+    get_n_part2()
+    {
+      return _n_part2;
+    }
+
+    inline void **
+    get_part2_data()
+    {
+      return _part2_data;
+    }
+
+    inline int *
+    get_request2()
+    {
+      return _request2;
+    }
+
+    // Setters
+
+    inline void
+    set_ptp
+    (
+     PDM_part_to_part_t *ptp
+    )
+    {
+      _ptp = ptp;
+    }
+
+    inline void
+    set_s_data
+    (
+     size_t s_data
+    )
+    {
+      _s_data = s_data;
+    }
+
+    inline void
+    set_n_components
+    (
+     int n_components
+    )
+    {
+      _n_components = n_components;
+    }
+
+    inline void
+    set_part1_to_part2_data
+    (
+     void ** part1_to_part2_data
+    )
+    {
+      _part1_to_part2_data = part1_to_part2_data;
+    }
+
+    inline void
+    set_request1
+    (
+     int * request1
+    )
+    {
+      _request1 = request1;
+    }
+
+    inline void
+    set_part2_data
+    (
+     void ** part2_data
+    )
+    {
+      _part2_data = part2_data;
+    }
+
+    inline void
+    set_request2
+    (
+     int * request2
+    )
+    {
+      _request2 = request2;
+    }
 
   private:
 
-    std::string     _part_data_id;
+    // global
+    std::string         _part_data_id;
+    PDM_part_to_part_t *_ptp;
+    size_t              _s_data;
+    int                 _n_components;
 
-    // TO DO: variables
+    // send
+    CWP_g_num_t  **_gnum_elt1;
+    int           *_n_elt1;
+    int            _n_part1;
+    void         **_part1_to_part2_data;
+    int           *_request1;
+
+    // recv
+    CWP_g_num_t  **_gnum_elt2;
+    int           *_n_elt2;
+    int            _n_part2;
+    void         **_part2_data;
+    int           *_request2;
 
   };
 

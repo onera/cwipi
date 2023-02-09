@@ -3092,6 +3092,7 @@ CWP_Global_data_wait_irecv
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] part_data_id
+ * \param [in] exch_type
  * \param [in] gnum_elt
  * \param [in] n_elt
  * \param [in] n_part
@@ -3101,13 +3102,14 @@ CWP_Global_data_wait_irecv
 void
 CWP_Part_data_create
 (
- const char          *local_code_name,
- const char          *cpl_id,
- const char          *part_data_id,
- PDM_g_num_t  **gnum_elt,
- int           *n_elt,
- int            n_part
- )
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *part_data_id,
+ CWP_PartData_exch_t   exch_type,
+ CWP_g_num_t         **gnum_elt,
+ int                  *n_elt,
+ int                   n_part
+)
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
   // TO DO
@@ -3125,9 +3127,9 @@ CWP_Part_data_create
 void
 CWP_Part_data_del
 (
- const char          *local_code_name,
- const char          *cpl_id,
- const char          *part_data_id
+ const char   *local_code_name,
+ const char   *cpl_id,
+ const char   *part_data_id
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);

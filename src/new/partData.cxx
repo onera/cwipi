@@ -24,6 +24,8 @@
 #include "cwp.h"
 #include "cwp_priv.h"
 
+#include "pdm_part_to_part.h"
+
 /**
  * \cond
  */
@@ -32,9 +34,24 @@ using namespace std;
 
 namespace cwipi {
 
-  PartData::PartData(std::string     part_data_id,):
+  PartData::PartData(std::string           part_data_id,
+                     CWP_PartData_exch_t   exch_type,
+                     CWP_g_num_t         **gnum_elt,
+                     int                  *n_elt,
+                     int                   n_part):
   _part_data_id(part_data_id)
   {
+    if (exch_type == CWP_PARTDATA_SEND) {
+      _gnum_elt1 = gnum_elt;
+      _n_elt1    = n_elt;
+      _n_part1   = n_part;
+    }
+
+    else if (exch_type == CWP_PARTDATA_RECV) {
+      _gnum_elt2 = gnum_elt;
+      _n_elt2    = n_elt;
+      _n_part2   = n_part;
+    }
   }
 
   PartData::~PartData()
