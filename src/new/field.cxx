@@ -103,10 +103,6 @@ Field::Field (std::string            field_id    ,
         fflush(stdout);
       }
     }
-    else {
-      PDM_error(__FILE__, __LINE__, 0, "Field::dataSet Error : unknown data type.\n");
-    }
-
 
     // Create receive variables
     if (_exchangeType == CWP_FIELD_EXCH_RECV ||
@@ -213,15 +209,15 @@ CWP_Field_exch_t exch_type
 
   // Get data depending on exchange type
   int *id_writer_var;
-  std::vector<void* > *data_var;
+  std::vector<void* > &data_var = _data_src;
 
   if (exch_type == CWP_FIELD_EXCH_SEND) {
     id_writer_var = _id_writer_var_send;
-    *data_var = _data_src;
+    data_var = _data_src;
   }
   else {
     id_writer_var = _id_writer_var_recv;  
-    *data_var = _data_tgt;
+    data_var = _data_tgt;
   }
 
   // Write
@@ -249,9 +245,6 @@ CWP_Field_exch_t exch_type
           comp_data[i_part] = (double *) malloc (sizeof(double) * n_elt_size);
 
         } // end loop n_part
-      } // end if interlaced
-      else {
-        PDM_error(__FILE__, __LINE__, 0, "Trying to write field %s with one components with INTERLACED format, should be INTERLEAVED\n", _fieldID);
       }
 
       // Fill in array and write it
@@ -274,12 +267,12 @@ CWP_Field_exch_t exch_type
           // (x1, y1, z1, ... , xn, yn, zn)
           if (_storage == CWP_FIELD_STORAGE_INTERLACED && _nComponent > 1) {
             for (int j = 0; j < n_elt_size; j++) {
-              comp_data[i_part][j] = ((double *) (*data_var)[i_part])[j * _nComponent + i_comp];
+              comp_data[i_part][j] = ((double *) data_var[i_part])[j * _nComponent + i_comp];
             }
           }
           // (x1, ... xn, y1, ..., yn, z1, ...zn)
           else {
-            comp_data[i_part] = (double *) &(((double *)(*data_var)[i_part])[n_elt_size * _nComponent]);
+            comp_data[i_part] = (double *) &(((double *)data_var[i_part])[n_elt_size * i_comp]);
           }
 
           PDM_writer_var_set(_writer, id_writer_var[i_comp], _cpl->idGeomWriterGet(), i_part, comp_data[i_part]);
@@ -339,9 +332,16 @@ CWP_Field_exch_t exch_type
               n_elt_size = _cpl->userTargetNGet(i_part);
             }
 
-            const int  *computed_target        = _cpl->computedTargetsGet(_fieldID, i_part);
             for (int i = 0; i < n_elt_size; i++) {
-              double_computed_target[i_part][i] = (double) computed_target[i];
+              double_computed_target[i_part][i] = 0.;
+            }
+
+            const int  *computed_target    = _cpl->computedTargetsGet(_fieldID, i_part);
+            int         n_computed_target  = _cpl->nComputedTargetsGet(_fieldID, i_part);
+
+            for (int i = 0; i < n_computed_target; i++) {
+              int idx = computed_target[i] -1; // WARNING: what if signed value?
+              double_computed_target[i_part][idx] = 1.;
             }
 
             PDM_writer_var_set(_writer,
