@@ -55,7 +55,9 @@ namespace cwipi {
   }
 
   PartData::~PartData()
-  {}
+  {
+    if (_part1_to_part2_idx != NULL) free(_part1_to_part2_idx);
+  }
 
 }
 

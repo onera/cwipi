@@ -385,10 +385,12 @@ namespace cwipi {
     }
 
     if (_coupledCodeProperties.localCodeIs()) {
-      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
 
-        cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
-        map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
+      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
+      map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
+
+      // second code to execute writes to be sure coupled part data object has been filled in
+      if (cpl_it != cpl_cpl._partData.end()) {
 
         if (exch_type == CWP_PARTDATA_SEND) {
 
