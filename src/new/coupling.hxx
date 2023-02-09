@@ -1594,6 +1594,7 @@ namespace cwipi {
           double                              _recvNextTime;          /*!< Next receiving time */
           std::map < string, Field * >       &_fields;                /*!< Fields Data Base */
           std::map < string, GlobalData >    &_globalData;            /*!< GlobalData Data Base */
+          std::map < string, PartData >      &_partData;              /*!< PartData Data Base */
           CouplingDB                         &_cplDB;                 /*!< Coupling Data base */
           CWP_Dynamic_mesh_t                  _displacement;          /*!< Type of mesh displacement */
     const CWP_Spatial_interp_t                _spatialInterpAlgo;     /*!< Spatial intepolation algorithm */

@@ -2020,28 +2020,69 @@ CWP_Global_data_wait_irecv
 );
 
 /**
+ * \brief Create partitionned data exchange object
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id
+ * \param [in] gnum_elt
+ * \param [in] n_elt
+ * \param [in] n_part
+ *
+ */
+
+void
+CWP_Part_data_create
+(
+ const char          *local_code_name,
+ const char          *cpl_id,
+ const char          *part_data_id,
+ PDM_g_num_t  **gnum_elt,
+ int           *n_elt,
+ int            n_part
+ );
+
+/**
+ * \brief Delete partitionned data exchange object
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id
+ *
+ */
+
+void
+CWP_Part_data_del
+(
+ const char          *local_code_name,
+ const char          *cpl_id,
+ const char          *part_data_id
+);
+
+
+/**
  * \brief Send a data array.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in]
- *
+ * \param [in] part_data_id
+ * \param [in] s_data
+ * \param [in] n_components
+ * \param [in] part1_to_part2_data
+ * \param [in] request
  *
  */
 
-// TO DO: with part_to_part
-
 void
-CWP_Data_issend
+CWP_Part_data_issend
 (
- const char         *local_code_name,
- const char         *cpl_id,
- const size_t        s_data,
- int                 n_gnum_send,
- CWP_g_num_t        *gnum_send,
- const int         **send_to_recv_idx,
- const CWP_Type_t  **send_to_recv,
- const void        **send_to_recv_data
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ size_t         s_data,
+ int            n_components,
+ void         **part1_to_part2_data,
+ int           *request
 );
 
 /**
@@ -2049,44 +2090,45 @@ CWP_Data_issend
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in]
- *
+ * \param [in] part_data_id
+ * \param [in] s_data
+ * \param [in] n_components
+ * \param [in] part1_to_part2_data
+ * \param [in] request
  *
  */
 
 void
-CWP_Data_irecv
+CWP_Part_data_irecv
 (
- const char         *local_code_name,
- const char         *cpl_id,
- CWP_Type_t          data_type,
- int                 n_gnum_recv,
- CWP_g_num_t        *gnum_recv,
- const int         **send_to_recv_idx,
- const CWP_Type_t  **send_to_recv,
- void              **recv_data
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ size_t         s_data,
+ int            n_components,
+ void         **part2_data,
+ int           *request
 );
 
-// int              ***gnum1_come_from_idx,
-// PDM_g_num_t      ***gnum1_come_from
-// int               **n_ref_lnum2,
-// int              ***ref_lnum2
+// TO DO: add where the data comes from ?
 
 /**
  * \brief Wait of send a data array.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in]
- *
+ * \param [in] part_data_id
+ * \param [in] request
  *
  */
 
 void
-CWP_Data_wait_issend
+CWP_Part_data_wait_issend
 (
- const char     *local_code_name,
- const char     *cpl_id
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ int           *request
 );
 
 /**
@@ -2094,16 +2136,18 @@ CWP_Data_wait_issend
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in]
- *
+ * \param [in] part_data_id
+ * \param [in] request
  *
  */
 
 void
-CWP_Data_wait_irecv
+CWP_Part_data_wait_irecv
 (
- const char     *local_code_name,
- const char     *cpl_id
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ int           *request
 );
 
 /*****************************************************************************************************
