@@ -507,9 +507,9 @@ main(int argc, char *argv[]) {
   printf("%d - Create coupling\n", rank);
   const char *cpl_name = "c_new_api_surf_P1P0_P0P1";
   int nb_part = 1;
-  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
+  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
-  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
   CWP_Cpl_create(code_name[0],                                          // Code name
                  cpl_name,                                              // Coupling id
                  coupled_code_name[0],                                  // Coupled application id
@@ -678,15 +678,15 @@ main(int argc, char *argv[]) {
   CWP_Status_t visu_status = CWP_STATUS_ON;
   printf("%d - Defining fields\n", rank);
   if (strcmp(code_name[0], "code1") == 0) {
-    // CWP_Field_create(code_name[0],
-    //                  cpl_name,
-    //                  field_name1,
-    //                  CWP_DOUBLE,
-    //                  CWP_FIELD_STORAGE_INTERLEAVED,
-    //                  1,
-    //                  CWP_DOF_LOCATION_NODE,
-    //                  CWP_FIELD_EXCH_SEND,
-    //                  visu_status);
+    CWP_Field_create(code_name[0],
+                     cpl_name,
+                     field_name1,
+                     CWP_DOUBLE,
+                     CWP_FIELD_STORAGE_INTERLEAVED,
+                     1,
+                     CWP_DOF_LOCATION_NODE,
+                     CWP_FIELD_EXCH_SEND,
+                     visu_status);
     CWP_Field_create(code_name[0],
                      cpl_name,
                      field_name2,
@@ -697,20 +697,20 @@ main(int argc, char *argv[]) {
                      CWP_FIELD_EXCH_RECV,
                      visu_status);
 
-    // CWP_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_SOURCE, sendValues[0]);
+    CWP_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_SOURCE, sendValues[0]);
     CWP_Field_data_set(code_name[0], cpl_name, field_name2, 0, CWP_FIELD_MAP_TARGET, recvValues[0]);
   }
   
   else if (strcmp(code_name[0], "code2") == 0) {
-    // CWP_Field_create(code_name[0],
-    //                  cpl_name,
-    //                  field_name1,
-    //                  CWP_DOUBLE,
-    //                  CWP_FIELD_STORAGE_INTERLEAVED,
-    //                  1,
-    //                  CWP_DOF_LOCATION_NODE,
-    //                  CWP_FIELD_EXCH_RECV,
-    //                  visu_status);
+    CWP_Field_create(code_name[0],
+                     cpl_name,
+                     field_name1,
+                     CWP_DOUBLE,
+                     CWP_FIELD_STORAGE_INTERLEAVED,
+                     1,
+                     CWP_DOF_LOCATION_NODE,
+                     CWP_FIELD_EXCH_RECV,
+                     visu_status);
     CWP_Field_create(code_name[0],
                      cpl_name,
                      field_name2,
@@ -722,7 +722,7 @@ main(int argc, char *argv[]) {
                      visu_status);
 
     CWP_Field_data_set(code_name[0], cpl_name, field_name2, 0, CWP_FIELD_MAP_SOURCE, sendValues[0]);
-    // CWP_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_TARGET, recvValues[0]);
+    CWP_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_TARGET, recvValues[0]);
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -739,26 +739,26 @@ main(int argc, char *argv[]) {
   }
 
   else if (strcmp(code_name[0], "code2") == 0) {
-    // n_uncomputed = CWP_N_uncomputed_tgts_get (code_name[0], cpl_name, field_name1, 0);
+    n_uncomputed = CWP_N_uncomputed_tgts_get (code_name[0], cpl_name, field_name1, 0);
   }
 
   printf("%d - After compute %d\n", rank, n_uncomputed);
 
   if (strcmp(code_name[0], "code1") == 0) {
-    // CWP_Field_issend(code_name[0], cpl_name, field_name1);
+    CWP_Field_issend(code_name[0], cpl_name, field_name1);
     CWP_Field_irecv(code_name[0], cpl_name, field_name2);
   }
   else if (strcmp(code_name[0], "code2") == 0) {
-    // CWP_Field_irecv(code_name[0], cpl_name, field_name1);
+    CWP_Field_irecv(code_name[0], cpl_name, field_name1);
     CWP_Field_issend(code_name[0], cpl_name, field_name2);
   }
 
   if (strcmp(code_name[0], "code1") == 0) {
-    // CWP_Field_wait_issend(code_name[0], cpl_name, field_name1);
+    CWP_Field_wait_issend(code_name[0], cpl_name, field_name1);
     CWP_Field_wait_irecv(code_name[0], cpl_name, field_name2);
   }
   else if (strcmp(code_name[0], "code2") == 0) {
-    // CWP_Field_wait_irecv(code_name[0], cpl_name, field_name1);
+    CWP_Field_wait_irecv(code_name[0], cpl_name, field_name1);
     CWP_Field_wait_issend(code_name[0], cpl_name, field_name2);
   }
 
