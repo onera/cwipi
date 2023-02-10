@@ -406,7 +406,7 @@ namespace cwipi {
                                         n_part2,
                                         (const int**) part1_to_part2_idx,
                                         (const PDM_g_num_t**) gnum_elt,
-                                        unionComm);
+                                        PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
         } // sending code
 
         else if (exch_type == CWP_PARTDATA_RECV) {
@@ -423,7 +423,7 @@ namespace cwipi {
                                         n_part,
                                         (const int**) part1_to_part2_idx,
                                         (const PDM_g_num_t**) gnum_elt,
-                                        unionComm);
+                                        PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
 
         } // receiving code
 
@@ -442,7 +442,7 @@ namespace cwipi {
                                       0,
                                       (const int**) part1_to_part2_idx,
                                       (const PDM_g_num_t**) gnum_elt,
-                                      unionComm);
+                                      PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
       } // sending code
 
       else if (exch_type == CWP_PARTDATA_RECV) {
@@ -454,7 +454,7 @@ namespace cwipi {
                                       n_part,
                                       NULL,
                                       NULL,
-                                      unionComm);
+                                      PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
 
       } // recving code
 
