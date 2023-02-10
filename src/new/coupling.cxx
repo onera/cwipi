@@ -510,7 +510,53 @@ namespace cwipi {
    int           *request
   )
   {
-    // TO DO
+    // get general data
+    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
+    assert(it != _partData.end());
+    MPI_Comm unionComm = _communication.unionCommGet();
+    PDM_part_to_part_t *ptp = it->second.get_ptp();
+
+    int mpi_tag = it->second.get_tag(part_data_id,
+                                     unionComm);
+
+    // launch issend
+    if (_coupledCodeProperties.localCodeIs()) {
+
+      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
+      map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
+      assert(cpl_it != _partData.end());
+
+      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+
+        PDM_part_to_part_issend(ptp,
+                                s_data,
+                                n_components,
+                                (const void**) part1_to_part2_data,
+                                mpi_tag,
+                                request);
+
+        void **part2_data = cpl_it->second.get_part2_data();
+        int   *request2   = cpl_it->second.get_request2();
+
+        PDM_part_to_part_irecv(ptp,
+                               s_data,
+                               n_components,
+                               part2_data,
+                               mpi_tag,
+                               request2);
+
+      } // local code works
+    } // joint
+    else {
+
+      PDM_part_to_part_issend(ptp,
+                              s_data,
+                              n_components,
+                              (const void**) part1_to_part2_data,
+                              mpi_tag,
+                              request);
+
+    } // not joint
   }
 
   /**
@@ -534,7 +580,53 @@ namespace cwipi {
    int           *request
   )
   {
-    // TO DO
+    // get general data
+    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
+    assert(it != _partData.end());
+    MPI_Comm unionComm = _communication.unionCommGet();
+    PDM_part_to_part_t *ptp = it->second.get_ptp();
+
+    int mpi_tag = it->second.get_tag(part_data_id,
+                                     unionComm);
+
+    // launch issend
+    if (_coupledCodeProperties.localCodeIs()) {
+
+      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
+      map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
+      assert(cpl_it != _partData.end());
+
+      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+
+        PDM_part_to_part_irecv(ptp,
+                               s_data,
+                               n_components,
+                               part2_data,
+                               mpi_tag,
+                               request);
+
+        void **part1_to_part2_data = cpl_it->second.get_part1_to_part2_data();
+        int   *request1            = cpl_it->second.get_request1();
+
+        PDM_part_to_part_issend(ptp,
+                                s_data,
+                                n_components,
+                                (const void**) part1_to_part2_data,
+                                mpi_tag,
+                                request1);
+
+      } // local code works
+    } // joint
+    else {
+
+      PDM_part_to_part_irecv(ptp,
+                             s_data,
+                             n_components,
+                             part2_data,
+                             mpi_tag,
+                             request);
+
+    } // not joint
   }
 
   /**

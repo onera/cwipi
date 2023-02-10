@@ -210,7 +210,20 @@ namespace cwipi {
       _request2 = request2;
     }
 
+    int
+    get_tag
+    (
+     const std::string    global_data_id,
+     MPI_Comm        comm
+    );
+
   private:
+
+    uint32_t _adler32
+    (
+     const void *buf,
+     size_t buflength
+    );
 
     // global
     std::string         _part_data_id;

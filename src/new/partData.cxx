@@ -57,6 +57,45 @@ namespace cwipi {
   PartData::~PartData()
   {}
 
+  uint32_t PartData::_adler32
+  (
+   const void *buf,
+   size_t buflength
+   )
+  {
+
+    const uint8_t * buffer = (const uint8_t *)buf;
+
+    uint32_t s1 = 1;
+    uint32_t s2 = 0;
+
+    for (size_t n = 0; n < buflength; n++) {
+      s1 = (s1 + buffer[n]) % 65521;
+      s2 = (s2 + s1) % 65521;
+    }
+
+    return (s2 << 16) | s1;
+  }
+
+  int
+  PartData::get_tag
+  (
+   const std::string    part_data_id,
+   MPI_Comm        comm
+  )
+  {
+    MPI_Aint  *maxTagTmp;
+    int flag;
+
+    MPI_Comm_get_attr(comm, MPI_TAG_UB, &maxTagTmp, &flag);
+    int maxTag = (int) *maxTagTmp;
+
+    uint32_t mpi_tag = (_adler32 (part_data_id.c_str(),
+                                  part_data_id.size())% (maxTag - 1)) + 1;
+
+    return mpi_tag;
+  }
+
 }
 
 /**
