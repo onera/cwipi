@@ -145,6 +145,18 @@ namespace cwipi {
       return _request2;
     }
 
+    inline CWP_g_num_t **
+    get_filtered_gnum1_come_from()
+    {
+      return _filtered_gnum1_come_from;
+    }
+
+    inline CWP_Type_t
+    get_data_t()
+    {
+      return _data_t;
+    }
+
     // Setters
 
     inline void
@@ -210,6 +222,24 @@ namespace cwipi {
       _request2 = request2;
     }
 
+    inline void
+    set_filtered_gnum1_come_from
+    (
+     CWP_g_num_t ** filtered_gnum1_come_from
+    )
+    {
+      _filtered_gnum1_come_from = filtered_gnum1_come_from;
+    }
+
+    inline void
+    set_data_t
+    (
+     CWP_Type_t data_t
+    )
+    {
+      _data_t = data_t;
+    }
+
     int
     get_tag
     (
@@ -244,6 +274,8 @@ namespace cwipi {
     int            _n_part2;
     void         **_part2_data;
     int           *_request2;
+    CWP_g_num_t  **_filtered_gnum1_come_from;
+    CWP_Type_t     _data_t;
 
   };
 

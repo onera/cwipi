@@ -2106,6 +2106,7 @@ CWP_Part_data_issend
  * \param [in] cpl_id           Coupling identifier
  * \param [in] part_data_id
  * \param [in] s_data
+ * \param [in] data_t
  * \param [in] n_components
  * \param [in] part1_to_part2_data
  * \param [in] request
@@ -2119,6 +2120,7 @@ CWP_Part_data_irecv
  const char    *cpl_id,
  const char    *part_data_id,
  size_t         s_data,
+ CWP_Type_t     data_t,
  int            n_components,
  void         **part2_data,
  int           *request

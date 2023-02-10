@@ -483,7 +483,6 @@ namespace cwipi {
     }
     else {
       _partData.erase(part_data_id.c_str());
-      // TO DO: since PartData is not a pointer, do something else ?
     }
   }
 
@@ -564,6 +563,7 @@ namespace cwipi {
    *
    * \param [in] part_data_id
    * \param [in] s_data
+   * \param [in] data_t
    * \param [in] n_components
    * \param [in] part2_data
    * \param [in] request
@@ -575,6 +575,7 @@ namespace cwipi {
   (
    const string   &part_data_id,
    size_t         s_data,
+   CWP_Type_t     data_t,
    int            n_components,
    void         **part2_data,
    int           *request
@@ -586,10 +587,12 @@ namespace cwipi {
     MPI_Comm unionComm = _communication.unionCommGet();
     PDM_part_to_part_t *ptp = it->second.get_ptp();
 
+    it->second.set_data_t(data_t);
+
     int mpi_tag = it->second.get_tag(part_data_id,
                                      unionComm);
 
-    // launch issend
+    // launch irecv
     if (_coupledCodeProperties.localCodeIs()) {
 
       cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
@@ -644,7 +647,35 @@ namespace cwipi {
    int           *request
   )
   {
-    // TO DO
+    // get general data
+    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
+    assert(it != _partData.end());
+    PDM_part_to_part_t *ptp = it->second.get_ptp();
+
+    // launch wait issend
+    if (_coupledCodeProperties.localCodeIs()) {
+      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
+      map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
+      assert(cpl_it != _partData.end());
+
+      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+
+        PDM_part_to_part_issend_wait(ptp,
+                                     *request);
+
+        int *request2 = cpl_it->second.get_request2();
+
+        PDM_part_to_part_irecv_wait(ptp,
+                                    *request2);
+
+      } // local code works
+    } // joint
+    else {
+
+      PDM_part_to_part_issend_wait(ptp,
+                                   *request);
+
+    } // not joint
   }
 
   /**
@@ -662,7 +693,109 @@ namespace cwipi {
    int           *request
   )
   {
-    // TO DO
+    // get general data
+    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
+    assert(it != _partData.end());
+    PDM_part_to_part_t *ptp = it->second.get_ptp();
+
+    // launch wait irecv
+    if (_coupledCodeProperties.localCodeIs()) {
+      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
+      map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
+      assert(cpl_it != _partData.end());
+
+      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+
+        PDM_part_to_part_irecv_wait(ptp,
+                                    *request);
+
+        int *request1 = cpl_it->second.get_request1();
+
+        PDM_part_to_part_issend_wait(ptp,
+                                     *request1);
+
+      } // local code works
+    } // joint
+    else {
+
+      PDM_part_to_part_irecv_wait(ptp,
+                                  *request);
+
+    } // not joint
+
+    // filter received data
+    // size_t s_data       = it->second.get_s_data();
+    int    n_components = it->second.get_n_components();
+    int   *n_elt2       = it->second.get_n_elt2();
+    int    n_part2      = it->second.get_n_part2();
+    void **part2_data   = it->second.get_part2_data();
+
+    int          **gnum1_come_from_idx;
+    CWP_g_num_t  **gnum1_come_from;
+
+    PDM_part_to_part_gnum1_come_from_get(ptp,
+                                         &gnum1_come_from_idx,
+                                         &gnum1_come_from);
+
+    CWP_Type_t data_t = it->second.get_data_t();
+
+    // malloc
+    CWP_g_num_t **filtered_gnum1_come_from   = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * n_part2);
+    int         **filtered_part2_int_data    = NULL;
+    double      **filtered_part2_double_data = NULL;
+    // int
+    if (data_t == CWP_INT) {
+      filtered_part2_int_data  = (int **) malloc(sizeof(int *) * n_part2);
+    }
+      // double
+    else if (data_t == CWP_DOUBLE) {
+      filtered_part2_double_data  = (double **) malloc(sizeof(double *) * n_part2);
+    }
+      // other
+    else {
+      PDM_error(__FILE__, __LINE__, 0, "Partitionned data exchange not implemented for %d.\n", data_t);
+    }
+
+    for (int i_part = 0; i_part < n_part2; i_part++) {
+      filtered_gnum1_come_from[i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elt2[i_part]);
+      // int
+      if (data_t == CWP_INT) {
+        filtered_part2_int_data[i_part]  = (int *) malloc(sizeof(int) * n_components * n_elt2[i_part]);
+      }
+      // double
+      else if (data_t == CWP_DOUBLE) {
+        filtered_part2_double_data[i_part]  = (double *) malloc(sizeof(double) * n_components * n_elt2[i_part]);
+      }
+    }
+
+    // filter
+    for (int i_part = 0; i_part < n_part2; i_part++) {
+      for (int i = 0; i < n_elt2[i_part]; i++) {
+        int first_idx = gnum1_come_from_idx[i_part][i];
+        filtered_gnum1_come_from[i_part][i] = gnum1_come_from[i_part][first_idx];
+        for (int j = 0; j < n_components; j++) {
+          // int
+          if (data_t == CWP_INT) {
+            filtered_part2_int_data[i_part][i * n_components + j] = ((int **) part2_data)[i_part][first_idx + j];
+          }
+          // double
+          else if (data_t == CWP_DOUBLE) {
+            filtered_part2_double_data[i_part][i * n_components + j] = ((double **) part2_data)[i_part][first_idx + j];
+          }
+        }
+      }
+    }
+
+    // put into PartData Object filtered gnu1_come_from and part2_data
+    // int
+    if (data_t == CWP_INT) {
+      it->second.set_part2_data((void **) filtered_part2_int_data);
+    }
+    // double
+    else if (data_t == CWP_DOUBLE) {
+      it->second.set_part2_data((void **) filtered_part2_double_data);
+    }
+    it->second.set_filtered_gnum1_come_from(filtered_gnum1_come_from);
   }
 
   /*----------------------------------------------------------------------------*
