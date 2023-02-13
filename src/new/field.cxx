@@ -32,7 +32,7 @@ Field::Field (std::string            field_id    ,
    _fieldIDInt     (fieldIDInt)  ,
    _cpl            (cpl)         ,
    _mesh (cpl->meshGet()),
-   _writer (cpl->writerGet()),
+   _writer (nullptr),
    _id_writer_var_send(nullptr),
    _id_writer_var_recv(nullptr),
    _id_writer_var_recv_computed(-1),
@@ -58,6 +58,11 @@ Field::Field (std::string            field_id    ,
       break;
     default:
       PDM_error(__FILE__, __LINE__, 0, "CWP_CHAR is not usable.\n");
+  }
+
+
+  if (visuStatus == CWP_STATUS_ON) {
+    _writer = cpl->writerGet();
   }
 
   _interpolationType = CWP_INTERPOLATION_DEFAULT;

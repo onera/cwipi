@@ -464,6 +464,8 @@ namespace cwipi {
      * Methods  about mesh                                                     *
      *----------------------------------------------------------------------------*/
 
+    inline bool has_mesh();
+
     /**
      * \brief Setting vertices
      *

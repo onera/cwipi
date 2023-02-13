@@ -21,6 +21,7 @@
 
 #include "spatialInterp.hxx"
 #include "pdm_gnum_location.h"
+#include "pdm_part_mesh_nodal.h"
 
 /**
  * \cond
@@ -78,7 +79,7 @@ namespace cwipi {
 
   protected:
 
-    PDM_Mesh_nodal_t* _pdm_CplNodal;
+    PDM_part_mesh_nodal_t* _pdm_CplNodal;
 
       //
     // Target properties

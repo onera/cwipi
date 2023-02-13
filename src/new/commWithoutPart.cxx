@@ -92,7 +92,6 @@ namespace cwipi {
     _cplCommLocRanks = new std::vector<int>(*_unionCommLocRanks);
       
     if (cplCodeCommType != CWP_COMM_PAR_WITH_PART) {
-      log_trace("cplCodeCommType != CWP_COMM_PAR_WITH_PART\n");
 
       int cplRanks2[2];
       int gap1 = 0;
@@ -116,28 +115,22 @@ namespace cwipi {
     }
   
     else {
-      log_trace("cplCodeCommType == CWP_COMM_PAR_WITH_PART\n");
-      log_trace("cplRanks.size() = %d\n", cplRanks.size());
-      log_trace("_localCodeProperties->rootRankGet() = %d\n", _localCodeProperties->rootRankGet());
-          
-      vector <int> exRanks(cplRanks.size());//-1);
-      log_trace("exRanks : %p, size = %d\n", exRanks, exRanks.size());
 
+      const int locRootRankInGlobalComm = _localCodeProperties->rootRankGet();
+      int locRootRankInUnionComm;
+      MPI_Group_translate_ranks(globalGroup, 1, &locRootRankInGlobalComm,
+                                unionGroup, &locRootRankInUnionComm);
+      int *excludeRanks = (int *) malloc(sizeof(int) * (locRanks.size() - 1));
       int j = 0;
-      for (size_t i = 0; i < cplRanks.size(); i++) {
-        log_trace("i = %d, cplRanks[i] = %d\n", i, cplRanks[i]);
-        if (cplRanks[i] != _localCodeProperties->rootRankGet()) {
-          log_trace("  j = %d\n", j);
-          exRanks[j++] = cplRanks[i]; 
-        }      
+      for (size_t i = 0; i < locRanks.size(); i++) {
+        if ((*_unionCommLocRanks)[i] != locRootRankInUnionComm) {
+          excludeRanks[j++] = (*_unionCommLocRanks)[i];
+        }
       }
-      
-      vector <int> tExRanks(exRanks.size());
-          
-      MPI_Group_translate_ranks(globalGroup, exRanks.size(), &(exRanks[0]),
-                                unionGroup, &(tExRanks[0]));
-      MPI_Group_excl(unionGroup, exRanks.size(), &(tExRanks[0]), &_cplGroup);
-      
+
+      MPI_Group_excl(unionGroup, locRanks.size()-1, excludeRanks, &_cplGroup);
+      free(excludeRanks);
+
       MPI_Comm_create(_unionComm, _cplGroup, &_cplComm);
       
     }

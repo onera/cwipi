@@ -36,7 +36,7 @@
 #include "pdm_dcube_nodal_gen.h"
 #include "pdm_dmesh_nodal.h"
 #include "pdm_distrib.h"
-
+#include "pdm_geom_elem.h"
 
 #define ABS(a)   ((a) <  0  ? -(a) : (a))
 #define MAX(a,b) ((a) > (b) ?  (a) : (b))
@@ -507,12 +507,15 @@ main(int argc, char *argv[]) {
   printf("%d - Create coupling\n", rank);
   const char *cpl_name = "c_new_api_surf_P1P0_P0P1";
   int nb_part = 1;
+  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
   CWP_Cpl_create(code_name[0],                                          // Code name
                  cpl_name,                                              // Coupling id
                  coupled_code_name[0],                                  // Coupled application id
                  CWP_INTERFACE_SURFACE,
                  CWP_COMM_PAR_WITH_PART,                                // Coupling type
-                 CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, // Solver type
+                 spatial_interp,
                  nb_part,                                               // Number of partitions
                  CWP_DYNAMIC_MESH_STATIC,                               // Mesh type
                  CWP_TIME_EXCH_USER_CONTROLLED);                        // Postprocessing frequency
@@ -662,7 +665,7 @@ main(int argc, char *argv[]) {
     sendValues[0] = (double *) malloc(sizeof(double) * nElts);
     recvValues[0] = (double *) malloc(sizeof(double) * nVertex);
     for (int i = 0 ; i < nElts ; i++) {
-      sendValues[0][i] = rank;
+      sendValues[0][i] = (double) rand() / (double) RAND_MAX;//rank;
     }
   }
 
@@ -758,6 +761,65 @@ main(int argc, char *argv[]) {
     CWP_Field_wait_irecv(code_name[0], cpl_name, field_name1);
     CWP_Field_wait_issend(code_name[0], cpl_name, field_name2);
   }
+
+
+  if (spatial_interp == CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+    /* Check mass conservation */
+    double *field_value;
+    int icode;
+    if (strcmp(code_name[0], "code1") == 0) {
+      field_value = recvValues[0];
+      icode = 0;
+    }
+    else if (strcmp(code_name[0], "code2") == 0) {
+      field_value = sendValues[0];
+      icode = 1;
+    }
+
+    double *surface_vector = malloc(sizeof(double) * nElts * 3);
+    double *center         = malloc(sizeof(double) * nElts * 3);
+    PDM_geom_elem_polygon_properties(nElts,
+                                     eltsConnecPointer[0],
+                                     eltsConnec[0],
+                                     coords[0],
+                                     surface_vector,
+                                     center,
+                                     NULL,
+                                     NULL);
+
+    double l_integral[2] = {0., 0.};
+    for (int i = 0; i < nElts; i++) {
+      double val = field_value[i];
+      if (icode == 1) {
+        double area = 0.;
+        for (int j = 0; j < 3; j++) {
+          area += surface_vector[3*i+j] * surface_vector[3*i+j];
+        }
+        area = sqrt(area);
+
+        val *= area;
+      }
+
+      l_integral[icode] += val;
+    }
+    free(surface_vector);
+    free(center);
+
+    double g_integral[2];
+    MPI_Allreduce(l_integral, g_integral, 2, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+
+    if (rank == 0) {
+      printf("g_integral = %20.16e / %20.16e, error = %f%%\n",
+             g_integral[0], g_integral[1], 100.*ABS(g_integral[0] - g_integral[1])/ABS(g_integral[1]));
+    }
+  }
+
+
+
+
+
+
 
   printf("%d - Delete mesh\n", rank);
   CWP_Mesh_interf_del(code_name[0], cpl_name);

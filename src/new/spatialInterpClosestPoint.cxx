@@ -69,7 +69,15 @@ namespace cwipi {
       }
 
       if (_recv_coord != NULL) {
-        for (int i_part = 0; i_part < _nPart; i_part++) {
+        int n_part_tgt = 0;
+        if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+          n_part_tgt = _nPart;
+        }
+        else {
+          n_part_tgt  = _cplNPart;
+        }
+
+        for (int i_part = 0; i_part < n_part_tgt; i_part++) {
           if (_recv_coord[i_part] != NULL) {
             free(_recv_coord[i_part]);
           }
@@ -308,7 +316,7 @@ namespace cwipi {
             dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
         }
 
-        for (int i_part = 0; i_part < _nPart; i_part++) {
+        for (int i_part = 0; i_part < _cplNPart; i_part++) {
 
           if (cpl_spatial_interp->_closest_src_gnum[i_part] != NULL) {
             free(cpl_spatial_interp->_closest_src_gnum[i_part]);
@@ -323,8 +331,8 @@ namespace cwipi {
           if (cpl_spatial_interp->_tgt_in_src_idx[i_part] != NULL) {
             free(cpl_spatial_interp->_tgt_in_src_idx[i_part]);
           }
-          if (cpl_spatial_interp->_tgt_in_src_dist[i_part] != NULL) {
-            free(cpl_spatial_interp->_tgt_in_src_dist[i_part]);
+          if (cpl_spatial_interp->_tgt_in_src_gnum[i_part] != NULL) {
+            free(cpl_spatial_interp->_tgt_in_src_gnum[i_part]);
           }
           if (cpl_spatial_interp->_tgt_in_src_dist[i_part] != NULL) {
             free(cpl_spatial_interp->_tgt_in_src_dist[i_part]);
@@ -394,7 +402,7 @@ namespace cwipi {
 
 
       if (!_coupledCodeProperties->localCodeIs()) {
-        _id_pdm = PDM_closest_points_create(_pdmCplComm,
+        _id_pdm = PDM_closest_points_create(_pdmUnionComm,
                                             n_closest_pts,
                                             PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
@@ -499,7 +507,7 @@ namespace cwipi {
 
       else {
         if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-          _id_pdm = PDM_closest_points_create(_pdmCplComm,
+          _id_pdm = PDM_closest_points_create(_pdmUnionComm,
                                               n_closest_pts,
                                               PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
 
@@ -938,10 +946,10 @@ namespace cwipi {
         }
       }
 
-      /* Create part_ot_part object if null */
-      if (_ptsp == NULL) {
+      /* Create part_to_part object if null */
 
-        if (!_coupledCodeProperties->localCodeIs()) {
+      if (!_coupledCodeProperties->localCodeIs()) {
+        if (_ptsp == NULL) {
           _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **) _src_gnum,
                                            (const int          *) _src_n_gnum,
                                            _nPart,
@@ -950,57 +958,57 @@ namespace cwipi {
                                            _nPart,
                                            (const int         **) _tgt_in_src_idx,
                                            (const PDM_g_num_t **) _tgt_in_src_gnum,
-                                           _pdmCplComm);
-        }
-        else {
-          if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
-            SpatialInterpClosestPoint *cpl_spatial_interp;
-
-            cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
-
-            if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-              std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
-              cpl_spatial_interp =
-              dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-            }
-            else {
-              std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
-              cpl_spatial_interp =
-              dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
-            }
-
-            if (_ptsp == NULL) {
-              if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-                _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **) _src_gnum,
-                                                 (const int          *) _src_n_gnum,
-                                                 _nPart,
-                                                 (const PDM_g_num_t **) cpl_spatial_interp->_tgt_gnum,
-                                                 (const int          *) cpl_spatial_interp->_tgt_n_gnum,
-                                                 _cplNPart,
-                                                 (const int         **) _tgt_in_src_idx,
-                                                 (const PDM_g_num_t **) _tgt_in_src_gnum,
-                                                 _pdmCplComm);
-              }
-              else {
-                _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **) cpl_spatial_interp->_src_gnum,
-                                                 (const int          *) cpl_spatial_interp->_src_n_gnum,
-                                                 _cplNPart,
-                                                 (const PDM_g_num_t **) _tgt_gnum,
-                                                 (const int          *) _tgt_n_gnum,
-                                                 _nPart,
-                                                 (const int         **) cpl_spatial_interp->_tgt_in_src_idx,
-                                                 (const PDM_g_num_t **) cpl_spatial_interp->_tgt_in_src_gnum,
-                                                 _pdmCplComm);
-              }
-            }
-
-            cpl_spatial_interp->_ptsp = _ptsp;
-
-          }
+                                           _pdmUnionComm);
         }
       }
+      else {
+        if (_localCodeProperties->idGet() < _coupledCodeProperties->idGet()) {
+          SpatialInterpClosestPoint *cpl_spatial_interp;
 
+          cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());
+
+          if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+            std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_send_map = cpl_cpl.sendSpatialInterpGet();
+            cpl_spatial_interp =
+            dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_send_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+          }
+          else {
+            std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> &cpl_spatial_interp_recv_map = cpl_cpl.recvSpatialInterpGet();
+            cpl_spatial_interp =
+            dynamic_cast <SpatialInterpClosestPoint *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
+          }
+
+          if (_ptsp == NULL) {
+            if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+              _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **) _src_gnum,
+                                               (const int          *) _src_n_gnum,
+                                               _nPart,
+                                               (const PDM_g_num_t **) cpl_spatial_interp->_tgt_gnum,
+                                               (const int          *) cpl_spatial_interp->_tgt_n_gnum,
+                                               _cplNPart,
+                                               (const int         **) _tgt_in_src_idx,
+                                               (const PDM_g_num_t **) _tgt_in_src_gnum,
+                                               _pdmUnionComm);
+            }
+            else {
+              _ptsp = PDM_part_to_part_create ((const PDM_g_num_t **) cpl_spatial_interp->_src_gnum,
+                                               (const int          *) cpl_spatial_interp->_src_n_gnum,
+                                               _cplNPart,
+                                               (const PDM_g_num_t **) _tgt_gnum,
+                                               (const int          *) _tgt_n_gnum,
+                                               _nPart,
+                                               (const int         **) cpl_spatial_interp->_tgt_in_src_idx,
+                                               (const PDM_g_num_t **) cpl_spatial_interp->_tgt_in_src_gnum,
+                                               _pdmUnionComm);
+            }
+          }
+
+          cpl_spatial_interp->_ptsp = _ptsp;
+
+        }
+      }
     }
+
 
 
 

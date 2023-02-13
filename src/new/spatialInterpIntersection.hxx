@@ -20,6 +20,7 @@
 */
 
 #include "spatialInterp.hxx"
+#include "pdm_mesh_intersection.h"
 
 namespace cwipi {
   class SpatialInterpIntersection : public SpatialInterp {
@@ -30,9 +31,37 @@ namespace cwipi {
 
     void weightsCompute() override;
 
+  private:
     void interpolate(Field *referenceField, double **buffer) override;
 
-};
+    /**
+      *
+      * \brief Initialization of the SpatialInterp object.
+      *
+      * \param [in] coupling            Pointer the coupling object.
+      * \param [in] pointsCloudLocation Location of the cloud of points.
+      * \param [in] coupling            Pointer the coupling object.
+      *
+      */
+
+    void init (Coupling                   *coupling,
+               CWP_Dof_location_t          localCodeDofLOcation,
+               CWP_Dof_location_t          cplCodeDofLOcation,
+               SpatialInterpExchDirection  exchDirection) override;
+
+    SpatialInterpIntersection *_spatial_interp_cpl;
+
+    int         **_src_to_tgt_idx;
+    PDM_g_num_t **_src_to_tgt_gnum;
+    double      **_src_to_tgt_weight;
+
+    double      **_tgt_to_src_weight;
+
+  protected:
+    PDM_mesh_intersection_t *_id_pdm;
+
+    PDM_part_mesh_nodal_t* _pdm_CplNodal;
+  };
 
 }
 

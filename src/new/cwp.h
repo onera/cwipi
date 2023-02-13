@@ -30,6 +30,8 @@
 #include <mpi.h>
 #include <stdio.h>
 
+#include "pdm_mesh_nodal.h"
+
 
 /*=============================================================================
  * Macro definitions
@@ -250,7 +252,14 @@ typedef enum {
   CWP_BLOCK_CELL_HEXA8,    /*!< Hexahedron with eight nodes */
   CWP_BLOCK_CELL_PRISM6,   /*!< Prism with six nodes */
   CWP_BLOCK_CELL_PYRAM5,   /*!< Pyramid with five nodes */
-  CWP_BLOCK_CELL_POLY      /*!< Generic polyhedron */
+  CWP_BLOCK_CELL_POLY,     /*!< Generic polyhedron */
+  CWP_BLOCK_EDGEHO,        /*!< High-order Edge */
+  CWP_BLOCK_FACE_TRIAHO,   /*!< High-order Triangle */
+  CWP_BLOCK_FACE_QUADHO,   /*!< High-order Quadrangle */
+  CWP_BLOCK_CELL_TETRAHO,  /*!< High-order Tetrahedron */
+  CWP_BLOCK_CELL_HEXAHO,   /*!< High-order Hexahedron */
+  CWP_BLOCK_CELL_PRISMHO,  /*!< High-order Prism */
+  CWP_BLOCK_CELL_PYRAMHO   /*!< High-order Pyramid */
 
 } CWP_Block_t;
 
@@ -860,7 +869,7 @@ CWP_Computed_tgts_get
 
 /**
  *
- * \brief Return number of invelved sources.
+ * \brief Return number of involved sources.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -1434,13 +1443,13 @@ CWP_Mesh_interf_from_cellface_set
 void
 CWP_Mesh_interf_from_faceedge_set
 (
- const char           *local_code_name,
- const char           *cpl_id,
- const int             i_part,
- const int             n_faces,
+ const char     *local_code_name,
+ const char     *cpl_id,
+ const int       i_part,
+ const int       n_faces,
  int             face_edge_idx[],
  int             face_edge[],
- const int             n_edges,
+ const int       n_edges,
  int             edge_vtx_idx[],
  int             edge_vtx[],
  CWP_g_num_t     global_num[]
@@ -2166,6 +2175,47 @@ CWP_Part_data_wait_irecv
  int           *request
 );
 
+
+/**
+ *
+ * \brief Define ho element ordering from the location in the (u, v, w) grid
+ * Order?? (single order per pair (code, cpl))?
+ *
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  block_type       Block type
+ * \param [in]  order            Element order
+ * \param [in]  n_nodes          Number of nodes
+ * \param [in]  ijk_grid         User ordering to (u, v, w) grid (size = elt_dim * n_nodes)
+ *
+ */
+
+void
+CWP_Mesh_interf_ho_ordering_from_IJK_set
+(
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const CWP_Block_t  block_type,
+ const int          order,
+ const int          n_nodes,
+ const int         *ijk_grid
+ );
+
+
+/**
+ * \brief Convert \ref CWP_Block_t type to \ref PDM_Mesh_nodal_elt_t type
+ *
+ * \param [in] block_type  CWIPI block type
+ *
+ * \return PDM element type
+ */
+
+PDM_Mesh_nodal_elt_t
+CWP_block_type_to_PDM_elt_type
+(
+ const CWP_Block_t block_type
+ );
+
 /*****************************************************************************************************
  *                                                                                                   *
  *                              Not yet implemented                                                  *
@@ -2200,6 +2250,45 @@ CWP_Mesh_interf_h_order_block_set
  int                connec[],
  CWP_g_num_t        global_num[]
 );
+
+// /*----------------------------------------------------------------------------
+//  *
+//  * Define specific options for ho elements
+//  *
+//  * parameters:
+//  *   coupling_id     <-- coupling name
+//  *   option          <-- option name, Choice between :
+//  *                          - "opt_bbox_step"
+//  *                              * Description : step of discretization used
+//  *                                              to compute the optimized element
+//  *                                              bounding boxes
+//  *                                              -1 to deactivate this computation
+//  *                              * Default     : 10
+//  *   value           <-- option value
+//  *
+//  *----------------------------------------------------------------------------*/
+
+// void cwipi_ho_options_set (const char *coupling_id,
+//                            const char *option,
+//                            const char *value);
+
+// /*----------------------------------------------------------------------------
+//  *
+//  * Define ho element ordering from reference element (definition between 0 - 1)
+//  *
+//  *   coupling_id        <-- coupling name
+//  *   t_elt              <-- element type
+//  *   n_nodes            <-- number of nodes
+//  *   coords             <-- node coordinates of reference element
+//  *                                TODO: decrire ici les elements de reference
+//  *
+//  *----------------------------------------------------------------------------*/
+
+// PAS GÉRÉ ACTUELLEMENT DANS PDM_HO_ORDERING
+// void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
+//                                          const cwipi_element_t t_elt,
+//                                          const int n_nodes,
+//                                          const double *coords);
 
 
 /**

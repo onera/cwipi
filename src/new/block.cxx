@@ -19,6 +19,7 @@
 
 #include "pdm.h"
 #include "pdm_mesh_nodal.h"
+#include "pdm_part_mesh_nodal.h"
 #include "pdm_gnum.h"
 #include "block.hxx"
 #include <map>
@@ -69,9 +70,9 @@ namespace cwipi {
   const double* Block::eltCentersGet(int i_part) {
 
     if (_cells_center[i_part] == NULL) {
-      PDM_Mesh_nodal_cell_centers_compute (_mesh->getPdmNodalIndex(), _block_id_pdm, i_part, PDM_OWNERSHIP_KEEP);
+      PDM_part_mesh_nodal_section_elt_center_compute(_mesh->getPdmNodalIndex(), _block_id_pdm, i_part, PDM_OWNERSHIP_KEEP);
     }
-    return PDM_Mesh_cell_centers_get (_mesh->getPdmNodalIndex(), _block_id_pdm, i_part);
+    return PDM_part_mesh_nodal_section_elt_center_get(_mesh->getPdmNodalIndex(), _block_id_pdm, i_part);
   }
 
   CWP_g_num_t*

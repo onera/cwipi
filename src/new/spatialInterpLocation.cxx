@@ -115,7 +115,7 @@ namespace cwipi {
     free ( _points_projected_coords);
 
 
-    //PDM_Mesh_nodal_free (_pdm_CplNodal);
+    //PDM_part_mesh_nodal_free (_pdm_CplNodal);
   }
 
 
@@ -173,7 +173,7 @@ namespace cwipi {
     // }
 
     if (_pdm_CplNodal != NULL) {
-      printf("SpatialInterpLocation::init Mesh_nodal_n_blocks :%d\n", PDM_Mesh_nodal_n_blocks_get(_pdm_CplNodal));
+      printf("SpatialInterpLocation::init Mesh_nodal_n_blocks :%d\n", PDM_part_mesh_nodal_n_section_in_geom_kind_get(_pdm_CplNodal, _mesh->geomKindGet()));
       fflush(stdout);
     }
 
@@ -399,7 +399,7 @@ namespace cwipi {
             dynamic_cast <SpatialInterpLocation *> (cpl_spatial_interp_recv_map[make_pair(_coupledCodeDofLocation, _localCodeDofLocation)]);
         }
 
-        for (int i_part = 0; i_part < _nPart; i_part++) {
+        for (int i_part = 0; i_part < _cplNPart; i_part++) {
           if (cpl_spatial_interp->_tgt_distance[i_part] != NULL) {
             free (cpl_spatial_interp->_tgt_distance[i_part]);
             free (cpl_spatial_interp->_tgt_projected[i_part]);
@@ -545,10 +545,6 @@ namespace cwipi {
                                          (const PDM_g_num_t **)_points_gnum,
                                          _pdmCplComm);
       }
-      else {
-        printf("ptp from mesh_location OK\n");
-        fflush(stdout);
-      }
     }
     else {
 
@@ -594,10 +590,6 @@ namespace cwipi {
                                              _pdmCplComm);
 
           }
-        }
-        else {
-          printf("ptp from mesh_location OK\n");
-          fflush(stdout);
         }
 
         cpl_spatial_interp->_ptsp = _ptsp;
@@ -677,7 +669,7 @@ namespace cwipi {
 
           int    part_n_elt               = _mesh->getPartNElts(i_part);
 
-          double *local_buffer = (double *) *buffer;
+          double *local_buffer = (double *) buffer[i_part];
 
           int ival = 0;
           if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
@@ -721,7 +713,7 @@ namespace cwipi {
           int         *connec_idx = connec_idx2; 
           int         *connec = connec2;
           
-          double *local_buffer = (double *) *buffer;
+          double *local_buffer = (double *) buffer[i_part];
 
           int ival = 0;
 
