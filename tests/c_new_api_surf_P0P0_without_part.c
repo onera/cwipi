@@ -490,7 +490,7 @@ int main(int argc, char *argv[])
   const char *all_code_names[2] = {"code1", "code2"};
   int all_n_vtx_seg[2] = {n_vtx_seg1, n_vtx_seg2};
   int all_n_part   [2] = {n_part1,    n_part2};
-  CWP_Comm_t all_comm_type[2] = {CWP_COMM_PAR_WITH_PART, CWP_COMM_PAR_WITHOUT_PART};
+  CWP_Comm_t all_comm_type[2] = {CWP_COMM_PAR_WITHOUT_PART, CWP_COMM_PAR_WITH_PART};
 
   int n_code = 0;
   int n_vtx_seg[2];
@@ -509,7 +509,7 @@ int main(int argc, char *argv[])
       is_active_rank   [n_code] = CWP_STATUS_ON;
       time_init        [n_code] = 0.;
       comm_type        [n_code] = all_comm_type[icode];
-      log_trace("%s\n", code_name[n_code]);
+      // log_trace("%s\n", code_name[n_code]);
       n_code++;
     }
   }
@@ -536,12 +536,13 @@ int main(int argc, char *argv[])
 
   // Create coupling
   const char *cpl_name = "c_new_api_surf_P0P0_without_part";
-  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
-  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
+  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
 
   for (int i_code = 0; i_code < n_code; i_code++) {
-    log_trace(">> CWP_Cpl_create %s\n", code_name[i_code]);
+    // log_trace(">> CWP_Cpl_create %s\n", code_name[i_code]);
     CWP_Cpl_create(code_name[i_code],                                     // Code name
                    cpl_name,                                              // Coupling id
                    coupled_code_name[i_code],                             // Coupled application id
@@ -614,6 +615,22 @@ int main(int argc, char *argv[])
                                        pface_vtx_idx [i_code][i],
                                        pface_vtx     [i_code][i],
                                        pface_ln_to_gn[i_code][i]);
+
+
+      int order = 3;
+      int n_nodes = order+1;
+      int *ijk_grid = malloc(sizeof(int) * n_nodes);
+      for (int j = 0; j < n_nodes; j++) {
+        ijk_grid[j] = j;
+      }
+
+      CWP_Mesh_interf_ho_ordering_from_IJK_set(code_name[i_code],
+                                               cpl_name,
+                                               CWP_BLOCK_EDGEHO,
+                                               order,
+                                               n_nodes,
+                                               ijk_grid);
+      free(ijk_grid);
     }
 
     CWP_Mesh_interf_finalize(code_name[i_code], cpl_name);
@@ -715,9 +732,33 @@ int main(int argc, char *argv[])
 
     if (code_id[i_code] == 1) {
       CWP_Field_wait_issend(code_name[i_code], cpl_name, field_name1);
+      for (int ipart = 0; ipart < n_part[i_code]; ipart++) {
+        int n_involved_src = CWP_N_involved_srcs_get(code_name[i_code],
+                                                     cpl_name,
+                                                     field_name1,
+                                                     ipart);
+        const int *involved_src = CWP_Involved_srcs_get(code_name[i_code],
+                                                        cpl_name,
+                                                        field_name1,
+                                                        ipart);
+        log_trace("part %d, ", ipart);
+        PDM_log_trace_array_int(involved_src, n_involved_src, "involved_src : ");
+      }
     }
     else {
       CWP_Field_wait_irecv (code_name[i_code], cpl_name, field_name1);
+      for (int ipart = 0; ipart < n_part[i_code]; ipart++) {
+        int n_computed_tgt = CWP_N_computed_tgts_get(code_name[i_code],
+                                                     cpl_name,
+                                                     field_name1,
+                                                     ipart);
+        const int *computed_tgt = CWP_Computed_tgts_get(code_name[i_code],
+                                                        cpl_name,
+                                                        field_name1,
+                                                        ipart);
+        log_trace("part %d, ", ipart);
+        PDM_log_trace_array_int(computed_tgt, n_computed_tgt, "computed_tgt : ");
+      }
     }
   }
 
