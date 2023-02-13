@@ -34,6 +34,8 @@
 // #include "visualization.hxx"
 #include "field.hxx"
 #include "globalData.hxx"
+#include "partData.hxx"
+#include "pdm_part_to_part.h"
 #include "pdm_writer.h"
 
 /**
@@ -98,6 +100,131 @@ namespace cwipi {
      */
 
     virtual ~Coupling();
+
+    /*----------------------------------------------------------------------------*
+     * Methods about part data                                                    *
+     *----------------------------------------------------------------------------*/
+
+    /**
+     * \brief Check if object already exists
+     *
+     * \param [in] part_data_id
+     *
+     */
+
+    bool
+    partDataIs (
+     const string &part_data_id
+    );
+
+    /**
+     * \brief Create partitionned data exchange object
+     *
+     * \param [in] part_data_id
+     * \param [in] exch_type
+     * \param [in] gnum_elt
+     * \param [in] n_elt
+     * \param [in] n_part
+     *
+     */
+
+    void
+    partDataCreate
+    (
+     const string          &part_data_id,
+     CWP_PartData_exch_t   exch_type,
+     CWP_g_num_t         **gnum_elt,
+     int                  *n_elt,
+     int                   n_part
+    );
+
+    /**
+     * \brief Delete partitionned data exchange object
+     *
+     * \param [in] part_data_id
+     *
+     */
+
+    void
+    partDataDel
+    (
+     const string   &part_data_id
+    );
+
+    /**
+     * \brief Issend partitionned data
+     *
+     * \param [in] part_data_id
+     * \param [in] s_data
+     * \param [in] n_components
+     * \param [in] part1_to_part2_data
+     * \param [in] request
+     *
+     */
+
+    void
+    partDataIssend
+    (
+     const string   &part_data_id,
+     size_t         s_data,
+     int            n_components,
+     void         **part1_to_part2_data,
+     int           *request
+    );
+
+    /**
+     * \brief Irecv partitionned data
+     *
+     * \param [in] part_data_id
+     * \param [in] s_data
+     * \param [in] data_t
+     * \param [in] n_components
+     * \param [in] part2_data
+     * \param [in] request
+     *
+     */
+
+    void
+    partDataIrecv
+    (
+     const string   &part_data_id,
+     size_t         s_data,
+     CWP_Type_t     data_t,
+     int            n_components,
+     void         **part2_data,
+     int           *request
+    );
+
+    /**
+     * \brief Wait issend partitionned data
+     *
+     * \param [in] part_data_id
+     * \param [in] request
+     *
+     */
+
+    void
+    partDataWaitIssend
+    (
+     const string   &part_data_id,
+     int           *request
+    );
+
+    /**
+     * \brief Wait irecv partitionned data
+     *
+     * \param [in] part_data_id
+     * \param [in] request
+     *
+     */
+
+    void
+    partDataWaitIrecv
+    (
+     const string   &part_data_id,
+     int           *request
+    );
+
 
     /*----------------------------------------------------------------------------*
      * Methods about global data                                                  *
@@ -1627,6 +1754,7 @@ namespace cwipi {
           double                              _recvNextTime;          /*!< Next receiving time */
           std::map < string, Field * >       &_fields;                /*!< Fields Data Base */
           std::map < string, GlobalData >    &_globalData;            /*!< GlobalData Data Base */
+          std::map < string, PartData >      &_partData;              /*!< PartData Data Base */
           CouplingDB                         &_cplDB;                 /*!< Coupling Data base */
           CWP_Dynamic_mesh_t                  _displacement;          /*!< Type of mesh displacement */
     const CWP_Spatial_interp_t                _spatialInterpAlgo;     /*!< Spatial intepolation algorithm */
