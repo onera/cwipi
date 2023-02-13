@@ -191,9 +191,9 @@ main(int argc, char *argv[]) {
 
   // --> exchange
   int **part1_to_part2_data = NULL;
-  int send_request = 0;
+  int send_request = -1;
   int **part2_data = NULL;
-  int recv_request = 0;
+  int recv_request = -1;
   int n_comp = 3;
 
   if (rank < comm_world_size / 2) {
@@ -222,6 +222,9 @@ main(int argc, char *argv[]) {
   else {
 
     part2_data = malloc(sizeof (int *) * n_part);
+    for (int i_part; i_part < n_part; i_part++) {
+      part2_data[i_part] = malloc(sizeof(int) * n_elt * n_comp);
+    }
 
     CWP_Part_data_irecv(code_name[0],
                         coupling_name,
@@ -261,7 +264,7 @@ main(int argc, char *argv[]) {
             fflush(stdout);
           }
           else {
-            printf("s[%d][%d][%d] : %d\n", i_part, i, i_comp, part2_data[i_part][3*i + i_comp]);
+            printf("r[%d][%d][%d] : %d\n", i_part, i, i_comp, part2_data[i_part][3*i + i_comp]);
             fflush(stdout);
           }
         }
@@ -270,7 +273,6 @@ main(int argc, char *argv[]) {
 
   // Delete coupling
   CWP_Cpl_del(code_name[0], coupling_name);
-  CWP_Cpl_del(code_name[1], coupling_name);
 
   // Free memory
   free(code_name);
@@ -278,9 +280,25 @@ main(int argc, char *argv[]) {
   free(is_active_rank);
   free(time_init);
   free(intra_comm);
-  free(gnum_elt);
-  if (part1_to_part2_data != NULL) free(part1_to_part2_data);
-  if (part2_data != NULL) free(part2_data);
+
+  if (part1_to_part2_data != NULL) {
+    for (int i_part; i_part < n_part; i_part++) {
+      free(part1_to_part2_data[i_part]);
+    }
+    free(part1_to_part2_data);
+  }
+  if (part2_data != NULL) {
+    for (int i_part; i_part < n_part; i_part++) {
+      if (part2_data[i_part] != NULL) free(part2_data[i_part]);
+    }
+    free(part2_data);
+  }
+  if (gnum_elt != NULL) {
+    for (int i_part; i_part < n_part; i_part++) {
+      if (gnum_elt[i_part] != NULL) free(gnum_elt[i_part]);
+    }
+    free(gnum_elt);
+  }
 
   // Finalize cwipi
   CWP_Finalize();

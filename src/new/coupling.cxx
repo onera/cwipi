@@ -422,7 +422,7 @@ namespace cwipi {
                                         n_elt,
                                         n_part,
                                         (const int**) part1_to_part2_idx,
-                                        (const PDM_g_num_t**) gnum_elt,
+                                        (const PDM_g_num_t**) gnum_elt1,
                                         PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
 
         } // receiving code
