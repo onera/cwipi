@@ -81,6 +81,20 @@ namespace cwipi {
     void dataSet (int i_part, const CWP_Field_map_t  map_type, void* data);
 
 
+
+    /**
+     * \brief Write th
+     *
+     * \param [in] data   Data array
+     *
+     */
+
+    void write 
+    (
+      CWP_Field_exch_t exch_type
+    );
+
+
     /**
      *
      * \brief Get field storage type
@@ -198,20 +212,6 @@ namespace cwipi {
       }
     }
 
-    void idVarSendSet(int id_var)
-    {
-      _id_var_send = id_var;
-    }
-
-    void idVarRecvSet(int id_var)
-    {
-      _id_var_recv = id_var;
-    }
-
-    void idVarRecvComputedSet(int id_var)
-    {
-      _id_var_recv_computed = id_var;
-    }
 
     void interpFromLocationSet(CWP_Interp_from_location_t fct)
     {
@@ -250,22 +250,6 @@ namespace cwipi {
     CWP_Interpolation_t interpolationTypeGet() {
       return _interpolationType;
     }
-
-    int idVarSendGet() const
-    {
-      return _id_var_send;
-    }
-
-    int idVarRecvGet() const
-    {
-      return _id_var_recv;
-    }
-
-    int idVarRecvComputedGet() const
-    {
-      return _id_var_recv_computed;
-    }
-
 
 
     // std::vector<void*> dataGetAll() const
@@ -351,10 +335,10 @@ namespace cwipi {
     Coupling                                *_cpl;
     Mesh                                    *_mesh;
     int                                      _n_part;
-    int                                      _id_var_send;
-    int                                      _id_var_recv;
-    int                                      _id_var_recv_computed;
     PDM_writer_t                            *_writer;
+    int                                     *_id_writer_var_send;
+    int                                     *_id_writer_var_recv;
+    int                                      _id_writer_var_recv_computed;
 
     std::map <int,MPI_Request>               _last_request;
     std::map <int,std::vector<MPI_Request>>  _last_request_p2p;

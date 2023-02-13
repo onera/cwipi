@@ -1518,6 +1518,34 @@ namespace cwipi {
     SpatialInterpPropertiesNamesGet (
     );
 
+
+    /**
+     * \brief Return kind of displacement
+     *  
+     * 
+     * \return kind of displacement
+     *
+     */
+
+    inline CWP_Dynamic_mesh_t
+    DisplacementGet (
+    );
+
+
+    /**
+     * \brief Curent number of coupling step
+     *  
+     * 
+     * \return the current number of coupling step
+     *
+     */
+
+    inline int 
+    NStepGet (
+    );
+
+
+
   public:
 
     // A supprimer 
@@ -1543,6 +1571,11 @@ namespace cwipi {
 
     void
     isUpToDateSet ();
+
+
+    inline int
+    idGeomWriterGet();
+
 
   private:
 

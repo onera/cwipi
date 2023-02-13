@@ -32,6 +32,24 @@ namespace cwipi {
    * Methods about exchange frequency                                           *
    *----------------------------------------------------------------------------*/
 
+
+
+    /**
+     * \brief Return kind of displacement
+     *  
+     * 
+     * \return kind of displacement
+     *
+     */
+
+    CWP_Dynamic_mesh_t
+    Coupling::DisplacementGet (
+    )
+    {
+      return _displacement;
+    }
+
+
   /**
    * \brief Setting receiving frequency.
    *
@@ -102,6 +120,21 @@ namespace cwipi {
     return _freq_writer;
   }
 
+
+  /**
+   * \brief Curent number of coupling step
+   *  
+   * 
+   * \return the current number of coupling step
+   *
+   */
+
+  int 
+  Coupling::NStepGet (
+  )
+  {
+    return _n_step;
+  }
 
   /*----------------------------------------------------------------------------*
    * Methods about mesh                                                     *
@@ -900,13 +933,13 @@ namespace cwipi {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
     if (it == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : '%s' not existing field\n", field_id.c_str());
+      PDM_error(__FILE__, __LINE__, 0, "Error involvedSourcesGet : '%s' not existing field\n", field_id.c_str());
     }
 
     Field* field = it->second;
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV) {
-      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : '%s' does not send data\n", field_id.c_str());
+      PDM_error(__FILE__, __LINE__, 0, "Error involvedSourcesGet : '%s' does not send data\n", field_id.c_str());
     }
 
     return _spatial_interp_send[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->involvedSourcesGet(i_part);
@@ -1494,6 +1527,15 @@ namespace cwipi {
   )
   {
     return _spatial_interp_properties_int;
+  }
+
+
+  int
+  Coupling::idGeomWriterGet
+  (
+  )
+  {
+    return _id_geom_writer;
   }
 
 } // name space cwipi
