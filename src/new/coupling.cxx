@@ -738,7 +738,7 @@ namespace cwipi {
         int first_idx = gnum1_come_from_idx[i_part][i];
         filtered_gnum1_come_from[i_part][i] = gnum1_come_from[i_part][first_idx];
         for (int j = 0; j < delta; j++) {
-          (unsigned char ** part2_data)[i_part][i * delta + j] = (unsigned char ** recv_buffer)[i_part][first_idx + j];
+          ((unsigned char **) part2_data)[i_part][i * delta + j] = ((unsigned char **) recv_buffer)[i_part][first_idx + j];
         }
       }
     }

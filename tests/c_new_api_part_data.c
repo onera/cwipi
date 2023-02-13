@@ -141,6 +141,9 @@ main(int argc, char *argv[]) {
   // Create coupling
   const char *coupling_name = "c_surf_cpl_P1P1";
 
+  printf("broute\n");
+  fflush(stdout);
+
   CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
   CWP_Cpl_create(code_name[0],
                  coupling_name,
@@ -152,8 +155,20 @@ main(int argc, char *argv[]) {
                  CWP_DYNAMIC_MESH_STATIC,
                  CWP_TIME_EXCH_USER_CONTROLLED);
 
+  printf("blate\n");
+  fflush(stdout);
+
   // Partitionned data exchange
   const char *part_data_name = "schtroumpf";
+
+  // --> create
+  CWP_PartData_exch_t side;
+  if (rank < comm_world_size / 2) {
+    side = CWP_PARTDATA_SEND;
+  }
+  else {
+    side = CWP_PARTDATA_RECV;
+  }
 
   int n_elt = 4;
   int *n_elts = malloc(sizeof(int *) * n_part);
@@ -172,14 +187,6 @@ main(int argc, char *argv[]) {
     }
   }
 
-  // --> create
-  CWP_PartData_exch_t side;
-  if (rank < comm_world_size / 2) {
-    side = CWP_PARTDATA_SEND;
-  }
-  else {
-    side = CWP_PARTDATA_RECV;
-  }
   CWP_Part_data_create(code_name[0],
                        coupling_name,
                        part_data_name,
@@ -187,7 +194,6 @@ main(int argc, char *argv[]) {
                        gnum_elt,
                        n_elts,
                        n_part);
-
 
   // --> exchange
   int **part1_to_part2_data = NULL;
@@ -220,17 +226,10 @@ main(int argc, char *argv[]) {
                          &send_request);
   }
   else {
-
-    part2_data = malloc(sizeof (int *) * n_part);
-    for (int i_part; i_part < n_part; i_part++) {
-      part2_data[i_part] = malloc(sizeof(int) * n_elt * n_comp);
-    }
-
     CWP_Part_data_irecv(code_name[0],
                         coupling_name,
                         part_data_name,
                         sizeof(int),
-                        CWP_INT,
                         n_comp,
                         (void **) part2_data,
                         &recv_request);
@@ -270,6 +269,8 @@ main(int argc, char *argv[]) {
         }
       }
     }
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
   // Delete coupling
   CWP_Cpl_del(code_name[0], coupling_name);
