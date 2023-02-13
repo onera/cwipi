@@ -151,10 +151,10 @@ namespace cwipi {
       return _filtered_gnum1_come_from;
     }
 
-    inline CWP_Type_t
-    get_data_t()
+    inline void **
+    get_recv_buffer()
     {
-      return _data_t;
+      return _recv_buffer;
     }
 
     // Setters
@@ -232,12 +232,12 @@ namespace cwipi {
     }
 
     inline void
-    set_data_t
+    set_recv_buffer
     (
-     CWP_Type_t data_t
+     void ** recv_buffer
     )
     {
-      _data_t = data_t;
+      _recv_buffer = recv_buffer;
     }
 
     int
@@ -274,8 +274,10 @@ namespace cwipi {
     int            _n_part2;
     void         **_part2_data;
     int           *_request2;
+
+    // intern
+    void         **_recv_buffer;
     CWP_g_num_t  **_filtered_gnum1_come_from;
-    CWP_Type_t     _data_t;
 
   };
 

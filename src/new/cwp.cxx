@@ -3184,7 +3184,6 @@ CWP_Part_data_issend
  * \param [in] cpl_id           Coupling identifier
  * \param [in] part_data_id
  * \param [in] s_data
- * \param [in] data_t
  * \param [in] n_components
  * \param [in] part2_data
  * \param [in] request
@@ -3198,7 +3197,6 @@ CWP_Part_data_irecv
  const char    *cpl_id,
  const char    *part_data_id,
  size_t         s_data,
- CWP_Type_t     data_t,
  int            n_components,
  void         **part2_data,
  int           *request
@@ -3207,7 +3205,6 @@ CWP_Part_data_irecv
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
   cpl.partDataIrecv(part_data_id,
                     s_data,
-                    data_t,
                     n_components,
                     part2_data,
                     request);

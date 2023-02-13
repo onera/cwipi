@@ -177,7 +177,6 @@ namespace cwipi {
      *
      * \param [in] part_data_id
      * \param [in] s_data
-     * \param [in] data_t
      * \param [in] n_components
      * \param [in] part2_data
      * \param [in] request
@@ -189,7 +188,6 @@ namespace cwipi {
     (
      const string   &part_data_id,
      size_t         s_data,
-     CWP_Type_t     data_t,
      int            n_components,
      void         **part2_data,
      int           *request
