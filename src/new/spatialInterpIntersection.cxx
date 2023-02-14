@@ -304,20 +304,20 @@ namespace cwipi {
 
     int mesh_dim = local_mesh_dim;
 
-    int n_part_src = 0;
-    int n_part_tgt = 0;
-    if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
-      n_part_src = _nPart;
-    }
-    else {
-      n_part_src = _cplNPart;
-    }
-    if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
-      n_part_tgt = _nPart;
-    }
-    else {
-      n_part_tgt = _cplNPart;
-    }
+    // int n_part_src = 0;
+    // int n_part_tgt = 0;
+    // if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
+    //   n_part_src = _nPart;
+    // }
+    // else {
+    //   n_part_src = _cplNPart;
+    // }
+    // if (_exchDirection == SPATIAL_INTERP_EXCH_RECV) {
+    //   n_part_tgt = _nPart;
+    // }
+    // else {
+    //   n_part_tgt = _cplNPart;
+    // }
 
     // A = source
     // B = target
@@ -337,7 +337,7 @@ namespace cwipi {
       }
       else {
         // empty mesh
-        PDM_mesh_intersection_n_part_set2(_id_pdm, 0, n_part_src);
+        // PDM_mesh_intersection_n_part_set2(_id_pdm, 0, n_part_src);
         // PDM_mesh_intersection_n_part_set(_id_pdm, 0, n_part_src);
         // for (int i = 0; i < n_part_src; i++) {
         //   PDM_mesh_intersection_part_set(_id_pdm,
@@ -368,7 +368,7 @@ namespace cwipi {
       }
       else {
         // empty mesh
-        PDM_mesh_intersection_n_part_set2(_id_pdm, 1, n_part_tgt);
+        // PDM_mesh_intersection_n_part_set2(_id_pdm, 1, n_part_tgt);
         // PDM_mesh_intersection_n_part_set(_id_pdm, 1, n_part_tgt);
         // for (int i = 0; i < n_part_tgt; i++) {
         //   PDM_mesh_intersection_part_set(_id_pdm,

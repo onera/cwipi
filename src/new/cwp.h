@@ -2175,9 +2175,36 @@ CWP_Part_data_wait_irecv
 
 
 /**
+ * \brief Set a generic high order block to the interface mesh. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  i_part           Partition identifier
+ * \param [in]  block_id         Block identifier
+ * \param [in]  n_elts           Number of elements
+ * \param [in]  order            Element order
+ * \param [in]  connec           Connectivity (size = n_vertex_elt * n_elts)
+ * \param [in]  global_num       Pointer to global element number (or NULL)
+ *
+ */
+
+void
+CWP_Mesh_interf_h_order_block_set
+(
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const int          i_part,
+ const int          block_id,
+ const int          n_elts,
+ const int          order,
+ int                connec[],
+ CWP_g_num_t        global_num[]
+);
+
+
+/**
  *
  * \brief Define ho element ordering from the location in the (u, v, w) grid
- * Order?? (single order per pair (code, cpl))?
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -2219,35 +2246,6 @@ CWP_block_type_to_PDM_elt_type
  *                              Not yet implemented                                                  *
  *                                                                                                   *
  *****************************************************************************************************/
-
-
-
-/**
- * \brief Set a generic high order block to the interface mesh. <b>(Not implemented yet)</b>
- *
- * \param [in]  local_code_name  Local code name
- * \param [in]  cpl_id           Coupling identifier
- * \param [in]  i_part           Partition identifier
- * \param [in]  block_id         Block identifier
- * \param [in]  n_elts           Number of elements
- * \param [in]  order            Element order
- * \param [in]  connec           Connectivity (size = n_vertex_elt * n_elts)
- * \param [in]  global_num       Pointer to global element number (or NULL)
- *
- */
-
-void
-CWP_Mesh_interf_h_order_block_set
-(
- const char        *local_code_name,
- const char        *cpl_id,
- const int          i_part,
- const int          block_id,
- const int          n_elts,
- const int          order,
- int                connec[],
- CWP_g_num_t        global_num[]
-);
 
 // /*----------------------------------------------------------------------------
 //  *

@@ -632,6 +632,18 @@ namespace cwipi {
       CWP_g_num_t       global_num[]
     );
 
+    inline void
+    meshHOBlockSet
+    (
+     const int           i_part,
+     const int           block_id,
+     const int           n_elts,
+     int                 connec[],
+     CWP_g_num_t         global_num[],
+     const int           order,
+     const char         *ho_ordering
+     );
+
 
     /**
      * \brief Get a standard block to the interface mesh

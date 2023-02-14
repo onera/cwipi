@@ -482,8 +482,18 @@ namespace cwipi {
 
       PDM_part_to_part_iexch_wait (_ptsp, _send_request[intId]);
 
+      int                _n_part1;
+      int                _n_part2;
+      int               *_n_elt1;
+      int               *_n_elt2;
+      PDM_part_to_part_n_part_and_n_elt_get(_ptsp,
+                                            &_n_part1,
+                                            &_n_part2,
+                                            &_n_elt1,
+                                            &_n_elt2);
+
       if (_send_buffer[intId] != NULL) {
-        for (int i = 0; i < _nPart; i++) {
+        for (int i = 0; i < _n_part1; i++) {
           if (_send_buffer[intId][i] != NULL) {
             free (_send_buffer[intId][i]);
             _send_buffer[intId][i] = NULL;
@@ -494,8 +504,7 @@ namespace cwipi {
       }
 
       if (_recv_buffer[intId] != NULL) {
-        // for (int i = 0; i < _nPart; i++) {
-        for (int i = 0; i < _cplNPart; i++) {
+        for (int i = 0; i < _n_part2; i++) {
           if (_recv_buffer[intId][i] != NULL) {
             free (_recv_buffer[intId][i]);
             _recv_buffer[intId][i] = NULL;
@@ -645,24 +654,26 @@ namespace cwipi {
           }
         }
 
-        for (int i = 0; i < _cplNPart; i++) {
-          if (cpl_spatial_interp->_send_buffer[cpl_intId] != NULL) {
+        if (cpl_spatial_interp->_send_buffer[cpl_intId] != NULL) {
+          for (int i = 0; i < _cplNPart; i++) {
             if (cpl_spatial_interp->_send_buffer[cpl_intId][i] != NULL) {
               free (cpl_spatial_interp->_send_buffer[cpl_intId][i]);
               cpl_spatial_interp->_send_buffer[cpl_intId][i] = NULL;
             }
-            free (cpl_spatial_interp->_send_buffer[cpl_intId]);
-            cpl_spatial_interp->_send_buffer[cpl_intId] = NULL;
           }
-          if (cpl_spatial_interp->_recv_buffer[cpl_intId] != NULL) {
+          free (cpl_spatial_interp->_send_buffer[cpl_intId]);
+          cpl_spatial_interp->_send_buffer[cpl_intId] = NULL;
+        }
+
+        if (cpl_spatial_interp->_recv_buffer[cpl_intId] != NULL) {
+          for (int i = 0; i < _cplNPart; i++) {
             if (cpl_spatial_interp->_recv_buffer[cpl_intId][i] != NULL) {
               free (cpl_spatial_interp->_recv_buffer[cpl_intId][i]);
               cpl_spatial_interp->_recv_buffer[cpl_intId][i] = NULL;
             }
-            free (cpl_spatial_interp->_recv_buffer[cpl_intId]);
-            cpl_spatial_interp->_recv_buffer[cpl_intId] = NULL;
           }
-
+          free (cpl_spatial_interp->_recv_buffer[cpl_intId]);
+          cpl_spatial_interp->_recv_buffer[cpl_intId] = NULL;
         }
 
         if (writer != nullptr) {

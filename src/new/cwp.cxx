@@ -630,7 +630,13 @@ CWP_Init
   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_HEXA8);
   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_PRISM6);
   factoryBlock.Register<cwipi::BlockStd>(CWP_BLOCK_CELL_PYRAM5);
-  factoryBlock.Register<cwipi::BlockCP > (CWP_BLOCK_CELL_POLY);
+  factoryBlock.Register<cwipi::BlockCP >(CWP_BLOCK_CELL_POLY);
+  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_FACE_TRIAHO);
+  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_FACE_QUADHO);
+  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_CELL_TETRAHO);
+  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_CELL_HEXAHO);
+  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_CELL_PRISMHO);
+  factoryBlock.Register<cwipi::BlockHO >(CWP_BLOCK_CELL_PYRAMHO);
 
   MPI_Barrier(global_comm);
 
@@ -1767,29 +1773,6 @@ CWP_std_block_type_get
   return block_type;
 }
 
-/*void
-CWP_Mesh_interf_h_order_block_set
-(
- const char        *local_code_name,
- const char        *cpl_id,
- const int          i_part,
- const int          block_id,
- const int          n_elts,
- const int          order,
- int                connec[],
- CWP_g_num_t        global_num[]
-)
-{
-  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.meshHighOrderBlockSet(i_part,
-                            block_id,
-                            block_type,
-                            n_elts,
-                            order,
-                            connec,
-                            global_num);
-}
-*/
 
 /**
  * \brief Set the connectivity of a polygon block in a interface mesh partition.
@@ -3263,6 +3246,56 @@ CWP_Part_data_wait_irecv
 
 
 /**
+ * \brief Set a generic high order block to the interface mesh. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  i_part           Partition identifier
+ * \param [in]  block_id         Block identifier
+ * \param [in]  n_elts           Number of elements
+ * \param [in]  order            Element order
+ * \param [in]  connec           Connectivity (size = n_vertex_elt * n_elts)
+ * \param [in]  global_num       Pointer to global element number (or NULL)
+ *
+ */
+
+void
+CWP_Mesh_interf_h_order_block_set
+(
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const int          i_part,
+ const int          block_id,
+ const int          n_elts,
+ const int          order,
+ int                connec[],
+ CWP_g_num_t        global_num[]
+)
+{
+  if (_is_active_rank(local_code_name)) {
+    const char *prefix = "CWP_HO_ORDERING";
+    /* Generate an ho_ordering name from local_code_name and cpl_id */
+    char *ho_ordering_name = (char *) malloc(sizeof(char) * (strlen(prefix)          +
+                                                             strlen(local_code_name) +
+                                                             strlen(cpl_id)          +
+                                                             3));
+    sprintf(ho_ordering_name, "%s_%s_%s", prefix, local_code_name, cpl_id);
+
+    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+    cpl.meshHOBlockSet(i_part,
+                       block_id,
+                       n_elts,
+                       connec,
+                       global_num,
+                       order,
+                       ho_ordering_name);
+
+    free(ho_ordering_name);
+  }
+}
+
+
+/**
  *
  * \brief Define ho element ordering from the location in the (u, v, w) grid
  *
@@ -3294,7 +3327,6 @@ CWP_Mesh_interf_ho_ordering_from_IJK_set
                                                            3));
   sprintf(ho_ordering_name, "%s_%s_%s", prefix, local_code_name, cpl_id);
 
-  /* Call PDM */
   PDM_Mesh_nodal_elt_t t_elt = CWP_block_type_to_PDM_elt_type(block_type);
 
   PDM_ho_ordering_user_to_ijk_add(ho_ordering_name,
@@ -3302,6 +3334,9 @@ CWP_Mesh_interf_ho_ordering_from_IJK_set
                                   order,
                                   n_nodes,
                                   ijk_grid);
+
+  /* TODO : reorder connec_ijk in all blocks of same type and order */
+  //...
 
   free(ho_ordering_name);
 }

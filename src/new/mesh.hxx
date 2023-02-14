@@ -33,6 +33,7 @@
 #include "blockFP.hxx"
 #include "blockCP.hxx"
 #include "blockStd.hxx"
+#include "blockHO.hxx"
 #include "cwp.h"
 // #include "visualization.hxx"
 
@@ -145,14 +146,39 @@ namespace cwipi {
      *
      */
 
-    void 
-    stdBlockSet 
-    ( 
+    void
+    stdBlockSet
+    (
       const int    i_part,
       const int    block_id,
       const int    n_elts,
       int          connec[],
       CWP_g_num_t  global_num[]
+    );
+
+    /**
+     * \brief Set a high-order block to the interface mesh
+     *
+     * \param [in] i_part      Partition identifier
+     * \param [in] block_id    Block identifier
+     * \param [in] n_elts      Number of block elements
+     * \param [in] connec      Vertices to elements connectivity
+     * \param [in] global_num  Global numbering of the vertices in the block (or NULL)
+     * \param [in] order       Element order
+     * \param [in] ho_ordering HO ordering name
+     *
+     */
+
+    void
+    HOBlockSet
+    (
+      const int    i_part,
+      const int    block_id,
+      const int    n_elts,
+      int          connec[],
+      CWP_g_num_t  global_num[],
+      const int    order,
+      const char  *ho_ordering
     );
 
     /**

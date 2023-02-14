@@ -27,12 +27,14 @@
 #include <pdm_gnum.h>
 #include <pdm_error.h>
 #include <pdm_printf.h>
+#include <pdm_logging.h>
 #include "cwp.h"
 #include "factory.hpp"
 #include "block.hxx"
 #include "blockStd.hxx"
 #include "blockCP.hxx"
 #include "blockFP.hxx"
+#include "blockHO.hxx"
 #include "coupling.hxx"
 #include "coupling_i.hxx"
 
@@ -976,34 +978,19 @@ namespace cwipi {
               }
             }
 
-            else {
+            else if (block_type == CWP_BLOCK_NODE        ||
+                     block_type == CWP_BLOCK_EDGE2       ||
+                     block_type == CWP_BLOCK_FACE_TRIA3  ||
+                     block_type == CWP_BLOCK_FACE_QUAD4  ||
+                     block_type == CWP_BLOCK_CELL_TETRA4 ||
+                     block_type == CWP_BLOCK_CELL_HEXA8  ||
+                     block_type == CWP_BLOCK_CELL_PRISM6 ||
+                     block_type == CWP_BLOCK_CELL_PYRAM5) {
               BlockStd *block = dynamic_cast<BlockStd *>(_blockDB[i_block]);
-              int n_vtx_elt = 0;
 
-              if (block_type == CWP_BLOCK_CELL_TETRA4) {
-                n_vtx_elt = 4;
-              }
-              else if (block_type == CWP_BLOCK_CELL_HEXA8) {
-                n_vtx_elt = 8;
-              }
-              else if (block_type == CWP_BLOCK_CELL_PRISM6) {
-                n_vtx_elt = 6;
-              }
-              else if (block_type == CWP_BLOCK_CELL_PYRAM5) {
-                n_vtx_elt = 5;
-              }
-              else if (block_type == CWP_BLOCK_FACE_QUAD4) {
-                n_vtx_elt = 4;
-              }
-              else if (block_type == CWP_BLOCK_FACE_TRIA3) {
-                n_vtx_elt = 3;
-              }
-              else if (block_type == CWP_BLOCK_EDGE2) {
-                n_vtx_elt = 2;
-              }
-              else {
-                PDM_error (__FILE__, __LINE__, 0, "unknown block type\n");
-              }
+              PDM_Mesh_nodal_elt_t elt_type = CWP_block_type_to_PDM_elt_type(block_type);
+
+              int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, 1);
 
               for (int j = 0; j < n_elt; j++) {
 
@@ -1022,7 +1009,33 @@ namespace cwipi {
                 ielt++;
               }
 
-              block->ConnecGet()[i_part];
+              // block->ConnecGet()[i_part];
+
+            }
+
+            else {
+              BlockHO *block = dynamic_cast<BlockHO *>(_blockDB[i_block]);
+
+              PDM_Mesh_nodal_elt_t elt_type = CWP_block_type_to_PDM_elt_type(block_type);
+
+              int n_vtx_elt = PDM_Mesh_nodal_n_vtx_elt_get(elt_type, block->OrderGet());
+
+              for (int j = 0; j < n_elt; j++) {
+
+                for (int k = 0; k < n_vtx_elt; k++) {
+
+                  int i_vtx = block->ConnecGet()[i_part][j*n_vtx_elt + k] - 1;
+
+                  for (int k2 = 0; k2 < 3; k2++) {
+                    cell_center[i_part][3*ielt+k2] += _coords[i_part][3*i_vtx+k2];
+                  }
+                }
+
+                for (int k2 = 0; k2 < 3; k2++) {
+                  cell_center[i_part][3*ielt+k2] /= n_vtx_elt;
+                }
+                ielt++;
+              }
 
             }
           }
@@ -1104,7 +1117,14 @@ namespace cwipi {
 
           }
 
-          else {
+          else if (block_type == CWP_BLOCK_NODE        ||
+                   block_type == CWP_BLOCK_EDGE2       ||
+                   block_type == CWP_BLOCK_FACE_TRIA3  ||
+                   block_type == CWP_BLOCK_FACE_QUAD4  ||
+                   block_type == CWP_BLOCK_CELL_TETRA4 ||
+                   block_type == CWP_BLOCK_CELL_HEXA8  ||
+                   block_type == CWP_BLOCK_CELL_PRISM6 ||
+                   block_type == CWP_BLOCK_CELL_PYRAM5) {
             BlockStd *block = dynamic_cast<BlockStd *>(_blockDB[i_block]);
 
             PDM_part_mesh_nodal_section_std_set(_pdmNodal_handle_index,
@@ -1116,6 +1136,22 @@ namespace cwipi {
                                                 NULL,
                                                 NULL,
                                                 PDM_OWNERSHIP_USER);
+          }
+
+          else {
+            BlockHO *block = dynamic_cast<BlockHO *>(_blockDB[i_block]);
+
+            PDM_part_mesh_nodal_section_std_ho_set(_pdmNodal_handle_index,
+                                                   pdm_id_block,
+                                                   i_part,
+                                                   n_elt,
+                                                   block->ConnecIJKGet()[i_part],
+                                                   block->GNumMeshGet(i_part),
+                                                   NULL,
+                                                   NULL,
+                                                   block->OrderGet(),
+                                                   NULL,
+                                                   PDM_OWNERSHIP_USER);
           }
         }
       }   //end loop on block
@@ -1181,6 +1217,27 @@ namespace cwipi {
 
     BlockStd *block = dynamic_cast <BlockStd *> (_blockDB [block_id]);
     block->blockSet(i_part,n_elts,connec,global_num);
+
+    _nElts[i_part]  += n_elts;
+
+  }
+
+
+  void
+  Mesh::HOBlockSet
+  (
+   const int    i_part,
+   const int    block_id,
+   const int    n_elts,
+   int          connec[],
+   CWP_g_num_t  global_num[],
+   const int    order,
+   const char  *ho_ordering
+   )
+  {
+
+    BlockHO *block = dynamic_cast <BlockHO *> (_blockDB [block_id]);
+    block->blockSet(i_part,n_elts,connec,global_num, order, ho_ordering);
 
     _nElts[i_part]  += n_elts;
 

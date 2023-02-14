@@ -305,7 +305,7 @@ namespace cwipi {
     const int           block_id,
     const int           n_elts,
     int                 connec[],
-    CWP_g_num_t        global_num[]
+    CWP_g_num_t         global_num[]
   )
   {
     _mesh.stdBlockSet (i_part,
@@ -313,6 +313,27 @@ namespace cwipi {
                        n_elts,
                        connec,
                        global_num);
+  }
+
+
+  void
+  Coupling::meshHOBlockSet (
+    const int           i_part,
+    const int           block_id,
+    const int           n_elts,
+    int                 connec[],
+    CWP_g_num_t         global_num[],
+    const int           order,
+    const char         *ho_ordering
+  )
+  {
+    _mesh.HOBlockSet(i_part,
+                     block_id,
+                     n_elts,
+                     connec,
+                     global_num,
+                     order,
+                     ho_ordering);
   }
 
   /**
