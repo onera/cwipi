@@ -372,6 +372,23 @@ namespace cwipi {
 
         else if (exch_type == CWP_PARTDATA_RECV) {
 
+          // malloc
+          part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part);
+          for (int i_part = 0; i_part < n_part; i_part++) {
+            part1_to_part2_idx[i_part] = (int *) malloc(sizeof(int) * (n_elt[i_part]+1));
+          }
+
+          // fill in
+          for (int i_part = 0; i_part < n_part; i_part++) {
+            part1_to_part2_idx[i_part][0] = 0;
+            for (int i = 0; i < n_elt[i_part]; i++) {
+              part1_to_part2_idx[i_part][i+1] = part1_to_part2_idx[i_part][i] + 1;
+            }
+          }
+
+          // set
+          it->second.set_part1_to_part2_idx(part1_to_part2_idx);
+
           CWP_g_num_t  **gnum_elt1 = cpl_it->second.get_gnum_elt1();
           int           *n_elt1    = cpl_it->second.get_n_elt1();
           int            n_part1   = cpl_it->second.get_n_part1();
