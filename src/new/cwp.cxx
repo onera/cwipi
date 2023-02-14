@@ -3198,7 +3198,7 @@ CWP_Part_data_irecv
  const char    *part_data_id,
  size_t         s_data,
  int            n_components,
- void         **part2_data,
+ void        ***part2_data,
  int           *request
 )
 {

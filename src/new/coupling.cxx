@@ -551,7 +551,7 @@ namespace cwipi {
    const string   &part_data_id,
    size_t         s_data,
    int            n_components,
-   void         **part2_data,
+   void        ***part2_data,
    int           *request
   )
   {
@@ -732,11 +732,11 @@ namespace cwipi {
                                    &ref_lnum2);
 
     // malloc
-    void **part2_data   = it->second.get_part2_data();
-    // part2_data = (void **) malloc(sizeof(void *) * n_part2);
+    void ***part2_data   = it->second.get_part2_data();
+    (*part2_data) = (void **) malloc(sizeof(void *) * n_part2);
     CWP_g_num_t **filtered_gnum1_come_from = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t * ) * n_part2);
     for (int i_part = 0; i_part < n_part2; i_part++) {
-      part2_data[i_part] = malloc(s_data * n_ref_lnum2[i_part] * n_components);
+      (*part2_data)[i_part] = malloc(s_data * n_ref_lnum2[i_part] * n_components);
       filtered_gnum1_come_from[i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_ref_lnum2[i_part]);
     }
 
@@ -747,7 +747,7 @@ namespace cwipi {
         int first_idx = gnum1_come_from_idx[i_part][i];
         filtered_gnum1_come_from[i_part][i] = gnum1_come_from[i_part][first_idx];
         for (int j = 0; j < delta; j++) {
-          ((unsigned char **) part2_data)[i_part][i * delta + j] = ((unsigned char **) recv_buffer)[i_part][first_idx * delta + j];
+          ((unsigned char **) (*part2_data))[i_part][i * delta + j] = ((unsigned char **) recv_buffer)[i_part][first_idx * delta + j];
         }
       }
     }

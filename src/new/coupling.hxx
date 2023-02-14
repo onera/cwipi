@@ -189,7 +189,7 @@ namespace cwipi {
      const string   &part_data_id,
      size_t         s_data,
      int            n_components,
-     void         **part2_data,
+     void        ***part2_data,
      int           *request
     );
 

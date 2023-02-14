@@ -221,13 +221,12 @@ main(int argc, char *argv[]) {
   }
   else {
 
-    part2_data = (int **) malloc(sizeof(int *) * n_part);
     CWP_Part_data_irecv(code_name[0],
                         coupling_name,
                         part_data_name,
                         sizeof(int),
                         n_comp,
-                        (void **) part2_data,
+                        (void ***) &part2_data,
                         &recv_request);
 
   }
