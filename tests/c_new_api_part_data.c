@@ -141,9 +141,6 @@ main(int argc, char *argv[]) {
   // Create coupling
   const char *coupling_name = "c_surf_cpl_P1P1";
 
-  printf("broute\n");
-  fflush(stdout);
-
   CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
   CWP_Cpl_create(code_name[0],
                  coupling_name,
@@ -154,9 +151,6 @@ main(int argc, char *argv[]) {
                  n_part,
                  CWP_DYNAMIC_MESH_STATIC,
                  CWP_TIME_EXCH_USER_CONTROLLED);
-
-  printf("blate\n");
-  fflush(stdout);
 
   // Partitionned data exchange
   const char *part_data_name = "schtroumpf";
@@ -226,6 +220,8 @@ main(int argc, char *argv[]) {
                          &send_request);
   }
   else {
+
+    part2_data = (int **) malloc(sizeof(int *) * n_part);
     CWP_Part_data_irecv(code_name[0],
                         coupling_name,
                         part_data_name,
@@ -272,6 +268,11 @@ main(int argc, char *argv[]) {
 
   MPI_Barrier(MPI_COMM_WORLD);
 
+  // Delete part_data object
+  CWP_Part_data_del(code_name[0],
+                    coupling_name,
+                    part_data_name);
+
   // Delete coupling
   CWP_Cpl_del(code_name[0], coupling_name);
 
@@ -300,6 +301,7 @@ main(int argc, char *argv[]) {
     }
     free(gnum_elt);
   }
+  if (n_elts != NULL) free(n_elts);
 
   // Finalize cwipi
   CWP_Finalize();

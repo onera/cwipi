@@ -440,6 +440,9 @@ namespace cwipi {
                 "'%s' not existing partitionned data exchange object\n", part_data_id.c_str());
     }
     else {
+      PDM_part_to_part_t *ptp = it->second.get_ptp();
+      PDM_part_to_part_free(ptp);
+
       _partData.erase(part_data_id.c_str());
     }
   }
@@ -475,6 +478,10 @@ namespace cwipi {
 
     int mpi_tag = it->second.get_tag(part_data_id,
                                      unionComm);
+
+    // set
+    it->second.set_s_data(s_data);
+    it->second.set_n_components(n_components);
 
     // launch issend
     if (_coupledCodeProperties.localCodeIs()) {
@@ -559,6 +566,8 @@ namespace cwipi {
 
     // set
     it->second.set_part2_data(part2_data);
+    it->second.set_s_data(s_data);
+    it->second.set_n_components(n_components);
 
     void **recv_buffer = NULL;
     // malloc
@@ -724,7 +733,7 @@ namespace cwipi {
 
     // malloc
     void **part2_data   = it->second.get_part2_data();
-    part2_data = (void **) malloc(sizeof(void *) * n_part2);
+    // part2_data = (void **) malloc(sizeof(void *) * n_part2);
     CWP_g_num_t **filtered_gnum1_come_from = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t * ) * n_part2);
     for (int i_part = 0; i_part < n_part2; i_part++) {
       part2_data[i_part] = malloc(s_data * n_ref_lnum2[i_part] * n_components);
@@ -738,12 +747,28 @@ namespace cwipi {
         int first_idx = gnum1_come_from_idx[i_part][i];
         filtered_gnum1_come_from[i_part][i] = gnum1_come_from[i_part][first_idx];
         for (int j = 0; j < delta; j++) {
-          ((unsigned char **) part2_data)[i_part][i * delta + j] = ((unsigned char **) recv_buffer)[i_part][first_idx + j];
+          ((unsigned char **) part2_data)[i_part][i * delta + j] = ((unsigned char **) recv_buffer)[i_part][first_idx * delta + j];
         }
       }
     }
 
     it->second.set_filtered_gnum1_come_from(filtered_gnum1_come_from);
+
+    // free
+    if (recv_buffer != NULL) {
+      for (int i_part = 0; i_part < n_part2; i_part++) {
+        free(recv_buffer[i_part]);
+      }
+      free(recv_buffer);
+    }
+
+    // tmp free TO DO
+    if (filtered_gnum1_come_from != NULL) {
+      for (int i_part = 0; i_part < n_part2; i_part++) {
+        free(filtered_gnum1_come_from[i_part]);
+      }
+      free(filtered_gnum1_come_from);
+    }
   }
 
   /*----------------------------------------------------------------------------*

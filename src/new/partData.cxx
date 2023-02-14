@@ -56,10 +56,7 @@ namespace cwipi {
   }
 
   PartData::~PartData()
-  {
-    // TO DO: uncomment
-    // PDM_part_to_part_free(_ptp);
-  }
+  {}
 
   uint32_t PartData::_adler32
   (
