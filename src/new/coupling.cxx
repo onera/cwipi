@@ -340,6 +340,9 @@ namespace cwipi {
           part1_to_part2_idx[i_part][i+1] = part1_to_part2_idx[i_part][i] + 1;
         }
       }
+
+      // set
+      it->second.set_part1_to_part2_idx(part1_to_part2_idx);
     }
 
     if (_coupledCodeProperties.localCodeIs()) {
@@ -440,6 +443,7 @@ namespace cwipi {
                 "'%s' not existing partitionned data exchange object\n", part_data_id.c_str());
     }
     else {
+
       PDM_part_to_part_t *ptp = it->second.get_ptp();
       PDM_part_to_part_free(ptp);
 
@@ -665,6 +669,16 @@ namespace cwipi {
                                    *request);
 
     } // not joint
+
+    // tmp free TO DO
+    int    n_part1      = it->second.get_n_part1();
+    int ** part1_to_part2_idx = it->second.get_part1_to_part2_idx();
+    if (part1_to_part2_idx != NULL) {
+      for (int i_part = 0; i_part < n_part1; i_part++) {
+        free(part1_to_part2_idx[i_part]);
+      }
+      free(part1_to_part2_idx);
+    }
   }
 
   /**

@@ -109,6 +109,12 @@ namespace cwipi {
       return _part1_to_part2_data;
     }
 
+    inline int **
+    get_part1_to_part2_idx()
+    {
+      return _part1_to_part2_idx;
+    }
+
     inline int *
     get_request1()
     {
@@ -196,6 +202,15 @@ namespace cwipi {
     }
 
     inline void
+    set_part1_to_part2_idx
+    (
+     int ** part1_to_part2_idx
+    )
+    {
+      _part1_to_part2_idx = part1_to_part2_idx;
+    }
+
+    inline void
     set_request1
     (
      int * request1
@@ -266,6 +281,7 @@ namespace cwipi {
     int           *_n_elt1;
     int            _n_part1;
     void         **_part1_to_part2_data;
+    int          **_part1_to_part2_idx;
     int           *_request1;
 
     // recv

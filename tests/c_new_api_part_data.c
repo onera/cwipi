@@ -107,7 +107,7 @@ main(int argc, char *argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
 
-  assert (comm_world_size > 1);
+  assert (comm_world_size % 2 == 0);
 
   // Initialize CWIPI
   int n_part = 1;
@@ -117,7 +117,7 @@ main(int argc, char *argv[]) {
   CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
   double *time_init = malloc(sizeof(double) * n_code);
 
-  if (rank < comm_world_size / 2) {
+  if (rank % 2 == 0) {
     code_name[0] = "code1";
     coupled_code_name[0] = "code2";
   }
@@ -157,14 +157,19 @@ main(int argc, char *argv[]) {
 
   // --> create
   CWP_PartData_exch_t side;
-  if (rank < comm_world_size / 2) {
+  if (rank % 2 == 0) {
     side = CWP_PARTDATA_SEND;
   }
   else {
     side = CWP_PARTDATA_RECV;
   }
 
-  int n_elt = 4;
+  int n_elt;
+  if (rank % 2 == 0) {
+     n_elt = 8;
+  } else {
+     n_elt = 3;
+  }
   int *n_elts = malloc(sizeof(int *) * n_part);
   for (int i_part; i_part < n_part; i_part++) {
     n_elts[i_part] = n_elt;
@@ -177,7 +182,11 @@ main(int argc, char *argv[]) {
 
   for (int i_part; i_part < n_part; i_part++) {
     for (int i = 0; i < n_elt; i++) {
-      gnum_elt[i_part][i] = i + 1;
+      if (rank % 2 == 0) {
+        gnum_elt[i_part][i] = n_elt * rank + i + 1;
+      } else {
+        gnum_elt[i_part][i] = n_elt * (rank - 1) +i + 1;
+      }
     }
   }
 
@@ -196,7 +205,7 @@ main(int argc, char *argv[]) {
   int recv_request = -1;
   int n_comp = 3;
 
-  if (rank < comm_world_size / 2) {
+  if (rank % 2 == 0) {
 
     part1_to_part2_data = malloc(sizeof(int *) * 3 * n_elt);
     for (int i_part; i_part < n_part; i_part++) {
@@ -234,7 +243,7 @@ main(int argc, char *argv[]) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   // --> wait
-  if (rank < comm_world_size / 2) {
+  if (rank % 2 == 0) {
 
     CWP_Part_data_wait_issend(code_name[0],
                               coupling_name,
@@ -253,12 +262,12 @@ main(int argc, char *argv[]) {
   for (int i_part; i_part < n_part; i_part++) {
       for (int i = 0; i < n_elt; i++) {
         for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-          if (rank < comm_world_size / 2) {
-            printf("s[%d][%d][%d] : %d\n", i_part, i, i_comp, part1_to_part2_data[i_part][3*i + i_comp]);
+          if (rank % 2 == 0) {
+            printf("%d - s[%d][%d][%d] : %d\n", rank, i_part, i, i_comp, part1_to_part2_data[i_part][3*i + i_comp]);
             fflush(stdout);
           }
           else {
-            printf("r[%d][%d][%d] : %d\n", i_part, i, i_comp, part2_data[i_part][3*i + i_comp]);
+            printf("%d - r[%d][%d][%d] : %d\n", rank, i_part, i, i_comp, part2_data[i_part][3*i + i_comp]);
             fflush(stdout);
           }
         }
