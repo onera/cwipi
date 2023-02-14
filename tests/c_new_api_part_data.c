@@ -107,17 +107,28 @@ main(int argc, char *argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
 
-  assert (comm_world_size % 2 == 0);
+  assert (comm_world_size == 4);
 
   // Initialize CWIPI
-  int n_part = 1;
+  int code_id;
+  if (rank == 0) {
+    code_id = 1;
+  } else {
+    code_id = 2;
+  }
+  int n_part;
+   if (code_id == 1) {
+     n_part = 1;
+  } else {
+     n_part = 2;
+  }
   int n_code = 1;
   const char **code_name = malloc(sizeof(char *) * n_code);
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
   CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
   double *time_init = malloc(sizeof(double) * n_code);
 
-  if (rank % 2 == 0) {
+  if (code_id == 1) {
     code_name[0] = "code1";
     coupled_code_name[0] = "code2";
   }
@@ -157,7 +168,7 @@ main(int argc, char *argv[]) {
 
   // --> create
   CWP_PartData_exch_t side;
-  if (rank % 2 == 0) {
+  if (code_id == 1) {
     side = CWP_PARTDATA_SEND;
   }
   else {
@@ -165,10 +176,10 @@ main(int argc, char *argv[]) {
   }
 
   int n_elt;
-  if (rank % 2 == 0) {
-     n_elt = 8;
+  if (code_id == 1) {
+     n_elt = 12;
   } else {
-     n_elt = 3;
+     n_elt = 2;
   }
   int *n_elts = malloc(sizeof(int *) * n_part);
   for (int i_part; i_part < n_part; i_part++) {
@@ -182,10 +193,10 @@ main(int argc, char *argv[]) {
 
   for (int i_part; i_part < n_part; i_part++) {
     for (int i = 0; i < n_elt; i++) {
-      if (rank % 2 == 0) {
+      if (code_id == 1) {
         gnum_elt[i_part][i] = n_elt * rank + i + 1;
       } else {
-        gnum_elt[i_part][i] = n_elt * (rank - 1) +i + 1;
+        gnum_elt[i_part][i] = n_part * n_elt * (rank - 1) + i_part * n_elt + i + 1;
       }
     }
   }
@@ -199,23 +210,23 @@ main(int argc, char *argv[]) {
                        n_part);
 
   // --> exchange
-  int **part1_to_part2_data = NULL;
+  double **part1_to_part2_data = NULL;
   int send_request = -1;
-  int **part2_data = NULL;
+  double **part2_data = NULL;
   int recv_request = -1;
   int n_comp = 3;
 
-  if (rank % 2 == 0) {
+  if (code_id == 1) {
 
-    part1_to_part2_data = malloc(sizeof(int *) * 3 * n_elt);
+    part1_to_part2_data = malloc(sizeof(double *) * 3 * n_elt);
     for (int i_part; i_part < n_part; i_part++) {
-      part1_to_part2_data[i_part] = malloc(sizeof(int) * n_elt * n_comp);
+      part1_to_part2_data[i_part] = malloc(sizeof(double) * n_elt * n_comp);
     }
 
     for (int i_part; i_part < n_part; i_part++) {
       for (int i = 0; i < n_elt; i++) {
         for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-          part1_to_part2_data[i_part][3*i + i_comp] = 10*i + i_comp;
+          part1_to_part2_data[i_part][3*i + i_comp] = 0.1*i + i_comp;
         }
       }
     }
@@ -223,7 +234,7 @@ main(int argc, char *argv[]) {
     CWP_Part_data_issend(code_name[0],
                          coupling_name,
                          part_data_name,
-                         sizeof(int),
+                         sizeof(double),
                          n_comp,
                          (void **) part1_to_part2_data,
                          &send_request);
@@ -233,7 +244,7 @@ main(int argc, char *argv[]) {
     CWP_Part_data_irecv(code_name[0],
                         coupling_name,
                         part_data_name,
-                        sizeof(int),
+                        sizeof(double),
                         n_comp,
                         (void ***) &part2_data,
                         &recv_request);
@@ -243,7 +254,7 @@ main(int argc, char *argv[]) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   // --> wait
-  if (rank % 2 == 0) {
+  if (code_id == 1) {
 
     CWP_Part_data_wait_issend(code_name[0],
                               coupling_name,
@@ -262,13 +273,11 @@ main(int argc, char *argv[]) {
   for (int i_part; i_part < n_part; i_part++) {
       for (int i = 0; i < n_elt; i++) {
         for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-          if (rank % 2 == 0) {
-            printf("%d - s[%d][%d][%d] : %d\n", rank, i_part, i, i_comp, part1_to_part2_data[i_part][3*i + i_comp]);
-            fflush(stdout);
+          if (code_id == 1) {
+            log_trace("%d - s[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, part1_to_part2_data[i_part][3*i + i_comp]);
           }
           else {
-            printf("%d - r[%d][%d][%d] : %d\n", rank, i_part, i, i_comp, part2_data[i_part][3*i + i_comp]);
-            fflush(stdout);
+            log_trace("%d - r[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, part2_data[i_part][3*i + i_comp]);
           }
         }
       }
