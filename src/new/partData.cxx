@@ -40,7 +40,9 @@ namespace cwipi {
                      int                  *n_elt,
                      int                   n_part):
   _part_data_id(part_data_id),
-  _recv_buffer(NULL)
+  _recv_buffer(NULL),
+  _part1_to_part2_idx(NULL),
+  _filtered_gnum1_come_from(NULL)
   {
     if (exch_type == CWP_PARTDATA_SEND) {
       _gnum_elt1 = gnum_elt;

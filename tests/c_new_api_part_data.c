@@ -274,10 +274,10 @@ main(int argc, char *argv[]) {
       for (int i = 0; i < n_elt; i++) {
         for (int i_comp = 0; i_comp < n_comp; i_comp++) {
           if (code_id == 1) {
-            log_trace("%d - s[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, part1_to_part2_data[i_part][3*i + i_comp]);
+            log_trace("%d - %ld -> s[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, gnum_elt[i_part][i], part1_to_part2_data[i_part][3*i + i_comp]);
           }
           else {
-            log_trace("%d - r[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, part2_data[i_part][3*i + i_comp]);
+            log_trace("%d - %ld -> r[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, gnum_elt[i_part][i], part2_data[i_part][3*i + i_comp]);
           }
         }
       }

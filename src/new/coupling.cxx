@@ -443,10 +443,31 @@ namespace cwipi {
                 "'%s' not existing partitionned data exchange object\n", part_data_id.c_str());
     }
     else {
+      // free part1_to_part2_idx
+      int    n_part1      = it->second.get_n_part1();
+      int ** part1_to_part2_idx = it->second.get_part1_to_part2_idx();
+      if (part1_to_part2_idx != NULL) {
+        for (int i_part = 0; i_part < n_part1; i_part++) {
+          free(part1_to_part2_idx[i_part]);
+        }
+        free(part1_to_part2_idx);
+      }
 
+      // free
+      CWP_g_num_t **filtered_gnum1_come_from = it->second.get_filtered_gnum1_come_from();
+      int    n_part2      = it->second.get_n_part2();
+      if (filtered_gnum1_come_from != NULL) {
+        for (int i_part = 0; i_part < n_part2; i_part++) {
+          free(filtered_gnum1_come_from[i_part]);
+        }
+        free(filtered_gnum1_come_from);
+      }
+
+      // free ptp
       PDM_part_to_part_t *ptp = it->second.get_ptp();
       PDM_part_to_part_free(ptp);
 
+      // remove from map
       _partData.erase(part_data_id.c_str());
     }
   }
@@ -626,108 +647,22 @@ namespace cwipi {
   }
 
   /**
-   * \brief Wait issend partitionned data
+   *
+   * \brief Filter PartData receive buffer
    *
    * \param [in] part_data_id
-   * \param [in] request
    *
    */
 
   void
-  Coupling::partDataWaitIssend
+  Coupling::partDatafilter
   (
-   const string   &part_data_id,
-   int           *request
+   const string &part_data_id
   )
   {
-    // get general data
     map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
-    assert(it != _partData.end());
     PDM_part_to_part_t *ptp = it->second.get_ptp();
 
-    // launch wait issend
-    if (_coupledCodeProperties.localCodeIs()) {
-      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
-      map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
-      assert(cpl_it != _partData.end());
-
-      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
-
-        PDM_part_to_part_issend_wait(ptp,
-                                     *request);
-
-        int *request2 = cpl_it->second.get_request2();
-
-        PDM_part_to_part_irecv_wait(ptp,
-                                    *request2);
-
-      } // local code works
-    } // joint
-    else {
-
-      PDM_part_to_part_issend_wait(ptp,
-                                   *request);
-
-    } // not joint
-
-    // tmp free TO DO
-    int    n_part1      = it->second.get_n_part1();
-    int ** part1_to_part2_idx = it->second.get_part1_to_part2_idx();
-    if (part1_to_part2_idx != NULL) {
-      for (int i_part = 0; i_part < n_part1; i_part++) {
-        free(part1_to_part2_idx[i_part]);
-      }
-      free(part1_to_part2_idx);
-    }
-  }
-
-  /**
-   * \brief Wait irecv partitionned data
-   *
-   * \param [in] part_data_id
-   * \param [in] request
-   *
-   */
-
-  void
-  Coupling::partDataWaitIrecv
-  (
-   const string   &part_data_id,
-   int           *request
-  )
-  {
-    // get general data
-    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
-    assert(it != _partData.end());
-    PDM_part_to_part_t *ptp = it->second.get_ptp();
-
-    // launch wait irecv
-    if (_coupledCodeProperties.localCodeIs()) {
-      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
-      map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
-      assert(cpl_it != _partData.end());
-
-      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
-
-        PDM_part_to_part_irecv_wait(ptp,
-                                    *request);
-
-        int *request1 = cpl_it->second.get_request1();
-
-        PDM_part_to_part_issend_wait(ptp,
-                                     *request1);
-
-      } // local code works
-    } // joint
-    else {
-
-      PDM_part_to_part_irecv_wait(ptp,
-                                  *request);
-
-    } // not joint
-
-    // TO DO: move into function and call in waitissend ??
-    // filter received data
     size_t s_data       = it->second.get_s_data();
     int    n_components = it->second.get_n_components();
     int    n_part2      = it->second.get_n_part2();
@@ -774,15 +709,110 @@ namespace cwipi {
         free(recv_buffer[i_part]);
       }
       free(recv_buffer);
+      it->second.set_recv_buffer(NULL);
     }
 
-    // tmp free TO DO
-    if (filtered_gnum1_come_from != NULL) {
-      for (int i_part = 0; i_part < n_part2; i_part++) {
-        free(filtered_gnum1_come_from[i_part]);
-      }
-      free(filtered_gnum1_come_from);
-    }
+  }
+
+  /**
+   * \brief Wait issend partitionned data
+   *
+   * \param [in] part_data_id
+   * \param [in] request
+   *
+   */
+
+  void
+  Coupling::partDataWaitIssend
+  (
+   const string   &part_data_id,
+   int           *request
+  )
+  {
+    // get general data
+    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
+    assert(it != _partData.end());
+    PDM_part_to_part_t *ptp = it->second.get_ptp();
+
+    // launch wait issend
+    if (_coupledCodeProperties.localCodeIs()) {
+      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
+      map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
+      assert(cpl_it != _partData.end());
+
+      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+
+        PDM_part_to_part_issend_wait(ptp,
+                                     *request);
+
+        int *request2 = cpl_it->second.get_request2();
+
+        PDM_part_to_part_irecv_wait(ptp,
+                                    *request2);
+
+        // filter
+        partDatafilter(part_data_id);
+
+      } // local code works
+    } // joint
+    else {
+
+      PDM_part_to_part_issend_wait(ptp,
+                                   *request);
+
+    } // not joint
+  }
+
+  /**
+   * \brief Wait irecv partitionned data
+   *
+   * \param [in] part_data_id
+   * \param [in] request
+   *
+   */
+
+  void
+  Coupling::partDataWaitIrecv
+  (
+   const string   &part_data_id,
+   int           *request
+  )
+  {
+    // get general data
+    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
+    assert(it != _partData.end());
+    PDM_part_to_part_t *ptp = it->second.get_ptp();
+
+    // launch wait irecv
+    if (_coupledCodeProperties.localCodeIs()) {
+      cwipi::Coupling& cpl_cpl = _cplDB.couplingGet (_coupledCodeProperties, _cplId);
+      map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
+      assert(cpl_it != _partData.end());
+
+      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+
+        PDM_part_to_part_irecv_wait(ptp,
+                                    *request);
+
+        int *request1 = cpl_it->second.get_request1();
+
+        PDM_part_to_part_issend_wait(ptp,
+                                     *request1);
+
+        // filter
+        partDatafilter(part_data_id);
+
+      } // local code works
+    } // joint
+    else {
+
+      PDM_part_to_part_irecv_wait(ptp,
+                                  *request);
+
+      // filter
+      partDatafilter(part_data_id);
+
+    } // not joint
   }
 
   /*----------------------------------------------------------------------------*

@@ -194,6 +194,20 @@ namespace cwipi {
     );
 
     /**
+     *
+     * \brief Filter PartData receive buffer
+     *
+     * \param [in] part_data_id
+     *
+     */
+
+    void
+    partDatafilter
+    (
+     const string &part_data_id
+    );
+
+    /**
      * \brief Wait issend partitionned data
      *
      * \param [in] part_data_id
