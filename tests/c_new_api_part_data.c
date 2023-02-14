@@ -107,221 +107,518 @@ main(int argc, char *argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
 
-  assert (comm_world_size == 4);
+  // choice
+  int joint = 1;
 
-  // Initialize CWIPI
-  int code_id;
-  if (rank == 0) {
-    code_id = 1;
-  } else {
-    code_id = 2;
-  }
-  int n_part;
-   if (code_id == 1) {
-     n_part = 1;
-  } else {
-     n_part = 2;
-  }
-  int n_code = 1;
-  const char **code_name = malloc(sizeof(char *) * n_code);
-  const char **coupled_code_name = malloc(sizeof(char *) * n_code);
-  CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
-  double *time_init = malloc(sizeof(double) * n_code);
+  if (joint) {
 
-  if (code_id == 1) {
-    code_name[0] = "code1";
-    coupled_code_name[0] = "code2";
-  }
-  else {
-    code_name[0] = "code2";
-    coupled_code_name[0] = "code1";
-  }
+    assert (comm_world_size == 2);
 
-  MPI_Comm *intra_comm = malloc(sizeof(MPI_Comm) * n_code);
-  CWP_Init(MPI_COMM_WORLD,
-           n_code,
-           (const char **) code_name,
-           is_active_rank,
-           time_init,
-           intra_comm);
+    // Initialize CWIPI
+    int n_part = 1;
+    int n_code;
+    if (rank == 0) {
+      n_code = 1;
+    }
 
-  if (verbose && rank == 0) {
-    printf("CWIPI Init OK\n");
-  }
+    if (rank == 1) {
+      n_code = 2;
+    }
+    const char **code_name = malloc(sizeof(char *) * n_code);
+    const char **coupled_code_name = malloc(sizeof(char *) * n_code);
+    CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
+    double *time_init = malloc(sizeof(double) * n_code);
 
-  // Create coupling
-  const char *coupling_name = "c_surf_cpl_P1P1";
+    if (rank == 0) {
+      code_name[0] = "code1";
+      coupled_code_name[0] = "code2";
+      is_active_rank[0] = CWP_STATUS_ON;
+      time_init[0] = 0.;
+    }
 
-  CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
-  CWP_Cpl_create(code_name[0],
-                 coupling_name,
-                 coupled_code_name[0],
-                 CWP_INTERFACE_VOLUME,
-                 CWP_COMM_PAR_WITH_PART,
-                 loc_method,
-                 n_part,
-                 CWP_DYNAMIC_MESH_STATIC,
-                 CWP_TIME_EXCH_USER_CONTROLLED);
+    if (rank == 1) {
+      code_name[0] = "code1";
+      coupled_code_name[0] = "code2";
+      code_name[1] = "code2";
+      coupled_code_name[1] = "code1";
+      is_active_rank[0] = CWP_STATUS_ON;
+      is_active_rank[1] = CWP_STATUS_ON;
+      time_init[0] = 0.;
+      time_init[1] = 0.;
+    }
 
-  // Partitionned data exchange
-  const char *part_data_name = "schtroumpf";
+    MPI_Comm *intra_comm = malloc(sizeof(MPI_Comm) * n_code);
+    CWP_Init(MPI_COMM_WORLD,
+             n_code,
+             (const char **) code_name,
+             is_active_rank,
+             time_init,
+             intra_comm);
 
-  // --> create
-  CWP_PartData_exch_t side;
-  if (code_id == 1) {
-    side = CWP_PARTDATA_SEND;
-  }
-  else {
-    side = CWP_PARTDATA_RECV;
-  }
+    MPI_Barrier(MPI_COMM_WORLD);
 
-  int n_elt;
-  if (code_id == 1) {
-     n_elt = 12;
-  } else {
-     n_elt = 2;
-  }
-  int *n_elts = malloc(sizeof(int *) * n_part);
-  for (int i_part; i_part < n_part; i_part++) {
-    n_elts[i_part] = n_elt;
-  }
+    // Create coupling
+    const char *coupling_name = "couplage";
+    CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
 
-  CWP_g_num_t **gnum_elt = malloc(sizeof(CWP_g_num_t *) * n_part);
-  for (int i_part; i_part < n_part; i_part++) {
-    gnum_elt[i_part] = malloc(sizeof(CWP_g_num_t) * n_elt);
-  }
+    CWP_Cpl_create(code_name[0],
+                   coupling_name,
+                   coupled_code_name[0],
+                   CWP_INTERFACE_VOLUME,
+                   CWP_COMM_PAR_WITH_PART,
+                   loc_method,
+                   n_part,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_USER_CONTROLLED);
 
-  for (int i_part; i_part < n_part; i_part++) {
-    for (int i = 0; i < n_elt; i++) {
-      if (code_id == 1) {
-        gnum_elt[i_part][i] = n_elt * rank + i + 1;
-      } else {
-        gnum_elt[i_part][i] = n_part * n_elt * (rank - 1) + i_part * n_elt + i + 1;
+    if (rank == 1) {
+      CWP_Cpl_create(code_name[1],
+                     coupling_name,
+                     coupled_code_name[1],
+                     CWP_INTERFACE_VOLUME,
+                     CWP_COMM_PAR_WITH_PART,
+                     loc_method,
+                     n_part,
+                     CWP_DYNAMIC_MESH_STATIC,
+                     CWP_TIME_EXCH_USER_CONTROLLED);
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    // create
+    int n_elt_send = 6;
+    int n_elt_recv = 12;
+
+    int *send_n_elts = malloc(sizeof(int) * n_part);
+    for (int i_part; i_part < n_part; i_part++) {
+      send_n_elts[i_part] = n_elt_send;
+    }
+
+
+    int *recv_n_elts = malloc(sizeof(int) * n_part);
+    if (rank == 1) {
+      // recv_n_elts = malloc(sizeof(int) * n_part);
+      for (int i_part; i_part < n_part; i_part++) {
+        recv_n_elts[i_part] = n_elt_recv;
       }
     }
-  }
 
-  CWP_Part_data_create(code_name[0],
-                       coupling_name,
-                       part_data_name,
-                       side,
-                       gnum_elt,
-                       n_elts,
-                       n_part);
-
-  // --> exchange
-  double **part1_to_part2_data = NULL;
-  int send_request = -1;
-  double **part2_data = NULL;
-  int recv_request = -1;
-  int n_comp = 3;
-
-  if (code_id == 1) {
-
-    part1_to_part2_data = malloc(sizeof(double *) * 3 * n_elt);
+    // gnum
+    CWP_g_num_t **gnum_elt_send = malloc(sizeof(CWP_g_num_t *) * n_part);
     for (int i_part; i_part < n_part; i_part++) {
-      part1_to_part2_data[i_part] = malloc(sizeof(double) * n_elt * n_comp);
+      gnum_elt_send[i_part] = malloc(sizeof(CWP_g_num_t) * send_n_elts[i_part]);
     }
 
     for (int i_part; i_part < n_part; i_part++) {
-      for (int i = 0; i < n_elt; i++) {
-        for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-          part1_to_part2_data[i_part][3*i + i_comp] = 0.1*i + i_comp;
+      for (int i = 0; i < send_n_elts[i_part]; i++) {
+        gnum_elt_send[i_part][i] = send_n_elts[i_part] * rank + i + 1;
+      }
+    }
+
+    CWP_g_num_t **gnum_elt_recv = malloc(sizeof(CWP_g_num_t *) * n_part);
+    if (rank == 1) {
+      // gnum_elt_recv = malloc(sizeof(CWP_g_num_t *) * n_part);
+      for (int i_part; i_part < n_part; i_part++) {
+        gnum_elt_recv[i_part] = malloc(sizeof(CWP_g_num_t) * recv_n_elts[i_part]);
+      }
+
+      for (int i_part; i_part < n_part; i_part++) {
+        for (int i = 0; i < recv_n_elts[i_part]; i++) {
+          gnum_elt_recv[i_part][i] = i + 1;
         }
       }
     }
 
-    CWP_Part_data_issend(code_name[0],
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    // Partitionned data exchange
+    const char *part_data_name = "schtroumpf";
+
+    // pd create
+    if (rank == 0 || rank == 1) {
+      CWP_Part_data_create(code_name[0],
+                           coupling_name,
+                           part_data_name,
+                           CWP_PARTDATA_SEND,
+                           gnum_elt_send,
+                           send_n_elts,
+                           n_part);
+    }
+
+    if (rank == 1) {
+      CWP_Part_data_create(code_name[1],
+                           coupling_name,
+                           part_data_name,
+                           CWP_PARTDATA_RECV,
+                           gnum_elt_recv,
+                           recv_n_elts,
+                           n_part);
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    // --> exchange
+    double **part1_to_part2_data = NULL;
+    int send_request = -1;
+    double **part2_data = NULL;
+    int recv_request = -1;
+    int n_comp = 3;
+
+    if (rank == 0 || rank == 1) {
+
+      part1_to_part2_data = malloc(sizeof(double *) * n_part);
+      for (int i_part; i_part < n_part; i_part++) {
+        part1_to_part2_data[i_part] = malloc(sizeof(double) * send_n_elts[i_part] * n_comp);
+      }
+
+      for (int i_part; i_part < n_part; i_part++) {
+        for (int i = 0; i < send_n_elts[i_part]; i++) {
+          for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+            part1_to_part2_data[i_part][3*i + i_comp] = 0.1*i + i_comp;
+          }
+        }
+      }
+
+      CWP_Part_data_issend(code_name[0],
+                           coupling_name,
+                           part_data_name,
+                           sizeof(double),
+                           n_comp,
+                           (void **) part1_to_part2_data,
+                           &send_request);
+    }
+
+    if (rank == 1) {
+
+      CWP_Part_data_irecv(code_name[1],
+                          coupling_name,
+                          part_data_name,
+                          sizeof(double),
+                          n_comp,
+                          (void ***) &part2_data,
+                          &recv_request);
+
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    // --> wait
+    if (rank == 0 || rank == 1) {
+
+      CWP_Part_data_wait_issend(code_name[0],
+                                coupling_name,
+                                part_data_name,
+                                &send_request);
+    }
+
+    if (rank == 1) {
+
+      CWP_Part_data_wait_irecv(code_name[1],
+                               coupling_name,
+                               part_data_name,
+                               &recv_request);
+    }
+
+    // --> check
+    for (int i_part; i_part < n_part; i_part++) {
+      if (rank == 0 || rank == 1) {
+        for (int i = 0; i < send_n_elts[i_part]; i++) {
+          for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+            log_trace("%d - %ld -> s[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, gnum_elt_send[i_part][i], part1_to_part2_data[i_part][3*i + i_comp]);
+          }
+        }
+      }
+
+      if (rank == 1) {
+        for (int i = 0; i < recv_n_elts[i_part]; i++) {
+          for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+            log_trace("%d - %ld -> r[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, gnum_elt_recv[i_part][i], part2_data[i_part][3*i + i_comp]);
+          }
+        }
+      }
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    // del
+    if (rank == 0 || rank == 1) {
+      CWP_Part_data_del(code_name[0],
+                        coupling_name,
+                        part_data_name);
+    }
+
+    if (rank == 1) {
+      CWP_Part_data_del(code_name[1],
+                        coupling_name,
+                        part_data_name);
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    // Delete coupling
+    if (rank == 0 || rank == 1) {
+      CWP_Cpl_del(code_name[0], coupling_name);
+    }
+    if (rank == 1) {
+      CWP_Cpl_del(code_name[1], coupling_name);
+    }
+
+    // Free memory
+    free(code_name);
+    free(coupled_code_name);
+    free(is_active_rank);
+    free(time_init);
+    free(intra_comm);
+
+    if (part1_to_part2_data != NULL) {
+      for (int i_part; i_part < n_part; i_part++) {
+        free(part1_to_part2_data[i_part]);
+      }
+      free(part1_to_part2_data);
+    }
+    if (part2_data != NULL) {
+      for (int i_part; i_part < n_part; i_part++) {
+        if (part2_data[i_part] != NULL) free(part2_data[i_part]);
+      }
+      free(part2_data);
+    }
+    if (gnum_elt_send != NULL) {
+      for (int i_part; i_part < n_part; i_part++) {
+        if (gnum_elt_send[i_part] != NULL) free(gnum_elt_send[i_part]);
+      }
+      free(gnum_elt_send);
+    }
+    if (gnum_elt_recv != NULL) {
+      for (int i_part; i_part < n_part; i_part++) {
+        if (gnum_elt_recv[i_part] != NULL) free(gnum_elt_recv[i_part]);
+      }
+      free(gnum_elt_recv);
+    }
+    if (send_n_elts != NULL) free(send_n_elts);
+    if (recv_n_elts != NULL) free(recv_n_elts);
+
+    // Finalize cwipi
+    CWP_Finalize();
+
+  } else {
+
+    assert (comm_world_size == 4);
+
+    // Initialize CWIPI
+    int code_id;
+    if (rank == 0) {
+      code_id = 1;
+    } else {
+      code_id = 2;
+    }
+    int n_part;
+     if (code_id == 1) {
+       n_part = 1;
+    } else {
+       n_part = 2;
+    }
+    int n_code = 1;
+    const char **code_name = malloc(sizeof(char *) * n_code);
+    const char **coupled_code_name = malloc(sizeof(char *) * n_code);
+    CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
+    double *time_init = malloc(sizeof(double) * n_code);
+
+    if (code_id == 1) {
+      code_name[0] = "code1";
+      coupled_code_name[0] = "code2";
+    }
+    else {
+      code_name[0] = "code2";
+      coupled_code_name[0] = "code1";
+    }
+
+    MPI_Comm *intra_comm = malloc(sizeof(MPI_Comm) * n_code);
+    CWP_Init(MPI_COMM_WORLD,
+             n_code,
+             (const char **) code_name,
+             is_active_rank,
+             time_init,
+             intra_comm);
+
+    if (verbose && rank == 0) {
+      printf("CWIPI Init OK\n");
+    }
+
+    // Create coupling
+    const char *coupling_name = "c_surf_cpl_P1P1";
+
+    CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
+    CWP_Cpl_create(code_name[0],
+                   coupling_name,
+                   coupled_code_name[0],
+                   CWP_INTERFACE_VOLUME,
+                   CWP_COMM_PAR_WITH_PART,
+                   loc_method,
+                   n_part,
+                   CWP_DYNAMIC_MESH_STATIC,
+                   CWP_TIME_EXCH_USER_CONTROLLED);
+
+    // Partitionned data exchange
+    const char *part_data_name = "schtroumpf";
+
+    // --> create
+    CWP_PartData_exch_t side;
+    if (code_id == 1) {
+      side = CWP_PARTDATA_SEND;
+    }
+    else {
+      side = CWP_PARTDATA_RECV;
+    }
+
+    int n_elt;
+    if (code_id == 1) {
+       n_elt = 12;
+    } else {
+       n_elt = 2;
+    }
+    int *n_elts = malloc(sizeof(int *) * n_part);
+    for (int i_part; i_part < n_part; i_part++) {
+      n_elts[i_part] = n_elt;
+    }
+
+    CWP_g_num_t **gnum_elt = malloc(sizeof(CWP_g_num_t *) * n_part);
+    for (int i_part; i_part < n_part; i_part++) {
+      gnum_elt[i_part] = malloc(sizeof(CWP_g_num_t) * n_elt);
+    }
+
+    for (int i_part; i_part < n_part; i_part++) {
+      for (int i = 0; i < n_elt; i++) {
+        if (code_id == 1) {
+          gnum_elt[i_part][i] = n_elt * rank + i + 1;
+        } else {
+          gnum_elt[i_part][i] = n_part * n_elt * (rank - 1) + i_part * n_elt + i + 1;
+        }
+      }
+    }
+
+    CWP_Part_data_create(code_name[0],
                          coupling_name,
                          part_data_name,
-                         sizeof(double),
-                         n_comp,
-                         (void **) part1_to_part2_data,
-                         &send_request);
-  }
-  else {
+                         side,
+                         gnum_elt,
+                         n_elts,
+                         n_part);
 
-    CWP_Part_data_irecv(code_name[0],
-                        coupling_name,
-                        part_data_name,
-                        sizeof(double),
-                        n_comp,
-                        (void ***) &part2_data,
-                        &recv_request);
+    // --> exchange
+    double **part1_to_part2_data = NULL;
+    int send_request = -1;
+    double **part2_data = NULL;
+    int recv_request = -1;
+    int n_comp = 3;
 
-  }
+    if (code_id == 1) {
 
-  MPI_Barrier(MPI_COMM_WORLD);
+      part1_to_part2_data = malloc(sizeof(double *) * n_part);
+      for (int i_part; i_part < n_part; i_part++) {
+        part1_to_part2_data[i_part] = malloc(sizeof(double) * n_elt * n_comp);
+      }
 
-  // --> wait
-  if (code_id == 1) {
-
-    CWP_Part_data_wait_issend(code_name[0],
-                              coupling_name,
-                              part_data_name,
-                              &send_request);
-  }
-  else {
-
-    CWP_Part_data_wait_irecv(code_name[0],
-                             coupling_name,
-                             part_data_name,
-                             &recv_request);
-  }
-
-  // --> check
-  for (int i_part; i_part < n_part; i_part++) {
-      for (int i = 0; i < n_elt; i++) {
-        for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-          if (code_id == 1) {
-            log_trace("%d - %ld -> s[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, gnum_elt[i_part][i], part1_to_part2_data[i_part][3*i + i_comp]);
-          }
-          else {
-            log_trace("%d - %ld -> r[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, gnum_elt[i_part][i], part2_data[i_part][3*i + i_comp]);
+      for (int i_part; i_part < n_part; i_part++) {
+        for (int i = 0; i < n_elt; i++) {
+          for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+            part1_to_part2_data[i_part][3*i + i_comp] = 0.1*i + i_comp;
           }
         }
       }
+
+      CWP_Part_data_issend(code_name[0],
+                           coupling_name,
+                           part_data_name,
+                           sizeof(double),
+                           n_comp,
+                           (void **) part1_to_part2_data,
+                           &send_request);
+    }
+    else {
+
+      CWP_Part_data_irecv(code_name[0],
+                          coupling_name,
+                          part_data_name,
+                          sizeof(double),
+                          n_comp,
+                          (void ***) &part2_data,
+                          &recv_request);
+
     }
 
-  MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 
-  // Delete part_data object
-  CWP_Part_data_del(code_name[0],
-                    coupling_name,
-                    part_data_name);
+    // --> wait
+    if (code_id == 1) {
 
-  // Delete coupling
-  CWP_Cpl_del(code_name[0], coupling_name);
+      CWP_Part_data_wait_issend(code_name[0],
+                                coupling_name,
+                                part_data_name,
+                                &send_request);
+    }
+    else {
 
-  // Free memory
-  free(code_name);
-  free(coupled_code_name);
-  free(is_active_rank);
-  free(time_init);
-  free(intra_comm);
+      CWP_Part_data_wait_irecv(code_name[0],
+                               coupling_name,
+                               part_data_name,
+                               &recv_request);
+    }
 
-  if (part1_to_part2_data != NULL) {
+    // --> check
     for (int i_part; i_part < n_part; i_part++) {
-      free(part1_to_part2_data[i_part]);
-    }
-    free(part1_to_part2_data);
-  }
-  if (part2_data != NULL) {
-    for (int i_part; i_part < n_part; i_part++) {
-      if (part2_data[i_part] != NULL) free(part2_data[i_part]);
-    }
-    free(part2_data);
-  }
-  if (gnum_elt != NULL) {
-    for (int i_part; i_part < n_part; i_part++) {
-      if (gnum_elt[i_part] != NULL) free(gnum_elt[i_part]);
-    }
-    free(gnum_elt);
-  }
-  if (n_elts != NULL) free(n_elts);
+        for (int i = 0; i < n_elt; i++) {
+          for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+            if (code_id == 1) {
+              log_trace("%d - %ld -> s[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, gnum_elt[i_part][i], part1_to_part2_data[i_part][3*i + i_comp]);
+            }
+            else {
+              log_trace("%d - %ld -> r[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, gnum_elt[i_part][i], part2_data[i_part][3*i + i_comp]);
+            }
+          }
+        }
+      }
 
-  // Finalize cwipi
-  CWP_Finalize();
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    // Delete part_data object
+    CWP_Part_data_del(code_name[0],
+                      coupling_name,
+                      part_data_name);
+
+    // Delete coupling
+    CWP_Cpl_del(code_name[0], coupling_name);
+
+    // Free memory
+    free(code_name);
+    free(coupled_code_name);
+    free(is_active_rank);
+    free(time_init);
+    free(intra_comm);
+
+    if (part1_to_part2_data != NULL) {
+      for (int i_part; i_part < n_part; i_part++) {
+        free(part1_to_part2_data[i_part]);
+      }
+      free(part1_to_part2_data);
+    }
+    if (part2_data != NULL) {
+      for (int i_part; i_part < n_part; i_part++) {
+        if (part2_data[i_part] != NULL) free(part2_data[i_part]);
+      }
+      free(part2_data);
+    }
+    if (gnum_elt != NULL) {
+      for (int i_part; i_part < n_part; i_part++) {
+        if (gnum_elt[i_part] != NULL) free(gnum_elt[i_part]);
+      }
+      free(gnum_elt);
+    }
+    if (n_elts != NULL) free(n_elts);
+
+    // Finalize cwipi
+    CWP_Finalize();
+
+  }
 
   // Finalize MPI
   MPI_Finalize();
