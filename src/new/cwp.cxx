@@ -3128,19 +3128,22 @@ CWP_Part_data_create
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] part_data_id
+ * \param [in] exch_type
  *
  */
 
 void
 CWP_Part_data_del
 (
- const char   *local_code_name,
- const char   *cpl_id,
- const char   *part_data_id
+ const char          *local_code_name,
+ const char          *cpl_id,
+ const char          *part_data_id,
+ CWP_PartData_exch_t  exch_type
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.partDataDel(part_data_id);
+  cpl.partDataDel(part_data_id,
+                  exch_type);
 }
 
 

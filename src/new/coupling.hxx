@@ -142,13 +142,15 @@ namespace cwipi {
      * \brief Delete partitionned data exchange object
      *
      * \param [in] part_data_id
+     * \param [in] exch_type
      *
      */
 
     void
     partDataDel
     (
-     const string   &part_data_id
+     const string          &part_data_id,
+     CWP_PartData_exch_t   exch_type
     );
 
     /**
@@ -197,15 +199,15 @@ namespace cwipi {
      *
      * \brief Filter PartData receive buffer
      *
-     * \param [in] part_data_id
+     * \param [in] it
      *
      */
 
     void
     partDatafilter
     (
-     const string &part_data_id
-    );
+     map<string,PartData>::iterator it
+     );
 
     /**
      * \brief Wait issend partitionned data

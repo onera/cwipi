@@ -348,10 +348,10 @@ namespace cwipi {
           }
         }
 
-        // set
-        it->second.set_part1_to_part2_idx(part1_to_part2_idx);
-
         if (exch_type == CWP_PARTDATA_SEND) {
+
+          // set
+          it->second.set_part1_to_part2_idx(part1_to_part2_idx);
 
           CWP_g_num_t  **gnum_elt2 = cpl_it->second.get_gnum_elt2();
           int           *n_elt2    = cpl_it->second.get_n_elt2();
@@ -369,6 +369,9 @@ namespace cwipi {
         } // sending code
 
         else if (exch_type == CWP_PARTDATA_RECV) {
+
+          // set
+          cpl_it->second.set_part1_to_part2_idx(part1_to_part2_idx);
 
           CWP_g_num_t  **gnum_elt1 = cpl_it->second.get_gnum_elt1();
           int           *n_elt1    = cpl_it->second.get_n_elt1();
@@ -444,13 +447,15 @@ namespace cwipi {
    * \brief Delete partitionned data exchange object
    *
    * \param [in] part_data_id
+   * \param [in] exch_type
    *
    */
 
   void
   Coupling::partDataDel
   (
-   const string   &part_data_id
+   const string          &part_data_id,
+   CWP_PartData_exch_t   exch_type
   )
   {
     map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
@@ -460,28 +465,38 @@ namespace cwipi {
     }
     else {
       // free part1_to_part2_idx
-      int    n_part1      = it->second.get_n_part1();
-      int ** part1_to_part2_idx = it->second.get_part1_to_part2_idx();
-      if (part1_to_part2_idx != NULL) {
-        for (int i_part = 0; i_part < n_part1; i_part++) {
-          free(part1_to_part2_idx[i_part]);
+      if (exch_type == CWP_PARTDATA_SEND) {
+        int    n_part1      = it->second.get_n_part1();
+        int ** part1_to_part2_idx = it->second.get_part1_to_part2_idx();
+        if (part1_to_part2_idx != NULL) {
+          for (int i_part = 0; i_part < n_part1; i_part++) {
+            free(part1_to_part2_idx[i_part]);
+          }
+          free(part1_to_part2_idx);
         }
-        free(part1_to_part2_idx);
       }
 
       // free
-      CWP_g_num_t **filtered_gnum1_come_from = it->second.get_filtered_gnum1_come_from();
-      int    n_part2      = it->second.get_n_part2();
-      if (filtered_gnum1_come_from != NULL) {
-        for (int i_part = 0; i_part < n_part2; i_part++) {
-          free(filtered_gnum1_come_from[i_part]);
+      if (exch_type == CWP_PARTDATA_RECV) {
+        CWP_g_num_t **filtered_gnum1_come_from = it->second.get_filtered_gnum1_come_from();
+        int    n_part2      = it->second.get_n_part2();
+        if (filtered_gnum1_come_from != NULL) {
+          for (int i_part = 0; i_part < n_part2; i_part++) {
+            free(filtered_gnum1_come_from[i_part]);
+          }
+          free(filtered_gnum1_come_from);
         }
-        free(filtered_gnum1_come_from);
       }
 
       // free ptp
       PDM_part_to_part_t *ptp = it->second.get_ptp();
-      PDM_part_to_part_free(ptp);
+      if (_coupledCodeProperties.localCodeIs()) {
+        if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+          PDM_part_to_part_free(ptp);
+        }
+      } else {
+        PDM_part_to_part_free(ptp);
+      }
 
       // remove from map
       _partData.erase(part_data_id.c_str());
@@ -533,7 +548,9 @@ namespace cwipi {
       map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
       assert(cpl_it != _partData.end());
 
-      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+      int   *request2   = cpl_it->second.get_request2();
+      // executes if irecv first
+      if (request2 != NULL) {
 
         PDM_part_to_part_issend(ptp,
                                 s_data,
@@ -545,7 +562,6 @@ namespace cwipi {
         void **recv_buffer = NULL;
         int   *n_elt2      = cpl_it->second.get_n_elt2();
         int    n_part2     = cpl_it->second.get_n_part2();
-        int   *request2    = cpl_it->second.get_request2();
 
         // malloc
         recv_buffer = (void **) malloc(sizeof(void *) * n_part2);
@@ -622,7 +638,9 @@ namespace cwipi {
       map<string,PartData>::iterator cpl_it = cpl_cpl._partData.find(part_data_id.c_str());
       assert(cpl_it != _partData.end());
 
-      if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+      int   *request1 = cpl_it->second.get_request1();
+      // executes if issend first
+      if (request1 != NULL) {
 
         // malloc
         int *n_elt2  = it->second.get_n_elt2();
@@ -643,7 +661,6 @@ namespace cwipi {
                                request);
 
         void **part1_to_part2_data = cpl_it->second.get_part1_to_part2_data();
-        int   *request1            = cpl_it->second.get_request1();
         assert(part1_to_part2_data != NULL); // TO DO
 
         PDM_part_to_part_issend(ptp,
@@ -682,17 +699,16 @@ namespace cwipi {
    *
    * \brief Filter PartData receive buffer
    *
-   * \param [in] part_data_id
+   * \param [in] it
    *
    */
 
   void
   Coupling::partDatafilter
   (
-   const string &part_data_id
+   map<string,PartData>::iterator it
   )
   {
-    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
     PDM_part_to_part_t *ptp = it->second.get_ptp();
 
     size_t s_data       = it->second.get_s_data();
@@ -783,7 +799,7 @@ namespace cwipi {
                                     *request2);
 
         // filter
-        partDatafilter(part_data_id);
+        partDatafilter(cpl_it);
 
       } // local code works
     } // joint
@@ -832,7 +848,7 @@ namespace cwipi {
                                      *request1);
 
         // filter
-        partDatafilter(part_data_id);
+        partDatafilter(it);
 
       } // local code works
     } // joint
@@ -842,7 +858,7 @@ namespace cwipi {
                                   *request);
 
       // filter
-      partDatafilter(part_data_id);
+      partDatafilter(it);
 
     } // not joint
   }

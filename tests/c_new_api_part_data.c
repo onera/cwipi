@@ -155,8 +155,6 @@ main(int argc, char *argv[]) {
              time_init,
              intra_comm);
 
-    MPI_Barrier(MPI_COMM_WORLD);
-
     // Create coupling
     const char *coupling_name = "couplage";
     CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
@@ -190,39 +188,39 @@ main(int argc, char *argv[]) {
     int n_elt_recv = 12;
 
     int *send_n_elts = malloc(sizeof(int) * n_part);
-    for (int i_part; i_part < n_part; i_part++) {
+    for (int i_part = 0; i_part < n_part; i_part++) {
       send_n_elts[i_part] = n_elt_send;
     }
 
 
-    int *recv_n_elts = malloc(sizeof(int) * n_part);
+    int *recv_n_elts = NULL;
     if (rank == 1) {
-      // recv_n_elts = malloc(sizeof(int) * n_part);
-      for (int i_part; i_part < n_part; i_part++) {
+      recv_n_elts = malloc(sizeof(int) * n_part);
+      for (int i_part = 0; i_part < n_part; i_part++) {
         recv_n_elts[i_part] = n_elt_recv;
       }
     }
 
     // gnum
     CWP_g_num_t **gnum_elt_send = malloc(sizeof(CWP_g_num_t *) * n_part);
-    for (int i_part; i_part < n_part; i_part++) {
+    for (int i_part = 0; i_part < n_part; i_part++) {
       gnum_elt_send[i_part] = malloc(sizeof(CWP_g_num_t) * send_n_elts[i_part]);
     }
 
-    for (int i_part; i_part < n_part; i_part++) {
+    for (int i_part = 0; i_part < n_part; i_part++) {
       for (int i = 0; i < send_n_elts[i_part]; i++) {
         gnum_elt_send[i_part][i] = send_n_elts[i_part] * rank + i + 1;
       }
     }
 
-    CWP_g_num_t **gnum_elt_recv = malloc(sizeof(CWP_g_num_t *) * n_part);
+    CWP_g_num_t **gnum_elt_recv = NULL;
     if (rank == 1) {
-      // gnum_elt_recv = malloc(sizeof(CWP_g_num_t *) * n_part);
-      for (int i_part; i_part < n_part; i_part++) {
+      gnum_elt_recv = malloc(sizeof(CWP_g_num_t *) * n_part);
+      for (int i_part = 0; i_part < n_part; i_part++) {
         gnum_elt_recv[i_part] = malloc(sizeof(CWP_g_num_t) * recv_n_elts[i_part]);
       }
 
-      for (int i_part; i_part < n_part; i_part++) {
+      for (int i_part = 0; i_part < n_part; i_part++) {
         for (int i = 0; i < recv_n_elts[i_part]; i++) {
           gnum_elt_recv[i_part][i] = i + 1;
         }
@@ -267,11 +265,11 @@ main(int argc, char *argv[]) {
     if (rank == 0 || rank == 1) {
 
       part1_to_part2_data = malloc(sizeof(double *) * n_part);
-      for (int i_part; i_part < n_part; i_part++) {
+      for (int i_part = 0; i_part < n_part; i_part++) {
         part1_to_part2_data[i_part] = malloc(sizeof(double) * send_n_elts[i_part] * n_comp);
       }
 
-      for (int i_part; i_part < n_part; i_part++) {
+      for (int i_part = 0; i_part < n_part; i_part++) {
         for (int i = 0; i < send_n_elts[i_part]; i++) {
           for (int i_comp = 0; i_comp < n_comp; i_comp++) {
             part1_to_part2_data[i_part][3*i + i_comp] = 0.1*i + i_comp;
@@ -320,7 +318,7 @@ main(int argc, char *argv[]) {
     }
 
     // --> check
-    for (int i_part; i_part < n_part; i_part++) {
+    for (int i_part = 0; i_part < n_part; i_part++) {
       if (rank == 0 || rank == 1) {
         for (int i = 0; i < send_n_elts[i_part]; i++) {
           for (int i_comp = 0; i_comp < n_comp; i_comp++) {
@@ -344,13 +342,15 @@ main(int argc, char *argv[]) {
     if (rank == 0 || rank == 1) {
       CWP_Part_data_del(code_name[0],
                         coupling_name,
-                        part_data_name);
+                        part_data_name,
+                        CWP_PARTDATA_SEND);
     }
 
     if (rank == 1) {
       CWP_Part_data_del(code_name[1],
                         coupling_name,
-                        part_data_name);
+                        part_data_name,
+                        CWP_PARTDATA_RECV);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -370,32 +370,36 @@ main(int argc, char *argv[]) {
     free(time_init);
     free(intra_comm);
 
-    if (part1_to_part2_data != NULL) {
-      for (int i_part; i_part < n_part; i_part++) {
-        free(part1_to_part2_data[i_part]);
+    if (rank == 0 || rank == 1) {
+      if (part1_to_part2_data != NULL) {
+        for (int i_part = 0; i_part < n_part; i_part++) {
+          free(part1_to_part2_data[i_part]);
+        }
+        free(part1_to_part2_data);
       }
-      free(part1_to_part2_data);
-    }
-    if (part2_data != NULL) {
-      for (int i_part; i_part < n_part; i_part++) {
-        if (part2_data[i_part] != NULL) free(part2_data[i_part]);
+      if (gnum_elt_send != NULL) {
+        for (int i_part = 0; i_part < n_part; i_part++) {
+          if (gnum_elt_send[i_part] != NULL) free(gnum_elt_send[i_part]);
+        }
+        free(gnum_elt_send);
       }
-      free(part2_data);
+      if (send_n_elts != NULL) free(send_n_elts);
     }
-    if (gnum_elt_send != NULL) {
-      for (int i_part; i_part < n_part; i_part++) {
-        if (gnum_elt_send[i_part] != NULL) free(gnum_elt_send[i_part]);
+    if (rank == 1) {
+      if (part2_data != NULL) {
+        for (int i_part = 0; i_part < n_part; i_part++) {
+          if (part2_data[i_part] != NULL) free(part2_data[i_part]);
+        }
+        free(part2_data);
       }
-      free(gnum_elt_send);
-    }
-    if (gnum_elt_recv != NULL) {
-      for (int i_part; i_part < n_part; i_part++) {
-        if (gnum_elt_recv[i_part] != NULL) free(gnum_elt_recv[i_part]);
+      if (gnum_elt_recv != NULL) {
+        for (int i_part = 0; i_part < n_part; i_part++) {
+          if (gnum_elt_recv[i_part] != NULL) free(gnum_elt_recv[i_part]);
+        }
+        free(gnum_elt_recv);
       }
-      free(gnum_elt_recv);
+      if (recv_n_elts != NULL) free(recv_n_elts);
     }
-    if (send_n_elts != NULL) free(send_n_elts);
-    if (recv_n_elts != NULL) free(recv_n_elts);
 
     // Finalize cwipi
     CWP_Finalize();
@@ -477,16 +481,16 @@ main(int argc, char *argv[]) {
        n_elt = 2;
     }
     int *n_elts = malloc(sizeof(int *) * n_part);
-    for (int i_part; i_part < n_part; i_part++) {
+    for (int i_part = 0; i_part < n_part; i_part++) {
       n_elts[i_part] = n_elt;
     }
 
     CWP_g_num_t **gnum_elt = malloc(sizeof(CWP_g_num_t *) * n_part);
-    for (int i_part; i_part < n_part; i_part++) {
+    for (int i_part = 0; i_part < n_part; i_part++) {
       gnum_elt[i_part] = malloc(sizeof(CWP_g_num_t) * n_elt);
     }
 
-    for (int i_part; i_part < n_part; i_part++) {
+    for (int i_part = 0; i_part < n_part; i_part++) {
       for (int i = 0; i < n_elt; i++) {
         if (code_id == 1) {
           gnum_elt[i_part][i] = n_elt * rank + i + 1;
@@ -514,11 +518,11 @@ main(int argc, char *argv[]) {
     if (code_id == 1) {
 
       part1_to_part2_data = malloc(sizeof(double *) * n_part);
-      for (int i_part; i_part < n_part; i_part++) {
+      for (int i_part = 0; i_part < n_part; i_part++) {
         part1_to_part2_data[i_part] = malloc(sizeof(double) * n_elt * n_comp);
       }
 
-      for (int i_part; i_part < n_part; i_part++) {
+      for (int i_part = 0; i_part < n_part; i_part++) {
         for (int i = 0; i < n_elt; i++) {
           for (int i_comp = 0; i_comp < n_comp; i_comp++) {
             part1_to_part2_data[i_part][3*i + i_comp] = 0.1*i + i_comp;
@@ -565,7 +569,7 @@ main(int argc, char *argv[]) {
     }
 
     // --> check
-    for (int i_part; i_part < n_part; i_part++) {
+    for (int i_part = 0; i_part < n_part; i_part++) {
         for (int i = 0; i < n_elt; i++) {
           for (int i_comp = 0; i_comp < n_comp; i_comp++) {
             if (code_id == 1) {
@@ -583,7 +587,8 @@ main(int argc, char *argv[]) {
     // Delete part_data object
     CWP_Part_data_del(code_name[0],
                       coupling_name,
-                      part_data_name);
+                      part_data_name,
+                      side);
 
     // Delete coupling
     CWP_Cpl_del(code_name[0], coupling_name);
@@ -596,19 +601,19 @@ main(int argc, char *argv[]) {
     free(intra_comm);
 
     if (part1_to_part2_data != NULL) {
-      for (int i_part; i_part < n_part; i_part++) {
+      for (int i_part = 0; i_part < n_part; i_part++) {
         free(part1_to_part2_data[i_part]);
       }
       free(part1_to_part2_data);
     }
     if (part2_data != NULL) {
-      for (int i_part; i_part < n_part; i_part++) {
+      for (int i_part = 0; i_part < n_part; i_part++) {
         if (part2_data[i_part] != NULL) free(part2_data[i_part]);
       }
       free(part2_data);
     }
     if (gnum_elt != NULL) {
-      for (int i_part; i_part < n_part; i_part++) {
+      for (int i_part = 0; i_part < n_part; i_part++) {
         if (gnum_elt[i_part] != NULL) free(gnum_elt[i_part]);
       }
       free(gnum_elt);
