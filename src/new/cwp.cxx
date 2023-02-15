@@ -3260,7 +3260,7 @@ CWP_Part_data_wait_irecv
  */
 
 void
-CWP_Mesh_interf_h_order_block_set
+CWP_Mesh_interf_block_ho_set
 (
  const char        *local_code_name,
  const char        *cpl_id,
@@ -3334,10 +3334,6 @@ CWP_Mesh_interf_ho_ordering_from_IJK_set
                                   order,
                                   n_nodes,
                                   ijk_grid);
-
-  /* TODO : reorder connec_ijk in all blocks of same type and order */
-  //...
-
   free(ho_ordering_name);
 }
 

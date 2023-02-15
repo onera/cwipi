@@ -2189,7 +2189,7 @@ CWP_Part_data_wait_irecv
  */
 
 void
-CWP_Mesh_interf_h_order_block_set
+CWP_Mesh_interf_block_ho_set
 (
  const char        *local_code_name,
  const char        *cpl_id,

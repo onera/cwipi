@@ -725,7 +725,7 @@ main
                                 node_coord   [i_code][i],
                                 node_ln_to_gn[i_code][i]);
 
-        CWP_Mesh_interf_h_order_block_set(code_name[i_code],
+        CWP_Mesh_interf_block_ho_set(code_name[i_code],
                                           cpl_name,
                                           i,
                                           block_id,
