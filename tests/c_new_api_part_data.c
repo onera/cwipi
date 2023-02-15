@@ -212,6 +212,7 @@ main(int argc, char *argv[]) {
         gnum_elt_send[i_part][i] = send_n_elts[i_part] * rank + i + 1;
       }
     }
+    PDM_log_trace_array_long(gnum_elt_send[0], send_n_elts[0], "gnum_elt_send: ");
 
     CWP_g_num_t **gnum_elt_recv = NULL;
     if (rank == 1) {
@@ -225,6 +226,7 @@ main(int argc, char *argv[]) {
           gnum_elt_recv[i_part][i] = i + 1;
         }
       }
+      PDM_log_trace_array_long(gnum_elt_recv[0], recv_n_elts[0], "gnum_elt_recv: ");
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -272,7 +274,7 @@ main(int argc, char *argv[]) {
       for (int i_part = 0; i_part < n_part; i_part++) {
         for (int i = 0; i < send_n_elts[i_part]; i++) {
           for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-            part1_to_part2_data[i_part][3*i + i_comp] = 0.1*i + i_comp;
+            part1_to_part2_data[i_part][3*i + i_comp] = rank + 0.1*i + i_comp;
           }
         }
       }

@@ -283,6 +283,53 @@ namespace cwipi {
   }
 
   /**
+   *
+   * \brief Filter come_from array
+   *
+   * \param [in] it
+   *
+   */
+
+  void
+  Coupling::createFilteredComeFrom
+  (
+   map<string,PartData>::iterator it
+  )
+  {
+    PDM_part_to_part_t *ptp = it->second.get_ptp();
+
+    int          **gnum1_come_from_idx = NULL;
+    CWP_g_num_t  **gnum1_come_from     = NULL;
+    PDM_part_to_part_gnum1_come_from_get(ptp,
+                                         &gnum1_come_from_idx,
+                                         &gnum1_come_from);
+
+    int  *n_ref_lnum2 = NULL;
+    int **ref_lnum2   = NULL;
+    PDM_part_to_part_ref_lnum2_get(ptp,
+                                   &n_ref_lnum2,
+                                   &ref_lnum2);
+
+    int  n_part2  = it->second.get_n_part2();
+
+    // malloc
+    CWP_g_num_t **filtered_gnum1_come_from = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t * ) * n_part2);
+    for (int i_part = 0; i_part < n_part2; i_part++) {
+      filtered_gnum1_come_from[i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_ref_lnum2[i_part]);
+    }
+
+    // filter on void**
+    for (int i_part = 0; i_part < n_part2; i_part++) {
+      for (int i = 0; i < n_ref_lnum2[i_part]; i++) {
+        int first_idx = gnum1_come_from_idx[i_part][i];
+        filtered_gnum1_come_from[i_part][i] = gnum1_come_from[i_part][first_idx];
+      }
+    }
+
+    it->second.set_filtered_gnum1_come_from(filtered_gnum1_come_from);
+  }
+
+  /**
    * \brief Create partitionned data exchange object
    *
    * \param [in] part_data_id
@@ -366,6 +413,11 @@ namespace cwipi {
                                         (const int**) part1_to_part2_idx,
                                         (const PDM_g_num_t**) gnum_elt,
                                         PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
+
+          it->second.set_ptp(ptp);
+          cpl_it->second.set_ptp(ptp);
+
+          createFilteredComeFrom(cpl_it);
         } // sending code
 
         else if (exch_type == CWP_PARTDATA_RECV) {
@@ -387,9 +439,11 @@ namespace cwipi {
                                         (const PDM_g_num_t**) gnum_elt1,
                                         PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
 
-        } // receiving code
+          it->second.set_ptp(ptp);
+          cpl_it->second.set_ptp(ptp);
 
-        cpl_it->second.set_ptp(ptp);
+          createFilteredComeFrom(it);
+        } // receiving code
 
       } // local code works
     } // joint
@@ -423,6 +477,8 @@ namespace cwipi {
                                       (const int**) part1_to_part2_idx,
                                       (const PDM_g_num_t**) gnum_elt,
                                       PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
+
+        it->second.set_ptp(ptp);
       } // sending code
 
       else if (exch_type == CWP_PARTDATA_RECV) {
@@ -436,11 +492,12 @@ namespace cwipi {
                                       NULL,
                                       PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
 
+        it->second.set_ptp(ptp);
+
+        createFilteredComeFrom(it);
       } // recving code
 
     } // not joint
-
-    it->second.set_ptp(ptp);
   }
 
   /**
@@ -731,10 +788,8 @@ namespace cwipi {
     // malloc
     void ***part2_data   = it->second.get_part2_data();
     (*part2_data) = (void **) malloc(sizeof(void *) * n_part2);
-    CWP_g_num_t **filtered_gnum1_come_from = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t * ) * n_part2);
     for (int i_part = 0; i_part < n_part2; i_part++) {
       (*part2_data)[i_part] = malloc(s_data * n_ref_lnum2[i_part] * n_components);
-      filtered_gnum1_come_from[i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_ref_lnum2[i_part]);
     }
 
     // filter on void**
@@ -742,14 +797,11 @@ namespace cwipi {
     for (int i_part = 0; i_part < n_part2; i_part++) {
       for (int i = 0; i < n_ref_lnum2[i_part]; i++) {
         int first_idx = gnum1_come_from_idx[i_part][i];
-        filtered_gnum1_come_from[i_part][i] = gnum1_come_from[i_part][first_idx];
         for (int j = 0; j < delta; j++) {
           ((unsigned char **) (*part2_data))[i_part][i * delta + j] = ((unsigned char **) recv_buffer)[i_part][first_idx * delta + j];
         }
       }
     }
-
-    it->second.set_filtered_gnum1_come_from(filtered_gnum1_come_from);
 
     // free
     if (recv_buffer != NULL) {
@@ -798,6 +850,10 @@ namespace cwipi {
         PDM_part_to_part_irecv_wait(ptp,
                                     *request2);
 
+        // set to NULL to prepare next send
+        it->second.set_request1(NULL);
+        cpl_it->second.set_request2(NULL);
+
         // filter
         partDatafilter(cpl_it);
 
@@ -807,6 +863,9 @@ namespace cwipi {
 
       PDM_part_to_part_issend_wait(ptp,
                                    *request);
+
+      // set to NULL to prepare next send
+      it->second.set_request1(NULL);
 
     } // not joint
   }
@@ -847,6 +906,10 @@ namespace cwipi {
         PDM_part_to_part_issend_wait(ptp,
                                      *request1);
 
+        // set to NULL to prepare next send
+        cpl_it->second.set_request1(NULL);
+        it->second.set_request2(NULL);
+
         // filter
         partDatafilter(it);
 
@@ -856,6 +919,9 @@ namespace cwipi {
 
       PDM_part_to_part_irecv_wait(ptp,
                                   *request);
+
+      // set to NULL to prepare next send
+      it->second.set_request2(NULL);
 
       // filter
       partDatafilter(it);

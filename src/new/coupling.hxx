@@ -118,6 +118,20 @@ namespace cwipi {
     );
 
     /**
+     *
+     * \brief Filter come_from array
+     *
+     * \param [in] it
+     *
+     */
+
+    void
+    createFilteredComeFrom
+    (
+     map<string,PartData>::iterator it
+    );
+
+    /**
      * \brief Create partitionned data exchange object
      *
      * \param [in] part_data_id
