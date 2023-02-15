@@ -41,6 +41,7 @@ namespace cwipi {
                      int                   n_part):
   _part_data_id(part_data_id),
   _recv_buffer(NULL),
+  _part1_to_part2_data(NULL),
   _part1_to_part2_idx(NULL),
   _filtered_gnum1_come_from(NULL)
   {

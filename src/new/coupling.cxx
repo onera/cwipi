@@ -278,8 +278,8 @@ namespace cwipi {
    const string &part_data_id
   )
   {
-    map<string,PartData>::iterator It = _partData.find(part_data_id.c_str());
-    return (It != _partData.end());
+    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
+    return (it != _partData.end());
   }
 
   /**
@@ -305,7 +305,7 @@ namespace cwipi {
   {
     // Check if not yet exists
     if (partDataIs(part_data_id)) {
-      PDM_error(__FILE__, __LINE__, 0, "'%s' existing partitionned data exchange object\n", part_data_id.c_str());
+      PDM_error(__FILE__, __LINE__, 0, "'%s' partitionned data exchange object already exists\n", part_data_id.c_str());
     }
 
     // Create object
@@ -323,27 +323,8 @@ namespace cwipi {
     // Create ptp
     PDM_part_to_part_t *ptp;
     MPI_Comm unionComm = _communication.unionCommGet();
-
     int **part1_to_part2_idx = NULL;
-    if (exch_type == CWP_PARTDATA_SEND) {
 
-      // malloc
-      part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part);
-      for (int i_part = 0; i_part < n_part; i_part++) {
-        part1_to_part2_idx[i_part] = (int *) malloc(sizeof(int) * (n_elt[i_part]+1));
-      }
-
-      // fill in
-      for (int i_part = 0; i_part < n_part; i_part++) {
-        part1_to_part2_idx[i_part][0] = 0;
-        for (int i = 0; i < n_elt[i_part]; i++) {
-          part1_to_part2_idx[i_part][i+1] = part1_to_part2_idx[i_part][i] + 1;
-        }
-      }
-
-      // set
-      it->second.set_part1_to_part2_idx(part1_to_part2_idx);
-    }
 
     if (_coupledCodeProperties.localCodeIs()) {
 
@@ -352,6 +333,23 @@ namespace cwipi {
 
       // second code to execute writes to be sure coupled part data object has been filled in
       if (cpl_it != cpl_cpl._partData.end()) {
+
+        // malloc
+        part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part);
+        for (int i_part = 0; i_part < n_part; i_part++) {
+          part1_to_part2_idx[i_part] = (int *) malloc(sizeof(int) * (n_elt[i_part]+1));
+        }
+
+        // fill in
+        for (int i_part = 0; i_part < n_part; i_part++) {
+          part1_to_part2_idx[i_part][0] = 0;
+          for (int i = 0; i < n_elt[i_part]; i++) {
+            part1_to_part2_idx[i_part][i+1] = part1_to_part2_idx[i_part][i] + 1;
+          }
+        }
+
+        // set
+        it->second.set_part1_to_part2_idx(part1_to_part2_idx);
 
         if (exch_type == CWP_PARTDATA_SEND) {
 
@@ -371,23 +369,6 @@ namespace cwipi {
         } // sending code
 
         else if (exch_type == CWP_PARTDATA_RECV) {
-
-          // malloc
-          part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part);
-          for (int i_part = 0; i_part < n_part; i_part++) {
-            part1_to_part2_idx[i_part] = (int *) malloc(sizeof(int) * (n_elt[i_part]+1));
-          }
-
-          // fill in
-          for (int i_part = 0; i_part < n_part; i_part++) {
-            part1_to_part2_idx[i_part][0] = 0;
-            for (int i = 0; i < n_elt[i_part]; i++) {
-              part1_to_part2_idx[i_part][i+1] = part1_to_part2_idx[i_part][i] + 1;
-            }
-          }
-
-          // set
-          it->second.set_part1_to_part2_idx(part1_to_part2_idx);
 
           CWP_g_num_t  **gnum_elt1 = cpl_it->second.get_gnum_elt1();
           int           *n_elt1    = cpl_it->second.get_n_elt1();
@@ -412,6 +393,24 @@ namespace cwipi {
     else {
 
       if (exch_type == CWP_PARTDATA_SEND) {
+
+        // malloc
+        part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part);
+        for (int i_part = 0; i_part < n_part; i_part++) {
+          part1_to_part2_idx[i_part] = (int *) malloc(sizeof(int) * (n_elt[i_part]+1));
+        }
+
+        // fill in
+        for (int i_part = 0; i_part < n_part; i_part++) {
+          part1_to_part2_idx[i_part][0] = 0;
+          for (int i = 0; i < n_elt[i_part]; i++) {
+            part1_to_part2_idx[i_part][i+1] = part1_to_part2_idx[i_part][i] + 1;
+          }
+        }
+
+        // set
+        it->second.set_part1_to_part2_idx(part1_to_part2_idx);
+
         ptp = PDM_part_to_part_create((const PDM_g_num_t**) gnum_elt,
                                       n_elt,
                                       n_part,
@@ -524,6 +523,8 @@ namespace cwipi {
     // set
     it->second.set_s_data(s_data);
     it->second.set_n_components(n_components);
+    it->second.set_part1_to_part2_data(part1_to_part2_data);
+    it->second.set_request1(request);
 
     // launch issend
     if (_coupledCodeProperties.localCodeIs()) {
@@ -610,18 +611,9 @@ namespace cwipi {
     it->second.set_part2_data(part2_data);
     it->second.set_s_data(s_data);
     it->second.set_n_components(n_components);
+    it->second.set_request2(request);
 
     void **recv_buffer = NULL;
-    // malloc
-    int *n_elt2  = it->second.get_n_elt2();
-    int  n_part2 = it->second.get_n_part2();
-    recv_buffer = (void **) malloc(sizeof(void *) * n_part2);
-    for (int i_part = 0; i_part < n_part2; i_part++) {
-      recv_buffer[i_part] = malloc(s_data * n_elt2[i_part] * n_components);
-    }
-
-    // set
-    it->second.set_recv_buffer(recv_buffer);
 
     // launch irecv
     if (_coupledCodeProperties.localCodeIs()) {
@@ -632,6 +624,17 @@ namespace cwipi {
 
       if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
 
+        // malloc
+        int *n_elt2  = it->second.get_n_elt2();
+        int  n_part2 = it->second.get_n_part2();
+        recv_buffer = (void **) malloc(sizeof(void *) * n_part2);
+        for (int i_part = 0; i_part < n_part2; i_part++) {
+          recv_buffer[i_part] = malloc(s_data * n_elt2[i_part] * n_components);
+        }
+
+        // set
+        it->second.set_recv_buffer(recv_buffer);
+
         PDM_part_to_part_irecv(ptp,
                                s_data,
                                n_components,
@@ -641,6 +644,7 @@ namespace cwipi {
 
         void **part1_to_part2_data = cpl_it->second.get_part1_to_part2_data();
         int   *request1            = cpl_it->second.get_request1();
+        assert(part1_to_part2_data != NULL); // TO DO
 
         PDM_part_to_part_issend(ptp,
                                 s_data,
@@ -652,6 +656,17 @@ namespace cwipi {
       } // local code works
     } // joint
     else {
+
+      // malloc
+      int *n_elt2  = it->second.get_n_elt2();
+      int  n_part2 = it->second.get_n_part2();
+      recv_buffer = (void **) malloc(sizeof(void *) * n_part2);
+      for (int i_part = 0; i_part < n_part2; i_part++) {
+        recv_buffer[i_part] = malloc(s_data * n_elt2[i_part] * n_components);
+      }
+
+      // set
+      it->second.set_recv_buffer(recv_buffer);
 
       PDM_part_to_part_irecv(ptp,
                              s_data,
