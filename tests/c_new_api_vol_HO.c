@@ -726,13 +726,13 @@ main
                                 node_ln_to_gn[i_code][i]);
 
         CWP_Mesh_interf_block_ho_set(code_name[i_code],
-                                          cpl_name,
-                                          i,
-                                          block_id,
-                                          n_elt[i_code][i],
-                                          order,
-                                          elt_node    [i_code][i],
-                                          elt_ln_to_gn[i_code][i]);
+                                     cpl_name,
+                                     i,
+                                     block_id,
+                                     n_elt[i_code][i],
+                                     order,
+                                     elt_node    [i_code][i],
+                                     elt_ln_to_gn[i_code][i]);
       }
 
       CWP_Mesh_interf_ho_ordering_from_IJK_set(code_name[i_code],

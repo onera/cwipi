@@ -1280,6 +1280,33 @@ namespace cwipi {
   /*************************************************/
 
   void
+  Mesh::HOBlockGet
+  (
+    const int              i_part,
+    const int              block_id,
+    int                   *n_elts,
+    int                   *order,
+    int                  **connec,
+    CWP_g_num_t          **global_num
+  )
+  {
+
+    BlockHO *block = dynamic_cast <BlockHO *> (_blockDB [block_id]);
+
+    char *ho_ordering;
+
+    block->blockGet(i_part,
+                    n_elts,
+                    connec,
+                    global_num,
+                    order,
+                    &ho_ordering);
+
+  }
+
+  /*************************************************/
+
+  void
   Mesh::poly2DBlockSet
   (
     const int              i_part,

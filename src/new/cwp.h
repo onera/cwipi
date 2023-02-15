@@ -2203,6 +2203,34 @@ CWP_Mesh_interf_block_ho_set
 
 
 /**
+ * \brief Get the properties of a generic high order block of the interface mesh. <b>(Not implemented yet)</b>
+ *
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  i_part           Partition identifier
+ * \param [in]  block_id         Block identifier
+ * \param [out]  n_elts           Number of elements
+ * \param [out]  order            Element order
+ * \param [out]  connec           Connectivity (size = n_vertex_elt * n_elts)
+ * \param [out]  global_num       Pointer to global element number (or NULL)
+ *
+ */
+
+void
+CWP_Mesh_interf_block_ho_block_get
+(
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const int          i_part,
+ const int          block_id,
+ int               *n_elts,
+ int               *order,
+ int              **connec,
+ CWP_g_num_t      **global_num
+);
+
+
+/**
  *
  * \brief Define ho element ordering from the location in the (u, v, w) grid
  *
@@ -2287,32 +2315,7 @@ CWP_block_type_to_PDM_elt_type
 //                                          const double *coords);
 
 
-/**
- * \brief Get the properties of a generic high order block of the interface mesh. <b>(Not implemented yet)</b>
- *
- * \param [in]  local_code_name  Local code name
- * \param [in]  cpl_id           Coupling identifier
- * \param [in]  i_part           Partition identifier
- * \param [in]  block_id         Block identifier
- * \param [out]  n_elts           Number of elements
- * \param [out]  order            Element order
- * \param [out]  connec           Connectivity (size = n_vertex_elt * n_elts)
- * \param [out]  global_num       Pointer to global element number (or NULL)
- *
- */
 
-void
-CWP_Mesh_interf_h_order_block_get
-(
- const char        *local_code_name,
- const char        *cpl_id,
- const int          i_part,
- const int          block_id,
- int               *n_elts,
- int               *order,
- int              **connec,
- CWP_g_num_t      **global_num
-);
 
 
 /**
