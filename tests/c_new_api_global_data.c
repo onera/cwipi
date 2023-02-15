@@ -187,33 +187,33 @@ main(int argc, char *argv[]) {
     // }
 
     // NEW CWIPI :
-    MPI_Comm   cpl_comm;
-    int       *cpl_ranks = NULL;
-    int size = CWP_Cpl_comm_get(code_name[0],
-                                coupling_name,
-                                &cpl_comm,
-                                &cpl_ranks);
+    // MPI_Comm   cpl_comm;
+    // int       *cpl_ranks = NULL;
+    // int size = CWP_Cpl_comm_get(code_name[0],
+    //                             coupling_name,
+    //                             &cpl_comm,
+    //                             &cpl_ranks);
 
-    if (verbose) {
-      printf("cpl_comm = %d\n", cpl_comm);
-      printf("cpl_ranks : \n");
-      printf("size = %d\n", size);
-      for (int i =0; i < size; i++) {
-        printf("cpl_ranks[%d] = %d\n", i, cpl_ranks[i]);
-      }
+    // if (verbose) {
+    //   printf("cpl_comm = %d\n", cpl_comm);
+    //   printf("cpl_ranks : \n");
+    //   printf("size = %d\n", size);
+    //   for (int i =0; i < size; i++) {
+    //     printf("cpl_ranks[%d] = %d\n", i, cpl_ranks[i]);
+    //   }
 
-      int recv = -1;
-      MPI_Allreduce(&rank, &recv, 1, MPI_INT, MPI_SUM, cpl_comm);
-      printf("recv : %d\n", recv);
-      fflush(stdout);
-    }
+    //   int recv = -1;
+    //   MPI_Allreduce(&rank, &recv, 1, MPI_INT, MPI_SUM, cpl_comm);
+    //   printf("recv : %d\n", recv);
+    //   fflush(stdout);
+    // }
 
-    if (verbose && rank == 0) {
-      printf("Get communicator OK\n");
-      fflush(stdout);
-    }
+    // if (verbose && rank == 0) {
+    //   printf("Get communicator OK\n");
+    //   fflush(stdout);
+    // }
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    // MPI_Barrier(MPI_COMM_WORLD);
 
     // Exchange vectors
     const char *global_data_name1  = "lapin";

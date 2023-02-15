@@ -1060,21 +1060,21 @@ const char *cpl_id
  * \return Size of \ref cpl_ranks vector
  *
  */
-int
-CWP_Cpl_comm_get
-(
-const char *local_code_name,
-const char *cpl_id,
-MPI_Comm   *cpl_comm,
-int       **cpl_ranks
-)
-{
-  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  int size = cpl.commGet(cpl_comm,
-                         cpl_ranks);
+// int
+// CWP_Cpl_comm_get
+// (
+// const char *local_code_name,
+// const char *cpl_id,
+// MPI_Comm   *cpl_comm,
+// int       **cpl_ranks
+// )
+// {
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+//   int size = cpl.commGet(cpl_comm,
+//                          cpl_ranks);
 
-  return size;
-}
+//   return size;
+// }
 
 /**
  * \brief Exchange spatially interpolated fields. <b>(Not implemented yet)</b>

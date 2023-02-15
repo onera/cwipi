@@ -45,6 +45,8 @@ static void
 _usage(int exit_code) {
   printf("\n"
          "  Usage: \n\n"
+         "  -v              verbose\n\n"
+         "  -o              Test choice\n\n"
          "  -h              this message.\n\n");
 
   exit(exit_code);
@@ -64,7 +66,8 @@ _read_args
 (
   int                   argc,
   char                **argv,
-  int                  *verbose
+  int                  *verbose,
+  int                  *option
 )
 {
   int i = 1;
@@ -77,6 +80,17 @@ _read_args
     else if (strcmp(argv[i], "-v") == 0) {
       *verbose = 1;
     }
+
+    else if (strcmp(argv[i], "-o") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *option = atoi(argv[i]);
+      }
+    }
+
     else
       _usage(EXIT_FAILURE);
     i++;
@@ -92,11 +106,13 @@ _read_args
 int
 main(int argc, char *argv[]) {
 
-  int verbose                     = 0;
+  int joint    = 0;
+  int verbose  = 0;
 
   _read_args (argc,
               argv,
-             &verbose);
+             &verbose,
+             &joint);
 
   // Initialize MPI
   MPI_Init(&argc, &argv);
@@ -106,9 +122,6 @@ main(int argc, char *argv[]) {
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
-
-  // choice
-  int joint = 1;
 
   if (joint) {
 
@@ -209,7 +222,7 @@ main(int argc, char *argv[]) {
 
     for (int i_part = 0; i_part < n_part; i_part++) {
       for (int i = 0; i < send_n_elts[i_part]; i++) {
-        gnum_elt_send[i_part][i] = send_n_elts[i_part] * rank + i + 1;
+        gnum_elt_send[i_part][i] = i + 1; // send_n_elts[i_part] * rank +
       }
     }
     PDM_log_trace_array_long(gnum_elt_send[0], send_n_elts[0], "gnum_elt_send: ");
@@ -324,21 +337,103 @@ main(int argc, char *argv[]) {
       if (rank == 0 || rank == 1) {
         for (int i = 0; i < send_n_elts[i_part]; i++) {
           for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-            log_trace("%d - %ld -> s[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, gnum_elt_send[i_part][i], part1_to_part2_data[i_part][3*i + i_comp]);
+            log_trace("%d - %ld -> s[%d][%d][%d] : %f\n", rank, gnum_elt_send[i_part][i], i_part, i, i_comp, part1_to_part2_data[i_part][3*i + i_comp]);
           }
         }
       }
 
       if (rank == 1) {
-        for (int i = 0; i < recv_n_elts[i_part]; i++) {
+        for (int i = 0; i < n_elt_send; i++) { // recv_n_elts[i_part]
           for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-            log_trace("%d - %ld -> r[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, gnum_elt_recv[i_part][i], part2_data[i_part][3*i + i_comp]);
+            log_trace("%d - %ld -> r[%d][%d][%d] : %f\n", rank, gnum_elt_recv[i_part][i], i_part, i, i_comp, part2_data[i_part][3*i + i_comp]);
           }
         }
       }
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
+
+    // second send
+
+    if (rank == 0 || rank == 1) {
+
+      for (int i_part = 0; i_part < n_part; i_part++) {
+        for (int i = 0; i < send_n_elts[i_part]; i++) {
+          for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+            part1_to_part2_data[i_part][3*i + i_comp] = rank * 100 + 3*i + i_comp;
+          }
+        }
+      }
+
+      CWP_Part_data_issend(code_name[0],
+                           coupling_name,
+                           part_data_name,
+                           sizeof(double),
+                           n_comp,
+                           (void **) part1_to_part2_data,
+                           &send_request);
+    }
+
+    if (rank == 1) {
+
+      if (part2_data != NULL) {
+        for (int i_part = 0; i_part < n_part; i_part++) {
+          if (part2_data[i_part] != NULL) free(part2_data[i_part]);
+        }
+        free(part2_data);
+      }
+      part2_data = NULL;
+
+      CWP_Part_data_irecv(code_name[1],
+                          coupling_name,
+                          part_data_name,
+                          sizeof(double),
+                          n_comp,
+                          (void ***) &part2_data,
+                          &recv_request);
+
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    // --> wait
+    if (rank == 0 || rank == 1) {
+
+      CWP_Part_data_wait_issend(code_name[0],
+                                coupling_name,
+                                part_data_name,
+                                &send_request);
+    }
+
+    if (rank == 1) {
+
+      CWP_Part_data_wait_irecv(code_name[1],
+                               coupling_name,
+                               part_data_name,
+                               &recv_request);
+    }
+
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    // --> check
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      if (rank == 0 || rank == 1) {
+        for (int i = 0; i < send_n_elts[i_part]; i++) {
+          for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+            log_trace("%d - %ld -> s2[%d][%d][%d] : %f\n", rank, gnum_elt_send[i_part][i], i_part, i, i_comp, part1_to_part2_data[i_part][3*i + i_comp]);
+          }
+        }
+      }
+
+      if (rank == 1) {
+        for (int i = 0; i < n_elt_send; i++) { // recv_n_elts[i_part]
+          for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+            log_trace("%d - %ld -> r2[%d][%d][%d] : %f\n", rank, gnum_elt_recv[i_part][i], i_part, i, i_comp, part2_data[i_part][3*i + i_comp]);
+          }
+        }
+      }
+    }
 
     // del
     if (rank == 0 || rank == 1) {
@@ -495,7 +590,7 @@ main(int argc, char *argv[]) {
     for (int i_part = 0; i_part < n_part; i_part++) {
       for (int i = 0; i < n_elt; i++) {
         if (code_id == 1) {
-          gnum_elt[i_part][i] = n_elt * rank + i + 1;
+          gnum_elt[i_part][i] = i + 1;
         } else {
           gnum_elt[i_part][i] = n_part * n_elt * (rank - 1) + i_part * n_elt + i + 1;
         }
@@ -575,10 +670,10 @@ main(int argc, char *argv[]) {
         for (int i = 0; i < n_elt; i++) {
           for (int i_comp = 0; i_comp < n_comp; i_comp++) {
             if (code_id == 1) {
-              log_trace("%d - %ld -> s[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, gnum_elt[i_part][i], part1_to_part2_data[i_part][3*i + i_comp]);
+              log_trace("%d - %ld -> s[%d][%d][%d] : %f\n", rank, gnum_elt[i_part][i], i_part, i, i_comp, part1_to_part2_data[i_part][3*i + i_comp]);
             }
             else {
-              log_trace("%d - %ld -> r[%d][%d][%d] : %f\n", rank, i_part, i, i_comp, gnum_elt[i_part][i], part2_data[i_part][3*i + i_comp]);
+              log_trace("%d - %ld -> r[%d][%d][%d] : %f\n", rank, gnum_elt[i_part][i], i_part, i, i_comp, part2_data[i_part][3*i + i_comp]);
             }
           }
         }
