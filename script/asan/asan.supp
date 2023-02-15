@@ -4,7 +4,7 @@ leak:HYD_str_split
 leak:HYD_str_alloc_and_join
 leak:HYD_env_create
 leak:MPL_args_deserialize
-leak:__libc_start_main
+leak:i_hydra/proxy/proxy.c
 leak:_PyObject_Realloc
 leak:_PyObject_Malloc
 leak:_PyObject_GC_Resize
@@ -18,4 +18,3 @@ leak:list_extend
 leak:resize_compact
 leak:function_code_fastcall
 leak:ofi_mem_init
-#interceptor_via_fun:__libc_start_main

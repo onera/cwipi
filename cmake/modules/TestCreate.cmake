@@ -25,8 +25,18 @@ function(test_c_create name n_proc)
              ${CMAKE_CURRENT_BINARY_DIR}/${name}
              ${MPIEXEC_POSTFLAGS})
 
+  set (LIST_PYTHON_TEST_ENV "")
+
   if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
-    set_property(TEST ${name} PROPERTY ENVIRONMENT "LSAN_OPTIONS=suppressions=${CMAKE_SOURCE_DIR}/script/asan/asan.supp")
+    execute_process(COMMAND gcc -print-file-name=libasan.so OUTPUT_VARIABLE PYTHON_TEST_ENV1 OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(PYTHON_TEST_ENV "LD_PRELOAD=${PYTHON_TEST_ENV1} ${CMAKE_BINARY_DIR}/external/paradigm/script/asan/fake_dlclose/libdlclose.so")
+    list(APPEND LIST_PYTHON_TEST_ENV "${PYTHON_TEST_ENV}")
+
+    list(APPEND LIST_PYTHON_TEST_ENV "LSAN_OPTIONS=suppressions=${CMAKE_SOURCE_DIR}/script/asan/asan.supp")
+  endif()
+
+  if (LIST_PYTHON_TEST_ENV)
+    set_property(TEST ${name} PROPERTY ENVIRONMENT "${LIST_PYTHON_TEST_ENV}")
   endif()
 
 endfunction()
@@ -55,9 +65,21 @@ function(test_fortran_create name n_proc)
              ${CMAKE_CURRENT_BINARY_DIR}/${name}
              ${MPIEXEC_POSTFLAGS})
 
+  set (LIST_PYTHON_TEST_ENV "")
+
   if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
-    set_property(TEST ${name} PROPERTY ENVIRONMENT "LSAN_OPTIONS=suppressions=${CMAKE_SOURCE_DIR}/script/asan/asan.supp")
+    execute_process(COMMAND gcc -print-file-name=libasan.so OUTPUT_VARIABLE PYTHON_TEST_ENV1 OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(PYTHON_TEST_ENV "LD_PRELOAD=${PYTHON_TEST_ENV1} ${CMAKE_BINARY_DIR}/external/paradigm/script/asan/fake_dlclose/libdlclose.so")
+    list(APPEND LIST_PYTHON_TEST_ENV "${PYTHON_TEST_ENV}")
+
+    list(APPEND LIST_PYTHON_TEST_ENV "LSAN_OPTIONS=suppressions=${CMAKE_SOURCE_DIR}/script/asan/asan.supp")
   endif()
+
+  if (LIST_PYTHON_TEST_ENV)
+    set_property(TEST ${name} PROPERTY ENVIRONMENT "${LIST_PYTHON_TEST_ENV}")
+  endif()
+
+
 endfunction()
 
 function(test_python_create name n_proc)
@@ -73,11 +95,11 @@ function(test_python_create name n_proc)
 
   set (LIST_PYTHON_TEST_ENV "")
 
-  if (PYTHON_TEST_ENV)
-    list(APPEND LIST_PYTHON_TEST_ENV "${PYTHON_TEST_ENV}")
-  endif()
-
   if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
+    execute_process(COMMAND gcc -print-file-name=libasan.so OUTPUT_VARIABLE PYTHON_TEST_ENV1 OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(PYTHON_TEST_ENV "LD_PRELOAD=${PYTHON_TEST_ENV1} ${CMAKE_BINARY_DIR}/external/paradigm/script/asan/fake_dlclose/libdlclose.so")
+    list(APPEND LIST_PYTHON_TEST_ENV "${PYTHON_TEST_ENV}")
+
     list(APPEND LIST_PYTHON_TEST_ENV "LSAN_OPTIONS=suppressions=${CMAKE_SOURCE_DIR}/script/asan/asan.supp")
   endif()
 

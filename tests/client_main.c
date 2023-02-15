@@ -147,7 +147,9 @@ main
   if (i_rank == 0) {
     system("mkdir -p client_main_o/code1");
     system("mkdir -p client_main_o/code2");
-    system("mpirun -n 1 ../bin/cwp_server -cn code0 -p 49100 49100 -c \"client_main_o/code1/cwp_config_srv.txt\" : -n 1  ../bin/cwp_server -cn code1 -p 49101 49101 -c \"client_main_o/code2/cwp_config_srv.txt\" &");
+    system("rm -f ./client_main_o/code1/cwp_config_srv.txt");
+    system("rm -f ./client_main_o/code2/cwp_config_srv.txt");
+    system("mpiexec -n 1 ../bin/cwp_server -cn code0 -p 49100 49100 -c \"client_main_o/code1/cwp_config_srv.txt\" : -n 1  ../bin/cwp_server -cn code1 -p 49101 49101 -c \"client_main_o/code2/cwp_config_srv.txt\" &");
   }
 
   while (access(config, R_OK) != 0) {
@@ -411,6 +413,7 @@ main
 
   MPI_Finalize();
 
+  exit(0);
   return 0;
 }
 
