@@ -409,6 +409,13 @@ namespace cwipi {
       int         value
     );
 
+    /**
+     * \brief Get spatial interpolation algorithm enum.
+     */
+
+    CWP_Spatial_interp_t
+    spatialInterpAlgoGet();
+
     /*----------------------------------------------------------------------------*
      * Methods about visualization                                                *
      *----------------------------------------------------------------------------*/

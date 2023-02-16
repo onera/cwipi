@@ -616,47 +616,19 @@ namespace cwipi {
       if (interpolationFunction != NULL) {
 
         for (int i_part = 0 ; i_part < _nPart ; i_part++) {
-          double      *part_points_coords           = _points_coords[i_part];
-          double      *part_points_uvw              = _points_uvw[i_part];
-          double      *part_points_dist2            = _points_dist2[i_part];
 
-          int         *part_weights_idx             = _weights_idx[i_part];
-          double      *part_weights                 = _weights[i_part];
-
-         // TO DO
-         // (*interpolationFunction)(_cpl->entitiesDimGet(),
-         //                          _localCodeProperties->nameGet().c_str(),
-         //                          _mesh->nBlockGet(),
-         //                          _mesh->blocksTypeGet(),
-         //                          i_part,
-         //                          _mesh->getPartNVertex(i_part),
-         //                          _mesh->getVertexCoords(i_part),
-         //                          _mesh->getVertexGNum(i_part),
-         //                          _mesh->getPartNElts(i_part),
-         //                          _mesh->eltIdBlockGet(i_part),
-         //                          _mesh->eltInBlockGet(i_part),
-         //                          _cell_vtx_idx[i_part],
-         //                          _cell_vtx[i_part],
-         //                          _mesh->GNumEltsGet(i_part),
-         //                          _n_elt_weights[i_part],
-         //                          _elt_pts_inside_idx[i_part],
-         //                          part_points_coords,
-         //                          part_points_dist2,
-         //                          part_points_uvw,
-         //                          part_weights_idx,
-         //                          part_weights,
-         //                          nComponent,
-         //                          referenceFieldType,
-         //                          (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
-         //                          buffer
-         //                          );
+          (*interpolationFunction) (_localCodeProperties->nameGet().c_str(),
+                                    _cpl->IdGet().c_str(),
+                                    referenceField->fieldIDGet().c_str(),
+                                    _cpl->spatialInterpAlgoGet(),
+                         (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
+                                    buffer[i_part]);
         }
     
       }
 
       else if (interpolationFunction_f != NULL) {
-
-
+        PDM_error(__FILE__, __LINE__, 0, "fortran user interpolation not implemented yet");
       }
 
     }

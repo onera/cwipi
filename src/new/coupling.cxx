@@ -1251,6 +1251,15 @@ namespace cwipi {
     }
   }
 
+  /**
+   * \brief Get spatial interpolation algorithm enum.
+   */
+
+  CWP_Spatial_interp_t
+  Coupling::spatialInterpAlgoGet()
+  {
+    return _spatialInterpAlgo;
+  }
 
   /**
    *

@@ -753,7 +753,26 @@ namespace cwipi {
     const CWP_Field_storage_t storage = referenceField->storageTypeGet();
 
     if (interpolationType == CWP_INTERPOLATION_USER) {
-      PDM_error(__FILE__, __LINE__, 0, "user interpolation not implemented yet");
+      CWP_Interp_function_t interpolationFunction = referenceField->interpolationFunctionGet();
+      void *interpolationFunction_f = referenceField->fortranInterpolationFunctionGet();
+
+      if (interpolationFunction != NULL) {
+
+        for (int i_part = 0 ; i_part < _nPart ; i_part++) {
+
+          (*interpolationFunction) (_localCodeProperties->nameGet().c_str(),
+                                    _cpl->IdGet().c_str(),
+                                    referenceField->fieldIDGet().c_str(),
+                                    _cpl->spatialInterpAlgoGet(),
+                                    (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
+                                    buffer[i_part]);
+        }
+
+      }
+
+      else if (interpolationFunction_f != NULL) {
+        PDM_error(__FILE__, __LINE__, 0, "fortran user interpolation not implemented yet");
+      }
     }
 
     else {
