@@ -153,7 +153,7 @@ if (CWP_ENABLE_NEW_API)
     test_c_create (c_new_api_guinea_pig 2)
     test_c_create (c_new_api_vol_HO 2)
     test_c_create (c_new_api_wind_turbine_blade 2)
-
+    test_c_create (c_new_api_user_interp_fct 2)
     if (CWP_ENABLE_CLIENT_SERVER)
 #      test_c_create (c_ip_io 1)
       test_c_create (client_main 2)

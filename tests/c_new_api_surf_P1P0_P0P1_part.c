@@ -91,79 +91,20 @@ _read_args(int argc, char **argv, int *nVertex, double *randLevel) {
 static void
 _userInterpolation
 (
-  const int                  interface_type,
-  const char                *code_name,
-  const int                  src_n_block,
-  const CWP_Block_t          src_blocks_type[],
-  const int                  src_i_part,
-  const int                  src_n_vtx,
-  const double               src_vtx_coords[],
-  const CWP_g_num_t          src_vtx_global_num[],
-  const int                  src_n_elts,
-  const int                  src_i_block[],
-  const int                  src_elt_in_block[],
-  const int                  src_elt_vtx_idx[],
-  const int                  src_elt_vtx[],
-  const CWP_g_num_t          src_elts_global_num[],
-  const int                  tgt_n_pts,
-  const int                  tgt_pts_elt_idx[],
-  const double               tgt_pts_coords[],
-  const double               tgt_pts_dist[],
-  const double               tgt_pts_uvw[],
-  const int                  tgt_pts_weights_idx[],
-  const double               tgt_pts_weights[],
-  const int                  stride,
-  const CWP_Dof_location_t   src_field_dof_location,
-  const void                *src_field,
-  void                      *tgt_field
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spartial_interp_algorithm,
+ double               *buffer_in,
+ double               *buffer_out
 )
 {
-  CWP_UNUSED(interface_type);
-  CWP_UNUSED(code_name);
-  CWP_UNUSED(src_n_block);
-  CWP_UNUSED(src_blocks_type);
-  CWP_UNUSED(src_i_part);
-  CWP_UNUSED(src_n_vtx);
-  CWP_UNUSED(src_vtx_coords);
-  CWP_UNUSED(src_vtx_global_num);
-  CWP_UNUSED(src_n_elts);
-  CWP_UNUSED(src_i_block);
-  CWP_UNUSED(src_elt_in_block);
-  CWP_UNUSED(src_elt_vtx_idx);
-  CWP_UNUSED(src_elt_vtx);
-  CWP_UNUSED(src_elts_global_num);
-  CWP_UNUSED(tgt_n_pts);
-  CWP_UNUSED(tgt_pts_elt_idx);
-  CWP_UNUSED(tgt_pts_coords);
-  CWP_UNUSED(tgt_pts_dist);
-  CWP_UNUSED(tgt_pts_uvw);
-  CWP_UNUSED(tgt_pts_weights_idx);
-  CWP_UNUSED(tgt_pts_weights);
-  CWP_UNUSED(stride);
-  CWP_UNUSED(src_field_dof_location);
-  CWP_UNUSED(src_field);
-  CWP_UNUSED(tgt_field);
-
-  // Compute shapef
-  // if (src_field_location == CWP_DOF_LOCATION_NODE) {
-  //   for (int i = 0 ; i < n_tgt_pts ; i++) {
-  //     int ielt = tgt_pts_target_location[i];
-  //     double *shapef = (double *) malloc(4 * n_src_std_elts * sizeof(double));
-  //     double *shapef_elt = shapef + 4 * ielt;
-  //     CWP_UNUSED (shapef_elt);
-
-  //     // Interpolation
-  //     ((double *) tgt_field)[i] = 0.0;
-  //     for (int k = 0 ; k < 4 ; k++) {
-  //       ((double *) tgt_field)[i] = ((double *) src_field)[0];//ivertex[k]];
-  //     }
-  //     free(shapef);
-  //   }
-  // }
-  // else {
-  //   printf("Error in userInterpolation : bad solver_type\n");
-  //   exit(EXIT_FAILURE);
-  // }
+  printf("-> %s %s %s : %d ~ NOTHING DONE\n",
+         local_code_name,
+         cpl_id,
+         field_id,
+         spartial_interp_algorithm);
+  fflush(stdout);
 }
 
 

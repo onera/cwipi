@@ -1426,8 +1426,8 @@ namespace cwipi {
                                       _cpl->IdGet().c_str(),
                                       referenceField->fieldIDGet().c_str(),
                                       _cpl->spatialInterpAlgoGet(),
-                                      (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
-                                      buffer[i_part]);
+                           (double *) referenceField->dataGet(i_part, CWP_FIELD_MAP_SOURCE),
+                           (double *) buffer[i_part]);
           }
 
         }
