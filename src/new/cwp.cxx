@@ -2203,7 +2203,7 @@ CWP_Field_create
  */
 
 void
-CWP_Interp_from_location_unset
+CWP_Interp_function_unset
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
@@ -2211,7 +2211,7 @@ CWP_Interp_from_location_unset
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.interpFromLocUnSet(src_field_id);
+  cpl.interpFunctionUnSet(src_field_id);
 }
 
 
@@ -2221,7 +2221,7 @@ CWP_Interp_from_location_unset
  * \brief Setting of an user interpolation from location.
  *
  * This function takes into account an user interpolation function written with
- * void (*\ref CWP_Interp_from_location_t) interface.
+ * void (*\ref CWP_Interp_function_t) interface.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -2231,16 +2231,16 @@ CWP_Interp_from_location_unset
  */
 
 void
-CWP_Interp_from_location_set
+CWP_Interp_function_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
  const char                 *src_field_id,
-  CWP_Interp_from_location_t fct
+ CWP_Interp_function_t       fct
  )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.interpFromLocSet(src_field_id,fct);
+  cpl.interpFunctionSet(src_field_id,fct);
 }
 
 

@@ -213,13 +213,13 @@ namespace cwipi {
     }
 
 
-    void interpFromLocationSet(CWP_Interp_from_location_t fct)
+    void interpFunctionSet(CWP_Interp_function_t fct)
     {
       _interpolationType     = CWP_INTERPOLATION_USER ;
       _interpolationFunction = fct;
     }
 
-    void interpFromLocationUnSet()
+    void interpFunctionUnSet()
     {
       _interpolationType     = CWP_INTERPOLATION_DEFAULT ;
       _interpolationFunction = NULL;
@@ -237,7 +237,7 @@ namespace cwipi {
       _interpolationFunction_f = NULL;
     }
 
-    CWP_Interp_from_location_t interpolationFunctionGet() {
+    CWP_Interp_function_t interpolationFunctionGet() {
       return _interpolationFunction;
     }
 
@@ -363,7 +363,7 @@ namespace cwipi {
     std::map <int,MPI_Request>               _last_request;
     std::map <int,std::vector<MPI_Request>>  _last_request_p2p;
     int                                      _dataTypeSize;
-    CWP_Interp_from_location_t               _interpolationFunction;
+    CWP_Interp_function_t               _interpolationFunction;
     void*                                    _interpolationFunction_f;
     CWP_Interpolation_t                      _interpolationType;
 

@@ -1283,134 +1283,31 @@ namespace cwipi {
 
     /**
      *
-     * \brief Setting of an user interpolation from location.
+     * \brief Setting of an user interpolation function.
      *
      * This function takes into account an user interpolation function written with
-     *  void (* \ref CWP_Interp_from_location_t) interface.
+     *  void (* \ref CWP_Interp_function_t) interface.
      *
      * \param [in] fct        Function
      *
      */
 
     inline void
-    interpFromLocSet ( 
+    interpFunctionSet (
       const string field_id,
-      CWP_Interp_from_location_t fct
+      CWP_Interp_function_t fct
     );
 
     /**
      *
-     * \brief Setting of an user interpolation from location.
-     *
-     * This function takes into account an user interpolation function written with
-     *  void (* \ref CWP_Interp_from_location_t) interface.
-     *
-     * \param [in] fct        Function
+     * \brief Unsetting of an user interpolation function.
      *
      */
 
     inline void
-    interpFromLocUnSet ( 
+    interpFunctionUnSet (
       const string field_id
     );
-
-    /**
-     *
-     * \brief Setting of a FORTRAN user interpolation from location.
-     *
-     * This function takes into account an user interpolation function written
-     * in FORTRAN .
-     *
-     * \param [in] fct        Function
-     *
-     */
-
-    inline void
-    interpFortranFromLocSet (
-      const string field_id,
-      void       *fct
-    );
-
-    /**
-     *
-     * \brief Setting of a FORTRAN user interpolation from location.
-     *
-     * This function takes into account an user interpolation function written
-     * in FORTRAN .
-     *
-     * \param [in] fct        Function
-     *
-     */
-
-    inline void
-    interpFortranFromLocUnSet (
-      const string field_id
-    );
-
-    /**
-     *
-     * \brief Setting of an user interpolation from intersection.
-     *
-     * This function takes into account an user interpolation function written with
-     *  void (* \ref CWP_Interp_from_intersect_t) interface.
-     *
-     * \param [in] fct        Function
-     *
-     */
-
-    inline void
-    interpFromInterSet (
-      CWP_Interp_from_intersect_t fct
-    );
-
-    /**
-     *
-     * \brief Setting of a FORTRAN user interpolation from intersection.
-     *
-     * This function takes into account an user interpolation function written
-     * in FORTRAN .
-     *
-     * \param [in] fct        Function
-     *
-     */
-
-    inline void
-    interpFromInterSetF (
-      void       *fct
-    );
-
-    /**
-     *
-     * \brief Setting of an user interpolation from closest points
-     *
-     * This function takes into account an user interpolation function written with
-     *  void (* \ref CWP_Interp_from_closest_pts_t) interface.
-     *
-     * \param [in] fct        Function
-     *
-     */
-
-    inline void
-    interpFromClosestSet (
-      CWP_Interp_from_closest_pts_t fct
-    );
-
-    /**
-     *
-     * \brief Setting of a FORTRAN user interpolation from closest points
-     *
-     * This function takes into account an user interpolation function written
-     * in FORTRAN .
-     *
-     * \param [in] fct        Function
-     *
-     */
-
-    inline void
-    interpFromClosestSetF (
-      void *fct
-    );
-
 
     /*----------------------------------------------------------------------------*
      * methods about attributes                                                   *

@@ -1983,7 +1983,7 @@ CWP_Interp_from_location_set_cf (
   c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
 
-  CWP_Interp_from_location_set(c_local_code_name, c_cpl_id, c_src_field_id, (CWP_Interp_from_location_t) ptInterpolationFct);
+  CWP_Interp_function_set(c_local_code_name, c_cpl_id, c_src_field_id, (CWP_Interp_function_t) ptInterpolationFct);
 
   free ( c_local_code_name);
   free ( c_cpl_id);
@@ -2407,7 +2407,8 @@ CWP_Interp_from_location_fortran_set_cf
 
   cwipi::Coupling& cpl = _cpl_get(c_code_name, c_cpl_id);
 
-  cpl.interpFortranFromLocSet(field_name_str, fct);
+  // TO DO
+  // cpl.interpFortranFromLocSet(field_name_str, fct);
 
   free ( c_code_name);
   free ( c_cpl_id);
@@ -2448,7 +2449,8 @@ CWP_Interp_from_location_fortran_unset_cf
 
   cwipi::Coupling& cpl = _cpl_get(c_code_name, c_cpl_id);
 
-  cpl.interpFortranFromLocUnSet(field_name_str);
+  // TO DO
+  // cpl.interpFortranFromLocUnSet(field_name_str);
 
   free ( c_code_name);
   free ( c_cpl_id);

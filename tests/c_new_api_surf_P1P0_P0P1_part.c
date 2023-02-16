@@ -768,7 +768,7 @@ main(int argc, char *argv[]) {
       }
 
       if (code4I == 1) {
-        CWP_Interp_from_location_set(codeName[i_code], cpl_name, fieldName4, _userInterpolation);
+        CWP_Interp_function_set(codeName[i_code], cpl_name, fieldName4, _userInterpolation);
       }
     }
     else {

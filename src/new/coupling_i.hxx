@@ -1138,19 +1138,19 @@ namespace cwipi {
 
   /**
    *
-   * \brief Setting of an user interpolation from location.
+   * \brief Setting of an user interpolation function.
    *
    * This function takes into account an user interpolation function written with
-   *  void (* \ref CWP_Interp_from_location_t) interface.
+   *  void (* \ref CWP_Interp_function_t) interface.
    *
    * \param [in] fct        Function
    *
    */
 
   void 
-  Coupling::interpFromLocSet (  
+  Coupling::interpFunctionSet (
     const string                     field_id,
-          CWP_Interp_from_location_t fct
+          CWP_Interp_function_t      fct
   )
   {
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());
@@ -1159,23 +1159,18 @@ namespace cwipi {
                 "'%s' not existing field\n", field_id.c_str());
     }
     else {
-      It -> second -> interpFromLocationSet(fct);
+      It -> second -> interpFunctionSet(fct);
     }
   }
 
   /**
    *
-   * \brief Setting of an user interpolation from location.
-   *
-   * This function takes into account an user interpolation function written with
-   *  void (* \ref CWP_Interp_from_location_t) interface.
-   *
-   * \param [in] fct        Function
+   * \brief Unsetting of an user interpolation function.
    *
    */
 
   inline void
-  Coupling::interpFromLocUnSet ( 
+  Coupling::interpFunctionUnSet (
     const string field_id
   )
   {
@@ -1185,142 +1180,8 @@ namespace cwipi {
                 "'%s' not existing field\n", field_id.c_str());
     }
     else {
-      It -> second -> interpFromLocationUnSet();
+      It -> second -> interpFunctionUnSet();
     }
-  }
-
-  /**
-   *
-   * \brief Setting of a FORTRAN user interpolation from location.
-   *
-   * This function takes into account an user interpolation function written
-   * in FORTRAN .
-   *
-   * \param [in] fct        Function
-   *
-   */
-
-  void
-  Coupling::interpFortranFromLocSet (
-    const string  field_id,
-    void         *fct
-  )
-  {
-    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
-    if (It == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing field\n", field_id.c_str());
-    }
-    else {
-      It -> second -> interpFortranFromLocationSet(fct);
-    }
-  }
-
-
-  /**
-   *
-   * \brief Setting of a FORTRAN user interpolation from location.
-   *
-   * This function takes into account an user interpolation function written
-   * in FORTRAN .
-   *
-   * \param [in] fct        Function
-   *
-   */
-
-  void
-  Coupling::interpFortranFromLocUnSet (
-    const string  field_id
-  )
-  {
-    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
-    if (It == _fields.end()) {
-      PDM_error(__FILE__, __LINE__, 0,
-                "'%s' not existing field\n", field_id.c_str());
-    }
-    else {
-      It -> second -> interpFortranFromLocationUnSet();
-    }
-  }
-
-  /**
-   *
-   * \brief Setting of an user interpolation from intersection.
-   *
-   * This function takes into account an user interpolation function written with
-   *  void (* \ref CWP_Interp_from_intersect_t) interface.
-   *
-   * \param [in] fct        Function
-   *
-   */
-
-  void
-  Coupling::interpFromInterSet (
-    CWP_Interp_from_intersect_t fct
-  )
-  {
-    PDM_UNUSED (fct);
-    PDM_error(__FILE__, __LINE__, 0, "\ninterpFromInterSet not implemented yet\n");  
-  }
-
-  /**
-   *
-   * \brief Setting of a FORTRAN user interpolation from intersection.
-   *
-   * This function takes into account an user interpolation function written
-   * in FORTRAN .
-   *
-   * \param [in] fct        Function
-   *
-   */
-
-  void
-  Coupling::interpFromInterSetF (
-    void       *fct
-  )
-  {
-    PDM_UNUSED (fct);
-    PDM_error(__FILE__, __LINE__, 0, "\ninterpFromInterSetF not implemented yet\n");      
-  }
-
-  /**
-   *
-   * \brief Setting of an user interpolation from closest points
-   *
-   * This function takes into account an user interpolation function written with
-   *  void (* \ref CWP_Interp_from_closest_pts_t) interface.
-   *
-   * \param [in] fct        Function
-   *
-   */
-
-  void
-  Coupling::interpFromClosestSet (
-    CWP_Interp_from_closest_pts_t fct
-  )
-  {
-    PDM_UNUSED (fct);
-    PDM_error(__FILE__, __LINE__, 0, "\ninterpFromClosestSet not implemented yet\n");     
-  }
-
-  /**
-   *
-   * \brief Setting of a FORTRAN user interpolation from closest points
-   *
-   * This function takes into account an user interpolation function written
-   * in FORTRAN .
-   *
-   * \param [in] fct        Function
-   *
-   */
-
-  void
-  Coupling::interpFromClosestSetF (
-    void *fct
-  )
-  {
-    PDM_UNUSED (fct);
-    PDM_error(__FILE__, __LINE__, 0, "\ninterpFromClosestSetF not implemented yet\n");     
   }
 
   /*----------------------------------------------------------------------------*

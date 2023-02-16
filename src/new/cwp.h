@@ -344,123 +344,31 @@ typedef enum {
  *============================================================================*/
 
 /**
- * \typedef void (*CWP_Interp_from_location_t)
- * \brief User interpolation function interface from location into a mesh.
+ * \typedef void (*CWP_Interp_function_t)
+ * \brief User interpolation function interface.
  *
- * void (*CWP_Interp_from_location_t) defines the user interpolation
- * interface to take into account an user interpolation from location of target
- * points into the source mesh. Use \ref CWP_Interp_from_location_set to activate
+ * void (*CWP_Interp_function_t) defines the user interpolation
+ * interface to take into account an user interpolation
+ * Use \ref CWP_Interp_function_set to activate
  * the function.
  *
- * \param [in]  interface_type              Interface type
- * \param [in]  code_name                   Name of code
- * \param [in]  src_n_block                 Number of blocks
- * \param [in]  src_block_type              Block types (size = n_block)
- * \param [in]  src_i_part                  Part id
- * \param [in]  src_n_vtx                   Number of vertices
- * \param [in]  src_vtx_coords              Coordinates of vertices (size = 3 * src_n_vtx)
- * \param [in]  src_vtx_global_num          Global number of vertices (size = src_n_vtx)
- * \param [in]  src_n_elts                  Number of elements
- * \param [in]  src_id_block                 block id of the element
- *                                          (size = src_n_elts)
- * \param [in]  src_elt_in_block            Element number of the elements into it block
- *                                          (size = src_n_elts)
- * \param [in]  src_elt_vtx_idx              Element to vertex index
- *                                          (src_elt_vtx_idx[0] = 0 and
- *                                          size = src_n_elts + 1)
- * \param [in]  src_elt_vtx                  Element to vertex connectivity.
- *                                          (size = src_elt_vtx_idx[src_n_elts])
- * \param [in]  src_elts_global_num         Global number of elements (size = src_n_elts)
- * \param [in]  tgt_n_pts                   Number of target points
- * \param [in]  tgt_pts_elt_idx             The list of target points located in each element 
- *                                          (size = src_n_elts + 1)
- * \param [in]  tgt_pts_coords              Target points coordinates
- *                                          (size = 3 * tgt_n_pts)
- * \param [in]  tgt_pts_dist                target points distance to location element
- *                                          (size = tgt_n_pts)
- * \param [in]  tgt_pts_uvw                 Parametric coordinates of target points in the elements
- *                                          ( 0 <= u <= 1, 0 <= v <= 1, -1 : for polydra and polygons)
- *                                          (size = dim_interface * tgt_n_pts)
- * \param [in]  tgt_pts_weights_idx         Index of Barycentric coordinates target points
- *                                          in location element
- *                                          (tgt_pts_bary_coords_idx[0] = 0 and
- *                                          size = n_tgt_pts + 1)
- * \param [in]  tgt_pts_weights             Barycentric coordinates target points
- *                                          in location element
- *                                          (size = tgt_pts_weights_idx[n_tgt_pts])
- * \param [in]  stride                      Number of field components
- * \param [in]  src_field_dof_location      source field location
- * \param [in]  src_field                   source field
- *                                          (size depends on field type and stride)
- * \param [out] tgt_field                   target field
- *                                          (size = stride * n_tgt_pts)
- */
-
-
-typedef void (*CWP_Interp_from_location_t)
-(
-  const int                  interface_type,
-  const char                *code_name,
-  const int                  src_n_block,
-  const CWP_Block_t          src_blocks_type[],
-  const int                  src_i_part,
-  const int                  src_n_vtx,
-  const double               src_vtx_coords[],
-  const CWP_g_num_t          src_vtx_global_num[],
-  const int                  src_n_elts,
-  const int                  src_id_block[],
-  const int                  src_elt_in_block[],
-  const int                  src_elt_vtx_idx[],
-  const int                  src_elt_vtx[],
-  const CWP_g_num_t          src_elts_global_num[],
-  const int                  tgt_n_pts,
-  const int                  tgt_pts_elt_idx[],
-  const double               tgt_pts_coords[],
-  const double               tgt_pts_dist[],
-  const double               tgt_pts_uvw[],
-  const int                  tgt_pts_weights_idx[],
-  const double               tgt_pts_weights[],
-  const int                  stride,
-  const CWP_Dof_location_t   src_field_dof_location,
-  const void                *src_field,
-  void                      *tgt_field
-);
-
-
-/**
- * \typedef void (*CWP_Interp_from_intersect_t)
- * \brief User interpolation function interface from intersection between meshes. <b>(Not implemented yet)</b>
- *
- * void (*CWP_Interp_from_intersect_t) defines the user interpolation
- * interface to take into account an user interpolation from intersection
- * between source and target meshes. Use \ref CWP_Interp_from_intersect_set to activate
- * the function.
- *
- * \param [in]  interface_type              Interface type
+ * \param [in]  local_code_name             Local code name
+ * \param [in]  cpl_id                      Coupling name
+ * \param [in]  field_id                    Field name
+ * \param [in]  spartial_interp_algorithm   Enum of spatial interpolation algorithm
+ * \param [in]  buffer_in                   Input field array
+ * \param [out] buffer_out                  Output field array
  *
  */
 
-typedef void (*CWP_Interp_from_intersect_t)
+typedef void (*CWP_Interp_function_t)
 (
-  const int interface_type
-);
-
-/**
- * \typedef void (*CWP_Interp_from_closest_pts_t)
- * \brief User interpolation function from closest points. <b>(Not implemented yet)</b>
- *
- * void (*CWP_Interp_from_closest_pts_t) defines the user interpolation
- * interface to take into account an user interpolation from <i>n</i> closest
- * points. Use \ref CWP_Interp_from_closest_pts_set to activate
- * the function.
- *
- * \param [in]  interface_type              Interface type
- *
- */
-
-typedef void (*CWP_Interp_from_closest_pts_t)
-(
-  const int interface_type
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spartial_interp_algorithm,
+ double               *buffer_in,
+ double               *buffer_out
 );
 
 /*=============================================================================
@@ -1765,7 +1673,7 @@ CWP_Field_wait_irecv
  */
 
 void
-CWP_Interp_from_location_unset
+CWP_Interp_function_unset
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
@@ -1778,7 +1686,7 @@ CWP_Interp_from_location_unset
  * \brief Setting of an user interpolation from location.
  *
  * This function takes into account an user interpolation function written with
- * void (*\ref CWP_Interp_from_location_t) interface.
+ * void (*\ref CWP_Interp_function_t) interface.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -1788,12 +1696,12 @@ CWP_Interp_from_location_unset
  */
 
 void
-CWP_Interp_from_location_set
+CWP_Interp_function_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
  const char                 *src_field_id,
- CWP_Interp_from_location_t  fct
+ CWP_Interp_function_t       fct
 );
 
 /*----------------------------------------------------------------------------*
@@ -2466,51 +2374,6 @@ CWP_Cpl_storage_properties_set
  const int       buffer_size,
  const int       disk_storage_size
 );
-
-
-/**
- *
- * \brief Setting of an user interpolation from intersection. <b>(Not implemented yet)</b>
- *
- * This function takes into account an user interpolation function written with
- * void (*\ref CWP_Interp_from_intersect_t) interface.
- *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] fct              Function
- *
- */
-
-void
-CWP_Interp_from_intersect_set
-(
- const char                *local_code_name,
- const char                *cpl_id,
- CWP_Interp_from_intersect_t fct
-);
-
-/**
- *
- * \brief Setting of an user interpolation from closest points. <b>(Not implemented yet)</b>
- *
- * This function takes into account an user interpolation function written with
- *  void (*\ref CWP_Interp_from_closest_pts_t) interface.
- *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] fct              Function
- *
- */
-
-void
-CWP_Interp_from_closest_pts_set
-(
- const char                     *local_code_name,
- const char                     *cpl_id,
- CWP_Interp_from_closest_pts_t   fct
-);
-
-
 
 /**
  * \brief Return distance from each target to the source interface. <b>(Not implemented yet)</b>
