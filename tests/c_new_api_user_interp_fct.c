@@ -107,7 +107,10 @@ main(int argc, char *argv[]) {
   // set mesh
   int block_id = CWP_Mesh_interf_block_add(code_name[0],
                                            coupling_name,
-                                           CWP_BLOCK_FACE_POLY);
+                                           CWP_BLOCK_FACE_TRIA3);
+  // int block_id = CWP_Mesh_interf_block_add(code_name[0],
+  //                                          coupling_name,
+  //                                          CWP_BLOCK_FACE_POLY);
 
   int n_vtx = 4;
   double *vtx_coord = malloc(sizeof(double) * 3 * n_vtx);
@@ -145,14 +148,21 @@ main(int argc, char *argv[]) {
   CWP_g_num_t *gnum_elt = malloc(sizeof(CWP_g_num_t) * n_face);
   gnum_elt[0] = 1;
   gnum_elt[1] = 2;
-  CWP_Mesh_interf_f_poly_block_set(code_name[0],
+  CWP_Mesh_interf_block_std_set(code_name[0],
                                    coupling_name,
                                    0,
                                    block_id,
                                    n_face,
-                                   face_vtx_idx,
                                    face_vtx,
                                    gnum_elt);
+  // CWP_Mesh_interf_f_poly_block_set(code_name[0],
+  //                                  coupling_name,
+  //                                  0,
+  //                                  block_id,
+  //                                  n_face,
+  //                                  face_vtx_idx,
+  //                                  face_vtx,
+  //                                  gnum_elt);
 
   CWP_Mesh_interf_finalize(code_name[0], coupling_name);
 

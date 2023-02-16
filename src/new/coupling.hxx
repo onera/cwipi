@@ -416,6 +416,47 @@ namespace cwipi {
     CWP_Spatial_interp_t
     spatialInterpAlgoGet();
 
+    // Getters for user function
+    int **
+    elt_pts_inside_idx_get(
+      std::string name
+    );
+
+    CWP_g_num_t **
+    points_gnum_get(
+      std::string name
+    );
+
+    double **
+    points_coords_get(
+      std::string name
+    );
+
+    double **
+    points_uvw_get(
+      std::string name
+    );
+
+    double **
+    points_dist2_get(
+      std::string name
+    );
+
+    double **
+    points_projected_coords_get(
+      std::string name
+    );
+
+    int **
+    cell_vtx_idx_get(
+      std::string name
+    );
+
+    int **
+    cell_vtx_get(
+      std::string name
+    );
+
     /*----------------------------------------------------------------------------*
      * Methods about visualization                                                *
      *----------------------------------------------------------------------------*/

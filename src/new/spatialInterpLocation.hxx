@@ -70,6 +70,54 @@ namespace cwipi {
       */
     void weightsCompute() override;
 
+    // Getters
+    inline int **
+    elt_pts_inside_idx_get()
+    {
+      return _elt_pts_inside_idx;
+    }
+
+    inline CWP_g_num_t **
+    points_gnum_get()
+    {
+      return (CWP_g_num_t **) _points_gnum;
+    }
+
+    inline double **
+    points_coords_get()
+    {
+      return _points_coords;
+    }
+
+    inline double **
+    points_uvw_get()
+    {
+      return _points_uvw;
+    }
+
+    inline double **
+    points_dist2_get()
+    {
+      return _points_dist2;
+    }
+
+    inline double **
+    points_projected_coords_get()
+    {
+      return _points_projected_coords;
+    }
+
+    inline int **
+    cell_vtx_idx_get()
+    {
+      return _cell_vtx_idx;
+    }
+
+    inline int **
+    cell_vtx_get()
+    {
+      return _cell_vtx;
+    }
 
     // A mettre en privé !!!
 

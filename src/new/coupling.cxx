@@ -1261,6 +1261,96 @@ namespace cwipi {
     return _spatialInterpAlgo;
   }
 
+  // Getters for user function
+  int **
+  Coupling::elt_pts_inside_idx_get
+  (
+   std::string name
+  )
+  {
+    int **elt_pts_inside_idx_get = NULL;
+
+    map <string, Field *>::iterator it  = _fields.find(name);
+    if (it != _fields.end()) {
+      CWP_Dof_location_t localFieldLocation = it->second->locationGet();
+      CWP_Dof_location_t cplFieldLocation = it->second->linkedFieldLocationGet();
+
+      std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation);
+
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_send.find(newKey);
+
+      if (it2 != _spatial_interp_send.end()) {
+        // TO DO
+        // elt_pts_inside_idx_get = it2->second->elt_pts_inside_idx_get();
+      }
+    }
+
+    return elt_pts_inside_idx_get;
+  }
+
+  CWP_g_num_t **
+  Coupling::points_gnum_get
+  (
+   std::string name
+  )
+  {
+
+  }
+
+  double **
+  Coupling::points_coords_get
+  (
+   std::string name
+  )
+  {
+
+  }
+
+  double **
+  Coupling::points_uvw_get
+  (
+   std::string name
+  )
+  {
+
+  }
+
+  double **
+  Coupling::points_dist2_get
+  (
+   std::string name
+  )
+  {
+
+  }
+
+  double **
+  Coupling::points_projected_coords_get
+  (
+   std::string name
+  )
+  {
+
+  }
+
+  int **
+  Coupling::cell_vtx_idx_get
+  (
+   std::string name
+  )
+  {
+
+  }
+
+  int **
+  Coupling::cell_vtx_get
+  (
+   std::string name
+  )
+  {
+
+  }
+
   /**
    *
    * \brief Export mesh to Ensight format
