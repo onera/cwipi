@@ -417,6 +417,8 @@ namespace cwipi {
     spatialInterpAlgoGet();
 
     // Getters for user function
+    // --> lcoation
+
     int **
     elt_pts_inside_idx_get(
       std::string name
@@ -454,6 +456,96 @@ namespace cwipi {
 
     int **
     cell_vtx_get(
+      std::string name
+    );
+
+    // --> intersection
+    int **
+    src_to_tgt_idx_get(
+      std::string name
+    );
+
+    CWP_g_num_t **
+    src_to_tgt_gnum_get(
+      std::string name
+    );
+
+    double **
+    src_to_tgt_weight_get(
+      std::string name
+    );
+
+    double **
+    tgt_to_src_weight_get(
+      std::string name
+    );
+
+    // --> closest points
+
+    CWP_g_num_t **
+    closest_src_gnum_get(
+      std::string name
+    );
+
+    double **
+    closest_src_dist_get(
+      std::string name
+    );
+
+    int **
+    tgt_in_src_idx_get(
+      std::string name
+    );
+
+    CWP_g_num_t **
+    tgt_in_src_gnum_get(
+      std::string name
+    );
+
+    double **
+    tgt_in_src_dist_get(
+      std::string name
+    );
+
+    // --> spatialInterp
+
+    int *
+    src_n_gnum_get(
+      std::string name
+    );
+
+    int *
+    tgt_n_gnum_get(
+      std::string name
+    );
+
+    CWP_g_num_t **
+    src_gnum_get(
+      std::string name
+    );
+
+    CWP_g_num_t **
+    tgt_gnum_get(
+      std::string name
+    );
+
+    CWP_Dof_location_t
+    localCodeDofLocation_get(
+      std::string name
+    );
+
+    CWP_Dof_location_t
+    coupledCodeDofLocation_get(
+      std::string name
+    );
+
+    int
+    nPart_get(
+      std::string name
+    );
+
+    int
+    cplNPart_get(
       std::string name
     );
 

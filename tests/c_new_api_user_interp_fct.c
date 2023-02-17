@@ -27,7 +27,7 @@
 #include "cwp_priv.h"
 
 static void
-_userInterpolation
+_locationUserInterpolation
 (
  const char           *local_code_name,
  const char           *cpl_id,
@@ -250,7 +250,7 @@ main(int argc, char *argv[]) {
                        recv_buff);
   }
 
-  CWP_Interp_function_set(code_name[0], coupling_name, field_name, _userInterpolation);
+  CWP_Interp_function_set(code_name[0], coupling_name, field_name, _locationUserInterpolation);
 
   MPI_Barrier(MPI_COMM_WORLD);
 

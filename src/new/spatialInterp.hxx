@@ -164,6 +164,56 @@ namespace cwipi {
     const int *
     involvedSourcesGet(int i_part) const;
 
+
+    // Getters
+    inline int *
+    src_n_gnum_get()
+    {
+      return _src_n_gnum;
+    }
+
+    inline int *
+    tgt_n_gnum_get()
+    {
+      return _tgt_n_gnum;
+    }
+
+    inline CWP_g_num_t **
+    src_gnum_get()
+    {
+      return (CWP_g_num_t **) _src_gnum;
+    }
+
+    inline CWP_g_num_t **
+    tgt_gnum_get()
+    {
+      return (CWP_g_num_t **) _tgt_gnum;
+    }
+
+    inline CWP_Dof_location_t
+    localCodeDofLocation_get()
+    {
+      return _localCodeDofLocation;
+    }
+
+    inline CWP_Dof_location_t
+    coupledCodeDofLocation_get()
+    {
+      return _coupledCodeDofLocation;
+    }
+
+    inline int
+    nPart_get()
+    {
+      return _nPart;
+    }
+
+    inline int
+    cplNPart_get()
+    {
+      return _cplNPart;
+    }
+
   protected:
 
     Coupling                   *_cpl;
