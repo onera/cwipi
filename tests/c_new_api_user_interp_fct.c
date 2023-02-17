@@ -37,45 +37,10 @@ _locationUserInterpolation
  double               *buffer_out
 )
 {
-  int **elt_pts_inside_idx = CWP_Interp_location_elt_pts_inside_idx_get(local_code_name,
-                                                                        cpl_id,
-                                                                        field_id,
-                                                                        spartial_interp_algorithm);
-
-  CWP_g_num_t **points_gnum = CWP_Interp_location_points_gnum_get(local_code_name,
-                                                                  cpl_id,
-                                                                  field_id,
-                                                                  spartial_interp_algorithm);
-
-  double **points_coords = CWP_Interp_location_points_coords_get(local_code_name,
-                                                                  cpl_id,
-                                                                  field_id,
-                                                                  spartial_interp_algorithm);
-
-  double **points_uvw = CWP_Interp_location_points_uvw_get(local_code_name,
-                                                           cpl_id,
-                                                           field_id,
-                                                           spartial_interp_algorithm);
-
-  double **points_dist2 = CWP_Interp_location_points_dist2_get(local_code_name,
-                                                               cpl_id,
-                                                               field_id,
-                                                               spartial_interp_algorithm);
-
-  double **points_projected_coords = CWP_Interp_location_points_projected_coords_get(local_code_name,
-                                                                                     cpl_id,
-                                                                                     field_id,
-                                                                                     spartial_interp_algorithm);
-
-  int **cell_vtx_idx = CWP_Interp_location_cell_vtx_idx_get(local_code_name,
-                                                            cpl_id,
-                                                            field_id,
-                                                            spartial_interp_algorithm);
-
-  int **cell_vtx = CWP_Interp_location_cell_vtx_get(local_code_name,
-                                                    cpl_id,
-                                                    field_id,
-                                                    spartial_interp_algorithm);
+  // int **elt_pts_inside_idx = CWP_Interp_location_elt_pts_inside_idx_get(local_code_name,
+  //                                                                       cpl_id,
+  //                                                                       field_id,
+  //                                                                       spartial_interp_algorithm);
 
   buffer_out[0] = buffer_in[0];
   buffer_out[1] = buffer_in[1];

@@ -148,7 +148,7 @@ namespace cwipi {
     double      **_points_projected_coords;
 
     int         **_cell_vtx_idx;
-    int         **_cell_vtx;    
+    int         **_cell_vtx;
 
     int fake_idx[1] = {0};
 
