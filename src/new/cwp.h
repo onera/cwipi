@@ -366,7 +366,7 @@ typedef void (*CWP_Interp_function_t)
  const char           *local_code_name,
  const char           *cpl_id,
  const char           *field_id,
- CWP_Spatial_interp_t  spartial_interp_algorithm,
+ CWP_Spatial_interp_t  spatial_interp_algorithm,
  double               *buffer_in,
  double               *buffer_out
 );
@@ -1702,6 +1702,26 @@ CWP_Interp_function_set
  const char                 *cpl_id,
  const char                 *src_field_id,
  CWP_Interp_function_t       fct
+);
+
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+int **
+CWP_Interp_location_elt_pts_inside_idx_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spartial_interp_algorithm
 );
 
 /*----------------------------------------------------------------------------*

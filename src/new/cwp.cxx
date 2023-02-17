@@ -2243,6 +2243,37 @@ CWP_Interp_function_set
   cpl.interpFunctionSet(src_field_id,fct);
 }
 
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+int **
+CWP_Interp_location_elt_pts_inside_idx_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spatial_interp_algorithm
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  return cpl.elt_pts_inside_idx_get(field_id);
+}
+
 
 /**
  *

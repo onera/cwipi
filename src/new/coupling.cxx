@@ -46,6 +46,10 @@
 #include "pdm_writer.h"
 #include "pdm_logging.h"
 
+#include "spatialInterp.hxx"
+#include "spatialInterpLocation.hxx"
+#include "spatialInterpClosestPoint.hxx"
+#include "spatialInterpIntersection.hxx"
 
 /*----------------------------------------------------------------------------
  * Macro for handling of different symbol names (underscored or not,
@@ -1262,6 +1266,7 @@ namespace cwipi {
   }
 
   // Getters for user function
+
   int **
   Coupling::elt_pts_inside_idx_get
   (
@@ -1280,8 +1285,8 @@ namespace cwipi {
       std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_send.find(newKey);
 
       if (it2 != _spatial_interp_send.end()) {
-        // TO DO
-        // elt_pts_inside_idx_get = it2->second->elt_pts_inside_idx_get();
+        SpatialInterpLocation* sil = dynamic_cast <SpatialInterpLocation*> (it2->second);
+        elt_pts_inside_idx_get = sil->elt_pts_inside_idx_get();
       }
     }
 
@@ -1294,7 +1299,24 @@ namespace cwipi {
    std::string name
   )
   {
+    CWP_g_num_t **points_gnum = NULL;
 
+    map <string, Field *>::iterator it  = _fields.find(name);
+    if (it != _fields.end()) {
+      CWP_Dof_location_t localFieldLocation = it->second->locationGet();
+      CWP_Dof_location_t cplFieldLocation = it->second->linkedFieldLocationGet();
+
+      std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation);
+
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_send.find(newKey);
+
+      if (it2 != _spatial_interp_send.end()) {
+        SpatialInterpLocation* sil = dynamic_cast <SpatialInterpLocation*> (it2->second);
+        points_gnum = sil->points_gnum_get();
+      }
+    }
+
+    return points_gnum;
   }
 
   double **
@@ -1303,7 +1325,24 @@ namespace cwipi {
    std::string name
   )
   {
+    double **points_coords = NULL;
 
+    map <string, Field *>::iterator it  = _fields.find(name);
+    if (it != _fields.end()) {
+      CWP_Dof_location_t localFieldLocation = it->second->locationGet();
+      CWP_Dof_location_t cplFieldLocation = it->second->linkedFieldLocationGet();
+
+      std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation);
+
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_send.find(newKey);
+
+      if (it2 != _spatial_interp_send.end()) {
+        SpatialInterpLocation* sil = dynamic_cast <SpatialInterpLocation*> (it2->second);
+        points_coords = sil->points_coords_get();
+      }
+    }
+
+    return points_coords;
   }
 
   double **
@@ -1312,7 +1351,24 @@ namespace cwipi {
    std::string name
   )
   {
+    double **points_uvw = NULL;
 
+    map <string, Field *>::iterator it  = _fields.find(name);
+    if (it != _fields.end()) {
+      CWP_Dof_location_t localFieldLocation = it->second->locationGet();
+      CWP_Dof_location_t cplFieldLocation = it->second->linkedFieldLocationGet();
+
+      std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation);
+
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_send.find(newKey);
+
+      if (it2 != _spatial_interp_send.end()) {
+        SpatialInterpLocation* sil = dynamic_cast <SpatialInterpLocation*> (it2->second);
+        points_uvw = sil->points_uvw_get();
+      }
+    }
+
+    return points_uvw;
   }
 
   double **
@@ -1321,7 +1377,24 @@ namespace cwipi {
    std::string name
   )
   {
+    double **points_dist2 = NULL;
 
+    map <string, Field *>::iterator it  = _fields.find(name);
+    if (it != _fields.end()) {
+      CWP_Dof_location_t localFieldLocation = it->second->locationGet();
+      CWP_Dof_location_t cplFieldLocation = it->second->linkedFieldLocationGet();
+
+      std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation);
+
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_send.find(newKey);
+
+      if (it2 != _spatial_interp_send.end()) {
+        SpatialInterpLocation* sil = dynamic_cast <SpatialInterpLocation*> (it2->second);
+        points_dist2 = sil->points_dist2_get();
+      }
+    }
+
+    return points_dist2;
   }
 
   double **
@@ -1330,7 +1403,24 @@ namespace cwipi {
    std::string name
   )
   {
+    double **points_projected_coords = NULL;
 
+    map <string, Field *>::iterator it  = _fields.find(name);
+    if (it != _fields.end()) {
+      CWP_Dof_location_t localFieldLocation = it->second->locationGet();
+      CWP_Dof_location_t cplFieldLocation = it->second->linkedFieldLocationGet();
+
+      std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation);
+
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_send.find(newKey);
+
+      if (it2 != _spatial_interp_send.end()) {
+        SpatialInterpLocation* sil = dynamic_cast <SpatialInterpLocation*> (it2->second);
+        points_projected_coords = sil->points_projected_coords_get();
+      }
+    }
+
+    return points_projected_coords;
   }
 
   int **
@@ -1339,7 +1429,24 @@ namespace cwipi {
    std::string name
   )
   {
+    int **cell_vtx_idx = NULL;
 
+    map <string, Field *>::iterator it  = _fields.find(name);
+    if (it != _fields.end()) {
+      CWP_Dof_location_t localFieldLocation = it->second->locationGet();
+      CWP_Dof_location_t cplFieldLocation = it->second->linkedFieldLocationGet();
+
+      std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation);
+
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_send.find(newKey);
+
+      if (it2 != _spatial_interp_send.end()) {
+        SpatialInterpLocation* sil = dynamic_cast <SpatialInterpLocation*> (it2->second);
+        cell_vtx_idx = sil->cell_vtx_idx_get();
+      }
+    }
+
+    return cell_vtx_idx;
   }
 
   int **
@@ -1348,7 +1455,24 @@ namespace cwipi {
    std::string name
   )
   {
+    int **cell_vtx = NULL;
 
+    map <string, Field *>::iterator it  = _fields.find(name);
+    if (it != _fields.end()) {
+      CWP_Dof_location_t localFieldLocation = it->second->locationGet();
+      CWP_Dof_location_t cplFieldLocation = it->second->linkedFieldLocationGet();
+
+      std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation);
+
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_send.find(newKey);
+
+      if (it2 != _spatial_interp_send.end()) {
+        SpatialInterpLocation* sil = dynamic_cast <SpatialInterpLocation*> (it2->second);
+        cell_vtx = sil->cell_vtx_get();
+      }
+    }
+
+    return cell_vtx;
   }
 
   /**

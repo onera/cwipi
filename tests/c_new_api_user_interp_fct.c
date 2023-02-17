@@ -37,12 +37,16 @@ _userInterpolation
  double               *buffer_out
 )
 {
-  buffer_out[0] = 2*buffer_in[0];
-  buffer_out[1] = 2*buffer_in[1];
+  int **elt_pts_inside_idx = CWP_Interp_location_elt_pts_inside_idx_get(local_code_name,
+                                                                        cpl_id,
+                                                                        field_id,
+                                                                        spartial_interp_algorithm);
 
-  printf("buffer_in[0]: %f / buffer_out[0]: %f\n", buffer_in[0], buffer_out[0]);
-  printf("buffer_in[1]: %f / buffer_out[1]: %f\n", buffer_in[1], buffer_out[1]);
+  printf("in user interp fct - elt_pts_inside_idx : %p\n", elt_pts_inside_idx);
   fflush(stdout);
+
+  buffer_out[0] = buffer_in[0];
+  buffer_out[1] = buffer_in[1];
 }
 
 /*----------------------------------------------------------------------
@@ -105,12 +109,12 @@ main(int argc, char *argv[]) {
                  CWP_TIME_EXCH_USER_CONTROLLED);
 
   // set mesh
-  int block_id = CWP_Mesh_interf_block_add(code_name[0],
-                                           coupling_name,
-                                           CWP_BLOCK_FACE_TRIA3);
   // int block_id = CWP_Mesh_interf_block_add(code_name[0],
   //                                          coupling_name,
-  //                                          CWP_BLOCK_FACE_POLY);
+  //                                          CWP_BLOCK_FACE_TRIA3);
+  int block_id = CWP_Mesh_interf_block_add(code_name[0],
+                                           coupling_name,
+                                           CWP_BLOCK_FACE_POLY);
 
   int n_vtx = 4;
   double *vtx_coord = malloc(sizeof(double) * 3 * n_vtx);
@@ -148,21 +152,21 @@ main(int argc, char *argv[]) {
   CWP_g_num_t *gnum_elt = malloc(sizeof(CWP_g_num_t) * n_face);
   gnum_elt[0] = 1;
   gnum_elt[1] = 2;
-  CWP_Mesh_interf_block_std_set(code_name[0],
-                                   coupling_name,
-                                   0,
-                                   block_id,
-                                   n_face,
-                                   face_vtx,
-                                   gnum_elt);
-  // CWP_Mesh_interf_f_poly_block_set(code_name[0],
+  // CWP_Mesh_interf_block_std_set(code_name[0],
   //                                  coupling_name,
   //                                  0,
   //                                  block_id,
   //                                  n_face,
-  //                                  face_vtx_idx,
   //                                  face_vtx,
   //                                  gnum_elt);
+  CWP_Mesh_interf_f_poly_block_set(code_name[0],
+                                   coupling_name,
+                                   0,
+                                   block_id,
+                                   n_face,
+                                   face_vtx_idx,
+                                   face_vtx,
+                                   gnum_elt);
 
   CWP_Mesh_interf_finalize(code_name[0], coupling_name);
 
@@ -197,8 +201,8 @@ main(int argc, char *argv[]) {
   double *send_buff = malloc(sizeof(double) * n_face);
   double *recv_buff = malloc(sizeof(double) * n_face);
   if (code_id == 1) {
-    send_buff[0] = 1.5;
-    send_buff[1] = 1;
+    send_buff[0] = gnum_elt[0];
+    send_buff[1] = gnum_elt[1];
     CWP_Field_data_set(code_name[0],
                        coupling_name,
                        field_name,
