@@ -1112,6 +1112,34 @@ CWP_Field_exch
 
 /**
  *
+ * \brief Enable broadcast of the computed targets ids (in \ref CWP_COMM_PAR_WITHOUT_PART mode)
+ *
+ * This function must be called in order for the computed targets to be accessible
+ * on non-root ranks
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ *
+ */
+
+void
+CWP_Computed_tgts_bcast_enable
+(
+  const char *local_code_name,
+  const char *cpl_id,
+  const char *field_id
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  const string &field_name_str = field_id;
+  return cpl.computedTargetsBcastEnable(field_name_str);
+}
+
+
+/**
+ *
  * \brief Return the number of uncomputed targets.
  *
  * \param [in] local_code_name  Local code name
@@ -1219,6 +1247,34 @@ CWP_Computed_tgts_get
 
   const string &field_name_str = field_id;
   return cpl.computedTargetsGet(field_name_str, i_part);
+}
+
+
+/**
+ *
+ * \brief Enable broadcast of the involved sources ids (in \ref CWP_COMM_PAR_WITHOUT_PART mode)
+ *
+ * This function must be called in order for the involved sources to be accessible
+ * on non-root ranks
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ *
+ */
+
+void
+CWP_Involved_srcs_bcast_enable
+(
+  const char *local_code_name,
+  const char *cpl_id,
+  const char *field_id
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  const string &field_name_str = field_id;
+  return cpl.involvedSourcesBcastEnable(field_name_str);
 }
 
 /**

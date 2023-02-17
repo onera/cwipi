@@ -905,6 +905,26 @@ namespace cwipi {
    * Methods about exchange                                                     *
    *----------------------------------------------------------------------------*/
 
+  void
+  Coupling::computedTargetsBcastEnable
+  (
+    const string &field_id
+  )
+  {
+    map<string,Field*>::iterator it = _fields.find(field_id.c_str());
+
+    if (it == _fields.end()) {
+      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsBcastEnable : '%s' not existing field\n", field_id.c_str());
+    }
+
+    Field* field = it->second;
+
+    if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
+      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsBcastEnable : '%s' does not receive data\n", field_id.c_str());
+    }
+
+    field->computedTgtBcastEnable();
+  }
 
   /**
    *
@@ -918,7 +938,7 @@ namespace cwipi {
   (
     const string &field_id,
     const int  i_part
-  ) const
+  )
   {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
@@ -930,6 +950,10 @@ namespace cwipi {
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
       PDM_error(__FILE__, __LINE__, 0, "Error nUncomputedTargetsGet : '%s' does not receive data\n", field_id.c_str());     
+    }
+
+    if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
+      PDM_error(__FILE__, __LINE__, 0, "Error nUncomputedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'\n", field_id.c_str());
     }
 
     return _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->nUncomputedTargetsGet(i_part);
@@ -949,7 +973,7 @@ namespace cwipi {
   Coupling::uncomputedTargetsGet (
     const string &field_id,
     const int  i_part
-  ) const
+  )
   {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
@@ -961,6 +985,10 @@ namespace cwipi {
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
       PDM_error(__FILE__, __LINE__, 0, "Error unncomputedTargetsGet : '%s' does not receive data\n", field_id.c_str());     
+    }
+
+    if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
+      PDM_error(__FILE__, __LINE__, 0, "Error uncomputedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'\n", field_id.c_str());
     }
 
     return _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->uncomputedTargetsGet(i_part);
@@ -977,7 +1005,7 @@ namespace cwipi {
   Coupling::nComputedTargetsGet (
     const string &field_id,
     const int  i_part
-  ) const
+  )
   {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
@@ -989,6 +1017,10 @@ namespace cwipi {
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_SEND) {
       PDM_error(__FILE__, __LINE__, 0, "Error nComputedTargetsGet : '%s' does not receive data\n", field_id.c_str());     
+    }
+
+    if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
+      PDM_error(__FILE__, __LINE__, 0, "Error nComputedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'\n", field_id.c_str());
     }
 
     return _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->nComputedTargetsGet(i_part);
@@ -1005,7 +1037,7 @@ namespace cwipi {
   Coupling::computedTargetsGet (
     const string &field_id,
     const int  i_part
-  ) const
+  )
   {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
@@ -1019,7 +1051,34 @@ namespace cwipi {
       PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : '%s' does not receive data\n", field_id.c_str());     
     }
 
+    if (!has_mesh() && !field->computedTgtBcastIsEnabled()) {
+      PDM_error(__FILE__, __LINE__, 0, "Error computedTargetsGet : CWP_Computed_tgts_bcast_enable must be called for field '%s'\n", field_id.c_str());
+    }
+
     return _spatial_interp_recv[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->computedTargetsGet(i_part);
+  }
+
+
+
+  void
+  Coupling::involvedSourcesBcastEnable
+  (
+    const string &field_id
+  )
+  {
+    map<string,Field*>::iterator it = _fields.find(field_id.c_str());
+
+    if (it == _fields.end()) {
+      PDM_error(__FILE__, __LINE__, 0, "Error involvedSourcesBcastEnable : '%s' not existing field\n", field_id.c_str());
+    }
+
+    Field* field = it->second;
+
+    if (field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV) {
+      PDM_error(__FILE__, __LINE__, 0, "Error involvedSourcesBcastEnable : '%s' does not receive data\n", field_id.c_str());
+    }
+
+    field->computedTgtBcastEnable();
   }
 
 
@@ -1027,7 +1086,7 @@ namespace cwipi {
   Coupling::nInvolvedSourcesGet(
     const string &field_id,
     const int  i_part
-  ) const
+  )
   {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
@@ -1041,6 +1100,10 @@ namespace cwipi {
       PDM_error(__FILE__, __LINE__, 0, "Error nInvolvedSourcesGet : '%s' does not send data\n", field_id.c_str());
     }
 
+    if (!has_mesh() && !field->involvedSrcBcastIsEnabled()) {
+      PDM_error(__FILE__, __LINE__, 0, "Error nInvolvedSourcesGet : CWP_Involved_srcs_bcast_enable must be called for field '%s'\n", field_id.c_str());
+    }
+
     return _spatial_interp_send[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->nInvolvedSourcesGet(i_part);
   }
 
@@ -1048,7 +1111,7 @@ namespace cwipi {
   Coupling::involvedSourcesGet(
     const string &field_id,
     const int  i_part
-  ) const
+  )
   {
     map<string,Field*>::iterator it = _fields.find(field_id.c_str());
 
@@ -1060,6 +1123,10 @@ namespace cwipi {
 
     if (field->exchangeTypeGet() == CWP_FIELD_EXCH_RECV) {
       PDM_error(__FILE__, __LINE__, 0, "Error involvedSourcesGet : '%s' does not send data\n", field_id.c_str());
+    }
+
+    if (!has_mesh() && !field->involvedSrcBcastIsEnabled()) {
+      PDM_error(__FILE__, __LINE__, 0, "Error involvedSourcesGet : CWP_Involved_srcs_bcast_enable must be called for field '%s'\n", field_id.c_str());
     }
 
     return _spatial_interp_send[make_pair(field->locationGet(), field->linkedFieldLocationGet())]->involvedSourcesGet(i_part);

@@ -38,7 +38,9 @@ Field::Field (std::string            field_id    ,
    _id_writer_var_recv_computed(-1),
    _interpolationFunction   (NULL),
    _interpolationFunction_f (NULL),
-   _current_step_was_exchanged(0)
+   _current_step_was_exchanged(0),
+   _computed_tgt_bcast_enabled(0),
+   _involved_src_bcast_enabled(0)
 
 {
   _mesh = cpl->meshGet();
@@ -275,8 +277,10 @@ CWP_Field_exch_t exch_type
           const int  *computed_target    = NULL;
           int         n_computed_target  = 0;
           if (exch_type == CWP_FIELD_EXCH_RECV) {
-            computed_target    = _cpl->computedTargetsGet(_fieldID, i_part);
-            n_computed_target  = _cpl->nComputedTargetsGet(_fieldID, i_part);
+            if (_cpl->has_mesh()) {
+              computed_target   = _cpl->computedTargetsGet (_fieldID, i_part);
+              n_computed_target = _cpl->nComputedTargetsGet(_fieldID, i_part);
+            }
           }
 
           // (x1, y1, z1, ... , xn, yn, zn)
@@ -342,8 +346,13 @@ CWP_Field_exch_t exch_type
             }
 
             // computed
-            const int  *computed_target    = _cpl->computedTargetsGet(_fieldID, i_part);
-            int         n_computed_target  = _cpl->nComputedTargetsGet(_fieldID, i_part);
+            const int  *computed_target    = NULL;
+            int         n_computed_target  = 0;
+
+            if (_cpl->has_mesh()) {
+              computed_target   = _cpl->computedTargetsGet (_fieldID, i_part);
+              n_computed_target = _cpl->nComputedTargetsGet(_fieldID, i_part);
+            }
 
             if (n_elt_size == n_computed_target) {
               for (int i = 0; i < n_elt_size; i++) {

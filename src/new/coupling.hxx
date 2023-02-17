@@ -1200,6 +1200,13 @@ namespace cwipi {
     );
 
 
+
+    inline void
+    computedTargetsBcastEnable(
+      const string &field_id
+    );
+
+
     /**
      *
      * \brief Return the number of uncomputed targets
@@ -1211,7 +1218,7 @@ namespace cwipi {
     nUncomputedTargetsGet(
       const string &field_id,
       const int  i_part
-    ) const;
+    );
 
     /**
      *
@@ -1224,7 +1231,7 @@ namespace cwipi {
     uncomputedTargetsGet (
       const string &field_id,
       const int  i_part
-    ) const;
+    );
 
     /**
      *
@@ -1237,7 +1244,7 @@ namespace cwipi {
     nComputedTargetsGet (
       const string &field_id,
       const int  i_part
-    ) const;
+    );
 
     /**
      *
@@ -1250,19 +1257,25 @@ namespace cwipi {
     computedTargetsGet (
       const string &field_id,
       const int  i_part
-    ) const;
+    );
+
+
+    inline void
+    involvedSourcesBcastEnable(
+      const string &field_id
+    );
 
     inline int
     nInvolvedSourcesGet(
       const string &field_id,
       const int  i_part
-    ) const;
+    );
 
     inline const int *
     involvedSourcesGet(
       const string &field_id,
       const int  i_part
-    ) const;
+    );
 
     /*----------------------------------------------------------------------------*
      * methods about user interpolation                                           *

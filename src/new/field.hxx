@@ -268,6 +268,26 @@ namespace cwipi {
       return _current_step_was_exchanged;
     }
 
+    int computedTgtBcastIsEnabled() const
+    {
+      return _computed_tgt_bcast_enabled;
+    }
+
+    void computedTgtBcastEnable()
+    {
+      _computed_tgt_bcast_enabled = 1;
+    }
+
+    int involvedSrcBcastIsEnabled() const
+    {
+      return _computed_tgt_bcast_enabled;
+    }
+
+    void involvedSrcBcastEnable()
+    {
+      _computed_tgt_bcast_enabled = 1;
+    }
+
 
   void lastRequestAdd (int i_proc, MPI_Request request) {
     _last_request[i_proc] = request;
@@ -351,6 +371,9 @@ namespace cwipi {
     Field (const Field& other);                 /*!< Copy constructor not available */
 
     int                                      _current_step_was_exchanged;
+
+    int                                      _computed_tgt_bcast_enabled;
+    int                                      _involved_src_bcast_enabled;
   };
 
 }

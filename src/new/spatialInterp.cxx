@@ -492,6 +492,44 @@ namespace cwipi {
                                             &_n_elt1,
                                             &_n_elt2);
 
+      if (_cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART &&
+          referenceField->involvedSrcBcastIsEnabled()) {
+        const int localRootRank = _localCodeProperties->rootRankGet();
+        const MPI_Comm& globalComm = _localCodeProperties->globalCommGet();
+        int globalRank;
+        MPI_Comm_rank(globalComm, &globalRank);
+
+        MPI_Group globalGroup;
+        MPI_Comm_group(_localCodeProperties->globalCommGet(), &globalGroup);
+        int localRootRankInIntraConnectableComm;
+        MPI_Group_translate_ranks(globalGroup, 1, &localRootRank,
+                                  _localCodeProperties->connectableGroupGet(), &localRootRankInIntraConnectableComm);
+
+        int rankInIntraConnectableComm;
+        MPI_Comm_rank(_localCodeProperties->connectableCommGet(), &rankInIntraConnectableComm);
+
+        for (int i = 0; i < _nPart; i++) {
+          // Broadcast involved src
+          MPI_Bcast((void *) &_n_involved_sources_tgt[i],
+                    1,
+                    MPI_INT,
+                    localRootRankInIntraConnectableComm,
+                    _localCodeProperties->connectableCommGet());
+
+          if (rankInIntraConnectableComm != localRootRankInIntraConnectableComm) {
+            if (_involved_sources_tgt[i] != NULL) {
+              free(_involved_sources_tgt[i]);
+            }
+            _involved_sources_tgt[i] = (int *) malloc(sizeof(int) * _n_involved_sources_tgt[i]);
+          }
+          MPI_Bcast((void *) _involved_sources_tgt[i],
+                    _n_involved_sources_tgt[i],
+                    MPI_INT,
+                    localRootRankInIntraConnectableComm,
+                    _localCodeProperties->connectableCommGet());
+        }
+      }
+
       if (_send_buffer[intId] != NULL) {
         for (int i = 0; i < _n_part1; i++) {
           if (_send_buffer[intId][i] != NULL) {
@@ -538,6 +576,44 @@ namespace cwipi {
         const int cpl_intId = cpl_referenceField->fieldIDIntGet();
 
         PDM_part_to_part_iexch_wait(_ptsp, cpl_spatial_interp->_recv_request[cpl_intId]);
+
+        if (_cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART &&
+          referenceField->involvedSrcBcastIsEnabled()) {
+          const int localRootRank = _localCodeProperties->rootRankGet();
+          const MPI_Comm& globalComm = _localCodeProperties->globalCommGet();
+          int globalRank;
+          MPI_Comm_rank(globalComm, &globalRank);
+
+          MPI_Group globalGroup;
+          MPI_Comm_group(_localCodeProperties->globalCommGet(), &globalGroup);
+          int localRootRankInIntraConnectableComm;
+          MPI_Group_translate_ranks(globalGroup, 1, &localRootRank,
+                                    _localCodeProperties->connectableGroupGet(), &localRootRankInIntraConnectableComm);
+
+          int rankInIntraConnectableComm;
+          MPI_Comm_rank(_localCodeProperties->connectableCommGet(), &rankInIntraConnectableComm);
+
+          for (int i = 0; i < _nPart; i++) {
+            // Broadcast involved src
+            MPI_Bcast((void *) &_n_involved_sources_tgt[i],
+                      1,
+                      MPI_INT,
+                      localRootRankInIntraConnectableComm,
+                      _localCodeProperties->connectableCommGet());
+
+            if (rankInIntraConnectableComm != localRootRankInIntraConnectableComm) {
+              if (_involved_sources_tgt[i] != NULL) {
+                free(_involved_sources_tgt[i]);
+              }
+              _involved_sources_tgt[i] = (int *) malloc(sizeof(int) * _n_involved_sources_tgt[i]);
+            }
+            MPI_Bcast((void *) _involved_sources_tgt[i],
+                      _n_involved_sources_tgt[i],
+                      MPI_INT,
+                      localRootRankInIntraConnectableComm,
+                      _localCodeProperties->connectableCommGet());
+          }
+        }
 
         if (_send_buffer[intId] != NULL) {
           for (int i = 0; i < _nPart; i++) {
@@ -651,6 +727,27 @@ namespace cwipi {
                       MPI_DOUBLE,
                       cplRootRankInIntraConnectableComm,
                       _coupledCodeProperties->connectableCommGet());
+
+            if (cpl_referenceField->computedTgtBcastIsEnabled()) {
+              // Broadcast (un)computed tgt as well
+              MPI_Bcast((void *) &cpl_spatial_interp->_n_computed_tgt[i],
+                        1,
+                        MPI_INT,
+                        cplRootRankInIntraConnectableComm,
+                        _coupledCodeProperties->connectableCommGet());
+
+              if (rankInIntraConnectableComm != cplRootRankInIntraConnectableComm) {
+                if (cpl_spatial_interp->_computed_tgt[i] != NULL) {
+                  free(cpl_spatial_interp->_computed_tgt[i]);
+                }
+                cpl_spatial_interp->_computed_tgt[i] = (int *) malloc(sizeof(int) * cpl_spatial_interp->_n_computed_tgt[i]);
+              }
+              MPI_Bcast((void *) cpl_spatial_interp->_computed_tgt[i],
+                        cpl_spatial_interp->_n_computed_tgt[i],
+                        MPI_INT,
+                        cplRootRankInIntraConnectableComm,
+                        _coupledCodeProperties->connectableCommGet());
+            }
           }
         }
 
@@ -1006,6 +1103,27 @@ namespace cwipi {
                     MPI_DOUBLE,
                     localRootRankInIntraConnectableComm,
                     _localCodeProperties->connectableCommGet());
+
+          if (referenceField->computedTgtBcastIsEnabled()) {
+            // Broadcast (un)computed tgt as well
+            MPI_Bcast((void *) &_n_computed_tgt[i],
+                      1,
+                      MPI_INT,
+                      localRootRankInIntraConnectableComm,
+                      _localCodeProperties->connectableCommGet());
+
+            if (rankInIntraConnectableComm != localRootRankInIntraConnectableComm) {
+              if (_computed_tgt[i] != NULL) {
+                free(_computed_tgt[i]);
+              }
+              _computed_tgt[i] = (int *) malloc(sizeof(int) * _n_computed_tgt[i]);
+            }
+            MPI_Bcast((void *) _computed_tgt[i],
+                      _n_computed_tgt[i],
+                      MPI_INT,
+                      localRootRankInIntraConnectableComm,
+                      _localCodeProperties->connectableCommGet());
+          }
         }
       }
 
@@ -1139,6 +1257,27 @@ namespace cwipi {
                       MPI_DOUBLE,
                       localRootRankInIntraConnectableComm,
                       _localCodeProperties->connectableCommGet());
+
+            if (referenceField->computedTgtBcastIsEnabled()) {
+              // Broadcast (un)computed tgt as well
+              MPI_Bcast((void *) &_n_computed_tgt[i],
+                        1,
+                        MPI_INT,
+                        localRootRankInIntraConnectableComm,
+                        _localCodeProperties->connectableCommGet());
+
+              if (rankInIntraConnectableComm != localRootRankInIntraConnectableComm) {
+                if (_computed_tgt[i] != NULL) {
+                  free(_computed_tgt[i]);
+                }
+                _computed_tgt[i] = (int *) malloc(sizeof(int) * _n_computed_tgt[i]);
+              }
+              MPI_Bcast((void *) _computed_tgt[i],
+                        _n_computed_tgt[i],
+                        MPI_INT,
+                        localRootRankInIntraConnectableComm,
+                        _localCodeProperties->connectableCommGet());
+            }
           }
         }
 

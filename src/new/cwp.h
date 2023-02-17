@@ -780,6 +780,26 @@ CWP_Cpl_del
 // int       **cpl_ranks
 // );
 
+/**
+ *
+ * \brief Enable broadcast of the computed targets ids (in \ref CWP_COMM_PAR_WITHOUT_PART mode)
+ *
+ * This function must be called in order for the computed targets to be accessible
+ * on non-root ranks
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ *
+ */
+
+void
+CWP_Computed_tgts_bcast_enable
+(
+  const char *local_code_name,
+  const char *cpl_id,
+  const char *field_id
+);
 
 /**
  *
@@ -864,6 +884,28 @@ CWP_Computed_tgts_get
  const char *cpl_id,
  const char *field_id,
  const int   i_part
+);
+
+
+/**
+ *
+ * \brief Enable broadcast of the involved sources ids (in \ref CWP_COMM_PAR_WITHOUT_PART mode)
+ *
+ * This function must be called in order for the involved sources to be accessible
+ * on non-root ranks
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ *
+ */
+
+void
+CWP_Involved_srcs_bcast_enable
+(
+  const char *local_code_name,
+  const char *cpl_id,
+  const char *field_id
 );
 
 

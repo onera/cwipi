@@ -78,7 +78,8 @@ _read_args
   int                   *n_part2,
   PDM_split_dual_t      *part_method,
   double                *tolerance,
-  int                   *randomize
+  int                   *randomize,
+  int                   *verbose
 )
 {
   int i = 1;
@@ -152,6 +153,9 @@ _read_args
     }
     else if (strcmp(argv[i], "-hilbert") == 0) {
       *part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
+    }
+    else if (strcmp(argv[i], "-verbose") == 0) {
+      *verbose = 1;
     }
     else
       _usage(EXIT_FAILURE);
@@ -436,6 +440,7 @@ int main(int argc, char *argv[])
   int    n_part2               = 1;
   int    randomize             = 1;
   double tolerance             = 1e-2;
+  int    verbose               = 0;
 
 #ifdef PDM_HAVE_PARMETIS
   PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_PARMETIS;
@@ -456,7 +461,8 @@ int main(int argc, char *argv[])
              &n_part2,
              &part_method,
              &tolerance,
-             &randomize);
+             &randomize,
+             &verbose);
 
   // Initialize MPI
   MPI_Init(&argc, &argv);
@@ -632,6 +638,7 @@ int main(int argc, char *argv[])
   // Create and set fields
   CWP_Status_t visu_status = CWP_STATUS_ON;
   const char *field_name1 = "field1";
+  const char *field_name2 = "field2";
 
   double ***send_val = malloc(sizeof(double **) * n_code);
   double ***recv_val = malloc(sizeof(double **) * n_code);
@@ -668,6 +675,34 @@ int main(int argc, char *argv[])
                            CWP_FIELD_MAP_SOURCE,
                            send_val[i_code][i]);
       }
+
+      CWP_Involved_srcs_bcast_enable(code_name[i_code],
+                                     cpl_name,
+                                     field_name1);
+
+
+      CWP_Field_create(code_name[i_code],
+                       cpl_name,
+                       field_name2,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_INTERLACED,
+                       1,
+                       CWP_DOF_LOCATION_CELL_CENTER,
+                       CWP_FIELD_EXCH_RECV,
+                       visu_status);
+
+      for (int i = 0; i < n_part[i_code]; i++) {
+        CWP_Field_data_set(code_name[i_code],
+                           cpl_name,
+                           field_name2,
+                           i,
+                           CWP_FIELD_MAP_TARGET,
+                           recv_val[i_code][i]);
+      }
+
+      CWP_Computed_tgts_bcast_enable(code_name[i_code],
+                                     cpl_name,
+                                     field_name2);
     }
 
     if (code_id[i_code] == 2) {
@@ -688,6 +723,25 @@ int main(int argc, char *argv[])
                            i,
                            CWP_FIELD_MAP_TARGET,
                            recv_val[i_code][i]);
+      }
+
+      CWP_Field_create(code_name[i_code],
+                       cpl_name,
+                       field_name2,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_INTERLACED,
+                       1,
+                       CWP_DOF_LOCATION_CELL_CENTER,
+                       CWP_FIELD_EXCH_SEND,
+                       visu_status);
+
+      for (int i = 0; i < n_part[i_code]; i++) {
+        CWP_Field_data_set(code_name[i_code],
+                           cpl_name,
+                           field_name2,
+                           i,
+                           CWP_FIELD_MAP_SOURCE,
+                           send_val[i_code][i]);
       }
     }
   }
@@ -711,40 +765,82 @@ int main(int argc, char *argv[])
   for (int i_code = 0; i_code < n_code; i_code++) {
     if (code_id[i_code] == 1) {
       CWP_Field_issend(code_name[i_code], cpl_name, field_name1);
+      CWP_Field_irecv (code_name[i_code], cpl_name, field_name2);
     }
     else {
       CWP_Field_irecv (code_name[i_code], cpl_name, field_name1);
+      CWP_Field_issend(code_name[i_code], cpl_name, field_name2);
+    }
+
+    if (verbose) {
+      log_trace("\n\n--- %s ---\n", code_name[i_code]);
     }
 
 
     if (code_id[i_code] == 1) {
       CWP_Field_wait_issend(code_name[i_code], cpl_name, field_name1);
+      CWP_Field_wait_irecv (code_name[i_code], cpl_name, field_name2);
       for (int ipart = 0; ipart < n_part[i_code]; ipart++) {
-        // int n_involved_src = CWP_N_involved_srcs_get(code_name[i_code],
-        //                                              cpl_name,
-        //                                              field_name1,
-        //                                              ipart);
-        // const int *involved_src = CWP_Involved_srcs_get(code_name[i_code],
-        //                                                 cpl_name,
-        //                                                 field_name1,
-        //                                                 ipart);
-        // log_trace("part %d, ", ipart);
-        // PDM_log_trace_array_int(involved_src, n_involved_src, "involved_src : ");
+
+        int n_involved_src = CWP_N_involved_srcs_get(code_name[i_code],
+                                                     cpl_name,
+                                                     field_name1,
+                                                     ipart);
+        const int *involved_src = CWP_Involved_srcs_get(code_name[i_code],
+                                                        cpl_name,
+                                                        field_name1,
+                                                        ipart);
+        if (verbose) {
+          log_trace("Field 1 :\n");
+          log_trace("  part %d, ", ipart);
+          PDM_log_trace_array_int(involved_src, n_involved_src, "involved_src : ");
+        }
+
+        int n_computed_tgt = CWP_N_computed_tgts_get(code_name[i_code],
+                                                     cpl_name,
+                                                     field_name2,
+                                                     ipart);
+        const int *computed_tgt = CWP_Computed_tgts_get(code_name[i_code],
+                                                        cpl_name,
+                                                        field_name2,
+                                                        ipart);
+        if (verbose) {
+          log_trace("Field 2 :\n");
+          log_trace("  part %d, ", ipart);
+          PDM_log_trace_array_int(computed_tgt, n_computed_tgt, "computed_tgt : ");
+        }
       }
     }
     else {
       CWP_Field_wait_irecv (code_name[i_code], cpl_name, field_name1);
+      CWP_Field_wait_issend(code_name[i_code], cpl_name, field_name2);
       for (int ipart = 0; ipart < n_part[i_code]; ipart++) {
-        // int n_computed_tgt = CWP_N_computed_tgts_get(code_name[i_code],
-        //                                              cpl_name,
-        //                                              field_name1,
-        //                                              ipart);
-        // const int *computed_tgt = CWP_Computed_tgts_get(code_name[i_code],
-        //                                                 cpl_name,
-        //                                                 field_name1,
-        //                                                 ipart);
-        // log_trace("part %d, ", ipart);
-        // PDM_log_trace_array_int(computed_tgt, n_computed_tgt, "computed_tgt : ");
+        int n_computed_tgt = CWP_N_computed_tgts_get(code_name[i_code],
+                                                     cpl_name,
+                                                     field_name1,
+                                                     ipart);
+        const int *computed_tgt = CWP_Computed_tgts_get(code_name[i_code],
+                                                        cpl_name,
+                                                        field_name1,
+                                                        ipart);
+        if (verbose) {
+          log_trace("Field 1 :\n");
+          log_trace("  part %d, ", ipart);
+          PDM_log_trace_array_int(computed_tgt, n_computed_tgt, "computed_tgt : ");
+        }
+        int n_involved_src = CWP_N_involved_srcs_get(code_name[i_code],
+                                                     cpl_name,
+                                                     field_name2,
+                                                     ipart);
+        const int *involved_src = CWP_Involved_srcs_get(code_name[i_code],
+                                                        cpl_name,
+                                                        field_name2,
+                                                        ipart);
+        if (verbose) {
+          log_trace("Field 2 :\n");
+          log_trace("  part %d, ", ipart);
+          PDM_log_trace_array_int(involved_src, n_involved_src, "involved_src : ");
+        }
       }
     }
   }
