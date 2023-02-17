@@ -1724,6 +1724,146 @@ CWP_Interp_location_elt_pts_inside_idx_get
  CWP_Spatial_interp_t  spartial_interp_algorithm
 );
 
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+CWP_g_num_t **
+CWP_Interp_location_points_gnum_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spartial_interp_algorithm
+);
+
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+double **
+CWP_Interp_location_points_coords_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spartial_interp_algorithm
+);
+
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+double **
+CWP_Interp_location_points_uvw_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spartial_interp_algorithm
+);
+
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+double **
+CWP_Interp_location_points_dist2_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spartial_interp_algorithm
+);
+
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+double **
+CWP_Interp_location_points_projected_coords_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spartial_interp_algorithm
+);
+
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+int **
+CWP_Interp_location_cell_vtx_idx_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spartial_interp_algorithm
+);
+
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+int **
+CWP_Interp_location_cell_vtx_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spartial_interp_algorithm
+);
+
 /*----------------------------------------------------------------------------*
  * Functions about control parameters                                         *
  *----------------------------------------------------------------------------*/

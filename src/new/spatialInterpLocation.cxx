@@ -510,11 +510,6 @@ namespace cwipi {
 
     localization_free();
 
-    if (1) {
-      printf("in spatial interp location - elt_pts_inside_idx : %p\n", _elt_pts_inside_idx);
-      fflush(stdout);
-    }
-
     if (!_coupledCodeProperties->localCodeIs()) {
      // printf("_src_gnum %d :", _src_n_gnum[0]);
      // for (int i = 0; i < _src_n_gnum[0]; i++) {

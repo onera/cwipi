@@ -820,10 +820,6 @@ namespace cwipi {
                                             &gnum1_come_from_idx,
                                             &gnum1_come_from);
 
-      printf("gnum1_come_from[0] : %ld\n", gnum1_come_from[0][0]);
-      printf("gnum1_come_from[1] : %ld\n", gnum1_come_from[0][1]);
-      fflush(stdout);
-
       _send_buffer[intId] = (double **) malloc(sizeof(double *) * _nPart);
 
       for (int i = 0; i < _nPart; i++) {

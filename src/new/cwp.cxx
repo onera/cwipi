@@ -2274,6 +2274,223 @@ CWP_Interp_location_elt_pts_inside_idx_get
   return cpl.elt_pts_inside_idx_get(field_id);
 }
 
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+CWP_g_num_t **
+CWP_Interp_location_points_gnum_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spatial_interp_algorithm
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  return cpl.points_gnum_get(field_id);
+}
+
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+double **
+CWP_Interp_location_points_coords_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spatial_interp_algorithm
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  return cpl.points_coords_get(field_id);
+}
+
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+double **
+CWP_Interp_location_points_uvw_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spatial_interp_algorithm
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  return cpl.points_uvw_get(field_id);
+}
+
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+double **
+CWP_Interp_location_points_dist2_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spatial_interp_algorithm
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  return cpl.points_dist2_get(field_id);
+}
+
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+double **
+CWP_Interp_location_points_projected_coords_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spatial_interp_algorithm
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  return cpl.points_projected_coords_get(field_id);
+}
+
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+int **
+CWP_Interp_location_cell_vtx_idx_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spatial_interp_algorithm
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  return cpl.cell_vtx_idx_get(field_id);
+}
+
+/**
+ *
+ * \brief Getter if algorithm is of type LOCATION.
+ *
+ * \param [in] local_code_name           Local code name
+ * \param [in] cpl_id                    Coupling identifier
+ * \param [in] src_field_id              Source field id
+ * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ *
+ */
+
+int **
+CWP_Interp_location_cell_vtx_get
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *field_id,
+ CWP_Spatial_interp_t  spatial_interp_algorithm
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  return cpl.cell_vtx_get(field_id);
+}
+
 
 /**
  *
