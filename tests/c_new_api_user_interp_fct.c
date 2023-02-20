@@ -32,19 +32,19 @@ _locationUserInterpolation
  const char           *local_code_name,
  const char           *cpl_id,
  const char           *field_id,
+ int                   i_part,
  CWP_Spatial_interp_t  spartial_interp_algorithm,
  double               *buffer_in,
  double               *buffer_out
 )
 {
-  int            n_part_src      = 0;
-  int           *n_elt_src       = NULL;
-  int          **src_to_tgt_idx  = NULL;
-  CWP_g_num_t  **src_to_tgt_gnum = NULL;
+  int           n_elt_src       = 0;
+  int          *src_to_tgt_idx  = NULL;
+  CWP_g_num_t  *src_to_tgt_gnum = NULL;
   CWP_Interp_src_data_get(local_code_name,
                           cpl_id,
                           field_id,
-                          &n_part_src,
+                          i_part,
                           &n_elt_src,
                           &src_to_tgt_idx,
                           &src_to_tgt_gnum);
@@ -54,11 +54,10 @@ _locationUserInterpolation
                                                        field_id);
 
   int ival = 0;
-  for (int i = 0; i < n_elt_src[0]; i++) {
-    for (int j = src_to_tgt_idx[0][i]; j < src_to_tgt_idx[0][i+1]; j++) {
+  for (int i = 0; i < n_elt_src; i++) {
+    for (int j = src_to_tgt_idx[i]; j < src_to_tgt_idx[i+1]; j++) {
       for (int k1 = 0; k1 < n_components; k1++) {
-        ival = k1*src_to_tgt_idx[0][n_elt_src[0]] + j;
-        buffer_out[ival] = buffer_in[n_elt_src[0]*k1 + i];
+        buffer_out[ival++] = buffer_in[i*n_components + k1];
       }
     }
   }
@@ -197,7 +196,7 @@ main(int argc, char *argv[]) {
                      field_name,
                      CWP_DOUBLE,
                      CWP_FIELD_STORAGE_INTERLACED,
-                     1,
+                     2,
                      CWP_DOF_LOCATION_CELL_CENTER,
                      CWP_FIELD_EXCH_SEND,
                      visu_status);
@@ -207,17 +206,19 @@ main(int argc, char *argv[]) {
                      field_name,
                      CWP_DOUBLE,
                      CWP_FIELD_STORAGE_INTERLACED,
-                     1,
+                     2,
                      CWP_DOF_LOCATION_CELL_CENTER,
                      CWP_FIELD_EXCH_RECV,
                      visu_status);
   }
 
-  double *send_buff = malloc(sizeof(double) * n_face);
-  double *recv_buff = malloc(sizeof(double) * n_face);
+  double *send_buff = malloc(sizeof(double) * 2 * n_face);
+  double *recv_buff = malloc(sizeof(double) * 2 * n_face);
   if (code_id == 1) {
-    send_buff[0] = gnum_elt[0];
-    send_buff[1] = gnum_elt[1];
+    send_buff[0] = 1.1;
+    send_buff[1] = 1.2;
+    send_buff[2] = 2.1;
+    send_buff[3] = 2.2;
     CWP_Field_data_set(code_name[0],
                        coupling_name,
                        field_name,
@@ -250,12 +251,20 @@ main(int argc, char *argv[]) {
 
   if (code_id == 1) {
     CWP_Field_wait_issend(code_name[0], coupling_name, field_name);
-    printf("send_buff[0] : %f / send_buff[1] : %f\n", send_buff[0], send_buff[1]);
-    fflush(stdout);
+    for (int i = 0; i < n_face; i++) {
+      for (int j = 0; j < 2; j++) {
+        printf("send_buff - %d - %d : %f\n", i, j, send_buff[i * 2 + j]);
+        fflush(stdout);
+      }
+    }
   } else {
     CWP_Field_wait_irecv(code_name[0], coupling_name, field_name);
-    printf("recv_buff[0] : %f / recv_buff[1] : %f\n", recv_buff[0], recv_buff[1]);
-    fflush(stdout);
+    for (int i = 0; i < n_face; i++) {
+      for (int j = 0; j < 2; j++) {
+        printf("recv_buff - %d - %d : %f\n", i, j, recv_buff[i * 2 + j]);
+        fflush(stdout);
+      }
+    }
   }
 
   // del
