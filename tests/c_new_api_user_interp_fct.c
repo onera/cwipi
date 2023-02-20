@@ -36,11 +36,7 @@ _locationUserInterpolation
  double               *buffer_in,
  double               *buffer_out
 )
-{
-  // int **elt_pts_inside_idx = CWP_Interp_location_elt_pts_inside_idx_get(local_code_name,
-  //                                                                       cpl_id,
-  //                                                                       field_id,
-  //                                                                       spartial_interp_algorithm);
+{                                                                   spartial_interp_algorithm);
 
   buffer_out[0] = buffer_in[0];
   buffer_out[1] = buffer_in[1];

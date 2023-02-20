@@ -424,25 +424,58 @@ namespace cwipi {
 
     // Get weights
     void
-    weight_get(
-      std::string name,
-      int ***     weights_idx,
-      double ***  weights
+    weight_get
+    (
+     std::string    name,
+     int         ***weights_idx,
+     double      ***weights
     );
 
     // Get source ptp data
     void
-    src_data_get(
-      std::string name
+    src_data_get
+    (
+     std::string    name,
+     int           *n_part_src,
+     int          **n_elt_src,
+     int         ***src_to_tgt_idx,
+     CWP_g_num_t ***src_to_tgt_gnum
     );
 
     // Get Target
     void
-    tgt_data_get(
-      std::string name
+    tgt_data_get
+    (
+     std::string    name,
+     int           *n_part_tgt,
+     int          **n_elt_tgt,
+     int          **n_referenced_tgt,
+     int         ***referenced_tgt,
+     int         ***tgt_come_from_src_idx,
+     int         ***tgt_come_from_src
     );
 
+    // SpatialInterpLocation
 
+    // Get point_*
+    void
+    location_point_data_get
+    (
+     std::string    name,
+     double      **points_coords,
+     double      **points_uvw,
+     double      **points_dist2,
+     double      **points_projected_coords
+    );
+
+    // Get internal cell_vtx ordering
+    void
+    location_internal_cell_vtx_get
+    (
+     std::string    name,
+     int         **cell_vtx_idx,
+     int         **cell_vtx
+    );
 
     /*----------------------------------------------------------------------------*
      * Methods about visualization                                                *

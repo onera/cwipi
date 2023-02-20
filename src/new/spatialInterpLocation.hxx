@@ -70,18 +70,7 @@ namespace cwipi {
       */
     void weightsCompute() override;
 
-    // Getters
-    inline int **
-    elt_pts_inside_idx_get()
-    {
-      return _elt_pts_inside_idx;
-    }
-
-    inline CWP_g_num_t **
-    points_gnum_get()
-    {
-      return (CWP_g_num_t **) _points_gnum;
-    }
+    // Get point_*
 
     inline double **
     points_coords_get()
@@ -106,6 +95,8 @@ namespace cwipi {
     {
       return _points_projected_coords;
     }
+
+    // Get internal cell_vtx ordering
 
     inline int **
     cell_vtx_idx_get()

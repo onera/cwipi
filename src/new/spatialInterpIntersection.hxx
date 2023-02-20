@@ -31,31 +31,6 @@ namespace cwipi {
 
     void weightsCompute() override;
 
-    // Getters
-    inline int **
-    src_to_tgt_idx_get()
-    {
-      return _src_to_tgt_idx;
-    }
-
-    inline CWP_g_num_t **
-    src_to_tgt_gnum_get()
-    {
-      return (CWP_g_num_t **) _src_to_tgt_gnum;
-    }
-
-    inline double **
-    src_to_tgt_weight_get()
-    {
-      return _src_to_tgt_weight;
-    }
-
-    inline double **
-    tgt_to_src_weight_get()
-    {
-      return _tgt_to_src_weight;
-    }
-
   private:
     void interpolate(Field *referenceField, double **buffer) override;
 

@@ -39,37 +39,6 @@ namespace cwipi {
     void irecv      (Field *referenceField) override;
     void waitIrecv  (Field *referenceField) override;
 
-    // Getters
-    inline CWP_g_num_t **
-    closest_src_gnum_get()
-    {
-      return (CWP_g_num_t **) _closest_src_gnum;
-    }
-
-    inline double **
-    closest_src_dist_get()
-    {
-      return _closest_src_dist;
-    }
-
-    inline int **
-    tgt_in_src_idx_get()
-    {
-      return _tgt_in_src_idx;
-    }
-
-    inline CWP_g_num_t **
-    tgt_in_src_gnum_get()
-    {
-      return (CWP_g_num_t **) _tgt_in_src_gnum;
-    }
-
-    inline double **
-    tgt_in_src_dist_get()
-    {
-      return _tgt_in_src_dist;
-    }
-
     private:
         void interpolate(Field *referenceField, double **buffer) override;
 
