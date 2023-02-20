@@ -225,27 +225,9 @@ namespace cwipi {
       _interpolationFunction = NULL;
     }
 
-    void interpFortranFromLocationSet(void* fct)
-    {
-      _interpolationType     = CWP_INTERPOLATION_USER ;
-      _interpolationFunction_f = fct;
-    }
-
-    void interpFortranFromLocationUnSet()
-    {
-      _interpolationType     = CWP_INTERPOLATION_DEFAULT ;
-      _interpolationFunction_f = NULL;
-    }
-
     CWP_Interp_function_t interpolationFunctionGet() {
       return _interpolationFunction;
     }
-
-
-    void *fortranInterpolationFunctionGet() {
-      return _interpolationFunction_f;
-    }
-
 
     CWP_Interpolation_t interpolationTypeGet() {
       return _interpolationType;
@@ -363,8 +345,7 @@ namespace cwipi {
     std::map <int,MPI_Request>               _last_request;
     std::map <int,std::vector<MPI_Request>>  _last_request_p2p;
     int                                      _dataTypeSize;
-    CWP_Interp_function_t               _interpolationFunction;
-    void*                                    _interpolationFunction_f;
+    CWP_Interp_function_t                    _interpolationFunction;
     CWP_Interpolation_t                      _interpolationType;
 
     Field &operator=(const Field &other);       /*!< Assigment operator not available */

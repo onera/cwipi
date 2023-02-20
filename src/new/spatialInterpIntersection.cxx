@@ -754,7 +754,6 @@ namespace cwipi {
 
     if (interpolationType == CWP_INTERPOLATION_USER) {
       CWP_Interp_function_t interpolationFunction = referenceField->interpolationFunctionGet();
-      void *interpolationFunction_f = referenceField->fortranInterpolationFunctionGet();
 
       if (interpolationFunction != NULL) {
 
@@ -769,10 +768,6 @@ namespace cwipi {
                          (double *) buffer[i_part]);
         }
 
-      }
-
-      else if (interpolationFunction_f != NULL) {
-        PDM_error(__FILE__, __LINE__, 0, "fortran user interpolation not implemented yet");
       }
     }
 

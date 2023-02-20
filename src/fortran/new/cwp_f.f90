@@ -335,13 +335,13 @@ module cwp
         CWP_Field_wait_irecv_
     end interface CWP_Field_wait_irecv
 
-    interface CWP_Interp_from_location_unset ; module procedure &
-        CWP_Interp_from_location_unset_
-    end interface CWP_Interp_from_location_unset
+    interface CWP_Interp_function_unset ; module procedure &
+        CWP_Interp_function_unset_
+    end interface CWP_Interp_function_unset
 
-!!$    interface CWP_Interp_from_location_set ; module procedure &
-!!$        CWP_Interp_from_location_set_
-!!$    end interface CWP_Interp_from_location_set
+    interface CWP_Interp_function_set ; module procedure &
+        CWP_Interp_function_set_
+    end interface CWP_Interp_function_set
 
     interface CWP_Param_add_int ; module procedure &
         CWP_Param_add_int_
@@ -452,8 +452,8 @@ module cwp
              CWP_Field_irecv_ ,&
              CWP_Field_wait_issend_ ,&
              CWP_Field_wait_irecv_ ,&
-             CWP_Interp_from_location_unset_ ,&
-!!$             CWP_Interp_from_location_set_ ,&
+             CWP_Interp_function_unset_ ,&
+             CWP_Interp_function_set_ ,&
              CWP_Param_add_int_ ,&
              CWP_Param_add_double_ ,&
              CWP_Param_add_char_ ,&
@@ -866,66 +866,44 @@ module cwp
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_tgt_field_id
       end subroutine CWP_Field_wait_irecv_cf
 
-      subroutine CWP_Interp_from_location_fortran_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
-              src_field_id, l_src_field_id, ptInterpolationFct) &
-              bind(c, name = 'CWP_Interp_from_location_fortran_set_cf')
+      subroutine CWP_Interp_function_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+              src_field_id, l_src_field_id, user_interpolation_fct) &
+              bind(c, name = 'CWP_Interp_function_set_cf')
         use, intrinsic :: iso_c_binding
         implicit none
 
         abstract interface
-          subroutine ptInterpolationFct ( &
-                  interface_type, &
-                  n_src_vtcs, &
-                  n_src_std_elts, &
-                  n_tgt_pts, &
-                  src_vtcs_coords, &
-                  src_connec_idx, &
-                  src_connec, &
-                  tgt_pts_coords, &
-                  tgt_pts_target_location, &
-                  tgt_pts_dist, &
-                  tgt_pts_bary_coords_idx, &
-                  tgt_pts_bary_coords, &
-                  stride, &
-                  src_field_location, &
-                  src_field, &
-                  tgt_field_location, &
-                  tgt_field &
+          subroutine user_interpolation_fct ( &
+                  local_code_name, &
+                  cpl_id, &
+                  src_field_id, &
+                  i_part, &
+                  spatial_interp_algorithm, &
+                  buffer_in, &
+                  buffer_out &
                   ) &
                   bind (c)
             use, intrinsic :: iso_c_binding
-            integer(kind = c_int)               :: interface_type
-            integer(kind = c_int)               :: n_src_vtcs
-            integer(kind = c_int)               :: n_src_std_elts
-            integer(kind = c_int)               :: n_tgt_pts
-            real(kind = c_double), dimension(*) :: src_vtcs_coords
-            integer(kind = c_int), dimension(*) :: src_connec_idx
-            integer(kind = c_int), dimension(*) :: src_connec
-            real(kind = c_double), dimension(*) :: tgt_pts_coords
-            integer(kind = c_int), dimension(*) :: tgt_pts_target_location
-            real(kind = c_double), dimension(*) :: tgt_pts_dist
-            integer(kind = c_int), dimension(*) :: tgt_pts_bary_coords_idx
-            real(kind = c_double), dimension(*) :: tgt_pts_bary_coords
-            integer(kind = c_int)               :: stride
-            integer(kind = c_int)               :: src_field_location
-            real(kind = c_double), dimension(*) :: src_field
-            integer(kind = c_int)               :: tgt_field_location
-            real(kind = c_double), dimension(*) :: tgt_field
-          end subroutine ptInterpolationFct
+            integer(kind = c_int)               :: i_part
+            integer(kind = c_int)               :: spatial_interp_algorithm
+            real(kind = c_double), dimension(*) :: buffer_in
+            real(kind = c_double), dimension(*) :: buffer_out
+          end subroutine user_interpolation_fct
         end interface
+
         character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_src_field_id
-      end subroutine CWP_Interp_from_location_fortran_set_cf
+      end subroutine CWP_Interp_function_set_cf
 
-      subroutine CWP_Interp_from_location_fortran_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+      subroutine CWP_Interp_function_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
               src_field_id, l_src_field_id) &
-              bind(c, name = 'CWP_Interp_from_location_fortran_unset_cf')
+              bind(c, name = 'CWP_Interp_function_unset_cf')
         use, intrinsic :: iso_c_binding
         implicit none
 
         character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_src_field_id
-      end subroutine CWP_Interp_from_location_fortran_unset_cf
+      end subroutine CWP_Interp_function_unset_cf
 
       subroutine CWP_Spatial_interp_property_set_cf(local_code_name,   &
                                                     l_local_code_name, &
@@ -3237,7 +3215,7 @@ contains
   !!
   !!
 
-  subroutine CWP_Interp_from_location_unset_ (local_code_name, &
+  subroutine CWP_Interp_function_unset_ (local_code_name, &
                                              cpl_id, &
                                              src_field_id)
 
@@ -3250,17 +3228,17 @@ contains
     l_cpl_id = len(cpl_id)
     l_src_field_id = len(src_field_id)
 
-    call CWP_Interp_from_location_fortran_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+    call CWP_Interp_function_unset_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
             & src_field_id, l_src_field_id)
 
-  end subroutine CWP_Interp_from_location_unset_
+  end subroutine CWP_Interp_function_unset_
 
   !>
   !!
   !! \brief Setting of an user interpolation from location.
   !!
   !! This function takes into account an user interpolation function written with
-  !! void (*\ref CWP_Interp_from_location_t) interface.
+  !! void (*\ref CWP_Interp_function_t) interface.
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
@@ -3268,66 +3246,42 @@ contains
   !! \param [in] fct              Function
   !!
 
-!!$  subroutine CWP_Interp_from_location_set_(local_code_name, &
-!!$                                          cpl_id, &
-!!$                                          src_field_id, &
-!!$                                          ptInterpolationFct)
-!!$
-!!$    use, intrinsic :: iso_c_binding
-!!$    implicit none
-!!$
-!!$    interface
-!!$      subroutine ptInterpolationFct ( &
-!!$              interface_type, &
-!!$              n_src_vtcs, &
-!!$              n_src_std_elts, &
-!!$              n_tgt_pts, &
-!!$              src_vtcs_coords, &
-!!$              src_connec_idx, &
-!!$              src_connec, &
-!!$              tgt_pts_coords, &
-!!$              tgt_pts_target_location, &
-!!$              tgt_pts_dist, &
-!!$              tgt_pts_bary_coords_idx, &
-!!$              tgt_pts_bary_coords, &
-!!$              stride, &
-!!$              src_field_location, &
-!!$              src_field, &
-!!$              tgt_field_location, &
-!!$              tgt_field &
-!!$              )
-!!$        use, intrinsic :: iso_c_binding
-!!$        implicit none
-!!$
-!!$        integer(kind = c_int)               :: interface_type
-!!$        integer(kind = c_int)               :: n_src_vtcs
-!!$        integer(kind = c_int)               :: n_src_std_elts
-!!$        integer(kind = c_int)               :: n_tgt_pts
-!!$        real(kind = c_double), dimension(*) :: src_vtcs_coords
-!!$        integer(kind = c_int), dimension(*) :: src_connec_idx
-!!$        integer(kind = c_int), dimension(*) :: src_connec
-!!$        real(kind = c_double), dimension(*) :: tgt_pts_coords
-!!$        integer(kind = c_int), dimension(*) :: tgt_pts_target_location
-!!$        real(kind = c_double), dimension(*) :: tgt_pts_dist
-!!$        integer(kind = c_int), dimension(*) :: tgt_pts_bary_coords_idx
-!!$        real(kind = c_double), dimension(*) :: tgt_pts_bary_coords
-!!$        integer(kind = c_int)               :: stride
-!!$        integer(kind = c_int)               :: src_field_location
-!!$        real(kind = c_double), dimension(*) :: src_field
-!!$        integer(kind = c_int)               :: tgt_field_location
-!!$        real(kind = c_double), dimension(*) :: tgt_field
-!!$      end subroutine ptInterpolationFct
-!!$    end interface
-!!$
-!!$    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
-!!$    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
-!!$    l_local_code_name = len(local_code_name)
-!!$    l_cpl_id = len(cpl_id)
-!!$    l_src_field_id = len(src_field_id)
-!!$
-!!$    call CWP_Interp_from_location_fortran_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
-!!$            & src_field_id, l_src_field_id, ptInterpolationFct)
-!!$  end subroutine CWP_Interp_from_location_set_
+  subroutine CWP_Interp_function_set_(local_code_name, &
+                                      cpl_id, &
+                                      src_field_id, &
+                                      user_interpolation_fct)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    interface
+        subroutine user_interpolation_fct ( &
+                local_code_name, &
+                cpl_id, &
+                src_field_id, &
+                i_part, &
+                spatial_interp_algorithm, &
+                buffer_in, &
+                buffer_out &
+                ) &
+                bind (c)
+          use, intrinsic :: iso_c_binding
+          integer(kind = c_int)               :: i_part
+          integer(kind = c_int)               :: spatial_interp_algorithm
+          real(kind = c_double), dimension(*) :: buffer_in
+          real(kind = c_double), dimension(*) :: buffer_out
+        end subroutine user_interpolation_fct
+    end interface
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+    l_src_field_id = len(src_field_id)
+
+    call CWP_Interp_function_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+            & src_field_id, l_src_field_id, user_interpolation_fct)
+  end subroutine CWP_Interp_function_set_
 
 ! /*----------------------------------------------------------------------------*
 !  * Functions about all code parameters                                        *
