@@ -1328,7 +1328,7 @@ namespace cwipi {
                                               n_elt_tgt);
 
         PDM_part_to_part_part1_to_part2_get(ptp,
-                                            n_part_src,
+                                            n_elt_src,
                                             src_to_tgt_idx,
                           (PDM_g_num_t ***) src_to_tgt_gnum);
       }
@@ -1339,13 +1339,13 @@ namespace cwipi {
   void
   Coupling::tgt_data_get
   (
-    std::string    name,
-    int           *n_part_tgt,
-    int          **n_elt_tgt,
-    int          **n_referenced_tgt,
-    int         ***referenced_tgt,
-    int         ***tgt_come_from_src_idx,
-    int         ***tgt_come_from_src
+    std::string     name,
+    int            *n_part_tgt,
+    int           **n_elt_tgt,
+    int           **n_referenced_tgt,
+    int          ***referenced_tgt,
+    int          ***tgt_come_from_src_idx,
+    CWP_g_num_t ***tgt_come_from_src
   )
   {
     map <string, Field *>::iterator it  = _fields.find(name);
@@ -1374,7 +1374,7 @@ namespace cwipi {
 
         PDM_part_to_part_gnum1_come_from_get(ptp,
                                              tgt_come_from_src_idx,
-                                             tgt_come_from_src);
+                           (PDM_g_num_t ***) tgt_come_from_src);
 
       }
     }
@@ -1384,7 +1384,7 @@ namespace cwipi {
 
   // Get point_*
   void
-  location_point_data_get
+  Coupling::location_point_data_get
   (
    std::string      name,
    double       ***points_coords,
@@ -1414,7 +1414,7 @@ namespace cwipi {
 
     // Get internal cell_vtx ordering
   void
-  location_internal_cell_vtx_get
+  Coupling::location_internal_cell_vtx_get
   (
    std::string    name,
    int         ***cell_vtx_idx,

@@ -2245,34 +2245,259 @@ CWP_Interp_function_set
 
 /**
  *
- * \brief Getter if algorithm is of type LOCATION.
+ * \brief Get spatial interpolation weights (location algorithm).
  *
- * \param [in] local_code_name           Local code name
- * \param [in] cpl_id                    Coupling identifier
- * \param [in] src_field_id              Source field id
- * \param [in] partial_interp_algorithm  Enum of spatial interpolation function
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  src_field_id              Source field id
+ * \param [out] n_part_src,
+ * \param [out] n_elt_src,
+ * \param [out] src_to_tgt_idx,
+ * \param [out] src_to_tgt_gnum
  *
  */
 
-// int **
-// CWP_Interp_location_elt_pts_inside_idx_get
-// (
-//  const char           *local_code_name,
-//  const char           *cpl_id,
-//  const char           *field_id,
-//  CWP_Spatial_interp_t  spatial_interp_algorithm
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+void
+CWP_Interp_src_data_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const char             *field_id,
+ int                    *n_part_src,
+ int                   **n_elt_src,
+ int                  ***src_to_tgt_idx,
+ CWP_g_num_t          ***src_to_tgt_gnum
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.src_data_get(field_id,
+                   n_part_src,
+                   n_elt_src,
+                   src_to_tgt_idx,
+                   src_to_tgt_gnum);
+}
 
-//   if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
-//       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
-//       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
-//     PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
-//   }
+/**
+ *
+ * \brief Get spatial interpolation weights (location algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  src_field_id              Source field id
+ * \param [out] n_part_tgt,
+ * \param [out] n_elt_tgt,
+ * \param [out] n_referenced_tgt,
+ * \param [out] referenced_tgt,
+ * \param [out] tgt_come_from_src_idx,
+ * \param [out] tgt_come_from_src
+ *
+ */
 
-//   return cpl.elt_pts_inside_idx_get(field_id);
-// }
+void
+CWP_Interp_tgt_data_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const char             *field_id,
+ int                    *n_part_tgt,
+ int                   **n_elt_tgt,
+ int                   **n_referenced_tgt,
+ int                  ***referenced_tgt,
+ int                  ***tgt_come_from_src_idx,
+ CWP_g_num_t          ***tgt_come_from_src
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.tgt_data_get(field_id,
+                   n_part_tgt,
+                   n_elt_tgt,
+                   n_referenced_tgt,
+                   referenced_tgt,
+                   tgt_come_from_src_idx,
+                   tgt_come_from_src);
+}
+
+/**
+ *
+ * \brief Get spatial interpolation weights (location algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  src_field_id              Source field id
+ * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
+ * \param [out] weights_idx
+ * \param [out] weights
+ *
+ */
+
+void
+CWP_Interp_location_weights_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const char             *field_id,
+ CWP_Spatial_interp_t    spatial_interp_algorithm,
+ int                  ***weights_idx,
+ double               ***weights
+)
+{
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.weight_get(field_id,
+                 weights_idx,
+                 weights);
+}
+
+/**
+ *
+ * \brief Get spatial interpolation point data (location algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  src_field_id              Source field id
+ * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
+ * \param [out] points_coords
+ * \param [out] points_uvw
+ * \param [out] points_dist2
+ * \param [out] points_projected_coords
+ *
+ */
+
+void
+CWP_Interp_location_point_data_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const char             *field_id,
+ CWP_Spatial_interp_t    spatial_interp_algorithm,
+ double               ***points_coords,
+ double               ***points_uvw,
+ double               ***points_dist2,
+ double               ***points_projected_coords
+)
+{
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.location_point_data_get(field_id,
+                              points_coords,
+                              points_uvw,
+                              points_dist2,
+                              points_projected_coords);
+}
+
+/**
+ *
+ * \brief Get spatial interpolation internal cell->vertex connectivity (location algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  src_field_id              Source field id
+ * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
+ * \param [out] cell_vtx_idx
+ * \param [out] cell_vtx
+ *
+ */
+
+void
+CWP_Interp_location_internal_cell_vtx_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const char             *field_id,
+ CWP_Spatial_interp_t    spatial_interp_algorithm,
+ int                  ***cell_vtx_idx,
+ int                  ***cell_vtx
+)
+{
+  if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.location_internal_cell_vtx_get(field_id,
+                                     cell_vtx_idx,
+                                     cell_vtx);
+}
+
+/**
+ *
+ * \brief Get spatial interpolation volumes (intersection algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  src_field_id              Source field id
+ * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
+ * \param [out] volumes_idx
+ * \param [out] volumes
+ *
+ */
+
+void
+CWP_Interp_intersection_volumes_get
+(
+ const char              *local_code_name,
+ const char              *cpl_id,
+ const char              *field_id,
+ CWP_Spatial_interp_t    spatial_interp_algorithm,
+ int                  ***volumes_idx,
+ double               ***volumes
+)
+{
+  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.weight_get(field_id,
+                 volumes_idx,
+                 volumes);
+}
+
+/**
+ *
+ * \brief Get spatial interpolation distances (closest points algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  src_field_id              Source field id
+ * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
+ * \param [out] dist_idx
+ * \param [out] dist
+ *
+ */
+
+void
+CWP_Interp_closest_points_distances_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const char             *field_id,
+ CWP_Spatial_interp_t    spatial_interp_algorithm,
+ int                  ***distances_idx,
+ double               ***distances
+)
+{
+  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.weight_get(field_id,
+                 distances_idx,
+                 distances);
+}
 
 /**
  *

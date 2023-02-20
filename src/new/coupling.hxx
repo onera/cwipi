@@ -446,13 +446,13 @@ namespace cwipi {
     void
     tgt_data_get
     (
-     std::string    name,
-     int           *n_part_tgt,
-     int          **n_elt_tgt,
-     int          **n_referenced_tgt,
-     int         ***referenced_tgt,
-     int         ***tgt_come_from_src_idx,
-     int         ***tgt_come_from_src
+     std::string     name,
+     int            *n_part_tgt,
+     int           **n_elt_tgt,
+     int           **n_referenced_tgt,
+     int          ***referenced_tgt,
+     int          ***tgt_come_from_src_idx,
+     CWP_g_num_t ***tgt_come_from_src
     );
 
     // SpatialInterpLocation
@@ -462,10 +462,10 @@ namespace cwipi {
     location_point_data_get
     (
      std::string    name,
-     double      **points_coords,
-     double      **points_uvw,
-     double      **points_dist2,
-     double      **points_projected_coords
+     double      ***points_coords,
+     double      ***points_uvw,
+     double      ***points_dist2,
+     double      ***points_projected_coords
     );
 
     // Get internal cell_vtx ordering
@@ -473,8 +473,8 @@ namespace cwipi {
     location_internal_cell_vtx_get
     (
      std::string    name,
-     int         **cell_vtx_idx,
-     int         **cell_vtx
+     int         ***cell_vtx_idx,
+     int         ***cell_vtx
     );
 
     /*----------------------------------------------------------------------------*

@@ -36,8 +36,7 @@ _locationUserInterpolation
  double               *buffer_in,
  double               *buffer_out
 )
-{                                                                   spartial_interp_algorithm);
-
+{
   buffer_out[0] = buffer_in[0];
   buffer_out[1] = buffer_in[1];
 }
