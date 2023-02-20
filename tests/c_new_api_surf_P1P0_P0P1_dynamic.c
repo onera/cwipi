@@ -490,13 +490,17 @@ int main(int argc, char *argv[])
 
   // Create coupling
   const char *cpl_name = "c_new_api_surf_P1P0_P0P1_dynamic";
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE;
+  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
     CWP_Cpl_create(code_name[i_code],                                     // Code name
                    cpl_name,                                              // Coupling id
                    coupled_code_name[i_code],                             // Coupled application id
                    CWP_INTERFACE_SURFACE,
                    CWP_COMM_PAR_WITH_PART,                                // Coupling type
-                   CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, // Solver type
+                   spatial_interp,
                    n_part,                                                // Partition number
                    CWP_DYNAMIC_MESH_DEFORMABLE,                           // Mesh displacement type
                    CWP_TIME_EXCH_USER_CONTROLLED);                        // Postprocessing frequency

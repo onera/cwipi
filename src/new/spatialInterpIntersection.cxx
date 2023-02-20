@@ -43,15 +43,20 @@ namespace cwipi {
         free(_src_to_tgt_weight[i_part]);
       }
 
-      if (_tgt_to_src_weight[i_part] != NULL) {
-        free(_tgt_to_src_weight[i_part]);
+      // if (_weights[i_part] != NULL) {
+      //   free(_weights[i_part]);
+      // }
+
+      if (_tgt_volume[i_part] != NULL) {
+        free(_tgt_volume[i_part]);
       }
     }
 
     delete[] _src_to_tgt_idx;
     delete[] _src_to_tgt_gnum;
     delete[] _src_to_tgt_weight;
-    delete[] _tgt_to_src_weight;
+    // delete[] _weights;
+    delete[] _tgt_volume;
   }
 
 
@@ -126,13 +131,15 @@ namespace cwipi {
       _src_to_tgt_idx    = new int*         [_nPart];
       _src_to_tgt_gnum   = new PDM_g_num_t* [_nPart];
       _src_to_tgt_weight = new double*      [_nPart];
-      _tgt_to_src_weight = new double*      [_nPart];
+      // _weights           = new double*      [_nPart];
+      _tgt_volume        = new double*      [_nPart];
 
       for (int i_part = 0; i_part < _nPart; i_part++) {
         _src_to_tgt_idx   [i_part] = NULL;
         _src_to_tgt_gnum  [i_part] = NULL;
         _src_to_tgt_weight[i_part] = NULL;
-        _tgt_to_src_weight[i_part] = NULL;
+        // _weights          [i_part] = NULL;
+        _tgt_volume       [i_part] = NULL;
       }
     }
 
@@ -152,13 +159,17 @@ namespace cwipi {
         if (_src_to_tgt_weight[i_part] != NULL) {
           free(_src_to_tgt_weight[i_part]);
         }
-        if (_tgt_to_src_weight[i_part] != NULL) {
-          free(_tgt_to_src_weight[i_part]);
+        if (_weights[i_part] != NULL) {
+          free(_weights[i_part]);
+        }
+        if (_tgt_volume[i_part] != NULL) {
+          free(_tgt_volume[i_part]);
         }
         _src_to_tgt_idx   [i_part] = NULL;
         _src_to_tgt_gnum  [i_part] = NULL;
         _src_to_tgt_weight[i_part] = NULL;
-        _tgt_to_src_weight[i_part] = NULL;
+        _weights          [i_part] = NULL;
+        _tgt_volume       [i_part] = NULL;
 
 
         if (_weights_idx[i_part] != NULL) {
@@ -224,13 +235,17 @@ namespace cwipi {
         if (cpl_spatial_interp->_src_to_tgt_weight[i_part] != NULL) {
           free(cpl_spatial_interp->_src_to_tgt_weight[i_part]);
         }
-        if (cpl_spatial_interp->_tgt_to_src_weight[i_part] != NULL) {
-          free(cpl_spatial_interp->_tgt_to_src_weight[i_part]);
+        if (cpl_spatial_interp->_weights[i_part] != NULL) {
+          free(cpl_spatial_interp->_weights[i_part]);
+        }
+        if (cpl_spatial_interp->_tgt_volume[i_part] != NULL) {
+          free(cpl_spatial_interp->_tgt_volume[i_part]);
         }
         cpl_spatial_interp->_src_to_tgt_idx   [i_part] = NULL;
         cpl_spatial_interp->_src_to_tgt_gnum  [i_part] = NULL;
         cpl_spatial_interp->_src_to_tgt_weight[i_part] = NULL;
-        cpl_spatial_interp->_tgt_to_src_weight[i_part] = NULL;
+        cpl_spatial_interp->_weights          [i_part] = NULL;
+        cpl_spatial_interp->_tgt_volume       [i_part] = NULL;
 
 
         if (cpl_spatial_interp->_weights_idx[i_part] != NULL) {
@@ -585,7 +600,12 @@ namespace cwipi {
 
           PDM_mesh_intersection_result_from_b_get(_id_pdm,
                                                   i_part,
-                                                  &(_tgt_to_src_weight[i_part]));
+                                                  &(_weights[i_part]));
+
+          // PDM_mesh_intersection_elt_volume_get(_id_pdm,
+          //                                      1,
+          //                                      i_part,
+          //                                      &(_tgt_volume[i_part]));
 
           _n_computed_tgt[i_part] = n_ref_tgt[i_part];
           _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
@@ -641,7 +661,12 @@ namespace cwipi {
 
             PDM_mesh_intersection_result_from_b_get(_id_pdm,
                                                     i_part,
-                                                    &(cpl_spatial_interp->_tgt_to_src_weight[i_part]));
+                                                    &(cpl_spatial_interp->_weights[i_part]));
+
+            // PDM_mesh_intersection_elt_volume_get(_id_pdm,
+            //                                    1,
+            //                                    i_part,
+            //                                    &(cpl_spatial_interp->_tgt_volume[i_part]));
 
             cpl_spatial_interp->_n_computed_tgt[i_part] = n_ref_tgt[i_part];
             cpl_spatial_interp->_computed_tgt[i_part] = (int *) malloc(sizeof(int) * cpl_spatial_interp->_n_computed_tgt[i_part]);
@@ -655,7 +680,12 @@ namespace cwipi {
 
             PDM_mesh_intersection_result_from_b_get(_id_pdm,
                                                     i_part,
-                                                    &(_tgt_to_src_weight[i_part]));
+                                                    &(_weights[i_part]));
+
+            // PDM_mesh_intersection_elt_volume_get(_id_pdm,
+            //                                      1,
+            //                                      i_part,
+            //                                      &(_tgt_volume[i_part]));
 
             _n_computed_tgt[i_part] = n_ref_tgt[i_part];
             _computed_tgt[i_part] = (int *) malloc(sizeof(int) * _n_computed_tgt[i_part]);
@@ -762,7 +792,7 @@ namespace cwipi {
 
           for (int k = come_from_idx[i_part][iref]; k < come_from_idx[i_part][iref+1]; k++) {
 
-            double w = _tgt_to_src_weight[i_part][k];
+            double w = _weights[i_part][k]; // volume of intersection (not normalized)
 
             if (storage == CWP_FIELD_STORAGE_INTERLEAVED) {
               for (int j = 0; j < nComponent; j++) {

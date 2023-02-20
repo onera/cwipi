@@ -40,13 +40,13 @@ namespace cwipi {
         if (_closest_src_gnum[i_part] != NULL) {
           free(_closest_src_gnum[i_part]);
         }
-        if (_closest_src_dist[i_part] != NULL) {
-          free(_closest_src_dist[i_part]);
-        }
+        // if (_weights[i_part] != NULL) {
+        //   free(_weights[i_part]);
+        // }
       }
 
       free ( _closest_src_gnum);
-      free ( _closest_src_dist);
+      // free ( _weights);
 
       for (int i_part = 0; i_part < _nPart; i_part++) {
         if (_tgt_in_src_idx[i_part] != NULL) {
@@ -66,6 +66,7 @@ namespace cwipi {
 
       if (_send_coord != NULL) {
         free(_send_coord);
+        _send_coord = NULL;
       }
 
       if (_recv_coord != NULL) {
@@ -83,6 +84,7 @@ namespace cwipi {
           }
         }
         free(_recv_coord);
+        _recv_coord = NULL;
       }
     }
 
@@ -151,11 +153,10 @@ namespace cwipi {
       //
       // Target properties
       _closest_src_gnum = (PDM_g_num_t**) malloc (sizeof(PDM_g_num_t*) * _nPart);
-      _closest_src_dist = (double **) malloc (sizeof(double *) * (_nPart));
 
       for (int i_part = 0; i_part < _nPart; i_part++) {
         _closest_src_gnum[i_part] = NULL;
-        _closest_src_dist[i_part] = NULL;
+        // _closest_src_dist[i_part] = NULL;
       }
 
       //
@@ -219,7 +220,7 @@ namespace cwipi {
 
 //         PDM_closest_points_free (_id_pdm);
 // //        cout << cplComm_rank << ": PDM_closest_point freed " << _id_pdm << endl;
-
+      _coordinates_exchanged = 0;
 
       if (!_coupledCodeProperties->localCodeIs() ||
           (_coupledCodeProperties->localCodeIs() && _localCodeProperties->idGet() < _coupledCodeProperties->idGet())) {
@@ -228,11 +229,11 @@ namespace cwipi {
           if (_closest_src_gnum[i_part] != NULL) {
             free(_closest_src_gnum[i_part]);
           }
-          if (_closest_src_dist[i_part] != NULL) {
-            free(_closest_src_dist[i_part]);
+          if (_weights[i_part] != NULL) {
+            free(_weights[i_part]);
           }
           _closest_src_gnum[i_part] = NULL;
-          _closest_src_dist[i_part] = NULL;
+          _weights[i_part] = NULL;
 
 
           if (_tgt_in_src_idx[i_part] != NULL) {
@@ -284,8 +285,13 @@ namespace cwipi {
         }
 
 
-        if (_send_coord != NULL) {
-          free(_send_coord);
+        CWP_Dynamic_mesh_t dyn_mesh = _cpl->DisplacementGet();
+
+        if (dyn_mesh != CWP_DYNAMIC_MESH_STATIC) {
+          if (_send_coord != NULL) {
+            free(_send_coord);
+            _send_coord = NULL;
+          }
         }
 
         if (_recv_coord != NULL) {
@@ -295,6 +301,7 @@ namespace cwipi {
             }
           }
           free(_recv_coord);
+          _recv_coord = NULL;
         }
 
       }
@@ -321,11 +328,11 @@ namespace cwipi {
           if (cpl_spatial_interp->_closest_src_gnum[i_part] != NULL) {
             free(cpl_spatial_interp->_closest_src_gnum[i_part]);
           }
-          if (cpl_spatial_interp->_closest_src_dist[i_part] != NULL) {
-            free(cpl_spatial_interp->_closest_src_dist[i_part]);
+          if (cpl_spatial_interp->_weights[i_part] != NULL) {
+            free(cpl_spatial_interp->_weights[i_part]);
           }
           cpl_spatial_interp->_closest_src_gnum[i_part] = NULL;
-          cpl_spatial_interp->_closest_src_dist[i_part] = NULL;
+          cpl_spatial_interp->_weights[i_part] = NULL;
 
 
           if (cpl_spatial_interp->_tgt_in_src_idx[i_part] != NULL) {
@@ -378,6 +385,7 @@ namespace cwipi {
 
         if (cpl_spatial_interp->_send_coord != NULL) {
           free(cpl_spatial_interp->_send_coord);
+          cpl_spatial_interp->_send_coord = NULL;
         }
 
         if (cpl_spatial_interp->_recv_coord != NULL) {
@@ -387,6 +395,7 @@ namespace cwipi {
             }
           }
           free(cpl_spatial_interp->_recv_coord);
+          cpl_spatial_interp->_recv_coord = NULL;
         }
       }
 
@@ -801,7 +810,7 @@ namespace cwipi {
             PDM_closest_points_get(_id_pdm,
                                    i_part,
                                    &(_closest_src_gnum[i_part]),
-                                   &(_closest_src_dist[i_part]));
+                                   &(_weights[i_part]));
 
             _n_computed_tgt  [i_part] = PDM_closest_points_n_tgt_get(_id_pdm, i_part);
             _n_uncomputed_tgt[i_part] = 0;
@@ -862,7 +871,7 @@ namespace cwipi {
               PDM_closest_points_get(_id_pdm,
                                      i_part,
                                      &(cpl_spatial_interp->_closest_src_gnum[i_part]),
-                                     &(cpl_spatial_interp->_closest_src_dist[i_part]));
+                                     &(cpl_spatial_interp->_weights[i_part]));
 
               cpl_spatial_interp->_n_computed_tgt  [i_part] = PDM_closest_points_n_tgt_get(_id_pdm, i_part);
               cpl_spatial_interp->_n_uncomputed_tgt[i_part] = 0;
@@ -881,7 +890,7 @@ namespace cwipi {
               PDM_closest_points_get(_id_pdm,
                                      i_part,
                                      &(_closest_src_gnum[i_part]),
-                                     &(_closest_src_dist[i_part]));
+                                     &(_weights[i_part]));
 
               _n_computed_tgt  [i_part] = PDM_closest_points_n_tgt_get(_id_pdm, i_part);
               _n_uncomputed_tgt[i_part] = 0;
@@ -1491,7 +1500,7 @@ namespace cwipi {
               _interp_idw(n_closest_pts,
                           nComponent,
                           src_value,
-                          _closest_src_dist[i_part] + n_closest_pts*i,
+                          _weights[i_part] + n_closest_pts*i,
                           tgt_value);
             }
             else {
@@ -1499,7 +1508,7 @@ namespace cwipi {
                                     nComponent,
                                     src_value,
                                     src_coord + 3*n_closest_pts*i,
-                                    _closest_src_dist[i_part] + n_closest_pts*i,
+                                    _weights[i_part] + n_closest_pts*i,
                                     tgt_coord + 3*i,
                                     tgt_value);
 

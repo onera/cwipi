@@ -61,27 +61,18 @@ namespace cwipi {
         SpatialInterpClosestPoint *_spatial_interp_cpl;
 
         PDM_g_num_t **_closest_src_gnum;
-        double      **_closest_src_dist;
+        // double      **_closest_src_dist;
 
         int         **_tgt_in_src_idx;
         PDM_g_num_t **_tgt_in_src_gnum;
         double      **_tgt_in_src_dist;
 
         // Exchange of src coordinates for least square interpolation
-        // ideally exchange only once (same coords for multiple fields)
         int _coordinates_exchanged;
-        const double **_send_coord;         /*!< Coordinates of source points */
-        double       **_recv_coord;         /*!< Coordinates of target points */
-        int            _send_coord_request; /*!< Send request */
-        int            _recv_coord_request; /*!< Recv request */
-        uint32_t       _send_coord_adler;   /*!< tag MPI from adler code */
-        uint32_t       _recv_coord_adler;   /*!< tag MPI from adler code */
-        // std::vector <double **> _send_coord;         /*!< Send buffer  (size = n_field) */
-        // std::vector <double **> _recv_coord;         /*!< Recv buffer  (size = n_field) */
-        // std::vector <int>       _send_coord_request; /*!< Send request (size = n_field) */
-        // std::vector <int>       _recv_coord_request; /*!< Recv request (size = n_field) */
-        // std::vector <uint32_t>  _send_coord_adler;   /*!< tag MPI from adler code */
-        // std::vector <uint32_t>  _recv_coord_adler;   /*!< tag MPI from adler code */
+        const double **_send_coord;
+        double       **_recv_coord;
+        int            _send_coord_request;
+        int            _recv_coord_request;
 
 
     protected:

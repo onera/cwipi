@@ -55,7 +55,8 @@ namespace cwipi {
     PDM_g_num_t **_src_to_tgt_gnum;
     double      **_src_to_tgt_weight;
 
-    double      **_tgt_to_src_weight;
+    // double      **_tgt_to_src_weight;
+    double      **_tgt_volume;
 
   protected:
     PDM_mesh_intersection_t *_id_pdm;
