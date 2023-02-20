@@ -1731,9 +1731,8 @@ CWP_Interp_field_n_components_get
  * \param [in]  cpl_id                    Coupling identifier
  * \param [in]  src_field_id              Source field id
  * \param [in]  i_part
- * \param [out] n_elt_src,
- * \param [out] src_to_tgt_idx,
- * \param [out] src_to_tgt_gnum
+ * \param [out] n_elt_src
+ * \param [out] src_to_tgt_idx
  *
  */
 
@@ -1745,8 +1744,7 @@ CWP_Interp_src_data_get
  const char   *field_id,
  int           i_part,
  int          *n_elt_src,
- int         **src_to_tgt_idx,
- CWP_g_num_t **src_to_tgt_gnum
+ int         **src_to_tgt_idx
 );
 
 /**
@@ -1761,7 +1759,6 @@ CWP_Interp_src_data_get
  * \param [out] n_referenced_tgt
  * \param [out] referenced_tgt
  * \param [out] tgt_come_from_src_idx
- * \param [out] tgt_come_from_src
  *
  */
 
@@ -1775,8 +1772,7 @@ CWP_Interp_tgt_data_get
  int          *n_elt_tgt,
  int          *n_referenced_tgt,
  int         **referenced_tgt,
- int         **tgt_come_from_src_idx,
- CWP_g_num_t **tgt_come_from_src
+ int         **tgt_come_from_src_idx
 );
 
 /**
@@ -1788,7 +1784,6 @@ CWP_Interp_tgt_data_get
  * \param [in]  src_field_id              Source field id
  * \param [in]  i_part
  * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
- * \param [out] weights_idx
  * \param [out] weights
  *
  */
@@ -1801,7 +1796,6 @@ CWP_Interp_location_weights_get
  const char            *field_id,
  int                    i_part,
  CWP_Spatial_interp_t   spatial_interp_algorithm,
- int                  **weights_idx,
  double               **weights
 );
 
@@ -1813,7 +1807,7 @@ CWP_Interp_location_weights_get
  * \param [in]  cpl_id                    Coupling identifier
  * \param [in]  src_field_id              Source field id
  * \param [in]  i_part
- * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
+ * \param [in]  spatial_interp_algorithm  Enum of spatial interpolation function
  * \param [out] points_coords
  * \param [out] points_uvw
  * \param [out] points_dist2
@@ -1870,7 +1864,6 @@ CWP_Interp_location_internal_cell_vtx_get
  * \param [in]  src_field_id              Source field id
  * \param [in]  i_part
  * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
- * \param [out] volumes_idx
  * \param [out] volumes
  *
  */
@@ -1883,7 +1876,6 @@ CWP_Interp_intersection_volumes_get
  const char            *field_id,
  int                    i_part,
  CWP_Spatial_interp_t   spatial_interp_algorithm,
- int                  **volumes_idx,
  double               **volumes
 );
 
@@ -1896,8 +1888,7 @@ CWP_Interp_intersection_volumes_get
  * \param [in]  src_field_id              Source field id
  * \param [in]  i_part
  * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
- * \param [out] dist_idx
- * \param [out] dist
+ * \param [out] distances2
  *
  */
 
@@ -1909,8 +1900,7 @@ CWP_Interp_closest_points_distances_get
  const char            *field_id,
  int                    i_part,
  CWP_Spatial_interp_t   spatial_interp_algorithm,
- int                  **distances_idx,
- double               **distances
+ double               **distances2
 );
 
 /*----------------------------------------------------------------------------*

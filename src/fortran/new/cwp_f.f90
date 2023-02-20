@@ -343,6 +343,38 @@ module cwp
         CWP_Interp_function_set_
     end interface CWP_Interp_function_set
 
+    interface CWP_Interp_field_n_components_get ; module procedure &
+        CWP_Interp_field_n_components_get_
+    end interface CWP_Interp_field_n_components_get
+
+    interface CWP_Interp_src_data_get ; module procedure &
+        CWP_Interp_src_data_get_
+    end interface CWP_Interp_src_data_get
+
+    interface CWP_Interp_tgt_data_get ; module procedure &
+        CWP_Interp_tgt_data_get_
+    end interface CWP_Interp_tgt_data_get
+
+    interface CWP_Interp_location_weights_get ; module procedure &
+        CWP_Interp_location_weights_get_
+    end interface CWP_Interp_location_weights_get
+
+    interface CWP_Interp_location_point_data_get ; module procedure &
+        CWP_Interp_location_point_data_get_
+    end interface CWP_Interp_location_point_data_get
+
+    interface CWP_Interp_location_internal_cell_vtx_get ; module procedure &
+        CWP_Interp_location_internal_cell_vtx_get_
+    end interface CWP_Interp_location_internal_cell_vtx_get
+
+    interface CWP_Interp_intersection_volumes_get ; module procedure &
+        CWP_Interp_intersection_volumes_get_
+    end interface CWP_Interp_intersection_volumes_get
+
+    interface CWP_Interp_closest_points_distances_get ; module procedure &
+        CWP_Interp_closest_points_distances_get_
+    end interface CWP_Interp_closest_points_distances_get
+
     interface CWP_Param_add_int ; module procedure &
         CWP_Param_add_int_
     end interface CWP_Param_add_int
@@ -454,6 +486,14 @@ module cwp
              CWP_Field_wait_irecv_ ,&
              CWP_Interp_function_unset_ ,&
              CWP_Interp_function_set_ ,&
+             CWP_Interp_field_n_components_get_, &
+             CWP_Interp_src_data_get_, &
+             CWP_Interp_tgt_data_get_, &
+             CWP_Interp_location_weights_get_, &
+             CWP_Interp_location_point_data_get_, &
+             CWP_Interp_location_internal_cell_vtx_get_, &
+             CWP_Interp_intersection_volumes_get_, &
+             CWP_Interp_closest_points_distances_get_, &
              CWP_Param_add_int_ ,&
              CWP_Param_add_double_ ,&
              CWP_Param_add_char_ ,&
@@ -904,6 +944,155 @@ module cwp
         character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
         integer(kind = c_int), value :: l_local_code_name, l_cpl_id, l_src_field_id
       end subroutine CWP_Interp_function_unset_cf
+
+      function CWP_Interp_field_n_components_get_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+                                                    src_field_id, l_src_field_id) &
+        result (n_components)                                                          &
+        bind(c, name='CWP_Interp_field_n_components_get_cf')
+        use, intrinsic :: iso_c_binding
+        implicit none
+        character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
+        integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+        integer(c_int)                    :: n_components
+      end function CWP_Interp_field_n_components_get_cf
+
+      subroutine CWP_Interp_src_data_get_cf(local_code_name,   &
+                                            l_local_code_name, &
+                                            cpl_id,            &
+                                            l_cpl_id,          &
+                                            src_field_id,      &
+                                            l_src_field_id,    &
+                                            i_part,            &
+                                            n_elt_src,         &
+                                            c_src_to_tgt_idx)    &
+          bind(c, name = 'CWP_Interp_src_data_get_cf')
+          use, intrinsic :: iso_c_binding
+          implicit none
+          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
+          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+          integer(c_int), value             :: i_part, n_elt_src
+          type(c_ptr)                       :: c_src_to_tgt_idx
+      end subroutine CWP_Interp_src_data_get_cf
+
+      subroutine CWP_Interp_tgt_data_get_cf(local_code_name,         &
+                                            l_local_code_name,       &
+                                            cpl_id,                  &
+                                            l_cpl_id,                &
+                                            src_field_id,            &
+                                            l_src_field_id,          &
+                                            i_part,                  &
+                                            n_elt_tgt,               &
+                                            n_referenced_tgt,        &
+                                            c_referenced_tgt,        &
+                                            c_tgt_come_from_src_idx) &
+          bind(c, name = 'CWP_Interp_tgt_data_get_cf')
+          use, intrinsic :: iso_c_binding
+          implicit none
+          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
+          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+          integer(c_int), value             :: i_part, n_elt_tgt, n_referenced_tgt
+          type(c_ptr)                       :: c_referenced_tgt, c_tgt_come_from_src_idx
+      end subroutine CWP_Interp_tgt_data_get_cf
+
+      subroutine CWP_Interp_location_weights_get_cf(local_code_name,          &
+                                                    l_local_code_name,        &
+                                                    cpl_id,                   &
+                                                    l_cpl_id,                 &
+                                                    src_field_id,             &
+                                                    l_src_field_id,           &
+                                                    i_part,                   &
+                                                    spatial_interp_algorithm, &
+                                                    c_weights,                &
+                                                    s_weights)                & !! TO DO: get with coupling
+          bind(c, name = 'CWP_Interp_location_weights_get_cf')
+          use, intrinsic :: iso_c_binding
+          implicit none
+          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
+          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+          integer(c_int), value             :: i_part, spatial_interp_algorithm
+          type(c_ptr)                       :: c_weights
+          integer(kind = c_int)             :: s_weights
+      end subroutine CWP_Interp_location_weights_get_cf
+
+      subroutine CWP_Interp_location_point_data_get_cf(local_code_name,          &
+                                                       l_local_code_name,        &
+                                                       cpl_id,                   &
+                                                       l_cpl_id,                 &
+                                                       src_field_id,             &
+                                                       l_src_field_id,           &
+                                                       i_part,                   &
+                                                       spatial_interp_algorithm, &
+                                                       c_points_coords,          &
+                                                       c_points_uvw,             &
+                                                       c_points_dist2,           &
+                                                       c_points_projected_coords,&
+                                                       s_size)&
+          bind(c, name = 'CWP_Interp_location_point_data_get_cf')
+          use, intrinsic :: iso_c_binding
+          implicit none
+          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
+          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+          integer(c_int), value             :: i_part, spatial_interp_algorithm
+          type(c_ptr)                       :: c_points_coords, c_points_uvw, c_points_dist2, c_points_projected_coords
+          integer(kind = c_int) :: s_size
+      end subroutine CWP_Interp_location_point_data_get_cf
+
+      subroutine CWP_Interp_intersection_volumes_get_cf(local_code_name,      &
+                                                    l_local_code_name,        &
+                                                    cpl_id,                   &
+                                                    l_cpl_id,                 &
+                                                    src_field_id,             &
+                                                    l_src_field_id,           &
+                                                    i_part,                   &
+                                                    spatial_interp_algorithm, &
+                                                    c_volumes)                &
+          bind(c, name = 'CWP_Interp_intersection_volumes_get_cf')
+          use, intrinsic :: iso_c_binding
+          implicit none
+          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
+          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+          integer(c_int), value             :: i_part, spatial_interp_algorithm
+          type(c_ptr)                       :: c_volumes
+      end subroutine CWP_Interp_intersection_volumes_get_cf
+
+      subroutine CWP_Interp_closest_points_distances_get_cf(local_code_name,  &
+                                                    l_local_code_name,        &
+                                                    cpl_id,                   &
+                                                    l_cpl_id,                 &
+                                                    src_field_id,             &
+                                                    l_src_field_id,           &
+                                                    i_part,                   &
+                                                    spatial_interp_algorithm, &
+                                                    c_distances2)             &
+          bind(c, name = 'CWP_Interp_closest_points_distances_get_cf')
+          use, intrinsic :: iso_c_binding
+          implicit none
+          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
+          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+          integer(c_int), value             :: i_part, spatial_interp_algorithm
+          type(c_ptr)                       :: c_distances2
+      end subroutine CWP_Interp_closest_points_distances_get_cf
+
+      subroutine CWP_Interp_location_internal_cell_vtx_get(local_code_name,          &
+                                                           l_local_code_name,        &
+                                                           cpl_id,                   &
+                                                           l_cpl_id,                 &
+                                                           src_field_id,             &
+                                                           l_src_field_id,           &
+                                                           i_part,                   &
+                                                           spatial_interp_algorithm, &
+                                                           cell_vtx_idx,             &
+                                                           n_cell,                   &
+                                                           cell_vtx)                 &
+          bind(c, name = 'CWP_Interp_location_internal_cell_vtx_get')
+          use, intrinsic :: iso_c_binding
+          implicit none
+          character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
+          integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
+          integer(c_int), value             :: i_part, spatial_interp_algorithm
+          type(c_ptr)                       :: cell_vtx_idx, cell_vtx
+          integer(kind = c_int) :: n_cell
+      end subroutine CWP_Interp_location_internal_cell_vtx_get
 
       subroutine CWP_Spatial_interp_property_set_cf(local_code_name,   &
                                                     l_local_code_name, &
@@ -3282,6 +3471,387 @@ contains
     call CWP_Interp_function_set_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
             & src_field_id, l_src_field_id, user_interpolation_fct)
   end subroutine CWP_Interp_function_set_
+
+  !>
+  !!
+  !! \brief Get spatial interpolation number of algorithms.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] src_field_id     Source field id
+  !!
+
+  function CWP_Interp_field_n_components_get_ (local_code_name, &
+                                               cpl_id, &
+                                               src_field_id, &
+                                               n_components) &
+    result (n_components)
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    integer                           :: n_components
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+    l_src_field_id = len(src_field_id)
+
+    n_components = CWP_Interp_field_n_components_get_cf(local_code_name, l_local_code_name, cpl_id, l_cpl_id, &
+                                                      & src_field_id, l_src_field_id)
+
+  end function CWP_Interp_field_n_components_get_
+
+  !>
+  !!
+  !!  \brief Get spatial interpolation source data.
+  !!
+  !!  \param [in]  local_code_name  Local code name
+  !!  \param [in]  cpl_id           Coupling identifier
+  !!  \param [in]  src_field_id     Source field id
+  !!  \param [out] i_part
+  !!  \param [out] n_elt_src
+  !!  \param [out] src_to_tgt_idx
+  !!
+
+  subroutine CWP_Interp_src_data_get_(local_code_name, &
+                                      cpl_id, &
+                                      src_field_id, &
+                                      i_part, &
+                                      n_elt_src, &
+                                      src_to_tgt_idx)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    integer(c_int) :: i_part, n_elt_src
+    integer(c_int),  dimension(:), pointer :: src_to_tgt_idx
+    type(c_ptr)      :: c_src_to_tgt_idx
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+    l_src_field_id = len(src_field_id)
+
+    call CWP_Interp_src_data_get_cf(local_code_name, &
+                                    l_local_code_name, &
+                                    cpl_id, &
+                                    l_cpl_id, &
+                                    src_field_id, &
+                                    l_src_field_id, &
+                                    i_part, &
+                                    n_elt_src, &
+                                    c_src_to_tgt_idx)
+
+    call c_f_pointer(c_src_to_tgt_idx, src_to_tgt_idx, [n_elt_src])
+
+  end subroutine CWP_Interp_src_data_get_
+
+  !>
+  !!
+  !!  \brief Get spatial interpolation target data.
+  !!
+  !!  \param [in]  local_code_name  Local code name
+  !!  \param [in]  cpl_id           Coupling identifier
+  !!  \param [in]  src_field_id     Source field id
+  !!  \param [out] n_elt_tgt
+  !!  \param [out] n_referenced_tgt
+  !!  \param [out] referenced_tgt
+  !!  \param [out] tgt_come_from_src_idx
+  !!
+
+  subroutine CWP_Interp_tgt_data_get_(local_code_name, &
+                                      cpl_id, &
+                                      src_field_id, &
+                                      i_part, &
+                                      n_elt_tgt, &
+                                      n_referenced_tgt, &
+                                      referenced_tgt, &
+                                      tgt_come_from_src_idx)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    integer(c_int) :: i_part, n_elt_tgt, n_referenced_tgt
+    integer(c_int),  dimension(:), pointer :: referenced_tgt, tgt_come_from_src_idx
+    type(c_ptr)      :: c_referenced_tgt, c_tgt_come_from_src_idx
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+    l_src_field_id = len(src_field_id)
+
+    call CWP_Interp_tgt_data_get_cf(local_code_name, &
+                                    l_local_code_name, &
+                                    cpl_id, &
+                                    l_cpl_id, &
+                                    src_field_id, &
+                                    l_src_field_id, &
+                                    i_part, &
+                                    n_elt_tgt, &
+                                    n_referenced_tgt, &
+                                    referenced_tgt, &
+                                    tgt_come_from_src_idx)
+
+    call c_f_pointer(c_referenced_tgt, referenced_tgt, [n_referenced_tgt])
+    call c_f_pointer(c_tgt_come_from_src_idx, tgt_come_from_src_idx, [n_elt_tgt+1])
+
+  end subroutine CWP_Interp_tgt_data_get_
+
+  !>
+  !!
+  !!  \brief Get spatial interpolation weights (location algorithm).
+  !!
+  !!  \param [in]  local_code_name  Local code name
+  !!  \param [in]  cpl_id           Coupling identifier
+  !!  \param [in]  src_field_id     Source field id
+  !!  \param [in]  i_part
+  !!  \param [in]  spatial_interp_algorithm
+  !!  \param [out] weights
+  !!
+
+  subroutine CWP_Interp_location_weights_get_(local_code_name, &
+                                      cpl_id, &
+                                      src_field_id, &
+                                      i_part, &
+                                      spatial_interp_algorithm, &
+                                      weights)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    integer(c_int) :: i_part, spatial_interp_algorithm
+    integer(c_double),  dimension(:), pointer :: weights
+    integer(kind = c_int) :: s_weights
+    type(c_ptr)           :: c_weights
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+    l_src_field_id = len(src_field_id)
+
+    call CWP_Interp_location_weights_get_cf(local_code_name, &
+                                            l_local_code_name, &
+                                            cpl_id, &
+                                            l_cpl_id, &
+                                            src_field_id, &
+                                            l_src_field_id, &
+                                            i_part, &
+                                            spatial_interp_algorithm, &
+                                            c_weights,
+                                            s_weights)
+
+    call c_f_pointer(c_weights, weights, [s_weights])
+
+  end subroutine CWP_Interp_location_weights_get_
+
+  !>
+  !!
+  !!  \brief Get spatial interpolation point data (location algorithm).
+  !!
+  !!  \param [in]  local_code_name  Local code name
+  !!  \param [in]  cpl_id           Coupling identifier
+  !!  \param [in]  src_field_id     Source field id
+  !!  \param [in]  i_part
+  !!  \param [in]  spatial_interp_algorithm
+  !!  \param [out] points_coords
+  !!  \param [out] points_uvw
+  !!  \param [out] points_dist2
+  !!  \param [out] points_projected_coords
+  !!
+
+  subroutine CWP_Interp_location_point_data_get_(local_code_name, &
+                                                 cpl_id, &
+                                                 src_field_id, &
+                                                 i_part, &
+                                                 spatial_interp_algorithm, &
+                                                 points_coords, &
+                                                 points_uvw, &
+                                                 points_dist2, &
+                                                 points_projected_coords)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    integer(c_int) :: i_part, spatial_interp_algorithm
+    integer(c_double),  dimension(:), pointer :: points_coords, points_uvw, points_dist2, points_projected_coords
+    type(c_ptr)      :: c_points_coords, c_points_uvw, c_points_dist2, c_points_projected_coords
+    integer(kind = c_int) :: s_size
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+    l_src_field_id = len(src_field_id)
+
+    call CWP_Interp_location_point_data_get_cf(local_code_name, &
+                                               l_local_code_name, &
+                                               cpl_id, &
+                                               l_cpl_id, &
+                                               src_field_id, &
+                                               l_src_field_id, &
+                                               i_part, &
+                                               c_points_coords, &
+                                               c_points_uvw, &
+                                               c_points_dist2, &
+                                               c_points_projected_coords, &
+                                               s_size)
+
+    call c_f_pointer(c_points_coords, points_coords, [s_size])
+    call c_f_pointer(c_points_uvw, points_uvw, [s_size])
+    call c_f_pointer(c_points_dist2, points_dist2, [s_size])
+    call c_f_pointer(c_points_projected_coords, points_projected_coords, [s_size])
+
+  end subroutine CWP_Interp_location_point_data_get_
+
+  !>
+  !!
+  !!  \brief Get spatial interpolation internal cell->vertex connectivity (location algorithm).
+  !!
+  !!  \param [in]  local_code_name  Local code name
+  !!  \param [in]  cpl_id           Coupling identifier
+  !!  \param [in]  src_field_id     Source field id
+  !!  \param [in]  i_part
+  !!  \param [in]  spatial_interp_algorithm
+  !!  \param [out] cell_vtx_idx
+  !!  \param [out] cell_vtx
+  !!
+
+  subroutine CWP_Interp_location_internal_cell_vtx_get_(local_code_name, &
+                                                        cpl_id, &
+                                                        src_field_id, &
+                                                        i_part, &
+                                                        spatial_interp_algorithm, &
+                                                        cell_vtx_idx, &
+                                                        cell_vtx)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    integer(c_int) :: i_part, spatial_interp_algorithm
+    integer(c_int),  dimension(:), pointer :: cell_vtx_idx, cell_vtx
+    type(c_ptr)      :: c_cell_vtx_idx, c_cell_vtx
+    integer(kind = c_int) :: n_cell
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+    l_src_field_id = len(src_field_id)
+
+    call CWP_Interp_location_internal_cell_vtx_get_cf(local_code_name, &
+                                                      l_local_code_name, &
+                                                      cpl_id, &
+                                                      l_cpl_id, &
+                                                      src_field_id, &
+                                                      l_src_field_id, &
+                                                      i_part, &
+                                                      cell_vtx_idx, &
+                                                      n_cell, &
+                                                      cell_vtx)
+
+    call c_f_pointer(c_cell_vtx_idx, cell_vtx_idx, [n_cell])
+    call c_f_pointer(c_cell_vtx, cell_vtx, [cell_vtx_idx(n_cell)])
+
+  end subroutine CWP_Interp_location_internal_cell_vtx_get_
+
+  !>
+  !!
+  !!  \brief Get spatial interpolation volumes (intersection algorithm).
+  !!
+  !!  \param [in]  local_code_name  Local code name
+  !!  \param [in]  cpl_id           Coupling identifier
+  !!  \param [in]  src_field_id     Source field id
+  !!  \param [in]  i_part
+  !!  \param [in]  spatial_interp_algorithm
+  !!  \param [out] volumes
+  !!
+
+  subroutine CWP_Interp_intersection_volumes_get_(local_code_name, &
+                                                  cpl_id, &
+                                                  src_field_id, &
+                                                  i_part, &
+                                                  spatial_interp_algorithm, &
+                                                  volumes)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    integer(c_int) :: i_part, spatial_interp_algorithm
+    integer(c_int),  dimension(:), pointer :: volumes
+    integer(kind = c_int) :: s_volumes
+    type(c_ptr)           :: c_volumes
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+    l_src_field_id = len(src_field_id)
+
+    call CWP_Interp_intersection_volumes_get_cf(local_code_name, &
+                                                l_local_code_name, &
+                                                cpl_id, &
+                                                l_cpl_id, &
+                                                src_field_id, &
+                                                l_src_field_id, &
+                                                i_part, &
+                                                spatial_interp_algorithm, &
+                                                c_volumes,
+                                                s_volumes)
+
+    call c_f_pointer(c_volumes, volumes, [s_volumes])
+
+  end subroutine CWP_Interp_intersection_volumes_get_
+
+  !>
+  !!
+  !!  \brief Get spatial interpolation distances (closest points algorithm).
+  !!
+  !!  \param [in]  local_code_name  Local code name
+  !!  \param [in]  cpl_id           Coupling identifier
+  !!  \param [in]  src_field_id     Source field id
+  !!  \param [in]  i_part
+  !!  \param [in]  spatial_interp_algorithm
+  !!  \param [out] distances2
+  !!
+
+  subroutine CWP_Interp_closest_points_distances_get_(local_code_name, &
+                                                      cpl_id, &
+                                                      src_field_id, &
+                                                      i_part, &
+                                                      spatial_interp_algorithm, &
+                                                      distances2)
+
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
+    integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
+    integer(c_int) :: i_part, spatial_interp_algorithm
+    integer(c_int),  dimension(:), pointer :: distances2
+    integer(kind = c_int) :: s_distances2
+    type(c_ptr)           :: c_distances2
+
+    l_local_code_name = len(local_code_name)
+    l_cpl_id = len(cpl_id)
+    l_src_field_id = len(src_field_id)
+
+    call CWP_Interp_closest_points_distances_get_cf(local_code_name, &
+                                                    l_local_code_name, &
+                                                    cpl_id, &
+                                                    l_cpl_id, &
+                                                    src_field_id, &
+                                                    l_src_field_id, &
+                                                    i_part, &
+                                                    spatial_interp_algorithm, &
+                                                    c_distances2,
+                                                    s_distances2)
+
+    call c_f_pointer(c_distances2, distances2, [s_distances2])
+
+  end subroutine CWP_Interp_closest_points_distances_get_
 
 ! /*----------------------------------------------------------------------------*
 !  * Functions about all code parameters                                        *

@@ -2273,9 +2273,8 @@ CWP_Interp_field_n_components_get
  * \param [in]  cpl_id                    Coupling identifier
  * \param [in]  src_field_id              Source field id
  * \param [in]  i_part
- * \param [out] n_elt_src,
- * \param [out] src_to_tgt_idx,
- * \param [out] src_to_tgt_gnum
+ * \param [out] n_elt_src
+ * \param [out] src_to_tgt_idx
  *
  */
 
@@ -2287,8 +2286,7 @@ CWP_Interp_src_data_get
  const char   *field_id,
  int           i_part,
  int          *n_elt_src,
- int         **src_to_tgt_idx,
- CWP_g_num_t **src_to_tgt_gnum
+ int         **src_to_tgt_idx
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
@@ -2296,7 +2294,7 @@ CWP_Interp_src_data_get
   int           n_part_src = 0;
   int          *tmp_n_elt_src       = NULL;
   int         **tmp_src_to_tgt_idx  = NULL;
-  CWP_g_num_t **tmp_src_to_tgt_gnum = NULL;
+  CWP_g_num_t **tmp_src_to_tgt_gnum = NULL;  // UNUSED
   cpl.src_data_get(field_id,
                    &n_part_src,
                    &tmp_n_elt_src,
@@ -2305,7 +2303,6 @@ CWP_Interp_src_data_get
 
   *n_elt_src       = tmp_n_elt_src[i_part];
   *src_to_tgt_idx  = tmp_src_to_tgt_idx[i_part];
-  if (tmp_src_to_tgt_gnum != NULL) *src_to_tgt_gnum = tmp_src_to_tgt_gnum[i_part];
 }
 
 /**
@@ -2320,7 +2317,6 @@ CWP_Interp_src_data_get
  * \param [out] n_referenced_tgt
  * \param [out] referenced_tgt
  * \param [out] tgt_come_from_src_idx
- * \param [out] tgt_come_from_src
  *
  */
 
@@ -2334,8 +2330,7 @@ CWP_Interp_tgt_data_get
  int          *n_elt_tgt,
  int          *n_referenced_tgt,
  int         **referenced_tgt,
- int         **tgt_come_from_src_idx,
- CWP_g_num_t **tgt_come_from_src
+ int         **tgt_come_from_src_idx
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
@@ -2345,7 +2340,7 @@ CWP_Interp_tgt_data_get
   int          *tmp_n_referenced_tgt      = NULL;
   int         **tmp_referenced_tgt        = NULL;
   int         **tmp_tgt_come_from_src_idx = NULL;
-  CWP_g_num_t **tmp_tgt_come_from_src     = NULL;
+  CWP_g_num_t **tmp_tgt_come_from_src     = NULL; // UNUSED
   cpl.tgt_data_get(field_id,
                    &n_part_tgt,
                    &tmp_n_elt_tgt,
@@ -2358,7 +2353,6 @@ CWP_Interp_tgt_data_get
   *n_referenced_tgt      = tmp_n_referenced_tgt[i_part];
   *referenced_tgt        = tmp_referenced_tgt[i_part];
   *tgt_come_from_src_idx = tmp_tgt_come_from_src_idx[i_part];
-  *tgt_come_from_src     = tmp_tgt_come_from_src[i_part];
 }
 
 /**
@@ -2370,7 +2364,6 @@ CWP_Interp_tgt_data_get
  * \param [in]  src_field_id              Source field id
  * \param [in]  i_part
  * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
- * \param [out] weights_idx
  * \param [out] weights
  *
  */
@@ -2383,7 +2376,6 @@ CWP_Interp_location_weights_get
  const char            *field_id,
  int                    i_part,
  CWP_Spatial_interp_t   spatial_interp_algorithm,
- int                  **weights_idx,
  double               **weights
 )
 {
@@ -2395,13 +2387,12 @@ CWP_Interp_location_weights_get
 
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
-  int    **tmp_weights_idx = NULL;
+  int    **tmp_weights_idx = NULL; // UNUSED
   double **tmp_weights     = NULL;
   cpl.weight_get(field_id,
                  &tmp_weights_idx,
                  &tmp_weights);
 
-  *weights_idx = tmp_weights_idx[i_part];
   *weights     = tmp_weights[i_part];
 }
 
@@ -2512,7 +2503,6 @@ CWP_Interp_location_internal_cell_vtx_get
  * \param [in]  src_field_id              Source field id
  * \param [in]  i_part
  * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
- * \param [out] volumes_idx
  * \param [out] volumes
  *
  */
@@ -2525,7 +2515,6 @@ CWP_Interp_intersection_volumes_get
  const char            *field_id,
  int                    i_part,
  CWP_Spatial_interp_t   spatial_interp_algorithm,
- int                  **volumes_idx,
  double               **volumes
 )
 {
@@ -2535,13 +2524,12 @@ CWP_Interp_intersection_volumes_get
 
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
-  int     **tmp_volumes_idx = NULL;
+  int     **tmp_volumes_idx = NULL; // UNUSED
   double  **tmp_volumes     = NULL;
   cpl.weight_get(field_id,
                  &tmp_volumes_idx,
                  &tmp_volumes);
 
-  *volumes_idx = tmp_volumes_idx[i_part];
   *volumes     = tmp_volumes[i_part];
 }
 
@@ -2554,8 +2542,7 @@ CWP_Interp_intersection_volumes_get
  * \param [in]  src_field_id              Source field id
  * \param [in]  i_part
  * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
- * \param [out] dist_idx
- * \param [out] dist
+ * \param [out] distances2
  *
  */
 
@@ -2567,8 +2554,7 @@ CWP_Interp_closest_points_distances_get
  const char            *field_id,
  int                    i_part,
  CWP_Spatial_interp_t   spatial_interp_algorithm,
- int                  **distances_idx,
- double               **distances
+ double               **distances2
 )
 {
   if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES) {
@@ -2577,14 +2563,13 @@ CWP_Interp_closest_points_distances_get
 
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
-  int    **tmp_distances_idx = NULL;
-  double **tmp_distances     = NULL;
+  int    **tmp_distances2_idx = NULL; // UNUSED
+  double **tmp_distances2     = NULL;
   cpl.weight_get(field_id,
-                 &tmp_distances_idx,
-                 &tmp_distances);
+                 &tmp_distances2_idx,
+                 &tmp_distances2);
 
-  *distances_idx = tmp_distances_idx[i_part];
-  *distances     = tmp_distances[i_part];
+  *distances2     = tmp_distances2[i_part];
 }
 
 /**
