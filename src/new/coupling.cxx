@@ -1269,6 +1269,25 @@ namespace cwipi {
    * \brief Getters for callbacks.
    */
 
+  // Field
+
+  // Get the number of components
+  int
+  Coupling::n_components_get
+  (
+   std::string    name
+  )
+  {
+    int n_components = 0;
+
+    map <string, Field *>::iterator it  = _fields.find(name);
+    if (it != _fields.end()) {
+      n_components = it->second->nComponentGet();
+    }
+
+    return n_components;
+  }
+
   // SpatialInterp
 
   // Get weights
@@ -1319,13 +1338,13 @@ namespace cwipi {
       if (it2 != _spatial_interp_send.end()) {
         PDM_part_to_part_t *ptp = it2->second->ptp_get();
 
-        int  *n_part_tgt = NULL;
-        int **n_elt_tgt  = NULL;
+        int  n_part_tgt = 0;
+        int *n_elt_tgt  = NULL;
         PDM_part_to_part_n_part_and_n_elt_get(ptp,
                                               n_part_src,
-                                              n_part_tgt,
+                                              &n_part_tgt,
                                               n_elt_src,
-                                              n_elt_tgt);
+                                              &n_elt_tgt);
 
         PDM_part_to_part_part1_to_part2_get(ptp,
                                             n_elt_src,
@@ -1360,12 +1379,12 @@ namespace cwipi {
       if (it2 != _spatial_interp_send.end()) {
         PDM_part_to_part_t *ptp = it2->second->ptp_get();
 
-        int  *n_part_src = NULL;
-        int **n_elt_src  = NULL;
+        int  n_part_src = 0;
+        int *n_elt_src  = NULL;
         PDM_part_to_part_n_part_and_n_elt_get(ptp,
-                                              n_part_src,
+                                              &n_part_src,
                                               n_part_tgt,
-                                              n_elt_src,
+                                              &n_elt_src,
                                               n_elt_tgt);
 
         PDM_part_to_part_ref_lnum2_get(ptp,

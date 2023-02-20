@@ -2245,7 +2245,29 @@ CWP_Interp_function_set
 
 /**
  *
- * \brief Get spatial interpolation weights (location algorithm).
+ * \brief Get spatial interpolation number of algorithms.
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  src_field_id              Source field id
+ *
+ */
+
+int
+CWP_Interp_field_n_components_get
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const char             *field_id
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  return cpl.n_components_get(field_id);
+}
+
+/**
+ *
+ * \brief Get spatial interpolation source data.
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
@@ -2279,7 +2301,7 @@ CWP_Interp_src_data_get
 
 /**
  *
- * \brief Get spatial interpolation weights (location algorithm).
+ * \brief Get spatial interpolation target data.
  *
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier

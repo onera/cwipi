@@ -420,6 +420,15 @@ namespace cwipi {
      * \brief Getters for callbacks.
      */
 
+    // Field
+
+    // Get the number of components
+    int
+    n_components_get
+    (
+     std::string    name
+    );
+
     // SpatialInterp
 
     // Get weights

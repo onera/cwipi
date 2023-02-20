@@ -37,8 +37,31 @@ _locationUserInterpolation
  double               *buffer_out
 )
 {
-  buffer_out[0] = buffer_in[0];
-  buffer_out[1] = buffer_in[1];
+  int            n_part_src      = 0;
+  int           *n_elt_src       = NULL;
+  int          **src_to_tgt_idx  = NULL;
+  CWP_g_num_t  **src_to_tgt_gnum = NULL;
+  CWP_Interp_src_data_get(local_code_name,
+                          cpl_id,
+                          field_id,
+                          &n_part_src,
+                          &n_elt_src,
+                          &src_to_tgt_idx,
+                          &src_to_tgt_gnum);
+
+  int n_components = CWP_Interp_field_n_components_get(local_code_name,
+                                                       cpl_id,
+                                                       field_id);
+
+  int ival = 0;
+  for (int i = 0; i < n_elt_src[0]; i++) {
+    for (int j = src_to_tgt_idx[0][i]; j < src_to_tgt_idx[0][i+1]; j++) {
+      for (int k1 = 0; k1 < n_components; k1++) {
+        ival = k1*src_to_tgt_idx[0][n_elt_src[0]] + j;
+        buffer_out[ival] = buffer_in[n_elt_src[0]*k1 + i];
+      }
+    }
+  }
 }
 
 /*----------------------------------------------------------------------
