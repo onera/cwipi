@@ -3366,7 +3366,7 @@ CWP_Mesh_interf_block_ho_set
  */
 
 void
-CWP_Mesh_interf_block_ho_block_get
+CWP_Mesh_interf_block_ho_get
 (
  const char        *local_code_name,
  const char        *cpl_id,

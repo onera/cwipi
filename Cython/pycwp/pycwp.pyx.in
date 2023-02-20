@@ -107,6 +107,14 @@ cdef extern from "cwp.h":
       CWP_BLOCK_CELL_PRISM6
       CWP_BLOCK_CELL_PYRAM5
       CWP_BLOCK_CELL_POLY
+      CWP_BLOCK_EDGEHO
+      CWP_BLOCK_FACE_TRIAHO
+      CWP_BLOCK_FACE_QUADHO
+      CWP_BLOCK_CELL_TETRAHO
+      CWP_BLOCK_CELL_HEXAHO
+      CWP_BLOCK_CELL_PRISMHO
+      CWP_BLOCK_CELL_PYRAMHO
+
 
   ctypedef enum CWP_Dynamic_mesh_t:
       CWP_DYNAMIC_MESH_STATIC
@@ -325,6 +333,28 @@ cdef extern from "cwp.h":
                                         int             **connec_cells_idx,
                                         int             **connec_cells,
                                         long            **global_num)
+  void CWP_Mesh_interf_block_ho_set(const char        *local_code_name,
+                                    const char        *cpl_id,
+                                    const int          i_part,
+                                    const int          block_id,
+                                    const int          n_elts,
+                                    const int          order,
+                                    int                connec[],
+                                    long               global_num[])
+  void CWP_Mesh_interf_block_ho_get(const char        *local_code_name,
+                                    const char        *cpl_id,
+                                    const int          i_part,
+                                    const int          block_id,
+                                    int               *n_elts,
+                                    int               *order,
+                                    int              **connec,
+                                    long             **global_num)
+  void CWP_Mesh_interf_ho_ordering_from_IJK_set(const char        *local_code_name,
+                                                const char        *cpl_id,
+                                                const CWP_Block_t  block_type,
+                                                const int          order,
+                                                const int          n_nodes,
+                                                const int         *ijk_grid)
   void CWP_Mesh_interf_del(char *local_code_name,
                            char *cpl_id)
   void CWP_Mesh_interf_from_cellface_set(char           *local_code_name,
@@ -472,16 +502,23 @@ STATUS_ON  = CWP_STATUS_ON
 ERR_NO_ERROR = CWP_ERR_NO_ERROR
 ERR_DEFAULT  = CWP_ERR_DEFAULT
 
-BLOCK_NODE        = CWP_BLOCK_NODE
-BLOCK_EDGE2       = CWP_BLOCK_EDGE2
-BLOCK_FACE_TRIA3  = CWP_BLOCK_FACE_TRIA3
-BLOCK_FACE_QUAD4  = CWP_BLOCK_FACE_QUAD4
-BLOCK_FACE_POLY   = CWP_BLOCK_FACE_POLY
-BLOCK_CELL_TETRA4 = CWP_BLOCK_CELL_TETRA4
-BLOCK_CELL_HEXA8  = CWP_BLOCK_CELL_HEXA8
-BLOCK_CELL_PRISM6 = CWP_BLOCK_CELL_PRISM6
-BLOCK_CELL_PYRAM5 = CWP_BLOCK_CELL_PYRAM5
-BLOCK_CELL_POLY   = CWP_BLOCK_CELL_POLY
+BLOCK_NODE         = CWP_BLOCK_NODE
+BLOCK_EDGE2        = CWP_BLOCK_EDGE2
+BLOCK_FACE_TRIA3   = CWP_BLOCK_FACE_TRIA3
+BLOCK_FACE_QUAD4   = CWP_BLOCK_FACE_QUAD4
+BLOCK_FACE_POLY    = CWP_BLOCK_FACE_POLY
+BLOCK_CELL_TETRA4  = CWP_BLOCK_CELL_TETRA4
+BLOCK_CELL_HEXA8   = CWP_BLOCK_CELL_HEXA8
+BLOCK_CELL_PRISM6  = CWP_BLOCK_CELL_PRISM6
+BLOCK_CELL_PYRAM5  = CWP_BLOCK_CELL_PYRAM5
+BLOCK_CELL_POLY    = CWP_BLOCK_CELL_POLY
+BLOCK_EDGEHO       = CWP_BLOCK_EDGEHO
+BLOCK_FACE_TRIAHO  = CWP_BLOCK_FACE_TRIAHO
+BLOCK_FACE_QUADHO  = CWP_BLOCK_FACE_QUADHO
+BLOCK_CELL_TETRAHO = CWP_BLOCK_CELL_TETRAHO
+BLOCK_CELL_HEXAHO  = CWP_BLOCK_CELL_HEXAHO
+BLOCK_CELL_PRISMHO = CWP_BLOCK_CELL_PRISMHO
+BLOCK_CELL_PYRAMHO = CWP_BLOCK_CELL_PYRAMHO
 
 DYNAMIC_MESH_STATIC     = CWP_DYNAMIC_MESH_STATIC
 DYNAMIC_MESH_DEFORMABLE = CWP_DYNAMIC_MESH_DEFORMABLE
@@ -527,6 +564,69 @@ cdef std_block_n_pts_get(int block_type):
   if (block_type == BLOCK_CELL_PYRAM5):
     return 5
 
+cdef std_elt_dim(int block_type):
+  if (block_type == BLOCK_NODE):
+    return 0
+  elif (block_type == BLOCK_EDGE2):
+    return 1
+  elif (block_type == BLOCK_EDGEHO):
+    return 1
+  if (block_type == BLOCK_FACE_TRIA3):
+    return 2
+  if (block_type == BLOCK_FACE_TRIAHO):
+    return 2
+  if (block_type == BLOCK_FACE_QUAD4):
+    return 2
+  if (block_type == BLOCK_FACE_QUADHO):
+    return 2
+  if (block_type == BLOCK_CELL_TETRA4):
+    return 3
+  if (block_type == BLOCK_CELL_TETRAHO):
+    return 3
+  if (block_type == BLOCK_CELL_HEXA8):
+    return 3
+  if (block_type == BLOCK_CELL_HEXAHO):
+    return 3
+  if (block_type == BLOCK_CELL_PRISM6):
+    return 3
+  if (block_type == BLOCK_CELL_PRISMHO):
+    return 3
+  if (block_type == BLOCK_CELL_PYRAM5):
+    return 3
+  if (block_type == BLOCK_CELL_PYRAMHO):
+    return 3
+
+cdef ho_n_vtx_get(int block_type, int order):
+  if (block_type == BLOCK_NODE):
+    return 1
+  elif (block_type == BLOCK_EDGE2):
+    return 2
+  elif (block_type == BLOCK_EDGEHO):
+    return order + 1
+  if (block_type == BLOCK_FACE_TRIA3):
+    return 3
+  if (block_type == BLOCK_FACE_TRIAHO):
+    return (order + 1) * (order + 2) // 2
+  if (block_type == BLOCK_FACE_QUAD4):
+    return 4
+  if (block_type == BLOCK_FACE_QUADHO):
+    return (order + 1) * (order + 1)
+  if (block_type == BLOCK_CELL_TETRA4):
+    return 4
+  if (block_type == BLOCK_CELL_TETRAHO):
+    return (order + 1) * (order + 2) * (order + 3) // 6
+  if (block_type == BLOCK_CELL_HEXA8):
+    return 8
+  if (block_type == BLOCK_CELL_HEXAHO):
+    return (order + 1) * (order + 1) * (order + 1)
+  if (block_type == BLOCK_CELL_PRISM6):
+    return 6
+  if (block_type == BLOCK_CELL_PRISMHO):
+    return (order + 1) * (order + 1) * (order + 2) // 2
+  if (block_type == BLOCK_CELL_PYRAM5):
+    return 5
+  if (block_type == BLOCK_CELL_PYRAMHO):
+    return (order + 1) * (order + 2) * (2*order + 3) // 6
 #-----------------------------------------------------------------------------
 # CALLBACK
 g_interp_fct = {}
@@ -2184,6 +2284,117 @@ cdef class Coupling (object):
                 'connec_cells'     : create_numpy_i(connec_cells, connec_cells_idx[n_elts]),
                 'global_num'       : py_global_num
                }
+
+
+    def mesh_interf_block_ho_set(self,
+                                 i_part,
+                                 block_id,
+                                 n_elts,
+                                 order,
+                                 NPY.ndarray[NPY.int32_t] connec not None,
+                                 NPY.ndarray[NPY.long]    global_num):
+      """
+        Set a high-order block to the interface mesh.
+        This function adds a connectivity block to the interface mesh.
+
+        Parameters:
+          i_part     (int)                      : Partition identifier
+          block_id   (int)                      : Block identifier
+          n_elts     (int)                      : Number of elements
+          order      (int)                      : Element order
+          connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
+          global_num (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
+      """
+
+      if (global_num is None):
+        CWP_Mesh_interf_block_ho_set(self.local_code_name,
+                                     self.cpl_id,
+                                     i_part,
+                                     block_id,
+                                     n_elts,
+                                     order,
+                                     <int *> connec.data,
+                                     NULL)
+      else:
+        CWP_Mesh_interf_block_ho_set(self.local_code_name,
+                                     self.cpl_id,
+                                     i_part,
+                                     block_id,
+                                     n_elts,
+                                     order,
+                                     <int *> connec.data,
+                                     <long *> global_num.data)
+
+
+    def mesh_interf_block_ho_get(self,
+                                 i_part,
+                                 block_id):
+      """
+        Get the properties of a high-order block of the interface mesh.
+
+        Parameters:
+          i_part     (int) : Partition identifier
+          block_id   (int) : Block identifier
+
+        Returns:
+          n_elts     (int)                      : Number of elements
+          order      (int)                      : Element order
+          connec     (NPY.ndarray[NPY.int32_t]) : Connectivity (size = n_vertex_elt * n_elts)
+          global_num (NPY.ndarray[NPY.long])    : Pointer to parent element number (or None)
+      """
+
+      cdef int   n_elts = -1
+      cdef int   order  = -1
+      cdef int  *connec
+      cdef long *global_num
+
+      CWP_Mesh_interf_block_ho_get(self.local_code_name,
+                                   self.cpl_id,
+                                   i_part,
+                                   block_id,
+                                   &(order),
+                                   &(n_elts),
+                                   &(connec),
+                                   &(global_num))
+      if (global_num is NULL):
+        py_global_num = None
+      else :
+        py_global_num = create_numpy_l(global_num, n_elts)
+
+      cdef CWP_Block_t block_type = CWP_std_block_type_get(self.local_code_name,
+                                                           self.cpl_id,
+                                                           block_id)
+      cdef int size = n_elts * ho_n_vtx_get(block_type, order)
+      return {
+              'n_elts'     : n_elts,
+              'order'      : order,
+              'connec'     : create_numpy_i(connec, size),
+              'global_num' : py_global_num
+             }
+
+
+    def mesh_interf_ho_ordering_from_IJK_set(self,
+                                             CWP_Block_t block_type,
+                                             int         order,
+                                             NPY.ndarray[NPY.int32_t] ijk_grid not None):
+      """
+        Define ho element ordering from the location in the (u, v, w) grid.
+
+        Parameters:
+          block_type (CWP_Block_t)              Block type
+          order      (int)                      Element order
+          ijk_grid   (NPY.ndarray[NPY.int32_t]) User ordering to (u, v, w) grid (size = elt_dim * n_nodes)
+      """
+      cdef int elt_dim = std_elt_dim(block_type)
+      cdef int n_nodes = len(ijk_grid) // elt_dim
+
+      CWP_Mesh_interf_ho_ordering_from_IJK_set(self.local_code_name,
+                                               self.cpl_id,
+                                               block_type,
+                                               order,
+                                               n_nodes,
+                                               <int *> ijk_grid.data)
+
 
     def mesh_interf_del(self):
         """

@@ -118,8 +118,8 @@ def runTest():
     f.flush()
 
     # PROPERTIES DUMP
-    f.write("pycwp.properties_dump:\n")
-    pycwp.properties_dump()
+    # f.write("pycwp.properties_dump:\n")
+    # pycwp.properties_dump()
 
     # CODES
     f.write("pycwp.code:\n")
@@ -511,6 +511,66 @@ def runTest():
     f.write("cpl2.mesh_interf_del:\n")
     f.flush()
     cpl2.mesh_interf_del()
+
+
+
+    # High-order
+    f.write("pycwp.Coupling:\n")
+    f.flush()
+    cpl3 = pycwp.Coupling(code_names[i_rank],
+                          "test_ho",
+                          code_names[(i_rank+1)%2],
+                          pycwp.INTERFACE_SURFACE,
+                          pycwp.COMM_PAR_WITH_PART,
+                          pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
+                          1,
+                          pycwp.DYNAMIC_MESH_STATIC,
+                          pycwp.TIME_EXCH_USER_CONTROLLED)
+
+    block_id = cpl3.mesh_interf_block_add(pycwp.BLOCK_FACE_TRIAHO)
+
+    vtx_coord = np.zeros(6*3, dtype=np.double)
+    ijk_grid  = np.array([0, 0,
+                         2, 0,
+                         0, 2,
+                         1, 0,
+                         1, 1,
+                         0, 1], dtype=np.int32)
+    k = 0
+    for j in range(3):
+        for i in range(3):
+            vtx_coord[k] = i
+            k += 1
+            vtx_coord[k] = j
+            k += 1
+    face_vtx = np.array([1, 3, 6, 2, 5, 4], dtype=np.int32)
+
+    f.write("cpl3.mesh_interf_block_ho_set:\n")
+    f.flush()
+    cpl3.mesh_interf_block_ho_set(0,
+                                  block_id,
+                                  1,
+                                  2,
+                                  face_vtx,
+                                  None)
+
+    cpl3.mesh_interf_ho_ordering_from_IJK_set(pycwp.BLOCK_FACE_TRIAHO,
+                                              2,
+                                              ijk_grid)
+
+    f.write("mesh_interf_block_ho_get:\n")
+    f.flush()
+    out = cpl3.mesh_interf_block_ho_get(0,
+                                        block_id)
+    f.write("  - n_elts : {param}\n".format(param=out["n_elts"]))
+    f.write("  - order {param}\n".format(param=out["order"]))
+    f.write("  - connec {param}\n".format(param=out["connec"]))
+
+    f.write("cpl3.mesh_interf_del:\n")
+    f.flush()
+    cpl3.mesh_interf_del()
+
+
 
     # FINALIZE
     pycwp.finalize()
