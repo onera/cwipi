@@ -372,7 +372,6 @@ cdef extern from "cwp.h":
                           int                i_part,
                           CWP_Field_map_t    map_type,
                           double            *data)
-  # TO DO wo ist CWP_Field_data_get ?
   int CWP_Field_n_component_get(char      *local_code_name,
                                 char      *cpl_id,
                                 char      *field_id)
@@ -1479,8 +1478,8 @@ def interp_tgt_data_get(char             *local_code_name,
     return {
             'n_elt_tgt'     : n_elt_tgt,
             'n_referenced_tgt'     : n_referenced_tgt,
-            'referenced_tgt' : create_numpy_i(referenced_tgt, n_elt_tgt+1), # TO DO see size Bastien push
-            'tgt_come_from_src_idx' : create_numpy_i(tgt_come_from_src_idx, n_elt_tgt+1) # TO DO see size Bastien push
+            'referenced_tgt' : create_numpy_i(referenced_tgt, n_referenced_tgt+1),
+            'tgt_come_from_src_idx' : create_numpy_i(tgt_come_from_src_idx, n_elt_tgt+1)
            }
 
 def interp_location_weights_get(char                  *local_code_name,
@@ -1508,7 +1507,38 @@ def interp_location_weights_get(char                  *local_code_name,
                                     i_part,
                                     &(weights))
 
-    return create_numpy_d(weights, 1) # TO DO see size Bastien push
+    # get size
+    cdef int  n_cell
+    cdef int *c_src_to_tgt_idx
+    CWP_Interp_src_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
+                            i_part,
+                            &(n_cell),
+                            &(c_src_to_tgt_idx))
+
+    src_to_tgt_idx = create_numpy_i(c_src_to_tgt_idx, n_cell+1)
+
+    cdef int *c_cell_vtx_idx;
+    cdef int *c_cell_vtx;
+    CWP_Interp_location_internal_cell_vtx_get(local_code_name,
+                                              cpl_id,
+                                              field_id,
+                                              i_part,
+                                              &(c_cell_vtx_idx),
+                                              &(c_cell_vtx))
+
+    cell_vtx_idx = create_numpy_i(c_cell_vtx_idx, n_cell+1)
+
+    cdef int size  = 0
+    cdef int n_vtx = 0
+    cdef int n_pts = 0
+    for i in range(n_cell):
+      n_vtx = cell_vtx_idx  [i+1] - cell_vtx_idx  [i];
+      n_pts = src_to_tgt_idx[i+1] - src_to_tgt_idx[i];
+      size += n_vtx * n_pts;
+
+    return create_numpy_d(weights, size)
 
 def interp_location_point_data_get(char                  *local_code_name,
                                    char                  *cpl_id,
@@ -1544,11 +1574,23 @@ def interp_location_point_data_get(char                  *local_code_name,
                                        &(points_dist2),
                                        &(points_projected_coords))
 
+    # get size
+    cdef int  n_elt_src
+    cdef int *c_src_to_tgt_idx
+    CWP_Interp_src_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
+                            i_part,
+                            &(n_elt_src),
+                            &(c_src_to_tgt_idx))
+
+    src_to_tgt_idx = create_numpy_i(c_src_to_tgt_idx, n_elt_src+1)
+
     return {
-            'points_coords' : create_numpy_d(points_coords, 1), # TO DO see size Bastien push
-            'points_uvw' : create_numpy_d(points_uvw, 1), # TO DO see size Bastien push
-            'points_dist2' : create_numpy_d(points_dist2, 1), # TO DO see size Bastien push
-            'points_projected_coords' : create_numpy_d(points_projected_coords, 1) # TO DO see size Bastien push
+            'points_coords' : create_numpy_d(points_coords, src_to_tgt_idx[n_elt_src]),
+            'points_uvw' : create_numpy_d(points_uvw, src_to_tgt_idx[n_elt_src]),
+            'points_dist2' : create_numpy_d(points_dist2, src_to_tgt_idx[n_elt_src]),
+            'points_projected_coords' : create_numpy_d(points_projected_coords, src_to_tgt_idx[n_elt_src])
            }
 
 def interp_location_internal_cell_vtx_get(char                  *local_code_name,
@@ -1579,9 +1621,19 @@ def interp_location_internal_cell_vtx_get(char                  *local_code_name
                                               &(cell_vtx_idx),
                                               &(cell_vtx))
 
+    # get size
+    cdef int  n_cell
+    cdef int *c_src_to_tgt_idx
+    CWP_Interp_src_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
+                            i_part,
+                            &(n_cell),
+                            &(c_src_to_tgt_idx))
+
     return {
-            'cell_vtx_idx' : create_numpy_i(cell_vtx_idx, 1), # TO DO see size Bastien push
-            'cell_vtx' : create_numpy_i(cell_vtx, 1) # TO DO see size Bastien push
+            'cell_vtx_idx' : create_numpy_i(cell_vtx_idx, n_cell),
+            'cell_vtx' : create_numpy_i(cell_vtx, cell_vtx_idx[n_cell])
            }
 
 def interp_intersection_volumes_get(char                  *local_code_name,
@@ -1609,7 +1661,23 @@ def interp_intersection_volumes_get(char                  *local_code_name,
                                         i_part,
                                         &(volumes))
 
-    return create_numpy_d(volumes, 1) # TO DO see size Bastien push
+    # get size
+    cdef int  n_elt_tgt;
+    cdef int  n_referenced_tgt;
+    cdef int *c_referenced_tgt;
+    cdef int *c_tgt_come_from_src_idx;
+    CWP_Interp_tgt_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
+                            i_part,
+                            &(n_elt_tgt),
+                            &(n_referenced_tgt),
+                            &(c_referenced_tgt),
+                            &(c_tgt_come_from_src_idx))
+
+    tgt_come_from_src_idx = create_numpy_i(c_tgt_come_from_src_idx, n_referenced_tgt+1)
+
+    return create_numpy_d(volumes, tgt_come_from_src_idx[n_referenced_tgt])
 
 def interp_closest_points_distances_get(char                  *local_code_name,
                                         char                  *cpl_id,
@@ -1636,7 +1704,23 @@ def interp_closest_points_distances_get(char                  *local_code_name,
                                             i_part,
                                             &(distances2))
 
-    return create_numpy_d(distances2, 1) # TO DO see size Bastien push
+    # get size
+    cdef int  n_elt_tgt;
+    cdef int  n_referenced_tgt;
+    cdef int *c_referenced_tgt;
+    cdef int *c_tgt_come_from_src_idx;
+    CWP_Interp_tgt_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
+                            i_part,
+                            &(n_elt_tgt),
+                            &(n_referenced_tgt),
+                            &(c_referenced_tgt),
+                            &(c_tgt_come_from_src_idx))
+
+    tgt_come_from_src_idx = create_numpy_i(c_tgt_come_from_src_idx, n_referenced_tgt+1)
+
+    return create_numpy_d(distances2, tgt_come_from_src_idx[n_referenced_tgt])
 
 #-----------------------------------------------------------------------------
 # FIELD CLASS
