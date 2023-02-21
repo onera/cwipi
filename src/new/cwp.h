@@ -355,7 +355,8 @@ typedef enum {
  * \param [in]  local_code_name             Local code name
  * \param [in]  cpl_id                      Coupling name
  * \param [in]  field_id                    Field name
- * \param [in]  spatial_interp_algorithm   Enum of spatial interpolation algorithm
+ * \param [in]  spatial_interp_algorithm    Enum of spatial interpolation algorithm
+ * \param [in]  storage                     xyzxyz or xxyyzz
  * \param [in]  buffer_in                   Input field array
  * \param [out] buffer_out                  Output field array
  *
@@ -368,6 +369,7 @@ typedef void (*CWP_Interp_function_t)
  const char           *field_id,
  int                   i_part,
  CWP_Spatial_interp_t  spatial_interp_algorithm,
+ CWP_Field_storage_t   storage,
  double               *buffer_in,
  double               *buffer_out
 );

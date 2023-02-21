@@ -929,6 +929,7 @@ module cwp
                   src_field_id, &
                   i_part, &
                   spatial_interp_algorithm, &
+                  storage, &
                   buffer_in, &
                   buffer_out &
                   ) &
@@ -938,6 +939,7 @@ module cwp
             character(kind = c_char, len = 1)   :: local_code_name, cpl_id, src_field_id
             integer(kind = c_int)               :: i_part
             integer(kind = c_int)               :: spatial_interp_algorithm
+            integer(kind = c_int)               :: storage
             real(kind = c_double), dimension(*) :: buffer_in
             real(kind = c_double), dimension(*) :: buffer_out
           end subroutine user_interpolation_fct
@@ -3503,6 +3505,7 @@ contains
                 src_field_id, &
                 i_part, &
                 spatial_interp_algorithm, &
+                storage, &
                 buffer_in, &
                 buffer_out &
                 ) &
@@ -3512,6 +3515,7 @@ contains
           character(kind = c_char, len = 1)   :: local_code_name, cpl_id, src_field_id
           integer(kind = c_int)               :: i_part
           integer(kind = c_int)               :: spatial_interp_algorithm
+          integer(kind = c_int)               :: storage
           real(kind = c_double), dimension(*) :: buffer_in
           real(kind = c_double), dimension(*) :: buffer_out
         end subroutine user_interpolation_fct

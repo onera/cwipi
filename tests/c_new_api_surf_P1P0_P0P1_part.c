@@ -94,16 +94,20 @@ _userInterpolation
  const char           *local_code_name,
  const char           *cpl_id,
  const char           *field_id,
- CWP_Spatial_interp_t  spartial_interp_algorithm,
+ CWP_Spatial_interp_t  spatial_interp_algorithm,
+ CWP_Field_storage_t   storage,
  double               *buffer_in,
  double               *buffer_out
 )
 {
+  PDM_UNUSED(storage);
+  PDM_UNUSED(buffer_in);
+  PDM_UNUSED(buffer_out);
   printf("-> %s %s %s : %d ~ NOTHING DONE\n",
          local_code_name,
          cpl_id,
          field_id,
-         spartial_interp_algorithm);
+         spatial_interp_algorithm);
   fflush(stdout);
 }
 

@@ -24,40 +24,20 @@ import sys
 
 f=None
 
-def userInterp(interface_type,
-               code_name,
-               src_n_block,
-               src_blocks_type,
-               src_i_part,
-               src_n_vtx,
-               src_vtx_coords,
-               src_vtx_global_num,
-               src_n_elts,
-               src_id_block,
-               src_elt_in_block,
-               src_elt_vtx_idx,
-               src_elt_vtx,
-               src_elts_global_num,
-               tgt_n_pts,
-               tgt_pts_elt_idx,
-               tgt_pts_coords,
-               tgt_pts_dist,
-               tgt_pts_uvw,
-               tgt_pts_weights_idx,
-               tgt_pts_weights,
-               stride,
-               src_field_dof_location,
-               src_field,
-               tgt_field):
+def userInterp(local_code_name,
+               cpl_id,
+               field_id,
+               i_part,
+               spatial_interp_algorithm,
+               storage,
+               buffer_in,
+               buffer_out):
     """
     User interpolation method
     """
     global f
 
     f.write("in a user interpolation function !")
-
-    if (distant_field is not None):
-        distant_field = 1.234
 
 def runTest():
     """
