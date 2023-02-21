@@ -982,7 +982,8 @@ module cwp
           implicit none
           character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
           integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
-          integer(c_int), value             :: i_part, n_elt_src
+          integer(c_int), value             :: i_part
+          integer(c_int)                    :: n_elt_src
           type(c_ptr)                       :: c_src_to_tgt_idx
       end subroutine CWP_Interp_src_data_get_cf
 
@@ -1002,7 +1003,8 @@ module cwp
           implicit none
           character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
           integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
-          integer(c_int), value             :: i_part, n_elt_tgt, n_referenced_tgt
+          integer(c_int), value             :: i_part
+          integer(c_int)                    :: n_elt_tgt, n_referenced_tgt
           type(c_ptr)                       :: c_referenced_tgt, c_tgt_come_from_src_idx
       end subroutine CWP_Interp_tgt_data_get_cf
 

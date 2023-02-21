@@ -61,6 +61,8 @@ program testf
   character                     :: strnum
   logical                       :: debug = .true.
 
+  integer(c_int)                :: n_elt_src
+  integer(c_int), pointer       :: src_to_tgt_idx(:) => null()
   double precision, pointer     :: interp_weights(:) => null()
   integer(c_int)                :: n_elt_tgt
   integer(c_int)                :: n_ref_tgt
@@ -167,6 +169,8 @@ program testf
     call CWP_Param_add("code2", "toto", toto)
     ! call CWP_Param_unlock("code2")
   endif
+
+  call MPI_Barrier(MPI_comm_world, ierr)
 
   n_param = CWP_Param_n_get("code1", &
                             CWP_INT)
@@ -330,13 +334,6 @@ program testf
 
   !! Exchange interpolated field
   if (code_names(1) == "code1") then
-    call CWP_Interp_location_weights_get(code_names(1), &
-                                         coupling_name, &
-                                         field_name,    &
-                                         0,             &
-                                         interp_weights)
-
-
     call CWP_Field_issend(code_names(1), &
                           coupling_name, &
                           field_name)
@@ -352,6 +349,26 @@ program testf
     call CWP_Field_wait_issend(code_names(1), &
                                coupling_name, &
                                field_name)
+
+
+    call CWP_Interp_src_data_get(code_names(1), &
+                                 coupling_name, &
+                                 field_name,    &
+                                 0,             &
+                                 n_elt_src,     &
+                                 src_to_tgt_idx)
+    call CWP_Interp_location_weights_get(code_names(1), &
+                                         coupling_name, &
+                                         field_name,    &
+                                         0,             &
+                                         interp_weights)
+    if (debug) then
+      write(iiunit,*) "-- CWP_Interp_src_data_get & CWP_Interp_location_weights_get --"
+      write(iiunit,*) "n_elt_src      : ", n_elt_src
+      write(iiunit,*) "src_to_tgt_idx : ", src_to_tgt_idx
+      write(iiunit,*) "interp_weights : ", interp_weights
+      write(iiunit,*) ""
+    endif
   else
     call CWP_Field_wait_irecv(code_names(1), &
                               coupling_name, &
@@ -365,6 +382,14 @@ program testf
                                  n_ref_tgt,     &
                                  ref_tgt,       &
                                  tgt_to_src_idx)
+    if (debug) then
+      write(iiunit,*) "-- CWP_Interp_tgt_data_get --"
+      write(iiunit,*) "n_elt_tgt      : ", n_elt_tgt
+      write(iiunit,*) "n_ref_tgt      : ", n_ref_tgt
+      write(iiunit,*) "ref_tgt        : ", ref_tgt
+      write(iiunit,*) "tgt_to_src_idx : ", tgt_to_src_idx
+      write(iiunit,*) ""
+    endif
   endif
 
 

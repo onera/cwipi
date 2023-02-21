@@ -1306,9 +1306,26 @@ namespace cwipi {
 
       std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation);
 
-      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_send.find(newKey);
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*> spatial_interp_map;
 
-      if (it2 != _spatial_interp_send.end()) {
+      // send or recv?
+      CWP_Spatial_interp_t spatial_interp_algo = spatialInterpAlgoGet();
+      if (spatial_interp_algo == CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF       ||
+          spatial_interp_algo == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE  ||
+          spatial_interp_algo == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE) {
+        spatial_interp_map = _spatial_interp_send;
+      }
+      else if (spatial_interp_algo == CWP_SPATIAL_INTERP_FROM_INTERSECTION                ||
+               spatial_interp_algo == CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES) {
+        spatial_interp_map = _spatial_interp_recv;
+      }
+      else {
+        PDM_error(__FILE__, __LINE__, 0, "Invalid spatial_interp_algo %d\n", spatial_interp_algo);
+      }
+
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = spatial_interp_map.find(newKey);
+
+      if (it2 != spatial_interp_map.end()) {
         *weights_idx = it2->second->weights_idx_get();
         *weights     = it2->second->weights_get();
       }
@@ -1374,9 +1391,9 @@ namespace cwipi {
 
       std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation);
 
-      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_send.find(newKey);
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_recv.find(newKey);
 
-      if (it2 != _spatial_interp_send.end()) {
+      if (it2 != _spatial_interp_recv.end()) {
         PDM_part_to_part_t *ptp = it2->second->ptp_get();
 
         int  n_part_src = 0;
@@ -1472,9 +1489,9 @@ namespace cwipi {
 
       std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation);
 
-      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_send.find(newKey);
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_recv.find(newKey);
 
-      if (it2 != _spatial_interp_send.end()) {
+      if (it2 != _spatial_interp_recv.end()) {
         SpatialInterpIntersection* sil = dynamic_cast <SpatialInterpIntersection*> (it2->second);
         *tgt_elt_volumes = sil->tgt_elt_volumes_get();
       }
@@ -1496,9 +1513,9 @@ namespace cwipi {
 
       std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation);
 
-      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_send.find(newKey);
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_recv.find(newKey);
 
-      if (it2 != _spatial_interp_send.end()) {
+      if (it2 != _spatial_interp_recv.end()) {
         SpatialInterpClosestPoint* sil = dynamic_cast <SpatialInterpClosestPoint*> (it2->second);
         *closest_src_coord = sil->closest_src_coord_get();
       }
