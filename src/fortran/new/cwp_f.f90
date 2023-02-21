@@ -1078,18 +1078,19 @@ module cwp
           integer(kind = c_int)             :: s_distances2
       end subroutine CWP_Interp_closest_points_distances_get_cf
 
-      subroutine CWP_Interp_location_internal_cell_vtx_get(local_code_name,          &
-                                                           l_local_code_name,        &
-                                                           cpl_id,                   &
-                                                           l_cpl_id,                 &
-                                                           src_field_id,             &
-                                                           l_src_field_id,           &
-                                                           i_part,                   &
-                                                           spatial_interp_algorithm, &
-                                                           cell_vtx_idx,             &
-                                                           n_cell,                   &
-                                                           cell_vtx)                 &
-          bind(c, name = 'CWP_Interp_location_internal_cell_vtx_get')
+      subroutine CWP_Interp_location_internal_cell_vtx_get_cf(local_code_name,          &
+                                                              l_local_code_name,        &
+                                                              cpl_id,                   &
+                                                              l_cpl_id,                 &
+                                                              src_field_id,             &
+                                                              l_src_field_id,           &
+                                                              i_part,                   &
+                                                              spatial_interp_algorithm, &
+                                                              cell_vtx_idx,             &
+                                                              n_cell,                   &
+                                                              cell_vtx)                 &
+
+          bind(c, name = 'CWP_Interp_location_internal_cell_vtx_get_cf')
           use, intrinsic :: iso_c_binding
           implicit none
           character(kind = c_char, len = 1) :: local_code_name, cpl_id, src_field_id
@@ -1097,7 +1098,7 @@ module cwp
           integer(c_int), value             :: i_part, spatial_interp_algorithm
           type(c_ptr)                       :: cell_vtx_idx, cell_vtx
           integer(kind = c_int) :: n_cell
-      end subroutine CWP_Interp_location_internal_cell_vtx_get
+      end subroutine CWP_Interp_location_internal_cell_vtx_get_cf
 
       subroutine CWP_Spatial_interp_property_set_cf(local_code_name,   &
                                                     l_local_code_name, &
@@ -3753,9 +3754,10 @@ contains
                                                       src_field_id, &
                                                       l_src_field_id, &
                                                       i_part, &
-                                                      cell_vtx_idx, &
+                                                      spatial_interp_algorithm, &
+                                                      c_cell_vtx_idx, &
                                                       n_cell, &
-                                                      cell_vtx)
+                                                      c_cell_vtx)
 
     call c_f_pointer(c_cell_vtx_idx, cell_vtx_idx, [n_cell])
     call c_f_pointer(c_cell_vtx, cell_vtx, [cell_vtx_idx(n_cell)])

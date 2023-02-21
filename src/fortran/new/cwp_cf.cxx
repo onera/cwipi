@@ -2101,7 +2101,7 @@ CWP_Interp_src_data_get_cf (
                           c_src_field_id,
                           i_part,
                           n_elt_src,
-                          c_src_to_tgt_idx)
+                          c_src_to_tgt_idx);
 
   free ( c_local_code_name);
   free ( c_cpl_id);
@@ -2151,6 +2151,253 @@ CWP_Interp_tgt_data_get_cf (
                           n_referenced_tgt,
                           referenced_tgt, // TO DO : if size depends on n_components add s_reference_tgt
                           tgt_come_from_src_idx);
+
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_src_field_id);
+}
+
+/**
+ *
+ *  \brief Get spatial interpolation weights (location algorithm).
+ *
+ *  \param [in]  local_code_name  Local code name
+ *  \param [in]  cpl_id           Coupling identifier
+ *  \param [in]  src_field_id     Source field id
+ *  \param [in]  i_part
+ *  \param [in]  spatial_interp_algorithm
+ *  \param [out] weights
+ *
+ */
+
+void
+CWP_Interp_location_weights_get_cf (
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  const char *f_src_field_id,
+  int l_src_field_id,
+  int i_part,
+  CWP_Spatial_interp_t spatial_interp_algorithm,
+  double **c_weights,
+  int *s_weights
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_src_field_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
+
+  CWP_Interp_location_weights_get(c_local_code_name,
+                                  c_cpl_id,
+                                  c_src_field_id,
+                                  i_part,
+                                  spatial_interp_algorithm,
+                                  c_weights);
+
+  *s_weights = 1; // TO DO: what is the size?
+
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_src_field_id);
+}
+
+/**
+ *
+ *  \brief Get spatial interpolation point data (location algorithm).
+ *
+ *  \param [in]  local_code_name  Local code name
+ *  \param [in]  cpl_id           Coupling identifier
+ *  \param [in]  src_field_id     Source field id
+ *  \param [in]  i_part
+ *  \param [in]  spatial_interp_algorithm
+ *  \param [out] points_coords
+ *  \param [out] points_uvw
+ *  \param [out] points_dist2
+ *  \param [out] points_projected_coords
+ *
+ */
+
+void
+CWP_Interp_location_point_data_get_cf (
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  const char *f_src_field_id,
+  int l_src_field_id,
+  int i_part,
+  CWP_Spatial_interp_t spatial_interp_algorithm,
+  double **c_points_coords,
+  double **c_points_uvw,
+  double **c_points_dist2,
+  double **c_points_projected_coords,
+  int *s_size
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_src_field_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
+
+  CWP_Interp_location_point_data_get(c_local_code_name,
+                                     c_cpl_id,
+                                     c_src_field_id,
+                                     i_part,
+                                     spatial_interp_algorithm,
+                                     c_points_coords,
+                                     c_points_uvw,
+                                     c_points_dist2,
+                                     c_points_projected_coords);
+
+  *s_size = 1; // TO DO: what is the size?
+
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_src_field_id);
+}
+
+/**
+ *
+ *  \brief Get spatial interpolation weights (location algorithm).
+ *
+ *  \param [in]  local_code_name  Local code name
+ *  \param [in]  cpl_id           Coupling identifier
+ *  \param [in]  src_field_id     Source field id
+ *  \param [in]  i_part
+ *  \param [in]  spatial_interp_algorithm
+ *  \param [out] volumes
+ *
+ */
+
+void
+CWP_Interp_intersection_volumes_get_cf (
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  const char *f_src_field_id,
+  int l_src_field_id,
+  int i_part,
+  CWP_Spatial_interp_t spatial_interp_algorithm,
+  double **c_volumes,
+  int *s_volumes
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_src_field_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
+
+  CWP_Interp_intersection_volumes_get(c_local_code_name,
+                                      c_cpl_id,
+                                      c_src_field_id,
+                                      i_part,
+                                      spatial_interp_algorithm,
+                                      c_volumes);
+
+  *s_volumes = 1; // TO DO: what is the size?
+
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_src_field_id);
+}
+
+/**
+ *
+ *  \brief Get spatial interpolation weights (location algorithm).
+ *
+ *  \param [in]  local_code_name  Local code name
+ *  \param [in]  cpl_id           Coupling identifier
+ *  \param [in]  src_field_id     Source field id
+ *  \param [in]  i_part
+ *  \param [in]  spatial_interp_algorithm
+ *  \param [out] distance2
+ *
+ */
+
+void
+CWP_Interp_closest_points_distances_get_cf (
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  const char *f_src_field_id,
+  int l_src_field_id,
+  int i_part,
+  CWP_Spatial_interp_t spatial_interp_algorithm,
+  double **c_distances2,
+  int *s_distances2
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_src_field_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
+
+  CWP_Interp_closest_points_distances_get(c_local_code_name,
+                                          c_cpl_id,
+                                          c_src_field_id,
+                                          i_part,
+                                          spatial_interp_algorithm,
+                                          c_distances2);
+
+  *s_distances2 = 1; // TO DO: what is the size?
+
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_src_field_id);
+}
+
+/**
+ *
+ *  \brief Get spatial interpolation internal cell->vertex connectivity (location algorithm).
+ *
+ *  \param [in]  local_code_name  Local code name
+ *  \param [in]  cpl_id           Coupling identifier
+ *  \param [in]  src_field_id     Source field id
+ *  \param [in]  i_part
+ *  \param [in]  spatial_interp_algorithm
+ *  \param [out] cell_vtx_idx
+ *  \param [out] cell_vtx
+ *
+ */
+
+void
+CWP_Interp_location_internal_cell_vtx_get_cf (
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  const char *f_src_field_id,
+  int l_src_field_id,
+  int i_part,
+  CWP_Spatial_interp_t spatial_interp_algorithm,
+  int **c_cell_vtx_idx,
+  int *n_cell,
+  int **c_cell_vtx
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_src_field_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
+
+  CWP_Interp_location_internal_cell_vtx_get(c_local_code_name,
+                                            c_cpl_id,
+                                            c_src_field_id,
+                                            i_part,
+                                            spatial_interp_algorithm,
+                                            c_cell_vtx_idx,
+                                            c_cell_vtx);
+
+  *n_cell = 1; // TO DO: what is the size?
 
   free ( c_local_code_name);
   free ( c_cpl_id);
