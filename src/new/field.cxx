@@ -37,7 +37,6 @@ Field::Field (std::string            field_id    ,
    _id_writer_var_recv(nullptr),
    _id_writer_var_recv_computed(-1),
    _interpolationFunction   (NULL),
-   _interpolationFunction_f (NULL),
    _current_step_was_exchanged(0),
    _computed_tgt_bcast_enabled(0),
    _involved_src_bcast_enabled(0)

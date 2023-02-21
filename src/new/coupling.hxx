@@ -486,6 +486,22 @@ namespace cwipi {
      int         ***cell_vtx
     );
 
+    // Get local target elt volumes
+    void
+    intersection_tgt_elt_volumes_get
+    (
+     std::string    name,
+     double      ***tgt_elt_volumes
+     );
+
+    // Get closest src coord
+    void
+    closest_point_src_coord_get
+    (
+     std::string    name,
+     double      ***closest_src_coord
+     );
+
     /*----------------------------------------------------------------------------*
      * Methods about visualization                                                *
      *----------------------------------------------------------------------------*/

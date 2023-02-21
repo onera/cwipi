@@ -827,4 +827,10 @@ namespace cwipi {
       }
     }
   }
+
+
+  double ** SpatialInterpIntersection::tgt_elt_volumes_get()
+  {
+    return _tgt_volume;
+  }
 };

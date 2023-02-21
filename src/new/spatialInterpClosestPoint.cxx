@@ -1568,6 +1568,10 @@ namespace cwipi {
     }
 
 
-
+    double **
+    SpatialInterpClosestPoint::closest_src_coord_get()
+    {
+      return _recv_coord;
+    }
 
 };

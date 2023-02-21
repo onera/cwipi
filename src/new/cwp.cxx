@@ -2533,6 +2533,44 @@ CWP_Interp_intersection_volumes_get
   *volumes     = tmp_volumes[i_part];
 }
 
+
+/**
+ *
+ * \brief Get spatial local target elements volumes (intersection algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  src_field_id              Source field id
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] tgt_elt_volumes           Volumes of local target elements
+ *
+ */
+
+void
+CWP_Interp_intersection_tgt_elt_volumes_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **tgt_elt_volumes
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
+
+  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  double **_tgt_elt_volumes = NULL;
+  cpl.intersection_tgt_elt_volumes_get(field_id,
+                                       &_tgt_elt_volumes);
+
+  *tgt_elt_volumes = _tgt_elt_volumes[i_part];
+}
+
 /**
  *
  * \brief Get spatial interpolation distances (closest points algorithm).
@@ -2570,6 +2608,44 @@ CWP_Interp_closest_points_distances_get
                  &tmp_distances2);
 
   *distances2     = tmp_distances2[i_part];
+}
+
+
+/**
+ *
+ * \brief Get coordinates of closest source points (closest points algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  src_field_id              Source field id
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] closest_src_coord         Coordinates of closest source points
+ *
+ */
+
+void
+CWP_Interp_closest_points_coord_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **closest_src_coord
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+
+  CWP_Spatial_interp_t spatial_interp_algorithm = cpl.spatialInterpAlgoGet();
+
+  if (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES) {
+    PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
+  }
+
+  double **_closest_src_coord = NULL;
+  cpl.closest_point_src_coord_get(field_id,
+                                  &_closest_src_coord);
+
+  *closest_src_coord = closest_src_coord[i_part];
 }
 
 /**

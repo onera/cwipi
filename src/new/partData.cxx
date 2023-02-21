@@ -43,9 +43,9 @@ namespace cwipi {
   _part1_to_part2_data(NULL),
   _part1_to_part2_idx(NULL),
   _request1(NULL),
+  _request2(NULL),
   _recv_buffer(NULL),
-  _filtered_gnum1_come_from(NULL),
-  _request2(NULL)
+  _filtered_gnum1_come_from(NULL)
   {
     if (exch_type == CWP_PARTDATA_SEND) {
       _gnum_elt1 = gnum_elt;

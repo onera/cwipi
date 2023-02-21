@@ -61,6 +61,12 @@ program testf
   character                     :: strnum
   logical                       :: debug = .true.
 
+  double precision, pointer     :: interp_weights(:) => null()
+  integer(c_int)                :: n_elt_tgt
+  integer(c_int)                :: n_ref_tgt
+  integer(c_int), pointer       :: ref_tgt(:)        => null()
+  integer(c_int), pointer       :: tgt_to_src_idx(:) => null()
+
   !--> list getters
   character(256), allocatable :: code_list(:)
   character(256), allocatable :: loc_code_list(:)
@@ -324,6 +330,13 @@ program testf
 
   !! Exchange interpolated field
   if (code_names(1) == "code1") then
+    call CWP_Interp_location_weights_get(code_names(1), &
+                                         coupling_name, &
+                                         field_name,    &
+                                         0,             &
+                                         interp_weights)
+
+
     call CWP_Field_issend(code_names(1), &
                           coupling_name, &
                           field_name)
@@ -343,6 +356,15 @@ program testf
     call CWP_Field_wait_irecv(code_names(1), &
                               coupling_name, &
                               field_name)
+
+    call CWP_Interp_tgt_data_get(code_names(1), &
+                                 coupling_name, &
+                                 field_name,    &
+                                 0,             &
+                                 n_elt_tgt,     &
+                                 n_ref_tgt,     &
+                                 ref_tgt,       &
+                                 tgt_to_src_idx)
   endif
 
 

@@ -31,6 +31,8 @@ namespace cwipi {
 
     void weightsCompute() override;
 
+    double ** tgt_elt_volumes_get();
+
   private:
     void interpolate(Field *referenceField, double **buffer) override;
 

@@ -1431,7 +1431,7 @@ namespace cwipi {
     }
   }
 
-    // Get internal cell_vtx ordering
+  // Get internal cell_vtx ordering
   void
   Coupling::location_internal_cell_vtx_get
   (
@@ -1453,6 +1453,54 @@ namespace cwipi {
         SpatialInterpLocation* sil = dynamic_cast <SpatialInterpLocation*> (it2->second);
         *cell_vtx_idx = sil->cell_vtx_idx_get();
         *cell_vtx     = sil->cell_vtx_get();
+      }
+    }
+  }
+
+  // Get local target elt volumes
+  void
+  Coupling::intersection_tgt_elt_volumes_get
+  (
+   std::string    name,
+   double      ***tgt_elt_volumes
+  )
+  {
+    map <string, Field *>::iterator it  = _fields.find(name);
+    if (it != _fields.end()) {
+      CWP_Dof_location_t localFieldLocation = it->second->locationGet();
+      CWP_Dof_location_t cplFieldLocation = it->second->linkedFieldLocationGet();
+
+      std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation);
+
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_send.find(newKey);
+
+      if (it2 != _spatial_interp_send.end()) {
+        SpatialInterpIntersection* sil = dynamic_cast <SpatialInterpIntersection*> (it2->second);
+        *tgt_elt_volumes = sil->tgt_elt_volumes_get();
+      }
+    }
+  }
+
+  // Get closest src coord
+  void
+  Coupling::closest_point_src_coord_get
+  (
+   std::string    name,
+   double      ***closest_src_coord
+   )
+  {
+    map <string, Field *>::iterator it  = _fields.find(name);
+    if (it != _fields.end()) {
+      CWP_Dof_location_t localFieldLocation = it->second->locationGet();
+      CWP_Dof_location_t cplFieldLocation = it->second->linkedFieldLocationGet();
+
+      std::pair < CWP_Dof_location_t, CWP_Dof_location_t > newKey (localFieldLocation, cplFieldLocation);
+
+      std::map < std::pair < CWP_Dof_location_t, CWP_Dof_location_t >, SpatialInterp*>::iterator it2 = _spatial_interp_send.find(newKey);
+
+      if (it2 != _spatial_interp_send.end()) {
+        SpatialInterpClosestPoint* sil = dynamic_cast <SpatialInterpClosestPoint*> (it2->second);
+        *closest_src_coord = sil->closest_src_coord_get();
       }
     }
   }

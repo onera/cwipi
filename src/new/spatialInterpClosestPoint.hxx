@@ -39,6 +39,8 @@ namespace cwipi {
     void irecv      (Field *referenceField) override;
     void waitIrecv  (Field *referenceField) override;
 
+    double **closest_src_coord_get();
+
     private:
         void interpolate(Field *referenceField, double **buffer) override;
 

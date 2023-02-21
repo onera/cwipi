@@ -114,23 +114,23 @@ _n_vtx_block_get
   return 0;
 }
 
-static cwipi::Coupling&
-_cpl_get
-(
- const char *local_code_name,
- const char *cpl_id
- )
-{
-  cwipi::CouplingDB & couplingDB =
-    cwipi::CouplingDB::getInstance();
+// static cwipi::Coupling&
+// _cpl_get
+// (
+//  const char *local_code_name,
+//  const char *cpl_id
+//  )
+// {
+//   cwipi::CouplingDB & couplingDB =
+//     cwipi::CouplingDB::getInstance();
 
-  cwipi::CodePropertiesDB & properties =
-    cwipi::CodePropertiesDB::getInstance();
+//   cwipi::CodePropertiesDB & properties =
+//     cwipi::CodePropertiesDB::getInstance();
 
-   const string &cpl_name_str = cpl_id;
-   return couplingDB.couplingGet (properties.codePropertiesGet(string(local_code_name)),
-                                 cpl_name_str);
-}
+//    const string &cpl_name_str = cpl_id;
+//    return couplingDB.couplingGet (properties.codePropertiesGet(string(local_code_name)),
+//                                  cpl_name_str);
+// }
 
 
 static char *
@@ -2165,7 +2165,6 @@ CWP_Interp_tgt_data_get_cf (
  *  \param [in]  cpl_id           Coupling identifier
  *  \param [in]  src_field_id     Source field id
  *  \param [in]  i_part
- *  \param [in]  spatial_interp_algorithm
  *  \param [out] weights
  *
  */
@@ -2179,7 +2178,6 @@ CWP_Interp_location_weights_get_cf (
   const char *f_src_field_id,
   int l_src_field_id,
   int i_part,
-  CWP_Spatial_interp_t spatial_interp_algorithm,
   double **c_weights,
   int *s_weights
 )
@@ -2194,10 +2192,34 @@ CWP_Interp_location_weights_get_cf (
                                   c_cpl_id,
                                   c_src_field_id,
                                   i_part,
-                                  spatial_interp_algorithm,
                                   c_weights);
 
-  *s_weights = 1; // TO DO: what is the size?
+  *s_weights = 0;
+
+  // Maybe get _weights_idx directly from SpatialInterp object...
+  int  n_cell;
+  int *src_to_tgt_idx;
+  CWP_Interp_src_data_get(c_local_code_name,
+                          c_cpl_id,
+                          c_src_field_id,
+                          i_part,
+                          &n_cell,
+                          &src_to_tgt_idx);
+
+  int *cell_vtx_idx;
+  int *cell_vtx;
+  CWP_Interp_location_internal_cell_vtx_get(c_local_code_name,
+                                            c_cpl_id,
+                                            c_src_field_id,
+                                            i_part,
+                                            &cell_vtx_idx,
+                                            &cell_vtx);
+
+  for (int i = 0; i < n_cell; i++) {
+    int n_vtx = cell_vtx_idx  [i+1] - cell_vtx_idx  [i];
+    int n_pts = src_to_tgt_idx[i+1] - src_to_tgt_idx[i];
+    *s_weights += n_vtx * n_pts;
+  }
 
   free ( c_local_code_name);
   free ( c_cpl_id);
@@ -2212,7 +2234,6 @@ CWP_Interp_location_weights_get_cf (
  *  \param [in]  cpl_id           Coupling identifier
  *  \param [in]  src_field_id     Source field id
  *  \param [in]  i_part
- *  \param [in]  spatial_interp_algorithm
  *  \param [out] points_coords
  *  \param [out] points_uvw
  *  \param [out] points_dist2
@@ -2229,7 +2250,6 @@ CWP_Interp_location_point_data_get_cf (
   const char *f_src_field_id,
   int l_src_field_id,
   int i_part,
-  CWP_Spatial_interp_t spatial_interp_algorithm,
   double **c_points_coords,
   double **c_points_uvw,
   double **c_points_dist2,
@@ -2247,13 +2267,21 @@ CWP_Interp_location_point_data_get_cf (
                                      c_cpl_id,
                                      c_src_field_id,
                                      i_part,
-                                     spatial_interp_algorithm,
                                      c_points_coords,
                                      c_points_uvw,
                                      c_points_dist2,
                                      c_points_projected_coords);
 
-  *s_size = 1; // TO DO: what is the size?
+  int  n_elt_src;
+  int *src_to_tgt_idx;
+  CWP_Interp_src_data_get(c_local_code_name,
+                          c_cpl_id,
+                          c_src_field_id,
+                          i_part,
+                          &n_elt_src,
+                          &src_to_tgt_idx);
+
+  *s_size = src_to_tgt_idx[n_elt_src];
 
   free ( c_local_code_name);
   free ( c_cpl_id);
@@ -2268,7 +2296,6 @@ CWP_Interp_location_point_data_get_cf (
  *  \param [in]  cpl_id           Coupling identifier
  *  \param [in]  src_field_id     Source field id
  *  \param [in]  i_part
- *  \param [in]  spatial_interp_algorithm
  *  \param [out] volumes
  *
  */
@@ -2282,7 +2309,6 @@ CWP_Interp_intersection_volumes_get_cf (
   const char *f_src_field_id,
   int l_src_field_id,
   int i_part,
-  CWP_Spatial_interp_t spatial_interp_algorithm,
   double **c_volumes,
   int *s_volumes
 )
@@ -2297,15 +2323,78 @@ CWP_Interp_intersection_volumes_get_cf (
                                       c_cpl_id,
                                       c_src_field_id,
                                       i_part,
-                                      spatial_interp_algorithm,
                                       c_volumes);
 
-  *s_volumes = 1; // TO DO: what is the size?
+  int  n_elt_tgt;
+  int  n_referenced_tgt;
+  int *referenced_tgt;
+  int *tgt_come_from_src_idx;
+  CWP_Interp_tgt_data_get(c_local_code_name,
+                          c_cpl_id,
+                          c_src_field_id,
+                          i_part,
+                          &n_elt_tgt,
+                          &n_referenced_tgt,
+                          &referenced_tgt,
+                          &tgt_come_from_src_idx);
+
+  *s_volumes = tgt_come_from_src_idx[n_referenced_tgt];
 
   free ( c_local_code_name);
   free ( c_cpl_id);
   free ( c_src_field_id);
 }
+
+
+/**
+ *
+ * \brief Get spatial local target elements volumes (intersection algorithm).
+ *
+ */
+
+void
+CWP_Interp_intersection_tgt_elt_volumes_get_cf
+(
+  const char    *f_local_code_name,
+        int      l_local_code_name,
+  const char    *f_cpl_id,
+        int      l_cpl_id,
+  const char    *f_src_field_id,
+        int      l_src_field_id,
+        int      i_part,
+        double **c_tgt_elt_volumes,
+        int     *n_elt
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_src_field_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_src_field_id    = _fortran_to_c_string(f_src_field_id, l_src_field_id);
+
+  CWP_Interp_intersection_tgt_elt_volumes_get(c_local_code_name,
+                                              c_cpl_id,
+                                              c_src_field_id,
+                                              i_part,
+                                              c_tgt_elt_volumes);
+
+  int  n_referenced_tgt;
+  int *referenced_tgt;
+  int *tgt_come_from_src_idx;
+  CWP_Interp_tgt_data_get(c_local_code_name,
+                          c_cpl_id,
+                          c_src_field_id,
+                          i_part,
+                          n_elt,
+                          &n_referenced_tgt,
+                          &referenced_tgt,
+                          &tgt_come_from_src_idx);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_src_field_id);
+}
+
 
 /**
  *
@@ -2315,7 +2404,6 @@ CWP_Interp_intersection_volumes_get_cf (
  *  \param [in]  cpl_id           Coupling identifier
  *  \param [in]  src_field_id     Source field id
  *  \param [in]  i_part
- *  \param [in]  spatial_interp_algorithm
  *  \param [out] distance2
  *
  */
@@ -2329,7 +2417,6 @@ CWP_Interp_closest_points_distances_get_cf (
   const char *f_src_field_id,
   int l_src_field_id,
   int i_part,
-  CWP_Spatial_interp_t spatial_interp_algorithm,
   double **c_distances2,
   int *s_distances2
 )
@@ -2344,14 +2431,81 @@ CWP_Interp_closest_points_distances_get_cf (
                                           c_cpl_id,
                                           c_src_field_id,
                                           i_part,
-                                          spatial_interp_algorithm,
                                           c_distances2);
 
-  *s_distances2 = 1; // TO DO: what is the size?
+  int  n_elt_tgt;
+  int  n_referenced_tgt;
+  int *referenced_tgt;
+  int *tgt_come_from_src_idx;
+  CWP_Interp_tgt_data_get(c_local_code_name,
+                          c_cpl_id,
+                          c_src_field_id,
+                          i_part,
+                          &n_elt_tgt,
+                          &n_referenced_tgt,
+                          &referenced_tgt,
+                          &tgt_come_from_src_idx);
+  assert(n_elt_tgt == n_referenced_tgt);
+
+  *s_distances2 = tgt_come_from_src_idx[n_elt_tgt];
 
   free ( c_local_code_name);
   free ( c_cpl_id);
   free ( c_src_field_id);
+}
+
+
+/**
+ *
+ * \brief Get coordinates of closest source points (closest points algorithm).
+ *
+ */
+
+void
+CWP_Interp_closest_points_coord_get_cf
+(
+  const char    *f_local_code_name,
+        int      l_local_code_name,
+  const char    *f_cpl_id,
+        int      l_cpl_id,
+  const char    *f_src_field_id,
+        int      l_src_field_id,
+        int      i_part,
+        double **c_closest_src_coord,
+        int     *n_closest_src_pts
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_src_field_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_src_field_id    = _fortran_to_c_string(f_src_field_id, l_src_field_id);
+
+  CWP_Interp_closest_points_coord_get(c_local_code_name,
+                                      c_cpl_id,
+                                      c_src_field_id,
+                                      i_part,
+                                      c_closest_src_coord);
+
+  int  n_elt_tgt;
+  int  n_referenced_tgt;
+  int *referenced_tgt;
+  int *tgt_come_from_src_idx;
+  CWP_Interp_tgt_data_get(c_local_code_name,
+                          c_cpl_id,
+                          c_src_field_id,
+                          i_part,
+                          &n_elt_tgt,
+                          &n_referenced_tgt,
+                          &referenced_tgt,
+                          &tgt_come_from_src_idx);
+  assert(n_elt_tgt == n_referenced_tgt);
+
+  *n_closest_src_pts = tgt_come_from_src_idx[n_elt_tgt];
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_src_field_id);
 }
 
 /**
@@ -2362,7 +2516,6 @@ CWP_Interp_closest_points_distances_get_cf (
  *  \param [in]  cpl_id           Coupling identifier
  *  \param [in]  src_field_id     Source field id
  *  \param [in]  i_part
- *  \param [in]  spatial_interp_algorithm
  *  \param [out] cell_vtx_idx
  *  \param [out] cell_vtx
  *
@@ -2377,7 +2530,6 @@ CWP_Interp_location_internal_cell_vtx_get_cf (
   const char *f_src_field_id,
   int l_src_field_id,
   int i_part,
-  CWP_Spatial_interp_t spatial_interp_algorithm,
   int **c_cell_vtx_idx,
   int *n_cell,
   int **c_cell_vtx
@@ -2393,11 +2545,16 @@ CWP_Interp_location_internal_cell_vtx_get_cf (
                                             c_cpl_id,
                                             c_src_field_id,
                                             i_part,
-                                            spatial_interp_algorithm,
                                             c_cell_vtx_idx,
                                             c_cell_vtx);
 
-  *n_cell = 1; // TO DO: what is the size?
+  int *src_to_tgt_idx = NULL;
+  CWP_Interp_src_data_get(c_local_code_name,
+                          c_cpl_id,
+                          c_src_field_id,
+                          i_part,
+                          n_cell,
+                          &src_to_tgt_idx);
 
   free ( c_local_code_name);
   free ( c_cpl_id);

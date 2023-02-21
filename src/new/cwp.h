@@ -1871,7 +1871,27 @@ CWP_Interp_intersection_volumes_get
  double               **volumes
 );
 
-// TO DO: add element volume
+/**
+ *
+ * \brief Get spatial local target elements volumes (intersection algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  src_field_id              Source field id
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] tgt_elt_volumes           Volumes of local target elements
+ *
+ */
+
+void
+CWP_Interp_intersection_tgt_elt_volumes_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **tgt_elt_volumes
+);
 
 /**
  *
@@ -1895,7 +1915,27 @@ CWP_Interp_closest_points_distances_get
  double               **distances2
 );
 
-// TO DO add recv_coord
+/**
+ *
+ * \brief Get coordinates of closest source points (closest points algorithm).
+ *
+ * \param [in]  local_code_name           Local code name
+ * \param [in]  cpl_id                    Coupling identifier
+ * \param [in]  src_field_id              Source field id
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] closest_src_coord         Coordinates of closest source points
+ *
+ */
+
+void
+CWP_Interp_closest_points_coord_get
+(
+ const char            *local_code_name,
+ const char            *cpl_id,
+ const char            *field_id,
+ int                    i_part,
+ double               **closest_src_coord
+);
 
 /*----------------------------------------------------------------------------*
  * Functions about control parameters                                         *
