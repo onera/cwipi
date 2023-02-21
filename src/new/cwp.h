@@ -1782,9 +1782,8 @@ CWP_Interp_tgt_data_get
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
  * \param [in]  src_field_id              Source field id
- * \param [in]  i_part
- * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
- * \param [out] weights
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] weights                   Spatial interpolation weights
  *
  */
 
@@ -1795,7 +1794,6 @@ CWP_Interp_location_weights_get
  const char            *cpl_id,
  const char            *field_id,
  int                    i_part,
- CWP_Spatial_interp_t   spatial_interp_algorithm,
  double               **weights
 );
 
@@ -1806,12 +1804,11 @@ CWP_Interp_location_weights_get
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
  * \param [in]  src_field_id              Source field id
- * \param [in]  i_part
- * \param [in]  spatial_interp_algorithm  Enum of spatial interpolation function
- * \param [out] points_coords
- * \param [out] points_uvw
- * \param [out] points_dist2
- * \param [out] points_projected_coords
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] points_coords             Cartesian coordinates of points inside local elements
+ * \param [out] points_uvw                Parametric coordinates of points inside local elements
+ * \param [out] points_dist2              Squared distance from points to elements
+ * \param [out] points_projected_coords   Cartesian coordinates of projection on points on local elements
  *
  */
 
@@ -1822,7 +1819,6 @@ CWP_Interp_location_point_data_get
  const char            *cpl_id,
  const char            *field_id,
  int                    i_part,
- CWP_Spatial_interp_t   spatial_interp_algorithm,
  double               **points_coords,
  double               **points_uvw,
  double               **points_dist2,
@@ -1836,10 +1832,9 @@ CWP_Interp_location_point_data_get
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
  * \param [in]  src_field_id              Source field id
- * \param [in]  i_part
- * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
- * \param [out] cell_vtx_idx
- * \param [out] cell_vtx
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] cell_vtx_idx              Index for local cell->vertex connectivity
+ * \param [out] cell_vtx                  Local cell->vertex connectivity
  *
  */
 
@@ -1850,7 +1845,6 @@ CWP_Interp_location_internal_cell_vtx_get
  const char            *cpl_id,
  const char            *field_id,
  int                    i_part,
- CWP_Spatial_interp_t   spatial_interp_algorithm,
  int                  **cell_vtx_idx,
  int                  **cell_vtx
 );
@@ -1862,9 +1856,8 @@ CWP_Interp_location_internal_cell_vtx_get
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
  * \param [in]  src_field_id              Source field id
- * \param [in]  i_part
- * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
- * \param [out] volumes
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] volumes                   Volumes of intersection polyhedra
  *
  */
 
@@ -1875,7 +1868,6 @@ CWP_Interp_intersection_volumes_get
  const char            *cpl_id,
  const char            *field_id,
  int                    i_part,
- CWP_Spatial_interp_t   spatial_interp_algorithm,
  double               **volumes
 );
 
@@ -1888,9 +1880,8 @@ CWP_Interp_intersection_volumes_get
  * \param [in]  local_code_name           Local code name
  * \param [in]  cpl_id                    Coupling identifier
  * \param [in]  src_field_id              Source field id
- * \param [in]  i_part
- * \param [in]  partial_interp_algorithm  Enum of spatial interpolation function
- * \param [out] distances2
+ * \param [in]  i_part                    Partition identifier
+ * \param [out] distances2                Squared distances from closest source points
  *
  */
 
@@ -1901,7 +1892,6 @@ CWP_Interp_closest_points_distances_get
  const char            *cpl_id,
  const char            *field_id,
  int                    i_part,
- CWP_Spatial_interp_t   spatial_interp_algorithm,
  double               **distances2
 );
 
