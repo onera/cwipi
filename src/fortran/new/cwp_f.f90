@@ -1027,6 +1027,7 @@ module cwp
                                                        c_points_dist2,           &
                                                        c_points_projected_coords,&
                                                        s_size)&
+
           bind(c, name = 'CWP_Interp_location_point_data_get_cf')
           use, intrinsic :: iso_c_binding
           implicit none
@@ -1045,7 +1046,8 @@ module cwp
                                                     l_src_field_id,           &
                                                     i_part,                   &
                                                     spatial_interp_algorithm, &
-                                                    c_volumes)                &
+                                                    c_volumes,                &
+                                                    s_volumes)                &
           bind(c, name = 'CWP_Interp_intersection_volumes_get_cf')
           use, intrinsic :: iso_c_binding
           implicit none
@@ -1053,6 +1055,7 @@ module cwp
           integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
           integer(c_int), value             :: i_part, spatial_interp_algorithm
           type(c_ptr)                       :: c_volumes
+          integer(kind = c_int)             :: s_volumes
       end subroutine CWP_Interp_intersection_volumes_get_cf
 
       subroutine CWP_Interp_closest_points_distances_get_cf(local_code_name,  &
@@ -1063,7 +1066,8 @@ module cwp
                                                     l_src_field_id,           &
                                                     i_part,                   &
                                                     spatial_interp_algorithm, &
-                                                    c_distances2)             &
+                                                    c_distances2,             &
+                                                    s_distances2)             &
           bind(c, name = 'CWP_Interp_closest_points_distances_get_cf')
           use, intrinsic :: iso_c_binding
           implicit none
@@ -1071,6 +1075,7 @@ module cwp
           integer(kind = c_int), value      :: l_local_code_name, l_cpl_id, l_src_field_id
           integer(c_int), value             :: i_part, spatial_interp_algorithm
           type(c_ptr)                       :: c_distances2
+          integer(kind = c_int)             :: s_distances2
       end subroutine CWP_Interp_closest_points_distances_get_cf
 
       subroutine CWP_Interp_location_internal_cell_vtx_get(local_code_name,          &
@@ -3483,15 +3488,14 @@ contains
 
   function CWP_Interp_field_n_components_get_ (local_code_name, &
                                                cpl_id, &
-                                               src_field_id, &
-                                               n_components) &
+                                               src_field_id) &
     result (n_components)
     use, intrinsic :: iso_c_binding
     implicit none
 
     character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
     integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
-    integer                           :: n_components
+    integer                :: n_components
     l_local_code_name = len(local_code_name)
     l_cpl_id = len(cpl_id)
     l_src_field_id = len(src_field_id)
@@ -3591,8 +3595,8 @@ contains
                                     i_part, &
                                     n_elt_tgt, &
                                     n_referenced_tgt, &
-                                    referenced_tgt, &
-                                    tgt_come_from_src_idx)
+                                    c_referenced_tgt, &
+                                    c_tgt_come_from_src_idx)
 
     call c_f_pointer(c_referenced_tgt, referenced_tgt, [n_referenced_tgt])
     call c_f_pointer(c_tgt_come_from_src_idx, tgt_come_from_src_idx, [n_elt_tgt+1])
@@ -3624,7 +3628,7 @@ contains
     character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
     integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
     integer(c_int) :: i_part, spatial_interp_algorithm
-    integer(c_double),  dimension(:), pointer :: weights
+    double precision, dimension(:), pointer :: weights
     integer(kind = c_int) :: s_weights
     type(c_ptr)           :: c_weights
 
@@ -3640,7 +3644,7 @@ contains
                                             l_src_field_id, &
                                             i_part, &
                                             spatial_interp_algorithm, &
-                                            c_weights,
+                                            c_weights, &
                                             s_weights)
 
     call c_f_pointer(c_weights, weights, [s_weights])
@@ -3678,7 +3682,7 @@ contains
     character(kind = c_char, len = *) :: local_code_name, cpl_id, src_field_id
     integer(kind = c_int) :: l_local_code_name, l_cpl_id, l_src_field_id
     integer(c_int) :: i_part, spatial_interp_algorithm
-    integer(c_double),  dimension(:), pointer :: points_coords, points_uvw, points_dist2, points_projected_coords
+    double precision, dimension(:), pointer :: points_coords, points_uvw, points_dist2, points_projected_coords
     type(c_ptr)      :: c_points_coords, c_points_uvw, c_points_dist2, c_points_projected_coords
     integer(kind = c_int) :: s_size
 
@@ -3693,6 +3697,7 @@ contains
                                                src_field_id, &
                                                l_src_field_id, &
                                                i_part, &
+                                               spatial_interp_algorithm, &
                                                c_points_coords, &
                                                c_points_uvw, &
                                                c_points_dist2, &
@@ -3798,7 +3803,7 @@ contains
                                                 l_src_field_id, &
                                                 i_part, &
                                                 spatial_interp_algorithm, &
-                                                c_volumes,
+                                                c_volumes, &
                                                 s_volumes)
 
     call c_f_pointer(c_volumes, volumes, [s_volumes])
@@ -3846,7 +3851,7 @@ contains
                                                     l_src_field_id, &
                                                     i_part, &
                                                     spatial_interp_algorithm, &
-                                                    c_distances2,
+                                                    c_distances2, &
                                                     s_distances2)
 
     call c_f_pointer(c_distances2, distances2, [s_distances2])

@@ -1992,7 +1992,7 @@ CWP_Interp_function_set_cf (
 
 /**
  *
- * \brief unsetting of an user interpolation from location.
+ * \brief Unsetting of an user interpolation from location.
  *
  * This function takes into account an user interpolation function written with
  * void (*\ref CWP_Interp_function_t) interface.
@@ -2000,7 +2000,6 @@ CWP_Interp_function_set_cf (
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] src_field_id     Source field id
- * \param [in] fct              Function
  *
  */
 
@@ -2027,7 +2026,136 @@ CWP_Interp_function_unset_cf (
   free ( c_src_field_id);
 }
 
+/**
+ *
+ * \brief Get spatial interpolation number of algorithms.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] src_field_id     Source field id
+ *
+ */
 
+int
+CWP_Interp_field_n_components_get_cf (
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  const char *f_src_field_id,
+  int l_src_field_id
+)
+{
+  // f to c
+  char *c_local_code_name, *c_cpl_id, *c_src_field_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
+
+  // launch
+  int n_components = CWP_Interp_field_n_components_get(c_local_code_name, c_cpl_id, c_src_field_id);
+
+  // free
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_src_field_id);
+
+  return n_components;
+}
+
+/**
+ *
+ * \brief Get spatial interpolation source data.
+ *
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  src_field_id     Source field id
+ * \param [out] i_part
+ * \param [out] n_elt_src
+ * \param [out] src_to_tgt_idx
+ *
+ */
+
+void
+CWP_Interp_src_data_get_cf (
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  const char *f_src_field_id,
+  int l_src_field_id,
+  int i_part,
+  int *n_elt_src,
+  int **c_src_to_tgt_idx
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_src_field_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
+
+  CWP_Interp_src_data_get(c_local_code_name,
+                          c_cpl_id,
+                          c_src_field_id,
+                          i_part,
+                          n_elt_src,
+                          c_src_to_tgt_idx)
+
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_src_field_id);
+}
+
+/**
+ *
+ *  \brief Get spatial interpolation target data.
+ *
+ *  \param [in]  local_code_name  Local code name
+ *  \param [in]  cpl_id           Coupling identifier
+ *  \param [in]  src_field_id     Source field id
+ *  \param [out] n_elt_tgt
+ *  \param [out] n_referenced_tgt
+ *  \param [out] referenced_tgt
+ *  \param [out] tgt_come_from_src_idx
+ *
+ */
+
+void
+CWP_Interp_tgt_data_get_cf (
+  const char *f_local_code_name,
+  int l_local_code_name,
+  const char *f_cpl_id,
+  int l_cpl_id,
+  const char *f_src_field_id,
+  int l_src_field_id,
+  int i_part,
+  int *n_elt_tgt,
+  int *n_referenced_tgt,
+  int **referenced_tgt,
+  int **tgt_come_from_src_idx
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_src_field_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_src_field_id = _fortran_to_c_string(f_src_field_id, l_src_field_id);
+
+  CWP_Interp_tgt_data_get(c_local_code_name,
+                          c_cpl_id,
+                          c_src_field_id,
+                          i_part,
+                          n_elt_tgt,
+                          n_referenced_tgt,
+                          referenced_tgt, // TO DO : if size depends on n_components add s_reference_tgt
+                          tgt_come_from_src_idx);
+
+  free ( c_local_code_name);
+  free ( c_cpl_id);
+  free ( c_src_field_id);
+}
 
 void
 CWP_Spatial_interp_property_set_cf

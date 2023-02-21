@@ -1879,6 +1879,8 @@ CWP_Interp_intersection_volumes_get
  double               **volumes
 );
 
+// TO DO: add element volume
+
 /**
  *
  * \brief Get spatial interpolation distances (closest points algorithm).
@@ -1902,6 +1904,8 @@ CWP_Interp_closest_points_distances_get
  CWP_Spatial_interp_t   spatial_interp_algorithm,
  double               **distances2
 );
+
+// TO DO add recv_coord
 
 /*----------------------------------------------------------------------------*
  * Functions about control parameters                                         *

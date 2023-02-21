@@ -33,21 +33,21 @@ _locationUserInterpolation
  const char           *cpl_id,
  const char           *field_id,
  int                   i_part,
- CWP_Spatial_interp_t  spartial_interp_algorithm,
+ CWP_Spatial_interp_t  spatial_interp_algorithm,
  double               *buffer_in,
  double               *buffer_out
 )
 {
+  PDM_UNUSED(spatial_interp_algorithm);
+
   int           n_elt_src       = 0;
   int          *src_to_tgt_idx  = NULL;
-  CWP_g_num_t  *src_to_tgt_gnum = NULL;
   CWP_Interp_src_data_get(local_code_name,
                           cpl_id,
                           field_id,
                           i_part,
                           &n_elt_src,
-                          &src_to_tgt_idx,
-                          &src_to_tgt_gnum);
+                          &src_to_tgt_idx);
 
   int n_components = CWP_Interp_field_n_components_get(local_code_name,
                                                        cpl_id,
