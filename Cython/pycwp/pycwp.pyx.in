@@ -429,13 +429,11 @@ cdef extern from "cwp.h":
                                        char                  *cpl_id,
                                        char                  *field_id,
                                        int                    i_part,
-                                       CWP_Spatial_interp_t   spatial_interp_algorithm, # TO DO enlever apres push Bastien
                                        double               **weights)
   void CWP_Interp_location_point_data_get(char                  *local_code_name,
                                           char                  *cpl_id,
                                           char                  *field_id,
                                           int                    i_part,
-                                          CWP_Spatial_interp_t   spatial_interp_algorithm, # TO DO enlever apres push Bastien
                                           double               **points_coords,
                                           double               **points_uvw,
                                           double               **points_dist2,
@@ -444,20 +442,17 @@ cdef extern from "cwp.h":
                                                  char                  *cpl_id,
                                                  char                  *field_id,
                                                  int                    i_part,
-                                                 CWP_Spatial_interp_t   spatial_interp_algorithm, # TO DO enlever apres push Bastien
                                                  int                  **cell_vtx_idx,
                                                  int                  **cell_vtx)
   void CWP_Interp_intersection_volumes_get(char                  *local_code_name,
                                            char                  *cpl_id,
                                            char                  *field_id,
                                            int                    i_part,
-                                           CWP_Spatial_interp_t   spatial_interp_algorithm, # TO DO enlever apres push Bastien
                                            double               **volumes)
   void CWP_Interp_closest_points_distances_get(char                  *local_code_name,
                                                char                  *cpl_id,
                                                char                  *field_id,
                                                int                    i_part,
-                                               CWP_Spatial_interp_t   spatial_interp_algorithm, # TO DO enlever apres push Bastien
                                                double               **distances2)
 
   # --> functions about control parameters
@@ -689,39 +684,54 @@ cdef void interp_callback(const char           *local_code_name,
 
     if (buffer_in == NULL):
       print("Error: User interpolation input field array is NULL")
-    else:
-      if ((spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) or
-          (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) or
-          (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF)):
-        # TO DO
-      elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION):
-        # TO DO
-      elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES):
-        # TO DO
-      else:
-        print("Error: {param} unkown spatial interpolation algorithm".format(param=spatial_interp_algorithm))
 
-    if (buffer_out == NULL):
-      print("Error: User interpolation input field array is NULL")
-    else:
-      if ((spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) or
-          (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) or
-          (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF)):
-        # TO DO
-      elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION):
-        # TO DO
-      elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES):
-        # TO DO
-      else:
-        print("Error: {param} unkown spatial interpolation algorithm".format(param=spatial_interp_algorithm))
+    # set buffers
+    cdef int n_components = CWP_Interp_field_n_components_get(local_code_name,
+                                                              cpl_id,
+                                                              field_id)
+    cdef int  n_elt_src
+    cdef int *c_src_to_tgt_idx
+    CWP_Interp_src_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
+                            i_part,
+                            &(n_elt_src),
+                            &(c_src_to_tgt_idx))
+
+    cdef int  n_elt_tgt;
+    cdef int  n_referenced_tgt;
+    cdef int *c_referenced_tgt;
+    cdef int *c_tgt_come_from_src_idx;
+    CWP_Interp_tgt_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
+                            i_part,
+                            &(n_elt_tgt),
+                            &(n_referenced_tgt),
+                            &(c_referenced_tgt),
+                            &(c_tgt_come_from_src_idx))
+
+    dims = n_components * n_elt_src
+
+    buffer_in_a = NPY.PyArray_SimpleNewFromData(1,
+                                                &dims,
+                                                NPY.NPY_DOUBLE,
+                                                <void *> buffer_in)
+
+    dims = n_components * n_elt_tgt
+
+    buffer_out_a = NPY.PyArray_SimpleNewFromData(1,
+                                                &dims,
+                                                NPY.NPY_DOUBLE,
+                                                <void *> buffer_out)
 
     (<object> g_interp_fct[current_cpl_id]) (local_code_name,
                                              cpl_id,
                                              field_id,
                                              i_part,
                                              spatial_interp_algorithm,
-                                             None, #buffer_in_a
-                                             None) #buffer_out_a
+                                             buffer_in_a,
+                                             buffer_out_a)
 
 #-----------------------------------------------------------------------------
 # UTILS
@@ -1476,8 +1486,7 @@ def interp_tgt_data_get(char             *local_code_name,
 def interp_location_weights_get(char                  *local_code_name,
                                 char                  *cpl_id,
                                 char                  *field_id,
-                                int                    i_part,
-                                CWP_Spatial_interp_t   spatial_interp_algorithm):
+                                int                    i_part):
     """
    Get spatial interpolation weights (location algorithm).
 
@@ -1497,7 +1506,6 @@ def interp_location_weights_get(char                  *local_code_name,
                                     cpl_id,
                                     field_id,
                                     i_part,
-                                    spatial_interp_algorithm,
                                     &(weights))
 
     return create_numpy_d(weights, 1) # TO DO see size Bastien push
@@ -1505,8 +1513,7 @@ def interp_location_weights_get(char                  *local_code_name,
 def interp_location_point_data_get(char                  *local_code_name,
                                    char                  *cpl_id,
                                    char                  *field_id,
-                                   int                    i_part,
-                                   CWP_Spatial_interp_t   spatial_interp_algorithm):
+                                   int                    i_part):
     """
     Get spatial interpolation point data (location algorithm).
 
@@ -1532,7 +1539,6 @@ def interp_location_point_data_get(char                  *local_code_name,
                                        cpl_id,
                                        field_id,
                                        i_part,
-                                       spatial_interp_algorithm,
                                        &(points_coords),
                                        &(points_uvw),
                                        &(points_dist2),
@@ -1548,8 +1554,7 @@ def interp_location_point_data_get(char                  *local_code_name,
 def interp_location_internal_cell_vtx_get(char                  *local_code_name,
                                           char                  *cpl_id,
                                           char                  *field_id,
-                                          int                    i_part,
-                                          CWP_Spatial_interp_t   spatial_interp_algorithm):
+                                          int                    i_part):
     """
     Get spatial interpolation internal cell->vertex connectivity (location algorithm).
 
@@ -1571,7 +1576,6 @@ def interp_location_internal_cell_vtx_get(char                  *local_code_name
                                               cpl_id,
                                               field_id,
                                               i_part,
-                                              spatial_interp_algorithm,
                                               &(cell_vtx_idx),
                                               &(cell_vtx))
 
@@ -1583,8 +1587,7 @@ def interp_location_internal_cell_vtx_get(char                  *local_code_name
 def interp_intersection_volumes_get(char                  *local_code_name,
                                     char                  *cpl_id,
                                     char                  *field_id,
-                                    int                    i_part,
-                                    CWP_Spatial_interp_t   spatial_interp_algorithm):
+                                    int                    i_part):
     """
     Get spatial interpolation volumes (intersection algorithm).
 
@@ -1604,7 +1607,6 @@ def interp_intersection_volumes_get(char                  *local_code_name,
                                         cpl_id,
                                         field_id,
                                         i_part,
-                                        spatial_interp_algorithm,
                                         &(volumes))
 
     return create_numpy_d(volumes, 1) # TO DO see size Bastien push
@@ -1612,8 +1614,7 @@ def interp_intersection_volumes_get(char                  *local_code_name,
 def interp_closest_points_distances_get(char                  *local_code_name,
                                         char                  *cpl_id,
                                         char                  *field_id,
-                                        int                    i_part,
-                                        CWP_Spatial_interp_t   spatial_interp_algorithm):
+                                        int                    i_part):
     """
     Get spatial interpolation distances (closest points algorithm).
 
@@ -1633,7 +1634,6 @@ def interp_closest_points_distances_get(char                  *local_code_name,
                                             cpl_id,
                                             field_id,
                                             i_part,
-                                            spatial_interp_algorithm,
                                             &(distances2))
 
     return create_numpy_d(distances2, 1) # TO DO see size Bastien push
