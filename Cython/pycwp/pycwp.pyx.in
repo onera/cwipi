@@ -144,35 +144,13 @@ cdef extern from "cwp.h":
       CWP_OP_MAX
       CWP_OP_SUM
 
-  ctypedef void (*CWP_interp_from_location_t) (int                  interface_type,
-                                               char                *code_name,
-                                               int                  src_n_block,
-                                               CWP_Block_t         *src_blocks_type,
-                                               int                  src_i_part,
-                                               int                  src_n_vtx,
-                                               double              *src_vtx_coords,
-                                               long                *src_vtx_global_num,
-                                               int                  src_n_elts,
-                                               int                 *src_id_block,
-                                               int                 *src_elt_in_block,
-                                               int                 *src_elt_vtx_idx,
-                                               int                 *src_elt_vtx,
-                                               long                *src_elts_global_num,
-                                               int                  tgt_n_pts,
-                                               int                 *tgt_pts_elt_idx,
-                                               double              *tgt_pts_coords,
-                                               double              *tgt_pts_dist,
-                                               double              *tgt_pts_uvw,
-                                               int                 *tgt_pts_weights_idx,
-                                               double              *tgt_pts_weights,
-                                               int                  stride,
-                                               CWP_Dof_location_t   src_field_dof_location,
-                                               void                *src_field,
-                                               void                *tgt_field)
-
-  ctypedef void (*CWP_interp_from_intersect_t) (int interface_type)
-
-  ctypedef void (*CWP_interp_from_closest_pts_t) (int interface_type)
+  ctypedef void (*CWP_interp_function_t) (char           *local_code_name,
+                                          char           *cpl_id,
+                                          char           *field_id,
+                                          int                   i_part,
+                                          CWP_Spatial_interp_t  spatial_interp_algorithm,
+                                          double               *buffer_in,
+                                          double               *buffer_out)
 
   #-----------------------------------------------------------------------------
   # CWIPI
@@ -394,6 +372,7 @@ cdef extern from "cwp.h":
                           int                i_part,
                           CWP_Field_map_t    map_type,
                           double            *data)
+  # TO DO wo ist CWP_Field_data_get ?
   int CWP_Field_n_component_get(char      *local_code_name,
                                 char      *cpl_id,
                                 char      *field_id)
@@ -422,13 +401,64 @@ cdef extern from "cwp.h":
                             char  *tgt_field_id)
 
   # --> functions about user interpolation
-  void CWP_Interp_from_location_unset(char                 *local_code_name,
-                                      char                 *cpl_id,
-                                      char                 *src_field_id)
-  void CWP_Interp_from_location_set(char                       *local_code_name,
-                                    char                       *cpl_id,
-                                    char                       *src_field_id,
-                                    CWP_interp_from_location_t  fct)
+  void CWP_Interp_function_unset(char                 *local_code_name,
+                                 char                 *cpl_id,
+                                 char                 *src_field_id)
+  void CWP_Interp_function_set(char                       *local_code_name,
+                               char                       *cpl_id,
+                               char                       *src_field_id,
+                               CWP_interp_function_t  fct)
+  int CWP_Interp_field_n_components_get(char    *local_code_name,
+                                        char    *cpl_id,
+                                        char    *field_id)
+  void CWP_Interp_src_data_get(char    *local_code_name,
+                               char    *cpl_id,
+                               char    *field_id,
+                               int           i_part,
+                               int          *n_elt_src,
+                               int         **src_to_tgt_idx)
+  void CWP_Interp_tgt_data_get(char         *local_code_name,
+                               char         *cpl_id,
+                               char         *field_id,
+                               int           i_part,
+                               int          *n_elt_tgt,
+                               int          *n_referenced_tgt,
+                               int         **referenced_tgt,
+                               int         **tgt_come_from_src_idx)
+  void CWP_Interp_location_weights_get(char                  *local_code_name,
+                                       char                  *cpl_id,
+                                       char                  *field_id,
+                                       int                    i_part,
+                                       CWP_Spatial_interp_t   spatial_interp_algorithm, # TO DO enlever apres push Bastien
+                                       double               **weights)
+  void CWP_Interp_location_point_data_get(char                  *local_code_name,
+                                          char                  *cpl_id,
+                                          char                  *field_id,
+                                          int                    i_part,
+                                          CWP_Spatial_interp_t   spatial_interp_algorithm, # TO DO enlever apres push Bastien
+                                          double               **points_coords,
+                                          double               **points_uvw,
+                                          double               **points_dist2,
+                                          double               **points_projected_coords)
+  void CWP_Interp_location_internal_cell_vtx_get(char                  *local_code_name,
+                                                 char                  *cpl_id,
+                                                 char                  *field_id,
+                                                 int                    i_part,
+                                                 CWP_Spatial_interp_t   spatial_interp_algorithm, # TO DO enlever apres push Bastien
+                                                 int                  **cell_vtx_idx,
+                                                 int                  **cell_vtx)
+  void CWP_Interp_intersection_volumes_get(char                  *local_code_name,
+                                           char                  *cpl_id,
+                                           char                  *field_id,
+                                           int                    i_part,
+                                           CWP_Spatial_interp_t   spatial_interp_algorithm, # TO DO enlever apres push Bastien
+                                           double               **volumes)
+  void CWP_Interp_closest_points_distances_get(char                  *local_code_name,
+                                               char                  *cpl_id,
+                                               char                  *field_id,
+                                               int                    i_part,
+                                               CWP_Spatial_interp_t   spatial_interp_algorithm, # TO DO enlever apres push Bastien
+                                               double               **distances2)
 
   # --> functions about control parameters
   void CWP_Param_add(char        *local_code_name,
@@ -632,272 +662,66 @@ cdef ho_n_vtx_get(int block_type, int order):
 g_interp_fct = {}
 current_cpl_id = ""
 
-cdef void interp_callback(const int                  interface_type,
-                          const char                *code_name,
-                          const int                  src_n_block,
-                          const CWP_Block_t          src_blocks_type[],
-                          const int                  src_i_part,
-                          const int                  src_n_vtx,
-                          const double               src_vtx_coords[],
-                          const long                 src_vtx_global_num[], # TO DO replace by CWP_g_num_t ?
-                          const int                  src_n_elts,
-                          const int                  src_id_block[],
-                          const int                  src_elt_in_block[],
-                          const int                  src_elt_vtx_idx[],
-                          const int                  src_elt_vtx[],
-                          const long                 src_elts_global_num[], # TO DO replace by CWP_g_num_t ?
-                          const int                  tgt_n_pts,
-                          const int                  tgt_pts_elt_idx[],
-                          const double               tgt_pts_coords[],
-                          const double               tgt_pts_dist[],
-                          const double               tgt_pts_uvw[],
-                          const int                  tgt_pts_weights_idx[],
-                          const double               tgt_pts_weights[],
-                          const int                  stride,
-                          const CWP_Dof_location_t   src_field_dof_location,
-                          const void                *src_field,
-                          void                      *tgt_field):
+cdef void interp_callback(const char           *local_code_name,
+                          const char           *cpl_id,
+                          const char           *field_id,
+                          int                   i_part,
+                          CWP_Spatial_interp_t  spatial_interp_algorithm,
+                          double               *buffer_in,
+                          double               *buffer_out):
     """
     User interpolation function interface from location into a mesh.
 
     Parameters:
-      global_comm (MPI.Comm) : MPI global communicator
-      interface_type              Interface type
-      code_name                   Name of code
-      src_n_block                 Number of blocks
-      src_block_type              Block types (size = n_block)
-      src_i_part                  Part id
-      src_n_vtx                   Number of vertices
-      src_vtx_coords              Coordinates of vertices (size = 3 * src_n_vtx)
-      src_vtx_global_num          Global number of vertices (size = src_n_vtx)
-      src_n_elts                  Number of elements
-      src_id_block                 block id of the element
-                                  (size = src_n_elts)
-      src_elt_in_block            Element number of the elements into it block
-                                  (size = src_n_elts)
-      src_elt_vtx_idx              Element to vertex index
-                                  (src_elt_vtx_idx[0] = 0 and
-                                  size = src_n_elts + 1)
-      src_elt_vtx                  Element to vertex connectivity.
-                                  (size = src_elt_vtx_idx[src_n_elts])
-      src_elts_global_num         Global number of elements (size = src_n_elts)
-      tgt_n_pts                   Number of target points
-      tgt_pts_elt_idx             The list of target points located in each element
-                                  (size = src_n_elts + 1)
-      tgt_pts_coords              Target points coordinates
-                                  (size = 3 * tgt_n_pts)
-      tgt_pts_dist                target points distance to location element
-                                  (size = tgt_n_pts)
-      tgt_pts_uvw                 Parametric coordinates of target points in the elements
-                                  ( 0 <= u <= 1, 0 <= v <= 1, -1 : for polydra and polygons)
-                                  (size = dim_interface * tgt_n_pts)
-      tgt_pts_weights_idx         Index of Barycentric coordinates target points
-                                  in location element
-                                  (tgt_pts_bary_coords_idx[0] = 0 and
-                                  size = n_tgt_pts + 1)
-      tgt_pts_weights             Barycentric coordinates target points
-                                  in location element
-                                  (size = tgt_pts_weights_idx[n_tgt_pts])
-      stride                      Number of field components
-      src_field_dof_location      source field location
-      src_field                   source field
-                                  (size depends on field type and stride)
+      local_code_name             Local code name
+      cpl_id                      Coupling name
+      field_id                    Field name
+      spatial_interp_algorithm    Enum of spatial interpolation algorithm
+      buffer_in                   Input field array
 
     Returns:
-      tgt_field                   target field
-                                  (size = stride * n_tgt_pts)
+      buffer_out                  Output field array
     """
 
     global g_interp_fct
     global current_cpl_id
     cdef NPY.npy_intp dims = 0
 
-    if (src_n_block == 0 or src_blocks_type == NULL):
-      src_blocks_type_a = None
+    if (buffer_in == NULL):
+      print("Error: User interpolation input field array is NULL")
     else:
-      dims = <NPY.npy_intp>(src_n_block)
-      src_blocks_type_a = NPY.PyArray_SimpleNewFromData(1,
-                                                        &dims,
-                                                        NPY.NPY_LONG, # TO DO: ok for CWP_Block_t?
-                                                        <void *> src_blocks_type)
-
-    if (src_n_vtx == 0 or src_vtx_coords == NULL):
-      src_vtx_coords_a = None
-    else:
-      dims = <NPY.npy_intp>(3 * src_n_vtx)
-      src_vtx_coords_a = NPY.PyArray_SimpleNewFromData(1,
-                                                       &dims,
-                                                       NPY.NPY_DOUBLE,
-                                                       <void *> src_vtx_coords)
-
-    if (src_n_vtx == 0 or src_vtx_global_num == NULL):
-      src_vtx_global_num_a = None
-    else:
-      dims = <NPY.npy_intp>(src_n_vtx)
-      src_vtx_global_num_a = NPY.PyArray_SimpleNewFromData(1,
-                                                           &dims,
-                                                           NPY.NPY_LONG,
-                                                           <void *> src_vtx_global_num)
-
-    if (src_n_elts == 0 or src_id_block == NULL):
-      src_id_block_a = None
-    else:
-      dims = <NPY.npy_intp>(src_n_elts)
-      src_id_block_a = NPY.PyArray_SimpleNewFromData(1,
-                                                     &dims,
-                                                     NPY.NPY_INT,
-                                                     <void *> src_id_block)
-
-    if (src_n_elts == 0 or src_elt_in_block == NULL):
-      src_elt_in_block_a = None
-    else:
-      dims = <NPY.npy_intp>(src_n_elts)
-      src_elt_in_block_a = NPY.PyArray_SimpleNewFromData(1,
-                                                     &dims,
-                                                     NPY.NPY_INT,
-                                                     <void *> src_elt_in_block)
-
-    if (src_n_elts == 0 or src_elt_vtx_idx == NULL):
-      src_elt_vtx_idx_a = None
-      src_elt_vtx_a     = None
-    else:
-      dims = <NPY.npy_intp>(src_n_elts+1)
-      src_elt_vtx_idx_a = NPY.PyArray_SimpleNewFromData(1,
-                                                        &dims,
-                                                        NPY.NPY_INT,
-                                                        <void *> src_elt_vtx_idx)
-      if (src_elt_vtx_idx[src_n_elts] == 0 or src_elt_vtx == NULL):
-        src_elt_vtx_a = None
+      if ((spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) or
+          (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) or
+          (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF)):
+        # TO DO
+      elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION):
+        # TO DO
+      elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES):
+        # TO DO
       else:
-        dims = <NPY.npy_intp>(src_elt_vtx[src_n_elts])
-        src_elt_vtx_a = NPY.PyArray_SimpleNewFromData(1,
-                                                      &dims,
-                                                      NPY.NPY_INT,
-                                                      <void *> src_elt_vtx)
+        print("Error: {param} unkown spatial interpolation algorithm".format(param=spatial_interp_algorithm))
 
-    if (src_n_elts == 0 or src_elts_global_num == NULL):
-      src_elts_global_num_a = None
+    if (buffer_out == NULL):
+      print("Error: User interpolation input field array is NULL")
     else:
-      dims = <NPY.npy_intp>(src_n_elts)
-      src_elts_global_num_a = NPY.PyArray_SimpleNewFromData(1,
-                                                            &dims,
-                                                            NPY.NPY_LONG,
-                                                            <void *> src_elts_global_num)
-
-    if (tgt_n_pts == 0 or tgt_pts_elt_idx == NULL):
-      tgt_pts_elt_idx_a = None
-    else:
-      dims = <NPY.npy_intp>(tgt_n_pts+1)
-      tgt_pts_elt_idx_a = NPY.PyArray_SimpleNewFromData(1,
-                                                        &dims,
-                                                        NPY.NPY_INT,
-                                                        <void *> tgt_pts_elt_idx)
-
-    if (tgt_n_pts == 0 or tgt_pts_coords == NULL):
-      tgt_pts_coords_a = None
-    else:
-      dims = <NPY.npy_intp>(3*tgt_n_pts)
-      tgt_pts_coords_a = NPY.PyArray_SimpleNewFromData(1,
-                                                       &dims,
-                                                       NPY.NPY_DOUBLE,
-                                                       <void *> tgt_pts_coords)
-
-    if (tgt_n_pts == 0 or tgt_pts_dist == NULL):
-      tgt_pts_dist_a = None
-    else:
-      dims = <NPY.npy_intp>(tgt_n_pts)
-      tgt_pts_dist_a = NPY.PyArray_SimpleNewFromData(1,
-                                                     &dims,
-                                                     NPY.NPY_DOUBLE,
-                                                     <void *> tgt_pts_dist)
-
-    if (tgt_n_pts == 0 or tgt_pts_uvw == NULL):
-      tgt_pts_uvw_a = None
-    else:
-      if (interface_type == CWP_INTERFACE_LINEAR):
-        interface_dim = 1
-      elif (interface_type == CWP_INTERFACE_SURFACE):
-        interface_dim = 2
-      elif (interface_type == CWP_INTERFACE_VOLUME):
-        interface_dim = 3
+      if ((spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) or
+          (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) or
+          (spatial_interp_algorithm == SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF)):
+        # TO DO
+      elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_INTERSECTION):
+        # TO DO
+      elif (spatial_interp_algorithm == SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES):
+        # TO DO
       else:
-        print("Error: {param} interface type not handled yet".format(param=interface_type))
+        print("Error: {param} unkown spatial interpolation algorithm".format(param=spatial_interp_algorithm))
 
-      dims = <NPY.npy_intp>(interface_dim * tgt_n_pts)
-      tgt_pts_uvw_a = NPY.PyArray_SimpleNewFromData(1,
-                                                    &dims,
-                                                    NPY.NPY_DOUBLE,
-                                                    <void *> tgt_pts_uvw)
-
-    if (tgt_n_pts == 0 or tgt_pts_weights_idx == NULL):
-      tgt_pts_weights_idx_a = None
-      tgt_pts_weights_a     = None
-    else:
-      dims = <NPY.npy_intp>(tgt_n_pts+1)
-      tgt_pts_weights_idx_a = NPY.PyArray_SimpleNewFromData(1,
-                                                    &dims,
-                                                    NPY.NPY_INT,
-                                                    <void *> tgt_pts_weights_idx)
-      if (tgt_pts_weights_idx[tgt_n_pts] == 0 or tgt_pts_weights == NULL):
-        tgt_pts_weights_a = None
-      else:
-        dims = <NPY.npy_intp>(tgt_pts_weights[tgt_n_pts])
-        tgt_pts_weights_a = NPY.PyArray_SimpleNewFromData(1,
-                                                         &dims,
-                                                         NPY.NPY_DOUBLE,
-                                                         <void *> tgt_pts_weights)
-
-    if (src_n_elts == 0 or src_field == NULL):
-      src_field_a = None
-    else:
-      if (src_field_dof_location == CWP_DOF_LOCATION_NODE):
-        size = stride*src_n_vtx
-      elif (src_field_dof_location == CWP_DOF_LOCATION_CELL_CENTER):
-        size = stride*src_n_elts
-      else:
-        # TO DO: handle CWP_DOF_LOCATION_USER
-        print("Error: {param} source field dof location not handled yet".format(param=src_field_dof_location))
-
-      dims = <NPY.npy_intp>(size)
-      src_field_a = NPY.PyArray_SimpleNewFromData(1,
-                                                  &dims,
-                                                  NPY.NPY_DOUBLE,
-                                                  <void *> src_field)
-
-    if (tgt_n_pts == 0 or tgt_field == NULL):
-      tgt_field_a = None
-    else:
-      dims = <NPY.npy_intp>(stride*tgt_n_pts)
-      tgt_field_a = NPY.PyArray_SimpleNewFromData(1,
-                                                  &dims,
-                                                  NPY.NPY_DOUBLE,
-                                                  <void *> tgt_field)
-
-    (<object> g_interp_fct[current_cpl_id]) (interface_type,
-                                             code_name,
-                                             src_n_block,
-                                             src_blocks_type_a,
-                                             src_i_part,
-                                             src_n_vtx,
-                                             src_vtx_coords_a,
-                                             src_vtx_global_num_a,
-                                             src_n_elts,
-                                             src_id_block_a,
-                                             src_elt_in_block_a,
-                                             src_elt_vtx_idx_a,
-                                             src_elt_vtx_a,
-                                             src_elts_global_num_a,
-                                             tgt_n_pts,
-                                             tgt_pts_elt_idx_a,
-                                             tgt_pts_coords_a,
-                                             tgt_pts_dist_a,
-                                             tgt_pts_uvw_a,
-                                             tgt_pts_weights_idx_a,
-                                             tgt_pts_weights_a,
-                                             stride,
-                                             src_field_dof_location,
-                                             src_field_a,
-                                             tgt_field_a)
+    (<object> g_interp_fct[current_cpl_id]) (local_code_name,
+                                             cpl_id,
+                                             field_id,
+                                             i_part,
+                                             spatial_interp_algorithm,
+                                             None, #buffer_in_a
+                                             None) #buffer_out_a
 
 #-----------------------------------------------------------------------------
 # UTILS
@@ -916,6 +740,13 @@ cdef create_numpy_i(int* array, int size, bint flag_owndata=True):
 cdef create_numpy_l(long int* array, int size, bint flag_owndata=True):
     dim = <NPY.npy_intp> size
     nparray = NPY.PyArray_SimpleNewFromData(1, &dim, NPY.NPY_INT64, <void *> array)
+    if flag_owndata:
+        PyArray_ENABLEFLAGS(nparray, NPY.NPY_OWNDATA)
+    return nparray
+
+cdef create_numpy_d(double* array, int size, bint flag_owndata=True):
+    dim = <NPY.npy_intp> size
+    nparray = NPY.PyArray_SimpleNewFromData(1, &dim, NPY.NPY_DOUBLE, <void *> array)
     if flag_owndata:
         PyArray_ENABLEFLAGS(nparray, NPY.NPY_OWNDATA)
     return nparray
@@ -1475,7 +1306,7 @@ def param_unlock(char        *code_name):
 
     CWP_Param_unlock(code_name)
 
-# --> functions about exchange
+# --> functions about exchange TO DO : add in field object?
 def field_issend(char     *local_code_name,
                  char     *cpl_id,
                  char     *src_field_id):
@@ -1546,6 +1377,266 @@ def field_wait_irecv(char     *local_code_name,
     CWP_Field_wait_irecv(local_code_name,
                          cpl_id,
                          tgt_field_id)
+
+# --> functions to use inside user interpolation functions
+
+def interp_field_n_components_get(char             *local_code_name,
+                                  char             *cpl_id,
+                                  char             *field_id):
+    """
+    Get spatial interpolation number of field components.
+
+    Parameters:
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      field_id        (char*) : Field identifier
+
+    Returns:
+      n_components (int) : Number of components in Field field_id
+    """
+
+    cdef int n_components = CWP_Interp_field_n_components_get(local_code_name,
+                                                              cpl_id,
+                                                              field_id)
+
+    return n_components
+
+def interp_src_data_get(char             *local_code_name,
+                        char             *cpl_id,
+                        char             *field_id,
+                        int               i_part):
+    """
+    Get spatial interpolation source data.
+
+    Parameters:
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      field_id        (char*) : Field identifier
+      i_part          (int)   : Parition identifier
+
+    Returns:
+      n_elt_src      (int)   : Number of source elements
+      src_to_tgt_idx (int *) : Index of source->target connectivity
+    """
+
+    cdef int   n_elt_src = -1
+    cdef int  *src_to_tgt_idx
+
+    CWP_Interp_src_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
+                            i_part,
+                            &(n_elt_src),
+                            &(src_to_tgt_idx))
+
+    return {
+            'n_elt_src'     : n_elt_src,
+            'src_to_tgt_idx' : create_numpy_i(src_to_tgt_idx, n_elt_src+1)
+           }
+
+def interp_tgt_data_get(char             *local_code_name,
+                        char             *cpl_id,
+                        char             *field_id,
+                        int               i_part):
+    """
+    Get spatial interpolation target data.
+
+    Parameters:
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      field_id        (char*) : Field identifier
+      i_part          (int)   : Parition identifier
+
+    Returns:
+      n_elt_src      (int)   : Number of source elements
+      src_to_tgt_idx (int *) : Index of source->target connectivity
+    """
+
+    cdef int   n_elt_tgt        = -1
+    cdef int   n_referenced_tgt = -1
+    cdef int  *referenced_tgt
+    cdef int  *tgt_come_from_src_idx
+
+    CWP_Interp_tgt_data_get(local_code_name,
+                            cpl_id,
+                            field_id,
+                            i_part,
+                            &(n_elt_tgt),
+                            &(n_referenced_tgt),
+                            &(referenced_tgt),
+                            &(tgt_come_from_src_idx))
+
+    return {
+            'n_elt_tgt'     : n_elt_tgt,
+            'n_referenced_tgt'     : n_referenced_tgt,
+            'referenced_tgt' : create_numpy_i(referenced_tgt, n_elt_tgt+1), # TO DO see size Bastien push
+            'tgt_come_from_src_idx' : create_numpy_i(tgt_come_from_src_idx, n_elt_tgt+1) # TO DO see size Bastien push
+           }
+
+def interp_location_weights_get(char                  *local_code_name,
+                                char                  *cpl_id,
+                                char                  *field_id,
+                                int                    i_part,
+                                CWP_Spatial_interp_t   spatial_interp_algorithm):
+    """
+   Get spatial interpolation weights (location algorithm).
+
+    Parameters:
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      field_id        (char*) : Field identifier
+      i_part          (int)   : Parition identifier
+
+    Returns:
+      weights (double *) : Location interpolation weigths
+    """
+
+    cdef double *weights
+
+    CWP_Interp_location_weights_get(local_code_name,
+                                    cpl_id,
+                                    field_id,
+                                    i_part,
+                                    spatial_interp_algorithm,
+                                    &(weights))
+
+    return create_numpy_d(weights, 1) # TO DO see size Bastien push
+
+def interp_location_point_data_get(char                  *local_code_name,
+                                   char                  *cpl_id,
+                                   char                  *field_id,
+                                   int                    i_part,
+                                   CWP_Spatial_interp_t   spatial_interp_algorithm):
+    """
+    Get spatial interpolation point data (location algorithm).
+
+    Parameters:
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      field_id        (char*) : Field identifier
+      i_part          (int)   : Parition identifier
+
+    Returns:
+      points_coords           (double *) : Coordinates
+      points_uvw              (double *) : Coordinates in uvw system
+      points_dist2            (double *) : Squared distance
+      points_projected_coords (double *) : Coordiantes of projected points
+    """
+
+    cdef double *points_coords
+    cdef double *points_uvw
+    cdef double *points_dist2
+    cdef double *points_projected_coords
+
+    CWP_Interp_location_point_data_get(local_code_name,
+                                       cpl_id,
+                                       field_id,
+                                       i_part,
+                                       spatial_interp_algorithm,
+                                       &(points_coords),
+                                       &(points_uvw),
+                                       &(points_dist2),
+                                       &(points_projected_coords))
+
+    return {
+            'points_coords' : create_numpy_d(points_coords, 1), # TO DO see size Bastien push
+            'points_uvw' : create_numpy_d(points_uvw, 1), # TO DO see size Bastien push
+            'points_dist2' : create_numpy_d(points_dist2, 1), # TO DO see size Bastien push
+            'points_projected_coords' : create_numpy_d(points_projected_coords, 1) # TO DO see size Bastien push
+           }
+
+def interp_location_internal_cell_vtx_get(char                  *local_code_name,
+                                          char                  *cpl_id,
+                                          char                  *field_id,
+                                          int                    i_part,
+                                          CWP_Spatial_interp_t   spatial_interp_algorithm):
+    """
+    Get spatial interpolation internal cell->vertex connectivity (location algorithm).
+
+    Parameters:
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      field_id        (char*) : Field identifier
+      i_part          (int)   : Parition identifier
+
+    Returns:
+      cell_vtx_idx (int *) : Index of internal cell->vtx connectivity
+      cell_vtx     (int *) : Internal cell->vtx connectivity
+    """
+
+    cdef int *cell_vtx_idx
+    cdef int *cell_vtx
+
+    CWP_Interp_location_internal_cell_vtx_get(local_code_name,
+                                              cpl_id,
+                                              field_id,
+                                              i_part,
+                                              spatial_interp_algorithm,
+                                              &(cell_vtx_idx),
+                                              &(cell_vtx))
+
+    return {
+            'cell_vtx_idx' : create_numpy_i(cell_vtx_idx, 1), # TO DO see size Bastien push
+            'cell_vtx' : create_numpy_i(cell_vtx, 1) # TO DO see size Bastien push
+           }
+
+def interp_intersection_volumes_get(char                  *local_code_name,
+                                    char                  *cpl_id,
+                                    char                  *field_id,
+                                    int                    i_part,
+                                    CWP_Spatial_interp_t   spatial_interp_algorithm):
+    """
+    Get spatial interpolation volumes (intersection algorithm).
+
+    Parameters:
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      field_id        (char*) : Field identifier
+      i_part          (int)   : Parition identifier
+
+    Returns:
+      volumes (double *) : Volumes
+    """
+
+    cdef double *volumes
+
+    CWP_Interp_intersection_volumes_get(local_code_name,
+                                        cpl_id,
+                                        field_id,
+                                        i_part,
+                                        spatial_interp_algorithm,
+                                        &(volumes))
+
+    return create_numpy_d(volumes, 1) # TO DO see size Bastien push
+
+def interp_closest_points_distances_get(char                  *local_code_name,
+                                        char                  *cpl_id,
+                                        char                  *field_id,
+                                        int                    i_part,
+                                        CWP_Spatial_interp_t   spatial_interp_algorithm):
+    """
+    Get spatial interpolation distances (closest points algorithm).
+
+    Parameters:
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      field_id        (char*) : Field identifier
+      i_part          (int)   : Parition identifier
+
+    Returns:
+      distances2 (double *) : Squared distances
+    """
+
+    cdef double *distances2
+
+    CWP_Interp_closest_points_distances_get(local_code_name,
+                                            cpl_id,
+                                            field_id,
+                                            i_part,
+                                            spatial_interp_algorithm,
+                                            &(distances2))
+
+    return create_numpy_d(distances2, 1) # TO DO see size Bastien push
 
 #-----------------------------------------------------------------------------
 # FIELD CLASS
@@ -2575,8 +2666,8 @@ cdef class Coupling (object):
                                <long *> global_num.data)
 
     # --> USER INTERPOLATION
-    def interp_from_location_unset(self,
-                                   char  *src_field_id):
+    def interp_function_unset(self,
+                              char  *src_field_id):
         """
         Unsetting of an user interpolation.
 
@@ -2584,17 +2675,17 @@ cdef class Coupling (object):
           src_field_id (char*) : Source field identifier
         """
 
-        CWP_Interp_from_location_unset(self.local_code_name,
-                                       self.cpl_id,
-                                       src_field_id)
+        CWP_Interp_function_unset(self.local_code_name,
+                                  self.cpl_id,
+                                  src_field_id)
 
-    def interp_from_location_set(self,
-                                 const char                 *src_field_id,
-                                 fct):
+    def interp_function_set(self,
+                            const char                 *src_field_id,
+                            fct):
         """
         Setting of an user interpolation from location.
         This function takes into account an user interpolation function written with
-        void (*\ref CWP_Interp_from_location_t) interface.
+        void (*\ref CWP_Interp_function_t) interface.
 
         Parameters:
           src_field_id (char*)                      : Source field id
@@ -2605,10 +2696,10 @@ cdef class Coupling (object):
         current_cpl_id = self.cpl_id
         g_interp_fct[current_cpl_id] = fct
 
-        CWP_Interp_from_location_set(self.local_code_name,
-                                     self.cpl_id,
-                                     src_field_id,
-                                     interp_callback)
+        CWP_Interp_function_set(self.local_code_name,
+                                self.cpl_id,
+                                src_field_id,
+                                interp_callback)
         current_cpl_id = ""
 
 #-----------------------------------------------------------------------------
