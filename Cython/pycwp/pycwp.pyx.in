@@ -144,6 +144,10 @@ cdef extern from "cwp.h":
       CWP_OP_MAX
       CWP_OP_SUM
 
+  ctypedef enum CWP_PartData_exch_t:
+      CWP_PARTDATA_SEND
+      CWP_PARTDATA_RECV
+
   ctypedef void (*CWP_interp_function_t) (char                 *local_code_name,
                                           char                 *cpl_id,
                                           char                 *field_id,
@@ -491,6 +495,63 @@ cdef extern from "cwp.h":
   void CWP_Param_lock(char *code_name)
   void CWP_Param_unlock(char *code_name)
 
+  # --> functions about global data
+  void CWP_Global_data_issend(char     *local_code_name,
+                              char     *cpl_id,
+                              char     *global_data_id,
+                              size_t    s_send_entity,
+                              int       send_stride,
+                              int       n_send_entity,
+                              void     *send_data)
+  void CWP_Global_data_irecv(char     *local_code_name,
+                              char     *cpl_id,
+                              char     *global_data_id,
+                              size_t   *s_recv_entity,
+                              int      *recv_stride,
+                              int      *n_recv_entity,
+                              void    **recv_data)
+  void CWP_Global_data_wait_issend(char     *local_code_name,
+                                   char     *cpl_id,
+                                   char     *global_data_id)
+  void CWP_Global_data_wait_irecv(char     *local_code_name,
+                                   char     *cpl_id,
+                                   char     *global_data_id)
+
+  # --> functions about partitionned data
+  void CWP_Part_data_create(char                 *local_code_name,
+                            char                 *cpl_id,
+                            char                 *part_data_id,
+                            CWP_PartData_exch_t   exch_type,
+                            CWP_g_num_t         **gnum_elt,
+                            int                  *n_elt,
+                            int                   n_part)
+  void CWP_Part_data_del(char                 *local_code_name,
+                         char                 *cpl_id,
+                         char                 *part_data_id,
+                         CWP_PartData_exch_t   exch_type)
+  void CWP_Part_data_issend(char          *local_code_name,
+                            char          *cpl_id,
+                            char          *part_data_id,
+                            size_t         s_data,
+                            int            n_components,
+                            void         **part1_to_part2_data,
+                            int           *request)
+  void CWP_Part_data_irecv(char          *local_code_name,
+                           char          *cpl_id,
+                           char          *part_data_id,
+                           size_t         s_data,
+                           int            n_components,
+                           void        ***part2_data,
+                           int           *request)
+  void CWP_Part_data_wait_issend(char          *local_code_name,
+                                 char          *cpl_id,
+                                 char          *part_data_id,
+                                 int           *request)
+  void CWP_Part_data_wait_irecv(char          *local_code_name,
+                                char          *cpl_id,
+                                char          *part_data_id,
+                                int           *request)
+
 #-----------------------------------------------------------------------------
 # ENUM
 
@@ -567,6 +628,9 @@ STATE_OUTPUT_ERROR  = CWP_STATE_OUTPUT_ERROR
 OP_MIN = CWP_OP_MIN
 OP_MAX = CWP_OP_MAX
 OP_SUM = CWP_OP_SUM
+
+PARTDATA_SEND = CWP_PARTDATA_SEND
+PARTDATA_RECV = CWP_PARTDATA_RECV
 
 #-----------------------------------------------------------------------------
 # UTIL
@@ -1725,6 +1789,257 @@ def interp_closest_points_distances_get(char                  *local_code_name,
 
     return create_numpy_d(distances2, tgt_come_from_src_idx[n_referenced_tgt])
 
+# --> functions about global data
+def global_data_issend(char    *local_code_name,
+                       char    *cpl_id,
+                       char    *global_data_id,
+                       size_t   s_send_entity,
+                       int      n_send_entity,
+                       list     send_data):
+    """
+    Send a data array.
+
+    Parameters:
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      global_data_id  (char*) : Global data identifier
+      send_stride     (int)   : Constant number of components
+      n_send_entity   (int)   : Number of sent entities
+      send_data       (list)  : List of partitioned data array with same datatype
+    """
+
+    cdef int s_send_entity = send_data.dtype
+
+    CWP_Global_data_issend(local_code_name,
+                           cpl_id,
+                           global_data_id,
+                           s_send_entity,
+                           send_stride,
+                           n_send_entity,
+                  <void *> send_data.data)
+
+def global_data_irecv(char      *local_code_name,
+                      char      *cpl_id,
+                      char      *global_data_id,
+                      NPY.dtype  data_type): # TO DO: find an other solution to handle this ??
+                                             # TO DO: asynchrone so correct to cast here ?
+    """
+    Receive a data array.
+
+    Parameters:
+      local_code_name (char*)  : Local code name
+      cpl_id          (char*)  : Coupling identifier
+      global_data_id  (char*)  : Global data identifier
+
+    Returns:
+      s_recv_entity   (size_t) : # TO DO rendre plutôt le data_type
+      recv_stride     (int)    : Constant number of components
+      n_recv_entity   (int)    : Number of received entities
+      recv_data       (list)   : List of partitioned data array with same datatype
+    """
+
+    cdef size_t s_recv_entity
+    cdef int    recv_stride
+    cdef int    n_recv_entity
+    cdef void  *_recv_data
+
+    CWP_Global_data_irecv(local_code_name,
+                          cpl_id,
+                          global_data_id,
+                          &(s_recv_entity),
+                          &(recv_stride),
+                          &(n_recv_entity),
+                          &(_recv_data))
+
+    cdef int s_recv_data = recv_stride * n_recv_entity * s_recv_entity
+    recv_data = NPY.PyArray_SimpleNewFromData(1, &s_recv_data, data_type.num, <void *> _recv_data)
+
+    return {
+            'recv_stride' : recv_stride,
+            'n_recv_entity' : n_recv_entity,
+            'recv_data' : recv_data
+           }
+
+def global_data_wait_issend(char    *local_code_name,
+                            char    *cpl_id,
+                            char    *global_data_id):
+    """
+    Wait for send of a data array.
+
+    Parameters:
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      global_data_id  (char*) : Global data identifier
+    """
+
+    CWP_Global_data_wait_issend(local_code_name,
+                                cpl_id,
+                                global_data_id)
+
+def global_data_wait_irecv(char    *local_code_name,
+                           char    *cpl_id,
+                           char    *global_data_id):
+    """
+    Wait for receive of a data array.
+
+    Parameters:
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      global_data_id  (char*) : Global data identifier
+    """
+
+    CWP_Global_data_wait_irecv(local_code_name,
+                               cpl_id,
+                               global_data_id)
+
+#-----------------------------------------------------------------------------
+# PARTDATA CLASS
+cdef class PartData (object):
+
+    """
+    Create a CWIPI partitionned data object
+    """
+
+    cdef str local_code_name
+    cdef str cpl_id
+    cdef str part_data_id
+    cdef int exch_type
+
+    def __init__(self,
+                 char                 *local_code_name,
+                 char                 *cpl_id,
+                 char                 *part_data_id,
+                 CWP_PartData_exch_t   exch_type,
+                 CWP_g_num_t         **gnum_elt,
+                 int                  *n_elt,
+                 int                   n_part):
+        """
+        Initialize field object.
+
+        Parameters:
+          local_code_name (char*)               : Local code name
+          cpl_id          (char*)               : Coupling id
+          part_data_id    (char*)               : Partitionned data id
+          exch_type       (CWP_PartData_exch_t) : Enum if SEND or RECV side
+          gnum_elt        (CWP_g_num_t)         : Global number of entities
+          n_elt           (int)                 : Number of elements
+          n_part          (int)                 : Number of partitions
+        """
+
+        self.local_code_name = local_code_name
+        self.cpl_id = cpl_id
+        self.part_data_id = part_data_id
+        self.exch_type = exch_type
+
+        CWP_Part_data_create(self.local_code_name,
+                             self.cpl_id,
+                             self.part_data_id,
+                             self.exch_type
+                  < long * > gnum_elt.data,
+                             n_elt,
+                             n_part)
+
+    def __del__(self):
+        """
+        Delete a field object.
+        """
+
+        CWP_Part_data_del(self.local_code_name,
+                          self.cpl_id,
+                          self.part_data_id,
+                          self.exch_type)
+
+    # --> DATA
+    def issend(self,
+               int             n_components,
+               list            part1_to_part2_data):
+        """
+        Issend partitionned data.
+
+        Parameters:
+          n_components        (int)             : Number of components
+          part1_to_part2_data (list)            : List of partitioned data arrays, each beeing 1 dimensional and with same datatype
+
+        Returns:
+          request (int) : Exchange resquest
+        """
+        cdef int s_data = part1_to_part2_data[0].dtype # TO DO more robust check ?
+        cdef void** _part1_to_part2_data   = np_list_to_void_pointers(part1_to_part2_data)
+
+        cdef int request
+        CWP_Part_data_issend(self.local_code_name,
+                             self.cpl_id,
+                             self.part_data_id,
+                             s_data,
+                             n_components,
+                             _part1_to_part2_data,
+                             &(request))
+
+        return request
+
+    def irecv(self,
+              int  n_components,
+              NPY.dtype  data_type): # TO DO user can give me this ?
+        """
+        Irecv partitionned data.
+
+        Parameters:
+          n_components (int)  : Number of components
+
+        Returns:
+          part2_data (list)    : List of partitioned data arrays, each beeing 1 dimensional and with same datatype
+          request    (int)     : Exchange resquest
+        """
+
+        cdef int s_data = data_type.itemsize
+
+        cdef int request
+        cdef void** _part2_data
+        CWP_Part_data_irecv(self.local_code_name,
+                            self.cpl_id,
+                            self.part_data_id,
+                            s_data,
+                            n_components,
+                            &(_part2_data),
+                            &(request))
+
+        cdef n_referenced = 1 # TO DO retreive this or just n_elt2 is fine?
+        cdef int s_part2_data = s_data * n_components * n_referenced
+        part2_data = NPY.PyArray_SimpleNewFromData(1, &s_part2_data, data_type.num, <void *> _part2_data)
+
+        return {
+                'request' : request,
+                'part2_data' : part2_data
+               }
+
+    def wait_issend(self,
+                    int request):
+        """
+        Wait issend partitionned data.
+
+        Parameters:
+          request (int) : Exchange resquest
+        """
+
+        CWP_Part_data_wait_issend(self.local_code_name,
+                                  self.cpl_id,
+                                  self.part_data_id,
+                                  request)
+
+    def wait_irecv(self,
+                  int request):
+        """
+        Wait irecv partitionned data.
+
+        Parameters:
+          request (int) : Exchange resquest
+        """
+
+        CWP_Part_data_wait_irecv(self.local_code_name,
+                                 self.cpl_id,
+                                 self.part_data_id,
+                                 request)
+
 #-----------------------------------------------------------------------------
 # FIELD CLASS
 cdef class Field (object):
@@ -1753,7 +2068,7 @@ cdef class Field (object):
 
         Parameters:
           local_code_name (char*)               : Local code name
-          cpl_id          (char*)               : Field id
+          cpl_id          (char*)               : Coupling id
           field_id        (char*)               : Field id
           data_type       (CWP_Type_t)          : Data type
           storage         (CWP_Field_storage_t) : Storage type

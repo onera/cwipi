@@ -2364,7 +2364,7 @@ CWP_Part_data_wait_irecv
 
 
 /**
- * \brief Set a generic high order block to the interface mesh. <b>(Not implemented yet)</b>
+ * \brief Set a generic high order block to the interface mesh.
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -2392,7 +2392,7 @@ CWP_Mesh_interf_block_ho_set
 
 
 /**
- * \brief Get the properties of a generic high order block of the interface mesh. <b>(Not implemented yet)</b>
+ * \brief Get the properties of a generic high order block of the interface mesh.
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
