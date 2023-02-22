@@ -522,7 +522,7 @@ cdef extern from "cwp.h":
                             char                 *cpl_id,
                             char                 *part_data_id,
                             CWP_PartData_exch_t   exch_type,
-                            CWP_g_num_t         **gnum_elt,
+                            long         **gnum_elt,
                             int                  *n_elt,
                             int                   n_part)
   void CWP_Part_data_del(char                 *local_code_name,
@@ -826,6 +826,13 @@ cdef create_numpy_d(double* array, int size, bint flag_owndata=True):
     if flag_owndata:
         PyArray_ENABLEFLAGS(nparray, NPY.NPY_OWNDATA)
     return nparray
+
+cdef void** np_list_to_void_pointers(list datas):
+  cdef NPY.ndarray numpy_void
+  cdef void** array = <void **> malloc(len(datas) * sizeof(void*))
+  for i, numpy_void in enumerate(datas):
+    array[i] = <void *> numpy_void.data
+  return array
 
 #-----------------------------------------------------------------------------
 # DEFINITION
@@ -1793,7 +1800,7 @@ def interp_closest_points_distances_get(char                  *local_code_name,
 def global_data_issend(char    *local_code_name,
                        char    *cpl_id,
                        char    *global_data_id,
-                       size_t   s_send_entity,
+                       int      send_stride,
                        int      n_send_entity,
                        list     send_data):
     """
@@ -1903,16 +1910,16 @@ cdef class PartData (object):
     cdef str local_code_name
     cdef str cpl_id
     cdef str part_data_id
-    cdef int exch_type
+    cdef CWP_PartData_exch_t exch_type
 
     def __init__(self,
-                 char                 *local_code_name,
-                 char                 *cpl_id,
-                 char                 *part_data_id,
-                 CWP_PartData_exch_t   exch_type,
-                 CWP_g_num_t         **gnum_elt,
-                 int                  *n_elt,
-                 int                   n_part):
+                 char                    *local_code_name,
+                 char                    *cpl_id,
+                 char                    *part_data_id,
+                 CWP_PartData_exch_t      exch_type,
+                 NPY.ndarray[NPY.long]    gnum_elt, # TO DO long ** ?????
+                 NPY.ndarray[NPY.int32_t] n_elt,
+                 int                      n_part):
         """
         Initialize field object.
 
@@ -1921,7 +1928,7 @@ cdef class PartData (object):
           cpl_id          (char*)               : Coupling id
           part_data_id    (char*)               : Partitionned data id
           exch_type       (CWP_PartData_exch_t) : Enum if SEND or RECV side
-          gnum_elt        (CWP_g_num_t)         : Global number of entities
+          gnum_elt        (long)                : Global number of entities
           n_elt           (int)                 : Number of elements
           n_part          (int)                 : Number of partitions
         """
@@ -1934,9 +1941,9 @@ cdef class PartData (object):
         CWP_Part_data_create(self.local_code_name,
                              self.cpl_id,
                              self.part_data_id,
-                             self.exch_type
-                  < long * > gnum_elt.data,
-                             n_elt,
+                             self.exch_type,
+                   <long **> gnum_elt.data,
+                     <int *> n_elt.data,
                              n_part)
 
     def __del__(self):
@@ -2024,7 +2031,7 @@ cdef class PartData (object):
         CWP_Part_data_wait_issend(self.local_code_name,
                                   self.cpl_id,
                                   self.part_data_id,
-                                  request)
+                                  &(request))
 
     def wait_irecv(self,
                   int request):
@@ -2038,7 +2045,7 @@ cdef class PartData (object):
         CWP_Part_data_wait_irecv(self.local_code_name,
                                  self.cpl_id,
                                  self.part_data_id,
-                                 request)
+                                 &(request))
 
 #-----------------------------------------------------------------------------
 # FIELD CLASS
