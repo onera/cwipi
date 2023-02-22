@@ -4268,7 +4268,7 @@ CWP_server_Field_wait_irecv
 }
 
 void
-CWP_server_Interp_from_location_unset
+CWP_server_Interp_function_unset
 (
   p_server                 svr
 )
@@ -4290,7 +4290,7 @@ CWP_server_Interp_from_location_unset
   read_name(&src_field_id, svr);
 
   // launch
-  CWP_Interp_from_location_unset(local_code_name,
+  CWP_Interp_function_unset(local_code_name,
                                  cpl_id,
                                  src_field_id);
 
@@ -4303,13 +4303,131 @@ CWP_server_Interp_from_location_unset
 }
 
 void
-CWP_server_Interp_from_location_set
+CWP_server_Interp_function_set
 (
   p_server                 svr
 )
 {
   PDM_UNUSED(svr);
   // TO DO: create some standard interpolation function on server side for user to choose
+}
+
+void
+CWP_server_Mesh_interf_block_ho_set // TO DO: adapter
+(
+  p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_SET);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read i_part
+  int i_part;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &i_part, sizeof(int));
+
+  // read block_id
+  int block_id;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &block_id, sizeof(int));;
+
+  // read n_elts
+  int n_elts;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_elts, sizeof(int));
+
+  // read order
+  int order;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &order, sizeof(int));
+
+  // read n_vtx_elt
+  CWP_Block_t block_type = CWP_std_block_type_get(local_code_name, cpl_id, block_id);
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &block_type, sizeof(int));
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  int n_vtx_elt;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_vtx_elt, sizeof(int));
+
+  // read connectivity
+  std::string s(cpl_id);
+
+  svr_cwp.coupling[s].std_connec = (int *) malloc(sizeof(int) * n_elts * n_vtx_elt);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].std_connec, sizeof(int) * n_elts * n_vtx_elt);
+
+  // read global number
+  int NULL_flag;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &NULL_flag, sizeof(int));
+
+  // launch
+  if (NULL_flag) {
+
+    // send status msg
+    MPI_Barrier(svr_mpi.intra_comms[0]);
+    if (svr->flags & CWP_FLAG_VERBOSE) {
+      t_message message;
+      NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_SET);
+      message.flag = CWP_SVR_LCH_BEGIN;
+      CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+    }
+
+    CWP_Mesh_interf_block_ho_set(local_code_name,
+                                  cpl_id,
+                                  i_part,
+                                  block_id,
+                                  n_elts,
+                                  order,
+                                  svr_cwp.coupling[s].std_connec,
+                                  NULL);
+  }
+  else {
+    svr_cwp.coupling[s].std_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].std_global_num, sizeof(CWP_g_num_t) * n_elts);
+
+    // send status msg
+    MPI_Barrier(svr_mpi.intra_comms[0]);
+    if (svr->flags & CWP_FLAG_VERBOSE) {
+      t_message message;
+      NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_SET);
+      message.flag = CWP_SVR_LCH_BEGIN;
+      CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+    }
+
+    CWP_Mesh_interf_block_ho_set(local_code_name,
+                                  cpl_id,
+                                  i_part,
+                                  block_id,
+                                  n_elts,
+                                  order,
+                                  svr_cwp.coupling[s].std_connec,
+                                  svr_cwp.coupling[s].std_global_num);
+  }
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_SET);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
 /*============================================================================
@@ -5125,27 +5243,27 @@ CWP_server_msg_handler
 
     break;
 
-  case CWP_MSG_CWP_INTERP_FROM_LOCATION_UNSET:
+  case CWP_MSG_CWP_INTERP_FUNCTION_UNSET:
 
     // verbose
     if (svr_debug) {
-      printf("CWP: server received CWP_Interp_from_location_unset signal\n");
+      printf("CWP: server received CWP_Interp_function_unset signal\n");
     }
 
     // launch
-    CWP_server_Interp_from_location_unset(svr);
+    CWP_server_Interp_function_unset(svr);
 
     break;
 
-  case CWP_MSG_CWP_INTERP_FROM_LOCATION_SET:
+  case CWP_MSG_CWP_INTERP_FUNCTION_SET:
 
     // verbose
     if (svr_debug) {
-      printf("CWP: server received CWP_Interp_from_location_set signal\n");
+      printf("CWP: server received CWP_Interp_function_set signal\n");
     }
 
     // launch
-    CWP_server_Interp_from_location_set(svr);
+    CWP_server_Interp_function_set(svr);
 
     break;
 
@@ -5160,6 +5278,162 @@ CWP_server_msg_handler
     CWP_server_Output_file_set(svr);
 
     break;
+
+  case CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_SET:
+
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Mesh_interf_block_ho_set signal\n");
+    }
+
+    // launch
+    CWP_server_Mesh_interf_block_ho_set(svr);
+
+    break;
+
+  // case CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_GET:
+
+  //   // verbose
+  //   if (svr_debug) {
+  //     printf("CWP: server received CWP_Mesh_interf_block_ho_get signal\n");
+  //   }
+
+  //   // launch
+  //   CWP_server_Mesh_interf_block_ho_get(svr);
+
+  //   break;
+
+  // case CWP_MSG_CWP_MESH_INTERF_HO_ORDERING_FROM_IJK_SET:
+
+  //   // verbose
+  //   if (svr_debug) {
+  //     printf("CWP: server received CWP_Mesh_interf_ho_ordering_from_IJK_set signal\n");
+  //   }
+
+  //   // launch
+  //   CWP_server_Mesh_interf_ho_ordering_from_IJK_set(svr);
+
+  //   break;
+
+  // case CWP_MSG_CWP_GLOBAL_DATA_ISSEND:
+
+  //   // verbose
+  //   if (svr_debug) {
+  //     printf("CWP: server received CWP_Global_data_issend signal\n");
+  //   }
+
+  //   // launch
+  //   CWP_server_Global_data_issend(svr);
+
+  //   break;
+
+  // case CWP_MSG_CWP_GLOBAL_DATA_IRECV:
+
+  //   // verbose
+  //   if (svr_debug) {
+  //     printf("CWP: server received CWP_Global_data_irecv signal\n");
+  //   }
+
+  //   // launch
+  //   CWP_server_Global_data_irecv(svr);
+
+  //   break;
+
+  // case CWP_MSG_CWP_GLOBAL_DATA_WAIT_ISSEND:
+
+  //   // verbose
+  //   if (svr_debug) {
+  //     printf("CWP: server received CWP_Global_data_wait_issend signal\n");
+  //   }
+
+  //   // launch
+  //   CWP_server_Global_data_wait_issend(svr);
+
+  //   break;
+
+  // case CWP_MSG_CWP_GLOBAL_DATA_WAIT_IRECV:
+
+  //   // verbose
+  //   if (svr_debug) {
+  //     printf("CWP: server received CWP_Global_data_wait_irecv signal\n");
+  //   }
+
+  //   // launch
+  //   CWP_server_Global_data_wait_irecv(svr);
+
+  //   break;
+
+  // case CWP_MSG_CWP_PART_DATA_CREATE:
+
+  //   // verbose
+  //   if (svr_debug) {
+  //     printf("CWP: server received CWP_Part_data_create signal\n");
+  //   }
+
+  //   // launch
+  //   CWP_server_Part_data_create(svr);
+
+  //   break;
+
+  // case CWP_MSG_CWP_PART_DATA_DEL:
+
+  //   // verbose
+  //   if (svr_debug) {
+  //     printf("CWP: server received CWP_Part_data_del signal\n");
+  //   }
+
+  //   // launch
+  //   CWP_server_Part_data_del(svr);
+
+  //   break;
+
+  // case CWP_MSG_CWP_PART_DATA_ISSEND:
+
+  //   // verbose
+  //   if (svr_debug) {
+  //     printf("CWP: server received CWP_Part_data_issend signal\n");
+  //   }
+
+  //   // launch
+  //   CWP_server_Part_data_issend(svr);
+
+  //   break;
+
+  // case CWP_MSG_CWP_PART_DATA_IRECV:
+
+  //   // verbose
+  //   if (svr_debug) {
+  //     printf("CWP: server received CWP_Part_data_irecv signal\n");
+  //   }
+
+  //   // launch
+  //   CWP_server_Part_data_irecv(svr);
+
+  //   break;
+
+  // case CWP_MSG_CWP_PART_DATA_WAIT_ISSEND:
+
+  //   // verbose
+  //   if (svr_debug) {
+  //     printf("CWP: server received CWP_Part_data_wait_issend signal\n");
+  //   }
+
+  //   // launch
+  //   CWP_server_Part_data_wait_issend(svr);
+
+  //   break;
+
+  // case CWP_MSG_CWP_PART_DATA_WAIT_IRECV:
+
+  //   // verbose
+  //   if (svr_debug) {
+  //     printf("CWP: server received CWP_Part_data_wait_irecv signal\n");
+  //   }
+
+  //   // launch
+  //   CWP_server_Part_data_wait_irecv(svr);
+
+  //   break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0, "Received unknown message type %i, terminating server\n", msg->message_type);

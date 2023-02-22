@@ -1288,7 +1288,7 @@ CWP_client_Field_wait_irecv
 
 /**
  *
- * \brief Interp_from_location_unset CWIPI.
+ * \brief Interp_function_unset CWIPI.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -1297,7 +1297,7 @@ CWP_client_Field_wait_irecv
  */
 
 void
-CWP_client_Interp_from_location_unset
+CWP_client_Interp_function_unset
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
@@ -1307,10 +1307,10 @@ CWP_client_Interp_from_location_unset
 
 /**
  *
- * \brief Interp_from_location_set CWIPI.
+ * \brief Interp_function_set CWIPI.
  *
  * This function takes into account an user interpolation function written with
- * void (*\ref CWP_Interp_from_location_t) interface.
+ * void (*\ref CWP_Interp_function_t) interface.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -1321,20 +1321,18 @@ CWP_client_Interp_from_location_unset
  */
 
 void
-CWP_client_Interp_from_location_set
+CWP_client_Interp_function_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
  const char                 *src_field_id,
- CWP_Interp_from_location_t  fct
+ CWP_Interp_function_t  fct
 );
 
-/*=============================================================================
- * Client CWIPI function interfaces that are not implemented yet
- *============================================================================*/
+// NB: no need to do getters since this mode does not exist in client-server mode
 
 /**
- * \brief Mesh_interf_h_order_block_set CWIPI. <b>(Not implemented yet)</b>
+ * \brief Mesh_interf_block_ho_set CWIPI.
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -1348,7 +1346,7 @@ CWP_client_Interp_from_location_set
  */
 
 void
-CWP_client_Mesh_interf_h_order_block_set
+CWP_client_Mesh_interf_block_ho_set
 (
  const char        *local_code_name,
  const char        *cpl_id,
@@ -1362,7 +1360,7 @@ CWP_client_Mesh_interf_h_order_block_set
 
 
 /**
- * \brief Mesh_interf_h_order_block_get CWIPI. <b>(Not implemented yet)</b>
+ * \brief Mesh_interf_block_ho_get CWIPI.
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -1376,7 +1374,7 @@ CWP_client_Mesh_interf_h_order_block_set
  */
 
 void
-CWP_client_Mesh_interf_h_order_block_get
+CWP_client_Mesh_interf_block_ho_get
 (
  const char        *local_code_name,
  const char        *cpl_id,
@@ -1388,333 +1386,245 @@ CWP_client_Mesh_interf_h_order_block_get
  CWP_g_num_t      **global_num
 );
 
-
 /**
- * \brief Cpl_trans_init CWIPI. <b>(Not implemented yet)</b>
  *
- * This function defines the translation direction. The movement is updated
- * before the end of the current time step by \ref CWP_Cpl_trans_update
- * Two coupled codes have to define the same properties. The distant code is always
- * considered as a static interface.
+ * \brief Mesh_interf_ho_ordering_from_IJK_set CWIPI.
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
- * \param [in]  vect             Direction
+ * \param [in]  block_type       Block type
+ * \param [in]  order            Element order
+ * \param [in]  n_nodes          Number of nodes
+ * \param [in]  ijk_grid         User ordering to (u, v, w) grid (size = elt_dim * n_nodes)
  *
  */
 
 void
-CWP_client_Cpl_trans_init
+CWP_client_Mesh_interf_ho_ordering_from_IJK_set
 (
- const char      *local_code_name,
- const char      *cpl_id,
- const double     vect[3]
-);
-
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const CWP_Block_t  block_type,
+ const int          order,
+ const int          n_nodes,
+ const int         *ijk_grid
+ );
 
 /**
- * \brief Cpl_trans_update CWIPI. <b>(Not implemented yet)</b>
+ * \brief Global_data_issend CWIPI.
  *
- * This function computes the next time step position from a relative distance. If
- * it is a known position, spatial interpolation weights are not recomputed. Otherwise,
- * spatial interpolation weights are computed from previous results.
- *
- *
- * \param [in]  local_code_name  Local code name
- * \param [in]  cpl_id           Coupling identifier
- * \param [in]  dist             Relative distance from previous displacement
- *
- */
-
-void
-CWP_client_Cpl_trans_update
-(
- const char      *local_code_name,
- const char      *cpl_id,
- const double     dist
-);
-
-
-/**
- * \brief Cpl_rotation_init CWIPI. <b>(Not implemented yet)</b>
- *
- * This function defines the rotation properties. The movement is updated
- * before the end of the current time step by \ref CWP_Cpl_rotation_update.
- * Two coupled codes have to define the same properties. The distant code is always
- * considered as a static interface.
- *
- * \param [in]  local_code_name  Local code name
- * \param [in]  cpl_id           Coupling identifier
- * \param [in]  vect             Direction
- * \param [in]  center           Center
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] global_data_id
+ * \param [in] s_send_entity
+ * \param [in] send_stride
+ * \param [in] n_send_entity
+ * \param [in] send_data
  *
  */
 
 void
-CWP_client_Cpl_rotation_init
-(
- const char      *local_code_name,
- const char      *cpl_id,
- const double     vect[3],
- const double     center[3]
-);
-
-
-/**
- * \brief Cpl_rotation_update CWIPI. <b>(Not implemented yet)</b>
- *
- * This function computes the next time step position from a relative angle. If
- * it is a known position, the spatial interpolation weights are not reprocessed. Otherwise,
- * the spatial interpolation weights are computed from previous results.
- *
- * \param [in]  cpl_id           Coupling identifier
- * \param [in]  local_code_name  Local code name
- * \param [in]  angle            Relative angle from previous displacement
- *
- */
-
-void
-CWP_client_Cpl_rotation_update
-(
- const char      *local_code_name,
- const char      *cpl_id,
- const double     angle
-);
-
-
-/**
- * \brief Cpl_storage_properties_set CWIPI. <b>(Not implemented yet)</b>
- *
- * This functions activates the storage of the spatial interpolation weights in case of rotation
- * or translation of the coupling interface.
- *
- * \param [in] cpl_id              Coupling identifier
- * \param [in] local_code_name     Local code name
- * \param [in] buffer_size         Size of buffer (Mo) on each coupling
- *                                 communicator rank (same value for each)
- * \param [in] disk_storage_size   Total size of disk storage when the buffer
- *                                 is full (Mo) (Same value for each rank)
- *
- */
-
-void
-CWP_client_Cpl_storage_properties_set
+CWP_client_Global_data_issend
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const int       buffer_size,
- const int       disk_storage_size
+ const char     *global_data_id,
+ size_t          s_send_entity,
+ int             send_stride,
+ int             n_send_entity,
+ void           *send_data
 );
 
-
 /**
- *
- * \brief Interp_from_intersect_set CWIPI. <b>(Not implemented yet)</b>
- *
- * This function takes into account an user interpolation function written with
- * void (*\ref CWP_Interp_from_intersect_t) interface.
+ * \brief Global_data_irecv CWIPI.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] fct              Function
+ * \param [in] global_data_id
+ * \param [in] s_recv_entity
+ * \param [in] recv_stride
+ * \param [in] n_recv_entity
+ * \param [in] recv_data
  *
  */
 
 void
-CWP_client_Interp_from_intersect_set
+CWP_client_Global_data_irecv
 (
- const char                *local_code_name,
- const char                *cpl_id,
- CWP_Interp_from_intersect_t fct
+ const char     *local_code_name,
+ const char     *cpl_id,
+ const char     *global_data_id,
+ size_t         *s_recv_entity,
+ int            *recv_stride,
+ int            *n_recv_entity,
+ void          **recv_data
 );
 
 /**
- *
- * \brief Interp_from_closest_pts_set CLIENT. <b>(Not implemented yet)</b>
- *
- * This function takes into account an user interpolation function written with
- *  void (*\ref CWP_Interp_from_closest_pts_t) interface.
+ * \brief Global_data_wait_issend CWIPI.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] fct              Function
+ * \param [in] global_data_id
  *
  */
 
 void
-CWP_client_Interp_from_closest_pts_set
+CWP_client_Global_data_wait_issend
 (
- const char                     *local_code_name,
- const char                     *cpl_id,
- CWP_Interp_from_closest_pts_t   fct
-);
-
-
-
-/**
- * \brief Computed_tgts_dist_to_spatial_interp_get CWIPI. <b>(Not implemented yet)</b>
- *
- * \param [in]  local_code_name  Local code name
- * \param [in]  cpl_id           Coupling identifier
- *
- * \return               Distance
- *
- */
-
-const double *
-CWP_client_Computed_tgts_dist_to_spatial_interp_get
-(
- const char *local_code_name,
- const char *cpl_id
+ const char     *local_code_name,
+ const char     *cpl_id,
+ const char     *global_data_id
 );
 
 /**
- * \brief Recv_freq_set CWIPI. <b>(Not implemented yet)</b>
- *
- * This function set the receiving frequency. It must be used when
- * the type of receiving frequency is \ref CWP_TIME_EXCH_N_TIME_STEP
- *
- * \param [in]  local_code_name  Local code name
- * \param [in]  cpl_id           Coupling identifier
- * \param [in]  n_step           Frequency in steps number
- *
- */
-
-void
-CWP_client_Recv_freq_set
-(
- const char      *local_code_name,
- const char      *cpl_id,
- const int        n_step
-);
-
-/**
- * \brief next_recv_time_set CWIPI. <b>(Not implemented yet)</b>
- *
- * It must be used when the type of receiving frequency is
- * \ref CWP_TIME_EXCH_ASYNCHRONOUS
- *
- * \param [in]  local_code_name  Local code name
- * \param [in]  cpl_id           Coupling identifier
- * \param [in]  next_time        Next receiving time
- *
- */
-
-void
-CWP_client_next_recv_time_set
-(
- const char      *local_code_name,
- const char      *cpl_id,
- const double     next_time
-);
-
-
-/**
- * \brief Cpl_time_step_set CWIPI. <b>(Not implemented yet)</b>
- *
- * This function sets the coupling time step. It must be used when
- * the type of receiving frequency is \ref CWP_TIME_EXCH_CPL_TIME_STEP
- *
- * \param [in]  local_code_name  Local code name
- * \param [in]  cpl_id           Coupling identifier
- * \param [in]  next_time_step   Coupling time step
- *
- */
-
-void
-CWP_client_Cpl_time_step_set
-(
- const char      *local_code_name,
- const char      *cpl_id,
- const int        next_time_step
-);
-
-
-/**
- * \brief Field_exch CWIPI. <b>(Not implemented yet)</b>
- *
- * This function exchanges the interpolated fields for each coupling depending
- * on mode of time exchange \ref CWP_Time_exch_t.
- *
- * \param [in] local_code_name      Local code name
- * \param [in] cpl_id               Coupling identifier
- *
- */
-
-void
-CWP_client_Field_exch
-(
- const char *local_code_name,
- const char *cpl_id
-);
-
-
-/**
- * \brief Mesh_interf_shared_pdm_nodal CWIPI. <b>(Not implemented yet)</b>
- *
- * \param [in] local_code_name   Local code name
- * \param [in] cpl_id            Coupling identifier
- * \param [in] i_part            Current partition
- * \param [in] pdm_nodal         pdm nodal mesh
- *
- */
-
-
-void
-CWP_client_Mesh_interf_shared_pdm_nodal
-(
- const char   *local_code_name,
- const char   *cpl_id,
- const int     i_part,
- void         *pdm_nodal
-);
-
-
-/**
- *
- * \brief Field_data_type_get CWIPI.  <b>(Not implemented yet)</b>
+ * \brief Global_data_wait_irecv CWIPI.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] field_id         Field identifier
- *
- * \return                      Field data type
- *
- */
-
-CWP_Type_t
-CWP_client_Field_data_type_get
-(
- const char      *local_code_name,
- const char      *cpl_id         ,
- const char      *field_id
-);
-
-
-/**
- *
- * \brief Field_gradient_data_set CWIPI. <b>(Not implemented yet)</b>
- *
- * \param [in] local_code_name Local code name
- * \param [in] cpl_id          Coupling identifier
- * \param [in] field_id        Field identifier
- * \param [in] i_part          Current partition
- * \param [in] order           Order
- * \param [in] data_type       Choice if data is setted for the source or the target
- * \param [in] data            Storage array (Mapping)
+ * \param [in] global_data_id
  *
  */
 
 void
-CWP_client_Field_gradient_data_set
+CWP_client_Global_data_wait_irecv
 (
- const char             *local_code_name,
- const char             *cpl_id,
- const char             *field_id,
- const int               i_part,
- const int               order,
- const CWP_Field_storage_t  storage_type,
- double                  data[]
+ const char     *local_code_name,
+ const char     *cpl_id,
+ const char     *global_data_id
+);
+
+/**
+ * \brief Part_data_create CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id
+ * \param [in] exch_type
+ * \param [in] gnum_elt
+ * \param [in] n_elt
+ * \param [in] n_part
+ *
+ */
+
+void
+CWP_client_Part_data_create
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *part_data_id,
+ CWP_PartData_exch_t   exch_type,
+ CWP_g_num_t         **gnum_elt,
+ int                  *n_elt,
+ int                   n_part
+ );
+
+/**
+ * \brief Part_data_del CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id
+ * \param [in] exch_type
+ *
+ */
+
+void
+CWP_client_Part_data_del
+(
+ const char          *local_code_name,
+ const char          *cpl_id,
+ const char          *part_data_id,
+ CWP_PartData_exch_t  exch_type
+);
+
+
+/**
+ * \brief Part_data_issend CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id
+ * \param [in] s_data
+ * \param [in] n_components
+ * \param [in] part1_to_part2_data
+ * \param [in] request
+ *
+ */
+
+void
+CWP_client_Part_data_issend
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ size_t         s_data,
+ int            n_components,
+ void         **part1_to_part2_data,
+ int           *request
+);
+
+/**
+ * \brief Part_data_irecv CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id
+ * \param [in] s_data
+ * \param [in] n_components
+ * \param [in] part1_to_part2_data
+ * \param [in] request
+ *
+ */
+
+void
+CWP_client_Part_data_irecv
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ size_t         s_data,
+ int            n_components,
+ void        ***part2_data,
+ int           *request
+);
+
+/**
+ * \brief Part_data_wait_issend CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id
+ * \param [in] request
+ *
+ */
+
+void
+CWP_client_Part_data_wait_issend
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ int           *request
+);
+
+/**
+ * \brief Part_data_wait_irecv CWIPI.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id
+ * \param [in] request
+ *
+ */
+
+void
+CWP_client_Part_data_wait_irecv
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ int           *request
 );
 
 /*=============================================================================

@@ -101,27 +101,27 @@ _cwipi_print_with_c
   return vfprintf(_cwipi_output_listing, format, arg_ptr);
 }
 
-// --> n_nodes
+// --> n_vtx
 
-static int n_nodes_get(CWP_Block_t block_type) {
-  int n_nodes = 0;
+static int n_vtx_get(CWP_Block_t block_type) {
+  int n_vtx = 0;
 
   switch(block_type) {
 
   case CWP_BLOCK_NODE: {
-    n_nodes = 1;
+    n_vtx = 1;
     } break;
 
   case CWP_BLOCK_EDGE2: {
-    n_nodes = 2;
+    n_vtx = 2;
     } break;
 
   case CWP_BLOCK_FACE_TRIA3: {
-    n_nodes = 3;
+    n_vtx = 3;
     } break;
 
   case CWP_BLOCK_FACE_QUAD4: {
-    n_nodes = 4;
+    n_vtx = 4;
     } break;
 
   case CWP_BLOCK_FACE_POLY: {
@@ -131,19 +131,19 @@ static int n_nodes_get(CWP_Block_t block_type) {
     } break;
 
   case CWP_BLOCK_CELL_TETRA4: {
-    n_nodes = 4;
+    n_vtx = 4;
     } break;
 
   case CWP_BLOCK_CELL_HEXA8: {
-    n_nodes = 8;
+    n_vtx = 8;
     } break;
 
   case CWP_BLOCK_CELL_PRISM6: {
-    n_nodes = 6;
+    n_vtx = 6;
     } break;
 
   case CWP_BLOCK_CELL_PYRAM5: {
-    n_nodes = 5;
+    n_vtx = 5;
     } break;
 
   case CWP_BLOCK_CELL_POLY: {
@@ -157,7 +157,63 @@ static int n_nodes_get(CWP_Block_t block_type) {
     return -1;
   }
 
-  return n_nodes;
+  return n_vtx;
+}
+
+// --> ho_n_vtx
+
+static int ho_n_vtx_get(CWP_Block_t block_type, int order) {
+switch (block_type) {
+  case CWP_BLOCK_NODE :
+    return 1;
+    break;
+  case CWP_BLOCK_EDGE2 :
+    return 2;
+    break;
+  case CWP_BLOCK_FACE_TRIA3 :
+    return 3;
+    break;
+  case CWP_BLOCK_FACE_QUAD4 :
+    return 4;
+    break;
+  case CWP_BLOCK_CELL_TETRA4 :
+    return 4;
+    break;
+  case CWP_BLOCK_CELL_PYRAM5 :
+    return 5;
+    break;
+  case CWP_BLOCK_CELL_PRISM6 :
+    return 6;
+    break;
+  case CWP_BLOCK_CELL_HEXA8 :
+    return 8;
+    break;
+
+  case CWP_BLOCK_EDGEHO :
+    return order + 1;
+    break;
+  case CWP_BLOCK_FACE_TRIAHO :
+    return (order + 1) * (order + 2) / 2;
+    break;
+  case CWP_BLOCK_FACE_QUADHO :
+    return (order + 1) * (order + 1);
+    break;
+  case CWP_BLOCK_CELL_TETRAHO :
+    return (order + 1) * (order + 2) * (order + 3) / 6;
+    break;
+  case CWP_BLOCK_CELL_PYRAMHO :
+    return (order + 1) * (order + 2) * (2*order + 3) / 6;
+    break;
+  case CWP_BLOCK_CELL_PRISMHO :
+    return (order + 1) * (order + 1) * (order + 2) / 2;
+    break;
+  case CWP_BLOCK_CELL_HEXAHO :
+    return (order + 1) * (order + 1) * (order + 1);
+    break;
+  default :
+    PDM_error (__FILE__, __LINE__, 0, "Unknown order for Poly2D and Poly3D (block_type %d)\n", block_type);
+  }
+  return -1;
 }
 
 // --> endianness
@@ -525,13 +581,13 @@ static void verbose(t_message msg) {
     strcpy(function, name);
     } break;
 
-  case CWP_MSG_CWP_INTERP_FROM_LOCATION_UNSET: {
-    char name[] = "CWP_Interp_from_location_unset";
+  case CWP_MSG_CWP_INTERP_FUNCTION_UNSET: {
+    char name[] = "CWP_Interp_function_unset";
     strcpy(function, name);
     } break;
 
-  case CWP_MSG_CWP_INTERP_FROM_LOCATION_SET: {
-    char name[] = "CWP_Interp_from_location_set";
+  case CWP_MSG_CWP_INTERP_FUNCTION_SET: {
+    char name[] = "CWP_Interp_function_set";
     strcpy(function, name);
     } break;
 
@@ -3453,7 +3509,7 @@ CWP_client_Mesh_interf_block_std_set
   // send n_vtx_elt
   CWP_Block_t block_type;
   CWP_transfer_readdata(clt->socket, clt->max_msg_size,(void *) &block_type, sizeof(int));
-  int n_vtx_elt = n_nodes_get(block_type);
+  int n_vtx_elt = n_vtx_get(block_type);
   int endian_n_vtx_elt = n_vtx_elt;
   CWP_swap_endian_4bytes(&endian_n_vtx_elt, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_vtx_elt, sizeof(int));
@@ -5178,7 +5234,7 @@ CWP_client_Field_wait_irecv
 }
 
 void
-CWP_client_Interp_from_location_unset
+CWP_client_Interp_function_unset
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
@@ -5189,15 +5245,15 @@ CWP_client_Interp_from_location_unset
 
   // // verbose
   // if (clt->flags & CWP_FLAG_VERBOSE) {
-  //   printf("CWP-CLIENT: Client initiating CWP_Interp_from_location_unset\n");
+  //   printf("CWP-CLIENT: Client initiating CWP_Interp_function_unset\n");
   // }
 
   // // create message
-  // NEWMESSAGE(msg, CWP_MSG_CWP_INTERP_FROM_LOCATION_UNSET);
+  // NEWMESSAGE(msg, CWP_MSG_CWP_INTERP_FUNCTION_UNSET);
 
   // // send message
   // if (CWP_client_send_msg(&msg) != 0) {
-  //   PDM_error(__FILE__, __LINE__, 0, "CWP_client_Interp_from_location_unset failed to send message header\n");
+  //   PDM_error(__FILE__, __LINE__, 0, "CWP_client_Interp_function_unset failed to send message header\n");
   // }
 
   // // send local code name
@@ -5213,16 +5269,16 @@ CWP_client_Interp_from_location_unset
  PDM_UNUSED(cpl_id);
  PDM_UNUSED(src_field_id);
 
- printf("CWP_client_Interp_from_location_unset not implemented yet\n");
+ printf("CWP_client_Interp_function_unset not implemented yet\n");
 }
 
 void
-CWP_client_Interp_from_location_set
+CWP_client_Interp_function_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
  const char                 *src_field_id,
- CWP_Interp_from_location_t  fct
+ CWP_Interp_function_t  fct
 )
 {
  PDM_UNUSED(local_code_name);
@@ -5230,11 +5286,130 @@ CWP_client_Interp_from_location_set
  PDM_UNUSED(src_field_id);
  PDM_UNUSED(fct);
 
- printf("CWP_client_Interp_from_location_set not implemented yet\n");
+ printf("CWP_client_Interp_function_set not implemented yet\n");
  /* TO DO: standard interpolation functions could be implemented
   *        at server side and user could choose out of them or
   *        implement some others
   */
+}
+
+void
+CWP_client_Mesh_interf_block_ho_set
+(
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const int          i_part,
+ const int          block_id,
+ const int          n_elts,
+ const int          order,
+ int                connec[],
+ CWP_g_num_t        global_num[]
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Mesh_interf_h_order_block_set\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_SET);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Mesh_interf_h_order_block_set failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send i_part
+  int endian_i_part = i_part;
+  CWP_swap_endian_4bytes(&endian_i_part, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_i_part, sizeof(int));
+
+  // send block_id
+  int endian_block_id = block_id;
+  CWP_swap_endian_4bytes(&endian_block_id, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_block_id, sizeof(int));
+
+  // send n_elts
+  int endian_n_elts = n_elts;
+  CWP_swap_endian_4bytes(&endian_n_elts, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_elts, sizeof(int));
+
+  // send order
+  int endian_order = order;
+  CWP_swap_endian_4bytes(&endian_order, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_order, sizeof(int));
+
+  // send n_vtx_elt
+  CWP_Block_t block_type;
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size,(void *) &block_type, sizeof(int));
+  int n_vtx_elt = ho_n_vtx_get(block_type, order);
+  int endian_n_vtx_elt = n_vtx_elt;
+  CWP_swap_endian_4bytes(&endian_n_vtx_elt, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_vtx_elt, sizeof(int));
+
+  // send connectivity
+  int *endian_connec = (int *) malloc(sizeof(int) * n_elts * n_vtx_elt);
+  memcpy(endian_connec, connec, sizeof(int) * n_elts * n_vtx_elt);
+  CWP_swap_endian_4bytes(endian_connec, n_elts * n_vtx_elt);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_connec, sizeof(int) * n_elts * n_vtx_elt);
+
+  // send global number
+  int NULL_flag = 0;
+  if (global_num == NULL) {
+    NULL_flag = 1;
+  }
+  CWP_swap_endian_4bytes(&NULL_flag, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &NULL_flag, sizeof(int));
+
+  CWP_g_num_t  *endian_global_num = (CWP_g_num_t  *) malloc(sizeof(CWP_g_num_t) * n_elts);
+  if (!NULL_flag) {
+    memcpy(endian_global_num, global_num, sizeof(CWP_g_num_t) * n_elts);
+    if (sizeof(CWP_g_num_t) == 4) {
+      CWP_swap_endian_4bytes((int *) endian_global_num, n_elts);
+    }
+    else  if (sizeof(CWP_g_num_t) == 8) {
+      CWP_swap_endian_8bytes((double *) endian_global_num, n_elts);
+    }
+    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_global_num, sizeof(CWP_g_num_t) * n_elts);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // free
+  free(endian_connec);
+  if (endian_global_num != NULL) free(endian_global_num);
 }
 
 #ifdef __cplusplus

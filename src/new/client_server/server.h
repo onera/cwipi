@@ -883,14 +883,14 @@ CWP_server_Field_wait_irecv
 
 /**
  *
- * \brief Interp_from_location_unset CWIPI.
+ * \brief Interp_function_unset CWIPI.
  *
  * \param [in]  p_server       Pointer on server data structure
  *
  */
 
 void
-CWP_server_Interp_from_location_unset
+CWP_server_Interp_function_unset
 (
   p_server                 svr
 );
@@ -898,14 +898,186 @@ CWP_server_Interp_from_location_unset
 
 /**
  *
- * \brief Interp_from_location_set CWIPI.
+ * \brief Interp_function_set CWIPI.
  *
  * \param [in]  p_server       Pointer on server data structure
  *
  */
 
 void
-CWP_server_Interp_from_location_set
+CWP_server_Interp_function_set
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Mesh_interf_h_order_block_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_block_ho_set
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Mesh_interf_block_ho_get CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_block_ho_get
+(
+  p_server                 svr
+);
+
+/**
+ *
+ * \brief Mesh_interf_ho_ordering_from_IJK_set CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Mesh_interf_ho_ordering_from_IJK_set
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Global_data_issend CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Global_data_issend
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Global_data_irecv CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Global_data_irecv
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Global_data_wait_issend CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Global_data_wait_issend
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Global_data_wait_irecv CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Global_data_wait_irecv
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Part_data_create CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Part_data_create
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Part_data_del CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Part_data_del
+(
+  p_server                 svr
+);
+
+
+/**
+ * \brief Part_data_issend CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Part_data_issend
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Part_data_irecv CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Part_data_irecv
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Part_data_wait_issend CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Part_data_wait_issend
+(
+  p_server                 svr
+);
+
+/**
+ * \brief Part_data_wait_irecv CWIPI.
+ *
+ * \param [in]  p_server       Pointer on server data structure
+ *
+ */
+
+void
+CWP_server_Part_data_wait_irecv
 (
   p_server                 svr
 );

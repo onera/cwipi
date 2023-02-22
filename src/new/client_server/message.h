@@ -45,74 +45,90 @@ extern "C" {
 #define CWP_SVR_LCH_END    103
 
 /* Request numbering for CWIPI mirror operations */
-#define CWP_MSG_DIE                                 0
+#define CWP_MSG_DIE                                      0
 
-#define CWP_MSG_CWP_INIT                            1
-#define CWP_MSG_CWP_FINALIZE                        2
+#define CWP_MSG_CWP_INIT                                 1
+#define CWP_MSG_CWP_FINALIZE                             2
 
-#define CWP_MSG_CWP_PARAM_LOCK                      3
-#define CWP_MSG_CWP_PARAM_UNLOCK                    4
-#define CWP_MSG_CWP_PARAM_ADD                       5
-#define CWP_MSG_CWP_PARAM_GET                       6
-#define CWP_MSG_CWP_PARAM_SET                       7
-#define CWP_MSG_CWP_PARAM_DEL                       8
-#define CWP_MSG_CWP_PARAM_N_GET                     9
-#define CWP_MSG_CWP_PARAM_LIST_GET                  10
-#define CWP_MSG_CWP_PARAM_IS                        11
-#define CWP_MSG_CWP_PARAM_REDUCE                    12
+#define CWP_MSG_CWP_PARAM_LOCK                           3
+#define CWP_MSG_CWP_PARAM_UNLOCK                         4
+#define CWP_MSG_CWP_PARAM_ADD                            5
+#define CWP_MSG_CWP_PARAM_GET                            6
+#define CWP_MSG_CWP_PARAM_SET                            7
+#define CWP_MSG_CWP_PARAM_DEL                            8
+#define CWP_MSG_CWP_PARAM_N_GET                          9
+#define CWP_MSG_CWP_PARAM_LIST_GET                       10
+#define CWP_MSG_CWP_PARAM_IS                             11
+#define CWP_MSG_CWP_PARAM_REDUCE                         12
 
-#define CWP_MSG_CWP_CPL_CREATE                      13
-#define CWP_MSG_CWP_CPL_DEL                         14
+#define CWP_MSG_CWP_CPL_CREATE                           13
+#define CWP_MSG_CWP_CPL_DEL                              14
 
-#define CWP_MSG_CWP_PROPERTIES_DUMP                 15
-#define CWP_MSG_CWP_VISU_SET                        16
-#define CWP_MSG_CWP_STATE_UPDATE                    17
-#define CWP_MSG_CWP_TIME_UPDATE                     18
-#define CWP_MSG_CWP_STATE_GET                       19
-#define CWP_MSG_CWP_CODES_NB_GET                    20
-#define CWP_MSG_CWP_CODES_LIST_GET                  21
-#define CWP_MSG_CWP_LOC_CODES_NB_GET                22
-#define CWP_MSG_CWP_LOC_CODES_LIST_GET              23
-#define CWP_MSG_CWP_N_UNCOMPUTED_TGTS_GET           24
-#define CWP_MSG_CWP_UNCOMPUTED_TGTS_GET             25
-#define CWP_MSG_CWP_N_COMPUTED_TGTS_GET             26
-#define CWP_MSG_CWP_COMPUTED_TGTS_GET               27
-#define CWP_MSG_CWP_N_INVOLVED_SRCS_GET             28
-#define CWP_MSG_CWP_INVOLVED_SRCS_GET               29
-#define CWP_MSG_CWP_SPATIAL_INTERP_WEIGHTS_COMPUTE  30
-#define CWP_MSG_CWP_SPATIAL_INTERP_PROPERTY_SET     31
-#define CWP_MSG_CWP_USER_TGT_PTS_SET                32
+#define CWP_MSG_CWP_PROPERTIES_DUMP                      15
+#define CWP_MSG_CWP_VISU_SET                             16
+#define CWP_MSG_CWP_STATE_UPDATE                         17
+#define CWP_MSG_CWP_TIME_UPDATE                          18
+#define CWP_MSG_CWP_STATE_GET                            19
+#define CWP_MSG_CWP_CODES_NB_GET                         20
+#define CWP_MSG_CWP_CODES_LIST_GET                       21
+#define CWP_MSG_CWP_LOC_CODES_NB_GET                     22
+#define CWP_MSG_CWP_LOC_CODES_LIST_GET                   23
+#define CWP_MSG_CWP_N_UNCOMPUTED_TGTS_GET                24
+#define CWP_MSG_CWP_UNCOMPUTED_TGTS_GET                  25
+#define CWP_MSG_CWP_N_COMPUTED_TGTS_GET                  26
+#define CWP_MSG_CWP_COMPUTED_TGTS_GET                    27
+#define CWP_MSG_CWP_N_INVOLVED_SRCS_GET                  28
+#define CWP_MSG_CWP_INVOLVED_SRCS_GET                    29
+#define CWP_MSG_CWP_SPATIAL_INTERP_WEIGHTS_COMPUTE       30
+#define CWP_MSG_CWP_SPATIAL_INTERP_PROPERTY_SET          31
+#define CWP_MSG_CWP_USER_TGT_PTS_SET                     32
 
-#define CWP_MSG_CWP_MESH_INTERF_FINALIZE            33
-#define CWP_MSG_CWP_MESH_INTERF_VTX_SET             34
-#define CWP_MSG_CWP_MESH_INTERF_BLOCK_ADD           35
-#define CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_SET       36
-#define CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_GET       37
-#define CWP_MSG_CWP_MESH_INTERF_F_POLY_BLOCK_SET    38
-#define CWP_MSG_CWP_MESH_INTERF_F_POLY_BLOCK_GET    39
-#define CWP_MSG_CWP_MESH_INTERF_C_POLY_BLOCK_SET    40
-#define CWP_MSG_CWP_MESH_INTERF_C_POLY_BLOCK_GET    41
-#define CWP_MSG_CWP_MESH_INTERF_DEL                 42
-#define CWP_MSG_CWP_MESH_INTERF_FROM_CELLFACE_SET   43
-#define CWP_MSG_CWP_MESH_INTERF_FROM_FACEEDGE_SET   44
+#define CWP_MSG_CWP_MESH_INTERF_FINALIZE                 33
+#define CWP_MSG_CWP_MESH_INTERF_VTX_SET                  34
+#define CWP_MSG_CWP_MESH_INTERF_BLOCK_ADD                35
+#define CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_SET            36
+#define CWP_MSG_CWP_MESH_INTERF_BLOCK_STD_GET            37
+#define CWP_MSG_CWP_MESH_INTERF_F_POLY_BLOCK_SET         38
+#define CWP_MSG_CWP_MESH_INTERF_F_POLY_BLOCK_GET         39
+#define CWP_MSG_CWP_MESH_INTERF_C_POLY_BLOCK_SET         40
+#define CWP_MSG_CWP_MESH_INTERF_C_POLY_BLOCK_GET         41
+#define CWP_MSG_CWP_MESH_INTERF_DEL                      42
+#define CWP_MSG_CWP_MESH_INTERF_FROM_CELLFACE_SET        43
+#define CWP_MSG_CWP_MESH_INTERF_FROM_FACEEDGE_SET        44
 
-#define CWP_MSG_CWP_FIELD_CREATE                    45
-#define CWP_MSG_CWP_FIELD_DATA_SET                  46
-#define CWP_MSG_CWP_FIELD_N_COMPONENT_GET           47
-#define CWP_MSG_CWP_FIELD_TARGET_DOF_LOCATION_GET   48
-#define CWP_MSG_CWP_FIELD_STORAGE_GET               49
-#define CWP_MSG_CWP_FIELD_DEL                       50
-#define CWP_MSG_CWP_FIELD_ISSEND                    51
-#define CWP_MSG_CWP_FIELD_IRECV                     52
-#define CWP_MSG_CWP_FIELD_WAIT_ISSEND               53
-#define CWP_MSG_CWP_FIELD_WAIT_IRECV                54
+#define CWP_MSG_CWP_FIELD_CREATE                         45
+#define CWP_MSG_CWP_FIELD_DATA_SET                       46
+#define CWP_MSG_CWP_FIELD_N_COMPONENT_GET                47
+#define CWP_MSG_CWP_FIELD_TARGET_DOF_LOCATION_GET        48
+#define CWP_MSG_CWP_FIELD_STORAGE_GET                    49
+#define CWP_MSG_CWP_FIELD_DEL                            50
+#define CWP_MSG_CWP_FIELD_ISSEND                         51
+#define CWP_MSG_CWP_FIELD_IRECV                          52
+#define CWP_MSG_CWP_FIELD_WAIT_ISSEND                    53
+#define CWP_MSG_CWP_FIELD_WAIT_IRECV                     54
 
-#define CWP_MSG_CWP_INTERP_FROM_LOCATION_UNSET      55
-#define CWP_MSG_CWP_INTERP_FROM_LOCATION_SET        56
+#define CWP_MSG_CWP_INTERP_FUNCTION_UNSET                55
+#define CWP_MSG_CWP_INTERP_FUNCTION_SET                  56
 
-#define CWP_MSG_CWP_OUTPUT_FILE_SET                 57
+#define CWP_MSG_CWP_OUTPUT_FILE_SET                      57
 
-#define CWP_MSG_CWP_STD_BLOCK_TYPE_GET              58
+#define CWP_MSG_CWP_STD_BLOCK_TYPE_GET                   58
+
+#define CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_SET             59
+#define CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_GET             60
+#define CWP_MSG_CWP_MESH_INTERF_HO_ORDERING_FROM_IJK_SET 61
+
+#define CWP_MSG_CWP_GLOBAL_DATA_ISSEND                   62
+#define CWP_MSG_CWP_GLOBAL_DATA_IRECV                    63
+#define CWP_MSG_CWP_GLOBAL_DATA_WAIT_ISSEND              64
+#define CWP_MSG_CWP_GLOBAL_DATA_WAIT_IRECV               65
+
+#define CWP_MSG_CWP_PART_DATA_CREATE                     66
+#define CWP_MSG_CWP_PART_DATA_DEL                        67
+#define CWP_MSG_CWP_PART_DATA_ISSEND                     68
+#define CWP_MSG_CWP_PART_DATA_IRECV                      69
+#define CWP_MSG_CWP_PART_DATA_WAIT_ISSEND                70
+#define CWP_MSG_CWP_PART_DATA_WAIT_IRECV                 71
 
 /* Init an request */
 #define NEWMESSAGE(msg,msg_type) {memset(&msg,0,sizeof(t_message));msg.message_type=msg_type;}
@@ -125,14 +141,14 @@ extern "C" {
 
 typedef struct t_message
 {
-  int message_type;
-  int flag;
-  int msg_tag;
-  int msg_time;
-  int data_size;
-        int data1;
-        int data2;
-        int data3;
+  int  message_type;
+  int  flag;
+  int  msg_tag;
+  int  msg_time;
+  int  data_size;
+  int  data1;
+  int  data2;
+  int  data3;
   char space[256];
   char object[256];
 }t_message,*p_message;
