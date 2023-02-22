@@ -1849,7 +1849,7 @@ cdef class PartData (object):
                  NPY.ndarray[NPY.int32_t] n_elt,
                  int                      n_part):
         """
-        Initialize field object.
+        Initialize partitionned data object.
 
         Parameters:
           local_code_name (char*)               : Local code name
@@ -2309,7 +2309,9 @@ cdef class Coupling (object):
     cdef str cpl_id
     cdef int n_fields
     cdef list fields
-    # cdef Field[:] fields
+    cdef int n_partData
+    cdef list partData
+
     cdef dict __dict__
 
     def __init__(self,
@@ -2342,6 +2344,9 @@ cdef class Coupling (object):
         self.n_fields = 0
         self.fields_name = {}
         self.fields = []
+        self.partData_name = {}
+        self.n_partData = 0
+        self.partData = []
 
         CWP_Cpl_create(local_code_name,
                        cpl_id,
@@ -2507,8 +2512,127 @@ cdef class Coupling (object):
           field_id        (char*)               : Field id
         """
         cdef int idx = self.fields_name[field_id]
-
+        # TO DO del  self.fields ?
         del self.fields_name[field_id]
+
+    # --> PARTDATA
+    def part_data_create(self,
+                         char                    *part_data_id,
+                         CWP_PartData_exch_t      exch_type,
+                         NPY.ndarray[NPY.long]    gnum_elt, # TO DO long ** ?????
+                         NPY.ndarray[NPY.int32_t] n_elt,
+                         int                      n_part):
+        """
+        Create partitionned data object and add in self.partData dictionnary.
+
+        Parameters:
+          part_data_id    (char*)               : Partitionned data id
+          exch_type       (CWP_PartData_exch_t) : Enum if SEND or RECV side
+          gnum_elt        (long)                : Global number of entities
+          n_elt           (int)                 : Number of elements
+          n_part          (int)                 : Number of partitions
+        """
+
+        self.partData_name[part_data_id] = self.n_partData
+
+        self.partData.append(PartData(self.local_code_name,
+                                      self.cpl_id,
+                                      part_data_id,
+                                      exch_type,
+                                      gnum_elt.data,
+                                      n_elt.data,
+                                      n_part))
+
+        self.n_partData = self.n_partData + 1
+
+    def part_data_issend(self,
+                         char  *part_data_id,
+                         int    n_components,
+                         list   part1_to_part2_data):
+        """
+        Issend partitionned data.
+
+        Parameters:
+          part_data_id        (char*)           : Partitionned data id
+          n_components        (int)             : Number of components
+          part1_to_part2_data (list)            : List of partitioned data arrays, each beeing 1 dimensional and with same datatype
+
+        Returns:
+          request (int) : Exchange resquest
+        """
+
+        cdef int idx = self.partData_name[part_data_id]
+
+        cdef int request = self.partData[idx].issend(n_components,
+                                                     part1_to_part2_data)
+
+    def part_data_irecv(self,
+                        char      *part_data_id,
+                        int        n_components,
+                        NPY.dtype  data_type): # TO DO user can give me this ?
+        """
+        Irecv partitionned data.
+
+        Parameters:
+          part_data_id        (char*)           : Partitionned data id
+          n_components (int)  : Number of components
+
+        Returns:
+          part2_data (list)    : List of partitioned data arrays, each beeing 1 dimensional and with same datatype
+          request    (int)     : Exchange resquest
+        """
+
+        cdef int idx = self.partData_name[part_data_id]
+
+        out = self.partData[idx].issend(n_components,
+                                        data_type)
+
+        return {
+                'request' : out["request"],
+                'part2_data' : out["part2_data"]
+               }
+
+    def part_data_wait_issend(self,
+                               char  *part_data_id,
+                               int    request):
+        """
+        Wait issend partitionned data.
+
+        Parameters:
+          part_data_id (char*) : Partitionned data id
+          request      (int)   : Exchange resquest
+        """
+
+        cdef int idx = self.partData_name[part_data_id]
+        self.partData[idx].wait_issend(request)
+
+    def part_data_wait_irecv(self,
+                             char  *part_data_id,
+                             int    request):
+        """
+        Wait issend partitionned data.
+
+        Parameters:
+          part_data_id (char*) : Partitionned data id
+          request      (int)   : Exchange resquest
+        """
+
+        cdef int idx = self.partData_name[part_data_id]
+        self.partData[idx].wait_irecv(request)
+
+
+    def part_data_del(self,
+                      char  *part_data_id):
+        """
+        Delete PartData object and partitionned data form self.partData dictionnary
+
+        Parameters:
+          part_data_id       (char*)  : Partitionned data id
+        """
+
+        cdef int idx = self.partData_name[part_data_id]
+        # TO DO del self.partData
+        del self.partData_name[part_data_id]
 
     # --> MESH
     def mesh_interf_finalize(self):
