@@ -1408,7 +1408,7 @@ CWP_client_Mesh_interf_ho_ordering_from_IJK_set
  const int          order,
  const int          n_nodes,
  const int         *ijk_grid
- );
+);
 
 /**
  * \brief Global_data_issend CWIPI.

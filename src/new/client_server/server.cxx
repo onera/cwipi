@@ -1232,6 +1232,9 @@ CWP_server_Cpl_del
   if (svr_cwp.coupling[s].face_global_num != NULL) free(svr_cwp.coupling[s].face_global_num);
   if (svr_cwp.coupling[s].std_connec != NULL) free(svr_cwp.coupling[s].std_connec);
   if (svr_cwp.coupling[s].std_global_num != NULL) free(svr_cwp.coupling[s].std_global_num);
+  if (svr_cwp.coupling[s].ho_std_connec != NULL) free(svr_cwp.coupling[s].ho_std_connec);
+  if (svr_cwp.coupling[s].ho_std_global_num != NULL) free(svr_cwp.coupling[s].ho_std_global_num);
+  if (svr_cwp.coupling[s].ijk_grid != NULL) free(svr_cwp.coupling[s].ijk_grid);
   if (svr_cwp.coupling[s].usr_coord != NULL) free(svr_cwp.coupling[s].usr_coord);
   if (svr_cwp.coupling[s].usr_global_num != NULL) free(svr_cwp.coupling[s].usr_global_num);
   if (svr_cwp.coupling[s].property_name != NULL) free(svr_cwp.coupling[s].property_name);
@@ -4313,7 +4316,7 @@ CWP_server_Interp_function_set
 }
 
 void
-CWP_server_Mesh_interf_block_ho_set // TO DO: adapter
+CWP_server_Mesh_interf_block_ho_set
 (
   p_server                 svr
 )
@@ -4363,8 +4366,8 @@ CWP_server_Mesh_interf_block_ho_set // TO DO: adapter
   // read connectivity
   std::string s(cpl_id);
 
-  svr_cwp.coupling[s].std_connec = (int *) malloc(sizeof(int) * n_elts * n_vtx_elt);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].std_connec, sizeof(int) * n_elts * n_vtx_elt);
+  svr_cwp.coupling[s].ho_std_connec = (int *) malloc(sizeof(int) * n_elts * n_vtx_elt);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].ho_std_connec, sizeof(int) * n_elts * n_vtx_elt);
 
   // read global number
   int NULL_flag;
@@ -4388,12 +4391,12 @@ CWP_server_Mesh_interf_block_ho_set // TO DO: adapter
                                   block_id,
                                   n_elts,
                                   order,
-                                  svr_cwp.coupling[s].std_connec,
+                                  svr_cwp.coupling[s].ho_std_connec,
                                   NULL);
   }
   else {
-    svr_cwp.coupling[s].std_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
-    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].std_global_num, sizeof(CWP_g_num_t) * n_elts);
+    svr_cwp.coupling[s].ho_std_global_num = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elts);
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].ho_std_global_num, sizeof(CWP_g_num_t) * n_elts);
 
     // send status msg
     MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -4410,8 +4413,8 @@ CWP_server_Mesh_interf_block_ho_set // TO DO: adapter
                                   block_id,
                                   n_elts,
                                   order,
-                                  svr_cwp.coupling[s].std_connec,
-                                  svr_cwp.coupling[s].std_global_num);
+                                  svr_cwp.coupling[s].ho_std_connec,
+                                  svr_cwp.coupling[s].ho_std_global_num);
   }
 
   // send status msg
@@ -4419,6 +4422,176 @@ CWP_server_Mesh_interf_block_ho_set // TO DO: adapter
   if (svr->flags & CWP_FLAG_VERBOSE) {
     t_message message;
     NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_SET);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Mesh_interf_block_ho_get
+(
+  p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_GET);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read i_part
+  int i_part;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &i_part, sizeof(int));
+
+  // read block_id
+  int block_id;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &block_id, sizeof(int));
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_GET);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  int               n_elts     = -1;
+  int               order      = -1;
+  int              *connec     = NULL;
+  CWP_g_num_t      *global_num = NULL;
+  CWP_Mesh_interf_block_ho_get(local_code_name,
+                               cpl_id,
+                               i_part,
+                               block_id,
+                               &n_elts,
+                               &order,
+                               &connec,
+                               &global_num);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_GET);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // send n_elts
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &n_elts, sizeof(int));
+
+  // send order
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &order, sizeof(int));
+
+  // send connectivity
+  CWP_Block_t block_type = CWP_std_block_type_get(local_code_name, cpl_id, block_id);
+  int n_vtx_elt = n_nodes_get(block_type);
+
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &n_vtx_elt, sizeof(int));
+  CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, connec, sizeof(int) * (n_vtx_elt * n_elts));
+
+  // send global number
+  int NULL_flag = 0;
+  if (global_num == NULL) {
+    NULL_flag = 1;
+  }
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size,(void*) &NULL_flag, sizeof(int));
+
+  if (!NULL_flag) {
+    CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, global_num, sizeof(CWP_g_num_t) * n_elts);
+  }
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Mesh_interf_ho_ordering_from_IJK_set
+(
+  p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_HO_ORDERING_FROM_IJK_SET);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read block_type
+  CWP_Block_t block_type;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &block_type, sizeof(CWP_Block_t));
+
+  // read order
+  int order;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &order, sizeof(int));
+
+  // read n_nodes
+  int n_nodes;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_nodes, sizeof(int));
+
+  // read connectivity
+  std::string s(cpl_id);
+  int size;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &size, sizeof(int));
+  svr_cwp.coupling[s].ijk_grid = (int *) malloc(sizeof(int) * size);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s].ijk_grid, sizeof(int) * size);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_HO_ORDERING_FROM_IJK_SET);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  CWP_client_Mesh_interf_ho_ordering_from_IJK_set(local_code_name,
+                                                  cpl_id,
+                                                  block_type,
+                                                  order,
+                                                  n_nodes,
+                                                  svr_cwp.coupling[s].ijk_grid);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_MESH_INTERF_HO_ORDERING_FROM_IJK_SET);
     message.flag = CWP_SVR_LCH_END;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }

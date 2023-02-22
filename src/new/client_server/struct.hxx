@@ -127,6 +127,13 @@ struct t_coupling
   int *std_connec;
   CWP_g_num_t *std_global_num;
 
+  // Mesh_interf_block_ho_set
+  int *ho_std_connec;
+  CWP_g_num_t *ho_std_global_num;
+
+  // Mesh_interf_ho_ordering_from_IJK_set
+  int *ijk_grid;
+
   // User_tgt_pts_set
   double *usr_coord;
   CWP_g_num_t *usr_global_num;
