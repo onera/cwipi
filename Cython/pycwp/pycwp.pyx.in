@@ -1389,78 +1389,6 @@ def param_unlock(char        *code_name):
 
     CWP_Param_unlock(code_name)
 
-# --> functions about exchange TO DO : add in field object?
-def field_issend(char     *local_code_name,
-                 char     *cpl_id,
-                 char     *src_field_id):
-    """
-    Send a spatially interpolated field to the coupled code with
-    nonblocking communications.
-
-    This function is independant of CWP_Time_exch_t mode. The user has to
-    manually check the consistency of the exchanges.
-
-    Parameters:
-      local_code_name (char*) : Local code name
-      cpl_id          (char*) : Coupling identifier
-      src_field_id    (char*) : Source field identifier
-    """
-
-    CWP_Field_issend(local_code_name,
-                     cpl_id,
-                     src_field_id)
-
-def field_irecv(char     *local_code_name,
-                char     *cpl_id,
-                char     *tgt_field_id):
-    """
-    Wait the end of an exchange related to request from CWP_Field_issend.
-
-    Parameters:
-      local_code_name (char*) : Local code name
-      cpl_id          (char*) : Coupling identifier
-      tgt_field_id    (char*) : Target field identifier
-    """
-
-    CWP_Field_irecv(local_code_name,
-                    cpl_id,
-                    tgt_field_id)
-
-def field_wait_issend(char     *local_code_name,
-                      char     *cpl_id,
-                      char     *src_field_id):
-    """
-    Wait the end of an exchange related to request from CWP_Field_issend.
-
-    Parameters:
-      local_code_name (char*) : Local code name
-      cpl_id          (char*) : Coupling identifier
-      src_field_id    (char*) : Source field identifier
-    """
-
-    CWP_Field_wait_issend(local_code_name,
-                          cpl_id,
-                          src_field_id)
-
-def field_wait_irecv(char     *local_code_name,
-                     char     *cpl_id,
-                     char     *tgt_field_id):
-    """
-    Wait the end of an exchange related to request from CWP_Field_irecv.
-
-    This function waits the end of exchange related to request
-    from CWP_Field_irecv
-
-    Parameters:
-      local_code_name (char*) : Local code name
-      cpl_id          (char*) : Coupling identifier
-      tgt_field_id    (char*) : Target field identifier
-    """
-
-    CWP_Field_wait_irecv(local_code_name,
-                         cpl_id,
-                         tgt_field_id)
-
 # --> functions to use inside user interpolation functions
 
 def interp_field_n_components_get(char             *local_code_name,
@@ -2129,6 +2057,69 @@ cdef class Field (object):
                            map_type,
                 <double *> data.data)
 
+    def issend(self):
+        """
+        Send a spatially interpolated field to the coupled code with
+        nonblocking communications.
+
+        This function is independant of CWP_Time_exch_t mode. The user has to
+        manually check the consistency of the exchanges.
+
+        Parameters:
+          local_code_name (char*) : Local code name
+          cpl_id          (char*) : Coupling identifier
+          src_field_id    (char*) : Source field identifier
+        """
+
+        CWP_Field_issend(self.local_code_name,
+                         self.cpl_id,
+                         self.field_id)
+
+    def irecv(self):
+        """
+        Wait the end of an exchange related to request from CWP_Field_issend.
+
+        Parameters:
+          local_code_name (char*) : Local code name
+          cpl_id          (char*) : Coupling identifier
+          tgt_field_id    (char*) : Target field identifier
+        """
+
+        CWP_Field_irecv(self.local_code_name,
+                        self.cpl_id,
+                        self.field_id)
+
+    def wait_issend(self):
+        """
+        Wait the end of an exchange related to request from CWP_Field_issend.
+
+        Parameters:
+          local_code_name (char*) : Local code name
+          cpl_id          (char*) : Coupling identifier
+          src_field_id    (char*) : Source field identifier
+        """
+
+        CWP_Field_wait_issend(self.local_code_name,
+                              self.cpl_id,
+                              self.field_id)
+
+    def wait_irecv(self):
+        """
+        Wait the end of an exchange related to request from CWP_Field_irecv.
+
+        This function waits the end of exchange related to request
+        from CWP_Field_irecv
+
+        Parameters:
+          local_code_name (char*) : Local code name
+          cpl_id          (char*) : Coupling identifier
+          tgt_field_id    (char*) : Target field identifier
+        """
+
+        CWP_Field_wait_irecv(self.local_code_name,
+                             self.cpl_id,
+                             self.field_id)
+
     def n_component_get(self):
         """
         Get number of field components.
@@ -2425,6 +2416,61 @@ cdef class Coupling (object):
         self.fields[idx].data_set(i_part,
                                   map_type,
                                   data)
+
+    def field_issend(self,
+                     char  *field_id):
+        """
+        Send a spatially interpolated field to the coupled code with
+        nonblocking communications.
+
+        This function is independant of CWP_Time_exch_t mode. The user has to
+        manually check the consistency of the exchanges.
+
+        Parameters:
+          src_field_id    (char*) : Source field identifier
+        """
+
+        cdef int idx = self.fields_name[field_id]
+        self.fields[idx].issend()
+
+    def field_irecv(self,
+                    char  *field_id):
+        """
+        Wait the end of an exchange related to request from CWP_Field_issend.
+
+        Parameters:
+          tgt_field_id    (char*) : Target field identifier
+        """
+
+        cdef int idx = self.fields_name[field_id]
+        self.fields[idx].irecv()
+
+    def field_wait_issend(self,
+                          char  *field_id):
+        """
+        Wait the end of an exchange related to request from CWP_Field_issend.
+
+        Parameters:
+          src_field_id    (char*) : Source field identifier
+        """
+
+        cdef int idx = self.fields_name[field_id]
+        self.fields[idx].wait_issend()
+
+    def field_wait_irecv(self,
+                        char  *field_id):
+        """
+        Wait the end of an exchange related to request from CWP_Field_irecv.
+
+        This function waits the end of exchange related to request
+        from CWP_Field_irecv
+
+        Parameters:
+          tgt_field_id    (char*) : Target field identifier
+        """
+
+        cdef int idx = self.fields_name[field_id]
+        self.fields[idx].wait_irecv()
 
     def field_get(self,
                   char                  *field_id):
