@@ -2942,6 +2942,177 @@ CWP_Param_unlock_cf
   free ( c_code_name);
 }
 
+
+/*----------------------------------------------------------------------------*
+ * Functions about data exchange                                              *
+ *----------------------------------------------------------------------------*/
+
+/**
+ * \brief Send a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] global_data_id
+ * \param [in] s_send_entity
+ * \param [in] send_stride
+ * \param [in] n_send_entity
+ * \param [in] send_data
+ *
+ */
+
+void
+CWP_Global_data_issend_cf
+(
+ const char     *f_local_code_name,
+ const int       l_local_code_name,
+ const char     *f_cpl_id,
+ const int       l_cpl_id,
+ const char     *f_global_data_id,
+ const int       l_global_data_id,
+ size_t          s_send_entity,
+ int             send_stride,
+ int             n_send_entity,
+ void           *send_data
+ )
+{
+  char *c_local_code_name, *c_cpl_id, *c_global_data_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_global_data_id  = _fortran_to_c_string(f_global_data_id, l_global_data_id);
+
+  log_trace("n_send_entity = %d, send_stride = %d\n", n_send_entity, send_stride);
+
+  CWP_Global_data_issend(c_local_code_name,
+                         c_cpl_id,
+                         c_global_data_id,
+                         s_send_entity,
+                         send_stride,
+                         n_send_entity,
+                         send_data);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_global_data_id);
+}
+
+/**
+ * \brief Receive a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] global_data_id
+ * \param [in] s_recv_entity
+ * \param [in] recv_stride
+ * \param [in] n_recv_entity
+ * \param [in] recv_data
+ *
+ */
+
+void
+CWP_Global_data_irecv_cf
+(
+ const char     *f_local_code_name,
+ const int       l_local_code_name,
+ const char     *f_cpl_id,
+ const int       l_cpl_id,
+ const char     *f_global_data_id,
+ const int       l_global_data_id
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_global_data_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_global_data_id  = _fortran_to_c_string(f_global_data_id, l_global_data_id);
+
+  CWP_Global_data_irecv(c_local_code_name,
+                        c_cpl_id,
+                        c_global_data_id);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_global_data_id);
+}
+
+/**
+ * \brief Wait of send a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] global_data_id
+ *
+ */
+
+void
+CWP_Global_data_wait_issend_cf
+(
+ const char     *f_local_code_name,
+ const int       l_local_code_name,
+ const char     *f_cpl_id,
+ const int       l_cpl_id,
+ const char     *f_global_data_id,
+ const int       l_global_data_id
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_global_data_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_global_data_id  = _fortran_to_c_string(f_global_data_id, l_global_data_id);
+
+  CWP_Global_data_wait_issend(c_local_code_name,
+                              c_cpl_id,
+                              c_global_data_id);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_global_data_id);
+}
+
+/**
+ * \brief Wait of receive a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] global_data_id
+ *
+ */
+
+void
+CWP_Global_data_wait_irecv_cf
+(
+ const char     *f_local_code_name,
+ const int       l_local_code_name,
+ const char     *f_cpl_id,
+ const int       l_cpl_id,
+ const char     *f_global_data_id,
+ const int       l_global_data_id,
+ size_t         *s_recv_entity,
+ int            *recv_stride,
+ int            *n_recv_entity,
+ void          **recv_data
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_global_data_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_global_data_id  = _fortran_to_c_string(f_global_data_id, l_global_data_id);
+
+  CWP_Global_data_wait_irecv(c_local_code_name,
+                             c_cpl_id,
+                             c_global_data_id,
+                             s_recv_entity,
+                             recv_stride,
+                             n_recv_entity,
+                             recv_data);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_global_data_id);
+}
+
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

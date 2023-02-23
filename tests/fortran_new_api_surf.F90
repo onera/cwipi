@@ -81,6 +81,10 @@ program testf
   !--> reduce
   integer(c_int),       pointer :: res => null()
   character(len = 5),   pointer :: g_code_names(:)         => null()
+
+  ! Global data
+  character(len=99)             :: global_data_name
+  integer(c_int), pointer       :: global_data(:,:) => null()
   !--------------------------------------------------------------------
 
 
@@ -429,6 +433,54 @@ program testf
     if (debug) then
       write(iiunit,*) "n_wrong =", n_wrong
     endif
+  endif
+
+
+
+  !! Global data
+  global_data_name = "chocolatine"
+  if (code_names(1) == "code1") then
+    allocate(global_data(3,2))
+    do i = 1,2
+      global_data(:,i) = [i,2*i,3*i]
+    enddo
+    call CWP_Global_data_issend(code_names(1),    &
+                                coupling_name,    &
+                                global_data_name, &
+                                global_data)
+  else
+    call CWP_Global_data_irecv(code_names(1),    &
+                               coupling_name,    &
+                               global_data_name)
+  endif
+
+  ! call MPI_Barrier(MPI_comm_world, ierr)
+
+  if (code_names(1) == "code1") then
+    call CWP_Global_data_wait_issend(code_names(1), &
+                                     coupling_name, &
+                                     global_data_name)
+  else
+    call CWP_Global_data_wait_irecv(code_names(1),    &
+                                    coupling_name,    &
+                                    global_data_name, &
+                                    global_data)
+  endif
+
+  call MPI_Barrier(MPI_comm_world, ierr)
+
+  if (debug) then
+    write(iiunit,*) "-- Global data --"
+    write(iiunit,*) "size = ", size(global_data,1), size(global_data,2)
+    ! do i = 1,size(global_data,1)
+    !   write(iiunit,*) global_data(:,i)
+    ! enddo
+  endif
+
+  if (code_names(1) == "code1") then
+    deallocate(global_data)
+  else
+    call pdm_fortran_free_c(c_loc(global_data))
   endif
 
 
