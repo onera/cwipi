@@ -5744,7 +5744,7 @@ CWP_client_Global_data_issend
 
   // send s_send_entity
   size_t endian_s_send_entity = s_send_entity;
-  CWP_swap_endian_8bytes((double *)  &endian_s_send_entity, 1); // TO DO: is a long right ?
+  CWP_swap_endian_8bytes((double *)  &endian_s_send_entity, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_s_send_entity, sizeof(size_t));
 
   // send send_stride
@@ -5964,7 +5964,7 @@ CWP_client_Global_data_wait_irecv
   }
 
   // read s_recv_data
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, s_recv_data, sizeof(int));
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, s_recv_data, sizeof(size_t));
 
   // read recv_stride
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, recv_stride, sizeof(int));
@@ -6083,7 +6083,7 @@ CWP_client_Part_data_create
   t_part_data part_data = t_part_data();
   coupling.part_data.insert(std::make_pair(s2, part_data));
 
-  // set sizes TO DO: free n_elt
+  // set sizes
   if (exch_type == CWP_PARTDATA_SEND) {
     clt_cwp.coupling[s1].part_data[s2].n_part_send = n_part;
     clt_cwp.coupling[s1].part_data[s2].n_send_elt = (int *) malloc(sizeof(int) * n_part);
@@ -6159,6 +6159,31 @@ CWP_client_Part_data_del
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     if (clt->i_rank == 0) verbose(message);
   }
+
+  // free
+  std::string s1(cpl_id);
+  t_coupling coupling = clt_cwp.coupling[s1];
+  std::string s2(part_data_id);
+  t_part_data part_data = coupling.part_data[s2];
+
+  if (exch_type == CWP_PARTDATA_SEND) {
+    if (part_data.n_send_elt != NULL) free(part_data.n_send_elt);
+    part_data.n_send_elt = NULL;
+  } else if (exch_type == CWP_PARTDATA_RECV) {
+    if (part_data.n_recv_elt != NULL) free(part_data.n_recv_elt);
+    part_data.n_recv_elt = NULL;
+
+    if (part_data.recv_data != NULL) {
+      for (int i_part = 0; i_part < part_data.n_part_recv; i_part++) {
+        if (part_data.recv_data[i_part] != NULL) free(part_data.recv_data[i_part]);
+        part_data.recv_data[i_part] = NULL;
+      }
+      free(part_data.recv_data);
+      part_data.recv_data = NULL;
+    }
+  }
+
+  coupling.part_data.erase(s2);
 }
 
 void
@@ -6320,7 +6345,7 @@ CWP_client_Part_data_irecv
     if (clt->i_rank == 0) verbose(message);
   }
 
-  // read receive data TO DO: free recv_data
+  // read receive data
   std::string s1(cpl_id);
   std::string s2(part_data_id);
   clt_cwp.coupling[s1].part_data[s2].recv_data = (void **) malloc(sizeof(void *) * clt_cwp.coupling[s1].part_data[s2].n_part_recv);

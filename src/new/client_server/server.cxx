@@ -4704,7 +4704,57 @@ CWP_server_Global_data_irecv
   p_server                 svr
 )
 {
-  // TO DO
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_GLOBAL_DATA_IRECV);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+   // read global data identifier
+  char *global_data_id = (char *) malloc(sizeof(char));
+  read_name(&global_data_id, svr);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_GLOBAL_DATA_IRECV);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // TO DO uncomment once Bastien has pushed
+  // CWP_Global_data_irecv(local_code_name,
+  //                        cpl_id,
+  //                        global_data_id);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_GLOBAL_DATA_IRECV);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+  free(global_data_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
 void
@@ -4713,7 +4763,65 @@ CWP_server_Global_data_wait_issend
   p_server                 svr
 )
 {
-  // TO DO
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_GLOBAL_DATA_WAIT_ISSEND);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+   // read global data identifier
+  char *global_data_id = (char *) malloc(sizeof(char));
+  read_name(&global_data_id, svr);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_GLOBAL_DATA_WAIT_ISSEND);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  CWP_Global_data_wait_issend(local_code_name,
+                              cpl_id,
+                              global_data_id);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_GLOBAL_DATA_WAIT_ISSEND);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+  free(global_data_id);
+
+  // free
+  std::string s1(cpl_id);
+  std::string s2(global_data_id);
+
+  if (svr_cwp.coupling[s1].global_data[s2].send_data != NULL) free(svr_cwp.coupling[s1].global_data[s2].send_data);
+  svr_cwp.coupling[s1].global_data[s2].send_data = NULL;
+
+  svr_cwp.coupling[s1].global_data.erase(s2);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
 void
@@ -4722,7 +4830,77 @@ CWP_server_Global_data_wait_irecv
   p_server                 svr
 )
 {
-  // TO DO
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_GLOBAL_DATA_WAIT_IRECV);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+   // read global data identifier
+  char *global_data_id = (char *) malloc(sizeof(char));
+  read_name(&global_data_id, svr);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_GLOBAL_DATA_WAIT_IRECV);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // TO DO uncomment once Bastien has pushed
+  size_t   s_recv_data;
+  int      recv_stride;
+  int      n_recv_entity;
+  void    *recv_data = NULL;
+  // CWP_client_Global_data_wait_irecv(local_code_name,
+  //                                   cpl_id,
+  //                                   global_data_id,
+  //                                   &s_recv_data,
+  //                                   &recv_stride,
+  //                                   &n_recv_entity,
+  //                                   &recv_data);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_GLOBAL_DATA_WAIT_IRECV);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // send request
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &s_recv_data, sizeof(size_t));
+
+  // send request
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &recv_stride, sizeof(int));
+
+  // send request
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &n_recv_entity, sizeof(int));
+
+  // send request
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) recv_data, s_recv_data * recv_stride * n_recv_entity);
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+  free(global_data_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
 
 void
