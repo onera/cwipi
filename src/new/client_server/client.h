@@ -1442,9 +1442,6 @@ CWP_client_Global_data_issend
  * \param [in] cpl_id           Coupling identifier
  * \param [in] global_data_id
  * \param [in] s_recv_entity
- * \param [in] recv_stride
- * \param [in] n_recv_entity
- * \param [in] recv_data
  *
  */
 
@@ -1453,11 +1450,7 @@ CWP_client_Global_data_irecv
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *global_data_id,
- size_t         *s_recv_entity,
- int            *recv_stride,
- int            *n_recv_entity,
- void          **recv_data
+ const char     *global_data_id
 );
 
 /**
@@ -1483,6 +1476,10 @@ CWP_client_Global_data_wait_issend
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  * \param [in] global_data_id
+ * \param [in] s_recv_entity
+ * \param [in] recv_stride
+ * \param [in] n_recv_entity
+ * \param [in] recv_data
  *
  */
 
@@ -1491,7 +1488,11 @@ CWP_client_Global_data_wait_irecv
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *global_data_id
+ const char     *global_data_id,
+       size_t   *s_recv_data,
+       int      *recv_stride,
+       int      *n_recv_entity,
+       void    **recv_data
 );
 
 /**

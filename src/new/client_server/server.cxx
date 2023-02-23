@@ -4617,7 +4617,7 @@ CWP_server_Global_data_issend
   p_server                 svr
 )
 {
-// send status msg
+  // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
     t_message message;
@@ -4694,6 +4694,526 @@ CWP_server_Global_data_issend
   free(local_code_name);
   free(cpl_id);
   free(global_data_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Global_data_irecv
+(
+  p_server                 svr
+)
+{
+  // TO DO
+}
+
+void
+CWP_server_Global_data_wait_issend
+(
+  p_server                 svr
+)
+{
+  // TO DO
+}
+
+void
+CWP_server_Global_data_wait_irecv
+(
+  p_server                 svr
+)
+{
+  // TO DO
+}
+
+void
+CWP_server_Part_data_create
+(
+  p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_CREATE);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read partitionned data identifier
+  char *part_data_id = (char *) malloc(sizeof(char));
+  read_name(&part_data_id, svr);
+
+  // read exch_type
+  CWP_PartData_exch_t exch_type;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &exch_type, sizeof(int));
+
+  // read n_part
+  int n_part;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_part, sizeof(int));
+
+  // create occurence if part_data
+  std::string s1(cpl_id);
+  t_coupling coupling = svr_cwp.coupling[s1];
+  std::string s2(part_data_id);
+  t_part_data part_data = t_part_data();
+  coupling.part_data.insert(std::make_pair(s2, part_data));
+
+  // read n_elt
+  int *n_elt = (int *) malloc(sizeof(int) * n_part);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) n_elt, sizeof(int) * n_part);
+
+  if (exch_type == CWP_PARTDATA_SEND) {
+    svr_cwp.coupling[s1].part_data[s2].n_send_elt = n_elt;
+  } else if (exch_type == CWP_PARTDATA_RECV) {
+    svr_cwp.coupling[s1].part_data[s2].n_recv_elt = n_elt;
+  }
+
+  // read gnum
+  CWP_g_num_t **gnum_elt = (CWP_g_num_t **) malloc(sizeof(CWP_g_num_t *) * n_part);
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    gnum_elt[i_part] = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elt[i_part]);
+  }
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) gnum_elt[i_part], sizeof(int) * n_part);
+  }
+
+  if (exch_type == CWP_PARTDATA_SEND) {
+    svr_cwp.coupling[s1].part_data[s2].gnum_send_elt = gnum_elt;
+  } else if (exch_type == CWP_PARTDATA_RECV) {
+    svr_cwp.coupling[s1].part_data[s2].gnum_recv_elt = gnum_elt;
+  }
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_CREATE);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  CWP_Part_data_create(local_code_name,
+                       cpl_id,
+                       part_data_id,
+                       exch_type,
+                       gnum_elt,
+                       n_elt,
+                       n_part);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_CREATE);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+  free(part_data_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Part_data_del
+(
+  p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_DEL);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read partitionned data identifier
+  char *part_data_id = (char *) malloc(sizeof(char));
+  read_name(&part_data_id, svr);
+
+  // read exch_type
+  CWP_PartData_exch_t exch_type;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &exch_type, sizeof(int));
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_DEL);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  CWP_Part_data_del(local_code_name,
+                    cpl_id,
+                    part_data_id,
+                    exch_type);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_DEL);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+  free(part_data_id);
+
+  // free struct
+  std::string s1(cpl_id);
+  t_coupling coupling = svr_cwp.coupling[s1];
+  std::string s2(part_data_id);
+  t_part_data part_data = coupling.part_data[s2];
+
+  if (exch_type == CWP_PARTDATA_SEND) {
+    if (part_data.n_send_elt != NULL) free(part_data.n_send_elt);
+    part_data.n_send_elt = NULL;
+
+    if (part_data.gnum_send_elt != NULL) {
+      for (int i_part = 0; i_part < part_data.n_part_send; i_part++) {
+        if (part_data.gnum_send_elt[i_part] != NULL) free(part_data.gnum_send_elt[i_part]);
+      }
+      part_data.gnum_send_elt = NULL;
+    }
+
+    if (part_data.send_to_recv_data != NULL) free(part_data.send_to_recv_data);
+    part_data.send_to_recv_data = NULL;
+  } else if (exch_type == CWP_PARTDATA_RECV) {
+    if (part_data.n_recv_elt != NULL) free(part_data.n_recv_elt);
+    part_data.n_recv_elt = NULL;
+
+    if (part_data.gnum_recv_elt != NULL) {
+      for (int i_part = 0; i_part < part_data.n_part_recv; i_part++) {
+        if (part_data.gnum_recv_elt[i_part] != NULL) free(part_data.gnum_recv_elt[i_part]);
+      }
+      part_data.gnum_recv_elt = NULL;
+    }
+  }
+  coupling.part_data.erase(s2);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Part_data_issend
+(
+  p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_ISSEND);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read partitionned data identifier
+  char *part_data_id = (char *) malloc(sizeof(char));
+  read_name(&part_data_id, svr);
+
+  // read s_data
+  size_t s_data;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &s_data, sizeof(size_t));
+
+  // read n_components
+  int n_components;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_components, sizeof(int));
+
+  // read part1_to_part2_data
+  std::string s1(cpl_id);
+  std::string s2(part_data_id);
+  void **part1_to_part2_data = (void **) malloc(sizeof(void *) * svr_cwp.coupling[s1].part_data[s2].n_part_send);
+  for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_send; i_part++) {
+    part1_to_part2_data[i_part] = malloc(s_data * n_components * svr_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
+  }
+  for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_send; i_part++) {
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) part1_to_part2_data[i_part], s_data * n_components * svr_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
+  }
+  svr_cwp.coupling[s1].part_data[s2].send_to_recv_data = part1_to_part2_data;
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_ISSEND);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  int request = -1;
+  CWP_Part_data_issend(local_code_name,
+                       cpl_id,
+                       part_data_id,
+                       s_data,
+                       n_components,
+                       svr_cwp.coupling[s1].part_data[s2].send_to_recv_data,
+                       &request);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_ISSEND);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // send request
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &request, sizeof(int));
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+  free(part_data_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Part_data_irecv
+(
+  p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_IRECV);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read partitionned data identifier
+  char *part_data_id = (char *) malloc(sizeof(char));
+  read_name(&part_data_id, svr);
+
+  // read s_data
+  size_t s_data;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &s_data, sizeof(size_t));
+
+  // read n_components
+  int n_components;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_components, sizeof(int));
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_IRECV);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  int    request = -1;
+  void **part2_data = NULL;
+  CWP_Part_data_irecv(local_code_name,
+                      cpl_id,
+                      part_data_id,
+                      s_data,
+                      n_components,
+                      &part2_data,
+                      &request);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_IRECV);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // send data
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  std::string s1(cpl_id);
+  std::string s2(part_data_id);
+  for (int i_part = 0; i_part < svr_cwp.coupling[s1].part_data[s2].n_part_recv; i_part++) {
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*)part2_data[i_part], s_data * n_components * svr_cwp.coupling[s1].part_data[s2].n_recv_elt[i_part]);
+  }
+
+  // send request
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &request, sizeof(int));
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+  free(part_data_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Part_data_wait_issend
+(
+  p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_WAIT_ISSEND);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read partitionned data identifier
+  char *part_data_id = (char *) malloc(sizeof(char));
+  read_name(&part_data_id, svr);
+
+  // read request
+  int request;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &request, sizeof(int));
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_WAIT_ISSEND);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  CWP_Part_data_wait_issend(local_code_name,
+                            cpl_id,
+                            part_data_id,
+                            &request); // TO DO: remove & once Bastien push
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_WAIT_ISSEND);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+  free(part_data_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Part_data_wait_irecv
+(
+  p_server                 svr
+)
+{
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_WAIT_IRECV);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+  // read partitionned data identifier
+  char *part_data_id = (char *) malloc(sizeof(char));
+  read_name(&part_data_id, svr);
+
+  // read request
+  int request;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &request, sizeof(int));
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_WAIT_IRECV);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  CWP_Part_data_wait_irecv(local_code_name,
+                           cpl_id,
+                           part_data_id,
+                           &request); // TO DO: remove & once Bastien push
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_PART_DATA_WAIT_IRECV);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+  free(part_data_id);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -5559,149 +6079,149 @@ CWP_server_msg_handler
 
     break;
 
-  // case CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_GET:
+  case CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_GET:
 
-  //   // verbose
-  //   if (svr_debug) {
-  //     printf("CWP: server received CWP_Mesh_interf_block_ho_get signal\n");
-  //   }
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Mesh_interf_block_ho_get signal\n");
+    }
 
-  //   // launch
-  //   CWP_server_Mesh_interf_block_ho_get(svr);
+    // launch
+    CWP_server_Mesh_interf_block_ho_get(svr);
 
-  //   break;
+    break;
 
-  // case CWP_MSG_CWP_MESH_INTERF_HO_ORDERING_FROM_IJK_SET:
+  case CWP_MSG_CWP_MESH_INTERF_HO_ORDERING_FROM_IJK_SET:
 
-  //   // verbose
-  //   if (svr_debug) {
-  //     printf("CWP: server received CWP_Mesh_interf_ho_ordering_from_IJK_set signal\n");
-  //   }
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Mesh_interf_ho_ordering_from_IJK_set signal\n");
+    }
 
-  //   // launch
-  //   CWP_server_Mesh_interf_ho_ordering_from_IJK_set(svr);
+    // launch
+    CWP_server_Mesh_interf_ho_ordering_from_IJK_set(svr);
 
-  //   break;
+    break;
 
-  // case CWP_MSG_CWP_GLOBAL_DATA_ISSEND:
+  case CWP_MSG_CWP_GLOBAL_DATA_ISSEND:
 
-  //   // verbose
-  //   if (svr_debug) {
-  //     printf("CWP: server received CWP_Global_data_issend signal\n");
-  //   }
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Global_data_issend signal\n");
+    }
 
-  //   // launch
-  //   CWP_server_Global_data_issend(svr);
+    // launch
+    CWP_server_Global_data_issend(svr);
 
-  //   break;
+    break;
 
-  // case CWP_MSG_CWP_GLOBAL_DATA_IRECV:
+  case CWP_MSG_CWP_GLOBAL_DATA_IRECV:
 
-  //   // verbose
-  //   if (svr_debug) {
-  //     printf("CWP: server received CWP_Global_data_irecv signal\n");
-  //   }
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Global_data_irecv signal\n");
+    }
 
-  //   // launch
-  //   CWP_server_Global_data_irecv(svr);
+    // launch
+    CWP_server_Global_data_irecv(svr);
 
-  //   break;
+    break;
 
-  // case CWP_MSG_CWP_GLOBAL_DATA_WAIT_ISSEND:
+  case CWP_MSG_CWP_GLOBAL_DATA_WAIT_ISSEND:
 
-  //   // verbose
-  //   if (svr_debug) {
-  //     printf("CWP: server received CWP_Global_data_wait_issend signal\n");
-  //   }
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Global_data_wait_issend signal\n");
+    }
 
-  //   // launch
-  //   CWP_server_Global_data_wait_issend(svr);
+    // launch
+    CWP_server_Global_data_wait_issend(svr);
 
-  //   break;
+    break;
 
-  // case CWP_MSG_CWP_GLOBAL_DATA_WAIT_IRECV:
+  case CWP_MSG_CWP_GLOBAL_DATA_WAIT_IRECV:
 
-  //   // verbose
-  //   if (svr_debug) {
-  //     printf("CWP: server received CWP_Global_data_wait_irecv signal\n");
-  //   }
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Global_data_wait_irecv signal\n");
+    }
 
-  //   // launch
-  //   CWP_server_Global_data_wait_irecv(svr);
+    // launch
+    CWP_server_Global_data_wait_irecv(svr);
 
-  //   break;
+    break;
 
-  // case CWP_MSG_CWP_PART_DATA_CREATE:
+  case CWP_MSG_CWP_PART_DATA_CREATE:
 
-  //   // verbose
-  //   if (svr_debug) {
-  //     printf("CWP: server received CWP_Part_data_create signal\n");
-  //   }
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Part_data_create signal\n");
+    }
 
-  //   // launch
-  //   CWP_server_Part_data_create(svr);
+    // launch
+    CWP_server_Part_data_create(svr);
 
-  //   break;
+    break;
 
-  // case CWP_MSG_CWP_PART_DATA_DEL:
+  case CWP_MSG_CWP_PART_DATA_DEL:
 
-  //   // verbose
-  //   if (svr_debug) {
-  //     printf("CWP: server received CWP_Part_data_del signal\n");
-  //   }
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Part_data_del signal\n");
+    }
 
-  //   // launch
-  //   CWP_server_Part_data_del(svr);
+    // launch
+    CWP_server_Part_data_del(svr);
 
-  //   break;
+    break;
 
-  // case CWP_MSG_CWP_PART_DATA_ISSEND:
+  case CWP_MSG_CWP_PART_DATA_ISSEND:
 
-  //   // verbose
-  //   if (svr_debug) {
-  //     printf("CWP: server received CWP_Part_data_issend signal\n");
-  //   }
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Part_data_issend signal\n");
+    }
 
-  //   // launch
-  //   CWP_server_Part_data_issend(svr);
+    // launch
+    CWP_server_Part_data_issend(svr);
 
-  //   break;
+    break;
 
-  // case CWP_MSG_CWP_PART_DATA_IRECV:
+  case CWP_MSG_CWP_PART_DATA_IRECV:
 
-  //   // verbose
-  //   if (svr_debug) {
-  //     printf("CWP: server received CWP_Part_data_irecv signal\n");
-  //   }
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Part_data_irecv signal\n");
+    }
 
-  //   // launch
-  //   CWP_server_Part_data_irecv(svr);
+    // launch
+    CWP_server_Part_data_irecv(svr);
 
-  //   break;
+    break;
 
-  // case CWP_MSG_CWP_PART_DATA_WAIT_ISSEND:
+  case CWP_MSG_CWP_PART_DATA_WAIT_ISSEND:
 
-  //   // verbose
-  //   if (svr_debug) {
-  //     printf("CWP: server received CWP_Part_data_wait_issend signal\n");
-  //   }
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Part_data_wait_issend signal\n");
+    }
 
-  //   // launch
-  //   CWP_server_Part_data_wait_issend(svr);
+    // launch
+    CWP_server_Part_data_wait_issend(svr);
 
-  //   break;
+    break;
 
-  // case CWP_MSG_CWP_PART_DATA_WAIT_IRECV:
+  case CWP_MSG_CWP_PART_DATA_WAIT_IRECV:
 
-  //   // verbose
-  //   if (svr_debug) {
-  //     printf("CWP: server received CWP_Part_data_wait_irecv signal\n");
-  //   }
+    // verbose
+    if (svr_debug) {
+      printf("CWP: server received CWP_Part_data_wait_irecv signal\n");
+    }
 
-  //   // launch
-  //   CWP_server_Part_data_wait_irecv(svr);
+    // launch
+    CWP_server_Part_data_wait_irecv(svr);
 
-  //   break;
+    break;
 
   default:
     PDM_error(__FILE__, __LINE__, 0, "Received unknown message type %i, terminating server\n", msg->message_type);

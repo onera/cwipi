@@ -615,6 +615,71 @@ static void verbose(t_message msg) {
     strcpy(function, name);
     } break;
 
+  case CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_SET: {
+    char name[] = "CWP_Mesh_interf_block_ho_set";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_MESH_INTERF_BLOCK_HO_GET: {
+    char name[] = "CWP_Mesh_interf_block_ho_get";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_MESH_INTERF_HO_ORDERING_FROM_IJK_SET: {
+    char name[] = "CWP_Mesh_interf_ho_ordering_from_IJK_set";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_GLOBAL_DATA_ISSEND: {
+    char name[] = "CWP_Global_data_issend";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_GLOBAL_DATA_IRECV: {
+    char name[] = "CWP_Global_data_irecv";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_GLOBAL_DATA_WAIT_ISSEND: {
+    char name[] = "CWP_Global_data_wait_issend";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_GLOBAL_DATA_WAIT_IRECV: {
+    char name[] = "CWP_Global_data_wait_irecv";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PART_DATA_CREATE: {
+    char name[] = "CWP_Part_data_create";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PART_DATA_DEL: {
+    char name[] = "CWP_Part_data_del";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PART_DATA_ISSEND: {
+    char name[] = "CWP_Part_data_issend";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PART_DATA_IRECV: {
+    char name[] = "CWP_Part_data_irecv";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PART_DATA_WAIT_ISSEND: {
+    char name[] = "CWP_Part_data_wait_issend";
+    strcpy(function, name);
+    } break;
+
+  case CWP_MSG_CWP_PART_DATA_WAIT_IRECV: {
+    char name[] = "CWP_Part_data_wait_irecv";
+    strcpy(function, name);
+    } break;
+
   default:
     PDM_error(__FILE__, __LINE__, 0, "Unknown cwipi function %d\n", msg.message_type);
   }
@@ -5719,15 +5784,11 @@ CWP_client_Global_data_issend
 }
 
 void
-CWP_client_Global_data_irecv // TO DO: change once Bastien has modified API
+CWP_client_Global_data_irecv
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *global_data_id,
- size_t         *s_recv_entity,
- int            *recv_stride,
- int            *n_recv_entity,
- void          **recv_data
+ const char     *global_data_id
 )
 {
   t_message msg;
@@ -5779,9 +5840,131 @@ CWP_client_Global_data_irecv // TO DO: change once Bastien has modified API
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     if (clt->i_rank == 0) verbose(message);
   }
+}
 
-  // read s_recv_entity # TO DO put at send when Bastien will have pushed
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, s_recv_entity, sizeof(int));
+void
+CWP_client_Global_data_wait_issend
+(
+ const char     *local_code_name,
+ const char     *cpl_id,
+ const char     *global_data_id
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Global_data_wait_issend\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_GLOBAL_DATA_WAIT_ISSEND);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Global_data_wait_issend failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send global data identifier
+  write_name(global_data_id);
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+}
+
+void
+CWP_client_Global_data_wait_irecv
+(
+ const char     *local_code_name,
+ const char     *cpl_id,
+ const char     *global_data_id,
+       size_t   *s_recv_data,
+       int      *recv_stride,
+       int      *n_recv_entity,
+       void    **recv_data
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Global_data_wait_irecv\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_GLOBAL_DATA_WAIT_IRECV);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Global_data_wait_irecv failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send global data identifier
+  write_name(global_data_id);
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // read s_recv_data
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, s_recv_data, sizeof(int));
 
   // read recv_stride
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, recv_stride, sizeof(int));
@@ -5798,10 +5981,10 @@ CWP_client_Global_data_irecv // TO DO: change once Bastien has modified API
   coupling.global_data.insert(std::make_pair(s2, global_data));
 
   // allocate memory
-  clt_cwp.coupling[s1].global_data[s2].recv_data = malloc((*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
+  clt_cwp.coupling[s1].global_data[s2].recv_data = malloc((*s_recv_data) * (*recv_stride) * (*n_recv_entity));
 
   // read receive data
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s1].global_data[s2].recv_data, (*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s1].global_data[s2].recv_data, (* s_recv_data) * (*recv_stride) * (*n_recv_entity));
   *recv_data = clt_cwp.coupling[s1].global_data[s2].recv_data;
 }
 
