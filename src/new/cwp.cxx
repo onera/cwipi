@@ -3422,15 +3422,15 @@ const char *code_name
  *----------------------------------------------------------------------------*/
 
 /**
- * \brief Send a data array.
+ * \brief Initiate the sending of a data array.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] global_data_id
- * \param [in] s_send_entity
- * \param [in] send_stride
- * \param [in] n_send_entity
- * \param [in] send_data
+ * \param [in] global_data_id   Global data identifier
+ * \param [in] s_send_data      Data size
+ * \param [in] send_stride      Constant stride value
+ * \param [in] n_send_entity    Number of entities
+ * \param [in] send_data        Pointer to data array
  *
  */
 
@@ -3440,10 +3440,10 @@ CWP_Global_data_issend
  const char     *local_code_name,
  const char     *cpl_id,
  const char     *global_data_id,
- size_t          s_send_entity,
- int             send_stride,
- int             n_send_entity,
- void           *send_data
+       size_t    s_send_entity,
+       int       send_stride,
+       int       n_send_entity,
+       void     *send_data
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
@@ -3454,16 +3454,13 @@ CWP_Global_data_issend
                        send_data);
 }
 
+
 /**
- * \brief Receive a data array.
+ * \brief Initiate the reception of a data array.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] global_data_id
- * \param [in] s_recv_entity
- * \param [in] recv_stride
- * \param [in] n_recv_entity
- * \param [in] recv_data
+ * \param [in] global_data_id   Global data identifier
  *
  */
 
@@ -3472,30 +3469,23 @@ CWP_Global_data_irecv
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *global_data_id,
- size_t         *s_recv_entity,
- int            *recv_stride,
- int            *n_recv_entity,
- void          **recv_data
+ const char     *global_data_id
 )
 {
 
-  assert(s_recv_entity != NULL);
+  // assert(s_recv_entity != NULL);
 
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.globalDataIrecv(global_data_id,
-                      s_recv_entity,
-                      recv_stride,
-                      n_recv_entity,
-                      recv_data);
+  cpl.globalDataIrecv(global_data_id);
 }
 
+
 /**
- * \brief Wait of send a data array.
+ * \brief Finalize the sending of a data array.
  *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] global_data_id
+ * \param [in] global_data_id   Global data identifier
  *
  */
 
@@ -3511,12 +3501,17 @@ CWP_Global_data_wait_issend
   cpl.globalDataWaitIssend(global_data_id);
 }
 
+
 /**
- * \brief Wait of receive a data array.
+ * \brief Finalize the reception of a data array.
  *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] global_data_id
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  global_data_id   Global data identifier
+ * \param [out] s_recv_entity    Data size
+ * \param [out] recv_stride      Constant stride value
+ * \param [out] n_recv_entity    Number of entities
+ * \param [out] recv_data        Pointer to data array
  *
  */
 
@@ -3525,11 +3520,21 @@ CWP_Global_data_wait_irecv
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *global_data_id
+ const char     *global_data_id,
+       size_t   *s_recv_entity,
+       int      *recv_stride,
+       int      *n_recv_entity,
+       void    **recv_data
 )
 {
+  assert(s_recv_entity != NULL);
+
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.globalDataWaitIrecv(global_data_id);
+  cpl.globalDataWaitIrecv(global_data_id,
+                          s_recv_entity,
+                          recv_stride,
+                          n_recv_entity,
+                          recv_data);
 }
 
 /**

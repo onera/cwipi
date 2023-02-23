@@ -45,16 +45,12 @@ namespace cwipi {
   {
   }
 
-  GlobalData::GlobalData(std::string     global_data_id,
-                         size_t         *s_recv_entity,
-                         int            *recv_stride,
-                         int            *n_recv_entity,
-                         void          **recv_data):
+  GlobalData::GlobalData(std::string     global_data_id):
   _global_data_id(global_data_id),
-  _s_recv_entity(s_recv_entity),
-  _recv_stride(recv_stride),
-  _n_recv_entity(n_recv_entity),
-  _recv_data(recv_data)
+  _s_recv_entity(0),
+  _recv_stride(-1),
+  _n_recv_entity(-1),
+  _recv_data(NULL)
   {
   }
 

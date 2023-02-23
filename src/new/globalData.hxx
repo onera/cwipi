@@ -61,11 +61,7 @@ namespace cwipi {
 
     // recv
 
-    GlobalData(std::string     global_data_id,
-               size_t         *s_recv_entity,
-               int            *recv_stride,
-               int            *n_recv_entity,
-               void          **recv_data);
+    GlobalData(std::string     global_data_id);
 
     /**
      * \brief Destructor
@@ -104,25 +100,25 @@ namespace cwipi {
     inline size_t *
     s_recv_entity_get()
     {
-      return _s_recv_entity;
+      return &_s_recv_entity;
     }
 
     inline int *
     recv_stride_get()
     {
-      return _recv_stride;
+      return &_recv_stride;
     }
 
     inline int *
     n_recv_entity_get()
     {
-      return _n_recv_entity;
+      return &_n_recv_entity;
     }
 
     inline void **
     recv_data_get()
     {
-      return _recv_data;
+      return &_recv_data;
     }
 
     // request
@@ -202,10 +198,10 @@ namespace cwipi {
     void           *_send_data;
 
     // recv
-    size_t         *_s_recv_entity;
-    int            *_recv_stride;
-    int            *_n_recv_entity;
-    void          **_recv_data;
+    size_t          _s_recv_entity;
+    int             _recv_stride;
+    int             _n_recv_entity;
+    void           *_recv_data;
 
   };
 

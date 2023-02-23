@@ -283,21 +283,13 @@ namespace cwipi {
      * \brief Receive a data array.
      *
      * \param [in] global_data_id
-     * \param [in] s_recv_entity
-     * \param [in] recv_stride
-     * \param [in] n_recv_entity
-     * \param [in] recv_data
      *
      */
 
     void
     globalDataIrecv
     (
-     const string    &global_data_id,
-     size_t         *s_recv_entity,
-     int            *recv_stride,
-     int            *n_recv_entity,
-     void          **recv_data
+     const string    &global_data_id
     );
 
     /**
@@ -317,13 +309,21 @@ namespace cwipi {
      * \brief Wait of receive a data array.
      *
      * \param [in] global_data_id
+     * \param [in] s_recv_entity
+     * \param [in] recv_stride
+     * \param [in] n_recv_entity
+     * \param [in] recv_data
      *
      */
 
     void
     globalDataWaitIrecv
     (
-     const string    &global_data_id
+     const string    &global_data_id,
+     size_t         *s_recv_entity,
+     int            *recv_stride,
+     int            *n_recv_entity,
+     void          **recv_data
     );
 
     /*----------------------------------------------------------------------------*

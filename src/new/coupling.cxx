@@ -970,6 +970,9 @@ namespace cwipi {
       pair<string, GlobalData > newPair(global_data_id, newGlobalData);
       _globalData.insert(newPair);
     } // end if does not exist
+    else {
+      PDM_error(__FILE__, __LINE__, 0, "GlobalData %s is already in use\n");
+    }
     it = _globalData.find(global_data_id.c_str());
 
     assert(it != _globalData.end());
@@ -1014,27 +1017,21 @@ namespace cwipi {
   void
   Coupling::globalDataIrecv
   (
-   const string    &global_data_id,
-   size_t         *s_recv_entity,
-   int            *recv_stride,
-   int            *n_recv_entity,
-   void          **recv_data
+   const string    &global_data_id
   )
   {
-    assert(s_recv_entity != NULL);
 
     // Create an instance of GlobalData
     map<string,GlobalData>::iterator it = _globalData.find(global_data_id.c_str());
     if (it == _globalData.end()) {
-      cwipi::GlobalData newGlobalData(global_data_id,
-                                      s_recv_entity,
-                                      recv_stride,
-                                      n_recv_entity,
-                                      recv_data);
+      cwipi::GlobalData newGlobalData(global_data_id);
 
       pair<string, GlobalData > newPair(global_data_id, newGlobalData);
       _globalData.insert(newPair);
     } // end if does not exist
+    else {
+      PDM_error(__FILE__, __LINE__, 0, "GlobalData %s is already in use\n");
+    }
     it = _globalData.find(global_data_id.c_str());
 
     assert(it != _globalData.end());
@@ -1124,7 +1121,11 @@ namespace cwipi {
   void
   Coupling::globalDataWaitIrecv
   (
-   const string    &global_data_id
+   const string    &global_data_id,
+     size_t        *s_recv_entity,
+     int           *recv_stride,
+     int           *n_recv_entity,
+     void         **recv_data
   )
   {
     // Get local
@@ -1163,6 +1164,10 @@ namespace cwipi {
                                                                   stride,
                                                                   n_entity,
                                                                   data);
+    *s_recv_entity = *s_entity;
+    *recv_stride   = *stride;
+    *n_recv_entity = *n_entity;
+    *recv_data     = *data;
   }
 
   /*----------------------------------------------------------------------------*

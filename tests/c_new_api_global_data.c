@@ -253,11 +253,7 @@ main(int argc, char *argv[]) {
     if (code_id == 2) {
       CWP_Global_data_irecv(code_name[0],
                             coupling_name,
-                            global_data_name1,
-                            &s_recv_entity1,
-                            &recv_stride1,
-                            &n_recv_entity1,
-                            (void **) &recv_data1);
+                            global_data_name1);
     }
 
     if (code_id == 1) {
@@ -273,11 +269,7 @@ main(int argc, char *argv[]) {
     if (code_id == 2) {
       CWP_Global_data_irecv(code_name[0],
                             coupling_name,
-                            global_data_name2,
-                            &s_recv_entity2,
-                            &recv_stride2,
-                            &n_recv_entity2,
-                            (void **) &recv_data2);
+                            global_data_name2);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -285,7 +277,11 @@ main(int argc, char *argv[]) {
     if (code_id == 2) {
       CWP_Global_data_wait_irecv(code_name[0],
                                  coupling_name,
-                                 global_data_name2);
+                                 global_data_name2,
+                                 &s_recv_entity2,
+                                 &recv_stride2,
+                                 &n_recv_entity2,
+                       (void **) &recv_data2);
     }
 
     if (code_id == 1) {
@@ -303,7 +299,11 @@ main(int argc, char *argv[]) {
     if (code_id == 2) {
       CWP_Global_data_wait_irecv(code_name[0],
                                  coupling_name,
-                                 global_data_name1);
+                                 global_data_name1,
+                                 &s_recv_entity1,
+                                 &recv_stride1,
+                                 &n_recv_entity1,
+                       (void **) &recv_data1);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -425,11 +425,7 @@ main(int argc, char *argv[]) {
 
     CWP_Global_data_irecv(code_name[1],
                           coupling_name,
-                          global_data_name,
-                          &s_recv_entity,
-                          &recv_stride,
-                          &n_recv_entity,
-                          (void **) &recv_data);
+                          global_data_name);
 
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -439,7 +435,11 @@ main(int argc, char *argv[]) {
 
     CWP_Global_data_wait_irecv(code_name[1],
                                coupling_name,
-                               global_data_name);
+                               global_data_name,
+                               &s_recv_entity,
+                               &recv_stride,
+                               &n_recv_entity,
+                     (void **) &recv_data);
 
     MPI_Barrier(MPI_COMM_WORLD);
 
