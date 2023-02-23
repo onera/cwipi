@@ -218,6 +218,17 @@ switch (block_type) {
 
 // --> endianness
 
+static void ip_swap_Nbytes(char *f_bytes, int N) {
+  if (clt->server_endianess == clt->client_endianess) {return;}
+  char a,b;
+  for (int i = 0; i < N/2; i++) {
+    a =  f_bytes[N-i-1];
+    b =  f_bytes[i];
+    f_bytes[N-i-1] = b;
+    f_bytes[i]     = a;
+  }
+}
+
 static void ip_swap_4bytes(char *f_bytes) {
   char a,b;
   if (clt->server_endianess == clt->client_endianess) {return;}
@@ -264,6 +275,14 @@ static int CWP_client_send_msg(p_message msg) {
     ip_swap_4bytes((char *)&msg->data3);
   }
   return CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*)msg,data_size);
+}
+
+static int CWP_swap_endian_Nbytes(char *data, int const N, const  int datasize) {
+  int i;
+  for (i=0 ; i<datasize; i++) {
+    ip_swap_Nbytes((char*)&data[i*N], N);
+  }
+  return 0;
 }
 
 static int CWP_swap_endian_4bytes(int *data,const  int datasize) {
@@ -5673,16 +5692,10 @@ CWP_client_Global_data_issend
   CWP_swap_endian_4bytes(&endian_n_send_entity, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_send_entity, sizeof(int));
 
-  // send send_data TO DO: how to properly handle endianess with void?
+  // send send_data
   void *endian_send_data = malloc(s_send_entity * send_stride * n_send_entity);
   memcpy(endian_send_data, send_data, s_send_entity * send_stride * n_send_entity);
-  if (s_send_entity == 4) {
-    CWP_swap_endian_4bytes((int *) endian_send_data, send_stride * n_send_entity);
-  } else if (s_send_entity == 8) {
-    CWP_swap_endian_8bytes((double *) endian_send_data, send_stride * n_send_entity);
-  } else {
-    PDM_error(__FILE__, __LINE__, 0, "s_send_entity is %ld but endian conversion only handled for size 4 and 8\n", s_send_entity);
-  }
+  CWP_swap_endian_Nbytes(static_cast<char*>(endian_send_data), s_send_entity, send_stride * n_send_entity);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_send_data, s_send_entity * send_stride * n_send_entity);
 
   // receive status msg
@@ -5787,9 +5800,486 @@ CWP_client_Global_data_irecv // TO DO: change once Bastien has modified API
   // allocate memory
   clt_cwp.coupling[s1].global_data[s2].recv_data = malloc((*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
 
-  // read connectivity
+  // read receive data
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s1].global_data[s2].recv_data, (*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
   *recv_data = clt_cwp.coupling[s1].global_data[s2].recv_data;
+}
+
+void
+CWP_client_Part_data_create
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const char           *part_data_id,
+ CWP_PartData_exch_t   exch_type,
+ CWP_g_num_t         **gnum_elt,
+ int                  *n_elt,
+ int                   n_part
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Part_data_create\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_PART_DATA_CREATE);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Part_data_create failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send part data identifier
+  write_name(part_data_id);
+
+  // send exch_type
+  int endian_exch_type = (int) exch_type;
+  CWP_swap_endian_4bytes(&endian_exch_type, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_exch_type, sizeof(int));
+
+  // send n_part
+  int endian_n_part = n_part;
+  CWP_swap_endian_4bytes(&endian_n_part, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_part, sizeof(int));
+
+  // send n_elt
+  int *endian_n_elt = (int *) malloc(sizeof(int) * n_part);
+  memcpy(endian_n_elt, n_elt, sizeof(int) * n_part);
+  CWP_swap_endian_4bytes(endian_n_elt, n_part);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_n_elt, sizeof(int) * n_part);
+
+  // send gnum
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    CWP_g_num_t *endian_gnum_elt_i_part = (CWP_g_num_t *) malloc(sizeof(CWP_g_num_t) * n_elt[i_part]);
+    memcpy(endian_gnum_elt_i_part, gnum_elt[i_part], sizeof(CWP_g_num_t) * n_elt[i_part]);
+    CWP_swap_endian_8bytes((double *) endian_gnum_elt_i_part, n_elt[i_part]);
+    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_gnum_elt_i_part, sizeof(CWP_g_num_t) * n_elt[i_part]);
+    free(endian_gnum_elt_i_part);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // create partData object
+  std::string s1(cpl_id);
+  std::string s2(part_data_id);
+
+  t_coupling coupling = clt_cwp.coupling[s1];
+  t_part_data part_data = t_part_data();
+  coupling.part_data.insert(std::make_pair(s2, part_data));
+
+  // set sizes TO DO: free n_elt
+  if (exch_type == CWP_PARTDATA_SEND) {
+    clt_cwp.coupling[s1].part_data[s2].n_part_send = n_part;
+    clt_cwp.coupling[s1].part_data[s2].n_send_elt = (int *) malloc(sizeof(int) * n_part);
+    memcpy(clt_cwp.coupling[s1].part_data[s2].n_send_elt, n_elt, sizeof(int) * n_part);
+  } else if (exch_type == CWP_PARTDATA_RECV) {
+    clt_cwp.coupling[s1].part_data[s2].n_part_recv = n_part;
+    clt_cwp.coupling[s1].part_data[s2].n_recv_elt = (int *) malloc(sizeof(int) * n_part);
+    memcpy(clt_cwp.coupling[s1].part_data[s2].n_recv_elt, n_elt, sizeof(int) * n_part);
+  }
+
+}
+
+void
+CWP_client_Part_data_del
+(
+ const char          *local_code_name,
+ const char          *cpl_id,
+ const char          *part_data_id,
+ CWP_PartData_exch_t  exch_type
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Part_data_del\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_PART_DATA_DEL);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Part_data_del failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send part data identifier
+  write_name(part_data_id);
+
+  // send exch_type
+  int endian_exch_type = (int) exch_type;
+  CWP_swap_endian_4bytes(&endian_exch_type, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_exch_type, sizeof(int));
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+}
+
+void
+CWP_client_Part_data_issend
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ size_t         s_data,
+ int            n_components,
+ void         **part1_to_part2_data,
+ int           *request
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Part_data_issend\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_PART_DATA_ISSEND);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Part_data_issend failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send part data identifier
+  write_name(part_data_id);
+
+  // send s_data
+  size_t endian_s_data = s_data;
+  CWP_swap_endian_8bytes((double *) &endian_s_data, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_s_data, sizeof(size_t));
+
+  // send n_components
+  int endian_n_components = (int) n_components;
+  CWP_swap_endian_4bytes(&endian_n_components, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_components, sizeof(int));
+
+  // send part1_to_part2_data
+  std::string s1(cpl_id);
+  std::string s2(part_data_id);
+  for (int i_part = 0; i_part < clt_cwp.coupling[s1].part_data[s2].n_part_send; i_part++) {
+    void *endian_part1_to_part2_data = malloc(s_data * n_components * clt_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
+    memcpy(endian_part1_to_part2_data, part1_to_part2_data, s_data * n_components * clt_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
+    CWP_swap_endian_Nbytes(static_cast<char*>(endian_part1_to_part2_data), s_data, n_components * clt_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
+    CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_part1_to_part2_data, s_data * n_components * clt_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
+    free(endian_part1_to_part2_data);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // read request
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, request, sizeof(int));
+}
+
+void
+CWP_client_Part_data_irecv
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ size_t         s_data,
+ int            n_components,
+ void        ***part2_data,
+ int           *request
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Part_data_irecv\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_PART_DATA_IRECV);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Part_data_irecv failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send part data identifier
+  write_name(part_data_id);
+
+  // send s_data
+  size_t endian_s_data = s_data;
+  CWP_swap_endian_8bytes((double *) &endian_s_data, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_s_data, sizeof(size_t));
+
+  // send n_components
+  int endian_n_components = (int) n_components;
+  CWP_swap_endian_4bytes(&endian_n_components, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_components, sizeof(int));
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // read receive data TO DO: free recv_data
+  std::string s1(cpl_id);
+  std::string s2(part_data_id);
+  clt_cwp.coupling[s1].part_data[s2].recv_data = (void **) malloc(sizeof(void *) * clt_cwp.coupling[s1].part_data[s2].n_part_recv);
+  *part2_data = clt_cwp.coupling[s1].part_data[s2].recv_data;
+  for (int i_part = 0; i_part < clt_cwp.coupling[s1].part_data[s2].n_part_recv; i_part++) {
+    clt_cwp.coupling[s1].part_data[s2].recv_data[i_part] = malloc(s_data * n_components * clt_cwp.coupling[s1].part_data[s2].n_recv_elt[i_part]);
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s1].global_data[s2].recv_data, s_data * n_components * clt_cwp.coupling[s1].part_data[s2].n_recv_elt[i_part]);
+    (*part2_data)[i_part] = clt_cwp.coupling[s1].global_data[s2].recv_data;
+  }
+
+  // read request
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, request, sizeof(int));
+}
+
+void
+CWP_client_Part_data_wait_issend
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ int           request
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Part_data_wait_issend\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_PART_DATA_WAIT_ISSEND);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Part_data_wait_issend failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send part data identifier
+  write_name(part_data_id);
+
+  // send request
+  int endian_request = (int) request;
+  CWP_swap_endian_4bytes(&endian_request, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_request, sizeof(int));
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+}
+
+void
+CWP_client_Part_data_wait_irecv
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ int           request
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Part_data_wait_irecv\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_PART_DATA_WAIT_IRECV);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Part_data_wait_irecv failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send part data identifier
+  write_name(part_data_id);
+
+  // send request
+  int endian_request = (int) request;
+  CWP_swap_endian_4bytes(&endian_request, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_request, sizeof(int));
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
 }
 
 #ifdef __cplusplus

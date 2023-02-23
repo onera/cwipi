@@ -133,6 +133,9 @@ struct t_part_data
 
   // Send to recv data
   void **send_to_recv_data;
+
+  // Receive data
+  void **recv_data;
 };
 
 struct t_coupling

@@ -1605,7 +1605,7 @@ CWP_client_Part_data_wait_issend
  const char    *local_code_name,
  const char    *cpl_id,
  const char    *part_data_id,
- int           *request
+ int           request
 );
 
 /**
@@ -1624,7 +1624,7 @@ CWP_client_Part_data_wait_irecv
  const char    *local_code_name,
  const char    *cpl_id,
  const char    *part_data_id,
- int           *request
+ int           request
 );
 
 /*=============================================================================
