@@ -98,6 +98,43 @@ struct t_field
   std::map<std::tuple<std::string, std::string , std::string> , t_field_settings> field_settings;
 };
 
+struct t_global_data
+{
+  t_global_data() {
+    send_data = NULL;
+    recv_data = NULL;
+  }
+
+  // Receive data
+  void *recv_data;
+
+  // Send data
+  void *send_data;
+};
+
+struct t_part_data
+{
+  t_part_data() {
+    n_send_elt    = NULL;
+    gnum_send_elt = NULL;
+    n_recv_elt    = NULL;
+    gnum_recv_elt = NULL;
+  }
+
+  // Global number of sending code
+  int            n_part_send;
+  int           *n_send_elt;
+  CWP_g_num_t  **gnum_send_elt;
+
+  // Global number of receiving code
+  int            n_part_recv;
+  int           *n_recv_elt;
+  CWP_g_num_t  **gnum_recv_elt;
+
+  // Send to recv data
+  void **send_to_recv_data;
+};
+
 struct t_coupling
 {
   // Mesh_interf_vtx_set
@@ -145,6 +182,12 @@ struct t_coupling
 
   // field_id
   std::map<std::string, t_field> field;
+
+  // global_data_id
+  std::map<std::string, t_global_data> global_data;
+
+  // part_data_id
+  std::map<std::string, t_part_data> part_data;
 };
 
 struct t_cwp

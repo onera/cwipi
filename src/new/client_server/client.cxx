@@ -2016,25 +2016,37 @@ CWP_client_Cpl_del
 
   if (!clt_cwp.coupling[s].field.empty()) {
 
-    std::map<std::string, t_field>::iterator itr = clt_cwp.coupling[s].field.begin();
-    while (itr != clt_cwp.coupling[s].field.end()) {
-      if ((itr->second).srcs   != NULL) {
-        free((itr->second).srcs);
-        (itr->second).srcs = NULL;
+    std::map<std::string, t_field>::iterator it_f = clt_cwp.coupling[s].field.begin();
+    while (it_f != clt_cwp.coupling[s].field.end()) {
+      if ((it_f->second).srcs   != NULL) {
+        free((it_f->second).srcs);
+        (it_f->second).srcs = NULL;
       }
-      if ((itr->second).c_tgts != NULL) {
-        free((itr->second).c_tgts);
-        (itr->second).c_tgts = NULL;
+      if ((it_f->second).c_tgts != NULL) {
+        free((it_f->second).c_tgts);
+        (it_f->second).c_tgts = NULL;
       }
-      if ((itr->second).u_tgts != NULL) {
-        free((itr->second).u_tgts);
-        (itr->second).u_tgts = NULL;
+      if ((it_f->second).u_tgts != NULL) {
+        free((it_f->second).u_tgts);
+        (it_f->second).u_tgts = NULL;
       }
-      if ((itr->second).data   != NULL) {
-       free((itr->second).data);
-       (itr->second).data = NULL;
+      if ((it_f->second).data   != NULL) {
+       free((it_f->second).data);
+       (it_f->second).data = NULL;
       }
-      itr = clt_cwp.coupling[s].field.erase(itr);
+      it_f = clt_cwp.coupling[s].field.erase(it_f);
+    }
+  }
+
+  if (!clt_cwp.coupling[s].global_data.empty()) {
+
+    std::map<std::string, t_global_data>::iterator it_gd = clt_cwp.coupling[s].global_data.begin();
+    while (it_gd != clt_cwp.coupling[s].global_data.end()) {
+      if ((it_gd->second).recv_data   != NULL) {
+        free((it_gd->second).recv_data);
+        (it_gd->second).recv_data = NULL;
+      }
+      it_gd = clt_cwp.coupling[s].global_data.erase(it_gd);
     }
   }
 
@@ -5598,6 +5610,186 @@ CWP_client_Mesh_interf_ho_ordering_from_IJK_set
 
   // free
   free(endian_ijk_grid);
+}
+
+void
+CWP_client_Global_data_issend
+(
+ const char     *local_code_name,
+ const char     *cpl_id,
+ const char     *global_data_id,
+ size_t          s_send_entity,
+ int             send_stride,
+ int             n_send_entity,
+ void           *send_data
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Global_data_issend\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_GLOBAL_DATA_ISSEND);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Global_data_issend failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send global data identifier
+  write_name(global_data_id);
+
+  // send s_send_entity
+  size_t endian_s_send_entity = s_send_entity;
+  CWP_swap_endian_8bytes((double *)  &endian_s_send_entity, 1); // TO DO: is a long right ?
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_s_send_entity, sizeof(size_t));
+
+  // send send_stride
+  int endian_send_stride = send_stride;
+  CWP_swap_endian_4bytes(&endian_send_stride, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_send_stride, sizeof(int));
+
+  // send n_send_entity
+  int endian_n_send_entity = n_send_entity;
+  CWP_swap_endian_4bytes(&endian_n_send_entity, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_send_entity, sizeof(int));
+
+  // send send_data TO DO: how to properly handle endianess with void?
+  void *endian_send_data = malloc(s_send_entity * send_stride * n_send_entity);
+  memcpy(endian_send_data, send_data, s_send_entity * send_stride * n_send_entity);
+  if (s_send_entity == 4) {
+    CWP_swap_endian_4bytes((int *) endian_send_data, send_stride * n_send_entity);
+  } else if (s_send_entity == 8) {
+    CWP_swap_endian_8bytes((double *) endian_send_data, send_stride * n_send_entity);
+  } else {
+    PDM_error(__FILE__, __LINE__, 0, "s_send_entity is %ld but endian conversion only handled for size 4 and 8\n", s_send_entity);
+  }
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_send_data, s_send_entity * send_stride * n_send_entity);
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // free
+  free(endian_send_data);
+}
+
+void
+CWP_client_Global_data_irecv // TO DO: change once Bastien has modified API
+(
+ const char     *local_code_name,
+ const char     *cpl_id,
+ const char     *global_data_id,
+ size_t         *s_recv_entity,
+ int            *recv_stride,
+ int            *n_recv_entity,
+ void          **recv_data
+)
+{
+  t_message msg;
+
+  // verbose
+  MPI_Barrier(clt->comm);
+  if ((clt->flags  & CWP_FLAG_VERBOSE) && (clt->i_rank == 0)) {
+    PDM_printf("%s-CWP-CLIENT: Client initiating CWP_Global_data_irecv\n", clt->code_name);
+    PDM_printf_flush();
+  }
+
+  // create message
+  NEWMESSAGE(msg, CWP_MSG_CWP_GLOBAL_DATA_IRECV);
+
+  // send message
+  if (CWP_client_send_msg(&msg) != 0) {
+    PDM_error(__FILE__, __LINE__, 0, "CWP_client_Global_data_irecv failed to send message header\n");
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // send local code name
+  write_name(local_code_name);
+
+  // send coupling identifier
+  write_name(cpl_id);
+
+  // send global data identifier
+  write_name(global_data_id);
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // receive status msg
+  MPI_Barrier(clt->comm);
+  if (clt->flags  & CWP_FLAG_VERBOSE) {
+    t_message message;
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
+    if (clt->i_rank == 0) verbose(message);
+  }
+
+  // read s_recv_entity # TO DO put at send when Bastien will have pushed
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, s_recv_entity, sizeof(int));
+
+  // read recv_stride
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, recv_stride, sizeof(int));
+
+  // read n_recv_entity
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, n_recv_entity, sizeof(int));
+
+  // add global data to map
+  std::string s1(cpl_id);
+  std::string s2(global_data_id);
+
+  t_coupling coupling = clt_cwp.coupling[s1];
+  t_global_data global_data = t_global_data();
+  coupling.global_data.insert(std::make_pair(s2, global_data));
+
+  // allocate memory
+  clt_cwp.coupling[s1].global_data[s2].recv_data = malloc((*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
+
+  // read connectivity
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s1].global_data[s2].recv_data, (*s_recv_entity) * (*recv_stride) * (*n_recv_entity));
+  *recv_data = clt_cwp.coupling[s1].global_data[s2].recv_data;
 }
 
 #ifdef __cplusplus

@@ -1242,10 +1242,18 @@ CWP_server_Cpl_del
   if (svr_cwp.coupling[s].property_value != NULL) free(svr_cwp.coupling[s].property_value);
 
   if (!svr_cwp.coupling[s].field.empty()) {
-    std::map<std::string, t_field>::iterator itr = svr_cwp.coupling[s].field.begin();
-    while (itr != svr_cwp.coupling[s].field.end()) {
-      if ((itr->second).data != NULL) free((itr->second).data);
-      itr = svr_cwp.coupling[s].field.erase(itr);
+    std::map<std::string, t_field>::iterator it_f = svr_cwp.coupling[s].field.begin();
+    while (it_f != svr_cwp.coupling[s].field.end()) {
+      if ((it_f->second).data != NULL) free((it_f->second).data);
+      it_f = svr_cwp.coupling[s].field.erase(it_f);
+    }
+  }
+
+  if (!svr_cwp.coupling[s].global_data.empty()) {
+    std::map<std::string, t_global_data>::iterator it_gd = svr_cwp.coupling[s].global_data.begin();
+    while (it_gd != svr_cwp.coupling[s].global_data.end()) {
+      if ((it_gd->second).send_data != NULL) free((it_gd->second).send_data);
+      it_gd = svr_cwp.coupling[s].global_data.erase(it_gd);
     }
   }
 
@@ -4599,6 +4607,93 @@ CWP_server_Mesh_interf_ho_ordering_from_IJK_set
   // free
   free(local_code_name);
   free(cpl_id);
+
+  svr->state=CWP_SVRSTATE_LISTENINGMSG;
+}
+
+void
+CWP_server_Global_data_issend
+(
+  p_server                 svr
+)
+{
+// send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_GLOBAL_DATA_ISSEND);
+    message.flag = CWP_SVR_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // read local code name
+  svr->state=CWP_SVRSTATE_RECVPPUTDATA;
+  char *local_code_name = (char *) malloc(sizeof(char));
+  read_name(&local_code_name, svr);
+
+  // read coupling identifier
+  char *cpl_id = (char *) malloc(sizeof(char));
+  read_name(&cpl_id, svr);
+
+   // read global data identifier
+  char *global_data_id = (char *) malloc(sizeof(char));
+  read_name(&global_data_id, svr);
+
+  // read s_send_entity
+  size_t s_send_entity;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &s_send_entity, sizeof(size_t));
+
+  // read send_stride
+  int send_stride;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &send_stride, sizeof(int));
+
+  // read n_send_entity
+  int n_send_entity;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_send_entity, sizeof(int));
+
+  // create occurence if global_data
+  std::string s1(cpl_id);
+  t_coupling coupling = svr_cwp.coupling[s1];
+  std::string s2(global_data_id);
+  t_global_data global_data = t_global_data();
+  coupling.global_data.insert(std::make_pair(s2, global_data));
+
+  // allocate array
+  svr_cwp.coupling[s1].global_data[s2].send_data = malloc(s_send_entity * send_stride * n_send_entity);
+
+  // read connectivity
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s1].global_data[s2].send_data, s_send_entity * send_stride * n_send_entity);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_GLOBAL_DATA_ISSEND);
+    message.flag = CWP_SVR_LCH_BEGIN;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  CWP_Global_data_issend(local_code_name,
+                         cpl_id,
+                         global_data_id,
+                         s_send_entity,
+                         send_stride,
+                         n_send_entity,
+                         svr_cwp.coupling[s1].global_data[s2].send_data);
+
+  // send status msg
+  MPI_Barrier(svr_mpi.intra_comms[0]);
+  if (svr->flags & CWP_FLAG_VERBOSE) {
+    t_message message;
+    NEWMESSAGE(message, CWP_MSG_CWP_GLOBAL_DATA_ISSEND);
+    message.flag = CWP_SVR_LCH_END;
+    CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
+  }
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+  free(global_data_id);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
