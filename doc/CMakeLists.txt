@@ -1,3 +1,7 @@
+#------------------------------------------------------------------------------
+# Build doxygen documentation
+#------------------------------------------------------------------------------
+
 find_package(Doxygen 1.8.9)
 option(CWP_BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" OFF)
 if(CWP_BUILD_DOCUMENTATION)
@@ -17,4 +21,13 @@ if(CWP_BUILD_DOCUMENTATION)
         VERBATIM)
 
     install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc)
+endif()
+
+#------------------------------------------------------------------------------
+# Build sphinx documentation
+#------------------------------------------------------------------------------
+
+if (CWP_ENABLE_DOCUMENTATION)
+  include(${CMAKE_MODULE_PATH}/BuildDocumentation.cmake)
+  build_sphinx_documentation()
 endif()

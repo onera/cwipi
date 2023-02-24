@@ -143,6 +143,11 @@ endif()
 
 option(CWP_ENABLE_CLIENT_SERVER "Enable Client-Server" OFF)
 
+# Documentation
+# -------------
+
+option(CWP_ENABLE_DOCUMENTATION "Enable sphinx documentation" ON)
+
 #------------------------------------------------------------------------------
 # Default build : Release
 #------------------------------------------------------------------------------
