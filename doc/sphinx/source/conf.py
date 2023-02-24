@@ -38,6 +38,7 @@ extensions = [
     'sphinx.ext.viewcode', 
     'sphinx.ext.napoleon',
     'sphinx.ext.todo',
+    'breathe',
 ]
 
 
@@ -144,6 +145,11 @@ pygments_style = 'sphinx'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 
+# -- Breathe configuration ------------------------------------------------
+
+breathe_projects_source = {
+    "auto" : ( "../../../src", ["cwipi.h"] )
+}
 
 # -- Options for HTML output ----------------------------------------------
 

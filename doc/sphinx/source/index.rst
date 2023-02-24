@@ -17,12 +17,15 @@ Summary
 
 :ref:`Client-Server <client_server_cwipi>` is the documentation of client-server mode of CWIPI.
 
+:ref:`FAQ <faq>` is compilation of frequently asked questions.
+
 .. toctree::
   :hidden:
   :maxdepth: 1
   :caption: Reference
 
   installation
+  faq
   old_cwipi/old_cwipi
   new_cwipi/new_cwipi
   client_server_cwipi/client_server_cwipi

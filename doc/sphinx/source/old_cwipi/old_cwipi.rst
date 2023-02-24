@@ -2,3 +2,6 @@
 
 Old CWIPI
 #########
+
+.. autodoxygenindex::
+   :project: auto
