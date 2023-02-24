@@ -51,17 +51,10 @@ namespace cwipi {
      */
     GlobalData() {}
 
-    // send
-
     GlobalData(std::string     global_data_id,
-               size_t          s_send_entity,
-               int             send_stride,
-               int             n_send_entity,
-               void           *send_data);
-
-    // recv
-
-    GlobalData(std::string     global_data_id);
+               size_t          s_entity,
+               int             stride,
+               int             n_entity);
 
     /**
      * \brief Destructor
@@ -69,24 +62,22 @@ namespace cwipi {
      */
     ~GlobalData();
 
-    // send
-
     inline size_t&
-    s_send_entity_get()
+    s_entity_get()
     {
-      return _s_send_entity;
+      return _s_entity;
     }
 
     inline int&
-    send_stride_get()
+    stride_get()
     {
-      return _send_stride;
+      return _stride;
     }
 
     inline int&
-    n_send_entity_get()
+    n_entity_get()
     {
-      return _n_send_entity;
+      return _n_entity;
     }
 
     inline void *
@@ -95,112 +86,73 @@ namespace cwipi {
       return _send_data;
     }
 
-    // recv
-
-    inline size_t *
-    s_recv_entity_get()
-    {
-      return &_s_recv_entity;
-    }
-
-    inline int *
-    recv_stride_get()
-    {
-      return &_recv_stride;
-    }
-
-    inline int *
-    n_recv_entity_get()
-    {
-      return &_n_recv_entity;
-    }
-
-    inline void **
+    inline void *
     recv_data_get()
     {
-      return &_recv_data;
-    }
-
-    // request
-
-    inline MPI_Request
-    s_entity_request_get()
-    {
-      return _s_entity_request;
-    }
-
-    inline MPI_Request
-    stride_request_get()
-    {
-      return _stride_request;
-    }
-
-    inline MPI_Request
-    n_entity_request_get()
-    {
-      return _n_entity_request;
-    }
-
-    inline MPI_Request
-    data_request_get()
-    {
-      return _data_request;
+      return _recv_data;
     }
 
     inline void
-    s_entity_request_set
+    send_data_set
+    (
+     void *send_data
+     )
+    {
+      _send_data = send_data;
+    }
+
+    inline void
+    recv_data_set
+    (
+     void *recv_data
+     )
+    {
+      _recv_data = recv_data;
+    }
+
+    inline MPI_Request
+    data_send_request_get()
+    {
+      return _data_send_request;
+    }
+
+    inline MPI_Request
+    data_recv_request_get()
+    {
+      return _data_recv_request;
+    }
+
+    inline void
+    data_send_request_set
     (
      MPI_Request req
     )
     {
-      _s_entity_request = req;
+      _data_send_request = req;
     }
 
     inline void
-    stride_request_set
+    data_recv_request_set
     (
      MPI_Request req
     )
     {
-      _stride_request = req;
-    }
-
-    inline void
-    n_entity_request_set
-    (
-     MPI_Request req
-    )
-    {
-      _n_entity_request = req;
-    }
-
-    inline void
-    data_request_set
-    (
-     MPI_Request req
-    )
-    {
-      _data_request = req;
+      _data_recv_request = req;
     }
 
   private:
 
     std::string     _global_data_id;
-    MPI_Request     _s_entity_request;
-    MPI_Request     _stride_request;
-    MPI_Request     _n_entity_request;
-    MPI_Request     _data_request;
 
-    // send
-    size_t          _s_send_entity;
-    int             _send_stride;
-    int             _n_send_entity;
+    MPI_Request     _data_send_request;
+    MPI_Request     _data_recv_request;
+
+    size_t          _s_entity;
+    int             _stride;
+    int             _n_entity;
+
     void           *_send_data;
 
-    // recv
-    size_t          _s_recv_entity;
-    int             _recv_stride;
-    int             _n_recv_entity;
     void           *_recv_data;
 
   };

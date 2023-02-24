@@ -2972,10 +2972,10 @@ CWP_Global_data_issend_cf
  const int       l_cpl_id,
  const char     *f_global_data_id,
  const int       l_global_data_id,
- size_t          s_send_entity,
- int             send_stride,
- int             n_send_entity,
- void           *send_data
+       size_t    s_send_entity,
+       int       send_stride,
+       int       n_send_entity,
+       void     *send_data
  )
 {
   char *c_local_code_name, *c_cpl_id, *c_global_data_id;
@@ -3000,13 +3000,13 @@ CWP_Global_data_issend_cf
 /**
  * \brief Receive a data array.
  *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] global_data_id
- * \param [in] s_recv_entity
- * \param [in] recv_stride
- * \param [in] n_recv_entity
- * \param [in] recv_data
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  global_data_id
+ * \param [in]  s_recv_entity
+ * \param [in]  recv_stride
+ * \param [in]  n_recv_entity
+ * \param [out] recv_data
  *
  */
 
@@ -3018,7 +3018,11 @@ CWP_Global_data_irecv_cf
  const char     *f_cpl_id,
  const int       l_cpl_id,
  const char     *f_global_data_id,
- const int       l_global_data_id
+ const int       l_global_data_id,
+       size_t    s_recv_entity,
+       int       recv_stride,
+       int       n_recv_entity,
+       void     *recv_data
 )
 {
   char *c_local_code_name, *c_cpl_id, *c_global_data_id;
@@ -3029,7 +3033,11 @@ CWP_Global_data_irecv_cf
 
   CWP_Global_data_irecv(c_local_code_name,
                         c_cpl_id,
-                        c_global_data_id);
+                        c_global_data_id,
+                        s_recv_entity,
+                        recv_stride,
+                        n_recv_entity,
+                        recv_data);
 
   free(c_local_code_name);
   free(c_cpl_id);
@@ -3088,12 +3096,7 @@ CWP_Global_data_wait_irecv_cf
  const char     *f_cpl_id,
  const int       l_cpl_id,
  const char     *f_global_data_id,
- const int       l_global_data_id,
- size_t          expected_s_recv_entity,
- size_t         *s_recv_entity,
- int            *recv_stride,
- int            *n_recv_entity,
- void          **recv_data
+ const int       l_global_data_id
 )
 {
   char *c_local_code_name, *c_cpl_id, *c_global_data_id;
@@ -3104,16 +3107,7 @@ CWP_Global_data_wait_irecv_cf
 
   CWP_Global_data_wait_irecv(c_local_code_name,
                              c_cpl_id,
-                             c_global_data_id,
-                             s_recv_entity,
-                             recv_stride,
-                             n_recv_entity,
-                             recv_data);
-
-  if (*s_recv_entity != expected_s_recv_entity) {
-    PDM_error(__FILE__, __LINE__, 0, "s_recv_entity != expected_s_recv_entity (%d / %d)\n",
-              *s_recv_entity, expected_s_recv_entity);
-  }
+                             c_global_data_id);
 
   free(c_local_code_name);
   free(c_cpl_id);

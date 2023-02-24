@@ -272,13 +272,6 @@ namespace cwipi {
 
     /**
      * \brief Send a data array.
-     *
-     * \param [in] global_data_id
-     * \param [in] s_send_entity
-     * \param [in] send_stride
-     * \param [in] n_send_entity
-     * \param [in] send_data
-     *
      */
 
     void
@@ -293,22 +286,20 @@ namespace cwipi {
 
     /**
      * \brief Receive a data array.
-     *
-     * \param [in] global_data_id
-     *
      */
 
     void
     globalDataIrecv
     (
-     const string    &global_data_id
-    );
+     const string    &global_data_id,
+     size_t          s_recv_entity,
+     int             recv_stride,
+     int             n_recv_entity,
+     void           *recv_data
+     );
 
     /**
      * \brief Wait of send a data array.
-     *
-     * \param [in] global_data_id
-     *
      */
 
     void
@@ -319,24 +310,13 @@ namespace cwipi {
 
     /**
      * \brief Wait of receive a data array.
-     *
-     * \param [in] global_data_id
-     * \param [in] s_recv_entity
-     * \param [in] recv_stride
-     * \param [in] n_recv_entity
-     * \param [in] recv_data
-     *
      */
 
     void
     globalDataWaitIrecv
     (
-     const string    &global_data_id,
-     size_t         *s_recv_entity,
-     int            *recv_stride,
-     int            *n_recv_entity,
-     void          **recv_data
-    );
+     const string    &global_data_id
+     );
 
     /*----------------------------------------------------------------------------*
      * Methods about communicators                                                *

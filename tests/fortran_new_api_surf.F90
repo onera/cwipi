@@ -454,8 +454,8 @@ program testf
 
   !! Global data
   global_data_name = "chocolatine"
+  allocate(global_data(3,2))
   if (code_names(1) == "code1") then
-    allocate(global_data(3,2))
     do i = 1,2
       global_data(:,i) = [i,2*i,3*i]
     enddo
@@ -466,7 +466,8 @@ program testf
   else
     call CWP_Global_data_irecv(code_names(1),    &
                                coupling_name,    &
-                               global_data_name)
+                               global_data_name, &
+                               global_data)
   endif
 
   ! call MPI_Barrier(MPI_comm_world, ierr)
@@ -478,8 +479,7 @@ program testf
   else
     call CWP_Global_data_wait_irecv(code_names(1),    &
                                     coupling_name,    &
-                                    global_data_name, &
-                                    global_data)
+                                    global_data_name)
   endif
 
   call MPI_Barrier(MPI_comm_world, ierr)
@@ -487,16 +487,12 @@ program testf
   if (debug) then
     write(iiunit,*) "-- Global data --"
     write(iiunit,*) "size = ", size(global_data,1), size(global_data,2)
-    do i = 1,size(global_data,1)
+    do i = 1,size(global_data,2)
       write(iiunit,*) global_data(:,i)
     enddo
   endif
 
-  if (code_names(1) == "code1") then
-    deallocate(global_data)
-  else
-    call pdm_fortran_free_c(c_loc(global_data))
-  endif
+  deallocate(global_data)
 
 
   !! Part data

@@ -128,126 +128,93 @@ namespace cwipi {
      *
      * \brief Non blocking send of global data array
      *
-     * \param [in] global_data_id
-     * \param [in] s_send_entity_request
-     * \param [in] send_stride_request
-     * \param [in] n_send_entity_request
-     * \param [in] data_send_request
-     * \param [in] s_send_entity
-     * \param [in] send_stride
-     * \param [in] n_send_entity
-     * \param [in] send_data
+     * \param [in]  global_data_id
+     * \param [out] data_send_request
+     * \param [in]  s_send_entity
+     * \param [in]  send_stride
+     * \param [in]  n_send_entity
+     * \param [in]  send_data
      */
 
     void
     issendGlobalDataBetweenCodesThroughUnionCom
     (
-     const string     global_data_id,
-     MPI_Request    *s_send_entity_request,
-     MPI_Request    *send_stride_request,
-     MPI_Request    *n_send_entity_request,
+     const string    global_data_id,
      MPI_Request    *data_send_request,
-     size_t          &s_send_entity,
-     int             &send_stride,
-     int             &n_send_entity,
+     size_t          s_entity,
+     int             stride,
+     int             n_entity,
      void           *send_data
-    );
+     );
 
     /**
      *
      * \brief Non blocking receive of global data array
      *
-     * \param [in] global_data_id
-     * \param [in] s_recv_entity_request
-     * \param [in] recv_stride_request
-     * \param [in] n_recv_entity_request
-     * \param [in] s_recv_entity
-     * \param [in] recv_stride
-     * \param [in] n_recv_entity
-     * \param [in] recv_data
+     * \param [in]  global_data_id
+     * \param [out] data_recv_request
+     * \param [in]  s_entity
+     * \param [in]  stride
+     * \param [in]  n_entity
+     * \param [out] recv_data
      */
 
     void
     irecvGlobalDataBetweenCodesThroughUnionCom
     (
-     const string     global_data_id,
-     MPI_Request    *s_recv_entity_request,
-     MPI_Request    *recv_stride_request,
-     MPI_Request    *n_recv_entity_request,
-     size_t         *s_recv_entity,
-     int            *recv_stride,
-     int            *n_recv_entity
-    );
+     const string    global_data_id,
+     MPI_Request    *data_recv_request,
+     size_t          s_entity,
+     int             stride,
+     int             n_entity,
+     void           *recv_data
+     );
 
     /**
      *
      * \brief Non blocking send wait of global data array
      *
-     * \param [in] s_send_entity_request
-     * \param [in] send_stride_request
-     * \param [in] n_send_entity_request
-     * \param [in] data_send_request
-     * \param [in] s_send_entity
-     * \param [in] send_stride
-     * \param [in] n_send_entity
-     * \param [in] send_data
-     * \param [in] s_recv_entity
-     * \param [in] recv_stride
-     * \param [in] n_recv_entity
-     * \param [in] recv_data
+     * \param [in]  data_send_request
+     * \param [in]  s_entity
+     * \param [in]  stride
+     * \param [in]  n_entity
+     * \param [in]  send_data
+     * \param [out] recv_data
      */
 
     void
     waitIssendGlobalDataBetweenCodesThroughUnionCom
     (
-     MPI_Request    *s_send_entity_request,
-     MPI_Request    *send_stride_request,
-     MPI_Request    *n_send_entity_request,
-     MPI_Request    *data_send_request,
-     size_t          s_send_entity,
-     int             send_stride,
-     int             n_send_entity,
+     MPI_Request     data_send_request,
+     size_t          s_entity,
+     int             stride,
+     int             n_entity,
      void           *send_data,
-     size_t         *s_recv_entity,
-     int            *recv_stride,
-     int            *n_recv_entity,
-     void          **recv_data
-    );
+     void           *recv_data
+     );
 
     /**
      *
      * \brief Non blocking receive wait of global data array
      *
-     * \param [in] global_data_id
-     * \param [in] s_recv_entity_request
-     * \param [in] recv_stride_request
-     * \param [in] n_recv_entity_request
-     * \param [in] s_send_entity
-     * \param [in] send_stride
-     * \param [in] n_send_entity
-     * \param [in] send_data
-     * \param [in] s_recv_entity
-     * \param [in] recv_stride
-     * \param [in] n_recv_entity
-     * \param [in] recv_data
+     * \param [in]  data_recv_request
+     * \param [in]  s_entity
+     * \param [in]  stride
+     * \param [in]  n_entity
+     * \param [in]  send_data
+     * \param [out] recv_data
      */
 
     void
     waitIrecvGlobalDataBetweenCodesThroughUnionCom
     (
-     const string     global_data_id,
-     MPI_Request    *s_recv_entity_request,
-     MPI_Request    *recv_stride_request,
-     MPI_Request    *n_recv_entity_request,
-     size_t          s_send_entity,
-     int             send_stride,
-     int             n_send_entity,
+     MPI_Request     data_recv_request,
+     size_t          s_entity,
+     int             stride,
+     int             n_entity,
      void           *send_data,
-     size_t         *s_recv_entity,
-     int            *recv_stride,
-     int            *n_recv_entity,
-     void          **recv_data
-    );
+     void           *recv_data
+     );
 
 
     MPI_Comm

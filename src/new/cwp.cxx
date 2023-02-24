@@ -3458,9 +3458,13 @@ CWP_Global_data_issend
 /**
  * \brief Initiate the reception of a data array.
  *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] global_data_id   Global data identifier
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  global_data_id   Global data identifier
+ * \param [in]  s_recv_entity    Data size
+ * \param [in]  recv_stride      Constant stride value
+ * \param [in]  n_recv_entity    Number of entities
+ * \param [out] recv_data        Pointer to data array
  *
  */
 
@@ -3469,14 +3473,21 @@ CWP_Global_data_irecv
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *global_data_id
+ const char     *global_data_id,
+       size_t    s_recv_entity,
+       int       recv_stride,
+       int       n_recv_entity,
+       void     *recv_data
 )
 {
-
-  // assert(s_recv_entity != NULL);
+  assert(recv_data != NULL);
 
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.globalDataIrecv(global_data_id);
+  cpl.globalDataIrecv(global_data_id,
+                      s_recv_entity,
+                      recv_stride,
+                      n_recv_entity,
+                      recv_data);
 }
 
 
@@ -3508,10 +3519,6 @@ CWP_Global_data_wait_issend
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  global_data_id   Global data identifier
- * \param [out] s_recv_entity    Data size
- * \param [out] recv_stride      Constant stride value
- * \param [out] n_recv_entity    Number of entities
- * \param [out] recv_data        Pointer to data array
  *
  */
 
@@ -3520,21 +3527,11 @@ CWP_Global_data_wait_irecv
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *global_data_id,
-       size_t   *s_recv_entity,
-       int      *recv_stride,
-       int      *n_recv_entity,
-       void    **recv_data
+ const char     *global_data_id
 )
 {
-  assert(s_recv_entity != NULL);
-
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-  cpl.globalDataWaitIrecv(global_data_id,
-                          s_recv_entity,
-                          recv_stride,
-                          n_recv_entity,
-                          recv_data);
+  cpl.globalDataWaitIrecv(global_data_id);
 }
 
 /**

@@ -227,59 +227,77 @@ main(int argc, char *argv[]) {
 
     // Exchange vectors
     const char *global_data_name1  = "lapin";
-    double *send_data1 = malloc(sizeof(double) * 4);
+    size_t  s_entity1 = sizeof(double);
+    int     stride1   = 2;
+    int     n_entity1 = 2;
+
+    size_t  s_entity2 = sizeof(double);
+    int     stride2   = 2;
+    int     n_entity2 = 2;
+    // TO DO : Exchange these 3 values via GlobalDatas...
+
+    double *send_data1 = malloc(s_entity1 * stride1 * n_entity1);
     send_data1[0] = 42.42;
     send_data1[1] = 13.10;
     send_data1[2] = 1959.07;
     send_data1[3] = 1954.02;
 
-    size_t  s_recv_entity1 = 0;
-    int     recv_stride1   = -1;
-    int     n_recv_entity1 = -1;
-    double *recv_data1 = NULL;
+
+    // size_t  s_recv_entity1 = 0;
+    // int     recv_stride1   = -1;
+    // int     n_recv_entity1 = -1;
+    double *recv_data1 = malloc(s_entity1 * stride1 * n_entity1);//NULL;
 
     const char *global_data_name2  = "capybara";
-    double *send_data2 = malloc(sizeof(double) * 4);
+    double *send_data2 = malloc(s_entity2 * stride2 * n_entity2);
     send_data2[0] = 0.1;
     send_data2[1] = 0.2;
     send_data2[2] = 0.3;
     send_data2[3] = 0.4;
 
-    size_t  s_recv_entity2 = 0;
-    int     recv_stride2   = -1;
-    int     n_recv_entity2 = -1;
-    double *recv_data2 = NULL;
+    // size_t  s_recv_entity2 = 0;
+    // int     recv_stride2   = -1;
+    // int     n_recv_entity2 = -1;
+    double *recv_data2 = malloc(s_entity2 * stride2 * n_entity2);//NULL;
 
     if (code_id == 1) {
       CWP_Global_data_issend(code_name[0],
                              coupling_name,
                              global_data_name2,
-                             sizeof(double),
-                             2,
-                             2,
-                             send_data2);
+                             s_entity2,
+                             stride2,
+                             n_entity2,
+                    (void *) send_data2);
     }
 
     if (code_id == 2) {
       CWP_Global_data_irecv(code_name[0],
                             coupling_name,
-                            global_data_name1);
+                            global_data_name1,
+                            s_entity1,
+                            stride1,
+                            n_entity1,
+                   (void *) recv_data1);
     }
 
     if (code_id == 1) {
       CWP_Global_data_issend(code_name[0],
                              coupling_name,
                              global_data_name1,
-                             sizeof(double),
-                             2,
-                             2,
-                             send_data1);
+                             s_entity1,
+                             stride1,
+                             n_entity1,
+                    (void *) send_data1);
     }
 
     if (code_id == 2) {
       CWP_Global_data_irecv(code_name[0],
                             coupling_name,
-                            global_data_name2);
+                            global_data_name2,
+                            s_entity2,
+                            stride2,
+                            n_entity2,
+                   (void *) recv_data2);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -287,11 +305,7 @@ main(int argc, char *argv[]) {
     if (code_id == 2) {
       CWP_Global_data_wait_irecv(code_name[0],
                                  coupling_name,
-                                 global_data_name2,
-                                 &s_recv_entity2,
-                                 &recv_stride2,
-                                 &n_recv_entity2,
-                       (void **) &recv_data2);
+                                 global_data_name2);
     }
 
     if (code_id == 1) {
@@ -309,11 +323,7 @@ main(int argc, char *argv[]) {
     if (code_id == 2) {
       CWP_Global_data_wait_irecv(code_name[0],
                                  coupling_name,
-                                 global_data_name1,
-                                 &s_recv_entity1,
-                                 &recv_stride1,
-                                 &n_recv_entity1,
-                       (void **) &recv_data1);
+                                 global_data_name1);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -414,28 +424,36 @@ main(int argc, char *argv[]) {
 
     // Exchange vector
     const char *global_data_name  = "lapin";
-    double *send_data = malloc(sizeof(double) * 4);
+    size_t  s_entity = sizeof(double);
+    int     stride   = 2;
+    int     n_entity = 2;
+
+    double *send_data = malloc(s_entity * stride * n_entity);
     send_data[0] = 42.42;
     send_data[1] = 13.10;
     send_data[2] = 1959.07;
     send_data[3] = 1954.02;
 
-    size_t  s_recv_entity = 0;
-    int     recv_stride   = -1;
-    int     n_recv_entity = -1;
-    double *recv_data = NULL;
+    // size_t  s_recv_entity = 0;
+    // int     recv_stride   = -1;
+    // int     n_recv_entity = -1;
+    double *recv_data = malloc(s_entity * stride * n_entity);//NULL;
 
     CWP_Global_data_issend(code_name[0],
                            coupling_name,
                            global_data_name,
-                           sizeof(double),
-                           2,
-                           2,
-                           send_data);
+                           s_entity,
+                           stride,
+                           n_entity,
+                  (void *) send_data);
 
     CWP_Global_data_irecv(code_name[1],
                           coupling_name,
-                          global_data_name);
+                          global_data_name,
+                          s_entity,
+                          stride,
+                          n_entity,
+                 (void *) recv_data);
 
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -445,11 +463,7 @@ main(int argc, char *argv[]) {
 
     CWP_Global_data_wait_irecv(code_name[1],
                                coupling_name,
-                               global_data_name,
-                               &s_recv_entity,
-                               &recv_stride,
-                               &n_recv_entity,
-                     (void **) &recv_data);
+                               global_data_name);
 
     MPI_Barrier(MPI_COMM_WORLD);
 
