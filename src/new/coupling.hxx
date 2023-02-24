@@ -205,7 +205,7 @@ namespace cwipi {
      const string   &part_data_id,
      size_t         s_data,
      int            n_components,
-     void        ***part2_data,
+     void         **part2_data,
      int           *request
     );
 
@@ -235,7 +235,7 @@ namespace cwipi {
     partDataWaitIssend
     (
      const string   &part_data_id,
-     int           *request
+     int             request
     );
 
     /**
@@ -250,9 +250,21 @@ namespace cwipi {
     partDataWaitIrecv
     (
      const string   &part_data_id,
-     int           *request
+     int             request
     );
 
+    int
+    partDataNPartGet
+    (
+     const string   &part_data_id
+     );
+
+    int
+    partDataNRefGet
+    (
+     const string   &part_data_id,
+     const int       i_part
+     );
 
     /*----------------------------------------------------------------------------*
      * Methods about global data                                                  *

@@ -418,6 +418,17 @@ namespace cwipi {
                                         (const PDM_g_num_t**) gnum_elt,
                                         PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
 
+          int  *n_ref;
+          int **ref;
+          for (int i_part = 0; i_part < n_part2; i_part++) {
+            PDM_part_to_part_ref_lnum2_get(ptp,
+                                           &n_ref,
+                                           &ref);
+            if (n_ref[i_part] != n_elt2[i_part]) {
+              PDM_error(__FILE__, __LINE__, 0, "Error in input data of CWP_Part_data_create : make sure the global numbering is continous\n");
+            }
+          }
+
           it->second.set_ptp(ptp);
           cpl_it->second.set_ptp(ptp);
 
@@ -442,6 +453,17 @@ namespace cwipi {
                                         (const int**) part1_to_part2_idx,
                                         (const PDM_g_num_t**) gnum_elt1,
                                         PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
+
+          int  *n_ref;
+          int **ref;
+          for (int i_part = 0; i_part < n_part; i_part++) {
+            PDM_part_to_part_ref_lnum2_get(ptp,
+                                           &n_ref,
+                                           &ref);
+            if (n_ref[i_part] != n_elt[i_part]) {
+              PDM_error(__FILE__, __LINE__, 0, "Error in input data of CWP_Part_data_create : make sure the global numbering is continous\n");
+            }
+          }
 
           it->second.set_ptp(ptp);
           cpl_it->second.set_ptp(ptp);
@@ -495,6 +517,17 @@ namespace cwipi {
                                       NULL,
                                       NULL,
                                       PDM_MPI_mpi_2_pdm_mpi_comm(&unionComm));
+
+        int  *n_ref;
+        int **ref;
+        for (int i_part = 0; i_part < n_part; i_part++) {
+          PDM_part_to_part_ref_lnum2_get(ptp,
+                                         &n_ref,
+                                         &ref);
+          if (n_ref[i_part] != n_elt[i_part]) {
+            PDM_error(__FILE__, __LINE__, 0, "Error in input data of CWP_Part_data_create : make sure the global numbering is continous\n");
+          }
+        }
 
         it->second.set_ptp(ptp);
 
@@ -671,7 +704,7 @@ namespace cwipi {
    const string   &part_data_id,
    size_t         s_data,
    int            n_components,
-   void        ***part2_data,
+   void         **part2_data,
    int           *request
   )
   {
@@ -790,11 +823,11 @@ namespace cwipi {
                                    &ref_lnum2);
 
     // malloc
-    void ***part2_data   = it->second.get_part2_data();
-    (*part2_data) = (void **) malloc(sizeof(void *) * n_part2);
-    for (int i_part = 0; i_part < n_part2; i_part++) {
-      (*part2_data)[i_part] = malloc(s_data * n_ref_lnum2[i_part] * n_components);
-    }
+    void **part2_data   = it->second.get_part2_data();
+    // (*part2_data) = (void **) malloc(sizeof(void *) * n_part2);
+    // for (int i_part = 0; i_part < n_part2; i_part++) {
+    //   (*part2_data)[i_part] = malloc(s_data * n_ref_lnum2[i_part] * n_components);
+    // }
 
     // filter on void**
     int delta = (int) s_data * n_components;
@@ -802,7 +835,7 @@ namespace cwipi {
       for (int i = 0; i < n_ref_lnum2[i_part]; i++) {
         int first_idx = gnum1_come_from_idx[i_part][i];
         for (int j = 0; j < delta; j++) {
-          ((unsigned char **) (*part2_data))[i_part][i * delta + j] = ((unsigned char **) recv_buffer)[i_part][first_idx * delta + j];
+          ((unsigned char **) part2_data)[i_part][i * delta + j] = ((unsigned char **) recv_buffer)[i_part][first_idx * delta + j];
         }
       }
     }
@@ -830,7 +863,7 @@ namespace cwipi {
   Coupling::partDataWaitIssend
   (
    const string   &part_data_id,
-   int           *request
+   int             request
   )
   {
     // get general data
@@ -847,7 +880,7 @@ namespace cwipi {
       if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
 
         PDM_part_to_part_issend_wait(ptp,
-                                     *request);
+                                     request);
 
         int *request2 = cpl_it->second.get_request2();
 
@@ -866,7 +899,7 @@ namespace cwipi {
     else {
 
       PDM_part_to_part_issend_wait(ptp,
-                                   *request);
+                                   request);
 
       // set to NULL to prepare next send
       it->second.set_request1(NULL);
@@ -886,7 +919,7 @@ namespace cwipi {
   Coupling::partDataWaitIrecv
   (
    const string   &part_data_id,
-   int           *request
+   int             request
   )
   {
     // get general data
@@ -903,7 +936,7 @@ namespace cwipi {
       if (_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
 
         PDM_part_to_part_irecv_wait(ptp,
-                                    *request);
+                                    request);
 
         int *request1 = cpl_it->second.get_request1();
 
@@ -922,7 +955,7 @@ namespace cwipi {
     else {
 
       PDM_part_to_part_irecv_wait(ptp,
-                                  *request);
+                                  request);
 
       // set to NULL to prepare next send
       it->second.set_request2(NULL);
@@ -931,6 +964,42 @@ namespace cwipi {
       partDatafilter(it);
 
     } // not joint
+  }
+
+
+  int
+  Coupling::partDataNPartGet
+  (
+   const string   &part_data_id
+   )
+  {
+    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
+    assert(it != _partData.end());
+
+    return it->second.get_n_part2();
+  }
+
+  int
+  Coupling::partDataNRefGet
+  (
+   const string   &part_data_id,
+   const int       i_part
+   )
+  {
+    map<string,PartData>::iterator it = _partData.find(part_data_id.c_str());
+    assert(it != _partData.end());
+
+    assert(i_part < it->second.get_n_part2());
+
+    PDM_part_to_part_t *ptp = it->second.get_ptp();
+
+    int  *n_ref;
+    int **ref;
+    PDM_part_to_part_ref_lnum2_get(ptp,
+                                   &n_ref,
+                                   &ref);
+
+    return n_ref[i_part];
   }
 
   /*----------------------------------------------------------------------------*

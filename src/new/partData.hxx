@@ -139,7 +139,7 @@ namespace cwipi {
       return _n_part2;
     }
 
-    inline void ***
+    inline void **
     get_part2_data()
     {
       return _part2_data;
@@ -222,7 +222,7 @@ namespace cwipi {
     inline void
     set_part2_data
     (
-     void *** part2_data
+     void ** part2_data
     )
     {
       _part2_data = part2_data;
@@ -288,7 +288,7 @@ namespace cwipi {
     CWP_g_num_t  **_gnum_elt2;
     int           *_n_elt2;
     int            _n_part2;
-    void        ***_part2_data;
+    void         **_part2_data;
     int           *_request2;
 
     // intern

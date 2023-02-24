@@ -64,7 +64,9 @@ _read_args
 (
   int                   argc,
   char                **argv,
-  int                  *verbose
+  int                  *verbose,
+  int                  *is_mixed,
+  int                  *is_joint
 )
 {
   int i = 1;
@@ -76,6 +78,12 @@ _read_args
     }
     else if (strcmp(argv[i], "-v") == 0) {
       *verbose = 1;
+    }
+    else if (strcmp(argv[i], "-mixed") == 0) {
+      *is_mixed = 1;
+    }
+    else if (strcmp(argv[i], "-joint") == 0) {
+      *is_joint = 1;
     }
     else
       _usage(EXIT_FAILURE);
@@ -92,11 +100,15 @@ _read_args
 int
 main(int argc, char *argv[]) {
 
-  int verbose                     = 0;
+  int is_mixed = 1;
+  int is_joint = 0;
+  int verbose  = 0;
 
-  _read_args (argc,
-              argv,
-             &verbose);
+  _read_args(argc,
+             argv,
+             &verbose,
+             &is_mixed,
+             &is_joint);
 
   // Initialize MPI
   MPI_Init(&argc, &argv);
@@ -110,8 +122,6 @@ main(int argc, char *argv[]) {
   assert (comm_world_size > 1);
 
   // Choice
-  int is_mixed = 1;
-  int is_joint = 0;
 
   if (is_mixed) {
 

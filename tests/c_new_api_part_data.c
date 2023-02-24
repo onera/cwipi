@@ -198,7 +198,7 @@ main(int argc, char *argv[]) {
 
     // create
     int n_elt_send = 6;
-    int n_elt_recv = 12;
+    int n_elt_recv = 6;
 
     int *send_n_elts = malloc(sizeof(int) * n_part);
     for (int i_part = 0; i_part < n_part; i_part++) {
@@ -225,7 +225,9 @@ main(int argc, char *argv[]) {
         gnum_elt_send[i_part][i] = i + 1; // send_n_elts[i_part] * rank +
       }
     }
-    PDM_log_trace_array_long(gnum_elt_send[0], send_n_elts[0], "gnum_elt_send: ");
+    if (verbose) {
+      PDM_log_trace_array_long(gnum_elt_send[0], send_n_elts[0], "gnum_elt_send: ");
+    }
 
     CWP_g_num_t **gnum_elt_recv = NULL;
     if (rank == 1) {
@@ -239,7 +241,9 @@ main(int argc, char *argv[]) {
           gnum_elt_recv[i_part][i] = i + 1;
         }
       }
-      PDM_log_trace_array_long(gnum_elt_recv[0], recv_n_elts[0], "gnum_elt_recv: ");
+      if (verbose) {
+        PDM_log_trace_array_long(gnum_elt_recv[0], recv_n_elts[0], "gnum_elt_recv: ");
+      }
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -297,18 +301,23 @@ main(int argc, char *argv[]) {
                            part_data_name,
                            sizeof(double),
                            n_comp,
-                           (void **) part1_to_part2_data,
+                 (void **) part1_to_part2_data,
                            &send_request);
     }
 
     if (rank == 1) {
+
+      part2_data = malloc(sizeof(double *) * n_part);
+      for (int i_part = 0; i_part < n_part; i_part++) {
+        part2_data[i_part] = malloc(sizeof(double) * recv_n_elts[i_part] * n_comp);
+      }
 
       CWP_Part_data_irecv(code_name[1],
                           coupling_name,
                           part_data_name,
                           sizeof(double),
                           n_comp,
-                          (void ***) &part2_data,
+                (void **) part2_data,
                           &recv_request);
 
     }
@@ -321,7 +330,7 @@ main(int argc, char *argv[]) {
       CWP_Part_data_wait_issend(code_name[0],
                                 coupling_name,
                                 part_data_name,
-                                &send_request);
+                                send_request);
     }
 
     if (rank == 1) {
@@ -329,23 +338,25 @@ main(int argc, char *argv[]) {
       CWP_Part_data_wait_irecv(code_name[1],
                                coupling_name,
                                part_data_name,
-                               &recv_request);
+                               recv_request);
     }
 
     // --> check
-    for (int i_part = 0; i_part < n_part; i_part++) {
-      if (rank == 0 || rank == 1) {
-        for (int i = 0; i < send_n_elts[i_part]; i++) {
-          for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-            log_trace("%d - %ld -> s[%d][%d][%d] : %f\n", rank, gnum_elt_send[i_part][i], i_part, i, i_comp, part1_to_part2_data[i_part][3*i + i_comp]);
+    if (verbose) {
+      for (int i_part = 0; i_part < n_part; i_part++) {
+        if (rank == 0 || rank == 1) {
+          for (int i = 0; i < send_n_elts[i_part]; i++) {
+            for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+              log_trace("%d - %ld -> s[%d][%d][%d] : %f\n", rank, gnum_elt_send[i_part][i], i_part, i, i_comp, part1_to_part2_data[i_part][3*i + i_comp]);
+            }
           }
         }
-      }
 
-      if (rank == 1) {
-        for (int i = 0; i < n_elt_send; i++) { // recv_n_elts[i_part]
-          for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-            log_trace("%d - %ld -> r[%d][%d][%d] : %f\n", rank, gnum_elt_recv[i_part][i], i_part, i, i_comp, part2_data[i_part][3*i + i_comp]);
+          if (rank == 1) {
+          for (int i = 0; i < n_elt_send; i++) { // recv_n_elts[i_part]
+            for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+              log_trace("%d - %ld -> r[%d][%d][%d] : %f\n", rank, gnum_elt_recv[i_part][i], i_part, i, i_comp, part2_data[i_part][3*i + i_comp]);
+            }
           }
         }
       }
@@ -370,26 +381,26 @@ main(int argc, char *argv[]) {
                            part_data_name,
                            sizeof(double),
                            n_comp,
-                           (void **) part1_to_part2_data,
+                 (void **) part1_to_part2_data,
                            &send_request);
     }
 
     if (rank == 1) {
 
-      if (part2_data != NULL) {
-        for (int i_part = 0; i_part < n_part; i_part++) {
-          if (part2_data[i_part] != NULL) free(part2_data[i_part]);
-        }
-        free(part2_data);
-      }
-      part2_data = NULL;
+      // if (part2_data != NULL) {
+      //   for (int i_part = 0; i_part < n_part; i_part++) {
+      //     if (part2_data[i_part] != NULL) free(part2_data[i_part]);
+      //   }
+      //   free(part2_data);
+      // }
+      // part2_data = NULL;
 
       CWP_Part_data_irecv(code_name[1],
                           coupling_name,
                           part_data_name,
                           sizeof(double),
                           n_comp,
-                          (void ***) &part2_data,
+                (void **) part2_data,
                           &recv_request);
 
     }
@@ -402,7 +413,7 @@ main(int argc, char *argv[]) {
       CWP_Part_data_wait_issend(code_name[0],
                                 coupling_name,
                                 part_data_name,
-                                &send_request);
+                                send_request);
     }
 
     if (rank == 1) {
@@ -410,26 +421,28 @@ main(int argc, char *argv[]) {
       CWP_Part_data_wait_irecv(code_name[1],
                                coupling_name,
                                part_data_name,
-                               &recv_request);
+                               recv_request);
     }
 
 
     MPI_Barrier(MPI_COMM_WORLD);
 
     // --> check
-    for (int i_part = 0; i_part < n_part; i_part++) {
-      if (rank == 0 || rank == 1) {
-        for (int i = 0; i < send_n_elts[i_part]; i++) {
-          for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-            log_trace("%d - %ld -> s2[%d][%d][%d] : %f\n", rank, gnum_elt_send[i_part][i], i_part, i, i_comp, part1_to_part2_data[i_part][3*i + i_comp]);
+    if (verbose) {
+      for (int i_part = 0; i_part < n_part; i_part++) {
+        if (rank == 0 || rank == 1) {
+          for (int i = 0; i < send_n_elts[i_part]; i++) {
+            for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+              log_trace("%d - %ld -> s2[%d][%d][%d] : %f\n", rank, gnum_elt_send[i_part][i], i_part, i, i_comp, part1_to_part2_data[i_part][3*i + i_comp]);
+            }
           }
         }
-      }
 
-      if (rank == 1) {
-        for (int i = 0; i < n_elt_send; i++) { // recv_n_elts[i_part]
-          for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-            log_trace("%d - %ld -> r2[%d][%d][%d] : %f\n", rank, gnum_elt_recv[i_part][i], i_part, i, i_comp, part2_data[i_part][3*i + i_comp]);
+        if (rank == 1) {
+          for (int i = 0; i < n_elt_send; i++) { // recv_n_elts[i_part]
+            for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+              log_trace("%d - %ld -> r2[%d][%d][%d] : %f\n", rank, gnum_elt_recv[i_part][i], i_part, i, i_comp, part2_data[i_part][3*i + i_comp]);
+            }
           }
         }
       }
@@ -587,6 +600,9 @@ main(int argc, char *argv[]) {
       gnum_elt[i_part] = malloc(sizeof(CWP_g_num_t) * n_elt);
     }
 
+    if (verbose) {
+      log_trace("code_id %d\n", code_id);
+    }
     for (int i_part = 0; i_part < n_part; i_part++) {
       for (int i = 0; i < n_elt; i++) {
         if (code_id == 1) {
@@ -594,6 +610,10 @@ main(int argc, char *argv[]) {
         } else {
           gnum_elt[i_part][i] = n_part * n_elt * (rank - 1) + i_part * n_elt + i + 1;
         }
+      }
+      if (verbose) {
+        log_trace("part %d : ", i_part);
+        PDM_log_trace_array_long(gnum_elt[i_part], n_elt, "gnum_elt[i_part] : ");
       }
     }
 
@@ -632,17 +652,22 @@ main(int argc, char *argv[]) {
                            part_data_name,
                            sizeof(double),
                            n_comp,
-                           (void **) part1_to_part2_data,
+                 (void **) part1_to_part2_data,
                            &send_request);
     }
     else {
+
+      part2_data = malloc(sizeof(double *) * n_part);
+      for (int i_part = 0; i_part < n_part; i_part++) {
+        part2_data[i_part] = malloc(sizeof(double) * n_elt * n_comp);
+      }
 
       CWP_Part_data_irecv(code_name[0],
                           coupling_name,
                           part_data_name,
                           sizeof(double),
                           n_comp,
-                          (void ***) &part2_data,
+                (void **) part2_data,
                           &recv_request);
 
     }
@@ -655,18 +680,19 @@ main(int argc, char *argv[]) {
       CWP_Part_data_wait_issend(code_name[0],
                                 coupling_name,
                                 part_data_name,
-                                &send_request);
+                                send_request);
     }
     else {
 
       CWP_Part_data_wait_irecv(code_name[0],
                                coupling_name,
                                part_data_name,
-                               &recv_request);
+                               recv_request);
     }
 
     // --> check
-    for (int i_part = 0; i_part < n_part; i_part++) {
+    if (verbose) {
+      for (int i_part = 0; i_part < n_part; i_part++) {
         for (int i = 0; i < n_elt; i++) {
           for (int i_comp = 0; i_comp < n_comp; i_comp++) {
             if (code_id == 1) {
@@ -678,6 +704,7 @@ main(int argc, char *argv[]) {
           }
         }
       }
+    }
 
     MPI_Barrier(MPI_COMM_WORLD);
 

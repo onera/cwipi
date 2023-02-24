@@ -6,12 +6,19 @@ program testf
     use mpi
 #endif
   use cwp
+  use pdm_pointer_array
 
   implicit none
 
 #ifndef CWP_HAVE_FORTRAN_MPI_MODULE  
     include "mpif.h"
 #endif  
+
+
+  type my_type
+    integer(c_long), pointer :: g_num(:) => null()
+    integer(c_int),  pointer :: data(:)  => null()
+  end type my_type
 
   !--------------------------------------------------------------------
   integer                       :: ierr
@@ -85,6 +92,14 @@ program testf
   ! Global data
   character(len=99)             :: global_data_name
   integer(c_int), pointer       :: global_data(:,:) => null()
+
+  ! Part data
+  character(len=99)             :: part_data_name
+  integer(c_int), pointer       :: recv_data(:) => null()
+  type(PDM_pointer_array_t)     :: gnum_elt, part_data
+  integer(c_int), pointer       :: n_elt_part(:) => null()
+  type(my_type), allocatable    :: my_part(:)
+  integer(c_int)                :: n_comp, j, request
   !--------------------------------------------------------------------
 
 
@@ -472,9 +487,9 @@ program testf
   if (debug) then
     write(iiunit,*) "-- Global data --"
     write(iiunit,*) "size = ", size(global_data,1), size(global_data,2)
-    ! do i = 1,size(global_data,1)
-    !   write(iiunit,*) global_data(:,i)
-    ! enddo
+    do i = 1,size(global_data,1)
+      write(iiunit,*) global_data(:,i)
+    enddo
   endif
 
   if (code_names(1) == "code1") then
@@ -482,6 +497,140 @@ program testf
   else
     call pdm_fortran_free_c(c_loc(global_data))
   endif
+
+
+  !! Part data
+  if (debug) then
+    write(iiunit,*) "-- Part data --"
+  endif
+  part_data_name = "All work and no play makes Jack a dull boy"
+
+  if (code_names(1) == "code1") then
+    n_part    = 2
+    exch_type = CWP_PARTDATA_SEND
+  else
+    n_part    = 1
+    exch_type = CWP_PARTDATA_RECV
+  endif
+
+
+  call PDM_pointer_array_create(gnum_elt,       &
+                                n_part,         &
+                                PDM_TYPE_G_NUM)
+
+  call PDM_pointer_array_create(part_data,     &
+                                n_part,        &
+                                PDM_TYPE_INT)
+
+  allocate(my_part(n_part))
+  if (code_names(1) == "code1") then
+    allocate(n_elt_part(n_part))
+    n_elt_part = [3, 2]
+  else
+    allocate(n_elt_part(n_part))
+    n_elt_part = [5]
+  endif
+
+  n_comp = 2
+  do i = 1, n_part
+    allocate(my_part(i)%g_num(n_elt_part(i)), &
+             my_part(i)%data (n_elt_part(i) * n_comp))
+  enddo
+
+  if (code_names(1) == "code1") then
+    my_part(1)%g_num = [1, 3, 5]
+    my_part(2)%g_num = [2, 4]
+  else
+    my_part(1)%g_num = [1, 4, 2, 5, 3]
+  endif
+
+  do i = 1, n_part
+    do j = 1, n_elt_part(i)
+      my_part(i)%data(2*(j-1)+1) =   my_part(i)%g_num(j)
+      my_part(i)%data(2*j      ) = 2*my_part(i)%g_num(j)
+    enddo
+
+    call PDM_pointer_array_part_set(gnum_elt,         &
+                                    i-1,              &
+                                    my_part(i)%g_num)
+
+    call PDM_pointer_array_part_set(part_data,        &
+                                    i-1,              &
+                                    my_part(i)%data)
+  enddo
+
+  call CWP_Part_data_create(code_names(1),  &
+                            coupling_name,  &
+                            part_data_name, &
+                            exch_type,      &
+                            gnum_elt,       &
+                            n_elt_part,     &
+                            n_part)
+
+  if (code_names(1) == "code1") then
+    call CWP_Part_data_issend(code_names(1),  &
+                              coupling_name,  &
+                              part_data_name, &
+                              n_comp,         &
+                              part_data,      &
+                              request)
+  else
+    call CWP_Part_data_irecv(code_names(1),  &
+                             coupling_name,  &
+                             part_data_name, &
+                             n_comp,         &
+                             part_data,      &
+                             request)
+  endif
+
+
+  if (code_names(1) == "code1") then
+    call CWP_Part_data_wait_issend(code_names(1),  &
+                                   coupling_name,  &
+                                   part_data_name, &
+                                   request)
+    if (debug) then
+      do i = 1, n_part
+        call PDM_pointer_array_part_get(part_data, &
+                                        i-1,       &
+                                        recv_data)
+        do j = 1, n_elt_part(i)
+          write(iiunit, *) my_part(i)%g_num(j), " sends    ", recv_data(2*(j-1)+1:2*j)
+        enddo
+      enddo
+    endif
+  else
+    call CWP_Part_data_wait_irecv(code_names(1),  &
+                                  coupling_name,  &
+                                  part_data_name, &
+                                  request)
+
+    if (debug) then
+      do i = 1, n_part
+        call PDM_pointer_array_part_get(part_data, &
+                                        i-1,       &
+                                        recv_data)
+        do j = 1, n_elt_part(i)
+          write(iiunit, *) my_part(i)%g_num(j), " receives ", recv_data(2*(j-1)+1:2*j)
+        enddo
+      enddo
+    endif
+  endif
+
+  call CWP_Part_data_del(code_names(1),  &
+                         coupling_name,  &
+                         part_data_name, &
+                         exch_type)
+
+  do i = 1, n_part
+    deallocate(my_part(i)%g_num, &
+               my_part(i)%data)
+  enddo
+  deallocate(n_elt_part)
+  deallocate(my_part)
+
+  call PDM_pointer_array_free(part_data)
+  call PDM_pointer_array_free(gnum_elt)
 
 
   if (debug) then
@@ -498,10 +647,19 @@ program testf
   call CWP_Cpl_Del(code_names(1), &
                    coupling_name)
 
+
   !! Free memory
-  deallocate(code_names, coupled_code_names, is_coupled_rank, time_init, intra_comms)
+  deallocate(code_names,         &
+             coupled_code_names, &
+             is_coupled_rank,    &
+             time_init,          &
+             intra_comms,        &
+             g_code_names)
   deallocate(vtx_coord, connec_idx, connec)
   deallocate(field_data)
+  deallocate(code_list,     &
+             loc_code_list, &
+             f_param_names)
 
   !! Finalize
   call CWP_Finalize()

@@ -2320,7 +2320,7 @@ CWP_Part_data_irecv
  const char    *part_data_id,
  size_t         s_data,
  int            n_components,
- void        ***part2_data,
+ void         **part2_data,
  int           *request
 );
 
@@ -2340,7 +2340,7 @@ CWP_Part_data_wait_issend
  const char    *local_code_name,
  const char    *cpl_id,
  const char    *part_data_id,
- int           *request
+       int      request
 );
 
 /**
@@ -2359,7 +2359,7 @@ CWP_Part_data_wait_irecv
  const char    *local_code_name,
  const char    *cpl_id,
  const char    *part_data_id,
- int           *request
+       int      request
 );
 
 

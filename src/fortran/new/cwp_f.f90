@@ -159,6 +159,13 @@ module cwp
         CWP_OP_SUM
     end enum
 
+    ! CWP_PartData_exch_t
+    enum, bind(c)
+      enumerator :: &
+        CWP_PARTDATA_SEND, &
+        CWP_PARTDATA_RECV
+    end enum
+
     interface CWP_Param_set; module procedure &
       CWP_Param_set_int_, &
       CWP_Param_set_double_, &
@@ -454,7 +461,6 @@ module cwp
       module procedure CWP_Global_data_issend_complex4
       module procedure CWP_Global_data_issend_complex8
       module procedure CWP_Global_data_issend_real4
-    ! module procedure CWP_Global_data_issend_cptr
     end interface CWP_Global_data_issend
 
     interface CWP_Global_data_irecv
@@ -472,8 +478,31 @@ module cwp
       module procedure CWP_Global_data_wait_irecv_complex4
       module procedure CWP_Global_data_wait_irecv_complex8
       module procedure CWP_Global_data_wait_irecv_real4
-    ! module procedure CWP_Global_data_wait_irecv_cptr
     end interface CWP_Global_data_wait_irecv
+
+    interface CWP_Part_data_create
+      module procedure CWP_Part_data_create_
+    end interface CWP_Part_data_create
+
+    interface CWP_Part_data_del
+      module procedure CWP_Part_data_del_
+    end interface CWP_Part_data_del
+
+    interface CWP_Part_data_issend
+      module procedure CWP_Part_data_issend_
+    end interface CWP_Part_data_issend
+
+    interface CWP_Part_data_irecv
+      module procedure CWP_Part_data_irecv_
+    end interface CWP_Part_data_irecv
+
+    interface CWP_Part_data_wait_issend
+      module procedure CWP_Part_data_wait_issend_
+    end interface CWP_Part_data_wait_issend
+
+    interface CWP_Part_data_wait_irecv
+      module procedure CWP_Part_data_wait_irecv_
+    end interface CWP_Part_data_wait_irecv
 
   !
   ! Private
@@ -561,7 +590,13 @@ module cwp
              CWP_Global_data_wait_irecv_double, &
              CWP_Global_data_wait_irecv_complex4, &
              CWP_Global_data_wait_irecv_complex8, &
-             CWP_Global_data_wait_irecv_real4
+             CWP_Global_data_wait_irecv_real4, &
+             CWP_Part_data_create_, &
+             CWP_Part_data_del_, &
+             CWP_Part_data_issend_, &
+             CWP_Part_data_irecv_, &
+             CWP_Part_data_wait_issend_, &
+             CWP_Part_data_wait_irecv_
 
     interface
       subroutine CWP_Init_cf(fcomm, n_code, code_names, l_code_names, is_active_rank, time_init, intra_comms) &
@@ -1595,26 +1630,169 @@ module cwp
       integer(c_int), value         :: l_local_code_name, l_cpl_id, l_global_data_id
     end subroutine CWP_Global_data_wait_issend_cf
 
-    subroutine CWP_Global_data_wait_irecv_cf(f_local_code_name, &
-                                             l_local_code_name, &
-                                             f_cpl_id,          &
-                                             l_cpl_id,          &
-                                             f_global_data_id,  &
-                                             l_global_data_id,  &
-                                             s_recv_entity,     &
-                                             recv_stride,       &
-                                             n_recv_entity,     &
-                                             recv_data)         &
+    subroutine CWP_Global_data_wait_irecv_cf(f_local_code_name,      &
+                                             l_local_code_name,      &
+                                             f_cpl_id,               &
+                                             l_cpl_id,               &
+                                             f_global_data_id,       &
+                                             l_global_data_id,       &
+                                             expected_s_recv_entity, &
+                                             s_recv_entity,          &
+                                             recv_stride,            &
+                                             n_recv_entity,          &
+                                             recv_data)              &
     bind (c, name='CWP_Global_data_wait_irecv_cf')
       use, intrinsic :: iso_c_binding
       implicit none
       character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_global_data_id
-      integer(c_int), value         :: l_local_code_name, l_cpl_id, l_global_data_id
+      integer(c_int),  value        :: l_local_code_name, l_cpl_id, l_global_data_id
+      integer(c_long), value        :: expected_s_recv_entity
       integer(c_long)               :: s_recv_entity
       integer(c_int)                :: recv_stride
       integer(c_int)                :: n_recv_entity
       type(c_ptr)                   :: recv_data
     end subroutine CWP_Global_data_wait_irecv_cf
+
+    subroutine CWP_Part_data_create_cf(f_local_code_name, &
+                                       l_local_code_name, &
+                                       f_cpl_id,          &
+                                       l_cpl_id,          &
+                                       f_part_data_id,    &
+                                       l_part_data_id,    &
+                                       exch_type,         &
+                                       gnum_elt,          &
+                                       n_elt,             &
+                                       n_part)            &
+    bind (c, name='CWP_Part_data_create_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_part_data_id
+      integer(c_int), value         :: l_local_code_name, l_cpl_id, l_part_data_id
+      integer(c_int), value         :: exch_type
+      type(c_ptr),    value         :: gnum_elt
+      type(c_ptr),    value         :: n_elt
+      integer(c_int), value         :: n_part
+    end subroutine CWP_Part_data_create_cf
+
+
+    subroutine CWP_Part_data_del_cf(f_local_code_name, &
+                                    l_local_code_name, &
+                                    f_cpl_id,          &
+                                    l_cpl_id,          &
+                                    f_part_data_id,    &
+                                    l_part_data_id,    &
+                                    exch_type)         &
+    bind (c, name='CWP_Part_data_del_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_part_data_id
+      integer(c_int), value         :: l_local_code_name, l_cpl_id, l_part_data_id
+      integer(c_int), value         :: exch_type
+    end subroutine CWP_Part_data_del_cf
+
+    subroutine CWP_Part_data_issend_cf(f_local_code_name,   &
+                                       l_local_code_name,   &
+                                       f_cpl_id,            &
+                                       l_cpl_id,            &
+                                       f_part_data_id,      &
+                                       l_part_data_id,      &
+                                       s_data,              &
+                                       n_components,        &
+                                       part1_to_part2_data, &
+                                       request)             &
+    bind (c, name='CWP_Part_data_issend_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_part_data_id
+      integer(c_int),  value        :: l_local_code_name, l_cpl_id, l_part_data_id
+      integer(c_long), value        :: s_data
+      integer(c_int),  value        :: n_components
+      type(c_ptr),     value        :: part1_to_part2_data
+      integer(c_int)                :: request
+    end subroutine CWP_Part_data_issend_cf
+
+    subroutine CWP_Part_data_irecv_cf(f_local_code_name,   &
+                                      l_local_code_name,   &
+                                      f_cpl_id,            &
+                                      l_cpl_id,            &
+                                      f_part_data_id,      &
+                                      l_part_data_id,      &
+                                      s_data,              &
+                                      n_components,        &
+                                      part2_data,          &
+                                      request)             &
+    bind (c, name='CWP_Part_data_irecv_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_part_data_id
+      integer(c_int),  value        :: l_local_code_name, l_cpl_id, l_part_data_id
+      integer(c_long), value        :: s_data
+      integer(c_int),  value        :: n_components
+      type(c_ptr),     value        :: part2_data
+      integer(c_int)                :: request
+    end subroutine CWP_Part_data_irecv_cf
+
+    subroutine CWP_Part_data_wait_issend_cf(f_local_code_name,   &
+                                            l_local_code_name,   &
+                                            f_cpl_id,            &
+                                            l_cpl_id,            &
+                                            f_part_data_id,      &
+                                            l_part_data_id,      &
+                                            request)             &
+    bind (c, name='CWP_Part_data_wait_issend_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_part_data_id
+      integer(c_int), value         :: l_local_code_name, l_cpl_id, l_part_data_id
+      integer(c_int), value         :: request
+    end subroutine CWP_Part_data_wait_issend_cf
+
+    subroutine CWP_Part_data_wait_irecv_cf(f_local_code_name,   &
+                                           l_local_code_name,   &
+                                           f_cpl_id,            &
+                                           l_cpl_id,            &
+                                           f_part_data_id,      &
+                                           l_part_data_id,      &
+                                           request)             &
+    bind (c, name='CWP_Part_data_wait_irecv_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_part_data_id
+      integer(c_int), value         :: l_local_code_name, l_cpl_id, l_part_data_id
+      integer(c_int), value         :: request
+    end subroutine CWP_Part_data_wait_irecv_cf
+
+    subroutine CWP_Part_data_n_part_get_cf(f_local_code_name, &
+                                           l_local_code_name, &
+                                           f_cpl_id,          &
+                                           l_cpl_id,          &
+                                           f_part_data_id,    &
+                                           l_part_data_id,    &
+                                           n_part)            &
+    bind (c, name='CWP_Part_data_n_part_get_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_part_data_id
+      integer(c_int), value         :: l_local_code_name, l_cpl_id, l_part_data_id
+      integer(c_int)                :: n_part
+    end subroutine CWP_Part_data_n_part_get_cf
+
+    subroutine CWP_Part_data_n_ref_get_cf(f_local_code_name, &
+                                          l_local_code_name, &
+                                          f_cpl_id,          &
+                                          l_cpl_id,          &
+                                          f_part_data_id,    &
+                                          l_part_data_id,    &
+                                          i_part,            &
+                                          n_ref)             &
+    bind (c, name='CWP_Part_data_n_ref_get_cf')
+      use, intrinsic :: iso_c_binding
+      implicit none
+      character(kind=c_char, len=1) :: f_local_code_name, f_cpl_id, f_part_data_id
+      integer(c_int), value         :: l_local_code_name, l_cpl_id, l_part_data_id
+      integer(c_int), value         :: i_part
+      integer(c_int)                :: n_ref
+    end subroutine CWP_Part_data_n_ref_get_cf
 
   end interface
 
@@ -1626,7 +1804,8 @@ contains
   subroutine c_f_char_array(c_char_array, &
                             c_size_array, &
                             n_chars, &
-                            f_char_array)
+                            f_char_array, &
+                            free_all)
 
     use, intrinsic :: iso_c_binding
     implicit none
@@ -1636,6 +1815,7 @@ contains
     character(c_char), pointer :: fptr(:) => null()
     integer(c_int), pointer     :: f_size_array(:)
     character(256), allocatable :: f_char_array(:)
+    logical, optional           :: free_all
     integer(c_int) :: i, n_chars, strlen
 
     call c_f_pointer(c_char_array, fptr2, [n_chars])
@@ -1647,6 +1827,12 @@ contains
       call c_f_pointer(fptr2(i), fptr, [strlen])
       f_char_array(i) = transfer(fptr(1:strlen), f_char_array(i))
       f_char_array(i) = f_char_array(i)(1:strlen)//char(0)
+      if (present(free_all)) then
+        if (free_all) then
+          call pdm_fortran_free_c(fptr2(i))
+        endif
+      endif
+
     end do
 
     call pdm_fortran_free_c(c_char_array)
@@ -4433,7 +4619,7 @@ contains
 
     call CWP_Param_list_get_cf(code_name, l_code_name, data_type, n_param, c_param_names, c_param_sizes)
 
-    call c_f_char_array(c_param_names, c_param_sizes, n_param, f_param_names)
+    call c_f_char_array(c_param_names, c_param_sizes, n_param, f_param_names, .true.)
 
   end subroutine CWP_Param_list_get_
 
@@ -4613,7 +4799,7 @@ contains
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
-  !! \param [in] global_data_id
+  !! \param [in] global_data_id   GlobalData identifier
   !! \param [in] send_data
   !!
   !!
@@ -4833,7 +5019,7 @@ contains
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
-  !! \param [in] global_data_id
+  !! \param [in] global_data_id   GlobalData identifier
   !! \param [in] recv_data
   !!
   !!
@@ -4866,7 +5052,7 @@ contains
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
-  !! \param [in] global_data_id
+  !! \param [in] global_data_id   GlobalData identifier
   !!
   !!
 
@@ -4898,7 +5084,7 @@ contains
   !!
   !! \param [in] local_code_name  Local code name
   !! \param [in] cpl_id           Coupling identifier
-  !! \param [in] global_data_id
+  !! \param [in] global_data_id   GlobalData identifier
   !!
   !!
 
@@ -4913,7 +5099,7 @@ contains
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
     type(c_ptr)                   :: c_recv_data = C_NULL_PTR
-    integer(c_long)               :: s_data
+    integer(c_long)               :: expected_s_data, s_data
     integer(c_int)                :: recv_stride
     integer(c_int)                :: n_recv_entity
 
@@ -4921,17 +5107,19 @@ contains
     l_cpl_id          = len(f_cpl_id)
     l_global_data_id  = len(f_global_data_id)
 
+    expected_s_data = 4
+
     call CWP_Global_data_wait_irecv_cf(f_local_code_name, &
                                        l_local_code_name, &
                                        f_cpl_id,          &
                                        l_cpl_id,          &
                                        f_global_data_id,  &
                                        l_global_data_id,  &
+                                       expected_s_data,   &
                                        s_data,            &
                                        recv_stride,       &
                                        n_recv_entity,     &
                                        c_recv_data)
-    ! check s_data == 4?
 
   end subroutine CWP_Global_data_wait_irecv_int
 
@@ -4946,7 +5134,7 @@ contains
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
     type(c_ptr)                   :: c_recv_data = C_NULL_PTR
-    integer(c_long)               :: s_data
+    integer(c_long)               :: expected_s_data, s_data
     integer(c_int)                :: recv_stride
     integer(c_int)                :: n_recv_entity
 
@@ -4954,12 +5142,15 @@ contains
     l_cpl_id          = len(f_cpl_id)
     l_global_data_id  = len(f_global_data_id)
 
+    expected_s_data = 8
+
     call CWP_Global_data_wait_irecv_cf(f_local_code_name, &
                                        l_local_code_name, &
                                        f_cpl_id,          &
                                        l_cpl_id,          &
                                        f_global_data_id,  &
                                        l_global_data_id,  &
+                                       expected_s_data,   &
                                        s_data,            &
                                        recv_stride,       &
                                        n_recv_entity,     &
@@ -4978,7 +5169,7 @@ contains
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
     type(c_ptr)                   :: c_recv_data = C_NULL_PTR
-    integer(c_long)               :: s_data
+    integer(c_long)               :: expected_s_data, s_data
     integer(c_int)                :: recv_stride
     integer(c_int)                :: n_recv_entity
 
@@ -4986,12 +5177,15 @@ contains
     l_cpl_id          = len(f_cpl_id)
     l_global_data_id  = len(f_global_data_id)
 
+    expected_s_data = 8
+
     call CWP_Global_data_wait_irecv_cf(f_local_code_name, &
                                        l_local_code_name, &
                                        f_cpl_id,          &
                                        l_cpl_id,          &
                                        f_global_data_id,  &
                                        l_global_data_id,  &
+                                       expected_s_data,   &
                                        s_data,            &
                                        recv_stride,       &
                                        n_recv_entity,     &
@@ -5010,7 +5204,7 @@ contains
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
     type(c_ptr)                   :: c_recv_data = C_NULL_PTR
-    integer(c_long)               :: s_data
+    integer(c_long)               :: expected_s_data, s_data
     integer(c_int)                :: recv_stride
     integer(c_int)                :: n_recv_entity
 
@@ -5018,12 +5212,15 @@ contains
     l_cpl_id          = len(f_cpl_id)
     l_global_data_id  = len(f_global_data_id)
 
+    expected_s_data = 8
+
     call CWP_Global_data_wait_irecv_cf(f_local_code_name, &
                                        l_local_code_name, &
                                        f_cpl_id,          &
                                        l_cpl_id,          &
                                        f_global_data_id,  &
                                        l_global_data_id,  &
+                                       expected_s_data,   &
                                        s_data,            &
                                        recv_stride,       &
                                        n_recv_entity,     &
@@ -5042,7 +5239,7 @@ contains
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
     type(c_ptr)                   :: c_recv_data = C_NULL_PTR
-    integer(c_long)               :: s_data
+    integer(c_long)               :: expected_s_data, s_data
     integer(c_int)                :: recv_stride
     integer(c_int)                :: n_recv_entity
 
@@ -5050,12 +5247,15 @@ contains
     l_cpl_id          = len(f_cpl_id)
     l_global_data_id  = len(f_global_data_id)
 
+    expected_s_data = 16
+
     call CWP_Global_data_wait_irecv_cf(f_local_code_name, &
                                        l_local_code_name, &
                                        f_cpl_id,          &
                                        l_cpl_id,          &
                                        f_global_data_id,  &
                                        l_global_data_id,  &
+                                       expected_s_data,   &
                                        s_data,            &
                                        recv_stride,       &
                                        n_recv_entity,     &
@@ -5074,7 +5274,7 @@ contains
 
     integer(c_int)                :: l_local_code_name, l_cpl_id, l_global_data_id
     type(c_ptr)                   :: c_recv_data = C_NULL_PTR
-    integer(c_long)               :: s_data
+    integer(c_long)               :: expected_s_data, s_data
     integer(c_int)                :: recv_stride
     integer(c_int)                :: n_recv_entity
 
@@ -5082,18 +5282,305 @@ contains
     l_cpl_id          = len(f_cpl_id)
     l_global_data_id  = len(f_global_data_id)
 
+    expected_s_data = 4
+
     call CWP_Global_data_wait_irecv_cf(f_local_code_name, &
                                        l_local_code_name, &
                                        f_cpl_id,          &
                                        l_cpl_id,          &
                                        f_global_data_id,  &
                                        l_global_data_id,  &
+                                       expected_s_data,   &
                                        s_data,            &
                                        recv_stride,       &
                                        n_recv_entity,     &
                                        c_recv_data)
 
   end subroutine CWP_Global_data_wait_irecv_real4
+
+
+  !>
+  !! \brief Create partitionned data exchange object
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] part_data_id     PartData identifier
+  !! \param [in] exch_type
+  !! \param [in] gnum_elt
+  !! \param [in] n_elt
+  !! \param [in] n_part
+  !!
+  !!
+
+  subroutine CWP_Part_data_create_(f_local_code_name, &
+                                   f_cpl_id,          &
+                                   f_part_data_id,    &
+                                   exch_type,         &
+                                   gnum_elt,          &
+                                   n_elt,             &
+                                   n_part)
+    use, intrinsic :: iso_c_binding
+    use pdm_pointer_array
+    implicit none
+    character(kind=c_char, len=*)     :: f_local_code_name, f_cpl_id, f_part_data_id
+    integer(c_int), intent(in)        :: exch_type
+    type(PDM_pointer_array_t), target :: gnum_elt
+    integer(c_int), pointer           :: n_elt(:)
+    integer,        intent(in)        :: n_part
+
+    integer(c_int)                    :: l_local_code_name, l_cpl_id, l_part_data_id
+
+    l_local_code_name = len(f_local_code_name)
+    l_cpl_id          = len(f_cpl_id)
+    l_part_data_id    = len(f_part_data_id)
+
+    call CWP_Part_data_create_cf(f_local_code_name,    &
+                                 l_local_code_name,    &
+                                 f_cpl_id,             &
+                                 l_cpl_id,             &
+                                 f_part_data_id,       &
+                                 l_part_data_id,       &
+                                 exch_type,            &
+                                 c_loc(gnum_elt%cptr), &
+                                 c_loc(n_elt),         &
+                                 n_part)
+
+  end subroutine CWP_Part_data_create_
+
+
+  !>
+  !! \brief Delete partitionned data exchange object
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] part_data_id     PartData identifier
+  !! \param [in] exch_type
+  !!
+  !!
+
+  subroutine CWP_Part_data_del_(f_local_code_name, &
+                                f_cpl_id,          &
+                                f_part_data_id,    &
+                                exch_type)
+    use, intrinsic :: iso_c_binding
+    implicit none
+    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_part_data_id
+    integer(c_int), intent(in)    :: exch_type
+
+    integer(c_int)                :: l_local_code_name, l_cpl_id, l_part_data_id
+
+    l_local_code_name = len(f_local_code_name)
+    l_cpl_id          = len(f_cpl_id)
+    l_part_data_id    = len(f_part_data_id)
+
+    call CWP_Part_data_del_cf(f_local_code_name, &
+                              l_local_code_name, &
+                              f_cpl_id,          &
+                              l_cpl_id,          &
+                              f_part_data_id,    &
+                              l_part_data_id,    &
+                              exch_type)
+
+  end subroutine CWP_Part_data_del_
+
+
+  !>
+  !! \brief Send a data array.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] part_data_id     PartData identifier
+  !! \param [in] s_data
+  !! \param [in] n_components
+  !! \param [in] part1_to_part2_data
+  !! \param [in] request
+  !!
+  !!
+
+  subroutine CWP_Part_data_issend_(f_local_code_name,   &
+                                   f_cpl_id,            &
+                                   f_part_data_id,      &
+                                   n_components,        &
+                                   part1_to_part2_data, &
+                                   request)
+    use, intrinsic :: iso_c_binding
+    use pdm_pointer_array
+    implicit none
+
+    character(kind=c_char, len=*)     :: f_local_code_name, f_cpl_id, f_part_data_id
+    integer(c_int), intent(in)        :: n_components
+    type(PDM_pointer_array_t), target :: part1_to_part2_data
+    integer(c_int), intent(out)       :: request
+
+    integer(c_int)                    :: l_local_code_name, l_cpl_id, l_part_data_id
+    integer(c_long)                   :: s_data
+
+    l_local_code_name = len(f_local_code_name)
+    l_cpl_id          = len(f_cpl_id)
+    l_part_data_id    = len(f_part_data_id)
+
+    s_data = part1_to_part2_data%s_data
+
+    call CWP_Part_data_issend_cf(f_local_code_name,               &
+                                 l_local_code_name,               &
+                                 f_cpl_id,                        &
+                                 l_cpl_id,                        &
+                                 f_part_data_id,                  &
+                                 l_part_data_id,                  &
+                                 s_data,                          &
+                                 n_components,                    &
+                                 c_loc(part1_to_part2_data%cptr), &
+                                 request)
+
+  end subroutine CWP_Part_data_issend_
+
+
+  !>
+  !! \brief Receive a data array.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] part_data_id     PartData identifier
+  !! \param [in] s_data
+  !! \param [in] n_components
+  !! \param [in] part1_to_part2_data
+  !! \param [in] request
+  !!
+  !!
+
+  subroutine CWP_Part_data_irecv_(f_local_code_name, &
+                                  f_cpl_id,          &
+                                  f_part_data_id,    &
+                                  n_components,      &
+                                  part2_data,        &
+                                  request)
+    use, intrinsic :: iso_c_binding
+    use pdm_pointer_array
+    implicit none
+
+    character(kind=c_char, len=*)     :: f_local_code_name, f_cpl_id, f_part_data_id
+    integer(c_int), intent(in)        :: n_components
+    type(PDM_pointer_array_t), target :: part2_data
+    integer(c_int), intent(out)       :: request
+
+    integer(c_int)                    :: l_local_code_name, l_cpl_id, l_part_data_id
+    integer(c_long)                   :: s_data
+    integer(c_int)                    :: n_part, n_ref, i
+
+    l_local_code_name = len(f_local_code_name)
+    l_cpl_id          = len(f_cpl_id)
+    l_part_data_id    = len(f_part_data_id)
+
+    s_data = part2_data%s_data
+
+    call CWP_Part_data_irecv_cf(f_local_code_name,      &
+                                l_local_code_name,      &
+                                f_cpl_id,               &
+                                l_cpl_id,               &
+                                f_part_data_id,         &
+                                l_part_data_id,         &
+                                s_data,                 &
+                                n_components,           &
+                                c_loc(part2_data%cptr), &
+                                request)
+
+    call CWP_Part_data_n_part_get_cf(f_local_code_name, &
+                                     l_local_code_name, &
+                                     f_cpl_id,          &
+                                     l_cpl_id,          &
+                                     f_part_data_id,    &
+                                     l_part_data_id,    &
+                                     n_part)
+
+    ! Compute lengths
+    do i = 1, n_part
+      call CWP_Part_data_n_ref_get_cf(f_local_code_name, &
+                                      l_local_code_name, &
+                                      f_cpl_id,          &
+                                      l_cpl_id,          &
+                                      f_part_data_id,    &
+                                      l_part_data_id,    &
+                                      i-1,               &
+                                      n_ref)
+
+      part2_data%length(i) = n_components * n_ref
+    enddo
+
+  end subroutine CWP_Part_data_irecv_
+
+
+  !>
+  !! \brief Wait of send a data array.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] part_data_id     PartData identifier
+  !! \param [in] recv_data
+  !! \param [in] request
+  !!
+  !!
+
+  subroutine CWP_Part_data_wait_issend_(f_local_code_name, &
+                                        f_cpl_id,          &
+                                        f_part_data_id,    &
+                                        request)
+    use, intrinsic :: iso_c_binding
+    implicit none
+    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_part_data_id
+    integer(c_int)                :: request
+
+    integer(c_int)                :: l_local_code_name, l_cpl_id, l_part_data_id
+
+    l_local_code_name = len(f_local_code_name)
+    l_cpl_id          = len(f_cpl_id)
+    l_part_data_id    = len(f_part_data_id)
+
+    call CWP_Part_data_wait_issend_cf(f_local_code_name, &
+                                      l_local_code_name, &
+                                      f_cpl_id,          &
+                                      l_cpl_id,          &
+                                      f_part_data_id,    &
+                                      l_part_data_id,    &
+                                      request)
+
+  end subroutine CWP_Part_data_wait_issend_
+
+
+  !>
+  !! \brief Wait of receive a data array.
+  !!
+  !! \param [in] local_code_name  Local code name
+  !! \param [in] cpl_id           Coupling identifier
+  !! \param [in] part_data_id     PartData identifier
+  !! \param [in] recv_data
+  !! \param [in] request
+  !!
+  !!
+
+  subroutine CWP_Part_data_wait_irecv_(f_local_code_name, &
+                                       f_cpl_id,          &
+                                       f_part_data_id,    &
+                                       request)
+    use, intrinsic :: iso_c_binding
+    implicit none
+    character(kind=c_char, len=*) :: f_local_code_name, f_cpl_id, f_part_data_id
+    integer(c_int)                :: request
+
+    integer(c_int)                :: l_local_code_name, l_cpl_id, l_part_data_id
+
+    l_local_code_name = len(f_local_code_name)
+    l_cpl_id          = len(f_cpl_id)
+    l_part_data_id    = len(f_part_data_id)
+
+    call CWP_Part_data_wait_irecv_cf(f_local_code_name, &
+                                     l_local_code_name, &
+                                     f_cpl_id,          &
+                                     l_cpl_id,          &
+                                     f_part_data_id,    &
+                                     l_part_data_id,    &
+                                     request)
+
+  end subroutine CWP_Part_data_wait_irecv_
 
 
 end module cwp

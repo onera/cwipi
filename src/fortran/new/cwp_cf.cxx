@@ -2771,6 +2771,8 @@ CWP_Param_list_get_cf
   for (int i = 0; i < (*n_param); i++) {
     (*c_param_sizes)[i] = strlen((*c_param_names)[i]);
   }
+
+  free(c_code_name);
 }
 
 
@@ -2891,9 +2893,10 @@ CWP_Param_reduce_cf
    (const char **) c_code_names);
 
   for (int i = 0; i < n_codes; i++) {
-    free ( c_code_names[i]);
+    free(c_code_names[i]);
   }
-  free ( c_param_name);
+  free(c_code_names);
+  free(c_param_name);
 }
 
 
@@ -2980,8 +2983,6 @@ CWP_Global_data_issend_cf
   c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
   c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
   c_global_data_id  = _fortran_to_c_string(f_global_data_id, l_global_data_id);
-
-  log_trace("n_send_entity = %d, send_stride = %d\n", n_send_entity, send_stride);
 
   CWP_Global_data_issend(c_local_code_name,
                          c_cpl_id,
@@ -3088,6 +3089,7 @@ CWP_Global_data_wait_irecv_cf
  const int       l_cpl_id,
  const char     *f_global_data_id,
  const int       l_global_data_id,
+ size_t          expected_s_recv_entity,
  size_t         *s_recv_entity,
  int            *recv_stride,
  int            *n_recv_entity,
@@ -3108,9 +3110,328 @@ CWP_Global_data_wait_irecv_cf
                              n_recv_entity,
                              recv_data);
 
+  if (*s_recv_entity != expected_s_recv_entity) {
+    PDM_error(__FILE__, __LINE__, 0, "s_recv_entity != expected_s_recv_entity (%d / %d)\n",
+              *s_recv_entity, expected_s_recv_entity);
+  }
+
   free(c_local_code_name);
   free(c_cpl_id);
   free(c_global_data_id);
+}
+
+/**
+ * \brief Create partitionned data exchange object
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id
+ * \param [in] exch_type
+ * \param [in] gnum_elt
+ * \param [in] n_elt
+ * \param [in] n_part
+ *
+ */
+
+void
+CWP_Part_data_create_cf
+(
+ const char           *f_local_code_name,
+ const int             l_local_code_name,
+ const char           *f_cpl_id,
+ const int             l_cpl_id,
+ const char           *f_part_data_id,
+ const int             l_part_data_id,
+ CWP_PartData_exch_t   exch_type,
+ CWP_g_num_t         **gnum_elt,
+ int                  *n_elt,
+ int                   n_part
+ )
+{
+  char *c_local_code_name, *c_cpl_id, *c_part_data_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_part_data_id    = _fortran_to_c_string(f_part_data_id, l_part_data_id);
+
+  CWP_Part_data_create(c_local_code_name,
+                       c_cpl_id,
+                       c_part_data_id,
+                       exch_type,
+                       gnum_elt,
+                       n_elt,
+                       n_part);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_part_data_id);
+}
+
+/**
+ * \brief Delete partitionned data exchange object
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id
+ * \param [in] exch_type
+ *
+ */
+
+void
+CWP_Part_data_del_cf
+(
+ const char           *f_local_code_name,
+ const int             l_local_code_name,
+ const char           *f_cpl_id,
+ const int             l_cpl_id,
+ const char           *f_part_data_id,
+ const int             l_part_data_id,
+ CWP_PartData_exch_t   exch_type
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_part_data_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_part_data_id    = _fortran_to_c_string(f_part_data_id, l_part_data_id);
+
+  CWP_Part_data_del(c_local_code_name,
+                    c_cpl_id,
+                    c_part_data_id,
+                    exch_type);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_part_data_id);
+}
+
+
+/**
+ * \brief Send a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id
+ * \param [in] s_data
+ * \param [in] n_components
+ * \param [in] part1_to_part2_data
+ * \param [in] request
+ *
+ */
+
+void
+CWP_Part_data_issend_cf
+(
+ const char    *f_local_code_name,
+ const int      l_local_code_name,
+ const char    *f_cpl_id,
+ const int      l_cpl_id,
+ const char    *f_part_data_id,
+ const int      l_part_data_id,
+ size_t         s_data,
+ int            n_components,
+ void         **part1_to_part2_data,
+ int           *request
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_part_data_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_part_data_id    = _fortran_to_c_string(f_part_data_id, l_part_data_id);
+
+  CWP_Part_data_issend(c_local_code_name,
+                       c_cpl_id,
+                       c_part_data_id,
+                       s_data,
+                       n_components,
+                       part1_to_part2_data,
+                       request);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_part_data_id);
+}
+
+/**
+ * \brief Receive a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id
+ * \param [in] s_data
+ * \param [in] n_components
+ * \param [in] part1_to_part2_data
+ * \param [in] request
+ *
+ */
+
+void
+CWP_Part_data_irecv_cf
+(
+ const char    *f_local_code_name,
+ const int      l_local_code_name,
+ const char    *f_cpl_id,
+ const int      l_cpl_id,
+ const char    *f_part_data_id,
+ const int      l_part_data_id,
+ size_t         s_data,
+ int            n_components,
+ void         **part2_data,
+ int           *request
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_part_data_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_part_data_id    = _fortran_to_c_string(f_part_data_id, l_part_data_id);
+
+  CWP_Part_data_irecv(c_local_code_name,
+                      c_cpl_id,
+                      c_part_data_id,
+                      s_data,
+                      n_components,
+                      part2_data,
+                      request);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_part_data_id);
+}
+
+/**
+ * \brief Wait of send a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id
+ * \param [in] request
+ *
+ */
+
+void
+CWP_Part_data_wait_issend_cf
+(
+ const char    *f_local_code_name,
+ const int      l_local_code_name,
+ const char    *f_cpl_id,
+ const int      l_cpl_id,
+ const char    *f_part_data_id,
+ const int      l_part_data_id,
+       int      request
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_part_data_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_part_data_id    = _fortran_to_c_string(f_part_data_id, l_part_data_id);
+
+  CWP_Part_data_wait_issend(c_local_code_name,
+                            c_cpl_id,
+                            c_part_data_id,
+                            request);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_part_data_id);
+}
+
+/**
+ * \brief Wait of receive a data array.
+ *
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] part_data_id
+ * \param [in] request
+ *
+ */
+
+void
+CWP_Part_data_wait_irecv_cf
+(
+ const char    *f_local_code_name,
+ const int      l_local_code_name,
+ const char    *f_cpl_id,
+ const int      l_cpl_id,
+ const char    *f_part_data_id,
+ const int      l_part_data_id,
+       int      request
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_part_data_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_part_data_id    = _fortran_to_c_string(f_part_data_id, l_part_data_id);
+
+  CWP_Part_data_wait_irecv(c_local_code_name,
+                           c_cpl_id,
+                           c_part_data_id,
+                           request);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_part_data_id);
+}
+
+
+void
+CWP_Part_data_n_part_get_cf
+(
+ const char    *f_local_code_name,
+ const int      l_local_code_name,
+ const char    *f_cpl_id,
+ const int      l_cpl_id,
+ const char    *f_part_data_id,
+ const int      l_part_data_id,
+       int     *n_part
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_part_data_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_part_data_id    = _fortran_to_c_string(f_part_data_id, l_part_data_id);
+
+  *n_part = CWP_Part_data_n_part_get(c_local_code_name,
+                                     c_cpl_id,
+                                     c_part_data_id);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_part_data_id);
+}
+
+
+void
+CWP_Part_data_n_ref_get_cf
+(
+ const char    *f_local_code_name,
+ const int      l_local_code_name,
+ const char    *f_cpl_id,
+ const int      l_cpl_id,
+ const char    *f_part_data_id,
+ const int      l_part_data_id,
+ const int      i_part,
+       int     *n_ref
+)
+{
+  char *c_local_code_name, *c_cpl_id, *c_part_data_id;
+
+  c_local_code_name = _fortran_to_c_string(f_local_code_name, l_local_code_name);
+  c_cpl_id          = _fortran_to_c_string(f_cpl_id, l_cpl_id);
+  c_part_data_id    = _fortran_to_c_string(f_part_data_id, l_part_data_id);
+
+  *n_ref = CWP_Part_data_n_ref_get(c_local_code_name,
+                                   c_cpl_id,
+                                   c_part_data_id,
+                                   i_part);
+
+  free(c_local_code_name);
+  free(c_cpl_id);
+  free(c_part_data_id);
 }
 
 /*----------------------------------------------------------------------------*/

@@ -3649,7 +3649,7 @@ CWP_Part_data_irecv
  const char    *part_data_id,
  size_t         s_data,
  int            n_components,
- void        ***part2_data,
+ void         **part2_data,
  int           *request
 )
 {
@@ -3677,7 +3677,7 @@ CWP_Part_data_wait_issend
  const char    *local_code_name,
  const char    *cpl_id,
  const char    *part_data_id,
- int           *request
+ int            request
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
@@ -3701,12 +3701,40 @@ CWP_Part_data_wait_irecv
  const char    *local_code_name,
  const char    *cpl_id,
  const char    *part_data_id,
- int           *request
+ int            request
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
   cpl.partDataWaitIrecv(part_data_id,
                         request);
+}
+
+
+int
+CWP_Part_data_n_part_get
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  return cpl.partDataNPartGet(part_data_id);
+}
+
+
+int
+CWP_Part_data_n_ref_get
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ const int      i_part
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  return cpl.partDataNRefGet(part_data_id,
+                             i_part);
 }
 
 

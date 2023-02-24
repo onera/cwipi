@@ -277,6 +277,25 @@ CWP_block_type_to_PDM_elt_type
  const CWP_Block_t block_type
  );
 
+
+int
+CWP_Part_data_n_part_get
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id
+);
+
+
+int
+CWP_Part_data_n_ref_get
+(
+ const char    *local_code_name,
+ const char    *cpl_id,
+ const char    *part_data_id,
+ const int      i_part
+);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
