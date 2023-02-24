@@ -503,44 +503,37 @@ cdef extern from "cwp.h":
                               int       send_stride,
                               int       n_send_entity,
                               void     *send_data)
-  # TO DO remove once Bastien pushed
+
   void CWP_Global_data_irecv(char     *local_code_name,
-                              char     *cpl_id,
-                              char     *global_data_id,
-                              size_t   *s_recv_entity,
-                              int      *recv_stride,
-                              int      *n_recv_entity,
-                              void    **recv_data)
-  # void CWP_Global_data_irecv(char     *local_code_name,
-  #                            char     *cpl_id,
-  #                            char     *global_data_id)
+                             char     *cpl_id,
+                             char     *global_data_id,
+                             size_t    s_recv_entity,
+                             int       recv_stride,
+                             int       n_recv_entity,
+                             void     *recv_data)
+
   void CWP_Global_data_wait_issend(char     *local_code_name,
                                    char     *cpl_id,
                                    char     *global_data_id)
-  # TO DO remove once Bastien pushed
+
   void CWP_Global_data_wait_irecv(char     *local_code_name,
-                                   char     *cpl_id,
-                                   char     *global_data_id)
-  # void CWP_Global_data_wait_irecv(char     *local_code_name,
-  #                                 char     *cpl_id,
-  #                                 char     *global_data_id,
-  #                                 size_t   *s_recv_data,
-  #                                 int      *recv_stride,
-  #                                 int      *n_recv_entity,
-  #                                 void    **recv_data)
+                                  char     *cpl_id,
+                                  char     *global_data_id)
 
   # --> functions about partitionned data
   void CWP_Part_data_create(char                 *local_code_name,
                             char                 *cpl_id,
                             char                 *part_data_id,
                             CWP_PartData_exch_t   exch_type,
-                            long         **gnum_elt,
+                            long                **gnum_elt,
                             int                  *n_elt,
                             int                   n_part)
+
   void CWP_Part_data_del(char                 *local_code_name,
                          char                 *cpl_id,
                          char                 *part_data_id,
                          CWP_PartData_exch_t   exch_type)
+
   void CWP_Part_data_issend(char          *local_code_name,
                             char          *cpl_id,
                             char          *part_data_id,
@@ -548,31 +541,24 @@ cdef extern from "cwp.h":
                             int            n_components,
                             void         **part1_to_part2_data,
                             int           *request)
+
   void CWP_Part_data_irecv(char          *local_code_name,
                            char          *cpl_id,
                            char          *part_data_id,
                            size_t         s_data,
                            int            n_components,
-                           void        ***part2_data,
+                           void         **part2_data,
                            int           *request)
-  # TO DO remove once Bastien pushed
+
   void CWP_Part_data_wait_issend(char          *local_code_name,
                                  char          *cpl_id,
                                  char          *part_data_id,
-                                 int           *request)
-  # void CWP_Part_data_wait_issend(char          *local_code_name,
-  #                                char          *cpl_id,
-  #                                char          *part_data_id,
-  #                                int           request)
-  # TO DO remove once Bastien pushed
+                                 int            request)
+
   void CWP_Part_data_wait_irecv(char          *local_code_name,
                                 char          *cpl_id,
                                 char          *part_data_id,
-                                int           *request)
-  # void CWP_Part_data_wait_irecv(char          *local_code_name,
-  #                               char          *cpl_id,
-  #                               char          *part_data_id,
-  #                               int           request)
+                                int            request)
 
 #-----------------------------------------------------------------------------
 # ENUM
@@ -855,6 +841,32 @@ cdef void** np_list_to_void_pointers(list datas):
   for i, numpy_void in enumerate(datas):
     array[i] = <void *> numpy_void.data
   return array
+
+cdef int* list_to_int_pointer(list data):
+  cdef int* array = <int *> malloc(len(data) * sizeof(int))
+  for i,d in enumerate(data):
+    array[i] = <int> d
+  return array
+
+cdef long** np_list_to_long_pointers(list datas):
+  cdef NPY.ndarray[NPY.long, ndim=1, mode='c'] numpy_gnum
+  cdef long** array = <long **> malloc(len(datas) * sizeof(long*))
+  for i, numpy_gnum in enumerate(datas):
+    array[i] = <long *> numpy_gnum.data
+  return array
+
+# cdef recover_dtype(list np_array_list, MPI.Comm py_comm):
+#   """ Check that numpy dtype is consistent across all partitions and return it """
+#   dtypes = [array.dtype for array in np_array_list]
+
+#   rank_if = py_comm.Get_rank() if len(np_array_list) > 0 else -1
+#   master = py_comm.allreduce(rank_if, op=MPI.MAX)
+
+#   ref_dtype = dtypes[0] if py_comm.Get_rank() == master else None
+#   ref_dtype = py_comm.bcast(ref_dtype, master)
+
+#   assert all(dtype == ref_dtype for dtype in dtypes), "Inconsistent dtype for arrays"
+#   return ref_dtype
 
 #-----------------------------------------------------------------------------
 # DEFINITION
@@ -1775,48 +1787,33 @@ def global_data_issend(char    *local_code_name,
                            n_send_entity,
                   <void *> send_data.data)
 
-# TO DO once Bastien has pushed exchange irecv and wait irecv
-def global_data_irecv(char      *local_code_name,
-                      char      *cpl_id,
-                      char      *global_data_id,
-                      NPY.dtype  data_type): # TO DO: is there an other way then just ask this?
-
+def global_data_irecv(char    *local_code_name,
+                      char    *cpl_id,
+                      char    *global_data_id,
+                      int      recv_stride,
+                      int      n_recv_entity,
+                      list     recv_data):
     """
-    Receive a data array.
+    Recv a data array.
 
     Parameters:
-      local_code_name (char*)  : Local code name
-      cpl_id          (char*)  : Coupling identifier
-      global_data_id  (char*)  : Global data identifier
-
-    Returns:
-      s_recv_entity   (size_t) : # TO DO rendre plutôt le data_type
-      recv_stride     (int)    : Constant number of components
-      n_recv_entity   (int)    : Number of received entities
-      recv_data       (list)   : List of partitioned data array with same datatype
+      local_code_name (char*) : Local code name
+      cpl_id          (char*) : Coupling identifier
+      global_data_id  (char*) : Global data identifier
+      recv_stride     (int)   : Constant number of components
+      n_recv_entity   (int)   : Number of sent entities
+      recv_data       (list)  : List of partitioned data array with same datatype
     """
 
-    cdef size_t s_recv_entity
-    cdef int    recv_stride
-    cdef int    n_recv_entity
-    cdef void  *_recv_data
+    cdef int s_recv_entity = recv_data.dtype
 
     CWP_Global_data_irecv(local_code_name,
                           cpl_id,
                           global_data_id,
-                          &(s_recv_entity),
-                          &(recv_stride),
-                          &(n_recv_entity),
-                          &(_recv_data))
-
-    cdef int s_recv_data = recv_stride * n_recv_entity * s_recv_entity
-    recv_data = NPY.PyArray_SimpleNewFromData(1, &s_recv_data, data_type.num, <void *> _recv_data)
-
-    return {
-            'recv_stride' : recv_stride,
-            'n_recv_entity' : n_recv_entity,
-            'recv_data' : recv_data
-           }
+                          s_recv_entity,
+                          recv_stride,
+                          n_recv_entity,
+                 <void *> recv_data.data)
 
 def global_data_wait_issend(char    *local_code_name,
                             char    *cpl_id,
@@ -1858,19 +1855,20 @@ cdef class PartData (object):
     Create a CWIPI partitionned data object
     """
 
-    cdef str local_code_name
-    cdef str cpl_id
-    cdef str part_data_id
-    cdef CWP_PartData_exch_t exch_type
+    cdef str                   local_code_name
+    cdef str                   cpl_id
+    cdef str                   part_data_id
+    cdef CWP_PartData_exch_t   exch_type
+    cdef int                   n_part
+    cdef int                  *n_elt
+    cdef long                **_gnum_elt
 
     def __init__(self,
                  char                    *local_code_name,
                  char                    *cpl_id,
                  char                    *part_data_id,
                  CWP_PartData_exch_t      exch_type,
-                 NPY.ndarray[NPY.long]    gnum_elt, # TO DO long ** ?????
-                 NPY.ndarray[NPY.int32_t] n_elt,
-                 int                      n_part):
+                 list                     gnum_elt):
         """
         Initialize partitionned data object.
 
@@ -1879,23 +1877,24 @@ cdef class PartData (object):
           cpl_id          (char*)               : Coupling id
           part_data_id    (char*)               : Partitionned data id
           exch_type       (CWP_PartData_exch_t) : Enum if SEND or RECV side
-          gnum_elt        (long)                : Global number of entities
-          n_elt           (int)                 : Number of elements
-          n_part          (int)                 : Number of partitions
         """
 
         self.local_code_name = local_code_name
-        self.cpl_id = cpl_id
-        self.part_data_id = part_data_id
-        self.exch_type = exch_type
+        self.cpl_id          = cpl_id
+        self.part_data_id    = part_data_id
+        self.exch_type       = exch_type
+
+        self.n_part    = len(gnum_elt)
+        self.n_elt     = list_to_int_pointer([array.size for array in gnum_elt])
+        self._gnum_elt = np_list_to_long_pointers(gnum_elt)
 
         CWP_Part_data_create(self.local_code_name,
                              self.cpl_id,
                              self.part_data_id,
                              self.exch_type,
-                   <long **> gnum_elt.data,
-                     <int *> n_elt.data,
-                             n_part)
+                   <long **> self._gnum_elt,
+                   <int   *> self.n_elt,
+                             self.n_part)
 
     def __del__(self):
         """
@@ -1922,6 +1921,8 @@ cdef class PartData (object):
           request (int) : Exchange resquest
         """
         cdef int s_data = part1_to_part2_data[0].dtype # TO DO more robust check ?
+        # data_dtype = recover_dtype(part1_to_part2_data, pyptp.py_comm)
+        # cdef int s_data = data_type.itemsize
         cdef void** _part1_to_part2_data   = np_list_to_void_pointers(part1_to_part2_data)
 
         cdef int request
@@ -1937,7 +1938,7 @@ cdef class PartData (object):
 
     def irecv(self,
               int  n_components,
-              NPY.dtype  data_type): # TO DO user can give me this ?
+              list part2_data): # TO DO user can give me this ?
         """
         Irecv partitionned data.
 
@@ -1948,27 +1949,21 @@ cdef class PartData (object):
           part2_data (list)    : List of partitioned data arrays, each beeing 1 dimensional and with same datatype
           request    (int)     : Exchange resquest
         """
-
-        cdef int s_data = data_type.itemsize
+        cdef int s_data = part2_data[0].dtype # TO DO more robust check ?
+        # data_dtype = recover_dtype(part2_data, pyptp.py_comm)
+        # cdef int s_data = data_type.itemsize
 
         cdef int request
-        cdef void** _part2_data
+        cdef void** _part2_data = np_list_to_void_pointers(part2_data)
         CWP_Part_data_irecv(self.local_code_name,
                             self.cpl_id,
                             self.part_data_id,
                             s_data,
                             n_components,
-                            &(_part2_data),
+                            _part2_data,
                             &(request))
 
-        cdef n_referenced = 1 # TO DO retreive this or just n_elt2 is fine?
-        cdef int s_part2_data = s_data * n_components * n_referenced
-        part2_data = NPY.PyArray_SimpleNewFromData(1, &s_part2_data, data_type.num, <void *> _part2_data)
-
-        return {
-                'request' : request,
-                'part2_data' : part2_data
-               }
+        return request
 
     def wait_issend(self,
                     int request):
@@ -1982,7 +1977,7 @@ cdef class PartData (object):
         CWP_Part_data_wait_issend(self.local_code_name,
                                   self.cpl_id,
                                   self.part_data_id,
-                                  &(request)) # TO DO: once Bastien pushed remove &
+                                  request)
 
     def wait_irecv(self,
                   int request):
@@ -1996,7 +1991,7 @@ cdef class PartData (object):
         CWP_Part_data_wait_irecv(self.local_code_name,
                                  self.cpl_id,
                                  self.part_data_id,
-                                 &(request)) # TO DO: once Bastien pushed remove &
+                                 request)
 
 #-----------------------------------------------------------------------------
 # FIELD CLASS
