@@ -52,3 +52,9 @@ This is the file that is writtent by the user with the functions in the ``src/ne
 The connection to the server is done in the ``CWP_client_Init`` function. The servers are shut down in ``CWP_client_Finalize``.
 The client code needs to have access to the path to the cserver configuration file.
 Once the above message is printed the client executable can be launched.
+
+Doxygen documentation
+=====================
+
+.. doxygenfile:: client.h
+   :project: cwipi

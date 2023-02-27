@@ -148,7 +148,7 @@ todo_include_todos = True
 # -- Breathe configuration ------------------------------------------------
 
 breathe_projects_source = {
-    "cwipi" : ( "../../../src", ["cwipi.h", "new/cwp.h"] )
+    "cwipi" : ( "../../../src", ["cwipi.h", "new/cwp.h", "new/client_server/client.h"] )
 }
 
 breathe_default_project = "cwipi"
