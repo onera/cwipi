@@ -1,7 +1,7 @@
 .. _faq:
 
-CWIPI FAQ
-=========
+CWIPI's FAQ
+===========
 
 This is a list of Frequently Asked Questions about CWIPI.  Feel free to
 suggest new entries!
