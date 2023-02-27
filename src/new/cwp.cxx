@@ -69,6 +69,7 @@
 #include "spatialInterpIntersection.hxx"
 #include "spatialInterpLocationDistSurf.hxx"
 #include "spatialInterpLocationMeshLocation.hxx"
+#include "spatialInterpIdentity.hxx"
 
 #include "mesh.hxx"
 #include "block.hxx"
@@ -613,6 +614,7 @@ CWP_Init
   factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationDbbtree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE);
   factorySpatialInterp.Register<cwipi::SpatialInterpIntersection>(CWP_SPATIAL_INTERP_FROM_INTERSECTION);
   factorySpatialInterp.Register<cwipi::SpatialInterpClosestPoint>(CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES);
+  factorySpatialInterp.Register<cwipi::SpatialInterpIdentity>(CWP_SPATIAL_INTERP_FROM_IDENTITY);
 
   /*
    * Create block abstract factory

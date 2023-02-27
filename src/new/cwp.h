@@ -289,11 +289,12 @@ typedef enum {
 
 typedef enum {
 
-  CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES,   /*!< Least squares from closest points */
-  CWP_SPATIAL_INTERP_FROM_INTERSECTION,                  /*!< Meshes intersection */
-  CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF,      /*!< Location into a mesh with the distance from the points cloud to surface */
-  CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE, /*!< Location into a mesh with the octree method*/
-  CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE /*!< Location into a mesh with the dbbtree method */
+  CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES,    /*!< Least squares from closest points */
+  CWP_SPATIAL_INTERP_FROM_INTERSECTION,                   /*!< Meshes intersection */
+  CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF,       /*!< Location into a mesh with the distance from the points cloud to surface */
+  CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,  /*!< Location into a mesh with the octree method*/
+  CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE, /*!< Location into a mesh with the dbbtree method */
+  CWP_SPATIAL_INTERP_FROM_IDENTITY
 
 } CWP_Spatial_interp_t;
 

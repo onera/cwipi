@@ -393,6 +393,31 @@ namespace cwipi {
         if (_interpolation_time == CWP_SPATIAL_INTERP_AT_SEND) {
           interpolate (referenceField, _send_buffer[intId]);
         }
+        else {
+          // send source field (copy?)
+          for (int i = 0; i < _nPart; i++) {
+            double *referenceData = (double *) referenceField->dataGet(i, CWP_FIELD_MAP_SOURCE);
+
+            if (storage == CWP_FIELD_STORAGE_INTERLACED) {
+              for (int j = 0; j < n_elt1[i]; j++) {
+                for (int k = selected_part2_idx[i][j]; k < selected_part2_idx[i][j+1]; k++) {
+                  for (int l = 0; l < stride; l++) {
+                    _send_buffer[intId][i][stride*k + l] = referenceData[stride*j + l];
+                  }
+                }
+              }
+            }
+            else {
+              for (int l = 0; l < stride; l++) {
+                for (int j = 0; j < n_elt1[i]; j++) {
+                  for (int k = selected_part2_idx[i][j]; k < selected_part2_idx[i][j+1]; k++) {
+                    _send_buffer[intId][i][selected_part2_idx[i][n_elt1[i]]*l + k] = referenceData[n_elt1[i]*l + j];
+                  }
+                }
+              }
+            }
+          }
+        }
 
 
         MPI_Aint  *maxTagTmp;
@@ -649,7 +674,7 @@ namespace cwipi {
         int globalRank;
         MPI_Comm_rank(globalComm, &globalRank);
 
-        if (cpl_cpl.commTypeGet() == CWP_COMM_PAR_WITHOUT_PART || globalRank == cplRootRank) {
+        if (cpl_cpl.commTypeGet() == CWP_COMM_PAR_WITH_PART || globalRank == cplRootRank) {
           if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
             cpl_spatial_interp->interpolate (cpl_referenceField, cpl_spatial_interp->_recv_buffer[cpl_intId]);
           }
@@ -971,14 +996,14 @@ namespace cwipi {
         }
         else {
           // send source field (copy?)
-          for (int i = 0; i < _nPart; i++) {
+          for (int i = 0; i < _cplNPart; i++) {
             double *cpl_referenceData = (double *) cpl_referenceField->dataGet(i, CWP_FIELD_MAP_SOURCE);
 
             if (storage == CWP_FIELD_STORAGE_INTERLACED) {
               for (int j = 0; j < cpl_n_elt1[i]; j++) {
                 for (int k = cpl_selected_part2_idx[i][j]; k < cpl_selected_part2_idx[i][j+1]; k++) {
                   for (int l = 0; l < stride; l++) {
-                    cpl_spatial_interp->_send_buffer[intId][i][stride*k + l] = cpl_referenceData[stride*j + l];
+                    cpl_spatial_interp->_send_buffer[cpl_intId][i][stride*k + l] = cpl_referenceData[stride*j + l];
                   }
                 }
               }
@@ -987,7 +1012,7 @@ namespace cwipi {
               for (int l = 0; l < stride; l++) {
                 for (int j = 0; j < cpl_n_elt1[i]; j++) {
                   for (int k = cpl_selected_part2_idx[i][j]; k < cpl_selected_part2_idx[i][j+1]; k++) {
-                    cpl_spatial_interp->_send_buffer[intId][i][cpl_selected_part2_idx[i][cpl_n_elt1[i]]*l + k] = cpl_referenceData[cpl_n_elt1[i]*l + j];
+                    cpl_spatial_interp->_send_buffer[cpl_intId][i][cpl_selected_part2_idx[i][cpl_n_elt1[i]]*l + k] = cpl_referenceData[cpl_n_elt1[i]*l + j];
                   }
                 }
               }
@@ -1025,7 +1050,7 @@ namespace cwipi {
       int globalRank;
       MPI_Comm_rank(globalComm, &globalRank);
 
-      if (_cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART || globalRank == localRootRank) {
+      if (_cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART || globalRank == localRootRank) {
         if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV ) {
           interpolate (referenceField, _recv_buffer[intId]);
         }
@@ -1179,7 +1204,7 @@ namespace cwipi {
         int globalRank;
         MPI_Comm_rank(globalComm, &globalRank);
 
-        if (_cpl->commTypeGet() == CWP_COMM_PAR_WITHOUT_PART || globalRank == localRootRank) {
+        if (_cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART || globalRank == localRootRank) {
           if (_interpolation_time == CWP_SPATIAL_INTERP_AT_RECV) {
             interpolate (referenceField, _recv_buffer[intId]);
           }
@@ -1281,42 +1306,47 @@ namespace cwipi {
           }
         }
 
-        for (int i = 0; i < _cplNPart; i++) {
-          if (cpl_spatial_interp->_send_buffer[intId] != NULL) {
-            if (cpl_spatial_interp->_send_buffer[intId][i] != NULL) {
-              free (cpl_spatial_interp->_send_buffer[intId][i]);
-              cpl_spatial_interp->_send_buffer[intId][i] = NULL;
+
+        if (cpl_spatial_interp->_send_buffer[cpl_intId] != NULL) {
+          for (int i = 0; i < _cplNPart; i++) {
+            if (cpl_spatial_interp->_send_buffer[cpl_intId][i] != NULL) {
+              free (cpl_spatial_interp->_send_buffer[cpl_intId][i]);
+              cpl_spatial_interp->_send_buffer[cpl_intId][i] = NULL;
             }
-            free (cpl_spatial_interp->_send_buffer[intId]);
-            cpl_spatial_interp->_send_buffer[intId] = NULL;
           }
-          if (cpl_spatial_interp->_recv_buffer[intId] != NULL) {
-            if (cpl_spatial_interp->_recv_buffer[intId][i] != NULL) {
-              free (cpl_spatial_interp->_recv_buffer[intId][i]);
-              cpl_spatial_interp->_recv_buffer[intId][i] = NULL;
+          free (cpl_spatial_interp->_send_buffer[cpl_intId]);
+          cpl_spatial_interp->_send_buffer[cpl_intId] = NULL;
+        }
+        if (cpl_spatial_interp->_recv_buffer[cpl_intId] != NULL) {
+          for (int i = 0; i < _cplNPart; i++) {
+            if (cpl_spatial_interp->_recv_buffer[cpl_intId][i] != NULL) {
+              free (cpl_spatial_interp->_recv_buffer[cpl_intId][i]);
+              cpl_spatial_interp->_recv_buffer[cpl_intId][i] = NULL;
             }
-            free (cpl_spatial_interp->_send_buffer[intId]);
-            cpl_spatial_interp->_send_buffer[intId] = NULL;
           }
+          free (cpl_spatial_interp->_recv_buffer[cpl_intId]);
+          cpl_spatial_interp->_recv_buffer[cpl_intId] = NULL;
         }
 
-        for (int i = 0; i < _nPart; i++) {
-          if (_send_buffer[intId] != NULL) {
+        if (_send_buffer[intId] != NULL) {
+          for (int i = 0; i < _nPart; i++) {
             if (_send_buffer[intId][i] != NULL) {
               free (_send_buffer[intId][i]);
               _send_buffer[intId][i] = NULL;
             }
-            free (_send_buffer[intId]);
-            _send_buffer[intId] = NULL;
           }
-          if (_recv_buffer[intId] != NULL) {
+          free (_send_buffer[intId]);
+          _send_buffer[intId] = NULL;
+        }
+        if (_recv_buffer[intId] != NULL) {
+          for (int i = 0; i < _nPart; i++) {
             if (_recv_buffer[intId][i] != NULL) {
               free (_recv_buffer[intId][i]);
               _recv_buffer[intId][i] = NULL;
             }
-            free (_recv_buffer[intId]);
-            _recv_buffer[intId] = NULL;
           }
+          free (_recv_buffer[intId]);
+          _recv_buffer[intId] = NULL;
         }
 
         PDM_writer_t* writer =  _cpl->writerGet();

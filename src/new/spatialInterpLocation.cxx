@@ -172,10 +172,10 @@ namespace cwipi {
     //   }
     // }
 
-    if (_pdm_CplNodal != NULL) {
-      printf("SpatialInterpLocation::init Mesh_nodal_n_blocks :%d\n", PDM_part_mesh_nodal_n_section_in_geom_kind_get(_pdm_CplNodal, _mesh->geomKindGet()));
-      fflush(stdout);
-    }
+    // if (_pdm_CplNodal != NULL) {
+    //   printf("SpatialInterpLocation::init Mesh_nodal_n_blocks :%d\n", PDM_part_mesh_nodal_n_section_in_geom_kind_get(_pdm_CplNodal, _mesh->geomKindGet()));
+    //   fflush(stdout);
+    // }
 
     //
     // Data for PDM_part_to_part_t

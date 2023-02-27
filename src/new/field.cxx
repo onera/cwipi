@@ -105,8 +105,8 @@ Field::Field (std::string            field_id    ,
                                                             pdm_field_type,
                                                             fieldName.c_str());
 
-        printf("WriterFieldCreate - send: '%s' %d\n",fieldName.c_str(), _id_writer_var_send[i_comp]);
-        fflush(stdout);
+        // printf("WriterFieldCreate - send: '%s' %d\n",fieldName.c_str(), _id_writer_var_send[i_comp]);
+        // fflush(stdout);
       }
     }
 
@@ -128,8 +128,8 @@ Field::Field (std::string            field_id    ,
                                                             PDM_WRITER_VAR_SCALAR,
                                                             pdm_field_type,
                                                             fieldName.c_str());
-        printf("WriterFieldCreate - recv: '%s' %d\n",fieldName.c_str(), _id_writer_var_recv[i_comp]);
-        fflush(stdout);
+        // printf("WriterFieldCreate - recv: '%s' %d\n",fieldName.c_str(), _id_writer_var_recv[i_comp]);
+        // fflush(stdout);
       }
 
       // Create variable to tag if dof has been located ("computed")
@@ -151,8 +151,8 @@ Field::Field (std::string            field_id    ,
                                                            fieldComputedName.c_str());
 
 
-      printf("WriterFieldCreate - recv 2: '%s' %d\n",fieldComputedName.c_str(), _id_writer_var_recv_computed);
-      fflush(stdout);
+      // printf("WriterFieldCreate - recv 2: '%s' %d\n",fieldComputedName.c_str(), _id_writer_var_recv_computed);
+      // fflush(stdout);
 
     }
 

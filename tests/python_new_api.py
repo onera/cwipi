@@ -238,7 +238,6 @@ def runTest():
         f.write("cpl.mesh_interf_vtx_set:\n")
         f.flush()
         cpl.mesh_interf_vtx_set(0,
-                                4,
                                 coord,
                                 None)
 

@@ -40,6 +40,7 @@
 #include "globalData.hxx"
 #include "partData.hxx"
 #include "pdm_part_to_part.h"
+#include "pdm_array.h"
 
 #include "communication.hxx"
 // #include "visualization.hxx"
@@ -385,28 +386,35 @@ namespace cwipi {
       // second code to execute writes to be sure coupled part data object has been filled in
       if (cpl_it != cpl_cpl._partData.end()) {
 
-        // malloc
-        part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part);
-        for (int i_part = 0; i_part < n_part; i_part++) {
-          part1_to_part2_idx[i_part] = (int *) malloc(sizeof(int) * (n_elt[i_part]+1));
-        }
+        // // malloc
+        // part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part);
+        // for (int i_part = 0; i_part < n_part; i_part++) {
+        //   part1_to_part2_idx[i_part] = (int *) malloc(sizeof(int) * (n_elt[i_part]+1));
+        // }
 
         // fill in
-        for (int i_part = 0; i_part < n_part; i_part++) {
-          part1_to_part2_idx[i_part][0] = 0;
-          for (int i = 0; i < n_elt[i_part]; i++) {
-            part1_to_part2_idx[i_part][i+1] = part1_to_part2_idx[i_part][i] + 1;
-          }
-        }
+        // for (int i_part = 0; i_part < n_part; i_part++) {
+        //   part1_to_part2_idx[i_part][0] = 0;
+        //   for (int i = 0; i < n_elt[i_part]; i++) {
+        //     part1_to_part2_idx[i_part][i+1] = part1_to_part2_idx[i_part][i] + 1;
+        //   }
+        // }
 
         if (exch_type == CWP_PARTDATA_SEND) {
 
-          // set
-          it->second.set_part1_to_part2_idx(part1_to_part2_idx);
 
           CWP_g_num_t  **gnum_elt2 = cpl_it->second.get_gnum_elt2();
           int           *n_elt2    = cpl_it->second.get_n_elt2();
           int            n_part2   = cpl_it->second.get_n_part2();
+
+          part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part);
+          for (int i_part = 0; i_part < n_part; i_part++) {
+            part1_to_part2_idx[i_part] = PDM_array_new_idx_from_const_stride_int(1,
+                                                                                 n_elt[i_part]);
+          }
+
+          // set
+          it->second.set_part1_to_part2_idx(part1_to_part2_idx);
 
           ptp = PDM_part_to_part_create((const PDM_g_num_t**) gnum_elt,
                                         n_elt,
@@ -437,12 +445,19 @@ namespace cwipi {
 
         else if (exch_type == CWP_PARTDATA_RECV) {
 
-          // set
-          cpl_it->second.set_part1_to_part2_idx(part1_to_part2_idx);
-
           CWP_g_num_t  **gnum_elt1 = cpl_it->second.get_gnum_elt1();
           int           *n_elt1    = cpl_it->second.get_n_elt1();
           int            n_part1   = cpl_it->second.get_n_part1();
+
+          part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part1);
+          for (int i_part = 0; i_part < n_part1; i_part++) {
+            part1_to_part2_idx[i_part] = PDM_array_new_idx_from_const_stride_int(1,
+                                                                                 n_elt1[i_part]);
+          }
+
+          // set
+          cpl_it->second.set_part1_to_part2_idx(part1_to_part2_idx);
+
 
           ptp = PDM_part_to_part_create((const PDM_g_num_t**) gnum_elt1,
                                         n_elt1,
@@ -477,18 +492,10 @@ namespace cwipi {
 
       if (exch_type == CWP_PARTDATA_SEND) {
 
-        // malloc
         part1_to_part2_idx = (int **) malloc(sizeof(int *) * n_part);
         for (int i_part = 0; i_part < n_part; i_part++) {
-          part1_to_part2_idx[i_part] = (int *) malloc(sizeof(int) * (n_elt[i_part]+1));
-        }
-
-        // fill in
-        for (int i_part = 0; i_part < n_part; i_part++) {
-          part1_to_part2_idx[i_part][0] = 0;
-          for (int i = 0; i < n_elt[i_part]; i++) {
-            part1_to_part2_idx[i_part][i+1] = part1_to_part2_idx[i_part][i] + 1;
-          }
+          part1_to_part2_idx[i_part] = PDM_array_new_idx_from_const_stride_int(1,
+                                                                               n_elt[i_part]);
         }
 
         // set
@@ -1531,13 +1538,13 @@ namespace cwipi {
   Coupling::exportMesh(Coupling &cpl)
   {
 
-    printf("Coupling::exportMesh\n");
+    // printf("Coupling::exportMesh\n");
 
 
     if (cpl._writer != NULL) {
 
-      printf("exportMesh : %s\n", cpl._localCodeProperties.nameGet().c_str());
-      fflush(stdout);
+      // printf("exportMesh : %s\n", cpl._localCodeProperties.nameGet().c_str());
+      // fflush(stdout);
 
       /* First, create geometry and variables if necessary */
       if (cpl._n_step == 0) {
@@ -1678,11 +1685,11 @@ namespace cwipi {
       }
     }
 
-    else {
-      printf(" sortie NULL\n");
-    }
+    // else {
+    //   printf(" sortie NULL\n");
+    // }
 
-    fflush(stdout);
+    // fflush(stdout);
   }
 
 
