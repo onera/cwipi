@@ -1,3 +1,7 @@
+/*
+ * \file
+ */
+
 #ifndef __CWIPI_H__
 #define __CWIPI_H__
 /*

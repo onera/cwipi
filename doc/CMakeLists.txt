@@ -1,33 +1,62 @@
-#------------------------------------------------------------------------------
-# Build doxygen documentation
-#------------------------------------------------------------------------------
+# Writing this file using:
+#   - Maia's CMake
+#   - https://devblogs.microsoft.com/cppblog/clear-functional-c-documentation-with-sphinx-breathe-doxygen-cmake/
 
-find_package(Doxygen 1.8.9)
-option(CWP_BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" OFF)
-if(CWP_BUILD_DOCUMENTATION)
+find_package(Doxygen 1.8.9 REQUIRED)
+find_package(Sphinx 3 REQUIRED)
+if(CWP_ENABLE_DOCUMENTATION)
+
+    #------------------------------------------------------------------------------
+    # Build doxygen documentation
+    #------------------------------------------------------------------------------
+
     if(NOT DOXYGEN_FOUND)
         message(FATAL_ERROR "Doxygen is needed to build the documentation.")
     endif()
 
-    set(doxyfile_in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
-    set(doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+    set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
+    set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+    set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/xml/index.xml)
 
-    configure_file(${doxyfile_in} ${doxyfile} @ONLY)
+    configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
 
-    add_custom_target(doc ALL
-        COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Generating API documentation with Doxygen"
-        VERBATIM)
+    add_custom_command(OUTPUT ${DOXYGEN_INDEX_FILE}
+                       # DEPENDS ${CAT_CUTIFIER_PUBLIC_HEADERS}
+                       COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
+                       MAIN_DEPENDENCY ${DOXYFILE_OUT} ${DOXYFILE_IN}
+                       COMMENT "Generating API documentation with Doxygen"
+                       VERBATIM)
 
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc)
-endif()
+    add_custom_target(Doxygen ALL DEPENDS ${DOXYGEN_INDEX_FILE})
 
-#------------------------------------------------------------------------------
-# Build sphinx documentation
-#------------------------------------------------------------------------------
+    #------------------------------------------------------------------------------
+    # Build sphinx documentation
+    #------------------------------------------------------------------------------
 
-if (CWP_ENABLE_DOCUMENTATION)
-  include(${CMAKE_MODULE_PATH}/BuildDocumentation.cmake)
-  build_sphinx_documentation()
+    set(SPHINX_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source)
+    set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/sphinx/html)
+    set(SPHINX_INDEX_FILE ${SPHINX_BUILD}/index.html)
+
+    # Only regenerate Sphinx when:
+    # - Doxygen has rerun
+    # - Our doc files have been updated
+    # - The Sphinx config has been updated
+    add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
+                       COMMAND
+                         ${SPHINX_EXECUTABLE} -b html
+                         # Tell Breathe where to find the Doxygen output
+                         -Dbreathe_projects.cwipi=${CMAKE_CURRENT_BINARY_DIR}/xml
+                       ${SPHINX_SOURCE} ${SPHINX_BUILD}
+                       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                       DEPENDS
+                       # Other docs files you want to track should go here (or in some variable)
+                       ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source/index.rst
+                       ${DOXYGEN_INDEX_FILE}
+                       MAIN_DEPENDENCY ${SPHINX_SOURCE}/conf.py
+                       COMMENT "Generating documentation with Sphinx")
+
+    add_custom_target(Sphinx ALL DEPENDS ${SPHINX_INDEX_FILE})
+
+    install(DIRECTORY ${SPHINX_BUILD}
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/cwp)
 endif()

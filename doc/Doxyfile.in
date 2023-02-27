@@ -758,7 +758,8 @@ WARN_LOGFILE           =
 # spaces.
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = @CWP_SOURCE_DIR@/src/new/ @CWP_SOURCE_DIR@/doc/
+INPUT                  = @CWP_SOURCE_DIR@/src/new/cwp.h \
+                         @CWP_SOURCE_DIR@/src/new/cwipi.h
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -778,7 +779,8 @@ INPUT_ENCODING         = UTF-8
 # *.md, *.mm, *.dox, *.py, *.f90, *.f, *.for, *.tcl, *.vhd, *.vhdl, *.ucf,
 # *.qsf, *.as and *.js.
 
-FILE_PATTERNS          =
+FILE_PATTERNS          = *.h \
+                         *.cxx
 
 # The RECURSIVE tag can be used to specify whether or not subdirectories should
 # be searched for input files as well.
@@ -1558,7 +1560,7 @@ EXTRA_SEARCH_MAPPINGS  =
 # If the GENERATE_LATEX tag is set to YES, doxygen will generate LaTeX output.
 # The default value is: YES.
 
-GENERATE_LATEX         = YES
+GENERATE_LATEX         = NO
 
 # The LATEX_OUTPUT tag is used to specify where the LaTeX docs will be put. If a
 # relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
@@ -1826,6 +1828,7 @@ MAN_LINKS              = NO
 # If the GENERATE_XML tag is set to YES, doxygen will generate an XML file that
 # captures the structure of the code including all documentation.
 # The default value is: NO.
+# YES is mandatory to add Doxygen documentation to Sphinx documentation.
 
 GENERATE_XML           = YES
 

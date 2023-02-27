@@ -148,8 +148,10 @@ todo_include_todos = True
 # -- Breathe configuration ------------------------------------------------
 
 breathe_projects_source = {
-    "auto" : ( "../../../src", ["cwipi.h"] )
+    "cwipi" : ( "../../../src", ["cwipi.h", "new/cwp.h"] )
 }
+
+breathe_default_project = "cwipi"
 
 # -- Options for HTML output ----------------------------------------------
 

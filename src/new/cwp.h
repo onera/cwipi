@@ -1,3 +1,7 @@
+/*
+ * \file
+ */
+
 #ifndef __CWP_H__
 #define __CWP_H__
 
