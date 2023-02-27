@@ -3,9 +3,10 @@
 Client-Server
 #############
 
-Client-Server CWIPI is a degenerate mode of the new version of CWIPI in terms of performance.
-It has been developped to be able to do a coupling between parallel codes with a different version of MPI.
-The API's of this mode and the new CWIPI version are broadly similar.
+Client-Server CWIPI is a degenerate mode of the new version of CWIPI in terms of performance. It has been developped
+upon user request to couple closed-source software with specific MPI implementations hindering compatibility to other
+software. Communications between client and server are based on TCP/IP sockets. The servers communicate using MPI protocol
+running the classical implementation of the library. The API's of this mode and the new CWIPI version are broadly similar.
 
 There is a Python interface for this mode. A Fortran might be developped upon request.
 
