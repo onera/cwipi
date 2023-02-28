@@ -38,6 +38,7 @@ from libc.stdio cimport FILE, fdopen, fopen
 from cpython.object cimport PyObject_AsFileDescriptor
 cimport numpy as NPY
 cimport mpi4py.MPI as MPI
+import ctypes
 
 # initialize the numpy C API
 NPY.import_array()
@@ -919,7 +920,13 @@ def init(MPI.Comm global_comm,
              <double *> time_init.data,
              intra_comms)
 
-    free(intra_comms)
+    # typemap = {ctypes.sizeof(ctypes.c_int): ctypes.c_int,
+    #            ctypes.sizeof(ctypes.c_void_p): ctypes.c_void_p}
+    # for i_code in range(n_code):
+    #   handle_t = typemap[MPI._sizeof(py_intra_comms[i_code])]
+    #   handle_new = handle_t.from_address(MPI._addressof(py_intra_comms[i_code]))
+    #   handle_old = handle_t.from_address(&(intra_comms[i_code]))
+    #   handle_new.value = handle_old.value
 
     return py_intra_comms
 

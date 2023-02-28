@@ -26,6 +26,7 @@
 #include "cwipi.h"
 #include "cwp.h"
 
+#include "pdm_multipart.h"
 #include "pdm_logging.h"
 #include "pdm_error.h"
 
@@ -41,7 +42,8 @@ static void
 _usage(int exit_code) {
   printf("\n"
          "  Usage: \n\n"
-         "  -f              filename.\n\n"
+         "  -f1             first filename.\n\n"
+         "  -f2             second filename.\n\n"
          "  -v              verbose.\n\n"
          "  -h              this message.\n\n");
 
@@ -63,7 +65,8 @@ _read_args
   int            argc,
   char         **argv,
   int           *verbose,
-  char         **filename
+  char         **filename1,
+  char         **filename2
 )
 {
   int i = 1;
@@ -76,13 +79,22 @@ _read_args
     else if (strcmp(argv[i], "-v") == 0) {
       *verbose = 1;
     }
-    else if (strcmp(argv[i], "-f") == 0) {
+    else if (strcmp(argv[i], "-f1") == 0) {
       i++;
       if (i >= argc) {
         _usage(EXIT_FAILURE);
       }
       else {
-        *filename = argv[i];
+        *filename1 = argv[i];
+      }
+    }
+    else if (strcmp(argv[i], "-f2") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *filename2 = argv[i];
       }
     }
     else
@@ -212,12 +224,14 @@ int
 main(int argc, char *argv[]) {
 
   int verbose = 0;
-  char *filename  = NULL;
+  char *filename1 = NULL;
+  char *filename2 = NULL;
 
   _read_args (argc,
               argv,
               &verbose,
-              &filename);
+              &filename1,
+              &filename2);
 
   // Initialize MPI
   MPI_Init(&argc, &argv);
@@ -234,7 +248,7 @@ main(int argc, char *argv[]) {
   double     *vtx_coord = NULL;
   double     *vtx_field = NULL;
   _read_vtk(MPI_COMM_WORLD,
-            filename,
+            filename1,
             &n_vtx,
             &n_face,
             &face_vtx,
@@ -249,7 +263,155 @@ main(int argc, char *argv[]) {
     PDM_log_trace_array_double(vtx_field, n_vtx, "vtx_field: ");
   }
 
-  // Partition data
+  // DMesh nodal
+  PDM_dmesh_nodal_t* dmn = PDM_DMesh_nodal_create(PDM_MPI_COMM_WORLD,
+                                                  3,
+                                                  n_vtx,
+                                                  0,
+                                                  n_face,
+                                                  0);
+
+  PDM_DMesh_nodal_coord_set(dmn,
+                            n_vtx,
+                            vtx_coord,
+                            PDM_OWNERSHIP_KEEP);
+
+  int id_section = PDM_DMesh_nodal_section_add(dmn,
+                                               PDM_GEOMETRY_KIND_SURFACIC,
+                                               PDM_MESH_NODAL_TRIA3);
+
+  PDM_DMesh_nodal_section_std_set(dmn,
+                                  PDM_MESH_NODAL_TRIA3,
+                                  id_section,
+                                  n_face,
+                                  face_vtx, // should be PDM_g_num
+                                  PDM_OWNERSHIP_KEEP);
+
+  // Multipart
+  int n_part = 1;
+  PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
+  PDM_multipart_t *mpart = PDM_multipart_create(1,
+                                                &n_part,
+                                                PDM_FALSE,
+                                                part_method,
+                                                PDM_PART_SIZE_HOMOGENEOUS,
+                                                NULL,
+                                                PDM_MPI_COMM_WORLD,
+                                                PDM_OWNERSHIP_KEEP);
+
+  PDM_multipart_set_reordering_options(mpart,
+                                       -1,
+                                       "PDM_PART_RENUM_CELL_NONE",
+                                       NULL,
+                                       "PDM_PART_RENUM_FACE_NONE");
+
+  PDM_multipart_register_dmesh_nodal(mpart, 0, dmn);
+  PDM_multipart_run_ppart(mpart);
+
+  // free
+  PDM_DMesh_nodal_free(dmn);
+  free(face_vtx );
+  free(vtx_coord);
+
+  // Partitionned mesh
+  double *pvtx_coord = NULL;
+  PDM_multipart_part_vtx_coord_get(mpart,
+                                   0,
+                                   0,
+                                   &pvtx_coord,
+                                   PDM_OWNERSHIP_KEEP);
+
+  int  dn_section = 0;
+  int *dn_elt = NULL;
+  int  dn_cell = 0;
+  int  dn_face = 0;
+  int  dn_face_part_bound = 0;
+  int  dn_vtx = 0;
+  int  dn_proc = 0;
+  int  dn_total_part = 0;
+  int  ds_cell_face = 0;
+  int  ds_face_vtx = 0;
+  int  ds_face_bound = 0;
+  int  dn_bound_groups = 0;
+  int  ds_face_join = 0;
+  int  dn_join_groups = 0;
+  PDM_multipart_part_dim_get(mpart,
+                             0,
+                             0,
+                             &dn_section,
+                             &dn_elt,
+                             &dn_cell,
+                             &dn_face,
+                             &dn_face_part_bound,
+                             &dn_vtx,
+                             &dn_proc,
+                             &dn_total_part,
+                             &ds_cell_face,
+                             &ds_face_vtx,
+                             &ds_face_bound,
+                             &dn_bound_groups,
+                             &ds_face_join,
+                             &dn_join_groups);
+
+  int         **delt_vtx_idx = NULL;
+  int         **delt_vtx = NULL;
+  PDM_g_num_t **delt_section_ln_to_gn = NULL;
+  int          *dcell_tag = NULL;
+  int          *dcell_face_idx = NULL;
+  int          *dcell_face = NULL;
+  PDM_g_num_t  *dcell_ln_to_gn = NULL;
+  int          *dface_tag = NULL;
+  int          *dface_cell = NULL;
+  int          *dface_vtx_idx = NULL;
+  int          *dface_vtx = NULL;
+  PDM_g_num_t  *dface_ln_to_gn = NULL;
+  int          *dface_part_bound_proc_idx = NULL;
+  int          *dface_part_bound_part_idx = NULL;
+  int          *dface_part_bound = NULL;
+  int          *dvtx_tag = NULL;
+  double       *dvtx = NULL;
+  PDM_g_num_t  *dvtx_ln_to_gn = NULL;
+  int          *dface_bound_idx = NULL;
+  int          *dface_bound = NULL;
+  PDM_g_num_t  *dface_bound_ln_to_gn = NULL;
+  int          *dface_join_idx = NULL;
+  int          *dface_join = NULL;
+  PDM_g_num_t  *dface_join_ln_to_gn = NULL;
+  PDM_multipart_part_val_get(mpart,
+                             0,
+                             0,
+                             &delt_vtx_idx,
+                             &delt_vtx,
+                             &delt_section_ln_to_gn,
+                             &dcell_tag,
+                             &dcell_face_idx,
+                             &dcell_face,
+                             &dcell_ln_to_gn,
+                             &dface_tag,
+                             &dface_cell,
+                             &dface_vtx_idx,
+                             &dface_vtx,
+                             &dface_ln_to_gn,
+                             &dface_part_bound_proc_idx,
+                             &dface_part_bound_part_idx,
+                             &dface_part_bound,
+                             &dvtx_tag,
+                             &dvtx,
+                             &dvtx_ln_to_gn,
+                             &dface_bound_idx,
+                             &dface_bound,
+                             &dface_bound_ln_to_gn,
+                             &dface_join_idx,
+                             &dface_join,
+                             &dface_join_ln_to_gn);
+
+  // free
+  PDM_multipart_free(mpart);
+
+  // Partition field (part_to_part?)
+
+  // free
+  free(vtx_field);
 
   // Set up
 
@@ -258,11 +420,6 @@ main(int argc, char *argv[]) {
   // Field
 
   // Exchange
-
-  // free
-  free(face_vtx );
-  free(vtx_coord);
-  free(vtx_field);
 
   // Finalize MPI
   MPI_Finalize();
