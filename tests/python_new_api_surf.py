@@ -34,8 +34,6 @@ def gen_mesh(comm, n_part, n, center, radius, part_method):
                                                     center[2],
                                                     radius)
 
-  print("n = {}".format(n))
-
   mpart = PDM.MultiPart(1,
                         np.array([n_part]).astype(np.int32),
                         0,
@@ -104,7 +102,7 @@ def runTest():
   n_subdiv            = int(args.n_subdiv)
   n_part1             = int(args.n_part1)
   n_part2             = int(args.n_part2)
-  disjoint_comms      = True#args.disjoint_comm
+  disjoint_comms      = args.disjoint_comm
   verbose             = args.verbose
   swap_codes          = args.swap_codes
   spatial_interp_algo = int(args.spatial_interp_algo)
@@ -151,13 +149,16 @@ def runTest():
 
 
   # OUTPUT
-  srank = '{0}'.format(i_rank)
-  f = open("python_new_api_surf" + srank.zfill(4) + ".txt",'w')
-  pycwp.output_file_set(f)
+  f = None
+  if verbose:
+    srank = '{0}'.format(i_rank)
+    f = open("python_new_api_surf" + srank.zfill(4) + ".txt",'w')
+    pycwp.output_file_set(f)
 
 
   # Initialize CWIPI
-  f.write("pycwp.init:\n")
+  if verbose:
+    f.write("pycwp.init:\n")
   n_code = len(code_name)
   is_active_rank = np.ones(n_code,  dtype=np.int32)
   time_init      = np.zeros(n_code, dtype=np.double)
@@ -166,15 +167,23 @@ def runTest():
                           code_name,
                           is_active_rank,
                           time_init)
-  f.write("intra_comm : {}\n".format(intra_comm))
-  f.flush()
+
+  comm.Barrier()
+  if i_rank == 0:
+    print("CWIPI Init OK")
+
+
+  if verbose:
+    f.write("intra_comm : {}\n".format(intra_comm))
+    f.flush()
 
   # Create coupling
   cpl_name = "python_new_api_global_data"
   cpl = []
   for icode in range(n_code):
-    f.write("running {}\n".format(code_name[icode]))
-    f.flush()
+    if verbose:
+      f.write("running {}\n".format(code_name[icode]))
+      f.flush()
     cpl.append(pycwp.Coupling(code_name[icode],
                               cpl_name,
                               coupled_code_name[icode],
@@ -186,23 +195,25 @@ def runTest():
                               pycwp.TIME_EXCH_USER_CONTROLLED))
 
   comm.Barrier()
+  if i_rank == 0:
+    print("Create coupling OK")
 
-  f.write("comm : {}\n".format(comm))
-  f.flush()
-  for icode in range(n_code):
-    f.write("intra_comm[{}] : {}\n".format(icode, intra_comm[icode]))
+  if verbose:
+    f.write("comm : {}\n".format(comm))
     f.flush()
-    # c_comm = intra_comm[icode].ob_mpi
+  for icode in range(n_code):
+    if verbose:
+      f.write("intra_comm[{}] : {}\n".format(icode, intra_comm[icode]))
+      f.flush()
     i_rank_intra = intra_comm[icode].rank
     n_rank_intra = intra_comm[icode].size
-    f.write("code {} : i_rank_intra = {}, n_rank_intra = {}".format(icode, i_rank_intra, n_rank_intra))
-    f.flush()
+    if verbose:
+      f.write("code {} : i_rank_intra = {}, n_rank_intra = {}".format(icode, i_rank_intra, n_rank_intra))
+      f.flush()
 
   # Define interface mesh
   mesh = []
   for icode in range(n_code):
-    f.write("n_subdiv = {}\n".format(n_subdiv))
-    f.flush()
     mesh.append(gen_mesh(comm,#intra_comm[icode],
                          n_part[icode],
                          n_subdiv,
@@ -225,6 +236,10 @@ def runTest():
 
     cpl[icode].mesh_interf_finalize()
 
+
+  comm.Barrier()
+  if i_rank == 0:
+    print("Set mesh OK")
 
 
   # Create field
@@ -268,6 +283,10 @@ def runTest():
                            field_val[ipart])
 
 
+  comm.Barrier()
+  if i_rank == 0:
+    print("Create fields OK")
+
 
   for icode in range(n_code):
     cpl[icode].spatial_interp_property_set("tolerance", "double", "1e-2")
@@ -275,6 +294,9 @@ def runTest():
     cpl[icode].spatial_interp_weights_compute()
 
 
+  comm.Barrier()
+  if i_rank == 0:
+    print("Interpolation weights computation OK")
 
 
   for icode in range(n_code):
@@ -294,8 +316,9 @@ def runTest():
       # check received data
       for ipart in range(n_part[icode]):
         for i, g in enumerate(mesh[icode]["pface_ln_to_gn"][ipart]):
-          f.write("{} received {}\n".format(g, recv_val[stride*i:stride*(i+1)]))
-          f.flush()
+          if verbose:
+            f.write("{} received {}\n".format(g, recv_val[stride*i:stride*(i+1)]))
+            f.flush()
           for j in range(stride):
             if abs(recv_val[stride*i+j] - (j+1)*g > 1e-9):
               error = True
@@ -304,9 +327,14 @@ def runTest():
   if error:
     exit(1)
 
+  comm.Barrier()
+  if i_rank == 0:
+    print("Exchange interpolated field OK")
+
   # Part data
-  f.write("-- Part Data --\n")
-  f.flush()
+  if verbose:
+    f.write("-- Part Data --\n")
+    f.flush()
   part_data_name = "part_data"
 
   for icode in range(n_code):
@@ -346,8 +374,9 @@ def runTest():
       # check received data
       for ipart in range(n_part[icode]):
         for i, g in enumerate(mesh[icode]["pface_ln_to_gn"][ipart]):
-          f.write("{} received {}\n".format(g, recv_val[stride*i:stride*(i+1)]))
-          f.flush()
+          if verbose:
+            f.write("{} received {}\n".format(g, recv_val[stride*i:stride*(i+1)]))
+            f.flush()
           for j in range(stride):
             if abs(recv_val[stride*i+j] - (j+1)*g > 1e-9):
               error = True
@@ -356,10 +385,18 @@ def runTest():
   if error:
     exit(1)
 
+  for icode in range(n_code):
+    cpl[icode].part_data_del(part_data_name)
+
+  comm.Barrier()
+  if i_rank == 0:
+    print("Part data exchange OK")
+
 
   # Global data
-  f.write("-- Global Data --\n")
-  f.flush()
+  if verbose:
+    f.write("-- Global Data --\n")
+    f.flush()
   global_data_name = "global_data"
   global_stride   = 2
   global_n_entity = 3
@@ -382,12 +419,14 @@ def runTest():
   for icode in range(n_code):
     if code_name[icode] == all_code_name[0]:
       cpl[icode].global_data_wait_issend(global_data_name)
-      f.write("send_global_data = {}\n".format(send_global_data))
-      f.flush()
+      if verbose:
+        f.write("send_global_data = {}\n".format(send_global_data))
+        f.flush()
     else:
       cpl[icode].global_data_wait_irecv(global_data_name)
-      f.write("recv_global_data = {}\n".format(recv_global_data))
-      f.flush()
+      if verbose:
+        f.write("recv_global_data = {}\n".format(recv_global_data))
+        f.flush()
       for i in range(global_n_entity):
         for j in range(global_stride):
           if recv_global_data[global_stride*i+j] != (i+1)*(j+1):
@@ -397,19 +436,22 @@ def runTest():
   if error:
     exit(1)
 
+  comm.Barrier()
+  if i_rank == 0:
+    print("Global data exchange OK")
+    print("End")
+
   for icode in range(n_code):
     cpl[icode].field_del(cpl_name)
     cpl[icode].mesh_interf_del()
-
-
-
 
   # FINALIZE
   pycwp.finalize()
 
   # END
-  f.write("\nEnd.\n")
-  f.close()
+  if verbose:
+    f.write("\nEnd.\n")
+    f.close()
   comm.Barrier()
   MPI.Finalize()
 
