@@ -667,6 +667,7 @@ main(int argc, char *argv[]) {
   // Field
   CWP_Status_t visu_status = CWP_STATUS_ON;
   const char *field_name = "field";
+  double **field_ptr = NULL;
 
   int stride = 1;
   double ***recv_val  = malloc(sizeof(double **) * n_code);
@@ -678,6 +679,21 @@ main(int argc, char *argv[]) {
       recv_val[icode][ipart] = malloc(sizeof(double) * pn_vtx[icode][ipart]);
     }
 
+    CWP_Field_exch_t exch_type;
+    CWP_Field_map_t  map_type;
+    if (code_id[icode] == 1) {
+      exch_type = CWP_FIELD_EXCH_SEND;
+      map_type  = CWP_FIELD_MAP_SOURCE;
+      field_ptr = pvtx_field[icode];
+    }
+    else {
+      exch_type = CWP_FIELD_EXCH_RECV;
+      map_type  = CWP_FIELD_MAP_TARGET;
+      field_ptr = recv_val[icode];
+    }
+
+
+
     CWP_Field_create(code_name[icode],
                      cpl_name,
                      field_name,
@@ -685,23 +701,29 @@ main(int argc, char *argv[]) {
                      CWP_FIELD_STORAGE_INTERLACED,
                      stride,
                      CWP_DOF_LOCATION_NODE,
-                     CWP_FIELD_EXCH_SENDRECV,
+                     exch_type,//CWP_FIELD_EXCH_SENDRECV,
                      visu_status);
 
     for (int ipart = 0; ipart < n_part[icode]; ipart++) {
-      CWP_Field_data_set(code_name[icode],
-                         cpl_name,
-                         field_name,
-                         ipart,
-                         CWP_FIELD_MAP_SOURCE,
-                         pvtx_field[icode][ipart]);
+      // CWP_Field_data_set(code_name[icode],
+      //                    cpl_name,
+      //                    field_name,
+      //                    ipart,
+      //                    CWP_FIELD_MAP_SOURCE,
+      //                    pvtx_field[icode][ipart]);
 
+      // CWP_Field_data_set(code_name[icode],
+      //                    cpl_name,
+      //                    field_name,
+      //                    ipart,
+      //                    CWP_FIELD_MAP_TARGET,
+      //                    recv_val[icode][ipart]);
       CWP_Field_data_set(code_name[icode],
                          cpl_name,
                          field_name,
                          ipart,
-                         CWP_FIELD_MAP_TARGET,
-                         recv_val[icode][ipart]);
+                         map_type,
+                         field_ptr[ipart]);
     }
   }
 
@@ -715,14 +737,30 @@ main(int argc, char *argv[]) {
     CWP_Spatial_interp_weights_compute(code_name[icode], cpl_name);
   }
 
-  for (int icode = 0; icode < n_code; icode++) {
-      CWP_Field_issend(code_name[icode], cpl_name, field_name);
-      CWP_Field_irecv (code_name[icode], cpl_name, field_name);
-  }
+  // for (int icode = 0; icode < n_code; icode++) {
+  //   CWP_Field_issend(code_name[icode], cpl_name, field_name);
+  //   CWP_Field_irecv (code_name[icode], cpl_name, field_name);
+  // }
+
+  // for (int icode = 0; icode < n_code; icode++) {
+  //   CWP_Field_wait_issend(code_name[icode], cpl_name, field_name);
+  //   CWP_Field_wait_irecv (code_name[icode], cpl_name, field_name);
+  // }
 
   for (int icode = 0; icode < n_code; icode++) {
+    if (code_id[icode] == 1) {
+      CWP_Field_issend(code_name[icode], cpl_name, field_name);
+    }
+    else {
+      CWP_Field_irecv (code_name[icode], cpl_name, field_name);
+    }
+
+    if (code_id[icode] == 1) {
       CWP_Field_wait_issend(code_name[icode], cpl_name, field_name);
+    }
+    else {
       CWP_Field_wait_irecv (code_name[icode], cpl_name, field_name);
+    }
   }
 
   MPI_Barrier(comm);
