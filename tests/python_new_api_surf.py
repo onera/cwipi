@@ -23,7 +23,7 @@ import Pypdm.Pypdm as PDM
 import numpy as np
 import sys
 import argparse
-
+import ctypes
 
 
 def gen_mesh(comm, n_part, n, center, radius, part_method):
@@ -47,8 +47,9 @@ def gen_mesh(comm, n_part, n, center, radius, part_method):
   mpart.multipart_run_ppart()
 
 
-  pvtx_coord    = [mpart.multipart_vtx_coord_get(i, 0)["np_vtx_coord"]       for i in range(n_part)]
-  pvtx_ln_to_gn = [mpart.multipart_ln_to_gn_get(i, 0) ["np_entity_ln_to_gn"] for i in range(n_part)]
+  pvtx_coord     = [mpart.multipart_vtx_coord_get(i, 0)["np_vtx_coord"] for i in range(n_part)]
+  pvtx_ln_to_gn  = [mpart.multipart_ln_to_gn_get(i, 0, PDM._PDM_MESH_ENTITY_VERTEX)["np_entity_ln_to_gn"] for i in range(n_part)]
+  pface_ln_to_gn = [mpart.multipart_ln_to_gn_get(i, 0, PDM._PDM_MESH_ENTITY_FACE)  ["np_entity_ln_to_gn"] for i in range(n_part)]
 
   pface_vtx_idx = []
   pface_vtx     = []
@@ -61,17 +62,17 @@ def gen_mesh(comm, n_part, n, center, radius, part_method):
 
     face_vtx = PDM.compute_face_vtx_from_face_and_edge(face_edge_idx,
                                                        face_edge,
-                                                       edge_vtx)
+                                                       edges["np_entity1_entity2"])
     pface_vtx_idx.append(face_edge_idx)
     pface_vtx.append(face_vtx)
 
 
   return {
     "pvtx_coord"     : pvtx_coord,
-    "pvtx_ln_to_gn"  : pvtx_ln_to_gn,
+    "pvtx_ln_to_gn"  : [np.array([g for g in pg], dtype=np.int64) for pg in pvtx_ln_to_gn],
     "pface_vtx_idx"  : pface_vtx_idx,
     "pface_vtx"      : pface_vtx,
-    "pface_ln_to_gn" : pface_ln_to_gn
+    "pface_ln_to_gn" : [np.array([g for g in pg], dtype=np.int64) for pg in pface_ln_to_gn]
   }
 
 
@@ -141,11 +142,14 @@ def runTest():
   code_name         = []
   coupled_code_name = []
   n_part            = []
+  my_intra_comm     = []
   for i in range(2):
+    _comm = comm.Split(int(has_code[i]), i_rank)
     if has_code[i]:
       code_name.append(all_code_name[i])
       coupled_code_name.append(all_code_name[(i+1)%2])
       n_part.append(all_n_part[i])
+      my_intra_comm.append(_comm)
 
 
   # OUTPUT
@@ -168,6 +172,8 @@ def runTest():
                           is_active_rank,
                           time_init)
 
+  intra_comm = my_intra_comm
+
   comm.Barrier()
   if i_rank == 0:
     print("CWIPI Init OK")
@@ -177,8 +183,11 @@ def runTest():
     f.write("intra_comm : {}\n".format(intra_comm))
     f.flush()
 
+
+
+
   # Create coupling
-  cpl_name = "python_new_api_global_data"
+  cpl_name = "python_new_api_surf"
   cpl = []
   for icode in range(n_code):
     if verbose:
@@ -194,6 +203,11 @@ def runTest():
                               pycwp.DYNAMIC_MESH_STATIC,
                               pycwp.TIME_EXCH_USER_CONTROLLED))
 
+  for icode in range(n_code):
+    cpl[icode].visu_set(1,
+                        pycwp.VISU_FORMAT_ENSIGHT,
+                        "text")
+
   comm.Barrier()
   if i_rank == 0:
     print("Create coupling OK")
@@ -208,13 +222,13 @@ def runTest():
     i_rank_intra = intra_comm[icode].rank
     n_rank_intra = intra_comm[icode].size
     if verbose:
-      f.write("code {} : i_rank_intra = {}, n_rank_intra = {}".format(icode, i_rank_intra, n_rank_intra))
+      f.write("code {} : i_rank_intra = {}, n_rank_intra = {}\n".format(icode, i_rank_intra, n_rank_intra))
       f.flush()
 
   # Define interface mesh
   mesh = []
   for icode in range(n_code):
-    mesh.append(gen_mesh(comm,#intra_comm[icode],
+    mesh.append(gen_mesh(intra_comm[icode],
                          n_part[icode],
                          n_subdiv,
                          [0., 0., 0.],
@@ -223,6 +237,7 @@ def runTest():
 
     for ipart in range(n_part[icode]):
       cpl[icode].mesh_interf_vtx_set(ipart,
+                                     len(mesh[icode]["pvtx_ln_to_gn"][ipart]),
                                      mesh[icode]["pvtx_coord"]   [ipart],
                                      mesh[icode]["pvtx_ln_to_gn"][ipart])
 
@@ -230,6 +245,7 @@ def runTest():
 
       cpl[icode].mesh_interf_f_poly_block_set(ipart,
                                               id_block,
+                                              len(mesh[icode]["pface_ln_to_gn"][ipart]),
                                               mesh[icode]["pface_vtx_idx"] [ipart],
                                               mesh[icode]["pface_vtx"]     [ipart],
                                               mesh[icode]["pface_ln_to_gn"][ipart])
@@ -301,28 +317,31 @@ def runTest():
 
   for icode in range(n_code):
     if code_name[icode] == all_code_name[0]:
-      cpl[icode].field_issend(code_name[icode])
+      cpl[icode].field_issend(field_name)
     else:
-      cpl[icode].field_irecv(code_name[icode])
+      cpl[icode].field_irecv(field_name)
 
 
   error = False
+  if verbose:
+    f.write("-- Field --\n")
+    f.flush()
   for icode in range(n_code):
     if code_name[icode] == all_code_name[0]:
-      cpl[icode].field_wait_issend(code_name[icode])
+      cpl[icode].field_wait_issend(field_name)
     else:
-      cpl[icode].field_wait_irecv(code_name[icode])
+      cpl[icode].field_wait_irecv(field_name)
 
       # check received data
       for ipart in range(n_part[icode]):
         for i, g in enumerate(mesh[icode]["pface_ln_to_gn"][ipart]):
           if verbose:
-            f.write("{} received {}\n".format(g, recv_val[stride*i:stride*(i+1)]))
+            f.write("{} received {}\n".format(g, recv_val[ipart][stride*i:stride*(i+1)]))
             f.flush()
           for j in range(stride):
-            if abs(recv_val[stride*i+j] - (j+1)*g > 1e-9):
+            if abs(recv_val[ipart][stride*i+j] - (j+1)*g > 1e-9):
               error = True
-              print("field: {} received {} (expected {})".format(g, recv_val[stride*i+j], (j+1)*g))
+              print("field: {} received {} (expected {})".format(g, recv_val[ipart][stride*i+j], (j+1)*g))
 
   if error:
     exit(1)
@@ -351,36 +370,42 @@ def runTest():
                                 exch_type,
                                 mesh[icode]["pface_ln_to_gn"])
 
-  request = []
+  request = [np.array([-13], dtype=np.int32)] * n_code
   for icode in range(n_code):
     if code_name[icode] == all_code_name[0]:
-      request.append(cpl[icode].part_data_issend(part_data_name,
-                                                 stride,
-                                                 send_val))
+      cpl[icode].part_data_issend(part_data_name,
+                                  stride,
+                                  send_val,
+                                  request[icode])
     else:
-      request.append(cpl[icode].part_data_irecv(part_data_name,
-                                                stride,
-                                                recv_val))
+      cpl[icode].part_data_irecv(part_data_name,
+                                 stride,
+                                 recv_val,
+                                 request[icode])
+
+  if verbose:
+    f.write("request : {}\n".format(request))
+    f.flush()
 
   error = False
   for icode in range(n_code):
     if code_name[icode] == all_code_name[0]:
       cpl[icode].part_data_wait_issend(part_data_name,
-                                       request[icode])
+                                       request[icode][0])
     else:
       cpl[icode].part_data_wait_irecv(part_data_name,
-                                      request[icode])
+                                      request[icode][0])
 
       # check received data
       for ipart in range(n_part[icode]):
         for i, g in enumerate(mesh[icode]["pface_ln_to_gn"][ipart]):
           if verbose:
-            f.write("{} received {}\n".format(g, recv_val[stride*i:stride*(i+1)]))
+            f.write("{} received {}\n".format(g, recv_val[ipart][stride*i:stride*(i+1)]))
             f.flush()
           for j in range(stride):
-            if abs(recv_val[stride*i+j] - (j+1)*g > 1e-9):
+            if abs(recv_val[ipart][stride*i+j] - (j+1)*g > 1e-9):
               error = True
-              print("part_data: {} received {} (expected {})".format(g, recv_val[stride*i+j], (j+1)*g))
+              print("part_data: {} received {} (expected {})".format(g, recv_val[ipart][stride*i+j], (j+1)*g))
 
   if error:
     exit(1)
@@ -409,7 +434,7 @@ def runTest():
                                     global_n_entity,
                                     send_global_data)
     else:
-      recv_global_data = np.zeros(n_entity*stride, dtype=np.int32)
+      recv_global_data = np.zeros(global_n_entity*global_stride, dtype=np.int32)
       cpl[icode].global_data_irecv(global_data_name,
                                    global_stride,
                                    global_n_entity,
@@ -431,7 +456,7 @@ def runTest():
         for j in range(global_stride):
           if recv_global_data[global_stride*i+j] != (i+1)*(j+1):
             error = True
-            print("global_data: {} received {} (expected {})".format(i, recv_global_data[global_stride*i+j], (i+1)*(j+1))
+            print("global_data: {} received {} (expected {})".format(i, recv_global_data[global_stride*i+j], (i+1)*(j+1)))
 
   if error:
     exit(1)
@@ -442,7 +467,7 @@ def runTest():
     print("End")
 
   for icode in range(n_code):
-    cpl[icode].field_del(cpl_name)
+    cpl[icode].field_del(field_name)
     cpl[icode].mesh_interf_del()
 
   # FINALIZE

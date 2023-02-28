@@ -527,10 +527,10 @@ namespace cwipi {
 
         int  *n_ref;
         int **ref;
+        PDM_part_to_part_ref_lnum2_get(ptp,
+                                       &n_ref,
+                                       &ref);
         for (int i_part = 0; i_part < n_part; i_part++) {
-          PDM_part_to_part_ref_lnum2_get(ptp,
-                                         &n_ref,
-                                         &ref);
           if (n_ref[i_part] != n_elt[i_part]) {
             PDM_error(__FILE__, __LINE__, 0, "Error in input data of CWP_Part_data_create : make sure the global numbering is continous\n");
           }
@@ -642,6 +642,8 @@ namespace cwipi {
     it->second.set_part1_to_part2_data(part1_to_part2_data);
     it->second.set_request1(request);
 
+    log_trace("Send!\n");
+
     // launch issend
     if (_coupledCodeProperties.localCodeIs()) {
 
@@ -659,6 +661,7 @@ namespace cwipi {
                                 (const void**) part1_to_part2_data,
                                 mpi_tag,
                                 request);
+        log_trace("A send request = %d\n", *request);
 
         void **recv_buffer = NULL;
         int   *n_elt2      = cpl_it->second.get_n_elt2();
@@ -679,6 +682,7 @@ namespace cwipi {
                                recv_buffer,
                                mpi_tag,
                                request2);
+        log_trace("B recv request2 = %d\n", *request2);
 
       } // local code works
     } // joint
@@ -690,6 +694,7 @@ namespace cwipi {
                               (const void**) part1_to_part2_data,
                               mpi_tag,
                               request);
+      log_trace("C send request = %d\n", *request);
 
     } // not joint
   }
@@ -731,7 +736,7 @@ namespace cwipi {
     it->second.set_request2(request);
 
     void **recv_buffer = NULL;
-
+    log_trace("Recv!\n");
     // launch irecv
     if (_coupledCodeProperties.localCodeIs()) {
 
@@ -760,6 +765,7 @@ namespace cwipi {
                                recv_buffer,
                                mpi_tag,
                                request);
+        log_trace("A recv request = %d\n", *request);
 
         void **part1_to_part2_data = cpl_it->second.get_part1_to_part2_data();
         assert(part1_to_part2_data != NULL); // TO DO
@@ -770,6 +776,7 @@ namespace cwipi {
                                 (const void**) part1_to_part2_data,
                                 mpi_tag,
                                 request1);
+        log_trace("B send request1 = %d\n", *request1);
 
       } // local code works
     } // joint
@@ -792,6 +799,7 @@ namespace cwipi {
                              recv_buffer,
                              mpi_tag,
                              request);
+      log_trace("C recv request = %d\n", *request);
 
     } // not joint
   }

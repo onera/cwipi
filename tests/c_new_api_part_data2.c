@@ -530,7 +530,7 @@ int main
     fflush(stdout);
   }
 
-  int request[2];
+  int request[2] = {-13};
 
   for (int icode = 0; icode < n_code; icode++) {
     if (code_id[icode] == 1) {
@@ -552,6 +552,8 @@ int main
                           &request[icode]);
     }
   }
+
+  PDM_log_trace_array_int(request, n_code, "request : ");
 
 
   for (int icode = 0; icode < n_code; icode++) {

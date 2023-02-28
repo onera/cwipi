@@ -849,7 +849,7 @@ cdef int* list_to_int_pointer(list data):
   return array
 
 cdef long** np_list_to_long_pointers(list datas):
-  cdef NPY.ndarray[NPY.long, ndim=1, mode='c'] numpy_gnum
+  cdef NPY.ndarray[NPY.int64_t, ndim=1, mode='c'] numpy_gnum
   cdef long** array = <long **> malloc(len(datas) * sizeof(long*))
   for i, numpy_gnum in enumerate(datas):
     array[i] = <long *> numpy_gnum.data
@@ -1758,94 +1758,7 @@ def interp_closest_points_distances_get(char                  *local_code_name,
 
     return create_numpy_d(distances2, tgt_come_from_src_idx[n_referenced_tgt])
 
-# --> functions about global data
-def global_data_issend(char    *local_code_name,
-                       char    *cpl_id,
-                       char    *global_data_id,
-                       int      send_stride,
-                       int      n_send_entity,
-                       list     send_data):
-    """
-    Send a data array.
 
-    Parameters:
-      local_code_name (char*) : Local code name
-      cpl_id          (char*) : Coupling identifier
-      global_data_id  (char*) : Global data identifier
-      send_stride     (int)   : Constant number of components
-      n_send_entity   (int)   : Number of sent entities
-      send_data       (list)  : List of partitioned data array with same datatype
-    """
-
-    cdef int s_send_entity = send_data.dtype
-
-    CWP_Global_data_issend(local_code_name,
-                           cpl_id,
-                           global_data_id,
-                           s_send_entity,
-                           send_stride,
-                           n_send_entity,
-                  <void *> send_data.data)
-
-def global_data_irecv(char    *local_code_name,
-                      char    *cpl_id,
-                      char    *global_data_id,
-                      int      recv_stride,
-                      int      n_recv_entity,
-                      list     recv_data):
-    """
-    Recv a data array.
-
-    Parameters:
-      local_code_name (char*) : Local code name
-      cpl_id          (char*) : Coupling identifier
-      global_data_id  (char*) : Global data identifier
-      recv_stride     (int)   : Constant number of components
-      n_recv_entity   (int)   : Number of sent entities
-      recv_data       (list)  : List of partitioned data array with same datatype
-    """
-
-    cdef int s_recv_entity = recv_data.dtype
-
-    CWP_Global_data_irecv(local_code_name,
-                          cpl_id,
-                          global_data_id,
-                          s_recv_entity,
-                          recv_stride,
-                          n_recv_entity,
-                 <void *> recv_data.data)
-
-def global_data_wait_issend(char    *local_code_name,
-                            char    *cpl_id,
-                            char    *global_data_id):
-    """
-    Wait for send of a data array.
-
-    Parameters:
-      local_code_name (char*) : Local code name
-      cpl_id          (char*) : Coupling identifier
-      global_data_id  (char*) : Global data identifier
-    """
-
-    CWP_Global_data_wait_issend(local_code_name,
-                                cpl_id,
-                                global_data_id)
-
-def global_data_wait_irecv(char    *local_code_name,
-                           char    *cpl_id,
-                           char    *global_data_id):
-    """
-    Wait for receive of a data array.
-
-    Parameters:
-      local_code_name (char*) : Local code name
-      cpl_id          (char*) : Coupling identifier
-      global_data_id  (char*) : Global data identifier
-    """
-
-    CWP_Global_data_wait_irecv(local_code_name,
-                               cpl_id,
-                               global_data_id)
 
 #-----------------------------------------------------------------------------
 # PARTDATA CLASS
@@ -1909,7 +1822,8 @@ cdef class PartData (object):
     # --> DATA
     def issend(self,
                int             n_components,
-               list            part1_to_part2_data):
+               list            part1_to_part2_data,
+               NPY.ndarray[NPY.int32_t] request):
         """
         Issend partitionned data.
 
@@ -1925,20 +1839,20 @@ cdef class PartData (object):
         cdef int s_data = data_dtype.itemsize
         cdef void** _part1_to_part2_data   = np_list_to_void_pointers(part1_to_part2_data)
 
-        cdef int request
+        # cdef int request
         CWP_Part_data_issend(self.local_code_name,
                              self.cpl_id,
                              self.part_data_id,
                              s_data,
                              n_components,
                              _part1_to_part2_data,
-                             &(request))
-
-        return request
+                    <int *> request.data)
+        # return request
 
     def irecv(self,
-              int  n_components,
-              list part2_data): # TO DO user can give me this ?
+              int   n_components,
+              list  part2_data,
+              NPY.ndarray[NPY.int32_t] request):
         """
         Irecv partitionned data.
 
@@ -1953,7 +1867,7 @@ cdef class PartData (object):
         # data_dtype = recover_dtype(part2_data, pyptp.py_comm)
         cdef int s_data = data_dtype.itemsize
 
-        cdef int request
+        # cdef int request
         cdef void** _part2_data = np_list_to_void_pointers(part2_data)
         CWP_Part_data_irecv(self.local_code_name,
                             self.cpl_id,
@@ -1961,9 +1875,8 @@ cdef class PartData (object):
                             s_data,
                             n_components,
                             _part2_data,
-                            &(request))
-
-        return request
+                    <int *> request.data)
+        # return request
 
     def wait_issend(self,
                     int request):
@@ -2560,7 +2473,8 @@ cdef class Coupling (object):
     def part_data_issend(self,
                          char  *part_data_id,
                          int    n_components,
-                         list   send_data):
+                         list   send_data,
+                         NPY.ndarray[NPY.int32_t]    request):
         """
         Issend partitionned data.
 
@@ -2574,13 +2488,15 @@ cdef class Coupling (object):
         """
 
         cdef int idx = self.partData_name[part_data_id]
-        return self.partData[idx].issend(n_components,
-                                         send_data)
+        self.partData[idx].issend(n_components,
+                                  send_data,
+                                  request)
 
     def part_data_irecv(self,
                         char  *part_data_id,
                         int    n_components,
-                        list   recv_data):
+                        list   recv_data,
+                        NPY.ndarray[NPY.int32_t]    request):
         """
         Irecv partitionned data.
 
@@ -2594,8 +2510,9 @@ cdef class Coupling (object):
         """
 
         cdef int idx = self.partData_name[part_data_id]
-        return self.partData[idx].irecv(n_components,
-                                        recv_data)
+        self.partData[idx].irecv(n_components,
+                                 recv_data,
+                                 request)
 
     def part_data_wait_issend(self,
                                char  *part_data_id,
@@ -2639,6 +2556,88 @@ cdef class Coupling (object):
         # TO DO del self.partData
         del self.partData_name[part_data_id]
 
+
+    # --> Global Data
+    def global_data_issend(self,
+                           char    *global_data_id,
+                           int      send_stride,
+                           int      n_send_entity,
+                           NPY.ndarray send_data):
+      """
+      Send a data array.
+
+      Parameters:
+        global_data_id  (char*) : Global data identifier
+        send_stride     (int)   : Constant number of components
+        n_send_entity   (int)   : Number of sent entities
+        send_data       (list)  : List of partitioned data array with same datatype
+      """
+
+      cdef int s_data = send_data.dtype.itemsize
+
+      CWP_Global_data_issend(self.local_code_name,
+                             self.cpl_id,
+                             global_data_id,
+                             s_data,
+                             send_stride,
+                             n_send_entity,
+                    <void *> send_data.data)
+
+    def global_data_irecv(self,
+                          char    *global_data_id,
+                          int      recv_stride,
+                          int      n_recv_entity,
+                          NPY.ndarray recv_data):
+      """
+      recv a data array.
+
+      Parameters:
+        global_data_id  (char*) : Global data identifier
+        recv_stride     (int)   : Constant number of components
+        n_recv_entity   (int)   : Number of sent entities
+        recv_data       (list)  : List of partitioned data array with same datatype
+      """
+
+      cdef int s_data = recv_data.dtype.itemsize
+
+      CWP_Global_data_irecv(self.local_code_name,
+                            self.cpl_id,
+                            global_data_id,
+                            s_data,
+                            recv_stride,
+                            n_recv_entity,
+                   <void *> recv_data.data)
+
+    def global_data_wait_issend(self,
+                                char    *global_data_id):
+      """
+      Wait for send of a data array.
+
+      Parameters:
+        local_code_name (char*) : Local code name
+        cpl_id          (char*) : Coupling identifier
+        global_data_id  (char*) : Global data identifier
+      """
+
+      CWP_Global_data_wait_issend(self.local_code_name,
+                                  self.cpl_id,
+                                  global_data_id)
+
+    def global_data_wait_irecv(self,
+                               char    *global_data_id):
+      """
+      Wait for receive of a data array.
+
+      Parameters:
+        local_code_name (char*) : Local code name
+        cpl_id          (char*) : Coupling identifier
+        global_data_id  (char*) : Global data identifier
+      """
+
+      CWP_Global_data_wait_irecv(self.local_code_name,
+                                 self.cpl_id,
+                                 global_data_id)
+
     # --> MESH
     def mesh_interf_finalize(self):
         """
@@ -2653,7 +2652,7 @@ cdef class Coupling (object):
                             int i_part,
                             int n_pts,
                             NPY.ndarray[NPY.double_t] coord not None,
-                            NPY.ndarray[NPY.long] global_num):
+                            NPY.ndarray[NPY.int64_t]  global_num):
         """
         Set vertices.
 
@@ -2702,7 +2701,7 @@ cdef class Coupling (object):
                                   block_id,
                                   n_elts,
                                   NPY.ndarray[NPY.int32_t] connec not None,
-                                  NPY.ndarray[NPY.long]    global_num):
+                                  NPY.ndarray[NPY.int64_t] global_num):
         """
         Set a standard block to the interface mesh.
         This function adds a connectivity block to the interface mesh.
@@ -2780,7 +2779,7 @@ cdef class Coupling (object):
                                      n_elts,
                                      NPY.ndarray[NPY.int32_t] connec_idx not None,
                                      NPY.ndarray[NPY.int32_t] connec not None,
-                                     NPY.ndarray[NPY.long]    global_num):
+                                     NPY.ndarray[NPY.int64_t] global_num):
         """
         Set the connectivity of a polygon block in a interface mesh partition.
 
@@ -2864,7 +2863,7 @@ cdef class Coupling (object):
                                      NPY.ndarray[NPY.int32_t] connec_faces not None,
                                      NPY.ndarray[NPY.int32_t] connec_cells_idx not None,
                                      NPY.ndarray[NPY.int32_t] connec_cells not None,
-                                     NPY.ndarray[NPY.long]    global_num):
+                                     NPY.ndarray[NPY.int64_t] global_num):
         """
         Set the properties of a polyhedron block in a interface mesh partition.
 
@@ -2967,7 +2966,7 @@ cdef class Coupling (object):
                                  n_elts,
                                  order,
                                  NPY.ndarray[NPY.int32_t] connec not None,
-                                 NPY.ndarray[NPY.long]    global_num):
+                                 NPY.ndarray[NPY.int64_t] global_num):
       """
         Set a high-order block to the interface mesh.
         This function adds a connectivity block to the interface mesh.
@@ -3086,7 +3085,7 @@ cdef class Coupling (object):
                                       n_faces,
                                       NPY.ndarray[NPY.int32_t] face_vtx_idx not None,
                                       NPY.ndarray[NPY.int32_t] face_vtx not None,
-                                      NPY.ndarray[NPY.long]    global_num):
+                                      NPY.ndarray[NPY.int64_t] global_num):
         """
         Define the interface mesh from a cell to face connectivity.
 
@@ -3132,7 +3131,7 @@ cdef class Coupling (object):
                                       n_edges,
                                       NPY.ndarray[NPY.int32_t] edge_vtx_idx not None,
                                       NPY.ndarray[NPY.int32_t] edge_vtx not None,
-                                      NPY.ndarray[NPY.long]    global_num):
+                                      NPY.ndarray[NPY.int64_t] global_num):
         """
         Define the surface interface mesh from a face to edge connectivity.
 
@@ -3223,7 +3222,7 @@ cdef class Coupling (object):
                          int i_part,
                          int n_pts,
                          NPY.ndarray[NPY.double_t] coord not None,
-                         NPY.ndarray[NPY.long] global_num):
+                         NPY.ndarray[NPY.int64_t]  global_num):
         """
         This function must be called if the degrees of freedom locations are CWP_DOF_LOCATION_USER
 

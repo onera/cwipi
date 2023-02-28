@@ -521,6 +521,7 @@ program testf
   endif
 
 
+  request(:) = -13
   do i = 1, n_code
     if (code_id(i) == 1) then
       call CWP_Part_data_issend(code_name(i),   &
@@ -529,6 +530,9 @@ program testf
                                 stride,         &
                                 send_data,      &
                                 request(i))
+      if (verbose) then
+        write(iiunit, *) "part data issend ", request(i)
+      endif
     else
       call CWP_Part_data_irecv(code_name(i),   &
                                coupling_name,  &
@@ -536,6 +540,9 @@ program testf
                                stride,         &
                                recv_data,      &
                                request(i))
+      if (verbose) then
+        write(iiunit, *) "part data irecv  ", request(i)
+      endif
     endif
   enddo
 
