@@ -238,6 +238,7 @@ def runTest():
         f.write("cpl.mesh_interf_vtx_set:\n")
         f.flush()
         cpl.mesh_interf_vtx_set(0,
+                                4,
                                 coord,
                                 None)
 
@@ -316,24 +317,24 @@ def runTest():
         cpl.spatial_interp_weights_compute()
 
         if (i_rank == 0):
-            f.write("pycwp.field_issend (0):\n")
+            f.write("cpl.field_issend (0):\n")
             f.flush()
-            pycwp.field_issend(code_names[i_rank], "test", "champs")
+            cpl.field_issend("champs")
 
         if (i_rank == 1):
-            f.write("pycwp.field_irecv (1):\n")
+            f.write("cpl.field_irecv (1):\n")
             f.flush()
-            pycwp.field_irecv(code_names[i_rank], "test", "champs")
+            cpl.field_irecv("champs")
 
         if (i_rank == 0):
-            f.write("pycwp.field_wait_issend (0):\n")
+            f.write("cpl.field_wait_issend (0):\n")
             f.flush()
-            pycwp.field_wait_issend(code_names[i_rank], "test", "champs")
+            cpl.field_wait_issend("champs")
 
         if (i_rank == 1):
-            f.write("pycwp.field_wait_irecv (1):\n")
+            f.write("cpl.field_wait_irecv (1):\n")
             f.flush()
-            pycwp.field_wait_irecv(code_names[i_rank], "test", "champs")
+            cpl.field_wait_irecv("champs")
 
         comm.Barrier()
 
