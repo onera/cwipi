@@ -731,12 +731,30 @@ program testf
 
 contains
 
+  subroutine my_free(pa)
+    implicit none
+    type(PDM_pointer_array_t) :: pa
+    integer                   :: i
+
+    if (associated(pa%cptr)) then
+      do i = 1,size(pa%cptr)
+        call pdm_fortran_free_c(pa%cptr(i))
+      enddo
+    endif
+
+  end subroutine my_free
+
   subroutine free_mesh(mesh)
     implicit none
     type(my_mesh) :: mesh
 
     call pdm_fortran_free_c(c_loc(mesh%pn_vtx))
     call pdm_fortran_free_c(c_loc(mesh%pn_face))
+    call my_free(mesh%pvtx_coord)
+    call my_free(mesh%pvtx_ln_to_gn)
+    call my_free(mesh%pface_vtx_idx)
+    call my_free(mesh%pface_vtx)
+    call my_free(mesh%pface_ln_to_gn)
     call PDM_pointer_array_free(mesh%pvtx_coord)
     call PDM_pointer_array_free(mesh%pvtx_ln_to_gn)
     call PDM_pointer_array_free(mesh%pface_vtx_idx)
