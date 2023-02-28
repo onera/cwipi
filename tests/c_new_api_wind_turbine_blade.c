@@ -115,13 +115,6 @@ _read_vtk
   MPI_Comm_rank(comm, &i_rank);
   MPI_Comm_size(comm, &n_rank);
 
-  // data
-  int         _n_vtx     = *n_vtx;
-  int         _n_face    = * n_face;
-  int        *_face_vtx  = *face_vtx;
-  double     *_vtx_coord = *vtx_coord;
-  double     *_vtx_field = *vtx_field;
-
   char line[999];
 
   if (i_rank == 0) {
@@ -144,20 +137,20 @@ _read_vtk
 
       if (strstr(line, "POINTS") != NULL) {
         // Get dimension
-        fscanf(f, "%d", &_n_vtx);
+        fscanf(f, "%d", &(*n_vtx));
+        char *data_type = malloc(sizeof(char) * 10);
+        fscanf(f, "%s", data_type);
+        free(data_type);
 
         // Malloc
-        _vtx_coord = malloc(sizeof(double) * 3 * (_n_vtx));
+        (*vtx_coord) = malloc(sizeof(double) * 3 * ((*n_vtx)));
 
         // Get coordinates
-        for (int i = 0; i < _n_vtx; i++) {
+        for (int i = 0; i < (*n_vtx); i++) {
           for (int j = 0; j < 3; j++) {
-            fscanf(f, "%lf", &_vtx_coord[3*i + j]);
+            fscanf(f, "%le", &(*vtx_coord)[3*i + j]);
           }
         }
-
-        log_trace("_n_vtx : %d\n", _n_vtx);
-        PDM_log_trace_array_double(_vtx_coord, 3*_n_vtx, "_vtx_coord: ");
       } // end if POINTS
 
       if (strstr(line, "CELLS") != NULL) {
@@ -168,17 +161,17 @@ _read_vtk
         fscanf(f, "%d", &size);
 
         // Malloc
-        _face_vtx = malloc(sizeof(int) * size);
+        (*face_vtx) = malloc(sizeof(int) * size);
 
         // Get connecitivity
         int n_vtx_cell = 0;
         for (int i = 0; i < n_cell; i++) {
           fscanf(f, "%d", &n_vtx_cell);
           if (n_vtx_cell == 3) {
-            _n_face++;
             for (int j = 0; j < 3; j++) {
-              fscanf(f, "%d", &_face_vtx[3*i+j]);
+             fscanf(f, "%d", &(*face_vtx)[3*(*n_face)+j]);
             }
+            (*n_face)++;
           } else {
             int other_cell_vtx = 0;
             for (int j = 0; j < n_vtx_cell; j++) {
@@ -187,21 +180,21 @@ _read_vtk
           }
         }
 
-        _face_vtx = realloc(_face_vtx, 3 * _n_face * sizeof(int));
-
-        log_trace("_n_face : %d\n", _n_face);
-        PDM_log_trace_array_int(_face_vtx, 3*_n_face, "_face_vtx: ");
+        (*face_vtx) = realloc((*face_vtx), 3 * (*n_face) * sizeof(int));
       } // end if CELLS
 
-      if (strstr(line, "LOOKUP_TABLE default") != NULL) {
+      if (strstr(line, "LOOKUP_TABLE") != NULL) {
+        char *table = malloc(sizeof(char) * 10);
+        fscanf(f, "%s", table);
+        free(table);
+
         // Malloc
-        _vtx_field = malloc(sizeof(double) * _n_vtx);
+        (*vtx_field) = malloc(sizeof(double) * (*n_vtx));
 
         // Get connectivity
-        for (int i = 0; i < _n_vtx; i++) {
-          fscanf(f, "%lf", &_vtx_field[i]);
+        for (int i = 0; i < (*n_vtx); i++) {
+          fscanf(f, "%lf", &(*vtx_field)[i]);
         }
-        PDM_log_trace_array_double(_vtx_field, _n_vtx, "_vtx_field: ");
       } // end if POINT_DATA
 
     } // while not EOF
