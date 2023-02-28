@@ -401,7 +401,7 @@ int main
   /* Map source to target */
   for (int icode = 0; icode < n_code; icode++) {
     if (spatial_interp == CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES) {
-      CWP_Spatial_interp_property_set(code_name[0],
+      CWP_Spatial_interp_property_set(code_name[icode],
                                       cpl_name,
                                       "n_closest_pts",
                                       "int",
