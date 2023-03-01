@@ -93,11 +93,6 @@ function( COMPILE_PYX _name generated_file)
   set( pyx_lang "C" )
   set( comment "Compiling Cython C source for ${_name}..." )
 
-  # Determining generated file name.
-  set( _generated_file "${CMAKE_CURRENT_BINARY_DIR}/${_name}.${extension}" )
-  set_source_files_properties( ${_generated_file} PROPERTIES GENERATED TRUE )
-  set( ${generated_file} ${_generated_file} PARENT_SCOPE )
-
   set( include_directory_arg "" )
   if (COMPILE_PYX_INCLUDE_DIRECTORIES)
     list( REMOVE_DUPLICATES COMPILE_PYX_INCLUDE_DIRECTORIES)
@@ -150,6 +145,11 @@ function( COMPILE_PYX _name generated_file)
   else()
     set( version_arg )
   endif()
+
+  # Determining generated file name.
+  set( _generated_file "${CMAKE_CURRENT_BINARY_DIR}/${_name}.${extension}" )
+  set_source_files_properties( ${_generated_file} PROPERTIES GENERATED TRUE )
+  set( ${generated_file} ${_generated_file} PARENT_SCOPE )
 
   add_custom_command( OUTPUT ${_generated_file}
     COMMAND ${CYTHON_EXECUTABLE}

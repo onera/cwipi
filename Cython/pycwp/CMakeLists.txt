@@ -29,6 +29,8 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
 
 endif()
 
+target_link_libraries(pycwp Python::NumPy MPI::MPI_CXX)
+
 target_link_libraries(pycwp cwp_shared)
 if (CWP_ENABLE_Fortran)
   target_link_libraries(pycwp cwp_shared)
