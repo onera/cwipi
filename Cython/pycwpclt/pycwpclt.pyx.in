@@ -107,6 +107,13 @@ cdef extern from "cwp.h":
       CWP_BLOCK_CELL_PRISM6
       CWP_BLOCK_CELL_PYRAM5
       CWP_BLOCK_CELL_POLY
+      CWP_BLOCK_EDGEHO
+      CWP_BLOCK_FACE_TRIAHO
+      CWP_BLOCK_FACE_QUADHO
+      CWP_BLOCK_CELL_TETRAHO
+      CWP_BLOCK_CELL_HEXAHO
+      CWP_BLOCK_CELL_PRISMHO
+      CWP_BLOCK_CELL_PYRAMHO
 
   ctypedef enum CWP_Dynamic_mesh_t:
       CWP_DYNAMIC_MESH_STATIC
@@ -135,6 +142,10 @@ cdef extern from "cwp.h":
       CWP_OP_MIN
       CWP_OP_MAX
       CWP_OP_SUM
+
+  ctypedef enum CWP_PartData_exch_t:
+      CWP_PARTDATA_SEND
+      CWP_PARTDATA_RECV
 
 cdef extern from "client_server/client.h":
 
@@ -519,16 +530,23 @@ STATUS_ON  = CWP_STATUS_ON
 ERR_NO_ERROR = CWP_ERR_NO_ERROR
 ERR_DEFAULT  = CWP_ERR_DEFAULT
 
-BLOCK_NODE        = CWP_BLOCK_NODE
-BLOCK_EDGE2       = CWP_BLOCK_EDGE2
-BLOCK_FACE_TRIA3  = CWP_BLOCK_FACE_TRIA3
-BLOCK_FACE_QUAD4  = CWP_BLOCK_FACE_QUAD4
-BLOCK_FACE_POLY   = CWP_BLOCK_FACE_POLY
-BLOCK_CELL_TETRA4 = CWP_BLOCK_CELL_TETRA4
-BLOCK_CELL_HEXA8  = CWP_BLOCK_CELL_HEXA8
-BLOCK_CELL_PRISM6 = CWP_BLOCK_CELL_PRISM6
-BLOCK_CELL_PYRAM5 = CWP_BLOCK_CELL_PYRAM5
-BLOCK_CELL_POLY   = CWP_BLOCK_CELL_POLY
+BLOCK_NODE         = CWP_BLOCK_NODE
+BLOCK_EDGE2        = CWP_BLOCK_EDGE2
+BLOCK_FACE_TRIA3   = CWP_BLOCK_FACE_TRIA3
+BLOCK_FACE_QUAD4   = CWP_BLOCK_FACE_QUAD4
+BLOCK_FACE_POLY    = CWP_BLOCK_FACE_POLY
+BLOCK_CELL_TETRA4  = CWP_BLOCK_CELL_TETRA4
+BLOCK_CELL_HEXA8   = CWP_BLOCK_CELL_HEXA8
+BLOCK_CELL_PRISM6  = CWP_BLOCK_CELL_PRISM6
+BLOCK_CELL_PYRAM5  = CWP_BLOCK_CELL_PYRAM5
+BLOCK_CELL_POLY    = CWP_BLOCK_CELL_POLY
+BLOCK_EDGEHO       = CWP_BLOCK_EDGEHO
+BLOCK_FACE_TRIAHO  = CWP_BLOCK_FACE_TRIAHO
+BLOCK_FACE_QUADHO  = CWP_BLOCK_FACE_QUADHO
+BLOCK_CELL_TETRAHO = CWP_BLOCK_CELL_TETRAHO
+BLOCK_CELL_HEXAHO  = CWP_BLOCK_CELL_HEXAHO
+BLOCK_CELL_PRISMHO = CWP_BLOCK_CELL_PRISMHO
+BLOCK_CELL_PYRAMHO = CWP_BLOCK_CELL_PYRAMHO
 
 DYNAMIC_MESH_STATIC     = CWP_DYNAMIC_MESH_STATIC
 DYNAMIC_MESH_DEFORMABLE = CWP_DYNAMIC_MESH_DEFORMABLE
@@ -552,6 +570,9 @@ STATE_OUTPUT_ERROR  = CWP_STATE_OUTPUT_ERROR
 OP_MIN = CWP_OP_MIN
 OP_MAX = CWP_OP_MAX
 OP_SUM = CWP_OP_SUM
+
+PARTDATA_SEND = CWP_PARTDATA_SEND
+PARTDATA_RECV = CWP_PARTDATA_RECV
 
 #-----------------------------------------------------------------------------
 # UTIL
@@ -662,6 +683,26 @@ cdef create_numpy_d(double* array, int size, bint flag_owndata=True):
     if flag_owndata:
         PyArray_ENABLEFLAGS(nparray, NPY.NPY_OWNDATA)
     return nparray
+
+cdef void** np_list_to_void_pointers(list datas):
+  cdef NPY.ndarray numpy_void
+  cdef void** array = <void **> malloc(len(datas) * sizeof(void*))
+  for i, numpy_void in enumerate(datas):
+    array[i] = <void *> numpy_void.data
+  return array
+
+cdef int* list_to_int_pointer(list data):
+  cdef int* array = <int *> malloc(len(data) * sizeof(int))
+  for i,d in enumerate(data):
+    array[i] = <int> d
+  return array
+
+cdef long** np_list_to_long_pointers(list datas):
+  cdef NPY.ndarray[NPY.int64_t, ndim=1, mode='c'] numpy_gnum
+  cdef long** array = <long **> malloc(len(datas) * sizeof(long*))
+  for i, numpy_gnum in enumerate(datas):
+    array[i] = <long *> numpy_gnum.data
+  return array
 
 #-----------------------------------------------------------------------------
 # DEFINITION

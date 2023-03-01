@@ -387,6 +387,67 @@ main
                           CWP_TIME_EXCH_USER_CONTROLLED);
   }
 
+  // GLOBAL DATA exchange
+  const char *global_data_name  = "andouillette";
+  size_t  s_entity = sizeof(double);
+  int     stride   = 2;
+  int     n_entity = 2;
+
+  double *send_data = malloc(s_entity * stride * n_entity);
+  send_data[0] = 0.1;
+  send_data[1] = 0.2;
+  send_data[2] = 0.3;
+  send_data[3] = 0.4;
+
+  if (i_rank == 0) {
+    CWP_Global_data_issend("code1",
+                           cpl_id1,
+                           global_data_name,
+                           s_entity,
+                           stride,
+                           n_entity,
+                           (void *) send_data);
+  }
+
+  double *recv_data = malloc(s_entity * stride * n_entity);
+  if (i_rank == 1) {
+    CWP_Global_data_irecv("code2",
+                          cpl_id1,
+                          global_data_name,
+                          s_entity,
+                          stride,
+                          n_entity,
+                          (void *) recv_data);
+  }
+
+  MPI_Barrier(comm);
+
+  if (i_rank == 0) {
+    CWP_Global_data_wait_issend("code2",
+                                cpl_id1,
+                                global_data_name);
+  }
+
+  if (i_rank == 1) {
+    CWP_Global_data_wait_irecv("code1",
+                               cpl_id1,
+                               global_data_name);
+  }
+
+  MPI_Barrier(comm);
+
+  for (int i = 0; i < 4; i++) {
+    if (i_rank == 0) {
+      printf("rank %d -- send[%d] : %f\n", i_rank, i, send_data[i]);
+      fflush(stdout);
+    } else {
+      printf("rank %d -- recv[%d] : %f\n", i_rank, i, recv_data[i]);
+      fflush(stdout);
+    }
+  }
+
+  // PART DATA exchange
+
   if (i_rank == 0) {
     printf("CWP_client_Cpl_del rank 0\n");
     CWP_client_Cpl_del("code1", cpl_id1);
