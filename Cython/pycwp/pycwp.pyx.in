@@ -2443,6 +2443,114 @@ cdef class Coupling (object):
                 'storage': storage
                }
 
+    def field_n_uncomputed_tgts_get(self,
+                                    int     i_part,
+                                    char   *field_id):
+        """
+        Get the number of uncomputed targets.
+
+        Parameters:
+          i_part    (int)  : Current partition
+
+        Returns:
+          n_unc_tgt (int) : Number of uncomputed targets
+        """
+
+        cdef int idx = self.fields_name[field_id]
+        n_unc_tgt = self.fields[idx].n_uncomputed_tgts_get(i_part)
+
+        return n_unc_tgt
+
+    def field_uncomputed_tgts_get(self,
+                                  int     i_part,
+                                  char   *field_id):
+        """
+        Get the uncomputed targets.
+
+        Parameters:
+          i_part    (int)  : Current partition
+
+        Returns:
+          unc_tgt (int *) : Uncomputed targets
+        """
+
+        cdef int idx = self.fields_name[field_id]
+        py_unc_tgt = self.fields[idx].uncomputed_tgts_get(i_part)
+
+        return py_unc_tgt
+
+    def field_n_computed_tgts_get(self,
+                                  int     i_part,
+                                  char   *field_id):
+        """
+        Get the number of computed targets.
+
+        Parameters:
+          i_part    (int)  : Current partition
+
+        Returns:
+          n_c_tgt (int) : Number of computed targets
+        """
+
+        cdef int idx = self.fields_name[field_id]
+        n_c_tgt = self.fields[idx].n_computed_tgts_get(i_part)
+
+        return n_c_tgt
+
+    def field_computed_tgts_get(self,
+                                int     i_part,
+                                char   *field_id):
+        """
+        Get the computed targets.
+
+        Parameters:
+          i_part    (int)  : Current partition
+
+        Returns:
+          c_tgt (int *) : Computed targets
+        """
+
+        cdef int idx = self.fields_name[field_id]
+        py_c_tgt = self.fields[idx].computed_tgts_get(i_part)
+
+        return py_c_tgt
+
+    def field_n_involved_srcs_get(self,
+                                  int     i_part,
+                                  char   *field_id):
+        """
+        Get the number of involved sources.
+
+        Parameters:
+          i_part    (int)  : Current partition
+
+        Returns:
+          n_i_src (int) : Number of involved sources
+        """
+
+        cdef int idx = self.fields_name[field_id]
+        n_i_src = self.fields[idx].n_involved_srcs_get(i_part)
+
+        return n_i_src
+
+    def field_involved_srcs_get(self,
+                                int     i_part,
+                                char   *field_id):
+        """
+        Get the involved sources.
+
+        Parameters:
+          i_part    (int)  : Current partition
+
+        Returns:
+          n_i_src (int *) : involved sources
+        """
+
+        cdef int idx = self.fields_name[field_id]
+        py_i_src = self.fields[idx].involved_srcs_get(i_part)
+
+        return py_i_src
+
     def field_del(self,
                   char                  *field_id):
         """
