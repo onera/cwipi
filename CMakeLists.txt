@@ -372,9 +372,9 @@ endif()
 # ---------------
 
 if (CWP_ENABLE_PYTHON_BINDINGS)
-  find_package(PythonInterp REQUIRED)
-  find_package(PythonLibs REQUIRED)
-  find_package(NumPy REQUIRED)
+  find_package(MPI REQUIRED COMPONENTS CXX)
+
+  find_package(Python REQUIRED COMPONENTS Interpreter Development NumPy)
   find_package(Mpi4Py REQUIRED)
   include(UseCython)
   if (NOT CMAKE_CWP_INSTALL_PYTHON_DIR)
