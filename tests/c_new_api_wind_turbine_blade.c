@@ -38,6 +38,9 @@
 #include "pdm_distrib.h"
 
 
+#define ABS(a)    ((a) < 0   ? -(a) : (a))
+#define MAX(a, b) ((a) > (b) ?  (a) : (b))
+
 /*----------------------------------------------------------------------
  *
  * Display usage
@@ -70,11 +73,13 @@ _usage(int exit_code) {
 static void
 _read_args
 (
-  int            argc,
-  char         **argv,
-  int           *verbose,
-  char          *all_file_names[],
-  int            all_n_rank[]
+  int                    argc,
+  char                 **argv,
+  int                   *verbose,
+  char                  *all_file_names[],
+  int                    all_n_rank[],
+  double                *tolerance,
+  CWP_Spatial_interp_t  *spatial_interp_algo
 )
 {
   int i = 1;
@@ -105,7 +110,7 @@ _read_args
         all_file_names[1] = argv[i];
       }
     }
-    else if (strcmp(argv[i], "-n1") == 0) {
+    else if (strcmp(argv[i], "-n_rank1") == 0) {
       i++;
       if (i >= argc) {
         _usage(EXIT_FAILURE);
@@ -114,13 +119,31 @@ _read_args
         all_n_rank[0] = atoi(argv[i]);
       }
     }
-    else if (strcmp(argv[i], "-n2") == 0) {
+    else if (strcmp(argv[i], "-n_rank2") == 0) {
       i++;
       if (i >= argc) {
         _usage(EXIT_FAILURE);
       }
       else {
         all_n_rank[1] = atoi(argv[i]);
+      }
+    }
+    else if (strcmp(argv[i], "-tol") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *tolerance = atof(argv[i]);
+      }
+    }
+    else if (strcmp(argv[i], "-algo") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *spatial_interp_algo = atoi(argv[i]);
       }
     }
     else
@@ -336,8 +359,6 @@ _gen_part_data
               &dvtx_field);
   }
 
-  PDM_log_trace_array_long(dface_vtx, 3*dn_face, "dface_vtx : ");
-
   PDM_g_num_t *distrib_vtx  = PDM_compute_entity_distribution(comm, dn_vtx);
   PDM_g_num_t *distrib_face = PDM_compute_entity_distribution(comm, dn_face);
 
@@ -505,18 +526,24 @@ _gen_part_data
 int
 main(int argc, char *argv[]) {
 
-  int verbose = 0;
-  char *all_file_names[2] = {NULL};
-  int   all_n_rank    [2] = {-1};
+  int     verbose = 0;
+  char   *all_file_names[2] = {NULL};
+  int     all_n_rank    [2] = {-1};
+  double  tolerance        = 1e-2;
+  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_IDENTITY;
 
   PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
-  int disjoint_comm = 1;
 
   _read_args (argc,
               argv,
               &verbose,
               all_file_names,
-              all_n_rank);
+              all_n_rank,
+              &tolerance,
+              &spatial_interp);
 
   // Initialize MPI
   MPI_Init(&argc, &argv);
@@ -528,21 +555,20 @@ main(int argc, char *argv[]) {
   MPI_Comm_rank(comm, &i_rank);
   MPI_Comm_size(comm, &n_rank);
 
-
+  for (int i = 0; i < 2; i++) {
+    if (all_n_rank[i] <= 0) {
+      all_n_rank[i] = n_rank;
+    }
+  }
 
 
   const char *all_code_names[2] = {"code1", "code2"};
-  // const char *all_file_names[2] = {filename1, filename2};
   int all_n_part[2] = {1, 1};
   int has_code[2] = {0, 0};
-  if (disjoint_comm) {
-    has_code[0] = i_rank < n_rank/2;
-    has_code[1] = !has_code[0];
-  }
-  else {
-    has_code[0] = 1;
-    has_code[1] = 1;
-  }
+
+
+  has_code[0] = i_rank < all_n_rank[0];
+  has_code[1] = i_rank > n_rank - all_n_rank[1];
 
   int n_code = has_code[0] + has_code[1];
 
@@ -593,10 +619,7 @@ main(int argc, char *argv[]) {
   const char *cpl_name = "c_new_api_wind_turbine_blade";
 
 
-  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
-  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
-  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
-  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_IDENTITY;
+
 
   for (int icode = 0; icode < n_code; icode++) {
     CWP_Cpl_create(code_name[icode],
@@ -720,23 +743,10 @@ main(int argc, char *argv[]) {
                      CWP_FIELD_STORAGE_INTERLACED,
                      stride,
                      CWP_DOF_LOCATION_NODE,
-                     exch_type,//CWP_FIELD_EXCH_SENDRECV,
+                     exch_type,
                      visu_status);
 
     for (int ipart = 0; ipart < n_part[icode]; ipart++) {
-      // CWP_Field_data_set(code_name[icode],
-      //                    cpl_name,
-      //                    field_name,
-      //                    ipart,
-      //                    CWP_FIELD_MAP_SOURCE,
-      //                    pvtx_field[icode][ipart]);
-
-      // CWP_Field_data_set(code_name[icode],
-      //                    cpl_name,
-      //                    field_name,
-      //                    ipart,
-      //                    CWP_FIELD_MAP_TARGET,
-      //                    recv_val[icode][ipart]);
       CWP_Field_data_set(code_name[icode],
                          cpl_name,
                          field_name,
@@ -748,23 +758,16 @@ main(int argc, char *argv[]) {
 
   // Exchange
   for (int icode = 0; icode < n_code; icode++) {
+    char char_tol[99];
+    sprintf(char_tol, "%e", tolerance);
     CWP_Spatial_interp_property_set(code_name[icode],
                                     cpl_name,
                                     "tolerance",
                                     "double",
-                                    "1e-1");
+                                    char_tol);
+
     CWP_Spatial_interp_weights_compute(code_name[icode], cpl_name);
   }
-
-  // for (int icode = 0; icode < n_code; icode++) {
-  //   CWP_Field_issend(code_name[icode], cpl_name, field_name);
-  //   CWP_Field_irecv (code_name[icode], cpl_name, field_name);
-  // }
-
-  // for (int icode = 0; icode < n_code; icode++) {
-  //   CWP_Field_wait_issend(code_name[icode], cpl_name, field_name);
-  //   CWP_Field_wait_irecv (code_name[icode], cpl_name, field_name);
-  // }
 
   for (int icode = 0; icode < n_code; icode++) {
     if (code_id[icode] == 1) {
@@ -789,8 +792,26 @@ main(int argc, char *argv[]) {
   }
 
 
-  // TO DO : check interpolation error
-  //...
+  // Check interpolation error
+  double max_err = 0.;
+  for (int icode = 0; icode < n_code; icode++) {
+    if (code_id[icode] == 2) {
+      for (int ipart = 0; ipart < n_part[icode]; ipart++) {
+        for (int i = 0; i < pn_vtx[icode][ipart]; i++) {
+          double err = ABS(pvtx_field[icode][ipart][i] - recv_val[icode][ipart][i]);
+          max_err = MAX(max_err, err);
+        }
+      }
+    }
+  }
+
+  double gmax_err = 0;
+  MPI_Allreduce(&max_err, &gmax_err, 1, MPI_DOUBLE, MPI_MAX, comm);
+
+  if (i_rank == 0) {
+    printf("gmax_err = %e\n", gmax_err);
+    fflush(stdout);
+  }
 
 
   /* Free memory */

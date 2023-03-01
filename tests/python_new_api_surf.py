@@ -142,14 +142,14 @@ def runTest():
   code_name         = []
   coupled_code_name = []
   n_part            = []
-  my_intra_comm     = []
+  # my_intra_comm     = []
   for i in range(2):
     _comm = comm.Split(int(has_code[i]), i_rank)
     if has_code[i]:
       code_name.append(all_code_name[i])
       coupled_code_name.append(all_code_name[(i+1)%2])
       n_part.append(all_n_part[i])
-      my_intra_comm.append(_comm)
+      # my_intra_comm.append(_comm)
 
 
   # OUTPUT
