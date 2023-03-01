@@ -5788,7 +5788,11 @@ CWP_client_Global_data_irecv
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *global_data_id
+ const char     *global_data_id,
+       size_t    s_recv_entity,
+       int       recv_stride,
+       int       n_recv_entity,
+       void     *recv_data
 )
 {
   t_message msg;
@@ -5825,6 +5829,21 @@ CWP_client_Global_data_irecv
   // send global data identifier
   write_name(global_data_id);
 
+  // send s_recv_entity
+  size_t endian_s_recv_entity = s_recv_entity;
+  CWP_swap_endian_8bytes((double *)  &endian_s_recv_entity, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_s_recv_entity, sizeof(size_t));
+
+  // send recv_stride
+  int endian_recv_stride = recv_stride;
+  CWP_swap_endian_4bytes(&endian_recv_stride, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_recv_stride, sizeof(int));
+
+  // send n_recv_entity
+  int endian_n_recv_entity = n_recv_entity;
+  CWP_swap_endian_4bytes(&endian_n_recv_entity, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_recv_entity, sizeof(int));
+
   // receive status msg
   MPI_Barrier(clt->comm);
   if (clt->flags  & CWP_FLAG_VERBOSE) {
@@ -5840,6 +5859,21 @@ CWP_client_Global_data_irecv
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     if (clt->i_rank == 0) verbose(message);
   }
+
+  // add global data to map
+  std::string s1(cpl_id);
+  std::string s2(global_data_id);
+
+  t_coupling coupling = clt_cwp.coupling[s1];
+  t_global_data global_data = t_global_data();
+  coupling.global_data.insert(std::make_pair(s2, global_data));
+
+  // allocate memory
+  clt_cwp.coupling[s1].global_data[s2].recv_data = malloc(s_recv_entity * recv_stride * n_recv_entity);
+
+  // read receive data
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s1].global_data[s2].recv_data, s_recv_entity * recv_stride * n_recv_entity);
+  recv_data = clt_cwp.coupling[s1].global_data[s2].recv_data;
 }
 
 void
@@ -5906,11 +5940,7 @@ CWP_client_Global_data_wait_irecv
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *global_data_id,
-       size_t   *s_recv_data,
-       int      *recv_stride,
-       int      *n_recv_entity,
-       void    **recv_data
+ const char     *global_data_id
 )
 {
   t_message msg;
@@ -5962,30 +5992,6 @@ CWP_client_Global_data_wait_irecv
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     if (clt->i_rank == 0) verbose(message);
   }
-
-  // read s_recv_data
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, s_recv_data, sizeof(size_t));
-
-  // read recv_stride
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, recv_stride, sizeof(int));
-
-  // read n_recv_entity
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, n_recv_entity, sizeof(int));
-
-  // add global data to map
-  std::string s1(cpl_id);
-  std::string s2(global_data_id);
-
-  t_coupling coupling = clt_cwp.coupling[s1];
-  t_global_data global_data = t_global_data();
-  coupling.global_data.insert(std::make_pair(s2, global_data));
-
-  // allocate memory
-  clt_cwp.coupling[s1].global_data[s2].recv_data = malloc((*s_recv_data) * (*recv_stride) * (*n_recv_entity));
-
-  // read receive data
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s1].global_data[s2].recv_data, (* s_recv_data) * (*recv_stride) * (*n_recv_entity));
-  *recv_data = clt_cwp.coupling[s1].global_data[s2].recv_data;
 }
 
 void

@@ -396,6 +396,71 @@ cdef extern from "client_server/client.h":
   void CWP_client_Param_lock(char *code_name)
   void CWP_client_Param_unlock(char *code_name)
 
+  # --> functions about global data
+  void CWP_client_Global_data_issend(char     *local_code_name,
+                                     char     *cpl_id,
+                                     char     *global_data_id,
+                                     size_t    s_send_entity,
+                                     int       send_stride,
+                                     int       n_send_entity,
+                                     void     *send_data)
+
+  void CWP_client_Global_data_irecv(char     *local_code_name,
+                                    char     *cpl_id,
+                                    char     *global_data_id,
+                                    size_t    s_recv_entity,
+                                    int       recv_stride,
+                                    int       n_recv_entity,
+                                    void     *recv_data)
+
+  void CWP_client_Global_data_wait_issend(char     *local_code_name,
+                                          char     *cpl_id,
+                                          char     *global_data_id)
+
+  void CWP_client_Global_data_wait_irecv(char     *local_code_name,
+                                         char     *cpl_id,
+                                         char     *global_data_id)
+
+  # --> functions about partitionned data
+  void CWP_client_Part_data_create(char                 *local_code_name,
+                                   char                 *cpl_id,
+                                   char                 *part_data_id,
+                                   CWP_PartData_exch_t   exch_type,
+                                   long                **gnum_elt,
+                                   int                  *n_elt,
+                                   int                   n_part)
+
+  void CWP_client_Part_data_del(char                 *local_code_name,
+                                char                 *cpl_id,
+                                char                 *part_data_id,
+                                CWP_PartData_exch_t   exch_type)
+
+  void CWP_client_Part_data_issend(char          *local_code_name,
+                                   char          *cpl_id,
+                                   char          *part_data_id,
+                                   size_t         s_data,
+                                   int            n_components,
+                                   void         **part1_to_part2_data,
+                                   int           *request)
+
+  void CWP_client_Part_data_irecv(char          *local_code_name,
+                                  char          *cpl_id,
+                                  char          *part_data_id,
+                                  size_t         s_data,
+                                  int            n_components,
+                                  void         **part2_data,
+                                  int           *request)
+
+  void CWP_client_Part_data_wait_issend(char          *local_code_name,
+                                        char          *cpl_id,
+                                        char          *part_data_id,
+                                        int            request)
+
+  void CWP_client_Part_data_wait_irecv(char          *local_code_name,
+                                       char          *cpl_id,
+                                       char          *part_data_id,
+                                       int            request)
+
 #-----------------------------------------------------------------------------
 # ENUM
 

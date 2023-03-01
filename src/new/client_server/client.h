@@ -1438,10 +1438,13 @@ CWP_client_Global_data_issend
 /**
  * \brief Global_data_irecv CWIPI.
  *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] global_data_id
- * \param [in] s_recv_entity
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  global_data_id   Global data identifier
+ * \param [in]  s_recv_entity    Data size
+ * \param [in]  recv_stride      Constant stride value
+ * \param [in]  n_recv_entity    Number of entities
+ * \param [out] recv_data        Pointer to data array
  *
  */
 
@@ -1450,7 +1453,11 @@ CWP_client_Global_data_irecv
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *global_data_id
+ const char     *global_data_id,
+       size_t    s_recv_entity,
+       int       recv_stride,
+       int       n_recv_entity,
+       void     *recv_data
 );
 
 /**
@@ -1473,13 +1480,9 @@ CWP_client_Global_data_wait_issend
 /**
  * \brief Global_data_wait_irecv CWIPI.
  *
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] global_data_id
- * \param [in] s_recv_entity
- * \param [in] recv_stride
- * \param [in] n_recv_entity
- * \param [in] recv_data
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  global_data_id   Global data identifier
  *
  */
 
@@ -1488,11 +1491,7 @@ CWP_client_Global_data_wait_irecv
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *global_data_id,
-       size_t   *s_recv_data,
-       int      *recv_stride,
-       int      *n_recv_entity,
-       void    **recv_data
+ const char     *global_data_id
 );
 
 /**

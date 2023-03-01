@@ -4726,6 +4726,18 @@ CWP_server_Global_data_irecv
   char *global_data_id = (char *) malloc(sizeof(char));
   read_name(&global_data_id, svr);
 
+  // read s_recv_entity
+  size_t s_recv_entity;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &s_recv_entity, sizeof(size_t));
+
+  // read recv_stride
+  int recv_stride;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &recv_stride, sizeof(int));
+
+  // read n_recv_entity
+  int n_recv_entity;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_recv_entity, sizeof(int));
+
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
   if (svr->flags & CWP_FLAG_VERBOSE) {
@@ -4735,10 +4747,14 @@ CWP_server_Global_data_irecv
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
 
-  // TO DO uncomment once Bastien has pushed
-  // CWP_Global_data_irecv(local_code_name,
-  //                        cpl_id,
-  //                        global_data_id);
+  void *recv_data = NULL;
+  CWP_Global_data_irecv(local_code_name,
+                         cpl_id,
+                         global_data_id,
+                         s_recv_entity,
+                         recv_stride,
+                         n_recv_entity,
+                         recv_data);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -4748,6 +4764,10 @@ CWP_server_Global_data_irecv
     message.flag = CWP_SVR_LCH_END;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
+
+  // send request
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) recv_data, s_recv_entity * recv_stride * n_recv_entity);
 
   // free
   free(local_code_name);
@@ -4861,18 +4881,9 @@ CWP_server_Global_data_wait_irecv
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
 
-  // TO DO uncomment once Bastien has pushed
-  size_t   s_recv_data;
-  int      recv_stride;
-  int      n_recv_entity;
-  void    *recv_data = NULL;
-  // CWP_client_Global_data_wait_irecv(local_code_name,
-  //                                   cpl_id,
-  //                                   global_data_id,
-  //                                   &s_recv_data,
-  //                                   &recv_stride,
-  //                                   &n_recv_entity,
-  //                                   &recv_data);
+  CWP_client_Global_data_wait_irecv(local_code_name,
+                                    cpl_id,
+                                    global_data_id);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -4882,18 +4893,6 @@ CWP_server_Global_data_wait_irecv
     message.flag = CWP_SVR_LCH_END;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
-
-  // send request
-  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &s_recv_data, sizeof(size_t));
-
-  // send request
-  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &recv_stride, sizeof(int));
-
-  // send request
-  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &n_recv_entity, sizeof(int));
-
-  // send request
-  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) recv_data, s_recv_data * recv_stride * n_recv_entity);
 
   // free
   free(local_code_name);
@@ -5239,7 +5238,7 @@ CWP_server_Part_data_irecv
                       part_data_id,
                       s_data,
                       n_components,
-                      &part2_data,
+                      part2_data,
                       &request);
 
   // send status msg
@@ -5314,7 +5313,7 @@ CWP_server_Part_data_wait_issend
   CWP_Part_data_wait_issend(local_code_name,
                             cpl_id,
                             part_data_id,
-                            &request); // TO DO: remove & once Bastien push
+                            request);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -5377,7 +5376,7 @@ CWP_server_Part_data_wait_irecv
   CWP_Part_data_wait_irecv(local_code_name,
                            cpl_id,
                            part_data_id,
-                           &request); // TO DO: remove & once Bastien push
+                           request);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
