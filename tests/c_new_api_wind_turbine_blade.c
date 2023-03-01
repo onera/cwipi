@@ -73,8 +73,8 @@ _read_args
   int            argc,
   char         **argv,
   int           *verbose,
-  char         **filename1,
-  char         **filename2
+  char          *all_file_names[],
+  int            all_n_rank[]
 )
 {
   int i = 1;
@@ -93,7 +93,7 @@ _read_args
         _usage(EXIT_FAILURE);
       }
       else {
-        *filename1 = argv[i];
+        all_file_names[0] = argv[i];
       }
     }
     else if (strcmp(argv[i], "-f2") == 0) {
@@ -102,7 +102,25 @@ _read_args
         _usage(EXIT_FAILURE);
       }
       else {
-        *filename2 = argv[i];
+        all_file_names[1] = argv[i];
+      }
+    }
+    else if (strcmp(argv[i], "-n1") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        all_n_rank[0] = atoi(argv[i]);
+      }
+    }
+    else if (strcmp(argv[i], "-n2") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        all_n_rank[1] = atoi(argv[i]);
       }
     }
     else
@@ -488,8 +506,8 @@ int
 main(int argc, char *argv[]) {
 
   int verbose = 0;
-  char *filename1 = NULL;
-  char *filename2 = NULL;
+  char *all_file_names[2] = {NULL};
+  int   all_n_rank    [2] = {-1};
 
   PDM_split_dual_t part_method = PDM_SPLIT_DUAL_WITH_HILBERT;
   int disjoint_comm = 1;
@@ -497,8 +515,8 @@ main(int argc, char *argv[]) {
   _read_args (argc,
               argv,
               &verbose,
-              &filename1,
-              &filename2);
+              all_file_names,
+              all_n_rank);
 
   // Initialize MPI
   MPI_Init(&argc, &argv);
@@ -512,8 +530,9 @@ main(int argc, char *argv[]) {
 
 
 
+
   const char *all_code_names[2] = {"code1", "code2"};
-  const char *all_file_names[2] = {filename1, filename2};
+  // const char *all_file_names[2] = {filename1, filename2};
   int all_n_part[2] = {1, 1};
   int has_code[2] = {0, 0};
   if (disjoint_comm) {
