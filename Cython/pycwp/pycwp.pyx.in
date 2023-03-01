@@ -905,13 +905,6 @@ def init(MPI.Comm global_comm,
     cdef MPI.MPI_Comm* intra_comms = <MPI.MPI_Comm *> malloc(n_code * sizeof(MPI.MPI_Comm))
     cdef py_intra_comms = [MPI.Comm()]*n_code
 
-    # cdef MPI.MPI_Comm c_comm
-    # cdef MPI.Comm comm
-
-    # for i_code in range(n_code):
-    #   comm = py_intra_comms[i_code]
-    #   c_comm = <MPI.MPI_Comm> comm.ob_mpi
-    #   intra_comms[i_code] = c_comm
 
     CWP_Init(c_global_comm,
              n_code,
@@ -920,15 +913,12 @@ def init(MPI.Comm global_comm,
              <double *> time_init.data,
              intra_comms)
 
-    typemap = {ctypes.sizeof(ctypes.c_int): ctypes.c_int,
-               ctypes.sizeof(ctypes.c_void_p): ctypes.c_void_p}
-    cdef int addr
+
+    cdef MPI.Comm tmp_comm
     for i_code in range(n_code):
-      handle_t = typemap[MPI._sizeof(py_intra_comms[i_code])]
-      handle_new = handle_t.from_address(MPI._addressof(py_intra_comms[i_code]))
-      addr = <int> &(intra_comms[i_code])
-      handle_old = handle_t.from_address(addr)
-      handle_new.value = handle_old.value
+      tmp_comm = MPI.Comm()
+      tmp_comm.ob_mpi = intra_comms[i_code]
+      py_intra_comms[i_code] = tmp_comm # hidden cast to (PyObject *)
 
     return py_intra_comms
 

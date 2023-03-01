@@ -172,7 +172,7 @@ def runTest():
                           is_active_rank,
                           time_init)
 
-  intra_comm = my_intra_comm
+  # intra_comm = my_intra_comm
 
   comm.Barrier()
   if i_rank == 0:
