@@ -188,15 +188,15 @@ main
   }
 
   // Outputfile
-  if (i_rank == 0) {
-    FILE *f = fopen("output_file_code1.txt", "w");
-    CWP_client_Output_file_set(f);
-  }
+  // if (i_rank == 0) {
+  //   FILE *f = fopen("output_file_code1.txt", "w");
+  //   CWP_client_Output_file_set(f);
+  // }
 
-  if (i_rank == 1) {
-    FILE *f = fopen("output_file_code2.txt", "w");
-    CWP_client_Output_file_set(f);
-  }
+  // if (i_rank == 1) {
+  //   FILE *f = fopen("output_file_code2.txt", "w");
+  //   CWP_client_Output_file_set(f);
+  // }
 
   MPI_Comm intra_comm;
   MPI_Comm_split(comm, id_code, i_rank, &intra_comm); // smallest i_rank becomes rank 0 in intra_comm
@@ -208,155 +208,157 @@ main
                   is_coupled_rank,
                   times_init);
 
-  // CWP_User_structure_*
-  CWP_client_User_structure_set("code1", NULL);
-  CWP_client_User_structure_get("code1");
+  // // CWP_User_structure_*
+  // CWP_client_User_structure_set("code1", NULL);
+  // CWP_client_User_structure_get("code1");
 
-  // CWP_Codes_*
-  int n_codes = CWP_client_Codes_nb_get();
-  printf("n_codes = %d\n", n_codes);
-  char **codeNames = NULL;
-  codeNames = (char **) CWP_client_Codes_list_get();
-  for (int i = 0; i < n_codes; i++) {
-    printf("i_rank: %d code_names[i] = %s\n", i_rank, codeNames[i]);
-  }
+  // // CWP_Codes_*
+  // int n_codes = CWP_client_Codes_nb_get();
+  // printf("n_codes = %d\n", n_codes);
+  // char **codeNames = NULL;
+  // codeNames = (char **) CWP_client_Codes_list_get();
+  // for (int i = 0; i < n_codes; i++) {
+  //   printf("i_rank: %d code_names[i] = %s\n", i_rank, codeNames[i]);
+  // }
 
-  // CWP_Loc_codes_*
-  int n_Loc_codes = CWP_client_Loc_codes_nb_get();
-  printf("n_Loc_codes = %d\n", n_Loc_codes);
-  char **LoccodeNames = NULL;
-  LoccodeNames = (char **) CWP_client_Loc_codes_list_get();
-  for (int i = 0; i < n_Loc_codes; i++) {
-    printf("i_rank: %d Loc_code_names[i] = %s\n", i_rank, LoccodeNames[i]);
-  }
+  // // CWP_Loc_codes_*
+  // int n_Loc_codes = CWP_client_Loc_codes_nb_get();
+  // printf("n_Loc_codes = %d\n", n_Loc_codes);
+  // char **LoccodeNames = NULL;
+  // LoccodeNames = (char **) CWP_client_Loc_codes_list_get();
+  // for (int i = 0; i < n_Loc_codes; i++) {
+  //   printf("i_rank: %d Loc_code_names[i] = %s\n", i_rank, LoccodeNames[i]);
+  // }
 
-  // Properties_dump
-  CWP_client_Properties_dump();
+  // // Properties_dump
+  // CWP_client_Properties_dump();
 
-  // State_update
-  if (i_rank == 0) {
-    CWP_client_State_update("code1", CWP_STATE_IN_PROGRESS);
-    CWP_State_t state = CWP_client_State_get("code1");
-    printf("state == CWP_STATE_IN_PROGRESS: %d\n", state == CWP_STATE_IN_PROGRESS);
-  }
+  // // State_update
+  // if (i_rank == 0) {
+  //   CWP_client_State_update("code1", CWP_STATE_IN_PROGRESS);
+  //   CWP_State_t state = CWP_client_State_get("code1");
+  //   printf("state == CWP_STATE_IN_PROGRESS: %d\n", state == CWP_STATE_IN_PROGRESS);
+  // }
 
-  // CWP_Param_*
-  if (i_rank == 0) {
-    int toto = 42;
-    CWP_client_Param_lock("code1");
-    CWP_client_Param_add("code1", "toto", CWP_INT, &toto);
-    double tata = 0.99;
-    CWP_client_Param_add("code1", "tata", CWP_DOUBLE, &tata);
-    double tota = 0.55;
-    CWP_client_Param_set("code1", "tata", CWP_DOUBLE, &tota);
-    CWP_client_Param_unlock("code1");
-  }
+  // // CWP_Param_*
+  // if (i_rank == 0) {
+  //   int toto = 42;
+  //   CWP_client_Param_lock("code1");
+  //   CWP_client_Param_add("code1", "toto", CWP_INT, &toto);
+  //   double tata = 0.99;
+  //   CWP_client_Param_add("code1", "tata", CWP_DOUBLE, &tata);
+  //   double tota = 0.55;
+  //   CWP_client_Param_set("code1", "tata", CWP_DOUBLE, &tota);
+  //   CWP_client_Param_unlock("code1");
+  // }
 
-  if (i_rank == 1) {
-    CWP_client_Param_lock("code2");
-    const char *A = "Bonjour code 1 !";
-    CWP_client_Param_add("code2", "toto2", CWP_CHAR, &A);
-    CWP_client_Param_unlock("code2");
-  }
+  // if (i_rank == 1) {
+  //   CWP_client_Param_lock("code2");
+  //   const char *A = "Bonjour code 1 !";
+  //   CWP_client_Param_add("code2", "toto2", CWP_CHAR, &A);
+  //   CWP_client_Param_unlock("code2");
+  // }
+
+  // MPI_Barrier(comm);
+
+  // double titi1;
+  // CWP_client_Param_get("code1", "tata", CWP_DOUBLE, &titi1);
+  // printf("i_rank: %d code 1 : tata : %f\n", i_rank, titi1);
+  // const char *titi2 = NULL;
+  // CWP_client_Param_get("code2", "toto2", CWP_CHAR, &titi2);
+  // printf("i_rank: %d code 2 : toto2 : %s\n", i_rank, titi2);
+  // int titi;
+  // CWP_client_Param_get("code1", "toto", CWP_INT, &titi);
+  // printf("i_rank: %d code 1 : toto : %d\n", i_rank, titi);
+
+  // int code1_n_double = -1;
+
+  // if (i_rank == 0) {
+  //   int code1_n_int = CWP_client_Param_n_get("code1", CWP_INT);
+  //   printf("i_rank: %d code 1 : n_int_param : %d\n", i_rank, code1_n_int);
+  //   code1_n_double = CWP_client_Param_n_get("code1", CWP_DOUBLE);
+  //   printf("i_rank: %d code 1 : n_double_param : %d\n", i_rank, code1_n_double);
+  // }
+
+  // if (i_rank == 0) {
+  //   double tatic = 107.52;
+  //   CWP_client_Param_lock("code1");
+  //   CWP_client_Param_add("code1", "tatic", CWP_DOUBLE, &tatic);
+  //   CWP_client_Param_unlock("code1");
+  // }
+
+  // if (i_rank == 1) {
+  //   double totic = 33.50;
+  //   CWP_client_Param_lock("code2");
+  //   CWP_client_Param_add("code2", "tatic", CWP_DOUBLE, &totic);
+  //   CWP_client_Param_unlock("code2");
+  // }
+
+  // if (i_rank == 0) {
+  //   CWP_client_Param_lock("code1");
+  //   CWP_client_Param_del("code1", "toto", CWP_INT);
+  //   CWP_client_Param_unlock("code1");
+  // }
+
+  // MPI_Barrier(comm);
+
+  // double tita;
+  // CWP_client_Param_get("code1", "tatic", CWP_DOUBLE, &tita);
+  // printf("i_rank: %d code 1 : tatic : %f\n", i_rank, tita);
+  // double tito;
+  // CWP_client_Param_get("code2", "tatic", CWP_DOUBLE, &tito);
+  // printf("i_rank: %d code 2 : tatic : %f\n", i_rank, tito);
+
+  // // reduce
+  // double res = 0;
+  // char **g_code_names = malloc(sizeof(char *) * 2);
+  // g_code_names[0] = malloc(sizeof(char) * 99);
+  // g_code_names[1] = malloc(sizeof(char) * 99);
+  // char test1[6] = "code1";
+  // strcpy(g_code_names[0], test1);
+  // char test2[6] = "code2";
+  // strcpy(g_code_names[1], test2);
+  // g_code_names[0][6] = '\0';
+  // g_code_names[1][6] = '\0';
+
+  // CWP_client_Param_reduce(CWP_OP_MAX, "tatic", CWP_DOUBLE, &res, 2, (const char **) g_code_names);
+
+  // free(g_code_names[0]);
+  // free(g_code_names[1]);
+  // free(g_code_names);
+
+  // printf("res = %f\n", res);
+
+  // if (i_rank == 0) {
+  //   char **param_names = NULL;
+  //   CWP_client_Param_list_get("code1", CWP_DOUBLE, &code1_n_double, &param_names);
+
+  //   for (int i = 0; i < code1_n_double; i++) {
+  //     printf("i_rank: %d code 1 : param[%d] = %s\n", i_rank, i, param_names[i]);
+  //   }
+
+  // }
+
+  // if (i_rank == 1) {
+  //   int code2_n_char = -1;
+  //   char **param_names = NULL;
+  //   CWP_client_Param_list_get("code2", CWP_CHAR, &code2_n_char, &param_names);
+
+  //   for (int i = 0; i < code2_n_char; i++) {
+  //     printf("i_rank: %d code 1 : param[%d] = %s\n", i_rank, i, param_names[i]);
+  //   }
+
+  // }
+
+  // if (i_rank == 1) {
+  //   int is_param = CWP_client_Param_is("code2", "toto2", CWP_CHAR);
+  //   printf("i_rank: %d code 2 : toto2 is param = %d\n", i_rank, is_param);
+
+  //   is_param = CWP_client_Param_is("code2", "tambouille", CWP_CHAR);
+  //   printf("i_rank: %d code 2 : tambouille is param = %d\n", i_rank, is_param);
+  // }
 
   MPI_Barrier(comm);
-
-  double titi1;
-  CWP_client_Param_get("code1", "tata", CWP_DOUBLE, &titi1);
-  printf("i_rank: %d code 1 : tata : %f\n", i_rank, titi1);
-  const char *titi2 = NULL;
-  CWP_client_Param_get("code2", "toto2", CWP_CHAR, &titi2);
-  printf("i_rank: %d code 2 : toto2 : %s\n", i_rank, titi2);
-  int titi;
-  CWP_client_Param_get("code1", "toto", CWP_INT, &titi);
-  printf("i_rank: %d code 1 : toto : %d\n", i_rank, titi);
-
-  int code1_n_double = -1;
-
-  if (i_rank == 0) {
-    int code1_n_int = CWP_client_Param_n_get("code1", CWP_INT);
-    printf("i_rank: %d code 1 : n_int_param : %d\n", i_rank, code1_n_int);
-    code1_n_double = CWP_client_Param_n_get("code1", CWP_DOUBLE);
-    printf("i_rank: %d code 1 : n_double_param : %d\n", i_rank, code1_n_double);
-  }
-
-  if (i_rank == 0) {
-    double tatic = 107.52;
-    CWP_client_Param_lock("code1");
-    CWP_client_Param_add("code1", "tatic", CWP_DOUBLE, &tatic);
-    CWP_client_Param_unlock("code1");
-  }
-
-  if (i_rank == 1) {
-    double totic = 33.50;
-    CWP_client_Param_lock("code2");
-    CWP_client_Param_add("code2", "tatic", CWP_DOUBLE, &totic);
-    CWP_client_Param_unlock("code2");
-  }
-
-  if (i_rank == 0) {
-    CWP_client_Param_lock("code1");
-    CWP_client_Param_del("code1", "toto", CWP_INT);
-    CWP_client_Param_unlock("code1");
-  }
-
-  MPI_Barrier(comm);
-
-  double tita;
-  CWP_client_Param_get("code1", "tatic", CWP_DOUBLE, &tita);
-  printf("i_rank: %d code 1 : tatic : %f\n", i_rank, tita);
-  double tito;
-  CWP_client_Param_get("code2", "tatic", CWP_DOUBLE, &tito);
-  printf("i_rank: %d code 2 : tatic : %f\n", i_rank, tito);
-
-  // reduce
-  double res = 0;
-  char **g_code_names = malloc(sizeof(char *) * 2);
-  g_code_names[0] = malloc(sizeof(char) * 99);
-  g_code_names[1] = malloc(sizeof(char) * 99);
-  char test1[6] = "code1";
-  strcpy(g_code_names[0], test1);
-  char test2[6] = "code2";
-  strcpy(g_code_names[1], test2);
-  g_code_names[0][6] = '\0';
-  g_code_names[1][6] = '\0';
-
-  CWP_client_Param_reduce(CWP_OP_MAX, "tatic", CWP_DOUBLE, &res, 2, (const char **) g_code_names);
-
-  free(g_code_names[0]);
-  free(g_code_names[1]);
-  free(g_code_names);
-
-  printf("res = %f\n", res);
-
-  if (i_rank == 0) {
-    char **param_names = NULL;
-    CWP_client_Param_list_get("code1", CWP_DOUBLE, &code1_n_double, &param_names);
-
-    for (int i = 0; i < code1_n_double; i++) {
-      printf("i_rank: %d code 1 : param[%d] = %s\n", i_rank, i, param_names[i]);
-    }
-
-  }
-
-  if (i_rank == 1) {
-    int code2_n_char = -1;
-    char **param_names = NULL;
-    CWP_client_Param_list_get("code2", CWP_CHAR, &code2_n_char, &param_names);
-
-    for (int i = 0; i < code2_n_char; i++) {
-      printf("i_rank: %d code 1 : param[%d] = %s\n", i_rank, i, param_names[i]);
-    }
-
-  }
-
-  if (i_rank == 1) {
-    int is_param = CWP_client_Param_is("code2", "toto2", CWP_CHAR);
-    printf("i_rank: %d code 2 : toto2 is param = %d\n", i_rank, is_param);
-
-    is_param = CWP_client_Param_is("code2", "tambouille", CWP_CHAR);
-    printf("i_rank: %d code 2 : tambouille is param = %d\n", i_rank, is_param);
-  }
 
   char cpl_id1[] = "cpl1_code1_code2";
   CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
@@ -387,6 +389,8 @@ main
                           CWP_TIME_EXCH_USER_CONTROLLED);
   }
 
+  MPI_Barrier(comm);
+
   // GLOBAL DATA exchange
   const char *global_data_name  = "andouillette";
   size_t  s_entity = sizeof(double);
@@ -400,38 +404,38 @@ main
   send_data[3] = 0.4;
 
   if (i_rank == 0) {
-    CWP_Global_data_issend("code1",
-                           cpl_id1,
-                           global_data_name,
-                           s_entity,
-                           stride,
-                           n_entity,
-                           (void *) send_data);
+    CWP_client_Global_data_issend("code1",
+                                  cpl_id1,
+                                  global_data_name,
+                                  s_entity,
+                                  stride,
+                                  n_entity,
+                                  (void *) send_data);
   }
 
   double *recv_data = malloc(s_entity * stride * n_entity);
   if (i_rank == 1) {
-    CWP_Global_data_irecv("code2",
-                          cpl_id1,
-                          global_data_name,
-                          s_entity,
-                          stride,
-                          n_entity,
-                          (void *) recv_data);
+    CWP_client_Global_data_irecv("code2",
+                                 cpl_id1,
+                                 global_data_name,
+                                 s_entity,
+                                 stride,
+                                 n_entity,
+                       (void **) &recv_data);
   }
 
   MPI_Barrier(comm);
 
   if (i_rank == 0) {
-    CWP_Global_data_wait_issend("code2",
-                                cpl_id1,
-                                global_data_name);
+    CWP_client_Global_data_wait_issend("code1",
+                                       cpl_id1,
+                                       global_data_name);
   }
 
   if (i_rank == 1) {
-    CWP_Global_data_wait_irecv("code1",
-                               cpl_id1,
-                               global_data_name);
+    CWP_client_Global_data_wait_irecv("code2",
+                                      cpl_id1,
+                                      global_data_name);
   }
 
   MPI_Barrier(comm);

@@ -5792,7 +5792,7 @@ CWP_client_Global_data_irecv
        size_t    s_recv_entity,
        int       recv_stride,
        int       n_recv_entity,
-       void     *recv_data
+       void    **recv_data
 )
 {
   t_message msg;
@@ -5869,11 +5869,11 @@ CWP_client_Global_data_irecv
   coupling.global_data.insert(std::make_pair(s2, global_data));
 
   // allocate memory
+  clt_cwp.coupling[s1].global_data[s2].s_recv_entity = s_recv_entity;
+  clt_cwp.coupling[s1].global_data[s2].recv_stride   = recv_stride;
+  clt_cwp.coupling[s1].global_data[s2].n_recv_entity = n_recv_entity;
   clt_cwp.coupling[s1].global_data[s2].recv_data = malloc(s_recv_entity * recv_stride * n_recv_entity);
-
-  // read receive data
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s1].global_data[s2].recv_data, s_recv_entity * recv_stride * n_recv_entity);
-  recv_data = clt_cwp.coupling[s1].global_data[s2].recv_data;
+  *recv_data = clt_cwp.coupling[s1].global_data[s2].recv_data;
 }
 
 void
@@ -5992,6 +5992,12 @@ CWP_client_Global_data_wait_irecv
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     if (clt->i_rank == 0) verbose(message);
   }
+
+  // read receive data
+  std::string s1(cpl_id);
+  std::string s2(global_data_id);
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s1].global_data[s2].recv_data,
+                         clt_cwp.coupling[s1].global_data[s2].s_recv_entity * clt_cwp.coupling[s1].global_data[s2].recv_stride * clt_cwp.coupling[s1].global_data[s2].n_recv_entity);
 }
 
 void

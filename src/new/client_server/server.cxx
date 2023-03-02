@@ -4747,14 +4747,27 @@ CWP_server_Global_data_irecv
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
 
-  void *recv_data = NULL;
+  // create occurence if global_data
+  // WARNING: created here and in send because functions should be run on different servers
+  std::string s1(cpl_id);
+  t_coupling coupling = svr_cwp.coupling[s1];
+  std::string s2(global_data_id);
+  t_global_data global_data = t_global_data();
+  coupling.global_data.insert(std::make_pair(s2, global_data));
+
+  // allocate array
+  svr_cwp.coupling[s1].global_data[s2].s_recv_entity = s_recv_entity;
+  svr_cwp.coupling[s1].global_data[s2].recv_stride = recv_stride;
+  svr_cwp.coupling[s1].global_data[s2].n_recv_entity = n_recv_entity;
+  svr_cwp.coupling[s1].global_data[s2].recv_data = malloc(s_recv_entity * recv_stride * n_recv_entity);
+
   CWP_Global_data_irecv(local_code_name,
                          cpl_id,
                          global_data_id,
                          s_recv_entity,
                          recv_stride,
                          n_recv_entity,
-                         recv_data);
+                         svr_cwp.coupling[s1].global_data[s2].recv_data);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -4764,10 +4777,6 @@ CWP_server_Global_data_irecv
     message.flag = CWP_SVR_LCH_END;
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
-
-  // send request
-  svr->state=CWP_SVRSTATE_SENDPGETDATA;
-  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) recv_data, s_recv_entity * recv_stride * n_recv_entity);
 
   // free
   free(local_code_name);
@@ -4881,9 +4890,9 @@ CWP_server_Global_data_wait_irecv
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
 
-  CWP_client_Global_data_wait_irecv(local_code_name,
-                                    cpl_id,
-                                    global_data_id);
+  CWP_Global_data_wait_irecv(local_code_name,
+                             cpl_id,
+                             global_data_id);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -4894,10 +4903,22 @@ CWP_server_Global_data_wait_irecv
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
 
+  // send receive data
+  // WARNING send here because in recv is not yet allocated
+  svr->state=CWP_SVRSTATE_SENDPGETDATA;
+  std::string s1(cpl_id);
+  t_coupling coupling = svr_cwp.coupling[s1];
+  std::string s2(global_data_id);
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) svr_cwp.coupling[s1].global_data[s2].recv_data,
+                         svr_cwp.coupling[s1].global_data[s2].s_recv_entity * svr_cwp.coupling[s1].global_data[s2].recv_stride * svr_cwp.coupling[s1].global_data[s2].n_recv_entity);
+
   // free
   free(local_code_name);
   free(cpl_id);
   free(global_data_id);
+  // if (svr_cwp.coupling[s1].global_data[s2].recv_data != NULL) free(svr_cwp.coupling[s1].global_data[s2].recv_data);
+  // svr_cwp.coupling[s1].global_data[s2].recv_data = NULL;
+  // svr_cwp.coupling[s1].global_data.erase(s2);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
