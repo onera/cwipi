@@ -755,6 +755,7 @@ CWP_client_connect
   getaddrinfo(server_name, port_str, NULL, &svr_info); // hint
   char *dst = (char *) malloc(sizeof(char) * INET_ADDRSTRLEN);
   inet_ntop(AF_INET, svr_info->ai_addr->sa_data, dst, INET_ADDRSTRLEN);
+  free(dst);
 
   // host = (struct hostent *) gethostbyname(server_name);
   // printf("host: %p\n", host);
@@ -901,6 +902,8 @@ CWP_client_Init
              (void *)       j_rank_code_names, j_rank_size, j_rank_idx, MPI_CHAR,
              0, comm);
 
+  free(j_rank_idx);
+
   // --> create map
   char *key = NULL;
   int *value = NULL;
@@ -934,6 +937,9 @@ CWP_client_Init
 
     key = (char *) realloc((void *) key, total_n_codes_size);
   }
+
+  free(j_rank_size);
+  free(j_rank_code_names);
 
   MPI_Barrier(comm);
 
@@ -1067,6 +1073,8 @@ CWP_client_Init
   free(data);
   free(server_name);
   free(second_line);
+  free(key);
+  free(value);
 
   /* cwipi init */
   t_message msg;
@@ -6061,6 +6069,7 @@ CWP_client_Part_data_create
   memcpy(endian_n_elt, n_elt, sizeof(int) * n_part);
   CWP_swap_endian_4bytes(endian_n_elt, n_part);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_n_elt, sizeof(int) * n_part);
+  free(endian_n_elt);
 
   // send gnum
   for (int i_part = 0; i_part < n_part; i_part++) {

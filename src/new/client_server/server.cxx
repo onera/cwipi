@@ -4972,9 +4972,9 @@ CWP_server_Global_data_wait_irecv
   free(local_code_name);
   free(cpl_id);
   free(global_data_id);
-  // if (svr_cwp.coupling[s1].global_data[s2].recv_data != NULL) free(svr_cwp.coupling[s1].global_data[s2].recv_data);
-  // svr_cwp.coupling[s1].global_data[s2].recv_data = NULL;
-  // svr_cwp.coupling[s1].global_data.erase(s2);
+  if (svr_cwp.coupling[s1].global_data[s2].recv_data != NULL) free(svr_cwp.coupling[s1].global_data[s2].recv_data);
+  svr_cwp.coupling[s1].global_data[s2].recv_data = NULL;
+  svr_cwp.coupling[s1].global_data.erase(s2);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -5152,11 +5152,17 @@ CWP_server_Part_data_del
       for (int i_part = 0; i_part < part_data.n_part_send; i_part++) {
         if (part_data.gnum_send_elt[i_part] != NULL) free(part_data.gnum_send_elt[i_part]);
       }
+      free(part_data.gnum_send_elt);
       part_data.gnum_send_elt = NULL;
     }
 
-    if (part_data.send_to_recv_data != NULL) free(part_data.send_to_recv_data);
-    part_data.send_to_recv_data = NULL;
+    if (part_data.send_to_recv_data != NULL) {
+      for (int i_part = 0; i_part < part_data.n_part_send; i_part++) {
+        if (part_data.send_to_recv_data[i_part] != NULL) free(part_data.send_to_recv_data[i_part]);
+      }
+      free(part_data.send_to_recv_data);
+      part_data.send_to_recv_data = NULL;
+    }
   } else if (exch_type == CWP_PARTDATA_RECV) {
     if (part_data.n_recv_elt != NULL) free(part_data.n_recv_elt);
     part_data.n_recv_elt = NULL;
@@ -5165,7 +5171,16 @@ CWP_server_Part_data_del
       for (int i_part = 0; i_part < part_data.n_part_recv; i_part++) {
         if (part_data.gnum_recv_elt[i_part] != NULL) free(part_data.gnum_recv_elt[i_part]);
       }
+      free(part_data.gnum_recv_elt);
       part_data.gnum_recv_elt = NULL;
+    }
+
+    if (part_data.recv_data != NULL) {
+      for (int i_part = 0; i_part < part_data.n_part_recv; i_part++) {
+        if (part_data.recv_data[i_part] != NULL) free(part_data.recv_data[i_part]);
+      }
+      free(part_data.recv_data);
+      part_data.recv_data = NULL;
     }
   }
   coupling.part_data.erase(s2);
@@ -5525,6 +5540,7 @@ CWP_server_create
   const int status = getaddrinfo(svr->host_name, port_str, NULL, &svr_info); // hint
   char *dst = (char *) malloc(sizeof(char) * INET_ADDRSTRLEN);
   inet_ntop(AF_INET, svr_info->ai_addr->sa_data, dst, INET_ADDRSTRLEN);
+  free(dst);
 
   CWP_UNUSED(status);
 

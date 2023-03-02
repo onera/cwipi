@@ -687,11 +687,13 @@ main
 
   if (i_rank == 0) {
     printf("CWP_client_Cpl_del rank 0\n");
+    CWP_client_Mesh_interf_del("code1", cpl_id1);
     CWP_client_Cpl_del("code1", cpl_id1);
   }
 
   if (i_rank == 1) {
     printf("CWP_client_Cpl_del rank 1\n");
+    CWP_client_Mesh_interf_del("code2", cpl_id1);
     CWP_client_Cpl_del("code2", cpl_id1);
   }
 
@@ -707,6 +709,13 @@ main
   free(node_coord);
   free(elt_node);
   free(ijk);
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    if (gnum_elt[i_part] != NULL) free(gnum_elt[i_part]);
+    // if (part1_to_part2_data[i_part] != NULL) free(part1_to_part2_data[i_part]);
+  }
+  if (gnum_elt != NULL) free(gnum_elt);
+  if (part1_to_part2_data != NULL) free(part1_to_part2_data);
+  if (send_data != NULL) free(send_data);
 
   printf("MPI_Finalize\n");
 
