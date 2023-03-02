@@ -96,27 +96,27 @@ static void write_name(char * name, p_server svr) {
   CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, (void*) name, name_size);
 }
 
-// --> n_nodes
+// --> n_vtx
 
-static int n_nodes_get(CWP_Block_t block_type) {
-  int n_nodes = 0;
+static int n_vtx_get(CWP_Block_t block_type) {
+  int n_vtx = 0;
 
   switch(block_type) {
 
   case CWP_BLOCK_NODE: {
-    n_nodes = 1;
+    n_vtx = 1;
     } break;
 
   case CWP_BLOCK_EDGE2: {
-    n_nodes = 2;
+    n_vtx = 2;
     } break;
 
   case CWP_BLOCK_FACE_TRIA3: {
-    n_nodes = 3;
+    n_vtx = 3;
     } break;
 
   case CWP_BLOCK_FACE_QUAD4: {
-    n_nodes = 4;
+    n_vtx = 4;
     } break;
 
   case CWP_BLOCK_FACE_POLY: {
@@ -126,19 +126,19 @@ static int n_nodes_get(CWP_Block_t block_type) {
     } break;
 
   case CWP_BLOCK_CELL_TETRA4: {
-    n_nodes = 4;
+    n_vtx = 4;
     } break;
 
   case CWP_BLOCK_CELL_HEXA8: {
-    n_nodes = 8;
+    n_vtx = 8;
     } break;
 
   case CWP_BLOCK_CELL_PRISM6: {
-    n_nodes = 6;
+    n_vtx = 6;
     } break;
 
   case CWP_BLOCK_CELL_PYRAM5: {
-    n_nodes = 5;
+    n_vtx = 5;
     } break;
 
   case CWP_BLOCK_CELL_POLY: {
@@ -152,7 +152,63 @@ static int n_nodes_get(CWP_Block_t block_type) {
     return -1;
   }
 
-  return n_nodes;
+  return n_vtx;
+}
+
+// --> ho_n_vtx
+
+static int ho_n_vtx_get(CWP_Block_t block_type, int order) {
+switch (block_type) {
+  case CWP_BLOCK_NODE :
+    return 1;
+    break;
+  case CWP_BLOCK_EDGE2 :
+    return 2;
+    break;
+  case CWP_BLOCK_FACE_TRIA3 :
+    return 3;
+    break;
+  case CWP_BLOCK_FACE_QUAD4 :
+    return 4;
+    break;
+  case CWP_BLOCK_CELL_TETRA4 :
+    return 4;
+    break;
+  case CWP_BLOCK_CELL_PYRAM5 :
+    return 5;
+    break;
+  case CWP_BLOCK_CELL_PRISM6 :
+    return 6;
+    break;
+  case CWP_BLOCK_CELL_HEXA8 :
+    return 8;
+    break;
+
+  case CWP_BLOCK_EDGEHO :
+    return order + 1;
+    break;
+  case CWP_BLOCK_FACE_TRIAHO :
+    return (order + 1) * (order + 2) / 2;
+    break;
+  case CWP_BLOCK_FACE_QUADHO :
+    return (order + 1) * (order + 1);
+    break;
+  case CWP_BLOCK_CELL_TETRAHO :
+    return (order + 1) * (order + 2) * (order + 3) / 6;
+    break;
+  case CWP_BLOCK_CELL_PYRAMHO :
+    return (order + 1) * (order + 2) * (2*order + 3) / 6;
+    break;
+  case CWP_BLOCK_CELL_PRISMHO :
+    return (order + 1) * (order + 1) * (order + 2) / 2;
+    break;
+  case CWP_BLOCK_CELL_HEXAHO :
+    return (order + 1) * (order + 1) * (order + 1);
+    break;
+  default :
+    PDM_error (__FILE__, __LINE__, 0, "Unknown order for Poly2D and Poly3D (block_type %d)\n", block_type);
+  }
+  return -1;
 }
 
 /*=============================================================================
@@ -2767,7 +2823,7 @@ CWP_server_Mesh_interf_block_std_get
 
   // send connectivity
   CWP_Block_t block_type = CWP_std_block_type_get(local_code_name, cpl_id, block_id);
-  int n_vtx_elt = n_nodes_get(block_type);
+  int n_vtx_elt = n_vtx_get(block_type);
 
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &n_vtx_elt, sizeof(int));
   CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, connec, sizeof(int) * (n_vtx_elt * n_elts));
@@ -4353,7 +4409,7 @@ CWP_server_Mesh_interf_block_ho_set
 
   // read block_id
   int block_id;
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &block_id, sizeof(int));;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &block_id, sizeof(int));
 
   // read n_elts
   int n_elts;
@@ -4513,7 +4569,7 @@ CWP_server_Mesh_interf_block_ho_get
 
   // send connectivity
   CWP_Block_t block_type = CWP_std_block_type_get(local_code_name, cpl_id, block_id);
-  int n_vtx_elt = n_nodes_get(block_type);
+  int n_vtx_elt = ho_n_vtx_get(block_type, order);
 
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) &n_vtx_elt, sizeof(int));
   CWP_transfer_writedata(svr->connected_socket, svr->max_msg_size, connec, sizeof(int) * (n_vtx_elt * n_elts));
@@ -4588,12 +4644,12 @@ CWP_server_Mesh_interf_ho_ordering_from_IJK_set
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
 
-  CWP_client_Mesh_interf_ho_ordering_from_IJK_set(local_code_name,
-                                                  cpl_id,
-                                                  block_type,
-                                                  order,
-                                                  n_nodes,
-                                                  svr_cwp.coupling[s].ijk_grid);
+  CWP_Mesh_interf_ho_ordering_from_IJK_set(local_code_name,
+                                           cpl_id,
+                                           block_type,
+                                           order,
+                                           n_nodes,
+                                           svr_cwp.coupling[s].ijk_grid);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -4837,11 +4893,6 @@ CWP_server_Global_data_wait_issend
   }
 
   // free
-  free(local_code_name);
-  free(cpl_id);
-  free(global_data_id);
-
-  // free
   std::string s1(cpl_id);
   std::string s2(global_data_id);
 
@@ -4849,6 +4900,11 @@ CWP_server_Global_data_wait_issend
   svr_cwp.coupling[s1].global_data[s2].send_data = NULL;
 
   svr_cwp.coupling[s1].global_data.erase(s2);
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+  free(global_data_id);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }
@@ -5082,11 +5138,6 @@ CWP_server_Part_data_del
     CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, &message, sizeof(t_message));
   }
 
-  // free
-  free(local_code_name);
-  free(cpl_id);
-  free(part_data_id);
-
   // free struct
   std::string s1(cpl_id);
   t_coupling coupling = svr_cwp.coupling[s1];
@@ -5118,6 +5169,11 @@ CWP_server_Part_data_del
     }
   }
   coupling.part_data.erase(s2);
+
+  // free
+  free(local_code_name);
+  free(cpl_id);
+  free(part_data_id);
 
   svr->state=CWP_SVRSTATE_LISTENINGMSG;
 }

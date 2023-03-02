@@ -422,7 +422,7 @@ main
   double               tolerance  = 1e-6;
   int                  n_part     = 1;
   int                  order      = 2;
-  PDM_Mesh_nodal_elt_t elt_type   = PDM_MESH_NODAL_HEXAHO;
+  PDM_Mesh_nodal_elt_t elt_type   = PDM_MESH_NODAL_TRIAHO; // PDM_MESH_NODAL_HEXAHO;
 #ifdef PDM_HAVE_PARMETIS
   PDM_split_dual_t part_method    = PDM_SPLIT_DUAL_WITH_PARMETIS;
 #else
