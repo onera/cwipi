@@ -358,7 +358,7 @@ main
   //   printf("i_rank: %d code 2 : tambouille is param = %d\n", i_rank, is_param);
   // }
 
-  MPI_Barrier(comm);
+  // MPI_Barrier(comm);
 
   char cpl_id1[] = "cpl1_code1_code2";
   CWP_Spatial_interp_t interp_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
@@ -391,66 +391,199 @@ main
 
   MPI_Barrier(comm);
 
-  // GLOBAL DATA exchange
-  const char *global_data_name  = "andouillette";
-  size_t  s_entity = sizeof(double);
-  int     stride   = 2;
-  int     n_entity = 2;
+  // // GLOBAL DATA exchange
+  // const char *global_data_name  = "andouillette";
+  // size_t  s_entity = sizeof(double);
+  // int     stride   = 2;
+  // int     n_entity = 2;
 
-  double *send_data = malloc(s_entity * stride * n_entity);
-  send_data[0] = 0.1;
-  send_data[1] = 0.2;
-  send_data[2] = 0.3;
-  send_data[3] = 0.4;
+  // double *send_data = malloc(s_entity * stride * n_entity);
+  // send_data[0] = 0.1;
+  // send_data[1] = 0.2;
+  // send_data[2] = 0.3;
+  // send_data[3] = 0.4;
 
-  if (i_rank == 0) {
-    CWP_client_Global_data_issend("code1",
-                                  cpl_id1,
-                                  global_data_name,
-                                  s_entity,
-                                  stride,
-                                  n_entity,
-                                  (void *) send_data);
+  // if (i_rank == 0) {
+  //   CWP_client_Global_data_issend("code1",
+  //                                 cpl_id1,
+  //                                 global_data_name,
+  //                                 s_entity,
+  //                                 stride,
+  //                                 n_entity,
+  //                                 (void *) send_data);
+  // }
+
+  // double *recv_data = malloc(s_entity * stride * n_entity);
+  // if (i_rank == 1) {
+  //   CWP_client_Global_data_irecv("code2",
+  //                                cpl_id1,
+  //                                global_data_name,
+  //                                s_entity,
+  //                                stride,
+  //                                n_entity,
+  //                      (void **) &recv_data);
+  // }
+
+  // MPI_Barrier(comm);
+
+  // if (i_rank == 0) {
+  //   CWP_client_Global_data_wait_issend("code1",
+  //                                      cpl_id1,
+  //                                      global_data_name);
+  // }
+
+  // if (i_rank == 1) {
+  //   CWP_client_Global_data_wait_irecv("code2",
+  //                                     cpl_id1,
+  //                                     global_data_name);
+  // }
+
+  // MPI_Barrier(comm);
+
+  // for (int i = 0; i < 4; i++) {
+  //   if (i_rank == 0) {
+  //     printf("rank %d -- send[%d] : %f\n", i_rank, i, send_data[i]);
+  //     fflush(stdout);
+  //   } else {
+  //     printf("rank %d -- recv[%d] : %f\n", i_rank, i, recv_data[i]);
+  //     fflush(stdout);
+  //   }
+  // }
+
+  // PART DATA exchange
+  const char *part_data_name = "Fifi Brindacier";
+
+  int n_part = 1;
+  int n_elt = 12;
+  int *n_elts = malloc(sizeof(int *) * n_part);
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    n_elts[i_part] = n_elt;
   }
-
-  double *recv_data = malloc(s_entity * stride * n_entity);
-  if (i_rank == 1) {
-    CWP_client_Global_data_irecv("code2",
-                                 cpl_id1,
-                                 global_data_name,
-                                 s_entity,
-                                 stride,
-                                 n_entity,
-                       (void **) &recv_data);
+  CWP_g_num_t **gnum_elt = malloc(sizeof(CWP_g_num_t *) * n_part);
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    gnum_elt[i_part] = malloc(sizeof(CWP_g_num_t) * n_elt);
   }
-
-  MPI_Barrier(comm);
-
-  if (i_rank == 0) {
-    CWP_client_Global_data_wait_issend("code1",
-                                       cpl_id1,
-                                       global_data_name);
-  }
-
-  if (i_rank == 1) {
-    CWP_client_Global_data_wait_irecv("code2",
-                                      cpl_id1,
-                                      global_data_name);
-  }
-
-  MPI_Barrier(comm);
-
-  for (int i = 0; i < 4; i++) {
-    if (i_rank == 0) {
-      printf("rank %d -- send[%d] : %f\n", i_rank, i, send_data[i]);
-      fflush(stdout);
-    } else {
-      printf("rank %d -- recv[%d] : %f\n", i_rank, i, recv_data[i]);
-      fflush(stdout);
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    for (int i = 0; i < n_elt; i++) {
+      gnum_elt[i_part][i] = i + 1;
     }
   }
 
-  // PART DATA exchange
+  if (i_rank == 0) {
+    CWP_client_Part_data_create("code1",
+                                cpl_id1,
+                                part_data_name,
+                                CWP_PARTDATA_SEND,
+                                gnum_elt,
+                                n_elts,
+                                n_part);
+  }
+
+  if (i_rank == 1) {
+    CWP_client_Part_data_create("code2",
+                                cpl_id1,
+                                part_data_name,
+                                CWP_PARTDATA_RECV,
+                                gnum_elt,
+                                n_elts,
+                                n_part);
+  }
+
+  MPI_Barrier(comm);
+
+  double **part1_to_part2_data = NULL;
+  int send_request = -1;
+  double **part2_data = NULL;
+  int recv_request = -1;
+  int n_comp = 3;
+
+  if (i_rank == 0) {
+
+    part1_to_part2_data = malloc(sizeof(double *) * n_part);
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      part1_to_part2_data[i_part] = malloc(sizeof(double) * n_elt * n_comp);
+    }
+
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      for (int i = 0; i < n_elt; i++) {
+        for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+          part1_to_part2_data[i_part][3*i + i_comp] = 0.1*i + i_comp;
+        }
+      }
+    }
+    CWP_client_Part_data_issend("code1",
+                                cpl_id1,
+                                part_data_name,
+                                sizeof(double),
+                                n_comp,
+                                (void **) part1_to_part2_data,
+                                &send_request);
+  }
+
+  if (i_rank == 1) {
+
+    part2_data = malloc(sizeof(double *) * n_part);
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      part2_data[i_part] = malloc(sizeof(double) * n_elt * n_comp);
+    }
+    CWP_client_Part_data_irecv("code2",
+                               cpl_id1,
+                               part_data_name,
+                               sizeof(double),
+                               n_comp,
+                               (void ***) &part2_data,
+                               &recv_request);
+  }
+
+  MPI_Barrier(comm);
+
+  if (i_rank == 0) {
+
+    CWP_client_Part_data_wait_issend("code1",
+                                     cpl_id1,
+                                     part_data_name,
+                                     send_request);
+  }
+
+  if (i_rank == 1) {
+
+    CWP_client_Part_data_wait_irecv("code2",
+                                    cpl_id1,
+                                    part_data_name,
+                                    recv_request);
+  }
+
+  MPI_Barrier(comm);
+
+  // --> check
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    for (int i = 0; i < n_elt; i++) {
+      for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+        if (i_rank == 0) {
+          printf("%d - %ld -> s[%d][%d][%d] : %f\n", i_rank, gnum_elt[i_part][i], i_part, i, i_comp, part1_to_part2_data[i_part][3*i + i_comp]);
+        }
+        else if (i_rank == 1) {
+          printf("%d - %ld -> r[%d][%d][%d] : %f\n", i_rank, gnum_elt[i_part][i], i_part, i, i_comp, part2_data[i_part][3*i + i_comp]);
+        }
+      }
+    }
+  }
+
+  MPI_Barrier(comm);
+
+  if (i_rank == 0) {
+    CWP_client_Part_data_del("code1",
+                             cpl_id1,
+                             part_data_name,
+                             CWP_PARTDATA_SEND);
+  }
+
+  if (i_rank == 1) {
+    CWP_client_Part_data_del("code2",
+                             cpl_id1,
+                             part_data_name,
+                             CWP_PARTDATA_RECV);
+  }
 
   if (i_rank == 0) {
     printf("CWP_client_Cpl_del rank 0\n");

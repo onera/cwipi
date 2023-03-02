@@ -6259,7 +6259,7 @@ CWP_client_Part_data_issend
   std::string s2(part_data_id);
   for (int i_part = 0; i_part < clt_cwp.coupling[s1].part_data[s2].n_part_send; i_part++) {
     void *endian_part1_to_part2_data = malloc(s_data * n_components * clt_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
-    memcpy(endian_part1_to_part2_data, part1_to_part2_data, s_data * n_components * clt_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
+    memcpy(endian_part1_to_part2_data, part1_to_part2_data[i_part], s_data * n_components * clt_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
     CWP_swap_endian_Nbytes(static_cast<char*>(endian_part1_to_part2_data), s_data, n_components * clt_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
     CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_part1_to_part2_data, s_data * n_components * clt_cwp.coupling[s1].part_data[s2].n_send_elt[i_part]);
     free(endian_part1_to_part2_data);
@@ -6357,19 +6357,19 @@ CWP_client_Part_data_irecv
     if (clt->i_rank == 0) verbose(message);
   }
 
+  // read request
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, request, sizeof(int));
+
   // read receive data
   std::string s1(cpl_id);
   std::string s2(part_data_id);
+  clt_cwp.coupling[s1].part_data[s2].s_recv_data = s_data;
+  clt_cwp.coupling[s1].part_data[s2].n_recv_components = n_components;
   clt_cwp.coupling[s1].part_data[s2].recv_data = (void **) malloc(sizeof(void *) * clt_cwp.coupling[s1].part_data[s2].n_part_recv);
-  *part2_data = clt_cwp.coupling[s1].part_data[s2].recv_data;
   for (int i_part = 0; i_part < clt_cwp.coupling[s1].part_data[s2].n_part_recv; i_part++) {
     clt_cwp.coupling[s1].part_data[s2].recv_data[i_part] = malloc(s_data * n_components * clt_cwp.coupling[s1].part_data[s2].n_recv_elt[i_part]);
-    CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s1].global_data[s2].recv_data, s_data * n_components * clt_cwp.coupling[s1].part_data[s2].n_recv_elt[i_part]);
-    (*part2_data)[i_part] = clt_cwp.coupling[s1].global_data[s2].recv_data;
   }
-
-  // read request
-  CWP_transfer_readdata(clt->socket, clt->max_msg_size, request, sizeof(int));
+  *part2_data = clt_cwp.coupling[s1].part_data[s2].recv_data;
 }
 
 void
@@ -6499,6 +6499,14 @@ CWP_client_Part_data_wait_irecv
     t_message message;
     CWP_transfer_readdata(clt->socket, clt->max_msg_size, &message, sizeof(t_message));
     if (clt->i_rank == 0) verbose(message);
+  }
+
+  // read receive data
+  std::string s1(cpl_id);
+  std::string s2(part_data_id);
+  for (int i_part = 0; i_part < clt_cwp.coupling[s1].part_data[s2].n_part_recv; i_part++) {
+    CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void*) (clt_cwp.coupling[s1].part_data[s2].recv_data)[i_part],
+                          clt_cwp.coupling[s1].part_data[s2].s_recv_data * clt_cwp.coupling[s1].part_data[s2].n_recv_components * clt_cwp.coupling[s1].part_data[s2].n_recv_elt[i_part]);
   }
 }
 

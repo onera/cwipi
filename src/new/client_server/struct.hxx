@@ -130,6 +130,8 @@ struct t_part_data
   CWP_g_num_t  **gnum_send_elt;
 
   // Global number of receiving code
+  size_t         s_recv_data;
+  int            n_recv_components;
   int            n_part_recv;
   int           *n_recv_elt;
   CWP_g_num_t  **gnum_recv_elt;
