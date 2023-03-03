@@ -94,12 +94,14 @@ _userInterpolation
  const char           *local_code_name,
  const char           *cpl_id,
  const char           *field_id,
+ int                   i_part,
  CWP_Spatial_interp_t  spatial_interp_algorithm,
  CWP_Field_storage_t   storage,
  double               *buffer_in,
  double               *buffer_out
 )
 {
+  PDM_UNUSED(i_part);
   PDM_UNUSED(storage);
   PDM_UNUSED(buffer_in);
   PDM_UNUSED(buffer_out);

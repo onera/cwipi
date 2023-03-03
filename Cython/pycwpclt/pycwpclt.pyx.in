@@ -364,7 +364,7 @@ cdef extern from "client_server/client.h":
                                  int                i_part,
                                  CWP_Field_map_t    map_type,
                                  int                n_entities,
-                                 double            *data)
+                                 double            **data)
   int CWP_client_Field_n_component_get(char      *local_code_name,
                                        char      *cpl_id,
                                        char      *field_id)
@@ -388,10 +388,9 @@ cdef extern from "client_server/client.h":
   void CWP_client_Field_wait_issend(char  *local_code_name,
                                     char  *cpl_id,
                                     char  *src_field_id)
-  int CWP_client_Field_wait_irecv(char    *local_code_name,
-                                  char    *cpl_id,
-                                  char    *tgt_field_id,
-                                  double **data)
+  void CWP_client_Field_wait_irecv(char    *local_code_name,
+                                   char    *cpl_id,
+                                   char    *tgt_field_id)
 
   # --> functions about control parameters
   void CWP_client_Param_add(char        *local_code_name,
@@ -1429,7 +1428,7 @@ cdef class Field (object):
                                   i_part,
                                   map_type,
                                   n_entities,
-                       <double *> data.data)
+                      <double **> &data.data)
 
     def n_component_get(self):
         """
@@ -1516,21 +1515,13 @@ cdef class Field (object):
           local_code_name (char*) : Local code name
           cpl_id          (char*) : Coupling identifier
           tgt_field_id    (char*) : Target field identifier
-
-        Returns:
-          data (double *) : Received data
         """
 
         cdef double *data
 
-        cdef int size = CWP_client_Field_wait_irecv(self.local_code_name,
-                                                    self.cpl_id,
-                                                    self.field_id,
-                                                    &(data))
-
-        pydata = create_numpy_d(data, size)
-
-        return pydata
+        CWP_client_Field_wait_irecv(self.local_code_name,
+                                    self.cpl_id,
+                                    self.field_id)
 
     # --> LOCALISATION
     def n_uncomputed_tgts_get(self,
@@ -1864,15 +1855,10 @@ cdef class Coupling (object):
           local_code_name (char*) : Local code name
           cpl_id          (char*) : Coupling identifier
           tgt_field_id    (char*) : Target field identifier
-
-        Returns:
-          data (double *) : Received data
         """
 
         cdef int idx = self.fields_name[field_id]
-        pydata = self.fields[idx].wait_irecv()
-
-        return pydata
+        self.fields[idx].wait_irecv()
 
     def field_n_uncomputed_tgts_get(self,
                                     int     i_part,

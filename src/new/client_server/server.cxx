@@ -1213,6 +1213,7 @@ CWP_server_Cpl_create
   std::string s(cpl_id);
   t_coupling coupling = t_coupling();
   svr_cwp.coupling.insert(std::make_pair(s, coupling));
+  svr_cwp.coupling[s].n_part = n_part;
 
   // free
   free(local_code_name);
@@ -3726,6 +3727,10 @@ CWP_server_Field_create
   std::string s2(field_id);
   t_field field = t_field();
   coupling.field.insert(std::make_pair(s2, field));
+  coupling.field[s2].data = (double **) malloc(sizeof(double*) * coupling.n_part);
+  for (int i_part = 0; i_part < coupling.n_part; i_part++) {
+    coupling.field[s2].data[i_part] = (double *) malloc(sizeof(double));
+  }
 
   // free
   free(local_code_name);
@@ -3777,8 +3782,10 @@ CWP_server_Field_data_set
 
   int size;
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &size, sizeof(int));
-  svr_cwp.coupling[s1].field[s2].data = (double *) malloc(sizeof(double) * size);
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s1].field[s2].data, sizeof(double) * size);
+  svr_cwp.coupling[s1].field[s2].data[i_part] = (double *) realloc(svr_cwp.coupling[s1].field[s2].data[i_part], sizeof(double) * size);
+  if (map_type == CWP_FIELD_MAP_SOURCE) {
+    CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s1].field[s2].data[i_part], sizeof(double) * size);
+  }
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -3795,7 +3802,7 @@ CWP_server_Field_data_set
                      field_id,
                      i_part,
                      map_type,
-                     svr_cwp.coupling[s1].field[s2].data);
+                     svr_cwp.coupling[s1].field[s2].data[i_part]);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -4060,8 +4067,14 @@ CWP_server_Field_del
   std::string s2(field_id);
   t_field field = coupling.field[s2];
 
-  if (field.data != NULL) free(field.data);
-  field.data = NULL;
+  if (field.data != NULL) {
+    for (int i_part = 0; i_part < coupling.n_part; i_part++) {
+      if (field.data[i_part] != NULL) free(field.data[i_part]);
+      field.data[i_part] = NULL;
+    }
+    free(field.data);
+    field.data = NULL;
+  }
 
   coupling.field.erase(s2);
 
@@ -4277,17 +4290,17 @@ CWP_server_Field_wait_irecv
   char *tgt_field_id = (char *) malloc(sizeof(char));
   read_name(&tgt_field_id, svr);
 
-  // read i_part
-  int i_part;
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &i_part, sizeof(int));
-
   // read map_type
   CWP_Field_map_t map_type;
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &map_type, sizeof(CWP_Field_map_t));
 
-  // read size
-  int size;
-  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &size, sizeof(int));
+  // read n_part
+  int n_part;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_part, sizeof(int));
+
+  // read n_entities
+  int *n_entities = (int *) malloc(sizeof(int) * n_part);
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) n_entities, sizeof(int) * n_part);
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -4303,15 +4316,26 @@ CWP_server_Field_wait_irecv
                        cpl_id,
                        tgt_field_id);
 
+  double **data = (double **) malloc(sizeof(double *) * n_part);
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    if (n_entities[i_part] != -1) {
+      data[i_part] = (double *) malloc(sizeof(double) * n_entities[i_part]);
+    } else {
+      data[i_part] = (double *) malloc(sizeof(double));
+    }
+  }
 
   // launch CWP_Field_data_get to retreive field and send to Client
-  double *data = NULL;
-  CWP_Field_data_get(local_code_name,
-                     cpl_id,
-                     tgt_field_id,
-                     i_part,
-                     map_type,
-                     &data);
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    if (n_entities[i_part] != -1) {
+      CWP_Field_data_get(local_code_name,
+                         cpl_id,
+                         tgt_field_id,
+                         i_part,
+                         map_type,
+                         &data[i_part]);
+    }
+  }
 
   // send status msg
   MPI_Barrier(svr_mpi.intra_comms[0]);
@@ -4324,7 +4348,11 @@ CWP_server_Field_wait_irecv
 
   // send data
   svr->state = CWP_SVRSTATE_SENDPGETDATA;
-  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) data, sizeof(double) * size);
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    if (n_entities[i_part] != -1) {
+      CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) data[i_part], sizeof(double) * n_entities[i_part]);
+    }
+  }
 
   // free
   free(local_code_name);

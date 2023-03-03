@@ -738,7 +738,7 @@ main
                                   0,
                                   CWP_FIELD_MAP_SOURCE,
                                   n_vtx[i_code][0],
-                                  send_values[i_code]);
+                                  &send_values[i_code]);
 
       }
 
@@ -750,7 +750,7 @@ main
                                   0,
                                   CWP_FIELD_MAP_TARGET,
                                   n_vtx[i_code][0],
-                                  recv_values[i_code]);
+                                  &recv_values[i_code]);
 
       }
     }
@@ -775,7 +775,7 @@ main
                                   0,
                                   CWP_FIELD_MAP_TARGET,
                                   n_vtx[i_code][0],
-                                  recv_values[i_code]);
+                                  &recv_values[i_code]);
       }
 
       else {
@@ -786,7 +786,7 @@ main
                                   0,
                                   CWP_FIELD_MAP_SOURCE,
                                   n_vtx[i_code][0],
-                                  send_values[i_code]);
+                                  &send_values[i_code]);
       }
     }
     printf("%d : %s --- Field created and data set\n", rank, code_names[i_code]);
@@ -925,7 +925,7 @@ main
     if (code_id[i_code] == 2) {
       if (exchDirection[1] == CWP_FIELD_EXCH_RECV) {
 
-        CWP_client_Field_wait_irecv(code_names[i_code], cpl_name, field_name, &recv_values[i_code]);
+        CWP_client_Field_wait_irecv(code_names[i_code], cpl_name, field_name);
 
         printf("%d : %s --- wait Received field\n", rank, code_names[i_code]);
       }
@@ -939,7 +939,7 @@ main
     if (code_id[i_code] == 1) {
       if (exchDirection[0] == CWP_FIELD_EXCH_RECV) {
 
-        CWP_client_Field_wait_irecv(code_names[i_code], cpl_name, field_name, &recv_values[i_code]);
+        CWP_client_Field_wait_irecv(code_names[i_code], cpl_name, field_name);
 
         printf("%d : %s --- wait Received field\n", rank, code_names[i_code]);
       }

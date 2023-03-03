@@ -1124,7 +1124,7 @@ CWP_client_Field_data_set
  const int                i_part,
  const CWP_Field_map_t    map_type,
  int                      n_entities,
- double                   data[]
+ double                 **data
 );
 
 /**
@@ -1277,13 +1277,12 @@ CWP_client_Field_wait_issend
  *
  */
 
-int
+void
 CWP_client_Field_wait_irecv
 (
  const char              *local_code_name,
  const char              *cpl_id,
- const char              *tgt_field_id,
- double                 **data
+ const char              *tgt_field_id
 );
 
 /**

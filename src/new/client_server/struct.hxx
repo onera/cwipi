@@ -58,21 +58,6 @@ extern "C" {
  * Types definition
  *============================================================================*/
 
-struct t_field_settings
-{
-  t_field_settings() {
-    i_part      = -1;
-    map_type    = (CWP_Field_map_t) -1;
-    n_component = -1;
-    n_entities  = -1;
-  }
-
-  int             i_part;
-  CWP_Field_map_t map_type;
-  int             n_component;
-  int             n_entities;
-};
-
 struct t_field
 {
   t_field() {
@@ -80,6 +65,7 @@ struct t_field
     srcs   = NULL;
     c_tgts = NULL;
     u_tgts = NULL;
+    n_entities = NULL;
   }
 
   // Involved_srcs_get
@@ -92,10 +78,12 @@ struct t_field
   int *u_tgts;
 
   // Field_data_set
-  double *data;
+  double **data;
 
   // Field_wait_irecv
-  std::map<std::tuple<std::string, std::string , std::string> , t_field_settings> field_settings;
+  CWP_Field_map_t map_type;
+  int             n_component;
+  int            *n_entities;
 };
 
 struct t_global_data
@@ -187,6 +175,9 @@ struct t_coupling
   char *property_name;
   char *property_type;
   char *property_value;
+
+  // Cpl_create
+  int n_part;
 
   // field_id
   std::map<std::string, t_field> field;
