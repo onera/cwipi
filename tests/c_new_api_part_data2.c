@@ -239,13 +239,10 @@ int main
   /* Create coupling */
   const char *cpl_name = "c_new_api_part_data2";
 
-  // TODO : debug closest_points
-  // mpirun -n 3 c_new_api_part_data2 -n 1 -n_part1 2 -n_part2 3 -v
-
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
-  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
+  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
-  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_IDENTITY;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_IDENTITY;
 
   for (int icode = 0; icode < n_code; icode++) {
     CWP_Cpl_create(code_name[icode],
@@ -476,9 +473,11 @@ int main
             }
 
             if (spatial_interp != CWP_SPATIAL_INTERP_FROM_INTERSECTION) {
-              if (ABS(recv_val[ipart][stride*i+j] - expected) > 0) {
+              if (ABS(recv_val[ipart][stride*i+j] - expected) > 1e-12) {
                 error = 1;
-                printf("[%d] error for "PDM_FMT_G_NUM"\n", i_rank, pface_ln_to_gn[icode][ipart][i]);
+                printf("[%d] error for "PDM_FMT_G_NUM" : received %e, expected %e\n",
+                       i_rank, pface_ln_to_gn[icode][ipart][i],
+                       recv_val[ipart][stride*i+j], expected);
                 fflush(stdout);
               }
             }
@@ -595,7 +594,9 @@ int main
 
             if (ABS(recv_val[ipart][stride*i+j] - expected) > 0) {
               error = 1;
-              printf("[%d] error for "PDM_FMT_G_NUM"\n", i_rank, pface_ln_to_gn[icode][ipart][i]);
+              printf("[%d] error for "PDM_FMT_G_NUM" : received %e, expected %e\n",
+                     i_rank, pface_ln_to_gn[icode][ipart][i],
+                     recv_val[ipart][stride*i+j], expected);
               fflush(stdout);
             }
           }
@@ -679,7 +680,7 @@ int main
           int expected = (i+1) * (j+1);
           if (global_data[global_stride*i + j] != expected) {
             error = 1;
-            printf("[%d] error global entity %d comp %d, received %d (expected %d)\n",
+            printf("[%d] error global entity %d comp %d : received %d (expected %d)\n",
                    i_rank, i, j, global_data[global_stride*i + j], expected);
             fflush(stdout);
           }

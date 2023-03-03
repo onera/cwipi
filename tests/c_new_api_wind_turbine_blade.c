@@ -31,11 +31,11 @@
 #include "pdm_logging.h"
 #include "pdm_error.h"
 
-#include "pdm_dmesh_nodal_priv.h"
+#include "pdm_dmesh_nodal.h"
 #include "pdm_block_to_part.h"
 #include "pdm_mesh_nodal.h"
 #include "pdm_part_connectivity_transform.h"
-#include "pdm_distrib.h"
+#include "pdm_vtk.h"
 
 
 #define ABS(a)    ((a) < 0   ? -(a) : (a))
@@ -152,222 +152,51 @@ _read_args
   }
 }
 
-/*----------------------------------------------------------------------
- *
- * Read VTK file
- *
- *---------------------------------------------------------------------*/
-
-static void
-_read_vtk
-(
- const char        *filename,
-       int          *n_vtx,
-       int          *n_face,
-       PDM_g_num_t **face_vtx,
-       double      **vtx_coord,
-       double      **vtx_field
-)
-{
-  char line[999];
-
-
-  FILE *f = fopen(filename, "r");
-
-  if (f == NULL) {
-    PDM_error(__FILE__, __LINE__, 0, "Could not read file %s\n", filename);
-  }
-
-  // PASS 1
-  while (1) {
-
-    int stat = fscanf(f, "%s", line);
-
-    if (stat == EOF) {
-      // End of file
-      break;
-    }
-
-    if (strstr(line, "POINTS") != NULL) {
-      // Get dimension
-      fscanf(f, "%d", &(*n_vtx));
-      char *data_type = malloc(sizeof(char) * 10);
-      fscanf(f, "%s", data_type);
-      free(data_type);
-
-      // Malloc
-      (*vtx_coord) = malloc(sizeof(double) * 3 * ((*n_vtx)));
-
-      // Get coordinates
-      for (int i = 0; i < (*n_vtx); i++) {
-        for (int j = 0; j < 3; j++) {
-          fscanf(f, "%le", &(*vtx_coord)[3*i + j]);
-        }
-      }
-    } // end if POINTS
-
-    if (strstr(line, "CELLS") != NULL) {
-      // Get dimension
-      int n_cell = 0;
-      fscanf(f, "%d", &n_cell);
-      int size = 0;
-      fscanf(f, "%d", &size);
-
-      // Malloc
-      (*face_vtx) = malloc(sizeof(PDM_g_num_t) * size);
-
-      // Get connectivity
-      int n_vtx_cell = 0;
-      for (int i = 0; i < n_cell; i++) {
-        fscanf(f, "%d", &n_vtx_cell);
-        if (n_vtx_cell == 3) {
-          for (int j = 0; j < 3; j++) {
-            int id = -1;
-           // fscanf(f, PDM_FMT_G_NUM, &(*face_vtx)[3*(*n_face)+j]);
-            fscanf(f, "%d", &id);
-            (*face_vtx)[3*(*n_face)+j] = (PDM_g_num_t) id + 1;
-          }
-          (*n_face)++;
-        } else {
-          PDM_g_num_t other_cell_vtx = 0;
-          for (int j = 0; j < n_vtx_cell; j++) {
-            fscanf(f, PDM_FMT_G_NUM, &other_cell_vtx);
-          }
-        }
-      }
-
-      (*face_vtx) = realloc((*face_vtx), 3 * (*n_face) * sizeof(PDM_g_num_t));
-    } // end if CELLS
-
-    if (strstr(line, "LOOKUP_TABLE") != NULL) {
-      char *table = malloc(sizeof(char) * 10);
-      fscanf(f, "%s", table);
-      free(table);
-
-      // Malloc
-      (*vtx_field) = malloc(sizeof(double) * (*n_vtx));
-
-      // Get connectivity
-      for (int i = 0; i < (*n_vtx); i++) {
-        fscanf(f, "%lf", &(*vtx_field)[i]);
-      }
-    } // end if POINT_DATA
-
-  } // while not EOF
-}
-
-
-static PDM_dmesh_nodal_t *
-_set_dmesh_nodal
-(
- const PDM_MPI_Comm  comm,
-       double       *dvtx_coord,
-       PDM_g_num_t  *dface_vtx,
-       PDM_g_num_t  *distrib_vtx,
-       PDM_g_num_t  *distrib_face
- )
-{
-  int i_rank, n_rank;
-  PDM_MPI_Comm_rank(comm, &i_rank);
-  PDM_MPI_Comm_size(comm, &n_rank);
-
-
-
-  /*
-   *  Create dmesh nodal
-   */
-  PDM_g_num_t gn_vtx  = distrib_vtx [n_rank];
-  PDM_g_num_t gn_face = distrib_face[n_rank];
-  int dn_vtx  = distrib_vtx [i_rank+1] - distrib_vtx [i_rank];
-  int dn_face = distrib_face[i_rank+1] - distrib_face[i_rank];
-
-  PDM_dmesh_nodal_t *dmn = PDM_DMesh_nodal_create(comm,
-                                                  2,
-                                                  gn_vtx,
-                                                  0,
-                                                  gn_face,
-                                                  0);
-
-  PDM_DMesh_nodal_coord_set(dmn,
-                            dn_vtx,
-                            dvtx_coord,
-                            PDM_OWNERSHIP_KEEP);
-
-  dmn->surfacic->n_g_elmts = gn_face;
-  int id_section = PDM_DMesh_nodal_elmts_section_add(dmn->surfacic,
-                                                     PDM_MESH_NODAL_TRIA3);
-  PDM_DMesh_nodal_elmts_section_std_set(dmn->surfacic,
-                                        id_section,
-                                        dn_face,
-                                        dface_vtx,
-                                        PDM_OWNERSHIP_KEEP);
-
-  int n_group = 1;
-  int *dgroup_elt_idx = (int *) malloc(sizeof(int) * (n_group + 1));
-  dgroup_elt_idx[0] = 0;
-  dgroup_elt_idx[1] = dn_face;
-
-  PDM_g_num_t *dgroup_elt = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * dgroup_elt_idx[n_group]);
-  for (int i = 0; i < dn_face; i++) {
-    dgroup_elt[i] = distrib_face[i_rank] + i + 1;
-  }
-  PDM_DMesh_nodal_elmts_group_set(dmn->surfacic,
-                                  n_group,
-                                  dgroup_elt_idx,
-                                  dgroup_elt,
-                                  PDM_OWNERSHIP_KEEP);
-
-  PDM_dmesh_nodal_generate_distribution(dmn);
-
-  return dmn;
-}
-
 
 static void
 _gen_part_data
 (
- const char               *filename,
- const PDM_MPI_Comm        comm,
- const int                 n_part,
- const PDM_split_dual_t    part_method,
-       int               **pn_face,
-       int               **pn_vtx,
-       int              ***pface_vtx_idx,
-       int              ***pface_vtx,
-       double           ***pvtx_coord,
-       PDM_g_num_t      ***pface_ln_to_gn,
-       PDM_g_num_t      ***pvtx_ln_to_gn,
-       double           ***pvtx_field
+ const char                *filename,
+ const PDM_MPI_Comm         comm,
+ const int                  n_part,
+ const PDM_split_dual_t     part_method,
+       int                **pn_face,
+       int                **pn_vtx,
+       int               ***pface_vtx_idx,
+       int               ***pface_vtx,
+       double            ***pvtx_coord,
+       PDM_g_num_t       ***pface_ln_to_gn,
+       PDM_g_num_t       ***pvtx_ln_to_gn,
+       int                 *n_vtx_field,
+       char              ***vtx_field_name,
+       PDM_data_t         **vtx_field_type,
+       int                **vtx_field_stride,
+       double           ****pvtx_field_value
 
  )
 {
   int i_rank;
   PDM_MPI_Comm_rank(comm, &i_rank);
 
-  int            dn_vtx     = 0;
-  int            dn_face    = 0;
-  PDM_g_num_t  *dface_vtx  = NULL;
-  double       *dvtx_coord = NULL;
-  double       *dvtx_field = NULL;
+  void       **dvtx_field_value;
+  int          n_elt_field;
+  char       **elt_field_name;
+  PDM_data_t  *elt_field_type;
+  int         *elt_field_stride;
+  void       **delt_field_value;
 
-  if (i_rank == 0) {
-    _read_vtk(filename,
-              &dn_vtx,
-              &dn_face,
-              &dface_vtx,
-              &dvtx_coord,
-              &dvtx_field);
-  }
-
-  PDM_g_num_t *distrib_vtx  = PDM_compute_entity_distribution(comm, dn_vtx);
-  PDM_g_num_t *distrib_face = PDM_compute_entity_distribution(comm, dn_face);
-
-  // DMesh nodal
-  PDM_dmesh_nodal_t *dmn = _set_dmesh_nodal(comm,
-                                            dvtx_coord,
-                                            dface_vtx,
-                                            distrib_vtx,
-                                            distrib_face);
+  PDM_dmesh_nodal_t *dmn = PDM_vtk_read_to_dmesh_nodal(comm,
+                                                       filename,
+                                                       n_vtx_field,
+                                                       vtx_field_name,
+                                                       vtx_field_type,
+                                                       vtx_field_stride,
+                                                       &dvtx_field_value,
+                                                       &n_elt_field,
+                                                       &elt_field_name,
+                                                       &elt_field_type,
+                                                       &elt_field_stride,
+                                                       &delt_field_value);
 
   int n_zone = 1;
   int n_part_zones = n_part;
@@ -484,35 +313,57 @@ _gen_part_data
     }
 
   }
-
-  PDM_DMesh_nodal_free(dmn);
   PDM_multipart_free(mpart);
 
 
 
-  /* Exchange field to partitions */
+  /* Exchange fields to partitions */
+  PDM_g_num_t *distrib_vtx = PDM_dmesh_nodal_vtx_distrib_get(dmn);
+
+  int dn_vtx = (int) (distrib_vtx[i_rank+1] - distrib_vtx[i_rank]);
+
   PDM_block_to_part_t *btp = PDM_block_to_part_create(distrib_vtx,
                                (const PDM_g_num_t **) *pvtx_ln_to_gn,
                                                       *pn_vtx,
                                                       n_part,
                                                       comm);
 
-  int one = 1;
+  *pvtx_field_value = malloc(sizeof(double **) * (*n_vtx_field));
+  for (int ifield = 0; ifield < *n_vtx_field; ifield++) {
 
-  PDM_block_to_part_exch(btp,
-                         sizeof(double),
-                         PDM_STRIDE_CST_INTERLACED,
-                         &one,
-              (void   *) dvtx_field,
-                         NULL,
-              (void ***) pvtx_field);
+    double *_dvtx_field_value = NULL;
+    if ((*vtx_field_type)[ifield] == PDM_INT) {
+      _dvtx_field_value = malloc(sizeof(double) * dn_vtx * (*vtx_field_stride)[ifield]);
+      int *dfv = (int *) dvtx_field_value[ifield];
+      for (int i = 0; i < dn_vtx * (*vtx_field_stride)[ifield]; i++) {
+        _dvtx_field_value[i] = (double) dfv[i];
+      }
+    }
+    else {
+      _dvtx_field_value = (double *) dvtx_field_value[ifield];
+    }
+
+    PDM_block_to_part_exch(btp,
+                           sizeof(double),
+                           PDM_STRIDE_CST_INTERLACED,
+                           &(*vtx_field_stride)[ifield],
+                (void   *) _dvtx_field_value,
+                           NULL,
+                (void ***) &(*pvtx_field_value)[ifield]);
+
+    if ((*vtx_field_type)[ifield] == PDM_INT) {
+      free(_dvtx_field_value);
+    }
+
+    free(dvtx_field_value[ifield]);
+  }
 
   PDM_block_to_part_free(btp);
 
-  free(distrib_vtx);
-  free(distrib_face);
-  if (dvtx_field != NULL) {
-    free(dvtx_field);
+  PDM_DMesh_nodal_free(dmn);
+
+  if (dvtx_field_value != NULL) {
+    free(dvtx_field_value);
   }
 }
 
@@ -649,14 +500,18 @@ main(int argc, char *argv[]) {
   }
 
   // Mesh and field
-  int          **pn_face        = malloc(sizeof(int          *) * n_code);
-  int          **pn_vtx         = malloc(sizeof(int          *) * n_code);
-  int         ***pface_vtx_idx  = malloc(sizeof(int         **) * n_code);
-  int         ***pface_vtx      = malloc(sizeof(int         **) * n_code);
-  double      ***pvtx_coord     = malloc(sizeof(double      **) * n_code);
-  PDM_g_num_t ***pface_ln_to_gn = malloc(sizeof(PDM_g_num_t **) * n_code);
-  PDM_g_num_t ***pvtx_ln_to_gn  = malloc(sizeof(PDM_g_num_t **) * n_code);
-  double      ***pvtx_field     = malloc(sizeof(double      **) * n_code);
+  int           **pn_face          = malloc(sizeof(int           *) * n_code);
+  int           **pn_vtx           = malloc(sizeof(int           *) * n_code);
+  int          ***pface_vtx_idx    = malloc(sizeof(int          **) * n_code);
+  int          ***pface_vtx        = malloc(sizeof(int          **) * n_code);
+  double       ***pvtx_coord       = malloc(sizeof(double       **) * n_code);
+  PDM_g_num_t  ***pface_ln_to_gn   = malloc(sizeof(PDM_g_num_t  **) * n_code);
+  PDM_g_num_t  ***pvtx_ln_to_gn    = malloc(sizeof(PDM_g_num_t  **) * n_code);
+  int            *n_vtx_field      = malloc(sizeof(int            ) * n_code);
+  char         ***vtx_field_name   = malloc(sizeof(char         **) * n_code);
+  PDM_data_t    **vtx_field_type   = malloc(sizeof(PDM_data_t    *) * n_code);
+  int           **vtx_field_stride = malloc(sizeof(int           *) * n_code);
+  double      ****pvtx_field_value = malloc(sizeof(double      ***) * n_code);
 
   for (int icode = 0; icode < n_code; icode++) {
     PDM_MPI_Comm mesh_comm = PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[icode]);
@@ -665,14 +520,18 @@ main(int argc, char *argv[]) {
                    mesh_comm,
                    n_part[icode],
                    part_method,
-                   &pn_face       [icode],
-                   &pn_vtx        [icode],
-                   &pface_vtx_idx [icode],
-                   &pface_vtx     [icode],
-                   &pvtx_coord    [icode],
-                   &pface_ln_to_gn[icode],
-                   &pvtx_ln_to_gn [icode],
-                   &pvtx_field    [icode]);
+                   &pn_face         [icode],
+                   &pn_vtx          [icode],
+                   &pface_vtx_idx   [icode],
+                   &pface_vtx       [icode],
+                   &pvtx_coord      [icode],
+                   &pface_ln_to_gn  [icode],
+                   &pvtx_ln_to_gn   [icode],
+                   &n_vtx_field     [icode],
+                   &vtx_field_name  [icode],
+                   &vtx_field_type  [icode],
+                   &vtx_field_stride[icode],
+                   &pvtx_field_value[icode]);
 
     int block_id = CWP_Mesh_interf_block_add(code_name[icode],
                                              cpl_name,
@@ -707,12 +566,15 @@ main(int argc, char *argv[]) {
 
 
   // Field
+
+  if (n_vtx_field == 0) {
+    PDM_error(__FILE__, __LINE__, 0, "There must be at least one vtx_field\n");
+  }
+
   CWP_Status_t visu_status = CWP_STATUS_ON;
-  const char *field_name = "field";
   double **field_ptr = NULL;
 
-  int stride = 1;
-  double ***recv_val  = malloc(sizeof(double **) * n_code);
+  double ***recv_val = malloc(sizeof(double **) * n_code);
 
   for (int icode = 0; icode < n_code; icode++) {
 
@@ -726,7 +588,7 @@ main(int argc, char *argv[]) {
     if (code_id[icode] == 1) {
       exch_type = CWP_FIELD_EXCH_SEND;
       map_type  = CWP_FIELD_MAP_SOURCE;
-      field_ptr = pvtx_field[icode];
+      field_ptr = pvtx_field_value[icode][0];
     }
     else {
       exch_type = CWP_FIELD_EXCH_RECV;
@@ -738,10 +600,10 @@ main(int argc, char *argv[]) {
 
     CWP_Field_create(code_name[icode],
                      cpl_name,
-                     field_name,
+                     vtx_field_name[icode][0],
                      CWP_DOUBLE,
                      CWP_FIELD_STORAGE_INTERLACED,
-                     stride,
+                     vtx_field_stride[icode][0],
                      CWP_DOF_LOCATION_NODE,
                      exch_type,
                      visu_status);
@@ -749,7 +611,7 @@ main(int argc, char *argv[]) {
     for (int ipart = 0; ipart < n_part[icode]; ipart++) {
       CWP_Field_data_set(code_name[icode],
                          cpl_name,
-                         field_name,
+                         vtx_field_name[icode][0],
                          ipart,
                          map_type,
                          field_ptr[ipart]);
@@ -771,17 +633,17 @@ main(int argc, char *argv[]) {
 
   for (int icode = 0; icode < n_code; icode++) {
     if (code_id[icode] == 1) {
-      CWP_Field_issend(code_name[icode], cpl_name, field_name);
+      CWP_Field_issend(code_name[icode], cpl_name, vtx_field_name[icode][0]);
     }
     else {
-      CWP_Field_irecv (code_name[icode], cpl_name, field_name);
+      CWP_Field_irecv (code_name[icode], cpl_name, vtx_field_name[icode][0]);
     }
 
     if (code_id[icode] == 1) {
-      CWP_Field_wait_issend(code_name[icode], cpl_name, field_name);
+      CWP_Field_wait_issend(code_name[icode], cpl_name, vtx_field_name[icode][0]);
     }
     else {
-      CWP_Field_wait_irecv (code_name[icode], cpl_name, field_name);
+      CWP_Field_wait_irecv (code_name[icode], cpl_name, vtx_field_name[icode][0]);
     }
   }
 
@@ -797,8 +659,8 @@ main(int argc, char *argv[]) {
   for (int icode = 0; icode < n_code; icode++) {
     if (code_id[icode] == 2) {
       for (int ipart = 0; ipart < n_part[icode]; ipart++) {
-        for (int i = 0; i < pn_vtx[icode][ipart]; i++) {
-          double err = ABS(pvtx_field[icode][ipart][i] - recv_val[icode][ipart][i]);
+        for (int i = 0; i < pn_vtx[icode][ipart] * vtx_field_stride[icode][0]; i++) {
+          double err = ABS(pvtx_field_value[icode][0][ipart][i] - recv_val[icode][ipart][i]);
           max_err = MAX(max_err, err);
         }
       }
@@ -828,28 +690,41 @@ main(int argc, char *argv[]) {
       free(pvtx_coord    [icode][ipart]);
       free(pface_ln_to_gn[icode][ipart]);
       free(pvtx_ln_to_gn [icode][ipart]);
-      free(pvtx_field    [icode][ipart]);
       free(recv_val      [icode][ipart]);
     }
-    free(pn_face       [icode]);
-    free(pn_vtx        [icode]);
-    free(pface_vtx_idx [icode]);
-    free(pface_vtx     [icode]);
-    free(pvtx_coord    [icode]);
-    free(pface_ln_to_gn[icode]);
-    free(pvtx_ln_to_gn [icode]);
-    free(pvtx_field    [icode]);
-    free(recv_val      [icode]);
+    for (int ifield = 0; ifield < n_vtx_field[icode]; ifield++) {
+      for (int ipart = 0; ipart < n_part[icode]; ipart++) {
+        free(pvtx_field_value[icode][ifield][ipart]);
+      }
+      free(vtx_field_name  [icode][ifield]);
+      free(pvtx_field_value[icode][ifield]);
+    }
+    free(pn_face         [icode]);
+    free(pn_vtx          [icode]);
+    free(pface_vtx_idx   [icode]);
+    free(pface_vtx       [icode]);
+    free(pvtx_coord      [icode]);
+    free(pface_ln_to_gn  [icode]);
+    free(pvtx_ln_to_gn   [icode]);
+    free(vtx_field_name  [icode]);
+    free(vtx_field_type  [icode]);
+    free(vtx_field_stride[icode]);
+    free(pvtx_field_value[icode]);
+    free(recv_val        [icode]);
   }
-  free(pn_face       );
-  free(pn_vtx        );
-  free(pface_vtx_idx );
-  free(pface_vtx     );
-  free(pvtx_coord    );
-  free(pface_ln_to_gn);
-  free(pvtx_ln_to_gn );
-  free(pvtx_field    );
-  free(recv_val      );
+  free(pn_face         );
+  free(pn_vtx          );
+  free(pface_vtx_idx   );
+  free(pface_vtx       );
+  free(pvtx_coord      );
+  free(pface_ln_to_gn  );
+  free(pvtx_ln_to_gn   );
+  free(n_vtx_field     );
+  free(vtx_field_name  );
+  free(vtx_field_type  );
+  free(vtx_field_stride);
+  free(pvtx_field_value);
+  free(recv_val        );
 
   free(code_id);
   free(n_part);
@@ -858,6 +733,7 @@ main(int argc, char *argv[]) {
   free(is_active_rank);
   free(intra_comm);
   free(time_init);
+  free(file_name);
 
   // Finalize CWIPI
   CWP_Finalize();
