@@ -3616,12 +3616,12 @@ CWP_server_Mesh_interf_from_faceedge_set
                                       cpl_id,
                                       i_part,
                                       n_faces,
-                                       svr_cwp.coupling[s].face_edge_idx,
-                                       svr_cwp.coupling[s].face_edge,
+                                      svr_cwp.coupling[s].face_edge_idx,
+                                      svr_cwp.coupling[s].face_edge,
                                       n_edges,
-                                       svr_cwp.coupling[s].edge_vtx_idx,
-                                       svr_cwp.coupling[s].edge_vtx,
-                                       svr_cwp.coupling[s].face_global_num);
+                                      svr_cwp.coupling[s].edge_vtx_idx,
+                                      svr_cwp.coupling[s].edge_vtx,
+                                      svr_cwp.coupling[s].face_global_num);
   }
 
   // send status msg
@@ -3728,7 +3728,7 @@ CWP_server_Field_create
   svr_cwp.coupling[s1].field.insert(std::make_pair(s2, field));
   svr_cwp.coupling[s1].field[s2].data = (double **) malloc(sizeof(double*) * svr_cwp.coupling[s1].n_part);
   for (int i_part = 0; i_part < svr_cwp.coupling[s1].n_part; i_part++) {
-    svr_cwp.coupling[s1].field[s2].data[i_part] = (double *) malloc(sizeof(double));
+    svr_cwp.coupling[s1].field[s2].data[i_part] = NULL;
   }
 
   // free
@@ -3781,7 +3781,7 @@ CWP_server_Field_data_set
 
   int size;
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &size, sizeof(int));
-  svr_cwp.coupling[s1].field[s2].data[i_part] = (double *) realloc(svr_cwp.coupling[s1].field[s2].data[i_part], sizeof(double) * size);
+  svr_cwp.coupling[s1].field[s2].data[i_part] = (double *) malloc(sizeof(double) * size);
   if (map_type == CWP_FIELD_MAP_SOURCE) {
     CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) svr_cwp.coupling[s1].field[s2].data[i_part], sizeof(double) * size);
   }
@@ -4329,7 +4329,7 @@ CWP_server_Field_wait_irecv
 
       data[i_part] = (double *) malloc(sizeof(double) * n_computed_tgts[i_part] * n_components);
     } else {
-      data[i_part] = (double *) malloc(sizeof(double));
+      data[i_part] = NULL;
     }
   }
 
@@ -4368,12 +4368,14 @@ CWP_server_Field_wait_irecv
   free(local_code_name);
   free(cpl_id);
   free(tgt_field_id);
-  free(n_computed_tgts);
-  free(n_entities);
-  for (int i_part = 0; i_part < n_part; i_part++) {
-    free(data[i_part]);
+  if (n_computed_tgts != NULL) free(n_computed_tgts);
+  if (n_entities != NULL) free(n_entities);
+  if (data != NULL) {
+    for (int i_part = 0; i_part < n_part; i_part++) {
+      if (data[i_part] != NULL) free(data[i_part]);
+    }
+    free(data);
   }
-  free(data);
 
   svr->state = CWP_SVRSTATE_LISTENINGMSG;
 }

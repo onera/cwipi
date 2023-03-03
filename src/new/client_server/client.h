@@ -1124,7 +1124,7 @@ CWP_client_Field_data_set
  const int                i_part,
  const CWP_Field_map_t    map_type,
  int                      n_entities,
- double                 **data
+ double                  *data
 );
 
 /**
@@ -1456,7 +1456,7 @@ CWP_client_Global_data_irecv
        size_t    s_recv_entity,
        int       recv_stride,
        int       n_recv_entity,
-       void    **recv_data
+       void     *recv_data
 );
 
 /**
@@ -1584,7 +1584,7 @@ CWP_client_Part_data_irecv
  const char    *part_data_id,
  size_t         s_data,
  int            n_components,
- void        ***part2_data,
+ void         **part2_data,
  int           *request
 );
 

@@ -757,7 +757,7 @@ main
                                   0,
                                   CWP_FIELD_MAP_SOURCE,
                                   n_vtx[i_code][0],
-                                  &send_values[i_code]);
+                                  send_values[i_code]);
 
       }
 
@@ -769,7 +769,7 @@ main
                                   0,
                                   CWP_FIELD_MAP_TARGET,
                                   n_vtx[i_code][0],
-                                  &recv_values[i_code]);
+                                  recv_values[i_code]);
 
       }
     }
@@ -784,7 +784,7 @@ main
                                   0,
                                   CWP_FIELD_MAP_TARGET,
                                   n_vtx[i_code][0],
-                                  &recv_values[i_code]);
+                                  recv_values[i_code]);
       }
 
       else {
@@ -795,7 +795,7 @@ main
                                   0,
                                   CWP_FIELD_MAP_SOURCE,
                                   n_vtx[i_code][0],
-                                  &send_values[i_code]);
+                                  send_values[i_code]);
       }
     }
     printf("%d : %s --- Field created and data set\n", rank, code_names[i_code]);

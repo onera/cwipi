@@ -4692,6 +4692,13 @@ CWP_client_Field_create
 
   clt_cwp.coupling[s1].field[s2].n_component = n_component;
   clt_cwp.coupling[s1].field[s2].n_entities  = (int *) malloc(sizeof(int) * clt_cwp.coupling[s1].n_part);
+  for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
+    clt_cwp.coupling[s1].field[s2].n_entities[j_part] = -1;
+  }
+  clt_cwp.coupling[s1].field[s2].data = (double **) malloc(sizeof(double *) * clt_cwp.coupling[s1].n_part);
+  for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
+    clt_cwp.coupling[s1].field[s2].data[j_part] = NULL;
+  }
 
   // receive status msg
   MPI_Barrier(clt->comm);
@@ -4720,7 +4727,7 @@ CWP_client_Field_data_set
  const int                i_part,
  const CWP_Field_map_t    map_type,
  int                      n_entities,
- double                 **data
+ double                  *data
 )
 {
   t_message msg;
@@ -4774,24 +4781,9 @@ CWP_client_Field_data_set
   clt_cwp.coupling[s1].field[s2].map_type = map_type;
 
   if (map_type == CWP_FIELD_MAP_TARGET) {
-
-    // first call of set
-    if (clt_cwp.coupling[s1].field[s2].data == NULL) {
-      clt_cwp.coupling[s1].field[s2].data        = (double **) malloc(sizeof(double *) * clt_cwp.coupling[s1].n_part);
-      for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
-        clt_cwp.coupling[s1].field[s2].data[j_part] = NULL;
-      }
-
-      // Initialize to -1 to only do the recv for fields that have been set
-      for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
-        clt_cwp.coupling[s1].field[s2].n_entities[j_part] = -1;
-      }
-    }
-
-    // always set if target
     clt_cwp.coupling[s1].field[s2].n_entities[i_part] = n_entities;
-    clt_cwp.coupling[s1].field[s2].data[i_part] = (double *) malloc(sizeof(double) * n_entities * clt_cwp.coupling[s1].field[s2].n_component);
-    *data = clt_cwp.coupling[s1].field[s2].data[i_part];
+    clt_cwp.coupling[s1].field[s2].data[i_part] = data;
+    printf("set clt_cwp.coupling[s1].field[s2].data[i_part] : %p\n", clt_cwp.coupling[s1].field[s2].data[i_part]);
   }
 
   // send map with data
@@ -4802,7 +4794,7 @@ CWP_client_Field_data_set
   if (map_type == CWP_FIELD_MAP_SOURCE) {
     // only send when source
     double *endian_data = (double *) malloc(sizeof(double) * size);
-    memcpy(endian_data, *data, sizeof(double) * size); // WARNING even send data is passed as ** TO DO different ?
+    memcpy(endian_data, data, sizeof(double) * size); // WARNING even send data is passed as ** TO DO different ?
     CWP_swap_endian_8bytes(endian_data, size);
     CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_data, sizeof(double) * size);
     free(endian_data);
@@ -5082,10 +5074,8 @@ CWP_client_Field_del
   std::string s1(cpl_id);
   std::string s2(field_id);
 
-  if (clt_cwp.coupling[s1].field[s2].data != NULL) {
-    free(clt_cwp.coupling[s1].field[s2].data);
-    clt_cwp.coupling[s1].field[s2].data = NULL;
-  }
+  if (clt_cwp.coupling[s1].field[s2].data != NULL) free(clt_cwp.coupling[s1].field[s2].data);
+  clt_cwp.coupling[s1].field[s2].data = NULL;
   if (clt_cwp.coupling[s1].field[s2].u_tgts != NULL) free(clt_cwp.coupling[s1].field[s2].u_tgts);
   clt_cwp.coupling[s1].field[s2].u_tgts = NULL;
   if (clt_cwp.coupling[s1].field[s2].c_tgts != NULL) free(clt_cwp.coupling[s1].field[s2].c_tgts);
@@ -5362,6 +5352,7 @@ CWP_client_Field_wait_irecv
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void *) n_computed_tgts, sizeof(int) * clt_cwp.coupling[s1].n_part);
   for (int i_part = 0; i_part < clt_cwp.coupling[s1].n_part; i_part++) {
     if (clt_cwp.coupling[s1].field[s2].n_entities[i_part] != -1) {
+      printf("wait_irecv clt_cwp.coupling[s1].field[s2].data[i_part] : %p\n", clt_cwp.coupling[s1].field[s2].data[i_part]);
       CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void *) clt_cwp.coupling[s1].field[s2].data[i_part], sizeof(double) * n_computed_tgts[i_part] * clt_cwp.coupling[s1].field[s2].n_component);
     }
   }
@@ -5829,7 +5820,7 @@ CWP_client_Global_data_irecv
        size_t    s_recv_entity,
        int       recv_stride,
        int       n_recv_entity,
-       void    **recv_data
+       void     *recv_data
 )
 {
   t_message msg;
@@ -5909,8 +5900,7 @@ CWP_client_Global_data_irecv
   clt_cwp.coupling[s1].global_data[s2].s_recv_entity = s_recv_entity;
   clt_cwp.coupling[s1].global_data[s2].recv_stride   = recv_stride;
   clt_cwp.coupling[s1].global_data[s2].n_recv_entity = n_recv_entity;
-  clt_cwp.coupling[s1].global_data[s2].recv_data = malloc(s_recv_entity * recv_stride * n_recv_entity);
-  *recv_data = clt_cwp.coupling[s1].global_data[s2].recv_data;
+  clt_cwp.coupling[s1].global_data[s2].recv_data = recv_data;
 }
 
 void
@@ -6222,15 +6212,6 @@ CWP_client_Part_data_del
   } else if (exch_type == CWP_PARTDATA_RECV) {
     if (part_data.n_recv_elt != NULL) free(part_data.n_recv_elt);
     part_data.n_recv_elt = NULL;
-
-    if (part_data.recv_data != NULL) {
-      for (int i_part = 0; i_part < part_data.n_part_recv; i_part++) {
-        if (part_data.recv_data[i_part] != NULL) free(part_data.recv_data[i_part]);
-        part_data.recv_data[i_part] = NULL;
-      }
-      free(part_data.recv_data);
-      part_data.recv_data = NULL;
-    }
   }
 
   coupling.part_data.erase(s2);
@@ -6331,7 +6312,7 @@ CWP_client_Part_data_irecv
  const char    *part_data_id,
  size_t         s_data,
  int            n_components,
- void        ***part2_data,
+ void         **part2_data,
  int           *request
 )
 {
@@ -6403,11 +6384,7 @@ CWP_client_Part_data_irecv
   std::string s2(part_data_id);
   clt_cwp.coupling[s1].part_data[s2].s_recv_data = s_data;
   clt_cwp.coupling[s1].part_data[s2].n_recv_components = n_components;
-  clt_cwp.coupling[s1].part_data[s2].recv_data = (void **) malloc(sizeof(void *) * clt_cwp.coupling[s1].part_data[s2].n_part_recv);
-  for (int i_part = 0; i_part < clt_cwp.coupling[s1].part_data[s2].n_part_recv; i_part++) {
-    clt_cwp.coupling[s1].part_data[s2].recv_data[i_part] = malloc(s_data * n_components * clt_cwp.coupling[s1].part_data[s2].n_recv_elt[i_part]);
-  }
-  *part2_data = clt_cwp.coupling[s1].part_data[s2].recv_data;
+  clt_cwp.coupling[s1].part_data[s2].recv_data = part2_data;
 }
 
 void

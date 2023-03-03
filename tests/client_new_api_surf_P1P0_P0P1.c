@@ -389,8 +389,8 @@ main
                      CWP_FIELD_EXCH_RECV,
                      visu_status);
 
-    CWP_client_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_SOURCE, nVertex, &sendValues[0]);
-    CWP_client_Field_data_set(code_name[0], cpl_name, field_name2, 0, CWP_FIELD_MAP_TARGET, nElts, &recvValues[0]);
+    CWP_client_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_SOURCE, nVertex, sendValues[0]);
+    CWP_client_Field_data_set(code_name[0], cpl_name, field_name2, 0, CWP_FIELD_MAP_TARGET, nElts, recvValues[0]);
   }
   
   else if (strcmp(code_name[0], "code2") == 0) {
@@ -413,8 +413,8 @@ main
                      CWP_FIELD_EXCH_SEND,
                      visu_status);
 
-    CWP_client_Field_data_set(code_name[0], cpl_name, field_name2, 0, CWP_FIELD_MAP_SOURCE, nElts, &sendValues[0]);
-    CWP_client_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_TARGET, nVertex, &recvValues[0]);
+    CWP_client_Field_data_set(code_name[0], cpl_name, field_name2, 0, CWP_FIELD_MAP_SOURCE, nElts, sendValues[0]);
+    CWP_client_Field_data_set(code_name[0], cpl_name, field_name1, 0, CWP_FIELD_MAP_TARGET, nVertex, recvValues[0]);
   }
 
   printf("%d - Before compute\n", rank);

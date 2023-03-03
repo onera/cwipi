@@ -421,7 +421,7 @@ main
                                  s_entity,
                                  stride,
                                  n_entity,
-                       (void **) &recv_data);
+                       (void **) recv_data);
   }
 
   MPI_Barrier(comm);
@@ -531,7 +531,7 @@ main
                                part_data_name,
                                sizeof(double),
                                n_comp,
-                               (void ***) &part2_data,
+                               (void **) part2_data,
                                &recv_request);
   }
 
