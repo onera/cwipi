@@ -118,6 +118,7 @@ CWP_transfer_readdata
     timeout=SOCKET_TIMEOUT_CNT;
     while(read_bytes<=0 && timeout>0) {
       read_bytes=recv(socket,buf,xfer_size,MSG_PEEK);
+      printf("read_bytes : %d\n", read_bytes);
       if(read_bytes<=0) {
         milli_sleep(SOCKET_TIMEOUT_INTERVAL);
       }

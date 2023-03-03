@@ -730,6 +730,25 @@ main
                               exchDirection[0],
                               CWP_STATUS_ON);
 
+    }
+
+    if (code_id[i_code] == 2) {
+
+      CWP_client_Field_create(code_names[i_code],
+                              cpl_name,
+                              field_name,
+                              CWP_DOUBLE,
+                              CWP_FIELD_STORAGE_INTERLACED,
+                              3,
+                              CWP_DOF_LOCATION_NODE,
+                              exchDirection[1],
+                              CWP_STATUS_ON);
+    }
+
+    MPI_Barrier(intra_comm);
+
+
+    if (code_id[i_code] == 1) {
       if (exchDirection[0] == CWP_FIELD_EXCH_SEND) {
 
         CWP_client_Field_data_set(code_names[i_code],
@@ -756,16 +775,6 @@ main
     }
 
     if (code_id[i_code] == 2) {
-
-      CWP_client_Field_create(code_names[i_code],
-                              cpl_name,
-                              field_name,
-                              CWP_DOUBLE,
-                              CWP_FIELD_STORAGE_INTERLACED,
-                              3,
-                              CWP_DOF_LOCATION_NODE,
-                              exchDirection[1],
-                              CWP_STATUS_ON);
 
       if (exchDirection[1] == CWP_FIELD_EXCH_RECV) {
 
@@ -917,6 +926,8 @@ main
     }
   }
 
+  MPI_Barrier(comm);
+
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
     free((void *) recv_values[i_code]);
   }
@@ -964,6 +975,8 @@ main
       }
     }
   }
+
+  MPI_Barrier(comm);
 
   // free
 
@@ -1087,6 +1100,8 @@ main
 
     printf("%d : %s --- Coupling deleted\n", rank, code_names[i_code]);
   }
+
+  MPI_Barrier(comm);
 
   // free
   free(element_type);

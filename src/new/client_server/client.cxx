@@ -4687,21 +4687,11 @@ CWP_client_Field_create
   std::string s1(cpl_id);
   std::string s2(field_id);
 
-  t_coupling coupling = clt_cwp.coupling[s1];
   t_field field = t_field();
-  coupling.field.insert(std::make_pair(s2, field));
+  clt_cwp.coupling[s1].field.insert(std::make_pair(s2, field));
 
-  coupling.field[s2].n_component = n_component;
-  coupling.field[s2].n_entities  = (int *) malloc(sizeof(int) * coupling.n_part);
-  coupling.field[s2].data        = (double **) malloc(sizeof(double *) * coupling.n_part);
-  for (int i_part = 0; i_part < clt_cwp.coupling[s1].n_part; i_part++) {
-    clt_cwp.coupling[s1].field[s2].data[i_part] = (double *) malloc(sizeof(double));
-  }
-
-  // Initialize to -1 to only do the recv for fields that have been set
-  for (int i_part = 0; i_part < coupling.n_part; i_part++) {
-    coupling.field[s2].n_entities[i_part] = -1;
-  }
+  clt_cwp.coupling[s1].field[s2].n_component = n_component;
+  clt_cwp.coupling[s1].field[s2].n_entities  = (int *) malloc(sizeof(int) * clt_cwp.coupling[s1].n_part);
 
   // receive status msg
   MPI_Barrier(clt->comm);
@@ -4782,12 +4772,27 @@ CWP_client_Field_data_set
   std::string s2(field_id);
 
   clt_cwp.coupling[s1].field[s2].map_type = map_type;
-  clt_cwp.coupling[s1].field[s2].n_entities[i_part] = n_entities;
 
   if (map_type == CWP_FIELD_MAP_TARGET) {
-    clt_cwp.coupling[s1].field[s2].data[i_part] = (double *) realloc(clt_cwp.coupling[s1].field[s2].data[i_part], sizeof(double) * n_entities);
+
+    // first call of set
+    if (clt_cwp.coupling[s1].field[s2].data == NULL) {
+      clt_cwp.coupling[s1].field[s2].data        = (double **) malloc(sizeof(double *) * clt_cwp.coupling[s1].n_part);
+      for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
+        clt_cwp.coupling[s1].field[s2].data[j_part] = (double *) malloc(sizeof(double));
+      }
+
+      // Initialize to -1 to only do the recv for fields that have been set
+      for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
+        clt_cwp.coupling[s1].field[s2].n_entities[j_part] = -1;
+      }
+    }
+
+    // always set if target
+    clt_cwp.coupling[s1].field[s2].n_entities[i_part] = n_entities;
+    clt_cwp.coupling[s1].field[s2].data[i_part] = (double *) realloc(clt_cwp.coupling[s1].field[s2].data[i_part], sizeof(double) * n_entities * clt_cwp.coupling[s1].field[s2].n_component);
+    *data = clt_cwp.coupling[s1].field[s2].data[i_part];
   }
-  *data = clt_cwp.coupling[s1].field[s2].data[i_part];
 
   // send map with data
   int size = clt_cwp.coupling[s1].field[s2].n_component * n_entities;
@@ -4795,6 +4800,7 @@ CWP_client_Field_data_set
   CWP_swap_endian_4bytes(&endian_size, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_size, sizeof(int));
   if (map_type == CWP_FIELD_MAP_SOURCE) {
+    // only send when source
     double *endian_data = (double *) malloc(sizeof(double) * size);
     memcpy(endian_data, *data, sizeof(double) * size); // WARNING even send data is passed as ** TO DO different ?
     CWP_swap_endian_8bytes(endian_data, size);
@@ -5074,28 +5080,26 @@ CWP_client_Field_del
 
   // free
   std::string s1(cpl_id);
-  t_coupling coupling = clt_cwp.coupling[s1];
   std::string s2(field_id);
-  t_field field = coupling.field[s2];
 
-  if (field.data != NULL) {
-    for (int i_part = 0; i_part < coupling.n_part; i_part++) {
-      if (field.data[i_part] != NULL) free(field.data[i_part]);
-      field.data[i_part] = NULL;
+  if (clt_cwp.coupling[s1].field[s2].data != NULL) {
+    for (int i_part = 0; i_part < clt_cwp.coupling[s1].n_part; i_part++) {
+      if (clt_cwp.coupling[s1].field[s2].data[i_part] != NULL) free(clt_cwp.coupling[s1].field[s2].data[i_part]);
+      clt_cwp.coupling[s1].field[s2].data[i_part] = NULL;
     }
-    free(field.data);
-    field.data = NULL;
+    free(clt_cwp.coupling[s1].field[s2].data);
+    clt_cwp.coupling[s1].field[s2].data = NULL;
   }
-  if (field.u_tgts != NULL) free(field.u_tgts);
-  field.u_tgts = NULL;
-  if (field.c_tgts != NULL) free(field.c_tgts);
-  field.u_tgts = NULL;
-  if (field.srcs != NULL  ) free(field.srcs);
-  field.srcs = NULL;
-  if (field.n_entities != NULL  ) free(field.n_entities);
-  field.n_entities = NULL;
+  if (clt_cwp.coupling[s1].field[s2].u_tgts != NULL) free(clt_cwp.coupling[s1].field[s2].u_tgts);
+  clt_cwp.coupling[s1].field[s2].u_tgts = NULL;
+  if (clt_cwp.coupling[s1].field[s2].c_tgts != NULL) free(clt_cwp.coupling[s1].field[s2].c_tgts);
+  clt_cwp.coupling[s1].field[s2].u_tgts = NULL;
+  if (clt_cwp.coupling[s1].field[s2].srcs != NULL  ) free(clt_cwp.coupling[s1].field[s2].srcs);
+  clt_cwp.coupling[s1].field[s2].srcs = NULL;
+  if (clt_cwp.coupling[s1].field[s2].n_entities != NULL  ) free(clt_cwp.coupling[s1].field[s2].n_entities);
+  clt_cwp.coupling[s1].field[s2].n_entities = NULL;
 
-  coupling.field.erase(s2);
+  clt_cwp.coupling[s1].field.erase(s2);
 }
 
 void
@@ -5328,12 +5332,18 @@ CWP_client_Field_wait_irecv
   CWP_swap_endian_4bytes(&endian_n_part, 1);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_part, sizeof(int));
 
+  // send n_components
+  int endian_n_components =  clt_cwp.coupling[s1].field[s2].n_component;
+  CWP_swap_endian_4bytes(&endian_n_components, 1);
+  CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) &endian_n_components, sizeof(int));
+
   // send n_entities
   int *endian_n_entities = (int *) malloc(sizeof(int) * clt_cwp.coupling[s1].n_part);
   memcpy(endian_n_entities, clt_cwp.coupling[s1].field[s2].n_entities, sizeof(int) * clt_cwp.coupling[s1].n_part);
   CWP_swap_endian_4bytes(endian_n_entities, clt_cwp.coupling[s1].n_part);
   CWP_transfer_writedata(clt->socket,clt->max_msg_size,(void*) endian_n_entities, sizeof(int) * clt_cwp.coupling[s1].n_part);
   free(endian_n_entities);
+
 
   // receive status msg
   MPI_Barrier(clt->comm);
@@ -5352,11 +5362,20 @@ CWP_client_Field_wait_irecv
   }
 
   // read received data
+  int *n_computed_tgts = (int *) malloc(sizeof(int) * clt_cwp.coupling[s1].n_part);
+  CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void *) n_computed_tgts, sizeof(int) * clt_cwp.coupling[s1].n_part);
+  for (int i = 0; i < clt_cwp.coupling[s1].n_part; i++) {
+    printf("--> server n_computed_tgts[%d] : %d\n", i, n_computed_tgts[i]);
+  }
   for (int i_part = 0; i_part < clt_cwp.coupling[s1].n_part; i_part++) {
     if (clt_cwp.coupling[s1].field[s2].n_entities[i_part] != -1) {
-      CWP_transfer_readdata(clt->socket, clt->max_msg_size, clt_cwp.coupling[s1].field[s2].data[i_part], sizeof(double) * clt_cwp.coupling[s1].field[s2].n_entities[i_part]);
+      printf("--> client size : %ld\n", sizeof(double) * n_computed_tgts[i_part] * clt_cwp.coupling[s1].field[s2].n_component);
+      printf("--> clt_cwp.coupling[s1].field[s2].data[i_part] : %p\n", clt_cwp.coupling[s1].field[s2].data[i_part]);
+      CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void *) clt_cwp.coupling[s1].field[s2].data[i_part], sizeof(double) * n_computed_tgts[i_part] * clt_cwp.coupling[s1].field[s2].n_component);
     }
   }
+
+  free(n_computed_tgts);
 }
 
 void

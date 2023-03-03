@@ -3723,13 +3723,12 @@ CWP_server_Field_create
 
   // create occurence in map
   std::string s1(cpl_id);
-  t_coupling coupling = svr_cwp.coupling[s1];
   std::string s2(field_id);
   t_field field = t_field();
-  coupling.field.insert(std::make_pair(s2, field));
-  coupling.field[s2].data = (double **) malloc(sizeof(double*) * coupling.n_part);
-  for (int i_part = 0; i_part < coupling.n_part; i_part++) {
-    coupling.field[s2].data[i_part] = (double *) malloc(sizeof(double));
+  svr_cwp.coupling[s1].field.insert(std::make_pair(s2, field));
+  svr_cwp.coupling[s1].field[s2].data = (double **) malloc(sizeof(double*) * svr_cwp.coupling[s1].n_part);
+  for (int i_part = 0; i_part < svr_cwp.coupling[s1].n_part; i_part++) {
+    svr_cwp.coupling[s1].field[s2].data[i_part] = (double *) malloc(sizeof(double));
   }
 
   // free
@@ -4298,6 +4297,10 @@ CWP_server_Field_wait_irecv
   int n_part;
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_part, sizeof(int));
 
+  // read n_components
+  int n_components;
+  CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) &n_components, sizeof(int));
+
   // read n_entities
   int *n_entities = (int *) malloc(sizeof(int) * n_part);
   CWP_transfer_readdata(svr->connected_socket,svr->max_msg_size,(void*) n_entities, sizeof(int) * n_part);
@@ -4317,9 +4320,16 @@ CWP_server_Field_wait_irecv
                        tgt_field_id);
 
   double **data = (double **) malloc(sizeof(double *) * n_part);
+  int *n_computed_tgts = (int *) malloc(sizeof(int) * n_part);
   for (int i_part = 0; i_part < n_part; i_part++) {
     if (n_entities[i_part] != -1) {
-      data[i_part] = (double *) malloc(sizeof(double) * n_entities[i_part]);
+
+      n_computed_tgts[i_part] = CWP_N_computed_tgts_get(local_code_name,
+                                                        cpl_id,
+                                                        tgt_field_id,
+                                                        i_part);
+
+      data[i_part] = (double *) malloc(sizeof(double) * n_computed_tgts[i_part] * n_components);
     } else {
       data[i_part] = (double *) malloc(sizeof(double));
     }
@@ -4348,9 +4358,16 @@ CWP_server_Field_wait_irecv
 
   // send data
   svr->state = CWP_SVRSTATE_SENDPGETDATA;
+  // send sizes
+  CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) n_computed_tgts, sizeof(int) * n_part);
+  for (int i = 0; i < n_part; i++) {
+    printf("--> server n_computed_tgts[%d] : %d\n", i, n_computed_tgts[i]);
+  }
   for (int i_part = 0; i_part < n_part; i_part++) {
     if (n_entities[i_part] != -1) {
-      CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) data[i_part], sizeof(double) * n_entities[i_part]);
+      printf("--> server size : %ld\n", sizeof(double) * n_computed_tgts[i_part] * n_components);
+      printf("--> server data[i_part] : %p\n", data[i_part]);
+      CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) data[i_part], sizeof(double) * n_computed_tgts[i_part] * n_components);
     }
   }
 
@@ -4358,6 +4375,11 @@ CWP_server_Field_wait_irecv
   free(local_code_name);
   free(cpl_id);
   free(tgt_field_id);
+  free(n_computed_tgts);
+  for (int i_part = 0; i_part < n_part; i_part++) {
+    free(data[i_part]);
+  }
+  free(data);
 
   svr->state = CWP_SVRSTATE_LISTENINGMSG;
 }
