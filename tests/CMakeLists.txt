@@ -175,6 +175,7 @@ if (CWP_ENABLE_NEW_API)
     test_c_create (c_new_vs_old_vol_sendrecv 2)
     test_c_create (c_new_to_old_api_surf_P1P1 2)
     test_c_create (c_new_to_old_api_surf_P1P0_P0P1_poly 2)
+    test_c_create (c_new_api_vol 2)
 endif()
 
 if (NOT CWP_NEW_TO_OLD_API)
