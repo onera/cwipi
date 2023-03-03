@@ -929,10 +929,6 @@ main
   MPI_Barrier(comm);
 
   for (int i_code = 0 ; i_code < n_code ; i_code++) {
-    free((void *) recv_values[i_code]);
-  }
-
-  for (int i_code = 0 ; i_code < n_code ; i_code++) {
     if (code_id[i_code] == 2) {
       if (exchDirection[1] == CWP_FIELD_EXCH_RECV) {
 

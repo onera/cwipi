@@ -444,9 +444,6 @@ main
     CWP_client_Field_issend(code_name[0], cpl_name, field_name2);
   }
 
-  free(recvValues[0]);
-  recvValues[0] = NULL;
-
   if (strcmp(code_name[0], "code1") == 0) {
     CWP_client_Field_wait_issend(code_name[0], cpl_name, field_name1);
     CWP_client_Field_wait_irecv(code_name[0], cpl_name, field_name2);

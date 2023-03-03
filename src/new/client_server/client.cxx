@@ -4779,7 +4779,7 @@ CWP_client_Field_data_set
     if (clt_cwp.coupling[s1].field[s2].data == NULL) {
       clt_cwp.coupling[s1].field[s2].data        = (double **) malloc(sizeof(double *) * clt_cwp.coupling[s1].n_part);
       for (int j_part = 0; j_part < clt_cwp.coupling[s1].n_part; j_part++) {
-        clt_cwp.coupling[s1].field[s2].data[j_part] = (double *) malloc(sizeof(double));
+        clt_cwp.coupling[s1].field[s2].data[j_part] = NULL;
       }
 
       // Initialize to -1 to only do the recv for fields that have been set
@@ -4790,7 +4790,7 @@ CWP_client_Field_data_set
 
     // always set if target
     clt_cwp.coupling[s1].field[s2].n_entities[i_part] = n_entities;
-    clt_cwp.coupling[s1].field[s2].data[i_part] = (double *) realloc(clt_cwp.coupling[s1].field[s2].data[i_part], sizeof(double) * n_entities * clt_cwp.coupling[s1].field[s2].n_component);
+    clt_cwp.coupling[s1].field[s2].data[i_part] = (double *) malloc(sizeof(double) * n_entities * clt_cwp.coupling[s1].field[s2].n_component);
     *data = clt_cwp.coupling[s1].field[s2].data[i_part];
   }
 
@@ -5083,10 +5083,6 @@ CWP_client_Field_del
   std::string s2(field_id);
 
   if (clt_cwp.coupling[s1].field[s2].data != NULL) {
-    for (int i_part = 0; i_part < clt_cwp.coupling[s1].n_part; i_part++) {
-      if (clt_cwp.coupling[s1].field[s2].data[i_part] != NULL) free(clt_cwp.coupling[s1].field[s2].data[i_part]);
-      clt_cwp.coupling[s1].field[s2].data[i_part] = NULL;
-    }
     free(clt_cwp.coupling[s1].field[s2].data);
     clt_cwp.coupling[s1].field[s2].data = NULL;
   }
@@ -5364,13 +5360,8 @@ CWP_client_Field_wait_irecv
   // read received data
   int *n_computed_tgts = (int *) malloc(sizeof(int) * clt_cwp.coupling[s1].n_part);
   CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void *) n_computed_tgts, sizeof(int) * clt_cwp.coupling[s1].n_part);
-  for (int i = 0; i < clt_cwp.coupling[s1].n_part; i++) {
-    printf("--> server n_computed_tgts[%d] : %d\n", i, n_computed_tgts[i]);
-  }
   for (int i_part = 0; i_part < clt_cwp.coupling[s1].n_part; i_part++) {
     if (clt_cwp.coupling[s1].field[s2].n_entities[i_part] != -1) {
-      printf("--> client size : %ld\n", sizeof(double) * n_computed_tgts[i_part] * clt_cwp.coupling[s1].field[s2].n_component);
-      printf("--> clt_cwp.coupling[s1].field[s2].data[i_part] : %p\n", clt_cwp.coupling[s1].field[s2].data[i_part]);
       CWP_transfer_readdata(clt->socket, clt->max_msg_size, (void *) clt_cwp.coupling[s1].field[s2].data[i_part], sizeof(double) * n_computed_tgts[i_part] * clt_cwp.coupling[s1].field[s2].n_component);
     }
   }

@@ -4062,20 +4062,18 @@ CWP_server_Field_del
 
   // free
   std::string s1(cpl_id);
-  t_coupling coupling = svr_cwp.coupling[s1];
   std::string s2(field_id);
-  t_field field = coupling.field[s2];
 
-  if (field.data != NULL) {
-    for (int i_part = 0; i_part < coupling.n_part; i_part++) {
-      if (field.data[i_part] != NULL) free(field.data[i_part]);
-      field.data[i_part] = NULL;
+  if (svr_cwp.coupling[s1].field[s2].data != NULL) {
+    for (int i_part = 0; i_part < svr_cwp.coupling[s1].n_part; i_part++) {
+      if (svr_cwp.coupling[s1].field[s2].data[i_part] != NULL) free(svr_cwp.coupling[s1].field[s2].data[i_part]);
+      svr_cwp.coupling[s1].field[s2].data[i_part] = NULL;
     }
-    free(field.data);
-    field.data = NULL;
+    free(svr_cwp.coupling[s1].field[s2].data);
+    svr_cwp.coupling[s1].field[s2].data = NULL;
   }
 
-  coupling.field.erase(s2);
+  svr_cwp.coupling[s1].field.erase(s2);
 
   free(local_code_name);
   free(cpl_id);
@@ -4360,13 +4358,8 @@ CWP_server_Field_wait_irecv
   svr->state = CWP_SVRSTATE_SENDPGETDATA;
   // send sizes
   CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) n_computed_tgts, sizeof(int) * n_part);
-  for (int i = 0; i < n_part; i++) {
-    printf("--> server n_computed_tgts[%d] : %d\n", i, n_computed_tgts[i]);
-  }
   for (int i_part = 0; i_part < n_part; i_part++) {
     if (n_entities[i_part] != -1) {
-      printf("--> server size : %ld\n", sizeof(double) * n_computed_tgts[i_part] * n_components);
-      printf("--> server data[i_part] : %p\n", data[i_part]);
       CWP_transfer_writedata(svr->connected_socket,svr->max_msg_size, (void*) data[i_part], sizeof(double) * n_computed_tgts[i_part] * n_components);
     }
   }
@@ -4376,6 +4369,7 @@ CWP_server_Field_wait_irecv
   free(cpl_id);
   free(tgt_field_id);
   free(n_computed_tgts);
+  free(n_entities);
   for (int i_part = 0; i_part < n_part; i_part++) {
     free(data[i_part]);
   }
