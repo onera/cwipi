@@ -9,6 +9,7 @@ software. Communications between client and server are based on TCP/IP sockets. 
 running the classical implementation of the library. The API's of this mode and the new CWIPI version are broadly similar.
 
 There is a Python interface for this mode. A Fortran might be developped upon request.
+Doing ``export CWP_TCP_IP_VERBOSE=1`` allows to print more information about the client server exchanges for debugging.
 
 Example
 =======
@@ -18,7 +19,7 @@ Let *code 1* will be executing on 4 MPI ranks and *code 2* on 3 MPI ranks. As sh
 CWIPI itself will be running on the **server** side. That for each server nees to be launch on the same number of MPI ranks as its client counterpart.
 
 .. image:: ./images/client_server.png
-   :scale: 60%
+   :scale: 50%
 
 If *code 1* sends an interpolated field to *code 2*, the client of *code 1* send an TCP-IP message to its server counterpart to opperate the field exchange.
 At the same moment the client of *code 2* aks its server to retreive the field sent by *code 1*. The server of *code 2* will then send the field in a TCP-IP message to the client of *code 2*.
