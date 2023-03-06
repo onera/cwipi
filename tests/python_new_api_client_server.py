@@ -432,22 +432,22 @@ def runTest():
         if (i_rank == 0):
             print("pycwpclt.field_issend (0):\n")
 
-            pycwpclt.field_issend(code_names[i_rank], "test", "champs")
+            cpl.field_issend("champs")
 
         if (i_rank == 1):
-            print("pycwpclt.field_irecv (1):\n")
+            print("cpl.field_irecv (1):\n")
 
-            pycwpclt.field_irecv(code_names[i_rank], "test", "champs")
+            cpl.field_irecv("champs")
 
         if (i_rank == 0):
-            print("pycwpclt.field_wait_issend (0):\n")
+            print("cpl.field_wait_issend (0):\n")
 
-            pycwpclt.field_wait_issend(code_names[i_rank], "test", "champs")
+            cpl.field_wait_issend("champs")
 
         if (i_rank == 1):
-            print("pycwpclt.field_wait_irecv (1):\n")
+            print("cpl.field_wait_irecv (1):\n")
 
-            pycwpclt.field_wait_irecv(code_names[i_rank], "test", "champs")
+            cpl.field_wait_irecv("champs")
 
         comm.Barrier()
 
