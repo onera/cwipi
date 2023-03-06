@@ -62,3 +62,9 @@ if ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
     (CMAKE_C_COMPILER_ID STREQUAL "PGI"))
   set_target_properties (pycwpclt PROPERTIES COMPILE_FLAGS "-w")
 endif()
+
+install(DIRECTORY DESTINATION ${SITE_PACKAGES_CWP_OLD})
+install(FILES  "${CMAKE_CURRENT_SOURCE_DIR}/__init__.py"
+        DESTINATION            "${SITE_PACKAGES_CWP}")
+install(PROGRAMS  "${CMAKE_CURRENT_BINARY_DIR}/pycwpclt.so"
+        DESTINATION            "${SITE_PACKAGES_CWP}")

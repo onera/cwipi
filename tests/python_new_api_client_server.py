@@ -21,6 +21,8 @@
 import mpi4py.MPI as MPI
 import numpy as np
 import sys
+import os
+import time
 
 def runTest():
     """
@@ -31,6 +33,24 @@ def runTest():
 
     i_rank = comm.rank
     n_rank = comm.size
+
+    # launch server
+    if (i_rank == 0):
+        config = "python_new_api_client_server_o/code1/cwp_config_srv.txt"
+    else:
+        config = "python_new_api_client_server_o/code2/cwp_config_srv.txt"
+
+    if (i_rank == 0):
+        os.system("mkdir -p python_new_api_client_server_o/code1")
+        os.system("mkdir -p python_new_api_client_server_o/code2")
+        os.system("rm -f ./python_new_api_client_server_o/code1/cwp_config_srv.txt")
+        os.system("rm -f ./python_new_api_client_server_o/code2/cwp_config_srv.txt")
+        os.system("mpiexec -n 1 ../bin/cwp_server -cn code0 -p 49100 49100 -c \"python_new_api_client_server_o/code1/cwp_config_srv.txt\" : -n 1  ../bin/cwp_server -cn code1 -p 49101 49101 -c \"python_new_api_client_server_o/code2/cwp_config_srv.txt\" &")
+
+    while (os.access(config, os.R_OK) != 0):
+        time.sleep(1)
+
+    time.sleep(5)
 
     if (i_rank == 0):
         print("\nSTART: python_new_api_client_server.py")
@@ -57,124 +77,126 @@ def runTest():
 
     # INIT
     print("pycwpclt.init:\n")
-    config = "cwp_config_srv.txt"
+
+    intra_comm = comm.Split(i_rank)
+
     is_active_rank = np.array([1], dtype=np.int32)
     time_init = np.array([0.], dtype=np.double)
-    out = pycwpclt.init(comm,
+    out = pycwpclt.init(intra_comm,
                         config,
                         code_name,
                         is_active_rank,
                         time_init)
 
-    # STATE UPDATE
-    pycwpclt.state_update(code_names[i_rank], pycwpclt.STATE_IN_PROGRESS)
-    print("pycwpclt.state_get:\n")
-    state = pycwpclt.state_get(code_names[i_rank])
-    print("  - state : {param}\n".format(param=state))
-    pycwpclt.state_update(code_names[i_rank], pycwpclt.STATE_END)
+    # # STATE UPDATE
+    # pycwpclt.state_update(code_names[i_rank], pycwpclt.STATE_IN_PROGRESS)
+    # print("pycwpclt.state_get:\n")
+    # state = pycwpclt.state_get(code_names[i_rank])
+    # print("  - state : {param}\n".format(param=state))
+    # pycwpclt.state_update(code_names[i_rank], pycwpclt.STATE_END)
 
-    # PROPERTIES DUMP
-    print("pycwpclt.properties_dump:\n")
-    pycwpclt.properties_dump()
+    # # PROPERTIES DUMP
+    # print("pycwpclt.properties_dump:\n")
+    # pycwpclt.properties_dump()
 
-    # CODES
-    print("pycwpclt.code:\n")
-    n_code = pycwpclt.codes_nb_get()
-    code   = pycwpclt.codes_list_get()
-    n_loc_code = pycwpclt.loc_codes_nb_get()
-    loc_code   = pycwpclt.loc_codes_list_get()
-    print("  - n_code : {param}\n".format(param=n_code))
-    for i in range(n_code):
-        print("    --> {param}\n".format(param=code[i]))
-    print("  - n_loc_code : {param}\n".format(param=n_loc_code))
-    for i in range(n_loc_code):
-        print("    --> {param}\n".format(param=loc_code[i]))
+    # # CODES
+    # print("pycwpclt.code:\n")
+    # n_code = pycwpclt.codes_nb_get()
+    # code   = pycwpclt.codes_list_get()
+    # n_loc_code = pycwpclt.loc_codes_nb_get()
+    # loc_code   = pycwpclt.loc_codes_list_get()
+    # print("  - n_code : {param}\n".format(param=n_code))
+    # for i in range(n_code):
+    #     print("    --> {param}\n".format(param=code[i]))
+    # print("  - n_loc_code : {param}\n".format(param=n_loc_code))
+    # for i in range(n_loc_code):
+    #     print("    --> {param}\n".format(param=loc_code[i]))
 
-    comm.Barrier()
+    # comm.Barrier()
 
-    # PARAM
-    pycwpclt.param_lock(code_names[i_rank])
-    pycwpclt.param_add_dbl(code_names[i_rank], "double", 0.5)
-    pycwpclt.param_unlock(code_names[i_rank])
+    # # PARAM
+    # pycwpclt.param_lock(code_names[i_rank])
+    # pycwpclt.param_add_dbl(code_names[i_rank], "double", 0.5)
+    # pycwpclt.param_unlock(code_names[i_rank])
 
-    pycwpclt.param_lock(code_names[i_rank])
-    pycwpclt.param_add_str(code_names[i_rank], "str", "chat")
-    pycwpclt.param_unlock(code_names[i_rank])
+    # pycwpclt.param_lock(code_names[i_rank])
+    # pycwpclt.param_add_str(code_names[i_rank], "str", "chat")
+    # pycwpclt.param_unlock(code_names[i_rank])
 
-    if (i_rank == 0):
-        pycwpclt.param_lock(code_names[i_rank])
-        pycwpclt.param_add_int(code_names[i_rank], "entier", 1)
-        pycwpclt.param_unlock(code_names[i_rank])
+    # if (i_rank == 0):
+    #     pycwpclt.param_lock(code_names[i_rank])
+    #     pycwpclt.param_add_int(code_names[i_rank], "entier", 1)
+    #     pycwpclt.param_unlock(code_names[i_rank])
 
-    if (i_rank == 1):
-        pycwpclt.param_lock(code_names[i_rank])
-        pycwpclt.param_add_int(code_names[i_rank], "entier", -1)
-        pycwpclt.param_unlock(code_names[i_rank])
+    # if (i_rank == 1):
+    #     pycwpclt.param_lock(code_names[i_rank])
+    #     pycwpclt.param_add_int(code_names[i_rank], "entier", -1)
+    #     pycwpclt.param_unlock(code_names[i_rank])
 
-    comm.Barrier()
+    # comm.Barrier()
 
-    print("cwp.param_get ({param}):\n".format(param=i_rank))
-    value = pycwpclt.param_get(code_names[i_rank], "double", pycwpclt.DOUBLE)
-    print("  - value (0): {param}\n".format(param=value))
+    # print("cwp.param_get ({param}):\n".format(param=i_rank))
+    # value = pycwpclt.param_get(code_names[i_rank], "double", pycwpclt.DOUBLE)
+    # print("  - value (0): {param}\n".format(param=value))
 
-    pycwpclt.param_lock(code_names[i_rank])
-    pycwpclt.param_set_dbl(code_names[i_rank], "double", 0.25)
-    pycwpclt.param_unlock(code_names[i_rank])
+    # pycwpclt.param_lock(code_names[i_rank])
+    # pycwpclt.param_set_dbl(code_names[i_rank], "double", 0.25)
+    # pycwpclt.param_unlock(code_names[i_rank])
 
-    pycwpclt.param_lock(code_names[i_rank])
-    pycwpclt.param_set_str(code_names[i_rank], "str", "chien")
-    pycwpclt.param_unlock(code_names[i_rank])
+    # pycwpclt.param_lock(code_names[i_rank])
+    # pycwpclt.param_set_str(code_names[i_rank], "str", "chien")
+    # pycwpclt.param_unlock(code_names[i_rank])
 
-    if (i_rank == 0):
-        pycwpclt.param_lock(code_names[i_rank])
-        pycwpclt.param_set_int(code_names[i_rank], "entier", 2)
-        pycwpclt.param_unlock(code_names[i_rank])
+    # if (i_rank == 0):
+    #     pycwpclt.param_lock(code_names[i_rank])
+    #     pycwpclt.param_set_int(code_names[i_rank], "entier", 2)
+    #     pycwpclt.param_unlock(code_names[i_rank])
 
-    comm.Barrier()
+    # comm.Barrier()
 
-    print("pycwpclt.param_get ({param}):\n".format(param=i_rank))
-    value = pycwpclt.param_get(code_names[i_rank], "double", pycwpclt.DOUBLE)
-    print("  - value (1): {param}\n".format(param=value))
+    # print("pycwpclt.param_get ({param}):\n".format(param=i_rank))
+    # value = pycwpclt.param_get(code_names[i_rank], "double", pycwpclt.DOUBLE)
+    # print("  - value (1): {param}\n".format(param=value))
 
-    pycwpclt.param_lock(code_names[i_rank])
-    pycwpclt.param_del(code_names[i_rank], "str", pycwpclt.CHAR)
-    pycwpclt.param_unlock(code_names[i_rank])
+    # pycwpclt.param_lock(code_names[i_rank])
+    # pycwpclt.param_del(code_names[i_rank], "str", pycwpclt.CHAR)
+    # pycwpclt.param_unlock(code_names[i_rank])
 
-    comm.Barrier()
+    # comm.Barrier()
 
-    print("pycwpclt.param_n_get:\n")
-    n_param_str = pycwpclt.param_n_get(code_names[i_rank], pycwpclt.CHAR)
-    n_param_int = pycwpclt.param_n_get(code_names[i_rank], pycwpclt.INT)
-    print("  - n_param_str: {param}\n".format(param=n_param_str))
-    print("  - n_param_int: {param}\n".format(param=n_param_int))
+    # print("pycwpclt.param_n_get:\n")
+    # n_param_str = pycwpclt.param_n_get(code_names[i_rank], pycwpclt.CHAR)
+    # n_param_int = pycwpclt.param_n_get(code_names[i_rank], pycwpclt.INT)
+    # print("  - n_param_str: {param}\n".format(param=n_param_str))
+    # print("  - n_param_int: {param}\n".format(param=n_param_int))
 
-    print("pycwpclt.param_list_get:\n")
-    str_param = pycwpclt.param_list_get(code_names[i_rank], pycwpclt.CHAR)
-    for i in range(str_param['n_param']):
-        print("    --> str_param: {param}\n".format(param=str_param['param_names'][i]))
+    # print("pycwpclt.param_list_get:\n")
+    # str_param = pycwpclt.param_list_get(code_names[i_rank], pycwpclt.CHAR)
+    # for i in range(str_param['n_param']):
+    #     print("    --> str_param: {param}\n".format(param=str_param['param_names'][i]))
 
-    print("pycwpclt.param_is:\n")
-    bool_int = pycwpclt.param_is(code_names[i_rank], "entier", pycwpclt.INT)
-    print("  - bool_int 'entier': {param}\n".format(param=bool_int))
-    bool_int = pycwpclt.param_is(code_names[i_rank], "chapeau", pycwpclt.INT)
-    print("  - bool_int 'chapeau': {param}\n".format(param=bool_int))
+    # print("pycwpclt.param_is:\n")
+    # bool_int = pycwpclt.param_is(code_names[i_rank], "entier", pycwpclt.INT)
+    # print("  - bool_int 'entier': {param}\n".format(param=bool_int))
+    # bool_int = pycwpclt.param_is(code_names[i_rank], "chapeau", pycwpclt.INT)
+    # print("  - bool_int 'chapeau': {param}\n".format(param=bool_int))
 
-    comm.Barrier()
+    # comm.Barrier()
 
-    print("pycwpclt.param_list_get:\n")
-    int_param = pycwpclt.param_list_get(code_names[i_rank], pycwpclt.INT)
-    for i in range(int_param['n_param']):
-        print("    --> int_param: {param}\n".format(param=int_param['param_names'][i]))
+    # print("pycwpclt.param_list_get:\n")
+    # int_param = pycwpclt.param_list_get(code_names[i_rank], pycwpclt.INT)
+    # for i in range(int_param['n_param']):
+    #     print("    --> int_param: {param}\n".format(param=int_param['param_names'][i]))
 
-    print("pycwpclt.param_get ({param}):\n".format(param=i_rank))
-    value = pycwpclt.param_get(code_names[i_rank], "entier", pycwpclt.INT)
-    print("  - value int: {param}\n".format(param=value))
+    # print("pycwpclt.param_get ({param}):\n".format(param=i_rank))
+    # value = pycwpclt.param_get(code_names[i_rank], "entier", pycwpclt.INT)
+    # print("  - value int: {param}\n".format(param=value))
 
-    comm.Barrier()
+    # comm.Barrier()
 
-    print("pycwpclt.param_reduce:\n")
-    result = pycwpclt.param_reduce(pycwpclt.OP_MIN, "entier",  pycwpclt.INT, 2, code_names)
-    print("  - result: {param}\n".format(param=result))
+    # print("pycwpclt.param_reduce:\n")
+    # result = pycwpclt.param_reduce(pycwpclt.OP_MIN, "entier",  pycwpclt.INT, 2, code_names)
+    # print("  - result: {param}\n".format(param=result))
 
     # Cpl
     print("pycwpclt.Coupling:\n")
@@ -192,6 +214,86 @@ def runTest():
     cpl.visu_set(1,
                  pycwpclt.VISU_FORMAT_ENSIGHT,
                  "text")
+
+    # global data
+    global_data_name = "poffertjes"
+
+    send_data = np.array([13, 42, 99, 68], dtype=np.int32)
+    if (i_rank == 0):
+        cpl.global_data_issend(global_data_name,
+                               2,
+                               2,
+                               send_data)
+
+    recv_data = recv_global_data = np.zeros(4, dtype=np.int32)
+    if (i_rank == 1):
+        cpl.global_data_irecv(global_data_name,
+                              2,
+                              2,
+                              recv_data)
+
+    comm.Barrier()
+
+    if (i_rank == 0):
+        cpl.global_data_wait_issend(global_data_name)
+
+    if (i_rank == 1):
+        cpl.global_data_wait_irecv(global_data_name)
+
+
+    if (i_rank == 0):
+        print("send_global_data : {param}\n".format(param=send_data))
+    if (i_rank == 1):
+        print("recv_global_data : {param}\n".format(param=recv_data))
+
+    # part data
+    part_data_name = "ratchet and clank"
+    gnum_elt = [np.array([1, 2, 3], dtype=np.int64)] # implicit that n_part = 1
+
+    if (i_rank == 0):
+        cpl.part_data_create(part_data_name,
+                             pycwpclt.PARTDATA_SEND,
+                             gnum_elt)
+
+    if (i_rank == 1):
+        cpl.part_data_create(part_data_name,
+                             pycwpclt.PARTDATA_RECV,
+                             gnum_elt)
+
+    comm.Barrier()
+
+    send_data = [np.array([10, 11, 20, 21, 30, 31], dtype=np.int32)]
+    send_request = np.zeros(1, dtype=np.int32)
+    if (i_rank == 0):
+        cpl.part_data_issend(part_data_name,
+                             2,
+                             send_data,
+                             send_request)
+
+    recv_data = [np.zeros(6, dtype=np.int32)]
+    recv_request = np.zeros(1, dtype=np.int32)
+    if (i_rank == 1):
+        cpl.part_data_irecv(part_data_name,
+                            2,
+                            recv_data,
+                            recv_request)
+
+    comm.Barrier()
+
+    if (i_rank == 0):
+        cpl.part_data_wait_issend(part_data_name,
+                                  send_request[0])
+
+    if (i_rank == 1):
+        cpl.part_data_wait_irecv(part_data_name,
+                                 recv_request[0])
+
+    if (i_rank == 0):
+        print("send_part_data : {param}\n".format(param=send_data))
+    if (i_rank == 1):
+        print("recv_part_data : {param}\n".format(param=recv_data))
+
+    # high order mesh
 
     # std or polygon
     polygon = 0

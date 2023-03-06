@@ -364,7 +364,7 @@ cdef extern from "client_server/client.h":
                                  int                i_part,
                                  CWP_Field_map_t    map_type,
                                  int                n_entities,
-                                 double            **data)
+                                 double             *data)
   int CWP_client_Field_n_component_get(char      *local_code_name,
                                        char      *cpl_id,
                                        char      *field_id)
@@ -1428,7 +1428,7 @@ cdef class Field (object):
                                   i_part,
                                   map_type,
                                   n_entities,
-                      <double **> &data.data)
+                       <double *> data.data)
 
     def n_component_get(self):
         """
