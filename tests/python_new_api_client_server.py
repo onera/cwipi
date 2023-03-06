@@ -293,13 +293,49 @@ def runTest():
     if (i_rank == 1):
         print("recv_part_data : {param}\n".format(param=recv_data))
 
+    # MESH
+    polygon = 0
+    ho = 1
+
     # high order mesh
+    if (ho):
+        block_id = cpl.mesh_interf_block_add(pycwpclt.BLOCK_FACE_TRIAHO)
+        face_vtx = np.array([1, 3, 6, 2, 5, 4], dtype=np.int32)
+        cpl.mesh_interf_block_ho_set(0,
+                                     block_id,
+                                     1,
+                                     2,
+                                     face_vtx,
+                                     None)
+
+        vtx_coord = np.zeros(6*3, dtype=np.double)
+        ijk_grid  = np.array([0, 0,
+                             2, 0,
+                             0, 2,
+                             1, 0,
+                             1, 1,
+                             0, 1], dtype=np.int32)
+        k = 0
+        for j in range(3):
+            for i in range(3):
+                vtx_coord[k] = i
+                k += 1
+                vtx_coord[k] = j
+                k += 1
+        cpl.mesh_interf_ho_ordering_from_IJK_set(pycwpclt.BLOCK_FACE_TRIAHO,
+                                                 2,
+                                                 ijk_grid)
+
+        out = cpl.mesh_interf_block_ho_get(0,
+                                           block_id)
+
+        print("mesh_interf_block_ho_get:\n")
+        print("  - n_elts : {param}\n".format(param=out["n_elts"]))
+        print("  - order {param}\n".format(param=out["order"]))
+        print("  - connec {param}\n".format(param=out["connec"]))
 
     # std or polygon
-    polygon = 0
-
-    # MESH
-    if (polygon):
+    elif (polygon and not ho):
         if (i_rank == 0):
             coord = np.array([0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0], dtype=np.double)
             connec_idx = np.array([0, 3, 6], dtype=np.int32)
