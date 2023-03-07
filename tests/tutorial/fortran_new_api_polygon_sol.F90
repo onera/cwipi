@@ -39,6 +39,9 @@ program fortran_new_api_polygon_sol
 
   character(len = 99)           :: field_name
   integer(c_int)                :: n_components
+
+  integer(c_int)                :: n_uncomputed_tgts
+  integer(c_int),       pointer :: uncomputed_tgts
   !--------------------------------------------------------------------
 
   ! MPI Initialization :
@@ -189,39 +192,96 @@ program fortran_new_api_polygon_sol
 
   ! for code1
   if (i_rank == 0) then
-  call CWP_Field_create(code_names(1),                &
-                        coupling_name,                &
-                        field_name,                   &
-                        CWP_DOUBLE,                   &
-                        CWP_FIELD_STORAGE_INTERLACED, &
-                        n_components,                 &
-                        CWP_DOF_LOCATION_NODE,        &
-                        CWP_FIELD_EXCH_SEND,          &
-                        visu_status)
+    call CWP_Field_create(code_names(1),                &
+                          coupling_name,                &
+                          field_name,                   &
+                          CWP_DOUBLE,                   &
+                          CWP_FIELD_STORAGE_INTERLACED, &
+                          n_components,                 &
+                          CWP_DOF_LOCATION_NODE,        &
+                          CWP_FIELD_EXCH_SEND,          &
+                          visu_status)
 
 
-  call CWP_Field_data_set(code_names(1),        &
-                          coupling_name,        &
-                          field_name,           &
-                          0,                    &
-                          CWP_FIELD_MAP_SOURCE, &
-                          field_data)
+    call CWP_Field_data_set(code_names(1),        &
+                            coupling_name,        &
+                            field_name,           &
+                            0,                    &
+                            CWP_FIELD_MAP_SOURCE, &
+                            field_data)
+  ! for code2
   else
-    coupled_code_names(1) = "code1"
+    call CWP_Field_create(code_names(1),                &
+                          coupling_name,                &
+                          field_name,                   &
+                          CWP_DOUBLE,                   &
+                          CWP_FIELD_STORAGE_INTERLACED, &
+                          n_components,                 &
+                          CWP_DOF_LOCATION_NODE,        &
+                          CWP_FIELD_EXCH_RECV,          &
+                          visu_status)
+
+
+    call CWP_Field_data_set(code_names(1),        &
+                            coupling_name,        &
+                            field_name,           &
+                            0,                    &
+                            CWP_FIELD_MAP_TARGET, &
+                            field_data)
   endif
 
   ! Compute interpolation weights :
   ! Set a geometric tolerance of 10% of an element size for
   ! point localisation.
+  call CWP_Spatial_interp_property_set(code_names(1), &
+                                       coupling_name, &
+                                       "tolerance",   &
+                                       "double",      &
+                                       "0.1")
+
+  call CWP_Spatial_interp_weights_compute(code_names(1), &
+                                          coupling_name)
 
   ! Exchange field values between codes :
   ! The field exchange functions mimic the way the associated
   ! MPI functions work, see MPI documentation for more information.
+
   ! for code1
+  if (i_rank == 0) then
+    call CWP_Field_issend(code_names(1), &
+                          coupling_name, &
+                          field_name)
+  ! for code2
+  else
+    call CWP_Field_irecv(code_names(1), &
+                         coupling_name, &
+                         field_name)
+  endif
+
+  ! for code1
+  if (i_rank == 0) then
+    call CWP_Field_wait_issend(code_names(1), &
+                               coupling_name, &
+                               field_name)
+  ! for code2
+  else
+    call CWP_Field_wait_irecv(code_names(1), &
+                              coupling_name, &
+                              field_name)
+  endif
 
   ! Check interpolation :
   ! These functions allow to know how many and for which target
   ! vertices the interpolation operation has been successful.
+  n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_names(1), &
+                                                coupling_name, &
+                                                field_name,    &
+                                                0)
+
+  uncomputed_tgts = CWP_Uncomputed_tgts_get(code_names(1), &
+                                            coupling_name, &
+                                            field_name,    &
+                                            0)
 
   ! Delete field :
   call CWP_Field_Del(code_names(1),   &
