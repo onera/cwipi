@@ -60,13 +60,16 @@ program fortran_new_api_polygon_sol
   endif
 
   ! Initialize CWIPI :
-  ! Here we couple 2 codes (n_code refers to the number of codes on a given process).
-  ! code1 runs on the processor of MPI rank 0 and code2
-  ! runs on the processor if MPI rank 1. In this version of
-  ! CWIPI several codes can execute on the same MPI rank, that is why
-  ! an array of code names is given at initialization. is_active_rank
-  ! allows to tell which ranks of a given code will be used by CWIPI
-  ! in the coupling computations. time_init is not used yet.
+  ! Here 2 codes are coupled. code1 runs on the processor of
+  ! MPI rank 0 and code2 runs on the processor if MPI rank 1.
+  ! In this version of CWIPI several codes can execute on the
+  ! same MPI rank (here only one code per processor, so n_code = 1).
+  ! That for, an array of code names is given at initialization.
+  ! is_active_rank allows to tell which ranks on which a given code
+  ! runs will be used in the CWIPI coupling computations. time_init
+  ! is not used yet. intra_comm is an array of MPI communicators
+  ! giving the for each code on the processors the communicator
+  ! to communicate through the ranks of that code.
   n_code = 1
   ! for code1
   if (i_rank == 0) then
