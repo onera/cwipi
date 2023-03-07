@@ -72,11 +72,11 @@ def runTest():
     is_active_rank = np.array([1], dtype=np.int32)
     time_init = np.array([0.], dtype=np.double)
 
-    intra_comm = init_pycwp.init(comm,
-                                 n_code,
-                                 code_name,
-                                 is_active_rank,
-                                 time_init)
+    intra_comm = pycwp.init(comm,
+                            n_code,
+                            code_name,
+                            is_active_rank,
+                            time_init)
 
     # Create the coupling :
     # On CWIPI context can hold several couplings. Let us set up the
@@ -92,9 +92,9 @@ def runTest():
     if (i_rank == 1):
         coupled_code_name = ["code1"]
     n_part = 1
-    cpl = pycwp.Coupling(code_names[i_rank],
+    cpl = pycwp.Coupling(code_name[0],
                          "code1_code2",
-                         coupled_code_name[i_rank],
+                         coupled_code_name[0],
                          pycwp.INTERFACE_SURFACE,
                          pycwp.COMM_PAR_WITH_PART,
                          pycwp.SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE,
@@ -116,8 +116,8 @@ def runTest():
     # interlaced (x0, y0, z0, x1, y1, z1, ..., xn, yn, zn).
     # The None argument will be explained later.
     n_vtx = 11
-    coords = [0,0,0,  1,0,0,  2,0,0,  3,0,0,  0,1,0,  2,1,0, \
-              3,1,0,  1,2,0,  0,3,0,  2,3,0,  3,3,0]
+    coords = np.array([0,0,0,  1,0,0,  2,0,0,  3,0,0,  0,1,0,  2,1,0, \
+              3,1,0,  1,2,0,  0,3,0,  2,3,0,  3,3,0], dtype=np.double)
     cpl.mesh_interf_vtx_set(0,
                             n_vtx,
                             coords,
@@ -134,8 +134,8 @@ def runTest():
     block_id = cpl.mesh_interf_block_add(pycwp.BLOCK_FACE_POLY)
 
     n_elts = 5
-    connec_idx = [0,3,7,11,16,21]
-    connec = [1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8]
+    connec_idx = np.array([0,3,7,11,16,21], dtype=np.int32)
+    connec = np.array([1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8], dtype=np.int32)
     cpl.mesh_interf_f_poly_block_set(0,
                                      block_id,
                                      n_elts,
@@ -160,6 +160,12 @@ def runTest():
     # the user has to allocate the array for the field that will
     # be received by code2 (CWP_FIELD_MAP_TARGET).
     n_components = 1
+
+    send_field_data = np.arange(n_vtx*n_components, dtype=np.double)
+    recv_field_data = np.arange(n_vtx*n_components, dtype=np.double)
+
+    for i in range(n_vtx):
+      send_field_data[i] = coords[3*i]
 
     # for code1
     if (i_rank == 0):
@@ -221,9 +227,12 @@ def runTest():
     # Check interpolation :
     # These functions allow to know how many and for which target
     # vertices the interpolation operation has been successful.
-    n_uncomputed_tgts = cpl.n_uncomputed_tgts_get(0);
+    if (i_rank == 1):
+      n_uncomputed_tgts = cpl.field_n_uncomputed_tgts_get("a super fancy field",
+                                                          0);
 
-    uncomputed_tgts = cpl.uncomputed_tgts_get(0);
+      uncomputed_tgts = cpl.field_uncomputed_tgts_get("a super fancy field",
+                                                      0);
 
     # Delete field :
     # del of the class Field is automatically called once there

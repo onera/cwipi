@@ -270,14 +270,19 @@ main(int argc, char *argv[]) {
   // Check interpolation :
   // These functions allow to know how many and for which target
   // vertices the interpolation operation has been successful.
-  int n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_name[0],
-                                                    coupling_name,
-                                                    field_name,
-                                                    0);
-  int *uncomputed_tgts = CWP_Uncomputed_tgts_get(code_name[0],
-                                                 coupling_name,
-                                                 field_name,
-                                                 0);
+  int  n_uncomputed_tgts = -1;
+  int *uncomputed_tgts   = NULL;
+  if (i_rank == 1) {
+    n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_name[0],
+                                                  coupling_name,
+                                                  field_name,
+                                                  0);
+
+    uncomputed_tgts = (int *) CWP_Uncomputed_tgts_get(code_name[0],
+                                                      coupling_name,
+                                                      field_name,
+                                                      0);
+  }
 
   // Delete field :
   CWP_Field_del(code_name[0],
@@ -293,8 +298,15 @@ main(int argc, char *argv[]) {
               coupling_name);
 
   // free
-  free(send_field_data);
-  free(recv_field_data);
+  PDM_UNUSED(n_uncomputed_tgts);
+  PDM_UNUSED(uncomputed_tgts);
+  if (send_field_data != NULL) free(send_field_data);
+  if (recv_field_data != NULL) free(recv_field_data);
+  free(code_name);
+  free(is_active_rank);
+  free(time_init);
+  free(intra_comm);
+  free(coupled_code_name);
 
   // Finalize CWIPI :
   CWP_Finalize();

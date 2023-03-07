@@ -2434,8 +2434,8 @@ cdef class Coupling (object):
                }
 
     def field_n_uncomputed_tgts_get(self,
-                                    int     i_part,
-                                    char   *field_id):
+                                    char   *field_id,
+                                    int     i_part):
         """
         Get the number of uncomputed targets.
 
@@ -2452,8 +2452,8 @@ cdef class Coupling (object):
         return n_unc_tgt
 
     def field_uncomputed_tgts_get(self,
-                                  int     i_part,
-                                  char   *field_id):
+                                  char   *field_id,
+                                  int     i_part):
         """
         Get the uncomputed targets.
 
@@ -2470,8 +2470,8 @@ cdef class Coupling (object):
         return py_unc_tgt
 
     def field_n_computed_tgts_get(self,
-                                  int     i_part,
-                                  char   *field_id):
+                                  char   *field_id,
+                                  int     i_part):
         """
         Get the number of computed targets.
 
@@ -2488,8 +2488,8 @@ cdef class Coupling (object):
         return n_c_tgt
 
     def field_computed_tgts_get(self,
-                                int     i_part,
-                                char   *field_id):
+                                char   *field_id,
+                                int     i_part):
         """
         Get the computed targets.
 
@@ -2506,8 +2506,8 @@ cdef class Coupling (object):
         return py_c_tgt
 
     def field_n_involved_srcs_get(self,
-                                  int     i_part,
-                                  char   *field_id):
+                                  char   *field_id,
+                                  int     i_part):
         """
         Get the number of involved sources.
 
@@ -2524,8 +2524,8 @@ cdef class Coupling (object):
         return n_i_src
 
     def field_involved_srcs_get(self,
-                                int     i_part,
-                                char   *field_id):
+                                char   *field_id,
+                                int     i_part):
         """
         Get the involved sources.
 

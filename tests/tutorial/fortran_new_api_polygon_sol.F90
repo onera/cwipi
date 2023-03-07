@@ -134,6 +134,7 @@ program fortran_new_api_polygon_sol
     coupled_code_names(1) = "code1"
   endif
 
+  n_part = 1
   call CWP_Cpl_create(code_names(1),                                         &
                       coupling_name,                                         &
                       coupled_code_names(1),                                 &
@@ -161,8 +162,8 @@ program fortran_new_api_polygon_sol
   ! vtx_g_num is a null() argument that will be explained later.
   coords = (/0,0,0,  1,0,0,  2,0,0,  3,0,0,  0,1,0,  2,1,0,&
              3,1,0,  1,2,0,  0,3,0,  2,3,0,  3,3,0/)
-  allocate(p_coords(33))
-  do i=1,33
+  allocate(p_coords(3*n_vtx))
+  do i=1,3*n_vtx
     p_coords(i) = coords(i)
   end do
   call CWP_Mesh_interf_vtx_set(code_names(1), &
@@ -185,8 +186,8 @@ program fortran_new_api_polygon_sol
                                        CWP_BLOCK_FACE_POLY)
 
   connec_idx = (/0,3,7,11,16,21/)
-  allocate(p_coords(6))
-  do i=1,6
+  allocate(p_connec_idx(n_elts+1))
+  do i=1,n_elts+1
     p_connec_idx(i) = connec_idx(i)
   end do
   connec = (/1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8/)
@@ -222,11 +223,15 @@ program fortran_new_api_polygon_sol
   ! be received by code2 (CWP_FIELD_MAP_TARGET).
   field_name   = "a super fancy field"
   n_components = 1
-  allocate(send_field_data(n_vtx))
-  allocate(recv_field_data(n_vtx))
 
   ! for code1
   if (i_rank == 0) then
+
+    allocate(send_field_data(n_vtx * n_components))
+    do i=1,n_vtx
+      send_field_data(i) = coords(3*i)
+    end do
+
     call CWP_Field_create(code_names(1),                &
                           coupling_name,                &
                           field_name,                   &
@@ -246,6 +251,9 @@ program fortran_new_api_polygon_sol
                             send_field_data)
   ! for code2
   else
+
+    allocate(recv_field_data(n_vtx * n_components))
+
     call CWP_Field_create(code_names(1),                &
                           coupling_name,                &
                           field_name,                   &
@@ -308,16 +316,18 @@ program fortran_new_api_polygon_sol
   ! Check interpolation :
   ! These functions allow to know how many and for which target
   ! vertices the interpolation operation has been successful.
-  n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_names(1), &
-                                                coupling_name, &
-                                                field_name,    &
-                                                0)
+  if (i_rank == 1) then
+    n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_names(1), &
+                                                  coupling_name, &
+                                                  field_name,    &
+                                                  0)
 
-  allocate(send_field_data(n_uncomputed_tgts))
-  uncomputed_tgts => CWP_Uncomputed_tgts_get(code_names(1), &
-                                            coupling_name, &
-                                            field_name,    &
-                                            0)
+    allocate(send_field_data(n_uncomputed_tgts))
+    uncomputed_tgts => CWP_Uncomputed_tgts_get(code_names(1), &
+                                              coupling_name, &
+                                              field_name,    &
+                                              0)
+  endif
 
   ! Delete field :
   call CWP_Field_Del(code_names(1),   &
@@ -331,6 +341,16 @@ program fortran_new_api_polygon_sol
   ! Delete the coupling :
   call CWP_Cpl_Del(code_names(1), &
                    coupling_name)
+
+  ! free
+  deallocate(p_coords);
+  deallocate(p_connec);
+  deallocate(p_connec_idx);
+  if (i_rank == 0) then
+    deallocate(send_field_data);
+  else
+    deallocate(recv_field_data);
+  endif
 
   ! Finalize CWIPI :
   call CWP_Finalize()
