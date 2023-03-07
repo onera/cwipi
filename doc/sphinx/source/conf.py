@@ -148,7 +148,10 @@ todo_include_todos = True
 # -- Breathe configuration ------------------------------------------------
 
 breathe_projects_source = {
-    "cwipi" : ( "../../../src", ["cwipi.h", "new/cwp.h", "new/client_server/client.h"] )
+    "cwipi" : ( "../../../src", ["cwipi.h", "new/cwp.h", "new/client_server/client.h",
+                                 "../test/tutorial/c_new_api_polygon_sol.c",
+                                 "../test/tutorial/fortran_new_api_polygon_sol.F90",
+                                 "../test/tutorial/python_new_api_polygon_sol.py"] )
 }
 
 breathe_default_project = "cwipi"

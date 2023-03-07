@@ -14,6 +14,7 @@ OpenPALM software (CERFACS) or by writing a Python supervisor script calling the
 Summary
 -------
 
+:ref:`Quick Start <quick_start>` references basic information for inexperienced CWIPI users.
 
 :ref:`Old CWIPI <old_cwipi>` is the documentation of the 0.* version of CWIPI. It describes most of the high level APIs provided by CWIPI.
 
@@ -28,6 +29,7 @@ Summary
   :maxdepth: 1
   :caption: Reference
 
+  quick_start
   installation
   faq
   old_cwipi/old_cwipi
