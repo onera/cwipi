@@ -61,6 +61,7 @@ main(int argc, char *argv[]) {
   const char  **code_name      = malloc(sizeof(char *) * n_code);
   CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
   double       *time_init      = malloc(sizeof(double) * n_code);
+  MPI_Comm     *intra_comm     = malloc(sizeof(MPI_Comm) * n_code);
 
   if (i_rank == 0) {
     code_name[0]      = "code1";
@@ -75,7 +76,7 @@ main(int argc, char *argv[]) {
   }
   CWP_Init(MPI_COMM_WORLD,
            n_code,
-           (const char **) code_names,
+           (const char **) code_name,
            is_active_rank,
            time_init,
            intra_comm);
@@ -126,8 +127,8 @@ main(int argc, char *argv[]) {
   // interlaced (x0, y0, z0, x1, y1, z1, ..., xn, yn, zn).
   // The NULL argument will be explained later.
   int     n_vtx  = 11;
-  double *coords = {0,0,0,  1,0,0,  2,0,0,  3,0,0,  0,1,0,  2,1,0,
-                    3,1,0,  1,2,0,  0,3,0,  2,3,0,  3,3,0};
+  double coords[33] = {0,0,0,  1,0,0,  2,0,0,  3,0,0,  0,1,0,  2,1,0,
+                       3,1,0,  1,2,0,  0,3,0,  2,3,0,  3,3,0};
   CWP_Mesh_interf_vtx_set(code_name[0],
                           coupling_name,
                           0,
@@ -148,8 +149,8 @@ main(int argc, char *argv[]) {
                                            CWP_BLOCK_FACE_POLY);
 
   int n_elts = 5;
-  int *connec_idx = {0,3,7,11,16,21};
-  int *connec     = {1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8};
+  int connec_idx[6] = {0,3,7,11,16,21};
+  int connec[21]    = {1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8};
   CWP_Mesh_interf_f_poly_block_set(code_name[0],
                                    coupling_name,
                                    0,
@@ -292,9 +293,6 @@ main(int argc, char *argv[]) {
               coupling_name);
 
   // free
-  free(coords);
-  free(connec_idx);
-  free(connec);
   free(send_field_data);
   free(recv_field_data);
 

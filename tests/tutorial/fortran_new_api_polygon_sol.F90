@@ -14,34 +14,51 @@ program fortran_new_api_polygon_sol
 #endif
 
   !--------------------------------------------------------------------
-  integer, parameter :: n_vtx = 11, n_elts = 5
+  integer, parameter                      :: n_vtx = 11, n_elts = 5
 
-  integer :: ierr
-  integer :: i_rank, n_rank
+  integer                                 :: ierr
+  integer                                 :: i_rank, n_rank
 
-  integer                       :: n_code
-  character(len = 5),   pointer :: code_names(:)         => null()
-  integer,              pointer :: is_coupled_rank(:)    => null()
-  double precision,     pointer :: time_init(:)          => null()
-  integer,              pointer :: intra_comms(:)        => null()
+  integer                                 :: n_code
+  character(len = 5),            pointer  :: code_names(:)         => null()
+  integer,                       pointer  :: is_coupled_rank(:)    => null()
+  double precision,              pointer  :: time_init(:)          => null()
+  integer,                       pointer  :: intra_comms(:)        => null()
 
-  integer                       :: n_part
-  character(len = 5),   pointer :: coupled_code_names(:) => null()
-  character(len = 99)           :: coupling_name
+  integer                                 :: n_part
+  character(len = 5),            pointer  :: coupled_code_names(:) => null()
+  character(len = 99)                     :: coupling_name
 
-  double precision              :: coords(n_vtx*3)
-  integer(c_long),      pointer :: vtx_g_num(:)  => null()
+  double precision                        :: coords(n_vtx*3)
+  double precision, dimension(:), pointer :: p_coords
+  integer(c_long), pointer, dimension(:)  :: vtx_g_num => null()
 
-  integer                       :: connec_idx(n_elts+1)
-  integer                       :: connec(21)
-  integer(c_long),      pointer :: elt_g_num(:)  => null()
-  integer(c_int)                :: id_block
+  integer                                 :: connec_idx(n_elts+1)
+  integer                                 :: connec(21)
+  integer, pointer, dimension(:)          :: p_connec_idx
+  integer, pointer, dimension(:)          :: p_connec
+  integer(c_long), pointer, dimension(:)  :: elt_g_num  => null()
+  integer(c_int)                          :: id_block
 
-  character(len = 99)           :: field_name
-  integer(c_int)                :: n_components
+  character(len = 99)                     :: field_name
+  integer(c_int)                          :: n_components
 
-  integer(c_int)                :: n_uncomputed_tgts
-  integer(c_int),       pointer :: uncomputed_tgts
+  double precision                        :: ampl
+  double precision                        :: dt
+  double precision                        :: freq
+  double precision                        :: omega
+  double precision                        :: phi
+  double precision                        :: randLevel
+  double precision                        :: time
+  double precision                        :: xmax, xmin, ymax, ymin
+  integer                                 :: i, j, it, itdeb, itend, n2, n_partition
+  integer                                 :: n_vtx_seg
+
+  double precision,              pointer  :: send_field_data(:) => null()
+  double precision,              pointer  :: recv_field_data(:) => null()
+
+  integer(c_int)                          :: n_uncomputed_tgts
+  integer(c_int),                pointer  :: uncomputed_tgts(:) => null()
   !--------------------------------------------------------------------
 
   ! MPI Initialization :
@@ -49,7 +66,7 @@ program fortran_new_api_polygon_sol
   ! coupling requires to run on several processors because of the
   ! different coupled codes.
   call MPI_Init(ierr)
-  call MPI_Comm_rank(mpi_comm_world, irank, ierr)
+  call MPI_Comm_rank(mpi_comm_world, i_rank, ierr)
   call MPI_Comm_size(mpi_comm_world, n_rank, ierr)
 
   ! This test mimics the coupling between 2 codes runing each
@@ -71,6 +88,12 @@ program fortran_new_api_polygon_sol
   ! giving the for each code on the processors the communicator
   ! to communicate through the ranks of that code.
   n_code = 1
+
+  allocate(code_names(n_code),         &
+           is_coupled_rank(n_code),    &
+           time_init(n_code),          &
+           intra_comms(n_code))
+
   ! for code1
   if (i_rank == 0) then
     code_names(1)         = "code1"
@@ -82,11 +105,6 @@ program fortran_new_api_polygon_sol
     is_coupled_rank(1)    = CWP_STATUS_ON
     time_init(1)          = 0.d0
   endif
-
-  allocate(code_names(n_code),         &
-           is_coupled_rank(n_code),    &
-           time_init(n_code),          &
-           intra_comms(n_code))
 
   call CWP_Init(mpi_comm_world,  &
                 n_code,          &
@@ -143,11 +161,15 @@ program fortran_new_api_polygon_sol
   ! vtx_g_num is a null() argument that will be explained later.
   coords = (/0,0,0,  1,0,0,  2,0,0,  3,0,0,  0,1,0,  2,1,0,&
              3,1,0,  1,2,0,  0,3,0,  2,3,0,  3,3,0/)
+  allocate(p_coords(33))
+  do i=1,33
+    p_coords(i) = coords(i)
+  end do
   call CWP_Mesh_interf_vtx_set(code_names(1), &
                                coupling_name, &
                                0,             &
                                n_vtx,         &
-                               coords,        &
+                               p_coords,        &
                                vtx_g_num)
 
   ! Set the mesh polygons connectiviy :
@@ -163,14 +185,22 @@ program fortran_new_api_polygon_sol
                                        CWP_BLOCK_FACE_POLY)
 
   connec_idx = (/0,3,7,11,16,21/)
+  allocate(p_coords(6))
+  do i=1,6
+    p_connec_idx(i) = connec_idx(i)
+  end do
   connec = (/1,2,5,   3,4,7,6,   5,8,10,9   ,5,2,3,6,8,   6,7,11,10,8/)
+  allocate(p_connec(21))
+  do i=1,21
+    p_connec(i) = connec(i)
+  end do
   call CWP_Mesh_interf_f_poly_block_set(code_names(1), &
                                         coupling_name, &
                                         0,             &
                                         id_block,      &
-                                        n_elt,         &
-                                        connec_idx,    &
-                                        connec,        &
+                                        n_elts,        &
+                                        p_connec_idx,    &
+                                        p_connec,        &
                                         elt_g_num)
 
   ! Finalize mesh :
@@ -192,6 +222,8 @@ program fortran_new_api_polygon_sol
   ! be received by code2 (CWP_FIELD_MAP_TARGET).
   field_name   = "a super fancy field"
   n_components = 1
+  allocate(send_field_data(n_vtx))
+  allocate(recv_field_data(n_vtx))
 
   ! for code1
   if (i_rank == 0) then
@@ -203,7 +235,7 @@ program fortran_new_api_polygon_sol
                           n_components,                 &
                           CWP_DOF_LOCATION_NODE,        &
                           CWP_FIELD_EXCH_SEND,          &
-                          visu_status)
+                          CWP_STATUS_ON)
 
 
     call CWP_Field_data_set(code_names(1),        &
@@ -211,7 +243,7 @@ program fortran_new_api_polygon_sol
                             field_name,           &
                             0,                    &
                             CWP_FIELD_MAP_SOURCE, &
-                            field_data)
+                            send_field_data)
   ! for code2
   else
     call CWP_Field_create(code_names(1),                &
@@ -222,7 +254,7 @@ program fortran_new_api_polygon_sol
                           n_components,                 &
                           CWP_DOF_LOCATION_NODE,        &
                           CWP_FIELD_EXCH_RECV,          &
-                          visu_status)
+                          CWP_STATUS_ON)
 
 
     call CWP_Field_data_set(code_names(1),        &
@@ -230,7 +262,7 @@ program fortran_new_api_polygon_sol
                             field_name,           &
                             0,                    &
                             CWP_FIELD_MAP_TARGET, &
-                            field_data)
+                            recv_field_data)
   endif
 
   ! Compute interpolation weights :
@@ -281,7 +313,8 @@ program fortran_new_api_polygon_sol
                                                 field_name,    &
                                                 0)
 
-  uncomputed_tgts = CWP_Uncomputed_tgts_get(code_names(1), &
+  allocate(send_field_data(n_uncomputed_tgts))
+  uncomputed_tgts => CWP_Uncomputed_tgts_get(code_names(1), &
                                             coupling_name, &
                                             field_name,    &
                                             0)
@@ -305,4 +338,4 @@ program fortran_new_api_polygon_sol
   ! Finalize MPI :
   call MPI_Finalize(ierr)
 
-end program ortran_new_api_polygon_sol
+end program fortran_new_api_polygon_sol

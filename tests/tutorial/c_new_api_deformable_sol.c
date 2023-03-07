@@ -20,8 +20,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <time.h>
+#include <math.h>
 
 #include "cwp.h"
+#include "pdm_error.h"
 
 #include "grid_mesh.h"
 
@@ -59,9 +62,9 @@ _user_interpolation_function
     // TO DO: pourquoi on définit dans le code cell_vertex la fonction d'interpolation
     //        qui va être utilisé côté code cell_center alors?
 
-    for (int i = 0; i < ; i++) {
-      ((double *) buffer_out)[i] = ((double *) buffer_in)[closest_src_pt[i]-1];
-    }
+    // for (int i = 0; i < ; i++) {
+    //   ((double *) buffer_out)[i] = ((double *) buffer_in)[closest_src_pt[i]-1];
+    // }
 
   } else {
     PDM_error(__FILE__, __LINE__, 0, "Error user interpolation not implemented for dof location %d\n", location);
@@ -92,9 +95,9 @@ main(int argc, char *argv[]) {
   int n2 = two * (int) pow(n_partition, two);
 
   if (n2 != n_rank) {
-    if (rank == 0)
+    if (i_rank == 0)
       printf("      Not executed : only available if the number of processus in the form of '2 * n^2' \n");
-      exit(1);
+    exit(1);
     return EXIT_SUCCESS;
   }
 
@@ -104,6 +107,7 @@ main(int argc, char *argv[]) {
   const char  **code_name      = malloc(sizeof(char *) * n_code);
   CWP_Status_t *is_active_rank = malloc(sizeof(CWP_Status_t) * n_code);
   double       *time_init      = malloc(sizeof(double) * n_code);
+  MPI_Comm     *intra_comm     = malloc(sizeof(MPI_Comm) * n_code);
 
   code_name[0]      = "code2";
   is_active_rank[0] = CWP_STATUS_ON;
@@ -111,7 +115,7 @@ main(int argc, char *argv[]) {
 
   CWP_Init(MPI_COMM_WORLD,
            n_code,
-           (const char **) code_names,
+           (const char **) code_name,
            is_active_rank,
            time_init,
            intra_comm);
@@ -216,7 +220,7 @@ main(int argc, char *argv[]) {
                                        coupling_name,
                                        0,
                                        block_id,
-                                       n_elts,
+                                       n_elt,
                                        connec_idx,
                                        connec,
                                        NULL);

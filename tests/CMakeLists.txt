@@ -242,3 +242,5 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
     endif()
   endif()
 endif()
+
+add_subdirectory(tutorial)
