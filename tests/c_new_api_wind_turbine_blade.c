@@ -22,6 +22,7 @@
 #include <assert.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
 #include "cwipi.h"
 #include "cwp.h"
@@ -79,7 +80,9 @@ _read_args
   char                  *all_file_names[],
   int                    all_n_rank[],
   double                *tolerance,
-  CWP_Spatial_interp_t  *spatial_interp_algo
+  int                   *n_closest_pts,
+  CWP_Spatial_interp_t  *spatial_interp_algo,
+  int                   *visu
 )
 {
   int i = 1;
@@ -137,6 +140,15 @@ _read_args
         *tolerance = atof(argv[i]);
       }
     }
+    else if (strcmp(argv[i], "-n_cls") == 0) {
+      i++;
+      if (i >= argc) {
+        _usage(EXIT_FAILURE);
+      }
+      else {
+        *n_closest_pts = atoi(argv[i]);
+      }
+    }
     else if (strcmp(argv[i], "-algo") == 0) {
       i++;
       if (i >= argc) {
@@ -146,10 +158,39 @@ _read_args
         *spatial_interp_algo = atoi(argv[i]);
       }
     }
+    else if (strcmp(argv[i], "-visu") == 0) {
+      *visu = 1;
+    }
     else
       _usage(EXIT_FAILURE);
     i++;
   }
+}
+
+static double
+_Franke
+(
+ const double x,
+ const double y,
+ const double z
+ )
+{
+  return 0.75*exp(-(pow(9*x-2,2) + pow(9*y-2,2) + pow(9*z-2,2))/4)
+  +      0.75*exp(-(pow(9*x+1,2)/49 + (9*y+1)/10 + (9*z+1)/10))
+  +      0.5 *exp(-(pow(9*x-7,2) + pow(9*y-3,2) + pow(9*y-5,2))/4)
+  -      0.2 *exp(-(pow(9*x-4,2) + pow(9*y-7,2) + pow(9*z-5,2)));
+}
+
+
+static double
+_paper
+(
+ const double x,
+ const double y,
+ const double z
+ )
+{
+  return 0.78 + cos(10*(x+y+z));
 }
 
 
@@ -365,6 +406,51 @@ _gen_part_data
   if (dvtx_field_value != NULL) {
     free(dvtx_field_value);
   }
+
+
+
+  if (1) {
+    if (*n_vtx_field > 0) {
+      for (int ifield = 0; ifield < *n_vtx_field; ifield++) {
+        free((*vtx_field_name) [ifield]);
+        free((*pvtx_field_value)[ifield]);
+      }
+      free(*vtx_field_name  );
+      free(*vtx_field_type  );
+      free(*vtx_field_stride);
+      free(*pvtx_field_value);
+    }
+
+    *n_vtx_field = 1;
+
+    *vtx_field_type = malloc(sizeof(PDM_data_t) * 1);
+    (*vtx_field_type)[0] = PDM_DOUBLE;
+
+    *vtx_field_stride = malloc(sizeof(int) * 1);
+    (*vtx_field_stride)[0] = 1;
+
+    *vtx_field_name = malloc(sizeof(char *) * 1);
+    (*vtx_field_name)[0] = malloc(sizeof(char) * 6);
+    sprintf((*vtx_field_name)[0], "field");
+
+    *pvtx_field_value = malloc(sizeof(double **) * 1);
+    (*pvtx_field_value)[0] = malloc(sizeof(double *) * n_part);
+    for (int ipart = 0; ipart < n_part; ipart++) {
+      (*pvtx_field_value)[0][ipart] = malloc(sizeof(double) * (*pn_vtx)[ipart]);
+      for (int i = 0; i < (*pn_vtx)[ipart]; i++) {
+        if (0) {
+          (*pvtx_field_value)[0][ipart][i] = _Franke((*pvtx_coord)[ipart][3*i  ],
+                                                     (*pvtx_coord)[ipart][3*i+1],
+                                                     (*pvtx_coord)[ipart][3*i+2]);
+        }
+        else {
+          (*pvtx_field_value)[0][ipart][i] = _paper((*pvtx_coord)[ipart][3*i  ],
+                                                    (*pvtx_coord)[ipart][3*i+1],
+                                                    (*pvtx_coord)[ipart][3*i+2]);
+        }
+      }
+    }
+  }
 }
 
 
@@ -380,9 +466,11 @@ main(int argc, char *argv[]) {
   int     verbose = 0;
   char   *all_file_names[2] = {NULL};
   int     all_n_rank    [2] = {-1};
-  double  tolerance        = 1e-2;
-  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
-  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
+  double  tolerance         = 1e-2;
+  int     n_closest_pts     = 5;
+  int     visu              = 0;
+  CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_INTERSECTION;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_IDENTITY;
 
@@ -394,7 +482,9 @@ main(int argc, char *argv[]) {
               all_file_names,
               all_n_rank,
               &tolerance,
-              &spatial_interp);
+              &n_closest_pts,
+              &spatial_interp,
+              &visu);
 
   // Initialize MPI
   MPI_Init(&argc, &argv);
@@ -620,13 +710,20 @@ main(int argc, char *argv[]) {
 
   // Exchange
   for (int icode = 0; icode < n_code; icode++) {
-    char char_tol[99];
-    sprintf(char_tol, "%e", tolerance);
+    char char_param[99];
+    sprintf(char_param, "%e", tolerance);
     CWP_Spatial_interp_property_set(code_name[icode],
                                     cpl_name,
                                     "tolerance",
                                     "double",
-                                    char_tol);
+                                    char_param);
+
+    sprintf(char_param, "%d", n_closest_pts);
+    CWP_Spatial_interp_property_set(code_name[icode],
+                                    cpl_name,
+                                    "n_closest_pts",
+                                    "int",
+                                    char_param);
 
     CWP_Spatial_interp_weights_compute(code_name[icode], cpl_name);
   }
@@ -656,12 +753,35 @@ main(int argc, char *argv[]) {
 
   // Check interpolation error
   double max_err = 0.;
+  double **pvtx_error = NULL;//
   for (int icode = 0; icode < n_code; icode++) {
     if (code_id[icode] == 2) {
+      int i_rank_intra;
+      MPI_Comm_rank(intra_comm[icode], &i_rank_intra);
+      pvtx_error = malloc(sizeof(double *) * n_part[icode]);
       for (int ipart = 0; ipart < n_part[icode]; ipart++) {
+        pvtx_error[ipart] = malloc(sizeof(double) * pn_vtx[icode][ipart]);
         for (int i = 0; i < pn_vtx[icode][ipart] * vtx_field_stride[icode][0]; i++) {
           double err = ABS(pvtx_field_value[icode][0][ipart][i] - recv_val[icode][ipart][i]);
+          pvtx_error[ipart][i] = err;
           max_err = MAX(max_err, err);
+        }
+
+        if (visu) {
+          char filename[999];
+          sprintf(filename, "interp_error_%d.vtk", n_part[icode]*i_rank_intra + ipart);
+          PDM_vtk_write_polydata_field(filename,
+                                       pn_vtx[icode][ipart],
+                                       pvtx_coord[icode][ipart],
+                                       pvtx_ln_to_gn[icode][ipart],
+                                       pn_face[icode][ipart],
+                                       pface_vtx_idx[icode][ipart],
+                                       pface_vtx[icode][ipart],
+                                       pface_ln_to_gn[icode][ipart],
+                                       NULL,
+                                       NULL,
+                                       "interp_error",
+                                       pvtx_error[ipart]);
         }
       }
     }
@@ -691,6 +811,12 @@ main(int argc, char *argv[]) {
       free(pface_ln_to_gn[icode][ipart]);
       free(pvtx_ln_to_gn [icode][ipart]);
       free(recv_val      [icode][ipart]);
+      if (code_id[icode] == 2) {
+        free(pvtx_error[ipart]);
+      }
+    }
+    if (code_id[icode] == 2) {
+      free(pvtx_error);
     }
     for (int ifield = 0; ifield < n_vtx_field[icode]; ifield++) {
       for (int ipart = 0; ipart < n_part[icode]; ipart++) {
