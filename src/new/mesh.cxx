@@ -164,7 +164,8 @@ namespace cwipi {
       }
 
       if (_isFaceGnumComputed) {
-        free (_global_num_face[i]);
+        free (_faceLNToGN[i]);
+        // free (_global_num_face[i]);
       }
 
       if (_isEltGnumComputed) {
@@ -826,7 +827,7 @@ namespace cwipi {
                                                 // _cellFaceNb[i_part],
                                                 _cellFace[i_part],
                                                 _cellLNToGN[i_part],
-                                                PDM_OWNERSHIP_USER);
+                                                PDM_OWNERSHIP_KEEP);//USER);
 
 
       }//end i_part loop
