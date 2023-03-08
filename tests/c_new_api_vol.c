@@ -725,10 +725,10 @@ int main
               n_part[icode],
               part_method,
               n_vtx_seg[icode],
+              0.,
+              0.,
+              0.,
               1.,
-              2.,
-              3.,
-              3.14,//1.,
               rotate,
               randomize,
               elt_type       [icode],
@@ -784,6 +784,8 @@ int main
   double **field_ptr = NULL;
 
   for (int icode = 0; icode < n_code; icode++) {
+    // srand(code_id[icode]);
+
     CWP_Field_exch_t exch_type;
     CWP_Field_map_t  map_type;
     if (code_id[icode] == 1) {
@@ -793,8 +795,8 @@ int main
         send_val[ipart] = malloc(sizeof(double) * pn_cell[icode][ipart] * stride);
         for (int i = 0; i < pn_cell[icode][ipart]; i++) {
           for (int j = 0; j < stride; j++) {
-            // send_val[ipart][stride*i+j] = (double) (j+1)*pface_ln_to_gn[icode][ipart][i];
-            send_val[ipart][stride*i+j] = (double) rand() / (double) RAND_MAX;
+            send_val[ipart][stride*i+j] = (double) (j+1)*pcell_ln_to_gn[icode][ipart][i];
+            // send_val[ipart][stride*i+j] = (double) rand() / (double) RAND_MAX;
             // send_val[ipart][stride*i+j] = 1;
           }
         }
@@ -898,18 +900,18 @@ int main
         double *cell_volume = malloc(sizeof(double) * pn_cell[icode][ipart]);
         double *cell_center = malloc(sizeof(double) * pn_cell[icode][ipart] * 3);
         PDM_geom_elem_polyhedra_properties_triangulated(1,
-                                           pn_cell       [icode][ipart],
-                                           pn_face       [icode][ipart],
-                                           pface_vtx_idx [icode][ipart],
-                                           pface_vtx     [icode][ipart],
-                                           pcell_face_idx[icode][ipart],
-                                           pcell_face    [icode][ipart],
-                                           pn_vtx        [icode][ipart],
-                                           pvtx_coord    [icode][ipart],
-                                           cell_volume,
-                                           cell_center,
-                                           NULL,
-                                           NULL);
+                                                        pn_cell       [icode][ipart],
+                                                        pn_face       [icode][ipart],
+                                                        pface_vtx_idx [icode][ipart],
+                                                        pface_vtx     [icode][ipart],
+                                                        pcell_face_idx[icode][ipart],
+                                                        pcell_face    [icode][ipart],
+                                                        pn_vtx        [icode][ipart],
+                                                        pvtx_coord    [icode][ipart],
+                                                        cell_volume,
+                                                        cell_center,
+                                                        NULL,
+                                                        NULL);
 
         for (int i = 0; i < pn_cell[icode][ipart]; i++) {
           if (cell_volume[i] < 0) {
