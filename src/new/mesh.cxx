@@ -1113,6 +1113,7 @@ namespace cwipi {
                                                    block->ConnecGet()[i_part],
                                                    block->GNumMeshGet(i_part),
                                                    NULL,
+                                                   NULL,
                                                    PDM_OWNERSHIP_USER);
 
           }
