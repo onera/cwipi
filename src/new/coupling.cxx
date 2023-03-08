@@ -2825,6 +2825,7 @@ namespace cwipi {
         it2 = _spatial_interp_send.find(newKey);
 
         if (it2 == _spatial_interp_send.end()) {
+          printf("sendingFieldID : %s\n", sendingFieldID.c_str());
           PDM_error(__FILE__, __LINE__, 0, "\nUnknown spatial interpolation\n");
         }
         else {

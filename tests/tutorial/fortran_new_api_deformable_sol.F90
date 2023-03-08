@@ -38,7 +38,8 @@ program fortran_new_api_deformable_sol
   integer(c_long), pointer, dimension(:)      :: elt_g_num => null()
   integer(c_int)                              :: id_block
 
-  character(len = 99)                         :: field_name
+  character(len = 99)                         :: send_field_name
+  character(len = 99)                         :: recv_field_name
   integer(c_int)                              :: n_components
 
   double precision                            :: ampl
@@ -98,15 +99,18 @@ program fortran_new_api_deformable_sol
                 time_init,       &
                 intra_comms)
 
+  print *, "FORTRAN - CWP_Init : OK"
+
   ! Create the coupling :
   ! CWP_DYNAMIC_MESH_DEFORMABLE allows us to take into account the modifications
   ! to the mesh over the coupling steps.
-  coupling_name     = "code1_code2";
+  coupling_name     = "code1_code2"
 
   allocate(coupled_code_names(n_code))
 
   coupled_code_names(1) = "code2"
 
+  n_part = 1;
   call CWP_Cpl_create(code_names(1),                                         &
                       coupling_name,                                         &
                       coupled_code_names(1),                                 &
@@ -117,12 +121,16 @@ program fortran_new_api_deformable_sol
                       CWP_DYNAMIC_MESH_DEFORMABLE,                           &
                       CWP_TIME_EXCH_USER_CONTROLLED)
 
+  print *, "FORTRAN - CWP_Cpl_create : OK"
+
   ! Set coupling visualisation:
   call CWP_Visu_set(code_names(1),           &
                     coupling_name,           &
                     1,                       &
                     CWP_VISU_FORMAT_ENSIGHT, &
                     "text")
+
+  print *, "FORTRAN - CWP_Visu_set : OK"
 
   ! Set mesh data :
   xmin       = -10.d0
@@ -160,6 +168,11 @@ program fortran_new_api_deformable_sol
                  connec,&
                  intra_comms(1))
 
+  print *, "FORTRAN - grid_mesh : OK"
+
+  send_field_name = "girafe"
+  recv_field_name = "chinchilla"
+
   ! Interations :
   time  = 0.0d0
   dt    = 0.1d0
@@ -193,10 +206,14 @@ program fortran_new_api_deformable_sol
                                    coords,        &
                                    vtx_g_num)
 
+      print *, "FORTRAN - CWP_Mesh_interf_vtx_set : OK"
+
       ! Set the mesh polygons connectiviy :
       id_block = CWP_Mesh_interf_block_add(code_names(1),       &
                                            coupling_name,       &
                                            CWP_BLOCK_FACE_POLY)
+
+      print *, "FORTRAN - CWP_Mesh_interf_block_add : OK"
 
       call CWP_Mesh_interf_f_poly_block_set(code_names(1), &
                                             coupling_name, &
@@ -207,14 +224,18 @@ program fortran_new_api_deformable_sol
                                             connec,        &
                                             elt_g_num)
 
+      print *, "FORTRAN - CWP_Mesh_interf_f_poly_block_set : OK"
+
       ! Finalize mesh :
       call CWP_Mesh_interf_finalize(code_names(1), &
                                     coupling_name)
 
+      print *, "FORTRAN - CWP_Mesh_interf_finalize : OK"
+
       ! Create field :
       call CWP_Field_create(code_names(1),                &
                             coupling_name,                &
-                            field_name,                   &
+                            send_field_name,              &
                             CWP_DOUBLE,                   &
                             CWP_FIELD_STORAGE_INTERLACED, &
                             n_components,                 &
@@ -222,9 +243,11 @@ program fortran_new_api_deformable_sol
                             CWP_FIELD_EXCH_SEND,          &
                             CWP_STATUS_ON)
 
+      print *, "FORTRAN - CWP_Field_create send : OK"
+
       call CWP_Field_create(code_names(1),                &
                             coupling_name,                &
-                            field_name,                   &
+                            recv_field_name,              &
                             CWP_DOUBLE,                   &
                             CWP_FIELD_STORAGE_INTERLACED, &
                             n_components,                 &
@@ -232,12 +255,16 @@ program fortran_new_api_deformable_sol
                             CWP_FIELD_EXCH_RECV,          &
                             CWP_STATUS_ON)
 
+      print *, "FORTRAN - CWP_Field_create recv : OK"
+
       ! Set interpolation property :
       call CWP_Spatial_interp_property_set(code_names(1), &
                                            coupling_name, &
                                            "tolerance",   &
                                            "double",      &
                                            "0.1")
+
+      print *, "FORTRAN - CWP_Spatial_interp_property_set : OK"
 
     else
 
@@ -265,6 +292,13 @@ program fortran_new_api_deformable_sol
                                 xyz_dest,      &
                                 pts_g_num)
 
+      print *, "FORTRAN - CWP_User_tgt_pts_set : OK"
+
+      ! Finalize mesh :
+      call CWP_Mesh_interf_finalize(code_names(1), &
+                                    coupling_name)
+
+      print *, "FORTRAN - CWP_Mesh_interf_finalize : OK"
 
     endif
 
@@ -272,48 +306,66 @@ program fortran_new_api_deformable_sol
     call CWP_Spatial_interp_weights_compute(code_names(1), &
                                             coupling_name)
 
-    ! Set and exchange the field values :
-    call CWP_Field_data_set(code_names(1),        &
-                            coupling_name,        &
-                            field_name,           &
-                            0,                    &
-                            CWP_FIELD_MAP_SOURCE, &
-                            send_field_data)
-
-    call CWP_Field_issend(code_names(1), &
-                          coupling_name, &
-                          field_name)
+    print *, "FORTRAN - CWP_Spatial_interp_weights_compute : OK"
 
     call CWP_Field_data_set(code_names(1),        &
                             coupling_name,        &
-                            field_name,           &
+                            recv_field_name,      &
                             0,                    &
                             CWP_FIELD_MAP_TARGET, &
                             recv_field_data)
 
+    print *, "FORTRAN - CWP_Field_data_set recv : OK"
+
     call CWP_Field_irecv(code_names(1), &
                          coupling_name, &
-                         field_name)
+                         recv_field_name)
 
-    call CWP_Field_wait_issend(code_names(1), &
-                               coupling_name, &
-                               field_name)
+    print *, "FORTRAN - CWP_Field_irecv : OK"
+
+    ! Set and exchange the field values :
+    call CWP_Field_data_set(code_names(1),        &
+                            coupling_name,        &
+                            send_field_name,      &
+                            0,                    &
+                            CWP_FIELD_MAP_SOURCE, &
+                            send_field_data)
+
+    print *, "FORTRAN - CWP_Field_data_set send : OK"
+
+    call CWP_Field_issend(code_names(1), &
+                          coupling_name, &
+                          send_field_name)
+
+    print *, "FORTRAN - CWP_Field_issend : OK"
 
     call CWP_Field_wait_irecv(code_names(1), &
                               coupling_name, &
-                              field_name)
+                              recv_field_name)
+
+    print *, "FORTRAN - CWP_Field_wait_irecv : OK"
+
+    call CWP_Field_wait_issend(code_names(1), &
+                               coupling_name, &
+                               send_field_name)
+
+    print *, "FORTRAN - CWP_Field_wait_issend : OK"
 
     ! Check interpolation :
-    n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_names(1), &
-                                                  coupling_name, &
-                                                  field_name,    &
+    n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_names(1),   &
+                                                  coupling_name,   &
+                                                  recv_field_name, &
                                                   0)
 
+    print *, "FORTRAN - CWP_N_uncomputed_tgts_get : OK"
+
     if (n_uncomputed_tgts /= 0) then
-      uncomputed_tgts => CWP_Uncomputed_tgts_get(code_names(1), &
-                                                 coupling_name, &
-                                                 field_name,    &
+      uncomputed_tgts => CWP_Uncomputed_tgts_get(code_names(1),   &
+                                                 coupling_name,   &
+                                                 recv_field_name, &
                                                  0)
+
+      print *, "FORTRAN - CWP_Uncomputed_tgts_get : OK"
     endif
 
   enddo
@@ -321,15 +373,27 @@ program fortran_new_api_deformable_sol
   ! Delete field :
   call CWP_Field_Del(code_names(1),   &
                      coupling_name,   &
-                     field_name)
+                     send_field_name)
+
+  print *, "FORTRAN - CWP_Field_Del send : OK"
+
+  call CWP_Field_Del(code_names(1),   &
+                     coupling_name,   &
+                     recv_field_name)
+
+  print *, "FORTRAN - CWP_Field_Del recv : OK"
 
   ! Delete Mesh :
   call CWP_Mesh_interf_del(code_names(1), &
                            coupling_name)
 
+  print *, "FORTRAN - CWP_Mesh_interf_del : OK"
+
   ! Delete the coupling :
   call CWP_Cpl_Del(code_names(1), &
                    coupling_name)
+
+  print *, "FORTRAN - CWP_Cpl_Del : OK"
 
   ! free
   deallocate(code_names)
@@ -347,6 +411,8 @@ program fortran_new_api_deformable_sol
 
   ! Finalize CWIPI :
   call CWP_Finalize()
+
+  print *, "FORTRAN - CWP_Finalize : OK"
 
   ! Finalize MPI :
   call MPI_Finalize(ierr)
@@ -413,24 +479,25 @@ contains
 
      nBoundVerticesSeg = n_partition + 1
      nBoundVertices = nBoundVerticesSeg * nBoundVerticesSeg
+
      allocate(boundRanks(3*nBoundVertices))
 
      if (i_rank == 0) then
        do j=1,nBoundVerticesSeg
          do i=1,nBoundVerticesSeg
-           boundRanks(3 * (j * nBoundVerticesSeg + i)) = xmin + i * lX
-           boundRanks(3 * (j * nBoundVerticesSeg + i) + 1) = ymin + j * lY
-           boundRanks(3 * (j * nBoundVerticesSeg + i) + 2) = 0.
-           if (j /= 0 .and. j /= (nBoundVerticesSeg - 1)) then
+           boundRanks(3 * ((j-1) * nBoundVerticesSeg + (i-1)) + 1) = xmin + (i-1) * lX
+           boundRanks(3 * ((j-1) * nBoundVerticesSeg + (i-1)) + 2) = ymin + (j-1) * lY
+           boundRanks(3 * ((j-1) * nBoundVerticesSeg + (i-1)) + 3) = 0.
+           if (j /= 1 .and. j /= nBoundVerticesSeg) then
              rd01 =  random01()
-             boundRanks(3 * (j * nBoundVerticesSeg + i) + 1) =  &
-             boundRanks(3 * (j * nBoundVerticesSeg + i) + 1) &
+             boundRanks(3 * ((j-1) * nBoundVerticesSeg + (i-1)) + 2) =  &
+             boundRanks(3 * ((j-1) * nBoundVerticesSeg + (i-1)) + 2) &
              + rd01 * randLevel * lY
            endif
-           if (i /= 0 .and. i /= (nBoundVerticesSeg - 1)) then
+           if (i /= 1 .and. i /= nBoundVerticesSeg) then
              rd01 =  random01()
-             boundRanks(3 * (j * nBoundVerticesSeg + i)) = &
-             boundRanks(3 * (j * nBoundVerticesSeg + i)) + &
+             boundRanks(3 * ((j-1) * nBoundVerticesSeg + (i-1)) + 1) = &
+             boundRanks(3 * ((j-1) * nBoundVerticesSeg + (i-1)) + 1) + &
              rd01 * randLevel * lX
            endif
          enddo
@@ -439,7 +506,7 @@ contains
 
      call MPI_Bcast(boundRanks, 3 * nBoundVertices, MPI_DOUBLE_PRECISION, 0, comm)
 
-     allocate(boundRanks(3*4))
+     allocate(boundRank(3*4))
 
      ii = modulo(i_rank, n_partition)
      jj = i_rank / n_partition
@@ -449,21 +516,21 @@ contains
      p3 = (nBoundVerticesSeg * (jj + 1)) + ii + 1
      p4 = (nBoundVerticesSeg * (jj + 1)) + ii
 
-     boundRank(0 * 3 + 0) = boundRanks(3 * p1    )
      boundRank(0 * 3 + 1) = boundRanks(3 * p1 + 1)
      boundRank(0 * 3 + 2) = boundRanks(3 * p1 + 2)
+     boundRank(0 * 3 + 3) = boundRanks(3 * p1 + 3)
 
-     boundRank(1 * 3 + 0) = boundRanks(3 * p2    )
      boundRank(1 * 3 + 1) = boundRanks(3 * p2 + 1)
      boundRank(1 * 3 + 2) = boundRanks(3 * p2 + 2)
+     boundRank(1 * 3 + 3) = boundRanks(3 * p2 + 3)
 
-     boundRank(2 * 3 + 0) = boundRanks(3 * p3    )
      boundRank(2 * 3 + 1) = boundRanks(3 * p3 + 1)
      boundRank(2 * 3 + 2) = boundRanks(3 * p3 + 2)
+     boundRank(2 * 3 + 3) = boundRanks(3 * p3 + 3)
 
-     boundRank(3 * 3 + 0) = boundRanks(3 * p4    )
      boundRank(3 * 3 + 1) = boundRanks(3 * p4 + 1)
      boundRank(3 * 3 + 2) = boundRanks(3 * p4 + 2)
+     boundRank(3 * 3 + 3) = boundRanks(3 * p4 + 3)
 
      deallocate(boundRanks)
 
@@ -482,26 +549,26 @@ contains
        do i=1,n_vtx_seg
          randU = u
          randV = v
-         if ((i /= 0) .and. (j /= 0) .and. (j /= n_vtx_seg - 1) .and. (i /= n_vtx_seg - 1)) then
+         if ((i /= 1) .and. (j /= 1) .and. (j /= n_vtx_seg) .and. (i /= n_vtx_seg)) then
            rd01 =  random01()
            randU = randU + rd01 * randLevel * deltaU
            rd01 =  random01()
            randV = randV + rd01 * randLevel * deltaV
          endif
 
-         coords(3 * (j * n_vtx_seg + i) + 0) = &
-         0.25 * ((1 - randU - randV + randU * randV) * boundRank(0 * 3 + 0) + &
-                 (1 + randU - randV - randU * randV) * boundRank(1 * 3 + 0) + &
-                 (1 + randU + randV + randU * randV) * boundRank(2 * 3 + 0) + &
-                 (1 - randU + randV - randU * randV) * boundRank(3 * 3 + 0) )
-
-         coords(3 * (j * n_vtx_seg + i) + 1) = &
+         coords(3 * ((j-1) * n_vtx_seg + (i-1)) + 1) = &
          0.25 * ((1 - randU - randV + randU * randV) * boundRank(0 * 3 + 1) + &
                  (1 + randU - randV - randU * randV) * boundRank(1 * 3 + 1) + &
                  (1 + randU + randV + randU * randV) * boundRank(2 * 3 + 1) + &
                  (1 - randU + randV - randU * randV) * boundRank(3 * 3 + 1) )
 
-         coords(3 * (j * n_vtx_seg + i) + 2) = 0.
+         coords(3 * ((j-1) * n_vtx_seg + (i-1)) + 2) = &
+         0.25 * ((1 - randU - randV + randU * randV) * boundRank(0 * 3 + 2) + &
+                 (1 + randU - randV - randU * randV) * boundRank(1 * 3 + 2) + &
+                 (1 + randU + randV + randU * randV) * boundRank(2 * 3 + 2) + &
+                 (1 - randU + randV - randU * randV) * boundRank(3 * 3 + 2) )
+
+         coords(3 * ((j-1) * n_vtx_seg + (i-1)) + 3) = 0.
 
          u = u + deltaU
 
@@ -516,19 +583,19 @@ contains
 
      ! Define connectivity
 
-     connec_idx(0) = 0;
-     do i=1,(nElts+1)
+     connec_idx(1) = 0;
+     do i=2,(nElts+1)
        connec_idx(i) = connec_idx(i-1) + 4
      enddo
 
 
      k = 0;
-     do j=1,n_vtx_seg
-       do i=1,n_vtx_seg
-         connec(4 * k)     =       j * n_vtx_seg + i     + 1
-         connec(4 * k + 1) =       j * n_vtx_seg + i + 1 + 1
-         connec(4 * k + 2) = (j + 1) * n_vtx_seg + i + 1 + 1
-         connec(4 * k + 3) = (j + 1) * n_vtx_seg + i     + 1
+     do j=1,(n_vtx_seg-1)
+       do i=1,(n_vtx_seg-1)
+         connec(4 * k + 1) = (j - 1) * n_vtx_seg + (i-1)     + 1
+         connec(4 * k + 2) = (j - 1) * n_vtx_seg + (i-1) + 1 + 1
+         connec(4 * k + 3) =  j      * n_vtx_seg + (i-1) + 1 + 1
+         connec(4 * k + 4) =  j      * n_vtx_seg + (i-1)     + 1
          k = k + 1
        enddo
      enddo
