@@ -30,6 +30,9 @@ program fortran_new_api_deformable_sol
   double precision, dimension(:), pointer     :: coords
   integer(c_long), pointer, dimension(:)      :: vtx_g_num => null()
 
+  double precision, dimension(:), pointer     :: xyz_dest
+  integer(c_long), pointer, dimension(:)      :: pts_g_num => null()
+
   integer, pointer, dimension(:)              :: connec_idx
   integer, pointer, dimension(:)              :: connec
   integer(c_long), pointer, dimension(:)      :: elt_g_num => null()
@@ -140,18 +143,22 @@ program fortran_new_api_deformable_sol
   allocate(coords(3 * n_vtx))
   allocate(connec_idx(n_elt + 1))
   allocate(connec(4 * n_elt))
+  allocate(send_field_data(n_elt))
+  allocate(recv_field_data(n_elt))
+  allocate(xyz_dest(3 * n_elt))
+  allocate(uncomputed_tgts(n_elt))
 
-  call grid_mesh_f(xmin, &
-                   xmax, &
-                   ymin, &
-                   ymax, &
-                   randLevel, &
-                   n_vtx_seg, &
-                   n_partition, &
-                   coords,  &
-                   connec_idx,&
-                   connec,&
-                   intra_comms(1))
+  call grid_mesh(xmin, &
+                 xmax, &
+                 ymin, &
+                 ymax, &
+                 randLevel, &
+                 n_vtx_seg, &
+                 n_partition, &
+                 coords,  &
+                 connec_idx,&
+                 connec,&
+                 intra_comms(1))
 
   ! Interations :
   time  = 0.0d0
@@ -163,18 +170,18 @@ program fortran_new_api_deformable_sol
     time = (it-itdeb)*dt
 
     do i = 1, n_vtx
-      coords((i-1)*3+3) = (coords((i-1)*3+1)*coords((i-1)*3+1)+ &
-                          coords((i-1)*3+2)*coords((i-1)*3+2))* &
-                          ampl*cos(omega*time+phi)
+      coords((i-1)*3+3) = (coords((i-1)*3+1)*coords((i-1)*3+1)+  &
+                           coords((i-1)*3+2)*coords((i-1)*3+2))* &
+                           ampl*cos(omega*time+phi)
     enddo
 
-    ! do  i = 1, n_elt
-    !   values(i) = 0.
-    !   do j = connec_idx(i)+1, connec_idx(i+1)
-    !     values(i) = values(i) + coords((connec(j)-1)*3+3)
-    !   enddo
-    !   values(i) = values(i)/ (connec_idx(i+1) - connec_idx(i))
-    ! enddo
+    do  i = 1, n_elt
+      send_field_data(i) = 0.
+      do j = connec_idx(i)+1, connec_idx(i+1)
+        send_field_data(i) = send_field_data(i) + coords((connec(j)-1)*3+3)
+      enddo
+      send_field_data(i) = send_field_data(i)/ (connec_idx(i+1) - connec_idx(i))
+    enddo
 
     if (it == itdeb) then
 
@@ -211,7 +218,7 @@ program fortran_new_api_deformable_sol
                             CWP_DOUBLE,                   &
                             CWP_FIELD_STORAGE_INTERLACED, &
                             n_components,                 &
-                            CWP_DOF_LOCATION_NODE,        &
+                            CWP_DOF_LOCATION_USER,        &
                             CWP_FIELD_EXCH_SEND,          &
                             CWP_STATUS_ON)
 
@@ -221,7 +228,7 @@ program fortran_new_api_deformable_sol
                             CWP_DOUBLE,                   &
                             CWP_FIELD_STORAGE_INTERLACED, &
                             n_components,                 &
-                            CWP_DOF_LOCATION_NODE,        &
+                            CWP_DOF_LOCATION_USER,        &
                             CWP_FIELD_EXCH_RECV,          &
                             CWP_STATUS_ON)
 
@@ -234,9 +241,30 @@ program fortran_new_api_deformable_sol
 
     else
 
-      ! Update mesh :
-      ! Nothing to do since CWIPI stores the pointers of the arrays passed. Thus if the data
-      ! in the pointer is changed, it is automatically in the CWIPI code.
+      ! Update user defined degrees of freedom :
+      ! When CWP_DOF_LOCATION_USER, calling CWP_User_tgt_pts_set is mandatory.
+
+      do i = 1, n_elt
+         xyz_dest((i-1)*3+1) = 0.
+         xyz_dest((i-1)*3+2) = 0.
+         xyz_dest((i-1)*3+3) = 0.
+         do j = connec_idx(i)+1, connec_idx(i+1)
+             xyz_dest((i-1)*3+1) = xyz_dest((i-1)*3+1) + coords((connec(j)-1)*3+1)
+             xyz_dest((i-1)*3+2) = xyz_dest((i-1)*3+2) + coords((connec(j)-1)*3+2)
+             xyz_dest((i-1)*3+3) = xyz_dest((i-1)*3+3) + coords((connec(j)-1)*3+3)
+         enddo
+         xyz_dest((i-1)*3+1) = xyz_dest((i-1)*3+1) / (connec_idx(i+1) - connec_idx(i))
+         xyz_dest((i-1)*3+2) = xyz_dest((i-1)*3+2) / (connec_idx(i+1) - connec_idx(i))
+         xyz_dest((i-1)*3+3) = xyz_dest((i-1)*3+3) / (connec_idx(i+1) - connec_idx(i))
+      enddo
+
+      call CWP_User_tgt_pts_set(code_names(1), &
+                                coupling_name, &
+                                0,             &
+                                n_elt,         &
+                                xyz_dest,      &
+                                pts_g_num)
+
 
     endif
 
@@ -281,10 +309,12 @@ program fortran_new_api_deformable_sol
                                                   field_name,    &
                                                   0)
 
-    uncomputed_tgts => CWP_Uncomputed_tgts_get(code_names(1), &
-                                               coupling_name, &
-                                               field_name,    &
-                                               0)
+    if (n_uncomputed_tgts /= 0) then
+      uncomputed_tgts => CWP_Uncomputed_tgts_get(code_names(1), &
+                                                 coupling_name, &
+                                                 field_name,    &
+                                                 0)
+    endif
 
   enddo
 
@@ -301,10 +331,208 @@ program fortran_new_api_deformable_sol
   call CWP_Cpl_Del(code_names(1), &
                    coupling_name)
 
+  ! free
+  deallocate(code_names)
+  deallocate(is_coupled_rank)
+  deallocate(time_init)
+  deallocate(intra_comms)
+  deallocate(coupled_code_names)
+  deallocate(coords)
+  deallocate(connec_idx)
+  deallocate(connec)
+  deallocate(send_field_data)
+  deallocate(recv_field_data)
+  deallocate(xyz_dest)
+  deallocate(uncomputed_tgts)
+
   ! Finalize CWIPI :
   call CWP_Finalize()
 
   ! Finalize MPI :
   call MPI_Finalize(ierr)
+
+contains
+   ! Return a random number beteween -1 and 1
+   function random01() &
+     result (resultat)
+
+     implicit none
+
+
+     integer          :: signe, rsigna, rsignb, rd
+     double precision :: u
+     double precision :: resultat
+
+     call random_number(u)
+
+     rsigna = floor(32768*u) ! RAND_MAX + 1
+     rsignb = floor(32768*u)
+     signe = (rsigna - rsignb) / abs(rsigna - rsignb)
+     rd = floor(32768*u)
+     resultat = signe*(rd/32767) ! RAND_MAX
+
+   end function random01
+
+   ! Create mesh
+   subroutine grid_mesh(xmin, &
+                        xmax, &
+                        ymin, &
+                        ymax, &
+                        randLevel, &
+                        n_vtx_seg, &
+                        n_partition, &
+                        coords,  &
+                        connec_idx,&
+                        connec,&
+                        comm)
+
+     implicit none
+
+     double precision, intent(in) :: xmax, xmin, ymax, ymin, randLevel
+     integer,          intent(in) :: n_vtx_seg, n_partition, comm
+
+     double precision, pointer, dimension(:), intent(out)  :: coords
+     integer, pointer, dimension(:), intent(out)           :: connec_idx
+     integer, pointer, dimension(:), intent(out)           :: connec
+
+     integer          :: i, j, k, ii, jj, p1, p2, p3, p4
+     integer          :: ierr, i_rank, n_rank
+     integer          :: nBoundVerticesSeg, nBoundVertices, nVertex, nElts
+     double precision :: lX, lY, rd01
+     double precision :: deltaU, deltaV, u, v, randU, randV
+
+     double precision, pointer, dimension(:) :: boundRanks, boundRank
+
+     call MPI_Comm_rank(comm, i_rank, ierr)
+     call MPI_Comm_size(comm, n_rank, ierr)
+
+     lX = (xmax - xmin) / n_partition
+     lY = (ymax - ymin) / n_partition
+
+     ! Compute local partition bounds with random level
+
+     nBoundVerticesSeg = n_partition + 1
+     nBoundVertices = nBoundVerticesSeg * nBoundVerticesSeg
+     allocate(boundRanks(3*nBoundVertices))
+
+     if (i_rank == 0) then
+       do j=1,nBoundVerticesSeg
+         do i=1,nBoundVerticesSeg
+           boundRanks(3 * (j * nBoundVerticesSeg + i)) = xmin + i * lX
+           boundRanks(3 * (j * nBoundVerticesSeg + i) + 1) = ymin + j * lY
+           boundRanks(3 * (j * nBoundVerticesSeg + i) + 2) = 0.
+           if (j /= 0 .and. j /= (nBoundVerticesSeg - 1)) then
+             rd01 =  random01()
+             boundRanks(3 * (j * nBoundVerticesSeg + i) + 1) =  &
+             boundRanks(3 * (j * nBoundVerticesSeg + i) + 1) &
+             + rd01 * randLevel * lY
+           endif
+           if (i /= 0 .and. i /= (nBoundVerticesSeg - 1)) then
+             rd01 =  random01()
+             boundRanks(3 * (j * nBoundVerticesSeg + i)) = &
+             boundRanks(3 * (j * nBoundVerticesSeg + i)) + &
+             rd01 * randLevel * lX
+           endif
+         enddo
+       enddo
+     endif
+
+     call MPI_Bcast(boundRanks, 3 * nBoundVertices, MPI_DOUBLE_PRECISION, 0, comm)
+
+     allocate(boundRanks(3*4))
+
+     ii = modulo(i_rank, n_partition)
+     jj = i_rank / n_partition
+
+     p1 = (nBoundVerticesSeg * jj)       + ii
+     p2 = (nBoundVerticesSeg * jj)       + ii + 1
+     p3 = (nBoundVerticesSeg * (jj + 1)) + ii + 1
+     p4 = (nBoundVerticesSeg * (jj + 1)) + ii
+
+     boundRank(0 * 3 + 0) = boundRanks(3 * p1    )
+     boundRank(0 * 3 + 1) = boundRanks(3 * p1 + 1)
+     boundRank(0 * 3 + 2) = boundRanks(3 * p1 + 2)
+
+     boundRank(1 * 3 + 0) = boundRanks(3 * p2    )
+     boundRank(1 * 3 + 1) = boundRanks(3 * p2 + 1)
+     boundRank(1 * 3 + 2) = boundRanks(3 * p2 + 2)
+
+     boundRank(2 * 3 + 0) = boundRanks(3 * p3    )
+     boundRank(2 * 3 + 1) = boundRanks(3 * p3 + 1)
+     boundRank(2 * 3 + 2) = boundRanks(3 * p3 + 2)
+
+     boundRank(3 * 3 + 0) = boundRanks(3 * p4    )
+     boundRank(3 * 3 + 1) = boundRanks(3 * p4 + 1)
+     boundRank(3 * 3 + 2) = boundRanks(3 * p4 + 2)
+
+     deallocate(boundRanks)
+
+     ! Number of vertices and elements in the partition
+
+     nVertex = n_vtx_seg * n_vtx_seg
+     nElts   = (n_vtx_seg - 1) * (n_vtx_seg - 1)
+
+     ! Define coordinates
+
+     deltaU = 2.0/(n_vtx_seg - 1)
+     deltaV = 2.0/(n_vtx_seg - 1)
+     u = -1
+     v = -1
+     do j=1,n_vtx_seg
+       do i=1,n_vtx_seg
+         randU = u
+         randV = v
+         if ((i /= 0) .and. (j /= 0) .and. (j /= n_vtx_seg - 1) .and. (i /= n_vtx_seg - 1)) then
+           rd01 =  random01()
+           randU = randU + rd01 * randLevel * deltaU
+           rd01 =  random01()
+           randV = randV + rd01 * randLevel * deltaV
+         endif
+
+         coords(3 * (j * n_vtx_seg + i) + 0) = &
+         0.25 * ((1 - randU - randV + randU * randV) * boundRank(0 * 3 + 0) + &
+                 (1 + randU - randV - randU * randV) * boundRank(1 * 3 + 0) + &
+                 (1 + randU + randV + randU * randV) * boundRank(2 * 3 + 0) + &
+                 (1 - randU + randV - randU * randV) * boundRank(3 * 3 + 0) )
+
+         coords(3 * (j * n_vtx_seg + i) + 1) = &
+         0.25 * ((1 - randU - randV + randU * randV) * boundRank(0 * 3 + 1) + &
+                 (1 + randU - randV - randU * randV) * boundRank(1 * 3 + 1) + &
+                 (1 + randU + randV + randU * randV) * boundRank(2 * 3 + 1) + &
+                 (1 - randU + randV - randU * randV) * boundRank(3 * 3 + 1) )
+
+         coords(3 * (j * n_vtx_seg + i) + 2) = 0.
+
+         u = u + deltaU
+
+       enddo
+
+       v = v + deltaV
+       u = -1
+
+     enddo
+
+     deallocate(boundRank)
+
+     ! Define connectivity
+
+     connec_idx(0) = 0;
+     do i=1,(nElts+1)
+       connec_idx(i) = connec_idx(i-1) + 4
+     enddo
+
+
+     k = 0;
+     do j=1,n_vtx_seg
+       do i=1,n_vtx_seg
+         connec(4 * k)     =       j * n_vtx_seg + i     + 1
+         connec(4 * k + 1) =       j * n_vtx_seg + i + 1 + 1
+         connec(4 * k + 2) = (j + 1) * n_vtx_seg + i + 1 + 1
+         connec(4 * k + 3) = (j + 1) * n_vtx_seg + i     + 1
+         k = k + 1
+       enddo
+     enddo
+
+   end subroutine grid_mesh
 
 end program fortran_new_api_deformable_sol

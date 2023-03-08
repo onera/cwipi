@@ -43,16 +43,7 @@ program fortran_new_api_polygon_sol
   character(len = 99)                     :: field_name
   integer(c_int)                          :: n_components
 
-  double precision                        :: ampl
-  double precision                        :: dt
-  double precision                        :: freq
-  double precision                        :: omega
-  double precision                        :: phi
-  double precision                        :: randLevel
-  double precision                        :: time
-  double precision                        :: xmax, xmin, ymax, ymin
-  integer                                 :: i, j, it, itdeb, itend, n2, n_partition
-  integer                                 :: n_vtx_seg
+  integer                                 :: i
 
   double precision,              pointer  :: send_field_data(:) => null()
   double precision,              pointer  :: recv_field_data(:) => null()
