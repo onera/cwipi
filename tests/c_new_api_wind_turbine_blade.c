@@ -37,7 +37,7 @@
 #include "pdm_mesh_nodal.h"
 #include "pdm_part_connectivity_transform.h"
 #include "pdm_vtk.h"
-
+#include "pdm_part_to_block.h"
 
 #define ABS(a)    ((a) < 0   ? -(a) : (a))
 #define MAX(a, b) ((a) > (b) ?  (a) : (b))
@@ -752,19 +752,23 @@ main(int argc, char *argv[]) {
 
 
   // Check interpolation error
-  double max_err = 0.;
-  double **pvtx_error = NULL;//
+  double linf_error = 0.;
+  double l2_error   = 0.;
+  double **pvtx_error = NULL;
   for (int icode = 0; icode < n_code; icode++) {
     if (code_id[icode] == 2) {
       int i_rank_intra;
+      int n_rank_intra;
       MPI_Comm_rank(intra_comm[icode], &i_rank_intra);
+      MPI_Comm_size(intra_comm[icode], &n_rank_intra);
+
       pvtx_error = malloc(sizeof(double *) * n_part[icode]);
       for (int ipart = 0; ipart < n_part[icode]; ipart++) {
         pvtx_error[ipart] = malloc(sizeof(double) * pn_vtx[icode][ipart]);
         for (int i = 0; i < pn_vtx[icode][ipart] * vtx_field_stride[icode][0]; i++) {
           double err = ABS(pvtx_field_value[icode][0][ipart][i] - recv_val[icode][ipart][i]);
           pvtx_error[ipart][i] = err;
-          max_err = MAX(max_err, err);
+          linf_error = MAX(linf_error, err);
         }
 
         if (visu) {
@@ -784,14 +788,54 @@ main(int argc, char *argv[]) {
                                        pvtx_error[ipart]);
         }
       }
+
+      PDM_part_to_block_t *ptb = PDM_part_to_block_create(PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+                                                          PDM_PART_TO_BLOCK_POST_CLEANUP,
+                                                          1.,
+                                                          pvtx_ln_to_gn[icode],
+                                                          NULL,
+                                                          pn_vtx[icode],
+                                                          n_part[icode],
+                                                          PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[icode]));
+
+      double *dvtx_error = NULL;
+      PDM_part_to_block_exch(ptb,
+                             sizeof(double),
+                             PDM_STRIDE_CST_INTERLACED,
+                             1,
+                             NULL,
+                   (void **) pvtx_error,
+                             NULL,
+                   (void **) &dvtx_error);
+
+      int dn_vtx = PDM_part_to_block_n_elt_block_get(ptb);
+      for (int i = 0; i < dn_vtx; i++) {
+        l2_error += dvtx_error[i]*dvtx_error[i];
+      }
+      free(dvtx_error);
+
+      double gl2_error = 0;
+      MPI_Allreduce(&l2_error, &gl2_error, 1, MPI_DOUBLE, MPI_MAX, intra_comm[icode]);
+
+      PDM_g_num_t *distrib_vtx = PDM_part_to_block_distrib_index_get(ptb);
+      gl2_error = sqrt(gl2_error/distrib_vtx[n_rank_intra]);
+
+      PDM_part_to_block_free(ptb);
+
+      if (i_rank_intra == 0) {
+        printf("l2_error   = %e\n", gl2_error);
+        fflush(stdout);
+      }
     }
   }
 
-  double gmax_err = 0;
-  MPI_Allreduce(&max_err, &gmax_err, 1, MPI_DOUBLE, MPI_MAX, comm);
+
+  double glinf_error = 0;
+  MPI_Allreduce(&linf_error, &glinf_error, 1, MPI_DOUBLE, MPI_MAX, comm);
+
 
   if (i_rank == 0) {
-    printf("gmax_err = %e\n", gmax_err);
+    printf("linf_error = %e\n", glinf_error);
     fflush(stdout);
   }
 
