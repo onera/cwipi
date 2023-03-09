@@ -675,6 +675,9 @@ cdef class Coupling (object):
             connectivity (int32 ndarray): the array defining elements' connectivity; indices start at 1 (i.e. 1 is the first node). 
                For example the nodes of element ``iel`` are given by the slice ``connectivity[connectivity_index[iel]:connectivity_index[iel+1]]``.
                The array's size is the sum over elements of el.nb_nodes.
+
+        Note:
+            coordinates is always an interlaced 3D array; if the mesh is 2D it should contain a column z=0.
         """
         global current_cpl
         current_cpl = self.name

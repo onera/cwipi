@@ -1031,7 +1031,7 @@ void cwipi_set_points_to_locate
  *   coupling_id        <-- coupling name
  *   n_vertex           <-- number of vertices
  *   n_elements         <-- number of elements
- *   coordinates        <-- vertex interlaced coordinates
+ *   coordinates        <-- vertex interlaced coordinates (always 3 coordinates, even in 2D)
  *   connectivity_index <-> element -> vertices index (O to n-1)
  *                          size: n_elements + 1
  *                          (out : ordered connectivity_index)
