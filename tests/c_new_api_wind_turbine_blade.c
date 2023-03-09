@@ -815,7 +815,7 @@ main(int argc, char *argv[]) {
       free(dvtx_error);
 
       double gl2_error = 0;
-      MPI_Allreduce(&l2_error, &gl2_error, 1, MPI_DOUBLE, MPI_MAX, intra_comm[icode]);
+      MPI_Allreduce(&l2_error, &gl2_error, 1, MPI_DOUBLE, MPI_SUM, intra_comm[icode]);
 
       PDM_g_num_t *distrib_vtx = PDM_part_to_block_distrib_index_get(ptb);
       gl2_error = sqrt(gl2_error/distrib_vtx[n_rank_intra]);
