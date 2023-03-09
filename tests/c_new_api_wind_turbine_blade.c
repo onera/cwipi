@@ -412,7 +412,10 @@ _gen_part_data
   if (1) {
     if (*n_vtx_field > 0) {
       for (int ifield = 0; ifield < *n_vtx_field; ifield++) {
-        free((*vtx_field_name) [ifield]);
+        free((*vtx_field_name)[ifield]);
+        for (int ipart = 0; ipart < n_part; ipart++) {
+          free((*pvtx_field_value)[ifield][ipart]);
+        }
         free((*pvtx_field_value)[ifield]);
       }
       free(*vtx_field_name  );
