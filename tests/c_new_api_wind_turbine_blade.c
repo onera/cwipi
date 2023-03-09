@@ -508,8 +508,8 @@ main(int argc, char *argv[]) {
   int has_code[2] = {0, 0};
 
 
-  has_code[0] = i_rank < all_n_rank[0];
-  has_code[1] = i_rank > n_rank - all_n_rank[1];
+  has_code[0] = i_rank <  all_n_rank[0];
+  has_code[1] = i_rank >= n_rank - all_n_rank[1];
 
   int n_code = has_code[0] + has_code[1];
 
