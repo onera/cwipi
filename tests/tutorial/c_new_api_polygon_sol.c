@@ -269,7 +269,7 @@ main(int argc, char *argv[]) {
 
   // Check interpolation :
   // These functions allow to know how many and for which target
-  // vertices the interpolation operation has been successful.
+  // vertices the interpolation operation has been unsuccessful.
   int  n_uncomputed_tgts = -1;
   int *uncomputed_tgts   = NULL;
   if (i_rank == 1) {

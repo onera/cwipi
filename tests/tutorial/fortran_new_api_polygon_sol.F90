@@ -220,7 +220,7 @@ program fortran_new_api_polygon_sol
 
     allocate(send_field_data(n_vtx * n_components))
     do i=1,n_vtx
-      send_field_data(i) = coords(3*i)
+      send_field_data(i) = coords(3*(i-1)+1)
     end do
 
     call CWP_Field_create(code_names(1),                &
@@ -306,7 +306,7 @@ program fortran_new_api_polygon_sol
 
   ! Check interpolation :
   ! These functions allow to know how many and for which target
-  ! vertices the interpolation operation has been successful.
+  ! vertices the interpolation operation has been unsuccessful.
   if (i_rank == 1) then
     n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_names(1), &
                                                   coupling_name, &

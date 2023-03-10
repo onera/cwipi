@@ -226,7 +226,7 @@ def runTest():
 
     # Check interpolation :
     # These functions allow to know how many and for which target
-    # vertices the interpolation operation has been successful.
+    # vertices the interpolation operation has been unsuccessful.
     if (i_rank == 1):
       n_uncomputed_tgts = cpl.field_n_uncomputed_tgts_get("a super fancy field",
                                                           0);
