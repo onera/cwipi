@@ -949,10 +949,10 @@ int main
 
     if (i_rank == 0) {
       printf("g_volume = %20.16e / %20.16e, relative diff = %e\n",
-             g_volume[0], g_volume[1], 100.*ABS(g_volume[0] - g_volume[1])/ABS(g_volume[1]));
+             g_volume[0], g_volume[1], ABS(g_volume[0] - g_volume[1])/ABS(g_volume[1]));
 
       printf("g_mass   = %20.16e / %20.16e, relative diff = %e\n",
-             g_mass[0], g_mass[1], 100.*ABS(g_mass[0] - g_mass[1])/ABS(g_mass[1]));
+             g_mass[0], g_mass[1], ABS(g_mass[0] - g_mass[1])/ABS(g_mass[1]));
     }
   }
 
