@@ -16,7 +16,7 @@ Example
 
 The aim is to couple *code 1* and *code 2*. The client-server mode is used because the MPI version of those codes is different.
 Let *code 1* will be executing on 4 MPI ranks and *code 2* on 3 MPI ranks. As shown on the figure bellow, user written code is the **client**.
-CWIPI itself will be running on the **server** side. That for each server nees to be launch on the same number of MPI ranks as its client counterpart.
+CWIPI itself will be running on the **server** side. Therefore each server needs to be launch on the same number of MPI ranks as its client counterpart.
 
 .. image:: ./images/client_server.png
    :scale: 50%

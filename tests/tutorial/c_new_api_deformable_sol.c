@@ -418,7 +418,7 @@ main(int argc, char *argv[]) {
       printf("C - CWP_Mesh_interf_vtx_set : OK\n");
       fflush(stdout);
 
-      // Set the mesh polygons connectiviy :
+      // Set the mesh polygons connectivity :
       int block_id = CWP_Mesh_interf_block_add(code_name[0],
                                                coupling_name,
                                                CWP_BLOCK_FACE_POLY);

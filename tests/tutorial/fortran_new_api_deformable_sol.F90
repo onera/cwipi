@@ -208,7 +208,7 @@ program fortran_new_api_deformable_sol
 
       print *, "FORTRAN - CWP_Mesh_interf_vtx_set : OK"
 
-      ! Set the mesh polygons connectiviy :
+      ! Set the mesh polygons connectivity :
       id_block = CWP_Mesh_interf_block_add(code_names(1),       &
                                            coupling_name,       &
                                            CWP_BLOCK_FACE_POLY)

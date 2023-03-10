@@ -32,26 +32,28 @@
 int
 main(int argc, char *argv[]) {
 
-  // Initialize MPI :
-  // Even if the code is not parallel, MPI is mandatory since the
-  // coupling requires to run on several processors because of the
-  // different coupled codes.
+  // Initialize MPI
   MPI_Init(&argc, &argv);
   int i_rank;
   int n_rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &i_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &n_rank);
 
-  // This test mimics the coupling between 2 codes runing each
+  // This test mimics the coupling between 2 codes running each
   // on one processor.
   assert (n_rank == 2);
 
   // Initialize CWIPI :
+  // In this version of CWIPI each MPI rank can execute multiple codes.
+  // In this particular tutorial, 2 codes are coupled :
+  // 'code1' runs on MPI rank 0 and 'code2' runs on MPI rank 1.
+  //
+
   // Here 2 codes are coupled. code1 runs on the processor of
   // MPI rank 0 and code2 runs on the processor if MPI rank 1.
   // In this version of CWIPI several codes can execute on the
   // same MPI rank (here only one code per processor, so n_code = 1).
-  // That for, an array of code names is given at initialization.
+  // Therefore an array of code names is given at initialization.
   // is_active_rank allows to tell which ranks on which a given code
   // runs will be used in the CWIPI coupling computations. time_init
   // is not used yet. intra_comm is an array of MPI communicators
@@ -63,16 +65,21 @@ main(int argc, char *argv[]) {
   double       *time_init      = malloc(sizeof(double) * n_code);
   MPI_Comm     *intra_comm     = malloc(sizeof(MPI_Comm) * n_code);
 
+  int I_am_code1 = 0;
+  int I_am_code2 = 0;
+
   if (i_rank == 0) {
     code_name[0]      = "code1";
     is_active_rank[0] = CWP_STATUS_ON;
     time_init[0]      = 0.;
+    I_am_code1        = 1;
   }
 
   if (i_rank == 1) {
     code_name[0]      = "code2";
     is_active_rank[0] = CWP_STATUS_ON;
     time_init[0]      = 0.;
+    I_am_code2        = 1;
   }
   CWP_Init(MPI_COMM_WORLD,
            n_code,
@@ -82,23 +89,26 @@ main(int argc, char *argv[]) {
            intra_comm);
 
   // Create the coupling :
-  // On CWIPI context can hold several couplings. Let us set up the
+  // One CWIPI context can hold several couplings. Let us set up the
   // coupling between code1 and code2. CWP_INTERFACE_SURFACE informs
   // that the geometrical interface of the meshes of the coupled
   // codes is a surface, still for CWIPI the coordinate system is 3D.
   // CWP_COMM_PAR_WITH_PART means that each mesh is partitionned
   // over the processors of its code. Here the mesh does not change
   // over the coupling, so CWP_DYNAMIC_MESH_STATIC is set.
+  // CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE designates
+  // which spatial interpolation algorithm is used to map data between
+  // the two codes.
   // CWP_TIME_EXCH_USER_CONTROLLED is not used yet.
   int n_part = 1;
   const char  *coupling_name     = "code1_code2";
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
 
-  if (i_rank == 0) {
+  if (I_am_code1) {
     coupled_code_name[0] = "code2";
   }
 
-  if (i_rank == 1) {
+  if (I_am_code2) {
     coupled_code_name[0] = "code1";
   }
   CWP_Cpl_create(code_name[0],
@@ -113,7 +123,7 @@ main(int argc, char *argv[]) {
 
   // Set coupling visualisation:
   // Output files of the code fields will be written in Ensight ASCII
-  // format (easily readable by paraview) at each iteration.
+  // format (easily readable by Paraview) at each iteration.
   CWP_Visu_set(code_name[0],
                coupling_name,
                1,
@@ -121,12 +131,12 @@ main(int argc, char *argv[]) {
                "text");
 
   // Set the mesh vertices coordinates :
-  // The coordinate system in CWIPI is always 3D, that for
+  // The coordinate system in CWIPI is always 3D, so
   // we allocate an array of the time the number of vertices
-  // (11 here) to set the coodinates in. The coordinates are
+  // (11 here) to set the coordinates in. The coordinates are
   // interlaced (x0, y0, z0, x1, y1, z1, ..., xn, yn, zn).
   // The NULL argument will be explained later.
-  int     n_vtx  = 11;
+  int    n_vtx = 11;
   double coords[33] = {0,0,0,  1,0,0,  2,0,0,  3,0,0,  0,1,0,  2,1,0,
                        3,1,0,  1,2,0,  0,3,0,  2,3,0,  3,3,0};
   CWP_Mesh_interf_vtx_set(code_name[0],
@@ -136,7 +146,7 @@ main(int argc, char *argv[]) {
                           coords,
                           NULL);
 
-  // Set the mesh polygons connectiviy :
+  // Set the mesh polygons connectivity :
   // Let us set a mesh of 5 polygons (CWP_BLOCK_FACE_POLY).
   // An index array (connec_idx) of size n_elts+1 contains the
   // information of the number of vertices per polygon. The first
@@ -161,10 +171,11 @@ main(int argc, char *argv[]) {
                                    NULL);
 
   // Finalize mesh :
-  // CWIPI hides the parallelism for users, that for it is not
+  // CWIPI hides the parallelism for users, so it is not
   // mandatory to give a global numbering for mesh data (the
   // NULL arguments earlier). If not given this numbering is
-  // generated by CWIPI by the following function.
+  // generated by CWIPI by the following function,
+  // as well as the underlying mesh data structure
   CWP_Mesh_interf_finalize(code_name[0],
                            coupling_name);
 
@@ -183,7 +194,7 @@ main(int argc, char *argv[]) {
   double     *recv_field_data = malloc(sizeof(double) * n_vtx * n_components);
 
   // for code1
-  if (i_rank == 0) {
+  if (I_am_code1) {
     CWP_Field_create(code_name[0],
                      coupling_name,
                      field_name,
@@ -206,7 +217,7 @@ main(int argc, char *argv[]) {
   }
 
   // for code2
-  if (i_rank == 1) {
+  if (I_am_code2) {
     CWP_Field_create(code_name[0],
                      coupling_name,
                      field_name,
@@ -240,28 +251,28 @@ main(int argc, char *argv[]) {
   // The field exchange functions mimic the way the associated
   // MPI functions work, see MPI documentation for more information.
   // for code1
-  if (i_rank == 0) {
+  if (I_am_code1) {
     CWP_Field_issend(code_name[0],
                      coupling_name,
                      field_name);
   }
 
   // for code2
-  if (i_rank == 1) {
+  if (I_am_code2) {
     CWP_Field_irecv(code_name[0],
                     coupling_name,
                     field_name);
   }
 
   // for code1
-  if (i_rank == 0) {
+  if (I_am_code1) {
     CWP_Field_wait_issend(code_name[0],
                           coupling_name,
                           field_name);
   }
 
   // for code2
-  if (i_rank == 1) {
+  if (I_am_code2) {
     CWP_Field_wait_irecv(code_name[0],
                          coupling_name,
                          field_name);
@@ -270,18 +281,18 @@ main(int argc, char *argv[]) {
   // Check interpolation :
   // These functions allow to know how many and for which target
   // vertices the interpolation operation has been unsuccessful.
-  int  n_uncomputed_tgts = -1;
-  int *uncomputed_tgts   = NULL;
-  if (i_rank == 1) {
+  int        n_uncomputed_tgts = -1;
+  const int *uncomputed_tgts   = NULL;
+  if (I_am_code2) {
     n_uncomputed_tgts = CWP_N_uncomputed_tgts_get(code_name[0],
                                                   coupling_name,
                                                   field_name,
                                                   0);
 
-    uncomputed_tgts = (int *) CWP_Uncomputed_tgts_get(code_name[0],
-                                                      coupling_name,
-                                                      field_name,
-                                                      0);
+    uncomputed_tgts = CWP_Uncomputed_tgts_get(code_name[0],
+                                              coupling_name,
+                                              field_name,
+                                              0);
   }
 
   // Delete field :

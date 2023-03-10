@@ -32,17 +32,14 @@
 int
 main(int argc, char *argv[]) {
 
-  // Initialize MPI :
-  // Even if the code is not parallel, MPI is mandatory since the
-  // coupling requires to run on several processors because of the
-  // different coupled codes.
+  // Initialize MPI
   MPI_Init(&argc, &argv);
   int i_rank;
   int n_rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &i_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &n_rank);
 
-  // This test mimics the coupling between 2 codes runing each
+  // This test mimics the coupling between 2 codes running each
   // on one processor.
   assert (n_rank == 2);
 
@@ -51,14 +48,19 @@ main(int argc, char *argv[]) {
   // running on MPU rank 1.
   // ------------------------------------------------------- To fill in
   int n_code = 1;
-  const char  **code_name      = malloc(sizeof(char *) * n_code);
+  const char **code_name = malloc(sizeof(char *) * n_code);
+
+  int I_am_code1 = 0;
+  int I_am_code2 = 0;
 
   if (i_rank == 0) {
-    code_name[0]      = "code1";
+    code_name[0] = "code1";
+    I_am_code1   = 1;
   }
 
   if (i_rank == 1) {
-    code_name[0]      = "code2";
+    code_name[0] = "code2";
+    I_am_code2   = 1;
   }
 
   // ---------------------------------------------------- End To fill in
@@ -71,11 +73,11 @@ main(int argc, char *argv[]) {
   const char  *coupling_name     = "code1_code2";
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
 
-  if (i_rank == 0) {
+  if (I_am_code1) {
     coupled_code_name[0] = "code2";
   }
 
-  if (i_rank == 1) {
+  if (I_am_code2) {
     coupled_code_name[0] = "code1";
   }
 
@@ -98,7 +100,7 @@ main(int argc, char *argv[]) {
 
   // ---------------------------------------------------- End To fill in
 
-  // Set the mesh polygons connectiviy :
+  // Set the mesh polygons connectivity :
   // Use CWP_Mesh_interf_block_add to create a block of
   // of polygons. Choose the correct CWIPI function
   // to set a polygonal mesh, no need to give the elements
@@ -113,7 +115,7 @@ main(int argc, char *argv[]) {
 
   // Finalize mesh :
   // Use the correct CWIPI function to generate the
-  // mesh global numbering.
+  // mesh global numbering and the underlying mesh data structure
   // ------------------------------------------------------- To fill in
 
   // ---------------------------------------------------- End To fill in
@@ -130,7 +132,7 @@ main(int argc, char *argv[]) {
   double     *recv_field_data = malloc(sizeof(double) * n_vtx * n_components);
 
   // for code1
-  if (i_rank == 0) {
+  if (I_am_code1) {
 
     for (int i = 0; i < n_vtx; i++) {
       send_field_data[i] = coords[3*i];
@@ -138,7 +140,7 @@ main(int argc, char *argv[]) {
   }
 
   // for code2
-  if (i_rank == 1) {
+  if (I_am_code2) {
 
   }
   // ---------------------------------------------------- End To fill in
@@ -146,7 +148,7 @@ main(int argc, char *argv[]) {
   // Compute interpolation weights :
   // Choose the two correct CWIPI functions to set the geometric
   // tolerance to 10% of an element size for point localisation
-  // and to compute the interpolation weigths.
+  // and to compute the interpolation weights.
   // ------------------------------------------------------- To fill in
 
   // ---------------------------------------------------- End To fill in
@@ -155,28 +157,28 @@ main(int argc, char *argv[]) {
   // Use the CWIPI exchange functions similar to the MPI ones
   // for code1 to send a field and code2 to receive that field.
   // ------------------------------------------------------- To fill in
-  if (i_rank == 0) {
+  if (I_am_code1) {
 
   }
 
   // for code2
-  if (i_rank == 1) {
+  if (I_am_code2) {
 
   }
 
   // for code1
-  if (i_rank == 0) {
+  if (I_am_code1) {
 
   }
 
   // for code2
-  if (i_rank == 1) {
+  if (I_am_code2) {
 
   }
   // ---------------------------------------------------- End To fill in
 
   // Check interpolation :
-  // For the receiving code, check the vetices for which the
+  // For the receiving code, check the vertices for which the
   // interpolation has been unsuccessful.
   // ------------------------------------------------------- To fill in
 

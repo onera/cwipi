@@ -27,15 +27,12 @@ def runTest():
     Run tests on Python interface of new API
     """
 
-    # Initialize MPI :
-    # Even if the code is not parallel, MPI is mandatory since the
-    # coupling requires to run on several processors because of the
-    # different coupled codes.
+    # Initialize MPI
     comm = MPI.COMM_WORLD
     i_rank = comm.rank
     n_rank = comm.size
 
-    # This test mimics the coupling between 2 codes runing each
+    # This test mimics the coupling between 2 codes running each
     # on one processor.
     if (n_rank != 2):
         if i_rank == 0:
@@ -56,11 +53,15 @@ def runTest():
     # ------------------------------------------------------- To fill in
     n_code = 1
 
-    if (i_rank == 0):
+    if i_rank == 0:
         code_name = ["code1"]
+        I_am_code1 = True
+        I_am_code2 = False
 
-    if (i_rank == 1):
+    if i_rank == 1:
         code_name = ["code2"]
+        I_am_code1 = False
+        I_am_code2 = True
 
     # ---------------------------------------------------- End To fill in
 
@@ -68,9 +69,9 @@ def runTest():
     # Use CWP_Cpl_create to couple code1 with code2 on a surface
     # interface. Operate the localization with the octree method.
     # ------------------------------------------------------- To fill in
-    if (i_rank == 0):
+    if I_am_code1:
         coupled_code_name = ["code2"]
-    if (i_rank == 1):
+    if I_am_code2:
         coupled_code_name = ["code1"]
     n_part = 1
 
@@ -93,7 +94,7 @@ def runTest():
 
     # ---------------------------------------------------- End To fill in
 
-    # Set the mesh polygons connectiviy :
+    # Set the mesh polygons connectivity :
     # Use CWP_Mesh_interf_block_add to create a block of
     # of polygons. Choose the correct CWIPI function
     # to set a polygonal mesh, no need to give the elements
@@ -108,7 +109,7 @@ def runTest():
 
     # Finalize mesh :
     # Use the correct CWIPI function to generate the
-    # mesh global numbering.
+    # mesh global numbering and the underlying mesh data structure
     # ------------------------------------------------------- To fill in
 
     # ---------------------------------------------------- End To fill in
@@ -128,17 +129,17 @@ def runTest():
       send_field_data[i] = coords[3*i]
 
     # for code1
-    # if (i_rank == 0): # to uncomment
+    # if I_am_code1: # to uncomment
 
     # for code2
-    # if (i_rank == 1): # to uncomment
+    # if I_am_code2: # to uncomment
 
     # ---------------------------------------------------- End To fill in
 
     # Compute interpolation weights :
     # Choose the two correct CWIPI functions to set the geometric
     # tolerance to 10% of an element size for point localisation
-    # and to compute the interpolation weigths.
+    # and to compute the interpolation weights.
     # ------------------------------------------------------- To fill in
 
     # ---------------------------------------------------- End To fill in
@@ -149,21 +150,21 @@ def runTest():
     # ------------------------------------------------------- To fill in
 
     # for code1
-    # if (i_rank == 0): # to uncomment
+    # if I_am_code1: # to uncomment
 
     # for code2
-    # if (i_rank == 1): # to uncomment
+    # if I_am_code2: # to uncomment
 
     # for code1
-    # if (i_rank == 0): # to uncomment
+    # if Iam_code1: # to uncomment
 
     # for code2
-    # if (i_rank == 1): # to uncomment
+    # if I_am_code2: # to uncomment
 
     # ---------------------------------------------------- End To fill in
 
     # Check interpolation :
-    # For the receiving code, check the vetices for which the
+    # For the receiving code, check the vertices for which the
     # interpolation has been unsuccessful.
     # ------------------------------------------------------- To fill in
 

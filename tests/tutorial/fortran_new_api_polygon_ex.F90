@@ -47,17 +47,16 @@ program fortran_new_api_polygon_ex
 
   integer(c_int)                          :: n_uncomputed_tgts
   integer(c_int),                pointer  :: uncomputed_tgts(:) => null()
+
+  logical                                 :: I_am_code1
   !--------------------------------------------------------------------
 
-  ! MPI Initialization :
-  ! Even if the code is not parallel, MPI is mandatory since the
-  ! coupling requires to run on several processors because of the
-  ! different coupled codes.
+  ! MPI Initialization
   call MPI_Init(ierr)
   call MPI_Comm_rank(mpi_comm_world, i_rank, ierr)
   call MPI_Comm_size(mpi_comm_world, n_rank, ierr)
 
-  ! This test mimics the coupling between 2 codes runing each
+  ! This test mimics the coupling between 2 codes running each
   ! on one processor.
   if (n_rank /= 2) then
     print *, " This executable must be executed on 2 processes"
@@ -74,10 +73,12 @@ program fortran_new_api_polygon_ex
 
   ! for code1
   if (i_rank == 0) then
-    code_names(1)         = "code1"
+    code_names(1) = "code1"
+    I_am_code1    = .true.
   ! for code2
   else
-    code_names(1)         = "code2"
+    code_names(1) = "code2"
+    I_am_code1    = .false.
   endif
 
   ! ---------------------------------------------------- End To fill in
@@ -91,7 +92,7 @@ program fortran_new_api_polygon_ex
   allocate(coupled_code_names(n_code))
 
   ! for code1
-  if (i_rank == 0) then
+  if (I_am_code1) then
     coupled_code_names(1) = "code2"
   ! for code2
   else
@@ -122,7 +123,7 @@ program fortran_new_api_polygon_ex
 
   ! ---------------------------------------------------- End To fill in
 
-  ! Set the mesh polygons connectiviy :
+  ! Set the mesh polygons connectivity :
   ! Use CWP_Mesh_interf_block_add to create a block of
   ! of polygons. Choose the correct CWIPI function
   ! to set a polygonal mesh, no need to give the elements
@@ -144,7 +145,7 @@ program fortran_new_api_polygon_ex
 
   ! Finalize mesh :
   ! Use the correct CWIPI function to generate the
-  ! mesh global numbering.
+  ! mesh global numbering and the underlying mesh data structure.
   ! ------------------------------------------------------- To fill in
 
   ! ---------------------------------------------------- End To fill in
@@ -159,7 +160,7 @@ program fortran_new_api_polygon_ex
   n_components = 1
 
   ! for code1
-  if (i_rank == 0) then
+  if (I_am_code1) then
 
     allocate(send_field_data(n_vtx * n_components))
     do i=1,n_vtx
@@ -177,7 +178,7 @@ program fortran_new_api_polygon_ex
   ! Compute interpolation weights :
   ! Choose the two correct CWIPI functions to set the geometric
   ! tolerance to 10% of an element size for point localisation
-  ! and to compute the interpolation weigths.
+  ! and to compute the interpolation weights.
   ! ------------------------------------------------------- To fill in
 
   ! ---------------------------------------------------- End To fill in
@@ -188,7 +189,7 @@ program fortran_new_api_polygon_ex
   ! ------------------------------------------------------- To fill in
 
   ! for code1
-  if (i_rank == 0) then
+  if (I_am_code1) then
 
   ! for code2
   else
@@ -196,7 +197,7 @@ program fortran_new_api_polygon_ex
   endif
 
   ! for code1
-  if (i_rank == 0) then
+  if (I_am_code1) then
 
   ! for code2
   else
@@ -205,7 +206,7 @@ program fortran_new_api_polygon_ex
   ! ---------------------------------------------------- End To fill in
 
   ! Check interpolation :
-  ! For the receiving code, check the vetices for which the
+  ! For the receiving code, check the vertices for which the
   ! interpolation has been unsuccessful.
   ! ------------------------------------------------------- To fill in
 
@@ -230,7 +231,7 @@ program fortran_new_api_polygon_ex
   deallocate(p_coords);
   deallocate(p_connec);
   deallocate(p_connec_idx);
-  if (i_rank == 0) then
+  if (I_am_code1) then
     deallocate(send_field_data);
   else
     deallocate(recv_field_data);

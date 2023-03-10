@@ -115,7 +115,7 @@ namespace cwipi {
 
        /**
         *
-        * \brief return the element connectivity (Standard or Face_Poly_2D CWP_Block_t) or cells-faces connectiviy (Cells_POLY_3D)
+        * \brief return the element connectivity (Standard or Face_Poly_2D CWP_Block_t) or cells-faces connectivity (Cells_POLY_3D)
         * for each partition.
         * 
         *
