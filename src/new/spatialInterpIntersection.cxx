@@ -285,6 +285,18 @@ namespace cwipi {
 
 
 
+
+    /* Get bbox tolerance */
+    double tolerance = CWP_MESH_INTERSECTION_BBOX_TOLERANCE;
+    std::map<std::string, double> prop = _cpl->SpatialInterpPropertiesDoubleGet();
+    std::map<std::string, double>::iterator it;
+
+    it = prop.find("tolerance");
+    if (it != prop.end()) {
+      tolerance = it->second;
+    }
+
+
     /* Set source (A) and target (B) meshes */
 
     // get dimension of local and coupled codes
@@ -345,6 +357,8 @@ namespace cwipi {
                                              0.,
                                              _pdmUnionComm,
                                              PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+
+      PDM_mesh_intersection_tolerance_set(_id_pdm, tolerance);
 
       // source mesh
       if (_exchDirection == SPATIAL_INTERP_EXCH_SEND) {
@@ -418,6 +432,8 @@ namespace cwipi {
                                                0.,
                                                _pdmUnionComm,
                                                PDM_OWNERSHIP_UNGET_RESULT_IS_FREE);
+
+        PDM_mesh_intersection_tolerance_set(_id_pdm, tolerance);
 
         SpatialInterpIntersection *cpl_spatial_interp;
         cwipi::Coupling& cpl_cpl = _cpl->couplingDBGet()->couplingGet(*_coupledCodeProperties, _cpl->IdGet());

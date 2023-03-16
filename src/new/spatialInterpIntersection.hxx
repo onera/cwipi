@@ -23,6 +23,8 @@
 #include "pdm_mesh_intersection.h"
 
 namespace cwipi {
+  const double CWP_MESH_INTERSECTION_BBOX_TOLERANCE = 1.e-3;
+
   class SpatialInterpIntersection : public SpatialInterp {
   public:
     SpatialInterpIntersection();
