@@ -78,7 +78,9 @@ namespace cwipi {
 
 
     protected:
-        PDM_closest_point_t *_id_pdm;
+      PDM_closest_point_t *_id_pdm;
+
+      // _closest_points_interp_method_t _interpolation_method; // (W)LS, IDW, RBF?
     };
 }
 
