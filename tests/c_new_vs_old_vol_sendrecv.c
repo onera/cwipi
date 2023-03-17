@@ -232,7 +232,7 @@ _read_args
       *loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
     }
     else if (strcmp(argv[i], "-dbbtree") == 0) {
-      *loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE;
+      *loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE;
     }
     else if (strcmp(argv[i], "-pt-scotch") == 0) {
       *part_method = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
@@ -1045,7 +1045,7 @@ main(int argc, char *argv[]) {
   int randomize                   = 1;
   int n_proc_data                 = -1;
 
-  CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE;
+  CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE;
   // CWP_Spatial_interp_t loc_method = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
 #ifdef PDM_HAVE_PARMETIS
   PDM_split_dual_t part_method    = PDM_SPLIT_DUAL_WITH_PARMETIS;
@@ -1516,7 +1516,7 @@ main(int argc, char *argv[]) {
         int pt_id = located[i] -1;
         double coord[3] = {pvtx_coord[0][3*pt_id], pvtx_coord[0][3*pt_id+1], pvtx_coord[0][3*pt_id+2]};
         if (loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE &&
-            loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE) {
+            loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) {
           if (deform) {
             _unrotate(1, coord);
           }

@@ -1326,7 +1326,7 @@ namespace cwipi {
       CWP_Spatial_interp_t spatial_interp_algo = spatialInterpAlgoGet();
       if (spatial_interp_algo == CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF       ||
           spatial_interp_algo == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE  ||
-          spatial_interp_algo == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE) {
+          spatial_interp_algo == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) {
         spatial_interp_map = _spatial_interp_send;
       }
       else if (spatial_interp_algo == CWP_SPATIAL_INTERP_FROM_INTERSECTION                ||

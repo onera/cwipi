@@ -164,7 +164,7 @@ _read_args(int argc, char **argv, CWP_Version_t *version, int *n_vtx_seg1, int *
       *loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
     }
     else if (strcmp(argv[i], "-dbbtree") == 0) {
-      *loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE;
+      *loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE;
     }
     else if (strcmp(argv[i], "-pt-scotch") == 0) {
       *part_method = PDM_PART_SPLIT_PTSCOTCH;

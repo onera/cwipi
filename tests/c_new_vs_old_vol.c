@@ -234,7 +234,7 @@ _read_args
       *loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
     }
     else if (strcmp(argv[i], "-dbbtree") == 0) {
-      *loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE;
+      *loc_method = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE;
     }
     else if (strcmp(argv[i], "-pt-scotch") == 0) {
       *part_method = PDM_SPLIT_DUAL_WITH_PTSCOTCH;
@@ -1905,7 +1905,7 @@ main(int argc, char *argv[]) {
   //  Check
 
   if (loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE ||
-      loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE) {
+      loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) {
     double max_err = 0.;
     PDM_g_num_t n_wrong = 0;
     if (code_id == 2) {
@@ -1913,7 +1913,7 @@ main(int argc, char *argv[]) {
       double *coord = malloc(sizeof(double) * pn_vtx[0] * 3);
       memcpy(coord, pvtx_coord[0], sizeof(double) * pn_vtx[0] * 3);
       if (loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE ||
-          loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE) {
+          loc_method == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE) {
         if (deform) {
           _unrotate(pn_vtx[0], coord);
         }

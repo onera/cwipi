@@ -489,6 +489,13 @@ main(int argc, char *argv[]) {
               &spatial_interp,
               &visu);
 
+  for (int i = 0; i < 2; i++) {
+    if (all_file_names[i] == NULL) {
+      printf("Both filenames must be specified\n");
+      return 0;
+    }
+  }
+
   // Initialize MPI
   MPI_Init(&argc, &argv);
 

@@ -280,13 +280,13 @@ main
 
   if (rank == 0) {
     CWP_client_Cpl_create("code1_cell_faces", cpl_id1, "code2", CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITHOUT_PART,
-                          CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE, 1,
+                          CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE, 1,
                           CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
   }
 
   if (rank == 1) {
     CWP_client_Cpl_create("code2", cpl_id1, "code1_cell_faces", CWP_INTERFACE_VOLUME, CWP_COMM_PAR_WITHOUT_PART,
-                          CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE, 1,
+                          CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE, 1,
                           CWP_DYNAMIC_MESH_STATIC, CWP_TIME_EXCH_USER_CONTROLLED);
   }
   printf("Coupling created \n");

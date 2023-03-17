@@ -517,7 +517,7 @@ main
   // Create coupling
   const char *cpl_name = "c_new_api_vol_HO";
   CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE;
-  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE;
+  // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE;
   // CWP_Spatial_interp_t spatial_interp = CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES;
 
   if (version == CWP_VERSION_OLD) {
@@ -918,7 +918,7 @@ main
 
   if (version == CWP_VERSION_OLD ||
       (spatial_interp == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE ||
-      spatial_interp == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
+      spatial_interp == CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
     double max_err = 0.;
     PDM_g_num_t n_wrong = 0;
 

@@ -611,7 +611,7 @@ CWP_Init
 
   factorySpatialInterp.Register<cwipi::SpatialInterpLocationDistSurf>(CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF);
   factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationOctree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE);
-  factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationDbbtree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE);
+  factorySpatialInterp.Register<cwipi::SpatialInterpLocationMeshLocationDbbtree>(CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE);
   factorySpatialInterp.Register<cwipi::SpatialInterpIntersection>(CWP_SPATIAL_INTERP_FROM_INTERSECTION);
   factorySpatialInterp.Register<cwipi::SpatialInterpClosestPoint>(CWP_SPATIAL_INTERP_FROM_CLOSEST_POINT_LEAST_SQUARES);
   factorySpatialInterp.Register<cwipi::SpatialInterpIdentity>(CWP_SPATIAL_INTERP_FROM_IDENTITY);
@@ -2385,7 +2385,7 @@ CWP_Interp_location_weights_get
 
   if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
-      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
     PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
   }
 
@@ -2432,7 +2432,7 @@ CWP_Interp_location_point_data_get
 
   if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
-      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
     PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
   }
 
@@ -2482,7 +2482,7 @@ CWP_Interp_location_internal_cell_vtx_get
 
   if ((spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_DIST_CLOUD_SURF) &&
       (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_OCTREE) &&
-      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_DBBTREE)) {
+      (spatial_interp_algorithm != CWP_SPATIAL_INTERP_FROM_LOCATION_MESH_LOCATION_BOXTREE)) {
     PDM_error(__FILE__, __LINE__, 0, "Getter unavailable for spatial interpolation algorithm %d\n", spatial_interp_algorithm);
   }
 
