@@ -26,184 +26,7 @@
 #include "cwp.h"
 #include "pdm_error.h"
 #include "pdm_priv.h"
-
-/*----------------------------------------------------------------------
- *
- * Return a random number in [-1, 1]
- *
- * parameters:
- *   coupling_id         <-- Coupling id
- *   nNotLocatedPoints   <-- Number of not located points
- *---------------------------------------------------------------------*/
-
-static double _random01()
-{
-  int sign;
-  int rsigna = rand();
-  int rsignb = rand();
-  sign = (rsigna - rsignb) / PDM_ABS(rsigna - rsignb);
-  double resultat =   sign*((double)rand())/((double)RAND_MAX);
-  return resultat;
-}
-
-
-/*----------------------------------------------------------------------
- *
- * Dump status exchange
- *
- * parameters:
- *   xmin                <-- grid xmin (global)
- *   xmax                <-- grid xmax (global)
- *   ymin                <-- grid ymin (global)
- *   ymax                <-- grid ymax (global)
- *   randLevel           <-- random level
- *   nVertexSeg          <-- number of vertices in X and Y
- *   nPartitionSeg       <-- number of partitions in X and Y
- *   nVertex             --> number of vertices of the local partition
- *   coords              --> coordinates of vertices of the local partition
- *   nElts               --> number of elements of the local partition
- *   eltsConnecPointer   --> connectivity index of the local partition
- *   eltsConnec          --> connectivity of the local partition
- *   localComm           <-- MPI comm of the global grid
- *---------------------------------------------------------------------*/
-
-static void grid_mesh(double xmin,
-                      double xmax,
-                      double ymin,
-                      double ymax,
-                      double randLevel,
-                      int nVertexSeg,
-                      int nPartitionSeg,
-                      double *coords,
-                      int *eltsConnecPointer,
-                      int *eltsConnec,
-                      MPI_Comm localComm)
-{
-
-  int currentRank;
-  int localCommSize;
-
-  MPI_Comm_rank(localComm, &currentRank);
-  MPI_Comm_size(localComm, &localCommSize);
-
-  /* Bandwidth */
-
-  double lX = (xmax - xmin) / nPartitionSeg;
-  double lY = (ymax - ymin) / nPartitionSeg;
-
-  /* Compute local partition bounds with random level */
-
-  int nBoundVerticesSeg = nPartitionSeg + 1;
-  int nBoundVertices = nBoundVerticesSeg * nBoundVerticesSeg;
-  double *boundRanks = (double *) malloc(3 * sizeof(double) * nBoundVertices);
-
-  if (currentRank == 0) {
-
-    for (int j = 0; j < nBoundVerticesSeg; j++) {
-      for (int i = 0; i < nBoundVerticesSeg; i++) {
-        boundRanks[3 * (j * nBoundVerticesSeg + i)] = xmin + i * lX;
-        boundRanks[3 * (j * nBoundVerticesSeg + i) + 1] = ymin + j * lY;
-        boundRanks[3 * (j * nBoundVerticesSeg + i) + 2] = 0.;
-        if (j != 0 && j != (nBoundVerticesSeg - 1))
-          boundRanks[3 * (j * nBoundVerticesSeg + i) + 1] += _random01() * randLevel * lY;
-        if (i != 0 && i != (nBoundVerticesSeg - 1))
-          boundRanks[3 * (j * nBoundVerticesSeg + i)] += _random01() * randLevel * lX;
-      }
-    }
-  }
-
-  MPI_Bcast(boundRanks, 3 * nBoundVertices, MPI_DOUBLE, 0, localComm);
-
-  double *boundRank = (double *) malloc(3 * sizeof(double) * 4);
-
-  int p1, p2, p3, p4;
-
-  int ii = currentRank % nPartitionSeg;
-  int jj = currentRank / nPartitionSeg;
-
-  p1 = (nBoundVerticesSeg * jj)       + ii;
-  p2 = (nBoundVerticesSeg * jj)       + ii + 1;
-  p3 = (nBoundVerticesSeg * (jj + 1)) + ii + 1;
-  p4 = (nBoundVerticesSeg * (jj + 1)) + ii;
-
-  boundRank[0 * 3 + 0] = boundRanks[3 * p1    ];
-  boundRank[0 * 3 + 1] = boundRanks[3 * p1 + 1];
-  boundRank[0 * 3 + 2] = boundRanks[3 * p1 + 2];
-
-  boundRank[1 * 3 + 0] = boundRanks[3 * p2    ];
-  boundRank[1 * 3 + 1] = boundRanks[3 * p2 + 1];
-  boundRank[1 * 3 + 2] = boundRanks[3 * p2 + 2];
-
-  boundRank[2 * 3 + 0] = boundRanks[3 * p3    ];
-  boundRank[2 * 3 + 1] = boundRanks[3 * p3 + 1];
-  boundRank[2 * 3 + 2] = boundRanks[3 * p3 + 2];
-
-  boundRank[3 * 3 + 0] = boundRanks[3 * p4    ];
-  boundRank[3 * 3 + 1] = boundRanks[3 * p4 + 1];
-  boundRank[3 * 3 + 2] = boundRanks[3 * p4 + 2];
-
-  free(boundRanks);
-
-  /* Number of vertices and elements in the partition */
-
-  const int nVertex = nVertexSeg * nVertexSeg;
-  PDM_UNUSED(nVertex);
-  const int nElts   = (nVertexSeg - 1) * (nVertexSeg - 1);
-
-  /* Define coordinates */
-
-  double deltaU = 2.0/(nVertexSeg - 1);
-  double deltaV = 2.0/(nVertexSeg - 1);
-  double u = -1;
-  double v = -1;
-  for (int j = 0; j < nVertexSeg; j++) {
-    for (int i = 0; i < nVertexSeg; i++) {
-      double randU = u;
-      double randV = v;
-      if ((i != 0) && (j != 0) && (j != nVertexSeg - 1) && (i != nVertexSeg - 1)) {
-        randU +=  _random01() * randLevel * deltaU;
-        randV +=  _random01() * randLevel * deltaV;
-      }
-
-      coords[3 * (j * nVertexSeg + i) + 0] =
-        0.25 * ((1 - randU - randV + randU * randV) * boundRank[0 * 3 + 0] +
-                (1 + randU - randV - randU * randV) * boundRank[1 * 3 + 0] +
-                (1 + randU + randV + randU * randV) * boundRank[2 * 3 + 0] +
-                (1 - randU + randV - randU * randV) * boundRank[3 * 3 + 0] );
-
-      coords[3 * (j * nVertexSeg + i) + 1] =
-        0.25 * ((1 - randU - randV + randU * randV) * boundRank[0 * 3 + 1] +
-                (1 + randU - randV - randU * randV) * boundRank[1 * 3 + 1] +
-                (1 + randU + randV + randU * randV) * boundRank[2 * 3 + 1] +
-                (1 - randU + randV - randU * randV) * boundRank[3 * 3 + 1] );
-
-      coords[3 * (j * nVertexSeg + i) + 2] = 0.;
-
-      u += deltaU;
-    }
-    v += deltaV;
-    u = -1;
-  }
-
-  free(boundRank);
-
-  /* Define connectivity */
-
-  eltsConnecPointer[0] = 0;
-  for (int i = 1; i < nElts + 1; i++)
-    eltsConnecPointer[i] = eltsConnecPointer[i-1] + 4;
-
-  int k = 0;
-  for (int j = 0; j < (nVertexSeg - 1); j++) {
-    for (int i = 0; i < (nVertexSeg - 1); i++) {
-      eltsConnec[4 * k]     =       j * nVertexSeg + i     + 1;
-      eltsConnec[4 * k + 1] =       j * nVertexSeg + i + 1 + 1;
-      eltsConnec[4 * k + 2] = (j + 1) * nVertexSeg + i + 1 + 1;
-      eltsConnec[4 * k + 3] = (j + 1) * nVertexSeg + i     + 1;
-      k++;
-    }
-  }
-}
+#include "pdm_generate_mesh.h"
 
 /*----------------------------------------------------------------------
  *
@@ -344,54 +167,36 @@ main(int argc, char *argv[]) {
   printf("C - CWP_Visu_set : OK\n");
   fflush(stdout);
 
-  // Set mesh data :
-  int i_intra_rank;
-  MPI_Comm_rank(intra_comm[0], &i_intra_rank);
-  srand(i_intra_rank+time(0));
-
-  const int    itdeb     =  1;
-  const int    itend     =  50;
-  const double freq      =  0.20;
-  const double ampl      =  0.012;
-  const double phi       =  0.1;
-  const double xmin      = -10;
-  const double xmax      =  10;
-  const double ymin      = -10;
-  const double ymax      =  10;
-  const int    n_vtx_seg =  10;
-  const double randLevel =  0.4;
-
-  int n_vtx = n_vtx_seg * n_vtx_seg;
-  int n_elt = (n_vtx_seg - 1) * (n_vtx_seg - 1);
-
-  double *coords     = malloc(sizeof(double) * 3 * n_vtx);
-  int    *connec_idx = malloc(sizeof(int)    * (n_elt + 1));
-  int    *connec     = malloc(sizeof(int)    * 4 * n_elt);
-
-  grid_mesh(xmin,
-            xmax,
-            ymin,
-            ymax,
-            randLevel,
-            n_vtx_seg,
-            n_partition,
-            coords,
-            connec_idx,
-            connec,
-            intra_comm[0]);
+  // Create mesh :
+  int     n_vtx = 0;
+  int     n_elt = 0;
+  double *coords     = NULL;
+  int    *elt_vtx_idx = NULL;
+  int    *elt_vtx     = NULL;
+  PDM_generate_mesh_rectangle_simplified(PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[0]),
+                                         &n_vtx,
+                                         &n_elt,
+                                         &coords,
+                                         &elt_vtx_idx,
+                                         &elt_vtx);
 
   printf("C - grid_mesh : OK\n");
   fflush(stdout);
 
   // Interations :
-  const char *send_field_name      = "chinchilla";
-  const char *recv_field_name      = "girafe";
+  const char *send_field_name = "chinchilla";
+  const char *recv_field_name = "girafe";
   int         n_components    = 1;
   double     *send_field_data = malloc(sizeof(double) * n_vtx);
   double     *recv_field_data = malloc(sizeof(double) * n_vtx);
 
-  double ttime = 0.0;
-  double dt = 0.1;
+  const int    itdeb =  1;
+  const int    itend =  50;
+  const double freq  =  0.20;
+  const double ampl  =  0.012;
+  const double phi   =  0.1;
+  double       ttime = 0.0;
+  double       dt    = 0.1;
 
   double omega = 2.0*acos(-1.0)*freq;
 
@@ -400,8 +205,8 @@ main(int argc, char *argv[]) {
     ttime = (it-itdeb)*dt;
 
     for (int i = 0; i < n_vtx; i++) {
-      coords[2 + 3 * i] = ampl * (coords[3 * i]*coords[3 * i]+coords[1 + 3 * i]*coords[1 + 3 * i])*cos(omega*ttime+phi);
-      send_field_data[i] = coords[2 + 3 * i];
+      coords[3 * i + 2]  = ampl * (coords[3 * i]*coords[3 * i]+coords[1 + 3 * i]*coords[1 + 3 * i])*cos(omega*ttime+phi);
+      send_field_data[i] = coords[3 * i + 2];
     }
 
 
@@ -431,8 +236,8 @@ main(int argc, char *argv[]) {
                                        0,
                                        block_id,
                                        n_elt,
-                                       connec_idx,
-                                       connec,
+                                       elt_vtx_idx,
+                                       elt_vtx,
                                        NULL);
 
       printf("C - CWP_Mesh_interf_f_poly_block_set : OK\n");
@@ -483,13 +288,13 @@ main(int argc, char *argv[]) {
       fflush(stdout);
 
       // Set user interpolation function :
-      CWP_Interp_function_set(code_name[0],
-                              coupling_name,
-                              recv_field_name,
-                              _user_interpolation_function);
+      // CWP_Interp_function_set(code_name[0],
+      //                         coupling_name,
+      //                         recv_field_name,
+      //                         _user_interpolation_function);
 
-      printf("C - CWP_Interp_function_set : OK\n");
-      fflush(stdout);
+      // printf("C - CWP_Interp_function_set : OK\n");
+      // fflush(stdout);
 
     } else {
       // Update mesh :
@@ -562,13 +367,16 @@ main(int argc, char *argv[]) {
   printf("C - CWP_N_uncomputed_tgts_get : OK\n");
   fflush(stdout);
 
-  int *uncomputed_tgts = CWP_Uncomputed_tgts_get(code_name[0],
-                                                 coupling_name,
-                                                 recv_field_name,
-                                                 0);
+  int *uncomputed_tgts = NULL;
+  if (n_uncomputed_tgts != 0) {
+    uncomputed_tgts = CWP_Uncomputed_tgts_get(code_name[0],
+                                              coupling_name,
+                                              recv_field_name,
+                                              0);
 
-  printf("C - CWP_Uncomputed_tgts_get : OK\n");
-  fflush(stdout);
+    printf("C - CWP_Uncomputed_tgts_get : OK\n");
+    fflush(stdout);
+  }
 
   PDM_UNUSED(n_uncomputed_tgts);
   PDM_UNUSED(uncomputed_tgts);
@@ -609,8 +417,8 @@ main(int argc, char *argv[]) {
   free(time_init);
   free(coupled_code_name);
   free(coords);
-  free(connec_idx);
-  free(connec);
+  free(elt_vtx_idx);
+  free(elt_vtx);
   free(send_field_data);
   free(recv_field_data);
 
