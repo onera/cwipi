@@ -34,8 +34,8 @@ program fortran_new_api_deformable_sol
   double precision,     dimension(:), pointer :: xyz_dest
   integer(c_long),      dimension(:), pointer :: pts_g_num => null()
 
-  integer,                            pointer :: connec_idx(:)
-  integer,                            pointer :: connec(:)
+  integer,                            pointer :: elt_vtx_idx(:)
+  integer,                            pointer :: elt_vtx(:)
   integer(c_long),      dimension(:), pointer :: elt_g_num => null()
   integer(c_int)                              :: id_block
 
@@ -104,7 +104,7 @@ program fortran_new_api_deformable_sol
   ! Create the coupling :
   ! CWP_DYNAMIC_MESH_DEFORMABLE allows us to take into account the modifications
   ! to the mesh over the coupling steps.
-  coupling_name     = "code1_code2"
+  coupling_name     = "coupling"
   allocate(coupled_code_names(n_code))
   coupled_code_names(1) = "code2"
   n_part = 1;
@@ -134,8 +134,8 @@ program fortran_new_api_deformable_sol
                                               n_vtx,          &
                                               n_elt,          &
                                               coords,         &
-                                              connec_idx,     &
-                                              connec)
+                                              elt_vtx_idx,     &
+                                              elt_vtx)
 
   print *, "FORTRAN - grid_mesh : OK"
 
@@ -147,6 +147,7 @@ program fortran_new_api_deformable_sol
   phi   = 0.1d0
   time  = 0.0d0
   dt    = 0.1d0
+
   omega = 2.0d0*acos(-1.0d0)*freq
 
   allocate(send_field_data(n_elt))
@@ -168,10 +169,10 @@ program fortran_new_api_deformable_sol
 
     do  i = 1, n_elt
       send_field_data(i) = 0.
-      do j = connec_idx(i)+1, connec_idx(i+1)
-        send_field_data(i) = send_field_data(i) + coords((connec(j)-1)*3+3)
+      do j = elt_vtx_idx(i)+1, elt_vtx_idx(i+1)
+        send_field_data(i) = send_field_data(i) + coords((elt_vtx(j)-1)*3+3)
       enddo
-      send_field_data(i) = send_field_data(i)/ (connec_idx(i+1) - connec_idx(i))
+      send_field_data(i) = send_field_data(i)/ (elt_vtx_idx(i+1) - elt_vtx_idx(i))
     enddo
 
     if (it == itdeb) then
@@ -198,17 +199,47 @@ program fortran_new_api_deformable_sol
                                             0,             &
                                             id_block,      &
                                             n_elt,         &
-                                            connec_idx,    &
-                                            connec,        &
+                                            elt_vtx_idx,    &
+                                            elt_vtx,        &
                                             elt_g_num)
 
       print *, "FORTRAN - CWP_Mesh_interf_f_poly_block_set : OK"
 
-      ! Finalize mesh :
-      call CWP_Mesh_interf_finalize(code_names(1), &
-                                    coupling_name)
+    endif
 
-      print *, "FORTRAN - CWP_Mesh_interf_finalize : OK"
+    ! Update user defined degrees of freedom :
+    ! When CWP_DOF_LOCATION_USER, calling CWP_User_tgt_pts_set is mandatory.
+
+    do i = 1, n_elt
+       xyz_dest((i-1)*3+1) = 0.
+       xyz_dest((i-1)*3+2) = 0.
+       xyz_dest((i-1)*3+3) = 0.
+       do j = elt_vtx_idx(i)+1, elt_vtx_idx(i+1)
+           xyz_dest((i-1)*3+1) = xyz_dest((i-1)*3+1) + coords((elt_vtx(j)-1)*3+1)
+           xyz_dest((i-1)*3+2) = xyz_dest((i-1)*3+2) + coords((elt_vtx(j)-1)*3+2)
+           xyz_dest((i-1)*3+3) = xyz_dest((i-1)*3+3) + coords((elt_vtx(j)-1)*3+3)
+       enddo
+       xyz_dest((i-1)*3+1) = xyz_dest((i-1)*3+1) / (elt_vtx_idx(i+1) - elt_vtx_idx(i))
+       xyz_dest((i-1)*3+2) = xyz_dest((i-1)*3+2) / (elt_vtx_idx(i+1) - elt_vtx_idx(i))
+       xyz_dest((i-1)*3+3) = xyz_dest((i-1)*3+3) / (elt_vtx_idx(i+1) - elt_vtx_idx(i))
+    enddo
+
+    call CWP_User_tgt_pts_set(code_names(1), &
+                              coupling_name, &
+                              0,             &
+                              n_elt,         &
+                              xyz_dest,      &
+                              pts_g_num)
+
+    print *, "FORTRAN - CWP_User_tgt_pts_set : OK"
+
+    ! Finalize mesh :
+    call CWP_Mesh_interf_finalize(code_names(1), &
+                                  coupling_name)
+
+    print *, "FORTRAN - CWP_Mesh_interf_finalize : OK"
+
+    if (it == itdeb) then
 
       ! Create field :
       call CWP_Field_create(code_names(1),                &
@@ -217,7 +248,7 @@ program fortran_new_api_deformable_sol
                             CWP_DOUBLE,                   &
                             CWP_FIELD_STORAGE_INTERLACED, &
                             n_components,                 &
-                            CWP_DOF_LOCATION_CELL_CENTER, & ! CWP_DOF_LOCATION_USER,        &
+                            CWP_DOF_LOCATION_USER,        &
                             CWP_FIELD_EXCH_SEND,          &
                             CWP_STATUS_ON)
 
@@ -229,7 +260,7 @@ program fortran_new_api_deformable_sol
                             CWP_DOUBLE,                   &
                             CWP_FIELD_STORAGE_INTERLACED, &
                             n_components,                 &
-                            CWP_DOF_LOCATION_CELL_CENTER, & ! CWP_DOF_LOCATION_USER,        &
+                            CWP_DOF_LOCATION_USER,        &
                             CWP_FIELD_EXCH_RECV,          &
                             CWP_STATUS_ON)
 
@@ -243,40 +274,7 @@ program fortran_new_api_deformable_sol
                                            "0.1")
 
       print *, "FORTRAN - CWP_Spatial_interp_property_set : OK"
-
     endif
-
-    ! Update user defined degrees of freedom :
-    ! When CWP_DOF_LOCATION_USER, calling CWP_User_tgt_pts_set is mandatory.
-
-    ! do i = 1, n_elt
-    !    xyz_dest((i-1)*3+1) = 0.
-    !    xyz_dest((i-1)*3+2) = 0.
-    !    xyz_dest((i-1)*3+3) = 0.
-    !    do j = connec_idx(i)+1, connec_idx(i+1)
-    !        xyz_dest((i-1)*3+1) = xyz_dest((i-1)*3+1) + coords((connec(j)-1)*3+1)
-    !        xyz_dest((i-1)*3+2) = xyz_dest((i-1)*3+2) + coords((connec(j)-1)*3+2)
-    !        xyz_dest((i-1)*3+3) = xyz_dest((i-1)*3+3) + coords((connec(j)-1)*3+3)
-    !    enddo
-    !    xyz_dest((i-1)*3+1) = xyz_dest((i-1)*3+1) / (connec_idx(i+1) - connec_idx(i))
-    !    xyz_dest((i-1)*3+2) = xyz_dest((i-1)*3+2) / (connec_idx(i+1) - connec_idx(i))
-    !    xyz_dest((i-1)*3+3) = xyz_dest((i-1)*3+3) / (connec_idx(i+1) - connec_idx(i))
-    ! enddo
-
-    ! call CWP_User_tgt_pts_set(code_names(1), &
-    !                           coupling_name, &
-    !                           0,             &
-    !                           n_elt,         &
-    !                           xyz_dest,      &
-    !                           pts_g_num)
-
-    ! print *, "FORTRAN - CWP_User_tgt_pts_set : OK"
-
-    ! Finalize mesh :
-    ! call CWP_Mesh_interf_finalize(code_names(1), &
-    !                               coupling_name)
-
-    ! print *, "FORTRAN - CWP_Mesh_interf_finalize : OK"
 
     ! Compute interpolation weights :
     call CWP_Spatial_interp_weights_compute(code_names(1), &

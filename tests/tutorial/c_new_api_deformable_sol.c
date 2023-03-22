@@ -134,14 +134,14 @@ main(int argc, char *argv[]) {
            time_init,
            intra_comm);
 
-  printf("C - CWP_Init : OK\n");
+  printf("C - CWP_Init on %d : OK\n", i_rank);
   fflush(stdout);
 
   // Create the coupling :
   // CWP_DYNAMIC_MESH_DEFORMABLE allows us to take into account the modifications
   // to the mesh over the coupling steps.
   int n_part = 1;
-  const char  *coupling_name     = "code1_code2";
+  const char  *coupling_name     = "coupling";
   const char **coupled_code_name = malloc(sizeof(char *) * n_code);
   coupled_code_name[0] = "code1";
   CWP_Cpl_create(code_name[0],
@@ -170,7 +170,7 @@ main(int argc, char *argv[]) {
   // Create mesh :
   int     n_vtx = 0;
   int     n_elt = 0;
-  double *coords     = NULL;
+  double *coords      = NULL;
   int    *elt_vtx_idx = NULL;
   int    *elt_vtx     = NULL;
   PDM_generate_mesh_rectangle_simplified(PDM_MPI_mpi_2_pdm_mpi_comm((void *) &intra_comm[0]),
@@ -190,11 +190,11 @@ main(int argc, char *argv[]) {
   double     *send_field_data = malloc(sizeof(double) * n_vtx);
   double     *recv_field_data = malloc(sizeof(double) * n_vtx);
 
-  const int    itdeb =  1;
-  const int    itend =  50;
-  const double freq  =  0.20;
-  const double ampl  =  0.012;
-  const double phi   =  0.1;
+  const int    itdeb = 1;
+  const int    itend = 50;
+  const double freq  = 0.20;
+  const double ampl  = 0.012;
+  const double phi   = 0.1;
   double       ttime = 0.0;
   double       dt    = 0.1;
 
@@ -288,13 +288,13 @@ main(int argc, char *argv[]) {
       fflush(stdout);
 
       // Set user interpolation function :
-      // CWP_Interp_function_set(code_name[0],
-      //                         coupling_name,
-      //                         recv_field_name,
-      //                         _user_interpolation_function);
+      CWP_Interp_function_set(code_name[0],
+                              coupling_name,
+                              recv_field_name,
+                              _user_interpolation_function);
 
-      // printf("C - CWP_Interp_function_set : OK\n");
-      // fflush(stdout);
+      printf("C - CWP_Interp_function_set : OK\n");
+      fflush(stdout);
 
     } else {
       // Update mesh :
