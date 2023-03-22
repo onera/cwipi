@@ -158,14 +158,14 @@ main(int argc, char *argv[]) {
   fflush(stdout);
 
   // Set coupling visualisation:
-  CWP_Visu_set(code_name[0],
-               coupling_name,
-               1,
-               CWP_VISU_FORMAT_ENSIGHT,
-               "text");
+  // CWP_Visu_set(code_name[0],
+  //              coupling_name,
+  //              1,
+  //              CWP_VISU_FORMAT_ENSIGHT,
+  //              "text");
 
-  printf("C - CWP_Visu_set : OK\n");
-  fflush(stdout);
+  // printf("C - CWP_Visu_set : OK\n");
+  // fflush(stdout);
 
   // Create mesh :
   int     n_vtx = 0;
@@ -287,14 +287,14 @@ main(int argc, char *argv[]) {
       printf("C - CWP_Spatial_interp_property_set : OK\n");
       fflush(stdout);
 
-      // Set user interpolation function :
-      CWP_Interp_function_set(code_name[0],
-                              coupling_name,
-                              recv_field_name,
-                              _user_interpolation_function);
+      // // Set user interpolation function :
+      // CWP_Interp_function_set(code_name[0],
+      //                         coupling_name,
+      //                         recv_field_name,
+      //                         _user_interpolation_function);
 
-      printf("C - CWP_Interp_function_set : OK\n");
-      fflush(stdout);
+      // printf("C - CWP_Interp_function_set : OK\n");
+      // fflush(stdout);
 
     } else {
       // Update mesh :

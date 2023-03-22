@@ -48,10 +48,9 @@ program fortran_new_api_deformable_sol
   double precision                            :: freq
   double precision                            :: omega
   double precision                            :: phi
-  double precision                            :: randLevel
   double precision                            :: time
   integer                                     :: i, j, it, itdeb, itend, n2, n_partition
-  integer                                     :: n_vtx_seg, n_vtx, n_elt
+  integer                                     :: n_vtx, n_elt
 
   double precision,                   pointer :: send_field_data(:) => null()
   double precision,                   pointer :: recv_field_data(:) => null()
@@ -121,13 +120,13 @@ program fortran_new_api_deformable_sol
   print *, "FORTRAN - CWP_Cpl_create : OK"
 
   ! Set coupling visualisation:
-  call CWP_Visu_set(code_names(1),           &
-                    coupling_name,           &
-                    1,                       &
-                    CWP_VISU_FORMAT_ENSIGHT, &
-                    "text")
+  ! call CWP_Visu_set(code_names(1),           &
+  !                   coupling_name,           &
+  !                   1,                       &
+  !                   CWP_VISU_FORMAT_ENSIGHT, &
+  !                   "text")
 
-  print *, "FORTRAN - CWP_Visu_set : OK"
+  ! print *, "FORTRAN - CWP_Visu_set : OK"
 
   ! Create mesh :
   call PDM_generate_mesh_rectangle_simplified(intra_comms(1), &
@@ -239,6 +238,7 @@ program fortran_new_api_deformable_sol
 
     print *, "FORTRAN - CWP_Mesh_interf_finalize : OK"
 
+    n_components = 1
     if (it == itdeb) then
 
       ! Create field :
