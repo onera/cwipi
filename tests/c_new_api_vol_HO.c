@@ -459,6 +459,10 @@ main
 
   assert(n_rank > 1);
 
+
+  int elt_dim = PDM_Mesh_nodal_elt_dim_get(elt_type);
+
+
   // Initialize CWIPI
   const char **code_name         = malloc(sizeof(char *) * 2);
   const char **coupled_code_name = malloc(sizeof(char *) * 2);
@@ -524,7 +528,7 @@ main
     cwipi_create_coupling(cpl_name,                                  // Coupling id
                           CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                           coupled_code_name[0],                      // Coupled application id
-                          3,                                         // Geometric entities dimension
+                          elt_dim,                                   // Geometric entities dimension
                           tolerance,                                 // Geometric tolerance
                           CWIPI_STATIC_MESH,                         // Mesh type
                           CWIPI_SOLVER_CELL_VERTEX,                  // Solver type
@@ -537,7 +541,7 @@ main
       CWP_Cpl_create(code_name[i_code],                                     // Code name
                      cpl_name,                                              // Coupling id
                      coupled_code_name[i_code],                             // Coupled application id
-                     CWP_INTERFACE_VOLUME,
+                     (CWP_Interface_t) elt_dim,
                      CWP_COMM_PAR_WITH_PART,                                // Coupling type
                      spatial_interp,
                      n_part,                                                // Number of partitions
